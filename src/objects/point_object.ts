@@ -1,5 +1,4 @@
 import type { construction } from "../construction";
-import type { PointerEventLike } from "../dom";
 import type { PrefKey } from "../preferences";
 import type { Vec2, Vec3 } from "../vec";
 import { construction_object } from "./construction_object";
@@ -65,14 +64,14 @@ export class point_object extends construction_object {
         this.screen = this.C.pt3D(this.coords);
     }
 
-    mousedrag(ev: PointerEventLike): void {
+    mousedrag(ev: PointerEvent): void {
         this.screen = [ev.pageX, ev.pageY];
         this.coords = this.C.bidon(this);
         this.computeAndDrawChilds();
         this.draw();
     }
 
-    mouseclick(_ev: PointerEventLike): void {
+    mouseclick(_ev: PointerEvent): void {
         this.removeSVG();
     }
 
@@ -104,8 +103,10 @@ export class point_object extends construction_object {
             .att("y", t.y - s1)
             .att("width", s2)
             .att("height", s2)
-            .stl("overflow:visible")
-            .bindEvents(t);
+            .stl("overflow:visible");
+        t.dom
+            .drag((event) => t.mousedrag(event))
+            .tap((event) => t.mouseclick(event));
 
         switch (t.shape) {
             case p.rect:

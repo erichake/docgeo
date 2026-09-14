@@ -1,12 +1,12 @@
 import type { construction } from "../construction";
-import type { DElt } from "../dom";
+import type { DOMElement } from "../dom";
 import type { ObjectPref, PrefKey, Preferences } from "../preferences";
 
 export class construction_object {
     class: typeof construction_object;
     C: construction;
     prefs: Preferences;
-    svg: DElt;
+    svg: DOMElement;
     type: PrefKey;
     familytype: string;
     name: string;
@@ -15,7 +15,7 @@ export class construction_object {
     fill_color: string;
     stroke_color: string;
     layer: number;
-    dom: DElt | null;
+    dom: DOMElement | null;
     childs: construction_object[];
     parents: construction_object[];
     hidden: number; // 0:show  ,   1:hidden    ,   2:super-hidden
@@ -109,7 +109,7 @@ export class construction_object {
 
     removeSVG(): void {
         if (this.dom) {
-            this.dom.removeAll();
+            this.dom.dispose();
             this.dom = null;
         }
     }

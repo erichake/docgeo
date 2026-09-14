@@ -1,5 +1,4 @@
 import type { construction } from "../construction";
-import type { PointerEventLike } from "../dom";
 import { vAdd, vScale } from "../vec";
 import { point_object } from "./point_object";
 
@@ -21,7 +20,7 @@ export class midpoint_object extends point_object {
         super.compute();
     }
 
-    mousedrag(_ev: PointerEventLike): void {}
+    mousedrag(_ev: PointerEvent): void {}
 
     static create(c: construction, name: string | null | undefined, p1: point_object, p2: point_object): midpoint_object {
         return c.add(new midpoint_object(c, name, p1, p2)) as midpoint_object;

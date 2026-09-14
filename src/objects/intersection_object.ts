@@ -1,5 +1,4 @@
 import type { construction } from "../construction";
-import type { PointerEventLike } from "../dom";
 import { numEqual, rnd0, vAdd, vScale } from "../vec";
 import { point_object } from "./point_object";
 import type { primitive_line_object } from "./primitive_line_object";
@@ -39,7 +38,7 @@ export class intersection_object extends point_object {
         super.compute();
     }
 
-    mousedrag(_ev: PointerEventLike): void {}
+    mousedrag(_ev: PointerEvent): void {}
 
     static create(
         c: construction,

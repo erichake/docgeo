@@ -14,7 +14,7 @@ class dgpadpro {
     document(): void {
         $("html").stl("width:100%;height:100%");
         $("body")
-            .stl("width:100%;height:100%;margin:0;overflow:hidden;-ms-touch-action:none")
+            .stl("width:100%;height:100%;margin:0;overflow:hidden;touch-action:none")
             .att("oncontextmenu", "return false;");
     }
 }
