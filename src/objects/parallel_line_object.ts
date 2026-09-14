@@ -1,4 +1,5 @@
 import type { construction } from "../construction";
+import type { Vec3 } from "../vec";
 import type { point_object } from "./point_object";
 import { primitive_line_object } from "./primitive_line_object";
 
@@ -17,8 +18,8 @@ export class parallel_line_object extends primitive_line_object {
         this.createSVG(); // init this.dom
     }
 
-    computeVEC(): void {
-        this.VEC = this.D.VEC;
+    computeVEC(): Vec3 | null {
+        return this.D.defined ? [...this.D.VEC] : null;
     }
 
     static create(

@@ -1,4 +1,5 @@
 import type { construction } from "../construction";
+import { geometryTolerance, vNorm, vNormalize, vSub } from "../vec";
 import type { point_object } from "./point_object";
 import { two_points_line_object } from "./two_points_line_object";
 
@@ -22,8 +23,16 @@ export class segment_object extends two_points_line_object {
     }
 
     compute(): void {
-        this.computeVEC();
+        super.compute();
+        if (!this.defined || !this.projectionDefined) return;
         this.sP1 = this.P1.screen;
         this.sP2 = this.P2.screen;
+        this.projectionDefined = vNormalize(vSub(this.sP2, this.sP1)) !== null;
+    }
+
+    insideBounds(parameter: number): boolean {
+        const length = vNorm(vSub(this.P2.coords, this.P1.coords));
+        const tolerance = geometryTolerance(length);
+        return parameter >= -tolerance && parameter <= length + tolerance;
     }
 }

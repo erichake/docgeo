@@ -1,4 +1,5 @@
 import type { construction } from "../construction";
+import { geometryTolerance, vNorm, vSub } from "../vec";
 import type { point_object } from "./point_object";
 import { two_points_line_object } from "./two_points_line_object";
 
@@ -14,7 +15,13 @@ export class ray_line_object extends two_points_line_object {
 
     compute(): void {
         super.compute();
+        if (!this.defined || !this.projectionDefined) return;
         this.sP1 = this.P1.screen;
+    }
+
+    insideBounds(parameter: number): boolean {
+        const scale = vNorm(vSub(this.P2.coords, this.P1.coords));
+        return parameter >= -geometryTolerance(scale);
     }
 
     static create(

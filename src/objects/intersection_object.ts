@@ -1,5 +1,15 @@
 import type { construction } from "../construction";
-import { numEqual, rnd0, vAdd, vScale } from "../vec";
+import {
+    GEOMETRY_EPSILON,
+    geometryTolerance,
+    vAdd,
+    vCross,
+    vDot,
+    vIsFinite,
+    vNorm,
+    vScale,
+    vSub,
+} from "../vec";
 import { point_object } from "./point_object";
 import type { primitive_line_object } from "./primitive_line_object";
 
@@ -26,25 +36,37 @@ export class intersection_object extends point_object {
         ];
     }
 
-    // Compute line/line intersection :
     line_line(): void {
+        this.defined = false;
+        if (!this.O1.defined || !this.O2.defined) return;
+
         const p = this.O1.P1.coords,
             u = this.O1.VEC,
             m = this.O2.P1.coords,
             v = this.O2.VEC;
-        const ks: number[] = [];
-        let k = NaN;
-        for (let i = 0; i < 3; i++) {
-            const j = (i + 1) % 3;
-            const d = v[i] * u[j] - v[j] * u[i];
-            k = (v[i] * (m[j] - p[j]) - v[j] * (m[i] - p[i])) / rnd0(d);
-            if (isFinite(k)) ks.push(k);
+        const normal = vCross(u, v);
+        const denominator = vDot(normal, normal);
+        if (denominator <= GEOMETRY_EPSILON * GEOMETRY_EPSILON) return;
+
+        const betweenOrigins = vSub(m, p);
+        const parameter1 =
+            vDot(vCross(betweenOrigins, v), normal) / denominator;
+        const parameter2 =
+            vDot(vCross(betweenOrigins, u), normal) / denominator;
+        const point1 = vAdd(p, vScale(u, parameter1));
+        const point2 = vAdd(m, vScale(v, parameter2));
+        if (!vIsFinite(point1) || !vIsFinite(point2)) return;
+
+        if (
+            vNorm(vSub(point1, point2)) >
+                geometryTolerance(vNorm(point1), vNorm(point2)) ||
+            !this.O1.insideBounds(parameter1) ||
+            !this.O2.insideBounds(parameter2)
+        ) {
+            return;
         }
-        k =
-            ks.length > 0
-                ? ks.reduce((a, b) => (numEqual(a, b) ? a : NaN))
-                : NaN;
-        this.coords = vAdd(p, vScale(u, k));
+
+        this.coords = vScale(vAdd(point1, point2), 0.5);
         super.compute();
     }
 

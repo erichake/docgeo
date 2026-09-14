@@ -18,7 +18,7 @@ s'enrichit.
 
 ## Priorité 1 — Robustesse géométrique
 
-### [ ] Sécuriser la normalisation des vecteurs
+### [x] Sécuriser la normalisation des vecteurs
 
 **Constat**
 
@@ -27,14 +27,15 @@ un vecteur contenant des `NaN`.
 
 **Piste**
 
-- Ajouter une normalisation sûre, par exemple :
+- `vNormalize()` renvoie désormais `null` lorsque la norme est nulle ou non
+  finie :
 
     ```ts
-    function vNormalizeSafe(v: Vec3, epsilon = 1e-12): Vec3 | null;
+    function vNormalize<T extends readonly number[]>(v: T): T | null;
     ```
 
-- Décider si un vecteur nul doit être représenté par `null`, par un état de
-  validité sur l'objet, ou par un type dédié.
+- Un vecteur nul est représenté par `null` et rend l'objet géométrique
+  `defined = false`.
 - Éviter de transmettre des coordonnées non finies au SVG.
 
 **Critères de validation**
@@ -44,7 +45,7 @@ un vecteur contenant des `NaN`.
 - Une droite dégénérée possède un état défini et un rendu cohérent, par exemple
   masqué.
 
-### [ ] Distinguer dégénérescence géométrique et dégénérescence de projection
+### [x] Distinguer dégénérescence géométrique et dégénérescence de projection
 
 **Constat**
 
@@ -62,7 +63,7 @@ mais normalise ensuite le vecteur projeté sans vérifier qu'il est non nul.
 
 - Orienter la caméra dans l'axe d'une droite ne produit aucune valeur non finie.
 
-### [ ] Remplacer et sécuriser `construction.bidon()`
+### [x] Remplacer et sécuriser `construction.bidon()`
 
 **Constat**
 
@@ -72,8 +73,8 @@ actuellement autorisée par la caméra.
 
 **Piste**
 
-- Renommer la méthode, par exemple `screenToPlane()` ou `unprojectToPlane()`.
-- Lui donner explicitement le plan de déplacement.
+- La méthode est devenue `unprojectToZPlane()` et reçoit explicitement la cote
+  du plan de déplacement.
 - Tester le déterminant avec une tolérance et renvoyer `Vec3 | null` si
   l'inversion est impossible.
 - À terme, modéliser le déplacement comme l'intersection d'un rayon de vue avec
@@ -85,7 +86,7 @@ actuellement autorisée par la caméra.
   projection est inversible.
 - Une orientation singulière est gérée sans division par zéro.
 
-### [ ] Formaliser la validité des objets
+### [x] Formaliser la validité des objets
 
 **Constat**
 
@@ -99,13 +100,13 @@ points confondus, intersection de droites parallèles, droites gauches, etc.
 - Masquer proprement les objets indéfinis tout en les conservant dans le graphe de
   construction pour qu'ils puissent redevenir valides.
 
-### [ ] Terminer les contraintes de segment et de demi-droite
+### [x] Terminer les contraintes de segment et de demi-droite
 
 **Constat**
 
-`InsideBounds()` existe sur les droites primitives, mais n'est pas encore
-surchargée par `segment_object` et `ray_line_object`. Une intersection impliquant
-un segment utilise donc actuellement sa droite support.
+Avant correction, `InsideBounds()` existait sur les droites primitives, mais
+n'était pas surchargée par `segment_object` et `ray_line_object`. Une intersection
+impliquant un segment utilisait donc sa droite support.
 
 **Piste**
 

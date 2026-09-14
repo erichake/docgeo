@@ -1,6 +1,6 @@
 import type { construction } from "../construction";
 import type { PrefKey } from "../preferences";
-import type { Vec2, Vec3 } from "../vec";
+import { vIsFinite, type Vec2, type Vec3 } from "../vec";
 import { construction_object } from "./construction_object";
 
 export class point_object extends construction_object {
@@ -16,12 +16,13 @@ export class point_object extends construction_object {
         type?: PrefKey,
     ) {
         super(c, name, type ? type : "point");
-        this.COORDS = [pt[0], pt[1], pt[2] ? pt[2] : 0];
-        this.SCREEN = c.pt3D(this.COORDS);
+        this.COORDS = [pt[0], pt[1], pt[2]];
+        this.SCREEN = [0, 0];
 
         this.shape = this.prefs.point.shape.current;
         this.border = this.prefs[this.type].border;
 
+        this.computeScreen();
         this.createSVG(); // init this.dom
     }
 
@@ -66,12 +67,24 @@ export class point_object extends construction_object {
     }
 
     compute(): void {
-        this.screen = this.C.pt3D(this.coords);
+        this.computeScreen();
+    }
+
+    private computeScreen(): void {
+        if (!vIsFinite(this.COORDS)) {
+            this.defined = false;
+            return;
+        }
+        const screen = this.C.pt3D(this.COORDS);
+        this.defined = vIsFinite(screen);
+        if (this.defined) this.screen = screen;
     }
 
     mousedrag(ev: PointerEvent): void {
-        this.screen = [ev.pageX, ev.pageY];
-        this.coords = this.C.bidon(this);
+        const coords = this.C.unprojectToZPlane([ev.pageX, ev.pageY], this.z);
+        if (!coords) return;
+        this.coords = coords;
+        this.compute();
         this.computeAndDrawChilds();
         this.draw();
     }
@@ -93,9 +106,9 @@ export class point_object extends construction_object {
     // *************************************************
 
     draw(): void {
-        this.dom!.att("x", this.sx - this.size)
-            .att("y", this.sy - this.size)
-            .stl("display", this.isHidden ? "none" : "block");
+        this.dom!.stl("display", this.isVisible ? "block" : "none");
+        if (!this.defined) return;
+        this.dom!.att("x", this.sx - this.size).att("y", this.sy - this.size);
     }
 
     dragSVG(t: Vec2): void {
@@ -110,8 +123,8 @@ export class point_object extends construction_object {
 
         t.dom = t.svg
             .shape("svg")
-            .att("x", t.x - s1)
-            .att("y", t.y - s1)
+            .att("x", t.sx - s1)
+            .att("y", t.sy - s1)
             .att("width", s2)
             .att("height", s2)
             .stl("overflow:visible");

@@ -19,6 +19,7 @@ export class construction_object {
     childs: construction_object[];
     parents: construction_object[];
     hidden: number; // 0:show  ,   1:hidden    ,   2:super-hidden
+    defined: boolean;
 
     constructor(
         c: construction,
@@ -44,10 +45,15 @@ export class construction_object {
         this.childs = [];
         this.parents = [];
         this.hidden = 0;
+        this.defined = true;
     }
 
     get isHidden(): boolean {
         return this.hidden > 0;
+    }
+
+    get isVisible(): boolean {
+        return this.defined && !this.isHidden;
     }
 
     childLength(): number {

@@ -7,7 +7,14 @@ import { segment_object } from "./objects/segment_object";
 import { two_points_line_object } from "./objects/two_points_line_object";
 import { objects_collector } from "./objects_collector";
 import type { preferences, Preferences } from "./preferences";
-import { vScale, vSub, type Vec2, type Vec3 } from "./vec";
+import {
+    GEOMETRY_EPSILON,
+    vNorm,
+    vScale,
+    vSub,
+    type Vec2,
+    type Vec3,
+} from "./vec";
 
 export interface DgpadLike {
     prefs: preferences;
@@ -36,7 +43,9 @@ export class construction {
     mouseclick(_ev: PointerEvent): void {
         const p1 = point_object.create(this, null, [1, 1, 0]);
         const p2 = point_object.create(this, null, [-2, 0, 0]);
-        const d1 = segment_object.create(this, null, p2, p1);
+        segment_object.create(this, null, p2, p1);
+        const d1 = two_points_line_object.create(this, null, p2, p1);
+        d1.hidden = 1;
         const p3 = point_object.create(this, null, [5, 4, 0]);
         const p4 = point_object.create(this, null, [1, -3, 0]);
         const d2 = two_points_line_object.create(this, null, p3, p4);
@@ -95,20 +104,21 @@ export class construction {
         ];
     }
 
-    bidon(pt: point_object): Vec3 {
+    unprojectToZPlane(screen: Vec2, z: number): Vec3 | null {
         const o = this.GRID.ORG;
         const ijk = this.GRID.screenIJK;
 
-        // H est le projeté de _pt sur le plan x0y (en coordonnées écran) :
-        const H = vSub([pt.sx, pt.sy], vScale(vSub(ijk[2], o), pt.z));
+        const H = vSub(screen, vScale(vSub(ijk[2], o), z));
 
         const OH = vSub(H, o);
         const OX = vSub(ijk[0], o);
         const OY = vSub(ijk[1], o);
         const delta = OX[0] * OY[1] - OX[1] * OY[0];
+        const scale = vNorm(OX) * vNorm(OY);
+        if (Math.abs(delta) <= GEOMETRY_EPSILON * scale) return null;
         const x = (OH[0] * OY[1] - OH[1] * OY[0]) / delta;
         const y = (OX[0] * OH[1] - OX[1] * OH[0]) / delta;
-        return [x, y, pt.z];
+        return [x, y, z];
     }
 
     // *************************************************

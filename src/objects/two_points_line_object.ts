@@ -1,6 +1,6 @@
 import type { construction } from "../construction";
 import type { PrefKey } from "../preferences";
-import { vNormalize, vSub } from "../vec";
+import { vNormalize, vSub, type Vec3 } from "../vec";
 import type { point_object } from "./point_object";
 import { primitive_line_object } from "./primitive_line_object";
 
@@ -15,14 +15,15 @@ export class two_points_line_object extends primitive_line_object {
         type?: PrefKey,
     ) {
         super(c, name, p1, type);
-        this.VEC = vNormalize(vSub(p2.coords, p1.coords));
         this.P2 = p2;
+        this.VEC = this.computeVEC() ?? [0, 0, 0];
         this.addParents(p2);
         this.createSVG(); // init this.dom
     }
 
-    computeVEC(): void {
-        this.VEC = vNormalize(vSub(this.P2.coords, this.P1.coords));
+    computeVEC(): Vec3 | null {
+        if (!this.P2.defined) return null;
+        return vNormalize(vSub(this.P2.coords, this.P1.coords));
     }
 
     static create(

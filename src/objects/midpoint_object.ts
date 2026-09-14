@@ -21,6 +21,10 @@ export class midpoint_object extends point_object {
     }
 
     compute(): void {
+        if (!this.P1.defined || !this.P2.defined) {
+            this.defined = false;
+            return;
+        }
         this.coords = vScale(vAdd(this.P1.coords, this.P2.coords), 0.5);
         super.compute();
     }
