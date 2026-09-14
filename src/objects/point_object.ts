@@ -9,7 +9,12 @@ export class point_object extends construction_object {
     shape: string;
     border: number | undefined;
 
-    constructor(c: construction, name: string | null | undefined, pt: Vec3, type?: PrefKey) {
+    constructor(
+        c: construction,
+        name: string | null | undefined,
+        pt: Vec3,
+        type?: PrefKey,
+    ) {
         super(c, name, type ? type : "point");
         this.COORDS = [pt[0], pt[1], pt[2] ? pt[2] : 0];
         this.SCREEN = c.pt3D(this.COORDS);
@@ -75,7 +80,11 @@ export class point_object extends construction_object {
         this.removeSVG();
     }
 
-    static create(c: construction, name: string | null | undefined, pt: Vec3): point_object {
+    static create(
+        c: construction,
+        name: string | null | undefined,
+        pt: Vec3,
+    ): point_object {
         return c.add(new point_object(c, name, pt)) as point_object;
     }
 
@@ -84,7 +93,9 @@ export class point_object extends construction_object {
     // *************************************************
 
     draw(): void {
-        this.dom!.att("x", this.sx - this.size).att("y", this.sy - this.size).stl("display", this.isHidden ? "none" : "block");
+        this.dom!.att("x", this.sx - this.size)
+            .att("y", this.sy - this.size)
+            .stl("display", this.isHidden ? "none" : "block");
     }
 
     dragSVG(t: Vec2): void {
@@ -121,7 +132,7 @@ export class point_object extends construction_object {
                         .stl("fill-opacity", t.opacity ?? 0)
                         .stl("stroke", t.stroke_color)
                         .stl("stroke-width", t.border ?? 0)
-                        .stl("cursor:pointer")
+                        .stl("cursor:pointer"),
                 );
                 break;
             case p.circle:
@@ -135,7 +146,7 @@ export class point_object extends construction_object {
                         .stl("fill-opacity", t.opacity ?? 0)
                         .stl("stroke", t.stroke_color)
                         .stl("stroke-width", t.border ?? 0)
-                        .stl("cursor:pointer")
+                        .stl("cursor:pointer"),
                 );
                 break;
             case p.cross: {
@@ -146,7 +157,9 @@ export class point_object extends construction_object {
                         .att("height", s2)
                         .att("x", 0)
                         .att("y", 0)
-                        .stl("stroke-width:0;cursor:pointer;fill:rgba(255,255,255,0)")
+                        .stl(
+                            "stroke-width:0;cursor:pointer;fill:rgba(255,255,255,0)",
+                        ),
                 );
                 let d = "M0 0";
                 d += " L" + s2 + " " + s2;
@@ -158,7 +171,7 @@ export class point_object extends construction_object {
                         .att("d", d)
                         .stl("stroke", t.fill_color)
                         .stl("stroke-width", 2 * (t.border ?? 0))
-                        .stl("cursor:pointer")
+                        .stl("cursor:pointer"),
                 );
                 break;
             }
@@ -176,7 +189,7 @@ export class point_object extends construction_object {
                         .stl("fill-opacity", t.opacity ?? 0)
                         .stl("stroke", t.stroke_color)
                         .stl("stroke-width", t.border ?? 0)
-                        .stl("cursor:pointer")
+                        .stl("cursor:pointer"),
                 );
                 break;
             }

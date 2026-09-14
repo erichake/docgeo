@@ -29,9 +29,9 @@ un vecteur contenant des `NaN`.
 
 - Ajouter une normalisation sûre, par exemple :
 
-  ```ts
-  function vNormalizeSafe(v: Vec3, epsilon = 1e-12): Vec3 | null
-  ```
+    ```ts
+    function vNormalizeSafe(v: Vec3, epsilon = 1e-12): Vec3 | null;
+    ```
 
 - Décider si un vecteur nul doit être représenté par `null`, par un état de
   validité sur l'objet, ou par un type dédié.
@@ -128,10 +128,10 @@ peut alors accéder à `dom === null`.
 - Retirer ce comportement de démonstration ou créer
   `construction.removeObject(object)`.
 - Lors d'une suppression, traiter explicitement :
-  - les parents et enfants ;
-  - `objects_collector.V`, `D` et `O` ;
-  - le DOM et ses événements ;
-  - la stratégie concernant les objets descendants.
+    - les parents et enfants ;
+    - `objects_collector.V`, `D` et `O` ;
+    - le DOM et ses événements ;
+    - la stratégie concernant les objets descendants.
 
 **Critère de validation**
 

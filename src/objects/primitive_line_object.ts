@@ -10,7 +10,12 @@ export class primitive_line_object extends construction_object {
     sP1: Vec2 = [0, 0];
     sP2: Vec2 = [0, 0];
 
-    constructor(c: construction, name: string | null | undefined, p: point_object, type?: PrefKey) {
+    constructor(
+        c: construction,
+        name: string | null | undefined,
+        p: point_object,
+        type?: PrefKey,
+    ) {
         super(c, name, type ? type : "line");
         this.P1 = p;
         this.VEC = [1, 0, 0];
@@ -39,8 +44,14 @@ export class primitive_line_object extends construction_object {
             // which makes it containing the screen.
             // Then compute two intersection points (2D screen) between the line
             // and the circle : sP1 and sP2
-            const sv = vNormalize(vSub(sp, this.C.pt3D(vAdd(this.P1.coords, this.VEC))));
-            const l = this.C.width + this.C.height + Math.abs(sp[0]) + Math.abs(sp[1]);
+            const sv = vNormalize(
+                vSub(sp, this.C.pt3D(vAdd(this.P1.coords, this.VEC))),
+            );
+            const l =
+                this.C.width +
+                this.C.height +
+                Math.abs(sp[0]) +
+                Math.abs(sp[1]);
             this.sP1 = [sp[0] + l * sv[0], sp[1] + l * sv[1]];
             this.sP2 = [sp[0] - l * sv[0], sp[1] - l * sv[1]];
         }
@@ -51,12 +62,24 @@ export class primitive_line_object extends construction_object {
     // *************************************************
 
     draw(): void {
-        const d = "M" + this.sP1[0] + " " + this.sP1[1] + " L" + this.sP2[0] + " " + this.sP2[1];
+        const d =
+            "M" +
+            this.sP1[0] +
+            " " +
+            this.sP1[1] +
+            " L" +
+            this.sP2[0] +
+            " " +
+            this.sP2[1];
         this.dom!.att("d", d).stl("display", this.isHidden ? "none" : "block");
     }
 
     static createSVG(_this: construction_object): void {
         const t = _this as primitive_line_object;
-        t.dom = t.svg.shape("path").stl("stroke", t.stroke_color).stl("stroke-width", t.size).stl("cursor:pointer");
+        t.dom = t.svg
+            .shape("path")
+            .stl("stroke", t.stroke_color)
+            .stl("stroke-width", t.size)
+            .stl("cursor:pointer");
     }
 }

@@ -58,7 +58,9 @@ export class DOMElement {
     }
 
     findAll(query: string): DOMElement[] {
-        return Array.from(this.element.querySelectorAll(query), (element) => $(element));
+        return Array.from(this.element.querySelectorAll(query), (element) =>
+            $(element),
+        );
     }
 
     remove(): this {
@@ -70,9 +72,11 @@ export class DOMElement {
     dispose(): void {
         this.cleanups.forEach((cleanup) => cleanup());
         this.cleanups.clear();
-        this.listeners.splice(0).forEach(({ target, type, listener, options }) => {
-            target.removeEventListener(type, listener, options);
-        });
+        this.listeners
+            .splice(0)
+            .forEach(({ target, type, listener, options }) => {
+                target.removeEventListener(type, listener, options);
+            });
         this.element.remove();
     }
 
@@ -155,7 +159,9 @@ export class DOMElement {
 
     add(...children: Array<Node | DOMElement>): this {
         children.forEach((child) => {
-            this.element.appendChild(child instanceof DOMElement ? child.dom() : child);
+            this.element.appendChild(
+                child instanceof DOMElement ? child.dom() : child,
+            );
         });
         return this;
     }
@@ -170,7 +176,12 @@ export class DOMElement {
     }
 
     shape<K extends keyof SVGElementTagNameMap>(tagName: K): DOMElement {
-        return $(document.createElementNS(this.element.namespaceURI ?? SVG_NAMESPACE, tagName));
+        return $(
+            document.createElementNS(
+                this.element.namespaceURI ?? SVG_NAMESPACE,
+                tagName,
+            ),
+        );
     }
 
     on<K extends keyof GlobalEventHandlersEventMap>(
@@ -180,7 +191,8 @@ export class DOMElement {
     ): EventListener {
         const normalized = normalizeEventOptions(options);
         const listener: EventListener = (event) => {
-            if (normalized.prevent && !normalized.passive) event.preventDefault();
+            if (normalized.prevent && !normalized.passive)
+                event.preventDefault();
             callback(event as GlobalEventHandlersEventMap[K]);
         };
         const nativeOptions: AddEventListenerOptions = {
@@ -200,7 +212,9 @@ export class DOMElement {
     off(type: string, listener: EventListener, capture = false): void {
         this.element.removeEventListener(type, listener, { capture });
         const index = this.listeners.findIndex(
-            (registration) => registration.type === type && registration.listener === listener,
+            (registration) =>
+                registration.type === type &&
+                registration.listener === listener,
         );
         if (index !== -1) this.listeners.splice(index, 1);
     }
@@ -275,7 +289,10 @@ export class DOMElement {
         });
         this.on("pointermove", (event) => {
             if (event.pointerId !== pointerId) return;
-            const delta: PointerDelta = [event.pageX - oldX, event.pageY - oldY];
+            const delta: PointerDelta = [
+                event.pageX - oldX,
+                event.pageY - oldY,
+            ];
             oldX = event.pageX;
             oldY = event.pageY;
             callback(event, delta);
@@ -283,7 +300,10 @@ export class DOMElement {
         this.on("pointerup", (event) => finish(event, false));
         this.on("pointercancel", (event) => finish(event, true));
         this.cleanups.add(() => {
-            if (pointerId !== null && this.element.hasPointerCapture(pointerId)) {
+            if (
+                pointerId !== null &&
+                this.element.hasPointerCapture(pointerId)
+            ) {
                 this.element.releasePointerCapture(pointerId);
             }
             pointerId = null;
@@ -298,14 +318,18 @@ interface Dollar {
     clickRadius: number;
     create<K extends keyof HTMLElementTagNameMap>(tagName: K): DOMElement;
     createSVG(): DOMElement;
-    createShape<K extends keyof SVGElementTagNameMap>(svg: DOMElement, tagName: K): DOMElement;
+    createShape<K extends keyof SVGElementTagNameMap>(
+        svg: DOMElement,
+        tagName: K,
+    ): DOMElement;
 }
 
 function dollar(selector: string | Element | DOMElement): DOMElement {
     if (selector instanceof DOMElement) return selector;
     if (selector instanceof Element) return new DOMElement(selector);
 
-    const element = document.getElementById(selector) ?? document.querySelector(selector);
+    const element =
+        document.getElementById(selector) ?? document.querySelector(selector);
     if (!element) throw new Error(`Element not found: ${selector}`);
     return new DOMElement(element);
 }
@@ -316,9 +340,17 @@ $.clickDelay = 700;
 $.clickRadius = 5;
 $.create = (tagName) => $(document.createElement(tagName));
 $.createSVG = () => $(document.createElementNS(SVG_NAMESPACE, "svg"));
-$.createShape = (svg, tagName) => $(document.createElementNS(svg.dom().namespaceURI ?? SVG_NAMESPACE, tagName));
+$.createShape = (svg, tagName) =>
+    $(
+        document.createElementNS(
+            svg.dom().namespaceURI ?? SVG_NAMESPACE,
+            tagName,
+        ),
+    );
 
-function splitDeclarations(declarations: string): Array<readonly [string, string]> {
+function splitDeclarations(
+    declarations: string,
+): Array<readonly [string, string]> {
     const result: Array<readonly [string, string]> = [];
     declarations.split(";").forEach((declaration) => {
         const separator = declaration.indexOf(":");
@@ -330,7 +362,9 @@ function splitDeclarations(declarations: string): Array<readonly [string, string
     return result;
 }
 
-function normalizeEventOptions(options: boolean | DOMOnOptions): Required<DOMOnOptions> {
+function normalizeEventOptions(
+    options: boolean | DOMOnOptions,
+): Required<DOMOnOptions> {
     if (typeof options === "boolean") {
         return { prevent: options, capture: false, passive: false };
     }
@@ -342,5 +376,7 @@ function normalizeEventOptions(options: boolean | DOMOnOptions): Required<DOMOnO
 }
 
 function isPrimaryAction(event: PointerEvent): boolean {
-    return event.isPrimary && (event.pointerType !== "mouse" || event.button === 0);
+    return (
+        event.isPrimary && (event.pointerType !== "mouse" || event.button === 0)
+    );
 }

@@ -10,153 +10,157 @@ import type { preferences, Preferences } from "./preferences";
 import { vScale, vSub, type Vec2, type Vec3 } from "./vec";
 
 export interface DgpadLike {
-  prefs: preferences;
+    prefs: preferences;
 }
 
 export class construction {
-  static constructions: construction[] = [];
+    static constructions: construction[] = [];
 
-  dgpad: DgpadLike;
-  prefs: Preferences;
-  OBJS: objects_collector;
-  GRID!: grid_object;
-  svg!: DOMElement;
-  canvas!: DOMElement;
+    dgpad: DgpadLike;
+    prefs: Preferences;
+    OBJS: objects_collector;
+    GRID!: grid_object;
+    svg!: DOMElement;
+    canvas!: DOMElement;
 
-  constructor(dgpad: DgpadLike) {
-    this.dgpad = dgpad;
-    this.prefs = dgpad.prefs;
-    // All construction objects :
-    this.OBJS = new objects_collector();
-    this.createCANVAS();
-    this.createSVG();
-    this.GRID = grid_object.create(this);
-  }
+    constructor(dgpad: DgpadLike) {
+        this.dgpad = dgpad;
+        this.prefs = dgpad.prefs;
+        // All construction objects :
+        this.OBJS = new objects_collector();
+        this.createCANVAS();
+        this.createSVG();
+        this.GRID = grid_object.create(this);
+    }
 
-  mouseclick(_ev: PointerEvent): void {
-    const p1 = point_object.create(this, null, [1, 1, 0]);
-    const p2 = point_object.create(this, null, [-2, 0, 0]);
-    const d1 = segment_object.create(this, null, p2, p1);
-    const p3 = point_object.create(this, null, [5, 4, 0]);
-    const p4 = point_object.create(this, null, [1, -3, 0]);
-    const d2 = two_points_line_object.create(this, null, p3, p4);
-    const i1 = intersection_object.create(this, null, d1, d2);
-    const p5 = point_object.create(this, null, [0, -1, 0]);
-    segment_object.create(this, null, i1, p5);
-    this.orderAndDrawAll();
-  }
+    mouseclick(_ev: PointerEvent): void {
+        const p1 = point_object.create(this, null, [1, 1, 0]);
+        const p2 = point_object.create(this, null, [-2, 0, 0]);
+        const d1 = segment_object.create(this, null, p2, p1);
+        const p3 = point_object.create(this, null, [5, 4, 0]);
+        const p4 = point_object.create(this, null, [1, -3, 0]);
+        const d2 = two_points_line_object.create(this, null, p3, p4);
+        const i1 = intersection_object.create(this, null, d1, d2);
+        const p5 = point_object.create(this, null, [0, -1, 0]);
+        segment_object.create(this, null, i1, p5);
+        this.orderAndDrawAll();
+    }
 
-  mousedrag(_ev: PointerEvent, [dx, dy]: PointerDelta): void {
-    const rt = this.GRID.RESTRICT_THETA;
-    const rp = this.GRID.RESTRICT_PHI;
-    this.GRID.THETA = Math.max(
-      Math.min(this.GRID.THETA + dy * this.GRID.STEP, rt[1]),
-      rt[0],
-    );
-    this.GRID.PHI = Math.max(
-      Math.min(this.GRID.PHI + dx * this.GRID.STEP, rp[1]),
-      rp[0],
-    );
-    this.OBJS.compute();
-    this.OBJS.draw();
-  }
+    mousedrag(_ev: PointerEvent, [dx, dy]: PointerDelta): void {
+        const rt = this.GRID.RESTRICT_THETA;
+        const rp = this.GRID.RESTRICT_PHI;
+        this.GRID.THETA = Math.max(
+            Math.min(this.GRID.THETA + dy * this.GRID.STEP, rt[1]),
+            rt[0],
+        );
+        this.GRID.PHI = Math.max(
+            Math.min(this.GRID.PHI + dx * this.GRID.STEP, rp[1]),
+            rp[0],
+        );
+        this.OBJS.compute();
+        this.OBJS.draw();
+    }
 
-  add(obj: construction_object): construction_object {
-    return this.OBJS.add(obj);
-  }
-  getObj(n: string): construction_object | undefined {
-    return this.OBJS.getObj(n);
-  }
+    add(obj: construction_object): construction_object {
+        return this.OBJS.add(obj);
+    }
+    getObj(n: string): construction_object | undefined {
+        return this.OBJS.getObj(n);
+    }
 
-  static create(dgpad: DgpadLike): construction {
-    const c = new construction(dgpad);
-    construction.constructions.push(c);
-    return c;
-  }
+    static create(dgpad: DgpadLike): construction {
+        const c = new construction(dgpad);
+        construction.constructions.push(c);
+        return c;
+    }
 
-  // *************************************************
-  // ********************* 3D PART **********************
-  // *************************************************
+    // *************************************************
+    // ********************* 3D PART **********************
+    // *************************************************
 
-  // _v représente les coordonnées mathématiques
-  // renvoie un tableau à deux éléments : les coordonnées à l'écran
-  pt3D(v: Vec3): Vec2 {
-    const v0 = v[0] * this.GRID.UNIT[0],
-      v1 = v[1] * this.GRID.UNIT[1],
-      v2 = v[2] * this.GRID.UNIT[2],
-      o = this.GRID.ORG,
-      cfi = this.GRID.CPHI,
-      sfi = this.GRID.SPHI,
-      cth = this.GRID.CTHETA,
-      sth = this.GRID.STHETA;
-    return [
-      o[0] + v0 * sfi + v1 * cfi,
-      o[1] + v0 * cfi * sth - v1 * sfi * sth - v2 * cth,
-    ];
-  }
+    // _v représente les coordonnées mathématiques
+    // renvoie un tableau à deux éléments : les coordonnées à l'écran
+    pt3D(v: Vec3): Vec2 {
+        const v0 = v[0] * this.GRID.UNIT[0],
+            v1 = v[1] * this.GRID.UNIT[1],
+            v2 = v[2] * this.GRID.UNIT[2],
+            o = this.GRID.ORG,
+            cfi = this.GRID.CPHI,
+            sfi = this.GRID.SPHI,
+            cth = this.GRID.CTHETA,
+            sth = this.GRID.STHETA;
+        return [
+            o[0] + v0 * sfi + v1 * cfi,
+            o[1] + v0 * cfi * sth - v1 * sfi * sth - v2 * cth,
+        ];
+    }
 
-  bidon(pt: point_object): Vec3 {
-    const o = this.GRID.ORG;
-    const ijk = this.GRID.screenIJK;
+    bidon(pt: point_object): Vec3 {
+        const o = this.GRID.ORG;
+        const ijk = this.GRID.screenIJK;
 
-    // H est le projeté de _pt sur le plan x0y (en coordonnées écran) :
-    const H = vSub([pt.sx, pt.sy], vScale(vSub(ijk[2], o), pt.z));
+        // H est le projeté de _pt sur le plan x0y (en coordonnées écran) :
+        const H = vSub([pt.sx, pt.sy], vScale(vSub(ijk[2], o), pt.z));
 
-    const OH = vSub(H, o);
-    const OX = vSub(ijk[0], o);
-    const OY = vSub(ijk[1], o);
-    const delta = OX[0] * OY[1] - OX[1] * OY[0];
-    const x = (OH[0] * OY[1] - OH[1] * OY[0]) / delta;
-    const y = (OX[0] * OH[1] - OX[1] * OH[0]) / delta;
-    return [x, y, pt.z];
-  }
+        const OH = vSub(H, o);
+        const OX = vSub(ijk[0], o);
+        const OY = vSub(ijk[1], o);
+        const delta = OX[0] * OY[1] - OX[1] * OY[0];
+        const x = (OH[0] * OY[1] - OH[1] * OY[0]) / delta;
+        const y = (OX[0] * OH[1] - OX[1] * OH[0]) / delta;
+        return [x, y, pt.z];
+    }
 
-  // *************************************************
-  // ********************* SVG PART **********************
-  // *************************************************
+    // *************************************************
+    // ********************* SVG PART **********************
+    // *************************************************
 
-  get width(): number {
-    return this.svg.width();
-  }
+    get width(): number {
+        return this.svg.width();
+    }
 
-  get height(): number {
-    return this.svg.height();
-  }
+    get height(): number {
+        return this.svg.height();
+    }
 
-  orderAndDrawAll(): void {
-    this.OBJS.drawSort();
-    this.OBJS.loopD((elt) => this.svg.add(elt.dom!.remove()));
-    this.OBJS.compute();
-    this.OBJS.draw();
-  }
+    orderAndDrawAll(): void {
+        this.OBJS.drawSort();
+        this.OBJS.loopD((elt) => this.svg.add(elt.dom!.remove()));
+        this.OBJS.compute();
+        this.OBJS.draw();
+    }
 
-  createSVG(): void {
-    this.svg = $.createSVG();
-    this.bindSceneEvents(this.svg);
-    $("body").add(
-      this.svg
-        .stl("position:absolute;border: 0px")
-        .att("width:100%;height:100%;x:0;y:0;xmlns:http://www.w3.org/2000/svg"),
-    );
-  }
+    createSVG(): void {
+        this.svg = $.createSVG();
+        this.bindSceneEvents(this.svg);
+        $("body").add(
+            this.svg
+                .stl("position:absolute;border: 0px")
+                .att(
+                    "width:100%;height:100%;x:0;y:0;xmlns:http://www.w3.org/2000/svg",
+                ),
+        );
+    }
 
-  // *************************************************
-  // ******************** CANVAS PART *********************
-  // *************************************************
+    // *************************************************
+    // ******************** CANVAS PART *********************
+    // *************************************************
 
-  createCANVAS(): void {
-    this.canvas = $.create("canvas");
-    this.bindSceneEvents(this.canvas);
-    $("body").add(
-      this.canvas
-        .stl("position:absolute;width:100%;height:100%;margin:0px;border:0px")
-        .stl("background-color", this.prefs.background.color),
-    );
-  }
+    createCANVAS(): void {
+        this.canvas = $.create("canvas");
+        this.bindSceneEvents(this.canvas);
+        $("body").add(
+            this.canvas
+                .stl(
+                    "position:absolute;width:100%;height:100%;margin:0px;border:0px",
+                )
+                .stl("background-color", this.prefs.background.color),
+        );
+    }
 
-  private bindSceneEvents(element: DOMElement): void {
-    element
-      .drag((event, delta) => this.mousedrag(event, delta))
-      .tap((event) => this.mouseclick(event));
-  }
+    private bindSceneEvents(element: DOMElement): void {
+        element
+            .drag((event, delta) => this.mousedrag(event, delta))
+            .tap((event) => this.mouseclick(event));
+    }
 }

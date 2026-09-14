@@ -8,7 +8,12 @@ export class midpoint_object extends point_object {
     P1: point_object;
     P2: point_object;
 
-    constructor(c: construction, name: string | null | undefined, p1: point_object, p2: point_object) {
+    constructor(
+        c: construction,
+        name: string | null | undefined,
+        p1: point_object,
+        p2: point_object,
+    ) {
         super(c, name, [0, 0, 0], "midpoint");
         this.P1 = p1;
         this.P2 = p2;
@@ -22,7 +27,12 @@ export class midpoint_object extends point_object {
 
     mousedrag(_ev: PointerEvent): void {}
 
-    static create(c: construction, name: string | null | undefined, p1: point_object, p2: point_object): midpoint_object {
+    static create(
+        c: construction,
+        name: string | null | undefined,
+        p1: point_object,
+        p2: point_object,
+    ): midpoint_object {
         return c.add(new midpoint_object(c, name, p1, p2)) as midpoint_object;
     }
 }

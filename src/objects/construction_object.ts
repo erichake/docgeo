@@ -20,7 +20,11 @@ export class construction_object {
     parents: construction_object[];
     hidden: number; // 0:show  ,   1:hidden    ,   2:super-hidden
 
-    constructor(c: construction, name: string | null | undefined, type: PrefKey) {
+    constructor(
+        c: construction,
+        name: string | null | undefined,
+        type: PrefKey,
+    ) {
         this.class = this.constructor as typeof construction_object;
         this.C = c;
         this.prefs = c.prefs;

@@ -47,8 +47,14 @@ export class grid_object extends construction_object {
 
     get screenIJK(): [Vec2, Vec2, Vec2] {
         return [
-            [this.ORG[0] + this.UNIT[0] * this.SPHI, this.ORG[1] + this.UNIT[0] * this.CPHI * this.STHETA],
-            [this.ORG[0] + this.UNIT[1] * this.CPHI, this.ORG[1] - this.UNIT[1] * this.SPHI * this.STHETA],
+            [
+                this.ORG[0] + this.UNIT[0] * this.SPHI,
+                this.ORG[1] + this.UNIT[0] * this.CPHI * this.STHETA,
+            ],
+            [
+                this.ORG[0] + this.UNIT[1] * this.CPHI,
+                this.ORG[1] - this.UNIT[1] * this.SPHI * this.STHETA,
+            ],
             [this.ORG[0], this.ORG[1] - this.UNIT[2] * this.CTHETA],
         ];
     }
@@ -72,9 +78,19 @@ export class grid_object extends construction_object {
 
     static createSVG(_this: construction_object): void {
         const t = _this as grid_object;
-        const dom = t.svg.shape("svg").att("x:0;y:0;width:100%;height:100%;overflow:visible");
-        t.axis = t.svg.shape("path").stl("stroke", t.stroke_color).stl("stroke-width", t.size).stl("cursor:pointer");
-        t.oy = t.svg.shape("path").stl("stroke", t.stroke_color).stl("stroke-width", t.size).stl("cursor:pointer");
+        const dom = t.svg
+            .shape("svg")
+            .att("x:0;y:0;width:100%;height:100%;overflow:visible");
+        t.axis = t.svg
+            .shape("path")
+            .stl("stroke", t.stroke_color)
+            .stl("stroke-width", t.size)
+            .stl("cursor:pointer");
+        t.oy = t.svg
+            .shape("path")
+            .stl("stroke", t.stroke_color)
+            .stl("stroke-width", t.size)
+            .stl("cursor:pointer");
         dom.add(t.axis, t.oy);
         t.dom = dom;
         t.svg.add(dom);
