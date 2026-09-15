@@ -1,377 +1,249 @@
-# Pistes d'amélioration de DGPad Pro
+# Feuille de route du lecteur DGPad Pro
 
-Ce document rassemble les améliorations identifiées lors de la première revue du
-prototype. Il doit servir de feuille de route, pas de cahier des charges figé : les
-points peuvent être traités indépendamment et réévalués à mesure que le moteur
-s'enrichit.
+## Objectif actuel
+
+DGPad Pro doit d'abord devenir un **lecteur interactif de fichiers `.dgp`** :
+
+- ouvrir fidèlement des constructions produites par DGPad ;
+- calculer leur graphe géométrique ;
+- restituer leur apparence et leur visibilité ;
+- permettre le déplacement des objets déjà mobiles ;
+- rester robuste et fluide sur des figures contenant plusieurs milliers
+  d'objets.
+
+Le développement des outils de création, des barres d'outils de construction,
+de l'édition de la figure et de l'export est volontairement reporté. Ces travaux
+ne commenceront qu'après validation des critères définis à la fin de ce document.
 
 ## Principes à préserver
 
-- Les objets géométriques possèdent des coordonnées mathématiques 3D natives.
-- La 2D est un cas particulier de la 3D, généralement avec `z = 0`.
-- La projection vers l'écran reste distincte des coordonnées mathématiques.
-- Les objets sont représentés par des éléments SVG persistants, mis à jour plutôt
-  que recréés à chaque image.
-- Le projet reste léger et sans framework tant qu'un framework n'apporte pas de
-  bénéfice concret.
-- Les relations de dépendance entre objets restent explicites.
+- Les coordonnées mathématiques sont nativement 3D ; la 2D correspond
+  généralement au plan `z = 0`.
+- Géométrie, projection et rendu restent trois étapes distinctes.
+- Le format `.dgp` est analysé comme un format déclaratif contrôlé. Son contenu
+  n'est jamais exécuté directement comme du JavaScript.
+- Les relations de dépendance entre objets sont explicites.
+- Seuls les objets ayant besoin d'être affichés doivent occuper le DOM. Un objet
+  auxiliaire masqué peut exister uniquement dans le modèle géométrique.
+- Les éléments SVG visibles sont persistants et mis à jour plutôt que recréés à
+  chaque image.
+- La fidélité avec DGPad est mesurée sur de vraies figures, pas seulement sur des
+  exemples synthétiques.
+
+## Socle technique déjà réalisé
+
+La première revue du prototype a conduit aux améliorations suivantes :
+
+- robustesse des vecteurs, tolérances géométriques et états indéfinis ;
+- distinction entre validité géométrique et validité de projection ;
+- intersections de droites 3D respectant segments et demi-droites ;
+- cycle de vie cohérent des objets et de leurs vues SVG ;
+- groupes SVG persistants par calque et zones de capture dédiées ;
+- Pointer Events et conversion correcte des coordonnées écran/SVG ;
+- graphe de dépendances direct et invalidation regroupée par
+  `requestAnimationFrame` ;
+- séparation `computeGeometry()`, `project()` et `render()` ;
+- factories typées et registre explicite des intersections ;
+- infrastructure DOM encapsulée et gestion du redimensionnement ;
+- tests unitaires, tests navigateur et commande `npm run check`.
+
+Ce socle est désormais au service de la compatibilité `.dgp`. Les anciennes
+priorités sont terminées et ne constituent plus la feuille de route active.
+
+## Priorité 1 — Définir et importer le format `.dgp`
+
+### Inventorier le format réellement utilisé
+
+- Constituer un corpus progressif de figures DGPad, des plus simples aux plus
+  complexes.
+- Recenser les sections, commandes, constructeurs, styles et variantes présents
+  dans ce corpus.
+- Documenter le sous-ensemble compris par DGPad Pro et les commandes encore non
+  prises en charge.
+
+### Écrire un analyseur dédié
+
+- Lire les appels autorisés sans utiliser `eval()`, `Function()` ni l'injection
+  d'un `<script>`.
+- Reconnaître au minimum les sections de coordonnées, de géométrie et de styles.
+- Produire des valeurs typées pour les nombres, booléens, chaînes, identifiants
+  et références à des objets antérieurs.
+- Préserver les noms DGPad, y compris les caractères non ASCII.
+- Signaler précisément la première commande non prise en charge.
+
+### Construire la figure importée
+
+- Résoudre les références dans l'ordre du fichier.
+- Associer chaque constructeur `.dgp` à une factory TypeScript explicite.
+- Appliquer les styles après la création de la géométrie.
+- Supprimer la construction de démonstration actuellement déclenchée par un clic
+  dans la scène.
+
+## Priorité 2 — Étendre la compatibilité géométrique
+
+### Mettre en place un registre de constructeurs
+
+- Associer chaque nom de constructeur `.dgp` à une fonction typée.
+- Centraliser la vérification du nombre et du type des arguments issus du fichier.
+- Garder les classes géométriques indépendantes de la syntaxe du format importé.
+
+### Implémenter les familles nécessaires au corpus
+
+L'ordre est déterminé par les figures à ouvrir, et non par les futurs outils de
+construction. Le fichier `Apollonius.dgp` requiert notamment :
+
+- `Point`, `PointOn`, `MidPoint` et `Center` ;
+- `Line`, `Segment`, `Ray`, `Parallel`, `Perpendicular` et
+  `PerpendicularBisector` ;
+- `Circle`, `Circle1`, `Circle3` et `Circle3pts` ;
+- les intersections droite/droite, droite/cercle et cercle/cercle, avec leur
+  variante `OrderedIntersection` ;
+- `Symmetry` et `Reflection`.
+
+Chaque nouvel objet doit disposer de tests sur son calcul, ses dégénérescences,
+sa projection et son rendu visible.
+
+### Respecter les branches géométriques de DGPad
+
+- Identifier la sémantique exacte de `OrderedIntersection`.
+- Conserver le choix d'une intersection pendant le déplacement lorsque les deux
+  solutions se rapprochent, se confondent ou réapparaissent.
+- Vérifier les comportements limites par comparaison avec DGPad.
+
+## Priorité 3 — Reproduire styles et affichage
+
+### Décoder les styles `.dgp`
+
+- Prendre en charge `STL()` et ses propriétés utilisées par le corpus : couleur,
+  opacité, épaisseur, taille, remplissage et visibilité.
+- Prendre en charge `SetCoords()`, `SetCoordsStyle()` et `SetGeneralStyle()`.
+- Respecter l'ordre des calques et les règles de sélection.
 
-## Priorité 1 — Robustesse géométrique
+### Décorréler visibilité et existence de la vue
 
-### [x] Sécuriser la normalisation des vecteurs
+- Autoriser un objet de construction à ne posséder aucune vue SVG.
+- Ne pas créer de nœud SVG pour un objet importé avec `h:1` ou `h:2`.
+- Créer ou supprimer la vue uniquement si un changement de style rend l'objet
+  visible ou masqué.
+- Continuer à calculer les objets masqués nécessaires à leurs descendants.
 
-**Réalisé**
+### Vérifier la fidélité visuelle
 
-- `vNormalize()` renvoie désormais `null` lorsque la norme est nulle ou non
-  finie :
+- Comparer des captures DGPad et DGPad Pro avec les mêmes dimensions et
+  coordonnées.
+- Tester séparément formes, épaisseurs, opacités, couleurs et objets indéfinis.
 
-    ```ts
-    function vNormalize<T extends readonly number[]>(v: T): T | null;
-    ```
+## Priorité 4 — Manipulation dans le lecteur
 
-- `vNorm()` utilise `Math.hypot()` pour éviter les débordements intermédiaires.
-- Les comparaisons géométriques partagent une tolérance absolue et relative.
-- Deux points confondus rendent leur droite indéfinie et masquée, sans transmettre
-  de valeur non finie au SVG.
+- Permettre uniquement le déplacement des objets déclarés mobiles par la figure.
+- Respecter les contraintes des points liés à une droite, un segment, une
+  demi-droite ou un cercle.
+- Conserver les gestes de navigation nécessaires : déplacement de la scène, zoom
+  et rotation 3D lorsque la figure l'autorise.
+- Empêcher qu'un geste de consultation crée ou supprime un objet géométrique.
+- Maintenir la branche des intersections et la continuité visuelle pendant un
+  déplacement.
 
-### [x] Distinguer dégénérescence géométrique et dégénérescence de projection
+## Priorité 5 — Robustesse d'une construction complète
 
-**Réalisé**
+- Propager proprement l'état indéfini à travers toutes les nouvelles familles
+  d'objets.
+- Faire réapparaître automatiquement les descendants lorsque leur géométrie
+  redevient définie.
+- Garantir qu'aucune valeur `NaN` ou infinie n'atteint le SVG.
+- Vérifier les cas tangents, confondus, parallèles, colinéaires et de rayon nul.
+- Valider ou remplacer l'hypothèse actuelle selon laquelle l'ordre du fichier est
+  toujours un ordre topologique du graphe.
 
-- `defined` représente l'existence de la droite dans l'espace.
-- `projectionDefined` représente l'existence de sa projection comme droite à
-  l'écran.
-- Une droite 3D regardée dans son axe reste géométriquement définie, mais son tracé
-  SVG est masqué.
+## Priorité 6 — Performance sur les figures complexes
 
-### [x] Sécuriser l'inversion écran-plan
+### Construire des mesures reproductibles
 
-**Réalisé**
+- Mesurer séparément le chargement, le calcul initial, la projection, le rendu et
+  le déplacement d'un objet.
+- Compter les objets recalculés, les nœuds SVG créés et les écritures DOM par
+  image.
+- Enregistrer le matériel, le navigateur et les dimensions de la scène avec les
+  résultats.
 
-- `construction.unprojectToZPlane(screen, z)` reçoit explicitement les coordonnées
-  écran et la cote du plan de déplacement.
-- Le déterminant est comparé à une tolérance tenant compte de l'échelle des axes.
-- La méthode renvoie `null` lorsque la projection n'est pas inversible ; le point
-  conserve alors sa dernière position valide.
+### Utiliser `Apollonius.dgp` comme cible majeure
 
-### [x] Formaliser la validité des objets
+Cette figure contient actuellement :
 
-**Réalisé**
+- 2 569 objets géométriques ;
+- 2 531 objets masqués ;
+- 38 objets visibles, soit 3 points, 3 cercles initiaux et 32 `Circle3pts` ;
+- 1 190 `OrderedIntersection`.
 
-- Tous les objets de construction possèdent un état `defined`.
-- `isVisible` combine cet état avec le masquage demandé par l'utilisateur.
-- Les points distinguent désormais leur validité géométrique `defined` de leur
-  validité de projection `projectionDefined`.
-- Un objet indéfini reste dans le graphe et redevient visible dès que ses parents
-  permettent à nouveau son calcul.
+Son ouverture correcte ne suffira pas : le déplacement de chacun des trois
+points libres devra rester fluide et ne provoquer ni fuite de nœuds DOM ni
+accumulation d'écouteurs.
 
-### [x] Terminer les contraintes de segment et de demi-droite
+### Optimiser à partir des profils
 
-**Réalisé**
+- Éviter toute projection ou écriture SVG pour les objets sans vue.
+- Recalculer uniquement la partie invalide du graphe, sauf lorsqu'un point racine
+  affecte réellement toute la construction.
+- Réduire les allocations temporaires dans les opérations géométriques chaudes si
+  leur coût est confirmé par les mesures.
+- Ne modifier l'architecture de rendu qu'à partir d'un goulot d'étranglement
+  mesuré.
 
-- `insideBounds(parameter)` accepte tout paramètre pour une droite, l'intervalle
-  du segment et les paramètres positifs pour une demi-droite.
-- Les bornes utilisent la tolérance géométrique commune.
-- L'intersection de deux supports est calculée en 3D, puis rejetée pour des droites
-  parallèles, gauches ou lorsque le résultat est hors des bornes.
+## Priorité 7 — Tests de compatibilité et corpus
 
-## Priorité 2 — Cycle de vie des objets et du SVG
+- Ajouter une figure minimale par commande `.dgp` prise en charge.
+- Ajouter des tests d'import vérifiant noms, types, dépendances, styles et
+  visibilité.
+- Ajouter des tests navigateur de déplacement sur les figures importées.
+- Conserver des cas de dégénérescence reproductibles.
+- Maintenir une matrice indiquant, pour chaque fichier du corpus, s'il est analysé,
+  construit, affiché et manipulable.
+- Ajouter un test de non-régression de performance distinct des tests fonctionnels
+  ordinaires.
 
-### [x] Implémenter une vraie suppression d'objet
+## Jalons
 
-**Réalisé**
+### Jalon 1 — Premier fichier importé
 
-- `construction.removeObject(object)` supprime l'objet et tous ses descendants.
-- Les références sont retirées des parents et enfants survivants.
-- `objects_collector.remove()` met à jour la liste de construction et le
-  dictionnaire des noms.
-- `DOMElement.dispose()` retire le nœud SVG et libère ses écouteurs.
-- Le clic de démonstration sur un point utilise désormais cette suppression
-  complète.
+Un fichier `.dgp` minimal contenant points, droites, segments et intersections
+s'ouvre sans adaptation manuelle et reste manipulable.
 
-### [x] Unifier la création et le montage des éléments SVG
+### Jalon 2 — Géométrie plane courante
 
-**Réalisé**
+Le lecteur prend en charge les objets usuels 2D, leurs styles et leurs principales
+dégénérescences sur un corpus représentatif.
 
-`construction.add()` applique maintenant un cycle unique :
+### Jalon 3 — Cercles d'Apollonius
 
-```text
-création du modèle
-→ ajout à la construction
-→ création et montage de la vue SVG
-→ calcul géométrique
-→ projection
-→ rendu
-→ destruction complète éventuelle
-```
+`Apollonius.dgp` est analysé entièrement, restitue la figure attendue et permet de
+déplacer ses trois points libres avec fluidité.
 
-- L'objet construit sa vue, tandis que la construction est seule responsable de
-  son montage dans le bon calque.
-- `createSVG()` remplace, remonte et redessine correctement une vue recréée.
-- Les constructeurs d'objets ne créent et ne montent plus eux-mêmes leur SVG.
-- `dom` est garanti après l'ajout à la construction ; les assertions `dom!` ont
-  disparu.
+### Jalon 4 — Lecteur robuste
 
-### [x] Initialiser réellement la scène
+Un corpus varié de grandes constructions DGPad s'ouvre et se manipule sans erreur,
+avec des performances mesurées et sans croissance anormale du DOM ou de la
+mémoire.
 
-**Réalisé**
+## Conditions avant de développer les outils de création
 
-- Chaque ajout exécute immédiatement `refresh()` ; le repère est donc calculé,
-  projeté et visible dès la création de la construction.
-- `grid_object` représente actuellement le repère formé par les trois axes, pas une
-  grille complète.
-- Le chemin `OY` inutilisé a été supprimé.
+Les outils restent hors périmètre tant que les conditions suivantes ne sont pas
+toutes remplies :
 
-### [x] Utiliser des groupes SVG pour les calques
+- le format pris en charge est analysé sans exécution de code arbitraire ;
+- les figures représentatives s'ouvrent sans modification manuelle ;
+- géométrie, styles, visibilité et interactions sont fidèles à DGPad ;
+- les cas dégénérés ne corrompent ni le graphe ni le SVG ;
+- les grandes constructions restent manipulables avec une fluidité mesurée ;
+- les régressions fonctionnelles et de performance sont couvertes par des tests.
 
-**Réalisé**
+Ce n'est qu'après validation de ce socle qu'une nouvelle feuille de route pourra
+être consacrée aux outils de construction et à l'édition.
 
-```svg
-<g data-layer="1"></g>
-<g data-layer="4"></g>
-<g data-layer="5"></g>
-```
+## Ordre de travail immédiat
 
-- Les groupes sont créés une fois, dans l'ordre numérique défini par les
-  préférences.
-- Chaque objet est directement monté dans son groupe.
-- `orderAndDrawAll()` et les retraits/réinsertions nécessaires à l'ancien tri ont
-  été supprimés.
-- La liste de rendu `D`, devenue identique à la liste de construction `V`, a été
-  supprimée.
-
-### [x] Employer `<g>` pour les points
-
-**Réalisé**
-
-Un point utilise désormais une forme centrée dans un groupe translaté :
-
-```svg
-<g transform="translate(x y)">
-  <circle cx="0" cy="0" r="6"></circle>
-</g>
-```
-
-- Le `<svg>` imbriqué et son viewport local ont disparu.
-- Un déplacement modifie un seul attribut `transform`, au lieu de deux attributs
-  `x` et `y`.
-- Le groupe accueille désormais la zone de capture et pourra aussi recevoir le nom
-  et les décorations du point.
-
-## Priorité 3 — Interactions
-
-### [x] Remplacer les événements souris/tactiles par les Pointer Events
-
-**Réalisé**
-
-- La couche DOM utilise `pointerdown`, `pointermove`, `pointerup` et
-  `pointercancel`.
-- Elle suit le `pointerId` actif et capture le pointeur pendant un déplacement.
-- Souris, stylet et interaction tactile simple empruntent le même chemin.
-
-### [x] Éviter les écouteurs globaux installés par chaque objet
-
-**Réalisé**
-
-- Les gestionnaires appartiennent au `DOMElement` concerné et sont supprimés par
-  `dispose()`.
-- Aucun couple d'écouteurs de déplacement n'est installé sur `window` pour chaque
-  objet.
-- Un élément ne traite le mouvement que lorsqu'il possède la capture du pointeur.
-
-### [x] Créer de vraies zones de capture SVG
-
-**Réalisé**
-
-- Les droites utilisent un groupe contenant un chemin de capture transparent et
-  un chemin visible qui partage la même géométrie.
-- Les points possèdent un disque de capture transparent indépendant de leur forme.
-- La préférence `touchsize` pilote les zones de capture, tandis que `size` reste
-  réservée au dessin visible.
-- Les formes visibles des droites ignorent les événements afin que leur épaisseur
-  n'influence plus la tolérance de sélection.
-
-### [x] Convertir les coordonnées de pointeur dans le repère SVG
-
-**Réalisé**
-
-- `DOMElement.svgPoint()` convertit `clientX/clientY` avec l'inverse de
-  `getScreenCTM()`.
-- Le déplacement des points utilise ces coordonnées SVG avant l'inversion vers le
-  plan mathématique.
-- Les gestes utilisent désormais les coordonnées client, indépendantes du
-  défilement de la page.
-
-## Priorité 4 — Graphe de dépendances et recalcul
-
-### [x] Conserver les enfants directs plutôt que tous les descendants
-
-**Réalisé**
-
-- Chaque objet conserve uniquement ses `parents` et `children` directs.
-- La fermeture transitive et le tri par nombre de descendants ont disparu.
-- `objects_collector.markGeometryDirty()` propage l'invalidation dans le graphe
-  direct.
-- `objects_collector.update()` recalcule chaque objet marqué une seule fois dans
-  l'ordre de construction, qui garantit actuellement que les parents précèdent
-  leurs enfants.
-
-Une validation topologique explicite restera nécessaire lorsque le projet
-permettra de redéfinir les dépendances ou de créer des cycles.
-
-### [x] Regrouper les mises à jour d'une interaction
-
-**Réalisé**
-
-- Le déplacement d'un point marque uniquement ce point et ses descendants.
-- La rotation de la scène marque toute la construction.
-- Un seul `requestAnimationFrame` regroupe les mouvements reçus avant le prochain
-  rendu.
-- Le cycle différé calcule et dessine chaque objet marqué une seule fois.
-
-## Priorité 5 — Séparer géométrie, projection et rendu
-
-### [x] Scinder les responsabilités actuellement regroupées dans `compute()`
-
-**Réalisé**
-
-Chaque objet suit maintenant le pipeline suivant :
-
-```text
-computeGeometry() → coordonnées et directions 3D
-project(camera)   → coordonnées écran
-render()          → attributs SVG
-```
-
-- `invalidateGeometry(object)` propage les trois étapes aux descendants.
-- `invalidateProjection()` ne lance que la projection et le rendu de la scène ;
-  une rotation ne recalcule donc plus la géométrie.
-- `invalidateRender(object)` ne touche qu'au SVG de l'objet.
-- Le collecteur fusionne ces niveaux d'invalidation et exécute uniquement les
-  étapes nécessaires dans l'ordre de construction.
-
-### [x] Décider jusqu'où séparer modèle et vue
-
-**Décision actuelle**
-
-- Les objets restent légers et conservent leur vue SVG associée.
-- `computeGeometry()` et `project()` ne manipulent pas le DOM.
-- `render()` est seul responsable des attributs SVG qui dépendent de l'état
-  calculé.
-- `createSVG()` reste responsable de la structure et du style initial de la vue.
-
-Cette séparation pragmatique rend le calcul testable sans introduire dès maintenant
-une seconde hiérarchie de classes de vues.
-
-## Priorité 6 — API et typage TypeScript
-
-### [x] Revoir les factories statiques `create()`
-
-**Réalisé**
-
-- Les factories sont sorties des classes et exportées comme fonctions nommées :
-  `createPoint()`, `createMidpoint()`, `createLine()`, `createIntersection()`, etc.
-- Elles ne sont donc plus héritées et peuvent avoir des paramètres propres à chaque
-  type d'objet.
-- `construction.add()` et `objects_collector.add()` sont génériques et conservent
-  précisément le type de l'objet ajouté.
-- Les deux `@ts-expect-error` ont disparu.
-
-### [x] Remplacer la résolution dynamique des intersections
-
-**Réalisé**
-
-- Un registre explicite associe les clés `famille:famille` à des fonctions de
-  calcul typées.
-- La combinaison `line:line` pointe actuellement vers `computeLineLine()`.
-- Une combinaison absente laisse simplement l'intersection dans l'état
-  géométrique indéfini.
-- L'affectation dynamique d'une méthode et sa conversion de type ont disparu.
-
-### [x] Clarifier la mutabilité des vecteurs
-
-**Décision actuelle**
-
-- `Vec2` et `Vec3` sont des tuples `readonly`.
-- Les opérations vectorielles sont pures et renvoient de nouveaux tuples.
-- Leurs surcharges distinguent explicitement les résultats 2D et 3D sans conversion
-  de type opaque.
-- Les objets remplacent leurs vecteurs complets au lieu de modifier une composante
-  partagée ; une parallèle peut donc réutiliser sans risque le vecteur immuable de
-  sa droite source.
-
-## Priorité 7 — Infrastructure DOM et affichage
-
-### [x] Encapsuler les helpers DOM sans modifier les éléments natifs
-
-**Réalisé**
-
-- `DOMElement` enveloppe les éléments natifs sans modifier leur prototype.
-- Le wrapper fournit les opérations chaînables utilisées par le projet.
-- Il conserve ses écouteurs et sait les nettoyer avec `dispose()`.
-
-### [x] Gérer le redimensionnement
-
-**Réalisé**
-
-- `DOMElement.observeResize()` encapsule `ResizeObserver` et le déconnecte lors du
-  `dispose()`.
-- La construction observe son SVG et replace l'origine au centre de ses nouvelles
-  dimensions.
-- Un redimensionnement invalide uniquement la projection et le rendu de la scène.
-- `construction.dispose()` annule une frame en attente, détruit les objets et le
-  SVG, puis retire la construction du registre global.
-
-### [x] Décider du rôle futur du canvas
-
-**Décision actuelle**
-
-- Le canvas inutilisé a été supprimé.
-- Le SVG porte désormais la couleur de fond et constitue l'unique surface
-  d'affichage et d'interaction.
-- Un canvas pourra être réintroduit plus tard si une fonctionnalité précise le
-  justifie, par exemple des traces ou une couche raster coûteuse.
-
-## Priorité 8 — Tests et outils de développement
-
-### [x] Ajouter des tests unitaires mathématiques
-
-**Réalisé**
-
-- Vitest exécute sept tests unitaires sans navigateur.
-- Les vecteurs couvrent normalisation, valeurs nulles ou non finies, grandes normes
-  et opérations pures 2D/3D.
-- La projection a été extraite dans `projection.ts` afin de tester directement la
-  projection 3D, l'inversion écran-plan et les projections singulières.
-
-### [x] Ajouter quelques tests d'intégration dans le navigateur
-
-**Réalisé**
-
-- Vitest Browser Mode et Playwright exécutent douze tests dans Chromium.
-- Ils couvrent les droites dégénérées, les intersections sécantes, parallèles,
-  confondues, gauches et hors bornes, ainsi que les perpendiculaires 2D/3D.
-- Ils vérifient le recalcul des descendants, la suppression, la rotation de caméra
-  sans recalcul géométrique et le redimensionnement par `ResizeObserver`.
-- Souris, interaction tactile et stylet empruntent le même chemin Pointer Events.
-- Une dégénérescence fait échouer le test si `NaN` ou `Infinity` atteint le SVG.
-
-### [x] Compléter les contrôles automatiques
-
-**Réalisé**
-
-- `npm test` exécute les suites unitaires puis navigateur.
-- `npm run format` applique Prettier et `npm run format:check` contrôle le format.
-- `npm run check` enchaîne format, tests et build TypeScript/Vite.
-- Le `tsconfig.json` contrôle également les tests et leurs configurations.
-- Vite 8, Vitest 5 et leurs dépendances ont été audités sans vulnérabilité connue.
-
-## Ordre de travail suggéré
-
-Toutes les priorités de cette première revue sont réalisées : robustesse
-géométrique, cycle de vie SVG, interactions, graphe de dépendances, séparation du
-pipeline, typage, infrastructure d'affichage et tests automatisés.
-
-Les prochaines étapes pourront désormais être définies par les nouvelles
-fonctionnalités géométriques et par des mesures de performance sur de grandes
-constructions.
+1. Documenter la grammaire rencontrée dans un premier corpus `.dgp`.
+2. Écrire l'analyseur sûr et importer une figure minimale.
+3. Ajouter les constructeurs géométriques selon les besoins du corpus.
+4. Rendre la vue SVG optionnelle pour les objets masqués.
+5. Étendre progressivement l'import jusqu'à `Apollonius.dgp`.
+6. Mesurer puis optimiser son chargement et sa manipulation.
