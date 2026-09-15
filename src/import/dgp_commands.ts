@@ -130,6 +130,13 @@ function validateObjectStyle(value: string, lineNumber: number): void {
             case "f":
                 validateNumber(propertyValue, lineNumber, 0);
                 break;
+            case "p":
+                validateNumber(propertyValue, lineNumber, -1);
+                if (!Number.isInteger(Number(propertyValue)))
+                    throw new Error(
+                        `Invalid DGP style number at line ${lineNumber}`,
+                    );
+                break;
         }
     });
 }
@@ -168,6 +175,9 @@ function applyObjectStyle(target: construction_object, value: string): void {
                 break;
             case "f":
                 target.fontSize = Number(propertyValue);
+                break;
+            case "p":
+                target.precision = Number(propertyValue);
                 break;
         }
     });

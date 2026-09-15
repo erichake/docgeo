@@ -17,6 +17,7 @@ export class construction_object {
     auto_fill_color: string;
     showName: boolean;
     fontSize: number;
+    precision: number;
     layer: number;
     dom!: DOMElement;
     children: construction_object[];
@@ -53,6 +54,7 @@ export class construction_object {
         this.auto_fill_color = pref.color.fill;
         this.showName = false;
         this.fontSize = 16;
+        this.precision = -1;
         this.layer = pref.layer;
 
         this.children = [];
