@@ -20,7 +20,9 @@ export class construction_object {
     parents: construction_object[];
     hidden: number; // 0:show  ,   1:hidden    ,   2:super-hidden
     defined: boolean;
-    dirty: boolean;
+    geometryDirty: boolean;
+    projectionDirty: boolean;
+    renderDirty: boolean;
 
     constructor(
         c: construction,
@@ -46,7 +48,9 @@ export class construction_object {
         this.parents = [];
         this.hidden = 0;
         this.defined = true;
-        this.dirty = false;
+        this.geometryDirty = false;
+        this.projectionDirty = false;
+        this.renderDirty = false;
     }
 
     get isHidden(): boolean {
@@ -65,14 +69,20 @@ export class construction_object {
         });
     }
 
-    computeAndDraw(): void {
-        this.compute();
-        this.draw();
+    refresh(): void {
+        this.computeGeometry();
+        this.project();
+        this.render();
+        this.geometryDirty = false;
+        this.projectionDirty = false;
+        this.renderDirty = false;
     }
 
-    draw(): void {}
+    computeGeometry(): void {}
 
-    compute(): void {}
+    project(): void {}
+
+    render(): void {}
 
     // *************************************************
     // ****************** STATIC TOOLS ******************
@@ -101,7 +111,7 @@ export class construction_object {
         this.dom?.dispose();
         this.dom = this.class.createSVG(this);
         this.C.mountObject(this);
-        this.computeAndDraw();
+        this.refresh();
     }
 
     static createSVG(_this: construction_object): DOMElement {

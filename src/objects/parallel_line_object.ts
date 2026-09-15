@@ -18,17 +18,15 @@ export class parallel_line_object extends primitive_line_object {
     }
 
     computeVEC(): Vec3 | null {
-        return this.D.defined ? [...this.D.VEC] : null;
+        return this.D.defined ? this.D.VEC : null;
     }
+}
 
-    static create(
-        c: construction,
-        name: string | null | undefined,
-        p1: point_object,
-        d: primitive_line_object,
-    ): parallel_line_object {
-        return c.add(
-            new parallel_line_object(c, name, p1, d),
-        ) as parallel_line_object;
-    }
+export function createParallel(
+    c: construction,
+    name: string | null | undefined,
+    p1: point_object,
+    d: primitive_line_object,
+): parallel_line_object {
+    return c.add(new parallel_line_object(c, name, p1, d));
 }

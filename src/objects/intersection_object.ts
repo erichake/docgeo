@@ -13,8 +13,6 @@ import {
 import { point_object } from "./point_object";
 import type { primitive_line_object } from "./primitive_line_object";
 
-// @ts-expect-error - static `create` intentionally has a different signature than
-// point_object's (each construction_object subtype has its own factory args).
 export class intersection_object extends point_object {
     O1: primitive_line_object;
     O2: primitive_line_object;
@@ -29,15 +27,16 @@ export class intersection_object extends point_object {
         this.O1 = o1;
         this.O2 = o2;
         this.addParents(o1, o2);
-        // Dynamic dispatch by family-type combination (e.g. "line_line"), built from a
-        // string key at runtime : not statically resolvable by TS, hence this single `any` cast.
-        this.compute = (this as unknown as Record<string, () => void>)[
-            `${o1.familytype}_${o2.familytype}`
-        ];
     }
 
-    line_line(): void {
+    computeGeometry(): void {
         this.defined = false;
+        INTERSECTION_COMPUTERS.get(
+            `${this.O1.familytype}:${this.O2.familytype}`,
+        )?.(this);
+    }
+
+    computeLineLine(): void {
         if (!this.O1.defined || !this.O2.defined) return;
 
         const p = this.O1.P1.coords,
@@ -67,19 +66,23 @@ export class intersection_object extends point_object {
         }
 
         this.coords = vScale(vAdd(point1, point2), 0.5);
-        super.compute();
+        super.computeGeometry();
     }
 
     mousedrag(_ev: PointerEvent): void {}
+}
 
-    static create(
-        c: construction,
-        name: string | null | undefined,
-        o1: primitive_line_object,
-        o2: primitive_line_object,
-    ): intersection_object {
-        return c.add(
-            new intersection_object(c, name, o1, o2),
-        ) as intersection_object;
-    }
+type IntersectionComputer = (object: intersection_object) => void;
+
+const INTERSECTION_COMPUTERS = new Map<string, IntersectionComputer>([
+    ["line:line", (object) => object.computeLineLine()],
+]);
+
+export function createIntersection(
+    c: construction,
+    name: string | null | undefined,
+    o1: primitive_line_object,
+    o2: primitive_line_object,
+): intersection_object {
+    return c.add(new intersection_object(c, name, o1, o2));
 }

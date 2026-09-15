@@ -60,8 +60,8 @@ s'enrichit.
 
 - Tous les objets de construction possèdent un état `defined`.
 - `isVisible` combine cet état avec le masquage demandé par l'utilisateur.
-- Les points vérifient leurs coordonnées avant projection et leur projection avant
-  rendu.
+- Les points distinguent désormais leur validité géométrique `defined` de leur
+  validité de projection `projectionDefined`.
 - Un objet indéfini reste dans le graphe et redevient visible dès que ses parents
   permettent à nouveau son calcul.
 
@@ -116,8 +116,8 @@ création du modèle
 
 **Réalisé**
 
-- Chaque ajout se termine par `computeAndDraw()` ; le repère est donc visible dès
-  la création de la construction.
+- Chaque ajout exécute immédiatement `refresh()` ; le repère est donc calculé,
+  projeté et visible dès la création de la construction.
 - `grid_object` représente actuellement le repère formé par les trois axes, pas une
   grille complète.
 - Le chemin `OY` inutilisé a été supprimé.
@@ -210,7 +210,8 @@ Un point utilise désormais une forme centrée dans un groupe translaté :
 
 - Chaque objet conserve uniquement ses `parents` et `children` directs.
 - La fermeture transitive et le tri par nombre de descendants ont disparu.
-- `objects_collector.markDirty()` propage l'invalidation dans le graphe direct.
+- `objects_collector.markGeometryDirty()` propage l'invalidation dans le graphe
+  direct.
 - `objects_collector.update()` recalcule chaque objet marqué une seule fois dans
   l'ordre de construction, qui garantit actuellement que les parents précèdent
   leurs enfants.
@@ -230,17 +231,11 @@ permettra de redéfinir les dépendances ou de créer des cycles.
 
 ## Priorité 5 — Séparer géométrie, projection et rendu
 
-### [ ] Scinder les responsabilités actuellement regroupées dans `compute()`
+### [x] Scinder les responsabilités actuellement regroupées dans `compute()`
 
-**Constat**
+**Réalisé**
 
-Une rotation de la caméra marque encore tous les objets pour un cycle complet de
-calcul et de dessin, alors que leurs coordonnées géométriques n'ont pas changé.
-Avec des objets plus coûteux, cela recalculera inutilement toute la construction.
-
-**Piste**
-
-Viser progressivement le pipeline suivant :
+Chaque objet suit maintenant le pipeline suivant :
 
 ```text
 computeGeometry() → coordonnées et directions 3D
@@ -248,66 +243,62 @@ project(camera)   → coordonnées écran
 render()          → attributs SVG
 ```
 
-- Une modification d'un parent déclenche les trois étapes nécessaires.
-- Une rotation de caméra ne déclenche que `project()` et `render()`.
-- Un changement de style ne déclenche que `render()`.
+- `invalidateGeometry(object)` propage les trois étapes aux descendants.
+- `invalidateProjection()` ne lance que la projection et le rendu de la scène ;
+  une rotation ne recalcule donc plus la géométrie.
+- `invalidateRender(object)` ne touche qu'au SVG de l'objet.
+- Le collecteur fusionne ces niveaux d'invalidation et exécute uniquement les
+  étapes nécessaires dans l'ordre de construction.
 
-Cette séparation facilitera aussi les tests, l'export et de futurs renderers.
+### [x] Décider jusqu'où séparer modèle et vue
 
-### [ ] Décider jusqu'où séparer modèle et vue
+**Décision actuelle**
 
-Il n'est pas nécessaire de construire immédiatement une architecture complexe.
-Cependant, les objets géométriques devraient idéalement pouvoir être calculés et
-testés sans DOM. Une vue SVG associée pourrait alors prendre en charge uniquement
-la création des nœuds, les styles et les attributs graphiques.
+- Les objets restent légers et conservent leur vue SVG associée.
+- `computeGeometry()` et `project()` ne manipulent pas le DOM.
+- `render()` est seul responsable des attributs SVG qui dépendent de l'état
+  calculé.
+- `createSVG()` reste responsable de la structure et du style initial de la vue.
+
+Cette séparation pragmatique rend le calcul testable sans introduire dès maintenant
+une seconde hiérarchie de classes de vues.
 
 ## Priorité 6 — API et typage TypeScript
 
-### [ ] Revoir les factories statiques `create()`
+### [x] Revoir les factories statiques `create()`
 
-**Constat**
+**Réalisé**
 
-Les signatures de `midpoint_object.create()` et `intersection_object.create()` ne
-sont pas compatibles avec celle héritée de `point_object`. Les
-`@ts-expect-error` signalent cette tension.
+- Les factories sont sorties des classes et exportées comme fonctions nommées :
+  `createPoint()`, `createMidpoint()`, `createLine()`, `createIntersection()`, etc.
+- Elles ne sont donc plus héritées et peuvent avoir des paramètres propres à chaque
+  type d'objet.
+- `construction.add()` et `objects_collector.add()` sont génériques et conservent
+  précisément le type de l'objet ajouté.
+- Les deux `@ts-expect-error` ont disparu.
 
-**Piste**
+### [x] Remplacer la résolution dynamique des intersections
 
-- Sortir les factories de la hiérarchie ; ou
-- leur donner des noms distincts ; ou
-- utiliser un registre de constructeurs avec des paramètres typés.
+**Réalisé**
 
-L'objectif est de supprimer les `@ts-expect-error` sans perdre la simplicité de
-création actuelle.
+- Un registre explicite associe les clés `famille:famille` à des fonctions de
+  calcul typées.
+- La combinaison `line:line` pointe actuellement vers `computeLineLine()`.
+- Une combinaison absente laisse simplement l'intersection dans l'état
+  géométrique indéfini.
+- L'affectation dynamique d'une méthode et sa conversion de type ont disparu.
 
-### [ ] Remplacer la résolution dynamique des intersections
+### [x] Clarifier la mutabilité des vecteurs
 
-**Constat**
+**Décision actuelle**
 
-`intersection_object` choisit l'algorithme avec une propriété calculée telle que
-`line_line`. Cette technique est concise, mais difficile à typer et échoue tard si
-une combinaison n'existe pas.
-
-**Piste**
-
-Utiliser un registre explicite, par exemple avec des clés `line:line`,
-`line:circle` et `circle:circle`, et produire un résultat clairement défini pour
-une combinaison non prise en charge.
-
-### [ ] Clarifier la mutabilité des vecteurs
-
-**Constat**
-
-Les getters de coordonnées renvoient des copies et une parallèle copie maintenant
-explicitement le vecteur de sa droite source. Il reste toutefois à choisir et à
-documenter une politique générale pour les futurs objets.
-
-**Piste**
-
-- Choisir entre vecteurs immuables et vecteurs mutables.
-- Préférer `readonly` et les fonctions vectorielles pures si les performances le
-  permettent.
-- Copier explicitement un vecteur lorsque le partage de référence n'est pas voulu.
+- `Vec2` et `Vec3` sont des tuples `readonly`.
+- Les opérations vectorielles sont pures et renvoient de nouveaux tuples.
+- Leurs surcharges distinguent explicitement les résultats 2D et 3D sans conversion
+  de type opaque.
+- Les objets remplacent leurs vecteurs complets au lieu de modifier une composante
+  partagée ; une parallèle peut donc réutiliser sans risque le vecteur immuable de
+  sa droite source.
 
 ## Priorité 7 — Infrastructure DOM et affichage
 
@@ -390,15 +381,15 @@ Reste à faire :
 
 Déjà réalisés : robustesse géométrique, cycle de vie des objets et du SVG, calques
 persistants, Pointer Events, zones de capture, conversion des coordonnées écran,
-graphe de dépendances direct, regroupement des mises à jour, suppression des
-écouteurs globaux par objet, encapsulation DOM et configuration du formatage.
+graphe de dépendances direct, regroupement des mises à jour, séparation géométrie /
+projection / rendu, factories typées, registre d'intersections, vecteurs immuables,
+suppression des écouteurs globaux par objet, encapsulation DOM et configuration du
+formatage.
 
 Pour poursuivre par petites étapes sans réécrire tout le prototype :
 
-1. Séparer progressivement calcul géométrique, projection et rendu.
-2. Gérer le redimensionnement et décider du rôle du canvas.
-3. Revoir les factories, le registre d'intersections et la mutabilité des vecteurs.
-4. Ajouter les tests automatisés et compléter les contrôles de développement.
+1. Gérer le redimensionnement et décider du rôle du canvas.
+2. Ajouter les tests automatisés et compléter les contrôles de développement.
 
 Chaque étape devrait rester suffisamment petite pour être compilée, testée et
 validée visuellement avant de passer à la suivante.

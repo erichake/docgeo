@@ -13,8 +13,8 @@ export class ray_line_object extends two_points_line_object {
         super(c, name, p1, p2, "ray");
     }
 
-    compute(): void {
-        super.compute();
+    project(): void {
+        super.project();
         if (!this.defined || !this.projectionDefined) return;
         this.sP1 = this.P1.screen;
     }
@@ -23,13 +23,13 @@ export class ray_line_object extends two_points_line_object {
         const scale = vNorm(vSub(this.P2.coords, this.P1.coords));
         return parameter >= -geometryTolerance(scale);
     }
+}
 
-    static create(
-        c: construction,
-        name: string | null | undefined,
-        p1: point_object,
-        p2: point_object,
-    ): ray_line_object {
-        return c.add(new ray_line_object(c, name, p1, p2)) as ray_line_object;
-    }
+export function createRay(
+    c: construction,
+    name: string | null | undefined,
+    p1: point_object,
+    p2: point_object,
+): ray_line_object {
+    return c.add(new ray_line_object(c, name, p1, p2));
 }

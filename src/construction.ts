@@ -1,10 +1,10 @@
 import { $, type DOMElement, type PointerDelta } from "./dom";
 import { construction_object } from "./objects/construction_object";
-import { grid_object } from "./objects/grid_object";
-import { intersection_object } from "./objects/intersection_object";
-import { point_object } from "./objects/point_object";
-import { segment_object } from "./objects/segment_object";
-import { two_points_line_object } from "./objects/two_points_line_object";
+import { createGrid, grid_object } from "./objects/grid_object";
+import { createIntersection } from "./objects/intersection_object";
+import { createPoint } from "./objects/point_object";
+import { createSegment } from "./objects/segment_object";
+import { createLine } from "./objects/two_points_line_object";
 import { objects_collector } from "./objects_collector";
 import type { preferences, Preferences } from "./preferences";
 import {
@@ -40,22 +40,22 @@ export class construction {
         this.layers = new Map();
         this.createCANVAS();
         this.createSVG();
-        this.GRID = grid_object.create(this);
+        this.GRID = createGrid(this);
     }
 
     mouseclick(_ev: PointerEvent): void {
-        const p1 = point_object.create(this, null, [1, 1, 0]);
-        const p2 = point_object.create(this, null, [-2, 0, 0]);
-        segment_object.create(this, null, p2, p1);
-        const d1 = two_points_line_object.create(this, null, p2, p1);
+        const p1 = createPoint(this, null, [1, 1, 0]);
+        const p2 = createPoint(this, null, [-2, 0, 0]);
+        createSegment(this, null, p2, p1);
+        const d1 = createLine(this, null, p2, p1);
         d1.hidden = 1;
-        d1.draw();
-        const p3 = point_object.create(this, null, [5, 4, 0]);
-        const p4 = point_object.create(this, null, [1, -3, 0]);
-        const d2 = two_points_line_object.create(this, null, p3, p4);
-        const i1 = intersection_object.create(this, null, d1, d2);
-        const p5 = point_object.create(this, null, [0, -1, 0]);
-        segment_object.create(this, null, i1, p5);
+        this.invalidateRender(d1);
+        const p3 = createPoint(this, null, [5, 4, 0]);
+        const p4 = createPoint(this, null, [1, -3, 0]);
+        const d2 = createLine(this, null, p3, p4);
+        const i1 = createIntersection(this, null, d1, d2);
+        const p5 = createPoint(this, null, [0, -1, 0]);
+        createSegment(this, null, i1, p5);
     }
 
     mousedrag(_ev: PointerEvent, [dx, dy]: PointerDelta): void {
@@ -69,10 +69,10 @@ export class construction {
             Math.min(this.GRID.PHI + dx * this.GRID.STEP, rp[1]),
             rp[0],
         );
-        this.updateAll();
+        this.invalidateProjection();
     }
 
-    add(obj: construction_object): construction_object {
+    add<T extends construction_object>(obj: T): T {
         const added = this.OBJS.add(obj);
         added.createSVG();
         return added;
@@ -103,13 +103,18 @@ export class construction {
         });
     }
 
-    updateFrom(obj: construction_object): void {
-        this.OBJS.markDirty(obj);
+    invalidateGeometry(obj: construction_object): void {
+        this.OBJS.markGeometryDirty(obj);
         this.scheduleUpdate();
     }
 
-    updateAll(): void {
-        this.OBJS.markAllDirty();
+    invalidateProjection(): void {
+        this.OBJS.markProjectionDirty();
+        this.scheduleUpdate();
+    }
+
+    invalidateRender(obj: construction_object): void {
+        this.OBJS.markRenderDirty(obj);
         this.scheduleUpdate();
     }
 

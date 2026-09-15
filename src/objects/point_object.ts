@@ -7,6 +7,7 @@ import { construction_object } from "./construction_object";
 export class point_object extends construction_object {
     COORDS: Vec3;
     SCREEN: Vec2;
+    projectionDefined: boolean;
     shape: string;
     border: number | undefined;
 
@@ -19,25 +20,23 @@ export class point_object extends construction_object {
         super(c, name, type ? type : "point");
         this.COORDS = [pt[0], pt[1], pt[2]];
         this.SCREEN = [0, 0];
+        this.projectionDefined = true;
 
         this.shape = this.prefs.point.shape.current;
         this.border = this.prefs[this.type].border;
     }
 
     get coords(): Vec3 {
-        return [this.COORDS[0], this.COORDS[1], this.COORDS[2]];
+        return this.COORDS;
     }
     set coords(v: Vec3) {
-        this.COORDS[0] = v[0];
-        this.COORDS[1] = v[1];
-        this.COORDS[2] = v[2];
+        this.COORDS = [v[0], v[1], v[2]];
     }
     get screen(): Vec2 {
         return this.SCREEN;
     }
     set screen(v: Vec2) {
-        this.SCREEN[0] = v[0];
-        this.SCREEN[1] = v[1];
+        this.SCREEN = [v[0], v[1]];
     }
     get sx(): number {
         return this.SCREEN[0];
@@ -45,17 +44,8 @@ export class point_object extends construction_object {
     get sy(): number {
         return this.SCREEN[1];
     }
-    set sx(x: number) {
-        this.SCREEN[0] = x;
-    }
-    set sy(y: number) {
-        this.SCREEN[1] = y;
-    }
     get x(): number {
         return this.COORDS[0];
-    }
-    set x(x: number) {
-        this.COORDS[0] = x;
     }
     get y(): number {
         return this.COORDS[1];
@@ -64,18 +54,16 @@ export class point_object extends construction_object {
         return this.COORDS[2];
     }
 
-    compute(): void {
-        this.computeScreen();
+    computeGeometry(): void {
+        this.defined = vIsFinite(this.COORDS);
     }
 
-    private computeScreen(): void {
-        if (!vIsFinite(this.COORDS)) {
-            this.defined = false;
-            return;
-        }
+    project(): void {
+        this.projectionDefined = false;
+        if (!this.defined) return;
         const screen = this.C.pt3D(this.COORDS);
-        this.defined = vIsFinite(screen);
-        if (this.defined) this.screen = screen;
+        this.projectionDefined = vIsFinite(screen);
+        if (this.projectionDefined) this.screen = screen;
     }
 
     mousedrag(ev: PointerEvent): void {
@@ -85,33 +73,24 @@ export class point_object extends construction_object {
         );
         if (!coords) return;
         this.coords = coords;
-        this.C.updateFrom(this);
+        this.C.invalidateGeometry(this);
     }
 
     mouseclick(_ev: PointerEvent): void {
         this.C.removeObject(this);
     }
 
-    static create(
-        c: construction,
-        name: string | null | undefined,
-        pt: Vec3,
-    ): point_object {
-        return c.add(new point_object(c, name, pt)) as point_object;
-    }
-
     // *************************************************
     // ****************** SVG PART **********************
     // *************************************************
 
-    draw(): void {
-        this.dom.stl("display", this.isVisible ? "block" : "none");
-        if (!this.defined) return;
+    render(): void {
+        this.dom.stl(
+            "display",
+            this.isVisible && this.projectionDefined ? "block" : "none",
+        );
+        if (!this.defined || !this.projectionDefined) return;
         this.dom.att("transform", `translate(${this.sx} ${this.sy})`);
-    }
-
-    dragSVG(t: Vec2): void {
-        this.dom.att("transform", `translate(${t[0]} ${t[1]})`);
     }
 
     static createSVG(_this: construction_object): DOMElement {
@@ -212,4 +191,12 @@ export class point_object extends construction_object {
         }
         return dom;
     }
+}
+
+export function createPoint(
+    c: construction,
+    name: string | null | undefined,
+    pt: Vec3,
+): point_object {
+    return c.add(new point_object(c, name, pt));
 }

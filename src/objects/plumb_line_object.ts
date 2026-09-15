@@ -30,15 +30,13 @@ export class plumb_line_object extends primitive_line_object {
         const w = vSub(m, p);
         return vNormalize(vCross(v, vCross(v, w)));
     }
+}
 
-    static create(
-        c: construction,
-        name: string | null | undefined,
-        p1: point_object,
-        d: primitive_line_object,
-    ): plumb_line_object {
-        return c.add(
-            new plumb_line_object(c, name, p1, d),
-        ) as plumb_line_object;
-    }
+export function createPlumb(
+    c: construction,
+    name: string | null | undefined,
+    p1: point_object,
+    d: primitive_line_object,
+): plumb_line_object {
+    return c.add(new plumb_line_object(c, name, p1, d));
 }

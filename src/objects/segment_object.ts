@@ -13,18 +13,16 @@ export class segment_object extends two_points_line_object {
         super(c, name, p1, p2, "segment");
     }
 
-    static create(
-        c: construction,
-        name: string | null | undefined,
-        p1: point_object,
-        p2: point_object,
-    ): segment_object {
-        return c.add(new segment_object(c, name, p1, p2)) as segment_object;
-    }
-
-    compute(): void {
-        super.compute();
-        if (!this.defined || !this.projectionDefined) return;
+    project(): void {
+        super.project();
+        if (
+            !this.defined ||
+            !this.projectionDefined ||
+            !this.P2.projectionDefined
+        ) {
+            this.projectionDefined = false;
+            return;
+        }
         this.sP1 = this.P1.screen;
         this.sP2 = this.P2.screen;
         this.projectionDefined = vNormalize(vSub(this.sP2, this.sP1)) !== null;
@@ -35,4 +33,13 @@ export class segment_object extends two_points_line_object {
         const tolerance = geometryTolerance(length);
         return parameter >= -tolerance && parameter <= length + tolerance;
     }
+}
+
+export function createSegment(
+    c: construction,
+    name: string | null | undefined,
+    p1: point_object,
+    p2: point_object,
+): segment_object {
+    return c.add(new segment_object(c, name, p1, p2));
 }

@@ -1,29 +1,45 @@
-export type Vec2 = [number, number];
-export type Vec3 = [number, number, number];
+export type Vec2 = readonly [number, number];
+export type Vec3 = readonly [number, number, number];
 
 export const GEOMETRY_EPSILON = 1e-10;
 const GEOMETRY_RELATIVE_EPSILON = 64 * Number.EPSILON;
 
-export function vAdd<T extends readonly number[]>(a: T, b: T): T {
-    return a.map((v, i) => v + b[i]) as unknown as T;
+export function vAdd(a: Vec2, b: Vec2): Vec2;
+export function vAdd(a: Vec3, b: Vec3): Vec3;
+export function vAdd(
+    a: readonly number[],
+    b: readonly number[],
+): readonly number[] {
+    return a.map((v, i) => v + b[i]);
 }
 
-export function vSub<T extends readonly number[]>(a: T, b: T): T {
-    return a.map((v, i) => v - b[i]) as unknown as T;
+export function vSub(a: Vec2, b: Vec2): Vec2;
+export function vSub(a: Vec3, b: Vec3): Vec3;
+export function vSub(
+    a: readonly number[],
+    b: readonly number[],
+): readonly number[] {
+    return a.map((v, i) => v - b[i]);
 }
 
-export function vScale<T extends readonly number[]>(a: T, k: number): T {
-    return a.map((v) => k * v) as unknown as T;
+export function vScale(a: Vec2, k: number): Vec2;
+export function vScale(a: Vec3, k: number): Vec3;
+export function vScale(a: readonly number[], k: number): readonly number[] {
+    return a.map((v) => k * v);
 }
 
 export function vNorm(a: readonly number[]): number {
     return Math.hypot(...a);
 }
 
-export function vNormalize<T extends readonly number[]>(a: T): T | null {
+export function vNormalize(a: Vec2): Vec2 | null;
+export function vNormalize(a: Vec3): Vec3 | null;
+export function vNormalize(
+    a: readonly number[],
+): readonly number[] | null {
     const norm = vNorm(a);
     return Number.isFinite(norm) && norm > GEOMETRY_EPSILON
-        ? vScale(a, 1 / norm)
+        ? a.map((value) => value / norm)
         : null;
 }
 

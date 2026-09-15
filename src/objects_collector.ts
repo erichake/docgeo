@@ -6,7 +6,7 @@ export class objects_collector {
     // Associative objects array (O[name] = <object>) :
     O: Record<string, construction_object> = {};
 
-    add(o: construction_object): construction_object {
+    add<T extends construction_object>(o: T): T {
         this.V.push(o);
         this.O[o.name] = o;
         return o;
@@ -21,31 +21,43 @@ export class objects_collector {
         return this.O[n];
     }
 
-    markDirty(root: construction_object): void {
+    markGeometryDirty(root: construction_object): void {
         const descendants = [root];
         while (descendants.length) {
             const object = descendants.pop()!;
-            if (object.dirty) continue;
-            object.dirty = true;
+            if (object.geometryDirty) continue;
+            object.geometryDirty = true;
+            object.projectionDirty = true;
+            object.renderDirty = true;
             descendants.push(...object.children);
         }
     }
 
-    markAllDirty(): void {
+    markProjectionDirty(): void {
         this.V.forEach((object) => {
-            object.dirty = true;
+            object.projectionDirty = true;
+            object.renderDirty = true;
         });
+    }
+
+    markRenderDirty(object: construction_object): void {
+        object.renderDirty = true;
     }
 
     update(): void {
         this.V.forEach((object) => {
-            if (!object.dirty) return;
-            object.computeAndDraw();
-            object.dirty = false;
+            if (object.geometryDirty) {
+                object.computeGeometry();
+                object.geometryDirty = false;
+            }
+            if (object.projectionDirty) {
+                object.project();
+                object.projectionDirty = false;
+            }
+            if (object.renderDirty) {
+                object.render();
+                object.renderDirty = false;
+            }
         });
-    }
-
-    draw(): void {
-        this.V.forEach((elt) => elt.draw());
     }
 }

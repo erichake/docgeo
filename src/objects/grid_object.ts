@@ -30,15 +30,11 @@ export class grid_object extends construction_object {
         this.STEP = pref.step;
     }
 
-    compute(): void {
+    project(): void {
         this.CPHI = Math.cos(this.PHI);
         this.SPHI = Math.sin(this.PHI);
         this.CTHETA = Math.cos(this.THETA);
         this.STHETA = Math.sin(this.THETA);
-    }
-
-    static create(c: construction): grid_object {
-        return c.add(new grid_object(c)) as grid_object;
     }
 
     get screenIJK(): [Vec2, Vec2, Vec2] {
@@ -59,7 +55,7 @@ export class grid_object extends construction_object {
     // ****************** SVG PART **********************
     // *************************************************
 
-    draw(): void {
+    render(): void {
         const v = this.screenIJK;
         let d = "M" + this.ORG[0] + " " + this.ORG[1];
         d += " L" + v[0][0] + " " + v[0][1];
@@ -82,4 +78,8 @@ export class grid_object extends construction_object {
         dom.add(t.axis);
         return dom;
     }
+}
+
+export function createGrid(c: construction): grid_object {
+    return c.add(new grid_object(c));
 }

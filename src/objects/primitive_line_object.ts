@@ -36,8 +36,7 @@ export class primitive_line_object extends construction_object {
         return true;
     }
 
-    compute(): void {
-        this.projectionDefined = false;
+    computeGeometry(): void {
         if (!this.P1.defined) {
             this.defined = false;
             return;
@@ -48,6 +47,11 @@ export class primitive_line_object extends construction_object {
         if (!vector) return;
 
         this.VEC = vector;
+    }
+
+    project(): void {
+        this.projectionDefined = false;
+        if (!this.defined || !this.P1.projectionDefined) return;
         const sp = this.P1.screen;
         const screenVector = vNormalize(
             vSub(this.C.pt3D(vAdd(this.P1.coords, this.VEC)), sp),
@@ -71,7 +75,7 @@ export class primitive_line_object extends construction_object {
     // ****************** SVG PART **********************
     // *************************************************
 
-    draw(): void {
+    render(): void {
         this.dom.stl(
             "display",
             this.isVisible && this.projectionDefined ? "block" : "none",

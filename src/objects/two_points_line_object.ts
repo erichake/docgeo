@@ -24,15 +24,13 @@ export class two_points_line_object extends primitive_line_object {
         if (!this.P2.defined) return null;
         return vNormalize(vSub(this.P2.coords, this.P1.coords));
     }
+}
 
-    static create(
-        c: construction,
-        name: string | null | undefined,
-        p1: point_object,
-        p2: point_object,
-    ): two_points_line_object {
-        return c.add(
-            new two_points_line_object(c, name, p1, p2),
-        ) as two_points_line_object;
-    }
+export function createLine(
+    c: construction,
+    name: string | null | undefined,
+    p1: point_object,
+    p2: point_object,
+): two_points_line_object {
+    return c.add(new two_points_line_object(c, name, p1, p2));
 }
