@@ -1,11 +1,6 @@
 import { $, type DOMElement, type PointerDelta } from "./dom";
-import { createCircle3pts } from "./objects/circle3pts_object";
 import { construction_object } from "./objects/construction_object";
 import { createGrid, grid_object } from "./objects/grid_object";
-import { createIntersection } from "./objects/intersection_object";
-import { createPoint } from "./objects/point_object";
-import { createSegment } from "./objects/segment_object";
-import { createLine } from "./objects/two_points_line_object";
 import { objects_collector } from "./objects_collector";
 import type { preferences, Preferences } from "./preferences";
 import {
@@ -40,21 +35,7 @@ export class construction {
         this.GRID = createGrid(this);
     }
 
-    mouseclick(_ev: PointerEvent): void {
-        const p1 = createPoint(this, null, [1, 1, 0]);
-        const p2 = createPoint(this, null, [-2, 0, 0]);
-        createSegment(this, null, p2, p1);
-        const d1 = createLine(this, null, p2, p1);
-        d1.hidden = 1;
-        this.invalidateRender(d1);
-        const p3 = createPoint(this, null, [5, 4, 0]);
-        const p4 = createPoint(this, null, [1, -3, 0]);
-        const d2 = createLine(this, null, p3, p4);
-        const i1 = createIntersection(this, null, d1, d2);
-        const p5 = createPoint(this, null, [0, -1, 0]);
-        createSegment(this, null, i1, p5);
-        createCircle3pts(this, null, p1, p2, p3);
-    }
+    mouseclick(_ev: PointerEvent): void {}
 
     mousedrag(_ev: PointerEvent, [dx, dy]: PointerDelta): void {
         const rt = this.GRID.RESTRICT_THETA;
