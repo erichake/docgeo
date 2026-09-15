@@ -287,6 +287,7 @@ export class DOMElement {
         callback: (event: PointerEvent, delta: PointerDelta) => void,
         before?: (event: PointerEvent) => void,
         after?: (event: PointerEvent, cancelled: boolean) => void,
+        button = 0,
     ): this {
         let pointerId: number | null = null;
         let oldX = 0;
@@ -302,7 +303,7 @@ export class DOMElement {
         };
 
         this.on("pointerdown", (event) => {
-            if (!isPrimaryAction(event) || pointerId !== null) return;
+            if (!isPrimaryAction(event, button) || pointerId !== null) return;
             pointerId = event.pointerId;
             oldX = event.clientX;
             oldY = event.clientY;
@@ -398,8 +399,9 @@ function normalizeEventOptions(
     };
 }
 
-function isPrimaryAction(event: PointerEvent): boolean {
+function isPrimaryAction(event: PointerEvent, button = 0): boolean {
     return (
-        event.isPrimary && (event.pointerType !== "mouse" || event.button === 0)
+        event.isPrimary &&
+        (event.pointerType !== "mouse" || event.button === button)
     );
 }

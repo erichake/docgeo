@@ -229,7 +229,12 @@ export class construction {
 
     private bindSceneEvents(element: DOMElement): void {
         element
-            .drag((event, delta) => this.mousedrag(event, delta))
+            .drag(
+                (event, delta) => this.mousedrag(event, delta),
+                undefined,
+                undefined,
+                2,
+            )
             .tap((event) => this.mouseclick(event));
     }
 
