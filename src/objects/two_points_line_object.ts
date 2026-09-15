@@ -18,7 +18,6 @@ export class two_points_line_object extends primitive_line_object {
         this.P2 = p2;
         this.VEC = this.computeVEC() ?? [0, 0, 0];
         this.addParents(p2);
-        this.createSVG(); // init this.dom
     }
 
     computeVEC(): Vec3 | null {

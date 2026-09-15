@@ -20,12 +20,7 @@ s'enrichit.
 
 ### [x] Sécuriser la normalisation des vecteurs
 
-**Constat**
-
-`vNormalize()` divise toujours par la norme. Deux points confondus produisent donc
-un vecteur contenant des `NaN`.
-
-**Piste**
+**Réalisé**
 
 - `vNormalize()` renvoie désormais `null` lorsque la norme est nulle ou non
   finie :
@@ -34,122 +29,71 @@ un vecteur contenant des `NaN`.
     function vNormalize<T extends readonly number[]>(v: T): T | null;
     ```
 
-- Un vecteur nul est représenté par `null` et rend l'objet géométrique
-  `defined = false`.
-- Éviter de transmettre des coordonnées non finies au SVG.
-
-**Critères de validation**
-
-- Deux points confondus ne provoquent ni exception ni attribut SVG contenant
-  `NaN` ou `Infinity`.
-- Une droite dégénérée possède un état défini et un rendu cohérent, par exemple
-  masqué.
+- `vNorm()` utilise `Math.hypot()` pour éviter les débordements intermédiaires.
+- Les comparaisons géométriques partagent une tolérance absolue et relative.
+- Deux points confondus rendent leur droite indéfinie et masquée, sans transmettre
+  de valeur non finie au SVG.
 
 ### [x] Distinguer dégénérescence géométrique et dégénérescence de projection
 
-**Constat**
+**Réalisé**
 
-Une droite 3D valide peut être parallèle à la direction de vue et se projeter en
-un point. `primitive_line_object.compute()` vérifie actuellement le vecteur 3D,
-mais normalise ensuite le vecteur projeté sans vérifier qu'il est non nul.
+- `defined` représente l'existence de la droite dans l'espace.
+- `projectionDefined` représente l'existence de sa projection comme droite à
+  l'écran.
+- Une droite 3D regardée dans son axe reste géométriquement définie, mais son tracé
+  SVG est masqué.
 
-**Piste**
+### [x] Sécuriser l'inversion écran-plan
 
-- Vérifier séparément la validité du vecteur géométrique et celle de sa projection.
-- Définir le rendu d'une droite regardée « de face » : masquée, réduite à un point,
-  ou représentée par un symbole spécifique.
+**Réalisé**
 
-**Critère de validation**
-
-- Orienter la caméra dans l'axe d'une droite ne produit aucune valeur non finie.
-
-### [x] Remplacer et sécuriser `construction.bidon()`
-
-**Constat**
-
-Cette méthode reconstruit les coordonnées d'un point déplacé sur le plan
-`z = constante`. Son déterminant devient nul lorsque `sin(THETA) = 0`, position
-actuellement autorisée par la caméra.
-
-**Piste**
-
-- La méthode est devenue `unprojectToZPlane()` et reçoit explicitement la cote
-  du plan de déplacement.
-- Tester le déterminant avec une tolérance et renvoyer `Vec3 | null` si
-  l'inversion est impossible.
-- À terme, modéliser le déplacement comme l'intersection d'un rayon de vue avec
-  un plan de travail.
-
-**Critères de validation**
-
-- Un point reste déplaçable pour toutes les orientations autorisées où la
-  projection est inversible.
-- Une orientation singulière est gérée sans division par zéro.
+- `construction.unprojectToZPlane(screen, z)` reçoit explicitement les coordonnées
+  écran et la cote du plan de déplacement.
+- Le déterminant est comparé à une tolérance tenant compte de l'échelle des axes.
+- La méthode renvoie `null` lorsque la projection n'est pas inversible ; le point
+  conserve alors sa dernière position valide.
 
 ### [x] Formaliser la validité des objets
 
-**Constat**
+**Réalisé**
 
-Plusieurs situations sont mathématiquement indéfinies : droite définie par deux
-points confondus, intersection de droites parallèles, droites gauches, etc.
-
-**Piste**
-
-- Ajouter un état tel que `valid`, `defined` ou un résultat typé.
-- Centraliser les tests `Number.isFinite()` avant projection et rendu.
-- Masquer proprement les objets indéfinis tout en les conservant dans le graphe de
-  construction pour qu'ils puissent redevenir valides.
+- Tous les objets de construction possèdent un état `defined`.
+- `isVisible` combine cet état avec le masquage demandé par l'utilisateur.
+- Les points vérifient leurs coordonnées avant projection et leur projection avant
+  rendu.
+- Un objet indéfini reste dans le graphe et redevient visible dès que ses parents
+  permettent à nouveau son calcul.
 
 ### [x] Terminer les contraintes de segment et de demi-droite
 
-**Constat**
+**Réalisé**
 
-Avant correction, `InsideBounds()` existait sur les droites primitives, mais
-n'était pas surchargée par `segment_object` et `ray_line_object`. Une intersection
-impliquant un segment utilisait donc sa droite support.
-
-**Piste**
-
-- Implémenter les bornes à partir du paramètre de la droite.
-- Faire vérifier ces bornes par les algorithmes d'intersection.
-- Définir une tolérance numérique adaptée à l'échelle de la construction.
+- `insideBounds(parameter)` accepte tout paramètre pour une droite, l'intervalle
+  du segment et les paramètres positifs pour une demi-droite.
+- Les bornes utilisent la tolérance géométrique commune.
+- L'intersection de deux supports est calculée en 3D, puis rejetée pour des droites
+  parallèles, gauches ou lorsque le résultat est hors des bornes.
 
 ## Priorité 2 — Cycle de vie des objets et du SVG
 
-### [ ] Implémenter une vraie suppression d'objet
+### [x] Implémenter une vraie suppression d'objet
 
-**Constat**
+**Réalisé**
 
-`point_object.mouseclick()` appelle `removeSVG()`, mais laisse le point dans le
-collecteur, le dictionnaire de noms et le graphe de dépendances. Un rendu ultérieur
-peut alors accéder à `dom === null`.
+- `construction.removeObject(object)` supprime l'objet et tous ses descendants.
+- Les références sont retirées des parents et enfants survivants.
+- `objects_collector.remove()` met à jour la liste de construction et le
+  dictionnaire des noms.
+- `DOMElement.dispose()` retire le nœud SVG et libère ses écouteurs.
+- Le clic de démonstration sur un point utilise désormais cette suppression
+  complète.
 
-**Piste**
+### [x] Unifier la création et le montage des éléments SVG
 
-- Retirer ce comportement de démonstration ou créer
-  `construction.removeObject(object)`.
-- Lors d'une suppression, traiter explicitement :
-    - les parents et enfants ;
-    - `objects_collector.V`, `D` et `O` ;
-    - le DOM et ses événements ;
-    - la stratégie concernant les objets descendants.
+**Réalisé**
 
-**Critère de validation**
-
-- Après suppression, une rotation, un recalcul et un nouveau tri ne provoquent
-  aucune erreur.
-
-### [ ] Unifier la création et le montage des éléments SVG
-
-**Constat**
-
-La grille ajoute elle-même son élément au SVG, tandis que les autres objets
-attendent `orderAndDrawAll()`. Une recréation via `createSVG()` ne garantit pas que
-le nouveau nœud soit remonté dans le document.
-
-**Piste**
-
-Adopter un cycle unique :
+`construction.add()` applique maintenant un cycle unique :
 
 ```text
 création du modèle
@@ -161,57 +105,46 @@ création du modèle
 → destruction complète éventuelle
 ```
 
-- Choisir un seul responsable du montage : l'objet, le collecteur ou un renderer.
-- Éliminer les assertions `dom!` là où l'invariant n'est pas garanti.
-- Utiliser les coordonnées écran `sx/sy`, et non `x/y`, pour la position SVG
-  initiale d'un point.
+- L'objet construit sa vue, tandis que la construction est seule responsable de
+  son montage dans le bon calque.
+- `createSVG()` remplace, remonte et redessine correctement une vue recréée.
+- Les constructeurs d'objets ne créent et ne montent plus eux-mêmes leur SVG.
+- `dom` est garanti après l'ajout à la construction ; les assertions `dom!` ont
+  disparu.
 
-### [ ] Initialiser réellement la scène
+### [x] Initialiser réellement la scène
 
-**Constat**
+**Réalisé**
 
-La grille crée ses chemins, mais la construction ne lance pas immédiatement un
-cycle `compute/draw`. La scène initiale peut donc rester vide jusqu'à la première
-interaction.
+- Chaque ajout se termine par `computeAndDraw()` ; le repère est donc visible dès
+  la création de la construction.
+- `grid_object` représente actuellement le repère formé par les trois axes, pas une
+  grille complète.
+- Le chemin `OY` inutilisé a été supprimé.
 
-**Piste**
+### [x] Utiliser des groupes SVG pour les calques
 
-- Déclencher explicitement l'initialisation une fois les dimensions connues.
-- Clarifier si `grid_object` représente une grille complète ou seulement le repère.
-- Supprimer ou utiliser le chemin `OY`, actuellement créé mais non dessiné.
-
-### [ ] Utiliser des groupes SVG pour les calques
-
-**Constat**
-
-`orderAndDrawAll()` retire et réinsère tous les nœuds pour appliquer l'ordre des
-calques.
-
-**Piste**
-
-Créer des groupes persistants, par exemple :
+**Réalisé**
 
 ```svg
-<g data-layer="grid"></g>
-<g data-layer="lines"></g>
-<g data-layer="points"></g>
-<g data-layer="labels"></g>
+<g data-layer="1"></g>
+<g data-layer="4"></g>
+<g data-layer="5"></g>
 ```
 
-Chaque objet serait monté directement dans son groupe. Il resterait possible de
-gérer un ordre relatif à l'intérieur d'un calque.
+- Les groupes sont créés une fois, dans l'ordre numérique défini par les
+  préférences.
+- Chaque objet est directement monté dans son groupe.
+- `orderAndDrawAll()` et les retraits/réinsertions nécessaires à l'ancien tri ont
+  été supprimés.
+- La liste de rendu `D`, devenue identique à la liste de construction `V`, a été
+  supprimée.
 
-### [ ] Évaluer l'emploi de `<g>` pour les points
+### [x] Employer `<g>` pour les points
 
-**Constat**
+**Réalisé**
 
-Chaque point est actuellement un élément `<svg>` imbriqué avec
-`overflow: visible`. Cette structure est valide, mais plus complexe que nécessaire
-si aucun viewport local n'est recherché.
-
-**Piste**
-
-Utiliser éventuellement :
+Un point utilise désormais une forme centrée dans un groupe translaté :
 
 ```svg
 <g transform="translate(x y)">
@@ -219,54 +152,32 @@ Utiliser éventuellement :
 </g>
 ```
 
-Le groupe pourrait contenir la forme, la zone de capture, le nom et les futures
-décorations. Ce changement doit être guidé par une mesure ou par un besoin de
-simplification, pas seulement par principe.
+- Le `<svg>` imbriqué et son viewport local ont disparu.
+- Un déplacement modifie un seul attribut `transform`, au lieu de deux attributs
+  `x` et `y`.
+- Le groupe pourra accueillir la future zone de capture, le nom et les décorations
+  du point.
 
 ## Priorité 3 — Interactions
 
 ### [x] Remplacer les événements souris/tactiles par les Pointer Events
 
-**Constat**
-
-Le code maintient deux chemins séparés pour souris et tactile. La recherche du
-toucher actif ne compare pas réellement son identifiant, l'identifiant `0` est
-traité comme faux et l'état est difficile à réinitialiser correctement.
-
-**Piste**
-
-- Utiliser `pointerdown`, `pointermove`, `pointerup` et `pointercancel`.
-- Utiliser `setPointerCapture(event.pointerId)` pendant un déplacement.
-- Conserver un seul état d'interaction actif au niveau de la construction.
-- Prévoir explicitement le cas de plusieurs pointeurs si les gestes multitouch
-  deviennent nécessaires.
-
 **Réalisé**
 
-La couche DOM utilise maintenant les Pointer Events, suit un `pointerId`, traite
-`pointercancel` et capture le pointeur pendant un déplacement.
+- La couche DOM utilise `pointerdown`, `pointermove`, `pointerup` et
+  `pointercancel`.
+- Elle suit le `pointerId` actif et capture le pointeur pendant un déplacement.
+- Souris, stylet et interaction tactile simple empruntent le même chemin.
 
 ### [x] Éviter les écouteurs globaux installés par chaque objet
 
-**Constat**
+**Réalisé**
 
-Chaque objet déplaçable installe ses propres écouteurs `mousemove` et `mouseup` sur
-`window`. Le coût d'un mouvement de souris augmente donc avec le nombre d'objets,
-même lorsqu'un seul objet est manipulé.
-
-**Piste**
-
-- Centraliser le déplacement dans un contrôleur d'interaction ; ou
-- n'installer les écouteurs que pendant le déplacement actif ; ou
-- s'appuyer sur la capture des Pointer Events.
-
-**Critère de validation**
-
-- Le nombre de gestionnaires globaux ne croît pas avec le nombre de points.
-
-Les gestionnaires de déplacement sont désormais attachés à l'élément concerné et
-ne sont actifs pour le mouvement que lorsque cet élément possède la capture du
-pointeur.
+- Les gestionnaires appartiennent au `DOMElement` concerné et sont supprimés par
+  `dispose()`.
+- Aucun couple d'écouteurs de déplacement n'est installé sur `window` pour chaque
+  objet.
+- Un élément ne traite le mouvement que lorsqu'il possède la capture du pointeur.
 
 ### [ ] Créer de vraies zones de capture SVG
 
@@ -397,9 +308,9 @@ une combinaison non prise en charge.
 
 **Constat**
 
-Les getters de coordonnées renvoient des copies, tandis que certaines directions
-peuvent partager la même référence, par exemple une parallèle qui affecte
-directement `this.D.VEC` à `this.VEC`.
+Les getters de coordonnées renvoient des copies et une parallèle copie maintenant
+explicitement le vecteur de sa droite source. Il reste toutefois à choisir et à
+documenter une politique générale pour les futurs objets.
 
 **Piste**
 
@@ -412,22 +323,11 @@ directement `this.D.VEC` à `this.VEC`.
 
 ### [x] Encapsuler les helpers DOM sans modifier les éléments natifs
 
-**Constat**
-
-`customize()` ajoute des méthodes aux objets DOM et remplace des noms natifs comme
-`remove()` et `append()`. Cette approche permet une syntaxe compacte, mais présente
-des risques de collision et rend les types difficiles à maintenir.
-
-**Piste**
-
-- Créer un petit wrapper chaînable autour d'un `Element` ; ou
-- employer quelques fonctions utilitaires sans modifier l'élément ; ou
-- utiliser directement les API DOM lorsque cela reste lisible.
-
 **Réalisé**
 
-`DOMElement` enveloppe maintenant les éléments natifs. Il possède ses écouteurs et
-leur nettoyage sans ajouter ni remplacer de méthodes sur `Element`.
+- `DOMElement` enveloppe les éléments natifs sans modifier leur prototype.
+- Le wrapper fournit les opérations chaînables utilisées par le projet.
+- Il conserve ses écouteurs et sait les nettoyer avec `dispose()`.
 
 ### [ ] Gérer le redimensionnement
 
@@ -483,26 +383,34 @@ Cas recommandés :
 - utiliser souris, tactile et stylet via les Pointer Events ;
 - vérifier qu'aucun attribut SVG ne contient `NaN` ou `Infinity`.
 
-### [ ] Ajouter des contrôles automatiques simples
+### [ ] Compléter les contrôles automatiques
 
-- Conserver `tsc --noEmit` dans le build.
-- Ajouter un formateur et, si utile, un linter léger.
-- Faire échouer les tests lorsqu'une coordonnée non finie atteint la couche de
+Déjà en place :
+
+- `tsc --noEmit` est exécuté par le build ;
+- EditorConfig et Prettier définissent le format commun du projet.
+
+Reste à faire :
+
+- ajouter une commande de vérification du format et, si utile, un linter léger ;
+- faire échouer les tests lorsqu'une coordonnée non finie atteint la couche de
   projection ou de rendu.
 
 ## Ordre de travail suggéré
 
-Pour avancer par petites étapes sans réécrire tout le prototype :
+Déjà réalisés : robustesse géométrique, cycle de vie des objets et du SVG, calques
+persistants, Pointer Events, suppression des écouteurs globaux par objet,
+encapsulation DOM et configuration du formatage.
 
-1. Ajouter les tests du module vectoriel et sécuriser les vecteurs nuls.
-2. Sécuriser la projection et remplacer `bidon()`.
-3. Formaliser l'état valide ou indéfini des objets.
-4. Corriger la suppression et unifier le montage SVG.
-5. Passer aux Pointer Events et aux zones de capture.
-6. Corriger l'invalidation et l'ordre du graphe de dépendances.
-7. Ajouter le redimensionnement.
-8. Séparer progressivement calcul géométrique, projection et rendu.
-9. Revoir ensuite les factories, le helper DOM et l'organisation des calques.
+Pour poursuivre par petites étapes sans réécrire tout le prototype :
+
+1. Ajouter les zones de capture et convertir les coordonnées de pointeur.
+2. Corriger l'invalidation et l'ordre du graphe de dépendances.
+3. Regrouper les mises à jour d'une interaction.
+4. Séparer progressivement calcul géométrique, projection et rendu.
+5. Gérer le redimensionnement et décider du rôle du canvas.
+6. Revoir les factories, le registre d'intersections et la mutabilité des vecteurs.
+7. Ajouter les tests automatisés et compléter les contrôles de développement.
 
 Chaque étape devrait rester suffisamment petite pour être compilée, testée et
 validée visuellement avant de passer à la suivante.

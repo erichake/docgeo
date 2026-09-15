@@ -1,4 +1,5 @@
 import type { construction } from "../construction";
+import type { DOMElement } from "../dom";
 import type { PrefKey } from "../preferences";
 import { vAdd, vNormalize, vSub, type Vec2, type Vec3 } from "../vec";
 import { construction_object } from "./construction_object";
@@ -69,7 +70,7 @@ export class primitive_line_object extends construction_object {
     // *************************************************
 
     draw(): void {
-        this.dom!.stl(
+        this.dom.stl(
             "display",
             this.isVisible && this.projectionDefined ? "block" : "none",
         );
@@ -83,12 +84,12 @@ export class primitive_line_object extends construction_object {
             this.sP2[0] +
             " " +
             this.sP2[1];
-        this.dom!.att("d", d);
+        this.dom.att("d", d);
     }
 
-    static createSVG(_this: construction_object): void {
+    static createSVG(_this: construction_object): DOMElement {
         const t = _this as primitive_line_object;
-        t.dom = t.svg
+        return t.svg
             .shape("path")
             .stl("stroke", t.stroke_color)
             .stl("stroke-width", t.size)

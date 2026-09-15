@@ -1,4 +1,5 @@
 import type { construction } from "../construction";
+import type { DOMElement } from "../dom";
 import type { PrefKey } from "../preferences";
 import { vIsFinite, type Vec2, type Vec3 } from "../vec";
 import { construction_object } from "./construction_object";
@@ -21,9 +22,6 @@ export class point_object extends construction_object {
 
         this.shape = this.prefs.point.shape.current;
         this.border = this.prefs[this.type].border;
-
-        this.computeScreen();
-        this.createSVG(); // init this.dom
     }
 
     get coords(): Vec3 {
@@ -90,7 +88,7 @@ export class point_object extends construction_object {
     }
 
     mouseclick(_ev: PointerEvent): void {
-        this.removeSVG();
+        this.C.removeObject(this);
     }
 
     static create(
@@ -106,41 +104,36 @@ export class point_object extends construction_object {
     // *************************************************
 
     draw(): void {
-        this.dom!.stl("display", this.isVisible ? "block" : "none");
+        this.dom.stl("display", this.isVisible ? "block" : "none");
         if (!this.defined) return;
-        this.dom!.att("x", this.sx - this.size).att("y", this.sy - this.size);
+        this.dom.att("transform", `translate(${this.sx} ${this.sy})`);
     }
 
     dragSVG(t: Vec2): void {
-        this.dom!.att("x", t[0] - this.size).att("y", t[1] - this.size);
+        this.dom.att("transform", `translate(${t[0]} ${t[1]})`);
     }
 
-    static createSVG(_this: construction_object): void {
+    static createSVG(_this: construction_object): DOMElement {
         const t = _this as point_object;
         const p = t.prefs.point.shape;
         const s1 = t.size;
         const s2 = 2 * s1;
 
-        t.dom = t.svg
-            .shape("svg")
-            .att("x", t.sx - s1)
-            .att("y", t.sy - s1)
-            .att("width", s2)
-            .att("height", s2)
-            .stl("overflow:visible");
-        t.dom
+        const dom = t.svg
+            .shape("g")
+            .att("transform", `translate(${t.sx} ${t.sy})`)
             .drag((event) => t.mousedrag(event))
             .tap((event) => t.mouseclick(event));
 
         switch (t.shape) {
             case p.rect:
-                t.dom.add(
+                dom.add(
                     t.svg
                         .shape(p.rect)
                         .att("width", s2)
                         .att("height", s2)
-                        .att("x", 0)
-                        .att("y", 0)
+                        .att("x", -s1)
+                        .att("y", -s1)
                         .stl("fill", t.fill_color)
                         .stl("fill-opacity", t.opacity ?? 0)
                         .stl("stroke", t.stroke_color)
@@ -149,12 +142,12 @@ export class point_object extends construction_object {
                 );
                 break;
             case p.circle:
-                t.dom.add(
+                dom.add(
                     t.svg
                         .shape(p.circle)
                         .att("r", s1)
-                        .att("cx", s1)
-                        .att("cy", s1)
+                        .att("cx", 0)
+                        .att("cy", 0)
                         .stl("fill", t.fill_color)
                         .stl("fill-opacity", t.opacity ?? 0)
                         .stl("stroke", t.stroke_color)
@@ -163,22 +156,22 @@ export class point_object extends construction_object {
                 );
                 break;
             case p.cross: {
-                t.dom.add(
+                dom.add(
                     t.svg
                         .shape("rect")
                         .att("width", s2)
                         .att("height", s2)
-                        .att("x", 0)
-                        .att("y", 0)
+                        .att("x", -s1)
+                        .att("y", -s1)
                         .stl(
                             "stroke-width:0;cursor:pointer;fill:rgba(255,255,255,0)",
                         ),
                 );
-                let d = "M0 0";
-                d += " L" + s2 + " " + s2;
-                d += " M0 " + s2;
-                d += " L" + s2 + " 0";
-                t.dom.add(
+                let d = `M${-s1} ${-s1}`;
+                d += ` L${s1} ${s1}`;
+                d += ` M${-s1} ${s1}`;
+                d += ` L${s1} ${-s1}`;
+                dom.add(
                     t.svg
                         .shape("path")
                         .att("d", d)
@@ -189,12 +182,12 @@ export class point_object extends construction_object {
                 break;
             }
             case p.diamond: {
-                let d = "M0 " + s1;
-                d += " L" + s1 + " 0";
-                d += " L" + s2 + " " + s1;
-                d += " L" + s1 + " " + s2;
+                let d = `M0 ${-s1}`;
+                d += ` L${s1} 0`;
+                d += ` L0 ${s1}`;
+                d += ` L${-s1} 0`;
                 d += " Z";
-                t.dom.add(
+                dom.add(
                     t.svg
                         .shape("path")
                         .att("d", d)
@@ -207,5 +200,6 @@ export class point_object extends construction_object {
                 break;
             }
         }
+        return dom;
     }
 }

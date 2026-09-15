@@ -15,7 +15,6 @@ export class plumb_line_object extends primitive_line_object {
         super(c, name, p1, "plumb");
         this.D = d;
         this.addParents(d);
-        this.createSVG(); // init this.dom
     }
 
     computeVEC(): Vec3 | null {

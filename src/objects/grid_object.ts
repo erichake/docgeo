@@ -16,9 +16,7 @@ export class grid_object extends construction_object {
     SPHI = 0;
     CTHETA = 0;
     STHETA = 0;
-    dom: DOMElement | null = null;
     axis!: DOMElement;
-    oy!: DOMElement;
 
     constructor(c: construction) {
         super(c, null, "grid");
@@ -30,8 +28,6 @@ export class grid_object extends construction_object {
         this.THETA = pref.theta;
         this.ORG = [c.width / 2, c.height / 2];
         this.STEP = pref.step;
-
-        this.createSVG(); // init this.dom and add it to this.svg
     }
 
     compute(): void {
@@ -71,28 +67,19 @@ export class grid_object extends construction_object {
         d += " L" + v[1][0] + " " + v[1][1];
         d += " M" + this.ORG[0] + " " + this.ORG[1];
         d += " L" + v[2][0] + " " + v[2][1];
-        const dom = this.dom!;
         this.axis.att("d", d);
-        dom.stl("display", this.isHidden ? "none" : "block");
+        this.dom.stl("display", this.isVisible ? "block" : "none");
     }
 
-    static createSVG(_this: construction_object): void {
+    static createSVG(_this: construction_object): DOMElement {
         const t = _this as grid_object;
-        const dom = t.svg
-            .shape("svg")
-            .att("x:0;y:0;width:100%;height:100%;overflow:visible");
+        const dom = t.svg.shape("g");
         t.axis = t.svg
             .shape("path")
             .stl("stroke", t.stroke_color)
             .stl("stroke-width", t.size)
             .stl("cursor:pointer");
-        t.oy = t.svg
-            .shape("path")
-            .stl("stroke", t.stroke_color)
-            .stl("stroke-width", t.size)
-            .stl("cursor:pointer");
-        dom.add(t.axis, t.oy);
-        t.dom = dom;
-        t.svg.add(dom);
+        dom.add(t.axis);
+        return dom;
     }
 }

@@ -15,7 +15,7 @@ export class construction_object {
     fill_color: string;
     stroke_color: string;
     layer: number;
-    dom: DOMElement | null;
+    dom!: DOMElement;
     childs: construction_object[];
     parents: construction_object[];
     hidden: number; // 0:show  ,   1:hidden    ,   2:super-hidden
@@ -41,7 +41,6 @@ export class construction_object {
         this.stroke_color = pref.color.stroke;
         this.layer = pref.layer;
 
-        this.dom = null;
         this.childs = [];
         this.parents = [];
         this.hidden = 0;
@@ -118,16 +117,17 @@ export class construction_object {
     // *************************************************
 
     removeSVG(): void {
-        if (this.dom) {
-            this.dom.dispose();
-            this.dom = null;
-        }
+        this.dom.dispose();
     }
 
     createSVG(): void {
-        this.removeSVG();
-        this.class.createSVG(this);
+        this.dom?.dispose();
+        this.dom = this.class.createSVG(this);
+        this.C.mountObject(this);
+        this.computeAndDraw();
     }
 
-    static createSVG(_this: construction_object): void {}
+    static createSVG(_this: construction_object): DOMElement {
+        return _this.svg.shape("g");
+    }
 }

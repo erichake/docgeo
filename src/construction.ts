@@ -29,12 +29,14 @@ export class construction {
     GRID!: grid_object;
     svg!: DOMElement;
     canvas!: DOMElement;
+    layers: Map<number, DOMElement>;
 
     constructor(dgpad: DgpadLike) {
         this.dgpad = dgpad;
         this.prefs = dgpad.prefs;
         // All construction objects :
         this.OBJS = new objects_collector();
+        this.layers = new Map();
         this.createCANVAS();
         this.createSVG();
         this.GRID = grid_object.create(this);
@@ -46,13 +48,13 @@ export class construction {
         segment_object.create(this, null, p2, p1);
         const d1 = two_points_line_object.create(this, null, p2, p1);
         d1.hidden = 1;
+        d1.draw();
         const p3 = point_object.create(this, null, [5, 4, 0]);
         const p4 = point_object.create(this, null, [1, -3, 0]);
         const d2 = two_points_line_object.create(this, null, p3, p4);
         const i1 = intersection_object.create(this, null, d1, d2);
         const p5 = point_object.create(this, null, [0, -1, 0]);
         segment_object.create(this, null, i1, p5);
-        this.orderAndDrawAll();
     }
 
     mousedrag(_ev: PointerEvent, [dx, dy]: PointerDelta): void {
@@ -71,8 +73,36 @@ export class construction {
     }
 
     add(obj: construction_object): construction_object {
-        return this.OBJS.add(obj);
+        const added = this.OBJS.add(obj);
+        added.createSVG();
+        return added;
     }
+
+    removeObject(obj: construction_object): void {
+        const removed = new Set<construction_object>();
+        const descendants = [obj];
+        while (descendants.length) {
+            const descendant = descendants.pop()!;
+            if (removed.has(descendant)) continue;
+            removed.add(descendant);
+            descendants.push(...descendant.childs);
+        }
+        this.OBJS.V.forEach((object) => {
+            object.parents = object.parents.filter(
+                (parent) => !removed.has(parent),
+            );
+            object.childs = object.childs.filter(
+                (child) => !removed.has(child),
+            );
+        });
+        this.OBJS.remove(removed);
+        removed.forEach((object) => {
+            object.parents = [];
+            object.childs = [];
+            object.removeSVG();
+        });
+    }
+
     getObj(n: string): construction_object | undefined {
         return this.OBJS.getObj(n);
     }
@@ -133,11 +163,8 @@ export class construction {
         return this.svg.height();
     }
 
-    orderAndDrawAll(): void {
-        this.OBJS.drawSort();
-        this.OBJS.loopD((elt) => this.svg.add(elt.dom!.remove()));
-        this.OBJS.compute();
-        this.OBJS.draw();
+    mountObject(obj: construction_object): void {
+        this.layers.get(obj.layer)!.add(obj.dom);
     }
 
     createSVG(): void {
@@ -150,6 +177,18 @@ export class construction {
                     "width:100%;height:100%;x:0;y:0;xmlns:http://www.w3.org/2000/svg",
                 ),
         );
+
+        const layers = new Set<number>();
+        Object.values(this.prefs).forEach((pref) => {
+            if ("layer" in pref) layers.add(pref.layer);
+        });
+        [...layers]
+            .sort((a, b) => a - b)
+            .forEach((layer) => {
+                const group = this.svg.shape("g").att("data-layer", layer);
+                this.layers.set(layer, group);
+                this.svg.add(group);
+            });
     }
 
     // *************************************************
