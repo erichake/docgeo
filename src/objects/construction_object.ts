@@ -20,6 +20,10 @@ export class construction_object {
     parents: construction_object[];
     hidden: number; // 0:show  ,   1:hidden    ,   2:super-hidden
     hasView: boolean;
+    // Assigned by objects_collector.add(): a construction-order counter used
+    // to process dirty objects in the same order as the (assumed
+    // topological) construction order, without scanning every object.
+    sequence: number;
     defined: boolean;
     geometryDirty: boolean;
     projectionDirty: boolean;
@@ -49,6 +53,7 @@ export class construction_object {
         this.parents = [];
         this.hidden = 0;
         this.hasView = false;
+        this.sequence = 0;
         this.defined = true;
         this.geometryDirty = false;
         this.projectionDirty = false;

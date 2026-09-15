@@ -5,8 +5,12 @@ export class objects_collector {
     V: construction_object[] = [];
     // Associative objects array (O[name] = <object>) :
     O: Record<string, construction_object> = {};
+    // Objects with at least one dirty flag, processed by update() :
+    private dirty = new Set<construction_object>();
+    private nextSequence = 0;
 
     add<T extends construction_object>(o: T): T {
+        o.sequence = this.nextSequence++;
         this.V.push(o);
         this.O[o.name] = o;
         return o;
@@ -14,7 +18,10 @@ export class objects_collector {
 
     remove(objects: ReadonlySet<construction_object>): void {
         this.V = this.V.filter((object) => !objects.has(object));
-        objects.forEach((object) => delete this.O[object.name]);
+        objects.forEach((object) => {
+            delete this.O[object.name];
+            this.dirty.delete(object);
+        });
     }
 
     getObj(n: string): construction_object | undefined {
@@ -29,6 +36,7 @@ export class objects_collector {
             object.geometryDirty = true;
             object.projectionDirty = true;
             object.renderDirty = true;
+            this.dirty.add(object);
             descendants.push(...object.children);
         }
     }
@@ -37,15 +45,21 @@ export class objects_collector {
         this.V.forEach((object) => {
             object.projectionDirty = true;
             object.renderDirty = true;
+            this.dirty.add(object);
         });
     }
 
     markRenderDirty(object: construction_object): void {
         object.renderDirty = true;
+        this.dirty.add(object);
     }
 
     update(): void {
-        this.V.forEach((object) => {
+        // Sorted by construction order so a parent is always recomputed
+        // before the children marked dirty alongside it.
+        const objects = [...this.dirty].sort((a, b) => a.sequence - b.sequence);
+        this.dirty.clear();
+        objects.forEach((object) => {
             if (object.geometryDirty) {
                 object.computeGeometry();
                 object.geometryDirty = false;

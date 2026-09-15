@@ -139,6 +139,53 @@ describe("geometric construction", () => {
         expect(c.svg.dom().contains(a.dom.dom())).toBe(false);
     });
 
+    it("only recomputes the dragged point's descendants, not unrelated objects", () => {
+        const c = createConstruction();
+        const a = createPoint(c, "A", [0, 0, 0]);
+        const b = createPoint(c, "B", [2, 0, 0]);
+        const midpoint = createMidpoint(c, "M", a, b);
+
+        const other = createPoint(c, "O", [5, 5, 0]);
+        const spy = vi.spyOn(other, "computeGeometry");
+
+        const target = c.pt3D([2, 2, 0]);
+        a.mousedrag(
+            new PointerEvent("pointermove", {
+                clientX: target[0],
+                clientY: target[1],
+            }),
+        );
+        c.OBJS.update();
+
+        expect(midpoint.x).toBeCloseTo(2);
+        expect(spy).not.toHaveBeenCalled();
+    });
+
+    it("recomputes a chain of dependents in construction order after a drag", () => {
+        const c = createConstruction();
+        const a = createPoint(c, "A", [0, 0, 0]);
+        const fixed1 = createPoint(c, "F1", [4, 0, 0]);
+        const m1 = createMidpoint(c, "M1", a, fixed1);
+        const fixed2 = createPoint(c, "F2", [0, 4, 0]);
+        const m2 = createMidpoint(c, "M2", m1, fixed2);
+
+        const target = c.pt3D([4, 0, 0]);
+        a.mousedrag(
+            new PointerEvent("pointermove", {
+                clientX: target[0],
+                clientY: target[1],
+            }),
+        );
+        c.OBJS.update();
+
+        // m1 must be recomputed before m2 reads it, or m2 would use m1's
+        // stale coordinates from before the drag.
+        expect(m1.x).toBeCloseTo(4);
+        expect(m1.y).toBeCloseTo(0);
+        expect(m2.x).toBeCloseTo(2);
+        expect(m2.y).toBeCloseTo(2);
+    });
+
     it("reprojects without recomputing geometry when the camera rotates", () => {
         const c = createConstruction();
         const point = createPoint(c, "A", [1, 2, 3]);
