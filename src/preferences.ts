@@ -41,6 +41,7 @@ export interface Preferences {
     point: PointPref;
     midpoint: PointPref;
     intersection: PointPref;
+    circle: ObjectPref;
     line: ObjectPref;
     plumb: ObjectPref;
     parallel: ObjectPref;
@@ -56,6 +57,7 @@ export class preferences implements Preferences {
     point: PointPref;
     midpoint: PointPref;
     intersection: PointPref;
+    circle: ObjectPref;
     line: ObjectPref;
     plumb: ObjectPref;
     parallel: ObjectPref;
@@ -92,6 +94,15 @@ export class preferences implements Preferences {
         this.intersection.color.fill = "rgb(180,180,180)";
         this.intersection.layer = 5;
         this.intersection.name = "I";
+
+        this.circle = {
+            color: { fill: "#CC66CC", stroke: "#CC66CC" },
+            size: 2,
+            touchsize: 5,
+            name: "C",
+            opacity: 0,
+            layer: 3,
+        };
 
         this.line = {
             color: { fill: "rgb(35,141,227)", stroke: "rgb(80,80,80)" },
