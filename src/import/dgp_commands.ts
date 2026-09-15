@@ -65,7 +65,11 @@ const point: Parameter = { kind: "point" };
 const line: Parameter = { kind: "line" };
 const circle: Parameter = { kind: "circle" };
 const intersectable: Parameter = { kind: "intersectable" };
-const COLOR = /^#(?:[\da-f]{3}|[\da-f]{6})$/i;
+// DGPad's own color parser matches this hex prefix without anchoring the
+// end, so a color value with a stray suffix (e.g. a missing ";" merging it
+// with the next "key:value" pair, as seen in some exported .dgp files) is
+// tolerated: only the leading hex digits are read, the rest is dropped.
+const COLOR = /^#(?:[\da-f]{6}|[\da-f]{3})/i;
 const STYLE_NUMBER = /^[+-]?(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][+-]?\d+)?$/;
 
 function properties(value: string): Map<string, string> {
@@ -84,6 +88,10 @@ function literalString(value: DgpValue): string {
 function validateColor(value: string, lineNumber: number): void {
     if (!COLOR.test(value))
         throw new Error(`Invalid DGP color at line ${lineNumber}`);
+}
+
+function extractColor(value: string): string {
+    return COLOR.exec(value)![0];
 }
 
 function validateNumber(
@@ -157,10 +165,12 @@ function validateGeneralStyle(value: string, lineNumber: number): void {
 function applyObjectStyle(target: construction_object, value: string): void {
     properties(value).forEach((propertyValue, property) => {
         switch (property) {
-            case "c":
-                target.fill_color = propertyValue;
-                target.stroke_color = propertyValue;
+            case "c": {
+                const color = extractColor(propertyValue);
+                target.fill_color = color;
+                target.stroke_color = color;
                 break;
+            }
             case "h":
                 target.hidden = Number(propertyValue);
                 break;
