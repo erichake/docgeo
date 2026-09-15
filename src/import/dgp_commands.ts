@@ -156,6 +156,7 @@ function applyObjectStyle(target: construction_object, value: string): void {
                 break;
         }
     });
+    target.updateView();
 }
 
 function applyCoordsStyle(context: CommandContext, value: string): void {

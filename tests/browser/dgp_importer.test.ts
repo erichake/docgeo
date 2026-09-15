@@ -87,4 +87,17 @@ STL(P,"c:url(https://example.com/image)");`,
         expect(c.getObj("P14")).toBeInstanceOf(point_object);
         expect(c.getObj("Center32")).toBeInstanceOf(point_object);
     });
+
+    it("only builds an SVG view for the objects visible in Apollonius", async () => {
+        const c = createConstruction();
+        await importDgpFromUrl(c, "/_Apollonius.dgp");
+
+        // 3 free points + 3 initial circles + 32 Circle3pts, plus the grid.
+        expect(c.OBJS.V.filter((object) => object.hasView)).toHaveLength(39);
+        const hidden = c.OBJS.V.find(
+            (object) => object !== c.GRID && !object.hasView,
+        )!;
+        expect(hidden.isHidden).toBe(true);
+        expect(hidden.dom).toBeUndefined();
+    });
 });

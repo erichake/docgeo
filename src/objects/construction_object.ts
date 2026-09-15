@@ -19,6 +19,7 @@ export class construction_object {
     children: construction_object[];
     parents: construction_object[];
     hidden: number; // 0:show  ,   1:hidden    ,   2:super-hidden
+    hasView: boolean;
     defined: boolean;
     geometryDirty: boolean;
     projectionDirty: boolean;
@@ -47,6 +48,7 @@ export class construction_object {
         this.children = [];
         this.parents = [];
         this.hidden = 0;
+        this.hasView = false;
         this.defined = true;
         this.geometryDirty = false;
         this.projectionDirty = false;
@@ -72,10 +74,22 @@ export class construction_object {
     refresh(): void {
         this.computeGeometry();
         this.project();
-        this.render();
+        if (this.hasView) this.render();
         this.geometryDirty = false;
         this.projectionDirty = false;
         this.renderDirty = false;
+    }
+
+    // Creates or removes the SVG view to match the current `hidden` state.
+    // A no-op while the construction is batching an import, since view
+    // creation is deferred to the end of the batch in that case.
+    updateView(): void {
+        if (this.C.isBatching) return;
+        if (this.isHidden) {
+            if (this.hasView) this.removeSVG();
+        } else if (!this.hasView) {
+            this.createSVG();
+        }
     }
 
     computeGeometry(): void {}
@@ -104,12 +118,14 @@ export class construction_object {
     // *************************************************
 
     removeSVG(): void {
-        this.dom.dispose();
+        this.dom?.dispose();
+        this.hasView = false;
     }
 
     createSVG(): void {
         this.dom?.dispose();
         this.dom = this.class.createSVG(this);
+        this.hasView = true;
         this.C.mountObject(this);
         this.refresh();
     }

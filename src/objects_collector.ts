@@ -55,7 +55,7 @@ export class objects_collector {
                 object.projectionDirty = false;
             }
             if (object.renderDirty) {
-                object.render();
+                if (object.hasView) object.render();
                 object.renderDirty = false;
             }
         });

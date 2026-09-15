@@ -56,10 +56,14 @@ export class construction {
         this.invalidateProjection();
     }
 
+    get isBatching(): boolean {
+        return this.batchedObjects !== null;
+    }
+
     add<T extends construction_object>(obj: T): T {
         const added = this.OBJS.add(obj);
         if (this.batchedObjects) this.batchedObjects.push(added);
-        else added.createSVG();
+        else this.initializeObject(added);
         return added;
     }
 
@@ -70,7 +74,14 @@ export class construction {
     endBatch(): void {
         const objects = this.batchedObjects!;
         this.batchedObjects = null;
-        objects.forEach((object) => object.createSVG());
+        objects.forEach((object) => this.initializeObject(object));
+    }
+
+    // Objects without a view still need their geometry and projection
+    // computed once, since visible descendants may depend on them.
+    private initializeObject(object: construction_object): void {
+        if (object.isHidden) object.refresh();
+        else object.createSVG();
     }
 
     removeObject(obj: construction_object): void {

@@ -155,6 +155,23 @@ describe("geometric construction", () => {
         expect(point.screen).not.toEqual(oldScreen);
     });
 
+    it("skips the SVG view for a hidden object but still computes its geometry", () => {
+        const c = createConstruction();
+        const a = createPoint(c, "A", [0, 0, 0]);
+        const b = createPoint(c, "B", [2, 0, 0]);
+        b.hidden = 1;
+        b.updateView();
+        expect(b.hasView).toBe(false);
+
+        const midpoint = createMidpoint(c, "M", a, b);
+        expect(midpoint.coords).toEqual([1, 0, 0]);
+
+        b.hidden = 0;
+        b.updateView();
+        expect(b.hasView).toBe(true);
+        expect(c.svg.dom().contains(b.dom.dom())).toBe(true);
+    });
+
     it("contains no non-finite SVG coordinate after a degeneration", () => {
         const c = createConstruction();
         const point = createPoint(c, "A", [0, 0, 0]);
