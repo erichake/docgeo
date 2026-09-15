@@ -79,12 +79,13 @@ export class point_object extends construction_object {
     }
 
     mousedrag(ev: PointerEvent): void {
-        const coords = this.C.unprojectToZPlane([ev.pageX, ev.pageY], this.z);
+        const coords = this.C.unprojectToZPlane(
+            this.C.pointerPosition(ev),
+            this.z,
+        );
         if (!coords) return;
         this.coords = coords;
-        this.compute();
-        this.computeAndDrawChilds();
-        this.draw();
+        this.C.updateFrom(this);
     }
 
     mouseclick(_ev: PointerEvent): void {
@@ -124,6 +125,15 @@ export class point_object extends construction_object {
             .att("transform", `translate(${t.sx} ${t.sy})`)
             .drag((event) => t.mousedrag(event))
             .tap((event) => t.mouseclick(event));
+
+        dom.add(
+            t.svg
+                .shape("circle")
+                .att("r", t.prefs[t.type].touchsize)
+                .att("cx", 0)
+                .att("cy", 0)
+                .stl("fill:transparent;stroke:none;pointer-events:all;cursor:pointer"),
+        );
 
         switch (t.shape) {
             case p.rect:

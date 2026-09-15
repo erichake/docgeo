@@ -20,10 +20,32 @@ export class objects_collector {
     getObj(n: string): construction_object | undefined {
         return this.O[n];
     }
+
+    markDirty(root: construction_object): void {
+        const descendants = [root];
+        while (descendants.length) {
+            const object = descendants.pop()!;
+            if (object.dirty) continue;
+            object.dirty = true;
+            descendants.push(...object.children);
+        }
+    }
+
+    markAllDirty(): void {
+        this.V.forEach((object) => {
+            object.dirty = true;
+        });
+    }
+
+    update(): void {
+        this.V.forEach((object) => {
+            if (!object.dirty) return;
+            object.computeAndDraw();
+            object.dirty = false;
+        });
+    }
+
     draw(): void {
         this.V.forEach((elt) => elt.draw());
-    }
-    compute(): void {
-        this.V.forEach((elt) => elt.compute());
     }
 }

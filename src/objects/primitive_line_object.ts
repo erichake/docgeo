@@ -11,6 +11,8 @@ export class primitive_line_object extends construction_object {
     sP1: Vec2 = [0, 0];
     sP2: Vec2 = [0, 0];
     projectionDefined: boolean;
+    path!: DOMElement;
+    hitArea!: DOMElement;
 
     constructor(
         c: construction,
@@ -84,15 +86,23 @@ export class primitive_line_object extends construction_object {
             this.sP2[0] +
             " " +
             this.sP2[1];
-        this.dom.att("d", d);
+        this.path.att("d", d);
+        this.hitArea.att("d", d);
     }
 
     static createSVG(_this: construction_object): DOMElement {
         const t = _this as primitive_line_object;
-        return t.svg
+        const dom = t.svg.shape("g");
+        t.hitArea = t.svg
             .shape("path")
+            .stl("fill:none;stroke:transparent;pointer-events:stroke;cursor:pointer")
+            .stl("stroke-width", t.prefs[t.type].touchsize);
+        t.path = t.svg
+            .shape("path")
+            .stl("fill", "none")
             .stl("stroke", t.stroke_color)
             .stl("stroke-width", t.size)
-            .stl("cursor:pointer");
+            .stl("pointer-events", "none");
+        return dom.add(t.hitArea, t.path);
     }
 }

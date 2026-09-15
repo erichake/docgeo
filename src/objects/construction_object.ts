@@ -16,10 +16,11 @@ export class construction_object {
     stroke_color: string;
     layer: number;
     dom!: DOMElement;
-    childs: construction_object[];
+    children: construction_object[];
     parents: construction_object[];
     hidden: number; // 0:show  ,   1:hidden    ,   2:super-hidden
     defined: boolean;
+    dirty: boolean;
 
     constructor(
         c: construction,
@@ -41,10 +42,11 @@ export class construction_object {
         this.stroke_color = pref.color.stroke;
         this.layer = pref.layer;
 
-        this.childs = [];
+        this.children = [];
         this.parents = [];
         this.hidden = 0;
         this.defined = true;
+        this.dirty = false;
     }
 
     get isHidden(): boolean {
@@ -55,36 +57,11 @@ export class construction_object {
         return this.defined && !this.isHidden;
     }
 
-    childLength(): number {
-        return this.childs.length;
-    }
-
-    addParent(o: construction_object): void {
-        if (this.parents.indexOf(o) === -1) {
-            this.parents.push(o);
-        }
-    }
-
-    addChild(o: construction_object): void {
-        if (this.childs.indexOf(o) === -1) {
-            this.childs.push(o);
-        }
-        this.parents.forEach((elt) => elt.addChild(o));
-    }
-
-    computeAndDrawChilds(): void {
-        this.childs.forEach((elt) => elt.computeAndDraw());
-    }
-
-    drawChilds(): void {
-        this.childs.forEach((elt) => elt.draw());
-    }
-
     addParents(...parents: construction_object[]): void {
         parents.forEach((parent) => {
-            this.addParent(parent);
-            parent.addChild(this);
-            parent.childs.sort((a, b) => a.childLength() - b.childLength());
+            if (this.parents.includes(parent)) return;
+            this.parents.push(parent);
+            parent.children.push(this);
         });
     }
 

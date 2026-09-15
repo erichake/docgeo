@@ -1,6 +1,7 @@
 const SVG_NAMESPACE = "http://www.w3.org/2000/svg";
 
 export type PointerDelta = readonly [number, number];
+export type PointerPosition = [number, number];
 
 export interface DOMOnOptions {
     prevent?: boolean;
@@ -41,6 +42,19 @@ export class DOMElement {
 
     height(): number {
         return this.element.getBoundingClientRect().height;
+    }
+
+    svgPoint(event: PointerEvent): PointerPosition {
+        const svgElement = this.element as SVGElement;
+        const svg = svgElement.ownerSVGElement ?? (svgElement as SVGSVGElement);
+        const matrix = svg.getScreenCTM()!;
+        const x = event.clientX - matrix.e;
+        const y = event.clientY - matrix.f;
+        const determinant = matrix.a * matrix.d - matrix.b * matrix.c;
+        return [
+            (matrix.d * x - matrix.c * y) / determinant,
+            (-matrix.b * x + matrix.a * y) / determinant,
+        ];
     }
 
     setValue(value: unknown): this {
@@ -237,13 +251,13 @@ export class DOMElement {
             if (!isPrimaryAction(event) || pointerId !== null) return;
             pointerId = event.pointerId;
             startedAt = performance.now();
-            startX = event.pageX;
-            startY = event.pageY;
+            startX = event.clientX;
+            startY = event.clientY;
         });
         this.on("pointerup", (event) => {
             if (event.pointerId !== pointerId) return;
-            const dx = event.pageX - startX;
-            const dy = event.pageY - startY;
+            const dx = event.clientX - startX;
+            const dy = event.clientY - startY;
             const isTap =
                 performance.now() - startedAt <= maximumDelay &&
                 dx * dx + dy * dy <= maximumDistance * maximumDistance;
@@ -281,8 +295,8 @@ export class DOMElement {
         this.on("pointerdown", (event) => {
             if (!isPrimaryAction(event) || pointerId !== null) return;
             pointerId = event.pointerId;
-            oldX = event.pageX;
-            oldY = event.pageY;
+            oldX = event.clientX;
+            oldY = event.clientY;
             event.stopPropagation();
             this.element.setPointerCapture(pointerId);
             before?.(event);
@@ -290,11 +304,11 @@ export class DOMElement {
         this.on("pointermove", (event) => {
             if (event.pointerId !== pointerId) return;
             const delta: PointerDelta = [
-                event.pageX - oldX,
-                event.pageY - oldY,
+                event.clientX - oldX,
+                event.clientY - oldY,
             ];
-            oldX = event.pageX;
-            oldY = event.pageY;
+            oldX = event.clientX;
+            oldY = event.clientY;
             callback(event, delta);
         });
         this.on("pointerup", (event) => finish(event, false));

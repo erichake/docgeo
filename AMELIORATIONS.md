@@ -155,8 +155,8 @@ Un point utilise désormais une forme centrée dans un groupe translaté :
 - Le `<svg>` imbriqué et son viewport local ont disparu.
 - Un déplacement modifie un seul attribut `transform`, au lieu de deux attributs
   `x` et `y`.
-- Le groupe pourra accueillir la future zone de capture, le nom et les décorations
-  du point.
+- Le groupe accueille désormais la zone de capture et pourra aussi recevoir le nom
+  et les décorations du point.
 
 ## Priorité 3 — Interactions
 
@@ -179,64 +179,54 @@ Un point utilise désormais une forme centrée dans un groupe translaté :
   objet.
 - Un élément ne traite le mouvement que lorsqu'il possède la capture du pointeur.
 
-### [ ] Créer de vraies zones de capture SVG
+### [x] Créer de vraies zones de capture SVG
 
-**Constat**
+**Réalisé**
 
-La préférence `touchsize` n'est pas encore utilisée. La zone interactive d'une
-droite correspond seulement à l'épaisseur visible de son trait.
+- Les droites utilisent un groupe contenant un chemin de capture transparent et
+  un chemin visible qui partage la même géométrie.
+- Les points possèdent un disque de capture transparent indépendant de leur forme.
+- La préférence `touchsize` pilote les zones de capture, tandis que `size` reste
+  réservée au dessin visible.
+- Les formes visibles des droites ignorent les événements afin que leur épaisseur
+  n'influence plus la tolérance de sélection.
 
-**Piste**
+### [x] Convertir les coordonnées de pointeur dans le repère SVG
 
-- Placer la forme visible et une forme de capture dans un même `<g>`.
-- Pour une droite, ajouter un chemin transparent plus épais avec une configuration
-  adaptée de `pointer-events`.
-- Maintenir la taille visuelle et la tolérance de sélection comme deux notions
-  indépendantes.
+**Réalisé**
 
-### [ ] Convertir les coordonnées de pointeur dans le repère SVG
-
-**Constat**
-
-Les déplacements utilisent directement `pageX/pageY`. Cela fonctionne avec une
-page plein écran sans décalage, mais devient faux si le SVG est intégré, transformé
-ou placé dans une page défilante.
-
-**Piste**
-
-- Convertir `clientX/clientY` à l'aide de la matrice écran du SVG
-  (`getScreenCTM()`), ou définir une fonction centrale équivalente.
+- `DOMElement.svgPoint()` convertit `clientX/clientY` avec l'inverse de
+  `getScreenCTM()`.
+- Le déplacement des points utilise ces coordonnées SVG avant l'inversion vers le
+  plan mathématique.
+- Les gestes utilisent désormais les coordonnées client, indépendantes du
+  défilement de la page.
 
 ## Priorité 4 — Graphe de dépendances et recalcul
 
-### [ ] Conserver les enfants directs plutôt que tous les descendants
+### [x] Conserver les enfants directs plutôt que tous les descendants
 
-**Constat**
+**Réalisé**
 
-`childs` contient aujourd'hui la fermeture transitive des dépendances. Cela rend le
-nom trompeur, augmente la mémoire utilisée et complique l'ordre de recalcul.
+- Chaque objet conserve uniquement ses `parents` et `children` directs.
+- La fermeture transitive et le tri par nombre de descendants ont disparu.
+- `objects_collector.markDirty()` propage l'invalidation dans le graphe direct.
+- `objects_collector.update()` recalcule chaque objet marqué une seule fois dans
+  l'ordre de construction, qui garantit actuellement que les parents précèdent
+  leurs enfants.
 
-Le tri par `childLength()` ne garantit pas un ordre topologique. Un objet dépendant
-à la fois d'un ancêtre et d'un descendant peut être calculé trop tôt.
+Une validation topologique explicite restera nécessaire lorsque le projet
+permettra de redéfinir les dépendances ou de créer des cycles.
 
-**Piste**
+### [x] Regrouper les mises à jour d'une interaction
 
-- Ne stocker que `parents` et `children` directs.
-- Propager un marqueur `dirty` aux descendants.
-- Recalculer les objets marqués dans l'ordre de `objects_collector.V`, tant que
-  l'ordre de création garantit que les parents précèdent leurs enfants.
-- Prévoir plus tard une véritable validation topologique pour la redéfinition des
-  objets et la détection des cycles.
+**Réalisé**
 
-### [ ] Regrouper les mises à jour d'une interaction
-
-**Piste**
-
-- Une modification marque les objets concernés.
-- Un unique cycle de mise à jour recalcule, projette et rend la scène.
-- Si nécessaire, regrouper les mouvements rapides avec `requestAnimationFrame`.
-
-Cela évitera plusieurs recalculs ou rendus du même objet lors d'une seule action.
+- Le déplacement d'un point marque uniquement ce point et ses descendants.
+- La rotation de la scène marque toute la construction.
+- Un seul `requestAnimationFrame` regroupe les mouvements reçus avant le prochain
+  rendu.
+- Le cycle différé calcule et dessine chaque objet marqué une seule fois.
 
 ## Priorité 5 — Séparer géométrie, projection et rendu
 
@@ -244,9 +234,9 @@ Cela évitera plusieurs recalculs ou rendus du même objet lors d'une seule acti
 
 **Constat**
 
-Une rotation de la caméra appelle `OBJS.compute()`, alors que les coordonnées
-géométriques n'ont pas changé. Avec des objets plus coûteux, cela recalculera
-inutilement toute la construction.
+Une rotation de la caméra marque encore tous les objets pour un cycle complet de
+calcul et de dessin, alors que leurs coordonnées géométriques n'ont pas changé.
+Avec des objets plus coûteux, cela recalculera inutilement toute la construction.
 
 **Piste**
 
@@ -399,18 +389,16 @@ Reste à faire :
 ## Ordre de travail suggéré
 
 Déjà réalisés : robustesse géométrique, cycle de vie des objets et du SVG, calques
-persistants, Pointer Events, suppression des écouteurs globaux par objet,
-encapsulation DOM et configuration du formatage.
+persistants, Pointer Events, zones de capture, conversion des coordonnées écran,
+graphe de dépendances direct, regroupement des mises à jour, suppression des
+écouteurs globaux par objet, encapsulation DOM et configuration du formatage.
 
 Pour poursuivre par petites étapes sans réécrire tout le prototype :
 
-1. Ajouter les zones de capture et convertir les coordonnées de pointeur.
-2. Corriger l'invalidation et l'ordre du graphe de dépendances.
-3. Regrouper les mises à jour d'une interaction.
-4. Séparer progressivement calcul géométrique, projection et rendu.
-5. Gérer le redimensionnement et décider du rôle du canvas.
-6. Revoir les factories, le registre d'intersections et la mutabilité des vecteurs.
-7. Ajouter les tests automatisés et compléter les contrôles de développement.
+1. Séparer progressivement calcul géométrique, projection et rendu.
+2. Gérer le redimensionnement et décider du rôle du canvas.
+3. Revoir les factories, le registre d'intersections et la mutabilité des vecteurs.
+4. Ajouter les tests automatisés et compléter les contrôles de développement.
 
 Chaque étape devrait rester suffisamment petite pour être compilée, testée et
 validée visuellement avant de passer à la suivante.

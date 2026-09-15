@@ -30,6 +30,7 @@ export class construction {
     svg!: DOMElement;
     canvas!: DOMElement;
     layers: Map<number, DOMElement>;
+    private updateFrame: number | null = null;
 
     constructor(dgpad: DgpadLike) {
         this.dgpad = dgpad;
@@ -68,8 +69,7 @@ export class construction {
             Math.min(this.GRID.PHI + dx * this.GRID.STEP, rp[1]),
             rp[0],
         );
-        this.OBJS.compute();
-        this.OBJS.draw();
+        this.updateAll();
     }
 
     add(obj: construction_object): construction_object {
@@ -85,22 +85,36 @@ export class construction {
             const descendant = descendants.pop()!;
             if (removed.has(descendant)) continue;
             removed.add(descendant);
-            descendants.push(...descendant.childs);
+            descendants.push(...descendant.children);
         }
         this.OBJS.V.forEach((object) => {
             object.parents = object.parents.filter(
                 (parent) => !removed.has(parent),
             );
-            object.childs = object.childs.filter(
+            object.children = object.children.filter(
                 (child) => !removed.has(child),
             );
         });
         this.OBJS.remove(removed);
         removed.forEach((object) => {
             object.parents = [];
-            object.childs = [];
+            object.children = [];
             object.removeSVG();
         });
+    }
+
+    updateFrom(obj: construction_object): void {
+        this.OBJS.markDirty(obj);
+        this.scheduleUpdate();
+    }
+
+    updateAll(): void {
+        this.OBJS.markAllDirty();
+        this.scheduleUpdate();
+    }
+
+    pointerPosition(event: PointerEvent): Vec2 {
+        return this.svg.svgPoint(event);
     }
 
     getObj(n: string): construction_object | undefined {
@@ -211,5 +225,13 @@ export class construction {
         element
             .drag((event, delta) => this.mousedrag(event, delta))
             .tap((event) => this.mouseclick(event));
+    }
+
+    private scheduleUpdate(): void {
+        if (this.updateFrame !== null) return;
+        this.updateFrame = requestAnimationFrame(() => {
+            this.updateFrame = null;
+            this.OBJS.update();
+        });
     }
 }
