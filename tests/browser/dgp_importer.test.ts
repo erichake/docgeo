@@ -41,6 +41,8 @@ describe("DGP importer", () => {
         expect((c.svg.dom() as SVGSVGElement).style.backgroundColor).toBe(
             "rgb(248, 248, 248)",
         );
+        await new Promise((resolve) => requestAnimationFrame(resolve));
+        expect(c.GRID.ORG).toEqual([400, 285.5]);
     });
 
     it("rejects instructions outside the supported subset", () => {

@@ -25,6 +25,8 @@ export class construction {
     layers: Map<number, DOMElement>;
     private updateFrame: number | null = null;
     private batchedObjects: construction_object[] | null = null;
+    private viewportWidth = 0;
+    private viewportHeight = 0;
 
     private constructor(dgpad: DgpadLike) {
         this.dgpad = dgpad;
@@ -34,6 +36,8 @@ export class construction {
         this.layers = new Map();
         this.createSVG();
         this.GRID = createGrid(this);
+        this.viewportWidth = this.width;
+        this.viewportHeight = this.height;
     }
 
     mouseclick(_ev: PointerEvent): void {}
@@ -134,6 +138,10 @@ export class construction {
     }
 
     resize(width: number, height: number): void {
+        if (width === this.viewportWidth && height === this.viewportHeight)
+            return;
+        this.viewportWidth = width;
+        this.viewportHeight = height;
         this.GRID.ORG = [width / 2, height / 2];
         this.invalidateProjection();
     }
