@@ -14,6 +14,9 @@ export class construction_object {
     opacity: number | undefined;
     fill_color: string;
     stroke_color: string;
+    auto_fill_color: string;
+    showName: boolean;
+    fontSize: number;
     layer: number;
     dom!: DOMElement;
     children: construction_object[];
@@ -47,6 +50,9 @@ export class construction_object {
         this.opacity = pref.opacity;
         this.fill_color = pref.color.fill;
         this.stroke_color = pref.color.stroke;
+        this.auto_fill_color = pref.color.fill;
+        this.showName = false;
+        this.fontSize = 16;
         this.layer = pref.layer;
 
         this.children = [];

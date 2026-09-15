@@ -77,7 +77,7 @@ export class preferences implements Preferences {
                 current: "circle",
             },
             name: "P",
-            color: { fill: "rgb(35,141,227)", stroke: "rgb(80,80,80)" },
+            color: { fill: "rgb(255,255,255)", stroke: "rgb(80,80,80)" },
             size: 6,
             touchsize: 12,
             border: 1,

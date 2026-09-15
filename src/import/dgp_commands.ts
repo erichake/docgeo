@@ -121,6 +121,15 @@ function validateObjectStyle(value: string, lineNumber: number): void {
             case "s":
                 validateNumber(propertyValue, lineNumber, 0);
                 break;
+            case "sn":
+                if (propertyValue !== "true" && propertyValue !== "false")
+                    throw new Error(
+                        `Invalid DGP style boolean at line ${lineNumber}`,
+                    );
+                break;
+            case "f":
+                validateNumber(propertyValue, lineNumber, 0);
+                break;
         }
     });
 }
@@ -153,6 +162,12 @@ function applyObjectStyle(target: construction_object, value: string): void {
                 break;
             case "s":
                 target.size = Number(propertyValue);
+                break;
+            case "sn":
+                target.showName = propertyValue === "true";
+                break;
+            case "f":
+                target.fontSize = Number(propertyValue);
                 break;
         }
     });

@@ -116,6 +116,9 @@ export class point_object extends construction_object {
                 ),
         );
 
+        const fillColor = t.opacity ? t.fill_color : t.auto_fill_color;
+        const fillOpacity = t.opacity ? t.opacity : 1;
+
         switch (t.shape) {
             case p.rect:
                 dom.add(
@@ -125,8 +128,8 @@ export class point_object extends construction_object {
                         .att("height", s2)
                         .att("x", -s1)
                         .att("y", -s1)
-                        .stl("fill", t.fill_color)
-                        .stl("fill-opacity", t.opacity ?? 0)
+                        .stl("fill", fillColor)
+                        .stl("fill-opacity", fillOpacity)
                         .stl("stroke", t.stroke_color)
                         .stl("stroke-width", t.border ?? 0)
                         .stl("cursor:pointer"),
@@ -139,8 +142,8 @@ export class point_object extends construction_object {
                         .att("r", s1)
                         .att("cx", 0)
                         .att("cy", 0)
-                        .stl("fill", t.fill_color)
-                        .stl("fill-opacity", t.opacity ?? 0)
+                        .stl("fill", fillColor)
+                        .stl("fill-opacity", fillOpacity)
                         .stl("stroke", t.stroke_color)
                         .stl("stroke-width", t.border ?? 0)
                         .stl("cursor:pointer"),
@@ -182,8 +185,8 @@ export class point_object extends construction_object {
                     t.svg
                         .shape("path")
                         .att("d", d)
-                        .stl("fill", t.fill_color)
-                        .stl("fill-opacity", t.opacity ?? 0)
+                        .stl("fill", fillColor)
+                        .stl("fill-opacity", fillOpacity)
                         .stl("stroke", t.stroke_color)
                         .stl("stroke-width", t.border ?? 0)
                         .stl("cursor:pointer"),
@@ -191,6 +194,20 @@ export class point_object extends construction_object {
                 break;
             }
         }
+
+        if (t.showName) {
+            dom.add(
+                t.svg
+                    .shape("text")
+                    .att("x", s2)
+                    .att("y", t.fontSize / 2)
+                    .stl(
+                        `fill:${t.stroke_color};font-family:Verdana;font-size:${t.fontSize}px;pointer-events:none`,
+                    )
+                    .text(t.name),
+            );
+        }
+
         return dom;
     }
 }
