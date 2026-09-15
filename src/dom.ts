@@ -44,6 +44,15 @@ export class DOMElement {
         return this.element.getBoundingClientRect().height;
     }
 
+    observeResize(callback: (width: number, height: number) => void): this {
+        const observer = new ResizeObserver(([entry]) => {
+            callback(entry.contentRect.width, entry.contentRect.height);
+        });
+        observer.observe(this.element);
+        this.cleanups.add(() => observer.disconnect());
+        return this;
+    }
+
     svgPoint(event: PointerEvent): PointerPosition {
         const svgElement = this.element as SVGElement;
         const svg = svgElement.ownerSVGElement ?? (svgElement as SVGSVGElement);

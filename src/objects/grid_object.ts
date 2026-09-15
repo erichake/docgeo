@@ -1,6 +1,7 @@
 import type { construction } from "../construction";
 import type { DOMElement } from "../dom";
 import type { GridPref } from "../preferences";
+import { screenBasis, type ProjectionFrame } from "../projection";
 import type { Vec2, Vec3 } from "../vec";
 import { construction_object } from "./construction_object";
 
@@ -38,17 +39,18 @@ export class grid_object extends construction_object {
     }
 
     get screenIJK(): [Vec2, Vec2, Vec2] {
-        return [
-            [
-                this.ORG[0] + this.UNIT[0] * this.SPHI,
-                this.ORG[1] + this.UNIT[0] * this.CPHI * this.STHETA,
-            ],
-            [
-                this.ORG[0] + this.UNIT[1] * this.CPHI,
-                this.ORG[1] - this.UNIT[1] * this.SPHI * this.STHETA,
-            ],
-            [this.ORG[0], this.ORG[1] - this.UNIT[2] * this.CTHETA],
-        ];
+        return screenBasis(this.projectionFrame);
+    }
+
+    get projectionFrame(): ProjectionFrame {
+        return {
+            origin: this.ORG,
+            unit: this.UNIT,
+            cosPhi: this.CPHI,
+            sinPhi: this.SPHI,
+            cosTheta: this.CTHETA,
+            sinTheta: this.STHETA,
+        };
     }
 
     // *************************************************

@@ -8,13 +8,11 @@ import { createLine } from "./objects/two_points_line_object";
 import { objects_collector } from "./objects_collector";
 import type { preferences, Preferences } from "./preferences";
 import {
-    GEOMETRY_EPSILON,
-    vNorm,
-    vScale,
-    vSub,
-    type Vec2,
-    type Vec3,
-} from "./vec";
+    projectPoint,
+    unprojectPointToZPlane,
+    type ProjectionFrame,
+} from "./projection";
+import type { Vec2, Vec3 } from "./vec";
 
 export interface DgpadLike {
     prefs: preferences;
@@ -28,17 +26,15 @@ export class construction {
     OBJS: objects_collector;
     GRID!: grid_object;
     svg!: DOMElement;
-    canvas!: DOMElement;
     layers: Map<number, DOMElement>;
     private updateFrame: number | null = null;
 
-    constructor(dgpad: DgpadLike) {
+    private constructor(dgpad: DgpadLike) {
         this.dgpad = dgpad;
         this.prefs = dgpad.prefs;
         // All construction objects :
         this.OBJS = new objects_collector();
         this.layers = new Map();
-        this.createCANVAS();
         this.createSVG();
         this.GRID = createGrid(this);
     }
@@ -103,6 +99,26 @@ export class construction {
         });
     }
 
+    dispose(): void {
+        if (this.updateFrame !== null) {
+            cancelAnimationFrame(this.updateFrame);
+            this.updateFrame = null;
+        }
+        const objects = new Set(this.OBJS.V);
+        this.OBJS.remove(objects);
+        objects.forEach((object) => {
+            object.parents = [];
+            object.children = [];
+            object.removeSVG();
+        });
+        this.svg.dispose();
+        this.layers.clear();
+        construction.constructions.splice(
+            construction.constructions.indexOf(this),
+            1,
+        );
+    }
+
     invalidateGeometry(obj: construction_object): void {
         this.OBJS.markGeometryDirty(obj);
         this.scheduleUpdate();
@@ -122,6 +138,11 @@ export class construction {
         return this.svg.svgPoint(event);
     }
 
+    resize(width: number, height: number): void {
+        this.GRID.ORG = [width / 2, height / 2];
+        this.invalidateProjection();
+    }
+
     getObj(n: string): construction_object | undefined {
         return this.OBJS.getObj(n);
     }
@@ -139,35 +160,15 @@ export class construction {
     // _v représente les coordonnées mathématiques
     // renvoie un tableau à deux éléments : les coordonnées à l'écran
     pt3D(v: Vec3): Vec2 {
-        const v0 = v[0] * this.GRID.UNIT[0],
-            v1 = v[1] * this.GRID.UNIT[1],
-            v2 = v[2] * this.GRID.UNIT[2],
-            o = this.GRID.ORG,
-            cfi = this.GRID.CPHI,
-            sfi = this.GRID.SPHI,
-            cth = this.GRID.CTHETA,
-            sth = this.GRID.STHETA;
-        return [
-            o[0] + v0 * sfi + v1 * cfi,
-            o[1] + v0 * cfi * sth - v1 * sfi * sth - v2 * cth,
-        ];
+        return projectPoint(v, this.projectionFrame);
     }
 
     unprojectToZPlane(screen: Vec2, z: number): Vec3 | null {
-        const o = this.GRID.ORG;
-        const ijk = this.GRID.screenIJK;
+        return unprojectPointToZPlane(screen, z, this.projectionFrame);
+    }
 
-        const H = vSub(screen, vScale(vSub(ijk[2], o), z));
-
-        const OH = vSub(H, o);
-        const OX = vSub(ijk[0], o);
-        const OY = vSub(ijk[1], o);
-        const delta = OX[0] * OY[1] - OX[1] * OY[0];
-        const scale = vNorm(OX) * vNorm(OY);
-        if (Math.abs(delta) <= GEOMETRY_EPSILON * scale) return null;
-        const x = (OH[0] * OY[1] - OH[1] * OY[0]) / delta;
-        const y = (OX[0] * OH[1] - OX[1] * OH[0]) / delta;
-        return [x, y, z];
+    get projectionFrame(): ProjectionFrame {
+        return this.GRID.projectionFrame;
     }
 
     // *************************************************
@@ -191,7 +192,8 @@ export class construction {
         this.bindSceneEvents(this.svg);
         $("body").add(
             this.svg
-                .stl("position:absolute;border: 0px")
+                .stl("position:absolute;border:0")
+                .stl("background", this.prefs.background.color)
                 .att(
                     "width:100%;height:100%;x:0;y:0;xmlns:http://www.w3.org/2000/svg",
                 ),
@@ -208,22 +210,7 @@ export class construction {
                 this.layers.set(layer, group);
                 this.svg.add(group);
             });
-    }
-
-    // *************************************************
-    // ******************** CANVAS PART *********************
-    // *************************************************
-
-    createCANVAS(): void {
-        this.canvas = $.create("canvas");
-        this.bindSceneEvents(this.canvas);
-        $("body").add(
-            this.canvas
-                .stl(
-                    "position:absolute;width:100%;height:100%;margin:0px;border:0px",
-                )
-                .stl("background-color", this.prefs.background.color),
-        );
+        this.svg.observeResize((width, height) => this.resize(width, height));
     }
 
     private bindSceneEvents(element: DOMElement): void {

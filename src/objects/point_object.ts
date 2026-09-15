@@ -111,7 +111,9 @@ export class point_object extends construction_object {
                 .att("r", t.prefs[t.type].touchsize)
                 .att("cx", 0)
                 .att("cy", 0)
-                .stl("fill:transparent;stroke:none;pointer-events:all;cursor:pointer"),
+                .stl(
+                    "fill:transparent;stroke:none;pointer-events:all;cursor:pointer",
+                ),
         );
 
         switch (t.shape) {

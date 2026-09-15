@@ -310,86 +310,68 @@ une seconde hiérarchie de classes de vues.
 - Le wrapper fournit les opérations chaînables utilisées par le projet.
 - Il conserve ses écouteurs et sait les nettoyer avec `dispose()`.
 
-### [ ] Gérer le redimensionnement
+### [x] Gérer le redimensionnement
 
-**Constat**
+**Réalisé**
 
-L'origine du repère est calculée une fois à partir des dimensions initiales. Le
-canvas reçoit une taille CSS, mais pas nécessairement une taille de buffer adaptée.
+- `DOMElement.observeResize()` encapsule `ResizeObserver` et le déconnecte lors du
+  `dispose()`.
+- La construction observe son SVG et replace l'origine au centre de ses nouvelles
+  dimensions.
+- Un redimensionnement invalide uniquement la projection et le rendu de la scène.
+- `construction.dispose()` annule une frame en attente, détruit les objets et le
+  SVG, puis retire la construction du registre global.
 
-**Piste**
+### [x] Décider du rôle futur du canvas
 
-- Installer un `ResizeObserver` sur le conteneur.
-- Recalculer l'origine, la projection et les éléments visibles après redimensionnement.
-- Si le canvas est conservé, synchroniser ses attributs `width/height` avec sa
-  taille CSS et le ratio de pixels du périphérique.
+**Décision actuelle**
 
-### [ ] Décider du rôle futur du canvas
-
-Le canvas ne sert actuellement qu'à porter la couleur de fond, alors que le SVG
-reçoit les objets et les événements. Deux options sont possibles :
-
-- le supprimer provisoirement et placer le fond sur le SVG ou son conteneur ;
-- le conserver avec un rôle documenté, par exemple pour les traces, une couche
-  raster ou certains effets coûteux.
-
-Il vaut mieux éviter que le canvas et le SVG soient tous deux responsables des
-mêmes interactions.
+- Le canvas inutilisé a été supprimé.
+- Le SVG porte désormais la couleur de fond et constitue l'unique surface
+  d'affichage et d'interaction.
+- Un canvas pourra être réintroduit plus tard si une fonctionnalité précise le
+  justifie, par exemple des traces ou une couche raster coûteuse.
 
 ## Priorité 8 — Tests et outils de développement
 
-### [ ] Ajouter des tests unitaires mathématiques
+### [x] Ajouter des tests unitaires mathématiques
 
-Premiers cas recommandés :
+**Réalisé**
 
-- norme et normalisation d'un vecteur nul ;
-- projection d'un point connu selon plusieurs orientations ;
-- inversion écran-plan lorsque celle-ci est possible ;
-- détection d'une projection singulière ;
-- droite définie par deux points confondus ;
-- intersection de droites sécantes, parallèles, confondues et gauches ;
-- intersection située hors d'un segment ou derrière l'origine d'une demi-droite ;
-- perpendiculaire dans le plan et dans l'espace.
+- Vitest exécute sept tests unitaires sans navigateur.
+- Les vecteurs couvrent normalisation, valeurs nulles ou non finies, grandes normes
+  et opérations pures 2D/3D.
+- La projection a été extraite dans `projection.ts` afin de tester directement la
+  projection 3D, l'inversion écran-plan et les projections singulières.
 
-Les tests du noyau mathématique devraient pouvoir fonctionner sans navigateur.
+### [x] Ajouter quelques tests d'intégration dans le navigateur
 
-### [ ] Ajouter quelques tests d'intégration dans le navigateur
+**Réalisé**
 
-Cas recommandés :
+- Vitest Browser Mode et Playwright exécutent douze tests dans Chromium.
+- Ils couvrent les droites dégénérées, les intersections sécantes, parallèles,
+  confondues, gauches et hors bornes, ainsi que les perpendiculaires 2D/3D.
+- Ils vérifient le recalcul des descendants, la suppression, la rotation de caméra
+  sans recalcul géométrique et le redimensionnement par `ResizeObserver`.
+- Souris, interaction tactile et stylet empruntent le même chemin Pointer Events.
+- Une dégénérescence fait échouer le test si `NaN` ou `Infinity` atteint le SVG.
 
-- déplacer un point et vérifier ses descendants ;
-- tourner la caméra sans modifier les coordonnées mathématiques ;
-- supprimer un objet puis redessiner ;
-- redimensionner la fenêtre ;
-- utiliser souris, tactile et stylet via les Pointer Events ;
-- vérifier qu'aucun attribut SVG ne contient `NaN` ou `Infinity`.
+### [x] Compléter les contrôles automatiques
 
-### [ ] Compléter les contrôles automatiques
+**Réalisé**
 
-Déjà en place :
-
-- `tsc --noEmit` est exécuté par le build ;
-- EditorConfig et Prettier définissent le format commun du projet.
-
-Reste à faire :
-
-- ajouter une commande de vérification du format et, si utile, un linter léger ;
-- faire échouer les tests lorsqu'une coordonnée non finie atteint la couche de
-  projection ou de rendu.
+- `npm test` exécute les suites unitaires puis navigateur.
+- `npm run format` applique Prettier et `npm run format:check` contrôle le format.
+- `npm run check` enchaîne format, tests et build TypeScript/Vite.
+- Le `tsconfig.json` contrôle également les tests et leurs configurations.
+- Vite 8, Vitest 5 et leurs dépendances ont été audités sans vulnérabilité connue.
 
 ## Ordre de travail suggéré
 
-Déjà réalisés : robustesse géométrique, cycle de vie des objets et du SVG, calques
-persistants, Pointer Events, zones de capture, conversion des coordonnées écran,
-graphe de dépendances direct, regroupement des mises à jour, séparation géométrie /
-projection / rendu, factories typées, registre d'intersections, vecteurs immuables,
-suppression des écouteurs globaux par objet, encapsulation DOM et configuration du
-formatage.
+Toutes les priorités de cette première revue sont réalisées : robustesse
+géométrique, cycle de vie SVG, interactions, graphe de dépendances, séparation du
+pipeline, typage, infrastructure d'affichage et tests automatisés.
 
-Pour poursuivre par petites étapes sans réécrire tout le prototype :
-
-1. Gérer le redimensionnement et décider du rôle du canvas.
-2. Ajouter les tests automatisés et compléter les contrôles de développement.
-
-Chaque étape devrait rester suffisamment petite pour être compilée, testée et
-validée visuellement avant de passer à la suivante.
+Les prochaines étapes pourront désormais être définies par les nouvelles
+fonctionnalités géométriques et par des mesures de performance sur de grandes
+constructions.

@@ -34,9 +34,7 @@ export function vNorm(a: readonly number[]): number {
 
 export function vNormalize(a: Vec2): Vec2 | null;
 export function vNormalize(a: Vec3): Vec3 | null;
-export function vNormalize(
-    a: readonly number[],
-): readonly number[] | null {
+export function vNormalize(a: readonly number[]): readonly number[] | null {
     const norm = vNorm(a);
     return Number.isFinite(norm) && norm > GEOMETRY_EPSILON
         ? a.map((value) => value / norm)

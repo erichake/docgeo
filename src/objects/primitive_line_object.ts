@@ -99,7 +99,9 @@ export class primitive_line_object extends construction_object {
         const dom = t.svg.shape("g");
         t.hitArea = t.svg
             .shape("path")
-            .stl("fill:none;stroke:transparent;pointer-events:stroke;cursor:pointer")
+            .stl(
+                "fill:none;stroke:transparent;pointer-events:stroke;cursor:pointer",
+            )
             .stl("stroke-width", t.prefs[t.type].touchsize);
         t.path = t.svg
             .shape("path")
