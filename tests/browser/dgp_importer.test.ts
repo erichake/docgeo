@@ -45,8 +45,44 @@ describe("DGP importer", () => {
 
     it("rejects instructions outside the supported subset", () => {
         const c = createConstruction();
-        expect(() => importDgp(c, `window.alert("executed");`)).toThrow(
-            "Unsupported DGP instruction at line 1",
-        );
+        expect(() =>
+            importDgp(
+                c,
+                `P=Point("P",0,0);
+fetch("https://example.com");`,
+            ),
+        ).toThrow("Unsupported DGP command fetch at line 2");
+        expect(c.OBJS.V).toEqual([c.GRID]);
+    });
+
+    it("rejects unsafe styles before creating objects", () => {
+        const c = createConstruction();
+        expect(() =>
+            importDgp(
+                c,
+                `P=Point("P",0,0);
+STL(P,"c:url(https://example.com/image)");`,
+            ),
+        ).toThrow("Invalid DGP color at line 2");
+        expect(c.OBJS.V).toEqual([c.GRID]);
+    });
+
+    it("imports the perpendicular-bisector reference figure", async () => {
+        const c = createConstruction();
+        await importDgpFromUrl(c, "/_Mediatrice.dgp");
+
+        expect(c.OBJS.V).toHaveLength(8);
+        expect(c.getObj("P1")).toBeInstanceOf(point_object);
+        expect(c.getObj("L1")).toBeInstanceOf(two_points_line_object);
+    });
+
+    it("imports the complete Apollonius construction", async () => {
+        const c = createConstruction();
+        await importDgpFromUrl(c, "/_Apollonius.dgp");
+
+        expect(c.OBJS.V).toHaveLength(2570);
+        expect(c.getObj("P1")).toBeInstanceOf(point_object);
+        expect(c.getObj("P14")).toBeInstanceOf(point_object);
+        expect(c.getObj("Center32")).toBeInstanceOf(point_object);
     });
 });

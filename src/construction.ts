@@ -24,6 +24,7 @@ export class construction {
     svg!: DOMElement;
     layers: Map<number, DOMElement>;
     private updateFrame: number | null = null;
+    private batchedObjects: construction_object[] | null = null;
 
     private constructor(dgpad: DgpadLike) {
         this.dgpad = dgpad;
@@ -53,8 +54,19 @@ export class construction {
 
     add<T extends construction_object>(obj: T): T {
         const added = this.OBJS.add(obj);
-        added.createSVG();
+        if (this.batchedObjects) this.batchedObjects.push(added);
+        else added.createSVG();
         return added;
+    }
+
+    beginBatch(): void {
+        this.batchedObjects = [];
+    }
+
+    endBatch(): void {
+        const objects = this.batchedObjects!;
+        this.batchedObjects = null;
+        objects.forEach((object) => object.createSVG());
     }
 
     removeObject(obj: construction_object): void {

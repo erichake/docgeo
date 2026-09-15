@@ -12,7 +12,8 @@ d'outils de construction ni de fonctions d'édition ou d'export.
 
 Les développements doivent servir en priorité :
 
-- l'import sûr du format `.dgp`, sans exécution directe de son contenu ;
+- l'import sûr du format `.dgp`, toute exécution de son contenu devant avoir
+  lieu dans un environnement sécurisé et strictement contrôlé ;
 - la compatibilité géométrique et graphique avec DGPad ;
 - la manipulation des objets existants ;
 - la robustesse numérique et les performances sur plusieurs milliers d'objets.
