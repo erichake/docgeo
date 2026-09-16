@@ -21,7 +21,7 @@ import { createReflection } from "../objects/reflection_object";
 import { createSegment } from "../objects/segment_object";
 import { createSymmetry } from "../objects/symmetry_object";
 import { createLine } from "../objects/two_points_line_object";
-import type { Vec3 } from "../vec";
+import type { Vec2, Vec3 } from "../vec";
 import type { DgpCall, DgpValue } from "./dgp_parser";
 
 type ObjectKind = "point" | "line" | "circle" | "polygon";
@@ -244,6 +244,12 @@ function applyCoordsStyle(context: CommandContext, value: string): void {
     context.gridChanged = true;
 }
 
+function normalizeAngle(angle: number, [low, high]: Vec2): number {
+    const turn = 2 * Math.PI;
+    const wrapped = low + (((angle - low) % turn) + turn) % turn;
+    return Math.min(wrapped, high);
+}
+
 function applyGeneralStyle(c: construction, value: string): void {
     const background = properties(value).get("background-color");
     if (background === undefined) return;
@@ -270,8 +276,20 @@ const COMMANDS = new Map<string, CommandDefinition>([
                     // stop meaning a screen origin and instead carry the raw
                     // camera rotation state (angle = raw * grid.STEP), the
                     // same unit the interactive rotation drag already uses.
-                    grid.PHI = (args[0] as number) * grid.STEP;
-                    grid.THETA = (args[1] as number) * grid.STEP;
+                    // The raw angle can land outside GRID.RESTRICT_PHI/THETA
+                    // (those bounds aren't a full turn wide), which renders
+                    // fine since cos/sin are periodic, but the first
+                    // rotation drag would then clamp it back onto the
+                    // boundary as a visible jump. Normalize to the
+                    // equivalent angle inside the restricted window first.
+                    grid.PHI = normalizeAngle(
+                        (args[0] as number) * grid.STEP,
+                        grid.RESTRICT_PHI,
+                    );
+                    grid.THETA = normalizeAngle(
+                        (args[1] as number) * grid.STEP,
+                        grid.RESTRICT_THETA,
+                    );
                 } else {
                     grid.ORG = [args[0] as number, args[1] as number];
                 }
