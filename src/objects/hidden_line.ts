@@ -1,5 +1,9 @@
 import type { construction } from "../construction";
-import { projectPointOnPlane, viewDirection } from "../projection";
+import {
+    projectPointOnLine,
+    projectPointOnPlane,
+    viewDirection,
+} from "../projection";
 import {
     GEOMETRY_EPSILON,
     geometryTolerance,
@@ -74,7 +78,12 @@ type PolygonGrid = {
     // larger than the scene itself (e.g. a Line/Ray's synthetic far point
     // during a transient near-degenerate drag) can be clamped down instead of
     // walking every empty cell between here and there.
-    bounds: { minCx: number; maxCx: number; minCy: number; maxCy: number } | null;
+    bounds: {
+        minCx: number;
+        maxCx: number;
+        minCy: number;
+        maxCy: number;
+    } | null;
 };
 const polygonGridCache = new WeakMap<construction, PolygonGrid>();
 
@@ -98,7 +107,12 @@ function polygonGrid(c: construction): PolygonGrid {
     if (cached && cached.frame === c.OBJS.frame) return cached;
 
     const cells = new Map<string, polygon_object[]>();
-    const bounds = { minCx: Infinity, maxCx: -Infinity, minCy: Infinity, maxCy: -Infinity };
+    const bounds = {
+        minCx: Infinity,
+        maxCx: -Infinity,
+        minCy: Infinity,
+        maxCy: -Infinity,
+    };
     (c.OBJS.polygons as polygon_object[]).forEach((polygon) => {
         if (!polygon.isVisible || polygon.points.length < 3) return;
         if (!polygon.points.every((p) => p.projectionDefined)) return;
@@ -108,10 +122,22 @@ function polygonGrid(c: construction): PolygonGrid {
         const maxX = Math.max(...xs);
         const minY = Math.min(...ys);
         const maxY = Math.max(...ys);
-        bounds.minCx = Math.min(bounds.minCx, Math.floor(minX / GRID_CELL_SIZE));
-        bounds.maxCx = Math.max(bounds.maxCx, Math.floor(maxX / GRID_CELL_SIZE));
-        bounds.minCy = Math.min(bounds.minCy, Math.floor(minY / GRID_CELL_SIZE));
-        bounds.maxCy = Math.max(bounds.maxCy, Math.floor(maxY / GRID_CELL_SIZE));
+        bounds.minCx = Math.min(
+            bounds.minCx,
+            Math.floor(minX / GRID_CELL_SIZE),
+        );
+        bounds.maxCx = Math.max(
+            bounds.maxCx,
+            Math.floor(maxX / GRID_CELL_SIZE),
+        );
+        bounds.minCy = Math.min(
+            bounds.minCy,
+            Math.floor(minY / GRID_CELL_SIZE),
+        );
+        bounds.maxCy = Math.max(
+            bounds.maxCy,
+            Math.floor(maxY / GRID_CELL_SIZE),
+        );
         forEachCell(minX, maxX, minY, maxY, (key) => {
             const bucket = cells.get(key);
             if (bucket) bucket.push(polygon);
@@ -176,16 +202,72 @@ export function hiddenIntervals(
     );
 }
 
+// Number of samples used to hunt for depth-difference sign changes under
+// perspective (see hiddenIntervalsBetween). The function is a ratio of
+// degree-<=3 polynomials in t, so a handful of samples is enough in practice
+// without the cost of solving that ratio for its roots exactly.
+const DEPTH_SAMPLE_COUNT = 8;
+const BISECTION_STEPS = 20;
+
+function bisectZero(
+    f: (t: number) => number,
+    a: number,
+    fa: number,
+    b: number,
+): number {
+    for (let i = 0; i < BISECTION_STEPS; i++) {
+        const mid = (a + b) / 2;
+        const fm = f(mid);
+        if (fm < 0 === fa < 0) {
+            a = mid;
+            fa = fm;
+        } else {
+            b = mid;
+        }
+    }
+    return (a + b) / 2;
+}
+
+function findDepthCrossings(
+    depthDiffAt: (t: number) => number,
+    d0: number,
+    d1: number,
+): number[] {
+    const crossings: number[] = [];
+    let prevT = 0;
+    let prevD = d0;
+    for (let i = 1; i <= DEPTH_SAMPLE_COUNT; i++) {
+        const t = i / DEPTH_SAMPLE_COUNT;
+        const d = i === DEPTH_SAMPLE_COUNT ? d1 : depthDiffAt(t);
+        if (
+            Number.isFinite(prevD) &&
+            Number.isFinite(d) &&
+            prevD !== 0 &&
+            d !== 0 &&
+            prevD < 0 !== d < 0
+        ) {
+            crossings.push(bisectZero(depthDiffAt, prevT, prevD, t));
+        }
+        prevT = t;
+        prevD = d;
+    }
+    return crossings;
+}
+
 // Splits the screen segment [sP1, sP2] — whose 3D positions at t=0 and t=1
 // are point3D1/point3D2 — into sub-ranges hidden behind some polygon closer
 // to the camera, vs. the rest. A polygon hides a sub-range where it covers
 // the segment's screen projection AND its plane is closer to the camera
 // there. Both conditions are only evaluated at the midpoint of each
 // candidate sub-range, delimited by where the segment crosses the polygon's
-// outline or the depth difference changes sign — the depth difference is
-// affine along the segment (parallel projection, planar polygon), so it
-// crosses zero at most once per polygon. `isOwnFace` excludes polygons this
-// segment is itself (or coincides with) an edge of.
+// outline or the depth difference changes sign. Under parallel projection
+// the depth difference is affine along the segment, so it crosses zero at
+// most once per polygon and that crossing is solved for directly; under
+// perspective it's a ratio of low-degree polynomials in t (screen position
+// and 3D position along the segment no longer move in lockstep) that can
+// cross zero more than once, so crossings are instead located by sampling
+// and bisection (see findDepthCrossings). `isOwnFace` excludes polygons
+// this segment is itself (or coincides with) an edge of.
 export function hiddenIntervalsBetween(
     c: construction,
     sP1: Vec2,
@@ -231,19 +313,29 @@ export function hiddenIntervalsBetween(
 
         const [v0, v1, v2] = polygon.points.map((p) => p.coords);
         const basis: [Vec3, Vec3] = [vSub(v1, v0), vSub(v2, v0)];
+        const segmentDir = vSub(point3D2, point3D1);
         const depthDiffAt = (t: number): number => {
             const screen = vAdd(sP1, vScale(vSub(sP2, sP1), t));
-            const point3D = vAdd(point3D1, vScale(vSub(point3D2, point3D1), t));
+            const point3D =
+                frame.focal === undefined
+                    ? vAdd(point3D1, vScale(segmentDir, t))
+                    : projectPointOnLine(screen, point3D1, segmentDir, frame);
             const planePoint = projectPointOnPlane(screen, v0, basis, frame);
-            if (!planePoint) return -Infinity;
+            if (!point3D || !planePoint) return -Infinity;
             return vDot(point3D, dir) - vDot(planePoint, dir);
         };
 
         const d0 = depthDiffAt(0);
         const d1 = depthDiffAt(1);
-        if (Number.isFinite(d0) && Number.isFinite(d1) && d0 !== d1) {
-            const tCross = d0 / (d0 - d1);
-            if (tCross > 0 && tCross < 1) breakpoints.add(tCross);
+        if (frame.focal === undefined) {
+            if (Number.isFinite(d0) && Number.isFinite(d1) && d0 !== d1) {
+                const tCross = d0 / (d0 - d1);
+                if (tCross > 0 && tCross < 1) breakpoints.add(tCross);
+            }
+        } else {
+            findDepthCrossings(depthDiffAt, d0, d1).forEach((t) =>
+                breakpoints.add(t),
+            );
         }
         candidates.push({ screenPoly, depthDiffAt });
     });

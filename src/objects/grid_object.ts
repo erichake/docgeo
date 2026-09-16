@@ -1,8 +1,12 @@
 import type { construction } from "../construction";
 import type { DOMElement } from "../dom";
 import type { GridPref } from "../preferences";
-import { screenBasis, type ProjectionFrame } from "../projection";
-import type { Vec2, Vec3 } from "../vec";
+import {
+    screenBasis,
+    viewDirection,
+    type ProjectionFrame,
+} from "../projection";
+import { vNormalize, type Vec2, type Vec3 } from "../vec";
 import { construction_object } from "./construction_object";
 
 export class grid_object extends construction_object {
@@ -13,10 +17,13 @@ export class grid_object extends construction_object {
     THETA: number;
     ORG: Vec2;
     STEP: number;
+    FOCAL: number;
+    PERSPECTIVE = false;
     CPHI = 0;
     SPHI = 0;
     CTHETA = 0;
     STHETA = 0;
+    DIR: Vec3 = [0, 0, 1];
     axis!: DOMElement;
 
     constructor(c: construction) {
@@ -29,6 +36,7 @@ export class grid_object extends construction_object {
         this.THETA = pref.theta;
         this.ORG = [c.width / 2, c.height / 2];
         this.STEP = pref.step;
+        this.FOCAL = pref.focal;
     }
 
     project(): void {
@@ -36,6 +44,7 @@ export class grid_object extends construction_object {
         this.SPHI = Math.sin(this.PHI);
         this.CTHETA = Math.cos(this.THETA);
         this.STHETA = Math.sin(this.THETA);
+        this.DIR = vNormalize(viewDirection(this.projectionFrame)) ?? this.DIR;
     }
 
     get screenIJK(): [Vec2, Vec2, Vec2] {
@@ -50,6 +59,8 @@ export class grid_object extends construction_object {
             sinPhi: this.SPHI,
             cosTheta: this.CTHETA,
             sinTheta: this.STHETA,
+            dir: this.DIR,
+            focal: this.PERSPECTIVE ? this.FOCAL : undefined,
         };
     }
 

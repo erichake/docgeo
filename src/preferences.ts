@@ -34,6 +34,9 @@ export interface GridPref extends ObjectPref {
     restrict_theta: Vec2;
     restrict_phi: Vec2;
     step: number;
+    // Camera distance from the origin along the view axis, in math
+    // coordinates, used when perspective projection is toggled on.
+    focal: number;
 }
 
 export interface Preferences {
@@ -178,6 +181,7 @@ export class preferences implements Preferences {
             restrict_theta: [-Math.PI / 2, Math.PI / 2],
             restrict_phi: [(3 * Math.PI) / 2, (5 * Math.PI) / 2],
             step: 0.015,
+            focal: 10,
             layer: 1,
         };
     }

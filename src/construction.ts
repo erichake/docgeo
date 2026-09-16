@@ -42,6 +42,12 @@ export class construction {
 
     mouseclick(_ev: PointerEvent): void {}
 
+    keydown(ev: KeyboardEvent): void {
+        if (ev.key !== "p" && ev.key !== "P") return;
+        this.GRID.PERSPECTIVE = !this.GRID.PERSPECTIVE;
+        this.invalidateProjection();
+    }
+
     mousedrag(_ev: PointerEvent, [dx, dy]: PointerDelta): void {
         const rt = this.GRID.RESTRICT_THETA;
         const rp = this.GRID.RESTRICT_PHI;
@@ -236,6 +242,7 @@ export class construction {
                 2,
             )
             .tap((event) => this.mouseclick(event));
+        $("body").on("keydown", (event) => this.keydown(event));
     }
 
     private scheduleUpdate(): void {
