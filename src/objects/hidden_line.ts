@@ -67,10 +67,16 @@ export function ownsEdge(
 // frame counter), then shared by every segment/edge that projects that
 // frame.
 const GRID_CELL_SIZE = 128;
-const polygonGridCache = new WeakMap<
-    construction,
-    { frame: number; cells: Map<string, polygon_object[]> }
->();
+type PolygonGrid = {
+    frame: number;
+    cells: Map<string, polygon_object[]>;
+    // Cell range actually populated by a polygon, so a query bbox that is far
+    // larger than the scene itself (e.g. a Line/Ray's synthetic far point
+    // during a transient near-degenerate drag) can be clamped down instead of
+    // walking every empty cell between here and there.
+    bounds: { minCx: number; maxCx: number; minCy: number; maxCy: number } | null;
+};
+const polygonGridCache = new WeakMap<construction, PolygonGrid>();
 
 function forEachCell(
     minX: number,
@@ -87,30 +93,38 @@ function forEachCell(
         for (let cy = minCy; cy <= maxCy; cy++) visit(`${cx},${cy}`);
 }
 
-function polygonGrid(c: construction): Map<string, polygon_object[]> {
+function polygonGrid(c: construction): PolygonGrid {
     const cached = polygonGridCache.get(c);
-    if (cached && cached.frame === c.OBJS.frame) return cached.cells;
+    if (cached && cached.frame === c.OBJS.frame) return cached;
 
     const cells = new Map<string, polygon_object[]>();
+    const bounds = { minCx: Infinity, maxCx: -Infinity, minCy: Infinity, maxCy: -Infinity };
     (c.OBJS.polygons as polygon_object[]).forEach((polygon) => {
         if (!polygon.isVisible || polygon.points.length < 3) return;
         if (!polygon.points.every((p) => p.projectionDefined)) return;
         const xs = polygon.points.map((p) => p.screen[0]);
         const ys = polygon.points.map((p) => p.screen[1]);
-        forEachCell(
-            Math.min(...xs),
-            Math.max(...xs),
-            Math.min(...ys),
-            Math.max(...ys),
-            (key) => {
-                const bucket = cells.get(key);
-                if (bucket) bucket.push(polygon);
-                else cells.set(key, [polygon]);
-            },
-        );
+        const minX = Math.min(...xs);
+        const maxX = Math.max(...xs);
+        const minY = Math.min(...ys);
+        const maxY = Math.max(...ys);
+        bounds.minCx = Math.min(bounds.minCx, Math.floor(minX / GRID_CELL_SIZE));
+        bounds.maxCx = Math.max(bounds.maxCx, Math.floor(maxX / GRID_CELL_SIZE));
+        bounds.minCy = Math.min(bounds.minCy, Math.floor(minY / GRID_CELL_SIZE));
+        bounds.maxCy = Math.max(bounds.maxCy, Math.floor(maxY / GRID_CELL_SIZE));
+        forEachCell(minX, maxX, minY, maxY, (key) => {
+            const bucket = cells.get(key);
+            if (bucket) bucket.push(polygon);
+            else cells.set(key, [polygon]);
+        });
     });
-    polygonGridCache.set(c, { frame: c.OBJS.frame, cells });
-    return cells;
+    const grid: PolygonGrid = {
+        frame: c.OBJS.frame,
+        cells,
+        bounds: cells.size > 0 ? bounds : null,
+    };
+    polygonGridCache.set(c, grid);
+    return grid;
 }
 
 function nearbyPolygons(
@@ -120,11 +134,25 @@ function nearbyPolygons(
     minY: number,
     maxY: number,
 ): polygon_object[] {
-    const cells = polygonGrid(c);
+    const { cells, bounds } = polygonGrid(c);
+    if (!bounds) return [];
+
+    // Clamp the query to cells that actually hold a polygon: a Line/Ray's
+    // screen segment is synthetically extended far past the viewport (see
+    // primitive_line_object.project), and during a fast drag through a
+    // near-degenerate construction that extension can briefly span an
+    // enormous range — walking every empty cell in between would hang the
+    // main thread rather than just return no candidates.
+    const minCx = Math.max(Math.floor(minX / GRID_CELL_SIZE), bounds.minCx);
+    const maxCx = Math.min(Math.floor(maxX / GRID_CELL_SIZE), bounds.maxCx);
+    const minCy = Math.max(Math.floor(minY / GRID_CELL_SIZE), bounds.minCy);
+    const maxCy = Math.min(Math.floor(maxY / GRID_CELL_SIZE), bounds.maxCy);
+    if (minCx > maxCx || minCy > maxCy) return [];
+
     const found = new Set<polygon_object>();
-    forEachCell(minX, maxX, minY, maxY, (key) => {
-        cells.get(key)?.forEach((polygon) => found.add(polygon));
-    });
+    for (let cx = minCx; cx <= maxCx; cx++)
+        for (let cy = minCy; cy <= maxCy; cy++)
+            cells.get(`${cx},${cy}`)?.forEach((polygon) => found.add(polygon));
     return [...found];
 }
 
