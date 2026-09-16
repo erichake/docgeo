@@ -1,0 +1,40 @@
+// Coordinates System :
+SetCoords(340,12,112.92512339546204,true,914,670);
+
+
+// Geometry :
+O=Point("O",1.2397595485437032,-2.39982026896674);
+X=Point("X","[1,0,0]","1");
+Y=Point("Y","[0,1,0]","1");
+Z=Point("Z","[0,0,1]","1");
+A=Point("A","[1,-1,-1]","1");
+B=Point("B","[1,1,-1]","1");
+D=Point("D","[-1,-1,-1]","1");
+C=Point("C","[-1,1,-1]","1");
+S11=Segment("S11",O,X);
+S21=Segment("S21",O,Y);
+S31=Segment("S31",O,Z);
+H=Symmetry("H",O,B);
+G=Symmetry("G",O,A);
+E=Symmetry("E",O,C);
+F=Symmetry("F",O,D);
+
+
+// Styles :
+STL(O,"c:#0000b2;s:6;sn:true;f:30;np:0.6435011087932844;fl:true");
+STL(X,"c:#0000b2;o:1;s:4;sn:true;f:24");
+STL(Y,"c:#0000b2;o:1;s:4;sn:true;f:24");
+STL(Z,"c:#0000b2;o:1;s:4;sn:true;f:24");
+STL(A,"c:#0000b2;s:6;sn:true;f:30");
+STL(B,"c:#0000b2;s:6;sn:true;f:30");
+STL(D,"c:#0000b2;s:6;sn:true;f:30");
+STL(C,"c:#0000b2;s:6;sn:true;f:30");
+STL(S11,"c:#117dad;s:1;f:24");
+STL(S21,"c:#117dad;s:1;f:24");
+STL(S31,"c:#117dad;s:1;f:24");
+STL(H,"c:#0000b2;s:6;sn:true;f:30");
+STL(G,"c:#0000b2;s:6;sn:true;f:30");
+STL(E,"c:#0000b2;s:6;sn:true;f:30");
+STL(F,"c:#0000b2;s:6;sn:true;f:30");
+SetCoordsStyle("3Dmode:true;isAxis:false;isGrid:true;isOx:true;isOy:true;isLockOx:false;isLockOy:false;centerZoom:true;onlyPositive:false;color:#111111;fontSize:18;axisWidth:1;gridWidth:0.1");
+SetGeneralStyle("background-color:#F8F8F8;degree:false;dragmoveable:true");

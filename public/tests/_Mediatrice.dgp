@@ -1,0 +1,24 @@
+// Coordinates System :
+SetCoords(400,285.5,40,false,800,572);
+
+
+// Geometry :
+P1=Point("P1",-2.5,0.8875);
+P2=Point("P2",1.975,-1.6125);
+C1=Circle("C1",P1,P2);
+C2=Circle("C2",P2,P1);
+P3=OrderedIntersection("P3",C1,C2,0);
+P4=OrderedIntersection("P4",C1,C2,1);
+L1=Line("L1",P3,P4);
+
+
+// Styles :
+STL(P1,"c:#0000b2;s:6;f:30");
+STL(P2,"c:#0000b2;s:6;f:30");
+STL(C1,"c:#cc66cc;h:1;s:1;f:30;p:0");
+STL(C2,"c:#cc66cc;h:1;s:1;f:30;p:0");
+STL(P3,"c:#0000b2;h:1;s:6;f:30");
+STL(P4,"c:#0000b2;h:1;s:6;f:30");
+STL(L1,"c:#780013;s:1;f:30;p:0");
+SetCoordsStyle("isAxis:true;isGrid:true;isOx:true;isOy:true;isLockOx:false;isLockOy:false;centerZoom:false;onlyPositive:false;color:#111111;fontSize:18;axisWidth:1;gridWidth:0.1");
+SetGeneralStyle("background-color:#F8F8F8;degree:true;dragmoveable:true");

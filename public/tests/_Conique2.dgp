@@ -1,0 +1,32 @@
+// Coordinates System :
+SetCoords(400,285.5,40,false,800,574);
+
+
+// Geometry :
+A=Point("A",-1.5,2.9125);
+B=Point("B",1.725,1.4875);
+C=Point("C",5.65,2.6875);
+D=Point("D",3.025,-0.8375);
+E=Point("E",0.75,-0.8875);
+P1=Point("P1",6.4,-3.1875);
+P2=Point("P2",3.65,4.3625);
+Quad=Quadric("Quad",A,B,C,D,E);
+L1=Line("L1",P1,P2);
+P3=OrderedIntersection("P3",L1,Quad,1);
+P4=OrderedIntersection("P4",L1,Quad,0);
+
+
+// Styles :
+STL(A,"c:#0000b2;s:6;sn:true;f:30");
+STL(B,"c:#0000b2;s:6;sn:true;f:30");
+STL(C,"c:#0000b2;s:6;sn:true;f:30");
+STL(D,"c:#0000b2;s:6;sn:true;f:30");
+STL(E,"c:#0000b2;s:6;sn:true;f:30");
+STL(P1,"c:#0000b2;s:6;f:30");
+STL(P2,"c:#0000b2;s:6;f:30");
+STL(Quad,"c:#00adff;s:1;f:30;p:500");
+STL(L1,"c:#780013;s:1;f:30;p:0");
+STL(P3,"c:#0000b2;sn:true;s:6;f:30");
+STL(P4,"c:#0000b2;sn:true;s:6;f:30");
+SetCoordsStyle("isAxis:false;isGrid:true;isOx:true;isOy:true;isLockOx:false;isLockOy:false;centerZoom:false;onlyPositive:false;color:#111111;fontSize:18;axisWidth:1;gridWidth:0.1");
+SetGeneralStyle("background-color:#F8F8F8;degree:true;dragmoveable:true");

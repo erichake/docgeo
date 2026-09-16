@@ -1,0 +1,43 @@
+// Coordinates System :
+SetCoords(400,285.5,40,false,800,572);
+
+
+// Geometry :
+A=Point("A",-1.5,2.9125);
+B=Point("B",0.925,3.7875);
+C=Point("C",5.65,2.6875);
+D=Point("D",5.9,-0.7375);
+E=Point("E",0.75,-0.8875);
+Quad=Quadric("Quad",A,B,C,D,E);
+O=Point("O",2.45,1.26);
+A2=Point("A2",-0.5,1.9125);
+B2=Point("B2",1.925,2.7875);
+C2=Point("C2",6.65,1.6875);
+D2=Point("D2",6.9,-1.7375);
+E2=Point("E2",1.75,-1.8875);
+Quad2=Quadric("Quad2",A2,B2,C2,D2,E2);
+J0=OrderedIntersection("J0",Quad,Quad2,0);
+J1=OrderedIntersection("J1",Quad,Quad2,1);
+J2=OrderedIntersection("J2",Quad,Quad2,2);
+J3=OrderedIntersection("J3",Quad,Quad2,3);
+
+// Styles :
+STL(A,"c:#0000b2;s:6;f:30");
+STL(B,"c:#0000b2;s:6;f:30");
+STL(C,"c:#0000b2;s:6;f:30");
+STL(D,"c:#0000b2;s:6;f:30");
+STL(E,"c:#0000b2;s:6;f:30");
+STL(Quad,"c:#00adff;s:1;f:30");
+STL(O,"c:#0000b2;s:6;f:30");
+STL(A2,"c:#0000b2;s:6;f:30");
+STL(B2,"c:#0000b2;s:6;f:30");
+STL(C2,"c:#0000b2;s:6;f:30");
+STL(D2,"c:#0000b2;s:6;f:30");
+STL(E2,"c:#0000b2;s:6;f:30");
+STL(Quad2,"c:#ff8800;s:1;f:30");
+STL(J0,"c:#660066;s:6;sn:true;f:30");
+STL(J1,"c:#660066;s:6;sn:true;f:30");
+STL(J2,"c:#660066;s:6;sn:true;f:30");
+STL(J3,"c:#660066;s:6;sn:true;f:30");
+SetCoordsStyle("isAxis:false;isGrid:true;isOx:true;isOy:true;isLockOx:false;isLockOy:false;centerZoom:false;onlyPositive:false;color:#111111;fontSize:18;axisWidth:1;gridWidth:0.1");
+SetGeneralStyle("background-color:#F8F8F8;degree:true;dragmoveable:true");
