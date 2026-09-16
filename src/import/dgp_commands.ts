@@ -16,6 +16,7 @@ import { createPoint, point_object } from "../objects/point_object";
 import { createPolygon } from "../objects/polygon_object";
 import { primitive_circle_object } from "../objects/primitive_circle_object";
 import { primitive_line_object } from "../objects/primitive_line_object";
+import { createQuadric5pts } from "../objects/quadric5pts_object";
 import { createRay } from "../objects/ray_line_object";
 import { createReflection } from "../objects/reflection_object";
 import { createSegment } from "../objects/segment_object";
@@ -24,7 +25,7 @@ import { createLine } from "../objects/two_points_line_object";
 import type { Vec2, Vec3 } from "../vec";
 import type { DgpCall, DgpValue } from "./dgp_parser";
 
-type ObjectKind = "point" | "line" | "circle" | "polygon";
+type ObjectKind = "point" | "line" | "circle" | "polygon" | "quadric";
 type ParameterKind =
     | "string"
     | "number"
@@ -246,7 +247,7 @@ function applyCoordsStyle(context: CommandContext, value: string): void {
 
 function normalizeAngle(angle: number, [low, high]: Vec2): number {
     const turn = 2 * Math.PI;
-    const wrapped = low + (((angle - low) % turn) + turn) % turn;
+    const wrapped = low + ((((angle - low) % turn) + turn) % turn);
     return Math.min(wrapped, high);
 }
 
@@ -339,9 +340,11 @@ const COMMANDS = new Map<string, CommandDefinition>([
                 }
                 if (context.is3D && !context.origin3DAssigned) {
                     context.origin3DAssigned = true;
-                    return createFixedPoint(context.construction, name, [
-                        0, 0, 0,
-                    ]);
+                    return createFixedPoint(
+                        context.construction,
+                        name,
+                        [0, 0, 0],
+                    );
                 }
                 return createPoint(context.construction, name, [
                     second as number,
@@ -504,6 +507,23 @@ const COMMANDS = new Map<string, CommandDefinition>([
                     args[1] as point_object,
                     args[2] as point_object,
                     args[3] as point_object,
+                ),
+        },
+    ],
+    [
+        "Quadric",
+        {
+            parameters: [string, point, point, point, point, point],
+            result: "quadric",
+            execute: (context, args) =>
+                createQuadric5pts(
+                    context.construction,
+                    args[0] as string,
+                    args[1] as point_object,
+                    args[2] as point_object,
+                    args[3] as point_object,
+                    args[4] as point_object,
+                    args[5] as point_object,
                 ),
         },
     ],

@@ -42,6 +42,7 @@ export interface Preferences {
     midpoint: PointPref;
     intersection: PointPref;
     circle: ObjectPref;
+    quadric: ObjectPref;
     line: ObjectPref;
     plumb: ObjectPref;
     parallel: ObjectPref;
@@ -59,6 +60,7 @@ export class preferences implements Preferences {
     midpoint: PointPref;
     intersection: PointPref;
     circle: ObjectPref;
+    quadric: ObjectPref;
     line: ObjectPref;
     plumb: ObjectPref;
     parallel: ObjectPref;
@@ -102,6 +104,15 @@ export class preferences implements Preferences {
             size: 2,
             touchsize: 5,
             name: "C",
+            opacity: 0,
+            layer: 3,
+        };
+
+        this.quadric = {
+            color: { fill: "#CC66CC", stroke: "#CC66CC" },
+            size: 2,
+            touchsize: 5,
+            name: "Q",
             opacity: 0,
             layer: 3,
         };
