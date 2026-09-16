@@ -1,5 +1,6 @@
 import type { construction } from "../construction";
 import { geometryTolerance, numEqual, type Vec3 } from "../vec";
+import type { ConicCoeffs } from "./conic_algebra";
 import type { point_object } from "./point_object";
 import { primitive_quadric_object } from "./primitive_quadric_object";
 
@@ -11,7 +12,7 @@ import { primitive_quadric_object } from "./primitive_quadric_object";
 // many of them collinear).
 function fitConic(
     points: readonly { x: number; y: number }[],
-): number[] | null {
+): ConicCoeffs | null {
     const rows = points.map(({ x, y }) => {
         const row = [x * x, x * y, y * y, x, y, 1];
         const norm = Math.hypot(...row);
@@ -48,7 +49,7 @@ function fitConic(
         coeffs[col] = -sum / row[col];
     }
     const norm = Math.hypot(...coeffs);
-    return coeffs.map((v) => v / norm);
+    return coeffs.map((v) => v / norm) as unknown as ConicCoeffs;
 }
 
 export class quadric5pts_object extends primitive_quadric_object {
@@ -83,13 +84,16 @@ export class quadric5pts_object extends primitive_quadric_object {
             !points.every((point) => numEqual(point.z, this.P1.z))
         ) {
             this.defined = false;
+            this.COEFFS = null;
             return;
         }
         const coeffs = fitConic(points);
         if (!coeffs) {
             this.defined = false;
+            this.COEFFS = null;
             return;
         }
+        this.COEFFS = coeffs;
         const [a, b, c, d, e, f] = coeffs;
         const z = this.P1.z;
 

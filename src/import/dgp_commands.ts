@@ -16,6 +16,7 @@ import { createPoint, point_object } from "../objects/point_object";
 import { createPolygon } from "../objects/polygon_object";
 import { primitive_circle_object } from "../objects/primitive_circle_object";
 import { primitive_line_object } from "../objects/primitive_line_object";
+import type { primitive_quadric_object } from "../objects/primitive_quadric_object";
 import { createQuadric5pts } from "../objects/quadric5pts_object";
 import { createRay } from "../objects/ray_line_object";
 import { createReflection } from "../objects/reflection_object";
@@ -540,7 +541,7 @@ const COMMANDS = new Map<string, CommandDefinition>([
             result: "point",
             validate: (args, lineNumber) => {
                 const order = (args[3] as { value: number }).value;
-                if (order !== 0 && order !== 1)
+                if (![0, 1, 2, 3].includes(order))
                     throw new Error(
                         `Invalid intersection order at line ${lineNumber}`,
                     );
@@ -549,9 +550,15 @@ const COMMANDS = new Map<string, CommandDefinition>([
                 createOrderedIntersection(
                     context.construction,
                     args[0] as string,
-                    args[1] as primitive_line_object | primitive_circle_object,
-                    args[2] as primitive_line_object | primitive_circle_object,
-                    args[3] === 0 ? 0 : 1,
+                    args[1] as
+                        | primitive_line_object
+                        | primitive_circle_object
+                        | primitive_quadric_object,
+                    args[2] as
+                        | primitive_line_object
+                        | primitive_circle_object
+                        | primitive_quadric_object,
+                    args[3] as 0 | 1 | 2 | 3,
                     args[4] as point_object | undefined,
                 ),
         },
@@ -681,7 +688,7 @@ function accepts(actual: ObjectKind, expected: ParameterKind): boolean {
         expected === "object" ||
         actual === expected ||
         (expected === "intersectable" &&
-            (actual === "line" || actual === "circle"))
+            (actual === "line" || actual === "circle" || actual === "quadric"))
     );
 }
 

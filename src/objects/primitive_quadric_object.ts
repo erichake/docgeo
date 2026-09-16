@@ -1,4 +1,5 @@
 import type { construction } from "../construction";
+import type { ConicCoeffs } from "./conic_algebra";
 import type { DOMElement } from "../dom";
 import { vAdd, vIsFinite, vSub, type Vec2, type Vec3 } from "../vec";
 import { construction_object } from "./construction_object";
@@ -29,6 +30,10 @@ function findBound(isOutside: (t: number) => boolean): number {
 
 export class primitive_quadric_object extends construction_object {
     KIND: QuadricKind = "ellipse";
+    // Implicit a·x²+b·xy+c·y²+d·x+e·y+f=0 form, in the quadric's own
+    // (x,y) plane — the algebraic representation intersection math works
+    // from. Rendering uses CENTER/AXIS_U/AXIS_V/BRANCHES below instead.
+    COEFFS: ConicCoeffs | null = null;
     CENTER: Vec3 = [0, 0, 0]; // ellipse/hyperbola center, or parabola vertex
     // Ellipse only: rendered exactly as an affine image of the unit circle,
     // so no sampling is ever needed for that case.
