@@ -129,22 +129,43 @@ function nearbyPolygons(
 }
 
 // Splits [p1, p2] into sub-ranges hidden behind some polygon closer to the
-// camera, vs. the rest. A polygon hides a sub-range where it covers the
-// segment's screen projection AND its plane is closer to the camera there.
-// Both conditions are only evaluated at the midpoint of each candidate
-// sub-range, delimited by where the segment crosses the polygon's outline or
-// the depth difference changes sign — the depth difference is affine along
-// the segment (parallel projection, planar polygon), so it crosses zero at
-// most once per polygon. A polygon that has both p1 and p2 as vertices is
+// camera, vs. the rest. A polygon that has both p1 and p2 as vertices is
 // skipped, since it is coplanar with [p1, p2] (its own edge, or another
-// face's edge sharing it) rather than in front of it.
+// face's edge sharing it) rather than in front of it. See
+// hiddenIntervalsBetween for how the split itself is computed.
 export function hiddenIntervals(
     c: construction,
     p1: point_object,
     p2: point_object,
 ): Interval[] {
-    const sP1 = p1.screen;
-    const sP2 = p2.screen;
+    return hiddenIntervalsBetween(
+        c,
+        p1.screen,
+        p2.screen,
+        p1.coords,
+        p2.coords,
+        (polygon) => polygon.points.includes(p1) && polygon.points.includes(p2),
+    );
+}
+
+// Splits the screen segment [sP1, sP2] — whose 3D positions at t=0 and t=1
+// are point3D1/point3D2 — into sub-ranges hidden behind some polygon closer
+// to the camera, vs. the rest. A polygon hides a sub-range where it covers
+// the segment's screen projection AND its plane is closer to the camera
+// there. Both conditions are only evaluated at the midpoint of each
+// candidate sub-range, delimited by where the segment crosses the polygon's
+// outline or the depth difference changes sign — the depth difference is
+// affine along the segment (parallel projection, planar polygon), so it
+// crosses zero at most once per polygon. `isOwnFace` excludes polygons this
+// segment is itself (or coincides with) an edge of.
+export function hiddenIntervalsBetween(
+    c: construction,
+    sP1: Vec2,
+    sP2: Vec2,
+    point3D1: Vec3,
+    point3D2: Vec3,
+    isOwnFace: (polygon: polygon_object) => boolean,
+): Interval[] {
     const frame = c.projectionFrame;
     const dir = viewDirection(frame);
     const breakpoints = new Set([0, 1]);
@@ -159,7 +180,7 @@ export function hiddenIntervals(
     const segMaxY = Math.max(sP1[1], sP2[1]);
 
     nearbyPolygons(c, segMinX, segMaxX, segMinY, segMaxY).forEach((polygon) => {
-        if (polygon.points.includes(p1) && polygon.points.includes(p2)) return;
+        if (isOwnFace(polygon)) return;
 
         const screenPoly = polygon.points.map((p) => p.screen);
         // Exact bounding-box check: the grid only guarantees the polygon
@@ -184,10 +205,7 @@ export function hiddenIntervals(
         const basis: [Vec3, Vec3] = [vSub(v1, v0), vSub(v2, v0)];
         const depthDiffAt = (t: number): number => {
             const screen = vAdd(sP1, vScale(vSub(sP2, sP1), t));
-            const point3D = vAdd(
-                p1.coords,
-                vScale(vSub(p2.coords, p1.coords), t),
-            );
+            const point3D = vAdd(point3D1, vScale(vSub(point3D2, point3D1), t));
             const planePoint = projectPointOnPlane(screen, v0, basis, frame);
             if (!planePoint) return -Infinity;
             return vDot(point3D, dir) - vDot(planePoint, dir);
@@ -242,4 +260,20 @@ export function complement(intervals: Interval[]): Interval[] {
     });
     if (1 - cursor > GEOMETRY_EPSILON) visible.push([cursor, 1]);
     return visible;
+}
+
+// Renders a set of sub-ranges of [sP1, sP2] as disconnected SVG path
+// commands, one "M...L..." per range.
+export function intervalsToPath(
+    sP1: Vec2,
+    sP2: Vec2,
+    intervals: Interval[],
+): string {
+    return intervals
+        .map(([a, b]) => {
+            const p0 = vAdd(sP1, vScale(vSub(sP2, sP1), a));
+            const p1 = vAdd(sP1, vScale(vSub(sP2, sP1), b));
+            return `M${p0[0]} ${p0[1]} L${p1[0]} ${p1[1]}`;
+        })
+        .join(" ");
 }

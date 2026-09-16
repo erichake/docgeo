@@ -1,10 +1,11 @@
 import type { construction } from "../construction";
 import type { DOMElement } from "../dom";
-import { vAdd, vScale, vSub, type Vec2 } from "../vec";
+import type { Vec2 } from "../vec";
 import { construction_object } from "./construction_object";
 import {
     complement,
     hiddenIntervals,
+    intervalsToPath,
     ownsEdge,
     type Interval,
 } from "./hidden_line";
@@ -80,13 +81,7 @@ export class polygon_object extends construction_object {
                 const p1 = this.screenPoints[i];
                 const p2 =
                     this.screenPoints[(i + 1) % this.screenPoints.length];
-                return intervals
-                    .map(([a, b]) => {
-                        const s0 = vAdd(p1, vScale(vSub(p2, p1), a));
-                        const s1 = vAdd(p1, vScale(vSub(p2, p1), b));
-                        return `M${s0[0]} ${s0[1]} L${s1[0]} ${s1[1]}`;
-                    })
-                    .join(" ");
+                return intervalsToPath(p1, p2, intervals);
             })
             .join(" ");
     }

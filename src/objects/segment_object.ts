@@ -1,21 +1,8 @@
 import type { construction } from "../construction";
 import type { DOMElement } from "../dom";
-import {
-    geometryTolerance,
-    vAdd,
-    vNorm,
-    vNormalize,
-    vScale,
-    vSub,
-} from "../vec";
+import { geometryTolerance, vNorm, vNormalize, vSub } from "../vec";
 import type { construction_object } from "./construction_object";
-import {
-    complement,
-    hiddenIntervals as computeHiddenIntervals,
-    type Interval,
-} from "./hidden_line";
 import type { point_object } from "./point_object";
-import { primitive_line_object } from "./primitive_line_object";
 import { two_points_line_object } from "./two_points_line_object";
 
 const FONT_MARGIN = 5;
@@ -24,12 +11,6 @@ const QUARTER_TURN = Math.PI / 2;
 
 export class segment_object extends two_points_line_object {
     lengthText?: DOMElement;
-    hiddenPath!: DOMElement;
-    // Sub-ranges of the segment hidden behind some polygon, drawn on
-    // hiddenPath (dashed) instead of path (solid), per hidden-line
-    // convention.
-    private hiddenIntervals: Interval[] = [];
-    private visibleIntervals: Interval[] = [[0, 1]];
 
     constructor(
         c: construction,
@@ -53,10 +34,8 @@ export class segment_object extends two_points_line_object {
         this.sP1 = this.P1.screen;
         this.sP2 = this.P2.screen;
         this.projectionDefined = vNormalize(vSub(this.sP2, this.sP1)) !== null;
-        this.hiddenIntervals = this.projectionDefined
-            ? computeHiddenIntervals(this.C, this.P1, this.P2)
-            : [];
-        this.visibleIntervals = complement(this.hiddenIntervals);
+        if (this.projectionDefined)
+            this.updateHiddenSplit(this.P1.coords, this.P2.coords);
     }
 
     insideBounds(parameter: number): boolean {
@@ -67,10 +46,6 @@ export class segment_object extends two_points_line_object {
 
     render(): void {
         super.render();
-        if (this.defined && this.projectionDefined) {
-            this.path.att("d", this.pathData(this.visibleIntervals));
-            this.hiddenPath.att("d", this.pathData(this.hiddenIntervals));
-        }
         if (!this.lengthText) return;
         if (!this.defined || !this.projectionDefined) return;
 
@@ -97,27 +72,9 @@ export class segment_object extends two_points_line_object {
             );
     }
 
-    private pathData(intervals: Interval[]): string {
-        return intervals
-            .map(([a, b]) => {
-                const p0 = vAdd(this.sP1, vScale(vSub(this.sP2, this.sP1), a));
-                const p1 = vAdd(this.sP1, vScale(vSub(this.sP2, this.sP1), b));
-                return `M${p0[0]} ${p0[1]} L${p1[0]} ${p1[1]}`;
-            })
-            .join(" ");
-    }
-
     static createSVG(_this: construction_object): DOMElement {
         const t = _this as segment_object;
-        const dom = primitive_line_object.createSVG(t);
-        t.hiddenPath = t.svg
-            .shape("path")
-            .stl("fill", "none")
-            .stl("stroke", t.stroke_color)
-            .stl("stroke-width", t.size)
-            .stl("stroke-dasharray", `${t.size * 3} ${t.size * 2}`)
-            .stl("pointer-events", "none");
-        dom.add(t.hiddenPath);
+        const dom = two_points_line_object.createSVG(t);
         if (t.precision < 0) return dom;
 
         t.lengthText = t.svg
