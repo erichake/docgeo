@@ -2,8 +2,10 @@ import { afterEach, describe, expect, it } from "vitest";
 import { construction } from "../../src/construction";
 import { importDgp, importDgpFromUrl } from "../../src/dgp_importer";
 import { fixed_point_object } from "../../src/objects/fixed_point_object";
+import { locus_object } from "../../src/objects/locus_object";
 import { point_on_object } from "../../src/objects/point_on_object";
 import { point_object } from "../../src/objects/point_object";
+import { polygon_object } from "../../src/objects/polygon_object";
 import { symmetry_object } from "../../src/objects/symmetry_object";
 import { two_points_line_object } from "../../src/objects/two_points_line_object";
 import { preferences } from "../../src/preferences";
@@ -79,6 +81,53 @@ STL(P,"c:url(https://example.com/image)");`,
         expect(c.OBJS.V).toHaveLength(8);
         expect(c.getObj("P1")).toBeInstanceOf(point_object);
         expect(c.getObj("L1")).toBeInstanceOf(two_points_line_object);
+    });
+
+    it("imports and updates a point locus without moving its driver", async () => {
+        const c = createConstruction();
+        await importDgpFromUrl(c, "/tests/_Locus.dgp");
+
+        const focus = c.getObj("P3") as point_object;
+        const driver = c.getObj("P4") as point_on_object;
+        const target = c.getObj("P5") as point_object;
+        const locus = c.getObj("Locus1") as locus_object;
+        const alpha = driver.alpha;
+        const targetCoords = target.coords;
+        const middle = locus.points[Math.floor(locus.points.length / 2)];
+
+        expect(locus).toBeInstanceOf(locus_object);
+        expect(locus.points).toHaveLength(1000);
+        expect(locus.points.every((point) => point !== null)).toBe(true);
+        expect(driver.alpha).toBe(alpha);
+        expect(target.coords).toEqual(targetCoords);
+        expect(locus.stroke_color).toBe("#0b5b94");
+        expect(locus.size).toBe(2.5);
+        expect(locus.path.getAtt("d")).not.toMatch(/NaN|Infinity/);
+
+        focus.coords = [focus.x, focus.y + 1, focus.z];
+        c.invalidateGeometry(focus);
+        c.OBJS.update();
+
+        expect(locus.points[Math.floor(locus.points.length / 2)]).not.toEqual(
+            middle,
+        );
+        expect(driver.alpha).toBe(alpha);
+    });
+
+    it("uses polygon vertices as the exact locus samples", async () => {
+        const c = createConstruction();
+        await importDgpFromUrl(c, "/tests/_Locus2.dgp");
+
+        const center = c.getObj("O") as point_object;
+        const polygon = c.getObj("Poly1") as polygon_object;
+        const locus = c.getObj("Locus1") as locus_object;
+        const expected = [...polygon.points, polygon.points[0]].map((point) => [
+            2 * center.x - point.x,
+            2 * center.y - point.y,
+            2 * center.z - point.z,
+        ]);
+
+        expect(locus.points).toEqual(expected);
     });
 
     it("imports a point inside a polygon", async () => {

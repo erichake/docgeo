@@ -7,6 +7,7 @@ import { createCircle } from "../objects/circle_object";
 import { construction_object } from "../objects/construction_object";
 import { createFixedPoint } from "../objects/fixed_point_object";
 import { createOrderedIntersection } from "../objects/intersection_object";
+import { createLocus } from "../objects/locus_object";
 import { createMidpoint } from "../objects/midpoint_object";
 import { createParallel } from "../objects/parallel_line_object";
 import { createPerpendicularBisector } from "../objects/perpendicular_bisector_object";
@@ -29,13 +30,15 @@ import { createLine } from "../objects/two_points_line_object";
 import type { Vec2, Vec3 } from "../vec";
 import type { DgpCall, DgpValue } from "./dgp_parser";
 
-type ObjectKind = "point" | "line" | "circle" | "polygon" | "quadric";
+type ObjectKind =
+    "point" | "pointOn" | "line" | "circle" | "polygon" | "quadric" | "locus";
 type ParameterKind =
     | "string"
     | "number"
     | "boolean"
     | "object"
     | "point"
+    | "pointOn"
     | "line"
     | "circle"
     | "intersectable"
@@ -86,6 +89,7 @@ const number: Parameter = { kind: "number" };
 const boolean: Parameter = { kind: "boolean" };
 const object: Parameter = { kind: "object" };
 const point: Parameter = { kind: "point" };
+const pointOn: Parameter = { kind: "pointOn" };
 const line: Parameter = { kind: "line" };
 const circle: Parameter = { kind: "circle" };
 const intersectable: Parameter = { kind: "intersectable" };
@@ -373,7 +377,7 @@ const COMMANDS = new Map<string, CommandDefinition>([
         "PointOn",
         {
             parameters: [string, pointSupport, numberOrPair],
-            result: "point",
+            result: "pointOn",
             validate: (args, lineNumber, variables) => {
                 const support = args[1] as {
                     type: "reference";
@@ -396,6 +400,20 @@ const COMMANDS = new Map<string, CommandDefinition>([
                         | polygon_object
                         | quadric5pts_object,
                     args[2] as number | readonly [number, number],
+                ),
+        },
+    ],
+    [
+        "Locus",
+        {
+            parameters: [string, point, pointOn],
+            result: "locus",
+            execute: (context, args) =>
+                createLocus(
+                    context.construction,
+                    args[0] as string,
+                    args[1] as point_object,
+                    args[2] as point_on_object,
                 ),
         },
     ],
@@ -658,7 +676,7 @@ const COMMANDS = new Map<string, CommandDefinition>([
                     .split(",")
                     .forEach((token) => {
                         const name = polygonPointName(token, lineNumber);
-                        if (variables.get(name) !== "point")
+                        if (!accepts(variables.get(name)!, "point"))
                             throw new Error(
                                 `Unknown DGP reference at line ${lineNumber}`,
                             );
@@ -717,6 +735,7 @@ function accepts(actual: ObjectKind, expected: ParameterKind): boolean {
     return (
         expected === "object" ||
         actual === expected ||
+        (actual === "pointOn" && expected === "point") ||
         (expected === "intersectable" &&
             (actual === "line" ||
                 actual === "circle" ||

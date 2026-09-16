@@ -52,6 +52,7 @@ export interface Preferences {
     ray: ObjectPref;
     segment: ObjectPref;
     polygon: ObjectPref;
+    locus: ObjectPref;
     grid: GridPref;
 }
 
@@ -70,6 +71,7 @@ export class preferences implements Preferences {
     ray: ObjectPref;
     segment: ObjectPref;
     polygon: ObjectPref;
+    locus: ObjectPref;
     grid: GridPref;
 
     constructor() {
@@ -167,6 +169,14 @@ export class preferences implements Preferences {
             name: "Poly",
             opacity: 0,
             layer: 2,
+        };
+
+        this.locus = {
+            color: { fill: "#0b5b94", stroke: "#0b5b94" },
+            size: 2,
+            touchsize: 5,
+            name: "Locus",
+            layer: 3,
         };
 
         this.grid = {

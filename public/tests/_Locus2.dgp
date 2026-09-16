@@ -1,0 +1,30 @@
+// Coordinates System :
+SetCoords(321,206.5,40,false,800,572);
+
+
+// Geometry :
+P1=Point("P1",-2.625,3.1375);
+P2=Point("P2",-4,1.2625);
+P3=Point("P3",-1.175,-0.3375);
+P4=Point("P4",1.875,2.1375);
+P5=Point("P5",-1.3,1.4375);
+O=Point("O",1.35,-0.3125);
+Poly1=Polygon("Poly1","_P1,_P2,_P3,_P4,_P5");
+A=PointOn("A",Poly1,[0.5549132947976877,1.1373422698285889e-16]);
+B=Symmetry("B",O,A);
+Locus1=Locus("Locus1",B,A);
+
+
+// Styles :
+STL(P1,"c:#0000b2;s:6;f:30");
+STL(P2,"c:#0000b2;s:6;f:30");
+STL(P3,"c:#0000b2;s:6;f:30");
+STL(P4,"c:#0000b2;s:6;f:30");
+STL(P5,"c:#0000b2;s:6;f:30");
+STL(O,"c:#0000b2;s:6;sn:true;f:30");
+STL(Poly1,"c:#006633;o:0.2;s:1;f:30");
+STL(A,"c:#bd8f33;o:1;s:6;sn:true;f:30;sb:true");
+STL(B,"c:#2b9761;o:1;s:6;sn:true;f:30");
+STL(Locus1,"c:#780013;s:1;f:30;p:6");
+SetCoordsStyle("isAxis:false;isGrid:true;isOx:true;isOy:true;isLockOx:false;isLockOy:false;centerZoom:false;onlyPositive:false;color:#111111;fontSize:18;axisWidth:1;gridWidth:0.1");
+SetGeneralStyle("background-color:#F8F8F8;degree:true;dragmoveable:true");

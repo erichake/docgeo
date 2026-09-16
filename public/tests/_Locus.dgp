@@ -1,0 +1,28 @@
+// Coordinates System :
+SetCoords(400,285.5,40,false,800,572);
+
+
+// Geometry :
+P1=Point("P1",-4.1,-0.3125);
+P2=Point("P2",6.3,-2.1875);
+P3=Point("P3",1.125,1.0625);
+L1=Line("L1",P1,P2);
+P4=PointOn("P4",L1,0.682187809560054);
+L2=PerpendicularBisector("L2",P3,P4);
+Perp1=Perpendicular("Perp1",L1,P4);
+P5=OrderedIntersection("P5",Perp1,L2,0);
+Locus1=Locus("Locus1",P5,P4);
+
+
+// Styles :
+STL(P1,"c:#0000b2;s:6;f:30");
+STL(P2,"c:#0000b2;s:6;f:30");
+STL(P3,"c:#0000b2;s:6;f:30");
+STL(L1,"c:#780013;s:1;f:30;p:0");
+STL(P4,"c:#0000b2;s:6;f:30");
+STL(L2,"c:#780013;s:1;f:30;p:0");
+STL(Perp1,"c:#780013;s:1;f:30;p:0");
+STL(P5,"c:#0000b2;s:6;f:30");
+STL(Locus1,"c:#0b5b94;s:2.5;f:30;p:1000");
+SetCoordsStyle("isAxis:false;isGrid:true;isOx:true;isOy:true;isLockOx:false;isLockOy:false;centerZoom:false;onlyPositive:false;color:#111111;fontSize:18;axisWidth:1;gridWidth:0.1");
+SetGeneralStyle("background-color:#F8F8F8;degree:true;dragmoveable:true");
