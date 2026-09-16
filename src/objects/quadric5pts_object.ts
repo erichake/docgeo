@@ -170,6 +170,36 @@ export class quadric5pts_object extends primitive_quadric_object {
             this.defined = false;
         }
     }
+
+    // PointOn's parameter for a quadric: affine coordinates of a (generally
+    // off-curve) point in the frame of the conic's own first 3 defining
+    // points, projected onto the true conic — matches DGPad's own Alpha
+    // convention for a point on a quadric, so saved figures round-trip.
+    pointAt([g0, g1]: readonly [number, number]): Vec3 {
+        const AA = this.P1.coords,
+            BB = this.P2.coords,
+            CC = this.P3.coords;
+        return this.projectPoint([
+            AA[0] + g0 * (BB[0] - AA[0]) + g1 * (CC[0] - AA[0]),
+            AA[1] + g0 * (BB[1] - AA[1]) + g1 * (CC[1] - AA[1]),
+            AA[2],
+        ]);
+    }
+
+    alphaOf(target: Vec3): readonly [number, number] {
+        const [px, py] = this.projectPoint(target);
+        const AA = this.P1.coords,
+            BB = this.P2.coords,
+            CC = this.P3.coords;
+        const a = BB[0] - AA[0],
+            b = CC[0] - AA[0],
+            d = BB[1] - AA[1],
+            e = CC[1] - AA[1];
+        const det = a * e - d * b;
+        const cx = px - AA[0],
+            cy = py - AA[1];
+        return [(cx * e - b * cy) / det, (a * cy - cx * d) / det];
+    }
 }
 
 function scale([x, y, zc]: Vec3, k: number): Vec3 {

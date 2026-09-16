@@ -17,7 +17,10 @@ import { createPolygon } from "../objects/polygon_object";
 import { primitive_circle_object } from "../objects/primitive_circle_object";
 import { primitive_line_object } from "../objects/primitive_line_object";
 import type { primitive_quadric_object } from "../objects/primitive_quadric_object";
-import { createQuadric5pts } from "../objects/quadric5pts_object";
+import {
+    createQuadric5pts,
+    type quadric5pts_object,
+} from "../objects/quadric5pts_object";
 import { createRay } from "../objects/ray_line_object";
 import { createReflection } from "../objects/reflection_object";
 import { createSegment } from "../objects/segment_object";
@@ -36,7 +39,11 @@ type ParameterKind =
     | "line"
     | "circle"
     | "intersectable"
-    | "coordinate";
+    | "coordinate"
+    // PointOn's parameter: a plain number for a line/circle support, or a
+    // [number, number] pair for a quadric support (its point-on-conic
+    // convention — see quadric5pts_object.pointAt/alphaOf).
+    | "numberOrPair";
 
 interface Parameter {
     kind: ParameterKind;
@@ -83,6 +90,7 @@ const line: Parameter = { kind: "line" };
 const circle: Parameter = { kind: "circle" };
 const intersectable: Parameter = { kind: "intersectable" };
 const coordinate: Parameter = { kind: "coordinate" };
+const numberOrPair: Parameter = { kind: "numberOrPair" };
 // DGPad's own color parser matches this hex prefix without anchoring the
 // end, so a color value with a stray suffix (e.g. a missing ";" merging it
 // with the next "key:value" pair, as seen in some exported .dgp files) is
@@ -358,14 +366,17 @@ const COMMANDS = new Map<string, CommandDefinition>([
     [
         "PointOn",
         {
-            parameters: [string, intersectable, number],
+            parameters: [string, intersectable, numberOrPair],
             result: "point",
             execute: (context, args) =>
                 createPointOn(
                     context.construction,
                     args[0] as string,
-                    args[1] as primitive_line_object | primitive_circle_object,
-                    args[2] as number,
+                    args[1] as
+                        | primitive_line_object
+                        | primitive_circle_object
+                        | quadric5pts_object,
+                    args[2] as number | readonly [number, number],
                 ),
         },
     ],
@@ -709,14 +720,30 @@ function validateValue(
                 );
             return;
         }
+        if (parameter.kind === "numberOrPair") {
+            if (typeof value.value !== "number")
+                throw new Error(
+                    `Invalid numberOrPair argument at line ${lineNumber}`,
+                );
+            return;
+        }
         if (typeof value.value !== parameter.kind)
             throw new Error(
                 `Invalid ${parameter.kind} argument at line ${lineNumber}`,
             );
         return;
     }
-    if (value.type === "array")
-        throw new Error(`Unexpected array at line ${lineNumber}`);
+    if (value.type === "array") {
+        if (
+            parameter.kind !== "numberOrPair" ||
+            value.items.length !== 2 ||
+            value.items.some(
+                (item) => item.type !== "literal" || typeof item.value !== "number",
+            )
+        )
+            throw new Error(`Unexpected array at line ${lineNumber}`);
+        return;
+    }
     const actual = variables.get(value.name);
     if (!actual) throw new Error(`Unknown DGP reference at line ${lineNumber}`);
     if (!accepts(actual, parameter.kind))

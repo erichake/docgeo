@@ -1,5 +1,5 @@
 import type { construction } from "../construction";
-import type { ConicCoeffs } from "./conic_algebra";
+import { conicConicIntersectionsXY, type ConicCoeffs } from "./conic_algebra";
 import type { DOMElement } from "../dom";
 import { vAdd, vIsFinite, vSub, type Vec2, type Vec3 } from "../vec";
 import { construction_object } from "./construction_object";
@@ -80,6 +80,39 @@ export class primitive_quadric_object extends construction_object {
         this.CENTER = center;
         this.BRANCHES = branches;
         this.defined = vIsFinite(center);
+    }
+
+    // Foot of the point on the conic whose normal passes through `target`
+    // (nearest such foot when several exist): intersects the conic with the
+    // "conic of normals" through target — the classical construction for
+    // projecting a point onto a conic algebraically, ax²+bxy+cy²+dx+ey+f=0
+    // vs. its normal-direction conic through (p,q) — rather than a numeric
+    // per-branch search, so it matches DGPad's own PointOn-on-Quadric
+    // behavior exactly. Falls back to `target` itself when the conic has no
+    // real normal foot from there (degenerate/undefined case).
+    projectPoint(target: Vec3): Vec3 {
+        if (!this.COEFFS) return target;
+        const [a, b, c, d, e] = this.COEFFS;
+        const [p, q] = target;
+        const normalConic: ConicCoeffs = [
+            b,
+            2 * (c - a),
+            -b,
+            e + 2 * a * q - p * b,
+            b * q - 2 * p * c - d,
+            d * q - p * e,
+        ];
+        const candidates = conicConicIntersectionsXY(this.COEFFS, normalConic);
+        let best: Vec2 | null = null;
+        let bestDistance = Infinity;
+        for (const candidate of candidates) {
+            const distance = Math.hypot(candidate[0] - p, candidate[1] - q);
+            if (distance < bestDistance) {
+                best = candidate;
+                bestDistance = distance;
+            }
+        }
+        return best ? [best[0], best[1], target[2]] : target;
     }
 
     project(): void {
