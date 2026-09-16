@@ -25,7 +25,7 @@ afterEach(() => {
 describe("DGP importer", () => {
     it("imports two points and their line from the public DGP file", async () => {
         const c = createConstruction();
-        await importDgpFromUrl(c, "/_Droite.dgp");
+        await importDgpFromUrl(c, "/tests/_Droite.dgp");
 
         const p1 = c.getObj("P1");
         const p2 = c.getObj("P2");
@@ -73,7 +73,7 @@ STL(P,"c:url(https://example.com/image)");`,
 
     it("imports the perpendicular-bisector reference figure", async () => {
         const c = createConstruction();
-        await importDgpFromUrl(c, "/_Mediatrice.dgp");
+        await importDgpFromUrl(c, "/tests/_Mediatrice.dgp");
 
         expect(c.OBJS.V).toHaveLength(8);
         expect(c.getObj("P1")).toBeInstanceOf(point_object);
@@ -82,7 +82,7 @@ STL(P,"c:url(https://example.com/image)");`,
 
     it("imports the complete Apollonius construction", async () => {
         const c = createConstruction();
-        await importDgpFromUrl(c, "/_Apollonius.dgp");
+        await importDgpFromUrl(c, "/tests/_Apollonius.dgp");
 
         expect(c.OBJS.V).toHaveLength(2570);
         expect(c.getObj("P1")).toBeInstanceOf(point_object);
@@ -92,7 +92,7 @@ STL(P,"c:url(https://example.com/image)");`,
 
     it("imports the legacy fake-3D cube, pinning its origin and axes", async () => {
         const c = createConstruction();
-        await importDgpFromUrl(c, "/_Cube.dgp");
+        await importDgpFromUrl(c, "/tests/_Cube.dgp");
 
         const o = c.getObj("O") as fixed_point_object;
         const x = c.getObj("X") as fixed_point_object;
@@ -119,7 +119,7 @@ STL(P,"c:url(https://example.com/image)");`,
 
     it("only builds an SVG view for the objects visible in Apollonius", async () => {
         const c = createConstruction();
-        await importDgpFromUrl(c, "/_Apollonius.dgp");
+        await importDgpFromUrl(c, "/tests/_Apollonius.dgp");
 
         // 3 free points + 3 initial circles + 32 Circle3pts, plus the grid.
         expect(c.OBJS.V.filter((object) => object.hasView)).toHaveLength(39);
