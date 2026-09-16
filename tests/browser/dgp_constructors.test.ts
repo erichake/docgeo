@@ -7,8 +7,12 @@ import { createCircle3pts } from "../../src/objects/circle3pts_object";
 import { createCircle } from "../../src/objects/circle_object";
 import { createOrderedIntersection } from "../../src/objects/intersection_object";
 import { createPerpendicularBisector } from "../../src/objects/perpendicular_bisector_object";
-import { createPointOn } from "../../src/objects/point_on_object";
+import {
+    createPointOn,
+    point_on_object,
+} from "../../src/objects/point_on_object";
 import { createPoint } from "../../src/objects/point_object";
+import { createPolygon } from "../../src/objects/polygon_object";
 import { createReflection } from "../../src/objects/reflection_object";
 import { createSegment } from "../../src/objects/segment_object";
 import { createSymmetry } from "../../src/objects/symmetry_object";
@@ -71,6 +75,35 @@ describe("DGPad geometric constructors", () => {
         const onCircle = createPointOn(c, "P", circle, Math.PI / 2);
         expect(onCircle.x).toBeCloseTo(0);
         expect(onCircle.y).toBeCloseTo(2);
+    });
+
+    it("keeps PointOn inside a polygon", () => {
+        const c = createConstruction();
+        const a = createPoint(c, "A", [0, 0, 0]);
+        const b = createPoint(c, "B", [4, 0, 0]);
+        const d = createPoint(c, "D", [4, 4, 0]);
+        const e = createPoint(c, "E", [0, 4, 0]);
+        const polygon = createPolygon(c, "poly", [a, b, d, e]);
+        const inside = createPointOn(c, "P", polygon, [0.25, 0.25]);
+        const outside = createPointOn(c, "Q", polygon, [1, 0.5]);
+
+        expect(inside.coords).toEqual([2, 1, 0]);
+        expect(outside.coords).toEqual([4, 2, 0]);
+        expect(outside.alpha).toEqual([0.5, 0.5]);
+
+        const target = c.pt3D([-3, 3, 0]);
+        inside.mousedrag(
+            new PointerEvent("pointermove", {
+                clientX: target[0],
+                clientY: target[1],
+            }),
+        );
+        c.OBJS.update();
+
+        expect(inside).toBeInstanceOf(point_on_object);
+        expect(inside.coords[0]).toBeCloseTo(0);
+        expect(inside.coords[1]).toBeCloseTo(3);
+        expect(inside.coords[2]).toBeCloseTo(0);
     });
 
     it("constructs symmetry, reflection and perpendicular bisectors", () => {

@@ -1,5 +1,7 @@
 import type { construction } from "../construction";
+import { projectPointOnPlane } from "../projection";
 import { vAdd, vDot, vScale, vSub, type Vec3 } from "../vec";
+import { polygon_object } from "./polygon_object";
 import { primitive_circle_object } from "./primitive_circle_object";
 import { primitive_line_object } from "./primitive_line_object";
 import { point_object } from "./point_object";
@@ -9,13 +11,17 @@ import { segment_object } from "./segment_object";
 import { two_points_line_object } from "./two_points_line_object";
 
 export type point_support_object =
-    primitive_line_object | primitive_circle_object | quadric5pts_object;
+    | primitive_line_object
+    | primitive_circle_object
+    | polygon_object
+    | quadric5pts_object;
 
 type Alpha = number | readonly [number, number];
 
 export class point_on_object extends point_object {
     support: point_support_object;
     alpha: Alpha;
+    onBoundary: boolean;
 
     constructor(
         c: construction,
@@ -26,6 +32,7 @@ export class point_on_object extends point_object {
         super(c, name, [0, 0, 0]);
         this.support = support;
         this.alpha = alpha;
+        this.onBoundary = false;
         this.addParents(support);
     }
 
@@ -36,6 +43,17 @@ export class point_on_object extends point_object {
         }
         if (this.support instanceof primitive_circle_object) {
             this.coords = this.support.pointAt(this.alpha as number);
+        } else if (this.support instanceof polygon_object) {
+            const coords = this.support.pointAt(
+                this.alpha as readonly [number, number],
+                this.onBoundary,
+            );
+            if (!coords) {
+                this.defined = false;
+                return;
+            }
+            this.coords = coords;
+            this.alpha = this.support.alphaOf(coords, this.onBoundary)!;
         } else if (this.support instanceof quadric5pts_object) {
             this.coords = this.support.pointAt(
                 this.alpha as readonly [number, number],
@@ -58,18 +76,39 @@ export class point_on_object extends point_object {
     }
 
     mousedrag(ev: PointerEvent): void {
-        const target = this.C.unprojectToZPlane(
-            this.C.pointerPosition(ev),
-            this.z,
-        );
+        const screen = this.C.pointerPosition(ev);
+        const target =
+            this.support instanceof polygon_object &&
+            this.support.points.length >= 3
+                ? projectPointOnPlane(
+                      screen,
+                      this.support.points[0].coords,
+                      [
+                          vSub(
+                              this.support.points[1].coords,
+                              this.support.points[0].coords,
+                          ),
+                          vSub(
+                              this.support.points[2].coords,
+                              this.support.points[0].coords,
+                          ),
+                      ],
+                      this.C.projectionFrame,
+                  )
+                : this.C.unprojectToZPlane(screen, this.z);
         if (!target) return;
-        this.alpha = this.alphaFor(target);
+        const alpha = this.alphaFor(target);
+        if (alpha === null) return;
+        this.alpha = alpha;
         this.C.invalidateGeometry(this);
     }
 
-    private alphaFor(target: Vec3): Alpha {
+    private alphaFor(target: Vec3): Alpha | null {
         if (this.support instanceof primitive_circle_object) {
             return this.support.alphaOf(target);
+        }
+        if (this.support instanceof polygon_object) {
+            return this.support.alphaOf(target, this.onBoundary);
         }
         if (this.support instanceof quadric5pts_object) {
             return this.support.alphaOf(target);

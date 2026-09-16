@@ -11,9 +11,9 @@ import { createMidpoint } from "../objects/midpoint_object";
 import { createParallel } from "../objects/parallel_line_object";
 import { createPerpendicularBisector } from "../objects/perpendicular_bisector_object";
 import { createPlumb } from "../objects/plumb_line_object";
-import { createPointOn } from "../objects/point_on_object";
+import { createPointOn, point_on_object } from "../objects/point_on_object";
 import { createPoint, point_object } from "../objects/point_object";
-import { createPolygon } from "../objects/polygon_object";
+import { createPolygon, polygon_object } from "../objects/polygon_object";
 import { primitive_circle_object } from "../objects/primitive_circle_object";
 import { primitive_line_object } from "../objects/primitive_line_object";
 import type { primitive_quadric_object } from "../objects/primitive_quadric_object";
@@ -39,10 +39,10 @@ type ParameterKind =
     | "line"
     | "circle"
     | "intersectable"
+    | "pointSupport"
     | "coordinate"
     // PointOn's parameter: a plain number for a line/circle support, or a
-    // [number, number] pair for a quadric support (its point-on-conic
-    // convention — see quadric5pts_object.pointAt/alphaOf).
+    // [number, number] pair for a polygon/quadric support.
     | "numberOrPair";
 
 interface Parameter {
@@ -89,6 +89,7 @@ const point: Parameter = { kind: "point" };
 const line: Parameter = { kind: "line" };
 const circle: Parameter = { kind: "circle" };
 const intersectable: Parameter = { kind: "intersectable" };
+const pointSupport: Parameter = { kind: "pointSupport" };
 const coordinate: Parameter = { kind: "coordinate" };
 const numberOrPair: Parameter = { kind: "numberOrPair" };
 // DGPad's own color parser matches this hex prefix without anchoring the
@@ -177,6 +178,7 @@ function validateObjectStyle(value: string, lineNumber: number): void {
                 validateNumber(propertyValue, lineNumber, 0);
                 break;
             case "sn":
+            case "sb":
                 if (propertyValue !== "true" && propertyValue !== "false")
                     throw new Error(
                         `Invalid DGP style boolean at line ${lineNumber}`,
@@ -229,6 +231,10 @@ function applyObjectStyle(target: construction_object, value: string): void {
                 break;
             case "sn":
                 target.showName = propertyValue === "true";
+                break;
+            case "sb":
+                if (target instanceof point_on_object)
+                    target.onBoundary = propertyValue === "true";
                 break;
             case "f":
                 target.fontSize = Number(propertyValue);
@@ -366,8 +372,20 @@ const COMMANDS = new Map<string, CommandDefinition>([
     [
         "PointOn",
         {
-            parameters: [string, intersectable, numberOrPair],
+            parameters: [string, pointSupport, numberOrPair],
             result: "point",
+            validate: (args, lineNumber, variables) => {
+                const support = args[1] as {
+                    type: "reference";
+                    name: string;
+                };
+                const pair = args[2].type === "array";
+                const kind = variables.get(support.name);
+                if ((kind === "polygon" || kind === "quadric") !== pair)
+                    throw new Error(
+                        `Invalid PointOn parameter at line ${lineNumber}`,
+                    );
+            },
             execute: (context, args) =>
                 createPointOn(
                     context.construction,
@@ -375,6 +393,7 @@ const COMMANDS = new Map<string, CommandDefinition>([
                     args[1] as
                         | primitive_line_object
                         | primitive_circle_object
+                        | polygon_object
                         | quadric5pts_object,
                     args[2] as number | readonly [number, number],
                 ),
@@ -699,7 +718,14 @@ function accepts(actual: ObjectKind, expected: ParameterKind): boolean {
         expected === "object" ||
         actual === expected ||
         (expected === "intersectable" &&
-            (actual === "line" || actual === "circle" || actual === "quadric"))
+            (actual === "line" ||
+                actual === "circle" ||
+                actual === "quadric")) ||
+        (expected === "pointSupport" &&
+            (actual === "line" ||
+                actual === "circle" ||
+                actual === "polygon" ||
+                actual === "quadric"))
     );
 }
 
@@ -738,7 +764,8 @@ function validateValue(
             parameter.kind !== "numberOrPair" ||
             value.items.length !== 2 ||
             value.items.some(
-                (item) => item.type !== "literal" || typeof item.value !== "number",
+                (item) =>
+                    item.type !== "literal" || typeof item.value !== "number",
             )
         )
             throw new Error(`Unexpected array at line ${lineNumber}`);

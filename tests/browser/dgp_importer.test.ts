@@ -2,6 +2,7 @@ import { afterEach, describe, expect, it } from "vitest";
 import { construction } from "../../src/construction";
 import { importDgp, importDgpFromUrl } from "../../src/dgp_importer";
 import { fixed_point_object } from "../../src/objects/fixed_point_object";
+import { point_on_object } from "../../src/objects/point_on_object";
 import { point_object } from "../../src/objects/point_object";
 import { symmetry_object } from "../../src/objects/symmetry_object";
 import { two_points_line_object } from "../../src/objects/two_points_line_object";
@@ -78,6 +79,56 @@ STL(P,"c:url(https://example.com/image)");`,
         expect(c.OBJS.V).toHaveLength(8);
         expect(c.getObj("P1")).toBeInstanceOf(point_object);
         expect(c.getObj("L1")).toBeInstanceOf(two_points_line_object);
+    });
+
+    it("imports a point inside a polygon", async () => {
+        const c = createConstruction();
+        await importDgpFromUrl(c, "/tests/_PtOn2.dgp");
+
+        const point = c.getObj("A") as point_on_object;
+        expect(point).toBeInstanceOf(point_on_object);
+        expect(point.coords[0]).toBeCloseTo(-1.325);
+        expect(point.coords[1]).toBeCloseTo(2.1125);
+        expect(point.coords[2]).toBe(0);
+    });
+
+    it("keeps an sb point on the polygon boundary", async () => {
+        const c = createConstruction();
+        await importDgpFromUrl(c, "/tests/_PtOn3.dgp");
+
+        const a = c.getObj("A") as point_on_object;
+        const b = c.getObj("B") as point_on_object;
+        expect(a.onBoundary).toBe(false);
+        expect(b.onBoundary).toBe(true);
+
+        const target = c.pt3D([-1.325, 2.1125, 0]);
+        b.mousedrag(
+            new PointerEvent("pointermove", {
+                clientX: target[0],
+                clientY: target[1],
+            }),
+        );
+        c.OBJS.update();
+
+        expect(b.coords[0]).toBeCloseTo(-1.0969847224);
+        expect(b.coords[1]).toBeCloseTo(3.258137736);
+        expect(a.coords[0]).toBeCloseTo(-1.325);
+        expect(a.coords[1]).toBeCloseTo(2.1125);
+    });
+
+    it("rejects an invalid scalar parameter for a polygon PointOn", () => {
+        const c = createConstruction();
+        expect(() =>
+            importDgp(
+                c,
+                `A=Point("A",0,0);
+B=Point("B",1,0);
+C=Point("C",0,1);
+poly=Polygon("poly","_A,_B,_C");
+P=PointOn("P",poly,0.5);`,
+            ),
+        ).toThrow("Invalid PointOn parameter at line 5");
+        expect(c.OBJS.V).toEqual([c.GRID]);
     });
 
     it("imports the complete Apollonius construction", async () => {
