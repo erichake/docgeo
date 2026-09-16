@@ -47,6 +47,7 @@ export interface Preferences {
     parallel: ObjectPref;
     ray: ObjectPref;
     segment: ObjectPref;
+    polygon: ObjectPref;
     grid: GridPref;
 }
 
@@ -63,6 +64,7 @@ export class preferences implements Preferences {
     parallel: ObjectPref;
     ray: ObjectPref;
     segment: ObjectPref;
+    polygon: ObjectPref;
     grid: GridPref;
 
     constructor() {
@@ -142,6 +144,15 @@ export class preferences implements Preferences {
             touchsize: 5,
             name: "s",
             layer: 4,
+        };
+
+        this.polygon = {
+            color: { fill: "rgb(35,141,227)", stroke: "rgb(80,80,80)" },
+            size: 2,
+            touchsize: 5,
+            name: "Poly",
+            opacity: 0,
+            layer: 2,
         };
 
         this.grid = {

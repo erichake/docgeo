@@ -1,0 +1,22 @@
+// Coordinates System :
+SetCoords(400,285.5,40,false,800,572);
+
+
+// Geometry :
+P1=Point("P1",-3.175,2.8625);
+P2=Point("P2",-3.85,-1.6125);
+P3=Point("P3",3.975,-1.7875);
+P4=Point("P4",-0.425,0.2625);
+P5=Point("P5",2.975,5.5625);
+Poly1=Polygon("Poly1","_P1,_P2,_P3,_P4,_P5");
+
+
+// Styles :
+STL(P1,"c:#0000b2;s:6;f:30");
+STL(P2,"c:#0000b2;s:6;f:30");
+STL(P3,"c:#0000b2;s:6;f:30");
+STL(P4,"c:#0000b2;s:6;f:30");
+STL(P5,"c:#0000b2;s:6;f:30");
+STL(Poly1,"c:#006633;o:0.2;s:1;f:30");
+SetCoordsStyle("isAxis:false;isGrid:true;isOx:true;isOy:true;isLockOx:false;isLockOy:false;centerZoom:false;onlyPositive:false;color:#111111;fontSize:18;axisWidth:1;gridWidth:0.1");
+SetGeneralStyle("background-color:#F8F8F8;degree:true;dragmoveable:true");

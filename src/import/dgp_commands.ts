@@ -13,6 +13,7 @@ import { createPerpendicularBisector } from "../objects/perpendicular_bisector_o
 import { createPlumb } from "../objects/plumb_line_object";
 import { createPointOn } from "../objects/point_on_object";
 import { createPoint, point_object } from "../objects/point_object";
+import { createPolygon } from "../objects/polygon_object";
 import { primitive_circle_object } from "../objects/primitive_circle_object";
 import { primitive_line_object } from "../objects/primitive_line_object";
 import { createRay } from "../objects/ray_line_object";
@@ -23,7 +24,7 @@ import { createLine } from "../objects/two_points_line_object";
 import type { Vec3 } from "../vec";
 import type { DgpCall, DgpValue } from "./dgp_parser";
 
-type ObjectKind = "point" | "line" | "circle";
+type ObjectKind = "point" | "line" | "circle" | "polygon";
 type ParameterKind =
     | "string"
     | "number"
@@ -60,7 +61,11 @@ interface CommandContext {
 interface CommandDefinition {
     parameters: Parameter[];
     result?: ObjectKind;
-    validate?: (args: DgpValue[], line: number) => void;
+    validate?: (
+        args: DgpValue[],
+        line: number,
+        variables: Map<string, ObjectKind>,
+    ) => void;
     execute: (
         context: CommandContext,
         args: RuntimeValue[],
@@ -106,6 +111,15 @@ function parseVectorLiteral(value: string): number[] | null {
     const parts = match[1].split(",").map((part) => part.trim());
     if (parts.some((part) => !STYLE_NUMBER.test(part))) return null;
     return parts.map(Number);
+}
+
+// DGPad's Polygon command stores its vertices as a single comma-separated
+// string of point references, each prefixed with "_" (e.g. "_P1,_P2,_P3"),
+// rather than as individual DGP arguments.
+function polygonPointName(token: string, lineNumber: number): string {
+    if (!token.startsWith("_"))
+        throw new Error(`Invalid DGP polygon reference at line ${lineNumber}`);
+    return token.slice(1);
 }
 
 function validateColor(value: string, lineNumber: number): void {
@@ -560,6 +574,36 @@ const COMMANDS = new Map<string, CommandDefinition>([
         },
     ],
     [
+        "Polygon",
+        {
+            parameters: [string, string],
+            result: "polygon",
+            validate: (args, lineNumber, variables) =>
+                literalString(args[1])
+                    .split(",")
+                    .forEach((token) => {
+                        const name = polygonPointName(token, lineNumber);
+                        if (variables.get(name) !== "point")
+                            throw new Error(
+                                `Unknown DGP reference at line ${lineNumber}`,
+                            );
+                    }),
+            execute: (context, args) =>
+                createPolygon(
+                    context.construction,
+                    args[0] as string,
+                    (args[1] as string)
+                        .split(",")
+                        .map(
+                            (token) =>
+                                context.variables.get(
+                                    token.slice(1),
+                                ) as point_object,
+                        ),
+                ),
+        },
+    ],
+    [
         "STL",
         {
             parameters: [object, string],
@@ -662,7 +706,7 @@ function validateCalls(calls: DgpCall[]): void {
                 call.line,
             ),
         );
-        definition.validate?.(call.arguments, call.line);
+        definition.validate?.(call.arguments, call.line, variables);
         if (call.variable) {
             if (variables.has(call.variable))
                 throw new Error(`Duplicate DGP variable at line ${call.line}`);
