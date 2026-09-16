@@ -20,5 +20,5 @@ STL(C2,"c:#cc66cc;h:1;s:1;f:30;p:0");
 STL(P3,"c:#0000b2;h:1;s:6;f:30");
 STL(P4,"c:#0000b2;h:1;s:6;f:30");
 STL(L1,"c:#780013;s:1;f:30;p:0");
-SetCoordsStyle("isAxis:false;isGrid:true;isOx:true;isOy:true;isLockOx:false;isLockOy:false;centerZoom:false;onlyPositive:false;color:#111111;fontSize:18;axisWidth:1;gridWidth:0.1");
+SetCoordsStyle("isAxis:true;isGrid:true;isOx:true;isOy:true;isLockOx:false;isLockOy:false;centerZoom:false;onlyPositive:false;color:#111111;fontSize:18;axisWidth:1;gridWidth:0.1");
 SetGeneralStyle("background-color:#F8F8F8;degree:true;dragmoveable:true");

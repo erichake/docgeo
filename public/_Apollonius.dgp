@@ -5144,5 +5144,5 @@ STL(Center21,"c:#0000b2;h:1;s:6;f:30");
 STL(Center190,"c:#0000b2;h:1;s:6;f:30");
 STL(Center20,"c:#0000b2;h:1;s:6;f:30");
 STL(Center32,"c:#0000b2;h:1;s:6;f:30");
-SetCoordsStyle("isAxis:false;isGrid:true;isOx:true;isOy:true;isLockOx:false;isLockOy:false;centerZoom:false;onlyPositive:false;color:#111111;fontSize:18;axisWidth:1;gridWidth:0.1");
+SetCoordsStyle("isAxis:true;isGrid:true;isOx:true;isOy:true;isLockOx:false;isLockOy:false;centerZoom:false;onlyPositive:false;color:#111111;fontSize:18;axisWidth:1;gridWidth:0.1");
 SetGeneralStyle("background-color:#FAFAFA;degree:true;dragmoveable:true");
