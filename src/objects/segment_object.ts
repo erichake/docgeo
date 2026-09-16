@@ -82,6 +82,11 @@ export class segment_object extends two_points_line_object {
             depthDiffAt: (t: number) => number;
         }> = [];
 
+        const segMinX = Math.min(this.sP1[0], this.sP2[0]);
+        const segMaxX = Math.max(this.sP1[0], this.sP2[0]);
+        const segMinY = Math.min(this.sP1[1], this.sP2[1]);
+        const segMaxY = Math.max(this.sP1[1], this.sP2[1]);
+
         (this.C.OBJS.polygons as polygon_object[]).forEach((polygon) => {
             if (!polygon.isVisible || polygon.points.length < 3) return;
             if (
@@ -92,6 +97,20 @@ export class segment_object extends two_points_line_object {
             if (!polygon.points.every((p) => p.projectionDefined)) return;
 
             const screenPoly = polygon.points.map((p) => p.screen);
+            // Cheap screen-space bounding-box rejection before the exact
+            // (and pricier) edge-intersection / point-in-polygon tests below
+            // — most polygons in a large scene are nowhere near a given
+            // segment.
+            const polyXs = screenPoly.map((p) => p[0]);
+            const polyYs = screenPoly.map((p) => p[1]);
+            if (
+                Math.max(...polyXs) < segMinX ||
+                Math.min(...polyXs) > segMaxX ||
+                Math.max(...polyYs) < segMinY ||
+                Math.min(...polyYs) > segMaxY
+            )
+                return;
+
             screenPoly.forEach((a, i) => {
                 const b = screenPoly[(i + 1) % screenPoly.length];
                 const t = segmentIntersectionParameter(
