@@ -11,6 +11,9 @@ export class objects_collector {
     // Objects with at least one dirty flag, processed by update() :
     private dirty = new Set<construction_object>();
     private nextSequence = 0;
+    // Bumped on every update() pass, so per-frame caches (e.g. a polygon
+    // spatial index) know when they need rebuilding :
+    frame = 0;
 
     add<T extends construction_object>(o: T): T {
         o.sequence = this.nextSequence++;
@@ -60,6 +63,7 @@ export class objects_collector {
     }
 
     update(): void {
+        this.frame++;
         // Sorted by construction order so a parent is always recomputed
         // before the children marked dirty alongside it.
         const objects = [...this.dirty].sort((a, b) => a.sequence - b.sequence);

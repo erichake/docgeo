@@ -28,6 +28,72 @@ const QUARTER_TURN = Math.PI / 2;
 // A sub-range of the segment's parameter (0 at P1, 1 at P2).
 type Interval = [number, number];
 
+// Screen-space bucketing of polygons, so a segment only tests occlusion
+// against polygons actually near it instead of every polygon in the scene.
+// Rebuilt at most once per projection update (keyed by objects_collector's
+// frame counter), then shared by every segment that projects that frame.
+const GRID_CELL_SIZE = 128;
+const polygonGridCache = new WeakMap<
+    construction,
+    { frame: number; cells: Map<string, polygon_object[]> }
+>();
+
+function forEachCell(
+    minX: number,
+    maxX: number,
+    minY: number,
+    maxY: number,
+    visit: (key: string) => void,
+): void {
+    const minCx = Math.floor(minX / GRID_CELL_SIZE);
+    const maxCx = Math.floor(maxX / GRID_CELL_SIZE);
+    const minCy = Math.floor(minY / GRID_CELL_SIZE);
+    const maxCy = Math.floor(maxY / GRID_CELL_SIZE);
+    for (let cx = minCx; cx <= maxCx; cx++)
+        for (let cy = minCy; cy <= maxCy; cy++) visit(`${cx},${cy}`);
+}
+
+function polygonGrid(c: construction): Map<string, polygon_object[]> {
+    const cached = polygonGridCache.get(c);
+    if (cached && cached.frame === c.OBJS.frame) return cached.cells;
+
+    const cells = new Map<string, polygon_object[]>();
+    (c.OBJS.polygons as polygon_object[]).forEach((polygon) => {
+        if (!polygon.isVisible || polygon.points.length < 3) return;
+        if (!polygon.points.every((p) => p.projectionDefined)) return;
+        const xs = polygon.points.map((p) => p.screen[0]);
+        const ys = polygon.points.map((p) => p.screen[1]);
+        forEachCell(
+            Math.min(...xs),
+            Math.max(...xs),
+            Math.min(...ys),
+            Math.max(...ys),
+            (key) => {
+                const bucket = cells.get(key);
+                if (bucket) bucket.push(polygon);
+                else cells.set(key, [polygon]);
+            },
+        );
+    });
+    polygonGridCache.set(c, { frame: c.OBJS.frame, cells });
+    return cells;
+}
+
+function nearbyPolygons(
+    c: construction,
+    minX: number,
+    maxX: number,
+    minY: number,
+    maxY: number,
+): polygon_object[] {
+    const cells = polygonGrid(c);
+    const found = new Set<polygon_object>();
+    forEachCell(minX, maxX, minY, maxY, (key) => {
+        cells.get(key)?.forEach((polygon) => found.add(polygon));
+    });
+    return [...found];
+}
+
 export class segment_object extends two_points_line_object {
     lengthText?: DOMElement;
     hiddenPath!: DOMElement;
@@ -87,70 +153,68 @@ export class segment_object extends two_points_line_object {
         const segMinY = Math.min(this.sP1[1], this.sP2[1]);
         const segMaxY = Math.max(this.sP1[1], this.sP2[1]);
 
-        (this.C.OBJS.polygons as polygon_object[]).forEach((polygon) => {
-            if (!polygon.isVisible || polygon.points.length < 3) return;
-            if (
-                polygon.points.includes(this.P1) &&
-                polygon.points.includes(this.P2)
-            )
-                return;
-            if (!polygon.points.every((p) => p.projectionDefined)) return;
+        nearbyPolygons(this.C, segMinX, segMaxX, segMinY, segMaxY).forEach(
+            (polygon) => {
+                if (
+                    polygon.points.includes(this.P1) &&
+                    polygon.points.includes(this.P2)
+                )
+                    return;
 
-            const screenPoly = polygon.points.map((p) => p.screen);
-            // Cheap screen-space bounding-box rejection before the exact
-            // (and pricier) edge-intersection / point-in-polygon tests below
-            // — most polygons in a large scene are nowhere near a given
-            // segment.
-            const polyXs = screenPoly.map((p) => p[0]);
-            const polyYs = screenPoly.map((p) => p[1]);
-            if (
-                Math.max(...polyXs) < segMinX ||
-                Math.min(...polyXs) > segMaxX ||
-                Math.max(...polyYs) < segMinY ||
-                Math.min(...polyYs) > segMaxY
-            )
-                return;
+                const screenPoly = polygon.points.map((p) => p.screen);
+                // Exact bounding-box check: the grid only guarantees the
+                // polygon shares a cell with the segment, not a true overlap.
+                const polyXs = screenPoly.map((p) => p[0]);
+                const polyYs = screenPoly.map((p) => p[1]);
+                if (
+                    Math.max(...polyXs) < segMinX ||
+                    Math.min(...polyXs) > segMaxX ||
+                    Math.max(...polyYs) < segMinY ||
+                    Math.min(...polyYs) > segMaxY
+                )
+                    return;
 
-            screenPoly.forEach((a, i) => {
-                const b = screenPoly[(i + 1) % screenPoly.length];
-                const t = segmentIntersectionParameter(
-                    this.sP1,
-                    this.sP2,
-                    a,
-                    b,
-                );
-                if (t !== null) breakpoints.add(t);
-            });
+                screenPoly.forEach((a, i) => {
+                    const b = screenPoly[(i + 1) % screenPoly.length];
+                    const t = segmentIntersectionParameter(
+                        this.sP1,
+                        this.sP2,
+                        a,
+                        b,
+                    );
+                    if (t !== null) breakpoints.add(t);
+                });
 
-            const [v0, v1, v2] = polygon.points.map((p) => p.coords);
-            const basis: [Vec3, Vec3] = [vSub(v1, v0), vSub(v2, v0)];
-            const depthDiffAt = (t: number): number => {
-                const screen = vAdd(
-                    this.sP1,
-                    vScale(vSub(this.sP2, this.sP1), t),
-                );
-                const point3D = vAdd(
-                    this.P1.coords,
-                    vScale(vSub(this.P2.coords, this.P1.coords), t),
-                );
-                const planePoint = projectPointOnPlane(
-                    screen,
-                    v0,
-                    basis,
-                    frame,
-                );
-                if (!planePoint) return -Infinity;
-                return vDot(point3D, dir) - vDot(planePoint, dir);
-            };
+                const [v0, v1, v2] = polygon.points.map((p) => p.coords);
+                const basis: [Vec3, Vec3] = [vSub(v1, v0), vSub(v2, v0)];
+                const depthDiffAt = (t: number): number => {
+                    const screen = vAdd(
+                        this.sP1,
+                        vScale(vSub(this.sP2, this.sP1), t),
+                    );
+                    const point3D = vAdd(
+                        this.P1.coords,
+                        vScale(vSub(this.P2.coords, this.P1.coords), t),
+                    );
+                    const planePoint = projectPointOnPlane(
+                        screen,
+                        v0,
+                        basis,
+                        frame,
+                    );
+                    if (!planePoint) return -Infinity;
+                    return vDot(point3D, dir) - vDot(planePoint, dir);
+                };
 
-            const d0 = depthDiffAt(0);
-            const d1 = depthDiffAt(1);
-            if (Number.isFinite(d0) && Number.isFinite(d1) && d0 !== d1) {
-                const tCross = d0 / (d0 - d1);
-                if (tCross > 0 && tCross < 1) breakpoints.add(tCross);
-            }
-            candidates.push({ screenPoly, depthDiffAt });
-        });
+                const d0 = depthDiffAt(0);
+                const d1 = depthDiffAt(1);
+                if (Number.isFinite(d0) && Number.isFinite(d1) && d0 !== d1) {
+                    const tCross = d0 / (d0 - d1);
+                    if (tCross > 0 && tCross < 1) breakpoints.add(tCross);
+                }
+                candidates.push({ screenPoly, depthDiffAt });
+            },
+        );
 
         const sorted = [...breakpoints].sort((a, b) => a - b);
         const hidden: Interval[] = [];
