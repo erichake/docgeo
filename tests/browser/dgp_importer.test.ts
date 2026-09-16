@@ -1,7 +1,9 @@
 import { afterEach, describe, expect, it } from "vitest";
 import { construction } from "../../src/construction";
 import { importDgp, importDgpFromUrl } from "../../src/dgp_importer";
+import { fixed_point_object } from "../../src/objects/fixed_point_object";
 import { point_object } from "../../src/objects/point_object";
+import { symmetry_object } from "../../src/objects/symmetry_object";
 import { two_points_line_object } from "../../src/objects/two_points_line_object";
 import { preferences } from "../../src/preferences";
 
@@ -86,6 +88,33 @@ STL(P,"c:url(https://example.com/image)");`,
         expect(c.getObj("P1")).toBeInstanceOf(point_object);
         expect(c.getObj("P14")).toBeInstanceOf(point_object);
         expect(c.getObj("Center32")).toBeInstanceOf(point_object);
+    });
+
+    it("imports the legacy fake-3D cube, pinning its origin and axes", async () => {
+        const c = createConstruction();
+        await importDgpFromUrl(c, "/_Cube.dgp");
+
+        const o = c.getObj("O") as fixed_point_object;
+        const x = c.getObj("X") as fixed_point_object;
+        const y = c.getObj("Y") as fixed_point_object;
+        const z = c.getObj("Z") as fixed_point_object;
+        const a = c.getObj("A") as fixed_point_object;
+        const h = c.getObj("H") as symmetry_object;
+
+        expect(o).toBeInstanceOf(fixed_point_object);
+        expect(o.coords).toEqual([0, 0, 0]);
+        expect(x.coords).toEqual([1, 0, 0]);
+        expect(y.coords).toEqual([0, 1, 0]);
+        expect(z.coords).toEqual([0, 0, 1]);
+        expect(a.coords).toEqual([1, -1, -1]);
+        expect(h).toBeInstanceOf(symmetry_object);
+        expect(h.coords).toEqual([-1, -1, 1]);
+
+        expect(c.GRID.PHI).toBeCloseTo(340 * 0.015);
+        expect(c.GRID.THETA).toBeCloseTo(12 * 0.015);
+        expect(c.GRID.UNIT).toEqual([
+            112.92512339546204, 112.92512339546204, 112.92512339546204,
+        ]);
     });
 
     it("only builds an SVG view for the objects visible in Apollonius", async () => {

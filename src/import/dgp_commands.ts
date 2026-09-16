@@ -5,6 +5,7 @@ import { createCircle3 } from "../objects/circle3_object";
 import { createCircle3pts } from "../objects/circle3pts_object";
 import { createCircle } from "../objects/circle_object";
 import { construction_object } from "../objects/construction_object";
+import { createFixedPoint } from "../objects/fixed_point_object";
 import { createOrderedIntersection } from "../objects/intersection_object";
 import { createMidpoint } from "../objects/midpoint_object";
 import { createParallel } from "../objects/parallel_line_object";
@@ -19,6 +20,7 @@ import { createReflection } from "../objects/reflection_object";
 import { createSegment } from "../objects/segment_object";
 import { createSymmetry } from "../objects/symmetry_object";
 import { createLine } from "../objects/two_points_line_object";
+import type { Vec3 } from "../vec";
 import type { DgpCall, DgpValue } from "./dgp_parser";
 
 type ObjectKind = "point" | "line" | "circle";
@@ -30,7 +32,8 @@ type ParameterKind =
     | "point"
     | "line"
     | "circle"
-    | "intersectable";
+    | "intersectable"
+    | "coordinate";
 
 interface Parameter {
     kind: ParameterKind;
@@ -45,6 +48,13 @@ interface CommandContext {
     variables: Map<string, construction_object>;
     gridChanged: boolean;
     projectionChanged: boolean;
+    // DGPad's legacy "fake 3D" figures designate the coordinate system's
+    // origin implicitly: it's whichever free point was created first while
+    // the figure was in 3D mode (see SetCoords' is3D flag below). That
+    // point's own stored (x,y) are meaningless screen-drag leftovers from
+    // the old editor, so it must be pinned to [0,0,0] instead.
+    is3D: boolean;
+    origin3DAssigned: boolean;
 }
 
 interface CommandDefinition {
@@ -65,6 +75,7 @@ const point: Parameter = { kind: "point" };
 const line: Parameter = { kind: "line" };
 const circle: Parameter = { kind: "circle" };
 const intersectable: Parameter = { kind: "intersectable" };
+const coordinate: Parameter = { kind: "coordinate" };
 // DGPad's own color parser matches this hex prefix without anchoring the
 // end, so a color value with a stray suffix (e.g. a missing ";" merging it
 // with the next "key:value" pair, as seen in some exported .dgp files) is
@@ -83,6 +94,18 @@ function properties(value: string): Map<string, string> {
 
 function literalString(value: DgpValue): string {
     return (value as { type: "literal"; value: string }).value;
+}
+
+// DGPad's legacy 3D figures store a fixed point's coordinates as a vector
+// literal inside a string (e.g. Point("X","[1,0,0]","1")) rather than as a
+// real DGP array value. Only constant numeric vectors are supported: this
+// project is a figure reader, not an expression evaluator.
+function parseVectorLiteral(value: string): number[] | null {
+    const match = /^\[(.*)\]$/.exec(value);
+    if (!match) return null;
+    const parts = match[1].split(",").map((part) => part.trim());
+    if (parts.some((part) => !STYLE_NUMBER.test(part))) return null;
+    return parts.map(Number);
 }
 
 function validateColor(value: string, lineNumber: number): void {
@@ -226,11 +249,19 @@ const COMMANDS = new Map<string, CommandDefinition>([
             },
             execute: (context, args) => {
                 const unit = args[2] as number;
-                context.construction.GRID.ORG = [
-                    args[0] as number,
-                    args[1] as number,
-                ];
-                context.construction.GRID.UNIT = [unit, unit, unit];
+                const grid = context.construction.GRID;
+                context.is3D = args[3] as boolean;
+                if (context.is3D) {
+                    // In the legacy 3D format, SetCoords' first two numbers
+                    // stop meaning a screen origin and instead carry the raw
+                    // camera rotation state (angle = raw * grid.STEP), the
+                    // same unit the interactive rotation drag already uses.
+                    grid.PHI = (args[0] as number) * grid.STEP;
+                    grid.THETA = (args[1] as number) * grid.STEP;
+                } else {
+                    grid.ORG = [args[0] as number, args[1] as number];
+                }
+                grid.UNIT = [unit, unit, unit];
                 context.projectionChanged = true;
             },
         },
@@ -238,14 +269,54 @@ const COMMANDS = new Map<string, CommandDefinition>([
     [
         "Point",
         {
-            parameters: [string, number, number],
+            parameters: [string, coordinate, coordinate],
             result: "point",
-            execute: (context, args) =>
-                createPoint(context.construction, args[0] as string, [
-                    args[1] as number,
+            validate: (args, lineNumber) => {
+                const second = args[1];
+                const third = args[2];
+                if (second.type !== "literal" || third.type !== "literal")
+                    return;
+                if (typeof second.value !== "string") return;
+                if (typeof third.value !== "string")
+                    throw new Error(
+                        `Invalid DGP point coordinates at line ${lineNumber}`,
+                    );
+                const vector = parseVectorLiteral(second.value);
+                if (!vector || (vector.length !== 2 && vector.length !== 3))
+                    throw new Error(
+                        `Unsupported DGP point expression at line ${lineNumber}`,
+                    );
+                if (
+                    (third.value === "1") !== (vector.length === 3) ||
+                    (third.value !== "0" && third.value !== "1")
+                )
+                    throw new Error(
+                        `Invalid DGP point flag at line ${lineNumber}`,
+                    );
+            },
+            execute: (context, args) => {
+                const name = args[0] as string;
+                const second = args[1];
+                if (typeof second === "string") {
+                    const vector = parseVectorLiteral(second)!;
+                    const coords: Vec3 =
+                        vector.length === 3
+                            ? [vector[0], vector[1], vector[2]]
+                            : [vector[0], vector[1], 0];
+                    return createFixedPoint(context.construction, name, coords);
+                }
+                if (context.is3D && !context.origin3DAssigned) {
+                    context.origin3DAssigned = true;
+                    return createFixedPoint(context.construction, name, [
+                        0, 0, 0,
+                    ]);
+                }
+                return createPoint(context.construction, name, [
+                    second as number,
                     args[2] as number,
                     0,
-                ]),
+                ]);
+            },
         },
     ],
     [
@@ -539,6 +610,16 @@ function validateValue(
     lineNumber: number,
 ): void {
     if (value.type === "literal") {
+        if (parameter.kind === "coordinate") {
+            if (
+                typeof value.value !== "number" &&
+                typeof value.value !== "string"
+            )
+                throw new Error(
+                    `Invalid coordinate argument at line ${lineNumber}`,
+                );
+            return;
+        }
         if (typeof value.value !== parameter.kind)
             throw new Error(
                 `Invalid ${parameter.kind} argument at line ${lineNumber}`,
@@ -606,6 +687,8 @@ export function executeDgpCommands(c: construction, calls: DgpCall[]): void {
         variables: new Map(),
         gridChanged: false,
         projectionChanged: false,
+        is3D: false,
+        origin3DAssigned: false,
     };
 
     c.beginBatch();
