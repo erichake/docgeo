@@ -79,3 +79,22 @@ export function pointInPolygon(
     }
     return inside;
 }
+
+// Parameter (0..1) along segment [p1, p2] where it crosses segment [a, b],
+// or null if the two segments don't cross within their own bounds.
+export function segmentIntersectionParameter(
+    p1: Vec2,
+    p2: Vec2,
+    a: Vec2,
+    b: Vec2,
+): number | null {
+    const d1 = vSub(p2, p1);
+    const d2 = vSub(b, a);
+    const denominator = d1[0] * d2[1] - d1[1] * d2[0];
+    if (Math.abs(denominator) <= GEOMETRY_EPSILON) return null;
+    const pa = vSub(a, p1);
+    const t = (pa[0] * d2[1] - pa[1] * d2[0]) / denominator;
+    const u = (pa[0] * d1[1] - pa[1] * d1[0]) / denominator;
+    if (t < 0 || t > 1 || u < 0 || u > 1) return null;
+    return t;
+}
