@@ -65,3 +65,17 @@ export function geometryTolerance(...values: number[]): number {
 export function numEqual(a: number, b: number): boolean {
     return Math.abs(a - b) <= geometryTolerance(a, b);
 }
+
+export function pointInPolygon(
+    [x, y]: Vec2,
+    vertices: readonly Vec2[],
+): boolean {
+    let inside = false;
+    for (let i = 0, j = vertices.length - 1; i < vertices.length; j = i++) {
+        const [xi, yi] = vertices[i];
+        const [xj, yj] = vertices[j];
+        if (yi > y !== yj > y && x < ((xj - xi) * (y - yi)) / (yj - yi) + xi)
+            inside = !inside;
+    }
+    return inside;
+}

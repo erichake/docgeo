@@ -5,6 +5,9 @@ export class objects_collector {
     V: construction_object[] = [];
     // Associative objects array (O[name] = <object>) :
     O: Record<string, construction_object> = {};
+    // Polygons, tracked separately so segments can test occlusion against
+    // them without scanning every object on each projection update :
+    polygons: construction_object[] = [];
     // Objects with at least one dirty flag, processed by update() :
     private dirty = new Set<construction_object>();
     private nextSequence = 0;
@@ -13,11 +16,13 @@ export class objects_collector {
         o.sequence = this.nextSequence++;
         this.V.push(o);
         this.O[o.name] = o;
+        if (o.familytype === "polygon") this.polygons.push(o);
         return o;
     }
 
     remove(objects: ReadonlySet<construction_object>): void {
         this.V = this.V.filter((object) => !objects.has(object));
+        this.polygons = this.polygons.filter((object) => !objects.has(object));
         objects.forEach((object) => {
             delete this.O[object.name];
             this.dirty.delete(object);

@@ -1,5 +1,7 @@
 import {
     GEOMETRY_EPSILON,
+    vAdd,
+    vCross,
     vNorm,
     vScale,
     vSub,
@@ -55,4 +57,42 @@ export function unprojectPointToZPlane(
         (ox[0] * oh[1] - ox[1] * oh[0]) / determinant,
         z,
     ];
+}
+
+// The 3D direction along which a point can move without changing its screen
+// projection: the null space of projectPoint's linear part, i.e. the cross
+// product of its two (sx, sy) row vectors. Points with a smaller coordinate
+// along this axis are closer to the camera.
+export function viewDirection(frame: ProjectionFrame): Vec3 {
+    const row1: Vec3 = [
+        frame.unit[0] * frame.sinPhi,
+        frame.unit[1] * frame.cosPhi,
+        0,
+    ];
+    const row2: Vec3 = [
+        frame.unit[0] * frame.cosPhi * frame.sinTheta,
+        -frame.unit[1] * frame.sinPhi * frame.sinTheta,
+        -frame.unit[2] * frame.cosTheta,
+    ];
+    return vCross(row1, row2);
+}
+
+// Finds the point of the plane through `origin` spanned by `basis` whose
+// projection lands on `screen`, by solving for its (a, b) plane coordinates.
+export function projectPointOnPlane(
+    screen: Vec2,
+    origin: Vec3,
+    basis: [Vec3, Vec3],
+    frame: ProjectionFrame,
+): Vec3 | null {
+    const s0 = projectPoint(origin, frame);
+    const e1 = vSub(projectPoint(vAdd(origin, basis[0]), frame), s0);
+    const e2 = vSub(projectPoint(vAdd(origin, basis[1]), frame), s0);
+    const target = vSub(screen, s0);
+    const determinant = e1[0] * e2[1] - e1[1] * e2[0];
+    const scale = vNorm(e1) * vNorm(e2);
+    if (Math.abs(determinant) <= GEOMETRY_EPSILON * scale) return null;
+    const a = (target[0] * e2[1] - target[1] * e2[0]) / determinant;
+    const b = (e1[0] * target[1] - e1[1] * target[0]) / determinant;
+    return vAdd(origin, vAdd(vScale(basis[0], a), vScale(basis[1], b)));
 }

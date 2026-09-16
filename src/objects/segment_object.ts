@@ -1,8 +1,19 @@
 import type { construction } from "../construction";
 import type { DOMElement } from "../dom";
-import { geometryTolerance, vNorm, vNormalize, vSub } from "../vec";
+import { projectPointOnPlane, viewDirection } from "../projection";
+import {
+    geometryTolerance,
+    pointInPolygon,
+    vAdd,
+    vDot,
+    vNorm,
+    vNormalize,
+    vScale,
+    vSub,
+} from "../vec";
 import type { construction_object } from "./construction_object";
 import type { point_object } from "./point_object";
+import type { polygon_object } from "./polygon_object";
 import { primitive_line_object } from "./primitive_line_object";
 import { two_points_line_object } from "./two_points_line_object";
 
@@ -12,6 +23,9 @@ const QUARTER_TURN = Math.PI / 2;
 
 export class segment_object extends two_points_line_object {
     lengthText?: DOMElement;
+    // True when a polygon stands between the camera and this segment, drawn
+    // dashed instead of solid to follow hidden-line convention.
+    occluded = false;
 
     constructor(
         c: construction,
@@ -35,6 +49,48 @@ export class segment_object extends two_points_line_object {
         this.sP1 = this.P1.screen;
         this.sP2 = this.P2.screen;
         this.projectionDefined = vNormalize(vSub(this.sP2, this.sP1)) !== null;
+        this.occluded = this.projectionDefined && this.isOccludedByPolygon();
+    }
+
+    // A polygon occludes the segment when its midpoint, at the same screen
+    // position, is both inside the polygon's outline and closer to the
+    // camera. A polygon this segment is itself an edge of is skipped, since
+    // it is coplanar with it rather than in front of it.
+    private isOccludedByPolygon(): boolean {
+        const frame = this.C.projectionFrame;
+        const dir = viewDirection(frame);
+        const mid3D = vScale(vAdd(this.P1.coords, this.P2.coords), 0.5);
+        const midScreen = vScale(vAdd(this.sP1, this.sP2), 0.5);
+        const segmentDepth = vDot(mid3D, dir);
+        return (this.C.OBJS.polygons as polygon_object[]).some((polygon) => {
+            if (!polygon.isVisible || polygon.points.length < 3) return false;
+            if (
+                polygon.points.includes(this.P1) &&
+                polygon.points.includes(this.P2)
+            )
+                return false;
+            if (!polygon.points.every((p) => p.projectionDefined)) return false;
+            if (
+                !pointInPolygon(
+                    midScreen,
+                    polygon.points.map((p) => p.screen),
+                )
+            )
+                return false;
+            const [v0, v1, v2] = polygon.points.map((p) => p.coords);
+            const planePoint = projectPointOnPlane(
+                midScreen,
+                v0,
+                [vSub(v1, v0), vSub(v2, v0)],
+                frame,
+            );
+            if (!planePoint) return false;
+            const planeDepth = vDot(planePoint, dir);
+            return (
+                planeDepth <
+                segmentDepth - geometryTolerance(segmentDepth, planeDepth)
+            );
+        });
     }
 
     insideBounds(parameter: number): boolean {
@@ -45,6 +101,11 @@ export class segment_object extends two_points_line_object {
 
     render(): void {
         super.render();
+        if (this.defined && this.projectionDefined)
+            this.path.stl(
+                "stroke-dasharray",
+                this.occluded ? `${this.size * 3} ${this.size * 2}` : "none",
+            );
         if (!this.lengthText) return;
         if (!this.defined || !this.projectionDefined) return;
 
