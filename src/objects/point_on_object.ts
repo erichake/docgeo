@@ -1,6 +1,7 @@
 import type { construction } from "../construction";
 import { projectPointOnPlane } from "../projection";
 import { vAdd, vDot, vScale, vSub, type Vec3 } from "../vec";
+import type { locus_object } from "./locus_object";
 import { polygon_object } from "./polygon_object";
 import { primitive_circle_object } from "./primitive_circle_object";
 import { primitive_line_object } from "./primitive_line_object";
@@ -14,7 +15,8 @@ export type point_support_object =
     | primitive_line_object
     | primitive_circle_object
     | polygon_object
-    | quadric5pts_object;
+    | quadric5pts_object
+    | locus_object;
 
 type Alpha = number | readonly [number, number];
 
@@ -41,7 +43,16 @@ export class point_on_object extends point_object {
             this.defined = false;
             return;
         }
-        if (this.support instanceof primitive_circle_object) {
+        if (this.support.familytype === "locus") {
+            const coords = (this.support as locus_object).pointAt(
+                this.alpha as number,
+            );
+            if (!coords) {
+                this.defined = false;
+                return;
+            }
+            this.coords = coords;
+        } else if (this.support instanceof primitive_circle_object) {
             this.coords = this.support.pointAt(this.alpha as number);
         } else if (this.support instanceof polygon_object) {
             const coords = this.support.pointAt(
@@ -67,9 +78,10 @@ export class point_on_object extends point_object {
                 ),
             );
         } else {
+            const support = this.support as primitive_line_object;
             this.coords = vAdd(
-                this.support.P1.coords,
-                vScale(this.support.VEC, this.alpha as number),
+                support.P1.coords,
+                vScale(support.VEC, this.alpha as number),
             );
         }
         super.computeGeometry();
@@ -77,6 +89,13 @@ export class point_on_object extends point_object {
 
     mousedrag(ev: PointerEvent): void {
         const screen = this.C.pointerPosition(ev);
+        if (this.support.familytype === "locus") {
+            const alpha = (this.support as locus_object).alphaAtScreen(screen);
+            if (alpha === null) return;
+            this.alpha = alpha;
+            this.C.invalidateGeometry(this);
+            return;
+        }
         const target =
             this.support instanceof polygon_object &&
             this.support.points.length >= 3
@@ -128,7 +147,8 @@ export class point_on_object extends point_object {
             }
             return alpha;
         }
-        return vDot(vSub(target, this.support.P1.coords), this.support.VEC);
+        const support = this.support as primitive_line_object;
+        return vDot(vSub(target, support.P1.coords), support.VEC);
     }
 }
 

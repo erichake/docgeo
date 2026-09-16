@@ -130,6 +130,47 @@ STL(P,"c:url(https://example.com/image)");`,
         expect(locus.points).toEqual(expected);
     });
 
+    it("imports and continuously drags a point on a locus", async () => {
+        const c = createConstruction();
+        await importDgpFromUrl(c, "/tests/_PtOn5.dgp");
+
+        const locus = c.getObj("Locus1") as locus_object;
+        const point = c.getObj("M") as point_on_object;
+        expect(point).toBeInstanceOf(point_on_object);
+        expect(point.support).toBe(locus);
+        expect(point.alpha).toBe(643);
+        expect(point.coords).toEqual(locus.points[643]);
+        expect(point.x).toBeCloseTo(-2.598331299744846);
+        expect(point.y).toBeCloseTo(4.720536925631855);
+        expect(
+            locus.alphaAtScreen(
+                locus.screenPoints[locus.screenPoints.length - 1]!,
+            ),
+        ).toBeCloseTo(locus.points.length - 1);
+
+        const start = locus.screenPoints[643]!;
+        const end = locus.screenPoints[644]!;
+        point.mousedrag(
+            new PointerEvent("pointermove", {
+                clientX: start[0] + 0.35 * (end[0] - start[0]),
+                clientY: start[1] + 0.35 * (end[1] - start[1]),
+            }),
+        );
+        c.OBJS.update();
+
+        expect(point.alpha as number).toBeCloseTo(643.35);
+        expect(point.coords).toEqual(locus.pointAt(point.alpha as number));
+
+        const focus = c.getObj("P3") as point_object;
+        const alpha = point.alpha as number;
+        focus.coords = [focus.x, focus.y + 1, focus.z];
+        c.invalidateGeometry(focus);
+        c.OBJS.update();
+
+        expect(point.alpha).toBe(alpha);
+        expect(point.coords).toEqual(locus.pointAt(alpha));
+    });
+
     it("imports a point inside a polygon", async () => {
         const c = createConstruction();
         await importDgpFromUrl(c, "/tests/_PtOn2.dgp");

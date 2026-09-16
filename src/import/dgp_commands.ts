@@ -7,7 +7,7 @@ import { createCircle } from "../objects/circle_object";
 import { construction_object } from "../objects/construction_object";
 import { createFixedPoint } from "../objects/fixed_point_object";
 import { createOrderedIntersection } from "../objects/intersection_object";
-import { createLocus } from "../objects/locus_object";
+import { createLocus, type locus_object } from "../objects/locus_object";
 import { createMidpoint } from "../objects/midpoint_object";
 import { createParallel } from "../objects/parallel_line_object";
 import { createPerpendicularBisector } from "../objects/perpendicular_bisector_object";
@@ -398,7 +398,8 @@ const COMMANDS = new Map<string, CommandDefinition>([
                         | primitive_line_object
                         | primitive_circle_object
                         | polygon_object
-                        | quadric5pts_object,
+                        | quadric5pts_object
+                        | locus_object,
                     args[2] as number | readonly [number, number],
                 ),
         },
@@ -744,7 +745,8 @@ function accepts(actual: ObjectKind, expected: ParameterKind): boolean {
             (actual === "line" ||
                 actual === "circle" ||
                 actual === "polygon" ||
-                actual === "quadric"))
+                actual === "quadric" ||
+                actual === "locus"))
     );
 }
 

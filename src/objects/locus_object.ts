@@ -1,5 +1,6 @@
 import type { construction } from "../construction";
 import type { DOMElement } from "../dom";
+import { projectPointOnLine } from "../projection";
 import {
     GEOMETRY_EPSILON,
     vAdd,
@@ -17,7 +18,6 @@ import { polygon_object } from "./polygon_object";
 import { primitive_circle_object } from "./primitive_circle_object";
 import { primitive_line_object } from "./primitive_line_object";
 import { quadric5pts_object } from "./quadric5pts_object";
-import { ray_line_object } from "./ray_line_object";
 import { segment_object } from "./segment_object";
 import { two_points_line_object } from "./two_points_line_object";
 
@@ -145,6 +145,10 @@ export class locus_object extends construction_object {
             return this.lineAlphas(support, count);
         if (support instanceof polygon_object)
             return this.polygonSamples(support);
+        if (support instanceof locus_object)
+            return support.points.map((point) =>
+                point ? { coords: point } : null,
+            );
         return this.quadricAlphas(support, count);
     }
 
@@ -160,18 +164,17 @@ export class locus_object extends construction_object {
         const start = this.C.pt3D(support.P1.coords);
         const next = this.C.pt3D(vAdd(support.P1.coords, direction));
         const pixelsPerAlpha = vNorm(vSub(next, start));
-        const extent =
-            this.C.width +
-            this.C.height +
-            Math.abs(start[0]) +
-            Math.abs(start[1]);
-        const bound =
-            pixelsPerAlpha > GEOMETRY_EPSILON
-                ? extent / pixelsPerAlpha
-                : DEFAULT_SAMPLES;
-        return support instanceof ray_line_object
-            ? range(0, bound, count)
-            : range(-bound, bound, count);
+        if (
+            !Number.isFinite(pixelsPerAlpha) ||
+            pixelsPerAlpha <= GEOMETRY_EPSILON
+        )
+            return [];
+        const half = Math.floor(count / 2);
+        const scale = 1000 / (half * half * half * pixelsPerAlpha);
+        return Array.from(
+            { length: 2 * half },
+            (_, index) => (index - half) ** 3 * scale,
+        );
     }
 
     private polygonSamples(support: polygon_object): { coords: Vec3 }[] {
@@ -247,21 +250,115 @@ export class locus_object extends construction_object {
         );
     }
 
+    pointAt(alpha: number): Vec3 | null {
+        if (this.points.length === 0) return null;
+        const bounded = Math.max(0, Math.min(this.points.length - 1, alpha));
+        const index = Math.floor(bounded);
+        const point = this.points[index];
+        if (!point) return null;
+        const fraction = bounded - index;
+        if (fraction === 0) return point;
+        const next = this.points[index + 1];
+        if (!next || !this.isConnected(index)) return null;
+        return vAdd(point, vScale(vSub(next, point), fraction));
+    }
+
+    alphaAtScreen(target: Vec2): number | null {
+        let bestAlpha: number | null = null;
+        let bestSegment = -1;
+        let bestPoint: Vec2 | null = null;
+        let bestDistance = Infinity;
+        for (let index = 0; index < this.screenPoints.length - 1; index++) {
+            if (!this.isConnected(index)) continue;
+            const start = this.screenPoints[index]!;
+            const end = this.screenPoints[index + 1]!;
+            const direction = vSub(end, start);
+            const lengthSquared =
+                direction[0] * direction[0] + direction[1] * direction[1];
+            if (lengthSquared <= GEOMETRY_EPSILON) continue;
+            const fraction = Math.max(
+                0,
+                Math.min(
+                    1,
+                    ((target[0] - start[0]) * direction[0] +
+                        (target[1] - start[1]) * direction[1]) /
+                        lengthSquared,
+                ),
+            );
+            const candidate: Vec2 = [
+                start[0] + fraction * direction[0],
+                start[1] + fraction * direction[1],
+            ];
+            const distance = vNorm(vSub(target, candidate));
+            if (distance >= bestDistance) continue;
+            bestDistance = distance;
+            bestAlpha = index + fraction;
+            bestSegment = index;
+            bestPoint = candidate;
+        }
+        if (bestAlpha !== null) {
+            const index = bestSegment;
+            const start = this.points[index]!;
+            const direction = vSub(this.points[index + 1]!, start);
+            const point = projectPointOnLine(
+                bestPoint!,
+                start,
+                direction,
+                this.C.projectionFrame,
+            );
+            if (point) {
+                const lengthSquared =
+                    direction[0] * direction[0] +
+                    direction[1] * direction[1] +
+                    direction[2] * direction[2];
+                const relative = vSub(point, start);
+                const fraction = Math.max(
+                    0,
+                    Math.min(
+                        1,
+                        (relative[0] * direction[0] +
+                            relative[1] * direction[1] +
+                            relative[2] * direction[2]) /
+                            lengthSquared,
+                    ),
+                );
+                return index + fraction;
+            }
+            return bestAlpha;
+        }
+        this.screenPoints.forEach((point, index) => {
+            if (!point) return;
+            const distance = vNorm(vSub(target, point));
+            if (distance >= bestDistance) return;
+            bestDistance = distance;
+            bestAlpha = index;
+        });
+        return bestAlpha;
+    }
+
+    private isConnected(index: number): boolean {
+        const start = this.screenPoints[index];
+        const end = this.screenPoints[index + 1];
+        return !!(
+            start &&
+            end &&
+            vNorm(vSub(end, start)) <= 2 * (this.C.width + this.C.height)
+        );
+    }
+
     render(): void {
         this.dom.stl(
             "display",
             this.isVisible && this.projectionDefined ? "block" : "none",
         );
         if (!this.defined || !this.projectionDefined) return;
-        const limit = 2 * (this.C.width + this.C.height);
         let previous: Vec2 | null = null;
-        const d = this.screenPoints.reduce((path, point) => {
+        const d = this.screenPoints.reduce((path, point, index) => {
             if (!point) {
                 previous = null;
                 return path;
             }
-            const connected =
-                previous !== null && vNorm(vSub(point, previous)) <= limit;
+            const connected = previous !== null && this.isConnected(index - 1);
             previous = point;
             return `${path}${connected ? " L" : " M"}${point[0]} ${point[1]}`;
         }, "");
