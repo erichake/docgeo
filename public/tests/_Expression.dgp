@@ -1,0 +1,18 @@
+// Coordinates System :
+SetCoords(408,291.5,40,false,1026,585);
+
+
+// Geometry :
+E1=Expression("E1","","","","3i+5","-6.45","3.2875");
+E4=Expression("E4","","","","[1,-5,8]","-6.45","-2.2125");
+E2=Expression("E2","","0","10","2.6","-6.45","2.0375");
+E3=Expression("E3","","0","10","4","-6.45","0.0375");
+
+
+// Styles :
+STL(E1,"c:#38254f;s:7;f:24;p:2;cL:200;cPT:YzojNzgwMDEzO3M6MTA7ZjozMA==");
+STL(E4,"c:#6b4637;s:7;f:24;p:2;cL:200;cPT:YzojNzgwMDEzO3M6MTA7ZjozMA==");
+STL(E2,"c:#294202;s:4;sn:true;f:16;p:2;cL:200;cPT:YzojODc1NWQyO286MTtzOjYuNTtmOjMw");
+STL(E3,"c:#47502b;s:7;f:24;p:2;i:1;cL:200;cPT:YzojNzgwMDEzO3M6MTA7ZjozMDtpOjE=");
+SetCoordsStyle("isAxis:false;isGrid:true;isOx:true;isOy:true;isLockOx:false;isLockOy:false;centerZoom:false;onlyPositive:false;color:#111111;fontSize:18;axisWidth:1;gridWidth:0.1");
+SetGeneralStyle("background-color:#F8F8F8;degree:true;dragmoveable:true");

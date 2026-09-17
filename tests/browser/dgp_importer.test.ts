@@ -3,6 +3,7 @@ import { construction } from "../../src/construction";
 import { importDgp, importDgpFromUrl } from "../../src/dgp_importer";
 import { angle_bisector_object } from "../../src/objects/angle_bisector_object";
 import { angle_object } from "../../src/objects/angle_object";
+import { expression_object } from "../../src/objects/expression_object";
 import { fixed_angle_object } from "../../src/objects/fixed_angle_object";
 import { fixed_point_object } from "../../src/objects/fixed_point_object";
 import { locus_object } from "../../src/objects/locus_object";
@@ -300,6 +301,81 @@ P=PointOn("P",poly,0.5);`,
         expect(c.GRID.UNIT).toEqual([
             112.92512339546204, 112.92512339546204, 112.92512339546204,
         ]);
+    });
+
+    it("imports and drags the reference expression figure", async () => {
+        const c = createConstruction();
+        await importDgpFromUrl(c, "/tests/_Expression.dgp");
+
+        const e1 = c.getObj("E1") as expression_object;
+        const e2 = c.getObj("E2") as expression_object;
+        const e3 = c.getObj("E3") as expression_object;
+        const e4 = c.getObj("E4") as expression_object;
+
+        expect(e1).toBeInstanceOf(expression_object);
+        expect(e1.value).toEqual([5, 3]);
+        expect(e1.isCursor).toBe(false);
+        expect(e1.dom.dom().textContent).toBe("E1 = [5 ; 3]");
+
+        expect(e2.value).toBeCloseTo(2.6);
+        expect(e2.isCursor).toBe(true);
+        expect(e2.min).toBe(0);
+        expect(e2.max).toBe(10);
+        expect(e2.dom.dom().textContent).toBe("E2 = 2,6");
+        // E2's cPT sets "o:1": its knob is filled solid with its own color,
+        // unlike the default hollow-white-with-colored-border look.
+        expect(e2.cursorColor).toBe("#8755d2");
+        expect(e2.cursorOpacity).toBe(1);
+
+        expect(e3.value).toBe(4);
+        expect(e3.isCursor).toBe(true);
+        expect(e3.increment).toBe(1);
+        expect(e3.dom.dom().textContent).toBe("E3 = 4");
+        expect(e3.cursorOpacity).toBe(0);
+
+        expect(e4.value).toEqual([1, -5, 8]);
+        expect(e4.isCursor).toBe(false);
+        expect(e4.dom.dom().textContent).toBe("E4 = [1 ; -5 ; 8]");
+
+        // Unlike geometric objects, an expression is pinned to a fixed
+        // window position: rotating the (here unused) 3D camera must not
+        // move it.
+        const screenBefore = e1.screen;
+        c.GRID.PHI -= 0.5;
+        c.GRID.THETA += 0.3;
+        c.invalidateProjection();
+        c.OBJS.update();
+        expect(e1.screen).toEqual(screenBefore);
+        c.GRID.PHI += 0.5;
+        c.GRID.THETA -= 0.3;
+        c.invalidateProjection();
+        c.OBJS.update();
+
+        // Drag E2's slider knob roughly to the middle of its track and check
+        // the value follows, snapping to nothing since it has no increment.
+        const [e2X, e2Y] = e2.screen;
+        e2.mousedrag(
+            new PointerEvent("pointermove", {
+                clientX: e2X + 100,
+                clientY: e2Y + 20,
+            }),
+        );
+        c.OBJS.update();
+        expect(e2.value as number).toBeCloseTo(5);
+        expect(e2.dom.dom().textContent).toBe("E2 = 5");
+
+        // Drag E3's knob near a non-integer position and check it snaps to
+        // its "i:1" increment.
+        const [e3X, e3Y] = e3.screen;
+        e3.mousedrag(
+            new PointerEvent("pointermove", {
+                clientX: e3X + 138,
+                clientY: e3Y + 20,
+            }),
+        );
+        c.OBJS.update();
+        expect(e3.value).toBe(7);
+        expect(e3.dom.dom().textContent).toBe("E3 = 7");
     });
 
     it("only builds an SVG view for the objects visible in Apollonius", async () => {

@@ -8,6 +8,10 @@ import { createCircle3pts } from "../objects/circle3pts_object";
 import { createCircle } from "../objects/circle_object";
 import { construction_object } from "../objects/construction_object";
 import {
+    createExpression,
+    expression_object,
+} from "../objects/expression_object";
+import {
     createFixedAngle,
     fixed_angle_object,
 } from "../objects/fixed_angle_object";
@@ -44,7 +48,8 @@ type ObjectKind =
     | "polygon"
     | "quadric"
     | "locus"
-    | "angle";
+    | "angle"
+    | "expression";
 type ParameterKind =
     | "string"
     | "number"
@@ -141,6 +146,44 @@ function parseVectorLiteral(value: string): number[] | null {
     return parts.map(Number);
 }
 
+// DGPad's Expression() command can hold an arbitrary math expression,
+// evaluated against a sandboxed JS interpreter (functions, other objects'
+// values, etc.). This project only supports the constant literals actually
+// needed to display an already-computed figure: real numbers, DGPad's "i"
+// complex-number syntax (e.g. "3i+5", displayed like a 2-vector), and
+// vector literals. Anything else is rejected at validate time.
+const COMPLEX_TERM = /[+-]?(?:\d+(?:\.\d+)?)?i|[+-]?\d+(?:\.\d+)?/g;
+
+function parseComplexLiteral(value: string): [number, number] | null {
+    let real = 0;
+    let imaginary = 0;
+    let hasImaginary = false;
+    let consumed = 0;
+    for (const match of value.matchAll(COMPLEX_TERM)) {
+        if (match.index !== consumed) return null;
+        consumed += match[0].length;
+        if (match[0].endsWith("i")) {
+            hasImaginary = true;
+            const coefficient = match[0].slice(0, -1);
+            imaginary +=
+                coefficient === "" || coefficient === "+"
+                    ? 1
+                    : coefficient === "-"
+                      ? -1
+                      : Number(coefficient);
+        } else {
+            real += Number(match[0]);
+        }
+    }
+    if (!hasImaginary || consumed !== value.length) return null;
+    return [real, imaginary];
+}
+
+function parseExpressionValue(value: string): number | number[] | null {
+    if (STYLE_NUMBER.test(value)) return Number(value);
+    return parseVectorLiteral(value) ?? parseComplexLiteral(value);
+}
+
 // DGPad's Polygon command stores its vertices as a single comma-separated
 // string of point references, each prefixed with "_" (e.g. "_P1,_P2,_P3"),
 // rather than as individual DGP arguments.
@@ -214,6 +257,42 @@ function validateObjectStyle(value: string, lineNumber: number): void {
             case "arc":
                 validateNumber(propertyValue, lineNumber, 0);
                 break;
+            case "i":
+                validateNumber(propertyValue, lineNumber, 0);
+                break;
+            case "cL":
+                validateNumber(propertyValue, lineNumber, 0);
+                break;
+            case "cPT": {
+                let decoded: string;
+                try {
+                    decoded = atob(propertyValue);
+                } catch {
+                    throw new Error(`Invalid DGP style at line ${lineNumber}`);
+                }
+                validateCursorStyle(decoded, lineNumber);
+                break;
+            }
+        }
+    });
+}
+
+// The Expression command's slider knob (cPT) stores its own small style
+// string, base64-encoded inside the expression's "cPT" style property.
+// Only color, size and opacity are meaningful for it: it's a plain dot, not
+// a full construction_object, so the other object-style keys don't apply.
+function validateCursorStyle(value: string, lineNumber: number): void {
+    properties(value).forEach((propertyValue, property) => {
+        switch (property) {
+            case "c":
+                validateColor(propertyValue, lineNumber);
+                break;
+            case "s":
+                validateNumber(propertyValue, lineNumber, 0);
+                break;
+            case "o":
+                validateNumber(propertyValue, lineNumber, 0, 1);
+                break;
         }
     });
 }
@@ -269,9 +348,31 @@ function applyObjectStyle(target: construction_object, value: string): void {
                 )
                     target.arcRadius = Number(propertyValue);
                 break;
+            case "i":
+                if (target instanceof expression_object)
+                    target.increment = Number(propertyValue);
+                break;
+            case "cL":
+                if (target instanceof expression_object)
+                    target.cursorLength = Number(propertyValue);
+                break;
+            case "cPT":
+                if (target instanceof expression_object)
+                    applyCursorStyle(target, atob(propertyValue));
+                break;
         }
     });
     target.updateView();
+}
+
+function applyCursorStyle(target: expression_object, value: string): void {
+    const style = properties(value);
+    const color = style.get("c");
+    if (color !== undefined) target.cursorColor = extractColor(color);
+    const size = style.get("s");
+    if (size !== undefined) target.cursorRadius = Number(size);
+    const opacity = style.get("o");
+    if (opacity !== undefined) target.cursorOpacity = Number(opacity);
 }
 
 function applyCoordsStyle(context: CommandContext, value: string): void {
@@ -775,6 +876,67 @@ const COMMANDS = new Map<string, CommandDefinition>([
                                 ) as point_object,
                         ),
                 ),
+        },
+    ],
+    [
+        "Expression",
+        {
+            parameters: [
+                string,
+                string,
+                string,
+                string,
+                string,
+                string,
+                string,
+            ],
+            result: "expression",
+            validate: (args, lineNumber) => {
+                const bound = (value: DgpValue): boolean => {
+                    const source = literalString(value);
+                    return source === "" || STYLE_NUMBER.test(source);
+                };
+                if (!bound(args[2]) || !bound(args[3]))
+                    throw new Error(
+                        `Invalid DGP expression bound at line ${lineNumber}`,
+                    );
+                if (parseExpressionValue(literalString(args[4])) === null)
+                    throw new Error(
+                        `Unsupported DGP expression at line ${lineNumber}`,
+                    );
+                if (
+                    !STYLE_NUMBER.test(literalString(args[5])) ||
+                    !STYLE_NUMBER.test(literalString(args[6]))
+                )
+                    throw new Error(
+                        `Invalid DGP expression position at line ${lineNumber}`,
+                    );
+            },
+            execute: (context, args) => {
+                const min = args[2] as string;
+                const max = args[3] as string;
+                // Unlike geometric objects, an expression's position is a
+                // fixed window (screen) coordinate, not a projected math
+                // point: DGPad stores it in world units only so it survives
+                // a different SetCoords on save/reload, converting it back
+                // with the plain 2D origin/unit math below (no 3D rotation
+                // involved — see expression_object.ts).
+                const grid = context.construction.GRID;
+                const x = Number(args[5] as string);
+                const y = Number(args[6] as string);
+                return createExpression(
+                    context.construction,
+                    args[0] as string,
+                    args[1] as string,
+                    parseExpressionValue(args[4] as string)!,
+                    min === "" ? null : Number(min),
+                    max === "" ? null : Number(max),
+                    [
+                        grid.ORG[0] + x * grid.UNIT[0],
+                        grid.ORG[1] - y * grid.UNIT[1],
+                    ],
+                );
+            },
         },
     ],
     [

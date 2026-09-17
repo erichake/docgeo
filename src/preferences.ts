@@ -55,6 +55,7 @@ export interface Preferences {
     locus: ObjectPref;
     angle: ObjectPref;
     fixedangle: ObjectPref;
+    expression: ObjectPref;
     grid: GridPref;
 }
 
@@ -76,6 +77,7 @@ export class preferences implements Preferences {
     locus: ObjectPref;
     angle: ObjectPref;
     fixedangle: ObjectPref;
+    expression: ObjectPref;
     grid: GridPref;
 
     constructor() {
@@ -199,6 +201,15 @@ export class preferences implements Preferences {
             name: "A",
             opacity: 0,
             layer: 4,
+        };
+
+        this.expression = {
+            color: { fill: "rgb(0,0,178)", stroke: "rgb(0,0,178)" },
+            size: 7,
+            touchsize: 12,
+            name: "E",
+            opacity: 0,
+            layer: 6,
         };
 
         this.grid = {
