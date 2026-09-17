@@ -1,5 +1,6 @@
 import type { construction } from "../construction";
 import { createAngleBisector } from "../objects/angle_bisector_object";
+import { createAngle, angle_object } from "../objects/angle_object";
 import { createCenter } from "../objects/center_object";
 import { createCircle1 } from "../objects/circle1_object";
 import { createCircle3 } from "../objects/circle3_object";
@@ -32,7 +33,14 @@ import type { Vec2, Vec3 } from "../vec";
 import type { DgpCall, DgpValue } from "./dgp_parser";
 
 type ObjectKind =
-    "point" | "pointOn" | "line" | "circle" | "polygon" | "quadric" | "locus";
+    | "point"
+    | "pointOn"
+    | "line"
+    | "circle"
+    | "polygon"
+    | "quadric"
+    | "locus"
+    | "angle";
 type ParameterKind =
     | "string"
     | "number"
@@ -199,6 +207,9 @@ function validateObjectStyle(value: string, lineNumber: number): void {
                         `Invalid DGP style number at line ${lineNumber}`,
                     );
                 break;
+            case "arc":
+                validateNumber(propertyValue, lineNumber, 0);
+                break;
         }
     });
 }
@@ -246,6 +257,10 @@ function applyObjectStyle(target: construction_object, value: string): void {
                 break;
             case "p":
                 target.precision = Number(propertyValue);
+                break;
+            case "arc":
+                if (target instanceof angle_object)
+                    target.arcRadius = Number(propertyValue);
                 break;
         }
     });
@@ -500,6 +515,21 @@ const COMMANDS = new Map<string, CommandDefinition>([
                     args[0] as string,
                     args[2] as point_object,
                     args[1] as point_object,
+                    args[3] as point_object,
+                ),
+        },
+    ],
+    [
+        "Angle",
+        {
+            parameters: [string, point, point, point],
+            result: "angle",
+            execute: (context, args) =>
+                createAngle(
+                    context.construction,
+                    args[0] as string,
+                    args[1] as point_object,
+                    args[2] as point_object,
                     args[3] as point_object,
                 ),
         },

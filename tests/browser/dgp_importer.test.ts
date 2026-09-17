@@ -2,6 +2,7 @@ import { afterEach, describe, expect, it } from "vitest";
 import { construction } from "../../src/construction";
 import { importDgp, importDgpFromUrl } from "../../src/dgp_importer";
 import { angle_bisector_object } from "../../src/objects/angle_bisector_object";
+import { angle_object } from "../../src/objects/angle_object";
 import { fixed_point_object } from "../../src/objects/fixed_point_object";
 import { locus_object } from "../../src/objects/locus_object";
 import { point_on_object } from "../../src/objects/point_on_object";
@@ -93,11 +94,17 @@ STL(P,"c:url(https://example.com/image)");`,
         const arm1 = c.getObj("P2") as point_object;
         const arm2 = c.getObj("P3") as point_object;
         const bisector = c.getObj("R3") as angle_bisector_object;
+        const angle = c.getObj("A1") as angle_object;
 
         expect(bisector).toBeInstanceOf(angle_bisector_object);
         const u1 = vNormalize(vSub(arm1.coords, vertex.coords))!;
         const u2 = vNormalize(vSub(arm2.coords, vertex.coords))!;
         expect(vDot(bisector.VEC, u1)).toBeCloseTo(vDot(bisector.VEC, u2));
+
+        expect(angle).toBeInstanceOf(angle_object);
+        expect((angle.value * 180) / Math.PI).toBeCloseTo(51.601258193352805);
+        expect(angle.arcRadius).toBeCloseTo(71.61005515987263);
+        expect(angle.dom.dom().innerHTML).not.toMatch(/NaN|Infinity/);
     });
 
     it("imports and updates a point locus without moving its driver", async () => {

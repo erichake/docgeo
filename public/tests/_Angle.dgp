@@ -1,0 +1,22 @@
+// Coordinates System :
+SetCoords(400,285.5,40,false,800,574);
+
+
+// Geometry :
+P1=Point("P1",-3.725,-0.4875);
+P2=Point("P2",-1.375,3.4375);
+P3=Point("P3",1.5,-0.6125);
+R1=Ray("R1",P1,P2);
+R2=Ray("R2",P1,P3);
+A1=Angle("A1",P3,P1,P2);
+
+
+// Styles :
+STL(P1,"c:#0000b2;s:6;f:30");
+STL(P2,"c:#0000b2;s:6;f:30");
+STL(P3,"c:#0000b2;s:6;f:30");
+STL(R1,"c:#993300;s:1;f:30;p:0");
+STL(R2,"c:#993300;s:1;f:30;p:0");
+STL(A1,"c:#8755d2;o:0.14;s:4;f:24;p:1;arc:71.61005515987263");
+SetCoordsStyle("isAxis:false;isGrid:true;isOx:true;isOy:true;isLockOx:false;isLockOy:false;centerZoom:false;onlyPositive:false;color:#111111;fontSize:18;axisWidth:1;gridWidth:0.1");
+SetGeneralStyle("background-color:#F8F8F8;degree:true;dragmoveable:true");

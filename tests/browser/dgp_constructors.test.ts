@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, it } from "vitest";
 import { construction } from "../../src/construction";
 import { createAngleBisector } from "../../src/objects/angle_bisector_object";
+import { createAngle } from "../../src/objects/angle_object";
 import { createCenter } from "../../src/objects/center_object";
 import { createCircle1 } from "../../src/objects/circle1_object";
 import { createCircle3 } from "../../src/objects/circle3_object";
@@ -141,6 +142,25 @@ describe("DGPad geometric constructors", () => {
         c.OBJS.update();
 
         expect(bisector.defined).toBe(false);
+    });
+
+    it("measures an angle and hides its label when precision is negative", () => {
+        const c = createConstruction();
+        const vertex = createPoint(c, "O", [0, 0, 0]);
+        const a = createPoint(c, "A", [1, 0, 0]);
+        const b = createPoint(c, "B", [0, 1, 0]);
+        const angle = createAngle(c, "Ang", a, vertex, b);
+        c.OBJS.update();
+
+        expect(angle.value).toBeCloseTo(Math.PI / 2);
+        expect(angle.valueText).toBeUndefined();
+        expect(angle.dom.dom().innerHTML).not.toMatch(/NaN|Infinity/);
+
+        a.coords = [0, 0, 0];
+        c.invalidateGeometry(a);
+        c.OBJS.update();
+
+        expect(angle.defined).toBe(false);
     });
 
     it("selects ordered line-circle and circle-circle intersections", () => {

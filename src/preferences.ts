@@ -53,6 +53,7 @@ export interface Preferences {
     segment: ObjectPref;
     polygon: ObjectPref;
     locus: ObjectPref;
+    angle: ObjectPref;
     grid: GridPref;
 }
 
@@ -72,6 +73,7 @@ export class preferences implements Preferences {
     segment: ObjectPref;
     polygon: ObjectPref;
     locus: ObjectPref;
+    angle: ObjectPref;
     grid: GridPref;
 
     constructor() {
@@ -177,6 +179,15 @@ export class preferences implements Preferences {
             touchsize: 5,
             name: "Locus",
             layer: 3,
+        };
+
+        this.angle = {
+            color: { fill: "#006633", stroke: "#006633" },
+            size: 4,
+            touchsize: 5,
+            name: "A",
+            opacity: 0,
+            layer: 4,
         };
 
         this.grid = {
