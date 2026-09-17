@@ -1,8 +1,43 @@
 import type { construction } from "../construction";
 import type { DOMElement } from "../dom";
 import type { PrefKey } from "../preferences";
-import { vIsFinite, type Vec2, type Vec3 } from "../vec";
+import {
+    vAdd,
+    vDot,
+    vIsFinite,
+    vNorm,
+    vScale,
+    vSub,
+    type Vec2,
+    type Vec3,
+} from "../vec";
 import { construction_object } from "./construction_object";
+import { primitive_circle_object } from "./primitive_circle_object";
+import { primitive_line_object } from "./primitive_line_object";
+import { ray_line_object } from "./ray_line_object";
+import { segment_object } from "./segment_object";
+import { two_points_line_object } from "./two_points_line_object";
+
+export type magnet_target = primitive_line_object | primitive_circle_object;
+
+// The closest point to `point` lying on `target` (segment/ray bounds
+// respected, same convention as point_on_object's own projection).
+function projectOntoMagnet(target: magnet_target, point: Vec3): Vec3 {
+    if (target instanceof primitive_circle_object)
+        return target.pointAt(target.alphaOf(point));
+    if (target instanceof two_points_line_object) {
+        const direction = vSub(target.P2.coords, target.P1.coords);
+        let alpha =
+            vDot(vSub(point, target.P1.coords), direction) /
+            vDot(direction, direction);
+        if (target instanceof segment_object)
+            alpha = Math.max(0, Math.min(1, alpha));
+        else if (target instanceof ray_line_object) alpha = Math.max(0, alpha);
+        return vAdd(target.P1.coords, vScale(direction, alpha));
+    }
+    const alpha = vDot(vSub(point, target.P1.coords), target.VEC);
+    return vAdd(target.P1.coords, vScale(target.VEC, alpha));
+}
 
 export class point_object extends construction_object {
     COORDS: Vec3;
@@ -10,6 +45,10 @@ export class point_object extends construction_object {
     projectionDefined: boolean;
     shape: string;
     border: number | undefined;
+    // DGPad's magnetism ("mg" style): while dragging, the point snaps onto
+    // whichever of these is both within `radius` screen pixels and closest,
+    // instead of following the pointer directly.
+    magnets: { target: magnet_target; radius: number }[] = [];
 
     constructor(
         c: construction,
@@ -67,13 +106,30 @@ export class point_object extends construction_object {
     }
 
     mousedrag(ev: PointerEvent): void {
-        const coords = this.C.unprojectToZPlane(
-            this.C.pointerPosition(ev),
-            this.z,
-        );
+        const screen = this.C.pointerPosition(ev);
+        const coords = this.C.unprojectToZPlane(screen, this.z);
         if (!coords) return;
-        this.coords = coords;
+        this.coords = this.magnets.length
+            ? this.snapToMagnets(coords, screen)
+            : coords;
         this.C.invalidateGeometry(this);
+    }
+
+    private snapToMagnets(coords: Vec3, screen: Vec2): Vec3 {
+        let closest: Vec3 | null = null;
+        let closestDistance = Infinity;
+        for (const { target, radius } of this.magnets) {
+            if (!target.defined) continue;
+            const candidate = projectOntoMagnet(target, coords);
+            const candidateScreen = this.C.pt3D(candidate);
+            if (!vIsFinite(candidateScreen)) continue;
+            const distance = vNorm(vSub(candidateScreen, screen));
+            if (distance <= radius && distance < closestDistance) {
+                closest = candidate;
+                closestDistance = distance;
+            }
+        }
+        return closest ?? coords;
     }
 
     mouseclick(_ev: PointerEvent): void {

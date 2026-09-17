@@ -23,7 +23,11 @@ import { createParallel } from "../objects/parallel_line_object";
 import { createPerpendicularBisector } from "../objects/perpendicular_bisector_object";
 import { createPlumb } from "../objects/plumb_line_object";
 import { createPointOn, point_on_object } from "../objects/point_on_object";
-import { createPoint, point_object } from "../objects/point_object";
+import {
+    createPoint,
+    point_object,
+    type magnet_target,
+} from "../objects/point_object";
 import { createPolygon, polygon_object } from "../objects/polygon_object";
 import { primitive_circle_object } from "../objects/primitive_circle_object";
 import { primitive_line_object } from "../objects/primitive_line_object";
@@ -120,6 +124,20 @@ const numberOrPair: Parameter = { kind: "numberOrPair" };
 // tolerated: only the leading hex digits are read, the rest is dropped.
 const COLOR = /^#(?:[\da-f]{6}|[\da-f]{3})/i;
 const STYLE_NUMBER = /^[+-]?(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][+-]?\d+)?$/;
+// A point's "mg" style: the objects it magnetizes to while dragged, each
+// with its own snap radius (in screen pixels), e.g.
+// "[S2,5000],[C1,20]".
+const MAGNET_LIST =
+    /^\[[A-Za-z_$][\w$]*,\d+(?:\.\d+)?\](?:,\[[A-Za-z_$][\w$]*,\d+(?:\.\d+)?\])*$/;
+
+function parseMagnetList(
+    value: string,
+): { name: string; radius: number }[] {
+    return value.split("],[").map((chunk) => {
+        const [name, radius] = chunk.replace(/^\[|\]$/g, "").split(",");
+        return { name, radius: Number(radius) };
+    });
+}
 
 function properties(value: string): Map<string, string> {
     return new Map(
@@ -218,7 +236,11 @@ function validateNumber(
         throw new Error(`Invalid DGP style number at line ${lineNumber}`);
 }
 
-function validateObjectStyle(value: string, lineNumber: number): void {
+function validateObjectStyle(
+    value: string,
+    lineNumber: number,
+    variables: Map<string, ObjectKind>,
+): void {
     properties(value).forEach((propertyValue, property) => {
         switch (property) {
             case "c":
@@ -273,6 +295,17 @@ function validateObjectStyle(value: string, lineNumber: number): void {
                 validateCursorStyle(decoded, lineNumber);
                 break;
             }
+            case "mg":
+                if (!MAGNET_LIST.test(propertyValue))
+                    throw new Error(`Invalid DGP style at line ${lineNumber}`);
+                parseMagnetList(propertyValue).forEach(({ name }) => {
+                    const kind = variables.get(name);
+                    if (kind !== "line" && kind !== "circle")
+                        throw new Error(
+                            `Unknown DGP reference at line ${lineNumber}`,
+                        );
+                });
+                break;
         }
     });
 }
@@ -310,7 +343,11 @@ function validateGeneralStyle(value: string, lineNumber: number): void {
     if (background !== undefined) validateColor(background, lineNumber);
 }
 
-function applyObjectStyle(target: construction_object, value: string): void {
+function applyObjectStyle(
+    target: construction_object,
+    value: string,
+    variables: Map<string, construction_object>,
+): void {
     properties(value).forEach((propertyValue, property) => {
         switch (property) {
             case "c": {
@@ -359,6 +396,15 @@ function applyObjectStyle(target: construction_object, value: string): void {
             case "cPT":
                 if (target instanceof expression_object)
                     applyCursorStyle(target, atob(propertyValue));
+                break;
+            case "mg":
+                if (target instanceof point_object)
+                    target.magnets = parseMagnetList(propertyValue).map(
+                        ({ name, radius }) => ({
+                            target: variables.get(name) as magnet_target,
+                            radius,
+                        }),
+                    );
                 break;
         }
     });
@@ -943,12 +989,13 @@ const COMMANDS = new Map<string, CommandDefinition>([
         "STL",
         {
             parameters: [object, string],
-            validate: (args, lineNumber) =>
-                validateObjectStyle(literalString(args[1]), lineNumber),
-            execute: (_context, args) =>
+            validate: (args, lineNumber, variables) =>
+                validateObjectStyle(literalString(args[1]), lineNumber, variables),
+            execute: (context, args) =>
                 applyObjectStyle(
                     args[0] as construction_object,
                     args[1] as string,
+                    context.variables,
                 ),
         },
     ],
