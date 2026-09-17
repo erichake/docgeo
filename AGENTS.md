@@ -28,6 +28,13 @@ Le consulter lorsque l'import `.dgp`, la sémantique d'un objet ou un comporteme
 de compatibilité ne peuvent pas être déterminés avec certitude depuis le nouveau
 projet et les figures de référence.
 
+Ce code de référence a été écrit par l'auteur du projet sans assistance d'IA et
+peut contenir des erreurs, oublis ou imprécisions : ce n'est pas une spécification
+à reproduire à l'identique. Ce qui fait foi, c'est le rendu et le comportement
+obtenus dans DGPad avec la figure ouverte. Ne pas hésiter à implémenter
+autrement ou mieux (calcul plus robuste, plus simple, compatible 3D, etc.), du
+moment que le résultat reste conforme à ce que produit DGPad.
+
 - **Code minimal** : produire le strict nécessaire, sans code défensif superflu.
 - **Pas de `try/catch`** sauf si une exception est réellement possible et doit être traitée différemment.
 - **Pas de tests de conditions impossibles** : faire confiance au code interne et aux garanties du framework.
