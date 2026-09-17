@@ -7,6 +7,7 @@ import { createCircle1 } from "../../src/objects/circle1_object";
 import { createCircle3 } from "../../src/objects/circle3_object";
 import { createCircle3pts } from "../../src/objects/circle3pts_object";
 import { createCircle } from "../../src/objects/circle_object";
+import { createFixedAngle } from "../../src/objects/fixed_angle_object";
 import { createOrderedIntersection } from "../../src/objects/intersection_object";
 import { createPerpendicularBisector } from "../../src/objects/perpendicular_bisector_object";
 import {
@@ -161,6 +162,34 @@ describe("DGPad geometric constructors", () => {
         c.OBJS.update();
 
         expect(angle.defined).toBe(false);
+    });
+
+    it("rotates a fixed-angle ray away from its reference point", () => {
+        const c = createConstruction();
+        const vertex = createPoint(c, "O", [0, 0, 0]);
+        const a = createPoint(c, "A", [1, 0, 0]);
+        const trigo = createFixedAngle(c, "Trigo", a, vertex, 90, true);
+        const clockwise = createFixedAngle(
+            c,
+            "Clockwise",
+            a,
+            vertex,
+            90,
+            false,
+        );
+
+        expect(trigo.VEC[0]).toBeCloseTo(0);
+        expect(trigo.VEC[1]).toBeCloseTo(1);
+        expect(clockwise.VEC[0]).toBeCloseTo(0);
+        expect(clockwise.VEC[1]).toBeCloseTo(-1);
+        expect(trigo.insideBounds(0)).toBe(true);
+        expect(trigo.insideBounds(-1)).toBe(false);
+
+        a.coords = [0, 0, 0];
+        c.invalidateGeometry(a);
+        c.OBJS.update();
+
+        expect(trigo.defined).toBe(false);
     });
 
     it("selects ordered line-circle and circle-circle intersections", () => {

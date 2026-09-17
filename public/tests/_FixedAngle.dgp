@@ -1,0 +1,18 @@
+// Coordinates System :
+SetCoords(351,271.5,40,false,800,572);
+
+
+// Geometry :
+P1=Point("P1",4.8,-1.2125);
+P2=Point("P2",-2.175,-0.0875);
+A1=FixedAngle("A1",P1,P2,"120.5",true);
+S1=Segment("S1",P2,P1);
+
+
+// Styles :
+STL(P1,"c:#0000b2;s:6;f:30");
+STL(P2,"c:#0000b2;s:6;f:30");
+STL(A1,"c:#007c7c;o:0.19;s:1;f:24;p:1;arc:48.83646178829912");
+STL(S1,"c:#760012;s:1;f:24");
+SetCoordsStyle("isAxis:false;isGrid:true;isOx:true;isOy:true;isLockOx:false;isLockOy:false;centerZoom:false;onlyPositive:false;color:#111111;fontSize:18;axisWidth:1;gridWidth:0.1");
+SetGeneralStyle("background-color:#F8F8F8;degree:true;dragmoveable:true");

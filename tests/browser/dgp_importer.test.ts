@@ -3,6 +3,7 @@ import { construction } from "../../src/construction";
 import { importDgp, importDgpFromUrl } from "../../src/dgp_importer";
 import { angle_bisector_object } from "../../src/objects/angle_bisector_object";
 import { angle_object } from "../../src/objects/angle_object";
+import { fixed_angle_object } from "../../src/objects/fixed_angle_object";
 import { fixed_point_object } from "../../src/objects/fixed_point_object";
 import { locus_object } from "../../src/objects/locus_object";
 import { point_on_object } from "../../src/objects/point_on_object";
@@ -105,6 +106,25 @@ STL(P,"c:url(https://example.com/image)");`,
         expect((angle.value * 180) / Math.PI).toBeCloseTo(51.601258193352805);
         expect(angle.arcRadius).toBeCloseTo(71.61005515987263);
         expect(angle.dom.dom().innerHTML).not.toMatch(/NaN|Infinity/);
+    });
+
+    it("imports the fixed-angle reference figure", async () => {
+        const c = createConstruction();
+        await importDgpFromUrl(c, "/tests/_FixedAngle.dgp");
+
+        const vertex = c.getObj("P2") as point_object;
+        const a = c.getObj("P1") as point_object;
+        const fixedAngle = c.getObj("A1") as fixed_angle_object;
+
+        expect(fixedAngle).toBeInstanceOf(fixed_angle_object);
+        expect(fixedAngle.valueDegrees).toBeCloseTo(51);
+        expect(fixedAngle.trigo).toBe(true);
+        expect(fixedAngle.arcRadius).toBeCloseTo(48.83646178829912);
+
+        const dirA = vNormalize(vSub(a.coords, vertex.coords))!;
+        const cosAngle = Math.min(1, Math.max(-1, vDot(fixedAngle.VEC, dirA)));
+        expect((Math.acos(cosAngle) * 180) / Math.PI).toBeCloseTo(51);
+        expect(fixedAngle.dom.dom().innerHTML).not.toMatch(/NaN|Infinity/);
     });
 
     it("imports and updates a point locus without moving its driver", async () => {

@@ -54,6 +54,7 @@ export interface Preferences {
     polygon: ObjectPref;
     locus: ObjectPref;
     angle: ObjectPref;
+    fixedangle: ObjectPref;
     grid: GridPref;
 }
 
@@ -74,6 +75,7 @@ export class preferences implements Preferences {
     polygon: ObjectPref;
     locus: ObjectPref;
     angle: ObjectPref;
+    fixedangle: ObjectPref;
     grid: GridPref;
 
     constructor() {
@@ -184,6 +186,15 @@ export class preferences implements Preferences {
         this.angle = {
             color: { fill: "#006633", stroke: "#006633" },
             size: 4,
+            touchsize: 5,
+            name: "A",
+            opacity: 0,
+            layer: 4,
+        };
+
+        this.fixedangle = {
+            color: { fill: "#006633", stroke: "#006633" },
+            size: 1,
             touchsize: 5,
             name: "A",
             opacity: 0,

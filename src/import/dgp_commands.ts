@@ -7,6 +7,10 @@ import { createCircle3 } from "../objects/circle3_object";
 import { createCircle3pts } from "../objects/circle3pts_object";
 import { createCircle } from "../objects/circle_object";
 import { construction_object } from "../objects/construction_object";
+import {
+    createFixedAngle,
+    fixed_angle_object,
+} from "../objects/fixed_angle_object";
 import { createFixedPoint } from "../objects/fixed_point_object";
 import { createOrderedIntersection } from "../objects/intersection_object";
 import { createLocus, type locus_object } from "../objects/locus_object";
@@ -259,7 +263,10 @@ function applyObjectStyle(target: construction_object, value: string): void {
                 target.precision = Number(propertyValue);
                 break;
             case "arc":
-                if (target instanceof angle_object)
+                if (
+                    target instanceof angle_object ||
+                    target instanceof fixed_angle_object
+                )
                     target.arcRadius = Number(propertyValue);
                 break;
         }
@@ -531,6 +538,33 @@ const COMMANDS = new Map<string, CommandDefinition>([
                     args[1] as point_object,
                     args[2] as point_object,
                     args[3] as point_object,
+                ),
+        },
+    ],
+    [
+        "FixedAngle",
+        {
+            parameters: [string, point, point, string, boolean],
+            result: "line",
+            validate: (args, lineNumber) => {
+                const expression = args[3];
+                if (
+                    expression.type === "literal" &&
+                    typeof expression.value === "string" &&
+                    !STYLE_NUMBER.test(expression.value)
+                )
+                    throw new Error(
+                        `Unsupported DGP expression at line ${lineNumber}`,
+                    );
+            },
+            execute: (context, args) =>
+                createFixedAngle(
+                    context.construction,
+                    args[0] as string,
+                    args[1] as point_object,
+                    args[2] as point_object,
+                    Number(args[3] as string),
+                    args[4] as boolean,
                 ),
         },
     ],
