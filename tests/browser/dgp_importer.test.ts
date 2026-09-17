@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, it } from "vitest";
 import { construction } from "../../src/construction";
 import { importDgp, importDgpFromUrl } from "../../src/dgp_importer";
+import { angle_bisector_object } from "../../src/objects/angle_bisector_object";
 import { fixed_point_object } from "../../src/objects/fixed_point_object";
 import { locus_object } from "../../src/objects/locus_object";
 import { point_on_object } from "../../src/objects/point_on_object";
@@ -9,6 +10,7 @@ import { polygon_object } from "../../src/objects/polygon_object";
 import { symmetry_object } from "../../src/objects/symmetry_object";
 import { two_points_line_object } from "../../src/objects/two_points_line_object";
 import { preferences } from "../../src/preferences";
+import { vDot, vNormalize, vSub } from "../../src/vec";
 
 function createConstruction(): construction {
     document.documentElement.style.width = "100%";
@@ -81,6 +83,21 @@ STL(P,"c:url(https://example.com/image)");`,
         expect(c.OBJS.V).toHaveLength(8);
         expect(c.getObj("P1")).toBeInstanceOf(point_object);
         expect(c.getObj("L1")).toBeInstanceOf(two_points_line_object);
+    });
+
+    it("imports the angle-bisector reference figure", async () => {
+        const c = createConstruction();
+        await importDgpFromUrl(c, "/tests/_Bissectrice.dgp");
+
+        const vertex = c.getObj("P1") as point_object;
+        const arm1 = c.getObj("P2") as point_object;
+        const arm2 = c.getObj("P3") as point_object;
+        const bisector = c.getObj("R3") as angle_bisector_object;
+
+        expect(bisector).toBeInstanceOf(angle_bisector_object);
+        const u1 = vNormalize(vSub(arm1.coords, vertex.coords))!;
+        const u2 = vNormalize(vSub(arm2.coords, vertex.coords))!;
+        expect(vDot(bisector.VEC, u1)).toBeCloseTo(vDot(bisector.VEC, u2));
     });
 
     it("imports and updates a point locus without moving its driver", async () => {

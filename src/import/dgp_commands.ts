@@ -1,4 +1,5 @@
 import type { construction } from "../construction";
+import { createAngleBisector } from "../objects/angle_bisector_object";
 import { createCenter } from "../objects/center_object";
 import { createCircle1 } from "../objects/circle1_object";
 import { createCircle3 } from "../objects/circle3_object";
@@ -485,6 +486,21 @@ const COMMANDS = new Map<string, CommandDefinition>([
                     args[0] as string,
                     args[2] as point_object,
                     args[1] as primitive_line_object,
+                ),
+        },
+    ],
+    [
+        "AngleBisector",
+        {
+            parameters: [string, point, point, point],
+            result: "line",
+            execute: (context, args) =>
+                createAngleBisector(
+                    context.construction,
+                    args[0] as string,
+                    args[2] as point_object,
+                    args[1] as point_object,
+                    args[3] as point_object,
                 ),
         },
     ],

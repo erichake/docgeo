@@ -1,5 +1,6 @@
 import { afterEach, describe, expect, it } from "vitest";
 import { construction } from "../../src/construction";
+import { createAngleBisector } from "../../src/objects/angle_bisector_object";
 import { createCenter } from "../../src/objects/center_object";
 import { createCircle1 } from "../../src/objects/circle1_object";
 import { createCircle3 } from "../../src/objects/circle3_object";
@@ -120,6 +121,26 @@ describe("DGPad geometric constructors", () => {
         expect(reflection.coords).toEqual([1, -3, 0]);
         expect(bisector.P1.coords).toEqual([0, 0, 0]);
         expect(vDot(bisector.VEC, axis.VEC)).toBeCloseTo(0);
+    });
+
+    it("constructs an angle bisector ray from a vertex and two arms", () => {
+        const c = createConstruction();
+        const vertex = createPoint(c, "P1", [0, 0, 0]);
+        const arm1 = createPoint(c, "P2", [3, 0, 0]);
+        const arm2 = createPoint(c, "P3", [0, 5, 0]);
+        const bisector = createAngleBisector(c, "R3", vertex, arm1, arm2);
+
+        expect(bisector.P1.coords).toEqual([0, 0, 0]);
+        expect(bisector.VEC[0]).toBeCloseTo(Math.SQRT1_2);
+        expect(bisector.VEC[1]).toBeCloseTo(Math.SQRT1_2);
+        expect(bisector.insideBounds(0)).toBe(true);
+        expect(bisector.insideBounds(-1)).toBe(false);
+
+        arm2.coords = [-5, 0, 0];
+        c.invalidateGeometry(arm2);
+        c.OBJS.update();
+
+        expect(bisector.defined).toBe(false);
     });
 
     it("selects ordered line-circle and circle-circle intersections", () => {
