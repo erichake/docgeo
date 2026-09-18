@@ -13,7 +13,7 @@ import { polygon_object } from "../../src/objects/polygon_object";
 import { symmetry_object } from "../../src/objects/symmetry_object";
 import { two_points_line_object } from "../../src/objects/two_points_line_object";
 import { preferences } from "../../src/preferences";
-import { vDot, vNormalize, vSub } from "../../src/vec";
+import { vDot, vNormalize, vSub, type Vec3 } from "../../src/vec";
 
 function createConstruction(): construction {
     document.documentElement.style.width = "100%";
@@ -376,6 +376,80 @@ P=PointOn("P",poly,0.5);`,
         c.OBJS.update();
         expect(e3.value).toBe(7);
         expect(e3.dom.dom().textContent).toBe("E3 = 7");
+    });
+
+    it("keeps a magnetized point glued to whichever segment it grabbed, only switching on a fresh grab", async () => {
+        const c = createConstruction();
+        await importDgpFromUrl(c, "/tests/trace.dgp");
+        c.OBJS.update();
+        const m = c.getObj("M") as point_object;
+        const s1 = c.getObj("S1") as two_points_line_object;
+        const s2 = c.getObj("S2") as two_points_line_object;
+        const el = m.dom.dom();
+
+        const dragEvent = (
+            type: "pointerdown" | "pointermove" | "pointerup",
+            x: number,
+            y: number,
+        ) =>
+            new PointerEvent(type, {
+                clientX: x,
+                clientY: y,
+                button: 0,
+                isPrimary: true,
+                pointerId: 1,
+                bubbles: true,
+            });
+        const distanceToSegment = (
+            line: two_points_line_object,
+            point: Vec3,
+        ): number => {
+            const direction = vSub(line.P2.coords, line.P1.coords);
+            const alpha = Math.max(
+                0,
+                Math.min(
+                    1,
+                    vDot(vSub(point, line.P1.coords), direction) /
+                        vDot(direction, direction),
+                ),
+            );
+            return Math.hypot(
+                point[0] - (line.P1.coords[0] + alpha * direction[0]),
+                point[1] - (line.P1.coords[1] + alpha * direction[1]),
+            );
+        };
+
+        // S1 and S2 run close and roughly parallel — exactly the ambiguous
+        // zone that used to make the closest-of-the-two flip every frame,
+        // dragging the point back and forth between them instead of
+        // following whichever one it actually snapped onto.
+        const start = c.pt3D(m.coords);
+        el.dispatchEvent(dragEvent("pointerdown", start[0], start[1]));
+        for (const [x, y] of [
+            [300, 200],
+            [305, 210],
+            [298, 220],
+            [290, 235],
+            [295, 245],
+            [285, 255],
+            [280, 260],
+        ]) {
+            el.dispatchEvent(dragEvent("pointermove", x, y));
+            c.OBJS.update();
+            expect(distanceToSegment(s1, m.coords)).toBeLessThan(1e-6);
+        }
+        el.dispatchEvent(dragEvent("pointerup", 280, 260));
+
+        // A fresh grab (pointer up, then down again) dragged decisively
+        // toward S2 must still be able to switch magnets.
+        el.dispatchEvent(dragEvent("pointerdown", 280, 260));
+        el.dispatchEvent(dragEvent("pointermove", 420, 200));
+        c.OBJS.update();
+        el.dispatchEvent(dragEvent("pointermove", 400, 280));
+        c.OBJS.update();
+        el.dispatchEvent(dragEvent("pointerup", 400, 280));
+
+        expect(distanceToSegment(s2, m.coords)).toBeLessThan(1e-6);
     });
 
     it("only builds an SVG view for the objects visible in Apollonius", async () => {

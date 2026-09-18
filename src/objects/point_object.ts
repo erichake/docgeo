@@ -20,6 +20,13 @@ import { two_points_line_object } from "./two_points_line_object";
 
 export type magnet_target = primitive_line_object | primitive_circle_object;
 
+// A margin (screen pixels) a competing magnet must beat the currently
+// active one by before the point switches to it. Without this, right at
+// the boundary between two magnets (equally close), the tiniest pointer
+// jitter flips which one is "closest" every single frame, dragging the
+// point back and forth between them instead of following either one.
+const MAGNET_HYSTERESIS = 15;
+
 // The closest point to `point` lying on `target` (segment/ray bounds
 // respected, same convention as point_on_object's own projection).
 function projectOntoMagnet(target: magnet_target, point: Vec3): Vec3 {
@@ -49,6 +56,9 @@ export class point_object extends construction_object {
     // whichever of these is both within `radius` screen pixels and closest,
     // instead of following the pointer directly.
     magnets: { target: magnet_target; radius: number }[] = [];
+    // The magnet currently holding this point, if any — see
+    // MAGNET_HYSTERESIS.
+    private activeMagnet: magnet_target | null = null;
 
     constructor(
         c: construction,
@@ -116,20 +126,31 @@ export class point_object extends construction_object {
     }
 
     private snapToMagnets(coords: Vec3, screen: Vec2): Vec3 {
-        let closest: Vec3 | null = null;
-        let closestDistance = Infinity;
+        let closest: {
+            target: magnet_target;
+            point: Vec3;
+            distance: number;
+        } | null = null;
+        let active: { point: Vec3; distance: number } | null = null;
         for (const { target, radius } of this.magnets) {
             if (!target.defined) continue;
-            const candidate = projectOntoMagnet(target, coords);
-            const candidateScreen = this.C.pt3D(candidate);
+            const point = projectOntoMagnet(target, coords);
+            const candidateScreen = this.C.pt3D(point);
             if (!vIsFinite(candidateScreen)) continue;
             const distance = vNorm(vSub(candidateScreen, screen));
-            if (distance <= radius && distance < closestDistance) {
-                closest = candidate;
-                closestDistance = distance;
-            }
+            if (distance > radius) continue;
+            if (target === this.activeMagnet) active = { point, distance };
+            if (!closest || distance < closest.distance)
+                closest = { target, point, distance };
         }
-        return closest ?? coords;
+        if (!closest) {
+            this.activeMagnet = null;
+            return coords;
+        }
+        if (active && active.distance <= closest.distance + MAGNET_HYSTERESIS)
+            return active.point;
+        this.activeMagnet = closest.target;
+        return closest.point;
     }
 
     mouseclick(_ev: PointerEvent): void {
