@@ -22,6 +22,7 @@ export class construction {
     OBJS: objects_collector;
     GRID!: grid_object;
     svg!: DOMElement;
+    traceLayer!: DOMElement;
     layers: Map<number, DOMElement>;
     private updateFrame: number | null = null;
     private batchedObjects: construction_object[] | null = null;
@@ -230,6 +231,11 @@ export class construction {
                 this.layers.set(layer, group);
                 this.svg.add(group);
             });
+        this.traceLayer = this.svg
+            .shape("g")
+            .att("data-layer", "trace")
+            .stl("pointer-events", "none");
+        this.svg.add(this.traceLayer);
         this.svg.observeResize((width, height) => this.resize(width, height));
     }
 

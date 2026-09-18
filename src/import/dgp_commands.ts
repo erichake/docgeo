@@ -130,9 +130,7 @@ const STYLE_NUMBER = /^[+-]?(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][+-]?\d+)?$/;
 const MAGNET_LIST =
     /^\[[A-Za-z_$][\w$]*,\d+(?:\.\d+)?\](?:,\[[A-Za-z_$][\w$]*,\d+(?:\.\d+)?\])*$/;
 
-function parseMagnetList(
-    value: string,
-): { name: string; radius: number }[] {
+function parseMagnetList(value: string): { name: string; radius: number }[] {
     return value.split("],[").map((chunk) => {
         const [name, radius] = chunk.replace(/^\[|\]$/g, "").split(",");
         return { name, radius: Number(radius) };
@@ -261,6 +259,7 @@ function validateObjectStyle(
                 break;
             case "sn":
             case "sb":
+            case "tk":
                 if (propertyValue !== "true" && propertyValue !== "false")
                     throw new Error(
                         `Invalid DGP style boolean at line ${lineNumber}`,
@@ -371,6 +370,10 @@ function applyObjectStyle(
             case "sb":
                 if (target instanceof point_on_object)
                     target.onBoundary = propertyValue === "true";
+                break;
+            case "tk":
+                if (target instanceof point_object)
+                    target.trace = propertyValue === "true";
                 break;
             case "f":
                 target.fontSize = Number(propertyValue);
@@ -990,7 +993,11 @@ const COMMANDS = new Map<string, CommandDefinition>([
         {
             parameters: [object, string],
             validate: (args, lineNumber, variables) =>
-                validateObjectStyle(literalString(args[1]), lineNumber, variables),
+                validateObjectStyle(
+                    literalString(args[1]),
+                    lineNumber,
+                    variables,
+                ),
             execute: (context, args) =>
                 applyObjectStyle(
                     args[0] as construction_object,

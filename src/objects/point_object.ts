@@ -52,6 +52,13 @@ export class point_object extends construction_object {
     projectionDefined: boolean;
     shape: string;
     border: number | undefined;
+    trace = false;
+    tracePath?: DOMElement;
+    private traceCoords: Vec3;
+    private traceScreen: Vec2 | null = null;
+    private traceData = "";
+    private traceOpen = false;
+    private traceBreak = false;
     // DGPad's magnetism ("mg" style): while dragging, the point snaps onto
     // whichever of these is both within `radius` screen pixels and closest,
     // instead of following the pointer directly.
@@ -68,6 +75,7 @@ export class point_object extends construction_object {
     ) {
         super(c, name, type ? type : "point");
         this.COORDS = [pt[0], pt[1], pt[2]];
+        this.traceCoords = this.COORDS;
         this.SCREEN = [0, 0];
         this.projectionDefined = true;
 
@@ -144,13 +152,24 @@ export class point_object extends construction_object {
                 closest = { target, point, distance };
         }
         if (!closest) {
+            if (this.activeMagnet) this.breakTraces();
             this.activeMagnet = null;
             return coords;
         }
         if (active && active.distance <= closest.distance + MAGNET_HYSTERESIS)
             return active.point;
+        // A magnet switch starts a new trace subpath for this point and its
+        // dependent points instead of drawing a line between both targets.
+        if (this.activeMagnet !== closest.target) this.breakTraces();
         this.activeMagnet = closest.target;
         return closest.point;
+    }
+
+    private breakTraces(): void {
+        this.traceBreak = true;
+        this.children.forEach((child) => {
+            if (child instanceof point_object) child.traceBreak = true;
+        });
     }
 
     mouseclick(_ev: PointerEvent): void {
@@ -166,8 +185,54 @@ export class point_object extends construction_object {
             "display",
             this.isVisible && this.projectionDefined ? "block" : "none",
         );
+        this.renderTrace();
         if (!this.defined || !this.projectionDefined) return;
         this.dom.att("transform", `translate(${this.sx} ${this.sy})`);
+    }
+
+    private renderTrace(): void {
+        const moved = this.traceCoords !== this.coords;
+        this.traceCoords = this.coords;
+        if (!this.defined || !this.projectionDefined) {
+            this.traceScreen = null;
+            this.traceOpen = false;
+            this.traceBreak = false;
+            return;
+        }
+        if (!moved) {
+            if (
+                this.traceScreen &&
+                (this.traceScreen[0] !== this.sx ||
+                    this.traceScreen[1] !== this.sy)
+            )
+                this.traceOpen = false;
+            this.traceScreen = [this.sx, this.sy];
+            return;
+        }
+        if (
+            this.tracePath &&
+            this.traceScreen &&
+            !this.traceBreak &&
+            (this.traceScreen[0] !== this.sx || this.traceScreen[1] !== this.sy)
+        ) {
+            this.traceData += this.traceOpen
+                ? ` L${this.sx} ${this.sy}`
+                : `M${this.traceScreen[0]} ${this.traceScreen[1]} L${this.sx} ${this.sy}`;
+            this.tracePath.att("d", this.traceData);
+            this.traceOpen = true;
+        } else if (this.traceBreak) {
+            this.traceOpen = false;
+        }
+        this.traceScreen = [this.sx, this.sy];
+        this.traceBreak = false;
+    }
+
+    removeSVG(): void {
+        super.removeSVG();
+        this.tracePath?.dispose();
+        this.tracePath = undefined;
+        this.traceData = "";
+        this.traceOpen = false;
     }
 
     static createSVG(_this: construction_object): DOMElement {
@@ -181,6 +246,18 @@ export class point_object extends construction_object {
             .att("transform", `translate(${t.sx} ${t.sy})`)
             .drag((event) => t.mousedrag(event))
             .tap((event) => t.mouseclick(event));
+
+        if (t.trace) {
+            t.tracePath = t.svg
+                .shape("path")
+                .att("data-trace", t.name)
+                .stl("fill", "none")
+                .stl("stroke", t.stroke_color)
+                .stl("stroke-width", t.size)
+                .stl("stroke-linecap", "round")
+                .stl("pointer-events", "none");
+            t.C.traceLayer.add(t.tracePath);
+        }
 
         dom.add(
             t.svg

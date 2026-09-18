@@ -79,6 +79,18 @@ STL(P,"c:url(https://example.com/image)");`,
         expect(c.OBJS.V).toEqual([c.GRID]);
     });
 
+    it("rejects a non-boolean trace style", () => {
+        const c = createConstruction();
+        expect(() =>
+            importDgp(
+                c,
+                `P=Point("P",0,0);
+STL(P,"tk:1");`,
+            ),
+        ).toThrow("Invalid DGP style boolean at line 2");
+        expect(c.OBJS.V).toEqual([c.GRID]);
+    });
+
     it("imports the perpendicular-bisector reference figure", async () => {
         const c = createConstruction();
         await importDgpFromUrl(c, "/tests/_Mediatrice.dgp");
@@ -450,6 +462,72 @@ P=PointOn("P",poly,0.5);`,
         el.dispatchEvent(dragEvent("pointerup", 400, 280));
 
         expect(distanceToSegment(s2, m.coords)).toBeLessThan(1e-6);
+    });
+
+    it("traces point movement without joining magnet switches or reprojections", async () => {
+        const c = createConstruction();
+        await importDgpFromUrl(c, "/tests/trace.dgp");
+        c.OBJS.update();
+        const m = c.getObj("M") as point_object;
+        const s1 = c.getObj("S1") as two_points_line_object;
+        const s2 = c.getObj("S2") as two_points_line_object;
+        const path = m.tracePath!;
+        const pointAt = (line: two_points_line_object, alpha: number): Vec3 => [
+            line.P1.x + alpha * (line.P2.x - line.P1.x),
+            line.P1.y + alpha * (line.P2.y - line.P1.y),
+            line.P1.z + alpha * (line.P2.z - line.P1.z),
+        ];
+        const moveTo = (coords: Vec3): void => {
+            const [clientX, clientY] = c.pt3D(coords);
+            m.mousedrag(new PointerEvent("pointermove", { clientX, clientY }));
+            c.OBJS.update();
+        };
+
+        expect(m.trace).toBe(true);
+        expect(c.svg.dom().lastElementChild).toBe(c.traceLayer.dom());
+        expect(path.getAtt("d")).toBeNull();
+
+        [0.35, 0.45, 0.55].forEach((alpha) => moveTo(pointAt(s1, alpha)));
+        [0.4, 0.5].forEach((alpha) => moveTo(pointAt(s2, alpha)));
+
+        const beforeProjection = path.getAtt("d")!;
+        expect(beforeProjection.match(/M/g)).toHaveLength(2);
+        expect(beforeProjection.match(/L/g)).toHaveLength(3);
+
+        c.GRID.PHI += 0.1;
+        c.invalidateProjection();
+        c.OBJS.update();
+        expect(path.getAtt("d")).toBe(beforeProjection);
+
+        moveTo(pointAt(s2, 0.6));
+        expect(path.getAtt("d")!.match(/M/g)).toHaveLength(3);
+        expect(path.getAtt("d")!.match(/L/g)).toHaveLength(4);
+    });
+
+    it("traces a dependent point when its parent moves", () => {
+        const c = createConstruction();
+        importDgp(
+            c,
+            `A=Point("A",-1,0);
+B=Point("B",1,0);
+L=Line("L",A,B);
+M=Point("M",0,1);
+R=Reflection("R",L,M);
+STL(M,"tk:true");
+STL(R,"tk:true");`,
+        );
+        c.OBJS.update();
+        const m = c.getObj("M") as point_object;
+        const reflection = c.getObj("R") as point_object;
+
+        [1, 2].forEach((x) => {
+            const [clientX, clientY] = c.pt3D([x, 1, 0]);
+            m.mousedrag(new PointerEvent("pointermove", { clientX, clientY }));
+            c.OBJS.update();
+        });
+
+        expect(m.tracePath!.getAtt("d")!.match(/L/g)).toHaveLength(2);
+        expect(reflection.tracePath!.getAtt("d")!.match(/L/g)).toHaveLength(2);
     });
 
     it("only builds an SVG view for the objects visible in Apollonius", async () => {
