@@ -30,8 +30,8 @@ interface Token {
 }
 
 const NUMBER = /[+-]?(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][+-]?\d+)?/y;
-const IDENTIFIER_START = /[$_\p{ID_Start}]/u;
-const IDENTIFIER_PART = /[$_\u200c\u200d\p{ID_Continue}]/u;
+export const IDENTIFIER_START = /[$_\p{ID_Start}]/u;
+export const IDENTIFIER_PART = /[$_\u200c\u200d\p{ID_Continue}]/u;
 
 class Lexer {
     private index = 0;

@@ -16,6 +16,7 @@ import {
     fixed_angle_object,
 } from "../objects/fixed_angle_object";
 import { createFixedPoint } from "../objects/fixed_point_object";
+import { createFormulaPoint } from "../objects/formula_point_object";
 import { createOrderedIntersection } from "../objects/intersection_object";
 import { createLocus, type locus_object } from "../objects/locus_object";
 import { createMidpoint } from "../objects/midpoint_object";
@@ -42,6 +43,11 @@ import { createSegment } from "../objects/segment_object";
 import { createSymmetry } from "../objects/symmetry_object";
 import { createLine } from "../objects/two_points_line_object";
 import type { Vec2, Vec3 } from "../vec";
+import {
+    formulaIdentifiers,
+    parseFormula,
+    type FormulaNode,
+} from "./dgp_formula";
 import type { DgpCall, DgpValue } from "./dgp_parser";
 
 type ObjectKind =
@@ -68,7 +74,9 @@ type ParameterKind =
     | "coordinate"
     // PointOn's parameter: a plain number for a line/circle support, or a
     // [number, number] pair for a polygon/quadric support.
-    | "numberOrPair";
+    | "numberOrPair"
+    // A plain number literal, or a string holding a DGP formula.
+    | "formula";
 
 interface Parameter {
     kind: ParameterKind;
@@ -118,6 +126,7 @@ const intersectable: Parameter = { kind: "intersectable" };
 const pointSupport: Parameter = { kind: "pointSupport" };
 const coordinate: Parameter = { kind: "coordinate" };
 const numberOrPair: Parameter = { kind: "numberOrPair" };
+const formula: Parameter = { kind: "formula" };
 // DGPad's own color parser matches this hex prefix without anchoring the
 // end, so a color value with a stray suffix (e.g. a missing ";" merging it
 // with the next "key:value" pair, as seen in some exported .dgp files) is
@@ -198,6 +207,35 @@ function parseComplexLiteral(value: string): [number, number] | null {
 function parseExpressionValue(value: string): number | number[] | null {
     if (STYLE_NUMBER.test(value)) return Number(value);
     return parseVectorLiteral(value) ?? parseComplexLiteral(value);
+}
+
+function parsePointFormula(value: string, lineNumber: number): FormulaNode {
+    try {
+        return parseFormula(value);
+    } catch {
+        throw new Error(
+            `Unsupported DGP point expression at line ${lineNumber}`,
+        );
+    }
+}
+
+function parseRadiusFormula(value: string, lineNumber: number): FormulaNode {
+    try {
+        return parseFormula(value);
+    } catch {
+        throw new Error(`Invalid DGP circle radius at line ${lineNumber}`);
+    }
+}
+
+function validateFormulaReferences(
+    formulaNode: FormulaNode,
+    variables: Map<string, ObjectKind>,
+    lineNumber: number,
+): void {
+    formulaIdentifiers(formulaNode).forEach((name) => {
+        if (variables.get(name) !== "point")
+            throw new Error(`Unknown DGP reference at line ${lineNumber}`);
+    });
 }
 
 // DGPad's Polygon command stores its vertices as a single comma-separated
@@ -496,7 +534,7 @@ const COMMANDS = new Map<string, CommandDefinition>([
         {
             parameters: [string, coordinate, coordinate],
             result: "point",
-            validate: (args, lineNumber) => {
+            validate: (args, lineNumber, variables) => {
                 const second = args[1];
                 const third = args[2];
                 if (second.type !== "literal" || third.type !== "literal")
@@ -507,7 +545,23 @@ const COMMANDS = new Map<string, CommandDefinition>([
                         `Invalid DGP point coordinates at line ${lineNumber}`,
                     );
                 const vector = parseVectorLiteral(second.value);
-                if (!vector || (vector.length !== 2 && vector.length !== 3))
+                if (!vector) {
+                    if (third.value !== "0")
+                        throw new Error(
+                            `Invalid DGP point flag at line ${lineNumber}`,
+                        );
+                    const pointFormula = parsePointFormula(
+                        second.value,
+                        lineNumber,
+                    );
+                    validateFormulaReferences(
+                        pointFormula,
+                        variables,
+                        lineNumber,
+                    );
+                    return;
+                }
+                if (vector.length !== 2 && vector.length !== 3)
                     throw new Error(
                         `Unsupported DGP point expression at line ${lineNumber}`,
                     );
@@ -523,12 +577,31 @@ const COMMANDS = new Map<string, CommandDefinition>([
                 const name = args[0] as string;
                 const second = args[1];
                 if (typeof second === "string") {
-                    const vector = parseVectorLiteral(second)!;
-                    const coords: Vec3 =
-                        vector.length === 3
-                            ? [vector[0], vector[1], vector[2]]
-                            : [vector[0], vector[1], 0];
-                    return createFixedPoint(context.construction, name, coords);
+                    const vector = parseVectorLiteral(second);
+                    if (vector) {
+                        const coords: Vec3 =
+                            vector.length === 3
+                                ? [vector[0], vector[1], vector[2]]
+                                : [vector[0], vector[1], 0];
+                        return createFixedPoint(
+                            context.construction,
+                            name,
+                            coords,
+                        );
+                    }
+                    const formula = parseFormula(second);
+                    const refs = new Map(
+                        [...formulaIdentifiers(formula)].map((refName) => [
+                            refName,
+                            context.variables.get(refName) as point_object,
+                        ]),
+                    );
+                    return createFormulaPoint(
+                        context.construction,
+                        name,
+                        formula,
+                        refs,
+                    );
                 }
                 if (context.is3D && !context.origin3DAssigned) {
                     context.origin3DAssigned = true;
@@ -749,15 +822,44 @@ const COMMANDS = new Map<string, CommandDefinition>([
     [
         "Circle1",
         {
-            parameters: [string, point, number],
+            parameters: [string, point, formula],
             result: "circle",
-            execute: (context, args) =>
-                createCircle1(
-                    context.construction,
-                    args[0] as string,
-                    args[1] as point_object,
-                    args[2] as number,
-                ),
+            validate: (args, lineNumber, variables) => {
+                const radiusArg = args[2];
+                if (
+                    radiusArg.type !== "literal" ||
+                    typeof radiusArg.value !== "string"
+                )
+                    return;
+                const radiusFormula = parseRadiusFormula(
+                    radiusArg.value,
+                    lineNumber,
+                );
+                validateFormulaReferences(radiusFormula, variables, lineNumber);
+            },
+            execute: (context, args) => {
+                const name = args[0] as string;
+                const center = args[1] as point_object;
+                const radiusArg = args[2];
+                if (typeof radiusArg !== "string")
+                    return createCircle1(
+                        context.construction,
+                        name,
+                        center,
+                        radiusArg as number,
+                    );
+                const radiusFormula = parseFormula(radiusArg);
+                const refs = new Map(
+                    [...formulaIdentifiers(radiusFormula)].map((refName) => [
+                        refName,
+                        context.variables.get(refName) as point_object,
+                    ]),
+                );
+                return createCircle1(context.construction, name, center, {
+                    formula: radiusFormula,
+                    refs,
+                });
+            },
         },
     ],
     [
@@ -1053,13 +1155,13 @@ function validateValue(
     lineNumber: number,
 ): void {
     if (value.type === "literal") {
-        if (parameter.kind === "coordinate") {
+        if (parameter.kind === "coordinate" || parameter.kind === "formula") {
             if (
                 typeof value.value !== "number" &&
                 typeof value.value !== "string"
             )
                 throw new Error(
-                    `Invalid coordinate argument at line ${lineNumber}`,
+                    `Invalid ${parameter.kind} argument at line ${lineNumber}`,
                 );
             return;
         }

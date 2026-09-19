@@ -1,0 +1,18 @@
+// Coordinates System :
+SetCoords(400,285.5,40,false,800,572);
+
+
+// Geometry :
+A=Point("A","[-4,3]","0");
+B=Point("B","2+3i","0");
+E=Point("E","A+5-i","0");
+C1=Circle1("C1",B,"d(A,E)");
+
+
+// Styles :
+STL(A,"c:#0000b2;s:6;sn:true;f:30");
+STL(B,"c:#0000b2;s:6;sn:true;f:30");
+STL(E,"c:#0000b2;s:6;sn:true;f:30");
+STL(C1,"c:#cc66cc;s:1;f:30;p:0");
+SetCoordsStyle("isAxis:true;isGrid:true;isOx:true;isOy:true;isLockOx:false;isLockOy:false;centerZoom:false;onlyPositive:false;color:#111111;fontSize:18;axisWidth:1;gridWidth:0.1");
+SetGeneralStyle("background-color:#F8F8F8;degree:true;dragmoveable:true");

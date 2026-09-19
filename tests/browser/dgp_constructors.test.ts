@@ -7,7 +7,9 @@ import { createCircle1 } from "../../src/objects/circle1_object";
 import { createCircle3 } from "../../src/objects/circle3_object";
 import { createCircle3pts } from "../../src/objects/circle3pts_object";
 import { createCircle } from "../../src/objects/circle_object";
+import { parseFormula } from "../../src/import/dgp_formula";
 import { createFixedAngle } from "../../src/objects/fixed_angle_object";
+import { createFormulaPoint } from "../../src/objects/formula_point_object";
 import { createOrderedIntersection } from "../../src/objects/intersection_object";
 import { createPerpendicularBisector } from "../../src/objects/perpendicular_bisector_object";
 import {
@@ -275,5 +277,35 @@ describe("DGPad geometric constructors", () => {
         expect(center.defined).toBe(true);
         expect(center.coords[0]).toBeCloseTo(0.5);
         expect(center.coords[1]).toBeCloseTo(0.5);
+    });
+
+    it("recomputes a formula point and a formula-radius circle when their references move", () => {
+        const c = createConstruction();
+        const a = createPoint(c, "A", [0, 0, 0]);
+        const b = createPoint(c, "B", [3, 4, 0]);
+
+        const formulaPoint = createFormulaPoint(
+            c,
+            "P",
+            parseFormula("A+5-i"),
+            new Map([["A", a]]),
+        );
+        const circle = createCircle1(c, "C", a, {
+            formula: parseFormula("d(A,B)"),
+            refs: new Map([
+                ["A", a],
+                ["B", b],
+            ]),
+        });
+
+        expect(formulaPoint.coords).toEqual([5, -1, 0]);
+        expect(circle.R).toBeCloseTo(5);
+
+        a.coords = [1, 1, 0];
+        c.invalidateGeometry(a);
+        c.OBJS.update();
+
+        expect(formulaPoint.coords).toEqual([6, 0, 0]);
+        expect(circle.R).toBeCloseTo(Math.hypot(2, 3));
     });
 });

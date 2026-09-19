@@ -3,9 +3,11 @@ import { construction } from "../../src/construction";
 import { importDgp, importDgpFromUrl } from "../../src/dgp_importer";
 import { angle_bisector_object } from "../../src/objects/angle_bisector_object";
 import { angle_object } from "../../src/objects/angle_object";
+import { circle1_object } from "../../src/objects/circle1_object";
 import { expression_object } from "../../src/objects/expression_object";
 import { fixed_angle_object } from "../../src/objects/fixed_angle_object";
 import { fixed_point_object } from "../../src/objects/fixed_point_object";
+import { formula_point_object } from "../../src/objects/formula_point_object";
 import { locus_object } from "../../src/objects/locus_object";
 import { point_on_object } from "../../src/objects/point_on_object";
 import { point_object } from "../../src/objects/point_object";
@@ -541,5 +543,48 @@ STL(R,"tk:true");`,
         )!;
         expect(hidden.isHidden).toBe(true);
         expect(hidden.dom).toBeUndefined();
+    });
+
+    it("imports Point/Circle1 formulas from ptExp.dgp", async () => {
+        const c = createConstruction();
+        await importDgpFromUrl(c, "/tests/ptExp.dgp");
+
+        const a = c.getObj("A") as point_object;
+        const b = c.getObj("B") as point_object;
+        const e = c.getObj("E") as point_object;
+        const circle = c.getObj("C1") as circle1_object;
+
+        expect(a).toBeInstanceOf(fixed_point_object);
+        expect(a.coords).toEqual([-4, 3, 0]);
+        expect(b).toBeInstanceOf(formula_point_object);
+        expect(b.coords).toEqual([2, 3, 0]);
+        expect(e).toBeInstanceOf(formula_point_object);
+        expect(e.coords[0]).toBeCloseTo(1);
+        expect(e.coords[1]).toBeCloseTo(2);
+        expect(circle).toBeInstanceOf(circle1_object);
+        expect(circle.CENTER).toEqual(b.coords);
+        expect(circle.R).toBeCloseTo(Math.hypot(5, 1));
+    });
+
+    it("rejects a point formula referencing an unknown object", () => {
+        const c = createConstruction();
+        expect(() =>
+            importDgp(
+                c,
+                `A=Point("A","[-4,3]","0");
+E=Point("E","A+Z","0");`,
+            ),
+        ).toThrow("Unknown DGP reference at line 2");
+    });
+
+    it("rejects a circle radius formula referencing an unknown object", () => {
+        const c = createConstruction();
+        expect(() =>
+            importDgp(
+                c,
+                `A=Point("A",0,0);
+C1=Circle1("C1",A,"d(A,Z)");`,
+            ),
+        ).toThrow("Unknown DGP reference at line 2");
     });
 });
