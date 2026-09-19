@@ -3,6 +3,7 @@ import { construction } from "../../src/construction";
 import { importDgp, importDgpFromUrl } from "../../src/dgp_importer";
 import { angle_bisector_object } from "../../src/objects/angle_bisector_object";
 import { angle_object } from "../../src/objects/angle_object";
+import { arc3pts_object } from "../../src/objects/arc3pts_object";
 import { circle1_object } from "../../src/objects/circle1_object";
 import { expression_object } from "../../src/objects/expression_object";
 import { fixed_angle_object } from "../../src/objects/fixed_angle_object";
@@ -586,5 +587,24 @@ E=Point("E","A+Z","0");`,
 C1=Circle1("C1",A,"d(A,Z)");`,
             ),
         ).toThrow("Unknown DGP reference at line 2");
+    });
+
+    it("imports an Arc3pts figure and its center", async () => {
+        const c = createConstruction();
+        await importDgpFromUrl(c, "/tests/arc.dgp");
+
+        const p1 = c.getObj("P1") as point_object;
+        const p2 = c.getObj("P2") as point_object;
+        const p3 = c.getObj("P3") as point_object;
+        const arc = c.getObj("C1") as arc3pts_object;
+        const center = c.getObj("Center1") as point_object;
+
+        expect(arc).toBeInstanceOf(arc3pts_object);
+        expect(arc.defined).toBe(true);
+        expect(Math.hypot(...vSub(p1.coords, arc.CENTER))).toBeCloseTo(arc.R);
+        expect(Math.hypot(...vSub(p2.coords, arc.CENTER))).toBeCloseTo(arc.R);
+        expect(Math.hypot(...vSub(p3.coords, arc.CENTER))).toBeCloseTo(arc.R);
+        expect(center.coords).toEqual(arc.CENTER);
+        expect(arc.dom.dom().innerHTML).not.toMatch(/NaN|Infinity/);
     });
 });

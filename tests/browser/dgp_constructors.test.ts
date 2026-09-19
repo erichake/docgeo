@@ -2,6 +2,7 @@ import { afterEach, describe, expect, it } from "vitest";
 import { construction } from "../../src/construction";
 import { createAngleBisector } from "../../src/objects/angle_bisector_object";
 import { createAngle } from "../../src/objects/angle_object";
+import { createArc3pts } from "../../src/objects/arc3pts_object";
 import { createCenter } from "../../src/objects/center_object";
 import { createCircle1 } from "../../src/objects/circle1_object";
 import { createCircle3 } from "../../src/objects/circle3_object";
@@ -277,6 +278,56 @@ describe("DGPad geometric constructors", () => {
         expect(center.defined).toBe(true);
         expect(center.coords[0]).toBeCloseTo(0.5);
         expect(center.coords[1]).toBeCloseTo(0.5);
+    });
+
+    it("constructs an arc through three points, picking the arc that passes through the middle one", () => {
+        const c = createConstruction();
+        const a = createPoint(c, "A", [5, 0, 0]);
+        const bShort = createPoint(c, "Bs", [2.5, 5 * Math.sin(Math.PI / 3), 0]);
+        const cPt = createPoint(
+            c,
+            "C",
+            [5 * Math.cos((5 * Math.PI) / 6), 2.5, 0],
+        );
+        const shortArc = createArc3pts(c, "ShortArc", a, bShort, cPt);
+        const center = createCenter(c, "Center", shortArc);
+
+        expect(shortArc.CENTER[0]).toBeCloseTo(0);
+        expect(shortArc.CENTER[1]).toBeCloseTo(0);
+        expect(shortArc.R).toBeCloseTo(5);
+        expect(center.coords[0]).toBeCloseTo(0);
+        expect(center.coords[1]).toBeCloseTo(0);
+        expect(shortArc.sweepFlag).toBe(1);
+        expect(shortArc.largeArcFlag).toBe(0);
+        expect(shortArc.dom.dom().innerHTML).not.toMatch(/NaN|Infinity/);
+
+        const bLong = createPoint(
+            c,
+            "Bl",
+            [5 * Math.cos(-Math.PI / 3), 5 * Math.sin(-Math.PI / 3), 0],
+        );
+        const longArc = createArc3pts(c, "LongArc", a, bLong, cPt);
+
+        expect(longArc.sweepFlag).toBe(0);
+        expect(longArc.largeArcFlag).toBe(1);
+    });
+
+    it("propagates arc degeneracy and recovers after parent movement", () => {
+        const c = createConstruction();
+        const a = createPoint(c, "Aa", [0, 0, 0]);
+        const b = createPoint(c, "Bb", [1, 0, 0]);
+        const d = createPoint(c, "Dd", [2, 0, 0]);
+        const arc = createArc3pts(c, "Arc", a, b, d);
+
+        expect(arc.defined).toBe(false);
+
+        d.coords = [0, 1, 0];
+        c.invalidateGeometry(d);
+        c.OBJS.update();
+
+        expect(arc.defined).toBe(true);
+        expect(arc.CENTER[0]).toBeCloseTo(0.5);
+        expect(arc.CENTER[1]).toBeCloseTo(0.5);
     });
 
     it("recomputes a formula point and a formula-radius circle when their references move", () => {
