@@ -1,5 +1,15 @@
 import type { construction } from "../construction";
-import { numEqual, vCross, vNormalize, vSub, type Vec3 } from "../vec";
+import {
+    numEqual,
+    vAdd,
+    vCross,
+    vDot,
+    vNorm,
+    vNormalize,
+    vScale,
+    vSub,
+    type Vec3,
+} from "../vec";
 import type { point_object } from "./point_object";
 import { primitive_line_object } from "./primitive_line_object";
 
@@ -29,6 +39,23 @@ export class plumb_line_object extends primitive_line_object {
 
         const w = vSub(m, p);
         return vNormalize(vCross(v, vCross(v, w)));
+    }
+
+    // The point it passes through, and the foot of the perpendicular on D
+    // (the point where this line actually crosses D). When P1 is itself
+    // (already) on D — e.g. Perpendicular(I, B) where B defines I — that
+    // foot coincides with P1, leaving no natural span; borrow D's own
+    // scale instead, centered on P1, like Parallel does.
+    protected referenceSpan(): [Vec3, Vec3] | null {
+        if (!this.D.defined) return null;
+        const foot = vAdd(
+            this.D.P1.coords,
+            vScale(this.D.VEC, vDot(vSub(this.P1.coords, this.D.P1.coords), this.D.VEC)),
+        );
+        const scale = this.D.characteristicLength();
+        if (vNorm(vSub(foot, this.P1.coords)) >= scale) return [this.P1.coords, foot];
+        const half = vScale(this.VEC, scale / 2);
+        return [vSub(this.P1.coords, half), vAdd(this.P1.coords, half)];
     }
 }
 

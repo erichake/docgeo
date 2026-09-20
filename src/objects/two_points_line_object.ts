@@ -26,6 +26,10 @@ export class two_points_line_object extends primitive_line_object {
         return vNormalize(vSub(this.P2.coords, this.P1.coords));
     }
 
+    protected referenceSpan(): [Vec3, Vec3] | null {
+        return [this.P1.coords, this.P2.coords];
+    }
+
     protected isOwnFace(polygon: polygon_object): boolean {
         return (
             polygon.points.includes(this.P1) && polygon.points.includes(this.P2)

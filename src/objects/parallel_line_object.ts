@@ -1,5 +1,5 @@
 import type { construction } from "../construction";
-import type { Vec3 } from "../vec";
+import { vAdd, vScale, vSub, type Vec3 } from "../vec";
 import type { point_object } from "./point_object";
 import { primitive_line_object } from "./primitive_line_object";
 
@@ -19,6 +19,14 @@ export class parallel_line_object extends primitive_line_object {
 
     computeVEC(): Vec3 | null {
         return this.D.defined ? this.D.VEC : null;
+    }
+
+    // A parallel line has no point in common with D, so it borrows D's own
+    // scale and centers a span of that length on P1.
+    protected referenceSpan(): [Vec3, Vec3] | null {
+        if (!this.D.defined) return null;
+        const half = vScale(this.VEC, this.D.characteristicLength() / 2);
+        return [vSub(this.P1.coords, half), vAdd(this.P1.coords, half)];
     }
 }
 

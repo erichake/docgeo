@@ -11,6 +11,7 @@ const QUARTER_TURN = Math.PI / 2;
 
 export class segment_object extends two_points_line_object {
     lengthText?: DOMElement;
+    protected showTips = false;
 
     constructor(
         c: construction,

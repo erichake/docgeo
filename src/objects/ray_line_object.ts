@@ -4,6 +4,8 @@ import type { point_object } from "./point_object";
 import { two_points_line_object } from "./two_points_line_object";
 
 export class ray_line_object extends two_points_line_object {
+    protected showTips = false;
+
     constructor(
         c: construction,
         name: string | null | undefined,

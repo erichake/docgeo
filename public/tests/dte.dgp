@@ -1,0 +1,16 @@
+// Coordinates System :
+SetCoords(400,285.5,40,false,800,572);
+
+
+// Geometry :
+A=Point("A",-2.9,2.3625);
+B=Point("B",2.05,1.5375);
+L1=Line("L1",A,B);
+
+
+// Styles :
+STL(A,"c:#0000b2;s:6;sn:true;f:30");
+STL(B,"c:#0000b2;s:6;sn:true;f:30");
+STL(L1,"c:#780013;s:1;f:30;p:0");
+SetCoordsStyle("isAxis:false;isGrid:true;isOx:true;isOy:true;isLockOx:false;isLockOy:false;centerZoom:false;onlyPositive:false;color:#111111;fontSize:18;axisWidth:1;gridWidth:0.1");
+SetGeneralStyle("background-color:#F8F8F8;degree:true;dragmoveable:true");

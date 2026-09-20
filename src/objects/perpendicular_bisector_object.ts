@@ -1,5 +1,5 @@
 import type { construction } from "../construction";
-import { vAdd, vNormalize, vScale, type Vec3 } from "../vec";
+import { vAdd, vNorm, vNormalize, vScale, vSub, type Vec3 } from "../vec";
 import { point_object } from "./point_object";
 import { primitive_line_object } from "./primitive_line_object";
 
@@ -29,6 +29,13 @@ export class perpendicular_bisector_object extends primitive_line_object {
     project(): void {
         this.P1.project();
         super.project();
+    }
+
+    // As wide as the segment it bisects, centered on the midpoint.
+    protected referenceSpan(): [Vec3, Vec3] | null {
+        if (!this.A1.defined || !this.A2.defined) return null;
+        const half = vScale(this.VEC, vNorm(vSub(this.A2.coords, this.A1.coords)) / 2);
+        return [vSub(this.P1.coords, half), vAdd(this.P1.coords, half)];
     }
 }
 

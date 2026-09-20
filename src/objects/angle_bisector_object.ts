@@ -13,6 +13,7 @@ import { primitive_line_object } from "./primitive_line_object";
 export class angle_bisector_object extends primitive_line_object {
     A1: point_object;
     A2: point_object;
+    protected showTips = false;
 
     constructor(
         c: construction,
