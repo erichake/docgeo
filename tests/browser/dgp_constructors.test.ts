@@ -13,8 +13,10 @@ import { createCircle3pts } from "../../src/objects/circle3pts_object";
 import { createCircle } from "../../src/objects/circle_object";
 import { parseFormula } from "../../src/import/dgp_formula";
 import { createFixedAngle } from "../../src/objects/fixed_angle_object";
+import { createExpression } from "../../src/objects/expression_object";
 import { createFormulaPoint } from "../../src/objects/formula_point_object";
 import { createOrderedIntersection } from "../../src/objects/intersection_object";
+import { createList } from "../../src/objects/list_object";
 import { createPerpendicularBisector } from "../../src/objects/perpendicular_bisector_object";
 import {
     createPointOn,
@@ -414,5 +416,36 @@ describe("DGPad geometric constructors", () => {
 
         expect(formulaPoint.coords).toEqual([6, 0, 0]);
         expect(circle.R).toBeCloseTo(Math.hypot(2, 3));
+    });
+
+    it("evaluates a List's per-index formula and recomputes when its cursor moves", () => {
+        const c = createConstruction();
+        const a = createPoint(c, "A", [0, 0, 0]);
+        const b = createPoint(c, "B", [6, 0, 0]);
+        const n = createExpression(c, "n", "", 2, 0, 10, [0, 0]);
+
+        const list = createList(
+            c,
+            "L",
+            "point",
+            parseFormula("x(n)"),
+            [parseFormula("A+(B-A)*k/count")],
+            new Map<string, typeof a | typeof n>([
+                ["A", a],
+                ["B", b],
+                ["n", n],
+            ]),
+        );
+
+        expect(list.count).toBe(2);
+        expect(list.items[0][0]).toEqual([0, 0]);
+        expect(list.items[1][0]).toEqual([3, 0]);
+
+        n.value = 4;
+        c.invalidateGeometry(n);
+        c.OBJS.update();
+
+        expect(list.count).toBe(4);
+        expect(list.items[3][0]).toEqual([4.5, 0]);
     });
 });

@@ -57,6 +57,7 @@ export interface Preferences {
     fixedangle: ObjectPref;
     expression: ObjectPref;
     grid: GridPref;
+    list: ObjectPref;
 }
 
 export type PrefKey = Exclude<keyof Preferences, "background">;
@@ -79,6 +80,7 @@ export class preferences implements Preferences {
     fixedangle: ObjectPref;
     expression: ObjectPref;
     grid: GridPref;
+    list: ObjectPref;
 
     constructor() {
         this.background = { color: "#FAFAFA" };
@@ -226,6 +228,14 @@ export class preferences implements Preferences {
             step: 0.015,
             focal: 10,
             layer: 1,
+        };
+
+        this.list = {
+            color: { fill: "#656148", stroke: "#656148" },
+            size: 2,
+            touchsize: 5,
+            name: "List",
+            layer: 4,
         };
     }
 }

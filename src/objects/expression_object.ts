@@ -9,12 +9,12 @@ const DEFAULT_CURSOR_RADIUS = 10;
 const CURSOR_BORDER = 2;
 const CURSOR_OFFSET_Y = 20;
 
-function formatNumber(value: number, precision: number): string {
+export function formatNumber(value: number, precision: number): string {
     const factor = 10 ** precision;
     return (Math.round(value * factor) / factor).toString().replace(".", ",");
 }
 
-function formatValue(value: number | number[], precision: number): string {
+export function formatValue(value: number | number[], precision: number): string {
     if (Array.isArray(value))
         return (
             "[" +

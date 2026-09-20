@@ -177,4 +177,27 @@ describe("evaluateFormula", () => {
     it("returns null when a real-only function receives a complex argument", () => {
         expect(evaluateFormula(parseFormula("sin(1+i)"), noPoints)).toBeNull();
     });
+
+    it("evaluates perp() as the unit perpendicular vector", () => {
+        const env = envWith({ V: [3, 0] });
+        const [px, py] = evaluateFormula(parseFormula("perp(V)"), env) as [
+            number,
+            number,
+        ];
+        expect(px).toBeCloseTo(0);
+        expect(py).toBeCloseTo(1);
+        const rotated = evaluateFormula(
+            parseFormula("perp(V)"),
+            envWith({ V: [1, 1] }),
+        ) as [number, number];
+        expect(Math.hypot(rotated[0], rotated[1])).toBeCloseTo(1);
+        expect(rotated[0]).toBeCloseTo(-Math.SQRT1_2);
+        expect(rotated[1]).toBeCloseTo(Math.SQRT1_2);
+    });
+
+    it("returns null for perp() of a zero vector", () => {
+        expect(
+            evaluateFormula(parseFormula("perp(V)"), envWith({ V: [0, 0] })),
+        ).toBeNull();
+    });
 });

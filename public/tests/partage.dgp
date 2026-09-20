@@ -1,0 +1,28 @@
+// Coordinates System :
+SetCoords(445.95566864710594,459.72866118614104,75.81851236555106,false,986,574);
+
+
+// Geometry :
+A=Point("A","[-5,5]","0");
+n=Expression("n","","2","10","5","-2.452642011103305","3.1618750316586834");
+P2=Point("P2","A+1","0");
+B=Point("B","A+6","0");
+R1=Ray("R1",A,P2);
+S1=Segment("S1",A,B);
+Lp=List("Lp","segment","7","A+(B-A)*k/(count-1)-perp(B-A)*0.12","A+(B-A)*k/(count-1)+perp(B-A)*0.12");
+Ls=List("Ls","segment","6*x(n)","A+(B-A)*k/count-perp(B-A)*0.06","A+(B-A)*k/count+perp(B-A)*0.06");
+Ll=List("Ll","label","7","A+(B-A)*k/(count-1)-perp(B-A)*0.15","x(k)");
+
+
+// Styles :
+STL(A,"c:#0000b2;s:6;sn:true;f:30;np:1.5914119624205005");
+STL(n,"c:#656148;s:7;sn:true;f:24;p:2;i:1;cL:200;cPT:YzojNzgwMDEzO3M6MTA7ZjozMDtpOjE=");
+STL(P2,"c:#0000b2;h:1;s:6;f:30");
+STL(B,"c:#0000b2;s:6;sn:true;f:30;np:1.5817021705452365");
+STL(R1,"c:#993300;h:1;s:1;f:30;p:0");
+STL(S1,"c:#006633;s:1;f:24");
+STL(Lp,"c:#0000b2;s:2");
+STL(Ls,"c:#8080b0;s:1");
+STL(Ll,"c:#0000b2;f:22;p:0");
+SetCoordsStyle("isAxis:false;isGrid:true;isOx:true;isOy:true;isLockOx:false;isLockOy:false;centerZoom:false;onlyPositive:false;color:#111111;fontSize:18;axisWidth:1;gridWidth:0.1");
+SetGeneralStyle("background-color:#F8F8F8;degree:true;dragmoveable:true");

@@ -19,6 +19,11 @@ import {
 import { createFixedPoint } from "../objects/fixed_point_object";
 import { createFormulaPoint } from "../objects/formula_point_object";
 import { createOrderedIntersection } from "../objects/intersection_object";
+import {
+    createList,
+    type ListNature,
+    type ListRef,
+} from "../objects/list_object";
 import { createLocus, type locus_object } from "../objects/locus_object";
 import { createMidpoint } from "../objects/midpoint_object";
 import { createParallel } from "../objects/parallel_line_object";
@@ -60,7 +65,8 @@ type ObjectKind =
     | "quadric"
     | "locus"
     | "angle"
-    | "expression";
+    | "expression"
+    | "list";
 type ParameterKind =
     | "string"
     | "number"
@@ -237,6 +243,44 @@ function validateFormulaReferences(
         if (variables.get(name) !== "point")
             throw new Error(`Unknown DGP reference at line ${lineNumber}`);
     });
+}
+
+function parseListFormula(value: string, lineNumber: number): FormulaNode {
+    try {
+        return parseFormula(value);
+    } catch {
+        throw new Error(`Invalid DGP list formula at line ${lineNumber}`);
+    }
+}
+
+// Unlike validateFormulaReferences (points only), a List formula may also
+// read a cursor's numeric value, and its "k"/"count" loop-scope names are
+// synthetic (bound per index by list_object itself), never real references.
+function validateListFormulaReferences(
+    formulaNode: FormulaNode,
+    variables: Map<string, ObjectKind>,
+    lineNumber: number,
+): void {
+    formulaIdentifiers(formulaNode).forEach((name) => {
+        if (name === "k" || name === "count") return;
+        const kind = variables.get(name);
+        if (kind !== "point" && kind !== "expression")
+            throw new Error(`Unknown DGP reference at line ${lineNumber}`);
+    });
+}
+
+function listFormulaRefs(
+    formulas: FormulaNode[],
+    variables: Map<string, construction_object>,
+): Map<string, ListRef> {
+    const refs = new Map<string, ListRef>();
+    formulas.forEach((formulaNode) =>
+        formulaIdentifiers(formulaNode).forEach((name) => {
+            if (name === "k" || name === "count") return;
+            refs.set(name, variables.get(name) as ListRef);
+        }),
+    );
+    return refs;
 }
 
 // DGPad's Polygon command stores its vertices as a single comma-separated
@@ -1112,6 +1156,75 @@ const COMMANDS = new Map<string, CommandDefinition>([
                         grid.ORG[0] + x * grid.UNIT[0],
                         grid.ORG[1] - y * grid.UNIT[1],
                     ],
+                );
+            },
+        },
+    ],
+    [
+        "List",
+        {
+            parameters: [
+                string,
+                string,
+                string,
+                string,
+                { ...string, optional: true },
+            ],
+            result: "list",
+            validate: (args, lineNumber, variables) => {
+                const nature = literalString(args[1]);
+                if (
+                    nature !== "point" &&
+                    nature !== "segment" &&
+                    nature !== "line" &&
+                    nature !== "label"
+                )
+                    throw new Error(
+                        `Invalid DGP list nature at line ${lineNumber}`,
+                    );
+                const expectedArgs = nature === "point" ? 4 : 5;
+                if (args.length !== expectedArgs)
+                    throw new Error(
+                        `Invalid List argument count at line ${lineNumber}`,
+                    );
+                const countFormula = parseListFormula(
+                    literalString(args[2]),
+                    lineNumber,
+                );
+                validateListFormulaReferences(countFormula, variables, lineNumber);
+                const formula1 = parseListFormula(
+                    literalString(args[3]),
+                    lineNumber,
+                );
+                validateListFormulaReferences(formula1, variables, lineNumber);
+                if (expectedArgs === 5) {
+                    const formula2 = parseListFormula(
+                        literalString(args[4]),
+                        lineNumber,
+                    );
+                    validateListFormulaReferences(formula2, variables, lineNumber);
+                }
+            },
+            execute: (context, args) => {
+                const name = args[0] as string;
+                const nature = args[1] as ListNature;
+                const countFormula = parseFormula(args[2] as string);
+                const formula1 = parseFormula(args[3] as string);
+                const formulas =
+                    nature === "point"
+                        ? [formula1]
+                        : [formula1, parseFormula(args[4] as string)];
+                const refs = listFormulaRefs(
+                    [countFormula, ...formulas],
+                    context.variables,
+                );
+                return createList(
+                    context.construction,
+                    name,
+                    nature,
+                    countFormula,
+                    formulas,
+                    refs,
                 );
             },
         },

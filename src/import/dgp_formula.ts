@@ -13,7 +13,8 @@ export type FormulaFn =
     | "asin"
     | "acos"
     | "atan"
-    | "atan2";
+    | "atan2"
+    | "perp";
 
 const FORMULA_ARITY: Record<FormulaFn, number> = {
     sqrt: 1,
@@ -28,6 +29,7 @@ const FORMULA_ARITY: Record<FormulaFn, number> = {
     acos: 1,
     atan: 1,
     atan2: 2,
+    perp: 1,
 };
 
 export type FormulaNode =
@@ -401,6 +403,12 @@ function evalCall(
             return typeof a === "number" && typeof b === "number"
                 ? Math.atan2(a, b)
                 : null;
+        }
+        case "perp": {
+            const [a] = args;
+            if (typeof a === "number") return null;
+            const norm = Math.hypot(a[0], a[1]);
+            return norm > 0 ? [-a[1] / norm, a[0] / norm] : null;
         }
     }
 }
