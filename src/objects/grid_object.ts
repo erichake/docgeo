@@ -18,6 +18,14 @@ import { polygon_object } from "./polygon_object";
 // as a flat background instead of a plane sitting in space.
 const FLOOR_EXTENT = 5;
 
+// The floor is two-sided: a blue "sky" tone seen from above (z>0 looking
+// down), an earthy brown seen from below, so which side is currently facing
+// the camera is never ambiguous.
+const FLOOR_TOP_COLOR = "rgb(35,141,227)";
+const FLOOR_BOTTOM_COLOR = "rgb(139,94,52)";
+const FLOOR_FILL_OPACITY = "0.16";
+const FLOOR_LINE_OPACITY = "0.5";
+
 function floorCorners(n: number): Vec3[] {
     return [
         [-n, -n, 0],
@@ -148,6 +156,13 @@ export class grid_object extends construction_object {
         this.floorLines.stl("display", show ? "block" : "none");
         if (!show) return;
 
+        // The camera looks down at the top (z>0 side) when moving toward it
+        // decreases depth-along-DIR there, i.e. when DIR's z component is
+        // negative; otherwise it's looking up at the underside.
+        const color = this.DIR[2] < 0 ? FLOOR_TOP_COLOR : FLOOR_BOTTOM_COLOR;
+        this.floorFill.stl("fill", color);
+        this.floorLines.stl("stroke", color);
+
         const frame = this.projectionFrame;
         const n = FLOOR_EXTENT;
         const project2 = (p: Vec3) => projectPoint(p, frame);
@@ -188,15 +203,13 @@ export class grid_object extends construction_object {
         const floorGroup = t.svg.shape("g").stl("clip-path", `url(#${clipId})`);
         t.floorFill = t.svg
             .shape("polygon")
-            .stl("fill", t.fill_color)
-            .stl("fill-opacity", "0.08")
+            .stl("fill-opacity", FLOOR_FILL_OPACITY)
             .stl("stroke", "none")
             .stl("pointer-events", "none");
         t.floorLines = t.svg
             .shape("path")
-            .stl("stroke", t.fill_color)
             .stl("stroke-width", "0.5")
-            .stl("stroke-opacity", "0.35")
+            .stl("stroke-opacity", FLOOR_LINE_OPACITY)
             .stl("pointer-events", "none");
         floorGroup.add(t.floorFill, t.floorLines);
         dom.add(floorGroup);

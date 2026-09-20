@@ -18,6 +18,10 @@ import {
 } from "../vec";
 import type { polygon_object } from "./polygon_object";
 
+function allFinite(points: readonly Vec2[]): boolean {
+    return points.every(([x, y]) => Number.isFinite(x) && Number.isFinite(y));
+}
+
 function signedArea(poly: readonly Vec2[]): number {
     let sum = 0;
     for (let i = 0; i < poly.length; i++) {
@@ -116,7 +120,7 @@ function occluderHiddenPiece(
     const points3D = polygon.points.map((p) => p.coords);
     const screenPoints = polygon.points.map((p) => p.screen);
     let region = convexClip(floorCCW, screenPoints);
-    if (region.length === 0) return null;
+    if (region.length === 0 || !allFinite(region)) return null;
 
     const v0 = points3D[0];
     const normal = vCross(vSub(points3D[1], v0), vSub(points3D[2], v0));
@@ -132,8 +136,9 @@ function occluderHiddenPiece(
         Math.abs(p[2]) > Math.abs(best[2]) ? p : best,
     );
     const probeScreen = projectPoint(probe, frame);
+    if (!allFinite([probeScreen])) return null;
     const floorDepth = floorDepthAt(probeScreen, frame, dir);
-    if (floorDepth === null) return null;
+    if (floorDepth === null || !Number.isFinite(floorDepth)) return null;
     const probeDepth = vDot(probe, dir);
     const nearer = floorDepth - probeDepth > geometryTolerance(floorDepth, probeDepth);
 
@@ -141,12 +146,13 @@ function occluderHiddenPiece(
     if (!line) return nearer ? region : null;
 
     const [s0, s1] = [projectPoint(line[0], frame), projectPoint(line[1], frame)];
+    if (!allFinite([s0, s1])) return null;
     const edge = vSub(s1, s0);
     const side =
         edge[0] * (probeScreen[1] - s0[1]) - edge[1] * (probeScreen[0] - s0[0]);
     const [a, b] = (side >= 0) === nearer ? [s0, s1] : [s1, s0];
     region = clipHalfPlane(region, a, b);
-    return region.length >= 3 ? region : null;
+    return region.length >= 3 && allFinite(region) ? region : null;
 }
 
 function ring(points: readonly Vec2[]): string {
