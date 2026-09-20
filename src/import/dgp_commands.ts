@@ -307,6 +307,9 @@ function validateObjectStyle(
             case "f":
                 validateNumber(propertyValue, lineNumber, 0);
                 break;
+            case "np":
+                validateNumber(propertyValue, lineNumber, 0, 2 * Math.PI);
+                break;
             case "p":
                 validateNumber(propertyValue, lineNumber, -1);
                 if (!Number.isInteger(Number(propertyValue)))
@@ -416,6 +419,10 @@ function applyObjectStyle(
                 break;
             case "f":
                 target.fontSize = Number(propertyValue);
+                break;
+            case "np":
+                if (target instanceof point_object)
+                    target.namePosition = Number(propertyValue);
                 break;
             case "p":
                 target.precision = Number(propertyValue);

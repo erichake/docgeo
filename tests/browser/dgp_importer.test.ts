@@ -34,6 +34,35 @@ afterEach(() => {
 });
 
 describe("DGP importer", () => {
+    it("positions a point name from its saved DGPad angle", () => {
+        const c = createConstruction();
+        const angle = 3.4708243651736628;
+        importDgp(
+            c,
+            `A=Point("A",-5,5);
+B=Point("B",3.15,5);
+STL(A,"c:#0000b2;s:6;sn:true;f:30;np:${angle}");
+STL(B,"c:#0000b2;s:6;sn:true;f:30");`,
+        );
+        const a = c.getObj("A") as point_object;
+        const b = c.getObj("B") as point_object;
+        const aName = a.nameText!;
+        const cos = Math.cos(angle);
+        const sin = Math.sin(angle);
+
+        expect(a.namePosition).toBe(angle);
+        expect(Number(aName.getAtt("x"))).toBeCloseTo(
+            2 * a.size * cos + (aName.width() * (cos - 1)) / 2,
+        );
+        expect(Number(aName.getAtt("y"))).toBeCloseTo(
+            -2 * a.size * sin - (a.fontSize * (sin - 1)) / 2,
+        );
+        expect(Number(aName.getAtt("x"))).toBeLessThan(0);
+        expect(Number(aName.getAtt("y"))).toBeGreaterThan(0);
+        expect(b.nameText!.getAtt("x")).toBe("12");
+        expect(b.nameText!.getAtt("y")).toBe("15");
+    });
+
     it("imports two points and their line from the public DGP file", async () => {
         const c = createConstruction();
         await importDgpFromUrl(c, "/tests/_Droite.dgp");

@@ -52,6 +52,8 @@ export class point_object extends construction_object {
     projectionDefined: boolean;
     shape: string;
     border: number | undefined;
+    namePosition = 0;
+    nameText?: DOMElement;
     trace = false;
     tracePath?: DOMElement;
     private traceCoords: Vec3;
@@ -188,6 +190,14 @@ export class point_object extends construction_object {
         this.renderTrace();
         if (!this.defined || !this.projectionDefined) return;
         this.dom.att("transform", `translate(${this.sx} ${this.sy})`);
+        if (this.nameText) {
+            const cos = Math.cos(this.namePosition);
+            const sin = Math.sin(this.namePosition);
+            const size = 2 * this.size;
+            this.nameText
+                .att("x", size * cos + (this.nameText.width() * (cos - 1)) / 2)
+                .att("y", -size * sin - (this.fontSize * (sin - 1)) / 2);
+        }
     }
 
     private renderTrace(): void {
@@ -350,16 +360,15 @@ export class point_object extends construction_object {
         }
 
         if (t.showName) {
-            dom.add(
-                t.svg
-                    .shape("text")
-                    .att("x", s2)
-                    .att("y", t.fontSize / 2)
-                    .stl(
-                        `fill:${t.stroke_color};font-family:Verdana;font-size:${t.fontSize}px;pointer-events:none`,
-                    )
-                    .text(t.name),
-            );
+            t.nameText = t.svg
+                .shape("text")
+                .att("x", s2)
+                .att("y", t.fontSize / 2)
+                .stl(
+                    `fill:${t.stroke_color};font-family:Verdana;font-size:${t.fontSize}px;pointer-events:none`,
+                )
+                .text(t.name);
+            dom.add(t.nameText);
         }
 
         return dom;
