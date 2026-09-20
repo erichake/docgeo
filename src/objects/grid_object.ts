@@ -9,11 +9,27 @@ import {
 } from "../projection";
 import { vNormalize, type Vec2, type Vec3 } from "../vec";
 import { construction_object } from "./construction_object";
+import { floorClipPath } from "./floor_occlusion";
+import { point_object } from "./point_object";
+import { polygon_object } from "./polygon_object";
 
 // Half-side, in math units, of the floor's finite tiling. Kept smaller than
 // the visible area on purpose: a floor covering the whole window would read
 // as a flat background instead of a plane sitting in space.
 const FLOOR_EXTENT = 5;
+
+function floorCorners(n: number): Vec3[] {
+    return [
+        [-n, -n, 0],
+        [n, -n, 0],
+        [n, n, 0],
+        [-n, n, 0],
+    ];
+}
+
+// Unique per grid_object instance, since more than one construction (and so
+// more than one floor) can exist on the same page.
+let nextClipId = 0;
 
 export class grid_object extends construction_object {
     UNIT: Vec3;
@@ -25,11 +41,6 @@ export class grid_object extends construction_object {
     STEP: number;
     FOCAL: number;
     PERSPECTIVE = false;
-    // Defaults to shown, matching the default-visible axis (isAxis defaults
-    // to true); applyCoordsStyle keeps the two in sync when isAxis is set
-    // explicitly. Independent of the axis afterwards: 's' toggles it even
-    // while the axis is hidden.
-    SHOWFLOOR = true;
     CPHI = 0;
     SPHI = 0;
     CTHETA = 0;
@@ -38,6 +49,18 @@ export class grid_object extends construction_object {
     axis!: DOMElement;
     floorFill!: DOMElement;
     floorLines!: DOMElement;
+    floorClipShape!: DOMElement;
+    // A plane, invisible face registered as a real occluder (see
+    // hidden_line.ts) so that geometry dipping below the floor dashes the
+    // same way it would behind any other face. The floor's own visible fill
+    // is handled separately, by floor_occlusion.ts's exact per-face clip —
+    // hidden_line.ts only ever dashes wireframe edges, never fills areas.
+    floorOccluder!: polygon_object;
+    // Defaults to shown, matching the default-visible axis (isAxis defaults
+    // to true); applyCoordsStyle keeps the two in sync when isAxis is set
+    // explicitly. Independent of the axis afterwards: 's' toggles it even
+    // while the axis is hidden.
+    private _showFloor = true;
 
     constructor(c: construction) {
         super(c, null, "grid");
@@ -50,6 +73,31 @@ export class grid_object extends construction_object {
         this.ORG = [c.width / 2, c.height / 2];
         this.STEP = pref.step;
         this.FOCAL = pref.focal;
+    }
+
+    // Separate from the constructor because a real polygon_object's project()
+    // reads c.GRID.projectionFrame (via hidden_line.ts) — it must run only
+    // once c.GRID itself has been assigned. Called once by construction.ts
+    // right after createGrid().
+    initFloorOccluder(): void {
+        const corners = floorCorners(FLOOR_EXTENT).map((p) => {
+            const point = new point_object(this.C, null, p);
+            point.hidden = 2;
+            return this.C.add(point);
+        });
+        const occluder = new polygon_object(this.C, null, corners);
+        occluder.opacity = 0;
+        occluder.size = 0;
+        occluder.hidden = this._showFloor ? 0 : 1;
+        this.floorOccluder = this.C.add(occluder);
+    }
+
+    get SHOWFLOOR(): boolean {
+        return this._showFloor;
+    }
+    set SHOWFLOOR(value: boolean) {
+        this._showFloor = value;
+        this.floorOccluder.hidden = value ? 0 : 1;
     }
 
     project(): void {
@@ -102,27 +150,42 @@ export class grid_object extends construction_object {
 
         const frame = this.projectionFrame;
         const n = FLOOR_EXTENT;
-        const project2 = (p: Vec3) => projectPoint(p, frame).join(",");
+        const project2 = (p: Vec3) => projectPoint(p, frame);
 
-        const corners: Vec3[] = [
-            [-n, -n, 0],
-            [n, -n, 0],
-            [n, n, 0],
-            [-n, n, 0],
-        ];
-        this.floorFill.att("points", corners.map(project2).join(" "));
+        const screenCorners = floorCorners(n).map(project2);
+        this.floorFill.att(
+            "points",
+            screenCorners.map((p) => p.join(",")).join(" "),
+        );
 
         let d = "";
         for (let k = -n; k <= n; k++) {
-            d += "M" + project2([k, -n, 0]) + " L" + project2([k, n, 0]);
-            d += "M" + project2([-n, k, 0]) + " L" + project2([n, k, 0]);
+            const [x1, y1] = project2([k, -n, 0]);
+            const [x2, y2] = project2([k, n, 0]);
+            d += `M${x1} ${y1} L${x2} ${y2}`;
+            const [x3, y3] = project2([-n, k, 0]);
+            const [x4, y4] = project2([n, k, 0]);
+            d += `M${x3} ${y3} L${x4} ${y4}`;
         }
         this.floorLines.att("d", d);
+
+        this.floorClipShape.att(
+            "d",
+            floorClipPath(this.C, frame, screenCorners, this.floorOccluder),
+        );
     }
 
     static createSVG(_this: construction_object): DOMElement {
         const t = _this as grid_object;
         const dom = t.svg.shape("g");
+
+        const clipId = `floor-clip-${nextClipId++}`;
+        t.floorClipShape = t.svg.shape("path").att("clip-rule", "nonzero");
+        const clipPath = t.svg.shape("clipPath").att("id", clipId);
+        clipPath.add(t.floorClipShape);
+        dom.add(clipPath);
+
+        const floorGroup = t.svg.shape("g").stl("clip-path", `url(#${clipId})`);
         t.floorFill = t.svg
             .shape("polygon")
             .stl("fill", t.fill_color)
@@ -135,8 +198,9 @@ export class grid_object extends construction_object {
             .stl("stroke-width", "0.5")
             .stl("stroke-opacity", "0.35")
             .stl("pointer-events", "none");
-        dom.add(t.floorFill);
-        dom.add(t.floorLines);
+        floorGroup.add(t.floorFill, t.floorLines);
+        dom.add(floorGroup);
+
         t.axis = t.svg
             .shape("path")
             .stl("stroke", t.stroke_color)

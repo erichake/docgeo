@@ -37,6 +37,10 @@ export class construction {
         this.layers = new Map();
         this.createSVG();
         this.GRID = createGrid(this);
+        // Needs c.GRID assigned first: creating a real occluder polygon
+        // triggers hidden-line's projectionFrame lookup (c.GRID.
+        // projectionFrame), which would otherwise run before GRID exists.
+        this.GRID.initFloorOccluder();
         this.viewportWidth = this.width;
         this.viewportHeight = this.height;
     }
@@ -49,7 +53,10 @@ export class construction {
             this.invalidateProjection();
         } else if (ev.key === "s" || ev.key === "S") {
             this.GRID.SHOWFLOOR = !this.GRID.SHOWFLOOR;
-            this.invalidateRender(this.GRID);
+            // Toggling the floor also toggles its occluder (see
+            // grid_object.SHOWFLOOR), which other geometry's hidden-line
+            // dashing depends on — not just the floor's own render.
+            this.invalidateProjection();
         }
     }
 
