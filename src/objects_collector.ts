@@ -65,7 +65,13 @@ export class objects_collector {
     update(): void {
         this.frame++;
         // Sorted by construction order so a parent is always recomputed
-        // before the children marked dirty alongside it.
+        // before the children marked dirty alongside it. Each step runs to
+        // completion over every dirty object before the next one starts
+        // (rather than one object's full geometry+project+render before the
+        // next object's): a line's project() can read a *descendant*
+        // point's coords (e.g. an intersection lying on it) even though
+        // that point is necessarily later in construction order and would
+        // otherwise still hold last frame's position.
         const objects = [...this.dirty].sort((a, b) => a.sequence - b.sequence);
         this.dirty.clear();
         objects.forEach((object) => {
@@ -73,10 +79,14 @@ export class objects_collector {
                 object.computeGeometry();
                 object.geometryDirty = false;
             }
+        });
+        objects.forEach((object) => {
             if (object.projectionDirty) {
                 object.project();
                 object.projectionDirty = false;
             }
+        });
+        objects.forEach((object) => {
             if (object.renderDirty) {
                 if (object.hasView) object.render();
                 object.renderDirty = false;
