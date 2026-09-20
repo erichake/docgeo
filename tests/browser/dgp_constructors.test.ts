@@ -428,7 +428,7 @@ describe("DGPad geometric constructors", () => {
             c,
             "L",
             "point",
-            parseFormula("x(n)"),
+            parseFormula("n"),
             [parseFormula("A+(B-A)*k/count")],
             new Map<string, typeof a | typeof n>([
                 ["A", a],
@@ -447,5 +447,28 @@ describe("DGPad geometric constructors", () => {
 
         expect(list.count).toBe(4);
         expect(list.items[3][0]).toEqual([4.5, 0]);
+    });
+
+    it("evaluates a List label's bare-identifier value as a plain number", () => {
+        const c = createConstruction();
+        const a = createPoint(c, "A", [0, 0, 0]);
+
+        c.beginBatch();
+        const list = createList(
+            c,
+            "L",
+            "label",
+            parseFormula("3"),
+            [parseFormula("A"), parseFormula("k")],
+            new Map<string, typeof a>([["A", a]]),
+        );
+        list.precision = 0;
+        c.endBatch();
+
+        expect(list.texts.slice(0, 3).map((text) => text.text())).toEqual([
+            "0",
+            "1",
+            "2",
+        ]);
     });
 });

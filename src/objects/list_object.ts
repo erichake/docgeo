@@ -33,9 +33,19 @@ function resolveRef(ref: ListRef): Vec2 | null {
     return typeof ref.value === "number" ? [ref.value, 0] : null;
 }
 
+// Every reference — a point's coordinates, a cursor's value, "k", "count" —
+// resolves through the same Vec2-shaped identifier slot (see resolveRef),
+// so a bare "n" or "k*2" evaluates to a Vec2 like [5, 0], never the plain
+// number 5. A List's count and a label's displayed value both need a real
+// number, though, so treat a Vec2 with an exactly-zero imaginary part as
+// that real number: nothing produces a nonzero imaginary part here unless a
+// formula deliberately does (a literal "i", or sqrt of a negative), in
+// which case staying a genuinely complex result (and being rejected as a
+// count, or shown as "[re;im]" for a label) is the correct outcome.
 function realPart(value: FormulaValue | null): number | null {
     if (value === null) return null;
-    return typeof value === "number" ? value : null;
+    if (typeof value === "number") return value;
+    return value[1] === 0 ? value[0] : null;
 }
 
 export class list_object extends construction_object {
@@ -47,7 +57,7 @@ export class list_object extends construction_object {
     items: (FormulaValue | null)[][] = [];
     screenItems: (Vec2 | null)[][] = [];
     private path!: DOMElement;
-    private texts: DOMElement[] = [];
+    texts: DOMElement[] = [];
 
     constructor(
         c: construction,
@@ -171,11 +181,12 @@ export class list_object extends construction_object {
     private renderLabels(): void {
         this.texts.forEach((text, index) => {
             const position = this.screenItems[index]?.[0];
-            const value = this.items[index]?.[1] ?? null;
-            if (!position || value === null) {
+            const raw = this.items[index]?.[1] ?? null;
+            if (!position || raw === null) {
                 text.stl("display", "none");
                 return;
             }
+            const value = realPart(raw) ?? raw;
             text
                 .stl("display", "block")
                 .att("x", position[0])
