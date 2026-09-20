@@ -1,5 +1,7 @@
 import type { construction } from "../construction";
+import type { DOMElement } from "../dom";
 import { evaluateFormula, type FormulaNode } from "../import/dgp_formula";
+import type { construction_object } from "./construction_object";
 import type { point_object } from "./point_object";
 import { primitive_circle_object } from "./primitive_circle_object";
 
@@ -46,6 +48,24 @@ export class circle1_object extends primitive_circle_object {
             return;
         }
         this.setCircle(this.P1.coords, radius, [1, 0, 0], [0, 1, 0]);
+    }
+
+    mousedrag(ev: PointerEvent): void {
+        const point = this.C.unprojectToZPlane(
+            this.C.pointerPosition(ev),
+            this.P1.z,
+        );
+        if (!point) return;
+        this.radius = Math.hypot(point[0] - this.P1.x, point[1] - this.P1.y);
+        this.C.invalidateGeometry(this);
+    }
+
+    static createSVG(_this: construction_object): DOMElement {
+        const t = _this as circle1_object;
+        const dom = primitive_circle_object.createSVG(t);
+        if (typeof t.radius === "number")
+            dom.drag((event) => t.mousedrag(event));
+        return dom;
     }
 }
 

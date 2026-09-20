@@ -4,7 +4,10 @@ import { createAngleBisector } from "../../src/objects/angle_bisector_object";
 import { createAngle } from "../../src/objects/angle_object";
 import { createArc3pts } from "../../src/objects/arc3pts_object";
 import { createCenter } from "../../src/objects/center_object";
-import { createCircle1 } from "../../src/objects/circle1_object";
+import {
+    circle1_object,
+    createCircle1,
+} from "../../src/objects/circle1_object";
 import { createCircle3 } from "../../src/objects/circle3_object";
 import { createCircle3pts } from "../../src/objects/circle3pts_object";
 import { createCircle } from "../../src/objects/circle_object";
@@ -66,6 +69,59 @@ describe("DGPad geometric constructors", () => {
         expect(onCircle.x).toBeCloseTo(1);
         expect(onCircle.y).toBeCloseTo(5);
         expect(circle.dom.dom().innerHTML).not.toMatch(/NaN|Infinity/);
+    });
+
+    it("only resizes a Circle1 whose radius is numeric", () => {
+        const c = createConstruction();
+        const fixedCenter = createPoint(c, "P1", [-4.35, 2.7625, 0]);
+        const movableCenter = createPoint(c, "P2", [1.725, 0.0375, 0]);
+        const fixed = createCircle1(c, "C1", fixedCenter, {
+            formula: parseFormula("2"),
+            refs: new Map(),
+        });
+        const movable = createCircle1(
+            c,
+            "C2",
+            movableCenter,
+            3.870158265497678,
+        );
+        const pointer = (
+            type: "pointerdown" | "pointermove" | "pointerup",
+            x: number,
+            y: number,
+        ) =>
+            new PointerEvent(type, {
+                bubbles: true,
+                button: 0,
+                clientX: x,
+                clientY: y,
+                isPrimary: true,
+                pointerId: 1,
+                pointerType: "mouse",
+            });
+        const dragRadius = (circle: circle1_object, radius: number): void => {
+            const start = c.pt3D([
+                circle.P1.x + circle.R,
+                circle.P1.y,
+                circle.P1.z,
+            ]);
+            const end = c.pt3D([
+                circle.P1.x + radius,
+                circle.P1.y,
+                circle.P1.z,
+            ]);
+            const hitArea = circle.hitArea.dom();
+            hitArea.dispatchEvent(pointer("pointerdown", start[0], start[1]));
+            hitArea.dispatchEvent(pointer("pointermove", end[0], end[1]));
+            hitArea.dispatchEvent(pointer("pointerup", end[0], end[1]));
+            c.OBJS.update();
+        };
+
+        dragRadius(fixed, 5);
+        dragRadius(movable, 5);
+
+        expect(fixed.R).toBeCloseTo(2);
+        expect(movable.R).toBeCloseTo(5);
     });
 
     it("keeps PointOn constrained to lines, segments and circles", () => {
