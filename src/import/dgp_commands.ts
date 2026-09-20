@@ -466,8 +466,11 @@ function applyCursorStyle(target: expression_object, value: string): void {
 function applyCoordsStyle(context: CommandContext, value: string): void {
     const style = properties(value);
     const isAxis = style.get("isAxis");
-    if (isAxis !== undefined)
-        context.construction.GRID.hidden = isAxis === "true" ? 0 : 1;
+    if (isAxis !== undefined) {
+        const visible = isAxis === "true";
+        context.construction.GRID.hidden = visible ? 0 : 1;
+        context.construction.GRID.SHOWFLOOR = visible;
+    }
     const color = style.get("color");
     if (color !== undefined) context.construction.GRID.stroke_color = color;
     const axisWidth = style.get("axisWidth");

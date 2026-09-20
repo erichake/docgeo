@@ -44,9 +44,13 @@ export class construction {
     mouseclick(_ev: PointerEvent): void {}
 
     keydown(ev: KeyboardEvent): void {
-        if (ev.key !== "p" && ev.key !== "P") return;
-        this.GRID.PERSPECTIVE = !this.GRID.PERSPECTIVE;
-        this.invalidateProjection();
+        if (ev.key === "p" || ev.key === "P") {
+            this.GRID.PERSPECTIVE = !this.GRID.PERSPECTIVE;
+            this.invalidateProjection();
+        } else if (ev.key === "s" || ev.key === "S") {
+            this.GRID.SHOWFLOOR = !this.GRID.SHOWFLOOR;
+            this.invalidateRender(this.GRID);
+        }
     }
 
     mousedrag(_ev: PointerEvent, [dx, dy]: PointerDelta): void {
