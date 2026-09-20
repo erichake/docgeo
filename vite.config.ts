@@ -6,4 +6,8 @@ export default defineConfig({
         port: 5175,
         strictPort: true,
     },
+    build: {
+        outDir: "../dgpadpro",
+        emptyOutDir: true,
+    },
 });
