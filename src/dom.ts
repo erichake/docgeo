@@ -53,7 +53,7 @@ export class DOMElement {
         return this;
     }
 
-    svgPoint(event: PointerEvent): PointerPosition {
+    svgPoint(event: MouseEvent): PointerPosition {
         const svgElement = this.element as SVGElement;
         const svg = svgElement.ownerSVGElement ?? (svgElement as SVGSVGElement);
         const matrix = svg.getScreenCTM()!;
@@ -285,7 +285,7 @@ export class DOMElement {
     /** Tracks one pointer and reports its displacement since the preceding event. */
     drag(
         callback: (event: PointerEvent, delta: PointerDelta) => void,
-        before?: (event: PointerEvent) => void,
+        before?: (event: PointerEvent) => boolean | void,
         after?: (event: PointerEvent, cancelled: boolean) => void,
         button = 0,
     ): this {
@@ -304,12 +304,12 @@ export class DOMElement {
 
         this.on("pointerdown", (event) => {
             if (!isPrimaryAction(event, button) || pointerId !== null) return;
+            if (before?.(event) === false) return;
             pointerId = event.pointerId;
             oldX = event.clientX;
             oldY = event.clientY;
             event.stopPropagation();
             this.element.setPointerCapture(pointerId);
-            before?.(event);
         });
         this.on("pointermove", (event) => {
             if (event.pointerId !== pointerId) return;

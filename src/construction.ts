@@ -74,6 +74,28 @@ export class construction {
         this.invalidateProjection();
     }
 
+    pan(_event: PointerEvent, [dx, dy]: PointerDelta): void {
+        this.GRID.ORG = [this.GRID.ORG[0] + dx, this.GRID.ORG[1] + dy];
+        this.invalidateProjection();
+    }
+
+    mousewheel(event: WheelEvent): void {
+        const delta =
+            event.deltaY *
+            (event.deltaMode === WheelEvent.DOM_DELTA_LINE
+                ? 40
+                : event.deltaMode === WheelEvent.DOM_DELTA_PAGE
+                  ? this.height
+                  : 1);
+        const scale = Math.exp(-delta / 2000);
+        const [x, y] = this.svg.svgPoint(event);
+        const [ox, oy] = this.GRID.ORG;
+        const [ux, uy, uz] = this.GRID.UNIT;
+        this.GRID.ORG = [x + (ox - x) * scale, y + (oy - y) * scale];
+        this.GRID.UNIT = [ux * scale, uy * scale, uz * scale];
+        this.invalidateProjection();
+    }
+
     get isBatching(): boolean {
         return this.batchedObjects !== null;
     }
@@ -253,12 +275,19 @@ export class construction {
     private bindSceneEvents(element: DOMElement): void {
         element
             .drag(
+                (event, delta) => this.pan(event, delta),
+                (event) =>
+                    event.pointerType === "mouse" &&
+                    event.target === element.dom(),
+            )
+            .drag(
                 (event, delta) => this.mousedrag(event, delta),
                 undefined,
                 undefined,
                 2,
             )
             .tap((event) => this.mouseclick(event));
+        element.on("wheel", (event) => this.mousewheel(event));
         $("body").on("keydown", (event) => this.keydown(event));
     }
 

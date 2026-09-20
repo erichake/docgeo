@@ -230,6 +230,110 @@ describe("geometric construction", () => {
 });
 
 describe("SVG scene", () => {
+    it("pans the coordinate system with a left drag on the background", () => {
+        const c = createConstruction();
+        const point = createPoint(c, "A", [1, 2, 0]);
+        const svg = c.svg.dom();
+        const origin = [...c.GRID.ORG];
+        const screen = [...point.screen];
+        const pointer = (
+            type: "pointerdown" | "pointermove" | "pointerup",
+            x: number,
+            y: number,
+        ) =>
+            new PointerEvent(type, {
+                bubbles: true,
+                button: 0,
+                clientX: x,
+                clientY: y,
+                isPrimary: true,
+                pointerId: 1,
+                pointerType: "mouse",
+            });
+
+        svg.dispatchEvent(pointer("pointerdown", 100, 100));
+        svg.dispatchEvent(pointer("pointermove", 135, 80));
+        svg.dispatchEvent(pointer("pointerup", 135, 80));
+        c.OBJS.update();
+
+        expect(c.GRID.ORG).toEqual([origin[0] + 35, origin[1] - 20]);
+        expect(point.screen).toEqual([screen[0] + 35, screen[1] - 20]);
+    });
+
+    it("does not pan when a left drag starts on an object", () => {
+        const c = createConstruction();
+        const point = createPoint(c, "A", [1, 2, 0]);
+        const other = createPoint(c, "B", [3, 2, 0]);
+        const line = createLine(c, "d", point, other);
+        const origin = [...c.GRID.ORG];
+        const [x, y] = point.screen;
+        const pointer = (
+            type: "pointerdown" | "pointermove" | "pointerup",
+            clientX: number,
+            clientY: number,
+        ) =>
+            new PointerEvent(type, {
+                bubbles: true,
+                button: 0,
+                clientX,
+                clientY,
+                isPrimary: true,
+                pointerId: 1,
+                pointerType: "mouse",
+            });
+
+        const pointElement = point.dom.dom();
+        pointElement.dispatchEvent(pointer("pointerdown", x, y));
+        pointElement.dispatchEvent(pointer("pointermove", x + 35, y - 20));
+        pointElement.dispatchEvent(pointer("pointerup", x + 35, y - 20));
+        expect(c.GRID.ORG).toEqual(origin);
+
+        const lineElement = line.dom.dom().firstElementChild!;
+        lineElement.dispatchEvent(pointer("pointerdown", x, y));
+        lineElement.dispatchEvent(pointer("pointermove", x + 35, y - 20));
+        lineElement.dispatchEvent(pointer("pointerup", x + 35, y - 20));
+        expect(c.GRID.ORG).toEqual(origin);
+    });
+
+    it("zooms around the mouse wheel position", () => {
+        const c = createConstruction();
+        const point = createPoint(c, "A", [1, 0, 0]);
+        const svg = c.svg.dom();
+        const anchor = [...point.screen];
+        const unit = [...c.GRID.UNIT];
+        const event = new WheelEvent("wheel", {
+            bubbles: true,
+            cancelable: true,
+            clientX: anchor[0],
+            clientY: anchor[1],
+            deltaY: -120,
+        });
+
+        svg.dispatchEvent(event);
+        c.OBJS.update();
+
+        expect(event.defaultPrevented).toBe(true);
+        expect(c.GRID.UNIT[0]).toBeGreaterThan(unit[0]);
+        expect(c.GRID.UNIT[0] / unit[0]).toBeCloseTo(Math.exp(120 / 2000));
+        expect(point.screen[0]).toBeCloseTo(anchor[0]);
+        expect(point.screen[1]).toBeCloseTo(anchor[1]);
+
+        svg.dispatchEvent(
+            new WheelEvent("wheel", {
+                clientX: anchor[0],
+                clientY: anchor[1],
+                deltaY: 120,
+            }),
+        );
+        c.OBJS.update();
+
+        c.GRID.UNIT.forEach((value, index) =>
+            expect(value).toBeCloseTo(unit[index]),
+        );
+        expect(point.screen[0]).toBeCloseTo(anchor[0]);
+        expect(point.screen[1]).toBeCloseTo(anchor[1]);
+    });
+
     it("owns the background and recenters itself after resizing", async () => {
         const c = createConstruction();
         const point = createPoint(c, "A", [0, 0, 0]);
