@@ -88,12 +88,21 @@ export class grid_object extends construction_object {
     // once c.GRID itself has been assigned. Called once by construction.ts
     // right after createGrid().
     initFloorOccluder(): void {
-        const corners = floorCorners(FLOOR_EXTENT).map((p) => {
-            const point = new point_object(this.C, null, p);
+        // Named with a space, which the DGP identifier grammar never
+        // produces (see IDENTIFIER_PART in dgp_parser.ts): these internal
+        // objects can otherwise collide with a real figure's own "P1"-style
+        // names, since a null name would draw from the exact same
+        // basename+number pool a DGP command's auto-generated name would —
+        // silently renaming this figure's own object instead (getObj/STL
+        // resolve DGP names through the parser's own variables map, not
+        // this internal .name, so a collision here never breaks import, but
+        // it does leave the object's displayed/looked-up name wrong).
+        const corners = floorCorners(FLOOR_EXTENT).map((p, index) => {
+            const point = new point_object(this.C, `floor corner ${index}`, p);
             point.hidden = 2;
             return this.C.add(point);
         });
-        const occluder = new polygon_object(this.C, null, corners);
+        const occluder = new polygon_object(this.C, "floor occluder", corners);
         occluder.opacity = 0;
         occluder.size = 0;
         occluder.hidden = this._showFloor ? 0 : 1;
