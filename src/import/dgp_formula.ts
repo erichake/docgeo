@@ -38,6 +38,10 @@ export type FormulaNode =
     | { kind: "constant"; name: "PI" }
     | { kind: "identifier"; name: string }
     | { kind: "call"; fn: FormulaFn; args: FormulaNode[] }
+    // A call to a name that isn't one of the built-in FORMULA_ARITY
+    // functions, e.g. "E1(x)" referencing another named Expression: resolved
+    // at evaluation time through FormulaEnv.callFunction, not evalCall.
+    | { kind: "userCall"; name: string; args: FormulaNode[] }
     | { kind: "unary"; op: "-"; operand: FormulaNode }
     | {
           kind: "binary";
@@ -161,12 +165,38 @@ class FormulaParser {
 
     private multiplicative(): FormulaNode {
         let node = this.unary();
-        while (this.current.type === "*" || this.current.type === "/") {
-            const op = this.current.type as "*" | "/";
-            this.advance();
-            node = { kind: "binary", op, left: node, right: this.unary() };
+        while (
+            this.current.type === "*" ||
+            this.current.type === "/" ||
+            this.startsImplicitFactor()
+        ) {
+            if (this.current.type === "*" || this.current.type === "/") {
+                const op = this.current.type as "*" | "/";
+                this.advance();
+                node = { kind: "binary", op, left: node, right: this.unary() };
+            } else {
+                node = {
+                    kind: "binary",
+                    op: "*",
+                    left: node,
+                    right: this.unary(),
+                };
+            }
         }
         return node;
+    }
+
+    // "0.5x^2", "2sin(x)", "3(x+1)": an identifier/"(" immediately following
+    // a factor with no explicit operator means implicit multiplication,
+    // matching DGPad's own math notation. A bare number never starts one
+    // (unlike "0.5x", "1 2" has no standard reading and stays a syntax
+    // error — two adjacent number tokens are never implicit multiplication).
+    private startsImplicitFactor(): boolean {
+        return (
+            this.current.type === "identifier" ||
+            this.current.type === "imaginary" ||
+            this.current.type === "("
+        );
     }
 
     private unary(): FormulaNode {
@@ -222,9 +252,6 @@ class FormulaParser {
     }
 
     private call(name: string): FormulaNode {
-        if (!(name in FORMULA_ARITY))
-            throw new Error(`Unknown DGP formula function "${name}"`);
-        const fn = name as FormulaFn;
         this.advance();
         const args: FormulaNode[] = [];
         if ((this.current.type as TokenType) !== ")") {
@@ -235,6 +262,8 @@ class FormulaParser {
             }
         }
         this.take(")");
+        if (!(name in FORMULA_ARITY)) return { kind: "userCall", name, args };
+        const fn = name as FormulaFn;
         if (args.length !== FORMULA_ARITY[fn])
             throw new Error(`Invalid DGP formula function "${name}" arity`);
         return { kind: "call", fn, args };
@@ -272,6 +301,10 @@ export function formulaIdentifiers(node: FormulaNode): Set<string> {
             case "call":
                 n.args.forEach(walk);
                 break;
+            case "userCall":
+                names.add(n.name);
+                n.args.forEach(walk);
+                break;
         }
     };
     walk(node);
@@ -283,6 +316,21 @@ export type FormulaValue = number | Vec2;
 export interface FormulaEnv {
     resolveIdentifier(name: string): Vec2 | null;
     pixelScale(): number;
+    // Resolves a userCall node (a name outside FORMULA_ARITY applied to
+    // arguments, e.g. "E1(x)"). Consumers that don't support calling named
+    // objects (most formula owners) simply omit this.
+    callFunction?(name: string, args: FormulaValue[]): FormulaValue | null;
+}
+
+// Every identifier resolves through a Vec2-shaped slot (see FormulaEnv),
+// so a real-valued result like "x^2" still comes back as a Vec2 with a
+// zero imaginary part rather than a plain number. Real-only consumers
+// (list counts, label values, real trig functions, curve samples) treat
+// such a Vec2 as that real number, and reject a genuinely complex one.
+export function realPart(value: FormulaValue | null): number | null {
+    if (value === null) return null;
+    if (typeof value === "number") return value;
+    return value[1] === 0 ? value[0] : null;
 }
 
 function complexMul(a: Vec2, b: Vec2): Vec2 {
@@ -323,7 +371,12 @@ function evalBinary(
         if (typeof l === "number" && typeof r === "number")
             return Math.pow(l, r);
         if (typeof l !== "number" && typeof r === "number")
-            return complexPow(l, r);
+            // A real base (an identifier holding a zero-imaginary Vec2, e.g.
+            // a curve's x) goes through plain Math.pow: complexPow's polar
+            // round-trip (cos/sin of an angle that's 0 or PI) leaves a tiny
+            // nonzero imaginary residue even for a perfectly real result,
+            // which realPart would then wrongly reject as complex.
+            return l[1] === 0 ? Math.pow(l[0], r) : complexPow(l, r);
         return null;
     }
     if (typeof l === "number" && typeof r === "number") {
@@ -356,7 +409,8 @@ function realUnary(
     fn: (x: number) => number,
     arg: FormulaValue,
 ): number | null {
-    return typeof arg === "number" ? fn(arg) : null;
+    const real = realPart(arg);
+    return real === null ? null : fn(real);
 }
 
 function evalCall(
@@ -400,9 +454,9 @@ function evalCall(
             return realUnary(Math.atan, args[0]);
         case "atan2": {
             const [a, b] = args;
-            return typeof a === "number" && typeof b === "number"
-                ? Math.atan2(a, b)
-                : null;
+            const ra = realPart(a);
+            const rb = realPart(b);
+            return ra === null || rb === null ? null : Math.atan2(ra, rb);
         }
         case "perp": {
             const [a] = args;
@@ -442,6 +496,16 @@ function evalNode(node: FormulaNode, env: FormulaEnv): FormulaValue | null {
                 args.push(value);
             }
             return evalCall(node.fn, args, env);
+        }
+        case "userCall": {
+            if (!env.callFunction) return null;
+            const args: FormulaValue[] = [];
+            for (const argNode of node.args) {
+                const value = evalNode(argNode, env);
+                if (value === null) return null;
+                args.push(value);
+            }
+            return env.callFunction(node.name, args);
         }
     }
 }

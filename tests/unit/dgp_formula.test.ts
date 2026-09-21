@@ -93,11 +93,48 @@ describe("DGP formula parser", () => {
 
     it.each([
         ["(1+2", "unbalanced parens"],
-        ["foo(A)", "unknown function"],
         ["1 2", "trailing garbage"],
         ["d(A)", "wrong arity"],
     ])("rejects invalid syntax: %s (%s)", (source) => {
         expect(() => parseFormula(source)).toThrow();
+    });
+
+    it("parses implicit multiplication", () => {
+        expect(parseFormula("0.5x^2-4")).toEqual({
+            kind: "binary",
+            op: "-",
+            left: {
+                kind: "binary",
+                op: "*",
+                left: { kind: "number", value: 0.5 },
+                right: {
+                    kind: "binary",
+                    op: "^",
+                    left: { kind: "identifier", name: "x" },
+                    right: { kind: "number", value: 2 },
+                },
+            },
+            right: { kind: "number", value: 4 },
+        });
+        expect(parseFormula("2(x+1)")).toEqual({
+            kind: "binary",
+            op: "*",
+            left: { kind: "number", value: 2 },
+            right: {
+                kind: "binary",
+                op: "+",
+                left: { kind: "identifier", name: "x" },
+                right: { kind: "number", value: 1 },
+            },
+        });
+    });
+
+    it("parses a call to a name outside the built-in functions as userCall", () => {
+        expect(parseFormula("E1(x)")).toEqual({
+            kind: "userCall",
+            name: "E1",
+            args: [{ kind: "identifier", name: "x" }],
+        });
     });
 });
 
@@ -113,6 +150,9 @@ describe("formulaIdentifiers", () => {
         expect(formulaIdentifiers(parseFormula("2+3i"))).toEqual(new Set());
         expect(formulaIdentifiers(parseFormula("d(A,E)"))).toEqual(
             new Set(["A", "E"]),
+        );
+        expect(formulaIdentifiers(parseFormula("E1(x)+1"))).toEqual(
+            new Set(["E1", "x"]),
         );
     });
 });
@@ -199,5 +239,35 @@ describe("evaluateFormula", () => {
         expect(
             evaluateFormula(parseFormula("perp(V)"), envWith({ V: [0, 0] })),
         ).toBeNull();
+    });
+
+    it("evaluates real trig functions of a real-valued (zero-imaginary) identifier", () => {
+        // Every identifier resolves as a Vec2 (see FormulaEnv); a plotted
+        // curve's "x" is real-valued, so sin(x)/cos(x)/atan2(x,y) must still
+        // work even though x comes back as [value, 0], not a raw number.
+        const env = envWith({ x: [Math.PI, 0] });
+        expect(evaluateFormula(parseFormula("sin(x)"), env)).toBeCloseTo(0);
+        expect(evaluateFormula(parseFormula("cos(x)"), env)).toBeCloseTo(-1);
+        expect(
+            evaluateFormula(parseFormula("atan2(x,x)"), envWith({ x: [1, 0] })),
+        ).toBeCloseTo(Math.PI / 4);
+    });
+
+    it("calls a userCall node through FormulaEnv.callFunction", () => {
+        const env: FormulaEnv = {
+            resolveIdentifier: (name) => (name === "x" ? [5, 0] : null),
+            pixelScale: () => 1,
+            callFunction: (name, args) =>
+                name === "double" && typeof args[0] !== "number"
+                    ? [2 * args[0][0], 0]
+                    : null,
+        };
+        expect(evaluateFormula(parseFormula("double(x)+1"), env)).toEqual([
+            11, 0,
+        ]);
+    });
+
+    it("returns null for a userCall when the env doesn't support callFunction", () => {
+        expect(evaluateFormula(parseFormula("E1(x)"), noPoints)).toBeNull();
     });
 });

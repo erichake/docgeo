@@ -1,6 +1,7 @@
 import type { construction } from "../construction";
 import { projectPointOnPlane } from "../projection";
 import { vAdd, vDot, vScale, vSub, type Vec3 } from "../vec";
+import type { curve_object } from "./curve_object";
 import { list_object } from "./list_object";
 import type { locus_object } from "./locus_object";
 import { polygon_object } from "./polygon_object";
@@ -18,7 +19,8 @@ export type point_support_object =
     | polygon_object
     | quadric5pts_object
     | locus_object
-    | list_object;
+    | list_object
+    | curve_object;
 
 type Alpha = number | readonly [number, number];
 
@@ -61,6 +63,15 @@ export class point_on_object extends point_object {
                 return;
             }
             this.coords = coords;
+        } else if (this.support.familytype === "curve") {
+            const coords = (this.support as curve_object).pointAt(
+                this.alpha as number,
+            );
+            if (!coords) {
+                this.defined = false;
+                return;
+            }
+            this.coords = coords;
         } else if (this.support instanceof primitive_circle_object) {
             this.coords = this.support.pointAt(this.alpha as number);
         } else if (this.support instanceof polygon_object) {
@@ -96,7 +107,10 @@ export class point_on_object extends point_object {
             const support = this.support as primitive_line_object;
             this.coords = vAdd(
                 support.P1.coords,
-                vScale(support.VEC, (this.alpha as number) / this.C.GRID.UNIT[0]),
+                vScale(
+                    support.VEC,
+                    (this.alpha as number) / this.C.GRID.UNIT[0],
+                ),
             );
         }
         super.computeGeometry();
@@ -113,6 +127,13 @@ export class point_on_object extends point_object {
         }
         if (this.support instanceof list_object) {
             const alpha = this.support.alphaAtScreen(screen);
+            if (alpha === null) return;
+            this.alpha = alpha;
+            this.C.invalidateGeometry(this);
+            return;
+        }
+        if (this.support.familytype === "curve") {
+            const alpha = (this.support as curve_object).alphaAtScreen(screen);
             if (alpha === null) return;
             this.alpha = alpha;
             this.C.invalidateGeometry(this);

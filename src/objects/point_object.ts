@@ -12,6 +12,7 @@ import {
     type Vec3,
 } from "../vec";
 import { construction_object } from "./construction_object";
+import type { curve_object } from "./curve_object";
 import type { list_object } from "./list_object";
 import { primitive_circle_object } from "./primitive_circle_object";
 import { primitive_line_object } from "./primitive_line_object";
@@ -22,7 +23,8 @@ import { two_points_line_object } from "./two_points_line_object";
 export type magnet_target =
     | primitive_line_object
     | primitive_circle_object
-    | list_object;
+    | list_object
+    | curve_object;
 
 // A margin (screen pixels) a competing magnet must beat the currently
 // active one by before the point switches to it. Without this, right at
@@ -36,6 +38,8 @@ const MAGNET_HYSTERESIS = 15;
 function projectOntoMagnet(target: magnet_target, point: Vec3): Vec3 {
     if (target.familytype === "list")
         return (target as list_object).nearestPoint(point) ?? point;
+    if (target.familytype === "curve")
+        return (target as curve_object).nearestPoint(point) ?? point;
     if (target instanceof primitive_circle_object)
         return target.pointAt(target.alphaOf(point));
     if (target instanceof two_points_line_object) {

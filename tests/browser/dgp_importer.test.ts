@@ -5,7 +5,12 @@ import { angle_bisector_object } from "../../src/objects/angle_bisector_object";
 import { angle_object } from "../../src/objects/angle_object";
 import { arc3pts_object } from "../../src/objects/arc3pts_object";
 import { circle1_object } from "../../src/objects/circle1_object";
-import { expression_object } from "../../src/objects/expression_object";
+import { curve_object } from "../../src/objects/curve_object";
+import { realPart } from "../../src/import/dgp_formula";
+import {
+    evaluateAtX,
+    expression_object,
+} from "../../src/objects/expression_object";
 import { fixed_angle_object } from "../../src/objects/fixed_angle_object";
 import { fixed_point_object } from "../../src/objects/fixed_point_object";
 import { formula_point_object } from "../../src/objects/formula_point_object";
@@ -420,6 +425,80 @@ P=PointOn("P",poly,0.5);`,
         c.OBJS.update();
         expect(e3.value).toBe(7);
         expect(e3.dom.dom().textContent).toBe("E3 = 7");
+    });
+
+    it("imports a Curvus plotted function figure", async () => {
+        const c = createConstruction();
+        await importDgpFromUrl(c, "/tests/graph.dgp");
+
+        const e1 = c.getObj("E1") as expression_object;
+        const f1 = c.getObj("f1") as curve_object;
+
+        expect(e1).toBeInstanceOf(expression_object);
+        expect(e1.value).toBeNull();
+        expect(e1.isCursor).toBe(false);
+        expect(e1.formula?.source).toBe("0.5x^2-4");
+        expect(e1.dom.dom().textContent).toBe("E1 = 0.5x^2-4");
+
+        expect(f1).toBeInstanceOf(curve_object);
+        expect(f1.stroke_color).toBe("#7d0c13");
+        expect(f1.size).toBe(1);
+        expect(f1.min).toBeNull();
+        expect(f1.max).toBeNull();
+        expect(f1.formula.refs.get("E1")).toBe(e1);
+        expect(f1.parents).toEqual([e1]);
+
+        // f1's own formula is "E1(x)": evaluating it must match E1's formula
+        // (0.5x^2-4) evaluated directly at the same x.
+        [-3, 0, 2.5].forEach((x) => {
+            const viaCurve = realPart(evaluateAtX(f1.formula, x, 40));
+            const viaExpression = realPart(evaluateAtX(e1.formula!, x, 40));
+            expect(viaCurve).toBeCloseTo(0.5 * x * x - 4);
+            expect(viaCurve).toBeCloseTo(viaExpression!);
+        });
+
+        expect(f1.defined).toBe(true);
+        expect(f1.screenPoints.some((point) => point !== null)).toBe(true);
+        expect(f1.dom.dom().innerHTML).not.toMatch(/NaN|Infinity/);
+
+        const p1 = c.getObj("P1") as point_on_object;
+        expect(p1).toBeInstanceOf(point_on_object);
+        expect(p1.support).toBe(f1);
+        expect(p1.alpha).toBe(3.75);
+        expect(p1.coords[0]).toBeCloseTo(3.75);
+        expect(p1.coords[1]).toBeCloseTo(0.5 * 3.75 * 3.75 - 4);
+        expect(p1.coords[2]).toBe(0);
+
+        // Dragging P1 must follow the curve: its alpha is the x it lands on.
+        const targetX = -2;
+        const targetY = 0.5 * targetX * targetX - 4;
+        const [clientX, clientY] = c.pt3D([targetX, targetY, 0]);
+        p1.mousedrag(new PointerEvent("pointermove", { clientX, clientY }));
+        c.OBJS.update();
+        expect(p1.alpha as number).toBeCloseTo(targetX, 1);
+        expect(p1.coords[0]).toBeCloseTo(targetX, 1);
+        expect(p1.coords[1]).toBeCloseTo(targetY, 1);
+    });
+
+    it("magnetizes a free point onto a Curvus curve", () => {
+        const c = createConstruction();
+        importDgp(
+            c,
+            `E1=Expression("E1","","","","0.5x^2-4","5.25","2.3875");
+f1=Curvus("f1","","","E1(x)");
+M=Point("M",0,0);
+STL(M,"mg:[f1,5000]");`,
+        );
+        const m = c.getObj("M") as point_object;
+
+        const targetX = 2;
+        const targetY = 0.5 * targetX * targetX - 4;
+        // Drag from a spot off the curve but within the magnet radius.
+        const [clientX, clientY] = c.pt3D([targetX, targetY + 1, 0]);
+        m.mousedrag(new PointerEvent("pointermove", { clientX, clientY }));
+        c.OBJS.update();
+
+        expect(m.coords[1]).toBeCloseTo(0.5 * m.coords[0] * m.coords[0] - 4, 1);
     });
 
     it("keeps a magnetized point glued to whichever segment it grabbed, only switching on a fresh grab", async () => {

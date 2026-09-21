@@ -12,6 +12,7 @@ import {
     type Vec3,
 } from "../vec";
 import { construction_object } from "./construction_object";
+import type { curve_object } from "./curve_object";
 import { list_object } from "./list_object";
 import { point_on_object } from "./point_on_object";
 import { point_object } from "./point_object";
@@ -159,7 +160,18 @@ export class locus_object extends construction_object {
                           : null;
                   })
                 : [];
-        return this.quadricAlphas(support, count);
+        if (support.familytype === "curve")
+            return this.curveSamples(support as curve_object, count);
+        return this.quadricAlphas(support as quadric5pts_object, count);
+    }
+
+    private curveSamples(support: curve_object, count: number): DriverSample[] {
+        const [lo, hi] = support.domain();
+        if (hi <= lo) return [];
+        return range(lo, hi, count).map((x) => {
+            const point = support.pointAt(x);
+            return point ? { coords: point } : null;
+        });
     }
 
     private lineAlphas(

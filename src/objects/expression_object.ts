@@ -1,5 +1,11 @@
 import type { construction } from "../construction";
 import type { DOMElement } from "../dom";
+import {
+    evaluateFormula,
+    realPart,
+    type FormulaNode,
+    type FormulaValue,
+} from "../import/dgp_formula";
 import type { Vec2 } from "../vec";
 import { construction_object } from "./construction_object";
 
@@ -14,7 +20,10 @@ export function formatNumber(value: number, precision: number): string {
     return (Math.round(value * factor) / factor).toString().replace(".", ",");
 }
 
-export function formatValue(value: number | number[], precision: number): string {
+export function formatValue(
+    value: number | number[],
+    precision: number,
+): string {
     if (Array.isArray(value))
         return (
             "[" +
@@ -68,13 +77,42 @@ function progressPath(
     );
 }
 
+// A named formula of x (e.g. "0.5x^2-4"), the reader's take on a DGPad
+// Expression that isn't a constant: `refs` holds the other function-valued
+// expressions its own formula calls by name (e.g. "E1(x)" inside another
+// expression's formula), so evaluateAtX can resolve those calls recursively.
+export interface ExpressionFormula {
+    node: FormulaNode;
+    source: string;
+    refs: Map<string, expression_object>;
+}
+
+export function evaluateAtX(
+    formula: ExpressionFormula,
+    x: number,
+    pixelScale: number,
+): FormulaValue | null {
+    return evaluateFormula(formula.node, {
+        resolveIdentifier: (name) => (name === "x" ? [x, 0] : null),
+        pixelScale: () => pixelScale,
+        callFunction: (name, args) => {
+            const ref = formula.refs.get(name)?.formula;
+            if (!ref) return null;
+            const argX = realPart(args[0] ?? null);
+            return argX === null ? null : evaluateAtX(ref, argX, pixelScale);
+        },
+    });
+}
+
 // A read-only reader's take on DGPad's ExpressionObject: displays a
-// constant value (number, complex number as [re, im], or vector) and, when
-// bounds are given, a draggable slider that updates it. DGPad expressions
-// can be arbitrary math (including functions of other objects, evaluated in
-// a sandboxed JS interpreter); this project only supports the constant
-// literals it needs to display already-computed figures (see
-// parseExpressionValue in dgp_commands.ts).
+// constant value (number, complex number as [re, im], or vector), a named
+// formula of x (e.g. "0.5x^2-4", via `formula`, used as a callable function
+// by Curvus and other expressions), and, when bounds are given, a draggable
+// slider that updates a constant value. DGPad expressions can be arbitrary
+// math (including functions of other objects, evaluated in a sandboxed JS
+// interpreter); this project only supports the constant literals and
+// single-variable formulas it needs to display already-computed figures
+// (see parseExpressionValue in dgp_commands.ts).
 //
 // Unlike every other object in this file, an expression isn't a geometric
 // object: DGPad pins it to a fixed window position (screen pixels, from
@@ -84,7 +122,8 @@ function progressPath(
 // is computed once by the caller and never re-projected.
 export class expression_object extends construction_object {
     text: string;
-    value: number | number[];
+    value: number | number[] | null;
+    formula: ExpressionFormula | null;
     min: number | null;
     max: number | null;
     increment: number;
@@ -106,14 +145,16 @@ export class expression_object extends construction_object {
         c: construction,
         name: string | null | undefined,
         text: string,
-        value: number | number[],
+        value: number | number[] | null,
         min: number | null,
         max: number | null,
         screen: Vec2,
+        formula: ExpressionFormula | null = null,
     ) {
         super(c, name, "expression");
         this.text = text;
         this.value = value;
+        this.formula = formula;
         this.min = min;
         this.max = max;
         this.increment = 0;
@@ -122,6 +163,7 @@ export class expression_object extends construction_object {
         this.cursorRadius = DEFAULT_CURSOR_RADIUS;
         this.cursorOpacity = 0;
         this.screen = screen;
+        if (formula) this.addParents(...formula.refs.values());
     }
 
     get isCursor(): boolean {
@@ -161,7 +203,13 @@ export class expression_object extends construction_object {
             .text(
                 this.precision < 0
                     ? prefix
-                    : prefix + formatValue(this.value, this.precision),
+                    : prefix +
+                          (this.formula
+                              ? this.formula.source
+                              : formatValue(
+                                    this.value as number | number[],
+                                    this.precision,
+                                )),
             );
 
         if (!this.isCursor || !this.track || !this.progress || !this.knob)
@@ -222,10 +270,13 @@ export function createExpression(
     c: construction,
     name: string | null | undefined,
     text: string,
-    value: number | number[],
+    value: number | number[] | null,
     min: number | null,
     max: number | null,
     screen: Vec2,
+    formula: ExpressionFormula | null = null,
 ): expression_object {
-    return c.add(new expression_object(c, name, text, value, min, max, screen));
+    return c.add(
+        new expression_object(c, name, text, value, min, max, screen, formula),
+    );
 }

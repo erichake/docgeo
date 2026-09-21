@@ -2,6 +2,7 @@ import type { construction } from "../construction";
 import type { DOMElement } from "../dom";
 import {
     evaluateFormula,
+    realPart,
     type FormulaEnv,
     type FormulaNode,
     type FormulaValue,
@@ -38,21 +39,6 @@ function resolveRef(ref: ListRef): Vec2 | null {
     if (ref instanceof point_object)
         return ref.defined ? [ref.coords[0], ref.coords[1]] : null;
     return typeof ref.value === "number" ? [ref.value, 0] : null;
-}
-
-// Every reference — a point's coordinates, a cursor's value, "k", "count" —
-// resolves through the same Vec2-shaped identifier slot (see resolveRef),
-// so a bare "n" or "k*2" evaluates to a Vec2 like [5, 0], never the plain
-// number 5. A List's count and a label's displayed value both need a real
-// number, though, so treat a Vec2 with an exactly-zero imaginary part as
-// that real number: nothing produces a nonzero imaginary part here unless a
-// formula deliberately does (a literal "i", or sqrt of a negative), in
-// which case staying a genuinely complex result (and being rejected as a
-// count, or shown as "[re;im]" for a label) is the correct outcome.
-function realPart(value: FormulaValue | null): number | null {
-    if (value === null) return null;
-    if (typeof value === "number") return value;
-    return value[1] === 0 ? value[0] : null;
 }
 
 export class list_object extends construction_object {
@@ -133,7 +119,8 @@ export class list_object extends construction_object {
     project(): void {
         // The "label" nature's second formula is a value to format as text,
         // not a position: only index 0 is ever projected for it.
-        const positionCount = this.nature === "label" ? 1 : this.formulas.length;
+        const positionCount =
+            this.nature === "label" ? 1 : this.formulas.length;
         this.screenItems = this.items.map((values) =>
             values.map((value, index) => {
                 if (index >= positionCount) return null;
@@ -259,8 +246,7 @@ export class list_object extends construction_object {
                 return;
             }
             const value = realPart(raw) ?? raw;
-            text
-                .stl("display", "block")
+            text.stl("display", "block")
                 .att("x", position[0])
                 .att("y", position[1] + this.fontSize)
                 .text(formatValue(value as number | number[], this.precision));
