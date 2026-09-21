@@ -75,6 +75,11 @@ export class list_object extends construction_object {
         refs: Map<string, ListRef>,
     ) {
         super(c, name, "list");
+        // A string tag, not `instanceof`, because point_object.ts (magnet
+        // targets) can't take a value-import of list_object without a
+        // circular import (list_object.ts already imports point_object) —
+        // the same reason locus_object is recognized by familytype too.
+        this.familytype = "list";
         this.nature = nature;
         this.countFormula = countFormula;
         this.formulas = formulas;
@@ -151,6 +156,24 @@ export class list_object extends construction_object {
 
     private itemScreen(index: number): Vec2 | null {
         return this.screenItems[index]?.[0] ?? null;
+    }
+
+    // Nearest list item to a math-space point — the magnetism ("mg" style)
+    // counterpart of alphaAtScreen, used while dragging a free point instead
+    // of a point already constrained to this List.
+    nearestPoint(target: Vec3): Vec3 | null {
+        if (this.nature !== "point") return null;
+        let best: Vec3 | null = null;
+        let bestDistance = Infinity;
+        for (let index = 0; index < this.count; index++) {
+            const point = this.itemPoint(index);
+            if (!point) continue;
+            const distance = vNorm(vSub(point, target));
+            if (distance >= bestDistance) continue;
+            bestDistance = distance;
+            best = point;
+        }
+        return best;
     }
 
     // Unlike locus_object.pointAt (a continuous curve, interpolating between

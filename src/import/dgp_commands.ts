@@ -386,7 +386,7 @@ function validateObjectStyle(
                     throw new Error(`Invalid DGP style at line ${lineNumber}`);
                 parseMagnetList(propertyValue).forEach(({ name }) => {
                     const kind = variables.get(name);
-                    if (kind !== "line" && kind !== "circle")
+                    if (kind !== "line" && kind !== "circle" && kind !== "list")
                         throw new Error(
                             `Unknown DGP reference at line ${lineNumber}`,
                         );

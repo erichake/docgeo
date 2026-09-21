@@ -12,13 +12,17 @@ import {
     type Vec3,
 } from "../vec";
 import { construction_object } from "./construction_object";
+import type { list_object } from "./list_object";
 import { primitive_circle_object } from "./primitive_circle_object";
 import { primitive_line_object } from "./primitive_line_object";
 import { ray_line_object } from "./ray_line_object";
 import { segment_object } from "./segment_object";
 import { two_points_line_object } from "./two_points_line_object";
 
-export type magnet_target = primitive_line_object | primitive_circle_object;
+export type magnet_target =
+    | primitive_line_object
+    | primitive_circle_object
+    | list_object;
 
 // A margin (screen pixels) a competing magnet must beat the currently
 // active one by before the point switches to it. Without this, right at
@@ -30,6 +34,8 @@ const MAGNET_HYSTERESIS = 15;
 // The closest point to `point` lying on `target` (segment/ray bounds
 // respected, same convention as point_on_object's own projection).
 function projectOntoMagnet(target: magnet_target, point: Vec3): Vec3 {
+    if (target.familytype === "list")
+        return (target as list_object).nearestPoint(point) ?? point;
     if (target instanceof primitive_circle_object)
         return target.pointAt(target.alphaOf(point));
     if (target instanceof two_points_line_object) {
@@ -42,8 +48,9 @@ function projectOntoMagnet(target: magnet_target, point: Vec3): Vec3 {
         else if (target instanceof ray_line_object) alpha = Math.max(0, alpha);
         return vAdd(target.P1.coords, vScale(direction, alpha));
     }
-    const alpha = vDot(vSub(point, target.P1.coords), target.VEC);
-    return vAdd(target.P1.coords, vScale(target.VEC, alpha));
+    const support = target as primitive_line_object;
+    const alpha = vDot(vSub(point, support.P1.coords), support.VEC);
+    return vAdd(support.P1.coords, vScale(support.VEC, alpha));
 }
 
 export class point_object extends construction_object {

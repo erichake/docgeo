@@ -502,4 +502,38 @@ describe("DGPad geometric constructors", () => {
         // different item since the items themselves changed.
         expect(m.coords).toEqual([1, 0, 0]);
     });
+
+    it("magnetizes a free point onto the nearest item of a point-nature List", () => {
+        const c = createConstruction();
+        const a = createPoint(c, "A", [0, 0, 0]);
+        const b = createPoint(c, "B", [6, 0, 0]);
+
+        const list = createList(
+            c,
+            "L",
+            "point",
+            parseFormula("3"),
+            [parseFormula("A+(B-A)*k/(count-1)")],
+            new Map<string, typeof a>([
+                ["A", a],
+                ["B", b],
+            ]),
+        );
+        // items at x = 0, 3, 6
+
+        const p = createPoint(c, "P", [2.9, 0.4, 0]);
+        p.magnets = [{ target: list, radius: 5000 }];
+
+        const screen = c.pt3D([2.9, 0.4, 0]);
+        p.mousedrag(
+            new PointerEvent("pointermove", {
+                clientX: screen[0],
+                clientY: screen[1],
+            }),
+        );
+        c.OBJS.update();
+
+        expect(p.coords[0]).toBeCloseTo(3);
+        expect(p.coords[1]).toBeCloseTo(0);
+    });
 });
