@@ -8,6 +8,7 @@ import {
 } from "../import/dgp_formula";
 import type { Vec2 } from "../vec";
 import { construction_object } from "./construction_object";
+import type { point_object } from "./point_object";
 
 const DEFAULT_CURSOR_LENGTH = 200;
 const DEFAULT_CURSOR_COLOR = "#780013";
@@ -87,6 +88,16 @@ export interface ExpressionFormula {
     refs: Map<string, expression_object>;
 }
 
+// A formula that reads other objects' current positions instead of
+// sweeping "x" (e.g. DGPad's "d(P1,M)"): recomputed on every geometry
+// update, like formula_point_object, but produces a displayed value
+// instead of a point's own coordinates.
+export interface PointExpressionFormula {
+    node: FormulaNode;
+    source: string;
+    refs: Map<string, point_object>;
+}
+
 export function evaluateAtX(
     formula: ExpressionFormula,
     x: number,
@@ -124,6 +135,7 @@ export class expression_object extends construction_object {
     text: string;
     value: number | number[] | null;
     formula: ExpressionFormula | null;
+    pointFormula: PointExpressionFormula | null;
     min: number | null;
     max: number | null;
     increment: number;
@@ -150,11 +162,13 @@ export class expression_object extends construction_object {
         max: number | null,
         screen: Vec2,
         formula: ExpressionFormula | null = null,
+        pointFormula: PointExpressionFormula | null = null,
     ) {
         super(c, name, "expression");
         this.text = text;
         this.value = value;
         this.formula = formula;
+        this.pointFormula = pointFormula;
         this.min = min;
         this.max = max;
         this.increment = 0;
@@ -164,6 +178,24 @@ export class expression_object extends construction_object {
         this.cursorOpacity = 0;
         this.screen = screen;
         if (formula) this.addParents(...formula.refs.values());
+        if (pointFormula) this.addParents(...pointFormula.refs.values());
+    }
+
+    computeGeometry(): void {
+        if (!this.pointFormula) return;
+        const refs = this.pointFormula.refs;
+        const result = evaluateFormula(this.pointFormula.node, {
+            resolveIdentifier: (name) => {
+                const p = refs.get(name);
+                return p && p.defined ? [p.coords[0], p.coords[1]] : null;
+            },
+            pixelScale: () => this.C.GRID.UNIT[0],
+        });
+        this.defined = result !== null;
+        this.value =
+            result === null || typeof result === "number"
+                ? result
+                : [...result];
     }
 
     get isCursor(): boolean {
@@ -275,8 +307,19 @@ export function createExpression(
     max: number | null,
     screen: Vec2,
     formula: ExpressionFormula | null = null,
+    pointFormula: PointExpressionFormula | null = null,
 ): expression_object {
     return c.add(
-        new expression_object(c, name, text, value, min, max, screen, formula),
+        new expression_object(
+            c,
+            name,
+            text,
+            value,
+            min,
+            max,
+            screen,
+            formula,
+            pointFormula,
+        ),
     );
 }

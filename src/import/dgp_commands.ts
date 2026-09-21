@@ -13,6 +13,7 @@ import {
     createExpression,
     expression_object,
     type ExpressionFormula,
+    type PointExpressionFormula,
 } from "../objects/expression_object";
 import {
     createFixedAngle,
@@ -244,6 +245,47 @@ function functionFormulaRefs(
     formulaIdentifiers(formulaNode).forEach((name) => {
         if (name === "x") return;
         refs.set(name, variables.get(name) as expression_object);
+    });
+    return refs;
+}
+
+// An Expression's formula referencing other objects directly (DGPad's
+// "d(P1,M)") rather than sweeping "x" (see validateFunctionFormulaReferences):
+// recognized when every non-"x" identifier it uses names a point.
+function isPointExpressionFormula(
+    formulaNode: FormulaNode,
+    variables: Map<string, ObjectKind>,
+): boolean {
+    const names = [...formulaIdentifiers(formulaNode)].filter(
+        (name) => name !== "x",
+    );
+    return (
+        names.length > 0 &&
+        names.every((name) => variables.get(name) === "point")
+    );
+}
+
+function isPointExpressionFormulaAt(
+    formulaNode: FormulaNode,
+    variables: Map<string, construction_object>,
+): boolean {
+    const names = [...formulaIdentifiers(formulaNode)].filter(
+        (name) => name !== "x",
+    );
+    return (
+        names.length > 0 &&
+        names.every((name) => variables.get(name)?.type === "point")
+    );
+}
+
+function pointFormulaRefs(
+    formulaNode: FormulaNode,
+    variables: Map<string, construction_object>,
+): Map<string, point_object> {
+    const refs = new Map<string, point_object>();
+    formulaIdentifiers(formulaNode).forEach((name) => {
+        if (name === "x") return;
+        refs.set(name, variables.get(name) as point_object);
     });
     return refs;
 }
@@ -1163,11 +1205,12 @@ const COMMANDS = new Map<string, CommandDefinition>([
                             `Unsupported DGP expression at line ${lineNumber}`,
                         );
                     }
-                    validateFunctionFormulaReferences(
-                        formulaNode,
-                        variables,
-                        lineNumber,
-                    );
+                    if (!isPointExpressionFormula(formulaNode, variables))
+                        validateFunctionFormulaReferences(
+                            formulaNode,
+                            variables,
+                            lineNumber,
+                        );
                 }
                 if (
                     !STYLE_NUMBER.test(literalString(args[5])) ||
@@ -1192,13 +1235,22 @@ const COMMANDS = new Map<string, CommandDefinition>([
                 const source = args[4] as string;
                 const constant = parseExpressionValue(source);
                 let formula: ExpressionFormula | null = null;
+                let pointFormula: PointExpressionFormula | null = null;
                 if (constant === null) {
                     const node = parseFormula(source);
-                    formula = {
-                        node,
-                        source,
-                        refs: functionFormulaRefs(node, context.variables),
-                    };
+                    if (isPointExpressionFormulaAt(node, context.variables)) {
+                        pointFormula = {
+                            node,
+                            source,
+                            refs: pointFormulaRefs(node, context.variables),
+                        };
+                    } else {
+                        formula = {
+                            node,
+                            source,
+                            refs: functionFormulaRefs(node, context.variables),
+                        };
+                    }
                 }
                 return createExpression(
                     context.construction,
@@ -1212,6 +1264,7 @@ const COMMANDS = new Map<string, CommandDefinition>([
                         grid.ORG[1] - y * grid.UNIT[1],
                     ],
                     formula,
+                    pointFormula,
                 );
             },
         },
