@@ -14,7 +14,7 @@ Ls=List("Ls","segment","6*n","A+(B-A)*k/count-perp(B-A)*0.06","A+(B-A)*k/count+p
 Ll=List("Ll","label","7","A+(B-A)*k/(count-1)-perp(B-A)*0.15","k");
 Lpt=List("Lpt","point","6*n+1","A+(B-A)*k/(count-1)");
 M=PointOn("M",Lpt,1);
-P=Point("P",2,1);
+P=Point("P",0,5);
 
 // Styles :
 STL(A,"c:#0000b2;s:6;sn:true;h:1;f:30;np:1.5914119624205005");
@@ -28,6 +28,6 @@ STL(Ls,"c:#8080b0;s:1");
 STL(Ll,"c:#0000b2;f:22;p:0");
 STL(Lpt,"c:#0000b2;s:4;h:2");
 STL(M,"c:#cc0000;s:7;sn:true;f:24;np:1.5914119624205005");
-STL(P,"c:#0000b2;s:6;f:30;mg:[Lpt,5000]");
+STL(P,"c:#0000b2;s:6;sn:true;f:30;mg:[Lpt,5000];np:1.5914119624205005");
 SetCoordsStyle("isAxis:false;isGrid:true;isOx:true;isOy:true;isLockOx:false;isLockOy:false;centerZoom:false;onlyPositive:false;color:#111111;fontSize:18;axisWidth:1;gridWidth:0.1");
 SetGeneralStyle("background-color:#F8F8F8;degree:true;dragmoveable:true");
