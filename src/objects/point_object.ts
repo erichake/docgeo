@@ -194,10 +194,6 @@ export class point_object extends construction_object {
         });
     }
 
-    mouseclick(_ev: PointerEvent): void {
-        this.C.removeObject(this);
-    }
-
     // *************************************************
     // ****************** SVG PART **********************
     // *************************************************
@@ -275,8 +271,7 @@ export class point_object extends construction_object {
             .shape("g")
             .att("transform", `translate(${t.sx} ${t.sy})`)
             .stl("pointer-events", "none")
-            .drag((event) => t.mousedrag(event))
-            .tap((event) => t.mouseclick(event));
+            .drag((event) => t.mousedrag(event));
 
         if (t.trace) {
             t.tracePath = t.svg
