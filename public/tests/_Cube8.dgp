@@ -1,5 +1,5 @@
 // Coordinates System :
-SetCoords(463,15,112.92512339546204,true,914,678);
+SetCoords(463,15,112.92512339546204,true,914,680);
 
 
 // Geometry :
@@ -48,5 +48,5 @@ STL(Poly2,"c:#966400;o:0.19;s:2.5;f:30");
 STL(Poly3,"c:#966400;o:0.19;s:2.5;f:30");
 STL(Poly4,"c:#966400;o:0.19;s:2.5;f:30");
 STL(Poly5,"c:#966400;o:0.19;s:2.5;f:30");
-SetCoordsStyle("3Dmode:true;isAxis:false;isGrid:true;isOx:true;isOy:true;isLockOx:false;isLockOy:false;centerZoom:true;onlyPositive:false;color:#111111;fontSize:18;axisWidth:1;gridWidth:0.1");
+SetCoordsStyle("3Dmode:true;isAxis:true;isGrid:true;isOx:true;isOy:true;isLockOx:false;isLockOy:false;centerZoom:true;onlyPositive:false;color:#111111;fontSize:18;axisWidth:1;gridWidth:0.1");
 SetGeneralStyle("background-color:#F8F8F8;degree:false;dragmoveable:true");
