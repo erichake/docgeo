@@ -3,6 +3,7 @@ import { vScale, vSub } from "../vec";
 import { point_object } from "./point_object";
 
 export class symmetry_object extends point_object {
+    moveable = false;
     center: point_object;
     point: point_object;
 

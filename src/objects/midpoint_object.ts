@@ -3,6 +3,7 @@ import { vAdd, vScale } from "../vec";
 import { point_object } from "./point_object";
 
 export class midpoint_object extends point_object {
+    moveable = false;
     P1: point_object;
     P2: point_object;
 

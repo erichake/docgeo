@@ -62,6 +62,7 @@ const conicGroupCache = new WeakMap<
 >();
 
 export class intersection_object extends point_object {
+    moveable = false;
     O1: intersectable_object;
     O2: intersectable_object;
     order: 0 | 1 | 2 | 3;

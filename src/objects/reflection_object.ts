@@ -4,6 +4,7 @@ import { point_object } from "./point_object";
 import { primitive_line_object } from "./primitive_line_object";
 
 export class reflection_object extends point_object {
+    moveable = false;
     line: primitive_line_object;
     point: point_object;
 

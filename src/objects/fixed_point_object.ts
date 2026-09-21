@@ -3,6 +3,7 @@ import type { Vec3 } from "../vec";
 import { point_object } from "./point_object";
 
 export class fixed_point_object extends point_object {
+    moveable = false;
     mousedrag(_ev: PointerEvent): void {}
 }
 

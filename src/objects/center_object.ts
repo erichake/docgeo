@@ -3,6 +3,7 @@ import { point_object } from "./point_object";
 import type { primitive_circle_object } from "./primitive_circle_object";
 
 export class center_object extends point_object {
+    moveable = false;
     circle: primitive_circle_object;
 
     constructor(

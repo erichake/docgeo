@@ -70,6 +70,12 @@ export class point_object extends construction_object {
     nameText?: DOMElement;
     trace = false;
     tracePath?: DOMElement;
+    // False for every subclass that overrides mousedrag as a no-op (it's
+    // driven entirely by its parents' geometry, e.g. an intersection or
+    // midpoint): such a point must not claim pointer hit-testing, or it
+    // permanently shadows whatever's underneath once another point is
+    // magnetized onto its exact position (see createSVG).
+    moveable = true;
     private traceCoords: Vec3;
     private traceScreen: Vec2 | null = null;
     private traceData = "";
@@ -268,6 +274,7 @@ export class point_object extends construction_object {
         const dom = t.svg
             .shape("g")
             .att("transform", `translate(${t.sx} ${t.sy})`)
+            .stl("pointer-events", "none")
             .drag((event) => t.mousedrag(event))
             .tap((event) => t.mouseclick(event));
 
@@ -290,7 +297,7 @@ export class point_object extends construction_object {
                 .att("cx", 0)
                 .att("cy", 0)
                 .stl(
-                    "fill:transparent;stroke:none;pointer-events:all;cursor:pointer",
+                    `fill:transparent;stroke:none;pointer-events:${t.moveable ? "all" : "none"};cursor:pointer`,
                 ),
         );
 

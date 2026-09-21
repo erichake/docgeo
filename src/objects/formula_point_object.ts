@@ -3,6 +3,7 @@ import { evaluateFormula, type FormulaNode } from "../import/dgp_formula";
 import { point_object } from "./point_object";
 
 export class formula_point_object extends point_object {
+    moveable = false;
     formula: FormulaNode;
     refs: Map<string, point_object>;
 
