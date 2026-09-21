@@ -472,7 +472,7 @@ describe("DGPad geometric constructors", () => {
         ]);
     });
 
-    it("constructs a PointOn a point-nature List, index-space alpha included", () => {
+    it("constructs a PointOn a point-nature List, snapping to the nearest item", () => {
         const c = createConstruction();
         const a = createPoint(c, "A", [0, 0, 0]);
         const b = createPoint(c, "B", [6, 0, 0]);
@@ -490,15 +490,16 @@ describe("DGPad geometric constructors", () => {
                 ["n", n],
             ]),
         );
-        // n=2 -> items at x=0 and x=3; alpha 0.5 sits halfway between them.
+        // n=2 -> items at x=0 (k=0) and x=3 (k=1); a non-integer alpha
+        // snaps to the nearest item instead of landing in between.
         const m = createPointOn(c, "M", list, 0.5);
-        expect(m.coords).toEqual([1.5, 0, 0]);
+        expect(m.coords).toEqual([3, 0, 0]);
 
         n.value = 6;
         c.invalidateGeometry(n);
         c.OBJS.update();
-        // n=6 -> items at x=0,1,2,3,4,5; the same alpha=0.5 now sits between
-        // the (closer together) first two items instead.
-        expect(m.coords[0]).toBeCloseTo(0.5);
+        // n=6 -> items at x=0,1,2,3,4,5; the same alpha=0.5 now snaps to a
+        // different item since the items themselves changed.
+        expect(m.coords).toEqual([1, 0, 0]);
     });
 });

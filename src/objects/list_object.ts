@@ -10,12 +10,9 @@ import { construction_object } from "./construction_object";
 import { formatValue, type expression_object } from "./expression_object";
 import { point_object } from "./point_object";
 import {
-    GEOMETRY_EPSILON,
-    vAdd,
     vIsFinite,
     vNorm,
     vNormalize,
-    vScale,
     vSub,
     type Vec2,
     type Vec3,
@@ -156,68 +153,30 @@ export class list_object extends construction_object {
         return this.screenItems[index]?.[0] ?? null;
     }
 
-    // Same clamp/floor/interpolate-with-the-next-item shape as
-    // locus_object.pointAt, reading from `items` instead of `points`. No
-    // "connected" distance heuristic: that exists in locus to paper over a
-    // resampled curve's own discontinuities, whereas here a missing
-    // neighbor (itemPoint returning null) already refuses the interpolation
-    // on its own.
+    // Unlike locus_object.pointAt (a continuous curve, interpolating between
+    // samples), a List's items are discrete, individually meaningful
+    // positions (e.g. "the k-th tick"): a point on a List snaps to the
+    // nearest one instead of ever sitting between two of them.
     pointAt(alpha: number): Vec3 | null {
         if (this.nature !== "point" || this.count === 0) return null;
-        const bounded = Math.max(0, Math.min(this.count - 1, alpha));
-        const index = Math.floor(bounded);
-        const point = this.itemPoint(index);
-        if (!point) return null;
-        const fraction = bounded - index;
-        if (fraction === 0) return point;
-        const next = this.itemPoint(index + 1);
-        if (!next) return null;
-        return vAdd(point, vScale(vSub(next, point), fraction));
+        const index = Math.max(0, Math.min(this.count - 1, Math.round(alpha)));
+        return this.itemPoint(index);
     }
 
-    // Same screen-space nearest-point-on-polyline search as
-    // locus_object.alphaAtScreen, minus its 3D-refinement step (List
-    // positions are always 2D/z=0, so there is nothing to refine against a
-    // projection frame).
+    // Nearest list item to the pointer, in screen space — the discrete
+    // counterpart of locus_object.alphaAtScreen's nearest-point-on-polyline
+    // search.
     alphaAtScreen(target: Vec2): number | null {
         if (this.nature !== "point") return null;
         let bestAlpha: number | null = null;
         let bestDistance = Infinity;
-        for (let index = 0; index < this.count - 1; index++) {
-            const start = this.itemScreen(index);
-            const end = this.itemScreen(index + 1);
-            if (!start || !end) continue;
-            const direction = vSub(end, start);
-            const lengthSquared =
-                direction[0] * direction[0] + direction[1] * direction[1];
-            if (lengthSquared <= GEOMETRY_EPSILON) continue;
-            const fraction = Math.max(
-                0,
-                Math.min(
-                    1,
-                    ((target[0] - start[0]) * direction[0] +
-                        (target[1] - start[1]) * direction[1]) /
-                        lengthSquared,
-                ),
-            );
-            const candidate: Vec2 = [
-                start[0] + fraction * direction[0],
-                start[1] + fraction * direction[1],
-            ];
-            const distance = vNorm(vSub(target, candidate));
+        for (let index = 0; index < this.count; index++) {
+            const point = this.itemScreen(index);
+            if (!point) continue;
+            const distance = vNorm(vSub(target, point));
             if (distance >= bestDistance) continue;
             bestDistance = distance;
-            bestAlpha = index + fraction;
-        }
-        if (bestAlpha === null) {
-            for (let index = 0; index < this.count; index++) {
-                const point = this.itemScreen(index);
-                if (!point) continue;
-                const distance = vNorm(vSub(target, point));
-                if (distance >= bestDistance) continue;
-                bestDistance = distance;
-                bestAlpha = index;
-            }
+            bestAlpha = index;
         }
         return bestAlpha;
     }

@@ -13,7 +13,7 @@ Lp=List("Lp","segment","7","A+(B-A)*k/(count-1)-perp(B-A)*0.12","A+(B-A)*k/(coun
 Ls=List("Ls","segment","6*n","A+(B-A)*k/count-perp(B-A)*0.06","A+(B-A)*k/count+perp(B-A)*0.06");
 Ll=List("Ll","label","7","A+(B-A)*k/(count-1)-perp(B-A)*0.15","k");
 Lpt=List("Lpt","point","6*n","A+(B-A)*k/count");
-M=PointOn("M",Lpt,10.5);
+M=PointOn("M",Lpt,11);
 
 // Styles :
 STL(A,"c:#0000b2;s:6;sn:true;f:30;np:1.5914119624205005");
