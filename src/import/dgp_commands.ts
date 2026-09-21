@@ -21,6 +21,7 @@ import { createFormulaPoint } from "../objects/formula_point_object";
 import { createOrderedIntersection } from "../objects/intersection_object";
 import {
     createList,
+    type list_object,
     type ListNature,
     type ListRef,
 } from "../objects/list_object";
@@ -700,7 +701,8 @@ const COMMANDS = new Map<string, CommandDefinition>([
                         | primitive_circle_object
                         | polygon_object
                         | quadric5pts_object
-                        | locus_object,
+                        | locus_object
+                        | list_object,
                     args[2] as number | readonly [number, number],
                 ),
         },
@@ -1283,7 +1285,8 @@ function accepts(actual: ObjectKind, expected: ParameterKind): boolean {
                 actual === "circle" ||
                 actual === "polygon" ||
                 actual === "quadric" ||
-                actual === "locus"))
+                actual === "locus" ||
+                actual === "list"))
     );
 }
 

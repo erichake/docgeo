@@ -471,4 +471,34 @@ describe("DGPad geometric constructors", () => {
             "2",
         ]);
     });
+
+    it("constructs a PointOn a point-nature List, index-space alpha included", () => {
+        const c = createConstruction();
+        const a = createPoint(c, "A", [0, 0, 0]);
+        const b = createPoint(c, "B", [6, 0, 0]);
+        const n = createExpression(c, "n", "", 2, 0, 10, [0, 0]);
+
+        const list = createList(
+            c,
+            "L",
+            "point",
+            parseFormula("n"),
+            [parseFormula("A+(B-A)*k/count")],
+            new Map<string, typeof a | typeof n>([
+                ["A", a],
+                ["B", b],
+                ["n", n],
+            ]),
+        );
+        // n=2 -> items at x=0 and x=3; alpha 0.5 sits halfway between them.
+        const m = createPointOn(c, "M", list, 0.5);
+        expect(m.coords).toEqual([1.5, 0, 0]);
+
+        n.value = 6;
+        c.invalidateGeometry(n);
+        c.OBJS.update();
+        // n=6 -> items at x=0,1,2,3,4,5; the same alpha=0.5 now sits between
+        // the (closer together) first two items instead.
+        expect(m.coords[0]).toBeCloseTo(0.5);
+    });
 });

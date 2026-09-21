@@ -9,7 +9,17 @@ import {
 import { construction_object } from "./construction_object";
 import { formatValue, type expression_object } from "./expression_object";
 import { point_object } from "./point_object";
-import { vIsFinite, vNormalize, vSub, type Vec2 } from "../vec";
+import {
+    GEOMETRY_EPSILON,
+    vAdd,
+    vIsFinite,
+    vNorm,
+    vNormalize,
+    vScale,
+    vSub,
+    type Vec2,
+    type Vec3,
+} from "../vec";
 
 export type ListNature = "point" | "segment" | "line" | "label";
 export type ListRef = point_object | expression_object;
@@ -130,6 +140,86 @@ export class list_object extends construction_object {
                 return vIsFinite(screen) ? screen : null;
             }),
         );
+    }
+
+    // *************************************************
+    // *********** PointOn support (nature "point") *****
+    // *************************************************
+
+    private itemPoint(index: number): Vec3 | null {
+        const value = this.items[index]?.[0];
+        if (!value || typeof value === "number") return null;
+        return [value[0], value[1], 0];
+    }
+
+    private itemScreen(index: number): Vec2 | null {
+        return this.screenItems[index]?.[0] ?? null;
+    }
+
+    // Same clamp/floor/interpolate-with-the-next-item shape as
+    // locus_object.pointAt, reading from `items` instead of `points`. No
+    // "connected" distance heuristic: that exists in locus to paper over a
+    // resampled curve's own discontinuities, whereas here a missing
+    // neighbor (itemPoint returning null) already refuses the interpolation
+    // on its own.
+    pointAt(alpha: number): Vec3 | null {
+        if (this.nature !== "point" || this.count === 0) return null;
+        const bounded = Math.max(0, Math.min(this.count - 1, alpha));
+        const index = Math.floor(bounded);
+        const point = this.itemPoint(index);
+        if (!point) return null;
+        const fraction = bounded - index;
+        if (fraction === 0) return point;
+        const next = this.itemPoint(index + 1);
+        if (!next) return null;
+        return vAdd(point, vScale(vSub(next, point), fraction));
+    }
+
+    // Same screen-space nearest-point-on-polyline search as
+    // locus_object.alphaAtScreen, minus its 3D-refinement step (List
+    // positions are always 2D/z=0, so there is nothing to refine against a
+    // projection frame).
+    alphaAtScreen(target: Vec2): number | null {
+        if (this.nature !== "point") return null;
+        let bestAlpha: number | null = null;
+        let bestDistance = Infinity;
+        for (let index = 0; index < this.count - 1; index++) {
+            const start = this.itemScreen(index);
+            const end = this.itemScreen(index + 1);
+            if (!start || !end) continue;
+            const direction = vSub(end, start);
+            const lengthSquared =
+                direction[0] * direction[0] + direction[1] * direction[1];
+            if (lengthSquared <= GEOMETRY_EPSILON) continue;
+            const fraction = Math.max(
+                0,
+                Math.min(
+                    1,
+                    ((target[0] - start[0]) * direction[0] +
+                        (target[1] - start[1]) * direction[1]) /
+                        lengthSquared,
+                ),
+            );
+            const candidate: Vec2 = [
+                start[0] + fraction * direction[0],
+                start[1] + fraction * direction[1],
+            ];
+            const distance = vNorm(vSub(target, candidate));
+            if (distance >= bestDistance) continue;
+            bestDistance = distance;
+            bestAlpha = index + fraction;
+        }
+        if (bestAlpha === null) {
+            for (let index = 0; index < this.count; index++) {
+                const point = this.itemScreen(index);
+                if (!point) continue;
+                const distance = vNorm(vSub(target, point));
+                if (distance >= bestDistance) continue;
+                bestDistance = distance;
+                bestAlpha = index;
+            }
+        }
+        return bestAlpha;
     }
 
     render(): void {

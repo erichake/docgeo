@@ -12,6 +12,7 @@ import {
     type Vec3,
 } from "../vec";
 import { construction_object } from "./construction_object";
+import { list_object } from "./list_object";
 import { point_on_object } from "./point_on_object";
 import { point_object } from "./point_object";
 import { polygon_object } from "./polygon_object";
@@ -149,6 +150,15 @@ export class locus_object extends construction_object {
             return support.points.map((point) =>
                 point ? { coords: point } : null,
             );
+        if (support instanceof list_object)
+            return support.nature === "point"
+                ? support.items.map((values) => {
+                      const value = values[0];
+                      return value && typeof value !== "number"
+                          ? { coords: [value[0], value[1], 0] as Vec3 }
+                          : null;
+                  })
+                : [];
         return this.quadricAlphas(support, count);
     }
 

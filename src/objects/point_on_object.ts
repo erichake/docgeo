@@ -1,6 +1,7 @@
 import type { construction } from "../construction";
 import { projectPointOnPlane } from "../projection";
 import { vAdd, vDot, vScale, vSub, type Vec3 } from "../vec";
+import { list_object } from "./list_object";
 import type { locus_object } from "./locus_object";
 import { polygon_object } from "./polygon_object";
 import { primitive_circle_object } from "./primitive_circle_object";
@@ -16,7 +17,8 @@ export type point_support_object =
     | primitive_circle_object
     | polygon_object
     | quadric5pts_object
-    | locus_object;
+    | locus_object
+    | list_object;
 
 type Alpha = number | readonly [number, number];
 
@@ -47,6 +49,13 @@ export class point_on_object extends point_object {
             const coords = (this.support as locus_object).pointAt(
                 this.alpha as number,
             );
+            if (!coords) {
+                this.defined = false;
+                return;
+            }
+            this.coords = coords;
+        } else if (this.support instanceof list_object) {
+            const coords = this.support.pointAt(this.alpha as number);
             if (!coords) {
                 this.defined = false;
                 return;
@@ -97,6 +106,13 @@ export class point_on_object extends point_object {
         const screen = this.C.pointerPosition(ev);
         if (this.support.familytype === "locus") {
             const alpha = (this.support as locus_object).alphaAtScreen(screen);
+            if (alpha === null) return;
+            this.alpha = alpha;
+            this.C.invalidateGeometry(this);
+            return;
+        }
+        if (this.support instanceof list_object) {
+            const alpha = this.support.alphaAtScreen(screen);
             if (alpha === null) return;
             this.alpha = alpha;
             this.C.invalidateGeometry(this);
