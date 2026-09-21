@@ -24,7 +24,8 @@ export type magnet_target =
     | primitive_line_object
     | primitive_circle_object
     | list_object
-    | curve_object;
+    | curve_object
+    | point_object;
 
 // A margin (screen pixels) a competing magnet must beat the currently
 // active one by before the point switches to it. Without this, right at
@@ -34,8 +35,10 @@ export type magnet_target =
 const MAGNET_HYSTERESIS = 15;
 
 // The closest point to `point` lying on `target` (segment/ray bounds
-// respected, same convention as point_on_object's own projection).
+// respected, same convention as point_on_object's own projection). A point
+// target has no projection: it's a plain snap onto that point's own coords.
 function projectOntoMagnet(target: magnet_target, point: Vec3): Vec3 {
+    if (target instanceof point_object) return target.coords;
     if (target.familytype === "list")
         return (target as list_object).nearestPoint(point) ?? point;
     if (target.familytype === "curve")

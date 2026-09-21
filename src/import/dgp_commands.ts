@@ -463,7 +463,9 @@ function validateObjectStyle(
                         kind !== "line" &&
                         kind !== "circle" &&
                         kind !== "list" &&
-                        kind !== "curve"
+                        kind !== "curve" &&
+                        kind !== "point" &&
+                        kind !== "pointOn"
                     )
                         throw new Error(
                             `Unknown DGP reference at line ${lineNumber}`,
