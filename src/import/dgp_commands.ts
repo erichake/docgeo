@@ -145,6 +145,9 @@ const formula: Parameter = { kind: "formula" };
 // tolerated: only the leading hex digits are read, the rest is dropped.
 const COLOR = /^#(?:[\da-f]{6}|[\da-f]{3})/i;
 const STYLE_NUMBER = /^[+-]?(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][+-]?\d+)?$/;
+// A point's "sp" style: DGPad's shape index (0:circle, 1:cross, 2:diamond,
+// 3:square), see PointObject.setShape in the reference implementation.
+const POINT_SHAPES = ["circle", "cross", "diamond", "rect"];
 // A point's "mg" style: the objects it magnetizes to while dragged, each
 // with its own snap radius (in screen pixels), e.g.
 // "[S2,5000],[C1,20]".
@@ -428,6 +431,18 @@ function validateObjectStyle(
             case "np":
                 validateNumber(propertyValue, lineNumber, 0, 2 * Math.PI);
                 break;
+            case "sp":
+                validateNumber(
+                    propertyValue,
+                    lineNumber,
+                    0,
+                    POINT_SHAPES.length - 1,
+                );
+                if (!Number.isInteger(Number(propertyValue)))
+                    throw new Error(
+                        `Invalid DGP style number at line ${lineNumber}`,
+                    );
+                break;
             case "p":
                 validateNumber(propertyValue, lineNumber, -1);
                 if (!Number.isInteger(Number(propertyValue)))
@@ -548,6 +563,10 @@ function applyObjectStyle(
             case "np":
                 if (target instanceof point_object)
                     target.namePosition = Number(propertyValue);
+                break;
+            case "sp":
+                if (target instanceof point_object)
+                    target.shape = POINT_SHAPES[Number(propertyValue)];
                 break;
             case "p":
                 target.precision = Number(propertyValue);
