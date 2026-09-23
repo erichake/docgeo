@@ -1,6 +1,6 @@
 import type { construction } from "../construction";
-import { projectPointOnPlane } from "../projection";
-import { vAdd, vDot, vScale, vSub, type Vec3 } from "../vec";
+import { projectPointOnLine, projectPointOnPlane } from "../projection";
+import { vAdd, vDot, vScale, vSub, type Vec2, type Vec3 } from "../vec";
 import type { curve_object } from "./curve_object";
 import { list_object } from "./list_object";
 import type { locus_object } from "./locus_object";
@@ -139,30 +139,57 @@ export class point_on_object extends point_object {
             this.C.invalidateGeometry(this);
             return;
         }
-        const target =
-            this.support instanceof polygon_object &&
-            this.support.points.length >= 3
-                ? projectPointOnPlane(
-                      screen,
-                      this.support.points[0].coords,
-                      [
-                          vSub(
-                              this.support.points[1].coords,
-                              this.support.points[0].coords,
-                          ),
-                          vSub(
-                              this.support.points[2].coords,
-                              this.support.points[0].coords,
-                          ),
-                      ],
-                      this.C.projectionFrame,
-                  )
-                : this.C.unprojectToZPlane(screen, this.z);
+        const target = this.dragTarget(screen);
         if (!target) return;
         const alpha = this.alphaFor(target);
         if (alpha === null) return;
         this.alpha = alpha;
         this.C.invalidateGeometry(this);
+    }
+
+    private dragTarget(screen: Vec2): Vec3 | null {
+        if (
+            this.support instanceof polygon_object &&
+            this.support.points.length >= 3
+        )
+            return projectPointOnPlane(
+                screen,
+                this.support.points[0].coords,
+                [
+                    vSub(
+                        this.support.points[1].coords,
+                        this.support.points[0].coords,
+                    ),
+                    vSub(
+                        this.support.points[2].coords,
+                        this.support.points[0].coords,
+                    ),
+                ],
+                this.C.projectionFrame,
+            );
+        // A line/segment/ray's own direction can be anything in 3D (e.g. a
+        // vertical cube edge): projecting onto the fixed Z=this.z plane
+        // below only recovers real movement for a support that happens to
+        // lie within that plane, and otherwise leaves the point stuck (the
+        // recovered target's Z never moves off this.z, so its projection
+        // onto the line's direction barely changes). Solving directly for
+        // the point of the line itself whose projection lands on the
+        // cursor handles any orientation.
+        if (this.support instanceof two_points_line_object)
+            return projectPointOnLine(
+                screen,
+                this.support.P1.coords,
+                vSub(this.support.P2.coords, this.support.P1.coords),
+                this.C.projectionFrame,
+            );
+        if (this.support instanceof primitive_line_object)
+            return projectPointOnLine(
+                screen,
+                this.support.P1.coords,
+                this.support.VEC,
+                this.C.projectionFrame,
+            );
+        return this.C.unprojectToZPlane(screen, this.z);
     }
 
     private alphaFor(target: Vec3): Alpha | null {

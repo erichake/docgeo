@@ -88,14 +88,20 @@ export interface ExpressionFormula {
     refs: Map<string, expression_object>;
 }
 
-// A formula that reads other objects' current positions instead of
-// sweeping "x" (e.g. DGPad's "d(P1,M)"): recomputed on every geometry
-// update, like formula_point_object, but produces a displayed value
-// instead of a point's own coordinates.
+// A formula that reads other objects' current state instead of sweeping
+// "x" (e.g. DGPad's "d(P1,M)", or "AI-AM-MI" reading other Expressions'
+// live values): recomputed on every geometry update, like
+// formula_point_object, but produces a displayed value instead of a
+// point's own coordinates.
 export interface PointExpressionFormula {
     node: FormulaNode;
     source: string;
-    refs: Map<string, point_object>;
+    refs: Map<string, point_object | expression_object>;
+    // True in a 3D figure (DGPad's legacy SetCoords is3D flag): a
+    // referenced point then resolves to its full 3D coordinates (e.g.
+    // "d(A,P4)" between two cube vertices) instead of the 2D/complex-number
+    // projection a plain 2D point-referencing expression needs.
+    vec3: boolean;
 }
 
 export function evaluateAtX(
@@ -183,11 +189,16 @@ export class expression_object extends construction_object {
 
     computeGeometry(): void {
         if (!this.pointFormula) return;
-        const refs = this.pointFormula.refs;
+        const { refs, vec3 } = this.pointFormula;
         const result = evaluateFormula(this.pointFormula.node, {
             resolveIdentifier: (name) => {
-                const p = refs.get(name);
-                return p && p.defined ? [p.coords[0], p.coords[1]] : null;
+                const ref = refs.get(name);
+                if (!ref || !ref.defined) return null;
+                if (ref instanceof expression_object)
+                    return typeof ref.value === "number"
+                        ? [ref.value, 0]
+                        : null;
+                return vec3 ? ref.coords : [ref.coords[0], ref.coords[1]];
             },
             pixelScale: () => this.C.GRID.UNIT[0],
         });
@@ -195,7 +206,13 @@ export class expression_object extends construction_object {
         this.value =
             result === null || typeof result === "number"
                 ? result
-                : [...result];
+                : // A zero-imaginary Vec2 (e.g. "AI-AM-MI", a real-valued
+                  // subtraction of scalars each wrapped through the formula
+                  // engine's Vec2 slot — see dgp_formula.ts) displays as that
+                  // plain number rather than a "[x ; 0]" pair.
+                  result.length === 2 && result[1] === 0
+                  ? result[0]
+                  : [...result];
     }
 
     get isCursor(): boolean {

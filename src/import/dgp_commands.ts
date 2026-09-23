@@ -54,8 +54,10 @@ import { createSymmetry } from "../objects/symmetry_object";
 import { createLine } from "../objects/two_points_line_object";
 import type { Vec2, Vec3 } from "../vec";
 import {
+    evaluateFormula,
     formulaIdentifiers,
     parseFormula,
+    realPart,
     type FormulaNode,
 } from "./dgp_formula";
 import type { DgpCall, DgpValue } from "./dgp_parser";
@@ -110,6 +112,13 @@ interface CommandContext {
     // the old editor, so it must be pinned to [0,0,0] instead.
     is3D: boolean;
     origin3DAssigned: boolean;
+    // SetCoords' own saved pixel origin (x0,y0), independent of GRID.ORG:
+    // an Expression's screen position is computed once from this and
+    // stays fixed for the object's lifetime (see Expression's execute),
+    // unlike GRID.ORG, which in 3D mode tracks the live viewport instead
+    // (see SetCoords' execute) and can keep changing afterward (e.g. on
+    // window resize).
+    labelOrigin: Vec2;
 }
 
 interface CommandDefinition {
@@ -176,14 +185,34 @@ function literalString(value: DgpValue): string {
 
 // DGPad's legacy 3D figures store a fixed point's coordinates as a vector
 // literal inside a string (e.g. Point("X","[1,0,0]","1")) rather than as a
-// real DGP array value. Only constant numeric vectors are supported: this
-// project is a figure reader, not an expression evaluator.
+// real DGP array value; the components may themselves be constant
+// arithmetic (e.g. "[1,1,1/3]"). Only a literal "[...]" that doesn't
+// reference any other object counts as a fixed point: anything else (a
+// bare formula, or a "[...]" that reads another object, e.g.
+// "[1-2*cos(E2),1+2*sin(E2),1]") is a dependent point formula instead (see
+// Point's execute), not a one-time constant.
 function parseVectorLiteral(value: string): number[] | null {
-    const match = /^\[(.*)\]$/.exec(value);
-    if (!match) return null;
-    const parts = match[1].split(",").map((part) => part.trim());
-    if (parts.some((part) => !STYLE_NUMBER.test(part))) return null;
-    return parts.map(Number);
+    let node: FormulaNode;
+    try {
+        node = parseFormula(value);
+    } catch {
+        return null;
+    }
+    if (node.kind !== "vector") return null;
+    const result = evaluateFormula(node, {
+        resolveIdentifier: () => null,
+        pixelScale: () => 1,
+    });
+    return result === null || typeof result === "number" ? null : [...result];
+}
+
+// "M.coords3D()" (a Point mirroring another point's own 3D position): in
+// this project's 3D-aware point-formula evaluation (see Point's execute),
+// a bare point identifier already resolves to its full 3D coordinates, so
+// the ".coords3D()" suffix is a no-op and can just be stripped.
+const COORDS3D_MIRROR = /^([A-Za-z_$][\w$]*)\.coords3D\(\)$/;
+function stripCoords3DSuffix(value: string): string {
+    return COORDS3D_MIRROR.exec(value)?.[1] ?? value;
 }
 
 // DGPad's Expression() command can hold an arbitrary math expression,
@@ -224,6 +253,39 @@ function parseExpressionValue(value: string): number | number[] | null {
     return parseVectorLiteral(value) ?? parseComplexLiteral(value);
 }
 
+// A constant, reference-free formula (an Expression's slider bound, e.g.
+// "π/2"): reuses the general formula grammar/evaluator instead of a plain
+// number regex, so it also accepts DGPad's own math notation (π, arithmetic)
+// rather than only bare digits.
+function evaluateConstantFormula(source: string): number | null {
+    let node: FormulaNode;
+    try {
+        node = parseFormula(source);
+    } catch {
+        return null;
+    }
+    return realPart(
+        evaluateFormula(node, {
+            resolveIdentifier: () => null,
+            pixelScale: () => 1,
+        }),
+    );
+}
+
+// DGPad's Expression can also hold a semicolon-separated list of method
+// calls on other objects (e.g. "S1.setDash((a>π)&&(b>π));\"Dash code\"") —
+// a legacy scripting hook for things like hidden-edge dashing that this
+// reader computes on its own instead of executing (see AGENTS.md: running
+// arbitrary file content needs a controlled environment this project
+// doesn't build for arbitrary method calls). Recognized narrowly by the one
+// syntax no real formula uses: a "." directly between two identifier
+// characters (a decimal point is always digit-adjacent). Such an
+// expression is imported as an inert placeholder instead of failing import.
+const SCRIPT_STATEMENT = /[A-Za-z_$][\w$]*\s*\.\s*[A-Za-z_$]/;
+function isScriptStatement(source: string): boolean {
+    return SCRIPT_STATEMENT.test(source);
+}
+
 // A single-variable "function of x" formula (DGPad's Expression used as a
 // callable, e.g. Curvus's "E1(x)" or Expression's own "0.5x^2-4"): "x" is
 // the free sweep variable (excluded from reference checking), any other
@@ -252,19 +314,23 @@ function functionFormulaRefs(
     return refs;
 }
 
-// An Expression's formula referencing other objects directly (DGPad's
-// "d(P1,M)") rather than sweeping "x" (see validateFunctionFormulaReferences):
-// recognized when every non-"x" identifier it uses names a point.
+// An Expression's formula reading other objects' current state directly
+// (DGPad's "d(P1,M)", or "AI-AM-MI" reading other Expressions' live values)
+// rather than sweeping "x" (see validateFunctionFormulaReferences):
+// recognized when the formula doesn't use "x" at all and every identifier
+// it uses names a point or another Expression.
 function isPointExpressionFormula(
     formulaNode: FormulaNode,
     variables: Map<string, ObjectKind>,
 ): boolean {
-    const names = [...formulaIdentifiers(formulaNode)].filter(
-        (name) => name !== "x",
-    );
+    const names = formulaIdentifiers(formulaNode);
+    if (names.has("x")) return false;
     return (
-        names.length > 0 &&
-        names.every((name) => variables.get(name) === "point")
+        names.size > 0 &&
+        [...names].every((name) => {
+            const kind = variables.get(name);
+            return kind === "point" || kind === "expression";
+        })
     );
 }
 
@@ -272,23 +338,24 @@ function isPointExpressionFormulaAt(
     formulaNode: FormulaNode,
     variables: Map<string, construction_object>,
 ): boolean {
-    const names = [...formulaIdentifiers(formulaNode)].filter(
-        (name) => name !== "x",
-    );
+    const names = formulaIdentifiers(formulaNode);
+    if (names.has("x")) return false;
     return (
-        names.length > 0 &&
-        names.every((name) => variables.get(name)?.type === "point")
+        names.size > 0 &&
+        [...names].every((name) => {
+            const ref = variables.get(name);
+            return ref instanceof point_object || ref instanceof expression_object;
+        })
     );
 }
 
 function pointFormulaRefs(
     formulaNode: FormulaNode,
     variables: Map<string, construction_object>,
-): Map<string, point_object> {
-    const refs = new Map<string, point_object>();
+): Map<string, point_object | expression_object> {
+    const refs = new Map<string, point_object | expression_object>();
     formulaIdentifiers(formulaNode).forEach((name) => {
-        if (name === "x") return;
-        refs.set(name, variables.get(name) as point_object);
+        refs.set(name, variables.get(name) as point_object | expression_object);
     });
     return refs;
 }
@@ -318,6 +385,22 @@ function validateFormulaReferences(
 ): void {
     formulaIdentifiers(formulaNode).forEach((name) => {
         if (variables.get(name) !== "point")
+            throw new Error(`Unknown DGP reference at line ${lineNumber}`);
+    });
+}
+
+// A Point's own dependent formula (e.g. "P1+[-1,-1,1]", "M.coords3D()"):
+// unlike a plain object formula, it may also read a slider Expression's
+// scalar value (e.g. "[1-2*cos(E2),1+2*sin(E2),1]"), and a "pointOn" is as
+// good a point reference as a free/fixed one.
+function validatePointFormulaReferences(
+    formulaNode: FormulaNode,
+    variables: Map<string, ObjectKind>,
+    lineNumber: number,
+): void {
+    formulaIdentifiers(formulaNode).forEach((name) => {
+        const kind = variables.get(name);
+        if (kind !== "point" && kind !== "pointOn" && kind !== "expression")
             throw new Error(`Unknown DGP reference at line ${lineNumber}`);
     });
 }
@@ -657,11 +740,11 @@ const COMMANDS = new Map<string, CommandDefinition>([
                 const unit = args[2] as number;
                 const grid = context.construction.GRID;
                 context.is3D = args[3] as boolean;
+                context.labelOrigin = [args[0] as number, args[1] as number];
                 if (context.is3D) {
-                    // In the legacy 3D format, SetCoords' first two numbers
-                    // stop meaning a screen origin and instead carry the raw
-                    // camera rotation state (angle = raw * grid.STEP), the
-                    // same unit the interactive rotation drag already uses.
+                    // In the legacy 3D format, the first two numbers are the
+                    // raw camera rotation state (angle = raw * grid.STEP),
+                    // the unit the interactive rotation drag already uses.
                     // The raw angle can land outside GRID.RESTRICT_PHI/THETA
                     // (those bounds aren't a full turn wide), which renders
                     // fine since cos/sin are periodic, but the first
@@ -676,8 +759,22 @@ const COMMANDS = new Map<string, CommandDefinition>([
                         (args[1] as number) * grid.STEP,
                         grid.RESTRICT_THETA,
                     );
+                    // A 3D figure's world origin always projects to the
+                    // live viewport's center — matching this legacy
+                    // format's own "centerZoom" convention and how the app
+                    // already recenters on a live resize (construction.
+                    // resize) — rather than reusing the pixel position
+                    // saved from a possibly differently-sized window, which
+                    // would offset or crop the projected geometry. An
+                    // Expression's screen label isn't projected geometry
+                    // (see labelOrigin above): it keeps using the saved
+                    // pixel position instead, unaffected by this.
+                    grid.ORG = [
+                        context.construction.width / 2,
+                        context.construction.height / 2,
+                    ];
                 } else {
-                    grid.ORG = [args[0] as number, args[1] as number];
+                    grid.ORG = context.labelOrigin;
                 }
                 grid.UNIT = [unit, unit, unit];
                 context.projectionChanged = true;
@@ -699,40 +796,32 @@ const COMMANDS = new Map<string, CommandDefinition>([
                     throw new Error(
                         `Invalid DGP point coordinates at line ${lineNumber}`,
                     );
-                const vector = parseVectorLiteral(second.value);
-                if (!vector) {
-                    if (third.value !== "0")
-                        throw new Error(
-                            `Invalid DGP point flag at line ${lineNumber}`,
-                        );
-                    const pointFormula = parsePointFormula(
-                        second.value,
-                        lineNumber,
-                    );
-                    validateFormulaReferences(
-                        pointFormula,
-                        variables,
-                        lineNumber,
-                    );
-                    return;
-                }
-                if (vector.length !== 2 && vector.length !== 3)
-                    throw new Error(
-                        `Unsupported DGP point expression at line ${lineNumber}`,
-                    );
-                if (
-                    (third.value === "1") !== (vector.length === 3) ||
-                    (third.value !== "0" && third.value !== "1")
-                )
+                if (third.value !== "0" && third.value !== "1")
                     throw new Error(
                         `Invalid DGP point flag at line ${lineNumber}`,
                     );
+                const source = stripCoords3DSuffix(second.value);
+                const vector = parseVectorLiteral(source);
+                if (vector) {
+                    if ((third.value === "1") !== (vector.length === 3))
+                        throw new Error(
+                            `Invalid DGP point flag at line ${lineNumber}`,
+                        );
+                    return;
+                }
+                const pointFormula = parsePointFormula(source, lineNumber);
+                validatePointFormulaReferences(
+                    pointFormula,
+                    variables,
+                    lineNumber,
+                );
             },
             execute: (context, args) => {
                 const name = args[0] as string;
                 const second = args[1];
                 if (typeof second === "string") {
-                    const vector = parseVectorLiteral(second);
+                    const source = stripCoords3DSuffix(second);
+                    const vector = parseVectorLiteral(source);
                     if (vector) {
                         const coords: Vec3 =
                             vector.length === 3
@@ -744,11 +833,13 @@ const COMMANDS = new Map<string, CommandDefinition>([
                             coords,
                         );
                     }
-                    const formula = parseFormula(second);
+                    const formula = parseFormula(source);
                     const refs = new Map(
                         [...formulaIdentifiers(formula)].map((refName) => [
                             refName,
-                            context.variables.get(refName) as point_object,
+                            context.variables.get(refName) as
+                                | point_object
+                                | expression_object,
                         ]),
                     );
                     return createFormulaPoint(
@@ -756,6 +847,7 @@ const COMMANDS = new Map<string, CommandDefinition>([
                         name,
                         formula,
                         refs,
+                        context.is3D,
                     );
                 }
                 if (context.is3D && !context.origin3DAssigned) {
@@ -1210,14 +1302,17 @@ const COMMANDS = new Map<string, CommandDefinition>([
             validate: (args, lineNumber, variables) => {
                 const bound = (value: DgpValue): boolean => {
                     const source = literalString(value);
-                    return source === "" || STYLE_NUMBER.test(source);
+                    return source === "" || evaluateConstantFormula(source) !== null;
                 };
                 if (!bound(args[2]) || !bound(args[3]))
                     throw new Error(
                         `Invalid DGP expression bound at line ${lineNumber}`,
                     );
                 const source = literalString(args[4]);
-                if (parseExpressionValue(source) === null) {
+                if (
+                    parseExpressionValue(source) === null &&
+                    !isScriptStatement(source)
+                ) {
                     let formulaNode: FormulaNode;
                     try {
                         formulaNode = parseFormula(source);
@@ -1249,7 +1344,10 @@ const COMMANDS = new Map<string, CommandDefinition>([
                 // point: DGPad stores it in world units only so it survives
                 // a different SetCoords on save/reload, converting it back
                 // with the plain 2D origin/unit math below (no 3D rotation
-                // involved — see expression_object.ts).
+                // involved — see expression_object.ts). It's anchored to
+                // SetCoords' own saved pixel origin (context.labelOrigin),
+                // not GRID.ORG: in 3D mode GRID.ORG tracks the live
+                // viewport instead (see SetCoords' execute).
                 const grid = context.construction.GRID;
                 const x = Number(args[5] as string);
                 const y = Number(args[6] as string);
@@ -1257,13 +1355,14 @@ const COMMANDS = new Map<string, CommandDefinition>([
                 const constant = parseExpressionValue(source);
                 let formula: ExpressionFormula | null = null;
                 let pointFormula: PointExpressionFormula | null = null;
-                if (constant === null) {
+                if (constant === null && !isScriptStatement(source)) {
                     const node = parseFormula(source);
                     if (isPointExpressionFormulaAt(node, context.variables)) {
                         pointFormula = {
                             node,
                             source,
                             refs: pointFormulaRefs(node, context.variables),
+                            vec3: context.is3D,
                         };
                     } else {
                         formula = {
@@ -1278,11 +1377,11 @@ const COMMANDS = new Map<string, CommandDefinition>([
                     args[0] as string,
                     args[1] as string,
                     constant,
-                    min === "" ? null : Number(min),
-                    max === "" ? null : Number(max),
+                    min === "" ? null : evaluateConstantFormula(min),
+                    max === "" ? null : evaluateConstantFormula(max),
                     [
-                        grid.ORG[0] + x * grid.UNIT[0],
-                        grid.ORG[1] - y * grid.UNIT[1],
+                        context.labelOrigin[0] + x * grid.UNIT[0],
+                        context.labelOrigin[1] - y * grid.UNIT[1],
                     ],
                     formula,
                     pointFormula,
@@ -1578,6 +1677,7 @@ export function executeDgpCommands(c: construction, calls: DgpCall[]): void {
         projectionChanged: false,
         is3D: false,
         origin3DAssigned: false,
+        labelOrigin: [0, 0],
     };
 
     c.beginBatch();

@@ -1,5 +1,5 @@
 import { IDENTIFIER_PART, IDENTIFIER_START } from "./dgp_parser";
-import { vAdd, vNorm, vSub, type Vec2 } from "../vec";
+import { vAdd, vNorm, vSub, type Vec2, type Vec3 } from "../vec";
 
 export type FormulaFn =
     | "sqrt"
@@ -43,6 +43,9 @@ export type FormulaNode =
     // at evaluation time through FormulaEnv.callFunction, not evalCall.
     | { kind: "userCall"; name: string; args: FormulaNode[] }
     | { kind: "unary"; op: "-"; operand: FormulaNode }
+    // A DGPad vector/point-displacement literal, e.g. "[-1,-1,1]": 2 or 3
+    // real components, used to build 3D points (e.g. "P1+[-1,-1,1]").
+    | { kind: "vector"; items: FormulaNode[] }
     | {
           kind: "binary";
           op: "+" | "-" | "*" | "/" | "^";
@@ -61,6 +64,8 @@ type TokenType =
     | "^"
     | "("
     | ")"
+    | "["
+    | "]"
     | ","
     | "eof";
 
@@ -95,7 +100,7 @@ class FormulaLexer {
 
         if (IDENTIFIER_START.test(character)) return this.identifier();
 
-        if ("+-*/^(),".includes(character)) {
+        if ("+-*/^(),[]".includes(character)) {
             this.index++;
             return { type: character as TokenType, value: character };
         }
@@ -239,7 +244,9 @@ class FormulaParser {
             const name = token.value as string;
             if ((this.current.type as TokenType) === "(")
                 return this.call(name);
-            if (name === "PI") return { kind: "constant", name: "PI" };
+            // "π" is DGPad's own notation for PI in slider bounds/formulas.
+            if (name === "PI" || name === "π")
+                return { kind: "constant", name: "PI" };
             return { kind: "identifier", name };
         }
         if (token.type === "(") {
@@ -248,7 +255,21 @@ class FormulaParser {
             this.take(")");
             return node;
         }
+        if (token.type === "[") return this.vector();
         throw new Error("Invalid DGP formula syntax");
+    }
+
+    private vector(): FormulaNode {
+        this.advance();
+        const items: FormulaNode[] = [this.additive()];
+        while ((this.current.type as TokenType) === ",") {
+            this.advance();
+            items.push(this.additive());
+        }
+        this.take("]");
+        if (items.length !== 2 && items.length !== 3)
+            throw new Error("Invalid DGP formula syntax");
+        return { kind: "vector", items };
     }
 
     private call(name: string): FormulaNode {
@@ -294,6 +315,9 @@ export function formulaIdentifiers(node: FormulaNode): Set<string> {
             case "unary":
                 walk(n.operand);
                 break;
+            case "vector":
+                n.items.forEach(walk);
+                break;
             case "binary":
                 walk(n.left);
                 walk(n.right);
@@ -311,10 +335,14 @@ export function formulaIdentifiers(node: FormulaNode): Set<string> {
     return names;
 }
 
-export type FormulaValue = number | Vec2;
+// A Vec3 only ever comes from a 3-item vector literal (e.g. "P1+[-1,-1,1]",
+// a legacy-3D point displacement) or a point identifier resolved in that
+// same 3D context; every other formula stays within number | Vec2 exactly
+// as before.
+export type FormulaValue = number | Vec2 | Vec3;
 
 export interface FormulaEnv {
-    resolveIdentifier(name: string): Vec2 | null;
+    resolveIdentifier(name: string): Vec2 | Vec3 | null;
     pixelScale(): number;
     // Resolves a userCall node (a name outside FORMULA_ARITY applied to
     // arguments, e.g. "E1(x)"). Consumers that don't support calling named
@@ -327,9 +355,11 @@ export interface FormulaEnv {
 // zero imaginary part rather than a plain number. Real-only consumers
 // (list counts, label values, real trig functions, curve samples) treat
 // such a Vec2 as that real number, and reject a genuinely complex one.
+// A Vec3 (a 3D point coordinate, never a "real number") always rejects.
 export function realPart(value: FormulaValue | null): number | null {
     if (value === null) return null;
     if (typeof value === "number") return value;
+    if (value.length === 3) return null;
     return value[1] === 0 ? value[0] : null;
 }
 
@@ -367,32 +397,53 @@ function evalBinary(
     l: FormulaValue,
     r: FormulaValue,
 ): FormulaValue | null {
+    if (
+        (typeof l !== "number" && l.length === 3) ||
+        (typeof r !== "number" && r.length === 3)
+    ) {
+        // A 3D point displacement only supports "+"/"-" between two
+        // Vec3s: complex multiplication/division/power don't generalize
+        // to 3D and aren't part of DGPad's vector-literal syntax anyway.
+        if (
+            typeof l === "number" ||
+            typeof r === "number" ||
+            l.length !== 3 ||
+            r.length !== 3 ||
+            (op !== "+" && op !== "-")
+        )
+            return null;
+        return op === "+" ? vAdd(l, r) : vSub(l, r);
+    }
+    // From here, l and r are number | Vec2 only (the 3D case above always
+    // returns). Cast away the Vec3 arm TS can't otherwise rule out.
+    const l2 = l as number | Vec2;
+    const r2 = r as number | Vec2;
     if (op === "^") {
-        if (typeof l === "number" && typeof r === "number")
-            return Math.pow(l, r);
-        if (typeof l !== "number" && typeof r === "number")
+        if (typeof l2 === "number" && typeof r2 === "number")
+            return Math.pow(l2, r2);
+        if (typeof l2 !== "number" && typeof r2 === "number")
             // A real base (an identifier holding a zero-imaginary Vec2, e.g.
             // a curve's x) goes through plain Math.pow: complexPow's polar
             // round-trip (cos/sin of an angle that's 0 or PI) leaves a tiny
             // nonzero imaginary residue even for a perfectly real result,
             // which realPart would then wrongly reject as complex.
-            return l[1] === 0 ? Math.pow(l[0], r) : complexPow(l, r);
+            return l2[1] === 0 ? Math.pow(l2[0], r2) : complexPow(l2, r2);
         return null;
     }
-    if (typeof l === "number" && typeof r === "number") {
+    if (typeof l2 === "number" && typeof r2 === "number") {
         switch (op) {
             case "+":
-                return l + r;
+                return l2 + r2;
             case "-":
-                return l - r;
+                return l2 - r2;
             case "*":
-                return l * r;
+                return l2 * r2;
             case "/":
-                return l / r;
+                return l2 / r2;
         }
     }
-    const a: Vec2 = typeof l === "number" ? [l, 0] : l;
-    const b: Vec2 = typeof r === "number" ? [r, 0] : r;
+    const a: Vec2 = typeof l2 === "number" ? [l2, 0] : l2;
+    const b: Vec2 = typeof r2 === "number" ? [r2, 0] : r2;
     switch (op) {
         case "+":
             return vAdd(a, b);
@@ -423,8 +474,15 @@ function evalCall(
             return env.pixelScale();
         case "d": {
             const [a, b] = args;
-            if (typeof a === "number" || typeof b === "number") return null;
-            return vNorm(vSub(a, b));
+            if (
+                typeof a === "number" ||
+                typeof b === "number" ||
+                a.length !== b.length
+            )
+                return null;
+            return a.length === 3
+                ? vNorm(vSub(a as Vec3, b as Vec3))
+                : vNorm(vSub(a as Vec2, b as Vec2));
         }
         case "x": {
             const [a] = args;
@@ -438,7 +496,7 @@ function evalCall(
             const [a] = args;
             if (typeof a === "number")
                 return a >= 0 ? Math.sqrt(a) : complexSqrt([a, 0]);
-            return complexSqrt(a);
+            return a.length === 3 ? null : complexSqrt(a);
         }
         case "sin":
             return realUnary(Math.sin, args[0]);
@@ -480,7 +538,21 @@ function evalNode(node: FormulaNode, env: FormulaEnv): FormulaValue | null {
         case "unary": {
             const value = evalNode(node.operand, env);
             if (value === null) return null;
-            return typeof value === "number" ? -value : [-value[0], -value[1]];
+            if (typeof value === "number") return -value;
+            return value.length === 3
+                ? [-value[0], -value[1], -value[2]]
+                : [-value[0], -value[1]];
+        }
+        case "vector": {
+            const values: number[] = [];
+            for (const item of node.items) {
+                const real = realPart(evalNode(item, env));
+                if (real === null) return null;
+                values.push(real);
+            }
+            return values.length === 3
+                ? [values[0], values[1], values[2]]
+                : [values[0], values[1]];
         }
         case "binary": {
             const left = evalNode(node.left, env);
@@ -521,7 +593,5 @@ export function evaluateFormula(
     if (result === null) return null;
     if (typeof result === "number")
         return Number.isFinite(result) ? result : null;
-    return Number.isFinite(result[0]) && Number.isFinite(result[1])
-        ? result
-        : null;
+    return result.every(Number.isFinite) ? result : null;
 }

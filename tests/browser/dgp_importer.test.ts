@@ -641,6 +641,33 @@ STL(R,"tk:true");`,
         expect(reflection.tracePath!.getAtt("d")!.match(/L/g)).toHaveLength(2);
     });
 
+    it("drags a point along a 3D segment that's vertical in world space", () => {
+        const c = createConstruction();
+        importDgp(
+            c,
+            `SetCoords(0,0,40,true,800,600);
+A=Point("A","[0,0,-1]","1");
+B=Point("B","[0,0,1]","1");
+S=Segment("S",A,B);
+M=PointOn("M",S,0.5);`,
+        );
+        c.OBJS.update();
+        const m = c.getObj("M") as point_on_object;
+        expect(m.alpha).toBe(0.5);
+
+        // Dragging M via a screen point unprojected onto the fixed Z=this.z
+        // plane (this point_on_object's old behavior) can't move it at all
+        // along a purely-vertical segment: that plane barely intersects a
+        // vertical line anywhere else, so the recovered alpha stays ~0.5
+        // regardless of where the cursor goes. Projecting onto the
+        // segment's own line (see point_on_object.dragTarget) fixes that.
+        const [clientX, clientY] = c.pt3D([0, 0, 0.8]);
+        m.mousedrag(new PointerEvent("pointermove", { clientX, clientY }));
+        c.OBJS.update();
+
+        expect(m.alpha as number).toBeCloseTo(0.9);
+    });
+
     it("only builds an SVG view for the objects visible in Apollonius", async () => {
         const c = createConstruction();
         await importDgpFromUrl(c, "/tests/_Apollonius.dgp");
@@ -714,5 +741,84 @@ C1=Circle1("C1",A,"d(A,Z)");`,
         expect(Math.hypot(...vSub(p3.coords, arc.CENTER))).toBeCloseTo(arc.R);
         expect(center.coords).toEqual(arc.CENTER);
         expect(arc.dom.dom().innerHTML).not.toMatch(/NaN|Infinity/);
+    });
+
+    it("imports a legacy-3D cube built from vector-literal point formulas", async () => {
+        const c = createConstruction();
+        await importDgpFromUrl(c, "/tests/chemin_cube.dgp");
+        c.OBJS.update();
+
+        // P1 is the figure's implicit 3D origin (see SetCoords' is3D
+        // handling); the other 7 vertices are "P1+[dx,dy,dz]" formula
+        // points and must come out as real 3D coordinates, not 2D.
+        const p1 = c.getObj("P1") as point_object;
+        const h = c.getObj("H") as point_object;
+        const c1 = c.getObj("C") as point_object;
+        expect(p1.coords).toEqual([0, 0, 0]);
+        expect(h.coords).toEqual([-1, -1, 1]);
+        expect(c1.coords).toEqual([1, 1, 1]);
+
+        // P2 is a fixed point computed from a slider Expression (E2) inside
+        // a 3-component vector literal ("[1-2*cos(E2),1+2*sin(E2),1]").
+        const e2 = c.getObj("E2") as expression_object;
+        const angle = e2.value as number;
+        const p2 = c.getObj("P2") as point_object;
+        expect(p2.coords[0]).toBeCloseTo(1 - 2 * Math.cos(angle));
+        expect(p2.coords[1]).toBeCloseTo(1 + 2 * Math.sin(angle));
+        expect(p2.coords[2]).toBeCloseTo(1);
+
+        // P4 mirrors M's own 3D position via "M.coords3D()".
+        const m = c.getObj("M") as point_object;
+        const p4 = c.getObj("P4") as point_object;
+        expect(p4.coords).toEqual(m.coords);
+
+        // AI, AM, MI are Expressions computing 3D distances between cube
+        // vertices ("d(A,I)" etc.), and E3 ("AI-AM-MI") reads their live
+        // values directly, whatever M's current position on [BC] is.
+        const ai = (c.getObj("AI") as expression_object).value as number;
+        const am = (c.getObj("AM") as expression_object).value as number;
+        const mi = (c.getObj("MI") as expression_object).value as number;
+        const e3 = (c.getObj("E3") as expression_object).value as number;
+        expect(ai).toBeGreaterThan(0);
+        expect(e3).toBeCloseTo(ai - am - mi);
+
+        // The 17 "Dash code"/"Visibilité des faces" Expressions script
+        // other objects via unsupported method calls (S1.setDash(...),
+        // Poly1.setOpacity(...)): imported as inert placeholders instead of
+        // failing the whole figure.
+        const dash = c.getObj("E36") as expression_object;
+        expect(dash).toBeInstanceOf(expression_object);
+        expect(dash.value).toBeNull();
+
+        // The "Ouvrir" slider (E2) must land on a real, finite screen
+        // position — this figure is hand-edited between test runs, so this
+        // only guards against it going missing/NaN, not an exact pixel spot.
+        expect(e2.isCursor).toBe(true);
+        expect(e2.screen.every(Number.isFinite)).toBe(true);
+    });
+
+    it("centers a 3D figure's world origin on the live viewport, independently of its Expression labels", () => {
+        const c = createConstruction();
+        importDgp(
+            c,
+            `SetCoords(9999,-9999,40,true,100,100);
+E1=Expression("E1","","","","5","-1","0");`,
+        );
+
+        // DGPad's native app resizes its own window to the figure's saved
+        // width/height on load, so its saved pixel origin (9999,-9999) is
+        // always meaningful there. This is a responsive web page that
+        // can't do that: reusing that origin as-is for 3D point
+        // projection would push the whole figure off-screen whenever the
+        // live viewport doesn't match, so it's centered on the live
+        // viewport instead (see SetCoords' execute) — matching both this
+        // legacy format's own "centerZoom" convention and how the app
+        // already recenters on a live resize (construction.resize).
+        expect(c.GRID.ORG).toEqual([c.width / 2, c.height / 2]);
+
+        // An Expression's screen label isn't projected geometry: it still
+        // anchors to the literal saved origin (see Expression's execute).
+        const e1 = c.getObj("E1") as expression_object;
+        expect(e1.screen).toEqual([9999 - 40, -9999]);
     });
 });
