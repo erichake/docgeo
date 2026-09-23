@@ -1,4 +1,6 @@
 import type { construction_object } from "./objects/construction_object";
+import { grid_object } from "./objects/grid_object";
+import { point_object } from "./objects/point_object";
 
 export class objects_collector {
     // All construction objects, in construction order :
@@ -38,6 +40,7 @@ export class objects_collector {
 
     markGeometryDirty(root: construction_object): void {
         const descendants = [root];
+        let touchesPolygon = false;
         while (descendants.length) {
             const object = descendants.pop()!;
             if (object.geometryDirty) continue;
@@ -45,8 +48,17 @@ export class objects_collector {
             object.projectionDirty = true;
             object.renderDirty = true;
             this.dirty.add(object);
+            if (object.familytype === "polygon") touchesPolygon = true;
             descendants.push(...object.children);
         }
+        // A polygon that moved (even one outside a segment's own dependency
+        // subtree above) can newly occlude, or stop occluding, that
+        // segment's hidden-line dashing (see primitive_line_object's
+        // updateHiddenSplit/hiddenIntervalsBetween): a spatial relationship
+        // the construction DAG doesn't capture, unlike markProjectionDirty
+        // below, which already (if bluntly) covers it by reprojecting
+        // everything.
+        if (touchesPolygon) this.markProjectionDirty();
     }
 
     markProjectionDirty(): void {
@@ -78,6 +90,29 @@ export class objects_collector {
             if (object.geometryDirty) {
                 object.computeGeometry();
                 object.geometryDirty = false;
+            }
+        });
+        // The grid (its projectionFrame's cached rotation trig) and points
+        // (their screen position) project first, within this same step: a
+        // line/segment's project() tests hidden-line occlusion against any
+        // polygon that happens to be screen-near it (see
+        // primitive_line_object.updateHiddenSplit), not just its own
+        // construction parents, so — unlike the descendant-coords case
+        // above — construction order alone doesn't guarantee a referenced
+        // polygon's points already hold this frame's screen position (or
+        // the grid its current rotation) by the time that happens. The
+        // grid is normally first in construction order anyway (sequence 0),
+        // but a point moved via an Expression/slider dirties only its own
+        // dependency subtree (see markGeometryDirty), which never includes
+        // the grid.
+        objects.forEach((object) => {
+            if (
+                object.projectionDirty &&
+                (object instanceof point_object ||
+                    object instanceof grid_object)
+            ) {
+                object.project();
+                object.projectionDirty = false;
             }
         });
         objects.forEach((object) => {

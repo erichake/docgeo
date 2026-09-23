@@ -536,4 +536,37 @@ describe("DGPad geometric constructors", () => {
         expect(p.coords[0]).toBeCloseTo(3);
         expect(p.coords[1]).toBeCloseTo(0);
     });
+
+    it("recomputes a segment's hidden-line dashing when a polygon outside its own dependencies moves over it", () => {
+        const c = createConstruction();
+        // Default camera (PHI=5π/2, THETA=π/2) looks straight down Z, so X/Y
+        // give the screen position and Z is purely depth: a larger Z is
+        // closer to the camera (see viewDirection in projection.ts).
+        const s1 = createPoint(c, "S1", [-2, 0, 0]);
+        const s2 = createPoint(c, "S2", [2, 0, 0]);
+        const segment = createSegment(c, "Seg", s1, s2);
+
+        // A small square, off to the side: not over the segment yet.
+        const p1 = createPoint(c, "P1", [5, -0.5, 2]);
+        const p2 = createPoint(c, "P2", [6, -0.5, 2]);
+        const p3 = createPoint(c, "P3", [6, 0.5, 2]);
+        const p4 = createPoint(c, "P4", [5, 0.5, 2]);
+        createPolygon(c, "Poly", [p1, p2, p3, p4]);
+        c.OBJS.update();
+        expect(segment.hiddenPath.getAtt("d")).toBeFalsy();
+
+        // Move the polygon (via its own points, never a parent of `segment`
+        // in the construction DAG) directly over the segment's midpoint —
+        // this only exercises the same "external point moved" path a
+        // slider-driven Expression would (see objects_collector.
+        // markGeometryDirty), not a mousedrag on the segment or a view
+        // rotation.
+        [p1, p2, p3, p4].forEach((p) => {
+            p.coords = [p.coords[0] - 5.5, p.coords[1], p.coords[2]];
+            c.invalidateGeometry(p);
+        });
+        c.OBJS.update();
+
+        expect(segment.hiddenPath.getAtt("d")).toBeTruthy();
+    });
 });
