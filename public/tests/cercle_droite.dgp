@@ -1,0 +1,22 @@
+// Coordinates System :
+SetCoords(400,285.5,40,false,800,572);
+
+
+// Geometry :
+A=Point("A",-4,-0.3875);
+B=Point("B",4.45,2.3875);
+C=Point("C",0.5,2.7625);
+L1=Line("L1",A,B);
+C1=Circle3pts("C1",A,C,B);
+Center1=Center("Center1",C1);
+
+
+// Styles :
+STL(A,"c:#0000b2;o:1;s:6;sn:true;f:30");
+STL(B,"c:#0000b2;o:1;s:6;sn:true;f:30");
+STL(C,"c:#006633;o:1;s:6;sn:true;f:30;mg:[L1,10]");
+STL(L1,"c:#780013;h:1;s:1;f:30;p:0");
+STL(C1,"c:#cc66cc;s:1;f:30;p:0");
+STL(Center1,"c:#0000b2;h:1;o:1;s:6;f:30");
+SetCoordsStyle("isAxis:false;isGrid:true;isOx:true;isOy:true;isLockOx:false;isLockOy:false;centerZoom:false;onlyPositive:false;color:#111111;fontSize:18;axisWidth:1;gridWidth:0.1");
+SetGeneralStyle("background-color:#F8F8F8;degree:true;dragmoveable:true");

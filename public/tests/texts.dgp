@@ -1,0 +1,16 @@
+// Coordinates System :
+SetCoords(1570.8203125,36.44921875,119.8937449638333,false,876,622);
+
+
+// Geometry :
+E6=Expression("E6","I est le milieu de [CG]. Pr\u00e9ciser la position de M sur [BC].","","","2","-13.018363159569594","-0.530059189236023");
+E5=Expression("E5","Vous pouvez d\u00e9placer M, ouvrir la face BFGC et utiliser les informations de la figure","","","2","-13.018363159569594","-0.2798376283943821");
+E4=Expression("E4","On cherche le chemin minimal pour aller de A \u00e0 I en passant par l'ar\u00eate [BC]. ","","","1","-13.018363159569594","-0.0296160675527411");
+
+
+// Styles :
+STL(E6,"c:#62313d;s:7;f:16;p:-1;cL:200;cPT:YzojNzgwMDEzO3M6MTA7ZjozMA==");
+STL(E5,"c:#385a19;s:7;f:16;p:-1;cL:200;cPT:YzojNzgwMDEzO3M6MTA7ZjozMA==");
+STL(E4,"c:#1d5579;s:7;f:17;p:-1;cL:200;cPT:YzojNzgwMDEzO3M6MTA7ZjozMA==");
+SetCoordsStyle("isAxis:false;isGrid:true;isOx:true;isOy:true;isLockOx:false;isLockOy:false;centerZoom:true;onlyPositive:false;color:#111111;fontSize:18;axisWidth:1;gridWidth:0.1");
+SetGeneralStyle("background-color:#F8F8F8;degree:false;dragmoveable:true");
