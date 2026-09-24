@@ -93,6 +93,7 @@ describe("GGB importer", () => {
         "fonction_inter_cercle",
         "fonction_inter_conique",
         "polyreg",
+        "polyform",
     ])("rebuilds every saved point of %s", async (name) => {
         const c = createConstruction();
         const xml = await loadXml(name);
@@ -113,6 +114,15 @@ describe("GGB importer", () => {
             c.getObj("A"),
             c.getObj("B"),
         ]);
+    });
+
+    it("builds points from Vector and OrthogonalVector expressions", async () => {
+        const c = createConstruction();
+        importGgb(c, await loadXml("polyform"));
+
+        expect(c.getObj("poly1")).toBeInstanceOf(polygon_object);
+        expect(c.getObj("q1")).toBeInstanceOf(polygon_object);
+        expect(c.getObj("C")!.isHidden).toBe(true);
     });
 
     it("builds nested commands as hidden auxiliary objects", async () => {

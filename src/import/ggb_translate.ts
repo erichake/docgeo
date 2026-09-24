@@ -54,6 +54,7 @@ const NUMERIC_TUPLE =
     /^\(\s*[+-]?[\d.]+(?:[eE][+-]?\d+)?\s*(?:,\s*[+-]?[\d.]+(?:[eE][+-]?\d+)?\s*){1,2}\)$/;
 const THREE_D_TYPES = /3d$|^polyhedron$/;
 const COMMAND_EXPRESSION = /^([A-Za-z]+)\((.*)\)$/;
+const VECTOR_COMMANDS = new Set(["Vector", "OrthogonalVector"]);
 const FUNCTION_DEFINITION = /^[^=]*\(\s*x\s*\)\s*=/;
 const FUNCTIONS: Record<string, string> = {
     Distance: "d",
@@ -253,6 +254,28 @@ export function translateGgb(xml: string): GgbTranslation {
         name: objects.get(label)!.variable,
     });
 
+    // Vector(P, Q) as the formula Q-P. OrthogonalVector of a segment or
+    // vector is GeoGebra's (-dy, dx), not normalized: the 2D vector times i.
+    const vectorFormula = (source: string): string | null => {
+        const match = COMMAND_EXPRESSION.exec(source);
+        const args = match && splitArguments(match[2]);
+        if (!args) return null;
+        if (match[1] === "OrthogonalVector") {
+            const [arg] = args;
+            const ends = segments.get(arg);
+            const vector =
+                args.length !== 1 || is3D
+                    ? null
+                    : ends
+                      ? vectorFormula(`Vector(${ends.join(",")})`)
+                      : vectorFormula(arg.replace(/^Segment\(/, "Vector("));
+            return vector && `(${vector}*1i)`;
+        }
+        if (match[1] !== "Vector" || args.length !== 2) return null;
+        const [p, q] = args.map((arg) => formula(arg, POINT_KINDS));
+        return p === null || q === null ? null : `(${q}-${p})`;
+    };
+
     // GeoGebra's expression syntax → a DGP formula: labels become their DGP
     // variables, "(a, b)" tuples become "[a,b]" vectors. Returns null for
     // anything the DGP formula engine can't evaluate.
@@ -278,6 +301,19 @@ export function translateGgb(xml: string): GgbTranslation {
                 while (end < text.length && IDENTIFIER_PART.test(text[end]))
                     end++;
                 const word = text.slice(index, end);
+                if (text[end] === "(" && VECTOR_COMMANDS.has(word)) {
+                    let depth = 0;
+                    do {
+                        if (text[end] === "(") depth++;
+                        else if (text[end] === ")") depth--;
+                        end++;
+                    } while (depth > 0 && end < text.length);
+                    const vector = vectorFormula(text.slice(index, end));
+                    if (vector === null) return null;
+                    result += vector;
+                    index = end;
+                    continue;
+                }
                 index = end;
                 if (text[index] === "(") {
                     const name = FUNCTIONS[word];
@@ -369,7 +405,11 @@ export function translateGgb(xml: string): GgbTranslation {
         args: DgpValue[],
         style?: string,
     ): true => {
-        const variable = IDENTIFIER.test(label) ? label : `$${calls.length}`;
+        // "i" is the imaginary unit in a DGP formula.
+        const variable =
+            IDENTIFIER.test(label) && label !== "i"
+                ? label
+                : `$${calls.length}`;
         objects.set(label, { variable, kind });
         push(variable, command, [literal(label), ...args]);
         const element = elements.get(label);
