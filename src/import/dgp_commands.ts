@@ -777,7 +777,12 @@ const COMMANDS = new Map<string, CommandDefinition>([
     [
         "Point",
         {
-            parameters: [string, coordinate, coordinate],
+            parameters: [
+                string,
+                coordinate,
+                coordinate,
+                { ...number, optional: true },
+            ],
             result: "point",
             validate: (args, lineNumber, variables) => {
                 const second = args[1];
@@ -853,7 +858,7 @@ const COMMANDS = new Map<string, CommandDefinition>([
                 return createPoint(context.construction, name, [
                     second as number,
                     args[2] as number,
-                    0,
+                    (args[3] as number | undefined) ?? 0,
                 ]);
             },
         },
@@ -1056,7 +1061,9 @@ const COMMANDS = new Map<string, CommandDefinition>([
     [
         "Circle1",
         {
-            parameters: [string, point, formula],
+            // The optional line is the circle's axis, for a circle outside
+            // the horizontal plane.
+            parameters: [string, point, formula, { ...line, optional: true }],
             result: "circle",
             validate: (args, lineNumber, variables) => {
                 const radiusArg = args[2];
@@ -1079,12 +1086,14 @@ const COMMANDS = new Map<string, CommandDefinition>([
                 const name = args[0] as string;
                 const center = args[1] as point_object;
                 const radiusArg = args[2];
+                const axis = args[3] as primitive_line_object | undefined;
                 if (typeof radiusArg !== "string")
                     return createCircle1(
                         context.construction,
                         name,
                         center,
                         radiusArg as number,
+                        axis,
                     );
                 const radiusFormula = parseFormula(radiusArg);
                 const refs = new Map(
@@ -1094,10 +1103,13 @@ const COMMANDS = new Map<string, CommandDefinition>([
                             point_object | expression_object,
                     ]),
                 );
-                return createCircle1(context.construction, name, center, {
-                    formula: radiusFormula,
-                    refs,
-                });
+                return createCircle1(
+                    context.construction,
+                    name,
+                    center,
+                    { formula: radiusFormula, refs },
+                    axis,
+                );
             },
         },
     ],
@@ -1668,9 +1680,12 @@ function resolveValue(
     return value.items.map((item) => resolveValue(item, variables));
 }
 
+// `is3D` starts the figure in 3D without SetCoords' legacy origin pinning
+// (see CommandContext): used by imports whose points carry a real z.
 export function executeDgpCommands(
     c: construction,
     calls: DgpCall[],
+    is3D = false,
 ): Map<string, construction_object> {
     validateCalls(calls);
     const context: CommandContext = {
@@ -1678,8 +1693,8 @@ export function executeDgpCommands(
         variables: new Map(),
         gridChanged: false,
         projectionChanged: false,
-        is3D: false,
-        origin3DAssigned: false,
+        is3D,
+        origin3DAssigned: is3D,
         labelOrigin: [0, 0],
     };
 

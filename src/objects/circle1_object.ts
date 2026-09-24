@@ -9,6 +9,8 @@ import type { construction_object } from "./construction_object";
 import { expression_object } from "./expression_object";
 import type { point_object } from "./point_object";
 import { primitive_circle_object } from "./primitive_circle_object";
+import type { primitive_line_object } from "./primitive_line_object";
+import { vCross, vNormalize } from "../vec";
 
 export type circle1_radius =
     | number
@@ -20,24 +22,28 @@ export type circle1_radius =
 export class circle1_object extends primitive_circle_object {
     P1: point_object;
     radius: circle1_radius;
+    axis?: primitive_line_object;
 
     constructor(
         c: construction,
         name: string | null | undefined,
         p1: point_object,
         radius: circle1_radius,
+        axis?: primitive_line_object,
     ) {
         super(c, name);
         this.P1 = p1;
         this.radius = radius;
+        this.axis = axis;
         this.addParents(
             p1,
             ...(typeof radius === "number" ? [] : radius.refs.values()),
+            ...(axis ? [axis] : []),
         );
     }
 
     computeGeometry(): void {
-        if (!this.P1.defined) {
+        if (!this.P1.defined || (this.axis && !this.axis.defined)) {
             this.defined = false;
             return;
         }
@@ -63,7 +69,15 @@ export class circle1_object extends primitive_circle_object {
             this.defined = false;
             return;
         }
-        this.setCircle(this.P1.coords, radius, [1, 0, 0], [0, 1, 0]);
+        if (!this.axis) {
+            this.setCircle(this.P1.coords, radius, [1, 0, 0], [0, 1, 0]);
+            return;
+        }
+        const normal = vNormalize(this.axis.VEC)!;
+        const u =
+            vNormalize(vCross(normal, [0, 0, 1])) ??
+            vNormalize(vCross(normal, [1, 0, 0]))!;
+        this.setCircle(this.P1.coords, radius, u, vCross(normal, u));
     }
 
     mousedrag(ev: PointerEvent): void {
@@ -90,6 +104,7 @@ export function createCircle1(
     name: string | null | undefined,
     center: point_object,
     radius: circle1_radius,
+    axis?: primitive_line_object,
 ): circle1_object {
-    return c.add(new circle1_object(c, name, center, radius));
+    return c.add(new circle1_object(c, name, center, radius, axis));
 }

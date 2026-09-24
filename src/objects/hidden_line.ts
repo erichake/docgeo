@@ -11,6 +11,7 @@ import {
     segmentIntersectionParameter,
     vAdd,
     vDot,
+    vNormalize,
     vScale,
     vSub,
     type Vec2,
@@ -18,6 +19,7 @@ import {
 } from "../vec";
 import type { point_object } from "./point_object";
 import type { polygon_object } from "./polygon_object";
+import type { two_points_line_object } from "./two_points_line_object";
 
 // A sub-range of a segment's parameter (0 at p1, 1 at p2).
 export type Interval = [number, number];
@@ -55,14 +57,21 @@ function edgeOwners(c: construction): Map<string, polygon_object> {
 }
 
 // Whether `polygon` is the (single, arbitrary but stable) owner responsible
-// for drawing the edge [p1, p2], among all polygons that share it.
+// for drawing the edge [p1, p2], among all polygons that share it. A
+// visible segment joining p1 and p2 draws that edge itself instead, for
+// the same out-of-phase dashing reason as above.
 export function ownsEdge(
     c: construction,
     polygon: polygon_object,
     p1: point_object,
     p2: point_object,
 ): boolean {
-    return edgeOwners(c).get(edgeKey(p1, p2)) === polygon;
+    const drawnBySegment = p1.children.some((child) => {
+        if (child.type !== "segment" || !child.isVisible) return false;
+        const segment = child as two_points_line_object;
+        return segment.P1 === p2 || segment.P2 === p2;
+    });
+    return !drawnBySegment && edgeOwners(c).get(edgeKey(p1, p2)) === polygon;
 }
 
 // Screen-space bucketing of polygons, so a segment only tests occlusion
@@ -277,7 +286,11 @@ export function hiddenIntervalsBetween(
     isOwnFace: (polygon: polygon_object) => boolean,
 ): Interval[] {
     const frame = c.projectionFrame;
-    const dir = viewDirection(frame);
+    // Normalized so depth differences are in world units: a polygon
+    // coplanar with the segment (e.g. a face sharing it as an edge through
+    // other, coincident vertices) then stays within geometryTolerance
+    // instead of randomly occluding it through rounding noise.
+    const dir = vNormalize(viewDirection(frame))!;
     const breakpoints = new Set([0, 1]);
     const candidates: Array<{
         screenPoly: Vec2[];
@@ -383,7 +396,10 @@ export function complement(intervals: Interval[]): Interval[] {
 }
 
 // Renders a set of sub-ranges of [sP1, sP2] as disconnected SVG path
-// commands, one "M...L..." per range.
+// commands, one "M...L..." per range. Each range starts from its leftmost
+// (then topmost) end whichever way the segment runs, so that coincident
+// strokes (e.g. [G,C] and [C,G'] with G' on G) share the same dash phase
+// instead of filling each other's gaps.
 export function intervalsToPath(
     sP1: Vec2,
     sP2: Vec2,
@@ -391,8 +407,10 @@ export function intervalsToPath(
 ): string {
     return intervals
         .map(([a, b]) => {
-            const p0 = vAdd(sP1, vScale(vSub(sP2, sP1), a));
-            const p1 = vAdd(sP1, vScale(vSub(sP2, sP1), b));
+            let p0 = vAdd(sP1, vScale(vSub(sP2, sP1), a));
+            let p1 = vAdd(sP1, vScale(vSub(sP2, sP1), b));
+            if (p1[0] < p0[0] || (p1[0] === p0[0] && p1[1] < p0[1]))
+                [p0, p1] = [p1, p0];
             return `M${p0[0]} ${p0[1]} L${p1[0]} ${p1[1]}`;
         })
         .join(" ");

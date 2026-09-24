@@ -31,6 +31,18 @@ export interface GgbTranslation {
     // figure is built (see settleTargets in ggb_importer.ts).
     targets: Map<string, Vec3>;
     unsupported: string[];
+    // Present for a 3D figure: its camera (see applyView3D in
+    // ggb_importer.ts).
+    view3D?: GgbView3D;
+}
+
+export interface GgbView3D {
+    phi: number;
+    theta: number;
+    unit: number;
+    // Translation of the world origin, in world units, from the center of
+    // the view.
+    offset: Vec3;
 }
 
 const IDENTIFIER = new RegExp(
@@ -39,7 +51,8 @@ const IDENTIFIER = new RegExp(
 );
 const NUMBER = /^[+-]?(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][+-]?\d+)?$/;
 const NUMERIC_TUPLE =
-    /^\(\s*[+-]?[\d.]+(?:[eE][+-]?\d+)?\s*,\s*[+-]?[\d.]+(?:[eE][+-]?\d+)?\s*\)$/;
+    /^\(\s*[+-]?[\d.]+(?:[eE][+-]?\d+)?\s*(?:,\s*[+-]?[\d.]+(?:[eE][+-]?\d+)?\s*){1,2}\)$/;
+const THREE_D_TYPES = /3d$|^polyhedron$/;
 const COMMAND_EXPRESSION = /^([A-Za-z]+)\((.*)\)$/;
 const FUNCTION_DEFINITION = /^[^=]*\(\s*x\s*\)\s*=/;
 const FUNCTIONS: Record<string, string> = {
@@ -68,6 +81,31 @@ const POINT_SHAPES: Record<number, [number, boolean]> = {
     5: [2, true],
 };
 const POINT_KINDS: Kind[] = ["point", "pointOn"];
+// Cube(A, B, C)'s outputs, after the polyhedron itself: vertices D to H,
+// then its faces and edges as vertex indices (A..H = 0..7), in GeoGebra's
+// order.
+const CUBE_FACES = [
+    [0, 1, 2, 3],
+    [0, 3, 7, 4],
+    [0, 1, 5, 4],
+    [1, 2, 6, 5],
+    [2, 3, 7, 6],
+    [4, 5, 6, 7],
+];
+const CUBE_EDGES = [
+    [0, 3],
+    [0, 1],
+    [1, 2],
+    [2, 3],
+    [0, 4],
+    [3, 7],
+    [4, 7],
+    [4, 5],
+    [1, 5],
+    [5, 6],
+    [2, 6],
+    [6, 7],
+];
 const DEFAULT_SLIDER_STEP = 0.1;
 const VALUE_KINDS: Kind[] = ["point", "pointOn", "expression"];
 
@@ -128,16 +166,22 @@ function hexColor(element: Element): string {
         .join("")}`;
 }
 
+// Homogeneous coordinates: (x, y, z) in 2D, (x, y, z, w) in 3D.
 function pointCoords(element: Element): Vec3 | null {
     const coords = child(element, "coords");
     if (!coords) return null;
-    const [x, y, z] = ["x", "y", "z"].map((name) =>
+    const [x, y, z, w] = ["x", "y", "z", "w"].map((name) =>
         Number(coords.getAttribute(name)),
     );
-    const point: Vec3 = [x / z, y / z, 0];
-    return Number.isFinite(point[0]) && Number.isFinite(point[1])
-        ? point
-        : null;
+    const point: Vec3 = coords.hasAttribute("w")
+        ? [x / w, y / w, z / w]
+        : [x / z, y / z, 0];
+    return point.every(Number.isFinite) ? point : null;
+}
+
+function wrapAngle(angle: number, low: number): number {
+    const turn = 2 * Math.PI;
+    return low + ((((angle - low) % turn) + turn) % turn);
 }
 
 export function translateGgb(xml: string): GgbTranslation {
@@ -164,6 +208,16 @@ export function translateGgb(xml: string): GgbTranslation {
                 commandOutputs.add(output),
             );
     });
+
+    const is3D = [...elements.values()].some((element) =>
+        THREE_D_TYPES.test(element.getAttribute("type") ?? ""),
+    );
+    // A constant point, as a DGP fixed-point vector literal and its
+    // dimension flag.
+    const vectorLiteral = ([x, y, z]: Vec3): DgpValue[] =>
+        is3D
+            ? [literal(`[${x},${y},${z}]`), literal("1")]
+            : [literal(`[${x},${y}]`), literal("0")];
 
     const fontSize = Number(
         document.querySelector("gui > font")?.getAttribute("size") ?? 16,
@@ -207,6 +261,8 @@ export function translateGgb(xml: string): GgbTranslation {
         kinds: Kind[],
         allowX = false,
     ): string | null => {
+        const known = objects.get(source);
+        if (known) return kinds.includes(known.kind) ? known.variable : null;
         const text = normalizeBrackets(source)
             .replace(/²/g, "^2")
             .replace(/³/g, "^3")
@@ -388,6 +444,9 @@ export function translateGgb(xml: string): GgbTranslation {
             : is(mirror, ["line"]) &&
               define(label, "point", "Reflection", [ref(mirror), ref(source)]));
 
+    let auxiliaries = 0;
+    const auxiliary = (): string => `aux ${++auxiliaries}`;
+
     const HANDLERS: Record<string, Handler> = {
         Point: ([support, extra], [label]) =>
             extra === undefined &&
@@ -482,15 +541,24 @@ export function translateGgb(xml: string): GgbTranslation {
         Angle: onePoint("Angle", 3, "angle"),
         Circle: ([center, second, third], [label]) => {
             if (!points(center)) return false;
-            if (third !== undefined)
+            if (points(second, third))
+                return define(label, "circle", "Circle3pts", [
+                    ref(center),
+                    ref(second),
+                    ref(third),
+                ]);
+            if (third !== undefined) {
+                const radius = formula(second, VALUE_KINDS);
                 return (
-                    points(second, third) &&
-                    define(label, "circle", "Circle3pts", [
+                    radius !== null &&
+                    is(third, ["line"]) &&
+                    define(label, "circle", "Circle1", [
                         ref(center),
-                        ref(second),
+                        literal(radius),
                         ref(third),
                     ])
                 );
+            }
             if (points(second))
                 return define(label, "circle", "Circle", [
                     ref(center),
@@ -535,6 +603,54 @@ export function translateGgb(xml: string): GgbTranslation {
                         inputs[(index + 1) % inputs.length],
                     ),
             );
+            return true;
+        },
+        Cube: (inputs, [, ...outputs]) => {
+            if (inputs.length !== 3 || !points(...inputs)) return false;
+            const [a, b, c] = inputs.map(
+                (input) => objects.get(input)!.variable,
+            );
+            // The square ABCD lies in plane ABC, the cube on the side of
+            // AB × BC, exactly as GeoGebra builds it.
+            const side = `(${b}-${a})`;
+            const normal = `cross(${side},${c}-${b})`;
+            const normalLength = `d(${normal},[0,0,0])`;
+            const across = `cross(${normal},${side})/${normalLength}`;
+            const up = `${normal}*d(${a},${b})/${normalLength}`;
+            const vertices = [
+                ...inputs,
+                ...outputs.slice(0, 5).map((label) => label || auxiliary()),
+            ];
+            [
+                `${a}+${across}`,
+                `${a}+${up}`,
+                `${b}+${up}`,
+                `${b}+${across}+${up}`,
+                `${a}+${across}+${up}`,
+            ].forEach((vertex, index) =>
+                define(vertices[index + 3], "point", "Point", [
+                    literal(vertex),
+                    literal("1"),
+                ]),
+            );
+            CUBE_FACES.forEach((face, index) => {
+                const label = outputs[5 + index];
+                if (label)
+                    define(label, "polygon", "Polygon", [
+                        literal(
+                            face
+                                .map(
+                                    (vertex) =>
+                                        `_${objects.get(vertices[vertex])!.variable}`,
+                                )
+                                .join(","),
+                        ),
+                    ]);
+            });
+            CUBE_EDGES.forEach(([p, q], index) => {
+                const label = outputs[11 + index];
+                if (label) defineSegment(label, vertices[p], vertices[q]);
+            });
             return true;
         },
         Mirror: mirror,
@@ -605,7 +721,7 @@ export function translateGgb(xml: string): GgbTranslation {
     const independent = (label: string, element: Element): boolean => {
         const type = element.getAttribute("type");
         const source = expressions.get(label);
-        if (type === "point") {
+        if (type === "point" || type === "point3d") {
             if (source !== undefined && !NUMERIC_TUPLE.test(source)) {
                 const coords = formula(source, VALUE_KINDS);
                 return (
@@ -619,14 +735,13 @@ export function translateGgb(xml: string): GgbTranslation {
             const coords = pointCoords(element);
             if (!coords) return false;
             if (attribute(element, "fixed", "val") === "true")
-                return define(label, "point", "Point", [
-                    literal(`[${coords[0]},${coords[1]}]`),
-                    literal("0"),
-                ]);
-            return define(label, "point", "Point", [
-                literal(coords[0]),
-                literal(coords[1]),
-            ]);
+                return define(label, "point", "Point", vectorLiteral(coords));
+            return define(
+                label,
+                "point",
+                "Point",
+                (is3D ? coords : coords.slice(0, 2)).map(literal),
+            );
         }
         if (type === "numeric" || type === "angle")
             return numeric(label, element);
@@ -648,7 +763,27 @@ export function translateGgb(xml: string): GgbTranslation {
         return false;
     };
 
-    if (coordSystem) {
+    const view3D = is3D ? document.querySelector("euclidianView3D") : null;
+    const coordSystem3D = view3D && child(view3D, "coordSystem");
+    const degrees = (name: string): number =>
+        (Number(coordSystem3D!.getAttribute(name)) * Math.PI) / 180;
+    // GeoGebra rotates the scene by zAngle around Oz, then tilts it by
+    // xAngle: in DGP's projection (see projection.ts), that's phi = -zAngle
+    // (kept inside GRID.RESTRICT_PHI) and theta = xAngle.
+    const camera: GgbView3D | undefined = coordSystem3D
+        ? {
+              phi: wrapAngle(-degrees("zAngle"), (3 * Math.PI) / 2),
+              theta: degrees("xAngle"),
+              unit: Number(coordSystem3D.getAttribute("scale")),
+              offset: [
+                  Number(coordSystem3D.getAttribute("xZero")),
+                  Number(coordSystem3D.getAttribute("yZero")),
+                  Number(coordSystem3D.getAttribute("zZero")),
+              ],
+          }
+        : undefined;
+    const styledView = view3D ?? view;
+    if (!is3D && coordSystem)
         push(null, "SetCoords", [
             literal(origin[0]),
             literal(origin[1]),
@@ -657,15 +792,16 @@ export function translateGgb(xml: string): GgbTranslation {
             literal(Number(attribute(view!, "size", "width") ?? 0)),
             literal(Number(attribute(view!, "size", "height") ?? 0)),
         ]);
-        const axesColor = child(view!, "axesColor");
+    if (styledView) {
+        const axesColor = child(styledView, "axesColor");
         push(null, "SetCoordsStyle", [
             literal(
-                `isAxis:${attribute(view!, "evSettings", "axes") === "true"}${
+                `isAxis:${attribute(styledView, "evSettings", "axes") === "true"}${
                     axesColor ? `;color:${hexColor(axesColor)}` : ""
                 }`,
             ),
         ]);
-        const background = child(view!, "bgColor");
+        const background = child(styledView, "bgColor");
         if (background)
             push(null, "SetGeneralStyle", [
                 literal(`background-color:${hexColor(background)}`),
@@ -675,17 +811,13 @@ export function translateGgb(xml: string): GgbTranslation {
     // A command input that isn't an existing label may be a nested command
     // (e.g. "Segment[A, B]") or a constant point: built as a hidden
     // auxiliary object, like GeoGebra does.
-    let auxiliaries = 0;
     const resolve = (input: string): string => {
         if (objects.has(input)) return input;
         const text = normalizeBrackets(input.trim());
-        const label = `aux ${++auxiliaries}`;
+        const label = auxiliary();
         if (NUMERIC_TUPLE.test(text)) {
-            const [x, y] = text.slice(1, -1).split(",").map(Number);
-            define(label, "point", "Point", [
-                literal(`[${x},${y}]`),
-                literal("0"),
-            ]);
+            const [x, y, z] = text.slice(1, -1).split(",").map(Number);
+            define(label, "point", "Point", vectorLiteral([x, y, z ?? 0]));
             return label;
         }
         const match = COMMAND_EXPRESSION.exec(text);
@@ -713,5 +845,5 @@ export function translateGgb(xml: string): GgbTranslation {
         }
     });
 
-    return { calls, targets, unsupported };
+    return { calls, targets, unsupported, view3D: camera };
 }

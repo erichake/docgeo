@@ -182,6 +182,13 @@ export class point_on_object extends point_object {
                 vSub(this.support.P2.coords, this.support.P1.coords),
                 this.C.projectionFrame,
             );
+        if (this.support instanceof primitive_circle_object)
+            return projectPointOnPlane(
+                screen,
+                this.support.CENTER,
+                [this.support.U, this.support.V],
+                this.C.projectionFrame,
+            );
         if (this.support instanceof primitive_line_object)
             return projectPointOnLine(
                 screen,

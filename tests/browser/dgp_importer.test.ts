@@ -20,7 +20,15 @@ import { point_object } from "../../src/objects/point_object";
 import { polygon_object } from "../../src/objects/polygon_object";
 import { symmetry_object } from "../../src/objects/symmetry_object";
 import { two_points_line_object } from "../../src/objects/two_points_line_object";
+import { intervalsToPath } from "../../src/objects/hidden_line";
+import type { segment_object } from "../../src/objects/segment_object";
 import { preferences } from "../../src/preferences";
+
+// A segment's current hidden sub-ranges (see hidden_line.ts).
+function hiddenOf(segment: segment_object): [number, number][] {
+    return (segment as unknown as { hiddenIntervals: [number, number][] })
+        .hiddenIntervals;
+}
 import { vDot, vNormalize, vSub, type Vec3 } from "../../src/vec";
 
 function createConstruction(): construction {
@@ -820,5 +828,35 @@ E1=Expression("E1","","","","5","-1","0");`,
         // anchors to the literal saved origin (see Expression's execute).
         const e1 = c.getObj("E1") as expression_object;
         expect(e1.screen).toEqual([9999 - 40, -9999]);
+    });
+
+    it("hides an edge lying on a coplanar face without flickering", async () => {
+        const c = createConstruction();
+        await importDgpFromUrl(c, "/tests/dgp/chemin_cube.dgp");
+        // [GC] lies on the closed face BFGC through P2, a different point
+        // coincident with G: sweeping the camera must switch it between
+        // visible and hidden once, not flip at random on rounding noise.
+        const edge = c.getObj("S109") as segment_object;
+        const phi = c.GRID.PHI;
+        c.GRID.THETA -= 0.3;
+        const states: boolean[] = [];
+        for (let step = 0; step <= 400; step++) {
+            c.GRID.PHI = phi + 0.35 + step * 0.0005;
+            c.OBJS.markProjectionDirty();
+            c.OBJS.update();
+            const hidden = hiddenOf(edge);
+            expect(hidden.length).toBeLessThanOrEqual(1);
+            states.push(hidden.length === 1);
+        }
+        const changes = states.filter(
+            (state, index) => index > 0 && state !== states[index - 1],
+        ).length;
+        expect(changes).toBe(1);
+    });
+
+    it("dashes coincident segments in phase whatever their direction", () => {
+        expect(intervalsToPath([10, 5], [0, 5], [[0, 0.5]])).toBe(
+            intervalsToPath([0, 5], [10, 5], [[0.5, 1]]),
+        );
     });
 });

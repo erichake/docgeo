@@ -12,6 +12,8 @@ import { point_object } from "../../src/objects/point_object";
 import { polygon_object } from "../../src/objects/polygon_object";
 import { two_points_line_object } from "../../src/objects/two_points_line_object";
 import { preferences } from "../../src/preferences";
+import type { primitive_circle_object } from "../../src/objects/primitive_circle_object";
+import { vDot, vNorm, vSub } from "../../src/vec";
 
 function createConstruction(): construction {
     document.documentElement.style.width = "100%";
@@ -37,18 +39,24 @@ async function loadXml(name: string): Promise<string> {
 function expectSavedPoints(c: construction, xml: string): void {
     const document = new DOMParser().parseFromString(xml, "application/xml");
     document
-        .querySelectorAll('construction > element[type="point"]')
+        .querySelectorAll(
+            'construction > element[type="point"], construction > element[type="point3d"]',
+        )
         .forEach((element) => {
             const coords = element.querySelector("coords")!;
-            const [x, y, z] = ["x", "y", "z"].map((name) =>
+            const [x, y, z, w] = ["x", "y", "z", "w"].map((name) =>
                 Number(coords.getAttribute(name)),
             );
+            const expected = coords.hasAttribute("w")
+                ? [x / w, y / w, z / w]
+                : [x / z, y / z, 0];
             const point = c.getObj(element.getAttribute("label")!);
             expect(point, element.getAttribute("label")!).toBeInstanceOf(
                 point_object,
             );
-            expect((point as point_object).x).toBeCloseTo(x / z, 9);
-            expect((point as point_object).y).toBeCloseTo(y / z, 9);
+            (point as point_object).coords.forEach((value, index) =>
+                expect(value).toBeCloseTo(expected[index], 9),
+            );
         });
 }
 
@@ -78,6 +86,7 @@ describe("GGB importer", () => {
         "pointon",
         "transform",
         "sliders",
+        "cube",
     ])("rebuilds every saved point of %s", async (name) => {
         const c = createConstruction();
         const xml = await loadXml(name);
@@ -129,6 +138,44 @@ describe("GGB importer", () => {
         await new Promise((resolve) => requestAnimationFrame(resolve));
         expect(circle.R).toBeCloseTo(3);
         expect((c.getObj("f") as curve_object).pointAt(2)![1]).toBeCloseTo(11);
+    });
+
+    it("rotates the cube around AB when C is dragged on its circle", async () => {
+        const c = createConstruction();
+        importGgb(c, await loadXml("cube"));
+        await new Promise((resolve) => requestAnimationFrame(resolve));
+
+        const point = c.getObj("C") as point_on_object;
+        const circle = point.support as primitive_circle_object;
+        const target = circle.pointAt((point.alpha as number) + 1);
+        const [x, y] = c.pt3D(target);
+        point.mousedrag(
+            new PointerEvent("pointermove", { clientX: x, clientY: y }),
+        );
+        await new Promise((resolve) => requestAnimationFrame(resolve));
+
+        point.coords.forEach((value, index) =>
+            expect(value).toBeCloseTo(target[index], 6),
+        );
+        expect(target[2]).not.toBeCloseTo(0);
+        const [a, b, e, g] = "ABEG"
+            .split("")
+            .map((name) => (c.getObj(name) as point_object).coords);
+        const side = vNorm(vSub(b, a));
+        expect(vNorm(vSub(e, a))).toBeCloseTo(side, 9);
+        expect(vDot(vSub(e, a), vSub(b, a))).toBeCloseTo(0, 9);
+        expect(vDot(vSub(e, a), vSub(point.coords, b))).toBeCloseTo(0, 9);
+        expect(vNorm(vSub(g, a))).toBeCloseTo(side * Math.sqrt(3), 9);
+    });
+
+    it("leaves edges already drawn by a segment to that segment", async () => {
+        const c = createConstruction();
+        importGgb(c, await loadXml("cube"));
+        await new Promise((resolve) => requestAnimationFrame(resolve));
+
+        const face = c.getObj("faceABCD") as polygon_object;
+        expect(face.outline.getAtt("d")?.trim()).toBe("");
+        expect(face.hiddenOutline.getAtt("d")?.trim()).toBe("");
     });
 
     it("reports what it can't import instead of failing", () => {

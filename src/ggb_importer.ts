@@ -1,16 +1,18 @@
 import type { construction } from "./construction";
 import { executeDgpCommands } from "./import/dgp_commands";
-import { translateGgb } from "./import/ggb_translate";
+import { translateGgb, type GgbView3D } from "./import/ggb_translate";
 import { readZipEntry } from "./import/ggb_zip";
 import { intersection_object } from "./objects/intersection_object";
 import { point_on_object } from "./objects/point_on_object";
 import type { construction_object } from "./objects/construction_object";
+import { projectPoint } from "./projection";
 import { vNorm, vSub, type Vec3 } from "./vec";
 
 // Returns what the figure uses that couldn't be imported.
 export function importGgb(c: construction, xml: string): string[] {
-    const { calls, targets, unsupported } = translateGgb(xml);
-    const variables = executeDgpCommands(c, calls);
+    const { calls, targets, unsupported, view3D } = translateGgb(xml);
+    const variables = executeDgpCommands(c, calls, view3D !== undefined);
+    if (view3D) applyView3D(c, view3D);
     settleTargets(
         c,
         new Map(
@@ -34,6 +36,22 @@ export async function importGgbFromUrl(
         c,
         await readZipEntry(await response.arrayBuffer(), "geogebra.xml"),
     );
+}
+
+function applyView3D(c: construction, view: GgbView3D): void {
+    const grid = c.GRID;
+    grid.PHI = view.phi;
+    grid.THETA = view.theta;
+    grid.UNIT = [view.unit, view.unit, view.unit];
+    grid.ORG = projectPoint(view.offset, {
+        origin: [c.width / 2, c.height / 2],
+        unit: grid.UNIT,
+        cosPhi: Math.cos(view.phi),
+        sinPhi: Math.sin(view.phi),
+        cosTheta: Math.cos(view.theta),
+        sinTheta: Math.sin(view.theta),
+    });
+    c.invalidateProjection();
 }
 
 // GeoGebra saves where each point on a path or intersection actually is,

@@ -1,5 +1,13 @@
 import { IDENTIFIER_PART, IDENTIFIER_START } from "./dgp_parser";
-import { vAdd, vNorm, vSub, type Vec2, type Vec3 } from "../vec";
+import {
+    vAdd,
+    vCross,
+    vNorm,
+    vScale,
+    vSub,
+    type Vec2,
+    type Vec3,
+} from "../vec";
 
 export type FormulaFn =
     | "sqrt"
@@ -14,7 +22,8 @@ export type FormulaFn =
     | "acos"
     | "atan"
     | "atan2"
-    | "perp";
+    | "perp"
+    | "cross";
 
 const FORMULA_ARITY: Record<FormulaFn, number> = {
     sqrt: 1,
@@ -30,6 +39,7 @@ const FORMULA_ARITY: Record<FormulaFn, number> = {
     atan: 1,
     atan2: 2,
     perp: 1,
+    cross: 2,
 };
 
 export type FormulaNode =
@@ -401,9 +411,15 @@ function evalBinary(
         (typeof l !== "number" && l.length === 3) ||
         (typeof r !== "number" && r.length === 3)
     ) {
-        // A 3D point displacement only supports "+"/"-" between two
-        // Vec3s: complex multiplication/division/power don't generalize
-        // to 3D and aren't part of DGPad's vector-literal syntax anyway.
+        // A 3D vector only adds to/subtracts from another one, or scales
+        // by a real number: complex multiplication/division/power don't
+        // generalize to 3D.
+        const leftVector = typeof l !== "number" && l.length === 3;
+        const scalar = realPart(leftVector ? r : l);
+        if (scalar !== null && op === "*")
+            return vScale((leftVector ? l : r) as Vec3, scalar);
+        if (scalar !== null && op === "/" && leftVector)
+            return vScale(l as Vec3, 1 / scalar);
         if (
             typeof l === "number" ||
             typeof r === "number" ||
@@ -521,6 +537,17 @@ function evalCall(
             if (typeof a === "number") return null;
             const norm = Math.hypot(a[0], a[1]);
             return norm > 0 ? [-a[1] / norm, a[0] / norm] : null;
+        }
+        case "cross": {
+            const [a, b] = args;
+            if (
+                typeof a === "number" ||
+                typeof b === "number" ||
+                a.length !== 3 ||
+                b.length !== 3
+            )
+                return null;
+            return vCross(a as Vec3, b as Vec3);
         }
     }
 }
