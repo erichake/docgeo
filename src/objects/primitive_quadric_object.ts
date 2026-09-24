@@ -10,11 +10,12 @@ export type QuadricKind = "ellipse" | "hyperbola" | "parabola";
 // leaves the viewport (see project() below) — matches the precision
 // convention used for the depth-crossing search in hidden_line.ts.
 const BISECTION_STEPS = 20;
-// Sample points per side of a branch's own vertex, once its visible extent
-// is known. Not a resolution knob like the legacy code's fixed NB=500: the
-// *extent* is found analytically per branch, this only controls how finely
-// that known extent is subdivided for the SVG polyline.
+// Initial samples per side of a branch's own vertex, once its visible
+// extent is known: each interval is then subdivided until the polyline
+// stays within FLATNESS pixels of the curve.
 const BRANCH_SAMPLES = 24;
+const FLATNESS = 0.25;
+const MAX_SUBDIVISIONS = 12;
 
 function findBound(isOutside: (t: number) => boolean): number {
     let hi = 1;
@@ -160,10 +161,36 @@ export class primitive_quadric_object extends construction_object {
             const boundPos = findBound((t) => isOutside(t));
             const boundNeg = findBound((t) => isOutside(-t));
             const samples: Vec2[] = [];
+            const refine = (
+                t0: number,
+                p0: Vec2,
+                t1: number,
+                p1: Vec2,
+                depth: number,
+            ): void => {
+                const t = (t0 + t1) / 2;
+                const p = projectAt(t);
+                if (
+                    p &&
+                    depth < MAX_SUBDIVISIONS &&
+                    Math.hypot(
+                        p[0] - (p0[0] + p1[0]) / 2,
+                        p[1] - (p0[1] + p1[1]) / 2,
+                    ) > FLATNESS
+                ) {
+                    refine(t0, p0, t, p, depth + 1);
+                    samples.push(p);
+                    refine(t, p, t1, p1, depth + 1);
+                }
+            };
+            let previous: [number, Vec2] | null = null;
             for (let i = -BRANCH_SAMPLES; i <= BRANCH_SAMPLES; i++) {
-                const bound = i < 0 ? boundNeg : boundPos;
-                const p = projectAt((bound * i) / BRANCH_SAMPLES);
-                if (p) samples.push(p);
+                const t = ((i < 0 ? boundNeg : boundPos) * i) / BRANCH_SAMPLES;
+                const p = projectAt(t);
+                if (!p) continue;
+                if (previous) refine(previous[0], previous[1], t, p, 0);
+                samples.push(p);
+                previous = [t, p];
             }
             if (samples.length > 1) branchPoints.push(samples);
         }
