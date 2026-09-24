@@ -1161,6 +1161,22 @@ const COMMANDS = new Map<string, CommandDefinition>([
         },
     ],
     [
+        "Sector3pts",
+        {
+            parameters: [string, point, point, point],
+            result: "circle",
+            execute: (context, args) =>
+                createArc3pts(
+                    context.construction,
+                    args[0] as string,
+                    args[1] as point_object,
+                    args[2] as point_object,
+                    args[3] as point_object,
+                    true,
+                ),
+        },
+    ],
+    [
         "Quadric",
         {
             parameters: [string, point, point, point, point, point],

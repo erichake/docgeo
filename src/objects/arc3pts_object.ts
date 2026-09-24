@@ -18,6 +18,7 @@ export class arc3pts_object extends primitive_circle_object {
     endAlpha = 0;
     largeArcFlag: 0 | 1 = 0;
     sweepFlag: 0 | 1 = 0;
+    sector: boolean;
 
     constructor(
         c: construction,
@@ -25,11 +26,13 @@ export class arc3pts_object extends primitive_circle_object {
         p1: point_object,
         p2: point_object,
         p3: point_object,
+        sector: boolean,
     ) {
         super(c, name);
         this.P1 = p1;
         this.P2 = p2;
         this.P3 = p3;
+        this.sector = sector;
         this.addParents(p1, p2, p3);
     }
 
@@ -96,7 +99,8 @@ export class arc3pts_object extends primitive_circle_object {
         const transform = `matrix(${this.screenU[0]} ${this.screenU[1]} ${this.screenV[0]} ${this.screenV[1]} ${this.centerScreen[0]} ${this.centerScreen[1]})`;
         const start = `${Math.cos(this.startAlpha)} ${Math.sin(this.startAlpha)}`;
         const end = `${Math.cos(this.endAlpha)} ${Math.sin(this.endAlpha)}`;
-        const d = `M${start} A1 1 0 ${this.largeArcFlag} ${this.sweepFlag} ${end}`;
+        const arc = `A1 1 0 ${this.largeArcFlag} ${this.sweepFlag} ${end}`;
+        const d = this.sector ? `M0 0 L${start} ${arc} Z` : `M${start} ${arc}`;
         this.path.att("d", d).att("transform", transform);
         this.hitArea.att("d", d).att("transform", transform);
     }
@@ -128,6 +132,7 @@ export function createArc3pts(
     p1: point_object,
     p2: point_object,
     p3: point_object,
+    sector = false,
 ): arc3pts_object {
-    return c.add(new arc3pts_object(c, name, p1, p2, p3));
+    return c.add(new arc3pts_object(c, name, p1, p2, p3, sector));
 }

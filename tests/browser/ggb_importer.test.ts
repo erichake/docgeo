@@ -2,6 +2,7 @@ import { afterEach, describe, expect, it } from "vitest";
 import { construction } from "../../src/construction";
 import { importGgb } from "../../src/ggb_importer";
 import { readZipEntry } from "../../src/import/ggb_zip";
+import { arc3pts_object } from "../../src/objects/arc3pts_object";
 import { circle1_object } from "../../src/objects/circle1_object";
 import { curve_object } from "../../src/objects/curve_object";
 import { expression_object } from "../../src/objects/expression_object";
@@ -94,6 +95,7 @@ describe("GGB importer", () => {
         "fonction_inter_conique",
         "polyreg",
         "polyform",
+        "circular",
     ])("rebuilds every saved point of %s", async (name) => {
         const c = createConstruction();
         const xml = await loadXml(name);
@@ -188,6 +190,51 @@ ${[
         expect(locus).toBeInstanceOf(locus_object);
         expect(locus.parents[0].isHidden).toBe(true);
         expect(c.getObj("F")).toBeInstanceOf(fixed_point_object);
+    });
+
+    it("draws semicircles, arcs and sectors on GeoGebra's circles", async () => {
+        const c = createConstruction();
+        const xml = await loadXml("circular");
+
+        expect(importGgb(c, xml)).toEqual([]);
+        const document = new DOMParser().parseFromString(
+            xml,
+            "application/xml",
+        );
+        const labels = ["g", "h", "k", "p", "q"];
+        const arcs = labels.map((label) => c.getObj(label) as arc3pts_object);
+        arcs.forEach((arc, index) => {
+            const matrix = document.querySelector(
+                `element[label="${labels[index]}"] > matrix`,
+            )!;
+            const [a2, a4, a5] = ["A2", "A4", "A5"].map((name) =>
+                Number(matrix.getAttribute(name)),
+            );
+            expect(arc).toBeInstanceOf(arc3pts_object);
+            expect(arc.CENTER[0]).toBeCloseTo(-a4, 9);
+            expect(arc.CENTER[1]).toBeCloseTo(-a5, 9);
+            expect(arc.R).toBeCloseTo(Math.sqrt(a4 * a4 + a5 * a5 - a2), 9);
+        });
+        expect(arcs.map((arc) => arc.sector)).toEqual([
+            false,
+            false,
+            false,
+            true,
+            true,
+        ]);
+        const [g, h, , p] = arcs;
+        expect(g.P2.coords[1]).toBeGreaterThan(g.CENTER[1]);
+        [h, p].forEach((arc, index) => {
+            const [center, direction] = [
+                ["J", "L"],
+                ["P", "R"],
+            ][index].map((label) => (c.getObj(label) as point_object).coords);
+            expect(arc.sweepFlag).toBe(1);
+            expect(arc.endAlpha).toBeCloseTo(
+                Math.atan2(direction[1] - center[1], direction[0] - center[0]),
+                9,
+            );
+        });
     });
 
     it("drives circles and functions from a slider", async () => {

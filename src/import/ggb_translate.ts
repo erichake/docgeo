@@ -507,16 +507,75 @@ export function translateGgb(xml: string): GgbTranslation {
             const angle = ((k - 1) * Math.PI) / n;
             const cos = scale * Math.cos(angle);
             const sin = scale * Math.sin(angle);
-            const vertex = labels[index] || auxiliary();
-            define(vertex, "point", "Point", [
-                literal(
-                    `${p}+[${cos}*${dx}-${sin}*${dy},${sin}*${dx}+${cos}*${dy}${is3D ? ",0" : ""}]`,
-                ),
-                literal(is3D ? "1" : "0"),
-            ]);
-            return vertex;
+            return formulaPoint(
+                `${p}+${planar(`${cos}*${dx}-${sin}*${dy}`, `${sin}*${dx}+${cos}*${dy}`)}`,
+                labels[index],
+            );
         });
     };
+
+    const planar = (x: string, y: string): string =>
+        `[${x},${y}${is3D ? ",0" : ""}]`;
+
+    const formulaPoint = (source: string, label = auxiliary()): string => {
+        define(label, "point", "Point", [
+            literal(source),
+            literal(is3D ? "1" : "0"),
+        ]);
+        return label;
+    };
+
+    // An arc drawn by Arc3pts (or its sector) from a start point, through a
+    // middle point, to an end point, all on the circle.
+    const arcThrough = (
+        label: string,
+        sector: boolean,
+        ends: [string, string],
+        middle: string,
+    ): true =>
+        define(label, "circle", sector ? "Sector3pts" : "Arc3pts", [
+            ref(ends[0]),
+            ref(middle),
+            ref(ends[1]),
+        ]);
+
+    // CircleArc(M, A, B): counterclockwise from A to the ray MB, on the
+    // circle centered at M through A. Its middle is at the start angle plus
+    // half the span atan2(-sin, -cos) + π, which lies in ]0, 2π].
+    const centerArc =
+        (sector: boolean): Handler =>
+        ([center, start, direction], [label]) => {
+            if (!points(center, start, direction)) return false;
+            const [m, a, b] = [center, start, direction].map(
+                (input) => objects.get(input)!.variable,
+            );
+            const [ax, ay, bx, by] = [
+                `(x(${a})-x(${m}))`,
+                `(y(${a})-y(${m}))`,
+                `(x(${b})-x(${m}))`,
+                `(y(${b})-y(${m}))`,
+            ];
+            const span = `(atan2(${ay}*${bx}-${ax}*${by},-${ax}*${bx}-${ay}*${by})+π)`;
+            const angle = `(atan2(${ay},${ax})+${span}/2)`;
+            return arcThrough(
+                label,
+                sector,
+                [
+                    start,
+                    formulaPoint(`${m}+(${b}-${m})*d(${m},${a})/d(${m},${b})`),
+                ],
+                formulaPoint(
+                    `${m}+d(${m},${a})*${planar(`cos(${angle})`, `sin(${angle})`)}`,
+                ),
+            );
+        };
+
+    const circumcircleArc =
+        (sector: boolean): Handler =>
+        (inputs, [label]) =>
+            inputs.length === 3 &&
+            points(...inputs) &&
+            arcThrough(label, sector, [inputs[0], inputs[2]], inputs[1]);
 
     type Handler = (inputs: string[], outputs: string[]) => boolean;
     const onePoint =
@@ -525,7 +584,6 @@ export function translateGgb(xml: string): GgbTranslation {
             inputs.length === arity &&
             points(...inputs) &&
             define(label, kind, command, inputs.map(ref));
-    const circumcircleArc = onePoint("Arc3pts", 3, "circle");
     const mirror: Handler = ([source, mirror], [label]) =>
         points(source) &&
         (points(mirror)
@@ -675,8 +733,30 @@ export function translateGgb(xml: string): GgbTranslation {
                 ])
             );
         },
-        CircumcircleArc: circumcircleArc,
-        CircumcircularArc: circumcircleArc,
+        CircumcircleArc: circumcircleArc(false),
+        CircumcircularArc: circumcircleArc(false),
+        CircumcircleSector: circumcircleArc(true),
+        CircumcircularSector: circumcircleArc(true),
+        CircleArc: centerArc(false),
+        CircularArc: centerArc(false),
+        CircleSector: centerArc(true),
+        CircularSector: centerArc(true),
+        // Clockwise from A to B, i.e. on the left of B - A.
+        Semicircle: ([a, b, extra], [label]) => {
+            if (extra !== undefined || !points(a, b)) return false;
+            const [p, q] = [a, b].map((input) => objects.get(input)!.variable);
+            return arcThrough(
+                label,
+                false,
+                [a, b],
+                formulaPoint(
+                    planar(
+                        `(x(${p})+x(${q})+y(${p})-y(${q}))/2`,
+                        `(y(${p})+y(${q})-x(${p})+x(${q}))/2`,
+                    ),
+                ),
+            );
+        },
         Conic: onePoint("Quadric", 5, "quadric"),
         Polygon: (inputs, [label, ...sides]) => {
             const [a, b, count] = inputs;
