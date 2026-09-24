@@ -50,10 +50,14 @@ export class plumb_line_object extends primitive_line_object {
         if (!this.D.defined) return null;
         const foot = vAdd(
             this.D.P1.coords,
-            vScale(this.D.VEC, vDot(vSub(this.P1.coords, this.D.P1.coords), this.D.VEC)),
+            vScale(
+                this.D.VEC,
+                vDot(vSub(this.P1.coords, this.D.P1.coords), this.D.VEC),
+            ),
         );
         const scale = this.D.characteristicLength();
-        if (vNorm(vSub(foot, this.P1.coords)) >= scale) return [this.P1.coords, foot];
+        if (vNorm(vSub(foot, this.P1.coords)) >= scale)
+            return [this.P1.coords, foot];
         const half = vScale(this.VEC, scale / 2);
         return [vSub(this.P1.coords, half), vAdd(this.P1.coords, half)];
     }

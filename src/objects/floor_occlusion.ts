@@ -49,8 +49,7 @@ function lineIntersection(p1: Vec2, p2: Vec2, a: Vec2, b: Vec2): Vec2 {
 function clipHalfPlane(subject: readonly Vec2[], a: Vec2, b: Vec2): Vec2[] {
     if (subject.length === 0) return [];
     const edge = vSub(b, a);
-    const side = (p: Vec2) =>
-        edge[0] * (p[1] - a[1]) - edge[1] * (p[0] - a[0]);
+    const side = (p: Vec2) => edge[0] * (p[1] - a[1]) - edge[1] * (p[0] - a[0]);
     const output: Vec2[] = [];
     for (let i = 0; i < subject.length; i++) {
         const curr = subject[i];
@@ -73,7 +72,11 @@ function convexClip(subject: readonly Vec2[], clip: readonly Vec2[]): Vec2[] {
     let output = ensureCCW(subject);
     const clipCCW = ensureCCW(clip);
     for (let i = 0; i < clipCCW.length && output.length > 0; i++) {
-        output = clipHalfPlane(output, clipCCW[i], clipCCW[(i + 1) % clipCCW.length]);
+        output = clipHalfPlane(
+            output,
+            clipCCW[i],
+            clipCCW[(i + 1) % clipCCW.length],
+        );
     }
     return output;
 }
@@ -98,7 +101,11 @@ const floorBasis: [Vec3, Vec3] = [
     [0, 1, 0],
 ];
 
-function floorDepthAt(screen: Vec2, frame: ProjectionFrame, dir: Vec3): number | null {
+function floorDepthAt(
+    screen: Vec2,
+    frame: ProjectionFrame,
+    dir: Vec3,
+): number | null {
     const point = projectPointOnPlane(screen, [0, 0, 0], floorBasis, frame);
     return point ? vDot(point, dir) : null;
 }
@@ -140,25 +147,30 @@ function occluderHiddenPiece(
     const floorDepth = floorDepthAt(probeScreen, frame, dir);
     if (floorDepth === null || !Number.isFinite(floorDepth)) return null;
     const probeDepth = vDot(probe, dir);
-    const nearer = floorDepth - probeDepth > geometryTolerance(floorDepth, probeDepth);
+    const nearer =
+        floorDepth - probeDepth > geometryTolerance(floorDepth, probeDepth);
 
     const line = floorIntersectionLine(normal, d);
     if (!line) return nearer ? region : null;
 
-    const [s0, s1] = [projectPoint(line[0], frame), projectPoint(line[1], frame)];
+    const [s0, s1] = [
+        projectPoint(line[0], frame),
+        projectPoint(line[1], frame),
+    ];
     if (!allFinite([s0, s1])) return null;
     const edge = vSub(s1, s0);
     const side =
         edge[0] * (probeScreen[1] - s0[1]) - edge[1] * (probeScreen[0] - s0[0]);
-    const [a, b] = (side >= 0) === nearer ? [s0, s1] : [s1, s0];
+    const [a, b] = side >= 0 === nearer ? [s0, s1] : [s1, s0];
     region = clipHalfPlane(region, a, b);
     return region.length >= 3 && allFinite(region) ? region : null;
 }
 
 function ring(points: readonly Vec2[]): string {
     return (
-        points.map(([x, y], i) => (i === 0 ? "M" : "L") + x + " " + y).join(" ") +
-        " Z"
+        points
+            .map(([x, y], i) => (i === 0 ? "M" : "L") + x + " " + y)
+            .join(" ") + " Z"
     );
 }
 

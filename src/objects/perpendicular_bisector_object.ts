@@ -34,7 +34,10 @@ export class perpendicular_bisector_object extends primitive_line_object {
     // As wide as the segment it bisects, centered on the midpoint.
     protected referenceSpan(): [Vec3, Vec3] | null {
         if (!this.A1.defined || !this.A2.defined) return null;
-        const half = vScale(this.VEC, vNorm(vSub(this.A2.coords, this.A1.coords)) / 2);
+        const half = vScale(
+            this.VEC,
+            vNorm(vSub(this.A2.coords, this.A1.coords)) / 2,
+        );
         return [vSub(this.P1.coords, half), vAdd(this.P1.coords, half)];
     }
 }

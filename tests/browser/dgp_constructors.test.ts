@@ -341,12 +341,16 @@ describe("DGPad geometric constructors", () => {
     it("constructs an arc through three points, picking the arc that passes through the middle one", () => {
         const c = createConstruction();
         const a = createPoint(c, "A", [5, 0, 0]);
-        const bShort = createPoint(c, "Bs", [2.5, 5 * Math.sin(Math.PI / 3), 0]);
-        const cPt = createPoint(
-            c,
-            "C",
-            [5 * Math.cos((5 * Math.PI) / 6), 2.5, 0],
-        );
+        const bShort = createPoint(c, "Bs", [
+            2.5,
+            5 * Math.sin(Math.PI / 3),
+            0,
+        ]);
+        const cPt = createPoint(c, "C", [
+            5 * Math.cos((5 * Math.PI) / 6),
+            2.5,
+            0,
+        ]);
         const shortArc = createArc3pts(c, "ShortArc", a, bShort, cPt);
         const center = createCenter(c, "Center", shortArc);
 
@@ -359,11 +363,11 @@ describe("DGPad geometric constructors", () => {
         expect(shortArc.largeArcFlag).toBe(0);
         expect(shortArc.dom.dom().innerHTML).not.toMatch(/NaN|Infinity/);
 
-        const bLong = createPoint(
-            c,
-            "Bl",
-            [5 * Math.cos(-Math.PI / 3), 5 * Math.sin(-Math.PI / 3), 0],
-        );
+        const bLong = createPoint(c, "Bl", [
+            5 * Math.cos(-Math.PI / 3),
+            5 * Math.sin(-Math.PI / 3),
+            0,
+        ]);
         const longArc = createArc3pts(c, "LongArc", a, bLong, cPt);
 
         expect(longArc.sweepFlag).toBe(0);

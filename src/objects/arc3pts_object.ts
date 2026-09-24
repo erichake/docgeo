@@ -83,7 +83,8 @@ export class arc3pts_object extends primitive_circle_object {
         this.startAlpha = alphaA;
         this.endAlpha = alphaC;
         this.sweepFlag = goesCcw ? 1 : 0;
-        this.largeArcFlag = (goesCcw ? spanAC : TWO_PI - spanAC) > Math.PI ? 1 : 0;
+        this.largeArcFlag =
+            (goesCcw ? spanAC : TWO_PI - spanAC) > Math.PI ? 1 : 0;
     }
 
     render(): void {

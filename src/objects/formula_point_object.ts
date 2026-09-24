@@ -35,7 +35,9 @@ export class formula_point_object extends point_object {
                 const ref = this.refs.get(n)!;
                 if (!ref.defined) return null;
                 if (ref instanceof expression_object)
-                    return typeof ref.value === "number" ? [ref.value, 0] : null;
+                    return typeof ref.value === "number"
+                        ? [ref.value, 0]
+                        : null;
                 return this.vec3 ? ref.coords : [ref.coords[0], ref.coords[1]];
             },
             pixelScale: () => this.C.GRID.UNIT[0],

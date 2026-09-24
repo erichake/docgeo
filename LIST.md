@@ -16,10 +16,10 @@ List(name, nature, countFormula, formula1 [, formula2]);
 - `countFormula` : une formule DGP (même grammaire que le 2e argument de
   `Point`/`Circle1`), évaluée une fois → `count`.
 - `formula1`/`formula2` : évaluées une fois par indice `k = 0..count-1`.
-  - `"point"` : 1 formule → position.
-  - `"segment"`/`"line"` : 2 formules → les deux extrémités (segment :
-    tracé entre elles ; line : tracé à travers, prolongé hors champ).
-  - `"label"` : 2 formules → position, puis une valeur numérique à afficher.
+    - `"point"` : 1 formule → position.
+    - `"segment"`/`"line"` : 2 formules → les deux extrémités (segment :
+      tracé entre elles ; line : tracé à travers, prolongé hors champ).
+    - `"label"` : 2 formules → position, puis une valeur numérique à afficher.
 
 Implémentation : [list_object.ts](src/objects/list_object.ts), commande
 enregistrée dans [dgp_commands.ts](src/import/dgp_commands.ts).
@@ -60,22 +60,22 @@ A+(B-A)*k/(count-1)-perp(B-A)*0.12
 - **Points inclusifs des deux bouts** (ex. graduations primaires 0..6, une
   liste de labels) : `count` points ne définissent que `count-1`
   intervalles → diviser par `count-1`, pas `count` :
-  ```
-  A+(B-A)*k/(count-1)     // count points, de A (k=0) à B (k=count-1) inclus
-  ```
-  Diviser par `count` à la place fait tomber le dernier point **avant** B
-  (`(count-1)/count` de la distance) — c'est le bug qu'on a eu sur `Lp`/`Ll`
-  puis sur `Lpt` (voir commits `1d9a108`, `a9d7be1`).
+    ```
+    A+(B-A)*k/(count-1)     // count points, de A (k=0) à B (k=count-1) inclus
+    ```
+    Diviser par `count` à la place fait tomber le dernier point **avant** B
+    (`(count-1)/count` de la distance) — c'est le bug qu'on a eu sur `Lp`/`Ll`
+    puis sur `Lpt` (voir commits `1d9a108`, `a9d7be1`).
 - **`count` = nombre d'intervalles voulu directement** (ex. `count = 6*n`
   subdivisions) : diviser par `count` tel quel est déjà correct :
-  ```
-  A+(B-A)*k/count         // count intervalles ; le tout dernier point (=B)
-                           // n'est jamais généré (k s'arrête à count-1)
-  ```
-  Acceptable pour des graduations secondaires (B a déjà son propre point),
-  pas pour une liste servant de support `PointOn`/aimant si on veut pouvoir
-  atteindre le dernier point exactement — dans ce cas, compter les points
-  (`count+1`, cf. `Lpt` dans `partage.dgp`) et diviser par `count-1`.
+    ```
+    A+(B-A)*k/count         // count intervalles ; le tout dernier point (=B)
+                             // n'est jamais généré (k s'arrête à count-1)
+    ```
+    Acceptable pour des graduations secondaires (B a déjà son propre point),
+    pas pour une liste servant de support `PointOn`/aimant si on veut pouvoir
+    atteindre le dernier point exactement — dans ce cas, compter les points
+    (`count+1`, cf. `Lpt` dans `partage.dgp`) et diviser par `count-1`.
 
 ## `PointOn` sur une `List`
 
