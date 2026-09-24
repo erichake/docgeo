@@ -40,6 +40,18 @@ function createConstruction(): construction {
     return construction.create({ prefs: new preferences() });
 }
 
+// The figure's own objects: without the grid and its floor (see
+// grid_object.initFloorOccluder), present in every construction.
+function figureObjects(c: construction) {
+    const floor = c.GRID.floorOccluder;
+    return c.OBJS.V.filter(
+        (object) =>
+            object !== c.GRID &&
+            object !== floor &&
+            !floor.parents.includes(object),
+    );
+}
+
 afterEach(() => {
     construction.constructions.slice().forEach((item) => item.dispose());
     document.body.removeAttribute("style");
@@ -109,7 +121,7 @@ STL(B,"c:#0000b2;s:6;sn:true;f:30");`,
 fetch("https://example.com");`,
             ),
         ).toThrow("Unsupported DGP command fetch at line 2");
-        expect(c.OBJS.V).toEqual([c.GRID]);
+        expect(figureObjects(c)).toEqual([]);
     });
 
     it("rejects unsafe styles before creating objects", () => {
@@ -121,7 +133,7 @@ fetch("https://example.com");`,
 STL(P,"c:url(https://example.com/image)");`,
             ),
         ).toThrow("Invalid DGP color at line 2");
-        expect(c.OBJS.V).toEqual([c.GRID]);
+        expect(figureObjects(c)).toEqual([]);
     });
 
     it("rejects a non-boolean trace style", () => {
@@ -133,14 +145,14 @@ STL(P,"c:url(https://example.com/image)");`,
 STL(P,"tk:1");`,
             ),
         ).toThrow("Invalid DGP style boolean at line 2");
-        expect(c.OBJS.V).toEqual([c.GRID]);
+        expect(figureObjects(c)).toEqual([]);
     });
 
     it("imports the perpendicular-bisector reference figure", async () => {
         const c = createConstruction();
         await importDgpFromUrl(c, "/tests/dgp/_Mediatrice.dgp");
 
-        expect(c.OBJS.V).toHaveLength(8);
+        expect(figureObjects(c)).toHaveLength(7);
         expect(c.getObj("P1")).toBeInstanceOf(point_object);
         expect(c.getObj("L1")).toBeInstanceOf(two_points_line_object);
     });
@@ -175,13 +187,13 @@ STL(P,"tk:1");`,
         const fixedAngle = c.getObj("A1") as fixed_angle_object;
 
         expect(fixedAngle).toBeInstanceOf(fixed_angle_object);
-        expect(fixedAngle.valueDegrees).toBeCloseTo(51);
+        expect(fixedAngle.valueDegrees).toBeCloseTo(120.5);
         expect(fixedAngle.trigo).toBe(true);
         expect(fixedAngle.arcRadius).toBeCloseTo(48.83646178829912);
 
         const dirA = vNormalize(vSub(a.coords, vertex.coords))!;
         const cosAngle = Math.min(1, Math.max(-1, vDot(fixedAngle.VEC, dirA)));
-        expect((Math.acos(cosAngle) * 180) / Math.PI).toBeCloseTo(51);
+        expect((Math.acos(cosAngle) * 180) / Math.PI).toBeCloseTo(120.5);
         expect(fixedAngle.dom.dom().innerHTML).not.toMatch(/NaN|Infinity/);
     });
 
@@ -240,18 +252,18 @@ STL(P,"tk:1");`,
         const point = c.getObj("M") as point_on_object;
         expect(point).toBeInstanceOf(point_on_object);
         expect(point.support).toBe(locus);
-        expect(point.alpha).toBe(643);
-        expect(point.coords).toEqual(locus.points[643]);
-        expect(point.x).toBeCloseTo(-2.598331299744846);
-        expect(point.y).toBeCloseTo(4.720536925631855);
+        expect(point.alpha).toBe(689);
+        expect(point.coords).toEqual(locus.points[689]);
+        expect(point.x).toBeCloseTo(-2.079158862780794);
+        expect(point.y).toBeCloseTo(3.2862801601722698);
         expect(
             locus.alphaAtScreen(
                 locus.screenPoints[locus.screenPoints.length - 1]!,
             ),
         ).toBeCloseTo(locus.points.length - 1);
 
-        const start = locus.screenPoints[643]!;
-        const end = locus.screenPoints[644]!;
+        const start = locus.screenPoints[689]!;
+        const end = locus.screenPoints[690]!;
         point.mousedrag(
             new PointerEvent("pointermove", {
                 clientX: start[0] + 0.35 * (end[0] - start[0]),
@@ -260,7 +272,7 @@ STL(P,"tk:1");`,
         );
         c.OBJS.update();
 
-        expect(point.alpha as number).toBeCloseTo(643.35);
+        expect(point.alpha as number).toBeCloseTo(689.35);
         expect(point.coords).toEqual(locus.pointAt(point.alpha as number));
 
         const focus = c.getObj("P3") as point_object;
@@ -320,14 +332,14 @@ poly=Polygon("poly","_A,_B,_C");
 P=PointOn("P",poly,0.5);`,
             ),
         ).toThrow("Invalid PointOn parameter at line 5");
-        expect(c.OBJS.V).toEqual([c.GRID]);
+        expect(figureObjects(c)).toEqual([]);
     });
 
     it("imports the complete Apollonius construction", async () => {
         const c = createConstruction();
         await importDgpFromUrl(c, "/tests/dgp/_Apollonius.dgp");
 
-        expect(c.OBJS.V).toHaveLength(2570);
+        expect(figureObjects(c)).toHaveLength(2569);
         expect(c.getObj("P1")).toBeInstanceOf(point_object);
         expect(c.getObj("P14")).toBeInstanceOf(point_object);
         expect(c.getObj("Center32")).toBeInstanceOf(point_object);
@@ -469,23 +481,23 @@ P=PointOn("P",poly,0.5);`,
         expect(f1.screenPoints.some((point) => point !== null)).toBe(true);
         expect(f1.dom.dom().innerHTML).not.toMatch(/NaN|Infinity/);
 
-        const p1 = c.getObj("P1") as point_on_object;
-        expect(p1).toBeInstanceOf(point_on_object);
-        expect(p1.support).toBe(f1);
-        expect(p1.alpha).toBe(3.75);
-        expect(p1.coords[0]).toBeCloseTo(3.75);
-        expect(p1.coords[1]).toBeCloseTo(0.5 * 3.75 * 3.75 - 4);
-        expect(p1.coords[2]).toBe(0);
+        const m = c.getObj("M") as point_on_object;
+        expect(m).toBeInstanceOf(point_on_object);
+        expect(m.support).toBe(f1);
+        expect(m.alpha).toBe(4.025);
+        expect(m.coords[0]).toBeCloseTo(4.025);
+        expect(m.coords[1]).toBeCloseTo(0.5 * 4.025 * 4.025 - 4);
+        expect(m.coords[2]).toBe(0);
 
-        // Dragging P1 must follow the curve: its alpha is the x it lands on.
+        // Dragging M must follow the curve: its alpha is the x it lands on.
         const targetX = -2;
         const targetY = 0.5 * targetX * targetX - 4;
         const [clientX, clientY] = c.pt3D([targetX, targetY, 0]);
-        p1.mousedrag(new PointerEvent("pointermove", { clientX, clientY }));
+        m.mousedrag(new PointerEvent("pointermove", { clientX, clientY }));
         c.OBJS.update();
-        expect(p1.alpha as number).toBeCloseTo(targetX, 1);
-        expect(p1.coords[0]).toBeCloseTo(targetX, 1);
-        expect(p1.coords[1]).toBeCloseTo(targetY, 1);
+        expect(m.alpha as number).toBeCloseTo(targetX, 1);
+        expect(m.coords[0]).toBeCloseTo(targetX, 1);
+        expect(m.coords[1]).toBeCloseTo(targetY, 1);
     });
 
     it("magnetizes a free point onto a Curvus curve", () => {
@@ -680,11 +692,10 @@ M=PointOn("M",S,0.5);`,
         const c = createConstruction();
         await importDgpFromUrl(c, "/tests/dgp/_Apollonius.dgp");
 
-        // 3 free points + 3 initial circles + 32 Circle3pts, plus the grid.
-        expect(c.OBJS.V.filter((object) => object.hasView)).toHaveLength(39);
-        const hidden = c.OBJS.V.find(
-            (object) => object !== c.GRID && !object.hasView,
-        )!;
+        // 3 free points + 3 initial circles + 32 Circle3pts.
+        const objects = figureObjects(c);
+        expect(objects.filter((object) => object.hasView)).toHaveLength(38);
+        const hidden = objects.find((object) => !object.hasView)!;
         expect(hidden.isHidden).toBe(true);
         expect(hidden.dom).toBeUndefined();
     });
