@@ -429,6 +429,35 @@ export function translateGgb(xml: string): GgbTranslation {
             : [x, y];
     };
 
+    // Polygon(A, B, n)'s other vertices, counterclockwise like GeoGebra's:
+    // the k-th is A + (B - A)·(1 - w^k)/(1 - w) with w = e^(2iπ/n), i.e.
+    // B - A rotated by (k - 1)π/n and scaled by sin(kπ/n)/sin(π/n).
+    const regularVertices = (
+        a: string,
+        b: string,
+        n: number,
+        labels: string[],
+    ): string[] => {
+        const [p, q] = [a, b].map((label) => objects.get(label)!.variable);
+        const dx = `(x(${q})-x(${p}))`;
+        const dy = `(y(${q})-y(${p}))`;
+        return Array.from({ length: n - 2 }, (_, index) => {
+            const k = index + 2;
+            const scale = Math.sin((k * Math.PI) / n) / Math.sin(Math.PI / n);
+            const angle = ((k - 1) * Math.PI) / n;
+            const cos = scale * Math.cos(angle);
+            const sin = scale * Math.sin(angle);
+            const vertex = labels[index] || auxiliary();
+            define(vertex, "point", "Point", [
+                literal(
+                    `${p}+[${cos}*${dx}-${sin}*${dy},${sin}*${dx}+${cos}*${dy}${is3D ? ",0" : ""}]`,
+                ),
+                literal(is3D ? "1" : "0"),
+            ]);
+            return vertex;
+        });
+    };
+
     type Handler = (inputs: string[], outputs: string[]) => boolean;
     const onePoint =
         (command: string, arity: number, kind: Kind = "line"): Handler =>
@@ -590,6 +619,15 @@ export function translateGgb(xml: string): GgbTranslation {
         CircumcircularArc: circumcircleArc,
         Conic: onePoint("Quadric", 5, "quadric"),
         Polygon: (inputs, [label, ...sides]) => {
+            const [a, b, count] = inputs;
+            if (inputs.length === 3 && points(a, b) && NUMBER.test(count)) {
+                const n = Number(count);
+                if (!Number.isInteger(n) || n < 3) return false;
+                return HANDLERS.Polygon(
+                    [a, b, ...regularVertices(a, b, n, sides.slice(n))],
+                    [label, ...sides.slice(0, n)],
+                );
+            }
             if (inputs.length < 3 || !points(...inputs)) return false;
             define(label, "polygon", "Polygon", [
                 literal(

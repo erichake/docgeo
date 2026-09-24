@@ -92,6 +92,7 @@ describe("GGB importer", () => {
         "fonction_inter",
         "fonction_inter_cercle",
         "fonction_inter_conique",
+        "polyreg",
     ])("rebuilds every saved point of %s", async (name) => {
         const c = createConstruction();
         const xml = await loadXml(name);
