@@ -2,9 +2,10 @@
 
 ## Objectif actuel du projet
 
-DGPad Pro est actuellement un **lecteur interactif de figures `.dgp`**. Son
-objectif est d'ouvrir fidèlement les fichiers produits par DGPad et de permettre
-la manipulation des objets déjà mobiles dans ces figures.
+DGPad Pro est actuellement un **lecteur interactif de figures `.dgp` et
+`.ggb`**. Son objectif est d'ouvrir fidèlement les fichiers produits par DGPad
+et par GeoGebra, et de permettre la manipulation des objets déjà mobiles dans
+ces figures.
 
 Tant que le lecteur ne sait pas ouvrir et manipuler avec robustesse et fluidité
 des constructions complexes, ne pas développer d'outils de création, de barre
@@ -12,9 +13,10 @@ d'outils de construction ni de fonctions d'édition ou d'export.
 
 Les développements doivent servir en priorité :
 
-- l'import sûr du format `.dgp`, toute exécution de son contenu devant avoir
-  lieu dans un environnement sécurisé et strictement contrôlé ;
-- la compatibilité géométrique et graphique avec DGPad ;
+- l'import sûr des formats `.dgp` et `.ggb`, toute exécution de leur contenu
+  devant avoir lieu dans un environnement sécurisé et strictement contrôlé (les
+  scripts GeoGebra ne sont jamais exécutés) ;
+- la compatibilité géométrique et graphique avec DGPad et GeoGebra ;
 - la manipulation des objets existants ;
 - la robustesse numérique et les performances sur plusieurs milliers d'objets.
 
@@ -34,6 +36,27 @@ peut contenir des erreurs, oublis ou imprécisions : ce n'est pas une spécifica
 obtenus dans DGPad avec la figure ouverte. Ne pas hésiter à implémenter
 autrement ou mieux (calcul plus robuste, plus simple, compatible 3D, etc.), du
 moment que le résultat reste conforme à ce que produit DGPad.
+
+### Import GeoGebra
+
+Le `geogebra.xml` d'un `.ggb` est traduit en commandes DGP
+(`src/import/ggb_translate.ts`), exécutées par le même moteur que l'import
+`.dgp` : étendre cette traduction plutôt que créer un chemin d'import parallèle.
+Les points sur objet et les intersections sont ensuite recalés sur les positions
+enregistrées par GeoGebra (`src/ggb_importer.ts`). Un élément non pris en charge
+est ignoré avec ses dépendants et signalé, sans faire échouer l'import.
+
+Une version web compilée de GeoGebra (pas son code source Java) se trouve dans :
+
+`/Users/erichake/Desktop/BV/html/doctools_MAIN/public/apps/geogebra`
+
+Elle sert de référence de rendu et à générer des figures de test : la servir en
+HTTP local et piloter `classic-offline.html` ou `3d-offline.html` avec
+Playwright (`ggbApplet.evalCommand`, `getBase64`, `setBase64`). Les commandes
+de script (`SetCoords`, `Slider`…) n'y sont pas chargées : utiliser l'API
+JavaScript (`ggbApplet.setCoords`, `setValue`…). Pour la sémantique précise
+d'une commande, se référer au dépôt public `geogebra/geogebra`. Les figures de
+test sont dans `public/tests/ggb/` (et `public/tests/dgp/` pour DGPad).
 
 - **Code minimal** : produire le strict nécessaire, sans code défensif superflu.
 - **Pas de `try/catch`** sauf si une exception est réellement possible et doit être traitée différemment.
