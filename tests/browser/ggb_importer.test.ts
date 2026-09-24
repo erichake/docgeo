@@ -14,7 +14,7 @@ import { two_points_line_object } from "../../src/objects/two_points_line_object
 import { preferences } from "../../src/preferences";
 import type { primitive_circle_object } from "../../src/objects/primitive_circle_object";
 import type { primitive_quadric_object } from "../../src/objects/primitive_quadric_object";
-import { vDot, vNorm, vSub } from "../../src/vec";
+import { vAdd, vDot, vNorm, vSub } from "../../src/vec";
 
 function createConstruction(): construction {
     document.documentElement.style.width = "100%";
@@ -123,6 +123,61 @@ describe("GGB importer", () => {
         expect(c.getObj("poly1")).toBeInstanceOf(polygon_object);
         expect(c.getObj("q1")).toBeInstanceOf(polygon_object);
         expect(c.getObj("C")!.isHidden).toBe(true);
+    });
+
+    it("drags a point by shifting the free numbers of its coordinates", async () => {
+        const c = createConstruction();
+        importGgb(c, await loadXml("polyform"));
+        await new Promise((resolve) => requestAnimationFrame(resolve));
+
+        const point = c.getObj("G") as point_object;
+        const f = c.getObj("f") as expression_object;
+        const g = c.getObj("g") as expression_object;
+        const [f0, g0] = [f.value as number, g.value as number];
+        const target = vAdd(point.coords, [1, -0.5, 0]);
+        const [x, y] = c.pt3D(target);
+        point.mousedrag(
+            new PointerEvent("pointermove", { clientX: x, clientY: y }),
+        );
+        await new Promise((resolve) => requestAnimationFrame(resolve));
+
+        point.coords.forEach((value, index) =>
+            expect(value).toBeCloseTo(target[index], 9),
+        );
+        expect(f.value).toBeCloseTo(f0 + 1, 9);
+        expect(g.value).toBeCloseTo(g0 - 0.5, 9);
+        expect((c.getObj("F") as point_object).coords).toEqual([2.56, 3.64, 0]);
+    });
+
+    it("only drags points GeoGebra can drag", () => {
+        const c = createConstruction();
+        importGgb(
+            c,
+            `<geogebra><construction>
+<element type="point" label="F"><coords x="1" y="1" z="1"/></element>
+<element type="numeric" label="a"><value val="2"/></element>
+<expression label="b" exp="3"/>
+<element type="numeric" label="b"><value val="3"/></element>
+<element type="numeric" label="c"><value val="1"/><fixed val="true"/></element>
+${[
+    "(a, 2)",
+    "(b + 2 x(F), c)",
+    "(x(F) + a, 1)",
+    "(a + x(F) - 1, 2 a)",
+    "(c, 1)",
+]
+    .map(
+        (exp, index) =>
+            `<expression label="P${index}" exp="${exp}" type="point"/><element type="point" label="P${index}"/>`,
+    )
+    .join("\n")}
+</construction></geogebra>`,
+        );
+        expect(
+            [0, 1, 2, 3, 4].map(
+                (index) => (c.getObj(`P${index}`) as point_object).moveable,
+            ),
+        ).toEqual([true, true, false, false, false]);
     });
 
     it("builds nested commands as hidden auxiliary objects", async () => {

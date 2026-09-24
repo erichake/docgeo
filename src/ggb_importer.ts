@@ -2,6 +2,8 @@ import type { construction } from "./construction";
 import { executeDgpCommands } from "./import/dgp_commands";
 import { translateGgb, type GgbView3D } from "./import/ggb_translate";
 import { readZipEntry } from "./import/ggb_zip";
+import type { expression_object } from "./objects/expression_object";
+import type { formula_point_object } from "./objects/formula_point_object";
 import { intersection_object } from "./objects/intersection_object";
 import { point_on_object } from "./objects/point_on_object";
 import type { construction_object } from "./objects/construction_object";
@@ -10,8 +12,16 @@ import { vNorm, vSub, type Vec3 } from "./vec";
 
 // Returns what the figure uses that couldn't be imported.
 export function importGgb(c: construction, xml: string): string[] {
-    const { calls, targets, unsupported, view3D } = translateGgb(xml);
+    const { calls, targets, handles, unsupported, view3D } = translateGgb(xml);
     const variables = executeDgpCommands(c, calls, view3D !== undefined);
+    handles.forEach((numbers, variable) =>
+        (variables.get(variable) as formula_point_object).setHandles(
+            numbers.map(
+                (number) =>
+                    number && (variables.get(number) as expression_object),
+            ) as [expression_object | null, expression_object | null],
+        ),
+    );
     if (view3D) applyView3D(c, view3D);
     settleTargets(
         c,

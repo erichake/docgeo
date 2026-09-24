@@ -14,6 +14,13 @@ export class formula_point_object extends point_object {
     // "P1+[-1,-1,1]", a cube vertex) instead of the 2D/complex-number
     // projection plain point-arithmetic formulas rely on.
     private vec3: boolean;
+    // The free numbers a drag shifts, one per coordinate (a GeoGebra point
+    // like "(a + x(F), b)", see changeableNumber in ggb_translate.ts):
+    // DGPad itself never lets a formula point move.
+    private handles: [expression_object | null, expression_object | null] = [
+        null,
+        null,
+    ];
 
     constructor(
         c: construction,
@@ -55,7 +62,31 @@ export class formula_point_object extends point_object {
         super.computeGeometry();
     }
 
-    mousedrag(_ev: PointerEvent): void {}
+    setHandles(
+        handles: [expression_object | null, expression_object | null],
+    ): void {
+        this.handles = handles;
+        this.moveable = true;
+        if (this.hasView) this.createSVG();
+    }
+
+    mousedrag(ev: PointerEvent): void {
+        const coords = this.C.unprojectToZPlane(
+            this.C.pointerPosition(ev),
+            this.z,
+        );
+        if (!coords) return;
+        this.handles.forEach((handle, index) => {
+            if (!handle) return;
+            const value =
+                (handle.value as number) + coords[index] - this.coords[index];
+            handle.value = Math.min(
+                Math.max(value, handle.min ?? -Infinity),
+                handle.max ?? Infinity,
+            );
+            this.C.invalidateGeometry(handle);
+        });
+    }
 }
 
 export function createFormulaPoint(

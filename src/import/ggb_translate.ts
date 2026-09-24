@@ -30,6 +30,9 @@ export interface GgbTranslation {
     // intersection's branch): resolved against the actual geometry once the
     // figure is built (see settleTargets in ggb_importer.ts).
     targets: Map<string, Vec3>;
+    // The free numbers dragging a formula point shifts, per coordinate (see
+    // changeableNumber).
+    handles: Map<string, [string | null, string | null]>;
     unsupported: string[];
     // Present for a 3D figure: its camera (see applyView3D in
     // ggb_importer.ts).
@@ -159,6 +162,22 @@ function splitArguments(text: string): string[] | null {
     return parts;
 }
 
+// Whether "+" or "-" is applied outside any parentheses, other than as a
+// leading sign.
+function hasTopLevelSum(text: string): boolean {
+    let depth = 0;
+    let afterOperand = false;
+    for (const character of text) {
+        if (/\s/.test(character)) continue;
+        if (depth === 0 && afterOperand && "+-".includes(character))
+            return true;
+        if ("([".includes(character)) depth++;
+        else if (")]".includes(character)) depth--;
+        afterOperand = !"+-*/^([,".includes(character);
+    }
+    return false;
+}
+
 function hexColor(element: Element): string {
     return `#${["r", "g", "b"]
         .map((channel) =>
@@ -193,6 +212,7 @@ export function translateGgb(xml: string): GgbTranslation {
 
     const calls: DgpCall[] = [];
     const targets = new Map<string, Vec3>();
+    const handles = new Map<string, [string | null, string | null]>();
     const unsupported: string[] = [];
     const objects = new Map<string, { variable: string; kind: Kind }>();
     const segments = new Map<string, [string, string]>();
@@ -800,19 +820,51 @@ export function translateGgb(xml: string): GgbTranslation {
         );
     };
 
+    // GeoGebra drags a point "(xExpression, yExpression)" by shifting each
+    // coordinate written "n" or "n + rest", n being a free, unfixed number
+    // (not "rest + n", nor "n + rest - 1", whose top operation isn't that
+    // plus).
+    const changeableNumber = (coordinate: string): string | null => {
+        const [, label, rest] =
+            /^([^\s+]+)\s*(?:\+(.*))?$/.exec(coordinate) ?? [];
+        const element = elements.get(label);
+        const source = expressions.get(label);
+        return element?.getAttribute("type") === "numeric" &&
+            is(label, ["expression"]) &&
+            !commandOutputs.has(label) &&
+            (source === undefined || NUMBER.test(source)) &&
+            attribute(element, "fixed", "val") !== "true" &&
+            (rest === undefined || !hasTopLevelSum(rest))
+            ? objects.get(label)!.variable
+            : null;
+    };
+
     const independent = (label: string, element: Element): boolean => {
         const type = element.getAttribute("type");
         const source = expressions.get(label);
         if (type === "point" || type === "point3d") {
             if (source !== undefined && !NUMERIC_TUPLE.test(source)) {
                 const coords = formula(source, VALUE_KINDS);
-                return (
-                    coords !== null &&
-                    define(label, "point", "Point", [
-                        literal(coords),
-                        literal("0"),
-                    ])
-                );
+                if (coords === null) return false;
+                define(label, "point", "Point", [
+                    literal(coords),
+                    literal("0"),
+                ]);
+                const text = source.trim();
+                const tuple =
+                    text.startsWith("(") &&
+                    text.endsWith(")") &&
+                    splitArguments(text.slice(1, -1));
+                const numbers =
+                    tuple && tuple.length === 2
+                        ? tuple.map(changeableNumber)
+                        : [null, null];
+                if (numbers.some(Boolean))
+                    handles.set(
+                        objects.get(label)!.variable,
+                        numbers as [string | null, string | null],
+                    );
+                return true;
             }
             const coords = pointCoords(element);
             if (!coords) return false;
@@ -927,5 +979,5 @@ export function translateGgb(xml: string): GgbTranslation {
         }
     });
 
-    return { calls, targets, unsupported, view3D: camera };
+    return { calls, targets, handles, unsupported, view3D: camera };
 }
