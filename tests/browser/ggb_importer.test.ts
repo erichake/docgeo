@@ -96,6 +96,7 @@ describe("GGB importer", () => {
         "polyreg",
         "polyform",
         "circular",
+        "allconics",
     ])("rebuilds every saved point of %s", async (name) => {
         const c = createConstruction();
         const xml = await loadXml(name);
@@ -328,6 +329,43 @@ ${[
                 (a * x * x + b * x * y + cc * y * y + d * x + e * y + f) /
                     Math.hypot(2 * a * x + b * y + d, b * x + 2 * cc * y + e),
             ).toBeCloseTo(0, 9);
+        });
+    });
+
+    it("builds ellipses, hyperbolas and parabolas like GeoGebra", async () => {
+        const c = createConstruction();
+        const xml = await loadXml("allconics");
+
+        expect(importGgb(c, xml)).toEqual([]);
+        const saved = new DOMParser().parseFromString(xml, "application/xml");
+        (
+            [
+                ["c", "ellipse"],
+                ["d", "hyperbola"],
+                ["e", "parabola"],
+                ["g", "ellipse"],
+            ] as const
+        ).forEach(([label, kind]) => {
+            const conic = c.getObj(label) as primitive_quadric_object;
+            expect(conic.KIND, label).toBe(kind);
+            // GeoGebra's A0x² + A1y² + A2 + 2A3xy + 2A4x + 2A5y.
+            const [a0, a1, a2, a3, a4, a5] = [0, 1, 2, 3, 4, 5].map((index) =>
+                Number(
+                    saved
+                        .querySelector(`element[label="${label}"] > matrix`)!
+                        .getAttribute(`A${index}`),
+                ),
+            );
+            const expected = [a0, 2 * a3, a1, 2 * a4, 2 * a5, a2];
+            const found = conic.COEFFS!;
+            const ratio = vNorm(expected) / vNorm(found);
+            const sign = Math.sign(vDot(expected, found));
+            found.forEach((value, index) =>
+                expect(sign * ratio * value, label).toBeCloseTo(
+                    expected[index],
+                    6,
+                ),
+            );
         });
     });
 
