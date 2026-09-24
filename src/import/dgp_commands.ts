@@ -54,6 +54,7 @@ import { createReflection } from "../objects/reflection_object";
 import { createSegment } from "../objects/segment_object";
 import { createSymmetry } from "../objects/symmetry_object";
 import { createLine } from "../objects/two_points_line_object";
+import { createVector } from "../objects/vector_object";
 import type { Vec2, Vec3 } from "../vec";
 import {
     evaluateFormula,
@@ -940,6 +941,20 @@ const COMMANDS = new Map<string, CommandDefinition>([
             result: "line",
             execute: (context, args) =>
                 createSegment(
+                    context.construction,
+                    args[0] as string,
+                    args[1] as point_object,
+                    args[2] as point_object,
+                ),
+        },
+    ],
+    [
+        "Vector",
+        {
+            parameters: [string, point, point],
+            result: "line",
+            execute: (context, args) =>
+                createVector(
                     context.construction,
                     args[0] as string,
                     args[1] as point_object,

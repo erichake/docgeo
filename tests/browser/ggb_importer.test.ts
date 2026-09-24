@@ -12,6 +12,7 @@ import { point_on_object } from "../../src/objects/point_on_object";
 import { point_object } from "../../src/objects/point_object";
 import { polygon_object } from "../../src/objects/polygon_object";
 import { two_points_line_object } from "../../src/objects/two_points_line_object";
+import { vector_object } from "../../src/objects/vector_object";
 import { preferences } from "../../src/preferences";
 import type { primitive_circle_object } from "../../src/objects/primitive_circle_object";
 import type { primitive_quadric_object } from "../../src/objects/primitive_quadric_object";
@@ -395,6 +396,35 @@ ${[
         expect(vDot(vSub(e, a), vSub(b, a))).toBeCloseTo(0, 9);
         expect(vDot(vSub(e, a), vSub(point.coords, b))).toBeCloseTo(0, 9);
         expect(vNorm(vSub(g, a))).toBeCloseTo(side * Math.sqrt(3), 9);
+    });
+
+    it("builds reflections, inversions, rotations, translations and dilations", async () => {
+        const c = createConstruction();
+        const xml = await loadXml("transformations");
+
+        expect(importGgb(c, xml)).toEqual([]);
+        expectSavedPoints(c, xml);
+        expect(c.getObj("t1'")).toBeInstanceOf(polygon_object);
+        const vector = c.getObj("u") as vector_object;
+        expect(vector).toBeInstanceOf(vector_object);
+        await new Promise((resolve) => requestAnimationFrame(resolve));
+        expect(vector.tipPath2.getAtt("d")).toMatch(/^M/);
+
+        const center = c.getObj("K") as point_object;
+        const [x, y] = c.pt3D([2, 1, 0]);
+        center.mousedrag(
+            new PointerEvent("pointermove", { clientX: x, clientY: y }),
+        );
+        await new Promise((resolve) => requestAnimationFrame(resolve));
+
+        const [h, k, image] = ["H", "K", "H'"].map(
+            (name) => (c.getObj(name) as point_object).coords,
+        );
+        const [dx, dy] = vSub(h, k);
+        const cos = Math.SQRT1_2;
+        expect(k[0]).toBeCloseTo(2, 6);
+        expect(image[0]).toBeCloseTo(k[0] + cos * (dx - dy), 9);
+        expect(image[1]).toBeCloseTo(k[1] + cos * (dx + dy), 9);
     });
 
     it("leaves edges already drawn by a segment to that segment", async () => {

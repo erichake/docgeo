@@ -216,6 +216,7 @@ export function translateGgb(xml: string): GgbTranslation {
     const unsupported: string[] = [];
     const objects = new Map<string, { variable: string; kind: Kind }>();
     const segments = new Map<string, [string, string]>();
+    const vectors = new Map<string, [string, string]>();
     const elements = new Map<string, Element>();
     const expressions = new Map<string, string>();
     const commandOutputs = new Set<string>();
@@ -651,8 +652,29 @@ export function translateGgb(xml: string): GgbTranslation {
         points(source) &&
         (points(mirror)
             ? define(label, "point", "Symmetry", [ref(mirror), ref(source)])
-            : is(mirror, ["line"]) &&
-              define(label, "point", "Reflection", [ref(mirror), ref(source)]));
+            : is(mirror, ["line"])
+              ? define(label, "point", "Reflection", [ref(mirror), ref(source)])
+              : is(mirror, ["circle"]) && inversion(label, source, mirror));
+
+    // The inverse of P in a circle of center M and radius r is
+    // M + (P - M)·r²/MP², r being read off a point where MP meets it.
+    const inversion = (label: string, source: string, circle: string): true => {
+        const center = auxiliary();
+        define(center, "point", "Center", [ref(circle)]);
+        const line = auxiliary();
+        define(line, "line", "Line", [ref(center), ref(source)]);
+        const onCircle = auxiliary();
+        define(onCircle, "point", "OrderedIntersection", [
+            ref(line),
+            ref(circle),
+            literal(0),
+        ]);
+        const [p, m, t] = [source, center, onCircle].map(
+            (input) => objects.get(input)!.variable,
+        );
+        formulaPoint(`${m}+(${p}-${m})*d(${m},${t})^2/d(${m},${p})^2`, label);
+        return true;
+    };
 
     let auxiliaries = 0;
     const auxiliary = (): string => `aux ${++auxiliaries}`;
@@ -930,6 +952,59 @@ export function translateGgb(xml: string): GgbTranslation {
         },
         Mirror: mirror,
         Reflect: mirror,
+        // Rotate(P, a, C) as P + (R(a) - I)(P - C), which keeps P's height
+        // in 3D; C defaults to the origin.
+        Rotate: ([source, angle, center, extra], [label]) => {
+            const a = formula(angle, VALUE_KINDS);
+            if (
+                extra !== undefined ||
+                a === null ||
+                !points(source) ||
+                (center !== undefined && !points(center))
+            )
+                return false;
+            const p = objects.get(source)!.variable;
+            const c = center && objects.get(center)!.variable;
+            const [dx, dy] = c
+                ? [`(x(${p})-x(${c}))`, `(y(${p})-y(${c}))`]
+                : [`x(${p})`, `y(${p})`];
+            formulaPoint(
+                `${p}+${planar(
+                    `(cos(${a})-1)*${dx}-sin(${a})*${dy}`,
+                    `sin(${a})*${dx}+(cos(${a})-1)*${dy}`,
+                )}`,
+                label,
+            );
+            return true;
+        },
+        Dilate: ([source, factor, center, extra], [label]) => {
+            const k = formula(factor, VALUE_KINDS);
+            if (
+                extra !== undefined ||
+                k === null ||
+                !points(source) ||
+                (center !== undefined && !points(center))
+            )
+                return false;
+            const p = objects.get(source)!.variable;
+            const c = center && objects.get(center)!.variable;
+            formulaPoint(c ? `${c}+(${p}-${c})*(${k})` : `${p}*(${k})`, label);
+            return true;
+        },
+        Vector: ([p, q], [label]) => {
+            if (!points(p, q)) return false;
+            vectors.set(label, [p, q]);
+            return define(label, "line", "Vector", [ref(p), ref(q)]);
+        },
+        Translate: ([source, vector, extra], [label]) => {
+            const ends = vectors.get(vector);
+            if (extra !== undefined || !ends || !points(source)) return false;
+            const [p, a, b] = [source, ...ends].map(
+                (input) => objects.get(input)!.variable,
+            );
+            formulaPoint(`${p}+${b}-${a}`, label);
+            return true;
+        },
         Locus: ([p, q, extra], [label]) =>
             extra === undefined &&
             points(p) &&
