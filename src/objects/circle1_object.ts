@@ -1,12 +1,21 @@
 import type { construction } from "../construction";
 import type { DOMElement } from "../dom";
-import { evaluateFormula, type FormulaNode } from "../import/dgp_formula";
+import {
+    evaluateFormula,
+    realPart,
+    type FormulaNode,
+} from "../import/dgp_formula";
 import type { construction_object } from "./construction_object";
+import { expression_object } from "./expression_object";
 import type { point_object } from "./point_object";
 import { primitive_circle_object } from "./primitive_circle_object";
 
 export type circle1_radius =
-    number | { formula: FormulaNode; refs: Map<string, point_object> };
+    | number
+    | {
+          formula: FormulaNode;
+          refs: Map<string, point_object | expression_object>;
+      };
 
 export class circle1_object extends primitive_circle_object {
     P1: point_object;
@@ -36,14 +45,21 @@ export class circle1_object extends primitive_circle_object {
         const radius =
             typeof definition === "number"
                 ? definition
-                : evaluateFormula(definition.formula, {
-                      resolveIdentifier: (n) => {
-                          const p = definition.refs.get(n)!;
-                          return p.defined ? [p.coords[0], p.coords[1]] : null;
-                      },
-                      pixelScale: () => this.C.GRID.UNIT[0],
-                  });
-        if (typeof radius !== "number") {
+                : realPart(
+                      evaluateFormula(definition.formula, {
+                          resolveIdentifier: (n) => {
+                              const ref = definition.refs.get(n)!;
+                              if (!ref.defined) return null;
+                              if (ref instanceof expression_object)
+                                  return typeof ref.value === "number"
+                                      ? [ref.value, 0]
+                                      : null;
+                              return [ref.coords[0], ref.coords[1]];
+                          },
+                          pixelScale: () => this.C.GRID.UNIT[0],
+                      }),
+                  );
+        if (radius === null) {
             this.defined = false;
             return;
         }

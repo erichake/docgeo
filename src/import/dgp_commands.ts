@@ -329,7 +329,9 @@ function isPointExpressionFormula(
         names.size > 0 &&
         [...names].every((name) => {
             const kind = variables.get(name);
-            return kind === "point" || kind === "expression";
+            return (
+                kind === "point" || kind === "pointOn" || kind === "expression"
+            );
         })
     );
 }
@@ -344,7 +346,9 @@ function isPointExpressionFormulaAt(
         names.size > 0 &&
         [...names].every((name) => {
             const ref = variables.get(name);
-            return ref instanceof point_object || ref instanceof expression_object;
+            return (
+                ref instanceof point_object || ref instanceof expression_object
+            );
         })
     );
 }
@@ -376,17 +380,6 @@ function parseRadiusFormula(value: string, lineNumber: number): FormulaNode {
     } catch {
         throw new Error(`Invalid DGP circle radius at line ${lineNumber}`);
     }
-}
-
-function validateFormulaReferences(
-    formulaNode: FormulaNode,
-    variables: Map<string, ObjectKind>,
-    lineNumber: number,
-): void {
-    formulaIdentifiers(formulaNode).forEach((name) => {
-        if (variables.get(name) !== "point")
-            throw new Error(`Unknown DGP reference at line ${lineNumber}`);
-    });
 }
 
 // A Point's own dependent formula (e.g. "P1+[-1,-1,1]", "M.coords3D()"):
@@ -838,8 +831,7 @@ const COMMANDS = new Map<string, CommandDefinition>([
                         [...formulaIdentifiers(formula)].map((refName) => [
                             refName,
                             context.variables.get(refName) as
-                                | point_object
-                                | expression_object,
+                                point_object | expression_object,
                         ]),
                     );
                     return createFormulaPoint(
@@ -1077,7 +1069,11 @@ const COMMANDS = new Map<string, CommandDefinition>([
                     radiusArg.value,
                     lineNumber,
                 );
-                validateFormulaReferences(radiusFormula, variables, lineNumber);
+                validatePointFormulaReferences(
+                    radiusFormula,
+                    variables,
+                    lineNumber,
+                );
             },
             execute: (context, args) => {
                 const name = args[0] as string;
@@ -1094,7 +1090,8 @@ const COMMANDS = new Map<string, CommandDefinition>([
                 const refs = new Map(
                     [...formulaIdentifiers(radiusFormula)].map((refName) => [
                         refName,
-                        context.variables.get(refName) as point_object,
+                        context.variables.get(refName) as
+                            point_object | expression_object,
                     ]),
                 );
                 return createCircle1(context.construction, name, center, {
@@ -1302,7 +1299,10 @@ const COMMANDS = new Map<string, CommandDefinition>([
             validate: (args, lineNumber, variables) => {
                 const bound = (value: DgpValue): boolean => {
                     const source = literalString(value);
-                    return source === "" || evaluateConstantFormula(source) !== null;
+                    return (
+                        source === "" ||
+                        evaluateConstantFormula(source) !== null
+                    );
                 };
                 if (!bound(args[2]) || !bound(args[3]))
                     throw new Error(
@@ -1668,7 +1668,10 @@ function resolveValue(
     return value.items.map((item) => resolveValue(item, variables));
 }
 
-export function executeDgpCommands(c: construction, calls: DgpCall[]): void {
+export function executeDgpCommands(
+    c: construction,
+    calls: DgpCall[],
+): Map<string, construction_object> {
     validateCalls(calls);
     const context: CommandContext = {
         construction: c,
@@ -1695,4 +1698,5 @@ export function executeDgpCommands(c: construction, calls: DgpCall[]): void {
     if (context.gridChanged) c.GRID.createSVG();
     c.endBatch();
     if (context.projectionChanged) c.invalidateProjection();
+    return context.variables;
 }

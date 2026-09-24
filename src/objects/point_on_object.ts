@@ -192,7 +192,8 @@ export class point_on_object extends point_object {
         return this.C.unprojectToZPlane(screen, this.z);
     }
 
-    private alphaFor(target: Vec3): Alpha | null {
+    alphaFor(target: Vec3): Alpha | null {
+        if (this.support.familytype === "curve") return target[0];
         if (this.support instanceof primitive_circle_object) {
             return this.support.alphaOf(target);
         }

@@ -110,7 +110,11 @@ export function evaluateAtX(
     pixelScale: number,
 ): FormulaValue | null {
     return evaluateFormula(formula.node, {
-        resolveIdentifier: (name) => (name === "x" ? [x, 0] : null),
+        resolveIdentifier: (name) => {
+            if (name === "x") return [x, 0];
+            const value = formula.refs.get(name)?.value;
+            return typeof value === "number" ? [value, 0] : null;
+        },
         pixelScale: () => pixelScale,
         callFunction: (name, args) => {
             const ref = formula.refs.get(name)?.formula;
