@@ -54,6 +54,7 @@ function expectSavedPoints(c: construction, xml: string): void {
             expect(point, element.getAttribute("label")!).toBeInstanceOf(
                 point_object,
             );
+            expect(point!.defined, element.getAttribute("label")!).toBe(true);
             (point as point_object).coords.forEach((value, index) =>
                 expect(value).toBeCloseTo(expected[index], 9),
             );
@@ -87,6 +88,8 @@ describe("GGB importer", () => {
         "transform",
         "sliders",
         "cube",
+        "fonction_inter",
+        "fonction_inter_cercle",
     ])("rebuilds every saved point of %s", async (name) => {
         const c = createConstruction();
         const xml = await loadXml(name);
@@ -138,6 +141,55 @@ describe("GGB importer", () => {
         await new Promise((resolve) => requestAnimationFrame(resolve));
         expect(circle.R).toBeCloseTo(3);
         expect((c.getObj("f") as curve_object).pointAt(2)![1]).toBeCloseTo(11);
+    });
+
+    it("keeps function×line intersections on both as the line moves", async () => {
+        const c = createConstruction();
+        importGgb(c, await loadXml("fonction_inter"));
+
+        const b = c.getObj("B") as point_object;
+        b.coords = [0.58, 2.5, 0];
+        c.invalidateGeometry(b);
+        await new Promise((resolve) => requestAnimationFrame(resolve));
+
+        const [bx, by] = b.coords;
+        const [cx, cy] = (c.getObj("C") as point_object).coords;
+        const [[dx, dy], [ex, ey]] = ["D", "E"].map(
+            (name) => (c.getObj(name) as point_object).coords,
+        );
+        expect(c.getObj("D")!.defined && c.getObj("E")!.defined).toBe(true);
+        expect(ex).toBeLessThan(dx);
+        [
+            [dx, dy],
+            [ex, ey],
+        ].forEach(([x, y]) => {
+            expect(y).toBeCloseTo(0.5 * x * x - x - 2, 9);
+            expect((x - bx) * (cy - by) - (y - by) * (cx - bx)).toBeCloseTo(
+                0,
+                9,
+            );
+        });
+    });
+
+    it("keeps function×circle intersections on both as the circle moves", async () => {
+        const c = createConstruction();
+        importGgb(c, await loadXml("fonction_inter_cercle"));
+
+        const point = c.getObj("C") as point_object;
+        point.coords = [3.2, -0.5, 0];
+        c.invalidateGeometry(point);
+        await new Promise((resolve) => requestAnimationFrame(resolve));
+
+        const [bx, by] = (c.getObj("B") as point_object).coords;
+        const radius = Math.hypot(3.2 - bx, -0.5 - by);
+        const found = ["D", "E", "F", "G"].map(
+            (name) => (c.getObj(name) as point_object).coords,
+        );
+        expect(new Set(found.map(([x]) => x.toFixed(6))).size).toBe(4);
+        found.forEach(([x, y]) => {
+            expect(y).toBeCloseTo(x ** 3 - 0.5 * x * x - x - 2, 9);
+            expect(Math.hypot(x - bx, y - by)).toBeCloseTo(radius, 9);
+        });
     });
 
     it("rotates the cube around AB when C is dragged on its circle", async () => {

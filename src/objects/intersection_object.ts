@@ -19,13 +19,19 @@ import {
     type ConicCoeffs,
 } from "./conic_algebra";
 import type { construction_object } from "./construction_object";
+import type { curve_object } from "./curve_object";
 import { point_object } from "./point_object";
 import { primitive_circle_object } from "./primitive_circle_object";
 import { primitive_line_object } from "./primitive_line_object";
 import { primitive_quadric_object } from "./primitive_quadric_object";
 
 export type intersectable_object =
-    primitive_line_object | primitive_circle_object | primitive_quadric_object;
+    | primitive_line_object
+    | primitive_circle_object
+    | primitive_quadric_object
+    | curve_object;
+
+const CURVE_ROOT_SAMPLES = 3000;
 
 // A circle restricted to the flat (x,y) plane it lies in, in the same
 // implicit form as a Quadric — a circle is just a conic of that special
@@ -45,6 +51,51 @@ function isFlatInZ(circle: primitive_circle_object): boolean {
         Math.abs(circle.NORMAL[0]) <= tolerance &&
         Math.abs(circle.NORMAL[1]) <= tolerance
     );
+}
+
+// Points of the curve where distance(x, f(x)) changes sign between samples of
+// [start, end], refined by bisection down to adjacent floats. A root where
+// the distance only touches zero (tangency) is not found, and a sign change
+// across a discontinuity is rejected by its residual.
+function curveRoots(
+    curve: curve_object,
+    start: number,
+    end: number,
+    scale: number,
+    distance: (x: number, y: number) => number,
+): Vec3[] {
+    if (!(end > start)) return [];
+    const at = (x: number): number | null => {
+        const point = curve.pointAt(x);
+        return point && distance(x, point[1]);
+    };
+    const step = (end - start) / CURVE_ROOT_SAMPLES;
+    const roots: number[] = [];
+    let x0 = start;
+    let h0 = at(x0);
+    for (let i = 1; i <= CURVE_ROOT_SAMPLES; i++) {
+        const x1 = start + i * step;
+        const h1 = at(x1);
+        if (h0 === 0) roots.push(x0);
+        else if (h0 !== null && h1 !== null && h0 * h1 < 0) {
+            let [a, b, ha, hb] = [x0, x1, h0, h1];
+            for (;;) {
+                const middle = (a + b) / 2;
+                if (middle <= a || middle >= b) break;
+                const hm = at(middle);
+                if (hm === null) break;
+                if (hm * ha > 0) [a, ha] = [middle, hm];
+                else [b, hb] = [middle, hm];
+            }
+            const [root, residual] =
+                Math.abs(ha) < Math.abs(hb) ? [a, ha] : [b, hb];
+            if (Math.abs(residual) <= geometryTolerance(root, scale))
+                roots.push(root);
+        }
+        [x0, h0] = [x1, h1];
+    }
+    if (h0 === 0) roots.push(x0);
+    return roots.map((root) => curve.pointAt(root)!);
 }
 
 // Coordinates conic×conic candidate selection across every
@@ -291,6 +342,58 @@ export class intersection_object extends point_object {
         this.intersectConics(first.COEFFS, second.COEFFS, first.CENTER[2]);
     }
 
+    computeLineCurve(line: primitive_line_object, curve: curve_object): void {
+        if (!line.defined) return;
+        const [px, py, pz] = line.P1.coords;
+        const [vx, vy, vz] = line.VEC;
+        if (!numEqual(pz, 0) || Math.abs(vz) > GEOMETRY_EPSILON) return;
+        this.assignCurvePoints(() => {
+            if (Math.abs(vx) <= GEOMETRY_EPSILON) {
+                const point = curve.pointAt(px);
+                return point ? [point] : [];
+            }
+            // An unbounded curve is searched well beyond the viewport it is
+            // drawn in, so that a root just off-screen still exists.
+            const [lo, hi] = curve.domain();
+            return curveRoots(
+                curve,
+                curve.min ?? 2 * lo - hi,
+                curve.max ?? 2 * hi - lo,
+                py,
+                (x, y) => y - py - ((x - px) * vy) / vx,
+            ).filter((point) =>
+                line.insideBounds(vDot(vSub(point, line.P1.coords), line.VEC)),
+            );
+        });
+    }
+
+    computeCircleCurve(
+        circle: primitive_circle_object,
+        curve: curve_object,
+    ): void {
+        if (!circle.defined) return;
+        const [cx, cy, cz] = circle.CENTER;
+        if (!isFlatInZ(circle) || !numEqual(cz, 0)) return;
+        this.assignCurvePoints(() =>
+            curveRoots(
+                curve,
+                Math.max(curve.min ?? -Infinity, cx - circle.R),
+                Math.min(curve.max ?? Infinity, cx + circle.R),
+                circle.R,
+                (x, y) => Math.hypot(x - cx, y - cy) - circle.R,
+            ),
+        );
+    }
+
+    // Like conic×conic, the root count drifts as the figure is dragged, so
+    // siblings share the candidates through groupAssign.
+    private assignCurvePoints(candidates: () => Vec3[]): void {
+        const assigned = this.groupAssign(candidates);
+        if (!assigned) return;
+        this.coords = assigned;
+        super.computeGeometry();
+    }
+
     private intersectConics(
         conic1: ConicCoeffs,
         conic2: ConicCoeffs,
@@ -298,7 +401,6 @@ export class intersection_object extends point_object {
     ): void {
         const points = conicConicIntersectionsXY(conic1, conic2);
         if (points.length === 0) return;
-        const candidates = points.map(([x, y]): Vec3 => [x, y, z]);
         // Always resolved per sibling group rather than by this object alone
         // (see groupAssign). Unlike line/circle pairs (always exactly ≤2
         // roots, so a fixed order slot is inherently collision-free), a
@@ -306,7 +408,9 @@ export class intersection_object extends point_object {
         // between 0 and 4 as the figure is dragged — even down at 2
         // candidates, two siblings declared with order 1 and 2 would
         // otherwise both clamp to the same index.
-        const assigned = this.groupAssign(candidates);
+        const assigned = this.groupAssign(() =>
+            points.map(([x, y]): Vec3 => [x, y, z]),
+        );
         if (!assigned) return;
         this.coords = assigned;
         super.computeGeometry();
@@ -353,7 +457,7 @@ export class intersection_object extends point_object {
     // nearest candidate independently, two of them could both claim the
     // same one on the same frame, leaving another candidate unclaimed and
     // two named points coincident.
-    private groupAssign(candidates: Vec3[]): Vec3 | undefined {
+    private groupAssign(candidates: () => Vec3[]): Vec3 | undefined {
         let forO1 = conicGroupCache.get(this.O1);
         if (!forO1) {
             forO1 = new WeakMap();
@@ -364,7 +468,7 @@ export class intersection_object extends point_object {
             return cached.assignments.get(this);
 
         const siblings = this.siblings();
-        const unclaimed = candidates.slice();
+        const unclaimed = candidates();
         const assignments = new Map<intersection_object, Vec3>();
 
         // Phase 1: siblings with an `away` point rank candidates by
@@ -495,6 +599,38 @@ const INTERSECTION_COMPUTERS = new Map<string, IntersectionComputer>([
             object.computeLineQuadric(
                 object.O2 as primitive_line_object,
                 object.O1 as primitive_quadric_object,
+            ),
+    ],
+    [
+        "line:curve",
+        (object) =>
+            object.computeLineCurve(
+                object.O1 as primitive_line_object,
+                object.O2 as curve_object,
+            ),
+    ],
+    [
+        "curve:line",
+        (object) =>
+            object.computeLineCurve(
+                object.O2 as primitive_line_object,
+                object.O1 as curve_object,
+            ),
+    ],
+    [
+        "circle:curve",
+        (object) =>
+            object.computeCircleCurve(
+                object.O1 as primitive_circle_object,
+                object.O2 as curve_object,
+            ),
+    ],
+    [
+        "curve:circle",
+        (object) =>
+            object.computeCircleCurve(
+                object.O2 as primitive_circle_object,
+                object.O1 as curve_object,
             ),
     ],
     [

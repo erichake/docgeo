@@ -465,7 +465,11 @@ export function translateGgb(xml: string): GgbTranslation {
             pointOn(label, region, false),
         Intersect: ([first, second, third], outputs) => {
             const kinds: Kind[] = ["line", "circle", "quadric"];
-            if (!is(first, kinds) || !is(second, kinds)) return false;
+            const withCurve =
+                (is(first, ["curve"]) && is(second, ["line", "circle"])) ||
+                (is(first, ["line", "circle"]) && is(second, ["curve"]));
+            if (!withCurve && (!is(first, kinds) || !is(second, kinds)))
+                return false;
             let base = 0;
             if (third !== undefined) {
                 if (NUMBER.test(third)) base = Number(third) - 1;
