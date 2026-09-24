@@ -466,8 +466,8 @@ export function translateGgb(xml: string): GgbTranslation {
         Intersect: ([first, second, third], outputs) => {
             const kinds: Kind[] = ["line", "circle", "quadric"];
             const withCurve =
-                (is(first, ["curve"]) && is(second, ["line", "circle"])) ||
-                (is(first, ["line", "circle"]) && is(second, ["curve"]));
+                (is(first, ["curve"]) && is(second, kinds)) ||
+                (is(first, kinds) && is(second, ["curve"]));
             if (!withCurve && (!is(first, kinds) || !is(second, kinds)))
                 return false;
             let base = 0;

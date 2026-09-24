@@ -385,6 +385,29 @@ export class intersection_object extends point_object {
         );
     }
 
+    computeQuadricCurve(
+        quadric: primitive_quadric_object,
+        curve: curve_object,
+    ): void {
+        if (!quadric.defined || !quadric.COEFFS) return;
+        if (!numEqual(quadric.CENTER[2], 0)) return;
+        const [a, b, c, d, e, f] = quadric.COEFFS;
+        const [lo, hi] = curve.domain();
+        this.assignCurvePoints(() =>
+            curveRoots(
+                curve,
+                curve.min ?? 2 * lo - hi,
+                curve.max ?? 2 * hi - lo,
+                1,
+                // The conic's value over its gradient norm: a signed
+                // distance near the conic, so the residual test holds.
+                (x, y) =>
+                    (a * x * x + b * x * y + c * y * y + d * x + e * y + f) /
+                    Math.hypot(2 * a * x + b * y + d, b * x + 2 * c * y + e),
+            ),
+        );
+    }
+
     // Like conic×conic, the root count drifts as the figure is dragged, so
     // siblings share the candidates through groupAssign.
     private assignCurvePoints(candidates: () => Vec3[]): void {
@@ -630,6 +653,22 @@ const INTERSECTION_COMPUTERS = new Map<string, IntersectionComputer>([
         (object) =>
             object.computeCircleCurve(
                 object.O2 as primitive_circle_object,
+                object.O1 as curve_object,
+            ),
+    ],
+    [
+        "quadric:curve",
+        (object) =>
+            object.computeQuadricCurve(
+                object.O1 as primitive_quadric_object,
+                object.O2 as curve_object,
+            ),
+    ],
+    [
+        "curve:quadric",
+        (object) =>
+            object.computeQuadricCurve(
+                object.O2 as primitive_quadric_object,
                 object.O1 as curve_object,
             ),
     ],

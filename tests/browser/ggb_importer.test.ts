@@ -13,6 +13,7 @@ import { polygon_object } from "../../src/objects/polygon_object";
 import { two_points_line_object } from "../../src/objects/two_points_line_object";
 import { preferences } from "../../src/preferences";
 import type { primitive_circle_object } from "../../src/objects/primitive_circle_object";
+import type { primitive_quadric_object } from "../../src/objects/primitive_quadric_object";
 import { vDot, vNorm, vSub } from "../../src/vec";
 
 function createConstruction(): construction {
@@ -90,6 +91,7 @@ describe("GGB importer", () => {
         "cube",
         "fonction_inter",
         "fonction_inter_cercle",
+        "fonction_inter_conique",
     ])("rebuilds every saved point of %s", async (name) => {
         const c = createConstruction();
         const xml = await loadXml(name);
@@ -189,6 +191,30 @@ describe("GGB importer", () => {
         found.forEach(([x, y]) => {
             expect(y).toBeCloseTo(x ** 3 - 0.5 * x * x - x - 2, 9);
             expect(Math.hypot(x - bx, y - by)).toBeCloseTo(radius, 9);
+        });
+    });
+
+    it("keeps function×conic intersections on both as the conic moves", async () => {
+        const c = createConstruction();
+        importGgb(c, await loadXml("fonction_inter_conique"));
+
+        const point = c.getObj("H") as point_object;
+        point.coords = [-2.4, 1.3, 0];
+        c.invalidateGeometry(point);
+        await new Promise((resolve) => requestAnimationFrame(resolve));
+
+        const [a, b, cc, d, e, f] = (c.getObj("d") as primitive_quadric_object)
+            .COEFFS!;
+        const found = ["M", "N", "B", "C"].map(
+            (name) => (c.getObj(name) as point_object).coords,
+        );
+        expect(new Set(found.map(([x]) => x.toFixed(6))).size).toBe(4);
+        found.forEach(([x, y]) => {
+            expect(y).toBeCloseTo(x ** 3 - 0.5 * x * x - x - 2, 9);
+            expect(
+                (a * x * x + b * x * y + cc * y * y + d * x + e * y + f) /
+                    Math.hypot(2 * a * x + b * y + d, b * x + 2 * cc * y + e),
+            ).toBeCloseTo(0, 9);
         });
     });
 
