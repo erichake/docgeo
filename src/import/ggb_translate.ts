@@ -110,6 +110,11 @@ const CUBE_EDGES = [
     [2, 6],
     [6, 7],
 ];
+const AXES: Record<string, Vec3> = {
+    xAxis: [1, 0, 0],
+    yAxis: [0, 1, 0],
+    zAxis: [0, 0, 1],
+};
 const DEFAULT_SLIDER_STEP = 0.1;
 const VALUE_KINDS: Kind[] = ["point", "pointOn", "expression"];
 
@@ -950,6 +955,44 @@ export function translateGgb(xml: string): GgbTranslation {
             });
             return true;
         },
+        // Pyramid(A, B, C, …, S): the base, then each lateral face V(i)V(i+1)S;
+        // the base edges, then each lateral edge V(i)S.
+        Pyramid: (inputs, [, ...outputs]) => {
+            if (inputs.length < 4 || !points(...inputs)) return false;
+            const base = inputs.slice(0, -1);
+            const apex = inputs[inputs.length - 1];
+            const n = base.length;
+            const faces = [
+                base,
+                ...base.map((vertex, index) => [
+                    vertex,
+                    base[(index + 1) % n],
+                    apex,
+                ]),
+            ];
+            faces.forEach((face, index) => {
+                const label = outputs[index];
+                if (label)
+                    define(label, "polygon", "Polygon", [
+                        literal(
+                            face
+                                .map(
+                                    (vertex) =>
+                                        `_${objects.get(vertex)!.variable}`,
+                                )
+                                .join(","),
+                        ),
+                    ]);
+            });
+            [
+                ...base.map((vertex, index) => [vertex, base[(index + 1) % n]]),
+                ...base.map((vertex) => [vertex, apex]),
+            ].forEach(([p, q], index) => {
+                const label = outputs[n + 1 + index];
+                if (label) defineSegment(label, p, q);
+            });
+            return true;
+        },
         Mirror: mirror,
         Reflect: mirror,
         // Rotate(P, a, C) as P + (R(a) - I)(P - C), which keeps P's height
@@ -1196,6 +1239,16 @@ export function translateGgb(xml: string): GgbTranslation {
     const resolve = (input: string): string => {
         if (objects.has(input)) return input;
         const text = normalizeBrackets(input.trim());
+        const axis = AXES[text];
+        if (axis) {
+            const [origin, tip] = [[0, 0, 0] as Vec3, axis].map((coords) => {
+                const point = auxiliary();
+                define(point, "point", "Point", vectorLiteral(coords));
+                return point;
+            });
+            define(text, "line", "Line", [ref(origin), ref(tip)]);
+            return text;
+        }
         const label = auxiliary();
         if (NUMERIC_TUPLE.test(text)) {
             const [x, y, z] = text.slice(1, -1).split(",").map(Number);
