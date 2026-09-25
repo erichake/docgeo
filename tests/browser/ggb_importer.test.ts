@@ -125,6 +125,20 @@ describe("GGB importer", () => {
         expectSavedPoints(c, xml);
     });
 
+    it("imports _3carres, labels placed below their points included", async () => {
+        const c = createConstruction();
+        const xml = await loadXml("_3carres");
+
+        expect(importGgb(c, xml)).toEqual(
+            [4, 3, 2, 1].map((index) => `text Textepoly${index}`),
+        );
+        expectSavedPoints(c, xml);
+        expect((c.getObj("A") as point_object).namePosition).toBeCloseTo(
+            2 * Math.PI - 2.118358562734894,
+            9,
+        );
+    });
+
     it("keeps points on paths movable along their support", async () => {
         const c = createConstruction();
         importGgb(c, await loadXml("pointon"));

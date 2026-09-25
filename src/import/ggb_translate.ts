@@ -576,10 +576,14 @@ export function translateGgb(xml: string): GgbTranslation {
             const offset = child(element, "labelOffset");
             if (offset)
                 parts.push(
-                    `np:${Math.atan2(
-                        -Number(offset.getAttribute("y")),
-                        Number(offset.getAttribute("x")),
-                    )}`,
+                    `np:${
+                        (Math.atan2(
+                            -Number(offset.getAttribute("y")),
+                            Number(offset.getAttribute("x")),
+                        ) +
+                            2 * Math.PI) %
+                        (2 * Math.PI)
+                    }`,
                 );
             if (attribute(element, "trace", "val") === "true")
                 parts.push("tk:true");
