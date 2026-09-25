@@ -598,6 +598,41 @@ ${[
         expect(plane.behindFloor).toEqual([]);
     });
 
+    it("builds a cylinder whose disks follow its axis", async () => {
+        const c = createConstruction();
+        const xml = await loadXml("3d_cylindre");
+        expect(importGgb(c, xml)).toEqual([]);
+        expectSavedPoints(c, xml);
+        await new Promise((resolve) => requestAnimationFrame(resolve));
+
+        const [bottom, top] = ["c", "d"].map(
+            (name) => c.getObj(name) as polygon_object,
+        );
+        expect(bottom.opacity).toBeCloseTo(0.4, 6);
+        expect(top.outline.getAtt("d")).toMatch(/^M/);
+        const b = c.getObj("B") as point_on_object;
+        const [x, y] = c.pt3D([0, 0, 2]);
+        b.mousedrag(
+            new PointerEvent("pointermove", { clientX: x, clientY: y }),
+        );
+        await new Promise((resolve) => requestAnimationFrame(resolve));
+
+        [
+            [bottom, "A"],
+            [top, "B"],
+        ].forEach(([disk, name]) => {
+            const center = (c.getObj(name as string) as point_object).coords;
+            const vertices = (disk as polygon_object).points;
+            expect(vertices).toHaveLength(60);
+            vertices.forEach((vertex) => {
+                const offset = vSub(vertex.coords, center);
+                expect(vNorm(offset)).toBeCloseTo(2, 9);
+                expect(offset[2]).toBeCloseTo(0, 9);
+            });
+        });
+        expect((c.getObj("B") as point_object).coords[2]).toBeCloseTo(2, 6);
+    });
+
     it("builds reflections, inversions, rotations, translations and dilations", async () => {
         const c = createConstruction();
         const xml = await loadXml("transformations");

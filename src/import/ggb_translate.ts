@@ -116,6 +116,7 @@ const AXES: Record<string, Vec3> = {
     zAxis: [0, 0, 1],
 };
 const DEFAULT_SLIDER_STEP = 0.1;
+const CYLINDER_SIDES = 60;
 const VALUE_KINDS: Kind[] = ["point", "pointOn", "expression"];
 
 const literal = (value: string | number): DgpValue => ({
@@ -465,14 +466,24 @@ export function translateGgb(xml: string): GgbTranslation {
         return define(label, "line", "Segment", [ref(p), ref(q)]);
     };
 
-    const definePolygon = (label: string, vertices: string[]): true =>
-        define(label, "polygon", "Polygon", [
-            literal(
-                vertices
-                    .map((vertex) => `_${objects.get(vertex)!.variable}`)
-                    .join(","),
-            ),
-        ]);
+    const definePolygon = (
+        label: string,
+        vertices: string[],
+        style?: string,
+    ): true =>
+        define(
+            label,
+            "polygon",
+            "Polygon",
+            [
+                literal(
+                    vertices
+                        .map((vertex) => `_${objects.get(vertex)!.variable}`)
+                        .join(","),
+                ),
+            ],
+            style,
+        );
 
     const pointOn = (label: string, support: string, boundary: boolean) => {
         const kind = kindOf(support);
@@ -1051,6 +1062,51 @@ export function translateGgb(xml: string): GgbTranslation {
             ].forEach(([p, q], index) => {
                 const label = outputs[n - 1 + faces.length + index];
                 if (label) defineSegment(label, p, q);
+            });
+            return true;
+        },
+        // Cylinder(A, B, r): the bottom and top disks as regular polygons,
+        // defined first so that they own, and outline, the edges they share
+        // with the lateral faces, which have no outline. (-sin θ, cos θ, 0),
+        // θ = atan2(y, x) of AB, is a unit vector orthogonal to AB even when
+        // AB is vertical, since atan2(0, 0) = 0.
+        Cylinder: ([a, b, radius, extra], [, bottom, top, side]) => {
+            const r = formula(radius, VALUE_KINDS);
+            if (extra !== undefined || r === null || !points(a, b))
+                return false;
+            const [p, q] = [a, b].map((input) => objects.get(input)!.variable);
+            const angle = `atan2(y(${q}-${p}),x(${q}-${p}))`;
+            const u = objects.get(
+                formulaPoint(`[-sin(${angle}),cos(${angle}),0]`),
+            )!.variable;
+            const v = objects.get(
+                formulaPoint(`cross(${q}-${p},${u})/d(${p},${q})`),
+            )!.variable;
+            const rim = (center: string) =>
+                Array.from({ length: CYLINDER_SIDES }, (_, index) => {
+                    const t = (2 * Math.PI * index) / CYLINDER_SIDES;
+                    return formulaPoint(
+                        `${center}+(${r})*(${Math.cos(t)}*${u}+${Math.sin(t)}*${v})`,
+                    );
+                });
+            const [lower, upper] = [p, q].map(rim);
+            definePolygon(bottom || auxiliary(), lower);
+            definePolygon(top || auxiliary(), upper);
+            const element = elements.get(side);
+            if (!element) return true;
+            const style = [
+                ...objectStyle(element, "polygon")
+                    .split(";")
+                    .filter((part) => !/^sn?:/.test(part)),
+                "s:0",
+            ].join(";");
+            lower.forEach((vertex, index) => {
+                const next = (index + 1) % CYLINDER_SIDES;
+                definePolygon(
+                    auxiliary(),
+                    [vertex, lower[next], upper[next], upper[index]],
+                    style,
+                );
             });
             return true;
         },
