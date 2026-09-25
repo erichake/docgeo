@@ -6,6 +6,7 @@ import { arc3pts_object } from "../../src/objects/arc3pts_object";
 import { circle1_object } from "../../src/objects/circle1_object";
 import { curve_object } from "../../src/objects/curve_object";
 import { cylinder_intersection_object } from "../../src/objects/cylinder_intersection_object";
+import { cylinder_section_object } from "../../src/objects/cylinder_section_object";
 import { expression_object } from "../../src/objects/expression_object";
 import { fixed_point_object } from "../../src/objects/fixed_point_object";
 import { locus_object } from "../../src/objects/locus_object";
@@ -854,6 +855,71 @@ ${[
         );
         await new Promise((resolve) => requestAnimationFrame(resolve));
         expect(circle.defined).toBe(false);
+    });
+
+    it("cuts a limited cylinder by a plane, keeping the section on its side", async () => {
+        const c = createConstruction();
+        const xml = await loadXml("3d_inter5");
+        expect(importGgb(c, xml)).toEqual([]);
+        expectSavedPoints(c, xml);
+        await new Promise((resolve) => requestAnimationFrame(resolve));
+
+        const point = (name: string) => (c.getObj(name) as point_object).coords;
+        const [b, g, top] = [point("B"), point("G"), point("R")[2]];
+        const normal = vSub(point("A"), b);
+        (c.getObj("q") as polygon_object).points.forEach((corner) =>
+            expect(vDot(vSub(corner.coords, point("D")), normal)).toBeCloseTo(
+                0,
+                9,
+            ),
+        );
+
+        const section = c.getObj("e") as cylinder_section_object;
+        expect(section).toBeInstanceOf(cylinder_section_object);
+        const at = (t: number) =>
+            vAdd(
+                section.CENTER,
+                vAdd(
+                    vScale(section.U, Math.cos(t)),
+                    vScale(section.V, Math.sin(t)),
+                ),
+            );
+        const expectOnSide = (t: number) => {
+            const x = at(t);
+            expect(vDot(vSub(x, point("C")), normal)).toBeCloseTo(0, 9);
+            expect(Math.hypot(x[0] - g[0], x[1] - g[1])).toBeCloseTo(1, 9);
+            expect(x[2]).toBeGreaterThanOrEqual(-1e-9);
+            expect(x[2]).toBeLessThanOrEqual(top + 1e-9);
+        };
+        expect(section.arcs).toHaveLength(1);
+        const [[start, end]] = section.arcs;
+        expect(end - start).toBeCloseTo(2 * Math.PI, 9);
+        [0, 1, 2, 3].forEach((k) => expectOnSide(k));
+
+        // C such that the plane cuts the axis at height h.
+        const moveC = async (h: number) => {
+            const t =
+                (vDot(normal, [g[0], g[1], h]) - vDot(normal, b)) /
+                vDot(normal, normal);
+            const [x, y] = c.pt3D(vAdd(b, vScale(normal, t)));
+            (c.getObj("C") as point_on_object).mousedrag(
+                new PointerEvent("pointermove", { clientX: x, clientY: y }),
+            );
+            await new Promise((resolve) => requestAnimationFrame(resolve));
+        };
+        await moveC(top - 0.1);
+        expect(section.defined).toBe(true);
+        expect(section.arcs).toHaveLength(1);
+        const [[first, last]] = section.arcs;
+        expect(last - first).toBeLessThan(2 * Math.PI);
+        expect(at(first)[2]).toBeCloseTo(top, 9);
+        expect(at(last)[2]).toBeCloseTo(top, 9);
+        [0, 0.25, 0.5, 0.75, 1].forEach((k) =>
+            expectOnSide(first + k * (last - first)),
+        );
+
+        await moveC(top + 1);
+        expect(section.defined).toBe(false);
     });
 
     it("builds reflections, inversions, rotations, translations and dilations", async () => {

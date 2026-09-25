@@ -163,7 +163,11 @@ export class polygon_object extends construction_object {
         const localPoints = this.points.map((point) =>
             this.planeCoordinates(point.coords)!,
         );
-        if (!onBoundary && pointInPolygon(localTarget, localPoints))
+        // A plane's square is only the part of it that is drawn.
+        if (
+            this.plane ||
+            (!onBoundary && pointInPolygon(localTarget, localPoints))
+        )
             return target;
 
         let closest = this.points[0].coords;

@@ -10,6 +10,7 @@ import { createCircle } from "../objects/circle_object";
 import { construction_object } from "../objects/construction_object";
 import { createCurve } from "../objects/curve_object";
 import { createCylinderIntersection } from "../objects/cylinder_intersection_object";
+import { createCylinderSection } from "../objects/cylinder_section_object";
 import { createDirectionPoint } from "../objects/direction_point_object";
 import {
     createExpression,
@@ -77,6 +78,7 @@ type ObjectKind =
     | "polygon"
     | "quadric"
     | "sphere"
+    | "section"
     | "locus"
     | "angle"
     | "expression"
@@ -1260,6 +1262,25 @@ const COMMANDS = new Map<string, CommandDefinition>([
                     args[3] as point_object,
                     args[4] as point_object,
                     args[5] as 0 | 1,
+                ),
+        },
+    ],
+    // Not a DGPad command: GeoGebra's IntersectPath(plane, cylinder), the
+    // cylinder being given by its axis AB and a point R on it, the plane by
+    // three of its points.
+    [
+        "CylinderSection",
+        {
+            parameters: [string, point, point, point, point, point, point],
+            result: "section",
+            execute: (context, args) =>
+                createCylinderSection(
+                    context.construction,
+                    args[0] as string,
+                    args[1] as point_object,
+                    args[2] as point_object,
+                    args[3] as point_object,
+                    args.slice(4) as [point_object, point_object, point_object],
                 ),
         },
     ],
