@@ -11,6 +11,7 @@ import { locus_object } from "../../src/objects/locus_object";
 import { point_on_object } from "../../src/objects/point_on_object";
 import { point_object } from "../../src/objects/point_object";
 import { polygon_object } from "../../src/objects/polygon_object";
+import { sphere_object } from "../../src/objects/sphere_object";
 import { two_points_line_object } from "../../src/objects/two_points_line_object";
 import { vector_object } from "../../src/objects/vector_object";
 import { preferences } from "../../src/preferences";
@@ -631,6 +632,43 @@ ${[
             });
         });
         expect((c.getObj("B") as point_object).coords[2]).toBeCloseTo(2, 6);
+    });
+
+    it("builds spheres drawn as their silhouettes", async () => {
+        const c = createConstruction();
+        const xml = await loadXml("3d_sphere");
+        expect(importGgb(c, xml)).toEqual([]);
+        expectSavedPoints(c, xml);
+        expect(
+            c.OBJS.V.filter((object) => object instanceof sphere_object),
+        ).toHaveLength(2);
+        expect(c.OBJS.polygons).toHaveLength(1);
+
+        const [x, y] = c.pt3D([4, 3, 0]);
+        (c.getObj("C") as point_on_object).mousedrag(
+            new PointerEvent("pointermove", { clientX: x, clientY: y }),
+        );
+        await new Promise((resolve) => requestAnimationFrame(resolve));
+
+        const [a, b] = ["a", "b"].map(
+            (name) => c.getObj(name) as sphere_object,
+        );
+        const point = (name: string) => (c.getObj(name) as point_object).coords;
+        expect(a.R).toBeCloseTo(vNorm(vSub(point("B"), point("A"))), 9);
+        expect(b.R).toBeCloseTo(1, 9);
+        expect(b.CENTER[0]).toBeCloseTo(4, 6);
+        // Centered on the floor: the floor veils the lower half, and the
+        // upper half hides the floor.
+        expect(b.path.getAtt("d")).toMatch(/^M/);
+        expect(b.nearPart.length).toBeGreaterThan(3);
+        expect(b.farPath).toMatch(/^M/);
+        const center = c.pt3D(b.CENTER);
+        const edge = vNorm(vSub(c.pt3D(vAdd(b.CENTER, [0, 0, 1])), center));
+        b.contour.forEach((screen) => {
+            const distance = vNorm(vSub(screen, center));
+            expect(distance).toBeGreaterThan(edge * 0.9);
+            expect(distance).toBeLessThan(edge * 1.1);
+        });
     });
 
     it("builds reflections, inversions, rotations, translations and dilations", async () => {

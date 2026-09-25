@@ -12,6 +12,7 @@ import { construction_object } from "./construction_object";
 import { floorClipPath } from "./floor_occlusion";
 import { point_object } from "./point_object";
 import { pathData, polygon_object } from "./polygon_object";
+import type { sphere_object } from "./sphere_object";
 
 // Half-side, in math units, of the floor's finite tiling. Kept smaller than
 // the visible area on purpose: a floor covering the whole window would read
@@ -203,21 +204,45 @@ export class grid_object extends construction_object {
     }
 
     private renderUnderlay(): void {
-        const planes = (this.C.OBJS.polygons as polygon_object[]).filter(
-            (polygon) => polygon.isVisible && polygon.behindFloor.length >= 3,
-        );
-        while (this.underlayPaths.length < planes.length) {
-            const path = this.svg.shape("path").stl("pointer-events", "none");
+        const pieces = [
+            ...(this.C.OBJS.polygons as polygon_object[])
+                .filter(
+                    (polygon) =>
+                        polygon.isVisible && polygon.behindFloor.length >= 3,
+                )
+                .map((plane) => ({
+                    d: pathData(plane.behindFloor),
+                    fill: plane.shadedFill,
+                    opacity: plane.opacity,
+                })),
+            ...(this.C.OBJS.spheres as sphere_object[])
+                .filter(
+                    (sphere) =>
+                        sphere.isVisible &&
+                        sphere.projectionDefined &&
+                        sphere.farPath,
+                )
+                .map((sphere) => ({
+                    d: sphere.farPath,
+                    fill: sphere.fill,
+                    opacity: sphere.opacity,
+                })),
+        ];
+        while (this.underlayPaths.length < pieces.length) {
+            const path = this.svg
+                .shape("path")
+                .stl("pointer-events", "none")
+                .stl("fill-rule", "evenodd");
             this.underlayPaths.push(path);
             this.underlay.add(path);
         }
         this.underlayPaths.forEach((path, index) => {
-            const plane = planes[index];
-            path.stl("display", plane ? "block" : "none");
-            if (plane)
-                path.att("d", pathData(plane.behindFloor))
-                    .stl("fill", plane.shadedFill)
-                    .stl("fill-opacity", plane.opacity ?? 0);
+            const piece = pieces[index];
+            path.stl("display", piece ? "block" : "none");
+            if (piece)
+                path.att("d", piece.d)
+                    .stl("fill", piece.fill)
+                    .stl("fill-opacity", piece.opacity ?? 0);
         });
     }
 

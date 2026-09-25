@@ -18,6 +18,7 @@ type Kind =
     | "circle"
     | "polygon"
     | "quadric"
+    | "sphere"
     | "locus"
     | "angle"
     | "expression"
@@ -1109,6 +1110,27 @@ export function translateGgb(xml: string): GgbTranslation {
                 );
             });
             return true;
+        },
+        // Sphere(A, B) or Sphere(A, r), through B or A + (r, 0, 0).
+        Sphere: ([center, through, extra], [label]) => {
+            if (extra !== undefined || !points(center)) return false;
+            if (points(through))
+                return define(label, "sphere", "Sphere", [
+                    ref(center),
+                    ref(through),
+                ]);
+            const r = formula(through, VALUE_KINDS);
+            return (
+                r !== null &&
+                define(label, "sphere", "Sphere", [
+                    ref(center),
+                    ref(
+                        formulaPoint(
+                            `${objects.get(center)!.variable}+[${r},0,0]`,
+                        ),
+                    ),
+                ])
+            );
         },
         // Plane(A, B, C), drawn like GeoGebra's clipped plane: a square in
         // plane ABC around the triangle's centroid, along AB, at least as

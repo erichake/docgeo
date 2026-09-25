@@ -43,12 +43,12 @@ function clipHalfSpace(
 
 // Light direction in eye coordinates (right, down, into the screen): from
 // above, slightly to the left and behind the viewer.
-const LIGHT: Vec3 = vNormalize([-0.3, -0.8, -0.6])!;
-const AMBIENT = 0.7;
+export const LIGHT: Vec3 = vNormalize([-0.3, -0.8, -0.6])!;
+export const AMBIENT = 0.7;
 
 // `color` (#rgb, #rrggbb or rgb(r,g,b)) with each channel scaled by
 // `factor`.
-function shade(color: string, factor: number): string {
+export function shade(color: string, factor: number): string {
     const hex = color.startsWith("#") ? color.slice(1) : null;
     const channels = hex
         ? (hex.length === 3

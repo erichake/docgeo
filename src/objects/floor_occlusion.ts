@@ -17,6 +17,7 @@ import {
     type Vec3,
 } from "../vec";
 import type { polygon_object } from "./polygon_object";
+import type { sphere_object } from "./sphere_object";
 
 function allFinite(points: readonly Vec2[]): boolean {
     return points.every(([x, y]) => Number.isFinite(x) && Number.isFinite(y));
@@ -193,6 +194,11 @@ export function floorClipPath(
         if (polygon === exclude || polygon.plane) return;
         const piece = occluderHiddenPiece(frame, dir, floorCCW, polygon);
         if (piece) holes.push(piece);
+    });
+    (c.OBJS.spheres as sphere_object[]).forEach((sphere) => {
+        if (!sphere.isVisible || !sphere.projectionDefined) return;
+        const piece = convexClip(floorCCW, sphere.nearPart);
+        if (piece.length >= 3) holes.push(piece);
     });
     return (
         ring(floorCCW) +

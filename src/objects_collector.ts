@@ -10,6 +10,10 @@ export class objects_collector {
     // Polygons, tracked separately so segments can test occlusion against
     // them without scanning every object on each projection update :
     polygons: construction_object[] = [];
+    // Spheres, whose part in front of the floor clips it, and whose part
+    // behind it is drawn by it (see grid_object.renderFloor) :
+    spheres: construction_object[] = [];
+    private grid?: grid_object;
     // Objects with at least one dirty flag, processed by update() :
     private dirty = new Set<construction_object>();
     private nextSequence = 0;
@@ -22,12 +26,15 @@ export class objects_collector {
         this.V.push(o);
         this.O[o.name] = o;
         if (o.familytype === "polygon") this.polygons.push(o);
+        if (o.familytype === "sphere") this.spheres.push(o);
+        if (o instanceof grid_object) this.grid = o;
         return o;
     }
 
     remove(objects: ReadonlySet<construction_object>): void {
         this.V = this.V.filter((object) => !objects.has(object));
         this.polygons = this.polygons.filter((object) => !objects.has(object));
+        this.spheres = this.spheres.filter((object) => !objects.has(object));
         objects.forEach((object) => {
             delete this.O[object.name];
             this.dirty.delete(object);
@@ -41,6 +48,7 @@ export class objects_collector {
     markGeometryDirty(root: construction_object): void {
         const descendants = [root];
         let touchesPolygon = false;
+        let touchesSphere = false;
         while (descendants.length) {
             const object = descendants.pop()!;
             if (object.geometryDirty) continue;
@@ -49,6 +57,7 @@ export class objects_collector {
             object.renderDirty = true;
             this.dirty.add(object);
             if (object.familytype === "polygon") touchesPolygon = true;
+            if (object.familytype === "sphere") touchesSphere = true;
             descendants.push(...object.children);
         }
         // A polygon that moved (even one outside a segment's own dependency
@@ -59,6 +68,7 @@ export class objects_collector {
         // below, which already (if bluntly) covers it by reprojecting
         // everything.
         if (touchesPolygon) this.markProjectionDirty();
+        else if (touchesSphere) this.markRenderDirty(this.grid!);
     }
 
     markProjectionDirty(): void {

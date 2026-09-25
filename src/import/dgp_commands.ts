@@ -52,6 +52,7 @@ import { createQuadric5pts } from "../objects/quadric5pts_object";
 import { createRay } from "../objects/ray_line_object";
 import { createReflection } from "../objects/reflection_object";
 import { createSegment } from "../objects/segment_object";
+import { createSphere } from "../objects/sphere_object";
 import { createSymmetry } from "../objects/symmetry_object";
 import { createLine } from "../objects/two_points_line_object";
 import { createVector } from "../objects/vector_object";
@@ -72,6 +73,7 @@ type ObjectKind =
     | "circle"
     | "polygon"
     | "quadric"
+    | "sphere"
     | "locus"
     | "angle"
     | "expression"
@@ -1215,6 +1217,20 @@ const COMMANDS = new Map<string, CommandDefinition>([
                     args[3] as point_object,
                     args[4] as point_object,
                     args[5] as point_object,
+                ),
+        },
+    ],
+    [
+        "Sphere",
+        {
+            parameters: [string, point, point],
+            result: "sphere",
+            execute: (context, args) =>
+                createSphere(
+                    context.construction,
+                    args[0] as string,
+                    args[1] as point_object,
+                    args[2] as point_object,
                 ),
         },
     ],
