@@ -16,7 +16,7 @@ import { vector_object } from "../../src/objects/vector_object";
 import { preferences } from "../../src/preferences";
 import type { primitive_circle_object } from "../../src/objects/primitive_circle_object";
 import type { primitive_quadric_object } from "../../src/objects/primitive_quadric_object";
-import { vAdd, vDot, vNorm, vSub } from "../../src/vec";
+import { vAdd, vCross, vDot, vNorm, vSub } from "../../src/vec";
 
 function createConstruction(): construction {
     document.documentElement.style.width = "100%";
@@ -100,6 +100,7 @@ describe("GGB importer", () => {
         "allconics",
         "3d_pyramide",
         "3d_prisme",
+        "3d_plan",
     ])("rebuilds every saved point of %s", async (name) => {
         const c = createConstruction();
         const xml = await loadXml(name);
@@ -446,6 +447,35 @@ ${[
         expect(i[0]).toBeCloseTo(e[0], 9);
         expect(i[1]).toBeCloseTo(e[1], 9);
         expect(i[2]).toBeCloseTo(2, 6);
+    });
+
+    it("keeps the plane through A, B and C as C moves on the z axis", async () => {
+        const c = createConstruction();
+        importGgb(c, await loadXml("3d_plan"));
+        await new Promise((resolve) => requestAnimationFrame(resolve));
+
+        const plane = c.getObj("p") as polygon_object;
+        expect(plane).toBeInstanceOf(polygon_object);
+        expect(plane.opacity).toBe(0.5);
+        expect(plane.plane).toBe(true);
+        expect(plane.layer).toBeLessThan(c.prefs.polygon.layer);
+        const top = c.getObj("faceIJKL") as polygon_object;
+        expect(top.farParts.get(plane)!.length).toBeGreaterThanOrEqual(3);
+        const apex = c.getObj("C") as point_on_object;
+        const [x, y] = c.pt3D([0, 0, 2]);
+        apex.mousedrag(
+            new PointerEvent("pointermove", { clientX: x, clientY: y }),
+        );
+        await new Promise((resolve) => requestAnimationFrame(resolve));
+
+        const [a, b, apexCoords] = ["A", "B", "C"].map(
+            (name) => (c.getObj(name) as point_object).coords,
+        );
+        expect(apexCoords[2]).toBeCloseTo(2, 6);
+        const normal = vCross(vSub(b, a), vSub(apexCoords, a));
+        plane.points.forEach((corner) =>
+            expect(vDot(vSub(corner.coords, a), normal)).toBeCloseTo(0, 9),
+        );
     });
 
     it("builds reflections, inversions, rotations, translations and dilations", async () => {

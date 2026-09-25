@@ -45,7 +45,7 @@ import {
     point_object,
     type magnet_target,
 } from "../objects/point_object";
-import { createPolygon } from "../objects/polygon_object";
+import { createPolygon, polygon_object } from "../objects/polygon_object";
 import { primitive_circle_object } from "../objects/primitive_circle_object";
 import { primitive_line_object } from "../objects/primitive_line_object";
 import { createQuadric5pts } from "../objects/quadric5pts_object";
@@ -499,6 +499,7 @@ function validateObjectStyle(
             case "sn":
             case "sb":
             case "tk":
+            case "pl":
                 if (propertyValue !== "true" && propertyValue !== "false")
                     throw new Error(
                         `Invalid DGP style boolean at line ${lineNumber}`,
@@ -631,6 +632,10 @@ function applyObjectStyle(
             case "sb":
                 if (target instanceof point_on_object)
                     target.onBoundary = propertyValue === "true";
+                break;
+            case "pl":
+                if (target instanceof polygon_object)
+                    target.plane = propertyValue === "true";
                 break;
             case "tk":
                 if (target instanceof point_object)

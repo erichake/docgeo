@@ -1033,6 +1033,33 @@ export function translateGgb(xml: string): GgbTranslation {
             });
             return true;
         },
+        // Plane(A, B, C), drawn like GeoGebra's clipped plane: a square in
+        // plane ABC around the triangle's centroid, along AB, at least as
+        // large as the floor and always reaching past A, B and C.
+        Plane: (inputs, [label]) => {
+            if (inputs.length !== 3 || !points(...inputs)) return false;
+            const [a, b, c] = inputs.map(
+                (input) => objects.get(input)!.variable,
+            );
+            const center = `(${a}+${b}+${c})/3`;
+            const half = `sqrt(25+d(${center},${a})^2+d(${center},${b})^2+d(${center},${c})^2)`;
+            const normal = `cross(${b}-${a},${c}-${a})`;
+            const u = `(${b}-${a})*${half}/d(${a},${b})`;
+            const v = `cross(${normal},${b}-${a})*${half}/d(${normal},[0,0,0])/d(${a},${b})`;
+            definePolygon(
+                label,
+                [
+                    [-1, -1],
+                    [1, -1],
+                    [1, 1],
+                    [-1, 1],
+                ].map(([s, t]) =>
+                    formulaPoint(`${center}+${s}*${u}+${t}*${v}`),
+                ),
+            );
+            push(null, "STL", [ref(label), literal("pl:true")]);
+            return true;
+        },
         Mirror: mirror,
         Reflect: mirror,
         // Rotate(P, a, C) as P + (R(a) - I)(P - C), which keeps P's height

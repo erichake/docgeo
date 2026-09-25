@@ -190,7 +190,7 @@ export function floorClipPath(
     const floorCCW = ensureCCW(floorScreenQuad);
     const holes: Vec2[][] = [];
     (c.OBJS.polygons as polygon_object[]).forEach((polygon) => {
-        if (polygon === exclude) return;
+        if (polygon === exclude || polygon.plane) return;
         const piece = occluderHiddenPiece(frame, dir, floorCCW, polygon);
         if (piece) holes.push(piece);
     });
