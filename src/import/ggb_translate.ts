@@ -538,11 +538,18 @@ export function translateGgb(xml: string): GgbTranslation {
     const planar = (x: string, y: string): string =>
         `[${x},${y}${is3D ? ",0" : ""}]`;
 
-    const formulaPoint = (source: string, label = auxiliary()): string => {
-        define(label, "point", "Point", [
-            literal(source),
-            literal(is3D ? "1" : "0"),
-        ]);
+    const formulaPoint = (
+        source: string,
+        label = auxiliary(),
+        style?: string,
+    ): string => {
+        define(
+            label,
+            "point",
+            "Point",
+            [literal(source), literal(is3D ? "1" : "0")],
+            style,
+        );
         return label;
     };
 
@@ -1080,10 +1087,20 @@ export function translateGgb(xml: string): GgbTranslation {
         // by two points centered on the foot of the planes' centers'
         // midpoint, as far apart as the planes are wide, so its tips frame
         // them.
-        IntersectPath: ([first, second, extra], [label]) => {
+        IntersectPath: ([first, second, extra], [label, vertex]) => {
             const [p, q] = [first, second].map((input) => planes.get(input));
             const edges = polyhedra.get(second);
             if (extra === undefined && p && edges) {
+                // GeoGebra names the section's vertices in turn, whichever
+                // edges they lie on: they take its first vertex's style,
+                // without a name.
+                const element = elements.get(vertex);
+                const style =
+                    element &&
+                    objectStyle(element, "point")
+                        .split(";")
+                        .filter((part) => part !== "sn:true")
+                        .join(";");
                 // asin(2t - 1) is undefined unless the plane cuts the edge.
                 definePolygon(
                     label,
@@ -1094,6 +1111,8 @@ export function translateGgb(xml: string): GgbTranslation {
                         const t = `dot(${p.normal},${p.center}-${a})/dot(${p.normal},${b}-${a})`;
                         return formulaPoint(
                             `${a}+(${b}-${a})*(${t}+0*asin(2*${t}-1))`,
+                            auxiliary(),
+                            style,
                         );
                     }),
                 );

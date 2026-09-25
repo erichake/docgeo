@@ -562,6 +562,10 @@ ${[
         );
         const normal = vCross(vSub(b, a), vSub(apex, a));
         expect(section.points).toHaveLength(4);
+        section.points.forEach((vertex) => {
+            expect(vertex.isVisible).toBe(true);
+            expect(vertex.showName).toBe(false);
+        });
         section.points.forEach((vertex) =>
             expect(vDot(vSub(vertex.coords, a), normal)).toBeCloseTo(0, 6),
         );
