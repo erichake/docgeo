@@ -16,7 +16,7 @@ import { vector_object } from "../../src/objects/vector_object";
 import { preferences } from "../../src/preferences";
 import type { primitive_circle_object } from "../../src/objects/primitive_circle_object";
 import type { primitive_quadric_object } from "../../src/objects/primitive_quadric_object";
-import { vAdd, vCross, vDot, vNorm, vSub } from "../../src/vec";
+import { vAdd, vCross, vDot, vNorm, vScale, vSub } from "../../src/vec";
 
 function createConstruction(): construction {
     document.documentElement.style.width = "100%";
@@ -489,6 +489,41 @@ ${[
         );
         expect(p.shadedFill).not.toBe(q.shadedFill);
         expect(p.farParts.has(q) || q.farParts.has(p)).toBe(true);
+    });
+
+    it("keeps the intersection line of two planes in both as C moves", async () => {
+        const c = createConstruction();
+        importGgb(c, await loadXml("3d_inter_plans"));
+        await new Promise((resolve) => requestAnimationFrame(resolve));
+
+        const line = c.getObj("f") as two_points_line_object;
+        expect(line).toBeInstanceOf(two_points_line_object);
+        const apex = c.getObj("C") as point_on_object;
+        const [x, y] = c.pt3D([0, 0, 2]);
+        apex.mousedrag(
+            new PointerEvent("pointermove", { clientX: x, clientY: y }),
+        );
+        await new Promise((resolve) => requestAnimationFrame(resolve));
+
+        const [a, b, apexCoords, d, e, f] = ["A", "B", "C", "D", "E", "F"].map(
+            (name) => (c.getObj(name) as point_object).coords,
+        );
+        expect(apexCoords[2]).toBeCloseTo(2, 6);
+        const normals = [
+            vCross(vSub(b, a), vSub(apexCoords, a)),
+            vCross(vSub(e, d), vSub(f, d)),
+        ];
+        const ends = [line.P1.coords, line.P2.coords];
+        ends.forEach((point) => {
+            expect(vDot(vSub(point, a), normals[0])).toBeCloseTo(0, 6);
+            expect(vDot(vSub(point, d), normals[1])).toBeCloseTo(0, 6);
+        });
+        const centers = vScale([a, b, apexCoords, d, e, f].reduce(vAdd), 1 / 6);
+        const middle = vScale(vAdd(ends[0], ends[1]), 1 / 2);
+        const along = vSub(ends[1], ends[0]);
+        expect(vDot(vSub(centers, middle), along)).toBeCloseTo(0, 6);
+        expect(vNorm(along)).toBeGreaterThan(10);
+        expect(vNorm(along)).toBeLessThan(40);
     });
 
     it("builds reflections, inversions, rotations, translations and dilations", async () => {

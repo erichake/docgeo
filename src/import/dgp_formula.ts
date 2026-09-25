@@ -2,6 +2,7 @@ import { IDENTIFIER_PART, IDENTIFIER_START } from "./dgp_parser";
 import {
     vAdd,
     vCross,
+    vDot,
     vNorm,
     vScale,
     vSub,
@@ -23,7 +24,8 @@ export type FormulaFn =
     | "atan"
     | "atan2"
     | "perp"
-    | "cross";
+    | "cross"
+    | "dot";
 
 const FORMULA_ARITY: Record<FormulaFn, number> = {
     sqrt: 1,
@@ -40,6 +42,7 @@ const FORMULA_ARITY: Record<FormulaFn, number> = {
     atan2: 2,
     perp: 1,
     cross: 2,
+    dot: 2,
 };
 
 export type FormulaNode =
@@ -548,6 +551,16 @@ function evalCall(
             )
                 return null;
             return vCross(a as Vec3, b as Vec3);
+        }
+        case "dot": {
+            const [a, b] = args;
+            if (
+                typeof a === "number" ||
+                typeof b === "number" ||
+                a.length !== b.length
+            )
+                return null;
+            return vDot(a, b);
         }
     }
 }

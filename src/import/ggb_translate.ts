@@ -221,6 +221,10 @@ export function translateGgb(xml: string): GgbTranslation {
     const unsupported: string[] = [];
     const objects = new Map<string, { variable: string; kind: Kind }>();
     const segments = new Map<string, [string, string]>();
+    const planes = new Map<
+        string,
+        { center: string; normal: string; half: string }
+    >();
     const vectors = new Map<string, [string, string]>();
     const polygons = new Map<string, string[]>();
     const elements = new Map<string, Element>();
@@ -1058,7 +1062,28 @@ export function translateGgb(xml: string): GgbTranslation {
                 ),
             );
             push(null, "STL", [ref(label), literal("pl:true")]);
+            planes.set(label, { center, normal, half });
             return true;
+        },
+        // The line where planes p and q meet, defined like a line AB by two
+        // points centered on the foot of the planes' centers' midpoint, as
+        // far apart as the planes are wide, so its tips frame them.
+        IntersectPath: ([first, second, extra], [label]) => {
+            const [p, q] = [first, second].map((input) => planes.get(input));
+            if (extra !== undefined || !p || !q) return false;
+            const direction = `cross(${p.normal},${q.normal})`;
+            const across = `cross(${p.normal},${direction})`;
+            const onBoth = `(${p.center}+${across}*dot(${q.normal},${q.center}-${p.center})/dot(${q.normal},${across}))`;
+            const foot = objects.get(
+                formulaPoint(
+                    `${onBoth}+${direction}*dot((${p.center}+${q.center})/2-${onBoth},${direction})/dot(${direction},${direction})`,
+                ),
+            )!.variable;
+            const reach = `${direction}*(${p.half}+${q.half})/2/sqrt(dot(${direction},${direction}))`;
+            return define(label, "line", "Line", [
+                ref(formulaPoint(`${foot}-${reach}`)),
+                ref(formulaPoint(`${foot}+${reach}`)),
+            ]);
         },
         Mirror: mirror,
         Reflect: mirror,
