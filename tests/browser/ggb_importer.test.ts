@@ -809,6 +809,53 @@ ${[
         );
     });
 
+    it("intersects two spheres", async () => {
+        const c = createConstruction();
+        const xml = await loadXml("3d_inter4");
+        expect(importGgb(c, xml)).toEqual([]);
+        expectSavedPoints(c, xml);
+        await new Promise((resolve) => requestAnimationFrame(resolve));
+
+        const point = (name: string) => (c.getObj(name) as point_object).coords;
+        const circle = c.getObj("c") as primitive_circle_object;
+        const expectOnSpheres = () => {
+            const [a, d] = [point("A"), point("D")];
+            const r2 = vDot(vSub(point("B"), a), vSub(point("B"), a));
+            (
+                [
+                    [a, r2],
+                    [d, 4],
+                ] as const
+            ).forEach(([center, square]) => {
+                const offset = vSub(circle.CENTER, center);
+                expect(vDot(offset, offset) + circle.R ** 2).toBeCloseTo(
+                    square,
+                    9,
+                );
+            });
+            expect(vNorm(vCross(circle.NORMAL, vSub(d, a)))).toBeCloseTo(0, 9);
+        };
+        expect(circle.R ** 2).toBeCloseTo(2.681849153905685, 9);
+        expectOnSpheres();
+
+        const [x, y] = c.pt3D(
+            vAdd(point("A"), vScale(vSub(point("C"), point("A")), 0.3)),
+        );
+        (c.getObj("D") as point_on_object).mousedrag(
+            new PointerEvent("pointermove", { clientX: x, clientY: y }),
+        );
+        await new Promise((resolve) => requestAnimationFrame(resolve));
+        expect(circle.defined).toBe(true);
+        expectOnSpheres();
+
+        const [far, farY] = c.pt3D(point("C"));
+        (c.getObj("D") as point_on_object).mousedrag(
+            new PointerEvent("pointermove", { clientX: far, clientY: farY }),
+        );
+        await new Promise((resolve) => requestAnimationFrame(resolve));
+        expect(circle.defined).toBe(false);
+    });
+
     it("builds reflections, inversions, rotations, translations and dilations", async () => {
         const c = createConstruction();
         const xml = await loadXml("transformations");

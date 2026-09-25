@@ -751,6 +751,33 @@ export function translateGgb(xml: string): GgbTranslation {
     let auxiliaries = 0;
     const auxiliary = (): string => `aux ${++auxiliaries}`;
 
+    // The circle of a sphere centered at o through t, centered at `center`
+    // in the plane orthogonal to `normal`.
+    const sphereSection = (
+        label: string,
+        [o, t]: string[],
+        normal: string,
+        center: string,
+    ): true => {
+        const point = formulaPoint(center);
+        const m = objects.get(point)!.variable;
+        const axis = auxiliary();
+        define(axis, "line", "Line", [
+            ref(point),
+            ref(formulaPoint(`${m}+${normal}`)),
+        ]);
+        // Computed by a 3D point, as Circle1 drops its formula points' z;
+        // complex, hence undefined, when the plane misses the sphere.
+        const radius = objects.get(
+            formulaPoint(`[sqrt(d(${o},${t})^2-d(${o},${m})^2),0,0]`),
+        )!.variable;
+        return define(label, "circle", "Circle1", [
+            ref(point),
+            literal(`x(${radius})`),
+            ref(axis),
+        ]);
+    };
+
     const HANDLERS: Record<string, Handler> = {
         Point: ([support, extra], [label]) =>
             extra === undefined &&
@@ -1268,21 +1295,12 @@ export function translateGgb(xml: string): GgbTranslation {
                 const [o, t] = sphere.map(
                     (input) => objects.get(input)!.variable,
                 );
-                const center = formulaPoint(
+                return sphereSection(
+                    label,
+                    [o, t],
+                    p.normal,
                     `${o}+${p.normal}*dot(${p.normal},${p.center}-${o})/dot(${p.normal},${p.normal})`,
                 );
-                const m = objects.get(center)!.variable;
-                const axis = auxiliary();
-                define(axis, "line", "Line", [
-                    ref(center),
-                    ref(formulaPoint(`${m}+${p.normal}`)),
-                ]);
-                // Complex, hence undefined, when p misses the sphere.
-                return define(label, "circle", "Circle1", [
-                    ref(center),
-                    literal(`sqrt(d(${o},${t})^2-d(${o},${m})^2)`),
-                    ref(axis),
-                ]);
             }
             const edges = polyhedra.get(second);
             if (extra === undefined && p && edges) {
@@ -1328,6 +1346,23 @@ export function translateGgb(xml: string): GgbTranslation {
                 ref(formulaPoint(`${foot}-${reach}`)),
                 ref(formulaPoint(`${foot}+${reach}`)),
             ]);
+        },
+        // A plane's section of a sphere, or the circle where two spheres meet,
+        // in the plane orthogonal to their centers' line where the powers
+        // of its points with respect to both spheres are equal.
+        IntersectConic: ([first, second, extra], outputs) => {
+            const [a, b] = [first, second].map((input) => spheres.get(input));
+            if (extra !== undefined || !b) return false;
+            if (!a) return HANDLERS.IntersectPath([first, second], outputs);
+            const [o, t, p, q] = [...a, ...b].map(
+                (input) => objects.get(input)!.variable,
+            );
+            return sphereSection(
+                outputs[0],
+                [o, t],
+                `(${p}-${o})`,
+                `${o}+(${p}-${o})*(d(${o},${p})^2+d(${o},${t})^2-d(${p},${q})^2)/(2*d(${o},${p})^2)`,
+            );
         },
         Mirror: mirror,
         Reflect: mirror,
