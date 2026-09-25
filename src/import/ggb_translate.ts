@@ -222,6 +222,7 @@ export function translateGgb(xml: string): GgbTranslation {
     const objects = new Map<string, { variable: string; kind: Kind }>();
     const segments = new Map<string, [string, string]>();
     const vectors = new Map<string, [string, string]>();
+    const polygons = new Map<string, string[]>();
     const elements = new Map<string, Element>();
     const expressions = new Map<string, string>();
     const commandOutputs = new Set<string>();
@@ -458,6 +459,15 @@ export function translateGgb(xml: string): GgbTranslation {
         segments.set(label, [p, q]);
         return define(label, "line", "Segment", [ref(p), ref(q)]);
     };
+
+    const definePolygon = (label: string, vertices: string[]): true =>
+        define(label, "polygon", "Polygon", [
+            literal(
+                vertices
+                    .map((vertex) => `_${objects.get(vertex)!.variable}`)
+                    .join(","),
+            ),
+        ]);
 
     const pointOn = (label: string, support: string, boundary: boolean) => {
         const kind = kindOf(support);
@@ -889,13 +899,8 @@ export function translateGgb(xml: string): GgbTranslation {
                 );
             }
             if (inputs.length < 3 || !points(...inputs)) return false;
-            define(label, "polygon", "Polygon", [
-                literal(
-                    inputs
-                        .map((input) => `_${objects.get(input)!.variable}`)
-                        .join(","),
-                ),
-            ]);
+            polygons.set(label, inputs);
+            definePolygon(label, inputs);
             sides.forEach(
                 (side, index) =>
                     side &&
@@ -938,16 +943,10 @@ export function translateGgb(xml: string): GgbTranslation {
             CUBE_FACES.forEach((face, index) => {
                 const label = outputs[5 + index];
                 if (label)
-                    define(label, "polygon", "Polygon", [
-                        literal(
-                            face
-                                .map(
-                                    (vertex) =>
-                                        `_${objects.get(vertices[vertex])!.variable}`,
-                                )
-                                .join(","),
-                        ),
-                    ]);
+                    definePolygon(
+                        label,
+                        face.map((vertex) => vertices[vertex]),
+                    );
             });
             CUBE_EDGES.forEach(([p, q], index) => {
                 const label = outputs[11 + index];
@@ -972,23 +971,64 @@ export function translateGgb(xml: string): GgbTranslation {
             ];
             faces.forEach((face, index) => {
                 const label = outputs[index];
-                if (label)
-                    define(label, "polygon", "Polygon", [
-                        literal(
-                            face
-                                .map(
-                                    (vertex) =>
-                                        `_${objects.get(vertex)!.variable}`,
-                                )
-                                .join(","),
-                        ),
-                    ]);
+                if (label) definePolygon(label, face);
             });
             [
                 ...base.map((vertex, index) => [vertex, base[(index + 1) % n]]),
                 ...base.map((vertex) => [vertex, apex]),
             ].forEach(([p, q], index) => {
                 const label = outputs[n + 1 + index];
+                if (label) defineSegment(label, p, q);
+            });
+            return true;
+        },
+        // Prism(A, B, C, …, P) or Prism(poly, P): P is the top vertex over A,
+        // the others are translated by P - A. After the top vertices come the
+        // base, the lateral faces V(i)V(i+1)W(i+1)W(i) and the top face, then
+        // the base, lateral and top edges; the base and its edges are omitted
+        // when it is an existing polygon.
+        Prism: (inputs, [, ...outputs]) => {
+            const polygon = polygons.get(inputs[0]);
+            if (polygon ? inputs.length !== 2 : inputs.length < 4) return false;
+            const base = polygon ?? inputs.slice(0, -1);
+            const apex = inputs[inputs.length - 1];
+            if (!points(...base, apex)) return false;
+            const n = base.length;
+            const shift = `${objects.get(apex)!.variable}-${objects.get(base[0])!.variable}`;
+            const top = [
+                apex,
+                ...base.slice(1).map((vertex, index) => {
+                    const label = outputs[index] || auxiliary();
+                    formulaPoint(
+                        `${objects.get(vertex)!.variable}+${shift}`,
+                        label,
+                    );
+                    return label;
+                }),
+            ];
+            const next = (index: number) => (index + 1) % n;
+            const faces = [
+                ...(polygon ? [] : [base]),
+                ...base.map((vertex, index) => [
+                    vertex,
+                    base[next(index)],
+                    top[next(index)],
+                    top[index],
+                ]),
+                top,
+            ];
+            faces.forEach((face, index) => {
+                const label = outputs[n - 1 + index];
+                if (label) definePolygon(label, face);
+            });
+            [
+                ...(polygon
+                    ? []
+                    : base.map((vertex, index) => [vertex, base[next(index)]])),
+                ...base.map((vertex, index) => [vertex, top[index]]),
+                ...top.map((vertex, index) => [vertex, top[next(index)]]),
+            ].forEach(([p, q], index) => {
+                const label = outputs[n - 1 + faces.length + index];
                 if (label) defineSegment(label, p, q);
             });
             return true;

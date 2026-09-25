@@ -99,6 +99,7 @@ describe("GGB importer", () => {
         "circular",
         "allconics",
         "3d_pyramide",
+        "3d_prisme",
     ])("rebuilds every saved point of %s", async (name) => {
         const c = createConstruction();
         const xml = await loadXml(name);
@@ -420,6 +421,31 @@ ${[
         expect(apex.coords[0]).toBeCloseTo(0, 9);
         expect(apex.coords[1]).toBeCloseTo(0, 9);
         expect(apex.coords[2]).toBeCloseTo(2, 6);
+    });
+
+    it("lifts the prism's top face with its first vertex", async () => {
+        const c = createConstruction();
+        importGgb(c, await loadXml("3d_prisme"));
+        await new Promise((resolve) => requestAnimationFrame(resolve));
+
+        expect(c.getObj("faceAGHIJ")).toBeInstanceOf(polygon_object);
+        expect(c.getObj("arêteEI")!.parents).toEqual([
+            c.getObj("E"),
+            c.getObj("I"),
+        ]);
+        const apex = c.getObj("A") as point_on_object;
+        const [x, y] = c.pt3D([0, 0, 2]);
+        apex.mousedrag(
+            new PointerEvent("pointermove", { clientX: x, clientY: y }),
+        );
+        await new Promise((resolve) => requestAnimationFrame(resolve));
+
+        const [e, i] = ["E", "I"].map(
+            (name) => (c.getObj(name) as point_object).coords,
+        );
+        expect(i[0]).toBeCloseTo(e[0], 9);
+        expect(i[1]).toBeCloseTo(e[1], 9);
+        expect(i[2]).toBeCloseTo(2, 6);
     });
 
     it("builds reflections, inversions, rotations, translations and dilations", async () => {
