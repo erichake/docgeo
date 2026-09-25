@@ -423,6 +423,13 @@ export function translateGgb(xml: string): GgbTranslation {
         document.querySelector("kernel > decimals")?.getAttribute("val") ?? 2,
     );
     const view = document.querySelector("euclidianView");
+    const rightAngleMark = ["none", "square", "dot", "L"][
+        Number(
+            document
+                .querySelector("evSettings[rightAngleStyle]")
+                ?.getAttribute("rightAngleStyle") ?? 1,
+        )
+    ];
     const coordSystem = view && child(view, "coordSystem");
     const origin: [number, number] = coordSystem
         ? [
@@ -593,7 +600,17 @@ export function translateGgb(xml: string): GgbTranslation {
             const alpha = Number(color?.getAttribute("alpha") ?? 0);
             if (alpha > 0 && alpha <= 1) parts.push(`o:${alpha}`);
             const arc = attribute(element, "arcSize", "val");
-            if (kind === "angle" && arc) parts.push(`arc:${arc}`);
+            if (kind === "angle") {
+                if (arc) parts.push(`arc:${arc}`);
+                parts.push(
+                    `ra:${
+                        attribute(element, "emphasizeRightAngle", "val") ===
+                        "false"
+                            ? "none"
+                            : rightAngleMark
+                    }`,
+                );
+            }
         }
         parts.push(`f:${fontSize}`);
         return parts.join(";");

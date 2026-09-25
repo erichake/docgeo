@@ -1,23 +1,38 @@
 import type { construction } from "../construction";
 import type { DOMElement } from "../dom";
-import { vDot, vNorm, vNormalize, vSub, type Vec2 } from "../vec";
+import { vAdd, vDot, vNorm, vNormalize, vScale, vSub, type Vec2 } from "../vec";
 import { computeAngleArc, formatDegrees } from "./angle_arc";
 import { construction_object } from "./construction_object";
 import type { point_object } from "./point_object";
 
 const DEFAULT_ARC_RADIUS = 30;
 const LABEL_MARGIN = 5;
+const RIGHT_ANGLE_TOLERANCE = 1e-8;
+
+// How a right angle is drawn: DGPad's open square, GeoGebra's arc (none),
+// square, dot or L.
+export const RIGHT_ANGLE_MARKS = [
+    "dgpad",
+    "none",
+    "square",
+    "dot",
+    "L",
+] as const;
+export type RightAngleMark = (typeof RIGHT_ANGLE_MARKS)[number];
 
 export class angle_object extends construction_object {
     A: point_object;
     O: point_object;
     B: point_object;
     arcRadius = DEFAULT_ARC_RADIUS;
+    rightAngleMark: RightAngleMark = "dgpad";
     value = 0;
     projectionDefined = false;
     private origin: Vec2 = [0, 0];
     private legA: Vec2 = [0, 0];
     private legC: Vec2 = [0, 0];
+    private dirA: Vec2 = [0, 0];
+    private dirC: Vec2 = [0, 0];
     private sweep: 0 | 1 = 0;
     private labelRotationDeg = 0;
     private labelOffset = 0;
@@ -25,6 +40,7 @@ export class angle_object extends construction_object {
     arcPath!: DOMElement;
     wedgeFill!: DOMElement;
     valueText?: DOMElement;
+    dot?: DOMElement;
 
     constructor(
         c: construction,
@@ -81,6 +97,8 @@ export class angle_object extends construction_object {
         this.origin = origin;
         this.legA = arc.legA;
         this.legC = arc.legC;
+        this.dirA = dirA;
+        this.dirC = dirC;
         this.sweep = arc.sweep;
         this.labelRotationDeg = arc.labelRotationDeg;
         this.labelOffset = arc.labelOffset;
@@ -94,13 +112,39 @@ export class angle_object extends construction_object {
             this.isVisible && this.projectionDefined ? "block" : "none",
         );
         if (!this.defined || !this.projectionDefined) return;
-        this.wedgeFill.att(
-            "d",
-            `M${this.origin[0]} ${this.origin[1]} L${this.legA[0]} ${this.legA[1]} L${this.legC[0]} ${this.legC[1]} Z`,
-        );
-        this.arcPath.att(
-            "d",
-            `M${this.legA[0]} ${this.legA[1]} A${this.arcRadius} ${this.arcRadius} 0 0 ${this.sweep} ${this.legC[0]} ${this.legC[1]}`,
+        const right =
+            this.rightAngleMark !== "none" &&
+            Math.abs(this.value - Math.PI / 2) < RIGHT_ANGLE_TOLERANCE;
+        const mark = right && this.rightAngleMark !== "dot";
+        const [fill, outline] = mark
+            ? this.rightAnglePaths()
+            : [
+                  `M${this.origin[0]} ${this.origin[1]} L${this.legA[0]} ${this.legA[1]} L${this.legC[0]} ${this.legC[1]} Z`,
+                  `M${this.legA[0]} ${this.legA[1]} A${this.arcRadius} ${this.arcRadius} 0 0 ${this.sweep} ${this.legC[0]} ${this.legC[1]}`,
+              ];
+        this.wedgeFill.att("d", fill);
+        this.arcPath
+            .att("d", outline)
+            .stl(
+                "fill-opacity",
+                mark && this.rightAngleMark !== "square"
+                    ? 0
+                    : (this.opacity ?? 0),
+            );
+        this.dot?.stl("display", right ? "block" : "none");
+        if (this.dot && right) {
+            const [x, y] = vAdd(
+                this.origin,
+                vScale(
+                    vNormalize(vAdd(this.dirA, this.dirC))!,
+                    this.arcRadius / 1.7,
+                ),
+            );
+            this.dot.att("cx", x).att("cy", y);
+        }
+        this.valueText?.stl(
+            "display",
+            right && this.rightAngleMark === "dgpad" ? "none" : "block",
         );
         if (!this.valueText) return;
         this.valueText
@@ -111,6 +155,29 @@ export class angle_object extends construction_object {
             .att("x", this.labelOffset)
             .att("text-anchor", this.labelAnchor)
             .text(formatDegrees((this.value * 180) / Math.PI, this.precision));
+    }
+
+    // The filled area and the outline of a right angle's mark, drawn from
+    // the legs' screen directions so that a 3D right angle keeps its mark in
+    // the plane of the angle.
+    private rightAnglePaths(): [string, string] {
+        const side =
+            this.rightAngleMark === "dgpad"
+                ? this.arcRadius
+                : this.arcRadius * Math.SQRT1_2;
+        const u = vScale(this.dirA, side);
+        const v = vScale(this.dirC, side);
+        const path = (...points: Vec2[]) =>
+            points
+                .map(([x, y], index) => `${index ? "L" : "M"}${x} ${y}`)
+                .join(" ");
+        const o = this.origin;
+        const square = `${path(o, vAdd(o, u), vAdd(o, vAdd(u, v)), vAdd(o, v))} Z`;
+        if (this.rightAngleMark === "dgpad")
+            return [square, path(vAdd(o, u), vAdd(o, vAdd(u, v)), vAdd(o, v))];
+        if (this.rightAngleMark === "square") return ["", square];
+        const corner = vAdd(o, vScale(vAdd(u, v), 0.4));
+        return ["", path(vAdd(corner, u), corner, vAdd(corner, v))];
     }
 
     static createSVG(_this: construction_object): DOMElement {
@@ -130,6 +197,15 @@ export class angle_object extends construction_object {
             .stl("stroke-width", t.size)
             .stl("pointer-events", "none");
         dom.add(t.wedgeFill, t.arcPath);
+        if (t.rightAngleMark === "dot") {
+            // GeoGebra's dot radius is its line thickness, twice ours.
+            t.dot = t.svg
+                .shape("circle")
+                .att("r", 2 * t.size)
+                .stl("fill", t.stroke_color)
+                .stl("pointer-events", "none");
+            dom.add(t.dot);
+        }
         if (t.precision < 0) return dom;
 
         t.valueText = t.svg

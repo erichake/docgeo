@@ -2,6 +2,7 @@ import { afterEach, describe, expect, it } from "vitest";
 import { construction } from "../../src/construction";
 import { importGgb } from "../../src/ggb_importer";
 import { readZipEntry } from "../../src/import/ggb_zip";
+import { angle_object } from "../../src/objects/angle_object";
 import { arc3pts_object } from "../../src/objects/arc3pts_object";
 import { circle1_object } from "../../src/objects/circle1_object";
 import { curve_object } from "../../src/objects/curve_object";
@@ -137,6 +138,34 @@ describe("GGB importer", () => {
             2 * Math.PI - 2.118358562734894,
             9,
         );
+    });
+
+    it("marks right angles with GeoGebra's square, of diagonal arcSize", async () => {
+        const c = createConstruction();
+        importGgb(c, await loadXml("_3carres"));
+        const alpha = c.getObj("α") as angle_object;
+        await new Promise((resolve) => requestAnimationFrame(resolve));
+
+        const [o, a, d, b] = [
+            ...alpha.arcPath.getAtt("d")!.matchAll(/[ML](\S+) (\S+)/g),
+        ].map(([, x, y]) => [Number(x), Number(y)] as Vec2);
+        expect(alpha.arcPath.getAtt("d")).toMatch(/Z$/);
+        expect(alpha.wedgeFill.getAtt("d")).toBe("");
+        const side = 38 * Math.SQRT1_2;
+        expect(vNorm(vSub(o, alpha.O.screen))).toBeCloseTo(0, 9);
+        [
+            [a, alpha.A, side],
+            [b, alpha.B, side],
+        ].forEach(([vertex, leg, length]) => {
+            const edge = vSub(vertex as Vec2, o);
+            expect(vNorm(edge)).toBeCloseTo(length as number, 9);
+            const toLeg = vSub((leg as point_object).screen, o);
+            expect(vDot(edge, toLeg) / vNorm(toLeg)).toBeCloseTo(
+                length as number,
+                9,
+            );
+        });
+        expect(vNorm(vSub(d, o))).toBeCloseTo(38, 9);
     });
 
     it("keeps points on paths movable along their support", async () => {

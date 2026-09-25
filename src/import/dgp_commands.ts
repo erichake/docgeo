@@ -1,6 +1,11 @@
 import type { construction } from "../construction";
 import { createAngleBisector } from "../objects/angle_bisector_object";
-import { createAngle, angle_object } from "../objects/angle_object";
+import {
+    angle_object,
+    createAngle,
+    RIGHT_ANGLE_MARKS,
+    type RightAngleMark,
+} from "../objects/angle_object";
 import { createArc3pts } from "../objects/arc3pts_object";
 import { createCenter } from "../objects/center_object";
 import { createCircle1 } from "../objects/circle1_object";
@@ -542,6 +547,14 @@ function validateObjectStyle(
             case "arc":
                 validateNumber(propertyValue, lineNumber, 0);
                 break;
+            case "ra":
+                if (
+                    !(RIGHT_ANGLE_MARKS as readonly string[]).includes(
+                        propertyValue,
+                    )
+                )
+                    throw new Error(`Invalid DGP style at line ${lineNumber}`);
+                break;
             case "i":
                 validateNumber(propertyValue, lineNumber, 0);
                 break;
@@ -674,6 +687,10 @@ function applyObjectStyle(
                     target instanceof fixed_angle_object
                 )
                     target.arcRadius = Number(propertyValue);
+                break;
+            case "ra":
+                if (target instanceof angle_object)
+                    target.rightAngleMark = propertyValue as RightAngleMark;
                 break;
             case "i":
                 if (target instanceof expression_object)

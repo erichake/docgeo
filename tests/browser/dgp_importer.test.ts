@@ -178,6 +178,48 @@ STL(P,"tk:1");`,
         expect(angle.dom.dom().innerHTML).not.toMatch(/NaN|Infinity/);
     });
 
+    it("draws a right angle as DGPad's open square, without its value", async () => {
+        const c = createConstruction();
+        await importDgpFromUrl(c, "/tests/dgp/marque_angle.dgp");
+        const angle = c.getObj("A1") as angle_object;
+        await new Promise((resolve) => requestAnimationFrame(resolve));
+        expect(angle.arcPath.getAtt("d")).toMatch(/ A30 30 /);
+        expect((angle.valueText!.dom() as SVGElement).style.display).toBe(
+            "block",
+        );
+
+        const [p1, p2, p3] = ["P1", "P2", "P3"].map(
+            (name) => (c.getObj(name) as point_object).coords,
+        );
+        const [dx, dy] = vNormalize(vSub(p2, p1))!;
+        const p4 = c.getObj("P4") as point_object;
+        p4.coords = [p3[0] - 3 * dy, p3[1] + 3 * dx, 0];
+        c.invalidateGeometry(p4);
+        await new Promise((resolve) => requestAnimationFrame(resolve));
+
+        const [o, a, d, b] = [
+            ...angle.wedgeFill.getAtt("d")!.matchAll(/[ML](\S+) (\S+)/g),
+        ].map(([, x, y]) => [Number(x), Number(y)]);
+        expect(o[0]).toBeCloseTo(angle.O.screen[0], 9);
+        expect(o[1]).toBeCloseTo(angle.O.screen[1], 9);
+        [a, b].forEach((vertex) =>
+            expect(Math.hypot(vertex[0] - o[0], vertex[1] - o[1])).toBeCloseTo(
+                30,
+                9,
+            ),
+        );
+        expect(Math.hypot(d[0] - o[0], d[1] - o[1])).toBeCloseTo(
+            30 * Math.SQRT2,
+            9,
+        );
+        expect(angle.arcPath.getAtt("d")).toBe(
+            `M${a[0]} ${a[1]} L${d[0]} ${d[1]} L${b[0]} ${b[1]}`,
+        );
+        expect((angle.valueText!.dom() as SVGElement).style.display).toBe(
+            "none",
+        );
+    });
+
     it("imports the fixed-angle reference figure", async () => {
         const c = createConstruction();
         await importDgpFromUrl(c, "/tests/dgp/_FixedAngle.dgp");
