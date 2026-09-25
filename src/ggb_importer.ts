@@ -4,6 +4,7 @@ import { translateGgb, type GgbView3D } from "./import/ggb_translate";
 import { readZipEntry } from "./import/ggb_zip";
 import type { expression_object } from "./objects/expression_object";
 import type { formula_point_object } from "./objects/formula_point_object";
+import { cylinder_intersection_object } from "./objects/cylinder_intersection_object";
 import { intersection_object } from "./objects/intersection_object";
 import { point_on_object } from "./objects/point_on_object";
 import type { construction_object } from "./objects/construction_object";
@@ -91,12 +92,20 @@ function settleTargets(
             if (alpha === null) return;
             object.alpha = alpha;
             object.computeGeometry();
-        } else if (object instanceof intersection_object) {
+        } else if (
+            object instanceof intersection_object ||
+            object instanceof cylinder_intersection_object
+        ) {
             const order = object.order;
-            const distance = vNorm(vSub(object.coords, coords));
+            const distance = object.defined
+                ? vNorm(vSub(object.coords, coords))
+                : Infinity;
             object.order = order === 0 ? 1 : 0;
             object.computeGeometry();
-            if (vNorm(vSub(object.coords, coords)) >= distance) {
+            if (
+                !object.defined ||
+                vNorm(vSub(object.coords, coords)) >= distance
+            ) {
                 object.order = order;
                 object.computeGeometry();
             }

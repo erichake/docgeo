@@ -9,6 +9,8 @@ import { createCircle3pts } from "../objects/circle3pts_object";
 import { createCircle } from "../objects/circle_object";
 import { construction_object } from "../objects/construction_object";
 import { createCurve } from "../objects/curve_object";
+import { createCylinderIntersection } from "../objects/cylinder_intersection_object";
+import { createDirectionPoint } from "../objects/direction_point_object";
 import {
     createExpression,
     expression_object,
@@ -34,6 +36,7 @@ import { createLocus } from "../objects/locus_object";
 import { createMidpoint } from "../objects/midpoint_object";
 import { createParallel } from "../objects/parallel_line_object";
 import { createPerpendicularBisector } from "../objects/perpendicular_bisector_object";
+import { createPlaneIntersection } from "../objects/plane_intersection_object";
 import { createPlumb } from "../objects/plumb_line_object";
 import {
     createPointOn,
@@ -1230,6 +1233,89 @@ const COMMANDS = new Map<string, CommandDefinition>([
                     context.construction,
                     args[0] as string,
                     args[1] as point_object,
+                    args[2] as point_object,
+                ),
+        },
+    ],
+    // Not a DGPad command: GeoGebra's Intersect(line, cylinder), the
+    // cylinder being given by its axis AB and a point R on it.
+    [
+        "CylinderIntersection",
+        {
+            parameters: [string, line, point, point, point, number],
+            result: "point",
+            validate: (args, lineNumber) => {
+                const order = (args[5] as { value: number }).value;
+                if (order !== 0 && order !== 1)
+                    throw new Error(
+                        `Invalid intersection order at line ${lineNumber}`,
+                    );
+            },
+            execute: (context, args) =>
+                createCylinderIntersection(
+                    context.construction,
+                    args[0] as string,
+                    args[1] as primitive_line_object,
+                    args[2] as point_object,
+                    args[3] as point_object,
+                    args[4] as point_object,
+                    args[5] as 0 | 1,
+                ),
+        },
+    ],
+    // Not a DGPad command: GeoGebra's Intersect(line, sphere), the sphere
+    // being given by its center and a point on it.
+    [
+        "SphereIntersection",
+        {
+            parameters: [string, line, point, point, number],
+            result: "point",
+            validate: (args, lineNumber) => {
+                const order = (args[4] as { value: number }).value;
+                if (order !== 0 && order !== 1)
+                    throw new Error(
+                        `Invalid intersection order at line ${lineNumber}`,
+                    );
+            },
+            execute: (context, args) =>
+                createCylinderIntersection(
+                    context.construction,
+                    args[0] as string,
+                    args[1] as primitive_line_object,
+                    args[2] as point_object,
+                    null,
+                    args[3] as point_object,
+                    args[4] as 0 | 1,
+                ),
+        },
+    ],
+    // Not a DGPad command: GeoGebra's Intersect(line, plane), the plane
+    // being given by three of its points.
+    [
+        "PlaneIntersection",
+        {
+            parameters: [string, line, point, point, point],
+            result: "point",
+            execute: (context, args) =>
+                createPlaneIntersection(
+                    context.construction,
+                    args[0] as string,
+                    args[1] as primitive_line_object,
+                    args.slice(2) as [point_object, point_object, point_object],
+                ),
+        },
+    ],
+    // Not a DGPad command: P moved by a line's direction vector.
+    [
+        "DirectionPoint",
+        {
+            parameters: [string, line, point],
+            result: "point",
+            execute: (context, args) =>
+                createDirectionPoint(
+                    context.construction,
+                    args[0] as string,
+                    args[1] as primitive_line_object,
                     args[2] as point_object,
                 ),
         },

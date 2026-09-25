@@ -5,6 +5,7 @@ import { readZipEntry } from "../../src/import/ggb_zip";
 import { arc3pts_object } from "../../src/objects/arc3pts_object";
 import { circle1_object } from "../../src/objects/circle1_object";
 import { curve_object } from "../../src/objects/curve_object";
+import { cylinder_intersection_object } from "../../src/objects/cylinder_intersection_object";
 import { expression_object } from "../../src/objects/expression_object";
 import { fixed_point_object } from "../../src/objects/fixed_point_object";
 import { locus_object } from "../../src/objects/locus_object";
@@ -669,6 +670,143 @@ ${[
             expect(distance).toBeGreaterThan(edge * 0.9);
             expect(distance).toBeLessThan(edge * 1.1);
         });
+    });
+
+    it("intersects a line with a cylinder standing on a regular prism's floor", async () => {
+        const c = createConstruction();
+        const xml = await loadXml("3d_inter");
+        expect(importGgb(c, xml)).toEqual([]);
+        expectSavedPoints(c, xml);
+        await new Promise((resolve) => requestAnimationFrame(resolve));
+
+        const point = (name: string) => (c.getObj(name) as point_object).coords;
+        const k = point("K");
+        const [x, y] = c.pt3D([k[0], k[1], 6]);
+        (c.getObj("N") as point_on_object).mousedrag(
+            new PointerEvent("pointermove", { clientX: x, clientY: y }),
+        );
+        await new Promise((resolve) => requestAnimationFrame(resolve));
+
+        const [m, n] = [point("M"), point("N")];
+        expect(n[2]).toBeCloseTo(6, 6);
+        ["P", "Q"].forEach((name) => {
+            const onCylinder = point(name);
+            expect(onCylinder[2]).toBeGreaterThan(point("L")[2]);
+            expect(
+                Math.hypot(onCylinder[0] - k[0], onCylinder[1] - k[1]),
+            ).toBeCloseTo(1, 9);
+            expect(vNorm(vCross(vSub(onCylinder, m), vSub(n, m)))).toBeCloseTo(
+                0,
+                9,
+            );
+        });
+        expect(point("P")[0]).toBeLessThan(point("Q")[0]);
+    });
+
+    it("intersects segments, rays and lines with a cylinder", async () => {
+        const c = createConstruction();
+        const xml = await loadXml("3d_cylindre_inter");
+        expect(importGgb(c, xml)).toEqual([]);
+        expectSavedPoints(c, xml);
+        ["A", "B", "C", "D", "E"].forEach((name) =>
+            expect(c.getObj(name)).toBeInstanceOf(cylinder_intersection_object),
+        );
+    });
+
+    it("intersects any line with a plane orthogonal to any line", async () => {
+        const c = createConstruction();
+        expect(importGgb(c, await loadXml("3d_plan_inter"))).toEqual([]);
+
+        const point = (name: string) => (c.getObj(name) as point_object).coords;
+        (
+            [
+                ["F", [-1, 0, 3]],
+                ["H", [-1, 0, 3]],
+                ["I", [-4, -3, 0]],
+            ] as const
+        ).forEach(([name, expected]) =>
+            point(name).forEach((value, index) =>
+                expect(value, name).toBeCloseTo(expected[index], 9),
+            ),
+        );
+        // The segment stops short of the plane its ray crosses.
+        expect(c.getObj("G")!.defined).toBe(false);
+        const normal = vSub(point("B"), point("A"));
+        (c.getObj("p") as polygon_object).points.forEach((corner) =>
+            expect(vDot(vSub(corner.coords, point("E")), normal)).toBeCloseTo(
+                0,
+                9,
+            ),
+        );
+    });
+
+    it("intersects a line and an orthogonal plane with a sphere", async () => {
+        const c = createConstruction();
+        expect(importGgb(c, await loadXml("3d_inter2"))).toEqual([]);
+        await new Promise((resolve) => requestAnimationFrame(resolve));
+
+        const point = (name: string) => c.getObj(name) as point_object;
+        expect(point("F").defined).toBe(false);
+        expect(point("G").defined).toBe(false);
+        point("I").coords.forEach((value, index) =>
+            expect(value).toBeCloseTo(
+                [-2.1576641263442635, -2.854326503129813, 2.1447738878496283][
+                    index
+                ],
+                9,
+            ),
+        );
+        const plane = c.getObj("p") as polygon_object;
+        expect(plane.plane).toBe(true);
+        const normal = vSub(point("C").coords, point("B").coords);
+        plane.points.forEach((corner) =>
+            expect(
+                vDot(vSub(corner.coords, point("H").coords), normal),
+            ).toBeCloseTo(0, 9),
+        );
+        const circle = c.getObj("c") as primitive_circle_object;
+        const center = point("A").coords;
+        const distance =
+            vDot(vSub(point("H").coords, center), normal) / vNorm(normal);
+        expect(circle.R).toBeCloseTo(Math.sqrt(4 - distance ** 2), 9);
+        expect(vNorm(vCross(circle.NORMAL, normal))).toBeCloseTo(0, 9);
+
+        const [x, y] = c.pt3D([-2.523110914951643, -3.575107233917606, 1]);
+        (c.getObj("D") as point_on_object).mousedrag(
+            new PointerEvent("pointermove", { clientX: x, clientY: y }),
+        );
+        await new Promise((resolve) => requestAnimationFrame(resolve));
+
+        expect(point("D").coords[2]).toBeCloseTo(1, 6);
+        (
+            [
+                [
+                    "F",
+                    [
+                        -3.4741615542276896, -5.450890511165278,
+                        0.3378589536697889,
+                    ],
+                ],
+                [
+                    "G",
+                    [
+                        -2.1286462766403154, -2.797093801769361,
+                        1.2746344070075524,
+                    ],
+                ],
+                [
+                    "I",
+                    [
+                        -2.157664126344265, -2.854326503129815,
+                        1.2544315822874599,
+                    ],
+                ],
+            ] as const
+        ).forEach(([name, expected]) =>
+            point(name).coords.forEach((value, index) =>
+                expect(value, name).toBeCloseTo(expected[index], 5),
+            ),
+        );
     });
 
     it("builds reflections, inversions, rotations, translations and dilations", async () => {
