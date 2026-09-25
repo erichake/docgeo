@@ -101,6 +101,7 @@ describe("GGB importer", () => {
         "3d_pyramide",
         "3d_prisme",
         "3d_plan",
+        "3d_inter_plans",
     ])("rebuilds every saved point of %s", async (name) => {
         const c = createConstruction();
         const xml = await loadXml(name);
@@ -476,6 +477,18 @@ ${[
         plane.points.forEach((corner) =>
             expect(vDot(vSub(corner.coords, a), normal)).toBeCloseTo(0, 9),
         );
+    });
+
+    it("shades intersecting planes apart and splits each by the other", async () => {
+        const c = createConstruction();
+        importGgb(c, await loadXml("3d_inter_plans"));
+        await new Promise((resolve) => requestAnimationFrame(resolve));
+
+        const [p, q] = ["p", "q"].map(
+            (name) => c.getObj(name) as polygon_object,
+        );
+        expect(p.shadedFill).not.toBe(q.shadedFill);
+        expect(p.farParts.has(q) || q.farParts.has(p)).toBe(true);
     });
 
     it("builds reflections, inversions, rotations, translations and dilations", async () => {

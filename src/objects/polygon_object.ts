@@ -6,6 +6,7 @@ import {
     vAdd,
     vCross,
     vDot,
+    vNormalize,
     vScale,
     vSub,
     type Vec2,
@@ -40,6 +41,24 @@ function clipHalfSpace(
     return kept;
 }
 
+// Light direction in eye coordinates (right, down, into the screen): from
+// above, slightly to the left and behind the viewer.
+const LIGHT: Vec3 = vNormalize([-0.3, -0.8, -0.6])!;
+const AMBIENT = 0.7;
+
+// `color` (#rgb, #rrggbb or rgb(r,g,b)) with each channel scaled by
+// `factor`.
+function shade(color: string, factor: number): string {
+    const hex = color.startsWith("#") ? color.slice(1) : null;
+    const channels = hex
+        ? (hex.length === 3
+              ? [...hex].map((h) => h + h)
+              : hex.match(/../g)!
+          ).map((h) => parseInt(h, 16))
+        : color.match(/\d+/g)!.map(Number);
+    return `rgb(${channels.map((channel) => Math.round(channel * factor)).join(",")})`;
+}
+
 function pathData(points: readonly Vec2[]): string {
     return points.length === 0
         ? ""
@@ -63,6 +82,9 @@ export class polygon_object extends construction_object {
     // plane; the face itself only fills the part in front of every plane.
     farParts = new Map<polygon_object, Vec2[]>();
     private nearPart: Vec2[] = [];
+    // Fill color lit like GeoGebra's surfaces, so that faces and planes of
+    // the same color still read apart by their orientation.
+    shadedFill = "";
     private underlay?: DOMElement;
     private underlayPaths: DOMElement[] = [];
     // Per-edge hidden sub-ranges, indexed like points (edge i runs from
@@ -195,24 +217,43 @@ export class polygon_object extends construction_object {
         this.edgeHidden = edges.map((edge) => edge.hidden);
         this.edgeVisible = edges.map((edge) => edge.visible);
         this.splitByPlanes();
+        this.shadedFill = shade(this.fill_color, this.lighting());
+    }
+
+    private lighting(): number {
+        const [a, b, c] = this.points.map((p) => p.coords);
+        const normal = vNormalize(vCross(vSub(b, a), vSub(c, a)));
+        if (!normal) return 1;
+        const f = this.C.projectionFrame;
+        const eye: Vec3 = [
+            vDot(normal, [f.sinPhi, f.cosPhi, 0]),
+            vDot(normal, [
+                f.cosPhi * f.sinTheta,
+                -f.sinPhi * f.sinTheta,
+                -f.cosTheta,
+            ]),
+            vDot(normal, f.dir!),
+        ];
+        const facing = vScale(eye, eye[2] > 0 ? -1 : 1);
+        return AMBIENT + (1 - AMBIENT) * Math.max(0, vDot(facing, LIGHT));
     }
 
     // A piece behind several planes is drawn beneath the first of them.
     private splitByPlanes(): void {
         this.farParts.clear();
         let near = this.points.map((p) => p.coords);
-        if (!this.plane)
-            (this.C.OBJS.polygons as polygon_object[]).forEach((polygon) => {
-                if (!polygon.plane || !polygon.isVisible) return;
-                const behind = polygon.behind();
-                const far = clipHalfSpace(near, behind);
-                if (far.length >= 3)
-                    this.farParts.set(
-                        polygon,
-                        far.map((p) => this.C.pt3D(p)),
-                    );
-                near = clipHalfSpace(near, (p) => -behind(p));
-            });
+        (this.C.OBJS.polygons as polygon_object[]).forEach((polygon) => {
+            if (polygon === this || !polygon.plane || !polygon.isVisible)
+                return;
+            const behind = polygon.behind();
+            const far = clipHalfSpace(near, behind);
+            if (far.length >= 3)
+                this.farParts.set(
+                    polygon,
+                    far.map((p) => this.C.pt3D(p)),
+                );
+            near = clipHalfSpace(near, (p) => -behind(p));
+        });
         this.nearPart = near.map((p) => this.C.pt3D(p));
     }
 
@@ -235,7 +276,9 @@ export class polygon_object extends construction_object {
             this.isVisible && this.projectionDefined ? "block" : "none",
         );
         if (!this.defined || !this.projectionDefined) return;
-        this.path.att("d", pathData(this.nearPart));
+        this.path
+            .att("d", pathData(this.nearPart))
+            .stl("fill", this.shadedFill);
         this.hitArea.att("d", pathData(this.screenPoints));
         this.outline.att("d", this.edgePathData(this.edgeVisible));
         this.hiddenOutline.att("d", this.edgePathData(this.edgeHidden));
@@ -259,7 +302,7 @@ export class polygon_object extends construction_object {
             path.stl("display", entry ? "block" : "none");
             if (entry)
                 path.att("d", pathData(entry.piece))
-                    .stl("fill", entry.polygon.fill_color)
+                    .stl("fill", entry.polygon.shadedFill)
                     .stl("fill-opacity", entry.polygon.opacity ?? 0);
         });
     }
