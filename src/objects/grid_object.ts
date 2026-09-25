@@ -23,7 +23,7 @@ const FLOOR_EXTENT = 5;
 // the camera is never ambiguous.
 const FLOOR_TOP_COLOR = "rgb(35,141,227)";
 const FLOOR_BOTTOM_COLOR = "rgb(139,94,52)";
-const FLOOR_FILL_OPACITY = "0.16";
+const FLOOR_FILL_OPACITY = "0.3";
 const FLOOR_LINE_OPACITY = "0.5";
 
 function floorCorners(n: number): Vec3[] {
