@@ -59,7 +59,7 @@ function shade(color: string, factor: number): string {
     return `rgb(${channels.map((channel) => Math.round(channel * factor)).join(",")})`;
 }
 
-function pathData(points: readonly Vec2[]): string {
+export function pathData(points: readonly Vec2[]): string {
     return points.length === 0
         ? ""
         : points.reduce(
@@ -86,6 +86,9 @@ export class polygon_object extends construction_object {
     // by that plane, beneath its own fill (see renderUnderlay), keyed by
     // plane; the face itself only fills the part in front of every plane.
     farParts = new Map<polygon_object, Vec2[]>();
+    // A plane's part behind the floor, drawn by the floor beneath its own
+    // fill, so that the floor veils it as GeoGebra's does.
+    behindFloor: Vec2[] = [];
     private nearPart: Vec2[] = [];
     // Fill color lit like GeoGebra's surfaces, so that faces and planes of
     // the same color still read apart by their orientation.
@@ -253,6 +256,15 @@ export class polygon_object extends construction_object {
     private splitByPlanes(): void {
         this.farParts.clear();
         let near = this.points.map((p) => p.coords);
+        const floor = this.C.GRID.floorOccluder;
+        this.behindFloor = [];
+        if (this.plane && floor.isVisible) {
+            const behind = floor.behind();
+            this.behindFloor = clipHalfSpace(near, behind).map((p) =>
+                this.C.pt3D(p),
+            );
+            near = clipHalfSpace(near, (p) => -behind(p));
+        }
         (this.C.OBJS.polygons as polygon_object[]).forEach((polygon) => {
             if (polygon === this || !polygon.plane || !polygon.isVisible)
                 return;

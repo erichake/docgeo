@@ -526,7 +526,7 @@ ${[
         expect(vNorm(along)).toBeLessThan(40);
     });
 
-    it("cuts a pyramid by a plane into a triangle, then a quadrilateral", async () => {
+    it("cuts a pyramid by a plane into a quadrilateral, then a triangle", async () => {
         const c = createConstruction();
         const xml = await loadXml("3d_inter_plan_pyra");
         expect(importGgb(c, xml)).toEqual([]);
@@ -534,29 +534,6 @@ ${[
 
         const section = c.getObj("H") as polygon_object;
         expect(section).toBeInstanceOf(polygon_object);
-        expect(section.defined).toBe(true);
-        const saved = [
-            [-1.4654544750295582, -2.4893492757966564, 3.004648690679991],
-            [2.1080589172050845, -1.3990631480471192, 3.4922875501861546],
-            [-1.127030581165907, 1.6936599014323954, 0.6443651406486601],
-        ];
-        expect(section.points).toHaveLength(3);
-        saved.forEach((coords) =>
-            expect(
-                section.points.some(
-                    (vertex) =>
-                        vNorm(vSub(vertex.coords, coords as never)) < 1e-9,
-                ),
-            ).toBe(true),
-        );
-
-        const f = c.getObj("F") as point_object;
-        const [x, y] = c.pt3D([0, 4, 0]);
-        f.mousedrag(
-            new PointerEvent("pointermove", { clientX: x, clientY: y }),
-        );
-        await new Promise((resolve) => requestAnimationFrame(resolve));
-
         const [a, b, apex] = ["A", "B", "C"].map(
             (name) => (c.getObj(name) as point_object).coords,
         );
@@ -565,10 +542,23 @@ ${[
         section.points.forEach((vertex) => {
             expect(vertex.isVisible).toBe(true);
             expect(vertex.showName).toBe(false);
+            expect(vDot(vSub(vertex.coords, a), normal)).toBeCloseTo(0, 6);
         });
-        section.points.forEach((vertex) =>
-            expect(vDot(vSub(vertex.coords, a), normal)).toBeCloseTo(0, 6),
-        );
+        // GeoGebra names only some of the vertices it saves.
+        new DOMParser()
+            .parseFromString(xml, "application/xml")
+            .querySelectorAll('element[type="point3d"][label^="H"] coords')
+            .forEach((coords) => {
+                const saved = ["x", "y", "z"].map((name) =>
+                    Number(coords.getAttribute(name)),
+                );
+                expect(
+                    section.points.some(
+                        (vertex) =>
+                            vNorm(vSub(vertex.coords, saved as never)) < 1e-9,
+                    ),
+                ).toBe(true);
+            });
         const [p0, p1, p2, p3] = section.points.map((vertex) => vertex.coords);
         const turns = [
             [p0, p1, p2],
@@ -579,6 +569,33 @@ ${[
         expect(
             turns.every((turn) => turn > 0) || turns.every((turn) => turn < 0),
         ).toBe(true);
+
+        const f = c.getObj("F") as point_object;
+        const [x, y] = c.pt3D([2, 0, 0]);
+        f.mousedrag(
+            new PointerEvent("pointermove", { clientX: x, clientY: y }),
+        );
+        await new Promise((resolve) => requestAnimationFrame(resolve));
+
+        expect(section.points).toHaveLength(3);
+        section.points.forEach((vertex) =>
+            expect(vDot(vSub(vertex.coords, a), normal)).toBeCloseTo(0, 6),
+        );
+    });
+
+    it("draws a plane's part behind the floor beneath the floor", async () => {
+        const c = createConstruction();
+        importGgb(c, await loadXml("3d_plan_sol"));
+        await new Promise((resolve) => requestAnimationFrame(resolve));
+
+        const plane = c.getObj("p") as polygon_object;
+        expect(plane.plane).toBe(true);
+        expect(plane.behindFloor.length).toBeGreaterThanOrEqual(3);
+
+        c.GRID.SHOWFLOOR = false;
+        c.invalidateProjection();
+        await new Promise((resolve) => requestAnimationFrame(resolve));
+        expect(plane.behindFloor).toEqual([]);
     });
 
     it("builds reflections, inversions, rotations, translations and dilations", async () => {

@@ -11,7 +11,7 @@ import { vNormalize, type Vec2, type Vec3 } from "../vec";
 import { construction_object } from "./construction_object";
 import { floorClipPath } from "./floor_occlusion";
 import { point_object } from "./point_object";
-import { polygon_object } from "./polygon_object";
+import { pathData, polygon_object } from "./polygon_object";
 
 // Half-side, in math units, of the floor's finite tiling. Kept smaller than
 // the visible area on purpose: a floor covering the whole window would read
@@ -58,6 +58,8 @@ export class grid_object extends construction_object {
     floorFill!: DOMElement;
     floorLines!: DOMElement;
     floorClipShape!: DOMElement;
+    private underlay!: DOMElement;
+    private underlayPaths: DOMElement[] = [];
     // A plane, invisible face registered as a real occluder (see
     // hidden_line.ts) so that geometry dipping below the floor dashes the
     // same way it would behind any other face. The floor's own visible fill
@@ -163,6 +165,7 @@ export class grid_object extends construction_object {
         const show = this.SHOWFLOOR;
         this.floorFill.stl("display", show ? "block" : "none");
         this.floorLines.stl("display", show ? "block" : "none");
+        this.renderUnderlay();
         if (!show) return;
 
         // The camera looks down at the top (z>0 side) when moving toward it
@@ -199,6 +202,25 @@ export class grid_object extends construction_object {
         );
     }
 
+    private renderUnderlay(): void {
+        const planes = (this.C.OBJS.polygons as polygon_object[]).filter(
+            (polygon) => polygon.isVisible && polygon.behindFloor.length >= 3,
+        );
+        while (this.underlayPaths.length < planes.length) {
+            const path = this.svg.shape("path").stl("pointer-events", "none");
+            this.underlayPaths.push(path);
+            this.underlay.add(path);
+        }
+        this.underlayPaths.forEach((path, index) => {
+            const plane = planes[index];
+            path.stl("display", plane ? "block" : "none");
+            if (plane)
+                path.att("d", pathData(plane.behindFloor))
+                    .stl("fill", plane.shadedFill)
+                    .stl("fill-opacity", plane.opacity ?? 0);
+        });
+    }
+
     static createSVG(_this: construction_object): DOMElement {
         const t = _this as grid_object;
         const dom = t.svg.shape("g");
@@ -208,6 +230,10 @@ export class grid_object extends construction_object {
         const clipPath = t.svg.shape("clipPath").att("id", clipId);
         clipPath.add(t.floorClipShape);
         dom.add(clipPath);
+
+        t.underlayPaths = [];
+        t.underlay = t.svg.shape("g");
+        dom.add(t.underlay);
 
         const floorGroup = t.svg.shape("g").stl("clip-path", `url(#${clipId})`);
         t.floorFill = t.svg
