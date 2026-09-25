@@ -1,5 +1,11 @@
-import type { Vec3 } from "../vec";
-import { formulaIdentifiers, parseFormula } from "./dgp_formula";
+import type { SegmentMap } from "../objects/iteration_object";
+import { vAdd, vSub, type Vec2, type Vec3 } from "../vec";
+import {
+    evaluateFormula,
+    formulaIdentifiers,
+    parseFormula,
+    realPart,
+} from "./dgp_formula";
 import {
     IDENTIFIER_PART,
     IDENTIFIER_START,
@@ -23,6 +29,7 @@ type Kind =
     | "locus"
     | "angle"
     | "expression"
+    | "list"
     | "curve";
 
 export interface GgbTranslation {
@@ -159,8 +166,8 @@ function splitArguments(text: string): string[] | null {
     let start = 0;
     for (let index = 0; index < text.length; index++) {
         const character = text[index];
-        if (character === "(") depth++;
-        else if (character === ")" && --depth < 0) return null;
+        if ("({".includes(character)) depth++;
+        else if (")}".includes(character) && --depth < 0) return null;
         else if (character === "," && depth === 0) {
             parts.push(text.slice(start, index).trim());
             start = index + 1;
@@ -168,6 +175,149 @@ function splitArguments(text: string): string[] | null {
     }
     parts.push(text.slice(start).trim());
     return parts;
+}
+
+// "Name(arguments)" as its name and top-level arguments.
+function commandCall(text: string): [string, string[]] | null {
+    const match = COMMAND_EXPRESSION.exec(text);
+    const args = match && splitArguments(match[2]);
+    return args && [match[1], args];
+}
+
+// A value in a segment's own frame (see SegmentMap): a number, a point or
+// vector as a complex number, or a segment.
+type LocalValue = number | Vec2 | SegmentMap;
+
+const isSegment = (value: LocalValue): value is SegmentMap =>
+    typeof value !== "number" && typeof value[0] !== "number";
+
+const isComplex = (value: LocalValue): value is Vec2 =>
+    typeof value !== "number" && typeof value[0] === "number";
+
+const realValue = (value: LocalValue): number | null =>
+    isSegment(value) ? null : realPart(value);
+
+const mapSegment = (
+    value: LocalValue,
+    transform: (point: Vec2) => Vec2,
+): SegmentMap | null =>
+    isSegment(value) ? [transform(value[0]), transform(value[1])] : null;
+
+const complexProduct = ([a, b]: Vec2, [c, d]: Vec2): Vec2 => [
+    a * c - b * d,
+    a * d + b * c,
+];
+
+// The commands whose image of a segment is a direct similarity in its own
+// frame, as long as their centers and vectors derive from its vertices.
+const LOCAL_COMMANDS: Partial<
+    Record<string, (args: LocalValue[]) => LocalValue | null>
+> = {
+    Vertex: ([segment, index, extra]) =>
+        extra === undefined &&
+        isSegment(segment) &&
+        [1, 2].includes(index as number)
+            ? segment[(index as number) - 1]
+            : null,
+    Vector: ([p, q]) =>
+        q === undefined
+            ? isComplex(p)
+                ? p
+                : null
+            : isComplex(p) && isComplex(q)
+              ? vSub(q, p)
+              : null,
+    Dilate: ([segment, factor, center, extra]) => {
+        const k = realValue(factor);
+        return extra === undefined && k !== null && isComplex(center)
+            ? mapSegment(segment, (point) =>
+                  vAdd(center, complexProduct(vSub(point, center), [k, 0])),
+              )
+            : null;
+    },
+    Rotate: ([segment, angle, center, extra]) => {
+        const a = realValue(angle);
+        return extra === undefined && a !== null && isComplex(center)
+            ? mapSegment(segment, (point) =>
+                  vAdd(
+                      center,
+                      complexProduct(vSub(point, center), [
+                          Math.cos(a),
+                          Math.sin(a),
+                      ]),
+                  ),
+              )
+            : null;
+    },
+    Translate: ([segment, vector, extra]) =>
+        extra === undefined && isComplex(vector)
+            ? mapSegment(segment, (point) => vAdd(point, vector))
+            : null,
+};
+
+// A GeoGebra expression of the segment `variable`, evaluated in that
+// segment's own frame: it may only use it and LOCAL_COMMANDS, so that it
+// commutes with any direct similarity of the plane.
+function localValue(source: string, variable: string): LocalValue | null {
+    const text = source.trim();
+    if (text === variable)
+        return [
+            [0, 0],
+            [1, 0],
+        ];
+    const call = commandCall(text);
+    if (call) {
+        const command = LOCAL_COMMANDS[call[0]];
+        const args = call[1].map((arg) => localValue(arg, variable));
+        return command && args.every((arg) => arg !== null)
+            ? command(args as LocalValue[])
+            : null;
+    }
+    // Arithmetic, each nested command's value standing in a variable.
+    const values: LocalValue[] = [];
+    let result = "";
+    let index = 0;
+    while (index < text.length) {
+        if (!IDENTIFIER_START.test(text[index])) {
+            result += text[index++];
+            continue;
+        }
+        let end = index + 1;
+        while (end < text.length && IDENTIFIER_PART.test(text[end])) end++;
+        const word = text.slice(index, end);
+        if (word === "pi" || word === "π") result += "π";
+        else if (text[end] !== "(") return null;
+        else {
+            let depth = 0;
+            do {
+                if (text[end] === "(") depth++;
+                else if (text[end] === ")") depth--;
+                end++;
+            } while (depth > 0 && end < text.length);
+            const value = localValue(text.slice(index, end), variable);
+            if (value === null) return null;
+            result += `v${values.push(value)}`;
+        }
+        index = end;
+    }
+    let node;
+    try {
+        node = parseFormula(result);
+    } catch {
+        return null;
+    }
+    const value = evaluateFormula(node, {
+        resolveIdentifier: (name) => {
+            const value = values[Number(name.slice(1)) - 1];
+            return typeof value === "number"
+                ? [value, 0]
+                : isComplex(value)
+                  ? value
+                  : null;
+        },
+        pixelScale: () => 1,
+    });
+    return typeof value === "number" || value?.length === 2 ? value : null;
 }
 
 // Whether "+" or "-" is applied outside any parentheses, other than as a
@@ -238,6 +388,10 @@ export function translateGgb(xml: string): GgbTranslation {
     const vectors = new Map<string, [string, string]>();
     const polygons = new Map<string, string[]>();
     const polyhedra = new Map<string, [string, string][]>();
+    const iterations = new Map<
+        string,
+        { ends: string[][]; levels: string; maps: SegmentMap[] }
+    >();
     const elements = new Map<string, Element>();
     const expressions = new Map<string, string>();
     const commandOutputs = new Set<string>();
@@ -319,12 +473,13 @@ export function translateGgb(xml: string): GgbTranslation {
     };
 
     // GeoGebra's expression syntax → a DGP formula: labels become their DGP
-    // variables, "(a, b)" tuples become "[a,b]" vectors. Returns null for
-    // anything the DGP formula engine can't evaluate.
+    // variables, "(a, b)" tuples become "[a,b]" vectors and `locals` words
+    // their own formulas. Returns null for anything the DGP formula engine
+    // can't evaluate.
     const formula = (
         source: string,
         kinds: Kind[],
-        allowX = false,
+        locals = new Map<string, string>(),
     ): string | null => {
         const known = objects.get(source);
         if (known) return kinds.includes(known.kind) ? known.variable : null;
@@ -368,7 +523,7 @@ export function translateGgb(xml: string): GgbTranslation {
                     result += `${name}(`;
                     index++;
                 } else if (word === "π" || word === "pi") result += "π";
-                else if (word === "x" && allowX) result += "x";
+                else if (locals.has(word)) result += `(${locals.get(word)})`;
                 else if (is(word, kinds)) result += objects.get(word)!.variable;
                 else return null;
                 continue;
@@ -447,9 +602,10 @@ export function translateGgb(xml: string): GgbTranslation {
         args: DgpValue[],
         style?: string,
     ): true => {
-        // "i" is the imaginary unit in a DGP formula.
+        // "i" is the imaginary unit in a DGP formula, "k" and "count" are
+        // bound by a List's own formulas.
         const variable =
-            IDENTIFIER.test(label) && label !== "i"
+            IDENTIFIER.test(label) && !["i", "k", "count"].includes(label)
                 ? label
                 : `$${calls.length}`;
         objects.set(label, { variable, kind });
@@ -547,6 +703,51 @@ export function translateGgb(xml: string): GgbTranslation {
             ],
             style,
         );
+
+    const defineIteration = (
+        label: string,
+        ends: string[][],
+        levels: string,
+        maps: SegmentMap[],
+    ): true => {
+        iterations.set(label, { ends, levels, maps });
+        return define(label, "list", "SegmentIteration", [
+            literal(
+                ends
+                    .flat()
+                    .map((end) => `_${objects.get(end)!.variable}`)
+                    .join(","),
+            ),
+            literal(levels),
+            literal(maps.map((map) => map.flat().join(",")).join(";")),
+        ]);
+    };
+
+    // The image of an iteration by a direct similarity is the iteration of
+    // its start segments' images, since its maps commute with it.
+    const iterationImage =
+        (transform: Handler): Handler =>
+        (inputs, outputs) => {
+            const iteration = iterations.get(inputs[0]);
+            if (!iteration) return transform(inputs, outputs);
+            const ends = iteration.ends.map((pair) =>
+                pair.map((end) => {
+                    const image = auxiliary();
+                    return transform([end, ...inputs.slice(1)], [image])
+                        ? image
+                        : "";
+                }),
+            );
+            return (
+                ends.flat().every(Boolean) &&
+                defineIteration(
+                    outputs[0],
+                    ends,
+                    iteration.levels,
+                    iteration.maps,
+                )
+            );
+        };
 
     const pointOn = (label: string, support: string, boundary: boolean) => {
         const kind = kindOf(support);
@@ -1406,7 +1607,7 @@ export function translateGgb(xml: string): GgbTranslation {
         Reflect: mirror,
         // Rotate(P, a, C) as P + (R(a) - I)(P - C), which keeps P's height
         // in 3D; C defaults to the origin.
-        Rotate: ([source, angle, center, extra], [label]) => {
+        Rotate: iterationImage(([source, angle, center, extra], [label]) => {
             const a = formula(angle, VALUE_KINDS);
             if (
                 extra !== undefined ||
@@ -1428,8 +1629,8 @@ export function translateGgb(xml: string): GgbTranslation {
                 label,
             );
             return true;
-        },
-        Dilate: ([source, factor, center, extra], [label]) => {
+        }),
+        Dilate: iterationImage(([source, factor, center, extra], [label]) => {
             const k = formula(factor, VALUE_KINDS);
             if (
                 extra !== undefined ||
@@ -1442,13 +1643,13 @@ export function translateGgb(xml: string): GgbTranslation {
             const c = center && objects.get(center)!.variable;
             formulaPoint(c ? `${c}+(${p}-${c})*(${k})` : `${p}*(${k})`, label);
             return true;
-        },
+        }),
         Vector: ([p, q], [label]) => {
             if (!points(p, q)) return false;
             vectors.set(label, [p, q]);
             return define(label, "line", "Vector", [ref(p), ref(q)]);
         },
-        Translate: ([source, vector, extra], [label]) => {
+        Translate: iterationImage(([source, vector, extra], [label]) => {
             const ends = vectors.get(vector);
             if (extra !== undefined || !ends || !points(source)) return false;
             const [p, a, b] = [source, ...ends].map(
@@ -1456,6 +1657,87 @@ export function translateGgb(xml: string): GgbTranslation {
             );
             formulaPoint(`${p}+${b}-${a}`, label);
             return true;
+        }),
+        // Iteration(Flatten(Zip({f1(k), f2(k), …}, k, m)), m, {s1, …}, n):
+        // n times, each segment k is replaced by its images f1(k), f2(k), …
+        Iteration: ([expression, variable, start, count, extra], [label]) => {
+            const flatten = commandCall(normalizeBrackets(expression));
+            const zip =
+                flatten?.[0] === "Flatten" && flatten[1].length === 1
+                    ? commandCall(flatten[1][0])
+                    : null;
+            const [images, segment, list, rest] =
+                zip?.[0] === "Zip" ? zip[1] : [];
+            const ends = splitArguments(start.replace(/[{}]/g, ""))?.map(
+                (input) => segments.get(input),
+            );
+            const levels = formula(count ?? "", VALUE_KINDS);
+            if (
+                extra !== undefined ||
+                rest !== undefined ||
+                list !== variable ||
+                !/^\{.*\}$/.test(images ?? "") ||
+                !ends?.every(Boolean) ||
+                levels === null
+            )
+                return false;
+            const maps = splitArguments(images.slice(1, -1))!.map((image) =>
+                localValue(image, segment),
+            );
+            return (
+                maps.every((map) => map !== null && isSegment(map)) &&
+                defineIteration(
+                    label,
+                    ends as string[][],
+                    levels,
+                    maps as SegmentMap[],
+                )
+            );
+        },
+        // Sequence(f(i), i, a, b, s): the List of f(a), f(a + s), … up to b,
+        // f being a point or a segment.
+        Sequence: (
+            [expression, variable, from, to, step = "1", extra],
+            [label],
+        ) => {
+            const [a, b, s] = [from, to, step].map((bound) =>
+                formula(bound ?? "", VALUE_KINDS),
+            );
+            if (
+                extra !== undefined ||
+                is3D ||
+                a === null ||
+                b === null ||
+                s === null ||
+                !IDENTIFIER.test(variable)
+            )
+                return false;
+            const call = commandCall(normalizeBrackets(expression));
+            const ends =
+                call?.[0] === "Segment" && call[1].length === 2
+                    ? call[1]
+                    : [expression];
+            const locals = new Map([[variable, `${a}+k*(${s})`]]);
+            const formulas = ends.map((end) =>
+                formula(end, VALUE_KINDS, locals),
+            );
+            if (formulas.some((value) => value === null)) return false;
+            const element = elements.get(label);
+            const size = element && attribute(element, "pointSize", "val");
+            return define(
+                label,
+                "list",
+                "List",
+                [
+                    literal(ends.length === 2 ? "segment" : "point"),
+                    // Rounded by the List: floor(r) + 1 values, with a margin
+                    // for r's rounding errors.
+                    literal(`((${b})-(${a}))/(${s})+0.500001`),
+                    ...formulas.map((value) => literal(value!)),
+                ],
+                element &&
+                    `${objectStyle(element, "list")}${ends.length === 1 && size ? `;s:${size}` : ""}`,
+            );
         },
         Locus: ([p, q, extra], [label]) =>
             extra === undefined &&
@@ -1579,11 +1861,13 @@ export function translateGgb(xml: string): GgbTranslation {
         }
         if (type === "numeric" || type === "angle")
             return numeric(label, element);
+        // Scripts never run: a button has nothing to do.
+        if (type === "button") return true;
         if (type === "function" && source !== undefined) {
             const body = formula(
                 source.replace(FUNCTION_DEFINITION, ""),
                 ["expression"],
-                true,
+                new Map([["x", "x"]]),
             );
             return (
                 body !== null &&
@@ -1664,10 +1948,10 @@ export function translateGgb(xml: string): GgbTranslation {
             define(label, "point", "Point", vectorLiteral([x, y, z ?? 0]));
             return label;
         }
-        const match = COMMAND_EXPRESSION.exec(text);
-        const args = match && splitArguments(match[2]);
-        const handler = match && HANDLERS[match[1]];
-        return args && handler?.(args.map(resolve), [label]) ? label : input;
+        const call = commandCall(text);
+        return call && HANDLERS[call[0]]?.(call[1].map(resolve), [label])
+            ? label
+            : input;
     };
 
     [...construction.children].forEach((node) => {

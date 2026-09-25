@@ -26,7 +26,7 @@ export type ListRef = point_object | expression_object;
 // bounds computation (mirrors locus_object's MAX_SAMPLES); label results
 // need one real DOM node each (see render()), so they get a much smaller
 // pool.
-const MAX_LIST_COUNT = 5000;
+export const MAX_LIST_COUNT = 5000;
 const MAX_LABEL_COUNT = 500;
 
 // Reserved loop-scope names inside a List's own formulas: "i" is already the
@@ -73,7 +73,7 @@ export class list_object extends construction_object {
         this.addParents(...refs.values());
     }
 
-    private baseEnv(): FormulaEnv {
+    protected baseEnv(): FormulaEnv {
         return {
             resolveIdentifier: (n) => {
                 const ref = this.refs.get(n);
@@ -117,13 +117,11 @@ export class list_object extends construction_object {
     }
 
     project(): void {
-        // The "label" nature's second formula is a value to format as text,
-        // not a position: only index 0 is ever projected for it.
-        const positionCount =
-            this.nature === "label" ? 1 : this.formulas.length;
         this.screenItems = this.items.map((values) =>
             values.map((value, index) => {
-                if (index >= positionCount) return null;
+                // The "label" nature's second formula is a value to format
+                // as text, not a position.
+                if (this.nature === "label" && index > 0) return null;
                 if (value === null || typeof value === "number") return null;
                 const screen = this.C.pt3D([value[0], value[1], 0]);
                 return vIsFinite(screen) ? screen : null;

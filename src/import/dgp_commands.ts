@@ -23,6 +23,7 @@ import {
     fixed_angle_object,
 } from "../objects/fixed_angle_object";
 import { createFixedPoint } from "../objects/fixed_point_object";
+import { createIteration, type SegmentMap } from "../objects/iteration_object";
 import { createFormulaPoint } from "../objects/formula_point_object";
 import {
     createOrderedIntersection,
@@ -427,7 +428,7 @@ function validateListFormulaReferences(
     formulaIdentifiers(formulaNode).forEach((name) => {
         if (name === "k" || name === "count") return;
         const kind = variables.get(name);
-        if (kind !== "point" && kind !== "expression")
+        if (kind !== "point" && kind !== "pointOn" && kind !== "expression")
             throw new Error(`Unknown DGP reference at line ${lineNumber}`);
     });
 }
@@ -1282,6 +1283,78 @@ const COMMANDS = new Map<string, CommandDefinition>([
                     args[3] as point_object,
                     args.slice(4) as [point_object, point_object, point_object],
                 ),
+        },
+    ],
+    // Not a DGPad command: GeoGebra's Iteration of segments, from their
+    // ends "_P1,_Q1,_P2,_Q2,…", the number of levels, and each map's a and b
+    // as "ax,ay,bx,by;…" (see iteration_object).
+    [
+        "SegmentIteration",
+        {
+            parameters: [string, string, string, string],
+            result: "list",
+            validate: (args, lineNumber, variables) => {
+                const ends = literalString(args[1]).split(",");
+                if (
+                    ends.length % 2 !== 0 ||
+                    ends.some(
+                        (token) =>
+                            !accepts(
+                                variables.get(
+                                    polygonPointName(token, lineNumber),
+                                )!,
+                                "point",
+                            ),
+                    )
+                )
+                    throw new Error(
+                        `Unknown DGP reference at line ${lineNumber}`,
+                    );
+                validateListFormulaReferences(
+                    parseListFormula(literalString(args[2]), lineNumber),
+                    variables,
+                    lineNumber,
+                );
+                literalString(args[3])
+                    .split(";")
+                    .forEach((map) => {
+                        const values = map.split(",");
+                        if (
+                            values.length !== 4 ||
+                            values.some((value) => !STYLE_NUMBER.test(value))
+                        )
+                            throw new Error(
+                                `Invalid DGP segment map at line ${lineNumber}`,
+                            );
+                    });
+            },
+            execute: (context, args) => {
+                const ends = (args[1] as string)
+                    .split(",")
+                    .map(
+                        (token) =>
+                            context.variables.get(
+                                token.slice(1),
+                            ) as point_object,
+                    );
+                const levels = parseFormula(args[2] as string);
+                return createIteration(
+                    context.construction,
+                    args[0] as string,
+                    ends.flatMap((end, index) =>
+                        index % 2 === 0 ? [[end, ends[index + 1]]] : [],
+                    ) as [point_object, point_object][],
+                    levels,
+                    listFormulaRefs([levels], context.variables),
+                    (args[3] as string).split(";").map((map) => {
+                        const [ax, ay, bx, by] = map.split(",").map(Number);
+                        return [
+                            [ax, ay],
+                            [bx, by],
+                        ] as SegmentMap;
+                    }),
+                );
+            },
         },
     ],
     // Not a DGPad command: GeoGebra's Intersect(line, sphere), the sphere

@@ -9,6 +9,8 @@ import { cylinder_intersection_object } from "../../src/objects/cylinder_interse
 import { cylinder_section_object } from "../../src/objects/cylinder_section_object";
 import { expression_object } from "../../src/objects/expression_object";
 import { fixed_point_object } from "../../src/objects/fixed_point_object";
+import { iteration_object } from "../../src/objects/iteration_object";
+import { list_object } from "../../src/objects/list_object";
 import { locus_object } from "../../src/objects/locus_object";
 import { point_on_object } from "../../src/objects/point_on_object";
 import { point_object } from "../../src/objects/point_object";
@@ -27,6 +29,7 @@ import {
     vNorm,
     vScale,
     vSub,
+    type Vec2,
     type Vec3,
 } from "../../src/vec";
 
@@ -1020,6 +1023,106 @@ ${lines.map((line, index) => command("Plane", ["C", line], `p${index}`)).join("\
         expect(k[0]).toBeCloseTo(2, 6);
         expect(image[0]).toBeCloseTo(k[0] + cos * (dx - dy), 9);
         expect(image[1]).toBeCloseTo(k[1] + cos * (dx + dy), 9);
+    });
+
+    it("iterates segments into a Koch snowflake following its slider", async () => {
+        const c = createConstruction();
+        expect(importGgb(c, await loadXml("_koch"))).toEqual([]);
+        const [a, b, d] = ["A", "B", "D"].map(
+            (name) => (c.getObj(name) as point_object).coords,
+        );
+        const curves = ["l4", "l4'", "l4'_{1}"].map(
+            (name) => c.getObj(name) as iteration_object,
+        );
+        curves.forEach((curve) =>
+            expect(curve).toBeInstanceOf(iteration_object),
+        );
+        await new Promise((resolve) => requestAnimationFrame(resolve));
+        expect(curves.map((curve) => curve.count)).toEqual([1, 1, 1]);
+
+        const slider = c.getObj("a") as expression_object;
+        slider.value = 1;
+        c.invalidateGeometry(slider);
+        await new Promise((resolve) => requestAnimationFrame(resolve));
+        const [first, rotated] = curves.map((curve) => curve.items as Vec2[][]);
+        const [dx, dy] = vScale(vSub(b, a), 1 / 3);
+        const rotate = ([x, y]: Vec2, cos: number, sin: number): Vec2 => [
+            cos * x - sin * y,
+            sin * x + cos * y,
+        ];
+        const third: Vec2 = [dx, dy];
+        const start: Vec2 = [a[0], a[1]];
+        const vertices = [
+            start,
+            vAdd(start, third),
+            vAdd(vAdd(start, third), rotate(third, 1 / 2, Math.sqrt(3) / 2)),
+            vAdd(start, vScale(third, 2)),
+            [b[0], b[1]] as Vec2,
+        ];
+        first.forEach((segment, index) =>
+            segment.forEach((point, side) =>
+                point.forEach((value, axis) =>
+                    expect(value).toBeCloseTo(vertices[index + side][axis], 9),
+                ),
+            ),
+        );
+        const center: Vec2 = [d[0], d[1]];
+        rotated.forEach((segment, index) =>
+            segment.forEach((point, side) => {
+                const image = vAdd(
+                    center,
+                    rotate(
+                        vSub(first[index][side], center),
+                        -1 / 2,
+                        Math.sqrt(3) / 2,
+                    ),
+                );
+                point.forEach((value, axis) =>
+                    expect(value).toBeCloseTo(image[axis], 9),
+                );
+            }),
+        );
+
+        slider.value = 6;
+        c.invalidateGeometry(slider);
+        await new Promise((resolve) => requestAnimationFrame(resolve));
+        expect(curves.map((curve) => curve.count)).toEqual([4096, 4096, 4096]);
+    });
+
+    it("imports sequences of points and segments following their slider", async () => {
+        const c = createConstruction();
+        expect(importGgb(c, await loadXml("_lists"))).toEqual([]);
+        const [points, segments] = ["liste1", "liste2"].map(
+            (name) => c.getObj(name) as list_object,
+        );
+        const slider = c.getObj("a") as expression_object;
+        const spiral = (i: number): Vec2 => {
+            const angle = (i * (slider.value as number) * Math.PI) / 180;
+            const r = 0.2 * Math.sqrt(i);
+            return [r * Math.cos(angle), r * Math.sin(angle)];
+        };
+        const expectSpiral = () => {
+            expect([points.count, segments.count]).toEqual([500, 500]);
+            points.items.forEach(([point], index) =>
+                spiral(index + 1).forEach((value, axis) =>
+                    expect((point as Vec2)[axis]).toBeCloseTo(value, 9),
+                ),
+            );
+            segments.items.forEach((ends, index) =>
+                ends.forEach((end, side) =>
+                    spiral(index + 1 + side).forEach((value, axis) =>
+                        expect((end as Vec2)[axis]).toBeCloseTo(value, 9),
+                    ),
+                ),
+            );
+        };
+        await new Promise((resolve) => requestAnimationFrame(resolve));
+        expectSpiral();
+
+        slider.value = 137.5;
+        c.invalidateGeometry(slider);
+        await new Promise((resolve) => requestAnimationFrame(resolve));
+        expectSpiral();
     });
 
     it("leaves edges already drawn by a segment to that segment", async () => {
