@@ -70,6 +70,11 @@ function pathData(points: readonly Vec2[]): string {
 
 export class polygon_object extends construction_object {
     points: point_object[];
+    private vertices: point_object[];
+    // A plane's section of a solid (see IntersectPath in ggb_translate.ts)
+    // has a vertex on each edge, undefined where the plane misses the edge:
+    // unlike DGPad's polygons, it keeps its defined vertices.
+    section = false;
     screenPoints: Vec2[];
     projectionDefined: boolean;
     path!: DOMElement;
@@ -99,6 +104,7 @@ export class polygon_object extends construction_object {
     ) {
         super(c, name, "polygon");
         this.points = points;
+        this.vertices = points;
         this.screenPoints = points.map((): Vec2 => [0, 0]);
         this.projectionDefined = true;
         this.familytype = "polygon";
@@ -118,7 +124,12 @@ export class polygon_object extends construction_object {
     }
 
     computeGeometry(): void {
-        this.defined = this.points.every((p) => p.defined);
+        if (!this.section) {
+            this.defined = this.points.every((p) => p.defined);
+            return;
+        }
+        this.points = this.vertices.filter((p) => p.defined);
+        this.defined = this.points.length >= 3;
     }
 
     pointAt(

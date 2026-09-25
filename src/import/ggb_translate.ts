@@ -227,6 +227,7 @@ export function translateGgb(xml: string): GgbTranslation {
     >();
     const vectors = new Map<string, [string, string]>();
     const polygons = new Map<string, string[]>();
+    const polyhedra = new Map<string, [string, string][]>();
     const elements = new Map<string, Element>();
     const expressions = new Map<string, string>();
     const commandOutputs = new Set<string>();
@@ -959,8 +960,10 @@ export function translateGgb(xml: string): GgbTranslation {
             return true;
         },
         // Pyramid(A, B, C, …, S): the base, then each lateral face V(i)V(i+1)S;
-        // the base edges, then each lateral edge V(i)S.
-        Pyramid: (inputs, [, ...outputs]) => {
+        // the base edges, then each lateral edge V(i)S. A plane cuts either
+        // every lateral edge, or two base edges and the lateral edges in
+        // between, so its section follows SV1, V1V2, SV2, V2V3, …
+        Pyramid: (inputs, [solid, ...outputs]) => {
             if (inputs.length < 4 || !points(...inputs)) return false;
             const base = inputs.slice(0, -1);
             const apex = inputs[inputs.length - 1];
@@ -984,6 +987,13 @@ export function translateGgb(xml: string): GgbTranslation {
                 const label = outputs[n + 1 + index];
                 if (label) defineSegment(label, p, q);
             });
+            polyhedra.set(
+                solid,
+                base.flatMap((vertex, index): [string, string][] => [
+                    [apex, vertex],
+                    [vertex, base[(index + 1) % n]],
+                ]),
+            );
             return true;
         },
         // Prism(A, B, C, …, P) or Prism(poly, P): P is the top vertex over A,
@@ -1065,11 +1075,31 @@ export function translateGgb(xml: string): GgbTranslation {
             planes.set(label, { center, normal, half });
             return true;
         },
-        // The line where planes p and q meet, defined like a line AB by two
-        // points centered on the foot of the planes' centers' midpoint, as
-        // far apart as the planes are wide, so its tips frame them.
+        // The section of a pyramid by plane p, with a vertex where p cuts each
+        // edge; or the line where planes p and q meet, defined like a line AB
+        // by two points centered on the foot of the planes' centers'
+        // midpoint, as far apart as the planes are wide, so its tips frame
+        // them.
         IntersectPath: ([first, second, extra], [label]) => {
             const [p, q] = [first, second].map((input) => planes.get(input));
+            const edges = polyhedra.get(second);
+            if (extra === undefined && p && edges) {
+                // asin(2t - 1) is undefined unless the plane cuts the edge.
+                definePolygon(
+                    label,
+                    edges.map((ends) => {
+                        const [a, b] = ends.map(
+                            (end) => objects.get(end)!.variable,
+                        );
+                        const t = `dot(${p.normal},${p.center}-${a})/dot(${p.normal},${b}-${a})`;
+                        return formulaPoint(
+                            `${a}+(${b}-${a})*(${t}+0*asin(2*${t}-1))`,
+                        );
+                    }),
+                );
+                push(null, "STL", [ref(label), literal("su:true")]);
+                return true;
+            }
             if (extra !== undefined || !p || !q) return false;
             const direction = `cross(${p.normal},${q.normal})`;
             const across = `cross(${p.normal},${direction})`;

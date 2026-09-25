@@ -526,6 +526,57 @@ ${[
         expect(vNorm(along)).toBeLessThan(40);
     });
 
+    it("cuts a pyramid by a plane into a triangle, then a quadrilateral", async () => {
+        const c = createConstruction();
+        const xml = await loadXml("3d_inter_plan_pyra");
+        expect(importGgb(c, xml)).toEqual([]);
+        await new Promise((resolve) => requestAnimationFrame(resolve));
+
+        const section = c.getObj("H") as polygon_object;
+        expect(section).toBeInstanceOf(polygon_object);
+        expect(section.defined).toBe(true);
+        const saved = [
+            [-1.4654544750295582, -2.4893492757966564, 3.004648690679991],
+            [2.1080589172050845, -1.3990631480471192, 3.4922875501861546],
+            [-1.127030581165907, 1.6936599014323954, 0.6443651406486601],
+        ];
+        expect(section.points).toHaveLength(3);
+        saved.forEach((coords) =>
+            expect(
+                section.points.some(
+                    (vertex) =>
+                        vNorm(vSub(vertex.coords, coords as never)) < 1e-9,
+                ),
+            ).toBe(true),
+        );
+
+        const f = c.getObj("F") as point_object;
+        const [x, y] = c.pt3D([0, 4, 0]);
+        f.mousedrag(
+            new PointerEvent("pointermove", { clientX: x, clientY: y }),
+        );
+        await new Promise((resolve) => requestAnimationFrame(resolve));
+
+        const [a, b, apex] = ["A", "B", "C"].map(
+            (name) => (c.getObj(name) as point_object).coords,
+        );
+        const normal = vCross(vSub(b, a), vSub(apex, a));
+        expect(section.points).toHaveLength(4);
+        section.points.forEach((vertex) =>
+            expect(vDot(vSub(vertex.coords, a), normal)).toBeCloseTo(0, 6),
+        );
+        const [p0, p1, p2, p3] = section.points.map((vertex) => vertex.coords);
+        const turns = [
+            [p0, p1, p2],
+            [p1, p2, p3],
+            [p2, p3, p0],
+            [p3, p0, p1],
+        ].map(([u, v, w]) => vDot(vCross(vSub(v, u), vSub(w, v)), normal));
+        expect(
+            turns.every((turn) => turn > 0) || turns.every((turn) => turn < 0),
+        ).toBe(true);
+    });
+
     it("builds reflections, inversions, rotations, translations and dilations", async () => {
         const c = createConstruction();
         const xml = await loadXml("transformations");

@@ -500,6 +500,7 @@ function validateObjectStyle(
             case "sb":
             case "tk":
             case "pl":
+            case "su":
                 if (propertyValue !== "true" && propertyValue !== "false")
                     throw new Error(
                         `Invalid DGP style boolean at line ${lineNumber}`,
@@ -636,6 +637,10 @@ function applyObjectStyle(
             case "pl":
                 if (target instanceof polygon_object)
                     target.plane = propertyValue === "true";
+                break;
+            case "su":
+                if (target instanceof polygon_object)
+                    target.section = propertyValue === "true";
                 break;
             case "tk":
                 if (target instanceof point_object)
