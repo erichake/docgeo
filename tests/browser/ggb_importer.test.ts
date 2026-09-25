@@ -17,9 +17,18 @@ import { sphere_object } from "../../src/objects/sphere_object";
 import { two_points_line_object } from "../../src/objects/two_points_line_object";
 import { vector_object } from "../../src/objects/vector_object";
 import { preferences } from "../../src/preferences";
+import type { primitive_line_object } from "../../src/objects/primitive_line_object";
 import type { primitive_circle_object } from "../../src/objects/primitive_circle_object";
 import type { primitive_quadric_object } from "../../src/objects/primitive_quadric_object";
-import { vAdd, vCross, vDot, vNorm, vScale, vSub } from "../../src/vec";
+import {
+    vAdd,
+    vCross,
+    vDot,
+    vNorm,
+    vScale,
+    vSub,
+    type Vec3,
+} from "../../src/vec";
 
 function createConstruction(): construction {
     document.documentElement.style.width = "100%";
@@ -920,6 +929,68 @@ ${[
 
         await moveC(top + 1);
         expect(section.defined).toBe(false);
+    });
+
+    it("keeps the plane through a point and a line as the point moves", async () => {
+        const c = createConstruction();
+        const xml = await loadXml("3d_inter7");
+        expect(importGgb(c, xml)).toEqual([]);
+        await new Promise((resolve) => requestAnimationFrame(resolve));
+
+        const point = (name: string) => (c.getObj(name) as point_object).coords;
+        const plane = c.getObj("p") as polygon_object;
+        expect(plane.plane).toBe(true);
+        const expectThrough = () => {
+            const [a, b, p] = [point("A"), point("B"), point("C")];
+            const normal = vCross(vSub(b, a), vSub(p, a));
+            plane.points.forEach((corner) =>
+                expect(vDot(vSub(corner.coords, a), normal)).toBeCloseTo(0, 9),
+            );
+        };
+        expectThrough();
+        const [x, y] = c.pt3D([3, 2, 0]);
+        (c.getObj("C") as point_object).mousedrag(
+            new PointerEvent("pointermove", { clientX: x, clientY: y }),
+        );
+        await new Promise((resolve) => requestAnimationFrame(resolve));
+        expect(point("C")[0]).toBeCloseTo(3, 6);
+        expectThrough();
+    });
+
+    it("builds the plane through a point and any kind of line", async () => {
+        const c = createConstruction();
+        const point = (label: string, [x, y, z]: Vec3) =>
+            `<element type="point3d" label="${label}"><coords x="${x}" y="${y}" z="${z}" w="1"/></element>`;
+        const command = (name: string, inputs: string[], output: string) =>
+            `<command name="${name}"><input ${inputs.map((input, index) => `a${index}="${input}"`).join(" ")}/><output a0="${output}"/></command>`;
+        const lines = ["zAxis", "s", "r", "par", "i"];
+        expect(
+            importGgb(
+                c,
+                `<geogebra><euclidianView3D><coordSystem xZero="0" yZero="0" zZero="0" scale="50" xAngle="20" zAngle="-60"/></euclidianView3D><construction>
+${point("A", [1, 2, 0])}${point("B", [-1, 3, 4])}${point("C", [3, -2, 1])}${point("D", [0, 1, 2])}
+${command("Segment", ["A", "B"], "s")}
+${command("Ray", ["A", "B"], "r")}
+${command("Line", ["D", "s"], "par")}
+${command("Plane", ["A", "B", "D"], "q")}
+${command("IntersectPath", ["q", "xOyPlane"], "i")}
+${lines.map((line, index) => command("Plane", ["C", line], `p${index}`)).join("\n")}
+</construction></geogebra>`,
+            ),
+        ).toEqual([]);
+        await new Promise((resolve) => requestAnimationFrame(resolve));
+
+        const through = (c.getObj("C") as point_object).coords;
+        lines.forEach((label, index) => {
+            const line = c.getObj(label) as primitive_line_object;
+            const normal = vCross(line.VEC, vSub(line.P1.coords, through));
+            (c.getObj(`p${index}`) as polygon_object).points.forEach((corner) =>
+                expect(
+                    vDot(vSub(corner.coords, through), normal),
+                    label,
+                ).toBeCloseTo(0, 9),
+            );
+        });
     });
 
     it("builds reflections, inversions, rotations, translations and dilations", async () => {

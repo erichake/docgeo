@@ -1273,10 +1273,22 @@ export function translateGgb(xml: string): GgbTranslation {
         // Plane(A, B, C): a square in plane ABC around the triangle's
         // centroid, along AB, at least as large as the floor and always
         // reaching past A, B and C. Plane(A, p): through A, parallel to p.
+        // Plane(A, f): through A and f, normal to f's direction and to A's
+        // reflection in f.
         Plane: (inputs, [label]) => {
             const parallel = planes.get(inputs[1]);
             if (inputs.length === 2 && points(inputs[0]) && parallel)
                 return planeThrough(label, inputs[0], parallel.normal);
+            const [point, line] = inputs;
+            if (inputs.length === 2 && points(point) && is(line, ["line"])) {
+                const [tip, image] = [auxiliary(), auxiliary()];
+                define(tip, "point", "DirectionPoint", [ref(line), ref(point)]);
+                define(image, "point", "Reflection", [ref(line), ref(point)]);
+                const [a, t, r] = [point, tip, image].map(
+                    (input) => objects.get(input)!.variable,
+                );
+                return planeThrough(label, point, `cross(${t}-${a},${r}-${a})`);
+            }
             if (inputs.length !== 3 || !points(...inputs)) return false;
             const [a, b, c] = inputs.map(
                 (input) => objects.get(input)!.variable,
