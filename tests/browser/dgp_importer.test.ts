@@ -1144,7 +1144,10 @@ C1=Circle1("C1",A,"d(A,Z)");`,
         expect(p6.coords).toEqual([1.5, 1, 0]);
 
         // "S13.setHidden(1-E18)": Déployer isn't at P5.
-        expect(c.getObj("S13")!.hidden).toBe(1);
+        const s13 = c.getObj("S13") as segment_object;
+        expect(s13.hidden).toBe(1);
+        // Its "dh:true" style dashes it all along.
+        expect(s13.dash).toBe(true);
 
         // "if(theta()<0) {...Poly5.setOpacity(0.95);} else {...(0.2);}; \"program3\""
         const e4 = c.getObj("E4") as expression_object;

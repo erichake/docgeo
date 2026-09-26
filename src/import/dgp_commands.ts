@@ -562,6 +562,7 @@ function validateObjectStyle(
             case "pl":
             case "su":
             case "cV":
+            case "dh":
                 if (propertyValue !== "true" && propertyValue !== "false")
                     throw new Error(
                         `Invalid DGP style boolean at line ${lineNumber}`,
@@ -786,6 +787,10 @@ function applyObjectStyle(
             case "cV":
                 if (target instanceof expression_object)
                     target.vertical = propertyValue === "true";
+                break;
+            case "dh":
+                if (target instanceof primitive_line_object)
+                    target.dash = propertyValue === "true";
                 break;
             case "cPT":
                 if (target instanceof expression_object)

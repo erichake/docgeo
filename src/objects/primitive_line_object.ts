@@ -61,6 +61,8 @@ export class primitive_line_object extends construction_object {
     hiddenPath!: DOMElement;
     tipPath1!: DOMElement;
     tipPath2!: DOMElement;
+    // DGPad's "dh" style: dashed all along, not only where hidden.
+    dash = false;
     // Whether this line draws tapered Cabri-style tips instead of running
     // to the canvas edge. True for genuinely infinite lines; segment_object
     // and ray_line_object (which have real endpoints) turn it off.
@@ -300,18 +302,20 @@ export class primitive_line_object extends construction_object {
                 "fill:none;stroke:transparent;pointer-events:stroke;cursor:pointer",
             )
             .stl("stroke-width", t.prefs[t.type].touchsize);
+        const dashes = `${t.size * 3} ${t.size * 2}`;
         t.path = t.svg
             .shape("path")
             .stl("fill", "none")
             .stl("stroke", t.stroke_color)
             .stl("stroke-width", t.size)
+            .stl("stroke-dasharray", t.dash ? dashes : "none")
             .stl("pointer-events", "none");
         t.hiddenPath = t.svg
             .shape("path")
             .stl("fill", "none")
             .stl("stroke", t.stroke_color)
             .stl("stroke-width", t.size)
-            .stl("stroke-dasharray", `${t.size * 3} ${t.size * 2}`)
+            .stl("stroke-dasharray", dashes)
             .stl("pointer-events", "none");
         t.tipPath1 = t.svg
             .shape("path")
