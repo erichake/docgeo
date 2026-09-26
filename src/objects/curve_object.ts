@@ -3,7 +3,7 @@ import type { DOMElement } from "../dom";
 import { realPart, type FormulaView } from "../import/dgp_formula";
 import { GEOMETRY_EPSILON, vIsFinite, type Vec2, type Vec3 } from "../vec";
 import { construction_object } from "./construction_object";
-import { evaluateAtX, type ExpressionFormula } from "./expression_object";
+import { evaluateFunction, type ExpressionFormula } from "./expression_object";
 
 const SAMPLES_MIN = 2;
 const SAMPLES_MAX = 2000;
@@ -106,7 +106,9 @@ export class curve_object extends construction_object {
     pointAt(x: number): Vec3 | null {
         if (this.min !== null && x < this.min) return null;
         if (this.max !== null && x > this.max) return null;
-        const y = realPart(evaluateAtX(this.formula, x, this.C.formulaView()));
+        const y = realPart(
+            evaluateFunction(this.formula, [x], this.C.formulaView()),
+        );
         return y === null ? null : [x, y, 0];
     }
 
@@ -170,7 +172,7 @@ export class curve_object extends construction_object {
     }
 
     private screenAt(x: number, view: FormulaView): Vec2 | null {
-        const y = realPart(evaluateAtX(this.formula, x, view));
+        const y = realPart(evaluateFunction(this.formula, [x], view));
         if (y === null) return null;
         const screen = this.C.pt3D([x, y, 0]);
         return vIsFinite(screen) ? screen : null;

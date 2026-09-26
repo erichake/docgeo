@@ -8,7 +8,7 @@ import { circle1_object } from "../../src/objects/circle1_object";
 import { curve_object } from "../../src/objects/curve_object";
 import { NO_VIEW, realPart } from "../../src/import/dgp_formula";
 import {
-    evaluateAtX,
+    evaluateFunction,
     expression_object,
 } from "../../src/objects/expression_object";
 import { fixed_angle_object } from "../../src/objects/fixed_angle_object";
@@ -679,9 +679,11 @@ P=PointOn("P",poly,0.5);`,
         // f1's own formula is "E1(x)": evaluating it must match E1's formula
         // (0.5x^2-4) evaluated directly at the same x.
         [-3, 0, 2.5].forEach((x) => {
-            const viaCurve = realPart(evaluateAtX(f1.formula, x, NO_VIEW));
+            const viaCurve = realPart(
+                evaluateFunction(f1.formula, [x], NO_VIEW),
+            );
             const viaExpression = realPart(
-                evaluateAtX(e1.formula!, x, NO_VIEW),
+                evaluateFunction(e1.formula!, [x], NO_VIEW),
             );
             expect(viaCurve).toBeCloseTo(0.5 * x * x - 4);
             expect(viaCurve).toBeCloseTo(viaExpression!);
@@ -1158,6 +1160,44 @@ C1=Circle1("C1",A,"d(A,Z)");`,
         c.invalidateProjection();
         c.OBJS.update();
         expect(poly5.opacity).toBe(0.95);
+    });
+
+    it("calls function Expressions of z on complex numbers from scripts", async () => {
+        const c = createConstruction();
+        const unsupported = await importDgpFromUrl(c, "/tests/dgp/mandel.dgp");
+        expect(unsupported).toEqual([]);
+
+        // E1 is "z^2+c", E2 the sequence z(n+1)=E1(z(n)) from z0, and each
+        // Pk its term "E2[k-1]".
+        const e1 = c.getObj("E1") as expression_object;
+        expect(e1.formula!.variables).toEqual(["z"]);
+        const cPoint = c.getObj("c") as point_object;
+        const [cx, cy] = cPoint.coords;
+        const e2 = c.getObj("E2") as expression_object;
+        const terms = e2.value as [number, number][];
+        expect(terms).toHaveLength(4001);
+        expect(terms[0]).toEqual([cx, cy]);
+        expect(terms[1][0]).toBeCloseTo(cx * cx - cy * cy + cx);
+        expect(terms[1][1]).toBeCloseTo(2 * cx * cy + cy);
+        expect((c.getObj("P2") as point_object).coords).toEqual([
+            ...terms[1],
+            0,
+        ]);
+
+        // Outside the Mandelbrot set, the terms past the sequence's
+        // overflow are undefined, not the ones before.
+        cPoint.coords = [1, 1, 0];
+        c.invalidateGeometry(cPoint);
+        c.OBJS.update();
+        const length = (e2.value as unknown[]).length;
+        expect(length).toBeLessThan(20);
+        expect((c.getObj("P3") as point_object).defined).toBe(true);
+        expect((c.getObj("P100") as point_object).defined).toBe(false);
+        // The last finite term is too far away for the SVG to parse its
+        // position: it isn't drawn.
+        const last = c.getObj(`P${length}`) as point_object;
+        expect(Math.abs(last.sx)).toBeGreaterThan(1e38);
+        expect((last.dom.dom() as SVGElement).style.display).toBe("none");
     });
 
     it("keeps a 3D figure's saved turn around Oz, which the view can then follow freely", () => {

@@ -1213,6 +1213,8 @@ interface Scope {
     names: ReadonlySet<string>;
     locals: Map<string, ScriptValue | null>;
     steps: number;
+    // The lists the script already appended to, which it now owns.
+    grown: Set<ScriptValue[]>;
 }
 
 function truthy(value: ScriptValue | null): boolean {
@@ -1282,8 +1284,16 @@ function evalNode(node: FormulaNode, scope: Scope): ScriptValue | null {
             }
             const list = scope.locals.get(node.object);
             if (!Array.isArray(list) || args.includes(null)) return null;
-            const pushed = [...list, ...(args as ScriptValue[])];
-            scope.locals.set(node.object, pushed);
+            // Copied once, as it may be another object's value, then
+            // appended to in place: a copy per push would make building a
+            // list of n terms (e.g. a sequence's) quadratic.
+            let pushed = list as ScriptValue[];
+            if (!scope.grown.has(pushed)) {
+                pushed = [...list];
+                scope.grown.add(pushed);
+                scope.locals.set(node.object, pushed);
+            }
+            pushed.push(...(args as ScriptValue[]));
             return pushed.length;
         }
         case "vector":
@@ -1370,6 +1380,7 @@ export function evaluateProgram(
         names: program.locals,
         locals: new Map(),
         steps: 0,
+        grown: new Set(),
     };
     try {
         const value = run(program.body, scope);
@@ -1390,6 +1401,12 @@ export function evaluateFormula(
     env: FormulaEnv,
 ): FormulaValue | null {
     return formulaValue(
-        evalNode(node, { env, names: new Set(), locals: new Map(), steps: 0 }),
+        evalNode(node, {
+            env,
+            names: new Set(),
+            locals: new Map(),
+            steps: 0,
+            grown: new Set(),
+        }),
     );
 }

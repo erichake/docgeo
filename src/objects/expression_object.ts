@@ -83,14 +83,18 @@ function progressPath(
     );
 }
 
-// A named formula of x (e.g. "0.5x^2-4"), the reader's take on a DGPad
-// Expression that isn't a constant: `refs` holds the other function-valued
-// expressions its own formula calls by name (e.g. "E1(x)" inside another
-// expression's formula), so evaluateAtX can resolve those calls recursively.
+// A named formula of DGPad's function variables x, y, z, t (e.g.
+// "0.5x^2-4", or "z^2+c" applied to a complex number), the reader's take on
+// a DGPad Expression that isn't a constant: `refs` holds the points and
+// expressions it reads, including the function-valued ones its formula calls
+// by name (e.g. "E1(x)"), so evaluateFunction resolves those calls
+// recursively.
 export interface ExpressionFormula {
     node: FormulaNode;
     source: string;
-    refs: Map<string, expression_object>;
+    variables: string[];
+    refs: Map<string, point_object | expression_object>;
+    vec3: boolean;
 }
 
 // A formula or script that reads other objects' current state instead of
@@ -119,30 +123,40 @@ export function referenceValue(
     return vec3 ? [...ref.coords] : [ref.coords[0], ref.coords[1]];
 }
 
-export function evaluateAtX(
+// A call "E1(...)" of a function-valued expression among `refs`.
+function callFunction(
+    refs: Map<string, point_object | expression_object>,
+    name: string,
+    args: FormulaValue[],
+    view: FormulaView,
+): FormulaValue | null {
+    const ref = refs.get(name);
+    return ref instanceof expression_object && ref.formula
+        ? evaluateFunction(ref.formula, args, view)
+        : null;
+}
+
+export function evaluateFunction(
     formula: ExpressionFormula,
-    x: number,
+    args: FormulaValue[],
     view: FormulaView,
 ): FormulaValue | null {
     return evaluateFormula(formula.node, {
         resolveIdentifier: (name) => {
-            if (name === "x") return x;
-            const value = formula.refs.get(name)?.value;
-            return typeof value === "number" ? value : null;
+            const index = formula.variables.indexOf(name);
+            return index >= 0
+                ? (args[index] ?? null)
+                : referenceValue(formula.refs.get(name)!, formula.vec3);
         },
         view: () => view,
-        callFunction: (name, args) => {
-            const ref = formula.refs.get(name)?.formula;
-            if (!ref) return null;
-            const argX = realPart(args[0] ?? null);
-            return argX === null ? null : evaluateAtX(ref, argX, view);
-        },
+        callFunction: (name, callArgs) =>
+            callFunction(formula.refs, name, callArgs, view),
     });
 }
 
 // A read-only reader's take on DGPad's ExpressionObject: displays a
 // constant value (number, complex number as [re, im], or vector), a named
-// formula of x (e.g. "0.5x^2-4", via `formula`, used as a callable function
+// function (e.g. "0.5x^2-4", via `formula`, used as a callable function
 // by Curvus and other expressions), the value of a formula or script of
 // other objects (via `program`), and, when bounds are given, a draggable
 // slider that updates a constant value.
@@ -252,6 +266,8 @@ export class expression_object extends construction_object {
                     (grid.ORG[1] - y) / grid.UNIT[1],
                 ];
             },
+            callFunction: (name, args) =>
+                callFunction(refs, name, args, this.C.formulaView()),
             callMethod: (name, method, args) =>
                 this.style(targets.get(name)!, method, args),
         });

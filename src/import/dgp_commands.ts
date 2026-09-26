@@ -314,43 +314,47 @@ function tryParseProgram(source: string): Program | null {
     }
 }
 
-// A formula of x (e.g. "0.5x^2-4"), which the Expression displays and
-// Curvus plots, rather than a value.
-function functionFormula(program: Program): FormulaNode | null {
+const FUNCTION_VARIABLES = ["x", "y", "z", "t"];
+
+// A formula of DGPad's function variables (e.g. "0.5x^2-4", or "z^2+c"),
+// which the Expression displays and Curvus plots or other Expressions call,
+// rather than a value. As in DGPad, an object's name is never a variable.
+function functionFormula(
+    program: Program,
+    objects: Map<string, unknown>,
+): { node: FormulaNode; variables: string[] } | null {
     const [statement] = program.body;
-    return program.body.length === 1 &&
-        statement.kind === "expression" &&
-        formulaIdentifiers(statement.node).has("x")
-        ? statement.node
-        : null;
+    if (program.body.length !== 1 || statement.kind !== "expression")
+        return null;
+    const names = formulaIdentifiers(statement.node);
+    const variables = FUNCTION_VARIABLES.filter(
+        (name) => names.has(name) && !objects.has(name),
+    );
+    return variables.length ? { node: statement.node, variables } : null;
 }
 
-// A single-variable "function of x" formula (DGPad's Expression used as a
-// callable, e.g. Curvus's "E1(x)" or Expression's own "0.5x^2-4"): "x" is
-// the free sweep variable (excluded from reference checking), any other
-// identifier must be another function-of-x Expression called by name.
+// Apart from its variables, a function formula reads the figure's points and
+// Expressions, and calls function-valued Expressions by name (e.g. "E1(x)").
+function functionReferences(
+    formulaNode: FormulaNode,
+    functionVariables: string[],
+): Set<string> {
+    const names = formulaIdentifiers(formulaNode);
+    functionVariables.forEach((name) => names.delete(name));
+    return names;
+}
+
 function validateFunctionFormulaReferences(
     formulaNode: FormulaNode,
+    functionVariables: string[],
     variables: Map<string, ObjectKind>,
     lineNumber: number,
 ): void {
-    formulaIdentifiers(formulaNode).forEach((name) => {
-        if (name === "x") return;
-        if (variables.get(name) !== "expression")
+    functionReferences(formulaNode, functionVariables).forEach((name) => {
+        const kind = variables.get(name);
+        if (kind !== "point" && kind !== "pointOn" && kind !== "expression")
             throw new Error(`Unknown DGP reference at line ${lineNumber}`);
     });
-}
-
-function functionFormulaRefs(
-    formulaNode: FormulaNode,
-    variables: Map<string, construction_object>,
-): Map<string, expression_object> {
-    const refs = new Map<string, expression_object>();
-    formulaIdentifiers(formulaNode).forEach((name) => {
-        if (name === "x") return;
-        refs.set(name, variables.get(name) as expression_object);
-    });
-    return refs;
 }
 
 // A program reads the figure's points and Expressions, and styles any of
@@ -1730,10 +1734,11 @@ const COMMANDS = new Map<string, CommandDefinition>([
                         throw new Error(
                             `Unsupported DGP expression at line ${lineNumber}`,
                         );
-                    const node = functionFormula(program);
-                    if (node)
+                    const fn = functionFormula(program, variables);
+                    if (fn)
                         validateFunctionFormulaReferences(
-                            node,
+                            fn.node,
+                            fn.variables,
                             variables,
                             lineNumber,
                         );
@@ -1773,12 +1778,16 @@ const COMMANDS = new Map<string, CommandDefinition>([
                 let program: ExpressionProgram | null = null;
                 if (constant === null) {
                     const parsed = parseProgram(source);
-                    const node = functionFormula(parsed);
-                    if (node) {
+                    const fn = functionFormula(parsed, context.variables);
+                    if (fn) {
                         formula = {
-                            node,
+                            ...fn,
                             source,
-                            refs: functionFormulaRefs(node, context.variables),
+                            refs: pointFormulaRefs(
+                                functionReferences(fn.node, fn.variables),
+                                context.variables,
+                            ),
+                            vec3: context.is3D,
                         };
                     } else {
                         program = {
@@ -1839,6 +1848,7 @@ const COMMANDS = new Map<string, CommandDefinition>([
                 }
                 validateFunctionFormulaReferences(
                     formulaNode,
+                    ["x"],
                     variables,
                     lineNumber,
                 );
@@ -1851,7 +1861,12 @@ const COMMANDS = new Map<string, CommandDefinition>([
                 const formula: ExpressionFormula = {
                     node,
                     source,
-                    refs: functionFormulaRefs(node, context.variables),
+                    variables: ["x"],
+                    refs: pointFormulaRefs(
+                        functionReferences(node, ["x"]),
+                        context.variables,
+                    ),
+                    vec3: context.is3D,
                 };
                 return createCurve(
                     context.construction,

@@ -34,6 +34,10 @@ export type magnet_target =
 // jitter flips which one is "closest" every single frame, dragging the
 // point back and forth between them instead of following either one.
 const MAGNET_HYSTERESIS = 15;
+// Far beyond any window, yet within the single precision SVG parses its
+// numbers in: a point further away (e.g. a diverging sequence's term) isn't
+// drawn, rather than rejected by the SVG.
+const MAX_SCREEN = 1e7;
 
 // The closest point to `point` lying on `target` (segment/ray bounds
 // respected, same convention as point_on_object's own projection). A point
@@ -232,16 +236,19 @@ export class point_object extends construction_object {
     // *************************************************
 
     render(): void {
+        const drawn =
+            this.defined &&
+            this.projectionDefined &&
+            Math.abs(this.sx) < MAX_SCREEN &&
+            Math.abs(this.sy) < MAX_SCREEN;
         this.dom.stl(
             "display",
-            this.isVisible &&
-                this.projectionDefined &&
-                !isOccluded(this.C, this)
+            this.isVisible && drawn && !isOccluded(this.C, this)
                 ? "block"
                 : "none",
         );
         this.renderTrace();
-        if (!this.defined || !this.projectionDefined) return;
+        if (!drawn) return;
         this.dom.att("transform", `translate(${this.sx} ${this.sy})`);
         if (this.nameText) {
             const cos = Math.cos(this.namePosition);
