@@ -18,7 +18,7 @@ import type { sphere_object } from "./sphere_object";
 // Half-side, in math units, of the floor's finite tiling. Kept smaller than
 // the visible area on purpose: a floor covering the whole window would read
 // as a flat background instead of a plane sitting in space.
-const FLOOR_EXTENT = 5;
+const FLOOR_EXTENT = 8;
 
 // The floor is two-sided: a blue "sky" tone seen from above (z>0 looking
 // down), an earthy brown seen from below, so which side is currently facing
