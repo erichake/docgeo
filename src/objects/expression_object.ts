@@ -4,8 +4,10 @@ import {
     evaluateFormula,
     realPart,
     usesCoords2D,
+    usesView,
     type FormulaNode,
     type FormulaValue,
+    type FormulaView,
 } from "../import/dgp_formula";
 import type { Vec2 } from "../vec";
 import { construction_object } from "./construction_object";
@@ -119,7 +121,7 @@ export interface ScriptStatement {
 export function evaluateAtX(
     formula: ExpressionFormula,
     x: number,
-    pixelScale: number,
+    view: FormulaView,
 ): FormulaValue | null {
     return evaluateFormula(formula.node, {
         resolveIdentifier: (name) => {
@@ -127,12 +129,12 @@ export function evaluateAtX(
             const value = formula.refs.get(name)?.value;
             return typeof value === "number" ? [value, 0] : null;
         },
-        pixelScale: () => pixelScale,
+        view: () => view,
         callFunction: (name, args) => {
             const ref = formula.refs.get(name)?.formula;
             if (!ref) return null;
             const argX = realPart(args[0] ?? null);
-            return argX === null ? null : evaluateAtX(ref, argX, pixelScale);
+            return argX === null ? null : evaluateAtX(ref, argX, view);
         },
     });
 }
@@ -204,6 +206,7 @@ export class expression_object extends construction_object {
         this.viewDependent =
             pointFormula !== null &&
             (usesCoords2D(pointFormula.node) ||
+                usesView(pointFormula.node) ||
                 [...pointFormula.refs.values()].some(
                     (ref) =>
                         ref instanceof expression_object && ref.viewDependent,
@@ -250,7 +253,7 @@ export class expression_object extends construction_object {
                         : null;
                 return vec3 ? ref.coords : [ref.coords[0], ref.coords[1]];
             },
-            pixelScale: () => grid.UNIT[0],
+            view: () => this.C.formulaView(),
             coords2D: (name) => {
                 const ref = refs.get(name)!;
                 if (

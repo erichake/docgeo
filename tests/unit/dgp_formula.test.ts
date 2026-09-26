@@ -2,24 +2,26 @@ import { describe, expect, it } from "vitest";
 import {
     evaluateFormula,
     formulaIdentifiers,
+    NO_VIEW,
     parseFormula,
     type FormulaEnv,
+    type FormulaView,
 } from "../../src/import/dgp_formula";
 
 const noPoints: FormulaEnv = {
     resolveIdentifier: () => null,
-    pixelScale: () => {
+    view: () => {
         throw new Error("pixel() not expected");
     },
 };
 
 function envWith(
     points: Record<string, [number, number] | null>,
-    pixelScale = 40,
+    view: FormulaView = { ...NO_VIEW, unit: 40 },
 ): FormulaEnv {
     return {
         resolveIdentifier: (name) => points[name] ?? null,
-        pixelScale: () => pixelScale,
+        view: () => view,
     };
 }
 
@@ -196,6 +198,19 @@ describe("evaluateFormula", () => {
         expect(evaluateFormula(parseFormula("10/pixel()"), env)).toBe(0.25);
     });
 
+    it("reads the window size and center in units", () => {
+        const env = envWith(
+            {},
+            { unit: 20, origin: [100, 300], width: 800, height: 400 },
+        );
+        const value = (source: string) =>
+            evaluateFormula(parseFormula(source), env);
+        expect(value("windoww()")).toBe(40);
+        expect(value("windowh()")).toBe(20);
+        expect(value("windowcx()")).toBe(15);
+        expect(value("windowcy()")).toBe(5);
+    });
+
     it("evaluates x()/y() and standard trig", () => {
         const env = envWith({ A: [3, 4] });
         expect(evaluateFormula(parseFormula("x(A)"), env)).toBe(3);
@@ -256,7 +271,7 @@ describe("evaluateFormula", () => {
     it("calls a userCall node through FormulaEnv.callFunction", () => {
         const env: FormulaEnv = {
             resolveIdentifier: (name) => (name === "x" ? [5, 0] : null),
-            pixelScale: () => 1,
+            view: () => NO_VIEW,
             callFunction: (name, args) =>
                 name === "double" && typeof args[0] !== "number"
                     ? [2 * args[0][0], 0]
@@ -294,7 +309,7 @@ describe("evaluateFormula", () => {
     it("reads a component of a point with P[i]", () => {
         const env: FormulaEnv = {
             resolveIdentifier: (name) => (name === "P" ? [1, 2, 3] : null),
-            pixelScale: () => 1,
+            view: () => NO_VIEW,
         };
         const value = (source: string) =>
             evaluateFormula(parseFormula(source), env);
@@ -308,7 +323,7 @@ describe("evaluateFormula", () => {
     it("reads where a point is drawn with P.coords2D(), and its arg within [0, 2π)", () => {
         const env: FormulaEnv = {
             resolveIdentifier: () => null,
-            pixelScale: () => 1,
+            view: () => NO_VIEW,
             coords2D: (name) =>
                 ({ A: [1, 0], B: [0, -1] })[name] as [number, number],
         };

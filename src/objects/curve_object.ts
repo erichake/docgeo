@@ -1,6 +1,6 @@
 import type { construction } from "../construction";
 import type { DOMElement } from "../dom";
-import { realPart } from "../import/dgp_formula";
+import { realPart, type FormulaView } from "../import/dgp_formula";
 import { GEOMETRY_EPSILON, vIsFinite, type Vec2, type Vec3 } from "../vec";
 import { construction_object } from "./construction_object";
 import { evaluateAtX, type ExpressionFormula } from "./expression_object";
@@ -63,7 +63,7 @@ export class curve_object extends construction_object {
 
     project(): void {
         const [lo, hi] = this.domain();
-        const unit = this.C.GRID.UNIT[0];
+        const view = this.C.formulaView();
         const count = Math.max(
             SAMPLES_MIN,
             Math.min(SAMPLES_MAX, Math.round(this.C.width)),
@@ -72,7 +72,7 @@ export class curve_object extends construction_object {
         const step = hi > lo ? (hi - lo) / (count - 1) : 0;
         if (hi > lo)
             for (let i = 0; i < count; i++)
-                screenPoints.push(this.screenAt(lo + i * step, unit));
+                screenPoints.push(this.screenAt(lo + i * step, view));
         this.links = screenPoints.slice(1).map((end, i) => {
             const start = screenPoints[i];
             if (!start || !end) return false;
@@ -91,7 +91,7 @@ export class curve_object extends construction_object {
             )
                 return true;
             const x = lo + i * step;
-            return this.continuous(x, start, x + step, end, unit, JUMP_DEPTH);
+            return this.continuous(x, start, x + step, end, view, JUMP_DEPTH);
         });
         this.screenPoints = screenPoints;
         this.sampleLo = lo;
@@ -106,7 +106,7 @@ export class curve_object extends construction_object {
     pointAt(x: number): Vec3 | null {
         if (this.min !== null && x < this.min) return null;
         if (this.max !== null && x > this.max) return null;
-        const y = realPart(evaluateAtX(this.formula, x, this.C.GRID.UNIT[0]));
+        const y = realPart(evaluateAtX(this.formula, x, this.C.formulaView()));
         return y === null ? null : [x, y, 0];
     }
 
@@ -169,8 +169,8 @@ export class curve_object extends construction_object {
         return x === null ? null : this.pointAt(x);
     }
 
-    private screenAt(x: number, unit: number): Vec2 | null {
-        const y = realPart(evaluateAtX(this.formula, x, unit));
+    private screenAt(x: number, view: FormulaView): Vec2 | null {
+        const y = realPart(evaluateAtX(this.formula, x, view));
         if (y === null) return null;
         const screen = this.C.pt3D([x, y, 0]);
         return vIsFinite(screen) ? screen : null;
@@ -185,14 +185,14 @@ export class curve_object extends construction_object {
         p0: Vec2,
         x1: number,
         p1: Vec2,
-        unit: number,
+        view: FormulaView,
         depth: number,
     ): boolean {
         if (Math.hypot(p1[0] - p0[0], p1[1] - p0[1]) <= CONTINUITY_GAP)
             return true;
         if (depth === 0) return false;
         const xm = (x0 + x1) / 2;
-        const pm = this.screenAt(xm, unit);
+        const pm = this.screenAt(xm, view);
         if (!pm) return false;
         if (
             Math.hypot(
@@ -204,8 +204,8 @@ export class curve_object extends construction_object {
             return true;
         return Math.hypot(pm[0] - p0[0], pm[1] - p0[1]) >
             Math.hypot(p1[0] - pm[0], p1[1] - pm[1])
-            ? this.continuous(x0, p0, xm, pm, unit, depth - 1)
-            : this.continuous(xm, pm, x1, p1, unit, depth - 1);
+            ? this.continuous(x0, p0, xm, pm, view, depth - 1)
+            : this.continuous(xm, pm, x1, p1, view, depth - 1);
     }
 
     private isConnected(index: number): boolean {

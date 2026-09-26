@@ -3,6 +3,7 @@ import type { DOMElement } from "../dom";
 import {
     evaluateFormula,
     realPart,
+    usesView,
     type FormulaEnv,
     type FormulaNode,
 } from "../import/dgp_formula";
@@ -43,6 +44,9 @@ export class text_object extends construction_object {
         this.anchor = anchor;
         this.offset = offset;
         this.parts = parts;
+        this.readsView = parts.some(
+            (part) => typeof part !== "string" && usesView(part),
+        );
         this.refs = refs;
         this.addParents(anchor, ...refs.values());
     }
@@ -53,7 +57,7 @@ export class text_object extends construction_object {
                 const ref = this.refs.get(name);
                 return ref ? resolveRef(ref) : null;
             },
-            pixelScale: () => this.C.GRID.UNIT[0],
+            view: () => this.C.formulaView(),
         };
     }
 

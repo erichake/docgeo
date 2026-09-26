@@ -1,0 +1,56 @@
+// Coordinates System :
+SetCoords(475.8696930003749,441.5629805672269,12.142656576408603,false,1050,661);
+
+
+// Geometry :
+A=Point("A",-32.10744622044524,20.552584930392502);
+E1=Expression("E1","","","","\" ABCD est un rectangle de dimension 3 sur 4\"","-14.48362571186143","29.77626669189431");
+B=Point("B","A+windoww()/4","0");
+D=Point("D","A-i*windoww()/3","0");
+S1=Segment("S1",A,B);
+C=Point("C","D+B-A","0");
+S2=Segment("S2",A,D);
+M=PointOn("M",S1,0.6548363095238096);
+S3=Segment("S3",D,C);
+S4=Segment("S4",C,B);
+C1=Circle3("C1",A,M,D);
+C2=Circle3("C2",A,M,B);
+C3=Circle3("C3",A,M,C);
+S6=Segment("S6",A,M);
+a=Expression("a","AM = a = ","","","d(A,M)/d(A,B)*3","2.8107775909544577","20.71729353327646");
+P=OrderedIntersection("P",S4,C2,1);
+P3=OrderedIntersection("P3",S3,C3,1);
+P5=OrderedIntersection("P5",S2,C1,1);
+Poly1=Polygon("Poly1","_P5,_M,_P,_P3");
+S5=Segment("S5",M,P);
+S7=Segment("S7",B,P);
+S8=Segment("S8",C,P3);
+S9=Segment("S9",D,P5);
+
+
+// Styles :
+STL(A,"c:#0000b2;s:7;sn:true;f:30;np:1.4190311714671935;fl:true");
+STL(E1,"c:#5d4e40;s:7;f:24;p:4;cL:200;cPT:YzojNzgwMDEzO3M6MTA7ZjozMA==");
+STL(B,"c:#0000b2;s:7;sn:true;f:30;np:1.2753554896511765");
+STL(D,"c:#0000b2;s:7;sn:true;f:30");
+STL(S1,"c:#006633;s:2;f:24");
+STL(C,"c:#0000b2;s:7;sn:true;f:30");
+STL(S2,"c:#006633;s:2;f:24");
+STL(M,"c:#b40000;o:0.63;s:10.5;sn:true;f:30;np:1.7703517105001838");
+STL(S3,"c:#006633;s:2;f:24");
+STL(S4,"c:#006633;s:2;f:24");
+STL(C1,"c:#cc66cc;h:1;s:2;f:30;p:0");
+STL(C2,"c:#cc66cc;h:1;s:2;f:30;p:0");
+STL(C3,"c:#cc66cc;h:1;s:2;f:30;p:0");
+STL(S6,"c:#0000b2;s:9.5;f:24");
+STL(a,"c:#354569;s:7;sn:true;f:24;p:2;cL:200;cPT:YzojNzgwMDEzO3M6MTA7ZjozMA==");
+STL(P,"c:#0000b2;s:7;sn:true;f:30");
+STL(P3,"c:#0000b2;s:7;f:30");
+STL(P5,"c:#0000b2;s:7;f:30");
+STL(Poly1,"c:#006633;o:0.2;s:2;f:30");
+STL(S5,"c:#b40000;s:7.5;f:24");
+STL(S7,"c:#0000b2;s:8.5;f:24");
+STL(S8,"c:#0000b2;s:9;f:24");
+STL(S9,"c:#0000b2;s:7;f:24");
+SetCoordsStyle("isAxis:false;isGrid:true;isOx:true;isOy:true;isLockOx:false;isLockOy:false;centerZoom:false;onlyPositive:false;color:#111111;fontSize:18;axisWidth:1;gridWidth:0.1");
+SetGeneralStyle("background-color:#F8F8F8;degree:true;dragmoveable:true");

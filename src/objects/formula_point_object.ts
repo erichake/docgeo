@@ -1,5 +1,9 @@
 import type { construction } from "../construction";
-import { evaluateFormula, type FormulaNode } from "../import/dgp_formula";
+import {
+    evaluateFormula,
+    usesView,
+    type FormulaNode,
+} from "../import/dgp_formula";
 import { expression_object } from "./expression_object";
 import { point_object } from "./point_object";
 
@@ -31,6 +35,7 @@ export class formula_point_object extends point_object {
     ) {
         super(c, name, [0, 0, 0]);
         this.formula = formula;
+        this.readsView = usesView(formula);
         this.refs = refs;
         this.vec3 = vec3;
         this.addParents(...refs.values());
@@ -47,7 +52,7 @@ export class formula_point_object extends point_object {
                         : null;
                 return this.vec3 ? ref.coords : [ref.coords[0], ref.coords[1]];
             },
-            pixelScale: () => this.C.GRID.UNIT[0],
+            view: () => this.C.formulaView(),
         });
         if (value === null) {
             this.defined = false;

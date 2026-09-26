@@ -36,6 +36,9 @@ export class construction_object {
     geometryDirty: boolean;
     projectionDirty: boolean;
     renderDirty: boolean;
+    // Its geometry reads the window (see usesView in dgp_formula.ts), so is
+    // recomputed on every zoom, pan or resize.
+    readsView = false;
 
     constructor(
         c: construction,

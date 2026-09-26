@@ -89,6 +89,9 @@ export class point_object extends construction_object {
     // DGPad's "i" style (and GeoGebra's grid capturing): a dragged point
     // snaps its x and y onto multiples of these steps.
     increment: [number, number] = [0, 0];
+    // DGPad's "fl" style (pushpin), in a plane figure: the window position
+    // the point keeps, rather than its coordinates, through zooms and pans.
+    pinned: Vec2 | null = null;
     // The magnet currently holding this point, if any — see
     // MAGNET_HYSTERESIS.
     private activeMagnet: magnet_target | null = null;
@@ -138,7 +141,21 @@ export class point_object extends construction_object {
     }
 
     computeGeometry(): void {
+        if (this.pinned) {
+            const { ORG, UNIT } = this.C.GRID;
+            this.coords = [
+                (this.pinned[0] - ORG[0]) / UNIT[0],
+                (ORG[1] - this.pinned[1]) / UNIT[1],
+                0,
+            ];
+        }
         this.defined = vIsFinite(this.COORDS);
+    }
+
+    pin(): void {
+        const { ORG, UNIT } = this.C.GRID;
+        this.pinned = [ORG[0] + this.x * UNIT[0], ORG[1] - this.y * UNIT[1]];
+        this.readsView = true;
     }
 
     project(): void {
@@ -157,6 +174,7 @@ export class point_object extends construction_object {
         this.coords = this.magnets.length
             ? this.snapToMagnets(snapped, screen)
             : snapped;
+        if (this.pinned) this.pin();
         this.C.invalidateGeometry(this);
     }
 

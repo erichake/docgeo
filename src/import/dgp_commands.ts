@@ -72,6 +72,7 @@ import type { Vec2, Vec3 } from "../vec";
 import {
     evaluateFormula,
     formulaIdentifiers,
+    NO_VIEW,
     parseFormula,
     realPart,
     type FormulaNode,
@@ -221,7 +222,7 @@ function parseVectorLiteral(value: string): number[] | null {
     if (node.kind !== "vector") return null;
     const result = evaluateFormula(node, {
         resolveIdentifier: () => null,
-        pixelScale: () => 1,
+        view: () => NO_VIEW,
     });
     return result === null || typeof result === "number" ? null : [...result];
 }
@@ -291,7 +292,7 @@ function evaluateConstant(source: string): FormulaValue | null {
         node &&
         evaluateFormula(node, {
             resolveIdentifier: () => null,
-            pixelScale: () => 1,
+            view: () => NO_VIEW,
         })
     );
 }
@@ -577,6 +578,7 @@ function validateObjectStyle(
             case "sn":
             case "sb":
             case "tk":
+            case "fl":
             case "pl":
             case "su":
             case "cV":
@@ -708,9 +710,9 @@ function validateGeneralStyle(value: string, lineNumber: number): void {
 }
 
 function applyObjectStyle(
+    context: CommandContext,
     target: construction_object,
     value: string,
-    variables: Map<string, construction_object>,
 ): void {
     properties(value).forEach((propertyValue, property) => {
         switch (property) {
@@ -747,6 +749,18 @@ function applyObjectStyle(
             case "tk":
                 if (target instanceof point_object)
                     target.trace = propertyValue === "true";
+                break;
+            // In a 3D figure, it marks the 3D origin instead (see
+            // CommandContext).
+            case "fl":
+                if (
+                    propertyValue === "true" &&
+                    !context.is3D &&
+                    target instanceof point_object &&
+                    target.moveable &&
+                    target.parents.length === 0
+                )
+                    target.pin();
                 break;
             case "f":
                 target.fontSize = Number(propertyValue);
@@ -798,7 +812,7 @@ function applyObjectStyle(
                     applyCursorStyle(target, atob(propertyValue));
                 break;
             case "sc":
-                target.condition = variables.get(
+                target.condition = context.variables.get(
                     propertyValue,
                 ) as expression_object;
                 target.addParents(target.condition);
@@ -807,7 +821,9 @@ function applyObjectStyle(
                 if (target instanceof point_object)
                     target.magnets = parseMagnetList(propertyValue).map(
                         ({ name, radius }) => ({
-                            target: variables.get(name) as magnet_target,
+                            target: context.variables.get(
+                                name,
+                            ) as magnet_target,
                             radius,
                         }),
                     );
@@ -1976,9 +1992,9 @@ const COMMANDS = new Map<string, CommandDefinition>([
                 ),
             execute: (context, args) =>
                 applyObjectStyle(
+                    context,
                     args[0] as construction_object,
                     args[1] as string,
-                    context.variables,
                 ),
         },
     ],

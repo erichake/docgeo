@@ -3,6 +3,7 @@ import type { DOMElement } from "../dom";
 import {
     evaluateFormula,
     realPart,
+    usesView,
     type FormulaNode,
 } from "../import/dgp_formula";
 import type { construction_object } from "./construction_object";
@@ -34,6 +35,7 @@ export class circle1_object extends primitive_circle_object {
         super(c, name);
         this.P1 = p1;
         this.radius = radius;
+        this.readsView = typeof radius !== "number" && usesView(radius.formula);
         this.axis = axis;
         this.addParents(
             p1,
@@ -62,7 +64,7 @@ export class circle1_object extends primitive_circle_object {
                                       : null;
                               return [ref.coords[0], ref.coords[1]];
                           },
-                          pixelScale: () => this.C.GRID.UNIT[0],
+                          view: () => this.C.formulaView(),
                       }),
                   );
         if (radius === null) {

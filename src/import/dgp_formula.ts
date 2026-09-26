@@ -14,6 +14,10 @@ export type FormulaFn =
     | "sqrt"
     | "d"
     | "pixel"
+    | "windoww"
+    | "windowh"
+    | "windowcx"
+    | "windowcy"
     | "x"
     | "y"
     | "sin"
@@ -34,6 +38,10 @@ const FORMULA_ARITY: Record<FormulaFn, number> = {
     sqrt: 1,
     d: 2,
     pixel: 0,
+    windoww: 0,
+    windowh: 0,
+    windowcx: 0,
+    windowcy: 0,
     x: 1,
     y: 1,
     sin: 1,
@@ -436,24 +444,45 @@ export function formulaIdentifiers(node: FormulaNode): Set<string> {
     return names;
 }
 
-export function usesCoords2D(node: FormulaNode): boolean {
+function someNode(
+    node: FormulaNode,
+    test: (n: FormulaNode) => boolean,
+): boolean {
+    if (test(node)) return true;
+    const some = (n: FormulaNode) => someNode(n, test);
     switch (node.kind) {
-        case "coords2D":
-            return true;
         case "unary":
-            return usesCoords2D(node.operand);
+            return some(node.operand);
         case "index":
-            return usesCoords2D(node.target) || usesCoords2D(node.index);
+            return some(node.target) || some(node.index);
         case "binary":
-            return usesCoords2D(node.left) || usesCoords2D(node.right);
+            return some(node.left) || some(node.right);
         case "vector":
-            return node.items.some(usesCoords2D);
+            return node.items.some(some);
         case "call":
         case "userCall":
-            return node.args.some(usesCoords2D);
+            return node.args.some(some);
         default:
             return false;
     }
+}
+
+export function usesCoords2D(node: FormulaNode): boolean {
+    return someNode(node, (n) => n.kind === "coords2D");
+}
+
+const VIEW_FUNCTIONS: ReadonlySet<FormulaFn> = new Set([
+    "pixel",
+    "windoww",
+    "windowh",
+    "windowcx",
+    "windowcy",
+]);
+
+// Whether the formula reads the window (zoom, origin or size), as DGPad
+// re-evaluates it whenever that changes.
+export function usesView(node: FormulaNode): boolean {
+    return someNode(node, (n) => n.kind === "call" && VIEW_FUNCTIONS.has(n.fn));
 }
 
 // A Vec3 only ever comes from a 3-item vector literal (e.g. "P1+[-1,-1,1]",
@@ -462,9 +491,26 @@ export function usesCoords2D(node: FormulaNode): boolean {
 // as before.
 export type FormulaValue = number | Vec2 | Vec3;
 
+// The window a formula is evaluated in: pixels per unit, the origin's and
+// the window's size in pixels.
+export interface FormulaView {
+    unit: number;
+    origin: Vec2;
+    width: number;
+    height: number;
+}
+
+// For formulas evaluated outside any window (constants read at import).
+export const NO_VIEW: FormulaView = {
+    unit: 1,
+    origin: [0, 0],
+    width: 0,
+    height: 0,
+};
+
 export interface FormulaEnv {
     resolveIdentifier(name: string): Vec2 | Vec3 | null;
-    pixelScale(): number;
+    view(): FormulaView;
     coords2D?(name: string): Vec2 | null;
     // Resolves a userCall node (a name outside FORMULA_ARITY applied to
     // arguments, e.g. "E1(x)"). Consumers that don't support calling named
@@ -603,7 +649,23 @@ function evalCall(
 ): FormulaValue | null {
     switch (fn) {
         case "pixel":
-            return env.pixelScale();
+            return env.view().unit;
+        case "windoww": {
+            const { width, unit } = env.view();
+            return width / unit;
+        }
+        case "windowh": {
+            const { height, unit } = env.view();
+            return height / unit;
+        }
+        case "windowcx": {
+            const { width, origin, unit } = env.view();
+            return (width / 2 - origin[0]) / unit;
+        }
+        case "windowcy": {
+            const { height, origin, unit } = env.view();
+            return (origin[1] - height / 2) / unit;
+        }
         case "d": {
             const [a, b] = args;
             if (

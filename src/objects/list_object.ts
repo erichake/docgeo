@@ -3,6 +3,7 @@ import type { DOMElement } from "../dom";
 import {
     evaluateFormula,
     realPart,
+    usesView,
     type FormulaEnv,
     type FormulaNode,
     type FormulaValue,
@@ -73,6 +74,7 @@ export class list_object extends construction_object {
         this.nature = nature;
         this.countFormula = countFormula;
         this.formulas = formulas;
+        this.readsView = [countFormula, ...formulas].some(usesView);
         this.refs = refs;
         this.addParents(...refs.values());
     }
@@ -83,7 +85,7 @@ export class list_object extends construction_object {
                 const ref = this.refs.get(n);
                 return ref ? resolveRef(ref) : null;
             },
-            pixelScale: () => this.C.GRID.UNIT[0],
+            view: () => this.C.formulaView(),
         };
     }
 
@@ -95,7 +97,7 @@ export class list_object extends construction_object {
                 const ref = this.refs.get(n);
                 return ref ? resolveRef(ref) : null;
             },
-            pixelScale: () => this.C.GRID.UNIT[0],
+            view: () => this.C.formulaView(),
         };
     }
 

@@ -6,7 +6,7 @@ import { angle_object } from "../../src/objects/angle_object";
 import { arc3pts_object } from "../../src/objects/arc3pts_object";
 import { circle1_object } from "../../src/objects/circle1_object";
 import { curve_object } from "../../src/objects/curve_object";
-import { realPart } from "../../src/import/dgp_formula";
+import { NO_VIEW, realPart } from "../../src/import/dgp_formula";
 import {
     evaluateAtX,
     expression_object,
@@ -353,6 +353,38 @@ STL(P,"tk:1");`,
         expect(point.coords).toEqual(locus.pointAt(alpha));
     });
 
+    it("keeps a pinned figure sized by the window in place on zoom and pan", async () => {
+        const c = createConstruction();
+        expect(
+            await importDgpFromUrl(c, "/tests/dgp/_AireParallelo.dgp"),
+        ).toEqual([]);
+        const a = c.getObj("A") as point_object;
+        const b = c.getObj("B") as formula_point_object;
+        const d = c.getObj("D") as formula_point_object;
+        const ab = () => b.coords[0] - a.coords[0];
+        expect(ab()).toBeCloseTo(c.width / c.GRID.UNIT[0] / 4, 9);
+        expect(a.coords[1] - d.coords[1]).toBeCloseTo(
+            c.width / c.GRID.UNIT[0] / 3,
+            9,
+        );
+        expect(c.getObj("Poly1")).toBeInstanceOf(polygon_object);
+
+        await new Promise((resolve) => requestAnimationFrame(resolve));
+        const screens = () => [a.screen, b.screen, d.screen];
+        const before = screens();
+        const [ux, uy, uz] = c.GRID.UNIT;
+        c.GRID.UNIT = [2 * ux, 2 * uy, 2 * uz];
+        c.GRID.ORG = [c.GRID.ORG[0] + 30, c.GRID.ORG[1] - 20];
+        c.invalidateProjection();
+        await new Promise((resolve) => requestAnimationFrame(resolve));
+        screens().forEach((screen, index) =>
+            screen.forEach((value, axis) =>
+                expect(value).toBeCloseTo(before[index][axis], 9),
+            ),
+        );
+        expect(ab()).toBeCloseTo(c.width / c.GRID.UNIT[0] / 4, 9);
+    });
+
     it("writes a polygon's area at its vertices' mean, like DGPad", async () => {
         const c = createConstruction();
         await importDgpFromUrl(c, "/tests/dgp/poly_mesure.dgp");
@@ -647,8 +679,10 @@ P=PointOn("P",poly,0.5);`,
         // f1's own formula is "E1(x)": evaluating it must match E1's formula
         // (0.5x^2-4) evaluated directly at the same x.
         [-3, 0, 2.5].forEach((x) => {
-            const viaCurve = realPart(evaluateAtX(f1.formula, x, 40));
-            const viaExpression = realPart(evaluateAtX(e1.formula!, x, 40));
+            const viaCurve = realPart(evaluateAtX(f1.formula, x, NO_VIEW));
+            const viaExpression = realPart(
+                evaluateAtX(e1.formula!, x, NO_VIEW),
+            );
             expect(viaCurve).toBeCloseTo(0.5 * x * x - 4);
             expect(viaCurve).toBeCloseTo(viaExpression!);
         });

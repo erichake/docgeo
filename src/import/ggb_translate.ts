@@ -3,6 +3,7 @@ import { vAdd, vSub, type Vec2, type Vec3 } from "../vec";
 import {
     evaluateFormula,
     formulaIdentifiers,
+    NO_VIEW,
     parseFormula,
     realPart,
 } from "./dgp_formula";
@@ -342,7 +343,7 @@ function localValue(source: string, variable: string): LocalValue | null {
                   ? value
                   : null;
         },
-        pixelScale: () => 1,
+        view: () => NO_VIEW,
     });
     return typeof value === "number" || value?.length === 2 ? value : null;
 }

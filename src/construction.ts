@@ -1,4 +1,5 @@
 import { $, type DOMElement, type PointerDelta } from "./dom";
+import type { FormulaView } from "./import/dgp_formula";
 import { construction_object } from "./objects/construction_object";
 import { createGrid, grid_object } from "./objects/grid_object";
 import { objects_collector } from "./objects_collector";
@@ -199,6 +200,9 @@ export class construction {
     }
 
     invalidateProjection(): void {
+        this.OBJS.V.forEach((object) => {
+            if (object.readsView) this.OBJS.markGeometryDirty(object);
+        });
         this.OBJS.markProjectionDirty();
         this.scheduleUpdate();
     }
@@ -253,6 +257,15 @@ export class construction {
     // *************************************************
     // ********************* SVG PART **********************
     // *************************************************
+
+    formulaView(): FormulaView {
+        return {
+            unit: this.GRID.UNIT[0],
+            origin: [this.GRID.ORG[0], this.GRID.ORG[1]],
+            width: this.width,
+            height: this.height,
+        };
+    }
 
     get width(): number {
         return this.svg.width();
