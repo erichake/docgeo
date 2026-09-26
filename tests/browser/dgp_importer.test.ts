@@ -526,6 +526,28 @@ P=PointOn("P",poly,0.5);`,
         ]);
     });
 
+    it("imports a 2D figure of point3D points as a 3D one", async () => {
+        const c = createConstruction();
+        const unsupported = await importDgpFromUrl(
+            c,
+            "/tests/dgp/_tetraOld.dgp",
+        );
+
+        const coords = (name: string) =>
+            (c.getObj(name) as point_object).coords;
+        expect(unsupported).toEqual([]);
+        expect(c.getObj("P1")).toBeInstanceOf(fixed_point_object);
+        expect(coords("P1")).toEqual([0, 0, 0]);
+        expect(coords("X")).toEqual([1, 0, 0]);
+        expect(coords("Z")).toEqual([0, 0, 1]);
+        expect(coords("P43")).toEqual([2, 2, 2]);
+        const d = coords("D");
+        expect(d[0]).toBeCloseTo(d[2]);
+        expect(c.GRID.is2D).toBe(false);
+        expect(c.GRID.PHI).toBeCloseTo(342 * 0.015);
+        expect(c.GRID.THETA).toBeCloseTo(-30 * 0.015);
+    });
+
     it("imports and drags the reference expression figure", async () => {
         const c = createConstruction();
         await importDgpFromUrl(c, "/tests/dgp/_Expression.dgp");

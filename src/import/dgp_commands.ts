@@ -2125,6 +2125,48 @@ function describeValue(value: DgpValue): string {
     return JSON.stringify(value.value);
 }
 
+// DGPad's first 3D figures predate its 3D mode: in a 2D figure, a point
+// "point3D(O,[x,y,z])" projects the vector from O with view angles read from
+// SetCoords' pixel origin (angle = pixel * STEP), exactly as the 3D mode did
+// later. Such a figure is imported as a 3D one, O becoming its 3D origin
+// when it is the first free point (see CommandContext).
+const LEGACY_POINT3D =
+    /^point3D\(\s*([A-Za-z_$][\w$]*)\s*,\s*(\[[^\]]*\])\s*\)$/;
+
+function convertLegacyPoint3D(calls: DgpCall[]): DgpCall[] {
+    let found = false;
+    const converted = calls.map((call) => {
+        const source = call.arguments[1];
+        const match =
+            call.name === "Point" &&
+            source?.type === "literal" &&
+            typeof source.value === "string"
+                ? LEGACY_POINT3D.exec(source.value)
+                : null;
+        if (!match) return call;
+        found = true;
+        return {
+            ...call,
+            arguments: [
+                call.arguments[0],
+                { type: "literal", value: `${match[1]}+${match[2]}` },
+                { type: "literal", value: "1" },
+            ],
+        } satisfies DgpCall;
+    });
+    if (!found) return calls;
+    return converted.map((call) =>
+        call.name === "SetCoords"
+            ? {
+                  ...call,
+                  arguments: call.arguments.map((value, index) =>
+                      index === 3 ? { type: "literal", value: true } : value,
+                  ),
+              }
+            : call,
+    );
+}
+
 // A call that can't be imported is skipped with its dependents, and only
 // it is reported: the rest of the figure is still imported.
 function validateCalls(calls: DgpCall[]): {
@@ -2170,7 +2212,7 @@ export function executeDgpCommands(
     calls: DgpCall[],
     is3D = false,
 ): { variables: Map<string, construction_object>; unsupported: string[] } {
-    const { valid, unsupported } = validateCalls(calls);
+    const { valid, unsupported } = validateCalls(convertLegacyPoint3D(calls));
     const context: CommandContext = {
         construction: c,
         variables: new Map(),
