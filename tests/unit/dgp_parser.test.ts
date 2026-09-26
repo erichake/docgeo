@@ -37,6 +37,36 @@ Configure([Élément,true,false,null]);`),
         ]);
     });
 
+    it("ignores DGPad macro definitions", () => {
+        const source = `// Macros :
+$macros={};
+$macros["M"]={
+	name:"M",
+	parameters:["point"],
+	exec:
+	function (A){
+// l'image de A : { [
+B=Point("B","A+[1,0]","1");
+STL(B,"c:#30614f;s:7");
+return [B];
+}};
+
+// Geometry :
+P=Point("P",1,2);`;
+        expect(parseDgp(source)).toEqual([
+            {
+                variable: "P",
+                name: "Point",
+                arguments: [
+                    { type: "literal", value: "P" },
+                    { type: "literal", value: 1 },
+                    { type: "literal", value: 2 },
+                ],
+                line: 15,
+            },
+        ]);
+    });
+
     it("rejects general JavaScript syntax", () => {
         expect(() =>
             parseDgp(`window.location="https://example.com";`),

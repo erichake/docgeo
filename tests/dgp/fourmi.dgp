@@ -1,0 +1,146 @@
+// Macros :
+$macros={};
+$macros["Angle2D_Points3D"]={
+	name:"Angle2D_Points3D",
+	parameters:["point","point","point"],
+	exec:
+	function (F,E,G){
+E8=Expression("E8","","","","arg((G.coords2D()-E.coords2D())/(F.coords2D()-E.coords2D()))","-0.058731386723262315","-2.2244512721435603");
+STL(E8,"c:#30614f;s:7;f:24;p:4;cL:200;cPT:YzojNzgwMDEzO3M6MTA7ZjozMA==");
+return [E8];
+}};
+
+// Coordinates System :
+SetCoords(1213,28,134.96716780053328,true,1039,607);
+
+
+// Geometry :
+P1=Point("P1",-5.43835965414027,-2.3042641041384524);
+P7=Point("P7","[1.5,0,0.75]","1");
+Y=Point("Y","[0,1,0]","1");
+Z=Point("Z","[0,0,1]","1");
+P2=Point("P2","[1.5,0,0]","1");
+X=Point("X","[1,0,0]","1");
+Départ=Point("D\u00e9part","[1.5,-1.5,0]","1");
+P5=Point("P5","[1.5,1.5,0]","1");
+S1=Segment("S1",P2,P5);
+S21=Segment("S21",P1,Y);
+S31=Segment("S31",P1,Z);
+S11=Segment("S11",P1,X);
+S2=Segment("S2",P2,P7);
+Symc1=Symmetry("Symc1",P1,P2);
+P41=Point("P41","Symc1+P7-P2","1");
+S5=Segment("S5",P2,Symc1);
+P4=Point("P4","Départ+Symc1-P2","1");
+Déployer=PointOn("D\u00e9ployer",S1,0);
+E11=Expression("E11","","","","var _p=minus(P7,Symc1);var _v=unitVector(minus(P2,Symc1));var _cte=-_p[0]*_v[0]-_p[1]*_v[1]-_p[2]*_v[2];var _k=(-_cte)/(_v[0]*_v[0]+_v[1]*_v[1]+_v[2]*_v[2]);var _o=[_k*_v[0],_k*_v[1],_k*_v[2]];var _m=[_v[0]*_v[0]*(_p[0])+(_v[0]*_v[1]-_v[2])*(_p[1])+(_v[0]*_v[2]+_v[1])*(_p[2]),(_v[0]*_v[1]+_v[2])*(_p[0])+_v[1]*_v[1]*(_p[1])+(_v[1]*_v[2]-_v[0])*(_p[2]),(_v[0]*_v[2]-_v[1])*(_p[0])+(_v[1]*_v[2]+_v[0])*(_p[1])+_v[2]*_v[2]*(_p[2])];[_m+Symc1,2*_o-_m+Symc1]","-6.115508942382963","-0.4084862289368558");
+Poly1=Polygon("Poly1","_Départ,_P4,_Symc1,_P2");
+S4=Segment("S4",P41,Symc1);
+A=PointOn("A",S5,0.5952800341874042);
+M1=MidPoint("M1",P2,Déployer);
+P42=Point("P42","Déployer+Symc1-P2","1");
+E1=Expression("E1","","","","Déployer","-1.5781615890080076","-0.9780156326246806");
+E18=Expression("E18","","","","abs(Déployer[1]-P5[1])<10^(-4)","-0.022227628014197292","-0.31118679219876205");
+Q=Point("Q","E11[0]","1");
+S3=Segment("S3",P7,P41);
+R=Point("R","E11[1]","1");
+E6=Expression("E6","d(D\u00e9part,A) : ","","","sqrt((A[0]-1.5)^2+1.5^2)","-8.913278833693115","-0.6816472591020503");
+E12=Expression("E12","","","","M1","-1.5781615890080076","-0.533463072340735");
+S8=Segment("S8",Départ,A);
+P6=Point("P6","E1+[0,1,0]","1");
+S7=Segment("S7",Déployer,P42);
+C=PointOn("C",S7,0.7497605305582367);
+Arrivée=Point("Arriv\u00e9e","P6+P42-Déployer","1");
+E2=Expression("E2","","","","E12[1]","-1.5781615890080076","-0.6816472591020503");
+S13=Segment("S13",Départ,Arrivée);
+S12=Segment("S12",C,Arrivée);
+Poly5=Polygon("Poly5","_Arrivée,_P6,_Départ,_P4");
+E9=Expression("E9","d(C,Arriv\u00e9e) : ","","","sqrt((Arrivée[0]-C[0])^2+(Arrivée[1]-C[1])^2)","-8.913278833693115","-1.348476099527969");
+P8=Point("P8","[1.5,E2,sqrt(abs(0.75*0.75-E2*E2))]","1");
+Poly2=Polygon("Poly2","_Déployer,_P42,_Arrivée,_P6");
+E13=Expression("E13","","","","P8","-1.5781615890080076","-0.8298314458633655");
+E4=Expression("E4","","","","if(theta()<0) {Poly5.setLayer(7); Poly5.setOpacity(0.95);} else {Poly5.setLayer(0);  Poly5.setOpacity(0.2);}; \"program3\"","-1.5781615890080076","-0.3852788855794197");
+P43=Point("P43","P8+P42-Déployer","1");
+E19=Expression("E19","","","","S13.setHidden(1-E18);\"prog\"","-0.022227628014197292","-0.4593709789600772");
+E3=Expression("E3","","","","arg((Déployer.coords2D()-P8.coords2D())/(P43.coords2D()-P8.coords2D()))<\u03C0","-0.022227628014197292","-0.31118679219876205");
+Poly3=Polygon("Poly3","_P2,_P8,_P43,_Symc1");
+Poly4=Polygon("Poly4","_Déployer,_P8,_P43,_P42");
+S6=Segment("S6",P8,P43);
+E5=Expression("E5","","","","arg((P43.coords2D()-P8.coords2D())/(P2.coords2D()-P8.coords2D()))<\u03C0","-0.022227628014197292","-0.533463072340735");
+E14=Expression("E14","","","","E3-E5","-0.022227628014197292","-0.7557393524827078");
+B=PointOn("B",S6,0.3296687315173749);
+P3=PointOn("P3",Poly3,[0.4193554949315174,0.13299351982412969]);
+E8=Expression("E8","d(B,C) : ","","","sqrt((C[0]-B[0])^2+(C[1]-B[1])^2+B[2]^2)","-8.913278833693115","-1.1261998193859961");
+S10=Segment("S10",B,C);
+S9=Segment("S9",A,B);
+E7=Expression("E7","d(A,B) : ","","","sqrt((B[0]-A[0])^2+(B[1])^2+B[2]^2)","-8.913278833693115","-0.9039235392440231");
+E15=Expression("E15","","","","if(E14<0.1){Poly3.setLayer(1);S9.setLayer(1)}else{Poly3.setLayer(3);S9.setLayer(3)};\"Pr1\"","-0.022227628014197292","-1.0521077260053384");
+E10=Expression("E10","Total : ","","","E6+E7+E8+E9","-8.913278833693115","-1.7189365664312573");
+E16=Expression("E16","","","","if(E14>0.1){Poly4.setLayer(1);S10.setLayer(1)}else{Poly4.setLayer(3);S10.setLayer(3)};\"Pr2\"","-0.022227628014197292","-1.348476099527969");
+
+
+// Styles :
+STL(P1,"c:#5b5b6d;o:0.8;s:2.5;f:30;fl:true");
+STL(P7,"c:#28282b;o:0.78;s:2.5;f:30");
+STL(Y,"c:#0000b2;h:1;o:1;s:4;sn:true;f:24");
+STL(Z,"c:#0000b2;h:1;o:1;s:4;sn:true;f:24");
+STL(P2,"c:#0000b2;h:1;s:6;f:30");
+STL(X,"c:#0000b2;h:1;o:1;s:4;sn:true;f:24");
+STL(Départ,"c:#b40000;s:6;sn:true;f:21;sp:1;np:2.6559787092277545");
+STL(P5,"c:#0000b2;h:1;s:6;f:30");
+STL(S1,"c:#006633;h:1;s:1;f:24");
+STL(S21,"c:#117dad;h:1;s:1;f:24");
+STL(S31,"c:#117dad;h:1;s:1;f:24");
+STL(S11,"c:#117dad;s:1;f:24");
+STL(S2,"c:#302d2d;s:1;f:24;dh:true");
+STL(Symc1,"c:#0000b2;s:6;f:30");
+STL(P41,"c:#414144;o:0.81;s:2.5;f:30");
+STL(S5,"c:#006633;s:1;f:24");
+STL(P4,"c:#0000b2;h:1;s:6;f:30");
+STL(Déployer,"c:#303038;s:6;sn:true;f:16;sp:1;np:5.118247335177973");
+STL(E11,"c:#780013;h:2;s:7;f:24;p:4;cL:200;cPT:YzojNzgwMDEzO2g6MjtzOjEwO2Y6MzA=");
+STL(Poly1,"c:#edba30;o:0.2;s:0.5;l:1;f:30");
+STL(S4,"c:#2d2b2b;s:1;l:2;f:24;dh:true");
+STL(A,"c:#b40000;o:0.8;s:6;sn:true;f:27");
+STL(M1,"c:#0000b2;h:1;s:6;f:30");
+STL(P42,"c:#0000b2;h:1;s:6;f:30");
+STL(E1,"c:#193323;h:1;s:7;f:13;p:4;cL:200;cPT:YzojNzgwMDEzO2g6MTtzOjEwO2Y6MzA=");
+STL(E18,"c:#1a417f;h:1;s:7;f:13;p:4;cL:200;cPT:YzojNzgwMDEzO2g6MTtzOjEwO2Y6MzA=");
+STL(Q,"c:#0000b2;h:2;s:6;f:30");
+STL(S3,"c:#141212;s:1;f:24;dh:true");
+STL(R,"c:#0000b2;h:2;s:6;f:30");
+STL(E6,"c:#4b7f1f;s:7;f:18;p:4;cL:200;cPT:YzojNzgwMDEzO3M6MTA7ZjozMA==");
+STL(E12,"c:#193323;h:1;s:7;f:13;p:4;cL:200;cPT:YzojNzgwMDEzO2g6MTtzOjEwO2Y6MzA=");
+STL(S8,"c:#b40000;s:2.5;l:1;f:24");
+STL(P6,"c:#0000b2;h:1;s:6;f:30");
+STL(S7,"c:#006633;s:1;f:24");
+STL(C,"c:#b40000;o:0.89;s:6;sn:true;f:25");
+STL(Arrivée,"c:#b40000;o:0.09;s:6;sn:true;f:21;sp:1");
+STL(E2,"c:#78436f;h:1;s:7;f:14;p:4;cL:200;cPT:YzojNzgwMDEzO2g6MTtzOjEwO2Y6MzA=");
+STL(S13,"c:#b40000;h:1;s:2;f:24;dh:true");
+STL(S12,"c:#b40000;s:2.5;l:1;f:24");
+STL(Poly5,"c:#d6d4cf;o:0.2;s:0.5;f:30");
+STL(E9,"c:#007c00;s:7;f:19;p:4;cL:200;cPT:YzojNzgwMDEzO3M6MTA7ZjozMA==");
+STL(P8,"c:#0000b2;h:1;s:12;f:30");
+STL(Poly2,"c:#ff9b00;o:0.2;s:0.5;l:1;f:30");
+STL(E13,"c:#193323;h:1;s:7;f:11;p:4;cL:200;cPT:YzojNzgwMDEzO2g6MTtzOjEwO2Y6MzA=");
+STL(E4,"c:#217548;h:1;s:7;f:14;p:4;cL:200;cPT:YzojNzgwMDEzO2g6MTtzOjEwO2Y6MzA=");
+STL(P43,"c:#0000b2;h:1;s:6;f:30");
+STL(E19,"c:#491714;h:1;s:7;f:13;p:4;cL:200;cPT:YzojNzgwMDEzO2g6MTtzOjEwO2Y6MzA=");
+STL(E3,"c:#47555e;s:7;f:24;p:4;cL:200;cPT:YzojNzgwMDEzO3M6MTA7ZjozMA==");
+STL(Poly3,"c:#63aae0;o:0.65;s:0.5;l:1;f:30");
+STL(Poly4,"c:#459191;o:0.64;s:0.5;l:3;f:30");
+STL(S6,"c:#006633;s:1;f:24");
+STL(E5,"c:#586610;s:7;f:24;p:4;cL:200;cPT:YzojNzgwMDEzO3M6MTA7ZjozMA==");
+STL(E14,"c:#154122;s:7;f:24;p:4;cL:200;cPT:YzojNzgwMDEzO3M6MTA7ZjozMA==");
+STL(B,"c:#b40000;o:0.76;s:6;sn:true;l:3;f:24;np:1.3504127025576516");
+STL(P3,"c:#0000b2;s:6;f:30");
+STL(E8,"c:#007c00;s:7;f:17;p:4;cL:200;cPT:YzojNzgwMDEzO3M6MTA7ZjozMA==");
+STL(S10,"c:#b40000;s:2.5;l:3;f:24");
+STL(S9,"c:#b40000;s:2.5;l:1;f:24");
+STL(E7,"c:#007c00;s:7;f:17;p:4;cL:200;cPT:YzojNzgwMDEzO3M6MTA7ZjozMA==");
+STL(E15,"c:#676a77;s:7;f:24;p:4;cL:200;cPT:YzojNzgwMDEzO3M6MTA7ZjozMA==");
+STL(E10,"c:#007c00;s:7;f:18;p:4;cL:200;cPT:YzojNzgwMDEzO3M6MTA7ZjozMA==");
+STL(E16,"c:#59271e;s:7;f:24;p:4;cL:200;cPT:YzojNzgwMDEzO3M6MTA7ZjozMA==");
+SetCoordsStyle("3Dmode:true;isAxis:false;isGrid:true;isOx:true;isOy:true;isLockOx:false;isLockOy:false;centerZoom:true;onlyPositive:false;color:#111111;fontSize:18;axisWidth:1;gridWidth:0.1");
+SetGeneralStyle("background-color:#F8F8F8;degree:true;dragmoveable:true");

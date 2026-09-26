@@ -67,6 +67,46 @@ class Lexer {
         throw new Error(`Invalid DGP syntax at line ${line}`);
     }
 
+    // A DGPad macro definition is arbitrary JavaScript that has no effect on
+    // the figure: skip it up to its terminating top-level semicolon.
+    skipStatement(): void {
+        let depth = 0;
+        while (this.index < this.source.length) {
+            const character = this.source[this.index++];
+            if (character === "\n") {
+                this.line++;
+            } else if (
+                character === '"' ||
+                character === "'" ||
+                character === "`"
+            ) {
+                while (this.index < this.source.length) {
+                    const c = this.source[this.index++];
+                    if (c === "\n") this.line++;
+                    if (c === "\\") this.index++;
+                    else if (c === character) break;
+                }
+            } else if (this.source.startsWith("//", this.index - 1)) {
+                const newline = this.source.indexOf("\n", this.index);
+                this.index = newline === -1 ? this.source.length : newline;
+            } else if (this.source.startsWith("/*", this.index - 1)) {
+                const end = this.source.indexOf("*/", this.index + 1);
+                const comment = this.source.slice(
+                    this.index,
+                    end === -1 ? undefined : end,
+                );
+                this.line += comment.split("\n").length - 1;
+                this.index = end === -1 ? this.source.length : end + 2;
+            } else if ("([{".includes(character)) {
+                depth++;
+            } else if (")]}".includes(character)) {
+                depth--;
+            } else if (character === ";" && depth === 0) {
+                return;
+            }
+        }
+    }
+
     private skipIgnored(): void {
         while (this.index < this.source.length) {
             const character = this.source[this.index];
@@ -119,6 +159,8 @@ class Lexer {
     }
 }
 
+const MACROS = "$macros";
+
 class Parser {
     private readonly lexer: Lexer;
     private current: Token;
@@ -130,7 +172,14 @@ class Parser {
 
     parse(): DgpCall[] {
         const calls: DgpCall[] = [];
-        while (this.current.type !== "eof") calls.push(this.call());
+        while (this.current.type !== "eof") {
+            if (this.current.value === MACROS) {
+                this.lexer.skipStatement();
+                this.advance();
+            } else {
+                calls.push(this.call());
+            }
+        }
         return calls;
     }
 
