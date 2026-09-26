@@ -264,6 +264,8 @@ export class construction {
             origin: [this.GRID.ORG[0], this.GRID.ORG[1]],
             width: this.width,
             height: this.height,
+            theta: this.GRID.THETA,
+            phi: this.GRID.PHI,
         };
     }
 

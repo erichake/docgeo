@@ -60,7 +60,7 @@ export class circle1_object extends primitive_circle_object {
                               if (!ref.defined) return null;
                               if (ref instanceof expression_object)
                                   return typeof ref.value === "number"
-                                      ? [ref.value, 0]
+                                      ? ref.value
                                       : null;
                               return [ref.coords[0], ref.coords[1]];
                           },

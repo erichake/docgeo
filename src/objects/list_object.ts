@@ -38,12 +38,11 @@ const MAX_LABEL_COUNT = 500;
 // real object of the same name for the duration of that formula's
 // evaluation — a figure using List simply can't name a point/cursor "k" or
 // "count" and expect it visible inside a List formula.
-export function resolveRef(ref: ListRef): Vec2 | null {
+export function resolveRef(ref: ListRef): Vec2 | number | null {
     if (ref instanceof point_object)
         return ref.defined ? [ref.coords[0], ref.coords[1]] : null;
-    if (ref instanceof polygon_object)
-        return ref.defined ? [ref.area, 0] : null;
-    return typeof ref.value === "number" ? [ref.value, 0] : null;
+    if (ref instanceof polygon_object) return ref.defined ? ref.area : null;
+    return typeof ref.value === "number" ? ref.value : null;
 }
 
 export class list_object extends construction_object {
@@ -92,8 +91,8 @@ export class list_object extends construction_object {
     private indexEnv(k: number, count: number): FormulaEnv {
         return {
             resolveIdentifier: (n) => {
-                if (n === "k") return [k, 0];
-                if (n === "count") return [count, 0];
+                if (n === "k") return k;
+                if (n === "count") return count;
                 const ref = this.refs.get(n);
                 return ref ? resolveRef(ref) : null;
             },

@@ -4,7 +4,7 @@ import {
     usesView,
     type FormulaNode,
 } from "../import/dgp_formula";
-import { expression_object } from "./expression_object";
+import { expression_object, referenceValue } from "./expression_object";
 import { point_object } from "./point_object";
 
 type FormulaPointRef = point_object | expression_object;
@@ -43,15 +43,8 @@ export class formula_point_object extends point_object {
 
     computeGeometry(): void {
         const value = evaluateFormula(this.formula, {
-            resolveIdentifier: (n) => {
-                const ref = this.refs.get(n)!;
-                if (!ref.defined) return null;
-                if (ref instanceof expression_object)
-                    return typeof ref.value === "number"
-                        ? [ref.value, 0]
-                        : null;
-                return this.vec3 ? ref.coords : [ref.coords[0], ref.coords[1]];
-            },
+            resolveIdentifier: (n) =>
+                referenceValue(this.refs.get(n)!, this.vec3),
             view: () => this.C.formulaView(),
         });
         if (value === null) {

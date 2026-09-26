@@ -2,12 +2,17 @@ import type { construction } from "../construction";
 import type { DOMElement } from "../dom";
 import {
     evaluateFormula,
+    evaluateProgram,
+    programNodes,
     realPart,
     usesCoords2D,
     usesView,
     type FormulaNode,
     type FormulaValue,
     type FormulaView,
+    type ObjectMethod,
+    type Program,
+    type ScriptValue,
 } from "../import/dgp_formula";
 import type { Vec2 } from "../vec";
 import { construction_object } from "./construction_object";
@@ -24,17 +29,14 @@ export function formatNumber(value: number, precision: number): string {
     return (Math.round(value * factor) / factor).toString().replace(".", ",");
 }
 
-export function formatValue(
-    value: number | number[],
-    precision: number,
-): string {
-    if (Array.isArray(value))
-        return (
-            "[" +
-            value.map((item) => formatNumber(item, precision)).join(" ; ") +
-            "]"
-        );
-    return formatNumber(value, precision);
+export function formatValue(value: ScriptValue, precision: number): string {
+    if (typeof value === "string") return value;
+    if (typeof value === "number") return formatNumber(value, precision);
+    return (
+        "[" +
+        value.map((item) => formatValue(item, precision)).join(" ; ") +
+        "]"
+    );
 }
 
 // A rounded "capsule" outline, used for the slider track.
@@ -91,15 +93,16 @@ export interface ExpressionFormula {
     refs: Map<string, expression_object>;
 }
 
-// A formula that reads other objects' current state instead of sweeping
-// "x" (e.g. DGPad's "d(P1,M)", or "AI-AM-MI" reading other Expressions'
-// live values): recomputed on every geometry update, like
-// formula_point_object, but produces a displayed value instead of a
-// point's own coordinates.
-export interface PointExpressionFormula {
-    node: FormulaNode;
-    source: string;
+// A formula or script that reads other objects' current state instead of
+// sweeping "x" (e.g. DGPad's "d(P1,M)", "AI-AM-MI" reading other
+// Expressions' live values, or "if(a<0){S1.setHidden(1)};\"text\""):
+// recomputed on every geometry update, like formula_point_object, but
+// produces a displayed value instead of a point's own coordinates.
+export interface ExpressionProgram {
+    program: Program;
     refs: Map<string, point_object | expression_object>;
+    // The objects it styles.
+    targets: Map<string, construction_object>;
     // True in a 3D figure (DGPad's legacy SetCoords is3D flag): a
     // referenced point then resolves to its full 3D coordinates (e.g.
     // "d(A,P4)" between two cube vertices) instead of the 2D/complex-number
@@ -107,15 +110,13 @@ export interface PointExpressionFormula {
     vec3: boolean;
 }
 
-// A statement of a DGPad script Expression (e.g. "Pt1.setHidden(n!=7)"),
-// carried out on its target by evaluating its argument as a formula,
-// without running the script itself.
-export interface ScriptStatement {
-    target: construction_object;
-    method: "setHidden" | "setOpacity";
-    node: FormulaNode;
-    refs: Map<string, point_object | expression_object>;
-    vec3: boolean;
+export function referenceValue(
+    ref: point_object | expression_object,
+    vec3: boolean,
+): ScriptValue | null {
+    if (!ref.defined) return null;
+    if (ref instanceof expression_object) return ref.value;
+    return vec3 ? [...ref.coords] : [ref.coords[0], ref.coords[1]];
 }
 
 export function evaluateAtX(
@@ -125,9 +126,9 @@ export function evaluateAtX(
 ): FormulaValue | null {
     return evaluateFormula(formula.node, {
         resolveIdentifier: (name) => {
-            if (name === "x") return [x, 0];
+            if (name === "x") return x;
             const value = formula.refs.get(name)?.value;
-            return typeof value === "number" ? [value, 0] : null;
+            return typeof value === "number" ? value : null;
         },
         view: () => view,
         callFunction: (name, args) => {
@@ -142,12 +143,9 @@ export function evaluateAtX(
 // A read-only reader's take on DGPad's ExpressionObject: displays a
 // constant value (number, complex number as [re, im], or vector), a named
 // formula of x (e.g. "0.5x^2-4", via `formula`, used as a callable function
-// by Curvus and other expressions), and, when bounds are given, a draggable
-// slider that updates a constant value. DGPad expressions can be arbitrary
-// math (including functions of other objects, evaluated in a sandboxed JS
-// interpreter); this project only supports the constant literals and
-// single-variable formulas it needs to display already-computed figures
-// (see parseExpressionValue in dgp_commands.ts).
+// by Curvus and other expressions), the value of a formula or script of
+// other objects (via `program`), and, when bounds are given, a draggable
+// slider that updates a constant value.
 //
 // Unlike every other object in this file, an expression isn't a geometric
 // object: DGPad pins it to a fixed window position (screen pixels, from
@@ -157,10 +155,9 @@ export function evaluateAtX(
 // is computed once by the caller and never re-projected.
 export class expression_object extends construction_object {
     text: string;
-    value: number | number[] | null;
+    value: ScriptValue | null;
     formula: ExpressionFormula | null;
-    pointFormula: PointExpressionFormula | null;
-    script: ScriptStatement[];
+    program: ExpressionProgram | null;
     // Computed with the projection rather than the geometry, since it reads
     // where points are drawn (see coords2D in dgp_formula.ts).
     viewDependent: boolean;
@@ -189,25 +186,24 @@ export class expression_object extends construction_object {
         c: construction,
         name: string | null | undefined,
         text: string,
-        value: number | number[] | null,
+        value: ScriptValue | null,
         min: number | null,
         max: number | null,
         screen: Vec2,
         formula: ExpressionFormula | null = null,
-        pointFormula: PointExpressionFormula | null = null,
-        script: ScriptStatement[] = [],
+        program: ExpressionProgram | null = null,
     ) {
         super(c, name, "expression");
         this.text = text;
         this.value = value;
         this.formula = formula;
-        this.pointFormula = pointFormula;
-        this.script = script;
+        this.program = program;
         this.viewDependent =
-            pointFormula !== null &&
-            (usesCoords2D(pointFormula.node) ||
-                usesView(pointFormula.node) ||
-                [...pointFormula.refs.values()].some(
+            program !== null &&
+            (programNodes(program.program).some(
+                (node) => usesCoords2D(node) || usesView(node),
+            ) ||
+                [...program.refs.values()].some(
                     (ref) =>
                         ref instanceof expression_object && ref.viewDependent,
                 ));
@@ -221,38 +217,26 @@ export class expression_object extends construction_object {
         this.cursorOpacity = 0;
         this.screen = screen;
         if (formula) this.addParents(...formula.refs.values());
-        if (pointFormula) this.addParents(...pointFormula.refs.values());
-        script.forEach((statement) => {
-            this.addParents(...statement.refs.values());
-            statement.target.addParents(this);
-        });
+        if (program) {
+            this.addParents(...program.refs.values());
+            program.targets.forEach((target) => target.addParents(this));
+        }
     }
 
     computeGeometry(): void {
-        if (!this.viewDependent) this.evaluatePointFormula();
+        if (!this.viewDependent) this.evaluateProgram();
     }
 
     project(): void {
-        if (this.viewDependent) this.evaluatePointFormula();
-        this.script.forEach((statement) => this.run(statement));
+        if (this.viewDependent) this.evaluateProgram();
     }
 
-    private evaluate(
-        node: FormulaNode,
-        refs: Map<string, point_object | expression_object>,
-        vec3: boolean,
-    ): FormulaValue | null {
+    private evaluateProgram(): void {
+        if (!this.program) return;
+        const { program, refs, targets, vec3 } = this.program;
         const grid = this.C.GRID;
-        return evaluateFormula(node, {
-            resolveIdentifier: (name) => {
-                const ref = refs.get(name);
-                if (!ref || !ref.defined) return null;
-                if (ref instanceof expression_object)
-                    return typeof ref.value === "number"
-                        ? [ref.value, 0]
-                        : null;
-                return vec3 ? ref.coords : [ref.coords[0], ref.coords[1]];
-            },
+        this.value = evaluateProgram(program, {
+            resolveIdentifier: (name) => referenceValue(refs.get(name)!, vec3),
             view: () => this.C.formulaView(),
             coords2D: (name) => {
                 const ref = refs.get(name)!;
@@ -268,41 +252,53 @@ export class expression_object extends construction_object {
                     (grid.ORG[1] - y) / grid.UNIT[1],
                 ];
             },
+            callMethod: (name, method, args) =>
+                this.style(targets.get(name)!, method, args),
         });
+        this.defined = this.value !== null;
     }
 
-    private run({ target, method, node, refs, vec3 }: ScriptStatement): void {
-        const value = realPart(this.evaluate(node, refs, vec3));
-        if (method === "setOpacity") {
-            if (value !== null) target.opacity = value;
-            return;
+    private style(
+        target: construction_object,
+        method: ObjectMethod,
+        args: (ScriptValue | null)[],
+    ): void {
+        switch (method) {
+            case "setHidden": {
+                // DGPad's setHidden: 0 shown, 1 hidden, 2 super-hidden, and
+                // hidden for anything that isn't a number.
+                const value = realPart(args[0]);
+                const hidden =
+                    value === null ? 1 : Math.trunc(Math.abs(value)) % 3;
+                if (hidden === target.hidden) return;
+                target.hidden = hidden;
+                target.updateView();
+                // How the objects sharing its edges draw them depends on it
+                // (see edgeStroke).
+                this.C.invalidateProjection();
+                return;
+            }
+            case "setOpacity": {
+                const value = realPart(args[0]);
+                if (value === null || value === target.opacity) return;
+                target.opacity = value;
+                break;
+            }
+            case "setRGBColor": {
+                const channels = args.map(realPart);
+                if (channels.includes(null)) return;
+                const color = `rgb(${channels.map((c) => Math.round(c!)).join(",")})`;
+                if (color === target.stroke_color) return;
+                target.fill_color = color;
+                target.stroke_color = color;
+                break;
+            }
+            default:
+                return;
         }
-        // DGPad's setHidden: 0 shown, 1 hidden, 2 super-hidden, and hidden
-        // for anything that isn't a number.
-        const hidden = value === null ? 1 : Math.trunc(Math.abs(value)) % 3;
-        if (hidden === target.hidden) return;
-        target.hidden = hidden;
-        target.updateView();
-        // How the objects sharing its edges draw them depends on it (see
-        // edgeStroke).
+        if (target.hasView) target.createSVG();
+        // An opaque face hides the edges behind it (see hidden_line.ts).
         this.C.invalidateProjection();
-    }
-
-    private evaluatePointFormula(): void {
-        if (!this.pointFormula) return;
-        const { node, refs, vec3 } = this.pointFormula;
-        const result = this.evaluate(node, refs, vec3);
-        this.defined = result !== null;
-        this.value =
-            result === null || typeof result === "number"
-                ? result
-                : // A zero-imaginary Vec2 (e.g. "AI-AM-MI", a real-valued
-                  // subtraction of scalars each wrapped through the formula
-                  // engine's Vec2 slot — see dgp_formula.ts) displays as that
-                  // plain number rather than a "[x ; 0]" pair.
-                  result.length === 2 && result[1] === 0
-                  ? result[0]
-                  : [...result];
     }
 
     get isCursor(): boolean {
@@ -343,15 +339,20 @@ export class expression_object extends construction_object {
             .att("x", x)
             .att("y", y)
             .text(
-                this.precision < 0
-                    ? prefix
-                    : prefix +
-                          (this.formula
-                              ? this.formula.source
-                              : formatValue(
-                                    this.value as number | number[],
-                                    this.precision,
-                                )),
+                typeof this.value === "string"
+                    ? // As DGPad, a text shows alone, its numbers rounded.
+                      this.value.replace(/\d+(?:\.\d+)?/g, (number) =>
+                          formatNumber(
+                              Number(number),
+                              Math.max(this.precision, 0),
+                          ),
+                      )
+                    : this.precision < 0
+                      ? prefix
+                      : prefix +
+                        (this.formula
+                            ? this.formula.source
+                            : formatValue(this.value!, this.precision)),
             );
 
         if (
@@ -429,13 +430,12 @@ export function createExpression(
     c: construction,
     name: string | null | undefined,
     text: string,
-    value: number | number[] | null,
+    value: ScriptValue | null,
     min: number | null,
     max: number | null,
     screen: Vec2,
     formula: ExpressionFormula | null = null,
-    pointFormula: PointExpressionFormula | null = null,
-    script: ScriptStatement[] = [],
+    program: ExpressionProgram | null = null,
 ): expression_object {
     return c.add(
         new expression_object(
@@ -447,8 +447,7 @@ export function createExpression(
             max,
             screen,
             formula,
-            pointFormula,
-            script,
+            program,
         ),
     );
 }

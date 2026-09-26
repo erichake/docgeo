@@ -18,6 +18,8 @@ export type FormulaFn =
     | "windowh"
     | "windowcx"
     | "windowcy"
+    | "theta"
+    | "phi"
     | "x"
     | "y"
     | "sin"
@@ -29,10 +31,30 @@ export type FormulaFn =
     | "atan2"
     | "abs"
     | "floor"
+    | "ceil"
+    | "round"
+    | "exp"
+    | "log"
     | "arg"
     | "perp"
     | "cross"
-    | "dot";
+    | "dot"
+    | "unitVector"
+    | "isNaN"
+    | ListFn;
+
+// DGPad's own names for its operators, also applying to lists, and its
+// view restrictions, which the import applies once (see Expression in
+// dgp_commands.ts).
+type ListFn =
+    | "plus"
+    | "minus"
+    | "times"
+    | "quotient"
+    | "power"
+    | "pow"
+    | "restrictTheta"
+    | "restrictPhi";
 
 const FORMULA_ARITY: Record<FormulaFn, number> = {
     sqrt: 1,
@@ -42,6 +64,8 @@ const FORMULA_ARITY: Record<FormulaFn, number> = {
     windowh: 0,
     windowcx: 0,
     windowcy: 0,
+    theta: 0,
+    phi: 0,
     x: 1,
     y: 1,
     sin: 1,
@@ -53,14 +77,89 @@ const FORMULA_ARITY: Record<FormulaFn, number> = {
     atan2: 2,
     abs: 1,
     floor: 1,
+    ceil: 1,
+    round: 1,
+    exp: 1,
+    log: 1,
     arg: 1,
     perp: 1,
     cross: 2,
     dot: 2,
+    unitVector: 1,
+    isNaN: 1,
+    plus: 2,
+    minus: 2,
+    times: 2,
+    quotient: 2,
+    power: 2,
+    pow: 2,
+    restrictTheta: 1,
+    restrictPhi: 1,
 };
+
+const LIST_OPERATORS: Record<ListFn, BinaryOp | null> = {
+    plus: "+",
+    minus: "-",
+    times: "*",
+    quotient: "/",
+    power: "^",
+    pow: "^",
+    restrictTheta: null,
+    restrictPhi: null,
+};
+
+// The only methods a script may call: reading an object, appending to one
+// of its own lists, and styling the figure's objects.
+export type ObjectMethod =
+    | "coords2D"
+    | "getX"
+    | "getY"
+    | "getName"
+    | "push"
+    | "setHidden"
+    | "setOpacity"
+    | "setRGBColor"
+    | "setLayer"
+    | "setDash"
+    | "noMouseInside";
+
+const READ_METHODS: ReadonlySet<ObjectMethod> = new Set([
+    "coords2D",
+    "getX",
+    "getY",
+    "getName",
+]);
+
+// DGPad's layers and dashes only make up for its lack of depth ordering,
+// which the reader does on its own (see paintByDepth and hidden_line.ts),
+// and noMouseInside concerns its editing: these methods are skipped,
+// arguments included.
+const SKIPPED_METHODS: ReadonlySet<ObjectMethod> = new Set([
+    "setLayer",
+    "setDash",
+    "noMouseInside",
+]);
+
+// -1: any number of arguments.
+const METHOD_ARITY: Record<ObjectMethod, number> = {
+    coords2D: 0,
+    getX: 0,
+    getY: 0,
+    getName: 0,
+    push: -1,
+    setHidden: 1,
+    setOpacity: 1,
+    setRGBColor: 3,
+    setLayer: 1,
+    setDash: 1,
+    noMouseInside: 0,
+};
+
+type BinaryOp = "+" | "-" | "*" | "/" | "^" | Comparison;
 
 export type FormulaNode =
     | { kind: "number"; value: number }
+    | { kind: "string"; value: string }
     | { kind: "imaginary" }
     | { kind: "constant"; name: "PI" }
     | { kind: "identifier"; name: string }
@@ -70,20 +169,57 @@ export type FormulaNode =
     // at evaluation time through FormulaEnv.callFunction, not evalCall.
     | { kind: "userCall"; name: string; args: FormulaNode[] }
     | { kind: "unary"; op: "-" | "!"; operand: FormulaNode }
-    // "P[1]": a component of a point's coordinates or of a vector.
+    // "P[1]": a component of a point's coordinates or of a list.
     | { kind: "index"; target: FormulaNode; index: FormulaNode }
-    // "P.coords2D()": where point P is drawn, in the window's coordinate
-    // system, which changes with the 3D view.
-    | { kind: "coords2D"; name: string }
-    // A DGPad vector/point-displacement literal, e.g. "[-1,-1,1]": 2 or 3
-    // real components, used to build 3D points (e.g. "P1+[-1,-1,1]").
+    // "P.coords2D()" (where point P is drawn, in the window's coordinate
+    // system, which changes with the 3D view), "S1.setHidden(1)" or a
+    // script's own "tab.push(P)".
+    | {
+          kind: "method";
+          object: string;
+          method: ObjectMethod;
+          args: FormulaNode[];
+      }
+    // A list literal, e.g. "[-1,-1,1]", a 3D point displacement.
     | { kind: "vector"; items: FormulaNode[] }
     | {
+          kind: "conditional";
+          test: FormulaNode;
+          then: FormulaNode;
+          otherwise: FormulaNode;
+      }
+    // Assigns one of the script's own variables.
+    | { kind: "assign"; name: string; value: FormulaNode }
+    | {
           kind: "binary";
-          op: "+" | "-" | "*" | "/" | "^" | Comparison;
+          op: BinaryOp;
           left: FormulaNode;
           right: FormulaNode;
       };
+
+// A DGPad script: JavaScript-like statements whose last one gives the
+// Expression's value, e.g. "if(a<0){S1.setHidden(1)};\"text\"". It is
+// interpreted here, never run as JavaScript.
+export type Statement =
+    | { kind: "expression"; node: FormulaNode }
+    | {
+          kind: "if";
+          test: FormulaNode;
+          then: Statement[];
+          otherwise: Statement[];
+      }
+    | {
+          kind: "loop";
+          test: FormulaNode | null;
+          body: Statement[];
+          update: FormulaNode | null;
+      };
+
+export interface Program {
+    body: Statement[];
+    // Its own variables, which shadow the figure's objects.
+    locals: Set<string>;
+}
 
 // DGPad's JavaScript comparisons and logical operators, worth 1 or 0.
 type Comparison = "==" | "!=" | "<" | "<=" | ">" | ">=" | "&&" | "||";
@@ -105,8 +241,17 @@ const COMPARISONS: Record<Comparison, (a: number, b: number) => boolean> = {
     "||": (a, b) => a !== 0 || b !== 0,
 };
 
+const ASSIGNMENTS: Record<string, "+" | "-" | "*" | "/" | null> = {
+    "=": null,
+    "+=": "+",
+    "-=": "-",
+    "*=": "*",
+    "/=": "/",
+};
+
 type TokenType =
     | "number"
+    | "string"
     | "identifier"
     | "imaginary"
     | "+"
@@ -122,6 +267,18 @@ type TokenType =
     | "["
     | "]"
     | ","
+    | "?"
+    | ":"
+    | ";"
+    | "{"
+    | "}"
+    | "="
+    | "+="
+    | "-="
+    | "*="
+    | "/="
+    | "++"
+    | "--"
     | "eof";
 
 interface Token {
@@ -129,8 +286,17 @@ interface Token {
     value: string | number;
 }
 
+// JavaScript's reserved words: a script uses only the statements parsed
+// here.
+const KEYWORDS: ReadonlySet<string> = new Set(
+    "break case catch class const continue debugger default delete do else export extends finally for function if import in instanceof let new return super switch this throw try typeof var void while with yield".split(
+        " ",
+    ),
+);
+
 const NUMBER = /(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][+-]?\d+)?/y;
-const OPERATOR = /^(?:[=!<>]=|[<>!]|&&|\|\|)/;
+const OPERATOR = /^(?:[=!]==?|[<>]=?|[-+*/]=|\+\+|--|&&|\|\||[!=?:;{}])/;
+const STRING = /"(?:[^"\\]|\\.)*"|'(?:[^'\\]|\\.)*'/y;
 
 class FormulaLexer {
     private index = 0;
@@ -156,10 +322,22 @@ class FormulaLexer {
 
         if (IDENTIFIER_START.test(character)) return this.identifier();
 
+        STRING.lastIndex = this.index;
+        const string = STRING.exec(this.source);
+        if (string) {
+            this.index = STRING.lastIndex;
+            return {
+                type: "string",
+                value: string[0].slice(1, -1).replace(/\\(.)/g, "$1"),
+            };
+        }
+
         const operator = OPERATOR.exec(this.source.slice(this.index));
         if (operator) {
             this.index += operator[0].length;
-            return { type: operator[0] as TokenType, value: operator[0] };
+            // JavaScript's strict equalities: the same between numbers.
+            const type = operator[0].slice(0, 2) as TokenType;
+            return { type, value: type };
         }
 
         if ("+-*/^(),[].".includes(character)) {
@@ -193,15 +371,17 @@ class FormulaLexer {
             IDENTIFIER_PART.test(this.source[this.index])
         )
             this.index++;
-        const text = this.source.slice(start, this.index);
-        if (text === "i") return { type: "imaginary", value: 1 };
-        return { type: "identifier", value: text };
+        return {
+            type: "identifier",
+            value: this.source.slice(start, this.index),
+        };
     }
 }
 
 class FormulaParser {
     private readonly lexer: FormulaLexer;
     private current: Token;
+    readonly locals = new Set<string>();
 
     constructor(source: string) {
         this.lexer = new FormulaLexer(source);
@@ -210,13 +390,106 @@ class FormulaParser {
 
     parse(): FormulaNode {
         const node = this.expression();
-        if (this.current.type !== "eof")
+        if (this.current.type !== "eof" || this.locals.size > 0)
             throw new Error("Invalid DGP formula syntax");
         return node;
     }
 
+    parseProgram(): Program {
+        const body: Statement[] = [];
+        while (this.current.type !== "eof") body.push(...this.statement());
+        return { body, locals: this.locals };
+    }
+
+    private statement(): Statement[] {
+        if (this.skip(";")) return [];
+        if (this.skip("{")) {
+            const body: Statement[] = [];
+            while (!this.skip("}")) body.push(...this.statement());
+            return body;
+        }
+        if (this.skipKeyword("var", "let", "const")) {
+            const statements = this.declarations();
+            this.skip(";");
+            return statements;
+        }
+        if (this.skipKeyword("if")) {
+            const test = this.condition();
+            const then = this.statement();
+            const otherwise = this.skipKeyword("else") ? this.statement() : [];
+            return [{ kind: "if", test, then, otherwise }];
+        }
+        if (this.skipKeyword("while")) {
+            const test = this.condition();
+            return [
+                { kind: "loop", test, body: this.statement(), update: null },
+            ];
+        }
+        if (this.skipKeyword("for")) {
+            this.take("(");
+            const init: Statement[] = this.skipKeyword("var", "let")
+                ? this.declarations()
+                : this.current.type === ";"
+                  ? []
+                  : [{ kind: "expression", node: this.expression() }];
+            this.take(";");
+            const test = this.current.type === ";" ? null : this.expression();
+            this.take(";");
+            const update = this.current.type === ")" ? null : this.expression();
+            this.take(")");
+            return [
+                ...init,
+                { kind: "loop", test, body: this.statement(), update },
+            ];
+        }
+        const node = this.expression();
+        this.skip(";");
+        return [{ kind: "expression", node }];
+    }
+
+    private declarations(): Statement[] {
+        const statements: Statement[] = [];
+        do {
+            const name = this.current.value as string;
+            this.take("identifier");
+            this.locals.add(name);
+            if (this.skip("="))
+                statements.push({
+                    kind: "expression",
+                    node: { kind: "assign", name, value: this.expression() },
+                });
+        } while (this.skip(","));
+        return statements;
+    }
+
+    private condition(): FormulaNode {
+        this.take("(");
+        const node = this.expression();
+        this.take(")");
+        return node;
+    }
+
     private expression(): FormulaNode {
-        return this.binaryLevel(["||"], () =>
+        const node = this.conditional();
+        if (!(this.current.type in ASSIGNMENTS)) return node;
+        const op = ASSIGNMENTS[this.current.type];
+        if (node.kind !== "identifier")
+            throw new Error("Invalid DGP formula syntax");
+        this.advance();
+        const value = this.expression();
+        return this.assign(
+            node.name,
+            op ? { kind: "binary", op, left: node, right: value } : value,
+        );
+    }
+
+    private assign(name: string, value: FormulaNode): FormulaNode {
+        this.locals.add(name);
+        return { kind: "assign", name, value };
+    }
+
+    private conditional(): FormulaNode {
+        const test = this.binaryLevel(["||"], () =>
             this.binaryLevel(["&&"], () =>
                 this.binaryLevel(["==", "!="], () =>
                     this.binaryLevel(["<", "<=", ">", ">="], () =>
@@ -225,6 +498,15 @@ class FormulaParser {
                 ),
             ),
         );
+        if (!this.skip("?")) return test;
+        const then = this.expression();
+        this.take(":");
+        return {
+            kind: "conditional",
+            test,
+            then,
+            otherwise: this.expression(),
+        };
     }
 
     private binaryLevel(
@@ -285,7 +567,8 @@ class FormulaParser {
     // error — two adjacent number tokens are never implicit multiplication).
     private startsImplicitFactor(): boolean {
         return (
-            this.current.type === "identifier" ||
+            (this.current.type === "identifier" &&
+                !KEYWORDS.has(this.current.value as string)) ||
             this.current.type === "imaginary" ||
             this.current.type === "("
         );
@@ -297,7 +580,22 @@ class FormulaParser {
             this.advance();
             return { kind: "unary", op, operand: this.unary() };
         }
-        return this.power();
+        const node = this.power();
+        // "k++" in a loop: its value before the increment is never used.
+        if (
+            (this.current.type === "++" || this.current.type === "--") &&
+            node.kind === "identifier"
+        ) {
+            const op = this.current.type === "++" ? "+" : "-";
+            this.advance();
+            return this.assign(node.name, {
+                kind: "binary",
+                op,
+                left: node,
+                right: { kind: "number", value: 1 },
+            });
+        }
+        return node;
     }
 
     private power(): FormulaNode {
@@ -320,35 +618,28 @@ class FormulaParser {
             this.advance();
             return { kind: "number", value: token.value as number };
         }
+        if (token.type === "string") {
+            this.advance();
+            return { kind: "string", value: token.value as string };
+        }
         if (token.type === "imaginary") {
             this.advance();
-            const coefficient = token.value as number;
-            return coefficient === 1
-                ? { kind: "imaginary" }
-                : {
-                      kind: "binary",
-                      op: "*",
-                      left: { kind: "number", value: coefficient },
-                      right: { kind: "imaginary" },
-                  };
+            return this.imaginary(token.value as number);
         }
         if (token.type === "identifier") {
-            this.advance();
             const name = token.value as string;
+            if (KEYWORDS.has(name))
+                throw new Error("Invalid DGP formula syntax");
+            this.advance();
             if ((this.current.type as TokenType) === "(")
                 return this.call(name);
-            if ((this.current.type as TokenType) === ".") {
-                this.advance();
-                if (this.current.value !== "coords2D")
-                    throw new Error("Invalid DGP formula syntax");
-                this.advance();
-                this.take("(");
-                this.take(")");
-                return { kind: "coords2D", name };
-            }
+            if (this.skip(".")) return this.member(name);
             // "π" is DGPad's own notation for PI in slider bounds/formulas.
             if (name === "PI" || name === "π")
                 return { kind: "constant", name: "PI" };
+            // Unless a script names one of its variables "i".
+            if (name === "i" && !this.locals.has(name))
+                return this.imaginary(1);
             return { kind: "identifier", name };
         }
         if (token.type === "(") {
@@ -361,30 +652,49 @@ class FormulaParser {
         throw new Error("Invalid DGP formula syntax");
     }
 
+    private imaginary(coefficient: number): FormulaNode {
+        return coefficient === 1
+            ? { kind: "imaginary" }
+            : {
+                  kind: "binary",
+                  op: "*",
+                  left: { kind: "number", value: coefficient },
+                  right: { kind: "imaginary" },
+              };
+    }
+
+    private member(object: string): FormulaNode {
+        const name = this.current.value as string;
+        this.take("identifier");
+        if (object === "Math") {
+            if (name === "PI") return { kind: "constant", name: "PI" };
+            return this.call(name);
+        }
+        if (!(name in METHOD_ARITY))
+            throw new Error("Invalid DGP formula syntax");
+        const method = name as ObjectMethod;
+        this.take("(");
+        const args = this.arguments();
+        const arity = METHOD_ARITY[method];
+        if (arity >= 0 && args.length !== arity)
+            throw new Error(`Invalid DGP method "${name}" arity`);
+        return { kind: "method", object, method, args };
+    }
+
     private vector(): FormulaNode {
         this.advance();
-        const items: FormulaNode[] = [this.expression()];
-        while ((this.current.type as TokenType) === ",") {
-            this.advance();
+        const items: FormulaNode[] = [];
+        if ((this.current.type as TokenType) !== "]") {
             items.push(this.expression());
+            while (this.skip(",")) items.push(this.expression());
         }
         this.take("]");
-        if (items.length !== 2 && items.length !== 3)
-            throw new Error("Invalid DGP formula syntax");
         return { kind: "vector", items };
     }
 
     private call(name: string): FormulaNode {
-        this.advance();
-        const args: FormulaNode[] = [];
-        if ((this.current.type as TokenType) !== ")") {
-            args.push(this.expression());
-            while ((this.current.type as TokenType) === ",") {
-                this.advance();
-                args.push(this.expression());
-            }
-        }
-        this.take(")");
+        this.take("(");
+        const args = this.arguments();
         if (!(name in FORMULA_ARITY)) return { kind: "userCall", name, args };
         const fn = name as FormulaFn;
         if (args.length !== FORMULA_ARITY[fn])
@@ -392,10 +702,35 @@ class FormulaParser {
         return { kind: "call", fn, args };
     }
 
-    private take(type: TokenType): void {
-        if (this.current.type !== type)
-            throw new Error("Invalid DGP formula syntax");
+    // After "(": the arguments up to and including ")".
+    private arguments(): FormulaNode[] {
+        const args: FormulaNode[] = [];
+        if ((this.current.type as TokenType) !== ")") {
+            args.push(this.expression());
+            while (this.skip(",")) args.push(this.expression());
+        }
+        this.take(")");
+        return args;
+    }
+
+    private skipKeyword(...keywords: string[]): boolean {
+        if (
+            this.current.type !== "identifier" ||
+            !keywords.includes(this.current.value as string)
+        )
+            return false;
         this.advance();
+        return true;
+    }
+
+    private skip(type: TokenType): boolean {
+        if (this.current.type !== type) return false;
+        this.advance();
+        return true;
+    }
+
+    private take(type: TokenType): void {
+        if (!this.skip(type)) throw new Error("Invalid DGP formula syntax");
     }
 
     private advance(): void {
@@ -407,68 +742,120 @@ export function parseFormula(source: string): FormulaNode {
     return new FormulaParser(source).parse();
 }
 
-export function formulaIdentifiers(node: FormulaNode): Set<string> {
-    const names = new Set<string>();
-    const walk = (n: FormulaNode): void => {
-        switch (n.kind) {
-            case "identifier":
-                names.add(n.name);
-                break;
-            case "unary":
-                walk(n.operand);
-                break;
-            case "vector":
-                n.items.forEach(walk);
-                break;
-            case "index":
-                walk(n.target);
-                walk(n.index);
-                break;
-            case "coords2D":
-                names.add(n.name);
-                break;
-            case "binary":
-                walk(n.left);
-                walk(n.right);
-                break;
-            case "call":
-                n.args.forEach(walk);
-                break;
-            case "userCall":
-                names.add(n.name);
-                n.args.forEach(walk);
-                break;
-        }
+export function parseProgram(source: string): Program {
+    return new FormulaParser(source).parseProgram();
+}
+
+function children(node: FormulaNode): FormulaNode[] {
+    switch (node.kind) {
+        case "unary":
+            return [node.operand];
+        case "index":
+            return [node.target, node.index];
+        case "binary":
+            return [node.left, node.right];
+        case "conditional":
+            return [node.test, node.then, node.otherwise];
+        case "assign":
+            return [node.value];
+        case "vector":
+            return node.items;
+        case "method":
+            return SKIPPED_METHODS.has(node.method) ? [] : node.args;
+        case "call":
+        case "userCall":
+            return node.args;
+        default:
+            return [];
+    }
+}
+
+function statementNodes(statement: Statement): FormulaNode[] {
+    switch (statement.kind) {
+        case "expression":
+            return [statement.node];
+        case "if":
+            return [
+                statement.test,
+                ...statement.then.flatMap(statementNodes),
+                ...statement.otherwise.flatMap(statementNodes),
+            ];
+        case "loop":
+            return [
+                ...(statement.test ? [statement.test] : []),
+                ...(statement.update ? [statement.update] : []),
+                ...statement.body.flatMap(statementNodes),
+            ];
+    }
+}
+
+// Every node of the program, nested ones included.
+export function programNodes(program: Program): FormulaNode[] {
+    const nodes: FormulaNode[] = [];
+    const walk = (node: FormulaNode): void => {
+        nodes.push(node);
+        children(node).forEach(walk);
     };
-    walk(node);
-    return names;
+    program.body.flatMap(statementNodes).forEach(walk);
+    return nodes;
+}
+
+function nodeNames(node: FormulaNode): string[] {
+    switch (node.kind) {
+        case "identifier":
+        case "userCall":
+            return [node.name];
+        case "method":
+            return READ_METHODS.has(node.method) ? [node.object] : [];
+        default:
+            return [];
+    }
+}
+
+export function formulaIdentifiers(node: FormulaNode): Set<string> {
+    return new Set(
+        programNodes({
+            body: [{ kind: "expression", node }],
+            locals: new Set(),
+        }).flatMap(nodeNames),
+    );
+}
+
+// The figure's objects the program reads.
+export function programReferences(program: Program): Set<string> {
+    return new Set(
+        programNodes(program)
+            .flatMap(nodeNames)
+            .filter((name) => !program.locals.has(name)),
+    );
+}
+
+// The figure's objects the program styles.
+export function programTargets(program: Program): Set<string> {
+    return new Set(
+        programNodes(program).flatMap((node) =>
+            node.kind === "method" &&
+            !READ_METHODS.has(node.method) &&
+            node.method !== "push" &&
+            !SKIPPED_METHODS.has(node.method)
+                ? [node.object]
+                : [],
+        ),
+    );
 }
 
 function someNode(
     node: FormulaNode,
     test: (n: FormulaNode) => boolean,
 ): boolean {
-    if (test(node)) return true;
-    const some = (n: FormulaNode) => someNode(n, test);
-    switch (node.kind) {
-        case "unary":
-            return some(node.operand);
-        case "index":
-            return some(node.target) || some(node.index);
-        case "binary":
-            return some(node.left) || some(node.right);
-        case "vector":
-            return node.items.some(some);
-        case "call":
-        case "userCall":
-            return node.args.some(some);
-        default:
-            return false;
-    }
+    return test(node) || children(node).some((n) => someNode(n, test));
 }
 
 export function usesCoords2D(node: FormulaNode): boolean {
-    return someNode(node, (n) => n.kind === "coords2D");
+    return someNode(
+        node,
+        (n) => n.kind === "method" && n.method === "coords2D",
+    );
 }
 
 const VIEW_FUNCTIONS: ReadonlySet<FormulaFn> = new Set([
@@ -477,27 +864,33 @@ const VIEW_FUNCTIONS: ReadonlySet<FormulaFn> = new Set([
     "windowh",
     "windowcx",
     "windowcy",
+    "theta",
+    "phi",
 ]);
 
-// Whether the formula reads the window (zoom, origin or size), as DGPad
-// re-evaluates it whenever that changes.
+// Whether the formula reads the window (zoom, origin, size or 3D view), as
+// DGPad re-evaluates it whenever that changes.
 export function usesView(node: FormulaNode): boolean {
     return someNode(node, (n) => n.kind === "call" && VIEW_FUNCTIONS.has(n.fn));
 }
 
-// A Vec3 only ever comes from a 3-item vector literal (e.g. "P1+[-1,-1,1]",
-// a legacy-3D point displacement) or a point identifier resolved in that
-// same 3D context; every other formula stays within number | Vec2 exactly
-// as before.
+// What a DGPad script computes, like its JavaScript: a number, a text, or a
+// list (a point's coordinates, a complex number, a list of points...).
+export type ScriptValue = number | string | readonly ScriptValue[];
+
+// A formula's own result: a number, a complex number or 2D point, or a 3D
+// point.
 export type FormulaValue = number | Vec2 | Vec3;
 
 // The window a formula is evaluated in: pixels per unit, the origin's and
-// the window's size in pixels.
+// the window's size in pixels, and the 3D view's angles.
 export interface FormulaView {
     unit: number;
     origin: Vec2;
     width: number;
     height: number;
+    theta: number;
+    phi: number;
 }
 
 // For formulas evaluated outside any window (constants read at import).
@@ -506,29 +899,60 @@ export const NO_VIEW: FormulaView = {
     origin: [0, 0],
     width: 0,
     height: 0,
+    theta: 0,
+    phi: 0,
 };
 
 export interface FormulaEnv {
-    resolveIdentifier(name: string): Vec2 | Vec3 | null;
+    resolveIdentifier(name: string): ScriptValue | null;
     view(): FormulaView;
     coords2D?(name: string): Vec2 | null;
     // Resolves a userCall node (a name outside FORMULA_ARITY applied to
     // arguments, e.g. "E1(x)"). Consumers that don't support calling named
     // objects (most formula owners) simply omit this.
     callFunction?(name: string, args: FormulaValue[]): FormulaValue | null;
+    // Carries out a script's styling method on one of the figure's objects.
+    callMethod?(
+        object: string,
+        method: ObjectMethod,
+        args: (ScriptValue | null)[],
+    ): void;
 }
 
-// Every identifier resolves through a Vec2-shaped slot (see FormulaEnv),
-// so a real-valued result like "x^2" still comes back as a Vec2 with a
-// zero imaginary part rather than a plain number. Real-only consumers
-// (list counts, label values, real trig functions, curve samples) treat
-// such a Vec2 as that real number, and reject a genuinely complex one.
-// A Vec3 (a 3D point coordinate, never a "real number") always rejects.
-export function realPart(value: FormulaValue | null): number | null {
-    if (value === null) return null;
+// A real number, possibly written as a complex number with no imaginary
+// part (e.g. [2, 0]). A 3D point is never a real number.
+export function realPart(value: ScriptValue | null): number | null {
+    if (value === null || typeof value === "string") return null;
     if (typeof value === "number") return value;
-    if (value.length === 3) return null;
-    return value[1] === 0 ? value[0] : null;
+    return value.length === 2 && value[1] === 0 && typeof value[0] === "number"
+        ? value[0]
+        : null;
+}
+
+function complex(value: ScriptValue): Vec2 | null {
+    if (typeof value === "number") return [value, 0];
+    return Array.isArray(value) &&
+        value.length === 2 &&
+        typeof value[0] === "number" &&
+        typeof value[1] === "number"
+        ? [value[0], value[1]]
+        : null;
+}
+
+// A formula's own value: a number, or 2 or 3 finite coordinates.
+function formulaValue(value: ScriptValue | null): FormulaValue | null {
+    if (typeof value === "number") return Number.isFinite(value) ? value : null;
+    if (
+        !Array.isArray(value) ||
+        (value.length !== 2 && value.length !== 3) ||
+        !value.every(
+            (item) => typeof item === "number" && Number.isFinite(item),
+        )
+    )
+        return null;
+    return value.length === 2
+        ? [value[0], value[1]]
+        : [value[0], value[1], value[2]];
 }
 
 function complexMul(a: Vec2, b: Vec2): Vec2 {
@@ -560,78 +984,84 @@ function complexPow(a: Vec2, exponent: number): Vec2 {
     ];
 }
 
+function terms(
+    count: number,
+    term: (index: number) => ScriptValue | null,
+): ScriptValue[] | null {
+    const values: ScriptValue[] = [];
+    for (let index = 0; index < count; index++) {
+        const value = term(index);
+        if (value === null) return null;
+        values.push(value);
+    }
+    return values;
+}
+
 function evalBinary(
-    op: "+" | "-" | "*" | "/" | "^" | Comparison,
-    l: FormulaValue,
-    r: FormulaValue,
-): FormulaValue | null {
+    op: BinaryOp,
+    l: ScriptValue,
+    r: ScriptValue,
+): ScriptValue | null {
     if (isComparison(op)) {
         const [a, b] = [realPart(l), realPart(r)];
         return a === null || b === null ? null : Number(COMPARISONS[op](a, b));
     }
-    if (
-        (typeof l !== "number" && l.length === 3) ||
-        (typeof r !== "number" && r.length === 3)
-    ) {
-        // A 3D vector only adds to/subtracts from another one, or scales
-        // by a real number: complex multiplication/division/power don't
-        // generalize to 3D.
-        const leftVector = typeof l !== "number" && l.length === 3;
-        const scalar = realPart(leftVector ? r : l);
-        if (scalar !== null && op === "*")
-            return vScale((leftVector ? l : r) as Vec3, scalar);
-        if (scalar !== null && op === "/" && leftVector)
-            return vScale(l as Vec3, 1 / scalar);
-        if (
-            typeof l === "number" ||
-            typeof r === "number" ||
-            l.length !== 3 ||
-            r.length !== 3 ||
-            (op !== "+" && op !== "-")
-        )
-            return null;
-        return op === "+" ? vAdd(l, r) : vSub(l, r);
-    }
-    // From here, l and r are number | Vec2 only (the 3D case above always
-    // returns). Cast away the Vec3 arm TS can't otherwise rule out.
-    const l2 = l as number | Vec2;
-    const r2 = r as number | Vec2;
-    if (op === "^") {
-        if (typeof l2 === "number" && typeof r2 === "number")
-            return Math.pow(l2, r2);
-        if (typeof l2 !== "number" && typeof r2 === "number")
-            // A real base (an identifier holding a zero-imaginary Vec2, e.g.
-            // a curve's x) goes through plain Math.pow: complexPow's polar
-            // round-trip (cos/sin of an angle that's 0 or PI) leaves a tiny
-            // nonzero imaginary residue even for a perfectly real result,
-            // which realPart would then wrongly reject as complex.
-            return l2[1] === 0 ? Math.pow(l2[0], r2) : complexPow(l2, r2);
-        return null;
-    }
-    if (typeof l2 === "number" && typeof r2 === "number") {
+    if (typeof l === "string" || typeof r === "string")
+        return op === "+" ? String(l) + String(r) : null;
+    if (typeof l === "number" && typeof r === "number") {
         switch (op) {
             case "+":
-                return l2 + r2;
+                return l + r;
             case "-":
-                return l2 - r2;
+                return l - r;
             case "*":
-                return l2 * r2;
+                return l * r;
             case "/":
-                return l2 / r2;
+                return l / r;
+            case "^":
+                return Math.pow(l, r);
         }
     }
-    const a: Vec2 = typeof l2 === "number" ? [l2, 0] : l2;
-    const b: Vec2 = typeof r2 === "number" ? [r2, 0] : r2;
-    switch (op) {
-        case "+":
-            return vAdd(a, b);
-        case "-":
-            return vSub(a, b);
-        case "*":
-            return complexMul(a, b);
-        case "/":
-            return complexDiv(a, b);
+    const a = complex(l);
+    const b = complex(r);
+    if (a && b) {
+        switch (op) {
+            case "+":
+                return vAdd(a, b);
+            case "-":
+                return vSub(a, b);
+            case "*":
+                return complexMul(a, b);
+            case "/":
+                return complexDiv(a, b);
+            case "^":
+                // A real base (e.g. [2, 0]) goes through plain Math.pow:
+                // complexPow's polar round-trip (cos/sin of an angle that's
+                // 0 or PI) leaves a tiny nonzero imaginary residue even for
+                // a perfectly real result, which realPart would then
+                // wrongly reject as complex.
+                if (typeof r !== "number") return null;
+                return a[1] === 0 ? Math.pow(a[0], r) : complexPow(a, r);
+        }
     }
+    // Other lists (e.g. 3D vectors) add up, and scale by a real number, term
+    // by term.
+    if (Array.isArray(l) && Array.isArray(r))
+        return (op === "+" || op === "-") && l.length === r.length
+            ? terms(l.length, (i) => evalBinary(op, l[i], r[i]))
+            : null;
+    const [list, scalar] = Array.isArray(l)
+        ? [l, realPart(r)]
+        : [r as ScriptValue[], realPart(l)];
+    if (scalar === null || !(op === "*" || (op === "/" && list === l)))
+        return null;
+    return terms(list.length, (i) => evalBinary(op, list[i], scalar));
+}
+
+function negate(value: ScriptValue): ScriptValue | null {
+    if (typeof value === "number") return -value;
+    if (typeof value === "string") return null;
+    return terms(value.length, (i) => negate(value[i]));
 }
 
 function realUnary(
@@ -643,7 +1073,7 @@ function realUnary(
 }
 
 function evalCall(
-    fn: FormulaFn,
+    fn: Exclude<FormulaFn, ListFn | "isNaN">,
     args: FormulaValue[],
     env: FormulaEnv,
 ): FormulaValue | null {
@@ -666,6 +1096,10 @@ function evalCall(
             const { height, origin, unit } = env.view();
             return (origin[1] - height / 2) / unit;
         }
+        case "theta":
+            return env.view().theta;
+        case "phi":
+            return env.view().phi;
         case "d": {
             const [a, b] = args;
             if (
@@ -714,6 +1148,14 @@ function evalCall(
             return realUnary(Math.abs, args[0]);
         case "floor":
             return realUnary(Math.floor, args[0]);
+        case "ceil":
+            return realUnary(Math.ceil, args[0]);
+        case "round":
+            return realUnary(Math.round, args[0]);
+        case "exp":
+            return realUnary(Math.exp, args[0]);
+        case "log":
+            return realUnary(Math.log, args[0]);
         // DGPad's arg, within [0, 2π).
         case "arg": {
             const [a] = args;
@@ -727,6 +1169,14 @@ function evalCall(
             if (typeof a === "number") return null;
             const norm = Math.hypot(a[0], a[1]);
             return norm > 0 ? [-a[1] / norm, a[0] / norm] : null;
+        }
+        case "unitVector": {
+            const [a] = args;
+            if (typeof a === "number") return null;
+            const norm = a.length === 3 ? vNorm(a as Vec3) : vNorm(a as Vec2);
+            return a.length === 3
+                ? vScale(a as Vec3, 1 / norm)
+                : vScale(a as Vec2, 1 / norm);
         }
         case "cross": {
             const [a, b] = args;
@@ -752,73 +1202,183 @@ function evalCall(
     }
 }
 
-function evalNode(node: FormulaNode, env: FormulaEnv): FormulaValue | null {
+// Beyond it, a script's loops are taken as endless and its value is
+// undefined.
+const MAX_STEPS = 1_000_000;
+
+class StepLimitExceeded extends Error {}
+
+interface Scope {
+    env: FormulaEnv;
+    names: ReadonlySet<string>;
+    locals: Map<string, ScriptValue | null>;
+    steps: number;
+}
+
+function truthy(value: ScriptValue | null): boolean {
+    if (typeof value === "number") return value !== 0 && !Number.isNaN(value);
+    return value !== null && value !== "";
+}
+
+function evalArgs(nodes: FormulaNode[], scope: Scope): ScriptValue[] | null {
+    return terms(nodes.length, (i) => evalNode(nodes[i], scope));
+}
+
+function evalNode(node: FormulaNode, scope: Scope): ScriptValue | null {
     switch (node.kind) {
         case "number":
+        case "string":
             return node.value;
         case "imaginary":
             return [0, 1];
         case "constant":
             return Math.PI;
         case "identifier":
-            return env.resolveIdentifier(node.name);
+            return scope.names.has(node.name)
+                ? (scope.locals.get(node.name) ?? null)
+                : scope.env.resolveIdentifier(node.name);
+        case "assign": {
+            const value = evalNode(node.value, scope);
+            scope.locals.set(node.name, value);
+            return value;
+        }
+        case "conditional":
+            return evalNode(
+                truthy(evalNode(node.test, scope)) ? node.then : node.otherwise,
+                scope,
+            );
         case "unary": {
-            const value = evalNode(node.operand, env);
+            const value = evalNode(node.operand, scope);
             if (value === null) return null;
-            if (node.op === "!") {
-                const real = realPart(value);
-                return real === null ? null : Number(real === 0);
-            }
-            if (typeof value === "number") return -value;
-            return value.length === 3
-                ? [-value[0], -value[1], -value[2]]
-                : [-value[0], -value[1]];
+            if (node.op === "-") return negate(value);
+            const real = realPart(value);
+            return real === null ? null : Number(real === 0);
         }
         case "index": {
-            const target = evalNode(node.target, env);
-            const index = realPart(evalNode(node.index, env));
-            if (target === null || typeof target === "number" || index === null)
-                return null;
+            const target = evalNode(node.target, scope);
+            const index = realPart(evalNode(node.index, scope));
+            if (!Array.isArray(target) || index === null) return null;
             return target[index] ?? null;
         }
-        case "coords2D":
-            return env.coords2D?.(node.name) ?? null;
-        case "vector": {
-            const values: number[] = [];
-            for (const item of node.items) {
-                const real = realPart(evalNode(item, env));
-                if (real === null) return null;
-                values.push(real);
+        case "method": {
+            switch (node.method) {
+                case "coords2D":
+                    return scope.env.coords2D?.(node.object) ?? null;
+                case "getName":
+                    return node.object;
+                case "getX":
+                case "getY": {
+                    const point = scope.env.resolveIdentifier(node.object);
+                    return Array.isArray(point)
+                        ? (point[node.method === "getX" ? 0 : 1] ?? null)
+                        : null;
+                }
             }
-            return values.length === 3
-                ? [values[0], values[1], values[2]]
-                : [values[0], values[1]];
+            if (SKIPPED_METHODS.has(node.method)) return null;
+            const args = node.args.map((arg) => evalNode(arg, scope));
+            if (node.method !== "push") {
+                scope.env.callMethod?.(node.object, node.method, args);
+                return null;
+            }
+            const list = scope.locals.get(node.object);
+            if (!Array.isArray(list) || args.includes(null)) return null;
+            const pushed = [...list, ...(args as ScriptValue[])];
+            scope.locals.set(node.object, pushed);
+            return pushed.length;
         }
+        case "vector":
+            return evalArgs(node.items, scope);
         case "binary": {
-            const left = evalNode(node.left, env);
-            const right = evalNode(node.right, env);
+            const left = evalNode(node.left, scope);
+            const right = evalNode(node.right, scope);
             if (left === null || right === null) return null;
             return evalBinary(node.op, left, right);
         }
         case "call": {
-            const args: FormulaValue[] = [];
-            for (const argNode of node.args) {
-                const value = evalNode(argNode, env);
-                if (value === null) return null;
-                args.push(value);
+            // Whether a point, e.g. an intersection, is undefined.
+            if (node.fn === "isNaN") {
+                const value = evalNode(node.args[0], scope);
+                return Number(value === null || Number.isNaN(value));
             }
-            return evalCall(node.fn, args, env);
+            const args = evalArgs(node.args, scope);
+            if (args === null) return null;
+            if (node.fn in LIST_OPERATORS) {
+                const op = LIST_OPERATORS[node.fn as ListFn];
+                return op ? evalBinary(op, args[0], args[1]) : args[0];
+            }
+            const values = args.map(formulaValue);
+            if (values.includes(null)) return null;
+            return evalCall(
+                node.fn as Exclude<FormulaFn, ListFn | "isNaN">,
+                values as FormulaValue[],
+                scope.env,
+            );
         }
         case "userCall": {
-            if (!env.callFunction) return null;
-            const args: FormulaValue[] = [];
-            for (const argNode of node.args) {
-                const value = evalNode(argNode, env);
-                if (value === null) return null;
-                args.push(value);
-            }
-            return env.callFunction(node.name, args);
+            if (!scope.env.callFunction) return null;
+            const args = evalArgs(node.args, scope)?.map(formulaValue);
+            if (!args || args.includes(null)) return null;
+            return scope.env.callFunction(node.name, args as FormulaValue[]);
         }
+    }
+}
+
+function step(scope: Scope): void {
+    if (++scope.steps > MAX_STEPS) throw new StepLimitExceeded();
+}
+
+function run(statements: Statement[], scope: Scope): ScriptValue | null {
+    let value: ScriptValue | null = null;
+    for (const statement of statements) {
+        step(scope);
+        value = null;
+        switch (statement.kind) {
+            case "expression":
+                value = evalNode(statement.node, scope);
+                break;
+            case "if":
+                run(
+                    truthy(evalNode(statement.test, scope))
+                        ? statement.then
+                        : statement.otherwise,
+                    scope,
+                );
+                break;
+            case "loop":
+                while (
+                    statement.test === null ||
+                    truthy(evalNode(statement.test, scope))
+                ) {
+                    step(scope);
+                    run(statement.body, scope);
+                    if (statement.update) evalNode(statement.update, scope);
+                }
+                break;
+        }
+    }
+    return value;
+}
+
+// The value of the program's last statement, as DGPad's: null when it
+// isn't an expression, or when the program runs too long.
+export function evaluateProgram(
+    program: Program,
+    env: FormulaEnv,
+): ScriptValue | null {
+    const scope: Scope = {
+        env,
+        names: program.locals,
+        locals: new Map(),
+        steps: 0,
+    };
+    try {
+        const value = run(program.body, scope);
+        return typeof value === "number" && !Number.isFinite(value)
+            ? null
+            : value;
+    } catch (error) {
+        if (error instanceof StepLimitExceeded) return null;
+        throw error;
     }
 }
 
@@ -829,9 +1389,7 @@ export function evaluateFormula(
     node: FormulaNode,
     env: FormulaEnv,
 ): FormulaValue | null {
-    const result = evalNode(node, env);
-    if (result === null) return null;
-    if (typeof result === "number")
-        return Number.isFinite(result) ? result : null;
-    return result.every(Number.isFinite) ? result : null;
+    return formulaValue(
+        evalNode(node, { env, names: new Set(), locals: new Map(), steps: 0 }),
+    );
 }

@@ -1071,10 +1071,11 @@ C1=Circle1("C1",A,"d(A,Z)");`,
         expect(e3).toBeCloseTo(ai - am - mi);
 
         // The "Dash code" Expressions only script S1.setDash(...), left
-        // aside since the reader dashes hidden edges on its own.
+        // aside since the reader dashes hidden edges on its own: they only
+        // hold their text.
         const dash = c.getObj("E36") as expression_object;
         expect(dash).toBeInstanceOf(expression_object);
-        expect(dash.value).toBeNull();
+        expect(dash.value).toBe("Dash code");
 
         // The "Ouvrir" slider (E2) must land on a real, finite screen
         // position — this figure is hand-edited between test runs, so this
@@ -1123,6 +1124,37 @@ C1=Circle1("C1",A,"d(A,Z)");`,
         // "ar1[0]" reads a point's coordinate.
         const fgr1 = c.getObj("fgr1") as point_object;
         expect(fgr1.coords[0]).toBeCloseTo(2);
+    });
+
+    it("interprets script Expressions with variables, conditions and lists", async () => {
+        const c = createConstruction();
+        const unsupported = await importDgpFromUrl(c, "/tests/dgp/fourmi.dgp");
+        expect(unsupported).toEqual([]);
+
+        // E11 folds P7 down around the hinge [Symc1 P2] both ways, and Q
+        // and R read its two points ("E11[0]", "E11[1]").
+        const e11 = c.getObj("E11") as expression_object;
+        expect(e11.value).toEqual([
+            [1.5, -0.75, 0],
+            [1.5, 0.75, 0],
+        ]);
+        expect((c.getObj("Q") as point_object).coords).toEqual([1.5, -0.75, 0]);
+        // E1 holds a point's coordinates, which P6 ("E1+[0,1,0]") shifts.
+        const p6 = c.getObj("P6") as point_object;
+        expect(p6.coords).toEqual([1.5, 1, 0]);
+
+        // "S13.setHidden(1-E18)": Déployer isn't at P5.
+        expect(c.getObj("S13")!.hidden).toBe(1);
+
+        // "if(theta()<0) {...Poly5.setOpacity(0.95);} else {...(0.2);}; \"program3\""
+        const e4 = c.getObj("E4") as expression_object;
+        const poly5 = c.getObj("Poly5")!;
+        expect(e4.value).toBe("program3");
+        expect(poly5.opacity).toBe(0.2);
+        c.GRID.THETA = -0.3;
+        c.invalidateProjection();
+        c.OBJS.update();
+        expect(poly5.opacity).toBe(0.95);
     });
 
     it("keeps a 3D figure's saved turn around Oz, which the view can then follow freely", () => {

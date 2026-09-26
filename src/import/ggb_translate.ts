@@ -338,7 +338,7 @@ function localValue(source: string, variable: string): LocalValue | null {
         resolveIdentifier: (name) => {
             const value = values[Number(name.slice(1)) - 1];
             return typeof value === "number"
-                ? [value, 0]
+                ? value
                 : isComplex(value)
                   ? value
                   : null;

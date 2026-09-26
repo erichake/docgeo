@@ -21,8 +21,7 @@ import {
     createExpression,
     expression_object,
     type ExpressionFormula,
-    type PointExpressionFormula,
-    type ScriptStatement,
+    type ExpressionProgram,
 } from "../objects/expression_object";
 import {
     createFixedAngle,
@@ -74,9 +73,13 @@ import {
     formulaIdentifiers,
     NO_VIEW,
     parseFormula,
+    parseProgram,
+    programReferences,
+    programTargets,
     realPart,
     type FormulaNode,
     type FormulaValue,
+    type Program,
 } from "./dgp_formula";
 import type { DgpCall, DgpValue } from "./dgp_parser";
 
@@ -301,60 +304,25 @@ function evaluateConstantFormula(source: string): number | null {
     return realPart(evaluateConstant(source));
 }
 
-// DGPad's Expression can also hold a script: semicolon-separated statements
-// ending with the text it displays, e.g. "S1.setHidden(a>2);\"Faces\"".
-// It is never run (see AGENTS.md): only the statements below are
-// recognized, their argument being evaluated as a formula. setDash is left
-// aside, since the reader dashes hidden edges on its own.
-type ScriptPart =
-    | {
-          kind: "call";
-          target: string;
-          method: ScriptStatement["method"];
-          node: FormulaNode;
-      }
-    | { kind: "restriction"; angle: "THETA" | "PHI"; range: Vec2 };
-
-const SCRIPT_CALL =
-    /^([A-Za-z_$][\w$]*)\.(setHidden|setOpacity|setDash)\((.*)\)$/s;
-const VIEW_RESTRICTION = /^restrict(Theta|Phi)\((.*)\)$/s;
-const SCRIPT_TEXT = /^"(?:[^"\\]|\\.)*"$/;
-
-function parseScript(source: string): ScriptPart[] | null {
-    const parts: ScriptPart[] = [];
-    for (const statement of source.split(";").map((part) => part.trim())) {
-        if (statement === "" || SCRIPT_TEXT.test(statement)) continue;
-        const call = SCRIPT_CALL.exec(statement);
-        const restriction = VIEW_RESTRICTION.exec(statement);
-        if (call) {
-            if (call[2] === "setDash") continue;
-            const node = tryParseFormula(call[3]);
-            if (!node) return null;
-            parts.push({
-                kind: "call",
-                target: call[1],
-                method: call[2] as ScriptStatement["method"],
-                node,
-            });
-        } else if (restriction) {
-            const range = evaluateConstant(restriction[2]);
-            if (
-                range === null ||
-                typeof range === "number" ||
-                range.length !== 2 ||
-                range[0] > range[1]
-            )
-                return null;
-            parts.push({
-                kind: "restriction",
-                angle: restriction[1] === "Theta" ? "THETA" : "PHI",
-                range,
-            });
-        } else {
-            return null;
-        }
+// DGPad's Expression can also hold a script, e.g.
+// "if(a>2){S1.setHidden(1)};\"Faces\"": see Program in dgp_formula.ts.
+function tryParseProgram(source: string): Program | null {
+    try {
+        return parseProgram(source);
+    } catch {
+        return null;
     }
-    return parts;
+}
+
+// A formula of x (e.g. "0.5x^2-4"), which the Expression displays and
+// Curvus plots, rather than a value.
+function functionFormula(program: Program): FormulaNode | null {
+    const [statement] = program.body;
+    return program.body.length === 1 &&
+        statement.kind === "expression" &&
+        formulaIdentifiers(statement.node).has("x")
+        ? statement.node
+        : null;
 }
 
 // A single-variable "function of x" formula (DGPad's Expression used as a
@@ -385,54 +353,66 @@ function functionFormulaRefs(
     return refs;
 }
 
-// An Expression's formula reading other objects' current state directly
-// (DGPad's "d(P1,M)", or "AI-AM-MI" reading other Expressions' live values)
-// rather than sweeping "x" (see validateFunctionFormulaReferences):
-// recognized when the formula doesn't use "x" at all and every identifier
-// it uses names a point or another Expression.
-function isPointExpressionFormula(
-    formulaNode: FormulaNode,
+// A program reads the figure's points and Expressions, and styles any of
+// its objects.
+function validateProgramReferences(
+    program: Program,
     variables: Map<string, ObjectKind>,
-): boolean {
-    const names = formulaIdentifiers(formulaNode);
-    if (names.has("x")) return false;
-    return (
-        names.size > 0 &&
-        [...names].every((name) => {
-            const kind = variables.get(name);
-            return (
-                kind === "point" || kind === "pointOn" || kind === "expression"
-            );
-        })
-    );
-}
-
-function isPointExpressionFormulaAt(
-    formulaNode: FormulaNode,
-    variables: Map<string, construction_object>,
-): boolean {
-    const names = formulaIdentifiers(formulaNode);
-    if (names.has("x")) return false;
-    return (
-        names.size > 0 &&
-        [...names].every((name) => {
-            const ref = variables.get(name);
-            return (
-                ref instanceof point_object || ref instanceof expression_object
-            );
-        })
-    );
+    lineNumber: number,
+): void {
+    programReferences(program).forEach((name) => {
+        const kind = variables.get(name);
+        if (kind !== "point" && kind !== "pointOn" && kind !== "expression")
+            throw new Error(`Unknown DGP reference at line ${lineNumber}`);
+    });
+    programTargets(program).forEach((name) => {
+        if (!variables.has(name))
+            throw new Error(`Unknown DGP reference at line ${lineNumber}`);
+    });
 }
 
 function pointFormulaRefs(
-    formulaNode: FormulaNode,
+    names: Set<string>,
     variables: Map<string, construction_object>,
 ): Map<string, point_object | expression_object> {
-    const refs = new Map<string, point_object | expression_object>();
-    formulaIdentifiers(formulaNode).forEach((name) => {
-        refs.set(name, variables.get(name) as point_object | expression_object);
+    return new Map(
+        [...names].map((name) => [
+            name,
+            variables.get(name) as point_object | expression_object,
+        ]),
+    );
+}
+
+// DGPad applies restrictTheta/restrictPhi to the view as it reads the
+// figure.
+function applyViewRestrictions(
+    context: CommandContext,
+    program: Program,
+): void {
+    const grid = context.construction.GRID;
+    program.body.forEach((statement) => {
+        const node = statement.kind === "expression" ? statement.node : null;
+        if (
+            node?.kind !== "call" ||
+            (node.fn !== "restrictTheta" && node.fn !== "restrictPhi")
+        )
+            return;
+        const range = evaluateFormula(node.args[0], {
+            resolveIdentifier: () => null,
+            view: () => NO_VIEW,
+        });
+        if (
+            range === null ||
+            typeof range === "number" ||
+            range.length !== 2 ||
+            range[0] > range[1]
+        )
+            return;
+        const angle = node.fn === "restrictTheta" ? "THETA" : "PHI";
+        grid[`RESTRICT_${angle}`] = range;
+        grid[angle] = Math.min(Math.max(grid[angle], range[0]), range[1]);
+        context.projectionChanged = true;
     });
-    return refs;
 }
 
 function parsePointFormula(value: string, lineNumber: number): FormulaNode {
@@ -1739,35 +1719,25 @@ const COMMANDS = new Map<string, CommandDefinition>([
                         `Invalid DGP expression bound at line ${lineNumber}`,
                     );
                 const source = literalString(args[4]);
-                const formulaNode =
-                    parseExpressionValue(source) === null
-                        ? tryParseFormula(source)
-                        : undefined;
-                if (formulaNode) {
-                    if (!isPointExpressionFormula(formulaNode, variables))
-                        validateFunctionFormulaReferences(
-                            formulaNode,
-                            variables,
-                            lineNumber,
-                        );
-                } else if (formulaNode === null) {
-                    const script = parseScript(source);
-                    if (!script)
+                if (parseExpressionValue(source) === null) {
+                    const program = tryParseProgram(source);
+                    if (!program)
                         throw new Error(
                             `Unsupported DGP expression at line ${lineNumber}`,
                         );
-                    script.forEach((part) => {
-                        if (part.kind !== "call") return;
-                        if (!variables.has(part.target))
-                            throw new Error(
-                                `Unknown DGP reference at line ${lineNumber}`,
-                            );
-                        validatePointFormulaReferences(
-                            part.node,
+                    const node = functionFormula(program);
+                    if (node)
+                        validateFunctionFormulaReferences(
+                            node,
                             variables,
                             lineNumber,
                         );
-                    });
+                    else
+                        validateProgramReferences(
+                            program,
+                            variables,
+                            lineNumber,
+                        );
                 }
                 if (
                     !STYLE_NUMBER.test(literalString(args[5])) ||
@@ -1795,46 +1765,32 @@ const COMMANDS = new Map<string, CommandDefinition>([
                 const source = args[4] as string;
                 const constant = parseExpressionValue(source);
                 let formula: ExpressionFormula | null = null;
-                let pointFormula: PointExpressionFormula | null = null;
-                const script: ScriptStatement[] = [];
-                const node = constant === null ? tryParseFormula(source) : null;
-                if (constant === null && !node)
-                    parseScript(source)!.forEach((part) => {
-                        if (part.kind === "call") {
-                            script.push({
-                                target: context.variables.get(part.target)!,
-                                method: part.method,
-                                node: part.node,
-                                refs: pointFormulaRefs(
-                                    part.node,
-                                    context.variables,
-                                ),
-                                vec3: context.is3D,
-                            });
-                            return;
-                        }
-                        const [low, high] = part.range;
-                        grid[`RESTRICT_${part.angle}`] = part.range;
-                        grid[part.angle] = Math.min(
-                            Math.max(grid[part.angle], low),
-                            high,
-                        );
-                        context.projectionChanged = true;
-                    });
-                if (node) {
-                    if (isPointExpressionFormulaAt(node, context.variables)) {
-                        pointFormula = {
-                            node,
-                            source,
-                            refs: pointFormulaRefs(node, context.variables),
-                            vec3: context.is3D,
-                        };
-                    } else {
+                let program: ExpressionProgram | null = null;
+                if (constant === null) {
+                    const parsed = parseProgram(source);
+                    const node = functionFormula(parsed);
+                    if (node) {
                         formula = {
                             node,
                             source,
                             refs: functionFormulaRefs(node, context.variables),
                         };
+                    } else {
+                        program = {
+                            program: parsed,
+                            refs: pointFormulaRefs(
+                                programReferences(parsed),
+                                context.variables,
+                            ),
+                            targets: new Map(
+                                [...programTargets(parsed)].map((name) => [
+                                    name,
+                                    context.variables.get(name)!,
+                                ]),
+                            ),
+                            vec3: context.is3D,
+                        };
+                        applyViewRestrictions(context, parsed);
                     }
                 }
                 return createExpression(
@@ -1849,8 +1805,7 @@ const COMMANDS = new Map<string, CommandDefinition>([
                         context.labelOrigin[1] - y * grid.UNIT[1],
                     ],
                     formula,
-                    pointFormula,
-                    script,
+                    program,
                 );
             },
         },

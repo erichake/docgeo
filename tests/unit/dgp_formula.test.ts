@@ -1,9 +1,13 @@
 import { describe, expect, it } from "vitest";
 import {
     evaluateFormula,
+    evaluateProgram,
     formulaIdentifiers,
     NO_VIEW,
     parseFormula,
+    parseProgram,
+    programReferences,
+    programTargets,
     type FormulaEnv,
     type FormulaView,
 } from "../../src/import/dgp_formula";
@@ -201,7 +205,13 @@ describe("evaluateFormula", () => {
     it("reads the window size and center in units", () => {
         const env = envWith(
             {},
-            { unit: 20, origin: [100, 300], width: 800, height: 400 },
+            {
+                ...NO_VIEW,
+                unit: 20,
+                origin: [100, 300],
+                width: 800,
+                height: 400,
+            },
         );
         const value = (source: string) =>
             evaluateFormula(parseFormula(source), env);
@@ -257,9 +267,8 @@ describe("evaluateFormula", () => {
     });
 
     it("evaluates real trig functions of a real-valued (zero-imaginary) identifier", () => {
-        // Every identifier resolves as a Vec2 (see FormulaEnv); a plotted
-        // curve's "x" is real-valued, so sin(x)/cos(x)/atan2(x,y) must still
-        // work even though x comes back as [value, 0], not a raw number.
+        // A real number written as a complex number with no imaginary
+        // part (see realPart) is as good as a raw number.
         const env = envWith({ x: [Math.PI, 0] });
         expect(evaluateFormula(parseFormula("sin(x)"), env)).toBeCloseTo(0);
         expect(evaluateFormula(parseFormula("cos(x)"), env)).toBeCloseTo(-1);
@@ -337,5 +346,94 @@ describe("evaluateFormula", () => {
             formulaIdentifiers(parseFormula("A.coords2D()-B.coords2D()")),
         ).toEqual(new Set(["A", "B"]));
         expect(() => parseFormula("A.coords3D()")).toThrow();
+    });
+});
+
+describe("evaluateProgram", () => {
+    const run = (source: string, env: FormulaEnv = noPoints) =>
+        evaluateProgram(parseProgram(source), env);
+
+    it("gives the value of the last statement, computed with its own variables and loops", () => {
+        expect(
+            run("var _t=[];for(var i=0;i<3;i++){_t.push([i,2i])};_t"),
+        ).toEqual([
+            [0, [0, 2]],
+            [1, [0, 2]],
+            [2, [0, 2]],
+        ]);
+        expect(run("var n=0,k=5;while(k>0){n+=k;k--};n")).toBe(15);
+        expect(run('var a=Math.sqrt(4);a>1?"big":"small"')).toBe("big");
+        expect(run('"AB = "+round(2.6)')).toBe("AB = 3");
+    });
+
+    it("computes on lists term by term, as DGPad's operators", () => {
+        const env: FormulaEnv = {
+            resolveIdentifier: (name) =>
+                ({ P: [1, 2, 3], Q: [1, 0, 1] })[name] ?? null,
+            view: () => NO_VIEW,
+        };
+        expect(run("var _p=minus(P,Q);[_p+Q,2*_p,_p/2]", env)).toEqual([
+            [1, 2, 3],
+            [0, 4, 4],
+            [0, 1, 1],
+        ]);
+        expect(run("unitVector([0,0,2])")).toEqual([0, 0, 1]);
+    });
+
+    it("styles the figure's objects through callMethod", () => {
+        const calls: unknown[] = [];
+        const env: FormulaEnv = {
+            resolveIdentifier: (name) => (name === "a" ? 2 : null),
+            view: () => ({ ...NO_VIEW, theta: -0.5 }),
+            callMethod: (...call) => calls.push(call),
+        };
+        expect(
+            run(
+                'if(theta()<0) {S1.setOpacity(0.9);S1.setLayer(a)} else {S1.setHidden(1)};S2.setRGBColor(a,0,255);"prog"',
+                env,
+            ),
+        ).toBe("prog");
+        expect(calls).toEqual([
+            ["S1", "setOpacity", [0.9]],
+            ["S2", "setRGBColor", [2, 0, 255]],
+        ]);
+    });
+
+    it("reads the figure's objects", () => {
+        const env: FormulaEnv = {
+            resolveIdentifier: (name) => ({ A: [3, 4] })[name] ?? null,
+            view: () => NO_VIEW,
+        };
+        expect(run('A.getName()+" : "+A.getY()', env)).toBe("A : 4");
+        expect(run("!isNaN(A.getX())+2*isNaN(I.getX())", env)).toBe(3);
+    });
+
+    it("gives up on a program that runs too long", () => {
+        expect(run("var k=0;while(1){k++};k")).toBeNull();
+    });
+
+    it("tells the objects it reads from those it styles and its own variables", () => {
+        const program = parseProgram(
+            "var _v=A-B;S1.setHidden(E1>0);S2.setDash(angl1>1);[_v,P.coords2D()]",
+        );
+        expect(programReferences(program)).toEqual(
+            new Set(["A", "B", "E1", "P"]),
+        );
+        expect(programTargets(program)).toEqual(new Set(["S1"]));
+    });
+
+    it.each([
+        "document.write(1)",
+        "A.constructor",
+        "S1.setHidden()",
+        "function f(){return 1};f()",
+        "a.b=1",
+        "new Function('')",
+    ])("rejects what isn't part of DGPad's script language: %s", (source) => {
+        expect(() => parseProgram(source)).toThrow();
+    });
+
+    it("keeps assignments out of plain formulas", () => {
+        expect(() => parseFormula("a=1")).toThrow();
     });
 });
