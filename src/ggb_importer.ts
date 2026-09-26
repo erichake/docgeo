@@ -50,9 +50,16 @@ export async function importGgbFromUrl(
     const response = await fetch(url);
     if (!response.ok)
         throw new Error(`Unable to load GGB file: ${response.status}`);
+    return importGgbFromBlob(c, await response.blob());
+}
+
+export async function importGgbFromBlob(
+    c: construction,
+    file: Blob,
+): Promise<string[]> {
     return importGgb(
         c,
-        await readZipEntry(await response.arrayBuffer(), "geogebra.xml"),
+        await readZipEntry(await file.arrayBuffer(), "geogebra.xml"),
     );
 }
 

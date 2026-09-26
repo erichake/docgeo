@@ -37,6 +37,7 @@ export class construction {
     private batchedObjects: construction_object[] | null = null;
     private viewportWidth = 0;
     private viewportHeight = 0;
+    private keydownListener!: EventListener;
 
     private constructor(dgpad: DgpadLike) {
         this.dgpad = dgpad;
@@ -184,6 +185,7 @@ export class construction {
             object.removeSVG();
         });
         this.svg.dispose();
+        $("body").off("keydown", this.keydownListener);
         this.layers.clear();
         construction.constructions.splice(
             construction.constructions.indexOf(this),
@@ -311,7 +313,11 @@ export class construction {
             )
             .tap((event) => this.mouseclick(event));
         element.on("wheel", (event) => this.mousewheel(event));
-        $("body").on("keydown", (event) => this.keydown(event));
+        this.keydownListener = $("body").on(
+            "keydown",
+            (event) => this.keydown(event),
+            false,
+        );
     }
 
     private scheduleUpdate(): void {
