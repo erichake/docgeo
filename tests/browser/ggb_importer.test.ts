@@ -1352,9 +1352,9 @@ ${lines.map((line, index) => command("Plane", ["C", line], `p${index}`)).join("\
             true,
             "M(z) = z^{2}+(0.5 + 0.5i)",
         ]);
-        expect(title.dom.find(".katex-html")!.text()).toContain(
-            "M(z)=z2+(0,5+0,5i)",
-        );
+        await expect
+            .poll(() => title.dom.find(".katex-html")?.text())
+            .toContain("M(z)=z2+(0,5+0,5i)");
     });
 
     it("iterates the complex orbit of an IterationList, joined by segments", async () => {
@@ -1397,7 +1397,9 @@ ${lines.map((line, index) => command("Plane", ["C", line], `p${index}`)).join("\
             await new Promise((resolve) => requestAnimationFrame(resolve));
         };
         const formula = (c.getObj("text2") as expression_object).dom;
-        expect(formula.find(".katex-html")!.text()).toContain("1≤k≤n");
+        await expect
+            .poll(() => formula.find(".katex-html")?.text())
+            .toContain("1≤k≤n");
         expect(formula.find(".katex-error")).toBeNull();
         expect((c.getObj("c") as circle1_object).R).toBeCloseTo(2, 12);
 

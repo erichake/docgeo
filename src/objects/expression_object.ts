@@ -1,5 +1,3 @@
-import katex from "katex/dist/katex.min.js";
-import "katex/dist/katex.min.css";
 import type { construction } from "../construction";
 import { $, type DOMElement } from "../dom";
 import {
@@ -19,6 +17,14 @@ import {
 import type { Vec2 } from "../vec";
 import { construction_object } from "./construction_object";
 import type { point_object } from "./point_object";
+
+// In a chunk of its own, loaded only by the figures that show LaTeX.
+let katex: Promise<typeof import("katex").default> | undefined;
+const loadKaTeX = () =>
+    (katex ??= Promise.all([
+        import("katex/dist/katex.min.js"),
+        import("katex/dist/katex.min.css"),
+    ]).then(([module]) => module.default));
 
 const DEFAULT_CURSOR_LENGTH = 200;
 const DEFAULT_CURSOR_COLOR = "#780013";
@@ -416,11 +422,15 @@ export class expression_object extends construction_object {
                 typeof this.value === "string" ? this.rounded("{,}") : "";
             if (content !== this.renderedTeX) {
                 this.renderedTeX = content;
-                this.tex
-                    .find("div")!
-                    .inner(
-                        katex.renderToString(content, { throwOnError: false }),
-                    );
+                const div = this.tex.find("div")!;
+                loadKaTeX().then((katex) => {
+                    if (this.renderedTeX === content)
+                        div.inner(
+                            katex.renderToString(content, {
+                                throwOnError: false,
+                            }),
+                        );
+                });
             }
             return;
         }
