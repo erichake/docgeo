@@ -276,6 +276,36 @@ describe("GGB importer", () => {
         expect((c.getObj("F") as point_object).coords).toEqual([2.56, 3.64, 0]);
     });
 
+    it("snaps free points to the grid when capturing is fixed to it", async () => {
+        const c = createConstruction();
+        const xml = await loadXml("_PtSurGrille");
+        importGgb(c, xml);
+        await new Promise((resolve) => requestAnimationFrame(resolve));
+
+        const point = c.getObj("A") as point_object;
+        expect(point.increment).toEqual([1, 1]);
+        const [x, y] = c.pt3D([0.7, -1.4, 0]);
+        point.mousedrag(
+            new PointerEvent("pointermove", { clientX: x, clientY: y }),
+        );
+        expect(point.coords).toEqual([1, -1, 0]);
+
+        const zoomed = createConstruction();
+        importGgb(zoomed, xml.replace(/scale="[\d.]+"/g, 'scale="126"'));
+        expect((zoomed.getObj("A") as point_object).increment).toEqual([
+            0.5, 0.5,
+        ]);
+
+        const spaced = createConstruction();
+        importGgb(
+            spaced,
+            xml.replace("<bgColor", '<grid distX="0.5" distY="0.25"/><bgColor'),
+        );
+        expect((spaced.getObj("A") as point_object).increment).toEqual([
+            0.5, 0.25,
+        ]);
+    });
+
     it("only drags points GeoGebra can drag", () => {
         const c = createConstruction();
         importGgb(

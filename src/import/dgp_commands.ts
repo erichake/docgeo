@@ -629,7 +629,9 @@ function validateObjectStyle(
                     throw new Error(`Invalid DGP style at line ${lineNumber}`);
                 break;
             case "i":
-                validateNumber(propertyValue, lineNumber, 0);
+                propertyValue
+                    .split(",")
+                    .forEach((step) => validateNumber(step, lineNumber, 0));
                 break;
             case "cL":
                 validateNumber(propertyValue, lineNumber, 0);
@@ -776,11 +778,12 @@ function applyObjectStyle(
                     target.rightAngleMark = propertyValue as RightAngleMark;
                 break;
             case "i":
-                if (
-                    target instanceof expression_object ||
-                    target instanceof point_object
-                )
+                if (target instanceof expression_object)
                     target.increment = Number(propertyValue);
+                else if (target instanceof point_object) {
+                    const [dx, dy = dx] = propertyValue.split(",").map(Number);
+                    target.increment = [dx, dy];
+                }
                 break;
             case "cL":
                 if (target instanceof expression_object)

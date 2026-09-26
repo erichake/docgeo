@@ -86,9 +86,9 @@ export class point_object extends construction_object {
     // whichever of these is both within `radius` screen pixels and closest,
     // instead of following the pointer directly.
     magnets: { target: magnet_target; radius: number }[] = [];
-    // DGPad's "i" style: a dragged point snaps its x and y onto multiples of
-    // this step.
-    increment = 0;
+    // DGPad's "i" style (and GeoGebra's grid capturing): a dragged point
+    // snaps its x and y onto multiples of these steps.
+    increment: [number, number] = [0, 0];
     // The magnet currently holding this point, if any — see
     // MAGNET_HYSTERESIS.
     private activeMagnet: magnet_target | null = null;
@@ -161,11 +161,11 @@ export class point_object extends construction_object {
     }
 
     snapToIncrement(coords: Vec3): Vec3 {
-        const step = this.increment;
-        if (!step) return coords;
+        const [dx, dy] = this.increment;
+        if (!dx) return coords;
         return [
-            step * Math.round(coords[0] / step),
-            step * Math.round(coords[1] / step),
+            dx * Math.round(coords[0] / dx),
+            dy * Math.round(coords[1] / dy),
             coords[2],
         ];
     }

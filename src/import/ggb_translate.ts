@@ -613,6 +613,21 @@ export function translateGgb(xml: string): GgbTranslation {
           ]
         : [0, 0];
     const unit = Number(coordSystem?.getAttribute("scale") ?? 50);
+    // GeoGebra's "fixed to grid" point capturing: free points move by the
+    // grid's steps, its own distances or else the axes numbering distance
+    // for the scale (the largest 1-2-5 step under 100 pixels, up to
+    // GeoGebra's 1e-8 tolerance).
+    const gridIncrement = ((): string | null => {
+        if (!view || attribute(view, "evSettings", "pointCapturing") !== "2")
+            return null;
+        const grid = child(view, "grid");
+        if (grid)
+            return `${grid.getAttribute("distX")},${grid.getAttribute("distY")}`;
+        const units = 100 / unit;
+        const power = 10 ** Math.floor(Math.log10(units));
+        const ratio = units / power - 1e-8;
+        return `${(ratio > 5 ? 5 : ratio > 2 ? 2 : 1) * power}`;
+    })();
 
     const push = (
         variable: string | null,
@@ -2259,6 +2274,9 @@ export function translateGgb(xml: string): GgbTranslation {
                 "point",
                 "Point",
                 (is3D ? coords : coords.slice(0, 2)).map(literal),
+                gridIncrement && !is3D
+                    ? `${objectStyle(element, "point")};i:${gridIncrement}`
+                    : undefined,
             );
         }
         if (type === "numeric" || type === "angle")
