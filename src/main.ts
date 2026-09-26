@@ -33,4 +33,7 @@ export const DGPADPRO_READY = !url
             if (unsupported.length > 0)
                 console.warn("Unsupported GeoGebra objects:", unsupported);
         })
-      : importDgpFromUrl(DGPADPRO.scene, url);
+      : importDgpFromUrl(DGPADPRO.scene, url).then((unsupported) => {
+            if (unsupported.length > 0)
+                console.warn("Unsupported DGPad objects:", unsupported);
+        });

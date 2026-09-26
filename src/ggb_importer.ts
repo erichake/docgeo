@@ -14,7 +14,8 @@ import { vNorm, vSub, type Vec3 } from "./vec";
 // Returns what the figure uses that couldn't be imported.
 export function importGgb(c: construction, xml: string): string[] {
     const { calls, targets, handles, unsupported, view3D } = translateGgb(xml);
-    const variables = executeDgpCommands(c, calls, view3D !== undefined);
+    const executed = executeDgpCommands(c, calls, view3D !== undefined);
+    const variables = executed.variables;
     handles.forEach((numbers, variable) =>
         (variables.get(variable) as formula_point_object).setHandles(
             numbers.map(
@@ -33,7 +34,7 @@ export function importGgb(c: construction, xml: string): string[] {
             ]),
         ),
     );
-    return unsupported;
+    return [...unsupported, ...executed.unsupported];
 }
 
 export async function importGgbFromUrl(

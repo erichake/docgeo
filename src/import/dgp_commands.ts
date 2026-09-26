@@ -1951,41 +1951,85 @@ function validateValue(
         throw new Error(`Invalid DGP reference at line ${lineNumber}`);
 }
 
-function validateCalls(calls: DgpCall[]): void {
-    const variables = new Map<string, ObjectKind>();
-    calls.forEach((call) => {
-        const definition = COMMANDS.get(call.name);
-        if (!definition)
-            throw new Error(
-                `Unsupported DGP command ${call.name} at line ${call.line}`,
-            );
-        const required = definition.parameters.filter(
-            (parameter) => !parameter.optional,
-        ).length;
-        if (
-            call.arguments.length < required ||
-            call.arguments.length > definition.parameters.length
-        )
-            throw new Error(`Invalid argument count at line ${call.line}`);
-        if (definition.result && !call.variable)
-            throw new Error(`Missing assignment at line ${call.line}`);
-        if (!definition.result && call.variable)
-            throw new Error(`Unexpected assignment at line ${call.line}`);
-        call.arguments.forEach((value, index) =>
-            validateValue(
-                value,
-                definition.parameters[index],
-                variables,
-                call.line,
-            ),
+function validateCall(call: DgpCall, variables: Map<string, ObjectKind>): void {
+    const definition = COMMANDS.get(call.name);
+    if (!definition)
+        throw new Error(
+            `Unsupported DGP command ${call.name} at line ${call.line}`,
         );
-        definition.validate?.(call.arguments, call.line, variables);
-        if (call.variable) {
-            if (variables.has(call.variable))
-                throw new Error(`Duplicate DGP variable at line ${call.line}`);
-            variables.set(call.variable, definition.result!);
+    const required = definition.parameters.filter(
+        (parameter) => !parameter.optional,
+    ).length;
+    if (
+        call.arguments.length < required ||
+        call.arguments.length > definition.parameters.length
+    )
+        throw new Error(`Invalid argument count at line ${call.line}`);
+    if (definition.result && !call.variable)
+        throw new Error(`Missing assignment at line ${call.line}`);
+    if (!definition.result && call.variable)
+        throw new Error(`Unexpected assignment at line ${call.line}`);
+    call.arguments.forEach((value, index) =>
+        validateValue(
+            value,
+            definition.parameters[index],
+            variables,
+            call.line,
+        ),
+    );
+    definition.validate?.(call.arguments, call.line, variables);
+    if (call.variable) {
+        if (variables.has(call.variable))
+            throw new Error(`Duplicate DGP variable at line ${call.line}`);
+        variables.set(call.variable, definition.result!);
+    }
+}
+
+// Formulas, texts and styles name objects inside string literals.
+const IDENTIFIERS = /[$_\p{ID_Start}][$_\u200c\u200d\p{ID_Continue}]*/gu;
+
+function referencedNames(value: DgpValue): string[] {
+    if (value.type === "reference") return [value.name];
+    if (value.type === "array") return value.items.flatMap(referencedNames);
+    return typeof value.value === "string"
+        ? (value.value.match(IDENTIFIERS) ?? [])
+        : [];
+}
+
+function describeValue(value: DgpValue): string {
+    if (value.type === "reference") return value.name;
+    if (value.type === "array")
+        return `[${value.items.map(describeValue).join(", ")}]`;
+    return JSON.stringify(value.value);
+}
+
+// A call that can't be imported is skipped with its dependents, and only
+// it is reported: the rest of the figure is still imported.
+function validateCalls(calls: DgpCall[]): {
+    valid: DgpCall[];
+    unsupported: string[];
+} {
+    const variables = new Map<string, ObjectKind>();
+    const skipped = new Set<string>();
+    const unsupported: string[] = [];
+    const valid = calls.filter((call) => {
+        try {
+            validateCall(call, variables);
+            return true;
+        } catch {
+            if (
+                !call.arguments
+                    .flatMap(referencedNames)
+                    .some((name) => skipped.has(name))
+            )
+                unsupported.push(
+                    `${call.name}(${call.arguments.map(describeValue).join(", ")})`,
+                );
+            if (call.variable) skipped.add(call.variable);
+            return false;
         }
     });
+    return { valid, unsupported };
 }
 
 function resolveValue(
@@ -2003,8 +2047,8 @@ export function executeDgpCommands(
     c: construction,
     calls: DgpCall[],
     is3D = false,
-): Map<string, construction_object> {
-    validateCalls(calls);
+): { variables: Map<string, construction_object>; unsupported: string[] } {
+    const { valid, unsupported } = validateCalls(calls);
     const context: CommandContext = {
         construction: c,
         variables: new Map(),
@@ -2016,7 +2060,7 @@ export function executeDgpCommands(
     };
 
     c.beginBatch();
-    calls.forEach((call) => {
+    valid.forEach((call) => {
         const definition = COMMANDS.get(call.name)!;
         const result = definition.execute(
             context,
@@ -2030,5 +2074,5 @@ export function executeDgpCommands(
     if (context.gridChanged) c.GRID.createSVG();
     c.endBatch();
     if (context.projectionChanged) c.invalidateProjection();
-    return context.variables;
+    return { variables: context.variables, unsupported };
 }

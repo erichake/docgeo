@@ -113,16 +113,23 @@ STL(B,"c:#0000b2;s:6;sn:true;f:30");`,
         expect(c.GRID.ORG).toEqual([400, 285.5]);
     });
 
-    it("rejects instructions outside the supported subset", () => {
+    it("skips and reports instructions outside the supported subset", () => {
         const c = createConstruction();
-        expect(() =>
+        expect(
             importDgp(
                 c,
                 `P=Point("P",0,0);
-fetch("https://example.com");`,
+fetch("https://example.com");
+Q=Unknown("Q",P,[1,2]);
+R=Point("R","Q+[1,0]","0");
+STL(Q,"c:#ff0000");
+S=Point("S",1,0);`,
             ),
-        ).toThrow("Unsupported DGP command fetch at line 2");
-        expect(figureObjects(c)).toEqual([]);
+        ).toEqual(['fetch("https://example.com")', 'Unknown("Q", P, [1, 2])']);
+        expect(figureObjects(c).map((object) => object.name)).toEqual([
+            "P",
+            "S",
+        ]);
     });
 
     it("writes formula values and literal percents in an AnchoredText", () => {
@@ -134,37 +141,37 @@ T=AnchoredText("T",P,0,0,"x+y=%x(P)+y(P)%, 100%%");
 STL(T,"p:2");`,
         );
         expect((c.getObj("T") as text_object).content).toBe("x+y=3, 100%");
-        expect(() =>
+        expect(
             importDgp(
                 createConstruction(),
                 `P=Point("P",1,2);
 T=AnchoredText("T",P,0,0,"100%");`,
             ),
-        ).toThrow("Invalid DGP text at line 2");
+        ).toEqual(['AnchoredText("T", P, 0, 0, "100%")']);
     });
 
-    it("rejects unsafe styles before creating objects", () => {
+    it("skips and reports unsafe styles", () => {
         const c = createConstruction();
-        expect(() =>
+        expect(
             importDgp(
                 c,
                 `P=Point("P",0,0);
 STL(P,"c:url(https://example.com/image)");`,
             ),
-        ).toThrow("Invalid DGP color at line 2");
-        expect(figureObjects(c)).toEqual([]);
+        ).toEqual(['STL(P, "c:url(https://example.com/image)")']);
+        expect(c.getObj("P")?.stroke_color).not.toContain("url");
     });
 
-    it("rejects a non-boolean trace style", () => {
+    it("skips and reports a non-boolean trace style", () => {
         const c = createConstruction();
-        expect(() =>
+        expect(
             importDgp(
                 c,
                 `P=Point("P",0,0);
 STL(P,"tk:1");`,
             ),
-        ).toThrow("Invalid DGP style boolean at line 2");
-        expect(figureObjects(c)).toEqual([]);
+        ).toEqual(['STL(P, "tk:1")']);
+        expect(c.getObj("P")).toBeInstanceOf(point_object);
     });
 
     it("imports the perpendicular-bisector reference figure", async () => {
@@ -420,9 +427,9 @@ STL(P,"tk:1");`,
         expect(a.coords[1]).toBeCloseTo(2.1125);
     });
 
-    it("rejects an invalid scalar parameter for a polygon PointOn", () => {
+    it("skips and reports an invalid scalar parameter for a polygon PointOn", () => {
         const c = createConstruction();
-        expect(() =>
+        expect(
             importDgp(
                 c,
                 `A=Point("A",0,0);
@@ -431,8 +438,8 @@ C=Point("C",0,1);
 poly=Polygon("poly","_A,_B,_C");
 P=PointOn("P",poly,0.5);`,
             ),
-        ).toThrow("Invalid PointOn parameter at line 5");
-        expect(figureObjects(c)).toEqual([]);
+        ).toEqual(['PointOn("P", poly, 0.5)']);
+        expect(c.getObj("P")).toBeUndefined();
     });
 
     it("imports the complete Apollonius construction", async () => {
@@ -821,26 +828,26 @@ M=PointOn("M",S,0.5);`,
         expect(circle.R).toBeCloseTo(Math.hypot(5, 1));
     });
 
-    it("rejects a point formula referencing an unknown object", () => {
+    it("skips and reports a point formula referencing an unknown object", () => {
         const c = createConstruction();
-        expect(() =>
+        expect(
             importDgp(
                 c,
                 `A=Point("A","[-4,3]","0");
 E=Point("E","A+Z","0");`,
             ),
-        ).toThrow("Unknown DGP reference at line 2");
+        ).toEqual(['Point("E", "A+Z", "0")']);
     });
 
-    it("rejects a circle radius formula referencing an unknown object", () => {
+    it("skips and reports a circle radius formula referencing an unknown object", () => {
         const c = createConstruction();
-        expect(() =>
+        expect(
             importDgp(
                 c,
                 `A=Point("A",0,0);
 C1=Circle1("C1",A,"d(A,Z)");`,
             ),
-        ).toThrow("Unknown DGP reference at line 2");
+        ).toEqual(['Circle1("C1", A, "d(A,Z)")']);
     });
 
     it("imports an Arc3pts figure and its center", async () => {
