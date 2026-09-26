@@ -23,6 +23,7 @@ export type FormulaFn =
     | "acos"
     | "atan"
     | "atan2"
+    | "arg"
     | "perp"
     | "cross"
     | "dot";
@@ -40,6 +41,7 @@ const FORMULA_ARITY: Record<FormulaFn, number> = {
     acos: 1,
     atan: 1,
     atan2: 2,
+    arg: 1,
     perp: 1,
     cross: 2,
     dot: 2,
@@ -55,7 +57,12 @@ export type FormulaNode =
     // functions, e.g. "E1(x)" referencing another named Expression: resolved
     // at evaluation time through FormulaEnv.callFunction, not evalCall.
     | { kind: "userCall"; name: string; args: FormulaNode[] }
-    | { kind: "unary"; op: "-"; operand: FormulaNode }
+    | { kind: "unary"; op: "-" | "!"; operand: FormulaNode }
+    // "P[1]": a component of a point's coordinates or of a vector.
+    | { kind: "index"; target: FormulaNode; index: FormulaNode }
+    // "P.coords2D()": where point P is drawn, in the window's coordinate
+    // system, which changes with the 3D view.
+    | { kind: "coords2D"; name: string }
     // A DGPad vector/point-displacement literal, e.g. "[-1,-1,1]": 2 or 3
     // real components, used to build 3D points (e.g. "P1+[-1,-1,1]").
     | { kind: "vector"; items: FormulaNode[] }
@@ -96,6 +103,8 @@ type TokenType =
     | "/"
     | "^"
     | Comparison
+    | "!"
+    | "."
     | "("
     | ")"
     | "["
@@ -109,7 +118,7 @@ interface Token {
 }
 
 const NUMBER = /(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][+-]?\d+)?/y;
-const OPERATOR = /^(?:[=!<>]=|[<>]|&&|\|\|)/;
+const OPERATOR = /^(?:[=!<>]=|[<>!]|&&|\|\|)/;
 
 class FormulaLexer {
     private index = 0;
@@ -141,7 +150,7 @@ class FormulaLexer {
             return { type: operator[0] as TokenType, value: operator[0] };
         }
 
-        if ("+-*/^(),[]".includes(character)) {
+        if ("+-*/^(),[].".includes(character)) {
             this.index++;
             return { type: character as TokenType, value: character };
         }
@@ -271,15 +280,21 @@ class FormulaParser {
     }
 
     private unary(): FormulaNode {
-        if (this.current.type === "-") {
+        if (this.current.type === "-" || this.current.type === "!") {
+            const op = this.current.type;
             this.advance();
-            return { kind: "unary", op: "-", operand: this.unary() };
+            return { kind: "unary", op, operand: this.unary() };
         }
         return this.power();
     }
 
     private power(): FormulaNode {
-        const base = this.primary();
+        let base = this.primary();
+        while (this.current.type === "[") {
+            this.advance();
+            base = { kind: "index", target: base, index: this.expression() };
+            this.take("]");
+        }
         if (this.current.type === "^") {
             this.advance();
             return { kind: "binary", op: "^", left: base, right: this.unary() };
@@ -310,6 +325,15 @@ class FormulaParser {
             const name = token.value as string;
             if ((this.current.type as TokenType) === "(")
                 return this.call(name);
+            if ((this.current.type as TokenType) === ".") {
+                this.advance();
+                if (this.current.value !== "coords2D")
+                    throw new Error("Invalid DGP formula syntax");
+                this.advance();
+                this.take("(");
+                this.take(")");
+                return { kind: "coords2D", name };
+            }
             // "π" is DGPad's own notation for PI in slider bounds/formulas.
             if (name === "PI" || name === "π")
                 return { kind: "constant", name: "PI" };
@@ -384,6 +408,13 @@ export function formulaIdentifiers(node: FormulaNode): Set<string> {
             case "vector":
                 n.items.forEach(walk);
                 break;
+            case "index":
+                walk(n.target);
+                walk(n.index);
+                break;
+            case "coords2D":
+                names.add(n.name);
+                break;
             case "binary":
                 walk(n.left);
                 walk(n.right);
@@ -401,6 +432,26 @@ export function formulaIdentifiers(node: FormulaNode): Set<string> {
     return names;
 }
 
+export function usesCoords2D(node: FormulaNode): boolean {
+    switch (node.kind) {
+        case "coords2D":
+            return true;
+        case "unary":
+            return usesCoords2D(node.operand);
+        case "index":
+            return usesCoords2D(node.target) || usesCoords2D(node.index);
+        case "binary":
+            return usesCoords2D(node.left) || usesCoords2D(node.right);
+        case "vector":
+            return node.items.some(usesCoords2D);
+        case "call":
+        case "userCall":
+            return node.args.some(usesCoords2D);
+        default:
+            return false;
+    }
+}
+
 // A Vec3 only ever comes from a 3-item vector literal (e.g. "P1+[-1,-1,1]",
 // a legacy-3D point displacement) or a point identifier resolved in that
 // same 3D context; every other formula stays within number | Vec2 exactly
@@ -410,6 +461,7 @@ export type FormulaValue = number | Vec2 | Vec3;
 export interface FormulaEnv {
     resolveIdentifier(name: string): Vec2 | Vec3 | null;
     pixelScale(): number;
+    coords2D?(name: string): Vec2 | null;
     // Resolves a userCall node (a name outside FORMULA_ARITY applied to
     // arguments, e.g. "E1(x)"). Consumers that don't support calling named
     // objects (most formula owners) simply omit this.
@@ -592,6 +644,14 @@ function evalCall(
             const rb = realPart(b);
             return ra === null || rb === null ? null : Math.atan2(ra, rb);
         }
+        // DGPad's arg, within [0, 2π).
+        case "arg": {
+            const [a] = args;
+            if (typeof a !== "number" && a.length === 3) return null;
+            const [x, y] = typeof a === "number" ? [a, 0] : a;
+            const angle = Math.atan2(y, x);
+            return angle < 0 ? angle + 2 * Math.PI : angle;
+        }
         case "perp": {
             const [a] = args;
             if (typeof a === "number") return null;
@@ -635,11 +695,24 @@ function evalNode(node: FormulaNode, env: FormulaEnv): FormulaValue | null {
         case "unary": {
             const value = evalNode(node.operand, env);
             if (value === null) return null;
+            if (node.op === "!") {
+                const real = realPart(value);
+                return real === null ? null : Number(real === 0);
+            }
             if (typeof value === "number") return -value;
             return value.length === 3
                 ? [-value[0], -value[1], -value[2]]
                 : [-value[0], -value[1]];
         }
+        case "index": {
+            const target = evalNode(node.target, env);
+            const index = realPart(evalNode(node.index, env));
+            if (target === null || typeof target === "number" || index === null)
+                return null;
+            return target[index] ?? null;
+        }
+        case "coords2D":
+            return env.coords2D?.(node.name) ?? null;
         case "vector": {
             const values: number[] = [];
             for (const item of node.items) {

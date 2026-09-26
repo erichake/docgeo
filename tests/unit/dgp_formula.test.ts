@@ -281,4 +281,46 @@ describe("evaluateFormula", () => {
         expect(value("(a<0)*5+(a>0)*7")).toBe(7);
         expect(value("[1,2]==1")).toBeNull();
     });
+
+    it("evaluates logical negation", () => {
+        const env = envWith({ n: [3, 0] });
+        const value = (source: string) =>
+            evaluateFormula(parseFormula(source), env);
+        expect(value("!(n==3 || n==4)")).toBe(0);
+        expect(value("!(n>5)")).toBe(1);
+        expect(value("n!=3")).toBe(0);
+    });
+
+    it("reads a component of a point with P[i]", () => {
+        const env: FormulaEnv = {
+            resolveIdentifier: (name) => (name === "P" ? [1, 2, 3] : null),
+            pixelScale: () => 1,
+        };
+        const value = (source: string) =>
+            evaluateFormula(parseFormula(source), env);
+        expect(value("P[0]*P[1]^2+P[2]")).toBe(7);
+        expect(value("P[3]")).toBeNull();
+        expect(formulaIdentifiers(parseFormula("P[0]+Q[1]"))).toEqual(
+            new Set(["P", "Q"]),
+        );
+    });
+
+    it("reads where a point is drawn with P.coords2D(), and its arg within [0, 2π)", () => {
+        const env: FormulaEnv = {
+            resolveIdentifier: () => null,
+            pixelScale: () => 1,
+            coords2D: (name) =>
+                ({ A: [1, 0], B: [0, -1] })[name] as [number, number],
+        };
+        const value = (source: string) =>
+            evaluateFormula(parseFormula(source), env);
+        expect(value("arg(A.coords2D())")).toBe(0);
+        expect(value("arg(B.coords2D()-A.coords2D())")).toBeCloseTo(
+            (5 * Math.PI) / 4,
+        );
+        expect(
+            formulaIdentifiers(parseFormula("A.coords2D()-B.coords2D()")),
+        ).toEqual(new Set(["A", "B"]));
+        expect(() => parseFormula("A.coords3D()")).toThrow();
+    });
 });

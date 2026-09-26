@@ -908,10 +908,8 @@ C1=Circle1("C1",A,"d(A,Z)");`,
         expect(ai).toBeGreaterThan(0);
         expect(e3).toBeCloseTo(ai - am - mi);
 
-        // The 17 "Dash code"/"Visibilité des faces" Expressions script
-        // other objects via unsupported method calls (S1.setDash(...),
-        // Poly1.setOpacity(...)): imported as inert placeholders instead of
-        // failing the whole figure.
+        // The "Dash code" Expressions only script S1.setDash(...), left
+        // aside since the reader dashes hidden edges on its own.
         const dash = c.getObj("E36") as expression_object;
         expect(dash).toBeInstanceOf(expression_object);
         expect(dash.value).toBeNull();
@@ -921,6 +919,48 @@ C1=Circle1("C1",A,"d(A,Z)");`,
         // only guards against it going missing/NaN, not an exact pixel spot.
         expect(e2.isCursor).toBe(true);
         expect(e2.screen.every(Number.isFinite)).toBe(true);
+    });
+
+    it("carries out the setHidden and setOpacity statements of script Expressions", async () => {
+        const c = createConstruction();
+        const unsupported = await importDgpFromUrl(
+            c,
+            "/tests/dgp/_patronsCube.dgp",
+        );
+        expect(unsupported).toEqual([]);
+        const patron = c.getObj("Patron") as expression_object;
+        const enroule = c.getObj("Enroule") as expression_object;
+        const polgr1 = c.getObj("Polgr1") as polygon_object;
+        const polar1 = c.getObj("Polar1") as polygon_object;
+        const poly2 = c.getObj("Poly2") as polygon_object;
+        const setValue = (slider: expression_object, value: number) => {
+            slider.value = value;
+            c.OBJS.markGeometryDirty(slider);
+            c.OBJS.update();
+        };
+
+        // "Polgr1.setHidden(Patron>1)" overrides the face's own h:1 style.
+        expect(patron.value).toBe(11);
+        expect(polgr1.isVisible).toBe(false);
+        setValue(patron, 1);
+        expect(polgr1.isVisible).toBe(true);
+        expect(polgr1.hasView).toBe(true);
+
+        // Folded up, a face becomes opaque only while seen from the front,
+        // as told by "arg(... .coords2D() ...)" Expressions.
+        setValue(enroule, Math.PI / 2);
+        expect(poly2.opacity).toBeCloseTo(1);
+        expect(polar1.opacity).toBeCloseTo(0.2);
+        // Seen from the other side of the cube:
+        c.GRID.PHI += c.GRID.PHI < 2 * Math.PI ? Math.PI : -Math.PI;
+        c.OBJS.markProjectionDirty();
+        c.OBJS.update();
+        expect(polar1.opacity).toBeCloseTo(1);
+        expect(poly2.opacity).toBeCloseTo(0.2);
+
+        // "ar1[0]" reads a point's coordinate.
+        const fgr1 = c.getObj("fgr1") as point_object;
+        expect(fgr1.coords[0]).toBeCloseTo(2);
     });
 
     it("centers a 3D figure's world origin on the live viewport, independently of its Expression labels", () => {

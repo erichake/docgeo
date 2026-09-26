@@ -3,6 +3,7 @@ import type { DOMElement } from "../dom";
 import {
     evaluateFormula,
     realPart,
+    usesCoords2D,
     type FormulaNode,
     type FormulaValue,
 } from "../import/dgp_formula";
@@ -104,6 +105,17 @@ export interface PointExpressionFormula {
     vec3: boolean;
 }
 
+// A statement of a DGPad script Expression (e.g. "Pt1.setHidden(n!=7)"),
+// carried out on its target by evaluating its argument as a formula,
+// without running the script itself.
+export interface ScriptStatement {
+    target: construction_object;
+    method: "setHidden" | "setOpacity";
+    node: FormulaNode;
+    refs: Map<string, point_object | expression_object>;
+    vec3: boolean;
+}
+
 export function evaluateAtX(
     formula: ExpressionFormula,
     x: number,
@@ -146,6 +158,10 @@ export class expression_object extends construction_object {
     value: number | number[] | null;
     formula: ExpressionFormula | null;
     pointFormula: PointExpressionFormula | null;
+    script: ScriptStatement[];
+    // Computed with the projection rather than the geometry, since it reads
+    // where points are drawn (see coords2D in dgp_formula.ts).
+    viewDependent: boolean;
     min: number | null;
     max: number | null;
     increment: number;
@@ -177,12 +193,21 @@ export class expression_object extends construction_object {
         screen: Vec2,
         formula: ExpressionFormula | null = null,
         pointFormula: PointExpressionFormula | null = null,
+        script: ScriptStatement[] = [],
     ) {
         super(c, name, "expression");
         this.text = text;
         this.value = value;
         this.formula = formula;
         this.pointFormula = pointFormula;
+        this.script = script;
+        this.viewDependent =
+            pointFormula !== null &&
+            (usesCoords2D(pointFormula.node) ||
+                [...pointFormula.refs.values()].some(
+                    (ref) =>
+                        ref instanceof expression_object && ref.viewDependent,
+                ));
         this.min = min;
         this.max = max;
         this.increment = 0;
@@ -194,12 +219,28 @@ export class expression_object extends construction_object {
         this.screen = screen;
         if (formula) this.addParents(...formula.refs.values());
         if (pointFormula) this.addParents(...pointFormula.refs.values());
+        script.forEach((statement) => {
+            this.addParents(...statement.refs.values());
+            statement.target.addParents(this);
+        });
     }
 
     computeGeometry(): void {
-        if (!this.pointFormula) return;
-        const { refs, vec3 } = this.pointFormula;
-        const result = evaluateFormula(this.pointFormula.node, {
+        if (!this.viewDependent) this.evaluatePointFormula();
+    }
+
+    project(): void {
+        if (this.viewDependent) this.evaluatePointFormula();
+        this.script.forEach((statement) => this.run(statement));
+    }
+
+    private evaluate(
+        node: FormulaNode,
+        refs: Map<string, point_object | expression_object>,
+        vec3: boolean,
+    ): FormulaValue | null {
+        const grid = this.C.GRID;
+        return evaluateFormula(node, {
             resolveIdentifier: (name) => {
                 const ref = refs.get(name);
                 if (!ref || !ref.defined) return null;
@@ -209,8 +250,42 @@ export class expression_object extends construction_object {
                         : null;
                 return vec3 ? ref.coords : [ref.coords[0], ref.coords[1]];
             },
-            pixelScale: () => this.C.GRID.UNIT[0],
+            pixelScale: () => grid.UNIT[0],
+            coords2D: (name) => {
+                const ref = refs.get(name)!;
+                if (
+                    ref instanceof expression_object ||
+                    !ref.defined ||
+                    !ref.projectionDefined
+                )
+                    return null;
+                const [x, y] = ref.screen;
+                return [
+                    (x - grid.ORG[0]) / grid.UNIT[0],
+                    (grid.ORG[1] - y) / grid.UNIT[1],
+                ];
+            },
         });
+    }
+
+    private run({ target, method, node, refs, vec3 }: ScriptStatement): void {
+        const value = realPart(this.evaluate(node, refs, vec3));
+        if (method === "setOpacity") {
+            if (value !== null) target.opacity = value;
+            return;
+        }
+        // DGPad's setHidden: 0 shown, 1 hidden, 2 super-hidden, and hidden
+        // for anything that isn't a number.
+        const hidden = value === null ? 1 : Math.trunc(Math.abs(value)) % 3;
+        if (hidden === target.hidden) return;
+        target.hidden = hidden;
+        target.updateView();
+    }
+
+    private evaluatePointFormula(): void {
+        if (!this.pointFormula) return;
+        const { node, refs, vec3 } = this.pointFormula;
+        const result = this.evaluate(node, refs, vec3);
         this.defined = result !== null;
         this.value =
             result === null || typeof result === "number"
@@ -354,6 +429,7 @@ export function createExpression(
     screen: Vec2,
     formula: ExpressionFormula | null = null,
     pointFormula: PointExpressionFormula | null = null,
+    script: ScriptStatement[] = [],
 ): expression_object {
     return c.add(
         new expression_object(
@@ -366,6 +442,7 @@ export function createExpression(
             screen,
             formula,
             pointFormula,
+            script,
         ),
     );
 }

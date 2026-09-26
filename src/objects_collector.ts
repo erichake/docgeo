@@ -1,4 +1,5 @@
 import type { construction_object } from "./objects/construction_object";
+import { expression_object } from "./objects/expression_object";
 import { grid_object } from "./objects/grid_object";
 import { paintByDepth } from "./objects/hidden_line";
 import { point_object } from "./objects/point_object";
@@ -115,12 +116,15 @@ export class objects_collector {
         // grid is normally first in construction order anyway (sequence 0),
         // but a point moved via an Expression/slider dirties only its own
         // dependency subtree (see markGeometryDirty), which never includes
-        // the grid.
+        // the grid. Expressions follow, since they may read where points
+        // are drawn, and their scripts may set other objects' visibility
+        // or opacity.
         objects.forEach((object) => {
             if (
                 object.projectionDirty &&
                 (object instanceof point_object ||
-                    object instanceof grid_object)
+                    object instanceof grid_object ||
+                    object instanceof expression_object)
             ) {
                 object.project();
                 object.projectionDirty = false;

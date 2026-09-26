@@ -22,6 +22,7 @@ import {
     expression_object,
     type ExpressionFormula,
     type PointExpressionFormula,
+    type ScriptStatement,
 } from "../objects/expression_object";
 import {
     createFixedAngle,
@@ -74,6 +75,7 @@ import {
     parseFormula,
     realPart,
     type FormulaNode,
+    type FormulaValue,
 } from "./dgp_formula";
 import type { DgpCall, DgpValue } from "./dgp_parser";
 
@@ -275,33 +277,83 @@ function parseExpressionValue(value: string): number | number[] | null {
 // "π/2"): reuses the general formula grammar/evaluator instead of a plain
 // number regex, so it also accepts DGPad's own math notation (π, arithmetic)
 // rather than only bare digits.
-function evaluateConstantFormula(source: string): number | null {
-    let node: FormulaNode;
+function tryParseFormula(source: string): FormulaNode | null {
     try {
-        node = parseFormula(source);
+        return parseFormula(source);
     } catch {
         return null;
     }
-    return realPart(
+}
+
+function evaluateConstant(source: string): FormulaValue | null {
+    const node = tryParseFormula(source);
+    return (
+        node &&
         evaluateFormula(node, {
             resolveIdentifier: () => null,
             pixelScale: () => 1,
-        }),
+        })
     );
 }
 
-// DGPad's Expression can also hold a semicolon-separated list of method
-// calls on other objects (e.g. "S1.setDash((a>π)&&(b>π));\"Dash code\"") —
-// a legacy scripting hook for things like hidden-edge dashing that this
-// reader computes on its own instead of executing (see AGENTS.md: running
-// arbitrary file content needs a controlled environment this project
-// doesn't build for arbitrary method calls). Recognized narrowly by the one
-// syntax no real formula uses: a "." directly between two identifier
-// characters (a decimal point is always digit-adjacent). Such an
-// expression is imported as an inert placeholder instead of failing import.
-const SCRIPT_STATEMENT = /[A-Za-z_$][\w$]*\s*\.\s*[A-Za-z_$]/;
-function isScriptStatement(source: string): boolean {
-    return SCRIPT_STATEMENT.test(source);
+function evaluateConstantFormula(source: string): number | null {
+    return realPart(evaluateConstant(source));
+}
+
+// DGPad's Expression can also hold a script: semicolon-separated statements
+// ending with the text it displays, e.g. "S1.setHidden(a>2);\"Faces\"".
+// It is never run (see AGENTS.md): only the statements below are
+// recognized, their argument being evaluated as a formula. setDash is left
+// aside, since the reader dashes hidden edges on its own.
+type ScriptPart =
+    | {
+          kind: "call";
+          target: string;
+          method: ScriptStatement["method"];
+          node: FormulaNode;
+      }
+    | { kind: "restriction"; angle: "THETA" | "PHI"; range: Vec2 };
+
+const SCRIPT_CALL =
+    /^([A-Za-z_$][\w$]*)\.(setHidden|setOpacity|setDash)\((.*)\)$/s;
+const VIEW_RESTRICTION = /^restrict(Theta|Phi)\((.*)\)$/s;
+const SCRIPT_TEXT = /^"(?:[^"\\]|\\.)*"$/;
+
+function parseScript(source: string): ScriptPart[] | null {
+    const parts: ScriptPart[] = [];
+    for (const statement of source.split(";").map((part) => part.trim())) {
+        if (statement === "" || SCRIPT_TEXT.test(statement)) continue;
+        const call = SCRIPT_CALL.exec(statement);
+        const restriction = VIEW_RESTRICTION.exec(statement);
+        if (call) {
+            if (call[2] === "setDash") continue;
+            const node = tryParseFormula(call[3]);
+            if (!node) return null;
+            parts.push({
+                kind: "call",
+                target: call[1],
+                method: call[2] as ScriptStatement["method"],
+                node,
+            });
+        } else if (restriction) {
+            const range = evaluateConstant(restriction[2]);
+            if (
+                range === null ||
+                typeof range === "number" ||
+                range.length !== 2 ||
+                range[0] > range[1]
+            )
+                return null;
+            parts.push({
+                kind: "restriction",
+                angle: restriction[1] === "Theta" ? "THETA" : "PHI",
+                range,
+            });
+        } else {
+            return null;
+        }
+    }
+    return parts;
 }
 
 // A single-variable "function of x" formula (DGPad's Expression used as a
@@ -1654,24 +1706,35 @@ const COMMANDS = new Map<string, CommandDefinition>([
                         `Invalid DGP expression bound at line ${lineNumber}`,
                     );
                 const source = literalString(args[4]);
-                if (
-                    parseExpressionValue(source) === null &&
-                    !isScriptStatement(source)
-                ) {
-                    let formulaNode: FormulaNode;
-                    try {
-                        formulaNode = parseFormula(source);
-                    } catch {
-                        throw new Error(
-                            `Unsupported DGP expression at line ${lineNumber}`,
-                        );
-                    }
+                const formulaNode =
+                    parseExpressionValue(source) === null
+                        ? tryParseFormula(source)
+                        : undefined;
+                if (formulaNode) {
                     if (!isPointExpressionFormula(formulaNode, variables))
                         validateFunctionFormulaReferences(
                             formulaNode,
                             variables,
                             lineNumber,
                         );
+                } else if (formulaNode === null) {
+                    const script = parseScript(source);
+                    if (!script)
+                        throw new Error(
+                            `Unsupported DGP expression at line ${lineNumber}`,
+                        );
+                    script.forEach((part) => {
+                        if (part.kind !== "call") return;
+                        if (!variables.has(part.target))
+                            throw new Error(
+                                `Unknown DGP reference at line ${lineNumber}`,
+                            );
+                        validatePointFormulaReferences(
+                            part.node,
+                            variables,
+                            lineNumber,
+                        );
+                    });
                 }
                 if (
                     !STYLE_NUMBER.test(literalString(args[5])) ||
@@ -1700,8 +1763,32 @@ const COMMANDS = new Map<string, CommandDefinition>([
                 const constant = parseExpressionValue(source);
                 let formula: ExpressionFormula | null = null;
                 let pointFormula: PointExpressionFormula | null = null;
-                if (constant === null && !isScriptStatement(source)) {
-                    const node = parseFormula(source);
+                const script: ScriptStatement[] = [];
+                const node = constant === null ? tryParseFormula(source) : null;
+                if (constant === null && !node)
+                    parseScript(source)!.forEach((part) => {
+                        if (part.kind === "call") {
+                            script.push({
+                                target: context.variables.get(part.target)!,
+                                method: part.method,
+                                node: part.node,
+                                refs: pointFormulaRefs(
+                                    part.node,
+                                    context.variables,
+                                ),
+                                vec3: context.is3D,
+                            });
+                            return;
+                        }
+                        const [low, high] = part.range;
+                        grid[`RESTRICT_${part.angle}`] = part.range;
+                        grid[part.angle] = Math.min(
+                            Math.max(grid[part.angle], low),
+                            high,
+                        );
+                        context.projectionChanged = true;
+                    });
+                if (node) {
                     if (isPointExpressionFormulaAt(node, context.variables)) {
                         pointFormula = {
                             node,
@@ -1730,6 +1817,7 @@ const COMMANDS = new Map<string, CommandDefinition>([
                     ],
                     formula,
                     pointFormula,
+                    script,
                 );
             },
         },
