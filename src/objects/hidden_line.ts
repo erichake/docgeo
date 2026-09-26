@@ -10,6 +10,7 @@ import {
     pointInPolygon,
     segmentIntersectionParameter,
     vAdd,
+    vCross,
     vDot,
     vNormalize,
     vScale,
@@ -23,6 +24,16 @@ import type { two_points_line_object } from "./two_points_line_object";
 
 // A sub-range of a segment's parameter (0 at p1, 1 at p2).
 export type Interval = [number, number];
+
+// Where a segment is drawn: solid, dashed behind a transparent polygon, and
+// not at all behind an opaque one, as GeoGebra's depth buffer does.
+export interface Split {
+    visible: Interval[];
+    hidden: Interval[];
+}
+
+const isOpaque = (polygon: polygon_object): boolean =>
+    (polygon.opacity ?? 0) >= 1;
 
 // When two polygons share an edge (e.g. adjacent faces of a solid), only
 // one of them should draw it — otherwise each draws its own independently
@@ -200,7 +211,7 @@ export function hiddenIntervals(
     c: construction,
     p1: point_object,
     p2: point_object,
-): Interval[] {
+): Split {
     return hiddenIntervalsBetween(
         c,
         p1.screen,
@@ -284,7 +295,7 @@ export function hiddenIntervalsBetween(
     point3D1: Vec3,
     point3D2: Vec3,
     isOwnFace: (polygon: polygon_object) => boolean,
-): Interval[] {
+): Split {
     const frame = c.projectionFrame;
     // Normalized so depth differences are in world units: a polygon
     // coplanar with the segment (e.g. a face sharing it as an edge through
@@ -295,6 +306,7 @@ export function hiddenIntervalsBetween(
     const candidates: Array<{
         screenPoly: Vec2[];
         depthDiffAt: (t: number) => number;
+        opaque: boolean;
     }> = [];
 
     const segMinX = Math.min(sP1[0], sP2[0]);
@@ -350,24 +362,202 @@ export function hiddenIntervalsBetween(
                 breakpoints.add(t),
             );
         }
-        candidates.push({ screenPoly, depthDiffAt });
+        candidates.push({ screenPoly, depthDiffAt, opaque: isOpaque(polygon) });
     });
 
     const sorted = [...breakpoints].sort((a, b) => a - b);
+    const visible: Interval[] = [];
     const hidden: Interval[] = [];
     for (let i = 0; i < sorted.length - 1; i++) {
         const [a, b] = [sorted[i], sorted[i + 1]];
         if (b - a <= GEOMETRY_EPSILON) continue;
         const mid = (a + b) / 2;
         const midScreen = vAdd(sP1, vScale(vSub(sP2, sP1), mid));
-        const isHidden = candidates.some(({ screenPoly, depthDiffAt }) => {
+        const covering = candidates.filter(({ screenPoly, depthDiffAt }) => {
             if (!pointInPolygon(midScreen, screenPoly)) return false;
             const diff = depthDiffAt(mid);
             return diff > geometryTolerance(diff);
         });
-        if (isHidden) hidden.push([a, b]);
+        if (covering.length === 0) visible.push([a, b]);
+        else if (!covering.some(({ opaque }) => opaque)) hidden.push([a, b]);
     }
-    return mergeIntervals(hidden);
+    return { visible: mergeIntervals(visible), hidden: mergeIntervals(hidden) };
+}
+
+// The depth (see viewDirection) of `polygon`'s plane at `screen`, or null
+// if it projects edge-on.
+function planeDepth(
+    c: construction,
+    polygon: polygon_object,
+    screen: Vec2,
+): number | null {
+    const frame = c.projectionFrame;
+    const [v0, v1, v2] = polygon.points.map((p) => p.coords);
+    const point = projectPointOnPlane(
+        screen,
+        v0,
+        [vSub(v1, v0), vSub(v2, v0)],
+        frame,
+    );
+    return point && vDot(point, vNormalize(viewDirection(frame))!);
+}
+
+// Whether an opaque polygon, other than one of its own faces, hides `point`.
+export function isOccluded(c: construction, point: point_object): boolean {
+    const [x, y] = point.screen;
+    const depth = vDot(
+        point.coords,
+        vNormalize(viewDirection(c.projectionFrame))!,
+    );
+    return nearbyPolygons(c, x, x, y, y).some((polygon) => {
+        if (
+            !isOpaque(polygon) ||
+            polygon.points.includes(point) ||
+            !pointInPolygon(
+                point.screen,
+                polygon.points.map((p) => p.screen),
+            )
+        )
+            return false;
+        const plane = planeDepth(c, polygon, point.screen);
+        if (plane === null) return false;
+        const diff = depth - plane;
+        return diff > geometryTolerance(diff);
+    });
+}
+
+// The part of the convex polygon `subject` inside the convex polygon
+// `clip`.
+function clipPolygon(subject: Vec2[], clip: Vec2[]): Vec2[] {
+    const orientation = Math.sign(signedArea(clip));
+    return clip.reduce((kept, a, index) => {
+        const b = clip[(index + 1) % clip.length];
+        const side = ([x, y]: Vec2): number =>
+            orientation *
+            ((b[0] - a[0]) * (y - a[1]) - (b[1] - a[1]) * (x - a[0]));
+        return kept.flatMap((current, position) => {
+            const previous = kept[(position + kept.length - 1) % kept.length];
+            const [sa, sb] = [side(previous), side(current)];
+            const crossing: Vec2[] =
+                sa >= 0 !== sb >= 0
+                    ? [
+                          vAdd(
+                              previous,
+                              vScale(vSub(current, previous), sa / (sa - sb)),
+                          ),
+                      ]
+                    : [];
+            return sb >= 0 ? [...crossing, current] : crossing;
+        });
+    }, subject);
+}
+
+function signedArea(polygon: Vec2[]): number {
+    return (
+        polygon.reduce((sum, [x0, y0], index) => {
+            const [x1, y1] = polygon[(index + 1) % polygon.length];
+            return sum + x0 * y1 - x1 * y0;
+        }, 0) / 2
+    );
+}
+
+// Overlaps thinner than this (square pixels), e.g. along the edge two
+// faces share, don't order them.
+const MIN_OVERLAP = 0.5;
+
+// Positive if `p` is behind `q` where their projections overlap, negative
+// if in front, 0 if they don't overlap or lie in the same plane.
+function depthOrder(
+    c: construction,
+    p: polygon_object,
+    q: polygon_object,
+): number {
+    const [v0, v1, v2] = p.points.map((point) => point.coords);
+    const normal = vNormalize(vCross(vSub(v1, v0), vSub(v2, v0)));
+    if (
+        !normal ||
+        q.points.every((point) => {
+            const offset = vDot(normal, vSub(point.coords, v0));
+            return Math.abs(offset) <= geometryTolerance(offset);
+        })
+    )
+        return 0;
+    const [sp, sq] = [p, q].map((polygon) =>
+        polygon.points.map((point) => point.screen),
+    );
+    const overlap = clipPolygon(sp, sq);
+    if (overlap.length < 3 || Math.abs(signedArea(overlap)) < MIN_OVERLAP)
+        return 0;
+    const center = vScale(overlap.reduce(vAdd), 1 / overlap.length);
+    if (!pointInPolygon(center, sp) || !pointInPolygon(center, sq)) return 0;
+    const [dp, dq] = [p, q].map((polygon) => planeDepth(c, polygon, center));
+    if (dp === null || dq === null) return 0;
+    const diff = dp - dq;
+    return Math.abs(diff) > geometryTolerance(diff) ? Math.sign(diff) : 0;
+}
+
+// Paints the polygons farthest first wherever their projections overlap,
+// as GeoGebra's depth buffer does for faces that don't cut through each
+// other. Planes keep their own layer, beneath (see polygon_object.plane).
+export function paintByDepth(c: construction): void {
+    const polygons = (c.OBJS.polygons as polygon_object[]).filter(
+        (polygon) => polygon.hasView && polygon.isVisible && !polygon.plane,
+    );
+    const indices = new Map(polygons.map((polygon, index) => [polygon, index]));
+    const nearer: number[][] = polygons.map(() => []);
+    const farther = polygons.map(() => 0);
+    polygons.forEach((p, i) => {
+        const xs = p.points.map((point) => point.screen[0]);
+        const ys = p.points.map((point) => point.screen[1]);
+        nearbyPolygons(
+            c,
+            Math.min(...xs),
+            Math.max(...xs),
+            Math.min(...ys),
+            Math.max(...ys),
+        ).forEach((q) => {
+            const j = indices.get(q);
+            if (j === undefined || j <= i) return;
+            const order = depthOrder(c, p, q);
+            if (order === 0) return;
+            const [back, front] = order > 0 ? [i, j] : [j, i];
+            nearer[back].push(front);
+            farther[front]++;
+        });
+    });
+    // Construction order among those not ordered by depth.
+    const ready = polygons.flatMap((_, index) =>
+        farther[index] === 0 ? [index] : [],
+    );
+    const order: number[] = [];
+    while (ready.length > 0) {
+        const index = ready.shift()!;
+        order.push(index);
+        nearer[index].forEach((front) => {
+            if (--farther[front] > 0) return;
+            const position = ready.findIndex((other) => other > front);
+            ready.splice(position < 0 ? ready.length : position, 0, front);
+        });
+    }
+    // A cycle is left in construction order.
+    polygons.forEach((_, index) => {
+        if (farther[index] > 0) order.push(index);
+    });
+    const layer = c.layers.get(c.prefs.polygon.layer)!;
+    const position = new Map(
+        [...layer.dom().children].map((element, index) => [element, index]),
+    );
+    const painted = order.map((index) => polygons[index].dom);
+    if (
+        painted.every(
+            (dom, index) =>
+                index === 0 ||
+                position.get(painted[index - 1].dom())! <
+                    position.get(dom.dom())!,
+        )
+    )
+        return;
+    painted.forEach((dom) => layer.add(dom));
 }
 
 function mergeIntervals(intervals: Interval[]): Interval[] {
@@ -380,19 +570,6 @@ function mergeIntervals(intervals: Interval[]): Interval[] {
         else merged.push([start, end]);
     });
     return merged;
-}
-
-// The complement of a sorted, disjoint set of hidden sub-ranges within
-// [0, 1] — the visible sub-ranges.
-export function complement(intervals: Interval[]): Interval[] {
-    const visible: Interval[] = [];
-    let cursor = 0;
-    intervals.forEach(([start, end]) => {
-        if (start - cursor > GEOMETRY_EPSILON) visible.push([cursor, start]);
-        cursor = Math.max(cursor, end);
-    });
-    if (1 - cursor > GEOMETRY_EPSILON) visible.push([cursor, 1]);
-    return visible;
 }
 
 // Renders a set of sub-ranges of [sP1, sP2] as disconnected SVG path

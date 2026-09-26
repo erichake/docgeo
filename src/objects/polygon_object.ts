@@ -16,7 +16,6 @@ import {
 import { construction_object } from "./construction_object";
 import { formatNumber } from "./expression_object";
 import {
-    complement,
     hiddenIntervals,
     intervalsToPath,
     ownsEdge,
@@ -245,10 +244,9 @@ export class polygon_object extends construction_object {
         this.screenPoints = this.points.map((p) => p.screen);
         const edges = this.points.map((p1, i) => {
             const p2 = this.points[(i + 1) % this.points.length];
-            if (!ownsEdge(this.C, this, p1, p2))
-                return { hidden: [] as Interval[], visible: [] as Interval[] };
-            const hidden = hiddenIntervals(this.C, p1, p2);
-            return { hidden, visible: complement(hidden) };
+            return ownsEdge(this.C, this, p1, p2)
+                ? hiddenIntervals(this.C, p1, p2)
+                : { hidden: [], visible: [] };
         });
         this.edgeHidden = edges.map((edge) => edge.hidden);
         this.edgeVisible = edges.map((edge) => edge.visible);

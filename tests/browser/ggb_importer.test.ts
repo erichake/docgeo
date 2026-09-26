@@ -10,6 +10,7 @@ import { cylinder_intersection_object } from "../../src/objects/cylinder_interse
 import { cylinder_section_object } from "../../src/objects/cylinder_section_object";
 import { expression_object } from "../../src/objects/expression_object";
 import { fixed_point_object } from "../../src/objects/fixed_point_object";
+import { isOccluded } from "../../src/objects/hidden_line";
 import { iteration_object } from "../../src/objects/iteration_object";
 import { list_object } from "../../src/objects/list_object";
 import { locus_object } from "../../src/objects/locus_object";
@@ -1270,6 +1271,33 @@ ${lines.map((line, index) => command("Plane", ["C", line], `p${index}`)).join("\
         ouv.screen.forEach((value, index) =>
             expect(value).toBeCloseTo([32, 252][index], 9),
         );
+    });
+
+    it("hides what lies behind opaque faces, painting them farthest first", async () => {
+        const c = createConstruction();
+        importGgb(c, await loadXml("_patronsCube"));
+        const patron = c.getObj("Patron") as expression_object;
+        patron.value = 0;
+        c.invalidateGeometry(patron);
+        await new Promise((resolve) => requestAnimationFrame(resolve));
+
+        const painted = [
+            ...c.layers.get(c.prefs.polygon.layer)!.dom().children,
+        ];
+        const position = (name: string) =>
+            painted.indexOf(c.getObj(name)!.dom.dom());
+        ["faceABCD", "faceBCGF", "faceCDHG"].forEach((back) =>
+            ["faceABFE", "faceADHE", "faceEFGH"].forEach((front) =>
+                expect(position(back)).toBeLessThan(position(front)),
+            ),
+        );
+        expect(isOccluded(c, c.getObj("C") as point_object)).toBe(true);
+        expect(isOccluded(c, c.getObj("E") as point_object)).toBe(false);
+        const diagonal = c.getObj("a") as unknown as Record<string, unknown>;
+        expect([diagonal.visibleIntervals, diagonal.hiddenIntervals]).toEqual([
+            [],
+            [],
+        ]);
     });
 
     it("leaves edges already drawn by a segment to that segment", async () => {

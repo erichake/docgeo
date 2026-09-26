@@ -1,5 +1,6 @@
 import type { construction_object } from "./objects/construction_object";
 import { grid_object } from "./objects/grid_object";
+import { paintByDepth } from "./objects/hidden_line";
 import { point_object } from "./objects/point_object";
 
 export class objects_collector {
@@ -125,10 +126,12 @@ export class objects_collector {
                 object.projectionDirty = false;
             }
         });
+        let polygonsProjected = false;
         objects.forEach((object) => {
             if (object.projectionDirty) {
                 object.project();
                 object.projectionDirty = false;
+                if (object.familytype === "polygon") polygonsProjected = true;
             }
         });
         objects.forEach((object) => {
@@ -137,5 +140,6 @@ export class objects_collector {
                 object.renderDirty = false;
             }
         });
+        if (polygonsProjected) paintByDepth(this.grid!.C);
     }
 }

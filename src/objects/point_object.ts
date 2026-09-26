@@ -11,6 +11,7 @@ import {
     type Vec2,
     type Vec3,
 } from "../vec";
+import { isOccluded } from "./hidden_line";
 import { construction_object } from "./construction_object";
 import type { curve_object } from "./curve_object";
 import type { list_object } from "./list_object";
@@ -201,7 +202,11 @@ export class point_object extends construction_object {
     render(): void {
         this.dom.stl(
             "display",
-            this.isVisible && this.projectionDefined ? "block" : "none",
+            this.isVisible &&
+                this.projectionDefined &&
+                !isOccluded(this.C, this)
+                ? "block"
+                : "none",
         );
         this.renderTrace();
         if (!this.defined || !this.projectionDefined) return;

@@ -15,7 +15,6 @@ import {
 } from "../vec";
 import { construction_object } from "./construction_object";
 import {
-    complement,
     hiddenIntervalsBetween,
     intervalsToPath,
     type Interval,
@@ -245,15 +244,15 @@ export class primitive_line_object extends construction_object {
     // Recomputes hiddenIntervals/visibleIntervals for the current sP1/sP2,
     // given the 3D positions matching them.
     protected updateHiddenSplit(point3D1: Vec3, point3D2: Vec3): void {
-        this.hiddenIntervals = hiddenIntervalsBetween(
-            this.C,
-            this.sP1,
-            this.sP2,
-            point3D1,
-            point3D2,
-            (polygon) => this.isOwnFace(polygon),
-        );
-        this.visibleIntervals = complement(this.hiddenIntervals);
+        ({ hidden: this.hiddenIntervals, visible: this.visibleIntervals } =
+            hiddenIntervalsBetween(
+                this.C,
+                this.sP1,
+                this.sP2,
+                point3D1,
+                point3D2,
+                (polygon) => this.isOwnFace(polygon),
+            ));
     }
 
     // *************************************************
