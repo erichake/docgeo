@@ -24,6 +24,10 @@ export class construction {
     svg!: DOMElement;
     traceLayer!: DOMElement;
     layers: Map<number, DOMElement>;
+    // As in GeoGebra, an edge shared by segments and polygons is painted
+    // by the segments last, rather than in construction order as in DGPad
+    // (see edgeStroke).
+    segmentsOverPolygons = false;
     private updateFrame: number | null = null;
     private batchedObjects: construction_object[] | null = null;
     private viewportWidth = 0;

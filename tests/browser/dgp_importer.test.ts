@@ -795,6 +795,41 @@ M=PointOn("M",S,0.5);`,
         expect(m.alpha as number).toBeCloseTo(0.9);
     });
 
+    it("draws an edge shared by segments and polygons as DGPad paints them, or segments last as GeoGebra does", () => {
+        const figure = (
+            segmentSize: number,
+        ) => `SetCoords(400,300,40,false,800,600);
+A=Point("A",0,0);
+B=Point("B",4,0);
+C=Point("C",0,3);
+S1=Segment("S1",A,B);
+S2=Segment("S2",B,C);
+P=Polygon("P","_A,_B,_C");
+STL(S1,"s:${segmentSize}");
+STL(S2,"s:3");
+STL(P,"s:2");`;
+        const drawn = (element: { dom(): Element }) =>
+            element.dom().getAttribute("d")?.match(/M/g)?.length ?? 0;
+
+        // The polygon, painted after them, hides [AB] as thick, but not the
+        // thicker [BC], drawn on its own outline.
+        const c = createConstruction();
+        importDgp(c, figure(1));
+        c.OBJS.update();
+        const polygon = c.getObj("P") as polygon_object;
+        expect(drawn((c.getObj("S1") as segment_object).path)).toBe(0);
+        expect(drawn((c.getObj("S2") as segment_object).path)).toBe(1);
+        expect(drawn(polygon.outline)).toBe(3);
+
+        const ggb = createConstruction();
+        ggb.segmentsOverPolygons = true;
+        importDgp(ggb, figure(2));
+        ggb.OBJS.update();
+        // Its segments, painted last, hide both edges they share with it.
+        expect(drawn((ggb.getObj("S1") as segment_object).path)).toBe(1);
+        expect(drawn((ggb.getObj("P") as polygon_object).outline)).toBe(1);
+    });
+
     it("only builds an SVG view for the objects visible in Apollonius", async () => {
         const c = createConstruction();
         await importDgpFromUrl(c, "/tests/dgp/_Apollonius.dgp");

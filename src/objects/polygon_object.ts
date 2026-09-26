@@ -18,7 +18,7 @@ import { formatNumber } from "./expression_object";
 import {
     hiddenIntervals,
     intervalsToPath,
-    ownsEdge,
+    edgeStroke,
     type Interval,
 } from "./hidden_line";
 import type { point_object } from "./point_object";
@@ -244,9 +244,13 @@ export class polygon_object extends construction_object {
         this.screenPoints = this.points.map((p) => p.screen);
         const edges = this.points.map((p1, i) => {
             const p2 = this.points[(i + 1) % this.points.length];
-            return ownsEdge(this.C, this, p1, p2)
-                ? hiddenIntervals(this.C, p1, p2)
-                : { hidden: [], visible: [] };
+            const { solid, dashed } = edgeStroke(this.C, this, p1, p2);
+            if (!solid && !dashed) return { hidden: [], visible: [] };
+            const edge = hiddenIntervals(this.C, p1, p2);
+            return {
+                hidden: dashed ? edge.hidden : [],
+                visible: solid ? edge.visible : [],
+            };
         });
         this.edgeHidden = edges.map((edge) => edge.hidden);
         this.edgeVisible = edges.map((edge) => edge.visible);

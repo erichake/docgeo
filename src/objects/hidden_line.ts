@@ -18,9 +18,10 @@ import {
     type Vec2,
     type Vec3,
 } from "../vec";
+import type { construction_object } from "./construction_object";
 import type { point_object } from "./point_object";
 import type { polygon_object } from "./polygon_object";
-import type { two_points_line_object } from "./two_points_line_object";
+import { segment_object } from "./segment_object";
 
 // A sub-range of a segment's parameter (0 at p1, 1 at p2).
 export type Interval = [number, number];
@@ -35,14 +36,16 @@ export interface Split {
 const isOpaque = (polygon: polygon_object): boolean =>
     (polygon.opacity ?? 0) >= 1;
 
-// When two polygons share an edge (e.g. adjacent faces of a solid), only
-// one of them should draw it — otherwise each draws its own independently
-// dashed copy, and since they run in opposite directions the two dash
-// patterns fall out of phase and their gaps fill each other in, making the
-// shared edge look solid. Cached per frame like the polygon grid below.
-const edgeOwnerCache = new WeakMap<
+// When polygons and segments share an edge (e.g. adjacent faces of a
+// solid), each stroke is painted, a later one hiding an earlier one at most
+// as thick. Its hidden part is dashed by a single one of them — otherwise
+// each draws its own independently dashed copy, and since they run in
+// opposite directions the two dash patterns fall out of phase and their
+// gaps fill each other in, making the shared edge look solid. Cached per
+// frame like the polygon grid below.
+const edgeStrokeCache = new WeakMap<
     construction,
-    { frame: number; owners: Map<string, polygon_object> }
+    { frame: number; strokes: Map<string, construction_object[]> }
 >();
 
 function edgeKey(p1: point_object, p2: point_object): string {
@@ -51,38 +54,60 @@ function edgeKey(p1: point_object, p2: point_object): string {
         : `${p2.sequence}:${p1.sequence}`;
 }
 
-function edgeOwners(c: construction): Map<string, polygon_object> {
-    const cached = edgeOwnerCache.get(c);
-    if (cached && cached.frame === c.OBJS.frame) return cached.owners;
+// The visible objects drawing each edge, in painting order.
+function edgeStrokes(c: construction): Map<string, construction_object[]> {
+    const cached = edgeStrokeCache.get(c);
+    if (cached && cached.frame === c.OBJS.frame) return cached.strokes;
 
-    const owners = new Map<string, polygon_object>();
-    (c.OBJS.polygons as polygon_object[]).forEach((polygon) => {
-        polygon.points.forEach((p1, i) => {
-            const p2 = polygon.points[(i + 1) % polygon.points.length];
-            const key = edgeKey(p1, p2);
-            if (!owners.has(key)) owners.set(key, polygon);
-        });
+    const strokes = new Map<string, construction_object[]>();
+    const add = (
+        object: construction_object,
+        p1: point_object,
+        p2: point_object,
+    ): void => {
+        const key = edgeKey(p1, p2);
+        const objects = strokes.get(key);
+        if (objects) objects.push(object);
+        else strokes.set(key, [object]);
+    };
+    c.OBJS.V.forEach((object) => {
+        if (!object.isVisible) return;
+        if (object.familytype === "polygon") {
+            const { points } = object as polygon_object;
+            points.forEach((p1, i) =>
+                add(object, p1, points[(i + 1) % points.length]),
+            );
+        } else if (object instanceof segment_object) {
+            add(object, object.P1, object.P2);
+        }
     });
-    edgeOwnerCache.set(c, { frame: c.OBJS.frame, owners });
-    return owners;
+    if (c.segmentsOverPolygons)
+        strokes.forEach((objects) =>
+            objects.sort(
+                (a, b) =>
+                    Number(a instanceof segment_object) -
+                    Number(b instanceof segment_object),
+            ),
+        );
+    edgeStrokeCache.set(c, { frame: c.OBJS.frame, strokes });
+    return strokes;
 }
 
-// Whether `polygon` is the (single, arbitrary but stable) owner responsible
-// for drawing the edge [p1, p2], among all polygons that share it. A
-// visible segment joining p1 and p2 draws that edge itself instead, for
-// the same out-of-phase dashing reason as above.
-export function ownsEdge(
+// How `object`, a polygon or a segment, draws the edge [p1, p2].
+export function edgeStroke(
     c: construction,
-    polygon: polygon_object,
+    object: construction_object,
     p1: point_object,
     p2: point_object,
-): boolean {
-    const drawnBySegment = p1.children.some((child) => {
-        if (child.type !== "segment" || !child.isVisible) return false;
-        const segment = child as two_points_line_object;
-        return segment.P1 === p2 || segment.P2 === p2;
-    });
-    return !drawnBySegment && edgeOwners(c).get(edgeKey(p1, p2)) === polygon;
+): { solid: boolean; dashed: boolean } {
+    const objects = edgeStrokes(c).get(edgeKey(p1, p2)) ?? [object];
+    const drawn = objects.filter((stroke, index) =>
+        objects.slice(index + 1).every((later) => later.size < stroke.size),
+    );
+    const dashed = drawn.reduce((thickest, stroke) =>
+        stroke.size >= thickest.size ? stroke : thickest,
+    );
+    return { solid: drawn.includes(object), dashed: dashed === object };
 }
 
 // Screen-space bucketing of polygons, so a segment only tests occlusion

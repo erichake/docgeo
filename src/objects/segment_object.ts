@@ -10,6 +10,7 @@ import {
     type Vec2,
 } from "../vec";
 import type { construction_object } from "./construction_object";
+import { edgeStroke } from "./hidden_line";
 import type { point_object } from "./point_object";
 import { two_points_line_object } from "./two_points_line_object";
 
@@ -70,6 +71,9 @@ export class segment_object extends two_points_line_object {
     render(): void {
         super.render();
         if (!this.defined || !this.projectionDefined) return;
+        const { solid, dashed } = edgeStroke(this.C, this, this.P1, this.P2);
+        if (!solid) this.path.att("d", "");
+        if (!dashed) this.hiddenPath.att("d", "");
         this.decorationPath?.att("d", this.decorationData());
         if (!this.lengthText) return;
 

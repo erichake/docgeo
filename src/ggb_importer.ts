@@ -16,6 +16,7 @@ export function importGgb(c: construction, xml: string): string[] {
     const { calls, targets, handles, unsupported, view3D } = translateGgb(xml);
     // First, since sliders are placed with the camera's unit.
     if (view3D) applyView3D(c, view3D);
+    c.segmentsOverPolygons = true;
     const executed = executeDgpCommands(c, calls, view3D !== undefined);
     const variables = executed.variables;
     handles.forEach((numbers, variable) =>

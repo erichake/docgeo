@@ -280,6 +280,9 @@ export class expression_object extends construction_object {
         if (hidden === target.hidden) return;
         target.hidden = hidden;
         target.updateView();
+        // How the objects sharing its edges draw them depends on it (see
+        // edgeStroke).
+        this.C.invalidateProjection();
     }
 
     private evaluatePointFormula(): void {
