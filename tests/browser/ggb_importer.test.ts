@@ -1269,9 +1269,18 @@ ${lines.map((line, index) => command("Plane", ["C", line], `p${index}`)).join("\
 
         // A condition alone decides, whatever the saved show flag.
         const shown = () =>
-            ["faceABCD", "C", "face61", "edge191", "face37", "U_3"].filter(
-                (name) => c.getObj(name)!.isVisible,
-            );
+            [
+                "faceABCD",
+                "C",
+                "face61",
+                "edge191",
+                "face37",
+                "U_3",
+                "face7",
+                "W",
+            ].filter((name) => c.getObj(name)!.isVisible);
+        expect(shown()).toEqual(["face7", "W"]);
+        await setValue(patron, 5);
         expect(shown()).toEqual(["face37", "U_3"]);
         await setValue(patron, 1);
         expect(shown()).toEqual(["face61", "edge191"]);
@@ -1298,13 +1307,26 @@ ${lines.map((line, index) => command("Plane", ["C", line], `p${index}`)).join("\
         ];
         const position = (name: string) =>
             painted.indexOf(c.getObj(name)!.dom.dom());
-        ["faceABCD", "faceBCGF", "faceCDHG"].forEach((back) =>
-            ["faceABFE", "faceADHE", "faceEFGH"].forEach((front) =>
-                expect(position(back)).toBeLessThan(position(front)),
+        // Only faces whose projections overlap are ordered: not CDHG and
+        // ABFE, nor ABCD and EFGH, which only touch in this view.
+        [
+            ["ABCD", "ABFE"],
+            ["ABCD", "BCGF"],
+            ["CDHG", "BCGF"],
+            ["CDHG", "EFGH"],
+            ["ADHE", "ABFE"],
+            ["ADHE", "BCGF"],
+            ["ADHE", "EFGH"],
+        ].forEach(([back, front]) =>
+            expect(position(`face${back}`)).toBeLessThan(
+                position(`face${front}`),
             ),
         );
-        expect(isOccluded(c, c.getObj("C") as point_object)).toBe(true);
-        expect(isOccluded(c, c.getObj("E") as point_object)).toBe(false);
+        expect(
+            [..."ABCDEFGH"].filter((name) =>
+                isOccluded(c, c.getObj(name) as point_object),
+            ),
+        ).toEqual(["D"]);
         const diagonal = c.getObj("a") as unknown as Record<string, unknown>;
         expect([diagonal.visibleIntervals, diagonal.hiddenIntervals]).toEqual([
             [],
