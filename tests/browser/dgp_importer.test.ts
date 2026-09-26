@@ -963,6 +963,27 @@ C1=Circle1("C1",A,"d(A,Z)");`,
         expect(fgr1.coords[0]).toBeCloseTo(2);
     });
 
+    it("keeps a 3D figure's saved turn around Oz, which the view can then follow freely", () => {
+        const c = createConstruction();
+        importDgp(c, `SetCoords(1449.0859375,14.28,40,true,100,100);`);
+        // Beyond the half turn once enforced by default: as in DGPad, only
+        // a figure's own restrictPhi bounds it.
+        expect(c.GRID.PHI).toBeCloseTo(1449.0859375 * 0.015);
+        c.mousedrag(null as unknown as PointerEvent, [1000, 0]);
+        expect(c.GRID.PHI).toBeCloseTo((1449.0859375 + 1000) * 0.015);
+        expect(c.GRID.THETA).toBeCloseTo(14.28 * 0.015);
+
+        const restricted = createConstruction();
+        importDgp(
+            restricted,
+            `SetCoords(1449.0859375,14.28,40,true,100,100);
+E1=Expression("E1","","","","restrictPhi([0,PI]);\\"Restriction\\"","0","0");`,
+        );
+        expect(restricted.GRID.PHI).toBe(Math.PI);
+        restricted.mousedrag(null as unknown as PointerEvent, [-1000, 0]);
+        expect(restricted.GRID.PHI).toBe(0);
+    });
+
     it("centers a 3D figure's world origin on the live viewport, independently of its Expression labels", () => {
         const c = createConstruction();
         importDgp(

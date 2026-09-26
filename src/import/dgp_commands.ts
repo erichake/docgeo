@@ -869,16 +869,13 @@ const COMMANDS = new Map<string, CommandDefinition>([
                     // In the legacy 3D format, the first two numbers are the
                     // raw camera rotation state (angle = raw * grid.STEP),
                     // the unit the interactive rotation drag already uses.
-                    // The raw angle can land outside GRID.RESTRICT_PHI/THETA
-                    // (those bounds aren't a full turn wide), which renders
+                    // The raw theta can land outside GRID.RESTRICT_THETA
+                    // (whose bounds aren't a full turn wide), which renders
                     // fine since cos/sin are periodic, but the first
                     // rotation drag would then clamp it back onto the
                     // boundary as a visible jump. Normalize to the
                     // equivalent angle inside the restricted window first.
-                    grid.PHI = normalizeAngle(
-                        (args[0] as number) * grid.STEP,
-                        grid.RESTRICT_PHI,
-                    );
+                    grid.PHI = (args[0] as number) * grid.STEP;
                     grid.THETA = normalizeAngle(
                         (args[1] as number) * grid.STEP,
                         grid.RESTRICT_THETA,

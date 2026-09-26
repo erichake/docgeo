@@ -380,11 +380,6 @@ function pointCoords(element: Element): Vec3 | null {
     return point.every(Number.isFinite) ? point : null;
 }
 
-function wrapAngle(angle: number, low: number): number {
-    const turn = 2 * Math.PI;
-    return low + ((((angle - low) % turn) + turn) % turn);
-}
-
 interface Net {
     // Each point's vertex of the polyhedron, and the face it belongs to.
     points: { vertex: string; face: number }[];
@@ -2292,10 +2287,10 @@ export function translateGgb(xml: string): GgbTranslation {
         (Number(coordSystem3D!.getAttribute(name)) * Math.PI) / 180;
     // GeoGebra rotates the scene by zAngle around Oz, then tilts it by
     // xAngle: in DGP's projection (see projection.ts), that's phi = -zAngle
-    // (kept inside GRID.RESTRICT_PHI) and theta = xAngle.
+    // and theta = xAngle.
     const camera: GgbView3D | undefined = coordSystem3D
         ? {
-              phi: wrapAngle(-degrees("zAngle"), (3 * Math.PI) / 2),
+              phi: -degrees("zAngle"),
               theta: degrees("xAngle"),
               unit: Number(coordSystem3D.getAttribute("scale")),
               offset: [

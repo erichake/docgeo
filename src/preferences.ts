@@ -228,7 +228,9 @@ export class preferences implements Preferences {
             theta: Math.PI / 2,
             phi: (5 * Math.PI) / 2,
             restrict_theta: [-Math.PI / 2, Math.PI / 2],
-            restrict_phi: [(3 * Math.PI) / 2, (5 * Math.PI) / 2],
+            // Like DGPad and GeoGebra, the view turns freely around Oz,
+            // unless a figure restricts it (restrictPhi).
+            restrict_phi: [-Infinity, Infinity],
             step: 0.015,
             focal: 10,
             layer: 1,
