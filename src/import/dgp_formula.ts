@@ -1265,9 +1265,16 @@ function evalNode(node: FormulaNode, scope: Scope): ScriptValue | null {
             return real === null ? null : Number(real === 0);
         }
         case "index": {
-            const target = evalNode(node.target, scope);
             const index = realPart(evalNode(node.index, scope));
-            if (!Array.isArray(target) || index === null) return null;
+            if (index === null) return null;
+            // Only the item read: the others may be undefined, e.g. in a list
+            // of points.
+            if (node.target.kind === "vector") {
+                const item = node.target.items[index];
+                return item ? evalNode(item, scope) : null;
+            }
+            const target = evalNode(node.target, scope);
+            if (!Array.isArray(target)) return null;
             return target[index] ?? null;
         }
         case "method": {

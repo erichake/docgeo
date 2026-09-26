@@ -10,16 +10,9 @@ import {
 } from "../import/dgp_formula";
 import { construction_object } from "./construction_object";
 import { formatValue, type expression_object } from "./expression_object";
-import { point_object } from "./point_object";
+import { MAX_SCREEN, point_object } from "./point_object";
 import { polygon_object } from "./polygon_object";
-import {
-    vIsFinite,
-    vNorm,
-    vNormalize,
-    vSub,
-    type Vec2,
-    type Vec3,
-} from "../vec";
+import { vNorm, vNormalize, vSub, type Vec2, type Vec3 } from "../vec";
 
 export type ListNature = "point" | "segment" | "line" | "label";
 // A polygon's value is its area, as in DGPad.
@@ -129,7 +122,9 @@ export class list_object extends construction_object {
                 if (this.nature === "label" && index > 0) return null;
                 if (value === null || typeof value === "number") return null;
                 const screen = this.C.pt3D([value[0], value[1], value[2] ?? 0]);
-                return vIsFinite(screen) ? screen : null;
+                return screen.every((v) => Math.abs(v) < MAX_SCREEN)
+                    ? screen
+                    : null;
             }),
         );
     }

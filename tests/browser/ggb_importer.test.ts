@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it } from "vitest";
 import { construction } from "../../src/construction";
-import { importGgb } from "../../src/ggb_importer";
+import { importGgb, importGgbFromBlob } from "../../src/ggb_importer";
 import { readZipEntry } from "../../src/import/ggb_zip";
 import { angle_object } from "../../src/objects/angle_object";
 import { arc3pts_object } from "../../src/objects/arc3pts_object";
@@ -9,6 +9,7 @@ import { curve_object } from "../../src/objects/curve_object";
 import { cylinder_intersection_object } from "../../src/objects/cylinder_intersection_object";
 import { cylinder_section_object } from "../../src/objects/cylinder_section_object";
 import { expression_object } from "../../src/objects/expression_object";
+import { image_object } from "../../src/objects/image_object";
 import { fixed_point_object } from "../../src/objects/fixed_point_object";
 import { isOccluded } from "../../src/objects/hidden_line";
 import { iteration_object } from "../../src/objects/iteration_object";
@@ -1283,6 +1284,116 @@ ${lines.map((line, index) => command("Plane", ["C", line], `p${index}`)).join("\
         c.invalidateGeometry(slider);
         await new Promise((resolve) => requestAnimationFrame(resolve));
         expectSpiral();
+    });
+
+    it("iterates the spreadsheet's complex orbit, read as lists", async () => {
+        const c = createConstruction();
+        const xml = await loadXml("mandel");
+        expect(importGgb(c, xml)).toEqual(["image MBImage"]);
+        expectSavedPoints(c, xml);
+        const [points, segments] = ["pts", "Segments"].map(
+            (name) => c.getObj(name) as list_object,
+        );
+        const [upper, lower, stability, caption, title] = [
+            "U_n",
+            "L_n",
+            "ArgPts",
+            "text2",
+            "text1_1",
+        ].map((name) => c.getObj(name) as expression_object);
+        const orbit = () =>
+            Array.from(
+                { length: 200 },
+                (_, index) => c.getObj(`B${index + 1}`) as point_object,
+            ).map((point) => (point.defined ? point.coords : null));
+        const expectLists = () => {
+            const terms = orbit();
+            expect(points.items.map(([point]) => point)).toEqual(
+                terms.map((term) => term && [term[0], term[1]]),
+            );
+            segments.items.forEach((ends, index) =>
+                ends.forEach((end, side) => {
+                    const term =
+                        terms[(lower.value as number) + index + side - 1];
+                    expect(end).toEqual(term ? [term[0], term[1]] : null);
+                }),
+            );
+        };
+        await new Promise((resolve) => requestAnimationFrame(resolve));
+        expect(segments.count).toBe(200);
+        expectLists();
+        expect(caption.value).toBe("Stable orbit");
+        expect([upper.min, upper.max, lower.min, lower.max]).toEqual([
+            1, 200, 0, 199,
+        ]);
+
+        const point = c.getObj("C") as point_object;
+        point.coords = [0.5, 0.5, 0];
+        c.invalidateGeometry(point);
+        upper.value = 50;
+        c.invalidateGeometry(upper);
+        lower.value = 3;
+        c.invalidateGeometry(lower);
+        await new Promise((resolve) => requestAnimationFrame(resolve));
+        // Diverging, the orbit overflows before the 50th term.
+        expect(orbit()[0]).not.toBeNull();
+        expect(
+            orbit()
+                .slice(49)
+                .every((term) => term === null),
+        ).toBe(true);
+        expect(c.getObj("C2")!.defined).toBe(false);
+        expect(c.getObj("C3")!.defined).toBe(true);
+        expect(segments.count).toBe(47);
+        expectLists();
+        expect(stability.value).toBe("Unstable");
+        expect(caption.value).toBe("Unstable orbit");
+        expect([title.latex, title.value]).toEqual([
+            true,
+            "M(z) = z^{2}+(0.5 + 0.5i)",
+        ]);
+        expect(title.dom.find(".katex-html")!.text()).toContain(
+            "M(z)=z2+(0,5+0,5i)",
+        );
+    });
+
+    it("draws the image between its corners while its checkbox is checked", async () => {
+        const c = createConstruction();
+        const response = await fetch("/tests/ggb/mandel.ggb");
+        expect(await importGgbFromBlob(c, await response.blob())).toEqual([]);
+        const image = c.getObj("MBImage") as image_object;
+        const checkbox = c.getObj("b") as expression_object;
+        await new Promise((resolve) => requestAnimationFrame(resolve));
+        expect([checkbox.checkbox, checkbox.value]).toEqual([true, 0]);
+        expect(image.isVisible).toBe(false);
+
+        checkbox.value = 1;
+        c.invalidateGeometry(checkbox);
+        await new Promise((resolve) => requestAnimationFrame(resolve));
+        expect(image.isVisible).toBe(true);
+        const element = image.dom.find("image")!.dom() as SVGImageElement;
+        const [a, b] = ["D", "E"].map(
+            (name) => (c.getObj(name) as point_object).screen,
+        );
+        const corner = (x: number, y: number): Vec2 => {
+            const point = new DOMPoint(x, y).matrixTransform(element.getCTM()!);
+            return [point.x, point.y];
+        };
+        // Up the image, perpendicular to its bottom, in proportion.
+        const ratio = image.height / image.width;
+        [
+            [corner(0, image.height), a],
+            [corner(image.width, image.height), b],
+            [
+                corner(0, 0),
+                [a[0] + (b[1] - a[1]) * ratio, a[1] - (b[0] - a[0]) * ratio],
+            ],
+        ].forEach(([actual, expected]) =>
+            actual.forEach((value, axis) =>
+                expect(value).toBeCloseTo(expected[axis], 3),
+            ),
+        );
+        expect(element.style.opacity).toBe("0.75");
     });
 
     it("unfolds the cube's nets with their slider, showing the chosen one", async () => {

@@ -34,6 +34,7 @@ import {
 import { createFixedPoint } from "../objects/fixed_point_object";
 import { createIteration, type SegmentMap } from "../objects/iteration_object";
 import { createText, type TextRef } from "../objects/text_object";
+import { createImage } from "../objects/image_object";
 import { createFormulaPoint } from "../objects/formula_point_object";
 import {
     createOrderedIntersection,
@@ -101,7 +102,8 @@ type ObjectKind =
     | "expression"
     | "list"
     | "curve"
-    | "text";
+    | "text"
+    | "image";
 type ParameterKind =
     | "string"
     | "number"
@@ -185,6 +187,8 @@ const listSource: Parameter = { kind: "listSource" };
 // with the next "key:value" pair, as seen in some exported .dgp files) is
 // tolerated: only the leading hex digits are read, the rest is dropped.
 const COLOR = /^#(?:[\da-f]{6}|[\da-f]{3})/i;
+const IMAGE_URL =
+    /^data:image\/(?:png|jpeg|gif|webp|svg\+xml);base64,[A-Za-z\d+/]*=*$/;
 const STYLE_NUMBER = /^[+-]?(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][+-]?\d+)?$/;
 // A point's "sp" style: DGPad's shape index (0:circle, 1:cross, 2:diamond,
 // 3:square), see PointObject.setShape in the reference implementation.
@@ -574,6 +578,8 @@ function validateObjectStyle(
             case "pl":
             case "su":
             case "cV":
+            case "cB":
+            case "tx":
             case "dh":
                 if (propertyValue !== "true" && propertyValue !== "false")
                     throw new Error(
@@ -807,6 +813,14 @@ function applyObjectStyle(
             case "cV":
                 if (target instanceof expression_object)
                     target.vertical = propertyValue === "true";
+                break;
+            case "cB":
+                if (target instanceof expression_object)
+                    target.checkbox = propertyValue === "true";
+                break;
+            case "tx":
+                if (target instanceof expression_object)
+                    target.latex = propertyValue === "true";
                 break;
             case "dh":
                 if (target instanceof primitive_line_object)
@@ -1557,6 +1571,42 @@ const COMMANDS = new Map<string, CommandDefinition>([
                     ) as Map<string, TextRef>,
                 );
             },
+        },
+    ],
+    // Not a DGPad command: GeoGebra's image, embedded as a data URL so that
+    // nothing is fetched, with its size in pixels and its corners (see
+    // image_object).
+    [
+        "Image",
+        {
+            parameters: [
+                string,
+                string,
+                number,
+                number,
+                point,
+                point,
+                { ...point, optional: true },
+            ],
+            result: "image",
+            validate: (args, lineNumber) => {
+                if (
+                    !IMAGE_URL.test(literalString(args[1])) ||
+                    [args[2], args[3]].some(
+                        (size) => !((size as { value: number }).value > 0),
+                    )
+                )
+                    throw new Error(`Invalid DGP image at line ${lineNumber}`);
+            },
+            execute: (context, args) =>
+                createImage(
+                    context.construction,
+                    args[0] as string,
+                    args[1] as string,
+                    args[2] as number,
+                    args[3] as number,
+                    args.slice(4).filter(Boolean) as point_object[],
+                ),
         },
     ],
     // Not a DGPad command: GeoGebra's Iteration of segments, from their

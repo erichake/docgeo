@@ -1,7 +1,11 @@
 import type { construction } from "./construction";
 import { executeDgpCommands } from "./import/dgp_commands";
-import { translateGgb, type GgbView3D } from "./import/ggb_translate";
-import { readZipEntry } from "./import/ggb_zip";
+import {
+    translateGgb,
+    type GgbImage,
+    type GgbView3D,
+} from "./import/ggb_translate";
+import { readZipBlob, readZipEntry } from "./import/ggb_zip";
 import type { expression_object } from "./objects/expression_object";
 import type { formula_point_object } from "./objects/formula_point_object";
 import { cylinder_intersection_object } from "./objects/cylinder_intersection_object";
@@ -12,9 +16,15 @@ import { projectPoint } from "./projection";
 import { vNorm, vSub, type Vec3 } from "./vec";
 
 // Returns what the figure uses that couldn't be imported.
-export function importGgb(c: construction, xml: string): string[] {
-    const { calls, targets, handles, unsupported, is3D, view3D } =
-        translateGgb(xml);
+export function importGgb(
+    c: construction,
+    xml: string,
+    images?: Map<string, GgbImage>,
+): string[] {
+    const { calls, targets, handles, unsupported, is3D, view3D } = translateGgb(
+        xml,
+        images,
+    );
     // First, since sliders are placed with the camera's unit.
     if (view3D) applyView3D(c, view3D);
     c.segmentsOverPolygons = true;
@@ -57,11 +67,46 @@ export async function importGgbFromBlob(
     c: construction,
     file: Blob,
 ): Promise<string[]> {
-    return importGgb(
-        c,
-        await readZipEntry(await file.arrayBuffer(), "geogebra.xml"),
-    );
+    const data = await file.arrayBuffer();
+    const xml = await readZipEntry(data, "geogebra.xml");
+    const images = new Map<string, GgbImage>();
+    const files = new DOMParser()
+        .parseFromString(xml, "application/xml")
+        .querySelectorAll("element[type='image'] > file");
+    for (const file of files) {
+        const name = file.getAttribute("name") ?? "";
+        const type = IMAGE_TYPES[name.split(".").pop()!.toLowerCase()];
+        if (!type || images.has(name)) continue;
+        // A missing or broken image is only left out, as unsupported.
+        try {
+            const blob = new Blob([await readZipBlob(data, name)], { type });
+            const url = await new Promise<string>((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = () => resolve(reader.result as string);
+                reader.onerror = reject;
+                reader.readAsDataURL(blob);
+            });
+            const image = new Image();
+            image.src = url;
+            await image.decode();
+            images.set(name, {
+                url,
+                width: image.naturalWidth,
+                height: image.naturalHeight,
+            });
+        } catch {}
+    }
+    return importGgb(c, xml, images);
 }
+
+const IMAGE_TYPES: Record<string, string> = {
+    png: "image/png",
+    jpg: "image/jpeg",
+    jpeg: "image/jpeg",
+    gif: "image/gif",
+    webp: "image/webp",
+    svg: "image/svg+xml",
+};
 
 function applyView3D(c: construction, view: GgbView3D): void {
     const grid = c.GRID;

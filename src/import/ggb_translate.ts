@@ -32,7 +32,8 @@ type Kind =
     | "expression"
     | "list"
     | "curve"
-    | "text";
+    | "text"
+    | "image";
 
 export interface GgbTranslation {
     calls: DgpCall[];
@@ -50,6 +51,13 @@ export interface GgbTranslation {
     // Present for a 3D figure: its camera (see applyView3D in
     // ggb_importer.ts).
     view3D?: GgbView3D;
+}
+
+type TextPart = string | { formula: string };
+
+interface ListFormula {
+    count: string;
+    item: (n: string) => string | null;
 }
 
 export interface GgbView3D {
@@ -70,7 +78,27 @@ const NUMERIC_TUPLE =
     /^\(\s*[+-]?[\d.]+(?:[eE][+-]?\d+)?\s*(?:,\s*[+-]?[\d.]+(?:[eE][+-]?\d+)?\s*){1,2}\)$/;
 const THREE_D_TYPES = /3d$|^polyhedron$/;
 const COMMAND_EXPRESSION = /^([A-Za-z]+)\((.*)\)$/;
-const VECTOR_COMMANDS = new Set(["Vector", "OrthogonalVector"]);
+// The commands a formula rewrites as a whole (see commandFormula).
+const FORMULA_COMMANDS = new Set([
+    "Vector",
+    "OrthogonalVector",
+    "If",
+    "Element",
+    "Sum",
+    "LaTeX",
+]);
+const CELL = /^([A-Z]+)(\d+)$/;
+const LABEL_WORDS = new RegExp(
+    `${IDENTIFIER_START.source}${IDENTIFIER_PART.source}*`,
+    "gu",
+);
+// Applied to a list, GeoGebra's functions apply to each of its items.
+const ITEM_FUNCTIONS: Record<string, string> = {
+    real: "x",
+    imaginary: "y",
+    x: "x",
+    y: "y",
+};
 const FUNCTION_DEFINITION = /^[^=]*\(\s*x\s*\)\s*=/;
 const FUNCTIONS: Record<string, string> = {
     Distance: "d",
@@ -89,6 +117,8 @@ const FUNCTIONS: Record<string, string> = {
     floor: "floor",
     x: "x",
     y: "y",
+    real: "x",
+    imaginary: "y",
 };
 // GeoGebra's pointStyle → DGP's "sp" shape index (0:circle, 1:cross,
 // 2:diamond), plus whether the shape is drawn hollow.
@@ -536,7 +566,17 @@ function unfold(
     };
 }
 
-export function translateGgb(xml: string): GgbTranslation {
+// An image of the .ggb archive, as a data URL, with its size in pixels.
+export interface GgbImage {
+    url: string;
+    width: number;
+    height: number;
+}
+
+export function translateGgb(
+    xml: string,
+    images = new Map<string, GgbImage>(),
+): GgbTranslation {
     const document = new DOMParser().parseFromString(xml, "application/xml");
     const construction = document.querySelector("construction");
     if (document.querySelector("parsererror") || !construction)
@@ -568,6 +608,7 @@ export function translateGgb(xml: string): GgbTranslation {
         string,
         { ends: string[][]; levels: string; maps: SegmentMap[] }
     >();
+    const lists = new Map<string, ListFormula>();
     const elements = new Map<string, Element>();
     const expressions = new Map<string, string>();
     const commandOutputs = new Set<string>();
@@ -581,6 +622,17 @@ export function translateGgb(xml: string): GgbTranslation {
                 commandOutputs.add(output),
             );
     });
+
+    // Each number's saved value, standing for it in a slider's bounds,
+    // which only a constant can give.
+    const savedNumbers = new Map(
+        [...elements].flatMap(([label, element]) => {
+            const value = attribute(element, "value", "val");
+            return value !== undefined && NUMBER.test(value)
+                ? [[label, value] as const]
+                : [];
+        }),
+    );
 
     const is3D = [...elements.values()].some((element) =>
         THREE_D_TYPES.test(element.getAttribute("type") ?? ""),
@@ -697,21 +749,32 @@ export function translateGgb(xml: string): GgbTranslation {
         let index = 0;
         while (index < text.length) {
             const character = text[index];
+            if (character === '"') {
+                const end = text.indexOf('"', index + 1) + 1;
+                if (end === 0) return null;
+                result += text.slice(index, end);
+                index = end;
+                continue;
+            }
             if (IDENTIFIER_START.test(character)) {
                 let end = index + 1;
                 while (end < text.length && IDENTIFIER_PART.test(text[end]))
                     end++;
                 const word = text.slice(index, end);
-                if (text[end] === "(" && VECTOR_COMMANDS.has(word)) {
+                if (text[end] === "(" && FORMULA_COMMANDS.has(word)) {
                     let depth = 0;
                     do {
                         if (text[end] === "(") depth++;
                         else if (text[end] === ")") depth--;
                         end++;
                     } while (depth > 0 && end < text.length);
-                    const vector = vectorFormula(text.slice(index, end));
-                    if (vector === null) return null;
-                    result += vector;
+                    const value = commandFormula(
+                        text.slice(index, end),
+                        kinds,
+                        locals,
+                    );
+                    if (value === null) return null;
+                    result += value;
                     index = end;
                     continue;
                 }
@@ -762,6 +825,152 @@ export function translateGgb(xml: string): GgbTranslation {
             return null;
         }
         return result;
+    };
+
+    // If(c1, v1, c2, v2, …, otherwise), undefined without otherwise.
+    const ifFormula = (
+        args: string[],
+        kinds: Kind[],
+        locals = new Map<string, string>(),
+    ): string | null => {
+        if (args.length < 2) return null;
+        const values = args.map((arg, index) =>
+            formula(
+                arg,
+                index % 2 || index === args.length - 1 ? kinds : VALUE_KINDS,
+                locals,
+            ),
+        );
+        if (values.includes(null)) return null;
+        let result = args.length % 2 ? values.pop()! : "0/0";
+        for (let index = values.length - 2; index >= 0; index -= 2)
+            result = `(${values[index]})?(${values[index + 1]}):(${result})`;
+        return `(${result})`;
+    };
+
+    const commandFormula = (
+        source: string,
+        kinds: Kind[],
+        locals: Map<string, string>,
+    ): string | null => {
+        const [name, args] = commandCall(source)!;
+        switch (name) {
+            case "If":
+                return ifFormula(args, kinds, locals);
+            case "Element": {
+                const list = args.length === 2 && listFormula(args[0], locals);
+                const n = formula(args[1], VALUE_KINDS, locals);
+                const item = list && n !== null && list.item(n);
+                return item ? `(${item})` : null;
+            }
+            // Summed by a hidden Expression's script, whose own variable
+            // stands for the item's index.
+            case "Sum": {
+                const list = args.length === 1 && listFormula(args[0]);
+                const item = list && list.item("$n");
+                if (!item) return null;
+                const sum = auxiliary();
+                define(
+                    sum,
+                    "expression",
+                    "Expression",
+                    [
+                        "",
+                        "",
+                        "",
+                        `var $s=0;for(var $n=1;$n<=${list.count};$n++){$s+=${item}};$s`,
+                        "0",
+                        "0",
+                    ].map(literal),
+                    "h:1",
+                );
+                return objects.get(sum)!.variable;
+            }
+            // As GeoGebra writes a number, or a point in its own style.
+            case "LaTeX": {
+                const value =
+                    args.length === 1 && formula(args[0], VALUE_KINDS, locals);
+                if (!value) return null;
+                if (!is(args[0], POINT_KINDS)) return `(""+(${value}))`;
+                const [x, y] = [`x(${value})`, `y(${value})`];
+                return attribute(
+                    elements.get(args[0])!,
+                    "coordStyle",
+                    "style",
+                ) === "complex"
+                    ? `(${x}+(${y}<0?" - ":" + ")+abs(${y})+"i")`
+                    : `("("+${x}+"; "+${y}+")")`;
+            }
+            default:
+                return vectorFormula(source);
+        }
+    };
+
+    // A GeoGebra list as its size and its n-th item (from 1), as formulas.
+    const listFormula = (
+        source: string,
+        locals = new Map<string, string>(),
+    ): ListFormula | null => {
+        const text = normalizeBrackets(source.trim());
+        const known = lists.get(text);
+        if (known) return known;
+        const call = commandCall(text);
+        if (!call) return null;
+        const [name, args] = call;
+        const fn = ITEM_FUNCTIONS[name];
+        if (fn) {
+            const list =
+                args.length === 1 ? listFormula(args[0], locals) : null;
+            return (
+                list && {
+                    count: list.count,
+                    item: (n) => {
+                        const item = list.item(n);
+                        return item && `${fn}(${item})`;
+                    },
+                }
+            );
+        }
+        // The cells of a column, from first to last.
+        if (name === "CellRange" && args.length >= 2 && args.length <= 3) {
+            const [first, last] = args.map((arg) => CELL.exec(arg));
+            if (!first || !last || first[1] !== last[1]) return null;
+            const labels = Array.from(
+                { length: Number(last[2]) - Number(first[2]) + 1 },
+                (_, index) => `${first[1]}${Number(first[2]) + index}`,
+            );
+            if (
+                labels.length === 0 ||
+                !labels.every((label) => is(label, VALUE_KINDS))
+            )
+                return null;
+            const items = `[${labels.map((label) => objects.get(label)!.variable).join(",")}]`;
+            return {
+                count: String(labels.length),
+                item: (n) => `${items}[(${n})-1]`,
+            };
+        }
+        if (name === "Sequence" && args.length >= 4 && args.length <= 5) {
+            const [expression, variable, from, to, step = "1"] = args;
+            const [a, b, s] = [from, to, step].map((bound) =>
+                formula(bound, VALUE_KINDS, locals),
+            );
+            if (a === null || b === null || s === null) return null;
+            return {
+                // With a margin for the bounds' rounding errors.
+                count: `floor(((${b})-(${a}))/(${s})+1.000001)`,
+                item: (n) =>
+                    formula(
+                        expression,
+                        VALUE_KINDS,
+                        new Map([
+                            ...locals,
+                            [variable, `(${a})+((${n})-1)*(${s})`],
+                        ]),
+                    ),
+            };
+        }
+        return null;
     };
 
     const objectStyle = (element: Element, kind: Kind): string => {
@@ -1003,12 +1212,11 @@ export function translateGgb(xml: string): GgbTranslation {
 
     // In a 3D figure, a slider stays where it is in the graphics view, the
     // camera's unit being already applied (see importGgb).
-    const sliderScreen = (slider: Element): [number, number] => {
-        const x = Number(slider.getAttribute("x"));
-        const y = Number(slider.getAttribute("y"));
-        const absolute =
-            (slider.getAttribute("absoluteScreenLocation") ??
-                slider.getAttribute("fixed")) === "true";
+    const screenPosition = (
+        x: number,
+        y: number,
+        absolute: boolean,
+    ): [number, number] => {
         if (camera) {
             const [px, py] = absolute
                 ? [x, y]
@@ -1019,6 +1227,14 @@ export function translateGgb(xml: string): GgbTranslation {
             ? [(x - origin[0]) / unit, (origin[1] - y) / unit]
             : [x, y];
     };
+
+    const sliderScreen = (slider: Element): [number, number] =>
+        screenPosition(
+            Number(slider.getAttribute("x")),
+            Number(slider.getAttribute("y")),
+            (slider.getAttribute("absoluteScreenLocation") ??
+                slider.getAttribute("fixed")) === "true",
+        );
 
     // Polygon(A, B, n)'s other vertices, counterclockwise like GeoGebra's:
     // the k-th is A + (B - A)·(1 - w^k)/(1 - w) with w = e^(2iπ/n), i.e.
@@ -2078,6 +2294,25 @@ export function translateGgb(xml: string): GgbTranslation {
                     `${objectStyle(element, "list")}${ends.length === 1 && size ? `;s:${size}` : ""}`,
             );
         },
+        If: (inputs, [label]) => {
+            const element = elements.get(label);
+            const type = element?.getAttribute("type");
+            const content = ifFormula(inputs, VALUE_KINDS);
+            if (!element || content === null) return false;
+            if (type === "point" || type === "point3d") {
+                formulaPoint(content, label);
+                return true;
+            }
+            if (type === "numeric")
+                return define(
+                    label,
+                    "expression",
+                    "Expression",
+                    ["", "", "", content, "0", "0"].map(literal),
+                    expressionStyle(element, false),
+                );
+            return type === "text" && textExpression(label, element, content);
+        },
         Locus: ([p, q, extra], [label]) =>
             extra === undefined &&
             points(p) &&
@@ -2113,8 +2348,9 @@ export function translateGgb(xml: string): GgbTranslation {
         const value = attribute(element, "value", "val") ?? "";
         const style = expressionStyle(element, !!slider);
         if (slider) {
-            const min = formula(slider.getAttribute("min") ?? "", []);
-            const max = formula(slider.getAttribute("max") ?? "", []);
+            const [min, max] = ["min", "max"].map((bound) =>
+                formula(slider.getAttribute(bound) ?? "", [], savedNumbers),
+            );
             if (min === null || max === null || !NUMBER.test(value))
                 return false;
             const [x, y] = sliderScreen(slider);
@@ -2143,11 +2379,11 @@ export function translateGgb(xml: string): GgbTranslation {
         );
     };
 
-    // A text as an AnchoredText's "%formula%" content: GeoGebra adds up the
-    // numbers before its first string, then concatenates every term. An
-    // angle would need GeoGebra's degree formatting: not supported.
-    const textContent = (source: string): string | null => {
-        let content = "";
+    // A text's literal strings and formulas: GeoGebra adds up the numbers
+    // before its first string, then concatenates every term. An angle would
+    // need GeoGebra's degree formatting: not supported.
+    const textParts = (source: string): TextPart[] | null => {
+        const parts: TextPart[] = [];
         let concatenating = false;
         let sum: string[] = [];
         const addSum = (): boolean => {
@@ -2155,13 +2391,13 @@ export function translateGgb(xml: string): GgbTranslation {
             const value = formula(sum.join("+"), ["expression", "polygon"]);
             sum = [];
             if (value === null) return false;
-            content += `%${value}%`;
+            parts.push({ formula: value });
             return true;
         };
         for (const term of textTerms(source)) {
             if (/^"[^"]*"$/.test(term)) {
                 if (!addSum()) return null;
-                content += term.slice(1, -1).replace(/%/g, "%%");
+                parts.push(term.slice(1, -1));
                 concatenating = true;
                 continue;
             }
@@ -2176,18 +2412,66 @@ export function translateGgb(xml: string): GgbTranslation {
             sum.push(term);
             if (concatenating && !addSum()) return null;
         }
-        return addSum() ? content : null;
+        return addSum() ? parts : null;
+    };
+
+    const textStyle = (element: Element): string => {
+        const color = child(element, "objColor");
+        return [
+            ...(color ? [`c:${hexColor(color)}`] : []),
+            ...(attribute(element, "show", "object") === "false"
+                ? ["h:1"]
+                : []),
+            `p:${decimals}`,
+            `f:${fontSize * Number(attribute(element, "font", "sizeM") ?? 1)}`,
+        ].join(";");
+    };
+
+    // A text pinned on screen, or hidden, as an Expression whose value is
+    // its string: DGPad's Expressions stay where they are on screen.
+    const textExpression = (
+        label: string,
+        element: Element,
+        content: string,
+    ): boolean => {
+        const location = child(element, "absoluteScreenLocation");
+        if (!location && attribute(element, "show", "object") !== "false")
+            return false;
+        const [x, y] = location
+            ? screenPosition(
+                  Number(location.getAttribute("x")),
+                  Number(location.getAttribute("y")),
+                  true,
+              )
+            : [0, 0];
+        return define(
+            label,
+            "expression",
+            "Expression",
+            ["", "", "", content, String(x), String(y)].map(literal),
+            `${textStyle(element)}${attribute(element, "isLaTeX", "val") === "true" ? ";tx:true" : ""}`,
+        );
     };
 
     const text = (label: string, element: Element, source: string): boolean => {
-        const content = textContent(source);
-        const start = child(element, "startPoint");
+        const parts = textParts(source);
+        if (parts === null) return false;
         if (
-            content === null ||
             child(element, "absoluteScreenLocation") ||
             attribute(element, "isLaTeX", "val") === "true"
         )
-            return false;
+            return textExpression(
+                label,
+                element,
+                `""${parts
+                    .map((part) =>
+                        typeof part === "string"
+                            ? `+"${part.replace(/[\\"]/g, "\\$&")}"`
+                            : `+(${part.formula})`,
+                    )
+                    .join("")}`,
+            );
+        const start = child(element, "startPoint");
         const exp = start?.getAttribute("exp");
         const anchor = exp ? resolve(exp) : auxiliary();
         if (!exp) {
@@ -2197,15 +2481,6 @@ export function translateGgb(xml: string): GgbTranslation {
             define(anchor, "point", "Point", vectorLiteral([x / z, y / z, 0]));
         }
         if (!points(anchor)) return false;
-        const color = child(element, "objColor");
-        const style = [
-            ...(color ? [`c:${hexColor(color)}`] : []),
-            ...(attribute(element, "show", "object") === "false"
-                ? ["h:1"]
-                : []),
-            `p:${decimals}`,
-            `f:${fontSize * Number(attribute(element, "font", "sizeM") ?? 1)}`,
-        ].join(";");
         return define(
             label,
             "text",
@@ -2214,9 +2489,17 @@ export function translateGgb(xml: string): GgbTranslation {
                 ref(anchor),
                 literal(Number(attribute(element, "labelOffset", "x") ?? 0)),
                 literal(Number(attribute(element, "labelOffset", "y") ?? 0)),
-                literal(content),
+                literal(
+                    parts
+                        .map((part) =>
+                            typeof part === "string"
+                                ? part.replace(/%/g, "%%")
+                                : `%${part.formula}%`,
+                        )
+                        .join(""),
+                ),
             ],
-            style,
+            textStyle(element),
         );
     };
 
@@ -2284,8 +2567,84 @@ export function translateGgb(xml: string): GgbTranslation {
             return numeric(label, element);
         if (type === "text" && source !== undefined)
             return text(label, element, source);
+        // A list of points is drawn, other lists only read by formulas.
+        if (type === "list" && source !== undefined) {
+            const list = listFormula(source);
+            if (!list) return false;
+            lists.set(label, list);
+            if (attribute(element, "listType", "val") !== "point") return true;
+            const item = list.item("k+1");
+            const size = attribute(element, "pointSize", "val");
+            return (
+                item !== null &&
+                define(
+                    label,
+                    "list",
+                    "List",
+                    [literal("point"), literal(list.count), literal(item)],
+                    `${objectStyle(element, "list")}${size ? `;s:${size}` : ""}`,
+                )
+            );
+        }
         // Scripts never run: a button has nothing to do.
         if (type === "button") return true;
+        // An independent boolean is a checkbox, at its label's place on
+        // screen.
+        if (type === "boolean" && source === undefined) {
+            const offset = child(element, "labelOffset");
+            const [x, y] = screenPosition(
+                Number(offset?.getAttribute("x") ?? 0),
+                Number(offset?.getAttribute("y") ?? 0),
+                true,
+            );
+            return define(
+                label,
+                "expression",
+                "Expression",
+                [
+                    attribute(element, "caption", "val") ?? label,
+                    "",
+                    "",
+                    attribute(element, "value", "val") === "true" ? "1" : "0",
+                    String(x),
+                    String(y),
+                ].map(literal),
+                `${textStyle(element)};cB:true`,
+            );
+        }
+        if (type === "image") {
+            const image = images.get(attribute(element, "file", "name") ?? "");
+            const corners: string[] = [];
+            [...element.children].forEach((start) => {
+                if (start.tagName !== "startPoint") return;
+                const exp = start.getAttribute("exp");
+                let corner = exp && resolve(exp);
+                if (!corner) {
+                    corner = auxiliary();
+                    const [x, y, z] = ["x", "y", "z"].map((name) =>
+                        Number(start.getAttribute(name) ?? 1),
+                    );
+                    define(
+                        corner,
+                        "point",
+                        "Point",
+                        vectorLiteral([x / z, y / z, 0]),
+                    );
+                }
+                corners[Number(start.getAttribute("number") ?? 0)] = corner;
+            });
+            return (
+                !!image &&
+                corners.length >= 2 &&
+                points(...corners) &&
+                define(label, "image", "Image", [
+                    literal(image.url),
+                    literal(image.width),
+                    literal(image.height),
+                    ...corners.map(ref),
+                ])
+            );
+        }
         if (type === "function" && source !== undefined) {
             const body = formula(
                 source.replace(FUNCTION_DEFINITION, ""),
@@ -2390,7 +2749,8 @@ export function translateGgb(xml: string): GgbTranslation {
             : input;
     };
 
-    [...construction.children].forEach((node) => {
+    const translated = new Set<string>();
+    const translate = (node: Element): void => {
         if (node.tagName === "command") {
             const name = node.getAttribute("name") ?? "";
             const sources = indexedAttributes(child(node, "input"));
@@ -2403,13 +2763,43 @@ export function translateGgb(xml: string): GgbTranslation {
                 !handler?.(sources.map(resolve), outputs)
             )
                 unsupported.push(`${name}(${sources.join(", ")})`);
-        } else if (node.tagName === "element") {
+            outputs.forEach((output) => translated.add(output));
+        } else {
             const label = node.getAttribute("label") ?? "";
-            if (commandOutputs.has(label)) return;
             if (!independent(label, node))
                 unsupported.push(`${node.getAttribute("type")} ${label}`);
+            translated.add(label);
+        }
+    };
+    // GeoGebra may save an object before those it reads, e.g. a
+    // spreadsheet's CellRange before its cells: it is translated once they
+    // are.
+    const pending: { node: Element; reads: string[] }[] = [];
+    [...construction.children].forEach((node) => {
+        const label = node.getAttribute("label") ?? "";
+        const source =
+            node.tagName === "command"
+                ? indexedAttributes(child(node, "input")).join(",")
+                : node.tagName === "element" && !commandOutputs.has(label)
+                  ? (expressions.get(label) ?? "")
+                  : null;
+        if (source === null) return;
+        const reads = (
+            source.replace(/"[^"]*"/g, "").match(LABEL_WORDS) ?? []
+        ).filter(
+            (word) =>
+                (elements.has(word) || commandOutputs.has(word)) &&
+                !translated.has(word),
+        );
+        pending.push({ node, reads });
+        for (let index = 0; index < pending.length;) {
+            if (pending[index].reads.every((word) => translated.has(word))) {
+                translate(pending.splice(index, 1)[0].node);
+                index = 0;
+            } else index++;
         }
     });
+    pending.forEach(({ node }) => translate(node));
 
     // Once every object exists, since a condition may read a later one. It
     // then decides alone whether the object is shown, whatever its show

@@ -39,7 +39,7 @@ const MAGNET_HYSTERESIS = 15;
 // Far beyond any window, yet within the single precision SVG parses its
 // numbers in: a point further away (e.g. a diverging sequence's term) isn't
 // drawn, rather than rejected by the SVG.
-const MAX_SCREEN = 1e7;
+export const MAX_SCREEN = 1e7;
 
 // The closest point to `point` lying on `target` (segment/ray bounds
 // respected, same convention as point_on_object's own projection). A point

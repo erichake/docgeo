@@ -1,5 +1,7 @@
+import katex from "katex/dist/katex.min.js";
+import "katex/dist/katex.min.css";
 import type { construction } from "../construction";
-import type { DOMElement } from "../dom";
+import { $, type DOMElement } from "../dom";
 import {
     evaluateFormula,
     evaluateProgram,
@@ -23,6 +25,12 @@ const DEFAULT_CURSOR_COLOR = "#780013";
 const DEFAULT_CURSOR_RADIUS = 10;
 const CURSOR_BORDER = 2;
 const CURSOR_OFFSET_Y = 20;
+// GeoGebra's checkbox, from its screen position: its box's offset and
+// side, and its caption's gap.
+const CHECKBOX_OFFSET: Vec2 = [5, 7];
+const CHECKBOX_SIZE = 24;
+const CHECKBOX_GAP = 11;
+const CHECKBOX_COLOR = "#6557d2";
 
 export function formatNumber(value: number, precision: number): string {
     const factor = 10 ** precision;
@@ -188,6 +196,10 @@ export class expression_object extends construction_object {
     // white knob with a colored border, a nonzero value fills it solid with
     // cursorColor at that opacity instead.
     cursorOpacity: number;
+    // GeoGebra's checkbox, captioned by `text`, worth 1 or 0.
+    checkbox = false;
+    // A string value is LaTeX, drawn by KaTeX from its top left corner.
+    latex = false;
     screen: Vec2;
     // ExpressionOn: `screen` follows this point, `alpha` pixels away.
     anchor: point_object | null = null;
@@ -198,6 +210,10 @@ export class expression_object extends construction_object {
     private track?: DOMElement;
     private progress?: DOMElement;
     private knob?: DOMElement;
+    private box?: DOMElement;
+    private tex?: DOMElement;
+    private renderedTeX: string | null = null;
+    private check?: DOMElement;
 
     constructor(
         c: construction,
@@ -357,6 +373,42 @@ export class expression_object extends construction_object {
         this.dom.stl("display", this.isVisible ? "block" : "none");
         if (!this.isVisible) return;
         const [x, y] = this.screen;
+        if (this.box && this.check) {
+            const [left, top] = [
+                x + CHECKBOX_OFFSET[0],
+                y + CHECKBOX_OFFSET[1],
+            ];
+            const checked = this.value !== 0;
+            this.box
+                .att("x", left)
+                .att("y", top)
+                .stl("fill", checked ? CHECKBOX_COLOR : "white")
+                .stl("stroke", checked ? CHECKBOX_COLOR : "#666");
+            this.check
+                .att("d", `M${left + 6} ${top + 12}l4.5 4.5l7.5-8.5`)
+                .stl("display", checked ? "block" : "none");
+            this.valueText
+                .att("x", left + CHECKBOX_SIZE + CHECKBOX_GAP)
+                .att("y", top + CHECKBOX_SIZE / 2 + this.fontSize / 3)
+                .text(this.text);
+            return;
+        }
+
+        if (this.tex) {
+            this.tex.att("x", x).att("y", y);
+            // A decimal comma without the space of a punctuation mark.
+            const content =
+                typeof this.value === "string" ? this.rounded("{,}") : "";
+            if (content !== this.renderedTeX) {
+                this.renderedTeX = content;
+                this.tex
+                    .find("div")!
+                    .inner(
+                        katex.renderToString(content, { throwOnError: false }),
+                    );
+            }
+            return;
+        }
 
         const prefix = this.text === "" ? this.name + " = " : this.text;
         this.valueText
@@ -364,13 +416,7 @@ export class expression_object extends construction_object {
             .att("y", y)
             .text(
                 typeof this.value === "string"
-                    ? // As DGPad, a text shows alone, its numbers rounded.
-                      this.value.replace(/\d+(?:\.\d+)?/g, (number) =>
-                          formatNumber(
-                              Number(number),
-                              Math.max(this.precision, 0),
-                          ),
-                      )
+                    ? this.rounded(",")
                     : this.precision < 0
                       ? prefix
                       : prefix +
@@ -414,9 +460,34 @@ export class expression_object extends construction_object {
         this.knob.att("cx", this.knobX).att("cy", trackY);
     }
 
+    // As DGPad, a text shows alone, its numbers rounded.
+    private rounded(decimalComma: string): string {
+        return (this.value as string).replace(/\d+(?:\.\d+)?/g, (number) =>
+            formatNumber(Number(number), Math.max(this.precision, 0)).replace(
+                ",",
+                decimalComma,
+            ),
+        );
+    }
+
     static createSVG(_this: construction_object): DOMElement {
         const t = _this as expression_object;
         const dom = t.svg.shape("g");
+
+        if (t.latex) {
+            t.renderedTeX = null;
+            t.tex = t.svg
+                .shape("foreignObject")
+                .att("width", 1)
+                .att("height", 1)
+                .stl("overflow:visible;pointer-events:none")
+                .add(
+                    $.create("div").stl(
+                        `width:max-content;color:${t.stroke_color};font-size:${t.fontSize}px`,
+                    ),
+                );
+            return dom.add(t.tex);
+        }
 
         t.valueText = t.svg
             .shape("text")
@@ -424,6 +495,30 @@ export class expression_object extends construction_object {
                 `fill:${t.stroke_color};font-family:Verdana;font-size:${t.fontSize}px;pointer-events:none`,
             );
         dom.add(t.valueText);
+
+        if (t.checkbox) {
+            t.box = t.svg
+                .shape("rect")
+                .att("width", CHECKBOX_SIZE)
+                .att("height", CHECKBOX_SIZE)
+                .att("rx", 3)
+                .stl("stroke-width:2;cursor:pointer");
+            t.check = t.svg
+                .shape("path")
+                .stl(
+                    "fill:none;stroke:white;stroke-width:2.5;pointer-events:none",
+                );
+            t.box.drag(
+                () => {},
+                undefined,
+                (_, cancelled) => {
+                    if (cancelled) return;
+                    t.value = t.value === 0 ? 1 : 0;
+                    t.C.invalidateGeometry(t);
+                },
+            );
+            return dom.add(t.box, t.check);
+        }
 
         if (!t.isCursor) return dom;
 
