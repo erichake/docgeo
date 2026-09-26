@@ -16,6 +16,7 @@ import { locus_object } from "../../src/objects/locus_object";
 import { point_on_object } from "../../src/objects/point_on_object";
 import { point_object } from "../../src/objects/point_object";
 import { polygon_object } from "../../src/objects/polygon_object";
+import { segment_object } from "../../src/objects/segment_object";
 import { sphere_object } from "../../src/objects/sphere_object";
 import { text_object } from "../../src/objects/text_object";
 import { two_points_line_object } from "../../src/objects/two_points_line_object";
@@ -29,6 +30,7 @@ import {
     vCross,
     vDot,
     vNorm,
+    vNormalize,
     vScale,
     vSub,
     type Vec2,
@@ -160,6 +162,41 @@ describe("GGB importer", () => {
         expect(texts.map((text) => text.content)).toEqual(
             [6.25, 9, 16, 31.25].map((area) => ` ${area} cm²`),
         );
+    });
+
+    it("codes segments with GeoGebra's ticks, across their midpoints", async () => {
+        const c = createConstruction();
+        importGgb(c, await loadXml("_3carres"));
+        await new Promise((resolve) => requestAnimationFrame(resolve));
+        ["f", "j", "n"].forEach((name, index) => {
+            const segment = c.getObj(name) as segment_object;
+            const ticks = [
+                ...segment
+                    .decorationPath!.getAtt("d")!
+                    .matchAll(/M(\S+) (\S+) L(\S+) (\S+)/g),
+            ].map((match) => match.slice(1).map(Number));
+            expect(ticks.length).toBe(index + 1);
+            const along = vNormalize(
+                vSub(segment.P2.screen, segment.P1.screen),
+            )!;
+            const mid = vScale(
+                vAdd(segment.P1.screen, segment.P2.screen),
+                1 / 2,
+            );
+            const spacing = 2.5 + segment.size;
+            ticks.forEach(([x1, y1, x2, y2], tick) => {
+                const center: Vec2 = [(x1 + x2) / 2, (y1 + y2) / 2];
+                expect(vDot(vSub([x2, y2], [x1, y1]), along)).toBeCloseTo(0, 9);
+                expect(Math.hypot(x2 - x1, y2 - y1)).toBeCloseTo(
+                    2 * (spacing + 1),
+                    9,
+                );
+                expect(vDot(vSub(center, mid), along)).toBeCloseTo(
+                    (tick - index / 2) * spacing,
+                    9,
+                );
+            });
+        });
     });
 
     it("marks right angles with GeoGebra's square, of diagonal arcSize", async () => {

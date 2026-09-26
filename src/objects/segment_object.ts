@@ -1,6 +1,14 @@
 import type { construction } from "../construction";
 import type { DOMElement } from "../dom";
-import { geometryTolerance, vNorm, vNormalize, vSub } from "../vec";
+import {
+    geometryTolerance,
+    vAdd,
+    vNorm,
+    vNormalize,
+    vScale,
+    vSub,
+    type Vec2,
+} from "../vec";
 import type { construction_object } from "./construction_object";
 import type { point_object } from "./point_object";
 import { two_points_line_object } from "./two_points_line_object";
@@ -8,9 +16,23 @@ import { two_points_line_object } from "./two_points_line_object";
 const FONT_MARGIN = 5;
 const HALF_TURN = Math.PI;
 const QUARTER_TURN = Math.PI / 2;
+// GeoGebra's segment decorations, 1 to 3 ticks then 1 to 3 arrows: where
+// each tick or arrow tip sits along the segment from its midpoint, in tick
+// spacings towards its first end.
+const DECORATIONS = [
+    [],
+    [0],
+    [0.5, -0.5],
+    [1, 0, -1],
+    [-1],
+    [-2, 0],
+    [-1, 1, -3],
+];
 
 export class segment_object extends two_points_line_object {
     lengthText?: DOMElement;
+    decorationPath?: DOMElement;
+    decoration = 0;
     protected showTips = false;
 
     constructor(
@@ -47,8 +69,9 @@ export class segment_object extends two_points_line_object {
 
     render(): void {
         super.render();
-        if (!this.lengthText) return;
         if (!this.defined || !this.projectionDefined) return;
+        this.decorationPath?.att("d", this.decorationData());
+        if (!this.lengthText) return;
 
         const midx = (this.sP1[0] + this.sP2[0]) / 2;
         const midy = (this.sP1[1] + this.sP2[1]) / 2;
@@ -73,9 +96,38 @@ export class segment_object extends two_points_line_object {
             );
     }
 
+    // GeoGebra's DrawSegment geometry, its line thickness being twice our
+    // size.
+    private decorationData(): string {
+        const along = vNormalize(vSub(this.sP1, this.sP2))!;
+        const perp: Vec2 = [along[1], -along[0]];
+        const mid = vScale(vAdd(this.sP1, this.sP2), 1 / 2);
+        const spacing = 2.5 + this.size;
+        const tick = vScale(perp, spacing + 1);
+        const line = ([x1, y1]: Vec2, [x2, y2]: Vec2) =>
+            `M${x1} ${y1} L${x2} ${y2}`;
+        return DECORATIONS[this.decoration]
+            .map((offset) => {
+                const at = vAdd(mid, vScale(along, offset * spacing));
+                if (this.decoration <= 3)
+                    return line(vSub(at, tick), vAdd(at, tick));
+                const back = vAdd(at, vScale(along, spacing));
+                return `${line(at, vAdd(back, tick))} ${line(at, vSub(back, tick))}`;
+            })
+            .join(" ");
+    }
+
     static createSVG(_this: construction_object): DOMElement {
         const t = _this as segment_object;
         const dom = two_points_line_object.createSVG(t);
+        if (t.decoration > 0) {
+            t.decorationPath = t.svg
+                .shape("path")
+                .stl(
+                    `fill:none;stroke:${t.stroke_color};stroke-width:${t.size};pointer-events:none`,
+                );
+            dom.add(t.decorationPath);
+        }
         if (t.precision < 0) return dom;
 
         t.lengthText = t.svg

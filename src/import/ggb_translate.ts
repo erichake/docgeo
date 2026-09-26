@@ -622,6 +622,12 @@ export function translateGgb(xml: string): GgbTranslation {
             if (thickness) parts.push(`s:${Number(thickness) / 2}`);
             const alpha = Number(color?.getAttribute("alpha") ?? 0);
             if (alpha > 0 && alpha <= 1) parts.push(`o:${alpha}`);
+            const decoration = attribute(element, "decoration", "type");
+            if (
+                element.getAttribute("type")?.startsWith("segment") &&
+                decoration
+            )
+                parts.push(`dc:${decoration}`);
             const arc = attribute(element, "arcSize", "val");
             if (kind === "angle") {
                 if (arc) parts.push(`arc:${arc}`);

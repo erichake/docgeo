@@ -62,7 +62,7 @@ import { primitive_line_object } from "../objects/primitive_line_object";
 import { createQuadric5pts } from "../objects/quadric5pts_object";
 import { createRay } from "../objects/ray_line_object";
 import { createReflection } from "../objects/reflection_object";
-import { createSegment } from "../objects/segment_object";
+import { createSegment, segment_object } from "../objects/segment_object";
 import { createSphere } from "../objects/sphere_object";
 import { createSymmetry } from "../objects/symmetry_object";
 import { createLine } from "../objects/two_points_line_object";
@@ -560,6 +560,13 @@ function validateObjectStyle(
             case "arc":
                 validateNumber(propertyValue, lineNumber, 0);
                 break;
+            case "dc":
+                validateNumber(propertyValue, lineNumber, 0, 6);
+                if (!Number.isInteger(Number(propertyValue)))
+                    throw new Error(
+                        `Invalid DGP style number at line ${lineNumber}`,
+                    );
+                break;
             case "ra":
                 if (
                     !(RIGHT_ANGLE_MARKS as readonly string[]).includes(
@@ -700,6 +707,10 @@ function applyObjectStyle(
                     target instanceof fixed_angle_object
                 )
                     target.arcRadius = Number(propertyValue);
+                break;
+            case "dc":
+                if (target instanceof segment_object)
+                    target.decoration = Number(propertyValue);
                 break;
             case "ra":
                 if (target instanceof angle_object)
