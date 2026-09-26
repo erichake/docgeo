@@ -1,6 +1,7 @@
 import type { construction } from "../construction";
 import type { DOMElement } from "../dom";
 import type { ObjectPref, PrefKey, Preferences } from "../preferences";
+import type { expression_object } from "./expression_object";
 
 export class construction_object {
     class: typeof construction_object;
@@ -23,6 +24,9 @@ export class construction_object {
     children: construction_object[];
     parents: construction_object[];
     hidden: number; // 0:show  ,   1:hidden    ,   2:super-hidden
+    // GeoGebra's condition to show the object: it is shown only while this
+    // expression is a nonzero number.
+    condition: expression_object | null;
     hasView: boolean;
     // Assigned by objects_collector.add(): a construction-order counter used
     // to process dirty objects in the same order as the (assumed
@@ -60,6 +64,7 @@ export class construction_object {
         this.children = [];
         this.parents = [];
         this.hidden = 0;
+        this.condition = null;
         this.hasView = false;
         this.sequence = 0;
         this.defined = true;
@@ -73,7 +78,13 @@ export class construction_object {
     }
 
     get isVisible(): boolean {
-        return this.defined && !this.isHidden;
+        return (
+            this.defined &&
+            !this.isHidden &&
+            (this.condition === null ||
+                (typeof this.condition.value === "number" &&
+                    this.condition.value !== 0))
+        );
     }
 
     addParents(...parents: construction_object[]): void {

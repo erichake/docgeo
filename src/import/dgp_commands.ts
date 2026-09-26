@@ -527,6 +527,7 @@ function validateObjectStyle(
             case "tk":
             case "pl":
             case "su":
+            case "cV":
                 if (propertyValue !== "true" && propertyValue !== "false")
                     throw new Error(
                         `Invalid DGP style boolean at line ${lineNumber}`,
@@ -591,6 +592,12 @@ function validateObjectStyle(
                 validateCursorStyle(decoded, lineNumber);
                 break;
             }
+            case "sc":
+                if (variables.get(propertyValue) !== "expression")
+                    throw new Error(
+                        `Unknown DGP reference at line ${lineNumber}`,
+                    );
+                break;
             case "mg":
                 if (!MAGNET_LIST.test(propertyValue))
                     throw new Error(`Invalid DGP style at line ${lineNumber}`);
@@ -724,9 +731,19 @@ function applyObjectStyle(
                 if (target instanceof expression_object)
                     target.cursorLength = Number(propertyValue);
                 break;
+            case "cV":
+                if (target instanceof expression_object)
+                    target.vertical = propertyValue === "true";
+                break;
             case "cPT":
                 if (target instanceof expression_object)
                     applyCursorStyle(target, atob(propertyValue));
+                break;
+            case "sc":
+                target.condition = variables.get(
+                    propertyValue,
+                ) as expression_object;
+                target.addParents(target.condition);
                 break;
             case "mg":
                 if (target instanceof point_object)

@@ -61,10 +61,30 @@ export type FormulaNode =
     | { kind: "vector"; items: FormulaNode[] }
     | {
           kind: "binary";
-          op: "+" | "-" | "*" | "/" | "^";
+          op: "+" | "-" | "*" | "/" | "^" | Comparison;
           left: FormulaNode;
           right: FormulaNode;
       };
+
+// DGPad's JavaScript comparisons and logical operators, worth 1 or 0.
+type Comparison = "==" | "!=" | "<" | "<=" | ">" | ">=" | "&&" | "||";
+
+// Equality within GeoGebra's standard precision, so that a slider's
+// rounding errors (e.g. 3·0.1) don't break a condition like "a == 0.3".
+const EQUALITY_PRECISION = 1e-8;
+
+const isComparison = (op: string): op is Comparison => op in COMPARISONS;
+
+const COMPARISONS: Record<Comparison, (a: number, b: number) => boolean> = {
+    "==": (a, b) => Math.abs(a - b) < EQUALITY_PRECISION,
+    "!=": (a, b) => Math.abs(a - b) >= EQUALITY_PRECISION,
+    "<": (a, b) => a < b,
+    "<=": (a, b) => a <= b,
+    ">": (a, b) => a > b,
+    ">=": (a, b) => a >= b,
+    "&&": (a, b) => a !== 0 && b !== 0,
+    "||": (a, b) => a !== 0 || b !== 0,
+};
 
 type TokenType =
     | "number"
@@ -75,6 +95,7 @@ type TokenType =
     | "*"
     | "/"
     | "^"
+    | Comparison
     | "("
     | ")"
     | "["
@@ -88,6 +109,7 @@ interface Token {
 }
 
 const NUMBER = /(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][+-]?\d+)?/y;
+const OPERATOR = /^(?:[=!<>]=|[<>]|&&|\|\|)/;
 
 class FormulaLexer {
     private index = 0;
@@ -112,6 +134,12 @@ class FormulaLexer {
         }
 
         if (IDENTIFIER_START.test(character)) return this.identifier();
+
+        const operator = OPERATOR.exec(this.source.slice(this.index));
+        if (operator) {
+            this.index += operator[0].length;
+            return { type: operator[0] as TokenType, value: operator[0] };
+        }
 
         if ("+-*/^(),[]".includes(character)) {
             this.index++;
@@ -160,9 +188,34 @@ class FormulaParser {
     }
 
     parse(): FormulaNode {
-        const node = this.additive();
+        const node = this.expression();
         if (this.current.type !== "eof")
             throw new Error("Invalid DGP formula syntax");
+        return node;
+    }
+
+    private expression(): FormulaNode {
+        return this.binaryLevel(["||"], () =>
+            this.binaryLevel(["&&"], () =>
+                this.binaryLevel(["==", "!="], () =>
+                    this.binaryLevel(["<", "<=", ">", ">="], () =>
+                        this.additive(),
+                    ),
+                ),
+            ),
+        );
+    }
+
+    private binaryLevel(
+        ops: Comparison[],
+        operand: () => FormulaNode,
+    ): FormulaNode {
+        let node = operand();
+        while ((ops as TokenType[]).includes(this.current.type)) {
+            const op = this.current.type as Comparison;
+            this.advance();
+            node = { kind: "binary", op, left: node, right: operand() };
+        }
         return node;
     }
 
@@ -264,7 +317,7 @@ class FormulaParser {
         }
         if (token.type === "(") {
             this.advance();
-            const node = this.additive();
+            const node = this.expression();
             this.take(")");
             return node;
         }
@@ -274,10 +327,10 @@ class FormulaParser {
 
     private vector(): FormulaNode {
         this.advance();
-        const items: FormulaNode[] = [this.additive()];
+        const items: FormulaNode[] = [this.expression()];
         while ((this.current.type as TokenType) === ",") {
             this.advance();
-            items.push(this.additive());
+            items.push(this.expression());
         }
         this.take("]");
         if (items.length !== 2 && items.length !== 3)
@@ -289,10 +342,10 @@ class FormulaParser {
         this.advance();
         const args: FormulaNode[] = [];
         if ((this.current.type as TokenType) !== ")") {
-            args.push(this.additive());
+            args.push(this.expression());
             while ((this.current.type as TokenType) === ",") {
                 this.advance();
-                args.push(this.additive());
+                args.push(this.expression());
             }
         }
         this.take(")");
@@ -406,10 +459,14 @@ function complexPow(a: Vec2, exponent: number): Vec2 {
 }
 
 function evalBinary(
-    op: "+" | "-" | "*" | "/" | "^",
+    op: "+" | "-" | "*" | "/" | "^" | Comparison,
     l: FormulaValue,
     r: FormulaValue,
 ): FormulaValue | null {
+    if (isComparison(op)) {
+        const [a, b] = [realPart(l), realPart(r)];
+        return a === null || b === null ? null : Number(COMPARISONS[op](a, b));
+    }
     if (
         (typeof l !== "number" && l.length === 3) ||
         (typeof r !== "number" && r.length === 3)

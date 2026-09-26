@@ -97,14 +97,14 @@ const POINT_SHAPES: Record<number, [number, boolean]> = {
 const POINT_KINDS: Kind[] = ["point", "pointOn"];
 // Cube(A, B, C)'s outputs, after the polyhedron itself: vertices D to H,
 // then its faces and edges as vertex indices (A..H = 0..7), in GeoGebra's
-// order.
+// order (see PlatonicSolidsFactory.getCube), which also numbers its nets.
 const CUBE_FACES = [
-    [0, 1, 2, 3],
-    [0, 3, 7, 4],
-    [0, 1, 5, 4],
-    [1, 2, 6, 5],
-    [2, 3, 7, 6],
-    [4, 5, 6, 7],
+    [3, 0, 1, 2],
+    [4, 0, 3, 7],
+    [1, 0, 4, 5],
+    [2, 1, 5, 6],
+    [3, 2, 6, 7],
+    [4, 7, 6, 5],
 ];
 const CUBE_EDGES = [
     [0, 3],
@@ -385,6 +385,157 @@ function wrapAngle(angle: number, low: number): number {
     return low + ((((angle - low) % turn) + turn) % turn);
 }
 
+interface Net {
+    // Each point's vertex of the polyhedron, and the face it belongs to.
+    points: { vertex: string; face: number }[];
+    // Each face's points.
+    faces: number[][];
+    parents: number[];
+    // The edge each face turns around, from o to e, a vertex of the face
+    // and one of its parent off that edge; null for the base face.
+    links: ({
+        edge: [string, string];
+        inside: string;
+        parentInside: string;
+    } | null)[];
+}
+
+// GeoGebra's net of a convex polyhedron (AlgoPolyhedronNetConvex): each
+// face hangs from the first face reached, breadth first from the base,
+// through an edge that isn't cut, and the points are numbered in the same
+// order. Null when the cuts split the faces apart.
+function unfold(
+    faces: string[][],
+    base: number,
+    cuts: [string, string][],
+): Net | null {
+    if (base < 0) return null;
+    const key = (p: string, q: string): string => [p, q].sort().join("\n");
+    const cutKeys = new Set(cuts.map(([p, q]) => key(p, q)));
+    const edges: { ends: [string, string]; faces: number[] }[] = [];
+    const indices = new Map<string, number>();
+    const faceEdges = faces.map((face, index) =>
+        face.map((vertex, position) => {
+            const next = face[(position + 1) % face.length];
+            const edgeKey = key(vertex, next);
+            if (!indices.has(edgeKey)) {
+                indices.set(edgeKey, edges.length);
+                edges.push({ ends: [vertex, next], faces: [] });
+            }
+            const edge = indices.get(edgeKey)!;
+            edges[edge].faces.push(index);
+            return edge;
+        }),
+    );
+
+    const UNKNOWN = -2;
+    const parents = faces.map((_, face): number =>
+        face === base ? -1 : UNKNOWN,
+    );
+    const ranks = faces.map(() => 0);
+    const links = faces.map(() => -1);
+    const children: number[][] = faces.map(() => []);
+    let found = 1;
+    for (let rank = 1, grew = true; found < faces.length && grew; rank++) {
+        grew = false;
+        faces.forEach((_, face) => {
+            if (
+                parents[face] === UNKNOWN ||
+                children[face].length > 0 ||
+                ranks[face] >= rank
+            )
+                return;
+            faceEdges[face].forEach((edge) => {
+                if (cutKeys.has(key(...edges[edge].ends))) return;
+                const child = edges[edge].faces.find((other) => other !== face);
+                if (child === undefined || parents[child] !== UNKNOWN) return;
+                parents[child] = face;
+                ranks[child] = rank;
+                links[child] = edge;
+                children[face].push(child);
+                found++;
+                grew = true;
+            });
+        });
+    }
+    if (found < faces.length) return null;
+
+    // Each edge's first and last point, as the face being numbered sees it.
+    const start = edges.map(() => -1);
+    const end = edges.map(() => -1);
+    const shifts: number[] = [];
+    const netFaces: number[][] = faces.map(() => []);
+    let count = 0;
+    const number = (face: number): void => {
+        const sides = faceEdges[face];
+        const n = sides.length;
+        const side = (index: number): number => sides[(index + n) % n];
+        let shift = 0;
+        if (face === base)
+            sides.forEach((edge, index) => {
+                end[edge] = count;
+                start[side(index + 1)] = count++;
+            });
+        else {
+            // The link edge's points are its parent's, run backwards.
+            const link = links[face];
+            shift = sides.indexOf(link);
+            for (let index = 0; index < shift; index++)
+                start[sides[index]] = end[sides[index]] = -1;
+            start[side(shift + 1)] = start[link];
+            end[side(shift - 1)] = end[link];
+            [start[link], end[link]] = [end[link], start[link]];
+            for (let index = shift + 1; index < n; index++) {
+                if (index > shift + 1) start[sides[index]] = -1;
+                if (index < n - 1 || shift !== 0) end[sides[index]] = -1;
+            }
+            sides.forEach((edge, index) => {
+                if (start[edge] === -1) {
+                    start[edge] = count;
+                    end[side(index - 1)] = count++;
+                }
+                if (end[edge] === -1) {
+                    end[edge] = count;
+                    start[side(index + 1)] = count++;
+                }
+            });
+        }
+        shifts[face] = shift;
+        for (let index = shift; index < shift + n; index++)
+            netFaces[face].push(start[side(index)]);
+        children[face].forEach(number);
+    };
+    number(base);
+
+    const points: Net["points"] = [];
+    netFaces.forEach((facePoints, face) =>
+        facePoints.forEach((point, index) => {
+            if (face === base || index >= 2)
+                points[point] = {
+                    vertex: faces[face][
+                        (index + shifts[face]) % faces[face].length
+                    ],
+                    face,
+                };
+        }),
+    );
+    return {
+        points,
+        faces: netFaces,
+        parents,
+        links: links.map((edge, face) => {
+            if (edge < 0) return null;
+            const ends = edges[edge].ends;
+            const outside = (vertex: string) => !ends.includes(vertex);
+            return {
+                edge: ends,
+                inside: faces[face][(shifts[face] + 2) % faces[face].length],
+                parentInside: faces[parents[face]].find(outside)!,
+            };
+        }),
+    };
+}
+
 export function translateGgb(xml: string): GgbTranslation {
     const document = new DOMParser().parseFromString(xml, "application/xml");
     const construction = document.querySelector("construction");
@@ -411,6 +562,8 @@ export function translateGgb(xml: string): GgbTranslation {
     const vectors = new Map<string, [string, string]>();
     const polygons = new Map<string, string[]>();
     const polyhedra = new Map<string, [string, string][]>();
+    // A convex polyhedron's faces, as their vertices.
+    const solids = new Map<string, string[][]>();
     const iterations = new Map<
         string,
         { ends: string[][]; levels: string; maps: SegmentMap[] }
@@ -517,6 +670,12 @@ export function translateGgb(xml: string): GgbTranslation {
             .replace(/²/g, "^2")
             .replace(/³/g, "^3")
             .replace(/°/g, "*π/180")
+            .replace(/≟/g, "==")
+            .replace(/≠/g, "!=")
+            .replace(/≤/g, "<=")
+            .replace(/≥/g, ">=")
+            .replace(/∧/g, "&&")
+            .replace(/∨/g, "||")
             .replace(/\s+/g, " ");
         const groups: { start: number; call: boolean; comma: boolean }[] = [];
         let result = "";
@@ -577,7 +736,8 @@ export function translateGgb(xml: string): GgbTranslation {
                 if (!group) return null;
                 if (!group.call) group.comma = true;
                 result += ",";
-            } else if (/[\d.+\-*/^ ]/.test(character)) result += character;
+            } else if (/[\d.+\-*/^ =!<>&|]/.test(character))
+                result += character;
             else return null;
         }
         if (groups.length > 0) return null;
@@ -826,11 +986,21 @@ export function translateGgb(xml: string): GgbTranslation {
     const points = (...labels: (string | undefined)[]): boolean =>
         labels.every((label) => is(label, POINT_KINDS));
 
+    // In a 3D figure, a slider stays where it is in the graphics view, the
+    // camera's unit being already applied (see importGgb).
     const sliderScreen = (slider: Element): [number, number] => {
         const x = Number(slider.getAttribute("x"));
         const y = Number(slider.getAttribute("y"));
-        return (slider.getAttribute("absoluteScreenLocation") ??
-            slider.getAttribute("fixed")) === "true"
+        const absolute =
+            (slider.getAttribute("absoluteScreenLocation") ??
+                slider.getAttribute("fixed")) === "true";
+        if (camera) {
+            const [px, py] = absolute
+                ? [x, y]
+                : [origin[0] + x * unit, origin[1] - y * unit];
+            return [px / camera.unit, -py / camera.unit];
+        }
+        return absolute
             ? [(x - origin[0]) / unit, (origin[1] - y) / unit]
             : [x, y];
     };
@@ -1330,45 +1500,149 @@ export function translateGgb(xml: string): GgbTranslation {
             );
             return true;
         },
-        Cube: (inputs, [, ...outputs]) => {
-            if (inputs.length !== 3 || !points(...inputs)) return false;
+        // Cube(A, B, C), or Cube(A, B, p) whose square ABCD is parallel to
+        // plane p.
+        Cube: (inputs, [solid, ...outputs]) => {
+            const plane = planes.get(inputs[2]);
+            if (
+                inputs.length !== 3 ||
+                !points(...(plane ? inputs.slice(0, 2) : inputs))
+            )
+                return false;
             const [a, b, c] = inputs.map(
-                (input) => objects.get(input)!.variable,
+                (input) => objects.get(input)?.variable,
             );
             // The square ABCD lies in plane ABC, the cube on the side of
-            // AB × BC, exactly as GeoGebra builds it.
+            // AB × BC, exactly as GeoGebra builds it; or on the side of p's
+            // normal.
             const side = `(${b}-${a})`;
-            const normal = `cross(${side},${c}-${b})`;
+            const normal = plane?.normal ?? `cross(${side},${c}-${b})`;
             const normalLength = `d(${normal},[0,0,0])`;
             const across = `cross(${normal},${side})/${normalLength}`;
             const up = `${normal}*d(${a},${b})/${normalLength}`;
-            const vertices = [
-                ...inputs,
-                ...outputs.slice(0, 5).map((label) => label || auxiliary()),
-            ];
-            [
+            const others = [
+                `${b}+${across}`,
                 `${a}+${across}`,
                 `${a}+${up}`,
                 `${b}+${up}`,
                 `${b}+${across}+${up}`,
                 `${a}+${across}+${up}`,
-            ].forEach((vertex, index) =>
-                define(vertices[index + 3], "point", "Point", [
-                    literal(vertex),
-                    literal("1"),
-                ]),
+            ].slice(plane ? 0 : 1);
+            const vertices = [
+                ...inputs.slice(0, plane ? 2 : 3),
+                ...others.map((vertex, index) =>
+                    formulaPoint(vertex, outputs[index] || auxiliary()),
+                ),
+            ];
+            const faces = CUBE_FACES.map((face) =>
+                face.map((vertex) => vertices[vertex]),
             );
-            CUBE_FACES.forEach((face, index) => {
-                const label = outputs[5 + index];
-                if (label)
-                    definePolygon(
-                        label,
-                        face.map((vertex) => vertices[vertex]),
-                    );
+            faces.forEach((face, index) => {
+                const label = outputs[others.length + index];
+                if (!label) return;
+                polygons.set(label, face);
+                definePolygon(label, face);
             });
             CUBE_EDGES.forEach(([p, q], index) => {
-                const label = outputs[11 + index];
+                const label = outputs[others.length + 6 + index];
                 if (label) defineSegment(label, vertices[p], vertices[q]);
+            });
+            solids.set(solid, faces);
+            return true;
+        },
+        // Net(P, v, base, e1, e2, …): P's net unfolded by v (0: folded, 1:
+        // flat) from its base face, e1, e2, … being cut; after the net
+        // itself come its points, its faces as P's and then its edges.
+        Net: ([solid, value, ...rest], [, ...outputs]) => {
+            const faces = solids.get(solid);
+            const f = formula(value, VALUE_KINDS);
+            if (!faces || f === null) return false;
+            const base = polygons.get(rest[0]);
+            const cuts = (base ? rest.slice(1) : rest).map((edge) =>
+                segments.get(edge),
+            );
+            if (cuts.some((edge) => !edge)) return false;
+            const net = unfold(
+                faces,
+                base
+                    ? faces.findIndex(
+                          (face) =>
+                              face.length === base.length &&
+                              face.every((vertex) => base.includes(vertex)),
+                      )
+                    : 0,
+                cuts as [string, string][],
+            );
+            if (!net) return false;
+            // Each face turns by f times its angle with its parent around
+            // their common edge, taking its descendants along: a point is
+            // turned by its own face first, then by each of its ancestors.
+            const turns = net.links.map((link, face) => {
+                if (!link) return null;
+                const [o, e, c, q] = [
+                    ...link.edge,
+                    link.inside,
+                    link.parentInside,
+                ].map((label) => objects.get(label)!.variable);
+                const k = objects.get(
+                    formulaPoint(`(${e}-${o})/d(${e},${o})`),
+                )!.variable;
+                // The angle from c's direction off the edge to the direction
+                // away from the parent face, in the parent's plane.
+                const away = `(${k}*dot(${k},${q}-${o})-(${q}-${o}))`;
+                const angle = auxiliary();
+                define(
+                    angle,
+                    "expression",
+                    "Expression",
+                    [
+                        "",
+                        "",
+                        "",
+                        `(${f})*atan2(dot(${k},cross(${c}-${o},${away})),dot(${c}-${o},${away}))`,
+                        "0",
+                        "0",
+                    ].map(literal),
+                    "h:1",
+                );
+                return {
+                    o,
+                    k,
+                    t: objects.get(angle)!.variable,
+                    parent: net.parents[face],
+                };
+            });
+            const vertexLabels = net.points.map(({ vertex, face }, index) => {
+                let point = objects.get(vertex)!.variable;
+                for (let turn = turns[face]; turn; turn = turns[turn.parent]) {
+                    const { o, k, t } = turn;
+                    point = objects.get(
+                        formulaPoint(
+                            `${o}+(${point}-${o})*cos(${t})+cross(${k},${point}-${o})*sin(${t})+${k}*dot(${k},${point}-${o})*(1-cos(${t}))`,
+                        ),
+                    )!.variable;
+                }
+                return formulaPoint(point, outputs[index] || auxiliary());
+            });
+            const edges = new Set<string>();
+            let output = net.points.length + faces.length;
+            net.faces.forEach((face, index) => {
+                const vertices = face.map((point) => vertexLabels[point]);
+                const label = outputs[net.points.length + index];
+                if (label) definePolygon(label, vertices);
+                face.forEach((point, position) => {
+                    const next = face[(position + 1) % face.length];
+                    const key = [point, next].sort().join();
+                    if (edges.has(key)) return;
+                    edges.add(key);
+                    const label = outputs[output++];
+                    if (label)
+                        defineSegment(
+                            label,
+                            vertexLabels[point],
+                            vertexLabels[next],
+                        );
+                });
             });
             return true;
         },
@@ -1813,6 +2087,8 @@ export function translateGgb(xml: string): GgbTranslation {
             parts.push(
                 `i:${attribute(element, "animation", "step") ?? DEFAULT_SLIDER_STEP}`,
             );
+        if (attribute(element, "slider", "horizontal") === "false")
+            parts.push("cV:true");
         return parts.join(";");
     };
 
@@ -2102,6 +2378,42 @@ export function translateGgb(xml: string): GgbTranslation {
             if (!independent(label, node))
                 unsupported.push(`${node.getAttribute("type")} ${label}`);
         }
+    });
+
+    // Once every object exists, since a condition may read a later one. It
+    // then decides alone whether the object is shown, whatever its show
+    // flag (see GeoElement.isEuclidianVisible), except for a number without
+    // a slider, which is never drawn.
+    const conditions = new Map<string, string | null>();
+    elements.forEach((element, label) => {
+        const source = attribute(element, "condition", "showObject");
+        if (
+            source === undefined ||
+            !objects.has(label) ||
+            (element.getAttribute("type") === "numeric" &&
+                !child(element, "slider"))
+        )
+            return;
+        if (!conditions.has(source)) {
+            const content = formula(source, VALUE_KINDS);
+            if (content === null) {
+                unsupported.push(`condition ${source}`);
+                conditions.set(source, null);
+            } else {
+                const condition = auxiliary();
+                define(
+                    condition,
+                    "expression",
+                    "Expression",
+                    ["", "", "", content, "0", "0"].map(literal),
+                    "h:1",
+                );
+                conditions.set(source, objects.get(condition)!.variable);
+            }
+        }
+        const condition = conditions.get(source);
+        if (condition)
+            push(null, "STL", [ref(label), literal(`h:0;sc:${condition}`)]);
     });
 
     return { calls, targets, handles, unsupported, view3D: camera };

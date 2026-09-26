@@ -14,6 +14,8 @@ import { vNorm, vSub, type Vec3 } from "./vec";
 // Returns what the figure uses that couldn't be imported.
 export function importGgb(c: construction, xml: string): string[] {
     const { calls, targets, handles, unsupported, view3D } = translateGgb(xml);
+    // First, since sliders are placed with the camera's unit.
+    if (view3D) applyView3D(c, view3D);
     const executed = executeDgpCommands(c, calls, view3D !== undefined);
     const variables = executed.variables;
     handles.forEach((numbers, variable) =>
@@ -24,7 +26,6 @@ export function importGgb(c: construction, xml: string): string[] {
             ) as [expression_object | null, expression_object | null],
         ),
     );
-    if (view3D) applyView3D(c, view3D);
     settleTargets(
         c,
         new Map(
@@ -34,6 +35,9 @@ export function importGgb(c: construction, xml: string): string[] {
             ]),
         ),
     );
+    // Also redraws each object whose show condition, defined after it,
+    // wasn't evaluated yet when it was first drawn.
+    c.invalidateProjection();
     return [...unsupported, ...executed.unsupported];
 }
 
@@ -63,7 +67,6 @@ function applyView3D(c: construction, view: GgbView3D): void {
         cosTheta: Math.cos(view.theta),
         sinTheta: Math.sin(view.theta),
     });
-    c.invalidateProjection();
 }
 
 // GeoGebra saves where each point on a path or intersection actually is,
@@ -112,5 +115,4 @@ function settleTargets(
             }
         }
     });
-    c.invalidateProjection();
 }

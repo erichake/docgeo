@@ -121,6 +121,7 @@ describe("GGB importer", () => {
         "3d_prisme",
         "3d_plan",
         "3d_inter_plans",
+        "_patronsCube",
     ])("rebuilds every saved point of %s", async (name) => {
         const c = createConstruction();
         const xml = await loadXml(name);
@@ -1225,6 +1226,50 @@ ${lines.map((line, index) => command("Plane", ["C", line], `p${index}`)).join("\
         c.invalidateGeometry(slider);
         await new Promise((resolve) => requestAnimationFrame(resolve));
         expectSpiral();
+    });
+
+    it("unfolds the cube's nets with their slider, showing the chosen one", async () => {
+        const c = createConstruction();
+        importGgb(c, await loadXml("_patronsCube"));
+        await new Promise((resolve) => requestAnimationFrame(resolve));
+        const [ouv, patron] = ["Ouv", "Patron"].map(
+            (name) => c.getObj(name) as expression_object,
+        );
+        const setValue = async (slider: expression_object, value: number) => {
+            slider.value = value;
+            c.invalidateGeometry(slider);
+            await new Promise((resolve) => requestAnimationFrame(resolve));
+        };
+
+        // Where GeoGebra puts them, half unfolded.
+        await setValue(ouv, 0.5);
+        Object.entries({
+            U_3: [-3.7564204061874342, -3.057325365531214, 0],
+            T_3: [-0.893254021139871, 4.688515613650447, 3.4206059497756076],
+            R_6: [-6.126250773234714, 0.3973412792958957, 2.4187336628533846],
+            V: [4.583882661232128, 2.663951247117942, 5.839339612628992],
+        }).forEach(([name, expected]) =>
+            (c.getObj(name) as point_object).coords.forEach((value, index) =>
+                expect(value).toBeCloseTo(expected[index], 9),
+            ),
+        );
+
+        // A condition alone decides, whatever the saved show flag.
+        const shown = () =>
+            ["faceABCD", "C", "face61", "edge191", "face37", "U_3"].filter(
+                (name) => c.getObj(name)!.isVisible,
+            );
+        expect(shown()).toEqual(["face37", "U_3"]);
+        await setValue(patron, 1);
+        expect(shown()).toEqual(["face61", "edge191"]);
+        await setValue(patron, 0);
+        expect(shown()).toEqual(["faceABCD", "C"]);
+
+        // Vertical sliders, rising from where they are in the graphics view.
+        expect(ouv.vertical).toBe(true);
+        ouv.screen.forEach((value, index) =>
+            expect(value).toBeCloseTo([32, 252][index], 9),
+        );
     });
 
     it("leaves edges already drawn by a segment to that segment", async () => {

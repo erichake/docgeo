@@ -150,6 +150,9 @@ export class expression_object extends construction_object {
     max: number | null;
     increment: number;
     cursorLength: number;
+    // A vertical slider rises from its screen position, its value written
+    // beside its knob.
+    vertical: boolean;
     cursorColor: string;
     cursorRadius: number;
     // Matches point_object's own opacity convention: 0 (the default) draws a
@@ -159,6 +162,7 @@ export class expression_object extends construction_object {
     screen: Vec2;
     private knobX = 0;
     private valueText!: DOMElement;
+    private cursor?: DOMElement;
     private track?: DOMElement;
     private progress?: DOMElement;
     private knob?: DOMElement;
@@ -183,6 +187,7 @@ export class expression_object extends construction_object {
         this.max = max;
         this.increment = 0;
         this.cursorLength = DEFAULT_CURSOR_LENGTH;
+        this.vertical = false;
         this.cursorColor = DEFAULT_CURSOR_COLOR;
         this.cursorRadius = DEFAULT_CURSOR_RADIUS;
         this.cursorOpacity = 0;
@@ -228,12 +233,15 @@ export class expression_object extends construction_object {
     }
 
     mousedrag(ev: PointerEvent): void {
-        const [px] = this.C.pointerPosition(ev);
-        const [x] = this.screen;
+        const [px, py] = this.C.pointerPosition(ev);
+        const [x, y] = this.screen;
         const min = this.min!;
         const max = this.max!;
-        const clampedX = Math.min(Math.max(px, x), x + this.cursorLength);
-        let value = min + ((max - min) * (clampedX - x)) / this.cursorLength;
+        const along = Math.min(
+            Math.max(this.vertical ? y - py : px - x, 0),
+            this.cursorLength,
+        );
+        let value = min + ((max - min) * along) / this.cursorLength;
         if (this.increment > 0) {
             const step = this.increment;
             value = min + Math.round((value - min) / step) * step;
@@ -265,14 +273,30 @@ export class expression_object extends construction_object {
                                 )),
             );
 
-        if (!this.isCursor || !this.track || !this.progress || !this.knob)
+        if (
+            !this.isCursor ||
+            !this.cursor ||
+            !this.track ||
+            !this.progress ||
+            !this.knob
+        )
             return;
-        const trackY = y + CURSOR_OFFSET_Y;
+        // A vertical slider is the horizontal one turned a quarter turn
+        // counterclockwise around its start.
+        const trackY = this.vertical ? y : y + CURSOR_OFFSET_Y;
         const half = this.size / 2;
         this.knobX =
             x +
             (this.cursorLength * ((this.value as number) - this.min!)) /
                 (this.max! - this.min!);
+        this.cursor.att(
+            "transform",
+            this.vertical ? `rotate(-90 ${x} ${y})` : "",
+        );
+        if (this.vertical)
+            this.valueText
+                .att("x", x + this.cursorRadius + CURSOR_BORDER + 4)
+                .att("y", y - (this.knobX - x) + this.fontSize / 3);
         this.track.att(
             "d",
             roundRectPath(x, trackY - half, this.cursorLength, this.size, half),
@@ -314,7 +338,8 @@ export class expression_object extends construction_object {
                 `fill:${fill};fill-opacity:${fillOpacity};stroke:${t.cursorColor};stroke-width:${CURSOR_BORDER};cursor:pointer`,
             )
             .drag((event) => t.mousedrag(event));
-        dom.add(t.track, t.progress, t.knob);
+        t.cursor = t.svg.shape("g").add(t.track, t.progress, t.knob);
+        dom.add(t.cursor);
         return dom;
     }
 }

@@ -270,4 +270,15 @@ describe("evaluateFormula", () => {
     it("returns null for a userCall when the env doesn't support callFunction", () => {
         expect(evaluateFormula(parseFormula("E1(x)"), noPoints)).toBeNull();
     });
+
+    it("evaluates comparisons and logical operators to 1 or 0", () => {
+        const env = envWith({ a: [3 * 0.1, 0] });
+        const value = (source: string) =>
+            evaluateFormula(parseFormula(source), env);
+        expect(value("a==0.3")).toBe(1);
+        expect(value("a!=0.3")).toBe(0);
+        expect(value("1+1<=2 && 2>3 || a>=0.3")).toBe(1);
+        expect(value("(a<0)*5+(a>0)*7")).toBe(7);
+        expect(value("[1,2]==1")).toBeNull();
+    });
 });
