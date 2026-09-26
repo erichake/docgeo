@@ -7,7 +7,7 @@ export default defineConfig({
         strictPort: true,
     },
     build: {
-        outDir: "../dgpadpro",
+        outDir: "../doctools_MAIN/public/apps/docgeo",
         emptyOutDir: true,
     },
 });

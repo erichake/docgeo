@@ -4,7 +4,7 @@ import { $ } from "./dom";
 import { importGgbFromUrl } from "./ggb_importer";
 import { preferences } from "./preferences";
 
-class dgpadpro {
+class docgeo {
     prefs: preferences;
     scene: construction;
 
@@ -24,16 +24,16 @@ class dgpadpro {
     }
 }
 
-export const DGPADPRO = new dgpadpro();
+export const DOCGEO = new docgeo();
 const url = new URLSearchParams(window.location.search).get("url");
-export const DGPADPRO_READY = !url
+export const DOCGEO_READY = !url
     ? Promise.resolve()
     : /\.ggb$/i.test(url)
-      ? importGgbFromUrl(DGPADPRO.scene, url).then((unsupported) => {
+      ? importGgbFromUrl(DOCGEO.scene, url).then((unsupported) => {
             if (unsupported.length > 0)
                 console.warn("Unsupported GeoGebra objects:", unsupported);
         })
-      : importDgpFromUrl(DGPADPRO.scene, url).then((unsupported) => {
+      : importDgpFromUrl(DOCGEO.scene, url).then((unsupported) => {
             if (unsupported.length > 0)
                 console.warn("Unsupported DGPad objects:", unsupported);
         });

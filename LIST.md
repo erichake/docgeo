@@ -1,6 +1,6 @@
 # Mémo `List` — syntaxe et sémantique
 
-Notes sur la commande `.dgp` `List`, propre à dgpadpro (n'existe pas dans
+Notes sur la commande `.dgp` `List`, propre à DocGeo (n'existe pas dans
 DGPad — voir la discussion qui a mené à son ajout, commits `aa0fe03` et
 suivants). Remplace les scripts Blockly dynamiques de DGPad (exécution
 arbitraire, exclue pour des raisons de sécurité) par le moteur de formules
@@ -108,6 +108,6 @@ voisin que `PointOn`, pas de projection continue).
 
 ## Exemple complet
 
-Voir [public/tests/partage.dgp](public/tests/partage.dgp) : graduations
+Voir [tests/partage.dgp](tests/partage.dgp) : graduations
 primaires/secondaires d'un segment, labels numériques, point `PointOn` une
 liste de points, et aimantation sur cette même liste.

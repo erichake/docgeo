@@ -1,8 +1,8 @@
-# Feuille de route du lecteur DGPad Pro
+# Feuille de route du lecteur DocGeo
 
 ## Objectif actuel
 
-DGPad Pro doit d'abord devenir un **lecteur interactif de fichiers `.dgp`** :
+DocGeo doit d'abord devenir un **lecteur interactif de fichiers `.dgp`** :
 
 - ouvrir fidèlement des constructions produites par DGPad ;
 - calculer leur graphe géométrique ;
@@ -58,7 +58,7 @@ priorités sont terminées et ne constituent plus la feuille de route active.
   complexes.
 - Recenser les sections, commandes, constructeurs, styles et variantes présents
   dans ce corpus.
-- Documenter le sous-ensemble compris par DGPad Pro et les commandes encore non
+- Documenter le sous-ensemble compris par DocGeo et les commandes encore non
   prises en charge.
 
 ### Écrire un analyseur dédié
@@ -129,7 +129,7 @@ sa projection et son rendu visible.
 
 ### Vérifier la fidélité visuelle
 
-- Comparer des captures DGPad et DGPad Pro avec les mêmes dimensions et
+- Comparer des captures DGPad et DocGeo avec les mêmes dimensions et
   coordonnées.
 - Tester séparément formes, épaisseurs, opacités, couleurs et objets indéfinis.
 

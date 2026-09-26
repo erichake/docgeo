@@ -2,7 +2,7 @@
 
 ## Objectif actuel du projet
 
-DGPad Pro est actuellement un **lecteur interactif de figures `.dgp` et
+DocGeo est actuellement un **lecteur interactif de figures `.dgp` et
 `.ggb`**. Son objectif est d'ouvrir fidèlement les fichiers produits par DGPad
 et par GeoGebra, et de permettre la manipulation des objets déjà mobiles dans
 ces figures.
@@ -60,7 +60,7 @@ Playwright (`ggbApplet.evalCommand`, `getBase64`, `setBase64`). Les commandes
 de script (`SetCoords`, `Slider`…) n'y sont pas chargées : utiliser l'API
 JavaScript (`ggbApplet.setCoords`, `setValue`…). Pour la sémantique précise
 d'une commande, se référer au dépôt public `geogebra/geogebra`. Les figures de
-test sont dans `public/tests/ggb/` (et `public/tests/dgp/` pour DGPad).
+test sont dans `tests/ggb/` (et `tests/dgp/` pour DGPad).
 
 - **Code minimal** : produire le strict nécessaire, sans code défensif superflu.
 - **Pas de `try/catch`** sauf si une exception est réellement possible et doit être traitée différemment.
