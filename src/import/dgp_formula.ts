@@ -883,7 +883,9 @@ export type ScriptValue = number | string | readonly ScriptValue[];
 export type FormulaValue = number | Vec2 | Vec3;
 
 // The window a formula is evaluated in: pixels per unit, the origin's and
-// the window's size in pixels, and the 3D view's angles.
+// the window's size in pixels, and the 3D view's angles. And the figure's
+// angle unit: in DGPad's degree mode, the trigonometric functions read and
+// return degrees, as do arg, theta and phi (π keeps its value).
 export interface FormulaView {
     unit: number;
     origin: Vec2;
@@ -891,6 +893,7 @@ export interface FormulaView {
     height: number;
     theta: number;
     phi: number;
+    degrees: boolean;
 }
 
 // For formulas evaluated outside any window (constants read at import).
@@ -901,6 +904,7 @@ export const NO_VIEW: FormulaView = {
     height: 0,
     theta: 0,
     phi: 0,
+    degrees: false,
 };
 
 export interface FormulaEnv {
@@ -1072,6 +1076,10 @@ function realUnary(
     return real === null ? null : fn(real);
 }
 
+function angleUnit(env: FormulaEnv): number {
+    return env.view().degrees ? Math.PI / 180 : 1;
+}
+
 function evalCall(
     fn: Exclude<FormulaFn, ListFn | "isNaN">,
     args: FormulaValue[],
@@ -1097,9 +1105,9 @@ function evalCall(
             return (origin[1] - height / 2) / unit;
         }
         case "theta":
-            return env.view().theta;
+            return env.view().theta / angleUnit(env);
         case "phi":
-            return env.view().phi;
+            return env.view().phi / angleUnit(env);
         case "d": {
             const [a, b] = args;
             if (
@@ -1127,17 +1135,17 @@ function evalCall(
             return a.length === 3 ? null : complexSqrt(a);
         }
         case "sin":
-            return realUnary(Math.sin, args[0]);
         case "cos":
-            return realUnary(Math.cos, args[0]);
-        case "tan":
-            return realUnary(Math.tan, args[0]);
+        case "tan": {
+            const unit = angleUnit(env);
+            return realUnary((x) => Math[fn](x * unit), args[0]);
+        }
         case "asin":
-            return realUnary(Math.asin, args[0]);
         case "acos":
-            return realUnary(Math.acos, args[0]);
-        case "atan":
-            return realUnary(Math.atan, args[0]);
+        case "atan": {
+            const unit = angleUnit(env);
+            return realUnary((x) => Math[fn](x) / unit, args[0]);
+        }
         case "atan2": {
             const [a, b] = args;
             const ra = realPart(a);
@@ -1162,7 +1170,7 @@ function evalCall(
             if (typeof a !== "number" && a.length === 3) return null;
             const [x, y] = typeof a === "number" ? [a, 0] : a;
             const angle = Math.atan2(y, x);
-            return angle < 0 ? angle + 2 * Math.PI : angle;
+            return (angle < 0 ? angle + 2 * Math.PI : angle) / angleUnit(env);
         }
         case "perp": {
             const [a] = args;

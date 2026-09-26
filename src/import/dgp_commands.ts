@@ -1290,7 +1290,9 @@ const COMMANDS = new Map<string, CommandDefinition>([
                     args[0] as string,
                     args[1] as point_object,
                     args[2] as point_object,
-                    Number(args[3] as string),
+                    context.construction.degrees
+                        ? Number(args[3] as string)
+                        : (Number(args[3] as string) * 180) / Math.PI,
                     args[4] as boolean,
                 ),
         },
@@ -2272,6 +2274,16 @@ export function executeDgpCommands(
     is3D = false,
 ): { variables: Map<string, construction_object>; unsupported: string[] } {
     const { valid, unsupported } = validateCalls(convertLegacyPoint3D(calls));
+    // DGPad is in degrees unless the figure says otherwise, in its
+    // SetGeneralStyle, which comes after the objects that depend on it.
+    c.degrees = true;
+    valid.forEach((call) => {
+        if (call.name !== "SetGeneralStyle") return;
+        const degree = properties(literalString(call.arguments[0])).get(
+            "degree",
+        );
+        if (degree !== undefined) c.degrees = degree === "true";
+    });
     const context: CommandContext = {
         construction: c,
         variables: new Map(),

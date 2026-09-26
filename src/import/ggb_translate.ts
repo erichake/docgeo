@@ -2353,12 +2353,14 @@ export function translateGgb(xml: string): GgbTranslation {
                 }`,
             ),
         ]);
-        const background = child(styledView, "bgColor");
-        if (background)
-            push(null, "SetGeneralStyle", [
-                literal(`background-color:${hexColor(background)}`),
-            ]);
     }
+    const background = styledView && child(styledView, "bgColor");
+    // GeoGebra's functions work in radians.
+    push(null, "SetGeneralStyle", [
+        literal(
+            `degree:false${background ? `;background-color:${hexColor(background)}` : ""}`,
+        ),
+    ]);
 
     // A command input that isn't an existing label may be a nested command
     // (e.g. "Segment[A, B]") or a constant point: built as a hidden

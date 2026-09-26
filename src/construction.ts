@@ -34,6 +34,8 @@ export class construction {
     // by the segments last, rather than in construction order as in DGPad
     // (see edgeStroke).
     segmentsOverPolygons = false;
+    // DGPad's degree mode (see FormulaView).
+    degrees = false;
     private updateFrame: number | null = null;
     private batchedObjects: construction_object[] | null = null;
     private viewportWidth = 0;
@@ -266,6 +268,7 @@ export class construction {
             height: this.height,
             theta: this.GRID.THETA,
             phi: this.GRID.PHI,
+            degrees: this.degrees,
         };
     }
 

@@ -1261,6 +1261,52 @@ C1=Circle1("C1",A,"d(A,Z)");`,
         expect(list.count).toBe(400);
     });
 
+    it("reads and returns angles in degrees in DGPad's degree mode", async () => {
+        const c = createConstruction();
+        await importDgpFromUrl(c, "/tests/dgp/lst.dgp");
+        // The same figure in degrees: its "·π/180" converts once more, as in
+        // DGPad.
+        const list = c.getObj("List1") as expression_list_object;
+        const k = (2 * 138.3 * Math.PI) / 180;
+        const [x, y] = list.items[1][0] as Vec2;
+        expect(x).toBeCloseTo(
+            0.2 * Math.sqrt(2) * Math.cos((k * Math.PI) / 180),
+            12,
+        );
+        expect(y).toBeCloseTo(
+            0.2 * Math.sqrt(2) * Math.sin((k * Math.PI) / 180),
+            12,
+        );
+
+        // Degrees are DGPad's default.
+        const deg = createConstruction();
+        importDgp(
+            deg,
+            `A=Point("A",1,0);
+B=Point("B",0,0);
+F=FixedAngle("F",A,B,"30",true);
+a=Expression("a","","","","acos(0.5)+arg(i)","0","0");`,
+        );
+        deg.OBJS.update();
+        expect((deg.getObj("a") as expression_object).value).toBeCloseTo(
+            150,
+            12,
+        );
+        expect((deg.getObj("F") as fixed_angle_object).valueDegrees).toBe(30);
+
+        const rad = createConstruction();
+        importDgp(
+            rad,
+            `A=Point("A",1,0);
+B=Point("B",0,0);
+F=FixedAngle("F",A,B,"0.5",true);
+SetGeneralStyle("degree:false");`,
+        );
+        expect(
+            (rad.getObj("F") as fixed_angle_object).valueDegrees,
+        ).toBeCloseTo((0.5 * 180) / Math.PI, 12);
+    });
+
     it("keeps a 3D figure's saved turn around Oz, which the view can then follow freely", () => {
         const c = createConstruction();
         importDgp(c, `SetCoords(1449.0859375,14.28,40,true,100,100);`);

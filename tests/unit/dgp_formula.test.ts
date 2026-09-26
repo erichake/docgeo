@@ -14,9 +14,7 @@ import {
 
 const noPoints: FormulaEnv = {
     resolveIdentifier: () => null,
-    view: () => {
-        throw new Error("pixel() not expected");
-    },
+    view: () => NO_VIEW,
 };
 
 function envWith(

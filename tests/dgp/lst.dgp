@@ -1,0 +1,18 @@
+// Coordinates System :
+SetCoords(436.51498960212797,370.45617983785,59.02999218334108,false,844,713);
+
+
+// Geometry :
+ang=Expression("ang","","90","160","138.3","-7.055989238631021","4.920484809412189");
+n=Expression("n","","300","600","336","-2.6514485910146917","4.920484809412189");
+E1=Expression("E1","","","","var tab=[];for (var i=1;i<=n;i++){var u=0.2*sqrt(i);var k=i*ang*\u03C0/180; var v=[u*cos(k),u*sin(k)];tab.push(v);};tab","-6.886583829107316","-4.566218123915291");
+List1=List("List1",E1);
+
+
+// Styles :
+STL(ang,"c:#007c00;s:7;sn:true;f:18;p:4;cL:200;cPT:YzojMDA3YzAwO3M6MTA7ZjozMA==");
+STL(n,"c:#4f3666;s:6.5;sn:true;f:24;p:4;i:1;cL:200;cPT:YzojNzgwMDEzO3M6MTA7ZjozMDtpOjE=");
+STL(E1,"c:#17502b;s:7;f:15;p:4;cL:200;cPT:YzojNzgwMDEzO3M6MTA7ZjozMA==");
+STL(List1,"c:#0000b2;s:1;f:30;p:0;sg:1");
+SetCoordsStyle("isAxis:false;isGrid:true;isOx:true;isOy:true;isLockOx:false;isLockOy:false;centerZoom:false;onlyPositive:false;color:#111111;fontSize:18;axisWidth:1;gridWidth:0.1");
+SetGeneralStyle("background-color:#F8F8F8;degree:true;dragmoveable:true");
