@@ -7,6 +7,10 @@ import { evaluateAtX, type ExpressionFormula } from "./expression_object";
 
 const SAMPLES_MIN = 2;
 const SAMPLES_MAX = 2000;
+// Screen gap (px) below which two samples are joined without looking closer,
+// and bisection depth after which a gap that still hasn't closed is a jump.
+const CONTINUITY_GAP = 1;
+const JUMP_DEPTH = 20;
 
 // A plotted y = f(x) curve (DGPad's Curvus/CartesianFunction). Unlike
 // locus_object (which samples a driver point's position, a genuine
@@ -20,6 +24,8 @@ export class curve_object extends construction_object {
     min: number | null;
     max: number | null;
     screenPoints: (Vec2 | null)[] = [];
+    // Whether the curve is continuous between screenPoints[i] and [i + 1].
+    private links: boolean[] = [];
     // The x sampled at screenPoints[0] and the x step between consecutive
     // samples, from the last project() — lets alphaAtScreen turn a segment
     // index back into an x, and is 0/0 (harmlessly) whenever the domain was
@@ -64,18 +70,29 @@ export class curve_object extends construction_object {
         );
         const screenPoints: (Vec2 | null)[] = [];
         const step = hi > lo ? (hi - lo) / (count - 1) : 0;
-        if (hi > lo) {
-            for (let i = 0; i < count; i++) {
-                const x = lo + i * step;
-                const y = realPart(evaluateAtX(this.formula, x, unit));
-                if (y === null) {
-                    screenPoints.push(null);
-                    continue;
-                }
-                const screen = this.C.pt3D([x, y, 0]);
-                screenPoints.push(vIsFinite(screen) ? screen : null);
-            }
-        }
+        if (hi > lo)
+            for (let i = 0; i < count; i++)
+                screenPoints.push(this.screenAt(lo + i * step, unit));
+        this.links = screenPoints.slice(1).map((end, i) => {
+            const start = screenPoints[i];
+            if (!start || !end) return false;
+            const before = screenPoints[i - 1];
+            const after = screenPoints[i + 2];
+            // A step that its neighbours' average predicts is smooth: no need
+            // to evaluate the formula any further.
+            if (
+                before &&
+                after &&
+                Math.hypot(
+                    end[0] - start[0] - (after[0] - before[0]) / 3,
+                    end[1] - start[1] - (after[1] - before[1]) / 3,
+                ) <=
+                    CONTINUITY_GAP / 2
+            )
+                return true;
+            const x = lo + i * step;
+            return this.continuous(x, start, x + step, end, unit, JUMP_DEPTH);
+        });
         this.screenPoints = screenPoints;
         this.sampleLo = lo;
         this.sampleStep = step;
@@ -152,19 +169,47 @@ export class curve_object extends construction_object {
         return x === null ? null : this.pointAt(x);
     }
 
-    // Same "screen jump too large to be the real curve" heuristic as
-    // locus_object.isConnected, needed here for the same reason: a genuine
-    // discontinuity (e.g. an asymptote) samples two adjacent, finite but
-    // very distant points rather than a null gap.
+    private screenAt(x: number, unit: number): Vec2 | null {
+        const y = realPart(evaluateAtX(this.formula, x, unit));
+        if (y === null) return null;
+        const screen = this.C.pt3D([x, y, 0]);
+        return vIsFinite(screen) ? screen : null;
+    }
+
+    // Unlike DGPad, which joins every pair of samples, a jump (floor, an
+    // asymptote…) isn't drawn as a vertical segment. Between two distant
+    // samples, a continuous curve, however steep, soon looks straight once
+    // bisected, whereas a jump keeps its whole gap in one half at any depth.
+    private continuous(
+        x0: number,
+        p0: Vec2,
+        x1: number,
+        p1: Vec2,
+        unit: number,
+        depth: number,
+    ): boolean {
+        if (Math.hypot(p1[0] - p0[0], p1[1] - p0[1]) <= CONTINUITY_GAP)
+            return true;
+        if (depth === 0) return false;
+        const xm = (x0 + x1) / 2;
+        const pm = this.screenAt(xm, unit);
+        if (!pm) return false;
+        if (
+            Math.hypot(
+                pm[0] - (p0[0] + p1[0]) / 2,
+                pm[1] - (p0[1] + p1[1]) / 2,
+            ) <=
+            CONTINUITY_GAP / 2
+        )
+            return true;
+        return Math.hypot(pm[0] - p0[0], pm[1] - p0[1]) >
+            Math.hypot(p1[0] - pm[0], p1[1] - pm[1])
+            ? this.continuous(x0, p0, xm, pm, unit, depth - 1)
+            : this.continuous(xm, pm, x1, p1, unit, depth - 1);
+    }
+
     private isConnected(index: number): boolean {
-        const start = this.screenPoints[index];
-        const end = this.screenPoints[index + 1];
-        return !!(
-            start &&
-            end &&
-            Math.hypot(end[0] - start[0], end[1] - start[1]) <=
-                2 * (this.C.width + this.C.height)
-        );
+        return this.links[index];
     }
 
     render(): void {

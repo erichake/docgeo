@@ -37,6 +37,10 @@ obtenus dans DGPad avec la figure ouverte. Ne pas hésiter à implémenter
 autrement ou mieux (calcul plus robuste, plus simple, compatible 3D, etc.), du
 moment que le résultat reste conforme à ce que produit DGPad.
 
+Exception : là où le rendu de DGPad est mathématiquement faux, on ne le
+reproduit pas. Ainsi, une courbe de fonction n'est pas reliée par un trait
+vertical à ses discontinuités (`floor`, asymptotes…), contrairement à DGPad.
+
 ### Import GeoGebra
 
 Le `geogebra.xml` d'un `.ggb` est traduit en commandes DGP

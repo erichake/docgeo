@@ -383,6 +383,18 @@ ${[
         expect((c.getObj("f") as curve_object).pointAt(2)![1]).toBeCloseTo(11);
     });
 
+    it("imports functions using floor and abs", async () => {
+        const c = createConstruction();
+
+        expect(importGgb(c, await loadXml("_fonctions"))).toEqual([]);
+        const y = (label: string, x: number) =>
+            (c.getObj(label) as curve_object).pointAt(x)![1];
+        expect(y("f", 2)).toBeCloseTo(1.4 * Math.floor(1.4 * 1.1) + 0.4);
+        expect(y("f", 0)).toBeCloseTo(1.4 * Math.floor(-0.6 * 1.1) + 0.4);
+        expect(y("f3", 0)).toBeCloseTo(1.4 * 0.6 * 1.1 + 0.4);
+        expect(y("f3", 2)).toBeCloseTo(1.4 * 1.4 * 1.1 + 0.4);
+    });
+
     it("keeps function×line intersections on both as the line moves", async () => {
         const c = createConstruction();
         importGgb(c, await loadXml("fonction_inter"));

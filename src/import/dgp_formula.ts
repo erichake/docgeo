@@ -23,6 +23,8 @@ export type FormulaFn =
     | "acos"
     | "atan"
     | "atan2"
+    | "abs"
+    | "floor"
     | "arg"
     | "perp"
     | "cross"
@@ -41,6 +43,8 @@ const FORMULA_ARITY: Record<FormulaFn, number> = {
     acos: 1,
     atan: 1,
     atan2: 2,
+    abs: 1,
+    floor: 1,
     arg: 1,
     perp: 1,
     cross: 2,
@@ -644,6 +648,10 @@ function evalCall(
             const rb = realPart(b);
             return ra === null || rb === null ? null : Math.atan2(ra, rb);
         }
+        case "abs":
+            return realUnary(Math.abs, args[0]);
+        case "floor":
+            return realUnary(Math.floor, args[0]);
         // DGPad's arg, within [0, 2π).
         case "arg": {
             const [a] = args;

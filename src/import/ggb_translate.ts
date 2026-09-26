@@ -82,6 +82,8 @@ const FUNCTIONS: Record<string, string> = {
     atan: "atan",
     arctan: "atan",
     atan2: "atan2",
+    abs: "abs",
+    floor: "floor",
     x: "x",
     y: "y",
 };

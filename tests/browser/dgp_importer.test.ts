@@ -607,6 +607,30 @@ P=PointOn("P",poly,0.5);`,
         expect(m.coords[1]).toBeCloseTo(targetY, 1);
     });
 
+    it("breaks a Curvus curve at its jumps, not where it is only steep", async () => {
+        const c = createConstruction();
+        await importDgpFromUrl(c, "/tests/dgp/_floor.dgp");
+        importDgp(
+            c,
+            `E2=Expression("E2","","","","1/(x-0.3)","0","0");
+f2=Curvus("f2","","","E2(x)");
+E3=Expression("E3","","","","atan(1000(x-0.3))+x^3","0","0");
+f3=Curvus("f3","","","E3(x)");`,
+        );
+        c.OBJS.update();
+        const pieces = (name: string) =>
+            c
+                .getObj(name)!
+                .dom.dom()
+                .lastElementChild!.getAttribute("d")!
+                .match(/M/g)!.length;
+
+        const [lo, hi] = (c.getObj("f1") as curve_object).domain();
+        expect(pieces("f1")).toBe(Math.floor(hi) - Math.floor(lo) + 1);
+        expect(pieces("f2")).toBe(2);
+        expect(pieces("f3")).toBe(1);
+    });
+
     it("magnetizes a free point onto a Curvus curve", () => {
         const c = createConstruction();
         importDgp(

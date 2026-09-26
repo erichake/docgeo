@@ -1,0 +1,14 @@
+// Coordinates System :
+SetCoords(400,285.5,40,false,800,572);
+
+
+// Geometry :
+E1=Expression("E1","","","","floor(x)","-8.75","4.1375");
+f1=Curvus("f1","","","E1(x)");
+
+
+// Styles :
+STL(E1,"c:#3a150f;s:7;f:24;p:2;cL:200;cPT:YzojNzgwMDEzO3M6MTA7ZjozMA==");
+STL(f1,"c:#3a150f;s:1;f:30;p:0");
+SetCoordsStyle("isAxis:true;isGrid:true;isOx:true;isOy:true;isLockOx:false;isLockOy:false;centerZoom:false;onlyPositive:false;color:#111111;fontSize:18;axisWidth:1;gridWidth:0.1");
+SetGeneralStyle("background-color:#F8F8F8;degree:true;dragmoveable:true");
