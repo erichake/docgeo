@@ -13,11 +13,12 @@ import { vNorm, vSub, type Vec3 } from "./vec";
 
 // Returns what the figure uses that couldn't be imported.
 export function importGgb(c: construction, xml: string): string[] {
-    const { calls, targets, handles, unsupported, view3D } = translateGgb(xml);
+    const { calls, targets, handles, unsupported, is3D, view3D } =
+        translateGgb(xml);
     // First, since sliders are placed with the camera's unit.
     if (view3D) applyView3D(c, view3D);
     c.segmentsOverPolygons = true;
-    const executed = executeDgpCommands(c, calls, view3D !== undefined);
+    const executed = executeDgpCommands(c, calls, is3D);
     const variables = executed.variables;
     handles.forEach((numbers, variable) =>
         (variables.get(variable) as formula_point_object).setHandles(

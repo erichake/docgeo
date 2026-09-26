@@ -823,17 +823,31 @@ function applyCursorStyle(target: expression_object, value: string): void {
 
 function applyCoordsStyle(context: CommandContext, value: string): void {
     const style = properties(value);
-    const isAxis = style.get("isAxis");
-    if (isAxis !== undefined) {
-        const visible = isAxis === "true";
-        context.construction.GRID.hidden = visible ? 0 : 1;
-        context.construction.GRID.SHOWFLOOR = visible;
-    }
+    const grid = context.construction.GRID;
+    const flag = (name: string, apply: (value: boolean) => void) => {
+        const value = style.get(name);
+        if (value !== undefined) apply(value === "true");
+    };
+    const size = (name: string, apply: (value: number) => void) => {
+        const value = style.get(name);
+        if (value !== undefined) apply(Number(value));
+    };
+    flag("isAxis", (visible) => {
+        grid.hidden = visible ? 0 : 1;
+        grid.SHOWFLOOR = visible;
+    });
+    flag("isGrid", (value) => (grid.showGrid = value));
+    flag("isOx", (value) => (grid.showOx = value));
+    flag("isOy", (value) => (grid.showOy = value));
+    flag("isLockOx", (value) => (grid.lockOx = value));
+    flag("isLockOy", (value) => (grid.lockOy = value));
+    flag("centerZoom", (value) => (grid.centerZoom = value));
+    flag("onlyPositive", (value) => (grid.onlyPositive = value));
     const color = style.get("color");
-    if (color !== undefined) context.construction.GRID.stroke_color = color;
-    const axisWidth = style.get("axisWidth");
-    if (axisWidth !== undefined)
-        context.construction.GRID.size = Number(axisWidth);
+    if (color !== undefined) grid.stroke_color = color;
+    size("fontSize", (value) => (grid.fontSize = value));
+    size("axisWidth", (value) => (grid.size = value));
+    size("gridWidth", (value) => (grid.gridWidth = value));
     context.gridChanged = true;
 }
 
@@ -2173,6 +2187,11 @@ export function executeDgpCommands(
         if (call.variable)
             context.variables.set(call.variable, result as construction_object);
     });
+    if (!context.is3D) {
+        c.GRID.is2D = true;
+        c.GRID.SHOWFLOOR = false;
+        context.gridChanged = true;
+    }
     if (context.gridChanged) c.GRID.createSVG();
     c.endBatch();
     if (context.projectionChanged) c.invalidateProjection();

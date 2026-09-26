@@ -383,6 +383,20 @@ ${[
         expect((c.getObj("f") as curve_object).pointAt(2)![1]).toBeCloseTo(11);
     });
 
+    it("shows GeoGebra's grid and axes with DGPad's coordinate system", async () => {
+        const plane = createConstruction();
+        importGgb(plane, await loadXml("_3carres"));
+        expect(plane.GRID.is2D).toBe(true);
+        expect(plane.GRID.isVisible).toBe(true);
+        expect(plane.GRID.showGrid).toBe(true);
+        expect(plane.GRID.showOx).toBe(false);
+        expect(plane.GRID.showOy).toBe(false);
+
+        const space = createConstruction();
+        importGgb(space, await loadXml("3d_plan"));
+        expect(space.GRID.is2D).toBe(false);
+    });
+
     it("imports functions using floor and abs", async () => {
         const c = createConstruction();
 

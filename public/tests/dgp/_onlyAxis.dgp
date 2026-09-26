@@ -1,0 +1,16 @@
+// Coordinates System :
+SetCoords(279.4732253007669,254.42547323782128,24.961420989374474,false,800,572);
+
+
+// Geometry :
+C=Point("C",-4.185387736749396,2.460816363938926);
+A=Point("A",6.75148961956017,-3.668642374212589);
+B=Point("B",7.07198419410404,4.183474702112227);
+
+
+// Styles :
+STL(C,"c:#0000b2;s:6;sn:true;f:30");
+STL(A,"c:#0000b2;s:6;sn:true;f:30");
+STL(B,"c:#0000b2;s:6;sn:true;f:30");
+SetCoordsStyle("isAxis:true;isGrid:true;isOx:true;isOy:true;isLockOx:false;isLockOy:false;centerZoom:false;onlyPositive:false;color:#111111;fontSize:18;axisWidth:1;gridWidth:0.1");
+SetGeneralStyle("background-color:#F8F8F8;degree:true;dragmoveable:true");

@@ -44,6 +44,8 @@ export interface GgbTranslation {
     // changeableNumber).
     handles: Map<string, [string | null, string | null]>;
     unsupported: string[];
+    // Whether the figure has 3D objects.
+    is3D: boolean;
     // Present for a 3D figure: its camera (see applyView3D in
     // ggb_importer.ts).
     view3D?: GgbView3D;
@@ -2314,9 +2316,20 @@ export function translateGgb(xml: string): GgbTranslation {
         ]);
     if (styledView) {
         const axesColor = child(styledView, "axesColor");
+        const axes = attribute(styledView, "evSettings", "axes") === "true";
+        const grid = attribute(styledView, "evSettings", "grid") === "true";
+        const axisShown = (id: string): boolean =>
+            axes &&
+            [...styledView.children]
+                .find(
+                    (item) =>
+                        item.tagName === "axis" &&
+                        item.getAttribute("id") === id,
+                )
+                ?.getAttribute("show") !== "false";
         push(null, "SetCoordsStyle", [
             literal(
-                `isAxis:${attribute(styledView, "evSettings", "axes") === "true"}${
+                `isAxis:${axes || (grid && !is3D)};isGrid:${grid};isOx:${axisShown("0")};isOy:${axisShown("1")}${
                     axesColor ? `;color:${hexColor(axesColor)}` : ""
                 }`,
             ),
@@ -2413,5 +2426,5 @@ export function translateGgb(xml: string): GgbTranslation {
             push(null, "STL", [ref(label), literal(`h:0;sc:${condition}`)]);
     });
 
-    return { calls, targets, handles, unsupported, view3D: camera };
+    return { calls, targets, handles, unsupported, is3D, view3D: camera };
 }

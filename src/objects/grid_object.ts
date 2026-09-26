@@ -8,6 +8,7 @@ import {
     type ProjectionFrame,
 } from "../projection";
 import { vNormalize, type Vec2, type Vec3 } from "../vec";
+import { axes_2d } from "./axes_2d";
 import { construction_object } from "./construction_object";
 import { floorClipPath } from "./floor_occlusion";
 import { point_object } from "./point_object";
@@ -67,6 +68,20 @@ export class grid_object extends construction_object {
     // is handled separately, by floor_occlusion.ts's exact per-face clip —
     // hidden_line.ts only ever dashes wireframe edges, never fills areas.
     floorOccluder!: polygon_object;
+    // A figure without 3D objects: seen from above only, with DGPad's
+    // plane coordinate system instead of the trihedron and the floor.
+    is2D = false;
+    showGrid = true;
+    showOx = true;
+    showOy = true;
+    onlyPositive = false;
+    // Ox (resp. Oy) stays put vertically (resp. horizontally) on pan and
+    // zoom.
+    lockOx = false;
+    lockOy = false;
+    centerZoom = false;
+    gridWidth = 0.1;
+    private axes2D!: axes_2d;
     // Defaults to shown, matching the default-visible axis (isAxis defaults
     // to true); applyCoordsStyle keeps the two in sync when isAxis is set
     // explicitly. Independent of the axis afterwards: 's' toggles it even
@@ -84,6 +99,7 @@ export class grid_object extends construction_object {
         this.ORG = [c.width / 2, c.height / 2];
         this.STEP = pref.step;
         this.FOCAL = pref.focal;
+        this.fontSize = 18;
     }
 
     // Separate from the constructor because a real polygon_object's project()
@@ -150,6 +166,16 @@ export class grid_object extends construction_object {
     // *************************************************
 
     render(): void {
+        this.axes2D.dom.stl(
+            "display",
+            this.is2D && this.isVisible ? "block" : "none",
+        );
+        if (this.is2D) {
+            this.axis.stl("display", "none");
+            if (this.isVisible) this.axes2D.render(this);
+            this.renderFloor();
+            return;
+        }
         const v = this.screenIJK;
         let d = "M" + this.ORG[0] + " " + this.ORG[1];
         d += " L" + v[0][0] + " " + v[0][1];
@@ -280,6 +306,8 @@ export class grid_object extends construction_object {
             .stl("stroke-width", t.size)
             .stl("cursor:pointer");
         dom.add(t.axis);
+        t.axes2D = new axes_2d(t.svg);
+        dom.add(t.axes2D.dom);
         return dom;
     }
 }

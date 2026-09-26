@@ -10,6 +10,11 @@ import {
 } from "./projection";
 import type { Vec2, Vec3 } from "./vec";
 
+// Zoom bounds, in pixels per unit: beyond them, graduations would outgrow
+// the precision of their labels.
+const MIN_UNIT = 1e-3;
+const MAX_UNIT = 1e8;
+
 export interface DgpadLike {
     prefs: preferences;
 }
@@ -52,6 +57,7 @@ export class construction {
     mouseclick(_ev: PointerEvent): void {}
 
     keydown(ev: KeyboardEvent): void {
+        if (this.GRID.is2D) return;
         if (ev.key === "p" || ev.key === "P") {
             this.GRID.PERSPECTIVE = !this.GRID.PERSPECTIVE;
             this.invalidateProjection();
@@ -64,7 +70,9 @@ export class construction {
         }
     }
 
-    mousedrag(_ev: PointerEvent, [dx, dy]: PointerDelta): void {
+    mousedrag(ev: PointerEvent, delta: PointerDelta): void {
+        if (this.GRID.is2D) return this.pan(ev, delta);
+        const [dx, dy] = delta;
         const rt = this.GRID.RESTRICT_THETA;
         const rp = this.GRID.RESTRICT_PHI;
         this.GRID.THETA = Math.max(
@@ -79,7 +87,10 @@ export class construction {
     }
 
     pan(_event: PointerEvent, [dx, dy]: PointerDelta): void {
-        this.GRID.ORG = [this.GRID.ORG[0] + dx, this.GRID.ORG[1] + dy];
+        this.GRID.ORG = [
+            this.GRID.ORG[0] + (this.GRID.lockOy ? 0 : dx),
+            this.GRID.ORG[1] + (this.GRID.lockOx ? 0 : dy),
+        ];
         this.invalidateProjection();
     }
 
@@ -91,10 +102,17 @@ export class construction {
                 : event.deltaMode === WheelEvent.DOM_DELTA_PAGE
                   ? this.height
                   : 1);
-        const scale = Math.exp(-delta / 2000);
-        const [x, y] = this.svg.svgPoint(event);
-        const [ox, oy] = this.GRID.ORG;
         const [ux, uy, uz] = this.GRID.UNIT;
+        const scale =
+            Math.min(
+                Math.max(ux * Math.exp(-delta / 2000), MIN_UNIT),
+                MAX_UNIT,
+            ) / ux;
+        const [ox, oy] = this.GRID.ORG;
+        const { centerZoom, lockOx, lockOy } = this.GRID;
+        const [px, py] = this.svg.svgPoint(event);
+        const x = centerZoom || lockOy ? ox : px;
+        const y = centerZoom || lockOx ? oy : py;
         this.GRID.ORG = [x + (ox - x) * scale, y + (oy - y) * scale];
         this.GRID.UNIT = [ux * scale, uy * scale, uz * scale];
         this.invalidateProjection();
@@ -197,7 +215,8 @@ export class construction {
             return;
         this.viewportWidth = width;
         this.viewportHeight = height;
-        this.GRID.ORG = [width / 2, height / 2];
+        // As in DGPad, a plane figure keeps its origin where it was.
+        if (!this.GRID.is2D) this.GRID.ORG = [width / 2, height / 2];
         this.invalidateProjection();
     }
 

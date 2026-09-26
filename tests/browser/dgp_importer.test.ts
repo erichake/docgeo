@@ -452,6 +452,53 @@ P=PointOn("P",poly,0.5);`,
         expect(c.getObj("Center32")).toBeInstanceOf(point_object);
     });
 
+    it("draws DGPad's plane coordinate system for a figure without 3D objects", async () => {
+        const c = createConstruction();
+        await importDgpFromUrl(c, "/tests/dgp/_onlyAxis.dgp");
+        const labels = () =>
+            [...c.GRID.dom.dom().querySelectorAll("text")]
+                .filter((text) => (text as SVGElement).style.display !== "none")
+                .map((text) => text.textContent);
+
+        expect(c.GRID.is2D).toBe(true);
+        expect(c.GRID.SHOWFLOOR).toBe(false);
+        expect(labels()).toContain("5");
+        expect(labels()).toContain("-5");
+        expect(labels()).not.toContain("0");
+        labels().forEach((label) =>
+            expect(Math.abs(Number(label) % 5)).toBe(0),
+        );
+
+        const svg = c.svg.dom();
+        const origin = [...c.GRID.ORG];
+        const phi = c.GRID.PHI;
+        const pointer = (
+            type: "pointerdown" | "pointermove" | "pointerup",
+            x: number,
+            y: number,
+        ) =>
+            new PointerEvent(type, {
+                bubbles: true,
+                button: 2,
+                clientX: x,
+                clientY: y,
+                isPrimary: true,
+                pointerId: 1,
+                pointerType: "mouse",
+            });
+        svg.dispatchEvent(pointer("pointerdown", 100, 100));
+        svg.dispatchEvent(pointer("pointermove", 130, 90));
+        svg.dispatchEvent(pointer("pointerup", 130, 90));
+        expect(c.GRID.PHI).toBe(phi);
+        expect(c.GRID.ORG).toEqual([origin[0] + 30, origin[1] - 10]);
+
+        // The origin far outside the window: graduations stay on its edges.
+        c.GRID.ORG = [-20000, c.height + 20000];
+        c.invalidateProjection();
+        c.OBJS.update();
+        expect(labels().length).toBeGreaterThan(4);
+    });
+
     it("imports the legacy fake-3D cube, pinning its origin and axes", async () => {
         const c = createConstruction();
         await importDgpFromUrl(c, "/tests/dgp/_Cube.dgp");
