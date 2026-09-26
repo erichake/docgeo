@@ -647,6 +647,7 @@ function validateObjectStyle(
                     if (
                         kind !== "line" &&
                         kind !== "circle" &&
+                        kind !== "quadric" &&
                         kind !== "list" &&
                         kind !== "curve" &&
                         kind !== "point" &&
@@ -873,6 +874,88 @@ function applyGeneralStyle(c: construction, value: string): void {
     if (background === undefined) return;
     c.prefs.background.color = background;
     c.svg.stl("background", background);
+}
+
+function validateExpression(
+    args: DgpValue[],
+    lineNumber: number,
+    variables: Map<string, ObjectKind>,
+): void {
+    const bound = (value: DgpValue): boolean => {
+        const source = literalString(value);
+        return source === "" || evaluateConstantFormula(source) !== null;
+    };
+    if (!bound(args[2]) || !bound(args[3]))
+        throw new Error(`Invalid DGP expression bound at line ${lineNumber}`);
+    const source = literalString(args[4]);
+    if (parseExpressionValue(source) !== null) return;
+    const program = tryParseProgram(source);
+    if (!program)
+        throw new Error(`Unsupported DGP expression at line ${lineNumber}`);
+    const fn = functionFormula(program, variables);
+    if (fn)
+        validateFunctionFormulaReferences(
+            fn.node,
+            fn.variables,
+            variables,
+            lineNumber,
+        );
+    else validateProgramReferences(program, variables, lineNumber);
+}
+
+function executeExpression(
+    context: CommandContext,
+    args: RuntimeValue[],
+    screen: Vec2,
+): expression_object {
+    const min = args[2] as string;
+    const max = args[3] as string;
+    const source = args[4] as string;
+    const constant = parseExpressionValue(source);
+    let formula: ExpressionFormula | null = null;
+    let program: ExpressionProgram | null = null;
+    if (constant === null) {
+        const parsed = parseProgram(source);
+        const fn = functionFormula(parsed, context.variables);
+        if (fn) {
+            formula = {
+                ...fn,
+                source,
+                refs: pointFormulaRefs(
+                    functionReferences(fn.node, fn.variables),
+                    context.variables,
+                ),
+                vec3: context.is3D,
+            };
+        } else {
+            program = {
+                program: parsed,
+                refs: pointFormulaRefs(
+                    programReferences(parsed),
+                    context.variables,
+                ),
+                targets: new Map(
+                    [...programTargets(parsed)].map((name) => [
+                        name,
+                        context.variables.get(name)!,
+                    ]),
+                ),
+                vec3: context.is3D,
+            };
+            applyViewRestrictions(context, parsed);
+        }
+    }
+    return createExpression(
+        context.construction,
+        args[0] as string,
+        args[1] as string,
+        constant,
+        min === "" ? null : evaluateConstantFormula(min),
+        max === "" ? null : evaluateConstantFormula(max),
+        screen,
+        formula,
+        program,
+    );
 }
 
 const COMMANDS = new Map<string, CommandDefinition>([
@@ -1716,39 +1799,7 @@ const COMMANDS = new Map<string, CommandDefinition>([
             ],
             result: "expression",
             validate: (args, lineNumber, variables) => {
-                const bound = (value: DgpValue): boolean => {
-                    const source = literalString(value);
-                    return (
-                        source === "" ||
-                        evaluateConstantFormula(source) !== null
-                    );
-                };
-                if (!bound(args[2]) || !bound(args[3]))
-                    throw new Error(
-                        `Invalid DGP expression bound at line ${lineNumber}`,
-                    );
-                const source = literalString(args[4]);
-                if (parseExpressionValue(source) === null) {
-                    const program = tryParseProgram(source);
-                    if (!program)
-                        throw new Error(
-                            `Unsupported DGP expression at line ${lineNumber}`,
-                        );
-                    const fn = functionFormula(program, variables);
-                    if (fn)
-                        validateFunctionFormulaReferences(
-                            fn.node,
-                            fn.variables,
-                            variables,
-                            lineNumber,
-                        );
-                    else
-                        validateProgramReferences(
-                            program,
-                            variables,
-                            lineNumber,
-                        );
-                }
+                validateExpression(args, lineNumber, variables);
                 if (
                     !STYLE_NUMBER.test(literalString(args[5])) ||
                     !STYLE_NUMBER.test(literalString(args[6]))
@@ -1758,8 +1809,6 @@ const COMMANDS = new Map<string, CommandDefinition>([
                     );
             },
             execute: (context, args) => {
-                const min = args[2] as string;
-                const max = args[3] as string;
                 // Unlike geometric objects, an expression's position is a
                 // fixed window (screen) coordinate, not a projected math
                 // point: DGPad stores it in world units only so it survives
@@ -1772,55 +1821,42 @@ const COMMANDS = new Map<string, CommandDefinition>([
                 const grid = context.construction.GRID;
                 const x = Number(args[5] as string);
                 const y = Number(args[6] as string);
-                const source = args[4] as string;
-                const constant = parseExpressionValue(source);
-                let formula: ExpressionFormula | null = null;
-                let program: ExpressionProgram | null = null;
-                if (constant === null) {
-                    const parsed = parseProgram(source);
-                    const fn = functionFormula(parsed, context.variables);
-                    if (fn) {
-                        formula = {
-                            ...fn,
-                            source,
-                            refs: pointFormulaRefs(
-                                functionReferences(fn.node, fn.variables),
-                                context.variables,
-                            ),
-                            vec3: context.is3D,
-                        };
-                    } else {
-                        program = {
-                            program: parsed,
-                            refs: pointFormulaRefs(
-                                programReferences(parsed),
-                                context.variables,
-                            ),
-                            targets: new Map(
-                                [...programTargets(parsed)].map((name) => [
-                                    name,
-                                    context.variables.get(name)!,
-                                ]),
-                            ),
-                            vec3: context.is3D,
-                        };
-                        applyViewRestrictions(context, parsed);
-                    }
-                }
-                return createExpression(
-                    context.construction,
-                    args[0] as string,
-                    args[1] as string,
-                    constant,
-                    min === "" ? null : evaluateConstantFormula(min),
-                    max === "" ? null : evaluateConstantFormula(max),
-                    [
-                        context.labelOrigin[0] + x * grid.UNIT[0],
-                        context.labelOrigin[1] - y * grid.UNIT[1],
-                    ],
-                    formula,
-                    program,
-                );
+                return executeExpression(context, args, [
+                    context.labelOrigin[0] + x * grid.UNIT[0],
+                    context.labelOrigin[1] - y * grid.UNIT[1],
+                ]);
+            },
+        },
+    ],
+    [
+        // An Expression attached to a point: it follows the point, drawn at
+        // a fixed pixel offset from it.
+        "ExpressionOn",
+        {
+            parameters: [
+                string,
+                string,
+                string,
+                string,
+                string,
+                point,
+                numberOrPair,
+            ],
+            result: "expression",
+            validate: (args, lineNumber, variables) => {
+                validateExpression(args, lineNumber, variables);
+                if (args[6].type !== "array")
+                    throw new Error(
+                        `Invalid DGP expression position at line ${lineNumber}`,
+                    );
+            },
+            execute: (context, args) => {
+                const expression = executeExpression(context, args, [0, 0]);
+                expression.anchor = args[5] as point_object;
+                const [dx, dy] = args[6] as number[];
+                expression.alpha = [dx, dy];
+                expression.addParents(expression.anchor);
+                return expression;
             },
         },
     ],

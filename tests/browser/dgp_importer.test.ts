@@ -18,6 +18,7 @@ import { locus_object } from "../../src/objects/locus_object";
 import { point_on_object } from "../../src/objects/point_on_object";
 import { point_object } from "../../src/objects/point_object";
 import { polygon_object } from "../../src/objects/polygon_object";
+import type { quadric5pts_object } from "../../src/objects/quadric5pts_object";
 import { symmetry_object } from "../../src/objects/symmetry_object";
 import { text_object } from "../../src/objects/text_object";
 import { two_points_line_object } from "../../src/objects/two_points_line_object";
@@ -1160,6 +1161,39 @@ C1=Circle1("C1",A,"d(A,Z)");`,
         c.invalidateProjection();
         c.OBJS.update();
         expect(poly5.opacity).toBe(0.95);
+    });
+
+    it("anchors ExpressionOn to its point and magnetizes points to a quadric", async () => {
+        const c = createConstruction();
+        const unsupported = await importDgpFromUrl(c, "/tests/dgp/pappus.dgp");
+        expect(unsupported).toEqual([]);
+
+        // "xA=ExpressionOn(...,P1,[20,-20])" is drawn 20px right of and
+        // 20px above P1, and follows it.
+        const xA = c.getObj("xA") as expression_object;
+        const p1 = c.getObj("P1") as point_object;
+        expect(xA.screen).toEqual([p1.sx + 20, p1.sy - 20]);
+        const [clientX, clientY] = c.pt3D([-28, 10, 0]);
+        p1.mousedrag(new PointerEvent("pointermove", { clientX, clientY }));
+        c.OBJS.update();
+        expect(xA.screen).toEqual([p1.sx + 20, p1.sy - 20]);
+
+        // The lemma: [M, N, P] = Produit1 - Produit2.
+        const mnp = c.getObj("MNP") as expression_object;
+        const lemme = c.getObj("lemme") as expression_object;
+        expect(mnp.value as number).toBeCloseTo(lemme.value as number, 9);
+
+        // "mg:[Quad,20],[L11,20]": C1 dropped next to the conic lands on it.
+        const quad = c.getObj("Quad") as quadric5pts_object;
+        const c1 = c.getObj("C1") as point_object;
+        const onQuad = quad.projectPoint([-3, -9, 0]);
+        const [qx, qy] = c.pt3D(onQuad);
+        c1.mousedrag(
+            new PointerEvent("pointermove", { clientX: qx + 5, clientY: qy }),
+        );
+        c.OBJS.update();
+        expect(quad.projectPoint(c1.coords)[0]).toBeCloseTo(c1.x, 9);
+        expect(quad.projectPoint(c1.coords)[1]).toBeCloseTo(c1.y, 9);
     });
 
     it("calls function Expressions of z on complex numbers from scripts", async () => {

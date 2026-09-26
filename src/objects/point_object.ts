@@ -17,6 +17,7 @@ import type { curve_object } from "./curve_object";
 import type { list_object } from "./list_object";
 import { primitive_circle_object } from "./primitive_circle_object";
 import { primitive_line_object } from "./primitive_line_object";
+import { primitive_quadric_object } from "./primitive_quadric_object";
 import { ray_line_object } from "./ray_line_object";
 import { segment_object } from "./segment_object";
 import { two_points_line_object } from "./two_points_line_object";
@@ -24,6 +25,7 @@ import { two_points_line_object } from "./two_points_line_object";
 export type magnet_target =
     | primitive_line_object
     | primitive_circle_object
+    | primitive_quadric_object
     | list_object
     | curve_object
     | point_object;
@@ -50,6 +52,8 @@ function projectOntoMagnet(target: magnet_target, point: Vec3): Vec3 {
         return (target as curve_object).nearestPoint(point) ?? point;
     if (target instanceof primitive_circle_object)
         return target.pointAt(target.alphaOf(point));
+    if (target instanceof primitive_quadric_object)
+        return target.projectPoint(point);
     if (target instanceof two_points_line_object) {
         const direction = vSub(target.P2.coords, target.P1.coords);
         let alpha =

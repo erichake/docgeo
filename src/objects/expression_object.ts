@@ -166,7 +166,7 @@ export function evaluateFunction(
 // SetCoords at the time the figure was saved) and never moves it — not on
 // pan/zoom, not on a 3D rotation drag, only via an explicit drag of the
 // label itself (unsupported here) or by anchoring it to a point. So `screen`
-// is computed once by the caller and never re-projected.
+// is computed once by the caller and only re-projected along its anchor.
 export class expression_object extends construction_object {
     text: string;
     value: ScriptValue | null;
@@ -189,6 +189,9 @@ export class expression_object extends construction_object {
     // cursorColor at that opacity instead.
     cursorOpacity: number;
     screen: Vec2;
+    // ExpressionOn: `screen` follows this point, `alpha` pixels away.
+    anchor: point_object | null = null;
+    alpha: Vec2 = [0, 0];
     private knobX = 0;
     private valueText!: DOMElement;
     private cursor?: DOMElement;
@@ -242,6 +245,11 @@ export class expression_object extends construction_object {
     }
 
     project(): void {
+        if (this.anchor)
+            this.screen = [
+                this.anchor.sx + this.alpha[0],
+                this.anchor.sy + this.alpha[1],
+            ];
         if (this.viewDependent) this.evaluateProgram();
     }
 
