@@ -790,6 +790,8 @@ export function translateGgb(
                     result += `${name}(`;
                     index++;
                 } else if (word === "π" || word === "pi") result += "π";
+                // GeoGebra's imaginary unit.
+                else if (word === "ί") result += "i";
                 else if (locals.has(word)) result += `(${locals.get(word)})`;
                 else if (is(word, kinds)) result += objects.get(word)!.variable;
                 else return null;
@@ -2294,6 +2296,82 @@ export function translateGgb(
                     `${objectStyle(element, "list")}${ends.length === 1 && size ? `;s:${size}` : ""}`,
             );
         },
+        // IterationList(f(z), z, {s}, n): s, f(s), f(f(s)), … n times,
+        // computed by a hidden Expression's script.
+        IterationList: (
+            [expression, variable, start, count, extra],
+            [label],
+        ) => {
+            const s = formula(start.replace(/^\{(.*)\}$/, "$1"), VALUE_KINDS);
+            const n = formula(count ?? "", VALUE_KINDS);
+            const f = formula(
+                expression,
+                VALUE_KINDS,
+                new Map([[variable, "$t[$n]"]]),
+            );
+            if (extra !== undefined || s === null || n === null || f === null)
+                return false;
+            const terms = auxiliary();
+            define(
+                terms,
+                "expression",
+                "Expression",
+                [
+                    "",
+                    "",
+                    "",
+                    `var $t=[${s}];for(var $n=0;$n<${n};$n++){$t.push(${f})};$t`,
+                    "0",
+                    "0",
+                ].map(literal),
+                "h:1",
+            );
+            const list = {
+                count: `(${n})+1`,
+                item: (k: string) =>
+                    `${objects.get(terms)!.variable}[(${k})-1]`,
+            };
+            lists.set(label, list);
+            const element = elements.get(label);
+            const size = element && attribute(element, "pointSize", "val");
+            return define(
+                label,
+                "list",
+                "List",
+                [
+                    literal("point"),
+                    literal(list.count),
+                    literal(list.item("k+1")),
+                ],
+                element &&
+                    `${objectStyle(element, "list")}${size ? `;s:${size}` : ""}`,
+            );
+        },
+        // An input box of a number, at its top left corner.
+        Textfield: ([linked, extra], [label]) => {
+            const element = elements.get(label);
+            if (!element || extra !== undefined || !is(linked, ["expression"]))
+                return false;
+            const [x, y] = screenPosition(
+                Number(attribute(element, "labelOffset", "x") ?? 0),
+                Number(attribute(element, "labelOffset", "y") ?? 0),
+                true,
+            );
+            return define(
+                label,
+                "expression",
+                "Expression",
+                [
+                    "",
+                    "",
+                    "",
+                    objects.get(linked)!.variable,
+                    String(x),
+                    String(y),
+                ].map(literal),
+                `${textStyle(element)};iB:${attribute(element, "length", "val") ?? 20}`,
+            );
+        },
         If: (inputs, [label]) => {
             const element = elements.get(label);
             const type = element?.getAttribute("type");
@@ -2453,20 +2531,23 @@ export function translateGgb(
         );
     };
 
+    // KaTeX, which renders texts inline, only takes GeoGebra's align and
+    // gather environments as aligned and gathered.
+    const inlineTeX = (tex: string): string =>
+        tex.replace(/\\(begin|end)\{(align|gather)\*?\}/g, "\\$1{$2ed}");
+
     const text = (label: string, element: Element, source: string): boolean => {
         const parts = textParts(source);
         if (parts === null) return false;
-        if (
-            child(element, "absoluteScreenLocation") ||
-            attribute(element, "isLaTeX", "val") === "true"
-        )
+        const latex = attribute(element, "isLaTeX", "val") === "true";
+        if (child(element, "absoluteScreenLocation") || latex)
             return textExpression(
                 label,
                 element,
                 `""${parts
                     .map((part) =>
                         typeof part === "string"
-                            ? `+"${part.replace(/[\\"]/g, "\\$&")}"`
+                            ? `+"${(latex ? inlineTeX(part) : part).replace(/[\\"]/g, "\\$&")}"`
                             : `+(${part.formula})`,
                     )
                     .join("")}`,
@@ -2526,7 +2607,13 @@ export function translateGgb(
         const type = element.getAttribute("type");
         const source = expressions.get(label);
         if (type === "point" || type === "point3d") {
-            if (source !== undefined && !NUMERIC_TUPLE.test(source)) {
+            // A constant, such as the complex number "1 + (2 * ί)", is a
+            // free point.
+            if (
+                source !== undefined &&
+                !NUMERIC_TUPLE.test(source) &&
+                formula(source, []) === null
+            ) {
                 const coords = formula(source, VALUE_KINDS);
                 if (coords === null) return false;
                 define(label, "point", "Point", [
@@ -2562,6 +2649,26 @@ export function translateGgb(
                     ? `${objectStyle(element, "point")};i:${gridIncrement}`
                     : undefined,
             );
+        }
+        // GeoGebra saves a conic as A0x² + A1y² + A2 + 2A3xy + 2A4x + 2A5y
+        // = 0: a circle when A0 = A1 and A3 = 0.
+        if (type === "conic" && !is3D) {
+            const [a0, a1, a2, a3, a4, a5] = [0, 1, 2, 3, 4, 5].map((index) =>
+                Number(attribute(element, "matrix", `A${index}`)),
+            );
+            const r2 = (a4 * a4 + a5 * a5) / (a0 * a0) - a2 / a0;
+            if (a0 === 0 || a0 !== a1 || a3 !== 0 || !(r2 > 0)) return false;
+            const center = auxiliary();
+            define(
+                center,
+                "point",
+                "Point",
+                vectorLiteral([-a4 / a0, -a5 / a0, 0]),
+            );
+            return define(label, "circle", "Circle1", [
+                ref(center),
+                literal(String(Math.sqrt(r2))),
+            ]);
         }
         if (type === "numeric" || type === "angle")
             return numeric(label, element);

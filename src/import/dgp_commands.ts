@@ -569,6 +569,7 @@ function validateObjectStyle(
                 validateNumber(propertyValue, lineNumber, 0, 1);
                 break;
             case "s":
+            case "iB":
                 validateNumber(propertyValue, lineNumber, 0);
                 break;
             case "sn":
@@ -817,6 +818,10 @@ function applyObjectStyle(
             case "cB":
                 if (target instanceof expression_object)
                     target.checkbox = propertyValue === "true";
+                break;
+            case "iB":
+                if (target instanceof expression_object)
+                    target.inputLength = Number(propertyValue);
                 break;
             case "tx":
                 if (target instanceof expression_object)

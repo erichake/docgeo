@@ -1357,6 +1357,65 @@ ${lines.map((line, index) => command("Plane", ["C", line], `p${index}`)).join("\
         );
     });
 
+    it("iterates the complex orbit of an IterationList, joined by segments", async () => {
+        const c = createConstruction();
+        const xml = await loadXml("mandel2");
+        expect(importGgb(c, xml)).toEqual([]);
+        expectSavedPoints(c, xml);
+        const [orbit, segments] = ["M", "L"].map(
+            (name) => c.getObj(name) as list_object,
+        );
+        const n = c.getObj("n") as expression_object;
+        const expectOrbit = (count: number) => {
+            const [x, y] = (c.getObj("C") as point_object).coords;
+            const terms: [number, number][] = [[0, 0]];
+            for (let k = 0; k < count; k++) {
+                const [a, b] = terms[k];
+                terms.push([a * a - b * b + x, 2 * a * b + y]);
+            }
+            expect(orbit.count).toBe(count + 1);
+            orbit.items.forEach(([term], index) =>
+                (term as Vec2).forEach((value, axis) =>
+                    expect(value).toBeCloseTo(terms[index][axis], 9),
+                ),
+            );
+            expect(segments.count).toBe(count);
+            expect(segments.items[count - 1]).toEqual([
+                orbit.items[count - 1][0],
+                orbit.items[count][0],
+            ]);
+        };
+        await new Promise((resolve) => requestAnimationFrame(resolve));
+        expectOrbit(5000);
+        const input = (c.getObj("InputBox1") as expression_object).dom
+            .find("input")!
+            .dom() as HTMLInputElement;
+        expect(input.value).toBe("5000");
+        const type = async (text: string) => {
+            input.value = text;
+            input.dispatchEvent(new Event("change"));
+            await new Promise((resolve) => requestAnimationFrame(resolve));
+        };
+        const formula = (c.getObj("text2") as expression_object).dom;
+        expect(formula.find(".katex-html")!.text()).toContain("1≤k≤n");
+        expect(formula.find(".katex-error")).toBeNull();
+        expect((c.getObj("c") as circle1_object).R).toBeCloseTo(2, 12);
+
+        await type("20");
+        expect(n.value).toBe(20);
+        // Within the slider's bounds.
+        await type("20000");
+        expect([n.value, input.value]).toEqual([10000, "10000"]);
+        await type("abc");
+        expect([n.value, input.value]).toEqual([10000, "10000"]);
+        await type("20");
+        const point = c.getObj("C") as point_object;
+        point.coords = [-0.5, 0.5, 0];
+        c.invalidateGeometry(point);
+        await new Promise((resolve) => requestAnimationFrame(resolve));
+        expectOrbit(20);
+    });
+
     it("draws the image between its corners while its checkbox is checked", async () => {
         const c = createConstruction();
         const response = await fetch("/tests/ggb/mandel.ggb");

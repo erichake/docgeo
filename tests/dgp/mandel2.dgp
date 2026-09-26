@@ -1,0 +1,20 @@
+// Coordinates System :
+SetCoords(691.925299028507,191.14021530429338,796.5822670358649,false,1072,733);
+
+
+// Geometry :
+c=Point("c",-0.5711489183541365,-0.4219899731078875);
+z0=Point("z0",0,0);
+E1=Expression("E1","E1 = ","","","z^2+c","-0.7606562738123646","0.15835177422875538");
+E2=Expression("E2","E2 = ","","","var tab=[E1(z0)];for (var i=0;i<10000;i++) {tab.push(E1(tab[i]))};tab","-0.8422548766056068","0.041603004078424065");
+List1=List("List1",E2);
+
+
+// Styles :
+STL(c,"c:#b40000;o:1;s:8.5;sn:true;l:10;f:30");
+STL(z0,"c:#966400;o:1;s:9.5;sn:true;l:9;f:30");
+STL(E1,"c:#007c7c;s:0.5;f:42;p:4;cL:200;cPT:YzojNzgwMDEzO3M6MTA7ZjozMA==");
+STL(E2,"c:#780013;h:1;s:1;f:24;p:4;cL:200;cPT:YzojNzgwMDEzO2g6MTtzOjEwO2Y6MzA=");
+STL(List1,"c:#8755d2;s:1;sn:true;f:30;p:0;sg:0.3");
+SetCoordsStyle("isAxis:true;isGrid:true;isOx:true;isOy:true;isLockOx:false;isLockOy:false;centerZoom:false;onlyPositive:false;color:#111111;fontSize:18;axisWidth:1;gridWidth:0.1");
+SetGeneralStyle("background-color:#F8F8F8;degree:true;dragmoveable:true");

@@ -200,6 +200,9 @@ export class expression_object extends construction_object {
     checkbox = false;
     // A string value is LaTeX, drawn by KaTeX from its top left corner.
     latex = false;
+    // GeoGebra's input box, as many characters wide, from its top left
+    // corner: it shows the number its formula reads and changes it.
+    inputLength = 0;
     screen: Vec2;
     // ExpressionOn: `screen` follows this point, `alpha` pixels away.
     anchor: point_object | null = null;
@@ -214,6 +217,7 @@ export class expression_object extends construction_object {
     private tex?: DOMElement;
     private renderedTeX: string | null = null;
     private check?: DOMElement;
+    private field?: DOMElement;
 
     constructor(
         c: construction,
@@ -394,6 +398,17 @@ export class expression_object extends construction_object {
             return;
         }
 
+        if (this.field) {
+            this.field.att("x", x).att("y", y);
+            const input = this.field.find("input")!.dom() as HTMLInputElement;
+            if (document.activeElement !== input)
+                input.value =
+                    typeof this.value === "number"
+                        ? formatNumber(this.value, Math.max(this.precision, 0))
+                        : "";
+            return;
+        }
+
         if (this.tex) {
             this.tex.att("x", x).att("y", y);
             // A decimal comma without the space of a punctuation mark.
@@ -460,6 +475,20 @@ export class expression_object extends construction_object {
         this.knob.att("cx", this.knobX).att("cy", trackY);
     }
 
+    // The typed number, with a decimal point or comma, becomes the value of
+    // the number the formula reads, within its slider's bounds.
+    private submit(typed: string): void {
+        const [target] =
+            this.program!.refs.values() as Iterable<expression_object>;
+        const value = Number(typed.trim().replace(",", "."));
+        if (typed.trim() !== "" && Number.isFinite(value)) {
+            target.value = target.isCursor
+                ? Math.min(Math.max(value, target.min!), target.max!)
+                : value;
+            this.C.invalidateGeometry(target);
+        } else this.C.invalidateGeometry(this);
+    }
+
     // As DGPad, a text shows alone, its numbers rounded.
     private rounded(decimalComma: string): string {
         return (this.value as string).replace(/\d+(?:\.\d+)?/g, (number) =>
@@ -487,6 +516,37 @@ export class expression_object extends construction_object {
                     ),
                 );
             return dom.add(t.tex);
+        }
+
+        if (t.inputLength) {
+            const input = $.create("input")
+                .att("type", "text")
+                .stl(
+                    `width:${0.75 * t.inputLength}em;padding:5px 4px;border:1px solid #dcdcdc;border-radius:5px;font-family:Verdana;font-size:${t.fontSize}px;color:${t.stroke_color}`,
+                );
+            // Neither a pan of the figure nor its keyboard shortcuts.
+            input.on("pointerdown", (event) => event.stopPropagation(), false);
+            input.on(
+                "keydown",
+                (event) => {
+                    event.stopPropagation();
+                    if (event.key === "Enter")
+                        (input.dom() as HTMLInputElement).blur();
+                },
+                false,
+            );
+            input.on(
+                "change",
+                () => t.submit((input.dom() as HTMLInputElement).value),
+                false,
+            );
+            t.field = t.svg
+                .shape("foreignObject")
+                .att("width", 1)
+                .att("height", 1)
+                .stl("overflow:visible")
+                .add(input);
+            return dom.add(t.field);
         }
 
         t.valueText = t.svg

@@ -7,6 +7,7 @@ import {
     type FormulaEnv,
     type FormulaNode,
     type FormulaValue,
+    type ScriptValue,
 } from "../import/dgp_formula";
 import { construction_object } from "./construction_object";
 import { formatValue, type expression_object } from "./expression_object";
@@ -22,7 +23,7 @@ export type ListRef = point_object | expression_object | polygon_object;
 // bounds computation (mirrors locus_object's MAX_SAMPLES); label results
 // need one real DOM node each (see render()), so they get a much smaller
 // pool.
-export const MAX_LIST_COUNT = 5000;
+export const MAX_LIST_COUNT = 100000;
 const MAX_LABEL_COUNT = 500;
 
 // Reserved loop-scope names inside a List's own formulas: "i" is already the
@@ -31,11 +32,12 @@ const MAX_LABEL_COUNT = 500;
 // real object of the same name for the duration of that formula's
 // evaluation — a figure using List simply can't name a point/cursor "k" or
 // "count" and expect it visible inside a List formula.
-export function resolveRef(ref: ListRef): Vec2 | number | null {
+// An Expression's value may be a script's list, e.g. of points.
+export function resolveRef(ref: ListRef): ScriptValue | null {
     if (ref instanceof point_object)
         return ref.defined ? [ref.coords[0], ref.coords[1]] : null;
     if (ref instanceof polygon_object) return ref.defined ? ref.area : null;
-    return typeof ref.value === "number" ? ref.value : null;
+    return ref.value;
 }
 
 export class list_object extends construction_object {

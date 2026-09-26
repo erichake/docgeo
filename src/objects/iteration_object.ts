@@ -5,7 +5,7 @@ import {
     type FormulaNode,
 } from "../import/dgp_formula";
 import { vSub, type Vec2 } from "../vec";
-import { list_object, MAX_LIST_COUNT, type ListRef } from "./list_object";
+import { list_object, type ListRef } from "./list_object";
 import type { point_object } from "./point_object";
 
 // A direct similarity in a segment's own frame, where its start is 0 and its
@@ -13,9 +13,11 @@ import type { point_object } from "./point_object";
 // P + (Q - P)·b, a and b being complex numbers.
 export type SegmentMap = readonly [Vec2, Vec2];
 
+const MAX_SEGMENTS = 5000;
+
 // GeoGebra's Iteration of a list of segments: at each level, every segment
-// is replaced by its images under the maps. A level that would exceed the
-// list's size limit isn't built.
+// is replaced by its images under the maps. A level that would exceed
+// MAX_SEGMENTS isn't built.
 export class iteration_object extends list_object {
     ends: [point_object, point_object][];
     maps: SegmentMap[];
@@ -48,7 +50,7 @@ export class iteration_object extends list_object {
         for (
             let level = 0;
             level < Math.round(levels ?? 0) &&
-            segments.length * this.maps.length <= MAX_LIST_COUNT;
+            segments.length * this.maps.length <= MAX_SEGMENTS;
             level++
         )
             segments = segments.flatMap(([p, q]) => {
