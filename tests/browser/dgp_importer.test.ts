@@ -11,6 +11,7 @@ import {
     evaluateFunction,
     expression_object,
 } from "../../src/objects/expression_object";
+import type { expression_list_object } from "../../src/objects/expression_list_object";
 import { fixed_angle_object } from "../../src/objects/fixed_angle_object";
 import { fixed_point_object } from "../../src/objects/fixed_point_object";
 import { formula_point_object } from "../../src/objects/formula_point_object";
@@ -31,7 +32,7 @@ function hiddenOf(segment: segment_object): [number, number][] {
     return (segment as unknown as { hiddenIntervals: [number, number][] })
         .hiddenIntervals;
 }
-import { vDot, vNormalize, vSub, type Vec3 } from "../../src/vec";
+import { vDot, vNormalize, vSub, type Vec2, type Vec3 } from "../../src/vec";
 
 function createConstruction(): construction {
     document.documentElement.style.width = "100%";
@@ -1232,6 +1233,32 @@ C1=Circle1("C1",A,"d(A,Z)");`,
         const last = c.getObj(`P${length}`) as point_object;
         expect(Math.abs(last.sx)).toBeGreaterThan(1e38);
         expect((last.dom.dom() as SVGElement).style.display).toBe("none");
+    });
+
+    it("draws a DGPad List of the points an Expression computes", async () => {
+        const c = createConstruction();
+        const unsupported = await importDgpFromUrl(c, "/tests/dgp/lst2.dgp");
+        expect(unsupported).toEqual([]);
+
+        // E1 lists n points [0.2√i·cos(i·ang·π/180), 0.2√i·sin(...)],
+        // joined by segments ("sg:1").
+        const list = c.getObj("List1") as expression_list_object;
+        expect(list.count).toBe(336);
+        expect(list.segmentsSize).toBe(1);
+        const k = (2 * 138.3 * Math.PI) / 180;
+        const [x, y] = list.items[1][0] as Vec2;
+        expect(x).toBeCloseTo(0.2 * Math.sqrt(2) * Math.cos(k), 12);
+        expect(y).toBeCloseTo(0.2 * Math.sqrt(2) * Math.sin(k), 12);
+        const [segments] = (list.dom.dom() as SVGElement).querySelectorAll(
+            "path",
+        );
+        expect(segments.getAttribute("d")!.match(/L/g)).toHaveLength(335);
+
+        const n = c.getObj("n") as expression_object;
+        n.value = 400;
+        c.invalidateGeometry(n);
+        c.OBJS.update();
+        expect(list.count).toBe(400);
     });
 
     it("keeps a 3D figure's saved turn around Oz, which the view can then follow freely", () => {

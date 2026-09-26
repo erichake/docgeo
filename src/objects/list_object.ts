@@ -128,7 +128,7 @@ export class list_object extends construction_object {
                 // as text, not a position.
                 if (this.nature === "label" && index > 0) return null;
                 if (value === null || typeof value === "number") return null;
-                const screen = this.C.pt3D([value[0], value[1], 0]);
+                const screen = this.C.pt3D([value[0], value[1], value[2] ?? 0]);
                 return vIsFinite(screen) ? screen : null;
             }),
         );

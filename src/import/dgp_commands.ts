@@ -24,6 +24,10 @@ import {
     type ExpressionProgram,
 } from "../objects/expression_object";
 import {
+    createExpressionList,
+    expression_list_object,
+} from "../objects/expression_list_object";
+import {
     createFixedAngle,
     fixed_angle_object,
 } from "../objects/fixed_angle_object";
@@ -114,7 +118,10 @@ type ParameterKind =
     // [number, number] pair for a polygon/quadric support.
     | "numberOrPair"
     // A plain number literal, or a string holding a DGP formula.
-    | "formula";
+    | "formula"
+    // List's second parameter: DGPad's Expression holding the points, or
+    // the nature of DocGeo's own List of formulas.
+    | "listSource";
 
 interface Parameter {
     kind: ParameterKind;
@@ -172,6 +179,7 @@ const pointSupport: Parameter = { kind: "pointSupport" };
 const coordinate: Parameter = { kind: "coordinate" };
 const numberOrPair: Parameter = { kind: "numberOrPair" };
 const formula: Parameter = { kind: "formula" };
+const listSource: Parameter = { kind: "listSource" };
 // DGPad's own color parser matches this hex prefix without anchoring the
 // end, so a color value with a stray suffix (e.g. a missing ";" merging it
 // with the next "key:value" pair, as seen in some exported .dgp files) is
@@ -623,6 +631,9 @@ function validateObjectStyle(
             case "cL":
                 validateNumber(propertyValue, lineNumber, 0);
                 break;
+            case "sg":
+                validateNumber(propertyValue, lineNumber, -Infinity);
+                break;
             case "cPT": {
                 let decoded: string;
                 try {
@@ -788,6 +799,10 @@ function applyObjectStyle(
             case "cL":
                 if (target instanceof expression_object)
                     target.cursorLength = Number(propertyValue);
+                break;
+            case "sg":
+                if (target instanceof expression_list_object)
+                    target.segmentsSize = Number(propertyValue);
                 break;
             case "cV":
                 if (target instanceof expression_object)
@@ -1919,13 +1934,20 @@ const COMMANDS = new Map<string, CommandDefinition>([
         {
             parameters: [
                 string,
-                string,
-                string,
-                string,
+                listSource,
+                { ...string, optional: true },
+                { ...string, optional: true },
                 { ...string, optional: true },
             ],
             result: "list",
             validate: (args, lineNumber, variables) => {
+                if (args[1].type === "reference") {
+                    if (args.length !== 2)
+                        throw new Error(
+                            `Invalid List argument count at line ${lineNumber}`,
+                        );
+                    return;
+                }
                 const nature = literalString(args[1]);
                 if (
                     nature !== "point" &&
@@ -1969,6 +1991,12 @@ const COMMANDS = new Map<string, CommandDefinition>([
             },
             execute: (context, args) => {
                 const name = args[0] as string;
+                if (args[1] instanceof expression_object)
+                    return createExpressionList(
+                        context.construction,
+                        name,
+                        args[1],
+                    );
                 const nature = args[1] as ListNature;
                 const countFormula = parseFormula(args[2] as string);
                 const formula1 = parseFormula(args[3] as string);
@@ -2036,6 +2064,7 @@ function accepts(actual: ObjectKind, expected: ParameterKind): boolean {
         expected === "object" ||
         actual === expected ||
         (actual === "pointOn" && expected === "point") ||
+        (actual === "expression" && expected === "listSource") ||
         (expected === "intersectable" &&
             (actual === "line" ||
                 actual === "circle" ||
@@ -2076,7 +2105,10 @@ function validateValue(
                 );
             return;
         }
-        if (typeof value.value !== parameter.kind)
+        if (
+            typeof value.value !==
+            (parameter.kind === "listSource" ? "string" : parameter.kind)
+        )
             throw new Error(
                 `Invalid ${parameter.kind} argument at line ${lineNumber}`,
             );
