@@ -6,6 +6,7 @@ import {
     vAdd,
     vCross,
     vDot,
+    vNorm,
     vNormalize,
     vScale,
     vSub,
@@ -13,6 +14,7 @@ import {
     type Vec3,
 } from "../vec";
 import { construction_object } from "./construction_object";
+import { formatNumber } from "./expression_object";
 import {
     complement,
     hiddenIntervals,
@@ -81,6 +83,8 @@ export class polygon_object extends construction_object {
     hitArea!: DOMElement;
     outline!: DOMElement;
     hiddenOutline!: DOMElement;
+    measureText?: DOMElement;
+    area = 0;
     private isPlane = false;
     // What SVG order can't express: a face's part behind a plane is drawn
     // by that plane, beneath its own fill (see renderUnderlay), keyed by
@@ -127,12 +131,26 @@ export class polygon_object extends construction_object {
     }
 
     computeGeometry(): void {
-        if (!this.section) {
-            this.defined = this.points.every((p) => p.defined);
-            return;
-        }
-        this.points = this.vertices.filter((p) => p.defined);
-        this.defined = this.points.length >= 3;
+        if (this.section) {
+            this.points = this.vertices.filter((p) => p.defined);
+            this.defined = this.points.length >= 3;
+        } else this.defined = this.points.every((p) => p.defined);
+        if (!this.defined) return;
+        this.area =
+            vNorm(
+                this.points.reduce<Vec3>(
+                    (sum, p, i) =>
+                        vAdd(
+                            sum,
+                            vCross(
+                                p.coords,
+                                this.points[(i + 1) % this.points.length]
+                                    .coords,
+                            ),
+                        ),
+                    [0, 0, 0],
+                ),
+            ) / 2;
     }
 
     pointAt(
@@ -310,6 +328,16 @@ export class polygon_object extends construction_object {
         this.outline.att("d", this.edgePathData(this.edgeVisible));
         this.hiddenOutline.att("d", this.edgePathData(this.edgeHidden));
         if (this.underlay) this.renderUnderlay(this.underlay);
+        if (!this.measureText) return;
+        // DGPad writes the area centered on the vertices' mean.
+        const [x, y] = vScale(
+            this.screenPoints.reduce(vAdd),
+            1 / this.screenPoints.length,
+        );
+        this.measureText
+            .att("x", x)
+            .att("y", y)
+            .text(formatNumber(this.area, this.precision));
     }
 
     private renderUnderlay(underlay: DOMElement): void {
@@ -374,12 +402,24 @@ export class polygon_object extends construction_object {
             .stl("pointer-events", "none");
         t.underlayPaths = [];
         t.underlay = t.plane ? t.svg.shape("g") : undefined;
+        // Same convention as segment_object's length label: a negative
+        // precision (the default) means "don't show the area".
+        t.measureText =
+            t.precision < 0
+                ? undefined
+                : t.svg
+                      .shape("text")
+                      .att("text-anchor", "middle")
+                      .stl(
+                          `fill:${t.stroke_color};font-family:Verdana;font-size:${t.fontSize}px;pointer-events:none`,
+                      );
         return dom.add(
             t.hitArea,
             ...(t.underlay ? [t.underlay] : []),
             t.path,
             t.outline,
             t.hiddenOutline,
+            ...(t.measureText ? [t.measureText] : []),
         );
     }
 }

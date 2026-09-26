@@ -17,6 +17,7 @@ import { point_on_object } from "../../src/objects/point_on_object";
 import { point_object } from "../../src/objects/point_object";
 import { polygon_object } from "../../src/objects/polygon_object";
 import { sphere_object } from "../../src/objects/sphere_object";
+import { text_object } from "../../src/objects/text_object";
 import { two_points_line_object } from "../../src/objects/two_points_line_object";
 import { vector_object } from "../../src/objects/vector_object";
 import { preferences } from "../../src/preferences";
@@ -130,13 +131,34 @@ describe("GGB importer", () => {
         const c = createConstruction();
         const xml = await loadXml("_3carres");
 
-        expect(importGgb(c, xml)).toEqual(
-            [4, 3, 2, 1].map((index) => `text Textepoly${index}`),
-        );
+        expect(importGgb(c, xml)).toEqual([]);
         expectSavedPoints(c, xml);
         expect((c.getObj("A") as point_object).namePosition).toBeCloseTo(
             2 * Math.PI - 2.118358562734894,
             9,
+        );
+    });
+
+    it("writes the squares' areas at their anchors, following their sides", async () => {
+        const c = createConstruction();
+        importGgb(c, await loadXml("_3carres"));
+        const texts = [1, 2, 3, 4].map(
+            (index) => c.getObj(`Textepoly${index}`) as text_object,
+        );
+        await new Promise((resolve) => requestAnimationFrame(resolve));
+        expect(texts.map((text) => text.content)).toEqual(
+            [4, 9, 16, 29].map((area) => ` ${area} cm²`),
+        );
+        const anchor = (c.getObj("Pointpoly4") as point_object).screen;
+        expect(texts[3].textElement.getAtt("y")).toBe(`${anchor[1] + 27}`);
+        expect(texts[3].textElement.dom().textContent).toBe(" 29 cm²");
+
+        const b = c.getObj("B") as point_object;
+        b.coords = [-0.5, -8, 0];
+        c.invalidateGeometry(b);
+        await new Promise((resolve) => requestAnimationFrame(resolve));
+        expect(texts.map((text) => text.content)).toEqual(
+            [6.25, 9, 16, 31.25].map((area) => ` ${area} cm²`),
         );
     });
 

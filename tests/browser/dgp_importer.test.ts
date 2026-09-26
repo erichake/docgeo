@@ -19,6 +19,7 @@ import { point_on_object } from "../../src/objects/point_on_object";
 import { point_object } from "../../src/objects/point_object";
 import { polygon_object } from "../../src/objects/polygon_object";
 import { symmetry_object } from "../../src/objects/symmetry_object";
+import { text_object } from "../../src/objects/text_object";
 import { two_points_line_object } from "../../src/objects/two_points_line_object";
 import { intervalsToPath } from "../../src/objects/hidden_line";
 import type { segment_object } from "../../src/objects/segment_object";
@@ -122,6 +123,24 @@ fetch("https://example.com");`,
             ),
         ).toThrow("Unsupported DGP command fetch at line 2");
         expect(figureObjects(c)).toEqual([]);
+    });
+
+    it("writes formula values and literal percents in an AnchoredText", () => {
+        const c = createConstruction();
+        importDgp(
+            c,
+            `P=Point("P",1,2);
+T=AnchoredText("T",P,0,0,"x+y=%x(P)+y(P)%, 100%%");
+STL(T,"p:2");`,
+        );
+        expect((c.getObj("T") as text_object).content).toBe("x+y=3, 100%");
+        expect(() =>
+            importDgp(
+                createConstruction(),
+                `P=Point("P",1,2);
+T=AnchoredText("T",P,0,0,"100%");`,
+            ),
+        ).toThrow("Invalid DGP text at line 2");
     });
 
     it("rejects unsafe styles before creating objects", () => {
@@ -325,6 +344,45 @@ STL(P,"tk:1");`,
 
         expect(point.alpha).toBe(alpha);
         expect(point.coords).toEqual(locus.pointAt(alpha));
+    });
+
+    it("writes a polygon's area at its vertices' mean, like DGPad", async () => {
+        const c = createConstruction();
+        await importDgpFromUrl(c, "/tests/dgp/poly_mesure.dgp");
+        const polygon = c.getObj("Poly1") as polygon_object;
+        const vertices = ["P1", "P2", "P3", "P4"].map(
+            (name) => c.getObj(name) as point_object,
+        );
+        const area = () =>
+            Math.abs(
+                vertices.reduce((sum, p, i) => {
+                    const q = vertices[(i + 1) % vertices.length];
+                    return (
+                        sum +
+                        p.coords[0] * q.coords[1] -
+                        q.coords[0] * p.coords[1]
+                    );
+                }, 0),
+            ) / 2;
+        await new Promise((resolve) => requestAnimationFrame(resolve));
+        const text = polygon.measureText!;
+        expect(text.dom().textContent).toBe(
+            `${Math.round(area() * 100) / 100}`.replace(".", ","),
+        );
+        [0, 1].forEach((axis) =>
+            expect(Number(text.getAtt(axis ? "y" : "x"))).toBeCloseTo(
+                vertices.reduce((sum, p) => sum + p.screen[axis], 0) / 4,
+                9,
+            ),
+        );
+
+        vertices[3].coords = [3, 3, 0];
+        c.invalidateGeometry(vertices[3]);
+        await new Promise((resolve) => requestAnimationFrame(resolve));
+        expect(polygon.area).toBeCloseTo(area(), 12);
+        expect(text.dom().textContent).toBe(
+            `${Math.round(area() * 100) / 100}`.replace(".", ","),
+        );
     });
 
     it("imports a point inside a polygon", async () => {

@@ -10,6 +10,7 @@ import {
 import { construction_object } from "./construction_object";
 import { formatValue, type expression_object } from "./expression_object";
 import { point_object } from "./point_object";
+import { polygon_object } from "./polygon_object";
 import {
     vIsFinite,
     vNorm,
@@ -20,7 +21,8 @@ import {
 } from "../vec";
 
 export type ListNature = "point" | "segment" | "line" | "label";
-export type ListRef = point_object | expression_object;
+// A polygon's value is its area, as in DGPad.
+export type ListRef = point_object | expression_object | polygon_object;
 
 // point/segment/line results are folded into a single <path>, so this only
 // bounds computation (mirrors locus_object's MAX_SAMPLES); label results
@@ -35,9 +37,11 @@ const MAX_LABEL_COUNT = 500;
 // real object of the same name for the duration of that formula's
 // evaluation — a figure using List simply can't name a point/cursor "k" or
 // "count" and expect it visible inside a List formula.
-function resolveRef(ref: ListRef): Vec2 | null {
+export function resolveRef(ref: ListRef): Vec2 | null {
     if (ref instanceof point_object)
         return ref.defined ? [ref.coords[0], ref.coords[1]] : null;
+    if (ref instanceof polygon_object)
+        return ref.defined ? [ref.area, 0] : null;
     return typeof ref.value === "number" ? [ref.value, 0] : null;
 }
 

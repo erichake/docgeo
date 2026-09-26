@@ -59,6 +59,7 @@ export interface Preferences {
     grid: GridPref;
     list: ObjectPref;
     curve: ObjectPref;
+    text: ObjectPref;
 }
 
 export type PrefKey = Exclude<keyof Preferences, "background">;
@@ -83,6 +84,7 @@ export class preferences implements Preferences {
     grid: GridPref;
     list: ObjectPref;
     curve: ObjectPref;
+    text: ObjectPref;
 
     constructor() {
         this.background = { color: "#FAFAFA" };
@@ -246,6 +248,14 @@ export class preferences implements Preferences {
             touchsize: 5,
             name: "f",
             layer: 3,
+        };
+
+        this.text = {
+            color: { fill: "#000000", stroke: "#000000" },
+            size: 1,
+            touchsize: 5,
+            name: "T",
+            layer: 6,
         };
     }
 }

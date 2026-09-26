@@ -29,6 +29,7 @@ import {
 } from "../objects/fixed_angle_object";
 import { createFixedPoint } from "../objects/fixed_point_object";
 import { createIteration, type SegmentMap } from "../objects/iteration_object";
+import { createText, type TextRef } from "../objects/text_object";
 import { createFormulaPoint } from "../objects/formula_point_object";
 import {
     createOrderedIntersection,
@@ -89,7 +90,8 @@ type ObjectKind =
     | "angle"
     | "expression"
     | "list"
-    | "curve";
+    | "curve"
+    | "text";
 type ParameterKind =
     | "string"
     | "number"
@@ -423,7 +425,7 @@ function parseListFormula(value: string, lineNumber: number): FormulaNode {
 }
 
 // Unlike validateFormulaReferences (points only), a List formula may also
-// read a cursor's numeric value, and its "k"/"count" loop-scope names are
+// read a cursor's numeric value or a polygon's area, and its "k"/"count" loop-scope names are
 // synthetic (bound per index by list_object itself), never real references.
 function validateListFormulaReferences(
     formulaNode: FormulaNode,
@@ -433,7 +435,12 @@ function validateListFormulaReferences(
     formulaIdentifiers(formulaNode).forEach((name) => {
         if (name === "k" || name === "count") return;
         const kind = variables.get(name);
-        if (kind !== "point" && kind !== "pointOn" && kind !== "expression")
+        if (
+            kind !== "point" &&
+            kind !== "pointOn" &&
+            kind !== "expression" &&
+            kind !== "polygon"
+        )
             throw new Error(`Unknown DGP reference at line ${lineNumber}`);
     });
 }
@@ -450,6 +457,12 @@ function listFormulaRefs(
         }),
     );
     return refs;
+}
+
+// An AnchoredText's content: text alternating with "%formula%" parts, "%%"
+// being a literal "%".
+function textParts(content: string): string[] {
+    return content.split("%");
 }
 
 // DGPad's Polygon command stores its vertices as a single comma-separated
@@ -1300,6 +1313,48 @@ const COMMANDS = new Map<string, CommandDefinition>([
                     args[3] as point_object,
                     args.slice(4) as [point_object, point_object, point_object],
                 ),
+        },
+    ],
+    // Not a DGPad command: GeoGebra's text, anchored at a point shifted by
+    // (dx, dy) screen pixels.
+    [
+        "AnchoredText",
+        {
+            parameters: [string, point, number, number, string],
+            result: "text",
+            validate: (args, lineNumber, variables) => {
+                const parts = textParts(literalString(args[4]));
+                if (parts.length % 2 === 0)
+                    throw new Error(`Invalid DGP text at line ${lineNumber}`);
+                parts.forEach((part, index) => {
+                    if (index % 2 === 1 && part !== "")
+                        validateListFormulaReferences(
+                            parseListFormula(part, lineNumber),
+                            variables,
+                            lineNumber,
+                        );
+                });
+            },
+            execute: (context, args) => {
+                const parts = textParts(args[4] as string).map((part, index) =>
+                    index % 2 === 0
+                        ? part
+                        : part === ""
+                          ? "%"
+                          : parseFormula(part),
+                );
+                return createText(
+                    context.construction,
+                    args[0] as string,
+                    args[1] as point_object,
+                    [args[2] as number, args[3] as number],
+                    parts,
+                    listFormulaRefs(
+                        parts.filter((part) => typeof part !== "string"),
+                        context.variables,
+                    ) as Map<string, TextRef>,
+                );
+            },
         },
     ],
     // Not a DGPad command: GeoGebra's Iteration of segments, from their

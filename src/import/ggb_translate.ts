@@ -30,7 +30,8 @@ type Kind =
     | "angle"
     | "expression"
     | "list"
-    | "curve";
+    | "curve"
+    | "text";
 
 export interface GgbTranslation {
     calls: DgpCall[];
@@ -175,6 +176,28 @@ function splitArguments(text: string): string[] | null {
     }
     parts.push(text.slice(start).trim());
     return parts;
+}
+
+// A GeoGebra text expression's terms, split on its top-level "+", string
+// literals kept with their quotes.
+function textTerms(text: string): string[] {
+    const terms: string[] = [];
+    let depth = 0;
+    let quoted = false;
+    let start = 0;
+    for (let index = 0; index < text.length; index++) {
+        const character = text[index];
+        if (character === '"') quoted = !quoted;
+        else if (quoted) continue;
+        else if ("([{".includes(character)) depth++;
+        else if (")]}".includes(character)) depth--;
+        else if (character === "+" && depth === 0) {
+            terms.push(text.slice(start, index).trim());
+            start = index + 1;
+        }
+    }
+    terms.push(text.slice(start).trim());
+    return terms;
 }
 
 // "Name(arguments)" as its name and top-level arguments.
@@ -1823,6 +1846,83 @@ export function translateGgb(xml: string): GgbTranslation {
         );
     };
 
+    // A text as an AnchoredText's "%formula%" content: GeoGebra adds up the
+    // numbers before its first string, then concatenates every term. An
+    // angle would need GeoGebra's degree formatting: not supported.
+    const textContent = (source: string): string | null => {
+        let content = "";
+        let concatenating = false;
+        let sum: string[] = [];
+        const addSum = (): boolean => {
+            if (sum.length === 0) return true;
+            const value = formula(sum.join("+"), ["expression", "polygon"]);
+            sum = [];
+            if (value === null) return false;
+            content += `%${value}%`;
+            return true;
+        };
+        for (const term of textTerms(source)) {
+            if (/^"[^"]*"$/.test(term)) {
+                if (!addSum()) return null;
+                content += term.slice(1, -1).replace(/%/g, "%%");
+                concatenating = true;
+                continue;
+            }
+            const words = term.match(/[^\s+\-*/^(),]+/g) ?? [];
+            if (
+                words.some(
+                    (word) =>
+                        elements.get(word)?.getAttribute("type") === "angle",
+                )
+            )
+                return null;
+            sum.push(term);
+            if (concatenating && !addSum()) return null;
+        }
+        return addSum() ? content : null;
+    };
+
+    const text = (label: string, element: Element, source: string): boolean => {
+        const content = textContent(source);
+        const start = child(element, "startPoint");
+        if (
+            content === null ||
+            child(element, "absoluteScreenLocation") ||
+            attribute(element, "isLaTeX", "val") === "true"
+        )
+            return false;
+        const exp = start?.getAttribute("exp");
+        const anchor = exp ? resolve(exp) : auxiliary();
+        if (!exp) {
+            const [x, y, z] = ["x", "y", "z"].map((name) =>
+                Number(start?.getAttribute(name) ?? (name === "z" ? 1 : 0)),
+            );
+            define(anchor, "point", "Point", vectorLiteral([x / z, y / z, 0]));
+        }
+        if (!points(anchor)) return false;
+        const color = child(element, "objColor");
+        const style = [
+            ...(color ? [`c:${hexColor(color)}`] : []),
+            ...(attribute(element, "show", "object") === "false"
+                ? ["h:1"]
+                : []),
+            `p:${decimals}`,
+            `f:${fontSize * Number(attribute(element, "font", "sizeM") ?? 1)}`,
+        ].join(";");
+        return define(
+            label,
+            "text",
+            "AnchoredText",
+            [
+                ref(anchor),
+                literal(Number(attribute(element, "labelOffset", "x") ?? 0)),
+                literal(Number(attribute(element, "labelOffset", "y") ?? 0)),
+                literal(content),
+            ],
+            style,
+        );
+    };
+
     // GeoGebra drags a point "(xExpression, yExpression)" by shifting each
     // coordinate written "n" or "n + rest", n being a free, unfixed number
     // (not "rest + n", nor "n + rest - 1", whose top operation isn't that
@@ -1882,6 +1982,8 @@ export function translateGgb(xml: string): GgbTranslation {
         }
         if (type === "numeric" || type === "angle")
             return numeric(label, element);
+        if (type === "text" && source !== undefined)
+            return text(label, element, source);
         // Scripts never run: a button has nothing to do.
         if (type === "button") return true;
         if (type === "function" && source !== undefined) {
