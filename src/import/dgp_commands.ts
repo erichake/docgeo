@@ -776,7 +776,10 @@ function applyObjectStyle(
                     target.rightAngleMark = propertyValue as RightAngleMark;
                 break;
             case "i":
-                if (target instanceof expression_object)
+                if (
+                    target instanceof expression_object ||
+                    target instanceof point_object
+                )
                     target.increment = Number(propertyValue);
                 break;
             case "cL":

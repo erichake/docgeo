@@ -141,7 +141,7 @@ export class point_on_object extends point_object {
         }
         const target = this.dragTarget(screen);
         if (!target) return;
-        const alpha = this.alphaFor(target);
+        const alpha = this.alphaFor(this.snapToIncrement(target));
         if (alpha === null) return;
         this.alpha = alpha;
         this.C.invalidateGeometry(this);

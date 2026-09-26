@@ -86,6 +86,9 @@ export class point_object extends construction_object {
     // whichever of these is both within `radius` screen pixels and closest,
     // instead of following the pointer directly.
     magnets: { target: magnet_target; radius: number }[] = [];
+    // DGPad's "i" style: a dragged point snaps its x and y onto multiples of
+    // this step.
+    increment = 0;
     // The magnet currently holding this point, if any — see
     // MAGNET_HYSTERESIS.
     private activeMagnet: magnet_target | null = null;
@@ -150,10 +153,21 @@ export class point_object extends construction_object {
         const screen = this.C.pointerPosition(ev);
         const coords = this.C.unprojectToZPlane(screen, this.z);
         if (!coords) return;
+        const snapped = this.snapToIncrement(coords);
         this.coords = this.magnets.length
-            ? this.snapToMagnets(coords, screen)
-            : coords;
+            ? this.snapToMagnets(snapped, screen)
+            : snapped;
         this.C.invalidateGeometry(this);
+    }
+
+    snapToIncrement(coords: Vec3): Vec3 {
+        const step = this.increment;
+        if (!step) return coords;
+        return [
+            step * Math.round(coords[0] / step),
+            step * Math.round(coords[1] / step),
+            coords[2],
+        ];
     }
 
     private snapToMagnets(coords: Vec3, screen: Vec2): Vec3 {

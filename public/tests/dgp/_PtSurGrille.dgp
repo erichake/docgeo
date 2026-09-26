@@ -1,0 +1,12 @@
+// Coordinates System :
+SetCoords(400,290.5,40,false,800,572);
+
+
+// Geometry :
+A=Point("A",-3.5,2.5);
+
+
+// Styles :
+STL(A,"c:#0000b2;s:6;sn:true;f:30;i:0.5");
+SetCoordsStyle("isAxis:true;isGrid:true;isOx:true;isOy:true;isLockOx:false;isLockOy:false;centerZoom:false;onlyPositive:false;color:#111111;fontSize:18;axisWidth:1;gridWidth:0.1");
+SetGeneralStyle("background-color:#F8F8F8;degree:true;dragmoveable:true");
