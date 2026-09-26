@@ -20,6 +20,17 @@ Les développements doivent servir en priorité :
 - la manipulation des objets existants ;
 - la robustesse numérique et les performances sur plusieurs milliers d'objets.
 
+### Intégration dans DocTools
+
+DocGeo est destiné, entre autres, à devenir un utilitaire du module DocEval du
+projet DocTools (`/Users/erichake/Desktop/BV/html/doctools_MAIN`), comme
+DocCells l'est pour DocShare. Le build (`npm run build` ou
+`zz_build_for_doctools.command`) est produit dans
+`doctools_MAIN/public/apps/docgeo` : il doit rester autonome, en chemins
+relatifs, et ne contenir aucun matériel de test. Une diffusion de DocGeo comme
+application indépendante n'est pas exclue : ne pas lier le code à des
+hypothèses propres à DocTools qui l'empêcheraient.
+
 ### Code DGPad de référence
 
 Le code source de la version de DGPad actuellement en production se trouve dans :
