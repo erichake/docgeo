@@ -131,6 +131,18 @@ describe("DGP formula parser", () => {
                 right: { kind: "number", value: 1 },
             },
         });
+        expect(parseFormula("sin(xy)")).toEqual({
+            kind: "call",
+            fn: "sin",
+            args: [
+                {
+                    kind: "binary",
+                    op: "*",
+                    left: { kind: "identifier", name: "x" },
+                    right: { kind: "identifier", name: "y" },
+                },
+            ],
+        });
     });
 
     it("parses a call to a name outside the built-in functions as userCall", () => {

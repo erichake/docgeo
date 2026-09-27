@@ -637,9 +637,18 @@ class FormulaParser {
             // "π" is DGPad's own notation for PI in slider bounds/formulas.
             if (name === "PI" || name === "π")
                 return { kind: "constant", name: "PI" };
+            if (name === "NaN") return { kind: "number", value: NaN };
             // Unless a script names one of its variables "i".
             if (name === "i" && !this.locals.has(name))
                 return this.imaginary(1);
+            // DGPad reads two adjacent function variables as a product.
+            if (/^[xyzt]{2}$/.test(name) && !this.locals.has(name))
+                return {
+                    kind: "binary",
+                    op: "*",
+                    left: { kind: "identifier", name: name[0] },
+                    right: { kind: "identifier", name: name[1] },
+                };
             return { kind: "identifier", name };
         }
         if (token.type === "(") {

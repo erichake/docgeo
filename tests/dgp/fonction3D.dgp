@@ -1,0 +1,44 @@
+// Coordinates System :
+SetCoords(-1.1920157431785583,32.65308745299312,75.91484309734469,true,1143,705);
+
+
+// Geometry :
+P1=Point("P1",5.245245850440365,-3.73243098432904);
+Ix=Expression("Ix","","","","[-3,3]","6.865482354680761","-3.2582154221123387");
+Y=Point("Y","[0,1,0]","1");
+Z=Point("Z","[0,0,1]","1");
+E3=Expression("E3","","","","restrictTheta([-PI/2+0.001,PI/2-0.001]);\"Restriction\"","11.489241515927086","-1.0985539272785028");
+X=Point("X","[1,0,0]","1");
+Iy=Expression("Iy","","","","[-3,3]","6.865482354680761","-3.7851216023531182");
+f=Expression("f","","","","sin(xy)","9.631739800944855","-2.2044030616307793");
+S11=Segment("S11",P1,X);
+S1=Segment("S1",Z,P1);
+Ny=Expression("Ny","","1","41","25","9.631739800944855","-0.8871376110288307");
+S21=Segment("S21",P1,Y);
+Nx=Expression("Nx","","1","41","27","9.631739800944855","0.034948204392533586");
+E1=Expression("E1","","","","var tab=[],\n      divX=(Ix[1]-Ix[0])/Nx,\n      divY=(Iy[1]-Iy[0])/Ny;\n\nfor (var nx=0;nx<Nx;nx+=2) {\n  var stepX=Ix[0]+nx*divX;\n  for (var ny=0;ny<Ny;ny+=2) {\n      var stepY=Iy[0]+ny*divY;\n      var elt=[stepX,stepY,f(stepX,stepY)];\n      tab.push(elt);\n      tab.push([stepX,stepY+divY,f(stepX,stepY+divY)]);\n      tab.push([stepX+divX,stepY+divY,f(stepX+divX,stepY+divY)]);\n      tab.push([stepX+divX,stepY,f(stepX+divX,stepY)]);\n      tab.push(elt);\n      tab.push([NaN,NaN,NaN]);\n  };\n};\n\ntab","0.14742855661082213","-1.5457703363298052");
+E2=Expression("E2","","","","var tab=[],\n      divX=(Ix[1]-Ix[0])/Nx,\n      divY=(Iy[1]-Iy[0])/Ny;\n\nfor (var nx=1;nx<Nx;nx+=2) {\n  var stepX=Ix[0]+nx*divX;\n  for (var ny=1;ny<Ny;ny+=2) {\n    var stepY=Iy[0]+ny*divY;\n    var elt=[stepX,stepY,f(stepX,stepY)];\n    tab.push(elt);\n    tab.push([stepX,stepY+divY,f(stepX,stepY+divY)]);\n    tab.push([stepX+divX,stepY+divY,f(stepX+divX,stepY+divY)]);\n    tab.push([stepX+divX,stepY,f(stepX+divX,stepY)]);\n    tab.push(elt);tab.push([NaN,NaN,NaN]);\n  };\n};\n\ntab","0.14742855661082213","-0.7554110659686357");
+List1=List("List1",E1);
+List2=List("List2",E2);
+
+
+// Styles :
+STL(P1,"c:#0000b2;s:6;f:30;fl:true");
+STL(Ix,"c:#354518;h:1;s:7;sn:true;f:24;p:4;cL:200;cPT:YzojNzgwMDEzO2g6MTtzOjEwO2Y6MzA=");
+STL(Y,"c:#0000b2;o:1;s:4;sn:true;f:24;nmi:true");
+STL(Z,"c:#0000b2;o:1;s:4;sn:true;f:24;nmi:true");
+STL(E3,"c:#5a2b65;h:1;s:7;f:24;p:4;cL:200;cPT:YzojNzgwMDEzO2g6MTtzOjEwO2Y6MzA=");
+STL(X,"c:#0000b2;o:1;s:4;sn:true;f:24;nmi:true");
+STL(Iy,"c:#772903;h:1;s:7;sn:true;f:24;p:4;cL:200;cPT:YzojNzgwMDEzO2g6MTtzOjEwO2Y6MzA=");
+STL(f,"c:#6f682e;s:7;sn:true;f:24;p:4;cL:200;cPT:YzojNzgwMDEzO3M6MTA7ZjozMA==");
+STL(S11,"c:#117dad;s:1;f:24");
+STL(S1,"c:#006633;s:1;f:24");
+STL(Ny,"c:#54375b;s:7;sn:true;f:24;p:4;i:2;cL:200;cPT:YzojNzgwMDEzO3M6MTA7ZjozMDtpOjI=");
+STL(S21,"c:#117dad;s:1;f:24");
+STL(Nx,"c:#685578;s:7;sn:true;f:24;p:4;i:2;cL:200;cPT:YzojNzgwMDEzO3M6MTA7ZjozMDtpOjI=");
+STL(E1,"c:#646d65;h:1;s:7;f:24;p:4;cL:200;cPT:YzojNzgwMDEzO2g6MTtzOjEwO2Y6MzA=");
+STL(E2,"c:#6d5f2c;h:1;s:7;f:24;p:4;cL:200;cPT:YzojNzgwMDEzO2g6MTtzOjEwO2Y6MzA=");
+STL(List1,"c:#0000b2;o:0.25;s:0;f:30;p:0;nmi:true;sg:0.3");
+STL(List2,"c:#006633;o:0.25;s:0;f:30;p:0;nmi:true;sg:0.3");
+SetCoordsStyle("3Dmode:true;isAxis:false;isGrid:true;isOx:true;isOy:true;isLockOx:false;isLockOy:false;centerZoom:true;onlyPositive:false;color:#111111;fontSize:18;axisWidth:1;gridWidth:0.1");
+SetGeneralStyle("background-color:#FAFAFA;degree:false;dragmoveable:true");

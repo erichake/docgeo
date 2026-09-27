@@ -1261,6 +1261,24 @@ C1=Circle1("C1",A,"d(A,Z)");`,
         expect(list.count).toBe(400);
     });
 
+    it("draws a 3D surface computed from a two-variable function", async () => {
+        const c = createConstruction();
+        const unsupported = await importDgpFromUrl(
+            c,
+            "/tests/dgp/fonction3D.dgp",
+        );
+        expect(unsupported).toEqual([]);
+
+        // f is "sin(xy)": DGPad reads "xy" as x*y. E1 draws every other
+        // cell of a 27×25 grid over [-3,3]², each as a closed 5-point
+        // polyline followed by a NaN break.
+        const list = c.getObj("List1") as expression_list_object;
+        expect(list.count).toBe(14 * 13 * 6);
+        const [x, y, z] = list.items[1][0] as Vec3;
+        expect([x, y]).toEqual([-3, -3 + 6 / 25]);
+        expect(z).toBeCloseTo(Math.sin(x * y), 12);
+    });
+
     it("reads and returns angles in degrees in DGPad's degree mode", async () => {
         const c = createConstruction();
         await importDgpFromUrl(c, "/tests/dgp/lst.dgp");
