@@ -8,13 +8,15 @@ import { list_object } from "./list_object";
 // DGPad's List: the points of an Expression whose value is a list of 2D or
 // 3D points, drawn as dots and, when `segmentsSize` is positive (its "sg"
 // style), joined by segments, a point with NaN coordinates breaking the
-// line. DGPad's drawing instructions among the points (colors, pen sizes,
+// line. When opaque, each piece between two breaks is also filled. DGPad's drawing instructions among the points (colors, pen sizes,
 // texts, images: items of 4 or more values) are ignored.
 export class expression_list_object extends list_object {
     source: expression_object;
     segmentsSize = -1;
     private segments!: DOMElement;
     private dots!: DOMElement;
+    private fills!: DOMElement;
+    private fillPaths: DOMElement[] = [];
 
     constructor(
         c: construction,
@@ -51,26 +53,42 @@ export class expression_list_object extends list_object {
     render(): void {
         this.dom.stl("display", this.isVisible ? "block" : "none");
         if (!this.isVisible) return;
-        let segments = "";
+        const pieces: string[] = [];
+        let piece = "";
         let dots = "";
-        let previous = false;
         const r = this.size;
         this.screenItems.forEach(([p]) => {
             if (!p) {
-                previous = false;
+                if (piece) pieces.push(piece);
+                piece = "";
                 return;
             }
-            segments += `${previous ? "L" : "M"}${p[0]} ${p[1]} `;
-            previous = true;
+            piece += `${piece ? "L" : "M"}${p[0]} ${p[1]} `;
             if (r > 0)
                 dots += `M${p[0] - r} ${p[1]} a${r},${r} 0 1,0 ${2 * r},0 a${r},${r} 0 1,0 ${-2 * r},0 `;
         });
-        this.segments.att("d", this.segmentsSize > 0 ? segments : "");
+        if (piece) pieces.push(piece);
+        const joined = this.segmentsSize > 0;
+        this.segments.att("d", joined ? pieces.join("") : "");
         this.dots.att("d", dots);
+        // One path per piece: as in DGPad, where each piece is filled on its
+        // own, overlapping pieces darken instead of merging.
+        const filled = joined && this.opacity ? pieces : [];
+        while (this.fillPaths.length < filled.length) {
+            const path = this.svg.shape("path");
+            this.fillPaths.push(path);
+            this.fills.add(path);
+        }
+        this.fillPaths.forEach((path, i) => path.att("d", filled[i] ?? ""));
     }
 
     static createSVG(_this: construction_object): DOMElement {
         const t = _this as expression_list_object;
+        t.fills = t.svg
+            .shape("g")
+            .stl(
+                `fill:${t.fill_color};fill-opacity:${t.opacity};stroke:none;pointer-events:none`,
+            );
         t.segments = t.svg
             .shape("path")
             .stl(
@@ -83,7 +101,7 @@ export class expression_list_object extends list_object {
             .stl(
                 `fill:${fill};fill-opacity:${t.opacity || 1};stroke:${t.stroke_color};stroke-width:${t.prefs.point.border ?? 1};pointer-events:none`,
             );
-        return t.svg.shape("g").add(t.segments, t.dots);
+        return t.svg.shape("g").add(t.fills, t.segments, t.dots);
     }
 }
 

@@ -1277,6 +1277,13 @@ C1=Circle1("C1",A,"d(A,Z)");`,
         const [x, y, z] = list.items[1][0] as Vec3;
         expect([x, y]).toEqual([-3, -3 + 6 / 25]);
         expect(z).toBeCloseTo(Math.sin(x * y), 12);
+
+        // Opaque ("o:0.25"), each cell is filled on its own path.
+        const [fills] = (list.dom.dom() as SVGElement).querySelectorAll("g");
+        const cells = [...fills.querySelectorAll("path")].filter((path) =>
+            path.getAttribute("d"),
+        );
+        expect(cells).toHaveLength(14 * 13);
     });
 
     it("reads and returns angles in degrees in DGPad's degree mode", async () => {
