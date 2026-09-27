@@ -135,7 +135,11 @@ class Lexer {
                 this.index++;
             } else if (character === '"') {
                 const raw = this.source.slice(start, this.index);
-                return { type: "string", value: JSON.parse(raw), line };
+                return {
+                    type: "string",
+                    value: repairEncoding(JSON.parse(raw)),
+                    line,
+                };
             } else if (character === "\n") {
                 throw new Error(`Invalid DGP string at line ${line}`);
             }
@@ -157,6 +161,23 @@ class Lexer {
             line,
         };
     }
+}
+
+// Some DGPad files hold texts encoded in UTF-8 more than once, read back
+// as Latin-1 each time (e.g. "IntermÃ\u0083Â©diaire" for "Intermédiaire"):
+// decoded again as long as they read as UTF-8 in Latin-1 characters.
+function repairEncoding(text: string): string {
+    const decoder = new TextDecoder("utf-8", { fatal: true });
+    while (/[\x80-\xff]/.test(text) && !/[^\x00-\xff]/.test(text)) {
+        try {
+            text = decoder.decode(
+                Uint8Array.from(text, (character) => character.charCodeAt(0)),
+            );
+        } catch {
+            break;
+        }
+    }
+    return text;
 }
 
 const MACROS = "$macros";

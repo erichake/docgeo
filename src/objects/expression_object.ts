@@ -3,6 +3,7 @@ import { $, type DOMElement } from "../dom";
 import {
     evaluateFormula,
     evaluateProgram,
+    formulaSource,
     programNodes,
     realPart,
     usesCoords2D,
@@ -15,7 +16,11 @@ import {
     type ScriptValue,
 } from "../import/dgp_formula";
 import type { Vec2 } from "../vec";
-import { construction_object } from "./construction_object";
+import {
+    construction_object,
+    dgoFormula,
+    type DgoContext,
+} from "./construction_object";
 import type { point_object } from "./point_object";
 
 // In a chunk of its own, loaded only by the figures that show LaTeX.
@@ -264,6 +269,41 @@ export class expression_object extends construction_object {
             this.addParents(...program.refs.values());
             program.targets.forEach((target) => target.addParents(this));
         }
+    }
+
+    dgo(context: DgoContext): [string, unknown] {
+        const content = this.program
+            ? {
+                  s: dgoFormula(
+                      formulaSource(this.program.program),
+                      new Map([...this.program.refs, ...this.program.targets]),
+                      context,
+                  ),
+              }
+            : this.formula
+              ? {
+                    f: dgoFormula(
+                        this.formula.source,
+                        this.formula.refs,
+                        context,
+                    ),
+                }
+              : { v: this.value };
+        return [
+            "Ex",
+            {
+                t: this.text,
+                ...content,
+                ...(this.min !== null && { mn: this.min }),
+                ...(this.max !== null && { mx: this.max }),
+                ...(this.anchor
+                    ? {
+                          on: context.index(this.anchor),
+                          d: this.alpha.map(Math.round),
+                      }
+                    : { xy: this.screen.map(Math.round) }),
+            },
+        ];
     }
 
     computeGeometry(): void {

@@ -1,4 +1,5 @@
 import type { construction } from "../construction";
+import type { DgoContext } from "./construction_object";
 import { point_object } from "./point_object";
 import type { primitive_circle_object } from "./primitive_circle_object";
 
@@ -14,6 +15,10 @@ export class center_object extends point_object {
         super(c, name, [0, 0, 0], "intersection");
         this.circle = circle;
         this.addParents(circle);
+    }
+
+    dgo(context: DgoContext): [string, unknown] {
+        return ["Ctr", [this.circle].map(context.index)];
     }
 
     computeGeometry(): void {

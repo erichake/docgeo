@@ -1,5 +1,6 @@
 import type { construction } from "../construction";
 import { vAdd, vScale, vSub, type Vec3 } from "../vec";
+import type { DgoContext } from "./construction_object";
 import type { point_object } from "./point_object";
 import { primitive_line_object } from "./primitive_line_object";
 
@@ -15,6 +16,10 @@ export class parallel_line_object extends primitive_line_object {
         super(c, name, p1, "parallel");
         this.D = d;
         this.addParents(d);
+    }
+
+    dgo(context: DgoContext): [string, unknown] {
+        return ["Par", [this.D, this.P1].map(context.index)];
     }
 
     computeVEC(): Vec3 | null {

@@ -1,5 +1,6 @@
 import type { construction } from "../construction";
 import { vScale, vSub } from "../vec";
+import type { DgoContext } from "./construction_object";
 import { point_object } from "./point_object";
 
 export class symmetry_object extends point_object {
@@ -17,6 +18,10 @@ export class symmetry_object extends point_object {
         this.center = center;
         this.point = point;
         this.addParents(center, point);
+    }
+
+    dgo(context: DgoContext): [string, unknown] {
+        return ["Sym", [this.center, this.point].map(context.index)];
     }
 
     computeGeometry(): void {

@@ -2,6 +2,7 @@ import type { construction } from "../construction";
 import { projectPointOnLine, projectPointOnPlane } from "../projection";
 import { vAdd, vDot, vScale, vSub, type Vec2, type Vec3 } from "../vec";
 import type { curve_object } from "./curve_object";
+import type { DgoContext } from "./construction_object";
 import { list_object } from "./list_object";
 import type { locus_object } from "./locus_object";
 import { polygon_object } from "./polygon_object";
@@ -40,6 +41,10 @@ export class point_on_object extends point_object {
         this.alpha = alpha;
         this.onBoundary = false;
         this.addParents(support);
+    }
+
+    dgo(context: DgoContext): [string, unknown] {
+        return ["On", [context.index(this.support), this.alpha]];
     }
 
     computeGeometry(): void {
@@ -98,19 +103,12 @@ export class point_on_object extends point_object {
                 ),
             );
         } else {
-            // For a line built from a point + direction (Perpendicular,
-            // Parallel, PerpendicularBisector...), DGPad stores alpha as a
-            // raw screen-pixel offset (its internal point coordinates are
-            // screen pixels, converted to math units only at save/load time
-            // for a free Point — this PointOn parameter never gets that
-            // conversion), so it must be rescaled by GRID.UNIT here.
+            // On a line built from a point and a direction, the distance
+            // from that point (see the PointOn command for DGPad's pixels).
             const support = this.support as primitive_line_object;
             this.coords = vAdd(
                 support.P1.coords,
-                vScale(
-                    support.VEC,
-                    (this.alpha as number) / this.C.GRID.UNIT[0],
-                ),
+                vScale(support.VEC, this.alpha as number),
             );
         }
         super.computeGeometry();
@@ -226,10 +224,7 @@ export class point_on_object extends point_object {
             return alpha;
         }
         const support = this.support as primitive_line_object;
-        return (
-            vDot(vSub(target, support.P1.coords), support.VEC) *
-            this.C.GRID.UNIT[0]
-        );
+        return vDot(vSub(target, support.P1.coords), support.VEC);
     }
 }
 

@@ -67,6 +67,13 @@ P=Point("P",1,2);`;
         ]);
     });
 
+    it("repairs texts encoded in UTF-8 more than once", () => {
+        const texts = parseDgp(
+            `T("Interm\\u00c3\\u0083\\u00c2\\u00a9diaire","Été","Ã©tÃ©","€");`,
+        )[0].arguments.map((value) => (value as { value: string }).value);
+        expect(texts).toEqual(["Intermédiaire", "Été", "été", "€"]);
+    });
+
     it("rejects general JavaScript syntax", () => {
         expect(() =>
             parseDgp(`window.location="https://example.com";`),

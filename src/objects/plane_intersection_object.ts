@@ -1,5 +1,6 @@
 import type { construction } from "../construction";
 import { vAdd, vCross, vDot, vScale, vSub } from "../vec";
+import type { DgoContext } from "./construction_object";
 import { point_object } from "./point_object";
 import type { primitive_line_object } from "./primitive_line_object";
 
@@ -23,6 +24,10 @@ export class plane_intersection_object extends point_object {
     }
 
     // Parallel to the plane, the parameter isn't finite, nor the point.
+    dgo(context: DgoContext): [string, unknown] {
+        return ["PlI", [this.LINE, ...this.PLANE].map(context.index)];
+    }
+
     computeGeometry(): void {
         this.defined = false;
         const { LINE: line, PLANE: plane } = this;

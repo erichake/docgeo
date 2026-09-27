@@ -2,7 +2,7 @@ import type { construction } from "../construction";
 import type { DOMElement } from "../dom";
 import { vAdd, vDot, vNorm, vNormalize, vScale, vSub, type Vec2 } from "../vec";
 import { computeAngleArc, formatDegrees } from "./angle_arc";
-import { construction_object } from "./construction_object";
+import { construction_object, type DgoContext } from "./construction_object";
 import type { point_object } from "./point_object";
 
 const DEFAULT_ARC_RADIUS = 30;
@@ -54,6 +54,10 @@ export class angle_object extends construction_object {
         this.O = o;
         this.B = cPoint;
         this.addParents(a, o, cPoint);
+    }
+
+    dgo(context: DgoContext): [string, unknown] {
+        return ["Ang", [this.A, this.O, this.B].map(context.index)];
     }
 
     computeGeometry(): void {

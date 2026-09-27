@@ -1,5 +1,6 @@
 import type { construction } from "../construction";
 import { geometryTolerance, numEqual } from "../vec";
+import type { DgoContext } from "./construction_object";
 import type { point_object } from "./point_object";
 import { primitive_circle_object } from "./primitive_circle_object";
 
@@ -20,6 +21,10 @@ export class circle3pts_object extends primitive_circle_object {
         this.P2 = p2;
         this.P3 = p3;
         this.addParents(p1, p2, p3);
+    }
+
+    dgo(context: DgoContext): [string, unknown] {
+        return ["C3p", [this.P1, this.P2, this.P3].map(context.index)];
     }
 
     computeGeometry(): void {

@@ -12,7 +12,7 @@ import {
     type Vec3,
 } from "../vec";
 import { isOccluded } from "./hidden_line";
-import { construction_object } from "./construction_object";
+import { construction_object, type DgoContext } from "./construction_object";
 import type { curve_object } from "./curve_object";
 import type { list_object } from "./list_object";
 import { primitive_circle_object } from "./primitive_circle_object";
@@ -158,6 +158,10 @@ export class point_object extends construction_object {
             ];
         }
         this.defined = vIsFinite(this.COORDS);
+    }
+
+    dgo(_context: DgoContext): [string, unknown] {
+        return ["Pt", this.z ? this.coords : [this.x, this.y]];
     }
 
     pin(): void {

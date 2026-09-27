@@ -1,5 +1,6 @@
 import type { construction } from "../construction";
 import { vAdd, vScale } from "../vec";
+import type { DgoContext } from "./construction_object";
 import { point_object } from "./point_object";
 
 export class midpoint_object extends point_object {
@@ -17,6 +18,10 @@ export class midpoint_object extends point_object {
         this.P1 = p1;
         this.P2 = p2;
         this.addParents(p1, p2);
+    }
+
+    dgo(context: DgoContext): [string, unknown] {
+        return ["Mid", [this.P1, this.P2].map(context.index)];
     }
 
     computeGeometry(): void {

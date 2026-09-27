@@ -1,7 +1,7 @@
 import type { construction } from "../construction";
 import type { DOMElement } from "../dom";
 import type { FormulaValue } from "../import/dgp_formula";
-import type { construction_object } from "./construction_object";
+import type { construction_object, DgoContext } from "./construction_object";
 import type { expression_object } from "./expression_object";
 import { list_object } from "./list_object";
 
@@ -27,6 +27,10 @@ export class expression_list_object extends list_object {
         this.source = source;
         this.readsView = source.viewDependent;
         this.addParents(source);
+    }
+
+    dgo(context: DgoContext): [string, unknown] {
+        return ["ELst", [context.index(this.source)]];
     }
 
     computeGeometry(): void {

@@ -1,5 +1,6 @@
 import type { construction } from "../construction";
 import { vAdd, vNorm, vScale, vSub, type Vec2 } from "../vec";
+import type { DgoContext } from "./construction_object";
 import type { point_object } from "./point_object";
 import { segment_object } from "./segment_object";
 
@@ -8,6 +9,10 @@ const HEAD_LENGTH = 20;
 const HEAD_ANGLE = Math.PI / 10;
 
 export class vector_object extends segment_object {
+    dgo(context: DgoContext): [string, unknown] {
+        return ["Vec", super.dgo(context)[1]];
+    }
+
     project(): void {
         super.project();
         if (!this.projectionDefined) return;

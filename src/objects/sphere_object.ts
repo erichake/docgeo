@@ -11,7 +11,7 @@ import {
     type Vec2,
     type Vec3,
 } from "../vec";
-import { construction_object } from "./construction_object";
+import { construction_object, type DgoContext } from "./construction_object";
 import type { point_object } from "./point_object";
 import { AMBIENT, LIGHT, pathData, shade } from "./polygon_object";
 
@@ -84,6 +84,10 @@ export class sphere_object extends construction_object {
         this.P1 = p1;
         this.P2 = p2;
         this.addParents(p1, p2);
+    }
+
+    dgo(context: DgoContext): [string, unknown] {
+        return ["Sph", [this.P1, this.P2].map(context.index)];
     }
 
     computeGeometry(): void {

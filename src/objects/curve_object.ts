@@ -2,7 +2,11 @@ import type { construction } from "../construction";
 import type { DOMElement } from "../dom";
 import { realPart, type FormulaView } from "../import/dgp_formula";
 import { GEOMETRY_EPSILON, vIsFinite, type Vec2, type Vec3 } from "../vec";
-import { construction_object } from "./construction_object";
+import {
+    construction_object,
+    dgoFormula,
+    type DgoContext,
+} from "./construction_object";
 import { evaluateFunction, type ExpressionFormula } from "./expression_object";
 
 const SAMPLES_MIN = 2;
@@ -48,6 +52,17 @@ export class curve_object extends construction_object {
         this.min = min;
         this.max = max;
         this.addParents(...formula.refs.values());
+    }
+
+    dgo(context: DgoContext): [string, unknown] {
+        return [
+            "Cur",
+            [
+                dgoFormula(this.formula.source, this.formula.refs, context),
+                this.min,
+                this.max,
+            ],
+        ];
     }
 
     // The x range currently sampled: Curvus's own explicit bounds, or

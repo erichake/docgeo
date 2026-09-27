@@ -1,7 +1,7 @@
 import type { construction } from "../construction";
 import type { DOMElement } from "../dom";
 import type { Vec2 } from "../vec";
-import { construction_object } from "./construction_object";
+import { construction_object, type DgoContext } from "./construction_object";
 import type { point_object } from "./point_object";
 
 // GeoGebra's image: its bottom left and bottom right corners, and its top
@@ -28,6 +28,18 @@ export class image_object extends construction_object {
         this.height = height;
         this.corners = corners;
         this.addParents(...corners);
+    }
+
+    dgo(context: DgoContext): [string, unknown] {
+        return [
+            "Img",
+            [
+                context.image(this.url),
+                this.width,
+                this.height,
+                ...this.corners.map(context.index),
+            ],
+        ];
     }
 
     computeGeometry(): void {

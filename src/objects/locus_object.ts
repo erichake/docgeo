@@ -11,7 +11,7 @@ import {
     type Vec2,
     type Vec3,
 } from "../vec";
-import { construction_object } from "./construction_object";
+import { construction_object, type DgoContext } from "./construction_object";
 import type { curve_object } from "./curve_object";
 import { list_object } from "./list_object";
 import { point_on_object } from "./point_on_object";
@@ -53,6 +53,10 @@ export class locus_object extends construction_object {
         this.familytype = "locus";
         this.dependencyChain = this.findDependencyChain();
         this.addParents(target, driver);
+    }
+
+    dgo(context: DgoContext): [string, unknown] {
+        return ["Loc", [this.target, this.driver].map(context.index)];
     }
 
     private findDependencyChain(): construction_object[] {

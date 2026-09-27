@@ -1,6 +1,7 @@
 import type { construction } from "../construction";
 import { geometryTolerance, numEqual, type Vec3 } from "../vec";
 import type { ConicCoeffs } from "./conic_algebra";
+import type { DgoContext } from "./construction_object";
 import type { point_object } from "./point_object";
 import { primitive_quadric_object } from "./primitive_quadric_object";
 
@@ -75,6 +76,13 @@ export class quadric5pts_object extends primitive_quadric_object {
         this.P4 = p4;
         this.P5 = p5;
         this.addParents(p1, p2, p3, p4, p5);
+    }
+
+    dgo(context: DgoContext): [string, unknown] {
+        return [
+            "Quad",
+            [this.P1, this.P2, this.P3, this.P4, this.P5].map(context.index),
+        ];
     }
 
     computeGeometry(): void {

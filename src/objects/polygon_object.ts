@@ -13,7 +13,7 @@ import {
     type Vec2,
     type Vec3,
 } from "../vec";
-import { construction_object } from "./construction_object";
+import { construction_object, type DgoContext } from "./construction_object";
 import { formatNumber } from "./expression_object";
 import {
     hiddenIntervals,
@@ -127,6 +127,10 @@ export class polygon_object extends construction_object {
     set plane(value: boolean) {
         this.isPlane = value;
         this.layer = value ? this.prefs.grid.layer : this.prefs.polygon.layer;
+    }
+
+    dgo(context: DgoContext): [string, unknown] {
+        return ["Poly", this.vertices.map(context.index)];
     }
 
     computeGeometry(): void {

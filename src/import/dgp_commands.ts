@@ -70,7 +70,10 @@ import { createReflection } from "../objects/reflection_object";
 import { createSegment, segment_object } from "../objects/segment_object";
 import { createSphere } from "../objects/sphere_object";
 import { createSymmetry } from "../objects/symmetry_object";
-import { createLine } from "../objects/two_points_line_object";
+import {
+    createLine,
+    two_points_line_object,
+} from "../objects/two_points_line_object";
 import { createVector } from "../objects/vector_object";
 import type { Vec2, Vec3 } from "../vec";
 import {
@@ -890,7 +893,7 @@ function applyCoordsStyle(context: CommandContext, value: string): void {
     flag("centerZoom", (value) => (grid.centerZoom = value));
     flag("onlyPositive", (value) => (grid.onlyPositive = value));
     const color = style.get("color");
-    if (color !== undefined) grid.stroke_color = color;
+    if (color !== undefined) grid.stroke_color = extractColor(color);
     size("fontSize", (value) => (grid.fontSize = value));
     size("axisWidth", (value) => (grid.size = value));
     size("gridWidth", (value) => (grid.gridWidth = value));
@@ -904,8 +907,9 @@ function normalizeAngle(angle: number, [low, high]: Vec2): number {
 }
 
 function applyGeneralStyle(c: construction, value: string): void {
-    const background = properties(value).get("background-color");
-    if (background === undefined) return;
+    const property = properties(value).get("background-color");
+    if (property === undefined) return;
+    const background = extractColor(property);
     c.prefs.background.color = background;
     c.svg.stl("background", background);
 }
@@ -1150,13 +1154,24 @@ const COMMANDS = new Map<string, CommandDefinition>([
                         `Invalid PointOn parameter at line ${lineNumber}`,
                     );
             },
-            execute: (context, args) =>
-                createPointOn(
+            execute: (context, args) => {
+                const support = args[1] as point_support_object;
+                // On a line built from a point and a direction
+                // (Perpendicular, Parallel…), DGPad stores the distance
+                // from that point in pixels, its own internal unit.
+                const alpha =
+                    support instanceof primitive_line_object &&
+                    !(support instanceof two_points_line_object)
+                        ? (args[2] as number) /
+                          context.construction.GRID.UNIT[0]
+                        : (args[2] as number | readonly [number, number]);
+                return createPointOn(
                     context.construction,
                     args[0] as string,
-                    args[1] as point_support_object,
-                    args[2] as number | readonly [number, number],
-                ),
+                    support,
+                    alpha,
+                );
+            },
         },
     ],
     [

@@ -1,5 +1,6 @@
 import type { construction } from "../construction";
 import { vAdd, vNorm, vNormalize, vScale, vSub, type Vec3 } from "../vec";
+import type { DgoContext } from "./construction_object";
 import { point_object } from "./point_object";
 import { primitive_line_object } from "./primitive_line_object";
 
@@ -17,6 +18,10 @@ export class perpendicular_bisector_object extends primitive_line_object {
         this.A1 = a1;
         this.A2 = a2;
         this.addParents(a1, a2);
+    }
+
+    dgo(context: DgoContext): [string, unknown] {
+        return ["Med", [this.A1, this.A2].map(context.index)];
     }
 
     computeVEC(): Vec3 | null {

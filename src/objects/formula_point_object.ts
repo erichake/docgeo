@@ -1,9 +1,11 @@
 import type { construction } from "../construction";
 import {
     evaluateFormula,
+    formulaSource,
     usesView,
     type FormulaNode,
 } from "../import/dgp_formula";
+import { dgoFormula, type DgoContext } from "./construction_object";
 import { expression_object, referenceValue } from "./expression_object";
 import { point_object } from "./point_object";
 
@@ -58,6 +60,20 @@ export class formula_point_object extends point_object {
                   ? value
                   : [value[0], value[1], 0];
         super.computeGeometry();
+    }
+
+    dgo(context: DgoContext): [string, unknown] {
+        const formula = dgoFormula(
+            formulaSource(this.formula),
+            this.refs,
+            context,
+        );
+        return [
+            "Fp",
+            this.moveable
+                ? [formula, ...this.handles.map((h) => h && context.index(h))]
+                : [formula],
+        ];
     }
 
     setHandles(

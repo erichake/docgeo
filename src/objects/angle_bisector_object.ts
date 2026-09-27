@@ -7,6 +7,7 @@ import {
     vSub,
     type Vec3,
 } from "../vec";
+import type { DgoContext } from "./construction_object";
 import type { point_object } from "./point_object";
 import { primitive_line_object } from "./primitive_line_object";
 
@@ -26,6 +27,10 @@ export class angle_bisector_object extends primitive_line_object {
         this.A1 = a1;
         this.A2 = a2;
         this.addParents(a1, a2);
+    }
+
+    dgo(context: DgoContext): [string, unknown] {
+        return ["Bis", [this.A1, this.P1, this.A2].map(context.index)];
     }
 
     computeVEC(): Vec3 | null {

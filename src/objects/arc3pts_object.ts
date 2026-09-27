@@ -1,6 +1,6 @@
 import type { construction } from "../construction";
 import { geometryTolerance, numEqual } from "../vec";
-import type { construction_object } from "./construction_object";
+import type { construction_object, DgoContext } from "./construction_object";
 import type { point_object } from "./point_object";
 import { primitive_circle_object } from "./primitive_circle_object";
 
@@ -34,6 +34,13 @@ export class arc3pts_object extends primitive_circle_object {
         this.P3 = p3;
         this.sector = sector;
         this.addParents(p1, p2, p3);
+    }
+
+    dgo(context: DgoContext): [string, unknown] {
+        return [
+            this.sector ? "Sec" : "Arc",
+            [this.P1, this.P2, this.P3].map(context.index),
+        ];
     }
 
     computeGeometry(): void {

@@ -747,12 +747,24 @@ class FormulaParser {
     }
 }
 
+// The text each parsed formula or program was read from, which a .dgo file
+// stores rather than the tree.
+const SOURCES = new WeakMap<FormulaNode | Program, string>();
+
 export function parseFormula(source: string): FormulaNode {
-    return new FormulaParser(source).parse();
+    const node = new FormulaParser(source).parse();
+    SOURCES.set(node, source);
+    return node;
 }
 
 export function parseProgram(source: string): Program {
-    return new FormulaParser(source).parseProgram();
+    const program = new FormulaParser(source).parseProgram();
+    SOURCES.set(program, source);
+    return program;
+}
+
+export function formulaSource(formula: FormulaNode | Program): string {
+    return SOURCES.get(formula)!;
 }
 
 function children(node: FormulaNode): FormulaNode[] {

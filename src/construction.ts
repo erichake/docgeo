@@ -61,7 +61,7 @@ export class construction {
     mouseclick(_ev: PointerEvent): void {}
 
     keydown(ev: KeyboardEvent): void {
-        if (this.GRID.is2D) return;
+        if (this.GRID.is2D || ev.metaKey || ev.ctrlKey) return;
         if (ev.key === "p" || ev.key === "P") {
             this.GRID.PERSPECTIVE = !this.GRID.PERSPECTIVE;
             this.invalidateProjection();

@@ -437,6 +437,29 @@ STL(P,"tk:1");`,
         expect(point.coords[2]).toBe(0);
     });
 
+    it("keeps a point on a perpendicular at its distance whatever the zoom", async () => {
+        const c = createConstruction();
+        importDgp(
+            c,
+            `SetCoords(400,300,40,false,800,600);
+A=Point("A",0,0);
+B=Point("B",0,1);
+d=Line("d",A,B);
+p=Perpendicular("p",d,B);
+M=PointOn("M",p,80);`,
+        );
+        const [b, m] = ["B", "M"].map((name) => c.getObj(name) as point_object);
+        expect(Math.abs(m.x - b.x)).toBeCloseTo(2);
+
+        c.GRID.UNIT = [80, 80, 80];
+        c.invalidateProjection();
+        b.coords = [0, 2, 0];
+        c.invalidateGeometry(b);
+        await new Promise((resolve) => requestAnimationFrame(resolve));
+        expect(Math.abs(m.x - b.x)).toBeCloseTo(2);
+        expect(m.y).toBeCloseTo(2);
+    });
+
     it("keeps an sb point on the polygon boundary", async () => {
         const c = createConstruction();
         await importDgpFromUrl(c, "/tests/dgp/_PtOn3.dgp");

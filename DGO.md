@@ -42,17 +42,36 @@ Décisions prises avec l'auteur (conversation du 2026-09-27), avant tout code.
 - Optionnel : accepter aussi un JSON non compressé en lecture (octets magiques
   `1f 8b`) pour des figures de test lisibles.
 
-## Structure JSON (esquisse)
+## Structure JSON (v1)
+
+Implémentée dans `src/dgo.ts` (défauts, styles, vue, lecteur) ; chaque type
+d'objet se décrit lui-même par sa méthode `dgo()` (type et paramètres).
 
 ```json
-{"dgo":1,
- "view":{"o":[-1.192,32.653],"u":75.915,"3d":1,"w":1143,"h":705},
- "st":[{"c":"#0000b2","s":6,"f":30,"fl":1}, {"c":"#0000b2","o":1,"s":4,"sn":1,"nmi":1}],
- "img":{"a3f…":"data:image/png;base64,…"},
- "o":[["Pt","P1",[5.245245850440365,-3.73243098432904],0],
-      ["Pt","X",{"dir":[1,0,0]},1],
-      ["Ex","f","sin(x*y)",[9.63,-2.2]],
-      ["Seg","S11",[0,1]]]}
+{
+    "dgo": 1,
+    "v": {
+        "o": [550, 424.9],
+        "u": 50,
+        "w": 1100,
+        "h": 700,
+        "3d": 1,
+        "th": 0.0524,
+        "ph": 0.977,
+        "fl": 0
+    },
+    "deg": 0,
+    "sop": 1,
+    "bg": "#ffffff",
+    "st": [{ "c": "#4d4dff", "sn": 1 }, { "h": 1 }],
+    "img": { "9f86d081884c7d65": "data:image/png;base64,…" },
+    "o": [
+        ["Pt", "A", [-3.51, -3.48], 0],
+        ["Fp", "aux 2", [["A+[2,0,0]", { "A": 0 }]], 1],
+        ["Sph", "a", [0, 1]],
+        ["Ex", "E2", { "t": "", "v": 2.6, "mn": 0, "mx": 10, "xy": [64, 251] }]
+    ]
+}
 ```
 
 - Objets en tableaux positionnels, **dans l'ordre de construction** ;
@@ -71,6 +90,193 @@ Décisions prises avec l'auteur (conversation du 2026-09-27), avant tout code.
 - Tout ce que l'import déduit à la volée doit y être : vue, mode degrés,
   `segmentsOverPolygons`, etc. Tout ce que permettent les importers `.dgp` et
   `.ggb` doit être représentable.
+
+### Racine
+
+| Clé   | Contenu                                  | Défaut     |
+| ----- | ---------------------------------------- | ---------- |
+| `dgo` | version du format                        | (requis) 1 |
+| `v`   | vue et repère (ci-dessous)               | (requis)   |
+| `deg` | angles en degrés (1) ou en radians (0)   | 1 (DGPad)  |
+| `sop` | `construction.segmentsOverPolygons`      | 0          |
+| `bg`  | couleur de fond                          | `#FAFAFA`  |
+| `st`  | styles, référencés par indice            | `[]`       |
+| `img` | images : clé → data URL                  | `{}`       |
+| `o`   | objets `[type, nom, paramètres, style?]` | (requis)   |
+
+Couleurs : `#rgb`, `#rrggbb` ou `rgb(r,g,b)`. Booléens : 0 ou 1. JSON n'ayant
+pas NaN, un nombre non fini s'écrit `null` là où il peut survenir :
+coordonnées d'un point libre, paramètre d'un point sur objet, valeur d'une
+expression. Une clé
+d'image est formée des 16 premiers chiffres hexadécimaux du SHA-256 de sa data
+URL (même image, même clé).
+
+### Vue `v`
+
+`o` origine en pixels, `u` pixels par unité, `w` et `h` taille de la fenêtre
+à l'enregistrement (requis). À l'ouverture, une figure plane garde son origine
+à la même place dans la fenêtre (comme DGPad) ; une figure 3D, à la même place
+par rapport au centre de la fenêtre.
+
+| Clé  | Contenu                           | Défaut          |
+| ---- | --------------------------------- | --------------- |
+| `3d` | figure 3D                         | 0               |
+| `th` | angle θ de la caméra              | π/2             |
+| `ph` | angle φ de la caméra              | 5π/2            |
+| `rt` | bornes de θ                       | [-π/2, π/2]     |
+| `rp` | bornes de φ (`null` : non bornée) | [null, null]    |
+| `pe` | perspective                       | 0               |
+| `fl` | sol                               | valeur de `3d`  |
+| `ax` | axes affichés                     | 1               |
+| `gr` | grille                            | 1               |
+| `ox` | axe Ox (`oy` : Oy)                | 1               |
+| `lx` | Ox verrouillé (`ly` : Oy)         | 0               |
+| `cz` | zoom centré sur l'origine         | 0               |
+| `op` | abscisses et ordonnées positives  | 0               |
+| `c`  | couleur des axes                  | `rgb(80,80,80)` |
+| `f`  | taille des graduations            | 18              |
+| `s`  | épaisseur des axes                | 2               |
+| `gw` | épaisseur de la grille            | 0.1             |
+
+### Objets
+
+Un indice désigne un objet antérieur du tableau `o`. Les noms sont uniques ;
+un fichier qui répète un nom est refusé.
+
+Une **formule** est son texte, ou `[texte, {nom: indice}]` quand elle lit
+d'autres objets : chaque nom qu'elle emploie y est associé à l'objet qu'il
+désigne. Ce nom est propre à la formule et peut différer du nom affiché de
+l'objet (une étiquette GeoGebra comme `A_{1}` n'est pas un identifiant).
+
+| Type   | Objet                                  | Paramètres                                   |
+| ------ | -------------------------------------- | -------------------------------------------- |
+| `Pt`   | point libre                            | `[x, y]` ou `[x, y, z]`                      |
+| `Fix`  | point fixe                             | idem                                         |
+| `Fp`   | point défini par une formule           | `[formule]`, `[formule, n1, n2]` (1)         |
+| `On`   | point sur objet                        | `[support, paramètre]` (2)                   |
+| `Mid`  | milieu                                 | `[A, B]`                                     |
+| `Sym`  | symétrique de P par rapport à O        | `[O, P]`                                     |
+| `Refl` | symétrique de P par rapport à d        | `[d, P]`                                     |
+| `Ctr`  | centre d'un cercle                     | `[cercle]`                                   |
+| `DirP` | P + vecteur directeur unitaire de d    | `[d, P]`                                     |
+| `PlI`  | intersection droite-plan (ABC)         | `[d, A, B, C]`                               |
+| `Int`  | intersection                           | `[o1, o2, branche]`, `[o1, o2, rang, P]` (3) |
+| `CyI`  | intersection droite-cylindre (sphère)  | `[d, A, B ou null, R, 0 ou 1]` (4)           |
+| `Line` | droite (AB)                            | `[A, B]`                                     |
+| `Ray`  | demi-droite [AB)                       | `[A, B]`                                     |
+| `Seg`  | segment                                | `[A, B]`                                     |
+| `Vec`  | vecteur                                | `[A, B]`                                     |
+| `Par`  | parallèle à d par P                    | `[d, P]`                                     |
+| `Perp` | perpendiculaire à d par P              | `[d, P]`                                     |
+| `Med`  | médiatrice                             | `[A, B]`                                     |
+| `Bis`  | bissectrice de l'angle AOB             | `[A, O, B]`                                  |
+| `FA`   | angle fixe : demi-droite [OA) tournée  | `[A, O, degrés, sens trigo]`                 |
+| `Ang`  | angle AOB                              | `[A, O, B]`                                  |
+| `Cir`  | cercle de centre O passant par A       | `[O, A]`                                     |
+| `C1`   | cercle de centre O et de rayon r       | `[O, r]`, `[O, r, axe]` (5)                  |
+| `C3`   | cercle de centre O et de rayon AB      | `[A, B, O]`                                  |
+| `C3p`  | cercle passant par trois points        | `[A, B, C]`                                  |
+| `Arc`  | arc de A à C passant par B             | `[A, B, C]`                                  |
+| `Sec`  | secteur de A à C passant par B         | `[A, B, C]`                                  |
+| `Quad` | conique passant par cinq points        | `[A, B, C, D, E]`                            |
+| `Sph`  | sphère de centre O passant par A       | `[O, A]`                                     |
+| `CyS`  | section d'un cylindre par le plan PQR  | `[A, B, R, P, Q, R']` (4)                    |
+| `Poly` | polygone                               | `[A, B, C, …]`                               |
+| `Loc`  | lieu de P quand M parcourt son support | `[P, M]`                                     |
+| `Ex`   | expression                             | objet (6)                                    |
+| `Cur`  | courbe y = f(x)                        | `[formule, min ou null, max ou null]`        |
+| `Lst`  | liste de formules en k                 | `[nature, nombre, formule, formule?]` (7)    |
+| `ELst` | points d'une expression                | `[expression]`                               |
+| `Itr`  | itération de segments                  | `[[P1, Q1, …], niveaux, [[ax,ay,bx,by], …]]` |
+| `Txt`  | texte attaché à un point               | `[point, [dx, dy], texte]` (8)               |
+| `Img`  | image                                  | `[clé, largeur, hauteur, A, B, C?]` (9)      |
+
+1. `n1`, `n2` : les nombres (expressions, ou `null`) que déplace un glisser
+   du point, pour chacune de ses coordonnées.
+2. Droite (AB), segment, demi-droite : `t` tel que M = A + t·AB. Autre
+   droite, définie par un point P et une direction : distance signée à P, en
+   unités, le long de son vecteur directeur. Cercle : angle. Polygone,
+   conique : couple. Lieu, liste, courbe : leur paramètre.
+3. Deux solutions au plus (droite-cercle, cercle-cercle, droite-conique) :
+   0 ou 1, droite-cercle dans l'ordre A + (t₀ + h)·u puis A + (t₀ − h)·u,
+   droite-conique par paramètre croissant le long de la droite, cercle-cercle
+   la solution à gauche puis à droite de O₁O₂ vue de la normale du premier.
+   Davantage (cercle-conique, conique-conique, avec une courbe) : rang de la
+   solution par angle croissant autour du centre de gravité de toutes les
+   solutions. Avec un point P : rang par distance décroissante à P.
+4. Cylindre d'axe AB passant par R, ou sans B sphère de centre A passant par
+   R. Solutions triées le long de la droite.
+5. `r` nombre (rayon qu'un glisser change) ou formule ; `axe` : droite
+   normale au plan du cercle.
+6. `{"t": texte, "mn": min, "mx": max, …}` avec exactement l'un de `"v"`
+   (valeur constante ou de curseur), `"f"` (formule de fonction en x, y, z, t)
+   ou `"s"` (script) ; position `"xy": [x, y]` en pixels, ou attachée à un
+   point : `"on": point, "d": [dx, dy]`.
+7. Nature `point`, `segment`, `line` ou `label` ; une seule formule pour
+   `point`. `k` et `count` y sont l'indice et le nombre d'éléments.
+8. Texte dont les parties `%formule%` affichent leur valeur, `%%` étant un
+   `%`.
+9. Coins inférieur gauche et inférieur droit, et supérieur gauche (sinon la
+   hauteur garde les proportions).
+
+### Styles `st`
+
+Pour chaque objet, les seules clés qui diffèrent de leur défaut, figé ici.
+S'y ajoutent `sc` (condition d'affichage : indice d'une expression) et `mg`
+(aimants : `[[indice, rayon en pixels], …]`), qui peuvent désigner un objet
+postérieur.
+
+| Clé  | Objets       | Contenu                                  | Défaut                            |
+| ---- | ------------ | ---------------------------------------- | --------------------------------- |
+| `c`  | tous         | couleur du trait                         | du type                           |
+| `fc` | tous         | couleur de remplissage                   | `c` s'il est donné, sinon du type |
+| `s`  | tous         | taille                                   | du type                           |
+| `o`  | tous         | opacité                                  | du type                           |
+| `h`  | tous         | 0 visible, 1 caché, 2 super-caché        | 0                                 |
+| `sn` | tous         | nom affiché                              | 0                                 |
+| `f`  | tous         | taille de police                         | 16                                |
+| `p`  | tous         | précision (lieu : nombre d'échantillons) | -1 (`Loc` : 1000)                 |
+| `sp` | points       | `circle`, `cross`, `diamond`, `rect`     | `circle`                          |
+| `np` | points       | direction du nom (radians)               | 0                                 |
+| `tk` | points       | trace                                    | 0                                 |
+| `i`  | points       | pas de déplacement `[dx, dy]`            | [0, 0]                            |
+| `fl` | points       | punaisé à sa place dans la fenêtre       | 0                                 |
+| `sb` | `On`         | sur le bord du polygone                  | 0                                 |
+| `pl` | `Poly`       | plan                                     | 0                                 |
+| `su` | `Poly`       | section (garde ses sommets définis)      | 0                                 |
+| `ar` | `Ang`, `FA`  | rayon de l'arc                           | 30                                |
+| `ra` | `Ang`        | marque d'angle droit                     | `dgpad`                           |
+| `dc` | `Seg`, `Vec` | décoration (0 à 6)                       | 0                                 |
+| `dh` | droites      | pointillés                               | 0                                 |
+| `is` | `Ex`         | pas du curseur                           | 0                                 |
+| `cL` | `Ex`         | longueur du curseur                      | 200                               |
+| `cV` | `Ex`         | curseur vertical                         | 0                                 |
+| `cB` | `Ex`         | case à cocher                            | 0                                 |
+| `iB` | `Ex`         | champ de saisie (largeur)                | 0                                 |
+| `tx` | `Ex`         | LaTeX                                    | 0                                 |
+| `cc` | `Ex`         | couleur du bouton du curseur             | `#780013`                         |
+| `cr` | `Ex`         | rayon du bouton                          | 10                                |
+| `co` | `Ex`         | opacité du bouton                        | 0                                 |
+| `sg` | `ELst`       | épaisseur des segments                   | -1                                |
+
+Défauts par type : `[remplissage, trait, taille, opacité]` (opacité absente :
+non définie).
+
+| Types                                                 | Défauts                                   |
+| ----------------------------------------------------- | ----------------------------------------- |
+| `Pt`, `Fix`, `Fp`, `On`, `DirP`                       | `rgb(255,255,255)`, `rgb(80,80,80)`, 6, 0 |
+| `Mid`, `Int`, `CyI`, `PlI`, `Ctr`, `Sym`, `Refl`      | `rgb(180,180,180)`, `rgb(80,80,80)`, 6, 0 |
+| `Line`, `Par`, `Perp`, `Med`                          | `rgb(35,141,227)`, `rgb(80,80,80)`, 2     |
+| `Ray`, `Bis`                                          | `rgb(35,141,227)`, `#993300`, 2           |
+| `Seg`, `Vec`                                          | `rgb(35,141,227)`, `rgb(180,80,80)`, 4    |
+| `FA`                                                  | `#006633`, `#006633`, 1, 0                |
+| `Ang`                                                 | `#006633`, `#006633`, 4, 0                |
+| `Cir`, `C1`, `C3`, `C3p`, `Arc`, `Sec`, `CyS`, `Quad` | `#CC66CC`, `#CC66CC`, 2, 0                |
+| `Sph`, `Poly`                                         | `rgb(35,141,227)`, `rgb(80,80,80)`, 2, 0  |
+| `Loc`, `Cur`                                          | `#0b5b94`, `#0b5b94`, 2                   |
+| `Lst`, `ELst`, `Itr`                                  | `#656148`, `#656148`, 2                   |
+| `Ex`                                                  | `rgb(0,0,178)`, `rgb(0,0,178)`, 7, 0      |
+| `Txt`, `Img`                                          | `#000000`, `#000000`, 1                   |
 
 ## Règles d'évolution (format purement additif)
 
@@ -99,12 +305,21 @@ caractères < 256 ; l'appliquer aux noms, textes et formules.
 
 ## Travail à faire
 
-1. Chaque type d'objet (`src/objects/*`) sait se décrire : type, parents,
-   paramètres propres.
-2. Écrivain `.dgo` à partir de la construction en mémoire (pas des commandes).
-3. Lecteur `.dgo` reconstruisant directement les objets : deuxième porte
-   d'entrée du moteur, à côté de `src/import/dgp_commands.ts`.
-4. Cmd-S / Ctrl-S et ouverture `.dgo` dans la version standalone.
-5. **Test d'aller-retour** sur toutes les figures de `tests/dgp` et
-   `tests/ggb` : import → `.dgo` → réouverture → objets aux mêmes positions et
-   rendu identique. Indispensable puisque l'original n'est pas conservé.
+Fait (v1) :
+
+1. Chaque type d'objet (`src/objects/*`) se décrit : méthode `dgo()`.
+2. Écrivain `.dgo` à partir de la construction en mémoire (`src/dgo.ts`).
+3. Lecteur `.dgo` reconstruisant directement les objets (`src/dgo.ts`),
+   qui refuse tout fichier malformé.
+4. Cmd-S / Ctrl-S et ouverture `.dgo` (gzip ou JSON clair) dans la version
+   standalone.
+5. Test d'aller-retour sur toutes les figures de `tests/dgp` et `tests/ggb`
+   (`tests/browser/dgo.test.ts`) : mêmes descriptions, mêmes positions, même
+   dessin au pixel près, y compris après manipulation.
+6. Nettoyage à l'import des textes doublement encodés en UTF-8.
+
+Reste à faire :
+
+- état élève (JSON clair séparé, indexé par nom) ;
+- intégration DocEval : import au dépôt, stockage `longblob`, signalement
+  d'import bien visible.

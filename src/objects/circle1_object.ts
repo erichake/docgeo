@@ -2,11 +2,16 @@ import type { construction } from "../construction";
 import type { DOMElement } from "../dom";
 import {
     evaluateFormula,
+    formulaSource,
     realPart,
     usesView,
     type FormulaNode,
 } from "../import/dgp_formula";
-import type { construction_object } from "./construction_object";
+import {
+    dgoFormula,
+    type construction_object,
+    type DgoContext,
+} from "./construction_object";
 import { expression_object } from "./expression_object";
 import type { point_object } from "./point_object";
 import { primitive_circle_object } from "./primitive_circle_object";
@@ -42,6 +47,25 @@ export class circle1_object extends primitive_circle_object {
             ...(typeof radius === "number" ? [] : radius.refs.values()),
             ...(axis ? [axis] : []),
         );
+    }
+
+    dgo(context: DgoContext): [string, unknown] {
+        const radius =
+            typeof this.radius === "number"
+                ? this.radius
+                : dgoFormula(
+                      formulaSource(this.radius.formula),
+                      this.radius.refs,
+                      context,
+                  );
+        return [
+            "C1",
+            [
+                context.index(this.P1),
+                radius,
+                ...(this.axis ? [context.index(this.axis)] : []),
+            ],
+        ];
     }
 
     computeGeometry(): void {

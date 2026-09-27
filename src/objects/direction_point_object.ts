@@ -1,5 +1,6 @@
 import type { construction } from "../construction";
 import { vAdd } from "../vec";
+import type { DgoContext } from "./construction_object";
 import { point_object } from "./point_object";
 import type { primitive_line_object } from "./primitive_line_object";
 
@@ -20,6 +21,10 @@ export class direction_point_object extends point_object {
         this.LINE = line;
         this.P = p;
         this.addParents(line, p);
+    }
+
+    dgo(context: DgoContext): [string, unknown] {
+        return ["DirP", [this.LINE, this.P].map(context.index)];
     }
 
     computeGeometry(): void {

@@ -1,4 +1,5 @@
 import { construction } from "./construction";
+import { importDgoFromBlob, importDgoFromUrl, writeDgo } from "./dgo";
 import { importDgp, importDgpFromUrl } from "./dgp_importer";
 import { $, type DOMElement } from "./dom";
 import { importGgbFromBlob, importGgbFromUrl } from "./ggb_importer";
@@ -48,14 +49,46 @@ $("head").append(`<style>
     .docgeo-notice button { position: absolute; top: 8px; inset-inline-end: 8px; width: 28px; height: 28px; border: 0; border-radius: 6px; background: none; color: #6b7280; font-size: 20px; line-height: 1; cursor: pointer; }
     .docgeo-notice button:hover { background: #f3f4f6; color: #1f2937; }
 </style>`);
+
+// The open figure's name, which a save keeps.
+let figureName: string | null = null;
+
+// Rather than the browser saving the page.
+$("body").on(
+    "keydown",
+    (event) => {
+        if (
+            !(event.metaKey || event.ctrlKey) ||
+            event.key.toLowerCase() !== "s"
+        )
+            return;
+        event.preventDefault();
+        if (figureName) saveFigure(figureName);
+    },
+    false,
+);
+
 const url = new URLSearchParams(window.location.search).get("url");
 export const DOCGEO_READY = url
     ? openFigure(url, () =>
           /\.ggb$/i.test(url)
               ? importGgbFromUrl(DOCGEO.scene, url)
-              : importDgpFromUrl(DOCGEO.scene, url),
+              : /\.dgo$/i.test(url)
+                ? importDgoFromUrl(DOCGEO.scene, url)
+                : importDgpFromUrl(DOCGEO.scene, url),
       )
     : pickFigure();
+
+async function saveFigure(name: string): Promise<void> {
+    const href = URL.createObjectURL(await writeDgo(DOCGEO.scene));
+    (
+        $.create("a")
+            .att("href", href)
+            .att("download", `${name}.dgo`)
+            .dom() as HTMLAnchorElement
+    ).click();
+    setTimeout(() => URL.revokeObjectURL(href));
+}
 
 // Resolves once a figure is open, the user being offered to pick another
 // one as long as it fails.
@@ -80,6 +113,11 @@ async function openFigure(
                 ),
         );
     }
+    figureName = name
+        .split(/[/\\?#]/)
+        .filter(Boolean)
+        .pop()!
+        .replace(/\.[^.]*$/, "");
     if (unsupported.length > 0) showUnsupported(unsupported);
 }
 
@@ -88,7 +126,7 @@ function pickFigure(error?: DOMElement): Promise<void> {
     return new Promise((resolve) => {
         const input = $.create("input")
             .att("type", "file")
-            .att("accept", ".dgp,.ggb");
+            .att("accept", ".dgo,.dgp,.ggb");
         const button = $.create("button")
             .cls("docgeo-open")
             .append(
@@ -106,7 +144,9 @@ function pickFigure(error?: DOMElement): Promise<void> {
             await openFigure(file.name, async () =>
                 /\.ggb$/i.test(file.name)
                     ? importGgbFromBlob(DOCGEO.scene, file)
-                    : importDgp(DOCGEO.scene, await file.text()),
+                    : /\.dgo$/i.test(file.name)
+                      ? importDgoFromBlob(DOCGEO.scene, file)
+                      : importDgp(DOCGEO.scene, await file.text()),
             );
             resolve();
         });

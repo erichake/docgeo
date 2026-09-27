@@ -1,5 +1,6 @@
 import type { construction } from "../construction";
 import { vSub } from "../vec";
+import type { DgoContext } from "./construction_object";
 import type { point_object } from "./point_object";
 import { primitive_circle_object } from "./primitive_circle_object";
 
@@ -17,6 +18,10 @@ export class circle_object extends primitive_circle_object {
         this.P1 = p1;
         this.P2 = p2;
         this.addParents(p1, p2);
+    }
+
+    dgo(context: DgoContext): [string, unknown] {
+        return ["Cir", [this.P1, this.P2].map(context.index)];
     }
 
     computeGeometry(): void {

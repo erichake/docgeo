@@ -13,7 +13,7 @@ import {
     type Vec2,
     type Vec3,
 } from "../vec";
-import { construction_object } from "./construction_object";
+import { construction_object, type DgoContext } from "./construction_object";
 import type { point_object } from "./point_object";
 
 // Where the plane through three points cuts the side of the cylinder of
@@ -50,6 +50,13 @@ export class cylinder_section_object extends construction_object {
         this.R = r;
         this.PLANE = plane;
         this.addParents(a, b, r, ...plane);
+    }
+
+    dgo(context: DgoContext): [string, unknown] {
+        return [
+            "CyS",
+            [this.A, this.B, this.R, ...this.PLANE].map(context.index),
+        ];
     }
 
     computeGeometry(): void {

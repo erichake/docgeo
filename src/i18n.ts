@@ -2,7 +2,7 @@
 const translations = {
     ar: {
         open_figure: "فتح شكل هندسي",
-        figure_formats: "DGPad (.dgp) أو GeoGebra (.ggb)",
+        figure_formats: "DocGeo (.dgo)، DGPad (.dgp) أو GeoGebra (.ggb)",
         open_failed: "تعذّر فتح الشكل",
         unsupported_title: "استيراد غير مكتمل",
         unsupported_text:
@@ -11,7 +11,7 @@ const translations = {
     },
     de: {
         open_figure: "Figur öffnen",
-        figure_formats: "DGPad (.dgp) oder GeoGebra (.ggb)",
+        figure_formats: "DocGeo (.dgo), DGPad (.dgp) oder GeoGebra (.ggb)",
         open_failed: "Die Figur konnte nicht geöffnet werden",
         unsupported_title: "Unvollständiger Import",
         unsupported_text:
@@ -20,7 +20,7 @@ const translations = {
     },
     el: {
         open_figure: "Άνοιγμα σχήματος",
-        figure_formats: "DGPad (.dgp) ή GeoGebra (.ggb)",
+        figure_formats: "DocGeo (.dgo), DGPad (.dgp) ή GeoGebra (.ggb)",
         open_failed: "Δεν ήταν δυνατό το άνοιγμα του σχήματος",
         unsupported_title: "Ελλιπής εισαγωγή",
         unsupported_text:
@@ -29,7 +29,7 @@ const translations = {
     },
     en: {
         open_figure: "Open a figure",
-        figure_formats: "DGPad (.dgp) or GeoGebra (.ggb)",
+        figure_formats: "DocGeo (.dgo), DGPad (.dgp) or GeoGebra (.ggb)",
         open_failed: "The figure could not be opened",
         unsupported_title: "Incomplete import",
         unsupported_text:
@@ -38,7 +38,7 @@ const translations = {
     },
     es: {
         open_figure: "Abrir una figura",
-        figure_formats: "DGPad (.dgp) o GeoGebra (.ggb)",
+        figure_formats: "DocGeo (.dgo), DGPad (.dgp) o GeoGebra (.ggb)",
         open_failed: "No se pudo abrir la figura",
         unsupported_title: "Importación incompleta",
         unsupported_text:
@@ -47,7 +47,7 @@ const translations = {
     },
     fr: {
         open_figure: "Ouvrir une figure",
-        figure_formats: "DGPad (.dgp) ou GeoGebra (.ggb)",
+        figure_formats: "DocGeo (.dgo), DGPad (.dgp) ou GeoGebra (.ggb)",
         open_failed: "Impossible d'ouvrir la figure",
         unsupported_title: "Import incomplet",
         unsupported_text:
@@ -56,7 +56,7 @@ const translations = {
     },
     hi: {
         open_figure: "आकृति खोलें",
-        figure_formats: "DGPad (.dgp) या GeoGebra (.ggb)",
+        figure_formats: "DocGeo (.dgo), DGPad (.dgp) या GeoGebra (.ggb)",
         open_failed: "आकृति नहीं खोली जा सकी",
         unsupported_title: "अधूरा आयात",
         unsupported_text:
@@ -65,7 +65,7 @@ const translations = {
     },
     it: {
         open_figure: "Apri una figura",
-        figure_formats: "DGPad (.dgp) o GeoGebra (.ggb)",
+        figure_formats: "DocGeo (.dgo), DGPad (.dgp) o GeoGebra (.ggb)",
         open_failed: "Impossibile aprire la figura",
         unsupported_title: "Importazione incompleta",
         unsupported_text:
@@ -74,7 +74,7 @@ const translations = {
     },
     nl: {
         open_figure: "Figuur openen",
-        figure_formats: "DGPad (.dgp) of GeoGebra (.ggb)",
+        figure_formats: "DocGeo (.dgo), DGPad (.dgp) of GeoGebra (.ggb)",
         open_failed: "De figuur kon niet worden geopend",
         unsupported_title: "Onvolledige import",
         unsupported_text:
@@ -83,7 +83,7 @@ const translations = {
     },
     pt: {
         open_figure: "Abrir uma figura",
-        figure_formats: "DGPad (.dgp) ou GeoGebra (.ggb)",
+        figure_formats: "DocGeo (.dgo), DGPad (.dgp) ou GeoGebra (.ggb)",
         open_failed: "Não foi possível abrir a figura",
         unsupported_title: "Importação incompleta",
         unsupported_text:
@@ -92,7 +92,7 @@ const translations = {
     },
     zh: {
         open_figure: "打开图形",
-        figure_formats: "DGPad (.dgp) 或 GeoGebra (.ggb)",
+        figure_formats: "DocGeo (.dgo)、DGPad (.dgp) 或 GeoGebra (.ggb)",
         open_failed: "无法打开图形",
         unsupported_title: "导入不完整",
         unsupported_text:
@@ -101,7 +101,7 @@ const translations = {
     },
     "zh-TW": {
         open_figure: "開啟圖形",
-        figure_formats: "DGPad (.dgp) 或 GeoGebra (.ggb)",
+        figure_formats: "DocGeo (.dgo)、DGPad (.dgp) 或 GeoGebra (.ggb)",
         open_failed: "無法開啟圖形",
         unsupported_title: "匯入不完整",
         unsupported_text: "以下元素不受支援：它們以及依賴它們的元素已被忽略。",

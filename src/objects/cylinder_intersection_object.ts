@@ -10,6 +10,7 @@ import {
     vSub,
     type Vec3,
 } from "../vec";
+import type { DgoContext } from "./construction_object";
 import { point_object } from "./point_object";
 import type { primitive_line_object } from "./primitive_line_object";
 
@@ -41,6 +42,20 @@ export class cylinder_intersection_object extends point_object {
         this.R = r;
         this.order = order;
         this.addParents(line, a, ...(b ? [b] : []), r);
+    }
+
+    dgo(context: DgoContext): [string, unknown] {
+        const { LINE, A, B, R } = this;
+        return [
+            "CyI",
+            [
+                context.index(LINE),
+                context.index(A),
+                B && context.index(B),
+                context.index(R),
+                this.order,
+            ],
+        ];
     }
 
     computeGeometry(): void {

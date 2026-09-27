@@ -5,6 +5,7 @@ import {
     type FormulaNode,
 } from "../import/dgp_formula";
 import { vSub, type Vec2 } from "../vec";
+import type { DgoContext } from "./construction_object";
 import { list_object, type ListRef } from "./list_object";
 import type { point_object } from "./point_object";
 
@@ -34,6 +35,17 @@ export class iteration_object extends list_object {
         this.ends = ends;
         this.maps = maps;
         this.addParents(...ends.flat());
+    }
+
+    dgo(context: DgoContext): [string, unknown] {
+        return [
+            "Itr",
+            [
+                this.ends.flat().map(context.index),
+                this.dgoFormula(this.countFormula, context),
+                this.maps.map((map) => map.flat()),
+            ],
+        ];
     }
 
     computeGeometry(): void {

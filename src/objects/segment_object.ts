@@ -9,7 +9,7 @@ import {
     vSub,
     type Vec2,
 } from "../vec";
-import type { construction_object } from "./construction_object";
+import type { construction_object, DgoContext } from "./construction_object";
 import { edgeStroke } from "./hidden_line";
 import type { point_object } from "./point_object";
 import { two_points_line_object } from "./two_points_line_object";
@@ -43,6 +43,10 @@ export class segment_object extends two_points_line_object {
         p2: point_object,
     ) {
         super(c, name, p1, p2, "segment");
+    }
+
+    dgo(context: DgoContext): [string, unknown] {
+        return ["Seg", super.dgo(context)[1]];
     }
 
     project(): void {

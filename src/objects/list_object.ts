@@ -2,6 +2,8 @@ import type { construction } from "../construction";
 import type { DOMElement } from "../dom";
 import {
     evaluateFormula,
+    formulaIdentifiers,
+    formulaSource,
     realPart,
     usesView,
     type FormulaEnv,
@@ -9,7 +11,11 @@ import {
     type FormulaValue,
     type ScriptValue,
 } from "../import/dgp_formula";
-import { construction_object } from "./construction_object";
+import {
+    construction_object,
+    dgoFormula,
+    type DgoContext,
+} from "./construction_object";
 import { formatValue, type expression_object } from "./expression_object";
 import { MAX_SCREEN, point_object } from "./point_object";
 import { polygon_object } from "./polygon_object";
@@ -71,6 +77,31 @@ export class list_object extends construction_object {
         this.readsView = [countFormula, ...formulas].some(usesView);
         this.refs = refs;
         this.addParents(...refs.values());
+    }
+
+    dgo(context: DgoContext): [string, unknown] {
+        return [
+            "Lst",
+            [
+                this.nature,
+                ...[this.countFormula, ...this.formulas].map((formula) =>
+                    this.dgoFormula(formula, context),
+                ),
+            ],
+        ];
+    }
+
+    // With only the refs it reads, of those its formulas share.
+    protected dgoFormula(
+        formula: FormulaNode,
+        context: DgoContext,
+    ): ReturnType<typeof dgoFormula> {
+        const names = formulaIdentifiers(formula);
+        return dgoFormula(
+            formulaSource(formula),
+            new Map([...this.refs].filter(([name]) => names.has(name))),
+            context,
+        );
     }
 
     protected baseEnv(): FormulaEnv {

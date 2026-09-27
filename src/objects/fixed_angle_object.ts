@@ -10,7 +10,7 @@ import {
     type Vec3,
 } from "../vec";
 import { computeAngleArc, formatDegrees } from "./angle_arc";
-import type { construction_object } from "./construction_object";
+import type { construction_object, DgoContext } from "./construction_object";
 import type { point_object } from "./point_object";
 import { primitive_line_object } from "./primitive_line_object";
 
@@ -50,6 +50,18 @@ export class fixed_angle_object extends primitive_line_object {
         this.valueDegrees = valueDegrees;
         this.trigo = trigo;
         this.addParents(a);
+    }
+
+    dgo(context: DgoContext): [string, unknown] {
+        return [
+            "FA",
+            [
+                context.index(this.A),
+                context.index(this.P1),
+                this.valueDegrees,
+                +this.trigo,
+            ],
+        ];
     }
 
     computeVEC(): Vec3 | null {

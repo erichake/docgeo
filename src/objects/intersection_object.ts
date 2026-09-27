@@ -18,7 +18,7 @@ import {
     lineConicIntersections,
     type ConicCoeffs,
 } from "./conic_algebra";
-import type { construction_object } from "./construction_object";
+import type { construction_object, DgoContext } from "./construction_object";
 import type { curve_object } from "./curve_object";
 import { point_object } from "./point_object";
 import { primitive_circle_object } from "./primitive_circle_object";
@@ -104,6 +104,19 @@ function curveRoots(
 // candidate on the same frame, leaving another one unclaimed and two of the
 // named points coincident. Cached per frame, same convention as
 // hidden_line.ts's edgeOwnerCache.
+// The candidates' indices, by increasing angle around their centroid.
+function rankByAngle(points: Vec3[]): number[] {
+    const centroid = vScale(
+        points.reduce((sum, point) => vAdd(sum, point), [0, 0, 0]),
+        1 / points.length,
+    );
+    const angle = ([x, y]: Vec3) =>
+        Math.atan2(y - centroid[1], x - centroid[0]);
+    return points
+        .map((_, index) => index)
+        .sort((a, b) => angle(points[a]) - angle(points[b]));
+}
+
 const conicGroupCache = new WeakMap<
     intersectable_object,
     WeakMap<
@@ -125,6 +138,9 @@ export class intersection_object extends point_object {
     // flag is needed to tell "never computed yet" from "was defined".
     private previouslyDefined = false;
     private hasComputedBefore = false;
+    // Where its candidates are shared by its siblings (see groupAssign), the
+    // rank of the one it holds: the branch a .dgo file numbers it by.
+    branch: number | null = null;
 
     constructor(
         c: construction,
@@ -140,6 +156,16 @@ export class intersection_object extends point_object {
         this.order = order;
         this.away = away;
         this.addParents(o1, o2, ...(away ? [away] : []));
+    }
+
+    dgo(context: DgoContext): [string, unknown] {
+        const [o1, o2] = [this.O1, this.O2].map(context.index);
+        return [
+            "Int",
+            this.away
+                ? [o1, o2, this.order, context.index(this.away)]
+                : [o1, o2, this.branch ?? this.order],
+        ];
     }
 
     computeGeometry(): void {
@@ -491,7 +517,8 @@ export class intersection_object extends point_object {
             return cached.assignments.get(this);
 
         const siblings = this.siblings();
-        const unclaimed = candidates();
+        const all = candidates();
+        const unclaimed = [...all];
         const assignments = new Map<intersection_object, Vec3>();
 
         // Phase 1: siblings with an `away` point rank candidates by
@@ -544,34 +571,28 @@ export class intersection_object extends point_object {
 
         // Phase 3: siblings with no previous position (just created, or
         // their tracked point vanished and later reappeared) split what's
-        // left deterministically — sorted by angle around its centroid,
-        // matched to those siblings sorted by `order` — so a fresh import
-        // is reproducible without depending on the other siblings' history.
+        // left deterministically, ranked by rankByAngle: on a fresh figure,
+        // each takes the branch its `order` numbers, as a .dgo file saves
+        // it (see branch); otherwise, sorted by `order`, the next one left.
         const bootstrapping = siblings
             .filter(
                 (sibling) =>
                     !sibling.away?.defined && !sibling.previouslyDefined,
             )
             .sort((a, b) => a.order - b.order);
-        if (bootstrapping.length > 0 && unclaimed.length > 0) {
-            const centroid = vScale(
-                unclaimed.reduce((sum, point) => vAdd(sum, point), [0, 0, 0]),
-                1 / unclaimed.length,
+        const ranked = rankByAngle(unclaimed);
+        const fresh = unclaimed.length === all.length;
+        bootstrapping.forEach((sibling, i) => {
+            const rank = fresh ? sibling.order : i;
+            if (rank < ranked.length)
+                assignments.set(sibling, unclaimed[ranked[rank]]);
+        });
+        const branches = rankByAngle(all);
+        assignments.forEach((point, sibling) => {
+            sibling.branch = branches.findIndex(
+                (index) => all[index] === point,
             );
-            const ranked = unclaimed
-                .map((point, index) => ({
-                    index,
-                    angle: Math.atan2(
-                        point[1] - centroid[1],
-                        point[0] - centroid[0],
-                    ),
-                }))
-                .sort((a, b) => a.angle - b.angle);
-            bootstrapping.forEach((sibling, i) => {
-                if (i < ranked.length)
-                    assignments.set(sibling, unclaimed[ranked[i].index]);
-            });
-        }
+        });
 
         forO1.set(this.O2, { frame: this.C.OBJS.frame, assignments });
         return assignments.get(this);

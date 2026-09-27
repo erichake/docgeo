@@ -3,6 +3,31 @@ import type { DOMElement } from "../dom";
 import type { ObjectPref, PrefKey, Preferences } from "../preferences";
 import type { expression_object } from "./expression_object";
 
+// What an object's .dgo description needs from the file being written.
+export interface DgoContext {
+    // Another object's position in the file.
+    index(object: construction_object): number;
+    // An image's key in the file's image table.
+    image(url: string): string;
+}
+
+// A formula's text and, when it reads other objects, what each of its names
+// stands for.
+export function dgoFormula(
+    source: string,
+    refs: ReadonlyMap<string, construction_object>,
+    context: DgoContext,
+): string | [string, Record<string, number>] {
+    return refs.size
+        ? [
+              source,
+              Object.fromEntries(
+                  [...refs].map(([name, ref]) => [name, context.index(ref)]),
+              ),
+          ]
+        : source;
+}
+
 export class construction_object {
     class: typeof construction_object;
     C: construction;
@@ -120,6 +145,11 @@ export class construction_object {
     }
 
     computeGeometry(): void {}
+
+    // Its .dgo type and parameters (see DGO.md).
+    dgo(_context: DgoContext): [string, unknown] {
+        throw new Error(`${this.name} can't be saved`);
+    }
 
     project(): void {}
 

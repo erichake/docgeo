@@ -2,13 +2,18 @@ import type { construction } from "../construction";
 import type { DOMElement } from "../dom";
 import {
     evaluateFormula,
+    formulaSource,
     realPart,
     usesView,
     type FormulaEnv,
     type FormulaNode,
 } from "../import/dgp_formula";
 import { vAdd, type Vec2 } from "../vec";
-import { construction_object } from "./construction_object";
+import {
+    construction_object,
+    dgoFormula,
+    type DgoContext,
+} from "./construction_object";
 import { resolveRef, type ListRef } from "./list_object";
 import type { point_object } from "./point_object";
 
@@ -49,6 +54,26 @@ export class text_object extends construction_object {
         );
         this.refs = refs;
         this.addParents(anchor, ...refs.values());
+    }
+
+    dgo(context: DgoContext): [string, unknown] {
+        const content = this.parts
+            .map((part, index) =>
+                index % 2 === 0
+                    ? part
+                    : typeof part === "string"
+                      ? ""
+                      : formulaSource(part),
+            )
+            .join("%");
+        return [
+            "Txt",
+            [
+                context.index(this.anchor),
+                this.offset.map(Math.round),
+                dgoFormula(content, this.refs, context),
+            ],
+        ];
     }
 
     private env(): FormulaEnv {
