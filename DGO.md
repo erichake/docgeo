@@ -107,7 +107,7 @@ d'objet se décrit lui-même par sa méthode `dgo()` (type et paramètres).
 Couleurs : `#rgb`, `#rrggbb` ou `rgb(r,g,b)`. Booléens : 0 ou 1. JSON n'ayant
 pas NaN, un nombre non fini s'écrit `null` là où il peut survenir :
 coordonnées d'un point libre, paramètre d'un point sur objet, valeur d'une
-expression. Une clé
+expression, rayon numérique d'un `C1`. Une clé
 d'image est formée des 16 premiers chiffres hexadécimaux du SHA-256 de sa data
 URL (même image, même clé).
 
@@ -116,7 +116,10 @@ URL (même image, même clé).
 `o` origine en pixels, `u` pixels par unité, `w` et `h` taille de la fenêtre
 à l'enregistrement (requis). À l'ouverture, une figure plane garde son origine
 à la même place dans la fenêtre (comme DGPad) ; une figure 3D, à la même place
-par rapport au centre de la fenêtre.
+par rapport au centre de la fenêtre. En mode intégré (`EMBED.md`), la région
+enregistrée `w` × `h` est centrée dans la fenêtre au pixel près, en 2D comme en
+3D : origine et positions en pixels (`xy` des expressions) sont décalées de
+`round((largeur − w) / 2)` et `round((hauteur − h) / 2)`.
 
 | Clé  | Contenu                           | Défaut          |
 | ---- | --------------------------------- | --------------- |
@@ -206,8 +209,8 @@ l'objet (une étiquette GeoGebra comme `A_{1}` n'est pas un identifiant).
    solutions. Avec un point P : rang par distance décroissante à P.
 4. Cylindre d'axe AB passant par R, ou sans B sphère de centre A passant par
    R. Solutions triées le long de la droite.
-5. `r` nombre (rayon qu'un glisser change) ou formule ; `axe` : droite
-   normale au plan du cercle.
+5. `r` nombre (rayon qu'un glisser change, `null` s'il n'est pas fini) ou
+   formule ; `axe` : droite normale au plan du cercle.
 6. `{"t": texte, "mn": min, "mx": max, …}` avec exactement l'un de `"v"`
    (valeur constante ou de curseur), `"f"` (formule de fonction en x, y, z, t)
    ou `"s"` (script) ; position `"xy": [x, y]` en pixels, ou attachée à un
@@ -278,6 +281,56 @@ non définie).
 | `Ex`                                                  | `rgb(0,0,178)`, `rgb(0,0,178)`, 7, 0      |
 | `Txt`, `Img`                                          | `#000000`, `#000000`, 1                   |
 
+## État élève
+
+L'état d'une figure est ce qu'une manipulation y a changé par rapport à sa
+figure de base (le `.dgo` chargé) : un objet JSON clair, séparé de la figure,
+indexé par nom, limité aux objets **dont la valeur diffère** de la figure de
+base (égalité exacte des nombres JSON). État vide : figure non manipulée.
+
+**Invariant** : toute modification qu'une manipulation de l'utilisateur peut
+faire à la figure, hors vue et traces, se retrouve dans l'état. Tout nouvel
+objet manipulable y entre donc, par une nouvelle ligne du tableau ci-dessous.
+
+```json
+{ "M": [2.1, -0.4], "N": 0.35, "k": 31, "cb": 1, "I2": 3 }
+```
+
+| Objet                                                  | Valeur                                                             |
+| ------------------------------------------------------ | ------------------------------------------------------------------ |
+| `Pt` (point libre), punaisé (`fl`) compris (3)         | `[x, y]` dans une figure plane, `[x, y, z]` dans une figure 3D (1) |
+| `On` (point sur objet)                                 | son paramètre, sous la forme de `.dgo` : nombre ou couple          |
+| `Ex` de valeur constante numérique (`"v"`)             | le nombre                                                          |
+| `Int` sans point P dont les solutions sont suivies (2) | le numéro de branche de `.dgo` (note 3 des objets)                 |
+| `C1` à rayon numérique (non formule)                   | le rayon, qu'un glisser du cercle change                           |
+
+Comme dans `.dgo`, un nombre non fini s'écrit `null`.
+
+1. À l'application, `[x, y]` est accepté aussi dans une figure 3D (z = 0).
+2. Intersections à plus de deux solutions (cercle-conique, conique-conique…) :
+   chacune suit sa solution quand la figure bouge, si bien que les mêmes
+   valeurs des autres objets, atteintes autrement, peuvent donner une autre
+   numérotation. Leur branche fait donc partie de l'état quand elle diffère.
+3. Un point punaisé garde sa place dans la fenêtre quand la vue change, et
+   un glisser change cette place. Ses coordonnées dans l'état sont celles de
+   cette place dans la vue de base (la vue avec laquelle la figure de base est
+   construite), indépendantes de la vue courante : zoomer ou déplacer la vue
+   ne change pas l'état. Appliquées comme paramètres de `Pt`, elles le
+   replacent au même endroit.
+
+- Les `Ex` de valeur constante couvrent les curseurs, les cases à cocher, les
+  nombres que modifie un champ de saisie ou le glisser d'un point `Fp`.
+- La vue (zoom, déplacement, rotation 3D) et les traces n'en font pas partie.
+- **Application** : la figure de base, où chaque objet de l'état reçoit sa
+  valeur (paramètres de `Pt`, `On`, `Int`, `C1` ; `"v"` d'une `Ex`), est
+  reconstruite comme un `.dgo`. Elle reproduit la figure d'où l'état a été
+  tiré, au dessin près. Un état qui nomme un objet inconnu ou non modifiable, ou dont une
+  valeur n'a pas la forme attendue, est refusé en entier.
+- **Stabilité** : mêmes exigences que le format `.dgo`. Un état enregistré
+  (réponse d'élève, état attendu) doit pouvoir être réappliqué indéfiniment à
+  sa figure de base : la forme des valeurs ne change jamais, toute évolution
+  est additive.
+
 ## Règles d'évolution (format purement additif)
 
 1. **Défauts figés dans la spécification `.dgo`**, indépendants de
@@ -318,8 +371,8 @@ Fait (v1) :
    dessin au pixel près, y compris après manipulation.
 6. Nettoyage à l'import des textes doublement encodés en UTF-8.
 
-Reste à faire :
+7. État élève (section ci-dessus) et mode intégré piloté par `postMessage`
+   (`EMBED.md`), avec cadre d'enregistrement.
 
-- état élève (JSON clair séparé, indexé par nom) ;
-- intégration DocEval : import au dépôt, stockage `longblob`, signalement
-  d'import bien visible.
+Reste à faire, côté DocTools : intégration DocEval (import au dépôt, stockage
+`longblob`, signalement d'import bien visible).

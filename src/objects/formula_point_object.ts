@@ -23,7 +23,7 @@ export class formula_point_object extends point_object {
     // The free numbers a drag shifts, one per coordinate (a GeoGebra point
     // like "(a + x(F), b)", see changeableNumber in ggb_translate.ts):
     // DGPad itself never lets a formula point move.
-    private handles: [expression_object | null, expression_object | null] = [
+    handles: [expression_object | null, expression_object | null] = [
         null,
         null,
     ];

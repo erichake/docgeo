@@ -1,9 +1,11 @@
-/// <reference types="vite/client" />
-import { afterEach, describe, expect, it } from "vitest";
-import { construction } from "../../src/construction";
+import { describe, expect, it } from "vitest";
+// First, as in main.ts: the object classes import each other.
+import "../../src/construction";
+import type { construction } from "../../src/construction";
 import { importDgp, importDgpFromUrl } from "../../src/dgp_importer";
 import {
     describeDgo,
+    figureObjects,
     importDgoFromBlob,
     readDgo,
     writeDgo,
@@ -12,96 +14,18 @@ import { importGgbFromUrl } from "../../src/ggb_importer";
 import { expression_object } from "../../src/objects/expression_object";
 import { point_on_object } from "../../src/objects/point_on_object";
 import { point_object } from "../../src/objects/point_object";
-import { preferences } from "../../src/preferences";
+import {
+    createConstruction,
+    DGP,
+    disposeFigures,
+    drawing,
+    drawingDifference,
+    expectClose,
+    frame,
+    GGB,
+} from "./figures";
 
-function createConstruction(): construction {
-    document.documentElement.style.width = "100%";
-    document.documentElement.style.height = "100%";
-    document.body.style.width = "100%";
-    document.body.style.height = "100%";
-    document.body.style.margin = "0";
-    return construction.create({ prefs: new preferences() });
-}
-
-afterEach(() => {
-    construction.constructions.slice().forEach((item) => item.dispose());
-    document.body.removeAttribute("style");
-    document.documentElement.removeAttribute("style");
-});
-
-const frame = () => new Promise((resolve) => requestAnimationFrame(resolve));
-
-const names = (paths: Record<string, unknown>) =>
-    Object.keys(paths).map((path) => path.split("/").pop()!);
-const DGP = names(import.meta.glob("../dgp/*.dgp"));
-const GGB = names(import.meta.glob("../ggb/*.ggb"));
-
-// What the figure draws: its visible elements, whatever order their
-// attributes were set in, without the ids numbered per construction.
-function drawing(element: Element): string {
-    const style = (element.getAttribute("style") ?? "")
-        .split(";")
-        .map((declaration) => declaration.trim())
-        .filter(Boolean);
-    if (style.includes("display: none")) return `<${element.tagName}/>`;
-    const attributes = [...element.attributes]
-        .map(({ name, value }) =>
-            name === "style"
-                ? `style=${style.sort().join(";")}`
-                : `${name}=${value}`,
-        )
-        .sort();
-    const content = [...element.childNodes]
-        .map((node) =>
-            node instanceof Element ? drawing(node) : (node.textContent ?? ""),
-        )
-        .join("");
-    return `<${element.tagName} ${attributes.join(" ")}>${content}</>`.replace(
-        /(sphere-gradient-|floor-clip-)\d+/g,
-        "$1",
-    );
-}
-
-// Where two drawings first differ beyond half a pixel, screen positions
-// being saved to the pixel.
-function drawingDifference(a: string, b: string): string {
-    const NUMBER = /-?\d+(?:\.\d+)?(?:e[+-]?\d+)?/g;
-    const [partsA, partsB] = [a, b].map((text) => text.split(NUMBER));
-    const [numbersA, numbersB] = [a, b].map((text) => text.match(NUMBER) ?? []);
-    const context = (i: number) =>
-        `${partsA.slice(Math.max(0, i - 3), i + 1).join("#")}\n≠\n${partsB.slice(Math.max(0, i - 3), i + 1).join("#")}`;
-    for (let i = 0; i < Math.max(partsA.length, partsB.length); i++) {
-        if (partsA[i] !== partsB[i]) return context(i);
-        if (
-            i < numbersA.length &&
-            !(Math.abs(Number(numbersA[i]) - Number(numbersB[i])) <= 0.5)
-        )
-            return `${numbersA[i]} ≠ ${numbersB[i]}: ${context(i)}`;
-    }
-    return "";
-}
-
-// Numbers only differ by rounding: a point on a polygon, for instance,
-// recomputes its parameters from its position.
-function expectClose(actual: unknown, expected: unknown, path = ""): void {
-    if (Number.isNaN(expected)) expect(actual, path).toBeNaN();
-    else if (typeof expected === "number" && typeof actual === "number") {
-        expect(Math.abs(actual - expected), path).toBeLessThanOrEqual(
-            1e-9 * Math.max(1, Math.abs(expected)),
-        );
-    } else if (typeof expected === "object" && expected !== null) {
-        expect(typeof actual, path).toBe("object");
-        const keys = Object.keys(expected);
-        expect(Object.keys(actual as object), path).toEqual(keys);
-        keys.forEach((key) =>
-            expectClose(
-                (actual as Record<string, unknown>)[key],
-                (expected as Record<string, unknown>)[key],
-                `${path}/${key}`,
-            ),
-        );
-    } else expect(actual, path).toEqual(expected);
-}
+disposeFigures();
 
 // Import, save, reopen: the reopened figure must be the same, down to its
 // drawing, since the original file isn't kept.
@@ -211,6 +135,54 @@ E=Expression("E","","","","[NaN,1]","1","1");`,
                 c.invalidateGeometry(point);
             },
         ));
+});
+
+describe(".dgo region", () => {
+    // Where the figure's points and expressions are drawn.
+    const positions = (c: construction) =>
+        figureObjects(c).flatMap((object) =>
+            object instanceof point_object && object.projectionDefined
+                ? [[object.name, object.screen] as const]
+                : object instanceof expression_object
+                  ? [[object.name, object.screen] as const]
+                  : [],
+        );
+
+    // What a region of the window shows, a window of its size shows once
+    // the figure is reopened, and a larger one in its center.
+    it.each(["_Expression.dgp", "_Conique3.dgp", "_patronsCube.dgp"])(
+        "%s",
+        async (name) => {
+            const region = { x: 130, y: 90, w: 400, h: 300 };
+            const c = createConstruction([900, 700]);
+            await importDgpFromUrl(c, `/tests/dgp/${name}`);
+            await frame();
+            const shown = new Map(positions(c));
+            const figure = await describeDgo(c, region);
+            expect(figure.v).toMatchObject({ w: 400, h: 300 });
+            c.dispose();
+            for (const [size, centered, offset] of [
+                [[400, 300], false, [0, 0]],
+                [[400, 300], true, [0, 0]],
+                [[900, 700], true, [250, 200]],
+            ] as const) {
+                const copy = createConstruction([...size]);
+                readDgo(copy, figure, centered);
+                await frame();
+                positions(copy).forEach(([object, [x, y]]) => {
+                    const [sx, sy] = shown.get(object)!;
+                    const expected = [
+                        sx - region.x + offset[0],
+                        sy - region.y + offset[1],
+                    ];
+                    // Expressions are placed to the pixel.
+                    expect(Math.abs(x - expected[0]), object).toBeLessThan(0.5);
+                    expect(Math.abs(y - expected[1]), object).toBeLessThan(0.5);
+                });
+                copy.dispose();
+            }
+        },
+    );
 });
 
 describe(".dgo reader", () => {

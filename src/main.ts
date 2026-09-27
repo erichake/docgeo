@@ -2,6 +2,7 @@ import { construction } from "./construction";
 import { importDgoFromBlob, importDgoFromUrl, writeDgo } from "./dgo";
 import { importDgp, importDgpFromUrl } from "./dgp_importer";
 import { $, type DOMElement } from "./dom";
+import { embed } from "./embed";
 import { importGgbFromBlob, importGgbFromUrl } from "./ggb_importer";
 import { DIR, t } from "./i18n";
 import { preferences } from "./preferences";
@@ -68,16 +69,21 @@ $("body").on(
     false,
 );
 
-const url = new URLSearchParams(window.location.search).get("url");
-export const DOCGEO_READY = url
-    ? openFigure(url, () =>
-          /\.ggb$/i.test(url)
-              ? importGgbFromUrl(DOCGEO.scene, url)
-              : /\.dgo$/i.test(url)
-                ? importDgoFromUrl(DOCGEO.scene, url)
-                : importDgpFromUrl(DOCGEO.scene, url),
-      )
-    : pickFigure();
+// In the embedded mode (see EMBED.md), the host page provides the figure,
+// shows what couldn't be imported and saves it.
+const search = new URLSearchParams(window.location.search);
+const url = search.get("url");
+export const DOCGEO_READY = search.has("embed")
+    ? Promise.resolve(embed(DOCGEO))
+    : url
+      ? openFigure(url, () =>
+            /\.ggb$/i.test(url)
+                ? importGgbFromUrl(DOCGEO.scene, url)
+                : /\.dgo$/i.test(url)
+                  ? importDgoFromUrl(DOCGEO.scene, url)
+                  : importDgpFromUrl(DOCGEO.scene, url),
+        )
+      : pickFigure();
 
 async function saveFigure(name: string): Promise<void> {
     const href = URL.createObjectURL(await writeDgo(DOCGEO.scene));

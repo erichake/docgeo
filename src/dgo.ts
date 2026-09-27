@@ -421,21 +421,42 @@ const own = (record: object, key: string): boolean =>
 
 // ************************** WRITING *****************************
 
-export async function writeDgo(c: construction): Promise<Blob> {
-    const json = JSON.stringify(await describeDgo(c));
-    return new Response(
-        new Blob([json]).stream().pipeThrough(new CompressionStream("gzip")),
-    ).blob();
+// A region of the window, in pixels.
+export interface Region {
+    x: number;
+    y: number;
+    w: number;
+    h: number;
 }
 
-export async function describeDgo(c: construction): Promise<DgoFigure> {
+// The figure's own objects, without the grid's.
+export function figureObjects(c: construction): construction_object[] {
     const grid = c.GRID;
     const internal = new Set<construction_object>([
         grid,
         grid.floorOccluder,
         ...grid.floorOccluder.points,
     ]);
-    const objects = c.OBJS.V.filter((object) => !internal.has(object));
+    return c.OBJS.V.filter((object) => !internal.has(object));
+}
+
+export async function writeDgo(
+    c: construction,
+    region?: Region,
+): Promise<Blob> {
+    const json = JSON.stringify(await describeDgo(c, region));
+    return new Response(
+        new Blob([json]).stream().pipeThrough(new CompressionStream("gzip")),
+    ).blob();
+}
+
+// Saved as the given region of the window shows it.
+export async function describeDgo(
+    c: construction,
+    { x, y, w, h }: Region = { x: 0, y: 0, w: c.width, h: c.height },
+): Promise<DgoFigure> {
+    const grid = c.GRID;
+    const objects = figureObjects(c);
     const indices = new Map(objects.map((object, index) => [object, index]));
     const images: Record<string, string> = {};
     const keys = new Map<string, string>();
@@ -448,16 +469,17 @@ export async function describeDgo(c: construction): Promise<DgoFigure> {
     const context: DgoContext = {
         index: (object) => indices.get(object)!,
         image: (url) => keys.get(url)!,
+        screen: ([sx, sy]) => [Math.round(sx - x), Math.round(sy - y)],
     };
     const styles: Settings[] = [];
     const styleIndices = new Map<string, number>();
     const figure: DgoFigure = {
         dgo: VERSION,
         v: {
-            o: grid.ORG,
+            o: [grid.ORG[0] - x, grid.ORG[1] - y],
             u: grid.UNIT[0],
-            w: c.width,
-            h: c.height,
+            w,
+            h,
             ...describe(VIEW, grid),
         },
         ...(!c.degrees && { deg: 0 }),
@@ -513,10 +535,11 @@ export async function importDgoFromUrl(
 }
 
 // A plain JSON file is read too, for readable test figures. Nothing is
-// ever unsupported.
+// ever unsupported. `centered`: see readDgo.
 export async function importDgoFromBlob(
     c: construction,
     file: Blob,
+    centered = false,
 ): Promise<string[]> {
     const [first, second] = new Uint8Array(
         await file.slice(0, 2).arrayBuffer(),
@@ -525,7 +548,7 @@ export async function importDgoFromBlob(
         first === 0x1f && second === 0x8b
             ? file.stream().pipeThrough(new DecompressionStream("gzip"))
             : file.stream();
-    readDgo(c, JSON.parse(await new Response(stream).text()));
+    readDgo(c, JSON.parse(await new Response(stream).text()), centered);
     return [];
 }
 
@@ -550,7 +573,9 @@ function checkNames(
     names.forEach((name) => check(refs.has(name) || free.includes(name)));
 }
 
-export function readDgo(c: construction, figure: Json): void {
+// `centered`: the saved window's region is centered in this one, to the
+// pixel, as the frame that would show it (see frame.ts).
+export function readDgo(c: construction, figure: Json, centered = false): void {
     check(isRecord(figure));
     if (figure.dgo !== VERSION)
         throw new Error(`Unsupported DGO version: ${figure.dgo}`);
@@ -577,14 +602,22 @@ export function readDgo(c: construction, figure: Json): void {
     const grid = c.GRID;
     apply(VIEW, grid, view);
     grid.UNIT = [unit, unit, unit];
-    // A plane figure keeps its origin where it was in the window, as in
-    // DGPad; a 3D one, where it was from the window's center.
-    grid.ORG = grid.is2D
-        ? origin
-        : [
-              origin[0] + (c.width - width) / 2,
-              origin[1] + (c.height - height) / 2,
-          ];
+    // Otherwise, a plane figure keeps its origin where it was in the
+    // window, as in DGPad; a 3D one, where it was from the window's center.
+    const offset: Vec2 = centered
+        ? [
+              Math.round((c.width - width) / 2),
+              Math.round((c.height - height) / 2),
+          ]
+        : [0, 0];
+    grid.ORG = centered
+        ? [origin[0] + offset[0], origin[1] + offset[1]]
+        : grid.is2D
+          ? origin
+          : [
+                origin[0] + (c.width - width) / 2,
+                origin[1] + (c.height - height) / 2,
+            ];
     const vec3 = !grid.is2D;
 
     const objects: construction_object[] = [];
@@ -638,6 +671,7 @@ export function readDgo(c: construction, figure: Json): void {
             formula,
             vec3,
             images,
+            offset,
         });
         let style: Settings = {};
         if (styleIndex !== undefined) {
@@ -691,6 +725,8 @@ interface Reader {
     ): { source: string; refs: Map<string, Instance<C[number]>> };
     vec3: boolean;
     images: Record<string, Json>;
+    // Added to the window positions read.
+    offset: Vec2;
 }
 
 type Builder = (parameters: Json, reader: Reader) => construction_object;
@@ -901,12 +937,12 @@ const BUILDERS: Record<string, Builder> = {
         const [center, radius, axis] = list(parameters, 2, 3);
         const line =
             axis === undefined ? undefined : at(axis, primitive_line_object);
-        if (isNumber(radius))
+        if (radius === null || isNumber(radius))
             return createCircle1(
                 c,
                 name,
                 at(center, point_object),
-                radius,
+                real(radius),
                 line,
             );
         const { source, refs } = formula(radius, ...POINT_REFS);
@@ -956,7 +992,7 @@ const BUILDERS: Record<string, Builder> = {
         );
     },
     Ang: threePoints(createAngle),
-    Ex: (parameters, { c, name, at, formula: read, vec3 }) => {
+    Ex: (parameters, { c, name, at, formula: read, vec3, offset }) => {
         check(isRecord(parameters));
         const { t: text, v: value, f, s, mn = null, mx = null } = parameters;
         check(typeof text === "string");
@@ -1008,7 +1044,7 @@ const BUILDERS: Record<string, Builder> = {
             value === undefined ? null : scriptValue(value),
             mn as number | null,
             mx as number | null,
-            anchored ? [0, 0] : screen,
+            anchored ? [0, 0] : [screen[0] + offset[0], screen[1] + offset[1]],
             formula,
             program,
         );

@@ -22,6 +22,7 @@ export class objects_collector {
     // Bumped on every update() pass, so per-frame caches (e.g. a polygon
     // spatial index) know when they need rebuilding :
     frame = 0;
+    updating = false;
 
     add<T extends construction_object>(o: T): T {
         o.sequence = this.nextSequence++;
@@ -88,6 +89,7 @@ export class objects_collector {
 
     update(): void {
         this.frame++;
+        this.updating = true;
         // Sorted by construction order so a parent is always recomputed
         // before the children marked dirty alongside it. Each step runs to
         // completion over every dirty object before the next one starts
@@ -145,5 +147,6 @@ export class objects_collector {
             }
         });
         if (polygonsProjected) paintByDepth(this.grid!.C);
+        this.updating = false;
     }
 }

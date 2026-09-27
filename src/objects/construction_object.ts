@@ -1,6 +1,7 @@
 import type { construction } from "../construction";
 import type { DOMElement } from "../dom";
 import type { ObjectPref, PrefKey, Preferences } from "../preferences";
+import type { Vec2 } from "../vec";
 import type { expression_object } from "./expression_object";
 
 // What an object's .dgo description needs from the file being written.
@@ -9,6 +10,8 @@ export interface DgoContext {
     index(object: construction_object): number;
     // An image's key in the file's image table.
     image(url: string): string;
+    // A window position, in the saved window, to the pixel.
+    screen(position: Vec2): Vec2;
 }
 
 // A formula's text and, when it reads other objects, what each of its names
@@ -52,6 +55,9 @@ export class construction_object {
     // GeoGebra's condition to show the object: it is shown only while this
     // expression is a nonzero number.
     condition: expression_object | null;
+    // The embedding page forbids the user to manipulate it (see EMBED.md,
+    // lock), which only its view reflects.
+    locked = false;
     hasView: boolean;
     // Assigned by objects_collector.add(): a construction-order counter used
     // to process dirty objects in the same order as the (assumed
@@ -184,7 +190,11 @@ export class construction_object {
         this.dom = this.class.createSVG(this);
         this.hasView = true;
         this.C.mountObject(this);
-        this.refresh();
+        // Shown by a script during an update: drawn along with the rest,
+        // rather than now from objects not yet updated, whose screen
+        // positions would also end up in that update's caches.
+        if (this.C.OBJS.updating) this.C.invalidateRender(this);
+        else this.refresh();
     }
 
     static createSVG(_this: construction_object): DOMElement {

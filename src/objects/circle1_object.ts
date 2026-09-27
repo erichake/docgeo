@@ -119,8 +119,9 @@ export class circle1_object extends primitive_circle_object {
     static createSVG(_this: construction_object): DOMElement {
         const t = _this as circle1_object;
         const dom = primitive_circle_object.createSVG(t);
-        if (typeof t.radius === "number")
-            dom.drag((event) => t.mousedrag(event));
+        if (typeof t.radius !== "number") return dom;
+        if (t.locked) t.hitArea.stl("pointer-events", "none");
+        else dom.drag((event) => t.mousedrag(event));
         return dom;
     }
 }

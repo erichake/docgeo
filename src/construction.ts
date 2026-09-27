@@ -338,6 +338,14 @@ export class construction {
         );
     }
 
+    // Brings the figure up to date now rather than at the next frame.
+    flush(): void {
+        if (this.updateFrame === null) return;
+        cancelAnimationFrame(this.updateFrame);
+        this.updateFrame = null;
+        this.OBJS.update();
+    }
+
     private scheduleUpdate(): void {
         if (this.updateFrame !== null) return;
         this.updateFrame = requestAnimationFrame(() => {

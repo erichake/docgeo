@@ -83,7 +83,8 @@ export class expression_list_object extends list_object {
             this.fillPaths.push(path);
             this.fills.add(path);
         }
-        this.fillPaths.forEach((path, i) => path.att("d", filled[i] ?? ""));
+        this.fillPaths.splice(filled.length).forEach((path) => path.dispose());
+        this.fillPaths.forEach((path, i) => path.att("d", filled[i]));
     }
 
     static createSVG(_this: construction_object): DOMElement {

@@ -10,7 +10,7 @@ ces figures.
 Tant que le lecteur ne sait pas ouvrir et manipuler avec robustesse et fluidité
 des constructions complexes, ne pas développer d'outils de création, de barre
 d'outils de construction ni de fonctions d'édition ou d'export, à l'exception
-de l'enregistrement au format `.dgo`.
+de l'enregistrement au format `.dgo` et du mode intégré décrit plus bas.
 
 ### Format natif `.dgo`
 
@@ -41,6 +41,21 @@ DocCells l'est pour DocShare. Le build (`npm run build` ou
 relatifs, et ne contenir aucun matériel de test. Une diffusion de DocGeo comme
 application indépendante n'est pas exclue : ne pas lier le code à des
 hypothèses propres à DocTools qui l'empêcheraient.
+
+### Mode intégré
+
+Le mode intégré (`index.html?embed`), son protocole `postMessage`, le cadre
+d'enregistrement, la lecture de la valeur d'un objet et l'état élève (lecture
+et application des valeurs des objets modifiables) sont autorisés : ils
+servent à intégrer le lecteur dans une page hôte, pas à construire. Ils sont
+décrits dans `EMBED.md` et `DGO.md` (section « État élève »), à lire avant de
+les modifier.
+
+Ils ne doivent pas devenir des outils de création ou d'édition : ni créer, ni
+supprimer, ni redéfinir d'objet, et ne changer que ce qu'une manipulation
+change déjà (points libres et sur objet, curseurs, champs de saisie, cases à
+cocher). Le protocole reste générique et versionné, sans hypothèse propre à
+DocTools ni à une autre application hôte.
 
 ### Code DGPad de référence
 

@@ -14,6 +14,7 @@ import {
 import { isOccluded } from "./hidden_line";
 import { construction_object, type DgoContext } from "./construction_object";
 import type { curve_object } from "./curve_object";
+import type { grid_object } from "./grid_object";
 import type { list_object } from "./list_object";
 import { primitive_circle_object } from "./primitive_circle_object";
 import { primitive_line_object } from "./primitive_line_object";
@@ -149,15 +150,17 @@ export class point_object extends construction_object {
     }
 
     computeGeometry(): void {
-        if (this.pinned) {
-            const { ORG, UNIT } = this.C.GRID;
-            this.coords = [
-                (this.pinned[0] - ORG[0]) / UNIT[0],
-                (ORG[1] - this.pinned[1]) / UNIT[1],
-                0,
-            ];
-        }
+        if (this.pinned) this.coords = this.pinnedIn(this.C.GRID);
         this.defined = vIsFinite(this.COORDS);
+    }
+
+    // A pinned point's coordinates in the given view.
+    pinnedIn({ ORG, UNIT }: Pick<grid_object, "ORG" | "UNIT">): Vec3 {
+        return [
+            (this.pinned![0] - ORG[0]) / UNIT[0],
+            (ORG[1] - this.pinned![1]) / UNIT[1],
+            0,
+        ];
     }
 
     dgo(_context: DgoContext): [string, unknown] {
@@ -344,7 +347,7 @@ export class point_object extends construction_object {
                 .att("cx", 0)
                 .att("cy", 0)
                 .stl(
-                    `fill:transparent;stroke:none;pointer-events:${t.moveable ? "all" : "none"};cursor:pointer`,
+                    `fill:transparent;stroke:none;pointer-events:${t.moveable && !t.locked ? "all" : "none"};cursor:pointer`,
                 ),
         );
 

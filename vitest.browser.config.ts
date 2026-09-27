@@ -1,5 +1,48 @@
 import { playwright } from "@vitest/browser-playwright";
+import type { BrowserCommand } from "vitest/node";
 import { defineConfig } from "vitest/config";
+
+type Position = [number, number];
+
+// Drags with the mouse, or a finger, from `from` to `to`: positions in the
+// page of the test's iframe `selector`, whatever CSS transforms apply to it.
+const drag: BrowserCommand<
+    [selector: string, from: Position, to: Position, touch: boolean]
+> = async ({ page, frame }, selector, from, to, touch) => {
+    const iframe = (await frame()).locator(selector);
+    const box = (await iframe.boundingBox())!;
+    const scale =
+        box.width /
+        (await iframe.evaluate(
+            (element) => (element as HTMLElement).offsetWidth,
+        ));
+    const STEPS = 10;
+    const at = (step: number) => ({
+        x: box.x + (from[0] + ((to[0] - from[0]) * step) / STEPS) * scale,
+        y: box.y + (from[1] + ((to[1] - from[1]) * step) / STEPS) * scale,
+    });
+    if (touch) {
+        const cdp = await page.context().newCDPSession(page);
+        const send = (
+            type: "touchStart" | "touchMove" | "touchEnd",
+            step?: number,
+        ) =>
+            cdp.send("Input.dispatchTouchEvent", {
+                type,
+                touchPoints: step === undefined ? [] : [at(step)],
+            });
+        await send("touchStart", 0);
+        for (let step = 1; step <= STEPS; step++) await send("touchMove", step);
+        await send("touchEnd");
+        await cdp.detach();
+    } else {
+        await page.mouse.move(at(0).x, at(0).y);
+        await page.mouse.down();
+        for (let step = 1; step <= STEPS; step++)
+            await page.mouse.move(at(step).x, at(step).y);
+        await page.mouse.up();
+    }
+};
 
 export default defineConfig({
     test: {
@@ -9,6 +52,7 @@ export default defineConfig({
             provider: playwright(),
             headless: true,
             instances: [{ browser: "chromium" }],
+            commands: { drag },
         },
     },
 });
