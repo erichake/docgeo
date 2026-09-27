@@ -2,20 +2,31 @@
 
 ## Objectif actuel du projet
 
-DocGeo est actuellement un **lecteur interactif de figures `.dgp` et
+DocGeo est actuellement un **lecteur interactif de figures `.dgo`, `.dgp` et
 `.ggb`**. Son objectif est d'ouvrir fidèlement les fichiers produits par DGPad
 et par GeoGebra, et de permettre la manipulation des objets déjà mobiles dans
 ces figures.
 
 Tant que le lecteur ne sait pas ouvrir et manipuler avec robustesse et fluidité
 des constructions complexes, ne pas développer d'outils de création, de barre
-d'outils de construction ni de fonctions d'édition ou d'export.
+d'outils de construction ni de fonctions d'édition ou d'export, à l'exception
+de l'enregistrement au format `.dgo`.
+
+### Format natif `.dgo`
+
+`.dgo` est le format natif de DocGeo : le seul qu'il lit et écrit nativement
+(JSON compressé en gzip). `.dgp` et `.ggb` ne sont plus que des imports.
+L'enregistrement d'une figure au format `.dgo` (Cmd-S / Ctrl-S) est autorisé.
+Les décisions de conception et les règles d'évolution du format (purement
+additive une fois diffusé) sont dans `DGO.md` : le lire avant toute
+modification de l'enregistrement ou de la lecture des figures.
 
 Les développements doivent servir en priorité :
 
 - l'import sûr des formats `.dgp` et `.ggb`, toute exécution de leur contenu
   devant avoir lieu dans un environnement sécurisé et strictement contrôlé (les
   scripts GeoGebra ne sont jamais exécutés) ;
+- la lecture et l'écriture fidèles du format `.dgo` ;
 - la compatibilité géométrique et graphique avec DGPad et GeoGebra ;
 - la manipulation des objets existants ;
 - la robustesse numérique et les performances sur plusieurs milliers d'objets.
