@@ -1,3 +1,4 @@
+import { advance, type Animation } from "../animation";
 import type { construction } from "../construction";
 import { $, type DOMElement } from "../dom";
 import {
@@ -221,6 +222,9 @@ export class expression_object extends construction_object {
     // ExpressionOn: `screen` follows this point, `alpha` pixels away.
     anchor: point_object | null = null;
     alpha: Vec2 = [0, 0];
+    animation: Animation | null = null;
+    // What an animation has yet to move a slider by, less than its increment.
+    private animationCarry = 0;
     private knobX = 0;
     private valueText!: DOMElement;
     private cursor?: DOMElement;
@@ -475,6 +479,32 @@ export class expression_object extends construction_object {
             value = Math.max(min, value);
         }
         this.value = value;
+        this.C.invalidateGeometry(this);
+    }
+
+    // As in DGPad: a slider moves `speed` fiftieths of its range per second,
+    // by whole increments if it has one; another number, `speed` per second.
+    animate(seconds: number): void {
+        if (this.formula || this.program || typeof this.value !== "number")
+            return;
+        const animation = this.animation!;
+        let step = animation.direction * animation.speed * seconds;
+        let value: number;
+        if (this.isCursor) {
+            const [min, max] = [this.min!, this.max!];
+            step *= (max - min) / 50;
+            if (this.increment > 0) {
+                this.animationCarry += step;
+                if (Math.abs(this.animationCarry) < this.increment) return;
+                step =
+                    animation.direction *
+                    this.increment *
+                    Math.floor(Math.abs(this.animationCarry) / this.increment);
+                this.animationCarry = 0;
+            }
+            value = advance(animation, this.value, min, max, step);
+        } else value = this.value + step;
+        this.value = Math.abs(value) < 1e-13 ? 0 : value;
         this.C.invalidateGeometry(this);
     }
 

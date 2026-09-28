@@ -8,6 +8,8 @@ const translations = {
         unsupported_text:
             "هذه العناصر غير مدعومة: تم تجاهلها مع العناصر التي تعتمد عليها.",
         close: "إغلاق",
+        pause: "إيقاف مؤقت",
+        play: "تشغيل",
     },
     de: {
         open_figure: "Figur öffnen",
@@ -17,6 +19,8 @@ const translations = {
         unsupported_text:
             "Diese Elemente werden nicht unterstützt: Sie wurden zusammen mit den von ihnen abhängigen Elementen ignoriert.",
         close: "Schließen",
+        pause: "Pause",
+        play: "Abspielen",
     },
     el: {
         open_figure: "Άνοιγμα σχήματος",
@@ -26,6 +30,8 @@ const translations = {
         unsupported_text:
             "Αυτά τα στοιχεία δεν υποστηρίζονται: αγνοήθηκαν, μαζί με όσα εξαρτώνται από αυτά.",
         close: "Κλείσιμο",
+        pause: "Παύση",
+        play: "Αναπαραγωγή",
     },
     en: {
         open_figure: "Open a figure",
@@ -35,6 +41,8 @@ const translations = {
         unsupported_text:
             "These elements are not supported: they were ignored, along with those that depend on them.",
         close: "Close",
+        pause: "Pause",
+        play: "Play",
     },
     es: {
         open_figure: "Abrir una figura",
@@ -44,6 +52,8 @@ const translations = {
         unsupported_text:
             "Estos elementos no son compatibles: se han ignorado, junto con los que dependen de ellos.",
         close: "Cerrar",
+        pause: "Pausa",
+        play: "Reproducir",
     },
     fr: {
         open_figure: "Ouvrir une figure",
@@ -53,6 +63,8 @@ const translations = {
         unsupported_text:
             "Ces éléments ne sont pas pris en charge : ils ont été ignorés, ainsi que ceux qui en dépendent.",
         close: "Fermer",
+        pause: "Pause",
+        play: "Lecture",
     },
     hi: {
         open_figure: "आकृति खोलें",
@@ -62,6 +74,8 @@ const translations = {
         unsupported_text:
             "ये तत्व समर्थित नहीं हैं: इन्हें और इन पर निर्भर तत्वों को अनदेखा कर दिया गया।",
         close: "बंद करें",
+        pause: "रोकें",
+        play: "चलाएँ",
     },
     it: {
         open_figure: "Apri una figura",
@@ -71,6 +85,8 @@ const translations = {
         unsupported_text:
             "Questi elementi non sono supportati: sono stati ignorati, insieme a quelli che ne dipendono.",
         close: "Chiudi",
+        pause: "Pausa",
+        play: "Riproduci",
     },
     nl: {
         open_figure: "Figuur openen",
@@ -80,6 +96,8 @@ const translations = {
         unsupported_text:
             "Deze elementen worden niet ondersteund: ze zijn genegeerd, samen met de elementen die ervan afhangen.",
         close: "Sluiten",
+        pause: "Pauzeren",
+        play: "Afspelen",
     },
     pt: {
         open_figure: "Abrir uma figura",
@@ -89,6 +107,8 @@ const translations = {
         unsupported_text:
             "Estes elementos não são suportados: foram ignorados, juntamente com os que dependem deles.",
         close: "Fechar",
+        pause: "Pausar",
+        play: "Reproduzir",
     },
     zh: {
         open_figure: "打开图形",
@@ -98,6 +118,8 @@ const translations = {
         unsupported_text:
             "以下元素不受支持：它们以及依赖于它们的元素已被忽略。",
         close: "关闭",
+        pause: "暂停",
+        play: "播放",
     },
     "zh-TW": {
         open_figure: "開啟圖形",
@@ -106,6 +128,8 @@ const translations = {
         unsupported_title: "匯入不完整",
         unsupported_text: "以下元素不受支援：它們以及依賴它們的元素已被忽略。",
         close: "關閉",
+        pause: "暫停",
+        play: "播放",
     },
 };
 

@@ -12,7 +12,8 @@ export function disposeFigures(): void {
     });
 }
 
-// In a window of the given size, in pixels, or the whole page.
+// In a window of the given size, in pixels, or the whole page, its
+// animations paused so that it only changes when a test changes it.
 export function createConstruction(size?: [number, number]): construction {
     document.documentElement.style.width = "100%";
     document.documentElement.style.height = "100%";
@@ -25,7 +26,9 @@ export function createConstruction(size?: [number, number]): construction {
         document.body.style.minHeight = "0";
     }
     document.body.style.margin = "0";
-    return construction.create({ prefs: new preferences() });
+    const c = construction.create({ prefs: new preferences() });
+    c.animations.paused = true;
+    return c;
 }
 
 export const frame = () =>

@@ -310,6 +310,25 @@ const STYLE: Record<string, Property> = {
         isFlag,
     ),
     sb: flag(point_on_object, "onBoundary"),
+    an: property<point_on_object | expression_object>(
+        [point_on_object, expression_object],
+        ({ animation }) =>
+            animation && [animation.speed, animation.direction, +animation.ar],
+        (owner, value) => {
+            if (!value) return;
+            const [speed, direction, ar] = value as number[];
+            owner.C.animations.add(owner, { speed, direction, ar: ar === 1 });
+        },
+        null,
+        (value) =>
+            value === null ||
+            (Array.isArray(value) &&
+                value.length === 3 &&
+                isNumber(value[0]) &&
+                value[0] >= 0 &&
+                (value[1] === 1 || value[1] === -1) &&
+                isFlag(value[2])),
+    ),
     pl: flag(polygon_object, "plane"),
     su: flag(polygon_object, "section"),
     ar: field<angle_object | fixed_angle_object>(

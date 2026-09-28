@@ -210,6 +210,9 @@ const POINT_SHAPES = ["circle", "cross", "diamond", "rect"];
 // "[S2,5000],[C1,20]".
 const MAGNET_LIST =
     /^\[[A-Za-z_$][\w$]*,\d+(?:\.\d+)?\](?:,\[[A-Za-z_$][\w$]*,\d+(?:\.\d+)?\])*$/;
+// An "an" style: an animation's speed, direction and back and forth, e.g.
+// "[200,1,true]".
+const ANIMATION = /^\[(\d+(?:\.\d+)?(?:e[+-]?\d+)?),(-?1),(true|false)\]$/;
 
 function parseMagnetList(value: string): { name: string; radius: number }[] {
     return value.split("],[").map((chunk) => {
@@ -646,6 +649,10 @@ function validateObjectStyle(
                         `Unknown DGP reference at line ${lineNumber}`,
                     );
                 break;
+            case "an":
+                if (!ANIMATION.test(propertyValue))
+                    throw new Error(`Invalid DGP style at line ${lineNumber}`);
+                break;
             case "mg":
                 if (!MAGNET_LIST.test(propertyValue))
                     throw new Error(`Invalid DGP style at line ${lineNumber}`);
@@ -829,6 +836,20 @@ function applyObjectStyle(
                     propertyValue,
                 ) as expression_object;
                 target.addParents(target.condition);
+                break;
+            case "an":
+                if (
+                    target instanceof point_on_object ||
+                    target instanceof expression_object
+                ) {
+                    const [, speed, direction, ar] =
+                        ANIMATION.exec(propertyValue)!;
+                    context.construction.animations.add(target, {
+                        speed: Number(speed),
+                        direction: Number(direction),
+                        ar: ar === "true",
+                    });
+                }
                 break;
             case "mg":
                 if (target instanceof point_object)

@@ -261,6 +261,7 @@ postérieur.
 | `i`  | points       | pas de déplacement `[dx, dy]`            | [0, 0]                            |
 | `fl` | points       | punaisé à sa place dans la fenêtre       | 0                                 |
 | `sb` | `On`         | sur le bord du polygone                  | 0                                 |
+| `an` | `On`, `Ex`   | animation (ci-dessous)                   | `null`                            |
 | `pl` | `Poly`       | plan                                     | 0                                 |
 | `su` | `Poly`       | section (garde ses sommets définis)      | 0                                 |
 | `ar` | `Ang`, `FA`  | rayon de l'arc                           | 30                                |
@@ -277,6 +278,16 @@ postérieur.
 | `cr` | `Ex`         | rayon du bouton                          | 10                                |
 | `co` | `Ex`         | opacité du bouton                        | 0                                 |
 | `sg` | `ELst`       | épaisseur des segments                   | -1                                |
+
+Animation `an` : `[vitesse, sens, aller-retour]`. Comme dans DGPad, elle est
+lancée à l'ouverture et un bouton en bas à gauche de la fenêtre la suspend et
+la reprend. Sens 1 ou -1 (sens courant à l'enregistrement), aller-retour 0 ou 1
+(sinon, retour à l'autre extrémité).
+Vitesse positive : en pixels d'écran par seconde sur une droite ou le bord d'un
+polygone (partie visible d'une droite, depuis l'origine d'une demi-droite), en
+radians par seconde sur un cercle, cinq fois autant d'échantillons par seconde
+sur un lieu, en cinquantièmes de l'intervalle d'un curseur par seconde (par pas
+entiers s'il en a un), en unités par seconde pour un autre nombre.
 
 Défauts par type : `[remplissage, trait, taille, opacité]` (opacité absente :
 non définie).
@@ -338,6 +349,8 @@ Comme dans `.dgo`, un nombre non fini s'écrit `null`.
 - Les `Ex` de valeur constante couvrent les curseurs, les cases à cocher, les
   nombres que modifie un champ de saisie ou le glisser d'un point `Fp`.
 - La vue (zoom, déplacement, rotation 3D) et les traces n'en font pas partie.
+- Une animation (`an`) change la valeur de son objet comme une manipulation :
+  elle entre dans l'état.
 - **Application** : la figure de base, où chaque objet de l'état reçoit sa
   valeur (paramètres de `Pt`, `On`, `Int`, `C1` ; `"v"` d'une `Ex`), est
   reconstruite comme un `.dgo`. Elle reproduit la figure d'où l'état a été

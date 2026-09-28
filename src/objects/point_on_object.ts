@@ -1,8 +1,11 @@
+import { advance, type Animation } from "../animation";
 import type { construction } from "../construction";
 import { projectPointOnLine, projectPointOnPlane } from "../projection";
 import { vAdd, vDot, vScale, vSub, type Vec2, type Vec3 } from "../vec";
+import { angle_bisector_object } from "./angle_bisector_object";
 import type { curve_object } from "./curve_object";
 import type { DgoContext } from "./construction_object";
+import { fixed_angle_object } from "./fixed_angle_object";
 import { list_object } from "./list_object";
 import type { locus_object } from "./locus_object";
 import { polygon_object } from "./polygon_object";
@@ -25,10 +28,13 @@ export type point_support_object =
 
 type Alpha = number | readonly [number, number];
 
+const TWO_PI = 2 * Math.PI;
+
 export class point_on_object extends point_object {
     support: point_support_object;
     alpha: Alpha;
     onBoundary: boolean;
+    animation: Animation | null = null;
 
     constructor(
         c: construction,
@@ -143,6 +149,133 @@ export class point_on_object extends point_object {
         if (alpha === null) return;
         this.alpha = alpha;
         this.C.invalidateGeometry(this);
+    }
+
+    // As in DGPad: along a line or a polygon's edges, `speed` pixels per
+    // second on the screen; on a circle, radians per second; on a locus,
+    // five times as many of its samples.
+    animate(seconds: number): void {
+        const support = this.support;
+        if (!support.defined) return;
+        const step =
+            this.animation!.direction * this.animation!.speed * seconds;
+        if (support instanceof primitive_circle_object) {
+            // DGPad's angles run from 0 to 2π.
+            const alpha = (this.alpha as number) % TWO_PI;
+            this.alpha = advance(
+                this.animation!,
+                alpha < 0 ? alpha + TWO_PI : alpha,
+                0,
+                TWO_PI,
+                step,
+            );
+        } else if (support.familytype === "locus")
+            this.alpha = advance(
+                this.animation!,
+                this.alpha as number,
+                0,
+                (support as locus_object).points.length - 1,
+                5 * step,
+            );
+        else if (support instanceof polygon_object) {
+            const alpha = this.walk(support, step);
+            if (!alpha) return;
+            this.alpha = alpha;
+        } else if (support instanceof primitive_line_object) {
+            const range = this.lineRange(support);
+            if (!range) return;
+            this.alpha = advance(
+                this.animation!,
+                this.alpha as number,
+                range[0],
+                range[1],
+                step / range[2],
+            );
+        } else return;
+        this.C.invalidateGeometry(this);
+    }
+
+    // The parameters of the line's visible part, as in DGPad, from a ray's
+    // origin, a segment's being its own, and the length on the screen of a
+    // unit of them.
+    private lineRange(
+        support: primitive_line_object,
+    ): [number, number, number] | null {
+        const origin = support.P1.coords;
+        const [x, y] = this.C.pt3D(origin);
+        const [ex, ey] = this.C.pt3D(
+            vAdd(
+                origin,
+                support instanceof two_points_line_object
+                    ? vSub(support.P2.coords, origin)
+                    : support.VEC,
+            ),
+        );
+        const [dx, dy] = [ex - x, ey - y];
+        const length = Math.hypot(dx, dy);
+        if (!(length > 0)) return null;
+        if (support instanceof segment_object) return [0, 1, length];
+        let [low, high] = [-Infinity, Infinity];
+        [
+            [x, dx, this.C.width],
+            [y, dy, this.C.height],
+        ].forEach(([start, delta, size]) => {
+            if (delta === 0) return;
+            const ends = [-start / delta, (size - start) / delta];
+            low = Math.max(low, Math.min(...ends));
+            high = Math.min(high, Math.max(...ends));
+        });
+        if (
+            support instanceof ray_line_object ||
+            support instanceof angle_bisector_object ||
+            support instanceof fixed_angle_object
+        )
+            low = 0;
+        return low < high ? [low, high, length] : null;
+    }
+
+    // DGPad's: from the edge the point is on, as far along the polygon's
+    // boundary on the screen, wrapping to the next or the previous edge.
+    private walk(polygon: polygon_object, step: number): Alpha | null {
+        const count = polygon.points.length;
+        if (count < 2) return null;
+        const screens = polygon.points.map((point) =>
+            this.C.pt3D(point.coords),
+        );
+        const point = this.C.pt3D(this.coords);
+        const distance = (a: Vec2, b: Vec2) =>
+            Math.hypot(a[0] - b[0], a[1] - b[1]);
+        const edgeLength = (edge: number) =>
+            distance(screens[edge], screens[(edge + 1) % count]);
+        let edge = 0;
+        let gap = Infinity;
+        screens.forEach((start, index) => {
+            const offset =
+                distance(start, point) +
+                distance(point, screens[(index + 1) % count]) -
+                edgeLength(index);
+            if (offset < gap) {
+                gap = offset;
+                edge = index;
+            }
+        });
+        let along = distance(screens[edge], point) + step;
+        if (along > edgeLength(edge)) {
+            along -= edgeLength(edge);
+            edge = (edge + 1) % count;
+        } else if (along < 0) {
+            edge = (edge + count - 1) % count;
+            along += edgeLength(edge);
+        }
+        const start = polygon.points[edge].coords;
+        const end = polygon.points[(edge + 1) % count].coords;
+        const length = edgeLength(edge);
+        return polygon.alphaOf(
+            length > 0
+                ? vAdd(start, vScale(vSub(end, start), along / length))
+                : start,
+            this.onBoundary,
+        );
     }
 
     private dragTarget(screen: Vec2): Vec3 | null {

@@ -1,3 +1,4 @@
+import { animations } from "./animation";
 import { $, type DOMElement, type PointerDelta } from "./dom";
 import type { FormulaView } from "./import/dgp_formula";
 import { construction_object } from "./objects/construction_object";
@@ -38,6 +39,7 @@ export class construction {
     degrees = false;
     // Bumped by a pan or a zoom, which erase the traces as in DGPad.
     traceEpoch = 0;
+    animations: animations;
     private updateFrame: number | null = null;
     private batchedObjects: construction_object[] | null = null;
     private viewportWidth = 0;
@@ -50,6 +52,7 @@ export class construction {
         // All construction objects :
         this.OBJS = new objects_collector();
         this.layers = new Map();
+        this.animations = new animations(this);
         this.createSVG();
         this.GRID = createGrid(this);
         // Needs c.GRID assigned first: creating a real occluder polygon
@@ -184,6 +187,7 @@ export class construction {
             cancelAnimationFrame(this.updateFrame);
             this.updateFrame = null;
         }
+        this.animations.dispose();
         const objects = new Set(this.OBJS.V);
         this.OBJS.remove(objects);
         objects.forEach((object) => {
