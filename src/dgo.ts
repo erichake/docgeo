@@ -402,6 +402,21 @@ const VIEW: Record<string, Property> = {
     f: field(grid_object, "fontSize", 18, isNumber),
     s: field(grid_object, "size", 2, isNumber),
     gw: field(grid_object, "gridWidth", 0.1, isNumber),
+    td: field(
+        grid_object,
+        "tickDistances",
+        [0, 0],
+        (value) => isPair(value) && value.every((distance) => distance >= 0),
+    ),
+    ts: field(
+        grid_object,
+        "tickStyles",
+        [0, 0],
+        (value) =>
+            isPair(value) && value.every((style) => [0, 1, 2].includes(style)),
+    ),
+    nb: flag(grid_object, "boldNumbers"),
+    gg: flag(grid_object, "geogebraAxes"),
 };
 
 function initial(property: Property, tag: string, settings: Settings): Json {

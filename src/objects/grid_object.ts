@@ -75,6 +75,13 @@ export class grid_object extends construction_object {
     showOx = true;
     showOy = true;
     onlyPositive = false;
+    // Per axis, GeoGebra's fixed distance between two numbers, 0 for DGPad's
+    // own, and graduations: 0 major and minor, 1 major only, 2 none.
+    tickDistances: Vec2 = [0, 0];
+    tickStyles: Vec2 = [0, 0];
+    boldNumbers = false;
+    // Graduations and numbers placed as GeoGebra's (see axes_2d).
+    geogebraAxes = false;
     // Ox (resp. Oy) stays put vertically (resp. horizontally) on pan and
     // zoom.
     lockOx = false;

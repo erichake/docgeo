@@ -121,25 +121,38 @@ enregistrée `w` × `h` est centrée dans la fenêtre au pixel près, en 2D comm
 3D : origine et positions en pixels (`xy` des expressions) sont décalées de
 `round((largeur − w) / 2)` et `round((hauteur − h) / 2)`.
 
-| Clé  | Contenu                           | Défaut          |
-| ---- | --------------------------------- | --------------- |
-| `3d` | figure 3D                         | 0               |
-| `th` | angle θ de la caméra              | π/2             |
-| `ph` | angle φ de la caméra              | 5π/2            |
-| `rt` | bornes de θ                       | [-π/2, π/2]     |
-| `rp` | bornes de φ (`null` : non bornée) | [null, null]    |
-| `pe` | perspective                       | 0               |
-| `fl` | sol                               | valeur de `3d`  |
-| `ax` | axes affichés                     | 1               |
-| `gr` | grille                            | 1               |
-| `ox` | axe Ox (`oy` : Oy)                | 1               |
-| `lx` | Ox verrouillé (`ly` : Oy)         | 0               |
-| `cz` | zoom centré sur l'origine         | 0               |
-| `op` | abscisses et ordonnées positives  | 0               |
-| `c`  | couleur des axes                  | `rgb(80,80,80)` |
-| `f`  | taille des graduations            | 18              |
-| `s`  | épaisseur des axes                | 2               |
-| `gw` | épaisseur de la grille            | 0.1             |
+| Clé  | Contenu                              | Défaut          |
+| ---- | ------------------------------------ | --------------- |
+| `3d` | figure 3D                            | 0               |
+| `th` | angle θ de la caméra                 | π/2             |
+| `ph` | angle φ de la caméra                 | 5π/2            |
+| `rt` | bornes de θ                          | [-π/2, π/2]     |
+| `rp` | bornes de φ (`null` : non bornée)    | [null, null]    |
+| `pe` | perspective                          | 0               |
+| `fl` | sol                                  | valeur de `3d`  |
+| `ax` | axes affichés                        | 1               |
+| `gr` | grille                               | 1               |
+| `ox` | axe Ox (`oy` : Oy)                   | 1               |
+| `lx` | Ox verrouillé (`ly` : Oy)            | 0               |
+| `cz` | zoom centré sur l'origine            | 0               |
+| `op` | abscisses et ordonnées positives     | 0               |
+| `c`  | couleur des axes                     | `rgb(80,80,80)` |
+| `f`  | taille des graduations               | 18              |
+| `s`  | épaisseur des axes                   | 2               |
+| `gw` | épaisseur de la grille               | 0.1             |
+| `td` | distances des graduations (Ox, Oy)   | [0, 0]          |
+| `ts` | styles des graduations (Ox, Oy)      | [0, 0]          |
+| `nb` | nombres des graduations en gras      | 0               |
+| `gg` | graduations à la manière de GeoGebra | 0               |
+
+Dans une figure plane, comme dans GeoGebra : `td` est, par axe, la distance
+fixe entre deux nombres, une petite graduation à mi-chemin (0 : distance
+automatique de DGPad ; elle reprend aussi la main quand, à force de dézoomer,
+les nombres se chevaucheraient). `ts` : 0 graduations principales et
+secondaires, 1 principales seulement, 2 aucune (les nombres restent).
+`gg` : graduations d'un seul côté de l'axe, vers ses nombres (3 pixels, 2 pour
+une secondaire, 3 avec des axes de plus d'un pixel), aucune quand la grille est
+affichée ; nombres rapprochés des axes, un 0 en bas à gauche de l'origine.
 
 ### Objets
 

@@ -5,9 +5,10 @@ const SMALL_TICK = 5;
 const LONG_TICK = 10;
 const ARROW_LENGTH = 16;
 const ARROW_HALF_WIDTH = 8;
-// A digit's advance in Verdana, in em: labels are sized without measuring
-// the rendered text.
+// A digit's advance in Verdana, in em, and in Verdana Bold: labels are sized
+// without measuring the rendered text.
 const DIGIT_WIDTH = 0.64;
+const BOLD_DIGIT_WIDTH = 0.71;
 const LABEL_GAP = 3;
 
 interface Step {
@@ -37,17 +38,42 @@ function stepAtLeast(pixels: number, unit: number): Step {
     return step;
 }
 
-// Five subdivisions of a 1 or 5 step, four of a 2 step, so that minor
-// ticks always fall on round values.
-const subdivisions = (step: Step): number => (step.mantissa === 2 ? 4 : 5);
+// An axis's graduations: a number every `major`, `subdivisions` minor
+// graduations between two.
+interface Graduation {
+    major: number;
+    subdivisions: number;
+    format: Intl.NumberFormat;
+}
 
-function formatter(step: Step): Intl.NumberFormat {
-    const digits = Math.max(0, -step.exponent);
+function formatter(digits: number): Intl.NumberFormat {
     return new Intl.NumberFormat(undefined, {
         minimumFractionDigits: digits,
         maximumFractionDigits: digits,
         useGrouping: false,
     });
+}
+
+// Five subdivisions of a 1 or 5 step, four of a 2 step, so that minor
+// ticks always fall on round values.
+const automatic = (step: Step): Graduation => ({
+    major: stepValue(step),
+    subdivisions: step.mantissa === 2 ? 4 : 5,
+    format: formatter(Math.max(0, -step.exponent)),
+});
+
+// GeoGebra's fixed distance: a minor graduation halfway, numbers with as
+// many decimals as it has.
+function fixed(distance: number): Graduation {
+    let digits = 0;
+    while (
+        digits < 10 &&
+        Math.abs(
+            Math.round(distance * 10 ** digits) - distance * 10 ** digits,
+        ) > 1e-9
+    )
+        digits++;
+    return { major: distance, subdivisions: 2, format: formatter(digits) };
 }
 
 // The indices k of the multiples k*step within [min, max]: values are
@@ -123,9 +149,11 @@ export class axes_2d {
         // Labels are spaced by their own width, so that they never overlap:
         // the same step then serves both axes when their units are equal.
         const labelWidth = (text: string) =>
-            text.length * DIGIT_WIDTH * fontSize;
+            text.length *
+            (grid.boldNumbers ? BOLD_DIGIT_WIDTH : DIGIT_WIDTH) *
+            fontSize;
         const spacing = (step: Step) => {
-            const format = formatter(step);
+            const { format } = automatic(step);
             const widest = Math.max(
                 ...[xMin, xMax].map((x) =>
                     labelWidth(
@@ -140,6 +168,21 @@ export class axes_2d {
         let xStep = stepAtLeast(4 * fontSize, ux);
         while (stepValue(xStep) * ux < spacing(xStep)) xStep = nextStep(xStep);
         const yStep = stepAtLeast(stepValue(xStep) * ux, uy);
+        // Zoomed out until its numbers overlap, a fixed distance gives way
+        // to DGPad's own.
+        const graduation = (axis: 0 | 1, step: Step, unit: number) => {
+            const distance = grid.tickDistances[axis];
+            return distance * unit >= fontSize
+                ? fixed(distance)
+                : automatic(step);
+        };
+        const xAxis = graduation(0, xStep, ux);
+        const yAxis = graduation(1, yStep, uy);
+        // GeoGebra's: no graduations over a grid at the same distance, as
+        // DocGeo's always is.
+        const geogebra = grid.geogebraAxes;
+        const [xStyle, yStyle] =
+            geogebra && grid.showGrid ? [2, 2] : grid.tickStyles;
 
         // Where each axis's graduations go: on the axis, or on the window
         // edge it went past.
@@ -149,8 +192,8 @@ export class axes_2d {
         const bottom = positive ? Math.min(height, y0) : height;
         const left = positive ? Math.max(0, x0) : 0;
 
-        const [xn, yn] = [subdivisions(xStep), subdivisions(yStep)];
-        const [xMinor, yMinor] = [stepValue(xStep) / xn, stepValue(yStep) / yn];
+        const [xn, yn] = [xAxis.subdivisions, yAxis.subdivisions];
+        const [xMinor, yMinor] = [xAxis.major / xn, yAxis.major / yn];
         const xTicks = multiples(xMinor, xMin, xMax);
         const yTicks = multiples(yMinor, yMin, yMax);
         const minor: string[] = [];
@@ -184,6 +227,18 @@ export class axes_2d {
         const texts: { text: string; x: number; y: number; anchor: string }[] =
             [];
         const tick = (length: number) => length + grid.size;
+        // A graduation's extent across its axis, towards its numbers: on
+        // both sides in DGPad, only theirs in GeoGebra, 3 pixels long for a
+        // major one, 2 for a minor one (3 by bold axes).
+        const across = (major: boolean): [number, number] => {
+            if (geogebra) return [0, major || grid.size > 1 ? 3 : 2];
+            const length = tick(major ? LONG_TICK : SMALL_TICK);
+            return [-length, length];
+        };
+        const [minorFrom, minorTo] = across(false);
+        const [majorFrom, majorTo] = across(true);
+        // Oy's numbers from the axis, GeoGebra's closer.
+        const yGap = geogebra ? 4 + fontSize / 4 : tick(LONG_TICK) + LABEL_GAP;
         let xRow: [number, number] | null = null;
 
         if (grid.showOx) {
@@ -193,27 +248,44 @@ export class axes_2d {
                     `M${width + 1} ${ay}L${width - ARROW_LENGTH} ${ay - ARROW_HALF_WIDTH}V${ay + ARROW_HALF_WIDTH}Z`,
                 );
             }
-            xTicks.forEach((k) =>
-                ticks.push(
-                    `M${snap(px(k * xMinor))} ${ay - tick(SMALL_TICK)}V${ay + tick(SMALL_TICK)}`,
-                ),
-            );
-            const below = ay + tick(LONG_TICK) + fontSize;
+            if (xStyle === 0)
+                xTicks.forEach((k) =>
+                    ticks.push(
+                        `M${snap(px(k * xMinor))} ${ay + minorFrom}V${ay + minorTo}`,
+                    ),
+                );
+            const below = geogebra
+                ? ay + fontSize + 4
+                : ay + tick(LONG_TICK) + fontSize;
             const baseline =
                 below <= height - LABEL_GAP
                     ? below
-                    : ay - tick(LONG_TICK) - LABEL_GAP;
+                    : ay - (geogebra ? 4 : tick(LONG_TICK) + LABEL_GAP);
             xRow = [baseline - fontSize, baseline + LABEL_GAP];
-            const format = formatter(xStep);
-            multiples(stepValue(xStep), xMin, xMax).forEach((k) => {
-                if (k === 0 && grid.showOy) return;
-                const x = k * stepValue(xStep);
-                const text = format.format(x);
+            multiples(xAxis.major, xMin, xMax).forEach((k) => {
+                // GeoGebra's 0 at the origin's bottom left.
+                if (k === 0 && grid.showOy) {
+                    if (
+                        geogebra &&
+                        x0 >= 0 &&
+                        x0 <= width &&
+                        y0 >= 0 &&
+                        y0 <= height
+                    )
+                        texts.push({
+                            text: "0",
+                            x: ax - yGap,
+                            y: baseline,
+                            anchor: "end",
+                        });
+                    return;
+                }
+                const x = k * xAxis.major;
+                const text = xAxis.format.format(x);
                 const half = labelWidth(text) / 2;
                 const X = snap(px(x));
-                ticks.push(
-                    `M${X} ${ay - tick(LONG_TICK)}V${ay + tick(LONG_TICK)}`,
-                );
+                if (xStyle < 2)
+                    ticks.push(`M${X} ${ay + majorFrom}V${ay + majorTo}`);
                 if (X - half >= 0 && X + half <= width)
                     texts.push({ text, x: X, y: baseline, anchor: "middle" });
             });
@@ -226,29 +298,27 @@ export class axes_2d {
                     `M${ax} -1L${ax - ARROW_HALF_WIDTH} ${ARROW_LENGTH}H${ax + ARROW_HALF_WIDTH}Z`,
                 );
             }
-            yTicks.forEach((k) =>
-                ticks.push(
-                    `M${ax - tick(SMALL_TICK)} ${snap(py(k * yMinor))}H${ax + tick(SMALL_TICK)}`,
-                ),
-            );
-            const format = formatter(yStep);
-            const values = multiples(stepValue(yStep), yMin, yMax).map(
-                (k) => k * stepValue(yStep),
+            if (yStyle === 0)
+                yTicks.forEach((k) =>
+                    ticks.push(
+                        `M${ax - minorTo} ${snap(py(k * yMinor))}H${ax - minorFrom}`,
+                    ),
+                );
+            const format = yAxis.format;
+            const values = multiples(yAxis.major, yMin, yMax).map(
+                (k) => k * yAxis.major,
             );
             const widest = Math.max(
                 0,
                 ...values.map((y) => labelWidth(format.format(y))),
             );
-            const onLeft = ax - tick(LONG_TICK) - LABEL_GAP - widest >= 0;
-            const x = onLeft
-                ? ax - tick(LONG_TICK) - LABEL_GAP
-                : ax + tick(LONG_TICK) + LABEL_GAP;
+            const onLeft = ax - yGap - widest >= 0;
+            const x = onLeft ? ax - yGap : ax + yGap;
             values.forEach((y) => {
                 if (y === 0 && grid.showOx) return;
                 const Y = snap(py(y));
-                ticks.push(
-                    `M${ax - tick(LONG_TICK)} ${Y}H${ax + tick(LONG_TICK)}`,
-                );
+                if (yStyle < 2)
+                    ticks.push(`M${ax - majorTo} ${Y}H${ax - majorFrom}`);
                 const [labelTop, labelBottom] = [
                     Y - fontSize / 2,
                     Y + fontSize / 2,
@@ -258,7 +328,7 @@ export class axes_2d {
                 texts.push({
                     text: format.format(y),
                     x,
-                    y: Y + 0.35 * fontSize,
+                    y: Y + (geogebra ? fontSize / 2 - 1 : 0.35 * fontSize),
                     anchor: onLeft ? "end" : "start",
                 });
             });
@@ -277,7 +347,8 @@ export class axes_2d {
         this.labels
             .stl("fill", color)
             .stl("stroke", C.prefs.background.color)
-            .stl("font-size", `${fontSize}px`);
+            .stl("font-size", `${fontSize}px`)
+            .stl("font-weight", grid.boldNumbers ? "bold" : "normal");
         while (this.texts.length < texts.length) {
             const text = this.labels.shape("text");
             this.texts.push(text);

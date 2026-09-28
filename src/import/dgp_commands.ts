@@ -700,8 +700,15 @@ function validateCoordsStyle(value: string, lineNumber: number): void {
     const style = properties(value);
     const color = style.get("color");
     if (color !== undefined) validateColor(color, lineNumber);
-    const axisWidth = style.get("axisWidth");
-    if (axisWidth !== undefined) validateNumber(axisWidth, lineNumber, 0);
+    ["axisWidth", "tickDistanceX", "tickDistanceY"].forEach((name) => {
+        const value = style.get(name);
+        if (value !== undefined) validateNumber(value, lineNumber, 0);
+    });
+    ["tickStyleX", "tickStyleY"].forEach((name) => {
+        const value = style.get(name);
+        if (value !== undefined && !/^[012]$/.test(value))
+            throw new Error(`Invalid DGP style at line ${lineNumber}`);
+    });
 }
 
 function validateGeneralStyle(value: string, lineNumber: number): void {
@@ -904,6 +911,25 @@ function applyCoordsStyle(context: CommandContext, value: string): void {
     size("fontSize", (value) => (grid.fontSize = value));
     size("axisWidth", (value) => (grid.size = value));
     size("gridWidth", (value) => (grid.gridWidth = value));
+    // DocGeo's, for GeoGebra's graduations.
+    size(
+        "tickDistanceX",
+        (value) => (grid.tickDistances = [value, grid.tickDistances[1]]),
+    );
+    size(
+        "tickDistanceY",
+        (value) => (grid.tickDistances = [grid.tickDistances[0], value]),
+    );
+    size(
+        "tickStyleX",
+        (value) => (grid.tickStyles = [value, grid.tickStyles[1]]),
+    );
+    size(
+        "tickStyleY",
+        (value) => (grid.tickStyles = [grid.tickStyles[0], value]),
+    );
+    flag("boldNumbers", (value) => (grid.boldNumbers = value));
+    flag("geogebraAxes", (value) => (grid.geogebraAxes = value));
     context.gridChanged = true;
 }
 

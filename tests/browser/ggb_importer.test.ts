@@ -1574,6 +1574,35 @@ ${lines.map((line, index) => command("Plane", ["C", line], `p${index}`)).join("\
         expect(f.P2.coords[1]).toBeCloseTo(0.7);
     });
 
+    it("draws the axes as GeoGebra: their width, numbers and graduations", async () => {
+        const c = createConstruction();
+        importGgb(c, await loadXml("Animations03"));
+        await new Promise((resolve) => requestAnimationFrame(resolve));
+        expect(c.GRID.size).toBe(2);
+        expect(c.GRID.fontSize).toBe(15);
+        expect(c.GRID.onlyPositive).toBe(true);
+        expect(c.GRID.tickDistances).toEqual([1, 1]);
+        expect(c.GRID.tickStyles).toEqual([1, 1]);
+        expect(c.GRID.boldNumbers).toBe(true);
+        expect(c.GRID.geogebraAxes).toBe(true);
+        const texts = [...c.GRID.dom.dom().querySelectorAll("text")].filter(
+            (text) => (text as SVGElement).style.display !== "none",
+        );
+        // A number at each unit only, a 0 at the origin.
+        expect(texts.map((text) => text.textContent)).toContain("0");
+        texts.forEach((text) =>
+            expect(Number.isInteger(Number(text.textContent))).toBe(true),
+        );
+        expect(getComputedStyle(texts[0]).fontWeight).toBe("700");
+        const plain = createConstruction();
+        importGgb(plain, await loadXml("Animation"));
+        expect(plain.GRID.size).toBe(1);
+        expect(plain.GRID.fontSize).toBe(12);
+        expect(plain.GRID.onlyPositive).toBe(false);
+        expect(plain.GRID.tickDistances).toEqual([0, 0]);
+        expect(plain.GRID.boldNumbers).toBe(false);
+    });
+
     it("reports what it can't import instead of failing", () => {
         const c = createConstruction();
         const unsupported = importGgb(

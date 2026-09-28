@@ -2833,20 +2833,45 @@ export function translateGgb(
         const axesColor = child(styledView, "axesColor");
         const axes = attribute(styledView, "evSettings", "axes") === "true";
         const grid = attribute(styledView, "evSettings", "grid") === "true";
-        const axisShown = (id: string): boolean =>
-            axes &&
-            [...styledView.children]
-                .find(
-                    (item) =>
-                        item.tagName === "axis" &&
-                        item.getAttribute("id") === id,
-                )
-                ?.getAttribute("show") !== "false";
+        const axis = (id: string) =>
+            [...styledView.children].find(
+                (item) =>
+                    item.tagName === "axis" && item.getAttribute("id") === id,
+            );
+        const shown = ["0", "1"].filter(
+            (id) => axes && axis(id)?.getAttribute("show") !== "false",
+        );
+        // In 2D, as GeoGebra draws them: a line 1 pixel wide, 2 if bold,
+        // numbers at three quarters of the figure's font size, and only the
+        // axes' positive halves, if the shown ones all say so (DGPad's
+        // option is for both).
+        const bold = Number(attribute(styledView, "lineStyle", "axes")) & 2;
+        const positive =
+            shown.length > 0 &&
+            shown.every(
+                (id) => axis(id)!.getAttribute("positiveAxis") === "true",
+            );
+        const numbers = Math.max(Math.round(fontSize * 0.75), 10);
+        // Per axis: its fixed distance between two numbers, if not
+        // automatic, and whether it has minor and major graduations (0),
+        // only major ones (1) or none (2).
+        const graduations = ["X", "Y"]
+            .map((name, id) => {
+                const settings = axis(String(id));
+                const distance = Number(settings?.getAttribute("tickDistance"));
+                const style = settings?.getAttribute("tickStyle") ?? "";
+                return `;tickDistance${name}:${distance > 0 ? distance : 0};tickStyle${name}:${/^[012]$/.test(style) ? style : 1}`;
+            })
+            .join("");
+        const labelStyle = Number(attribute(styledView, "labelStyle", "axes"));
+        const plane = is3D
+            ? ""
+            : `;axisWidth:${bold ? 2 : 1};fontSize:${numbers};onlyPositive:${positive}${graduations};boldNumbers:${Boolean(labelStyle & 1)};geogebraAxes:true`;
         push(null, "SetCoordsStyle", [
             literal(
-                `isAxis:${axes || (grid && !is3D)};isGrid:${grid};isOx:${axisShown("0")};isOy:${axisShown("1")}${
+                `isAxis:${axes || (grid && !is3D)};isGrid:${grid};isOx:${shown.includes("0")};isOy:${shown.includes("1")}${
                     axesColor ? `;color:${hexColor(axesColor)}` : ""
-                }`,
+                }${plane}`,
             ),
         ]);
     }
