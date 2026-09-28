@@ -4,11 +4,16 @@ import { t } from "./i18n";
 import type { construction_object } from "./objects/construction_object";
 
 // DGPad's animation of an object: at a `speed` its type defines (see its
-// animate method), in a `direction` 1 or -1, back and forth (`ar`) or around.
+// animate method), in a `direction` 1 or -1, back and forth (`ar`) or around,
+// or with GeoGebra's "increasing once", stopped at the end (`once`).
+// GeoGebra's `speed` runs through a slider's range, or a path from one end
+// to the other, in 10 s at 1.
 export interface Animation {
     speed: number;
     direction: number;
     ar: boolean;
+    once?: boolean;
+    geogebra?: boolean;
 }
 
 export interface animated_object extends construction_object {
@@ -17,7 +22,8 @@ export interface animated_object extends construction_object {
     animate(seconds: number): void;
 }
 
-// DGPad's: beyond an end, back from it or around from the other.
+// DGPad's: beyond an end, back from it or around from the other. Stopped
+// there, the animation keeps its zero speed, as GeoGebra no longer plays it.
 export function advance(
     animation: Animation,
     value: number,
@@ -26,17 +32,13 @@ export function advance(
     step: number,
 ): number {
     value += step;
-    if (value < low) {
-        if (animation.ar) {
+    const end = value < low ? low : value > high ? high : null;
+    if (end !== null) {
+        if (animation.once) animation.speed = 0;
+        else if (animation.ar) {
             animation.direction *= -1;
-            value = 2 * low - value;
-        } else value += high - low;
-    }
-    if (value > high) {
-        if (animation.ar) {
-            animation.direction *= -1;
-            value = 2 * high - value;
-        } else value -= high - low;
+            value = 2 * end - value;
+        } else value += end === low ? high - low : low - high;
     }
     return Math.min(Math.max(value, low), high);
 }

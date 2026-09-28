@@ -1,3 +1,4 @@
+import type { Animation } from "../animation";
 import type { SegmentMap } from "../objects/iteration_object";
 import { vAdd, vSub, type Vec2, type Vec3 } from "../vec";
 import {
@@ -46,6 +47,10 @@ export interface GgbTranslation {
     // changeableNumber).
     handles: Map<string, [string | null, string | null]>;
     unsupported: string[];
+    // The animations of points on paths and sliders that GeoGebra plays,
+    // started with the figure if `startAnimation`.
+    animations: Map<string, Animation>;
+    startAnimation: boolean;
     // Whether the figure has 3D objects.
     is3D: boolean;
     // Present for a 3D figure: its camera (see applyView3D in
@@ -585,6 +590,7 @@ export function translateGgb(
     const calls: DgpCall[] = [];
     const targets = new Map<string, Vec3>();
     const handles = new Map<string, [string | null, string | null]>();
+    const animations = new Map<string, Animation>();
     const unsupported: string[] = [];
     const objects = new Map<string, { variable: string; kind: Kind }>();
     const segments = new Map<string, [string, string]>();
@@ -1185,6 +1191,27 @@ export function translateGgb(
             );
         };
 
+    // Only a constant speed: GeoGebra's may depend on the figure.
+    const animate = (label: string): void => {
+        const element = elements.get(label);
+        const animation = element && child(element, "animation");
+        if (animation?.getAttribute("playing") !== "true") return;
+        const speed = Number(animation.getAttribute("speed") ?? 1);
+        if (!Number.isFinite(speed)) {
+            unsupported.push(`animation ${label}`);
+            return;
+        }
+        // Oscillating, increasing, decreasing or increasing once.
+        const type = animation.getAttribute("type");
+        animations.set(objects.get(label)!.variable, {
+            speed: Math.abs(speed),
+            direction: speed < 0 !== (type === "2") ? -1 : 1,
+            ar: type === "0" || type === null,
+            ...(type === "3" && { once: true }),
+            geogebra: true,
+        });
+    };
+
     const pointOn = (label: string, support: string, boundary: boolean) => {
         const kind = kindOf(support);
         const pair = kind === "polygon" || kind === "quadric";
@@ -1203,6 +1230,7 @@ export function translateGgb(
                 `${objectStyle(element, "pointOn")}${boundary ? ";sb:true" : ""}`,
         );
         target(label);
+        animate(label);
         return true;
     };
 
@@ -2432,13 +2460,15 @@ export function translateGgb(
             if (min === null || max === null || !NUMBER.test(value))
                 return false;
             const [x, y] = sliderScreen(slider);
-            return define(
+            define(
                 label,
                 "expression",
                 "Expression",
                 ["", min, max, value, String(x), String(y)].map(literal),
                 style,
             );
+            animate(label);
+            return true;
         }
         const dependent =
             source === undefined ? null : formula(source, VALUE_KINDS);
@@ -2944,5 +2974,17 @@ export function translateGgb(
             push(null, "STL", [ref(label), literal(`h:0;sc:${condition}`)]);
     });
 
-    return { calls, targets, handles, unsupported, is3D, view3D: camera };
+    return {
+        calls,
+        targets,
+        handles,
+        animations,
+        startAnimation:
+            document
+                .querySelector("kernel > startAnimation")
+                ?.getAttribute("val") === "true",
+        unsupported,
+        is3D,
+        view3D: camera,
+    };
 }

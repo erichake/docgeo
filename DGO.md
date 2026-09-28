@@ -279,15 +279,22 @@ postérieur.
 | `co` | `Ex`         | opacité du bouton                        | 0                                 |
 | `sg` | `ELst`       | épaisseur des segments                   | -1                                |
 
-Animation `an` : `[vitesse, sens, aller-retour]`. Comme dans DGPad, elle est
-lancée à l'ouverture et un bouton en bas à gauche de la fenêtre la suspend et
-la reprend. Sens 1 ou -1 (sens courant à l'enregistrement), aller-retour 0 ou 1
-(sinon, retour à l'autre extrémité).
-Vitesse positive : en pixels d'écran par seconde sur une droite ou le bord d'un
-polygone (partie visible d'une droite, depuis l'origine d'une demi-droite), en
-radians par seconde sur un cercle, cinq fois autant d'échantillons par seconde
-sur un lieu, en cinquantièmes de l'intervalle d'un curseur par seconde (par pas
-entiers s'il en a un), en unités par seconde pour un autre nombre.
+Animation `an` : `[vitesse, sens, extrémité]` ou `[vitesse, sens, extrémité,
+GeoGebra]`. Comme dans DGPad, elle est lancée à l'ouverture et un bouton en bas
+à gauche de la fenêtre la suspend et la reprend. Sens 1 ou -1 (sens courant à
+l'enregistrement). Extrémité : 0 retour à l'autre extrémité, 1 aller-retour,
+2 arrêt (« croissant une fois » de GeoGebra ; la vitesse est alors mise à 0).
+Vitesse positive, sans le drapeau GeoGebra (ou à 0), comme dans DGPad : en
+pixels d'écran par seconde sur une droite ou le bord d'un polygone (partie
+visible d'une droite, depuis l'origine d'une demi-droite), en radians par
+seconde sur un cercle, cinq fois autant d'échantillons par seconde sur un lieu,
+en cinquantièmes de l'intervalle d'un curseur par seconde (par pas entiers
+s'il en a un), en unités par seconde pour un autre nombre.
+Avec le drapeau GeoGebra à 1, comme dans GeoGebra : à la vitesse 1, un curseur
+parcourt son intervalle et un point sur objet son chemin en 10 s, selon le
+paramètre de GeoGebra ramené de 0 à 1 (angle de -π à π sur un cercle, de 0 à 1
+sur un arc ou un segment, une unité par côté d'un polygone, les droites,
+demi-droites et courbes infinies comprimées comme le fait son `PathNormalizer`).
 
 Défauts par type : `[remplissage, trait, taille, opacité]` (opacité absente :
 non définie).

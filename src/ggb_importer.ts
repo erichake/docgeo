@@ -21,10 +21,16 @@ export function importGgb(
     xml: string,
     images?: Map<string, GgbImage>,
 ): string[] {
-    const { calls, targets, handles, unsupported, is3D, view3D } = translateGgb(
-        xml,
-        images,
-    );
+    const {
+        calls,
+        targets,
+        handles,
+        animations,
+        startAnimation,
+        unsupported,
+        is3D,
+        view3D,
+    } = translateGgb(xml, images);
     // First, since sliders are placed with the camera's unit.
     if (view3D) applyView3D(c, view3D);
     c.segmentsOverPolygons = true;
@@ -47,6 +53,13 @@ export function importGgb(
             ]),
         ),
     );
+    animations.forEach((animation, variable) =>
+        c.animations.add(
+            variables.get(variable) as point_on_object | expression_object,
+            animation,
+        ),
+    );
+    if (!startAnimation) c.animations.paused = true;
     // Also redraws each object whose show condition, defined after it,
     // wasn't evaluated yet when it was first drawn.
     c.invalidateProjection();

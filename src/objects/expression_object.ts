@@ -482,8 +482,9 @@ export class expression_object extends construction_object {
         this.C.invalidateGeometry(this);
     }
 
-    // As in DGPad: a slider moves `speed` fiftieths of its range per second,
-    // by whole increments if it has one; another number, `speed` per second.
+    // As in DGPad: a slider moves `speed` fiftieths of its range per second
+    // (tenths in GeoGebra), by whole increments if it has one; another
+    // number, `speed` per second.
     animate(seconds: number): void {
         if (this.formula || this.program || typeof this.value !== "number")
             return;
@@ -492,7 +493,7 @@ export class expression_object extends construction_object {
         let value: number;
         if (this.isCursor) {
             const [min, max] = [this.min!, this.max!];
-            step *= (max - min) / 50;
+            step *= (max - min) / (animation.geogebra ? 10 : 50);
             if (this.increment > 0) {
                 this.animationCarry += step;
                 if (Math.abs(this.animationCarry) < this.increment) return;

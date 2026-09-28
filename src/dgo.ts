@@ -313,21 +313,33 @@ const STYLE: Record<string, Property> = {
     an: property<point_on_object | expression_object>(
         [point_on_object, expression_object],
         ({ animation }) =>
-            animation && [animation.speed, animation.direction, +animation.ar],
+            animation && [
+                animation.speed,
+                animation.direction,
+                animation.once ? 2 : +animation.ar,
+                ...(animation.geogebra ? [1] : []),
+            ],
         (owner, value) => {
             if (!value) return;
-            const [speed, direction, ar] = value as number[];
-            owner.C.animations.add(owner, { speed, direction, ar: ar === 1 });
+            const [speed, direction, end, geogebra] = value as number[];
+            owner.C.animations.add(owner, {
+                speed,
+                direction,
+                ar: end === 1,
+                ...(end === 2 && { once: true }),
+                ...(geogebra === 1 && { geogebra: true }),
+            });
         },
         null,
         (value) =>
             value === null ||
             (Array.isArray(value) &&
-                value.length === 3 &&
+                (value.length === 3 ||
+                    (value.length === 4 && isFlag(value[3]))) &&
                 isNumber(value[0]) &&
                 value[0] >= 0 &&
                 (value[1] === 1 || value[1] === -1) &&
-                isFlag(value[2])),
+                (isFlag(value[2]) || value[2] === 2)),
     ),
     pl: flag(polygon_object, "plane"),
     su: flag(polygon_object, "section"),

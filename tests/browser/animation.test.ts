@@ -4,6 +4,7 @@ import "../../src/construction";
 import type { construction } from "../../src/construction";
 import { importDgpFromUrl } from "../../src/dgp_importer";
 import { describeDgo } from "../../src/dgo";
+import { importGgbFromBlob } from "../../src/ggb_importer";
 import type { expression_object } from "../../src/objects/expression_object";
 import type { point_on_object } from "../../src/objects/point_on_object";
 import type { polygon_object } from "../../src/objects/polygon_object";
@@ -16,6 +17,16 @@ disposeFigures();
 async function open(name: string): Promise<construction> {
     const c = createConstruction();
     await importDgpFromUrl(c, `/tests/dgp/${name}`);
+    await frame();
+    return c;
+}
+
+async function openGgb(name: string): Promise<construction> {
+    const c = createConstruction();
+    await importGgbFromBlob(
+        c,
+        await (await fetch(`/tests/ggb/${name}`)).blob(),
+    );
     await frame();
     return c;
 }
@@ -147,5 +158,61 @@ describe("animations", () => {
         await frame();
         expect(M.alpha).toBe(paused);
         expect(c.animations.paused).toBe(true);
+    });
+
+    it("plays GeoGebra's, around a circle in 10 s at speed 1", async () => {
+        const c = await openGgb("Animation.ggb");
+        const A = c.getObj("A") as point_on_object;
+        const B = c.getObj("B") as point_on_object;
+        expect(B.animation).toEqual({
+            speed: 1,
+            direction: 1,
+            ar: false,
+            geogebra: true,
+        });
+        const angle = () =>
+            Math.atan2(B.coords[1] - A.coords[1], B.coords[0] - A.coords[0]);
+        const before = angle();
+        animate(c, B, 1);
+        expect((angle() - before + 4 * Math.PI) % (2 * Math.PI)).toBeCloseTo(
+            (2 * Math.PI) / 10,
+        );
+        const styles = (await describeDgo(c)).st!;
+        expect(styles.map((style) => style.an).filter(Boolean)).toEqual([
+            [1, 1, 0, 1],
+        ]);
+    });
+
+    it("plays GeoGebra's along a path, a slider's range", async () => {
+        const c = await openGgb("Animations02.ggb");
+        const P = c.getObj("P") as point_on_object;
+        const Q = c.getObj("Q") as point_on_object;
+        const k = c.getObj("k") as expression_object;
+        // Increasing once, along a segment from (0, 0) to (4, 0).
+        animate(c, P, 1);
+        expect(P.coords[0]).toBeCloseTo(1.4);
+        animate(c, P, 10);
+        expect(P.coords[0]).toBeCloseTo(4);
+        expect(P.animation!.speed).toBe(0);
+        // Decreasing, a unit per edge of the triangle (0, 0), (4, 0), (4, 3),
+        // from (4, 1).
+        animate(c, Q, 1);
+        expect(Q.coords[0]).toBeCloseTo(4);
+        expect(Q.coords[1]).toBeCloseTo(0.55);
+        animate(c, Q, 3);
+        expect(Q.coords[0]).toBeCloseTo(44 / 15);
+        expect(Q.coords[1]).toBeCloseTo(0);
+        // Oscillating from 3, between 0 and 10, by whole increments.
+        animate(c, k, 0.5);
+        expect(k.value).toBe(4);
+        animate(c, k, 3.5);
+        expect(k.value).toBe(9);
+        expect(k.animation!.direction).toBe(-1);
+        const styles = (await describeDgo(c)).st!;
+        expect(styles.map((style) => style.an).filter(Boolean)).toEqual([
+            [0, 1, 2, 1],
+            [0.5, -1, 0, 1],
+            [2, -1, 1, 1],
+        ]);
     });
 });

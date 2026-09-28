@@ -3,6 +3,7 @@ import type { construction } from "../construction";
 import { projectPointOnLine, projectPointOnPlane } from "../projection";
 import { vAdd, vDot, vScale, vSub, type Vec2, type Vec3 } from "../vec";
 import { angle_bisector_object } from "./angle_bisector_object";
+import { arc3pts_object } from "./arc3pts_object";
 import type { curve_object } from "./curve_object";
 import type { DgoContext } from "./construction_object";
 import { fixed_angle_object } from "./fixed_angle_object";
@@ -29,6 +30,32 @@ export type point_support_object =
 type Alpha = number | readonly [number, number];
 
 const TWO_PI = 2 * Math.PI;
+
+const angle = (alpha: number) => ((alpha % TWO_PI) + TWO_PI) % TWO_PI;
+
+// GeoGebra's PathNormalizer: a path's parameter from `min` to `max`, maybe
+// infinite, to one from 0 to 1, and back.
+const toInfinity = (t: number) => t / (1 - Math.abs(t));
+const fromInfinity = (t: number) => t / (1 + Math.abs(t));
+
+function normalize(t: number, min: number, max: number): number {
+    t = Math.min(Math.max(t, min), max);
+    if (min === -Infinity)
+        return max === Infinity
+            ? 0.5 + 0.5 * fromInfinity(t)
+            : 1 + fromInfinity(t - max);
+    if (max === Infinity) return fromInfinity(t - min);
+    return (t - min) / (max - min);
+}
+
+function denormalize(t: number, min: number, max: number): number {
+    if (min === -Infinity)
+        return max === Infinity
+            ? toInfinity(2 * t - 1)
+            : max + toInfinity(t - 1);
+    if (max === Infinity) return min + toInfinity(t);
+    return min + t * (max - min);
+}
 
 export class point_on_object extends point_object {
     support: point_support_object;
@@ -159,7 +186,24 @@ export class point_on_object extends point_object {
         if (!support.defined) return;
         const step =
             this.animation!.direction * this.animation!.speed * seconds;
-        if (support instanceof primitive_circle_object) {
+        if (this.animation!.geogebra) {
+            const path = this.geogebraPath();
+            if (!path || !(path[2] > path[1])) return;
+            const [t, min, max, move] = path;
+            move(
+                denormalize(
+                    advance(
+                        this.animation!,
+                        normalize(t, min, max),
+                        0,
+                        1,
+                        step / 10,
+                    ),
+                    min,
+                    max,
+                ),
+            );
+        } else if (support instanceof primitive_circle_object) {
             // DGPad's angles run from 0 to 2π.
             const alpha = (this.alpha as number) % TWO_PI;
             this.alpha = advance(
@@ -193,6 +237,87 @@ export class point_on_object extends point_object {
             );
         } else return;
         this.C.invalidateGeometry(this);
+    }
+
+    // GeoGebra's parameter of the point on its path, its range and how to
+    // move the point to another: an angle from -π to π on a circle, from 0
+    // to 1 along an arc or a segment, an edge per unit around a polygon.
+    private geogebraPath():
+        [number, number, number, (t: number) => void] | null {
+        const support = this.support;
+        const alpha = this.alpha as number;
+        const set = (t: number) => (this.alpha = t);
+        if (support instanceof arc3pts_object) {
+            const from = support.startAlpha;
+            const sign = support.sweepFlag ? 1 : -1;
+            const span = angle(sign * (support.endAlpha - from));
+            if (!(span > 0)) return null;
+            // Beyond the arc, the nearest of its ends.
+            let t = angle(sign * (alpha - from));
+            if (t > span) t = t - span < (TWO_PI - span) / 2 ? span : 0;
+            return [t / span, 0, 1, (t) => set(from + sign * t * span)];
+        }
+        if (support instanceof primitive_circle_object)
+            return [angle(alpha + Math.PI) - Math.PI, -Math.PI, Math.PI, set];
+        if (support instanceof segment_object) return [alpha, 0, 1, set];
+        if (support instanceof ray_line_object)
+            return [alpha, 0, Infinity, set];
+        if (support instanceof primitive_line_object)
+            return [alpha, -Infinity, Infinity, set];
+        if (support.familytype === "locus")
+            return [alpha, 0, (support as locus_object).points.length - 1, set];
+        if (support.familytype === "curve") {
+            const { min, max } = support as curve_object;
+            return [alpha, min ?? -Infinity, max ?? Infinity, set];
+        }
+        if (!(support instanceof polygon_object) || !this.onBoundary)
+            return null;
+        const vertices = support.points.map((point) => point.coords);
+        const count = vertices.length;
+        let edge = 0;
+        let along = 0;
+        let gap = Infinity;
+        vertices.forEach((start, index) => {
+            const direction = vSub(vertices[(index + 1) % count], start);
+            const length = vDot(direction, direction);
+            const t =
+                length > 0
+                    ? Math.min(
+                          Math.max(
+                              vDot(vSub(this.coords, start), direction) /
+                                  length,
+                              0,
+                          ),
+                          1,
+                      )
+                    : 0;
+            const offset = vSub(vAdd(start, vScale(direction, t)), this.coords);
+            if (vDot(offset, offset) < gap) {
+                gap = vDot(offset, offset);
+                edge = index;
+                along = t;
+            }
+        });
+        return [
+            edge + along,
+            0,
+            count,
+            (t) => {
+                const edge = Math.min(Math.floor(t), count - 1);
+                const start = vertices[edge];
+                const alpha = support.alphaOf(
+                    vAdd(
+                        start,
+                        vScale(
+                            vSub(vertices[(edge + 1) % count], start),
+                            t - edge,
+                        ),
+                    ),
+                    true,
+                );
+                if (alpha) this.alpha = alpha;
+            },
+        ];
     }
 
     // The parameters of the line's visible part, as in DGPad, from a ray's
