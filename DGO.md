@@ -166,7 +166,8 @@ l'objet (une étiquette GeoGebra comme `A_{1}` n'est pas un identifiant).
 Comme dans DGPad, un objet nommé vaut : ses coordonnées (point), sa valeur
 (expression), sa longueur (segment), ses composantes (vecteur), son rayon
 (cercle, arc), sa mesure dans l'unité d'angle de la figure (angle, angle
-fixe), son aire (polygone) ; tout autre objet est indéfini.
+fixe), son aire (polygone) ; tout autre objet est indéfini. Une expression
+de fonction (`"f"`) ou une courbe (`Cur`) s'appelle par son nom : `f(2)`.
 
 | Type   | Objet                                  | Paramètres                                      |
 | ------ | -------------------------------------- | ----------------------------------------------- |
@@ -235,8 +236,10 @@ fixe), son aire (polygone) ; tout autre objet est indéfini.
    (valeur constante ou de curseur), `"f"` (formule de fonction en x, y, z, t)
    ou `"s"` (script) ; position `"xy": [x, y]` en pixels, ou attachée à un
    point : `"on": point, "d": [dx, dy]`.
-7. Nature `point`, `segment`, `line` ou `label` ; une seule formule pour
-   `point`. `k` et `count` y sont l'indice et le nombre d'éléments.
+7. Nature `point`, `segment`, `line`, `label` ou `polygon` (région remplie
+   bordée par les points, pris dans l'ordre) ; une seule formule pour
+   `point` et `polygon`. `k` et `count` y sont l'indice et le nombre
+   d'éléments.
 8. Texte dont les parties `%formule%` affichent leur valeur, `%%` étant un
    `%`.
 9. Coins inférieur gauche et inférieur droit, et supérieur gauche (sinon la

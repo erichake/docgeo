@@ -144,6 +144,55 @@ describe(".dgo writer", () => {
             },
         ));
 
+    it("keeps function calls, window corners and computed checkboxes", () =>
+        roundTrip(
+            async (c) =>
+                importGgb(
+                    c,
+                    `<geogebra><construction>
+<element type="point" label="A"><coords x="2" y="0" z="1"/></element>
+<element type="point" label="B"><coords x="0" y="3" z="1"/></element>
+<element type="point" label="O"><coords x="0" y="0" z="1"/></element>
+<expression label="f" exp="f(x) = x^(2) / 4"/>
+<element type="function" label="f"/>
+<expression label="M" exp="(x(A), f(x(A)))" type="point"/>
+<element type="point" label="M"><coords x="2" y="1" z="1"/></element>
+<command name="Corner"><input a0="3"/><output a0="C"/></command>
+<element type="point" label="C"/>
+<command name="TriangleCenter"><input a0="A" a1="B" a2="O" a3="3"/><output a0="K"/></command>
+<element type="point" label="K"/>
+<command name="Segment"><input a0="A" a1="B"/><output a0="s"/></command>
+<element type="segment" label="s"/>
+<expression label="long" exp="s > 3"/>
+<element type="boolean" label="long"><value val="true"/></element>
+</construction></geogebra>`,
+                ),
+            (c) => {
+                c.GRID.ORG = [c.GRID.ORG[0] + 40, c.GRID.ORG[1] - 25];
+                c.invalidateProjection();
+            },
+        ));
+
+    it("keeps integrals, sums and slope triangles", () =>
+        roundTrip(async (c) =>
+            importGgb(
+                c,
+                `<geogebra><construction>
+<element type="point" label="A"><coords x="1" y="0" z="1"/></element>
+<expression label="f" exp="f(x) = x^(2) / 2"/>
+<element type="function" label="f"/>
+<command name="Tangent"><input a0="A" a1="f"/><output a0="t"/></command>
+<element type="line" label="t"/>
+<command name="Slope"><input a0="t"/><output a0="m"/></command>
+<element type="numeric" label="m"><show object="true"/><objColor r="0" g="0" b="255" alpha="0.2"/></element>
+<command name="Integral"><input a0="f" a1="0" a2="x(A)"/><output a0="I"/></command>
+<element type="numeric" label="I"><show object="true"/><objColor r="0" g="128" b="0" alpha="0.3"/></element>
+<command name="UpperSum"><input a0="f" a1="-2" a2="0" a3="4"/><output a0="U"/></command>
+<element type="numeric" label="U"><show object="true"/><objColor r="128" g="0" b="0" alpha="0.3"/></element>
+</construction></geogebra>`,
+            ),
+        ));
+
     it("keeps numbers JSON can't hold", () =>
         roundTrip(
             async (c) =>

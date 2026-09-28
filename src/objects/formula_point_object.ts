@@ -10,7 +10,7 @@ import {
     type construction_object,
     type DgoContext,
 } from "./construction_object";
-import type { expression_object } from "./expression_object";
+import { callFunction, type expression_object } from "./expression_object";
 import { point_object } from "./point_object";
 
 export class formula_point_object extends point_object {
@@ -49,6 +49,8 @@ export class formula_point_object extends point_object {
         const value = evaluateFormula(this.formula, {
             resolveIdentifier: (n) => this.refs.get(n)!.scriptValue(this.vec3),
             view: () => this.C.formulaView(),
+            callFunction: (name, args) =>
+                callFunction(this.refs, name, args, this.C.formulaView()),
         });
         if (value === null) {
             this.defined = false;

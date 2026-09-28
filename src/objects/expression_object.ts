@@ -25,6 +25,7 @@ import {
     type DgoContext,
 } from "./construction_object";
 import { angle_object } from "./angle_object";
+import { curve_object } from "./curve_object";
 import { point_object } from "./point_object";
 
 // In a chunk of its own, loaded only by the figures that show LaTeX.
@@ -145,15 +146,16 @@ export interface ExpressionProgram {
     vec3: boolean;
 }
 
-// A call "E1(...)" of a function-valued expression among `refs`.
-function callFunction(
+// A call "E1(...)" of a function-valued expression or a curve among `refs`.
+export function callFunction(
     refs: Map<string, construction_object>,
     name: string,
     args: FormulaValue[],
     view: FormulaView,
 ): FormulaValue | null {
     const ref = refs.get(name);
-    return ref instanceof expression_object && ref.formula
+    return (ref instanceof expression_object || ref instanceof curve_object) &&
+        ref.formula
         ? evaluateFunction(ref.formula, args, view)
         : null;
 }
@@ -705,7 +707,7 @@ export class expression_object extends construction_object {
                 .att("height", CHECKBOX_SIZE)
                 .att("rx", 3)
                 .stl("stroke-width:2;cursor:pointer")
-                .stl("pointer-events", t.locked ? "none" : "auto");
+                .stl("pointer-events", t.locked || t.program ? "none" : "auto");
             t.check = t.svg
                 .shape("path")
                 .stl(

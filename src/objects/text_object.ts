@@ -1,7 +1,7 @@
 import type { construction } from "../construction";
 import type { DOMElement } from "../dom";
 import {
-    evaluateFormula,
+    evaluateProgram,
     formulaSource,
     realPart,
     usesView,
@@ -14,6 +14,7 @@ import {
     dgoFormula,
     type DgoContext,
 } from "./construction_object";
+import { callFunction } from "./expression_object";
 import type { point_object } from "./point_object";
 
 // GeoGebra's line spread in a multi-line text.
@@ -80,6 +81,8 @@ export class text_object extends construction_object {
                 return ref ? ref.scriptValue(false) : null;
             },
             view: () => this.C.formulaView(),
+            callFunction: (name, args) =>
+                callFunction(this.refs, name, args, this.C.formulaView()),
         };
     }
 
@@ -90,7 +93,16 @@ export class text_object extends construction_object {
         this.content = this.parts
             .map((part) => {
                 if (typeof part === "string") return part;
-                const value = realPart(evaluateFormula(part, env));
+                // A part may also be a string, e.g. a list's word.
+                const result = evaluateProgram(
+                    {
+                        body: [{ kind: "expression", node: part }],
+                        locals: new Set(),
+                    },
+                    env,
+                );
+                if (typeof result === "string") return result;
+                const value = realPart(result);
                 if (value === null) return "?";
                 const factor = 10 ** Math.max(0, this.precision);
                 return String(Math.round(value * factor) / factor);

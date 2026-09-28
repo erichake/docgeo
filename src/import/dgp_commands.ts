@@ -97,6 +97,7 @@ import {
     type FormulaNode,
     type FormulaValue,
     type Program,
+    usesView,
 } from "./dgp_formula";
 import type { DgpCall, DgpValue } from "./dgp_parser";
 
@@ -238,10 +239,10 @@ function literalString(value: DgpValue): string {
 // literal inside a string (e.g. Point("X","[1,0,0]","1")) rather than as a
 // real DGP array value; the components may themselves be constant
 // arithmetic (e.g. "[1,1,1/3]"). Only a literal "[...]" that doesn't
-// reference any other object counts as a fixed point: anything else (a
-// bare formula, or a "[...]" that reads another object, e.g.
-// "[1-2*cos(E2),1+2*sin(E2),1]") is a dependent point formula instead (see
-// Point's execute), not a one-time constant.
+// reference any other object nor the window counts as a fixed point:
+// anything else (a bare formula, or a "[...]" that reads another object,
+// e.g. "[1-2*cos(E2),1+2*sin(E2),1]") is a dependent point formula instead
+// (see Point's execute), not a one-time constant.
 function parseVectorLiteral(value: string): number[] | null {
     let node: FormulaNode;
     try {
@@ -249,7 +250,7 @@ function parseVectorLiteral(value: string): number[] | null {
     } catch {
         return null;
     }
-    if (node.kind !== "vector") return null;
+    if (node.kind !== "vector" || usesView(node)) return null;
     const result = evaluateFormula(node, {
         resolveIdentifier: () => null,
         view: () => NO_VIEW,
@@ -383,6 +384,7 @@ const READABLE: ReadonlySet<ObjectKind> = new Set([
     "line",
     "circle",
     "angle",
+    "curve",
 ]);
 
 // A List's own names (see list_object).
@@ -2248,12 +2250,14 @@ const COMMANDS = new Map<string, CommandDefinition>([
                     nature !== "point" &&
                     nature !== "segment" &&
                     nature !== "line" &&
-                    nature !== "label"
+                    nature !== "label" &&
+                    nature !== "polygon"
                 )
                     throw new Error(
                         `Invalid DGP list nature at line ${lineNumber}`,
                     );
-                const expectedArgs = nature === "point" ? 4 : 5;
+                const expectedArgs =
+                    nature === "point" || nature === "polygon" ? 4 : 5;
                 if (args.length !== expectedArgs)
                     throw new Error(
                         `Invalid List argument count at line ${lineNumber}`,
@@ -2303,7 +2307,7 @@ const COMMANDS = new Map<string, CommandDefinition>([
                 const countFormula = parseFormula(args[2] as string);
                 const formula1 = parseFormula(args[3] as string);
                 const formulas =
-                    nature === "point"
+                    nature === "point" || nature === "polygon"
                         ? [formula1]
                         : [formula1, parseFormula(args[4] as string)];
                 const refs = formulaRefs(

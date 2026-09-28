@@ -7,6 +7,7 @@ import {
     NO_VIEW,
     parseFormula,
     realPart,
+    usesView,
 } from "./dgp_formula";
 import {
     IDENTIFIER_PART,
@@ -91,12 +92,18 @@ const FORMULA_COMMANDS = new Set([
     "Element",
     "Sum",
     "LaTeX",
+    "Corner",
+    "FractionText",
+    "Slope",
+    "Length",
 ]);
+// The commands whose list listFormula reads from their own sources.
+const LIST_COMMANDS = new Set(["Take", "First", "Last"]);
 const CELL = /^([A-Z]+)(\d+)$/;
-const LABEL_WORDS = new RegExp(
-    `${IDENTIFIER_START.source}${IDENTIFIER_PART.source}*`,
-    "gu",
-);
+// A GeoGebra label, which may have primes and braced indices: "A'_{1}".
+const LABEL_WORDS =
+    /[$_\p{ID_Start}](?:_\{[^{}]*\}|[$'\u200c\u200d\p{ID_Continue}])*/gu;
+const LABEL = new RegExp(`^${LABEL_WORDS.source}`, "u");
 // Applied to a list, GeoGebra's functions apply to each of its items.
 const ITEM_FUNCTIONS: Record<string, string> = {
     real: "x",
@@ -105,8 +112,42 @@ const ITEM_FUNCTIONS: Record<string, string> = {
     y: "y",
 };
 const FUNCTION_DEFINITION = /^[^=]*\(\s*x\s*\)\s*=/;
-const FUNCTIONS: Record<string, string> = {
+// A function GeoGebra has but DGP formulas don't, written with theirs, its
+// arguments being already translated.
+type Expansion = (args: string[]) => string;
+// The value of a formula that reads neither the figure nor the window.
+const evaluateConstant = (source: string): number | null =>
+    realPart(
+        evaluateFormula(parseFormula(source), {
+            resolveIdentifier: () => null,
+            view: () => NO_VIEW,
+        }),
+    );
+const FUNCTIONS: Record<string, string | Expansion> = {
     Distance: "d",
+    exp: "exp",
+    ln: "log",
+    log: ([a, b]) => (b ? `(log(${b})/log(${a}))` : `log(${a})`),
+    round: ([a, n]) =>
+        n ? `(round((${a})*10^(${n}))/10^(${n}))` : `round(${a})`,
+    ceil: "ceil",
+    sgn: ([a]) => `(((${a})>0)-((${a})<0))`,
+    cot: ([a]) => `(1/tan(${a}))`,
+    min: "min",
+    max: "max",
+    Min: "min",
+    Max: "max",
+    // GeoGebra's modulo is never negative.
+    Mod: ([a, b]) => `((${a})-floor((${a})/(${b}))*(${b}))`,
+    z: ([a]) => `dot(${a},[0,0,1])`,
+    // Drawn once, at import, between constant bounds: GeoGebra saves no
+    // value for a random number in a function (a "?" fails the formula).
+    Random: (bounds) => {
+        const [a, b] = bounds.map(evaluateConstant);
+        return a === null || b === null
+            ? "?"
+            : String(Math.floor(a + Math.random() * (b - a + 1)));
+    },
     sqrt: "sqrt",
     sin: "sin",
     cos: "cos",
@@ -166,8 +207,17 @@ const AXES: Record<string, Vec3> = {
     zAxis: [0, 0, 1],
 };
 const DEFAULT_SLIDER_STEP = 0.1;
+// Numerical analysis: a derivative's step, the intervals of an integral's
+// Simpson rule and of its drawn region, and the samples an interval's
+// extremum is sought among for a lower or upper sum.
+const DERIVATIVE_STEP = 1e-4;
+const SIMPSON_INTERVALS = 1000;
+const REGION_INTERVALS = 200;
+const EXTREMUM_SAMPLES = 16;
 const CYLINDER_SIDES = 60;
 const VALUE_KINDS: Kind[] = ["point", "pointOn", "expression"];
+// A text also reads a polygon, as its area.
+const TEXT_KINDS: Kind[] = [...VALUE_KINDS, "polygon"];
 
 const literal = (value: string | number): DgpValue => ({
     type: "literal",
@@ -571,6 +621,46 @@ function unfold(
     };
 }
 
+// GeoGebra chains comparisons: "a < x ≤ b" is "a < x ∧ x ≤ b". Each
+// nesting level remembers where the operand after its last comparison
+// starts, forgotten past an operator of lower precedence.
+function chainComparisons(formula: string): string {
+    const middles = [-1];
+    let result = "";
+    for (let index = 0; index < formula.length; index++) {
+        const character = formula[index];
+        if (character === '"') {
+            const end = formula.indexOf('"', index + 1);
+            result += formula.slice(index, end + 1);
+            index = end;
+            continue;
+        }
+        const op = /^(?:[<>]=?|&&|\|\||==|!=|[?:,])/.exec(
+            formula.slice(index),
+        )?.[0];
+        const depth = middles.length - 1;
+        if ("([".includes(character)) middles.push(-1);
+        else if (")]".includes(character)) middles.pop();
+        else if (op) {
+            const comparison = /^[<>]/.test(op);
+            if (comparison && middles[depth] >= 0)
+                result += `&&${result.slice(middles[depth])}`;
+            result += op;
+            middles[depth] = comparison ? result.length : -1;
+            index += op.length - 1;
+            continue;
+        }
+        result += character;
+    }
+    return result;
+}
+
+// Whether a formula reads neither the figure nor the window.
+function isConstant(source: string): boolean {
+    const node = parseFormula(source);
+    return formulaIdentifiers(node).size === 0 && !usesView(node);
+}
+
 // An image of the .ggb archive, as a data URL, with its size in pixels.
 export interface GgbImage {
     url: string;
@@ -606,6 +696,10 @@ export function translateGgb(
     // A sphere, by its center and a point on it.
     const spheres = new Map<string, [string, string]>();
     const vectors = new Map<string, [string, string]>();
+    // A point of each line, where it is known.
+    const lineStarts = new Map<string, string>();
+    // The points known to lie on a circle.
+    const circlePoints = new Map<string, string[]>();
     const polygons = new Map<string, string[]>();
     const polyhedra = new Map<string, [string, string][]>();
     // A convex polyhedron's faces, as their vertices.
@@ -615,6 +709,8 @@ export function translateGgb(
         { ends: string[][]; levels: string; maps: SegmentMap[] }
     >();
     const lists = new Map<string, ListFormula>();
+    // The functions of x, which a formula calls by name.
+    const functions = new Set<string>();
     const elements = new Map<string, Element>();
     const expressions = new Map<string, string>();
     const commandOutputs = new Set<string>();
@@ -737,8 +833,13 @@ export function translateGgb(
         kinds: Kind[],
         locals = new Map<string, string>(),
     ): string | null => {
+        // A number reads a segment as its length, an angle as its value.
+        const readable = (word: string): boolean =>
+            is(word, kinds) ||
+            (kinds.includes("expression") &&
+                (segments.has(word) || is(word, ["angle"])));
         const known = objects.get(source);
-        if (known) return kinds.includes(known.kind) ? known.variable : null;
+        if (known) return readable(source) ? known.variable : null;
         const text = normalizeBrackets(source)
             .replace(/²/g, "^2")
             .replace(/³/g, "^3")
@@ -752,8 +853,16 @@ export function translateGgb(
             .replace(/≥/g, ">=")
             .replace(/∧/g, "&&")
             .replace(/∨/g, "||")
+            .replace(/¬/g, "!")
+            // The least or greatest of a list's items.
+            .replace(/\b(Min|Max)\(\{([^{}]*)\}\)/g, "$1($2)")
             .replace(/\s+/g, " ");
-        const groups: { start: number; call: boolean; comma: boolean }[] = [];
+        const groups: {
+            start: number;
+            call: boolean;
+            commas: number[];
+            expand?: Expansion;
+        }[] = [];
         let result = "";
         let index = 0;
         while (index < text.length) {
@@ -766,10 +875,8 @@ export function translateGgb(
                 continue;
             }
             if (IDENTIFIER_START.test(character)) {
-                let end = index + 1;
-                while (end < text.length && IDENTIFIER_PART.test(text[end]))
-                    end++;
-                const word = text.slice(index, end);
+                const word = LABEL.exec(text.slice(index))![0];
+                let end = index + word.length;
                 if (text[end] === "(" && FORMULA_COMMANDS.has(word)) {
                     let depth = 0;
                     do {
@@ -789,47 +896,67 @@ export function translateGgb(
                 }
                 index = end;
                 if (text[index] === "(") {
-                    const name = FUNCTIONS[word];
-                    if (!name) return null;
+                    // A constant, read without kinds, calls none; a list
+                    // l(n) is its n-th item.
+                    const list = lists.get(word);
+                    const fn = functions.has(word)
+                        ? kinds.length > 0 && objects.get(word)!.variable
+                        : list
+                          ? ([n]: string[]) => `(${list.item(n) ?? "?"})`
+                          : FUNCTIONS[word];
+                    if (!fn) return null;
+                    const expand = typeof fn === "function" ? fn : undefined;
                     groups.push({
                         start: result.length,
                         call: true,
-                        comma: false,
+                        commas: [],
+                        expand,
                     });
-                    result += `${name}(`;
+                    result += expand ? "(" : `${fn}(`;
                     index++;
                 } else if (word === "π" || word === "pi") result += "π";
+                else if (word === "ℯ") result += "exp(1)";
+                else if (word === "true" || word === "false") result += word;
                 // GeoGebra's imaginary unit.
                 else if (word === "ί") result += "i";
                 else if (locals.has(word)) result += `(${locals.get(word)})`;
-                else if (is(word, kinds)) result += objects.get(word)!.variable;
+                else if (readable(word)) result += objects.get(word)!.variable;
                 else return null;
                 continue;
             }
             index++;
             if (character === "(") {
-                groups.push({
-                    start: result.length,
-                    call: false,
-                    comma: false,
-                });
+                groups.push({ start: result.length, call: false, commas: [] });
                 result += "(";
             } else if (character === ")") {
                 const group = groups.pop();
                 if (!group) return null;
-                if (!group.call && group.comma)
+                if (group.expand) {
+                    const ends = [...group.commas, result.length];
+                    result =
+                        result.slice(0, group.start) +
+                        group.expand(
+                            ends.map((end, n) =>
+                                result.slice(
+                                    n ? ends[n - 1] + 1 : group.start + 1,
+                                    end,
+                                ),
+                            ),
+                        );
+                } else if (!group.call && group.commas.length > 0)
                     result = `${result.slice(0, group.start)}[${result.slice(group.start + 1)}]`;
                 else result += ")";
             } else if (character === ",") {
                 const group = groups[groups.length - 1];
                 if (!group) return null;
-                if (!group.call) group.comma = true;
+                group.commas.push(result.length);
                 result += ",";
             } else if (/[\d.+\-*/^ =!<>&|]/.test(character))
                 result += character;
             else return null;
         }
         if (groups.length > 0) return null;
+        result = chainComparisons(result);
         try {
             parseFormula(result);
         } catch {
@@ -880,27 +1007,14 @@ export function translateGgb(
                 const list = args.length === 1 && listFormula(args[0]);
                 const item = list && list.item("$n");
                 if (!item) return null;
-                const sum = auxiliary();
-                define(
-                    sum,
-                    "expression",
-                    "Expression",
-                    [
-                        "",
-                        "",
-                        "",
-                        `var $s=0;for(var $n=1;$n<=${list.count};$n++){$s+=${item}};$s`,
-                        "0",
-                        "0",
-                    ].map(literal),
-                    "h:1",
+                return hiddenExpression(
+                    `var $s=0;for(var $n=1;$n<=${list.count};$n++){$s+=${item}};$s`,
                 );
-                return objects.get(sum)!.variable;
             }
             // As GeoGebra writes a number, or a point in its own style.
             case "LaTeX": {
                 const value =
-                    args.length === 1 && formula(args[0], VALUE_KINDS, locals);
+                    args.length === 1 && formula(args[0], TEXT_KINDS, locals);
                 if (!value) return null;
                 if (!is(args[0], POINT_KINDS)) return `(""+(${value}))`;
                 const [x, y] = [`x(${value})`, `y(${value})`];
@@ -910,11 +1024,96 @@ export function translateGgb(
                     "style",
                 ) === "complex"
                     ? `(${x}+(${y}<0?" - ":" + ")+abs(${y})+"i")`
-                    : `("("+${x}+"; "+${y}+")")`;
+                    : `("("+${x}+", "+${y}+")")`;
+            }
+            case "Corner":
+                return cornerFormula(args);
+            case "Slope":
+                return args.length === 1 && is(args[0], ["line"])
+                    ? slopeFormula(args[0])
+                    : null;
+            case "Length":
+                return args.length === 1
+                    ? lengthFormula(args[0], locals)
+                    : null;
+            // GeoGebra's LaTeX fraction, the first continued fraction
+            // convergent within 1e-8.
+            case "FractionText": {
+                const value =
+                    args.length === 1 && formula(args[0], TEXT_KINDS, locals);
+                return value
+                    ? hiddenExpression(
+                          `var $v=${value},$x=abs($v),$h=floor($x),$k=1,$p=1,$q=0,$z=$x-$h,$a,$t;while(abs($x-$h/$k)>=0.00000001){$z=1/$z;$a=floor($z);$z=$z-$a;$t=$h;$h=$a*$h+$p;$p=$t;$t=$k;$k=$a*$k+$q;$q=$t};$h=$v<0?-$h:$h;$k==1?""+$h:" \\\\frac{ "+$h+" }{ "+$k+" } "`,
+                      )
+                    : null;
             }
             default:
                 return vectorFormula(source);
         }
+    };
+
+    // A vector's or a line's unit direction.
+    const unitDirection = (input: string): string | null => {
+        const ends = vectors.get(input);
+        if (ends) {
+            const [e, f] = ends.map((end) => objects.get(end)!.variable);
+            return `(${f}-${e})/d(${e},${f})`;
+        }
+        if (!is(input, ["line"])) return null;
+        const origin = planar("0", "0");
+        const tip = auxiliary();
+        define(tip, "point", "DirectionPoint", [
+            ref(input),
+            ref(formulaPoint(origin)),
+        ]);
+        const t = objects.get(tip)!.variable;
+        return `${t}/d(${t},${origin})`;
+    };
+
+    // A line's point: GeoGebra draws its slope triangle from it.
+    const linePoint = (line: string): string | undefined =>
+        lineStarts.get(line) ?? segments.get(line)?.[0];
+
+    const slopeFormula = (line: string): string => {
+        const u = unitDirection(line);
+        return `(y(${u})/x(${u}))`;
+    };
+
+    // A list's size, or a segment's, a vector's or a point's length.
+    const lengthFormula = (
+        source: string,
+        locals: Map<string, string>,
+    ): string | null => {
+        const list = listFormula(source, locals);
+        if (list) return `(${list.count})`;
+        if (segments.has(source)) return formula(source, VALUE_KINDS);
+        const call = commandCall(normalizeBrackets(source));
+        const ends =
+            vectors.get(source) ??
+            (call?.[1].length === 2 && ["Segment", "Vector"].includes(call[0])
+                ? call[1]
+                : null);
+        if (ends) {
+            const [p, q] = ends.map((end) => formula(end, VALUE_KINDS, locals));
+            return p === null || q === null ? null : `d(${p},${q})`;
+        }
+        const v = formula(source, VALUE_KINDS, locals);
+        return v && `sqrt(dot(${v},${v}))`;
+    };
+
+    // The graphics view's corners, counterclockwise from its bottom left
+    // one, then its size in pixels, the window's size standing for the
+    // applet's.
+    const cornerFormula = (args: string[]): string | null => {
+        const [view, n] = args.length === 2 ? args : ["1", ...args];
+        if (args.length > 2 || view !== "1") return null;
+        if (n === "5" || n === "6")
+            return "[windoww()*pixel(),windowh()*pixel()]";
+        const corner = ["1", "2", "3", "4"].indexOf(n);
+        if (corner < 0) return null;
+        const x = corner === 1 || corner === 2 ? "+" : "-";
+        const y = corner > 1 ? "+" : "-";
+        return `[windowcx()${x}windoww()/2,windowcy()${y}windowh()/2]`;
     };
 
     // A GeoGebra list as its size and its n-th item (from 1), as formulas.
@@ -925,6 +1124,17 @@ export function translateGgb(
         const text = normalizeBrackets(source.trim());
         const known = lists.get(text);
         if (known) return known;
+        if (/^\{.*\}$/.test(text)) {
+            const items = splitArguments(text.slice(1, -1))?.map((item) =>
+                formula(item, VALUE_KINDS, locals),
+            );
+            return items?.every((item) => item !== null)
+                ? {
+                      count: String(items.length),
+                      item: (n) => `[${items.join(",")}][(${n})-1]`,
+                  }
+                : null;
+        }
         const call = commandCall(text);
         if (!call) return null;
         const [name, args] = call;
@@ -979,6 +1189,29 @@ export function translateGgb(
                             [variable, `(${a})+((${n})-1)*(${s})`],
                         ]),
                     ),
+            };
+        }
+        // Sequence(b) and Sequence(a, b): the integers up to b.
+        if (name === "Sequence" && args.length <= 2)
+            return listFormula(
+                `Sequence($i,$i,${args.length === 2 ? args : `1,${args}`})`,
+                locals,
+            );
+        // Take(list, m, n), First(list, n) and Last(list, n): n items from
+        // the start-th on.
+        if (["Take", "First", "Last"].includes(name)) {
+            const list = listFormula(args[0], locals);
+            const [m = "1", n] = args
+                .slice(1)
+                .map((arg) => formula(arg, VALUE_KINDS, locals));
+            if (!list || m === null || n === null) return null;
+            const [start, count] =
+                name === "Take"
+                    ? [m, `${n ?? list.count}-(${m})+1`]
+                    : [name === "First" ? "1" : `${list.count}-(${m})+1`, m];
+            return {
+                count,
+                item: (k) => list.item(`(${start})+(${k})-1`),
             };
         }
         return null;
@@ -1063,6 +1296,108 @@ export function translateGgb(
             literal(style ?? (element ? objectStyle(element, kind) : "h:1")),
         ]);
         return true;
+    };
+
+    // A number no view shows, as its variable.
+    const hiddenExpression = (content: string, label = auxiliary()): string => {
+        define(
+            label,
+            "expression",
+            "Expression",
+            ["", "", "", content, "0", "0"].map(literal),
+            "h:1",
+        );
+        return objects.get(label)!.variable;
+    };
+
+    const defineFunction = (
+        label: string,
+        body: string,
+        min = "",
+        max = "",
+    ): true => {
+        functions.add(label);
+        return define(label, "curve", "Curvus", [
+            literal(min),
+            literal(max),
+            literal(body),
+        ]);
+    };
+
+    // A function of the figure, or an expression of x, as a formula of x.
+    const functionBody = (source: string): string | null =>
+        formula(
+            functions.has(source) ? `${source}(x)` : source,
+            ["expression"],
+            new Map([["x", "x"]]),
+        );
+
+    // A function's variable, an expression of x being defined as a hidden
+    // function.
+    const functionOf = (source: string): string | null => {
+        if (functions.has(source)) return objects.get(source)!.variable;
+        const body = functionBody(source);
+        if (body === null) return null;
+        const label = auxiliary();
+        defineFunction(label, body);
+        return objects.get(label)!.variable;
+    };
+
+    const derivative = (f: string, x: string): string =>
+        `((${f}((${x})+${DERIVATIVE_STEP})-${f}((${x})-${DERIVATIVE_STEP}))/${2 * DERIVATIVE_STEP})`;
+
+    const shapeStyle = (element: Element): string =>
+        objectStyle(element, "polygon")
+            .split(";")
+            .filter((part) => !part.startsWith("sn:"))
+            .join(";");
+
+    // The region GeoGebra shades for a number, bounded by a list's points.
+    const region = (label: string, count: string, item: string): void => {
+        const element = elements.get(label);
+        if (element)
+            define(
+                auxiliary(),
+                "list",
+                "List",
+                [literal("polygon"), literal(count), literal(item)],
+                shapeStyle(element),
+            );
+    };
+
+    // Lower and upper sums, each rectangle's height being the least or
+    // greatest of the function's samples on its interval.
+    const riemannSum =
+        (extremum: "min" | "max"): Handler =>
+        ([f, a, b, n, extra], [label]) => {
+            const fn = functionOf(f);
+            const values = [a, b, n].map((value) =>
+                formula(value ?? "", VALUE_KINDS),
+            );
+            if (extra !== undefined || !fn || values.includes(null))
+                return false;
+            const [p, q, m] = values.map((value) => hiddenExpression(value!));
+            const w = `(${q}-${p})/${m}`;
+            const heights = hiddenExpression(
+                `var $t=[],$e,$j;for(var $n=0;$n<${m};$n++){$e=${fn}(${p}+$n*${w});for($j=1;$j<=${EXTREMUM_SAMPLES};$j++){$e=${extremum}($e,${fn}(${p}+($n+$j/${EXTREMUM_SAMPLES})*${w}))};$t.push($e)};$t`,
+            );
+            hiddenExpression(
+                `var $s=0;for(var $n=0;$n<${m};$n++){$s+=${heights}[$n]};$s*${w}`,
+                label,
+            );
+            region(
+                label,
+                `4*${m}`,
+                `[${p}+(floor(k/4)+(k%4>1))*${w},(k%4==1||k%4==2)*${heights}[floor(k/4)]]`,
+            );
+            return true;
+        };
+
+    const addOnCircle = (circle: string, ...labels: string[]): void => {
+        circlePoints.set(circle, [
+            ...(circlePoints.get(circle) ?? []),
+            ...labels,
+        ]);
     };
 
     const target = (label: string): void => {
@@ -1234,6 +1569,7 @@ export function translateGgb(
         );
         target(label);
         animate(label);
+        addOnCircle(support, label);
         return true;
     };
 
@@ -1268,6 +1604,20 @@ export function translateGgb(
             (slider.getAttribute("absoluteScreenLocation") ??
                 slider.getAttribute("fixed")) === "true",
         );
+
+    // P turned by t around the axis through O along the unit vector k.
+    const turn3D = (p: string, o: string, k: string, t: string): string =>
+        `${o}+(${p}-${o})*cos(${t})+cross(${k},${p}-${o})*sin(${t})+${k}*dot(${k},${p}-${o})*(1-cos(${t}))`;
+
+    // A plane polygon's unit normal, upwards like GeoGebra's.
+    const upNormal = ([a, b, c]: string[]): string => {
+        const n = objects.get(
+            formulaPoint(`cross(${b}-${a},${c}-${a})`),
+        )!.variable;
+        return objects.get(
+            formulaPoint(`${n}*(dot(${n},[0,0,1])<0?-1:1)/d(${n},[0,0,0])`),
+        )!.variable;
+    };
 
     // Polygon(A, B, n)'s other vertices, counterclockwise like GeoGebra's:
     // the k-th is A + (B - A)·(1 - w^k)/(1 - w) with w = e^(2iπ/n), i.e.
@@ -1381,6 +1731,149 @@ export function translateGgb(
                 ),
             ),
         );
+
+    // The polynomial L - R of an equation "L = R" in x, y and z, as its
+    // values at the given points.
+    const equationValues = (
+        source: string,
+        at: number[][],
+    ): string[] | null => {
+        const sides = source.split("=");
+        if (sides.length !== 2) return null;
+        const values = at.map((point) =>
+            formula(
+                `(${sides[0]})-(${sides[1]})`,
+                VALUE_KINDS,
+                new Map(
+                    ["x", "y", "z"].map((name, axis) => [
+                        name,
+                        String(point[axis] ?? 0),
+                    ]),
+                ),
+            ),
+        );
+        return values.every((value) => value !== null)
+            ? values.map((value) => hiddenExpression(value))
+            : null;
+    };
+
+    // A conic equation's a, b, c, d, e, f (see equationConic), from its
+    // values at (0, 0), (1, 0), (-1, 0), (0, 1), (0, -1) and (1, 1).
+    const conicCoefficients = (source: string): string[] | null => {
+        const values = equationValues(source, [
+            [0, 0],
+            [1, 0],
+            [-1, 0],
+            [0, 1],
+            [0, -1],
+            [1, 1],
+        ]);
+        if (!values) return null;
+        const [g, p, m, q, n, r] = values;
+        return [
+            `((${p}+${m})/2-${g})`,
+            `(${r}-${p}-${q}+${g})`,
+            `((${q}+${n})/2-${g})`,
+            `((${p}-${m})/2)`,
+            `((${q}-${n})/2)`,
+            g,
+        ];
+    };
+
+    // The conic a·x² + b·xy + c·y² + d·x + e·y + f = 0, reduced as
+    // quadric5pts_object does, through five points in its own frame. Its
+    // kind, which GeoGebra's `saved` coefficients tell, stays that one.
+    const equationConic = (
+        label: string,
+        coefficients: string[],
+        saved: number[],
+    ): boolean => {
+        const terms = ([a, b, c, d, e, f]: string[]) => {
+            const det = `(4*${a}*${c}-${b}^2)`;
+            const [x0, y0] = [
+                `${b}*${e}-2*${c}*${d}`,
+                `${b}*${d}-2*${a}*${e}`,
+            ].map((value) => `((${value})/${det})`);
+            const half = `sqrt(((${a}-${c})/2)^2+(${b}/2)^2)`;
+            const lambdas = [
+                `((${a}+${c})/2+${half})`,
+                `((${a}+${c})/2-${half})`,
+            ];
+            const f0 = `((${d}*${x0}+${e}*${y0})/2+${f})`;
+            return {
+                det,
+                center: `[${x0},${y0}]`,
+                angle: `(atan2(${b},${a}-${c})/2)`,
+                lambdas,
+                mus: lambdas.map((lambda) => `(-${f0}/${lambda})`),
+            };
+        };
+        // GeoGebra's coefficients tell whether it has a center, and
+        // whether it is an ellipse or a hyperbola, whatever their sign: the
+        // axes are chosen as it moves.
+        const known = terms(saved.map((value) => `(${value})`));
+        const [det, m1, m2] = [known.det, ...known.mus].map((term) =>
+            evaluateConstant(term)!,
+        );
+        const [a, b, c] = saved;
+        const { center, angle, lambdas, mus } = terms(coefficients);
+        const [, , , d, e, f] = coefficients;
+        const axes = (t: string): string[] => [
+            `[cos(${t}),sin(${t})]`,
+            `[-sin(${t}),cos(${t})]`,
+        ];
+        let local: string[];
+        if (Math.abs(det) <= 1e-9 * (a * a + b * b + c * c)) {
+            // A parabola, V = kU² in the frame of its axis, U along the
+            // direction it curves in.
+            const [l1, l2] = lambdas.map((lambda) => hiddenExpression(lambda));
+            const flat = hiddenExpression(`abs(${l1})<abs(${l2})`);
+            const [l, t] = [`${flat}?${l2}:${l1}`, `${angle}+${flat}*π/2`].map(
+                (term) => hiddenExpression(term),
+            );
+            const [u, v] = axes(t);
+            const [dp, ep] = [u, v].map((axis) =>
+                hiddenExpression(`dot([${d},${e}],${axis})`),
+            );
+            local = [0, 1, -1, 2, -2].map(
+                (s) =>
+                    `(${s}-${dp}/(2*${l}))*${u}+((${dp}^2/(4*${l})-${f}-${l}*${s * s})/${ep})*${v}`,
+            );
+        } else if (m1 > 0 || m2 > 0) {
+            const [o, t, r1, r2, first] = [
+                center,
+                angle,
+                ...mus.map((mu) => `sqrt(abs(${mu}))`),
+                `${mus[0]}>0`,
+            ].map((term) => hiddenExpression(term));
+            const [u, v] = axes(t);
+            // Five points of x² ± y² = 1, x along the first axis if it
+            // crosses a hyperbola.
+            local = (
+                m1 > 0 && m2 > 0
+                    ? [0, 1, 2, 3, 4].map((k) => [
+                          Math.cos((2 * k * Math.PI) / 5),
+                          Math.sin((2 * k * Math.PI) / 5),
+                      ])
+                    : [
+                          [1, 0],
+                          [-1, 0],
+                          [Math.cosh(1), Math.sinh(1)],
+                          [Math.cosh(1), -Math.sinh(1)],
+                          [-Math.cosh(1), Math.sinh(1)],
+                      ]
+            ).map(
+                ([s, t]) =>
+                    `${o}+(${first}?${s}:${t})*${r1}*${u}+(${first}?${t}:${s})*${r2}*${v}`,
+            );
+        } else return false;
+        return define(
+            label,
+            "quadric",
+            "Quadric",
+            local.map((point) => ref(formulaPoint(point))),
+        );
+    };
 
     // Ellipse(F, G, P) and Hyperbola(F, G, P) through P, or with semi-major
     // axis a: both centered at the foci's midpoint, along FG.
@@ -1496,6 +1989,88 @@ export function translateGgb(
         ]);
     };
 
+    // A random number or point keeps the value GeoGebra saved.
+    const savedValue: Handler = (_, [label]) => {
+        const element = elements.get(label);
+        const coords = element && pointCoords(element);
+        return coords
+            ? define(label, "point", "Point", vectorLiteral(coords))
+            : element?.getAttribute("type") === "numeric" &&
+                  numeric(label, element);
+    };
+
+    // A command a formula computes: a text, a point or a number.
+    const formulaCommand =
+        (name: string): Handler =>
+        (inputs, [label]) => {
+            const source = `${name}(${inputs.join(",")})`;
+            const element = elements.get(label);
+            const type = element?.getAttribute("type");
+            if (type === "text") return text(label, element!, source);
+            const value = formula(source, VALUE_KINDS);
+            if (value === null) return false;
+            if (type === "point") formulaPoint(value, label);
+            else hiddenExpression(value, label);
+            return true;
+        };
+
+    // Cylinder(A, B, r): the bottom and top disks as regular polygons,
+    // defined first so that they own, and outline, the edges they share
+    // with the lateral faces, which have no outline. (-sin θ, cos θ, 0),
+    // θ = atan2(y, x) of AB, is a unit vector orthogonal to AB even when
+    // AB is vertical, since atan2(0, 0) = 0. A cone's lateral faces meet
+    // at B.
+    const revolution =
+        (cone: boolean): Handler =>
+        ([a, b, radius, extra], [solid, bottom, ...rest]) => {
+            const [top, side] = cone ? [undefined, rest[0]] : rest;
+            const r = formula(radius, VALUE_KINDS);
+            if (extra !== undefined || r === null || !points(a, b))
+                return false;
+            const [p, q] = [a, b].map((input) => objects.get(input)!.variable);
+            const angle = `atan2(y(${q}-${p}),x(${q}-${p}))`;
+            const u = objects.get(
+                formulaPoint(`[-sin(${angle}),cos(${angle}),0]`),
+            )!.variable;
+            const v = objects.get(
+                formulaPoint(`cross(${q}-${p},${u})/d(${p},${q})`),
+            )!.variable;
+            const rim = (center: string) =>
+                Array.from({ length: CYLINDER_SIDES }, (_, index) => {
+                    const t = (2 * Math.PI * index) / CYLINDER_SIDES;
+                    return formulaPoint(
+                        `${center}+(${r})*(${Math.cos(t)}*${u}+${Math.sin(t)}*${v})`,
+                    );
+                });
+            const lower = rim(p);
+            const upper = cone ? [] : rim(q);
+            definePolygon(bottom || auxiliary(), lower);
+            if (!cone) {
+                definePolygon(top || auxiliary(), upper);
+                if (solid) solidCylinders.set(solid, [a, b, lower[0]]);
+                if (side) cylinders.set(side, [a, b, lower[0]]);
+            }
+            const element = side && elements.get(side);
+            if (!element) return true;
+            const style = [
+                ...objectStyle(element, "polygon")
+                    .split(";")
+                    .filter((part) => !/^sn?:/.test(part)),
+                "s:0",
+            ].join(";");
+            lower.forEach((vertex, index) => {
+                const next = (index + 1) % CYLINDER_SIDES;
+                definePolygon(
+                    auxiliary(),
+                    cone
+                        ? [vertex, lower[next], b]
+                        : [vertex, lower[next], upper[next], upper[index]],
+                    style,
+                );
+            });
+            return true;
+        };
+
     const HANDLERS: Record<string, Handler> = {
         Point: ([support, extra], [label]) =>
             extra === undefined &&
@@ -1584,25 +2159,16 @@ export function translateGgb(
         },
         Distance: ([p, q], [label]) =>
             points(p, q) &&
-            define(
+            !!hiddenExpression(
+                `d(${objects.get(p)!.variable},${objects.get(q)!.variable})`,
                 label,
-                "expression",
-                "Expression",
-                [
-                    "",
-                    "",
-                    "",
-                    `d(${objects.get(p)!.variable},${objects.get(q)!.variable})`,
-                    "0",
-                    "0",
-                ].map(literal),
-                "h:1",
             ),
         Center: ([circle], [label]) =>
             is(circle, ["circle"]) &&
             define(label, "point", "Center", [ref(circle)]),
         Line: ([p, q], [label]) =>
             points(p) &&
+            !!lineStarts.set(label, p) &&
             (points(q)
                 ? define(label, "line", "Line", [ref(p), ref(q)])
                 : is(q, ["line"]) &&
@@ -1610,9 +2176,16 @@ export function translateGgb(
         Segment: ([p, q, extra], [label]) =>
             extra === undefined && points(p, q) && defineSegment(label, p, q),
         Ray: onePoint("Ray", 2),
+        // In space, or in the xOy plane, a line's orthogonal through P is
+        // DGP's perpendicular (see plumb_line_object).
         OrthogonalLine: ([p, line, extra], [label]) => {
             const plane = planes.get(line);
-            if (extra !== undefined || !points(p)) return false;
+            if (
+                (extra !== undefined &&
+                    ((extra !== "space" && extra !== "xOyPlane") || plane)) ||
+                !points(p)
+            )
+                return false;
             if (plane)
                 return define(label, "line", "Line", [
                     ref(p),
@@ -1639,6 +2212,10 @@ export function translateGgb(
         Angle: onePoint("Angle", 3, "angle"),
         Circle: ([center, second, third], [label]) => {
             if (!points(center)) return false;
+            addOnCircle(
+                label,
+                ...(points(third) ? [center, second, third] : [second]),
+            );
             if (points(second, third))
                 return define(label, "circle", "Circle3pts", [
                     ref(center),
@@ -1881,9 +2458,7 @@ export function translateGgb(
                 for (let turn = turns[face]; turn; turn = turns[turn.parent]) {
                     const { o, k, t } = turn;
                     point = objects.get(
-                        formulaPoint(
-                            `${o}+(${point}-${o})*cos(${t})+cross(${k},${point}-${o})*sin(${t})+${k}*dot(${k},${point}-${o})*(1-cos(${t}))`,
-                        ),
+                        formulaPoint(turn3D(point, o, k, t)),
                     )!.variable;
                 }
                 return formulaPoint(point, outputs[index] || auxiliary());
@@ -1914,13 +2489,29 @@ export function translateGgb(
         // the base edges, then each lateral edge V(i)S. A plane cuts either
         // every lateral edge, or two base edges and the lateral edges in
         // between, so its section follows SV1, V1V2, SV2, V2V3, …
+        // Pyramid(poly, S) or Pyramid(poly, h), whose apex, over the base's
+        // center, comes first: only the lateral faces, then edges.
         Pyramid: (inputs, [solid, ...outputs]) => {
-            if (inputs.length < 4 || !points(...inputs)) return false;
-            const base = inputs.slice(0, -1);
-            const apex = inputs[inputs.length - 1];
+            const polygon = polygons.get(inputs[0]);
+            if (polygon ? inputs.length !== 2 : inputs.length < 4) return false;
+            const base = polygon ?? inputs.slice(0, -1);
+            let apex = inputs[inputs.length - 1];
+            if (!points(...base)) return false;
             const n = base.length;
+            if (polygon && !points(apex)) {
+                const h = formula(apex, VALUE_KINDS);
+                if (h === null) return false;
+                const vertices = base.map(
+                    (vertex) => objects.get(vertex)!.variable,
+                );
+                apex = formulaPoint(
+                    `(${vertices.join("+")})/${n}+(${h})*${upNormal(vertices)}`,
+                    outputs.shift() || auxiliary(),
+                );
+            }
+            if (!points(apex)) return false;
             const faces = [
-                base,
+                ...(polygon ? [] : [base]),
                 ...base.map((vertex, index) => [
                     vertex,
                     base[(index + 1) % n],
@@ -1932,10 +2523,15 @@ export function translateGgb(
                 if (label) definePolygon(label, face);
             });
             [
-                ...base.map((vertex, index) => [vertex, base[(index + 1) % n]]),
+                ...(polygon
+                    ? []
+                    : base.map((vertex, index) => [
+                          vertex,
+                          base[(index + 1) % n],
+                      ])),
                 ...base.map((vertex) => [vertex, apex]),
             ].forEach(([p, q], index) => {
-                const label = outputs[n + 1 + index];
+                const label = outputs[faces.length + index];
                 if (label) defineSegment(label, p, q);
             });
             polyhedra.set(
@@ -1952,8 +2548,26 @@ export function translateGgb(
         // base, the lateral faces V(i)V(i+1)W(i+1)W(i) and the top face, then
         // the base, lateral and top edges; the base and its edges are omitted
         // when it is an existing polygon.
-        Prism: (inputs, [, ...outputs]) => {
+        Prism: (inputs, [solid, ...outputs]) => {
             const polygon = polygons.get(inputs[0]);
+            // Prism(poly, h): the first top vertex comes first.
+            if (polygon && inputs.length === 2 && !points(inputs[1])) {
+                const h = formula(inputs[1], VALUE_KINDS);
+                if (h === null || !points(...polygon)) return false;
+                const vertices = polygon.map(
+                    (vertex) => objects.get(vertex)!.variable,
+                );
+                return HANDLERS.Prism(
+                    [
+                        inputs[0],
+                        formulaPoint(
+                            `${vertices[0]}+(${h})*${upNormal(vertices)}`,
+                            outputs[0] || auxiliary(),
+                        ),
+                    ],
+                    [solid, ...outputs.slice(1)],
+                );
+            }
             if (polygon ? inputs.length !== 2 : inputs.length < 4) return false;
             const base = polygon ?? inputs.slice(0, -1);
             const apex = inputs[inputs.length - 1];
@@ -1998,53 +2612,9 @@ export function translateGgb(
             });
             return true;
         },
-        // Cylinder(A, B, r): the bottom and top disks as regular polygons,
-        // defined first so that they own, and outline, the edges they share
-        // with the lateral faces, which have no outline. (-sin θ, cos θ, 0),
-        // θ = atan2(y, x) of AB, is a unit vector orthogonal to AB even when
-        // AB is vertical, since atan2(0, 0) = 0.
-        Cylinder: ([a, b, radius, extra], [solid, bottom, top, side]) => {
-            const r = formula(radius, VALUE_KINDS);
-            if (extra !== undefined || r === null || !points(a, b))
-                return false;
-            const [p, q] = [a, b].map((input) => objects.get(input)!.variable);
-            const angle = `atan2(y(${q}-${p}),x(${q}-${p}))`;
-            const u = objects.get(
-                formulaPoint(`[-sin(${angle}),cos(${angle}),0]`),
-            )!.variable;
-            const v = objects.get(
-                formulaPoint(`cross(${q}-${p},${u})/d(${p},${q})`),
-            )!.variable;
-            const rim = (center: string) =>
-                Array.from({ length: CYLINDER_SIDES }, (_, index) => {
-                    const t = (2 * Math.PI * index) / CYLINDER_SIDES;
-                    return formulaPoint(
-                        `${center}+(${r})*(${Math.cos(t)}*${u}+${Math.sin(t)}*${v})`,
-                    );
-                });
-            const [lower, upper] = [p, q].map(rim);
-            definePolygon(bottom || auxiliary(), lower);
-            definePolygon(top || auxiliary(), upper);
-            if (solid) solidCylinders.set(solid, [a, b, lower[0]]);
-            if (side) cylinders.set(side, [a, b, lower[0]]);
-            const element = elements.get(side);
-            if (!element) return true;
-            const style = [
-                ...objectStyle(element, "polygon")
-                    .split(";")
-                    .filter((part) => !/^sn?:/.test(part)),
-                "s:0",
-            ].join(";");
-            lower.forEach((vertex, index) => {
-                const next = (index + 1) % CYLINDER_SIDES;
-                definePolygon(
-                    auxiliary(),
-                    [vertex, lower[next], upper[next], upper[index]],
-                    style,
-                );
-            });
-            return true;
-        },
+        Cylinder: revolution(false),
+        // Cone(C, S, r): the base centered at C, the apex S.
+        Cone: revolution(true),
         // Sphere(A, B) or Sphere(A, r), through B or A + (r, 0, 0).
         Sphere: ([center, through, extra], [label]) => {
             if (extra !== undefined || !points(center)) return false;
@@ -2195,8 +2765,27 @@ export function translateGgb(
         Reflect: mirror,
         // Rotate(P, a, C) as P + (R(a) - I)(P - C), which keeps P's height
         // in 3D; C defaults to the origin.
-        Rotate: iterationImage(([source, angle, center, extra], [label]) => {
+        Rotate: iterationImage(([source, angle, center, axis], [label]) => {
             const a = formula(angle, VALUE_KINDS);
+            // In space, around a line, or around the axis through a point
+            // along a vector or a line.
+            const line = axis ?? (points(center) ? undefined : center);
+            if (line !== undefined) {
+                const origin = axis ? center : linePoint(line);
+                const k = unitDirection(line);
+                if (a === null || !points(source, origin) || !k) return false;
+                formulaPoint(
+                    turn3D(
+                        objects.get(source)!.variable,
+                        objects.get(origin!)!.variable,
+                        k,
+                        a,
+                    ),
+                    label,
+                );
+                return true;
+            }
+            const extra = axis;
             if (
                 extra !== undefined ||
                 a === null ||
@@ -2406,6 +2995,14 @@ export function translateGgb(
         If: (inputs, [label]) => {
             const element = elements.get(label);
             const type = element?.getAttribute("type");
+            if (type === "function") {
+                const body = ifFormula(
+                    inputs,
+                    ["expression"],
+                    new Map([["x", "x"]]),
+                );
+                return body !== null && defineFunction(label, body);
+            }
             const content = ifFormula(inputs, VALUE_KINDS);
             if (!element || content === null) return false;
             if (type === "point" || type === "point3d") {
@@ -2422,6 +3019,184 @@ export function translateGgb(
                 );
             return type === "text" && textExpression(label, element, content);
         },
+        // Kimberling's first centers, by their barycentric coordinates:
+        // incenter, centroid, circumcenter, orthocenter and nine-point
+        // center.
+        TriangleCenter: ([a, b, c, n], [label]) => {
+            if (!points(a, b, c) || !["1", "2", "3", "4", "5"].includes(n))
+                return false;
+            const [A, B, C] = [a, b, c].map(
+                (point) => objects.get(point)!.variable,
+            );
+            const sides = [
+                [B, C],
+                [C, A],
+                [A, B],
+            ].map(([p, q]) => `d(${p},${q})`);
+            const barycenter = (weights: string[]): string =>
+                `(${weights.map((weight, index) => `(${weight})*${[A, B, C][index]}`).join("+")})/(${weights.join("+")})`;
+            const squares = sides.map((side) => `${side}^2`);
+            const circumcenter = barycenter(
+                squares.map(
+                    (square, index) =>
+                        `${square}*(${squares[(index + 1) % 3]}+${squares[(index + 2) % 3]}-${square})`,
+                ),
+            );
+            formulaPoint(
+                [
+                    barycenter(sides),
+                    `(${A}+${B}+${C})/3`,
+                    circumcenter,
+                    `${A}+${B}+${C}-2*(${circumcenter})`,
+                    `(${A}+${B}+${C}-(${circumcenter}))/2`,
+                ][Number(n) - 1],
+                label,
+            );
+            return true;
+        },
+        Corner: (inputs, [label]) => {
+            const corner = cornerFormula(inputs);
+            if (corner === null) return false;
+            formulaPoint(corner, label);
+            return true;
+        },
+        Text: ([source, point], [label]) => {
+            const element = elements.get(label);
+            const at = point === undefined ? undefined : pointAt(point);
+            return !!element && at !== null && text(label, element, source, at);
+        },
+        FractionText: formulaCommand("FractionText"),
+        Element: formulaCommand("Element"),
+        // At x(A) on a function's graph; at A on a circle through it; from
+        // A, touching the circle where the circle of diameter A and its
+        // center cuts it.
+        Tangent: ([p, conic, extra], outputs) => {
+            if (extra !== undefined || !points(p)) return false;
+            const [label] = outputs;
+            if (functions.has(conic)) {
+                const f = objects.get(conic)!.variable;
+                const x = `x(${objects.get(p)!.variable})`;
+                const touch = formulaPoint(planar(x, `${f}(${x})`));
+                const t = objects.get(touch)!.variable;
+                lineStarts.set(label, touch);
+                return define(label, "line", "Line", [
+                    ref(touch),
+                    ref(
+                        formulaPoint(
+                            `${t}+${planar("1", derivative(f, `x(${t})`))}`,
+                        ),
+                    ),
+                ]);
+            }
+            if (is(conic, ["circle"])) {
+                const center = auxiliary();
+                define(center, "point", "Center", [ref(conic)]);
+                const line = auxiliary();
+                if (circlePoints.get(conic)?.includes(p)) {
+                    define(line, "line", "Line", [ref(center), ref(p)]);
+                    return define(label, "line", "Perpendicular", [
+                        ref(line),
+                        ref(p),
+                    ]);
+                }
+                const middle = auxiliary();
+                define(middle, "point", "MidPoint", [ref(p), ref(center)]);
+                define(line, "circle", "Circle", [ref(middle), ref(p)]);
+                outputs.forEach((output, index) => {
+                    if (!output) return;
+                    const touch = auxiliary();
+                    define(touch, "point", "OrderedIntersection", [
+                        ref(conic),
+                        ref(line),
+                        literal(index),
+                    ]);
+                    define(output, "line", "Line", [ref(p), ref(touch)]);
+                });
+                return true;
+            }
+            return false;
+        },
+        // Drawn as GeoGebra's slope triangle, from the line's start point.
+        Slope: ([line, extra], [label]) => {
+            if (extra !== undefined || !is(line, ["line"])) return false;
+            const m = hiddenExpression(slopeFormula(line), label);
+            const start = linePoint(line);
+            const element = elements.get(label);
+            if (start && element) {
+                const s = objects.get(start)!.variable;
+                definePolygon(
+                    auxiliary(),
+                    [
+                        start,
+                        formulaPoint(`${s}+${planar("1", "0")}`),
+                        formulaPoint(`${s}+${planar("1", m)}`),
+                    ],
+                    shapeStyle(element),
+                );
+            }
+            return true;
+        },
+        Length: formulaCommand("Length"),
+        Function: ([f, a, b, extra], [label]) => {
+            const body = functionBody(f);
+            const [min, max] = [a, b].map((bound) =>
+                formula(bound ?? "", VALUE_KINDS),
+            );
+            if (
+                extra !== undefined ||
+                body === null ||
+                min === null ||
+                max === null
+            )
+                return false;
+            return NUMBER.test(min) && NUMBER.test(max)
+                ? defineFunction(label, body, min, max)
+                : defineFunction(
+                      label,
+                      `(x>=(${min})&&x<=(${max}))?(${body}):(0/0)`,
+                  );
+        },
+        Derivative: ([f, extra], [label]) => {
+            const fn = extra === undefined && functionOf(f);
+            return !!fn && defineFunction(label, derivative(fn, "x"));
+        },
+        // By Simpson's rule, drawn as the region between the graph and the
+        // x-axis.
+        Integral: ([f, a, b, extra], [label]) => {
+            const fn = functionOf(f);
+            const bounds = [a, b].map((bound) =>
+                formula(bound ?? "", VALUE_KINDS),
+            );
+            if (extra !== undefined || !fn || bounds.includes(null))
+                return false;
+            const [p, q] = bounds.map((bound) => hiddenExpression(bound!));
+            hiddenExpression(
+                `var $h=(${q}-${p})/${SIMPSON_INTERVALS},$s=${fn}(${p})+${fn}(${q});for(var $n=1;$n<${SIMPSON_INTERVALS};$n++){$s+=(2+2*($n%2))*${fn}(${p}+$n*$h)};$s*$h/3`,
+                label,
+            );
+            const x = `${p}+(k-1)*(${q}-${p})/${REGION_INTERVALS}`;
+            region(
+                label,
+                String(REGION_INTERVALS + 3),
+                `k==0||k==count-1?[k?${q}:${p},0]:[${x},${fn}(${x})]`,
+            );
+            return true;
+        },
+        LowerSum: riemannSum("min"),
+        UpperSum: riemannSum("max"),
+        Random: savedValue,
+        RandomBetween: savedValue,
+        RandomUniform: savedValue,
+        // Drawn at import when GeoGebra saved no value, as for a text.
+        RandomElement: (inputs, outputs) =>
+            savedValue(inputs, outputs) ||
+            formulaCommand("Element")(
+                [inputs[0], `Random(1,Length(${inputs[0]}))`],
+                outputs,
+            ),
+        Min: formulaCommand("Min"),
+        Max: formulaCommand("Max"),
+        Mod: formulaCommand("Mod"),
         Locus: ([p, q, extra], [label]) =>
             extra === undefined &&
             points(p) &&
@@ -2451,6 +3226,30 @@ export function translateGgb(
         return parts.join(";");
     };
 
+    // A list of points is drawn, other lists only read by formulas.
+    const defineList = (
+        label: string,
+        element: Element,
+        source: string,
+    ): boolean => {
+        const list = listFormula(source);
+        if (!list) return false;
+        lists.set(label, list);
+        if (attribute(element, "listType", "val") !== "point") return true;
+        const item = list.item("k+1");
+        const size = attribute(element, "pointSize", "val");
+        return (
+            item !== null &&
+            define(
+                label,
+                "list",
+                "List",
+                [literal("point"), literal(list.count), literal(item)],
+                `${objectStyle(element, "list")}${size ? `;s:${size}` : ""}`,
+            )
+        );
+    };
+
     const numeric = (label: string, element: Element): boolean => {
         const slider = child(element, "slider");
         const source = expressions.get(label);
@@ -2476,10 +3275,7 @@ export function translateGgb(
         const dependent =
             source === undefined ? null : formula(source, VALUE_KINDS);
         const content =
-            dependent !== null &&
-            formulaIdentifiers(parseFormula(dependent)).size > 0
-                ? dependent
-                : value;
+            dependent !== null && !isConstant(dependent) ? dependent : value;
         if (content !== dependent && !NUMBER.test(content)) return false;
         return define(
             label,
@@ -2491,35 +3287,59 @@ export function translateGgb(
     };
 
     // A text's literal strings and formulas: GeoGebra adds up the numbers
-    // before its first string, then concatenates every term. An angle would
-    // need GeoGebra's degree formatting: not supported.
+    // before its first string, then concatenates every term, writing an
+    // object's name, an angle in degrees and a point as its coordinates.
     const textParts = (source: string): TextPart[] | null => {
         const parts: TextPart[] = [];
         let concatenating = false;
         let sum: string[] = [];
         const addSum = (): boolean => {
             if (sum.length === 0) return true;
-            const value = formula(sum.join("+"), ["expression", "polygon"]);
+            const value = formula(sum.join("+"), TEXT_KINDS);
             sum = [];
             if (value === null) return false;
             parts.push({ formula: value });
             return true;
         };
         for (const term of textTerms(source)) {
-            if (/^"[^"]*"$/.test(term)) {
+            let inner = term;
+            while (
+                /^\(.*\)$/.test(inner) &&
+                splitArguments(inner.slice(1, -1))?.length === 1
+            )
+                inner = inner.slice(1, -1).trim();
+            const name = /^Name\[(.*)\]$/.exec(inner)?.[1];
+            if (/^"[^"]*"$/.test(inner) || (name && elements.has(name))) {
                 if (!addSum()) return null;
-                parts.push(term.slice(1, -1));
+                parts.push(name ?? inner.slice(1, -1));
                 concatenating = true;
                 continue;
             }
-            const words = term.match(/[^\s+\-*/^(),]+/g) ?? [];
-            if (
-                words.some(
-                    (word) =>
-                        elements.get(word)?.getAttribute("type") === "angle",
+            const variable = objects.get(inner)?.variable;
+            if (is(inner, ["angle"])) {
+                if (!addSum()) return null;
+                parts.push({ formula: `${variable}*180/π` }, "°");
+                continue;
+            }
+            if (points(inner)) {
+                if (
+                    !addSum() ||
+                    attribute(elements.get(inner)!, "coordStyle", "style") ===
+                        "complex"
                 )
-            )
-                return null;
+                    return null;
+                parts.push(
+                    "(",
+                    ...[`x(${variable})`, `y(${variable})`]
+                        .concat(is3D ? [`dot(${variable},[0,0,1])`] : [])
+                        .flatMap((coordinate, index) => [
+                            ...(index ? [", "] : []),
+                            { formula: coordinate },
+                        ]),
+                    ")",
+                );
+                continue;
+            }
             sum.push(term);
             if (concatenating && !addSum()) return null;
         }
@@ -2572,7 +3392,21 @@ export function translateGgb(
             .replace(/\\(begin|end)\{(align|gather)\*?\}/g, "\\$1{$2ed}")
             .replace(/(?<!\\)\$/g, "");
 
-    const text = (label: string, element: Element, source: string): boolean => {
+    // A point, or a point's coordinates such as "A + (0, 1)" as a hidden
+    // point.
+    const pointAt = (input: string): string | null => {
+        if (points(input)) return input;
+        const coords = formula(input, VALUE_KINDS);
+        return coords && formulaPoint(coords);
+    };
+
+    // Anchored at `at` or else at its start point.
+    const text = (
+        label: string,
+        element: Element,
+        source: string,
+        at?: string,
+    ): boolean => {
         const parts = textParts(source);
         if (parts === null) return false;
         const latex = attribute(element, "isLaTeX", "val") === "true";
@@ -2590,8 +3424,9 @@ export function translateGgb(
             return textExpression(label, element, content);
         const start = child(element, "startPoint");
         const exp = start?.getAttribute("exp");
-        const anchor = exp ? resolve(exp) : auxiliary();
-        if (!exp) {
+        const anchor = at ?? (exp ? pointAt(resolve(exp)) : auxiliary());
+        if (anchor === null) return false;
+        if (!at && !exp) {
             const [x, y, z] = ["x", "y", "z"].map((name) =>
                 Number(start?.getAttribute(name) ?? (name === "z" ? 1 : 0)),
             );
@@ -2700,54 +3535,76 @@ export function translateGgb(
                     : undefined,
             );
         }
+        // GeoGebra saves a line as xX + yY + z = 0, a plane as xX + yY +
+        // zZ + w = 0.
+        const plane = type === "plane3d";
+        if ((type === "line" && !is3D) || plane) {
+            const names = plane ? ["w", "x", "y", "z"] : ["z", "x", "y"];
+            const values =
+                source === undefined
+                    ? names.map(
+                          (name) => `(${attribute(element, "coords", name)})`,
+                      )
+                    : equationValues(
+                          source,
+                          names.map((_, index) =>
+                              names.map((_, axis) =>
+                                  Number(axis === index - 1),
+                              ),
+                          ),
+                      )?.map((value, index, [g]) =>
+                          index ? `(${value}-${g})` : value,
+                      );
+            if (!values) return false;
+            const [g, ...normal] = values;
+            const n = `[${normal}]`;
+            const point = formulaPoint(`-${g}*${n}/dot(${n},${n})`);
+            if (plane) return planeThrough(label, point, n);
+            const [x, y] = normal;
+            return define(label, "line", "Line", [
+                ref(point),
+                ref(
+                    formulaPoint(
+                        `${objects.get(point)!.variable}+[-${y},${x}]`,
+                    ),
+                ),
+            ]);
+        }
         // GeoGebra saves a conic as A0x² + A1y² + A2 + 2A3xy + 2A4x + 2A5y
         // = 0: a circle when A0 = A1 and A3 = 0.
         if (type === "conic" && !is3D) {
             const [a0, a1, a2, a3, a4, a5] = [0, 1, 2, 3, 4, 5].map((index) =>
                 Number(attribute(element, "matrix", `A${index}`)),
             );
-            const r2 = (a4 * a4 + a5 * a5) / (a0 * a0) - a2 / a0;
-            if (a0 === 0 || a0 !== a1 || a3 !== 0 || !(r2 > 0)) return false;
-            const center = auxiliary();
-            define(
-                center,
-                "point",
-                "Point",
-                vectorLiteral([-a4 / a0, -a5 / a0, 0]),
-            );
+            const saved = [a0, 2 * a3, a1, 2 * a4, 2 * a5, a2];
+            const coefficients =
+                source === undefined
+                    ? saved.map((value) => `(${value})`)
+                    : conicCoefficients(source);
+            if (!coefficients) return false;
+            if (a0 === 0 || a0 !== a1 || a3 !== 0)
+                return equationConic(label, coefficients, saved);
+            if (!((a4 * a4 + a5 * a5) / (a0 * a0) - a2 / a0 > 0)) return false;
+            const [a, , , d, e, f] = coefficients;
             return define(label, "circle", "Circle1", [
-                ref(center),
-                literal(String(Math.sqrt(r2))),
+                ref(formulaPoint(`[-${d},-${e}]/(2*${a})`)),
+                literal(`sqrt((${d}^2+${e}^2)/(4*${a}^2)-${f}/${a})`),
             ]);
         }
         if (type === "numeric" || type === "angle")
             return numeric(label, element);
         if (type === "text" && source !== undefined)
             return text(label, element, source);
-        // A list of points is drawn, other lists only read by formulas.
-        if (type === "list" && source !== undefined) {
-            const list = listFormula(source);
-            if (!list) return false;
-            lists.set(label, list);
-            if (attribute(element, "listType", "val") !== "point") return true;
-            const item = list.item("k+1");
-            const size = attribute(element, "pointSize", "val");
-            return (
-                item !== null &&
-                define(
-                    label,
-                    "list",
-                    "List",
-                    [literal("point"), literal(list.count), literal(item)],
-                    `${objectStyle(element, "list")}${size ? `;s:${size}` : ""}`,
-                )
-            );
-        }
+        if (type === "list" && source !== undefined)
+            return defineList(label, element, source);
         // Scripts never run: a button has nothing to do.
         if (type === "button") return true;
-        // An independent boolean is a checkbox, at its label's place on
-        // screen.
-        if (type === "boolean" && source === undefined) {
+        // A boolean is a checkbox, at its label's place on screen, that
+        // only an independent one lets tick.
+        if (type === "boolean") {
+            const value =
+                source === undefined ? "" : formula(source, VALUE_KINDS);
+            if (value === null) return false;
             const offset = child(element, "labelOffset");
             const [x, y] = screenPosition(
                 Number(offset?.getAttribute("x") ?? 0),
@@ -2762,7 +3619,11 @@ export function translateGgb(
                     attribute(element, "caption", "val") ?? label,
                     "",
                     "",
-                    attribute(element, "value", "val") === "true" ? "1" : "0",
+                    value && !isConstant(value)
+                        ? value
+                        : attribute(element, "value", "val") === "true"
+                          ? "1"
+                          : "0",
                     String(x),
                     String(y),
                 ].map(literal),
@@ -2824,14 +3685,7 @@ export function translateGgb(
                 ["expression"],
                 new Map([["x", "x"]]),
             );
-            return (
-                body !== null &&
-                define(label, "curve", "Curvus", [
-                    literal(""),
-                    literal(""),
-                    literal(body),
-                ])
-            );
+            return body !== null && defineFunction(label, body);
         }
         return false;
     };
@@ -2933,6 +3787,7 @@ export function translateGgb(
                 return point;
             });
             define(text, "line", "Line", [ref(origin), ref(tip)]);
+            lineStarts.set(text, origin);
             return text;
         }
         const label = auxiliary();
@@ -2961,11 +3816,23 @@ export function translateGgb(
             const sources = indexedAttributes(child(node, "input"));
             const outputs = indexedAttributes(child(node, "output"));
             const handler = HANDLERS[name];
+            // A random list (Shuffle, a Sequence of random numbers…) keeps
+            // the value GeoGebra saved; a list command is read from its own
+            // sources.
+            const list =
+                child(node, "output")?.getAttribute("randomResult") ??
+                (LIST_COMMANDS.has(name) ||
+                (name === "Sequence" && sources.length < 3)
+                    ? `${name}(${sources.join(",")})`
+                    : undefined);
+            const element = elements.get(outputs[0]);
             // Without any output, GeoGebra failed to evaluate the command:
             // it builds nothing.
             if (
                 outputs.some(Boolean) &&
-                !handler?.(sources.map(resolve), outputs)
+                !(list && element
+                    ? defineList(outputs[0], element, list)
+                    : handler?.(sources.map(resolve), outputs))
             )
                 unsupported.push(`${name}(${sources.join(", ")})`);
             outputs.forEach((output) => translated.add(output));
@@ -3032,17 +3899,7 @@ export function translateGgb(
             if (content === null) {
                 unsupported.push(`condition ${source}`);
                 conditions.set(source, null);
-            } else {
-                const condition = auxiliary();
-                define(
-                    condition,
-                    "expression",
-                    "Expression",
-                    ["", "", "", content, "0", "0"].map(literal),
-                    "h:1",
-                );
-                conditions.set(source, objects.get(condition)!.variable);
-            }
+            } else conditions.set(source, hiddenExpression(content));
         }
         const condition = conditions.get(source);
         if (condition)

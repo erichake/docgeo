@@ -15,11 +15,12 @@ import {
     dgoFormula,
     type DgoContext,
 } from "./construction_object";
-import { formatValue } from "./expression_object";
+import { callFunction, formatValue } from "./expression_object";
 import { MAX_SCREEN } from "./point_object";
 import { vNorm, vNormalize, vSub, type Vec2, type Vec3 } from "../vec";
 
-export type ListNature = "point" | "segment" | "line" | "label";
+// "polygon": the points, in turn, bound a filled region.
+export type ListNature = "point" | "segment" | "line" | "label" | "polygon";
 
 // point/segment/line results are folded into a single <path>, so this only
 // bounds computation (mirrors locus_object's MAX_SAMPLES); label results
@@ -100,6 +101,8 @@ export class list_object extends construction_object {
                 return ref ? ref.scriptValue(false) : null;
             },
             view: () => this.C.formulaView(),
+            callFunction: (name, args) =>
+                callFunction(this.refs, name, args, this.C.formulaView()),
         };
     }
 
@@ -112,6 +115,8 @@ export class list_object extends construction_object {
                 return ref ? ref.scriptValue(false) : null;
             },
             view: () => this.C.formulaView(),
+            callFunction: (name, args) =>
+                callFunction(this.refs, name, args, this.C.formulaView()),
         };
     }
 
@@ -223,6 +228,12 @@ export class list_object extends construction_object {
 
     private buildPath(): string {
         const r = this.size;
+        if (this.nature === "polygon") {
+            const points = this.screenItems.map(([point]) => point);
+            return points.every(Boolean)
+                ? `M${points.map((point) => point!.join(" ")).join("L")}Z`
+                : "";
+        }
         return this.screenItems
             .map((points) => {
                 if (this.nature === "point") {
@@ -297,7 +308,7 @@ export class list_object extends construction_object {
             .stl(
                 t.nature === "point"
                     ? `fill:${t.fill_color};stroke:none`
-                    : `fill:none;stroke:${t.stroke_color};stroke-width:${t.size}`,
+                    : `fill:${t.nature === "polygon" ? t.fill_color : "none"};fill-opacity:${t.opacity ?? 0};stroke:${t.stroke_color};stroke-width:${t.size}`,
             );
         return dom.add(t.path);
     }
