@@ -36,6 +36,8 @@ export class construction {
     segmentsOverPolygons = false;
     // DGPad's degree mode (see FormulaView).
     degrees = false;
+    // Bumped by a pan or a zoom, which erase the traces as in DGPad.
+    traceEpoch = 0;
     private updateFrame: number | null = null;
     private batchedObjects: construction_object[] | null = null;
     private viewportWidth = 0;
@@ -95,6 +97,7 @@ export class construction {
             this.GRID.ORG[0] + (this.GRID.lockOy ? 0 : dx),
             this.GRID.ORG[1] + (this.GRID.lockOx ? 0 : dy),
         ];
+        this.traceEpoch++;
         this.invalidateProjection();
     }
 
@@ -119,6 +122,7 @@ export class construction {
         const y = centerZoom || lockOx ? oy : py;
         this.GRID.ORG = [x + (ox - x) * scale, y + (oy - y) * scale];
         this.GRID.UNIT = [ux * scale, uy * scale, uz * scale];
+        this.traceEpoch++;
         this.invalidateProjection();
     }
 

@@ -922,6 +922,29 @@ STL(R,"tk:true");`,
         expect(reflection.tracePath!.getAtt("d")!.match(/L/g)).toHaveLength(2);
     });
 
+    it("erases the traces on a pan or a zoom, as DGPad", () => {
+        const c = createConstruction();
+        importDgp(c, `M=Point("M",0,1);\nSTL(M,"tk:true");`);
+        c.OBJS.update();
+        const m = c.getObj("M") as point_object;
+        const drag = (x: number): void => {
+            const [clientX, clientY] = c.pt3D([x, 1, 0]);
+            m.mousedrag(new PointerEvent("pointermove", { clientX, clientY }));
+            c.OBJS.update();
+        };
+
+        drag(1);
+        c.pan(new PointerEvent("pointermove"), [10, 5]);
+        c.OBJS.update();
+        expect(m.tracePath!.getAtt("d")).toBe("");
+
+        drag(2);
+        expect(m.tracePath!.getAtt("d")!.match(/L/g)).toHaveLength(1);
+        c.mousewheel(new WheelEvent("wheel", { deltaY: 100 }));
+        c.OBJS.update();
+        expect(m.tracePath!.getAtt("d")).toBe("");
+    });
+
     it("drags a point along a 3D segment that's vertical in world space", () => {
         const c = createConstruction();
         importDgp(

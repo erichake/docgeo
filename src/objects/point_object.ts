@@ -92,6 +92,7 @@ export class point_object extends construction_object {
     private traceData = "";
     private traceOpen = false;
     private traceBreak = false;
+    private traceEpoch = 0;
     // DGPad's magnetism ("mg" style): while dragging, the point snaps onto
     // whichever of these is both within `radius` screen pixels and closest,
     // instead of following the pointer directly.
@@ -280,6 +281,12 @@ export class point_object extends construction_object {
     private renderTrace(): void {
         const moved = this.traceCoords !== this.coords;
         this.traceCoords = this.coords;
+        if (this.traceEpoch !== this.C.traceEpoch) {
+            this.traceEpoch = this.C.traceEpoch;
+            this.traceData = "";
+            this.tracePath?.att("d", "");
+            this.traceOpen = false;
+        }
         if (!this.defined || !this.projectionDefined) {
             this.traceScreen = null;
             this.traceOpen = false;
