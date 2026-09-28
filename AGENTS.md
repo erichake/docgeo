@@ -88,6 +88,11 @@ Les points sur objet et les intersections sont ensuite recalés sur les position
 enregistrées par GeoGebra (`src/ggb_importer.ts`). Un élément non pris en charge
 est ignoré avec ses dépendants et signalé, sans faire échouer l'import.
 
+`GGB_IMPORT.md` est la feuille de route de la couverture de cet import,
+mesurée sur un corpus de figures réelles de geogebra.org : la lire avant
+d'étendre la traduction, et la mettre à jour (item coché, gain mesuré, taille
+du build) à chaque implémentation. Le build doit rester très léger.
+
 Une version web compilée de GeoGebra (pas son code source Java) se trouve dans :
 
 `/Users/erichake/Desktop/BV/html/doctools_MAIN/public/apps/geogebra`
