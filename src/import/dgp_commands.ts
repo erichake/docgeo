@@ -21,6 +21,7 @@ import {
     createExpression,
     expression_object,
     type ExpressionFormula,
+    type SliderBounds,
     type ExpressionProgram,
 } from "../objects/expression_object";
 import {
@@ -30,10 +31,18 @@ import {
 import {
     createFixedAngle,
     fixed_angle_object,
+    type FixedAngleFormula,
 } from "../objects/fixed_angle_object";
 import { createFixedPoint } from "../objects/fixed_point_object";
 import { createIteration, type SegmentMap } from "../objects/iteration_object";
-import { createText, type TextRef } from "../objects/text_object";
+import { createText } from "../objects/text_object";
+import {
+    createPanel,
+    panelFormulas,
+    panelNames,
+    panelTargets,
+    parsePanel,
+} from "../objects/panel_object";
 import { createImage } from "../objects/image_object";
 import { createFormulaPoint } from "../objects/formula_point_object";
 import {
@@ -42,8 +51,8 @@ import {
 } from "../objects/intersection_object";
 import {
     createList,
+    list_object,
     type ListNature,
-    type ListRef,
 } from "../objects/list_object";
 import { createLocus } from "../objects/locus_object";
 import { createMidpoint } from "../objects/midpoint_object";
@@ -289,6 +298,8 @@ function parseComplexLiteral(value: string): [number, number] | null {
 
 function parseExpressionValue(value: string): number | number[] | null {
     if (STYLE_NUMBER.test(value)) return Number(value);
+    // A checkbox's value.
+    if (value === "true" || value === "false") return Number(value === "true");
     return parseVectorLiteral(value) ?? parseComplexLiteral(value);
 }
 
@@ -359,47 +370,57 @@ function functionReferences(
     return names;
 }
 
-function validateFunctionFormulaReferences(
-    formulaNode: FormulaNode,
-    functionVariables: string[],
+// The objects a formula reads by name: those with a value (see
+// construction_object.scriptValue).
+const READABLE: ReadonlySet<ObjectKind> = new Set([
+    "point",
+    "pointOn",
+    "expression",
+    "polygon",
+    "line",
+    "circle",
+    "angle",
+]);
+
+// A List's own names (see list_object).
+const LIST_NAMES = ["k", "count"];
+
+function validateReferences(
+    names: Iterable<string>,
     variables: Map<string, ObjectKind>,
     lineNumber: number,
+    free: string[] = [],
 ): void {
-    functionReferences(formulaNode, functionVariables).forEach((name) => {
+    for (const name of names) {
         const kind = variables.get(name);
-        if (kind !== "point" && kind !== "pointOn" && kind !== "expression")
+        if (!free.includes(name) && !(kind && READABLE.has(kind)))
             throw new Error(`Unknown DGP reference at line ${lineNumber}`);
-    });
+    }
 }
 
-// A program reads the figure's points and Expressions, and styles any of
-// its objects.
+function formulaRefs(
+    names: Iterable<string>,
+    variables: Map<string, construction_object>,
+    free: string[] = [],
+): Map<string, construction_object> {
+    return new Map(
+        [...names]
+            .filter((name) => !free.includes(name))
+            .map((name) => [name, variables.get(name)!]),
+    );
+}
+
+// A program reads the figure's objects, and styles any of them.
 function validateProgramReferences(
     program: Program,
     variables: Map<string, ObjectKind>,
     lineNumber: number,
 ): void {
-    programReferences(program).forEach((name) => {
-        const kind = variables.get(name);
-        if (kind !== "point" && kind !== "pointOn" && kind !== "expression")
-            throw new Error(`Unknown DGP reference at line ${lineNumber}`);
-    });
+    validateReferences(programReferences(program), variables, lineNumber);
     programTargets(program).forEach((name) => {
         if (!variables.has(name))
             throw new Error(`Unknown DGP reference at line ${lineNumber}`);
     });
-}
-
-function pointFormulaRefs(
-    names: Set<string>,
-    variables: Map<string, construction_object>,
-): Map<string, point_object | expression_object> {
-    return new Map(
-        [...names].map((name) => [
-            name,
-            variables.get(name) as point_object | expression_object,
-        ]),
-    );
 }
 
 // DGPad applies restrictTheta/restrictPhi to the view as it reads the
@@ -452,63 +473,12 @@ function parseRadiusFormula(value: string, lineNumber: number): FormulaNode {
     }
 }
 
-// A Point's own dependent formula (e.g. "P1+[-1,-1,1]", "M.coords3D()"):
-// unlike a plain object formula, it may also read a slider Expression's
-// scalar value (e.g. "[1-2*cos(E2),1+2*sin(E2),1]"), and a "pointOn" is as
-// good a point reference as a free/fixed one.
-function validatePointFormulaReferences(
-    formulaNode: FormulaNode,
-    variables: Map<string, ObjectKind>,
-    lineNumber: number,
-): void {
-    formulaIdentifiers(formulaNode).forEach((name) => {
-        const kind = variables.get(name);
-        if (kind !== "point" && kind !== "pointOn" && kind !== "expression")
-            throw new Error(`Unknown DGP reference at line ${lineNumber}`);
-    });
-}
-
 function parseListFormula(value: string, lineNumber: number): FormulaNode {
     try {
         return parseFormula(value);
     } catch {
         throw new Error(`Invalid DGP list formula at line ${lineNumber}`);
     }
-}
-
-// Unlike validateFormulaReferences (points only), a List formula may also
-// read a cursor's numeric value or a polygon's area, and its "k"/"count" loop-scope names are
-// synthetic (bound per index by list_object itself), never real references.
-function validateListFormulaReferences(
-    formulaNode: FormulaNode,
-    variables: Map<string, ObjectKind>,
-    lineNumber: number,
-): void {
-    formulaIdentifiers(formulaNode).forEach((name) => {
-        if (name === "k" || name === "count") return;
-        const kind = variables.get(name);
-        if (
-            kind !== "point" &&
-            kind !== "pointOn" &&
-            kind !== "expression" &&
-            kind !== "polygon"
-        )
-            throw new Error(`Unknown DGP reference at line ${lineNumber}`);
-    });
-}
-
-function listFormulaRefs(
-    formulas: FormulaNode[],
-    variables: Map<string, construction_object>,
-): Map<string, ListRef> {
-    const refs = new Map<string, ListRef>();
-    formulas.forEach((formulaNode) =>
-        formulaIdentifiers(formulaNode).forEach((name) => {
-            if (name === "k" || name === "count") return;
-            refs.set(name, variables.get(name) as ListRef);
-        }),
-    );
-    return refs;
 }
 
 // An AnchoredText's content: text alternating with "%formula%" parts, "%%"
@@ -533,6 +503,22 @@ function validateColor(value: string, lineNumber: number): void {
 
 function extractColor(value: string): string {
     return COLOR.exec(value)![0];
+}
+
+// DGPad's Text: its color, possibly with an opacity, its frame's width
+// and radius, and its numbers' precision.
+const PANEL_COLOR =
+    /^(?:rgba?\(\s*(\d+\s*,\s*\d+\s*,\s*\d+)\s*(?:,\s*(\d*\.?\d+)\s*)?\)|#[\da-f]{3}|#[\da-f]{6})$/i;
+const PANEL_BORDER = 3;
+const PANEL_RADIUS = 5;
+
+function validatePanelStyle(value: string, lineNumber: number): void {
+    properties(value).forEach((propertyValue, property) => {
+        if (property === "c" && !PANEL_COLOR.test(propertyValue))
+            throw new Error(`Invalid DGP text color at line ${lineNumber}`);
+        if (["s", "r", "p"].includes(property))
+            validateNumber(propertyValue, lineNumber, 0);
+    });
 }
 
 function validateNumber(
@@ -919,12 +905,16 @@ function validateExpression(
     lineNumber: number,
     variables: Map<string, ObjectKind>,
 ): void {
-    const bound = (value: DgpValue): boolean => {
+    [args[2], args[3]].forEach((value) => {
         const source = literalString(value);
-        return source === "" || evaluateConstantFormula(source) !== null;
-    };
-    if (!bound(args[2]) || !bound(args[3]))
-        throw new Error(`Invalid DGP expression bound at line ${lineNumber}`);
+        if (source === "" || evaluateConstantFormula(source) !== null) return;
+        const node = tryParseFormula(source);
+        if (!node)
+            throw new Error(
+                `Invalid DGP expression bound at line ${lineNumber}`,
+            );
+        validateReferences(formulaIdentifiers(node), variables, lineNumber);
+    });
     const source = literalString(args[4]);
     if (parseExpressionValue(source) !== null) return;
     const program = tryParseProgram(source);
@@ -932,9 +922,8 @@ function validateExpression(
         throw new Error(`Unsupported DGP expression at line ${lineNumber}`);
     const fn = functionFormula(program, variables);
     if (fn)
-        validateFunctionFormulaReferences(
-            fn.node,
-            fn.variables,
+        validateReferences(
+            functionReferences(fn.node, fn.variables),
             variables,
             lineNumber,
         );
@@ -959,7 +948,7 @@ function executeExpression(
             formula = {
                 ...fn,
                 source,
-                refs: pointFormulaRefs(
+                refs: formulaRefs(
                     functionReferences(fn.node, fn.variables),
                     context.variables,
                 ),
@@ -968,10 +957,7 @@ function executeExpression(
         } else {
             program = {
                 program: parsed,
-                refs: pointFormulaRefs(
-                    programReferences(parsed),
-                    context.variables,
-                ),
+                refs: formulaRefs(programReferences(parsed), context.variables),
                 targets: new Map(
                     [...programTargets(parsed)].map((name) => [
                         name,
@@ -983,24 +969,74 @@ function executeExpression(
             applyViewRestrictions(context, parsed);
         }
     }
+    const bound = (source: string) =>
+        source === "" ? null : evaluateConstantFormula(source);
+    let bounds: SliderBounds | null = null;
+    if (
+        min !== "" &&
+        max !== "" &&
+        (bound(min) === null || bound(max) === null)
+    ) {
+        const [minNode, maxNode] = [parseFormula(min), parseFormula(max)];
+        bounds = {
+            min: minNode,
+            max: maxNode,
+            refs: formulaRefs(
+                [
+                    ...formulaIdentifiers(minNode),
+                    ...formulaIdentifiers(maxNode),
+                ],
+                context.variables,
+            ),
+        };
+    }
     return createExpression(
         context.construction,
         args[0] as string,
         args[1] as string,
         constant,
-        min === "" ? null : evaluateConstantFormula(min),
-        max === "" ? null : evaluateConstantFormula(max),
+        bound(min),
+        bound(max),
         screen,
         formula,
         program,
+        bounds,
     );
+}
+
+// DGPad's axes, lines through the origin that a figure builds on but that
+// are never drawn: the line through two fixed points, all super-hidden.
+function axis(direction: Vec3): CommandDefinition {
+    return {
+        parameters: [string],
+        result: "line",
+        execute: (context, args) => {
+            const c = context.construction;
+            const name = args[0] as string;
+            const [origin, unit] = [[0, 0, 0] as Vec3, direction].map(
+                (coords, index) =>
+                    createFixedPoint(c, `${name}.${index ? "I" : "O"}`, coords),
+            );
+            const line = createLine(c, name, origin, unit);
+            [origin, unit, line].forEach((object) => (object.hidden = 2));
+            return line;
+        },
+    };
 }
 
 const COMMANDS = new Map<string, CommandDefinition>([
     [
         "SetCoords",
         {
-            parameters: [number, number, number, boolean, number, number],
+            // Early figures give neither the 3D flag nor the window size.
+            parameters: [
+                number,
+                number,
+                number,
+                { ...boolean, optional: true },
+                { ...number, optional: true },
+                { ...number, optional: true },
+            ],
             validate: (args, lineNumber) => {
                 const unit = (args[2] as { value: number }).value;
                 if (unit <= 0)
@@ -1009,7 +1045,7 @@ const COMMANDS = new Map<string, CommandDefinition>([
             execute: (context, args) => {
                 const unit = args[2] as number;
                 const grid = context.construction.GRID;
-                context.is3D = args[3] as boolean;
+                context.is3D = (args[3] as boolean | undefined) ?? false;
                 context.labelOrigin = [args[0] as number, args[1] as number];
                 if (context.is3D) {
                     // In the legacy 3D format, the first two numbers are the
@@ -1082,8 +1118,8 @@ const COMMANDS = new Map<string, CommandDefinition>([
                     return;
                 }
                 const pointFormula = parsePointFormula(source, lineNumber);
-                validatePointFormulaReferences(
-                    pointFormula,
+                validateReferences(
+                    formulaIdentifiers(pointFormula),
                     variables,
                     lineNumber,
                 );
@@ -1106,12 +1142,9 @@ const COMMANDS = new Map<string, CommandDefinition>([
                         );
                     }
                     const formula = parseFormula(source);
-                    const refs = new Map(
-                        [...formulaIdentifiers(formula)].map((refName) => [
-                            refName,
-                            context.variables.get(refName) as
-                                point_object | expression_object,
-                        ]),
+                    const refs = formulaRefs(
+                        formulaIdentifiers(formula),
+                        context.variables,
                     );
                     return createFormulaPoint(
                         context.construction,
@@ -1149,13 +1182,24 @@ const COMMANDS = new Map<string, CommandDefinition>([
                 };
                 const pair = args[2].type === "array";
                 const kind = variables.get(support.name);
-                if ((kind === "polygon" || kind === "quadric") !== pair)
+                if (
+                    kind !== "list" &&
+                    (kind === "polygon" || kind === "quadric") !== pair
+                )
                     throw new Error(
                         `Invalid PointOn parameter at line ${lineNumber}`,
                     );
             },
             execute: (context, args) => {
                 const support = args[1] as point_support_object;
+                // On a List, DGPad's [item, fraction to the next one].
+                if (support instanceof list_object && Array.isArray(args[2]))
+                    return createPointOn(
+                        context.construction,
+                        args[0] as string,
+                        support,
+                        (args[2][0] as number) + (args[2][1] as number),
+                    );
                 // On a line built from a point and a direction
                 // (Perpendicular, Parallel…), DGPad stores the distance
                 // from that point in pixels, its own internal unit.
@@ -1188,6 +1232,8 @@ const COMMANDS = new Map<string, CommandDefinition>([
                 ),
         },
     ],
+    ["X_axis", axis([1, 0, 0])],
+    ["Y_axis", axis([0, 1, 0])],
     [
         "Line",
         {
@@ -1307,28 +1353,41 @@ const COMMANDS = new Map<string, CommandDefinition>([
         {
             parameters: [string, point, point, string, boolean],
             result: "line",
-            validate: (args, lineNumber) => {
-                const expression = args[3];
-                if (
-                    expression.type === "literal" &&
-                    typeof expression.value === "string" &&
-                    !STYLE_NUMBER.test(expression.value)
-                )
-                    throw new Error(
-                        `Unsupported DGP expression at line ${lineNumber}`,
-                    );
+            validate: (args, lineNumber, variables) => {
+                const source = literalString(args[3]);
+                if (STYLE_NUMBER.test(source)) return;
+                validateReferences(
+                    formulaIdentifiers(parsePointFormula(source, lineNumber)),
+                    variables,
+                    lineNumber,
+                );
             },
-            execute: (context, args) =>
-                createFixedAngle(
+            execute: (context, args) => {
+                const source = args[3] as string;
+                let angle: number | FixedAngleFormula;
+                if (STYLE_NUMBER.test(source)) {
+                    angle = context.construction.degrees
+                        ? Number(source)
+                        : (Number(source) * 180) / Math.PI;
+                } else {
+                    const formula = parseFormula(source);
+                    angle = {
+                        formula,
+                        refs: formulaRefs(
+                            formulaIdentifiers(formula),
+                            context.variables,
+                        ),
+                    };
+                }
+                return createFixedAngle(
                     context.construction,
                     args[0] as string,
                     args[1] as point_object,
                     args[2] as point_object,
-                    context.construction.degrees
-                        ? Number(args[3] as string)
-                        : (Number(args[3] as string) * 180) / Math.PI,
+                    angle,
                     args[4] as boolean,
-                ),
+                );
+            },
         },
     ],
     [
@@ -1377,8 +1436,8 @@ const COMMANDS = new Map<string, CommandDefinition>([
                     radiusArg.value,
                     lineNumber,
                 );
-                validatePointFormulaReferences(
-                    radiusFormula,
+                validateReferences(
+                    formulaIdentifiers(radiusFormula),
                     variables,
                     lineNumber,
                 );
@@ -1397,12 +1456,9 @@ const COMMANDS = new Map<string, CommandDefinition>([
                         axis,
                     );
                 const radiusFormula = parseFormula(radiusArg);
-                const refs = new Map(
-                    [...formulaIdentifiers(radiusFormula)].map((refName) => [
-                        refName,
-                        context.variables.get(refName) as
-                            point_object | expression_object,
-                    ]),
+                const refs = formulaRefs(
+                    formulaIdentifiers(radiusFormula),
+                    context.variables,
                 );
                 return createCircle1(
                     context.construction,
@@ -1441,6 +1497,22 @@ const COMMANDS = new Map<string, CommandDefinition>([
                     args[1] as point_object,
                     args[2] as point_object,
                     args[3] as point_object,
+                ),
+        },
+    ],
+    [
+        "Circle3pts3D",
+        {
+            parameters: [string, point, point, point],
+            result: "circle",
+            execute: (context, args) =>
+                createCircle3pts(
+                    context.construction,
+                    args[0] as string,
+                    args[1] as point_object,
+                    args[2] as point_object,
+                    args[3] as point_object,
+                    true,
                 ),
         },
     ],
@@ -1554,6 +1626,68 @@ const COMMANDS = new Map<string, CommandDefinition>([
     // Not a DGPad command: GeoGebra's text, anchored at a point shifted by
     // (dx, dy) screen pixels.
     [
+        "Text",
+        {
+            parameters: [
+                string,
+                number,
+                number,
+                number,
+                number,
+                { ...string, optional: true },
+            ],
+            validate: (args, lineNumber, variables) => {
+                const nodes = parsePanel(literalString(args[0]));
+                validateReferences(
+                    [...panelFormulas(nodes).values()].flatMap((formula) => [
+                        ...formulaIdentifiers(formula),
+                    ]),
+                    variables,
+                    lineNumber,
+                );
+                panelTargets(nodes).forEach((name) => {
+                    if (variables.get(name) !== "expression")
+                        throw new Error(
+                            `Unknown DGP reference at line ${lineNumber}`,
+                        );
+                });
+                if (args[5])
+                    validatePanelStyle(literalString(args[5]), lineNumber);
+            },
+            execute: (context, args) => {
+                const content = args[0] as string;
+                const style = properties((args[5] as string | undefined) ?? "");
+                const panel = createPanel(
+                    context.construction,
+                    null,
+                    [
+                        args[1] as number,
+                        args[2] as number,
+                        args[3] as number,
+                        args[4] as number,
+                    ],
+                    Number(style.get("r") ?? PANEL_RADIUS),
+                    content,
+                    formulaRefs(
+                        panelNames(parsePanel(content)),
+                        context.variables,
+                    ),
+                );
+                const color = style.get("c");
+                if (color) {
+                    const [, rgb, alpha] = PANEL_COLOR.exec(color)!;
+                    panel.stroke_color = panel.fill_color = rgb
+                        ? `rgb(${rgb})`
+                        : color;
+                    panel.opacity = alpha === undefined ? 1 : Number(alpha);
+                }
+                panel.size = Number(style.get("s") ?? PANEL_BORDER);
+                if (style.has("p")) panel.precision = Number(style.get("p"));
+                return panel;
+            },
+        },
+    ],
+    [
         "AnchoredText",
         {
             parameters: [string, point, number, number, string],
@@ -1564,10 +1698,13 @@ const COMMANDS = new Map<string, CommandDefinition>([
                     throw new Error(`Invalid DGP text at line ${lineNumber}`);
                 parts.forEach((part, index) => {
                     if (index % 2 === 1 && part !== "")
-                        validateListFormulaReferences(
-                            parseListFormula(part, lineNumber),
+                        validateReferences(
+                            formulaIdentifiers(
+                                parseListFormula(part, lineNumber),
+                            ),
                             variables,
                             lineNumber,
+                            LIST_NAMES,
                         );
                 });
             },
@@ -1585,10 +1722,15 @@ const COMMANDS = new Map<string, CommandDefinition>([
                     args[1] as point_object,
                     [args[2] as number, args[3] as number],
                     parts,
-                    listFormulaRefs(
-                        parts.filter((part) => typeof part !== "string"),
+                    formulaRefs(
+                        (
+                            parts.filter(
+                                (part) => typeof part !== "string",
+                            ) as FormulaNode[]
+                        ).flatMap((node) => [...formulaIdentifiers(node)]),
                         context.variables,
-                    ) as Map<string, TextRef>,
+                        LIST_NAMES,
+                    ),
                 );
             },
         },
@@ -1654,10 +1796,13 @@ const COMMANDS = new Map<string, CommandDefinition>([
                     throw new Error(
                         `Unknown DGP reference at line ${lineNumber}`,
                     );
-                validateListFormulaReferences(
-                    parseListFormula(literalString(args[2]), lineNumber),
+                validateReferences(
+                    formulaIdentifiers(
+                        parseListFormula(literalString(args[2]), lineNumber),
+                    ),
                     variables,
                     lineNumber,
+                    LIST_NAMES,
                 );
                 literalString(args[3])
                     .split(";")
@@ -1689,7 +1834,11 @@ const COMMANDS = new Map<string, CommandDefinition>([
                         index % 2 === 0 ? [[end, ends[index + 1]]] : [],
                     ) as [point_object, point_object][],
                     levels,
-                    listFormulaRefs([levels], context.variables),
+                    formulaRefs(
+                        formulaIdentifiers(levels),
+                        context.variables,
+                        LIST_NAMES,
+                    ),
                     (args[3] as string).split(";").map((map) => {
                         const [ax, ay, bx, by] = map.split(",").map(Number);
                         return [
@@ -1969,9 +2118,8 @@ const COMMANDS = new Map<string, CommandDefinition>([
                         `Invalid DGP curve formula at line ${lineNumber}`,
                     );
                 }
-                validateFunctionFormulaReferences(
-                    formulaNode,
-                    ["x"],
+                validateReferences(
+                    functionReferences(formulaNode, ["x"]),
                     variables,
                     lineNumber,
                 );
@@ -1985,7 +2133,7 @@ const COMMANDS = new Map<string, CommandDefinition>([
                     node,
                     source,
                     variables: ["x"],
-                    refs: pointFormulaRefs(
+                    refs: formulaRefs(
                         functionReferences(node, ["x"]),
                         context.variables,
                     ),
@@ -2039,25 +2187,32 @@ const COMMANDS = new Map<string, CommandDefinition>([
                     literalString(args[2]),
                     lineNumber,
                 );
-                validateListFormulaReferences(
-                    countFormula,
+                validateReferences(
+                    formulaIdentifiers(countFormula),
                     variables,
                     lineNumber,
+                    LIST_NAMES,
                 );
                 const formula1 = parseListFormula(
                     literalString(args[3]),
                     lineNumber,
                 );
-                validateListFormulaReferences(formula1, variables, lineNumber);
+                validateReferences(
+                    formulaIdentifiers(formula1),
+                    variables,
+                    lineNumber,
+                    LIST_NAMES,
+                );
                 if (expectedArgs === 5) {
                     const formula2 = parseListFormula(
                         literalString(args[4]),
                         lineNumber,
                     );
-                    validateListFormulaReferences(
-                        formula2,
+                    validateReferences(
+                        formulaIdentifiers(formula2),
                         variables,
                         lineNumber,
+                        LIST_NAMES,
                     );
                 }
             },
@@ -2076,9 +2231,12 @@ const COMMANDS = new Map<string, CommandDefinition>([
                     nature === "point"
                         ? [formula1]
                         : [formula1, parseFormula(args[4] as string)];
-                const refs = listFormulaRefs(
-                    [countFormula, ...formulas],
+                const refs = formulaRefs(
+                    ([countFormula, ...formulas] as FormulaNode[]).flatMap(
+                        (node) => [...formulaIdentifiers(node)],
+                    ),
                     context.variables,
+                    LIST_NAMES,
                 );
                 return createList(
                     context.construction,
@@ -2241,11 +2399,14 @@ function validateCall(call: DgpCall, variables: Map<string, ObjectKind>): void {
 // Formulas, texts and styles name objects inside string literals.
 const IDENTIFIERS = /[$_\p{ID_Start}][$_\u200c\u200d\p{ID_Continue}]*/gu;
 
+// A polygon's vertices are prefixed with "_" (see polygonPointName).
 function referencedNames(value: DgpValue): string[] {
     if (value.type === "reference") return [value.name];
     if (value.type === "array") return value.items.flatMap(referencedNames);
     return typeof value.value === "string"
-        ? (value.value.match(IDENTIFIERS) ?? [])
+        ? (value.value.match(IDENTIFIERS) ?? []).flatMap((name) =>
+              name.startsWith("_") ? [name, name.slice(1)] : [name],
+          )
         : [];
 }
 
@@ -2253,8 +2414,13 @@ function describeValue(value: DgpValue): string {
     if (value.type === "reference") return value.name;
     if (value.type === "array")
         return `[${value.items.map(describeValue).join(", ")}]`;
+    // Scripts and Blockly programs would flood the report.
+    if (typeof value.value === "string" && value.value.length > DESCRIBED)
+        return JSON.stringify(value.value.slice(0, DESCRIBED) + "…");
     return JSON.stringify(value.value);
 }
+
+const DESCRIBED = 60;
 
 // DGPad's first 3D figures predate its 3D mode: in a 2D figure, a point
 // "point3D(O,[x,y,z])" projects the vector from O with view angles read from
@@ -2290,9 +2456,11 @@ function convertLegacyPoint3D(calls: DgpCall[]): DgpCall[] {
         call.name === "SetCoords"
             ? {
                   ...call,
-                  arguments: call.arguments.map((value, index) =>
-                      index === 3 ? { type: "literal", value: true } : value,
-                  ),
+                  arguments: [
+                      ...call.arguments.slice(0, 3),
+                      { type: "literal", value: true },
+                      ...call.arguments.slice(4),
+                  ],
               }
             : call,
     );
@@ -2308,6 +2476,9 @@ function validateCalls(calls: DgpCall[]): {
     const skipped = new Set<string>();
     const unsupported: string[] = [];
     const valid = calls.filter((call) => {
+        // The initial values of the Blockly programs' variables: these
+        // programs are never run, and each is reported with its object.
+        if (call.name === "BLK_GLOB_SET") return false;
         try {
             validateCall(call, variables);
             return true;

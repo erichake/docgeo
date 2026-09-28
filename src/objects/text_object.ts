@@ -14,13 +14,10 @@ import {
     dgoFormula,
     type DgoContext,
 } from "./construction_object";
-import { resolveRef, type ListRef } from "./list_object";
 import type { point_object } from "./point_object";
 
 // GeoGebra's line spread in a multi-line text.
 const LINE_HEIGHT = 1.5;
-
-export type TextRef = ListRef;
 
 // A text whose "%formula%" parts show their current value ("%%" is a
 // literal "%"), its first line's baseline starting at its anchor's screen
@@ -29,7 +26,7 @@ export class text_object extends construction_object {
     anchor: point_object;
     offset: Vec2;
     parts: (string | FormulaNode)[];
-    refs: Map<string, TextRef>;
+    refs: Map<string, construction_object>;
     content = "";
     projectionDefined = false;
     private position: Vec2 = [0, 0];
@@ -43,7 +40,7 @@ export class text_object extends construction_object {
         anchor: point_object,
         offset: Vec2,
         parts: (string | FormulaNode)[],
-        refs: Map<string, TextRef>,
+        refs: Map<string, construction_object>,
     ) {
         super(c, name, "text");
         this.anchor = anchor;
@@ -80,7 +77,7 @@ export class text_object extends construction_object {
         return {
             resolveIdentifier: (name) => {
                 const ref = this.refs.get(name);
-                return ref ? resolveRef(ref) : null;
+                return ref ? ref.scriptValue(false) : null;
             },
             view: () => this.C.formulaView(),
         };
@@ -148,7 +145,7 @@ export function createText(
     anchor: point_object,
     offset: Vec2,
     parts: (string | FormulaNode)[],
-    refs: Map<string, TextRef>,
+    refs: Map<string, construction_object>,
 ): text_object {
     return c.add(new text_object(c, name, anchor, offset, parts, refs));
 }

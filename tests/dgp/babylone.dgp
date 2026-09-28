@@ -1,0 +1,50 @@
+// Coordinates System :
+SetCoords(26.707913730176642,369.6252984313271,183.08851957695524);
+
+
+// Geometry :
+oy=Y_axis("oy");
+ox=X_axis("ox");
+P1=OrderedIntersection("P1",oy,ox,0);
+n=Expression("n","","0","6","0","2.9127554666018893","1.8549786694221246");
+a=Expression("a","","1","36","2","-0.09125593329817723","1.8549786694221246");
+E7=Expression("E7","","","","\"racine(\"+a+\") \u2248 \"+sqrt(a)","-0.09125593329817723","1.4726499457984803");
+P3=Point("P3","[0,sqrt(a)]","0");
+P4=Point("P4","[sqrt(a),sqrt(a)]","0");
+E2=Expression("E2","","","","var _n=a,_d=1;for (var k=0;k<n;k++) {var _num=(_n*_n+a*_d*_d);var _denom=2*_n*_d;var _p=Math.gcd(_num,_denom);_n=_num/_p;_d=_denom/_p};_p=Math.gcd(a*_d,_n);[[_n,_d],[a*_d/_p,_n/_p]]","1.8203876848200469","1.363413167620296");
+P2=Point("P2","[sqrt(a),0]","0");
+Poly1=Polygon("Poly1","_P1,_P3,_P4,_P2");
+E5=Expression("E5","","","","E2[0][0]/E2[0][1]","1.8203876848200469","1.1449396112639276");
+E3=Expression("E3","","","","E2[1][0]/E2[1][1]","2.585045132067336","1.1449396112639276");
+P6=Point("P6","[0,E3]","0");
+P7=Point("P7","[E5,E3]","0");
+P5=Point("P5","[E5,0]","0");
+S1=Segment("S1",P1,P5);
+S2=Segment("S2",P1,P6);
+Poly2=Polygon("Poly2","_P6,_P7,_P5,_P1");
+
+
+// Styles :
+STL(P1,"c:#0000b2;s:6;f:30");
+STL(n,"c:#006633;s:7;sn:true;f:24;p:4;i:1;cL:200;cPT:YzojNzgwMDEzO3M6MTA7ZjozMDtpOjE=");
+STL(a,"c:#000000;s:7;sn:true;f:24;p:4;i:1;cL:500;cPT:YzojNzgwMDEzO3M6MTA7ZjozMDtpOjE=");
+STL(E7,"c:#000000;h:1;s:7;f:24;p:13;cL:200;cPT:YzojNzgwMDEzO2g6MTtzOjEwO2Y6MzA=");
+STL(P3,"c:#0000b2;h:1;s:6;f:30");
+STL(P4,"c:#0000b2;h:1;s:6;f:30");
+STL(E2,"c:#552f59;h:1;s:7;f:24;p:4;cL:200;cPT:YzojNzgwMDEzO2g6MTtzOjEwO2Y6MzA=");
+STL(P2,"c:#0000b2;h:1;s:6;f:30");
+STL(Poly1,"c:#000000;o:0.2;s:1;f:30");
+STL(E5,"c:#727f5c;h:1;s:7;f:24;p:4;cL:200;cPT:YzojNzgwMDEzO2g6MTtzOjEwO2Y6MzA=");
+STL(E3,"c:#5e544f;h:1;s:7;f:24;p:4;cL:200;cPT:YzojNzgwMDEzO2g6MTtzOjEwO2Y6MzA=");
+STL(P6,"c:#0000b2;h:1;s:6;f:30");
+STL(P7,"c:#0000b2;h:1;s:6;f:30");
+STL(P5,"c:#0000b2;h:1;s:6;f:30");
+STL(S1,"c:#760012;s:4.5;f:24");
+STL(S2,"c:#0000b2;s:4.5;f:24");
+STL(Poly2,"c:#006633;o:0.2;s:1;f:30");
+SetCoordsStyle("isAxis:false;isGrid:true;isOx:true;isOy:true;isLockOx:false;isLockOy:false;centerZoom:false;color:#111111;fontSize:18;axisWidth:1;gridWidth:0.1");
+SetGeneralStyle("background-color:#FAFAFA");
+
+
+// Texts :
+Text("<p style=\"font-size:24px;text-align:center\">$\\sqrt{%a%}\\approx%sqrt(a)%$</p><p style=\"font-size:22px;text-align:left\"><span style=\"color:#75000F\">$Longueur=\\frac{%E2[0][0]%}{%E2[0][1]%}\\approx%E2[0][0]/E2[0][1]%$</span>\n<span style=\"color:#0000B2\">\n$Largeur=\\frac{%E2[1][0]%}{%E2[1][1]%}\\approx%E2[1][0]/E2[1][1]%$</span></p><p style=\"font-size:24px;text-align:center\">Erreur : %abs(sqrt(a)-E2[0][0]/E2[0][1])%\n</p>",418,106,569,264,"c:rgba(59,79,115,0.18);s:3;r:15;p:13");

@@ -9,21 +9,17 @@ import {
     type FormulaEnv,
     type FormulaNode,
     type FormulaValue,
-    type ScriptValue,
 } from "../import/dgp_formula";
 import {
     construction_object,
     dgoFormula,
     type DgoContext,
 } from "./construction_object";
-import { formatValue, type expression_object } from "./expression_object";
-import { MAX_SCREEN, point_object } from "./point_object";
-import { polygon_object } from "./polygon_object";
+import { formatValue } from "./expression_object";
+import { MAX_SCREEN } from "./point_object";
 import { vNorm, vNormalize, vSub, type Vec2, type Vec3 } from "../vec";
 
 export type ListNature = "point" | "segment" | "line" | "label";
-// A polygon's value is its area, as in DGPad.
-export type ListRef = point_object | expression_object | polygon_object;
 
 // point/segment/line results are folded into a single <path>, so this only
 // bounds computation (mirrors locus_object's MAX_SAMPLES); label results
@@ -38,19 +34,12 @@ const MAX_LABEL_COUNT = 500;
 // real object of the same name for the duration of that formula's
 // evaluation — a figure using List simply can't name a point/cursor "k" or
 // "count" and expect it visible inside a List formula.
-// An Expression's value may be a script's list, e.g. of points.
-export function resolveRef(ref: ListRef): ScriptValue | null {
-    if (ref instanceof point_object)
-        return ref.defined ? [ref.coords[0], ref.coords[1]] : null;
-    if (ref instanceof polygon_object) return ref.defined ? ref.area : null;
-    return ref.value;
-}
 
 export class list_object extends construction_object {
     nature: ListNature;
     countFormula: FormulaNode;
     formulas: FormulaNode[];
-    refs: Map<string, ListRef>;
+    refs: Map<string, construction_object>;
     count = 0;
     items: (FormulaValue | null)[][] = [];
     screenItems: (Vec2 | null)[][] = [];
@@ -63,7 +52,7 @@ export class list_object extends construction_object {
         nature: ListNature,
         countFormula: FormulaNode,
         formulas: FormulaNode[],
-        refs: Map<string, ListRef>,
+        refs: Map<string, construction_object>,
     ) {
         super(c, name, "list");
         // A string tag, not `instanceof`, because point_object.ts (magnet
@@ -108,7 +97,7 @@ export class list_object extends construction_object {
         return {
             resolveIdentifier: (n) => {
                 const ref = this.refs.get(n);
-                return ref ? resolveRef(ref) : null;
+                return ref ? ref.scriptValue(false) : null;
             },
             view: () => this.C.formulaView(),
         };
@@ -120,7 +109,7 @@ export class list_object extends construction_object {
                 if (n === "k") return k;
                 if (n === "count") return count;
                 const ref = this.refs.get(n);
-                return ref ? resolveRef(ref) : null;
+                return ref ? ref.scriptValue(false) : null;
             },
             view: () => this.C.formulaView(),
         };
@@ -320,7 +309,7 @@ export function createList(
     nature: ListNature,
     countFormula: FormulaNode,
     formulas: FormulaNode[],
-    refs: Map<string, ListRef>,
+    refs: Map<string, construction_object>,
 ): list_object {
     return c.add(
         new list_object(c, name, nature, countFormula, formulas, refs),

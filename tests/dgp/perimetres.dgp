@@ -1,0 +1,56 @@
+// Coordinates System :
+SetCoords(393.4662242621613,537.5427728608196,28.47561218251801,false,859,650);
+
+
+// Geometry :
+A=Point("A","[0,0]","0");
+B=Point("B","A+14","0");
+S1=Segment("S1",A,B);
+M=PointOn("M",S1,0.2857142857142857);
+C1=Circle("C1",A,M);
+C2=Circle("C2",M,A);
+Perp1=Perpendicular("Perp1",S1,M);
+C3=Circle("C3",M,B);
+S4=Segment("S4",M,B);
+S8=Segment("S8",M,A);
+P4=OrderedIntersection("P4",C1,C2,0);
+P5=OrderedIntersection("P5",Perp1,C3,0);
+E1=Expression("E1","P\u00e9rim\u00e8tre du triangle : ","","","S8*3","0.22945163376856145","17.47259267585739");
+S2=Segment("S2",A,P4);
+S3=Segment("S3",P4,M);
+M1=MidPoint("M1",P5,B);
+S7=Segment("S7",P5,M);
+Symc1=Symmetry("Symc1",M1,M);
+S5=Segment("S5",B,Symc1);
+S6=Segment("S6",Symc1,P5);
+E2=Expression("E2","P\u00e9rim\u00e8tre du carr\u00e9 : ","","","S6*4","0.22945163376856145","16.067881874782596");
+
+
+// Styles :
+STL(A,"c:#0000b2;s:6;sn:true;f:30;np:3.482480603803169");
+STL(B,"c:#0000b2;s:6;sn:true;f:30;np:5.628043842484704");
+STL(S1,"c:#006633;h:1;s:3;f:24;nmi:true");
+STL(M,"c:#760012;o:1;s:6;sn:true;f:30;i:0.1;np:4.661488785319982");
+STL(C1,"c:#cc66cc;h:1;s:1;f:30;p:0");
+STL(C2,"c:#cc66cc;h:1;s:1;f:30;p:0");
+STL(Perp1,"c:#780013;h:1;s:3;f:30;p:0;nmi:true");
+STL(C3,"c:#cc66cc;h:1;s:1;f:30;p:0");
+STL(S4,"c:#0000b2;s:3;f:24;p:3;nmi:true");
+STL(S8,"c:#966400;s:3;f:24;p:3;nmi:true");
+STL(P4,"c:#0000b2;h:1;s:6;f:30");
+STL(P5,"c:#0000b2;h:1;s:6;f:30");
+STL(E1,"c:#966400;s:7;f:24;p:2;cL:200;cPT:YzojNzgwMDEzO3M6MTA7ZjozMA==");
+STL(S2,"c:#966400;s:3;f:24;nmi:true");
+STL(S3,"c:#966400;s:3;f:24;nmi:true");
+STL(M1,"c:#0000b2;h:1;s:6;f:30");
+STL(S7,"c:#0000b2;s:3;f:24;nmi:true");
+STL(Symc1,"c:#0000b2;h:1;s:6;f:30");
+STL(S5,"c:#0000b2;s:3;f:24;nmi:true");
+STL(S6,"c:#0000b2;s:3;f:24;nmi:true");
+STL(E2,"c:#0000b2;s:7;f:24;p:2;cL:200;cPT:YzojNzgwMDEzO3M6MTA7ZjozMA==");
+SetCoordsStyle("isAxis:false;isGrid:true;isOx:true;isOy:true;isLockOx:false;isLockOy:false;centerZoom:false;onlyPositive:false;color:#111111;fontSize:18;axisWidth:1;gridWidth:0.1");
+SetGeneralStyle("background-color:#F8F8F8;degree:true;dragmoveable:true");
+
+
+// Texts :
+Text("<div style=\"text-shadow:unset;white-space:normal;text-align:justify;font-size:20px\">Dans cette figure, on juxtapose un triangle \u00e9quilat\u00e9ral et un carr\u00e9 sur un segment de longueur <span style=\"color:red\">%d(A,B)% cm</span>.<br><br>La longueur du c\u00f4t\u00e9 du triangle et celle du c\u00f4t\u00e9 du carr\u00e9 sont indiqu\u00e9es. Ces longueurs peuvent varier en d\u00e9pla\u00e7ant le point M.</div>\n\n<div style=\"text-shadow:unset;white-space:normal;text-align:justify;font-size:20px;color:blue\">En d\u00e9pla\u00e7ant le point M, dire s'il est possible que le triangle et le carr\u00e9 aient le m\u00eame p\u00e9rim\u00e8tre.</div>",9,9,360,315,"c:rgba(59,79,115,0.13);s:3;r:0;p:4");

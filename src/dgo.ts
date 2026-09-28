@@ -34,6 +34,7 @@ import {
     expression_object,
     type ExpressionFormula,
     type ExpressionProgram,
+    type SliderBounds,
 } from "./objects/expression_object";
 import {
     createExpressionList,
@@ -42,6 +43,7 @@ import {
 import {
     createFixedAngle,
     fixed_angle_object,
+    type FixedAngleFormula,
 } from "./objects/fixed_angle_object";
 import { createFixedPoint } from "./objects/fixed_point_object";
 import { createFormulaPoint } from "./objects/formula_point_object";
@@ -53,7 +55,6 @@ import {
     createList,
     list_object,
     type ListNature,
-    type ListRef,
 } from "./objects/list_object";
 import { createLocus, locus_object } from "./objects/locus_object";
 import { createMidpoint } from "./objects/midpoint_object";
@@ -77,6 +78,7 @@ import { createSegment, segment_object } from "./objects/segment_object";
 import { createSphere } from "./objects/sphere_object";
 import { createSymmetry } from "./objects/symmetry_object";
 import { createText } from "./objects/text_object";
+import { createPanel, panelNames, parsePanel } from "./objects/panel_object";
 import { createLine } from "./objects/two_points_line_object";
 import { createVector } from "./objects/vector_object";
 import type { Vec2, Vec3 } from "./vec";
@@ -150,6 +152,7 @@ const LOOKS: Record<string, Look> = {
     C1: CIRCLE,
     C3: CIRCLE,
     C3p: CIRCLE,
+    C3s: CIRCLE,
     Arc: CIRCLE,
     Sec: CIRCLE,
     CyS: CIRCLE,
@@ -164,6 +167,7 @@ const LOOKS: Record<string, Look> = {
     Ex: ["rgb(0,0,178)", "rgb(0,0,178)", 7, 0],
     Txt: TEXT,
     Img: TEXT,
+    Html: ["#000000", "#000000", 3],
 };
 
 const BACKGROUND = "#FAFAFA";
@@ -288,7 +292,7 @@ const STYLE: Record<string, Property> = {
     p: field(
         object,
         "precision",
-        (tag) => (tag === "Loc" ? 1000 : -1),
+        (tag) => (tag === "Loc" ? 1000 : tag === "Html" ? 4 : -1),
         isNumber,
     ),
     sp: field(point_object, "shape", "circle", (value) =>
@@ -803,16 +807,14 @@ const INTERSECTABLE = [
     primitive_quadric_object,
     curve_object,
 ];
-const POINT_REFS = [point_object, expression_object];
-const LIST_REFS = [point_object, expression_object, polygon_object];
 
 // A List's or a text's formula, "k" and "count" being a List's own.
 function listFormula(
     reader: Reader,
     value: Json,
-    refs: Map<string, ListRef>,
+    refs: Map<string, construction_object>,
 ): FormulaNode {
-    const { source, refs: own } = reader.formula(value, ...LIST_REFS);
+    const { source, refs: own } = reader.formula(value, construction_object);
     const node = parseFormula(source);
     checkNames(formulaIdentifiers(node), own, ["k", "count"]);
     own.forEach((ref, name) => refs.set(name, ref));
@@ -826,7 +828,7 @@ const BUILDERS: Record<string, Builder> = {
         createFixedPoint(c, name, coordinates(parameters)),
     Fp: (parameters, { c, name, at, formula, vec3 }) => {
         const [value, ...handles] = list(parameters, 1, 3);
-        const { source, refs } = formula(value, ...POINT_REFS);
+        const { source, refs } = formula(value, construction_object);
         const node = parseFormula(source);
         checkNames(formulaIdentifiers(node), refs);
         const point = createFormulaPoint(c, name, node, refs, vec3);
@@ -920,15 +922,22 @@ const BUILDERS: Record<string, Builder> = {
     Bis: threePoints((c, name, a, vertex, b) =>
         createAngleBisector(c, name, vertex, a, b),
     ),
-    FA: (parameters, { c, name, at }) => {
+    FA: (parameters, { c, name, at, formula }) => {
         const [a, vertex, degrees, trigo] = list(parameters, 4);
-        check(isNumber(degrees) && isFlag(trigo));
+        check(isFlag(trigo));
+        let angle: number | FixedAngleFormula = degrees as number;
+        if (!isNumber(degrees)) {
+            const { source, refs } = formula(degrees, construction_object);
+            const node = parseFormula(source);
+            checkNames(formulaIdentifiers(node), refs);
+            angle = { formula: node, refs };
+        }
         return createFixedAngle(
             c,
             name,
             at(a, point_object),
             at(vertex, point_object),
-            degrees,
+            angle,
             trigo === 1,
         );
     },
@@ -945,7 +954,7 @@ const BUILDERS: Record<string, Builder> = {
                 real(radius),
                 line,
             );
-        const { source, refs } = formula(radius, ...POINT_REFS);
+        const { source, refs } = formula(radius, construction_object);
         const node = parseFormula(source);
         checkNames(formulaIdentifiers(node), refs);
         return createCircle1(
@@ -958,6 +967,9 @@ const BUILDERS: Record<string, Builder> = {
     },
     C3: threePoints(createCircle3),
     C3p: threePoints(createCircle3pts),
+    C3s: threePoints((c, name, p, q, r) =>
+        createCircle3pts(c, name, p, q, r, true),
+    ),
     Arc: threePoints(createArc3pts),
     Sec: threePoints((c, name, p, q, r) =>
         createArc3pts(c, name, p, q, r, true),
@@ -996,12 +1008,27 @@ const BUILDERS: Record<string, Builder> = {
         check(isRecord(parameters));
         const { t: text, v: value, f, s, mn = null, mx = null } = parameters;
         check(typeof text === "string");
-        check((mn === null || isNumber(mn)) && (mx === null || isNumber(mx)));
         check([value, f, s].filter((item) => item !== undefined).length === 1);
+        // Bounds that read other objects are formulas.
+        const numeric = (bound: Json) => bound === null || isNumber(bound);
+        let bounds: SliderBounds | null = null;
+        if (!numeric(mn) || !numeric(mx)) {
+            check(mn !== null && mx !== null);
+            const refs = new Map<string, construction_object>();
+            const [min, max] = [mn, mx].map((bound) => {
+                if (isNumber(bound)) return parseFormula(String(bound));
+                const { source, refs: own } = read(bound, construction_object);
+                const node = parseFormula(source);
+                checkNames(formulaIdentifiers(node), own);
+                own.forEach((ref, refName) => refs.set(refName, ref));
+                return node;
+            });
+            bounds = { min, max, refs };
+        }
         let formula: ExpressionFormula | null = null;
         let program: ExpressionProgram | null = null;
         if (f !== undefined) {
-            const { source, refs } = read(f, ...POINT_REFS);
+            const { source, refs } = read(f, construction_object);
             const [statement] = parseProgram(source).body;
             check(statement.kind === "expression");
             const names = formulaIdentifiers(statement.node);
@@ -1020,19 +1047,13 @@ const BUILDERS: Record<string, Builder> = {
             program = {
                 program: parsed,
                 refs: new Map(
-                    [...references].map((name) => [
-                        name,
-                        refs.get(name) as point_object | expression_object,
-                    ]),
+                    [...references].map((name) => [name, refs.get(name)!]),
                 ),
                 targets: new Map(
                     [...targets].map((name) => [name, refs.get(name)!]),
                 ),
                 vec3,
             };
-            program.refs.forEach((ref) =>
-                check(POINT_REFS.some((type) => ref instanceof type)),
-            );
         }
         const anchored = parameters.on !== undefined;
         const screen = anchored ? parameters.d : parameters.xy;
@@ -1042,11 +1063,12 @@ const BUILDERS: Record<string, Builder> = {
             name,
             text,
             value === undefined ? null : scriptValue(value),
-            mn as number | null,
-            mx as number | null,
+            bounds ? null : (mn as number | null),
+            bounds ? null : (mx as number | null),
             anchored ? [0, 0] : [screen[0] + offset[0], screen[1] + offset[1]],
             formula,
             program,
+            bounds,
         );
         if (anchored) {
             expression.anchor = at(parameters.on, point_object);
@@ -1060,7 +1082,7 @@ const BUILDERS: Record<string, Builder> = {
         check(
             (min === null || isNumber(min)) && (max === null || isNumber(max)),
         );
-        const { source, refs } = formula(value, ...POINT_REFS);
+        const { source, refs } = formula(value, construction_object);
         const node = parseFormula(source);
         checkNames(formulaIdentifiers(node), refs, ["x"]);
         return createCurve(
@@ -1080,7 +1102,7 @@ const BUILDERS: Record<string, Builder> = {
         );
         check(LIST_NATURES.includes(nature as string));
         check(formulas.length === (nature === "point" ? 1 : 2));
-        const refs = new Map<string, ListRef>();
+        const refs = new Map<string, construction_object>();
         return createList(
             reader.c,
             reader.name,
@@ -1098,7 +1120,7 @@ const BUILDERS: Record<string, Builder> = {
         const [ends, levels, maps] = list(parameters, 3);
         check(Array.isArray(ends) && ends.length % 2 === 0);
         const points = reader.points(ends, ends.length);
-        const refs = new Map<string, ListRef>();
+        const refs = new Map<string, construction_object>();
         const node = listFormula(reader, levels, refs);
         check(Array.isArray(maps));
         return createIteration(
@@ -1119,10 +1141,27 @@ const BUILDERS: Record<string, Builder> = {
             }),
         );
     },
+    Html: (parameters, { c, name, formula, offset }) => {
+        const [box, radius, content] = list(parameters, 3);
+        check(Array.isArray(box) && box.length === 4 && box.every(isNumber));
+        check(isNumber(radius));
+        const { source, refs } = formula(content, construction_object);
+        const nodes = parsePanel(source);
+        checkNames(panelNames(nodes), refs);
+        const [x, y, width, height] = box as number[];
+        return createPanel(
+            c,
+            name,
+            [x + offset[0], y + offset[1], width, height],
+            radius,
+            source,
+            refs,
+        );
+    },
     Txt: (parameters, { c, name, at, formula }) => {
         const [anchor, offset, content] = list(parameters, 3);
         check(isPair(offset));
-        const { source, refs } = formula(content, ...LIST_REFS);
+        const { source, refs } = formula(content, construction_object);
         const parts = source.split("%");
         check(parts.length % 2 === 1);
         return createText(

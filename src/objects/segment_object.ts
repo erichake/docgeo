@@ -1,5 +1,6 @@
 import type { construction } from "../construction";
 import type { DOMElement } from "../dom";
+import type { ScriptValue } from "../import/dgp_formula";
 import {
     geometryTolerance,
     vAdd,
@@ -47,6 +48,12 @@ export class segment_object extends two_points_line_object {
 
     dgo(context: DgoContext): [string, unknown] {
         return ["Seg", super.dgo(context)[1]];
+    }
+
+    scriptValue(_vec3: boolean): ScriptValue | null {
+        return this.defined
+            ? vNorm(vSub(this.P2.coords, this.P1.coords))
+            : null;
     }
 
     project(): void {

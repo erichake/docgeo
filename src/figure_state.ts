@@ -6,6 +6,7 @@ import { expression_object } from "./objects/expression_object";
 import { formula_point_object } from "./objects/formula_point_object";
 import type { grid_object } from "./objects/grid_object";
 import { intersection_object } from "./objects/intersection_object";
+import { panel_object } from "./objects/panel_object";
 import { point_on_object } from "./objects/point_on_object";
 import { point_object } from "./objects/point_object";
 
@@ -218,6 +219,8 @@ export function lockFigure(c: construction, except: string[]): void {
         movable(c).filter((object) => !except.includes(object.name)),
     );
     figureObjects(c).forEach((object) => {
+        // Its fields follow their targets' locks.
+        if (object instanceof panel_object) return c.invalidateRender(object);
         const lock =
             locked.has(object) ||
             (object instanceof formula_point_object &&

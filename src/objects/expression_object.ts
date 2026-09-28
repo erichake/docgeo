@@ -3,11 +3,13 @@ import { $, type DOMElement } from "../dom";
 import {
     evaluateFormula,
     evaluateProgram,
+    formulaIdentifiers,
     formulaSource,
     programNodes,
     realPart,
     usesCoords2D,
     usesView,
+    type FormulaEnv,
     type FormulaNode,
     type FormulaValue,
     type FormulaView,
@@ -21,11 +23,12 @@ import {
     dgoFormula,
     type DgoContext,
 } from "./construction_object";
-import type { point_object } from "./point_object";
+import { angle_object } from "./angle_object";
+import { point_object } from "./point_object";
 
 // In a chunk of its own, loaded only by the figures that show LaTeX.
 let katex: Promise<typeof import("katex").default> | undefined;
-const loadKaTeX = () =>
+export const loadKaTeX = () =>
     (katex ??= Promise.all([
         import("katex/dist/katex.min.js"),
         import("katex/dist/katex.min.css"),
@@ -112,8 +115,16 @@ export interface ExpressionFormula {
     node: FormulaNode;
     source: string;
     variables: string[];
-    refs: Map<string, point_object | expression_object>;
+    refs: Map<string, construction_object>;
     vec3: boolean;
+}
+
+// A slider's bounds when one of them reads other objects (e.g. "-3-n"):
+// min and max follow them as the figure changes.
+export interface SliderBounds {
+    min: FormulaNode;
+    max: FormulaNode;
+    refs: Map<string, construction_object>;
 }
 
 // A formula or script that reads other objects' current state instead of
@@ -123,7 +134,7 @@ export interface ExpressionFormula {
 // produces a displayed value instead of a point's own coordinates.
 export interface ExpressionProgram {
     program: Program;
-    refs: Map<string, point_object | expression_object>;
+    refs: Map<string, construction_object>;
     // The objects it styles.
     targets: Map<string, construction_object>;
     // True in a 3D figure (DGPad's legacy SetCoords is3D flag): a
@@ -133,18 +144,9 @@ export interface ExpressionProgram {
     vec3: boolean;
 }
 
-export function referenceValue(
-    ref: point_object | expression_object,
-    vec3: boolean,
-): ScriptValue | null {
-    if (!ref.defined) return null;
-    if (ref instanceof expression_object) return ref.value;
-    return vec3 ? [...ref.coords] : [ref.coords[0], ref.coords[1]];
-}
-
 // A call "E1(...)" of a function-valued expression among `refs`.
 function callFunction(
-    refs: Map<string, point_object | expression_object>,
+    refs: Map<string, construction_object>,
     name: string,
     args: FormulaValue[],
     view: FormulaView,
@@ -165,7 +167,7 @@ export function evaluateFunction(
             const index = formula.variables.indexOf(name);
             return index >= 0
                 ? (args[index] ?? null)
-                : referenceValue(formula.refs.get(name)!, formula.vec3);
+                : formula.refs.get(name)!.scriptValue(formula.vec3);
         },
         view: () => view,
         callFunction: (name, callArgs) =>
@@ -196,6 +198,7 @@ export class expression_object extends construction_object {
     viewDependent: boolean;
     min: number | null;
     max: number | null;
+    bounds: SliderBounds | null;
     increment: number;
     cursorLength: number;
     // A vertical slider rises from its screen position, its value written
@@ -240,6 +243,7 @@ export class expression_object extends construction_object {
         screen: Vec2,
         formula: ExpressionFormula | null = null,
         program: ExpressionProgram | null = null,
+        bounds: SliderBounds | null = null,
     ) {
         super(c, name, "expression");
         this.text = text;
@@ -257,6 +261,7 @@ export class expression_object extends construction_object {
                 ));
         this.min = min;
         this.max = max;
+        this.bounds = bounds;
         this.increment = 0;
         this.cursorLength = DEFAULT_CURSOR_LENGTH;
         this.vertical = false;
@@ -265,10 +270,15 @@ export class expression_object extends construction_object {
         this.cursorOpacity = 0;
         this.screen = screen;
         if (formula) this.addParents(...formula.refs.values());
+        if (bounds) this.addParents(...bounds.refs.values());
         if (program) {
             this.addParents(...program.refs.values());
             program.targets.forEach((target) => target.addParents(this));
         }
+    }
+
+    scriptValue(_vec3: boolean): ScriptValue | null {
+        return this.defined ? this.value : null;
     }
 
     dgo(context: DgoContext): [string, unknown] {
@@ -294,8 +304,15 @@ export class expression_object extends construction_object {
             {
                 t: this.text,
                 ...content,
-                ...(this.min !== null && { mn: this.min }),
-                ...(this.max !== null && { mx: this.max }),
+                ...(this.bounds
+                    ? {
+                          mn: this.dgoBound(this.bounds.min, context),
+                          mx: this.dgoBound(this.bounds.max, context),
+                      }
+                    : {
+                          ...(this.min !== null && { mn: this.min }),
+                          ...(this.max !== null && { mx: this.max }),
+                      }),
                 ...(this.anchor
                     ? {
                           on: context.index(this.anchor),
@@ -306,7 +323,25 @@ export class expression_object extends construction_object {
         ];
     }
 
+    private dgoBound(bound: FormulaNode, context: DgoContext) {
+        const names = formulaIdentifiers(bound);
+        return dgoFormula(
+            formulaSource(bound),
+            new Map([...this.bounds!.refs].filter(([name]) => names.has(name))),
+            context,
+        );
+    }
+
     computeGeometry(): void {
+        if (this.bounds) {
+            const { min, max, refs } = this.bounds;
+            const env: FormulaEnv = {
+                resolveIdentifier: (name) => refs.get(name)!.scriptValue(false),
+                view: () => this.C.formulaView(),
+            };
+            this.min = realPart(evaluateFormula(min, env));
+            this.max = realPart(evaluateFormula(max, env));
+        }
         if (!this.viewDependent) this.evaluateProgram();
     }
 
@@ -324,12 +359,12 @@ export class expression_object extends construction_object {
         const { program, refs, targets, vec3 } = this.program;
         const grid = this.C.GRID;
         this.value = evaluateProgram(program, {
-            resolveIdentifier: (name) => referenceValue(refs.get(name)!, vec3),
+            resolveIdentifier: (name) => refs.get(name)!.scriptValue(vec3),
             view: () => this.C.formulaView(),
             coords2D: (name) => {
                 const ref = refs.get(name)!;
                 if (
-                    ref instanceof expression_object ||
+                    !(ref instanceof point_object) ||
                     !ref.defined ||
                     !ref.projectionDefined
                 )
@@ -339,6 +374,18 @@ export class expression_object extends construction_object {
                     (x - grid.ORG[0]) / grid.UNIT[0],
                     (grid.ORG[1] - y) / grid.UNIT[1],
                 ];
+            },
+            orientedAngle: (name) => {
+                const ref = refs.get(name)!;
+                if (!(ref instanceof angle_object) || !ref.defined) return null;
+                const direction = (point: point_object) =>
+                    Math.atan2(
+                        ref.O.screen[1] - point.screen[1],
+                        point.screen[0] - ref.O.screen[0],
+                    );
+                const angle = direction(ref.B) - direction(ref.A);
+                const turn = 2 * Math.PI;
+                return angle - Math.floor(angle / turn) * turn;
             },
             callFunction: (name, args) =>
                 callFunction(refs, name, args, this.C.formulaView()),
@@ -372,6 +419,18 @@ export class expression_object extends construction_object {
                 const value = realPart(args[0]);
                 if (value === null || value === target.opacity) return;
                 target.opacity = value;
+                break;
+            }
+            case "setSize": {
+                const value = realPart(args[0]);
+                if (value === null || value === target.size) return;
+                target.size = value;
+                break;
+            }
+            case "setPrecision": {
+                const value = realPart(args[0]);
+                if (value === null || value === target.precision) return;
+                target.precision = value;
                 break;
             }
             case "setRGBColor": {
@@ -502,10 +561,11 @@ export class expression_object extends construction_object {
         // counterclockwise around its start.
         const trackY = this.vertical ? y : y + CURSOR_OFFSET_Y;
         const half = this.size / 2;
-        this.knobX =
-            x +
-            (this.cursorLength * ((this.value as number) - this.min!)) /
-                (this.max! - this.min!);
+        // As DGPad, the knob stays on the track when the value is out of
+        // bounds that changed.
+        const along =
+            ((this.value as number) - this.min!) / (this.max! - this.min!);
+        this.knobX = x + this.cursorLength * Math.min(Math.max(along, 0), 1);
         this.cursor.att(
             "transform",
             this.vertical ? `rotate(-90 ${x} ${y})` : "",
@@ -668,6 +728,7 @@ export function createExpression(
     screen: Vec2,
     formula: ExpressionFormula | null = null,
     program: ExpressionProgram | null = null,
+    bounds: SliderBounds | null = null,
 ): expression_object {
     return c.add(
         new expression_object(
@@ -680,6 +741,7 @@ export function createExpression(
             screen,
             formula,
             program,
+            bounds,
         ),
     );
 }

@@ -1,6 +1,7 @@
 import type { construction } from "../construction";
 import type { DOMElement } from "../dom";
 import type { ObjectPref, PrefKey, Preferences } from "../preferences";
+import type { ScriptValue } from "../import/dgp_formula";
 import type { Vec2 } from "../vec";
 import type { expression_object } from "./expression_object";
 
@@ -152,6 +153,13 @@ export class construction_object {
 
     computeGeometry(): void {}
 
+    // What a formula reads when it names the object, as in DGPad (a
+    // segment's length, a circle's radius…): null when it has no value.
+    // `vec3`: a point's 3D coordinates rather than its plane ones.
+    scriptValue(_vec3: boolean): ScriptValue | null {
+        return null;
+    }
+
     // Its .dgo type and parameters (see DGO.md).
     dgo(_context: DgoContext): [string, unknown] {
         throw new Error(`${this.name} can't be saved`);
@@ -186,10 +194,14 @@ export class construction_object {
     }
 
     createSVG(): void {
-        this.dom?.dispose();
+        const previous = this.dom;
         this.dom = this.class.createSVG(this);
+        // Restyled, it keeps its place in its layer, whatever the moment it
+        // is restyled at.
+        if (this.hasView) previous.dom().replaceWith(this.dom.dom());
+        else this.C.mountObject(this);
+        previous?.dispose();
         this.hasView = true;
-        this.C.mountObject(this);
         // Shown by a script during an update: drawn along with the rest,
         // rather than now from objects not yet updated, whose screen
         // positions would also end up in that update's caches.

@@ -355,7 +355,7 @@ describe("evaluateFormula", () => {
         expect(
             formulaIdentifiers(parseFormula("A.coords2D()-B.coords2D()")),
         ).toEqual(new Set(["A", "B"]));
-        expect(() => parseFormula("A.coords3D()")).toThrow();
+        expect(() => parseFormula("A.foci()")).toThrow();
     });
 });
 
@@ -445,5 +445,63 @@ describe("evaluateProgram", () => {
 
     it("keeps assignments out of plain formulas", () => {
         expect(() => parseFormula("a=1")).toThrow();
+    });
+
+    it("counts with i, a loop's own variable, and joins lists", () => {
+        expect(
+            run(
+                "var t=[];for (i=0; i<3; i=i+1){t.push(i)};t=t.concat([5,6],7);t",
+            ),
+        ).toEqual([0, 1, 2, 5, 6, 7]);
+        expect(run("var n=0;for(i=0;i<4;i++){n+=i};n+i")).toBe(10);
+    });
+
+    it("reads points in space and the angles as drawn", () => {
+        const env: FormulaEnv = {
+            resolveIdentifier: (name) =>
+                ({ P: [1, 2, 3], Q: [0, 0, 1] })[name] ?? null,
+            view: () => NO_VIEW,
+            orientedAngle: (name) => (name === "a" ? 4 : null),
+        };
+        expect(run("P.coords3D()-Q.coords3D()", env)).toEqual([1, 2, 2]);
+        expect(run("a.getAOC()>π", env)).toBe(1);
+    });
+});
+
+describe("DGPad's other functions and operators", () => {
+    const value = (source: string, degrees = false) =>
+        evaluateFormula(parseFormula(source), {
+            resolveIdentifier: (name) =>
+                ({ A: [1, 0], O: [0, 0], C: [0, -1] })[name] ?? null,
+            view: () => ({ ...NO_VIEW, degrees }),
+        });
+
+    it("evaluates min, max, gcd and the remainder", () => {
+        expect(value("min(3,-1,2)+max(4,1)")).toBe(3);
+        expect(value("gcd(12,18)")).toBe(6);
+        expect(value("gcd(12,NaN)")).toBeNull();
+        expect(value("7%3+(-7)%3")).toBe(0);
+        expect(() => parseFormula("min()")).toThrow();
+    });
+
+    it("evaluates conj, distance and crossProduct", () => {
+        expect(value("conj(2+3i)")).toEqual([2, -3]);
+        expect(value("distance(A,C)")).toBeCloseTo(Math.SQRT2, 12);
+        expect(value("crossProduct([1,0,0],[0,1,0])")).toEqual([0, 0, 1]);
+    });
+
+    it("measures DGPad's oriented and geometric angles", () => {
+        expect(value("Angle360(A,O,C)")).toBeCloseTo((3 * Math.PI) / 2, 12);
+        expect(value("Angle360(C,O,A)", true)).toBeCloseTo(90, 12);
+        expect(value("Angle180(A,O,C)", true)).toBeCloseTo(90, 12);
+        expect(value("Angle180([1,0,0],[0,0,0],[0,0,1])")).toBeCloseTo(
+            Math.PI / 2,
+            12,
+        );
+    });
+
+    it("reads a unary plus and booleans", () => {
+        expect(value("+2*(1+1)")).toBe(4);
+        expect(value("true+false")).toBe(1);
     });
 });

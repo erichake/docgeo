@@ -74,6 +74,31 @@ P=Point("P",1,2);`;
         expect(texts).toEqual(["Intermédiaire", "Été", "été", "€"]);
     });
 
+    it("reads strings as JavaScript does, which JSON wouldn't", () => {
+        const [call] = parseDgp('T("l\\\'eau\tici","\\x41\\u00e9\\q");');
+        expect(call.arguments).toEqual([
+            { type: "literal", value: "l'eau\tici" },
+            { type: "literal", value: "Aéq" },
+        ]);
+    });
+
+    it("keeps a Blockly program's object whole, on its lines", () => {
+        const calls = parseDgp(`BLK(P1,{"onlogo":{"xml":"<xml a=\\"}\\">",
+"js":[1,{"b":2}]}});
+BLK_GLOB_SET({"Theta":0});
+P=Point("P",1,2);`);
+        expect(calls.map(({ name, line }) => [name, line])).toEqual([
+            ["BLK", 1],
+            ["BLK_GLOB_SET", 3],
+            ["Point", 4],
+        ]);
+        expect(calls[0].arguments[1]).toEqual({
+            type: "literal",
+            value: `{"onlogo":{"xml":"<xml a=\\"}\\">",
+"js":[1,{"b":2}]}}`,
+        });
+    });
+
     it("rejects general JavaScript syntax", () => {
         expect(() =>
             parseDgp(`window.location="https://example.com";`),

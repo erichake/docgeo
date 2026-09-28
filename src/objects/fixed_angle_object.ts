@@ -1,6 +1,14 @@
 import type { construction } from "../construction";
 import type { DOMElement } from "../dom";
 import {
+    evaluateFormula,
+    formulaSource,
+    realPart,
+    usesView,
+    type FormulaNode,
+    type ScriptValue,
+} from "../import/dgp_formula";
+import {
     geometryTolerance,
     vAdd,
     vNorm,
@@ -10,20 +18,29 @@ import {
     type Vec3,
 } from "../vec";
 import { computeAngleArc, formatDegrees } from "./angle_arc";
-import type { construction_object, DgoContext } from "./construction_object";
+import {
+    dgoFormula,
+    type construction_object,
+    type DgoContext,
+} from "./construction_object";
 import type { point_object } from "./point_object";
 import { primitive_line_object } from "./primitive_line_object";
 
 const DEFAULT_ARC_RADIUS = 30;
 const LABEL_MARGIN = 5;
 
-// A ray from a vertex, rotated by a fixed angle (in degrees) away from an
-// existing reference point, with the swept angle drawn as a wedge. DGPad
-// figures store the angle as a quoted expression string, but this project
-// is a figure reader, not an expression evaluator, so only constant
-// numeric expressions are supported (see dgp_commands.ts).
+// A formula giving the angle in the figure's angle unit, as in DGPad.
+export interface FixedAngleFormula {
+    formula: FormulaNode;
+    refs: Map<string, construction_object>;
+}
+
+// A ray from a vertex, rotated by an angle away from an existing reference
+// point, with the swept angle drawn as a wedge. The angle is a number of
+// degrees, or a formula.
 export class fixed_angle_object extends primitive_line_object {
     A: point_object;
+    angle: number | FixedAngleFormula;
     valueDegrees: number;
     trigo: boolean;
     arcRadius = DEFAULT_ARC_RADIUS;
@@ -42,14 +59,25 @@ export class fixed_angle_object extends primitive_line_object {
         name: string | null | undefined,
         a: point_object,
         vertex: point_object,
-        valueDegrees: number,
+        angle: number | FixedAngleFormula,
         trigo: boolean,
     ) {
         super(c, name, vertex, "fixedangle");
         this.A = a;
-        this.valueDegrees = valueDegrees;
+        this.angle = angle;
+        this.valueDegrees = typeof angle === "number" ? angle : 0;
+        this.readsView = typeof angle !== "number" && usesView(angle.formula);
         this.trigo = trigo;
-        this.addParents(a);
+        this.addParents(
+            a,
+            ...(typeof angle === "number" ? [] : angle.refs.values()),
+        );
+    }
+
+    scriptValue(_vec3: boolean): ScriptValue | null {
+        return this.C.degrees
+            ? this.valueDegrees
+            : (this.valueDegrees * Math.PI) / 180;
     }
 
     dgo(context: DgoContext): [string, unknown] {
@@ -58,7 +86,13 @@ export class fixed_angle_object extends primitive_line_object {
             [
                 context.index(this.A),
                 context.index(this.P1),
-                this.valueDegrees,
+                typeof this.angle === "number"
+                    ? this.angle
+                    : dgoFormula(
+                          formulaSource(this.angle.formula),
+                          this.angle.refs,
+                          context,
+                      ),
                 +this.trigo,
             ],
         ];
@@ -66,6 +100,19 @@ export class fixed_angle_object extends primitive_line_object {
 
     computeVEC(): Vec3 | null {
         if (!this.A.defined) return null;
+        if (typeof this.angle !== "number") {
+            const { formula, refs } = this.angle;
+            const value = realPart(
+                evaluateFormula(formula, {
+                    resolveIdentifier: (n) => refs.get(n)!.scriptValue(false),
+                    view: () => this.C.formulaView(),
+                }),
+            );
+            if (value === null) return null;
+            this.valueDegrees = this.C.degrees
+                ? value
+                : (value * 180) / Math.PI;
+        }
         const dx = this.A.x - this.P1.x;
         const dy = this.A.y - this.P1.y;
         const theta =
@@ -167,10 +214,8 @@ export function createFixedAngle(
     name: string | null | undefined,
     a: point_object,
     vertex: point_object,
-    valueDegrees: number,
+    angle: number | FixedAngleFormula,
     trigo: boolean,
 ): fixed_angle_object {
-    return c.add(
-        new fixed_angle_object(c, name, a, vertex, valueDegrees, trigo),
-    );
+    return c.add(new fixed_angle_object(c, name, a, vertex, angle, trigo));
 }

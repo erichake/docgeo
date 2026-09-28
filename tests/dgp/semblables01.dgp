@@ -1,0 +1,42 @@
+// Coordinates System :
+SetCoords(591.5,443.5,40,false,1125,805);
+
+
+// Geometry :
+A=Point("A",-11.9625,5.4875);
+B=Point("B",-6.4125,2.5125);
+C=Point("C",-8.9625,7.6125);
+E=Point("E",-4.4125,3.0375);
+S1=Segment("S1",B,A);
+S2=Segment("S2",A,C);
+S3=Segment("S3",C,B);
+n=Expression("n","","0","10","2.1","-9.2875","9.8375");
+C1=Circle1("C1",E,"d(B,C)*n");
+F=PointOn("F",C1,5.748377692638911);
+S4=Segment("S4",E,F);
+A1=FixedAngle("A1",F,E,"Angle360(C,B,A)",true);
+A2=FixedAngle("A2",E,F,"Angle360(A,C,B)",false);
+D=OrderedIntersection("D",A2,A1,0);
+S5=Segment("S5",E,D);
+S6=Segment("S6",D,F);
+
+
+// Styles :
+STL(A,"c:#0000b2;o:1;s:6;sn:true;f:30;np:2.0852476398539244");
+STL(B,"c:#0000b2;o:1;s:6;sn:true;f:30;np:4.124386376837122");
+STL(C,"c:#0000b2;o:1;s:6;sn:true;f:30");
+STL(E,"c:#0000b2;o:1;s:6;sn:true;f:30;np:3.5003633238603653");
+STL(S1,"c:#966400;s:3;f:24");
+STL(S2,"c:#cc66cc;s:3;f:24");
+STL(S3,"c:#006633;s:3;f:24");
+STL(n,"c:#327c14;s:7;f:24;p:2;i:0.1;cL:640;cPT:YzojNzgwMDEzO286MTtzOjEwO2Y6MzA7aTowLjE=");
+STL(C1,"c:#cc66cc;h:1;s:1;f:30;p:0");
+STL(F,"c:#0000b2;o:1;s:6;sn:true;f:30");
+STL(S4,"c:#006633;s:3;f:24");
+STL(A1,"c:#006633;h:1;s:1;f:24;p:1");
+STL(A2,"c:#006633;h:1;s:1;f:24;p:1");
+STL(D,"c:#0000b2;o:1;s:6;sn:true;f:30;np:1.4956221983190972");
+STL(S5,"c:#966400;s:3;f:24");
+STL(S6,"c:#cc66cc;s:3;f:24");
+SetCoordsStyle("isAxis:false;isGrid:true;isOx:true;isOy:true;isLockOx:false;isLockOy:false;centerZoom:false;onlyPositive:false;color:#111111;fontSize:18;axisWidth:1;gridWidth:0.1");
+SetGeneralStyle("background-color:#F8F8F8;degree:true;dragmoveable:true");

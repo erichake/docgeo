@@ -1,5 +1,6 @@
 import type { construction } from "../construction";
 import type { DOMElement } from "../dom";
+import type { ScriptValue } from "../import/dgp_formula";
 import {
     vAdd,
     vCross,
@@ -28,6 +29,10 @@ export class primitive_circle_object extends construction_object {
     constructor(c: construction, name: string | null | undefined) {
         super(c, name, "circle");
         this.familytype = "circle";
+    }
+
+    scriptValue(_vec3: boolean): ScriptValue | null {
+        return this.defined ? this.R : null;
     }
 
     setCircle(center: Vec3, radius: number, u: Vec3, v: Vec3): void {

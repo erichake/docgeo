@@ -1,0 +1,175 @@
+// Macros :
+$macros={};
+$macros["dte2pts"]={
+	name:"dte2pts",
+	parameters:["point","point","expression"],
+	exec:
+	function (P12, P10, E1) {
+L7=Line("L7",P10,P12);
+C3=Circle1("C3",P10,"E1");
+C4=Circle1("C4",P12,"E1");
+P14=OrderedIntersection("P14",L7,C4,0);
+P13=OrderedIntersection("P13",L7,C3,1);
+S2=Segment("S2",P13,P14);
+STL(S2,"c:#006633;s:1;f:24");
+return [S2];
+}};
+
+$macros["dte3pts"]={
+	name:"dte3pts",
+	parameters:["point","point","point","expression"],
+	exec:
+	function (A, M, B, E1) {
+L1=Line("L1",A,B);
+P4=Point("P4","[max(x(A),x(M),x(B)),max(y(A),y(M),y(B))]","0");
+P1=Point("P1","[min(x(A),x(M),x(B)),min(y(A),y(M),y(B))]","0");
+P5=Point("P5","P4+1","0");
+P2=Point("P2","P1+1","0");
+L2=Line("L2",P4,P5);
+L3=Line("L3",P1,P2);
+P6=OrderedIntersection("P6",L1,L3,0);
+P3=OrderedIntersection("P3",L1,L2,0);
+C1=Circle1("C1",P3,"E1");
+C2=Circle1("C2",P6,"E1");
+L4=Line("L4",P3,P6);
+P7=OrderedIntersection("P7",L4,C1,1);
+P8=OrderedIntersection("P8",L4,C2,0);
+S1=Segment("S1",P7,P8);
+STL(S1,"c:#006633;s:1;f:24");
+return [S1];
+}};
+
+// Coordinates System :
+SetCoords(729.4314345278989,97.23947242656072,37.4411219964434,false,1000,650);
+
+
+// Geometry :
+A=Point("A",-1.7749999999999824,-3.3070061470085004);
+B=Point("B",-7.375000000000021,-9.857006147008518);
+C=Point("C",2.6500000000000097,-11.75700614700851);
+L8=Line("L8",A,C);
+L6=Line("L6",B,C);
+E1=Expression("E1","","0","3","1.635","2.151873693308509","-4.614192053054663");
+L5=Line("L5",A,C);
+L12=Line("L12",A,C);
+L7=Line("L7",C,B);
+L1=Line("L1",A,B);
+L11=Line("L11",A,C);
+Poly2=Polygon("Poly2","_A,_B,_C");
+C4=Circle1("C4",B,"E1");
+C3=Circle1("C3",C,"E1");
+M=PointOn("M",L1,0.4545651220364809);
+N=PointOn("N",L8,0.2867320751508301);
+C31=Circle1("C31",N,"E1");
+P13=OrderedIntersection("P13",L7,C3,1);
+K=Point("K","A+(C-A)*(M-A)/(B-A)","0");
+P4=Point("P4","[max(x(A),x(M),x(B)),max(y(A),y(M),y(B))]","0");
+E3=Expression("E3","","","","\"AM / AB \u2248 \"+d(A,M)+\" / \"+d(A,B)+\" \u2248 \"+d(A,M)/d(A,B)","-18.947921341547644","1.7958722613320168");
+P41=Point("P41","[max(x(A),x(N),x(C)),max(y(A),y(N),y(C))]","0");
+P14=OrderedIntersection("P14",L7,C4,0);
+L71=Line("L71",N,M);
+C42=Circle1("C42",M,"E1");
+C41=Circle1("C41",M,"E1");
+P11=Point("P11","[min(x(A),x(N),x(C)),min(y(A),y(N),y(C))]","0");
+P1=Point("P1","[min(x(A),x(M),x(B)),min(y(A),y(M),y(B))]","0");
+Par1=Parallel("Par1",L6,M);
+E4=Expression("E4","","","","\"AN / AC \u2248 \"+d(A,N)+\" / \"+d(A,C)+\" \u2248 \"+d(A,N)/d(A,C)","-18.947921341547644","0.7275282089342369");
+P141=OrderedIntersection("P141",L71,C42,0);
+P51=Point("P51","P41+1","0");
+S2=Segment("S2",P13,P14);
+J=Symmetry("J",A,K);
+P21=Point("P21","P11+1","0");
+P2=Point("P2","P1+1","0");
+P5=Point("P5","P4+1","0");
+P131=OrderedIntersection("P131",L71,C31,1);
+L31=Line("L31",P11,P21);
+L2=Line("L2",P4,P5);
+L3=Line("L3",P1,P2);
+L21=Line("L21",P41,P51);
+S21=Segment("S21",P131,P141);
+P3=OrderedIntersection("P3",L1,L2,0);
+P6=OrderedIntersection("P6",L1,L3,0);
+P31=OrderedIntersection("P31",L12,L21,0);
+E2=Expression("E2","","","","if (d(N,K)<1e-12) {S21.setRGBColor(255,100,0);S2.setRGBColor(255,100,0)} else {S21.setRGBColor(0,25,150);S2.setRGBColor(0,25,150)};\"programme\"","-19.215007354647092","-0.6079018565629881");
+P61=OrderedIntersection("P61",L12,L31,0);
+C11=Circle1("C11",P31,"E1");
+C21=Circle1("C21",P61,"E1");
+C2=Circle1("C2",P6,"E1");
+L4=Line("L4",P3,P6);
+L41=Line("L41",P31,P61);
+C1=Circle1("C1",P3,"E1");
+P81=OrderedIntersection("P81",L41,C21,0);
+P71=OrderedIntersection("P71",L41,C11,1);
+P7=OrderedIntersection("P7",L4,C1,1);
+P8=OrderedIntersection("P8",L4,C2,0);
+S11=Segment("S11",P71,P81);
+S1=Segment("S1",P7,P8);
+
+
+// Styles :
+STL(A,"c:#0000b2;s:6;sn:true;f:30");
+STL(B,"c:#0000b2;s:6;sn:true;f:30;np:3.3298141588945636");
+STL(C,"c:#0000b2;s:6;sn:true;f:30;np:5.775012689344256");
+STL(L8,"c:#780013;h:1;s:1;f:30;p:0");
+STL(L6,"c:#780013;h:1;s:1;f:30;p:0");
+STL(E1,"c:#521349;h:1;s:7;f:24;p:4;cL:200;cPT:YzojNzgwMDEzO2g6MTtzOjEwO2Y6MzA=");
+STL(L5,"c:#780013;h:1;s:1;f:30;p:0");
+STL(L12,"c:#780013;h:2;s:1;f:30;p:0");
+STL(L7,"c:#780013;h:2;s:1;f:30;p:0");
+STL(L1,"c:#780013;h:1;s:1;f:30;p:0");
+STL(L11,"c:#780013;h:2;s:1;f:30;p:0");
+STL(Poly2,"c:#101d4f;o:0.2;s:0.5;f:30");
+STL(C4,"c:#cc66cc;h:2;s:1;f:30;p:0");
+STL(C3,"c:#cc66cc;h:2;s:1;f:30;p:0");
+STL(M,"c:#0000b2;s:6;sn:true;f:30;np:2.3700971605311403");
+STL(N,"c:#0000b2;s:6;sn:true;f:30;np:0.8932522401087338;mg:[K,15],[J,15]");
+STL(C31,"c:#cc66cc;h:2;s:1;f:30;p:0");
+STL(P13,"c:#0000b2;h:2;s:6;f:30");
+STL(K,"c:#0000b2;h:1;s:6;sn:true;f:30");
+STL(P4,"c:#0000b2;h:1;s:6;f:30");
+STL(E3,"c:#414102;h:1;s:7;f:24;p:4;cL:200;cPT:YzojNzgwMDEzO2g6MTtzOjEwO2Y6MzA=");
+STL(P41,"c:#0000b2;h:2;s:6;f:30");
+STL(P14,"c:#0000b2;h:2;s:6;f:30");
+STL(L71,"c:#780013;h:2;s:1;f:30;p:0");
+STL(C42,"c:#cc66cc;h:2;s:1;f:30;p:0");
+STL(C41,"c:#cc66cc;h:2;s:1;f:30;p:0");
+STL(P11,"c:#0000b2;h:2;s:6;f:30");
+STL(P1,"c:#0000b2;h:1;s:6;f:30");
+STL(Par1,"c:#780013;h:1;s:1;f:30;p:0");
+STL(E4,"c:#7f2029;h:1;s:7;f:24;p:4;cL:200;cPT:YzojNzgwMDEzO2g6MTtzOjEwO2Y6MzA=");
+STL(P141,"c:#0000b2;h:2;s:6;f:30");
+STL(P51,"c:#0000b2;h:2;s:6;f:30");
+STL(S2,"c:#001996;s:4;f:24");
+STL(J,"c:#0000b2;h:1;s:6;sn:true;f:30");
+STL(P21,"c:#0000b2;h:2;s:6;f:30");
+STL(P2,"c:#0000b2;h:1;s:6;f:30");
+STL(P5,"c:#0000b2;h:1;s:6;f:30");
+STL(P131,"c:#0000b2;h:2;s:6;f:30");
+STL(L31,"c:#780013;h:2;s:1;f:30;p:0");
+STL(L2,"c:#780013;h:1;s:1;f:30;p:0");
+STL(L3,"c:#780013;h:1;s:1;f:30;p:0");
+STL(L21,"c:#780013;h:2;s:1;f:30;p:0");
+STL(S21,"c:#001996;s:5;f:24");
+STL(P3,"c:#0000b2;h:1;s:6;f:30");
+STL(P6,"c:#0000b2;h:1;s:6;f:30");
+STL(P31,"c:#0000b2;h:2;s:6;f:30");
+STL(E2,"c:#6a6761;h:1;s:7;f:24;p:4;cL:200;cPT:YzojNzgwMDEzO2g6MTtzOjEwO2Y6MzA=");
+STL(P61,"c:#0000b2;h:2;s:6;f:30");
+STL(C11,"c:#cc66cc;h:2;s:1;f:30;p:0");
+STL(C21,"c:#cc66cc;h:2;s:1;f:30;p:0");
+STL(C2,"c:#cc66cc;h:1;s:1;f:30;p:0");
+STL(L4,"c:#780013;h:1;s:1;f:30;p:0");
+STL(L41,"c:#780013;h:2;s:1;f:30;p:0");
+STL(C1,"c:#cc66cc;h:1;s:1;f:30;p:0");
+STL(P81,"c:#0000b2;h:2;s:6;f:30");
+STL(P71,"c:#0000b2;h:2;s:6;f:30");
+STL(P7,"c:#0000b2;h:1;s:6;f:30");
+STL(P8,"c:#0000b2;h:1;s:6;f:30");
+STL(S11,"c:#006633;s:4;f:24");
+STL(S1,"c:#760012;s:4;f:24");
+SetCoordsStyle("isAxis:false;isGrid:true;isOx:true;isOy:true;isLockOx:false;isLockOy:false;centerZoom:false;onlyPositive:false;color:#111111;fontSize:18;axisWidth:1;gridWidth:0.1");
+SetGeneralStyle("background-color:#FAFAFA;degree:true;dragmoveable:true");
+
+
+// Texts :
+Text("\n\n<span style=\"font-size:24px;color:#760011\">$\\frac{AM}{AB}\\approx\\frac{%d(A,M)%}{%d(A,B)%}\\approx%d(A,M)/d(A,B)%$</span>\n<span style=\"font-size:24px;color:#006633\">\n$\\frac{AN}{AC}\\approx\\frac{%d(A,N)%}{%d(A,C)%}\\approx%d(A,N)/d(A,C)%$\n</span>",29,31,316,172,"c:rgba(150,100,0,0.14);s:3;r:10;p:4");

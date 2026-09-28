@@ -5,16 +5,18 @@ import {
     usesView,
     type FormulaNode,
 } from "../import/dgp_formula";
-import { dgoFormula, type DgoContext } from "./construction_object";
-import { expression_object, referenceValue } from "./expression_object";
+import {
+    dgoFormula,
+    type construction_object,
+    type DgoContext,
+} from "./construction_object";
+import type { expression_object } from "./expression_object";
 import { point_object } from "./point_object";
-
-type FormulaPointRef = point_object | expression_object;
 
 export class formula_point_object extends point_object {
     moveable = false;
     formula: FormulaNode;
-    refs: Map<string, FormulaPointRef>;
+    refs: Map<string, construction_object>;
     // True in a 3D figure (DGPad's legacy SetCoords is3D flag): a
     // referenced point then resolves to its full 3D coordinates (e.g.
     // "P1+[-1,-1,1]", a cube vertex) instead of the 2D/complex-number
@@ -32,7 +34,7 @@ export class formula_point_object extends point_object {
         c: construction,
         name: string | null | undefined,
         formula: FormulaNode,
-        refs: Map<string, FormulaPointRef>,
+        refs: Map<string, construction_object>,
         vec3 = false,
     ) {
         super(c, name, [0, 0, 0]);
@@ -45,8 +47,7 @@ export class formula_point_object extends point_object {
 
     computeGeometry(): void {
         const value = evaluateFormula(this.formula, {
-            resolveIdentifier: (n) =>
-                referenceValue(this.refs.get(n)!, this.vec3),
+            resolveIdentifier: (n) => this.refs.get(n)!.scriptValue(this.vec3),
             view: () => this.C.formulaView(),
         });
         if (value === null) {
@@ -107,7 +108,7 @@ export function createFormulaPoint(
     c: construction,
     name: string | null | undefined,
     formula: FormulaNode,
-    refs: Map<string, FormulaPointRef>,
+    refs: Map<string, construction_object>,
     vec3 = false,
 ): formula_point_object {
     return c.add(new formula_point_object(c, name, formula, refs, vec3));

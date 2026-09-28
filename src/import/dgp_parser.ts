@@ -19,6 +19,7 @@ type TokenType =
     | ")"
     | "["
     | "]"
+    | "{"
     | ","
     | ";"
     | "eof";
@@ -59,7 +60,7 @@ class Lexer {
             return { type: "number", value, line };
         }
 
-        if ("=()[],;".includes(character)) {
+        if ("=()[]{,;".includes(character)) {
             this.index++;
             return { type: character as TokenType, value: character, line };
         }
@@ -69,7 +70,7 @@ class Lexer {
 
     // A DGPad macro definition is arbitrary JavaScript that has no effect on
     // the figure: skip it up to its terminating top-level semicolon.
-    skipStatement(): void {
+    skipStatement(closing = false): void {
         let depth = 0;
         while (this.index < this.source.length) {
             const character = this.source[this.index++];
@@ -101,6 +102,7 @@ class Lexer {
                 depth++;
             } else if (")]}".includes(character)) {
                 depth--;
+                if (closing && depth === 0) return;
             } else if (character === ";" && depth === 0) {
                 return;
             }
@@ -127,24 +129,45 @@ class Lexer {
         }
     }
 
+    // A JavaScript string literal: DGPad writes some with escapes (\\')
+    // or control characters (tabs) that JSON rejects.
     private string(line: number): Token {
-        const start = this.index++;
+        let value = "";
+        this.index++;
         while (this.index < this.source.length) {
             const character = this.source[this.index++];
-            if (character === "\\") {
-                this.index++;
-            } else if (character === '"') {
-                const raw = this.source.slice(start, this.index);
-                return {
-                    type: "string",
-                    value: repairEncoding(JSON.parse(raw)),
-                    line,
-                };
-            } else if (character === "\n") {
+            if (character === '"')
+                return { type: "string", value: repairEncoding(value), line };
+            if (character === "\n")
                 throw new Error(`Invalid DGP string at line ${line}`);
+            if (character !== "\\") {
+                value += character;
+                continue;
+            }
+            const escaped = this.source[this.index++];
+            const hex = ESCAPE_HEX_LENGTH[escaped];
+            if (hex) {
+                const digits = this.source.slice(this.index, this.index + hex);
+                if (!/^[0-9a-fA-F]+$/.test(digits) || digits.length !== hex)
+                    throw new Error(`Invalid DGP string at line ${line}`);
+                value += String.fromCharCode(parseInt(digits, 16));
+                this.index += hex;
+            } else if (escaped === "\n") {
+                this.line++;
+            } else {
+                value += ESCAPES[escaped] ?? escaped;
             }
         }
         throw new Error(`Unterminated DGP string at line ${line}`);
+    }
+
+    // The raw source of an object literal, such as the Blockly programs of
+    // BLK(): never interpreted, only reported as not imported.
+    object(): string {
+        const start = this.index - 1;
+        this.index = start;
+        this.skipStatement(true);
+        return this.source.slice(start, this.index);
     }
 
     private identifier(line: number): Token {
@@ -162,6 +185,18 @@ class Lexer {
         };
     }
 }
+
+const ESCAPES: Record<string, string> = {
+    n: "\n",
+    r: "\r",
+    t: "\t",
+    b: "\b",
+    f: "\f",
+    v: "\v",
+    "0": "\0",
+};
+
+const ESCAPE_HEX_LENGTH: Record<string, number> = { x: 2, u: 4 };
 
 // Some DGPad files hold texts encoded in UTF-8 more than once, read back
 // as Latin-1 each time (e.g. "IntermÃ\u0083Â©diaire" for "Intermédiaire"):
@@ -254,6 +289,11 @@ class Parser {
             }
             this.take("]");
             return { type: "array", items };
+        }
+        if (token.type === "{") {
+            const value = this.lexer.object();
+            this.advance();
+            return { type: "literal", value };
         }
         throw new Error(`Invalid DGP value at line ${token.line}`);
     }

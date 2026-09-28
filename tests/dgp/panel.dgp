@@ -1,0 +1,30 @@
+// Coordinates System :
+SetCoords(400,300,40);
+
+
+// Geometry :
+ox=X_axis("ox");
+oy=Y_axis("oy");
+A=PointOn("A",ox,2);
+B=Point("B",-3,2);
+C=Point("C",1,4);
+S1=Segment("S1",A,B);
+C1=Circle1("C1",B,"S1/2");
+E1=Expression("E1","","","","45","-9","6");
+n=Expression("n","","0","5","2","-9","5");
+m=Expression("m","","-n","n","1","-9","4");
+b=Expression("b","","","","true","-9","3");
+k=Expression("k","","","","2","-9","2");
+D=Point("D",4,-2);
+F=Point("F",6,1);
+C2=Circle3pts3D("C2",B,D,F);
+a1=Angle("a1",A,B,C);
+FA=FixedAngle("FA",C,B,"Angle360(A,B,C)/2",true);
+L=Expression("L","","","","[[0,0],[1,1],[2,0]]","-9","1");
+LL=List("LL",L);
+M=PointOn("M",LL,[1,0]);
+v=Expression("v","","","","min(3,E1)+max(1,2)+gcd(12,18)+E1%7+d(A,B)+C1+a1+S1","-9","0");
+
+
+// Texts :
+Text("<div style=\"text-align:left\">Rayon : %C1% ; $\\frac{%E1%}{2}$\nE1 : <input target=\"E1\">\nb : <input type=checkbox target=\"b\">\nk : <select target=\"k\"><option value=\"1\">Un</option><option value=\"2\">Deux</option></select>\n<input type=button value=\"basculer\" target=\"b\">\n<a href=\"https://dgpad.net\">DGPad</a></div>",20,20,300,200,"c:rgba(59,79,115,0.18);s:3;r:15;p:2");

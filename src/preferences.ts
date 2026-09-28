@@ -60,6 +60,7 @@ export interface Preferences {
     list: ObjectPref;
     curve: ObjectPref;
     text: ObjectPref;
+    panel: ObjectPref;
     image: ObjectPref;
 }
 
@@ -86,6 +87,7 @@ export class preferences implements Preferences {
     list: ObjectPref;
     curve: ObjectPref;
     text: ObjectPref;
+    panel: ObjectPref;
     image: ObjectPref;
 
     constructor() {
@@ -260,6 +262,15 @@ export class preferences implements Preferences {
             touchsize: 5,
             name: "T",
             layer: 6,
+        };
+
+        // Above the figure, as DGPad's texts.
+        this.panel = {
+            color: { fill: "#000000", stroke: "#000000" },
+            size: 3,
+            touchsize: 5,
+            name: "Text",
+            layer: 7,
         };
 
         // Above the grid, below everything else, as GeoGebra draws it.

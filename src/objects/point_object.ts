@@ -1,5 +1,6 @@
 import type { construction } from "../construction";
 import type { DOMElement } from "../dom";
+import type { ScriptValue } from "../import/dgp_formula";
 import type { PrefKey } from "../preferences";
 import {
     vAdd,
@@ -161,6 +162,11 @@ export class point_object extends construction_object {
             (ORG[1] - this.pinned![1]) / UNIT[1],
             0,
         ];
+    }
+
+    scriptValue(vec3: boolean): ScriptValue | null {
+        if (!this.defined) return null;
+        return vec3 ? [...this.coords] : [this.x, this.y];
     }
 
     dgo(_context: DgoContext): [string, unknown] {

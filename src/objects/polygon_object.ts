@@ -1,5 +1,6 @@
 import type { construction } from "../construction";
 import type { DOMElement } from "../dom";
+import type { ScriptValue } from "../import/dgp_formula";
 import {
     GEOMETRY_EPSILON,
     pointInPolygon,
@@ -127,6 +128,10 @@ export class polygon_object extends construction_object {
     set plane(value: boolean) {
         this.isPlane = value;
         this.layer = value ? this.prefs.grid.layer : this.prefs.polygon.layer;
+    }
+
+    scriptValue(_vec3: boolean): ScriptValue | null {
+        return this.defined ? this.area : null;
     }
 
     dgo(context: DgoContext): [string, unknown] {

@@ -1,4 +1,5 @@
 import type { construction } from "../construction";
+import type { ScriptValue } from "../import/dgp_formula";
 import { vAdd, vNorm, vScale, vSub, type Vec2 } from "../vec";
 import type { DgoContext } from "./construction_object";
 import type { point_object } from "./point_object";
@@ -11,6 +12,12 @@ const HEAD_ANGLE = Math.PI / 10;
 export class vector_object extends segment_object {
     dgo(context: DgoContext): [string, unknown] {
         return ["Vec", super.dgo(context)[1]];
+    }
+
+    scriptValue(vec3: boolean): ScriptValue | null {
+        if (!this.defined) return null;
+        const [x, y, z] = vSub(this.P2.coords, this.P1.coords);
+        return vec3 ? [x, y, z] : [x, y];
     }
 
     project(): void {

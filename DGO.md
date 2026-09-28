@@ -150,49 +150,55 @@ Une **formule** est son texte, ou `[texte, {nom: indice}]` quand elle lit
 d'autres objets : chaque nom qu'elle emploie y est associé à l'objet qu'il
 désigne. Ce nom est propre à la formule et peut différer du nom affiché de
 l'objet (une étiquette GeoGebra comme `A_{1}` n'est pas un identifiant).
+Comme dans DGPad, un objet nommé vaut : ses coordonnées (point), sa valeur
+(expression), sa longueur (segment), ses composantes (vecteur), son rayon
+(cercle, arc), sa mesure dans l'unité d'angle de la figure (angle, angle
+fixe), son aire (polygone) ; tout autre objet est indéfini.
 
-| Type   | Objet                                  | Paramètres                                   |
-| ------ | -------------------------------------- | -------------------------------------------- |
-| `Pt`   | point libre                            | `[x, y]` ou `[x, y, z]`                      |
-| `Fix`  | point fixe                             | idem                                         |
-| `Fp`   | point défini par une formule           | `[formule]`, `[formule, n1, n2]` (1)         |
-| `On`   | point sur objet                        | `[support, paramètre]` (2)                   |
-| `Mid`  | milieu                                 | `[A, B]`                                     |
-| `Sym`  | symétrique de P par rapport à O        | `[O, P]`                                     |
-| `Refl` | symétrique de P par rapport à d        | `[d, P]`                                     |
-| `Ctr`  | centre d'un cercle                     | `[cercle]`                                   |
-| `DirP` | P + vecteur directeur unitaire de d    | `[d, P]`                                     |
-| `PlI`  | intersection droite-plan (ABC)         | `[d, A, B, C]`                               |
-| `Int`  | intersection                           | `[o1, o2, branche]`, `[o1, o2, rang, P]` (3) |
-| `CyI`  | intersection droite-cylindre (sphère)  | `[d, A, B ou null, R, 0 ou 1]` (4)           |
-| `Line` | droite (AB)                            | `[A, B]`                                     |
-| `Ray`  | demi-droite [AB)                       | `[A, B]`                                     |
-| `Seg`  | segment                                | `[A, B]`                                     |
-| `Vec`  | vecteur                                | `[A, B]`                                     |
-| `Par`  | parallèle à d par P                    | `[d, P]`                                     |
-| `Perp` | perpendiculaire à d par P              | `[d, P]`                                     |
-| `Med`  | médiatrice                             | `[A, B]`                                     |
-| `Bis`  | bissectrice de l'angle AOB             | `[A, O, B]`                                  |
-| `FA`   | angle fixe : demi-droite [OA) tournée  | `[A, O, degrés, sens trigo]`                 |
-| `Ang`  | angle AOB                              | `[A, O, B]`                                  |
-| `Cir`  | cercle de centre O passant par A       | `[O, A]`                                     |
-| `C1`   | cercle de centre O et de rayon r       | `[O, r]`, `[O, r, axe]` (5)                  |
-| `C3`   | cercle de centre O et de rayon AB      | `[A, B, O]`                                  |
-| `C3p`  | cercle passant par trois points        | `[A, B, C]`                                  |
-| `Arc`  | arc de A à C passant par B             | `[A, B, C]`                                  |
-| `Sec`  | secteur de A à C passant par B         | `[A, B, C]`                                  |
-| `Quad` | conique passant par cinq points        | `[A, B, C, D, E]`                            |
-| `Sph`  | sphère de centre O passant par A       | `[O, A]`                                     |
-| `CyS`  | section d'un cylindre par le plan PQR  | `[A, B, R, P, Q, R']` (4)                    |
-| `Poly` | polygone                               | `[A, B, C, …]`                               |
-| `Loc`  | lieu de P quand M parcourt son support | `[P, M]`                                     |
-| `Ex`   | expression                             | objet (6)                                    |
-| `Cur`  | courbe y = f(x)                        | `[formule, min ou null, max ou null]`        |
-| `Lst`  | liste de formules en k                 | `[nature, nombre, formule, formule?]` (7)    |
-| `ELst` | points d'une expression                | `[expression]`                               |
-| `Itr`  | itération de segments                  | `[[P1, Q1, …], niveaux, [[ax,ay,bx,by], …]]` |
-| `Txt`  | texte attaché à un point               | `[point, [dx, dy], texte]` (8)               |
-| `Img`  | image                                  | `[clé, largeur, hauteur, A, B, C?]` (9)      |
+| Type   | Objet                                  | Paramètres                                      |
+| ------ | -------------------------------------- | ----------------------------------------------- |
+| `Pt`   | point libre                            | `[x, y]` ou `[x, y, z]`                         |
+| `Fix`  | point fixe                             | idem                                            |
+| `Fp`   | point défini par une formule           | `[formule]`, `[formule, n1, n2]` (1)            |
+| `On`   | point sur objet                        | `[support, paramètre]` (2)                      |
+| `Mid`  | milieu                                 | `[A, B]`                                        |
+| `Sym`  | symétrique de P par rapport à O        | `[O, P]`                                        |
+| `Refl` | symétrique de P par rapport à d        | `[d, P]`                                        |
+| `Ctr`  | centre d'un cercle                     | `[cercle]`                                      |
+| `DirP` | P + vecteur directeur unitaire de d    | `[d, P]`                                        |
+| `PlI`  | intersection droite-plan (ABC)         | `[d, A, B, C]`                                  |
+| `Int`  | intersection                           | `[o1, o2, branche]`, `[o1, o2, rang, P]` (3)    |
+| `CyI`  | intersection droite-cylindre (sphère)  | `[d, A, B ou null, R, 0 ou 1]` (4)              |
+| `Line` | droite (AB)                            | `[A, B]`                                        |
+| `Ray`  | demi-droite [AB)                       | `[A, B]`                                        |
+| `Seg`  | segment                                | `[A, B]`                                        |
+| `Vec`  | vecteur                                | `[A, B]`                                        |
+| `Par`  | parallèle à d par P                    | `[d, P]`                                        |
+| `Perp` | perpendiculaire à d par P              | `[d, P]`                                        |
+| `Med`  | médiatrice                             | `[A, B]`                                        |
+| `Bis`  | bissectrice de l'angle AOB             | `[A, O, B]`                                     |
+| `FA`   | angle fixe : demi-droite [OA) tournée  | `[A, O, degrés ou formule, sens trigo]` (10)    |
+| `Ang`  | angle AOB                              | `[A, O, B]`                                     |
+| `Cir`  | cercle de centre O passant par A       | `[O, A]`                                        |
+| `C1`   | cercle de centre O et de rayon r       | `[O, r]`, `[O, r, axe]` (5)                     |
+| `C3`   | cercle de centre O et de rayon AB      | `[A, B, O]`                                     |
+| `C3p`  | cercle passant par trois points        | `[A, B, C]`                                     |
+| `C3s`  | idem, dans leur plan de l'espace       | `[A, B, C]`                                     |
+| `Arc`  | arc de A à C passant par B             | `[A, B, C]`                                     |
+| `Sec`  | secteur de A à C passant par B         | `[A, B, C]`                                     |
+| `Quad` | conique passant par cinq points        | `[A, B, C, D, E]`                               |
+| `Sph`  | sphère de centre O passant par A       | `[O, A]`                                        |
+| `CyS`  | section d'un cylindre par le plan PQR  | `[A, B, R, P, Q, R']` (4)                       |
+| `Poly` | polygone                               | `[A, B, C, …]`                                  |
+| `Loc`  | lieu de P quand M parcourt son support | `[P, M]`                                        |
+| `Ex`   | expression                             | objet (6)                                       |
+| `Cur`  | courbe y = f(x)                        | `[formule, min ou null, max ou null]`           |
+| `Lst`  | liste de formules en k                 | `[nature, nombre, formule, formule?]` (7)       |
+| `ELst` | points d'une expression                | `[expression]`                                  |
+| `Itr`  | itération de segments                  | `[[P1, Q1, …], niveaux, [[ax,ay,bx,by], …]]`    |
+| `Txt`  | texte attaché à un point               | `[point, [dx, dy], texte]` (8)                  |
+| `Img`  | image                                  | `[clé, largeur, hauteur, A, B, C?]` (9)         |
+| `Html` | texte HTML dans un cadre de la fenêtre | `[[x, y, largeur, hauteur], rayon, texte]` (11) |
 
 1. `n1`, `n2` : les nombres (expressions, ou `null`) que déplace un glisser
    du point, pour chacune de ses coordonnées.
@@ -211,7 +217,8 @@ l'objet (une étiquette GeoGebra comme `A_{1}` n'est pas un identifiant).
    R. Solutions triées le long de la droite.
 5. `r` nombre (rayon qu'un glisser change, `null` s'il n'est pas fini) ou
    formule ; `axe` : droite normale au plan du cercle.
-6. `{"t": texte, "mn": min, "mx": max, …}` avec exactement l'un de `"v"`
+6. `{"t": texte, "mn": min, "mx": max, …}` (bornes nombres, ou formules
+   toutes deux quand l'une lit d'autres objets) avec exactement l'un de `"v"`
    (valeur constante ou de curseur), `"f"` (formule de fonction en x, y, z, t)
    ou `"s"` (script) ; position `"xy": [x, y]` en pixels, ou attachée à un
    point : `"on": point, "d": [dx, dy]`.
@@ -221,6 +228,15 @@ l'objet (une étiquette GeoGebra comme `A_{1}` n'est pas un identifiant).
    `%`.
 9. Coins inférieur gauche et inférieur droit, et supérieur gauche (sinon la
    hauteur garde les proportions).
+10. Une formule donne l'angle dans l'unité d'angle de la figure.
+11. Le texte de DGPad, dont seuls sont gardés une liste fermée d'éléments,
+    d'attributs et de styles (`src/objects/panel_object.ts`) : un texte qui
+    contient un script, ou un élément inconnu, est refusé. Ses parties
+    `%formule%` affichent leur valeur (`%%` est un `%`), ses parties `$TeX$`
+    sont dessinées par KaTeX ; un champ `target="E"` change le nombre de
+    l'expression `E` (état élève de `E`). Position et taille intérieure en
+    pixels ; couleur (`c`, `o`) du cadre et du fond, taille (`s`) du cadre,
+    précision (`p`) des valeurs.
 
 ### Styles `st`
 
@@ -238,7 +254,7 @@ postérieur.
 | `h`  | tous         | 0 visible, 1 caché, 2 super-caché        | 0                                 |
 | `sn` | tous         | nom affiché                              | 0                                 |
 | `f`  | tous         | taille de police                         | 16                                |
-| `p`  | tous         | précision (lieu : nombre d'échantillons) | -1 (`Loc` : 1000)                 |
+| `p`  | tous         | précision (lieu : nombre d'échantillons) | -1 (`Loc` : 1000, `Html` : 4)     |
 | `sp` | points       | `circle`, `cross`, `diamond`, `rect`     | `circle`                          |
 | `np` | points       | direction du nom (radians)               | 0                                 |
 | `tk` | points       | trace                                    | 0                                 |
@@ -265,21 +281,22 @@ postérieur.
 Défauts par type : `[remplissage, trait, taille, opacité]` (opacité absente :
 non définie).
 
-| Types                                                 | Défauts                                   |
-| ----------------------------------------------------- | ----------------------------------------- |
-| `Pt`, `Fix`, `Fp`, `On`, `DirP`                       | `rgb(255,255,255)`, `rgb(80,80,80)`, 6, 0 |
-| `Mid`, `Int`, `CyI`, `PlI`, `Ctr`, `Sym`, `Refl`      | `rgb(180,180,180)`, `rgb(80,80,80)`, 6, 0 |
-| `Line`, `Par`, `Perp`, `Med`                          | `rgb(35,141,227)`, `rgb(80,80,80)`, 2     |
-| `Ray`, `Bis`                                          | `rgb(35,141,227)`, `#993300`, 2           |
-| `Seg`, `Vec`                                          | `rgb(35,141,227)`, `rgb(180,80,80)`, 4    |
-| `FA`                                                  | `#006633`, `#006633`, 1, 0                |
-| `Ang`                                                 | `#006633`, `#006633`, 4, 0                |
-| `Cir`, `C1`, `C3`, `C3p`, `Arc`, `Sec`, `CyS`, `Quad` | `#CC66CC`, `#CC66CC`, 2, 0                |
-| `Sph`, `Poly`                                         | `rgb(35,141,227)`, `rgb(80,80,80)`, 2, 0  |
-| `Loc`, `Cur`                                          | `#0b5b94`, `#0b5b94`, 2                   |
-| `Lst`, `ELst`, `Itr`                                  | `#656148`, `#656148`, 2                   |
-| `Ex`                                                  | `rgb(0,0,178)`, `rgb(0,0,178)`, 7, 0      |
-| `Txt`, `Img`                                          | `#000000`, `#000000`, 1                   |
+| Types                                                        | Défauts                                   |
+| ------------------------------------------------------------ | ----------------------------------------- |
+| `Pt`, `Fix`, `Fp`, `On`, `DirP`                              | `rgb(255,255,255)`, `rgb(80,80,80)`, 6, 0 |
+| `Mid`, `Int`, `CyI`, `PlI`, `Ctr`, `Sym`, `Refl`             | `rgb(180,180,180)`, `rgb(80,80,80)`, 6, 0 |
+| `Line`, `Par`, `Perp`, `Med`                                 | `rgb(35,141,227)`, `rgb(80,80,80)`, 2     |
+| `Ray`, `Bis`                                                 | `rgb(35,141,227)`, `#993300`, 2           |
+| `Seg`, `Vec`                                                 | `rgb(35,141,227)`, `rgb(180,80,80)`, 4    |
+| `FA`                                                         | `#006633`, `#006633`, 1, 0                |
+| `Ang`                                                        | `#006633`, `#006633`, 4, 0                |
+| `Cir`, `C1`, `C3`, `C3p`, `C3s`, `Arc`, `Sec`, `CyS`, `Quad` | `#CC66CC`, `#CC66CC`, 2, 0                |
+| `Sph`, `Poly`                                                | `rgb(35,141,227)`, `rgb(80,80,80)`, 2, 0  |
+| `Loc`, `Cur`                                                 | `#0b5b94`, `#0b5b94`, 2                   |
+| `Lst`, `ELst`, `Itr`                                         | `#656148`, `#656148`, 2                   |
+| `Ex`                                                         | `rgb(0,0,178)`, `rgb(0,0,178)`, 7, 0      |
+| `Txt`, `Img`                                                 | `#000000`, `#000000`, 1                   |
+| `Html`                                                       | `#000000`, `#000000`, 3                   |
 
 ## État élève
 

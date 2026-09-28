@@ -1,0 +1,139 @@
+// Macros :
+$macros={};
+$macros["Deuxbarres"]={
+	name:"Deux barres",
+	parameters:["line"],
+	exec:
+	function (S1){
+B=Second("B",S1);
+A=First("A",S1);
+O=MidPoint("O",B,A);
+C1=Circle1("C1",O,"15/pixel()");
+P1=Point("P1","O+(B-O)*(0.7+i*0.7)","0");
+L1=Line("L1",O,P1);
+P5=OrderedIntersection("P5",S1,C1,0);
+P2=OrderedIntersection("P2",L1,C1,0);
+P3=OrderedIntersection("P3",L1,C1,1);
+S2=Segment("S2",P2,P3);
+P4=Point("P4","P5+P2-O","0");
+Symc1=Symmetry("Symc1",P5,P4);
+S3=Segment("S3",P4,Symc1);
+STL(S2,"c:#006633;s:1;f:24");
+STL(S3,"c:#006633;s:1;f:24");
+return [S2,S3];
+}};
+
+$macros["InversionPoint"]={
+	name:"Inversion Point",
+	parameters:["circle","point"],
+	exec:
+	function (C1,P2){
+P1=Center("P1",C1);
+P3=Point("P3","P1+C1^2/conj(P2-P1)","0");
+STL(P3,"c:#0000b2;s:6;f:30");
+return [P3];
+}};
+
+$macros["Troisbarres"]={
+	name:"Trois barres",
+	parameters:["line"],
+	exec:
+	function (S1){
+B=Second("B",S1);
+A=First("A",S1);
+O=MidPoint("O",B,A);
+C1=Circle1("C1",O,"15/pixel()");
+P1=Point("P1","O+(B-O)*(0.7+i*0.7)","0");
+L1=Line("L1",O,P1);
+P5=OrderedIntersection("P5",S1,C1,0);
+P2=OrderedIntersection("P2",L1,C1,0);
+P3=OrderedIntersection("P3",L1,C1,1);
+S2=Segment("S2",P2,P3);
+P4=Point("P4","P5+P2-O","0");
+Symc1=Symmetry("Symc1",P5,P4);
+Symc3=Symmetry("Symc3",O,P4);
+S3=Segment("S3",P4,Symc1);
+Symc2=Symmetry("Symc2",O,Symc1);
+S4=Segment("S4",Symc2,Symc3);
+STL(S2,"c:#006633;s:1;f:24");
+STL(S3,"c:#006633;s:1;f:24");
+STL(S4,"c:#006633;s:1;f:24");
+return [S2,S3,S4];
+}};
+
+$macros["UnZ"]={
+	name:"Un Z",
+	parameters:["line"],
+	exec:
+	function (S1){
+A=First("A",S1);
+B=Second("B",S1);
+O=MidPoint("O",B,A);
+C1=Circle1("C1",O,"15/pixel()");
+P1=Point("P1","O+(B-O)*(0.7+i*0.7)","0");
+L1=Line("L1",O,P1);
+P5=OrderedIntersection("P5",S1,C1,0);
+P2=OrderedIntersection("P2",L1,C1,0);
+P4=Point("P4","P5+P2-O","0");
+Symc1=Symmetry("Symc1",P5,P4);
+Symc3=Symmetry("Symc3",O,P4);
+S3=Segment("S3",P4,Symc1);
+Symc2=Symmetry("Symc2",O,Symc1);
+S4=Segment("S4",Symc2,Symc3);
+S2=Segment("S2",Symc2,Symc1);
+STL(S3,"c:#006633;s:1;f:24");
+STL(S4,"c:#006633;s:1;f:24");
+STL(S2,"c:#006633;s:1;f:24");
+return [S3,S4,S2];
+}};
+
+$macros["Unebarre"]={
+	name:"Une barre",
+	parameters:["line"],
+	exec:
+	function (S1){
+A=First("A",S1);
+B=Second("B",S1);
+O=MidPoint("O",B,A);
+C1=Circle1("C1",O,"15/pixel()");
+P1=Point("P1","O+(B-O)*(0.7+i*0.7)","0");
+L1=Line("L1",O,P1);
+P2=OrderedIntersection("P2",L1,C1,0);
+P3=OrderedIntersection("P3",L1,C1,1);
+S2=Segment("S2",P2,P3);
+STL(S2,"c:#006633;s:1;f:24");
+return [S2];
+}};
+
+// Coordinates System :
+SetCoords(405.1796875,488.6171875,40,false,1000,650);
+
+
+// Geometry :
+P6=Point("P6",-7.575,0.1875);
+A=Point("A",-3.875,7.3375);
+P7=Point("P7",8.6,8.2625);
+B=Point("B",3.85,8.8125);
+P1=Point("P1",2.05,2.9875);
+S10=Segment("S10",A,B);
+C1=Circle1("C1",P1,4.705382556179678);
+M=PointOn("M",S10,0.24564984539520218);
+A1=Point("A'","P1+C1^2/conj(A-P1)","0");
+B1=Point("B'","P1+C1^2/conj(B-P1)","0");
+M1=Point("M'","P1+C1^2/conj(M-P1)","0");
+
+
+// Styles :
+STL(P6,"c:#0000b2;h:1;s:6;f:30");
+STL(A,"c:#0000b2;s:6;sn:true;f:30;np:2.770701364777131");
+STL(P7,"c:#0000b2;h:1;s:6;f:30");
+STL(B,"c:#0000b2;s:6;sn:true;f:30");
+STL(P1,"c:#0000b2;h:1;s:6;f:30");
+STL(S10,"c:#007c00;s:1;f:24");
+STL(C1,"c:#cc66cc;s:1;f:30;p:0");
+STL(M,"c:#007c00;o:1;s:6;sn:true;f:30;np:1.5224612458524256;tk:true");
+STL(A1,"c:#0000b2;s:6;sn:true;f:30");
+STL(B1,"c:#0000b2;s:6;sn:true;f:30");
+STL(M1,"c:#b40000;o:1;s:6;sn:true;f:30;tk:true");
+SetCoordsStyle("isAxis:false;isGrid:true;isOx:true;isOy:true;isLockOx:false;isLockOy:false;centerZoom:false;onlyPositive:false;color:#111111;fontSize:18;axisWidth:1;gridWidth:0.1");
+SetGeneralStyle("background-color:#F8F8F8;degree:true;dragmoveable:true");

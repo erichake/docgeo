@@ -41,6 +41,14 @@ export type FormulaFn =
     | "dot"
     | "unitVector"
     | "isNaN"
+    | "distance"
+    | "min"
+    | "max"
+    | "conj"
+    | "Angle360"
+    | "Angle180"
+    | "crossProduct"
+    | "gcd"
     | ListFn;
 
 // DGPad's own names for its operators, also applying to lists, and its
@@ -56,6 +64,7 @@ type ListFn =
     | "restrictTheta"
     | "restrictPhi";
 
+// -1: one argument or more.
 const FORMULA_ARITY: Record<FormulaFn, number> = {
     sqrt: 1,
     d: 2,
@@ -87,6 +96,14 @@ const FORMULA_ARITY: Record<FormulaFn, number> = {
     dot: 2,
     unitVector: 1,
     isNaN: 1,
+    distance: 2,
+    min: -1,
+    max: -1,
+    conj: 1,
+    Angle360: 3,
+    Angle180: 3,
+    crossProduct: 2,
+    gcd: 2,
     plus: 2,
     minus: 2,
     times: 2,
@@ -109,25 +126,33 @@ const LIST_OPERATORS: Record<ListFn, BinaryOp | null> = {
 };
 
 // The only methods a script may call: reading an object, appending to one
-// of its own lists, and styling the figure's objects.
+// of its own lists or joining lists, and styling the figure's objects.
 export type ObjectMethod =
     | "coords2D"
+    | "coords3D"
     | "getX"
     | "getY"
     | "getName"
+    | "getAOC"
     | "push"
+    | "concat"
     | "setHidden"
     | "setOpacity"
     | "setRGBColor"
+    | "setSize"
+    | "setPrecision"
     | "setLayer"
     | "setDash"
     | "noMouseInside";
 
 const READ_METHODS: ReadonlySet<ObjectMethod> = new Set([
     "coords2D",
+    "coords3D",
     "getX",
     "getY",
     "getName",
+    "getAOC",
+    "concat",
 ]);
 
 // DGPad's layers and dashes only make up for its lack of depth ordering,
@@ -143,19 +168,24 @@ const SKIPPED_METHODS: ReadonlySet<ObjectMethod> = new Set([
 // -1: any number of arguments.
 const METHOD_ARITY: Record<ObjectMethod, number> = {
     coords2D: 0,
+    coords3D: 0,
     getX: 0,
     getY: 0,
     getName: 0,
+    getAOC: 0,
     push: -1,
+    concat: -1,
     setHidden: 1,
     setOpacity: 1,
     setRGBColor: 3,
+    setSize: 1,
+    setPrecision: 1,
     setLayer: 1,
     setDash: 1,
     noMouseInside: 0,
 };
 
-type BinaryOp = "+" | "-" | "*" | "/" | "^" | Comparison;
+type BinaryOp = "+" | "-" | "*" | "/" | "%" | "^" | Comparison;
 
 export type FormulaNode =
     | { kind: "number"; value: number }
@@ -258,6 +288,7 @@ type TokenType =
     | "-"
     | "*"
     | "/"
+    | "%"
     | "^"
     | Comparison
     | "!"
@@ -340,7 +371,7 @@ class FormulaLexer {
             return { type, value: type };
         }
 
-        if ("+-*/^(),[].".includes(character)) {
+        if ("+-*/%^(),[].".includes(character)) {
             this.index++;
             return { type: character as TokenType, value: character };
         }
@@ -542,10 +573,15 @@ class FormulaParser {
         while (
             this.current.type === "*" ||
             this.current.type === "/" ||
+            this.current.type === "%" ||
             this.startsImplicitFactor()
         ) {
-            if (this.current.type === "*" || this.current.type === "/") {
-                const op = this.current.type as "*" | "/";
+            if (
+                this.current.type === "*" ||
+                this.current.type === "/" ||
+                this.current.type === "%"
+            ) {
+                const op = this.current.type as "*" | "/" | "%";
                 this.advance();
                 node = { kind: "binary", op, left: node, right: this.unary() };
             } else {
@@ -575,6 +611,7 @@ class FormulaParser {
     }
 
     private unary(): FormulaNode {
+        if (this.skip("+")) return this.unary();
         if (this.current.type === "-" || this.current.type === "!") {
             const op = this.current.type;
             this.advance();
@@ -638,8 +675,15 @@ class FormulaParser {
             if (name === "PI" || name === "π")
                 return { kind: "constant", name: "PI" };
             if (name === "NaN") return { kind: "number", value: NaN };
-            // Unless a script names one of its variables "i".
-            if (name === "i" && !this.locals.has(name))
+            if (name === "true" || name === "false")
+                return { kind: "number", value: Number(name === "true") };
+            // Unless a script names one of its variables "i", as a loop
+            // does with "for (i=0; …)".
+            if (
+                name === "i" &&
+                !this.locals.has(name) &&
+                !(this.current.type in ASSIGNMENTS)
+            )
                 return this.imaginary(1);
             // DGPad reads two adjacent function variables as a product.
             if (/^[xyzt]{2}$/.test(name) && !this.locals.has(name))
@@ -706,7 +750,8 @@ class FormulaParser {
         const args = this.arguments();
         if (!(name in FORMULA_ARITY)) return { kind: "userCall", name, args };
         const fn = name as FormulaFn;
-        if (args.length !== FORMULA_ARITY[fn])
+        const arity = FORMULA_ARITY[fn];
+        if (arity < 0 ? args.length === 0 : args.length !== arity)
             throw new Error(`Invalid DGP formula function "${name}" arity`);
         return { kind: "call", fn, args };
     }
@@ -932,6 +977,9 @@ export interface FormulaEnv {
     resolveIdentifier(name: string): ScriptValue | null;
     view(): FormulaView;
     coords2D?(name: string): Vec2 | null;
+    // DGPad's getAOC: the angle AOC as drawn, counterclockwise, in radians
+    // within [0, 2π).
+    orientedAngle?(name: string): number | null;
     // Resolves a userCall node (a name outside FORMULA_ARITY applied to
     // arguments, e.g. "E1(x)"). Consumers that don't support calling named
     // objects (most formula owners) simply omit this.
@@ -1043,6 +1091,8 @@ function evalBinary(
                 return l * r;
             case "/":
                 return l / r;
+            case "%":
+                return l % r;
             case "^":
                 return Math.pow(l, r);
         }
@@ -1129,7 +1179,8 @@ function evalCall(
             return env.view().theta / angleUnit(env);
         case "phi":
             return env.view().phi / angleUnit(env);
-        case "d": {
+        case "d":
+        case "distance": {
             const [a, b] = args;
             if (
                 typeof a === "number" ||
@@ -1207,7 +1258,8 @@ function evalCall(
                 ? vScale(a as Vec3, 1 / norm)
                 : vScale(a as Vec2, 1 / norm);
         }
-        case "cross": {
+        case "cross":
+        case "crossProduct": {
             const [a, b] = args;
             if (
                 typeof a === "number" ||
@@ -1227,6 +1279,49 @@ function evalCall(
             )
                 return null;
             return vDot(a, b);
+        }
+        case "min":
+        case "max": {
+            const values = args.map(realPart);
+            return values.includes(null)
+                ? null
+                : Math[fn](...(values as number[]));
+        }
+        case "gcd": {
+            let [a, b] = args.map(realPart);
+            if (a === null || b === null) return null;
+            if (!Number.isFinite(a) || !Number.isFinite(b)) return null;
+            while (b !== 0) [a, b] = [b, a % b];
+            return a;
+        }
+        case "conj": {
+            const [a] = args;
+            if (typeof a === "number") return a;
+            return a.length === 2 ? [a[0], -a[1]] : null;
+        }
+        // The angle from OA to OC, counterclockwise, within [0, 2π).
+        case "Angle360": {
+            const [a, o, c] = args;
+            if (typeof a === "number" || typeof o === "number") return null;
+            if (typeof c === "number") return null;
+            const angle =
+                Math.atan2(c[1] - o[1], c[0] - o[0]) -
+                Math.atan2(a[1] - o[1], a[0] - o[0]);
+            const turn = 2 * Math.PI;
+            return (angle - Math.floor(angle / turn) * turn) / angleUnit(env);
+        }
+        // The geometric angle AOC, within [0, π], in the plane or in space.
+        case "Angle180": {
+            const [a, o, c] = args;
+            if (typeof a === "number" || typeof o === "number") return null;
+            if (typeof c === "number") return null;
+            if (a.length !== o.length || c.length !== o.length) return null;
+            const u = a.map((value, i) => value - o[i]);
+            const v = c.map((value, i) => value - o[i]);
+            const cosine = vDot(u, v) / (Math.hypot(...u) * Math.hypot(...v));
+            return (
+                Math.acos(Math.min(1, Math.max(-1, cosine))) / angleUnit(env)
+            );
         }
     }
 }
@@ -1302,6 +1397,23 @@ function evalNode(node: FormulaNode, scope: Scope): ScriptValue | null {
             switch (node.method) {
                 case "coords2D":
                     return scope.env.coords2D?.(node.object) ?? null;
+                case "coords3D":
+                    return evalNode(
+                        { kind: "identifier", name: node.object },
+                        scope,
+                    );
+                case "getAOC":
+                    return scope.env.orientedAngle?.(node.object) ?? null;
+                case "concat": {
+                    const list = evalNode(
+                        { kind: "identifier", name: node.object },
+                        scope,
+                    );
+                    const args = evalArgs(node.args, scope);
+                    if (!Array.isArray(list) || args === null) return null;
+                    // As JavaScript's, which spreads the lists it's given.
+                    return list.concat(...args);
+                }
                 case "getName":
                     return node.object;
                 case "getX":

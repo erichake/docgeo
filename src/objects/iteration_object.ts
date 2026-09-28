@@ -5,8 +5,8 @@ import {
     type FormulaNode,
 } from "../import/dgp_formula";
 import { vSub, type Vec2 } from "../vec";
-import type { DgoContext } from "./construction_object";
-import { list_object, type ListRef } from "./list_object";
+import type { construction_object, DgoContext } from "./construction_object";
+import { list_object } from "./list_object";
 import type { point_object } from "./point_object";
 
 // A direct similarity in a segment's own frame, where its start is 0 and its
@@ -28,7 +28,7 @@ export class iteration_object extends list_object {
         name: string | null | undefined,
         ends: [point_object, point_object][],
         levels: FormulaNode,
-        refs: Map<string, ListRef>,
+        refs: Map<string, construction_object>,
         maps: SegmentMap[],
     ) {
         super(c, name, "segment", levels, [], refs);
@@ -85,7 +85,7 @@ export function createIteration(
     name: string | null | undefined,
     ends: [point_object, point_object][],
     levels: FormulaNode,
-    refs: Map<string, ListRef>,
+    refs: Map<string, construction_object>,
     maps: SegmentMap[],
 ): iteration_object {
     return c.add(new iteration_object(c, name, ends, levels, refs, maps));

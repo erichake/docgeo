@@ -25,7 +25,8 @@ Les développements doivent servir en priorité :
 
 - l'import sûr des formats `.dgp` et `.ggb`, toute exécution de leur contenu
   devant avoir lieu dans un environnement sécurisé et strictement contrôlé (les
-  scripts GeoGebra ne sont jamais exécutés) ;
+  scripts GeoGebra ne sont jamais exécutés, ni les programmes Blockly, le
+  JavaScript et le HTML actif des figures DGPad, ignorés et signalés) ;
 - la lecture et l'écriture fidèles du format `.dgo` ;
 - la compatibilité géométrique et graphique avec DGPad et GeoGebra ;
 - la manipulation des objets existants ;

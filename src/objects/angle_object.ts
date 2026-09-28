@@ -1,5 +1,6 @@
 import type { construction } from "../construction";
 import type { DOMElement } from "../dom";
+import type { ScriptValue } from "../import/dgp_formula";
 import { vAdd, vDot, vNorm, vNormalize, vScale, vSub, type Vec2 } from "../vec";
 import { computeAngleArc, formatDegrees } from "./angle_arc";
 import { construction_object, type DgoContext } from "./construction_object";
@@ -54,6 +55,11 @@ export class angle_object extends construction_object {
         this.O = o;
         this.B = cPoint;
         this.addParents(a, o, cPoint);
+    }
+
+    scriptValue(_vec3: boolean): ScriptValue | null {
+        if (!this.defined) return null;
+        return this.C.degrees ? (this.value * 180) / Math.PI : this.value;
     }
 
     dgo(context: DgoContext): [string, unknown] {

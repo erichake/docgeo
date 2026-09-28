@@ -12,7 +12,6 @@ import {
     type construction_object,
     type DgoContext,
 } from "./construction_object";
-import { expression_object } from "./expression_object";
 import type { point_object } from "./point_object";
 import { primitive_circle_object } from "./primitive_circle_object";
 import type { primitive_line_object } from "./primitive_line_object";
@@ -22,7 +21,7 @@ export type circle1_radius =
     | number
     | {
           formula: FormulaNode;
-          refs: Map<string, point_object | expression_object>;
+          refs: Map<string, construction_object>;
       };
 
 export class circle1_object extends primitive_circle_object {
@@ -79,15 +78,8 @@ export class circle1_object extends primitive_circle_object {
                 ? definition
                 : realPart(
                       evaluateFormula(definition.formula, {
-                          resolveIdentifier: (n) => {
-                              const ref = definition.refs.get(n)!;
-                              if (!ref.defined) return null;
-                              if (ref instanceof expression_object)
-                                  return typeof ref.value === "number"
-                                      ? ref.value
-                                      : null;
-                              return [ref.coords[0], ref.coords[1]];
-                          },
+                          resolveIdentifier: (n) =>
+                              definition.refs.get(n)!.scriptValue(false),
                           view: () => this.C.formulaView(),
                       }),
                   );
