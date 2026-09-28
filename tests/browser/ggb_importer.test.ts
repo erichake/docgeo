@@ -338,6 +338,37 @@ ${[
         ).toEqual([true, true, false, false, false]);
     });
 
+    it("draws a LaTeX text placed in the plane at its point", async () => {
+        const c = createConstruction();
+        expect(
+            importGgb(
+                c,
+                `<geogebra><construction>
+<element type="point" label="A"><coords x="1" y="2" z="1"/></element>
+<expression label="t" exp="&quot;$ y=e^x $&quot;"/>
+<element type="text" label="t"><isLaTeX val="true"/><startPoint exp="A"/><labelOffset x="5" y="-10"/></element>
+<expression label="u" exp="&quot;\\frac{1}{2}&quot;"/>
+<element type="text" label="u"><isLaTeX val="true"/><startPoint x="3" y="1" z="1"/></element>
+</construction></geogebra>`,
+            ),
+        ).toEqual([]);
+        const [t, u] = ["t", "u"].map(
+            (name) => c.getObj(name) as expression_object,
+        );
+        await new Promise((resolve) => requestAnimationFrame(resolve));
+        const a = c.getObj("A") as point_object;
+        expect([t.latex, t.value, t.screen]).toEqual([
+            true,
+            " y=e^x ",
+            [a.screen[0] + 5, a.screen[1] - 10],
+        ]);
+        expect(u.value).toBe("\\frac{1}{2}");
+        a.coords = [2, 3, 0];
+        c.invalidateGeometry(a);
+        await new Promise((resolve) => requestAnimationFrame(resolve));
+        expect(t.screen).toEqual([a.screen[0] + 5, a.screen[1] - 10]);
+    });
+
     it("builds nested commands as hidden auxiliary objects", async () => {
         const c = createConstruction();
         importGgb(c, await loadXml("transform"));
@@ -1457,6 +1488,69 @@ ${lines.map((line, index) => command("Plane", ["C", line], `p${index}`)).join("\
         expect(element.style.opacity).toBe("0.75");
     });
 
+    it("sizes images in pixels without their bottom right corner", async () => {
+        const c = createConstruction();
+        const url =
+            "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==";
+        expect(
+            importGgb(
+                c,
+                `<geogebra><euclidianView><coordSystem xZero="200" yZero="300" scale="50"/><size width="800" height="600"/></euclidianView><construction>
+<element type="image" label="one"><file name="p.png"/><startPoint number="0" exp="A"/></element>
+<element type="image" label="two"><file name="p.png"/><startPoint number="0" exp="A"/><startPoint number="2" exp="D"/></element>
+<element type="image" label="fixed"><file name="p.png"/><absoluteScreenLocation x="30" y="50"/></element>
+<element type="point" label="A"><coords x="1" y="2" z="1"/></element>
+<element type="point" label="D"><coords x="1" y="4" z="1"/></element>
+</construction></geogebra>`,
+                new Map([["p.png", { url, width: 40, height: 20 }]]),
+            ),
+        ).toEqual([]);
+        await new Promise((resolve) => requestAnimationFrame(resolve));
+        const corners = (name: string): Vec2[] => {
+            const image = c.getObj(name) as image_object;
+            const element = image.dom.find("image")!.dom() as SVGImageElement;
+            return [
+                [0, 20],
+                [40, 20],
+                [0, 0],
+            ].map(([x, y]) => {
+                const point = new DOMPoint(x, y).matrixTransform(
+                    element.getCTM()!,
+                );
+                return [point.x, point.y];
+            });
+        };
+        const [a, d] = ["A", "D"].map(
+            (name) => (c.getObj(name) as point_object).screen,
+        );
+        const expectCorners = (actual: Vec2[], expected: Vec2[]) =>
+            actual.forEach((corner, index) =>
+                corner.forEach((value, axis) =>
+                    expect(value).toBeCloseTo(expected[index][axis], 3),
+                ),
+            );
+        expectCorners(corners("one"), [
+            a,
+            [a[0] + 40, a[1]],
+            [a[0], a[1] - 20],
+        ]);
+        const up = a[1] - d[1];
+        expectCorners(corners("two"), [a, [a[0] + 2 * up, a[1]], d]);
+        expectCorners(corners("fixed"), [
+            [30, 70],
+            [70, 70],
+            [30, 50],
+        ]);
+        c.GRID.ORG = [c.GRID.ORG[0] + 40, c.GRID.ORG[1] - 25];
+        c.invalidateProjection();
+        await new Promise((resolve) => requestAnimationFrame(resolve));
+        expectCorners(corners("fixed"), [
+            [30, 70],
+            [70, 70],
+            [30, 50],
+        ]);
+    });
+
     it("unfolds the cube's nets with their slider, showing the chosen one", async () => {
         const c = createConstruction();
         importGgb(c, await loadXml("_patronsCube"));
@@ -1601,6 +1695,38 @@ ${lines.map((line, index) => command("Plane", ["C", line], `p${index}`)).join("\
         expect(plain.GRID.onlyPositive).toBe(false);
         expect(plain.GRID.tickDistances).toEqual([0, 0]);
         expect(plain.GRID.boldNumbers).toBe(false);
+    });
+
+    it("reads the degree as a constant, as GeoGebra", () => {
+        const c = createConstruction();
+        expect(
+            importGgb(
+                c,
+                `<geogebra><construction>
+<element type="point" label="A"><coords x="2" y="0" z="1"/></element>
+<element type="point" label="M"><coords x="1" y="0" z="1"/></element>
+<element type="numeric" label="n"><value val="3"/></element>
+${["90*°", "90°", "(540 / n)°", "180 / n * °"]
+    .map(
+        (angle, index) =>
+            `<command name="Rotate"><input a0="A" a1="${angle}" a2="M"/><output a0="P${index}"/></command><element type="point" label="P${index}"/>`,
+    )
+    .join("\n")}
+</construction></geogebra>`,
+            ),
+        ).toEqual([]);
+        [
+            [1, 1],
+            [1, 1],
+            [0, 0],
+            [1.5, Math.sqrt(3) / 2],
+        ].forEach((expected, index) =>
+            expected.forEach((value, axis) =>
+                expect(
+                    (c.getObj(`P${index}`) as point_object).coords[axis],
+                ).toBeCloseTo(value, 9),
+            ),
+        );
     });
 
     it("reports what it can't import instead of failing", () => {

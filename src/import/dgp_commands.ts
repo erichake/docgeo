@@ -524,6 +524,16 @@ function validatePanelStyle(value: string, lineNumber: number): void {
     });
 }
 
+function validateImage(args: DgpValue[], lineNumber: number): void {
+    if (
+        !IMAGE_URL.test(literalString(args[1])) ||
+        [args[2], args[3]].some(
+            (size) => !((size as { value: number }).value > 0),
+        )
+    )
+        throw new Error(`Invalid DGP image at line ${lineNumber}`);
+}
+
 function validateNumber(
     value: string,
     lineNumber: number,
@@ -1794,19 +1804,11 @@ const COMMANDS = new Map<string, CommandDefinition>([
                 number,
                 number,
                 point,
-                point,
+                { ...point, optional: true },
                 { ...point, optional: true },
             ],
             result: "image",
-            validate: (args, lineNumber) => {
-                if (
-                    !IMAGE_URL.test(literalString(args[1])) ||
-                    [args[2], args[3]].some(
-                        (size) => !((size as { value: number }).value > 0),
-                    )
-                )
-                    throw new Error(`Invalid DGP image at line ${lineNumber}`);
-            },
+            validate: validateImage,
             execute: (context, args) =>
                 createImage(
                     context.construction,
@@ -1816,6 +1818,32 @@ const COMMANDS = new Map<string, CommandDefinition>([
                     args[3] as number,
                     args.slice(4).filter(Boolean) as point_object[],
                 ),
+        },
+    ],
+    // Not a DGPad command: GeoGebra's image fixed in the window, at the
+    // position of its top left corner, in units as an Expression's.
+    [
+        "ScreenImage",
+        {
+            parameters: [string, string, number, number, number, number],
+            result: "image",
+            validate: validateImage,
+            execute: (context, args) => {
+                const grid = context.construction.GRID;
+                const image = createImage(
+                    context.construction,
+                    args[0] as string,
+                    args[1] as string,
+                    args[2] as number,
+                    args[3] as number,
+                    [],
+                );
+                image.screen = [
+                    context.labelOrigin[0] + (args[4] as number) * grid.UNIT[0],
+                    context.labelOrigin[1] - (args[5] as number) * grid.UNIT[1],
+                ];
+                return image;
+            },
         },
     ],
     // Not a DGPad command: GeoGebra's Iteration of segments, from their

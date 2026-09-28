@@ -5,12 +5,15 @@ import { construction_object, type DgoContext } from "./construction_object";
 import type { point_object } from "./point_object";
 
 // GeoGebra's image: its bottom left and bottom right corners, and its top
-// left one, or else its height keeps its proportions.
+// left one, or else its height keeps its proportions. With its bottom left
+// corner only, or fixed at a window position of its top left corner
+// without any, it keeps its size in pixels.
 export class image_object extends construction_object {
     url: string;
     width: number;
     height: number;
     corners: point_object[];
+    screen: Vec2 | null = null;
     private transform: string | null = null;
     private image!: DOMElement;
 
@@ -37,7 +40,9 @@ export class image_object extends construction_object {
                 context.image(this.url),
                 this.width,
                 this.height,
-                ...this.corners.map(context.index),
+                ...(this.screen
+                    ? [context.screen(this.screen)]
+                    : this.corners.map(context.index)),
             ],
         ];
     }
@@ -48,16 +53,19 @@ export class image_object extends construction_object {
 
     project(): void {
         this.transform = null;
+        if (this.screen) {
+            this.transform = `translate(${this.screen[0]} ${this.screen[1]})`;
+            return;
+        }
         if (
             !this.defined ||
             !this.corners.every((corner) => corner.projectionDefined)
         )
             return;
         const [a, b, top] = this.corners.map((corner): Vec2 => corner.screen);
-        const [ux, uy] = [
-            (b[0] - a[0]) / this.width,
-            (b[1] - a[1]) / this.width,
-        ];
+        const [ux, uy] = b
+            ? [(b[0] - a[0]) / this.width, (b[1] - a[1]) / this.width]
+            : [1, 0];
         // Down the image, one of its pixels.
         const [vx, vy] = top
             ? [(a[0] - top[0]) / this.height, (a[1] - top[1]) / this.height]

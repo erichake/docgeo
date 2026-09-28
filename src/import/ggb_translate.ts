@@ -742,7 +742,10 @@ export function translateGgb(
         const text = normalizeBrackets(source)
             .replace(/²/g, "^2")
             .replace(/³/g, "^3")
-            .replace(/°/g, "*π/180")
+            // "°" is a constant, written after an operand ("90°") or as
+            // one ("90*°", "α / °").
+            .replace(/([\p{L}\p{N}_.)\]'])\s*°/gu, "$1*(π/180)")
+            .replace(/°/g, "(π/180)")
             .replace(/≟/g, "==")
             .replace(/≠/g, "!=")
             .replace(/≤/g, "<=")
@@ -2562,26 +2565,29 @@ export function translateGgb(
     };
 
     // KaTeX, which renders texts inline, only takes GeoGebra's align and
-    // gather environments as aligned and gathered.
+    // gather environments as aligned and gathered, and refuses the "$"
+    // delimiters GeoGebra ignores in its math mode.
     const inlineTeX = (tex: string): string =>
-        tex.replace(/\\(begin|end)\{(align|gather)\*?\}/g, "\\$1{$2ed}");
+        tex
+            .replace(/\\(begin|end)\{(align|gather)\*?\}/g, "\\$1{$2ed}")
+            .replace(/(?<!\\)\$/g, "");
 
     const text = (label: string, element: Element, source: string): boolean => {
         const parts = textParts(source);
         if (parts === null) return false;
         const latex = attribute(element, "isLaTeX", "val") === "true";
-        if (child(element, "absoluteScreenLocation") || latex)
-            return textExpression(
-                label,
-                element,
-                `""${parts
-                    .map((part) =>
-                        typeof part === "string"
-                            ? `+"${(latex ? inlineTeX(part) : part).replace(/[\\"]/g, "\\$&")}"`
-                            : `+(${part.formula})`,
-                    )
-                    .join("")}`,
-            );
+        const content = `""${parts
+            .map((part) =>
+                typeof part === "string"
+                    ? `+"${(latex ? inlineTeX(part) : part).replace(/[\\"]/g, "\\$&")}"`
+                    : `+(${part.formula})`,
+            )
+            .join("")}`;
+        if (
+            child(element, "absoluteScreenLocation") ||
+            (latex && attribute(element, "show", "object") === "false")
+        )
+            return textExpression(label, element, content);
         const start = child(element, "startPoint");
         const exp = start?.getAttribute("exp");
         const anchor = exp ? resolve(exp) : auxiliary();
@@ -2592,14 +2598,28 @@ export function translateGgb(
             define(anchor, "point", "Point", vectorLiteral([x / z, y / z, 0]));
         }
         if (!points(anchor)) return false;
+        const offset = ["x", "y"].map((name) =>
+            literal(Number(attribute(element, "labelOffset", name) ?? 0)),
+        );
+        if (latex)
+            return define(
+                label,
+                "expression",
+                "ExpressionOn",
+                [
+                    ...["", "", "", content].map(literal),
+                    ref(anchor),
+                    { type: "array", items: offset },
+                ],
+                `${textStyle(element)};tx:true`,
+            );
         return define(
             label,
             "text",
             "AnchoredText",
             [
                 ref(anchor),
-                literal(Number(attribute(element, "labelOffset", "x") ?? 0)),
-                literal(Number(attribute(element, "labelOffset", "y") ?? 0)),
+                ...offset,
                 literal(
                     parts
                         .map((part) =>
@@ -2770,17 +2790,33 @@ export function translateGgb(
                 }
                 corners[Number(start.getAttribute("number") ?? 0)] = corner;
             });
-            return (
-                !!image &&
-                corners.length >= 2 &&
-                points(...corners) &&
-                define(label, "image", "Image", [
-                    literal(image.url),
-                    literal(image.width),
-                    literal(image.height),
-                    ...corners.map(ref),
-                ])
-            );
+            if (!image) return false;
+            const picture = [image.url, image.width, image.height].map(literal);
+            const location = child(element, "absoluteScreenLocation");
+            if (location)
+                return define(label, "image", "ScreenImage", [
+                    ...picture,
+                    ...screenPosition(
+                        Number(location.getAttribute("x")),
+                        Number(location.getAttribute("y")),
+                        true,
+                    ).map(literal),
+                ]);
+            const [a, b, d] = corners;
+            if (!points(a, ...corners.filter(Boolean))) return false;
+            // Without its bottom right corner, the image keeps its
+            // proportions: its bottom goes right of its left side, as long.
+            if (d && !b) {
+                const [va, vd] = [a, d].map((p) => objects.get(p)!.variable);
+                const ratio = image.width / image.height;
+                corners[1] = formulaPoint(
+                    `[x(${va})+(y(${vd})-y(${va}))*${ratio},y(${va})-(x(${vd})-x(${va}))*${ratio}]`,
+                );
+            }
+            return define(label, "image", "Image", [
+                ...picture,
+                ...corners.map(ref),
+            ]);
         }
         if (type === "function" && source !== undefined) {
             const body = formula(
@@ -2950,7 +2986,14 @@ export function translateGgb(
             node.tagName === "command"
                 ? indexedAttributes(child(node, "input")).join(",")
                 : node.tagName === "element" && !commandOutputs.has(label)
-                  ? (expressions.get(label) ?? "")
+                  ? [
+                        expressions.get(label) ?? "",
+                        ...[...node.children].map((item) =>
+                            item.tagName === "startPoint"
+                                ? (item.getAttribute("exp") ?? "")
+                                : "",
+                        ),
+                    ].join(",")
                   : null;
         if (source === null) return;
         const reads = (

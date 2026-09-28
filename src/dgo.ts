@@ -1225,20 +1225,27 @@ const BUILDERS: Record<string, Builder> = {
             refs,
         );
     },
-    Img: (parameters, { c, name, points, images }) => {
+    Img: (parameters, { c, name, points, images, offset }) => {
         check(Array.isArray(parameters));
-        const [key, width, height, ...corners] = list(parameters, 5, 6);
+        const [key, width, height, ...corners] = list(parameters, 4, 6);
         const url =
             typeof key === "string" && own(images, key) ? images[key] : null;
         check(typeof url === "string" && IMAGE_URL.test(url));
         check(isNumber(width) && width > 0 && isNumber(height) && height > 0);
-        return createImage(
+        const [screen] = corners;
+        const fixed = Array.isArray(screen);
+        const image = createImage(
             c,
             name,
             url,
             width,
             height,
-            points(corners, corners.length),
+            fixed ? [] : points(corners, corners.length),
         );
+        if (fixed) {
+            check(isPair(screen) && corners.length === 1);
+            image.screen = [screen[0] + offset[0], screen[1] + offset[1]];
+        }
+        return image;
     },
 };

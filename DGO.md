@@ -210,7 +210,7 @@ fixe), son aire (polygone) ; tout autre objet est indéfini.
 | `ELst` | points d'une expression                | `[expression]`                                  |
 | `Itr`  | itération de segments                  | `[[P1, Q1, …], niveaux, [[ax,ay,bx,by], …]]`    |
 | `Txt`  | texte attaché à un point               | `[point, [dx, dy], texte]` (8)                  |
-| `Img`  | image                                  | `[clé, largeur, hauteur, A, B, C?]` (9)         |
+| `Img`  | image                                  | `[clé, largeur, hauteur, A, B?, C?]` (9)        |
 | `Html` | texte HTML dans un cadre de la fenêtre | `[[x, y, largeur, hauteur], rayon, texte]` (11) |
 
 1. `n1`, `n2` : les nombres (expressions, ou `null`) que déplace un glisser
@@ -240,7 +240,10 @@ fixe), son aire (polygone) ; tout autre objet est indéfini.
 8. Texte dont les parties `%formule%` affichent leur valeur, `%%` étant un
    `%`.
 9. Coins inférieur gauche et inférieur droit, et supérieur gauche (sinon la
-   hauteur garde les proportions).
+   hauteur garde les proportions). Avec le seul coin inférieur gauche,
+   l'image garde sa taille en pixels ; à la place des coins, `[x, y]`, sa
+   position en pixels dans la fenêtre (coin supérieur gauche), à taille en
+   pixels.
 10. Une formule donne l'angle dans l'unité d'angle de la figure.
 11. Le texte de DGPad, dont seuls sont gardés une liste fermée d'éléments,
     d'attributs et de styles (`src/objects/panel_object.ts`) : un texte qui

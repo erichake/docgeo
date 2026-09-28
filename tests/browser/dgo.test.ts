@@ -10,7 +10,7 @@ import {
     readDgo,
     writeDgo,
 } from "../../src/dgo";
-import { importGgbFromUrl } from "../../src/ggb_importer";
+import { importGgb, importGgbFromUrl } from "../../src/ggb_importer";
 import { expression_object } from "../../src/objects/expression_object";
 import { point_on_object } from "../../src/objects/point_on_object";
 import { point_object } from "../../src/objects/point_object";
@@ -114,6 +114,33 @@ describe(".dgo writer", () => {
                 const slider = c.getObj("E2") as expression_object;
                 slider.value = 7.25;
                 c.invalidateGeometry(slider);
+            },
+        ));
+
+    it("keeps images sized in pixels, at a point or in the window", () =>
+        roundTrip(
+            async (c) =>
+                importGgb(
+                    c,
+                    `<geogebra><euclidianView><coordSystem xZero="200" yZero="300" scale="50"/><size width="800" height="600"/></euclidianView><construction>
+<element type="point" label="A"><coords x="1" y="2" z="1"/></element>
+<element type="image" label="one"><file name="p.png"/><startPoint number="0" exp="A"/></element>
+<element type="image" label="fixed"><file name="p.png"/><absoluteScreenLocation x="30" y="50"/></element>
+</construction></geogebra>`,
+                    new Map([
+                        [
+                            "p.png",
+                            {
+                                url: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==",
+                                width: 40,
+                                height: 20,
+                            },
+                        ],
+                    ]),
+                ),
+            (c) => {
+                c.GRID.ORG = [c.GRID.ORG[0] + 40, c.GRID.ORG[1] - 25];
+                c.invalidateProjection();
             },
         ));
 
