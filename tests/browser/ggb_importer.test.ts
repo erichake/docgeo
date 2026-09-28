@@ -1560,6 +1560,20 @@ ${lines.map((line, index) => command("Plane", ["C", line], `p${index}`)).join("\
         expect(face.hiddenOutline.getAtt("d")?.trim()).toBe("");
     });
 
+    it("builds a command's point inputs that depend on the figure", async () => {
+        const c = createConstruction();
+        expect(importGgb(c, await loadXml("Animations03"))).toEqual([]);
+        const f = c.getObj("f") as segment_object;
+        const t = c.getObj("t") as expression_object;
+        expect(f.P1.coords[0]).toBeCloseTo(0.86);
+        expect(f.P2.coords[1]).toBeCloseTo(0.14);
+        t.value = 0.3;
+        c.invalidateGeometry(t);
+        c.flush();
+        expect(f.P1.coords[0]).toBeCloseTo(0.3);
+        expect(f.P2.coords[1]).toBeCloseTo(0.7);
+    });
+
     it("reports what it can't import instead of failing", () => {
         const c = createConstruction();
         const unsupported = importGgb(

@@ -2859,8 +2859,8 @@ export function translateGgb(
     ]);
 
     // A command input that isn't an existing label may be a nested command
-    // (e.g. "Segment[A, B]") or a constant point: built as a hidden
-    // auxiliary object, like GeoGebra does.
+    // (e.g. "Segment[A, B]") or a point, constant or not (e.g. "(t, 0)"):
+    // built as a hidden auxiliary object, like GeoGebra does.
     const resolve = (input: string): string => {
         if (objects.has(input)) return input;
         const text = normalizeBrackets(input.trim());
@@ -2880,6 +2880,13 @@ export function translateGgb(
             define(label, "point", "Point", vectorLiteral([x, y, z ?? 0]));
             return label;
         }
+        const tuple =
+            text.startsWith("(") &&
+            text.endsWith(")") &&
+            splitArguments(text.slice(1, -1));
+        const coords =
+            tuple && tuple.length > 1 ? formula(text, VALUE_KINDS) : null;
+        if (coords !== null) return formulaPoint(coords, label);
         const call = commandCall(text);
         return call && HANDLERS[call[0]]?.(call[1].map(resolve), [label])
             ? label
