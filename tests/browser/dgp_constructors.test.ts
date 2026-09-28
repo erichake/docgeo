@@ -186,6 +186,38 @@ describe("DGPad geometric constructors", () => {
         expect(vDot(bisector.VEC, axis.VEC)).toBeCloseTo(0);
     });
 
+    it("numbers a perpendicular bisector's intersections as DGPad", () => {
+        const c = createConstruction();
+        const o = createPoint(c, "O", [0, 0, 0]);
+        const a = createPoint(c, "A", [-1, 0, 0]);
+        const b = createPoint(c, "B", [1, 0, 0]);
+        const circle = createCircle1(c, "C", o, 2);
+        const bisector = createPerpendicularBisector(c, "L", a, b);
+        const first = createOrderedIntersection(c, "I", bisector, circle, 0);
+
+        expect(first.coords[0]).toBeCloseTo(0);
+        expect(first.coords[1]).toBeCloseTo(-2);
+    });
+
+    it("keeps a point on an arc at its nearest end beyond it", () => {
+        const c = createConstruction();
+        const arc = createArc3pts(
+            c,
+            "Arc",
+            createPoint(c, "E", [2, 0, 0]),
+            createPoint(c, "F", [0, 2, 0]),
+            createPoint(c, "G", [-2, 0, 0]),
+        );
+        const m = createPointOn(c, "M", arc, -1.4);
+        expect(m.coords[0]).toBeCloseTo(2);
+        expect(m.coords[1]).toBeCloseTo(0);
+
+        m.alpha = -1.7;
+        m.computeGeometry();
+        expect(m.coords[0]).toBeCloseTo(-2);
+        expect(m.coords[1]).toBeCloseTo(0);
+    });
+
     it("constructs an angle bisector ray from a vertex and two arms", () => {
         const c = createConstruction();
         const vertex = createPoint(c, "P1", [0, 0, 0]);

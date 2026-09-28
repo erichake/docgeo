@@ -1,5 +1,5 @@
 import type { construction } from "../construction";
-import { geometryTolerance, numEqual } from "../vec";
+import { geometryTolerance, numEqual, type Vec3 } from "../vec";
 import type { construction_object, DgoContext } from "./construction_object";
 import type { point_object } from "./point_object";
 import { primitive_circle_object } from "./primitive_circle_object";
@@ -95,6 +95,16 @@ export class arc3pts_object extends primitive_circle_object {
         this.sweepFlag = goesCcw ? 1 : 0;
         this.largeArcFlag =
             (goesCcw ? spanAC : TWO_PI - spanAC) > Math.PI ? 1 : 0;
+    }
+
+    // Beyond the arc, the nearest of its ends, as in DGPad.
+    pointAt(alpha: number): Vec3 {
+        const from = this.sweepFlag ? this.startAlpha : this.endAlpha;
+        const to = this.sweepFlag ? this.endAlpha : this.startAlpha;
+        const span = normalizeAngle(to - from);
+        const beyond = normalizeAngle(alpha - from) - span;
+        if (beyond > 0) alpha = beyond < (TWO_PI - span) / 2 ? to : from;
+        return super.pointAt(alpha);
     }
 
     render(): void {

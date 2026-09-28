@@ -28,7 +28,8 @@ export class perpendicular_bisector_object extends primitive_line_object {
         if (!this.A1.defined || !this.A2.defined) return null;
         this.P1.coords = vScale(vAdd(this.A1.coords, this.A2.coords), 0.5);
         this.P1.computeGeometry();
-        return vNormalize([this.A1.y - this.A2.y, this.A2.x - this.A1.x, 0]);
+        // Oriented as DGPad's, which numbers its intersections along it.
+        return vNormalize([this.A2.y - this.A1.y, this.A1.x - this.A2.x, 0]);
     }
 
     project(): void {
