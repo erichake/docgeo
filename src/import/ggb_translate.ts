@@ -96,6 +96,8 @@ const FORMULA_COMMANDS = new Set([
     "FractionText",
     "Slope",
     "Length",
+    "Rotate",
+    "Translate",
 ]);
 // The commands whose list listFormula reads from their own sources.
 const LIST_COMMANDS = new Set(["Take", "First", "Last"]);
@@ -698,10 +700,29 @@ export function translateGgb(
     const vectors = new Map<string, [string, string]>();
     // A point of each line, where it is known.
     const lineStarts = new Map<string, string>();
+    // GeoGebra places a point on a line from its start along its direction,
+    // not normalized: the vector between two points, turned by quarter
+    // turns. Only kept for the lines DGP draws from a unit vector.
+    const lineEnds = new Map<string, string[]>();
+    const directedLines = new Map<
+        string,
+        { start: string; ends: string[]; turns: number }
+    >();
     // The points known to lie on a circle.
     const circlePoints = new Map<string, string[]>();
     const polygons = new Map<string, string[]>();
     const polyhedra = new Map<string, [string, string][]>();
+    // A polyhedron's faces, all drawn by its image with their sides.
+    const shells = new Map<string, string[][]>();
+    // The objects drawing an object that isn't one itself.
+    const parts = new Map<string, string[]>();
+    // The points an object is built from, and how to build it from others:
+    // its image by a similarity is built from their images.
+    const shapes = new Map<
+        string,
+        { points: string[]; build: (label: string, points: string[]) => void }
+    >();
+    const labels = new Map<string, string>();
     // A convex polyhedron's faces, as their vertices.
     const solids = new Map<string, string[][]>();
     const iterations = new Map<
@@ -819,7 +840,12 @@ export function translateGgb(
                       : vectorFormula(arg.replace(/^Segment\(/, "Vector("));
             return vector && `(${vector}*1i)`;
         }
-        if (match[1] !== "Vector" || args.length !== 2) return null;
+        if (match[1] !== "Vector") return null;
+        if (args.length === 1) {
+            const v = formula(args[0], VALUE_KINDS);
+            return v && `(${v})`;
+        }
+        if (args.length !== 2) return null;
         const [p, q] = args.map((arg) => formula(arg, POINT_KINDS));
         return p === null || q === null ? null : `(${q}-${p})`;
     };
@@ -839,7 +865,8 @@ export function translateGgb(
             (kinds.includes("expression") &&
                 (segments.has(word) || is(word, ["angle"])));
         const known = objects.get(source);
-        if (known) return readable(source) ? known.variable : null;
+        if (known && !vectors.has(source))
+            return readable(source) ? known.variable : null;
         const text = normalizeBrackets(source)
             .replace(/²/g, "^2")
             .replace(/³/g, "^3")
@@ -920,7 +947,13 @@ export function translateGgb(
                 // GeoGebra's imaginary unit.
                 else if (word === "ί") result += "i";
                 else if (locals.has(word)) result += `(${locals.get(word)})`;
-                else if (readable(word)) result += objects.get(word)!.variable;
+                else if (vectors.has(word) && kinds.length > 0) {
+                    const [p, q] = vectors
+                        .get(word)!
+                        .map((end) => objects.get(end)!.variable);
+                    result += `(${q}-${p})`;
+                } else if (readable(word))
+                    result += objects.get(word)!.variable;
                 else return null;
                 continue;
             }
@@ -1036,6 +1069,18 @@ export function translateGgb(
                 return args.length === 1
                     ? lengthFormula(args[0], locals)
                     : null;
+            // Of a point or a vector, around a point.
+            case "Rotate":
+            case "Translate": {
+                const values = args.map((arg) =>
+                    formula(arg, VALUE_KINDS, locals),
+                );
+                if (values.includes(null)) return null;
+                const [p, a, c] = values as string[];
+                if (name === "Translate")
+                    return args.length === 2 ? `(${p}+${a})` : null;
+                return args.length <= 3 ? `(${turn(`(${p})`, a, c)})` : null;
+            }
             // GeoGebra's LaTeX fraction, the first continued fraction
             // convergent within 1e-8.
             case "FractionText": {
@@ -1073,6 +1118,34 @@ export function translateGgb(
     // A line's point: GeoGebra draws its slope triangle from it.
     const linePoint = (line: string): string | undefined =>
         lineStarts.get(line) ?? segments.get(line)?.[0];
+
+    const lineDirection = (line: string) => {
+        const ends = segments.get(line) ?? lineEnds.get(line);
+        return (
+            directedLines.get(line) ??
+            (ends && !is3D ? { start: ends[0], ends, turns: 0 } : undefined)
+        );
+    };
+
+    // A line through the start of a directed line and its direction's tip,
+    // on which a point is placed as GeoGebra's is.
+    const directedLine = (line: string): string => {
+        const { start, ends, turns } = directedLines.get(line)!;
+        const [s, a, b] = [start, ...ends].map((p) => objects.get(p)!.variable);
+        const [dx, dy] = [`(x(${b})-x(${a}))`, `(y(${b})-y(${a}))`];
+        const [u, v] = [
+            [dx, dy],
+            [`-${dy}`, dx],
+            [`-${dx}`, `-${dy}`],
+            [dy, `-${dx}`],
+        ][turns % 4];
+        const through = auxiliary();
+        define(through, "line", "Line", [
+            ref(start),
+            ref(formulaPoint(`[x(${s})+${u},y(${s})+${v}]`)),
+        ]);
+        return through;
+    };
 
     const slopeFormula = (line: string): string => {
         const u = unitDirection(line);
@@ -1287,6 +1360,16 @@ export function translateGgb(
                 ? label
                 : `$${calls.length}`;
         objects.set(label, { variable, kind });
+        labels.set(variable, label);
+        const sources = args.map((arg) =>
+            arg.type === "reference" ? labels.get(arg.name) : undefined,
+        );
+        if (args.length > 0 && points(...sources))
+            shapes.set(label, {
+                points: sources as string[],
+                build: (image, vertices) =>
+                    define(image, kind, command, vertices.map(ref)),
+            });
         push(variable, command, [literal(label), ...args]);
         const element = elements.get(label);
         // Without its own element (an unlabeled output, or an auxiliary
@@ -1469,8 +1552,12 @@ export function translateGgb(
         label: string,
         vertices: string[],
         style?: string,
-    ): true =>
-        define(
+    ): true => {
+        shapes.set(label, {
+            points: vertices,
+            build: (image, points) => definePolygon(image, points),
+        });
+        return define(
             label,
             "polygon",
             "Polygon",
@@ -1483,6 +1570,7 @@ export function translateGgb(
             ],
             style,
         );
+    };
 
     const defineIteration = (
         label: string,
@@ -1503,30 +1591,103 @@ export function translateGgb(
         ]);
     };
 
-    // The image of an iteration by a direct similarity is the iteration of
-    // its start segments' images, since its maps commute with it.
-    const iterationImage =
-        (transform: Handler): Handler =>
-        (inputs, outputs) => {
-            const iteration = iterations.get(inputs[0]);
-            if (!iteration) return transform(inputs, outputs);
-            const ends = iteration.ends.map((pair) =>
-                pair.map((end) => {
-                    const image = auxiliary();
-                    return transform([end, ...inputs.slice(1)], [image])
-                        ? image
-                        : "";
-                }),
-            );
-            return (
-                ends.flat().every(Boolean) &&
-                defineIteration(
-                    outputs[0],
-                    ends,
-                    iteration.levels,
-                    iteration.maps,
-                )
-            );
+    type PointMap = (point: string, label: string) => void;
+    // The image of a point, of an object built from points (see shapes), of
+    // a polyhedron, of a written list of them or, by a direct similarity, of
+    // an iteration: the iteration of its start segments' images, since its
+    // maps commute with it.
+    const transform =
+        (
+            mapOf: (params: string[]) => PointMap | null,
+            direct = true,
+        ): Handler =>
+        ([list, ...params], [output]) => {
+            const map = mapOf(params);
+            if (!map) return false;
+            const images = new Map<string, string>();
+            const image = (point: string): string => {
+                let result = images.get(point);
+                if (!result) {
+                    images.set(point, (result = auxiliary()));
+                    map(point, result);
+                }
+                return result;
+            };
+            const imageOf = (source: string, label: string): boolean => {
+                if (points(source)) {
+                    map(source, label);
+                    return true;
+                }
+                const iteration = iterations.get(source);
+                if (iteration && direct)
+                    return defineIteration(
+                        label,
+                        iteration.ends.map((ends) => ends.map(image)),
+                        iteration.levels,
+                        iteration.maps,
+                    );
+                const shape = shapes.get(source);
+                if (shape) {
+                    shape.build(label, shape.points.map(image));
+                    for (const known of [segments, vectors, polygons] as Map<
+                        string,
+                        string[]
+                    >[]) {
+                        const vertices = known.get(source);
+                        if (vertices) known.set(label, vertices.map(image));
+                    }
+                    return true;
+                }
+                const shell = shells.get(source);
+                if (!shell) return false;
+                const faces = shell.map((face) => face.map(image));
+                shells.set(label, faces);
+                const element = elements.get(label);
+                const style = element ? shapeStyle(element) : "h:1";
+                const edges = new Map<string, string[]>();
+                const drawn = faces.map((face) => {
+                    face.forEach((p, index) => {
+                        const q = face[(index + 1) % face.length];
+                        edges.set([p, q].sort().join("\n"), [p, q]);
+                    });
+                    const part = auxiliary();
+                    definePolygon(part, face, style);
+                    return part;
+                });
+                edges.forEach((ends) => {
+                    const part = auxiliary();
+                    define(
+                        part,
+                        "line",
+                        "Segment",
+                        ends.map(ref),
+                        style.replace(/;o:[^;]*/, ""),
+                    );
+                    drawn.push(part);
+                });
+                parts.set(label, drawn);
+                return true;
+            };
+            // A written list's items, drawn in its style.
+            const items = /^\{.*\}$/.test(list)
+                ? splitArguments(list.slice(1, -1))!.map(resolve)
+                : null;
+            if (!items) return imageOf(list, output);
+            const drawn = items.flatMap((item) => {
+                const part = auxiliary();
+                return imageOf(item, part) ? (parts.get(part) ?? [part]) : [""];
+            });
+            if (drawn.includes("")) return false;
+            const element = elements.get(output);
+            if (element)
+                drawn.forEach((part) =>
+                    push(null, "STL", [
+                        ref(part),
+                        literal(`h:0;${shapeStyle(element)}`),
+                    ]),
+                );
+            parts.set(output, drawn);
+            return true;
         };
 
     // Only a constant speed: GeoGebra's may depend on the figure.
@@ -1604,6 +1765,17 @@ export function translateGgb(
             (slider.getAttribute("absoluteScreenLocation") ??
                 slider.getAttribute("fixed")) === "true",
         );
+
+    // P turned by a around C (the origin by default), keeping its height.
+    const turn = (p: string, a: string, c?: string): string => {
+        const [dx, dy] = c
+            ? [`(x(${p})-x(${c}))`, `(y(${p})-y(${c}))`]
+            : [`x(${p})`, `y(${p})`];
+        return `${p}+${planar(
+            `(cos(${a})-1)*${dx}-sin(${a})*${dy}`,
+            `sin(${a})*${dx}+(cos(${a})-1)*${dy}`,
+        )}`;
+    };
 
     // P turned by t around the axis through O along the unit vector k.
     const turn3D = (p: string, o: string, k: string, t: string): string =>
@@ -1931,13 +2103,24 @@ export function translateGgb(
             inputs.length === arity &&
             points(...inputs) &&
             define(label, kind, command, inputs.map(ref));
-    const mirror: Handler = ([source, mirror], [label]) =>
-        points(source) &&
-        (points(mirror)
-            ? define(label, "point", "Symmetry", [ref(mirror), ref(source)])
-            : is(mirror, ["line"])
-              ? define(label, "point", "Reflection", [ref(mirror), ref(source)])
-              : is(mirror, ["circle"]) && inversion(label, source, mirror));
+    const reflection = transform(
+        ([mirror]) =>
+            points(mirror)
+                ? (p, label) =>
+                      define(label, "point", "Symmetry", [ref(mirror), ref(p)])
+                : is(mirror, ["line"])
+                  ? (p, label) =>
+                        define(label, "point", "Reflection", [
+                            ref(mirror),
+                            ref(p),
+                        ])
+                  : null,
+        false,
+    );
+    const mirror: Handler = (inputs, outputs) =>
+        is(inputs[1], ["circle"])
+            ? points(inputs[0]) && inversion(outputs[0], inputs[0], inputs[1])
+            : reflection(inputs, outputs);
 
     // The inverse of P in a circle of center M and radius r is
     // M + (P - M)·r²/MP², r being read off a point where MP meets it.
@@ -2082,7 +2265,11 @@ export function translateGgb(
                 "curve",
                 "locus",
             ]) &&
-            pointOn(label, support, kindOf(support) === "polygon"),
+            pointOn(
+                label,
+                directedLines.has(support) ? directedLine(support) : support,
+                kindOf(support) === "polygon",
+            ),
         PointIn: ([region, extra], [label]) =>
             extra === undefined &&
             is(region, ["polygon"]) &&
@@ -2166,13 +2353,20 @@ export function translateGgb(
         Center: ([circle], [label]) =>
             is(circle, ["circle"]) &&
             define(label, "point", "Center", [ref(circle)]),
-        Line: ([p, q], [label]) =>
-            points(p) &&
-            !!lineStarts.set(label, p) &&
-            (points(q)
-                ? define(label, "line", "Line", [ref(p), ref(q)])
-                : is(q, ["line"]) &&
-                  define(label, "line", "Parallel", [ref(q), ref(p)])),
+        Line: ([p, q], [label]) => {
+            if (!points(p)) return false;
+            lineStarts.set(label, p);
+            if (points(q)) {
+                lineEnds.set(label, [p, q]);
+                return define(label, "line", "Line", [ref(p), ref(q)]);
+            }
+            const direction = lineDirection(q);
+            if (direction) directedLines.set(label, { ...direction, start: p });
+            return (
+                is(q, ["line"]) &&
+                define(label, "line", "Parallel", [ref(q), ref(p)])
+            );
+        },
         Segment: ([p, q, extra], [label]) =>
             extra === undefined && points(p, q) && defineSegment(label, p, q),
         Ray: onePoint("Ray", 2),
@@ -2195,6 +2389,13 @@ export function translateGgb(
                         ),
                     ),
                 ]);
+            const direction = extra === undefined && lineDirection(line);
+            if (direction)
+                directedLines.set(label, {
+                    start: p,
+                    ends: direction.ends,
+                    turns: direction.turns + 1,
+                });
             return (
                 is(line, ["line"]) &&
                 define(label, "line", "Perpendicular", [ref(line), ref(p)])
@@ -2327,6 +2528,15 @@ export function translateGgb(
                     [label, ...sides.slice(0, n)],
                 );
             }
+            // A list's points, in turn.
+            const list = inputs.length === 1 && listFormula(inputs[0]);
+            const item = list && list.item("k+1");
+            if (item)
+                return define(label, "list", "List", [
+                    literal("polygon"),
+                    literal(list.count),
+                    literal(item),
+                ]);
             if (inputs.length < 3 || !points(...inputs)) return false;
             polygons.set(label, inputs);
             definePolygon(label, inputs);
@@ -2389,6 +2599,7 @@ export function translateGgb(
                 if (label) defineSegment(label, vertices[p], vertices[q]);
             });
             solids.set(solid, faces);
+            shells.set(solid, faces);
             return true;
         },
         // Net(P, v, base, e1, e2, …): P's net unfolded by v (0: folded, 1:
@@ -2541,6 +2752,7 @@ export function translateGgb(
                     [vertex, base[(index + 1) % n]],
                 ]),
             );
+            shells.set(solid, polygon ? [base, ...faces] : faces);
             return true;
         },
         // Prism(A, B, C, …, P) or Prism(poly, P): P is the top vertex over A,
@@ -2610,6 +2822,7 @@ export function translateGgb(
                 const label = outputs[n - 1 + faces.length + index];
                 if (label) defineSegment(label, p, q);
             });
+            shells.set(solid, polygon ? [base, ...faces] : faces);
             return true;
         },
         Cylinder: revolution(false),
@@ -2765,75 +2978,60 @@ export function translateGgb(
         Reflect: mirror,
         // Rotate(P, a, C) as P + (R(a) - I)(P - C), which keeps P's height
         // in 3D; C defaults to the origin.
-        Rotate: iterationImage(([source, angle, center, axis], [label]) => {
+        Rotate: transform(([angle, center, axis]) => {
             const a = formula(angle, VALUE_KINDS);
+            if (a === null) return null;
             // In space, around a line, or around the axis through a point
             // along a vector or a line.
             const line = axis ?? (points(center) ? undefined : center);
             if (line !== undefined) {
                 const origin = axis ? center : linePoint(line);
                 const k = unitDirection(line);
-                if (a === null || !points(source, origin) || !k) return false;
-                formulaPoint(
-                    turn3D(
-                        objects.get(source)!.variable,
-                        objects.get(origin!)!.variable,
-                        k,
-                        a,
-                    ),
-                    label,
-                );
-                return true;
+                if (!points(origin) || !k) return null;
+                return (p, label) =>
+                    formulaPoint(
+                        turn3D(
+                            objects.get(p)!.variable,
+                            objects.get(origin!)!.variable,
+                            k,
+                            a,
+                        ),
+                        label,
+                    );
             }
-            const extra = axis;
-            if (
-                extra !== undefined ||
-                a === null ||
-                !points(source) ||
-                (center !== undefined && !points(center))
-            )
-                return false;
-            const p = objects.get(source)!.variable;
             const c = center && objects.get(center)!.variable;
-            const [dx, dy] = c
-                ? [`(x(${p})-x(${c}))`, `(y(${p})-y(${c}))`]
-                : [`x(${p})`, `y(${p})`];
-            formulaPoint(
-                `${p}+${planar(
-                    `(cos(${a})-1)*${dx}-sin(${a})*${dy}`,
-                    `sin(${a})*${dx}+(cos(${a})-1)*${dy}`,
-                )}`,
-                label,
-            );
-            return true;
+            return (p, label) =>
+                formulaPoint(turn(objects.get(p)!.variable, a, c), label);
         }),
-        Dilate: iterationImage(([source, factor, center, extra], [label]) => {
+        Dilate: transform(([factor, center, extra]) => {
             const k = formula(factor, VALUE_KINDS);
             if (
                 extra !== undefined ||
                 k === null ||
-                !points(source) ||
                 (center !== undefined && !points(center))
             )
-                return false;
-            const p = objects.get(source)!.variable;
+                return null;
             const c = center && objects.get(center)!.variable;
-            formulaPoint(c ? `${c}+(${p}-${c})*(${k})` : `${p}*(${k})`, label);
-            return true;
+            return (p, label) => {
+                const v = objects.get(p)!.variable;
+                formulaPoint(
+                    c ? `${c}+(${v}-${c})*(${k})` : `${v}*(${k})`,
+                    label,
+                );
+            };
         }),
         Vector: ([p, q], [label]) => {
             if (!points(p, q)) return false;
             vectors.set(label, [p, q]);
             return define(label, "line", "Vector", [ref(p), ref(q)]);
         },
-        Translate: iterationImage(([source, vector, extra], [label]) => {
-            const ends = vectors.get(vector);
-            if (extra !== undefined || !ends || !points(source)) return false;
-            const [p, a, b] = [source, ...ends].map(
-                (input) => objects.get(input)!.variable,
-            );
-            formulaPoint(`${p}+${b}-${a}`, label);
-            return true;
+        // By a vector, or a point's position vector.
+        Translate: transform(([vector, extra]) => {
+            const v = extra === undefined && formula(vector, VALUE_KINDS);
+            return v
+                ? (p, label) =>
+                      formulaPoint(`${objects.get(p)!.variable}+(${v})`, label)
+                : null;
         }),
         // Iteration(Flatten(Zip({f1(k), f2(k), …}, k, m)), m, {s1, …}, n):
         // n times, each segment k is replaced by its images f1(k), f2(k), …
@@ -2872,33 +3070,38 @@ export function translateGgb(
             );
         },
         // Sequence(f(i), i, a, b, s): the List of f(a), f(a + s), … up to b,
-        // f being a point or a segment.
+        // f being a point, a segment or a polygon. The vertices of the
+        // polygons come in turn, each followed by an undefined point.
         Sequence: (
             [expression, variable, from, to, step = "1", extra],
             [label],
         ) => {
-            const [a, b, s] = [from, to, step].map((bound) =>
-                formula(bound ?? "", VALUE_KINDS),
+            const call = commandCall(normalizeBrackets(expression));
+            const ends =
+                call &&
+                ((call[0] === "Segment" && call[1].length === 2) ||
+                    (call[0] === "Polygon" && call[1].length > 2))
+                    ? call[1]
+                    : [expression];
+            const sequences = ends.map((end) =>
+                listFormula(
+                    `Sequence(${end},${variable},${from},${to},${step})`,
+                ),
             );
             if (
                 extra !== undefined ||
-                is3D ||
-                a === null ||
-                b === null ||
-                s === null ||
-                !IDENTIFIER.test(variable)
+                !IDENTIFIER.test(variable) ||
+                sequences.some((sequence) => !sequence)
             )
                 return false;
-            const call = commandCall(normalizeBrackets(expression));
-            const ends =
-                call?.[0] === "Segment" && call[1].length === 2
-                    ? call[1]
-                    : [expression];
-            const locals = new Map([[variable, `${a}+k*(${s})`]]);
-            const formulas = ends.map((end) =>
-                formula(end, VALUE_KINDS, locals),
+            const polygon = ends.length > 2;
+            const n = ends.length + 1;
+            const items = sequences.map((sequence) =>
+                sequence!.item(polygon ? `floor(k/${n})+1` : "k+1"),
             );
-            if (formulas.some((value) => value === null)) return false;
+            if (items.includes(null)) return false;
+            const [list] = sequences as ListFormula[];
+            if (ends.length === 1) lists.set(label, list);
             const element = elements.get(label);
             const size = element && attribute(element, "pointSize", "val");
             return define(
@@ -2906,11 +3109,17 @@ export function translateGgb(
                 "list",
                 "List",
                 [
-                    literal(ends.length === 2 ? "segment" : "point"),
-                    // Rounded by the List: floor(r) + 1 values, with a margin
-                    // for r's rounding errors.
-                    literal(`((${b})-(${a}))/(${s})+0.500001`),
-                    ...formulas.map((value) => literal(value!)),
+                    literal(
+                        polygon
+                            ? "polygons"
+                            : ends.length === 2
+                              ? "segment"
+                              : "point",
+                    ),
+                    literal(polygon ? `${n}*${list.count}` : list.count),
+                    ...(polygon ? [`[${items},0/0][k%${n}]`] : items).map(
+                        (item) => literal(item!),
+                    ),
                 ],
                 element &&
                     `${objectStyle(element, "list")}${ends.length === 1 && size ? `;s:${size}` : ""}`,
@@ -3663,7 +3872,8 @@ export function translateGgb(
                         true,
                     ).map(literal),
                 ]);
-            const [a, b, d] = corners;
+            const [a, b] = corners;
+            let d = corners[2];
             if (!points(a, ...corners.filter(Boolean))) return false;
             // Without its bottom right corner, the image keeps its
             // proportions: its bottom goes right of its left side, as long.
@@ -3673,6 +3883,30 @@ export function translateGgb(
                 corners[1] = formulaPoint(
                     `[x(${va})+(y(${vd})-y(${va}))*${ratio},y(${va})-(x(${vd})-x(${va}))*${ratio}]`,
                 );
+            }
+            if (corners[1]) {
+                const build = (image: string, points: string[]) =>
+                    define(image, "image", "Image", [
+                        ...picture,
+                        ...points.map(ref),
+                    ]);
+                // Its top left corner, built only for its image, which a
+                // reflection turns over.
+                const topLeft = (): string => {
+                    const [va, vb] = [a, corners[1]].map(
+                        (p) => objects.get(p)!.variable,
+                    );
+                    const ratio = image.height / image.width;
+                    return formulaPoint(
+                        `[x(${va})-(y(${vb})-y(${va}))*${ratio},y(${va})+(x(${vb})-x(${va}))*${ratio}]`,
+                    );
+                };
+                shapes.set(label, {
+                    get points() {
+                        return [a, corners[1], d ?? (d = topLeft())];
+                    },
+                    build,
+                });
             }
             return define(label, "image", "Image", [
                 ...picture,
@@ -3887,9 +4121,10 @@ export function translateGgb(
     const conditions = new Map<string, string | null>();
     elements.forEach((element, label) => {
         const source = attribute(element, "condition", "showObject");
+        const drawn = parts.get(label) ?? [label];
         if (
             source === undefined ||
-            !objects.has(label) ||
+            !objects.has(drawn[0]) ||
             (element.getAttribute("type") === "numeric" &&
                 !child(element, "slider"))
         )
@@ -3903,7 +4138,9 @@ export function translateGgb(
         }
         const condition = conditions.get(source);
         if (condition)
-            push(null, "STL", [ref(label), literal(`h:0;sc:${condition}`)]);
+            drawn.forEach((part) =>
+                push(null, "STL", [ref(part), literal(`h:0;sc:${condition}`)]),
+            );
     });
 
     return {

@@ -6,7 +6,7 @@ noter le gain mesuré et reporter la nouvelle ligne dans l'historique.
 
 ## Contrainte absolue : un build léger
 
-Le build fait ~267 Ko, là où DGPad et surtout GeoGebra sont très lourds : c'est
+Le build fait ~269 Ko, là où DGPad et surtout GeoGebra sont très lourds : c'est
 un atout essentiel du projet. Chaque ajout doit rester proportionné à ce qu'il
 débloque :
 
@@ -38,24 +38,28 @@ commande non gérée n'est pas une cause. L'API utilisée est
 
 ## Historique
 
-| Date       | Figures sans perte | Build    | Changement                                                       |
-| ---------- | ------------------ | -------- | ---------------------------------------------------------------- |
-| 2026-09-28 | 105 / 438 (24 %)   | ~254 Ko  | état initial ; 0 plantage, import médian 4 ms, max 170 ms        |
-| 2026-09-28 | 120 / 438 (27 %)   | 254,4 Ko | item 1 : textes LaTeX placés dans le repère (+15)                |
-| 2026-09-28 | 138 / 438 (32 %)   | 255,4 Ko | item 2 : images à un coin, à l'écran, coins lus après (+18)      |
-| 2026-09-28 | 142 / 438 (32 %)   | 255,4 Ko | item 3 : le degré « ° » comme constante (+4)                     |
-| 2026-09-28 | 159 / 438 (36 %)   | 255,6 Ko | item 4 : booléens dépendants, `¬`, longueurs et angles (+17)     |
-| 2026-09-28 | 164 / 438 (37 %)   | 256,0 Ko | item 5 : `Corner(n)`, coins et taille de la vue (+5)             |
-| 2026-09-28 | 170 / 438 (39 %)   | 256,5 Ko | item 6 : `TriangleCenter` pour n = 1 à 5 (+6)                    |
-| 2026-09-28 | 171 / 438 (39 %)   | 256,9 Ko | item 7 : appel des fonctions de la figure (+1)                   |
-| 2026-09-28 | 171 / 438 (39 %)   | 257,4 Ko | item 7 bis : comparaisons chaînées (exactitude, +0)              |
-| 2026-09-28 | 172 / 438 (39 %)   | 258,1 Ko | item 8 : fonctions mathématiques, `Min`, `Max`, `Mod` (+1)       |
-| 2026-09-28 | 181 / 438 (41 %)   | 260,1 Ko | item 9 : droites et coniques données par une équation (+9)       |
-| 2026-09-28 | 194 / 438 (44 %)   | 261,1 Ko | item 10 : textes, `FractionText`, étiquettes `a'`, `A_{1}` (+13) |
-| 2026-09-28 | 202 / 438 (46 %)   | 264,8 Ko | item 11 : tangentes, pente, dérivée, intégrales, sommes (+8)     |
-| 2026-09-28 | 203 / 438 (46 %)   | 265,4 Ko | item 12 : hasard, valeurs enregistrées ou tirées à l'import (+1) |
-| 2026-09-28 | 211 / 438 (48 %)   | 266,5 Ko | item 13 : solides sur polygone, cône, plans, rotations 3D (+8)   |
-| 2026-09-28 | 211 / 438 (48 %)   | 267,0 Ko | item 14 : `Take`, `First`, `Last`, `Sequence(n)`, `l(n)` (+0)    |
+| Date       | Figures sans perte | Build    | Changement                                                         |
+| ---------- | ------------------ | -------- | ------------------------------------------------------------------ |
+| 2026-09-28 | 105 / 438 (24 %)   | ~254 Ko  | état initial ; 0 plantage, import médian 4 ms, max 170 ms          |
+| 2026-09-28 | 120 / 438 (27 %)   | 254,4 Ko | item 1 : textes LaTeX placés dans le repère (+15)                  |
+| 2026-09-28 | 138 / 438 (32 %)   | 255,4 Ko | item 2 : images à un coin, à l'écran, coins lus après (+18)        |
+| 2026-09-28 | 142 / 438 (32 %)   | 255,4 Ko | item 3 : le degré « ° » comme constante (+4)                       |
+| 2026-09-28 | 159 / 438 (36 %)   | 255,6 Ko | item 4 : booléens dépendants, `¬`, longueurs et angles (+17)       |
+| 2026-09-28 | 164 / 438 (37 %)   | 256,0 Ko | item 5 : `Corner(n)`, coins et taille de la vue (+5)               |
+| 2026-09-28 | 170 / 438 (39 %)   | 256,5 Ko | item 6 : `TriangleCenter` pour n = 1 à 5 (+6)                      |
+| 2026-09-28 | 171 / 438 (39 %)   | 256,9 Ko | item 7 : appel des fonctions de la figure (+1)                     |
+| 2026-09-28 | 171 / 438 (39 %)   | 257,4 Ko | item 7 bis : comparaisons chaînées (exactitude, +0)                |
+| 2026-09-28 | 172 / 438 (39 %)   | 258,1 Ko | item 8 : fonctions mathématiques, `Min`, `Max`, `Mod` (+1)         |
+| 2026-09-28 | 181 / 438 (41 %)   | 260,1 Ko | item 9 : droites et coniques données par une équation (+9)         |
+| 2026-09-28 | 194 / 438 (44 %)   | 261,1 Ko | item 10 : textes, `FractionText`, étiquettes `a'`, `A_{1}` (+13)   |
+| 2026-09-28 | 202 / 438 (46 %)   | 264,8 Ko | item 11 : tangentes, pente, dérivée, intégrales, sommes (+8)       |
+| 2026-09-28 | 203 / 438 (46 %)   | 265,4 Ko | item 12 : hasard, valeurs enregistrées ou tirées à l'import (+1)   |
+| 2026-09-28 | 211 / 438 (48 %)   | 266,5 Ko | item 13 : solides sur polygone, cône, plans, rotations 3D (+8)     |
+| 2026-09-28 | 211 / 438 (48 %)   | 267,0 Ko | item 14 : `Take`, `First`, `Last`, `Sequence(n)`, `l(n)` (+0)      |
+| 2026-09-28 | 223 / 438 (51 %)   | 268,0 Ko | item 15 : images d'arcs, polygones, coniques, polyèdres (+12)      |
+| 2026-09-28 | 230 / 438 (53 %)   | 269,0 Ko | item 16 : suites de polygones, `Rotate` en formule, listes 3D (+7) |
+| 2026-09-28 | 251 / 470 (53 %)   | 269,3 Ko | item 15 bis : images d'images par une transformation (+0)          |
+| 2026-09-28 | 251 / 470 (53 %)   | 269,8 Ko | item 15 ter : points sur une perpendiculaire ou parallèle (+0)     |
 
 ## À faire, par rapport gain / coût
 
@@ -238,6 +242,71 @@ cause.
       d'objets (`{Segment[A, B], …}`) ou les rotations de polygones.
       `Zip`, `Flatten` d'une suite de suites, `Append` et `IndexOf` ont été
       écrits puis retirés : +1,1 Ko pour aucune figure gagnée.
+
+- [x] **15. Transformations d'objets autres que des points** (29 / 16) :
+      `Rotate`, `Translate`, `Mirror`, `Dilate` n'acceptaient qu'un point
+      (et une itération de segments). Fait : chaque objet défini par des
+      points garde ces points et sa commande DGP (segment, droite, vecteur,
+      cercle par points, arc et secteur, conique par cinq points, polygone),
+      et son image est la même commande sur les images de ces points ; un
+      polyèdre (`Cube`, `Pyramid`, `Prism`) garde ses faces, et son image
+      dessine les leurs et leurs côtés, dans le style du polyèdre, sa
+      condition d'affichage s'appliquant à chacun. La réflexion par un
+      cercle (inversion) reste limitée aux points. Au passage, `Translate`
+      accepte tout vecteur calculé (`Vector[(2 * v) + w]`, `(a, b)`, qui
+      lisent les vecteurs de la figure). GeoGebra ne nomme, dans tout le
+      corpus, que l'image elle-même, jamais ses sommets ni ses côtés.
+      **+12 figures** (211 → 223), éléments non importés 3634 → 2970
+      (−664, surtout les 101 cubes translatés d'une figure) ; causes
+      « Translate » 17 / 5 → 8 / 0, « Rotate » 9 / 2 → 2 / 0, « Dilate »
+      2 / 0 → 0, « Mirror » 11 / 8 → 9 / 6 ; build +1 Ko. Les 6 « Mirror »
+      restants sont le côté d'un cône réfléchi par le plan `z = 0`, dans des
+      figures qui définissent aussi des surfaces par une équation
+      (`functionNVar`, `IntersectPath` avec elles) : `roots.py` ne les
+      compte pas, une expression `Cone: z = …` lisant son propre nom. Restent
+      aussi les images de listes, de fonctions et de plans, la
+      réflexion par un plan, et les cercles de rayon donné (`Circle1`).
+      Constaté sans rapport avec l'item : l'intersection d'un cercle du plan
+      et d'un cercle 3D est indéfinie (figure des 101 cubes, dont une
+      partie reste donc à l'origine).
+- [x] **15 bis. Images d'images** : `Dilate(image1, -e, O)`,
+      `Rotate(image, α, O)`… Fait : une image définie par au moins deux
+      coins est l'image des images de ses coins A, B et D (D, s'il manque,
+      n'est construit que pour une transformation, pour qu'une symétrie
+      axiale retourne l'image). Éléments non importés 2907 → 2893 (−14 :
+      `acq2y7nx` et 13 rotations d'images de `ymm8gspz`) ; figures sans
+      perte inchangées (causes restantes ailleurs) ; build +0,3 Ko.
+- [x] **15 ter. Points sur une perpendiculaire ou une parallèle**
+      (exactitude) : GeoGebra place `Point(d)` depuis le point de départ de
+      d le long de son vecteur directeur non normé (celui de la droite de
+      référence, tourné d'un quart de tour pour une perpendiculaire), là où
+      DGP prend un vecteur unitaire : quand la droite de référence
+      s'allongeait, le point ne suivait pas. Fait : un tel point est posé
+      sur une droite cachée par son départ et ce vecteur, confondue avec d.
+      Positions à l'ouverture inchangées sur tout le corpus (≈ 60 figures
+      concernées) ; build +0,5 Ko.
+- [x] **16. Listes d'objets** (16 / 2) : `Sequence(Polygon[…], …)`
+      (14 figures), `Sequence(Segment[…], …)` en 3D (15 figures, le
+      `Sequence` dessiné étant limité au 2D), `Sequence` de vecteurs,
+      droites, perpendiculaires, arcs et cercles, `Zip` de vecteurs ou de
+      textes, listes écrites `{Segment[A, B], …}`. Fait : un `Sequence` de
+      points, de segments ou de polygones est lu par `listFormula` (plus de
+      limite au 2D : dans une figure 3D, une liste lit les trois coordonnées
+      de ses points, comme les autres formules), et une suite de points
+      s'appelle ensuite par `Element[l, i]` ; une nouvelle nature de liste
+      `polygons`, additive dans le `.dgo`, dessine un polygone par suite de
+      points définis, chaque polygone étant suivi d'un point indéfini ;
+      `Polygon(liste)` est la nature `polygon` ; `Rotate` et `Translate` d'un
+      point ou d'un vecteur se lisent dans une formule ; l'image d'une liste
+      écrite (`Translate({t2, t3}, A - G)`) est l'image de chacun de ses
+      éléments (item 15), dans le style de la liste. **+7 figures**
+      (223 → 230), éléments non importés 2970 → 2907 ; causes « Sequence »
+      20 / 7 → 11 / 5, « Polygon » 18 / 1 → 10 / 0 ; build +1 Ko. Restent,
+      chacun dans une ou deux figures : les `Sequence` imbriqués (deux
+      indices), de cubes, d'arcs par trois points, de textes et de matrices,
+      et `Sum` d'une liste qui dépend de l'indice (`A + Sum[First[l, i]]`),
+      qu'une expression cachée ne peut calculer pour chaque élément. `Zip`
+      (4 figures) est toujours bloqué par ailleurs.
 
 À écarter, sauf changement de priorité : calcul formel, courbes implicites,
 statistiques et probabilités, tableur au-delà des cellules simples, matrices.

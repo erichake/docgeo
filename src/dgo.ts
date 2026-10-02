@@ -175,8 +175,15 @@ const COLOR = /^(?:#[\da-f]{3}|#[\da-f]{6}|rgb\(-?\d+,-?\d+,-?\d+\))$/i;
 const IMAGE_URL =
     /^data:image\/(?:png|jpeg|gif|webp|svg\+xml);base64,[A-Za-z\d+/]*=*$/;
 const POINT_SHAPES = ["circle", "cross", "diamond", "rect"];
-const LIST_NATURES = ["point", "segment", "line", "label", "polygon"];
-const ONE_FORMULA: unknown[] = ["point", "polygon"];
+const LIST_NATURES = [
+    "point",
+    "segment",
+    "line",
+    "label",
+    "polygon",
+    "polygons",
+];
+const ONE_FORMULA: unknown[] = ["point", "polygon", "polygons"];
 const FUNCTION_VARIABLES = ["x", "y", "z", "t"];
 
 const isNumber = (value: Json): value is number =>
@@ -1157,6 +1164,7 @@ const BUILDERS: Record<string, Builder> = {
             listFormula(reader, count, refs),
             formulas.map((formula) => listFormula(reader, formula, refs)),
             refs,
+            reader.vec3,
         );
     },
     ELst: (parameters, { c, name, at }) => {

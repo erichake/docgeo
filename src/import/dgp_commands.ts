@@ -2251,13 +2251,14 @@ const COMMANDS = new Map<string, CommandDefinition>([
                     nature !== "segment" &&
                     nature !== "line" &&
                     nature !== "label" &&
-                    nature !== "polygon"
+                    nature !== "polygon" &&
+                    nature !== "polygons"
                 )
                     throw new Error(
                         `Invalid DGP list nature at line ${lineNumber}`,
                     );
                 const expectedArgs =
-                    nature === "point" || nature === "polygon" ? 4 : 5;
+                    nature === "point" || nature.startsWith("polygon") ? 4 : 5;
                 if (args.length !== expectedArgs)
                     throw new Error(
                         `Invalid List argument count at line ${lineNumber}`,
@@ -2307,7 +2308,7 @@ const COMMANDS = new Map<string, CommandDefinition>([
                 const countFormula = parseFormula(args[2] as string);
                 const formula1 = parseFormula(args[3] as string);
                 const formulas =
-                    nature === "point" || nature === "polygon"
+                    nature === "point" || nature.startsWith("polygon")
                         ? [formula1]
                         : [formula1, parseFormula(args[4] as string)];
                 const refs = formulaRefs(
@@ -2324,6 +2325,7 @@ const COMMANDS = new Map<string, CommandDefinition>([
                     countFormula,
                     formulas,
                     refs,
+                    context.is3D,
                 );
             },
         },

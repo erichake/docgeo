@@ -1551,6 +1551,115 @@ ${lines.map((line, index) => command("Plane", ["C", line], `p${index}`)).join("\
         ]);
     });
 
+    it("builds an image's images by a dilation and a reflection", async () => {
+        const c = createConstruction();
+        const url =
+            "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==";
+        expect(
+            importGgb(
+                c,
+                `<geogebra><euclidianView><coordSystem xZero="200" yZero="300" scale="50"/><size width="800" height="600"/></euclidianView><construction>
+<element type="point" label="A"><coords x="1" y="2" z="1"/></element>
+<element type="point" label="B"><coords x="3" y="2" z="1"/></element>
+<element type="point" label="O"><coords x="0" y="0" z="1"/></element>
+<element type="image" label="p"><file name="p.png"/><startPoint number="0" exp="A"/><startPoint number="1" exp="B"/></element>
+<command name="Dilate"><input a0="p" a1="-1" a2="O"/><output a0="q"/></command>
+<element type="image" label="q"><file name="p.png"/></element>
+<command name="Mirror"><input a0="p" a1="xAxis"/><output a0="r"/></command>
+<element type="image" label="r"><file name="p.png"/></element>
+</construction></geogebra>`,
+                new Map([["p.png", { url, width: 40, height: 20 }]]),
+            ),
+        ).toEqual([]);
+        await new Promise((resolve) => requestAnimationFrame(resolve));
+        const corners = (name: string): Vec2[] => {
+            const image = c.getObj(name) as image_object;
+            const element = image.dom.find("image")!.dom() as SVGImageElement;
+            return [
+                [0, 20],
+                [40, 20],
+                [0, 0],
+            ].map(([x, y]) => {
+                const point = new DOMPoint(x, y).matrixTransform(
+                    element.getCTM()!,
+                );
+                return [point.x, point.y];
+            });
+        };
+        const screen = ([x, y]: Vec2): Vec2 => [200 + 50 * x, 300 - 50 * y];
+        (
+            [
+                [
+                    "p",
+                    [
+                        [1, 2],
+                        [3, 2],
+                        [1, 3],
+                    ],
+                ],
+                [
+                    "q",
+                    [
+                        [-1, -2],
+                        [-3, -2],
+                        [-1, -3],
+                    ],
+                ],
+                [
+                    "r",
+                    [
+                        [1, -2],
+                        [3, -2],
+                        [1, -3],
+                    ],
+                ],
+            ] as [string, Vec2[]][]
+        ).forEach(([name, expected]) =>
+            corners(name).forEach((corner, index) =>
+                corner.forEach((value, axis) =>
+                    expect(value).toBeCloseTo(screen(expected[index])[axis], 3),
+                ),
+            ),
+        );
+    });
+
+    it("keeps a point on an orthogonal or parallel line where GeoGebra does", async () => {
+        const c = createConstruction();
+        expect(
+            importGgb(
+                c,
+                `<geogebra><construction>
+<element type="point" label="F"><coords x="0" y="0" z="1"/></element>
+<element type="point" label="G"><coords x="2" y="0" z="1"/></element>
+<command name="Segment"><input a0="F" a1="G"/><output a0="l"/></command>
+<element type="segment" label="l"/>
+<command name="OrthogonalLine"><input a0="F" a1="l"/><output a0="m"/></command>
+<element type="line" label="m"/>
+<command name="Point"><input a0="m"/><output a0="H"/></command>
+<element type="point" label="H"><coords x="0" y="1" z="1"/></element>
+<command name="Line"><input a0="G" a1="m"/><output a0="n"/></command>
+<element type="line" label="n"/>
+<command name="Point"><input a0="n"/><output a0="J"/></command>
+<element type="point" label="J"><coords x="2" y="-3" z="1"/></element>
+</construction></geogebra>`,
+            ),
+        ).toEqual([]);
+        const f = c.getObj("F") as point_object;
+        f.coords = [1, 0, 0];
+        c.invalidateGeometry(f);
+        await new Promise((resolve) => requestAnimationFrame(resolve));
+        // Along the lines' direction, turned from G - F, scaled with it.
+        [
+            ["H", [1, 0.5, 0]],
+            ["J", [2, -1.5, 0]],
+        ].forEach(([name, expected]) =>
+            (c.getObj(name as string) as point_object).coords.forEach(
+                (value, axis) =>
+                    expect(value).toBeCloseTo((expected as number[])[axis], 9),
+            ),
+        );
+    });
+
     it("unfolds the cube's nets with their slider, showing the chosen one", async () => {
         const c = createConstruction();
         importGgb(c, await loadXml("_patronsCube"));
@@ -1727,6 +1836,135 @@ ${["90*°", "90°", "(540 / n)°", "180 / n * °"]
                 ).toBeCloseTo(value, 9),
             ),
         );
+    });
+
+    it("builds the images of polygons and arcs, translating by computed vectors", () => {
+        const c = createConstruction();
+        expect(
+            importGgb(
+                c,
+                `<geogebra><construction>
+<element type="point" label="A"><coords x="0" y="0" z="1"/></element>
+<element type="point" label="B"><coords x="2" y="0" z="1"/></element>
+<element type="point" label="C"><coords x="0" y="2" z="1"/></element>
+<command name="Polygon"><input a0="A" a1="B" a2="C"/><output a0="t"/></command>
+<element type="polygon" label="t"/>
+<command name="Vector"><input a0="A" a1="C"/><output a0="v"/></command>
+<command name="Line"><input a0="A" a1="B"/><output a0="l"/></command>
+<command name="CircleArc"><input a0="A" a1="B" a2="C"/><output a0="k"/></command>
+<command name="Translate"><input a0="t" a1="v"/><output a0="t1"/></command>
+<command name="Mirror"><input a0="t" a1="l"/><output a0="t2"/></command>
+<command name="Dilate"><input a0="t" a1="2" a2="A"/><output a0="t3"/></command>
+<command name="Rotate"><input a0="k" a1="90°" a2="A"/><output a0="k1"/></command>
+<command name="Translate"><input a0="A" a1="Vector[(2 * v)]"/><output a0="P"/></command>
+<command name="Translate"><input a0="A" a1="(1, 0)"/><output a0="Q"/></command>
+</construction></geogebra>`,
+            ),
+        ).toEqual([]);
+        const vertices = (name: string) =>
+            (c.getObj(name) as polygon_object).points.map((vertex) => [
+                ...vertex.coords,
+            ]);
+        expect(vertices("t1")).toEqual([
+            [0, 2, 0],
+            [2, 2, 0],
+            [0, 4, 0],
+        ]);
+        expect(vertices("t2")).toEqual([
+            [0, 0, 0],
+            [2, 0, 0],
+            [0, -2, 0],
+        ]);
+        expect(vertices("t3")).toEqual([
+            [0, 0, 0],
+            [4, 0, 0],
+            [0, 4, 0],
+        ]);
+        const arc = c.getObj("k1") as arc3pts_object;
+        expect(arc).toBeInstanceOf(arc3pts_object);
+        expect(arc.P1.coords[0]).toBeCloseTo(0, 9);
+        expect(arc.P1.coords[1]).toBeCloseTo(2, 9);
+        expect((c.getObj("P") as point_object).coords).toEqual([0, 4, 0]);
+        expect((c.getObj("Q") as point_object).coords).toEqual([1, 0, 0]);
+    });
+
+    it("builds lists of polygons, of rotated points and in space", () => {
+        const c = createConstruction();
+        expect(
+            importGgb(
+                c,
+                `<geogebra><construction>
+<element type="point" label="A"><coords x="0" y="0" z="1"/></element>
+<command name="Sequence"><input a0="Rotate[(1, 0), i * 90°, A]" a1="i" a2="0" a3="3"/><output a0="r"/></command>
+<element type="list" label="r"/>
+<command name="Polygon"><input a0="r"/><output a0="q"/></command>
+<element type="polygon" label="q"/>
+<command name="Sequence"><input a0="Segment[Element[r, i], Element[r, i + 1]]" a1="i" a2="1" a3="3"/><output a0="s"/></command>
+<element type="list" label="s"/>
+<command name="Sequence"><input a0="Polygon[(i, 0), (i + 1, 0), Translate[(i, 1), Vector[(0, 1)]]]" a1="i" a2="1" a3="2"/><output a0="p"/></command>
+<element type="list" label="p"/>
+</construction></geogebra>`,
+            ),
+        ).toEqual([]);
+        const items = (name: string) =>
+            (c.getObj(name) as list_object).items.map((values) =>
+                values.map((value) =>
+                    typeof value === "number"
+                        ? value
+                        : (value?.map((v) => Math.round(v * 1e9) / 1e9 || 0) ??
+                          null),
+                ),
+            );
+        expect(items("r")).toEqual([[[1, 0]], [[0, 1]], [[-1, 0]], [[0, -1]]]);
+        expect((c.getObj("q") as list_object).nature).toBe("polygon");
+        expect(items("s")).toEqual([
+            [
+                [1, 0],
+                [0, 1],
+            ],
+            [
+                [0, 1],
+                [-1, 0],
+            ],
+            [
+                [-1, 0],
+                [0, -1],
+            ],
+        ]);
+        const p = c.getObj("p") as list_object;
+        expect(p.nature).toBe("polygons");
+        expect(items("p")).toEqual([
+            [[1, 0]],
+            [[2, 0]],
+            [[1, 2]],
+            [null],
+            [[2, 0]],
+            [[3, 0]],
+            [[2, 2]],
+            [null],
+        ]);
+
+        const space = createConstruction();
+        expect(
+            importGgb(
+                space,
+                `<geogebra><construction>
+<element type="point3d" label="A"><coords x="0" y="0" z="2" w="1"/></element>
+<command name="Sequence"><input a0="Segment[A, (i, 0, 1)]" a1="i" a2="1" a3="2"/><output a0="s"/></command>
+<element type="list" label="s"/>
+</construction></geogebra>`,
+            ),
+        ).toEqual([]);
+        expect((space.getObj("s") as list_object).items).toEqual([
+            [
+                [0, 0, 2],
+                [1, 0, 1],
+            ],
+            [
+                [0, 0, 2],
+                [2, 0, 1],
+            ],
+        ]);
     });
 
     it("shows objects under boolean conditions, reading lengths and angles", async () => {
@@ -2223,6 +2461,8 @@ ${command("OrthogonalLine", ["M", "l", "space"], ["m"])}
 ${command("Rotate", ["B", "90°", "zAxis"], ["B1"])}
 ${command("Vector", ["O", "S"], ["u"])}
 ${command("Rotate", ["B", "90°", "A", "u"], ["B2"])}
+${command("Translate", ["Q", "u"], ["Q1"])}
+<element type="polyhedron" label="Q1"/>
 </construction></geogebra>`,
             ),
         ).toEqual([]);
@@ -2262,6 +2502,17 @@ ${command("Rotate", ["B", "90°", "A", "u"], ["B2"])}
         );
         expectPoint("B1", [-2, 2, 0]);
         expectPoint("B2", [-2, 6, 0]);
+        // The translated pyramid's lateral faces meet at S + u.
+        expect(
+            c.OBJS.V.filter(
+                (object) =>
+                    object instanceof polygon_object &&
+                    object.points.some(
+                        (vertex) =>
+                            vNorm(vSub(vertex.coords, [0, 0, 10])) < 1e-9,
+                    ),
+            ),
+        ).toHaveLength(4);
 
         const h = c.getObj("h") as expression_object;
         h.value = 1;
@@ -2327,13 +2578,16 @@ ${values
             c,
             `<geogebra><construction>
 <element type="point" label="A"><coords x="1" y="2" z="1"/></element>
-<command name="Translate"><input a0="A" a1="(1, 0)"/><output a0="B"/></command>
+<command name="Barycenter"><input a0="A" a1="(1, 0)"/><output a0="B"/></command>
 <element type="point" label="B"><coords x="2" y="2" z="1"/></element>
 <command name="Midpoint"><input a0="A" a1="B"/><output a0="M"/></command>
 <element type="point" label="M"><coords x="1.5" y="2" z="1"/></element>
 </construction></geogebra>`,
         );
-        expect(unsupported).toEqual(["Translate(A, (1, 0))", "Midpoint(A, B)"]);
+        expect(unsupported).toEqual([
+            "Barycenter(A, (1, 0))",
+            "Midpoint(A, B)",
+        ]);
         expect(c.getObj("A")).toBeInstanceOf(point_object);
         expect(c.getObj("B")).toBeUndefined();
     });

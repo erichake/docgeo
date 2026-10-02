@@ -193,6 +193,41 @@ describe(".dgo writer", () => {
             ),
         ));
 
+    it("keeps lists of polygons and images of lists", () =>
+        roundTrip(async (c) =>
+            importGgb(
+                c,
+                `<geogebra><construction>
+<element type="point" label="A"><coords x="1" y="0" z="1"/></element>
+<element type="point" label="B"><coords x="2" y="1" z="1"/></element>
+<command name="Sequence"><input a0="Polygon[(i, 0), (i + 1, 0), Rotate[(i, 1), 10°, A]]" a1="i" a2="0" a3="3"/><output a0="l"/></command>
+<element type="list" label="l"><objColor r="0" g="0" b="255" alpha="0.3"/></element>
+<command name="Polygon"><input a0="A" a1="B" a2="(1, 2)"/><output a0="t"/></command>
+<element type="polygon" label="t"/>
+<command name="Translate"><input a0="{t, Segment[A, B]}" a1="B - A"/><output a0="m"/></command>
+<element type="list" label="m"><objColor r="0" g="128" b="0" alpha="0.2"/></element>
+</construction></geogebra>`,
+            ),
+        ));
+
+    it("keeps 3D lists and images of polyhedra", () =>
+        roundTrip(async (c) =>
+            importGgb(
+                c,
+                `<geogebra><construction>
+<element type="point3d" label="A"><coords x="0" y="0" z="0" w="1"/></element>
+<element type="point3d" label="B"><coords x="1" y="0" z="0" w="1"/></element>
+<element type="point3d" label="C"><coords x="1" y="1" z="0" w="1"/></element>
+<command name="Cube"><input a0="A" a1="B" a2="C"/><output a0="k"/></command>
+<element type="polyhedron" label="k"/>
+<command name="Rotate"><input a0="k" a1="30°" a2="zAxis"/><output a0="k'"/></command>
+<element type="polyhedron" label="k'"><objColor r="255" g="0" b="0" alpha="0.4"/></element>
+<command name="Sequence"><input a0="Segment[(0, 0, i), (i, 1, i)]" a1="i" a2="1" a3="3"/><output a0="s"/></command>
+<element type="list" label="s"/>
+</construction></geogebra>`,
+            ),
+        ));
+
     it("keeps numbers JSON can't hold", () =>
         roundTrip(
             async (c) =>

@@ -19,8 +19,10 @@ import { callFunction, formatValue } from "./expression_object";
 import { MAX_SCREEN } from "./point_object";
 import { vNorm, vNormalize, vSub, type Vec2, type Vec3 } from "../vec";
 
-// "polygon": the points, in turn, bound a filled region.
-export type ListNature = "point" | "segment" | "line" | "label" | "polygon";
+// "polygon": the points, in turn, bound a filled region; "polygons": each
+// run of defined points bounds one.
+export type ListNature =
+    "point" | "segment" | "line" | "label" | "polygon" | "polygons";
 
 // point/segment/line results are folded into a single <path>, so this only
 // bounds computation (mirrors locus_object's MAX_SAMPLES); label results
@@ -41,6 +43,8 @@ export class list_object extends construction_object {
     countFormula: FormulaNode;
     formulas: FormulaNode[];
     refs: Map<string, construction_object>;
+    // True in a 3D figure: a point then reads its 3D coordinates.
+    private vec3: boolean;
     count = 0;
     items: (FormulaValue | null)[][] = [];
     screenItems: (Vec2 | null)[][] = [];
@@ -54,6 +58,7 @@ export class list_object extends construction_object {
         countFormula: FormulaNode,
         formulas: FormulaNode[],
         refs: Map<string, construction_object>,
+        vec3 = false,
     ) {
         super(c, name, "list");
         // A string tag, not `instanceof`, because point_object.ts (magnet
@@ -66,6 +71,7 @@ export class list_object extends construction_object {
         this.formulas = formulas;
         this.readsView = [countFormula, ...formulas].some(usesView);
         this.refs = refs;
+        this.vec3 = vec3;
         this.addParents(...refs.values());
     }
 
@@ -98,7 +104,7 @@ export class list_object extends construction_object {
         return {
             resolveIdentifier: (n) => {
                 const ref = this.refs.get(n);
-                return ref ? ref.scriptValue(false) : null;
+                return ref ? ref.scriptValue(this.vec3) : null;
             },
             view: () => this.C.formulaView(),
             callFunction: (name, args) =>
@@ -112,7 +118,7 @@ export class list_object extends construction_object {
                 if (n === "k") return k;
                 if (n === "count") return count;
                 const ref = this.refs.get(n);
-                return ref ? ref.scriptValue(false) : null;
+                return ref ? ref.scriptValue(this.vec3) : null;
             },
             view: () => this.C.formulaView(),
             callFunction: (name, args) =>
@@ -234,6 +240,14 @@ export class list_object extends construction_object {
                 ? `M${points.map((point) => point!.join(" ")).join("L")}Z`
                 : "";
         }
+        if (this.nature === "polygons")
+            return this.screenItems
+                .map(([point]) => point?.join(" ") ?? "Z")
+                .join("L")
+                .split(/L?ZL?/)
+                .filter(Boolean)
+                .map((run) => `M${run}Z`)
+                .join("");
         return this.screenItems
             .map((points) => {
                 if (this.nature === "point") {
@@ -308,7 +322,7 @@ export class list_object extends construction_object {
             .stl(
                 t.nature === "point"
                     ? `fill:${t.fill_color};stroke:none`
-                    : `fill:${t.nature === "polygon" ? t.fill_color : "none"};fill-opacity:${t.opacity ?? 0};stroke:${t.stroke_color};stroke-width:${t.size}`,
+                    : `fill:${t.nature.startsWith("polygon") ? t.fill_color : "none"};fill-opacity:${t.opacity ?? 0};stroke:${t.stroke_color};stroke-width:${t.size}`,
             );
         return dom.add(t.path);
     }
@@ -321,8 +335,9 @@ export function createList(
     countFormula: FormulaNode,
     formulas: FormulaNode[],
     refs: Map<string, construction_object>,
+    vec3 = false,
 ): list_object {
     return c.add(
-        new list_object(c, name, nature, countFormula, formulas, refs),
+        new list_object(c, name, nature, countFormula, formulas, refs, vec3),
     );
 }
