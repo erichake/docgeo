@@ -1,8 +1,9 @@
 import { describe, expect, it } from "vitest";
 // First, as in main.ts: the object classes import each other.
 import "../../src/construction";
-import { importDgp } from "../../src/dgp_importer";
+import { importDgp, importDgpFromUrl } from "../../src/dgp_importer";
 import type { circle3pts_object } from "../../src/objects/circle3pts_object";
+import type { expression_list_object } from "../../src/objects/expression_list_object";
 import type { expression_object } from "../../src/objects/expression_object";
 import type { fixed_angle_object } from "../../src/objects/fixed_angle_object";
 import { panel_object } from "../../src/objects/panel_object";
@@ -160,6 +161,25 @@ M=PointOn("M",LL,[1,0]);`,
         );
         c.OBJS.update();
         expect((c.getObj("M") as point_object).coords).toEqual([1, 1, 0]);
+    });
+
+    it("draws the curves its scripts compute in the window", async () => {
+        const c = createConstruction([1300, 844]);
+        expect(await importDgpFromUrl(c, "/tests/dgp/yves.dgp")).toEqual([]);
+        await frame();
+        const counts = () =>
+            ["Cnk2Alg", "Cnk2Alg0", "Cnk2Alg1", "Cnk2Alg2", "Cnk2Alg3"]
+                .concat(["Cnk3v3Alg", "Cnk3v3Alg0", "Cnk3v3Alg1"])
+                .map(
+                    (name) => (c.getObj(name) as expression_list_object).count,
+                );
+        expect(counts()).toEqual([191, 188, 190, 189, 190, 524, 442, 679]);
+        const k = c.getObj("k") as expression_object;
+        k.value = 0;
+        c.invalidateGeometry(k);
+        await frame();
+        expect(counts()).not.toContain(0);
+        expect(counts()).not.toEqual([191, 188, 190, 189, 190, 524, 442, 679]);
     });
 });
 

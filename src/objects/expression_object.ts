@@ -258,13 +258,15 @@ export class expression_object extends construction_object {
         this.program = program;
         this.viewDependent =
             program !== null &&
-            (programNodes(program.program).some(
-                (node) => usesCoords2D(node) || usesView(node),
-            ) ||
+            (programNodes(program.program).some(usesCoords2D) ||
                 [...program.refs.values()].some(
                     (ref) =>
                         ref instanceof expression_object && ref.viewDependent,
                 ));
+        // A script that only reads the window is computed with the geometry,
+        // before the objects that read its value.
+        this.readsView =
+            program !== null && programNodes(program.program).some(usesView);
         this.min = min;
         this.max = max;
         this.bounds = bounds;

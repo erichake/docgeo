@@ -438,6 +438,8 @@ describe("evaluateProgram", () => {
         "S1.setHidden()",
         "function f(){return 1};f()",
         "a.b=1",
+        "a.length=1",
+        "[1][0]=2",
         "new Function('')",
     ])("rejects what isn't part of DGPad's script language: %s", (source) => {
         expect(() => parseProgram(source)).toThrow();
@@ -454,6 +456,43 @@ describe("evaluateProgram", () => {
             ),
         ).toEqual([0, 1, 2, 5, 6, 7]);
         expect(run("var n=0;for(i=0;i<4;i++){n+=i};n+i")).toBe(10);
+    });
+
+    it("changes the items of its own lists, never another object's value", () => {
+        const P = [
+            [1, 2],
+            [3, 4],
+        ];
+        const env: FormulaEnv = {
+            resolveIdentifier: (name) => (name === "P" ? P : null),
+            view: () => NO_VIEW,
+        };
+        expect(
+            run(
+                "var m=P;m[0][1]=5;m[1][0]+=2;var r=m[0];m[0]=m[1];m[1]=r;m",
+                env,
+            ),
+        ).toEqual([
+            [5, 4],
+            [1, 5],
+        ]);
+        expect(P).toEqual([
+            [1, 2],
+            [3, 4],
+        ]);
+        expect(run("var a=[1,2];var b=a;b[0]=3;a")).toEqual([3, 2]);
+    });
+
+    it("reads the length of lists and texts, and takes their last item", () => {
+        expect(
+            run(
+                'var t=[1,[2,3],"abc"];[t.length,(t[1]).length,t[2].length,t.pop(),t.length]',
+            ),
+        ).toEqual([3, 2, 3, "abc", 2]);
+    });
+
+    it("tells an undefined value by its difference with itself, as JavaScript", () => {
+        expect(run("var x=NaN;[x!=x,x==x,1!=1]")).toEqual([1, 0, 0]);
     });
 
     it("reads points in space and the angles as drawn", () => {

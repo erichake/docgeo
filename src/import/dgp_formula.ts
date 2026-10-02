@@ -125,8 +125,8 @@ const LIST_OPERATORS: Record<ListFn, BinaryOp | null> = {
     restrictPhi: null,
 };
 
-// The only methods a script may call: reading an object, appending to one
-// of its own lists or joining lists, and styling the figure's objects.
+// The only methods a script may call: reading an object, changing one of
+// its own lists or joining lists, and styling the figure's objects.
 export type ObjectMethod =
     | "coords2D"
     | "coords3D"
@@ -135,6 +135,7 @@ export type ObjectMethod =
     | "getName"
     | "getAOC"
     | "push"
+    | "pop"
     | "concat"
     | "setHidden"
     | "setOpacity"
@@ -155,6 +156,8 @@ const READ_METHODS: ReadonlySet<ObjectMethod> = new Set([
     "concat",
 ]);
 
+const LIST_METHODS: ReadonlySet<ObjectMethod> = new Set(["push", "pop"]);
+
 // DGPad's layers and dashes only make up for its lack of depth ordering,
 // which the reader does on its own (see paintByDepth and hidden_line.ts),
 // and noMouseInside concerns its editing: these methods are skipped,
@@ -174,6 +177,7 @@ const METHOD_ARITY: Record<ObjectMethod, number> = {
     getName: 0,
     getAOC: 0,
     push: -1,
+    pop: 0,
     concat: -1,
     setHidden: 1,
     setOpacity: 1,
@@ -201,6 +205,8 @@ export type FormulaNode =
     | { kind: "unary"; op: "-" | "!"; operand: FormulaNode }
     // "P[1]": a component of a point's coordinates or of a list.
     | { kind: "index"; target: FormulaNode; index: FormulaNode }
+    // "tab.length", "(P).length".
+    | { kind: "length"; target: FormulaNode }
     // "P.coords2D()" (where point P is drawn, in the window's coordinate
     // system, which changes with the 3D view), "S1.setHidden(1)" or a
     // script's own "tab.push(P)".
@@ -220,6 +226,13 @@ export type FormulaNode =
       }
     // Assigns one of the script's own variables.
     | { kind: "assign"; name: string; value: FormulaNode }
+    // "m[i][j]=v": assigns an item of one of the script's own lists.
+    | {
+          kind: "assignItem";
+          name: string;
+          indices: FormulaNode[];
+          value: FormulaNode;
+      }
     | {
           kind: "binary";
           op: BinaryOp;
@@ -260,15 +273,32 @@ const EQUALITY_PRECISION = 1e-8;
 
 const isComparison = (op: string): op is Comparison => op in COMPARISONS;
 
-const COMPARISONS: Record<Comparison, (a: number, b: number) => boolean> = {
-    "==": (a, b) => Math.abs(a - b) < EQUALITY_PRECISION,
-    "!=": (a, b) => Math.abs(a - b) >= EQUALITY_PRECISION,
-    "<": (a, b) => a < b,
-    "<=": (a, b) => a <= b,
-    ">": (a, b) => a > b,
-    ">=": (a, b) => a >= b,
-    "&&": (a, b) => a !== 0 && b !== 0,
-    "||": (a, b) => a !== 0 || b !== 0,
+// As in JavaScript, NaN differs from everything, itself included: scripts
+// test "x!=x" for an undefined value.
+const equal = (a: number, b: number) =>
+    a === b || Math.abs(a - b) < EQUALITY_PRECISION;
+
+const COMPARISONS: Record<Comparison, (a: number, b: number) => number> = {
+    "==": (a, b) => Number(equal(a, b)),
+    "!=": (a, b) => Number(!equal(a, b)),
+    "<": (a, b) => Number(a < b),
+    "<=": (a, b) => Number(a <= b),
+    ">": (a, b) => Number(a > b),
+    ">=": (a, b) => Number(a >= b),
+    "&&": (a, b) => Number(a !== 0 && b !== 0),
+    "||": (a, b) => Number(a !== 0 || b !== 0),
+};
+
+const ARITHMETIC: Record<
+    Exclude<BinaryOp, Comparison>,
+    (a: number, b: number) => number
+> = {
+    "+": (a, b) => a + b,
+    "-": (a, b) => a - b,
+    "*": (a, b) => a * b,
+    "/": (a, b) => a / b,
+    "%": (a, b) => a % b,
+    "^": Math.pow,
 };
 
 const ASSIGNMENTS: Record<string, "+" | "-" | "*" | "/" | null> = {
@@ -504,14 +534,22 @@ class FormulaParser {
         const node = this.conditional();
         if (!(this.current.type in ASSIGNMENTS)) return node;
         const op = ASSIGNMENTS[this.current.type];
-        if (node.kind !== "identifier")
-            throw new Error("Invalid DGP formula syntax");
         this.advance();
-        const value = this.expression();
-        return this.assign(
-            node.name,
-            op ? { kind: "binary", op, left: node, right: value } : value,
-        );
+        const right = this.expression();
+        const value: FormulaNode = op
+            ? { kind: "binary", op, left: node, right }
+            : right;
+        if (node.kind === "identifier") return this.assign(node.name, value);
+        const indices: FormulaNode[] = [];
+        let target: FormulaNode = node;
+        while (target.kind === "index") {
+            indices.unshift(target.index);
+            target = target.target;
+        }
+        if (target.kind !== "identifier" || indices.length === 0)
+            throw new Error("Invalid DGP formula syntax");
+        this.locals.add(target.name);
+        return { kind: "assignItem", name: target.name, indices, value };
     }
 
     private assign(name: string, value: FormulaNode): FormulaNode {
@@ -637,7 +675,14 @@ class FormulaParser {
 
     private power(): FormulaNode {
         let base = this.primary();
-        while (this.current.type === "[") {
+        while (this.current.type === "[" || this.current.type === ".") {
+            if (this.skip(".")) {
+                if (this.current.value !== "length")
+                    throw new Error("Invalid DGP formula syntax");
+                this.take("identifier");
+                base = { kind: "length", target: base };
+                continue;
+            }
             this.advance();
             base = { kind: "index", target: base, index: this.expression() };
             this.take("]");
@@ -723,6 +768,11 @@ class FormulaParser {
             if (name === "PI") return { kind: "constant", name: "PI" };
             return this.call(name);
         }
+        if (name === "length")
+            return {
+                kind: "length",
+                target: { kind: "identifier", name: object },
+            };
         if (!(name in METHOD_ARITY))
             throw new Error("Invalid DGP formula syntax");
         const method = name as ObjectMethod;
@@ -818,12 +868,16 @@ function children(node: FormulaNode): FormulaNode[] {
             return [node.operand];
         case "index":
             return [node.target, node.index];
+        case "length":
+            return [node.target];
         case "binary":
             return [node.left, node.right];
         case "conditional":
             return [node.test, node.then, node.otherwise];
         case "assign":
             return [node.value];
+        case "assignItem":
+            return [...node.indices, node.value];
         case "vector":
             return node.items;
         case "method":
@@ -902,7 +956,7 @@ export function programTargets(program: Program): Set<string> {
         programNodes(program).flatMap((node) =>
             node.kind === "method" &&
             !READ_METHODS.has(node.method) &&
-            node.method !== "push" &&
+            !LIST_METHODS.has(node.method) &&
             !SKIPPED_METHODS.has(node.method)
                 ? [node.object]
                 : [],
@@ -1077,26 +1131,12 @@ function evalBinary(
 ): ScriptValue | null {
     if (isComparison(op)) {
         const [a, b] = [realPart(l), realPart(r)];
-        return a === null || b === null ? null : Number(COMPARISONS[op](a, b));
+        return a === null || b === null ? null : COMPARISONS[op](a, b);
     }
     if (typeof l === "string" || typeof r === "string")
         return op === "+" ? String(l) + String(r) : null;
-    if (typeof l === "number" && typeof r === "number") {
-        switch (op) {
-            case "+":
-                return l + r;
-            case "-":
-                return l - r;
-            case "*":
-                return l * r;
-            case "/":
-                return l / r;
-            case "%":
-                return l % r;
-            case "^":
-                return Math.pow(l, r);
-        }
-    }
+    if (typeof l === "number" && typeof r === "number")
+        return ARITHMETIC[op](l, r);
     const a = complex(l);
     const b = complex(r);
     if (a && b) {
@@ -1332,13 +1372,38 @@ const MAX_STEPS = 1_000_000;
 
 class StepLimitExceeded extends Error {}
 
-interface Scope {
+// One evaluation of a compiled formula or program.
+interface Frame {
     env: FormulaEnv;
-    names: ReadonlySet<string>;
-    locals: Map<string, ScriptValue | null>;
+    // The values of the program's own variables, by slot.
+    slots: (ScriptValue | null)[];
     steps: number;
-    // The lists the script already appended to, which it now owns.
-    grown: Set<ScriptValue[]>;
+    // The lists the script made or copied, which it changes in place.
+    owned: Set<ScriptValue[]>;
+}
+
+// Formulas and programs are compiled once into closures, run at each
+// evaluation: much faster than walking their tree, and never JavaScript
+// built from the figure's text.
+type Code = (frame: Frame) => ScriptValue | null;
+
+// The slots of a program's own variables, by name.
+type Slots = ReadonlyMap<string, number>;
+
+// A list the script may change: itself if the script made it, else a copy
+// made once, as it may be another object's value (a copy per change would
+// make building a list of n terms quadratic).
+function own(list: readonly ScriptValue[], frame: Frame): ScriptValue[] {
+    if (frame.owned.has(list as ScriptValue[])) return list as ScriptValue[];
+    const copy = [...list];
+    frame.owned.add(copy);
+    return copy;
+}
+
+// One of the script's own lists, made its own.
+function ownSlot(slot: number, frame: Frame): ScriptValue[] | null {
+    const list = frame.slots[slot];
+    return Array.isArray(list) ? (frame.slots[slot] = own(list, frame)) : null;
 }
 
 function truthy(value: ScriptValue | null): boolean {
@@ -1346,175 +1411,287 @@ function truthy(value: ScriptValue | null): boolean {
     return value !== null && value !== "";
 }
 
-function evalArgs(nodes: FormulaNode[], scope: Scope): ScriptValue[] | null {
-    return terms(nodes.length, (i) => evalNode(nodes[i], scope));
+function evalCodes(codes: Code[], frame: Frame): ScriptValue[] | null {
+    const values: ScriptValue[] = [];
+    for (const code of codes) {
+        const value = code(frame);
+        if (value === null) return null;
+        values.push(value);
+    }
+    return values;
 }
 
-function evalNode(node: FormulaNode, scope: Scope): ScriptValue | null {
+function compileNode(node: FormulaNode, slots: Slots): Code {
+    const compile = (child: FormulaNode) => compileNode(child, slots);
     switch (node.kind) {
         case "number":
-        case "string":
-            return node.value;
-        case "imaginary":
-            return [0, 1];
-        case "constant":
-            return Math.PI;
-        case "identifier":
-            return scope.names.has(node.name)
-                ? (scope.locals.get(node.name) ?? null)
-                : scope.env.resolveIdentifier(node.name);
-        case "assign": {
-            const value = evalNode(node.value, scope);
-            scope.locals.set(node.name, value);
-            return value;
+        case "string": {
+            const { value } = node;
+            return () => value;
         }
-        case "conditional":
-            return evalNode(
-                truthy(evalNode(node.test, scope)) ? node.then : node.otherwise,
-                scope,
-            );
+        case "imaginary":
+            return () => [0, 1];
+        case "constant":
+            return () => Math.PI;
+        case "identifier": {
+            const { name } = node;
+            const slot = slots.get(name);
+            return slot === undefined
+                ? (frame) => frame.env.resolveIdentifier(name)
+                : (frame) => frame.slots[slot];
+        }
+        case "assign": {
+            const slot = slots.get(node.name);
+            const value = compile(node.value);
+            return slot === undefined
+                ? value
+                : (frame) => (frame.slots[slot] = value(frame));
+        }
+        case "assignItem": {
+            const slot = slots.get(node.name)!;
+            const indices = node.indices.map(compile);
+            const value = compile(node.value);
+            return (frame) => {
+                const path = indices.map((index) => realPart(index(frame)));
+                const item = value(frame);
+                let list = ownSlot(slot, frame);
+                if (!list || path.includes(null) || item === null) return null;
+                const last = path.pop()!;
+                for (const index of path as number[]) {
+                    const next: ScriptValue = list[index];
+                    if (!Array.isArray(next)) return null;
+                    list = list[index] = own(next, frame);
+                }
+                list[last] = item;
+                return item;
+            };
+        }
+        case "conditional": {
+            const [test, then, otherwise] = [
+                node.test,
+                node.then,
+                node.otherwise,
+            ].map(compile);
+            return (frame) =>
+                truthy(test(frame)) ? then(frame) : otherwise(frame);
+        }
         case "unary": {
-            const value = evalNode(node.operand, scope);
-            if (value === null) return null;
-            if (node.op === "-") return negate(value);
-            const real = realPart(value);
-            return real === null ? null : Number(real === 0);
+            const operand = compile(node.operand);
+            if (node.op === "-")
+                return (frame) => {
+                    const value = operand(frame);
+                    return value === null ? null : negate(value);
+                };
+            return (frame) => {
+                const real = realPart(operand(frame));
+                return real === null ? null : Number(real === 0);
+            };
         }
         case "index": {
-            const index = realPart(evalNode(node.index, scope));
-            if (index === null) return null;
+            const index = compile(node.index);
             // Only the item read: the others may be undefined, e.g. in a list
             // of points.
             if (node.target.kind === "vector") {
-                const item = node.target.items[index];
-                return item ? evalNode(item, scope) : null;
+                const items = node.target.items.map(compile);
+                return (frame) => {
+                    const i = realPart(index(frame));
+                    if (i === null) return null;
+                    const item = items[i];
+                    return item ? item(frame) : null;
+                };
             }
-            const target = evalNode(node.target, scope);
-            if (!Array.isArray(target)) return null;
-            return target[index] ?? null;
+            const target = compile(node.target);
+            return (frame) => {
+                const i = realPart(index(frame));
+                if (i === null) return null;
+                const list = target(frame);
+                return Array.isArray(list) ? (list[i] ?? null) : null;
+            };
         }
-        case "method": {
-            switch (node.method) {
-                case "coords2D":
-                    return scope.env.coords2D?.(node.object) ?? null;
-                case "coords3D":
-                    return evalNode(
-                        { kind: "identifier", name: node.object },
-                        scope,
-                    );
-                case "getAOC":
-                    return scope.env.orientedAngle?.(node.object) ?? null;
-                case "concat": {
-                    const list = evalNode(
-                        { kind: "identifier", name: node.object },
-                        scope,
-                    );
-                    const args = evalArgs(node.args, scope);
-                    if (!Array.isArray(list) || args === null) return null;
-                    // As JavaScript's, which spreads the lists it's given.
-                    return list.concat(...args);
-                }
-                case "getName":
-                    return node.object;
-                case "getX":
-                case "getY": {
-                    const point = scope.env.resolveIdentifier(node.object);
-                    return Array.isArray(point)
-                        ? (point[node.method === "getX" ? 0 : 1] ?? null)
-                        : null;
-                }
-            }
-            if (SKIPPED_METHODS.has(node.method)) return null;
-            const args = node.args.map((arg) => evalNode(arg, scope));
-            if (node.method !== "push") {
-                scope.env.callMethod?.(node.object, node.method, args);
-                return null;
-            }
-            const list = scope.locals.get(node.object);
-            if (!Array.isArray(list) || args.includes(null)) return null;
-            // Copied once, as it may be another object's value, then
-            // appended to in place: a copy per push would make building a
-            // list of n terms (e.g. a sequence's) quadratic.
-            let pushed = list as ScriptValue[];
-            if (!scope.grown.has(pushed)) {
-                pushed = [...list];
-                scope.grown.add(pushed);
-                scope.locals.set(node.object, pushed);
-            }
-            pushed.push(...(args as ScriptValue[]));
-            return pushed.length;
+        case "length": {
+            const target = compile(node.target);
+            return (frame) => {
+                const value = target(frame);
+                return typeof value === "string" || Array.isArray(value)
+                    ? value.length
+                    : null;
+            };
         }
-        case "vector":
-            return evalArgs(node.items, scope);
+        case "method":
+            return compileMethod(node, slots);
+        case "vector": {
+            const items = node.items.map(compile);
+            return (frame) => {
+                const values = evalCodes(items, frame);
+                if (values) frame.owned.add(values);
+                return values;
+            };
+        }
         case "binary": {
-            const left = evalNode(node.left, scope);
-            const right = evalNode(node.right, scope);
-            if (left === null || right === null) return null;
-            return evalBinary(node.op, left, right);
+            const { op } = node;
+            const [left, right] = [node.left, node.right].map(compile);
+            const numbers = isComparison(op) ? COMPARISONS[op] : ARITHMETIC[op];
+            return (frame) => {
+                const l = left(frame);
+                const r = right(frame);
+                if (l === null || r === null) return null;
+                return typeof l === "number" && typeof r === "number"
+                    ? numbers(l, r)
+                    : evalBinary(op, l, r);
+            };
         }
         case "call": {
+            const { fn } = node;
+            const args = node.args.map(compile);
             // Whether a point, e.g. an intersection, is undefined.
-            if (node.fn === "isNaN") {
-                const value = evalNode(node.args[0], scope);
-                return Number(value === null || Number.isNaN(value));
+            if (fn === "isNaN")
+                return (frame) => {
+                    const value = args[0](frame);
+                    return Number(value === null || Number.isNaN(value));
+                };
+            if (fn in LIST_OPERATORS) {
+                const op = LIST_OPERATORS[fn as ListFn];
+                return (frame) => {
+                    const values = evalCodes(args, frame);
+                    if (values === null) return null;
+                    return op
+                        ? evalBinary(op, values[0], values[1])
+                        : values[0];
+                };
             }
-            const args = evalArgs(node.args, scope);
-            if (args === null) return null;
-            if (node.fn in LIST_OPERATORS) {
-                const op = LIST_OPERATORS[node.fn as ListFn];
-                return op ? evalBinary(op, args[0], args[1]) : args[0];
-            }
-            const values = args.map(formulaValue);
-            if (values.includes(null)) return null;
-            return evalCall(
-                node.fn as Exclude<FormulaFn, ListFn | "isNaN">,
-                values as FormulaValue[],
-                scope.env,
-            );
+            return (frame) => {
+                const values = evalCodes(args, frame)?.map(formulaValue);
+                if (!values || values.includes(null)) return null;
+                return evalCall(
+                    fn as Exclude<FormulaFn, ListFn | "isNaN">,
+                    values as FormulaValue[],
+                    frame.env,
+                );
+            };
         }
         case "userCall": {
-            if (!scope.env.callFunction) return null;
-            const args = evalArgs(node.args, scope)?.map(formulaValue);
-            if (!args || args.includes(null)) return null;
-            return scope.env.callFunction(node.name, args as FormulaValue[]);
+            const { name } = node;
+            const args = node.args.map(compile);
+            return (frame) => {
+                if (!frame.env.callFunction) return null;
+                const values = evalCodes(args, frame)?.map(formulaValue);
+                if (!values || values.includes(null)) return null;
+                return frame.env.callFunction(name, values as FormulaValue[]);
+            };
         }
     }
 }
 
-function step(scope: Scope): void {
-    if (++scope.steps > MAX_STEPS) throw new StepLimitExceeded();
+function compileMethod(
+    node: Extract<FormulaNode, { kind: "method" }>,
+    slots: Slots,
+): Code {
+    const { object, method } = node;
+    const self = compileNode({ kind: "identifier", name: object }, slots);
+    const args = node.args.map((arg) => compileNode(arg, slots));
+    switch (method) {
+        case "coords2D":
+            return (frame) => frame.env.coords2D?.(object) ?? null;
+        case "coords3D":
+            return self;
+        case "getAOC":
+            return (frame) => frame.env.orientedAngle?.(object) ?? null;
+        case "concat":
+            return (frame) => {
+                const list = self(frame);
+                const values = evalCodes(args, frame);
+                if (!Array.isArray(list) || values === null) return null;
+                // As JavaScript's, which spreads the lists it's given.
+                return list.concat(...values);
+            };
+        case "getName":
+            return () => object;
+        case "getX":
+        case "getY": {
+            const axis = method === "getX" ? 0 : 1;
+            return (frame) => {
+                const point = frame.env.resolveIdentifier(object);
+                return Array.isArray(point) ? (point[axis] ?? null) : null;
+            };
+        }
+    }
+    if (SKIPPED_METHODS.has(method)) return () => null;
+    if (!LIST_METHODS.has(method))
+        return (frame) => {
+            const values = args.map((arg) => arg(frame));
+            frame.env.callMethod?.(object, method, values);
+            return null;
+        };
+    const slot = slots.get(object);
+    return (frame) => {
+        const values = args.map((arg) => arg(frame));
+        const list = slot === undefined ? null : ownSlot(slot, frame);
+        if (!list || values.includes(null)) return null;
+        if (method === "pop") return list.pop() ?? null;
+        list.push(...(values as ScriptValue[]));
+        return list.length;
+    };
 }
 
-function run(statements: Statement[], scope: Scope): ScriptValue | null {
-    let value: ScriptValue | null = null;
-    for (const statement of statements) {
-        step(scope);
-        value = null;
-        switch (statement.kind) {
-            case "expression":
-                value = evalNode(statement.node, scope);
-                break;
-            case "if":
-                run(
-                    truthy(evalNode(statement.test, scope))
-                        ? statement.then
-                        : statement.otherwise,
-                    scope,
-                );
-                break;
-            case "loop":
-                while (
-                    statement.test === null ||
-                    truthy(evalNode(statement.test, scope))
-                ) {
-                    step(scope);
-                    run(statement.body, scope);
-                    if (statement.update) evalNode(statement.update, scope);
+function step(frame: Frame): void {
+    if (++frame.steps > MAX_STEPS) throw new StepLimitExceeded();
+}
+
+// A block's value is its last statement's, null when it isn't an
+// expression.
+function compileBlock(statements: Statement[], slots: Slots): Code {
+    const codes = statements.map((statement) =>
+        compileStatement(statement, slots),
+    );
+    return (frame) => {
+        let value: ScriptValue | null = null;
+        for (const code of codes) {
+            step(frame);
+            value = code(frame);
+        }
+        return value;
+    };
+}
+
+function compileStatement(statement: Statement, slots: Slots): Code {
+    switch (statement.kind) {
+        case "expression":
+            return compileNode(statement.node, slots);
+        case "if": {
+            const test = compileNode(statement.test, slots);
+            const then = compileBlock(statement.then, slots);
+            const otherwise = compileBlock(statement.otherwise, slots);
+            return (frame) => {
+                (truthy(test(frame)) ? then : otherwise)(frame);
+                return null;
+            };
+        }
+        case "loop": {
+            const test = statement.test && compileNode(statement.test, slots);
+            const update =
+                statement.update && compileNode(statement.update, slots);
+            const body = compileBlock(statement.body, slots);
+            return (frame) => {
+                while (!test || truthy(test(frame))) {
+                    step(frame);
+                    body(frame);
+                    update?.(frame);
                 }
-                break;
+                return null;
+            };
         }
     }
-    return value;
+}
+
+const COMPILED = new WeakMap<FormulaNode | Program, Code>();
+
+function evaluate(code: Code, slots: number, env: FormulaEnv) {
+    return code({
+        env,
+        slots: new Array<ScriptValue | null>(slots).fill(null),
+        steps: 0,
+        owned: new Set(),
+    });
 }
 
 // The value of the program's last statement, as DGPad's: null when it
@@ -1523,15 +1700,14 @@ export function evaluateProgram(
     program: Program,
     env: FormulaEnv,
 ): ScriptValue | null {
-    const scope: Scope = {
-        env,
-        names: program.locals,
-        locals: new Map(),
-        steps: 0,
-        grown: new Set(),
-    };
+    let code = COMPILED.get(program);
+    if (!code) {
+        const slots = new Map([...program.locals].map((name, i) => [name, i]));
+        code = compileBlock(program.body, slots);
+        COMPILED.set(program, code);
+    }
     try {
-        const value = run(program.body, scope);
+        const value = evaluate(code, program.locals.size, env);
         return typeof value === "number" && !Number.isFinite(value)
             ? null
             : value;
@@ -1548,13 +1724,10 @@ export function evaluateFormula(
     node: FormulaNode,
     env: FormulaEnv,
 ): FormulaValue | null {
-    return formulaValue(
-        evalNode(node, {
-            env,
-            names: new Set(),
-            locals: new Map(),
-            steps: 0,
-            grown: new Set(),
-        }),
-    );
+    let code = COMPILED.get(node);
+    if (!code) {
+        code = compileNode(node, new Map());
+        COMPILED.set(node, code);
+    }
+    return formulaValue(evaluate(code, 0, env));
 }
