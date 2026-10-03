@@ -336,6 +336,9 @@ export class construction {
         $("body").add(
             this.svg
                 .stl("position:absolute;border:0")
+                // Until its figure is built (see reveal), rather than the
+                // default scene, 3D floor included, flashing before it.
+                .stl("visibility", "hidden")
                 .stl("background", this.prefs.background.color)
                 .att(
                     "width:100%;height:100%;x:0;y:0;xmlns:http://www.w3.org/2000/svg",
@@ -359,6 +362,10 @@ export class construction {
             .stl("pointer-events", "none");
         this.svg.add(this.traceLayer);
         this.svg.observeResize((width, height) => this.resize(width, height));
+    }
+
+    reveal(): void {
+        this.svg.stl("visibility", "");
     }
 
     private bindSceneEvents(element: DOMElement): void {

@@ -119,6 +119,7 @@ async function openFigure(
                 ),
         );
     }
+    DOCGEO.scene.reveal();
     figureName = name
         .split(/[/\\?#]/)
         .filter(Boolean)

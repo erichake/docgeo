@@ -69,6 +69,7 @@ export function embed(app: Embedder): void {
         app.scene.flush();
         view = builtView(app.scene);
         reported = JSON.stringify(state());
+        app.scene.reveal();
     };
     const rebuild = (figure: DgoFigure): void => {
         renew();
