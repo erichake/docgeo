@@ -111,7 +111,7 @@ describe(".dgo writer", () => {
     // Its 2D points keep their place on the screen, not in space.
     it("keeps a 3D figure's 2D points in the screen plane", () =>
         roundTrip(
-            (c) => importDgpFromUrl(c, figure("PSH_01.dgp")),
+            (c) => importDgpFromUrl(c, figure("PSE_01.dgp")),
             (c) => {
                 const point = c.getObj("Odl") as point_object;
                 point.pinned = [point.pinned![0] + 0.2, point.pinned![1] - 0.1];

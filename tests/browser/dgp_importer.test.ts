@@ -1456,7 +1456,7 @@ E1=Expression("E1","","","","5","-1","0");`,
 
     it("keeps a 3D figure's 2D objects in the screen plane", async () => {
         const c = createConstruction();
-        const unsupported = await importDgpFromUrl(c, figure("PSH_01.dgp"));
+        const unsupported = await importDgpFromUrl(c, figure("PSE_01.dgp"));
         expect(unsupported).toEqual([]);
         const value = (name: string) => c.getObj(name)!.scriptValue(true);
         const point = (name: string) => c.getObj(name) as point_object;

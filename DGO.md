@@ -423,7 +423,7 @@ Comme dans `.dgo`, un nombre non fini s'écrit `null`.
 ## Nettoyage à l'import
 
 Profiter de la conversion pour corriger les défauts des fichiers sources, qui
-seraient sinon figés. Exemple : `tests/dgp/_Apollonius.dgp` contient des noms
+seraient sinon figés. Exemple : `tests/dgp/Apollonius/_Apollonius.dgp` contient des noms
 doublement encodés en UTF-8 (`"IntermÃ\u0083Â©diaire"`) —
 redécoder tant que le résultat reste de l'UTF-8 valide n'utilisant que des
 caractères < 256 ; l'appliquer aux noms, textes et formules.
