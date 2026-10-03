@@ -23,6 +23,7 @@ import {
     drawing,
     drawingDifference,
     expectClose,
+    figure,
     frame,
     GGB,
 } from "./figures";
@@ -128,16 +129,16 @@ async function stateRoundTrip(
 
 describe("state round trip", () => {
     it.each(DGP)("%s", (name) =>
-        stateRoundTrip((c) => importDgpFromUrl(c, `/tests/dgp/${name}`)),
+        stateRoundTrip((c) => importDgpFromUrl(c, figure(name))),
     );
     it.each(GGB)("%s", (name) =>
-        stateRoundTrip((c) => importGgbFromUrl(c, `/tests/ggb/${name}`)),
+        stateRoundTrip((c) => importGgbFromUrl(c, figure(name))),
     );
 
     // The state alone, from the base figure, would number them otherwise.
     it("keeps which intersection is which", () =>
         stateRoundTrip(
-            (c) => importDgpFromUrl(c, "/tests/dgp/_Conique3.dgp"),
+            (c) => importDgpFromUrl(c, figure("_Conique3.dgp")),
             (c) => {
                 const [first, third] = ["I0", "I2"].map(
                     (name) => c.getObj(name) as point_object,
@@ -151,7 +152,7 @@ describe("state round trip", () => {
 describe("state", () => {
     async function open(): Promise<construction> {
         const c = createConstruction();
-        await importDgpFromUrl(c, "/tests/dgp/_Expression.dgp");
+        await importDgpFromUrl(c, figure("_Expression.dgp"));
         await frame();
         return c;
     }

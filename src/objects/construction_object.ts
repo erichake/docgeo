@@ -219,10 +219,7 @@ export class construction_object {
         this.dom = this.class
             .createSVG(this)
             .stl("stroke-opacity", this.strokeOpacity);
-        // Restyled, it keeps its place in its layer, whatever the moment it
-        // is restyled at.
-        if (this.hasView) previous.dom().replaceWith(this.dom.dom());
-        else this.C.mountObject(this);
+        this.C.mountObject(this);
         previous?.dispose();
         this.hasView = true;
         // Shown by a script during an update: drawn along with the rest,

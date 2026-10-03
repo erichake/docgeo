@@ -38,6 +38,7 @@ import {
     type Vec2,
     type Vec3,
 } from "../../src/vec";
+import { figure } from "./figures";
 
 function createConstruction(): construction {
     document.documentElement.style.width = "100%";
@@ -55,7 +56,7 @@ afterEach(() => {
 });
 
 async function loadXml(name: string): Promise<string> {
-    const response = await fetch(`/tests/ggb/${name}.ggb`);
+    const response = await fetch(figure(`${name}.ggb`));
     return readZipEntry(await response.arrayBuffer(), "geogebra.xml");
 }
 
@@ -1468,7 +1469,7 @@ ${lines.map((line, index) => command("Plane", ["C", line], `p${index}`)).join("\
 
     it("draws the image between its corners while its checkbox is checked", async () => {
         const c = createConstruction();
-        const response = await fetch("/tests/ggb/mandel.ggb");
+        const response = await fetch(figure("mandel.ggb"));
         expect(await importGgbFromBlob(c, await response.blob())).toEqual([]);
         const image = c.getObj("MBImage") as image_object;
         const checkbox = c.getObj("b") as expression_object;

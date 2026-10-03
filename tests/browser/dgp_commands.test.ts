@@ -9,7 +9,7 @@ import type { fixed_angle_object } from "../../src/objects/fixed_angle_object";
 import { panel_object } from "../../src/objects/panel_object";
 import type { point_object } from "../../src/objects/point_object";
 import type { two_points_line_object } from "../../src/objects/two_points_line_object";
-import { createConstruction, disposeFigures, frame } from "./figures";
+import { createConstruction, disposeFigures, figure, frame } from "./figures";
 
 disposeFigures();
 
@@ -165,7 +165,7 @@ M=PointOn("M",LL,[1,0]);`,
 
     it("draws the curves its scripts compute in the window", async () => {
         const c = createConstruction([1300, 844]);
-        expect(await importDgpFromUrl(c, "/tests/dgp/yves.dgp")).toEqual([]);
+        expect(await importDgpFromUrl(c, figure("yves.dgp"))).toEqual([]);
         await frame();
         const counts = () =>
             ["Cnk2Alg", "Cnk2Alg0", "Cnk2Alg1", "Cnk2Alg2", "Cnk2Alg3"]

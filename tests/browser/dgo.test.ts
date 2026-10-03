@@ -21,6 +21,7 @@ import {
     drawing,
     drawingDifference,
     expectClose,
+    figure,
     frame,
     GGB,
 } from "./figures";
@@ -70,10 +71,10 @@ async function roundTrip(
 
 describe(".dgo round trip", () => {
     it.each(DGP)("%s", (name) =>
-        roundTrip((c) => importDgpFromUrl(c, `/tests/dgp/${name}`)),
+        roundTrip((c) => importDgpFromUrl(c, figure(name))),
     );
     it.each(GGB)("%s", (name) =>
-        roundTrip((c) => importGgbFromUrl(c, `/tests/ggb/${name}`)),
+        roundTrip((c) => importGgbFromUrl(c, figure(name))),
     );
 });
 
@@ -81,7 +82,7 @@ describe(".dgo writer", () => {
     // What a student leaves: saved as it is, not as it was opened.
     it("saves the figure's current state", () =>
         roundTrip(
-            (c) => importDgpFromUrl(c, "/tests/dgp/_Conique3.dgp"),
+            (c) => importDgpFromUrl(c, figure("_Conique3.dgp")),
             (c) => {
                 const point = c.getObj("A") as point_object;
                 point.coords = [point.x + 0.3, point.y - 0.2, 0];
@@ -97,7 +98,7 @@ describe(".dgo writer", () => {
     // fresh figure would number them otherwise.
     it("keeps which intersection is which", () =>
         roundTrip(
-            (c) => importDgpFromUrl(c, "/tests/dgp/_Conique3.dgp"),
+            (c) => importDgpFromUrl(c, figure("_Conique3.dgp")),
             (c) => {
                 const [first, third] = ["I0", "I2"].map(
                     (name) => c.getObj(name) as point_object,
@@ -110,7 +111,7 @@ describe(".dgo writer", () => {
     // Its 2D points keep their place on the screen, not in space.
     it("keeps a 3D figure's 2D points in the screen plane", () =>
         roundTrip(
-            (c) => importDgpFromUrl(c, "/tests/dgp/PSH_01.dgp"),
+            (c) => importDgpFromUrl(c, figure("PSH_01.dgp")),
             (c) => {
                 const point = c.getObj("Odl") as point_object;
                 point.pinned = [point.pinned![0] + 0.2, point.pinned![1] - 0.1];
@@ -122,7 +123,7 @@ describe(".dgo writer", () => {
 
     it("saves a slider's value", () =>
         roundTrip(
-            (c) => importDgpFromUrl(c, "/tests/dgp/_Expression.dgp"),
+            (c) => importDgpFromUrl(c, figure("_Expression.dgp")),
             (c) => {
                 const slider = c.getObj("E2") as expression_object;
                 slider.value = 7.25;
@@ -279,11 +280,11 @@ describe(".dgo region", () => {
         async (name) => {
             const region = { x: 130, y: 90, w: 400, h: 300 };
             const c = createConstruction([900, 700]);
-            await importDgpFromUrl(c, `/tests/dgp/${name}`);
+            await importDgpFromUrl(c, figure(name));
             await frame();
             const shown = new Map(positions(c));
-            const figure = await describeDgo(c, region);
-            expect(figure.v).toMatchObject({ w: 400, h: 300 });
+            const saved = await describeDgo(c, region);
+            expect(saved.v).toMatchObject({ w: 400, h: 300 });
             c.dispose();
             for (const [size, centered, offset] of [
                 [[400, 300], false, [0, 0]],
@@ -291,7 +292,7 @@ describe(".dgo region", () => {
                 [[900, 700], true, [250, 200]],
             ] as const) {
                 const copy = createConstruction([...size]);
-                readDgo(copy, figure, centered);
+                readDgo(copy, saved, centered);
                 await frame();
                 positions(copy).forEach(([object, [x, y]]) => {
                     const [sx, sy] = shown.get(object)!;

@@ -1,5 +1,6 @@
 import { afterEach, describe, expect, it } from "vitest";
 import { commands } from "vitest/browser";
+import { figure } from "./figures";
 
 declare module "vitest/browser" {
     interface BrowserCommands {
@@ -130,7 +131,7 @@ describe("embedded mode", () => {
     it("shows neither a file picker nor a notice", async () => {
         const { iframe, request } = await host();
         await request("load", {
-            data: await fetched("/tests/dgp/orthocentre.dgp"),
+            data: await fetched(figure("orthocentre.dgp")),
             format: "dgp",
         });
         const page = iframe.contentDocument!;
@@ -144,8 +145,8 @@ describe("embedded mode", () => {
     it("imports figures", async () => {
         const { request } = await host();
         for (const [path, format] of [
-            ["/tests/dgp/orthocentre.dgp", "dgp"],
-            ["/tests/ggb/pointon.ggb", "ggb"],
+            [figure("orthocentre.dgp"), "dgp"],
+            [figure("pointon.ggb"), "ggb"],
         ]) {
             const data = await fetched(path);
             const answer = await request("load", { data, format }, [data]);

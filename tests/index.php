@@ -9,12 +9,29 @@ $https = !empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off';
 $base = ($https ? 'https' : 'http') . '://' . $_SERVER['HTTP_HOST']
     . rtrim(dirname($_SERVER['SCRIPT_NAME']), '/') . '/';
 
+// Folder tree of the figures with the given extension, empty folders pruned.
+function scan($dir, $ext) {
+    $tree = ['dirs' => [], 'files' => [], 'count' => 0];
+    foreach (scandir($dir) ?: [] as $name) {
+        if ($name[0] === '.') continue;
+        if (is_dir("$dir/$name")) {
+            $sub = scan("$dir/$name", $ext);
+            if ($sub['count']) $tree['dirs'][$name] = $sub;
+        } elseif (strtolower(pathinfo($name, PATHINFO_EXTENSION)) === $ext) {
+            $tree['files'][] = $name;
+        }
+    }
+    uksort($tree['dirs'], 'strnatcasecmp');
+    natcasesort($tree['files']);
+    $tree['count'] = count($tree['files']) + array_sum(array_column($tree['dirs'], 'count'));
+    return $tree;
+}
+
 $sections = [];
 foreach (['dgo', 'dgp', 'ggb'] as $ext) {
-    $files = glob(__DIR__ . "/$ext/*.$ext") ?: [];
-    $files = array_map('basename', $files);
-    natcasesort($files);
-    if ($files) $sections[$ext] = $files;
+    if (!is_dir(__DIR__ . "/$ext")) continue;
+    $tree = scan(__DIR__ . "/$ext", $ext);
+    if ($tree['count']) $sections[$ext] = $tree;
 }
 
 function h($s) { return htmlspecialchars($s, ENT_QUOTES, 'UTF-8'); }
@@ -24,6 +41,22 @@ function h($s) { return htmlspecialchars($s, ENT_QUOTES, 'UTF-8'); }
 function link_to($viewer, $url) {
     return $viewer . '?url=' . str_replace(['%3A', '%2F'], [':', '/'], rawurlencode($url));
 }
+
+function render($tree, $path, $viewer, $base) {
+    foreach ($tree['dirs'] as $name => $sub): ?>
+<details>
+  <summary><?= h($name) ?> <small>(<span class="count"><?= $sub['count'] ?></span>)</small></summary>
+  <?php render($sub, "$path/" . rawurlencode($name), $viewer, $base); ?>
+</details>
+<?php endforeach;
+    if (!$tree['files']) return; ?>
+<ul>
+<?php foreach ($tree['files'] as $file):
+      $url = $base . $path . '/' . rawurlencode($file); ?>
+  <li><a href="<?= h(link_to($viewer, $url)) ?>" target="_blank" rel="noopener"><?= h($file) ?></a><a class="raw" href="<?= h($url) ?>" download title="Télécharger">↓</a></li>
+<?php endforeach; ?>
+</ul>
+<?php }
 ?>
 <!doctype html>
 <html lang="fr">
@@ -40,11 +73,15 @@ function link_to($viewer, $url) {
   h1 { font-size: 22px; margin: 0 0 4px; }
   p { color: var(--muted); margin: 0 0 16px; }
   input { width: 100%; box-sizing: border-box; padding: 8px 10px; font: inherit; border: 1px solid var(--line); border-radius: 6px; background: transparent; color: inherit; }
-  h2 { font-size: 16px; margin: 24px 0 8px; padding-bottom: 4px; border-bottom: 1px solid var(--line); }
-  h2 small { color: var(--muted); font-weight: normal; }
+  summary { cursor: pointer; user-select: none; }
+  summary small { color: var(--muted); font-weight: normal; }
+  details.section > summary { font-size: 16px; font-weight: bold; margin: 24px 0 8px; padding-bottom: 4px; border-bottom: 1px solid var(--line); }
+  details details { margin: 4px 0 4px 4px; padding-left: 12px; border-left: 1px solid var(--line); }
+  details details > summary { font-weight: 600; margin-left: -12px; }
+  details details > summary + * { margin-top: 4px; }
   ul { list-style: none; margin: 0; padding: 0; columns: 220px; column-gap: 24px; }
   li { padding: 2px 0; break-inside: avoid; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  li.hidden, section.hidden { display: none; }
+  .hidden { display: none; }
   a { color: var(--link); text-decoration: none; }
   a:hover { text-decoration: underline; }
   a.raw { color: var(--muted); font-size: 12px; margin-left: 6px; }
@@ -54,29 +91,31 @@ function link_to($viewer, $url) {
 <h1>Figures de test DocGeo</h1>
 <p>Chaque figure s'ouvre dans <a href="<?= h($viewer) ?>"><?= h($viewer) ?></a>, dans une nouvelle fenêtre.</p>
 <input type="search" id="filter" placeholder="Filtrer…" autofocus>
-<?php foreach ($sections as $ext => $files): ?>
-<section>
-  <h2><?= h($ext) ?> <small>(<span class="count"><?= count($files) ?></span>)</small></h2>
-  <ul>
-  <?php foreach ($files as $file):
-      $url = $base . $ext . '/' . rawurlencode($file); ?>
-    <li><a href="<?= h(link_to($viewer, $url)) ?>" target="_blank" rel="noopener"><?= h($file) ?></a><a class="raw" href="<?= h($url) ?>" download title="Télécharger">↓</a></li>
-  <?php endforeach; ?>
-  </ul>
-</section>
+<?php foreach ($sections as $ext => $tree): ?>
+<details class="section" open>
+  <summary><?= h($ext) ?> <small>(<span class="count"><?= $tree['count'] ?></span>)</small></summary>
+  <?php render($tree, $ext, $viewer, $base); ?>
+</details>
 <?php endforeach; ?>
 <script>
+  // While filtering, folders holding a match are unfolded; their state from
+  // before the filter is restored once it is cleared.
   document.getElementById('filter').addEventListener('input', (event) => {
     const query = event.target.value.trim().toLowerCase();
-    for (const section of document.querySelectorAll('section')) {
-      let shown = 0;
-      for (const item of section.querySelectorAll('li')) {
-        const match = item.textContent.toLowerCase().includes(query);
-        item.classList.toggle('hidden', !match);
-        if (match) shown++;
+    for (const item of document.querySelectorAll('li')) {
+      item.classList.toggle('hidden', !item.textContent.toLowerCase().includes(query));
+    }
+    for (const folder of document.querySelectorAll('details')) {
+      const shown = folder.querySelectorAll('li:not(.hidden)').length;
+      folder.querySelector(':scope > summary .count').textContent = shown;
+      folder.classList.toggle('hidden', shown === 0);
+      if (query) {
+        folder.dataset.open ??= folder.open;
+        folder.open = shown > 0;
+      } else if (folder.dataset.open) {
+        folder.open = folder.dataset.open === 'true';
+        delete folder.dataset.open;
       }
-      section.querySelector('.count').textContent = shown;
-      section.classList.toggle('hidden', shown === 0);
     }
   });
 </script>

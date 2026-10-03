@@ -10,23 +10,20 @@ import type { point_on_object } from "../../src/objects/point_on_object";
 import type { polygon_object } from "../../src/objects/polygon_object";
 import type { segment_object } from "../../src/objects/segment_object";
 import type { Vec2 } from "../../src/vec";
-import { createConstruction, disposeFigures, frame } from "./figures";
+import { createConstruction, disposeFigures, figure, frame } from "./figures";
 
 disposeFigures();
 
 async function open(name: string): Promise<construction> {
     const c = createConstruction();
-    await importDgpFromUrl(c, `/tests/dgp/${name}`);
+    await importDgpFromUrl(c, figure(name));
     await frame();
     return c;
 }
 
 async function openGgb(name: string): Promise<construction> {
     const c = createConstruction();
-    await importGgbFromBlob(
-        c,
-        await (await fetch(`/tests/ggb/${name}`)).blob(),
-    );
+    await importGgbFromBlob(c, await (await fetch(figure(name))).blob());
     await frame();
     return c;
 }

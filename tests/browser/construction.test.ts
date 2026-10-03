@@ -219,6 +219,29 @@ describe("geometric construction", () => {
         expect(c.svg.dom().contains(b.dom.dom())).toBe(true);
     });
 
+    // As DGPad paints them, whatever the figure went through.
+    it("draws the objects of a layer in construction order", () => {
+        const c = createConstruction();
+        const points = ["A", "B", "C"].map((name, index) =>
+            createPoint(c, name, [index, 0, 0]),
+        );
+        const order = () =>
+            [...points[0].dom.dom().parentElement!.children].map((view) =>
+                points.find((point) => point.dom.dom() === view)!,
+            );
+        points[1].hidden = 1;
+        points[1].updateView();
+        points[0].hidden = 1;
+        points[0].updateView();
+        points[1].hidden = 0;
+        points[1].updateView();
+        points[0].hidden = 0;
+        points[0].updateView();
+        expect(order()).toEqual(points);
+        points[1].createSVG();
+        expect(order()).toEqual(points);
+    });
+
     it("contains no non-finite SVG coordinate after a degeneration", () => {
         const c = createConstruction();
         const point = createPoint(c, "A", [0, 0, 0]);

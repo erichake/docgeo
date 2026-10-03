@@ -42,6 +42,8 @@ export class construction {
     animations: animations;
     private updateFrame: number | null = null;
     private batchedObjects: construction_object[] | null = null;
+    // The object each view of a layer shows.
+    private viewObjects = new WeakMap<Element, construction_object>();
     private viewportWidth = 0;
     private viewportHeight = 0;
     private keydownListener!: EventListener;
@@ -314,8 +316,18 @@ export class construction {
         return this.svg.height();
     }
 
+    // Its view, in its layer, among those of the objects before it in
+    // construction order, whatever the moment it is shown at: DGPad paints
+    // in that order. Restyled, just after the view it replaces.
     mountObject(obj: construction_object): void {
-        this.layers.get(obj.layer)!.add(obj.dom);
+        const view = obj.dom.dom();
+        const layer = this.layers.get(obj.layer)!.dom();
+        let before = layer.lastElementChild;
+        while (before && this.viewObjects.get(before)!.sequence > obj.sequence)
+            before = before.previousElementSibling;
+        if (before) before.after(view);
+        else layer.prepend(view);
+        this.viewObjects.set(view, obj);
     }
 
     createSVG(): void {

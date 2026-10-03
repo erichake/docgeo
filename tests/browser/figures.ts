@@ -34,10 +34,23 @@ export function createConstruction(size?: [number, number]): construction {
 export const frame = () =>
     new Promise((resolve) => requestAnimationFrame(resolve));
 
-const names = (paths: Record<string, unknown>) =>
-    Object.keys(paths).map((path) => path.split("/").pop()!);
-export const DGP = names(import.meta.glob("../dgp/*.dgp"));
-export const GGB = names(import.meta.glob("../ggb/*.ggb"));
+const FIGURES = Object.keys(
+    import.meta.glob(["../dgp/**/*.dgp", "../ggb/**/*.ggb"]),
+).map((path) => path.replace("..", "/tests"));
+const names = (extension: string) =>
+    FIGURES.filter((url) => url.endsWith(extension)).map((url) =>
+        url.split("/").pop()!,
+    );
+export const DGP = names(".dgp");
+export const GGB = names(".ggb");
+
+// A test figure's URL from its file name, whichever subfolder it is filed in:
+// the name must be unique among the test figures.
+export function figure(name: string): string {
+    const urls = FIGURES.filter((url) => url.endsWith(`/${name}`));
+    expect(urls).toHaveLength(1);
+    return urls[0];
+}
 
 // What the figure draws: its visible elements, whatever order their
 // attributes were set in, without the ids numbered per construction.

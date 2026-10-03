@@ -34,7 +34,7 @@ function hiddenOf(segment: segment_object): [number, number][] {
         .hiddenIntervals;
 }
 import { vDot, vNormalize, vSub, type Vec2, type Vec3 } from "../../src/vec";
-import { expectClose } from "./figures";
+import { expectClose, figure } from "./figures";
 
 function createConstruction(): construction {
     document.documentElement.style.width = "100%";
@@ -95,7 +95,7 @@ STL(B,"c:#0000b2;s:6;sn:true;f:30");`,
 
     it("imports two points and their line from the public DGP file", async () => {
         const c = createConstruction();
-        await importDgpFromUrl(c, "/tests/dgp/_Droite.dgp");
+        await importDgpFromUrl(c, figure("_Droite.dgp"));
 
         const p1 = c.getObj("P1");
         const p2 = c.getObj("P2");
@@ -180,7 +180,7 @@ STL(P,"tk:1");`,
 
     it("imports the perpendicular-bisector reference figure", async () => {
         const c = createConstruction();
-        await importDgpFromUrl(c, "/tests/dgp/_Mediatrice.dgp");
+        await importDgpFromUrl(c, figure("_Mediatrice.dgp"));
 
         expect(figureObjects(c)).toHaveLength(7);
         expect(c.getObj("P1")).toBeInstanceOf(point_object);
@@ -189,7 +189,7 @@ STL(P,"tk:1");`,
 
     it("imports the angle-bisector reference figure", async () => {
         const c = createConstruction();
-        await importDgpFromUrl(c, "/tests/dgp/_Bissectrice.dgp");
+        await importDgpFromUrl(c, figure("_Bissectrice.dgp"));
 
         const vertex = c.getObj("P1") as point_object;
         const arm1 = c.getObj("P2") as point_object;
@@ -210,7 +210,7 @@ STL(P,"tk:1");`,
 
     it("dashes every kind of stroke with DGPad's pattern, line tips included", async () => {
         const c = createConstruction();
-        await importDgpFromUrl(c, "/tests/dgp/pointilles.dgp");
+        await importDgpFromUrl(c, figure("pointilles.dgp"));
         await new Promise((resolve) => requestAnimationFrame(resolve));
         ["C1", "C2", "Poly1", "L1", "S1", "Quad"].forEach((name) => {
             const strokes = [
@@ -227,7 +227,7 @@ STL(P,"tk:1");`,
 
     it("draws a right angle as DGPad's open square, without its value", async () => {
         const c = createConstruction();
-        await importDgpFromUrl(c, "/tests/dgp/marque_angle.dgp");
+        await importDgpFromUrl(c, figure("marque_angle.dgp"));
         const angle = c.getObj("A1") as angle_object;
         await new Promise((resolve) => requestAnimationFrame(resolve));
         expect(angle.arcPath.getAtt("d")).toMatch(/ A30 30 /);
@@ -269,7 +269,7 @@ STL(P,"tk:1");`,
 
     it("imports the fixed-angle reference figure", async () => {
         const c = createConstruction();
-        await importDgpFromUrl(c, "/tests/dgp/_FixedAngle.dgp");
+        await importDgpFromUrl(c, figure("_FixedAngle.dgp"));
 
         const vertex = c.getObj("P2") as point_object;
         const a = c.getObj("P1") as point_object;
@@ -288,7 +288,7 @@ STL(P,"tk:1");`,
 
     it("imports and updates a point locus without moving its driver", async () => {
         const c = createConstruction();
-        await importDgpFromUrl(c, "/tests/dgp/_Locus.dgp");
+        await importDgpFromUrl(c, figure("_Locus.dgp"));
 
         const focus = c.getObj("P3") as point_object;
         const driver = c.getObj("P4") as point_on_object;
@@ -319,7 +319,7 @@ STL(P,"tk:1");`,
 
     it("uses polygon vertices as the exact locus samples", async () => {
         const c = createConstruction();
-        await importDgpFromUrl(c, "/tests/dgp/_Locus2.dgp");
+        await importDgpFromUrl(c, figure("_Locus2.dgp"));
 
         const center = c.getObj("O") as point_object;
         const polygon = c.getObj("Poly1") as polygon_object;
@@ -335,7 +335,7 @@ STL(P,"tk:1");`,
 
     it("imports and continuously drags a point on a locus", async () => {
         const c = createConstruction();
-        await importDgpFromUrl(c, "/tests/dgp/_PtOn5.dgp");
+        await importDgpFromUrl(c, figure("_PtOn5.dgp"));
 
         const locus = c.getObj("Locus1") as locus_object;
         const point = c.getObj("M") as point_on_object;
@@ -376,9 +376,9 @@ STL(P,"tk:1");`,
 
     it("keeps a pinned figure sized by the window in place on zoom and pan", async () => {
         const c = createConstruction();
-        expect(
-            await importDgpFromUrl(c, "/tests/dgp/_AireParallelo.dgp"),
-        ).toEqual([]);
+        expect(await importDgpFromUrl(c, figure("_AireParallelo.dgp"))).toEqual(
+            [],
+        );
         const a = c.getObj("A") as point_object;
         const b = c.getObj("B") as formula_point_object;
         const d = c.getObj("D") as formula_point_object;
@@ -408,7 +408,7 @@ STL(P,"tk:1");`,
 
     it("writes a polygon's area at its vertices' mean, like DGPad", async () => {
         const c = createConstruction();
-        await importDgpFromUrl(c, "/tests/dgp/poly_mesure.dgp");
+        await importDgpFromUrl(c, figure("poly_mesure.dgp"));
         const polygon = c.getObj("Poly1") as polygon_object;
         const vertices = ["P1", "P2", "P3", "P4"].map(
             (name) => c.getObj(name) as point_object,
@@ -447,7 +447,7 @@ STL(P,"tk:1");`,
 
     it("imports a point inside a polygon", async () => {
         const c = createConstruction();
-        await importDgpFromUrl(c, "/tests/dgp/_PtOn2.dgp");
+        await importDgpFromUrl(c, figure("_PtOn2.dgp"));
 
         const point = c.getObj("A") as point_on_object;
         expect(point).toBeInstanceOf(point_on_object);
@@ -481,7 +481,7 @@ M=PointOn("M",p,80);`,
 
     it("keeps an sb point on the polygon boundary", async () => {
         const c = createConstruction();
-        await importDgpFromUrl(c, "/tests/dgp/_PtOn3.dgp");
+        await importDgpFromUrl(c, figure("_PtOn3.dgp"));
 
         const a = c.getObj("A") as point_on_object;
         const b = c.getObj("B") as point_on_object;
@@ -520,7 +520,7 @@ P=PointOn("P",poly,0.5);`,
 
     it("imports the complete Apollonius construction", async () => {
         const c = createConstruction();
-        await importDgpFromUrl(c, "/tests/dgp/_Apollonius.dgp");
+        await importDgpFromUrl(c, figure("_Apollonius.dgp"));
 
         expect(figureObjects(c)).toHaveLength(2569);
         expect(c.getObj("P1")).toBeInstanceOf(point_object);
@@ -530,7 +530,7 @@ P=PointOn("P",poly,0.5);`,
 
     it("draws DGPad's plane coordinate system for a figure without 3D objects", async () => {
         const c = createConstruction();
-        await importDgpFromUrl(c, "/tests/dgp/_onlyAxis.dgp");
+        await importDgpFromUrl(c, figure("_onlyAxis.dgp"));
         const labels = () =>
             [...c.GRID.dom.dom().querySelectorAll("text")]
                 .filter((text) => (text as SVGElement).style.display !== "none")
@@ -577,7 +577,7 @@ P=PointOn("P",poly,0.5);`,
 
     it("imports the legacy fake-3D cube, pinning its origin and axes", async () => {
         const c = createConstruction();
-        await importDgpFromUrl(c, "/tests/dgp/_Cube.dgp");
+        await importDgpFromUrl(c, figure("_Cube.dgp"));
 
         const o = c.getObj("O") as fixed_point_object;
         const x = c.getObj("X") as fixed_point_object;
@@ -604,10 +604,7 @@ P=PointOn("P",poly,0.5);`,
 
     it("imports a 2D figure of point3D points as a 3D one", async () => {
         const c = createConstruction();
-        const unsupported = await importDgpFromUrl(
-            c,
-            "/tests/dgp/_tetraOld.dgp",
-        );
+        const unsupported = await importDgpFromUrl(c, figure("_tetraOld.dgp"));
 
         const coords = (name: string) =>
             (c.getObj(name) as point_object).coords;
@@ -626,7 +623,7 @@ P=PointOn("P",poly,0.5);`,
 
     it("imports and drags the reference expression figure", async () => {
         const c = createConstruction();
-        await importDgpFromUrl(c, "/tests/dgp/_Expression.dgp");
+        await importDgpFromUrl(c, figure("_Expression.dgp"));
 
         const e1 = c.getObj("E1") as expression_object;
         const e2 = c.getObj("E2") as expression_object;
@@ -701,7 +698,7 @@ P=PointOn("P",poly,0.5);`,
 
     it("imports a Curvus plotted function figure", async () => {
         const c = createConstruction();
-        await importDgpFromUrl(c, "/tests/dgp/graph.dgp");
+        await importDgpFromUrl(c, figure("graph.dgp"));
 
         const e1 = c.getObj("E1") as expression_object;
         const f1 = c.getObj("f1") as curve_object;
@@ -758,7 +755,7 @@ P=PointOn("P",poly,0.5);`,
 
     it("breaks a Curvus curve at its jumps, not where it is only steep", async () => {
         const c = createConstruction();
-        await importDgpFromUrl(c, "/tests/dgp/_floor.dgp");
+        await importDgpFromUrl(c, figure("_floor.dgp"));
         importDgp(
             c,
             `E2=Expression("E2","","","","1/(x-0.3)","0","0");
@@ -803,7 +800,7 @@ STL(M,"mg:[f1,5000]");`,
 
     it("keeps a magnetized point glued to whichever segment it grabbed, only switching on a fresh grab", async () => {
         const c = createConstruction();
-        await importDgpFromUrl(c, "/tests/dgp/trace.dgp");
+        await importDgpFromUrl(c, figure("trace.dgp"));
         c.OBJS.update();
         const m = c.getObj("M") as point_object;
         const s1 = c.getObj("S1") as two_points_line_object;
@@ -877,7 +874,7 @@ STL(M,"mg:[f1,5000]");`,
 
     it("traces point movement without joining magnet switches or reprojections", async () => {
         const c = createConstruction();
-        await importDgpFromUrl(c, "/tests/dgp/trace.dgp");
+        await importDgpFromUrl(c, figure("trace.dgp"));
         c.OBJS.update();
         const m = c.getObj("M") as point_object;
         const s1 = c.getObj("S1") as two_points_line_object;
@@ -1028,7 +1025,7 @@ STL(P,"s:2");`;
 
     it("only builds an SVG view for the objects visible in Apollonius", async () => {
         const c = createConstruction();
-        await importDgpFromUrl(c, "/tests/dgp/_Apollonius.dgp");
+        await importDgpFromUrl(c, figure("_Apollonius.dgp"));
 
         // 3 free points + 3 initial circles + 32 Circle3pts.
         const objects = figureObjects(c);
@@ -1040,7 +1037,7 @@ STL(P,"s:2");`;
 
     it("imports Point/Circle1 formulas from ptExp.dgp", async () => {
         const c = createConstruction();
-        await importDgpFromUrl(c, "/tests/dgp/ptExp.dgp");
+        await importDgpFromUrl(c, figure("ptExp.dgp"));
 
         const a = c.getObj("A") as point_object;
         const b = c.getObj("B") as point_object;
@@ -1083,7 +1080,7 @@ C1=Circle1("C1",A,"d(A,Z)");`,
 
     it("imports an Arc3pts figure and its center", async () => {
         const c = createConstruction();
-        await importDgpFromUrl(c, "/tests/dgp/arc.dgp");
+        await importDgpFromUrl(c, figure("arc.dgp"));
 
         const p1 = c.getObj("P1") as point_object;
         const p2 = c.getObj("P2") as point_object;
@@ -1102,7 +1099,7 @@ C1=Circle1("C1",A,"d(A,Z)");`,
 
     it("imports a legacy-3D cube built from vector-literal point formulas", async () => {
         const c = createConstruction();
-        await importDgpFromUrl(c, "/tests/dgp/chemin_cube.dgp");
+        await importDgpFromUrl(c, figure("chemin_cube.dgp"));
         c.OBJS.update();
 
         // P1 is the figure's implicit 3D origin (see SetCoords' is3D
@@ -1157,7 +1154,7 @@ C1=Circle1("C1",A,"d(A,Z)");`,
         const c = createConstruction();
         const unsupported = await importDgpFromUrl(
             c,
-            "/tests/dgp/_patronsCube.dgp",
+            figure("_patronsCube.dgp"),
         );
         expect(unsupported).toEqual([]);
         const patron = c.getObj("Patron") as expression_object;
@@ -1197,7 +1194,7 @@ C1=Circle1("C1",A,"d(A,Z)");`,
 
     it("interprets script Expressions with variables, conditions and lists", async () => {
         const c = createConstruction();
-        const unsupported = await importDgpFromUrl(c, "/tests/dgp/fourmi.dgp");
+        const unsupported = await importDgpFromUrl(c, figure("fourmi.dgp"));
         expect(unsupported).toEqual([]);
 
         // E11 folds P7 down around the hinge [Symc1 P2] both ways, and Q
@@ -1231,7 +1228,7 @@ C1=Circle1("C1",A,"d(A,Z)");`,
 
     it("anchors ExpressionOn to its point and magnetizes points to a quadric", async () => {
         const c = createConstruction();
-        const unsupported = await importDgpFromUrl(c, "/tests/dgp/pappus.dgp");
+        const unsupported = await importDgpFromUrl(c, figure("pappus.dgp"));
         expect(unsupported).toEqual([]);
 
         // "xA=ExpressionOn(...,P1,[20,-20])" is drawn 20px right of and
@@ -1264,7 +1261,7 @@ C1=Circle1("C1",A,"d(A,Z)");`,
 
     it("calls function Expressions of z on complex numbers from scripts", async () => {
         const c = createConstruction();
-        const unsupported = await importDgpFromUrl(c, "/tests/dgp/mandel.dgp");
+        const unsupported = await importDgpFromUrl(c, figure("mandel.dgp"));
         expect(unsupported).toEqual([]);
 
         // E1 is "z^2+c", E2 the sequence z(n+1)=E1(z(n)) from z0, and each
@@ -1302,7 +1299,7 @@ C1=Circle1("C1",A,"d(A,Z)");`,
 
     it("draws a DGPad List of the points an Expression computes", async () => {
         const c = createConstruction();
-        const unsupported = await importDgpFromUrl(c, "/tests/dgp/lst2.dgp");
+        const unsupported = await importDgpFromUrl(c, figure("lst2.dgp"));
         expect(unsupported).toEqual([]);
 
         // E1 lists n points [0.2√i·cos(i·ang·π/180), 0.2√i·sin(...)],
@@ -1328,10 +1325,7 @@ C1=Circle1("C1",A,"d(A,Z)");`,
 
     it("draws a 3D surface computed from a two-variable function", async () => {
         const c = createConstruction();
-        const unsupported = await importDgpFromUrl(
-            c,
-            "/tests/dgp/fonction3D.dgp",
-        );
+        const unsupported = await importDgpFromUrl(c, figure("fonction3D.dgp"));
         expect(unsupported).toEqual([]);
 
         // f is "sin(xy)": DGPad reads "xy" as x*y. E1 draws every other
@@ -1353,7 +1347,7 @@ C1=Circle1("C1",A,"d(A,Z)");`,
 
     it("reads and returns angles in degrees in DGPad's degree mode", async () => {
         const c = createConstruction();
-        await importDgpFromUrl(c, "/tests/dgp/lst.dgp");
+        await importDgpFromUrl(c, figure("lst.dgp"));
         // The same figure in degrees: its "·π/180" converts once more, as in
         // DGPad.
         const list = c.getObj("List1") as expression_list_object;
@@ -1438,7 +1432,7 @@ E1=Expression("E1","","","","5","-1","0");`,
 
     it("hides an edge lying on a coplanar face without flickering", async () => {
         const c = createConstruction();
-        await importDgpFromUrl(c, "/tests/dgp/chemin_cube.dgp");
+        await importDgpFromUrl(c, figure("chemin_cube.dgp"));
         // [GC] lies on the closed face BFGC through P2, a different point
         // coincident with G: sweeping the camera must switch it between
         // visible and hidden once, not flip at random on rounding noise.
@@ -1462,7 +1456,7 @@ E1=Expression("E1","","","","5","-1","0");`,
 
     it("keeps a 3D figure's 2D objects in the screen plane", async () => {
         const c = createConstruction();
-        const unsupported = await importDgpFromUrl(c, "/tests/dgp/PSH_01.dgp");
+        const unsupported = await importDgpFromUrl(c, figure("PSH_01.dgp"));
         expect(unsupported).toEqual([]);
         const value = (name: string) => c.getObj(name)!.scriptValue(true);
         const point = (name: string) => c.getObj(name) as point_object;
@@ -1512,7 +1506,7 @@ E1=Expression("E1","","","","5","-1","0");`,
         const c = createConstruction();
         const unsupported = await importDgpFromUrl(
             c,
-            "/tests/dgp/yves/Octogone_Etoile_8_3.dgp",
+            figure("Octogone_Etoile_8_3.dgp"),
         );
         expect(unsupported).toEqual([]);
         const value = (name: string) => c.getObj(name)!.scriptValue(true);
