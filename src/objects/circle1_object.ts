@@ -39,7 +39,9 @@ export class circle1_object extends primitive_circle_object {
         super(c, name);
         this.P1 = p1;
         this.radius = radius;
-        this.readsView = typeof radius !== "number" && usesView(radius.formula);
+        this.readsView =
+            (c.GRID.FRAME2D !== null && !axis) ||
+            (typeof radius !== "number" && usesView(radius.formula));
         this.axis = axis;
         this.addParents(
             p1,
@@ -88,7 +90,12 @@ export class circle1_object extends primitive_circle_object {
             return;
         }
         if (!this.axis) {
-            this.setCircle(this.P1.coords, radius, ...this.plane);
+            // As in DGPad, a circle of the screen even around a 3D center.
+            this.setCircle(
+                this.P1.coords,
+                radius,
+                ...(this.C.GRID.FRAME2D ? this.C.screenPlaneBasis : this.plane),
+            );
             return;
         }
         const normal = vNormalize(this.axis.VEC)!;
@@ -99,6 +106,13 @@ export class circle1_object extends primitive_circle_object {
     }
 
     mousedrag(ev: PointerEvent): void {
+        if (this.C.GRID.FRAME2D) {
+            const [x, y] = this.C.pt3D(this.P1.coords);
+            const [px, py] = this.C.pointerPosition(ev);
+            this.radius = Math.hypot(px - x, py - y) / this.C.GRID.UNIT[0];
+            this.C.invalidateGeometry(this);
+            return;
+        }
         const point = this.C.unprojectToZPlane(
             this.C.pointerPosition(ev),
             this.P1.z,

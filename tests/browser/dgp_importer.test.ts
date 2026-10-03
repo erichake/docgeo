@@ -33,7 +33,15 @@ function hiddenOf(segment: segment_object): [number, number][] {
     return (segment as unknown as { hiddenIntervals: [number, number][] })
         .hiddenIntervals;
 }
-import { vDot, vNormalize, vSub, type Vec2, type Vec3 } from "../../src/vec";
+import {
+    vAdd,
+    vDot,
+    vNormalize,
+    vScale,
+    vSub,
+    type Vec2,
+    type Vec3,
+} from "../../src/vec";
 import { expectClose, figure } from "./figures";
 
 function createConstruction(): construction {
@@ -1500,6 +1508,32 @@ E1=Expression("E1","","","","5","-1","0");`,
         const origin = c.GRID.ORG;
         c.resize(c.width + 200, c.height + 100);
         expect(c.GRID.ORG).toBe(origin);
+    });
+
+    it("draws a 3D figure's Circle1 around a 3D point as a circle of the screen", async () => {
+        const c = createConstruction();
+        const unsupported = await importDgpFromUrl(
+            c,
+            figure("Horisphere_ortho_checkbox.dgp"),
+        );
+        expect(unsupported).toEqual([]);
+        // "Circle1(Z,1)", Z=[0,0,1]: the outline of the sphere.
+        const circle = c.getObj("C10") as circle1_object;
+        const expectScreenCircle = () => {
+            c.invalidateProjection();
+            c.OBJS.update();
+            const center = c.pt3D(circle.CENTER);
+            [circle.U, circle.V].forEach((axis) => {
+                const end = c.pt3D(vAdd(circle.CENTER, vScale(axis, circle.R)));
+                expect(
+                    Math.hypot(end[0] - center[0], end[1] - center[1]),
+                ).toBeCloseTo(c.GRID.UNIT[0], 6);
+            });
+        };
+        expectScreenCircle();
+        c.GRID.PHI += 0.4;
+        c.GRID.THETA -= 0.2;
+        expectScreenCircle();
     });
 
     it("measures elliptic segments with the modulus of a complex number", async () => {
