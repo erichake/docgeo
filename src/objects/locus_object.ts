@@ -406,6 +406,7 @@ export class locus_object extends construction_object {
             .stl("fill", "none")
             .stl("stroke", t.stroke_color)
             .stl("stroke-width", t.size)
+            .stl("stroke-dasharray", t.strokeDashArray)
             .stl("pointer-events", "none");
         return dom.add(t.hitArea, t.path);
     }

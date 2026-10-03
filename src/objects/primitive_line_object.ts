@@ -38,10 +38,47 @@ function pointAtDistance(origin: Vec2, dir: Vec2, distance: number): Vec2 {
     return [origin[0] + distance * dir[0], origin[1] + distance * dir[1]];
 }
 
+// The dashes of a stroke `length` long, its pattern starting at `phase`.
+function dashIntervals(
+    length: number,
+    dash: number[],
+    phase: number,
+): Interval[] {
+    const intervals: Interval[] = [];
+    for (
+        let s = -phase, i = 0;
+        s < length;
+        s += dash[i], i = (i + 1) % dash.length
+    )
+        if (i % 2 === 0)
+            intervals.push([Math.max(s, 0), Math.min(s + dash[i], length)]);
+    return intervals;
+}
+
 // Path for a tapered tip: a triangle from `base` (as wide as the stroke,
-// offset by +/-perp) narrowing to a point at `apex`.
-function tipTrianglePath(base: Vec2, apex: Vec2, perp: Vec2): string {
-    return `M${base[0] + perp[0]} ${base[1] + perp[1]} L${apex[0]} ${apex[1]} L${base[0] - perp[0]} ${base[1] - perp[1]} Z`;
+// offset by +/-perp) narrowing to a point at `apex`, drawn over the given
+// distances from its base.
+function tipPath(
+    base: Vec2,
+    apex: Vec2,
+    perp: Vec2,
+    intervals: Interval[],
+): string {
+    const length = vNorm(vSub(apex, base));
+    const corner = (s: number, side: number): string => {
+        const [x, y] = vAdd(
+            vAdd(base, vScale(vSub(apex, base), s / length)),
+            vScale(perp, side * (1 - s / length)),
+        );
+        return `${x} ${y}`;
+    };
+    return intervals
+        .filter(([from, to]) => to > from)
+        .map(
+            ([from, to]) =>
+                `M${corner(from, 1)} L${corner(to, 1)} L${corner(to, -1)} L${corner(from, -1)} Z`,
+        )
+        .join(" ");
 }
 
 export class primitive_line_object extends construction_object {
@@ -61,8 +98,6 @@ export class primitive_line_object extends construction_object {
     hiddenPath!: DOMElement;
     tipPath1!: DOMElement;
     tipPath2!: DOMElement;
-    // DGPad's "dh" style: dashed all along, not only where hidden.
-    dash = false;
     // Whether this line draws tapered Cabri-style tips instead of running
     // to the canvas edge. True for genuinely infinite lines; segment_object
     // and ray_line_object (which have real endpoints) turn it off.
@@ -288,9 +323,35 @@ export class primitive_line_object extends construction_object {
                 -this.screenDir[1] * half,
                 this.screenDir[0] * half,
             ];
-            this.tipPath1.att("d", tipTrianglePath(this.sP1, this.tipP1, perp));
-            this.tipPath2.att("d", tipTrianglePath(this.sP2, this.tipP2, perp));
+            const [tip1, tip2] = this.tipIntervals();
+            this.tipPath1.att("d", tipPath(this.sP1, this.tipP1, perp, tip1));
+            this.tipPath2.att("d", tipPath(this.sP2, this.tipP2, perp, tip2));
         }
+    }
+
+    // Where each tip is drawn, from its base. Dashed, it continues the
+    // body's pattern, which intervalsToPath starts at its leftmost end: the
+    // tip there leads into it from its apex.
+    private tipIntervals(): [Interval[], Interval[]] {
+        const length1 = vNorm(vSub(this.tipP1, this.sP1));
+        const length2 = vNorm(vSub(this.tipP2, this.sP2));
+        const dash = this.dash;
+        if (!dash.length) return [[[0, length1]], [[0, length2]]];
+        const period = dash.reduce((sum, length) => sum + length);
+        const body = vNorm(vSub(this.sP2, this.sP1)) % period;
+        const leading = (length: number): Interval[] =>
+            dashIntervals(
+                length,
+                dash,
+                (period - (length % period)) % period,
+            ).map(([from, to]) => [length - to, length - from]);
+        const trailing = (length: number): Interval[] =>
+            dashIntervals(length, dash, body);
+        const [x1, y1] = this.sP1;
+        const [x2, y2] = this.sP2;
+        return x1 < x2 || (x1 === x2 && y1 <= y2)
+            ? [leading(length1), trailing(length2)]
+            : [trailing(length1), leading(length2)];
     }
 
     static createSVG(_this: construction_object): DOMElement {
@@ -302,20 +363,19 @@ export class primitive_line_object extends construction_object {
                 "fill:none;stroke:transparent;pointer-events:stroke;cursor:pointer",
             )
             .stl("stroke-width", t.prefs[t.type].touchsize);
-        const dashes = `${t.size * 3} ${t.size * 2}`;
         t.path = t.svg
             .shape("path")
             .stl("fill", "none")
             .stl("stroke", t.stroke_color)
             .stl("stroke-width", t.size)
-            .stl("stroke-dasharray", t.dash ? dashes : "none")
+            .stl("stroke-dasharray", t.strokeDashArray)
             .stl("pointer-events", "none");
         t.hiddenPath = t.svg
             .shape("path")
             .stl("fill", "none")
             .stl("stroke", t.stroke_color)
             .stl("stroke-width", t.size)
-            .stl("stroke-dasharray", dashes)
+            .stl("stroke-dasharray", `${t.size * 3} ${t.size * 2}`)
             .stl("pointer-events", "none");
         t.tipPath1 = t.svg
             .shape("path")

@@ -299,7 +299,7 @@ postérieur.
 | `ar` | `Ang`, `FA`  | rayon de l'arc                           | 30                                |
 | `ra` | `Ang`        | marque d'angle droit                     | `dgpad`                           |
 | `dc` | `Seg`, `Vec` | décoration (0 à 6)                       | 0                                 |
-| `dh` | droites      | pointillés                               | 0                                 |
+| `dh` | tous         | motif de pointillés, en pixels           | `[]` (trait plein)                |
 | `is` | `Ex`         | pas du curseur                           | 0                                 |
 | `cL` | `Ex`         | longueur du curseur                      | 200                               |
 | `cV` | `Ex`         | curseur vertical                         | 0                                 |

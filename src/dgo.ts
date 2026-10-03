@@ -23,6 +23,7 @@ import { createCircle3pts } from "./objects/circle3pts_object";
 import { createCircle } from "./objects/circle_object";
 import {
     construction_object,
+    isDash,
     type DgoContext,
 } from "./objects/construction_object";
 import { createCurve, curve_object } from "./objects/curve_object";
@@ -363,7 +364,13 @@ const STYLE: Record<string, Property> = {
     dc: field(segment_object, "decoration", 0, (value) =>
         [0, 1, 2, 3, 4, 5, 6].includes(value as number),
     ),
-    dh: flag(primitive_line_object, "dash"),
+    dh: field(
+        construction_object,
+        "dash",
+        [],
+        (value) =>
+            Array.isArray(value) && value.every(isNumber) && isDash(value),
+    ),
     is: field(expression_object, "increment", 0, isNumber),
     cL: field(expression_object, "cursorLength", 200, isNumber),
     cV: flag(expression_object, "vertical"),

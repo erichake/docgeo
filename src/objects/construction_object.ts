@@ -32,6 +32,12 @@ export function dgoFormula(
         : source;
 }
 
+// Dashes each followed by a gap, in pixels; as many as needed for a period.
+export const isDash = (dash: number[]): boolean =>
+    dash.length % 2 === 0 &&
+    dash.every((length) => Number.isFinite(length) && length >= 0) &&
+    (dash.length === 0 || dash.some((length) => length > 0));
+
 export class construction_object {
     class: typeof construction_object;
     C: construction;
@@ -59,6 +65,8 @@ export class construction_object {
     // The embedding page forbids the user to manipulate it (see EMBED.md,
     // lock), which only its view reflects.
     locked = false;
+    // Its stroke's dash pattern, in pixels: solid when empty.
+    dash: number[] = [];
     hasView: boolean;
     // Assigned by objects_collector.add(): a construction-order counter used
     // to process dirty objects in the same order as the (assumed
@@ -175,6 +183,10 @@ export class construction_object {
     project(): void {}
 
     render(): void {}
+
+    get strokeDashArray(): string {
+        return this.dash.length ? this.dash.join(" ") : "none";
+    }
 
     // *************************************************
     // ****************** STATIC TOOLS ******************

@@ -114,6 +114,7 @@ export class arc3pts_object extends primitive_circle_object {
             .stl("fill-opacity", t.opacity ?? 0)
             .stl("stroke", t.stroke_color)
             .stl("stroke-width", t.size)
+            .stl("stroke-dasharray", t.strokeDashArray)
             .stl("pointer-events", "none")
             .stl("vector-effect", "non-scaling-stroke");
         return dom.add(t.hitArea, t.path);

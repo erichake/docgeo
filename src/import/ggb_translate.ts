@@ -83,6 +83,14 @@ const NUMBER = /^[+-]?(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][+-]?\d+)?$/;
 const NUMERIC_TUPLE =
     /^\(\s*[+-]?[\d.]+(?:[eE][+-]?\d+)?\s*(?:,\s*[+-]?[\d.]+(?:[eE][+-]?\d+)?\s*){1,2}\)$/;
 const THREE_D_TYPES = /3d$|^polyhedron$/;
+// GeoGebra's dash patterns by line type (EuclidianStatic.getStroke), for a
+// stroke `width` pixels wide.
+const GGB_DASHES: Record<string, (width: number) => number[]> = {
+    10: (width) => [4 + width, 4],
+    15: (width) => [8 + width, 8],
+    20: (width) => [width, 3],
+    30: (width) => [8 + width, 4, width, 4],
+};
 const COMMAND_EXPRESSION = /^([A-Za-z]+)\((.*)\)$/;
 // The commands a formula rewrites as a whole (see commandFormula).
 const FORMULA_COMMANDS = new Set([
@@ -1321,6 +1329,10 @@ export function translateGgb(
         } else {
             const thickness = attribute(element, "lineStyle", "thickness");
             if (thickness) parts.push(`s:${Number(thickness) / 2}`);
+            const dash =
+                GGB_DASHES[attribute(element, "lineStyle", "type") ?? ""];
+            if (dash)
+                parts.push(`ld:${dash(Number(thickness ?? 5) / 2).join(",")}`);
             const alpha = Number(color?.getAttribute("alpha") ?? 0);
             if (alpha > 0 && alpha <= 1) parts.push(`o:${alpha}`);
             const decoration = attribute(element, "decoration", "type");

@@ -253,6 +253,7 @@ export class primitive_quadric_object extends construction_object {
             .stl("fill", t.fill_color)
             .stl("stroke", t.stroke_color)
             .stl("stroke-width", t.size)
+            .stl("stroke-dasharray", t.strokeDashArray)
             .stl("pointer-events", "none")
             .stl("vector-effect", "non-scaling-stroke");
         t.curveHitArea = t.svg
@@ -266,6 +267,7 @@ export class primitive_quadric_object extends construction_object {
             .stl("fill", "none")
             .stl("stroke", t.stroke_color)
             .stl("stroke-width", t.size)
+            .stl("stroke-dasharray", t.strokeDashArray)
             .stl("pointer-events", "none");
         return dom.add(
             t.ellipseHitArea,

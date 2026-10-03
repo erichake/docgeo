@@ -15,7 +15,7 @@ import {
     createCircle3pts,
 } from "../objects/circle3pts_object";
 import { createCircle } from "../objects/circle_object";
-import { construction_object } from "../objects/construction_object";
+import { construction_object, isDash } from "../objects/construction_object";
 import { createCurve } from "../objects/curve_object";
 import { createCylinderIntersection } from "../objects/cylinder_intersection_object";
 import { createCylinderSection } from "../objects/cylinder_section_object";
@@ -539,6 +539,9 @@ function validateImage(args: DgpValue[], lineNumber: number): void {
         throw new Error(`Invalid DGP image at line ${lineNumber}`);
 }
 
+// DGPad's dash pattern, whatever the stroke width.
+const DGPAD_DASH = [6, 10];
+
 function validateNumber(
     value: string,
     lineNumber: number,
@@ -641,6 +644,13 @@ function validateObjectStyle(
                 propertyValue
                     .split(",")
                     .forEach((step) => validateNumber(step, lineNumber, 0));
+                break;
+            case "ld":
+                propertyValue
+                    .split(",")
+                    .forEach((length) => validateNumber(length, lineNumber, 0));
+                if (!isDash(propertyValue.split(",").map(Number)))
+                    throw new Error(`Invalid DGP style at line ${lineNumber}`);
                 break;
             case "cL":
                 validateNumber(propertyValue, lineNumber, 0);
@@ -846,8 +856,10 @@ function applyObjectStyle(
                     target.latex = propertyValue === "true";
                 break;
             case "dh":
-                if (target instanceof primitive_line_object)
-                    target.dash = propertyValue === "true";
+                target.dash = propertyValue === "true" ? DGPAD_DASH : [];
+                break;
+            case "ld":
+                target.dash = propertyValue.split(",").map(Number);
                 break;
             case "cPT":
                 if (target instanceof expression_object)

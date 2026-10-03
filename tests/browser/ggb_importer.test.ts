@@ -202,6 +202,15 @@ describe("GGB importer", () => {
         });
     });
 
+    it("dashes strokes with GeoGebra's pattern for their line type", async () => {
+        const c = createConstruction();
+        importGgb(c, await loadXml("pointilles"));
+        // Long dashes, 8 + width long, of a 2.5 px stroke (thickness 5).
+        ["f", "g", "c", "d", "e", "i", "j", "k", "l"].forEach((name) =>
+            expect(c.getObj(name)!.dash, name).toEqual([10.5, 8]),
+        );
+    });
+
     it("marks right angles with GeoGebra's square, of diagonal arcSize", async () => {
         const c = createConstruction();
         importGgb(c, await loadXml("_3carres"));

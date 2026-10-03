@@ -60,6 +60,7 @@ commande non gérée n'est pas une cause. L'API utilisée est
 | 2026-09-28 | 230 / 438 (53 %)   | 269,0 Ko | item 16 : suites de polygones, `Rotate` en formule, listes 3D (+7) |
 | 2026-09-28 | 251 / 470 (53 %)   | 269,3 Ko | item 15 bis : images d'images par une transformation (+0)          |
 | 2026-09-28 | 251 / 470 (53 %)   | 269,8 Ko | item 15 ter : points sur une perpendiculaire ou parallèle (+0)     |
+| 2026-10-03 | —                  | 275,8 Ko | item 17 : pointillés des traits (style, +0)                        |
 
 ## À faire, par rapport gain / coût
 
@@ -307,6 +308,16 @@ cause.
       et `Sum` d'une liste qui dépend de l'indice (`A + Sum[First[l, i]]`),
       qu'une expression cachée ne peut calculer pour chaque élément. `Zip`
       (4 figures) est toujours bloqué par ailleurs.
+
+- [x] **17. Pointillés** : le `type` de `lineStyle` (10, 15, 20, 30 :
+      tirets courts, longs, pointillé, tiret-point) était ignoré, tout trait
+      étant plein. Fait : il devient le style `ld`, motif en pixels calculé
+      comme `EuclidianStatic.getStroke` pour une demi-épaisseur w (`4+w, 4`,
+      `8+w, 8`, `w, 3`, `8+w, 4, w, 4`), et pointille droites, segments,
+      cercles, arcs, coniques, contours de polygones, courbes et lieux.
+      Aucun gain sur le compte des figures sans perte (c'est un style) ;
+      build +0,15 Ko. Reste l'opacité du trait (`opacity` de `lineStyle`,
+      178 par défaut), toujours ignorée.
 
 À écarter, sauf changement de priorité : calcul formel, courbes implicites,
 statistiques et probabilités, tableur au-delà des cellules simples, matrices.

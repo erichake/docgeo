@@ -19,6 +19,7 @@ import { locus_object } from "../../src/objects/locus_object";
 import { point_on_object } from "../../src/objects/point_on_object";
 import { point_object } from "../../src/objects/point_object";
 import { polygon_object } from "../../src/objects/polygon_object";
+import type { primitive_line_object } from "../../src/objects/primitive_line_object";
 import type { quadric5pts_object } from "../../src/objects/quadric5pts_object";
 import { symmetry_object } from "../../src/objects/symmetry_object";
 import { text_object } from "../../src/objects/text_object";
@@ -205,6 +206,23 @@ STL(P,"tk:1");`,
         expect((angle.value * 180) / Math.PI).toBeCloseTo(51.601258193352805);
         expect(angle.arcRadius).toBeCloseTo(71.61005515987263);
         expect(angle.dom.dom().innerHTML).not.toMatch(/NaN|Infinity/);
+    });
+
+    it("dashes every kind of stroke with DGPad's pattern, line tips included", async () => {
+        const c = createConstruction();
+        await importDgpFromUrl(c, "/tests/dgp/pointilles.dgp");
+        await new Promise((resolve) => requestAnimationFrame(resolve));
+        ["C1", "C2", "Poly1", "L1", "S1", "Quad"].forEach((name) => {
+            const strokes = [
+                ...c.getObj(name)!.dom.dom().querySelectorAll("path, circle"),
+            ].map((shape) => (shape as SVGElement).style.strokeDasharray);
+            expect(strokes, name).toContain("6, 10");
+        });
+        // A 100 px tip holds 6 or 7 dashes of the 16 px pattern.
+        const line = c.getObj("L1") as primitive_line_object;
+        [line.tipPath1, line.tipPath2].forEach((tip) =>
+            expect(tip.getAtt("d")!.match(/M/g)!.length).toBeGreaterThan(5),
+        );
     });
 
     it("draws a right angle as DGPad's open square, without its value", async () => {
@@ -1198,7 +1216,7 @@ C1=Circle1("C1",A,"d(A,Z)");`,
         const s13 = c.getObj("S13") as segment_object;
         expect(s13.hidden).toBe(1);
         // Its "dh:true" style dashes it all along.
-        expect(s13.dash).toBe(true);
+        expect(s13.dash).toEqual([6, 10]);
 
         // "if(theta()<0) {...Poly5.setOpacity(0.95);} else {...(0.2);}; \"program3\""
         const e4 = c.getObj("E4") as expression_object;
