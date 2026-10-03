@@ -57,8 +57,15 @@
     return $viewer . '?url=' . str_replace(['%3A', '%2F'], [':', '/'], rawurlencode($url));
     }
 
+    // Native application of each imported format, opened through the same ?url= parameter.
+    $natives = [
+    'dgp' => 'https://dgpad.net/index.php',
+    'ggb' => 'https://doctools.org/apps/geogebra.html',
+    ];
+
     function render($tree, $path, $viewer, $base)
     {
+    global $natives;
     foreach ($tree['dirs'] as $name => $sub): ?>
 <details>
   <summary><?php echo h($name) ?> <small>(<span class="count"><?php echo $sub['count'] ?></span>)</small></summary>
@@ -71,8 +78,9 @@
     ?>
 <ul>
 <?php foreach ($tree['files'] as $file):
-        $url = $base . $path . '/' . rawurlencode($file); ?>
-  <li><a href="<?php echo h(link_to($viewer, $url)) ?>" target="_blank"><?php echo h($file) ?></a><a class="raw" href="<?php echo h($url) ?>" download title="Télécharger">↓</a></li>
+        $url = $base . $path . '/' . rawurlencode($file);
+        $ext = strtolower(pathinfo($file, PATHINFO_EXTENSION)); ?>
+  <li><a href="<?php echo h(link_to($viewer, $url)) ?>" target="_blank"><?php echo h($file) ?></a><?php if (isset($natives[$ext])): ?><a class="native" href="<?php echo h(link_to($natives[$ext], $url)) ?>" target="_blank" title="Ouvrir dans <?php echo $ext === 'dgp' ? 'DGPad' : 'GeoGebra' ?>"><?php echo $ext ?></a><?php endif; ?><a class="raw" href="<?php echo h($url) ?>" download title="Télécharger">↓</a></li>
 <?php endforeach; ?>
 </ul>
 <?php }
@@ -104,6 +112,8 @@
   a { color: var(--link); text-decoration: none; }
   a:hover { text-decoration: underline; }
   a.raw { color: var(--muted); font-size: 12px; margin-left: 6px; }
+  a.native { display: inline-block; margin-left: 6px; padding: 0 5px; border-radius: 8px; font-size: 11px; line-height: 16px; color: var(--bg); background: var(--muted); }
+  a.native:hover { text-decoration: none; background: var(--link); }
 </style>
 </head>
 <body>
@@ -122,7 +132,7 @@
   document.getElementById('filter').addEventListener('input', (event) => {
     const query = event.target.value.trim().toLowerCase();
     for (const item of document.querySelectorAll('li')) {
-      item.classList.toggle('hidden', !item.textContent.toLowerCase().includes(query));
+      item.classList.toggle('hidden', !item.firstElementChild.textContent.toLowerCase().includes(query));
     }
     for (const folder of document.querySelectorAll('details')) {
       const shown = folder.querySelectorAll('li:not(.hidden)').length;
