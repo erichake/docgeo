@@ -25,7 +25,7 @@ export class expression_list_object extends list_object {
     ) {
         super(c, name, "point", { kind: "number", value: 0 }, [], new Map());
         this.source = source;
-        this.readsView = source.viewDependent;
+        this.readsView = source.viewDependent || c.GRID.FRAME2D !== null;
         this.addParents(source);
     }
 
@@ -47,7 +47,15 @@ export class expression_list_object extends list_object {
                 const [x, y, z] = item.map((coord) =>
                     typeof coord === "number" ? coord : NaN,
                 );
-                items.push([item.length === 2 ? [x, y] : [x, y, z]]);
+                // As DGPad's other 2D points, in the screen plane of a 3D
+                // figure (see GRID.FRAME2D).
+                items.push([
+                    item.length === 3
+                        ? [x, y, z]
+                        : this.C.GRID.FRAME2D
+                          ? this.C.screenPlanePoint([x, y])
+                          : [x, y],
+                ]);
             }
         this.items = items;
         this.count = items.length;

@@ -169,7 +169,7 @@ export class list_object extends construction_object {
     private itemPoint(index: number): Vec3 | null {
         const value = this.items[index]?.[0];
         if (!value || typeof value === "number") return null;
-        return [value[0], value[1], 0];
+        return [value[0], value[1], value[2] ?? 0];
     }
 
     private itemScreen(index: number): Vec2 | null {
