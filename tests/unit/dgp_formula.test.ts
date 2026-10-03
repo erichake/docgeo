@@ -205,6 +205,23 @@ describe("evaluateFormula", () => {
         expect(im).toBeCloseTo(2 * Math.sqrt(3));
     });
 
+    it("gives the n roots of a complex number to the power 1/n", () => {
+        const roots = (source: string) =>
+            evaluateProgram(parseProgram(source), noPoints) as [
+                number,
+                number,
+            ][];
+        const cubeRoots = roots("[8,0]^(1/3)");
+        expect(cubeRoots).toHaveLength(3);
+        expect(cubeRoots[0]).toEqual([2, 0]);
+        expect(cubeRoots[1][0]).toBeCloseTo(-1);
+        expect(cubeRoots[1][1]).toBeCloseTo(Math.sqrt(3));
+        // From an argument in [0, 2π[, as in DGPad.
+        const [re, im] = roots("[0,-8]^(1/3)")[0];
+        expect(re).toBeCloseTo(0);
+        expect(im).toBeCloseTo(2);
+    });
+
     it("resolves object references and pixel()", () => {
         const env = envWith({ A: [1, 2], E: [4, 6] });
         expect(evaluateFormula(parseFormula("A+5-i"), env)).toEqual([6, 1]);

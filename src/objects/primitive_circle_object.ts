@@ -65,6 +65,10 @@ export class primitive_circle_object extends construction_object {
         );
     }
 
+    insideBounds(_point: Vec3): boolean {
+        return true;
+    }
+
     alphaOf(point: Vec3): number {
         const relative = vSub(point, this.CENTER);
         return Math.atan2(

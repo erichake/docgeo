@@ -107,6 +107,15 @@ export class arc3pts_object extends primitive_circle_object {
         return super.pointAt(alpha);
     }
 
+    // A point of its circle, on the arc up to rounding errors at its ends.
+    insideBounds(point: Vec3): boolean {
+        const from = this.sweepFlag ? this.startAlpha : this.endAlpha;
+        const to = this.sweepFlag ? this.endAlpha : this.startAlpha;
+        const tolerance = geometryTolerance(this.R) / this.R;
+        const alpha = normalizeAngle(this.alphaOf(point) - from + tolerance);
+        return alpha <= normalizeAngle(to - from) + 2 * tolerance;
+    }
+
     render(): void {
         this.dom.stl(
             "display",

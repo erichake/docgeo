@@ -175,6 +175,16 @@ export class intersection_object extends point_object {
         INTERSECTION_COMPUTERS.get(
             `${this.O1.familytype}:${this.O2.familytype}`,
         )?.(this);
+        // As in DGPad, an arc's intersections are those of its whole circle,
+        // undefined beyond the arc: a point keeps its order as it leaves it.
+        if (
+            [this.O1, this.O2].some(
+                (object) =>
+                    object instanceof primitive_circle_object &&
+                    !object.insideBounds(this.coords),
+            )
+        )
+            this.defined = false;
     }
 
     computeLineLine(): void {

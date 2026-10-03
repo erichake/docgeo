@@ -218,6 +218,32 @@ describe("DGPad geometric constructors", () => {
         expect(m.coords[1]).toBeCloseTo(0);
     });
 
+    it("leaves undefined an arc's intersection beyond it, keeping its order", () => {
+        const c = createConstruction();
+        const arc = createArc3pts(
+            c,
+            "Arc",
+            createPoint(c, "E", [2, 0, 0]),
+            createPoint(c, "F", [0, 2, 0]),
+            createPoint(c, "G", [-2, 0, 0]),
+        );
+        const circle = createCircle1(c, "C", createPoint(c, "M", [2, 0, 0]), 2);
+        const above = createOrderedIntersection(c, "I0", arc, circle, 0);
+        const below = createOrderedIntersection(c, "I1", arc, circle, 1);
+        const end = createOrderedIntersection(
+            c,
+            "I2",
+            arc,
+            createCircle1(c, "D", createPoint(c, "N", [3, 0, 0]), 1),
+            0,
+        );
+
+        expect(above.defined).toBe(true);
+        expect(above.y).toBeCloseTo(Math.sqrt(3));
+        expect(below.defined).toBe(false);
+        expect(end.defined).toBe(true);
+    });
+
     it("constructs an angle bisector ray from a vertex and two arms", () => {
         const c = createConstruction();
         const vertex = createPoint(c, "P1", [0, 0, 0]);

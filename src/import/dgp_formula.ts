@@ -1101,14 +1101,16 @@ function complexSqrt(a: Vec2): Vec2 {
     return [sqrtR * Math.cos(theta / 2), sqrtR * Math.sin(theta / 2)];
 }
 
-function complexPow(a: Vec2, exponent: number): Vec2 {
+// DGPad takes a complex number's argument in [0, 2π[: this picks the branch
+// of a fractional power, and which root comes first.
+function complexPow(a: Vec2, exponent: number, turn = 0): Vec2 {
     const r = Math.hypot(a[0], a[1]);
     const theta = Math.atan2(a[1], a[0]);
+    const angle =
+        exponent *
+        ((theta < 0 ? theta + 2 * Math.PI : theta) + 2 * Math.PI * turn);
     const scaled = Math.pow(r, exponent);
-    return [
-        scaled * Math.cos(exponent * theta),
-        scaled * Math.sin(exponent * theta),
-    ];
+    return [scaled * Math.cos(angle), scaled * Math.sin(angle)];
 }
 
 function terms(
@@ -1149,14 +1151,22 @@ function evalBinary(
                 return complexMul(a, b);
             case "/":
                 return complexDiv(a, b);
-            case "^":
+            case "^": {
+                if (typeof r !== "number") return null;
+                // Like DGPad, a complex number (even [8, 0]) to the power 1/n
+                // gives the list of its n roots, e.g. for Cardano's formula.
+                const n = Math.round(1 / r);
+                if (n > 1 && Math.abs(1 / r - n) < 1e-9)
+                    return terms(n, (turn) => complexPow(a, r, turn));
                 // A real base (e.g. [2, 0]) goes through plain Math.pow:
                 // complexPow's polar round-trip (cos/sin of an angle that's
                 // 0 or PI) leaves a tiny nonzero imaginary residue even for
                 // a perfectly real result, which realPart would then
                 // wrongly reject as complex.
-                if (typeof r !== "number") return null;
-                return a[1] === 0 ? Math.pow(a[0], r) : complexPow(a, r);
+                return a[1] === 0 && (a[0] >= 0 || Number.isInteger(r))
+                    ? Math.pow(a[0], r)
+                    : complexPow(a, r);
+            }
         }
     }
     // Other lists (e.g. 3D vectors) add up, and scale by a real number, term
