@@ -494,6 +494,144 @@ describe("pinned point", () => {
     });
 });
 
+describe("rebase", () => {
+    it("makes the current figure the base one", async () => {
+        const { request, drag, events } = await loaded();
+        const value = async (name: string) =>
+            (await request("value", { name })).result;
+        await request("setState", { state: { A: [1, 1], k: 4 } });
+        expect(await request("rebase")).toMatchObject({
+            ok: true,
+            result: null,
+        });
+        expect((await request("getState")).result).toEqual({});
+        expect(await value("A")).toEqual([1, 1]);
+
+        await drag([240, 110], [280, 110]);
+        await expect
+            .poll(() => events)
+            .toEqual([{ docgeo: 1, event: "change" }]);
+        const { result: state } = await request("getState");
+        expect(Object.keys(state)).toEqual(["A"]);
+        expectNear(state.A, [2, 1], 1e-9);
+
+        await request("reset");
+        expect((await request("getState")).result).toEqual({});
+        expect(await value("A")).toEqual([1, 1]);
+        expect(await value("k")).toBe(4);
+
+        // The state's values replace the base's.
+        await request("setState", { state: { M: [1, 2] } });
+        expect((await request("getState")).result).toEqual({ M: [1, 2] });
+        expect(await value("A")).toEqual([1, 1]);
+        await request("setState", { state: { A: [0, 0], k: 2 } });
+        expect((await request("getState")).result).toEqual({
+            A: [0, 0],
+            k: 2,
+        });
+        expect(
+            await request("setState", { state: { A: [3, 3], Z: 1 } }),
+        ).toMatchObject({ ok: false, error: "Invalid state" });
+        expect((await request("getState")).result).toEqual({
+            A: [0, 0],
+            k: 2,
+        });
+
+        // Rebases add up.
+        await request("setState", { state: { k: 5 } });
+        await request("rebase");
+        await request("reset");
+        expect(await value("A")).toEqual([1, 1]);
+        expect(await value("k")).toBe(5);
+        expect((await request("getState")).result).toEqual({});
+        expect(events).toHaveLength(1);
+
+        // Load brings back the file's base.
+        await request("load", { data: encoded(FIGURE), format: "dgo" });
+        expect((await request("getState")).result).toEqual({});
+        expect(await value("A")).toEqual([0, 0]);
+        await request("setState", { state: { M: [1, 2] } });
+        expect(await value("A")).toEqual([0, 0]);
+        await request("reset");
+        expect(await value("k")).toBe(2);
+    });
+
+    it("emits no change, even after a manipulation", async () => {
+        const { request, drag, events } = await loaded();
+        await drag([200, 150], [240, 110]);
+        await expect
+            .poll(() => events)
+            .toEqual([{ docgeo: 1, event: "change" }]);
+        await request("rebase");
+        expect((await request("getState")).result).toEqual({});
+        // A click on nothing.
+        await drag([300, 250], [300, 250]);
+        expect(events).toHaveLength(1);
+        await request("reset");
+        expectNear(
+            (await request("value", { name: "A" })).result,
+            [1, 1],
+            1e-9,
+        );
+    });
+
+    it("keeps the lock", async () => {
+        const { request, drag } = await loaded();
+        await request("setState", { state: { A: [1, 1] } });
+        await request("rebase");
+        await request("lock", { except: ["M"] });
+        await request("rebase");
+        await drag([240, 110], [280, 110]);
+        expect((await request("value", { name: "A" })).result).toEqual([1, 1]);
+        await drag([120, 190], [100, 250]);
+        expectNear((await request("getState")).result.M, [-2.5, -2.5], 1e-9);
+        await request("reset");
+        await drag([240, 110], [280, 110]);
+        expect((await request("getState")).result).toEqual({});
+    });
+
+    // P, pinned, is drawn at (240, 110); N, on [OB], at (240, 150).
+    it("holds pinned points and points on objects", async () => {
+        const { request, drag } = await host();
+        await request("load", {
+            data: encoded({
+                ...PINNED,
+                o: [
+                    ...PINNED.o,
+                    ["Pt", "O", [0, 0]],
+                    ["Pt", "B", [4, 0]],
+                    ["Seg", "s", [2, 3]],
+                    ["On", "N", [4, 0.25]],
+                ],
+            }),
+            format: "dgo",
+        });
+        const value = async (name: string) =>
+            (await request("value", { name })).result;
+        await request("setState", { state: { P: [2, 0], N: 0.75 } });
+        expectNear(await value("N"), [3, 0], 1e-9);
+        await request("rebase");
+        expect((await request("getState")).result).toEqual({});
+
+        // The view isn't part of the base.
+        await drag([300, 250], [340, 210]);
+        expectNear(await value("P"), [1, -1], 1e-9);
+        await request("rebase");
+        expect((await request("getState")).result).toEqual({});
+        await request("reset");
+        expect(await value("P")).toEqual([2, 0]);
+        expectNear(await value("N"), [3, 0], 1e-9);
+        expect((await request("getState")).result).toEqual({});
+        const saved = await decoded((await request("save")).result.data);
+        expect(saved.v.o).toEqual([200, 150]);
+
+        await request("setState", { state: { N: 0.5 } });
+        expect((await request("getState")).result).toEqual({ N: 0.5 });
+        expect(await value("P")).toEqual([2, 0]);
+        expectNear(await value("N"), [2, 0], 1e-9);
+    });
+});
+
 describe("setHidden", () => {
     it("hides in the base figure too", async () => {
         const { request, iframe } = await loaded();
@@ -554,6 +692,26 @@ describe("hidden iframe", () => {
         await request("reset");
         expect(await view()).toMatchObject({ o: [200, 150], w: 400, h: 300 });
         expect((await request("value", { name: "A" })).result).toEqual([0, 0]);
+        parent.remove();
+    });
+
+    it("keeps the rebased figure once shown", async () => {
+        const parent = document.createElement("div");
+        parent.style.display = "none";
+        document.body.append(parent);
+        const { request } = await loaded(undefined, parent);
+        await request("setState", { state: { A: [1, 1], k: 4 } });
+        await request("rebase");
+        await request("setState", { state: { M: [1, 2] } });
+        parent.style.display = "block";
+        const view = async () =>
+            (await decoded((await request("save")).result.data)).v;
+        await expect.poll(view).toMatchObject({ o: [200, 150] });
+        expect((await request("getState")).result).toEqual({ M: [1, 2] });
+        await request("reset");
+        expect((await request("getState")).result).toEqual({});
+        expect((await request("value", { name: "A" })).result).toEqual([1, 1]);
+        expect((await request("value", { name: "k" })).result).toBe(4);
         parent.remove();
     });
 });

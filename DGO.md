@@ -351,7 +351,8 @@ non définie).
 ## État élève
 
 L'état d'une figure est ce qu'une manipulation y a changé par rapport à sa
-figure de base (le `.dgo` chargé) : un objet JSON clair, séparé de la figure,
+figure de base (le `.dgo` chargé, ou la figure qu'en a tirée la requête
+`rebase` du mode intégré, voir `EMBED.md`) : un objet JSON clair, séparé de la figure,
 indexé par nom, limité aux objets **dont la valeur diffère** de la figure de
 base (égalité exacte des nombres JSON). État vide : figure non manipulée.
 

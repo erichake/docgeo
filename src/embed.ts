@@ -11,6 +11,7 @@ import { $ } from "./dom";
 import {
     builtView,
     figureState,
+    type FigureState,
     figureTargets,
     figureValues,
     hideTarget,
@@ -43,6 +44,8 @@ export function embed(app: Embedder): void {
     let unlocked: string[] | null = null;
     // What setHidden changed since the figure was loaded.
     const visibility = new Map<string, boolean>();
+    // What rebase changed in the base figure since it was loaded.
+    let rebased: FigureState = {};
     // The figure loaded in a window of no size, an iframe in a hidden
     // element, which is placed once the window has one.
     let unplaced: { blob: Blob; format: string } | null = null;
@@ -73,6 +76,14 @@ export function embed(app: Embedder): void {
         settle();
     };
     const state = () => figureState(app.scene, base!.values, view);
+    // Makes the current figure the base one, its view aside.
+    const rebase = (): void => {
+        base = {
+            figure: stateFigure(app.scene, base!.figure, state()),
+            values: figureValues(app.scene, view),
+        };
+        reported = "{}";
+    };
     // Makes the figure the base one.
     const open = async (blob: Blob, format: string): Promise<string[]> => {
         base = null;
@@ -115,6 +126,7 @@ export function embed(app: Embedder): void {
                 invalid();
             unlocked = null;
             visibility.clear();
+            rebased = {};
             const unsupported = await open(
                 new Blob([data as ArrayBuffer]),
                 format as string,
@@ -143,6 +155,11 @@ export function embed(app: Embedder): void {
         },
         async reset() {
             rebuild(base!.figure);
+            return [null];
+        },
+        async rebase() {
+            rebased = { ...rebased, ...state() };
+            rebase();
             return [null];
         },
         async lock({ except }) {
@@ -230,6 +247,10 @@ export function embed(app: Embedder): void {
                     hidden,
                 );
             });
+            if (Object.keys(rebased).length) {
+                rebuild(stateFigure(app.scene, base!.figure, rebased));
+                rebase();
+            }
             rebuild(stateFigure(app.scene, base!.figure, current));
         });
     });

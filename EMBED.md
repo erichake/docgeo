@@ -55,11 +55,11 @@ l'expéditeur.
 
 ## Événements
 
-| `event`  | Quand                                                                                                                                                                                                 | Données    |
-| -------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------- |
-| `ready`  | l'application est prête à recevoir des requêtes (aucune figure encore)                                                                                                                                | —          |
-| `change` | à la fin d'une manipulation qui a changé l'état (relâchement d'un point, d'un curseur ou d'un cercle, case cochée, nombre saisi), jamais pendant le glisser ; pas après `load`, `setState` ou `reset` | —          |
-| `frame`  | le cadre a été déplacé ou redimensionné (fin du glisser), ou réduit pour tenir dans une fenêtre devenue plus petite                                                                                   | `{ w, h }` |
+| `event`  | Quand                                                                                                                                                                                                           | Données    |
+| -------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------- |
+| `ready`  | l'application est prête à recevoir des requêtes (aucune figure encore)                                                                                                                                          | —          |
+| `change` | à la fin d'une manipulation qui a changé l'état (relâchement d'un point, d'un curseur ou d'un cercle, case cochée, nombre saisi), jamais pendant le glisser ; pas après `load`, `setState`, `reset` ou `rebase` | —          |
+| `frame`  | le cadre a été déplacé ou redimensionné (fin du glisser), ou réduit pour tenir dans une fenêtre devenue plus petite                                                                                             | `{ w, h }` |
 
 Après un `change`, l'hôte lit l'état ou la valeur voulue par une requête.
 
@@ -74,6 +74,7 @@ Après un `change`, l'hôte lit l'état ou la valeur voulue par une requête.
 | `getState`  | —                                                        | état courant                                                                  |
 | `setState`  | `state`                                                  | `null` : repart de la figure de base, puis applique l'état                    |
 | `reset`     | —                                                        | `null` : revient à la figure de base                                          |
+| `rebase`    | —                                                        | `null` : la figure courante devient la figure de base, vue exceptée           |
 | `lock`      | `except` (tableau de noms)                               | `null` : seuls les objets `movable` nommés restent manipulables               |
 | `setHidden` | `name`, `hidden` (booléen)                               | `null` : cache ou montre le point ou l'expression, figure de base comprise    |
 | `frame`     | `show` (booléen), `w`, `h` (entiers, pixels)             | `null` : affiche ou masque le cadre                                           |
@@ -147,6 +148,28 @@ L'état est décrit dans `DGO.md` (section « État élève ») :
   n'est pas modifiée.
 - `reset` reconstruit la figure de base, vue comprise (bouton « recharger »).
 
+### `rebase`
+
+`rebase` fait de la figure courante la figure de base : les valeurs des
+objets de l'état (points libres et punaisés, points sur objet, expressions
+constantes, numéros de branche, rayons des cercles `C1`) deviennent celles de
+la figure de base. Il sert à tirer une variante d'une figure : l'hôte applique
+l'état de la variante par `setState`, puis `rebase`, et la variante se
+comporte ensuite exactement comme une figure chargée :
+
+- `getState` renvoie les différences avec la nouvelle base (état vide juste
+  après `rebase`) ;
+- `reset` revient à la nouvelle base ;
+- `setState` repart de la nouvelle base, puis applique l'état, dont les
+  valeurs remplacent celles de la base ;
+- `value`, `targets` et `save` sont inchangés.
+
+La vue de base n'est pas modifiée : un zoom ou un déplacement de la vue
+courante n'entre pas dans la nouvelle base, et un point punaisé y garde ses
+coordonnées dans la vue de base. Le verrouillage n'est pas modifié, aucun
+`change` n'est émis. Plusieurs `rebase` se cumulent ; `load` remet la base
+au fichier chargé.
+
 ### `lock`
 
 `lock { except: [...] }` verrouille l'**interaction** : aucun objet `movable`
@@ -163,7 +186,7 @@ commencé dessus agit sur ce qui se trouve dessous.
 - `getState`, `setState`, `value`, `save` et `reset` fonctionnent comme sans
   verrouillage : `setState` peut notamment donner une valeur à un objet
   verrouillé. Aucun `change` n'est émis par `lock`.
-- Le verrouillage survit à `reset` et à `setState`. Il est levé par `load` :
+- Le verrouillage survit à `reset`, à `setState` et à `rebase`. Il est levé par `load` :
   l'hôte renvoie `lock` après chaque `load`.
 - Un nouveau `lock` remplace le précédent. `except` nommant tous les objets
   `movable` revient à ne rien verrouiller.
@@ -249,6 +272,9 @@ function request(type, parameters = {}, transfer = []) {
 async function start() {
     const data = await (await fetch("figure.dgo")).arrayBuffer();
     await request("load", { data, format: "dgo" }, [data]);
+    // A variant of the figure, which reset and getState then start from.
+    await request("setState", { state: { B: [3, -2], k: 4 } });
+    await request("rebase");
     // Only M can be moved.
     await request("lock", { except: ["M"] });
 }
