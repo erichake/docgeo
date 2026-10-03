@@ -1,13 +1,13 @@
 import type { construction } from "../construction";
 import {
     geometryTolerance,
-    numEqual,
     vAdd,
     vCross,
     vDot,
     vNorm,
     vScale,
     vSub,
+    type Vec3,
 } from "../vec";
 import type { DgoContext } from "./construction_object";
 import type { point_object } from "./point_object";
@@ -53,39 +53,23 @@ export class circle3pts_object extends primitive_circle_object {
             this.computeInSpace();
             return;
         }
-        if (
-            !numEqual(this.P1.z, this.P2.z) ||
-            !numEqual(this.P1.z, this.P3.z)
-        ) {
-            this.defined = false;
-            return;
-        }
-        const [ax, ay] = this.P1.coords;
-        const [bx, by] = this.P2.coords;
-        const [cx, cy] = this.P3.coords;
-        const abx = bx - ax;
-        const aby = by - ay;
-        const acx = cx - ax;
-        const acy = cy - ay;
-        const denominator = 2 * (abx * acy - aby * acx);
-        const scale = Math.hypot(abx, aby) * Math.hypot(acx, acy);
-        if (Math.abs(denominator) <= 2 * geometryTolerance(scale)) {
-            this.defined = false;
-            return;
-        }
-        const ab2 = abx * abx + aby * aby;
-        const ac2 = acx * acx + acy * acy;
-        const center: [number, number, number] = [
-            ax + (acy * ab2 - aby * ac2) / denominator,
-            ay + (abx * ac2 - acx * ab2) / denominator,
-            this.P1.z,
-        ];
-        this.setCircle(
-            center,
-            Math.hypot(center[0] - ax, center[1] - ay),
-            [1, 0, 0],
-            [0, 1, 0],
+        this.setCircleThrough(this.P1.coords, this.P2.coords, this.P3.coords);
+    }
+
+    // DGPad's Circle3pts3D point number `index`, its parameter: on the arcs
+    // from P1 to P2, P2 to P3 then P3 to P1, each without the third point,
+    // sampled by its barycentric equation, the last one beyond.
+    dgpadSample(index: number): Vec3 {
+        const i = Math.min(index, 3 * SAMPLES - 1);
+        const arc = Math.floor(i / SAMPLES);
+        const k = i / SAMPLES - arc;
+        const [p, q, r] = [0, 1, 2].map(
+            (offset) => [this.P1, this.P2, this.P3][(arc + offset) % 3].coords,
         );
+        const square = (u: Vec3, v: Vec3) => vDot(vSub(u, v), vSub(u, v));
+        const inter = square(r, p) * (1 - k) + square(q, r) * k;
+        const coef = inter / (inter - square(p, q) * k * (1 - k));
+        return vAdd(r, vScale(vAdd(vSub(p, r), vScale(vSub(q, p), k)), coef));
     }
 
     private computeInSpace(): void {
@@ -112,6 +96,9 @@ export class circle3pts_object extends primitive_circle_object {
         this.setCircle(center, vNorm(vSub(a, center)), u, vCross(normal, u));
     }
 }
+
+// DGPad's samples per arc of a Circle3pts3D.
+const SAMPLES = 500;
 
 export function createCircle3pts(
     c: construction,

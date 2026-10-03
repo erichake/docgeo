@@ -71,6 +71,12 @@ export class grid_object extends construction_object {
     // A figure without 3D objects: seen from above only, with DGPad's
     // plane coordinate system instead of the trihedron and the floor.
     is2D = false;
+    // A DGPad 3D figure's plane coordinates of its 3D origin. Its 2D points
+    // (free ones, those of 2-coordinate formulas and what is built only from
+    // them) stay put on the screen as the view turns: they lie in the plane
+    // through the origin facing the camera, where they have these plane
+    // coordinates (see construction.screenPlanePoint). Null elsewhere.
+    FRAME2D: Vec2 | null = null;
     showGrid = true;
     showOx = true;
     showOy = true;

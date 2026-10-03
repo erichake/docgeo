@@ -153,6 +153,13 @@ export class construction_object {
 
     computeGeometry(): void {}
 
+    private isFlat?: boolean;
+    // One of the 2D objects of a DGPad 3D figure (see GRID.FRAME2D): as in
+    // DGPad, it is 3D as soon as one of its parents is.
+    get flat(): boolean {
+        return (this.isFlat ??= this.parents.every((parent) => parent.flat));
+    }
+
     // What a formula reads when it names the object, as in DGPad (a
     // segment's length, a circle's radius…): null when it has no value.
     // `vec3`: a point's 3D coordinates rather than its plane ones.

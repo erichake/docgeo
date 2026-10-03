@@ -390,6 +390,7 @@ describe("evaluateProgram", () => {
         ]);
         expect(run("var n=0,k=5;while(k>0){n+=k;k--};n")).toBe(15);
         expect(run('var a=Math.sqrt(4);a>1?"big":"small"')).toBe("big");
+        expect(run("IF(2>1,3,4)+test(0,5,6)")).toBe(9);
         expect(run('"AB = "+round(2.6)')).toBe("AB = 3");
     });
 

@@ -1,5 +1,4 @@
 import type { construction } from "../construction";
-import { vSub } from "../vec";
 import type { DgoContext } from "./construction_object";
 import type { point_object } from "./point_object";
 import { primitive_circle_object } from "./primitive_circle_object";
@@ -29,13 +28,7 @@ export class circle_object extends primitive_circle_object {
             this.defined = false;
             return;
         }
-        const direction = vSub(this.P2.coords, this.P1.coords);
-        this.setCircle(
-            this.P1.coords,
-            Math.hypot(direction[0], direction[1]),
-            [1, 0, 0],
-            [0, 1, 0],
-        );
+        this.setPlaneCircle(this.P1.coords, this.P2.coords);
     }
 }
 

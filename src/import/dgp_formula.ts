@@ -798,6 +798,13 @@ class FormulaParser {
     private call(name: string): FormulaNode {
         this.take("(");
         const args = this.arguments();
+        if ((name === "IF" || name === "test") && args.length === 3)
+            return {
+                kind: "conditional",
+                test: args[0],
+                then: args[1],
+                otherwise: args[2],
+            };
         if (!(name in FORMULA_ARITY)) return { kind: "userCall", name, args };
         const fn = name as FormulaFn;
         const arity = FORMULA_ARITY[fn];

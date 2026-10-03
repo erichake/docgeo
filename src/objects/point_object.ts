@@ -152,7 +152,10 @@ export class point_object extends construction_object {
     }
 
     computeGeometry(): void {
-        if (this.pinned) this.coords = this.pinnedIn(this.C.GRID);
+        if (this.pinned)
+            this.coords = this.C.GRID.FRAME2D
+                ? this.C.screenPlanePoint(this.pinned)
+                : this.pinnedIn(this.C.GRID);
         this.defined = vIsFinite(this.COORDS);
     }
 
@@ -167,16 +170,24 @@ export class point_object extends construction_object {
 
     scriptValue(vec3: boolean): ScriptValue | null {
         if (!this.defined) return null;
-        return vec3 ? [...this.coords] : [this.x, this.y];
+        if (!vec3) return [this.x, this.y];
+        return this.C.GRID.FRAME2D && this.flat
+            ? this.C.screenPlaneCoords(this.coords)
+            : [...this.coords];
     }
 
     dgo(_context: DgoContext): [string, unknown] {
+        if (this.pinned && this.C.GRID.FRAME2D) return ["Pt", [...this.pinned]];
         return ["Pt", this.z ? this.coords : [this.x, this.y]];
     }
 
+    // In a DGPad 3D figure, the point is in the screen plane, its coordinates
+    // being its plane ones (see GRID.FRAME2D), which `pinned` then holds.
     pin(): void {
-        const { ORG, UNIT } = this.C.GRID;
-        this.pinned = [ORG[0] + this.x * UNIT[0], ORG[1] - this.y * UNIT[1]];
+        const { ORG, UNIT, FRAME2D } = this.C.GRID;
+        this.pinned = FRAME2D
+            ? [this.x, this.y]
+            : [ORG[0] + this.x * UNIT[0], ORG[1] - this.y * UNIT[1]];
         this.readsView = true;
     }
 
@@ -190,6 +201,15 @@ export class point_object extends construction_object {
 
     mousedrag(ev: PointerEvent): void {
         const screen = this.C.pointerPosition(ev);
+        const { ORG, UNIT, FRAME2D } = this.C.GRID;
+        if (this.pinned && FRAME2D) {
+            this.pinned = [
+                FRAME2D[0] + (screen[0] - ORG[0]) / UNIT[0],
+                FRAME2D[1] + (ORG[1] - screen[1]) / UNIT[0],
+            ];
+            this.C.invalidateGeometry(this);
+            return;
+        }
         const coords = this.C.unprojectToZPlane(screen, this.z);
         if (!coords) return;
         const snapped = this.snapToIncrement(coords);

@@ -56,13 +56,25 @@ export class formula_point_object extends point_object {
             this.defined = false;
             return;
         }
+        this.flatValue = typeof value !== "number" && value.length === 2;
+        // A DGPad 3D figure's 2D point (see GRID.FRAME2D).
+        const plane =
+            this.vec3 && this.C.GRID.FRAME2D !== null && this.flatValue;
+        this.readsView = plane || usesView(this.formula);
         this.coords =
             typeof value === "number"
                 ? [value, 0, 0]
                 : value.length === 3
                   ? value
-                  : [value[0], value[1], 0];
+                  : plane
+                    ? this.C.screenPlanePoint(value)
+                    : [value[0], value[1], 0];
         super.computeGeometry();
+    }
+
+    private flatValue = false;
+    get flat(): boolean {
+        return this.flatValue;
     }
 
     dgo(context: DgoContext): [string, unknown] {

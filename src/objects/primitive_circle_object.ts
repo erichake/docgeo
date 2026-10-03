@@ -2,8 +2,11 @@ import type { construction } from "../construction";
 import type { DOMElement } from "../dom";
 import type { ScriptValue } from "../import/dgp_formula";
 import {
+    geometryTolerance,
+    numEqual,
     vAdd,
     vCross,
+    vDot,
     vIsFinite,
     vNormalize,
     vScale,
@@ -50,6 +53,63 @@ export class primitive_circle_object extends construction_object {
         this.NORMAL = normal;
         this.defined =
             vIsFinite(center) && Number.isFinite(radius) && radius >= 0;
+    }
+
+    // The plane of a plane construction: horizontal, or the screen plane for
+    // a DGPad 3D figure's 2D object (see GRID.FRAME2D).
+    protected get plane(): [Vec3, Vec3] {
+        return this.C.GRID.FRAME2D && this.flat
+            ? this.C.screenPlaneBasis
+            : [
+                  [1, 0, 0],
+                  [0, 1, 0],
+              ];
+    }
+
+    // The circle of that plane centered at `center` through the projection of
+    // `point` onto it.
+    protected setPlaneCircle(center: Vec3, point: Vec3): void {
+        const [u, v] = this.plane;
+        const radius = vSub(point, center);
+        this.setCircle(
+            center,
+            Math.hypot(vDot(radius, u), vDot(radius, v)),
+            u,
+            v,
+        );
+    }
+
+    // The circle through three points of a plane parallel to that plane.
+    protected setCircleThrough(a: Vec3, b: Vec3, c: Vec3): void {
+        const [u, v] = this.plane;
+        const normal = vCross(u, v);
+        if (
+            !numEqual(vDot(a, normal), vDot(b, normal)) ||
+            !numEqual(vDot(a, normal), vDot(c, normal))
+        ) {
+            this.defined = false;
+            return;
+        }
+        const ab = vSub(b, a);
+        const ac = vSub(c, a);
+        const [abx, aby] = [vDot(ab, u), vDot(ab, v)];
+        const [acx, acy] = [vDot(ac, u), vDot(ac, v)];
+        const denominator = 2 * (abx * acy - aby * acx);
+        const scale = Math.hypot(abx, aby) * Math.hypot(acx, acy);
+        if (Math.abs(denominator) <= 2 * geometryTolerance(scale)) {
+            this.defined = false;
+            return;
+        }
+        const ab2 = abx * abx + aby * aby;
+        const ac2 = acx * acx + acy * acy;
+        const x = (acy * ab2 - aby * ac2) / denominator;
+        const y = (abx * ac2 - acx * ab2) / denominator;
+        this.setCircle(
+            vAdd(a, vAdd(vScale(u, x), vScale(v, y))),
+            Math.hypot(x, y),
+            u,
+            v,
+        );
     }
 
     pointAt(alpha: number): Vec3 {

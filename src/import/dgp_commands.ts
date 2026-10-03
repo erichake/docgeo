@@ -10,7 +10,10 @@ import { createArc3pts } from "../objects/arc3pts_object";
 import { createCenter } from "../objects/center_object";
 import { createCircle1 } from "../objects/circle1_object";
 import { createCircle3 } from "../objects/circle3_object";
-import { createCircle3pts } from "../objects/circle3pts_object";
+import {
+    circle3pts_object,
+    createCircle3pts,
+} from "../objects/circle3pts_object";
 import { createCircle } from "../objects/circle_object";
 import { construction_object } from "../objects/construction_object";
 import { createCurve } from "../objects/curve_object";
@@ -1072,9 +1075,20 @@ function axis(direction: Vec3): CommandDefinition {
         execute: (context, args) => {
             const c = context.construction;
             const name = args[0] as string;
+            // A DGPad 3D figure's axes are 2D ones (see GRID.FRAME2D).
             const [origin, unit] = [[0, 0, 0] as Vec3, direction].map(
-                (coords, index) =>
-                    createFixedPoint(c, `${name}.${index ? "I" : "O"}`, coords),
+                (coords, index) => {
+                    const pointName = `${name}.${index ? "I" : "O"}`;
+                    return c.GRID.FRAME2D
+                        ? createFormulaPoint(
+                              c,
+                              pointName,
+                              parseFormula(`[${coords[0]},${coords[1]}]`),
+                              new Map(),
+                              true,
+                          )
+                        : createFixedPoint(c, pointName, coords);
+                },
             );
             const line = createLine(c, name, origin, unit);
             [origin, unit, line].forEach((object) => (object.hidden = 2));
@@ -1121,20 +1135,14 @@ const COMMANDS = new Map<string, CommandDefinition>([
                         (args[1] as number) * grid.STEP,
                         grid.RESTRICT_THETA,
                     );
-                    // A 3D figure's world origin always projects to the
-                    // live viewport's center — matching this legacy
-                    // format's own "centerZoom" convention and how the app
-                    // already recenters on a live resize (construction.
-                    // resize) — rather than reusing the pixel position
-                    // saved from a possibly differently-sized window, which
-                    // would offset or crop the projected geometry. An
-                    // Expression's screen label isn't projected geometry
-                    // (see labelOrigin above): it keeps using the saved
-                    // pixel position instead, unaffected by this.
+                    // Until the figure's origin point gives its place (see
+                    // Point), at the viewport's center: the first two
+                    // numbers aren't a position here.
                     grid.ORG = [
                         context.construction.width / 2,
                         context.construction.height / 2,
                     ];
+                    grid.FRAME2D = [0, 0];
                 } else {
                     grid.ORG = context.labelOrigin;
                 }
@@ -1189,7 +1197,13 @@ const COMMANDS = new Map<string, CommandDefinition>([
                 if (typeof second === "string") {
                     const source = stripCoords3DSuffix(second);
                     const vector = parseVectorLiteral(source);
-                    if (vector) {
+                    if (
+                        vector &&
+                        !(
+                            context.construction.GRID.FRAME2D &&
+                            vector.length === 2
+                        )
+                    ) {
                         const coords: Vec3 =
                             vector.length === 3
                                 ? [vector[0], vector[1], vector[2]]
@@ -1213,19 +1227,32 @@ const COMMANDS = new Map<string, CommandDefinition>([
                         context.is3D,
                     );
                 }
+                const grid = context.construction.GRID;
                 if (context.is3D && !context.origin3DAssigned) {
                     context.origin3DAssigned = true;
+                    grid.FRAME2D = [second as number, args[2] as number];
+                    // As in DGPad, the origin is where it was in the
+                    // window, like the plane coordinates' one and the
+                    // Expressions (see labelOrigin).
+                    grid.ORG = [
+                        context.labelOrigin[0] +
+                            (second as number) * grid.UNIT[0],
+                        context.labelOrigin[1] -
+                            (args[2] as number) * grid.UNIT[1],
+                    ];
                     return createFixedPoint(
                         context.construction,
                         name,
                         [0, 0, 0],
                     );
                 }
-                return createPoint(context.construction, name, [
+                const point = createPoint(context.construction, name, [
                     second as number,
                     args[2] as number,
                     (args[3] as number | undefined) ?? 0,
                 ]);
+                if (grid.FRAME2D) point.pin();
+                return point;
             },
         },
     ],
@@ -1268,12 +1295,15 @@ const COMMANDS = new Map<string, CommandDefinition>([
                         ? (args[2] as number) /
                           context.construction.GRID.UNIT[0]
                         : (args[2] as number | readonly [number, number]);
-                return createPointOn(
+                const point = createPointOn(
                     context.construction,
                     args[0] as string,
                     support,
                     alpha,
                 );
+                if (support instanceof circle3pts_object && support.space)
+                    point.dgpadSample = alpha as number;
+                return point;
             },
         },
     ],

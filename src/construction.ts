@@ -10,7 +10,7 @@ import {
     unprojectPointToZPlane,
     type ProjectionFrame,
 } from "./projection";
-import type { Vec2, Vec3 } from "./vec";
+import { vAdd, vDot, vScale, type Vec2, type Vec3 } from "./vec";
 
 // Zoom bounds, in pixels per unit: beyond them, graduations would outgrow
 // the precision of their labels.
@@ -231,8 +231,9 @@ export class construction {
             return;
         this.viewportWidth = width;
         this.viewportHeight = height;
-        // As in DGPad, a plane figure keeps its origin where it was.
-        if (!this.GRID.is2D) this.GRID.ORG = [width / 2, height / 2];
+        // As in DGPad, its figures keep their origin where it was.
+        if (!this.GRID.is2D && !this.GRID.FRAME2D)
+            this.GRID.ORG = [width / 2, height / 2];
         this.invalidateProjection();
     }
 
@@ -262,6 +263,31 @@ export class construction {
 
     get projectionFrame(): ProjectionFrame {
         return this.GRID.projectionFrame;
+    }
+
+    // The screen plane's unit vectors towards the right and the top of the
+    // screen (see GRID.FRAME2D). From the camera's angles rather than the
+    // projection frame, which is only updated after geometry.
+    get screenPlaneBasis(): [Vec3, Vec3] {
+        const { PHI, THETA } = this.GRID;
+        const [cosPhi, sinPhi] = [Math.cos(PHI), Math.sin(PHI)];
+        const sinTheta = Math.sin(THETA);
+        return [
+            [sinPhi, cosPhi, 0],
+            [-cosPhi * sinTheta, sinPhi * sinTheta, Math.cos(THETA)],
+        ];
+    }
+
+    screenPlanePoint([u, v]: Vec2): Vec3 {
+        const [right, up] = this.screenPlaneBasis;
+        const [u0, v0] = this.GRID.FRAME2D!;
+        return vAdd(vScale(right, u - u0), vScale(up, v - v0));
+    }
+
+    screenPlaneCoords(point: Vec3): Vec2 {
+        const [right, up] = this.screenPlaneBasis;
+        const [u0, v0] = this.GRID.FRAME2D!;
+        return [u0 + vDot(point, right), v0 + vDot(point, up)];
     }
 
     // *************************************************

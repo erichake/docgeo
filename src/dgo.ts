@@ -390,6 +390,12 @@ const VIEW: Record<string, Property> = {
     rt: range("RESTRICT_THETA", [-Math.PI / 2, Math.PI / 2]),
     rp: range("RESTRICT_PHI", [null, null]),
     pe: flag(grid_object, "PERSPECTIVE"),
+    f2: field(
+        grid_object,
+        "FRAME2D",
+        null,
+        (value) => value === null || isPair(value),
+    ),
     // A plane figure has none.
     fl: flag(grid_object, "SHOWFLOOR", (_, view) => view["3d"] ?? 0),
     ax: property(
@@ -660,8 +666,8 @@ export function readDgo(c: construction, figure: Json, centered = false): void {
     const grid = c.GRID;
     apply(VIEW, grid, view);
     grid.UNIT = [unit, unit, unit];
-    // Otherwise, a plane figure keeps its origin where it was in the
-    // window, as in DGPad; a 3D one, where it was from the window's center.
+    // Otherwise, a DGPad figure keeps its origin where it was in the window,
+    // as in DGPad; another 3D one, where it was from the window's center.
     const offset: Vec2 = centered
         ? [
               Math.round((c.width - width) / 2),
@@ -670,7 +676,7 @@ export function readDgo(c: construction, figure: Json, centered = false): void {
         : [0, 0];
     grid.ORG = centered
         ? [origin[0] + offset[0], origin[1] + offset[1]]
-        : grid.is2D
+        : grid.is2D || grid.FRAME2D
           ? origin
           : [
                 origin[0] + (c.width - width) / 2,

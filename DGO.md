@@ -114,9 +114,9 @@ URL (même image, même clé).
 ### Vue `v`
 
 `o` origine en pixels, `u` pixels par unité, `w` et `h` taille de la fenêtre
-à l'enregistrement (requis). À l'ouverture, une figure plane garde son origine
-à la même place dans la fenêtre (comme DGPad) ; une figure 3D, à la même place
-par rapport au centre de la fenêtre. En mode intégré (`EMBED.md`), la région
+à l'enregistrement (requis). À l'ouverture, une figure plane ou 3D de DGPad
+(`f2`) garde son origine à la même place dans la fenêtre (comme DGPad) ; une
+autre figure 3D, à la même place par rapport au centre de la fenêtre. En mode intégré (`EMBED.md`), la région
 enregistrée `w` × `h` est centrée dans la fenêtre au pixel près, en 2D comme en
 3D : origine et positions en pixels (`xy` des expressions) sont décalées de
 `round((largeur − w) / 2)` et `round((hauteur − h) / 2)`.
@@ -129,6 +129,7 @@ enregistrée `w` × `h` est centrée dans la fenêtre au pixel près, en 2D comm
 | `rt` | bornes de θ                          | [-π/2, π/2]     |
 | `rp` | bornes de φ (`null` : non bornée)    | [null, null]    |
 | `pe` | perspective                          | 0               |
+| `f2` | repère 2D d'une figure 3D (ci-après) | `null`          |
 | `fl` | sol                                  | valeur de `3d`  |
 | `ax` | axes affichés                        | 1               |
 | `gr` | grille                               | 1               |
@@ -153,6 +154,16 @@ secondaires, 1 principales seulement, 2 aucune (les nombres restent).
 `gg` : graduations d'un seul côté de l'axe, vers ses nombres (3 pixels, 2 pour
 une secondaire, 3 avec des axes de plus d'un pixel), aucune quand la grille est
 affichée ; nombres rapprochés des axes, un 0 en bas à gauche de l'origine.
+
+`f2` : coordonnées, dans le repère 2D d'une figure 3D de DGPad, de son origine
+3D. Ses objets 2D (points libres, points de formule à deux coordonnées, axes,
+et ce qui n'est construit qu'à partir d'eux et de l'origine 3D) restent fixes
+à l'écran quand la vue tourne, comme dans DGPad : ils sont dans le plan passant
+par l'origine 3D face à la caméra, rapporté à ce repère (unités de la vue, axes
+vers la droite et le haut de l'écran). Une formule lit leurs coordonnées 2D
+(mais `[0, 0, 0]` pour l'origine 3D), et leurs cercles sont dans ce plan. Les
+points libres y sont punaisés (`fl`), `Pt` donnant leurs coordonnées 2D. Sans
+`f2`, un point de formule à deux coordonnées d'une figure 3D est à z = 0.
 
 ### Objets
 
@@ -372,7 +383,8 @@ Comme dans `.dgo`, un nombre non fini s'écrit `null`.
    cette place dans la vue de base (la vue avec laquelle la figure de base est
    construite), indépendantes de la vue courante : zoomer ou déplacer la vue
    ne change pas l'état. Appliquées comme paramètres de `Pt`, elles le
-   replacent au même endroit.
+   replacent au même endroit. Dans une figure 3D à repère 2D (`f2`), ce sont
+   ses coordonnées dans ce repère, suivies de 0.
 
 - Les `Ex` de valeur constante couvrent les curseurs, les cases à cocher, les
   nombres que modifie un champ de saisie ou le glisser d'un point `Fp`.

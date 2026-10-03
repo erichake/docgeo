@@ -1,0 +1,323 @@
+// Macros :
+$macros={};
+$macros["CercleLesCoefguA"]={
+	name:"Cercle LesCoef g uA",
+	parameters:["expression","expression","point"],
+	exec:
+	function(LesCoef,g,uA){
+Pxap=Point("Pxap","[LesCoef[0]*(exp(uA[2])-exp(-uA[2]))/2,0,g(uA[2])]","1");
+Pxam=Point("Pxam","[-LesCoef[0]*(exp(uA[2])-exp(-uA[2]))/2,0,g(uA[2])]","1");
+Pya=Point("Pya","[0,LesCoef[0]*(exp(uA[2])-exp(-uA[2]))/2,g(uA[2])]","1");
+CercleA=Circle3pts3D("CercleA",Pxap,Pxam,Pya);
+STL(CercleA,"c:#0000b2;s:1;sn:true;f:30;p:0");
+return [CercleA];
+}};
+
+$macros["CoordparAoAuA"]={
+	name:"Coord par A oA uA",
+	parameters:["point","point","point"],
+	exec:
+	function (A,oA,uA){
+Ea=Expression("Ea","","","","A-oA","0.4","-0.7");
+CdA=Expression("CdA","","","","[uA[2],IF(Ea[1]>0,acos(Ea[0]/sqrt(Ea[0]^2+Ea[1]^2)),-acos(Ea[0]/sqrt(Ea[0]^2+Ea[1]^2)))]","-1","-1.5");
+STL(CdA,"c:#435805;s:7;sn:true;f:24;p:4;cL:200;cPT:YzojNzgwMDEzO3M6MTA7ZjozMA==");
+return [CdA];
+}};
+
+$macros["KBversPSEPointLesCoefgOdlPt"]={
+	name:"KB vers PSE Point LesCoef g Odl Pt",
+	parameters:["expression","expression","point","point"],
+	exec:
+	function(LesCoef,g,Odl,Mkb){
+longM=Expression("longM","","","","(x(Mkb)<x(Odl))?(atan((y(Mkb)-y(Odl))/(x(Mkb)-x(Odl)))/LesCoef[0]):((atan((y(Mkb)-y(Odl))/(x(Mkb)-x(Odl)))+\u03C0*(1-2*(y(Mkb)>y(Odl))))/LesCoef[0])","-1.37593878054297","-2.422749347799914");
+CdM=Expression("CdM","","","","[log((1+(x(Mkb)-x(Odl))/cos(LesCoef[0]*longM))/(1-(x(Mkb)-x(Odl))/cos(LesCoef[0]*longM)))/2,longM]","-2.3816083211391605","-2.788447362562165");
+Mpse=Point("Mpse","[LesCoef[0]*(exp(CdM[0])-exp(-CdM[0]))*cos(CdM[1]-\u03C0)/2,LesCoef[0]*(exp(CdM[0])-exp(-CdM[0]))*sin(CdM[1]-\u03C0)/2,g(CdM[0])]","1");
+STL(Mpse,"c:#fc092f;s:5;sn:true;f:17;sp:2");
+return [Mpse];
+}};
+
+$macros["PSEDrteLesCoefgOdlMkb"]={
+	name:"PSE Drte LesCoef g Odl Mkb",
+	parameters:["expression","expression","point","point"],
+	exec:
+	function(LesCoef,g,Odl,Mkb){
+longM=Expression("longM","","","","(x(Mkb)<x(Odl))?(atan((y(Mkb)-y(Odl))/(x(Mkb)-x(Odl)))/LesCoef[0]):((atan((y(Mkb)-y(Odl))/(x(Mkb)-x(Odl)))+\u03C0*(1-2*(y(Mkb)>y(Odl))))/LesCoef[0])","-1.37593878054297","-2.422749347799914");
+CdM=Expression("CdM","","","","[log((1+(x(Mkb)-x(Odl))/cos(LesCoef[0]*longM))/(1-(x(Mkb)-x(Odl))/cos(LesCoef[0]*longM)))/2,longM]","-2.3816083211391605","-2.788447362562165");
+M=Point("M","[LesCoef[0]*(exp(CdM[0])-exp(-CdM[0]))*cos(CdM[1]-\u03C0)/2,LesCoef[0]*(exp(CdM[0])-exp(-CdM[0]))*sin(CdM[1]-\u03C0)/2,g(CdM[0])]","1");
+DrtAB=Locus("DrtAB",M,Mkb);
+STL(DrtAB,"c:#fc092f;s:2;f:30;p:200");
+return [DrtAB];
+}};
+
+$macros["PSEversKBxpCdAOdl"]={
+	name:"PSE vers KB xp CdA Odl",
+	parameters:["expression","expression","point"],
+	exec:
+	function(xp,CdA,Odl){
+Akb=Point("Akb","Odl+[(exp(CdA[0])-exp(-CdA[0]))*cos(xp*CdA[1])/(exp(CdA[0])+exp(-CdA[0])),(exp(CdA[0])-exp(-CdA[0]))*sin(xp*CdA[1])/(exp(CdA[0])+exp(-CdA[0]))]","0");
+STL(Akb,"c:#0000b2;s:6;sn:true;f:14;sp:1");
+return [Akb];
+}};
+
+// Coordinates System :
+SetCoords(771,20,218.75973281399922,true,1642,787);
+
+
+// Geometry :
+Or=Point("Or",-2.5187450766750046,-0.11885185479773162);
+X=Point("X","[1,0,0]","1");
+Y=Point("Y","[0,1,0]","1");
+Z=Point("Z","[0,0,1]","1");
+ox=X_axis("ox");
+oy=Y_axis("oy");
+o2d=Point("o2d","[0,0]","0");
+u2d=Point("u2d","[1,0]","0");
+Odl=Point("Odl",-0.11885185479773162,-1.0376681168878876);
+OX=Segment("OX",Or,X);
+OY=Segment("OY",Or,Y);
+OZ=Segment("OZ",Or,Z);
+Par1=Parallel("Par1",ox,Or);
+S1=Segment("S1",Or,o2d);
+Idl=Point("Idl","Odl+[1,0]","0");
+Par2=Parallel("Par2",S1,u2d);
+C5=Circle("C5",Odl,Idl);
+Op1=OrderedIntersection("Op1",Par1,Par2,0);
+demi=MidPoint("demi",Op1,Or);
+quart=MidPoint("quart",Or,demi);
+pMax=MidPoint("pMax",demi,Op1);
+pMin=MidPoint("pMin",Or,quart);
+AmpliP=Segment("AmpliP",pMin,pMax);
+p=PointOn("p",AmpliP,0.2511977220667153);
+Par3=Parallel("Par3",S1,p);
+absP=OrderedIntersection("absP",ox,Par3,0);
+xp=Expression("xp","","","","x(absP)","-1.6502122916146582","-0.9599572887509092");
+AltMax=Expression("AltMax","","","","log((1+sqrt(1-xp^2))/xp)","-3.3872778617353507","-1.828490073811256");
+P14=Point("P14","[xp,0,0]","1");
+P15=Point("P15","[0,xp,0]","1");
+LesCoef=Expression("LesCoef","","","","[xp, -0.658574*xp^4+0.722747*xp^3-0.897874*xp^2+0.13101*xp+0.961048,-0.515445*xp^4+0.622785*xp^3-0.457166*xp^2+0.120633*xp+0.00842376,-3.77301*xp^4+4.36908*xp^3-1.89728*xp^2+0.276375*xp-0.015376]","-3.3415656098900697","-2.194188088573507");
+P1=Point("P1","[0,0,AltMax]","1");
+xSmax=Expression("xSmax","","",""," xp*(exp(AltMax)-exp(-AltMax))/2","-3.387277861735351","-2.6055983551810393");
+Symc5=Symmetry("Symc5",Or,P15);
+g=Expression("g","","","","(LesCoef[3]*z^4+LesCoef[2]*z^2+LesCoef[1])*z","-1.4673632842335327","-2.194188088573507");
+S11=Point("S1-","Odl+[(exp(-AltMax)-exp(AltMax))*cos(xp*(-\u03C0))/(exp(-AltMax)+exp(AltMax)),(exp(-AltMax)-exp(AltMax))*sin(xp*(-\u03C0))/(exp(-AltMax)+exp(AltMax))]","0");
+S12=Point("S1+","Odl+[(exp(-AltMax)-exp(AltMax))*cos(xp*\u03C0)/(exp(-AltMax)+exp(AltMax)),(exp(-AltMax)-exp(AltMax))*sin(xp*\u03C0)/(exp(-AltMax)+exp(AltMax))]","0");
+P10=Point("P10","Odl+[(exp(-AltMax)-exp(AltMax))/(exp(-AltMax)+exp(AltMax)),0]","0");
+Symc1=Symmetry("Symc1",Or,P1);
+Fr1=Point("Fr1","[xSmax,0,g(AltMax)]","1");
+P11=Point("P11","[-xSmax,0,g(AltMax)]","1");
+P12=Point("P12","[0,xSmax,g(AltMax)]","1");
+P13=Point("P13","[0,-xSmax,g(AltMax)]","1");
+C4=Circle3pts3D("C4",Symc5,P14,P15);
+E2=Expression("E2","g(AltMax) = ","","","g(AltMax)","-3.4787023654259137","-1.9656268293471");
+C6=Arc3pts("C6",S11,P10,S12);
+S2=Segment("S2",Odl,S11);
+S3=Segment("S3",Odl,S12);
+Poly1=Polygon("Poly1","_S12,_Odl,_S11");
+C9=Circle("C9",Odl,S11);
+Center4=Center("Center4",C4);
+Center2=Center("Center2",C6);
+AmpZ=Segment("AmpZ",Symc1,Or);
+C2=Circle3pts3D("C2",Fr1,P12,P11);
+Symc2=Symmetry("Symc2",Or,P12);
+Fr2=Symmetry("Fr2",Or,P11);
+Symc4=Symmetry("Symc4",Or,P13);
+Syma1=Reflection("Syma1",S3,P10);
+S21=Reflection("S2+",S3,S11);
+Syma3=Reflection("Syma3",S2,P10);
+S_1=Reflection("S_1-",S2,S12);
+oMax=Center("oMax",C2);
+uGe=PointOn("uGe",AmpZ,0.13663011657271126);
+Par5=Parallel("Par5",AmpZ,Op1);
+C3=Circle3pts3D("C3",Symc2,Fr2,Symc4);
+C7=Arc3pts("C7",S12,Syma1,S21);
+C8=Arc3pts("C8",S11,Syma3,S_1);
+S4=Segment("S4",S_1,Odl);
+S5=Segment("S5",Odl,S21);
+Poly2=Polygon("Poly2","_S12,_S21,_Odl");
+Poly3=Polygon("Poly3","_Odl,_S_1,_S11");
+uA=PointOn("uA",AmpZ,0.41869389653324696);
+uB=PointOn("uB",AmpZ,0.58175268943414);
+Center30=Center("Center30",C3);
+Center50=Center("Center50",C7);
+Center6=Center("Center6",C8);
+xSGe=Expression("xSGe","","","","xp*(exp(uGe[2])-exp(-uGe[2]))/2","-3.4329901135806327","-1.2799430516678791");
+E1=Expression("E1","g(uGe[2])=","","","g(uGe[2])","-3.4329901135806327","-1.051381792441472");
+P3=Point("P3","[0,xp*(exp(uGe[2])-exp(-uGe[2]))/2,g(uGe[2])]","1");
+P2=Point("P2","[xp*(exp(uGe[2])-exp(-uGe[2]))/2,0,g(uGe[2])]","1");
+P4=Point("P4","[-xp*(exp(uGe[2])-exp(-uGe[2]))/2,0,g(uGe[2])]","1");
+P5=Point("P5","[0,-xp*(exp(uGe[2])-exp(-uGe[2]))/2,g(uGe[2])]","1");
+oGe=Point("oGe","[0,0,g(uGe[2])]","1");
+Pxap=Point("Pxap","[LesCoef[0]*(exp(uA[2])-exp(-uA[2]))/2,0,g(uA[2])]","1");
+Pxam=Point("Pxam","[-LesCoef[0]*(exp(uA[2])-exp(-uA[2]))/2,0,g(uA[2])]","1");
+Pya=Point("Pya","[0,LesCoef[0]*(exp(uA[2])-exp(-uA[2]))/2,g(uA[2])]","1");
+Pxap0=Point("Pxap0","[LesCoef[0]*(exp(uB[2])-exp(-uB[2]))/2,0,g(uB[2])]","1");
+Pxam0=Point("Pxam0","[-LesCoef[0]*(exp(uB[2])-exp(-uB[2]))/2,0,g(uB[2])]","1");
+Pya0=Point("Pya0","[0,LesCoef[0]*(exp(uB[2])-exp(-uB[2]))/2,g(uB[2])]","1");
+GeneY=Locus("GeneY",P3,uGe);
+GeneX=Locus("GeneX",P2,uGe);
+GenesX=Locus("GenesX",P4,uGe);
+GenesY=Locus("GenesY",P5,uGe);
+C1=Circle3pts3D("C1",P2,P3,P4);
+Par4=Parallel("Par4",Par1,oGe);
+CercleA=Circle3pts3D("CercleA",Pxap,Pxam,Pya);
+CercleA0=Circle3pts3D("CercleA0",Pxap0,Pxam0,Pya0);
+Center1=Center("Center1",C1);
+oA=Center("oA",CercleA);
+oB=Center("oB",CercleA0);
+P6=OrderedIntersection("P6",Par5,Par4,0);
+A=PointOn("A",CercleA,352);
+B=PointOn("B",CercleA0,267);
+P7=Point("P7","oGe+xSGe*(P6-oGe)","0");
+Ea=Expression("Ea","","","","A-oA","-0.43196298358412133","-0.6954287748154718");
+Ea0=Expression("Ea0","","","","A-oA","-0.43196298358412133","-0.6954287748154718");
+Ea1=Expression("Ea1","","","","A-oA","-0.43196298358412133","-0.6954287748154718");
+Ea2=Expression("Ea2","","","","B-oB","-0.43196298358412133","-0.6954287748154718");
+Locus1=Locus("Locus1",P7,uGe);
+Symc3=Symmetry("Symc3",oGe,P7);
+CdA=Expression("CdA","","","","[uA[2],IF(Ea1[1]>0,acos(Ea1[0]/sqrt(Ea1[0]^2+Ea1[1]^2)),-acos(Ea1[0]/sqrt(Ea1[0]^2+Ea1[1]^2)))]","-2.9290570278708743","-2.866796330173914");
+CdB=Expression("CdB","","","","[uB[2],IF(Ea2[1]>0,acos(Ea2[0]/sqrt(Ea2[0]^2+Ea2[1]^2)),-acos(Ea2[0]/sqrt(Ea2[0]^2+Ea2[1]^2)))]","-0.46059542822567956","-2.72965957463807");
+Locus2=Locus("Locus2",Symc3,uGe);
+Akb=Point("Akb","Odl+[(exp(CdA[0])-exp(-CdA[0]))*cos(xp*CdA[1])/(exp(CdA[0])+exp(-CdA[0])),(exp(CdA[0])-exp(-CdA[0]))*sin(xp*CdA[1])/(exp(CdA[0])+exp(-CdA[0]))]","0");
+Bkb=Point("Bkb","Odl+[(exp(CdB[0])-exp(-CdB[0]))*cos(xp*CdB[1])/(exp(CdB[0])+exp(-CdB[0])),(exp(CdB[0])-exp(-CdB[0]))*sin(xp*CdB[1])/(exp(CdB[0])+exp(-CdB[0]))]","0");
+L1=Line("L1",Akb,Bkb);
+P8=OrderedIntersection("P8",L1,C9,0);
+P9=OrderedIntersection("P9",L1,C9,1);
+S6=Segment("S6",P9,P8);
+Mkb=PointOn("Mkb",S6,0.9314041835124632);
+longM=Expression("longM","","","","(x(Mkb)<x(Odl))?(atan((y(Mkb)-y(Odl))/(x(Mkb)-x(Odl)))/LesCoef[0]):((atan((y(Mkb)-y(Odl))/(x(Mkb)-x(Odl)))+\u03C0*(1-2*(y(Mkb)>y(Odl))))/LesCoef[0])","-1.513075536078814","-1.874202325656537");
+E3=Expression("E3","","","","(x(Mkb)<x(Odl))?(atan((y(Mkb)-y(Odl))/(x(Mkb)-x(Odl)))/LesCoef[0]):((atan((y(Mkb)-y(Odl))/(x(Mkb)-x(Odl)))-\u03C0)/LesCoef[0])","-3.387277861735351","-1.051381792441472");
+E4=Expression("E4","","","","(x(Mkb)<x(Odl))?(atan((y(Mkb)-y(Odl))/(x(Mkb)-x(Odl)))/LesCoef[0]):((atan((y(Mkb)-y(Odl))/(x(Mkb)-x(Odl)))+\u03C0*(1-2*(y(Mkb)>y(Odl))))/LesCoef[0])","-3.295853358044788","-0.45712251845281393");
+CdM=Expression("CdM","","","","[log((1+(x(Mkb)-x(Odl))/cos(LesCoef[0]*longM))/(1-(x(Mkb)-x(Odl))/cos(LesCoef[0]*longM)))/2,longM]","-2.3816083211391605","-2.788447362562165");
+LePtM=Expression("LePtM","","","","[LesCoef[0]*(exp(CdM[0])-exp(-CdM[0]))*cos(CdM[1]-\u03C0)/2,LesCoef[0]*(exp(CdM[0])-exp(-CdM[0]))*sin(CdM[1]-\u03C0)/2,g(CdM[0])]","-1.5587877879240954","-2.788447362562165");
+M=Point("M","[LesCoef[0]*(exp(CdM[0])-exp(-CdM[0]))*cos(CdM[1]-\u03C0)/2,LesCoef[0]*(exp(CdM[0])-exp(-CdM[0]))*sin(CdM[1]-\u03C0)/2,g(CdM[0])]","1");
+Locus3=Locus("Locus3",M,Mkb);
+
+
+// Styles :
+STL(Or,"c:#006633;s:6;sn:true;f:15;sp:1;np:1.5288042195735272;fl:true");
+STL(X,"c:#006633;o:1;s:3;sn:true;f:15;np:4.862333011134798");
+STL(Y,"c:#006633;o:1;s:3;sn:true;f:15");
+STL(Z,"c:#006633;h:1;o:1;s:3;sn:true;f:14");
+STL(o2d,"c:#0000b2;h:1;s:6;sn:true;f:15");
+STL(u2d,"c:#0000b2;h:1;s:6;sn:true;f:16");
+STL(Odl,"c:#fc092f;s:6;sn:true;f:14;sp:1;np:0.2871411615910961;fl:true");
+STL(OX,"c:#006633;s:1;sn:true;f:24");
+STL(OY,"c:#006633;s:1;sn:true;f:24");
+STL(OZ,"c:#006633;h:1;s:1;sn:true;f:24");
+STL(Par1,"c:#780013;h:1;s:1;f:30;p:0");
+STL(S1,"c:#006633;h:1;s:1;f:24");
+STL(Idl,"c:#fc092f;h:1;s:6;sn:true;f:15;sp:1");
+STL(Par2,"c:#780013;h:1;s:1;f:30;p:0");
+STL(C5,"c:#cc66cc;s:1;f:30;p:0");
+STL(Op1,"c:#0000b2;h:1;s:6;sn:true;f:17");
+STL(demi,"c:#0000b2;h:1;s:5;sn:true;f:13;sp:1;np:0.8247383844580811");
+STL(quart,"c:#0000b2;h:1;s:4;sn:true;f:11;sp:1;np:0.9231060986649399");
+STL(pMax,"c:#0000b2;h:1;s:6;sn:true;f:13;sp:1");
+STL(pMin,"c:#0000b2;h:1;s:6;sn:true;f:13;sp:1");
+STL(AmpliP,"c:#2687e4;s:1;sn:true;f:24");
+STL(p,"c:#760012;o:1;s:4;sn:true;f:18;np:5.4591053361975685;mg:[quart,2],[demi,2]");
+STL(Par3,"c:#780013;h:1;s:1;f:30;p:0");
+STL(absP,"c:#0000b2;h:1;s:6;sn:true;f:14");
+STL(xp,"c:#1a7557;s:7;sn:true;f:15;p:4;cL:200;cPT:YzojNzgwMDEzO3M6MTA7ZjozMA==");
+STL(AltMax,"c:#501579;h:1;s:7;sn:true;f:15;p:2;cL:200;cPT:YzojNzgwMDEzO2g6MTtzOjEwO2Y6MzA=");
+STL(P14,"c:#0000b2;h:1;s:6;f:30");
+STL(P15,"c:#0000b2;h:1;s:6;f:30");
+STL(LesCoef,"c:#0a0e0f;s:7;sn:true;f:15;p:2;cL:200;cPT:YzojNzgwMDEzO3M6MTA7ZjozMA==");
+STL(P1,"c:#66138e;h:1;s:6;f:30;sp:1");
+STL(xSmax,"c:#17bd3d;h:1;s:7;sn:true;f:15;p:2;cL:200;cPT:YzojNzgwMDEzO2g6MTtzOjEwO2Y6MzA=");
+STL(Symc5,"c:#0000b2;h:1;s:6;f:30");
+STL(g,"c:#450652;s:7;sn:true;f:15;p:2;cL:200;cPT:YzojNzgwMDEzO3M6MTA7ZjozMA==");
+STL(S11,"c:#2687e4;s:3.5;sn:true;f:14;sp:1");
+STL(S12,"c:#2687e4;s:3.5;sn:true;f:13;sp:1");
+STL(P10,"c:#0000b2;h:1;s:6;f:30");
+STL(Symc1,"c:#0000b2;h:1;s:6;f:30");
+STL(Fr1,"c:#17bd3d;h:1;s:6;sn:true;f:17;sp:1;np:1.0402466930151826");
+STL(P11,"c:#0000b2;h:1;s:6;f:30");
+STL(P12,"c:#0000b2;h:1;s:6;f:30");
+STL(P13,"c:#0000b2;h:1;s:6;f:30");
+STL(C4,"c:#cc66cc;h:1;s:1;f:30;p:0");
+STL(E2,"c:#fc092f;h:1;s:7;f:15;p:2;cL:200;cPT:YzojNzgwMDEzO2g6MTtzOjEwO2Y6MzA=");
+STL(C6,"c:#2687e4;o:0.06;s:1;f:30;p:0");
+STL(S2,"c:#2687e4;s:1;f:24");
+STL(S3,"c:#2687e4;s:1;f:24");
+STL(Poly1,"c:#2687e4;o:0.06;s:0.5;f:30");
+STL(C9,"c:#cc66cc;h:1;s:1;f:30;p:0");
+STL(Center4,"c:#0000b2;h:1;s:6;f:30");
+STL(Center2,"c:#0000b2;h:1;s:6;f:30");
+STL(AmpZ,"c:#006633;s:1;sn:true;f:24");
+STL(C2,"c:#cc66cc;h:1;s:1;f:30;p:0");
+STL(Symc2,"c:#0000b2;h:1;s:6;f:30");
+STL(Fr2,"c:#0bd81f;h:1;s:6;sn:true;f:17;sp:1;np:3.8196912079878853");
+STL(Symc4,"c:#0000b2;h:1;s:6;f:30");
+STL(Syma1,"c:#0000b2;h:1;s:6;f:30");
+STL(S21,"c:#0bd81f;s:3.5;sn:true;f:13;sp:1");
+STL(Syma3,"c:#0000b2;h:1;s:6;f:30");
+STL(S_1,"c:#ff8a1c;s:3.5;sn:true;f:13;sp:1");
+STL(oMax,"c:#fc092f;h:1;s:5;sn:true;f:15;sp:1");
+STL(uGe,"c:#0000b2;h:1;s:6;sn:true;f:15");
+STL(Par5,"c:#780013;h:1;s:1;f:30;p:0");
+STL(C3,"c:#cc66cc;s:1;f:30;p:0");
+STL(C7,"c:#0bd81f;o:0.06;s:1;f:30;p:0");
+STL(C8,"c:#ff8a1c;o:0.06;s:0.5;f:30;p:0");
+STL(S4,"c:#ff8a1c;s:1;f:24");
+STL(S5,"c:#0bd81f;s:1;f:24");
+STL(Poly2,"c:#0bd81f;o:0.06;s:0.5;f:30");
+STL(Poly3,"c:#ff8a1c;o:0.06;s:0.5;f:30");
+STL(uA,"c:#006633;s:4.5;sn:true;f:14;sp:1");
+STL(uB,"c:#006633;s:4.5;sn:true;f:14;sp:1");
+STL(Center30,"c:#0000b2;h:1;s:6;f:30");
+STL(Center50,"c:#0000b2;h:1;s:6;f:30");
+STL(Center6,"c:#0000b2;h:1;s:6;f:30");
+STL(xSGe,"c:#2f492a;h:1;s:7;sn:true;f:15;p:2;cL:200;cPT:YzojNzgwMDEzO2g6MTtzOjEwO2Y6MzA=");
+STL(E1,"c:#fc092f;h:1;s:7;f:15;p:2;cL:200;cPT:YzojNzgwMDEzO2g6MTtzOjEwO2Y6MzA=");
+STL(P3,"c:#0000b2;h:1;o:1;s:3.5;f:30");
+STL(P2,"c:#0000b2;h:1;o:1;s:3.5;f:30");
+STL(P4,"c:#0000b2;h:1;o:1;s:3.5;f:30");
+STL(P5,"c:#0000b2;h:1;o:1;s:3.5;f:30");
+STL(oGe,"c:#fc092f;h:1;s:6;sn:true;f:15;sp:1;np:2.240143072944835");
+STL(Pxap,"c:#0000b2;h:2;s:6;f:30");
+STL(Pxam,"c:#0000b2;h:2;s:6;f:30");
+STL(Pya,"c:#0000b2;h:2;s:6;f:30");
+STL(Pxap0,"c:#0000b2;h:2;s:6;f:30");
+STL(Pxam0,"c:#0000b2;h:2;s:6;f:30");
+STL(Pya0,"c:#0000b2;h:2;s:6;f:30");
+STL(GeneY,"c:#966400;s:0.5;sn:true;f:30;p:50");
+STL(GeneX,"c:#0bd81f;s:1;sn:true;f:30;p:50");
+STL(GenesX,"c:#cc66cc;s:1;sn:true;f:30;p:50");
+STL(GenesY,"c:#966400;s:0.5;sn:true;f:30;p:50");
+STL(C1,"c:#0000b2;h:1;s:1;f:30;p:0");
+STL(Par4,"c:#780013;h:1;s:1;f:30;p:0");
+STL(CercleA,"c:#0000b2;s:1;sn:true;f:30;p:0;dh:true");
+STL(CercleA0,"c:#0000b2;s:1;sn:true;f:30;p:0;dh:true");
+STL(Center1,"c:#0000b2;h:1;s:6;f:30");
+STL(oA,"c:#fc092f;h:1;s:5;sn:true;f:14;sp:1");
+STL(oB,"c:#fc092f;h:1;s:5;sn:true;f:13;sp:1;np:1.0174534802930253");
+STL(P6,"c:#0000b2;h:1;s:6;sn:true;f:30");
+STL(A,"c:#0000b2;s:6;sn:true;f:17;np:5.06310444126551");
+STL(B,"c:#0000b2;s:6;sn:true;f:17");
+STL(P7,"c:#fc092f;h:1;o:1;s:3.5;f:22");
+STL(Ea,"c:#780013;h:2;s:7;f:15;p:2;cL:200;cPT:YzojNzgwMDEzO2g6MjtzOjEwO2Y6MzA=");
+STL(Ea0,"c:#780013;h:2;s:7;f:15;p:2;cL:200;cPT:YzojNzgwMDEzO2g6MjtzOjEwO2Y6MzA=");
+STL(Ea1,"c:#780013;h:2;s:7;f:15;p:2;cL:200;cPT:YzojNzgwMDEzO2g6MjtzOjEwO2Y6MzA=");
+STL(Ea2,"c:#780013;h:2;s:7;f:15;p:2;cL:200;cPT:YzojNzgwMDEzO2g6MjtzOjEwO2Y6MzA=");
+STL(Locus1,"c:#706b6c;s:0.5;f:30;p:1000");
+STL(Symc3,"c:#fc092f;h:1;o:1;s:3.5;f:30");
+STL(CdA,"c:#435805;h:1;s:7;sn:true;f:15;p:4;cL:200;cPT:YzojNzgwMDEzO2g6MTtzOjEwO2Y6MzA=");
+STL(CdB,"c:#435805;h:1;s:7;sn:true;f:15;p:4;cL:200;cPT:YzojNzgwMDEzO2g6MTtzOjEwO2Y6MzA=");
+STL(Locus2,"c:#706b6c;s:0.5;f:30;p:20");
+STL(Akb,"c:#0000b2;s:4.5;sn:true;f:14;sp:1;np:0.9575718467115645");
+STL(Bkb,"c:#0000b2;s:4.5;sn:true;f:14;sp:1;np:1.1508701807512218");
+STL(L1,"c:#780013;h:1;s:1;f:30;p:0");
+STL(P8,"c:#0000b2;h:1;s:6;f:30");
+STL(P9,"c:#0000b2;h:1;s:6;f:30");
+STL(S6,"c:#006633;s:1;f:24");
+STL(Mkb,"c:#0000b2;s:5;sn:true;f:16;np:3.8927886582945175");
+STL(longM,"c:#555122;s:7;sn:true;f:15;p:2;cL:200;cPT:YzojNzgwMDEzO3M6MTA7ZjozMA==");
+STL(E3,"c:#4f6a30;h:1;s:7;f:15;p:2;cL:200;cPT:YzojNzgwMDEzO2g6MTtzOjEwO2Y6MzA=");
+STL(E4,"c:#582602;h:1;s:7;f:15;p:2;cL:200;cPT:YzojNzgwMDEzO2g6MTtzOjEwO2Y6MzA=");
+STL(CdM,"c:#534f77;h:1;s:7;sn:true;f:15;p:2;cL:200;cPT:YzojNzgwMDEzO2g6MTtzOjEwO2Y6MzA=");
+STL(LePtM,"c:#056464;h:1;s:7;sn:true;f:15;p:2;cL:200;cPT:YzojNzgwMDEzO2g6MTtzOjEwO2Y6MzA=");
+STL(M,"c:#fc092f;s:5;sn:true;f:17;sp:2");
+STL(Locus3,"c:#fc092f;s:2;f:30;p:1000");
+SetCoordsStyle("3Dmode:true;isAxis:false;isGrid:true;isOx:true;isOy:true;isLockOx:false;isLockOy:false;centerZoom:true;onlyPositive:false;color:#111111;fontSize:18;axisWidth:1;gridWidth:0.1");
+SetGeneralStyle("background-color:#ffffff;degree:false;dragmoveable:true");

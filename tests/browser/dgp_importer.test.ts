@@ -33,6 +33,7 @@ function hiddenOf(segment: segment_object): [number, number][] {
         .hiddenIntervals;
 }
 import { vDot, vNormalize, vSub, type Vec2, type Vec3 } from "../../src/vec";
+import { expectClose } from "./figures";
 
 function createConstruction(): construction {
     document.documentElement.style.width = "100%";
@@ -1399,7 +1400,7 @@ E1=Expression("E1","","","","restrictPhi([0,PI]);\\"Restriction\\"","0","0");`,
         expect(restricted.GRID.PHI).toBe(0);
     });
 
-    it("centers a 3D figure's world origin on the live viewport, independently of its Expression labels", () => {
+    it("centers a 3D figure's world origin on the live viewport until a point gives it", () => {
         const c = createConstruction();
         importDgp(
             c,
@@ -1407,15 +1408,8 @@ E1=Expression("E1","","","","restrictPhi([0,PI]);\\"Restriction\\"","0","0");`,
 E1=Expression("E1","","","","5","-1","0");`,
         );
 
-        // DGPad's native app resizes its own window to the figure's saved
-        // width/height on load, so its saved pixel origin (9999,-9999) is
-        // always meaningful there. This is a responsive web page that
-        // can't do that: reusing that origin as-is for 3D point
-        // projection would push the whole figure off-screen whenever the
-        // live viewport doesn't match, so it's centered on the live
-        // viewport instead (see SetCoords' execute) — matching both this
-        // legacy format's own "centerZoom" convention and how the app
-        // already recenters on a live resize (construction.resize).
+        // In 3D, SetCoords' first two numbers are the camera's angles too:
+        // only the figure's origin point places the origin (see Point).
         expect(c.GRID.ORG).toEqual([c.width / 2, c.height / 2]);
 
         // An Expression's screen label isn't projected geometry: it still
@@ -1446,6 +1440,54 @@ E1=Expression("E1","","","","5","-1","0");`,
             (state, index) => index > 0 && state !== states[index - 1],
         ).length;
         expect(changes).toBe(1);
+    });
+
+    it("keeps a 3D figure's 2D objects in the screen plane", async () => {
+        const c = createConstruction();
+        const unsupported = await importDgpFromUrl(c, "/tests/dgp/PSH_01.dgp");
+        expect(unsupported).toEqual([]);
+        const value = (name: string) => c.getObj(name)!.scriptValue(true);
+        const point = (name: string) => c.getObj(name) as point_object;
+        // DGPad's values: xp reads a 2D construction, CdA a point of a
+        // Circle3pts3D given by its sample number and IF(test, a, b).
+        expectClose(value("xp"), 0.2819985762916974);
+        expectClose(
+            value("A"),
+            [0.2724236281904336, 0.2782780653766438, -1.055942099615054],
+        );
+        expectClose(value("CdA"), [-1.1268613733569643, 0.7960286312577038]);
+        expectClose(value("Odl"), [-0.11885185479773162, -1.0376681168878876]);
+        expectClose(value("Akb"), [-0.9084729213395822, -1.2179599901955096]);
+        expectClose(value("longM"), 7.346482612705435);
+        expectClose(
+            value("M"),
+            [0.2375691479653453, 0.4272213190358623, -1.2188239945144224],
+        );
+        // Turning the view moves the 3D objects, not the 2D ones.
+        const screens = () =>
+            ["Odl", "Akb", "Mkb", "p", "A"].map((name) => [
+                ...point(name).screen,
+            ]);
+        // As in DGPad, the origin is where it was in the window, the 2D
+        // objects and the Expressions keeping their place around it.
+        expectClose(c.GRID.ORG, [
+            771 - 2.5187450766750046 * 218.75973281399922,
+            20 + 0.11885185479773162 * 218.75973281399922,
+        ]);
+        const before = screens();
+        c.GRID.PHI += 0.4;
+        c.GRID.THETA -= 0.2;
+        c.invalidateProjection();
+        c.OBJS.update();
+        const after = screens();
+        before
+            .slice(0, 4)
+            .forEach((screen, index) => expectClose(after[index], screen));
+        expect(after[4]).not.toEqual(before[4]);
+        expectClose(value("longM"), 7.346482612705435);
+        const origin = c.GRID.ORG;
+        c.resize(c.width + 200, c.height + 100);
+        expect(c.GRID.ORG).toBe(origin);
     });
 
     it("dashes coincident segments in phase whatever their direction", () => {

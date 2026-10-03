@@ -1,5 +1,5 @@
 import type { construction } from "../construction";
-import { vSub } from "../vec";
+import { vAdd, vSub } from "../vec";
 import type { DgoContext } from "./construction_object";
 import type { point_object } from "./point_object";
 import { primitive_circle_object } from "./primitive_circle_object";
@@ -32,12 +32,9 @@ export class circle3_object extends primitive_circle_object {
             this.defined = false;
             return;
         }
-        const radius = vSub(this.P2.coords, this.P3.coords);
-        this.setCircle(
+        this.setPlaneCircle(
             this.P1.coords,
-            Math.hypot(radius[0], radius[1]),
-            [1, 0, 0],
-            [0, 1, 0],
+            vAdd(this.P1.coords, vSub(this.P2.coords, this.P3.coords)),
         );
     }
 }

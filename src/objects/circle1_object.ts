@@ -88,7 +88,7 @@ export class circle1_object extends primitive_circle_object {
             return;
         }
         if (!this.axis) {
-            this.setCircle(this.P1.coords, radius, [1, 0, 0], [0, 1, 0]);
+            this.setCircle(this.P1.coords, radius, ...this.plane);
             return;
         }
         const normal = vNormalize(this.axis.VEC)!;

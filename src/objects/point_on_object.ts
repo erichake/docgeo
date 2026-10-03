@@ -4,6 +4,7 @@ import { projectPointOnLine, projectPointOnPlane } from "../projection";
 import { vAdd, vDot, vScale, vSub, type Vec2, type Vec3 } from "../vec";
 import { angle_bisector_object } from "./angle_bisector_object";
 import { arc3pts_object } from "./arc3pts_object";
+import type { circle3pts_object } from "./circle3pts_object";
 import type { curve_object } from "./curve_object";
 import type { DgoContext } from "./construction_object";
 import { fixed_angle_object } from "./fixed_angle_object";
@@ -62,6 +63,9 @@ export class point_on_object extends point_object {
     alpha: Alpha;
     onBoundary: boolean;
     animation: Animation | null = null;
+    // DGPad's parameter on a Circle3pts3D, which becomes its angle once the
+    // circle is computed (see circle3pts_object.dgpadSample).
+    dgpadSample: number | null = null;
 
     constructor(
         c: construction,
@@ -111,6 +115,14 @@ export class point_on_object extends point_object {
             }
             this.coords = coords;
         } else if (this.support instanceof primitive_circle_object) {
+            if (this.dgpadSample !== null) {
+                this.alpha = this.support.alphaOf(
+                    (this.support as circle3pts_object).dgpadSample(
+                        this.dgpadSample,
+                    ),
+                );
+                this.dgpadSample = null;
+            }
             this.coords = this.support.pointAt(this.alpha as number);
         } else if (this.support instanceof polygon_object) {
             const coords = this.support.pointAt(
