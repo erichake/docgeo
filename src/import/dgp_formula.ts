@@ -136,10 +136,12 @@ export type ObjectMethod =
     | "getY"
     | "getName"
     | "getAOC"
+    | "center"
     | "push"
     | "pop"
     | "concat"
     | "setHidden"
+    | "setShowName"
     | "setOpacity"
     | "setRGBColor"
     | "setSize"
@@ -155,6 +157,7 @@ const READ_METHODS: ReadonlySet<ObjectMethod> = new Set([
     "getY",
     "getName",
     "getAOC",
+    "center",
     "concat",
 ]);
 
@@ -178,10 +181,12 @@ const METHOD_ARITY: Record<ObjectMethod, number> = {
     getY: 0,
     getName: 0,
     getAOC: 0,
+    center: 0,
     push: -1,
     pop: 0,
     concat: -1,
     setHidden: 1,
+    setShowName: 1,
     setOpacity: 1,
     setRGBColor: 3,
     setSize: 1,
@@ -1043,6 +1048,8 @@ export interface FormulaEnv {
     // DGPad's getAOC: the angle AOC as drawn, counterclockwise, in radians
     // within [0, 2π).
     orientedAngle?(name: string): number | null;
+    // The center of a conic, as a point's value.
+    center?(name: string): ScriptValue | null;
     // Resolves a userCall node (a name outside FORMULA_ARITY applied to
     // arguments, e.g. "E1(x)"). Consumers that don't support calling named
     // objects (most formula owners) simply omit this.
@@ -1621,6 +1628,8 @@ function compileMethod(
             return self;
         case "getAOC":
             return (frame) => frame.env.orientedAngle?.(object) ?? null;
+        case "center":
+            return (frame) => frame.env.center?.(object) ?? null;
         case "concat":
             return (frame) => {
                 const list = self(frame);

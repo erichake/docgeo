@@ -38,8 +38,15 @@ export class plumb_line_object extends primitive_line_object {
             p = this.D.P1.coords,
             m = this.P1.coords;
 
+        // As in DGPad, D's direction turned a quarter counterclockwise in its
+        // plane, which P1 may lie on D in: the screen plane (see
+        // GRID.FRAME2D), or a horizontal one.
+        if (this.C.GRID.FRAME2D && this.flat) {
+            const [right, up] = this.C.screenPlaneBasis;
+            return vNormalize(vCross(vCross(right, up), v));
+        }
         if (numEqual(v[2], 0) && numEqual(m[2], p[2])) {
-            return vNormalize([v[1], -v[0], 0]);
+            return vNormalize(vCross([0, 0, 1], v));
         }
 
         const w = vSub(m, p);

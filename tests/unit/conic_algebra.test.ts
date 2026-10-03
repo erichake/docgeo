@@ -138,4 +138,38 @@ describe("conicConicIntersectionsXY", () => {
         const conic2: ConicCoeffs = [1, 0, 1, -20, 0, 99]; // centered (10,0), r=1
         expect(conicConicIntersectionsXY(conic1, conic2)).toHaveLength(0);
     });
+
+    it("finds a point of an ellipse among the feet of its normals", () => {
+        // A small resolvent root makes Ferrari's formulas imprecise.
+        const conic: ConicCoeffs = [
+            0.12327122976627725, 0.032738170808239375, 0.12523646746248074,
+            -0.6201551109907205, -0.058948003916842365, 0.761564845858753,
+        ];
+        const [a, b, c, d, e] = conic;
+        const [p, q] = [2.1470945055124813, -0.16979899294826103];
+        const normals: ConicCoeffs = [
+            b,
+            2 * (c - a),
+            -b,
+            e + 2 * a * q - p * b,
+            b * q - 2 * p * c - d,
+            d * q - p * e,
+        ];
+        const points = conicConicIntersectionsXY(conic, normals);
+        expect(points.some(([x, y]) => Math.hypot(x - p, y - q) < 1e-9)).toBe(
+            true,
+        );
+    });
+
+    it("finds a point once from both conics' equations", () => {
+        const conic1: ConicCoeffs = [
+            0.08803645335176218, -0.3660364733204855, 0.21892785473942517,
+            -0.3400736664536317, 0.768570933833445, 0.3224687559294824,
+        ];
+        const conic2: ConicCoeffs = [
+            0.14107278290763675, -0.07795709683460444, 0.06742340926465305,
+            -0.6418788845244988, 0.16217021831071468, 0.7288124331771422,
+        ];
+        expect(conicConicIntersectionsXY(conic1, conic2)).toHaveLength(4);
+    });
 });

@@ -105,7 +105,8 @@ describe("geometric construction", () => {
         const planePlumb = createPlumb(c, "planePlumb", planePoint, axis);
         const spacePlumb = createPlumb(c, "spacePlumb", spacePoint, axis);
 
-        expect(planePlumb.VEC).toEqual([0, -1, 0]);
+        // As in DGPad, the line's direction turned counterclockwise.
+        expect(planePlumb.VEC).toEqual([0, 1, 0]);
         expect(vDot(spacePlumb.VEC, axis.VEC)).toBeCloseTo(0);
     });
 

@@ -35,7 +35,12 @@ export const frame = () =>
     new Promise((resolve) => requestAnimationFrame(resolve));
 
 const FIGURES = Object.keys(
-    import.meta.glob(["../dgp/**/*.dgp", "../ggb/**/*.ggb"]),
+    import.meta.glob([
+        "../dgp/**/*.dgp",
+        "../ggb/**/*.ggb",
+        // Built with Blockly programs, which the reader never runs.
+        "!../dgp/**/Remplissage_P237_SurfaceKlein.dgp",
+    ]),
 ).map((path) => path.replace("..", "/tests"));
 const names = (extension: string) =>
     FIGURES.filter((url) => url.endsWith(extension)).map((url) =>

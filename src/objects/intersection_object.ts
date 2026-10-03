@@ -33,18 +33,21 @@ export type intersectable_object =
 
 const CURVE_ROOT_SAMPLES = 3000;
 
-// A circle restricted to the flat (x,y) plane it lies in, in the same
-// implicit form as a Quadric — a circle is just a conic of that special
-// shape — so one conic×conic solver (see conic_algebra.ts) handles both
-// circle×quadric and quadric×quadric intersections.
-function circleAsConic(circle: primitive_circle_object): ConicCoeffs {
-    const [cx, cy] = circle.CENTER;
+// A circle in the plane of a quadric, in the same implicit form, in that
+// plane's coordinates — a circle is just a conic of that special shape — so
+// one conic×conic solver (see conic_algebra.ts) handles both circle×quadric
+// and quadric×quadric intersections.
+function circleAsConic(
+    circle: primitive_circle_object,
+    quadric: primitive_quadric_object,
+): ConicCoeffs {
+    const [cx, cy] = quadric.toPlane(circle.CENTER);
     return [1, 0, 1, -2 * cx, -2 * cy, cx * cx + cy * cy - circle.R * circle.R];
 }
 
 // Whether `circle` is flat in the world's z-plane (normal parallel to the
-// z axis) — required to treat it as a 2D conic alongside a Quadric, which
-// (like every conic in this reader) only ever lives in such a plane.
+// z axis) — required to intersect it with a curve, which lives in such a
+// plane.
 function isFlatInZ(circle: primitive_circle_object): boolean {
     const tolerance = geometryTolerance(circle.R);
     return (
@@ -104,17 +107,22 @@ function curveRoots(
 // candidate on the same frame, leaving another one unclaimed and two of the
 // named points coincident. Cached per frame, same convention as
 // hidden_line.ts's edgeOwnerCache.
-// The candidates' indices, by increasing angle around their centroid.
-function rankByAngle(points: Vec3[]): number[] {
+// The candidates' indices, by increasing angle around their centroid, in
+// the plane `toPlane` gives the coordinates in.
+function rankByAngle(
+    points: Vec3[],
+    toPlane: (point: Vec3) => Vec3 = (point) => point,
+): number[] {
+    const local = points.map(toPlane);
     const centroid = vScale(
-        points.reduce((sum, point) => vAdd(sum, point), [0, 0, 0]),
-        1 / points.length,
+        local.reduce((sum, point) => vAdd(sum, point), [0, 0, 0]),
+        1 / local.length,
     );
     const angle = ([x, y]: Vec3) =>
         Math.atan2(y - centroid[1], x - centroid[0]);
-    return points
+    return local
         .map((_, index) => index)
-        .sort((a, b) => angle(points[a]) - angle(points[b]));
+        .sort((a, b) => angle(local[a]) - angle(local[b]));
 }
 
 const conicGroupCache = new WeakMap<
@@ -324,13 +332,19 @@ export class intersection_object extends point_object {
         quadric: primitive_quadric_object,
     ): void {
         if (!line.defined || !quadric.defined || !quadric.COEFFS) return;
-        const z = quadric.CENTER[2];
-        const tolerance = geometryTolerance(z);
-        if (!numEqual(line.P1.z, z) || Math.abs(line.VEC[2]) > tolerance)
+        const origin = quadric.toPlane(line.P1.coords);
+        const direction = vSub(
+            quadric.toPlane(vAdd(line.P1.coords, line.VEC)),
+            origin,
+        );
+        if (
+            !numEqual(origin[2], 0) ||
+            Math.abs(direction[2]) > geometryTolerance(origin[2])
+        )
             return;
         const parameters = lineConicIntersections(
-            line.P1.coords,
-            line.VEC,
+            origin,
+            direction,
             quadric.COEFFS,
         ).filter((parameter) => line.insideBounds(parameter));
         if (parameters.length === 0) return;
@@ -351,15 +365,21 @@ export class intersection_object extends point_object {
         quadric: primitive_quadric_object,
     ): void {
         if (!circle.defined || !quadric.defined || !quadric.COEFFS) return;
+        const normal = vSub(
+            quadric.toPlane(vAdd(circle.CENTER, circle.NORMAL)),
+            quadric.toPlane(circle.CENTER),
+        );
+        const tolerance = geometryTolerance(circle.R);
         if (
-            !isFlatInZ(circle) ||
-            !numEqual(circle.CENTER[2], quadric.CENTER[2])
+            Math.abs(normal[0]) > tolerance ||
+            Math.abs(normal[1]) > tolerance ||
+            !numEqual(quadric.toPlane(circle.CENTER)[2], 0)
         )
             return;
         this.intersectConics(
-            circleAsConic(circle),
+            circleAsConic(circle, quadric),
             quadric.COEFFS,
-            quadric.CENTER[2],
+            quadric,
         );
     }
 
@@ -374,8 +394,8 @@ export class intersection_object extends point_object {
             !second.COEFFS
         )
             return;
-        if (!numEqual(first.CENTER[2], second.CENTER[2])) return;
-        this.intersectConics(first.COEFFS, second.COEFFS, first.CENTER[2]);
+        if (!first.sharesPlane(second)) return;
+        this.intersectConics(first.COEFFS, second.COEFFS, first);
     }
 
     computeLineCurve(line: primitive_line_object, curve: curve_object): void {
@@ -456,7 +476,7 @@ export class intersection_object extends point_object {
     private intersectConics(
         conic1: ConicCoeffs,
         conic2: ConicCoeffs,
-        z: number,
+        quadric: primitive_quadric_object,
     ): void {
         const points = conicConicIntersectionsXY(conic1, conic2);
         if (points.length === 0) return;
@@ -467,8 +487,9 @@ export class intersection_object extends point_object {
         // between 0 and 4 as the figure is dragged — even down at 2
         // candidates, two siblings declared with order 1 and 2 would
         // otherwise both clamp to the same index.
-        const assigned = this.groupAssign(() =>
-            points.map(([x, y]): Vec3 => [x, y, z]),
+        const assigned = this.groupAssign(
+            () => points.map((point) => quadric.fromPlane(point)),
+            (point) => quadric.toPlane(point),
         );
         if (!assigned) return;
         this.coords = assigned;
@@ -516,7 +537,10 @@ export class intersection_object extends point_object {
     // nearest candidate independently, two of them could both claim the
     // same one on the same frame, leaving another candidate unclaimed and
     // two named points coincident.
-    private groupAssign(candidates: () => Vec3[]): Vec3 | undefined {
+    private groupAssign(
+        candidates: () => Vec3[],
+        toPlane?: (point: Vec3) => Vec3,
+    ): Vec3 | undefined {
         let forO1 = conicGroupCache.get(this.O1);
         if (!forO1) {
             forO1 = new WeakMap();
@@ -590,14 +614,14 @@ export class intersection_object extends point_object {
                     !sibling.away?.defined && !sibling.previouslyDefined,
             )
             .sort((a, b) => a.order - b.order);
-        const ranked = rankByAngle(unclaimed);
+        const ranked = rankByAngle(unclaimed, toPlane);
         const fresh = unclaimed.length === all.length;
         bootstrapping.forEach((sibling, i) => {
             const rank = fresh ? sibling.order : i;
             if (rank < ranked.length)
                 assignments.set(sibling, unclaimed[ranked[rank]]);
         });
-        const branches = rankByAngle(all);
+        const branches = rankByAngle(all, toPlane);
         assignments.forEach((point, sibling) => {
             sibling.branch = branches.findIndex(
                 (index) => all[index] === point,

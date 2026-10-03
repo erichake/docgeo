@@ -1,7 +1,18 @@
 import type { construction } from "../construction";
 import { conicConicIntersectionsXY, type ConicCoeffs } from "./conic_algebra";
 import type { DOMElement } from "../dom";
-import { vAdd, vIsFinite, vSub, type Vec2, type Vec3 } from "../vec";
+import {
+    numEqual,
+    vAdd,
+    vCross,
+    vDot,
+    vIsFinite,
+    vScale,
+    vSub,
+    type Vec2,
+    type Vec3,
+} from "../vec";
+import type { ScriptValue } from "../import/dgp_formula";
 import { construction_object } from "./construction_object";
 
 export type QuadricKind = "ellipse" | "hyperbola" | "parabola";
@@ -35,6 +46,14 @@ export class primitive_quadric_object extends construction_object {
     // (x,y) plane — the algebraic representation intersection math works
     // from. Rendering uses CENTER/AXIS_U/AXIS_V/BRANCHES below instead.
     COEFFS: ConicCoeffs | null = null;
+    // That plane, in which (x,y) are coordinates along PLANE from ORIGIN:
+    // horizontal, or the screen plane for a DGPad 3D figure's 2D conic (see
+    // GRID.FRAME2D).
+    ORIGIN: Vec3 = [0, 0, 0];
+    PLANE: [Vec3, Vec3] = [
+        [1, 0, 0],
+        [0, 1, 0],
+    ];
     CENTER: Vec3 = [0, 0, 0]; // ellipse/hyperbola center, or parabola vertex
     // Ellipse only: rendered exactly as an affine image of the unit circle,
     // so no sampling is ever needed for that case.
@@ -62,25 +81,73 @@ export class primitive_quadric_object extends construction_object {
         this.familytype = "quadric";
     }
 
-    setEllipse(center: Vec3, axisU: Vec3, axisV: Vec3): void {
+    // The horizontal plane at height z, or the screen plane.
+    protected setPlane(z: number): void {
+        if (this.C.GRID.FRAME2D && this.flat) {
+            this.ORIGIN = [0, 0, 0];
+            this.PLANE = this.C.screenPlaneBasis;
+        } else {
+            this.ORIGIN = [0, 0, z];
+            this.PLANE = [
+                [1, 0, 0],
+                [0, 1, 0],
+            ];
+        }
+    }
+
+    // A point's (x,y) coordinates in the plane, then its distance to it.
+    toPlane(point: Vec3): Vec3 {
+        const relative = vSub(point, this.ORIGIN);
+        const [u, v] = this.PLANE;
+        return [
+            vDot(relative, u),
+            vDot(relative, v),
+            vDot(relative, vCross(u, v)),
+        ];
+    }
+
+    fromPlane([x, y]: readonly number[]): Vec3 {
+        return vAdd(this.ORIGIN, this.planeVector([x, y]));
+    }
+
+    private planeVector([x, y]: readonly number[]): Vec3 {
+        const [u, v] = this.PLANE;
+        return vAdd(vScale(u, x), vScale(v, y));
+    }
+
+    // Whether its COEFFS and other's are in the same coordinates.
+    sharesPlane(other: primitive_quadric_object): boolean {
+        return [
+            vSub(other.ORIGIN, this.ORIGIN),
+            vSub(other.PLANE[0], this.PLANE[0]),
+            vSub(other.PLANE[1], this.PLANE[1]),
+        ].every((v) => v.every((x) => numEqual(x, 0)));
+    }
+
+    // From plane coordinates, as below.
+    setEllipse(center: Vec2, axisU: Vec2, axisV: Vec2): void {
         this.KIND = "ellipse";
-        this.CENTER = center;
-        this.AXIS_U = axisU;
-        this.AXIS_V = axisV;
+        this.CENTER = this.fromPlane(center);
+        this.AXIS_U = this.planeVector(axisU);
+        this.AXIS_V = this.planeVector(axisV);
         this.BRANCHES = [];
         this.defined =
-            vIsFinite(center) && vIsFinite(axisU) && vIsFinite(axisV);
+            vIsFinite(this.CENTER) &&
+            vIsFinite(this.AXIS_U) &&
+            vIsFinite(this.AXIS_V);
     }
 
     setBranches(
         kind: "hyperbola" | "parabola",
-        center: Vec3,
-        branches: ((t: number) => Vec3)[],
+        center: Vec2,
+        branches: ((t: number) => Vec2)[],
     ): void {
         this.KIND = kind;
-        this.CENTER = center;
-        this.BRANCHES = branches;
-        this.defined = vIsFinite(center);
+        this.CENTER = this.fromPlane(center);
+        this.BRANCHES = branches.map(
+            (branch) => (t) => this.fromPlane(branch(t)),
+        );
+        this.defined = vIsFinite(this.CENTER);
     }
 
     // Foot of the point on the conic whose normal passes through `target`
@@ -94,7 +161,7 @@ export class primitive_quadric_object extends construction_object {
     projectPoint(target: Vec3): Vec3 {
         if (!this.COEFFS) return target;
         const [a, b, c, d, e] = this.COEFFS;
-        const [p, q] = target;
+        const [p, q] = this.toPlane(target);
         const normalConic: ConicCoeffs = [
             b,
             2 * (c - a),
@@ -113,7 +180,7 @@ export class primitive_quadric_object extends construction_object {
                 bestDistance = distance;
             }
         }
-        return best ? [best[0], best[1], target[2]] : target;
+        return best ? this.fromPlane(best) : target;
     }
 
     project(): void {
@@ -276,4 +343,23 @@ export class primitive_quadric_object extends construction_object {
             t.curvePath,
         );
     }
+}
+
+// The value of DGPad's "conic.center()", the middle of its foci, as a
+// point's (see scriptValue): none for a parabola, whose CENTER is its vertex.
+export function scriptCenter(
+    object: construction_object,
+    vec3: boolean,
+): ScriptValue | null {
+    if (
+        !(object instanceof primitive_quadric_object) ||
+        !object.defined ||
+        object.KIND === "parabola"
+    )
+        return null;
+    const center = object.CENTER;
+    if (!vec3) return [center[0], center[1]];
+    return object.C.GRID.FRAME2D && object.flat
+        ? object.C.screenPlaneCoords(center)
+        : [...center];
 }

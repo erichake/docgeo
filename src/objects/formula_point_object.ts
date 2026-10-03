@@ -2,6 +2,7 @@ import type { construction } from "../construction";
 import {
     evaluateFormula,
     formulaSource,
+    usesCoords2D,
     usesView,
     type FormulaNode,
 } from "../import/dgp_formula";
@@ -12,6 +13,7 @@ import {
 } from "./construction_object";
 import { callFunction, type expression_object } from "./expression_object";
 import { point_object } from "./point_object";
+import { scriptCenter } from "./primitive_quadric_object";
 
 export class formula_point_object extends point_object {
     moveable = false;
@@ -22,6 +24,8 @@ export class formula_point_object extends point_object {
     // "P1+[-1,-1,1]", a cube vertex) instead of the 2D/complex-number
     // projection plain point-arithmetic formulas rely on.
     private vec3: boolean;
+    // Whether it reads the window or where points are drawn.
+    private view: boolean;
     // The free numbers a drag shifts, one per coordinate (a GeoGebra point
     // like "(a + x(F), b)", see changeableNumber in ggb_translate.ts):
     // DGPad itself never lets a formula point move.
@@ -39,7 +43,8 @@ export class formula_point_object extends point_object {
     ) {
         super(c, name, [0, 0, 0]);
         this.formula = formula;
-        this.readsView = usesView(formula);
+        this.view = usesView(formula) || usesCoords2D(formula);
+        this.readsView = this.view;
         this.refs = refs;
         this.vec3 = vec3;
         this.addParents(...refs.values());
@@ -49,6 +54,11 @@ export class formula_point_object extends point_object {
         const value = evaluateFormula(this.formula, {
             resolveIdentifier: (n) => this.refs.get(n)!.scriptValue(this.vec3),
             view: () => this.C.formulaView(),
+            coords2D: (n) => {
+                const ref = this.refs.get(n)!;
+                return ref instanceof point_object ? ref.coords2D() : null;
+            },
+            center: (n) => scriptCenter(this.refs.get(n)!, this.vec3),
             callFunction: (name, args) =>
                 callFunction(this.refs, name, args, this.C.formulaView()),
         });
@@ -60,7 +70,7 @@ export class formula_point_object extends point_object {
         // A DGPad 3D figure's 2D point (see GRID.FRAME2D).
         const plane =
             this.vec3 && this.C.GRID.FRAME2D !== null && this.flatValue;
-        this.readsView = plane || usesView(this.formula);
+        this.readsView = plane || this.view;
         this.coords =
             typeof value === "number"
                 ? [value, 0, 0]

@@ -378,7 +378,8 @@ function functionReferences(
 }
 
 // The objects a formula reads by name: those with a value (see
-// construction_object.scriptValue).
+// construction_object.scriptValue), and conics for their center (see
+// scriptCenter).
 const READABLE: ReadonlySet<ObjectKind> = new Set([
     "point",
     "pointOn",
@@ -388,6 +389,7 @@ const READABLE: ReadonlySet<ObjectKind> = new Set([
     "circle",
     "angle",
     "curve",
+    "quadric",
 ]);
 
 // A List's own names (see list_object).

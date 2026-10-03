@@ -464,6 +464,13 @@ export class point_on_object extends point_object {
                 this.support.VEC,
                 this.C.projectionFrame,
             );
+        if (this.support instanceof quadric5pts_object)
+            return projectPointOnPlane(
+                screen,
+                this.support.ORIGIN,
+                this.support.PLANE,
+                this.C.projectionFrame,
+            );
         return this.C.unprojectToZPlane(screen, this.z);
     }
 

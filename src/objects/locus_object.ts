@@ -401,9 +401,11 @@ export class locus_object extends construction_object {
                 "fill:none;stroke:transparent;pointer-events:stroke;cursor:pointer",
             )
             .stl("stroke-width", t.prefs.locus.touchsize);
+        // As in DGPad, filled with its opacity.
         t.path = t.svg
             .shape("path")
-            .stl("fill", "none")
+            .stl("fill", t.fill_color)
+            .stl("fill-opacity", t.opacity ?? 0)
             .stl("stroke", t.stroke_color)
             .stl("stroke-width", t.size)
             .stl("stroke-dasharray", t.strokeDashArray)

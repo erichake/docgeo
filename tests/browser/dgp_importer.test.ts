@@ -1519,6 +1519,49 @@ E1=Expression("E1","","","","5","-1","0");`,
         expect(c.getObj("partAB3")!.isVisible).toBe(true);
     });
 
+    it("builds a 3D figure's 2D conics and perpendiculars in the screen plane", async () => {
+        const c = createConstruction();
+        const unsupported = await importDgpFromUrl(
+            c,
+            figure("TangenteCommune2cercles_CheckBox.dgp"),
+        );
+        expect(unsupported).toEqual([]);
+        const expectValue = (name: string, expected: number[]) =>
+            (c.getObj(name)!.scriptValue(true) as number[]).forEach(
+                (value, index) => expect(value).toBeCloseTo(expected[index], 5),
+            );
+        // DGPad's values: Jdl on a perpendicular turned counterclockwise,
+        // uI from "O.coords2D()", P66 "Quad0.center()", the 4 intersections
+        // of two conics through 2D points, and CdV what they lead to.
+        expectValue("Jdl", [-0.36602582630634123, 0.25427378133851236]);
+        expectValue("uI", [-0.6340438674390235, -1.7255503240156087]);
+        expectValue("P66", [0.6779684491511926, -1.5915645916597723]);
+        expectValue("P9", [0.5548263356239604, -1.5731176240995592]);
+        expectValue("P10", [0.5482110317315386, -1.7379479823050736]);
+        expectValue("P21", [0.7834671768249815, -1.4075813047724681]);
+        expectValue("P22", [0.818270569739109, -1.5011261100418571]);
+        expectValue("CdV", [1.7426140240148458, -1.2375541780553754]);
+    });
+
+    it("shows or hides point names from a script", async () => {
+        const c = createConstruction();
+        const unsupported = await importDgpFromUrl(
+            c,
+            figure("PH_Cercles_Exinscrits1.dgp"),
+        );
+        expect(unsupported).toEqual([]);
+        // "Akb.setShowName(ChNom==0)", ChNom a checkbox.
+        const name = c.getObj("Akb") as point_object;
+        expect(name.showName).toBe(false);
+        expect(name.nameText).toBeUndefined();
+        const checkbox = c.getObj("ChNom") as expression_object;
+        checkbox.value = 0;
+        c.OBJS.markGeometryDirty(checkbox);
+        c.OBJS.update();
+        expect(name.showName).toBe(true);
+        expect(name.nameText).toBeDefined();
+    });
+
     it("dashes coincident segments in phase whatever their direction", () => {
         expect(intervalsToPath([10, 5], [0, 5], [[0, 0.5]])).toBe(
             intervalsToPath([0, 5], [10, 5], [[0.5, 1]]),

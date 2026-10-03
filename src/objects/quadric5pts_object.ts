@@ -1,5 +1,5 @@
 import type { construction } from "../construction";
-import { geometryTolerance, numEqual, type Vec3 } from "../vec";
+import { geometryTolerance, numEqual, type Vec2, type Vec3 } from "../vec";
 import type { ConicCoeffs } from "./conic_algebra";
 import type { DgoContext } from "./construction_object";
 import type { point_object } from "./point_object";
@@ -11,10 +11,8 @@ import { primitive_quadric_object } from "./primitive_quadric_object";
 // pivot comparisons and the degeneracy tolerance stay scale-meaningful).
 // Returns null when the 5 points don't determine a unique conic (e.g. too
 // many of them collinear).
-function fitConic(
-    points: readonly { x: number; y: number }[],
-): ConicCoeffs | null {
-    const rows = points.map(({ x, y }) => {
+function fitConic(points: readonly Vec3[]): ConicCoeffs | null {
+    const rows = points.map(([x, y]) => {
         const row = [x * x, x * y, y * y, x, y, 1];
         const norm = Math.hypot(...row);
         return row.map((v) => v / norm);
@@ -87,15 +85,17 @@ export class quadric5pts_object extends primitive_quadric_object {
 
     computeGeometry(): void {
         const points = [this.P1, this.P2, this.P3, this.P4, this.P5];
+        this.setPlane(this.P1.z);
+        const local = points.map((point) => this.toPlane(point.coords));
         if (
             !points.every((point) => point.defined) ||
-            !points.every((point) => numEqual(point.z, this.P1.z))
+            !local.every(([, , height]) => numEqual(height, 0))
         ) {
             this.defined = false;
             this.COEFFS = null;
             return;
         }
-        const coeffs = fitConic(points);
+        const coeffs = fitConic(local);
         if (!coeffs) {
             this.defined = false;
             this.COEFFS = null;
@@ -103,7 +103,6 @@ export class quadric5pts_object extends primitive_quadric_object {
         }
         this.COEFFS = coeffs;
         const [a, b, c, d, e, f] = coeffs;
-        const z = this.P1.z;
 
         // Center: where the quadratic form's gradient vanishes. Singular
         // exactly when the conic has no center, i.e. a parabola (or a fully
@@ -114,7 +113,7 @@ export class quadric5pts_object extends primitive_quadric_object {
             m11 = 2 * c;
         const det = m00 * m11 - m01 * m10;
         if (Math.abs(det) <= geometryTolerance(a, b, c)) {
-            const branch = fitParabola(a, b, c, d, e, f, z);
+            const branch = fitParabola(a, b, c, d, e, f);
             if (!branch) {
                 this.defined = false;
                 return;
@@ -128,7 +127,7 @@ export class quadric5pts_object extends primitive_quadric_object {
         const y0 = (m00 * r1 - m10 * r0) / det;
         const f0 =
             a * x0 * x0 + b * x0 * y0 + c * y0 * y0 + d * x0 + e * y0 + f;
-        const center: Vec3 = [x0, y0, z];
+        const center: Vec2 = [x0, y0];
 
         // Diagonalize the quadratic part (closed-form eigendecomposition of
         // a symmetric 2x2 matrix) to get the conic's own axis directions.
@@ -141,8 +140,8 @@ export class quadric5pts_object extends primitive_quadric_object {
         const lambda2 = (p + s) / 2 - half;
         const mu1 = -f0 / lambda1;
         const mu2 = -f0 / lambda2;
-        const e1: Vec3 = [Math.cos(theta), Math.sin(theta), 0];
-        const e2: Vec3 = [-Math.sin(theta), Math.cos(theta), 0];
+        const e1: Vec2 = [Math.cos(theta), Math.sin(theta)];
+        const e2: Vec2 = [-Math.sin(theta), Math.cos(theta)];
 
         if (mu1 > 0 && mu2 > 0) {
             const semiA = Math.sqrt(mu1);
@@ -184,21 +183,18 @@ export class quadric5pts_object extends primitive_quadric_object {
     // points, projected onto the true conic — matches DGPad's own Alpha
     // convention for a point on a quadric, so saved figures round-trip.
     pointAt([g0, g1]: readonly [number, number]): Vec3 {
-        const AA = this.P1.coords,
-            BB = this.P2.coords,
-            CC = this.P3.coords;
-        return this.projectPoint([
-            AA[0] + g0 * (BB[0] - AA[0]) + g1 * (CC[0] - AA[0]),
-            AA[1] + g0 * (BB[1] - AA[1]) + g1 * (CC[1] - AA[1]),
-            AA[2],
-        ]);
+        const [AA, BB, CC] = this.frame();
+        return this.projectPoint(
+            this.fromPlane([
+                AA[0] + g0 * (BB[0] - AA[0]) + g1 * (CC[0] - AA[0]),
+                AA[1] + g0 * (BB[1] - AA[1]) + g1 * (CC[1] - AA[1]),
+            ]),
+        );
     }
 
     alphaOf(target: Vec3): readonly [number, number] {
-        const [px, py] = this.projectPoint(target);
-        const AA = this.P1.coords,
-            BB = this.P2.coords,
-            CC = this.P3.coords;
+        const [px, py] = this.toPlane(this.projectPoint(target));
+        const [AA, BB, CC] = this.frame();
         const a = BB[0] - AA[0],
             b = CC[0] - AA[0],
             d = BB[1] - AA[1],
@@ -208,28 +204,34 @@ export class quadric5pts_object extends primitive_quadric_object {
             cy = py - AA[1];
         return [(cx * e - b * cy) / det, (a * cy - cx * d) / det];
     }
+
+    // Its first 3 points, in plane coordinates.
+    private frame(): Vec3[] {
+        return [this.P1, this.P2, this.P3].map((point) =>
+            this.toPlane(point.coords),
+        );
+    }
 }
 
-function scale([x, y, zc]: Vec3, k: number): Vec3 {
-    return [x * k, y * k, zc * k];
+function scale([x, y]: Vec2, k: number): Vec2 {
+    return [x * k, y * k];
 }
 
 function hyperbolaBranches(
-    center: Vec3,
-    transverseDir: Vec3,
+    center: Vec2,
+    transverseDir: Vec2,
     semiTransverse: number,
-    conjugateDir: Vec3,
+    conjugateDir: Vec2,
     semiConjugate: number,
-): ((t: number) => Vec3)[] {
+): ((t: number) => Vec2)[] {
     const branch =
         (sign: 1 | -1) =>
-        (t: number): Vec3 => {
+        (t: number): Vec2 => {
             const u = sign * semiTransverse * Math.cosh(t);
             const v = semiConjugate * Math.sinh(t);
             return [
                 center[0] + u * transverseDir[0] + v * conjugateDir[0],
                 center[1] + u * transverseDir[1] + v * conjugateDir[1],
-                center[2],
             ];
         };
     return [branch(1), branch(-1)];
@@ -247,8 +249,7 @@ function fitParabola(
     d: number,
     e: number,
     f: number,
-    z: number,
-): { vertex: Vec3; pointAt: (t: number) => Vec3 } | null {
+): { vertex: Vec2; pointAt: (t: number) => Vec2 } | null {
     const p = a,
         q = b / 2,
         s = c;
@@ -269,10 +270,9 @@ function fitParabola(
     const constTerm = f - (dp * dp) / (4 * lambdaCurved);
     const vVertex = -constTerm / ep;
     const param = -ep / (4 * lambdaCurved);
-    const rotateBack = (u: number, v: number): Vec3 => [
+    const rotateBack = (u: number, v: number): Vec2 => [
         u * cosT - v * sinT,
         u * sinT + v * cosT,
-        z,
     ];
     return {
         vertex: rotateBack(uVertex, vVertex),

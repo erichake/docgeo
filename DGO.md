@@ -235,6 +235,8 @@ de fonction (`"f"`) ou une courbe (`Cur`) s'appelle par son nom : `f(2)`.
    0 ou 1, droite-cercle dans l'ordre A + (t₀ + h)·u puis A + (t₀ − h)·u,
    droite-conique par paramètre croissant le long de la droite, cercle-cercle
    la solution à gauche puis à droite de O₁O₂ vue de la normale du premier.
+   Le vecteur directeur d'une perpendiculaire (`Perp`) est, comme dans
+   DGPad, celui de d tourné d'un quart de tour direct dans leur plan.
    Davantage (cercle-conique, conique-conique, avec une courbe) : rang de la
    solution par angle croissant autour du centre de gravité de toutes les
    solutions. Avec un point P : rang par distance décroissante à P.

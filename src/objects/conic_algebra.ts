@@ -109,7 +109,18 @@ export function realQuarticRoots(
         roots.push(y + shift);
     for (const y of realQuadraticRoots(1, w, p / 2 + m - term))
         roots.push(y + shift);
-    return roots;
+    // Ferrari's formulas lose precision as m gets small: polished by
+    // Newton's method on the quartic itself.
+    const value = (x: number) => (((x + b) * x + c) * x + d) * x + e;
+    return roots.map((root) => {
+        for (let i = 0; i < 4; i++) {
+            const slope = ((4 * root + 3 * b) * root + 2 * c) * root + d;
+            const next = root - value(root) / slope;
+            if (!(Math.abs(value(next)) < Math.abs(value(root)))) break;
+            root = next;
+        }
+        return root;
+    });
 }
 
 function evaluateConic(
@@ -193,12 +204,16 @@ export function conicConicIntersectionsXY(
         ];
         for (const y of ys) {
             const tolerance = geometryTolerance(x, y);
+            // At the same x, the y of both conics differ only by the
+            // rounding errors of the worse conditioned one.
+            const same = ([px, py]: Vec2) =>
+                px === x
+                    ? Math.abs(py - y) <= Math.sqrt(tolerance)
+                    : Math.hypot(px - x, py - y) <= tolerance;
             if (
                 Math.abs(evaluateConic(conic1, x, y)) <= tolerance &&
                 Math.abs(evaluateConic(conic2, x, y)) <= tolerance &&
-                !points.some(
-                    ([px, py]) => Math.hypot(px - x, py - y) <= tolerance,
-                )
+                !points.some(same)
             ) {
                 points.push([x, y]);
             }

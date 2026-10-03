@@ -12,6 +12,7 @@ import {
     type Vec2,
     type Vec3,
 } from "../vec";
+import { projectPoint } from "../projection";
 import { isOccluded } from "./hidden_line";
 import { construction_object, type DgoContext } from "./construction_object";
 import type { curve_object } from "./curve_object";
@@ -174,6 +175,30 @@ export class point_object extends construction_object {
         return this.C.GRID.FRAME2D && this.flat
             ? this.C.screenPlaneCoords(this.coords)
             : [...this.coords];
+    }
+
+    // DGPad's coords2D: where it is drawn, in the window's coordinate system
+    // (see GRID.FRAME2D).
+    coords2D(): Vec2 | null {
+        if (!this.defined) return null;
+        const { ORG, UNIT, FRAME2D } = this.C.GRID;
+        if (FRAME2D && this.flat) return this.C.screenPlaneCoords(this.coords);
+        // From the camera's angles rather than the projection frame, which is
+        // only updated after geometry, where a formula point reads it.
+        const { PHI, THETA } = this.C.GRID;
+        const screen = projectPoint(this.coords, {
+            ...this.C.projectionFrame,
+            cosPhi: Math.cos(PHI),
+            sinPhi: Math.sin(PHI),
+            cosTheta: Math.cos(THETA),
+            sinTheta: Math.sin(THETA),
+        });
+        if (!vIsFinite(screen)) return null;
+        const [u0, v0] = FRAME2D ?? [0, 0];
+        return [
+            u0 + (screen[0] - ORG[0]) / UNIT[0],
+            v0 + (ORG[1] - screen[1]) / UNIT[1],
+        ];
     }
 
     dgo(_context: DgoContext): [string, unknown] {
@@ -463,6 +488,8 @@ export class point_object extends construction_object {
             }
         }
 
+        // A script may hide it again (see setShowName).
+        t.nameText = undefined;
         if (t.showName) {
             t.nameText = t.svg
                 .shape("text")

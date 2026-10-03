@@ -27,6 +27,7 @@ import {
 import { angle_object } from "./angle_object";
 import { curve_object } from "./curve_object";
 import { point_object } from "./point_object";
+import { scriptCenter } from "./primitive_quadric_object";
 
 // In a chunk of its own, loaded only by the figures that show LaTeX.
 let katex: Promise<typeof import("katex").default> | undefined;
@@ -365,23 +366,12 @@ export class expression_object extends construction_object {
     private evaluateProgram(): void {
         if (!this.program) return;
         const { program, refs, targets, vec3 } = this.program;
-        const grid = this.C.GRID;
         this.value = evaluateProgram(program, {
             resolveIdentifier: (name) => refs.get(name)!.scriptValue(vec3),
             view: () => this.C.formulaView(),
             coords2D: (name) => {
                 const ref = refs.get(name)!;
-                if (
-                    !(ref instanceof point_object) ||
-                    !ref.defined ||
-                    !ref.projectionDefined
-                )
-                    return null;
-                const [x, y] = ref.screen;
-                return [
-                    (x - grid.ORG[0]) / grid.UNIT[0],
-                    (grid.ORG[1] - y) / grid.UNIT[1],
-                ];
+                return ref instanceof point_object ? ref.coords2D() : null;
             },
             orientedAngle: (name) => {
                 const ref = refs.get(name)!;
@@ -397,6 +387,7 @@ export class expression_object extends construction_object {
             },
             callFunction: (name, args) =>
                 callFunction(refs, name, args, this.C.formulaView()),
+            center: (name) => scriptCenter(refs.get(name)!, vec3),
             callMethod: (name, method, args) =>
                 this.style(targets.get(name)!, method, args),
         });
@@ -422,6 +413,12 @@ export class expression_object extends construction_object {
                 // (see edgeStroke).
                 this.C.invalidateProjection();
                 return;
+            }
+            case "setShowName": {
+                const value = realPart(args[0]);
+                if (value === null || (value !== 0) === target.showName) return;
+                target.showName = value !== 0;
+                break;
             }
             case "setOpacity": {
                 const value = realPart(args[0]);
