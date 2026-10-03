@@ -541,8 +541,10 @@ describe("DGPad's other functions and operators", () => {
         expect(() => parseFormula("min()")).toThrow();
     });
 
-    it("evaluates conj, distance and crossProduct", () => {
+    it("evaluates conj, mod, distance and crossProduct", () => {
         expect(value("conj(2+3i)")).toEqual([2, -3]);
+        expect(value("mod(3+4i)")).toBe(5);
+        expect(value("mod(-2)")).toBe(2);
         expect(value("distance(A,C)")).toBeCloseTo(Math.SQRT2, 12);
         expect(value("crossProduct([1,0,0],[0,1,0])")).toEqual([0, 0, 1]);
     });

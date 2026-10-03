@@ -45,6 +45,7 @@ export type FormulaFn =
     | "min"
     | "max"
     | "conj"
+    | "mod"
     | "Angle360"
     | "Angle180"
     | "crossProduct"
@@ -100,6 +101,7 @@ const FORMULA_ARITY: Record<FormulaFn, number> = {
     min: -1,
     max: -1,
     conj: 1,
+    mod: 1,
     Angle360: 3,
     Angle180: 3,
     crossProduct: 2,
@@ -1355,6 +1357,12 @@ function evalCall(
             const [a] = args;
             if (typeof a === "number") return a;
             return a.length === 2 ? [a[0], -a[1]] : null;
+        }
+        // A complex number's modulus.
+        case "mod": {
+            const [a] = args;
+            if (typeof a === "number") return Math.abs(a);
+            return a.length === 2 ? Math.hypot(a[0], a[1]) : null;
         }
         // The angle from OA to OC, counterclockwise, within [0, 2π).
         case "Angle360": {

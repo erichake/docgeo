@@ -1490,6 +1490,23 @@ E1=Expression("E1","","","","5","-1","0");`,
         expect(c.GRID.ORG).toBe(origin);
     });
 
+    it("measures elliptic segments with the modulus of a complex number", async () => {
+        const c = createConstruction();
+        const unsupported = await importDgpFromUrl(
+            c,
+            "/tests/dgp/yves/Octogone_Etoile_8_3.dgp",
+        );
+        expect(unsupported).toEqual([]);
+        const value = (name: string) => c.getObj(name)!.scriptValue(true);
+        // "2*atan(mod(Hz*(B-E)/(Hz*Hz+conj(B)*E)))", in degrees.
+        expectClose(value("LongAB2"), 103.34850242594905);
+        expectClose(value("LongAB3"), 76.65149757405085);
+        // Beyond 90°, "GereSeg2" draws the segment's other part.
+        expect(c.getObj("partAB2")!.isVisible).toBe(false);
+        expect(c.getObj("partAbdA2")!.isVisible).toBe(true);
+        expect(c.getObj("partAB3")!.isVisible).toBe(true);
+    });
+
     it("dashes coincident segments in phase whatever their direction", () => {
         expect(intervalsToPath([10, 5], [0, 5], [[0, 0.5]])).toBe(
             intervalsToPath([0, 5], [10, 5], [[0.5, 1]]),

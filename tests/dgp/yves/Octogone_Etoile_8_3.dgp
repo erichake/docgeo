@@ -1,0 +1,1041 @@
+// Macros :
+$macros={};
+$macros["1Points1Inter2droites"]={
+	name:"1.Points/1 Inter 2 droites",
+	parameters:["circle","circle","circle"],
+	exec:
+	function (Hz, C4, C40) {
+Ohz=Center("Ohz",Hz);
+A=DefinitionPoint("A",C4,1);
+E=DefinitionPoint("E",C40,1);
+CtrDrte=Center("CtrDrte",C4);
+CtrDrte0=Center("CtrDrte0",C40);
+C5=Circle("C5",CtrDrte,A);
+C6=Circle("C6",CtrDrte0,E);
+Sol1=OrderedIntersection("Sol1",C5,C6,1);
+Sol2=OrderedIntersection("Sol2",C5,C6,0);
+Inter=Point("Inter","Sol2*(d(Sol2,Ohz)<Hz)+Sol1*(d(Sol1,Ohz)<Hz)","0");
+STL(Inter,"c:#760012;s:6;f:15;sp:2");
+return [Inter];
+}};
+
+$macros["1Points2Poledunedroite"]={
+	name:"1.Points/2 Pole d'une droite",
+	parameters:["circle","circle"],
+	exec:
+	function(Hz,Drt){
+OHz=Center("OHz",Hz);
+A=DefinitionPoint("A",Drt,1);
+antiA=Point("antiA","OHz-(A+OHz)*Hz^2/d(OHz,A)^2","0");
+L5=PerpendicularBisector("L5",A,antiA);
+cAB=Center("cAB",Drt);
+S4=Segment("S4",cAB,A);
+R1=Ray("R1",OHz,cAB);
+Perp1=Perpendicular("Perp1",S4,A);
+P6=OrderedIntersection("P6",Perp1,L5,0);
+C1=Circle("C1",P6,A);
+Pole=OrderedIntersection("Pole",R1,C1,0);
+STL(Pole,"c:#0000b2;s:6;sn:true;f:15;sp:2");
+return [Pole];
+}};
+
+$macros["1Points3Symortho1pt"]={
+	name:"1.Points/3 Sym ortho 1 pt",
+	parameters:["circle","circle","point"],
+	exec:
+	function(Hz,DrtAB,M){
+OHz=Center("OHz",Hz);
+bAB=DefinitionPoint("bAB",DrtAB,0);
+cAB=Center("cAB",DrtAB);
+invM=Point("invM","cAB+(M-cAB)*d(cAB,bAB)^2/d(cAB,M)^2","0");
+antiinvM=Point("antiinvM","OHz-(invM+OHz)*Hz^2/d(OHz,invM)^2","0");
+symM=Point("sOrtho"+M,"(d(OHz,invM)<Hz)?invM:antiinvM","0");
+STL(symM,"c:#fc092f;s:6;sn:true;f:15;sp:2");
+return [symM];
+}};
+
+$macros["1Points4Milieux2pts"]={
+	name:"1.Points/4 Milieux 2 pts",
+	parameters:["circle","point","point"],
+	exec:
+	function(Hz,A,B){
+OHz=Center("OHz",Hz);
+L1=Line("L1",A,B);
+antiA=Point("antiA","OHz-(A+OHz)*Hz^2/d(OHz,A)^2","0");
+SymSymc1=Point("SymSymc1","OHz-(A+OHz)*Hz^2/d(OHz,A)^2","0");
+SupportAB=Circle3pts("SupportAB",A,B,antiA);
+L5=PerpendicularBisector("L5",A,SymSymc1);
+P1=OrderedIntersection("P1",Hz,SupportAB,0);
+P2=OrderedIntersection("P2",Hz,SupportAB,1);
+Drt=Arc3pts("Drt",P1,A,P2);
+CtrDrte=Center("CtrDrte",Drt);
+S4=Segment("S4",CtrDrte,A);
+R1=Ray("R1",OHz,CtrDrte);
+C6=Circle("C6",CtrDrte,A);
+C52=Circle("C52",CtrDrte,A);
+Perp1=Perpendicular("Perp1",S4,A);
+P6=OrderedIntersection("P6",Perp1,L5,0);
+C1=Circle("C1",P6,A);
+PoleAB=OrderedIntersection("PoleAB",R1,C1,0);
+antiPoleAB=Point("antiPoleAB","OHz-(PoleAB+OHz)*Hz^2/d(OHz,PoleAB)^2","0");
+L2=PerpendicularBisector("L2",PoleAB,antiPoleAB);
+cMed1=OrderedIntersection("cMed1",L1,L2,0);
+C2=Circle("C2",cMed1,PoleAB);
+S1=Segment("S1",cMed1,PoleAB);
+P3=OrderedIntersection("P3",Hz,C2,1);
+P4=OrderedIntersection("P4",Hz,C2,0);
+Perp2=Perpendicular("Perp2",S1,PoleAB);
+C3=Arc3pts("C3",P3,PoleAB,P4);
+cMed2=OrderedIntersection("cMed2",L2,Perp2,0);
+CtrDrte0=Center("CtrDrte0",C3);
+C4=Circle("C4",cMed2,PoleAB);
+C51=Circle("C51",CtrDrte0,PoleAB);
+P5=OrderedIntersection("P5",Hz,C4,1);
+P7=OrderedIntersection("P7",Hz,C4,0);
+Sol1=OrderedIntersection("Sol1",C51,C6,1);
+Sol2=OrderedIntersection("Sol2",C51,C6,0);
+C7=Arc3pts("C7",P5,PoleAB,P7);
+I=Point("I","Sol2*(d(Sol2,OHz)<Hz)+Sol1*(d(Sol1,OHz)<Hz)","0");
+CtrDrte00=Center("CtrDrte00",C7);
+C60=Circle("C60",CtrDrte00,PoleAB);
+Sol10=OrderedIntersection("Sol10",C52,C60,1);
+Sol20=OrderedIntersection("Sol20",C52,C60,0);
+J=Point("J","Sol20*(d(Sol20,OHz)<Hz)+Sol10*(d(Sol10,OHz)<Hz)","0");
+STL(I,"c:#fc092f;s:5;sn:true;f:15;sp:2;np:5.927475359607631");
+STL(J,"c:#fc092f;s:5;sn:true;f:15;sp:2;np:0.629247079026396");
+return [I,J];
+}};
+
+$macros["1Points5SymCentraleCtrPt"]={
+	name:"1.Points/5 Sym Centrale Ctr Pt",
+	parameters:["circle","point","point"],
+	exec:
+	function(Hz,I,M){
+OHz=Center("OHz",Hz);
+antiP=Point("antiP","OHz-(I+OHz)*Hz^2/d(OHz,I)^2","0");
+L1=PerpendicularBisector("L1",I,antiP);
+L2=Line("L2",I,antiP);
+pC=OrderedIntersection("pC",L1,L2,0);
+C2=Circle("C2",pC,I);
+antipC=Point("antipC","OHz-(pC+OHz)*Hz^2/d(OHz,pC)^2","0");
+Po2=OrderedIntersection("Po2",Hz,C2,0);
+Po1=OrderedIntersection("Po1",Hz,C2,1);
+C3=Circle("C3",antipC,Po1);
+Pom=OrderedIntersection("Pom",L2,C3,0);
+Poconst=Point("Poconst","antipC+d(Po1,antipC)*((Po1+Pom)/2-antipC)/d((Po1+Pom)/2,antipC)","0");
+polaire=Arc3pts("polaire",Po1,Poconst,Po2);
+Oo=Center("Oo",polaire);
+P10=Point("P10","Oo+(M-Oo)*d(Oo,Po1)^2/d(Oo,M)^2","0");
+antiA0=Point("antiA0","OHz-(P10+OHz)*Hz^2/d(OHz,P10)^2","0");
+sIM=Point("sc"+I+M,"(d(OHz,P10)<Hz)?P10:antiA0","0");
+STL(sIM,"c:#fc092f;s:5;sn:true;f:15;sp:2");
+return [sIM];
+}};
+
+$macros["2Droites1Droite2pts"]={
+	name:"2.Droites/1 Droite 2 pts",
+	parameters:["circle","point","point"],
+	exec:
+	function(Hz,A,B){
+OHz=Center("OHz",Hz);
+antiA=Point("antiA","OHz-(A+OHz)*Hz^2/d(OHz,A)^2","0");
+SupportAB=Circle3pts("SupportAB",A,B,antiA);
+b1=OrderedIntersection("b1"+A+B,Hz,SupportAB,0);
+b2=OrderedIntersection("b2"+A+B,Hz,SupportAB,1);
+Drt=Arc3pts("Drt"+A+B,b1,A,b2);
+STL(Drt,"c:#cc66cc;s:1;sn:true;f:30;p:0");
+return [Drt];
+}};
+
+$macros["2Droites2Perpendiculaire"]={
+	name:"2.Droites/2 Perpendiculaire",
+	parameters:["circle","circle","point"],
+	exec:
+	function(Hz,DrtAB,M){
+OHz=Center("OHz",Hz);
+A=DefinitionPoint("A",DrtAB,1);
+antiA0=Point("antiA0","OHz-(A+OHz)*Hz^2/d(OHz,A)^2","0");
+antiM=Point("antiM","OHz-(M+OHz)*Hz^2/d(OHz,M)^2","0");
+L5=PerpendicularBisector("L5",A,antiA0);
+cAB=Center("cAB",DrtAB);
+S4=Segment("S4",cAB,A);
+R1=Ray("R1",OHz,cAB);
+Perp1=Perpendicular("Perp1",S4,A);
+P6=OrderedIntersection("P6",Perp1,L5,0);
+C1=Circle("C1",P6,A);
+PoleAB=OrderedIntersection("PoleAB",R1,C1,0);
+C2=Circle3pts("C2",M,PoleAB,antiM);
+bPerp1=OrderedIntersection("bPerp1",Hz,C2,1);
+bPerp2=OrderedIntersection("bPerp2",Hz,C2,0);
+EllPerp=Arc3pts("EllPerp",bPerp1,M,bPerp2);
+STL(EllPerp,"c:#0bd81f;s:1;sn:true;f:30;p:0");
+return [EllPerp];
+}};
+
+$macros["2Droites3Segmentelliptique"]={
+	name:"2.Droites/3 Segment elliptique",
+	parameters:["circle","point","point"],
+	exec:
+	function(Hz,A,B){
+OHz=Center("OHz",Hz);
+antiA=Point("antiA","OHz-(A+OHz)*Hz^2/d(OHz,A)^2","0");
+LongAB=Expression("LongAB","","","","2*atan(mod(Hz*(A-B)/(Hz*Hz+conj(A)*B)))","1.2","1.5");
+C1=Circle3pts("C1",A,B,antiA);
+oAB=Center("oAB",C1);
+Id1=OrderedIntersection("Id1",Hz,C1,0);
+Id2=OrderedIntersection("Id2",Hz,C1,1);
+bdA=Point("bdA","Id1*(d(Id1,A)<d(Id1,B))+Id2*(d(Id2,A)<d(Id2,B))","0");
+bdB=Point("bdB","Id2*(d(Id1,A)<d(Id1,B))+Id1*(d(Id2,A)<d(Id2,B))","0");
+mAB=Point("mAB","oAB+d(A,oAB)*((A+B)/2-oAB)/d((A+B)/2,oAB)","0");
+mbdAA=Point("mIdAA","oAB+d(bdA,oAB)*((bdA+A)/2-oAB)/d((bdA+A)/2,oAB)","0");
+mbdBB=Point("mbdBB","oAB+d(bdB,oAB)*((bdB+B)/2-oAB)/d((bdB+B)/2,oAB)","0");
+partAB=Arc3pts("partAB",A,mAB,B);
+partBbdB=Arc3pts("partBbdB",B,mbdBB,bdB);
+partAbdA=Arc3pts("partAbdA",A,mbdAA,bdA);
+GereSeg=Expression("GereSeg","","","","partAB.setHidden(LongAB>90);partAbdA.setHidden(LongAB<=90);partBbdB.setHidden(LongAB<=90);\"gestion segment\"","-1.7848412102712403","1.100064788240483");
+STL(partAB,"c:#0024ff;h:1;s:1;sn:true;f:30;p:0");
+STL(partBbdB,"c:#0024ff;s:1;sn:true;f:30;p:0");
+STL(partAbdA,"c:#0024ff;s:1;sn:true;f:30;p:0");
+STL(GereSeg,"c:#577f1d;s:7;f:17;p:2;cL:200;cPT:YzojNzgwMDEzO3M6MTA7ZjozMA==");
+return [partAB,partBbdB,partAbdA,GereSeg];
+}};
+
+$macros["2Droites4Polairedunpoint"]={
+	name:"2.Droites/4 Polaire d'un point",
+	parameters:["circle","point"],
+	exec:
+	function(Hz,P){
+OHz=Center("OHz",Hz);
+antiP=Point("antiP","OHz-(P+OHz)*Hz^2/d(OHz,P)^2","0");
+L1=PerpendicularBisector("L1",P,antiP);
+L2=Line("L2",P,antiP);
+pC=OrderedIntersection("pC",L1,L2,0);
+C2=Circle("C2",pC,P);
+antipC=Point("antipC","OHz-(pC+OHz)*Hz^2/d(OHz,pC)^2","0");
+Po2=OrderedIntersection("Po2",Hz,C2,0);
+Po1=OrderedIntersection("Po1",Hz,C2,1);
+C3=Circle("C3",antipC,Po1);
+Pom=OrderedIntersection("Pom",L2,C3,0);
+Poconst=Point("Poconst","antipC+d(Po1,antipC)*((Po1+Pom)/2-antipC)/d((Po1+Pom)/2,antipC)","0");
+polaire=Arc3pts("polaire",Po1,Poconst,Po2);
+STL(polaire,"c:#fc092f;s:1;sn:true;f:30;p:0");
+return [polaire];
+}};
+
+$macros["2Droites5MediateuretMilieux"]={
+	name:"2.Droites/5 Mediateur et Milieux",
+	parameters:["circle","point","point"],
+	exec:
+	function(Hz,A,B){
+Ohz=Center("Ohz",Hz);
+L1=Line("L1",A,B);
+antiA=Point("antiA","Ohz-(A+Ohz)*Hz^2/d(Ohz,A)^2","0");
+SymSymc1=Point("SymSymc1","Ohz-(A+Ohz)*Hz^2/d(Ohz,A)^2","0");
+SupportAB=Circle3pts("SupportAB",A,B,antiA);
+L5=PerpendicularBisector("L5",A,SymSymc1);
+P1=OrderedIntersection("P1",Hz,SupportAB,0);
+P2=OrderedIntersection("P2",Hz,SupportAB,1);
+Drt=Arc3pts("Drt",P1,A,P2);
+CtrDrte=Center("CtrDrte",Drt);
+S4=Segment("S4",CtrDrte,A);
+R1=Ray("R1",Ohz,CtrDrte);
+C6=Circle("C6",CtrDrte,A);
+C52=Circle("C52",CtrDrte,A);
+Perp1=Perpendicular("Perp1",S4,A);
+P6=OrderedIntersection("P6",Perp1,L5,0);
+C1=Circle("C1",P6,A);
+PoleAB=OrderedIntersection("PoleAB",R1,C1,0);
+antiPoleAB=Point("antiPoleAB","Ohz-(PoleAB+Ohz)*Hz^2/d(Ohz,PoleAB)^2","0");
+L2=PerpendicularBisector("L2",PoleAB,antiPoleAB);
+cMed1=OrderedIntersection("cMed1",L1,L2,0);
+C2=Circle("C2",cMed1,PoleAB);
+S1=Segment("S1",cMed1,PoleAB);
+P3=OrderedIntersection("P3",Hz,C2,1);
+P4=OrderedIntersection("P4",Hz,C2,0);
+Perp2=Perpendicular("Perp2",S1,PoleAB);
+Med1=Arc3pts("Med1"+A+B,P3,PoleAB,P4);
+cMed2=OrderedIntersection("cMed2",L2,Perp2,0);
+CtrMed1=Center("CtrMed1",Med1);
+C4=Circle("C4",cMed2,PoleAB);
+C51=Circle("C51",CtrMed1,PoleAB);
+P5=OrderedIntersection("P5",Hz,C4,1);
+P7=OrderedIntersection("P7",Hz,C4,0);
+Sol1=OrderedIntersection("Sol1",C51,C6,1);
+Sol2=OrderedIntersection("Sol2",C51,C6,0);
+Med2=Arc3pts("Med2"+A+B,P5,PoleAB,P7);
+I=Point("I","Sol2*(d(Sol2,Ohz)<Hz)+Sol1*(d(Sol1,Ohz)<Hz)","0");
+CtrMed2=Center("CtrMed2",Med2);
+C60=Circle("C60",CtrMed2,PoleAB);
+Sol10=OrderedIntersection("Sol10",C52,C60,1);
+Sol20=OrderedIntersection("Sol20",C52,C60,0);
+J=Point("J","Sol20*(d(Sol20,Ohz)<Hz)+Sol10*(d(Sol10,Ohz)<Hz)","0");
+STL(Med1,"c:#fc092f;s:1;f:30;p:0");
+STL(Med2,"c:#fc092f;s:1;f:30;p:0");
+STL(I,"c:#fc092f;s:5;sn:true;f:15;sp:2;np:5.927475359607631");
+STL(J,"c:#fc092f;s:5;sn:true;f:15;sp:2;np:0.629247079026396");
+return [Med1,Med2,I,J];
+}};
+
+$macros["2Droites6Bissecteurs2drtes"]={
+	name:"2.Droites/6 Bissecteurs 2 drtes",
+	parameters:["circle","circle","circle"],
+	exec:
+	function(Hz,DrtAB,DrtAC){
+OHz=Center("OHz",Hz);
+A=DefinitionPoint("A",DrtAC,1);
+antiA1=Point("antiA1","OHz-(A+OHz)*Hz^2/d(OHz,A)^2","0");
+antiA2=Point("antiA2","OHz-(A+OHz)*Hz^2/d(OHz,A)^2","0");
+L5=PerpendicularBisector("L5",A,antiA1);
+L50=PerpendicularBisector("L50",A,antiA2);
+cAB0=Center("cAB0",DrtAB);
+cAB=Center("cAB",DrtAC);
+S4=Segment("S4",cAB,A);
+R1=Ray("R1",OHz,cAB);
+S40=Segment("S40",cAB0,A);
+R10=Ray("R10",OHz,cAB0);
+Perp1=Perpendicular("Perp1",S4,A);
+Perp10=Perpendicular("Perp10",S40,A);
+P6=OrderedIntersection("P6",Perp1,L5,0);
+P60=OrderedIntersection("P60",Perp10,L50,0);
+C1=Circle("C1",P6,A);
+C10=Circle("C10",P60,A);
+PoleAC=OrderedIntersection("PoleAC",R1,C1,0);
+PoleAB=OrderedIntersection("PoleAB",R10,C10,0);
+L1=Line("L1",PoleAC,PoleAB);
+antiA3=Point("antiA3","OHz-(PoleAC+OHz)*Hz^2/d(OHz,PoleAC)^2","0");
+SymSymc1=Point("SymSymc1","OHz-(PoleAC+OHz)*Hz^2/d(OHz,PoleAC)^2","0");
+SupportAB1=Circle3pts("SupportAB1",PoleAC,PoleAB,antiA3);
+L51=PerpendicularBisector("L51",PoleAC,SymSymc1);
+P12=OrderedIntersection("P12",Hz,SupportAB1,0);
+P21=OrderedIntersection("P21",Hz,SupportAB1,1);
+Drt=Arc3pts("Drt",P12,PoleAC,P21);
+CtrDrte=Center("CtrDrte",Drt);
+S41=Segment("S41",CtrDrte,PoleAC);
+R11=Ray("R11",OHz,CtrDrte);
+C6=Circle("C6",CtrDrte,PoleAC);
+C52=Circle("C52",CtrDrte,PoleAC);
+Perp11=Perpendicular("Perp11",S41,PoleAC);
+P61=OrderedIntersection("P61",Perp11,L51,0);
+C11=Circle("C11",P61,PoleAC);
+PoleAB0=OrderedIntersection("PoleAB0",R11,C11,0);
+antiPoleAB=Point("antiPoleAB","OHz-(PoleAB0+OHz)*Hz^2/d(OHz,PoleAB0)^2","0");
+L2=PerpendicularBisector("L2",PoleAB0,antiPoleAB);
+cMed1=OrderedIntersection("cMed1",L1,L2,0);
+C2=Circle("C2",cMed1,PoleAB0);
+S1=Segment("S1",cMed1,PoleAB0);
+P3=OrderedIntersection("P3",Hz,C2,1);
+P4=OrderedIntersection("P4",Hz,C2,0);
+Perp2=Perpendicular("Perp2",S1,PoleAB0);
+LaBissA1=Arc3pts("LaBissA1",P3,PoleAB0,P4);
+cMed2=OrderedIntersection("cMed2",L2,Perp2,0);
+Oo=Center("Oo",LaBissA1);
+C4=Circle("C4",cMed2,PoleAB0);
+C51=Circle("C51",Oo,PoleAB0);
+P5=OrderedIntersection("P5",Hz,C4,1);
+P7=OrderedIntersection("P7",Hz,C4,0);
+Sol1=OrderedIntersection("Sol1",C51,C6,1);
+Sol2=OrderedIntersection("Sol2",C51,C6,0);
+LaBissA2=Arc3pts("LaBissA2",P5,PoleAB0,P7);
+Oo0=Center("Oo0",LaBissA2);
+bissA1=Point("bissA1","Sol2*(d(Sol2,OHz)<Hz)+Sol1*(d(Sol1,OHz)<Hz)","0");
+C60=Circle("C60",Oo0,PoleAB0);
+Sol10=OrderedIntersection("Sol10",C52,C60,1);
+Sol20=OrderedIntersection("Sol20",C52,C60,0);
+bissA2=Point("bissA2","Sol20*(d(Sol20,OHz)<Hz)+Sol10*(d(Sol10,OHz)<Hz)","0");
+STL(LaBissA1,"c:#fc092f;s:1;f:30;p:0");
+STL(LaBissA2,"c:#fc092f;s:1;f:30;p:0");
+STL(bissA1,"c:#fc092f;s:5;sn:true;f:15;sp:2;np:5.927475359607631");
+STL(bissA2,"c:#fc092f;s:5;sn:true;f:15;sp:2;np:0.629247079026396");
+return [LaBissA1,LaBissA2,bissA1,bissA2];
+}};
+
+$macros["3Calculs1Distanceelliptique"]={
+	name:"3.Calculs/1 Distance elliptique",
+	parameters:["circle","point","point"],
+	exec:
+	function (Hz,A,B){
+long=Expression("long","","","","2*atan(mod((A/Hz-B/Hz)/(1+conj(A/Hz)*B/Hz)))","0.6","1.35");
+dell=Expression("d"+A+B,"","","","min(long,180-long)","1.5","-0.25");
+STL(dell,"c:#421601;s:7;sn:true;f:24;p:2;cL:200;cPT:YzojNzgwMDEzO3M6MTA7ZjozMA==");
+return [dell];
+}};
+
+$macros["3Calculs2Longueurelliptique"]={
+	name:"3.Calculs/2 Longueur elliptique",
+	parameters:["circle","point","point"],
+	exec:
+	function (Hz,A,B){
+long=Expression("Long"+A+B,"","","","2*atan(mod(Hz*(A-B)/(Hz*Hz+conj(A)*B)))","-1.2","0.3");
+STL(long,"c:#5d0f34;s:7;sn:true;f:24;p:2;cL:200;cPT:YzojNzgwMDEzO3M6MTA7ZjozMA==");
+return [long];
+}};
+
+$macros["3Calculs3AngleBAC"]={
+	name:"3.Calculs/3 Angle BAC",
+	parameters:["circle","point","point","point"],
+	exec:
+	function(Hz,B,A,C){
+OHz=Center("OHz",Hz);
+L2=PerpendicularBisector("L2",A,B);
+L3=PerpendicularBisector("L3",A,C);
+antiA=Point("antiA","OHz-(A+OHz)*Hz^2/d(OHz,A)^2","0");
+L1=PerpendicularBisector("L1",A,antiA);
+cAB=OrderedIntersection("cAB",L1,L2,0);
+cAC=OrderedIntersection("cAC",L1,L3,0);
+S1=Segment("S1",cAC,A);
+S2=Segment("S2",A,cAB);
+Perp1=Perpendicular("Perp1",S2,A);
+Perp2=Perpendicular("Perp2",S1,A);
+P3=OrderedIntersection("P3",L1,Perp2,0);
+P4=OrderedIntersection("P4",L1,Perp1,0);
+ang=Angle("ang"+A,P4,A,P3);
+STL(ang,"c:#006633;s:4;f:24;p:1");
+return [ang];
+}};
+
+$macros["4Cercles1CercleCtrPt"]={
+	name:"4.Cercles/1 Cercle Ctr Pt",
+	parameters:["circle","point","point"],
+	exec:
+	function(Hz,O,A){
+OHz=Center("OHz",Hz);
+L1=Line("L1",O,A);
+Perp1=Perpendicular("Perp1",L1,O);
+bd1A=OrderedIntersection("bd1A",L1,Hz,0);
+bd6A=OrderedIntersection("bd6A",Perp1,Hz,0);
+bd2A=Symmetry("bd2A",OHz,bd1A);
+R1=AngleBisector("R1",bd1A,O,bd6A);
+Axe1=Arc3pts("Axe1",bd1A,O,bd2A);
+bd5A=Symmetry("bd5A",OHz,bd6A);
+Oo=Center("Oo",Axe1);
+bd3A=OrderedIntersection("bd3A",R1,Hz,0);
+Axe2=Arc3pts("Axe2",bd6A,O,bd5A);
+Oo0=Center("Oo0",Axe2);
+bd4A=Symmetry("bd4A",OHz,bd3A);
+sA1=Point("sA1","Oo+(A-Oo)*d(Oo,bd1A)^2/d(Oo,A)^2","0");
+Axe3=Arc3pts("Axe3",bd3A,O,bd4A);
+sA3=Point("sA3","Oo0+(A-Oo0)*d(Oo0,bd6A)^2/d(Oo0,A)^2","0");
+Oo1=Center("Oo1",Axe3);
+sA2=Point("sA2","Oo1+(A-Oo1)*d(Oo1,bd3A)^2/d(Oo1,A)^2","0");
+Cell=Circle3pts("Cell",sA2,sA3,sA1);
+bcA1=OrderedIntersection("bcA1",Hz,Cell,1);
+bcA2=OrderedIntersection("bcA2",Hz,Cell,0);
+bcArc2=Symmetry("bcArc2",OHz,bcA1);
+bcArc1=Symmetry("bcArc1",OHz,bcA2);
+M1=MidPoint("M1",bcA1,bcA2);
+C2=Arc3pts("C2",bcA2,A,bcA1);
+E1=Expression("E1","","","","Cell.setHidden(!isNaN(bcA1.getX()));\"cache cercle entier\"","-1.872784119049703","0.8061091085964971");
+R2=Ray("R2",A,M1);
+P3=OrderedIntersection("P3",R2,Cell,0,A);
+antiP3=Point("antiP3","OHz-(P3+OHz)*Hz^2/d(OHz,P3)^2","0");
+C1=Arc3pts("C1",bcArc1,antiP3,bcArc2);
+STL(Cell,"c:#fc092f;h:1;s:1;sn:true;f:30;p:0");
+STL(C2,"c:#fc092f;s:1;f:30;p:0");
+STL(E1,"c:#125f11;s:7;f:15;p:2;cL:200;cPT:YzojNzgwMDEzO3M6MTA7ZjoxNw==");
+STL(C1,"c:#fc092f;s:1;f:30;p:0");
+return [Cell,C2,E1,C1];
+}};
+
+$macros["4Cercles2CerclesupportEuclid"]={
+	name:"4.Cercles/2 Cercle support Euclid",
+	parameters:["circle","point","point"],
+	exec:
+	function(Hz,O,A){
+OHz=Center("OHz",Hz);
+L1=Line("L1",O,A);
+Perp1=Perpendicular("Perp1",L1,O);
+bd1A=OrderedIntersection("bd1A",L1,Hz,0);
+bd6A=OrderedIntersection("bd6A",Perp1,Hz,0);
+bd2A=Symmetry("bd2A",OHz,bd1A);
+R1=AngleBisector("R1",bd1A,O,bd6A);
+Axe1=Arc3pts("Axe1",bd1A,O,bd2A);
+bd5A=Symmetry("bd5A",OHz,bd6A);
+Oo=Center("Oo",Axe1);
+bd3A=OrderedIntersection("bd3A",R1,Hz,0);
+Axe2=Arc3pts("Axe2",bd6A,O,bd5A);
+Oo0=Center("Oo0",Axe2);
+bd4A=Symmetry("bd4A",OHz,bd3A);
+sA1=Point("sA1","Oo+(A-Oo)*d(Oo,bd1A)^2/d(Oo,A)^2","0");
+Axe3=Arc3pts("Axe3",bd3A,O,bd4A);
+sA3=Point("sA3","Oo0+(A-Oo0)*d(Oo0,bd6A)^2/d(Oo0,A)^2","0");
+Oo1=Center("Oo1",Axe3);
+sA2=Point("sA2","Oo1+(A-Oo1)*d(Oo1,bd3A)^2/d(Oo1,A)^2","0");
+Cell=Circle3pts("Cell",sA2,sA3,sA1);
+STL(Cell,"c:#ff8a1c;s:1;sn:true;f:30;p:0");
+return [Cell];
+}};
+
+$macros["5Technique1Antipodie1pt"]={
+	name:"5.Technique/1 Antipodie 1 pt",
+	parameters:["circle","point"],
+	exec:
+	function(Hz,A){
+OHz=Center("OHz",Hz);
+antiA=Point("anti"+A,"OHz-(A+OHz)*Hz^2/d(OHz,A)^2","0");
+STL(antiA,"c:#0000b2;s:6;sn:true;f:15;sp:1");
+return [antiA];
+}};
+
+$macros["5Technique2PointElliptique"]={
+	name:"5.Technique/2 Point Elliptique",
+	parameters:["circle","point"],
+	exec:
+	function(Hz,A){
+OHz=Center("OHz",Hz);
+antiA=Point("antiA","OHz-(A+OHz)*Hz^2/d(OHz,A)^2","0");
+PtEll=Point(A+"ell","(d(OHz,A)<Hz)?A:antiA","0");
+STL(PtEll,"c:#fc092f;s:5;sn:true;f:17;sp:2");
+return [PtEll];
+}};
+
+$macros["5Technique3InverseArc1pt"]={
+	name:"5.Technique/3 Inverse Arc 1pt",
+	parameters:["circle","point"],
+	exec:
+	function (Hz,M){
+Aa=DefinitionPoint("Aa",Hz,0);
+OHz=Center("OHz",Hz);
+Inv=Point("Inv"+M,"OHz+(M-OHz)*d(OHz,Aa)^2/d(OHz,M)^2","0");
+STL(Inv,"c:#0000b2;s:5;f:15");
+return [Inv];
+}};
+
+$macros["5Technique4InverseCercle1pt"]={
+	name:"5.Technique/4 Inverse Cercle 1pt",
+	parameters:["circle","point"],
+	exec:
+	function (Hz,M){
+OHz=Center("OHz",Hz);
+Inv=Point("Inv"+M,"OHz+(M-OHz)*Hz^2/d(OHz,M)^2","0");
+STL(Inv,"c:#0000b2;s:6;f:15");
+return [Inv];
+}};
+
+// Coordinates System :
+SetCoords(488.4426635120163,254.31434743870835,183.12011350032643,false,893,703);
+
+
+// Geometry :
+OHz=Point("OHz","[0,0]","0");
+O=Point("O",-0.35909414770017833,-0.6585365695065982);
+taille=Point("taille",0.11089987158199084,-0.13715857821747549);
+Hz=Circle1("Hz",OHz,1.2178207445561517);
+L1=Line("L1",O,taille);
+L10=Line("L10",O,taille);
+Perp1=Perpendicular("Perp1",L1,O);
+bd1A=OrderedIntersection("bd1A",L1,Hz,0);
+Perp10=Perpendicular("Perp10",L10,O);
+bd1A0=OrderedIntersection("bd1A0",L10,Hz,0);
+antiA0=Point("antiA0","OHz-(O+OHz)*Hz^2/d(OHz,O)^2","0");
+antiO=Point("antiO","OHz-(O+OHz)*Hz^2/d(OHz,O)^2","0");
+antiA=Point("antiA","OHz-(O+OHz)*Hz^2/d(OHz,O)^2","0");
+antiA1=Point("antiA1","OHz-(O+OHz)*Hz^2/d(OHz,O)^2","0");
+bd6A=OrderedIntersection("bd6A",Perp1,Hz,0);
+bd2A=Symmetry("bd2A",OHz,bd1A);
+bd6A0=OrderedIntersection("bd6A0",Perp10,Hz,0);
+bd2A0=Symmetry("bd2A0",OHz,bd1A0);
+L2=PerpendicularBisector("L2",O,antiO);
+R1=AngleBisector("R1",bd1A,O,bd6A);
+Axe1=Arc3pts("Axe1",bd1A,O,bd2A);
+bd5A=Symmetry("bd5A",OHz,bd6A);
+R10=AngleBisector("R10",bd1A0,O,bd6A0);
+Axe10=Arc3pts("Axe10",bd1A0,O,bd2A0);
+bd5A0=Symmetry("bd5A0",OHz,bd6A0);
+Oo=Center("Oo",Axe1);
+Oo2=Center("Oo2",Axe10);
+bd3A=OrderedIntersection("bd3A",R1,Hz,0);
+Axe2=Arc3pts("Axe2",bd6A,O,bd5A);
+bd3A0=OrderedIntersection("bd3A0",R10,Hz,0);
+Axe20=Arc3pts("Axe20",bd6A0,O,bd5A0);
+Oo0=Center("Oo0",Axe2);
+Oo00=Center("Oo00",Axe20);
+bd4A=Symmetry("bd4A",OHz,bd3A);
+sA1=Point("sA1","Oo+(taille-Oo)*d(Oo,bd1A)^2/d(Oo,taille)^2","0");
+bd4A0=Symmetry("bd4A0",OHz,bd3A0);
+sA10=Point("sA10","Oo2+(taille-Oo2)*d(Oo2,bd1A0)^2/d(Oo2,taille)^2","0");
+Axe3=Arc3pts("Axe3",bd3A,O,bd4A);
+sA3=Point("sA3","Oo0+(taille-Oo0)*d(Oo0,bd6A)^2/d(Oo0,taille)^2","0");
+Axe30=Arc3pts("Axe30",bd3A0,O,bd4A0);
+sA30=Point("sA30","Oo00+(taille-Oo00)*d(Oo00,bd6A0)^2/d(Oo00,taille)^2","0");
+Oo1=Center("Oo1",Axe3);
+Oo10=Center("Oo10",Axe30);
+sA2=Point("sA2","Oo1+(taille-Oo1)*d(Oo1,bd3A)^2/d(Oo1,taille)^2","0");
+sA20=Point("sA20","Oo10+(taille-Oo10)*d(Oo10,bd3A0)^2/d(Oo10,taille)^2","0");
+Cell=Circle3pts("Cell",sA2,sA3,sA1);
+Cell0=Circle3pts("Cell0",sA20,sA30,sA10);
+Center1=Center("Center1",Cell);
+Center2=Center("Center2",Cell0);
+bcA1=OrderedIntersection("bcA1",Hz,Cell0,1);
+bcA2=OrderedIntersection("bcA2",Hz,Cell0,0);
+M=PointOn("M",Cell,5.591120785113482);
+bcArc2=Symmetry("bcArc2",OHz,bcA1);
+bcArc1=Symmetry("bcArc1",OHz,bcA2);
+M1=MidPoint("M1",bcA1,bcA2);
+C2=Arc3pts("C2",bcA2,taille,bcA1);
+E1=Expression("E1","","","","Cell0.setHidden(!isNaN(bcA1.getX()));\"cache cercle entier\"","-1.8809951313377584","0.6198211877080191");
+antiM=Point("antiM","OHz-(M+OHz)*Hz^2/d(OHz,M)^2","0");
+Center3=Center("Center3",C2);
+R2=Ray("R2",taille,M1);
+A=Point("A","(d(OHz,M)<Hz)?M:antiM","0");
+P3=OrderedIntersection("P3",R2,Cell0,0,taille);
+SupportAB=Circle3pts("SupportAB",O,A,antiA0);
+antiA2=Point("antiA2","OHz-(A+OHz)*Hz^2/d(OHz,A)^2","0");
+Center5=Center("Center5",SupportAB);
+antiP3=Point("antiP3","OHz-(P3+OHz)*Hz^2/d(OHz,P3)^2","0");
+b1OA=OrderedIntersection("b1OA",Hz,SupportAB,0);
+b2OA=OrderedIntersection("b2OA",Hz,SupportAB,1);
+C1=Arc3pts("C1",bcArc1,antiP3,bcArc2);
+DrtOA=Arc3pts("DrtOA",b1OA,O,b2OA);
+Center4=Center("Center4",C1);
+cAB2=Center("cAB2",DrtOA);
+S1=Segment("S1",cAB2,O);
+pOrtho=Point("pOrtho","O+i*(cAB2-O)/2","0");
+Perp2=Perpendicular("Perp2",S1,O);
+A1=FixedAngle("A1",pOrtho,O,"90/4",true);
+Perp3=Perpendicular("Perp3",A1,O);
+cSym=OrderedIntersection("cSym",Perp3,L2,0);
+C3=Circle("C3",cSym,O);
+P1=OrderedIntersection("P1",Hz,C3,1);
+P2=OrderedIntersection("P2",Hz,C3,0);
+C4=Arc3pts("C4",P1,O,P2);
+cAB=Center("cAB",C4);
+invM=Point("invM","cAB+(A-cAB)*d(cAB,P1)^2/d(cAB,A)^2","0");
+antiinvM=Point("antiinvM","OHz-(invM+OHz)*Hz^2/d(OHz,invM)^2","0");
+B=Point("B","(d(OHz,invM)<Hz)?invM:antiinvM","0");
+SupportAB0=Circle3pts("SupportAB0",O,B,antiA);
+invM5=Point("invM5","cAB2+(B-cAB2)*d(cAB2,b1OA)^2/d(cAB2,B)^2","0");
+antiA5=Point("antiA5","OHz-(B+OHz)*Hz^2/d(OHz,B)^2","0");
+Center6=Center("Center6",SupportAB0);
+b1OB=OrderedIntersection("b1OB",Hz,SupportAB0,0);
+b2OB=OrderedIntersection("b2OB",Hz,SupportAB0,1);
+antiinvM5=Point("antiinvM5","OHz-(invM5+OHz)*Hz^2/d(OHz,invM5)^2","0");
+DrtOB=Arc3pts("DrtOB",b1OB,O,b2OB);
+H=Point("H","(d(OHz,invM5)<Hz)?invM5:antiinvM5","0");
+cAB0=Center("cAB0",DrtOB);
+antiA7=Point("antiA7","OHz-(H+OHz)*Hz^2/d(OHz,H)^2","0");
+invM0=Point("invM0","cAB0+(A-cAB0)*d(cAB0,b1OB)^2/d(cAB0,A)^2","0");
+antiinvM0=Point("antiinvM0","OHz-(invM0+OHz)*Hz^2/d(OHz,invM0)^2","0");
+C=Point("C","(d(OHz,invM0)<Hz)?invM0:antiinvM0","0");
+SupportAB1=Circle3pts("SupportAB1",O,C,antiA1);
+invM4=Point("invM4","cAB2+(C-cAB2)*d(cAB2,b1OA)^2/d(cAB2,C)^2","0");
+LongAB4=Expression("LongAB4","","","","2*atan(mod(Hz*(H-C)/(Hz*Hz+conj(H)*C)))","1.2902894266503504","1.0192586636492202");
+C15=Circle3pts("C15",H,C,antiA7);
+antiA8=Point("antiA8","OHz-(C+OHz)*Hz^2/d(OHz,C)^2","0");
+Center7=Center("Center7",SupportAB1);
+oAB4=Center("oAB4",C15);
+b1OC=OrderedIntersection("b1OC",Hz,SupportAB1,0);
+b2OC=OrderedIntersection("b2OC",Hz,SupportAB1,1);
+antiinvM4=Point("antiinvM4","OHz-(invM4+OHz)*Hz^2/d(OHz,invM4)^2","0");
+Id14=OrderedIntersection("Id14",Hz,C15,0);
+Id24=OrderedIntersection("Id24",Hz,C15,1);
+DrtOC=Arc3pts("DrtOC",b1OC,O,b2OC);
+G=Point("G","(d(OHz,invM4)<Hz)?invM4:antiinvM4","0");
+bdA4=Point("bdA4","Id14*(d(Id14,H)<d(Id14,C))+Id24*(d(Id24,H)<d(Id24,C))","0");
+bdB4=Point("bdB4","Id24*(d(Id14,H)<d(Id14,C))+Id14*(d(Id24,H)<d(Id24,C))","0");
+mAB4=Point("mAB4","oAB4+d(H,oAB4)*((H+C)/2-oAB4)/d((H+C)/2,oAB4)","0");
+cAB1=Center("cAB1",DrtOC);
+antiA4=Point("antiA4","OHz-(G+OHz)*Hz^2/d(OHz,G)^2","0");
+LongAB1=Expression("LongAB1","","","","2*atan(mod(Hz*(G-B)/(Hz*Hz+conj(G)*B)))","1.2902894266503504","1.0192586636492202");
+mIdAA4=Point("mIdAA4","oAB4+d(bdA4,oAB4)*((bdA4+H)/2-oAB4)/d((bdA4+H)/2,oAB4)","0");
+mbdBB4=Point("mbdBB4","oAB4+d(bdB4,oAB4)*((bdB4+C)/2-oAB4)/d((bdB4+C)/2,oAB4)","0");
+partAB4=Arc3pts("partAB4",H,mAB4,C);
+Center23=Center("Center23",partAB4);
+invM1=Point("invM1","cAB1+(B-cAB1)*d(cAB1,b1OC)^2/d(cAB1,B)^2","0");
+invM2=Point("invM2","cAB1+(A-cAB1)*d(cAB1,b1OC)^2/d(cAB1,A)^2","0");
+C12=Circle3pts("C12",G,B,antiA4);
+partBbdB4=Arc3pts("partBbdB4",C,mbdBB4,bdB4);
+partAbdA4=Arc3pts("partAbdA4",H,mIdAA4,bdA4);
+oAB1=Center("oAB1",C12);
+Center24=Center("Center24",partBbdB4);
+Center25=Center("Center25",partAbdA4);
+antiinvM1=Point("antiinvM1","OHz-(invM1+OHz)*Hz^2/d(OHz,invM1)^2","0");
+antiinvM2=Point("antiinvM2","OHz-(invM2+OHz)*Hz^2/d(OHz,invM2)^2","0");
+Id11=OrderedIntersection("Id11",Hz,C12,0);
+Id21=OrderedIntersection("Id21",Hz,C12,1);
+GereSeg4=Expression("GereSeg4","","","","partAB4.setHidden(LongAB4>90);partAbdA4.setHidden(LongAB4<=90);partBbdB4.setHidden(LongAB4<=90);\"gestion segment\"","-1.4379808236299816","0.6537010800403084");
+D=Point("D","(d(OHz,invM1)<Hz)?invM1:antiinvM1","0");
+E=Point("E","(d(OHz,invM2)<Hz)?invM2:antiinvM2","0");
+bdA1=Point("bdA1","Id11*(d(Id11,G)<d(Id11,B))+Id21*(d(Id21,G)<d(Id21,B))","0");
+bdB1=Point("bdB1","Id21*(d(Id11,G)<d(Id11,B))+Id11*(d(Id21,G)<d(Id21,B))","0");
+mAB1=Point("mAB1","oAB1+d(G,oAB1)*((G+B)/2-oAB1)/d((G+B)/2,oAB1)","0");
+invM3=Point("invM3","cAB2+(D-cAB2)*d(cAB2,b1OA)^2/d(cAB2,D)^2","0");
+LongAB=Expression("LongAB","","","","2*atan(mod(Hz*(A-D)/(Hz*Hz+conj(A)*D)))","1.2902894266503504","1.0192586636492202");
+C10=Circle3pts("C10",A,D,antiA2);
+antiA3=Point("antiA3","OHz-(D+OHz)*Hz^2/d(OHz,D)^2","0");
+LongAB0=Expression("LongAB0","","","","2*atan(mod(Hz*(D-G)/(Hz*Hz+conj(D)*G)))","1.2902894266503504","1.0192586636492202");
+mIdAA1=Point("mIdAA1","oAB1+d(bdA1,oAB1)*((bdA1+G)/2-oAB1)/d((bdA1+G)/2,oAB1)","0");
+mbdBB1=Point("mbdBB1","oAB1+d(bdB1,oAB1)*((bdB1+B)/2-oAB1)/d((bdB1+B)/2,oAB1)","0");
+partAB1=Arc3pts("partAB1",G,mAB1,B);
+LongAB2=Expression("LongAB2","","","","2*atan(mod(Hz*(B-E)/(Hz*Hz+conj(B)*E)))","1.2902894266503504","1.0192586636492202");
+C13=Circle3pts("C13",B,E,antiA5);
+antiA6=Point("antiA6","OHz-(E+OHz)*Hz^2/d(OHz,E)^2","0");
+LongAB3=Expression("LongAB3","","","","2*atan(mod(Hz*(E-H)/(Hz*Hz+conj(E)*H)))","1.2902894266503504","1.0192586636492202");
+oAB=Center("oAB",C10);
+Center14=Center("Center14",partAB1);
+oAB2=Center("oAB2",C13);
+antiinvM3=Point("antiinvM3","OHz-(invM3+OHz)*Hz^2/d(OHz,invM3)^2","0");
+Id1=OrderedIntersection("Id1",Hz,C10,0);
+Id2=OrderedIntersection("Id2",Hz,C10,1);
+C11=Circle3pts("C11",D,G,antiA3);
+partBbdB1=Arc3pts("partBbdB1",B,mbdBB1,bdB1);
+partAbdA1=Arc3pts("partAbdA1",G,mIdAA1,bdA1);
+Id12=OrderedIntersection("Id12",Hz,C13,0);
+Id22=OrderedIntersection("Id22",Hz,C13,1);
+C14=Circle3pts("C14",E,H,antiA6);
+oAB0=Center("oAB0",C11);
+Center15=Center("Center15",partBbdB1);
+Center16=Center("Center16",partAbdA1);
+oAB3=Center("oAB3",C14);
+F=Point("F","(d(OHz,invM3)<Hz)?invM3:antiinvM3","0");
+bdA=Point("bdA","Id1*(d(Id1,A)<d(Id1,D))+Id2*(d(Id2,A)<d(Id2,D))","0");
+bdB=Point("bdB","Id2*(d(Id1,A)<d(Id1,D))+Id1*(d(Id2,A)<d(Id2,D))","0");
+mAB=Point("mAB","oAB+d(A,oAB)*((A+D)/2-oAB)/d((A+D)/2,oAB)","0");
+Id10=OrderedIntersection("Id10",Hz,C11,0);
+Id20=OrderedIntersection("Id20",Hz,C11,1);
+GereSeg1=Expression("GereSeg1","","","","partAB1.setHidden(LongAB1>90);partAbdA1.setHidden(LongAB1<=90);partBbdB1.setHidden(LongAB1<=90);\"gestion segment\"","-1.4379808236299816","0.6537010800403084");
+bdA2=Point("bdA2","Id12*(d(Id12,B)<d(Id12,E))+Id22*(d(Id22,B)<d(Id22,E))","0");
+bdB2=Point("bdB2","Id22*(d(Id12,B)<d(Id12,E))+Id12*(d(Id22,B)<d(Id22,E))","0");
+mAB2=Point("mAB2","oAB2+d(B,oAB2)*((B+E)/2-oAB2)/d((B+E)/2,oAB2)","0");
+Id13=OrderedIntersection("Id13",Hz,C14,0);
+Id23=OrderedIntersection("Id23",Hz,C14,1);
+mIdAA=Point("mIdAA","oAB+d(bdA,oAB)*((bdA+A)/2-oAB)/d((bdA+A)/2,oAB)","0");
+mbdBB=Point("mbdBB","oAB+d(bdB,oAB)*((bdB+D)/2-oAB)/d((bdB+D)/2,oAB)","0");
+partAB=Arc3pts("partAB",A,mAB,D);
+bdA0=Point("bdA0","Id10*(d(Id10,D)<d(Id10,G))+Id20*(d(Id20,D)<d(Id20,G))","0");
+bdB0=Point("bdB0","Id20*(d(Id10,D)<d(Id10,G))+Id10*(d(Id20,D)<d(Id20,G))","0");
+mAB0=Point("mAB0","oAB0+d(D,oAB0)*((D+G)/2-oAB0)/d((D+G)/2,oAB0)","0");
+mIdAA2=Point("mIdAA2","oAB2+d(bdA2,oAB2)*((bdA2+B)/2-oAB2)/d((bdA2+B)/2,oAB2)","0");
+mbdBB2=Point("mbdBB2","oAB2+d(bdB2,oAB2)*((bdB2+E)/2-oAB2)/d((bdB2+E)/2,oAB2)","0");
+partAB2=Arc3pts("partAB2",B,mAB2,E);
+bdA3=Point("bdA3","Id13*(d(Id13,E)<d(Id13,H))+Id23*(d(Id23,E)<d(Id23,H))","0");
+bdB3=Point("bdB3","Id23*(d(Id13,E)<d(Id13,H))+Id13*(d(Id23,E)<d(Id23,H))","0");
+mAB3=Point("mAB3","oAB3+d(E,oAB3)*((E+H)/2-oAB3)/d((E+H)/2,oAB3)","0");
+LongAB5=Expression("LongAB5","","","","2*atan(mod(Hz*(C-F)/(Hz*Hz+conj(C)*F)))","1.2902894266503504","1.0192586636492202");
+C16=Circle3pts("C16",C,F,antiA8);
+antiA9=Point("antiA9","OHz-(F+OHz)*Hz^2/d(OHz,F)^2","0");
+LongAB6=Expression("LongAB6","","","","2*atan(mod(Hz*(F-A)/(Hz*Hz+conj(F)*A)))","1.2902894266503504","1.0192586636492202");
+Center8=Center("Center8",partAB);
+Center17=Center("Center17",partAB2);
+oAB5=Center("oAB5",C16);
+partBbdB=Arc3pts("partBbdB",D,mbdBB,bdB);
+partAbdA=Arc3pts("partAbdA",A,mIdAA,bdA);
+mIdAA0=Point("mIdAA0","oAB0+d(bdA0,oAB0)*((bdA0+D)/2-oAB0)/d((bdA0+D)/2,oAB0)","0");
+mbdBB0=Point("mbdBB0","oAB0+d(bdB0,oAB0)*((bdB0+G)/2-oAB0)/d((bdB0+G)/2,oAB0)","0");
+partAB0=Arc3pts("partAB0",D,mAB0,G);
+partBbdB2=Arc3pts("partBbdB2",E,mbdBB2,bdB2);
+partAbdA2=Arc3pts("partAbdA2",B,mIdAA2,bdA2);
+mIdAA3=Point("mIdAA3","oAB3+d(bdA3,oAB3)*((bdA3+E)/2-oAB3)/d((bdA3+E)/2,oAB3)","0");
+mbdBB3=Point("mbdBB3","oAB3+d(bdB3,oAB3)*((bdB3+H)/2-oAB3)/d((bdB3+H)/2,oAB3)","0");
+partAB3=Arc3pts("partAB3",E,mAB3,H);
+Id15=OrderedIntersection("Id15",Hz,C16,0);
+Id25=OrderedIntersection("Id25",Hz,C16,1);
+C17=Circle3pts("C17",F,A,antiA9);
+Center90=Center("Center90",partBbdB);
+Center100=Center("Center100",partAbdA);
+Center11=Center("Center11",partAB0);
+Center180=Center("Center180",partBbdB2);
+Center190=Center("Center190",partAbdA2);
+Center20=Center("Center20",partAB3);
+oAB6=Center("oAB6",C17);
+GereSeg=Expression("GereSeg","","","","partAB.setHidden(LongAB>90);partAbdA.setHidden(LongAB<=90);partBbdB.setHidden(LongAB<=90);\"gestion segment\"","-1.4379808236299816","0.6537010800403084");
+partBbdB0=Arc3pts("partBbdB0",G,mbdBB0,bdB0);
+partAbdA0=Arc3pts("partAbdA0",D,mIdAA0,bdA0);
+GereSeg2=Expression("GereSeg2","","","","partAB2.setHidden(LongAB2>90);partAbdA2.setHidden(LongAB2<=90);partBbdB2.setHidden(LongAB2<=90);\"gestion segment\"","-1.4379808236299816","0.6537010800403084");
+partBbdB3=Arc3pts("partBbdB3",H,mbdBB3,bdB3);
+partAbdA3=Arc3pts("partAbdA3",E,mIdAA3,bdA3);
+bdA5=Point("bdA5","Id15*(d(Id15,C)<d(Id15,F))+Id25*(d(Id25,C)<d(Id25,F))","0");
+bdB5=Point("bdB5","Id25*(d(Id15,C)<d(Id15,F))+Id15*(d(Id25,C)<d(Id25,F))","0");
+mAB5=Point("mAB5","oAB5+d(C,oAB5)*((C+F)/2-oAB5)/d((C+F)/2,oAB5)","0");
+Id16=OrderedIntersection("Id16",Hz,C17,0);
+Id26=OrderedIntersection("Id26",Hz,C17,1);
+Center120=Center("Center120",partBbdB0);
+Center130=Center("Center130",partAbdA0);
+Center21=Center("Center21",partBbdB3);
+Center22=Center("Center22",partAbdA3);
+GereSeg0=Expression("GereSeg0","","","","partAB0.setHidden(LongAB0>90);partAbdA0.setHidden(LongAB0<=90);partBbdB0.setHidden(LongAB0<=90);\"gestion segment\"","-1.4379808236299816","0.6537010800403084");
+GereSeg3=Expression("GereSeg3","","","","partAB3.setHidden(LongAB3>90);partAbdA3.setHidden(LongAB3<=90);partBbdB3.setHidden(LongAB3<=90);\"gestion segment\"","-1.4379808236299816","0.6537010800403084");
+mIdAA5=Point("mIdAA5","oAB5+d(bdA5,oAB5)*((bdA5+C)/2-oAB5)/d((bdA5+C)/2,oAB5)","0");
+mbdBB5=Point("mbdBB5","oAB5+d(bdB5,oAB5)*((bdB5+F)/2-oAB5)/d((bdB5+F)/2,oAB5)","0");
+partAB5=Arc3pts("partAB5",C,mAB5,F);
+bdA6=Point("bdA6","Id16*(d(Id16,F)<d(Id16,A))+Id26*(d(Id26,F)<d(Id26,A))","0");
+bdB6=Point("bdB6","Id26*(d(Id16,F)<d(Id16,A))+Id16*(d(Id26,F)<d(Id26,A))","0");
+mAB6=Point("mAB6","oAB6+d(F,oAB6)*((F+A)/2-oAB6)/d((F+A)/2,oAB6)","0");
+Center26=Center("Center26",partAB5);
+partBbdB5=Arc3pts("partBbdB5",F,mbdBB5,bdB5);
+partAbdA5=Arc3pts("partAbdA5",C,mIdAA5,bdA5);
+mIdAA6=Point("mIdAA6","oAB6+d(bdA6,oAB6)*((bdA6+F)/2-oAB6)/d((bdA6+F)/2,oAB6)","0");
+mbdBB6=Point("mbdBB6","oAB6+d(bdB6,oAB6)*((bdB6+A)/2-oAB6)/d((bdB6+A)/2,oAB6)","0");
+partAB6=Arc3pts("partAB6",F,mAB6,A);
+Center27=Center("Center27",partBbdB5);
+Center28=Center("Center28",partAbdA5);
+Center29=Center("Center29",partAB6);
+GereSeg5=Expression("GereSeg5","","","","partAB5.setHidden(LongAB5>90);partAbdA5.setHidden(LongAB5<=90);partBbdB5.setHidden(LongAB5<=90);\"gestion segment\"","-1.4379808236299816","0.6537010800403084");
+partBbdB6=Arc3pts("partBbdB6",A,mbdBB6,bdB6);
+partAbdA6=Arc3pts("partAbdA6",F,mIdAA6,bdA6);
+Center30=Center("Center30",partBbdB6);
+Center31=Center("Center31",partAbdA6);
+GereSeg6=Expression("GereSeg6","","","","partAB6.setHidden(LongAB6>90);partAbdA6.setHidden(LongAB6<=90);partBbdB6.setHidden(LongAB6<=90);\"gestion segment\"","-1.4379808236299816","0.6537010800403084");
+
+
+// Styles :
+STL(OHz,"c:#0024ff;h:1;s:4;sn:true;f:18;sp:1");
+STL(O,"c:#0000b2;s:6;sn:true;f:18");
+STL(taille,"c:#0000b2;s:6;sn:true;f:15;np:3.725250503740129");
+STL(Hz,"c:#1da6db;o:0.06;s:2;sn:true;f:30;p:0");
+STL(L1,"c:#780013;h:2;s:1;f:30;p:0");
+STL(L10,"c:#780013;h:2;s:1;f:30;p:0");
+STL(Perp1,"c:#780013;h:2;s:1;f:30;p:0");
+STL(bd1A,"c:#0000b2;h:2;s:4;f:18");
+STL(Perp10,"c:#780013;h:2;s:1;f:30;p:0");
+STL(bd1A0,"c:#0000b2;h:2;s:4;f:18");
+STL(antiA0,"c:#0000b2;h:2;s:4;f:30");
+STL(antiO,"c:#0000b2;h:1;s:4;sn:true;f:15;sp:1");
+STL(antiA,"c:#0000b2;h:2;s:4;f:30");
+STL(antiA1,"c:#0000b2;h:2;s:4;f:30");
+STL(bd6A,"c:#0000b2;h:2;s:4;f:18");
+STL(bd2A,"c:#0000b2;h:2;s:4;f:18");
+STL(bd6A0,"c:#0000b2;h:2;s:4;f:18");
+STL(bd2A0,"c:#0000b2;h:2;s:4;f:18");
+STL(L2,"c:#780013;h:1;s:1;f:30;p:0");
+STL(R1,"c:#993300;h:2;s:1;f:30;p:0");
+STL(Axe1,"c:#cc66cc;h:2;s:1;f:30;p:0");
+STL(bd5A,"c:#0000b2;h:2;s:4;f:18");
+STL(R10,"c:#993300;h:2;s:1;f:30;p:0");
+STL(Axe10,"c:#cc66cc;h:2;s:1;f:30;p:0");
+STL(bd5A0,"c:#0000b2;h:2;s:4;f:18");
+STL(Oo,"c:#0000b2;h:1;s:4;f:18");
+STL(Oo2,"c:#0000b2;h:1;s:4;f:18");
+STL(bd3A,"c:#0000b2;h:2;s:4;f:18");
+STL(Axe2,"c:#cc66cc;h:2;s:1;f:30;p:0");
+STL(bd3A0,"c:#0000b2;h:2;s:4;f:18");
+STL(Axe20,"c:#cc66cc;h:2;s:1;f:30;p:0");
+STL(Oo0,"c:#0000b2;h:1;s:4;f:18");
+STL(Oo00,"c:#0000b2;h:1;s:4;f:18");
+STL(bd4A,"c:#0000b2;h:2;s:4;f:18");
+STL(sA1,"c:#0000b2;h:2;s:4;f:18");
+STL(bd4A0,"c:#0000b2;h:2;s:4;f:18");
+STL(sA10,"c:#0000b2;h:2;s:4;f:18");
+STL(Axe3,"c:#cc66cc;h:2;s:1;f:30;p:0");
+STL(sA3,"c:#0000b2;h:2;s:4;f:18");
+STL(Axe30,"c:#cc66cc;h:2;s:1;f:30;p:0");
+STL(sA30,"c:#0000b2;h:2;s:4;f:18");
+STL(Oo1,"c:#0000b2;h:1;s:4;f:18");
+STL(Oo10,"c:#0000b2;h:1;s:4;f:18");
+STL(sA2,"c:#0000b2;h:2;s:4;f:18");
+STL(sA20,"c:#0000b2;h:2;s:4;f:18");
+STL(Cell,"c:#94918e;s:1;sn:true;f:30;p:0;dh:true");
+STL(Cell0,"c:#fc092f;h:1;s:1;sn:true;f:30;p:0");
+STL(Center1,"c:#0000b2;h:1;s:4;f:18");
+STL(Center2,"c:#0000b2;h:1;s:4;f:18");
+STL(bcA1,"c:#0000b2;h:2;s:4;f:18");
+STL(bcA2,"c:#0000b2;h:2;s:4;f:18");
+STL(M,"c:#0000b2;h:1;s:6;sn:true;f:18;np:6.214739679747582;an:[0.5235987755982988,1,false]");
+STL(bcArc2,"c:#0000b2;h:2;s:4;f:18");
+STL(bcArc1,"c:#0000b2;h:2;s:4;f:18");
+STL(M1,"c:#0000b2;h:2;s:4;f:18");
+STL(C2,"c:#fc092f;s:1;f:30;p:0");
+STL(E1,"c:#125f11;h:1;s:7;f:15;p:2;cL:200;cPT:YzojNzgwMDEzO2g6MTtzOjQ7ZjoxOA==");
+STL(antiM,"c:#0000b2;h:2;s:4;f:18");
+STL(Center3,"c:#0000b2;h:1;s:4;f:18");
+STL(R2,"c:#993300;h:2;s:1;f:30;p:0");
+STL(A,"c:#fc092f;s:4;sn:true;f:18;sp:2;np:0.6083388795962481");
+STL(P3,"c:#0000b2;h:2;s:4;f:18");
+STL(SupportAB,"c:#cc66cc;h:2;s:1;f:30;p:0");
+STL(antiA2,"c:#0000b2;h:2;s:4;f:30");
+STL(Center5,"c:#0000b2;h:1;s:4;f:30");
+STL(antiP3,"c:#0000b2;h:2;s:4;f:18");
+STL(b1OA,"c:#0000b2;h:2;s:4;f:30");
+STL(b2OA,"c:#0000b2;h:2;s:4;f:30");
+STL(C1,"c:#fc092f;s:1;f:30;p:0");
+STL(DrtOA,"c:#ff8a1c;h:1;s:1;sn:true;f:30;p:0");
+STL(Center4,"c:#0000b2;h:1;s:4;f:18");
+STL(cAB2,"c:#0000b2;h:1;s:4;sn:true;f:15;sp:1");
+STL(S1,"c:#006633;h:1;s:1;f:24");
+STL(pOrtho,"c:#0000b2;h:1;s:4;sn:true;f:13;sp:1");
+STL(Perp2,"c:#007c7c;h:1;s:1;f:30;p:0");
+STL(A1,"c:#966400;h:1;s:1;f:15;p:1;arc:65.80273550544841");
+STL(Perp3,"c:#ff8a1c;h:1;s:1;f:30;p:0");
+STL(cSym,"c:#760012;h:1;s:4;sn:true;f:17;sp:1");
+STL(C3,"c:#cc66cc;h:1;s:1;f:30;p:0");
+STL(P1,"c:#0000b2;h:1;s:4;f:30");
+STL(P2,"c:#0000b2;h:1;s:4;f:30");
+STL(C4,"c:#0bd81f;h:1;s:1;f:30;p:0");
+STL(cAB,"c:#0000b2;h:1;s:4;f:30");
+STL(invM,"c:#0000b2;h:2;s:4;f:30");
+STL(antiinvM,"c:#0000b2;h:2;s:4;f:30");
+STL(B,"c:#fc092f;s:4;sn:true;f:15;sp:2;np:0.99602806914918");
+STL(SupportAB0,"c:#cc66cc;h:2;s:1;f:30;p:0");
+STL(invM5,"c:#0000b2;h:2;s:4;f:30");
+STL(antiA5,"c:#0000b2;h:2;s:4;f:30");
+STL(Center6,"c:#0000b2;h:1;s:4;f:30");
+STL(b1OB,"c:#0000b2;h:2;s:4;f:30");
+STL(b2OB,"c:#0000b2;h:2;s:4;f:30");
+STL(antiinvM5,"c:#0000b2;h:2;s:4;f:30");
+STL(DrtOB,"c:#cc66cc;h:1;s:1;sn:true;f:30;p:0");
+STL(H,"c:#fc092f;s:4;sn:true;f:15;sp:2;np:4.589183532329358");
+STL(cAB0,"c:#0000b2;h:1;s:4;f:30");
+STL(antiA7,"c:#0000b2;h:2;s:4;f:30");
+STL(invM0,"c:#0000b2;h:2;s:4;f:30");
+STL(antiinvM0,"c:#0000b2;h:2;s:4;f:30");
+STL(C,"c:#fc092f;s:4;sn:true;f:15;sp:2;np:0.712621528596793");
+STL(SupportAB1,"c:#cc66cc;h:2;s:1;f:30;p:0");
+STL(invM4,"c:#0000b2;h:2;s:4;f:30");
+STL(LongAB4,"c:#780013;h:2;s:7;f:24;p:2;cL:200;cPT:YzojNzgwMDEzO2g6MjtzOjQ7ZjozMA==");
+STL(C15,"c:#cc66cc;h:2;s:1;f:30;p:0");
+STL(antiA8,"c:#0000b2;h:2;s:4;f:30");
+STL(Center7,"c:#0000b2;h:1;s:4;f:30");
+STL(oAB4,"c:#0000b2;h:1;s:4;f:30");
+STL(b1OC,"c:#0000b2;h:2;s:4;f:30");
+STL(b2OC,"c:#0000b2;h:2;s:4;f:30");
+STL(antiinvM4,"c:#0000b2;h:2;s:4;f:30");
+STL(Id14,"c:#0000b2;h:2;s:4;f:30");
+STL(Id24,"c:#0000b2;h:2;s:4;f:30");
+STL(DrtOC,"c:#cc66cc;h:1;s:1;sn:true;f:30;p:0");
+STL(G,"c:#fc092f;s:4;sn:true;f:15;sp:2;np:4.849855809017799");
+STL(bdA4,"c:#0000b2;h:2;s:4;f:30");
+STL(bdB4,"c:#0000b2;h:2;s:4;f:30");
+STL(mAB4,"c:#0000b2;h:2;s:4;f:30");
+STL(cAB1,"c:#0000b2;h:1;s:4;f:30");
+STL(antiA4,"c:#0000b2;h:2;s:4;f:30");
+STL(LongAB1,"c:#780013;h:2;s:7;f:24;p:2;cL:200;cPT:YzojNzgwMDEzO2g6MjtzOjQ7ZjozMA==");
+STL(mIdAA4,"c:#0000b2;h:2;s:4;f:30");
+STL(mbdBB4,"c:#0000b2;h:2;s:4;f:30");
+STL(partAB4,"c:#0024ff;s:1;sn:true;f:30;p:0");
+STL(Center23,"c:#0000b2;h:1;s:4;f:30");
+STL(invM1,"c:#0000b2;h:2;s:4;f:30");
+STL(invM2,"c:#0000b2;h:2;s:4;f:30");
+STL(C12,"c:#cc66cc;h:2;s:1;f:30;p:0");
+STL(partBbdB4,"c:#0024ff;h:1;s:1;sn:true;f:30;p:0");
+STL(partAbdA4,"c:#0024ff;h:1;s:1;sn:true;f:30;p:0");
+STL(oAB1,"c:#0000b2;h:1;s:4;f:30");
+STL(Center24,"c:#0000b2;h:1;s:4;f:30");
+STL(Center25,"c:#0000b2;h:1;s:4;f:30");
+STL(antiinvM1,"c:#0000b2;h:2;s:4;f:30");
+STL(antiinvM2,"c:#0000b2;h:2;s:4;f:30");
+STL(Id11,"c:#0000b2;h:2;s:4;f:30");
+STL(Id21,"c:#0000b2;h:2;s:4;f:30");
+STL(GereSeg4,"c:#577f1d;h:1;s:7;f:17;p:2;cL:200;cPT:YzojNzgwMDEzO2g6MTtzOjQ7ZjozMA==");
+STL(D,"c:#fc092f;s:4;sn:true;f:15;sp:2;np:3.423761987419626");
+STL(E,"c:#fc092f;s:4;sn:true;f:15;sp:2;np:5.007658333806656");
+STL(bdA1,"c:#0000b2;h:2;s:4;f:30");
+STL(bdB1,"c:#0000b2;h:2;s:4;f:30");
+STL(mAB1,"c:#0000b2;h:2;s:4;f:30");
+STL(invM3,"c:#0000b2;h:2;s:4;f:30");
+STL(LongAB,"c:#780013;h:2;s:7;f:24;p:2;cL:200;cPT:YzojNzgwMDEzO2g6MjtzOjQ7ZjozMA==");
+STL(C10,"c:#cc66cc;h:2;s:1;f:30;p:0");
+STL(antiA3,"c:#0000b2;h:2;s:4;f:30");
+STL(LongAB0,"c:#780013;h:2;s:7;f:24;p:2;cL:200;cPT:YzojNzgwMDEzO2g6MjtzOjQ7ZjozMA==");
+STL(mIdAA1,"c:#0000b2;h:2;s:4;f:30");
+STL(mbdBB1,"c:#0000b2;h:2;s:4;f:30");
+STL(partAB1,"c:#0024ff;s:1;sn:true;f:30;p:0");
+STL(LongAB2,"c:#780013;h:2;s:7;f:24;p:2;cL:200;cPT:YzojNzgwMDEzO2g6MjtzOjQ7ZjozMA==");
+STL(C13,"c:#cc66cc;h:2;s:1;f:30;p:0");
+STL(antiA6,"c:#0000b2;h:2;s:4;f:30");
+STL(LongAB3,"c:#780013;h:2;s:7;f:24;p:2;cL:200;cPT:YzojNzgwMDEzO2g6MjtzOjQ7ZjozMA==");
+STL(oAB,"c:#0000b2;h:1;s:4;f:30");
+STL(Center14,"c:#0000b2;h:1;s:4;f:30");
+STL(oAB2,"c:#0000b2;h:1;s:4;f:30");
+STL(antiinvM3,"c:#0000b2;h:2;s:4;f:30");
+STL(Id1,"c:#0000b2;h:2;s:4;f:30");
+STL(Id2,"c:#0000b2;h:2;s:4;f:30");
+STL(C11,"c:#cc66cc;h:2;s:1;f:30;p:0");
+STL(partBbdB1,"c:#0024ff;h:1;s:1;sn:true;f:30;p:0");
+STL(partAbdA1,"c:#0024ff;h:1;s:1;sn:true;f:30;p:0");
+STL(Id12,"c:#0000b2;h:2;s:4;f:30");
+STL(Id22,"c:#0000b2;h:2;s:4;f:30");
+STL(C14,"c:#cc66cc;h:2;s:1;f:30;p:0");
+STL(oAB0,"c:#0000b2;h:1;s:4;f:30");
+STL(Center15,"c:#0000b2;h:1;s:4;f:30");
+STL(Center16,"c:#0000b2;h:1;s:4;f:30");
+STL(oAB3,"c:#0000b2;h:1;s:4;f:30");
+STL(F,"c:#fc092f;s:4;sn:true;f:15;sp:2;np:3.780897995507777");
+STL(bdA,"c:#0000b2;h:2;s:4;f:30");
+STL(bdB,"c:#0000b2;h:2;s:4;f:30");
+STL(mAB,"c:#0000b2;h:2;s:4;f:30");
+STL(Id10,"c:#0000b2;h:2;s:4;f:30");
+STL(Id20,"c:#0000b2;h:2;s:4;f:30");
+STL(GereSeg1,"c:#577f1d;h:1;s:7;f:17;p:2;cL:200;cPT:YzojNzgwMDEzO2g6MTtzOjQ7ZjozMA==");
+STL(bdA2,"c:#0000b2;h:2;s:4;f:30");
+STL(bdB2,"c:#0000b2;h:2;s:4;f:30");
+STL(mAB2,"c:#0000b2;h:2;s:4;f:30");
+STL(Id13,"c:#0000b2;h:2;s:4;f:30");
+STL(Id23,"c:#0000b2;h:2;s:4;f:30");
+STL(mIdAA,"c:#0000b2;h:2;s:4;f:30");
+STL(mbdBB,"c:#0000b2;h:2;s:4;f:30");
+STL(partAB,"c:#0024ff;s:1;sn:true;f:30;p:0");
+STL(bdA0,"c:#0000b2;h:2;s:4;f:30");
+STL(bdB0,"c:#0000b2;h:2;s:4;f:30");
+STL(mAB0,"c:#0000b2;h:2;s:4;f:30");
+STL(mIdAA2,"c:#0000b2;h:2;s:4;f:30");
+STL(mbdBB2,"c:#0000b2;h:2;s:4;f:30");
+STL(partAB2,"c:#0024ff;h:1;s:1;sn:true;f:30;p:0");
+STL(bdA3,"c:#0000b2;h:2;s:4;f:30");
+STL(bdB3,"c:#0000b2;h:2;s:4;f:30");
+STL(mAB3,"c:#0000b2;h:2;s:4;f:30");
+STL(LongAB5,"c:#780013;h:2;s:7;f:24;p:2;cL:200;cPT:YzojNzgwMDEzO2g6MjtzOjQ7ZjozMA==");
+STL(C16,"c:#cc66cc;h:2;s:1;f:30;p:0");
+STL(antiA9,"c:#0000b2;h:2;s:4;f:30");
+STL(LongAB6,"c:#780013;h:2;s:7;f:24;p:2;cL:200;cPT:YzojNzgwMDEzO2g6MjtzOjQ7ZjozMA==");
+STL(Center8,"c:#0000b2;h:1;s:4;f:30");
+STL(Center17,"c:#0000b2;h:1;s:4;f:30");
+STL(oAB5,"c:#0000b2;h:1;s:4;f:30");
+STL(partBbdB,"c:#0024ff;h:1;s:1;sn:true;f:30;p:0");
+STL(partAbdA,"c:#0024ff;h:1;s:1;sn:true;f:30;p:0");
+STL(mIdAA0,"c:#0000b2;h:2;s:4;f:30");
+STL(mbdBB0,"c:#0000b2;h:2;s:4;f:30");
+STL(partAB0,"c:#0024ff;s:1;sn:true;f:30;p:0");
+STL(partBbdB2,"c:#0024ff;s:1;sn:true;f:30;p:0");
+STL(partAbdA2,"c:#0024ff;s:1;sn:true;f:30;p:0");
+STL(mIdAA3,"c:#0000b2;h:2;s:4;f:30");
+STL(mbdBB3,"c:#0000b2;h:2;s:4;f:30");
+STL(partAB3,"c:#0024ff;s:1;sn:true;f:30;p:0");
+STL(Id15,"c:#0000b2;h:2;s:4;f:30");
+STL(Id25,"c:#0000b2;h:2;s:4;f:30");
+STL(C17,"c:#cc66cc;h:2;s:1;f:30;p:0");
+STL(Center90,"c:#0000b2;h:1;s:4;f:30");
+STL(Center100,"c:#0000b2;h:1;s:4;f:30");
+STL(Center11,"c:#0000b2;h:1;s:4;f:30");
+STL(Center180,"c:#0000b2;h:1;s:4;f:30");
+STL(Center190,"c:#0000b2;h:1;s:4;f:30");
+STL(Center20,"c:#0000b2;h:1;s:4;f:30");
+STL(oAB6,"c:#0000b2;h:1;s:4;f:30");
+STL(GereSeg,"c:#577f1d;h:1;s:7;f:17;p:2;cL:200;cPT:YzojNzgwMDEzO2g6MTtzOjQ7ZjozMA==");
+STL(partBbdB0,"c:#0024ff;h:1;s:1;sn:true;f:30;p:0");
+STL(partAbdA0,"c:#0024ff;h:1;s:1;sn:true;f:30;p:0");
+STL(GereSeg2,"c:#577f1d;h:1;s:7;f:17;p:2;cL:200;cPT:YzojNzgwMDEzO2g6MTtzOjQ7ZjozMA==");
+STL(partBbdB3,"c:#0024ff;h:1;s:1;sn:true;f:30;p:0");
+STL(partAbdA3,"c:#0024ff;h:1;s:1;sn:true;f:30;p:0");
+STL(bdA5,"c:#0000b2;h:2;s:4;f:30");
+STL(bdB5,"c:#0000b2;h:2;s:4;f:30");
+STL(mAB5,"c:#0000b2;h:2;s:4;f:30");
+STL(Id16,"c:#0000b2;h:2;s:4;f:30");
+STL(Id26,"c:#0000b2;h:2;s:4;f:30");
+STL(Center120,"c:#0000b2;h:1;s:4;f:30");
+STL(Center130,"c:#0000b2;h:1;s:4;f:30");
+STL(Center21,"c:#0000b2;h:1;s:4;f:30");
+STL(Center22,"c:#0000b2;h:1;s:4;f:30");
+STL(GereSeg0,"c:#577f1d;h:1;s:7;f:17;p:2;cL:200;cPT:YzojNzgwMDEzO2g6MTtzOjQ7ZjozMA==");
+STL(GereSeg3,"c:#577f1d;h:1;s:7;f:17;p:2;cL:200;cPT:YzojNzgwMDEzO2g6MTtzOjQ7ZjozMA==");
+STL(mIdAA5,"c:#0000b2;h:2;s:4;f:30");
+STL(mbdBB5,"c:#0000b2;h:2;s:4;f:30");
+STL(partAB5,"c:#0024ff;h:1;s:1;sn:true;f:30;p:0");
+STL(bdA6,"c:#0000b2;h:2;s:4;f:30");
+STL(bdB6,"c:#0000b2;h:2;s:4;f:30");
+STL(mAB6,"c:#0000b2;h:2;s:4;f:30");
+STL(Center26,"c:#0000b2;h:1;s:4;f:30");
+STL(partBbdB5,"c:#0024ff;s:1;sn:true;f:30;p:0");
+STL(partAbdA5,"c:#0024ff;s:1;sn:true;f:30;p:0");
+STL(mIdAA6,"c:#0000b2;h:2;s:4;f:30");
+STL(mbdBB6,"c:#0000b2;h:2;s:4;f:30");
+STL(partAB6,"c:#0024ff;s:1;sn:true;f:30;p:0");
+STL(Center27,"c:#0000b2;h:1;s:4;f:30");
+STL(Center28,"c:#0000b2;h:1;s:4;f:30");
+STL(Center29,"c:#0000b2;h:1;s:4;f:30");
+STL(GereSeg5,"c:#577f1d;h:1;s:7;f:17;p:2;cL:200;cPT:YzojNzgwMDEzO2g6MTtzOjQ7ZjozMA==");
+STL(partBbdB6,"c:#0024ff;h:1;s:1;sn:true;f:30;p:0");
+STL(partAbdA6,"c:#0024ff;h:1;s:1;sn:true;f:30;p:0");
+STL(Center30,"c:#0000b2;h:1;s:4;f:30");
+STL(Center31,"c:#0000b2;h:1;s:4;f:30");
+STL(GereSeg6,"c:#577f1d;h:1;s:7;f:17;p:2;cL:200;cPT:YzojNzgwMDEzO2g6MTtzOjQ7ZjozMA==");
+SetCoordsStyle("isAxis:false;isGrid:true;isOx:true;isOy:true;isLockOx:false;isLockOy:false;centerZoom:false;onlyPositive:false;color:#111111;fontSize:18;axisWidth:1;gridWidth:0.1");
+SetGeneralStyle("background-color:#ffffff;degree:true;dragmoveable:true");
