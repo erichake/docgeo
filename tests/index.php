@@ -80,7 +80,7 @@
 <?php foreach ($tree['files'] as $file):
         $url = $base . $path . '/' . rawurlencode($file);
         $ext = strtolower(pathinfo($file, PATHINFO_EXTENSION)); ?>
-  <li><a href="<?php echo h(link_to($viewer, $url)) ?>" target="_blank"><?php echo h($file) ?></a><?php if (isset($natives[$ext])): ?><a class="native" href="<?php echo h(link_to($natives[$ext], $url)) ?>" target="_blank" title="Ouvrir dans <?php echo $ext === 'dgp' ? 'DGPad' : 'GeoGebra' ?>"><?php echo $ext ?></a><?php endif; ?><a class="raw" href="<?php echo h($url) ?>" download title="Télécharger">↓</a></li>
+  <li><a href="<?php echo h(link_to($viewer, $url)) ?>" target="_blank" title="<?php echo h($file) ?>"><?php echo h($file) ?></a><?php if (isset($natives[$ext])): ?><a class="native" href="<?php echo h(link_to($natives[$ext], $url)) ?>" target="_blank" title="Ouvrir dans <?php echo $ext === 'dgp' ? 'DGPad' : 'GeoGebra' ?>"><?php echo $ext ?></a><?php endif; ?><a class="raw" href="<?php echo h($url) ?>" download title="Télécharger">↓</a></li>
 <?php endforeach; ?>
 </ul>
 <?php }
@@ -107,7 +107,9 @@
   details details > summary { font-weight: 600; margin-left: -12px; }
   details details > summary + * { margin-top: 4px; }
   ul { list-style: none; margin: 0; padding: 0; columns: 220px; column-gap: 24px; }
-  li { padding: 2px 0; break-inside: avoid; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  li { display: flex; align-items: baseline; padding: 2px 0; break-inside: avoid; white-space: nowrap; }
+  li > a:first-child { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+  li > a + a { flex-shrink: 0; }
   .hidden { display: none; }
   a { color: var(--link); text-decoration: none; }
   a:hover { text-decoration: underline; }
