@@ -202,13 +202,21 @@ describe("GGB importer", () => {
         });
     });
 
-    it("dashes strokes with GeoGebra's pattern for their line type", async () => {
+    it("dashes strokes with GeoGebra's pattern and line opacity", async () => {
         const c = createConstruction();
         importGgb(c, await loadXml("pointilles"));
-        // Long dashes, 8 + width long, of a 2.5 px stroke (thickness 5).
-        ["f", "g", "c", "d", "e", "i", "j", "k", "l"].forEach((name) =>
-            expect(c.getObj(name)!.dash, name).toEqual([10.5, 8]),
-        );
+        // Long dashes, 8 + width long, of a 2.5 px stroke (thickness 5),
+        // and GeoGebra's default line opacity, 178 / 255.
+        ["f", "g", "c", "d", "e", "i", "j", "k", "l"].forEach((name) => {
+            const object = c.getObj(name)!;
+            expect(object.dash, name).toEqual([10.5, 8]);
+            expect(object.strokeOpacity, name).toBe(178 / 255);
+            expect(
+                Number((object.dom.dom() as SVGElement).style.strokeOpacity),
+            ).toBeCloseTo(178 / 255, 5);
+        });
+        expect(c.getObj("A")!.strokeOpacity).toBe(1);
+        expect(c.getObj("q1")!.opacity).not.toBe(178 / 255);
     });
 
     it("marks right angles with GeoGebra's square, of diagonal arcSize", async () => {

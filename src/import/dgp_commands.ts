@@ -576,6 +576,7 @@ function validateObjectStyle(
                     );
                 break;
             case "o":
+            case "lo":
                 validateNumber(propertyValue, lineNumber, 0, 1);
                 break;
             case "s":
@@ -759,6 +760,9 @@ function applyObjectStyle(
                 break;
             case "o":
                 target.opacity = Number(propertyValue);
+                break;
+            case "lo":
+                target.strokeOpacity = Number(propertyValue);
                 break;
             case "s":
                 target.size = Number(propertyValue);

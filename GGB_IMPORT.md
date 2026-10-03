@@ -61,6 +61,7 @@ commande non gérée n'est pas une cause. L'API utilisée est
 | 2026-09-28 | 251 / 470 (53 %)   | 269,3 Ko | item 15 bis : images d'images par une transformation (+0)          |
 | 2026-09-28 | 251 / 470 (53 %)   | 269,8 Ko | item 15 ter : points sur une perpendiculaire ou parallèle (+0)     |
 | 2026-10-03 | —                  | 275,8 Ko | item 17 : pointillés des traits (style, +0)                        |
+| 2026-10-03 | —                  | 276,1 Ko | item 18 : opacité des traits (style, +0)                           |
 
 ## À faire, par rapport gain / coût
 
@@ -316,8 +317,14 @@ cause.
       `8+w, 8`, `w, 3`, `8+w, 4, w, 4`), et pointille droites, segments,
       cercles, arcs, coniques, contours de polygones, courbes et lieux.
       Aucun gain sur le compte des figures sans perte (c'est un style) ;
-      build +0,15 Ko. Reste l'opacité du trait (`opacity` de `lineStyle`,
-      178 par défaut), toujours ignorée.
+      build +0,15 Ko.
+- [x] **18. Opacité du trait** : l'`opacity` de `lineStyle` (0 à 255, 178
+      par défaut, écrite seulement en dessous de 255) était ignorée, les
+      traits étant opaques. Fait : elle devient le style `lo`, appliquée
+      comme `Drawable.getObjectColor` à la couleur des traits seulement
+      (`stroke-opacity` du groupe de l'objet, pointes des droites et point
+      d'angle droit compris), jamais au remplissage. Aucun gain sur le
+      compte des figures sans perte ; build +0,3 Ko.
 
 À écarter, sauf changement de priorité : calcul formel, courbes implicites,
 statistiques et probabilités, tableur au-delà des cellules simples, matrices.

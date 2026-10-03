@@ -67,6 +67,8 @@ export class construction_object {
     locked = false;
     // Its stroke's dash pattern, in pixels: solid when empty.
     dash: number[] = [];
+    // GeoGebra's line opacity, its strokes' only.
+    strokeOpacity = 1;
     hasView: boolean;
     // Assigned by objects_collector.add(): a construction-order counter used
     // to process dirty objects in the same order as the (assumed
@@ -214,7 +216,9 @@ export class construction_object {
 
     createSVG(): void {
         const previous = this.dom;
-        this.dom = this.class.createSVG(this);
+        this.dom = this.class
+            .createSVG(this)
+            .stl("stroke-opacity", this.strokeOpacity);
         // Restyled, it keeps its place in its layer, whatever the moment it
         // is restyled at.
         if (this.hasView) previous.dom().replaceWith(this.dom.dom());

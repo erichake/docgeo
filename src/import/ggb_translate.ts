@@ -1333,6 +1333,8 @@ export function translateGgb(
                 GGB_DASHES[attribute(element, "lineStyle", "type") ?? ""];
             if (dash)
                 parts.push(`ld:${dash(Number(thickness ?? 5) / 2).join(",")}`);
+            const lineOpacity = attribute(element, "lineStyle", "opacity");
+            if (lineOpacity) parts.push(`lo:${Number(lineOpacity) / 255}`);
             const alpha = Number(color?.getAttribute("alpha") ?? 0);
             if (alpha > 0 && alpha <= 1) parts.push(`o:${alpha}`);
             const decoration = attribute(element, "decoration", "type");

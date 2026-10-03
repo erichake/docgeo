@@ -300,6 +300,7 @@ postérieur.
 | `ra` | `Ang`        | marque d'angle droit                     | `dgpad`                           |
 | `dc` | `Seg`, `Vec` | décoration (0 à 6)                       | 0                                 |
 | `dh` | tous         | motif de pointillés, en pixels           | `[]` (trait plein)                |
+| `lo` | tous         | opacité du trait (GeoGebra)              | 1                                 |
 | `is` | `Ex`         | pas du curseur                           | 0                                 |
 | `cL` | `Ex`         | longueur du curseur                      | 200                               |
 | `cV` | `Ex`         | curseur vertical                         | 0                                 |

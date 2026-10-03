@@ -213,6 +213,7 @@ export class angle_object extends construction_object {
                 .shape("circle")
                 .att("r", 2 * t.size)
                 .stl("fill", t.stroke_color)
+                .stl("fill-opacity", t.strokeOpacity)
                 .stl("pointer-events", "none");
             dom.add(t.dot);
         }

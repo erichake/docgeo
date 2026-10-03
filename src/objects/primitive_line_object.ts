@@ -380,11 +380,13 @@ export class primitive_line_object extends construction_object {
         t.tipPath1 = t.svg
             .shape("path")
             .stl("fill", t.stroke_color)
+            .stl("fill-opacity", t.strokeOpacity)
             .stl("stroke", "none")
             .stl("pointer-events", "none");
         t.tipPath2 = t.svg
             .shape("path")
             .stl("fill", t.stroke_color)
+            .stl("fill-opacity", t.strokeOpacity)
             .stl("stroke", "none")
             .stl("pointer-events", "none");
         return dom.add(t.hitArea, t.path, t.hiddenPath, t.tipPath1, t.tipPath2);

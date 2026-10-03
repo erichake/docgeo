@@ -371,6 +371,12 @@ const STYLE: Record<string, Property> = {
         (value) =>
             Array.isArray(value) && value.every(isNumber) && isDash(value),
     ),
+    lo: field(
+        construction_object,
+        "strokeOpacity",
+        1,
+        (value) => isNumber(value) && value >= 0 && value <= 1,
+    ),
     is: field(expression_object, "increment", 0, isNumber),
     cL: field(expression_object, "cursorLength", 200, isNumber),
     cV: flag(expression_object, "vertical"),
