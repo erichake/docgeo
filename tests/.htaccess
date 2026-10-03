@@ -1,0 +1,7 @@
+# DocGeo, served from another origin (doctools.org, localhost…), fetches the
+# figures it opens through ?url=.
+<IfModule mod_headers.c>
+    <FilesMatch "\.(dgo|dgp|ggb)$">
+        Header set Access-Control-Allow-Origin "*"
+    </FilesMatch>
+</IfModule>

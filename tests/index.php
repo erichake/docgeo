@@ -1,22 +1,29 @@
 <?php
-// Index of the test figures, each opened in DocGeo through its ?url= parameter.
-// ?viewer=… replaces the viewer, e.g. ?viewer=http://localhost:5175/apps/docgeo/index.html
-$viewer = 'https://doctools.org/apps/docgeo/index.html';
-if (isset($_GET['viewer']) && preg_match('#^https?://#', $_GET['viewer'])) {
+    // Index of the test figures, each opened in DocGeo through its ?url= parameter.
+    // ?viewer=… replaces the viewer, e.g. ?viewer=http://localhost:5175/apps/docgeo/index.html
+    $viewer = 'https://doctools.org/apps/docgeo/index.html';
+    if (isset($_GET['viewer']) && preg_match('#^https?://#', $_GET['viewer'])) {
     $viewer = $_GET['viewer'];
-}
-$https = !empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off';
-$base = ($https ? 'https' : 'http') . '://' . $_SERVER['HTTP_HOST']
+    }
+    $https = ! empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off';
+    $base  = ($https ? 'https' : 'http') . '://' . $_SERVER['HTTP_HOST']
     . rtrim(dirname($_SERVER['SCRIPT_NAME']), '/') . '/';
 
-// Folder tree of the figures with the given extension, empty folders pruned.
-function scan($dir, $ext) {
+    // Folder tree of the figures with the given extension, empty folders pruned.
+    function scan($dir, $ext)
+    {
     $tree = ['dirs' => [], 'files' => [], 'count' => 0];
     foreach (scandir($dir) ?: [] as $name) {
-        if ($name[0] === '.') continue;
+        if ($name[0] === '.') {
+            continue;
+        }
+
         if (is_dir("$dir/$name")) {
             $sub = scan("$dir/$name", $ext);
-            if ($sub['count']) $tree['dirs'][$name] = $sub;
+            if ($sub['count']) {
+                $tree['dirs'][$name] = $sub;
+            }
+
         } elseif (strtolower(pathinfo($name, PATHINFO_EXTENSION)) === $ext) {
             $tree['files'][] = $name;
         }
@@ -25,35 +32,47 @@ function scan($dir, $ext) {
     natcasesort($tree['files']);
     $tree['count'] = count($tree['files']) + array_sum(array_column($tree['dirs'], 'count'));
     return $tree;
-}
+    }
 
-$sections = [];
-foreach (['dgo', 'dgp', 'ggb'] as $ext) {
-    if (!is_dir(__DIR__ . "/$ext")) continue;
+    $sections = [];
+    foreach (['dgo', 'dgp', 'ggb'] as $ext) {
+    if (! is_dir(__DIR__ . "/$ext")) {
+        continue;
+    }
+
     $tree = scan(__DIR__ . "/$ext", $ext);
-    if ($tree['count']) $sections[$ext] = $tree;
-}
+    if ($tree['count']) {
+        $sections[$ext] = $tree;
+    }
 
-function h($s) { return htmlspecialchars($s, ENT_QUOTES, 'UTF-8'); }
+    }
 
-// The figure's URL is encoded once more as a query value, ':' and '/' kept
-// readable since they are allowed there.
-function link_to($viewer, $url) {
+    function h($s)
+    {return htmlspecialchars($s, ENT_QUOTES, 'UTF-8');}
+
+    // The figure's URL is encoded once more as a query value, ':' and '/' kept
+    // readable since they are allowed there.
+    function link_to($viewer, $url)
+    {
     return $viewer . '?url=' . str_replace(['%3A', '%2F'], [':', '/'], rawurlencode($url));
-}
+    }
 
-function render($tree, $path, $viewer, $base) {
+    function render($tree, $path, $viewer, $base)
+    {
     foreach ($tree['dirs'] as $name => $sub): ?>
 <details>
-  <summary><?= h($name) ?> <small>(<span class="count"><?= $sub['count'] ?></span>)</small></summary>
+  <summary><?php echo h($name) ?> <small>(<span class="count"><?php echo $sub['count'] ?></span>)</small></summary>
   <?php render($sub, "$path/" . rawurlencode($name), $viewer, $base); ?>
 </details>
 <?php endforeach;
-    if (!$tree['files']) return; ?>
+    if (! $tree['files']) {
+        return;
+    }
+    ?>
 <ul>
 <?php foreach ($tree['files'] as $file):
-      $url = $base . $path . '/' . rawurlencode($file); ?>
-  <li><a href="<?= h(link_to($viewer, $url)) ?>" target="_blank" rel="noopener"><?= h($file) ?></a><a class="raw" href="<?= h($url) ?>" download title="Télécharger">↓</a></li>
+        $url = $base . $path . '/' . rawurlencode($file); ?>
+  <li><a href="<?php echo h(link_to($viewer, $url)) ?>" target="_blank"><?php echo h($file) ?></a><a class="raw" href="<?php echo h($url) ?>" download title="Télécharger">↓</a></li>
 <?php endforeach; ?>
 </ul>
 <?php }
@@ -63,7 +82,7 @@ function render($tree, $path, $viewer, $base) {
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Figures de test DocGeo</title>
+<title>Figures de test DocGeo pour voir</title>
 <style>
   :root { color-scheme: light dark; --fg: #1d1d1f; --muted: #6e6e73; --bg: #fff; --line: #e5e5ea; --link: #0a66c2; }
   @media (prefers-color-scheme: dark) {
@@ -89,11 +108,11 @@ function render($tree, $path, $viewer, $base) {
 </head>
 <body>
 <h1>Figures de test DocGeo</h1>
-<p>Chaque figure s'ouvre dans <a href="<?= h($viewer) ?>"><?= h($viewer) ?></a>, dans une nouvelle fenêtre.</p>
+<p>Chaque figure s'ouvre dans <a href="<?php echo h($viewer) ?>"><?php echo h($viewer) ?></a>.</p>
 <input type="search" id="filter" placeholder="Filtrer…" autofocus>
 <?php foreach ($sections as $ext => $tree): ?>
 <details class="section" open>
-  <summary><?= h($ext) ?> <small>(<span class="count"><?= $tree['count'] ?></span>)</small></summary>
+  <summary><?php echo h($ext) ?> <small>(<span class="count"><?php echo $tree['count'] ?></span>)</small></summary>
   <?php render($tree, $ext, $viewer, $base); ?>
 </details>
 <?php endforeach; ?>
