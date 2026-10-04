@@ -457,6 +457,18 @@ describe("evaluateProgram", () => {
         expect(run("function f(){return f()};f()")).toBeNull();
     });
 
+    it("runs the programs Blockly compiles", () => {
+        expect(
+            run(
+                "var bl_a=function(){\nblockly_var_t = [];\nfor (var blockly_var_i = 1 ; blockly_var_i <= 3 ; blockly_var_i = blockly_var_i + 1){\n  blockly_var_t.push([Math.times(blockly_var_i,2),NaN]);\n};\nreturn (blockly_var_t);\n};\nbl_a()",
+            ),
+        ).toEqual([
+            [2, NaN],
+            [4, NaN],
+            [6, NaN],
+        ]);
+    });
+
     it("tells the figure's objects from its functions and their variables", () => {
         expect(
             programReferences(
@@ -481,7 +493,7 @@ describe("evaluateProgram", () => {
         "document.write(1)",
         "A.constructor",
         "S1.setHidden()",
-        "var f=function(){return 1};f()",
+        "var f=(function(){return 1})",
         "a.b=1",
         "a.length=1",
         "[1][0]=2",

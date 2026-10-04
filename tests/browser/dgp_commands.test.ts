@@ -9,7 +9,13 @@ import type { fixed_angle_object } from "../../src/objects/fixed_angle_object";
 import { panel_object } from "../../src/objects/panel_object";
 import type { point_object } from "../../src/objects/point_object";
 import type { two_points_line_object } from "../../src/objects/two_points_line_object";
-import { createConstruction, disposeFigures, figure, frame } from "./figures";
+import {
+    createConstruction,
+    disposeFigures,
+    expectClose,
+    figure,
+    frame,
+} from "./figures";
 
 disposeFigures();
 
@@ -80,6 +86,42 @@ v=Expression("v","","","","S1*100+C1*10+a/90+Poly1/1000","0","0");`,
         );
         c.OBJS.update();
         expect(value(c, "v")).toBeCloseTo(300 + 40 + 1 + 0.006, 12);
+    });
+
+    it("derives function expressions, derivatives of derivatives included", () => {
+        const c = createConstruction();
+        const unsupported = importDgp(
+            c,
+            `a=Expression("a","","","","3","0","0");
+f=Expression("f","","","","a*sin(t)+t^3","0","0");
+d1=Expression("d1","","","","f.dt(t)","0","0");
+d2=Expression("d2","","","","d1.dt(t)","0","0");
+d3=Expression("d3","","","","d2.dt(t)","0","0");
+v=Expression("v","","","","[d1(2),d2(2),d3(2)]","0","0");
+SetGeneralStyle("degree:false");`,
+        );
+        c.OBJS.update();
+        expect(unsupported).toEqual([]);
+        expectClose(value(c, "v") as number[], [
+            3 * Math.cos(2) + 12,
+            -3 * Math.sin(2) + 12,
+            -3 * Math.cos(2) + 6,
+        ]);
+    });
+
+    it("reads a slider's bounds naming an object declared later", () => {
+        const c = createConstruction();
+        const unsupported = importDgp(
+            c,
+            `n=Expression("n","","","","30","0","0");
+s=Expression("s","","0","1+floor(n*m)","12","0","0");
+m=Expression("m","","","","2*n","0","0");
+v=Expression("v","","","","s+m","0","0");`,
+        );
+        c.OBJS.update();
+        expect(unsupported).toEqual([]);
+        expect((c.getObj("s") as expression_object).max).toBe(1801);
+        expect(value(c, "v")).toBe(72);
     });
 
     it("turns a fixed angle given by a formula, in the figure's unit", () => {

@@ -2397,6 +2397,26 @@ const COMMANDS = new Map<string, CommandDefinition>([
         },
     ],
     [
+        "BLK",
+        {
+            // The source of an object's Blockly editor: an Expression's
+            // "oncompute" program is also its formula, run as any script.
+            // The other programs never run.
+            parameters: [object, string],
+            validate: (args, lineNumber) => {
+                if (
+                    Object.keys(JSON.parse(literalString(args[1]))).some(
+                        (mode) => mode !== "oncompute" && mode !== "current",
+                    )
+                )
+                    throw new Error(
+                        `Unsupported Blockly program at line ${lineNumber}`,
+                    );
+            },
+            execute: () => {},
+        },
+    ],
+    [
         "SetCoordsStyle",
         {
             parameters: [string],
@@ -2595,6 +2615,39 @@ function convertLegacyPoint3D(calls: DgpCall[]): DgpCall[] {
     );
 }
 
+// DGPad reads a slider's bounds only when it needs them: they may name an
+// object the file declares later, which is then moved before the slider,
+// with the declarations it names in turn.
+function orderSliderBounds(calls: DgpCall[]): DgpCall[] {
+    const declarations = new Map(
+        calls.flatMap((call) => (call.variable ? [[call.variable, call]] : [])),
+    );
+    const ordered = new Set<DgpCall>();
+    const pending = new Set<DgpCall>();
+    const place = (call: DgpCall, names: string[]): void => {
+        if (ordered.has(call) || pending.has(call)) return;
+        pending.add(call);
+        names.forEach((name) => {
+            const declaration = declarations.get(name);
+            if (declaration)
+                place(
+                    declaration,
+                    declaration.arguments.flatMap(referencedNames),
+                );
+        });
+        ordered.add(call);
+    };
+    calls.forEach((call) =>
+        place(
+            call,
+            call.name.startsWith("Expression")
+                ? call.arguments.slice(2, 4).flatMap(referencedNames)
+                : [],
+        ),
+    );
+    return [...ordered];
+}
+
 // A call that can't be imported is skipped with its dependents, and only
 // it is reported: the rest of the figure is still imported.
 function validateCalls(calls: DgpCall[]): {
@@ -2605,8 +2658,9 @@ function validateCalls(calls: DgpCall[]): {
     const skipped = new Set<string>();
     const unsupported: string[] = [];
     const valid = calls.filter((call) => {
-        // The initial values of the Blockly programs' variables: these
-        // programs are never run, and each is reported with its object.
+        // The initial values of the Blockly programs' global variables,
+        // which only the programs never run use: each is reported with its
+        // object.
         if (call.name === "BLK_GLOB_SET") return false;
         try {
             validateCall(call, variables);
@@ -2643,7 +2697,9 @@ export function executeDgpCommands(
     calls: DgpCall[],
     is3D = false,
 ): { variables: Map<string, construction_object>; unsupported: string[] } {
-    const { valid, unsupported } = validateCalls(convertLegacyPoint3D(calls));
+    const { valid, unsupported } = validateCalls(
+        orderSliderBounds(convertLegacyPoint3D(calls)),
+    );
     // DGPad is in degrees unless the figure says otherwise, in its
     // SetGeneralStyle, which comes after the objects that depend on it.
     c.degrees = true;

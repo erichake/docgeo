@@ -25,8 +25,14 @@ Les développements doivent servir en priorité :
 
 - l'import sûr des formats `.dgp` et `.ggb`, toute exécution de leur contenu
   devant avoir lieu dans un environnement sécurisé et strictement contrôlé (les
-  scripts GeoGebra ne sont jamais exécutés, ni les programmes Blockly, le
-  JavaScript et le HTML actif des figures DGPad, ignorés et signalés) ;
+  scripts GeoGebra ne sont jamais exécutés, ni le JavaScript et le HTML actif
+  des figures DGPad, ignorés et signalés). Les scripts des expressions DGPad,
+  dont les programmes Blockly qui calculent une expression (`oncompute`),
+  compilés en JavaScript par DGPad, sont lus par l'interpréteur de
+  `src/import/dgp_formula.ts`, jamais par le moteur JavaScript du navigateur :
+  n'étendre sa grammaire fermée qu'aux constructions qu'utilisent des figures
+  réelles. Les autres programmes Blockly (tortue, événements) restent ignorés
+  et signalés ;
 - la lecture et l'écriture fidèles du format `.dgo` ;
 - la compatibilité géométrique et graphique avec DGPad et GeoGebra ;
 - la manipulation des objets existants ;

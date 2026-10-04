@@ -1,6 +1,7 @@
 import { advance, type Animation } from "../animation";
 import type { construction } from "../construction";
 import { $, type DOMElement } from "../dom";
+import { derivative } from "../import/dgp_derivative";
 import {
     evaluateFormula,
     evaluateProgram,
@@ -147,18 +148,53 @@ export interface ExpressionProgram {
     vec3: boolean;
 }
 
-// A call "E1(...)" of a function-valued expression or a curve among `refs`.
+const functionFormula = (ref: construction_object | undefined) =>
+    (ref instanceof expression_object || ref instanceof curve_object) &&
+    ref.formula
+        ? ref.formula
+        : null;
+
+// A call "E1(...)" of a function-valued expression or a curve among `refs`,
+// or of its derivative with respect to each of `derivatives` in turn.
 export function callFunction(
     refs: Map<string, construction_object>,
     name: string,
     args: FormulaValue[],
     view: FormulaView,
+    derivatives: string[] = [],
 ): FormulaValue | null {
-    const ref = refs.get(name);
-    return (ref instanceof expression_object || ref instanceof curve_object) &&
-        ref.formula
-        ? evaluateFunction(ref.formula, args, view)
-        : null;
+    const formula = functionFormula(refs.get(name));
+    const derived = formula && derivedFormula(formula, derivatives);
+    return derived ? evaluateFunction(derived, args, view) : null;
+}
+
+const DERIVED = new WeakMap<
+    ExpressionFormula,
+    Map<string, ExpressionFormula | null>
+>();
+
+// Computed once from the formula the object has.
+function derivedFormula(
+    formula: ExpressionFormula,
+    derivatives: string[],
+): ExpressionFormula | null {
+    if (derivatives.length === 0) return formula;
+    const cache = DERIVED.get(formula) ?? new Map();
+    DERIVED.set(formula, cache);
+    const key = derivatives.join();
+    if (!cache.has(key)) {
+        const previous = derivedFormula(formula, derivatives.slice(0, -1));
+        const node =
+            previous &&
+            derivative(
+                previous.node,
+                derivatives[derivatives.length - 1],
+                (name) =>
+                    functionFormula(formula.refs.get(name))?.variables ?? null,
+            );
+        cache.set(key, node && { ...formula, node });
+    }
+    return cache.get(key)!;
 }
 
 export function evaluateFunction(
@@ -174,8 +210,8 @@ export function evaluateFunction(
                 : formula.refs.get(name)!.scriptValue(formula.vec3);
         },
         view: () => view,
-        callFunction: (name, callArgs) =>
-            callFunction(formula.refs, name, callArgs, view),
+        callFunction: (name, callArgs, derivatives) =>
+            callFunction(formula.refs, name, callArgs, view, derivatives),
     });
 }
 
@@ -385,8 +421,14 @@ export class expression_object extends construction_object {
                 const turn = 2 * Math.PI;
                 return angle - Math.floor(angle / turn) * turn;
             },
-            callFunction: (name, args) =>
-                callFunction(refs, name, args, this.C.formulaView()),
+            callFunction: (name, args, derivatives) =>
+                callFunction(
+                    refs,
+                    name,
+                    args,
+                    this.C.formulaView(),
+                    derivatives,
+                ),
             center: (name) => scriptCenter(refs.get(name)!, vec3),
             callMethod: (name, method, args) =>
                 this.style(targets.get(name)!, method, args),

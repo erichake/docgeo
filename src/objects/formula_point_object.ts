@@ -59,8 +59,14 @@ export class formula_point_object extends point_object {
                 return ref instanceof point_object ? ref.coords2D() : null;
             },
             center: (n) => scriptCenter(this.refs.get(n)!, this.vec3),
-            callFunction: (name, args) =>
-                callFunction(this.refs, name, args, this.C.formulaView()),
+            callFunction: (name, args, derivatives) =>
+                callFunction(
+                    this.refs,
+                    name,
+                    args,
+                    this.C.formulaView(),
+                    derivatives,
+                ),
         });
         if (value === null) {
             this.defined = false;

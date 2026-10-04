@@ -107,8 +107,14 @@ export class list_object extends construction_object {
                 return ref ? ref.scriptValue(this.vec3) : null;
             },
             view: () => this.C.formulaView(),
-            callFunction: (name, args) =>
-                callFunction(this.refs, name, args, this.C.formulaView()),
+            callFunction: (name, args, derivatives) =>
+                callFunction(
+                    this.refs,
+                    name,
+                    args,
+                    this.C.formulaView(),
+                    derivatives,
+                ),
         };
     }
 
@@ -121,8 +127,14 @@ export class list_object extends construction_object {
                 return ref ? ref.scriptValue(this.vec3) : null;
             },
             view: () => this.C.formulaView(),
-            callFunction: (name, args) =>
-                callFunction(this.refs, name, args, this.C.formulaView()),
+            callFunction: (name, args, derivatives) =>
+                callFunction(
+                    this.refs,
+                    name,
+                    args,
+                    this.C.formulaView(),
+                    derivatives,
+                ),
         };
     }
 

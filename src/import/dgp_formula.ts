@@ -209,6 +209,14 @@ export type FormulaNode =
     // functions, e.g. "E1(x)" referencing another named Expression: resolved
     // at evaluation time through FormulaEnv.callFunction, not evalCall.
     | { kind: "userCall"; name: string; args: FormulaNode[] }
+    // "h.dt(t)": the value of a function-valued object's derivative with
+    // respect to each of `variables` in turn (see dgp_derivative.ts).
+    | {
+          kind: "derivative";
+          name: string;
+          variables: string[];
+          args: FormulaNode[];
+      }
     | { kind: "unary"; op: "-" | "!"; operand: FormulaNode }
     // "P[1]": a component of a point's coordinates or of a list.
     | { kind: "index"; target: FormulaNode; index: FormulaNode }
@@ -536,17 +544,14 @@ class FormulaParser {
         return [{ kind: "expression", node }];
     }
 
-    private function(): Statement {
-        const name = this.current.value as string;
-        this.take("identifier");
+    // "var f = function(…){…}" too, as Blockly wraps its programs.
+    private function(name = this.name()): Statement {
         this.locals.add(name);
         this.take("(");
         const params: string[] = [];
         if (!this.skip(")")) {
-            do {
-                params.push(this.current.value as string);
-                this.take("identifier");
-            } while (this.skip(","));
+            do params.push(this.name());
+            while (this.skip(","));
             this.take(")");
         }
         this.outer.push(this.locals);
@@ -569,14 +574,21 @@ class FormulaParser {
     private declarations(): Statement[] {
         const statements: Statement[] = [];
         do {
-            const name = this.current.value as string;
-            this.take("identifier");
+            const name = this.name();
             this.locals.add(name);
-            if (this.skip("="))
-                statements.push({
-                    kind: "expression",
-                    node: { kind: "assign", name, value: this.expression() },
-                });
+            if (!this.skip("=")) continue;
+            statements.push(
+                this.skipKeyword("function")
+                    ? this.function(name)
+                    : {
+                          kind: "expression",
+                          node: {
+                              kind: "assign",
+                              name,
+                              value: this.expression(),
+                          },
+                      },
+            );
         } while (this.skip(","));
         return statements;
     }
@@ -826,8 +838,7 @@ class FormulaParser {
     }
 
     private member(object: string): FormulaNode {
-        const name = this.current.value as string;
-        this.take("identifier");
+        const name = this.name();
         if (object === "Math") {
             if (name === "PI") return { kind: "constant", name: "PI" };
             return this.call(name);
@@ -837,6 +848,15 @@ class FormulaParser {
                 kind: "length",
                 target: { kind: "identifier", name: object },
             };
+        if (/^d[xyzt]$/.test(name)) {
+            this.take("(");
+            return {
+                kind: "derivative",
+                name: object,
+                variables: [name[1]],
+                args: this.arguments(),
+            };
+        }
         if (!(name in METHOD_ARITY))
             throw new Error("Invalid DGP formula syntax");
         const method = name as ObjectMethod;
@@ -904,6 +924,12 @@ class FormulaParser {
         return true;
     }
 
+    private name(): string {
+        const name = this.current.value as string;
+        this.take("identifier");
+        return name;
+    }
+
     private take(type: TokenType): void {
         if (!this.skip(type)) throw new Error("Invalid DGP formula syntax");
     }
@@ -955,6 +981,7 @@ function children(node: FormulaNode): FormulaNode[] {
             return SKIPPED_METHODS.has(node.method) ? [] : node.args;
         case "call":
         case "userCall":
+        case "derivative":
             return node.args;
         default:
             return [];
@@ -1018,6 +1045,7 @@ function nodeNames(node: FormulaNode): string[] {
     switch (node.kind) {
         case "identifier":
         case "userCall":
+        case "derivative":
             return [node.name];
         case "method":
             return READ_METHODS.has(node.method) ? [node.object] : [];
@@ -1135,9 +1163,14 @@ export interface FormulaEnv {
     // The center of a conic, as a point's value.
     center?(name: string): ScriptValue | null;
     // Resolves a userCall node (a name outside FORMULA_ARITY applied to
-    // arguments, e.g. "E1(x)"). Consumers that don't support calling named
-    // objects (most formula owners) simply omit this.
-    callFunction?(name: string, args: FormulaValue[]): FormulaValue | null;
+    // arguments, e.g. "E1(x)"), or a derivative node with its `derivatives`.
+    // Consumers that don't support calling named objects (most formula
+    // owners) simply omit this.
+    callFunction?(
+        name: string,
+        args: FormulaValue[],
+        derivatives: string[],
+    ): FormulaValue | null;
     // Carries out a script's styling method on one of the figure's objects.
     callMethod?(
         object: string,
@@ -1706,16 +1739,24 @@ function compileNode(node: FormulaNode, scope: Scope): Code {
                 );
             };
         }
-        case "userCall": {
+        case "userCall":
+        case "derivative": {
             const { name } = node;
             const args = node.args.map(compile);
-            const fn = scope.functions.get(name);
+            const fn =
+                node.kind === "userCall" ? scope.functions.get(name) : null;
             if (fn) return (frame) => callFunction(fn, args, frame);
+            const derivatives =
+                node.kind === "derivative" ? node.variables : [];
             return (frame) => {
                 if (!frame.env.callFunction) return null;
                 const values = evalCodes(args, frame)?.map(formulaValue);
                 if (!values || values.includes(null)) return null;
-                return frame.env.callFunction(name, values as FormulaValue[]);
+                return frame.env.callFunction(
+                    name,
+                    values as FormulaValue[],
+                    derivatives,
+                );
             };
         }
     }

@@ -38,7 +38,7 @@ const FIGURES = Object.keys(
     import.meta.glob([
         "../dgp/**/*.dgp",
         "../ggb/**/*.ggb",
-        // Built with Blockly programs, which the reader never runs.
+        // Built with Blockly turtle programs, which the reader never runs.
         "!../dgp/**/Remplissage_P237_SurfaceKlein.dgp",
     ]),
 ).map((path) => path.replace("..", "/tests"));

@@ -81,8 +81,14 @@ export class text_object extends construction_object {
                 return ref ? ref.scriptValue(false) : null;
             },
             view: () => this.C.formulaView(),
-            callFunction: (name, args) =>
-                callFunction(this.refs, name, args, this.C.formulaView()),
+            callFunction: (name, args, derivatives) =>
+                callFunction(
+                    this.refs,
+                    name,
+                    args,
+                    this.C.formulaView(),
+                    derivatives,
+                ),
         };
     }
 

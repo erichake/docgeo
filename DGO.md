@@ -178,7 +178,9 @@ Comme dans DGPad, un objet nommé vaut : ses coordonnées (point), sa valeur
 (expression), sa longueur (segment), ses composantes (vecteur), son rayon
 (cercle, arc), sa mesure dans l'unité d'angle de la figure (angle, angle
 fixe), son aire (polygone) ; tout autre objet est indéfini. Une expression
-de fonction (`"f"`) ou une courbe (`Cur`) s'appelle par son nom : `f(2)`.
+de fonction (`"f"`) ou une courbe (`Cur`) s'appelle par son nom : `f(2)`, et
+sa dérivée par rapport à l'une de ses variables, comme dans DGPad, par
+`f.dx(…)`, `f.dy(…)`, `f.dz(…)` ou `f.dt(…)`.
 
 | Type   | Objet                                  | Paramètres                                      |
 | ------ | -------------------------------------- | ----------------------------------------------- |
