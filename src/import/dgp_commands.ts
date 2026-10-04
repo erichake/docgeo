@@ -1779,6 +1779,7 @@ const COMMANDS = new Map<string, CommandDefinition>([
                         panelNames(parsePanel(content)),
                         context.variables,
                     ),
+                    context.is3D,
                 );
                 const color = style.get("c");
                 if (color) {

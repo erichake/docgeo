@@ -178,6 +178,7 @@ export class panel_object extends construction_object {
     nodes: PanelNode[];
     formulas: Map<string, FormulaNode>;
     refs: Map<string, construction_object>;
+    private vec3: boolean;
     private texts: {
         element: DOMElement;
         source: string;
@@ -196,6 +197,7 @@ export class panel_object extends construction_object {
         radius: number,
         content: string,
         refs: Map<string, construction_object>,
+        vec3: boolean,
     ) {
         super(c, name, "panel");
         this.box = box;
@@ -205,6 +207,7 @@ export class panel_object extends construction_object {
         this.formulas = panelFormulas(this.nodes);
         this.readsView = [...this.formulas.values()].some(usesView);
         this.refs = refs;
+        this.vec3 = vec3;
         this.precision = 4;
         this.addParents(...refs.values());
     }
@@ -224,7 +227,7 @@ export class panel_object extends construction_object {
     private env(): FormulaEnv {
         return {
             resolveIdentifier: (name) =>
-                this.refs.get(name)?.scriptValue(false) ?? null,
+                this.refs.get(name)?.scriptValue(this.vec3) ?? null,
             view: () => this.C.formulaView(),
         };
     }
@@ -407,6 +410,7 @@ export function createPanel(
     radius: number,
     content: string,
     refs: Map<string, construction_object>,
+    vec3: boolean,
 ): panel_object {
-    return c.add(new panel_object(c, name, box, radius, content, refs));
+    return c.add(new panel_object(c, name, box, radius, content, refs, vec3));
 }

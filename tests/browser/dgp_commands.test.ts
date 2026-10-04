@@ -256,6 +256,18 @@ Text("AB = %d(A,B)% ; $\\\\frac{%E1%}{2}$ <input target=\\"E1\\"><input type=che
         expect([value(c, "E1"), value(c, "b")]).toEqual([7.5, 1]);
     });
 
+    it("reads the 3D coordinates of a 3D figure's points", async () => {
+        const c = createConstruction();
+        importDgp(
+            c,
+            `SetCoords(100,200,40,true,800,600);
+M=Point("M","[1,2,3]","1");
+Text("%M[2]%",0,0,10,10);`,
+        );
+        await frame();
+        expect(panel(c).dom.dom().textContent).toBe("3");
+    });
+
     it("refuses those that run scripts or load pages", () => {
         const c = createConstruction();
         const unsupported = importDgp(

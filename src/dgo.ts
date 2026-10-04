@@ -1215,7 +1215,7 @@ const BUILDERS: Record<string, Builder> = {
             }),
         );
     },
-    Html: (parameters, { c, name, formula, offset }) => {
+    Html: (parameters, { c, name, formula, offset, vec3 }) => {
         const [box, radius, content] = list(parameters, 3);
         check(Array.isArray(box) && box.length === 4 && box.every(isNumber));
         check(isNumber(radius));
@@ -1230,6 +1230,7 @@ const BUILDERS: Record<string, Builder> = {
             radius,
             source,
             refs,
+            vec3,
         );
     },
     Txt: (parameters, { c, name, at, formula }) => {
