@@ -23,7 +23,7 @@ const value = (c: ReturnType<typeof createConstruction>, name: string) =>
     (c.getObj(name) as expression_object).value;
 
 describe("DGPad's commands", () => {
-    it("imports a figure with Blockly programs without them, reporting them", () => {
+    it("imports a figure with Blockly programs it can't read without them, reporting them", () => {
         const c = createConstruction();
         const unsupported = importDgp(
             c,
@@ -31,17 +31,20 @@ describe("DGPad's commands", () => {
 btn=BlocklyButton("btn","reset","0","0");
 c=Expression("c","","","","var bl_a=function(){GLOBAL_INC(\\"T\\",1);return GLOBAL_GET(\\"T\\")};bl_a()","0","0");
 d=Expression("d","","","","c+1","0","0");
-BLK(P1,{"onlogo":{"xml":"<xml/>","js":"TURTLE_INIT(\\"P1\\",P1);"}});
+BLK(P1,{"onlogo":{"xml":"<xml/>","sync":"TURTLE_INIT(\\"P1\\",P1);"}});
+BLK(P1,{"onchange":{"xml":"<xml/>","sync":"ALERT(1);"}});
 BLK_GLOB_SET({"T":0});`,
         );
         expect(c.getObj("P1")).toBeTruthy();
+        // A button without a program, which does nothing.
+        expect(c.getObj("btn")).toBeTruthy();
         expect(c.getObj("d")).toBeFalsy();
         expect(unsupported.map((call) => call.split("(")[0])).toEqual([
-            "BlocklyButton",
             "Expression",
             "BLK",
         ]);
-        expect(unsupported[1]).toContain("…");
+        expect(unsupported[0]).toContain("…");
+        expect(unsupported[1]).toContain("onchange");
     });
 
     it("reads the early SetCoords, without 3D flag nor window size", () => {

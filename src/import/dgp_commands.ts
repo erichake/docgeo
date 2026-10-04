@@ -17,6 +17,7 @@ import {
 import { createCircle } from "../objects/circle_object";
 import { construction_object, isDash } from "../objects/construction_object";
 import { createCurve } from "../objects/curve_object";
+import { createButton } from "../objects/button_object";
 import { createCylinderIntersection } from "../objects/cylinder_intersection_object";
 import { createCylinderSection } from "../objects/cylinder_section_object";
 import { createDirectionPoint } from "../objects/direction_point_object";
@@ -94,6 +95,7 @@ import {
     NO_VIEW,
     parseFormula,
     parseProgram,
+    programNodes,
     programReferences,
     programTargets,
     realPart,
@@ -119,7 +121,8 @@ type ObjectKind =
     | "list"
     | "curve"
     | "text"
-    | "image";
+    | "image"
+    | "button";
 type ParameterKind =
     | "string"
     | "number"
@@ -999,6 +1002,13 @@ function validateExpression(
     if (parseExpressionValue(source) !== null) return;
     const program = tryParseProgram(source);
     if (!program)
+        throw new Error(`Unsupported DGP expression at line ${lineNumber}`);
+    // Only a button sets a number (see button_object.ts).
+    if (
+        programNodes(program).some(
+            (node) => node.kind === "method" && node.method === "setExpression",
+        )
+    )
         throw new Error(`Unsupported DGP expression at line ${lineNumber}`);
     const fn = functionFormula(program, variables);
     if (fn)
@@ -2398,16 +2408,77 @@ const COMMANDS = new Map<string, CommandDefinition>([
         },
     ],
     [
+        // Its program, from its BLK (see attachButtonPrograms).
+        "BlocklyButton",
+        {
+            parameters: [
+                string,
+                string,
+                string,
+                string,
+                { ...string, optional: true },
+            ],
+            result: "button",
+            validate: (args, lineNumber, variables) => {
+                if (
+                    !STYLE_NUMBER.test(literalString(args[2])) ||
+                    !STYLE_NUMBER.test(literalString(args[3]))
+                )
+                    throw new Error(
+                        `Invalid DGP button position at line ${lineNumber}`,
+                    );
+                if (args.length < 5) return;
+                const program = tryParseProgram(literalString(args[4]));
+                if (!program)
+                    throw new Error(
+                        `Unsupported Blockly program at line ${lineNumber}`,
+                    );
+                validateProgramReferences(program, variables, lineNumber);
+            },
+            execute: (context, args) => {
+                const grid = context.construction.GRID;
+                const source = args[4] as string | undefined;
+                const program =
+                    source === undefined ? null : parseProgram(source);
+                return createButton(
+                    context.construction,
+                    args[0] as string,
+                    args[1] as string,
+                    [
+                        context.labelOrigin[0] + Number(args[2]) * grid.UNIT[0],
+                        context.labelOrigin[1] - Number(args[3]) * grid.UNIT[1],
+                    ],
+                    program && {
+                        program,
+                        refs: formulaRefs(
+                            programReferences(program),
+                            context.variables,
+                        ),
+                        targets: formulaRefs(
+                            programTargets(program),
+                            context.variables,
+                        ),
+                        vec3: context.is3D,
+                    },
+                );
+            },
+        },
+    ],
+    [
         "BLK",
         {
             // The source of an object's Blockly editor: an Expression's
-            // "oncompute" program is also its formula, run as any script.
-            // The other programs never run.
+            // "oncompute" program is also its formula, run as any script,
+            // and a point's turtle ("onlogo") is compiled into the
+            // Expression its List draws. The other programs never run.
             parameters: [object, string],
             validate: (args, lineNumber) => {
                 if (
                     Object.keys(JSON.parse(literalString(args[1]))).some(
-                        (mode) => mode !== "oncompute" && mode !== "current",
+                        (mode) =>
+                            mode !== "oncompute" &&
+                            mode !== "onlogo" &&
+                            mode !== "current",
                     )
                 )
                     throw new Error(
@@ -2649,6 +2720,90 @@ function orderSliderBounds(calls: DgpCall[]): DgpCall[] {
     return [...ordered];
 }
 
+// A BlocklyButton's program is the "onprogram" of its BLK, at the end of
+// the file: the button moves there, with its program, which may read any
+// object, followed by its style.
+function attachButtonPrograms(calls: DgpCall[]): DgpCall[] {
+    const buttons = new Map(
+        calls.flatMap((call) =>
+            call.name === "BlocklyButton" && call.variable
+                ? [[call.variable, call]]
+                : [],
+        ),
+    );
+    const programs = new Map<DgpCall, DgpCall>();
+    calls.forEach((call) => {
+        const [target, source] = call.arguments;
+        const button =
+            call.name === "BLK" && target?.type === "reference"
+                ? buttons.get(target.name)
+                : undefined;
+        if (!button || source?.type !== "literal") return;
+        const modes = JSON.parse(String(source.value));
+        if (
+            Object.keys(modes).every(
+                (mode) => mode === "onprogram" || mode === "current",
+            ) &&
+            typeof modes.onprogram?.sync === "string"
+        )
+            programs.set(call, {
+                ...button,
+                arguments: [
+                    ...button.arguments,
+                    { type: "literal", value: modes.onprogram.sync },
+                ],
+            });
+    });
+    const moved = new Set([...programs.values()].map((call) => call.variable));
+    const follows = (call: DgpCall, name: string | null) =>
+        call.name !== "BlocklyButton" &&
+        call.arguments.some(
+            (value) => value.type === "reference" && value.name === name,
+        );
+    return calls.flatMap((call) => {
+        const button = programs.get(call);
+        if (button)
+            return [
+                button,
+                ...calls.filter(
+                    (other) =>
+                        other !== call && follows(other, button.variable),
+                ),
+            ];
+        return moved.has(call.variable) ||
+            [...moved].some((name) => follows(call, name))
+            ? []
+            : [call];
+    });
+}
+
+// DGPad finds the objects a script styles when it runs: a script styling
+// objects the file declares later is moved after them.
+function orderStyleTargets(calls: DgpCall[]): DgpCall[] {
+    const declared = new Map(
+        calls.flatMap((call, i) => (call.variable ? [[call.variable, i]] : [])),
+    );
+    const moved = new Map<number, DgpCall[]>();
+    calls.forEach((call, i) => {
+        const source = call.arguments[4];
+        if (!call.name.startsWith("Expression") || source?.type !== "literal")
+            return;
+        const program = tryParseProgram(String(source.value));
+        if (!program) return;
+        const last = Math.max(
+            ...[...programTargets(program)].map(
+                (name) => declared.get(name) ?? -1,
+            ),
+        );
+        if (last > i) moved.set(last, [...(moved.get(last) ?? []), call]);
+    });
+    const later = new Set([...moved.values()].flat());
+    return calls.flatMap((call, i) => [
+        ...(later.has(call) ? [] : [call]),
+        ...(moved.get(i) ?? []),
+    ]);
+}
+
 // The "restrictions" expression, copied from figure to figure, only locks
 // DGPad's interface (zoom, drag, control panel…), which DocGeo deliberately
 // doesn't reproduce: it is dropped, with its style and blocks, unreported.
@@ -2717,7 +2872,11 @@ export function executeDgpCommands(
     is3D = false,
 ): { variables: Map<string, construction_object>; unsupported: string[] } {
     const { valid, unsupported } = validateCalls(
-        orderSliderBounds(convertLegacyPoint3D(calls)),
+        orderStyleTargets(
+            orderSliderBounds(
+                attachButtonPrograms(convertLegacyPoint3D(calls)),
+            ),
+        ),
     );
     // DGPad is in degrees unless the figure says otherwise, in its
     // SetGeneralStyle, which comes after the objects that depend on it.

@@ -148,7 +148,9 @@ export type ObjectMethod =
     | "setPrecision"
     | "setLayer"
     | "setDash"
-    | "noMouseInside";
+    | "noMouseInside"
+    // A button's SET_EXP: the new value of a number (see button_object.ts).
+    | "setExpression";
 
 const READ_METHODS: ReadonlySet<ObjectMethod> = new Set([
     "coords2D",
@@ -194,7 +196,46 @@ const METHOD_ARITY: Record<ObjectMethod, number> = {
     setLayer: 1,
     setDash: 1,
     noMouseInside: 0,
+    setExpression: 1,
 };
+
+// DGPad's Blockly turtle: from a point, it lists the points it reaches,
+// among drawing instructions (colors, pen sizes, fills, texts, images:
+// items of 4 or more values) that a List draws (see
+// expression_list_object.ts).
+const TURTLE_ARITY = {
+    TURTLE_INIT: 2,
+    TURTLE_RESULT: 0,
+    TURTLE_POS: 0,
+    TURTLE_GET: 2,
+    TURTLE_LENGTH: 1,
+    TURTLE_RESET: 0,
+    TURTLE_PRINT: 1,
+    TURTLE_PRINT_IMG: 5,
+    TURTLE_TEXT: 1,
+    TURTLE_FONT: 4,
+    TURTLE_MV: 2,
+    TURTLE_TURN: 1,
+    TURTLE_ROTATE: 2,
+    TURTLE_UP: 1,
+    TURTLE_COLOUR: 1,
+    TURTLE_COLOUR_RGB: 1,
+    TURTLE_COLOUR_INCREMENT: 1,
+    TURTLE_FILL: 1,
+    TURTLE_WIDTH: 1,
+    TURTLE_POINTS_WIDTH: 1,
+    TURTLE_WIDTH_INCREMENT: 1,
+    TURTLE_POINTS_WIDTH_INCREMENT: 1,
+    TURTLE_ROTATE_PT: 1,
+    TURTLE_JOIN_PT: 1,
+    SET_NUM_PRECISION: 1,
+};
+
+type TurtleFn = keyof typeof TURTLE_ARITY;
+
+// The objects a turtle reads with TURTLE_GET and TURTLE_LENGTH: the Lists
+// DGPad draws the other turtles with.
+export const turtleList = (name: string) => `blk_turtle_list_${name}`;
 
 type BinaryOp = "+" | "-" | "*" | "/" | "%" | "^" | Comparison;
 
@@ -222,6 +263,9 @@ export type FormulaNode =
     | { kind: "index"; target: FormulaNode; index: FormulaNode }
     // "tab.length", "(P).length".
     | { kind: "length"; target: FormulaNode }
+    // "tab.join(sep)", as JavaScript's.
+    | { kind: "join"; target: FormulaNode; separator: FormulaNode | null }
+    | { kind: "turtle"; fn: TurtleFn; args: FormulaNode[] }
     // "P.coords2D()" (where point P is drawn, in the window's coordinate
     // system, which changes with the 3D view), "S1.setHidden(1)" or a
     // script's own "tab.push(P)".
@@ -753,10 +797,15 @@ class FormulaParser {
         let base = this.primary();
         while (this.current.type === "[" || this.current.type === ".") {
             if (this.skip(".")) {
-                if (this.current.value !== "length")
-                    throw new Error("Invalid DGP formula syntax");
-                this.take("identifier");
-                base = { kind: "length", target: base };
+                const name = this.name();
+                if (name === "length") base = { kind: "length", target: base };
+                else if (name === "join") {
+                    this.take("(");
+                    const [separator = null, ...rest] = this.arguments();
+                    if (rest.length > 0)
+                        throw new Error("Invalid DGP formula syntax");
+                    base = { kind: "join", target: base, separator };
+                } else throw new Error("Invalid DGP formula syntax");
                 continue;
             }
             this.advance();
@@ -857,15 +906,8 @@ class FormulaParser {
                 args: this.arguments(),
             };
         }
-        if (!(name in METHOD_ARITY))
-            throw new Error("Invalid DGP formula syntax");
-        const method = name as ObjectMethod;
         this.take("(");
-        const args = this.arguments();
-        const arity = METHOD_ARITY[method];
-        if (arity >= 0 && args.length !== arity)
-            throw new Error(`Invalid DGP method "${name}" arity`);
-        return { kind: "method", object, method, args };
+        return methodNode(object, name, this.arguments());
     }
 
     private vector(): FormulaNode {
@@ -889,6 +931,42 @@ class FormulaParser {
                 then: args[1],
                 otherwise: args[2],
             };
+        // As JavaScript's: "" + x.
+        if (name === "String" && args.length === 1)
+            return {
+                kind: "binary",
+                op: "+",
+                left: { kind: "string", value: "" },
+                right: args[0],
+            };
+        if (name === "SET_EXP") {
+            const [object, value] = args;
+            if (args.length !== 2 || object.kind !== "string")
+                throw new Error("Invalid DGP formula syntax");
+            return methodNode(object.value, "setExpression", [value]);
+        }
+        // Blockly's form of a styling method: BLK_STL("S1","setHidden",[1]).
+        if (name === "BLK_STL") {
+            const [object, method, list] = args;
+            if (
+                args.length !== 3 ||
+                object.kind !== "string" ||
+                method.kind !== "string" ||
+                list.kind !== "vector"
+            )
+                throw new Error("Invalid DGP formula syntax");
+            return methodNode(
+                object.value.replace("dgpad_object_", ""),
+                method.value,
+                list.items,
+            );
+        }
+        if (name in TURTLE_ARITY) {
+            const fn = name as TurtleFn;
+            if (args.length !== TURTLE_ARITY[fn])
+                throw new Error(`Invalid DGP turtle function "${name}" arity`);
+            return { kind: "turtle", fn, args };
+        }
         if (!(name in FORMULA_ARITY)) return { kind: "userCall", name, args };
         const fn = name as FormulaFn;
         const arity = FORMULA_ARITY[fn];
@@ -939,6 +1017,19 @@ class FormulaParser {
     }
 }
 
+function methodNode(
+    object: string,
+    name: string,
+    args: FormulaNode[],
+): FormulaNode {
+    if (!(name in METHOD_ARITY)) throw new Error("Invalid DGP formula syntax");
+    const method = name as ObjectMethod;
+    const arity = METHOD_ARITY[method];
+    if (arity >= 0 && args.length !== arity)
+        throw new Error(`Invalid DGP method "${name}" arity`);
+    return { kind: "method", object, method, args };
+}
+
 // The text each parsed formula or program was read from, which a .dgo file
 // stores rather than the tree.
 const SOURCES = new WeakMap<FormulaNode | Program, string>();
@@ -967,6 +1058,12 @@ function children(node: FormulaNode): FormulaNode[] {
             return [node.target, node.index];
         case "length":
             return [node.target];
+        case "join":
+            return node.separator
+                ? [node.target, node.separator]
+                : [node.target];
+        case "turtle":
+            return node.args;
         case "binary":
             return [node.left, node.right];
         case "conditional":
@@ -1049,9 +1146,27 @@ function nodeNames(node: FormulaNode): string[] {
             return [node.name];
         case "method":
             return READ_METHODS.has(node.method) ? [node.object] : [];
+        case "turtle": {
+            const [name] = node.args;
+            return (node.fn === "TURTLE_GET" || node.fn === "TURTLE_LENGTH") &&
+                name.kind === "string"
+                ? [turtleList(name.value)]
+                : [];
+        }
         default:
             return [];
     }
+}
+
+// The turtles the program draws, whose own points TURTLE_GET reads.
+function ownTurtles(program: Program): string[] {
+    return programNodes(program).flatMap((node) =>
+        node.kind === "turtle" &&
+        node.fn === "TURTLE_INIT" &&
+        node.args[0].kind === "string"
+            ? [turtleList(node.args[0].value)]
+            : [],
+    );
 }
 
 export function formulaIdentifiers(node: FormulaNode): Set<string> {
@@ -1068,6 +1183,7 @@ export function programReferences(program: Program): Set<string> {
     const locals = new Set([
         ...program.locals,
         ...functionLocals(program.body),
+        ...ownTurtles(program),
     ]);
     return new Set(
         programNodes(program)
@@ -1117,7 +1233,15 @@ const VIEW_FUNCTIONS: ReadonlySet<FormulaFn> = new Set([
 // Whether the formula reads the window (zoom, origin, size or 3D view), as
 // DGPad re-evaluates it whenever that changes.
 export function usesView(node: FormulaNode): boolean {
-    return someNode(node, (n) => n.kind === "call" && VIEW_FUNCTIONS.has(n.fn));
+    return someNode(
+        node,
+        (n) =>
+            (n.kind === "call" && VIEW_FUNCTIONS.has(n.fn)) ||
+            // A move in pixels.
+            (n.kind === "turtle" &&
+                n.fn === "TURTLE_MV" &&
+                !(n.args[1].kind === "number" && n.args[1].value === 0)),
+    );
 }
 
 // What a DGPad script computes, like its JavaScript: a number, a text, or a
@@ -1171,6 +1295,8 @@ export interface FormulaEnv {
         args: FormulaValue[],
         derivatives: string[],
     ): FormulaValue | null;
+    // The points another turtle drew (see turtleList).
+    turtlePoints?(list: string): readonly ScriptValue[] | null;
     // Carries out a script's styling method on one of the figure's objects.
     callMethod?(
         object: string,
@@ -1326,7 +1452,7 @@ function realUnary(
     fn: (x: number) => number,
     arg: FormulaValue,
 ): number | null {
-    const real = realPart(arg);
+    const real = realPart(arg ?? null);
     return real === null ? null : fn(real);
 }
 
@@ -1536,6 +1662,21 @@ interface Frame {
     // Whether a return statement is leaving the function, and its value.
     returning: boolean;
     result: ScriptValue | null;
+    turtle: Turtle | null;
+    // The decimal places a turtle writes numbers with, as a power of 10.
+    precision: number;
+}
+
+// Where the turtle is and which way it heads (u), its left (v) and its top
+// (w), and what it has drawn so far.
+interface Turtle {
+    name: string;
+    u: Vec3;
+    v: Vec3;
+    w: Vec3;
+    last: number[];
+    penUp: boolean;
+    tab: ScriptValue[];
 }
 
 // Formulas and programs are compiled once into closures, run at each
@@ -1589,6 +1730,197 @@ function evalCodes(codes: Code[], frame: Frame): ScriptValue[] | null {
         values.push(value);
     }
     return values;
+}
+
+// The instructions that apply from the turtle's last point on, by code.
+const TURTLE_STYLES: Partial<Record<TurtleFn, number>> = {
+    TURTLE_COLOUR: 2,
+    TURTLE_COLOUR_INCREMENT: 3,
+    TURTLE_WIDTH: 10,
+    TURTLE_WIDTH_INCREMENT: 11,
+    TURTLE_POINTS_WIDTH: 12,
+    TURTLE_POINTS_WIDTH_INCREMENT: 13,
+};
+
+function rotateAxes(a: Vec3, b: Vec3, c: number, s: number): [Vec3, Vec3] {
+    return [vAdd(vScale(a, c), vScale(b, s)), vSub(vScale(b, c), vScale(a, s))];
+}
+
+function turtlePoint(value: ScriptValue): number[] | null {
+    return Array.isArray(value) &&
+        (value.length === 2 || value.length === 3) &&
+        value.every((c) => typeof c === "number")
+        ? [...(value as number[])]
+        : null;
+}
+
+function moveTurtle(t: Turtle, distance: number): void {
+    t.last = t.last.map((c, i) => c + distance * t.u[i]);
+    if (t.penUp) t.tab.push([NaN, NaN, NaN]);
+    t.tab.push(t.last);
+}
+
+// Turns the turtle toward the point, in its plane, then, in 3D, up or down
+// to it.
+function headToward(t: Turtle, target: number[]): void {
+    const p: Vec3 = [
+        target[0] - t.last[0],
+        target[1] - t.last[1],
+        (target[2] ?? 0) - (t.last[2] ?? 0),
+    ];
+    const [x, y, z] = [vDot(p, t.u), vDot(p, t.v), vDot(p, t.w)];
+    const flat = Math.hypot(x, y);
+    const full = t.last.length === 3 ? Math.hypot(flat, z) : flat;
+    if (flat <= 1e-13 || full <= 1e-13) return;
+    [t.u, t.v] = rotateAxes(t.u, t.v, x / flat, y / flat);
+    if (t.last.length === 3)
+        [t.u, t.w] = rotateAxes(t.u, t.w, flat / full, z / full);
+}
+
+function turtleCall(
+    fn: TurtleFn,
+    args: ScriptValue[],
+    frame: Frame,
+): ScriptValue | null {
+    const [arg] = args;
+    const real = realPart(arg ?? null);
+    switch (fn) {
+        case "TURTLE_TEXT":
+            return arg;
+        case "SET_NUM_PRECISION":
+            if (real !== null) frame.precision = 10 ** real;
+            return null;
+        case "TURTLE_INIT": {
+            const start = turtlePoint(args[1]);
+            frame.turtle = start && {
+                name: String(arg),
+                u: [1, 0, 0],
+                v: [0, 1, 0],
+                w: [0, 0, 1],
+                last: start,
+                penUp: false,
+                tab: [[10, 0, 0, 1], [12, 0, 0, 1e-13], [2, 0, 0, 55], start],
+            };
+            return null;
+        }
+        case "TURTLE_LENGTH":
+            return (
+                frame.env.turtlePoints?.(turtleList(String(arg)))?.length ??
+                null
+            );
+    }
+    const t = frame.turtle;
+    if (fn === "TURTLE_GET") {
+        const index = realPart(args[1]);
+        if (index === null) return null;
+        if (!t || String(arg) !== t.name)
+            return (
+                frame.env.turtlePoints?.(turtleList(String(arg)))?.[
+                    index - 1
+                ] ?? null
+            );
+        let k = 0;
+        for (const item of t.tab)
+            if (
+                Array.isArray(item) &&
+                item.length < 4 &&
+                !Number.isNaN(item[0]) &&
+                ++k === index
+            )
+                return item;
+        return null;
+    }
+    if (!t) return null;
+    const code = TURTLE_STYLES[fn];
+    if (code) {
+        t.tab.splice(-1, 0, [code, 0, 0, arg]);
+        return null;
+    }
+    const angle = (real ?? NaN) * angleUnit(frame.env);
+    switch (fn) {
+        case "TURTLE_RESULT":
+            return t.tab;
+        case "TURTLE_POS":
+            return t.last;
+        case "TURTLE_RESET":
+            [t.u, t.v, t.w] = [
+                [1, 0, 0],
+                [0, 1, 0],
+                [0, 0, 1],
+            ];
+            return null;
+        case "TURTLE_PRINT": {
+            const p = frame.precision;
+            const text = String(arg).replace(/\d+\.\d+/g, (number) =>
+                String(Math.round(Number(number) * p) / p).replace(".", ","),
+            );
+            t.tab.push([20, 0, text, t.u], t.last);
+            return null;
+        }
+        case "TURTLE_PRINT_IMG":
+            t.tab.push([30, String(arg), ...args.slice(1), t.u], t.last);
+            return null;
+        case "TURTLE_FONT":
+            t.tab.splice(-1, 0, [21, 0, 0, args]);
+            return null;
+        case "TURTLE_MV":
+            if (real !== null)
+                moveTurtle(
+                    t,
+                    truthy(args[1]) ? real / frame.env.view().unit : real,
+                );
+            return null;
+        case "TURTLE_TURN":
+            [t.u, t.v] = rotateAxes(t.u, t.v, Math.cos(angle), Math.sin(angle));
+            return null;
+        case "TURTLE_ROTATE":
+            if (truthy(args[1]))
+                [t.u, t.w] = rotateAxes(
+                    t.u,
+                    t.w,
+                    Math.cos(angle),
+                    Math.sin(angle),
+                );
+            else
+                [t.v, t.w] = rotateAxes(
+                    t.v,
+                    t.w,
+                    Math.cos(angle),
+                    Math.sin(angle),
+                );
+            return null;
+        case "TURTLE_UP":
+            t.penUp = truthy(arg);
+            return null;
+        case "TURTLE_COLOUR_RGB": {
+            const rgb = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(
+                String(arg),
+            );
+            t.tab.splice(-1, 0, [
+                1,
+                ...(rgb
+                    ? rgb.slice(1).map((hex) => parseInt(hex, 16))
+                    : [0, 0, 0]),
+            ]);
+            return null;
+        }
+        case "TURTLE_FILL":
+            t.tab.push([4, 0, 0, arg]);
+            return null;
+        case "TURTLE_ROTATE_PT":
+        case "TURTLE_JOIN_PT": {
+            const target = turtlePoint(arg);
+            if (!target) return null;
+            headToward(t, target);
+            if (fn === "TURTLE_JOIN_PT")
+                moveTurtle(
+                    t,
+                    Math.hypot(...t.last.map((c, i) => (target[i] ?? 0) - c)),
+                );
+            return null;
+        }
+    }
+    return null;
 }
 
 function compileNode(node: FormulaNode, scope: Scope): Code {
@@ -1685,6 +2017,25 @@ function compileNode(node: FormulaNode, scope: Scope): Code {
                 return typeof value === "string" || Array.isArray(value)
                     ? value.length
                     : null;
+            };
+        }
+        case "join": {
+            const target = compile(node.target);
+            const separator = node.separator && compile(node.separator);
+            return (frame) => {
+                const list = target(frame);
+                const sep = separator ? separator(frame) : ",";
+                return Array.isArray(list) && sep !== null
+                    ? list.join(String(sep))
+                    : null;
+            };
+        }
+        case "turtle": {
+            const { fn } = node;
+            const args = node.args.map(compile);
+            return (frame) => {
+                const values = evalCodes(args, frame);
+                return values && turtleCall(fn, values, frame);
             };
         }
         case "method":
@@ -1943,6 +2294,8 @@ function evaluate(
         owned: new Set(),
         returning: false,
         result: null,
+        turtle: null,
+        precision: 1e14,
     });
 }
 

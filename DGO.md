@@ -221,11 +221,12 @@ sa dérivée par rapport à l'une de ses variables, comme dans DGPad, par
 | `Ex`   | expression                             | objet (6)                                       |
 | `Cur`  | courbe y = f(x)                        | `[formule, min ou null, max ou null]`           |
 | `Lst`  | liste de formules en k                 | `[nature, nombre, formule, formule?]` (7)       |
-| `ELst` | points d'une expression                | `[expression]`                                  |
+| `ELst` | points d'une expression                | `[expression]` (12)                             |
 | `Itr`  | itération de segments                  | `[[P1, Q1, …], niveaux, [[ax,ay,bx,by], …]]`    |
 | `Txt`  | texte attaché à un point               | `[point, [dx, dy], texte]` (8)                  |
 | `Img`  | image                                  | `[clé, largeur, hauteur, A, B?, C?]` (9)        |
 | `Html` | texte HTML dans un cadre de la fenêtre | `[[x, y, largeur, hauteur], rayon, texte]` (11) |
+| `Btn`  | bouton qui exécute un script           | objet (13)                                      |
 
 1. `n1`, `n2` : les nombres (expressions, ou `null`) que déplace un glisser
    du point, pour chacune de ses coordonnées.
@@ -273,6 +274,25 @@ sa dérivée par rapport à l'une de ses variables, comme dans DGPad, par
     l'expression `E` (état élève de `E`). Position et taille intérieure en
     pixels ; couleur (`c`, `o`) du cadre et du fond, taille (`s`) du cadre,
     précision (`p`) des valeurs.
+12. Les points (2 ou 3 nombres, un point indéfini coupant le tracé) sont
+    entrecoupés d'instructions de dessin de 4 nombres ou plus, celles de la
+    tortue Blockly de DGPad (fonctions `TURTLE_…` des scripts) :
+    `[0, r, g, b]` dégradé depuis la couleur précédente, `[1, r, g, b]`
+    couleur, `[2, 0, 0, n]` couleur n de la palette 7×10 de DGPad,
+    `[3, 0, 0, i]` couleur suivante de i, `[4, 0, 0, op]` remplissage à
+    op % de la région fermée par le dernier point, `[10, 0, 0, t]` et
+    `[11, 0, 0, i]` taille du crayon, `[12, 0, 0, t]` et `[13, 0, 0, i]`
+    rayon des points, `[20, 0, texte, u]` texte (parties `$$TeX$$`) écrit au
+    dernier point dans la direction `u`, `[21, 0, 0, [police, taille, style,
+alignement]]` police, `[30, url, l, h, zoom, opacité, u]` image (largeur
+    négative : taille naturelle). Les couleurs et tailles s'appliquent aux
+    points qui suivent.
+13. `{"t": légende, "s": script, "xy": [x, y]}` : bouton « lecture » de DGPad
+    (`BlocklyButton`), légendé à sa gauche, dont `xy` est le bord droit à
+    mi-hauteur, en pixels. Un clic exécute le script, qui ne fait que mettre
+    en forme des objets et, par `SET_EXP("E", valeur)`, changer le nombre
+    d'une `Ex` de valeur constante, comme une manipulation (état élève de
+    `E`). Sans `"s"`, il ne fait rien.
 
 ### Styles `st`
 

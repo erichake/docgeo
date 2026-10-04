@@ -603,3 +603,82 @@ describe("DGPad's other functions and operators", () => {
         expect(value("true+false")).toBe(1);
     });
 });
+
+describe("Blockly programs", () => {
+    const run = (source: string, env: FormulaEnv = noPoints) =>
+        evaluateProgram(parseProgram(source), env);
+
+    it("reads Blockly's styling and SET_EXP as methods, String and join as JavaScript's", () => {
+        const program = parseProgram(
+            'BLK_STL("dgpad_object_S1","setRGBColor",[0,153,0]);SET_EXP("t",a+1)',
+        );
+        expect(programTargets(program)).toEqual(new Set(["S1", "t"]));
+        expect(programReferences(program)).toEqual(new Set(["a"]));
+        const calls: unknown[] = [];
+        evaluateProgram(program, {
+            resolveIdentifier: () => 2,
+            view: () => NO_VIEW,
+            callMethod: (...call) => calls.push(call),
+        });
+        expect(calls).toEqual([
+            ["S1", "setRGBColor", [0, 153, 0]],
+            ["t", "setExpression", [3]],
+        ]);
+        expect(run("[String(1.5),'x'].join('')+[1,2].join()")).toBe("1.5x1,2");
+    });
+
+    it("lists the turtle's points among its drawing instructions", () => {
+        const env: FormulaEnv = {
+            resolveIdentifier: (name) => (name === "A" ? [1, 1] : null),
+            view: () => ({ ...NO_VIEW, unit: 10, degrees: true }),
+        };
+        const tab = run(
+            'TURTLE_INIT("A",A);TURTLE_COLOUR(5);TURTLE_MV(2,false);TURTLE_TURN(90);TURTLE_UP(true);TURTLE_MV(10,true);TURTLE_FILL(20);SET_NUM_PRECISION(1);TURTLE_PRINT(TURTLE_TEXT("d = ")+1.25);TURTLE_RESULT()',
+            env,
+        ) as unknown[];
+        const near = (p: unknown) => (p as number[]).map((c) => +c.toFixed(9));
+        expect(tab.slice(0, 3)).toEqual([
+            [10, 0, 0, 1],
+            [12, 0, 0, 1e-13],
+            [2, 0, 0, 55],
+        ]);
+        // The color applies from the last point on.
+        expect(tab[3]).toEqual([2, 0, 0, 5]);
+        expect(tab[4]).toEqual([1, 1]);
+        expect(tab[5]).toEqual([3, 1]);
+        // A pen up breaks the line; 10 pixels are 1 unit.
+        expect(tab[6]).toEqual([NaN, NaN, NaN]);
+        expect(near(tab[7])).toEqual([3, 2]);
+        expect(tab[8]).toEqual([4, 0, 0, 20]);
+        expect((tab[9] as unknown[]).slice(0, 3)).toEqual([20, 0, "d = 1,3"]);
+        expect(near((tab[9] as unknown[])[3])).toEqual([0, 1, 0]);
+    });
+
+    it("turns the turtle toward a point, and reads the points of the turtles", () => {
+        const env: FormulaEnv = {
+            resolveIdentifier: (name) =>
+                ({ A: [0, 0], B: [3, 4] })[name] ?? null,
+            view: () => NO_VIEW,
+            turtlePoints: (list) =>
+                list === "blk_turtle_list_C"
+                    ? [
+                          [5, 5],
+                          [6, 6],
+                      ]
+                    : null,
+        };
+        expect(
+            run(
+                'TURTLE_INIT("A",A);TURTLE_JOIN_PT(B);[TURTLE_POS(),TURTLE_GET("A",2),TURTLE_GET("C",2),TURTLE_LENGTH("C")]',
+                env,
+            ),
+        ).toEqual([[3, 4], [3, 4], [6, 6], 2]);
+        expect(
+            programReferences(
+                parseProgram(
+                    'TURTLE_INIT("A",A);TURTLE_GET("A",1);TURTLE_GET("C",1)',
+                ),
+            ),
+        ).toEqual(new Set(["A", "blk_turtle_list_C"]));
+    });
+});

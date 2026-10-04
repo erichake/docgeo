@@ -31,9 +31,13 @@ Les développements doivent servir en priorité :
   compilés en JavaScript par DGPad, sont lus par l'interpréteur de
   `src/import/dgp_formula.ts`, jamais par le moteur JavaScript du navigateur :
   n'étendre sa grammaire fermée qu'aux constructions qu'utilisent des figures
-  réelles. Les autres programmes Blockly (tortue, événements) restent ignorés
-  et signalés. Exception : l'expression « restrictions » (programme Blockly
-  recopié de figure en figure qui verrouille l'interface de DGPad : zoom,
+  réelles. La tortue Blockly (fonctions `TURTLE_…`, compilées dans
+  l'expression que dessine sa liste) et les boutons Blockly (`BlocklyButton`,
+  dont le programme ne peut que mettre en forme des objets et changer le
+  nombre d'une expression constante, comme une manipulation) sont lus par le
+  même interpréteur. Les autres programmes Blockly (événements) restent
+  ignorés et signalés. Exception : l'expression « restrictions » (programme
+  Blockly recopié de figure en figure qui verrouille l'interface de DGPad : zoom,
   déplacement de la vue, panneau de contrôle, déplacement des widgets…) est
   écartée sans être signalée. DocGeo ne reproduit pas ces restrictions : un
   éventuel verrouillage de la vue relèverait du mode intégré, choisi par la

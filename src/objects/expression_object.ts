@@ -215,6 +215,68 @@ export function evaluateFunction(
     });
 }
 
+// Carries out a script's styling method on one of the figure's objects.
+export function styleObject(
+    c: construction,
+    target: construction_object,
+    method: ObjectMethod,
+    args: (ScriptValue | null)[],
+): void {
+    switch (method) {
+        case "setHidden": {
+            // DGPad's setHidden: 0 shown, 1 hidden, 2 super-hidden, and
+            // hidden for anything that isn't a number.
+            const value = realPart(args[0]);
+            const hidden = value === null ? 1 : Math.trunc(Math.abs(value)) % 3;
+            if (hidden === target.hidden) return;
+            target.hidden = hidden;
+            target.updateView();
+            // How the objects sharing its edges draw them depends on it
+            // (see edgeStroke).
+            c.invalidateProjection();
+            return;
+        }
+        case "setShowName": {
+            const value = realPart(args[0]);
+            if (value === null || (value !== 0) === target.showName) return;
+            target.showName = value !== 0;
+            break;
+        }
+        case "setOpacity": {
+            const value = realPart(args[0]);
+            if (value === null || value === target.opacity) return;
+            target.opacity = value;
+            break;
+        }
+        case "setSize": {
+            const value = realPart(args[0]);
+            if (value === null || value === target.size) return;
+            target.size = value;
+            break;
+        }
+        case "setPrecision": {
+            const value = realPart(args[0]);
+            if (value === null || value === target.precision) return;
+            target.precision = value;
+            break;
+        }
+        case "setRGBColor": {
+            const channels = args.map(realPart);
+            if (channels.includes(null)) return;
+            const color = `rgb(${channels.map((c) => Math.round(c!)).join(",")})`;
+            if (color === target.stroke_color) return;
+            target.fill_color = color;
+            target.stroke_color = color;
+            break;
+        }
+        default:
+            return;
+    }
+    if (target.hasView) target.createSVG();
+    // An opaque face hides the edges behind it (see hidden_line.ts).
+    c.invalidateProjection();
+}
+
 // A read-only reader's take on DGPad's ExpressionObject: displays a
 // constant value (number, complex number as [re, im], or vector), a named
 // function (e.g. "0.5x^2-4", via `formula`, used as a callable function
@@ -430,71 +492,13 @@ export class expression_object extends construction_object {
                     derivatives,
                 ),
             center: (name) => scriptCenter(refs.get(name)!, vec3),
+            // An expression_list_object's, which this file can't import.
+            turtlePoints: (name) =>
+                (refs.get(name) as { points?: ScriptValue[] }).points ?? null,
             callMethod: (name, method, args) =>
-                this.style(targets.get(name)!, method, args),
+                styleObject(this.C, targets.get(name)!, method, args),
         });
         this.defined = this.value !== null;
-    }
-
-    private style(
-        target: construction_object,
-        method: ObjectMethod,
-        args: (ScriptValue | null)[],
-    ): void {
-        switch (method) {
-            case "setHidden": {
-                // DGPad's setHidden: 0 shown, 1 hidden, 2 super-hidden, and
-                // hidden for anything that isn't a number.
-                const value = realPart(args[0]);
-                const hidden =
-                    value === null ? 1 : Math.trunc(Math.abs(value)) % 3;
-                if (hidden === target.hidden) return;
-                target.hidden = hidden;
-                target.updateView();
-                // How the objects sharing its edges draw them depends on it
-                // (see edgeStroke).
-                this.C.invalidateProjection();
-                return;
-            }
-            case "setShowName": {
-                const value = realPart(args[0]);
-                if (value === null || (value !== 0) === target.showName) return;
-                target.showName = value !== 0;
-                break;
-            }
-            case "setOpacity": {
-                const value = realPart(args[0]);
-                if (value === null || value === target.opacity) return;
-                target.opacity = value;
-                break;
-            }
-            case "setSize": {
-                const value = realPart(args[0]);
-                if (value === null || value === target.size) return;
-                target.size = value;
-                break;
-            }
-            case "setPrecision": {
-                const value = realPart(args[0]);
-                if (value === null || value === target.precision) return;
-                target.precision = value;
-                break;
-            }
-            case "setRGBColor": {
-                const channels = args.map(realPart);
-                if (channels.includes(null)) return;
-                const color = `rgb(${channels.map((c) => Math.round(c!)).join(",")})`;
-                if (color === target.stroke_color) return;
-                target.fill_color = color;
-                target.stroke_color = color;
-                break;
-            }
-            default:
-                return;
-        }
-        if (target.hasView) target.createSVG();
-        // An opaque face hides the edges behind it (see hidden_line.ts).
-        this.C.invalidateProjection();
     }
 
     get isCursor(): boolean {

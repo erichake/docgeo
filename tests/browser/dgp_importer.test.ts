@@ -4,6 +4,7 @@ import { importDgp, importDgpFromUrl } from "../../src/dgp_importer";
 import { angle_bisector_object } from "../../src/objects/angle_bisector_object";
 import { angle_object } from "../../src/objects/angle_object";
 import { arc3pts_object } from "../../src/objects/arc3pts_object";
+import type { button_object } from "../../src/objects/button_object";
 import { circle1_object } from "../../src/objects/circle1_object";
 import { curve_object } from "../../src/objects/curve_object";
 import { NO_VIEW, realPart } from "../../src/import/dgp_formula";
@@ -1198,6 +1199,37 @@ C1=Circle1("C1",A,"d(A,Z)");`,
         // "ar1[0]" reads a point's coordinate.
         const fgr1 = c.getObj("fgr1") as point_object;
         expect(fgr1.coords[0]).toBeCloseTo(2);
+    });
+
+    it("draws Blockly turtles, styles with Blockly and runs a button's program", async () => {
+        const c = createConstruction();
+        const unsupported = await importDgpFromUrl(
+            c,
+            figure("Pythagore_en_liquide.dgp"),
+        );
+        // Its other button changes DGPad's interface.
+        expect(unsupported).toHaveLength(1);
+        expect(unsupported[0]).toMatch(/^BlocklyButton\("blk_btn",/);
+        const texts = () =>
+            [...c.svg.dom().querySelectorAll("text")].map(
+                (text) => text.textContent,
+            );
+        expect(texts()).toEqual(
+            expect.arrayContaining(["temps = 0 s", "a", "b", "c"]),
+        );
+        // "cacher", styling polygons the file declares after it.
+        const t = c.getObj("t") as expression_object;
+        const poly6 = c.getObj("Poly6")!;
+        expect(poly6.hidden).toBe(1);
+        t.value = 2.5;
+        c.invalidateGeometry(t);
+        c.OBJS.update();
+        expect(poly6.hidden).toBe(0);
+        expect(texts()).toContain("temps = 2,5 s");
+        (c.getObj("blk_btn0") as button_object).run();
+        c.OBJS.update();
+        expect(t.value).toBe(0);
+        expect(poly6.hidden).toBe(1);
     });
 
     it("drops the restrictions Expression, which only locks DGPad's interface", async () => {

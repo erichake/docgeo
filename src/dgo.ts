@@ -80,6 +80,7 @@ import { createSphere } from "./objects/sphere_object";
 import { createSymmetry } from "./objects/symmetry_object";
 import { createText } from "./objects/text_object";
 import { createPanel, panelNames, parsePanel } from "./objects/panel_object";
+import { createButton } from "./objects/button_object";
 import { createLine } from "./objects/two_points_line_object";
 import { createVector } from "./objects/vector_object";
 import type { Vec2, Vec3 } from "./vec";
@@ -169,6 +170,7 @@ const LOOKS: Record<string, Look> = {
     Txt: TEXT,
     Img: TEXT,
     Html: ["#000000", "#000000", 3],
+    Btn: ["#000000", "#000000", 3, 0.1],
 };
 
 const BACKGROUND = "#FAFAFA";
@@ -894,6 +896,25 @@ function listFormula(
     return node;
 }
 
+// An expression's or a button's script: the objects it reads, and those it
+// styles.
+function scriptProgram(reader: Reader, value: Json): ExpressionProgram {
+    const { source, refs } = reader.formula(value, construction_object);
+    const program = parseProgram(source);
+    const references = programReferences(program);
+    const targets = programTargets(program);
+    checkNames(references, refs);
+    checkNames(targets, refs);
+    const named = (names: Set<string>) =>
+        new Map([...names].map((name) => [name, refs.get(name)!]));
+    return {
+        program,
+        refs: named(references),
+        targets: named(targets),
+        vec3: reader.vec3,
+    };
+}
+
 const BUILDERS: Record<string, Builder> = {
     Pt: (parameters, { c, name }) =>
         createPoint(c, name, coordinates(parameters)),
@@ -1077,7 +1098,8 @@ const BUILDERS: Record<string, Builder> = {
         );
     },
     Ang: threePoints(createAngle),
-    Ex: (parameters, { c, name, at, formula: read, vec3, offset }) => {
+    Ex: (parameters, reader) => {
+        const { c, name, at, formula: read, vec3, offset } = reader;
         check(isRecord(parameters));
         const { t: text, v: value, f, s, mn = null, mx = null } = parameters;
         check(typeof text === "string");
@@ -1110,24 +1132,7 @@ const BUILDERS: Record<string, Builder> = {
             );
             checkNames(names, refs, variables);
             formula = { node: statement.node, source, variables, refs, vec3 };
-        } else if (s !== undefined) {
-            const { source, refs } = read(s, construction_object);
-            const parsed = parseProgram(source);
-            const references = programReferences(parsed);
-            const targets = programTargets(parsed);
-            checkNames(references, refs);
-            checkNames(targets, refs);
-            program = {
-                program: parsed,
-                refs: new Map(
-                    [...references].map((name) => [name, refs.get(name)!]),
-                ),
-                targets: new Map(
-                    [...targets].map((name) => [name, refs.get(name)!]),
-                ),
-                vec3,
-            };
-        }
+        } else if (s !== undefined) program = scriptProgram(reader, s);
         const anchored = parameters.on !== undefined;
         const screen = anchored ? parameters.d : parameters.xy;
         check(isPair(screen));
@@ -1213,6 +1218,18 @@ const BUILDERS: Record<string, Builder> = {
                     [bx, by],
                 ] as [Vec2, Vec2];
             }),
+        );
+    },
+    Btn: (parameters, reader) => {
+        check(isRecord(parameters));
+        const { t: label, s, xy } = parameters;
+        check(typeof label === "string" && isPair(xy));
+        return createButton(
+            reader.c,
+            reader.name,
+            label,
+            [xy[0] + reader.offset[0], xy[1] + reader.offset[1]],
+            s === undefined ? null : scriptProgram(reader, s),
         );
     },
     Html: (parameters, { c, name, formula, offset, vec3 }) => {
