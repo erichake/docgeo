@@ -1200,6 +1200,16 @@ C1=Circle1("C1",A,"d(A,Z)");`,
         expect(fgr1.coords[0]).toBeCloseTo(2);
     });
 
+    it("drops the restrictions Expression, which only locks DGPad's interface", async () => {
+        const c = createConstruction();
+        const unsupported = await importDgpFromUrl(
+            c,
+            figure("PSE_Medatrices_FPetMF_R.dgp"),
+        );
+        expect(unsupported).toEqual([]);
+        expect(c.getObj("restrictions")).toBeUndefined();
+    });
+
     it("interprets script Expressions with variables, conditions and lists", async () => {
         const c = createConstruction();
         const unsupported = await importDgpFromUrl(c, figure("fourmi.dgp"));

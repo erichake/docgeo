@@ -2649,6 +2649,20 @@ function orderSliderBounds(calls: DgpCall[]): DgpCall[] {
     return [...ordered];
 }
 
+// The "restrictions" expression, copied from figure to figure, only locks
+// DGPad's interface (zoom, drag, control panel…), which DocGeo deliberately
+// doesn't reproduce: it is dropped, with its style and blocks, unreported.
+// Its program finds itself through this marker.
+function isRestrictionsProgram(call: DgpCall): boolean {
+    const source = call.arguments[4];
+    return (
+        call.name === "Expression" &&
+        source?.type === "literal" &&
+        typeof source.value === "string" &&
+        source.value.includes("ceci_est_un_texte_a_chercher_dans_moi_meme")
+    );
+}
+
 // A call that can't be imported is skipped with its dependents, and only
 // it is reported: the rest of the figure is still imported.
 function validateCalls(calls: DgpCall[]): {
@@ -2663,6 +2677,10 @@ function validateCalls(calls: DgpCall[]): {
         // which only the programs never run use: each is reported with its
         // object.
         if (call.name === "BLK_GLOB_SET") return false;
+        if (isRestrictionsProgram(call)) {
+            skipped.add(call.variable!);
+            return false;
+        }
         try {
             validateCall(call, variables);
             return true;

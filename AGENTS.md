@@ -32,7 +32,14 @@ Les développements doivent servir en priorité :
   `src/import/dgp_formula.ts`, jamais par le moteur JavaScript du navigateur :
   n'étendre sa grammaire fermée qu'aux constructions qu'utilisent des figures
   réelles. Les autres programmes Blockly (tortue, événements) restent ignorés
-  et signalés ;
+  et signalés. Exception : l'expression « restrictions » (programme Blockly
+  recopié de figure en figure qui verrouille l'interface de DGPad : zoom,
+  déplacement de la vue, panneau de contrôle, déplacement des widgets…) est
+  écartée sans être signalée. DocGeo ne reproduit pas ces restrictions : un
+  éventuel verrouillage de la vue relèverait du mode intégré, choisi par la
+  page hôte, pas de la figure. Les restrictions de rotation 3D
+  (`restrictTheta`, `restrictPhi`), qui font partie de la vue de la figure,
+  restent appliquées ;
 - la lecture et l'écriture fidèles du format `.dgo` ;
 - la compatibilité géométrique et graphique avec DGPad et GeoGebra ;
 - la manipulation des objets existants ;
