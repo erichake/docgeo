@@ -437,6 +437,8 @@ describe("evaluateProgram", () => {
     });
 
     it("gives up on a program that runs too long", () => {
+        // As some figures' envelopes, computed point by point.
+        expect(run("var k=0;while(k<2000000){k++};k")).toBe(2000000);
         expect(run("var k=0;while(1){k++};k")).toBeNull();
     });
 

@@ -1484,7 +1484,7 @@ function evalCall(
 
 // Beyond it, a script's loops are taken as endless and its value is
 // undefined.
-const MAX_STEPS = 1_000_000;
+const MAX_STEPS = 10_000_000;
 // Beyond it, a script's function calls are taken as endless, before they
 // overflow the browser's stack.
 const MAX_DEPTH = 1000;
