@@ -97,6 +97,7 @@ export class expression_list_object extends list_object {
 
     static createSVG(_this: construction_object): DOMElement {
         const t = _this as expression_list_object;
+        t.fillPaths = [];
         t.fills = t.svg
             .shape("g")
             .stl(

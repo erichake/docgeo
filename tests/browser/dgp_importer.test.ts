@@ -1351,6 +1351,15 @@ C1=Circle1("C1",A,"d(A,Z)");`,
             path.getAttribute("d"),
         );
         expect(cells).toHaveLength(14 * 13);
+
+        // Hidden then shown again (by a setHidden), its view is rebuilt
+        // with all its fills.
+        list.hidden = 1;
+        list.updateView();
+        list.hidden = 0;
+        list.updateView();
+        const [refills] = (list.dom.dom() as SVGElement).querySelectorAll("g");
+        expect(refills.querySelectorAll("path[d]")).toHaveLength(14 * 13);
     });
 
     it("reads and returns angles in degrees in DGPad's degree mode", async () => {
