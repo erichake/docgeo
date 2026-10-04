@@ -440,6 +440,31 @@ describe("evaluateProgram", () => {
         expect(run("var k=0;while(1){k++};k")).toBeNull();
     });
 
+    it("calls its own functions, which see its variables and can call themselves", () => {
+        expect(
+            run(
+                "var t=[];var k=10;function add(a,b){var s=a+b;t.push(s*k);return s};add(1,2);add(add(1,1),3);t",
+            ),
+        ).toEqual([30, 20, 50]);
+        expect(
+            run(
+                "var r=fact(5);function fact(n){if(n<2){return 1};for(var i=0;i<1;i++){return n*fact(n-1)}};r",
+            ),
+        ).toBe(120);
+        expect(run("var u=2;function f(){var u=1};f();u")).toBe(2);
+        expect(run("function f(){return f()};f()")).toBeNull();
+    });
+
+    it("tells the figure's objects from its functions and their variables", () => {
+        expect(
+            programReferences(
+                parseProgram(
+                    "var r=R;function f(P){var Q=P+A;return Q*r};f(B)",
+                ),
+            ),
+        ).toEqual(new Set(["R", "A", "B"]));
+    });
+
     it("tells the objects it reads from those it styles and its own variables", () => {
         const program = parseProgram(
             "var _v=A-B;S1.setHidden(E1>0);S2.setDash(angl1>1);[_v,P.coords2D()]",
@@ -454,7 +479,7 @@ describe("evaluateProgram", () => {
         "document.write(1)",
         "A.constructor",
         "S1.setHidden()",
-        "function f(){return 1};f()",
+        "var f=function(){return 1};f()",
         "a.b=1",
         "a.length=1",
         "[1][0]=2",

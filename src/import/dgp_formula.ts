@@ -263,7 +263,16 @@ export type Statement =
           test: FormulaNode | null;
           body: Statement[];
           update: FormulaNode | null;
-      };
+      }
+    | {
+          kind: "function";
+          name: string;
+          params: string[];
+          // Its own variables, its parameters included.
+          locals: Set<string>;
+          body: Statement[];
+      }
+    | { kind: "return"; node: FormulaNode | null };
 
 export interface Program {
     body: Statement[];
@@ -449,7 +458,10 @@ class FormulaLexer {
 class FormulaParser {
     private readonly lexer: FormulaLexer;
     private current: Token;
-    readonly locals = new Set<string>();
+    locals = new Set<string>();
+    // The variables of the functions and program enclosing the function
+    // being parsed.
+    private readonly outer: Set<string>[] = [];
 
     constructor(source: string) {
         this.lexer = new FormulaLexer(source);
@@ -510,9 +522,48 @@ class FormulaParser {
                 { kind: "loop", test, body: this.statement(), update },
             ];
         }
+        if (this.skipKeyword("function")) return [this.function()];
+        if (this.skipKeyword("return")) {
+            const node =
+                this.current.type === ";" || this.current.type === "}"
+                    ? null
+                    : this.expression();
+            this.skip(";");
+            return [{ kind: "return", node }];
+        }
         const node = this.expression();
         this.skip(";");
         return [{ kind: "expression", node }];
+    }
+
+    private function(): Statement {
+        const name = this.current.value as string;
+        this.take("identifier");
+        this.locals.add(name);
+        this.take("(");
+        const params: string[] = [];
+        if (!this.skip(")")) {
+            do {
+                params.push(this.current.value as string);
+                this.take("identifier");
+            } while (this.skip(","));
+            this.take(")");
+        }
+        this.outer.push(this.locals);
+        this.locals = new Set(params);
+        if (this.current.type !== "{")
+            throw new Error("Invalid DGP formula syntax");
+        const body = this.statement();
+        const locals = this.locals;
+        this.locals = this.outer.pop()!;
+        return { kind: "function", name, params, locals, body };
+    }
+
+    private isLocal(name: string): boolean {
+        return (
+            this.locals.has(name) ||
+            this.outer.some((locals) => locals.has(name))
+        );
     }
 
     private declarations(): Statement[] {
@@ -555,13 +606,19 @@ class FormulaParser {
         }
         if (target.kind !== "identifier" || indices.length === 0)
             throw new Error("Invalid DGP formula syntax");
-        this.locals.add(target.name);
+        this.declare(target.name);
         return { kind: "assignItem", name: target.name, indices, value };
     }
 
     private assign(name: string, value: FormulaNode): FormulaNode {
-        this.locals.add(name);
+        this.declare(name);
         return { kind: "assign", name, value };
+    }
+
+    // A variable assigned without being declared: the enclosing function's
+    // or program's if it has one.
+    private declare(name: string): void {
+        if (!this.isLocal(name)) this.locals.add(name);
     }
 
     private conditional(): FormulaNode {
@@ -733,12 +790,12 @@ class FormulaParser {
             // does with "for (i=0; …)".
             if (
                 name === "i" &&
-                !this.locals.has(name) &&
+                !this.isLocal(name) &&
                 !(this.current.type in ASSIGNMENTS)
             )
                 return this.imaginary(1);
             // DGPad reads two adjacent function variables as a product.
-            if (/^[xyzt]{2}$/.test(name) && !this.locals.has(name))
+            if (/^[xyzt]{2}$/.test(name) && !this.isLocal(name))
                 return {
                     kind: "binary",
                     op: "*",
@@ -920,7 +977,30 @@ function statementNodes(statement: Statement): FormulaNode[] {
                 ...(statement.update ? [statement.update] : []),
                 ...statement.body.flatMap(statementNodes),
             ];
+        case "function":
+            return statement.body.flatMap(statementNodes);
+        case "return":
+            return statement.node ? [statement.node] : [];
     }
+}
+
+// The variables of the program's functions, nested ones included.
+function functionLocals(statements: Statement[]): string[] {
+    return statements.flatMap((statement) => {
+        switch (statement.kind) {
+            case "function":
+                return [...statement.locals, ...functionLocals(statement.body)];
+            case "if":
+                return functionLocals([
+                    ...statement.then,
+                    ...statement.otherwise,
+                ]);
+            case "loop":
+                return functionLocals(statement.body);
+            default:
+                return [];
+        }
+    });
 }
 
 // Every node of the program, nested ones included.
@@ -957,10 +1037,14 @@ export function formulaIdentifiers(node: FormulaNode): Set<string> {
 
 // The figure's objects the program reads.
 export function programReferences(program: Program): Set<string> {
+    const locals = new Set([
+        ...program.locals,
+        ...functionLocals(program.body),
+    ]);
     return new Set(
         programNodes(program)
             .flatMap(nodeNames)
-            .filter((name) => !program.locals.has(name)),
+            .filter((name) => !locals.has(name)),
     );
 }
 
@@ -1401,6 +1485,9 @@ function evalCall(
 // Beyond it, a script's loops are taken as endless and its value is
 // undefined.
 const MAX_STEPS = 1_000_000;
+// Beyond it, a script's function calls are taken as endless, before they
+// overflow the browser's stack.
+const MAX_DEPTH = 1000;
 
 class StepLimitExceeded extends Error {}
 
@@ -1410,8 +1497,12 @@ interface Frame {
     // The values of the program's own variables, by slot.
     slots: (ScriptValue | null)[];
     steps: number;
+    depth: number;
     // The lists the script made or copied, which it changes in place.
     owned: Set<ScriptValue[]>;
+    // Whether a return statement is leaving the function, and its value.
+    returning: boolean;
+    result: ScriptValue | null;
 }
 
 // Formulas and programs are compiled once into closures, run at each
@@ -1419,8 +1510,22 @@ interface Frame {
 // built from the figure's text.
 type Code = (frame: Frame) => ScriptValue | null;
 
-// The slots of a program's own variables, by name.
-type Slots = ReadonlyMap<string, number>;
+// One of the script's functions. Its variables have their own slots, saved
+// during a call and restored after it, so that it can call itself.
+interface ScriptFunction {
+    params: number[];
+    slots: number[];
+    body: Code;
+}
+
+// What a program is compiled in: the slots of the variables it sees and its
+// functions, by name.
+interface Scope {
+    slots: ReadonlyMap<string, number>;
+    functions: ReadonlyMap<string, ScriptFunction>;
+    // The number of slots of the whole program.
+    size: { value: number };
+}
 
 // A list the script may change: itself if the script made it, else a copy
 // made once, as it may be another object's value (a copy per change would
@@ -1453,8 +1558,8 @@ function evalCodes(codes: Code[], frame: Frame): ScriptValue[] | null {
     return values;
 }
 
-function compileNode(node: FormulaNode, slots: Slots): Code {
-    const compile = (child: FormulaNode) => compileNode(child, slots);
+function compileNode(node: FormulaNode, scope: Scope): Code {
+    const compile = (child: FormulaNode) => compileNode(child, scope);
     switch (node.kind) {
         case "number":
         case "string": {
@@ -1467,20 +1572,20 @@ function compileNode(node: FormulaNode, slots: Slots): Code {
             return () => Math.PI;
         case "identifier": {
             const { name } = node;
-            const slot = slots.get(name);
+            const slot = scope.slots.get(name);
             return slot === undefined
                 ? (frame) => frame.env.resolveIdentifier(name)
                 : (frame) => frame.slots[slot];
         }
         case "assign": {
-            const slot = slots.get(node.name);
+            const slot = scope.slots.get(node.name);
             const value = compile(node.value);
             return slot === undefined
                 ? value
                 : (frame) => (frame.slots[slot] = value(frame));
         }
         case "assignItem": {
-            const slot = slots.get(node.name)!;
+            const slot = scope.slots.get(node.name)!;
             const indices = node.indices.map(compile);
             const value = compile(node.value);
             return (frame) => {
@@ -1550,7 +1655,7 @@ function compileNode(node: FormulaNode, slots: Slots): Code {
             };
         }
         case "method":
-            return compileMethod(node, slots);
+            return compileMethod(node, scope);
         case "vector": {
             const items = node.items.map(compile);
             return (frame) => {
@@ -1604,6 +1709,8 @@ function compileNode(node: FormulaNode, slots: Slots): Code {
         case "userCall": {
             const { name } = node;
             const args = node.args.map(compile);
+            const fn = scope.functions.get(name);
+            if (fn) return (frame) => callFunction(fn, args, frame);
             return (frame) => {
                 if (!frame.env.callFunction) return null;
                 const values = evalCodes(args, frame)?.map(formulaValue);
@@ -1616,11 +1723,11 @@ function compileNode(node: FormulaNode, slots: Slots): Code {
 
 function compileMethod(
     node: Extract<FormulaNode, { kind: "method" }>,
-    slots: Slots,
+    scope: Scope,
 ): Code {
     const { object, method } = node;
-    const self = compileNode({ kind: "identifier", name: object }, slots);
-    const args = node.args.map((arg) => compileNode(arg, slots));
+    const self = compileNode({ kind: "identifier", name: object }, scope);
+    const args = node.args.map((arg) => compileNode(arg, scope));
     switch (method) {
         case "coords2D":
             return (frame) => frame.env.coords2D?.(object) ?? null;
@@ -1656,7 +1763,7 @@ function compileMethod(
             frame.env.callMethod?.(object, method, values);
             return null;
         };
-    const slot = slots.get(object);
+    const slot = scope.slots.get(object);
     return (frame) => {
         const values = args.map((arg) => arg(frame));
         const list = slot === undefined ? null : ownSlot(slot, frame);
@@ -1671,44 +1778,105 @@ function step(frame: Frame): void {
     if (++frame.steps > MAX_STEPS) throw new StepLimitExceeded();
 }
 
+function callFunction(
+    fn: ScriptFunction,
+    args: Code[],
+    frame: Frame,
+): ScriptValue | null {
+    const values = evalCodes(args, frame);
+    if (values === null) return null;
+    if (++frame.depth > MAX_DEPTH) throw new StepLimitExceeded();
+    const saved = fn.slots.map((slot) => frame.slots[slot]);
+    fn.slots.forEach((slot) => (frame.slots[slot] = null));
+    fn.params.forEach((slot, i) => (frame.slots[slot] = values[i] ?? null));
+    fn.body(frame);
+    const value = frame.returning ? frame.result : null;
+    frame.returning = false;
+    fn.slots.forEach((slot, i) => (frame.slots[slot] = saved[i]));
+    frame.depth--;
+    return value;
+}
+
 // A block's value is its last statement's, null when it isn't an
-// expression.
-function compileBlock(statements: Statement[], slots: Slots): Code {
+// expression, or the value it returns. Its functions can be called from
+// anywhere in it, as JavaScript's.
+function compileBlock(statements: Statement[], scope: Scope): Code {
+    const declared = statements.filter(
+        (statement) => statement.kind === "function",
+    );
+    if (declared.length > 0) {
+        const functions = new Map(scope.functions);
+        const bodies = declared.map((statement) => {
+            const slots = new Map(scope.slots);
+            statement.locals.forEach((name) =>
+                slots.set(name, scope.size.value++),
+            );
+            const fn: ScriptFunction = {
+                params: statement.params.map((name) => slots.get(name)!),
+                slots: [...statement.locals].map((name) => slots.get(name)!),
+                body: () => null,
+            };
+            functions.set(statement.name, fn);
+            return () => {
+                fn.body = compileBlock(statement.body, {
+                    slots,
+                    functions,
+                    size: scope.size,
+                });
+            };
+        });
+        scope = { ...scope, functions };
+        bodies.forEach((compileBody) => compileBody());
+    }
     const codes = statements.map((statement) =>
-        compileStatement(statement, slots),
+        compileStatement(statement, scope),
     );
     return (frame) => {
         let value: ScriptValue | null = null;
         for (const code of codes) {
             step(frame);
             value = code(frame);
+            if (frame.returning) return frame.result;
         }
         return value;
     };
 }
 
-function compileStatement(statement: Statement, slots: Slots): Code {
+function compileStatement(statement: Statement, scope: Scope): Code {
     switch (statement.kind) {
         case "expression":
-            return compileNode(statement.node, slots);
+            return compileNode(statement.node, scope);
+        case "function":
+            return () => null;
+        case "return": {
+            const value = statement.node
+                ? compileNode(statement.node, scope)
+                : () => null;
+            return (frame) => {
+                frame.result = value(frame);
+                frame.returning = true;
+                return frame.result;
+            };
+        }
         case "if": {
-            const test = compileNode(statement.test, slots);
-            const then = compileBlock(statement.then, slots);
-            const otherwise = compileBlock(statement.otherwise, slots);
+            const test = compileNode(statement.test, scope);
+            const then = compileBlock(statement.then, scope);
+            const otherwise = compileBlock(statement.otherwise, scope);
             return (frame) => {
                 (truthy(test(frame)) ? then : otherwise)(frame);
                 return null;
             };
         }
         case "loop": {
-            const test = statement.test && compileNode(statement.test, slots);
+            const test = statement.test && compileNode(statement.test, scope);
             const update =
-                statement.update && compileNode(statement.update, slots);
-            const body = compileBlock(statement.body, slots);
+                statement.update && compileNode(statement.update, scope);
+            const body = compileBlock(statement.body, scope);
             return (frame) => {
                 while (!test || truthy(test(frame))) {
                     step(frame);
                     body(frame);
+                    if (frame.returning) return null;
                     update?.(frame);
                 }
                 return null;
@@ -1717,14 +1885,23 @@ function compileStatement(statement: Statement, slots: Slots): Code {
     }
 }
 
-const COMPILED = new WeakMap<FormulaNode | Program, Code>();
+const COMPILED = new WeakMap<
+    FormulaNode | Program,
+    { code: Code; size: number }
+>();
 
-function evaluate(code: Code, slots: number, env: FormulaEnv) {
+function evaluate(
+    { code, size }: { code: Code; size: number },
+    env: FormulaEnv,
+) {
     return code({
         env,
-        slots: new Array<ScriptValue | null>(slots).fill(null),
+        slots: new Array<ScriptValue | null>(size).fill(null),
         steps: 0,
+        depth: 0,
         owned: new Set(),
+        returning: false,
+        result: null,
     });
 }
 
@@ -1734,14 +1911,20 @@ export function evaluateProgram(
     program: Program,
     env: FormulaEnv,
 ): ScriptValue | null {
-    let code = COMPILED.get(program);
-    if (!code) {
+    let compiled = COMPILED.get(program);
+    if (!compiled) {
+        const size = { value: program.locals.size };
         const slots = new Map([...program.locals].map((name, i) => [name, i]));
-        code = compileBlock(program.body, slots);
-        COMPILED.set(program, code);
+        const code = compileBlock(program.body, {
+            slots,
+            functions: new Map(),
+            size,
+        });
+        compiled = { code, size: size.value };
+        COMPILED.set(program, compiled);
     }
     try {
-        const value = evaluate(code, program.locals.size, env);
+        const value = evaluate(compiled, env);
         return typeof value === "number" && !Number.isFinite(value)
             ? null
             : value;
@@ -1758,10 +1941,15 @@ export function evaluateFormula(
     node: FormulaNode,
     env: FormulaEnv,
 ): FormulaValue | null {
-    let code = COMPILED.get(node);
-    if (!code) {
-        code = compileNode(node, new Map());
-        COMPILED.set(node, code);
+    let compiled = COMPILED.get(node);
+    if (!compiled) {
+        const code = compileNode(node, {
+            slots: new Map(),
+            functions: new Map(),
+            size: { value: 0 },
+        });
+        compiled = { code, size: 0 };
+        COMPILED.set(node, compiled);
     }
-    return formulaValue(evaluate(code, 0, env));
+    return formulaValue(evaluate(compiled, env));
 }
