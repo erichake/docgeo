@@ -1232,6 +1232,26 @@ C1=Circle1("C1",A,"d(A,Z)");`,
         expect(poly6.hidden).toBe(1);
     });
 
+    it("reads an object named as two function variables, and turtles writing TeX", async () => {
+        const c = createConstruction();
+        const unsupported = await importDgpFromUrl(
+            c,
+            figure("Remplissage_P237_SurfaceKlein.dgp"),
+        );
+        expect(unsupported).toEqual([]);
+        // "xx" is a point, not x*x.
+        expect(c.getObj("oAB42")!.defined).toBe(true);
+        // As in DGPad, it can't be called: "xx(bDP1)".
+        expect(c.getObj("oAB39")!.defined).toBe(false);
+        expect(
+            c
+                .getObj("blk_turtle_list_a")!
+                .dom.dom()
+                .querySelector("foreignObject")
+                ?.getAttribute("data-tex"),
+        ).toBe("$$a$$");
+    });
+
     it("drops the restrictions Expression, which only locks DGPad's interface", async () => {
         const c = createConstruction();
         const unsupported = await importDgpFromUrl(

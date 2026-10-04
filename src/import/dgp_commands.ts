@@ -103,6 +103,7 @@ import {
     type FormulaValue,
     type Program,
     usesView,
+    withObjects,
 } from "./dgp_formula";
 import type { DgpCall, DgpValue } from "./dgp_parser";
 
@@ -2870,6 +2871,17 @@ export function executeDgpCommands(
     c: construction,
     calls: DgpCall[],
     is3D = false,
+): { variables: Map<string, construction_object>; unsupported: string[] } {
+    return withObjects(
+        new Set(calls.flatMap((call) => call.variable ?? [])),
+        () => executeCalls(c, calls, is3D),
+    );
+}
+
+function executeCalls(
+    c: construction,
+    calls: DgpCall[],
+    is3D: boolean,
 ): { variables: Map<string, construction_object>; unsupported: string[] } {
     const { valid, unsupported } = validateCalls(
         orderStyleTargets(

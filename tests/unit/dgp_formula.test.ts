@@ -10,6 +10,7 @@ import {
     programTargets,
     type FormulaEnv,
     type FormulaView,
+    withObjects,
 } from "../../src/import/dgp_formula";
 
 const noPoints: FormulaEnv = {
@@ -143,6 +144,15 @@ describe("DGP formula parser", () => {
                 },
             ],
         });
+    });
+
+    it("reads two function variables as one of the figure's objects when they name one", () => {
+        expect(
+            withObjects(new Set(["xx"]), () =>
+                formulaIdentifiers(parseFormula("y(xx)+xy")),
+            ),
+        ).toEqual(new Set(["xx", "x", "y"]));
+        expect(formulaIdentifiers(parseFormula("xx"))).toEqual(new Set(["x"]));
     });
 
     it("parses a call to a name outside the built-in functions as userCall", () => {

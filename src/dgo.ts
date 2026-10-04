@@ -6,6 +6,7 @@ import {
     programReferences,
     programTargets,
     type FormulaNode,
+    withObjects,
     type ScriptValue,
 } from "./import/dgp_formula";
 import { createAngleBisector } from "./objects/angle_bisector_object";
@@ -738,30 +739,35 @@ export function readDgo(c: construction, figure: Json, centered = false): void {
     };
 
     c.beginBatch();
-    entries.forEach((entry) => {
-        const [tag, name, parameters, styleIndex] = list(entry, 3, 4);
-        check(typeof tag === "string" && own(BUILDERS, tag));
-        check(typeof name === "string" && name !== "" && !c.getObj(name));
-        const object = BUILDERS[tag](parameters, {
-            c,
-            name,
-            at,
-            points,
-            formula,
-            vec3,
-            images,
-            offset,
-        });
-        let style: Settings = {};
-        if (styleIndex !== undefined) {
-            const chosen = styles[styleIndex as number];
-            check(Number.isInteger(styleIndex) && isRecord(chosen));
-            style = chosen;
-        }
-        apply(STYLE, object, style, tag);
-        styled.push([object, style]);
-        objects.push(object);
-    });
+    const names = entries.flatMap((entry) =>
+        Array.isArray(entry) && typeof entry[1] === "string" ? [entry[1]] : [],
+    );
+    withObjects(new Set(names), () =>
+        entries.forEach((entry) => {
+            const [tag, name, parameters, styleIndex] = list(entry, 3, 4);
+            check(typeof tag === "string" && own(BUILDERS, tag));
+            check(typeof name === "string" && name !== "" && !c.getObj(name));
+            const object = BUILDERS[tag](parameters, {
+                c,
+                name,
+                at,
+                points,
+                formula,
+                vec3,
+                images,
+                offset,
+            });
+            let style: Settings = {};
+            if (styleIndex !== undefined) {
+                const chosen = styles[styleIndex as number];
+                check(Number.isInteger(styleIndex) && isRecord(chosen));
+                style = chosen;
+            }
+            apply(STYLE, object, style, tag);
+            styled.push([object, style]);
+            objects.push(object);
+        }),
+    );
     // Conditions and magnets may name later objects.
     styled.forEach(([object, { sc: condition, mg: magnets }]) => {
         if (condition !== undefined) {

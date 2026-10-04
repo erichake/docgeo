@@ -507,6 +507,21 @@ class FormulaLexer {
     }
 }
 
+// The objects of the figure being read (see withObjects).
+let objects: ReadonlySet<string> = new Set();
+
+// Reads a figure whose objects have these names: in its formulas, "xy" names
+// one of them rather than the product x*y.
+export function withObjects<T>(names: ReadonlySet<string>, read: () => T): T {
+    const outer = objects;
+    objects = names;
+    try {
+        return read();
+    } finally {
+        objects = outer;
+    }
+}
+
 class FormulaParser {
     private readonly lexer: FormulaLexer;
     private current: Token;
@@ -855,8 +870,13 @@ class FormulaParser {
                 !(this.current.type in ASSIGNMENTS)
             )
                 return this.imaginary(1);
-            // DGPad reads two adjacent function variables as a product.
-            if (/^[xyzt]{2}$/.test(name) && !this.isLocal(name))
+            // DGPad reads two adjacent function variables as a product,
+            // unless they name one of the figure's objects.
+            if (
+                /^[xyzt]{2}$/.test(name) &&
+                !this.isLocal(name) &&
+                !objects.has(name)
+            )
                 return {
                     kind: "binary",
                     op: "*",
