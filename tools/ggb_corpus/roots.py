@@ -10,6 +10,21 @@ for r in rows:
     if r["error"]: print("  PLANTAGE",r["name"],r["error"][:150])
 ms=sorted(r["ms"] for r in rows if not r["error"])
 print("import ms: médiane %.1f, p95 %.1f, max %.1f"%(ms[len(ms)//2],ms[int(len(ms)*.95)],ms[-1]))
+# The command and function names ggb_translate.ts reads: its handlers, its
+# formula commands and functions.
+SRC=open(os.path.join(HERE,"..","..","src","import","ggb_translate.ts")).read()
+def block(start,end):
+    i=SRC.index(start); return SRC[i:SRC.index(end,i)]
+KNOWN=set(re.findall(r"^ {8}(\w+):",block("const HANDLERS","\n    };"),re.M))
+KNOWN|=set(re.findall(r"^ {4}(\w+):",block("const FUNCTIONS","\n};")+block("const ITEM_FUNCTIONS","\n};"),re.M))
+KNOWN|=set(re.findall(r'"(\w+)"',block("const FORMULA_COMMANDS","]);")+block("const LIST_COMMANDS","]);")))
+# Name[A], read as a text's term (see textParts).
+KNOWN.add("Name")
+# GeoGebra's commands, by their syntax in its English command names.
+GGB=os.path.join(HERE,"..","..","..","doctools_MAIN","public","apps","geogebra","web3d","js","properties_keys_en.js")
+COMMANDS=set(re.findall(r'\\"(\w+)\.Syntax(?:CAS|3D)?\\"',open(GGB).read()))
+CALL=re.compile(r"([A-Za-z]\w*)\s*[\[(]")
+hidden=C.Counter(); hiddensamples=C.defaultdict(list); macros=C.Counter()
 rootfiles=C.Counter(); rootonly=C.Counter(); samples=C.defaultdict(list); nroot={}
 for r in rows:
     if not r["unsupported"]: continue
@@ -35,6 +50,23 @@ for r in rows:
         else:
             t,_,label=u.partition(" "); bad.add(label)
             entries.append((t,set(WORD.findall(exprs.get(label) or "")),u))
+    # Unknown names inside an unsupported element, which only its outermost
+    # command names as a cause: UnitVector in Circle(A, r, UnitVector[v]).
+    labels={e.get("label") for e in cons.findall("element")}|set(exprs)
+    # A figure's own tools, which its commands may call.
+    z=zipfile.ZipFile(os.path.join(HERE, "corpus", r["name"]))
+    tools=set(re.findall(r'<macro cmdName="([^"]+)"',z.read("geogebra_macro.xml").decode())) if "geogebra_macro.xml" in z.namelist() else set()
+    names=set()
+    for u in r["unsupported"]:
+        m=re.match(r"^([A-Za-z]+)\((.*)\)$",u)
+        source=m.group(2) if m else u[10:] if u.startswith("condition ") else exprs.get(u.partition(" ")[2]) or ""
+        for n in set(CALL.findall(re.sub(r'"[^"]*"','',source)))-KNOWN-labels:
+            if n in tools: macros[n]+=1; continue
+            # Lowercase, one of GeoGebra's functions.
+            if n not in COMMANDS and not n[0].islower(): continue
+            names.add(n)
+            if len(hiddensamples[n])<3: hiddensamples[n].append(u[:90])
+    for n in names: hidden[n]+=1
     roots=set()
     for k,deps,u in entries:
         if not (deps & bad):
@@ -46,4 +78,7 @@ for r in rows:
 print("files with issues",len(nroot))
 print("cause                 files  seule-cause")
 for k,v in rootfiles.most_common(60): print(f"  {k:22} {v:4} {rootonly[k]:4}   {samples[k][:3]}")
+print("commandes inconnues à l'intérieur des éléments non importés   files")
+for k,v in hidden.most_common(60): print(f"  {k:22} {v:4}   {hiddensamples[k][:2]}")
+print("outils personnalisés (macros) appelés par des éléments non importés",len(macros))
 json.dump({k:list(v) for k,v in nroot.items()},open(os.path.join(HERE, "roots.json"), "w"))

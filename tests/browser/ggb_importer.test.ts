@@ -2590,6 +2590,53 @@ ${values
         check();
     });
 
+    it("reads Mode, Roots, Point(A, v) and UnitVector as GeoGebra computes them", () => {
+        const c = createConstruction();
+        const values: [string, number][] = [
+            ["Sum(m) + 10 * Length(m) + 100 * m(1)", 225],
+            ["Length(o)", 0],
+            ["x(R_1) + 2 * x(R_2)", Math.SQRT2],
+            ["x(UnitVector(s)) + 2 * y(UnitVector(s))", 1],
+            ["y(UnitVector(l)) * sqrt(5)", -1],
+        ];
+        expect(
+            importGgb(
+                c,
+                `<geogebra><construction>
+<element type="point" label="A"><coords x="0" y="0" z="1"/></element>
+<element type="point" label="B"><coords x="4" y="0" z="1"/></element>
+<command name="Segment"><input a0="A" a1="B"/><output a0="s"/></command>
+<element type="segment" label="s"/>
+<element type="line" label="l"><coords x="1" y="2" z="-3"/></element>
+<command name="Mode"><input a0="{3, 3, 2, 2, 5}"/><output a0="m"/></command>
+<element type="list" label="m"/>
+<command name="Mode"><input a0="{1, 2, 3}"/><output a0="o"/></command>
+<element type="list" label="o"/>
+<expression label="f" exp="f(x) = x^(2) - 2"/>
+<element type="function" label="f"/>
+<command name="Roots"><input a0="f" a1="-3" a2="3"/><output a0="R_1" a1="R_2"/></command>
+<element type="point" label="R_1"><coords x="0" y="0" z="1"/></element>
+<element type="point" label="R_2"><coords x="0" y="0" z="1"/></element>
+<command name="Point"><input a0="A" a1="Vector[(1, 2)]"/><output a0="U"/></command>
+<element type="point" label="U"><coords x="1" y="2" z="1"/></element>
+${values
+    .map(
+        ([exp], index) =>
+            `<expression label="n${index}" exp="${exp}"/><element type="numeric" label="n${index}"><value val="0"/></element>`,
+    )
+    .join("\n")}
+</construction></geogebra>`,
+            ),
+        ).toEqual([]);
+        values.forEach(([exp, value], index) =>
+            expect(
+                (c.getObj(`n${index}`) as expression_object).value,
+                exp,
+            ).toBeCloseTo(value, 9),
+        );
+        expect((c.getObj("U") as point_object).coords).toEqual([1, 2, 0]);
+    });
+
     it("reports what it can't import instead of failing", () => {
         const c = createConstruction();
         const unsupported = importGgb(

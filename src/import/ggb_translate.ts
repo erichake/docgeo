@@ -96,6 +96,7 @@ const COMMAND_EXPRESSION = /^([A-Za-z]+)\((.*)\)$/;
 const FORMULA_COMMANDS = new Set([
     "Vector",
     "OrthogonalVector",
+    "UnitVector",
     "If",
     "Element",
     "Sum",
@@ -108,7 +109,7 @@ const FORMULA_COMMANDS = new Set([
     "Translate",
 ]);
 // The commands whose list listFormula reads from their own sources.
-const LIST_COMMANDS = new Set(["Take", "First", "Last"]);
+const LIST_COMMANDS = new Set(["Take", "First", "Last", "Mode"]);
 const CELL = /^([A-Z]+)(\d+)$/;
 // A GeoGebra label, which may have primes and braced indices: "A'_{1}".
 const LABEL_WORDS =
@@ -225,6 +226,8 @@ const SIMPSON_INTERVALS = 1000;
 const REGION_INTERVALS = 200;
 const EXTREMUM_SAMPLES = 16;
 const CYLINDER_SIDES = 60;
+// The samples among which a function's roots are sought.
+const ROOT_SAMPLES = 200;
 const VALUE_KINDS: Kind[] = ["point", "pointOn", "expression"];
 // A text also reads a polygon, as its area.
 const TEXT_KINDS: Kind[] = [...VALUE_KINDS, "polygon"];
@@ -848,6 +851,17 @@ export function translateGgb(
                       : vectorFormula(arg.replace(/^Segment\(/, "Vector("));
             return vector && `(${vector}*1i)`;
         }
+        // Of a segment, from its start to its end.
+        if (match[1] === "UnitVector") {
+            const [arg] = args;
+            if (args.length !== 1) return null;
+            const ends = segments.get(arg);
+            if (!ends && is(arg, ["line"])) return unitDirection(arg);
+            const vector = ends
+                ? vectorFormula(`Vector(${ends.join(",")})`)
+                : formula(arg, VALUE_KINDS);
+            return vector && `unitVector(${vector})`;
+        }
         if (match[1] !== "Vector") return null;
         if (args.length === 1) {
             const v = formula(args[0], VALUE_KINDS);
@@ -1294,6 +1308,42 @@ export function translateGgb(
                 count,
                 item: (k) => list.item(`(${start})+(${k})-1`),
             };
+        }
+        // The other lists are computed by a hidden Expression's script, as
+        // an array: outside a Sequence, whose index it can't read.
+        if (locals.size > 0) return null;
+        const script = (code: string): ListFormula => {
+            const array = hiddenExpression(
+                `var $t=[],$x,$c,$j,$k,$f;${code};$t`,
+            );
+            return {
+                count: `${array}.length`,
+                item: (n) => `${array}[(${n})-1]`,
+            };
+        };
+        // The roots of f between a and b, as points: where ROOT_SAMPLES
+        // samples change sign, refined by bisection.
+        if (name === "Roots" && args.length === 3) {
+            const f = functionOf(args[0]);
+            const [a, b] = args
+                .slice(1)
+                .map((bound) => formula(bound, VALUE_KINDS));
+            if (!f || a === null || b === null) return null;
+            const root = (x: string) => `$t.push(${planar(x, "0")})`;
+            return script(
+                `var $h=((${b})-(${a}))/${ROOT_SAMPLES},$u,$v,$p,$w;for(var $n=0;$n<${ROOT_SAMPLES};$n++){$u=(${a})+$n*$h;$v=$u+$h;$p=${f}($u);if($p==0){${root("$u")}}else if($p*${f}($v)<0){for($j=0;$j<60;$j++){$w=($u+$v)/2;if(${f}($w)*$p>0){$u=$w}else{$v=$w}};${root("($u+$v)/2")}}};if(${f}(${b})==0){${root(b)}}`,
+            );
+        }
+        // The most frequent values, if any is repeated, in ascending order.
+        if (name === "Mode" && args.length === 1) {
+            const list = listFormula(args[0]);
+            const item = (n: string) => list?.item(n);
+            if (!item("$n") || !item("$j")) return null;
+            const count = list!.count;
+            const occurrences = `$c=0;for($j=1;$j<=${count};$j++){if(${item("$j")}==${item("$n")}){$c=$c+1}}`;
+            return script(
+                `var $m=1;for(var $n=1;$n<=${count};$n++){${occurrences};$m=max($m,$c)};for(var $n=1;$n<=${count};$n++){${occurrences};$f=$c==$m&&$m>1;for($k=0;$k<$t.length;$k++){if($t[$k]==${item("$n")}){$f=0}};if($f){$t.push(${item("$n")})}};for($j=0;$j<$t.length;$j++){for($k=0;$k<$t.length-1;$k++){if($t[$k]>$t[$k+1]){$x=$t[$k];$t[$k]=$t[$k+1];$t[$k+1]=$x}}}`,
+            );
         }
         return null;
     };
@@ -2269,21 +2319,32 @@ export function translateGgb(
         };
 
     const HANDLERS: Record<string, Handler> = {
-        Point: ([support, extra], [label]) =>
-            extra === undefined &&
-            is(support, [
-                "line",
-                "circle",
-                "polygon",
-                "quadric",
-                "curve",
-                "locus",
-            ]) &&
-            pointOn(
-                label,
-                directedLines.has(support) ? directedLine(support) : support,
-                kindOf(support) === "polygon",
-            ),
+        // On a path, or a point translated by a vector.
+        Point: ([support, extra, rest], [label]) => {
+            if (extra === undefined)
+                return (
+                    is(support, [
+                        "line",
+                        "circle",
+                        "polygon",
+                        "quadric",
+                        "curve",
+                        "locus",
+                    ]) &&
+                    pointOn(
+                        label,
+                        directedLines.has(support)
+                            ? directedLine(support)
+                            : support,
+                        kindOf(support) === "polygon",
+                    )
+                );
+            const value = formula(extra, VALUE_KINDS);
+            if (rest !== undefined || !points(support) || value === null)
+                return false;
+            formulaPoint(`${objects.get(support)!.variable}+(${value})`, label);
+            return true;
+        },
         PointIn: ([region, extra], [label]) =>
             extra === undefined &&
             is(region, ["polygon"]) &&
@@ -3420,6 +3481,16 @@ export function translateGgb(
         Min: formulaCommand("Min"),
         Max: formulaCommand("Max"),
         Mod: formulaCommand("Mod"),
+        // Each root as its own point.
+        Roots: (inputs, outputs) => {
+            const list = listFormula(`Roots(${inputs.join(",")})`);
+            if (!list) return false;
+            outputs.forEach(
+                (label, index) =>
+                    label && formulaPoint(list.item(String(index + 1))!, label),
+            );
+            return true;
+        },
         Locus: ([p, q, extra], [label]) =>
             extra === undefined &&
             points(p) &&
@@ -3783,12 +3854,13 @@ export function translateGgb(
             const n = `[${normal}]`;
             const point = formulaPoint(`-${g}*${n}/dot(${n},${n})`);
             if (plane) return planeThrough(label, point, n);
+            // Along GeoGebra's direction (y, -x).
             const [x, y] = normal;
             return define(label, "line", "Line", [
                 ref(point),
                 ref(
                     formulaPoint(
-                        `${objects.get(point)!.variable}+[-${y},${x}]`,
+                        `${objects.get(point)!.variable}+[${y},-${x}]`,
                     ),
                 ),
             ]);

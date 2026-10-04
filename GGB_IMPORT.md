@@ -32,7 +32,16 @@ python3 tools/ggb_corpus/roots.py         # résumé, causes premières
 `roots.py` affiche, pour chaque cause, le nombre de figures touchées et le
 nombre de figures où c'est la **seule** cause. Il ne compte pas les échecs en
 cascade : un `Segment` qui échoue parce qu'un de ses points dépend d'une
-commande non gérée n'est pas une cause. L'API utilisée est
+commande non gérée n'est pas une cause. Une cause ne nomme que la commande la
+plus extérieure d'un élément (`Circle` pour `Circle(A, r, UnitVector[v])`) :
+`roots.py` liste donc ensuite, par nombre de figures, les commandes et
+fonctions inconnues de `ggb_translate.ts` (absentes de `HANDLERS`,
+`FORMULA_COMMANDS`, `LIST_COMMANDS`, `FUNCTIONS` et `ITEM_FUNCTIONS`) trouvées
+à l'intérieur des éléments non importés, cascades comprises. N'y figurent que
+les commandes de GeoGebra (celles dont la version compilée de
+`doctools_MAIN/public/apps/geogebra` connaît une syntaxe) et les fonctions en
+minuscules ; les outils personnalisés (macros, `geogebra_macro.xml`) d'une
+figure sont seulement comptés. L'API utilisée est
 `api.geogebra.org/v1.0/search/materials?query=…&size=…&from=…`, puis
 `/v1.0/materials/<id>?scope=extended` (éléments `type: "G"` → `url` du `.ggb`).
 
@@ -62,6 +71,8 @@ commande non gérée n'est pas une cause. L'API utilisée est
 | 2026-09-28 | 251 / 470 (53 %)   | 269,8 Ko | item 15 ter : points sur une perpendiculaire ou parallèle (+0)     |
 | 2026-10-03 | —                  | 275,8 Ko | item 17 : pointillés des traits (style, +0)                        |
 | 2026-10-03 | —                  | 276,1 Ko | item 18 : opacité des traits (style, +0)                           |
+| 2026-10-04 | 232 / 438 (53 %)   | 297,5 Ko | item 19 : `UnitVector` dans une formule (+0)                       |
+| 2026-10-04 | 238 / 438 (54 %)   | 298,8 Ko | item 20 : `Mode`, `Roots`, `Point(A, vecteur)` (+6)                |
 
 ## À faire, par rapport gain / coût
 
@@ -325,6 +336,34 @@ cause.
       (`stroke-opacity` du groupe de l'objet, pointes des droites et point
       d'angle droit compris), jamais au remplissage. Aucun gain sur le
       compte des figures sans perte ; build +0,3 Ko.
+- [x] **19. `UnitVector` dans une formule** : `A - UnitVector[s]`, qui
+      place l'étiquette d'une droite
+      (`tests/ggb/Benjamin/6eme_Droites_secantes.ggb`), faisait ignorer le
+      point et les textes posés sur lui. Fait : le vecteur unitaire d'un
+      segment (de son début à sa fin), d'une droite (sa direction) ou de
+      tout vecteur calculé, en 2D comme en 3D. **+0 figure** du corpus
+      (232) : ses 7 figures à `UnitVector` sont bloquées par ailleurs
+      (`Zip`, `Circle` autour d'un axe, `Point` sur un vecteur,
+      `AngularBisector` de deux droites) ; build +0,2 Ko. `roots.py` ne
+      nommant que la commande la plus extérieure d'un élément non importé,
+      `UnitVector` n'apparaissait dans aucune cause : il liste depuis les
+      commandes inconnues à l'intérieur de ces éléments.
+- [x] **20. Commandes cachées dans les éléments non importés** : la liste
+      de `roots.py` (item 19). Toutes ont été écrites (`Name`, `Defined`,
+      `Radius`, `Vertex`, `UnitOrthogonalVector`, `Product`, `IndexOf`,
+      `IsInRegion`, `PathParameter`, `asind`, `Append`, `Zip`, `Shuffle`,
+      `Remove`, `KeepIf`, `Flatten`, `PlaneBisector`, `Point(chemin, t)`,
+      `CurveCartesian`, `RotateText`, commandes géométriques imbriquées
+      dans une formule…), pour +7,4 Ko, puis retirées faute de figure
+      gagnée, sauf : `Mode` (valeurs les plus fréquentes, croissantes,
+      calculées par le script d'une expression cachée), `Roots(f, a, b)`
+      (changements de signe sur 200 échantillons, puis dichotomie) et
+      `Point(A, vecteur)`. Au passage, une droite donnée par son équation
+      suit la direction (b, −a) de GeoGebra. **+6 figures** (232 → 238),
+      éléments non importés 2889 → 2844 ; build +1,3 Ko. Les 3 figures à
+      `Mode` s'ouvrent dans l'état enregistré : leurs listes déroulantes ne
+      sont pas dessinées et `SelectedIndex` garde sa valeur enregistrée.
+      `CSolve` et `IFactor` relèvent du calcul formel (écarté).
 
 À écarter, sauf changement de priorité : calcul formel, courbes implicites,
 statistiques et probabilités, tableur au-delà des cellules simples, matrices.
