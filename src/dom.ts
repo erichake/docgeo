@@ -257,7 +257,11 @@ export class DOMElement {
         let startY = 0;
 
         this.on("pointerdown", (event) => {
-            if (!isPrimaryAction(event) || pointerId !== null) return;
+            if (
+                !isPrimaryAction(event) ||
+                (pointerId !== null && pointerId !== event.pointerId)
+            )
+                return;
             pointerId = event.pointerId;
             startedAt = performance.now();
             startX = event.clientX;
@@ -295,15 +299,21 @@ export class DOMElement {
 
         const finish = (event: PointerEvent, cancelled: boolean): void => {
             if (event.pointerId !== pointerId) return;
-            if (this.element.hasPointerCapture(pointerId)) {
-                this.element.releasePointerCapture(pointerId);
-            }
             pointerId = null;
+            if (this.element.hasPointerCapture(event.pointerId)) {
+                this.element.releasePointerCapture(event.pointerId);
+            }
             after?.(event, cancelled);
         };
 
         this.on("pointerdown", (event) => {
-            if (!isPrimaryAction(event, button) || pointerId !== null) return;
+            // The same pointer pressed again: the browser lost the end of its
+            // previous gesture (e.g. released outside the window).
+            if (
+                !isPrimaryAction(event, button) ||
+                (pointerId !== null && pointerId !== event.pointerId)
+            )
+                return;
             if (before?.(event) === false) return;
             pointerId = event.pointerId;
             oldX = event.clientX;
@@ -323,6 +333,7 @@ export class DOMElement {
         });
         this.on("pointerup", (event) => finish(event, false));
         this.on("pointercancel", (event) => finish(event, true));
+        this.on("lostpointercapture", (event) => finish(event, true));
         this.cleanups.add(() => {
             if (
                 pointerId !== null &&
