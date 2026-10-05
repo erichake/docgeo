@@ -355,8 +355,8 @@ const COMPARISONS: Record<Comparison, (a: number, b: number) => number> = {
     "<=": (a, b) => Number(a <= b),
     ">": (a, b) => Number(a > b),
     ">=": (a, b) => Number(a >= b),
-    "&&": (a, b) => Number(a !== 0 && b !== 0),
-    "||": (a, b) => Number(a !== 0 || b !== 0),
+    "&&": (a, b) => Number(truthy(a) && truthy(b)),
+    "||": (a, b) => Number(truthy(a) || truthy(b)),
 };
 
 const ARITHMETIC: Record<
@@ -2082,7 +2082,15 @@ function compileNode(node: FormulaNode, scope: Scope): Code {
             return (frame) => {
                 const l = left(frame);
                 const r = right(frame);
-                if (l === null || r === null) return null;
+                // An undefined operand is JavaScript's NaN, which DGPad's
+                // compiled scripts compare (e.g. "d(P,M)<0.001" is false).
+                if (l === null || r === null)
+                    return isComparison(op)
+                        ? COMPARISONS[op](
+                              realPart(l) ?? NaN,
+                              realPart(r) ?? NaN,
+                          )
+                        : null;
                 return typeof l === "number" && typeof r === "number"
                     ? numbers(l, r)
                     : evalBinary(op, l, r);

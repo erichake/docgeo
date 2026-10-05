@@ -271,6 +271,13 @@ describe("evaluateFormula", () => {
         expect(evaluateFormula(parseFormula("A+1"), env)).toBeNull();
     });
 
+    it("compares an undefined value as JavaScript's NaN", () => {
+        const env = envWith({ A: null });
+        expect(evaluateFormula(parseFormula("x(A)<1"), env)).toBe(0);
+        expect(evaluateFormula(parseFormula("x(A)!=x(A)"), env)).toBe(1);
+        expect(evaluateFormula(parseFormula("(x(A)<1)||1"), env)).toBe(1);
+    });
+
     it("returns null on division by zero", () => {
         expect(evaluateFormula(parseFormula("1/0"), noPoints)).toBeNull();
         expect(evaluateFormula(parseFormula("(1+i)/0"), noPoints)).toBeNull();
