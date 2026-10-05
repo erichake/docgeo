@@ -1273,7 +1273,7 @@ C1=Circle1("C1",A,"d(A,Z)");`,
             expect.arrayContaining(["0", "1", "2", "3", "4", "5", "6"]),
         );
         const m = c.getObj("M") as point_object;
-        expect(m.increment).toEqual([1 / 3, 1 / 3]);
+        expect(m.increment).toEqual([0.5, 0.5]);
         const n = c.getObj("n") as expression_object;
         n.value = 5;
         c.invalidateGeometry(n);

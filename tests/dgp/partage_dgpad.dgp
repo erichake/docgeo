@@ -1,13 +1,13 @@
 // Coordinates System :
-SetCoords(505.9554723918441,535.7564859767598,68.57996715894998,false,465,230);
+SetCoords(69.85685587529088,65.8162783866253,63.51162840289232,false,908,528);
 
 
 // Geometry :
-P1=Point("P1",-7,7);
-n=Expression("n","L'unit\u00e9 est partag\u00e9e en : ","2","10","3","-6.211077229077604","5.479099823799229");
-max=Expression("max","","1","10","6","-6.2110772290776035","3.1460570034496236");
+P1=Point("P1","[0,0]","0");
+n=Expression("n","L'unit\u00e9 est partag\u00e9e en : ","2","10","2","0.15970530719768394","-1.4829366524175842");
+max=Expression("max","","1","10","6","3.9385408690500148","-4.159611842062985");
 P2=Point("P2","P1+max","0");
-blk_turtle_exp_P1=Expression("blk_turtle_exp_P1","","","","var bl_cjjcddfig=function(){\nTURTLE_INIT(\"P1\",P1);\nblockly_var_m = 40;\nblockly_var_l1 = 5;\nblockly_var_l2 = 8;\nblockly_var_end = Math.times((max),(n));\nblockly_var_step = Math.quotient(1,(n));\nBLK_STL(TURTLE_TEXT('dgpad_object_M'),\"setIncrement\",[blockly_var_step]);\nfor (var blockly_var_i = 0 ; blockly_var_i <= blockly_var_end ; blockly_var_i = blockly_var_i + 1){\n  if (blockly_var_i % (n) == 0) {\n    TURTLE_UP(true);\n    TURTLE_TURN((90));\n    TURTLE_MV(-blockly_var_m,true);\n    TURTLE_TURN(-(90));\n    TURTLE_PRINT((Math.quotient(blockly_var_i,(n))));\n    TURTLE_TURN((90));\n    TURTLE_MV(blockly_var_m,true);\n    TURTLE_TURN(-(90));\n    TURTLE_UP(false);\n  }\n  blockly_var_l = blockly_var_i % (n) == 0 ? blockly_var_l2 : blockly_var_l1;\n  TURTLE_TURN((90));\n  TURTLE_MV(blockly_var_l,true);\n  TURTLE_UP(true);\n  TURTLE_MV(-(Math.times(2,blockly_var_l)),true);\n  TURTLE_UP(false);\n  TURTLE_MV(blockly_var_l,true);\n  TURTLE_TURN(-(90));\n  if (blockly_var_i < blockly_var_end) {\n    TURTLE_MV(blockly_var_step,false);\n  }\n};\nreturn TURTLE_RESULT()\n};\nbl_cjjcddfig()","-6.648522757893154","7.083066762789583");
+blk_turtle_exp_P1=Expression("blk_turtle_exp_P1","","","","var bl_dddjffdhh=function(){\nTURTLE_INIT(\"P1\",P1);\nblockly_var_m = 40;\nblockly_var_l1 = 5;\nblockly_var_l2 = 8;\nblockly_var_end = Math.times((max),(n));\nblockly_var_step = Math.quotient(1,(n));\nBLK_STL(TURTLE_TEXT('dgpad_object_M'),\"setIncrement\",[blockly_var_step]);\nfor (var blockly_var_i = 0 ; blockly_var_i <= blockly_var_end ; blockly_var_i = blockly_var_i + 1){\n  if (blockly_var_i % (n) == 0) {\n    TURTLE_UP(true);\n    TURTLE_TURN((90));\n    TURTLE_MV(-blockly_var_m,true);\n    TURTLE_TURN(-(90));\n    TURTLE_PRINT((Math.quotient(blockly_var_i,(n))));\n    TURTLE_TURN((90));\n    TURTLE_MV(blockly_var_m,true);\n    TURTLE_TURN(-(90));\n    TURTLE_UP(false);\n  }\n  blockly_var_l = blockly_var_i % (n) == 0 ? blockly_var_l2 : blockly_var_l1;\n  TURTLE_TURN((90));\n  TURTLE_MV(blockly_var_l,true);\n  TURTLE_UP(true);\n  TURTLE_MV(-(Math.times(2,blockly_var_l)),true);\n  TURTLE_UP(false);\n  TURTLE_MV(blockly_var_l,true);\n  TURTLE_TURN(-(90));\n  if (blockly_var_i < blockly_var_end) {\n    TURTLE_MV(blockly_var_step,false);\n  }\n};\nreturn TURTLE_RESULT()\n};\nbl_dddjffdhh()","-0.3126491380338555","0.24902964676473366");
 S1=Segment("S1",P1,P2);
 blk_turtle_list_P1=List("blk_turtle_list_P1",blk_turtle_exp_P1);
 M=PointOn("M",S1,0);
@@ -21,9 +21,9 @@ STL(P2,"c:#0000b2;h:1;s:6;f:30");
 STL(blk_turtle_exp_P1,"c:#780013;h:2;s:7;f:24;p:2;cL:200;cPT:YzojNzgwMDEzO2g6MjtzOjEwO2Y6MzA=");
 STL(S1,"c:#006633;h:1;s:1;f:24");
 STL(blk_turtle_list_P1,"c:#0000b2;s:0;f:30;p:0;nmi:true;sg:1");
-STL(M,"c:#e74405;o:1;s:6;sn:true;f:30;i:0.3333333333333333;np:1.5267440054558334");
+STL(M,"c:#e74405;o:1;s:6;sn:true;f:30;i:0.5;np:1.5267440054558334");
 SetCoordsStyle("isAxis:false;isGrid:true;isOx:true;isOy:true;isLockOx:false;isLockOy:false;centerZoom:false;onlyPositive:false;color:#111111;fontSize:18;axisWidth:1;gridWidth:0.1");
-SetGeneralStyle("background-color:#F8F8F8;degree:true;dragmoveable:true");
+SetGeneralStyle("background-color:#ffffff;degree:true;dragmoveable:true");
 
 
 // Blockly :
