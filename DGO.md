@@ -392,7 +392,7 @@ objet manipulable y entre donc, par une nouvelle ligne du tableau ci-dessous.
 | Objet                                                  | Valeur                                                             |
 | ------------------------------------------------------ | ------------------------------------------------------------------ |
 | `Pt` (point libre), punaisé (`fl`) compris (3)         | `[x, y]` dans une figure plane, `[x, y, z]` dans une figure 3D (1) |
-| `On` (point sur objet)                                 | son paramètre, sous la forme de `.dgo` : nombre ou couple          |
+| `On` (point sur objet)                                 | son paramètre, sous la forme de `.dgo` : nombre ou couple (4)      |
 | `Ex` de valeur constante numérique (`"v"`)             | le nombre                                                          |
 | `Int` sans point P dont les solutions sont suivies (2) | le numéro de branche de `.dgo` (note 3 des objets)                 |
 | `C1` à rayon numérique (non formule)                   | le rayon, qu'un glisser du cercle change                           |
@@ -411,6 +411,14 @@ Comme dans `.dgo`, un nombre non fini s'écrit `null`.
    ne change pas l'état. Appliquées comme paramètres de `Pt`, elles le
    replacent au même endroit. Dans une figure 3D à repère 2D (`f2`), ce sont
    ses coordonnées dans ce repère, suivies de 0.
+4. À l'application, un point sur objet de paramètre numérique (droite,
+   segment, cercle, courbe… hors lieu et liste) accepte aussi des coordonnées
+   `[x, y]` ou `[x, y, z]` : il est placé à l'endroit de son objet le plus
+   proche, comme par un glisser (sans le pas d'incrément), une fois la figure
+   construite avec le reste de l'état. L'état relu donne son paramètre. Ainsi
+   l'hôte peut appliquer la valeur (`value`) attendue d'un point sans
+   connaître son objet. Un point sur polygone ou sur conique, de paramètre
+   couple, n'en accepte pas : un couple y reste son paramètre.
 
 - Les `Ex` de valeur constante couvrent les curseurs, les cases à cocher, les
   nombres que modifie un champ de saisie ou le glisser d'un point `Fp`.

@@ -142,7 +142,9 @@ L'état est décrit dans `DGO.md` (section « État élève ») :
   manipulée. La vue (zoom,
   déplacement, rotation 3D) n'en fait pas partie.
 - `setState` reconstruit la figure de base avec ces valeurs, vue de base
-  comprise. `setState(getState())` sur la figure de base reproduit la figure
+  comprise. Un point sur objet de paramètre numérique y accepte aussi des
+  coordonnées, celles que renvoie `value` : il est placé à l'endroit de son
+  objet le plus proche (`DGO.md`, note 4 de l'état élève). `setState(getState())` sur la figure de base reproduit la figure
   à l'identique, traces exceptées. Un état malformé (nom inconnu, objet non
   modifiable, valeur de forme incorrecte) est refusé en entier : la figure
   n'est pas modifiée.

@@ -17,6 +17,7 @@ import {
     hideTarget,
     lockFigure,
     objectValue,
+    placeOn,
     stateFigure,
 } from "./figure_state";
 import { frameRegion, hideFrame, showFrame } from "./frame";
@@ -71,9 +72,11 @@ export function embed(app: Embedder): void {
         reported = JSON.stringify(state());
         app.scene.reveal();
     };
-    const rebuild = (figure: DgoFigure): void => {
+    // `values`: the state whose coordinates place points on objects.
+    const rebuild = (figure: DgoFigure, values: FigureState = {}): void => {
         renew();
         readDgo(app.scene, figure, true);
+        placeOn(app.scene, values);
         settle();
     };
     const state = () => figureState(app.scene, base!.values, view);
@@ -151,7 +154,10 @@ export function embed(app: Embedder): void {
             return [state()];
         },
         async setState({ state: values }) {
-            rebuild(stateFigure(app.scene, base!.figure, values));
+            rebuild(
+                stateFigure(app.scene, base!.figure, values),
+                values as FigureState,
+            );
             return [null];
         },
         async reset() {

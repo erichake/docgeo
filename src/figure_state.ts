@@ -5,6 +5,7 @@ import type { construction_object } from "./objects/construction_object";
 import { expression_object } from "./objects/expression_object";
 import type { grid_object } from "./objects/grid_object";
 import { intersection_object } from "./objects/intersection_object";
+import { list_object } from "./objects/list_object";
 import { point_on_object } from "./objects/point_on_object";
 import { point_object } from "./objects/point_object";
 
@@ -71,6 +72,20 @@ function stated(c: construction): Stated[] {
                 typeof object.radius === "number"),
     );
 }
+
+// A point on an object that coordinates can place: its parameter is a number
+// that alphaFor finds back from a position.
+const placeable = (object: point_on_object): boolean =>
+    typeof object.alpha === "number" &&
+    object.support.familytype !== "locus" &&
+    !(object.support instanceof list_object);
+
+// Coordinates given instead of a point on object's parameter.
+const isPlace = (value: unknown): value is number[] =>
+    Array.isArray(value) &&
+    value.length >= 2 &&
+    value.length <= 3 &&
+    value.every(Number.isFinite);
 
 // What a manipulation changes directly.
 const movable = (c: construction): Stated[] =>
@@ -149,6 +164,8 @@ export function stateFigure(
             const [center, , ...axis] = parameters as unknown[];
             changed = [center, value, ...axis];
         } else if (object instanceof point_on_object) {
+            // Coordinates leave the parameter to placeOn.
+            if (placeable(object) && isPlace(value)) return;
             check(
                 typeof object.alpha === "number"
                     ? isReal(value)
@@ -165,6 +182,27 @@ export function stateFigure(
         entries[index] = [tag, name, changed, ...style];
     });
     return { ...figure, o: entries };
+}
+
+// Moves the points on objects that `state`, already checked by stateFigure,
+// gives coordinates to the nearest place on their object, in construction
+// order, as a drag would: `c` is the figure built from stateFigure's result.
+export function placeOn(c: construction, state: FigureState): void {
+    figureObjects(c).forEach((object) => {
+        const value = state[object.name];
+        if (
+            !(object instanceof point_on_object) ||
+            !placeable(object) ||
+            !isPlace(value)
+        )
+            return;
+        c.flush();
+        const [x, y, z = 0] = value;
+        const alpha = object.alphaFor([x, y, z]);
+        if (alpha === null) return;
+        object.alpha = alpha;
+        c.invalidateGeometry(object);
+    });
 }
 
 export function figureTargets(c: construction): Target[] {

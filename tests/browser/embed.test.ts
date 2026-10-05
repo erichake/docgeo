@@ -266,6 +266,34 @@ describe("state", () => {
         expect((await request("value", { name: "M" })).result).toEqual(H);
         expect((await request("value", { name: "d" })).result).toBe(0);
     });
+
+    // As a drag would: the nearest place on the object.
+    it("places points on objects by their coordinates", async () => {
+        const { request } = await host();
+        await request("load", {
+            data: encoded({
+                dgo: 1,
+                v: { o: [200, 150], u: 40, w: 400, h: 300 },
+                o: [
+                    ["Pt", "O", [0, 0]],
+                    ["Pt", "B", [4, 0]],
+                    ["Seg", "s", [0, 1]],
+                    ["On", "N", [2, 0.25]],
+                ],
+            }),
+            format: "dgo",
+        });
+        const value = async () =>
+            (await request("value", { name: "N" })).result;
+        await request("setState", { state: { N: [3, 1] } });
+        expectNear(await value(), [3, 0], 1e-9);
+        expect((await request("getState")).result).toEqual({ N: 0.75 });
+        await request("setState", { state: { N: [9, 0, 0] } });
+        expect(await value()).toEqual([4, 0]);
+        expect(
+            await request("setState", { state: { N: [1, null] } }),
+        ).toMatchObject({ ok: false });
+    });
 });
 
 describe("lock", () => {
