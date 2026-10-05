@@ -807,6 +807,32 @@ STL(M,"mg:[f1,5000]");`,
         expect(m.coords[1]).toBeCloseTo(0.5 * m.coords[0] * m.coords[0] - 4, 1);
     });
 
+    it("magnetizes a free point onto a point before the circles through it", () => {
+        const c = createConstruction();
+        importDgp(
+            c,
+            `A=Point("A",0,0);
+B=Point("B",2,0);
+C1=Circle("C1",A,B);
+C2=Circle("C2",B,A);
+I=OrderedIntersection("I",C1,C2,0);
+M=Point("M",5,5);
+STL(M,"mg:[C1,20],[C2,20],[I,20]");`,
+        );
+        c.OBJS.update();
+        const m = c.getObj("M") as point_object;
+        const i = c.getObj("I") as point_object;
+
+        const [x, y] = c.pt3D(i.coords);
+        m.mousedrag(
+            new PointerEvent("pointermove", { clientX: x + 3, clientY: y + 4 }),
+        );
+        c.OBJS.update();
+
+        expect(m.coords[0]).toBeCloseTo(i.coords[0], 9);
+        expect(m.coords[1]).toBeCloseTo(i.coords[1], 9);
+    });
+
     it("keeps a magnetized point glued to whichever segment it grabbed, only switching on a fresh grab", async () => {
         const c = createConstruction();
         await importDgpFromUrl(c, figure("trace.dgp"));

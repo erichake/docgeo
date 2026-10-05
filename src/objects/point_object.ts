@@ -39,6 +39,8 @@ export type magnet_target =
 // jitter flips which one is "closest" every single frame, dragging the
 // point back and forth between them instead of following either one.
 const MAGNET_HYSTERESIS = 15;
+// Beyond any magnet radius (DGPad's largest is 5000 pixels).
+const LINE_MAGNET_RANK = 1e5;
 // Far beyond any window, yet within the single precision SVG parses its
 // numbers in: a point further away (e.g. a diverging sequence's term) isn't
 // drawn, rather than rejected by the SVG.
@@ -259,9 +261,9 @@ export class point_object extends construction_object {
         let closest: {
             target: magnet_target;
             point: Vec3;
-            distance: number;
+            rank: number;
         } | null = null;
-        let active: { point: Vec3; distance: number } | null = null;
+        let active: { point: Vec3; rank: number } | null = null;
         for (const { target, radius } of this.magnets) {
             if (!target.defined) continue;
             const point = projectOntoMagnet(target, coords);
@@ -269,16 +271,22 @@ export class point_object extends construction_object {
             if (!vIsFinite(candidateScreen)) continue;
             const distance = vNorm(vSub(candidateScreen, screen));
             if (distance > radius) continue;
-            if (target === this.activeMagnet) active = { point, distance };
-            if (!closest || distance < closest.distance)
-                closest = { target, point, distance };
+            // As DGPad, a point within reach beats any line or curve, such
+            // as the ones through it, always at least as close.
+            const rank =
+                target instanceof point_object
+                    ? distance
+                    : distance + LINE_MAGNET_RANK;
+            if (target === this.activeMagnet) active = { point, rank };
+            if (!closest || rank < closest.rank)
+                closest = { target, point, rank };
         }
         if (!closest) {
             if (this.activeMagnet) this.breakTraces();
             this.activeMagnet = null;
             return coords;
         }
-        if (active && active.distance <= closest.distance + MAGNET_HYSTERESIS)
+        if (active && active.rank <= closest.rank + MAGNET_HYSTERESIS)
             return active.point;
         // A magnet switch starts a new trace subpath for this point and its
         // dependent points instead of drawing a line between both targets.
