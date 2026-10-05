@@ -3,20 +3,25 @@ import { $, type DOMElement, type PointerDelta } from "./dom";
 
 // A screenshot-like frame over the figure, which stays manipulable inside
 // and outside it: only its edges, corners and size label take the pointer.
+// Only the visible handles resize it: the rest of its edges moves it.
 
 const MIN_SIZE = 40;
 const HANDLES = ["n", "e", "s", "w", "ne", "nw", "se", "sw"];
+const EDGES = ["n", "e", "s", "w"];
 
 $("head").append(`<style>
     .docgeo-frame { position: fixed; z-index: 1; pointer-events: none; outline: 1px solid rgb(255 255 255 / 0.9); box-shadow: 0 0 0 1px rgb(0 0 0 / 0.5), 0 0 0 100vmax rgb(0 0 0 / 0.35); }
     .docgeo-frame > * { position: absolute; pointer-events: auto; touch-action: none; }
     .docgeo-frame [data-handle] { width: 24px; height: 24px; }
-    .docgeo-frame [data-handle="n"], .docgeo-frame [data-handle="s"] { left: 12px; right: 12px; width: auto; height: 12px; cursor: ns-resize; }
-    .docgeo-frame [data-handle="e"], .docgeo-frame [data-handle="w"] { top: 12px; bottom: 12px; width: 12px; height: auto; cursor: ew-resize; }
-    .docgeo-frame [data-handle="n"] { top: -6px; }
-    .docgeo-frame [data-handle="s"] { bottom: -6px; }
-    .docgeo-frame [data-handle="e"] { right: -6px; }
-    .docgeo-frame [data-handle="w"] { left: -6px; }
+    .docgeo-frame [data-edge] { cursor: move; }
+    .docgeo-frame [data-edge="n"], .docgeo-frame [data-edge="s"] { left: 12px; right: 12px; height: 12px; }
+    .docgeo-frame [data-edge="e"], .docgeo-frame [data-edge="w"] { top: 12px; bottom: 12px; width: 12px; }
+    .docgeo-frame [data-handle="n"], .docgeo-frame [data-handle="s"] { left: calc(50% - 20px); width: 40px; height: 12px; cursor: ns-resize; }
+    .docgeo-frame [data-handle="e"], .docgeo-frame [data-handle="w"] { top: calc(50% - 20px); width: 12px; height: 40px; cursor: ew-resize; }
+    .docgeo-frame [data-handle="n"], .docgeo-frame [data-edge="n"] { top: -6px; }
+    .docgeo-frame [data-handle="s"], .docgeo-frame [data-edge="s"] { bottom: -6px; }
+    .docgeo-frame [data-handle="e"], .docgeo-frame [data-edge="e"] { right: -6px; }
+    .docgeo-frame [data-handle="w"], .docgeo-frame [data-edge="w"] { left: -6px; }
     .docgeo-frame [data-handle="nw"] { top: -12px; left: -12px; cursor: nwse-resize; }
     .docgeo-frame [data-handle="ne"] { top: -12px; right: -12px; cursor: nesw-resize; }
     .docgeo-frame [data-handle="sw"] { bottom: -12px; left: -12px; cursor: nesw-resize; }
@@ -114,12 +119,20 @@ export function showFrame(
         .append(
             `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v18M3 12h18M9 6l3-3 3 3M9 18l3 3 3-3M6 9l-3 3 3 3M18 9l3 3-3 3"/></svg><span></span>`,
         );
-    const handles = HANDLES.map((handle) =>
-        $.create("div").att("data-handle", handle),
-    );
+    // The edges come first, so that the handles lie over them.
+    const grips: [DOMElement, string][] = [
+        ...EDGES.map((edge): [DOMElement, string] => [
+            $.create("div").att("data-edge", edge),
+            "move",
+        ]),
+        ...HANDLES.map((handle): [DOMElement, string] => [
+            $.create("div").att("data-handle", handle),
+            handle,
+        ]),
+        [size, "move"],
+    ];
     shown = { region: { x: 0, y: 0, w, h }, element, size };
-    [...handles, size].forEach((item, index) => {
-        const handle = HANDLES[index] ?? "move";
+    grips.forEach(([item, handle]) => {
         let start = shown!.region;
         let total: [number, number] = [0, 0];
         item.drag(
@@ -134,7 +147,7 @@ export function showFrame(
             () => changed(shown!.region),
         );
     });
-    $("body").add(element.add(...handles, size));
+    $("body").add(element.add(...grips.map(([item]) => item)));
     place(
         fitted({
             x: Math.round((width - w) / 2),

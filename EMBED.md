@@ -209,8 +209,9 @@ fait pas partie de l'état et n'émet pas de `change`.
 capture d'écran de `w` × `h` pixels, centré dans la fenêtre (réduit s'il ne
 tient pas) :
 
-- il se redimensionne par ses bords et ses coins, et se déplace par son
-  étiquette, qui affiche ses dimensions ;
+- il se redimensionne par ses poignées (coins et milieux des côtés), et se
+  déplace par le reste de ses bords ou par son étiquette, qui affiche ses
+  dimensions ;
 - l'extérieur est assombri, et la figure reste manipulable à l'intérieur comme
   à l'extérieur du cadre ;
 - il reste dans la fenêtre, et mesure au moins 40 × 40 pixels.

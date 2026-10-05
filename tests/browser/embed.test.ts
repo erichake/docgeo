@@ -771,6 +771,34 @@ describe("frame", () => {
             iframe.contentDocument!.querySelector(".docgeo-frame"),
         ).toBeNull();
     });
+
+    it("moves by its edges besides its handles", async () => {
+        const { request, drag, events, iframe } = await loaded();
+        await request("frame", { show: true, w: 200, h: 150 });
+        const frame = iframe.contentDocument!.querySelector(".docgeo-frame")!;
+
+        // Centered: its top edge goes from (100, 75) to (300, 75).
+        await drag([130, 75], [150, 95]);
+        await expect
+            .poll(() => events)
+            .toEqual([{ docgeo: 1, event: "frame", w: 200, h: 150 }]);
+        expect(frame.getBoundingClientRect()).toMatchObject({
+            x: 120,
+            y: 95,
+            width: 200,
+            height: 150,
+        });
+
+        // The top middle handle still resizes it.
+        await drag([220, 95], [220, 85]);
+        await expect.poll(() => events).toHaveLength(2);
+        expect(events[1]).toEqual({
+            docgeo: 1,
+            event: "frame",
+            w: 200,
+            h: 160,
+        });
+    });
 });
 
 describe("scaled iframe", () => {
