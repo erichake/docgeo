@@ -2779,26 +2779,34 @@ function attachButtonPrograms(calls: DgpCall[]): DgpCall[] {
 }
 
 // DGPad finds the objects a script styles when it runs: a script styling
-// objects the file declares later is moved after them.
+// objects the file declares later is moved after them, with the objects
+// that read it (e.g. the List drawing a turtle styling a later point).
 function orderStyleTargets(calls: DgpCall[]): DgpCall[] {
     const declared = new Map(
         calls.flatMap((call, i) => (call.variable ? [[call.variable, i]] : [])),
     );
+    const movedTo = new Map<string, number>();
     const moved = new Map<number, DgpCall[]>();
+    const later = new Set<DgpCall>();
     calls.forEach((call, i) => {
         const source = call.arguments[4];
-        if (!call.name.startsWith("Expression") || source?.type !== "literal")
-            return;
-        const program = tryParseProgram(String(source.value));
-        if (!program) return;
+        const program =
+            call.name.startsWith("Expression") && source?.type === "literal"
+                ? tryParseProgram(String(source.value))
+                : null;
         const last = Math.max(
-            ...[...programTargets(program)].map(
+            ...[...(program ? programTargets(program) : [])].map(
                 (name) => declared.get(name) ?? -1,
             ),
+            ...call.arguments
+                .flatMap(referencedNames)
+                .map((name) => movedTo.get(name) ?? -1),
         );
-        if (last > i) moved.set(last, [...(moved.get(last) ?? []), call]);
+        if (last <= i) return;
+        moved.set(last, [...(moved.get(last) ?? []), call]);
+        later.add(call);
+        if (call.variable) movedTo.set(call.variable, last);
     });
-    const later = new Set([...moved.values()].flat());
     return calls.flatMap((call, i) => [
         ...(later.has(call) ? [] : [call]),
         ...(moved.get(i) ?? []),

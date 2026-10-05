@@ -146,6 +146,7 @@ export type ObjectMethod =
     | "setRGBColor"
     | "setSize"
     | "setPrecision"
+    | "setIncrement"
     | "setLayer"
     | "setDash"
     | "noMouseInside"
@@ -193,6 +194,7 @@ const METHOD_ARITY: Record<ObjectMethod, number> = {
     setRGBColor: 3,
     setSize: 1,
     setPrecision: 1,
+    setIncrement: 1,
     setLayer: 1,
     setDash: 1,
     noMouseInside: 0,
@@ -965,9 +967,14 @@ class FormulaParser {
                 throw new Error("Invalid DGP formula syntax");
             return methodNode(object.value, "setExpression", [value]);
         }
-        // Blockly's form of a styling method: BLK_STL("S1","setHidden",[1]).
+        // Blockly's form of a styling method: BLK_STL("S1","setHidden",[1]),
+        // or BLK_STL(TURTLE_TEXT('dgpad_object_S1'),…) in a turtle's program.
         if (name === "BLK_STL") {
-            const [object, method, list] = args;
+            const [named, method, list] = args;
+            const object =
+                named?.kind === "turtle" && named.fn === "TURTLE_TEXT"
+                    ? named.args[0]
+                    : named;
             if (
                 args.length !== 3 ||
                 object.kind !== "string" ||

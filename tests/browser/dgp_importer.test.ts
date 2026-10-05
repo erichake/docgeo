@@ -1232,6 +1232,29 @@ C1=Circle1("C1",A,"d(A,Z)");`,
         expect(poly6.hidden).toBe(1);
     });
 
+    it("draws a turtle setting the increment of a point declared after it", async () => {
+        const c = createConstruction();
+        const unsupported = await importDgpFromUrl(
+            c,
+            figure("partage_dgpad.dgp"),
+        );
+        expect(unsupported).toEqual([]);
+        const texts = () =>
+            [...c.svg.dom().querySelectorAll("text")].map(
+                (text) => text.textContent,
+            );
+        expect(texts()).toEqual(
+            expect.arrayContaining(["0", "1", "2", "3", "4", "5", "6"]),
+        );
+        const m = c.getObj("M") as point_object;
+        expect(m.increment).toEqual([1 / 3, 1 / 3]);
+        const n = c.getObj("n") as expression_object;
+        n.value = 5;
+        c.invalidateGeometry(n);
+        c.OBJS.update();
+        expect(m.increment).toEqual([0.2, 0.2]);
+    });
+
     it("reads an object named as two function variables, and turtles writing TeX", async () => {
         const c = createConstruction();
         const unsupported = await importDgpFromUrl(

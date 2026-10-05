@@ -260,6 +260,15 @@ export function styleObject(
             target.precision = value;
             break;
         }
+        // The step of a slider, or of a free or on-object point's drag.
+        case "setIncrement": {
+            const value = realPart(args[0]);
+            if (value === null) return;
+            if (target instanceof expression_object) target.increment = value;
+            else if (target instanceof point_object)
+                target.increment = [value, value];
+            return;
+        }
         case "setRGBColor": {
             const channels = args.map(realPart);
             if (channels.includes(null)) return;
