@@ -39,6 +39,9 @@ export class construction {
     degrees = false;
     // Bumped by a pan or a zoom, which erase the traces as in DGPad.
     traceEpoch = 0;
+    // Set by an embedded lock: dragging the 2D view with the left mouse
+    // button or a finger no longer pans it.
+    panLocked = false;
     animations: animations;
     private updateFrame: number | null = null;
     private batchedObjects: construction_object[] | null = null;
@@ -373,12 +376,18 @@ export class construction {
             .drag(
                 (event, delta) => this.pan(event, delta),
                 (event) =>
+                    !this.panLocked &&
                     event.pointerType === "mouse" &&
                     event.target === element.dom(),
             )
             .drag(
                 (event, delta) => this.mousedrag(event, delta),
-                undefined,
+                (event) =>
+                    !(
+                        this.panLocked &&
+                        this.GRID.is2D &&
+                        event.pointerType !== "mouse"
+                    ),
                 undefined,
                 2,
             )

@@ -287,15 +287,19 @@ describe("lock", () => {
         expect((await request("value", { name: "A" })).result).toEqual([0, 0]);
         const { result: state } = await request("getState");
         expect(Object.keys(state)).toEqual(["M"]);
-        // The view stays manipulable.
+        // Neither does the view, which a drag on nothing no longer pans.
         await drag([300, 250], [340, 210]);
         const saved = await decoded((await request("save")).result.data);
-        expect(saved.v.o).toEqual([240, 110]);
-        // The slider neither.
-        const knob = iframe.contentDocument!.querySelector(
-            'circle[style*="cursor: pointer"][style*="pointer-events: none"]',
+        expect(saved.v.o).toEqual([200, 150]);
+        // The slider stays manipulable: its knob, at the window's bottom
+        // edge, is grabbed just above it.
+        const knob = iframe.contentDocument!.querySelector('circle[r="10"]')!;
+        const x = Number(knob.getAttribute("cx"));
+        const y = Number(knob.getAttribute("cy")) - 1;
+        await drag([x, y], [x + 30, y]);
+        expect((await request("value", { name: "k" })).result).toBeGreaterThan(
+            2,
         );
-        expect(knob).not.toBeNull();
     });
 
     it("survives reset and setState, not load", async () => {
@@ -333,8 +337,8 @@ describe("lock", () => {
         });
         await drag([200, 150], [240, 110]);
         expect((await request("value", { name: "A" })).result).toEqual([0, 0]);
-        // Nothing locked, all movable objects excepted.
-        await request("lock", { except: ["A", "B", "C", "M", "k"] });
+        // All points excepted.
+        await request("lock", { except: ["A", "B", "C", "M"] });
         await drag([200, 150], [240, 150]);
         expectNear(
             (await request("value", { name: "A" })).result,
@@ -402,25 +406,16 @@ describe("circle radius", () => {
         expect((await request("getState")).result).toEqual({ M: [1, 1] });
     });
 
-    it("is locked by any lock", async () => {
+    it("is never locked", async () => {
         const { request, drag } = await circles();
         await request("lock", { except: ["M"] });
         await drag([280, 150], [200, 50]);
-        expect((await request("getState")).result).toEqual({});
-        // The drag panned the view.
-        const saved = await decoded((await request("save")).result.data);
-        expect(saved.v.o).toEqual([120, 50]);
+        expect((await request("getState")).result.c).toBeCloseTo(2.5, 9);
 
         expect(await request("lock", { except: ["c"] })).toMatchObject({
             ok: false,
             error: "No point or expression named c",
         });
-        await request("reset");
-        await drag([280, 150], [200, 50]);
-        expect((await request("getState")).result).toEqual({});
-
-        await request("setState", { state: { c: 3 } });
-        expect((await request("getState")).result).toEqual({ c: 3 });
     });
 });
 

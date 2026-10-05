@@ -172,24 +172,23 @@ au fichier chargé.
 
 ### `lock`
 
-`lock { except: [...] }` verrouille l'**interaction** : aucun objet `movable`
-ne peut plus être modifié par l'utilisateur, sauf ceux nommés dans `except`.
-Cela vaut pour le glisser des points libres et des points sur objet, les
-curseurs, les cases à cocher, les champs de saisie (grisés) et le glisser des
-points `Fp`, bloqué dès qu'une expression qu'il modifie est verrouillée. Les
-cercles `C1` de rayon numérique, dont un glisser change le rayon, sont
-toujours verrouillés dès qu'un `lock` est actif : `except` ne peut pas les
-nommer. Un objet verrouillé ne prend plus le pointeur, comme un point fixe : le glisser
+`lock { except: [...] }` verrouille la **position des objets libres et
+semi-libres** : les points libres et les points sur objet ne peuvent plus être
+déplacés par l'utilisateur, sauf ceux nommés dans `except`. Ce qui change un
+nombre reste toujours manipulable : curseurs, cases à cocher, champs de
+saisie, panneaux, points `Fp` et rayons des cercles `C1`. Un objet verrouillé ne prend plus le pointeur, comme un point fixe : le glisser
 commencé dessus agit sur ce qui se trouve dessous.
 
-- La vue (zoom, déplacement, rotation 3D) reste manipulable.
+- Le zoom, la rotation 3D et le déplacement de la vue au bouton droit restent
+  possibles, mais le glisser dans une zone vide d'une figure 2D (bouton gauche
+  de la souris ou doigt) ne déplace plus la vue.
 - `getState`, `setState`, `value`, `save` et `reset` fonctionnent comme sans
   verrouillage : `setState` peut notamment donner une valeur à un objet
   verrouillé. Aucun `change` n'est émis par `lock`.
 - Le verrouillage survit à `reset`, à `setState` et à `rebase`. Il est levé par `load` :
   l'hôte renvoie `lock` après chaque `load`.
-- Un nouveau `lock` remplace le précédent. `except` nommant tous les objets
-  `movable` revient à ne rien verrouiller.
+- Un nouveau `lock` remplace le précédent. `except` nommant tous les points
+  `movable` ne verrouille que le déplacement de la vue.
 - Un nom qui ne désigne ni un point ni une expression refuse la requête en
   entier, sans changer le verrouillage en cours.
 

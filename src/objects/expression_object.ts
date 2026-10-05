@@ -721,7 +721,6 @@ export class expression_object extends construction_object {
                 .stl(
                     `width:${0.75 * t.inputLength}em;padding:5px 4px;border:1px solid #dcdcdc;border-radius:5px;font-family:Verdana;font-size:${t.fontSize}px;color:${t.stroke_color}`,
                 );
-            if (t.locked) input.att("disabled", "");
             // Neither a pan of the figure nor its keyboard shortcuts.
             input.on("pointerdown", (event) => event.stopPropagation(), false);
             input.on(
@@ -761,7 +760,7 @@ export class expression_object extends construction_object {
                 .att("height", CHECKBOX_SIZE)
                 .att("rx", 3)
                 .stl("stroke-width:2;cursor:pointer")
-                .stl("pointer-events", t.locked || t.program ? "none" : "auto");
+                .stl("pointer-events", t.program ? "none" : "auto");
             t.check = t.svg
                 .shape("path")
                 .stl(
@@ -797,7 +796,6 @@ export class expression_object extends construction_object {
             .stl(
                 `fill:${fill};fill-opacity:${fillOpacity};stroke:${t.cursorColor};stroke-width:${CURSOR_BORDER};cursor:pointer`,
             )
-            .stl("pointer-events", t.locked ? "none" : "auto")
             .drag((event) => t.mousedrag(event));
         t.cursor = t.svg.shape("g").add(t.track, t.progress, t.knob);
         dom.add(t.cursor);

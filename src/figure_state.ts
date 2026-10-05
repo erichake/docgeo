@@ -3,10 +3,8 @@ import { circle1_object } from "./objects/circle1_object";
 import { figureObjects, type DgoFigure } from "./dgo";
 import type { construction_object } from "./objects/construction_object";
 import { expression_object } from "./objects/expression_object";
-import { formula_point_object } from "./objects/formula_point_object";
 import type { grid_object } from "./objects/grid_object";
 import { intersection_object } from "./objects/intersection_object";
-import { panel_object } from "./objects/panel_object";
 import { point_on_object } from "./objects/point_on_object";
 import { point_object } from "./objects/point_object";
 
@@ -214,26 +212,21 @@ export function objectValue(c: construction, name: string): Value {
         : null;
 }
 
-// Of the movable objects, only those named in `except` remain manipulable
-// (never a circle, which isn't a target), along with the points defined by
-// formulas and the input boxes that change nothing else.
+// Of the free points and the points on objects, only those named in `except`
+// remain manipulable: what changes a number (sliders, checkboxes, input
+// boxes, panels, points defined by formulas, radii of circles) always does.
+// The 2D view no longer pans with the left mouse button or a finger.
 export function lockFigure(c: construction, except: string[]): void {
     except.forEach((name) => target(c, name));
+    c.panLocked = true;
     const locked = new Set<construction_object>(
-        movable(c).filter((object) => !except.includes(object.name)),
+        movable(c).filter(
+            (object) =>
+                object instanceof point_object && !except.includes(object.name),
+        ),
     );
     figureObjects(c).forEach((object) => {
-        // Its fields follow their targets' locks.
-        if (object instanceof panel_object) return c.invalidateRender(object);
-        const lock =
-            locked.has(object) ||
-            (object instanceof formula_point_object &&
-                object.handles.some(
-                    (handle) => handle !== null && locked.has(handle),
-                )) ||
-            (object instanceof expression_object &&
-                object.inputLength > 0 &&
-                locked.has(object.program!.refs.values().next().value!));
+        const lock = locked.has(object);
         if (lock === object.locked) return;
         object.locked = lock;
         if (object.hasView) object.createSVG();

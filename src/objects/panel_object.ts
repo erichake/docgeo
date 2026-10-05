@@ -285,10 +285,7 @@ export class panel_object extends construction_object {
         this.fields.forEach(({ element, target, type }) => {
             const field = element.dom() as HTMLInputElement | HTMLSelectElement;
             // Only a number that nothing defines changes.
-            field.disabled =
-                target.locked ||
-                target.formula !== null ||
-                target.program !== null;
+            field.disabled = target.formula !== null || target.program !== null;
             // A button's value is its caption.
             if (document.activeElement === field || type === "button") return;
             const value = target.value;
@@ -306,7 +303,6 @@ export class panel_object extends construction_object {
         target: expression_object,
         type: string,
     ): void {
-        if (target.locked) return;
         const typed = field.value.trim().replace(",", ".");
         const value =
             type === "checkbox"
