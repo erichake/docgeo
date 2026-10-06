@@ -73,6 +73,7 @@ figure sont seulement comptés. L'API utilisée est
 | 2026-10-03 | —                  | 276,1 Ko | item 18 : opacité des traits (style, +0)                           |
 | 2026-10-04 | 232 / 438 (53 %)   | 297,5 Ko | item 19 : `UnitVector` dans une formule (+0)                       |
 | 2026-10-04 | 238 / 438 (54 %)   | 298,8 Ko | item 20 : `Mode`, `Roots`, `Point(A, vecteur)` (+6)                |
+| 2026-10-06 | —                  | 302,2 Ko | item 22 : grille (style, +0)                                       |
 
 ## À faire, par rapport gain / coût
 
@@ -364,6 +365,14 @@ cause.
       `Mode` s'ouvrent dans l'état enregistré : leurs listes déroulantes ne
       sont pas dessinées et `SelectedIndex` garde sa valeur enregistrée.
       `CSolve` et `IFactor` relèvent du calcul formel (écarté).
+- [x] **22. Grille** : DocGeo dessinait toujours la grille de DGPad, aux
+      graduations de ses axes. Fait, mesuré sur GeoGebra : la distance fixe
+      `<grid distX distY>` (sinon celle des nombres), la sous-grille du type
+      3 (cinq intervalles, lignes pâles) ou son absence (type 0), la couleur
+      `gridColor`, `gridIsBold` et les pointillés `lineStyle grid` (116
+      figures du corpus sur 470 ont une grille, 39 pointillée). Les axes sont
+      gradués sur une grille à distance fixe. Les grilles isométrique,
+      polaire et en points restent cartésiennes. Build +1,5 Ko.
 
 À écarter, sauf changement de priorité : calcul formel, courbes implicites,
 statistiques et probabilités, tableur au-delà des cellules simples, matrices.

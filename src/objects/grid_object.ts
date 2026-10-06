@@ -94,6 +94,14 @@ export class grid_object extends construction_object {
     lockOy = false;
     centerZoom = false;
     gridWidth = 0.1;
+    // In a plane figure, per axis, GeoGebra's fixed distance between two
+    // major grid lines, 0 for that between two numbers; the number of
+    // intervals between two major lines, 0 for those of the graduations;
+    // its color (null: that of the axes) and dash pattern.
+    gridDistances: Vec2 = [0, 0];
+    gridSubdivisions = 0;
+    gridColor: string | null = null;
+    gridDash: number[] = [];
     private axes2D!: axes_2d;
     // Defaults to shown, matching the default-visible axis (isAxis defaults
     // to true); applyCoordsStyle keeps the two in sync when isAxis is set

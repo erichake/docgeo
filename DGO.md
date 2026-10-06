@@ -141,6 +141,10 @@ enregistrée `w` × `h` est centrée dans la fenêtre au pixel près, en 2D comm
 | `f`  | taille des graduations               | 18              |
 | `s`  | épaisseur des axes                   | 2               |
 | `gw` | épaisseur de la grille               | 0.1             |
+| `gd` | distances de la grille (Ox, Oy)      | [0, 0]          |
+| `gs` | intervalles entre deux lignes        | 0               |
+| `gc` | couleur de la grille                 | `null`          |
+| `gl` | pointillés de la grille              | []              |
 | `td` | distances des graduations (Ox, Oy)   | [0, 0]          |
 | `ts` | styles des graduations (Ox, Oy)      | [0, 0]          |
 | `nb` | nombres des graduations en gras      | 0               |
@@ -153,7 +157,16 @@ les nombres se chevaucheraient). `ts` : 0 graduations principales et
 secondaires, 1 principales seulement, 2 aucune (les nombres restent).
 `gg` : graduations d'un seul côté de l'axe, vers ses nombres (3 pixels, 2 pour
 une secondaire, 3 avec des axes de plus d'un pixel), aucune quand la grille est
-affichée ; nombres rapprochés des axes, un 0 en bas à gauche de l'origine.
+affichée à la distance des nombres ; nombres rapprochés des axes, un 0 en bas à
+gauche de l'origine ; lignes secondaires de la grille aussi épaisses que les
+principales (`gw` pixels), plus pâles (opacité 60/255).
+
+Grille d'une figure plane : `gd` est, par axe, la distance fixe entre deux
+lignes principales (0 : celle des nombres ; elle reprend aussi la main quand, à
+force de dézoomer, les lignes secondaires seraient à moins de 3 pixels), `gs`
+le nombre d'intervalles entre deux lignes principales (0 : ceux des
+graduations, 1 : pas de lignes secondaires), `gc` sa couleur (`null` : celle
+des axes) et `gl` ses pointillés, en pixels comme `dh`.
 
 `f2` : coordonnées, dans le repère 2D d'une figure 3D de DGPad, de son origine
 3D. Ses objets 2D (points libres, points de formule à deux coordonnées, axes,

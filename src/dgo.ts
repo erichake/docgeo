@@ -432,6 +432,31 @@ const VIEW: Record<string, Property> = {
     f: field(grid_object, "fontSize", 18, isNumber),
     s: field(grid_object, "size", 2, isNumber),
     gw: field(grid_object, "gridWidth", 0.1, isNumber),
+    gd: field(
+        grid_object,
+        "gridDistances",
+        [0, 0],
+        (value) => isPair(value) && value.every((distance) => distance >= 0),
+    ),
+    gs: field(
+        grid_object,
+        "gridSubdivisions",
+        0,
+        (value) => Number.isInteger(value) && (value as number) >= 0,
+    ),
+    gc: field(
+        grid_object,
+        "gridColor",
+        null,
+        (value) => value === null || isColor(value),
+    ),
+    gl: field(
+        grid_object,
+        "gridDash",
+        [],
+        (value) =>
+            Array.isArray(value) && value.every(isNumber) && isDash(value),
+    ),
     td: field(
         grid_object,
         "tickDistances",

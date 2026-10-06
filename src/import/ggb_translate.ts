@@ -4074,9 +4074,27 @@ export function translateGgb(
             })
             .join("");
         const labelStyle = Number(attribute(styledView, "labelStyle", "axes"));
+        // The grid: its major lines at a fixed distance if it has one, else
+        // at the numbers', five minor intervals between two with a subgrid
+        // (type 3), its color, a line 2 pixels wide if bold, its dashes.
+        const gridDistances = child(styledView, "grid");
+        const gridWidth =
+            attribute(styledView, "evSettings", "gridIsBold") === "true"
+                ? 2
+                : 1;
+        const gridColor = child(styledView, "gridColor");
+        const gridDash =
+            GGB_DASHES[attribute(styledView, "lineStyle", "grid") ?? ""];
+        const gridStyle = `;gridSubdivisions:${attribute(styledView, "evSettings", "gridType") === "3" ? 5 : 1};gridWidth:${gridWidth}${
+            gridDistances
+                ? `;gridDistanceX:${gridDistances.getAttribute("distX")};gridDistanceY:${gridDistances.getAttribute("distY")}`
+                : ""
+        }${gridColor ? `;gridColor:${hexColor(gridColor)}` : ""}${
+            gridDash ? `;gridDash:${gridDash(gridWidth).join(",")}` : ""
+        }`;
         const plane = is3D
             ? ""
-            : `;axisWidth:${bold ? 2 : 1};fontSize:${numbers};onlyPositive:${positive}${graduations};boldNumbers:${Boolean(labelStyle & 1)};geogebraAxes:true`;
+            : `;axisWidth:${bold ? 2 : 1};fontSize:${numbers};onlyPositive:${positive}${graduations};boldNumbers:${Boolean(labelStyle & 1)};geogebraAxes:true${gridStyle}`;
         push(null, "SetCoordsStyle", [
             literal(
                 `isAxis:${axes || (grid && !is3D)};isGrid:${grid};isOx:${shown.includes("0")};isOy:${shown.includes("1")}${

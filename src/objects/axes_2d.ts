@@ -178,11 +178,11 @@ export class axes_2d {
         };
         const xAxis = graduation(0, xStep, ux);
         const yAxis = graduation(1, yStep, uy);
-        // GeoGebra's: no graduations over a grid at the same distance, as
-        // DocGeo's always is.
+        // GeoGebra's: no graduations over a grid at the same distance.
         const geogebra = grid.geogebraAxes;
-        const [xStyle, yStyle] =
-            geogebra && grid.showGrid ? [2, 2] : grid.tickStyles;
+        const [xStyle, yStyle] = grid.tickStyles.map((style, axis) =>
+            geogebra && grid.showGrid && !grid.gridDistances[axis] ? 2 : style,
+        );
 
         // Where each axis's graduations go: on the axis, or on the window
         // edge it went past.
@@ -199,27 +199,62 @@ export class axes_2d {
         const minor: string[] = [];
         const major: string[] = [];
         if (grid.showGrid) {
-            xTicks.forEach((k) =>
-                (k % xn === 0 ? major : minor).push(
-                    `M${snap(px(k * xMinor))} ${top}V${bottom}`,
-                ),
+            // Major lines at the numbers, or at GeoGebra's fixed distance
+            // as long as its minor lines stay 3 pixels apart.
+            const lines = (
+                axis: 0 | 1,
+                graduation: Graduation,
+                unit: number,
+                min: number,
+                max: number,
+                line: (value: number) => string,
+            ) => {
+                const n = grid.gridSubdivisions || graduation.subdivisions;
+                const fixed = grid.gridDistances[axis];
+                const distance =
+                    (fixed / n) * unit >= 3 ? fixed : graduation.major;
+                multiples(distance / n, min, max).forEach((k) =>
+                    (k % n === 0 ? major : minor).push(
+                        line((k * distance) / n),
+                    ),
+                );
+            };
+            lines(
+                0,
+                xAxis,
+                ux,
+                xMin,
+                xMax,
+                (x) => `M${snap(px(x))} ${top}V${bottom}`,
             );
-            yTicks.forEach((k) =>
-                (k % yn === 0 ? major : minor).push(
-                    `M${left} ${snap(py(k * yMinor))}H${width}`,
-                ),
+            lines(
+                1,
+                yAxis,
+                uy,
+                yMin,
+                yMax,
+                (y) => `M${left} ${snap(py(y))}H${width}`,
             );
         }
         // Browsers drop strokes thinner than a pixel unevenly (per raster
         // tile, per sub-pixel offset): a thinner line is drawn one pixel
         // wide and fainter instead.
-        const hairline = (path: DOMElement, width: number) =>
+        const hairline = (path: DOMElement, width: number, opacity = 1) =>
             path
-                .stl("stroke", color)
+                .stl("stroke", grid.gridColor ?? color)
                 .stl("stroke-width", Math.max(1, width))
-                .stl("stroke-opacity", Math.min(1, width));
-        hairline(this.minorGrid.att("d", minor.join("")), grid.gridWidth);
-        hairline(this.majorGrid.att("d", major.join("")), 2 * grid.gridWidth);
+                .stl("stroke-opacity", Math.min(1, width) * opacity)
+                .stl("stroke-dasharray", grid.gridDash.join(" ") || "none");
+        // GeoGebra's minor lines are as wide as its major ones, fainter.
+        hairline(
+            this.minorGrid.att("d", minor.join("")),
+            grid.gridWidth,
+            geogebra ? 60 / 255 : 1,
+        );
+        hairline(
+            this.majorGrid.att("d", major.join("")),
+            geogebra ? grid.gridWidth : 2 * grid.gridWidth,
+        );
 
         const axes: string[] = [];
         const arrows: string[] = [];

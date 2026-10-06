@@ -1824,6 +1824,52 @@ ${lines.map((line, index) => command("Plane", ["C", line], `p${index}`)).join("\
         expect(plain.GRID.boldNumbers).toBe(false);
     });
 
+    it("draws GeoGebra's grid: its distances, subgrid, color and dashes", async () => {
+        const xml = await loadXml("grille_entiere");
+        // Minor and major grid lines, graduations.
+        const paths = (c: construction) =>
+            [...c.GRID.dom.dom().querySelectorAll("path")]
+                .slice(-5)
+                .map((path) => path.getAttribute("d") ?? "");
+        // The smallest distance between two vertical lines of a path.
+        const step = (d: string) => {
+            const xs = [...d.matchAll(/M([\d.]+) [\d.]+V/g)].map(([, x]) =>
+                Number(x),
+            );
+            return Math.min(...xs.slice(1).map((x, i) => x - xs[i]));
+        };
+        // A line at each unit, numbers every 2 graduated over it.
+        const c = createConstruction();
+        importGgb(c, xml);
+        await new Promise((resolve) => requestAnimationFrame(resolve));
+        expect(c.GRID.gridDistances).toEqual([1, 1]);
+        expect(c.GRID.gridSubdivisions).toBe(1);
+        expect(c.GRID.gridColor).toBe("#b4b3ba");
+        expect(c.GRID.gridDash).toEqual([]);
+        const unit = c.GRID.UNIT[0];
+        const [minor, major, , , ticks] = paths(c);
+        expect(minor).toBe("");
+        expect(step(major)).toBeCloseTo(unit, 0);
+        expect(ticks).not.toBe("");
+        // Automatic, with a subgrid of five dashed intervals: ungraduated.
+        const subgrid = createConstruction();
+        importGgb(
+            subgrid,
+            xml
+                .replace('gridType="0"', 'gridType="3"')
+                .replace(/<grid [^>]*\/>/, "")
+                .replace('grid="0"', 'grid="10"'),
+        );
+        await new Promise((resolve) => requestAnimationFrame(resolve));
+        expect(subgrid.GRID.gridDistances).toEqual([0, 0]);
+        expect(subgrid.GRID.gridSubdivisions).toBe(5);
+        expect(subgrid.GRID.gridDash).toEqual([5, 4]);
+        const [subMinor, subMajor, , , subTicks] = paths(subgrid);
+        expect(step(subMajor)).toBeCloseTo(2 * unit, 0);
+        expect(step(subMinor)).toBeCloseTo((2 * unit) / 5, 0);
+        expect(subTicks).toBe("");
+    });
+
     it("reads the degree as a constant, as GeoGebra", () => {
         const c = createConstruction();
         expect(

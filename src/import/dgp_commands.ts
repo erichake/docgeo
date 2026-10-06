@@ -730,9 +730,18 @@ function validateCursorStyle(value: string, lineNumber: number): void {
 
 function validateCoordsStyle(value: string, lineNumber: number): void {
     const style = properties(value);
-    const color = style.get("color");
-    if (color !== undefined) validateColor(color, lineNumber);
-    ["axisWidth", "tickDistanceX", "tickDistanceY"].forEach((name) => {
+    ["color", "gridColor"].forEach((name) => {
+        const color = style.get(name);
+        if (color !== undefined) validateColor(color, lineNumber);
+    });
+    [
+        "axisWidth",
+        "tickDistanceX",
+        "tickDistanceY",
+        "gridDistanceX",
+        "gridDistanceY",
+        "gridSubdivisions",
+    ].forEach((name) => {
         const value = style.get(name);
         if (value !== undefined) validateNumber(value, lineNumber, 0);
     });
@@ -741,6 +750,17 @@ function validateCoordsStyle(value: string, lineNumber: number): void {
         if (value !== undefined && !/^[012]$/.test(value))
             throw new Error(`Invalid DGP style at line ${lineNumber}`);
     });
+    const subdivisions = style.get("gridSubdivisions");
+    if (subdivisions !== undefined && !Number.isInteger(Number(subdivisions)))
+        throw new Error(`Invalid DGP style at line ${lineNumber}`);
+    const dash = style.get("gridDash");
+    if (dash !== undefined) {
+        dash.split(",").forEach((length) =>
+            validateNumber(length, lineNumber, 0),
+        );
+        if (!isDash(dash.split(",").map(Number)))
+            throw new Error(`Invalid DGP style at line ${lineNumber}`);
+    }
 }
 
 function validateGeneralStyle(value: string, lineNumber: number): void {
@@ -948,6 +968,20 @@ function applyCoordsStyle(context: CommandContext, value: string): void {
     size("fontSize", (value) => (grid.fontSize = value));
     size("axisWidth", (value) => (grid.size = value));
     size("gridWidth", (value) => (grid.gridWidth = value));
+    // DocGeo's, for GeoGebra's grid.
+    size(
+        "gridDistanceX",
+        (value) => (grid.gridDistances = [value, grid.gridDistances[1]]),
+    );
+    size(
+        "gridDistanceY",
+        (value) => (grid.gridDistances = [grid.gridDistances[0], value]),
+    );
+    size("gridSubdivisions", (value) => (grid.gridSubdivisions = value));
+    const gridColor = style.get("gridColor");
+    if (gridColor !== undefined) grid.gridColor = extractColor(gridColor);
+    const gridDash = style.get("gridDash");
+    if (gridDash !== undefined) grid.gridDash = gridDash.split(",").map(Number);
     // DocGeo's, for GeoGebra's graduations.
     size(
         "tickDistanceX",
