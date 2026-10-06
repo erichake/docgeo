@@ -663,6 +663,7 @@ function validateObjectStyle(
                 validateNumber(propertyValue, lineNumber, 0);
                 break;
             case "sg":
+            case "l":
                 validateNumber(propertyValue, lineNumber, -Infinity);
                 break;
             case "cPT": {
@@ -837,6 +838,10 @@ function applyObjectStyle(
                 break;
             case "p":
                 target.precision = Number(propertyValue);
+                break;
+            // Truncated, as by DGPad.
+            case "l":
+                target.level = parseInt(propertyValue);
                 break;
             case "arc":
                 if (

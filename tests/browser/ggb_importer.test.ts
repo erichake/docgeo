@@ -1739,9 +1739,7 @@ ${lines.map((line, index) => command("Plane", ["C", line], `p${index}`)).join("\
         c.invalidateGeometry(patron);
         await new Promise((resolve) => requestAnimationFrame(resolve));
 
-        const painted = [
-            ...c.layers.get(c.prefs.polygon.layer)!.dom().children,
-        ];
+        const painted = [...c.layer(0, c.prefs.polygon.layer).dom().children];
         const position = (name: string) =>
             painted.indexOf(c.getObj(name)!.dom.dom());
         // Only faces whose projections overlap are ordered: not CDHG and

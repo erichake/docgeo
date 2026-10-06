@@ -73,6 +73,7 @@ figure sont seulement comptés. L'API utilisée est
 | 2026-10-03 | —                  | 276,1 Ko | item 18 : opacité des traits (style, +0)                           |
 | 2026-10-04 | 232 / 438 (53 %)   | 297,5 Ko | item 19 : `UnitVector` dans une formule (+0)                       |
 | 2026-10-04 | 238 / 438 (54 %)   | 298,8 Ko | item 20 : `Mode`, `Roots`, `Point(A, vecteur)` (+6)                |
+| 2026-10-05 | —                  | 300,7 Ko | item 21 : calques (style, +0)                                      |
 | 2026-10-06 | —                  | 302,2 Ko | item 22 : grille (style, +0)                                       |
 
 ## À faire, par rapport gain / coût
@@ -365,6 +366,12 @@ cause.
       `Mode` s'ouvrent dans l'état enregistré : leurs listes déroulantes ne
       sont pas dessinées et `SelectedIndex` garde sa valeur enregistrée.
       `CSolve` et `IFactor` relèvent du calcul formel (écarté).
+- [x] **21. Calques** : le `layer` d'un élément (0 à 9, dans 79 figures
+      du corpus sur 470) était ignoré. Fait : il devient le style `l`, le
+      calque de DGPad (`construction_object.level`) : un objet est peint
+      au-dessus de ceux des calques plus bas, points compris. Aucun gain sur
+      le compte des figures sans perte (c'est un style) ; build +0,8 Ko,
+      calques DGPad compris.
 - [x] **22. Grille** : DocGeo dessinait toujours la grille de DGPad, aux
       graduations de ses axes. Fait, mesuré sur GeoGebra : la distance fixe
       `<grid distX distY>` (sinon celle des nombres), la sous-grille du type

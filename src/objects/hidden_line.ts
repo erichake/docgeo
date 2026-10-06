@@ -1,4 +1,5 @@
 import type { construction } from "../construction";
+import type { DOMElement } from "../dom";
 import {
     projectPointOnLine,
     projectPointOnPlane,
@@ -523,11 +524,26 @@ function depthOrder(
 
 // Paints the polygons farthest first wherever their projections overlap,
 // as GeoGebra's depth buffer does for faces that don't cut through each
-// other. Planes keep their own layer, beneath (see polygon_object.plane).
+// other. Planes keep their own layer, beneath (see polygon_object.plane),
+// and each DGPad level its own order, as in DGPad.
 export function paintByDepth(c: construction): void {
-    const polygons = (c.OBJS.polygons as polygon_object[]).filter(
-        (polygon) => polygon.hasView && polygon.isVisible && !polygon.plane,
+    const levels = new Map<number, polygon_object[]>();
+    (c.OBJS.polygons as polygon_object[]).forEach((polygon) => {
+        if (!polygon.hasView || !polygon.isVisible || polygon.plane) return;
+        const level = levels.get(polygon.level);
+        if (level) level.push(polygon);
+        else levels.set(polygon.level, [polygon]);
+    });
+    levels.forEach((polygons, level) =>
+        paintLevelByDepth(c, polygons, c.layer(level, c.prefs.polygon.layer)),
     );
+}
+
+function paintLevelByDepth(
+    c: construction,
+    polygons: polygon_object[],
+    layer: DOMElement,
+): void {
     const indices = new Map(polygons.map((polygon, index) => [polygon, index]));
     const nearer: number[][] = polygons.map(() => []);
     const farther = polygons.map(() => 0);
@@ -568,7 +584,6 @@ export function paintByDepth(c: construction): void {
     polygons.forEach((_, index) => {
         if (farther[index] > 0) order.push(index);
     });
-    const layer = c.layers.get(c.prefs.polygon.layer)!;
     const position = new Map(
         [...layer.dom().children].map((element, index) => [element, index]),
     );

@@ -1,0 +1,30 @@
+// Coordinates System :
+SetCoords(50,50,75.81851236555106,false,986,574);
+
+// Geometry :
+A=Point("A","[0,0]","0");
+n=Expression("n","","2","10","5","0","-1");
+P2=Point("P2","A+1","0");
+B=Point("B","A+6","0");
+R1=Ray("R1",A,P2);
+S1=Segment("S1",A,B);
+Lp=List("Lp","segment","7","A+(B-A)*k/(count-1)-perp(B-A)*0.12","A+(B-A)*k/(count-1)+perp(B-A)*0.12");
+Ls=List("Ls","segment","6*n","A+(B-A)*k/count-perp(B-A)*0.06","A+(B-A)*k/count+perp(B-A)*0.06");
+Ll=List("Ll","label","7","A+(B-A)*k/(count-1)-perp(B-A)*0.15","k");
+Lpt=List("Lpt","point","6*n+1","A+(B-A)*k/(count-1)");
+P=Point("P",0,0);
+
+// Styles :
+STL(A,"c:#0000b2;s:6;sn:true;h:1;f:30;np:1.5914119624205005");
+STL(n,"c:#18613d;s:7;sn:true;f:24;p:2;i:1;cL:200;cPT:YzojMWY5ZDVlO286MTtzOjEwO2Y6MzA=");
+STL(P2,"c:#0000b2;h:1;s:6;f:30");
+STL(B,"c:#0000b2;s:6;sn:true;h:1;f:30;np:1.5817021705452365");
+STL(R1,"c:#993300;h:1;s:1;f:30;p:0");
+STL(S1,"c:#006633;s:1;f:24");
+STL(Lp,"c:#0000b2;s:3;l:1");
+STL(Ls,"c:#8080b0;s:1");
+STL(Ll,"c:#0000b2;f:22;p:0");
+STL(Lpt,"c:#0000b2;s:4;h:2");
+STL(P,"c:#e74405;l:2;o:1;s:6;sn:true;f:30;mg:[Lpt,5000];np:1.5914119624205005");
+SetCoordsStyle("isAxis:false;isGrid:true;isOx:true;isOy:true;isLockOx:false;isLockOy:false;centerZoom:false;onlyPositive:false;color:#111111;fontSize:18;axisWidth:1;gridWidth:0.1");
+SetGeneralStyle("background-color:#F8F8F8;degree:true;dragmoveable:true");

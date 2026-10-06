@@ -307,6 +307,7 @@ const STYLE: Record<string, Property> = {
         (tag) => (tag === "Loc" ? 1000 : tag === "Html" ? 4 : -1),
         isNumber,
     ),
+    l: field(object, "level", 0, Number.isInteger),
     sp: field(point_object, "shape", "circle", (value) =>
         POINT_SHAPES.includes(value as string),
     ),

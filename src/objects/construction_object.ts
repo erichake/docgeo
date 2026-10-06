@@ -55,6 +55,8 @@ export class construction_object {
     fontSize: number;
     precision: number;
     layer: number;
+    // DGPad's layer, painted over the lower ones whatever the type layers.
+    level = 0;
     dom!: DOMElement;
     children: construction_object[];
     parents: construction_object[];

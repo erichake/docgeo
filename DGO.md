@@ -324,6 +324,7 @@ postérieur.
 | `sn` | tous         | nom affiché                              | 0                                 |
 | `f`  | tous         | taille de police                         | 16                                |
 | `p`  | tous         | précision (lieu : nombre d'échantillons) | -1 (`Loc` : 1000, `Html` : 4)     |
+| `l`  | tous         | calque (entier, sous les `Html`)         | 0                                 |
 | `sp` | points       | `circle`, `cross`, `diamond`, `rect`     | `circle`                          |
 | `np` | points       | direction du nom (radians)               | 0                                 |
 | `tk` | points       | trace                                    | 0                                 |
@@ -348,6 +349,10 @@ postérieur.
 | `cr` | `Ex`         | rayon du bouton                          | 10                                |
 | `co` | `Ex`         | opacité du bouton                        | 0                                 |
 | `sg` | `ELst`       | épaisseur des segments                   | -1                                |
+
+Calque `l` : comme dans DGPad et GeoGebra, un objet est peint au-dessus de
+ceux des calques plus bas, points compris ; à calque égal, l'ordre reste celui
+des types. Les `Html`, comme les textes de DGPad, restent au-dessus.
 
 Animation `an` : `[vitesse, sens, extrémité]` ou `[vitesse, sens, extrémité,
 GeoGebra]`. Comme dans DGPad, elle est lancée à l'ouverture et un bouton en bas

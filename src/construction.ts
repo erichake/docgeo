@@ -30,7 +30,14 @@ export class construction {
     GRID!: grid_object;
     svg!: DOMElement;
     traceLayer!: DOMElement;
-    layers: Map<number, DOMElement>;
+    // Above every level, as DGPad's texts over its canvas.
+    private panelLayer!: DOMElement;
+    // Each level (see construction_object.level) and its type layers.
+    private levels = new Map<
+        number,
+        { group: DOMElement; layers: Map<number, DOMElement> }
+    >();
+    private typeLayers: number[] = [];
     // As in GeoGebra, an edge shared by segments and polygons is painted
     // by the segments last, rather than in construction order as in DGPad
     // (see edgeStroke).
@@ -56,7 +63,6 @@ export class construction {
         this.prefs = dgpad.prefs;
         // All construction objects :
         this.OBJS = new objects_collector();
-        this.layers = new Map();
         this.animations = new animations(this);
         this.createSVG();
         this.GRID = createGrid(this);
@@ -202,7 +208,7 @@ export class construction {
         });
         this.svg.dispose();
         $("body").off("keydown", this.keydownListener);
-        this.layers.clear();
+        this.levels.clear();
         construction.constructions.splice(
             construction.constructions.indexOf(this),
             1,
@@ -324,13 +330,40 @@ export class construction {
     // in that order. Restyled, just after the view it replaces.
     mountObject(obj: construction_object): void {
         const view = obj.dom.dom();
-        const layer = this.layers.get(obj.layer)!.dom();
+        const layer = this.layer(obj.level, obj.layer).dom();
         let before = layer.lastElementChild;
         while (before && this.viewObjects.get(before)!.sequence > obj.sequence)
             before = before.previousElementSibling;
         if (before) before.after(view);
         else layer.prepend(view);
         this.viewObjects.set(view, obj);
+    }
+
+    layer(level: number, layer: number): DOMElement {
+        if (layer === this.prefs.panel.layer) return this.panelLayer;
+        let entry = this.levels.get(level);
+        if (!entry) {
+            const group = this.svg.shape("g").att("data-level", level);
+            const layers = new Map(
+                this.typeLayers.map((layer) => {
+                    const child = this.svg.shape("g").att("data-layer", layer);
+                    group.add(child);
+                    return [layer, child];
+                }),
+            );
+            const above = [...this.levels.keys()]
+                .filter((other) => other > level)
+                .sort((a, b) => a - b)[0];
+            (above === undefined
+                ? this.panelLayer
+                : this.levels.get(above)!.group
+            )
+                .dom()
+                .before(group.dom());
+            entry = { group, layers };
+            this.levels.set(level, entry);
+        }
+        return entry.layers.get(layer)!;
     }
 
     createSVG(): void {
@@ -352,13 +385,12 @@ export class construction {
         Object.values(this.prefs).forEach((pref) => {
             if ("layer" in pref) layers.add(pref.layer);
         });
-        [...layers]
-            .sort((a, b) => a - b)
-            .forEach((layer) => {
-                const group = this.svg.shape("g").att("data-layer", layer);
-                this.layers.set(layer, group);
-                this.svg.add(group);
-            });
+        layers.delete(this.prefs.panel.layer);
+        this.typeLayers = [...layers].sort((a, b) => a - b);
+        this.panelLayer = this.svg
+            .shape("g")
+            .att("data-layer", this.prefs.panel.layer);
+        this.svg.add(this.panelLayer);
         this.traceLayer = this.svg
             .shape("g")
             .att("data-layer", "trace")

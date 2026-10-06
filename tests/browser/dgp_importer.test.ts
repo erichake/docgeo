@@ -234,6 +234,21 @@ STL(P,"tk:1");`,
         );
     });
 
+    it("paints a higher DGPad layer over the lower ones, points included", async () => {
+        const c = createConstruction();
+        await importDgpFromUrl(c, figure("layers.dgp"));
+        const [c1, c2, p1] = ["C1", "C2", "P1"].map((name) =>
+            c.getObj(name)!.dom.dom(),
+        );
+        expect(c.getObj("C1")!.level).toBe(1);
+        [c2, p1].forEach((below) =>
+            expect(
+                below.compareDocumentPosition(c1) &
+                    Node.DOCUMENT_POSITION_FOLLOWING,
+            ).toBeTruthy(),
+        );
+    });
+
     it("draws a right angle as DGPad's open square, without its value", async () => {
         const c = createConstruction();
         await importDgpFromUrl(c, figure("marque_angle.dgp"));

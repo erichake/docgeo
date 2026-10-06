@@ -1355,6 +1355,8 @@ export function translateGgb(
         if (attribute(element, "show", "object") === "false") parts.push("h:1");
         if (attribute(element, "show", "label") === "true")
             parts.push("sn:true");
+        const layer = attribute(element, "layer", "val");
+        if (layer && layer !== "0") parts.push(`l:${layer}`);
         if (kind === "point" || kind === "pointOn") {
             const size = attribute(element, "pointSize", "val");
             if (size) parts.push(`s:${size}`);
