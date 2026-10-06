@@ -5,7 +5,7 @@ import type { point_object } from "./point_object";
 import { two_points_line_object } from "./two_points_line_object";
 
 export class ray_line_object extends two_points_line_object {
-    protected showTips = false;
+    protected oneSided = true;
 
     constructor(
         c: construction,
@@ -18,14 +18,6 @@ export class ray_line_object extends two_points_line_object {
 
     dgo(context: DgoContext): [string, unknown] {
         return ["Ray", super.dgo(context)[1]];
-    }
-
-    project(): void {
-        super.project();
-        if (!this.defined || !this.projectionDefined) return;
-        this.sP1 = this.P1.screen;
-        const [, point3D2] = this.extendedPoints();
-        this.updateHiddenSplit(this.P1.coords, point3D2);
     }
 
     insideBounds(parameter: number): boolean {

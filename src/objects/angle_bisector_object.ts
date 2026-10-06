@@ -4,6 +4,7 @@ import {
     vAdd,
     vNorm,
     vNormalize,
+    vScale,
     vSub,
     type Vec3,
 } from "../vec";
@@ -14,7 +15,7 @@ import { primitive_line_object } from "./primitive_line_object";
 export class angle_bisector_object extends primitive_line_object {
     A1: point_object;
     A2: point_object;
-    protected showTips = false;
+    protected oneSided = true;
 
     constructor(
         c: construction,
@@ -49,12 +50,13 @@ export class angle_bisector_object extends primitive_line_object {
         return parameter >= -geometryTolerance(scale);
     }
 
-    project(): void {
-        super.project();
-        if (!this.defined || !this.projectionDefined) return;
-        this.sP1 = this.P1.screen;
-        const [, point3D2] = this.extendedPoints();
-        this.updateHiddenSplit(this.P1.coords, point3D2);
+    // As long as the farther side of the angle.
+    protected referenceSpan(): [Vec3, Vec3] | null {
+        const length = Math.max(
+            vNorm(vSub(this.A1.coords, this.P1.coords)),
+            vNorm(vSub(this.A2.coords, this.P1.coords)),
+        );
+        return [this.P1.coords, vAdd(this.P1.coords, vScale(this.VEC, length))];
     }
 }
 

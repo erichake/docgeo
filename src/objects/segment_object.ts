@@ -35,7 +35,7 @@ export class segment_object extends two_points_line_object {
     lengthText?: DOMElement;
     decorationPath?: DOMElement;
     decoration = 0;
-    protected showTips = false;
+    protected infinite = false;
 
     constructor(
         c: construction,

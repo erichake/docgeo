@@ -217,7 +217,19 @@ STL(P,"tk:1");`,
         expect(angle.dom.dom().innerHTML).not.toMatch(/NaN|Infinity/);
     });
 
-    it("dashes every kind of stroke with DGPad's pattern, line tips included", async () => {
+    it("draws a 3D ray from its origin, with a single tip", async () => {
+        const c = createConstruction();
+        await importDgpFromUrl(c, figure("_Bissectrice.dgp"));
+        c.GRID.is2D = false;
+        c.invalidateProjection();
+        await new Promise((resolve) => requestAnimationFrame(resolve));
+        const bisector = c.getObj("R3") as angle_bisector_object;
+        expect(bisector.sP1).toEqual(bisector.P1.screen);
+        expect(bisector.tipPath1.getAtt("d")).toBe("");
+        expect(bisector.tipPath2.getAtt("d")).toMatch(/^M/);
+    });
+
+    it("dashes every kind of stroke with DGPad's pattern, 3D line tips included", async () => {
         const c = createConstruction();
         await importDgpFromUrl(c, figure("pointilles.dgp"));
         await new Promise((resolve) => requestAnimationFrame(resolve));
@@ -227,8 +239,15 @@ STL(P,"tk:1");`,
             ].map((shape) => (shape as SVGElement).style.strokeDasharray);
             expect(strokes, name).toContain("6, 10");
         });
-        // A 100 px tip holds 6 or 7 dashes of the 16 px pattern.
+        // In 2D, a line runs to the canvas edge, without tips.
         const line = c.getObj("L1") as primitive_line_object;
+        [line.tipPath1, line.tipPath2].forEach((tip) =>
+            expect(tip.getAtt("d") ?? "").toBe(""),
+        );
+        c.GRID.is2D = false;
+        c.invalidateProjection();
+        await new Promise((resolve) => requestAnimationFrame(resolve));
+        // A 100 px tip holds 6 or 7 dashes of the 16 px pattern.
         [line.tipPath1, line.tipPath2].forEach((tip) =>
             expect(tip.getAtt("d")!.match(/M/g)!.length).toBeGreaterThan(5),
         );

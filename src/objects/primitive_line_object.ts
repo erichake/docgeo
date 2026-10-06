@@ -22,16 +22,16 @@ import {
 import type { point_object } from "./point_object";
 import type { polygon_object } from "./polygon_object";
 
-// Cabri-style rendering for a truly infinite line: rather than running the
-// stroke to the edge of the canvas (which, under a 3D rotation or a window
-// resize, has no relation to the geometry at all), it is drawn as long as
-// the segment given by referenceSpan() (e.g. A-B for a two-point line),
-// plus a short tapered overhang on each side. That overhang is a fixed
-// screen length regardless of how long the segment itself is (matching
-// Cabri Express: a long AB doesn't grow a long tail) — but, since it's
-// applied to the already-projected reference points rather than measured
-// against the viewport, it stays coherent under pan/zoom/3D rotation and
-// doesn't depend on window size.
+// In 3D, an infinite line isn't run to the edge of the canvas, which has
+// no relation to the scene: it is drawn Cabri-style, as long as the
+// segment given by referenceSpan() (e.g. A-B for a two-point line), plus a
+// short tapered overhang on each side. That overhang is a fixed screen
+// length regardless of how long the segment itself is (matching Cabri
+// Express: a long AB doesn't grow a long tail) — but, since it's applied
+// to the already-projected reference points rather than measured against
+// the viewport, it stays coherent under 3D rotation. In 2D, a line runs to
+// the canvas edge, as in DGPad and GeoGebra: drawn partially, it would
+// read as a segment.
 const LINE_TIP_LENGTH = 100;
 
 function pointAtDistance(origin: Vec2, dir: Vec2, distance: number): Vec2 {
@@ -88,7 +88,7 @@ export class primitive_line_object extends construction_object {
     sP2: Vec2 = [0, 0];
     // Full reach of the line (where the tapered tips end), vs. sP1/sP2
     // which are pulled back by the taper length for the solid/dashed body.
-    // Only meaningful when showTips is true.
+    // Only meaningful when partialDrawing is true.
     tipP1: Vec2 = [0, 0];
     tipP2: Vec2 = [0, 0];
     screenDir: Vec2 = [1, 0];
@@ -98,16 +98,15 @@ export class primitive_line_object extends construction_object {
     hiddenPath!: DOMElement;
     tipPath1!: DOMElement;
     tipPath2!: DOMElement;
-    // Whether this line draws tapered Cabri-style tips instead of running
-    // to the canvas edge. True for genuinely infinite lines; segment_object
-    // and ray_line_object (which have real endpoints) turn it off.
-    protected showTips = true;
+    // False for segment_object, which has real endpoints.
+    protected infinite = true;
+    // A ray from P1, in the direction of VEC.
+    protected oneSided = false;
     // Sub-ranges of [sP1, sP2] hidden behind some polygon, drawn on
     // hiddenPath (dashed) instead of path (solid), per hidden-line
     // convention. Subclasses that narrow sP1/sP2 (segment_object: exact
-    // endpoints; ray_line_object: one-sided) recompute these afterward via
-    // updateHiddenSplit, since they no longer match the doubly-extended
-    // range project() below assumes.
+    // endpoints) recompute these afterward via updateHiddenSplit, since
+    // they no longer match the range project() below assumes.
     protected hiddenIntervals: Interval[] = [];
     protected visibleIntervals: Interval[] = [[0, 1]];
 
@@ -136,7 +135,8 @@ export class primitive_line_object extends construction_object {
     // Two world points lying on this line that give it a natural, intrinsic
     // scale (e.g. the two points a Line was built from). Overridden by
     // subclasses that have such points; null falls back to a fixed-length
-    // extension. Not used when showTips is false.
+    // extension. Only used when partialDrawing is true. A one-sided line's
+    // span starts at P1.
     protected referenceSpan(): [Vec3, Vec3] | null {
         return null;
     }
@@ -195,6 +195,10 @@ export class primitive_line_object extends construction_object {
         return false;
     }
 
+    protected get partialDrawing(): boolean {
+        return this.infinite && !this.C.GRID.is2D;
+    }
+
     computeGeometry(): void {
         if (!this.P1.defined) {
             this.defined = false;
@@ -220,7 +224,7 @@ export class primitive_line_object extends construction_object {
         this.projectionDefined = true;
         this.screenDir = screenVector;
 
-        const baseSpan = this.showTips ? this.referenceSpan() : null;
+        const baseSpan = this.partialDrawing ? this.referenceSpan() : null;
         const span = baseSpan && this.expandSpan(baseSpan, this.onLinePoints());
         if (span) {
             const bodyP1 = this.C.pt3D(span[0]);
@@ -234,7 +238,9 @@ export class primitive_line_object extends construction_object {
                 this.screenDir = dir;
                 this.sP1 = bodyP1;
                 this.sP2 = bodyP2;
-                this.tipP1 = pointAtDistance(bodyP1, dir, -LINE_TIP_LENGTH);
+                this.tipP1 = this.oneSided
+                    ? bodyP1
+                    : pointAtDistance(bodyP1, dir, -LINE_TIP_LENGTH);
                 this.tipP2 = pointAtDistance(bodyP2, dir, LINE_TIP_LENGTH);
                 this.updateHiddenSplit(span[0], span[1]);
                 return;
@@ -243,10 +249,12 @@ export class primitive_line_object extends construction_object {
 
         const length =
             this.C.width + this.C.height + Math.abs(sp[0]) + Math.abs(sp[1]);
-        this.sP1 = [
-            sp[0] - length * screenVector[0],
-            sp[1] - length * screenVector[1],
-        ];
+        this.sP1 = this.oneSided
+            ? sp
+            : [
+                  sp[0] - length * screenVector[0],
+                  sp[1] - length * screenVector[1],
+              ];
         this.sP2 = [
             sp[0] + length * screenVector[0],
             sp[1] + length * screenVector[1],
@@ -254,7 +262,10 @@ export class primitive_line_object extends construction_object {
         this.tipP1 = this.sP1;
         this.tipP2 = this.sP2;
         const [point3D1, point3D2] = this.extendedPoints();
-        this.updateHiddenSplit(point3D1, point3D2);
+        this.updateHiddenSplit(
+            this.oneSided ? this.P1.coords : point3D1,
+            point3D2,
+        );
     }
 
     // The 3D point lying `distance` screen pixels from P1 along the line's
@@ -267,8 +278,8 @@ export class primitive_line_object extends construction_object {
         return vAdd(this.P1.coords, vScale(this.VEC, distance / rawLength));
     }
 
-    // The 3D positions matching the current (doubly-extended) sP1/sP2.
-    protected extendedPoints(): [Vec3, Vec3] {
+    // The 3D positions of the line's ends, run to the canvas edge both ways.
+    private extendedPoints(): [Vec3, Vec3] {
         const sp = this.P1.screen;
         const length =
             this.C.width + this.C.height + Math.abs(sp[0]) + Math.abs(sp[1]);
@@ -302,7 +313,7 @@ export class primitive_line_object extends construction_object {
             this.isVisible && this.projectionDefined ? "block" : "none",
         );
         if (!this.defined || !this.projectionDefined) return;
-        const [hitP1, hitP2] = this.showTips
+        const [hitP1, hitP2] = this.partialDrawing
             ? [this.tipP1, this.tipP2]
             : [this.sP1, this.sP2];
         this.hitArea.att(
@@ -317,7 +328,7 @@ export class primitive_line_object extends construction_object {
             "d",
             intervalsToPath(this.sP1, this.sP2, this.hiddenIntervals),
         );
-        if (this.showTips) {
+        if (this.partialDrawing) {
             const half = this.size / 2;
             const perp: Vec2 = [
                 -this.screenDir[1] * half,

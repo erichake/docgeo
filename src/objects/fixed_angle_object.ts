@@ -13,6 +13,7 @@ import {
     vAdd,
     vNorm,
     vNormalize,
+    vScale,
     vSub,
     type Vec2,
     type Vec3,
@@ -50,6 +51,7 @@ export class fixed_angle_object extends primitive_line_object {
     private labelRotationDeg = 0;
     private labelOffset = 0;
     private labelAnchor: "start" | "end" = "start";
+    protected oneSided = true;
     arcPath!: DOMElement;
     wedgeFill!: DOMElement;
     valueText?: DOMElement;
@@ -127,12 +129,15 @@ export class fixed_angle_object extends primitive_line_object {
         return parameter >= -geometryTolerance(scale);
     }
 
+    // As long as the side towards A.
+    protected referenceSpan(): [Vec3, Vec3] | null {
+        const length = vNorm(vSub(this.A.coords, this.P1.coords));
+        return [this.P1.coords, vAdd(this.P1.coords, vScale(this.VEC, length))];
+    }
+
     project(): void {
         super.project();
         if (!this.defined || !this.projectionDefined) return;
-        this.sP1 = this.P1.screen;
-        const [, point3D2] = this.extendedPoints();
-        this.updateHiddenSplit(this.P1.coords, point3D2);
 
         const origin = this.P1.screen;
         const dirA = vNormalize(vSub(this.A.screen, origin));
