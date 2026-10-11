@@ -5,6 +5,7 @@ import type { construction } from "../../src/construction";
 import { importDgpFromUrl } from "../../src/dgp_importer";
 import { describeDgo } from "../../src/dgo";
 import { importGgbFromBlob } from "../../src/ggb_importer";
+import type { circle3pts_object } from "../../src/objects/circle3pts_object";
 import type { expression_object } from "../../src/objects/expression_object";
 import type { point_on_object } from "../../src/objects/point_on_object";
 import type { polygon_object } from "../../src/objects/polygon_object";
@@ -103,6 +104,16 @@ describe("animations", () => {
         expect(P7.alpha).toBeCloseTo(
             (alpha + 1.2217304763960306) % (2 * Math.PI),
         );
+    });
+
+    it("turns a point around a Circle3pts3D through its samples", async () => {
+        const c = await open("ParaboloideHyper5Ressorts.dgp");
+        const M = c.getObj("M") as point_on_object;
+        const C1 = M.support as circle3pts_object;
+        expect(C1.dgpadIndex(M.coords)).toBeCloseTo(1378);
+        // 5 × 100 samples, around from the first beyond the last, 1499.
+        animate(c, M, 1);
+        expect(C1.dgpadIndex(M.coords)).toBeCloseTo(1378 + 500 - 1499);
     });
 
     it("walks a point along a polygon's boundary", async () => {

@@ -63,13 +63,38 @@ export class circle3pts_object extends primitive_circle_object {
         const i = Math.min(index, 3 * SAMPLES - 1);
         const arc = Math.floor(i / SAMPLES);
         const k = i / SAMPLES - arc;
-        const [p, q, r] = [0, 1, 2].map(
-            (offset) => [this.P1, this.P2, this.P3][(arc + offset) % 3].coords,
-        );
+        const [p, q, r] = this.arc(arc);
         const square = (u: Vec3, v: Vec3) => vDot(vSub(u, v), vSub(u, v));
         const inter = square(r, p) * (1 - k) + square(q, r) * k;
         const coef = inter / (inter - square(p, q) * k * (1 - k));
         return vAdd(r, vScale(vAdd(vSub(p, r), vScale(vSub(q, p), k)), coef));
+    }
+
+    // The inverse of dgpadSample for a point of the circle: the sample of an
+    // arc is where its chord meets the line from the arc's third point.
+    dgpadIndex(point: Vec3): number {
+        let index = 0;
+        let gap = Infinity;
+        for (let arc = 0; arc < 3; arc++) {
+            const [p, q, r] = this.arc(arc);
+            const d = vSub(point, r);
+            const a = vSub(p, r);
+            const b = vSub(q, p);
+            const normal = vCross(a, b);
+            const k = -vDot(vCross(d, a), normal) / vDot(vCross(d, b), normal);
+            const outside = Math.max(-k, k - 1, 0);
+            if (outside < gap) {
+                gap = outside;
+                index = SAMPLES * (arc + Math.min(Math.max(k, 0), 1));
+            }
+        }
+        return index;
+    }
+
+    private arc(arc: number): Vec3[] {
+        return [0, 1, 2].map(
+            (offset) => [this.P1, this.P2, this.P3][(arc + offset) % 3].coords,
+        );
     }
 
     private computeInSpace(): void {
@@ -98,7 +123,7 @@ export class circle3pts_object extends primitive_circle_object {
 }
 
 // DGPad's samples per arc of a Circle3pts3D.
-const SAMPLES = 500;
+export const SAMPLES = 500;
 
 export function createCircle3pts(
     c: construction,

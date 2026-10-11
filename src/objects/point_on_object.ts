@@ -4,7 +4,7 @@ import { projectPointOnLine, projectPointOnPlane } from "../projection";
 import { vAdd, vDot, vScale, vSub, type Vec2, type Vec3 } from "../vec";
 import { angle_bisector_object } from "./angle_bisector_object";
 import { arc3pts_object } from "./arc3pts_object";
-import type { circle3pts_object } from "./circle3pts_object";
+import { circle3pts_object, SAMPLES } from "./circle3pts_object";
 import type { curve_object } from "./curve_object";
 import type { DgoContext } from "./construction_object";
 import { fixed_angle_object } from "./fixed_angle_object";
@@ -191,8 +191,8 @@ export class point_on_object extends point_object {
     }
 
     // As in DGPad: along a line or a polygon's edges, `speed` pixels per
-    // second on the screen; on a circle, radians per second; on a locus,
-    // five times as many of its samples.
+    // second on the screen; on a circle, radians per second; on a locus or a
+    // Circle3pts3D, five times as many of its samples.
     animate(seconds: number): void {
         const support = this.support;
         if (!support.defined) return;
@@ -215,7 +215,19 @@ export class point_on_object extends point_object {
                     max,
                 ),
             );
-        } else if (support instanceof primitive_circle_object) {
+        } else if (support instanceof circle3pts_object && support.space)
+            this.alpha = support.alphaOf(
+                support.dgpadSample(
+                    advance(
+                        this.animation!,
+                        support.dgpadIndex(this.coords),
+                        0,
+                        3 * SAMPLES - 1,
+                        5 * step,
+                    ),
+                ),
+            );
+        else if (support instanceof primitive_circle_object) {
             // DGPad's angles run from 0 to 2π.
             const alpha = (this.alpha as number) % TWO_PI;
             this.alpha = advance(
