@@ -180,6 +180,7 @@ m=Expression("m","","-n","2*n","3","0","0");`,
             4,
             true,
         ]);
+        expect(slider.dom.dom().querySelector("circle")).not.toBeNull();
         (c.getObj("n") as expression_object).value = 1;
         c.invalidateGeometry(c.getObj("n")!);
         c.OBJS.update();

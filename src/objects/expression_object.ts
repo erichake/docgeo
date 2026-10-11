@@ -636,14 +636,10 @@ export class expression_object extends construction_object {
                             : formatValue(this.value!, this.precision)),
             );
 
-        if (
-            !this.isCursor ||
-            !this.cursor ||
-            !this.track ||
-            !this.progress ||
-            !this.knob
-        )
-            return;
+        if (!this.cursor || !this.track || !this.progress || !this.knob) return;
+        // Bounds read from other objects can be undefined.
+        this.cursor.stl("display", this.isCursor ? "" : "none");
+        if (!this.isCursor) return;
         // A vertical slider is the horizontal one turned a quarter turn
         // counterclockwise around its start.
         const trackY = this.vertical ? y : y + CURSOR_OFFSET_Y;
@@ -778,7 +774,9 @@ export class expression_object extends construction_object {
             return dom.add(t.box, t.check);
         }
 
-        if (!t.isCursor) return dom;
+        // Bounds read from other objects are only computed after this.
+        if (!t.isCursor && !(t.bounds && typeof t.value === "number"))
+            return dom;
 
         t.track = t.svg
             .shape("path")
