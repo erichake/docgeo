@@ -1,0 +1,241 @@
+// Macros :
+$macros={};
+$macros["Cnk1P2PT"]={
+	name:"Cnk 1P 2PT",
+	parameters:["point","point","line","point","line"],
+	exec:
+	function (C,AB1,L1,A1B,L2){
+L6=Line("L6",A1B,C);
+L8=Line("L8",C,AB1);
+P=OrderedIntersection("P",L1,L2,0);
+C1=Circle("C1",P,A1B);
+P4=PointOn("P4",C1,3.1229568473857423);
+L5=Line("L5",P4,P);
+Q=OrderedIntersection("Q",L6,L5,0);
+R=OrderedIntersection("R",L8,L5,0);
+L7=Line("L7",AB1,Q);
+L9=Line("L9",A1B,R);
+P3=OrderedIntersection("P3",L7,L9,0);
+Locus1=Locus("Locus1",P3,P4);
+return [Locus1];
+}};
+
+$macros["Cnk1T2PT"]={
+	name:"Cnk 1T 2PT",
+	parameters:["line","point","line","point","line"],
+	exec:
+	function (L3,AB1,L1,A1B,L2){
+P=OrderedIntersection("P",L1,L2,0);
+P5=OrderedIntersection("P5",L2,L3,0);
+P6=OrderedIntersection("P6",L1,L3,0);
+P9=OrderedIntersection("P9",L1,L2,0);
+L4=Line("L4",P5,AB1);
+L5=Line("L5",A1B,P6);
+C1=Circle("C1",P9,A1B);
+P7=OrderedIntersection("P7",L4,L5,0);
+P41=PointOn("P41",C1,3.1229568473857423);
+L6=Line("L6",P,P7);
+L51=Line("L51",P41,P9);
+P8=OrderedIntersection("P8",L3,L6,0);
+L61=Line("L61",A1B,P8);
+L8=Line("L8",P8,AB1);
+Q=OrderedIntersection("Q",L61,L51,0);
+R=OrderedIntersection("R",L8,L51,0);
+L7=Line("L7",AB1,Q);
+L9=Line("L9",A1B,R);
+P31=OrderedIntersection("P31",L7,L9,0);
+Locus1=Locus("Locus1",P31,P41);
+return [Locus1];
+}};
+
+$macros["Cnk3P1PT"]={
+	name:"Cnk 3P 1PT",
+	parameters:["point","point","point","point","line"],
+	exec:
+	function (AB1, A1, B, C, L1) {
+L2=Line("L2",B,A1);
+L3=Line("L3",A1,C);
+L4=Line("L4",AB1,C);
+P=OrderedIntersection("P",L1,L2,0);
+C1=Circle1("C1",P,86.15121390934696);
+P1=PointOn("P1",C1,2.0810057325125095);
+L5=Line("L5",P1,P);
+Q=OrderedIntersection("Q",L4,L5,0);
+P3=OrderedIntersection("P3",L3,L5,0);
+L6=Line("L6",B,Q);
+L7=Line("L7",AB1,P3);
+P4=OrderedIntersection("P4",L6,L7,0);
+Locus1=Locus("Locus1",P4,P1);
+return [Locus1];
+}};
+
+$macros["Cnk5P"]={
+	name:"Cnk 5P",
+	parameters:["point","point","point","point","point"],
+	exec:
+	function (P1,P2,P3,P4,P5){
+C1=Circle("C1",P1,P2);
+L2=Line("L2",P3,P4);
+L3=Line("L3",P1,P2);
+L4=Line("L4",P4,P5);
+L5=Line("L5",P2,P3);
+P6=PointOn("P6",C1,4.351552197351599);
+P8=OrderedIntersection("P8",L3,L4,0);
+L1=Line("L1",P1,P6);
+P7=OrderedIntersection("P7",L2,L1,0);
+L6=Line("L6",P8,P7);
+P9=OrderedIntersection("P9",L5,L6,0);
+L7=Line("L7",P9,P5);
+P10=OrderedIntersection("P10",L1,L7,0);
+Locus1=Locus("Locus1",P10,P6);
+return [Locus1];
+}};
+
+// Coordinates System :
+SetCoords(549.3676027498273,323.9749485665245,22.92289105838269,false,1070,700);
+
+
+// Geometry :
+P1=Point("P1",0.22302584945118456,3.6494065409752356);
+P2=Point("P2",-5.370509436889199,-5.67140728900048);
+P3=Point("P3",5.710117319704602,-3.7432037352939975);
+Sg=Point("Sg",-4.247614426201307,-0.0010928566301553607);
+L1=Line("L1",P3,P2);
+L2=Line("L2",P1,P2);
+L3=Line("L3",P1,P3);
+L6=Line("L6",P3,P1);
+L8=Line("L8",P1,P2);
+L12=Line("L12",P1,Sg);
+L13=Line("L13",P3,Sg);
+L14=Line("L14",P2,Sg);
+Par1=Parallel("Par1",L1,P1);
+Par2=Parallel("Par2",L3,P2);
+Par3=Parallel("Par3",L2,P3);
+P9=OrderedIntersection("P9",L2,L1,0);
+P10=OrderedIntersection("P10",L2,L1,0);
+P12=OrderedIntersection("P12",L2,L13,0);
+P13=OrderedIntersection("P13",L1,L12,0);
+P14=OrderedIntersection("P14",L3,L14,0);
+P15=OrderedIntersection("P15",L2,L3,0);
+P=OrderedIntersection("P",Par2,Par3,0);
+L63=Line("L63",P14,P13);
+L83=Line("L83",P13,P12);
+C13=Circle("C13",P15,P14);
+C1=Circle("C1",P,P3);
+P43=PointOn("P43",C13,3.1229568473857423);
+P4=PointOn("P4",C1,3.1229568473857423);
+L53=Line("L53",P43,P15);
+L5=Line("L5",P4,P);
+Q3=OrderedIntersection("Q3",L63,L53,0);
+R3=OrderedIntersection("R3",L83,L53,0);
+Q=OrderedIntersection("Q",L6,L5,0);
+R=OrderedIntersection("R",L8,L5,0);
+L73=Line("L73",P12,Q3);
+L93=Line("L93",P14,R3);
+L7=Line("L7",P2,Q);
+L9=Line("L9",P3,R);
+P33=OrderedIntersection("P33",L73,L93,0);
+P31=OrderedIntersection("P31",L7,L9,0);
+Locus12=Locus("Locus12",P33,P43);
+Locus1=Locus("Locus1",P31,P4);
+Sp=PointOn("Sp",Locus1,717);
+L4=Line("L4",P1,Sp);
+L10=Line("L10",P3,Sp);
+L11=Line("L11",P2,Sp);
+P6=OrderedIntersection("P6",L2,L10,0);
+P7=OrderedIntersection("P7",L3,L11,0);
+P8=OrderedIntersection("P8",L1,L4,0);
+L61=Line("L61",P8,P7);
+L81=Line("L81",P7,P6);
+C11=Circle("C11",P9,P8);
+L62=Line("L62",P8,P7);
+L82=Line("L82",P7,P6);
+C12=Circle("C12",P10,P8);
+P41=PointOn("P41",C11,3.1229568473857423);
+P42=PointOn("P42",C12,3.1229568473857423);
+L51=Line("L51",P41,P9);
+L52=Line("L52",P42,P10);
+Q1=OrderedIntersection("Q1",L61,L51,0);
+R1=OrderedIntersection("R1",L81,L51,0);
+Q2=OrderedIntersection("Q2",L62,L52,0);
+R2=OrderedIntersection("R2",L82,L52,0);
+L71=Line("L71",P6,Q1);
+L91=Line("L91",P8,R1);
+L72=Line("L72",P6,Q2);
+L92=Line("L92",P8,R2);
+P32=OrderedIntersection("P32",L72,L92,0);
+Locus11=Locus("Locus11",P32,P42);
+
+
+// Styles :
+STL(P1,"c:#0000b2;o:1;s:4;f:30");
+STL(P2,"c:#0000b2;o:1;s:4;f:30");
+STL(P3,"c:#0000b2;o:0.65;s:4;f:30");
+STL(Sg,"c:#b40000;o:1;s:4;sn:true;f:19");
+STL(L1,"c:#0044ff;s:1;f:30;p:0");
+STL(L2,"c:#0054ff;s:1;f:30;p:0");
+STL(L3,"c:#0054ff;s:1;f:30;p:0");
+STL(L6,"c:#780013;h:1;s:1;f:30;p:0");
+STL(L8,"c:#780013;h:1;s:1;f:30;p:0");
+STL(L12,"c:#780013;s:1;f:30;p:0;dh:true");
+STL(L13,"c:#780013;s:1;f:30;p:0;dh:true");
+STL(L14,"c:#780013;s:1;f:30;p:0;dh:true");
+STL(Par1,"c:#780013;h:1;s:1;f:30;p:0");
+STL(Par2,"c:#780013;h:1;s:1;f:30;p:0");
+STL(Par3,"c:#780013;h:1;s:1;f:30;p:0");
+STL(P9,"c:#007c00;h:1;s:4;f:30");
+STL(P10,"c:#007c00;h:1;s:4;f:30");
+STL(P12,"c:#007c00;h:1;s:4;f:30;dh:true");
+STL(P13,"c:#007c00;h:1;s:4;f:30;dh:true");
+STL(P14,"c:#007c00;h:1;s:4;f:30;dh:true");
+STL(P15,"c:#007c00;h:1;s:4;f:30");
+STL(P,"c:#007c00;h:1;s:4;f:30");
+STL(L63,"c:#780013;h:1;s:1;f:30;p:0");
+STL(L83,"c:#780013;h:1;s:1;f:30;p:0");
+STL(C13,"c:#cc66cc;h:1;s:1;f:30;p:0");
+STL(C1,"c:#cc66cc;h:1;s:1;f:30;p:0");
+STL(P43,"c:#007c00;h:1;s:4;f:30");
+STL(P4,"c:#007c00;h:1;s:4;f:30");
+STL(L53,"c:#780013;h:1;s:1;f:30;p:0");
+STL(L5,"c:#780013;h:1;s:1;f:30;p:0");
+STL(Q3,"c:#007c00;h:1;s:4;f:30");
+STL(R3,"c:#007c00;h:1;s:4;f:30");
+STL(Q,"c:#007c00;h:1;s:4;f:30");
+STL(R,"c:#007c00;h:1;s:4;f:30");
+STL(L73,"c:#780013;h:1;s:1;f:30;p:0");
+STL(L93,"c:#780013;h:1;s:1;f:30;p:0");
+STL(L7,"c:#780013;h:1;s:1;f:30;p:0");
+STL(L9,"c:#780013;h:1;s:1;f:30;p:0");
+STL(P33,"c:#007c00;h:1;s:4;f:30");
+STL(P31,"c:#007c00;h:1;s:4;f:30");
+STL(Locus12,"c:#b40000;s:2;f:30;p:1000");
+STL(Locus1,"c:#3fd33f;s:2;f:30;p:1000");
+STL(Sp,"c:#c62abf;o:1;s:4;sn:true;f:19");
+STL(L4,"c:#2f2f49;s:1;f:30;p:0;dh:true");
+STL(L10,"c:#322d42;s:1;f:30;p:0;dh:true");
+STL(L11,"c:#252644;s:1;f:30;p:0;dh:true");
+STL(P6,"c:#007c00;h:1;s:4;f:30;dh:true");
+STL(P7,"c:#007c00;h:1;s:4;f:30;dh:true");
+STL(P8,"c:#007c00;h:1;s:4;f:30;dh:true");
+STL(L61,"c:#780013;h:1;s:1;f:30;p:0");
+STL(L81,"c:#780013;h:1;s:1;f:30;p:0");
+STL(C11,"c:#cc66cc;h:1;s:1;f:30;p:0");
+STL(L62,"c:#780013;h:1;s:1;f:30;p:0");
+STL(L82,"c:#780013;h:1;s:1;f:30;p:0");
+STL(C12,"c:#cc66cc;h:1;s:1;f:30;p:0");
+STL(P41,"c:#007c00;h:1;s:4;f:30");
+STL(P42,"c:#007c00;h:1;s:4;f:30");
+STL(L51,"c:#780013;h:1;s:1;f:30;p:0");
+STL(L52,"c:#780013;h:1;s:1;f:30;p:0");
+STL(Q1,"c:#007c00;h:1;s:4;f:30");
+STL(R1,"c:#007c00;h:1;s:4;f:30");
+STL(Q2,"c:#007c00;h:1;s:4;f:30");
+STL(R2,"c:#007c00;h:1;s:4;f:30");
+STL(L71,"c:#780013;h:1;s:1;f:30;p:0");
+STL(L91,"c:#780013;h:1;s:1;f:30;p:0");
+STL(L72,"c:#780013;h:1;s:1;f:30;p:0");
+STL(L92,"c:#780013;h:1;s:1;f:30;p:0");
+STL(P32,"c:#007c00;h:1;s:4;f:30");
+STL(Locus11,"c:#e85bd8;s:1.5;f:30;p:1000");
+SetCoordsStyle("isAxis:false;isGrid:true;isOx:true;isOy:true;isLockOx:false;isLockOy:false;centerZoom:false;onlyPositive:false;color:#111111;fontSize:18;axisWidth:1;gridWidth:0.1");
+SetGeneralStyle("background-color:#F8F8F8;degree:true;dragmoveable:true");
