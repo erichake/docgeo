@@ -19,13 +19,15 @@ export class objects_collector {
     // Objects with at least one dirty flag, processed by update() :
     private dirty = new Set<construction_object>();
     private nextSequence = 0;
-    // Bumped on every update() pass, so per-frame caches (e.g. a polygon
-    // spatial index) know when they need rebuilding :
+    // Bumped on every update() pass, and when objects are added or removed,
+    // so per-frame caches (e.g. a polygon spatial index) know when they need
+    // rebuilding :
     frame = 0;
     updating = false;
 
     add<T extends construction_object>(o: T): T {
         o.sequence = this.nextSequence++;
+        this.frame++;
         this.V.push(o);
         this.O[o.name] = o;
         if (o.familytype === "polygon") this.polygons.push(o);
@@ -35,6 +37,7 @@ export class objects_collector {
     }
 
     remove(objects: ReadonlySet<construction_object>): void {
+        this.frame++;
         this.V = this.V.filter((object) => !objects.has(object));
         this.polygons = this.polygons.filter((object) => !objects.has(object));
         this.spheres = this.spheres.filter((object) => !objects.has(object));
