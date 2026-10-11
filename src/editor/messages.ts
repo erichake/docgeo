@@ -31,6 +31,11 @@ const MESSAGES = {
     undo: ["Annuler", "Undo"],
     redo: ["Refaire", "Redo"],
     delete: ["Supprimer", "Delete"],
+    eraser: ["Gomme", "Eraser"],
+    erasing: [
+        "Touchez un objet pour le cacher ou le montrer",
+        "Tap an object to hide or show it",
+    ],
     cancel: ["Abandonner l'outil (Échap)", "Drop the tool (Escape)"],
     designate: ["Désignez %", "Designate %"],
     polygon_end: [

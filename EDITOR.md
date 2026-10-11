@@ -179,6 +179,24 @@ Plus tard : des jeux d'outils choisis par l'enseignant (« Collège début »,
 « Tout »…), enregistrés dans la figure ou passés par l'URL. Un anneau à deux
 niveaux (familles, puis outils) seulement si l'anneau reste trop dense.
 
+## Gomme
+
+Décidé le 2026-10-11, comme dans DGPad plutôt que par le menu contextuel de
+GeoGebra (un objet à la fois, et un objet caché ne se retrouve que par son
+nom ; pas de clic droit au doigt) :
+
+- un bouton « Gomme » de la barre, permanent, active un mode : les objets
+  cachés y apparaissent pâles (fantômes) et se désignent ; toucher un objet
+  le cache ou le montre, plusieurs à la suite ; ni anneau ni point libre ;
+  le glisser déplace toujours. Échap, le bouton ou le focus dans le texte
+  en sortent.
+- Les objets super-cachés (`h: 2` : objets internes des macros DGPad,
+  objets auxiliaires de l'import GeoGebra, que GeoGebra ne dessine pas) ne
+  deviennent jamais des fantômes.
+- Un fantôme est montré (`hidden = 0`) pour être dessiné comme les autres,
+  et caché seulement dans la figure enregistrée et dans la pile
+  d'annulation (`eraser.ts`, `withGhostsHidden`).
+
 ## Lien avec le lecteur
 
 Un lien « modifier cette figure » pourrait ouvrir la figure du lecteur dans
@@ -257,6 +275,9 @@ Fait (2026-10-11) :
   pointeur], angle de 60° et bissectrice (demi-droite passant par le
   premier point) au pointeur, polygone réduit à un segment. Éditeur
   31,5 Ko (12,5 Ko en gzip), lecteur inchangé.
+
+- Gomme (section « Gomme ») ; l'import GeoGebra super-cache ses objets
+  auxiliaires. Éditeur 35,5 Ko (13,8 Ko en gzip), lecteur inchangé.
 
 Reste à faire :
 

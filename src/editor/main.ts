@@ -41,6 +41,12 @@ import {
     resolve,
     type Studio,
 } from "./figure";
+import {
+    hideGhosts,
+    showGhosts,
+    toggleGhost,
+    withGhostsHidden,
+} from "./eraser";
 import { message, type MessageKey } from "./messages";
 import { pick, PICK_RADIUS, type Hit } from "./pick";
 import {
@@ -87,6 +93,7 @@ $("head").append(`<style>
     .dge-bar button { padding: 5px 10px; border: 1px solid #d1d5db; border-radius: 7px; background: #fff; font: inherit; color: inherit; cursor: pointer; }
     .dge-bar button:hover { background: #f3f4f6; }
     .dge-bar button:disabled { opacity: 0.4; cursor: default; }
+    .dge-bar button.dge-on { background: #2563eb; color: #fff; border-color: #2563eb; }
     .dge-hint { position: fixed; bottom: 16px; left: calc(50% + ${PANEL_WIDTH / 2}px); transform: translateX(-50%); max-width: calc(100% - ${PANEL_WIDTH + 32}px); padding: 7px 14px; border-radius: 9px; background: rgb(17 24 39 / 0.86); color: #f9fafb; font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 13.5px; white-space: pre-wrap; z-index: 11; pointer-events: none; }
     .dge-hint:empty { display: none; }
     .dge-hint.dge-error { background: #b91c1c; }
@@ -105,6 +112,7 @@ $("head").append(`<style>
     svg .dge-hover { filter: drop-shadow(0 0 2px #f59e0b) drop-shadow(0 0 3px #f59e0b); }
     svg .dge-ok { filter: drop-shadow(0 0 2px #16a34a) drop-shadow(0 0 2px #16a34a); }
     svg .dge-preview { opacity: 0.55; }
+    .dge-ghost { opacity: 0.3 !important; }
 </style>`);
 
 // ************************** LAYOUT ******************************
@@ -130,6 +138,7 @@ function button(key: MessageKey, action: () => void): DOMElement {
 }
 const undoButton = button("undo", () => travel(-1));
 const redoButton = button("redo", () => travel(1));
+const eraserButton = button("eraser", () => setEraser(!ghosts));
 const fileInput = $.create("input")
     .att("type", "file")
     .att("accept", ".dgo,.dgp,.ggb");
@@ -142,6 +151,7 @@ $("body").add(
             button("save", save),
             undoButton,
             redoButton,
+            eraserButton,
         ),
     hint,
     ring,
@@ -182,6 +192,8 @@ let completions: {
 }[] = [];
 let selected = -1;
 let figureName = "figure";
+// While erasing: the objects hidden, shown pale.
+let ghosts: Set<construction_object> | null = null;
 
 const element = (node: EventTarget | null) =>
     node instanceof Element ? node : null;
@@ -195,6 +207,8 @@ const editing = (): HTMLInputElement | null => {
 };
 const vec3 = () => !scene().GRID.is2D;
 const previewed = () => new Set(preview?.objects ?? []);
+const looksHidden = (object: construction_object) =>
+    object.isHidden || !!ghosts?.has(object);
 
 function showHint(text: string, error = false): void {
     hint.text(text).toggleClass("dge-error", error);
@@ -216,7 +230,7 @@ function refreshRows(): void {
         const row = $.create("input")
             .cls("dge-row")
             .att("spellcheck", "false")
-            .toggleClass("dge-hidden", object.isHidden);
+            .toggleClass("dge-hidden", looksHidden(object));
         (row.dom() as HTMLInputElement).value =
             line ?? `${formatName(object.name)} = …`;
         if (line === null)
@@ -251,6 +265,7 @@ function bindRow(row: DOMElement, object: construction_object | null): void {
     row.on(
         "focus",
         () => {
+            setEraser(false);
             original = field.value;
             updateCompletion(field);
         },
@@ -979,6 +994,19 @@ function updatePreview(screen: Vec2, hits: Hit[]): void {
     }
 }
 
+// A tap hides or shows the object under it, and nothing is built.
+function setEraser(on: boolean): void {
+    if (on === !!ghosts) return;
+    cancel();
+    if (ghosts) hideGhosts(ghosts);
+    ghosts = on ? showGhosts(scene()) : null;
+    eraserButton.toggleClass("dge-on", on);
+    rows.forEach((row, object) =>
+        row.toggleClass("dge-hidden", looksHidden(object)),
+    );
+    showHint(on ? message("erasing") : "");
+}
+
 function cancel(): void {
     pending = null;
     aim = null;
@@ -1006,7 +1034,14 @@ function changed(object?: construction_object): void {
             setTimeout(() => row.removeClass("dge-new"), 1200);
         }
         if (pending) prompt();
-        else showHint(row ? (row.dom() as HTMLInputElement).value : "");
+        else
+            showHint(
+                row
+                    ? (row.dom() as HTMLInputElement).value
+                    : ghosts
+                      ? message("erasing")
+                      : "",
+            );
     });
 }
 
@@ -1144,6 +1179,11 @@ $("body").on(
         const c = scene();
         const screen = c.pointerPosition(event);
         const hits = pick(c, screen, previewed());
+        if (ghosts) {
+            if (!hits[0]) return;
+            toggleGhost(ghosts, hits[0].object);
+            return changed();
+        }
         if (hits[0]) return openRing(hits[0], [event.clientX, event.clientY]);
         const field = typing;
         const point = addFreePoint(screen);
@@ -1168,7 +1208,10 @@ $("body").on(
         } else if (command && event.key.toLowerCase() === "y") {
             event.preventDefault();
             travel(1);
-        } else if (event.key === "Escape") cancel();
+        } else if (event.key === "Escape") {
+            if (ghosts) setEraser(false);
+            else cancel();
+        }
     },
     false,
 );
@@ -1182,7 +1225,9 @@ let recording = Promise.resolve();
 
 function record(): Promise<void> {
     recording = recording.then(async () => {
-        const figure = await describeDgo(scene());
+        const figure = await withGhostsHidden(ghosts ?? [], () =>
+            describeDgo(scene()),
+        );
         const step = JSON.stringify({ ...figure, v: undefined });
         if (step === history[position]) return;
         history = [...history.slice(0, position + 1), step];
@@ -1198,6 +1243,7 @@ function travel(step: number): void {
         position += step;
         const { v } = await describeDgo(scene());
         rebuild(studio, { ...JSON.parse(history[position]), v });
+        if (ghosts) ghosts = showGhosts(scene());
         refreshRows();
     });
 }
@@ -1205,7 +1251,9 @@ function travel(step: number): void {
 // ************************** FILES *******************************
 
 async function save(): Promise<void> {
-    const href = URL.createObjectURL(await writeDgo(scene()));
+    const href = URL.createObjectURL(
+        await withGhostsHidden(ghosts ?? [], () => writeDgo(scene())),
+    );
     (
         $.create("a")
             .att("href", href)
@@ -1219,6 +1267,7 @@ async function open(
     name: string,
     load: (c: construction) => Promise<string[]>,
 ): Promise<void> {
+    setEraser(false);
     cancel();
     studio.scene.dispose();
     studio.scene = construction.create(studio);

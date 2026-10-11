@@ -19,6 +19,12 @@ import {
     type Arg,
     type Param,
 } from "../../src/editor/catalog";
+import {
+    hideGhosts,
+    showGhosts,
+    toggleGhost,
+    withGhostsHidden,
+} from "../../src/editor/eraser";
 import { pick } from "../../src/editor/pick";
 import { parseLine, TextError } from "../../src/editor/text";
 import type { point_object } from "../../src/objects/point_object";
@@ -227,5 +233,33 @@ describe("Editor", () => {
         const point = addPointOn(c, "P", hit.object, hit.at);
         expectClose(point.coords, [0, 4, 0]);
         expect(pick(c, [400, 200])).toEqual([]);
+    });
+
+    it("erases as DGPad, its hidden objects shown pale", async () => {
+        const { scene: c } = studio();
+        ["A = (0, 0)", "B = (4, 0)", "C = (0, 4)"].forEach((line) =>
+            type(c, line),
+        );
+        const [a, b, k] = ["A", "B", "C"].map((name) => c.getObj(name)!);
+        b.hidden = 1;
+        k.hidden = 2;
+        [b, k].forEach((object) => object.updateView());
+        c.flush();
+        const ghosts = showGhosts(c);
+        expect([...ghosts]).toEqual([b]);
+        expect(b.hasView && b.dom.dom().classList.contains("dge-ghost")).toBe(
+            true,
+        );
+        expect(pick(c, [560, 300]).map(({ object }) => object)).toEqual([b]);
+        expect(pick(c, [400, 140])).toEqual([]);
+        toggleGhost(ghosts, a);
+        toggleGhost(ghosts, b);
+        const { o, st } = await withGhostsHidden(ghosts, () => describeDgo(c));
+        expect(o.map((entry) => st?.[entry[3] as number]?.h ?? 0)).toEqual([
+            1, 0, 2,
+        ]);
+        expect([a.hidden, b.hidden, a.hasView]).toEqual([0, 0, true]);
+        hideGhosts(ghosts);
+        expect([a.hidden, a.hasView, b.hidden]).toEqual([1, false, 0]);
     });
 });

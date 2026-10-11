@@ -1439,10 +1439,11 @@ export function translateGgb(
         push(variable, command, [literal(label), ...args]);
         const element = elements.get(label);
         // Without its own element (an unlabeled output, or an auxiliary
-        // object built from a nested command), GeoGebra doesn't draw it.
+        // object built from a nested command), GeoGebra doesn't draw it:
+        // super-hidden, nobody shows it again.
         push(null, "STL", [
             { type: "reference", name: variable },
-            literal(style ?? (element ? objectStyle(element, kind) : "h:1")),
+            literal(style ?? (element ? objectStyle(element, kind) : "h:2")),
         ]);
         return true;
     };
@@ -1454,7 +1455,7 @@ export function translateGgb(
             "expression",
             "Expression",
             ["", "", "", content, "0", "0"].map(literal),
-            "h:1",
+            "h:2",
         );
         return objects.get(label)!.variable;
     };
@@ -1709,7 +1710,7 @@ export function translateGgb(
                 const faces = shell.map((face) => face.map(image));
                 shells.set(label, faces);
                 const element = elements.get(label);
-                const style = element ? shapeStyle(element) : "h:1";
+                const style = element ? shapeStyle(element) : "h:2";
                 const edges = new Map<string, string[]>();
                 const drawn = faces.map((face) => {
                     face.forEach((p, index) => {
@@ -2732,7 +2733,7 @@ export function translateGgb(
                         "0",
                         "0",
                     ].map(literal),
-                    "h:1",
+                    "h:2",
                 );
                 return {
                     o,
@@ -3230,7 +3231,7 @@ export function translateGgb(
                     "0",
                     "0",
                 ].map(literal),
-                "h:1",
+                "h:2",
             );
             const list = {
                 count: `(${n})+1`,
