@@ -3686,7 +3686,7 @@ export function translateGgb(
     const inlineTeX = (tex: string): string =>
         tex
             .replace(/\\(begin|end)\{(align|gather)\*?\}/g, "\\$1{$2ed}")
-            .replace(/(?<!\\)\$/g, "");
+            .replace(/\\?\$/g, (match) => (match.length > 1 ? match : ""));
 
     // A point, or a point's coordinates such as "A + (0, 1)" as a hidden
     // point.
