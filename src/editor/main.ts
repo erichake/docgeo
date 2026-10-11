@@ -21,6 +21,7 @@ import {
     commandName,
     commandsStarting,
     findCommand,
+    overloadFor,
     paramAt,
     type Arg,
     type Overload,
@@ -42,7 +43,13 @@ import {
 } from "./figure";
 import { message, type MessageKey } from "./messages";
 import { pick, PICK_RADIUS, type Hit } from "./pick";
-import { completionAt, formatName, parseLine, TextError } from "./text";
+import {
+    completionAt,
+    formatName,
+    parseLine,
+    TextError,
+    type ArgumentCompletion,
+} from "./text";
 import { RING_SLOTS, toolsFor, type Tool } from "./tools";
 
 // The construction editor: see EDITOR.md.
@@ -168,7 +175,11 @@ let preview: {
 } | null = null;
 let hovered: construction_object | null = null;
 let accepted: construction_object[] = [];
-let completions: { label: string; insert: string }[] = [];
+let completions: {
+    label: string;
+    insert: string;
+    object?: construction_object;
+}[] = [];
 let selected = -1;
 let figureName = "figure";
 
@@ -258,6 +269,7 @@ function bindRow(row: DOMElement, object: construction_object | null): void {
         "blur",
         () => {
             closeCompletion();
+            clearPreview();
             showAccepted([]);
         },
         false,
@@ -323,6 +335,7 @@ async function commitText(
 
 // What the caret is in: the commands, or the objects an argument accepts.
 function updateCompletion(field: HTMLInputElement): void {
+    clearPreview();
     const context = completionAt(field.value.slice(0, field.selectionStart!));
     completions = [];
     let candidates: construction_object[] = [];
@@ -332,12 +345,9 @@ function updateCompletion(field: HTMLInputElement): void {
             insert: `${commandName(command)}(`,
         }));
     else if (context?.kind === "argument") {
-        const command = findCommand(context.command);
-        const params = command
-            ? command.overloads.flatMap(
-                  (overload) => paramAt(overload, context.position) ?? [],
-              )
-            : [];
+        const params = overloadsAt(context).map((overload) =>
+            paramAt(overload, context.position)!,
+        );
         candidates = figureObjects(scene()).filter((object) =>
             params.some((param) => accepts(object, param)),
         );
@@ -345,9 +355,10 @@ function updateCompletion(field: HTMLInputElement): void {
         completions = candidates
             .filter(({ name }) => name.toLowerCase().startsWith(prefix))
             .slice(0, 60)
-            .map(({ name }) => ({
-                label: formatName(name),
-                insert: formatName(name),
+            .map((object) => ({
+                label: formatName(object.name),
+                insert: formatName(object.name),
+                object,
             }));
     }
     showAccepted(candidates);
@@ -389,9 +400,129 @@ function navigate(event: KeyboardEvent, field: HTMLInputElement): boolean {
 }
 
 function insertCompletion(field: HTMLInputElement, index: number): void {
-    insertWord(field, completions[index].insert);
+    const { insert, object } = completions[index];
+    if (object) return designateTyped(field, object);
+    insertWord(field, insert);
     updateCompletion(field);
 }
+
+// The overloads of the command typed that take the arguments before the
+// caret and one more, an unknown name taking anything.
+function overloadsAt(context: ArgumentCompletion): Overload[] {
+    const c = scene();
+    return (findCommand(context.command)?.overloads ?? []).filter(
+        (overload) =>
+            paramAt(overload, context.position) &&
+            context.args.every((arg, position) => {
+                const value =
+                    arg?.kind === "name" ? c.getObj(arg.name) : arg?.value;
+                return (
+                    value === undefined ||
+                    accepts(value, paramAt(overload, position)!)
+                );
+            }),
+    );
+}
+
+// Its name, then what the line expects after it when it ends there: `, `
+// if every command it can be still takes more, `)` if none does, and then
+// the line is entered. Designating the first vertex of a polygon again
+// closes it.
+function designateTyped(
+    field: HTMLInputElement,
+    object: construction_object,
+): void {
+    if (insertArgument(field, object))
+        void commitText(
+            field,
+            [...rows].find(([, row]) => row.dom() === field)?.[0] ?? null,
+        );
+    updateCompletion(field);
+}
+
+// Whether it closed the line.
+function insertArgument(
+    field: HTMLInputElement,
+    object: construction_object,
+): boolean {
+    const caret = field.selectionStart!;
+    const before = field.value.slice(0, caret);
+    const context = completionAt(before);
+    if (context?.kind !== "argument" || field.value.slice(caret).trim()) {
+        insertWord(field, formatName(object.name));
+        return false;
+    }
+    const { position, args } = context;
+    const overloads = overloadsAt(context).filter((overload) =>
+        accepts(object, paramAt(overload, position)!),
+    );
+    const first = args[0]?.kind === "name" && scene().getObj(args[0].name);
+    if (
+        first === object &&
+        overloads.some(
+            ({ params, variadic }) => variadic && position >= params.length,
+        )
+    ) {
+        const comma = before.lastIndexOf(",");
+        field.value = before.slice(0, comma) + ")";
+        field.setSelectionRange(comma + 1, comma + 1);
+        $(field).removeClass("dge-error");
+        return true;
+    }
+    const more = overloads.map(
+        (overload) => paramAt(overload, position + 1) !== null,
+    );
+    const closes = more.length > 0 && !more.some(Boolean);
+    insertWord(
+        field,
+        formatName(object.name) +
+            (more.length && more.every(Boolean) ? ", " : closes ? ")" : ""),
+    );
+    return closes;
+}
+
+// The line typed, ending in an argument, as a tool waiting for it: the
+// arguments before it, and the overloads that take them.
+function typedCall(
+    field: HTMLInputElement,
+): { args: Arg[]; overloads: Overload[] } | null {
+    const caret = field.selectionStart!;
+    const context = completionAt(field.value.slice(0, caret));
+    if (context?.kind !== "argument" || field.value.slice(caret).trim())
+        return null;
+    const c = scene();
+    const args = Array.from({ length: context.position }, (_, position) => {
+        const arg = context.args[position];
+        return arg?.kind === "name" ? c.getObj(arg.name) : arg?.value;
+    });
+    if (args.includes(undefined)) return null;
+    return {
+        args: args as Arg[],
+        overloads: overloadsAt(context).filter(
+            ({ tag }) => tag !== (vec3() ? "C3p" : "C3s"),
+        ),
+    };
+}
+
+// The overload of the call typed that takes this object next.
+const taking = (
+    { args, overloads }: { args: Arg[]; overloads: Overload[] },
+    object: construction_object,
+) =>
+    overloads.find((overload) =>
+        accepts(object, paramAt(overload, args.length)!),
+    );
+
+// Only the line typed below the others makes points where it designates:
+// the others' rows are rebuilt with the figure.
+const expectsPoint = (
+    field: HTMLInputElement,
+    call: ReturnType<typeof typedCall>,
+) =>
+    field === input.dom() &&
+    !!call?.overloads.some(
+        (overload) => paramAt(overload, call.args.length) === "point",
+    );
 
 // In place of the word typed at the caret.
 function insertWord(field: HTMLInputElement, word: string): void {
@@ -480,6 +611,22 @@ function nearestBranch(
     return best && best.order;
 }
 
+// Numbered, unless of two lines.
+function intersection(
+    a: construction_object,
+    b: construction_object,
+    order: number,
+): { overload: Overload; args: Arg[] } {
+    const args = [a, b, order + 1].slice(
+        0,
+        accepts(a, "line") && accepts(b, "line") ? 2 : 3,
+    );
+    return {
+        overload: overloadFor(findCommand("Intersection")!, args, vec3())!,
+        args,
+    };
+}
+
 // The point a designation there gives: the point under it, or a new one,
 // at the intersection of two objects, on one, or free.
 function designatePoint(screen: Vec2, hits: Hit[]): construction_object | null {
@@ -495,8 +642,7 @@ function designatePoint(screen: Vec2, hits: Hit[]): construction_object | null {
         if (order !== null)
             return add(c, {
                 name: nextName(c, true),
-                overload: findCommand("Intersection")!.overloads[1],
-                args: [a, b, order + 1],
+                ...intersection(a, b, order),
             });
     }
     const support = hits.find(({ object }) => accepts(object, "support"));
@@ -662,10 +808,13 @@ function designate(screen: Vec2, hits: Hit[]): void {
                 object !== args[0] && accepts(object, "intersectable"),
         );
         if (!hit) return;
-        const order =
-            nearestBranch(args[0] as construction_object, hit.object, screen) ??
-            0;
-        return build(tool.overload!, [args[0]!, hit.object, order + 1]);
+        const first = args[0] as construction_object;
+        const { overload, args: found } = intersection(
+            first,
+            hit.object,
+            nearestBranch(first, hit.object, screen) ?? 0,
+        );
+        return build(overload, found);
     }
     const overload = tool.overload!;
     const param = paramAt(overload, nextSlot())!;
@@ -713,12 +862,48 @@ const STAND_INS: Partial<Record<string, (first: Vec3, next: Vec3) => Vec3>> = {
 };
 STAND_INS.C3s = STAND_INS.C3p;
 
-// What the tool would build, its next argument being under the pointer.
+// The line typed as a tool waiting for its next argument, the object under
+// the pointer or a point there.
+function typedPending(
+    field: HTMLInputElement,
+    hits: Hit[],
+): { overload: Overload; args: (Arg | undefined)[]; free: boolean } | null {
+    const call = typedCall(field);
+    if (!call) return null;
+    const hit = hits.find(({ object }) => taking(call, object));
+    const free = expectsPoint(field, call);
+    const overload = hit
+        ? taking(call, hit.object)
+        : free
+          ? call.overloads.find(
+                (overload) => paramAt(overload, call.args.length) === "point",
+            )
+          : undefined;
+    if (!overload) return null;
+    const { args } = call;
+    return {
+        overload,
+        args: overload.variadic
+            ? args
+            : [...args, ...Array(overload.params.length - args.length)],
+        free,
+    };
+}
+
+// What the tool, or the line typed, would build, its next argument being
+// under the pointer.
 function updatePreview(screen: Vec2, hits: Hit[]): void {
-    if (!pending || pending.tool.mode !== "command") return clearPreview();
-    const { tool, args } = pending;
-    const overload = tool.overload!;
-    const slot = nextSlot();
+    const field = editing();
+    const call = pending
+        ? pending.tool.mode === "command" && {
+              overload: pending.tool.overload!,
+              args: pending.args,
+              free: true,
+          }
+        : field && typedPending(field, hits);
+    if (!call) return clearPreview();
+    const { overload, args, free } = call;
+    const slot = overload.variadic ? args.length : args.indexOf(undefined);
     // After the next one.
     const missing = overload.variadic
         ? overload.params.length - args.length - 1
@@ -728,7 +913,8 @@ function updatePreview(screen: Vec2, hits: Hit[]): void {
     const param = paramAt(overload, slot)!;
     const hit = hits.find(({ object }) => accepts(object, param));
     const candidate =
-        hit?.object ?? (param === "point" ? ("pointer" as const) : null);
+        hit?.object ??
+        (param === "point" && free ? ("pointer" as const) : null);
     const c = scene();
     const coords = freeCoords(screen);
     if (!candidate || (candidate === "pointer" && !coords))
@@ -827,6 +1013,8 @@ function changed(object?: construction_object): void {
 // ************************** POINTER *****************************
 
 let down: { x: number; y: number; time: number } | null = null;
+// The line typed for which a tap in the void makes a point.
+let typing: HTMLInputElement | null = null;
 let dragFrame: number | null = null;
 // A pointer pressed while a tool waits: it aims and designates where it's
 // released, unless still on the button that chose the tool.
@@ -851,7 +1039,7 @@ function follow(event: PointerEvent): void {
     const c = scene();
     const screen = c.pointerPosition(event);
     const hits = pick(c, screen, previewed());
-    if (pending) updatePreview(screen, hits);
+    if (pending || editing()) updatePreview(screen, hits);
     if (ring.isHidden()) highlight(hits[0]?.object ?? null);
 }
 
@@ -863,11 +1051,24 @@ $("body").on(
         const c = scene();
         const screen = c.pointerPosition(event);
         const field = editing();
+        typing = null;
         if (field) {
-            const [hit] = pick(c, screen);
-            if (!hit) return;
-            insertWord(field, formatName(hit.object.name));
-            updateCompletion(field);
+            const hits = pick(c, screen, previewed());
+            if (!hits[0]) {
+                if (expectsPoint(field, typedCall(field))) typing = field;
+                return;
+            }
+            clearPreview();
+            const call = typedCall(field);
+            let object =
+                (call &&
+                    hits.find(({ object }) => taking(call, object))?.object) ??
+                hits[0].object;
+            if (!(call && taking(call, object)) && expectsPoint(field, call)) {
+                object = designatePoint(screen, hits)!;
+                changed(object);
+            }
+            designateTyped(field, object);
             down = null;
             event.stopPropagation();
             return;
@@ -888,7 +1089,8 @@ $("body").on(
 $("body").on(
     "mousedown",
     (event) => {
-        if (inFigure(event) && editing() && !down) event.preventDefault();
+        if (inFigure(event) && editing() && (!down || typing))
+            event.preventDefault();
     },
     { capture: true, prevent: false },
 );
@@ -943,8 +1145,11 @@ $("body").on(
         const screen = c.pointerPosition(event);
         const hits = pick(c, screen, previewed());
         if (hits[0]) return openRing(hits[0], [event.clientX, event.clientY]);
+        const field = typing;
         const point = addFreePoint(screen);
-        if (point) done(point);
+        if (!point) return;
+        done(point);
+        if (field) designateTyped(field, point);
     },
     { capture: true, prevent: false },
 );

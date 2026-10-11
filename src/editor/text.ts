@@ -147,10 +147,18 @@ export function formatNumber(value: number): string {
 }
 
 // What is being typed at the end of `text`: a command, or an argument of
-// one, and the start of the word typed.
+// one, the arguments before it (a hole where one isn't a name or a number),
+// and the start of the word typed.
+export type ArgumentCompletion = {
+    kind: "argument";
+    command: string;
+    position: number;
+    args: (ArgText | undefined)[];
+    prefix: string;
+};
+
 export type Completion =
-    | { kind: "command"; prefix: string }
-    | { kind: "argument"; command: string; position: number; prefix: string };
+    { kind: "command"; prefix: string } | ArgumentCompletion;
 
 export function completionAt(text: string): Completion | null {
     const prefix = /[\p{L}_][\p{L}\p{N}_']*$/u.exec(text)?.[0] ?? "";
@@ -162,14 +170,23 @@ export function completionAt(text: string): Completion | null {
         return null;
     }
     tokens.pop();
-    const calls: { command: string; position: number }[] = [];
+    const calls: Omit<ArgumentCompletion, "kind" | "prefix">[] = [];
     tokens.forEach((token, index) => {
         const previous = tokens[index - 1];
         if (token.type === "(" && previous?.type === "name")
-            calls.push({ command: previous.text, position: 0 });
-        else if (token.type === "," && calls.length)
-            calls[calls.length - 1].position++;
-        else if (token.type === ")") calls.pop();
+            calls.push({ command: previous.text, position: 0, args: [] });
+        else if (token.type === "," && calls.length) {
+            const call = calls[calls.length - 1];
+            const start = tokens[index - 2]?.type;
+            if (start === "(" || start === ",")
+                call.args[call.position] =
+                    previous.type === "name"
+                        ? { kind: "name", name: previous.text }
+                        : previous.type === "number"
+                          ? { kind: "number", value: previous.value }
+                          : undefined;
+            call.position++;
+        } else if (token.type === ")") calls.pop();
     });
     const call = calls.pop();
     if (call) {

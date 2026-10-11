@@ -12,6 +12,13 @@ import {
     resolve,
     type Studio,
 } from "../../src/editor/figure";
+import {
+    accepts,
+    COMMANDS,
+    paramAt,
+    type Arg,
+    type Param,
+} from "../../src/editor/catalog";
 import { pick } from "../../src/editor/pick";
 import { parseLine, TextError } from "../../src/editor/text";
 import type { point_object } from "../../src/objects/point_object";
@@ -58,14 +65,14 @@ describe("Editor", () => {
             "b = AngleBisector(A, B, C)",
             "c = Circle(A, B)",
             "f = Circle(E, 1.5)",
-            "g = Circle(A, B, C)",
+            "g = Circumcircle(A, B, C)",
             "h = Compass(A, B, E)",
             "j = Arc(A, C, D)",
             "n = Sector(B, C, D)",
             "O = Center(g)",
             "F = Intersection(d, q)",
             "G = Intersection(c, d, 2)",
-            "H = Intersection(c, d, 1, B)",
+            "H = OtherIntersection(c, d, B)",
             "P = Point(c, 0.5)",
             "Q = Point(s, 0.25)",
             "v = Polygon(A, B, C, D)",
@@ -92,16 +99,66 @@ describe("Editor", () => {
         expect(type(c, "(2, 2)").name).toBe("B");
         expect(type(c, "Segment(A, B)").name).toBe("a");
         expect(type(c, "Milieu(A, B)").name).toBe("C");
+        expect(type(c, "Cercle(A, B)").name).toBe("b");
         for (const [text, key] of [
             ["Segment(A, Z)", "unknown_object"],
             ["Unknown(A, B)", "unknown_command"],
             ["Circle(a, A)", "arguments"],
-            ["Intersection(a, a, 5)", "branch"],
+            ["Intersection(b, a, 5)", "branch"],
+            ["Intersection(b, a)", "arguments"],
+            ["Intersection(a, a, 1)", "arguments"],
             ["A = (3, 3)", "name_taken"],
         ])
             expect(() => resolve(c, parseLine(text)), text).toThrow(
                 expect.objectContaining({ key }),
             );
+        for (const [text, detail] of [
+            ["Circle(A, B, C)", "Circumcircle(A, B, C)"],
+            ["Intersection(b, a, A)", "OtherIntersection(b, a, A)"],
+            ["Point(1, 2)", "FixedPoint(1, 2)"],
+        ])
+            expect(() => resolve(c, parseLine(text)), text).toThrow(
+                expect.objectContaining({ key: "instead", detail }),
+            );
+    });
+
+    it("tells from the arguments designated whether the line goes on", () => {
+        const { scene: c } = studio();
+        [
+            "A = (-2, 0)",
+            "B = (3, 1)",
+            "C = (1, 4)",
+            "D = (-3, 3)",
+            "E = (0, -3)",
+            "s = Segment(A, B)",
+            "d = Line(A, C)",
+            "c = Circle(A, B)",
+            "v = Polygon(A, B, C)",
+            "a = Conic(A, B, C, D, E)",
+            "S = Sphere(A, B)",
+            "P = Point(c, 0.5)",
+            "M = Midpoint(A, B)",
+            "l = Locus(M, P)",
+            "w = Angle(A, B, C)",
+        ].forEach((line) => type(c, line));
+        const samples: Arg[] = [...figureObjects(c), 1];
+        const overlap = (p: Param, q: Param | null) =>
+            q !== null &&
+            samples.some((arg) => accepts(arg, p) && accepts(arg, q));
+        for (const { name, overloads } of COMMANDS)
+            for (const shorter of overloads)
+                for (const longer of overloads)
+                    if (
+                        !shorter.variadic &&
+                        shorter.params[shorter.params.length - 1] !== "real" &&
+                        longer.params.length > shorter.params.length
+                    )
+                        expect(
+                            shorter.params.every((param, position) =>
+                                overlap(param, paramAt(longer, position)),
+                            ),
+                            `${name}: ${shorter.params} begins ${longer.params}`,
+                        ).toBe(false);
     });
 
     it("redefines an object, after the ones it is built from", async () => {

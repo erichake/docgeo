@@ -11,6 +11,7 @@ const MESSAGES = {
     unknown_command: ["Commande inconnue : %", "Unknown command: %"],
     unknown_object: ["Objet inconnu : %", "Unknown object: %"],
     arguments: ["Arguments incorrects pour %", "Wrong arguments for %"],
+    instead: ["Avec ces arguments : %", "With these arguments: %"],
     branch: [
         "Le numéro d'intersection va de 1 à 4",
         "The intersection number goes from 1 to 4",
@@ -46,7 +47,16 @@ const MESSAGES = {
         "une droite, un cercle, une conique ou une courbe",
         "a line, a circle, a conic or a curve",
     ],
+    curved: [
+        "un cercle, une conique ou une courbe",
+        "a circle, a conic or a curve",
+    ],
     support: ["un objet", "an object"],
+    path: [
+        "une droite, un cercle ou une courbe",
+        "a line, a circle or a curve",
+    ],
+    outline: ["un polygone ou une conique", "a polygon or a conic"],
     real: ["un nombre", "a number"],
 };
 

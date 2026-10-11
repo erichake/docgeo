@@ -11,6 +11,7 @@ import { polygon_object } from "../objects/polygon_object";
 import { primitive_circle_object } from "../objects/primitive_circle_object";
 import { primitive_line_object } from "../objects/primitive_line_object";
 import { primitive_quadric_object } from "../objects/primitive_quadric_object";
+import { quadric5pts_object } from "../objects/quadric5pts_object";
 import { segment_object } from "../objects/segment_object";
 import { sphere_object } from "../objects/sphere_object";
 import { two_points_line_object } from "../objects/two_points_line_object";
@@ -39,7 +40,12 @@ export type Param =
     | "segment"
     | "circle"
     | "intersectable"
-    | "support";
+    // Intersectable, but not a line.
+    | "curved"
+    | "support"
+    // A support whose points take one number, or two.
+    | "path"
+    | "outline";
 
 export type Arg = construction_object | number;
 
@@ -61,6 +67,9 @@ export interface Overload {
 export interface Command {
     name: string;
     fr: string;
+    // The arguments of one, ending with an object, never begin those of
+    // another, so that the objects designated tell whether the line goes
+    // on: see EDITOR.md.
     overloads: Overload[];
 }
 
@@ -99,6 +108,8 @@ export function accepts(arg: Arg, param: Param): boolean {
                 kind === "conic" ||
                 arg instanceof curve_object
             );
+        case "curved":
+            return accepts(arg, "intersectable") && kind !== "line";
         case "support":
             return (
                 kind === "line" ||
@@ -106,6 +117,13 @@ export function accepts(arg: Arg, param: Param): boolean {
                 kind === "conic" ||
                 kind === "polygon" ||
                 kind === "curve"
+            );
+        case "path":
+            return kind === "line" || kind === "circle" || kind === "curve";
+        case "outline":
+            return (
+                arg instanceof polygon_object ||
+                arg instanceof quadric5pts_object
             );
         default:
             return kind === param;
@@ -153,13 +171,28 @@ function ofSegment(tag: string): Overload {
 
 const isLine = (arg: Arg) => typeof arg !== "number" && kindOf(arg) === "line";
 
+// The intersection of rank n, from 1, not of two lines.
+const numbered = (params: Param[]): Overload => ({
+    params,
+    tag: "Int",
+    encode: ([a, b, n], index) => [
+        index(a as construction_object),
+        index(b as construction_object),
+        (n as number) - 1,
+    ],
+    decode: (parameters, at) => {
+        const [a, b, order, away] = parameters as number[];
+        return away === undefined ? [at(a), at(b), order + 1] : null;
+    },
+});
+
 export const COMMANDS: Command[] = [
     {
         name: "Point",
         fr: "Point",
         overloads: [
             {
-                params: ["support", "real"],
+                params: ["path", "real"],
                 tag: "On",
                 encode: ([support, t], index) => [
                     index(support as construction_object),
@@ -173,7 +206,7 @@ export const COMMANDS: Command[] = [
                 },
             },
             {
-                params: ["support", "real", "real"],
+                params: ["outline", "real", "real"],
                 tag: "On",
                 encode: ([support, a, b], index) => [
                     index(support as construction_object),
@@ -266,6 +299,12 @@ export const COMMANDS: Command[] = [
                         : null;
                 },
             },
+        ],
+    },
+    {
+        name: "Circumcircle",
+        fr: "CercleCirconscrit",
+        overloads: [
             objects("C3p", ["point", "point", "point"]),
             objects("C3s", ["point", "point", "point"]),
         ],
@@ -291,52 +330,43 @@ export const COMMANDS: Command[] = [
         fr: "Intersection",
         overloads: [
             {
-                params: ["intersectable", "intersectable"],
+                params: ["line", "line"],
                 tag: "Int",
                 encode: ([a, b], index) => [
                     index(a as construction_object),
                     index(b as construction_object),
                     0,
                 ],
+                // Two lines meet once, whatever the order.
                 decode: (parameters, at) => {
-                    const [a, b, order, away] = parameters as number[];
+                    const [a, b, , away] = parameters as number[];
                     const args = [at(a), at(b)];
-                    return order === 0 &&
-                        away === undefined &&
-                        args.every(isLine)
+                    return away === undefined && args.every(isLine)
                         ? args
                         : null;
                 },
             },
+            numbered(["curved", "intersectable", "real"]),
+            numbered(["line", "curved", "real"]),
+        ],
+    },
+    {
+        name: "OtherIntersection",
+        fr: "AutreIntersection",
+        overloads: [
             {
-                params: ["intersectable", "intersectable", "real"],
+                params: ["intersectable", "intersectable", "point"],
                 tag: "Int",
-                encode: ([a, b, n], index) => [
+                encode: ([a, b, away], index) => [
                     index(a as construction_object),
                     index(b as construction_object),
-                    (n as number) - 1,
-                ],
-                decode: (parameters, at) => {
-                    const [a, b, order, away] = parameters as number[];
-                    return away === undefined
-                        ? [at(a), at(b), order + 1]
-                        : null;
-                },
-            },
-            {
-                params: ["intersectable", "intersectable", "real", "point"],
-                tag: "Int",
-                encode: ([a, b, n, away], index) => [
-                    index(a as construction_object),
-                    index(b as construction_object),
-                    (n as number) - 1,
+                    0,
                     index(away as construction_object),
                 ],
+                // The order only matters while the point is undefined.
                 decode: (parameters, at) => {
-                    const [a, b, order, away] = parameters as number[];
-                    return away === undefined
-                        ? null
-                        : [at(a), at(b), order + 1, at(away)];
+                    const [a, b, , away] = parameters as number[];
+                    return away === undefined ? null : [at(a), at(b), at(away)];
                 },
             },
         ],

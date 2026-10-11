@@ -67,12 +67,24 @@ describe("Editor text", () => {
             kind: "argument",
             command: "Milieu",
             position: 1,
+            args: [{ kind: "name", name: "A" }],
             prefix: "B",
         });
         expect(completionAt("M = Milieu(Centre(c), ")).toEqual({
             kind: "argument",
             command: "Milieu",
             position: 1,
+            args: [],
+            prefix: "",
+        });
+        expect(completionAt("c = Cercle(O, -2, ")).toEqual({
+            kind: "argument",
+            command: "Cercle",
+            position: 2,
+            args: [
+                { kind: "name", name: "O" },
+                { kind: "number", value: -2 },
+            ],
             prefix: "",
         });
         expect(completionAt("M = Milieu(A) ")).toBeNull();

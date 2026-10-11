@@ -14,6 +14,7 @@ import { quadric5pts_object } from "../objects/quadric5pts_object";
 import type { Vec3 } from "../vec";
 import {
     commandName,
+    COMMANDS,
     decodeEntry,
     findCommand,
     overloadFor,
@@ -135,9 +136,26 @@ export function resolve(
             return object;
         });
         overload = overloadFor(command, args, !c.GRID.is2D);
-        if (!overload) throw new TextError("arguments", commandName(command));
-        if (overload.tag === "Int") {
-            const branch = (args[2] ?? 1) as number;
+        if (!overload) {
+            // A command split from another keeps its name in its own:
+            // Circumcircle, OtherIntersection, FixedPoint.
+            const other = COMMANDS.find(
+                (other) =>
+                    other !== command &&
+                    commandName(other)
+                        .toLowerCase()
+                        .includes(commandName(command).toLowerCase()) &&
+                    overloadFor(other, args, !c.GRID.is2D),
+            );
+            if (other)
+                throw new TextError(
+                    "instead",
+                    `${commandName(other)}(${args.map(formatArg).join(", ")})`,
+                );
+            throw new TextError("arguments", commandName(command));
+        }
+        if (overload.tag === "Int" && overload.params[2] === "real") {
+            const branch = args[2] as number;
             if (!Number.isInteger(branch) || branch < 1 || branch > 4)
                 throw new TextError("branch");
         }

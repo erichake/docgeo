@@ -133,7 +133,10 @@ const FAMILIES: [hue: number, slots: Tool[][]][] = [
         145,
         [
             [tool("Circle", 0, CIRCLE + dot(12, 12) + dot(19.6, 9.5))],
-            [tool("Circle", 2, CIRCLE3), tool("Circle", 3, CIRCLE3)],
+            [
+                tool("Circumcircle", 0, CIRCLE3),
+                tool("Circumcircle", 1, CIRCLE3),
+            ],
             [
                 tool(
                     "Sphere",
@@ -203,7 +206,8 @@ export function toolsFor(object: construction_object, vec3: boolean): Tool[] {
         if (overload!.tag === (vec3 ? "C3p" : "C3s")) return false;
         if (overload!.tag === "Sph" && !vec3) return false;
         // A point is put on the object, an intersection with another.
-        if (mode !== "command") return accepts(object, overload!.params[0]);
+        if (mode === "point") return accepts(object, "support");
+        if (mode === "intersection") return accepts(object, "intersectable");
         return overload!.params.some((param) => accepts(object, param));
     });
 }

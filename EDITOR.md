@@ -108,6 +108,17 @@ de `src/import/dgp_commands.ts`.
   transformations, curseurs), sans ses bizarreries (règles de nommage
   automatique, commandes dont le résultat change de nature selon les
   arguments, messages d'erreur peu pédagogiques).
+- **Aucune forme d'une commande n'en prolonge une autre** (décidé le
+  2026-10-11) : les objets déjà désignés disent toujours si la ligne
+  continue, donc si un clic écrit `, ` ou `)`. Les types peuvent départager
+  les formes (`Milieu(A, B)` / `Milieu(s)`, `Cercle(O, A)` / `Cercle(O, 2)`),
+  pas leur nombre d'arguments : là où GeoGebra prolonge une commande, on en
+  crée une autre, dont le nom contient le sien (`CercleCirconscrit(A, B, C)`,
+  `AutreIntersection(a, b, P)`), et taper l'ancienne forme propose la
+  nouvelle. Exceptions : `Polygone`, au nombre de sommets libre, et les
+  formes qui finissent par un nombre, tapé au clavier
+  (`PointFixe(x, y)` / `(x, y, z)`). Un test vérifie la règle sur tout le
+  catalogue.
 - Noms de commandes localisés (Milieu / Midpoint), ramenés à une forme
   canonique.
 - Réutilisation possible de `src/import/ggb_translate.ts` : une ligne tapée,
@@ -195,16 +206,28 @@ Fait (2026-10-11) :
   pour un point libre, `nom =` supprime ; noms non identifiants entre
   accents graves ; nombres arrondis à 4 décimales à l'affichage.
   Intersection : `Intersection(a, b)` pour deux droites, sinon
-  `Intersection(a, b, n)` (n de 1 à 4) ou `Intersection(a, b, n, P)`.
+  `Intersection(a, b, n)` (n de 1 à 4) ; `AutreIntersection(a, b, P)`,
+  la plus éloignée de P (l'ordre de l'entrée `.dgo`, qui ne sert que si P
+  n'est pas défini, est remis à 0 par une redéfinition).
   Point sur objet : `Point(objet, t)`, ou `Point(objet, a, b)` sur un
-  polygone ou une conique.
+  polygone ou une conique. Cercle par trois points :
+  `CercleCirconscrit(A, B, C)`.
 - Vue texte : une ligne modifiable par objet ; Entrée valide, Échap annule ;
   un point libre modifié change en place, sinon redéfinition (réordonnement
   topologique stable, cycles refusés, renommage, style gardé, réduit aux clés
   communes si le type change) ; complétion des commandes et des objets
-  acceptés par l'argument en cours, mis en évidence dans la figure ; un clic
-  sur un objet insère son nom ; survol ligne ↔ objet ; un glisser met à jour
-  les lignes.
+  acceptés par l'argument en cours (selon les arguments déjà écrits), mis
+  en évidence dans la figure ; un clic sur un objet (ou son choix dans la
+  liste) insère son nom, suivi en fin de ligne de `, ` si toutes les formes
+  possibles de la commande attendent un argument de plus, de `)` si aucune,
+  de rien sinon (nom inconnu, polygone) ; redésigner le premier sommet
+  d'un polygone ferme la parenthèse, et la ligne fermée ainsi est validée
+  aussitôt ; pendant la saisie, l'aperçu suit le pointeur comme pour un
+  outil (« fil à la patte ») ; dans la ligne de saisie (pas dans celles des
+  objets, reconstruites avec la figure), désigner un point qui n'existe pas
+  le crée comme un geste (point libre, sur objet ou intersection) ; survol
+  ligne ↔ objet ; un glisser met à jour les lignes. Éditeur 34,5 Ko
+  (13,5 Ko en gzip), lecteur inchangé.
 - Gestes (`pick.ts`, `tools.ts`) : clic dans le vide → point libre (plan
   z = 0 en 3D) ; clic sur un objet → anneau de ses outils (dont supprimer) ;
   désignation des arguments suivants avec aperçu qui suit le pointeur ; un
