@@ -178,7 +178,14 @@ Fait (2026-10-11) :
   désignation des arguments suivants avec aperçu qui suit le pointeur ; un
   point désigné est un point existant, une intersection (branche la plus
   proche), un point sur objet ou un point libre ; polygone fermé en
-  redésignant son premier sommet. Styles de création de DGPad : noms des
+  redésignant son premier sommet. Visée (pour le doigt, sans survol) : un
+  outil en attente, le pointeur enfoncé dans la figure ne déplace rien,
+  montre l'aperçu et désigne là où il est relâché ; enfoncer l'icône d'un
+  outil le choisit, et le même geste peut continuer jusqu'à la cible comme
+  dans DGPad, mais relâché sur l'icône l'outil reste simplement en attente
+  (l'élève qui lâche trop tôt ne perd rien) ; relâché hors de la figure,
+  rien n'est désigné. Un bouton ✕ dans la consigne abandonne l'outil
+  (Échap au clavier). Styles de création de DGPad : noms des
   points affichés, polygones, sphères et secteurs remplis à 20 %.
 - Une pile d'annulation (instantanés `.dgo` sans la vue), Cmd-Z,
   Cmd-Maj-Z, Cmd-Y ; ouverture `.dgo`, `.dgp`, `.ggb` (bouton ou `?url=`),

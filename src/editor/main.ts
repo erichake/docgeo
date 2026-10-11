@@ -47,6 +47,7 @@ import { toolsFor, type Tool } from "./tools";
 // The construction editor: see EDITOR.md.
 
 const PANEL_WIDTH = 320;
+const RING_BUTTON = 20;
 
 const studio = { prefs: new preferences() } as Studio;
 studio.scene = construction.create(studio);
@@ -80,8 +81,10 @@ $("head").append(`<style>
     .dge-hint { position: fixed; bottom: 16px; left: calc(50% + ${PANEL_WIDTH / 2}px); transform: translateX(-50%); max-width: calc(100% - ${PANEL_WIDTH + 32}px); padding: 7px 14px; border-radius: 9px; background: rgb(17 24 39 / 0.86); color: #f9fafb; font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 13.5px; white-space: pre-wrap; z-index: 11; pointer-events: none; }
     .dge-hint:empty { display: none; }
     .dge-hint.dge-error { background: #b91c1c; }
+    .dge-hint button { width: 30px; height: 30px; margin: -4px -8px -4px 10px; padding: 0; border: 0; border-radius: 50%; background: rgb(255 255 255 / 0.18); color: inherit; font-size: 15px; vertical-align: middle; cursor: pointer; pointer-events: auto; }
+    .dge-hint button:hover { background: rgb(255 255 255 / 0.32); }
     .dge-ring { position: fixed; width: 0; height: 0; z-index: 12; }
-    .dge-ring button { position: absolute; width: 40px; height: 40px; margin: -20px; padding: 7px; border: 1px solid #d1d5db; border-radius: 50%; background: #fff; color: #1f2937; box-shadow: 0 2px 8px rgb(0 0 0 / 0.15); cursor: pointer; }
+    .dge-ring button { position: absolute; width: ${2 * RING_BUTTON}px; height: ${2 * RING_BUTTON}px; margin: -${RING_BUTTON}px; padding: 7px; border: 1px solid #d1d5db; border-radius: 50%; background: #fff; color: #1f2937; box-shadow: 0 2px 8px rgb(0 0 0 / 0.15); cursor: pointer; }
     .dge-ring button:hover { background: #2563eb; color: #fff; border-color: #2563eb; }
     .dge-ring svg { width: 24px; height: 24px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
     .dge-complete { position: fixed; min-width: 160px; max-height: 240px; overflow: auto; padding: 4px 0; border: 1px solid #d1d5db; border-radius: 8px; background: #fff; box-shadow: 0 6px 20px rgb(0 0 0 / 0.14); z-index: 13; }
@@ -103,6 +106,11 @@ const input = $.create("input")
     .att("spellcheck", "false");
 const hint = $.create("div").cls("dge-hint");
 const ring = $.create("div").cls("dge-ring").hide();
+// Escape, for the fingers.
+const cancelButton = $.create("button")
+    .text("✕")
+    .att("title", message("cancel"));
+cancelButton.on("click", () => cancel());
 const complete = $.create("div").cls("dge-complete");
 function button(key: MessageKey, action: () => void): DOMElement {
     const element = $.create("button").text(message(key));
@@ -173,6 +181,7 @@ const previewed = () => new Set(preview?.objects ?? []);
 
 function showHint(text: string, error = false): void {
     hint.text(text).toggleClass("dge-error", error);
+    if (pending) hint.add(cancelButton);
 }
 
 // ************************** TEXT ********************************
@@ -523,9 +532,17 @@ function openRing(hit: Hit, client: Vec2): void {
             .stl("left", `${radius * Math.cos(angle)}px`)
             .stl("top", `${radius * Math.sin(angle)}px`)
             .append(`<svg viewBox="0 0 24 24">${tool.icon}</svg>`);
-        item.on("click", () => {
+        // Pressed, the tool waits for its arguments, and the same gesture
+        // may go on to designate one.
+        item.on("pointerdown", (event) => {
+            const box = item.dom().getBoundingClientRect();
+            item.dom().releasePointerCapture(event.pointerId);
             closeRing();
             choose(tool, hit);
+            if (pending)
+                aim = {
+                    button: [box.x + box.width / 2, box.y + box.height / 2],
+                };
         });
         ring.add(item);
     });
@@ -661,6 +678,7 @@ function updatePreview(screen: Vec2, hits: Hit[]): void {
 
 function cancel(): void {
     pending = null;
+    aim = null;
     clearPreview();
     closeRing();
     showHint("");
@@ -693,6 +711,32 @@ function changed(object?: construction_object): void {
 
 let down: { x: number; y: number; time: number } | null = null;
 let dragFrame: number | null = null;
+// A pointer pressed while a tool waits: it aims and designates where it's
+// released, unless still on the button that chose the tool.
+let aim: { button: Vec2 | null } | null = null;
+
+const aiming = (event: PointerEvent): boolean =>
+    inFigure(event) &&
+    !(
+        aim?.button &&
+        Math.hypot(
+            event.clientX - aim.button[0],
+            event.clientY - aim.button[1],
+        ) <= RING_BUTTON
+    );
+
+// What the pointer designates there.
+function follow(event: PointerEvent): void {
+    if (!aiming(event)) {
+        clearPreview();
+        return highlight(null);
+    }
+    const c = scene();
+    const screen = c.pointerPosition(event);
+    const hits = pick(c, screen, previewed());
+    if (pending) updatePreview(screen, hits);
+    if (ring.isHidden()) highlight(hits[0]?.object ?? null);
+}
 
 $("body").on(
     "pointerdown",
@@ -711,9 +755,14 @@ $("body").on(
             event.stopPropagation();
             return;
         }
-        // A designated object isn't dragged.
-        if (pending && pick(c, screen, previewed()).length)
+        // Nothing is dragged while aiming, and the finger's first aim has
+        // no hover before it.
+        if (pending) {
+            down = null;
+            aim = { button: null };
             event.stopPropagation();
+            follow(event);
+        }
     },
     { capture: true, prevent: false },
 );
@@ -730,19 +779,15 @@ $("body").on(
 $("body").on(
     "pointermove",
     (event) => {
-        if (!inFigure(event) || !event.isPrimary) return;
-        const c = scene();
-        if (event.buttons) {
+        if (!event.isPrimary || (!aim && !inFigure(event))) return;
+        if (event.buttons && !aim) {
             dragFrame ??= requestAnimationFrame(() => {
                 dragFrame = null;
                 updateRows();
             });
             return;
         }
-        const screen = c.pointerPosition(event);
-        const hits = pick(c, screen, previewed());
-        if (pending) updatePreview(screen, hits);
-        if (ring.isHidden()) highlight(hits[0]?.object ?? null);
+        follow(event);
     },
     { capture: true, prevent: false, passive: true },
 );
@@ -750,7 +795,23 @@ $("body").on(
 $("body").on(
     "pointerup",
     (event) => {
-        if (!down || !event.isPrimary) return;
+        if (!event.isPrimary) return;
+        if (aim) {
+            const designates = aiming(event);
+            aim = null;
+            if (designates) {
+                const c = scene();
+                const screen = c.pointerPosition(event);
+                designate(screen, pick(c, screen, previewed()));
+            }
+            // A finger lifted no longer shows what it would designate.
+            if (event.pointerType === "touch") {
+                clearPreview();
+                highlight(null);
+            }
+            return;
+        }
+        if (!down) return;
         const tap =
             Math.hypot(event.clientX - down.x, event.clientY - down.y) <=
                 $.clickRadius && performance.now() - down.time <= $.clickDelay;
@@ -764,7 +825,6 @@ $("body").on(
         const c = scene();
         const screen = c.pointerPosition(event);
         const hits = pick(c, screen, previewed());
-        if (pending) return designate(screen, hits);
         if (hits[0]) return openRing(hits[0], [event.clientX, event.clientY]);
         const point = addFreePoint(screen);
         if (point) done(point);

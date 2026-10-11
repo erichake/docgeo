@@ -30,6 +30,7 @@ const MESSAGES = {
     undo: ["Annuler", "Undo"],
     redo: ["Refaire", "Redo"],
     delete: ["Supprimer", "Delete"],
+    cancel: ["Abandonner l'outil (Échap)", "Drop the tool (Escape)"],
     designate: ["Désignez %", "Designate %"],
     polygon_end: [
         "Désignez un sommet, ou le premier pour finir",
