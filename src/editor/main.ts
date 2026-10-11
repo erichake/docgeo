@@ -15,7 +15,7 @@ import type { construction_object } from "../objects/construction_object";
 import { createOrderedIntersection } from "../objects/intersection_object";
 import { point_object } from "../objects/point_object";
 import { preferences } from "../preferences";
-import type { Vec2, Vec3 } from "../vec";
+import { vAdd, vScale, vSub, type Vec2, type Vec3 } from "../vec";
 import {
     accepts,
     commandName,
@@ -163,6 +163,8 @@ let pending: {
 let preview: {
     candidate: construction_object | "pointer";
     objects: construction_object[];
+    pointer?: point_object;
+    standIn?: point_object;
 } | null = null;
 let hovered: construction_object | null = null;
 let accepted: construction_object[] = [];
@@ -691,14 +693,38 @@ function clearPreview(): void {
     preview = null;
 }
 
+// `point` turned around `center` by `angle`, parallel to the plane z = 0.
+function turn(point: Vec3, center: Vec3, angle: number): Vec3 {
+    const [x, y, z] = vSub(point, center);
+    const [cos, sin] = [Math.cos(angle), Math.sin(angle)];
+    return vAdd(center, [x * cos - y * sin, x * sin + y * cos, z]);
+}
+
+// While the argument after the next one is missing too, a point stands in
+// for it, from the first argument and the next one, as in DGPad: the
+// bisector and the angle at the pointer, the circle on the diameter from the
+// first point to the pointer, the polygon reduced to a segment.
+const STAND_INS: Partial<Record<string, (first: Vec3, next: Vec3) => Vec3>> = {
+    Bis: (first) => first,
+    Ang: (first, next) => turn(first, next, Math.PI / 3),
+    C3p: (first, next) =>
+        turn(first, vScale(vAdd(first, next), 0.5), Math.PI / 2),
+    Poly: (_, next) => next,
+};
+STAND_INS.C3s = STAND_INS.C3p;
+
 // What the tool would build, its next argument being under the pointer.
 function updatePreview(screen: Vec2, hits: Hit[]): void {
     if (!pending || pending.tool.mode !== "command") return clearPreview();
     const { tool, args } = pending;
     const overload = tool.overload!;
     const slot = nextSlot();
-    const missing = args.filter((arg) => arg === undefined).length;
-    if (!overload.variadic && missing !== 1) return clearPreview();
+    // After the next one.
+    const missing = overload.variadic
+        ? overload.params.length - args.length - 1
+        : args.filter((arg) => arg === undefined).length - 1;
+    const stand = missing === 1 && STAND_INS[overload.tag];
+    if (missing > 0 && !stand) return clearPreview();
     const param = paramAt(overload, slot)!;
     const hit = hits.find(({ object }) => accepts(object, param));
     const candidate =
@@ -707,26 +733,34 @@ function updatePreview(screen: Vec2, hits: Hit[]): void {
     const coords = freeCoords(screen);
     if (!candidate || (candidate === "pointer" && !coords))
         return clearPreview();
-    if (preview?.candidate === candidate) {
-        if (candidate === "pointer") {
-            const point = preview.objects[0] as point_object;
-            const [x, y, z = 0] = coords!;
-            point.coords = [x, y, z];
-            c.invalidateGeometry(point);
+    if (preview?.candidate !== candidate) {
+        clearPreview();
+        const objects: construction_object[] = [];
+        const argument =
+            candidate === "pointer"
+                ? add(
+                      c,
+                      { name: "‧p", overload: FREE_POINT, args: coords! },
+                      false,
+                  )
+                : candidate;
+        if (candidate === "pointer") objects.push(argument);
+        const full = [...args];
+        if (overload.variadic) full.push(argument);
+        else full[slot] = argument;
+        let standIn: point_object | undefined;
+        if (stand) {
+            standIn = add(
+                c,
+                { name: "‧s", overload: FREE_POINT, args: coords ?? [0, 0] },
+                false,
+            ) as point_object;
+            standIn.hidden = 1;
+            standIn.updateView();
+            objects.push(standIn);
+            if (overload.variadic) full.push(standIn);
+            else full[full.indexOf(undefined)] = standIn;
         }
-        return;
-    }
-    clearPreview();
-    const objects: construction_object[] = [];
-    const argument =
-        candidate === "pointer"
-            ? add(c, { name: "‧p", overload: FREE_POINT, args: coords! }, false)
-            : candidate;
-    if (candidate === "pointer") objects.push(argument);
-    const full = [...args];
-    if (overload.variadic) full.push(argument);
-    else full[slot] = argument;
-    if (full.length >= overload.params.length) {
         const result = add(
             c,
             { name: "‧r", overload, args: full as Arg[] },
@@ -734,8 +768,29 @@ function updatePreview(screen: Vec2, hits: Hit[]): void {
         );
         if (result.hasView) result.dom.addClass("dge-preview");
         objects.push(result);
+        preview = {
+            candidate,
+            objects,
+            pointer:
+                candidate === "pointer"
+                    ? (argument as point_object)
+                    : undefined,
+            standIn,
+        };
     }
-    preview = { candidate, objects };
+    const { pointer, standIn } = preview;
+    if (pointer) {
+        const [x, y, z = 0] = coords!;
+        pointer.coords = [x, y, z];
+        c.invalidateGeometry(pointer);
+    }
+    if (stand) {
+        standIn!.coords = stand(
+            (args[0] as point_object).coords,
+            (pointer ?? (candidate as point_object)).coords,
+        );
+        c.invalidateGeometry(standIn!);
+    }
 }
 
 function cancel(): void {

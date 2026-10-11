@@ -228,6 +228,12 @@ Fait (2026-10-11) :
 - Anneau d'outils en familles à places fixes, ligne de l'outil dans la
   consigne (section « Anneau d'outils ») : éditeur 30,7 Ko (12,1 Ko en
   gzip), lecteur inchangé.
+- Aperçu dès le premier argument (« fil à la patte ») : quand il manque
+  encore un argument après celui que désigne le pointeur, un point caché
+  le remplace, comme dans DGPad : cercle de diamètre [premier point,
+  pointeur], angle de 60° et bissectrice (demi-droite passant par le
+  premier point) au pointeur, polygone réduit à un segment. Éditeur
+  31,5 Ko (12,5 Ko en gzip), lecteur inchangé.
 
 Reste à faire :
 
