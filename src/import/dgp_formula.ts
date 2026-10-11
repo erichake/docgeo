@@ -531,6 +531,9 @@ class FormulaParser {
     // The variables of the functions and program enclosing the function
     // being parsed.
     private readonly outer: Set<string>[] = [];
+    // The functions built by Function(…) in the function or program being
+    // parsed, declared at its start.
+    private built: Statement[] = [];
 
     constructor(source: string) {
         this.lexer = new FormulaLexer(source);
@@ -547,7 +550,7 @@ class FormulaParser {
     parseProgram(): Program {
         const body: Statement[] = [];
         while (this.current.type !== "eof") body.push(...this.statement());
-        return { body, locals: this.locals };
+        return { body: [...this.built, ...body], locals: this.locals };
     }
 
     private statement(): Statement[] {
@@ -617,11 +620,14 @@ class FormulaParser {
         }
         this.outer.push(this.locals);
         this.locals = new Set(params);
+        const built = this.built;
+        this.built = [];
         if (this.current.type !== "{")
             throw new Error("Invalid DGP formula syntax");
-        const body = this.statement();
+        const body = [...this.built, ...this.statement()];
         const locals = this.locals;
         this.locals = this.outer.pop()!;
+        this.built = built;
         return { kind: "function", name, params, locals, body };
     }
 
@@ -855,6 +861,8 @@ class FormulaParser {
             if (KEYWORDS.has(name))
                 throw new Error("Invalid DGP formula syntax");
             this.advance();
+            if (name === "Function" && (this.current.type as TokenType) === "(")
+                return this.builtFunction();
             if ((this.current.type as TokenType) === "(")
                 return this.call(name);
             if (this.skip(".")) return this.member(name);
@@ -895,6 +903,32 @@ class FormulaParser {
         }
         if (token.type === "[") return this.vector();
         throw new Error("Invalid DGP formula syntax");
+    }
+
+    // JavaScript's Function("a,b", "…")(a, b), a script building a function
+    // from its text: read here as one of its functions, which sees only the
+    // figure's objects.
+    private builtFunction(): FormulaNode {
+        this.take("(");
+        const [params, text] = this.arguments();
+        if (params?.kind !== "string" || text?.kind !== "string")
+            throw new Error("Invalid DGP formula syntax");
+        const names = params.value.split(",").map((param) => param.trim());
+        const parser = new FormulaParser(text.value);
+        parser.locals = new Set(names);
+        const { body, locals } = parser.parseProgram();
+        // Not an identifier: no clash with the script's own names.
+        const name = `Function ${this.built.length}`;
+        this.locals.add(name);
+        this.built.push({
+            kind: "function",
+            name,
+            params: names,
+            locals,
+            body,
+        });
+        this.take("(");
+        return { kind: "userCall", name, args: this.arguments() };
     }
 
     private imaginary(coefficient: number): FormulaNode {
@@ -1135,23 +1169,45 @@ function statementNodes(statement: Statement): FormulaNode[] {
     }
 }
 
-// The variables of the program's functions, nested ones included.
-function functionLocals(statements: Statement[]): string[] {
-    return statements.flatMap((statement) => {
-        switch (statement.kind) {
-            case "function":
-                return [...statement.locals, ...functionLocals(statement.body)];
-            case "if":
-                return functionLocals([
-                    ...statement.then,
-                    ...statement.otherwise,
-                ]);
-            case "loop":
-                return functionLocals(statement.body);
-            default:
-                return [];
-        }
-    });
+// The names the statements read, but their variables: a function's hide
+// the figure's objects only in its body.
+function freeNames(
+    statements: Statement[],
+    locals: ReadonlySet<string>,
+): string[] {
+    return statements
+        .flatMap((statement) => {
+            switch (statement.kind) {
+                case "function":
+                    return freeNames(
+                        statement.body,
+                        new Set([...locals, ...statement.locals]),
+                    );
+                case "if":
+                    return [
+                        ...formulaIdentifiers(statement.test),
+                        ...freeNames(
+                            [...statement.then, ...statement.otherwise],
+                            locals,
+                        ),
+                    ];
+                case "loop":
+                    return [
+                        ...(statement.test
+                            ? formulaIdentifiers(statement.test)
+                            : []),
+                        ...(statement.update
+                            ? formulaIdentifiers(statement.update)
+                            : []),
+                        ...freeNames(statement.body, locals),
+                    ];
+                default:
+                    return statementNodes(statement).flatMap((node) => [
+                        ...formulaIdentifiers(node),
+                    ]);
+            }
+        })
+        .filter((name) => !locals.has(name));
 }
 
 // Every node of the program, nested ones included.
@@ -1207,15 +1263,11 @@ export function formulaIdentifiers(node: FormulaNode): Set<string> {
 
 // The figure's objects the program reads.
 export function programReferences(program: Program): Set<string> {
-    const locals = new Set([
-        ...program.locals,
-        ...functionLocals(program.body),
-        ...ownTurtles(program),
-    ]);
     return new Set(
-        programNodes(program)
-            .flatMap(nodeNames)
-            .filter((name) => !locals.has(name)),
+        freeNames(
+            program.body,
+            new Set([...program.locals, ...ownTurtles(program)]),
+        ),
     );
 }
 
@@ -1670,7 +1722,7 @@ function evalCall(
 
 // Beyond it, a script's loops are taken as endless and its value is
 // undefined.
-const MAX_STEPS = 10_000_000;
+const MAX_STEPS = 50_000_000;
 // Beyond it, a script's function calls are taken as endless, before they
 // overflow the browser's stack.
 const MAX_DEPTH = 1000;

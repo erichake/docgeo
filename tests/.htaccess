@@ -2,6 +2,6 @@
 # figures it opens through ?url=.
 <IfModule mod_headers.c>
     <FilesMatch "\.(dgo|dgp|ggb)$">
-        Header set Access-Control-Allow-Origin "*"
+        Header always set Access-Control-Allow-Origin "*"
     </FilesMatch>
 </IfModule>

@@ -474,6 +474,19 @@ describe("evaluateProgram", () => {
         expect(run("function f(){return f()};f()")).toBeNull();
     });
 
+    it("calls the functions it builds from their text", () => {
+        expect(
+            run(
+                'var r=Function("P,k","var s=0;for(var j=0;j<k;j++){s=s+P};return(s);")(3,4);r',
+            ),
+        ).toBe(12);
+        expect(
+            programReferences(
+                parseProgram('var r=Function("P,Q","return(P+Q+R);")(P,Q);r'),
+            ),
+        ).toEqual(new Set(["P", "Q", "R"]));
+    });
+
     it("runs the programs Blockly compiles", () => {
         expect(
             run(
