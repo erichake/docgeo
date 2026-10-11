@@ -14,7 +14,7 @@ pause_before_exit() {
 
 trap pause_before_exit EXIT
 
-echo "Build de DocGeo pour DocTools"
+echo "Build de DocGeo (lecteur et editeur) pour DocTools"
 echo "Projet DocGeo : $SCRIPT_DIR"
 echo "Projet DocTools : $DOCTOOLS_DIR"
 echo ""
@@ -37,12 +37,12 @@ echo ""
 npm run build
 
 echo ""
-if [ -f "$TARGET_DIR/index.html" ]; then
+if [ -f "$TARGET_DIR/index.html" ] && [ -f "$TARGET_DIR/editor.html" ]; then
   echo "Build termine."
   echo "DocGeo a ete genere ici :"
   echo "$TARGET_DIR"
 else
-  echo "Attention : le build est termine, mais index.html est introuvable dans :"
+  echo "Attention : le build est termine, mais index.html ou editor.html est introuvable dans :"
   echo "$TARGET_DIR"
   exit 1
 fi

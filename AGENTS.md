@@ -12,6 +12,12 @@ des constructions complexes, ne pas développer d'outils de création, de barre
 d'outils de construction ni de fonctions d'édition ou d'export, à l'exception
 de l'enregistrement au format `.dgo` et du mode intégré décrit plus bas.
 
+Exception : l'éditeur de constructions décrit dans `EDITOR.md` (page
+`editor.html`, code dans `src/editor/`) est un chantier ouvert.
+Le lire avant d'y toucher. Le lecteur n'importe jamais `src/editor/` et ne
+s'alourdit pas de plus de 2 Ko pour lui ; les classes d'objets ne reçoivent
+aucune méthode propre à l'éditeur.
+
 ### Format natif `.dgo`
 
 `.dgo` est le format natif de DocGeo : le seul qu'il lit et écrit nativement
@@ -54,7 +60,8 @@ Les développements doivent servir en priorité :
 DocGeo est destiné, entre autres, à devenir un utilitaire du module DocEval du
 projet DocTools (`/Users/erichake/Desktop/BV/html/doctools_MAIN`), comme
 DocCells l'est pour DocShare. Le build (`npm run build` ou
-`zz_build_for_doctools.command`) est produit dans
+`zz_build_for_doctools.command`), qui produit à la fois le lecteur
+(`index.html`) et l'éditeur (`editor.html`), est produit dans
 `doctools_MAIN/public/apps/docgeo` : il doit rester autonome, en chemins
 relatifs, et ne contenir aucun matériel de test. Une diffusion de DocGeo comme
 application indépendante n'est pas exclue : ne pas lier le code à des

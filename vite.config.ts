@@ -6,9 +6,22 @@ export default defineConfig({
         port: 5175,
         strictPort: true,
     },
+    // The player and the editor (see EDITOR.md) in one build, so that
+    // neither erases the other: they share the engine's chunk, the player
+    // never loading the editor's code.
     build: {
         outDir: "../doctools_MAIN/public/apps/docgeo",
         emptyOutDir: true,
+        rollupOptions: {
+            input: ["index.html", "editor.html"],
+            output: {
+                // Rather than named after one of its modules.
+                chunkFileNames: ({ facadeModuleId }) =>
+                    facadeModuleId
+                        ? "assets/[name]-[hash].js"
+                        : "assets/engine-[hash].js",
+            },
+        },
     },
     plugins: [
         {

@@ -724,9 +724,24 @@ export function readDgo(c: construction, figure: Json, centered = false): void {
                 origin[0] + (c.width - width) / 2,
                 origin[1] + (c.height - height) / 2,
             ];
-    const vec3 = !grid.is2D;
+    c.beginBatch();
+    addDgoEntries(c, entries, styles, images, offset);
+    grid.createSVG();
+    c.endBatch();
+    c.invalidateProjection();
+}
 
-    const objects: construction_object[] = [];
+// Adds the objects of these entries after the figure's own, which their
+// indices go on from: see readDgo.
+export function addDgoEntries(
+    c: construction,
+    entries: Json[],
+    styles: Json[] = [],
+    images: Record<string, Json> = {},
+    offset: Vec2 = [0, 0],
+): void {
+    const vec3 = !c.GRID.is2D;
+    const objects = figureObjects(c);
     const styled: [construction_object, Settings][] = [];
     // An earlier object, of one of the given classes.
     const at = <C extends Classes>(
@@ -764,10 +779,14 @@ export function readDgo(c: construction, figure: Json, centered = false): void {
         };
     };
 
-    c.beginBatch();
-    const names = entries.flatMap((entry) =>
-        Array.isArray(entry) && typeof entry[1] === "string" ? [entry[1]] : [],
-    );
+    const names = [
+        ...objects.map((object) => object.name),
+        ...entries.flatMap((entry) =>
+            Array.isArray(entry) && typeof entry[1] === "string"
+                ? [entry[1]]
+                : [],
+        ),
+    ];
     withObjects(new Set(names), () =>
         entries.forEach((entry) => {
             const [tag, name, parameters, styleIndex] = list(entry, 3, 4);
@@ -820,9 +839,6 @@ export function readDgo(c: construction, figure: Json, centered = false): void {
             });
         }
     });
-    grid.createSVG();
-    c.endBatch();
-    c.invalidateProjection();
 }
 
 interface Reader {
