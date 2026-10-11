@@ -168,7 +168,11 @@ icônes :
   se décale vers l'intérieur juste assez pour y tenir entier, plutôt que de
   se replier, ce qui déplacerait les outils ; un peu plus si l'objet
   tombait sous un bouton, qu'il reste visible au-delà. Un trait pointillé
-  relie alors le centre de l'anneau à l'objet.
+  relie alors le centre de l'anneau à l'objet. L'anneau resté ouvert suit
+  son objet quand on le déplace, lui ou ses parents, ou qu'on déplace ou
+  zoome la vue : il reste accroché au point de l'objet le plus proche de
+  là où il était, où « point sur objet » placera le point ; un polygone ou
+  une sphère l'emmènent avec leur centre.
 - **Ligne de l'outil** : survoler une icône affiche dans la consigne la
   ligne que l'outil écrira, ses arguments manquants en `…`
   (`M = Milieu(A, …)`), et ce qu'il reste à désigner ; `A =` pour

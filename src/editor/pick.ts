@@ -32,7 +32,7 @@ const screenDistance = ([x, y]: Vec2, [u, v]: Vec2): number =>
     Math.hypot(x - u, y - v);
 
 // The point of the object nearest to `screen`, on the screen.
-function nearest(
+export function nearest(
     c: construction,
     object: construction_object,
     screen: Vec2,

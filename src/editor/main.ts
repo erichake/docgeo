@@ -14,8 +14,10 @@ import { importGgbFromBlob, importGgbFromUrl } from "../ggb_importer";
 import type { construction_object } from "../objects/construction_object";
 import { createOrderedIntersection } from "../objects/intersection_object";
 import { point_object } from "../objects/point_object";
+import { polygon_object } from "../objects/polygon_object";
+import { sphere_object } from "../objects/sphere_object";
 import { preferences } from "../preferences";
-import { vAdd, vScale, vSub, type Vec2, type Vec3 } from "../vec";
+import { vAdd, vIsFinite, vScale, vSub, type Vec2, type Vec3 } from "../vec";
 import {
     accepts,
     commandName,
@@ -48,7 +50,7 @@ import {
     withGhostsHidden,
 } from "./eraser";
 import { message, type MessageKey } from "./messages";
-import { pick, PICK_RADIUS, type Hit } from "./pick";
+import { nearest, pick, PICK_RADIUS, type Hit } from "./pick";
 import {
     completionAt,
     formatName,
@@ -712,7 +714,32 @@ const onRing = (slot: number): Vec2 => {
     return [RING_RADIUS * Math.cos(angle), RING_RADIUS * Math.sin(angle)];
 };
 
+// The ring's object, where the ring was opened on the screen and the
+// object's point it holds there.
+let held: { hit: Hit; client: Vec2; screen: Vec2 } | null = null;
+
+// The point held, moved with its object: the nearest to where it was, or the
+// centre of a polygon or a sphere.
+function hold(c: construction, hit: Hit, previous: Vec2): Vec2 {
+    const { object } = hit;
+    if (object instanceof sphere_object) return c.pt3D(object.CENTER);
+    if (object instanceof polygon_object)
+        return vScale(
+            object.points.reduce<Vec2>(
+                (sum, { screen }) => vAdd(sum, screen),
+                [0, 0],
+            ),
+            1 / object.points.length,
+        );
+    const at = nearest(c, object, previous);
+    if (!at || !vIsFinite(at)) return previous;
+    hit.at = at;
+    return c.pt3D(at);
+}
+
 function openRing(hit: Hit, client: Vec2): void {
+    const c = scene();
+    held = { hit, client, screen: hold(c, hit, c.pt3D(hit.at)) };
     const tools = toolsFor(hit.object, vec3());
     // Each family's sector, even its places without a tool for the object.
     const sectors = [...new Set(tools.map(({ family }) => family))]
@@ -722,31 +749,10 @@ function openRing(hit: Hit, client: Vec2): void {
             return `<path d="M${x0} ${y0}A${RING_RADIUS} ${RING_RADIUS} 0 0 1 ${x1} ${y1}" style="stroke:hsl(${hue} 70% 50% / 0.2)"/>`;
         })
         .join("");
-    // Whole in the figure, the ring moves inwards rather than folding, its
-    // tools keeping their places.
-    const box = scene().svg.dom().getBoundingClientRect();
-    const margin = RING_RADIUS + RING_BUTTON + 6;
-    const inside = (at: number, from: number, size: number) =>
-        Math.max(from + margin, Math.min(at, from + size - margin));
-    let left = inside(client[0], box.left, box.width);
-    let top = inside(client[1], box.top, box.height);
-    let dx = client[0] - left;
-    let dy = client[1] - top;
-    // The object not under a button, but beyond them.
-    const clear = margin - RING_RADIUS + 14;
-    const distance = Math.hypot(dx, dy);
-    if (Math.abs(distance - RING_RADIUS) < clear) {
-        const scale = (RING_RADIUS + clear) / distance;
-        [dx, dy] = [dx * scale, dy * scale];
-        [left, top] = [client[0] - dx, client[1] - dy];
-    }
-    // Moved, it stays tied to its object.
-    const tie = dx || dy ? `<path class="dge-tie" d="M0 0L${dx} ${dy}"/>` : "";
     ring.inner(
-        `<svg class="dge-sectors" width="1" height="1">${sectors}${tie}</svg>`,
-    )
-        .stl("left", `${left}px`)
-        .stl("top", `${top}px`);
+        `<svg class="dge-sectors" width="1" height="1">${sectors}<path class="dge-tie"/></svg>`,
+    );
+    placeRing();
     tools.forEach((tool) => {
         const [x, y] = onRing(tool.slot);
         const item = $.create("button")
@@ -782,7 +788,44 @@ function openRing(hit: Hit, client: Vec2): void {
     highlight(hit.object);
 }
 
+function placeRing(): void {
+    const { client } = held!;
+    // Whole in the figure, the ring moves inwards rather than folding, its
+    // tools keeping their places.
+    const box = scene().svg.dom().getBoundingClientRect();
+    const margin = RING_RADIUS + RING_BUTTON + 6;
+    const inside = (at: number, from: number, size: number) =>
+        Math.max(from + margin, Math.min(at, from + size - margin));
+    let left = inside(client[0], box.left, box.width);
+    let top = inside(client[1], box.top, box.height);
+    let dx = client[0] - left;
+    let dy = client[1] - top;
+    // The object not under a button, but beyond them.
+    const clear = margin - RING_RADIUS + 14;
+    const distance = Math.hypot(dx, dy);
+    if (Math.abs(distance - RING_RADIUS) < clear) {
+        const scale = (RING_RADIUS + clear) / distance;
+        [dx, dy] = [dx * scale, dy * scale];
+        [left, top] = [client[0] - dx, client[1] - dy];
+    }
+    // Moved, it stays tied to its object.
+    ring.find(".dge-tie")!.att("d", dx || dy ? `M0 0L${dx} ${dy}` : "");
+    ring.stl("left", `${left}px`).stl("top", `${top}px`);
+}
+
+// The ring follows its object, dragged or moved with the view.
+function moveRing(): void {
+    if (!held) return;
+    const c = scene();
+    c.flush();
+    const screen = hold(c, held.hit, held.screen);
+    held.client = vAdd(held.client, vSub(screen, held.screen));
+    held.screen = screen;
+    placeRing();
+}
+
 function closeRing(): void {
+    held = null;
     ring.hide().inner("");
     if (!pending) showHint("");
 }
@@ -1130,17 +1173,28 @@ $("body").on(
     { capture: true, prevent: false },
 );
 
+// Once a frame, what follows the figure.
+function dragged(): void {
+    dragFrame ??= requestAnimationFrame(() => {
+        dragFrame = null;
+        updateRows();
+        moveRing();
+    });
+}
+
+$("body").on(
+    "wheel",
+    (event) => {
+        if (inFigure(event)) dragged();
+    },
+    { prevent: false, passive: true },
+);
+
 $("body").on(
     "pointermove",
     (event) => {
         if (!event.isPrimary || (!aim && !inFigure(event))) return;
-        if (event.buttons && !aim) {
-            dragFrame ??= requestAnimationFrame(() => {
-                dragFrame = null;
-                updateRows();
-            });
-            return;
-        }
+        if (event.buttons && !aim) return dragged();
         follow(event);
     },
     { capture: true, prevent: false, passive: true },
