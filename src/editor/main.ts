@@ -895,6 +895,7 @@ export const EDITOR_READY = url
                   u: 40,
                   w: c.width,
                   h: c.height,
+                  ax: 0,
               },
               o: [],
           });
