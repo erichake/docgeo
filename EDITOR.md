@@ -136,6 +136,38 @@ de `src/import/dgp_commands.ts`.
   définis.
 - **3D** : le langage et la désignation doivent couvrir les figures 3D.
 
+## Anneau d'outils
+
+Décidé le 2026-10-11, pour ne pas dérouter l'élève devant un anneau de seize
+icônes :
+
+- **Familles à places fixes** : les outils sont regroupés par familles,
+  séparées par un vide et teintées chacune d'une couleur (bande derrière les
+  boutons, bord des boutons). Dans le sens horaire depuis le haut :
+  suppression ; points (point sur objet, intersection, milieu ou centre) ;
+  droites (segment, droite, demi-droite, vecteur) ; constructions
+  (perpendiculaire, parallèle, médiatrice, bissectrice) ; cercles (centre et
+  point, trois points, sphère) ; polygone et angle ; symétries (centrale,
+  axiale). Chaque outil garde toujours la même place, quel que soit l'objet
+  désigné ; deux outils qui ne s'affichent jamais ensemble partagent une
+  place (milieu de deux points, d'un segment, centre d'un cercle). La bande
+  d'une famille couvre toutes ses places, même celles sans outil pour
+  l'objet : l'élève retient la place autant que l'icône. Le rayon de
+  l'anneau est donc fixe (148 px). Près d'un bord de la figure, l'anneau
+  se décale vers l'intérieur juste assez pour y tenir entier, plutôt que de
+  se replier, ce qui déplacerait les outils ; un peu plus si l'objet
+  tombait sous un bouton, qu'il reste visible au-delà. Un trait pointillé
+  relie alors le centre de l'anneau à l'objet.
+- **Ligne de l'outil** : survoler une icône affiche dans la consigne la
+  ligne que l'outil écrira, ses arguments manquants en `…`
+  (`M = Milieu(A, …)`), et ce qu'il reste à désigner ; `A =` pour
+  supprimer. La consigne garde cette ligne pendant la désignation des
+  arguments, au doigt comme à la souris.
+
+Plus tard : des jeux d'outils choisis par l'enseignant (« Collège début »,
+« Tout »…), enregistrés dans la figure ou passés par l'URL. Un anneau à deux
+niveaux (familles, puis outils) seulement si l'anneau reste trop dense.
+
 ## Lien avec le lecteur
 
 Un lien « modifier cette figure » pourrait ouvrir la figure du lecteur dans
@@ -193,7 +225,13 @@ Fait (2026-10-11) :
 - Tests : `tests/unit/editor_text.test.ts`, `tests/unit/editor_boundary.test.ts`
   (le lecteur n'importe pas `src/editor/`), `tests/browser/editor.test.ts`.
 
+- Anneau d'outils en familles à places fixes, ligne de l'outil dans la
+  consigne (section « Anneau d'outils ») : éditeur 30,7 Ko (12,1 Ko en
+  gzip), lecteur inchangé.
+
 Reste à faire :
+
+- Jeux d'outils de l'enseignant (section « Anneau d'outils »).
 
 - Expressions et curseurs (`a = 3`, `Curseur(0, 10)`), rayons et angles en
   formule (`Cercle(O, 2*a)`), en réutilisant `dgp_formula.ts`.

@@ -30,6 +30,7 @@ import {
     addPointOn,
     entryOf,
     figureIndex,
+    formatArg,
     FREE_POINT,
     isPointTag,
     lineOf,
@@ -42,12 +43,13 @@ import {
 import { message, type MessageKey } from "./messages";
 import { pick, PICK_RADIUS, type Hit } from "./pick";
 import { completionAt, formatName, parseLine, TextError } from "./text";
-import { toolsFor, type Tool } from "./tools";
+import { RING_SLOTS, toolsFor, type Tool } from "./tools";
 
 // The construction editor: see EDITOR.md.
 
 const PANEL_WIDTH = 320;
 const RING_BUTTON = 20;
+const RING_RADIUS = (RING_SLOTS * (2 * RING_BUTTON + 2)) / (2 * Math.PI);
 
 const studio = { prefs: new preferences() } as Studio;
 studio.scene = construction.create(studio);
@@ -86,7 +88,9 @@ $("head").append(`<style>
     .dge-ring { position: fixed; width: 0; height: 0; z-index: 12; }
     .dge-ring button { position: absolute; width: ${2 * RING_BUTTON}px; height: ${2 * RING_BUTTON}px; margin: -${RING_BUTTON}px; padding: 7px; border: 1px solid #d1d5db; border-radius: 50%; background: #fff; color: #1f2937; box-shadow: 0 2px 8px rgb(0 0 0 / 0.15); cursor: pointer; }
     .dge-ring button:hover { background: #2563eb; color: #fff; border-color: #2563eb; }
-    .dge-ring svg { width: 24px; height: 24px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+    .dge-ring .dge-sectors { position: absolute; overflow: visible; fill: none; stroke-width: ${2 * RING_BUTTON + 12}px; stroke-linecap: round; pointer-events: none; }
+    .dge-ring .dge-tie { stroke: #f59e0b; stroke-width: 2px; stroke-dasharray: 2 5; }
+    .dge-ring button svg { width: 24px; height: 24px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
     .dge-complete { position: fixed; min-width: 160px; max-height: 240px; overflow: auto; padding: 4px 0; border: 1px solid #d1d5db; border-radius: 8px; background: #fff; box-shadow: 0 6px 20px rgb(0 0 0 / 0.14); z-index: 13; }
     .dge-complete div { padding: 3px 12px; font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 13px; cursor: pointer; }
     .dge-complete div.dge-selected, .dge-complete div:hover { background: #2563eb; color: #fff; }
@@ -499,39 +503,104 @@ function designatePoint(screen: Vec2, hits: Hit[]): construction_object | null {
     return addFreePoint(screen);
 }
 
-function nextSlot(): number {
-    const { tool, args } = pending!;
+function nextSlot({ tool, args } = pending!): number {
     if (tool.overload!.variadic) return args.length;
     return args.findIndex((arg) => arg === undefined);
 }
 
-function prompt(): void {
-    if (!pending) return showHint("");
-    const { tool, args } = pending;
-    if (tool.mode === "intersection")
-        return showHint(message("designate", message("intersectable")));
-    if (tool.overload!.variadic && args.length >= 3)
-        return showHint(message("polygon_end"));
-    const param = paramAt(tool.overload!, nextSlot())!;
-    showHint(
-        `${commandName(tool.command!)} — ${message("designate", message(param as MessageKey))}`,
-    );
+// The tool's arguments, the object designated first.
+function firstArgs(
+    tool: Tool,
+    object: construction_object,
+): (Arg | undefined)[] {
+    if (tool.mode !== "command") return [object];
+    const { params, variadic } = tool.overload!;
+    const args: (Arg | undefined)[] = variadic
+        ? []
+        : Array(params.length).fill(undefined);
+    args[params.findIndex((param) => accepts(object, param))] = object;
+    return args;
 }
+
+// The line the tool writes, its missing arguments elided, and what remains
+// to designate.
+function describe(tool: Tool, args: (Arg | undefined)[]): string {
+    if (tool.mode === "delete")
+        return `${formatArg(args[0]!)} =\n${message("delete")}`;
+    const point = tool.mode !== "command" || isPointTag(tool.overload!.tag);
+    const shown = args.map((arg) => (arg === undefined ? "…" : formatArg(arg)));
+    if (tool.mode !== "command" || tool.overload!.variadic) shown.push("…");
+    const line = `${formatName(nextName(scene(), point))} = ${commandName(tool.command!)}(${shown.join(", ")})`;
+    if (tool.mode === "point") return line;
+    if (tool.mode === "intersection")
+        return `${line}\n${message("designate", message("intersectable"))}`;
+    if (tool.overload!.variadic && args.length >= 3)
+        return `${line}\n${message("polygon_end")}`;
+    const param = paramAt(tool.overload!, nextSlot({ tool, args }))!;
+    return `${line}\n${message("designate", message(param as MessageKey))}`;
+}
+
+function prompt(): void {
+    showHint(pending ? describe(pending.tool, pending.args) : "");
+}
+
+const onRing = (slot: number): Vec2 => {
+    const angle = -Math.PI / 2 + (2 * Math.PI * slot) / RING_SLOTS;
+    return [RING_RADIUS * Math.cos(angle), RING_RADIUS * Math.sin(angle)];
+};
 
 function openRing(hit: Hit, client: Vec2): void {
     const tools = toolsFor(hit.object, vec3());
-    const radius = Math.max(56, (tools.length * 46) / (2 * Math.PI));
-    ring.inner("").stl("left", `${client[0]}px`).stl("top", `${client[1]}px`);
-    tools.forEach((tool, index) => {
-        const angle = -Math.PI / 2 + (2 * Math.PI * index) / tools.length;
+    // Each family's sector, even its places without a tool for the object.
+    const sectors = [...new Set(tools.map(({ family }) => family))]
+        .map(({ hue, first, last }) => {
+            const [x0, y0] = onRing(first);
+            const [x1, y1] = onRing(last);
+            return `<path d="M${x0} ${y0}A${RING_RADIUS} ${RING_RADIUS} 0 0 1 ${x1} ${y1}" style="stroke:hsl(${hue} 70% 50% / 0.2)"/>`;
+        })
+        .join("");
+    // Whole in the figure, the ring moves inwards rather than folding, its
+    // tools keeping their places.
+    const box = scene().svg.dom().getBoundingClientRect();
+    const margin = RING_RADIUS + RING_BUTTON + 6;
+    const inside = (at: number, from: number, size: number) =>
+        Math.max(from + margin, Math.min(at, from + size - margin));
+    let left = inside(client[0], box.left, box.width);
+    let top = inside(client[1], box.top, box.height);
+    let dx = client[0] - left;
+    let dy = client[1] - top;
+    // The object not under a button, but beyond them.
+    const clear = margin - RING_RADIUS + 14;
+    const distance = Math.hypot(dx, dy);
+    if (Math.abs(distance - RING_RADIUS) < clear) {
+        const scale = (RING_RADIUS + clear) / distance;
+        [dx, dy] = [dx * scale, dy * scale];
+        [left, top] = [client[0] - dx, client[1] - dy];
+    }
+    // Moved, it stays tied to its object.
+    const tie = dx || dy ? `<path class="dge-tie" d="M0 0L${dx} ${dy}"/>` : "";
+    ring.inner(
+        `<svg class="dge-sectors" width="1" height="1">${sectors}${tie}</svg>`,
+    )
+        .stl("left", `${left}px`)
+        .stl("top", `${top}px`);
+    tools.forEach((tool) => {
+        const [x, y] = onRing(tool.slot);
         const item = $.create("button")
             .att(
-                "title",
+                "aria-label",
                 tool.command ? commandName(tool.command) : message("delete"),
             )
-            .stl("left", `${radius * Math.cos(angle)}px`)
-            .stl("top", `${radius * Math.sin(angle)}px`)
+            .stl("left", `${x}px`)
+            .stl("top", `${y}px`)
+            .stl("border-color", `hsl(${tool.family.hue} 60% 55%)`)
             .append(`<svg viewBox="0 0 24 24">${tool.icon}</svg>`);
+        item.on(
+            "pointerenter",
+            () => showHint(describe(tool, firstArgs(tool, hit.object))),
+            false,
+        );
+        item.on("pointerleave", () => showHint(""), false);
         // Pressed, the tool waits for its arguments, and the same gesture
         // may go on to designate one.
         item.on("pointerdown", (event) => {
@@ -552,6 +621,7 @@ function openRing(hit: Hit, client: Vec2): void {
 
 function closeRing(): void {
     ring.hide().inner("");
+    if (!pending) showHint("");
 }
 
 function choose(tool: Tool, { object, at }: Hit): void {
@@ -562,17 +632,9 @@ function choose(tool: Tool, { object, at }: Hit): void {
     }
     if (tool.mode === "point")
         return done(addPointOn(c, nextName(c, true), object, at));
-    if (tool.mode === "intersection") {
-        pending = { tool, args: [object] };
-        return prompt();
-    }
-    const { params, variadic } = tool.overload!;
-    const args: (Arg | undefined)[] = variadic
-        ? []
-        : Array(params.length).fill(undefined);
-    const slot = params.findIndex((param) => accepts(object, param));
-    args[slot] = object;
-    pending = { tool, args };
+    pending = { tool, args: firstArgs(tool, object) };
+    // An intersection waits for its second object.
+    if (tool.mode === "intersection") return prompt();
     proceed();
 }
 

@@ -88,7 +88,7 @@ export const entryOf = (
         screen: (position) => position,
     });
 
-const formatArg = (arg: Arg): string =>
+export const formatArg = (arg: Arg): string =>
     typeof arg === "number" ? formatNumber(arg) : formatName(arg.name);
 
 // Its line, null when no command writes it.
