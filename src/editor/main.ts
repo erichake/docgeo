@@ -959,10 +959,11 @@ function openRing(hit: Hit, client: Vec2): void {
             item.dom().releasePointerCapture(event.pointerId);
             closeRing();
             choose(tool, hit);
-            if (pending)
-                aim = {
-                    button: [box.x + box.width / 2, box.y + box.height / 2],
-                };
+            if (!pending) return;
+            aim = {
+                button: [box.x + box.width / 2, box.y + box.height / 2],
+            };
+            follow(event);
         });
         ring.add(item);
     });
@@ -1296,25 +1297,24 @@ let dragFrame: number | null = null;
 // released, unless still on the button that chose the tool.
 let aim: { button: Vec2 | null } | null = null;
 
+const onButton = (event: PointerEvent): boolean =>
+    !!aim?.button &&
+    Math.hypot(event.clientX - aim.button[0], event.clientY - aim.button[1]) <=
+        RING_BUTTON;
 const aiming = (event: PointerEvent): boolean =>
-    inFigure(event) &&
-    !(
-        aim?.button &&
-        Math.hypot(
-            event.clientX - aim.button[0],
-            event.clientY - aim.button[1],
-        ) <= RING_BUTTON
-    );
+    inFigure(event) && !onButton(event);
 
-// What the pointer designates there.
+// What the pointer designates there. Still on the button, it designates
+// nothing, but what it would build already follows it.
 function follow(event: PointerEvent): void {
-    if (!aiming(event)) {
+    const button = onButton(event);
+    if (!button && !inFigure(event)) {
         clearPreview();
         return highlight(null);
     }
     const c = scene();
     const screen = c.pointerPosition(event);
-    const hits = pick(c, screen, previewed());
+    const hits = button ? [] : pick(c, screen, previewed());
     if (pending || editing()) updatePreview(screen, hits);
     if (ring.isHidden()) highlight(hits[0]?.object ?? null);
 }
