@@ -46,6 +46,7 @@ export function propertiesPanel(options: {
         $.create("div").cls("dge-property-picker").add(picker),
         content,
     );
+    let adjusting = 0;
     let selected: construction_object | null = null;
     let all = false;
     const fields: DOMElement[] = [];
@@ -169,6 +170,13 @@ export function propertiesPanel(options: {
         c.invalidateProjection();
         c.flush();
         selected?.dom?.addClass("dge-property-selected");
+        // The object shows bare while it is being adjusted.
+        $("body").addClass("dge-adjusting");
+        clearTimeout(adjusting);
+        adjusting = window.setTimeout(
+            () => $("body").removeClass("dge-adjusting"),
+            700,
+        );
     }
 
     function check(
