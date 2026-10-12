@@ -4,6 +4,7 @@ import { point_on_object } from "../objects/point_on_object";
 import { polygon_object } from "../objects/polygon_object";
 import { primitive_circle_object } from "../objects/primitive_circle_object";
 import { primitive_line_object } from "../objects/primitive_line_object";
+import { quadric5pts_object } from "../objects/quadric5pts_object";
 import { vDot, vNorm, vScale, vSub, type Vec2 } from "../vec";
 
 // DGPad's spring: see EDITOR.md.
@@ -39,6 +40,7 @@ const CIRCLE: Scale = {
     bounces: false,
 };
 const EDGES = [0, 20, 25, 50, 100, 200, 400, 500, 750, 1000, 1500];
+// Along a polygon, and a conic, which DGPad doesn't animate.
 const POLYGON: Scale = {
     stops: EDGES,
     gap: 30,
@@ -64,7 +66,11 @@ const REST = 28;
 function scaleOf({ support }: point_on_object): Scale {
     if (support instanceof primitive_line_object) return LINE;
     if (support instanceof primitive_circle_object) return CIRCLE;
-    if (support instanceof polygon_object) return POLYGON;
+    if (
+        support instanceof polygon_object ||
+        support instanceof quadric5pts_object
+    )
+        return POLYGON;
     return LOCUS;
 }
 
@@ -77,6 +83,7 @@ export const springy = (
     (object.support instanceof primitive_line_object ||
         object.support instanceof primitive_circle_object ||
         object.support instanceof polygon_object ||
+        object.support instanceof quadric5pts_object ||
         object.support.familytype === "locus");
 
 // The point's ghost, ahead of it on its path: its parameter, and its own
@@ -96,6 +103,7 @@ export function moveGhost(
     const { alpha, animation, C: c } = point;
     point.alpha = ghost.alpha;
     point.animation = ghost.animation;
+    point.computeGeometry();
     point.animate(seconds);
     point.computeGeometry();
     ghost.alpha = point.alpha;

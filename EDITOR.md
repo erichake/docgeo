@@ -303,7 +303,7 @@ depuis un bouton de la barre, loin du point, il partirait au cran maximal.
 Il est donc **accroché au point** :
 
 - un point sur objet que le moteur anime (sur une droite, un segment, une
-  demi-droite, un cercle, un arc, un polygone ou un lieu) a dans la zone
+  demi-droite, un cercle, un arc, un polygone, une conique ou un lieu) a dans la zone
   contextuelle un bouton bascule « Animer » (un ressort), bleu quand il est
   enfoncé. Il sort sous le point un petit ressort au repos terminé par une
   boule bleue, dans le vide intérieur de l'anneau ; comme pour la punaise,
@@ -312,8 +312,8 @@ Il est donc **accroché au point** :
   où il sortait à chaque sélection). Le point lui-même se glisse toujours
   (la boule s'en tient à l'écart) ;
 - on attrape la boule et on tire : la **longueur** donne la vitesse, par
-  crans, ceux de DGPad (px/s le long d'une droite ou d'un polygone, °/s sur
-  un cercle, % sur un lieu), écrits le long du ressort ; un cran fait au
+  crans, ceux de DGPad (px/s le long d'une droite, d'un polygone ou d'une
+  conique, °/s sur un cercle, % sur un lieu), écrits le long du ressort ; un cran fait au
   moins 30 px (25 dans DGPad sur les cercles et les polygones), pour que la
   boule au repos, en deçà du premier cran, reste loin du point ;
 - le **côté** donne le sens, comme un élastique qu'on lâche : le point part
@@ -346,6 +346,15 @@ Le survol du bouton, comme celui de la boule, rappelle la règle dans la
 consigne. Les réglages fins (vitesse quelconque, sens
 inverse, « Arrêter » à l'extrémité) restent dans le panneau de propriétés,
 seul accès au clavier.
+
+DGPad n'anime pas les points sur une conique ; le moteur de DocGeo, si
+(2026-10-12) : comme sur un polygone, `vitesse` pixels par seconde à
+l'écran, par pas de 4 px au plus, chacun le long de la tangente puis
+reprojeté sur la conique. Sur une ellipse, le point boucle ; sur une branche
+de parabole ou d'hyperbole, infinie, il fait demi-tour là où il sortirait
+de la fenêtre (il s'arrête s'il devait s'arrêter à l'extrémité), sans
+changer de branche. Les animations GeoGebra de points sur conique, dont la
+vitesse se rapporte au paramètre de GeoGebra, restent ignorées.
 
 Les curseurs, que DGPad anime aussi au ressort, en auront un quand
 l'éditeur saura les sélectionner : un toucher sur un curseur crée
@@ -603,6 +612,11 @@ Fait (2026-10-11) :
   Vérifié dans `editor.html` (segment, cercle, aller-retour, reprise sur un
   point animé, annuler). Éditeur : 75,7 Ko, CSS inclus (27,3 Ko en gzip) ;
   lecteur : +19 octets, une exportation de plus du moteur partagé.
+
+- Points sur conique animés (2026-10-12, section « Ressort »), donc aussi
+  au ressort. Vérifiés dans `editor.html` (ellipse, hyperbole). Éditeur :
+  +60 octets ; lecteur : +609 octets (+249 en gzip), la marche le long de
+  la conique dans le moteur.
 
 Reste à faire :
 

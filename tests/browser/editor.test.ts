@@ -488,6 +488,58 @@ describe("Editor", () => {
         ).toEqual([0, 1, 0]);
     });
 
+    it("animates a point on a conic, which DGPad doesn't", () => {
+        const { scene: c } = studio();
+        const r = Math.SQRT2;
+        [
+            "A = (4, 0)",
+            "B = (-4, 0)",
+            "C = (0, 2)",
+            "D = (0, -2)",
+            `E = (${2 * r}, ${r})`,
+            "e = Conic(A, B, C, D, E)",
+            "F = (1, 0)",
+            "G = (-1, 0)",
+            `H = (${r}, 1)`,
+            `I = (${r}, -1)`,
+            `J = (${-r}, 1)`,
+            "h = Conic(F, G, H, I, J)",
+        ].forEach((line) => type(c, line));
+        c.flush();
+        const P = addPointOn(c, "P", c.getObj("e")!, [4, 0, 0]);
+        const Q = addPointOn(c, "Q", c.getObj("h")!, [1, 0, 0]);
+        c.flush();
+        expect([P, Q].map(springy)).toEqual([true, true]);
+        // Round the ellipse, a turn of about 795 px.
+        setAnimation(P, { speed: 100, direction: 1, ar: false });
+        let turned = 0;
+        let last = Math.atan2(P.coords[1] / 2, P.coords[0] / 4);
+        for (let step = 0; step < 20; step++) {
+            P.animate(0.5);
+            c.flush();
+            const [x, y] = P.coords;
+            expect((x * x) / 16 + (y * y) / 4).toBeCloseTo(1, 6);
+            const angle = Math.atan2(y / 2, x / 4);
+            turned += ((angle - last + 3 * Math.PI) % (2 * Math.PI)) - Math.PI;
+            last = angle;
+        }
+        expect(Math.abs(turned) / (2 * Math.PI)).toBeCloseTo(1000 / 795, 1);
+        // Back and forth on its branch of the hyperbola, in the window.
+        setAnimation(Q, { speed: 1500, direction: 1, ar: false });
+        const sides = new Set<number>();
+        for (let step = 0; step < 60; step++) {
+            Q.animate(0.1);
+            c.flush();
+            const [x, y] = Q.coords;
+            expect(x * x - y * y).toBeCloseTo(1, 6);
+            expect(x).toBeGreaterThan(0);
+            expect(Q.sy).toBeGreaterThan(-5);
+            expect(Q.sy).toBeLessThan(c.height + 5);
+            sides.add(Q.animation!.direction);
+        }
+        expect(sides.size).toBe(2);
+    });
+
     it("drags the name of a point around it, as in GeoGebra", async () => {
         const { scene: c } = studio();
         readDgo(c, {

@@ -1,7 +1,16 @@
 import { advance, type Animation } from "../animation";
 import type { construction } from "../construction";
 import { projectPointOnLine, projectPointOnPlane } from "../projection";
-import { vAdd, vDot, vScale, vSub, type Vec2, type Vec3 } from "../vec";
+import {
+    vAdd,
+    vDot,
+    vNorm,
+    vNormalize,
+    vScale,
+    vSub,
+    type Vec2,
+    type Vec3,
+} from "../vec";
 import { angle_bisector_object } from "./angle_bisector_object";
 import { arc3pts_object } from "./arc3pts_object";
 import { circle3pts_object, SAMPLES } from "./circle3pts_object";
@@ -31,6 +40,8 @@ export type point_support_object =
 type Alpha = number | readonly [number, number];
 
 const TWO_PI = 2 * Math.PI;
+// The longest step along a conic, in screen pixels.
+const GLIDE = 4;
 
 const angle = (alpha: number) => ((alpha % TWO_PI) + TWO_PI) % TWO_PI;
 
@@ -192,7 +203,8 @@ export class point_on_object extends point_object {
 
     // As in DGPad: along a line or a polygon's edges, `speed` pixels per
     // second on the screen; on a circle, radians per second; on a locus or a
-    // Circle3pts3D, five times as many of its samples.
+    // Circle3pts3D, five times as many of its samples. DGPad doesn't animate
+    // a point on a conic: as on a polygon, pixels per second.
     animate(seconds: number): void {
         const support = this.support;
         if (!support.defined) return;
@@ -247,6 +259,10 @@ export class point_on_object extends point_object {
             );
         else if (support instanceof polygon_object) {
             const alpha = this.walk(support, step);
+            if (!alpha) return;
+            this.alpha = alpha;
+        } else if (support instanceof quadric5pts_object) {
+            const alpha = this.glide(support, step);
             if (!alpha) return;
             this.alpha = alpha;
         } else if (support instanceof primitive_line_object) {
@@ -381,6 +397,50 @@ export class point_on_object extends point_object {
         )
             low = 0;
         return low < high ? [low, high, length] : null;
+    }
+
+    // Along the conic by a few pixels at a time, each along its tangent and
+    // back onto it. An ellipse goes round; a branch of a parabola or of a
+    // hyperbola turns back where it would leave the window.
+    private glide(conic: quadric5pts_object, step: number): Alpha | null {
+        const c = this.C;
+        const [a, b, cc, d, e] = conic.COEFFS!;
+        const animation = this.animation!;
+        const center: Vec2 = [c.width / 2, c.height / 2];
+        const outside = ([x, y]: Vec2) =>
+            x < 0 || y < 0 || x > c.width || y > c.height;
+        let coords = this.coords;
+        let sign = Math.sign(step);
+        for (let left = Math.abs(step); left > 0; left -= GLIDE) {
+            const [x, y] = conic.toPlane(coords);
+            const tangent = vNormalize([
+                -(b * x + 2 * cc * y + e),
+                2 * a * x + b * y + d,
+            ] as Vec2);
+            if (!tangent) return null;
+            const from = c.pt3D(coords);
+            const pixels = vNorm(
+                vSub(c.pt3D(conic.fromPlane(vAdd([x, y], tangent))), from),
+            );
+            const along = (sign * Math.min(left, GLIDE)) / pixels;
+            const next = conic.projectPoint(
+                conic.fromPlane(vAdd([x, y], vScale(tangent, along))),
+            );
+            const to = c.pt3D(next);
+            if (
+                conic.KIND !== "ellipse" &&
+                outside(to) &&
+                vNorm(vSub(to, center)) > vNorm(vSub(from, center))
+            ) {
+                if (animation.once) {
+                    animation.speed = 0;
+                    break;
+                }
+                animation.direction *= -1;
+                sign = -sign;
+            } else coords = next;
+        }
+        return conic.alphaOf(coords);
     }
 
     // DGPad's: from the edge the point is on, as far along the polygon's
