@@ -312,6 +312,12 @@ const STYLE: Record<string, Property> = {
         POINT_SHAPES.includes(value as string),
     ),
     np: field(point_object, "namePosition", 0, isNumber),
+    nd: field(
+        point_object,
+        "nameDistance",
+        null,
+        (value) => value === null || isNumber(value),
+    ),
     tk: flag(point_object, "trace"),
     i: field(point_object, "increment", [0, 0], isPair),
     // Pinned at the window position its coordinates give.

@@ -275,6 +275,20 @@ Le moteur garde parmi les aimants une cible supprimée : l'éditeur les
 retire après chaque changement, sinon l'enregistrement ne pourrait pas la
 nommer.
 
+## Noms des points
+
+Décidé le 2026-10-12, comme dans GeoGebra : le nom affiché d'un point se
+glisse à la souris ou au doigt, partout autour de lui, et suit exactement
+le pointeur. Il s'enregistre en direction (`np`, celle de DGPad, qu'on
+règle aussi dans le panneau de propriétés) et en distance (`nd`, en
+pixels, deux fois la taille du point par défaut). Le nom ne recouvre
+jamais son point (distance au moins nulle) et ne s'en éloigne pas de plus
+de 80 px. Un point sous le pointeur l'emporte sur un nom. Survoler un nom
+fait briller son point ; le toucher sans le glisser désigne le point,
+comme un toucher sur lui (anneau ouvert sur le point, propriétés, gomme,
+aimant). Chaque glisser est une étape d'annulation. Les noms des autres
+objets ne sont pas encore dessinés par le moteur.
+
 ## Gomme
 
 Décidé le 2026-10-11, comme dans DGPad plutôt que par le menu contextuel de
@@ -498,6 +512,12 @@ Fait (2026-10-11) :
   cibles en rouge, curseur à crans de DGPad, zones d'attraction dessinées. Vérifié dans `editor.html` à 1200
   et 360 px de large (glisser aimanté, annuler / refaire). Éditeur :
   67,8 Ko, CSS inclus (24,1 Ko en gzip) ; lecteur inchangé.
+
+- Noms des points glissés comme dans GeoGebra (2026-10-12, section
+  « Noms des points ») : clé `.dgo` `nd`. Vérifié dans `editor.html`
+  (glisser, annuler, toucher sur le nom). Éditeur : 69,2 Ko, CSS inclus
+  (25,0 Ko en gzip) ; lecteur : +80 octets (+20 en gzip), le champ
+  `nameDistance` du moteur.
 
 Reste à faire :
 

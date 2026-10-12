@@ -81,6 +81,8 @@ export class point_object extends construction_object {
     shape: string;
     border: number | undefined;
     namePosition = 0;
+    // Its name's distance in pixels, twice its size if null.
+    nameDistance: number | null = null;
     nameText?: DOMElement;
     trace = false;
     tracePath?: DOMElement;
@@ -324,7 +326,7 @@ export class point_object extends construction_object {
         if (this.nameText) {
             const cos = Math.cos(this.namePosition);
             const sin = Math.sin(this.namePosition);
-            const size = 2 * this.size;
+            const size = this.nameDistance ?? 2 * this.size;
             this.nameText
                 .att("x", size * cos + (this.nameText.width() * (cos - 1)) / 2)
                 .att("y", -size * sin - (this.fontSize * (sin - 1)) / 2);

@@ -69,6 +69,7 @@ import {
     TextError,
     type ArgumentCompletion,
 } from "./text";
+import { labelAt, labelCenter, placeLabel } from "./labels";
 import { RING_SLOTS, toolsFor, type Tool } from "./tools";
 import { propertiesPanel } from "./properties";
 import {
@@ -1596,6 +1597,8 @@ let dragFrame: number | null = null;
 // A pointer pressed while a tool waits: it aims and designates where it's
 // released, unless still on the button that chose the tool.
 let aim: { button: Vec2 | null } | null = null;
+// The name being dragged, and where it was taken from its center.
+let label: { point: point_object; grab: Vec2 } | null = null;
 
 const onButton = (event: PointerEvent): boolean =>
     !!aim?.button &&
@@ -1617,6 +1620,12 @@ function follow(event: PointerEvent): void {
     const hits = button ? [] : pick(c, screen, previewed());
     if (pending || editing()) updatePreview(screen, hits);
     if (held) return;
+    const named =
+        !hits[0] &&
+        !pending &&
+        !editing() &&
+        labelAt(c, [event.clientX, event.clientY]);
+    if (named) return highlight(named);
     // The two objects whose intersection a click would make.
     const cross = wantsPoint(hits) && crossing(c, screen, hits);
     const shown = magnetizing
@@ -1645,6 +1654,20 @@ $("body").on(
         down = { x: event.clientX, y: event.clientY, time: performance.now() };
         const c = scene();
         const screen = c.pointerPosition(event);
+        label = null;
+        // A point near its name is dragged rather than the name.
+        const named =
+            !pending &&
+            !editing() &&
+            labelAt(c, [event.clientX, event.clientY]);
+        if (named && !(pick(c, screen)[0]?.object instanceof point_object)) {
+            label = { point: named, grab: vSub(screen, labelCenter(named)) };
+            // Pressed twice quickly, the name would be selected as text.
+            event.preventDefault();
+            event.stopPropagation();
+            c.svg.dom().setPointerCapture(event.pointerId);
+            return;
+        }
         if (propertiesOpen) {
             const object = propertyObject(event);
             if (
@@ -1730,6 +1753,11 @@ $("body").on(
 $("body").on(
     "pointermove",
     (event) => {
+        if (label && event.isPrimary && event.buttons)
+            return placeLabel(
+                label.point,
+                vSub(scene().pointerPosition(event), label.grab),
+            );
         if (!event.isPrimary || (!aim && !inFigure(event))) return;
         if (event.buttons && !aim) return dragged();
         follow(event);
@@ -1766,6 +1794,12 @@ $("body").on(
             Math.hypot(event.clientX - down.x, event.clientY - down.y) <=
                 $.clickRadius && performance.now() - down.time <= $.clickDelay;
         down = null;
+        const named = label?.point;
+        label = null;
+        if (named && !tap) {
+            if (properties.selected === named) properties.select(named);
+            return void record();
+        }
         if (!inFigure(event)) return;
         if (!tap) {
             void record().then(updateRows);
@@ -1774,8 +1808,14 @@ $("body").on(
         if (held) return closeRing();
         const c = scene();
         const screen = c.pointerPosition(event);
-        const hits = pick(c, screen, previewed());
-        const client: Vec2 = [event.clientX, event.clientY];
+        // A tap on a name designates its point, there.
+        const hits = named
+            ? [{ object: named, distance: 0, at: named.coords }]
+            : pick(c, screen, previewed());
+        const box = c.svg.dom().getBoundingClientRect();
+        const client: Vec2 = named
+            ? [box.left + named.sx, box.top + named.sy]
+            : [event.clientX, event.clientY];
         if (magnetizing) {
             const { point } = magnetizing;
             const targets = hits.filter(({ object }) =>

@@ -329,6 +329,7 @@ postérieur.
 | `l`  | tous         | calque (entier, sous les `Html`)         | 0                                 |
 | `sp` | points       | `circle`, `cross`, `diamond`, `rect`     | `circle`                          |
 | `np` | points       | direction du nom (radians)               | 0                                 |
+| `nd` | points       | distance du nom (pixels)                 | `null` (deux fois la taille)      |
 | `tk` | points       | trace                                    | 0                                 |
 | `i`  | points       | pas de déplacement `[dx, dy]`            | [0, 0]                            |
 | `fl` | points       | punaisé à sa place dans la fenêtre       | 0                                 |

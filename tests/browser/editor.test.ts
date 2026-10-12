@@ -33,6 +33,7 @@ import {
     setReach,
     showZone,
 } from "../../src/editor/magnets";
+import { labelAt, labelCenter, placeLabel } from "../../src/editor/labels";
 import { crossing, meant, pick } from "../../src/editor/pick";
 import { parseLine, TextError } from "../../src/editor/text";
 import type { point_object } from "../../src/objects/point_object";
@@ -371,5 +372,37 @@ describe("Editor", () => {
         expect(point.magnets.map(({ target }) => target)).toEqual([]);
         const { st } = await describeDgo(c);
         expect(st?.some((style) => style.mg)).toBe(false);
+    });
+
+    it("drags the name of a point around it, as in GeoGebra", async () => {
+        const { scene: c } = studio();
+        readDgo(c, {
+            dgo: 1,
+            v: { o: [400, 300], u: 40, w: 800, h: 600 },
+            o: [["Pt", "A", [0, 0], 0]],
+            st: [{ sn: 1, s: 4 }],
+        });
+        c.flush();
+        const A = c.getObj("A") as point_object;
+        const box = () => A.nameText!.dom().getBoundingClientRect();
+        const { left, top, width, height } = box();
+        expect(labelAt(c, [left + width / 2, top + height / 2])).toBe(A);
+        expect(labelAt(c, [left - 20, top - 20])).toBe(null);
+        // Its center follows the pointer, the name never covering the point.
+        placeLabel(A, [370, 260]);
+        const [x, y] = labelCenter(A);
+        expect([x, y].map(Math.round)).toEqual([370, 260]);
+        expect(A.namePosition).toBeCloseTo((Math.PI * 3) / 4, 0);
+        placeLabel(A, [401, 301]);
+        expect(A.nameDistance).toBe(0);
+        placeLabel(A, [400, 0]);
+        expect(A.nameDistance).toBe(80);
+        expect(A.namePosition).toBeCloseTo(Math.PI / 2);
+        placeLabel(A, [440, 280]);
+        const { scene: copy } = studio();
+        readDgo(copy, await describeDgo(c));
+        const B = copy.getObj("A") as point_object;
+        expect(B.nameDistance).toBe(A.nameDistance);
+        expect(B.namePosition).toBe(A.namePosition);
     });
 });
