@@ -1469,13 +1469,13 @@ function updatePreview(screen: Vec2, hits: Hit[]): void {
         const objects: construction_object[] = [];
         const argument =
             candidate === "pointer"
-                ? add(
-                      c,
-                      { name: "‧p", overload: FREE_POINT, args: coords! },
-                      false,
-                  )
+                ? add(c, { name: "‧p", overload: FREE_POINT, args: coords! })
                 : candidate;
-        if (candidate === "pointer") objects.push(argument);
+        if (candidate === "pointer") {
+            argument.showName = false;
+            argument.updateView();
+            objects.push(argument);
+        }
         const full = [...args];
         if (overload.variadic) full.push(argument);
         else full[slot] = argument;

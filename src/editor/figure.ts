@@ -167,9 +167,10 @@ export function resolve(
     return { name: chosen, overload, args };
 }
 
-// As DGPad's tools build them: points named, regions filled.
+// Points in DocGeo's own style, named; regions filled as by DGPad's tools.
 function createdStyle(tag: string): Record<string, unknown> | undefined {
-    if (isPointTag(tag)) return { sn: 1 };
+    if (isPointTag(tag))
+        return { c: "#604820", fc: "#e4ceb9", o: 1, sn: 1, f: 26 };
     if (tag === "Poly" || tag === "Sph" || tag === "Sec") return { o: 0.2 };
 }
 

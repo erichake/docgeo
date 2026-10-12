@@ -406,8 +406,10 @@ Fait (2026-10-11) :
   dans DGPad, mais relâché sur l'icône l'outil reste simplement en attente
   (l'élève qui lâche trop tôt ne perd rien) ; relâché hors de la figure,
   rien n'est désigné. Un bouton ✕ dans la consigne abandonne l'outil
-  (Échap au clavier). Styles de création de DGPad : noms des
-  points affichés, polygones, sphères et secteurs remplis à 20 %.
+  (Échap au clavier). Styles de création : points au style
+  propre à DocGeo, bruns à fond beige (`#604820`, `#e4ceb9`), opaques, nom
+  affiché en taille 26 ; comme dans DGPad, polygones, sphères et secteurs
+  remplis à 20 %.
 - Une pile d'annulation (instantanés `.dgo` sans la vue), Cmd-Z,
   Cmd-Maj-Z, Cmd-Y ; ouverture `.dgo`, `.dgp`, `.ggb` (bouton ou `?url=`),
   Cmd-S.
