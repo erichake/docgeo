@@ -25,6 +25,14 @@ import {
     toggleGhost,
     withGhostsHidden,
 } from "../../src/editor/eraser";
+import {
+    attracts,
+    dropLostMagnets,
+    magnetizable,
+    reachOf,
+    setReach,
+    showZone,
+} from "../../src/editor/magnets";
 import { crossing, meant, pick } from "../../src/editor/pick";
 import { parseLine, TextError } from "../../src/editor/text";
 import type { point_object } from "../../src/objects/point_object";
@@ -309,5 +317,59 @@ describe("Editor", () => {
         expect([a.hidden, b.hidden, a.hasView]).toEqual([0, 0, true]);
         hideGhosts(ghosts);
         expect([a.hidden, a.hasView, b.hidden]).toEqual([1, false, 0]);
+    });
+
+    it("sets magnets as DGPad, and drops those of removed targets", async () => {
+        const { scene: c } = studio();
+        [
+            "A = (0, 0)",
+            "B = (4, 0)",
+            "C = (0, 4)",
+            "a = Line(A, B)",
+            "c = Circle(C, A)",
+            "M = Midpoint(A, B)",
+            "P = Point(c, 1)",
+        ].forEach((line) => type(c, line));
+        const [A, B, C, a, k, M, P] = ["A", "B", "C", "a", "c", "M", "P"].map(
+            (name) => c.getObj(name)!,
+        );
+        expect([A, M, P].map(magnetizable)).toEqual([true, false, false]);
+        const point = B as point_object;
+        expect([A, C, k].map((o) => attracts(point, o))).toEqual([
+            true,
+            true,
+            true,
+        ]);
+        // These move with B.
+        expect([point, a, M].map((o) => attracts(point, o))).toEqual([
+            false,
+            false,
+            false,
+        ]);
+        expect(attracts(A as point_object, a)).toBe(false);
+        setReach(point, k as never, 20);
+        setReach(point, C as never, 50);
+        setReach(point, k as never, 30);
+        expect(
+            point.magnets.map(({ target, radius }) => [target.name, radius]),
+        ).toEqual([
+            ["C", 50],
+            ["c", 30],
+        ]);
+        c.flush();
+        const zone = showZone(k as never, 30)!;
+        expect(zone.dom().nextSibling).toBe(k.dom.dom());
+        expect(
+            (zone.dom() as SVGElement).style.getPropertyValue("--dge-reach"),
+        ).toBe("60px");
+        zone.remove();
+        setReach(point, k as never, 0);
+        expect(reachOf(point, k as never)).toBe(0);
+        setReach(point, k as never, 30);
+        c.removeObject(C);
+        dropLostMagnets(c);
+        expect(point.magnets.map(({ target }) => target)).toEqual([]);
+        const { st } = await describeDgo(c);
+        expect(st?.some((style) => style.mg)).toBe(false);
     });
 });

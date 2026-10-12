@@ -39,6 +39,16 @@ const MESSAGES = {
     close_history: ["Fermer l’historique", "Close history"],
     properties: ["Propriétés", "Properties"],
     settings: ["Réglages", "Settings"],
+    magnet: ["Aimants", "Magnets"],
+    magnet_hint: [
+        "Désignez les objets qui attirent % · touchez le vide pour terminer",
+        "Select the objects that attract % · tap an empty spot to finish",
+    ],
+    magnets_of: ["Aimants de %", "Magnets of %"],
+    done: ["Terminé", "Done"],
+    reach: ["Attraction de %", "Attraction of %"],
+    no_reach: ["Aucune", "None"],
+    full_reach: ["Partout", "Everywhere"],
     close_properties: ["Fermer les propriétés", "Close properties"],
     properties_hint: [
         "Désignez un objet dans la figure, ou choisissez-le dans la liste.",

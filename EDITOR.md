@@ -196,8 +196,9 @@ multiplieraient sur l'anneau au fil des implémentations. Partage :
 - **l'anneau construit** à partir de l'objet (outils géométriques) ;
 - **la barre agit** sur l'objet sélectionné (supprimer, redéfinir…) ;
 - **le panneau de propriétés règle** ses attributs : ce qui, dans DGPad,
-  était un outil mais ne change qu'un attribut (nom, aimant, ancre,
-  trace…) y devient un champ ou une case ;
+  était un outil mais ne change qu'un attribut (nom, ancre, trace…) y
+  devient un champ ou une case ; pas les aimants, qui désignent d'autres
+  objets de la figure (section « Aimants ») ;
 - ce qui ne dépend pas de l'objet (calculatrice, modes) est un bouton
   permanent de la barre, comme la gomme.
 
@@ -231,6 +232,48 @@ quand aucun anneau ne s'ouvre.
 La barre est déjà pleine à 320 px : sous 600 px, la zone contextuelle
 flotte, centrée, juste sous la barre, par-dessus le haut de la figure,
 sans la décaler.
+
+## Aimants
+
+Décidé le 2026-10-12, l'idée de DGPad (son outil aimant, `MagnetManager`)
+avec une interface plus parlante. Un point libre (le seul que le moteur
+aimante quand on le glisse) a dans la zone contextuelle un bouton
+« Aimants », le dernier, comme dans la rangée grise de DGPad. Il ouvre un
+mode, qu'on doit voir et savoir quitter sans rien deviner :
+
+- la zone contextuelle en devient le bandeau : « Aimants de P » et un
+  bouton « Terminé » bleu, à la place des actions (Suppr n'agit plus sur
+  le point) ; la consigne dit « … touchez le vide pour terminer » ;
+
+- le point brille en bleu, ses cibles en rouge, comme dans DGPad, et le
+  reste de la figure (grille et axes compris) passe sous un voile blanc
+  (opacité 0,4, le `rgba(255,255,255,0.6)` de DGPad) ; un objet survolé en
+  sort, pour montrer ce qu'un toucher désignerait ;
+- toucher un objet en fait une cible, avec la dernière attraction réglée
+  (20 px au départ), ou la choisit si elle l'était déjà ; un menu départage
+  les objets superposés. Les cibles possibles sont celles du moteur
+  (points, droites, cercles, coniques, listes, courbes), sauf le point et
+  ses dépendants, qui bougeraient avec lui ;
+- l'attraction de la cible choisie se règle par un curseur dans une carte
+  posée au-delà de sa zone, sous l'endroit où elle attire le plus le
+  point (au-dessus de la consigne), à la distance fixée quand la cible est
+  choisie : la carte ne bouge pas pendant qu'on règle, seulement si la
+  figure bouge. Les crans sont ceux de DGPad (« Aucune » retire l'aimant,
+  1, 2, 5… 1000 px, « Partout ») ;
+- nouveauté : la zone d'attraction de chaque cible est dessinée sous elle,
+  en rouge pâle (la forme de la cible épaissie de l'attraction de part et
+  d'autre, un disque pour un point), plus marquée pour la cible choisie ;
+  on voit d'un coup tout le « champ » du point ;
+- le point se glisse pendant le mode pour essayer ; zones et carte suivent
+  la figure, glissée ou zoomée ;
+- un toucher dans le vide quitte le mode, comme il ferme partout ailleurs
+  (anneau, menu, sélection) ; « Terminé » et Échap aussi. En sortir par
+  erreur ne coûte rien : les aimants restent. Chaque réglage est une étape
+  d'annulation (au relâchement du curseur).
+
+Le moteur garde parmi les aimants une cible supprimée : l'éditeur les
+retire après chaque changement, sinon l'enregistrement ne pourrait pas la
+nommer.
 
 ## Gomme
 
@@ -447,6 +490,12 @@ Fait (2026-10-11) :
   qui n'en a aucun ; annuler / refaire au bout de la barre. Vérifié dans
   `editor.html` à 1200 et 360 px de large. Éditeur : 62,8 Ko, CSS inclus
   (22,5 Ko en gzip) ; lecteur inchangé.
+
+- Aimants (2026-10-12, section du même nom) : bouton de la zone
+  contextuelle pour les points libres, bandeau « Terminé », voile blanc,
+  cibles en rouge, curseur à crans de DGPad, zones d'attraction dessinées. Vérifié dans `editor.html` à 1200
+  et 360 px de large (glisser aimanté, annuler / refaire). Éditeur :
+  67,8 Ko, CSS inclus (24,1 Ko en gzip) ; lecteur inchangé.
 
 Reste à faire :
 

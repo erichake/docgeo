@@ -14,4 +14,6 @@ export const ACTION_ICONS = {
     // The teeth, dashes of a thick circle.
     settings:
         '<circle cx="12" cy="12" r="8" stroke-width="3" stroke-dasharray="3 3.283" stroke-linecap="butt"/><circle cx="12" cy="12" r="6.5"/><circle cx="12" cy="12" r="2.5"/>',
+    // A horseshoe, its poles towards the top right.
+    magnet: '<g transform="rotate(45 12 12)"><path d="M6 4h4v8a2 2 0 0 0 4 0V4h4v8a6 6 0 0 1-12 0ZM6 8h4m4 0h4"/></g>',
 };

@@ -12,7 +12,7 @@ import { importDgp, importDgpFromUrl } from "../dgp_importer";
 import { $, type DOMElement } from "../dom";
 import { importGgbFromBlob, importGgbFromUrl } from "../ggb_importer";
 import type { construction_object } from "../objects/construction_object";
-import { point_object } from "../objects/point_object";
+import { point_object, type magnet_target } from "../objects/point_object";
 import { button_object } from "../objects/button_object";
 import { expression_object } from "../objects/expression_object";
 import { polygon_object } from "../objects/polygon_object";
@@ -71,6 +71,15 @@ import {
 } from "./text";
 import { RING_SLOTS, toolsFor, type Tool } from "./tools";
 import { propertiesPanel } from "./properties";
+import {
+    attracts,
+    dropLostMagnets,
+    magnetizable,
+    REACHES,
+    reachOf,
+    setReach,
+    showZone,
+} from "./magnets";
 import "./properties.css";
 
 // The construction editor: see EDITOR.md.
@@ -94,7 +103,7 @@ $("head").append(`<style>
     .dge-editor.dge-panel-animated { --dge-slide-duration: 240ms; }
     .dge-editor.dge-panel-closed { --dge-panel-width: 0px; }
     .dge-panel-closed .dge-panel { transform: translateX(-100%); visibility: hidden; transition-delay: 0s, var(--dge-slide-duration); }
-    .dge-panel, .dge-bar, .dge-hint, .dge-ring, .dge-complete, .dge-menu { font: 14px/1.4 system-ui, -apple-system, "Segoe UI", sans-serif; color: #1f2937; }
+    .dge-panel, .dge-bar, .dge-hint, .dge-ring, .dge-complete, .dge-menu, .dge-magnet { font: 14px/1.4 system-ui, -apple-system, "Segoe UI", sans-serif; color: #1f2937; }
     .dge-panel { position: fixed; inset-block: var(--dge-bar-height) 0; inset-inline-start: 0; width: var(--dge-panel-size); box-sizing: border-box; padding-block-end: 12px; overflow: auto; background: #fff; border-inline-end: 1px solid #e5e7eb; z-index: 10; touch-action: pan-y; transform: translateX(0); transition: transform var(--dge-slide), visibility 0s; }
     .dge-panel-header { position: sticky; top: 0; display: flex; align-items: center; justify-content: space-between; padding: 8px 12px 8px 16px; background: #fff; border-block-end: 1px solid #e5e7eb; z-index: 1; }
     .dge-panel-header h2 { margin: 0; font-size: 14px; font-weight: 600; }
@@ -122,6 +131,9 @@ $("head").append(`<style>
     .dge-bar-object { align-items: center; min-width: 0; animation: dge-arrive 180ms ease-out; }
     .dge-editor .dge-bar .dge-bar-object { gap: 4px; padding: 4px; border: 0; border-radius: 26px; background: rgb(219 225 232); }
     .dge-editor .dge-bar .dge-bar-object .dge-action { width: 40px; height: 40px; border-color: hsl(215 14% 60%); border-radius: 50%; background: hsl(215 17.5% 96%); box-shadow: 0 1px 2px rgb(15 23 42 / 0.06), 0 3px 7px rgb(15 23 42 / 0.08); }
+    .dge-done { height: 40px; padding: 0 18px; border: 0; border-radius: 20px; background: #2563eb; color: #fff; font: inherit; font-weight: 600; cursor: pointer; }
+    .dge-done:hover { background: #1d4ed8; }
+    .dge-done:focus-visible { outline: 2px solid #2563eb; outline-offset: 2px; }
     .dge-bar-object .dge-action:hover:not(:disabled) { background: #2563eb; border-color: #2563eb; color: #fff; }
     .dge-bar-name { display: flex; align-items: center; gap: 6px; min-width: 0; max-width: 120px; padding-inline: 4px 6px; font-weight: 600; color: #334155; }
     .dge-bar-name span:last-child { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -152,6 +164,16 @@ $("head").append(`<style>
     .dge-complete div, .dge-menu div { padding: 3px 12px; font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 13px; cursor: pointer; }
     .dge-complete div.dge-selected, .dge-complete div:hover, .dge-menu div:hover { background: #2563eb; color: #fff; }
     .dge-complete:empty { display: none; }
+    .dge-magnet { position: fixed; display: flex; align-items: center; gap: 10px; padding: 6px 12px 6px 6px; border: 1px solid #fecaca; border-radius: 22px; background: #fff; box-shadow: 0 6px 20px rgb(15 23 42 / 0.16); z-index: 12; }
+    .dge-magnet input { width: 150px; margin: 0; accent-color: #dc2626; }
+    .dge-magnet output { width: 80px; white-space: nowrap; font-weight: 600; font-variant-numeric: tabular-nums; color: #b91c1c; }
+    svg .dge-target { filter: drop-shadow(0 0 2px #dc2626) drop-shadow(0 0 2px #dc2626); }
+    svg .dge-source { filter: drop-shadow(0 0 2px #2563eb) drop-shadow(0 0 3px #2563eb); }
+    svg.dge-magnetizing [data-layer] > :not(.dge-source, .dge-target, .dge-zone, .dge-hover) { opacity: 0.4; }
+    svg .dge-zone { opacity: 0.07; pointer-events: none; }
+    svg .dge-zone.dge-chosen { opacity: 0.16; }
+    svg .dge-zone * { fill: none !important; stroke: #dc2626 !important; stroke-width: var(--dge-reach) !important; stroke-opacity: 1 !important; stroke-dasharray: none !important; stroke-linecap: round; stroke-linejoin: round; pointer-events: none !important; }
+    svg .dge-zone text { display: none; }
     svg .dge-hover { filter: drop-shadow(0 0 2px #f59e0b) drop-shadow(0 0 3px #f59e0b); }
     svg .dge-ok { filter: drop-shadow(0 0 2px #16a34a) drop-shadow(0 0 2px #16a34a); }
     svg .dge-preview { opacity: 0.55; }
@@ -215,6 +237,15 @@ const propertiesButton = button("properties", () =>
     .att("aria-expanded", "false");
 const deleteButton = button("delete", () => remove()).addClass("dge-delete");
 const settingsButton = button("settings", () => setProperties(true));
+const magnetButton = button("magnet", () =>
+    startMagnets(target() as point_object),
+);
+// In place of the actions while the magnets are chosen: the way out.
+const doneButton = $.create("button")
+    .cls("dge-done")
+    .att("type", "button")
+    .text(message("done"));
+doneButton.on("click", () => stopMagnets());
 const swatch = $.create("span").cls("dge-swatch");
 const objectName = $.create("span");
 // The actions on the selected object.
@@ -225,8 +256,43 @@ const actions = $.create("div")
         $.create("span").cls("dge-bar-name").add(swatch, objectName),
         deleteButton,
         settingsButton,
+        magnetButton,
+        doneButton,
     )
     .hide();
+// The reach of the magnet chosen, near it, as DGPad's slider.
+const reachSwatch = $.create("span").cls("dge-swatch");
+const reachName = $.create("span");
+const reachInput = $.create("input")
+    .att("type", "range")
+    .att("min", 0)
+    .att("max", REACHES.length - 1);
+const reachValue = $.create("output");
+const magnetCard = $.create("div")
+    .cls("dge-magnet")
+    .add(
+        $.create("span").cls("dge-bar-name").add(reachSwatch, reachName),
+        reachInput,
+        reachValue,
+    )
+    .hide();
+reachInput.on(
+    "input",
+    () => {
+        const { point, target } = magnetizing!;
+        setReach(point, target!, REACHES[+reachField().value]);
+        showReach();
+    },
+    false,
+);
+reachInput.on(
+    "change",
+    () => {
+        standardReach = REACHES[+reachField().value] || standardReach;
+        changed();
+    },
+    false,
+);
 // Hovered, an action shows its line, as the ring's tools.
 function explain(action: DOMElement, line: (name: string) => string): void {
     action.on(
@@ -234,10 +300,11 @@ function explain(action: DOMElement, line: (name: string) => string): void {
         () => showHint(line(formatName(target()!.name))),
         false,
     );
-    action.on("pointerleave", () => showHint(""), false);
+    action.on("pointerleave", () => showHint(restingHint()), false);
 }
 explain(deleteButton, (name) => `${name} =\n${message("delete")}`);
 explain(settingsButton, (name) => `${name}\n${message("settings")}`);
+explain(magnetButton, (name) => `${name}\n${message("magnet")}`);
 const properties = propertiesPanel({
     scene,
     changed: () => changed(),
@@ -297,6 +364,7 @@ $("body").add(
     ring,
     complete,
     menu,
+    magnetCard,
 );
 function setPanel(on: boolean, animate = true): void {
     if (on && propertiesOpen && window.innerWidth <= 900) setProperties(false);
@@ -374,6 +442,17 @@ let figureName = "figure";
 // While erasing: the objects hidden, shown pale.
 let ghosts: Set<construction_object> | null = null;
 let propertiesOpen = false;
+// The point whose magnets are being chosen, and the one whose reach is set.
+let magnetizing: {
+    point: point_object;
+    target: magnet_target | null;
+    // How far the reach is from its target: set once chosen, the slider
+    // not moving under the finger.
+    away: number;
+} | null = null;
+let zones: DOMElement[] = [];
+// As DGPad, a new magnet takes the last reach chosen.
+let standardReach = 20;
 
 const element = (node: EventTarget | null) =>
     node instanceof Element ? node : null;
@@ -495,6 +574,7 @@ function bindRow(row: DOMElement, object: construction_object | null): void {
                 setProperties(false);
             }
             setEraser(false);
+            stopMagnets();
             original = field.value;
             updateCompletion(field);
         },
@@ -843,7 +923,7 @@ function wantsPoint(hits: Hit[]): boolean {
             paramAt(pending.tool.overload, nextSlot()) === "point"
         );
     const field = editing();
-    if (!field) return !propertiesOpen && !ghosts;
+    if (!field) return !propertiesOpen && !ghosts && !magnetizing;
     const call = typedCall(field);
     return (
         expectsPoint(field, call) &&
@@ -1061,22 +1141,141 @@ const target = (): construction_object | null =>
 
 // The bar's actions, shown with the ring, and gone once one is applied.
 function showActions(): void {
-    if (!held) {
+    const object = held?.hit.object ?? magnetizing?.point;
+    if (!object) {
         actions.hide();
         return;
     }
-    const { object } = held.hit;
     const name = formatName(object.name);
+    const label = magnetizing ? message("magnets_of", name) : name;
     swatch.stl("background", object.stroke_color);
-    objectName.text(name);
-    actions.att("aria-label", name).show("flex");
+    objectName.text(label);
+    [deleteButton, settingsButton].forEach((action) =>
+        magnetizing ? action.hide() : action.show("grid"),
+    );
+    if (!magnetizing && magnetizable(object)) magnetButton.show("grid");
+    else magnetButton.hide();
+    if (magnetizing) doneButton.show();
+    else doneButton.hide();
+    actions.att("aria-label", label).show("flex");
 }
 
 function remove(): void {
     const object = target()!;
+    stopMagnets();
     closeRing();
     scene().removeObject(object);
     done();
+}
+
+// ************************** MAGNETS *****************************
+
+const reachField = () => reachInput.dom() as HTMLInputElement;
+
+const restingHint = (): string =>
+    ghosts
+        ? message("erasing")
+        : magnetizing
+          ? message("magnet_hint", formatName(magnetizing.point.name))
+          : "";
+
+// Its targets attract the point while it's dragged, as in DGPad: a tap on
+// an object makes it one, or chooses it to set its reach.
+function startMagnets(point: point_object): void {
+    magnetizing = { point, target: null, away: 0 };
+    closeRing();
+    point.dom.addClass("dge-source");
+    showMagnets();
+    showHint(restingHint());
+}
+
+function stopMagnets(): void {
+    if (!magnetizing) return;
+    magnetizing.point.dom.removeClass("dge-source");
+    magnetizing = null;
+    magnetCard.hide();
+    showMagnets();
+    showActions();
+    showHint("");
+}
+
+function chooseTarget(target: magnet_target): void {
+    const { point } = magnetizing!;
+    magnetizing!.target = target;
+    if (!reachOf(point, target)) {
+        setReach(point, target, standardReach);
+        changed();
+    }
+    const name = formatName(target.name);
+    reachSwatch.stl("background", target.stroke_color);
+    reachName.text(name);
+    reachInput.att("aria-label", message("reach", name));
+    const reach = reachOf(point, target);
+    magnetizing!.away = 16 + Math.min(reach, 100);
+    reachField().value = String(
+        REACHES.reduce((best, stop, index) =>
+            Math.abs(stop - reach) < Math.abs(REACHES[best] - reach)
+                ? index
+                : best,
+        ),
+    );
+    magnetCard.show("flex");
+    showReach();
+}
+
+function showReach(): void {
+    const { point, target } = magnetizing!;
+    const reach = reachOf(point, target!);
+    reachValue.text(
+        reach
+            ? reach < REACHES[REACHES.length - 1]
+                ? `${reach} px`
+                : message("full_reach")
+            : message("no_reach"),
+    );
+    showMagnets();
+}
+
+// The other objects behind a white veil, the targets in red, as in DGPad,
+// over the zones where they attract the point, and the reach of the one
+// chosen beyond its zone, where it attracts the point most.
+function showMagnets(): void {
+    const c = scene();
+    c.svg.toggleClass("dge-magnetizing", !!magnetizing);
+    c.svg
+        .findAll(".dge-target")
+        .forEach((target) => target.removeClass("dge-target"));
+    zones.forEach((zone) => zone.remove());
+    zones = [];
+    if (!magnetizing) return;
+    c.flush();
+    const { point, target, away } = magnetizing;
+    point.magnets.forEach(({ target: shown, radius }) => {
+        if (shown.hasView) shown.dom.addClass("dge-target");
+        const zone = showZone(shown, radius);
+        if (zone) zones.push(zone.toggleClass("dge-chosen", shown === target));
+    });
+    if (!target) return;
+    const at = nearest(c, target, point.SCREEN);
+    const screen = at && c.pt3D(at);
+    const [x, y] = screen && vIsFinite(screen) ? screen : point.SCREEN;
+    const box = c.svg.dom().getBoundingClientRect();
+    const { width, height } = magnetCard.dom().getBoundingClientRect();
+    const left = box.left + x - width / 2;
+    const top = box.top + y + away;
+    // Above the hint.
+    const bottom = hint.text()
+        ? hint.dom().getBoundingClientRect().top
+        : window.innerHeight;
+    magnetCard
+        .stl(
+            "left",
+            `${Math.max(8, Math.min(left, window.innerWidth - width - 8))}px`,
+        )
+        .stl(
+            "top",
+            `${Math.max(8, top + height > bottom - 8 ? top - 2 * away - height : top)}px`,
+        );
 }
 
 // The object meant by a click on these hits, chosen in a menu when several
@@ -1351,6 +1550,7 @@ function setAxes(on: boolean): void {
 }
 
 function cancel(): void {
+    stopMagnets();
     pending = null;
     aim = null;
     clearPreview();
@@ -1370,6 +1570,7 @@ function done(object?: construction_object): void {
 // After a change of the figure: its text, and a step to undo.
 function changed(object?: construction_object): void {
     forgetBranches();
+    dropLostMagnets(scene());
     scene().flush();
     void record().then(() => {
         refreshRows();
@@ -1381,11 +1582,7 @@ function changed(object?: construction_object): void {
         if (pending) prompt();
         else
             showHint(
-                row
-                    ? (row.dom() as HTMLInputElement).value
-                    : ghosts
-                      ? message("erasing")
-                      : "",
+                row ? (row.dom() as HTMLInputElement).value : restingHint(),
             );
     });
 }
@@ -1422,10 +1619,13 @@ function follow(event: PointerEvent): void {
     if (held) return;
     // The two objects whose intersection a click would make.
     const cross = wantsPoint(hits) && crossing(c, screen, hits);
+    const shown = magnetizing
+        ? hits.filter(({ object }) => attracts(magnetizing!.point, object))
+        : hits;
     highlight(
         ...(cross
             ? [cross.a, cross.b]
-            : hits.slice(0, 1).map(({ object }) => object)),
+            : shown.slice(0, 1).map(({ object }) => object)),
     );
 }
 
@@ -1515,6 +1715,7 @@ function dragged(): void {
         forgetBranches();
         updateRows();
         moveRing();
+        showMagnets();
     });
 }
 
@@ -1575,6 +1776,18 @@ $("body").on(
         const screen = c.pointerPosition(event);
         const hits = pick(c, screen, previewed());
         const client: Vec2 = [event.clientX, event.clientY];
+        if (magnetizing) {
+            const { point } = magnetizing;
+            const targets = hits.filter(({ object }) =>
+                attracts(point, object),
+            );
+            if (hits[0]?.object === point) return;
+            if (targets[0])
+                return chooseHit(targets, client, ({ object }) =>
+                    chooseTarget(object as magnet_target),
+                );
+            return stopMagnets();
+        }
         if (propertiesOpen) {
             // A widget, or an object the figure can't pick, as an angle.
             const object = propertyObject(event);
@@ -1615,7 +1828,9 @@ $("body").on(
             void save();
         } else if (
             editing() ||
-            (properties.panel.dom().contains(element(event.target)) &&
+            ([properties.panel, magnetCard].some((box) =>
+                box.dom().contains(element(event.target)),
+            ) &&
                 event.key !== "Escape")
         )
             return;
