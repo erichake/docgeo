@@ -54,6 +54,11 @@ const MESSAGES = {
         "Select the objects that attract % · tap an empty spot to finish",
     ],
     magnets_of: ["Aimants de %", "Magnets of %"],
+    spring: ["Animer", "Animate"],
+    spring_hint: [
+        "Tirez le ressort de % : longueur = vitesse, côté = sens, en travers = aller-retour",
+        "Pull the spring of %: length = speed, side = direction, across = back and forth",
+    ],
     done: ["Terminé", "Done"],
     reach: ["Attraction de %", "Attraction of %"],
     no_reach: ["Aucune", "None"],

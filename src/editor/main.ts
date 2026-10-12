@@ -1,5 +1,6 @@
 // First, as in the player: the object classes import each other.
 import { construction } from "../construction";
+import type { Animation } from "../animation";
 import {
     describeDgo,
     figureObjects,
@@ -13,6 +14,7 @@ import { $, type DOMElement } from "../dom";
 import { importGgbFromBlob, importGgbFromUrl } from "../ggb_importer";
 import type { construction_object } from "../objects/construction_object";
 import { point_object, type magnet_target } from "../objects/point_object";
+import type { point_on_object } from "../objects/point_on_object";
 import { button_object } from "../objects/button_object";
 import { expression_object } from "../objects/expression_object";
 import { polygon_object } from "../objects/polygon_object";
@@ -82,6 +84,16 @@ import {
     showZone,
 } from "./magnets";
 import { pinnable, togglePin } from "./pin";
+import {
+    handleOf,
+    moveGhost,
+    pull,
+    setAnimation,
+    springOf,
+    springy,
+    type Ghost,
+    type Spring,
+} from "./spring";
 import "./properties.css";
 
 // The construction editor: see EDITOR.md.
@@ -181,6 +193,17 @@ $("head").append(`<style>
     svg .dge-ok { filter: drop-shadow(0 0 2px #16a34a) drop-shadow(0 0 2px #16a34a); }
     svg .dge-preview { opacity: 0.55; }
     .dge-ghost { opacity: 0.3 !important; }
+    .dge-spring { position: fixed; width: 0; height: 0; z-index: 12; }
+    .dge-spring svg { position: absolute; overflow: visible; pointer-events: none; }
+    .dge-coil { fill: none; stroke: #536174; stroke-width: 1.6; stroke-linejoin: round; stroke-linecap: round; }
+    .dge-spring circle { pointer-events: all; cursor: grab; touch-action: none; }
+    .dge-spring .dge-grip { fill: transparent; }
+    .dge-spring .dge-ball { fill: #f8fafc; stroke: #2563eb; stroke-width: 2.5; transform-box: fill-box; transform-origin: center; }
+    .dge-spring circle:hover ~ .dge-ball, .dge-spring .dge-ball:hover, .dge-pulling .dge-ball { fill: #2563eb; }
+    .dge-pulling circle { cursor: grabbing; }
+    svg .dge-spring-ghost { opacity: 0.4; pointer-events: none; }
+    svg .dge-spring-ghost.dge-still { display: none; }
+    .dge-spring text { font: 600 13px system-ui, -apple-system, "Segoe UI", sans-serif; fill: #334155; stroke: #fff; stroke-width: 4px; paint-order: stroke; text-anchor: middle; }
 </style>`);
 
 // ************************** LAYOUT ******************************
@@ -248,6 +271,11 @@ const pinButton = button("pin", () => {
 const magnetButton = button("magnet", () =>
     startMagnets(target() as point_object),
 );
+// Takes the spring out, or puts it away.
+const springButton = button("spring", () => {
+    springOut = !springOut;
+    showActions();
+}).att("aria-pressed", "false");
 // In place of the actions while the magnets are chosen: the way out.
 const doneButton = $.create("button")
     .cls("dge-done")
@@ -264,11 +292,23 @@ const actions = $.create("div")
         $.create("span").cls("dge-bar-name").add(swatch, objectName),
         deleteButton,
         settingsButton,
+        springButton,
         pinButton,
         magnetButton,
         doneButton,
     )
     .hide();
+// The spring of the object selected, tied to it, pulled by its ball.
+const spring = $.create("div")
+    .cls("dge-spring")
+    .append(
+        `<svg width="1" height="1"><path class="dge-coil"/><text/><circle class="dge-grip" r="13"/><circle class="dge-ball" r="8"/></svg>`,
+    )
+    .hide();
+const coil = spring.find(".dge-coil")!;
+const speedText = spring.find("text")!;
+const grip = spring.find(".dge-grip")!;
+const ball = spring.find(".dge-ball")!;
 // The reach of the magnet chosen, near it, as DGPad's slider.
 const reachSwatch = $.create("span").cls("dge-swatch");
 const reachName = $.create("span");
@@ -319,6 +359,7 @@ explain(
         `${name}\n${message((target() as point_object).pinned ? "unpin_hint" : "pin_hint", name)}`,
 );
 explain(magnetButton, (name) => `${name}\n${message("magnet")}`);
+explain(springButton, (name) => `${name}\n${message("spring_hint", name)}`);
 const properties = propertiesPanel({
     scene,
     changed: () => changed(),
@@ -379,6 +420,7 @@ $("body").add(
     complete,
     menu,
     magnetCard,
+    spring,
 );
 function setPanel(on: boolean, animate = true): void {
     if (on && propertiesOpen && window.innerWidth <= 900) setProperties(false);
@@ -467,6 +509,28 @@ let magnetizing: {
 let zones: DOMElement[] = [];
 // As DGPad, a new magnet takes the last reach chosen.
 let standardReach = 20;
+// The object whose spring is shown, and while it's pulled, where from on the
+// screen.
+let sprung: {
+    object: point_on_object;
+    pulled: {
+        anchor: Vec2;
+        spring: Spring;
+        vector: Vec2;
+        // The animation the pull gives, none before the ball moves, and the
+        // one the point had, held still meanwhile.
+        animation: Animation | null;
+        before: Animation | null;
+        ghost: Ghost & { node: DOMElement };
+        // The last frame, and when the ball was let go.
+        time: number | null;
+        released: number | null;
+        launched: boolean;
+    } | null;
+} | null = null;
+let springFrame: number | null = null;
+// The spring button pressed for the object selected.
+let springOut = false;
 
 const element = (node: EventTarget | null) =>
     node instanceof Element ? node : null;
@@ -1159,6 +1223,8 @@ const target = (): construction_object | null =>
 function showActions(): void {
     const object = held?.hit.object ?? magnetizing?.point;
     if (!object) {
+        springOut = false;
+        showSpring(null);
         actions.hide();
         return;
     }
@@ -1178,6 +1244,13 @@ function showActions(): void {
     } else pinButton.hide();
     if (!magnetizing && magnetizable(object)) magnetButton.show("grid");
     else magnetButton.hide();
+    if (!magnetizing && springy(object))
+        springButton
+            .toggleClass("dge-on", springOut)
+            .att("aria-pressed", String(springOut))
+            .show("grid");
+    else springButton.hide();
+    showSpring(springOut && !magnetizing && springy(object) ? object : null);
     if (magnetizing) doneButton.show();
     else doneButton.hide();
     actions.att("aria-label", label).show("flex");
@@ -1190,6 +1263,192 @@ function remove(): void {
     scene().removeObject(object);
     done();
 }
+
+// ************************** SPRING ******************************
+
+function showSpring(object: point_on_object | null): void {
+    if (object === (sprung?.object ?? null)) return;
+    const pulled = sprung?.pulled;
+    if (pulled) {
+        pulled.ghost.node.remove();
+        if (!pulled.launched && pulled.before)
+            sprung!.object.animation = pulled.before;
+    }
+    sprung = object && { object, pulled: null };
+    if (springFrame !== null) cancelAnimationFrame(springFrame);
+    springFrame = null;
+    spring.removeClass("dge-pulling");
+    if (!object) return void spring.hide();
+    springFrame = requestAnimationFrame(drawSpring);
+}
+
+// Let go, the ball springs back to the point, which leaves as it passes
+// it, and beyond, a little less each time.
+const LAUNCH = 0.12;
+const RECOIL = 0.45;
+const recoil = (seconds: number) =>
+    Math.cos((Math.PI / 2) * (seconds / LAUNCH)) * Math.exp(-seconds / LAUNCH);
+
+// Each frame, as the object moves, animated or dragged: a coil of six
+// turns from the anchor to the ball, and the speed along it, as DGPad's;
+// while pulled, the ghost ahead.
+function drawSpring(time: number): void {
+    springFrame = requestAnimationFrame(drawSpring);
+    const { object, pulled } = sprung!;
+    if (!object.isVisible) return void spring.hide();
+    let vector: Vec2;
+    if (pulled?.released !== null && pulled?.released !== undefined) {
+        const seconds = (time - pulled.released) / 1000;
+        if (!pulled.launched && seconds >= LAUNCH) launch();
+        if (seconds >= RECOIL) {
+            closeRing();
+            return changed();
+        }
+        vector = vScale(pulled.vector, recoil(seconds));
+    } else if (pulled) {
+        vector = pulled.vector;
+        const { ghost } = pulled;
+        const seconds = pulled.time === null ? 0 : (time - pulled.time) / 1000;
+        pulled.time = time;
+        const [gx, gy] = moveGhost(object, ghost, seconds);
+        ghost.node
+            .att("transform", `translate(${gx} ${gy})`)
+            .toggleClass("dge-still", !ghost.animation.speed);
+    } else vector = handleOf(springOf(object), object.animation);
+    const [x, y] = pulled?.anchor ?? [object.sx, object.sy];
+    const [dx, dy] = vector;
+    const length = Math.hypot(dx, dy) || 1;
+    const [ux, uy] = [dx / length, dy / length];
+    const turns = 12;
+    const lead = 4;
+    // To the ball's edge.
+    const end = Math.max(length - 8, 2 * lead);
+    const width = 5;
+    const points = [`M0 0L${ux * lead} ${uy * lead}`];
+    for (let index = 0; index < turns; index++) {
+        const along = lead + ((index + 0.5) * (end - 2 * lead)) / turns;
+        const side = index % 2 ? -width : width;
+        points.push(`L${ux * along - uy * side} ${uy * along + ux * side}`);
+    }
+    points.push(
+        `L${ux * (end - lead)} ${uy * (end - lead)}L${ux * end} ${uy * end}`,
+    );
+    coil.att("d", points.join(""));
+    [grip, ball].forEach((circle) => circle.att("cx", dx).att("cy", dy));
+    // Along the spring, upright, beside it.
+    const angle = Math.atan2(dy, dx);
+    const upright = Math.abs(angle) > Math.PI / 2 ? angle + Math.PI : angle;
+    speedText
+        .text(
+            pulled?.animation && pulled.released === null
+                ? pull(pulled.spring, pulled.vector).label
+                : "",
+        )
+        .att(
+            "transform",
+            `translate(${dx / 2} ${dy / 2}) rotate(${(upright * 180) / Math.PI}) translate(0 -${width + 6})`,
+        );
+    const box = scene().svg.dom().getBoundingClientRect();
+    spring
+        .stl("left", `${box.left + x}px`)
+        .stl("top", `${box.top + y}px`)
+        .show();
+}
+
+// Taken, the spring holds the point where it is, and a ghost of it goes
+// ahead at the speed the pull gives.
+function takeSpring(event: PointerEvent): void {
+    const { object } = sprung!;
+    if (sprung!.pulled) return;
+    const taken = springOf(object);
+    const before = object.animation && { ...object.animation };
+    if (object.animation) object.animation.speed = 0;
+    const node = $(object.dom.dom().cloneNode(true) as Element)
+        .removeClass("dge-hover")
+        .addClass("dge-spring-ghost")
+        .addClass("dge-still");
+    object.dom.dom().after(node.dom());
+    sprung!.pulled = {
+        anchor: [object.sx, object.sy],
+        spring: taken,
+        vector: handleOf(taken, before),
+        animation: null,
+        before,
+        ghost: {
+            alpha: object.alpha,
+            animation: { speed: 0, direction: 1, ar: false },
+            node,
+        },
+        time: null,
+        released: null,
+        launched: false,
+    };
+    // Out of the way of the pull.
+    ring.hide();
+    grip.dom().setPointerCapture(event.pointerId);
+    spring.addClass("dge-pulling");
+    showHint("");
+}
+
+function pullSpring(event: PointerEvent): void {
+    const pulled = sprung?.pulled;
+    if (!pulled || pulled.released !== null) return;
+    const box = scene().svg.dom().getBoundingClientRect();
+    pulled.vector = vSub(
+        [event.clientX - box.left, event.clientY - box.top],
+        pulled.anchor,
+    );
+    const { animation } = pull(pulled.spring, pulled.vector);
+    // The same animation is kept: a back and forth keeps its direction.
+    if (JSON.stringify(animation) === JSON.stringify(pulled.animation)) return;
+    pulled.animation = animation;
+    pulled.ghost.animation = { ...animation };
+    if (!animation.speed) pulled.ghost.alpha = sprung!.object.alpha;
+}
+
+// Let go unmoved, the ball leaves the point as it was.
+function releaseSpring(): void {
+    const pulled = sprung?.pulled;
+    if (!pulled || pulled.released !== null) return;
+    spring.removeClass("dge-pulling");
+    if (!pulled.animation) {
+        closeRing();
+        return;
+    }
+    pulled.released = performance.now();
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+        launch();
+        closeRing();
+        changed();
+    }
+}
+
+function launch(): void {
+    const { object, pulled } = sprung!;
+    pulled!.launched = true;
+    pulled!.ghost.node.remove();
+    setAnimation(object, pulled!.animation!);
+    scene().animations.paused = false;
+}
+
+[grip, ball].forEach((circle) => {
+    circle.on("pointerdown", takeSpring);
+    circle.on("pointermove", pullSpring, false);
+    circle.on("pointerup", releaseSpring, false);
+    circle.on("pointercancel", releaseSpring, false);
+    circle.on(
+        "pointerenter",
+        () =>
+            !sprung?.pulled &&
+            showHint(message("spring_hint", formatName(sprung!.object.name))),
+        false,
+    );
+    circle.on(
+        "pointerleave",
+        () => !sprung?.pulled && showHint(restingHint()),
+        false,
+    );
+});
 
 // ************************** MAGNETS *****************************
 

@@ -294,6 +294,63 @@ d'annulation garde l'origine et l'unité de sa vue : elle est relue dans
 cette vue, puis ramenée à la vue courante, pour qu'annuler après un zoom
 ne déplace pas les points épinglés dans la fenêtre.
 
+## Ressort
+
+Décidé le 2026-10-12, l'outil ressort de DGPad (`SpringConstructor`) : on
+anime un point sur objet en tirant un ressort depuis le point, la longueur
+donnant la vitesse. Dans DGPad, le ressort se mesure du point au doigt : tiré
+depuis un bouton de la barre, loin du point, il partirait au cran maximal.
+Il est donc **accroché au point** :
+
+- un point sur objet que le moteur anime (sur une droite, un segment, une
+  demi-droite, un cercle, un arc, un polygone ou un lieu) a dans la zone
+  contextuelle un bouton bascule « Animer » (un ressort), bleu quand il est
+  enfoncé. Il sort sous le point un petit ressort au repos terminé par une
+  boule bleue, dans le vide intérieur de l'anneau ; comme pour la punaise,
+  la zone et l'anneau restent ouverts, et un second clic range le ressort,
+  qui ne sort jamais sans ce bouton (décidé le 2026-10-12, après un essai
+  où il sortait à chaque sélection). Le point lui-même se glisse toujours
+  (la boule s'en tient à l'écart) ;
+- on attrape la boule et on tire : la **longueur** donne la vitesse, par
+  crans, ceux de DGPad (px/s le long d'une droite ou d'un polygone, °/s sur
+  un cercle, % sur un lieu), écrits le long du ressort ; un cran fait au
+  moins 30 px (25 dans DGPad sur les cercles et les polygones), pour que la
+  boule au repos, en deçà du premier cran, reste loin du point ;
+- le **côté** donne le sens, comme un élastique qu'on lâche : le point part
+  à l'opposé de la traction, ce que fait DGPad sur une droite, avec une
+  règle unique pour tous les supports. Le sens de marche est celui du
+  moteur lui-même (un pas d'animation minuscule, mesuré à l'écran) ;
+- tiré **en travers** d'une droite (à plus de 45°), le point fait
+  l'aller-retour (`⇄`), comme dans DGPad ; sur les autres supports, il
+  boucle toujours ;
+- **un fantôme qui part, le point qui reste** : pendant qu'on tire, le point
+  reste en place (déjà animé, il s'arrête), le ressort vraiment accroché à
+  lui, et un fantôme pâle du point (son dessin et son nom) parcourt déjà le
+  chemin à la vitesse et dans le sens du cran ; l'anneau disparaît.
+  Relâchée, la boule revient vers le point comme un élastique qu'on lâche,
+  le dépasse un peu et oscille en s'amortissant (0,45 s) : c'est quand elle
+  passe par le point que celui-ci part, entraînant ses dépendants, et que le
+  fantôme disparaît. Les animations en pause reprennent alors ; l'anneau et
+  la zone se ferment, en une étape d'annulation. Ramené en deçà du premier
+  cran, le ressort arrête le point ; relâché sans avoir bougé, il le laisse
+  comme il était. Sans animation (préférence de réduction), le point part
+  au relâchement. Le fantôme est un clone du dessin du point que le moteur
+  fait avancer avec le point lui-même, prêté le temps d'un pas : aucun
+  objet n'est ajouté à la figure ;
+- **sorti sur un point déjà animé**, le ressort est tendu à sa vitesse (la
+  boule au milieu de son cran, derrière le point ou en travers pour un
+  aller-retour), et suit le point à chaque image. On reprend la boule pour
+  changer la vitesse.
+
+Le survol du bouton, comme celui de la boule, rappelle la règle dans la
+consigne. Les réglages fins (vitesse quelconque, sens
+inverse, « Arrêter » à l'extrémité) restent dans le panneau de propriétés,
+seul accès au clavier.
+
+Les curseurs, que DGPad anime aussi au ressort, en auront un quand
+l'éditeur saura les sélectionner : un toucher sur un curseur crée
+aujourd'hui un point.
+
 ## Noms des points
 
 Décidé le 2026-10-12, comme dans GeoGebra : le nom affiché d'un point se
@@ -541,6 +598,11 @@ Fait (2026-10-11) :
 - Punaise (2026-10-12, section du même nom). Vérifiée dans `editor.html`
   (bascule, zoom, annuler / refaire après zoom, ligne de texte).
   Éditeur : 70,3 Ko, CSS inclus (25,4 Ko en gzip) ; lecteur inchangé.
+
+- Ressort (2026-10-12, section du même nom) : `src/editor/spring.ts`.
+  Vérifié dans `editor.html` (segment, cercle, aller-retour, reprise sur un
+  point animé, annuler). Éditeur : 75,7 Ko, CSS inclus (27,3 Ko en gzip) ;
+  lecteur : +19 octets, une exportation de plus du moteur partagé.
 
 Reste à faire :
 

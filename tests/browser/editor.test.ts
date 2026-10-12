@@ -34,11 +34,20 @@ import {
     showZone,
 } from "../../src/editor/magnets";
 import { pinnable, togglePin } from "../../src/editor/pin";
+import {
+    handleOf,
+    pull,
+    setAnimation,
+    springOf,
+    springy,
+} from "../../src/editor/spring";
+import type { point_on_object } from "../../src/objects/point_on_object";
 import { labelAt, labelCenter, placeLabel } from "../../src/editor/labels";
 import { crossing, meant, pick } from "../../src/editor/pick";
 import { parseLine, TextError } from "../../src/editor/text";
 import type { point_object } from "../../src/objects/point_object";
 import { createConstruction, disposeFigures, expectClose } from "./figures";
+import { vDot, vScale, vSub } from "../../src/vec";
 
 disposeFigures();
 
@@ -400,6 +409,83 @@ describe("Editor", () => {
         expect((await describeDgo(c)).st?.some((style) => style.fl)).toBe(
             false,
         );
+    });
+
+    it("animates a point on an object as DGPad's spring", async () => {
+        const { scene: c } = studio();
+        [
+            "A = (0, 0)",
+            "B = (4, 0)",
+            "C = (0, 4)",
+            "s = Segment(A, B)",
+            "c = Circle(C, A)",
+            "M = Midpoint(A, B)",
+            "P = Point(s, 0.5)",
+            "Q = Point(c, 1)",
+        ].forEach((line) => type(c, line));
+        c.flush();
+        const [A, s, M, P, Q] = ["A", "s", "M", "P", "Q"].map((name) =>
+            c.getObj(name)!,
+        );
+        expect([A, s, M, P, Q].map(springy)).toEqual([
+            false,
+            false,
+            false,
+            true,
+            true,
+        ]);
+        const point = P as point_on_object;
+        const spring = springOf(point);
+        expectClose(spring.forward.map(Math.abs), [1, 0]);
+        // Let go like an elastic, the point goes the other way.
+        [1, -1].forEach((side) => {
+            const { animation, label } = pull(spring, [side * 160, 0]);
+            expect(animation).toEqual({
+                speed: 50,
+                direction: -side * Math.sign(spring.forward[0]),
+                ar: false,
+            });
+            expect(label).toBe("50 px/s");
+            setAnimation(point, animation);
+            const x = point.sx;
+            point.animate(0.1);
+            c.flush();
+            expect(Math.sign(point.sx - x)).toBe(-side);
+        });
+        expect(pull(spring, [0, 160])).toEqual({
+            animation: { speed: 50, direction: 1, ar: true },
+            label: "50 px/s ⇄",
+        });
+        expect(pull(spring, [10, 0]).animation.speed).toBe(0);
+        // Its handle shows its animation, but the direction a back and
+        // forth starts in.
+        [
+            [150, 20],
+            [-60, 5],
+            [3, -200],
+            [400, 0],
+        ].forEach((vector) => {
+            const { animation } = pull(spring, vector as [number, number]);
+            const shown = pull(spring, handleOf(spring, animation)).animation;
+            if (animation.ar) shown.direction = animation.direction;
+            expect(shown).toEqual(animation);
+        });
+        const turning = springOf(Q as point_on_object);
+        const radius = vSub(
+            (Q as point_object).SCREEN,
+            (c.getObj("C") as point_object).SCREEN,
+        );
+        expect(vDot(turning.forward, radius)).toBeCloseTo(0, 1);
+        const { animation, label } = pull(
+            turning,
+            vScale(turning.forward, 130),
+        );
+        expect(label).toBe("30 °/s");
+        expect(animation.speed).toBeCloseTo(Math.PI / 6);
+        setAnimation(point, { speed: 0, direction: 1, ar: false });
+        expect(
+            (await describeDgo(c)).st?.find((style) => style.an)?.an,
+        ).toEqual([0, 1, 0]);
     });
 
     it("drags the name of a point around it, as in GeoGebra", async () => {
