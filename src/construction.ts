@@ -56,7 +56,7 @@ export class construction {
     private viewObjects = new WeakMap<Element, construction_object>();
     private viewportWidth = 0;
     private viewportHeight = 0;
-    private measuredSize = { frame: -1, width: 0, height: 0 };
+    private measuredSize = { pass: -1, width: 0, height: 0 };
     private planeBasis = {
         phi: NaN,
         theta: NaN,
@@ -340,10 +340,10 @@ export class construction {
     // writes, the measure would force a layout each time.
     private passSize(): { width: number; height: number } {
         const size = this.measuredSize;
-        if (size.frame !== this.OBJS.frame) {
+        if (size.pass !== this.OBJS.pass) {
             size.width = this.svg.width();
             size.height = this.svg.height();
-            size.frame = this.OBJS.frame;
+            size.pass = this.OBJS.pass;
         }
         return size;
     }

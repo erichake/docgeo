@@ -23,6 +23,8 @@ export class objects_collector {
     // so per-frame caches (e.g. a polygon spatial index) know when they need
     // rebuilding :
     frame = 0;
+    // Bumped on every update() pass only.
+    pass = 0;
     updating = false;
 
     add<T extends construction_object>(o: T): T {
@@ -92,6 +94,7 @@ export class objects_collector {
 
     update(): void {
         this.frame++;
+        this.pass++;
         this.updating = true;
         // Sorted by construction order so a parent is always recomputed
         // before the children marked dirty alongside it. Each step runs to

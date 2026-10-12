@@ -223,16 +223,21 @@ export function conicConicIntersectionsXY(
 }
 
 function scale(poly: readonly number[], k: number): number[] {
-    return poly.map((v) => v * k);
+    const result: number[] = [];
+    for (let i = 0; i < poly.length; i++) result.push(poly[i] * k);
+    return result;
 }
 
 function subtract(a: readonly number[], b: readonly number[]): number[] {
-    const n = Math.max(a.length, b.length);
-    return Array.from({ length: n }, (_, i) => (a[i] ?? 0) - (b[i] ?? 0));
+    const result: number[] = [];
+    for (let i = 0; i < Math.max(a.length, b.length); i++)
+        result.push((a[i] ?? 0) - (b[i] ?? 0));
+    return result;
 }
 
 function multiply(a: readonly number[], b: readonly number[]): number[] {
-    const result = new Array(a.length + b.length - 1).fill(0);
-    a.forEach((x, i) => b.forEach((y, j) => (result[i + j] += x * y)));
+    const result: number[] = new Array(a.length + b.length - 1).fill(0);
+    for (let i = 0; i < a.length; i++)
+        for (let j = 0; j < b.length; j++) result[i + j] += a[i] * b[j];
     return result;
 }
