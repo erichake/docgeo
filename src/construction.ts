@@ -56,6 +56,12 @@ export class construction {
     private viewObjects = new WeakMap<Element, construction_object>();
     private viewportWidth = 0;
     private viewportHeight = 0;
+    private measuredSize = { frame: -1, width: 0, height: 0 };
+    private planeBasis = {
+        phi: NaN,
+        theta: NaN,
+        basis: [] as unknown as [Vec3, Vec3],
+    };
     private keydownListener!: EventListener;
 
     private constructor(dgpad: DgpadLike) {
@@ -279,14 +285,19 @@ export class construction {
     // The screen plane's unit vectors towards the right and the top of the
     // screen (see GRID.FRAME2D). From the camera's angles rather than the
     // projection frame, which is only updated after geometry.
+    // Read for each point's value: computed again only when the view turns.
     get screenPlaneBasis(): [Vec3, Vec3] {
         const { PHI, THETA } = this.GRID;
+        const cached = this.planeBasis;
+        if (cached.phi === PHI && cached.theta === THETA) return cached.basis;
         const [cosPhi, sinPhi] = [Math.cos(PHI), Math.sin(PHI)];
         const sinTheta = Math.sin(THETA);
-        return [
+        const basis: [Vec3, Vec3] = [
             [sinPhi, cosPhi, 0],
             [-cosPhi * sinTheta, sinPhi * sinTheta, Math.cos(THETA)],
         ];
+        this.planeBasis = { phi: PHI, theta: THETA, basis };
+        return basis;
     }
 
     screenPlanePoint([u, v]: Vec2): Vec3 {
@@ -318,11 +329,23 @@ export class construction {
     }
 
     get width(): number {
-        return this.svg.width();
+        return this.OBJS.updating ? this.passSize().width : this.svg.width();
     }
 
     get height(): number {
-        return this.svg.height();
+        return this.OBJS.updating ? this.passSize().height : this.svg.height();
+    }
+
+    // Measured once per update pass: at each object's render, between DOM
+    // writes, the measure would force a layout each time.
+    private passSize(): { width: number; height: number } {
+        const size = this.measuredSize;
+        if (size.frame !== this.OBJS.frame) {
+            size.width = this.svg.width();
+            size.height = this.svg.height();
+            size.frame = this.OBJS.frame;
+        }
+        return size;
     }
 
     // Its view, in its layer, among those of the objects before it in

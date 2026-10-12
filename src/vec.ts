@@ -10,6 +10,8 @@ export function vAdd(
     a: readonly number[],
     b: readonly number[],
 ): readonly number[] {
+    if (a.length === 3) return [a[0] + b[0], a[1] + b[1], a[2] + b[2]];
+    if (a.length === 2) return [a[0] + b[0], a[1] + b[1]];
     return a.map((v, i) => v + b[i]);
 }
 
@@ -19,17 +21,25 @@ export function vSub(
     a: readonly number[],
     b: readonly number[],
 ): readonly number[] {
+    if (a.length === 3) return [a[0] - b[0], a[1] - b[1], a[2] - b[2]];
+    if (a.length === 2) return [a[0] - b[0], a[1] - b[1]];
     return a.map((v, i) => v - b[i]);
 }
 
 export function vScale(a: Vec2, k: number): Vec2;
 export function vScale(a: Vec3, k: number): Vec3;
 export function vScale(a: readonly number[], k: number): readonly number[] {
+    if (a.length === 3) return [k * a[0], k * a[1], k * a[2]];
+    if (a.length === 2) return [k * a[0], k * a[1]];
     return a.map((v) => k * v);
 }
 
 export function vNorm(a: readonly number[]): number {
-    return Math.hypot(...a);
+    return a.length === 3
+        ? Math.hypot(a[0], a[1], a[2])
+        : a.length === 2
+          ? Math.hypot(a[0], a[1])
+          : Math.hypot(...a);
 }
 
 export function vNormalize(a: Vec2): Vec2 | null;
@@ -42,7 +52,9 @@ export function vNormalize(a: readonly number[]): readonly number[] | null {
 }
 
 export function vDot(a: readonly number[], b: readonly number[]): number {
-    return a.reduce((result, value, index) => result + value * b[index], 0);
+    let result = 0;
+    for (let i = 0; i < a.length; i++) result += a[i] * b[i];
+    return result;
 }
 
 export function vCross(a: Vec3, b: Vec3): Vec3 {
@@ -54,11 +66,13 @@ export function vCross(a: Vec3, b: Vec3): Vec3 {
 }
 
 export function vIsFinite(a: readonly number[]): boolean {
-    return a.every(Number.isFinite);
+    for (let i = 0; i < a.length; i++) if (!Number.isFinite(a[i])) return false;
+    return true;
 }
 
 export function geometryTolerance(...values: number[]): number {
-    const scale = Math.max(1, ...values.map(Math.abs));
+    let scale = 1;
+    for (const value of values) scale = Math.max(scale, Math.abs(value));
     return GEOMETRY_EPSILON + GEOMETRY_RELATIVE_EPSILON * scale;
 }
 
@@ -72,8 +86,10 @@ export function pointInPolygon(
 ): boolean {
     let inside = false;
     for (let i = 0, j = vertices.length - 1; i < vertices.length; j = i++) {
-        const [xi, yi] = vertices[i];
-        const [xj, yj] = vertices[j];
+        const xi = vertices[i][0];
+        const yi = vertices[i][1];
+        const xj = vertices[j][0];
+        const yj = vertices[j][1];
         if (yi > y !== yj > y && x < ((xj - xi) * (y - yi)) / (yj - yi) + xi)
             inside = !inside;
     }

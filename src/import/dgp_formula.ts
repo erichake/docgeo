@@ -1765,6 +1765,8 @@ interface Frame {
     turtle: Turtle | null;
     // The decimal places a turtle writes numbers with, as a power of 10.
     precision: number;
+    // The angle unit, read from the view at its first use (0 before).
+    unit: number;
 }
 
 // Where the turtle is and which way it heads (u), its left (v) and its top
@@ -2160,27 +2162,8 @@ function compileNode(node: FormulaNode, scope: Scope): Code {
                 return values;
             };
         }
-        case "binary": {
-            const { op } = node;
-            const [left, right] = [node.left, node.right].map(compile);
-            const numbers = isComparison(op) ? COMPARISONS[op] : ARITHMETIC[op];
-            return (frame) => {
-                const l = left(frame);
-                const r = right(frame);
-                // An undefined operand is JavaScript's NaN, which DGPad's
-                // compiled scripts compare (e.g. "d(P,M)<0.001" is false).
-                if (l === null || r === null)
-                    return isComparison(op)
-                        ? COMPARISONS[op](
-                              realPart(l) ?? NaN,
-                              realPart(r) ?? NaN,
-                          )
-                        : null;
-                return typeof l === "number" && typeof r === "number"
-                    ? numbers(l, r)
-                    : evalBinary(op, l, r);
-            };
-        }
+        case "binary":
+            return binaryCode(node.op, compile(node.left), compile(node.right));
         case "call": {
             const { fn } = node;
             const args = node.args.map(compile);
@@ -2200,15 +2183,7 @@ function compileNode(node: FormulaNode, scope: Scope): Code {
                         : values[0];
                 };
             }
-            return (frame) => {
-                const values = evalCodes(args, frame)?.map(formulaValue);
-                if (!values || values.includes(null)) return null;
-                return evalCall(
-                    fn as Exclude<FormulaFn, ListFn | "isNaN">,
-                    values as FormulaValue[],
-                    frame.env,
-                );
-            };
+            return callCode(fn as Exclude<FormulaFn, ListFn | "isNaN">, args);
         }
         case "userCall":
         case "derivative": {
@@ -2231,6 +2206,212 @@ function compileNode(node: FormulaNode, scope: Scope): Code {
             };
         }
     }
+}
+
+function slowBinary(
+    op: BinaryOp,
+    l: ScriptValue | null,
+    r: ScriptValue | null,
+): ScriptValue | null {
+    // An undefined operand is JavaScript's NaN, which DGPad's compiled
+    // scripts compare (e.g. "d(P,M)<0.001" is false).
+    if (l === null || r === null)
+        return isComparison(op)
+            ? COMPARISONS[op](realPart(l) ?? NaN, realPart(r) ?? NaN)
+            : null;
+    return evalBinary(op, l, r);
+}
+
+// One closure per operator, its operation on two numbers written in it:
+// shared, the call of the operation couldn't be inlined.
+function binaryCode(op: BinaryOp, left: Code, right: Code): Code {
+    const code =
+        (numbers: (l: number, r: number) => number): Code =>
+        (frame) => {
+            const l = left(frame);
+            const r = right(frame);
+            return typeof l === "number" && typeof r === "number"
+                ? numbers(l, r)
+                : slowBinary(op, l, r);
+        };
+    switch (op) {
+        case "+":
+            return (frame) => {
+                const l = left(frame);
+                const r = right(frame);
+                return typeof l === "number" && typeof r === "number"
+                    ? l + r
+                    : slowBinary(op, l, r);
+            };
+        case "-":
+            return (frame) => {
+                const l = left(frame);
+                const r = right(frame);
+                return typeof l === "number" && typeof r === "number"
+                    ? l - r
+                    : slowBinary(op, l, r);
+            };
+        case "*":
+            return (frame) => {
+                const l = left(frame);
+                const r = right(frame);
+                return typeof l === "number" && typeof r === "number"
+                    ? l * r
+                    : slowBinary(op, l, r);
+            };
+        case "/":
+            return (frame) => {
+                const l = left(frame);
+                const r = right(frame);
+                return typeof l === "number" && typeof r === "number"
+                    ? l / r
+                    : slowBinary(op, l, r);
+            };
+        case "<":
+            return (frame) => {
+                const l = left(frame);
+                const r = right(frame);
+                return typeof l === "number" && typeof r === "number"
+                    ? Number(l < r)
+                    : slowBinary(op, l, r);
+            };
+        case "<=":
+            return (frame) => {
+                const l = left(frame);
+                const r = right(frame);
+                return typeof l === "number" && typeof r === "number"
+                    ? Number(l <= r)
+                    : slowBinary(op, l, r);
+            };
+        case ">":
+            return (frame) => {
+                const l = left(frame);
+                const r = right(frame);
+                return typeof l === "number" && typeof r === "number"
+                    ? Number(l > r)
+                    : slowBinary(op, l, r);
+            };
+        case ">=":
+            return (frame) => {
+                const l = left(frame);
+                const r = right(frame);
+                return typeof l === "number" && typeof r === "number"
+                    ? Number(l >= r)
+                    : slowBinary(op, l, r);
+            };
+    }
+    return code(isComparison(op) ? COMPARISONS[op] : ARITHMETIC[op]);
+}
+
+// The real functions of one number, applied straight to a finite one.
+const REAL_FUNCTIONS: Partial<Record<FormulaFn, (x: number) => number>> = {
+    abs: Math.abs,
+    floor: Math.floor,
+    ceil: Math.ceil,
+    round: Math.round,
+    exp: Math.exp,
+    log: Math.log,
+};
+const TRIGONOMETRIC: Partial<Record<FormulaFn, (x: number) => number>> = {
+    sin: Math.sin,
+    cos: Math.cos,
+    tan: Math.tan,
+};
+const INVERSE_TRIGONOMETRIC: Partial<Record<FormulaFn, (x: number) => number>> =
+    {
+        asin: Math.asin,
+        acos: Math.acos,
+        atan: Math.atan,
+    };
+
+function frameUnit(frame: Frame): number {
+    return frame.unit || (frame.unit = angleUnit(frame.env));
+}
+
+// formulaValue's check alone: the value itself, which evalCall never
+// changes, rather than a copy.
+function checkedValue(value: ScriptValue): FormulaValue | null {
+    if (typeof value === "number") return Number.isFinite(value) ? value : null;
+    if (!Array.isArray(value) || (value.length !== 2 && value.length !== 3))
+        return null;
+    for (const item of value)
+        if (typeof item !== "number" || !Number.isFinite(item)) return null;
+    return value as unknown as FormulaValue;
+}
+
+// What evalCall gives, with no list built for its most common uses: a
+// function of a finite number, or a coordinate of a point.
+function callCode(
+    fn: Exclude<FormulaFn, ListFn | "isNaN">,
+    args: Code[],
+): Code {
+    const [arg] = args;
+    const isReal = (v: ScriptValue | null): v is number =>
+        typeof v === "number" && Number.isFinite(v);
+    const real = REAL_FUNCTIONS[fn];
+    const trigonometric = TRIGONOMETRIC[fn];
+    const inverse = INVERSE_TRIGONOMETRIC[fn];
+    if (args.length === 1) {
+        if (real)
+            return (frame) => {
+                const v = arg(frame);
+                return isReal(v) ? real(v) : callValues(fn, [v], frame);
+            };
+        if (fn === "sqrt")
+            return (frame) => {
+                const v = arg(frame);
+                return isReal(v) && v >= 0
+                    ? Math.sqrt(v)
+                    : callValues(fn, [v], frame);
+            };
+        if (trigonometric)
+            return (frame) => {
+                const v = arg(frame);
+                return isReal(v)
+                    ? trigonometric(v * frameUnit(frame))
+                    : callValues(fn, [v], frame);
+            };
+        if (inverse)
+            return (frame) => {
+                const v = arg(frame);
+                return isReal(v)
+                    ? inverse(v) / frameUnit(frame)
+                    : callValues(fn, [v], frame);
+            };
+        if (fn === "x" || fn === "y") {
+            const axis = fn === "x" ? 0 : 1;
+            return (frame) => {
+                const v = arg(frame);
+                const point = v === null ? null : checkedValue(v);
+                return point === null || typeof point === "number"
+                    ? null
+                    : point[axis];
+            };
+        }
+    }
+    return (frame) => {
+        const values: (ScriptValue | null)[] = [];
+        for (const code of args) {
+            const value = code(frame);
+            if (value === null) return null;
+            values.push(value);
+        }
+        return callValues(fn, values, frame);
+    };
+}
+
+function callValues(
+    fn: Exclude<FormulaFn, ListFn | "isNaN">,
+    values: (ScriptValue | null)[],
+    frame: Frame,
+): FormulaValue | null {
+    const checked: FormulaValue[] = [];
+    for (const value of values) {
+        const v = value === null ? null : checkedValue(value);
+        if (v === null) return null;
+        checked.push(v);
+    }
+    return evalCall(fn, checked, frame.env);
 }
 
 function compileMethod(
@@ -2417,6 +2598,7 @@ function evaluate(
         result: null,
         turtle: null,
         precision: 1e14,
+        unit: 0,
     });
 }
 

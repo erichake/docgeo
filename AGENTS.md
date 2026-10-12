@@ -34,11 +34,20 @@ Les développements doivent servir en priorité :
   scripts GeoGebra ne sont jamais exécutés, ni le JavaScript et le HTML actif
   des figures DGPad, ignorés et signalés). Les scripts des expressions DGPad,
   dont les programmes Blockly qui calculent une expression (`oncompute`),
-  compilés en JavaScript par DGPad, sont lus par l'interpréteur de
-  `src/import/dgp_formula.ts`, jamais par le moteur JavaScript du navigateur :
-  n'étendre sa grammaire fermée qu'aux constructions qu'utilisent des figures
-  réelles. La tortue Blockly (fonctions `TURTLE_…`, compilées dans
-  l'expression que dessine sa liste) et les boutons Blockly (`BlocklyButton`,
+  compilés en JavaScript par DGPad, sont lus par l'analyseur de
+  `src/import/dgp_formula.ts` : n'étendre sa grammaire fermée qu'aux
+  constructions qu'utilisent des figures réelles. Leur texte n'est jamais
+  exécuté par le moteur JavaScript du navigateur. Pour les performances, un
+  programme déjà validé par cette grammaire peut en revanche être traduit en
+  JavaScript, à condition que son exécution reste aussi sûre que celle de
+  l'interpréteur : le code généré ne dépend que de la forme de l'arbre (aucun
+  nom, chaîne ou nombre de la figure recopié sans contrôle dans son texte), ne
+  lit aucune variable globale, n'accède aux listes que par des indices
+  numériques, garde les limites d'étapes et de profondeur, et donne exactement
+  les mêmes résultats que l'interpréteur, qui reste la référence et le repli
+  (page hôte interdisant `new Function`, construction non traduite). La tortue
+  Blockly (fonctions `TURTLE_…`, compilées dans l'expression que dessine sa
+  liste) et les boutons Blockly (`BlocklyButton`,
   dont le programme ne peut que mettre en forme des objets et changer le
   nombre d'une expression constante, comme une manipulation) sont lus par le
   même interpréteur. Les autres programmes Blockly (événements) restent
