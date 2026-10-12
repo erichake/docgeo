@@ -23,8 +23,10 @@ export interface Family {
 }
 
 const dot = (x: number, y: number) =>
-    `<circle cx="${x}" cy="${y}" r="2.2" fill="currentColor" stroke="none"/>`;
-const path = (d: string) => `<path d="${d}"/>`;
+    `<circle cx="${x}" cy="${y}" r="1.8" fill="currentColor" stroke="none"/>`;
+const path = (d: string, guide = false) =>
+    `<path d="${d}"${guide ? ' class="dge-guide"' : ""}/>`;
+const result = (icon: string) => `<g class="dge-result">${icon}</g>`;
 
 function tool(
     name: string,
@@ -41,11 +43,12 @@ function tool(
     } as Tool;
 }
 
-const SEGMENT = path("M5 18L19 6") + dot(5, 18) + dot(19, 6);
-const BISECTOR = path("M4 12h16M12 4v16");
-const CIRCLE = `<circle cx="12" cy="12" r="8"/>`;
-const CIRCLE3 = CIRCLE + dot(4, 12) + dot(17, 18) + dot(16, 5);
-const MIDPOINT = path("M4 12h16") + dot(12, 12);
+const SEGMENT = result(path("M6 18L18 6")) + dot(6, 18) + dot(18, 6);
+const BISECTOR =
+    path("M4 12h16M8 10.5v3M16 10.5v3", true) + result(path("M12 4v16"));
+const CIRCLE = `<circle cx="12" cy="12" r="7.5"/>`;
+const CIRCLE3 = result(CIRCLE) + dot(4.5, 12) + dot(16.5, 18) + dot(16.5, 6);
+const MIDPOINT = path("M5 12h14", true) + result(dot(12, 12));
 
 // The families of tools, clockwise from the top, each tool keeping its place
 // whatever the object, so that the hand learns it; the tools of a slot never
@@ -58,7 +61,7 @@ const FAMILIES: [hue: number, slots: Tool[][]][] = [
                 {
                     mode: "delete",
                     icon: path(
-                        "M5 7h14M10 7V4h4v3M7 7l1 13h8l1-13M10 11v6M14 11v6",
+                        "M5 7h14M9 7V4.5h6V7M7 7l.8 12a1 1 0 0 0 1 1h6.4a1 1 0 0 0 1-1L17 7M10 10.5v6M14 10.5v6",
                     ),
                 } as Tool,
             ],
@@ -71,7 +74,7 @@ const FAMILIES: [hue: number, slots: Tool[][]][] = [
                 tool(
                     "Point",
                     0,
-                    path("M3 17C8 5 16 5 21 13") + dot(12, 8.3),
+                    path("M3 16Q12 2 21 16", true) + result(dot(12, 9)),
                     "point",
                 ),
             ],
@@ -79,14 +82,14 @@ const FAMILIES: [hue: number, slots: Tool[][]][] = [
                 tool(
                     "Intersection",
                     1,
-                    path("M3 19L21 5M3 6L21 18") + dot(12, 12),
+                    path("M4 20L20 4M4 4L20 20", true) + result(dot(12, 12)),
                     "intersection",
                 ),
             ],
             [
-                tool("Midpoint", 0, MIDPOINT + dot(4, 12) + dot(20, 12)),
+                tool("Midpoint", 0, MIDPOINT + dot(5, 12) + dot(19, 12)),
                 tool("Midpoint", 1, MIDPOINT),
-                tool("Center", 0, CIRCLE + dot(12, 12)),
+                tool("Center", 0, CIRCLE + result(dot(12, 12))),
             ],
         ],
     ],
@@ -94,9 +97,27 @@ const FAMILIES: [hue: number, slots: Tool[][]][] = [
         215,
         [
             [tool("Segment", 0, SEGMENT)],
-            [tool("Line", 0, path("M2 21L22 3") + dot(8, 15.6) + dot(16, 8.4))],
-            [tool("Ray", 0, path("M5 18L22 3") + dot(5, 18) + dot(13, 11))],
-            [tool("Vector", 0, path("M5 18L19 6M13 6h6v6") + dot(5, 18))],
+            [
+                tool(
+                    "Line",
+                    0,
+                    result(path("M3 21L21 3")) + dot(7, 17) + dot(17, 7),
+                ),
+            ],
+            [
+                tool(
+                    "Ray",
+                    0,
+                    result(path("M6 18L21 3")) + dot(6, 18) + dot(14, 10),
+                ),
+            ],
+            [
+                tool(
+                    "Vector",
+                    0,
+                    result(path("M6 18L19 5M13.5 5H19v5.5")) + dot(6, 18),
+                ),
+            ],
         ],
     ],
     [
@@ -106,10 +127,20 @@ const FAMILIES: [hue: number, slots: Tool[][]][] = [
                 tool(
                     "Perpendicular",
                     0,
-                    path("M3 18h18M12 3v15M12 14h4v4") + dot(12, 7),
+                    path("M3 18h18M12 14h4v4", true) +
+                        result(path("M12 4v16")) +
+                        dot(12, 7),
                 ),
             ],
-            [tool("Parallel", 0, path("M3 16L17 4M7 20L21 8") + dot(14, 14))],
+            [
+                tool(
+                    "Parallel",
+                    0,
+                    path("M4 16L16 4", true) +
+                        result(path("M8 20L20 8")) +
+                        dot(14, 14),
+                ),
+            ],
             [
                 tool(
                     "PerpendicularBisector",
@@ -122,9 +153,9 @@ const FAMILIES: [hue: number, slots: Tool[][]][] = [
                 tool(
                     "AngleBisector",
                     0,
-                    path("M4 19L20 19M4 19L15 5M4 19L20 11") +
-                        dot(20, 19) +
-                        dot(15, 5),
+                    path("M4 19h16M4 19L13 4", true) +
+                        result(path("M4 19L20 10")) +
+                        path("M10 19a6 6 0 0 0-3-5.2", true),
                 ),
             ],
         ],
@@ -132,7 +163,16 @@ const FAMILIES: [hue: number, slots: Tool[][]][] = [
     [
         145,
         [
-            [tool("Circle", 0, CIRCLE + dot(12, 12) + dot(19.6, 9.5))],
+            [
+                tool(
+                    "Circle",
+                    0,
+                    result(CIRCLE) +
+                        path("M12 12L18 7.5", true) +
+                        dot(12, 12) +
+                        dot(18, 7.5),
+                ),
+            ],
             [
                 tool("Circumcircle", 0, CIRCLE3),
                 tool("Circumcircle", 1, CIRCLE3),
@@ -141,9 +181,10 @@ const FAMILIES: [hue: number, slots: Tool[][]][] = [
                 tool(
                     "Sphere",
                     0,
-                    CIRCLE +
-                        `<ellipse cx="12" cy="12" rx="8" ry="3"/>` +
-                        dot(12, 12),
+                    result(
+                        CIRCLE +
+                            `<ellipse class="dge-guide" cx="12" cy="12" rx="7.5" ry="3"/>`,
+                    ) + dot(12, 12),
                 ),
             ],
         ],
@@ -155,14 +196,23 @@ const FAMILIES: [hue: number, slots: Tool[][]][] = [
                 tool(
                     "Polygon",
                     0,
-                    path("M4 18L9 5L20 9L17 19Z") + dot(4, 18) + dot(9, 5),
+                    result(
+                        `<path d="M5 18L9 5L20 9L17 19Z" fill="currentColor" fill-opacity=".1"/>`,
+                    ) +
+                        dot(5, 18) +
+                        dot(9, 5) +
+                        dot(20, 9) +
+                        dot(17, 19),
                 ),
             ],
             [
                 tool(
                     "Angle",
                     0,
-                    path("M4 19L20 19M4 19L15 5M11 19a7 7 0 0 0-2.7-5.5"),
+                    result(
+                        `<path d="M4 19h7a7 7 0 0 0-3.4-6Z" fill="currentColor" fill-opacity=".12" stroke="none"/>` +
+                            path("M11 19a7 7 0 0 0-3.4-6"),
+                    ) + path("M4 19h16M4 19L13 4"),
                 ),
             ],
         ],
@@ -174,10 +224,22 @@ const FAMILIES: [hue: number, slots: Tool[][]][] = [
                 tool(
                     "Reflect",
                     0,
-                    dot(5, 17) + dot(12, 12) + dot(19, 7) + path("M5 17L19 7"),
+                    path("M5 18L19 6", true) +
+                        dot(5, 18) +
+                        dot(12, 12) +
+                        result(dot(19, 6)),
                 ),
             ],
-            [tool("Reflect", 1, path("M12 3v18") + dot(6, 9) + dot(18, 9))],
+            [
+                tool(
+                    "Reflect",
+                    1,
+                    path("M12 3v18") +
+                        `<path class="dge-guide" d="M5 10h14" stroke-dasharray="2 3"/>` +
+                        dot(5, 10) +
+                        result(dot(19, 10)),
+                ),
+            ],
         ],
     ],
 ];

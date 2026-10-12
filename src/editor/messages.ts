@@ -33,6 +33,10 @@ const MESSAGES = {
     delete: ["Supprimer", "Delete"],
     eraser: ["Gomme", "Eraser"],
     axes: ["Repère", "Axes"],
+    actions: ["Actions de la figure", "Figure actions"],
+    construction: ["Construction", "Construction"],
+    history: ["Historique de la construction", "Construction history"],
+    close_history: ["Fermer l’historique", "Close history"],
     erasing: [
         "Touchez un objet pour le cacher ou le montrer",
         "Tap an object to hide or show it",

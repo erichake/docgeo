@@ -50,6 +50,7 @@ import {
     withGhostsHidden,
 } from "./eraser";
 import { message, type MessageKey } from "./messages";
+import { ACTION_ICONS } from "./icons";
 import { nearest, pick, PICK_RADIUS, type Hit } from "./pick";
 import {
     completionAt,
@@ -73,15 +74,18 @@ const scene = () => studio.scene;
 $("html").stl("width:100%;height:100%");
 // The figure fills the window beside the text.
 $("body")
-    .stl(
-        "position:relative;height:100%;margin:0;overflow:hidden;touch-action:none",
-    )
-    .stl("margin-inline-start", `${PANEL_WIDTH}px`)
-    .stl("width", `calc(100% - ${PANEL_WIDTH}px)`)
+    .cls("dge-editor")
+    .stl("position:relative;overflow:hidden;touch-action:none")
     .att("oncontextmenu", "return false;");
 $("head").append(`<style>
+    .dge-editor { --dge-panel-size: min(${PANEL_WIDTH}px, calc(100vw - 56px)); --dge-panel-width: var(--dge-panel-size); --dge-bar-height: 60px; --dge-slide-duration: 0s; --dge-slide: var(--dge-slide-duration) cubic-bezier(0.22, 1, 0.36, 1); margin: 0; margin-inline-start: var(--dge-panel-width); margin-block-start: var(--dge-bar-height); width: calc(100% - var(--dge-panel-width)); height: calc(100% - var(--dge-bar-height)); transition: margin-inline-start var(--dge-slide), width var(--dge-slide); }
+    .dge-editor.dge-panel-animated { --dge-slide-duration: 240ms; }
+    .dge-editor.dge-panel-closed { --dge-panel-width: 0px; }
+    .dge-panel-closed .dge-panel { transform: translateX(-100%); visibility: hidden; transition-delay: 0s, var(--dge-slide-duration); }
     .dge-panel, .dge-bar, .dge-hint, .dge-ring, .dge-complete { font: 14px/1.4 system-ui, -apple-system, "Segoe UI", sans-serif; color: #1f2937; }
-    .dge-panel { position: fixed; inset-block: 0; inset-inline-start: 0; width: ${PANEL_WIDTH}px; box-sizing: border-box; padding: 52px 0 12px; overflow: auto; background: #fff; border-inline-end: 1px solid #e5e7eb; z-index: 10; }
+    .dge-panel { position: fixed; inset-block: var(--dge-bar-height) 0; inset-inline-start: 0; width: var(--dge-panel-size); box-sizing: border-box; padding-block-end: 12px; overflow: auto; background: #fff; border-inline-end: 1px solid #e5e7eb; z-index: 10; touch-action: pan-y; transform: translateX(0); transition: transform var(--dge-slide), visibility 0s; }
+    .dge-panel-header { position: sticky; top: 0; display: flex; align-items: center; justify-content: space-between; padding: 8px 12px 8px 16px; background: #fff; border-block-end: 1px solid #e5e7eb; z-index: 1; }
+    .dge-panel-header h2 { margin: 0; font-size: 14px; font-weight: 600; }
     .dge-row { display: block; width: 100%; box-sizing: border-box; padding: 5px 14px; border: 0; border-block-end: 1px solid #f1f5f9; background: none; font: 13.5px/1.5 ui-monospace, Menlo, Consolas, monospace; color: inherit; outline: none; }
     .dge-row:focus { background: #eff6ff; box-shadow: inset 3px 0 #2563eb; }
     .dge-row.dge-hover { background: #fef3c7; }
@@ -91,22 +95,34 @@ $("head").append(`<style>
     .dge-row.dge-hidden { color: #9ca3af; font-style: italic; }
     .dge-input { margin-block-start: 6px; }
     @keyframes dge-new { from { background: #bbf7d0; } }
-    .dge-bar { position: fixed; top: 8px; inset-inline-start: 8px; display: flex; gap: 4px; z-index: 11; }
-    .dge-bar button { padding: 5px 10px; border: 1px solid #d1d5db; border-radius: 7px; background: #fff; font: inherit; color: inherit; cursor: pointer; }
-    .dge-bar button:hover { background: #f3f4f6; }
-    .dge-bar button:disabled { opacity: 0.4; cursor: default; }
-    .dge-bar button.dge-on { background: #2563eb; color: #fff; border-color: #2563eb; }
-    .dge-hint { position: fixed; bottom: 16px; left: calc(50% + ${PANEL_WIDTH / 2}px); transform: translateX(-50%); max-width: calc(100% - ${PANEL_WIDTH + 32}px); padding: 7px 14px; border-radius: 9px; background: rgb(17 24 39 / 0.86); color: #f9fafb; font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 13.5px; white-space: pre-wrap; z-index: 11; pointer-events: none; }
+    .dge-bar { position: fixed; inset-block-start: 0; inset-inline: 0; height: var(--dge-bar-height); box-sizing: border-box; display: flex; align-items: center; gap: 8px; padding: 8px 12px; background: #f8fafc; border-block-end: 1px solid #e2e8f0; z-index: 11; }
+    .dge-bar-group { display: flex; gap: 4px; }
+    .dge-bar-group + .dge-bar-group { padding-inline-start: 8px; border-inline-start: 1px solid #dbe2ea; }
+    .dge-action { display: grid; place-items: center; flex-shrink: 0; width: 40px; height: 40px; padding: 0; border: 1px solid transparent; border-radius: 10px; background: transparent; color: #536174; cursor: pointer; }
+    .dge-action svg { display: block; width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 1.65; stroke-linecap: round; stroke-linejoin: round; pointer-events: none; }
+    .dge-action:hover:not(:disabled) { background: #e8eef7; color: #1d4ed8; }
+    .dge-action:focus-visible { outline: 2px solid #2563eb; outline-offset: 2px; }
+    .dge-action:disabled { opacity: 0.3; cursor: default; }
+    .dge-action.dge-on { background: #e0ebff; color: #1d4ed8; border-color: #bfd2f5; }
+    .dge-action.dge-on:hover { background: #cfdefb; }
+    .dge-panel-header .dge-action { width: 32px; height: 32px; border-radius: 8px; }
+    @media (max-width: 400px) { .dge-bar { gap: 6px; padding-inline: 8px; } .dge-bar-group { gap: 2px; } .dge-bar-group + .dge-bar-group { padding-inline-start: 6px; } .dge-bar .dge-action { width: 36px; } }
+    .dge-hint { position: fixed; bottom: 16px; left: calc(50% + var(--dge-panel-width) / 2); transform: translateX(-50%); max-width: calc(100% - var(--dge-panel-width) - 32px); padding: 7px 14px; border-radius: 9px; background: rgb(17 24 39 / 0.86); color: #f9fafb; font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 13.5px; white-space: pre-wrap; z-index: 11; pointer-events: none; transition: left var(--dge-slide), max-width var(--dge-slide); }
+    @media (prefers-reduced-motion: reduce) { .dge-editor.dge-panel-animated { --dge-slide-duration: 0s; } }
     .dge-hint:empty { display: none; }
     .dge-hint.dge-error { background: #b91c1c; }
     .dge-hint button { width: 30px; height: 30px; margin: -4px -8px -4px 10px; padding: 0; border: 0; border-radius: 50%; background: rgb(255 255 255 / 0.18); color: inherit; font-size: 15px; vertical-align: middle; cursor: pointer; pointer-events: auto; }
     .dge-hint button:hover { background: rgb(255 255 255 / 0.32); }
     .dge-ring { position: fixed; width: 0; height: 0; z-index: 12; }
-    .dge-ring button { position: absolute; width: ${2 * RING_BUTTON}px; height: ${2 * RING_BUTTON}px; margin: -${RING_BUTTON}px; padding: 7px; border: 1px solid #d1d5db; border-radius: 50%; background: #fff; color: #1f2937; box-shadow: 0 2px 8px rgb(0 0 0 / 0.15); cursor: pointer; }
-    .dge-ring button:hover { background: #2563eb; color: #fff; border-color: #2563eb; }
+    .dge-ring button { position: absolute; display: grid; place-items: center; width: ${2 * RING_BUTTON}px; height: ${2 * RING_BUTTON}px; margin: -${RING_BUTTON}px; padding: 7px; border: 1px solid hsl(var(--dge-hue) 55% 60%); border-radius: 50%; background: hsl(var(--dge-hue) 70% 96%); color: #536174; box-shadow: 0 1px 2px rgb(15 23 42 / 0.06), 0 3px 7px rgb(15 23 42 / 0.08); cursor: pointer; }
+    .dge-ring button:hover { background: #2563eb; color: #fff; border-color: #2563eb; box-shadow: 0 2px 4px rgb(15 23 42 / 0.08), 0 4px 10px rgb(15 23 42 / 0.1); }
+    .dge-ring button:focus-visible { outline: 2px solid hsl(var(--dge-hue) 60% 45%); outline-offset: 3px; }
     .dge-ring .dge-sectors { position: absolute; overflow: visible; fill: none; stroke-width: ${2 * RING_BUTTON + 12}px; stroke-linecap: round; pointer-events: none; }
     .dge-ring .dge-tie { stroke: #f59e0b; stroke-width: 2px; stroke-dasharray: 2 5; }
-    .dge-ring button svg { width: 24px; height: 24px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+    .dge-ring button svg { display: block; width: 24px; height: 24px; fill: none; stroke: currentColor; stroke-width: 1.65; stroke-linecap: round; stroke-linejoin: round; }
+    .dge-ring .dge-guide { opacity: 0.65; }
+    .dge-ring .dge-result { color: #d14343; }
+    .dge-ring button:hover .dge-result { color: inherit; }
     .dge-complete { position: fixed; min-width: 160px; max-height: 240px; overflow: auto; padding: 4px 0; border: 1px solid #d1d5db; border-radius: 8px; background: #fff; box-shadow: 0 6px 20px rgb(0 0 0 / 0.14); z-index: 13; }
     .dge-complete div { padding: 3px 12px; font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 13px; cursor: pointer; }
     .dge-complete div.dge-selected, .dge-complete div:hover { background: #2563eb; color: #fff; }
@@ -119,7 +135,10 @@ $("head").append(`<style>
 
 // ************************** LAYOUT ******************************
 
-const panel = $.create("div").cls("dge-panel");
+const panel = $.create("aside")
+    .cls("dge-panel")
+    .att("id", "dge-history")
+    .att("aria-label", message("history"));
 const rowsBox = $.create("div");
 const input = $.create("input")
     .cls("dge-row dge-input")
@@ -133,8 +152,18 @@ const cancelButton = $.create("button")
     .att("title", message("cancel"));
 cancelButton.on("click", () => cancel());
 const complete = $.create("div").cls("dge-complete");
-function button(key: MessageKey, action: () => void): DOMElement {
-    const element = $.create("button").text(message(key));
+function button(
+    key: keyof typeof ACTION_ICONS,
+    action: () => void,
+): DOMElement {
+    const element = $.create("button")
+        .cls("dge-action")
+        .att("type", "button")
+        .att("title", message(key))
+        .att("aria-label", message(key))
+        .append(
+            `<svg viewBox="0 0 24 24" aria-hidden="true">${ACTION_ICONS[key]}</svg>`,
+        );
     element.on("click", action);
     return element;
 }
@@ -142,25 +171,67 @@ const undoButton = button("undo", () => travel(-1));
 const redoButton = button("redo", () => travel(1));
 const eraserButton = button("eraser", () => setEraser(!ghosts));
 const axesButton = button("axes", () => setAxes(scene().GRID.hidden !== 0));
+eraserButton.att("aria-pressed", "false");
+axesButton.att("aria-pressed", "false");
+const historyButton = button("history", () =>
+    setPanel(historyButton.getAtt("aria-expanded") === "false"),
+)
+    .att("aria-controls", "dge-history")
+    .att("aria-expanded", "true")
+    .addClass("dge-on");
 const fileInput = $.create("input")
     .att("type", "file")
     .att("accept", ".dgo,.dgp,.ggb");
 $("body").add(
-    panel.add(rowsBox, input),
-    $.create("div")
+    panel.add(
+        $.create("div")
+            .cls("dge-panel-header")
+            .add(
+                $.create("h2").text(message("construction")),
+                button("close_history", () => {
+                    setPanel(false);
+                    (historyButton.dom() as HTMLButtonElement).focus();
+                }),
+            ),
+        rowsBox,
+        input,
+    ),
+    $.create("nav")
         .cls("dge-bar")
+        .att("aria-label", message("actions"))
         .add(
-            button("open", () => (fileInput.dom() as HTMLInputElement).click()),
-            button("save", save),
-            undoButton,
-            redoButton,
-            eraserButton,
-            axesButton,
+            $.create("div")
+                .cls("dge-bar-group")
+                .add(
+                    button("open", () =>
+                        (fileInput.dom() as HTMLInputElement).click(),
+                    ),
+                    button("save", save),
+                ),
+            $.create("div").cls("dge-bar-group").add(undoButton, redoButton),
+            $.create("div")
+                .cls("dge-bar-group")
+                .add(eraserButton, axesButton, historyButton),
         ),
     hint,
     ring,
     complete,
 );
+function setPanel(on: boolean, animate = true): void {
+    if (!on) {
+        editing()?.blur();
+        closeCompletion();
+        clearPreview();
+        showAccepted([]);
+        highlight(null);
+    }
+    closeRing();
+    panel.dom().toggleAttribute("inert", !on);
+    $("body")
+        .toggleClass("dge-panel-animated", animate)
+        .toggleClass("dge-panel-closed", !on);
+    historyButton.toggleClass("dge-on", on).att("aria-expanded", String(on));
+}
 // Typing doesn't reach the figure's own keys (3D view, floor), shortcuts
 // do.
 panel.on(
@@ -764,8 +835,10 @@ function openRing(hit: Hit, client: Vec2): void {
             )
             .stl("left", `${x}px`)
             .stl("top", `${y}px`)
-            .stl("border-color", `hsl(${tool.family.hue} 60% 55%)`)
-            .append(`<svg viewBox="0 0 24 24">${tool.icon}</svg>`);
+            .stl("--dge-hue", `${tool.family.hue}`)
+            .append(
+                `<svg viewBox="0 0 24 24" aria-hidden="true">${tool.icon}</svg>`,
+            );
         item.on(
             "pointerenter",
             () => showHint(describe(tool, firstArgs(tool, hit.object))),
@@ -1045,7 +1118,7 @@ function setEraser(on: boolean): void {
     cancel();
     if (ghosts) hideGhosts(ghosts);
     ghosts = on ? showGhosts(scene()) : null;
-    eraserButton.toggleClass("dge-on", on);
+    eraserButton.toggleClass("dge-on", on).att("aria-pressed", String(on));
     rows.forEach((row, object) =>
         row.toggleClass("dge-hidden", looksHidden(object)),
     );
@@ -1060,7 +1133,7 @@ function setAxes(on: boolean): void {
     if (on) c.GRID.showGrid = true;
     if (!c.GRID.is2D) c.GRID.SHOWFLOOR = on;
     c.invalidateProjection();
-    axesButton.toggleClass("dge-on", on);
+    axesButton.toggleClass("dge-on", on).att("aria-pressed", String(on));
 }
 
 function cancel(): void {
@@ -1341,7 +1414,9 @@ async function open(
     const unsupported = await load(studio.scene);
     studio.scene.flush();
     studio.scene.reveal();
-    axesButton.toggleClass("dge-on", studio.scene.GRID.hidden === 0);
+    axesButton
+        .toggleClass("dge-on", studio.scene.GRID.hidden === 0)
+        .att("aria-pressed", String(studio.scene.GRID.hidden === 0));
     figureName = name
         .split(/[/\\?#]/)
         .filter(Boolean)
@@ -1376,6 +1451,7 @@ fileInput.on(
 );
 
 bindRow(input, null);
+if (window.matchMedia("(max-width: 600px)").matches) setPanel(false, false);
 
 const url = new URLSearchParams(window.location.search).get("url");
 export const EDITOR_READY = url

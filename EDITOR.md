@@ -201,6 +201,24 @@ nom ; pas de clic droit au doigt) :
   et caché seulement dans la figure enregistrée et dans la pile
   d'annulation (`eraser.ts`, `withGhostsHidden`).
 
+## Barre d'actions et historique
+
+Les actions sont des pictogrammes SVG dans une barre fixe en haut de la
+fenêtre, au-dessus du panneau et de la figure. Trois groupes séparés :
+ouvrir / enregistrer, annuler / refaire, gomme / repère / historique.
+Leur place reste la même quand le panneau est fermé. Chaque bouton a une
+infobulle et un nom accessible ; les bascules montrent leur état en bleu.
+
+Le panneau « Construction » se ferme par la croix de son en-tête ou par
+le bouton historique de la barre, qui permet aussi de le rouvrir. La figure
+récupère sa largeur sans changer les objets ; les consignes se recentrent
+dans l'espace disponible. Le panneau glisse depuis la gauche en 240 ms,
+avec un ralentissement doux, et la figure accompagne le mouvement. Les
+préférences de réduction des animations sont respectées ; un panneau fermé
+est retiré de la navigation au clavier dès le début du mouvement.
+Sur les écrans de 600 px ou moins, le panneau
+démarre fermé ; la barre reste sur une seule ligne à 320 px.
+
 ## Lien avec le lecteur
 
 Un lien « modifier cette figure » pourrait ouvrir la figure du lecteur dans
@@ -287,6 +305,19 @@ Fait (2026-10-11) :
   grille (en 3D, le trièdre avec le plancher), comme `isAxis` de DGPad ;
   hors de la pile d'annulation comme le reste de la vue, mais enregistré.
   Éditeur 36,3 Ko (14,2 Ko en gzip), lecteur inchangé.
+
+- Pictogrammes SVG de l'anneau harmonisés : traits et points plus fins,
+  objet créé en rouge, objets de départ gris, géométrie auxiliaire atténuée ;
+  fonds pastel par famille, ombres discrètes et survol bleu franc avec
+  pictogramme blanc.
+  Éditeur 37,3 Ko (14,5 Ko en gzip), lecteur inchangé.
+
+- Barre d'actions à icônes, panneau de construction refermable (section
+  « Barre d'actions et historique »). Éditeur 41,7 Ko (15,8 Ko en gzip),
+  lecteur inchangé. Vérifiés sur ordinateur et mobile : redimensionnement,
+  coordonnées, annulation, bascules et ouverture / enregistrement. Translation
+  vérifiée aussi lors d'une inversion du mouvement et avec les préférences
+  de réduction des animations.
 
 Reste à faire :
 
