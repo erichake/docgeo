@@ -10,4 +10,8 @@ export const ACTION_ICONS = {
     history:
         '<rect x="3" y="3" width="18" height="18" rx="3"/><path d="M9 3v18m4-13h4m-4 4h4m-4 4h4"/>',
     close_history: '<path d="m6 6 12 12M6 18 18 6"/>',
+    delete: '<path d="M5 7h14M9 7V4.5h6V7M7 7l.8 12a1 1 0 0 0 1 1h6.4a1 1 0 0 0 1-1L17 7M10 10.5v6M14 10.5v6"/>',
+    // The teeth, dashes of a thick circle.
+    settings:
+        '<circle cx="12" cy="12" r="8" stroke-width="3" stroke-dasharray="3 3.283" stroke-linecap="butt"/><circle cx="12" cy="12" r="6.5"/><circle cx="12" cy="12" r="2.5"/>',
 };

@@ -1,16 +1,14 @@
 import type { construction_object } from "../objects/construction_object";
 import { accepts, COMMANDS, type Command, type Overload } from "./catalog";
-import { ACTION_ICONS } from "./icons";
 
 // The tools shown around a designated object: see EDITOR.md.
 
 export interface Tool {
-    // The command, whose arguments are designated one after the other; a
-    // point put on the object or an intersection, where it was designated;
-    // the object's properties; or deletion.
-    mode: "command" | "point" | "intersection" | "properties" | "delete";
-    command?: Command;
-    overload?: Overload;
+    // The command, whose arguments are designated one after the other; or a
+    // point put on the object or an intersection, where it was designated.
+    mode: "command" | "point" | "intersection";
+    command: Command;
+    overload: Overload;
     icon: string;
     // Its place on the ring, clockwise from the top, in buttons.
     slot: number;
@@ -57,23 +55,6 @@ const MIDPOINT = path("M5 12h14", true) + result(dot(12, 12));
 // each tool keeping its place whatever the object, so that the hand learns
 // it; the tools of a slot never show together.
 const FAMILIES: [hue: number, slots: Tool[][], tone?: number][] = [
-    [
-        215,
-        [
-            [{ mode: "properties", icon: ACTION_ICONS.properties } as Tool],
-            [
-                {
-                    mode: "delete",
-                    icon: result(
-                        path(
-                            "M5 7h14M9 7V4.5h6V7M7 7l.8 12a1 1 0 0 0 1 1h6.4a1 1 0 0 0 1-1L17 7M10 10.5v6M14 10.5v6",
-                        ),
-                    ),
-                } as Tool,
-            ],
-        ],
-        0.25,
-    ],
     [
         35,
         [
@@ -272,12 +253,11 @@ export const RING_SLOTS = slot - start;
 // The tools that take the object as one of their arguments.
 export function toolsFor(object: construction_object, vec3: boolean): Tool[] {
     return TOOLS.filter(({ mode, overload }) => {
-        if (mode === "properties" || mode === "delete") return true;
-        if (overload!.tag === (vec3 ? "C3p" : "C3s")) return false;
-        if (overload!.tag === "Sph" && !vec3) return false;
+        if (overload.tag === (vec3 ? "C3p" : "C3s")) return false;
+        if (overload.tag === "Sph" && !vec3) return false;
         // A point is put on the object, an intersection with another.
         if (mode === "point") return accepts(object, "support");
         if (mode === "intersection") return accepts(object, "intersectable");
-        return overload!.params.some((param) => accepts(object, param));
+        return overload.params.some((param) => accepts(object, param));
     });
 }

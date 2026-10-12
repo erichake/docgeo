@@ -117,10 +117,23 @@ $("head").append(`<style>
     .dge-action:disabled { opacity: 0.3; cursor: default; }
     .dge-action.dge-on { background: #e0ebff; color: #1d4ed8; border-color: #bfd2f5; }
     .dge-action.dge-on:hover { background: #cfdefb; }
+    .dge-bar-middle { flex: 1; display: flex; justify-content: center; min-width: 0; }
+    .dge-bar .dge-bar-end { padding-inline-start: 0; border: 0; }
+    .dge-bar-object { align-items: center; min-width: 0; animation: dge-arrive 180ms ease-out; }
+    .dge-editor .dge-bar .dge-bar-object { gap: 4px; padding: 4px; border: 0; border-radius: 26px; background: rgb(219 225 232); }
+    .dge-editor .dge-bar .dge-bar-object .dge-action { width: 40px; height: 40px; border-color: hsl(215 14% 60%); border-radius: 50%; background: hsl(215 17.5% 96%); box-shadow: 0 1px 2px rgb(15 23 42 / 0.06), 0 3px 7px rgb(15 23 42 / 0.08); }
+    .dge-bar-object .dge-action:hover:not(:disabled) { background: #2563eb; border-color: #2563eb; color: #fff; }
+    .dge-bar-name { display: flex; align-items: center; gap: 6px; min-width: 0; max-width: 120px; padding-inline: 4px 6px; font-weight: 600; color: #334155; }
+    .dge-bar-name span:last-child { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .dge-swatch { flex-shrink: 0; width: 10px; height: 10px; border-radius: 50%; box-shadow: 0 0 0 1px rgb(15 23 42 / 0.2); }
+    .dge-action.dge-delete { color: #dc2626; }
+    .dge-bar-object .dge-delete:hover:not(:disabled) { background: #dc2626; border-color: #dc2626; }
+    @keyframes dge-arrive { from { opacity: 0; transform: translateY(-8px); } }
+    @media (max-width: 600px) { .dge-editor .dge-bar .dge-bar-object { position: fixed; top: calc(var(--dge-bar-height) + 8px); inset-inline: 0; width: fit-content; margin-inline: auto; box-shadow: 0 4px 12px rgb(15 23 42 / 0.12); } }
     .dge-panel-header .dge-action { width: 32px; height: 32px; border-radius: 8px; }
     @media (max-width: 400px) { .dge-bar { gap: 6px; padding-inline: 8px; } .dge-bar-group { gap: 2px; } .dge-bar-group + .dge-bar-group { padding-inline-start: 6px; } .dge-bar .dge-action { width: 36px; } }
     .dge-hint { position: fixed; bottom: 16px; left: calc(50% + var(--dge-panel-width) / 2); transform: translateX(-50%); max-width: calc(100% - var(--dge-panel-width) - 32px); padding: 7px 14px; border-radius: 9px; background: rgb(17 24 39 / 0.86); color: #f9fafb; font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 13.5px; white-space: pre-wrap; z-index: 11; pointer-events: none; transition: left var(--dge-slide), max-width var(--dge-slide); }
-    @media (prefers-reduced-motion: reduce) { .dge-editor.dge-panel-animated { --dge-slide-duration: 0s; } }
+    @media (prefers-reduced-motion: reduce) { .dge-editor.dge-panel-animated { --dge-slide-duration: 0s; } .dge-bar-object { animation: none; } }
     .dge-hint:empty { display: none; }
     .dge-hint.dge-error { background: #b91c1c; }
     .dge-hint button { width: 30px; height: 30px; margin: -4px -8px -4px 10px; padding: 0; border: 0; border-radius: 50%; background: rgb(255 255 255 / 0.18); color: inherit; font-size: 15px; vertical-align: middle; cursor: pointer; pointer-events: auto; }
@@ -200,6 +213,31 @@ const propertiesButton = button("properties", () =>
 )
     .att("aria-controls", "dge-properties")
     .att("aria-expanded", "false");
+const deleteButton = button("delete", () => remove()).addClass("dge-delete");
+const settingsButton = button("settings", () => setProperties(true));
+const swatch = $.create("span").cls("dge-swatch");
+const objectName = $.create("span");
+// The actions on the selected object.
+const actions = $.create("div")
+    .cls("dge-bar-group dge-bar-object")
+    .att("role", "group")
+    .add(
+        $.create("span").cls("dge-bar-name").add(swatch, objectName),
+        deleteButton,
+        settingsButton,
+    )
+    .hide();
+// Hovered, an action shows its line, as the ring's tools.
+function explain(action: DOMElement, line: (name: string) => string): void {
+    action.on(
+        "pointerenter",
+        () => showHint(line(formatName(target()!.name))),
+        false,
+    );
+    action.on("pointerleave", () => showHint(""), false);
+}
+explain(deleteButton, (name) => `${name} =\n${message("delete")}`);
+explain(settingsButton, (name) => `${name}\n${message("settings")}`);
 const properties = propertiesPanel({
     scene,
     changed: () => changed(),
@@ -246,10 +284,13 @@ $("body").add(
                     ),
                     button("save", save),
                 ),
-            $.create("div").cls("dge-bar-group").add(undoButton, redoButton),
             $.create("div")
                 .cls("dge-bar-group")
                 .add(eraserButton, axesButton, propertiesButton, historyButton),
+            $.create("div").cls("dge-bar-middle").add(actions),
+            $.create("div")
+                .cls("dge-bar-group dge-bar-end")
+                .add(undoButton, redoButton),
         ),
     properties.panel,
     hint,
@@ -275,6 +316,7 @@ function setPanel(on: boolean, animate = true): void {
 }
 function setProperties(on: boolean): void {
     if (on) {
+        const object = target();
         setEraser(false);
         cancel();
         editing()?.blur();
@@ -283,7 +325,7 @@ function setProperties(on: boolean): void {
         highlight();
         if (window.innerWidth <= 900) setPanel(false);
         properties.refresh();
-        properties.select(properties.selected);
+        properties.select(object ?? properties.selected);
     }
     propertiesOpen = on;
     properties.panel.dom().toggleAttribute("inert", !on);
@@ -798,7 +840,7 @@ function wantsPoint(hits: Hit[]): boolean {
     if (pending)
         return (
             pending.tool.mode === "command" &&
-            paramAt(pending.tool.overload!, nextSlot()) === "point"
+            paramAt(pending.tool.overload, nextSlot()) === "point"
         );
     const field = editing();
     if (!field) return !propertiesOpen && !ghosts;
@@ -848,7 +890,7 @@ function designatePoint(
 }
 
 function nextSlot({ tool, args } = pending!): number {
-    if (tool.overload!.variadic) return args.length;
+    if (tool.overload.variadic) return args.length;
     return args.findIndex((arg) => arg === undefined);
 }
 
@@ -858,7 +900,7 @@ function firstArgs(
     object: construction_object,
 ): (Arg | undefined)[] {
     if (tool.mode !== "command") return [object];
-    const { params, variadic } = tool.overload!;
+    const { params, variadic } = tool.overload;
     const args: (Arg | undefined)[] = variadic
         ? []
         : Array(params.length).fill(undefined);
@@ -869,20 +911,16 @@ function firstArgs(
 // The line the tool writes, its missing arguments elided, and what remains
 // to designate.
 function describe(tool: Tool, args: (Arg | undefined)[]): string {
-    if (tool.mode === "properties")
-        return `${formatArg(args[0]!)}\n${message("properties")}`;
-    if (tool.mode === "delete")
-        return `${formatArg(args[0]!)} =\n${message("delete")}`;
-    const point = tool.mode !== "command" || isPointTag(tool.overload!.tag);
+    const point = tool.mode !== "command" || isPointTag(tool.overload.tag);
     const shown = args.map((arg) => (arg === undefined ? "…" : formatArg(arg)));
-    if (tool.mode !== "command" || tool.overload!.variadic) shown.push("…");
-    const line = `${formatName(nextName(scene(), point))} = ${commandName(tool.command!)}(${shown.join(", ")})`;
+    if (tool.mode !== "command" || tool.overload.variadic) shown.push("…");
+    const line = `${formatName(nextName(scene(), point))} = ${commandName(tool.command)}(${shown.join(", ")})`;
     if (tool.mode === "point") return line;
     if (tool.mode === "intersection")
         return `${line}\n${message("designate", message("intersectable"))}`;
-    if (tool.overload!.variadic && args.length >= 3)
+    if (tool.overload.variadic && args.length >= 3)
         return `${line}\n${message("polygon_end")}`;
-    const param = paramAt(tool.overload!, nextSlot({ tool, args }))!;
+    const param = paramAt(tool.overload, nextSlot({ tool, args }))!;
     return `${line}\n${message("designate", message(param as MessageKey))}`;
 }
 
@@ -918,10 +956,14 @@ function hold(c: construction, hit: Hit, previous: Vec2): Vec2 {
     return c.pt3D(at);
 }
 
+// Selects the object, and opens the ring of its tools if it has some.
 function openRing(hit: Hit, client: Vec2): void {
     const c = scene();
     held = { hit, client, screen: hold(c, hit, c.pt3D(hit.at)) };
+    highlight(hit.object);
+    showActions();
     const tools = toolsFor(hit.object, vec3());
+    if (!tools[0]) return;
     // Each family's sector, even its places without a tool for the object.
     const sectors = [...new Set(tools.map(({ family }) => family))]
         .map(({ hue, tone, first, last }) => {
@@ -937,12 +979,7 @@ function openRing(hit: Hit, client: Vec2): void {
     tools.forEach((tool) => {
         const [x, y] = onRing(tool.slot);
         const item = $.create("button")
-            .att(
-                "aria-label",
-                tool.command
-                    ? commandName(tool.command)
-                    : message(tool.mode as "properties" | "delete"),
-            )
+            .att("aria-label", commandName(tool.command))
             .stl("left", `${x}px`)
             .stl("top", `${y}px`)
             .stl("--dge-hue", `${tool.family.hue}`)
@@ -972,7 +1009,6 @@ function openRing(hit: Hit, client: Vec2): void {
         ring.add(item);
     });
     ring.show();
-    highlight(hit.object);
 }
 
 function placeRing(): void {
@@ -1002,7 +1038,7 @@ function placeRing(): void {
 
 // The ring follows its object, dragged or moved with the view.
 function moveRing(): void {
-    if (!held) return;
+    if (!held || ring.isHidden()) return;
     const c = scene();
     c.flush();
     const screen = hold(c, held.hit, held.screen);
@@ -1014,7 +1050,33 @@ function moveRing(): void {
 function closeRing(): void {
     held = null;
     ring.hide().inner("");
+    highlight();
+    showActions();
     if (!pending) showHint("");
+}
+
+// The object the actions act on, Delete included.
+const target = (): construction_object | null =>
+    propertiesOpen ? properties.selected : (held?.hit.object ?? null);
+
+// The bar's actions, shown with the ring, and gone once one is applied.
+function showActions(): void {
+    if (!held) {
+        actions.hide();
+        return;
+    }
+    const { object } = held.hit;
+    const name = formatName(object.name);
+    swatch.stl("background", object.stroke_color);
+    objectName.text(name);
+    actions.att("aria-label", name).show("flex");
+}
+
+function remove(): void {
+    const object = target()!;
+    closeRing();
+    scene().removeObject(object);
+    done();
 }
 
 // The object meant by a click on these hits, chosen in a menu when several
@@ -1056,15 +1118,7 @@ function closeMenu(): void {
 }
 
 function choose(tool: Tool, { object, at }: Hit): void {
-    if (tool.mode === "properties") {
-        setProperties(true);
-        return properties.select(object);
-    }
     const c = scene();
-    if (tool.mode === "delete") {
-        c.removeObject(object);
-        return done();
-    }
     if (tool.mode === "point")
         return done(addPointOn(c, nextName(c, true), object, at));
     pending = { tool, args: firstArgs(tool, object) };
@@ -1076,8 +1130,8 @@ function choose(tool: Tool, { object, at }: Hit): void {
 // Builds the object once all its arguments are designated.
 function proceed(): void {
     const { tool, args } = pending!;
-    if (tool.overload!.variadic || args.includes(undefined)) return prompt();
-    build(tool.overload!, args as Arg[]);
+    if (tool.overload.variadic || args.includes(undefined)) return prompt();
+    build(tool.overload, args as Arg[]);
 }
 
 function build(overload: Overload, args: Arg[]): void {
@@ -1105,7 +1159,7 @@ function designate(screen: Vec2, hits: Hit[], client: Vec2): void {
             build(overload, found);
         });
     }
-    const overload = tool.overload!;
+    const overload = tool.overload;
     const param = paramAt(overload, nextSlot())!;
     if (overload.variadic && args.length >= 3 && hits[0]?.object === args[0])
         return build(overload, args as Arg[]);
@@ -1188,7 +1242,7 @@ function updatePreview(screen: Vec2, hits: Hit[]): void {
     const field = editing();
     const call = pending
         ? pending.tool.mode === "command" && {
-              overload: pending.tool.overload!,
+              overload: pending.tool.overload,
               args: pending.args,
               free: true,
           }
@@ -1365,7 +1419,7 @@ function follow(event: PointerEvent): void {
     const screen = c.pointerPosition(event);
     const hits = button ? [] : pick(c, screen, previewed());
     if (pending || editing()) updatePreview(screen, hits);
-    if (!ring.isHidden()) return;
+    if (held) return;
     // The two objects whose intersection a click would make.
     const cross = wantsPoint(hits) && crossing(c, screen, hits);
     highlight(
@@ -1516,7 +1570,7 @@ $("body").on(
             void record().then(updateRows);
             return;
         }
-        if (!ring.isHidden()) return closeRing();
+        if (held) return closeRing();
         const c = scene();
         const screen = c.pointerPosition(event);
         const hits = pick(c, screen, previewed());
@@ -1571,6 +1625,12 @@ $("body").on(
         } else if (command && event.key.toLowerCase() === "y") {
             event.preventDefault();
             travel(1);
+        } else if (
+            (event.key === "Delete" || event.key === "Backspace") &&
+            target()
+        ) {
+            event.preventDefault();
+            remove();
         } else if (event.key === "Escape") {
             if (!menu.isHidden()) closeMenu();
             else if (propertiesOpen) setProperties(false);

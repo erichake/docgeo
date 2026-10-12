@@ -38,6 +38,7 @@ const MESSAGES = {
     history: ["Historique de la construction", "Construction history"],
     close_history: ["Fermer l’historique", "Close history"],
     properties: ["Propriétés", "Properties"],
+    settings: ["Réglages", "Settings"],
     close_properties: ["Fermer les propriétés", "Close properties"],
     properties_hint: [
         "Désignez un objet dans la figure, ou choisissez-le dans la liste.",

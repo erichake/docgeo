@@ -154,9 +154,10 @@ icônes :
 
 - **Familles à places fixes** : les outils sont regroupés par familles,
   séparées par un vide et teintées chacune d'une couleur (bande derrière les
-  boutons, bord des boutons). Dans le sens horaire depuis le haut :
-  objet (propriétés, suppression), famille grise centrée sur le haut, dont
-  la corbeille est rouge ; points (point sur objet, intersection, milieu ou centre) ;
+  boutons, bord des boutons). L'anneau ne porte que des outils géométriques
+  (2026-10-12) : les actions sur l'objet sont dans la barre (section
+  « Actions sur l'objet sélectionné »). Dans le sens horaire depuis le haut :
+  points (point sur objet, intersection, milieu ou centre) ;
   droites (segment, droite, demi-droite, vecteur) ; constructions
   (perpendiculaire, parallèle, médiatrice, bissectrice) ; cercles (centre et
   point, trois points, sphère) ; polygone et angle ; symétries (centrale,
@@ -165,7 +166,9 @@ icônes :
   place (milieu de deux points, d'un segment, centre d'un cercle). La bande
   d'une famille couvre toutes ses places, même celles sans outil pour
   l'objet : l'élève retient la place autant que l'icône. Le rayon de
-  l'anneau est donc fixe (148 px). Près d'un bord de la figure, l'anneau
+  l'anneau est donc fixe (138 px). Un objet sans outil géométrique (texte,
+  expression, curseur…) n'ouvre pas d'anneau : le clic le sélectionne
+  seulement. Près d'un bord de la figure, l'anneau
   se décale vers l'intérieur juste assez pour y tenir entier, plutôt que de
   se replier, ce qui déplacerait les outils ; un peu plus si l'objet
   tombait sous un bouton, qu'il reste visible au-delà. Un trait pointillé
@@ -174,19 +177,60 @@ icônes :
   zoome la vue : il reste accroché au point de l'objet le plus proche de
   là où il était, où « point sur objet » placera le point ; un polygone ou
   une sphère l'emmènent avec leur centre.
-- **Propriétés** : le bouton ouvre le panneau de propriétés sur l'objet,
-  et ferme l'anneau. Panneau ouvert, un clic sélectionne déjà l'objet sans
-  ouvrir d'anneau.
 - **Ligne de l'outil** : survoler une icône affiche dans la consigne la
   ligne que l'outil écrira, ses arguments manquants en `…`
-  (`M = Milieu(A, …)`), et ce qu'il reste à désigner ; `A =` pour
-  supprimer, `A` et « Propriétés » pour les propriétés. La consigne garde
+  (`M = Milieu(A, …)`), et ce qu'il reste à désigner. La consigne garde
   cette ligne pendant la désignation des arguments, au doigt comme à la
   souris.
 
 Plus tard : des jeux d'outils choisis par l'enseignant (« Collège début »,
 « Tout »…), enregistrés dans la figure ou passés par l'URL. Un anneau à deux
 niveaux (familles, puis outils) seulement si l'anneau reste trop dense.
+
+## Actions sur l'objet sélectionné
+
+Décidé le 2026-10-12. Les utilitaires de DGPad (sa rangée grise : nom,
+propriétés, corbeille, ancre, aimant, calculatrice, Blockly…) se
+multiplieraient sur l'anneau au fil des implémentations. Partage :
+
+- **l'anneau construit** à partir de l'objet (outils géométriques) ;
+- **la barre agit** sur l'objet sélectionné (supprimer, redéfinir…) ;
+- **le panneau de propriétés règle** ses attributs : ce qui, dans DGPad,
+  était un outil mais ne change qu'un attribut (nom, aimant, ancre,
+  trace…) y devient un champ ou une case ;
+- ce qui ne dépend pas de l'objet (calculatrice, modes) est un bouton
+  permanent de la barre, comme la gomme.
+
+Un nouvel utilitaire passe ce tri avant d'être placé.
+
+La sélection d'un objet par un clic (avec ou sans anneau) fait apparaître
+dans la barre une zone contextuelle, centrée entre les groupes permanents
+de gauche et annuler / refaire : une pastille de la couleur de l'objet et
+son nom (qui nomme aussi le groupe pour les lecteurs d'écran), puis ses
+actions, la corbeille la première, en rouge. Pour les distinguer des
+boutons carrés permanents, ses actions ont l'aspect des outils de
+l'anneau, comme si elles en venaient : boutons ronds pastel sur une bande
+en pilule, teinte grise de l'ancienne famille « objet », survol bleu plein
+(rouge pour la corbeille). La zone glisse en place en même temps que
+l'anneau s'ouvre, pour attirer l'œil vers la barre (sans mouvement si les
+animations sont réduites) ; elle disparaît avec l'anneau, dès qu'un outil
+de l'un ou une action de l'autre est appliqué, ou par Échap ou un clic
+ailleurs. Panneau de propriétés ouvert, un clic sélectionne l'objet dans
+le panneau sans anneau ni zone. Survoler une action affiche sa ligne dans
+la consigne (`A =` pour supprimer). Suppr et Retour arrière suppriment
+l'objet sélectionné, celui du panneau quand il est ouvert. Le bouton
+« Propriétés » de la barre (curseurs) reste une bascule permanente : il
+ouvre ou ferme le panneau, qui montre l'objet sélectionné. L'utilisateur
+attend dans la zone contextuelle tout ce qui concerne l'objet : elle a son
+propre bouton « Réglages » (roue dentée, icône distincte), un poussoir qui
+ouvre le panneau sur l'objet, comme le faisait le bouton de l'anneau ; la
+bascule passe alors à « on », ce qui montre que les deux mènent au même
+panneau. L'objet sélectionné brille dans la figure, ce qui compte surtout
+quand aucun anneau ne s'ouvre.
+
+La barre est déjà pleine à 320 px : sous 600 px, la zone contextuelle
+flotte, centrée, juste sous la barre, par-dessus le haut de la figure,
+sans la décaler.
 
 ## Gomme
 
@@ -209,9 +253,11 @@ nom ; pas de clic droit au doigt) :
 ## Barre d'actions et historique
 
 Les actions sont des pictogrammes SVG dans une barre fixe en haut de la
-fenêtre, au-dessus du panneau et de la figure. Trois groupes séparés :
-ouvrir / enregistrer, annuler / refaire, gomme / repère / historique.
-Leur place reste la même quand le panneau est fermé. Chaque bouton a une
+fenêtre, au-dessus du panneau et de la figure. Groupes séparés : à
+gauche ouvrir / enregistrer et gomme / repère / propriétés / historique ;
+au bout de la barre, comme dans GeoGebra, annuler / refaire (décidé le
+2026-10-12). La zone contextuelle de l'objet sélectionné se centre entre
+les deux (section « Actions sur l'objet sélectionné »). Leur place reste la même quand le panneau est fermé. Chaque bouton a une
 infobulle et un nom accessible ; les bascules montrent leur état en bleu.
 
 Le panneau « Construction » se ferme par la croix de son en-tête ou par
@@ -393,6 +439,14 @@ Fait (2026-10-11) :
   crée alors l'intersection sans ouvrir d'anneau. Les intersections des
   paires survolées sont gardées tant que la figure ne change pas.
   Éditeur : 60,5 Ko, CSS inclus (22,1 Ko en gzip) ; lecteur inchangé.
+
+- Actions sur l'objet sélectionné (2026-10-12, section du même nom) :
+  corbeille et « Réglages » quittent l'anneau pour une zone contextuelle
+  de la barre, avec Suppr / Retour arrière ; l'anneau ne porte plus que
+  des outils géométriques (rayon 138 px) et ne s'ouvre pas pour un objet
+  qui n'en a aucun ; annuler / refaire au bout de la barre. Vérifié dans
+  `editor.html` à 1200 et 360 px de large. Éditeur : 62,8 Ko, CSS inclus
+  (22,5 Ko en gzip) ; lecteur inchangé.
 
 Reste à faire :
 
