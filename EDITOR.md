@@ -155,7 +155,8 @@ icônes :
 - **Familles à places fixes** : les outils sont regroupés par familles,
   séparées par un vide et teintées chacune d'une couleur (bande derrière les
   boutons, bord des boutons). Dans le sens horaire depuis le haut :
-  suppression ; points (point sur objet, intersection, milieu ou centre) ;
+  objet (propriétés, suppression), famille grise centrée sur le haut, dont
+  la corbeille est rouge ; points (point sur objet, intersection, milieu ou centre) ;
   droites (segment, droite, demi-droite, vecteur) ; constructions
   (perpendiculaire, parallèle, médiatrice, bissectrice) ; cercles (centre et
   point, trois points, sphère) ; polygone et angle ; symétries (centrale,
@@ -173,11 +174,15 @@ icônes :
   zoome la vue : il reste accroché au point de l'objet le plus proche de
   là où il était, où « point sur objet » placera le point ; un polygone ou
   une sphère l'emmènent avec leur centre.
+- **Propriétés** : le bouton ouvre le panneau de propriétés sur l'objet,
+  et ferme l'anneau. Panneau ouvert, un clic sélectionne déjà l'objet sans
+  ouvrir d'anneau.
 - **Ligne de l'outil** : survoler une icône affiche dans la consigne la
   ligne que l'outil écrira, ses arguments manquants en `…`
   (`M = Milieu(A, …)`), et ce qu'il reste à désigner ; `A =` pour
-  supprimer. La consigne garde cette ligne pendant la désignation des
-  arguments, au doigt comme à la souris.
+  supprimer, `A` et « Propriétés » pour les propriétés. La consigne garde
+  cette ligne pendant la désignation des arguments, au doigt comme à la
+  souris.
 
 Plus tard : des jeux d'outils choisis par l'enseignant (« Collège début »,
 « Tout »…), enregistrés dans la figure ou passés par l'URL. Un anneau à deux
@@ -364,6 +369,11 @@ Fait (2026-10-11) :
   respectés, saisie clavier et tactile conservée, une seule annulation par
   glissement. Vérifiés avec de vrais gestes de souris et dans `editor.html`.
   Éditeur : 58,0 Ko, CSS inclus (21,2 Ko en gzip) ; lecteur inchangé.
+
+- Bouton « Propriétés » dans l'anneau, à côté de la corbeille, dans une
+  famille « objet » grise centrée sur le haut (section « Anneau d'outils ») ;
+  le rayon gagne une place (environ 6 px). Vérifié dans `editor.html`.
+  Éditeur : 58,4 Ko, CSS inclus (21,3 Ko en gzip) ; lecteur inchangé.
 
 Reste à faire :
 

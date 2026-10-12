@@ -1,13 +1,14 @@
 import type { construction_object } from "../objects/construction_object";
 import { accepts, COMMANDS, type Command, type Overload } from "./catalog";
+import { ACTION_ICONS } from "./icons";
 
 // The tools shown around a designated object: see EDITOR.md.
 
 export interface Tool {
     // The command, whose arguments are designated one after the other; a
     // point put on the object or an intersection, where it was designated;
-    // or deletion.
-    mode: "command" | "point" | "intersection" | "delete";
+    // the object's properties; or deletion.
+    mode: "command" | "point" | "intersection" | "properties" | "delete";
     command?: Command;
     overload?: Overload;
     icon: string;
@@ -18,6 +19,8 @@ export interface Tool {
 
 export interface Family {
     hue: number;
+    // The saturation, relative to the other families'.
+    tone: number;
     first: number;
     last: number;
 }
@@ -50,22 +53,26 @@ const CIRCLE = `<circle cx="12" cy="12" r="7.5"/>`;
 const CIRCLE3 = result(CIRCLE) + dot(4.5, 12) + dot(16.5, 18) + dot(16.5, 6);
 const MIDPOINT = path("M5 12h14", true) + result(dot(12, 12));
 
-// The families of tools, clockwise from the top, each tool keeping its place
-// whatever the object, so that the hand learns it; the tools of a slot never
-// show together.
-const FAMILIES: [hue: number, slots: Tool[][]][] = [
+// The families of tools, clockwise from the first one, centred on the top,
+// each tool keeping its place whatever the object, so that the hand learns
+// it; the tools of a slot never show together.
+const FAMILIES: [hue: number, slots: Tool[][], tone?: number][] = [
     [
-        0,
+        215,
         [
+            [{ mode: "properties", icon: ACTION_ICONS.properties } as Tool],
             [
                 {
                     mode: "delete",
-                    icon: path(
-                        "M5 7h14M9 7V4.5h6V7M7 7l.8 12a1 1 0 0 0 1 1h6.4a1 1 0 0 0 1-1L17 7M10 10.5v6M14 10.5v6",
+                    icon: result(
+                        path(
+                            "M5 7h14M9 7V4.5h6V7M7 7l.8 12a1 1 0 0 0 1 1h6.4a1 1 0 0 0 1-1L17 7M10 10.5v6M14 10.5v6",
+                        ),
                     ),
                 } as Tool,
             ],
         ],
+        0.25,
     ],
     [
         35,
@@ -248,9 +255,10 @@ const FAMILIES: [hue: number, slots: Tool[][]][] = [
 const GAP = 0.45;
 
 export const TOOLS: Tool[] = [];
-let slot = 0;
-for (const [hue, slots] of FAMILIES) {
-    const family = { hue, first: slot, last: slot + slots.length - 1 };
+const start = (1 - FAMILIES[0][1].length) / 2;
+let slot = start;
+for (const [hue, slots, tone = 1] of FAMILIES) {
+    const family = { hue, tone, first: slot, last: slot + slots.length - 1 };
     for (const tools of slots) {
         for (const tool of tools)
             TOOLS.push(Object.assign(tool, { slot, family }));
@@ -259,12 +267,12 @@ for (const [hue, slots] of FAMILIES) {
     slot += GAP;
 }
 // The ring's circumference, in buttons.
-export const RING_SLOTS = slot;
+export const RING_SLOTS = slot - start;
 
 // The tools that take the object as one of their arguments.
 export function toolsFor(object: construction_object, vec3: boolean): Tool[] {
     return TOOLS.filter(({ mode, overload }) => {
-        if (mode === "delete") return true;
+        if (mode === "properties" || mode === "delete") return true;
         if (overload!.tag === (vec3 ? "C3p" : "C3s")) return false;
         if (overload!.tag === "Sph" && !vec3) return false;
         // A point is put on the object, an intersection with another.

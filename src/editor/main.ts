@@ -118,9 +118,9 @@ $("head").append(`<style>
     .dge-hint button { width: 30px; height: 30px; margin: -4px -8px -4px 10px; padding: 0; border: 0; border-radius: 50%; background: rgb(255 255 255 / 0.18); color: inherit; font-size: 15px; vertical-align: middle; cursor: pointer; pointer-events: auto; }
     .dge-hint button:hover { background: rgb(255 255 255 / 0.32); }
     .dge-ring { position: fixed; width: 0; height: 0; z-index: 12; }
-    .dge-ring button { position: absolute; display: grid; place-items: center; width: ${2 * RING_BUTTON}px; height: ${2 * RING_BUTTON}px; margin: -${RING_BUTTON}px; padding: 7px; border: 1px solid hsl(var(--dge-hue) 55% 60%); border-radius: 50%; background: hsl(var(--dge-hue) 70% 96%); color: #536174; box-shadow: 0 1px 2px rgb(15 23 42 / 0.06), 0 3px 7px rgb(15 23 42 / 0.08); cursor: pointer; }
-    .dge-ring button:hover { background: #2563eb; color: #fff; border-color: #2563eb; box-shadow: 0 2px 4px rgb(15 23 42 / 0.08), 0 4px 10px rgb(15 23 42 / 0.1); }
-    .dge-ring button:focus-visible { outline: 2px solid hsl(var(--dge-hue) 60% 45%); outline-offset: 3px; }
+    .dge-ring button { position: absolute; display: grid; place-items: center; width: ${2 * RING_BUTTON}px; height: ${2 * RING_BUTTON}px; margin: -${RING_BUTTON}px; padding: 7px; border: 1px solid hsl(var(--dge-hue) calc(55% * var(--dge-tone)) 60%); border-radius: 50%; background: var(--dge-icon-bg); --dge-icon-bg: hsl(var(--dge-hue) calc(70% * var(--dge-tone)) 96%); color: #536174; box-shadow: 0 1px 2px rgb(15 23 42 / 0.06), 0 3px 7px rgb(15 23 42 / 0.08); cursor: pointer; }
+    .dge-ring button:hover { --dge-icon-bg: #2563eb; color: #fff; border-color: #2563eb; box-shadow: 0 2px 4px rgb(15 23 42 / 0.08), 0 4px 10px rgb(15 23 42 / 0.1); }
+    .dge-ring button:focus-visible { outline: 2px solid hsl(var(--dge-hue) calc(60% * var(--dge-tone)) 45%); outline-offset: 3px; }
     .dge-ring .dge-sectors { position: absolute; overflow: visible; fill: none; stroke-width: ${2 * RING_BUTTON + 12}px; stroke-linecap: round; pointer-events: none; }
     .dge-ring .dge-tie { stroke: #f59e0b; stroke-width: 2px; stroke-dasharray: 2 5; }
     .dge-ring button svg { display: block; width: 24px; height: 24px; fill: none; stroke: currentColor; stroke-width: 1.65; stroke-linecap: round; stroke-linejoin: round; }
@@ -865,6 +865,8 @@ function firstArgs(
 // The line the tool writes, its missing arguments elided, and what remains
 // to designate.
 function describe(tool: Tool, args: (Arg | undefined)[]): string {
+    if (tool.mode === "properties")
+        return `${formatArg(args[0]!)}\n${message("properties")}`;
     if (tool.mode === "delete")
         return `${formatArg(args[0]!)} =\n${message("delete")}`;
     const point = tool.mode !== "command" || isPointTag(tool.overload!.tag);
@@ -918,10 +920,10 @@ function openRing(hit: Hit, client: Vec2): void {
     const tools = toolsFor(hit.object, vec3());
     // Each family's sector, even its places without a tool for the object.
     const sectors = [...new Set(tools.map(({ family }) => family))]
-        .map(({ hue, first, last }) => {
+        .map(({ hue, tone, first, last }) => {
             const [x0, y0] = onRing(first);
             const [x1, y1] = onRing(last);
-            return `<path d="M${x0} ${y0}A${RING_RADIUS} ${RING_RADIUS} 0 0 1 ${x1} ${y1}" style="stroke:hsl(${hue} 70% 50% / 0.2)"/>`;
+            return `<path d="M${x0} ${y0}A${RING_RADIUS} ${RING_RADIUS} 0 0 1 ${x1} ${y1}" style="stroke:hsl(${hue} ${70 * tone}% 50% / 0.2)"/>`;
         })
         .join("");
     ring.inner(
@@ -933,11 +935,14 @@ function openRing(hit: Hit, client: Vec2): void {
         const item = $.create("button")
             .att(
                 "aria-label",
-                tool.command ? commandName(tool.command) : message("delete"),
+                tool.command
+                    ? commandName(tool.command)
+                    : message(tool.mode as "properties" | "delete"),
             )
             .stl("left", `${x}px`)
             .stl("top", `${y}px`)
             .stl("--dge-hue", `${tool.family.hue}`)
+            .stl("--dge-tone", `${tool.family.tone}`)
             .append(
                 `<svg viewBox="0 0 24 24" aria-hidden="true">${tool.icon}</svg>`,
             );
@@ -1008,6 +1013,10 @@ function closeRing(): void {
 }
 
 function choose(tool: Tool, { object, at }: Hit): void {
+    if (tool.mode === "properties") {
+        setProperties(true);
+        return properties.select(object);
+    }
     const c = scene();
     if (tool.mode === "delete") {
         c.removeObject(object);
