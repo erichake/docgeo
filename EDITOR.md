@@ -283,6 +283,11 @@ Fait (2026-10-11) :
 - Gomme (section « Gomme ») ; l'import GeoGebra super-cache ses objets
   auxiliaires. Éditeur 35,5 Ko (13,8 Ko en gzip), lecteur inchangé.
 
+- Bouton bascule « Repère » de la barre : montre ou cache les axes avec la
+  grille (en 3D, le trièdre avec le plancher), comme `isAxis` de DGPad ;
+  hors de la pile d'annulation comme le reste de la vue, mais enregistré.
+  Éditeur 36,3 Ko (14,2 Ko en gzip), lecteur inchangé.
+
 Reste à faire :
 
 - Jeux d'outils de l'enseignant (section « Anneau d'outils »).

@@ -141,6 +141,7 @@ function button(key: MessageKey, action: () => void): DOMElement {
 const undoButton = button("undo", () => travel(-1));
 const redoButton = button("redo", () => travel(1));
 const eraserButton = button("eraser", () => setEraser(!ghosts));
+const axesButton = button("axes", () => setAxes(scene().GRID.hidden !== 0));
 const fileInput = $.create("input")
     .att("type", "file")
     .att("accept", ".dgo,.dgp,.ggb");
@@ -154,6 +155,7 @@ $("body").add(
             undoButton,
             redoButton,
             eraserButton,
+            axesButton,
         ),
     hint,
     ring,
@@ -1050,6 +1052,17 @@ function setEraser(on: boolean): void {
     showHint(on ? message("erasing") : "");
 }
 
+// The axes with the grid, or in 3D the trihedron with the floor, as
+// DGPad's isAxis.
+function setAxes(on: boolean): void {
+    const c = scene();
+    c.GRID.hidden = on ? 0 : 1;
+    if (on) c.GRID.showGrid = true;
+    if (!c.GRID.is2D) c.GRID.SHOWFLOOR = on;
+    c.invalidateProjection();
+    axesButton.toggleClass("dge-on", on);
+}
+
 function cancel(): void {
     pending = null;
     aim = null;
@@ -1328,6 +1341,7 @@ async function open(
     const unsupported = await load(studio.scene);
     studio.scene.flush();
     studio.scene.reveal();
+    axesButton.toggleClass("dge-on", studio.scene.GRID.hidden === 0);
     figureName = name
         .split(/[/\\?#]/)
         .filter(Boolean)

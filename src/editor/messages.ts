@@ -32,6 +32,7 @@ const MESSAGES = {
     redo: ["Refaire", "Redo"],
     delete: ["Supprimer", "Delete"],
     eraser: ["Gomme", "Eraser"],
+    axes: ["Repère", "Axes"],
     erasing: [
         "Touchez un objet pour le cacher ou le montrer",
         "Tap an object to hide or show it",
