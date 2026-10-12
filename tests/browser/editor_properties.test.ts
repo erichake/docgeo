@@ -3,10 +3,19 @@ import { userEvent } from "vitest/browser";
 import "../../src/construction";
 import { describeDgo, figureObjects, readDgo } from "../../src/dgo";
 import { $ } from "../../src/dom";
-import { add, resolve } from "../../src/editor/figure";
+import {
+    add,
+    figureIndex,
+    lineOf,
+    redefine,
+    resolve,
+    type Studio,
+} from "../../src/editor/figure";
 import { message } from "../../src/editor/messages";
 import { propertiesPanel } from "../../src/editor/properties";
 import { parseLine } from "../../src/editor/text";
+import { isCommand } from "../../src/editor/catalog";
+import type { expression_object } from "../../src/objects/expression_object";
 import type { point_object } from "../../src/objects/point_object";
 import type { point_on_object } from "../../src/objects/point_on_object";
 import type { segment_object } from "../../src/objects/segment_object";
@@ -22,7 +31,7 @@ function setup() {
         o: [],
     });
     ["A = (0, 0)", "B = (3, 1)", "s = Segment(A, B)", "d = Line(A, B)"].forEach(
-        (line) => add(c, resolve(c, parseLine(line))),
+        (line) => add(c, resolve(c, parseLine(line, isCommand))),
     );
     c.flush();
     let changes = 0;
@@ -32,6 +41,8 @@ function setup() {
             changes++;
         },
         rename: async () => {},
+        define: async () => {},
+        create: async () => {},
         close: () => {},
     });
     $("body").add(properties.panel);
@@ -158,7 +169,7 @@ describe("Object properties", () => {
         const { c, properties, field, change } = setup();
         const point = add(
             c,
-            resolve(c, parseLine("P = Point(s, 0.5)")),
+            resolve(c, parseLine("P = Point(s, 0.5)", isCommand)),
         ) as point_on_object;
         c.animations.paused = true;
         properties.refresh();
@@ -227,7 +238,7 @@ describe("Object properties", () => {
         const figure = await describeDgo(c);
         const old = properties.selected;
         c.removeObject(c.getObj("A")!);
-        const point = add(c, resolve(c, parseLine("A = (0, 0)")));
+        const point = add(c, resolve(c, parseLine("A = (0, 0)", isCommand)));
         point.size = (figure.st![0] as { s: number }).s;
         properties.refresh();
         expect(properties.selected).not.toBe(old);
@@ -236,5 +247,141 @@ describe("Object properties", () => {
         );
         expect(field("point_size").value).toBe("8");
         properties.panel.dispose();
+    });
+
+    it("edits a program on several lines, laid out, and points at a wrong line", async () => {
+        const scene = createConstruction([800, 600]);
+        readDgo(scene, {
+            dgo: 1,
+            v: { o: [400, 300], u: 40, w: 800, h: 600 },
+            o: [],
+        });
+        const studio: Studio = { prefs: scene.prefs, scene };
+        [
+            "A = (0, 0)",
+            "B = (3, 1)",
+            "s = Segment(A, B)",
+            "a = 3",
+            'p = if(a>2){s.setHidden(1)}else{s.setHidden(0)};"Faces"',
+        ].forEach((line) =>
+            add(scene, resolve(scene, parseLine(line, isCommand))),
+        );
+        const properties = propertiesPanel({
+            scene: () => studio.scene,
+            changed: () => {},
+            rename: async () => {},
+            define: async (object, source) => {
+                const spec = resolve(
+                    studio.scene,
+                    {
+                        name: object.name,
+                        definition: { kind: "formula", source },
+                    },
+                    object,
+                );
+                await redefine(studio, object, spec);
+                properties.select(studio.scene.getObj(spec.name)!);
+            },
+            create: async (name, source) => {
+                const c = studio.scene;
+                properties.select(
+                    add(
+                        c,
+                        resolve(c, {
+                            name: name || null,
+                            definition: { kind: "formula", source },
+                        }),
+                    ),
+                );
+            },
+            close: () => {},
+        });
+        $("body").add(properties.panel);
+        const panel = properties.panel;
+        const area = () =>
+            panel.find("textarea.dge-program")!.dom() as HTMLTextAreaElement;
+        const button = (key: Parameters<typeof message>[0]) =>
+            [...panel.dom().querySelectorAll("button")].find(
+                (button) => button.textContent === message(key),
+            )!;
+        properties.select(scene.getObj("p")!);
+        expect(panel.dom().classList).toContain("dge-properties-wide");
+        expect(area().value).toBe(
+            'if(a>2){s.setHidden(1)}else{s.setHidden(0)};"Faces"',
+        );
+        expect(button("apply").disabled).toBe(true);
+        button("format_program").click();
+        expect(area().value).toBe(
+            [
+                "if(a>2) {",
+                "    s.setHidden(1)",
+                "} else {",
+                "    s.setHidden(0)",
+                "};",
+                '"Faces"',
+            ].join("\n"),
+        );
+        // Enter keeps the indentation, a brace closes it.
+        area().focus();
+        area().setSelectionRange(9, 9);
+        await userEvent.keyboard("{Enter}b=1;{Enter}");
+        expect(area().value.split("\n").slice(0, 4)).toEqual([
+            "if(a>2) {",
+            "    b=1;",
+            "    ",
+            "    s.setHidden(1)",
+        ]);
+        area().setSelectionRange(0, area().value.length);
+        document.execCommand(
+            "insertText",
+            false,
+            'if(a>2){\n    s.setHidden(1)\n\n"Faces"',
+        );
+        button("apply").click();
+        await expect
+            .poll(() => panel.find(".dge-program-error")!.text())
+            .toBe(message("syntax_line", "1"));
+        expect(area().selectionStart).toBe(0);
+        expect(area().selectionEnd).toBe(8);
+        const program = 'if(a>2){\n    s.setHidden(1)\n};\n"Faces"';
+        area().value = program;
+        area().dispatchEvent(new Event("input"));
+        button("apply").click();
+        await expect.poll(() => area().value).toBe(program);
+        const p = studio.scene.getObj("p") as expression_object;
+        expect(properties.selected).toBe(p);
+        const objects = figureObjects(studio.scene);
+        expect(lineOf(p, figureIndex(studio.scene), objects)).toBe(
+            'p = if(a>2){ s.setHidden(1) }; "Faces"',
+        );
+        // A constant's value too, in a narrower panel.
+        properties.select(studio.scene.getObj("a")!);
+        expect(area().value).toBe("3");
+        expect(panel.dom().classList).not.toContain("dge-properties-wide");
+        // A new program, named and written before it exists.
+        properties.create("q");
+        expect(panel.dom().classList).toContain("dge-properties-wide");
+        expect(
+            (
+                panel
+                    .find(`[aria-label="${message("name")}"]`)!
+                    .dom() as HTMLInputElement
+            ).value,
+        ).toBe("q");
+        expect(document.activeElement).toBe(area());
+        expect(button("create").disabled).toBe(true);
+        document.execCommand(
+            "insertText",
+            false,
+            "var t=[];\nt.push([1,2]);\nt",
+        );
+        button("create").click();
+        await expect.poll(() => properties.selected?.name).toBe("q");
+        const q = studio.scene.getObj("q")!;
+        expect(
+            lineOf(q, figureIndex(studio.scene), figureObjects(studio.scene)),
+        ).toBe("q = var t=[]; t.push([1,2]); t");
+        expect((q as expression_object).value).toEqual([[1, 2]]);
+        panel.dispose();
     });
 });

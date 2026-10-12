@@ -3,13 +3,22 @@ import {
     completionAt,
     formatName,
     formatNumber,
+    formatProgram,
     parseLine,
+    renameFormula,
+    syntaxLine,
     TextError,
+    unknownMethod,
 } from "../../src/editor/text";
+import { parseProgram, programReferences } from "../../src/import/dgp_formula";
+
+const COMMANDS = ["Milieu", "Intersection", "Cercle"];
+const read = (text: string) =>
+    parseLine(text, (name) => COMMANDS.includes(name));
 
 describe("Editor text", () => {
     it("parses definitions, free points and deletions", () => {
-        expect(parseLine("M = Milieu(A, `aux 2`)")).toEqual({
+        expect(read("M = Milieu(A, `aux 2`)")).toEqual({
             name: "M",
             definition: {
                 kind: "call",
@@ -20,11 +29,11 @@ describe("Editor text", () => {
                 ],
             },
         });
-        expect(parseLine("A' = (-1.5, 2e3, .5)")).toEqual({
+        expect(read("A' = (-1.5, 2e3, .5)")).toEqual({
             name: "A'",
             definition: { kind: "point", coords: [-1.5, 2000, 0.5] },
         });
-        expect(parseLine("Intersection(c, d, 2)")).toEqual({
+        expect(read("Intersection(c, d, 2)")).toEqual({
             name: null,
             definition: {
                 kind: "call",
@@ -36,20 +45,41 @@ describe("Editor text", () => {
                 ],
             },
         });
-        expect(parseLine("A =")).toEqual({ name: "A", definition: null });
+        expect(read("A =")).toEqual({ name: "A", definition: null });
+    });
+
+    it("reads what isn't a point nor a command as a formula", () => {
+        for (const [text, name, source] of [
+            ["a = 3", "a", "3"],
+            ["L = [1, 2, 3]", "L", "[1, 2, 3]"],
+            ["f = 0.5x^2-4", "f", "0.5x^2-4"],
+            ["E = d(H, `M 1`) ", "E", "d(H, `M 1`)"],
+            ["A = (1)", "A", "(1)"],
+            ["A = (1, B)", "A", "(1, B)"],
+            [
+                's = if(a>2){S1.setHidden(1)};"Faces"',
+                "s",
+                'if(a>2){S1.setHidden(1)};"Faces"',
+            ],
+            ["d(A', B)", null, "d(A', B)"],
+        ])
+            expect(read(text!), text!).toEqual({
+                name,
+                definition: { kind: "formula", source },
+            });
     });
 
     it("rejects what the grammar doesn't read", () => {
         for (const text of [
-            "A = (1)",
+            "",
             "A = (1, 2, 3, 4)",
             "A = Milieu(B, C",
             "A = Milieu(B C)",
-            "A = 1 + 2",
             "A = Milieu(B, C) D",
-            "A = alert(1); B",
+            "A = Milieu(B, 1 + 2)",
+            "A = Milieu(B, @)",
         ])
-            expect(() => parseLine(text), text).toThrow(TextError);
+            expect(() => read(text), text).toThrow(TextError);
     });
 
     it("writes names and numbers back", () => {
@@ -60,9 +90,69 @@ describe("Editor text", () => {
         expect(formatNumber(NaN)).toBe("NaN");
     });
 
+    it("reads in formulas the names it writes", () => {
+        expect(programReferences(parseProgram("d(`A 1`, B')+A''*2"))).toEqual(
+            new Set(["A 1", "B'", "A''"]),
+        );
+        // Still DGPad's strings.
+        expect(programReferences(parseProgram("a+'b'+f('c')"))).toEqual(
+            new Set(["a", "f"]),
+        );
+    });
+
+    it("writes a formula's names anew", () => {
+        const names: Record<string, string> = { A: "`A 1`", S1: "T", B: "B" };
+        expect(
+            renameFormula(
+                "if(d(A,`B`)>2){S1.setHidden(1)};A.x",
+                (name) => names[name],
+            ),
+        ).toBe("if(d(`A 1`,B)>2){T.setHidden(1)};`A 1`.x");
+    });
+
+    it("lays a program out, changing only spaces and line breaks", () => {
+        const source =
+            'for(i=0;i<3;i++){if(a>i){s.setHidden(1)}else{s.setHidden(0)}};"x"';
+        const laid = formatProgram(source);
+        expect(laid).toBe(
+            [
+                "for(i=0;i<3;i++) {",
+                "    if(a>i) {",
+                "        s.setHidden(1)",
+                "    } else {",
+                "        s.setHidden(0)",
+                "    }",
+                "};",
+                '"x"',
+            ].join("\n"),
+        );
+        expect(formatProgram(laid)).toBe(laid);
+        expect(parseProgram(laid)).toEqual(parseProgram(source));
+        // A string keeps its spaces; what the grammar doesn't read stays.
+        expect(formatProgram('a="b ;{ c";b')).toBe('a="b ;{ c";\nb');
+        expect(formatProgram('a="b')).toBe('a="b');
+    });
+
+    it("tells the line where a program goes wrong", () => {
+        expect(syntaxLine("a=1;\nif(a){\n  b=2\n")).toBe(2);
+        expect(syntaxLine("a=1;\nb=(2]\n")).toBe(2);
+        expect(syntaxLine('a=1;\n\nb="2\n')).toBe(3);
+        expect(syntaxLine("a=1;\nif(a){b=2}")).toBeNull();
+        expect(unknownMethod("s.setHidden(1);s.setColor(2)")).toBe("setColor");
+        expect(unknownMethod("Math.sqrt(2)+f.dx(1)+L.join(',')")).toBeNull();
+    });
+
     it("tells what is being typed", () => {
-        expect(completionAt("Mil")).toEqual({ kind: "command", prefix: "Mil" });
-        expect(completionAt("M = ")).toEqual({ kind: "command", prefix: "" });
+        expect(completionAt("Mil")).toEqual({
+            kind: "command",
+            prefix: "Mil",
+            formula: false,
+        });
+        expect(completionAt("M = ")).toEqual({
+            kind: "command",
+            prefix: "",
+            formula: true,
+        });
         expect(completionAt("M = Milieu(A, B")).toEqual({
             kind: "argument",
             command: "Milieu",
@@ -88,5 +178,31 @@ describe("Editor text", () => {
             prefix: "",
         });
         expect(completionAt("M = Milieu(A) ")).toBeNull();
+        expect(completionAt("E = d(H, ")).toEqual({
+            kind: "argument",
+            command: "d",
+            position: 1,
+            args: [{ kind: "name", name: "H" }],
+            prefix: "",
+        });
+        expect(completionAt("E = 2*d(`H 1`, M")).toMatchObject({
+            kind: "argument",
+            command: "d",
+            args: [{ kind: "name", name: "H 1" }],
+            prefix: "M",
+        });
+        for (const text of ["E = AI-AM-", "E = [1, ", "E = (a+"])
+            expect(completionAt(text), text).toMatchObject({ kind: "free" });
+        expect(completionAt("E = d(A, B)+s")).toEqual({
+            kind: "free",
+            prefix: "s",
+        });
+        // A method isn't a function.
+        expect(completionAt("E = S1.setHidden(")).toEqual({
+            kind: "free",
+            prefix: "",
+        });
+        for (const text of ["E = AI ", "E = S1.", 'E = "ab', "E = `A"])
+            expect(completionAt(text), text).toBeNull();
     });
 });

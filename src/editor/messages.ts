@@ -10,6 +10,10 @@ const MESSAGES = {
     ],
     unknown_command: ["Commande inconnue : %", "Unknown command: %"],
     unknown_object: ["Objet inconnu : %", "Unknown object: %"],
+    unknown_method: [
+        "Méthode inconnue : % (setHidden, setRGBColor, setOpacity, setSize…)",
+        "Unknown method: % (setHidden, setRGBColor, setOpacity, setSize…)",
+    ],
     arguments: ["Arguments incorrects pour %", "Wrong arguments for %"],
     instead: ["Avec ces arguments : %", "With these arguments: %"],
     branch: [
@@ -47,6 +51,12 @@ const MESSAGES = {
     unpin_hint: [
         "% garde ses coordonnées quand on zoome ou déplace la vue",
         "% keeps its coordinates when the view is zoomed or moved",
+    ],
+    points_list: ["Liste de points", "List of points"],
+    segments_list: ["Liste de segments", "List of segments"],
+    list_hint: [
+        "Dessine les points de la valeur de %, et cache son texte",
+        "Draws the points of the value of %, and hides its text",
     ],
     magnet: ["Aimants", "Magnets"],
     magnet_hint: [
@@ -122,6 +132,21 @@ const MESSAGES = {
     sampling: ["Échantillonnage", "Sampling"],
     samples: ["Nombre de points", "Number of points"],
     segments_size: ["Épaisseur des segments", "Segment thickness"],
+    definition: ["Définition", "Definition"],
+    definition_hint: [
+        "⌘-Entrée ou Ctrl-Entrée : appliquer · Tab : indenter · Échap : rétablir",
+        "⌘-Enter or Ctrl-Enter: apply · Tab: indent · Escape: restore",
+    ],
+    apply: ["Appliquer", "Apply"],
+    create: ["Créer", "Create"],
+    new_program: ["Nouveau programme", "New program"],
+    program_placeholder: [
+        "var t = [];\nfor (var i = 0; i < 10; i++) {\n    t.push([i, 0]);\n}\nt",
+        "var t = [];\nfor (var i = 0; i < 10; i++) {\n    t.push([i, 0]);\n}\nt",
+    ],
+    format_program: ["Mettre en forme", "Format"],
+    syntax_line: ["Écriture incomprise ligne %", "Can't read line %"],
+    program_syntax: ["Écriture incomprise", "Can't read it"],
     slider_settings: ["Curseur", "Slider"],
     increment: ["Pas", "Step"],
     slider_length: ["Longueur", "Length"],
@@ -166,6 +191,8 @@ const MESSAGES = {
     ],
     outline: ["un polygone ou une conique", "a polygon or a conic"],
     real: ["un nombre", "a number"],
+    number: ["un nombre", "a number"],
+    expression: ["une expression", "an expression"],
 };
 
 export type MessageKey = keyof typeof MESSAGES;

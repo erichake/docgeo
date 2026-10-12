@@ -163,3 +163,65 @@ svg .dge-property-selected {
         --dge-properties-width: 0px;
     }
 }
+.dge-properties.dge-properties-wide {
+    width: min(480px, calc(100vw - 80px));
+}
+.dge-properties textarea.dge-program {
+    display: block;
+    box-sizing: border-box;
+    width: 100%;
+    padding: 8px 10px;
+    border: 1px solid #cbd5e1;
+    border-radius: 6px;
+    background: #fff;
+    color: inherit;
+    font:
+        13px/1.5 ui-monospace,
+        Menlo,
+        Consolas,
+        monospace;
+    tab-size: 4;
+    white-space: pre;
+    overflow: auto;
+    resize: vertical;
+    touch-action: auto;
+}
+.dge-properties textarea.dge-program:focus-visible {
+    outline: 2px solid #2563eb;
+    outline-offset: 2px;
+}
+.dge-properties textarea.dge-program.dge-error {
+    border-color: #dc2626;
+    background: #fef2f2;
+}
+.dge-program-error {
+    margin: 8px 0 0;
+    color: #b91c1c;
+    font-size: 13px;
+}
+.dge-program-error:empty {
+    display: none;
+}
+.dge-program-actions {
+    display: flex;
+    gap: 8px;
+    margin-top: 8px;
+}
+.dge-program-actions button {
+    padding: 5px 12px;
+    border: 1px solid #cbd5e1;
+    border-radius: 6px;
+    background: #fff;
+    color: inherit;
+    font: inherit;
+    cursor: pointer;
+}
+.dge-program-actions button.dge-primary {
+    border-color: #2563eb;
+    background: #2563eb;
+    color: #fff;
+}
+.dge-program-actions button:disabled {
+    opacity: 0.5;
+    cursor: default;
+}

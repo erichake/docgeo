@@ -9,6 +9,7 @@ import {
     withObjects,
     type ScriptValue,
 } from "./import/dgp_formula";
+import { FUNCTION_VARIABLES } from "./import/dgp_expression";
 import { createAngleBisector } from "./objects/angle_bisector_object";
 import {
     angle_object,
@@ -188,7 +189,6 @@ const LIST_NATURES = [
     "polygons",
 ];
 const ONE_FORMULA: unknown[] = ["point", "polygon", "polygons"];
-const FUNCTION_VARIABLES = ["x", "y", "z", "t"];
 
 const isNumber = (value: Json): value is number =>
     typeof value === "number" && Number.isFinite(value);

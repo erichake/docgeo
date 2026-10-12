@@ -6,12 +6,25 @@ import {
     readDgo,
     type DgoFigure,
 } from "../dgo";
+import {
+    expressionContent,
+    type ExpressionContent,
+} from "../import/dgp_expression";
+import {
+    formulaIdentifiers,
+    formulaSource,
+    programNodes,
+    programReferences,
+    programTargets,
+    withObjects,
+} from "../import/dgp_formula";
 import type { construction_object } from "../objects/construction_object";
+import { expression_object } from "../objects/expression_object";
 import { point_on_object } from "../objects/point_on_object";
 import type { point_object } from "../objects/point_object";
 import { polygon_object } from "../objects/polygon_object";
 import { quadric5pts_object } from "../objects/quadric5pts_object";
-import type { Vec3 } from "../vec";
+import type { Vec2, Vec3 } from "../vec";
 import {
     commandName,
     COMMANDS,
@@ -21,7 +34,14 @@ import {
     type Arg,
     type Overload,
 } from "./catalog";
-import { formatName, formatNumber, TextError, type Line } from "./text";
+import {
+    formatName,
+    formatNumber,
+    renameFormula,
+    TextError,
+    unknownMethod,
+    type Line,
+} from "./text";
 
 // The figure being edited, as .dgo entries: see EDITOR.md.
 
@@ -37,7 +57,7 @@ export interface Spec {
 }
 
 export const FREE_POINT: Overload = {
-    params: ["real", "real"],
+    params: ["number", "number"],
     variadic: true,
     tag: "Pt",
     encode: (args) => args,
@@ -92,6 +112,33 @@ export const entryOf = (
 export const formatArg = (arg: Arg): string =>
     typeof arg === "number" ? formatNumber(arg) : formatName(arg.name);
 
+const formatValue = (value: unknown): string =>
+    typeof value === "number"
+        ? formatNumber(value)
+        : Array.isArray(value)
+          ? `[${value.map(formatValue).join(", ")}]`
+          : JSON.stringify(value);
+
+// Its value, or its formula written with the names of the objects it
+// reads.
+export function expressionSource({
+    formula,
+    program,
+    value,
+}: expression_object): string {
+    if (!formula && !program) return formatValue(value);
+    const [source, refs] = formula
+        ? [formula.source, formula.refs]
+        : [
+              formulaSource(program!.program),
+              new Map([...program!.refs, ...program!.targets]),
+          ];
+    return renameFormula(source, (name) => {
+        const ref = refs.get(name);
+        return ref && formatName(ref.name);
+    });
+}
+
 // Its line, null when no command writes it.
 export function lineOf(
     object: construction_object,
@@ -108,10 +155,13 @@ export function lineOf(
         return `${name} = (${shown.map(formatNumber).join(", ")})`;
     }
     const decoded = decodeEntry(tag, parameters, (at) => objects[at]);
-    return (
-        decoded &&
-        `${name} = ${commandName(decoded.command)}(${decoded.args.map(formatArg).join(", ")})`
-    );
+    if (decoded)
+        return `${name} = ${commandName(decoded.command)}(${decoded.args.map(formatArg).join(", ")})`;
+    const { mn, mx } = parameters as Record<string, unknown>;
+    // Not a slider whose bounds are formulas.
+    if (tag !== "Ex" || (mn !== undefined && mx !== undefined)) return null;
+    // On one line, the grammar reading no line break.
+    return `${name} = ${expressionSource(object as expression_object).replace(/\s*\n\s*/g, " ")}`;
 }
 
 // What the line defines, `target` being the object it redefines.
@@ -124,6 +174,8 @@ export function resolve(
     let overload: Overload | undefined = FREE_POINT;
     let args: Arg[];
     if (definition!.kind === "point") args = definition!.coords;
+    else if (definition!.kind === "formula")
+        ({ overload, args } = expression(c, definition!.source, target));
     else {
         const call = definition!;
         const command = findCommand(call.command);
@@ -154,10 +206,24 @@ export function resolve(
                 );
             throw new TextError("arguments", commandName(command));
         }
-        if (overload.tag === "Int" && overload.params[2] === "real") {
+        if (overload.tag === "Int" && overload.params[2] === "number") {
             const branch = args[2] as number;
             if (!Number.isInteger(branch) || branch < 1 || branch > 4)
                 throw new TextError("branch");
+        }
+        // A slider.
+        if (overload.tag === "Ex") {
+            const { encode } = overload;
+            const values = args;
+            ({ overload, args } = expressionSpec(
+                c,
+                target,
+                (index) => encode(values, index) as object,
+                values.filter(
+                    (arg): arg is construction_object =>
+                        typeof arg !== "number",
+                ),
+            ));
         }
     }
     const chosen =
@@ -167,11 +233,129 @@ export function resolve(
     return { name: chosen, overload, args };
 }
 
-// Points in DocGeo's own style, named; regions filled as by DGPad's tools.
+// Under the expressions the window shows, as DGPad's calculator stacks them.
+function freeSpot(c: construction): Vec2 {
+    const shown = figureObjects(c).filter(
+        (object): object is expression_object =>
+            object instanceof expression_object &&
+            !object.anchor &&
+            !object.hidden,
+    );
+    // A slider's track is under its value.
+    const bottoms = shown.map(
+        ({ screen, isCursor }) => screen[1] + (isCursor ? 30 : 0),
+    );
+    return [20, Math.max(10, ...bottoms) + 30];
+}
+
+// An expression's entry, its nature told by the text (see EDITOR.md).
+function expression(
+    c: construction,
+    source: string,
+    target?: construction_object,
+): { overload: Overload; args: Arg[] } {
+    const own = new Map(
+        figureObjects(c).map((object) => [object.name, object]),
+    );
+    let content: ExpressionContent;
+    try {
+        content = withObjects(new Set(own.keys()), () =>
+            expressionContent(source, own),
+        );
+    } catch {
+        const method = unknownMethod(source);
+        throw new TextError(
+            method ? "unknown_method" : "syntax",
+            method ?? source,
+        );
+    }
+    const names =
+        content.kind === "v"
+            ? []
+            : content.kind === "f"
+              ? [...formulaIdentifiers(content.node)].filter(
+                    (name) => !content.variables.includes(name),
+                )
+              : [
+                    ...programReferences(content.program),
+                    ...programTargets(content.program),
+                ];
+    const named = new Map(
+        names.map((name) => {
+            const object = own.get(name);
+            if (object) return [name, object];
+            const called =
+                content.kind !== "v" &&
+                programNodes(content.program).some(
+                    (node) => node.kind === "userCall" && node.name === name,
+                );
+            throw new TextError(
+                called ? "unknown_command" : "unknown_object",
+                name,
+            );
+        }),
+    );
+    return expressionSpec(
+        c,
+        target,
+        (index) => ({
+            [content.kind]:
+                content.kind === "v"
+                    ? content.value
+                    : named.size
+                      ? [
+                            source,
+                            Object.fromEntries(
+                                [...named].map(([name, object]) => [
+                                    name,
+                                    index(object),
+                                ]),
+                            ),
+                        ]
+                      : source,
+        }),
+        [...named.values()],
+    );
+}
+
+// An expression's entry, `own` giving its value's keys, `parents` the
+// objects they name. Redefined, an expression keeps its text, place and
+// anchor.
+function expressionSpec(
+    c: construction,
+    target: construction_object | undefined,
+    own: (index: (object: construction_object) => number) => object,
+    parents: construction_object[],
+): { overload: Overload; args: Arg[] } {
+    const kept = target instanceof expression_object ? target : null;
+    const spot = freeSpot(c);
+    return {
+        overload: {
+            params: [],
+            tag: "Ex",
+            encode: (_, index) => {
+                const { v, f, s, mn, mx, ...rest } = kept
+                    ? (kept.dgo({
+                          index,
+                          image: (url) => url,
+                          screen: (position) => position,
+                      })[1] as Record<string, unknown>)
+                    : { t: "", xy: spot };
+                return { ...rest, ...own(index) };
+            },
+        },
+        args: [...parents, ...(kept?.anchor ? [kept.anchor] : [])],
+    };
+}
+
+// Points in DocGeo's own style, named; regions filled, expressions shown,
+// as by DGPad's tools.
 function createdStyle(tag: string): Record<string, unknown> | undefined {
     if (isPointTag(tag))
         return { c: "#604820", fc: "#e4ceb9", o: 1, sn: 1, f: 26 };
     if (tag === "Poly" || tag === "Sph" || tag === "Sec") return { o: 0.2 };
+    // Its value shown, as by DGPad's calculator.
+    if (tag === "Ex") return { p: 2, f: 24 };
 }
 
 // Adds the object after the others, `styled` as by DGPad's tools.
@@ -251,6 +435,22 @@ const COMMON_STYLE = [
     "sc",
 ];
 
+// What a program styles, which comes before it in the figure though it is
+// recomputed after it.
+const styled = (object: construction_object): construction_object[] =>
+    object instanceof expression_object && object.program
+        ? [...object.program.targets.values()]
+        : [];
+
+// The objects its entry names, which come before it.
+const entryParents = (object: construction_object): construction_object[] => [
+    ...object.parents.filter(
+        (parent) =>
+            parent !== object.condition && !styled(parent).includes(object),
+    ),
+    ...styled(object),
+];
+
 // Rebuilds the figure, `target` redefined: the objects are reordered so that
 // each comes after those it is built from.
 export async function redefine(
@@ -259,13 +459,19 @@ export async function redefine(
     { name, overload, args }: Spec,
 ): Promise<void> {
     const c = studio.scene;
-    const after = descendants(target);
     const parents = args.filter(
         (arg): arg is construction_object => typeof arg !== "number",
     );
+    const objects = figureObjects(c);
+    // Each object's entry naming only earlier ones, one pass finds those
+    // that name it, directly or not.
+    const after = new Set([target]);
+    objects.forEach((object) => {
+        if (entryParents(object).some((parent) => after.has(parent)))
+            after.add(object);
+    });
     if (parents.some((parent) => after.has(parent)))
         throw new TextError("cycle");
-    const objects = figureObjects(c);
     const own = new Set(objects);
     const placed = new Set<construction_object>();
     const order: construction_object[] = [];
@@ -282,13 +488,8 @@ export async function redefine(
             if (placed.has(object)) continue;
             placed.add(object);
             stack.push([object, true]);
-            (object === target ? parents : object.parents)
-                .filter(
-                    (parent) =>
-                        parent !== object.condition &&
-                        own.has(parent) &&
-                        !placed.has(parent),
-                )
+            (object === target ? parents : entryParents(object))
+                .filter((parent) => own.has(parent) && !placed.has(parent))
                 .reverse()
                 .forEach((parent) => stack.push([parent, false]));
         }

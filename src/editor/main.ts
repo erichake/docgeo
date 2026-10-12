@@ -17,6 +17,7 @@ import { point_object, type magnet_target } from "../objects/point_object";
 import type { point_on_object } from "../objects/point_on_object";
 import { button_object } from "../objects/button_object";
 import { expression_object } from "../objects/expression_object";
+import type { expression_list_object } from "../objects/expression_list_object";
 import { polygon_object } from "../objects/polygon_object";
 import { sphere_object } from "../objects/sphere_object";
 import { preferences } from "../preferences";
@@ -26,9 +27,13 @@ import {
     commandName,
     commandsStarting,
     findCommand,
+    FUNCTIONS,
+    isCommand,
     overloadFor,
     paramAt,
+    readable,
     type Arg,
+    type Command,
     type Overload,
 } from "./catalog";
 import {
@@ -120,7 +125,7 @@ $("head").append(`<style>
     .dge-panel, .dge-bar, .dge-hint, .dge-ring, .dge-complete, .dge-menu, .dge-magnet { font: 14px/1.4 system-ui, -apple-system, "Segoe UI", sans-serif; color: #1f2937; }
     .dge-panel { position: fixed; inset-block: var(--dge-bar-height) 0; inset-inline-start: 0; width: var(--dge-panel-size); box-sizing: border-box; padding-block-end: 12px; overflow: auto; background: #fff; border-inline-end: 1px solid #e5e7eb; z-index: 10; touch-action: pan-y; transform: translateX(0); transition: transform var(--dge-slide), visibility 0s; }
     .dge-panel-header { position: sticky; top: 0; display: flex; align-items: center; justify-content: space-between; padding: 8px 12px 8px 16px; background: #fff; border-block-end: 1px solid #e5e7eb; z-index: 1; }
-    .dge-panel-header h2 { margin: 0; font-size: 14px; font-weight: 600; }
+    .dge-panel-header h2 { flex: 1; margin: 0; font-size: 14px; font-weight: 600; }
     .dge-row { display: block; width: 100%; box-sizing: border-box; padding: 5px 14px; border: 0; border-block-end: 1px solid #f1f5f9; background: none; font: 13.5px/1.5 ui-monospace, Menlo, Consolas, monospace; color: inherit; outline: none; }
     .dge-row:focus { background: #eff6ff; box-shadow: inset 3px 0 #2563eb; }
     .dge-row.dge-hover { background: #fef3c7; }
@@ -276,6 +281,9 @@ const springButton = button("spring", () => {
     springOut = !springOut;
     showActions();
 }).att("aria-pressed", "false");
+// An expression's points drawn, joined or not, as by DGPad's calculator.
+const pointsButton = button("points_list", () => drawList(false));
+const segmentsButton = button("segments_list", () => drawList(true));
 // In place of the actions while the magnets are chosen: the way out.
 const doneButton = $.create("button")
     .cls("dge-done")
@@ -295,6 +303,8 @@ const actions = $.create("div")
         springButton,
         pinButton,
         magnetButton,
+        pointsButton,
+        segmentsButton,
         doneButton,
     )
     .hide();
@@ -360,6 +370,13 @@ explain(
 );
 explain(magnetButton, (name) => `${name}\n${message("magnet")}`);
 explain(springButton, (name) => `${name}\n${message("spring_hint", name)}`);
+[pointsButton, segmentsButton].forEach((action) =>
+    explain(
+        action,
+        (name) =>
+            `${nextName(scene(), false)} = ${commandName(findCommand("List")!)}(${name})\n${message("list_hint", name)}`,
+    ),
+);
 const properties = propertiesPanel({
     scene,
     changed: () => changed(),
@@ -370,6 +387,28 @@ const properties = propertiesPanel({
         rebuild(studio, figure);
         properties.select(scene().getObj(name)!);
         changed();
+    },
+    define: async (object, source) => {
+        const spec = resolve(
+            scene(),
+            { name: object.name, definition: { kind: "formula", source } },
+            object,
+        );
+        await redefine(studio, object, spec);
+        properties.select(scene().getObj(spec.name)!);
+        changed();
+    },
+    create: async (name, source) => {
+        const c = scene();
+        const object = add(
+            c,
+            resolve(c, {
+                name: name || null,
+                definition: { kind: "formula", source },
+            }),
+        );
+        properties.select(object);
+        done(object);
     },
     close: () => {
         setProperties(false);
@@ -386,6 +425,10 @@ $("body").add(
             .cls("dge-panel-header")
             .add(
                 $.create("h2").text(message("construction")),
+                button("new_program", () => {
+                    setProperties(true);
+                    properties.create(nextName(scene(), false));
+                }),
                 button("close_history", () => {
                     setPanel(false);
                     (historyButton.dom() as HTMLButtonElement).focus();
@@ -701,8 +744,9 @@ async function commitText(
     object: construction_object | null,
 ): Promise<void> {
     const c = scene();
+    closeCompletion();
     try {
-        const line = parseLine(field.value);
+        const line = parseLine(field.value, isCommand);
         const target =
             object ?? (line.name ? (c.getObj(line.name) ?? null) : null);
         if (!line.definition) {
@@ -738,33 +782,49 @@ async function commitText(
     }
 }
 
-// What the caret is in: the commands, or the objects an argument accepts.
+const calls = (commands: Command[]) =>
+    commands.map((command) => ({
+        label: `${commandName(command)}( )`,
+        insert: `${commandName(command)}(`,
+    }));
+
+// What the caret is in: the commands, the objects an argument accepts, or
+// in a formula, its functions and the objects it reads.
 function updateCompletion(field: HTMLInputElement): void {
     clearPreview();
     const context = completionAt(field.value.slice(0, field.selectionStart!));
-    completions = [];
+    const call =
+        context?.kind === "argument" ? findCommand(context.command) : undefined;
+    const prefix = context?.prefix ?? "";
     let candidates: construction_object[] = [];
-    if (context?.kind === "command" && context.prefix)
-        completions = commandsStarting(context.prefix).map((command) => ({
-            label: `${commandName(command)}( )`,
-            insert: `${commandName(command)}(`,
-        }));
-    else if (context?.kind === "argument") {
-        const params = overloadsAt(context).map((overload) =>
-            paramAt(overload, context.position)!,
+    if (call) {
+        const { position } = context as ArgumentCompletion;
+        const params = overloadsAt(context as ArgumentCompletion).map(
+            (overload) => paramAt(overload, position)!,
         );
         candidates = figureObjects(scene()).filter((object) =>
             params.some((param) => accepts(object, param)),
         );
-        const prefix = context.prefix.toLowerCase();
-        completions = candidates
-            .filter(({ name }) => name.toLowerCase().startsWith(prefix))
-            .slice(0, 60)
-            .map((object) => ({
-                label: formatName(object.name),
-                insert: formatName(object.name),
-                object,
-            }));
+    } else if (context && (context.kind !== "command" || context.formula))
+        candidates = figureObjects(scene()).filter(readable);
+    completions =
+        call || prefix
+            ? candidates
+                  .filter(({ name }) =>
+                      name.toLowerCase().startsWith(prefix.toLowerCase()),
+                  )
+                  .slice(0, 60)
+                  .map((object) => ({
+                      label: formatName(object.name),
+                      insert: formatName(object.name),
+                      object,
+                  }))
+            : [];
+    if (prefix) {
+        if (context!.kind === "command")
+            completions.push(...calls(commandsStarting(prefix)));
+        if (!call || call.formula)
+            completions.push(...calls(commandsStarting(prefix, FUNCTIONS)));
     }
     showAccepted(candidates);
     selected = -1;
@@ -806,7 +866,7 @@ function navigate(event: KeyboardEvent, field: HTMLInputElement): boolean {
 
 function insertCompletion(field: HTMLInputElement, index: number): void {
     const { insert, object } = completions[index];
-    if (object) return designateTyped(field, object);
+    if (object) return designateTyped(field, object, true);
     insertWord(field, insert);
     updateCompletion(field);
 }
@@ -831,13 +891,15 @@ function overloadsAt(context: ArgumentCompletion): Overload[] {
 
 // Its name, then what the line expects after it when it ends there: `, `
 // if every command it can be still takes more, `)` if none does, and then
-// the line is entered. Designating the first vertex of a polygon again
-// closes it.
+// the line is entered, unless the call is a formula's. Designating the
+// first vertex of a polygon again closes it. Chosen in the completions, it
+// replaces the word typed.
 function designateTyped(
     field: HTMLInputElement,
     object: construction_object,
+    replace = false,
 ): void {
-    if (insertArgument(field, object))
+    if (insertArgument(field, object, replace))
         void commitText(
             field,
             [...rows].find(([, row]) => row.dom() === field)?.[0] ?? null,
@@ -849,12 +911,13 @@ function designateTyped(
 function insertArgument(
     field: HTMLInputElement,
     object: construction_object,
+    replace: boolean,
 ): boolean {
     const caret = field.selectionStart!;
     const before = field.value.slice(0, caret);
     const context = completionAt(before);
     if (context?.kind !== "argument" || field.value.slice(caret).trim()) {
-        insertWord(field, formatName(object.name));
+        insertWord(field, formatName(object.name), replace);
         return false;
     }
     const { position, args } = context;
@@ -882,8 +945,9 @@ function insertArgument(
         field,
         formatName(object.name) +
             (more.length && more.every(Boolean) ? ", " : closes ? ")" : ""),
+        replace,
     );
-    return closes;
+    return closes && !findCommand(context.command)!.formula;
 }
 
 // The line typed, ending in an argument, as a tool waiting for it: the
@@ -929,13 +993,18 @@ const expectsPoint = (
         (overload) => paramAt(overload, call.args.length) === "point",
     );
 
-// In place of the word typed at the caret.
-function insertWord(field: HTMLInputElement, word: string): void {
+// In place of the word typed at the caret, unless, not to `replace` it, it
+// already names an object: the word only completes a name being typed.
+function insertWord(
+    field: HTMLInputElement,
+    word: string,
+    replace = true,
+): void {
     const caret = field.selectionStart!;
     const before = field.value.slice(0, caret);
+    const typed = /[\p{L}_$][\p{L}\p{N}_$']*$/u.exec(before)?.[0] ?? "";
     const start =
-        before.length -
-        (/[\p{L}_][\p{L}\p{N}_']*$/u.exec(before)?.[0].length ?? 0);
+        before.length - (replace || !scene().getObj(typed) ? typed.length : 0);
     field.value = field.value.slice(0, start) + word + field.value.slice(caret);
     field.setSelectionRange(start + word.length, start + word.length);
     field.focus();
@@ -1250,10 +1319,39 @@ function showActions(): void {
             .att("aria-pressed", String(springOut))
             .show("grid");
     else springButton.hide();
+    [pointsButton, segmentsButton].forEach((action) =>
+        !magnetizing && pointList(object) ? action.show("grid") : action.hide(),
+    );
     showSpring(springOut && !magnetizing && springy(object) ? object : null);
     if (magnetizing) doneButton.show();
     else doneButton.hide();
     actions.att("aria-label", label).show("flex");
+}
+
+// An expression whose value is a list of points (among the turtle's
+// drawing instructions).
+const pointList = (object: construction_object) =>
+    object instanceof expression_object &&
+    Array.isArray(object.value) &&
+    object.value.some((item) => Array.isArray(item) && item.length <= 3) &&
+    object.value.every((item) => Array.isArray(item) && item.length >= 2);
+
+// The list of the points of the expression selected, its own text hidden.
+function drawList(segments: boolean): void {
+    const source = target()!;
+    const c = scene();
+    closeRing();
+    const list = add(c, {
+        name: nextName(c, false),
+        overload: findCommand("List")!.overloads[0],
+        args: [source],
+    }) as expression_list_object;
+    // DGPad's segments.
+    if (segments) list.segmentsSize = 1;
+    source.hidden = 1;
+    source.updateView();
+    c.invalidateGeometry(list);
+    done(list);
 }
 
 function remove(): void {
@@ -1706,7 +1804,8 @@ function typedPending(
                 (overload) => paramAt(overload, call.args.length) === "point",
             )
           : undefined;
-    if (!overload) return null;
+    // A formula's function builds nothing to show.
+    if (!overload?.tag) return null;
     const { args } = call;
     return {
         overload,
@@ -1967,6 +2066,14 @@ $("body").on(
         typing = null;
         if (field) {
             const hits = pick(c, screen, previewed());
+            // A slider, a text…: its name.
+            const widget = !hits[0] && propertyObject(event);
+            if (widget) {
+                designateTyped(field, widget);
+                down = null;
+                event.stopPropagation();
+                return;
+            }
             if (!hits[0]) {
                 if (expectsPoint(field, typedCall(field))) typing = field;
                 return;
@@ -2131,6 +2238,17 @@ $("body").on(
         if (cross) return done(addCrossing(cross));
         if (hits[0])
             return chooseHit(hits, client, (hit) => openRing(hit, client));
+        // A slider, a text… is selected rather than taken for a free spot.
+        const widget = propertyObject(event);
+        if (widget)
+            return openRing(
+                {
+                    object: widget,
+                    distance: 0,
+                    at: groundPoint(screen) ?? [0, 0, 0],
+                },
+                client,
+            );
         const field = typing;
         const point = addFreePoint(screen);
         if (!point) return;

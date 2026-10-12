@@ -15,6 +15,8 @@ import { quadric5pts_object } from "../objects/quadric5pts_object";
 import { segment_object } from "../objects/segment_object";
 import { sphere_object } from "../objects/sphere_object";
 import { two_points_line_object } from "../objects/two_points_line_object";
+import { STYLE_NUMBER } from "../import/dgp_expression";
+import { formatName } from "./text";
 
 // The commands that build objects, in the text and by gestures: see
 // EDITOR.md.
@@ -31,9 +33,12 @@ export type Kind =
     | "angle"
     | "other";
 
-// What an argument accepts: a number, or an object.
+// What an argument accepts: a number, a number or an expression (real),
+// or an object.
 export type Param =
+    | "number"
     | "real"
+    | "expression"
     | "point"
     | "pointOn"
     | "line"
@@ -67,6 +72,8 @@ export interface Overload {
 export interface Command {
     name: string;
     fr: string;
+    // A function of the formulas, whose overloads build nothing.
+    formula?: boolean;
     // The arguments of one, ending with an object, never begin those of
     // another, so that the objects designated tell whether the line goes
     // on: see EDITOR.md.
@@ -92,11 +99,14 @@ export function kindOf(object: construction_object): Kind {
 }
 
 export function accepts(arg: Arg, param: Param): boolean {
-    if (typeof arg === "number") return param === "real";
+    if (typeof arg === "number") return param === "number" || param === "real";
     const kind = kindOf(arg);
     switch (param) {
-        case "real":
+        case "number":
             return false;
+        case "real":
+        case "expression":
+            return kind === "number";
         case "pointOn":
             return arg instanceof point_on_object;
         case "segment":
@@ -129,6 +139,13 @@ export function accepts(arg: Arg, param: Param): boolean {
             return kind === param;
     }
 }
+
+// What a formula reads by name (see READABLE in dgp_commands.ts).
+export const readable = (object: construction_object): boolean =>
+    object instanceof curve_object ||
+    ["point", "line", "circle", "conic", "polygon", "number", "angle"].includes(
+        kindOf(object),
+    );
 
 const isIndex = (value: unknown): value is number =>
     Number.isInteger(value) && (value as number) >= 0;
@@ -169,6 +186,30 @@ function ofSegment(tag: string): Overload {
     };
 }
 
+// An expression, a formula of its name alone.
+const realParameter = (
+    arg: Arg,
+    index: (object: construction_object) => number,
+): unknown =>
+    typeof arg === "number"
+        ? arg
+        : [formatName(arg.name), { [arg.name]: index(arg) }];
+
+// A number, also written as a formula, or an object read by name.
+function realArgument(
+    parameter: unknown,
+    at: (index: number) => Arg,
+): Arg | null {
+    if (typeof parameter === "number") return parameter;
+    if (typeof parameter === "string")
+        return STYLE_NUMBER.test(parameter) ? Number(parameter) : null;
+    const [source, refs] = parameter as [string, Record<string, number>];
+    const [name, ...others] = Object.keys(refs);
+    return !others.length && source === formatName(name)
+        ? at(refs[name])
+        : null;
+}
+
 const isLine = (arg: Arg) => typeof arg !== "number" && kindOf(arg) === "line";
 
 // The intersection of rank n, from 1, not of two lines.
@@ -192,7 +233,7 @@ export const COMMANDS: Command[] = [
         fr: "Point",
         overloads: [
             {
-                params: ["path", "real"],
+                params: ["path", "number"],
                 tag: "On",
                 encode: ([support, t], index) => [
                     index(support as construction_object),
@@ -206,7 +247,7 @@ export const COMMANDS: Command[] = [
                 },
             },
             {
-                params: ["outline", "real", "real"],
+                params: ["outline", "number", "number"],
                 tag: "On",
                 encode: ([support, a, b], index) => [
                     index(support as construction_object),
@@ -225,7 +266,7 @@ export const COMMANDS: Command[] = [
         name: "FixedPoint",
         fr: "PointFixe",
         overloads: [2, 3].map((count) => ({
-            params: Array(count).fill("real"),
+            params: Array(count).fill("number"),
             tag: "Fix",
             encode: (args) => args,
             decode: (parameters) =>
@@ -289,13 +330,14 @@ export const COMMANDS: Command[] = [
                 tag: "C1",
                 encode: ([center, radius], index) => [
                     index(center as construction_object),
-                    radius,
+                    realParameter(radius, index),
                 ],
                 decode: (parameters, at) => {
                     const [center, radius] = parameters as unknown[];
+                    const arg = realArgument(radius, at);
                     return (parameters as unknown[]).length === 2 &&
-                        typeof radius === "number"
-                        ? [at(center as number), radius]
+                        arg !== null
+                        ? [at(center as number), arg]
                         : null;
                 },
             },
@@ -346,8 +388,8 @@ export const COMMANDS: Command[] = [
                         : null;
                 },
             },
-            numbered(["curved", "intersectable", "real"]),
-            numbered(["line", "curved", "real"]),
+            numbered(["curved", "intersectable", "number"]),
+            numbered(["line", "curved", "number"]),
         ],
     },
     {
@@ -415,6 +457,73 @@ export const COMMANDS: Command[] = [
         fr: "Lieu",
         overloads: [objects("Loc", ["point", "pointOn"])],
     },
+    // The points of an expression's value (see expression_list_object.ts).
+    { name: "List", fr: "Liste", overloads: [objects("ELst", ["expression"])] },
+    {
+        name: "Slider",
+        fr: "Curseur",
+        overloads: [
+            {
+                params: ["real", "real", "number"],
+                // The expression's own keys, the others written by the
+                // editor (see expressionOverload in figure.ts).
+                tag: "Ex",
+                encode: ([min, max, value], index) => ({
+                    v: value,
+                    mn: realParameter(min, index),
+                    mx: realParameter(max, index),
+                }),
+                decode: (parameters, at) => {
+                    const { v, mn, mx } = parameters as Record<string, unknown>;
+                    if (
+                        typeof v !== "number" ||
+                        mn === undefined ||
+                        mx === undefined
+                    )
+                        return null;
+                    const bounds = [mn, mx].map((bound) =>
+                        realArgument(bound, at),
+                    );
+                    return bounds.includes(null)
+                        ? null
+                        : [...(bounds as Arg[]), v];
+                },
+            },
+        ],
+    },
+];
+
+// The functions of the formulas that read objects, or numbers: those of
+// DGPad (see FORMULA_ARITY in dgp_formula.ts).
+const formulaFunction = (name: string, params: Param[], variadic = false) => ({
+    name,
+    fr: name,
+    formula: true,
+    overloads: [{ params, variadic, tag: "", encode: () => null }],
+});
+
+export const FUNCTIONS: Command[] = [
+    formulaFunction("d", ["point", "point"]),
+    formulaFunction("x", ["point"]),
+    formulaFunction("y", ["point"]),
+    ...[
+        "sqrt",
+        "abs",
+        "sin",
+        "cos",
+        "tan",
+        "asin",
+        "acos",
+        "atan",
+        "exp",
+        "log",
+        "floor",
+        "ceil",
+        "round",
+    ].map((name) => formulaFunction(name, ["real"])),
+    formulaFunction("atan2", ["real", "real"]),
+    formulaFunction("min", ["real"], true),
+    formulaFunction("max", ["real"], true),
 ];
 
 export const FRENCH = LANG === "fr";
@@ -433,12 +542,20 @@ const BY_NAME = new Map(
     ]),
 );
 
+// A formula's function, by its exact name.
 export const findCommand = (name: string): Command | undefined =>
-    BY_NAME.get(fold(name));
+    BY_NAME.get(fold(name)) ??
+    FUNCTIONS.find((command) => command.name === name);
 
-// The commands whose localized name starts with `prefix`.
-export const commandsStarting = (prefix: string): Command[] =>
-    COMMANDS.filter((command) =>
+export const isCommand = (name: string): boolean => BY_NAME.has(fold(name));
+
+// The commands, or the functions, whose localized name starts with
+// `prefix`.
+export const commandsStarting = (
+    prefix: string,
+    commands = COMMANDS,
+): Command[] =>
+    commands.filter((command) =>
         fold(commandName(command)).startsWith(fold(prefix)),
     );
 
@@ -483,7 +600,7 @@ export function decodeEntry(
         for (const overload of command.overloads) {
             if (overload.tag !== tag || !overload.decode) continue;
             const args = overload.decode(parameters, at);
-            if (args) return { command, args };
+            if (args && matches(overload, args)) return { command, args };
         }
     return null;
 }

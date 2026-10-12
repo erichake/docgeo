@@ -187,6 +187,8 @@ Une **formule** est son texte, ou `[texte, {nom: indice}]` quand elle lit
 d'autres objets : chaque nom qu'elle emploie y est associé à l'objet qu'il
 désigne. Ce nom est propre à la formule et peut différer du nom affiché de
 l'objet (une étiquette GeoGebra comme `A_{1}` n'est pas un identifiant).
+Un nom y peut contenir des primes (`A'`), et s'écrire entre accents graves
+s'il n'est pas un identifiant (`` `A 1` ``), comme l'écrit l'éditeur.
 Comme dans DGPad, un objet nommé vaut : ses coordonnées (point), sa valeur
 (expression), sa longueur (segment), ses composantes (vecteur), son rayon
 (cercle, arc), sa mesure dans l'unité d'angle de la figure (angle, angle

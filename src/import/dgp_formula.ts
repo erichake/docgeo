@@ -177,7 +177,7 @@ const SKIPPED_METHODS: ReadonlySet<ObjectMethod> = new Set([
 ]);
 
 // -1: any number of arguments.
-const METHOD_ARITY: Record<ObjectMethod, number> = {
+export const METHOD_ARITY: Record<ObjectMethod, number> = {
     coords2D: 0,
     coords3D: 0,
     getX: 0,
@@ -380,7 +380,7 @@ const ASSIGNMENTS: Record<string, "+" | "-" | "*" | "/" | null> = {
     "/=": "/",
 };
 
-type TokenType =
+export type TokenType =
     | "number"
     | "string"
     | "identifier"
@@ -413,7 +413,7 @@ type TokenType =
     | "--"
     | "eof";
 
-interface Token {
+export interface Token {
     type: TokenType;
     value: string | number;
 }
@@ -430,8 +430,9 @@ const NUMBER = /(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][+-]?\d+)?/y;
 const OPERATOR = /^(?:[=!]==?|[<>]=?|[-+*/]=|\+\+|--|&&|\|\||[!=?:;{}])/;
 const STRING = /"(?:[^"\\]|\\.)*"|'(?:[^'\\]|\\.)*'/y;
 
-class FormulaLexer {
-    private index = 0;
+// Also the editor's (see EDITOR.md), which reads where each token ends.
+export class FormulaLexer {
+    index = 0;
 
     constructor(private readonly source: string) {}
 
@@ -453,6 +454,16 @@ class FormulaLexer {
         }
 
         if (IDENTIFIER_START.test(character)) return this.identifier();
+
+        // A name that isn't an identifier, as the editor writes it.
+        if (character === "`") {
+            const end = this.source.indexOf("`", this.index + 1);
+            if (end < this.index + 2)
+                throw new Error("Invalid DGP formula syntax");
+            const value = this.source.slice(this.index + 1, end);
+            this.index = end + 1;
+            return { type: "identifier", value };
+        }
 
         STRING.lastIndex = this.index;
         const string = STRING.exec(this.source);
@@ -496,11 +507,13 @@ class FormulaLexer {
             this.index++;
     }
 
+    // Primes too, as the editor names a point's image (A').
     private identifier(): Token {
         const start = this.index++;
         while (
             this.index < this.source.length &&
-            IDENTIFIER_PART.test(this.source[this.index])
+            (IDENTIFIER_PART.test(this.source[this.index]) ||
+                this.source[this.index] === "'")
         )
             this.index++;
         return {

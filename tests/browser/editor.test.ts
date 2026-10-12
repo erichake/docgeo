@@ -6,8 +6,10 @@ import { describeDgo, figureObjects, readDgo } from "../../src/dgo";
 import {
     add,
     addPointOn,
+    entryOf,
     figureIndex,
     lineOf,
+    rebuild,
     redefine,
     resolve,
     type Studio,
@@ -15,7 +17,10 @@ import {
 import {
     accepts,
     COMMANDS,
+    findCommand,
+    isCommand,
     paramAt,
+    readable,
     type Arg,
     type Param,
 } from "../../src/editor/catalog";
@@ -46,6 +51,9 @@ import { labelAt, labelCenter, placeLabel } from "../../src/editor/labels";
 import { crossing, meant, pick } from "../../src/editor/pick";
 import { parseLine, TextError } from "../../src/editor/text";
 import type { point_object } from "../../src/objects/point_object";
+import type { circle1_object } from "../../src/objects/circle1_object";
+import type { expression_object } from "../../src/objects/expression_object";
+import type { expression_list_object } from "../../src/objects/expression_list_object";
 import { createConstruction, disposeFigures, expectClose } from "./figures";
 import { vDot, vScale, vSub } from "../../src/vec";
 
@@ -62,7 +70,7 @@ function studio(space = false): Studio {
 }
 
 const type = (c: construction, text: string) =>
-    add(c, resolve(c, parseLine(text)));
+    add(c, resolve(c, parseLine(text, isCommand)));
 
 const lines = (c: construction): string[] => {
     const index = figureIndex(c);
@@ -134,7 +142,7 @@ describe("Editor", () => {
             ["Intersection(a, a, 1)", "arguments"],
             ["A = (3, 3)", "name_taken"],
         ])
-            expect(() => resolve(c, parseLine(text)), text).toThrow(
+            expect(() => resolve(c, parseLine(text, isCommand)), text).toThrow(
                 expect.objectContaining({ key }),
             );
         for (const [text, detail] of [
@@ -142,7 +150,7 @@ describe("Editor", () => {
             ["Intersection(b, a, A)", "OtherIntersection(b, a, A)"],
             ["Point(1, 2)", "FixedPoint(1, 2)"],
         ])
-            expect(() => resolve(c, parseLine(text)), text).toThrow(
+            expect(() => resolve(c, parseLine(text, isCommand)), text).toThrow(
                 expect.objectContaining({ key: "instead", detail }),
             );
     });
@@ -175,7 +183,9 @@ describe("Editor", () => {
                 for (const longer of overloads)
                     if (
                         !shorter.variadic &&
-                        shorter.params[shorter.params.length - 1] !== "real" &&
+                        !["number", "real"].includes(
+                            shorter.params[shorter.params.length - 1],
+                        ) &&
                         longer.params.length > shorter.params.length
                     )
                         expect(
@@ -192,7 +202,7 @@ describe("Editor", () => {
         ["A = (-2, 0)", "B = (3, 1)", "d = Line(A, B)", "O = (0, -1)"].forEach(
             (line) => type(c, line),
         );
-        const line = parseLine("A = Midpoint(B, O)");
+        const line = parseLine("A = Midpoint(B, O)", isCommand);
         await redefine(
             studied,
             c.getObj("A")!,
@@ -207,7 +217,7 @@ describe("Editor", () => {
         ]);
         expectClose((scene.getObj("A") as point_object).coords, [1.5, 0, 0]);
         // Nor on itself, nor on what is built from it.
-        const cycle = parseLine("B = Midpoint(A, O)");
+        const cycle = parseLine("B = Midpoint(A, O)", isCommand);
         await expect(
             redefine(
                 studied,
@@ -216,7 +226,7 @@ describe("Editor", () => {
             ),
         ).rejects.toThrow(TextError);
         // Renamed, and in space.
-        const renamed = parseLine("K = (1, 2, 3)");
+        const renamed = parseLine("K = (1, 2, 3)", isCommand);
         await redefine(
             studied,
             scene.getObj("O")!,
@@ -228,6 +238,258 @@ describe("Editor", () => {
             "A = Midpoint(B, K)",
             "d = Line(A, B)",
         ]);
+    });
+
+    it("writes and reads expressions, their nature told by the text", async () => {
+        const { scene: c } = studio();
+        const text = [
+            "A = (0, 0)",
+            "B = (3, 4)",
+            "a = 3",
+            "L = [1, 2, 3]",
+            "f = 0.5x^2-4",
+            "E = d(A, B)+f(2)",
+            "s = Segment(A, B)",
+            "c = Circle(A, a)",
+            'p = if(a>2){s.setHidden(1)};"Faces"',
+        ];
+        text.forEach((line) => type(c, line));
+        c.flush();
+        expect(lines(c)).toEqual(text);
+        const index = figureIndex(c);
+        const entry = (name: string) => entryOf(c.getObj(name)!, index);
+        expect(entry("a")).toEqual(["Ex", { t: "", v: 3, xy: [20, 40] }]);
+        expect(entry("L")[1]).toMatchObject({ v: [1, 2, 3], xy: [20, 70] });
+        expect(entry("f")[1]).toMatchObject({ f: "0.5x^2-4" });
+        expect(entry("E")[1]).toMatchObject({
+            s: ["d(A, B)+f(2)", { A: 0, B: 1, f: 4 }],
+        });
+        expect(entry("c")).toEqual(["C1", [0, ["a", { a: 2 }]]]);
+        expect((c.getObj("E") as expression_object).value).toBe(3);
+        expect((c.getObj("c") as circle1_object).R).toBe(3);
+        expect(c.getObj("s")!.hidden).toBe(1);
+        // Saved and read, the same text.
+        const other = createConstruction([800, 600]);
+        readDgo(other, await describeDgo(c));
+        expect(lines(other)).toEqual(text);
+        for (const [line, key, detail] of [
+            ["E = d(A, Z)", "unknown_object", "Z"],
+            ["E = Distance(A, B)", "unknown_command", "Distance"],
+            ["E = 1 +", "syntax", "1 +"],
+            ["c = Circle(A, s)", "arguments", "Circle"],
+        ])
+            expect(() => resolve(c, parseLine(line, isCommand)), line).toThrow(
+                expect.objectContaining({ key, detail }),
+            );
+    });
+
+    it("redefines and renames expressions, their targets before them", async () => {
+        const studied = studio();
+        [
+            "A = (0, 0)",
+            "B = (3, 4)",
+            "a = 3",
+            "s = Segment(A, B)",
+            "c = Circle(A, a)",
+            'p = if(a>2){s.setHidden(1)};"Faces"',
+            "E = d(A, B)",
+        ].forEach((line) => type(studied.scene, line));
+        const redefined = async (text: string, name: string) => {
+            const c = studied.scene;
+            const target = c.getObj(name)!;
+            await redefine(
+                studied,
+                target,
+                resolve(c, parseLine(text, isCommand), target),
+            );
+        };
+        // A program styles an object before it, reordered or not.
+        await redefined("s = Segment(B, A)", "s");
+        await redefined("a = 1", "a");
+        expect((studied.scene.getObj("c") as circle1_object).R).toBe(1);
+        // Kept: its place; its slider's bounds only by Slider(…).
+        const slider = (c: construction) =>
+            entryOf(c.getObj("b")!, figureIndex(c))[1];
+        const figure = await describeDgo(studied.scene);
+        const position = figure.o.findIndex(
+            (entry) => (entry as unknown[])[1] === "a",
+        );
+        Object.assign((figure.o[position] as unknown[])[2] as object, {
+            mn: 0,
+            mx: 10,
+            xy: [100, 200],
+        });
+        rebuild(studied, figure);
+        expect(lines(studied.scene)[2]).toBe("a = Slider(0, 10, 1)");
+        await redefined("b = Slider(0, 10, 4)", "a");
+        expect(slider(studied.scene)).toEqual({
+            t: "",
+            v: 4,
+            mn: 0,
+            mx: 10,
+            xy: [100, 200],
+        });
+        await redefined("b = 4", "b");
+        expect(slider(studied.scene)).toEqual({ t: "", v: 4, xy: [100, 200] });
+        await redefined("b = d(A, B)", "b");
+        expect(slider(studied.scene)).toEqual({
+            t: "",
+            s: ["d(A, B)", { A: 0, B: 1 }],
+            xy: [100, 200],
+        });
+        expect(lines(studied.scene)).toEqual([
+            "A = (0, 0)",
+            "B = (3, 4)",
+            "b = d(A, B)",
+            "s = Segment(B, A)",
+            "c = Circle(A, b)",
+            'p = if(b>2){s.setHidden(1)};"Faces"',
+            "E = d(A, B)",
+        ]);
+        // It may read what it styles, not what is built from it.
+        await redefined('p = if(s>2){s.setHidden(1)};"Faces"', "p");
+        for (const [text, name] of [
+            ["b = 2*c", "b"],
+            ["s = Circle(A, p)", "s"],
+        ])
+            await expect(redefined(text, name), text).rejects.toThrow(
+                expect.objectContaining({ key: "cycle" }),
+            );
+        // What it styles comes before it.
+        await redefined('p = if(b>2){E.setHidden(1)};"Faces"', "p");
+        // Renamed, the formulas that read it write its new name.
+        const figure2 = await describeDgo(studied.scene);
+        (figure2.o[0] as unknown[])[1] = "A 1";
+        rebuild(studied, figure2);
+        expect(lines(studied.scene).slice(2)).toEqual([
+            "b = d(`A 1`, B)",
+            "s = Segment(B, `A 1`)",
+            "c = Circle(`A 1`, b)",
+            "E = d(`A 1`, B)",
+            'p = if(b>2){E.setHidden(1)};"Faces"',
+        ]);
+        await redefined("E = d(`A 1`, B)/2", "E");
+        expect((studied.scene.getObj("E") as expression_object).value).toBe(
+            2.5,
+        );
+    });
+
+    it("makes sliders, read back as such", async () => {
+        const studied = studio();
+        const c = studied.scene;
+        ["a = Curseur(0, 10, 3)", "b = Slider(-1, a, 2)", "E = 2*b"].forEach(
+            (line) => type(c, line),
+        );
+        c.flush();
+        expect(lines(c)).toEqual([
+            "a = Slider(0, 10, 3)",
+            "b = Slider(-1, a, 2)",
+            "E = 2*b",
+        ]);
+        const index = figureIndex(c);
+        expect(entryOf(c.getObj("a")!, index)[1]).toEqual({
+            t: "",
+            v: 3,
+            mn: 0,
+            mx: 10,
+            xy: [20, 40],
+        });
+        // Under the sliders' tracks.
+        expect(entryOf(c.getObj("E")!, index)[1]).toMatchObject({
+            xy: [20, 160],
+        });
+        const b = c.getObj("b") as expression_object;
+        expect([b.isCursor, b.min, b.max]).toEqual([true, -1, 3]);
+        const other = createConstruction([800, 600]);
+        readDgo(other, await describeDgo(c));
+        expect(lines(other)).toEqual(lines(c));
+        expect(() => type(c, "d = Slider(0, 10, a)")).toThrow(
+            expect.objectContaining({ key: "arguments" }),
+        );
+        // A constant again, then a slider again.
+        await redefine(
+            studied,
+            b,
+            resolve(c, parseLine("b = 2", isCommand), b),
+        );
+        expect(lines(studied.scene)[1]).toBe("b = 2");
+        expect((studied.scene.getObj("b") as expression_object).isCursor).toBe(
+            false,
+        );
+        const figure = await describeDgo(studied.scene);
+        rebuild(studied, figure);
+        const constant = studied.scene.getObj("b")!;
+        await redefine(
+            studied,
+            constant,
+            resolve(
+                studied.scene,
+                parseLine("b = Slider(0, 5, 1)", isCommand),
+                constant,
+            ),
+        );
+        expect(lines(studied.scene)[1]).toBe("b = Slider(0, 5, 1)");
+        // Bounds that are formulas have no line yet.
+        const bounded = await describeDgo(studied.scene);
+        Object.assign((bounded.o[1] as unknown[])[2] as object, {
+            mx: ["2*a", { a: 0 }],
+        });
+        rebuild(studied, bounded);
+        expect(lines(studied.scene)[1]).toBeNull();
+    });
+
+    it("draws the points of an expression's value as a list", async () => {
+        const { scene: c } = studio();
+        const text = [
+            "p = var t=[]; for (var i=0;i<4;i++){t.push([i,0])}; t",
+            "L = List(p)",
+        ];
+        text.forEach((line) => type(c, line));
+        c.flush();
+        expect(lines(c)).toEqual(text);
+        const index = figureIndex(c);
+        expect(entryOf(c.getObj("L")!, index)).toEqual(["ELst", [0]]);
+        const list = c.getObj("L") as expression_list_object;
+        expect(list.points).toEqual([
+            [0, 0],
+            [1, 0],
+            [2, 0],
+            [3, 0],
+        ]);
+        const other = createConstruction([800, 600]);
+        readDgo(other, await describeDgo(c));
+        expect(lines(other)).toEqual(text);
+        type(c, "A = (1, 1)");
+        expect(() => type(c, "M = List(A)")).toThrow(
+            expect.objectContaining({ key: "arguments" }),
+        );
+        expect(accepts(c.getObj("p")!, "expression")).toBe(true);
+        expect(accepts(1, "expression")).toBe(false);
+    });
+
+    it("signs the formulas' functions, a real number reading expressions", () => {
+        const { scene: c } = studio();
+        ["A = (0, 0)", "a = 3", "s = Segment(A, A)", "w = Point(s, 0)"].forEach(
+            (line) => type(c, line),
+        );
+        const [A, a, s] = ["A", "a", "s"].map((name) => c.getObj(name)!);
+        expect(accepts(a, "real")).toBe(true);
+        expect(accepts(a, "number")).toBe(false);
+        expect(accepts(2, "number")).toBe(true);
+        expect(findCommand("d")!.overloads[0].params).toEqual([
+            "point",
+            "point",
+        ]);
+        expect(findCommand("d")!.formula).toBe(true);
+        // A command's name only: no formula's function in the text's head.
+        expect(isCommand("d")).toBe(false);
+        expect(isCommand("milieu")).toBe(true);
+        expect(findCommand("Sqrt")).toBeUndefined();
+        expect([A, a, s].every(readable)).toBe(true);
+        expect(readable(c.getObj("w")!)).toBe(true);
+        expect(() => type(c, "P = Point(s, a)")).toThrow(
+            expect.objectContaining({ key: "arguments" }),
+        );
     });
 
     it("designates the objects under the pointer, points first", () => {

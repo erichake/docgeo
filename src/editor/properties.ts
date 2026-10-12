@@ -13,8 +13,10 @@ import { point_object } from "../objects/point_object";
 import { point_on_object } from "../objects/point_on_object";
 import { polygon_object } from "../objects/polygon_object";
 import { segment_object } from "../objects/segment_object";
+import { expressionSource } from "./figure";
 import { message, type MessageKey } from "./messages";
 import { scrubNumber } from "./scrub";
+import { formatProgram, syntaxLine, TextError } from "./text";
 
 type Field = HTMLInputElement | HTMLSelectElement;
 
@@ -22,6 +24,10 @@ export function propertiesPanel(options: {
     scene: () => construction;
     changed: () => void;
     rename: (object: construction_object, name: string) => Promise<void>;
+    // Throws a TextError where the text is wrong.
+    define: (object: expression_object, source: string) => Promise<void>;
+    // A new expression, given a name or not.
+    create: (name: string, source: string) => Promise<void>;
     close: () => void;
 }) {
     const panel = $.create("aside")
@@ -81,13 +87,23 @@ export function propertiesPanel(options: {
         false,
     );
 
-    function select(object: construction_object | null): void {
+    // Wider for a formula's lines.
+    function clear(object: construction_object | null, wide: boolean): void {
         selected?.dom?.removeClass("dge-property-selected");
         selected = object;
         selected?.dom?.addClass("dge-property-selected");
         fields.splice(0).forEach((field) => field.dispose());
         content.inner("");
+        panel.toggleClass("dge-properties-wide", wide);
         refreshPicker();
+    }
+
+    function select(object: construction_object | null): void {
+        clear(
+            object,
+            object instanceof expression_object &&
+                !!(object.formula || object.program),
+        );
         if (!object) {
             content.add(
                 $.create("p")
@@ -320,6 +336,13 @@ export function propertiesPanel(options: {
             () => (name.dom() as HTMLInputElement).setCustomValidity(""),
             false,
         );
+
+        if (
+            object instanceof expression_object &&
+            !object.isCursor &&
+            !object.bounds
+        )
+            definition(object);
 
         const appearance = section("appearance");
         const scope = $.create("input").att("type", "checkbox");
@@ -690,6 +713,142 @@ export function propertiesPanel(options: {
         }
     }
 
+    // Its value, formula or program, on as many lines as it takes: Enter
+    // keeps the indentation, Tab indents, ⌘-Enter or Ctrl-Enter applies and
+    // Escape restores. The edits go through the browser's own, to be undone
+    // as typing is.
+    // A program to be made, written before it exists.
+    function create(name: string): void {
+        clear(null, true);
+        const field = $.create("input")
+            .att("type", "text")
+            .att("spellcheck", "false");
+        const input = field.dom() as HTMLInputElement;
+        input.value = name;
+        row(section("new_program"), "name", field);
+        definition(null, () => input.value.trim());
+        (content.find("textarea")!.dom() as HTMLTextAreaElement).focus();
+    }
+
+    function definition(
+        object: expression_object | null,
+        name?: () => string,
+    ): void {
+        const box = section("definition");
+        const original = object ? expressionSource(object) : "";
+        const editor = $.create("textarea")
+            .cls("dge-program")
+            .att("spellcheck", "false")
+            .att("wrap", "off")
+            .att("aria-label", message("definition"))
+            .att("placeholder", object ? "" : message("program_placeholder"));
+        const area = editor.dom() as HTMLTextAreaElement;
+        area.value = original;
+        const error = $.create("p")
+            .cls("dge-program-error")
+            .att("role", "alert");
+        const apply = $.create("button")
+            .cls("dge-primary")
+            .att("type", "button")
+            .text(message(object ? "apply" : "create"));
+        const format = $.create("button")
+            .att("type", "button")
+            .text(message("format_program"));
+        fields.push(editor, apply, format);
+        box.add(
+            editor,
+            error,
+            $.create("div").cls("dge-program-actions").add(apply, format),
+            $.create("p")
+                .cls("dge-property-help")
+                .text(message("definition_hint")),
+        );
+        const update = () => {
+            area.rows = Math.min(
+                // The example too, while empty.
+                Math.max(
+                    (area.value || area.placeholder).split("\n").length + 1,
+                    3,
+                ),
+                20,
+            );
+            apply.dom().toggleAttribute("disabled", area.value === original);
+            editor.removeClass("dge-error");
+            error.text("");
+        };
+        update();
+        const insert = (text: string) =>
+            document.execCommand("insertText", false, text);
+        editor.on("input", update, false);
+        editor.on(
+            "keydown",
+            (event) => {
+                const caret = area.selectionStart;
+                const line = area.value.slice(
+                    area.value.lastIndexOf("\n", caret - 1) + 1,
+                    caret,
+                );
+                const indent = /^\s*/.exec(line)![0];
+                if (event.key === "Enter" && (event.metaKey || event.ctrlKey))
+                    void submit();
+                else if (event.key === "Enter")
+                    insert(`\n${indent}${/\{\s*$/.test(line) ? "    " : ""}`);
+                else if (event.key === "Tab" && !event.shiftKey) insert("    ");
+                else if (event.key === "}" && line && !line.trim()) {
+                    area.setSelectionRange(
+                        caret - Math.min(line.length, 4),
+                        caret,
+                    );
+                    insert("}");
+                } else if (event.key === "Escape" && area.value !== original) {
+                    area.value = original;
+                    update();
+                    event.stopPropagation();
+                } else return;
+                event.preventDefault();
+            },
+            false,
+        );
+        apply.on("click", () => void submit(), false);
+        format.on(
+            "click",
+            () => {
+                area.focus();
+                area.select();
+                insert(formatProgram(area.value));
+            },
+            false,
+        );
+
+        async function submit(): Promise<void> {
+            try {
+                await (object
+                    ? options.define(object, area.value)
+                    : options.create(name!(), area.value));
+            } catch (failure) {
+                if (!(failure instanceof TextError)) throw failure;
+                const syntax = failure.key === "syntax";
+                const line = syntax ? syntaxLine(area.value) : null;
+                editor.addClass("dge-error");
+                error.text(
+                    line
+                        ? message("syntax_line", String(line))
+                        : syntax
+                          ? message("program_syntax")
+                          : message(failure.key as MessageKey, failure.detail),
+                );
+                if (!line) return;
+                // The line selected.
+                const lines = area.value.split("\n");
+                const start = lines
+                    .slice(0, line - 1)
+                    .reduce((sum, text) => sum + text.length + 1, 0);
+                area.focus();
+                area.setSelectionRange(start, start + lines[line - 1].length);
+            }
+        }
+    }
+
     function refresh(): void {
         const object = selected && options.scene().getObj(selected.name);
         if (object !== selected) select(object ?? null);
@@ -700,6 +859,7 @@ export function propertiesPanel(options: {
     return {
         panel,
         select,
+        create,
         refresh,
         get selected() {
             return selected;

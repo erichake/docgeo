@@ -356,9 +356,10 @@ de la fenêtre (il s'arrête s'il devait s'arrêter à l'extrémité), sans
 changer de branche. Les animations GeoGebra de points sur conique, dont la
 vitesse se rapporte au paramètre de GeoGebra, restent ignorées.
 
-Les curseurs, que DGPad anime aussi au ressort, en auront un quand
-l'éditeur saura les sélectionner : un toucher sur un curseur crée
-aujourd'hui un point.
+Les curseurs, que DGPad anime aussi au ressort, n'en ont pas encore. Un
+toucher sur un curseur, comme sur un texte ou une expression, le
+sélectionne (zone contextuelle, sans anneau) au lieu de créer un point ;
+pendant une saisie, il écrit son nom ; sa poignée se glisse toujours.
 
 ## Noms des points
 
@@ -443,6 +444,111 @@ Le panneau se ferme par sa croix, son bouton ou Échap. Sous 900 px, les deux
 panneaux s'ouvrent alternativement ; sous 600 px, les propriétés recouvrent
 la figure. La barre tient toujours sur une ligne à 320 px. Tout le code
 et les styles CSS du panneau restent dans `src/editor/`.
+
+## Expressions
+
+Plan du 2026-10-12. Une commande polyvalente, comme dans DGPad : nombre,
+formule, fonction, curseur, liste, programme. Le moteur sait déjà tout
+faire : `expression_object` (valeur, fonction de x, y, z, t, programme,
+curseur aux bornes fixes ou calculées, case à cocher, champ de saisie,
+LaTeX, ancrage à un point), la grammaire fermée de `dgp_formula.ts`
+(`parseFormula`, `parseProgram`, `formulaSource`, `formulaIdentifiers`,
+`programReferences`, `programTargets`) et l'entrée `.dgo` `Ex` (`v`, `f` ou
+`s`, `mn`/`mx`, `on`/`d`/`xy`). Le format ne change pas : il manque le
+chemin de création de l'éditeur.
+
+- **Une commande, une nature déduite du texte**, par la classification de
+  l'import DGPad (`dgp_commands.ts`), sortie de l'import pour être partagée :
+  constante (`a = 3`, `L = [1, 2, 3]`) → `v` ; fonction de x, y, z, t libres
+  (`f = 0.5x^2-4`) → `f` ; formule ou script qui lit la figure
+  (`E = d(H, M)`, `if(...){...};"..."`) → `s`. Case à cocher, champ de
+  saisie et LaTeX sont des réglages d'affichage (panneau de propriétés),
+  pas des natures.
+- **Lecture d'une ligne `nom = …`** : `(x, y)` donne un point libre ; une
+  commande du catalogue en tête, un appel de commande ; sinon
+  `parseProgram`, une expression. Les fonctions de formule sont en
+  minuscules (`d`, `sqrt`), les commandes en majuscules : peu de
+  collisions. La ligne se relit par `formulaSource`, et `Ex` quitte la
+  lecture seule.
+- **Dépendances** : les `refs` sont les parents ; un programme est parent
+  des objets qu'il stylise (`targets`), dont le refus des cycles de la
+  redéfinition doit tenir compte.
+- **Expressions en argument** : un paramètre `real` accepte une expression
+  nommée (`Cercle(O, r)`), puis une formule en ligne (`Cercle(O, 2*r)`),
+  que le `.dgo` stocke déjà pour `C1`, sans objet auxiliaire caché.
+- **Curseur** (tranché le 2026-10-12) : une commande
+  `Curseur(min, max, valeur)` (`Slider`), relue sous cette forme ; les
+  bornes sont des nombres ou des expressions nommées, la valeur un nombre.
+  `a = 5` sur un curseur en refait une constante : la ligne dit tout.
+- **Programmes longs** (2026-10-12) : la section « Définition » du panneau
+  de propriétés, plus large pour une formule ou un programme, édite la
+  valeur, la formule ou le programme d'une expression qui n'est pas un
+  curseur, sur autant de lignes qu'il faut ; la ligne de texte en montre la
+  forme compacte. DGPad n'offrait qu'un champ d'une ligne. Entrée garde
+  l'indentation (un niveau de plus après `{`), `}` en tête de ligne la
+  retire, Tab indente, ⌘-Entrée ou Ctrl-Entrée applique (bouton
+  « Appliquer »), Échap rétablit le texte appliqué ; les frappes passent
+  par l'édition du navigateur, annulables comme elle. « Mettre en forme »
+  met une instruction par ligne, indentée par ses accolades, en ne touchant
+  qu'aux espaces et sauts de ligne entre les jetons. Une erreur désigne la
+  ligne où la lecture s'arrête ou une parenthèse, un crochet ou une
+  accolade qui ne correspond pas, et la sélectionne ; une méthode inconnue
+  est nommée (`s.setColor(` : les méthodes sont celles de DGPad,
+  `setRGBColor`…).
+- **Nouveau programme** (2026-10-12) : un bouton `{ }` dans l'en-tête du
+  panneau « Construction », près de la ligne de saisie (la barre d'actions
+  est pleine à 320 px), ouvre le panneau de propriétés sur un programme à
+  écrire : son nom (le prochain libre, modifiable) et la même zone
+  multiligne, vide, avec un exemple en filigrane. L'expression n'est créée
+  qu'au clic sur « Créer » (ou ⌘-Entrée), sans objet provisoire ; la ligne
+  de saisie ne s'agrandit pas (pas de Maj-Entrée, décidé avec l'auteur).
+- **Listes de points** (2026-10-12) : `L = Liste(p)` (`List`, entrée
+  `ELst`) dessine les points de la valeur de l'expression `p`, coupés par
+  un point indéfini, avec les instructions de la tortue ; `Liste(` ne met
+  en évidence que les expressions. Comme les boutons de la calculatrice de
+  DGPad, une expression dont la valeur est une liste de points a dans la
+  zone contextuelle « Liste de points » et « Liste de segments »
+  (épaisseur 1, réglable ensuite dans le panneau) : elles écrivent cette
+  ligne et cachent le texte de `p`, en une étape d'annulation.
+- **À trancher** : nature déduite (DGPad) ou déclarée (`f(x) = …`,
+  GeoGebra), la recommandation étant de déduire en acceptant aussi
+  `f(x) =`, qui lève l'ambiguïté d'un point nommé `x` ou `t`.
+
+### Désignation au clic dans une formule
+
+En tapant `E = d(`, un clic sur H puis sur M doit écrire `E = d(H, M)`,
+comme pour `Milieu(A, B)`. Aujourd'hui, `completionAt` reconnaît l'appel
+`d(` mais `findCommand("d")` ne trouve rien : ni mise en évidence, ni `, `
+ou `)` après le nom, et le clic sur M remplace H (`insertWord` remplace le
+mot avant le curseur). Dès qu'un opérateur est tapé (`AI-AM+`), le
+tokenizer de la saisie, qui ne connaît que `( ) , =`, échoue et
+`completionAt` renvoie `null`.
+
+- **Signatures des fonctions de formule** dans le catalogue, avec le type
+  `Overload` des commandes et un indicateur « fonction de formule » :
+  `d(point, point)`, `x(point)`, `y(point)`, `sqrt(real)`… `overloadsAt`,
+  `paramAt`, `accepts` et `insertArgument` servent alors tels quels : un
+  clic sur H écrit `d(H, `, un clic sur M écrit `M)`, et seuls les points
+  sont mis en évidence entre-temps.
+- **`real` accepte une expression** dans une formule (`accepts` le refuse
+  aujourd'hui) : le même changement que les expressions en argument des
+  commandes.
+- **Tokenizer de la saisie** : celui de `dgp_formula.ts`, réutilisé, pour
+  que `+ - * / ^ < > [ ] ; { }` soient des jetons et que `completionAt`
+  situe le curseur dans `AI-AM-`.
+- **Nom en position libre** : après un opérateur, en tête de formule ou
+  pour un argument de type quelconque, un clic insère le nom de tout objet
+  lisible (`READABLE` de l'import), tous mis en évidence. Si le mot avant
+  le curseur est déjà le nom complet d'un objet, le clic ajoute au lieu de
+  remplacer : le remplacement ne sert qu'à compléter un mot en cours de
+  frappe.
+- **Complétion des fonctions** : en tête de formule ou après un opérateur,
+  `d` ou `sq` proposent les fonctions de formule (`d( )`, `sqrt( )`) à côté
+  des commandes.
+- **Noms entre accents graves** : le parseur de formules doit accepter les
+  noms que `formatName` écrit ainsi (`` `A 1` ``).
+- Dans la ligne de saisie du bas, un clic dans le vide pendant `d(H, `
+  crée un point libre, comme pour les commandes (`expectsPoint`).
 
 ## Lien avec le lecteur
 
@@ -618,12 +724,70 @@ Fait (2026-10-11) :
   +60 octets ; lecteur : +609 octets (+249 en gzip), la marche le long de
   la conique dans le moteur.
 
+- Expressions, première étape (2026-10-12, section du même nom) : une
+  ligne `nom = formule` qui n'est ni un point ni une commande du catalogue
+  crée une `Ex`, de nature déduite par la classification de l'import
+  DGPad, sortie dans `src/import/dgp_expression.ts` (`expressionContent`).
+  Créée sous les expressions affichées en haut à gauche, valeur montrée
+  avec deux décimales en taille 24, comme par la calculatrice de DGPad. La
+  ligne relit le texte enregistré de la formule, ses noms réécrits en ceux
+  des objets (renommage) et sans saut de ligne ; redéfinie, l'expression
+  garde son texte, sa place, son ancrage et, constante, les bornes de son
+  curseur. Ordre et cycles de la redéfinition suivent les entrées `.dgo` :
+  les cibles d'un programme le précèdent bien qu'il soit leur parent dans
+  le moteur (un programme peut lire ce qu'il stylise). Erreurs : nom
+  inconnu, fonction inconnue (`unknown_command`), écriture incomprise.
+  Désignation au clic dans une formule : fonctions de formule signées dans
+  le catalogue (`FUNCTIONS` : `d`, `x`, `y`, `sqrt`, trigonométrie…,
+  `min`, `max`), complétées en tête de formule ou après un opérateur, sans
+  aperçu et sans valider la ligne à leur `)` ; `real` accepte une
+  expression nommée (`Cercle(O, r)`, écrite `C1` à formule réduite à ce
+  nom), les nombres seuls étant `number` (`Point`, `Intersection`,
+  `PointFixe`) ; la saisie lit ses jetons avec le lexer de
+  `dgp_formula.ts`, qui accepte les noms entre accents graves et les
+  primes (`A'`) ; en position libre, les objets lisibles sont mis en
+  évidence et un clic ajoute un nom après un nom complet. Vérifié dans
+  `editor.html` (`E = d(` puis H et M, point libre créé par un clic dans
+  le vide, complétion de `sq`, redéfinition et erreurs, figures DGPad à
+  programmes). Éditeur : 80,2 Ko, CSS inclus (28,6 Ko en gzip), soit
+  +3,2 Ko (+1,2 Ko en gzip) ; lecteur : +558 octets (+253 en gzip), le
+  lexer et le module partagé.
+
+- Curseurs et éditeur multiligne des programmes (2026-10-12, section
+  « Expressions ») : commande `Curseur` / `Slider` écrivant une `Ex` à
+  bornes (sous la piste des curseurs déjà affichés), relue par le
+  catalogue, dont la relecture vérifie désormais que les arguments décodés
+  sont acceptés ; un curseur à bornes calculées par formule reste en
+  lecture seule. Section « Définition » du panneau de propriétés
+  (`formatProgram`, `syntaxLine`, `unknownMethod` dans `text.ts`). Un
+  toucher sur un curseur, un texte ou une expression le sélectionne au
+  lieu de créer un point. Vérifiés dans `editor.html` (création, glisser
+  de la poignée, ligne mise à jour, sélection, nom inséré pendant une
+  saisie ; programme mis en forme, indentation au clavier, ⌘-Entrée,
+  erreur de ligne). Éditeur : 85,7 Ko, CSS inclus (30,4 Ko en gzip),
+  soit +5,5 Ko (+1,8 Ko en gzip) ; lecteur : +22 octets (une exportation).
+
+- Listes de points (2026-10-12, section « Expressions ») : commande
+  `Liste` / `List`, actions « Liste de points » et « Liste de segments »
+  de la zone contextuelle. La complétion se ferme quand une ligne est
+  validée. Vérifié dans `editor.html` (boutons proposés pour la seule
+  expression à liste de points, consigne au survol, ligne tapée avec mise
+  en évidence, annulation qui remontre l'expression). Éditeur : 86,9 Ko,
+  CSS inclus (30,7 Ko en gzip), soit +1,3 Ko ; lecteur inchangé.
+
+- Bouton « Nouveau programme » (2026-10-12, section « Expressions »).
+  Vérifié dans `editor.html` à 1200 et 360 px de large (focus dans la
+  zone, indentation au clavier, création, sélection du nouvel objet).
+  Éditeur : 87,8 Ko, CSS inclus (31,0 Ko en gzip), soit +0,9 Ko ; lecteur
+  inchangé.
+
 Reste à faire :
 
 - Jeux d'outils de l'enseignant (section « Anneau d'outils »).
 
-- Expressions et curseurs (`a = 3`, `Curseur(0, 10)`), rayons et angles en
-  formule (`Cercle(O, 2*a)`), en réutilisant `dgp_formula.ts`.
+- Expressions (section du même nom) : formules en argument
+  (`Cercle(O, 2*a)`, bornes d'un curseur), ressort des curseurs, listes
+  en k (`Lst`) ; trancher `f(x) =`.
 - Points sur objet et intersections au geste sur les lieux et listes ;
   choix explicite de l'intersection quand le geste est ambigu.
 - 3D : points libres dans le plan de l'écran des figures DGPad (`f2`) et

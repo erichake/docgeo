@@ -102,9 +102,14 @@ import {
     type FormulaNode,
     type FormulaValue,
     type Program,
-    usesView,
     withObjects,
 } from "./dgp_formula";
+import {
+    expressionContent,
+    parseVectorLiteral,
+    STYLE_NUMBER,
+    type ExpressionContent,
+} from "./dgp_expression";
 import type { DgpCall, DgpValue } from "./dgp_parser";
 
 type ObjectKind =
@@ -209,7 +214,6 @@ const listSource: Parameter = { kind: "listSource" };
 const COLOR = /^#(?:[\da-f]{6}|[\da-f]{3})/i;
 const IMAGE_URL =
     /^data:image\/(?:png|jpeg|gif|webp|svg\+xml);base64,[A-Za-z\d+/]*=*$/;
-const STYLE_NUMBER = /^[+-]?(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][+-]?\d+)?$/;
 // A point's "sp" style: DGPad's shape index (0:circle, 1:cross, 2:diamond,
 // 3:square), see PointObject.setShape in the reference implementation.
 const POINT_SHAPES = ["circle", "cross", "diamond", "rect"];
@@ -242,29 +246,6 @@ function literalString(value: DgpValue): string {
     return (value as { type: "literal"; value: string }).value;
 }
 
-// DGPad's legacy 3D figures store a fixed point's coordinates as a vector
-// literal inside a string (e.g. Point("X","[1,0,0]","1")) rather than as a
-// real DGP array value; the components may themselves be constant
-// arithmetic (e.g. "[1,1,1/3]"). Only a literal "[...]" that doesn't
-// reference any other object nor the window counts as a fixed point:
-// anything else (a bare formula, or a "[...]" that reads another object,
-// e.g. "[1-2*cos(E2),1+2*sin(E2),1]") is a dependent point formula instead
-// (see Point's execute), not a one-time constant.
-function parseVectorLiteral(value: string): number[] | null {
-    let node: FormulaNode;
-    try {
-        node = parseFormula(value);
-    } catch {
-        return null;
-    }
-    if (node.kind !== "vector" || usesView(node)) return null;
-    const result = evaluateFormula(node, {
-        resolveIdentifier: () => null,
-        view: () => NO_VIEW,
-    });
-    return result === null || typeof result === "number" ? null : [...result];
-}
-
 // "M.coords3D()" (a Point mirroring another point's own 3D position): in
 // this project's 3D-aware point-formula evaluation (see Point's execute),
 // a bare point identifier already resolves to its full 3D coordinates, so
@@ -272,46 +253,6 @@ function parseVectorLiteral(value: string): number[] | null {
 const COORDS3D_MIRROR = /^([A-Za-z_$][\w$]*)\.coords3D\(\)$/;
 function stripCoords3DSuffix(value: string): string {
     return COORDS3D_MIRROR.exec(value)?.[1] ?? value;
-}
-
-// DGPad's Expression() command can hold an arbitrary math expression,
-// evaluated against a sandboxed JS interpreter (functions, other objects'
-// values, etc.). This project only supports the constant literals actually
-// needed to display an already-computed figure: real numbers, DGPad's "i"
-// complex-number syntax (e.g. "3i+5", displayed like a 2-vector), and
-// vector literals. Anything else is rejected at validate time.
-const COMPLEX_TERM = /[+-]?(?:\d+(?:\.\d+)?)?i|[+-]?\d+(?:\.\d+)?/g;
-
-function parseComplexLiteral(value: string): [number, number] | null {
-    let real = 0;
-    let imaginary = 0;
-    let hasImaginary = false;
-    let consumed = 0;
-    for (const match of value.matchAll(COMPLEX_TERM)) {
-        if (match.index !== consumed) return null;
-        consumed += match[0].length;
-        if (match[0].endsWith("i")) {
-            hasImaginary = true;
-            const coefficient = match[0].slice(0, -1);
-            imaginary +=
-                coefficient === "" || coefficient === "+"
-                    ? 1
-                    : coefficient === "-"
-                      ? -1
-                      : Number(coefficient);
-        } else {
-            real += Number(match[0]);
-        }
-    }
-    if (!hasImaginary || consumed !== value.length) return null;
-    return [real, imaginary];
-}
-
-function parseExpressionValue(value: string): number | number[] | null {
-    if (STYLE_NUMBER.test(value)) return Number(value);
-    // A checkbox's value.
-    if (value === "true" || value === "false") return Number(value === "true");
-    return parseVectorLiteral(value) ?? parseComplexLiteral(value);
 }
 
 // A constant, reference-free formula (an Expression's slider bound, e.g.
@@ -349,25 +290,6 @@ function tryParseProgram(source: string): Program | null {
     } catch {
         return null;
     }
-}
-
-const FUNCTION_VARIABLES = ["x", "y", "z", "t"];
-
-// A formula of DGPad's function variables (e.g. "0.5x^2-4", or "z^2+c"),
-// which the Expression displays and Curvus plots or other Expressions call,
-// rather than a value. As in DGPad, an object's name is never a variable.
-function functionFormula(
-    program: Program,
-    objects: Map<string, unknown>,
-): { node: FormulaNode; variables: string[] } | null {
-    const [statement] = program.body;
-    if (program.body.length !== 1 || statement.kind !== "expression")
-        return null;
-    const names = formulaIdentifiers(statement.node);
-    const variables = FUNCTION_VARIABLES.filter(
-        (name) => names.has(name) && !objects.has(name),
-    );
-    return variables.length ? { node: statement.node, variables } : null;
 }
 
 // Apart from its variables, a function formula reads the figure's points and
@@ -1046,26 +968,27 @@ function validateExpression(
             );
         validateReferences(formulaIdentifiers(node), variables, lineNumber);
     });
-    const source = literalString(args[4]);
-    if (parseExpressionValue(source) !== null) return;
-    const program = tryParseProgram(source);
-    if (!program)
+    let content: ExpressionContent;
+    try {
+        content = expressionContent(literalString(args[4]), variables);
+    } catch {
         throw new Error(`Unsupported DGP expression at line ${lineNumber}`);
+    }
+    if (content.kind === "v") return;
     // Only a button sets a number (see button_object.ts).
     if (
-        programNodes(program).some(
+        programNodes(content.program).some(
             (node) => node.kind === "method" && node.method === "setExpression",
         )
     )
         throw new Error(`Unsupported DGP expression at line ${lineNumber}`);
-    const fn = functionFormula(program, variables);
-    if (fn)
+    if (content.kind === "f")
         validateReferences(
-            functionReferences(fn.node, fn.variables),
+            functionReferences(content.node, content.variables),
             variables,
             lineNumber,
         );
-    else validateProgramReferences(program, variables, lineNumber);
+    else validateProgramReferences(content.program, variables, lineNumber);
 }
 
 function executeExpression(
@@ -1076,36 +999,35 @@ function executeExpression(
     const min = args[2] as string;
     const max = args[3] as string;
     const source = args[4] as string;
-    const constant = parseExpressionValue(source);
+    const content = expressionContent(source, context.variables);
     let formula: ExpressionFormula | null = null;
     let program: ExpressionProgram | null = null;
-    if (constant === null) {
-        const parsed = parseProgram(source);
-        const fn = functionFormula(parsed, context.variables);
-        if (fn) {
-            formula = {
-                ...fn,
-                source,
-                refs: formulaRefs(
-                    functionReferences(fn.node, fn.variables),
-                    context.variables,
-                ),
-                vec3: context.is3D,
-            };
-        } else {
-            program = {
-                program: parsed,
-                refs: formulaRefs(programReferences(parsed), context.variables),
-                targets: new Map(
-                    [...programTargets(parsed)].map((name) => [
-                        name,
-                        context.variables.get(name)!,
-                    ]),
-                ),
-                vec3: context.is3D,
-            };
-            applyViewRestrictions(context, parsed);
-        }
+    if (content.kind === "f") {
+        const { node, variables } = content;
+        formula = {
+            node,
+            variables,
+            source,
+            refs: formulaRefs(
+                functionReferences(node, variables),
+                context.variables,
+            ),
+            vec3: context.is3D,
+        };
+    } else if (content.kind === "s") {
+        const parsed = content.program;
+        program = {
+            program: parsed,
+            refs: formulaRefs(programReferences(parsed), context.variables),
+            targets: new Map(
+                [...programTargets(parsed)].map((name) => [
+                    name,
+                    context.variables.get(name)!,
+                ]),
+            ),
+            vec3: context.is3D,
+        };
+        applyViewRestrictions(context, parsed);
     }
     const bound = (source: string) =>
         source === "" ? null : evaluateConstantFormula(source);
@@ -1132,7 +1054,7 @@ function executeExpression(
         context.construction,
         args[0] as string,
         args[1] as string,
-        constant,
+        content.kind === "v" ? content.value : null,
         bound(min),
         bound(max),
         screen,
