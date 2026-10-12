@@ -198,7 +198,8 @@ multiplieraient sur l'anneau au fil des implémentations. Partage :
 - **le panneau de propriétés règle** ses attributs : ce qui, dans DGPad,
   était un outil mais ne change qu'un attribut (nom, ancre, trace…) y
   devient un champ ou une case ; pas les aimants, qui désignent d'autres
-  objets de la figure (section « Aimants ») ;
+  objets de la figure (section « Aimants »), ni la punaise, bascule de la
+  zone contextuelle à la demande de l'auteur (section « Punaise ») ;
 - ce qui ne dépend pas de l'objet (calculatrice, modes) est un bouton
   permanent de la barre, comme la gomme.
 
@@ -274,6 +275,24 @@ mode, qu'on doit voir et savoir quitter sans rien deviner :
 Le moteur garde parmi les aimants une cible supprimée : l'éditeur les
 retire après chaque changement, sinon l'enregistrement ne pourrait pas la
 nommer.
+
+## Punaise
+
+Décidé le 2026-10-12, l'outil punaise de DGPad (`FloatingObjectConstructor`,
+style `fl`) : un point libre épinglé garde sa place dans la fenêtre, et non
+ses coordonnées, quand on zoome ou déplace la vue ; il se glisse toujours.
+Dans une figure plane, un point libre a dans la zone contextuelle, avant
+les aimants comme dans DGPad, un bouton bascule « Épingler à l'écran »,
+bleu quand le point l'est. Contrairement aux autres actions, la zone et
+l'anneau restent ouverts après la bascule, pour montrer le nouvel état.
+Son survol dit ce que fera le clic. Pas de bouton dans les figures 3D de
+DGPad, où tous les points libres sont déjà épinglés au plan de l'écran,
+ni dans les autres figures 3D, où DGPad en fait l'origine du repère.
+
+Une ligne de texte modifiée déplace aussi un point épinglé. Chaque étape
+d'annulation garde l'origine et l'unité de sa vue : elle est relue dans
+cette vue, puis ramenée à la vue courante, pour qu'annuler après un zoom
+ne déplace pas les points épinglés dans la fenêtre.
 
 ## Noms des points
 
@@ -518,6 +537,10 @@ Fait (2026-10-11) :
   (glisser, annuler, toucher sur le nom). Éditeur : 69,2 Ko, CSS inclus
   (25,0 Ko en gzip) ; lecteur : +80 octets (+20 en gzip), le champ
   `nameDistance` du moteur.
+
+- Punaise (2026-10-12, section du même nom). Vérifiée dans `editor.html`
+  (bascule, zoom, annuler / refaire après zoom, ligne de texte).
+  Éditeur : 70,3 Ko, CSS inclus (25,4 Ko en gzip) ; lecteur inchangé.
 
 Reste à faire :
 

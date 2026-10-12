@@ -81,6 +81,7 @@ import {
     setReach,
     showZone,
 } from "./magnets";
+import { pinnable, togglePin } from "./pin";
 import "./properties.css";
 
 // The construction editor: see EDITOR.md.
@@ -136,6 +137,7 @@ $("head").append(`<style>
     .dge-done:hover { background: #1d4ed8; }
     .dge-done:focus-visible { outline: 2px solid #2563eb; outline-offset: 2px; }
     .dge-bar-object .dge-action:hover:not(:disabled) { background: #2563eb; border-color: #2563eb; color: #fff; }
+    .dge-editor .dge-bar .dge-bar-object .dge-action.dge-on { background: #dbeafe; border-color: #2563eb; color: #1d4ed8; }
     .dge-bar-name { display: flex; align-items: center; gap: 6px; min-width: 0; max-width: 120px; padding-inline: 4px 6px; font-weight: 600; color: #334155; }
     .dge-bar-name span:last-child { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     .dge-swatch { flex-shrink: 0; width: 10px; height: 10px; border-radius: 50%; box-shadow: 0 0 0 1px rgb(15 23 42 / 0.2); }
@@ -238,6 +240,11 @@ const propertiesButton = button("properties", () =>
     .att("aria-expanded", "false");
 const deleteButton = button("delete", () => remove()).addClass("dge-delete");
 const settingsButton = button("settings", () => setProperties(true));
+const pinButton = button("pin", () => {
+    togglePin(target() as point_object);
+    showActions();
+    changed();
+}).att("aria-pressed", "false");
 const magnetButton = button("magnet", () =>
     startMagnets(target() as point_object),
 );
@@ -257,6 +264,7 @@ const actions = $.create("div")
         $.create("span").cls("dge-bar-name").add(swatch, objectName),
         deleteButton,
         settingsButton,
+        pinButton,
         magnetButton,
         doneButton,
     )
@@ -305,6 +313,11 @@ function explain(action: DOMElement, line: (name: string) => string): void {
 }
 explain(deleteButton, (name) => `${name} =\n${message("delete")}`);
 explain(settingsButton, (name) => `${name}\n${message("settings")}`);
+explain(
+    pinButton,
+    (name) =>
+        `${name}\n${message((target() as point_object).pinned ? "unpin_hint" : "pin_hint", name)}`,
+);
 explain(magnetButton, (name) => `${name}\n${message("magnet")}`);
 const properties = propertiesPanel({
     scene,
@@ -641,7 +654,9 @@ async function commitText(
                 spec.name === target.name
             ) {
                 const [x, y, z = 0] = spec.args as number[];
-                (target as point_object).coords = [x, y, z];
+                const point = target as point_object;
+                point.coords = [x, y, z];
+                if (point.pinned) point.pin();
                 c.invalidateGeometry(target);
                 c.flush();
                 return done(target);
@@ -1154,6 +1169,13 @@ function showActions(): void {
     [deleteButton, settingsButton].forEach((action) =>
         magnetizing ? action.hide() : action.show("grid"),
     );
+    if (!magnetizing && pinnable(object)) {
+        const on = !!object.pinned;
+        pinButton
+            .toggleClass("dge-on", on)
+            .att("aria-pressed", String(on))
+            .show("grid");
+    } else pinButton.hide();
     if (!magnetizing && magnetizable(object)) magnetButton.show("grid");
     else magnetButton.hide();
     if (magnetizing) doneButton.show();
@@ -1898,8 +1920,9 @@ $("body").on(
 
 // ************************** HISTORY *****************************
 
-// Each step's figure, but its view.
-let history: string[] = [];
+// Each step's figure, but its view, and the origin and unit its pinned
+// points' coordinates are given in.
+let history: { figure: string; o: unknown; u: unknown }[] = [];
 let position = -1;
 let recording = Promise.resolve();
 
@@ -1909,8 +1932,9 @@ function record(): Promise<void> {
             describeDgo(scene()),
         );
         const step = JSON.stringify({ ...figure, v: undefined });
-        if (step === history[position]) return;
-        history = [...history.slice(0, position + 1), step];
+        if (step === history[position]?.figure) return;
+        const { o, u } = figure.v;
+        history = [...history.slice(0, position + 1), { figure: step, o, u }];
         position = history.length - 1;
     });
     return recording;
@@ -1922,7 +1946,14 @@ function travel(step: number): void {
         cancel();
         position += step;
         const { v } = await describeDgo(scene());
-        rebuild(studio, { ...JSON.parse(history[position]), v });
+        const { figure, o, u } = history[position];
+        rebuild(studio, { ...JSON.parse(figure), v: { ...v, o, u } });
+        // Back to the view, the pinned points keeping their place in it.
+        const c = scene();
+        c.GRID.ORG = v.o as Vec2;
+        c.GRID.UNIT = [v.u, v.u, v.u] as Vec3;
+        c.invalidateProjection();
+        c.flush();
         if (ghosts) ghosts = showGhosts(scene());
         refreshRows();
     });

@@ -39,6 +39,15 @@ const MESSAGES = {
     close_history: ["Fermer l’historique", "Close history"],
     properties: ["Propriétés", "Properties"],
     settings: ["Réglages", "Settings"],
+    pin: ["Épingler à l’écran", "Pin to the screen"],
+    pin_hint: [
+        "% garde sa place dans la fenêtre quand on zoome ou déplace la vue",
+        "% keeps its place in the window when the view is zoomed or moved",
+    ],
+    unpin_hint: [
+        "% garde ses coordonnées quand on zoome ou déplace la vue",
+        "% keeps its coordinates when the view is zoomed or moved",
+    ],
     magnet: ["Aimants", "Magnets"],
     magnet_hint: [
         "Désignez les objets qui attirent % · touchez le vide pour terminer",

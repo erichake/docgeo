@@ -33,6 +33,7 @@ import {
     setReach,
     showZone,
 } from "../../src/editor/magnets";
+import { pinnable, togglePin } from "../../src/editor/pin";
 import { labelAt, labelCenter, placeLabel } from "../../src/editor/labels";
 import { crossing, meant, pick } from "../../src/editor/pick";
 import { parseLine, TextError } from "../../src/editor/text";
@@ -372,6 +373,33 @@ describe("Editor", () => {
         expect(point.magnets.map(({ target }) => target)).toEqual([]);
         const { st } = await describeDgo(c);
         expect(st?.some((style) => style.mg)).toBe(false);
+    });
+
+    it("pins a free point to the window, as DGPad's pushpin", async () => {
+        const { scene: c } = studio();
+        ["A = (1, 2)", "B = (3, 0)", "M = Midpoint(A, B)"].forEach((line) =>
+            type(c, line),
+        );
+        const [A, M] = ["A", "M"].map((name) => c.getObj(name)!);
+        expect([A, M].map(pinnable)).toEqual([true, false]);
+        expect(pinnable(studio(true).scene.getObj("A"))).toBe(false);
+        const point = A as point_object;
+        togglePin(point);
+        c.GRID.ORG = [440, 260];
+        c.GRID.UNIT = [80, 80, 80];
+        c.invalidateProjection();
+        c.flush();
+        expectClose(point.coords, [0, 0.5, 0]);
+        const figure = await describeDgo(c);
+        expect(figure.st?.some((style) => style.fl === 1)).toBe(true);
+        togglePin(point);
+        c.GRID.ORG = [400, 300];
+        c.invalidateProjection();
+        c.flush();
+        expectClose(point.coords, [0, 0.5, 0]);
+        expect((await describeDgo(c)).st?.some((style) => style.fl)).toBe(
+            false,
+        );
     });
 
     it("drags the name of a point around it, as in GeoGebra", async () => {

@@ -16,4 +16,6 @@ export const ACTION_ICONS = {
         '<circle cx="12" cy="12" r="8" stroke-width="3" stroke-dasharray="3 3.283" stroke-linecap="butt"/><circle cx="12" cy="12" r="6.5"/><circle cx="12" cy="12" r="2.5"/>',
     // A horseshoe, its poles towards the top right.
     magnet: '<g transform="rotate(45 12 12)"><path d="M6 4h4v8a2 2 0 0 0 4 0V4h4v8a6 6 0 0 1-12 0ZM6 8h4m4 0h4"/></g>',
+    // A pushpin, its needle towards the bottom left.
+    pin: '<g transform="rotate(45 12 12)"><path d="M8 2.5h8M9.5 2.5v6L6 12.5h12l-3.5-4v-6M12 12.5v9"/></g>',
 };
