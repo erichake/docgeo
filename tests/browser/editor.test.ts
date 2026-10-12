@@ -25,7 +25,7 @@ import {
     toggleGhost,
     withGhostsHidden,
 } from "../../src/editor/eraser";
-import { pick } from "../../src/editor/pick";
+import { crossing, meant, pick } from "../../src/editor/pick";
 import { parseLine, TextError } from "../../src/editor/text";
 import type { point_object } from "../../src/objects/point_object";
 import { createConstruction, disposeFigures, expectClose } from "./figures";
@@ -233,6 +233,54 @@ describe("Editor", () => {
         const point = addPointOn(c, "P", hit.object, hit.at);
         expectClose(point.coords, [0, 4, 0]);
         expect(pick(c, [400, 200])).toEqual([]);
+    });
+
+    it("lets the user choose between objects superposed, not points", () => {
+        const { scene: c } = studio();
+        [
+            "A = (0, 0)",
+            "B = (4, 0)",
+            "a = Line(A, B)",
+            "C = Point(a, -0.5)",
+            "D = Point(a, 0.5)",
+            "b = Segment(C, D)",
+            "c = Segment(A, B)",
+        ].forEach((line) => type(c, line));
+        c.flush();
+        // Between A and D.
+        const names = (screen: [number, number]) =>
+            meant(pick(c, screen))
+                .map(({ object }) => object.name)
+                .sort();
+        expect(names([440, 300])).toEqual(["a", "b", "c"]);
+        expect(names([520, 300])).toEqual(["a", "c"]);
+        expect(names([401, 300])).toEqual(["A"]);
+    });
+
+    it("finds the intersection a click near two objects makes", () => {
+        const { scene: c } = studio();
+        [
+            "A = (0, 0)",
+            "B = (4, 0)",
+            "C = (2, -2)",
+            "D = (2, 2)",
+            "a = Line(A, B)",
+            "b = Line(C, D)",
+            "c = Segment(A, B)",
+            "d = Circle(A, B)",
+        ].forEach((line) => type(c, line));
+        c.flush();
+        const crossed = (screen: [number, number]) => {
+            const found = crossing(c, screen, pick(c, screen));
+            return found && [found.a.name, found.b.name].sort();
+        };
+        // Near (2, 0), on a, b and c, a and c superposed.
+        expect(crossed([484, 302])).toEqual(["a", "b"]);
+        // Near (4, 0), on B.
+        expect(crossed([559, 300])).toBeNull();
+        // Near (-4, 0), on a and d.
+        expect(crossed([243, 304])).toEqual(["a", "d"]);
+        expect(crossed([300, 380])).toBeNull();
     });
 
     it("erases as DGPad, its hidden objects shown pale", async () => {

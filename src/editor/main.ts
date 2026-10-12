@@ -12,7 +12,6 @@ import { importDgp, importDgpFromUrl } from "../dgp_importer";
 import { $, type DOMElement } from "../dom";
 import { importGgbFromBlob, importGgbFromUrl } from "../ggb_importer";
 import type { construction_object } from "../objects/construction_object";
-import { createOrderedIntersection } from "../objects/intersection_object";
 import { point_object } from "../objects/point_object";
 import { button_object } from "../objects/button_object";
 import { expression_object } from "../objects/expression_object";
@@ -53,7 +52,16 @@ import {
 } from "./eraser";
 import { message, type MessageKey } from "./messages";
 import { ACTION_ICONS } from "./icons";
-import { nearest, pick, PICK_RADIUS, type Hit } from "./pick";
+import {
+    crossing,
+    forgetBranches,
+    meant,
+    nearest,
+    nearestBranch,
+    pick,
+    type Crossing,
+    type Hit,
+} from "./pick";
 import {
     completionAt,
     formatName,
@@ -86,7 +94,7 @@ $("head").append(`<style>
     .dge-editor.dge-panel-animated { --dge-slide-duration: 240ms; }
     .dge-editor.dge-panel-closed { --dge-panel-width: 0px; }
     .dge-panel-closed .dge-panel { transform: translateX(-100%); visibility: hidden; transition-delay: 0s, var(--dge-slide-duration); }
-    .dge-panel, .dge-bar, .dge-hint, .dge-ring, .dge-complete { font: 14px/1.4 system-ui, -apple-system, "Segoe UI", sans-serif; color: #1f2937; }
+    .dge-panel, .dge-bar, .dge-hint, .dge-ring, .dge-complete, .dge-menu { font: 14px/1.4 system-ui, -apple-system, "Segoe UI", sans-serif; color: #1f2937; }
     .dge-panel { position: fixed; inset-block: var(--dge-bar-height) 0; inset-inline-start: 0; width: var(--dge-panel-size); box-sizing: border-box; padding-block-end: 12px; overflow: auto; background: #fff; border-inline-end: 1px solid #e5e7eb; z-index: 10; touch-action: pan-y; transform: translateX(0); transition: transform var(--dge-slide), visibility 0s; }
     .dge-panel-header { position: sticky; top: 0; display: flex; align-items: center; justify-content: space-between; padding: 8px 12px 8px 16px; background: #fff; border-block-end: 1px solid #e5e7eb; z-index: 1; }
     .dge-panel-header h2 { margin: 0; font-size: 14px; font-weight: 600; }
@@ -127,9 +135,9 @@ $("head").append(`<style>
     .dge-ring .dge-guide { opacity: 0.65; }
     .dge-ring .dge-result { color: #d14343; }
     .dge-ring button:hover .dge-result { color: inherit; }
-    .dge-complete { position: fixed; min-width: 160px; max-height: 240px; overflow: auto; padding: 4px 0; border: 1px solid #d1d5db; border-radius: 8px; background: #fff; box-shadow: 0 6px 20px rgb(0 0 0 / 0.14); z-index: 13; }
-    .dge-complete div { padding: 3px 12px; font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 13px; cursor: pointer; }
-    .dge-complete div.dge-selected, .dge-complete div:hover { background: #2563eb; color: #fff; }
+    .dge-complete, .dge-menu { position: fixed; min-width: 160px; max-height: 240px; overflow: auto; padding: 4px 0; border: 1px solid #d1d5db; border-radius: 8px; background: #fff; box-shadow: 0 6px 20px rgb(0 0 0 / 0.14); z-index: 13; }
+    .dge-complete div, .dge-menu div { padding: 3px 12px; font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 13px; cursor: pointer; }
+    .dge-complete div.dge-selected, .dge-complete div:hover, .dge-menu div:hover { background: #2563eb; color: #fff; }
     .dge-complete:empty { display: none; }
     svg .dge-hover { filter: drop-shadow(0 0 2px #f59e0b) drop-shadow(0 0 3px #f59e0b); }
     svg .dge-ok { filter: drop-shadow(0 0 2px #16a34a) drop-shadow(0 0 2px #16a34a); }
@@ -156,6 +164,10 @@ const cancelButton = $.create("button")
     .att("title", message("cancel"));
 cancelButton.on("click", () => cancel());
 const complete = $.create("div").cls("dge-complete");
+// The objects under a click, for the user to choose one.
+const menu = $.create("div").cls("dge-menu").att("role", "menu").hide();
+// Keeps the focus in the line typed.
+menu.on("mousedown", () => {});
 function button(
     key: keyof typeof ACTION_ICONS,
     action: () => void,
@@ -243,6 +255,7 @@ $("body").add(
     hint,
     ring,
     complete,
+    menu,
 );
 function setPanel(on: boolean, animate = true): void {
     if (on && propertiesOpen && window.innerWidth <= 900) setProperties(false);
@@ -251,7 +264,7 @@ function setPanel(on: boolean, animate = true): void {
         closeCompletion();
         clearPreview();
         showAccepted([]);
-        highlight(null);
+        highlight();
     }
     closeRing();
     panel.dom().toggleAttribute("inert", !on);
@@ -267,7 +280,7 @@ function setProperties(on: boolean): void {
         editing()?.blur();
         closeCompletion();
         showAccepted([]);
-        highlight(null);
+        highlight();
         if (window.innerWidth <= 900) setPanel(false);
         properties.refresh();
         properties.select(properties.selected);
@@ -307,7 +320,7 @@ let preview: {
     pointer?: point_object;
     standIn?: point_object;
 } | null = null;
-let hovered: construction_object | null = null;
+let hovered: construction_object[] = [];
 let accepted: construction_object[] = [];
 let completions: {
     label: string;
@@ -335,10 +348,7 @@ const previewed = () => new Set(preview?.objects ?? []);
 const looksHidden = (object: construction_object) =>
     object.isHidden || !!ghosts?.has(object);
 
-function propertyObject(
-    event: PointerEvent,
-    hits: Hit[] = [],
-): construction_object | null {
+function propertyObject(event: PointerEvent): construction_object | null {
     const target = element(event.target);
     const objects = figureObjects(scene()).filter(
         (object) => object.isVisible && object.hasView,
@@ -362,7 +372,7 @@ function propertyObject(
             event.clientY <= box.bottom
         );
     });
-    return widget ?? hits[0]?.object ?? null;
+    return widget ?? null;
 }
 
 function showHint(text: string, error = false): void {
@@ -406,7 +416,7 @@ function refreshRows(): void {
             false,
         );
         row.on("mouseenter", () => highlight(object), false);
-        row.on("mouseleave", () => highlight(null), false);
+        row.on("mouseleave", () => highlight(), false);
         rows.set(object, row);
         rowsBox.add(row);
     });
@@ -461,6 +471,7 @@ function bindRow(row: DOMElement, object: construction_object | null): void {
         "blur",
         () => {
             closeCompletion();
+            closeMenu();
             clearPreview();
             showAccepted([]);
         },
@@ -731,17 +742,21 @@ function insertWord(field: HTMLInputElement, word: string): void {
 
 // ************************** FIGURE ******************************
 
-function highlight(object: construction_object | null): void {
-    if (object === hovered) return;
-    if (hovered) {
-        if (hovered.hasView) hovered.dom.removeClass("dge-hover");
-        rows.get(hovered)?.removeClass("dge-hover");
-    }
-    hovered = object;
-    if (object) {
+function highlight(...objects: construction_object[]): void {
+    if (
+        objects.length === hovered.length &&
+        objects.every((object, index) => object === hovered[index])
+    )
+        return;
+    hovered.forEach((object) => {
+        if (object.hasView) object.dom.removeClass("dge-hover");
+        rows.get(object)?.removeClass("dge-hover");
+    });
+    hovered = objects;
+    objects.forEach((object) => {
         if (object.hasView) object.dom.addClass("dge-hover");
         rows.get(object)?.addClass("dge-hover");
-    }
+    });
 }
 
 function showAccepted(objects: construction_object[]): void {
@@ -773,34 +788,25 @@ function addFreePoint(screen: Vec2): construction_object | null {
     });
 }
 
-// The branch of their intersection nearest to `screen`, if near enough.
-function nearestBranch(
-    a: construction_object,
-    b: construction_object,
-    screen: Vec2,
-): number | null {
+function addCrossing({ a, b, order }: Crossing): construction_object {
     const c = scene();
-    let best: { order: number; distance: number } | null = null;
-    for (const order of [0, 1, 2, 3] as const) {
-        const point = createOrderedIntersection(
-            c,
-            "‧i",
-            a as never,
-            b as never,
-            order,
+    return add(c, { name: nextName(c, true), ...intersection(a, b, order) });
+}
+
+// Whether a click there would designate a point, made where it is.
+function wantsPoint(hits: Hit[]): boolean {
+    if (pending)
+        return (
+            pending.tool.mode === "command" &&
+            paramAt(pending.tool.overload!, nextSlot()) === "point"
         );
-        if (point.defined && point.projectionDefined) {
-            const [x, y] = c.pt3D(point.coords);
-            const distance = Math.hypot(x - screen[0], y - screen[1]);
-            if (
-                distance <= 2 * PICK_RADIUS &&
-                (!best || distance < best.distance)
-            )
-                best = { order, distance };
-        }
-        c.removeObject(point);
-    }
-    return best && best.order;
+    const field = editing();
+    if (!field) return !propertiesOpen && !ghosts;
+    const call = typedCall(field);
+    return (
+        expectsPoint(field, call) &&
+        !hits.some(({ object }) => taking(call!, object))
+    );
 }
 
 // Numbered, unless of two lines.
@@ -821,26 +827,24 @@ function intersection(
 
 // The point a designation there gives: the point under it, or a new one,
 // at the intersection of two objects, on one, or free.
-function designatePoint(screen: Vec2, hits: Hit[]): construction_object | null {
+function designatePoint(
+    screen: Vec2,
+    hits: Hit[],
+    client: Vec2,
+    then: (point: construction_object) => void,
+): void {
     const c = scene();
     if (hits[0] && hits[0].object instanceof point_object)
-        return hits[0].object;
-    const curves = hits.filter(({ object }) =>
-        accepts(object, "intersectable"),
-    );
-    if (curves.length >= 2) {
-        const [a, b] = curves.map(({ object }) => object);
-        const order = nearestBranch(a, b, screen);
-        if (order !== null)
-            return add(c, {
-                name: nextName(c, true),
-                ...intersection(a, b, order),
-            });
-    }
-    const support = hits.find(({ object }) => accepts(object, "support"));
-    if (support)
-        return addPointOn(c, nextName(c, true), support.object, support.at);
-    return addFreePoint(screen);
+        return then(hits[0].object);
+    const cross = crossing(c, screen, hits);
+    if (cross) return then(addCrossing(cross));
+    const supports = hits.filter(({ object }) => accepts(object, "support"));
+    if (supports[0])
+        return chooseHit(supports, client, ({ object, at }) =>
+            then(addPointOn(c, nextName(c, true), object, at)),
+        );
+    const point = addFreePoint(screen);
+    if (point) then(point);
 }
 
 function nextSlot({ tool, args } = pending!): number {
@@ -1013,6 +1017,44 @@ function closeRing(): void {
     if (!pending) showHint("");
 }
 
+// The object meant by a click on these hits, chosen in a menu when several
+// may be.
+function chooseHit(hits: Hit[], client: Vec2, then: (hit: Hit) => void): void {
+    const candidates = meant(hits);
+    if (!candidates[1]) return then(candidates[0]);
+    const c = scene();
+    const index = figureIndex(c);
+    const objects = figureObjects(c);
+    menu.inner("");
+    candidates.forEach((hit) => {
+        const item = $.create("div")
+            .att("role", "menuitem")
+            .text(
+                lineOf(hit.object, index, objects) ??
+                    `${formatName(hit.object.name)} = …`,
+            );
+        item.on("pointerenter", () => highlight(hit.object), false);
+        item.on("click", () => {
+            closeMenu();
+            then(hit);
+        });
+        menu.add(item);
+    });
+    const [x, y] = vAdd(client, [8, 8]);
+    menu.stl("left", `${x}px`).stl("top", `${y}px`).show();
+    const { width, height } = menu.dom().getBoundingClientRect();
+    menu.stl("left", `${Math.min(x, window.innerWidth - width - 8)}px`).stl(
+        "top",
+        `${Math.min(y, window.innerHeight - height - 8)}px`,
+    );
+}
+
+function closeMenu(): void {
+    if (menu.isHidden()) return;
+    menu.hide().inner("");
+    highlight();
+}
+
 function choose(tool: Tool, { object, at }: Hit): void {
     if (tool.mode === "properties") {
         setProperties(true);
@@ -1045,37 +1087,42 @@ function build(overload: Overload, args: Arg[]): void {
     done(add(c, { name: nextName(c, point), overload, args }));
 }
 
-function designate(screen: Vec2, hits: Hit[]): void {
+function designate(screen: Vec2, hits: Hit[], client: Vec2): void {
     const { tool, args } = pending!;
     if (tool.mode === "intersection") {
-        const hit = hits.find(
-            ({ object }) =>
-                object !== args[0] && accepts(object, "intersectable"),
-        );
-        if (!hit) return;
         const first = args[0] as construction_object;
-        const { overload, args: found } = intersection(
-            first,
-            hit.object,
-            nearestBranch(first, hit.object, screen) ?? 0,
+        const curves = hits.filter(
+            ({ object }) =>
+                object !== first && accepts(object, "intersectable"),
         );
-        return build(overload, found);
+        if (!curves[0]) return;
+        return chooseHit(curves, client, ({ object }) => {
+            const { overload, args: found } = intersection(
+                first,
+                object,
+                nearestBranch(scene(), first, object, screen)?.order ?? 0,
+            );
+            build(overload, found);
+        });
     }
     const overload = tool.overload!;
     const param = paramAt(overload, nextSlot())!;
     if (overload.variadic && args.length >= 3 && hits[0]?.object === args[0])
         return build(overload, args as Arg[]);
-    let arg: construction_object | null;
+    const next = (arg: construction_object) => {
+        if (overload.variadic) args.push(arg);
+        else args[nextSlot()] = arg;
+        proceed();
+    };
     if (param === "point") {
         clearPreview();
-        arg = designatePoint(screen, hits);
-        if (arg && arg !== hits[0]?.object) changed(arg);
-    } else
-        arg = hits.find(({ object }) => accepts(object, param))?.object ?? null;
-    if (!arg) return;
-    if (overload.variadic) args.push(arg);
-    else args[nextSlot()] = arg;
-    proceed();
+        return designatePoint(screen, hits, client, (arg) => {
+            if (arg !== hits[0]?.object) changed(arg);
+            next(arg);
+        });
+    }
+    const taken = hits.filter(({ object }) => accepts(object, param));
+    if (taken[0]) chooseHit(taken, client, ({ object }) => next(object));
 }
 
 function clearPreview(): void {
@@ -1253,6 +1300,7 @@ function cancel(): void {
     pending = null;
     aim = null;
     clearPreview();
+    closeMenu();
     closeRing();
     showHint("");
 }
@@ -1260,13 +1308,14 @@ function cancel(): void {
 function done(object?: construction_object): void {
     pending = null;
     clearPreview();
-    highlight(null);
+    highlight();
     showAccepted([]);
     changed(object);
 }
 
 // After a change of the figure: its text, and a step to undo.
 function changed(object?: construction_object): void {
+    forgetBranches();
     scene().flush();
     void record().then(() => {
         refreshRows();
@@ -1310,18 +1359,34 @@ function follow(event: PointerEvent): void {
     const button = onButton(event);
     if (!button && !inFigure(event)) {
         clearPreview();
-        return highlight(null);
+        return highlight();
     }
     const c = scene();
     const screen = c.pointerPosition(event);
     const hits = button ? [] : pick(c, screen, previewed());
     if (pending || editing()) updatePreview(screen, hits);
-    if (ring.isHidden()) highlight(hits[0]?.object ?? null);
+    if (!ring.isHidden()) return;
+    // The two objects whose intersection a click would make.
+    const cross = wantsPoint(hits) && crossing(c, screen, hits);
+    highlight(
+        ...(cross
+            ? [cross.a, cross.b]
+            : hits.slice(0, 1).map(({ object }) => object)),
+    );
 }
 
 $("body").on(
     "pointerdown",
     (event) => {
+        // Pressed elsewhere, the menu closes, and the figure does nothing.
+        if (!menu.isHidden() && !menu.dom().contains(element(event.target))) {
+            closeMenu();
+            if (inFigure(event)) {
+                down = null;
+                event.stopPropagation();
+                return;
+            }
+        }
         if (!inFigure(event) || !event.isPrimary) return;
         down = { x: event.clientX, y: event.clientY, time: performance.now() };
         const c = scene();
@@ -1350,15 +1415,19 @@ $("body").on(
             }
             clearPreview();
             const call = typedCall(field);
-            let object =
-                (call &&
-                    hits.find(({ object }) => taking(call, object))?.object) ??
-                hits[0].object;
-            if (!(call && taking(call, object)) && expectsPoint(field, call)) {
-                object = designatePoint(screen, hits)!;
-                changed(object);
-            }
-            designateTyped(field, object);
+            const taken = call
+                ? hits.filter(({ object }) => taking(call, object))
+                : [];
+            const client: Vec2 = [event.clientX, event.clientY];
+            if (!taken[0] && expectsPoint(field, call))
+                designatePoint(screen, hits, client, (point) => {
+                    changed(point);
+                    designateTyped(field, point);
+                });
+            else
+                chooseHit(taken[0] ? taken : hits, client, ({ object }) =>
+                    designateTyped(field, object),
+                );
             down = null;
             event.stopPropagation();
             return;
@@ -1389,6 +1458,7 @@ $("body").on(
 function dragged(): void {
     dragFrame ??= requestAnimationFrame(() => {
         dragFrame = null;
+        forgetBranches();
         updateRows();
         moveRing();
     });
@@ -1416,18 +1486,23 @@ $("body").on(
     "pointerup",
     (event) => {
         if (!event.isPrimary) return;
+        // The figure may have changed since the hover.
+        forgetBranches();
         if (aim) {
             const designates = aiming(event);
             aim = null;
             if (designates) {
                 const c = scene();
                 const screen = c.pointerPosition(event);
-                designate(screen, pick(c, screen, previewed()));
+                designate(screen, pick(c, screen, previewed()), [
+                    event.clientX,
+                    event.clientY,
+                ]);
             }
             // A finger lifted no longer shows what it would designate.
             if (event.pointerType === "touch") {
                 clearPreview();
-                highlight(null);
+                highlight();
             }
             return;
         }
@@ -1445,16 +1520,29 @@ $("body").on(
         const c = scene();
         const screen = c.pointerPosition(event);
         const hits = pick(c, screen, previewed());
+        const client: Vec2 = [event.clientX, event.clientY];
         if (propertiesOpen) {
-            properties.select(propertyObject(event, hits));
-            return;
+            // A widget, or an object the figure can't pick, as an angle.
+            const object = propertyObject(event);
+            if (!hits.some((hit) => hit.object === object) && object)
+                return properties.select(object);
+            if (!hits[0]) return properties.select(null);
+            return chooseHit(hits, client, (hit) =>
+                properties.select(hit.object),
+            );
         }
         if (ghosts) {
             if (!hits[0]) return;
-            toggleGhost(ghosts, hits[0].object);
-            return changed();
+            const erasing = ghosts;
+            return chooseHit(hits, client, ({ object }) => {
+                toggleGhost(erasing, object);
+                changed();
+            });
         }
-        if (hits[0]) return openRing(hits[0], [event.clientX, event.clientY]);
+        const cross = crossing(c, screen, hits);
+        if (cross) return done(addCrossing(cross));
+        if (hits[0])
+            return chooseHit(hits, client, (hit) => openRing(hit, client));
         const field = typing;
         const point = addFreePoint(screen);
         if (!point) return;
@@ -1484,7 +1572,8 @@ $("body").on(
             event.preventDefault();
             travel(1);
         } else if (event.key === "Escape") {
-            if (propertiesOpen) setProperties(false);
+            if (!menu.isHidden()) closeMenu();
+            else if (propertiesOpen) setProperties(false);
             else if (ghosts) setEraser(false);
             else cancel();
         }

@@ -375,6 +375,25 @@ Fait (2026-10-11) :
   le rayon gagne une place (environ 6 px). Vérifié dans `editor.html`.
   Éditeur : 58,4 Ko, CSS inclus (21,3 Ko en gzip) ; lecteur inchangé.
 
+- Ambiguïté (2026-10-12) : quand plusieurs objets acceptés sont sous le
+  clic (objets superposés, comme une droite et deux de ses segments), un
+  menu près du clic donne la ligne de chacun ; son survol fait briller
+  l'objet, un clic le choisit et le geste continue (anneau, argument d'un
+  outil, point sur objet, ligne tapée, gomme, propriétés). Un point sous le
+  clic est choisi seul, et l'intersection de deux objets qui se coupent est
+  toujours créée directement. Échap ou un appui ailleurs ferment le menu
+  sans rien faire. Éditeur : 59,8 Ko, CSS inclus (21,9 Ko en gzip) ;
+  lecteur inchangé.
+
+- Intersection au survol (2026-10-12) : partout où un clic désignerait un
+  point (sans outil, argument point d'un outil, ligne tapée), le pointeur
+  près de l'intersection de deux objets (à moins de 24 px, sans point sous
+  lui) fait briller ces deux objets, ceux dont l'intersection la plus
+  proche l'est le plus parmi les objets sous lui ; un clic, sans outil,
+  crée alors l'intersection sans ouvrir d'anneau. Les intersections des
+  paires survolées sont gardées tant que la figure ne change pas.
+  Éditeur : 60,5 Ko, CSS inclus (22,1 Ko en gzip) ; lecteur inchangé.
+
 Reste à faire :
 
 - Jeux d'outils de l'enseignant (section « Anneau d'outils »).

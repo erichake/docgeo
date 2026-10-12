@@ -1,6 +1,7 @@
 import type { construction } from "../construction";
 import { figureObjects } from "../dgo";
 import type { construction_object } from "../objects/construction_object";
+import { createOrderedIntersection } from "../objects/intersection_object";
 import { curve_object } from "../objects/curve_object";
 import { list_object } from "../objects/list_object";
 import { locus_object } from "../objects/locus_object";
@@ -14,6 +15,7 @@ import { segment_object } from "../objects/segment_object";
 import { sphere_object } from "../objects/sphere_object";
 import { two_points_line_object } from "../objects/two_points_line_object";
 import { projectPointOnLine, projectPointOnPlane } from "../projection";
+import { accepts } from "./catalog";
 import { vAdd, vIsFinite, vSub, type Vec2, type Vec3 } from "../vec";
 
 // The objects under the pointer: see EDITOR.md.
@@ -139,4 +141,91 @@ export function pick(
         hits.push({ object, distance, at, rank: rank + distance });
     });
     return hits.sort((a, b) => a.rank - b.rank);
+}
+
+// What a click on these hits may mean: the point under it, or else each of
+// them, for the user to choose.
+export const meant = (hits: Hit[]): Hit[] =>
+    hits[0]?.object instanceof point_object ? [hits[0]] : hits;
+
+// The branches of the intersections of pairs of objects, kept until the
+// figure changes: the hover asks for them at each move.
+let branchMemo: {
+    a: construction_object;
+    b: construction_object;
+    points: (Vec3 | null)[];
+}[] = [];
+
+export function forgetBranches(): void {
+    branchMemo = [];
+}
+
+function branches(
+    c: construction,
+    a: construction_object,
+    b: construction_object,
+): (Vec3 | null)[] {
+    const known = branchMemo.find((memo) => memo.a === a && memo.b === b);
+    if (known) return known.points;
+    const points = ([0, 1, 2, 3] as const).map((order) => {
+        const point = createOrderedIntersection(
+            c,
+            "‧i",
+            a as never,
+            b as never,
+            order,
+        );
+        const coords =
+            point.defined && point.projectionDefined ? point.coords : null;
+        c.removeObject(point);
+        return coords;
+    });
+    branchMemo.push({ a, b, points });
+    return points;
+}
+
+// The branch of their intersection nearest to `screen`, if near enough.
+export function nearestBranch(
+    c: construction,
+    a: construction_object,
+    b: construction_object,
+    screen: Vec2,
+): { order: number; distance: number } | null {
+    let best: { order: number; distance: number } | null = null;
+    branches(c, a, b).forEach((point, order) => {
+        if (!point) return;
+        const distance = screenDistance(c.pt3D(point), screen);
+        if (distance <= 2 * PICK_RADIUS && (!best || distance < best.distance))
+            best = { order, distance };
+    });
+    return best;
+}
+
+export interface Crossing {
+    a: construction_object;
+    b: construction_object;
+    order: number;
+    distance: number;
+}
+
+// The intersection of two of these objects nearest to `screen`, where a
+// point designated there is made, unless a point is under it.
+export function crossing(
+    c: construction,
+    screen: Vec2,
+    hits: Hit[],
+): Crossing | null {
+    if (hits[0]?.object instanceof point_object) return null;
+    const curves = hits
+        .map(({ object }) => object)
+        .filter((object) => accepts(object, "intersectable"));
+    let best: Crossing | null = null;
+    curves.forEach((a, index) =>
+        curves.slice(index + 1).forEach((b) => {
+            const branch = nearestBranch(c, a, b, screen);
+            if (branch && (!best || branch.distance < best.distance))
+                best = { a, b, ...branch };
+        }),
+    );
+    return best;
 }
