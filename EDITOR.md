@@ -219,6 +219,38 @@ est retiré de la navigation au clavier dès le début du mouvement.
 Sur les écrans de 600 px ou moins, le panneau
 démarre fermé ; la barre reste sur une seule ligne à 320 px.
 
+## Panneau de propriétés
+
+Le bouton « Propriétés » de la barre ouvre un panneau à droite. Un clic
+dans la figure, sur une ligne de construction, ou un choix dans la liste du
+panneau sélectionne l'objet. La liste permet de retrouver aussi les objets
+cachés ; les objets super-cachés en sont exclus. Dans ce mode, un clic vide
+ne crée pas de point et les boutons, cases à cocher et champs de la figure
+se désignent sans s'actionner. Les points et les curseurs restent déplaçables.
+
+Les contrôles sont adaptés à l'objet : nom, couleurs, taille, opacités,
+pointillés, calque, visibilité, nom affiché et décimales ; forme, position du
+nom, trace et pas des points ; codage des segments ; rayon et marque des
+angles droits ; échantillonnage des lieux ; segments des listes ; apparence
+des curseurs et animation des points sur objet et des curseurs. Les styles
+peuvent s'appliquer aux objets de la même classe. Les modifications sont
+immédiates, enregistrées dans les styles `.dgo` existants et annulables ;
+une saisie numérique ne produit qu'une étape d'historique à sa validation.
+Les champs numériques se règlent aussi en cliquant-glissant horizontalement
+à la souris : gauche pour diminuer, droite pour augmenter, Maj pour ralentir
+d'un facteur dix. Le pas et les bornes sont respectés ; un glissement ne
+produit qu'une étape d'historique au relâchement. Un clic simple sélectionne
+le nombre pour la saisie ; tant que le champ est en saisie, les gestes natifs
+de sélection du texte restent disponibles. Le tactile garde la saisie native
+et le défilement du panneau.
+Le renommage reconstruit la figure à partir de son `.dgo`, en conservant
+les références des dépendants, y compris les formules.
+
+Le panneau se ferme par sa croix, son bouton ou Échap. Sous 900 px, les deux
+panneaux s'ouvrent alternativement ; sous 600 px, les propriétés recouvrent
+la figure. La barre tient toujours sur une ligne à 320 px. Tout le code
+et les styles CSS du panneau restent dans `src/editor/`.
+
 ## Lien avec le lecteur
 
 Un lien « modifier cette figure » pourrait ouvrir la figure du lecteur dans
@@ -319,13 +351,26 @@ Fait (2026-10-11) :
   vérifiée aussi lors d'une inversion du mouvement et avec les préférences
   de réduction des animations.
 
+- Panneau de propriétés (section « Panneau de propriétés »), avec tests de
+  rendu, sauvegarde, sélection des objets cachés, application aux objets du
+  même type, trace et animation. Vérifiés aussi dans `editor.html` :
+  désignation, clavier, renommage et dépendants, annuler / refaire,
+  disposition ordinateur et mobile. Éditeur : 56,0 Ko, CSS inclus (20,5 Ko
+  en gzip) ; lecteur : +27 octets (+42 en gzip) par rapport à l'étape
+  précédente, sans changement du moteur.
+
+- Champs numériques réglables par cliquer-glisser (section « Panneau de
+  propriétés ») : effet immédiat, Maj pour le réglage fin, bornes et pas
+  respectés, saisie clavier et tactile conservée, une seule annulation par
+  glissement. Vérifiés avec de vrais gestes de souris et dans `editor.html`.
+  Éditeur : 58,0 Ko, CSS inclus (21,2 Ko en gzip) ; lecteur inchangé.
+
 Reste à faire :
 
 - Jeux d'outils de l'enseignant (section « Anneau d'outils »).
 
 - Expressions et curseurs (`a = 3`, `Curseur(0, 10)`), rayons et angles en
   formule (`Cercle(O, 2*a)`), en réutilisant `dgp_formula.ts`.
-- Panneau de propriétés (couleur, taille, nom affiché, visibilité).
 - Points sur objet et intersections au geste sur les lieux et listes ;
   choix explicite de l'intersection quand le geste est ambigu.
 - 3D : points libres dans le plan de l'écran des figures DGPad (`f2`) et

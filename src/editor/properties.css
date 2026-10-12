@@ -1,0 +1,162 @@
+.dge-editor {
+    --dge-properties-size: min(300px, calc(100vw - 80px));
+    --dge-properties-width: 0px;
+    width: calc(100% - var(--dge-panel-width) - var(--dge-properties-width));
+}
+.dge-editor.dge-properties-open {
+    --dge-properties-width: var(--dge-properties-size);
+    width: calc(100% - var(--dge-panel-width) - var(--dge-properties-width));
+}
+.dge-properties {
+    position: fixed;
+    inset-block: var(--dge-bar-height) 0;
+    right: 0;
+    width: var(--dge-properties-size);
+    box-sizing: border-box;
+    overflow: auto;
+    background: #fff;
+    border-left: 1px solid #e5e7eb;
+    z-index: 10;
+    font:
+        14px/1.4 system-ui,
+        -apple-system,
+        "Segoe UI",
+        sans-serif;
+    color: #1f2937;
+    touch-action: pan-y;
+    transform: translateX(100%);
+    visibility: hidden;
+    transition:
+        transform var(--dge-slide),
+        visibility 0s var(--dge-slide-duration);
+}
+.dge-properties-open .dge-properties {
+    transform: translateX(0);
+    visibility: visible;
+    transition-delay: 0s;
+}
+.dge-property-picker {
+    padding: 12px 16px 0;
+}
+.dge-property-picker select {
+    width: 100%;
+}
+.dge-property-section {
+    padding: 12px 16px;
+    border-bottom: 1px solid #e5e7eb;
+}
+.dge-property-section h3 {
+    margin: 0 0 12px;
+    font-size: 12px;
+    font-weight: 600;
+    color: #64748b;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+.dge-property-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    margin-top: 10px;
+    font-size: 13px;
+}
+.dge-properties input,
+.dge-properties select {
+    box-sizing: border-box;
+    min-width: 0;
+    max-width: 100%;
+    padding: 5px 7px;
+    border: 1px solid #cbd5e1;
+    border-radius: 6px;
+    background: #fff;
+    color: inherit;
+    font: inherit;
+    touch-action: auto;
+}
+.dge-property-row input[type="number"] {
+    width: 76px;
+    flex-shrink: 0;
+}
+.dge-properties .dge-scrubbable {
+    appearance: textfield;
+    cursor: ew-resize;
+}
+.dge-scrubbable::-webkit-inner-spin-button,
+.dge-scrubbable::-webkit-outer-spin-button {
+    appearance: none;
+    margin: 0;
+}
+.dge-properties .dge-scrubbable:focus {
+    cursor: text;
+}
+.dge-properties .dge-scrubbable.dge-scrubbing {
+    user-select: none;
+    border-color: #2563eb;
+    background: #eff6ff;
+}
+.dge-property-row input[type="text"] {
+    width: 160px;
+}
+.dge-property-row input[type="color"] {
+    width: 48px;
+    height: 30px;
+    padding: 2px;
+    flex-shrink: 0;
+    cursor: pointer;
+}
+.dge-property-row input[type="checkbox"] {
+    margin: 0;
+    accent-color: #2563eb;
+    flex-shrink: 0;
+}
+.dge-property-row select {
+    max-width: 140px;
+}
+.dge-properties input:focus-visible,
+.dge-properties select:focus-visible {
+    outline: 2px solid #2563eb;
+    outline-offset: 2px;
+}
+.dge-property-help {
+    margin: 12px 16px;
+    color: #64748b;
+    font-size: 13px;
+}
+.dge-property-section .dge-property-help {
+    margin: 10px 0 0;
+}
+.dge-editor.dge-properties-open .dge-hint {
+    left: calc(
+        50% + (var(--dge-panel-width) - var(--dge-properties-width)) / 2
+    );
+    max-width: calc(
+        100% - var(--dge-panel-width) - var(--dge-properties-width) - 32px
+    );
+}
+svg .dge-property-selected {
+    filter: drop-shadow(0 0 2px #2563eb) drop-shadow(0 0 3px #2563eb);
+}
+.dge-editor .dge-bar .dge-action.dge-on {
+    --dge-icon-bg: #e0ebff;
+}
+@media (max-width: 400px) {
+    .dge-editor .dge-bar {
+        gap: 4px;
+        padding-inline: 4px;
+    }
+    .dge-editor .dge-bar-group {
+        gap: 0;
+    }
+    .dge-editor .dge-bar-group + .dge-bar-group {
+        padding-inline-start: 4px;
+    }
+    .dge-editor .dge-bar .dge-action {
+        width: 36px;
+    }
+}
+@media (max-width: 600px) {
+    .dge-editor.dge-properties-open {
+        --dge-properties-width: 0px;
+    }
+}

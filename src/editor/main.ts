@@ -14,6 +14,8 @@ import { importGgbFromBlob, importGgbFromUrl } from "../ggb_importer";
 import type { construction_object } from "../objects/construction_object";
 import { createOrderedIntersection } from "../objects/intersection_object";
 import { point_object } from "../objects/point_object";
+import { button_object } from "../objects/button_object";
+import { expression_object } from "../objects/expression_object";
 import { polygon_object } from "../objects/polygon_object";
 import { sphere_object } from "../objects/sphere_object";
 import { preferences } from "../preferences";
@@ -60,6 +62,8 @@ import {
     type ArgumentCompletion,
 } from "./text";
 import { RING_SLOTS, toolsFor, type Tool } from "./tools";
+import { propertiesPanel } from "./properties";
+import "./properties.css";
 
 // The construction editor: see EDITOR.md.
 
@@ -179,6 +183,28 @@ const historyButton = button("history", () =>
     .att("aria-controls", "dge-history")
     .att("aria-expanded", "true")
     .addClass("dge-on");
+const propertiesButton = button("properties", () =>
+    setProperties(!propertiesOpen),
+)
+    .att("aria-controls", "dge-properties")
+    .att("aria-expanded", "false");
+const properties = propertiesPanel({
+    scene,
+    changed: () => changed(),
+    rename: async (object, name) => {
+        const figure = await describeDgo(scene());
+        const index = figureObjects(scene()).indexOf(object);
+        (figure.o[index] as unknown[])[1] = name;
+        rebuild(studio, figure);
+        properties.select(scene().getObj(name)!);
+        changed();
+    },
+    close: () => {
+        setProperties(false);
+        (propertiesButton.dom() as HTMLButtonElement).focus();
+    },
+});
+properties.panel.dom().toggleAttribute("inert", true);
 const fileInput = $.create("input")
     .att("type", "file")
     .att("accept", ".dgo,.dgp,.ggb");
@@ -211,13 +237,15 @@ $("body").add(
             $.create("div").cls("dge-bar-group").add(undoButton, redoButton),
             $.create("div")
                 .cls("dge-bar-group")
-                .add(eraserButton, axesButton, historyButton),
+                .add(eraserButton, axesButton, propertiesButton, historyButton),
         ),
+    properties.panel,
     hint,
     ring,
     complete,
 );
 function setPanel(on: boolean, animate = true): void {
+    if (on && propertiesOpen && window.innerWidth <= 900) setProperties(false);
     if (!on) {
         editing()?.blur();
         closeCompletion();
@@ -231,6 +259,27 @@ function setPanel(on: boolean, animate = true): void {
         .toggleClass("dge-panel-animated", animate)
         .toggleClass("dge-panel-closed", !on);
     historyButton.toggleClass("dge-on", on).att("aria-expanded", String(on));
+}
+function setProperties(on: boolean): void {
+    if (on) {
+        setEraser(false);
+        cancel();
+        editing()?.blur();
+        closeCompletion();
+        showAccepted([]);
+        highlight(null);
+        if (window.innerWidth <= 900) setPanel(false);
+        properties.refresh();
+        properties.select(properties.selected);
+    }
+    propertiesOpen = on;
+    properties.panel.dom().toggleAttribute("inert", !on);
+    $("body")
+        .addClass("dge-panel-animated")
+        .toggleClass("dge-properties-open", on);
+    propertiesButton.toggleClass("dge-on", on).att("aria-expanded", String(on));
+    properties.selected?.dom?.toggleClass("dge-property-selected", on);
+    showHint("");
 }
 // Typing doesn't reach the figure's own keys (3D view, floor), shortcuts
 // do.
@@ -269,6 +318,7 @@ let selected = -1;
 let figureName = "figure";
 // While erasing: the objects hidden, shown pale.
 let ghosts: Set<construction_object> | null = null;
+let propertiesOpen = false;
 
 const element = (node: EventTarget | null) =>
     node instanceof Element ? node : null;
@@ -285,6 +335,36 @@ const previewed = () => new Set(preview?.objects ?? []);
 const looksHidden = (object: construction_object) =>
     object.isHidden || !!ghosts?.has(object);
 
+function propertyObject(
+    event: PointerEvent,
+    hits: Hit[] = [],
+): construction_object | null {
+    const target = element(event.target);
+    const objects = figureObjects(scene()).filter(
+        (object) => object.isVisible && object.hasView,
+    );
+    const direct = objects.find(
+        (object) => target && object.dom.dom().contains(target),
+    );
+    if (direct) return direct;
+    const widget = objects.find((object) => {
+        if (
+            !["expression", "text", "button", "image", "panel"].includes(
+                object.type,
+            )
+        )
+            return false;
+        const box = object.dom.dom().getBoundingClientRect();
+        return (
+            event.clientX >= box.left &&
+            event.clientX <= box.right &&
+            event.clientY >= box.top &&
+            event.clientY <= box.bottom
+        );
+    });
+    return widget ?? hits[0]?.object ?? null;
+}
+
 function showHint(text: string, error = false): void {
     hint.text(text).toggleClass("dge-error", error);
     if (pending) hint.add(cancelButton);
@@ -293,6 +373,11 @@ function showHint(text: string, error = false): void {
 // ************************** TEXT ********************************
 
 function refreshRows(): void {
+    properties.refresh();
+    properties.selected?.dom?.toggleClass(
+        "dge-property-selected",
+        propertiesOpen,
+    );
     rows.clear();
     rowsBox.inner("");
     const c = scene();
@@ -311,6 +396,15 @@ function refreshRows(): void {
         if (line === null)
             row.att("readonly", "").att("title", message("read_only"));
         else bindRow(row, object);
+        row.on(
+            "pointerdown",
+            (event) => {
+                if (!propertiesOpen) return;
+                event.preventDefault();
+                properties.select(object);
+            },
+            false,
+        );
         row.on("mouseenter", () => highlight(object), false);
         row.on("mouseleave", () => highlight(null), false);
         rows.set(object, row);
@@ -340,6 +434,14 @@ function bindRow(row: DOMElement, object: construction_object | null): void {
     row.on(
         "focus",
         () => {
+            if (propertiesOpen) {
+                if (object) {
+                    properties.select(object);
+                    field.blur();
+                    return;
+                }
+                setProperties(false);
+            }
             setEraser(false);
             original = field.value;
             updateCompletion(field);
@@ -1114,6 +1216,7 @@ function updatePreview(screen: Vec2, hits: Hit[]): void {
 
 // A tap hides or shows the object under it, and nothing is built.
 function setEraser(on: boolean): void {
+    if (on && propertiesOpen) setProperties(false);
     if (on === !!ghosts) return;
     cancel();
     if (ghosts) hideGhosts(ghosts);
@@ -1214,6 +1317,20 @@ $("body").on(
         down = { x: event.clientX, y: event.clientY, time: performance.now() };
         const c = scene();
         const screen = c.pointerPosition(event);
+        if (propertiesOpen) {
+            const object = propertyObject(event);
+            if (
+                object instanceof button_object ||
+                (object instanceof expression_object &&
+                    (object.checkbox || object.inputLength > 0))
+            ) {
+                down = null;
+                event.preventDefault();
+                event.stopPropagation();
+                properties.select(object);
+            }
+            return;
+        }
         const field = editing();
         typing = null;
         if (field) {
@@ -1319,6 +1436,10 @@ $("body").on(
         const c = scene();
         const screen = c.pointerPosition(event);
         const hits = pick(c, screen, previewed());
+        if (propertiesOpen) {
+            properties.select(propertyObject(event, hits));
+            return;
+        }
         if (ghosts) {
             if (!hits[0]) return;
             toggleGhost(ghosts, hits[0].object);
@@ -1341,7 +1462,12 @@ $("body").on(
         if (command && event.key.toLowerCase() === "s") {
             event.preventDefault();
             void save();
-        } else if (editing()) return;
+        } else if (
+            editing() ||
+            (properties.panel.dom().contains(element(event.target)) &&
+                event.key !== "Escape")
+        )
+            return;
         else if (command && event.key.toLowerCase() === "z") {
             event.preventDefault();
             travel(event.shiftKey ? 1 : -1);
@@ -1349,7 +1475,8 @@ $("body").on(
             event.preventDefault();
             travel(1);
         } else if (event.key === "Escape") {
-            if (ghosts) setEraser(false);
+            if (propertiesOpen) setProperties(false);
+            else if (ghosts) setEraser(false);
             else cancel();
         }
     },
@@ -1409,6 +1536,7 @@ async function open(
 ): Promise<void> {
     setEraser(false);
     cancel();
+    properties.select(null);
     studio.scene.dispose();
     studio.scene = construction.create(studio);
     const unsupported = await load(studio.scene);
@@ -1451,6 +1579,14 @@ fileInput.on(
 );
 
 bindRow(input, null);
+$("body").observeResize(() => {
+    if (
+        propertiesOpen &&
+        window.innerWidth <= 900 &&
+        historyButton.getAtt("aria-expanded") === "true"
+    )
+        setPanel(false);
+});
 if (window.matchMedia("(max-width: 600px)").matches) setPanel(false, false);
 
 const url = new URLSearchParams(window.location.search).get("url");
