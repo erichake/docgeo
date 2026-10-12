@@ -413,6 +413,15 @@ est retiré de la navigation au clavier dès le début du mouvement.
 Sur les écrans de 600 px ou moins, le panneau
 démarre fermé ; la barre reste sur une seule ligne à 320 px.
 
+Les deux panneaux latéraux (construction et propriétés) se redimensionnent
+en tirant leur bord intérieur (`src/editor/resize.ts`), qui s'éclaire en
+bleu au survol ; un double-clic sur ce bord rend la largeur par défaut. La
+largeur reste bornée par celle de la fenêtre (180 px au moins) et la figure
+suit sans animation pendant le geste. Le panneau de propriétés garde deux
+largeurs : l'ordinaire et la large (programme ou formule d'une expression,
+480 px par défaut), réglables chacune ; la figure se décale aussi pour la
+largeur large. Les largeurs ne sont pas mémorisées d'une session à l'autre.
+
 ## Panneau de propriétés
 
 Le bouton « Propriétés » de la barre ouvre un panneau à droite. Un clic

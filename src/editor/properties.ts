@@ -94,7 +94,7 @@ export function propertiesPanel(options: {
         selected?.dom?.addClass("dge-property-selected");
         fields.splice(0).forEach((field) => field.dispose());
         content.inner("");
-        panel.toggleClass("dge-properties-wide", wide);
+        $("body").toggleClass("dge-properties-wide", wide);
         refreshPicker();
     }
 

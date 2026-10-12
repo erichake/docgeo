@@ -1,5 +1,8 @@
 .dge-editor {
-    --dge-properties-size: min(300px, calc(100vw - 80px));
+    --dge-properties-size: min(
+        var(--dge-properties-user, 300px),
+        calc(100vw - 80px)
+    );
     --dge-properties-width: 0px;
     width: calc(100% - var(--dge-panel-width) - var(--dge-properties-width));
 }
@@ -163,8 +166,17 @@ svg .dge-property-selected {
         --dge-properties-width: 0px;
     }
 }
-.dge-properties.dge-properties-wide {
-    width: min(480px, calc(100vw - 80px));
+.dge-editor.dge-properties-wide {
+    --dge-properties-size: min(
+        var(--dge-properties-wide-user, 480px),
+        calc(100vw - 80px)
+    );
+}
+.dge-properties + .dge-resize {
+    right: var(--dge-properties-size);
+}
+.dge-editor:not(.dge-properties-open) .dge-properties + .dge-resize {
+    display: none;
 }
 .dge-properties textarea.dge-program {
     display: block;

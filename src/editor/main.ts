@@ -79,6 +79,7 @@ import {
 import { labelAt, labelCenter, placeLabel } from "./labels";
 import { RING_SLOTS, toolsFor, type Tool } from "./tools";
 import { propertiesPanel } from "./properties";
+import { resizeHandle } from "./resize";
 import {
     attracts,
     dropLostMagnets,
@@ -118,7 +119,7 @@ $("body")
     .stl("position:relative;overflow:hidden;touch-action:none")
     .att("oncontextmenu", "return false;");
 $("head").append(`<style>
-    .dge-editor { --dge-panel-size: min(${PANEL_WIDTH}px, calc(100vw - 56px)); --dge-panel-width: var(--dge-panel-size); --dge-bar-height: 60px; --dge-slide-duration: 0s; --dge-slide: var(--dge-slide-duration) cubic-bezier(0.22, 1, 0.36, 1); margin: 0; margin-inline-start: var(--dge-panel-width); margin-block-start: var(--dge-bar-height); width: calc(100% - var(--dge-panel-width)); height: calc(100% - var(--dge-bar-height)); transition: margin-inline-start var(--dge-slide), width var(--dge-slide); }
+    .dge-editor { --dge-panel-size: min(var(--dge-panel-user, ${PANEL_WIDTH}px), calc(100vw - 56px)); --dge-panel-width: var(--dge-panel-size); --dge-bar-height: 60px; --dge-slide-duration: 0s; --dge-slide: var(--dge-slide-duration) cubic-bezier(0.22, 1, 0.36, 1); margin: 0; margin-inline-start: var(--dge-panel-width); margin-block-start: var(--dge-bar-height); width: calc(100% - var(--dge-panel-width)); height: calc(100% - var(--dge-bar-height)); transition: margin-inline-start var(--dge-slide), width var(--dge-slide); }
     .dge-editor.dge-panel-animated { --dge-slide-duration: 240ms; }
     .dge-editor.dge-panel-closed { --dge-panel-width: 0px; }
     .dge-panel-closed .dge-panel { transform: translateX(-100%); visibility: hidden; transition-delay: 0s, var(--dge-slide-duration); }
@@ -126,6 +127,12 @@ $("head").append(`<style>
     .dge-panel { position: fixed; inset-block: var(--dge-bar-height) 0; inset-inline-start: 0; width: var(--dge-panel-size); box-sizing: border-box; padding-block-end: 12px; overflow: auto; background: #fff; border-inline-end: 1px solid #e5e7eb; z-index: 10; touch-action: pan-y; transform: translateX(0); transition: transform var(--dge-slide), visibility 0s; }
     .dge-panel-header { position: sticky; top: 0; display: flex; align-items: center; justify-content: space-between; padding: 8px 12px 8px 16px; background: #fff; border-block-end: 1px solid #e5e7eb; z-index: 1; }
     .dge-panel-header h2 { flex: 1; margin: 0; font-size: 14px; font-weight: 600; }
+    .dge-resize { position: fixed; inset-block: var(--dge-bar-height) 0; width: 9px; margin-inline: -4px; z-index: 11; cursor: col-resize; touch-action: none; }
+    .dge-resize::after { content: ""; position: absolute; inset-block: 0; left: 3px; width: 3px; transition: background 0.15s; }
+    .dge-resize:hover::after, .dge-resize.dge-on::after { background: #2563eb; transition-delay: 0.1s; }
+    .dge-panel + .dge-resize { left: var(--dge-panel-size); }
+    .dge-panel-closed .dge-panel + .dge-resize { display: none; }
+    .dge-editor.dge-resizing { --dge-slide-duration: 0s; cursor: col-resize; user-select: none; }
     .dge-row { display: block; width: 100%; box-sizing: border-box; padding: 5px 14px; border: 0; border-block-end: 1px solid #f1f5f9; background: none; font: 13.5px/1.5 ui-monospace, Menlo, Consolas, monospace; color: inherit; outline: none; }
     .dge-row:focus { background: #eff6ff; box-shadow: inset 3px 0 #2563eb; }
     .dge-row.dge-hover { background: #fef3c7; }
@@ -437,6 +444,7 @@ $("body").add(
         rowsBox,
         input,
     ),
+    resizeHandle(panel, "left", () => "--dge-panel-user"),
     $.create("nav")
         .cls("dge-bar")
         .att("aria-label", message("actions"))
@@ -458,6 +466,11 @@ $("body").add(
                 .add(undoButton, redoButton),
         ),
     properties.panel,
+    resizeHandle(properties.panel, "right", () =>
+        document.body.classList.contains("dge-properties-wide")
+            ? "--dge-properties-wide-user"
+            : "--dge-properties-user",
+    ),
     hint,
     ring,
     complete,
