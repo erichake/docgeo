@@ -971,9 +971,9 @@ const BUILDERS: Record<string, Builder> = {
     Fp: (parameters, { c, name, at, formula, vec3 }) => {
         const [value, ...handles] = list(parameters, 1, 3);
         const { source, refs } = formula(value, construction_object);
-        const node = parseFormula(source);
-        checkNames(formulaIdentifiers(node), refs);
-        const point = createFormulaPoint(c, name, node, refs, vec3);
+        const program = parseProgram(source);
+        checkNames(programReferences(program), refs);
+        const point = createFormulaPoint(c, name, program, refs, vec3);
         if (handles.length) {
             check(handles.length === 2);
             point.setHandles(

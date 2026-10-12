@@ -11,7 +11,7 @@ import {
 import { createCircle3 } from "../../src/objects/circle3_object";
 import { createCircle3pts } from "../../src/objects/circle3pts_object";
 import { createCircle } from "../../src/objects/circle_object";
-import { parseFormula } from "../../src/import/dgp_formula";
+import { parseFormula, parseProgram } from "../../src/import/dgp_formula";
 import { createFixedAngle } from "../../src/objects/fixed_angle_object";
 import { createExpression } from "../../src/objects/expression_object";
 import { createFormulaPoint } from "../../src/objects/formula_point_object";
@@ -458,7 +458,7 @@ describe("DGPad geometric constructors", () => {
         const formulaPoint = createFormulaPoint(
             c,
             "P",
-            parseFormula("A+5-i"),
+            parseProgram("A+5-i"),
             new Map([["A", a]]),
         );
         const circle = createCircle1(c, "C", a, {

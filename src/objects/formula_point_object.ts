@@ -1,10 +1,12 @@
 import type { construction } from "../construction";
 import {
-    evaluateFormula,
+    evaluateProgram,
     formulaSource,
+    formulaValue,
+    programNodes,
     usesCoords2D,
     usesView,
-    type FormulaNode,
+    type Program,
 } from "../import/dgp_formula";
 import {
     dgoFormula,
@@ -17,7 +19,9 @@ import { scriptCenter } from "./primitive_quadric_object";
 
 export class formula_point_object extends point_object {
     moveable = false;
-    formula: FormulaNode;
+    // A formula, or a script whose last statement gives the coordinates
+    // (e.g. "var u=A[0]-B[0];[u,0]").
+    formula: Program;
     refs: Map<string, construction_object>;
     // True in a 3D figure (DGPad's legacy SetCoords is3D flag): a
     // referenced point then resolves to its full 3D coordinates (e.g.
@@ -37,13 +41,14 @@ export class formula_point_object extends point_object {
     constructor(
         c: construction,
         name: string | null | undefined,
-        formula: FormulaNode,
+        formula: Program,
         refs: Map<string, construction_object>,
         vec3 = false,
     ) {
         super(c, name, [0, 0, 0]);
         this.formula = formula;
-        this.view = usesView(formula) || usesCoords2D(formula);
+        const nodes = programNodes(formula);
+        this.view = nodes.some(usesView) || nodes.some(usesCoords2D);
         this.readsView = this.view;
         this.refs = refs;
         this.vec3 = vec3;
@@ -51,23 +56,26 @@ export class formula_point_object extends point_object {
     }
 
     computeGeometry(): void {
-        const value = evaluateFormula(this.formula, {
-            resolveIdentifier: (n) => this.refs.get(n)!.scriptValue(this.vec3),
-            view: () => this.C.formulaView(),
-            coords2D: (n) => {
-                const ref = this.refs.get(n)!;
-                return ref instanceof point_object ? ref.coords2D() : null;
-            },
-            center: (n) => scriptCenter(this.refs.get(n)!, this.vec3),
-            callFunction: (name, args, derivatives) =>
-                callFunction(
-                    this.refs,
-                    name,
-                    args,
-                    this.C.formulaView(),
-                    derivatives,
-                ),
-        });
+        const value = formulaValue(
+            evaluateProgram(this.formula, {
+                resolveIdentifier: (n) =>
+                    this.refs.get(n)!.scriptValue(this.vec3),
+                view: () => this.C.formulaView(),
+                coords2D: (n) => {
+                    const ref = this.refs.get(n)!;
+                    return ref instanceof point_object ? ref.coords2D() : null;
+                },
+                center: (n) => scriptCenter(this.refs.get(n)!, this.vec3),
+                callFunction: (name, args, derivatives) =>
+                    callFunction(
+                        this.refs,
+                        name,
+                        args,
+                        this.C.formulaView(),
+                        derivatives,
+                    ),
+            }),
+        );
         if (value === null) {
             this.defined = false;
             return;
@@ -137,7 +145,7 @@ export class formula_point_object extends point_object {
 export function createFormulaPoint(
     c: construction,
     name: string | null | undefined,
-    formula: FormulaNode,
+    formula: Program,
     refs: Map<string, construction_object>,
     vec3 = false,
 ): formula_point_object {

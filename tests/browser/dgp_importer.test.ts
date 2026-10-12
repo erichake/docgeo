@@ -1125,6 +1125,23 @@ STL(P,"s:2");`;
         expect(circle.R).toBeCloseTo(Math.hypot(5, 1));
     });
 
+    it("imports a point computed by a script, and the scripts reading it", async () => {
+        const c = createConstruction();
+        expect(
+            await importDgpFromUrl(c, figure("F26_m_kCtr_7oct Gene Video.dgp")),
+        ).toEqual([]);
+        const [ph, qb, pho] = ["Ph", "Qb", "Pho"].map(
+            (name) => (c.getObj(name) as point_object).coords,
+        );
+        const [ux, uy] = [qb[1] - ph[1], ph[0] - qb[0]];
+        const lambda =
+            (-2 * (ph[0] * ux + 4 * ph[1] * uy)) / (ux * ux + 4 * uy * uy);
+        expectClose(pho, [ph[0] + lambda * ux, ph[1] + lambda * uy, 0]);
+        expect(
+            (c.getObj("E5claudePlanAuto") as expression_object).value,
+        ).toHaveLength(4);
+    });
+
     it("skips and reports a point formula referencing an unknown object", () => {
         const c = createConstruction();
         expect(

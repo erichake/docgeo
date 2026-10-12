@@ -543,6 +543,14 @@ describe("evaluateProgram", () => {
             ),
         ).toEqual([0, 1, 2, 5, 6, 7]);
         expect(run("var n=0;for(i=0;i<4;i++){n+=i};n+i")).toBe(10);
+        expect(
+            run("var t=[];for(var i=0,j=2;i<3;j=i++){t.push([j,i])};t"),
+        ).toEqual([
+            [2, 0],
+            [0, 1],
+            [1, 2],
+        ]);
+        expect(run("var k=3;var a=k--;[a,k]")).toEqual([3, 2]);
     });
 
     it("changes the items of its own lists, never another object's value", () => {
@@ -568,6 +576,16 @@ describe("evaluateProgram", () => {
             [3, 4],
         ]);
         expect(run("var a=[1,2];var b=a;b[0]=3;a")).toEqual([3, 2]);
+        expect(
+            run("var m=P;m[1].push(5);(m[0]).push(m[1].pop());m", env),
+        ).toEqual([
+            [1, 2, 5],
+            [3, 4],
+        ]);
+        expect(P).toEqual([
+            [1, 2],
+            [3, 4],
+        ]);
     });
 
     it("reads the length of lists and texts, and takes their last item", () => {

@@ -270,12 +270,13 @@ export type FormulaNode =
     | { kind: "turtle"; fn: TurtleFn; args: FormulaNode[] }
     // "P.coords2D()" (where point P is drawn, in the window's coordinate
     // system, which changes with the 3D view), "S1.setHidden(1)" or a
-    // script's own "tab.push(P)".
+    // script's own "tab.push(P)", or "tab[i].push(P)" on one of its items.
     | {
           kind: "method";
           object: string;
           method: ObjectMethod;
           args: FormulaNode[];
+          indices: FormulaNode[];
       }
     // A list literal, e.g. "[-1,-1,1]", a 3D point displacement.
     | { kind: "vector"; items: FormulaNode[] }
@@ -677,16 +678,9 @@ class FormulaParser {
             ? { kind: "binary", op, left: node, right }
             : right;
         if (node.kind === "identifier") return this.assign(node.name, value);
-        const indices: FormulaNode[] = [];
-        let target: FormulaNode = node;
-        while (target.kind === "index") {
-            indices.unshift(target.index);
-            target = target.target;
-        }
-        if (target.kind !== "identifier" || indices.length === 0)
-            throw new Error("Invalid DGP formula syntax");
-        this.declare(target.name);
-        return { kind: "assignItem", name: target.name, indices, value };
+        const { name, indices } = listItem(node);
+        this.declare(name);
+        return { kind: "assignItem", name, indices, value };
     }
 
     private assign(name: string, value: FormulaNode): FormulaNode {
@@ -799,19 +793,27 @@ class FormulaParser {
             return { kind: "unary", op, operand: this.unary() };
         }
         const node = this.power();
-        // "k++" in a loop: its value before the increment is never used.
+        // "k++", whose value is k's before the increment, as in
+        // "for(i=0,j=n-1;i<n;j=i++)": (k=k+1)-1.
         if (
             (this.current.type === "++" || this.current.type === "--") &&
             node.kind === "identifier"
         ) {
-            const op = this.current.type === "++" ? "+" : "-";
+            const [op, back] =
+                this.current.type === "++" ? ["+", "-"] : ["-", "+"];
             this.advance();
-            return this.assign(node.name, {
+            const one: FormulaNode = { kind: "number", value: 1 };
+            return {
                 kind: "binary",
-                op,
-                left: node,
-                right: { kind: "number", value: 1 },
-            });
+                op: back as BinaryOp,
+                left: this.assign(node.name, {
+                    kind: "binary",
+                    op: op as BinaryOp,
+                    left: node,
+                    right: one,
+                }),
+                right: one,
+            };
         }
         return node;
     }
@@ -828,6 +830,10 @@ class FormulaParser {
                     if (rest.length > 0)
                         throw new Error("Invalid DGP formula syntax");
                     base = { kind: "join", target: base, separator };
+                } else if (LIST_METHODS.has(name as ObjectMethod)) {
+                    const { name: list, indices } = listItem(base);
+                    this.take("(");
+                    base = methodNode(list, name, this.arguments(), indices);
                 } else throw new Error("Invalid DGP formula syntax");
                 continue;
             }
@@ -1078,17 +1084,30 @@ class FormulaParser {
     }
 }
 
+// "m[i][j]": an item of one of the script's own lists.
+function listItem(node: FormulaNode): { name: string; indices: FormulaNode[] } {
+    const indices: FormulaNode[] = [];
+    while (node.kind === "index") {
+        indices.unshift(node.index);
+        node = node.target;
+    }
+    if (node.kind !== "identifier" || indices.length === 0)
+        throw new Error("Invalid DGP formula syntax");
+    return { name: node.name, indices };
+}
+
 function methodNode(
     object: string,
     name: string,
     args: FormulaNode[],
+    indices: FormulaNode[] = [],
 ): FormulaNode {
     if (!(name in METHOD_ARITY)) throw new Error("Invalid DGP formula syntax");
     const method = name as ObjectMethod;
     const arity = METHOD_ARITY[method];
     if (arity >= 0 && args.length !== arity)
         throw new Error(`Invalid DGP method "${name}" arity`);
-    return { kind: "method", object, method, args };
+    return { kind: "method", object, method, args, indices };
 }
 
 // The text each parsed formula or program was read from, which a .dgo file
@@ -1136,7 +1155,9 @@ function children(node: FormulaNode): FormulaNode[] {
         case "vector":
             return node.items;
         case "method":
-            return SKIPPED_METHODS.has(node.method) ? [] : node.args;
+            return SKIPPED_METHODS.has(node.method)
+                ? []
+                : [...node.indices, ...node.args];
         case "call":
         case "userCall":
         case "derivative":
@@ -1405,7 +1426,7 @@ function complex(value: ScriptValue): Vec2 | null {
 }
 
 // A formula's own value: a number, or 2 or 3 finite coordinates.
-function formulaValue(value: ScriptValue | null): FormulaValue | null {
+export function formulaValue(value: ScriptValue | null): FormulaValue | null {
     if (typeof value === "number") return Number.isFinite(value) ? value : null;
     if (
         !Array.isArray(value) ||
@@ -1796,6 +1817,23 @@ function ownSlot(slot: number, frame: Frame): ScriptValue[] | null {
     return Array.isArray(list) ? (frame.slots[slot] = own(list, frame)) : null;
 }
 
+// The item at these indices of one of the script's own lists, made its own
+// as are the lists holding it.
+function ownItem(
+    slot: number,
+    indices: Code[],
+    frame: Frame,
+): ScriptValue[] | null {
+    let list = ownSlot(slot, frame);
+    for (const index of indices) {
+        const i = realPart(index(frame));
+        if (!list || i === null) return null;
+        const item = list[i];
+        list = Array.isArray(item) ? (list[i] = own(item, frame)) : null;
+    }
+    return list;
+}
+
 function truthy(value: ScriptValue | null): boolean {
     if (typeof value === "number") return value !== 0 && !Number.isNaN(value);
     return value !== null && value !== "";
@@ -2031,19 +2069,14 @@ function compileNode(node: FormulaNode, scope: Scope): Code {
         case "assignItem": {
             const slot = scope.slots.get(node.name)!;
             const indices = node.indices.map(compile);
+            const last = indices.pop()!;
             const value = compile(node.value);
             return (frame) => {
-                const path = indices.map((index) => realPart(index(frame)));
+                const list = ownItem(slot, indices, frame);
+                const index = realPart(last(frame));
                 const item = value(frame);
-                let list = ownSlot(slot, frame);
-                if (!list || path.includes(null) || item === null) return null;
-                const last = path.pop()!;
-                for (const index of path as number[]) {
-                    const next: ScriptValue = list[index];
-                    if (!Array.isArray(next)) return null;
-                    list = list[index] = own(next, frame);
-                }
-                list[last] = item;
+                if (!list || index === null || item === null) return null;
+                list[index] = item;
                 return item;
             };
         }
@@ -2243,9 +2276,10 @@ function compileMethod(
             return null;
         };
     const slot = scope.slots.get(object);
+    const indices = node.indices.map((index) => compileNode(index, scope));
     return (frame) => {
+        const list = slot === undefined ? null : ownItem(slot, indices, frame);
         const values = args.map((arg) => arg(frame));
-        const list = slot === undefined ? null : ownSlot(slot, frame);
         if (!list || values.includes(null)) return null;
         if (method === "pop") return list.pop() ?? null;
         list.push(...(values as ScriptValue[]));

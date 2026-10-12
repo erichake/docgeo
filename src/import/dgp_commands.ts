@@ -469,13 +469,21 @@ function applyViewRestrictions(
     });
 }
 
-function parsePointFormula(value: string, lineNumber: number): FormulaNode {
+function parsePointFormula(value: string, lineNumber: number): Program {
     try {
-        return parseFormula(value);
+        return parseProgram(value);
     } catch {
         throw new Error(
             `Unsupported DGP point expression at line ${lineNumber}`,
         );
+    }
+}
+
+function parseAngleFormula(value: string, lineNumber: number): FormulaNode {
+    try {
+        return parseFormula(value);
+    } catch {
+        throw new Error(`Invalid DGP fixed angle at line ${lineNumber}`);
     }
 }
 
@@ -1151,7 +1159,7 @@ function axis(direction: Vec3): CommandDefinition {
                         ? createFormulaPoint(
                               c,
                               pointName,
-                              parseFormula(`[${coords[0]},${coords[1]}]`),
+                              parseProgram(`[${coords[0]},${coords[1]}]`),
                               new Map(),
                               true,
                           )
@@ -1252,9 +1260,8 @@ const COMMANDS = new Map<string, CommandDefinition>([
                         );
                     return;
                 }
-                const pointFormula = parsePointFormula(source, lineNumber);
                 validateReferences(
-                    formulaIdentifiers(pointFormula),
+                    programReferences(parsePointFormula(source, lineNumber)),
                     variables,
                     lineNumber,
                 );
@@ -1282,9 +1289,9 @@ const COMMANDS = new Map<string, CommandDefinition>([
                             coords,
                         );
                     }
-                    const formula = parseFormula(source);
+                    const formula = parseProgram(source);
                     const refs = formulaRefs(
-                        formulaIdentifiers(formula),
+                        programReferences(formula),
                         context.variables,
                     );
                     return createFormulaPoint(
@@ -1514,7 +1521,7 @@ const COMMANDS = new Map<string, CommandDefinition>([
                 const source = literalString(args[3]);
                 if (STYLE_NUMBER.test(source)) return;
                 validateReferences(
-                    formulaIdentifiers(parsePointFormula(source, lineNumber)),
+                    formulaIdentifiers(parseAngleFormula(source, lineNumber)),
                     variables,
                     lineNumber,
                 );

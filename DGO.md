@@ -241,8 +241,10 @@ sa dérivée par rapport à l'une de ses variables, comme dans DGPad, par
 | `Html` | texte HTML dans un cadre de la fenêtre | `[[x, y, largeur, hauteur], rayon, texte]` (11) |
 | `Btn`  | bouton qui exécute un script           | objet (13)                                      |
 
-1. `n1`, `n2` : les nombres (expressions, ou `null`) que déplace un glisser
-   du point, pour chacune de ses coordonnées.
+1. La formule peut être un script, dont la dernière instruction donne les
+   coordonnées (`"var u=A[0]-B[0];[u,0]"`). `n1`, `n2` : les nombres
+   (expressions, ou `null`) que déplace un glisser du point, pour chacune de
+   ses coordonnées.
 2. Droite (AB), segment, demi-droite : `t` tel que M = A + t·AB. Autre
    droite, définie par un point P et une direction : distance signée à P, en
    unités, le long de son vecteur directeur. Cercle : angle. Polygone,
