@@ -21,6 +21,12 @@ export const ACTION_ICONS = {
     // Braces.
     new_program:
         '<path d="M9 4H8a2 2 0 0 0-2 2v4l-2 2 2 2v4a2 2 0 0 0 2 2h1M15 4h1a2 2 0 0 1 2 2v4l2 2-2 2v4a2 2 0 0 1-2 2h-1"/>',
+    // A point and its coordinates.
+    formula_point:
+        '<path d="M3 3v18h18"/><path d="M3 9h11v12" stroke-dasharray="2 2.5"/><circle cx="14" cy="9" r="2.4"/>',
+    // A calculator, DGPad's way to an expression.
+    as_expression:
+        '<rect x="5" y="3" width="14" height="18" rx="2"/><path d="M8.5 7h7M8.5 11h.01M12 11h.01M15.5 11h.01M8.5 14.5h.01M12 14.5h.01M15.5 14.5h.01M8.5 18h.01M12 18h.01M15.5 18h.01"/>',
     // Points, then the same joined.
     points_list:
         '<circle cx="5" cy="17" r="1.6"/><circle cx="10" cy="9" r="1.6"/><circle cx="14" cy="15" r="1.6"/><circle cx="19" cy="6" r="1.6"/>',

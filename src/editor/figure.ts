@@ -21,6 +21,7 @@ import {
 } from "../import/dgp_formula";
 import type { construction_object } from "../objects/construction_object";
 import { expression_object } from "../objects/expression_object";
+import type { formula_point_object } from "../objects/formula_point_object";
 import { point_on_object } from "../objects/point_on_object";
 import type { point_object } from "../objects/point_object";
 import { polygon_object } from "../objects/polygon_object";
@@ -38,6 +39,7 @@ import {
 import {
     formatName,
     formatNumber,
+    pointFormulaText,
     renameFormula,
     TextError,
     unknownMethod,
@@ -67,6 +69,7 @@ export const FREE_POINT: Overload = {
 const POINT_TAGS = new Set([
     "Pt",
     "Fix",
+    "Fp",
     "On",
     "Mid",
     "Sym",
@@ -80,8 +83,12 @@ export const isPointTag = (tag: string): boolean => POINT_TAGS.has(tag);
 const RESERVED = new Set(["e", "i", "k", "l", "o", "t", "x", "y", "z"]);
 
 // A point's name is a capital letter, any other object's a small one, then
-// numbered.
-export function nextName(c: construction, point: boolean): string {
+// numbered; not `taken`, about to be given.
+export function nextName(
+    c: construction,
+    point: boolean,
+    taken?: string,
+): string {
     const letters = [
         ...(point
             ? "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
@@ -90,7 +97,7 @@ export function nextName(c: construction, point: boolean): string {
     for (let number = 0; ; number++)
         for (const letter of letters) {
             const name = number ? `${letter}${number}` : letter;
-            if (!c.getObj(name)) return name;
+            if (!c.getObj(name) && name !== taken) return name;
         }
 }
 
@@ -120,25 +127,33 @@ const formatValue = (value: unknown): string =>
           ? `[${value.map(formatValue).join(", ")}]`
           : JSON.stringify(value);
 
-// Its value, or its formula written with the names of the objects it
-// reads.
+// A formula written with the names of the objects it reads.
+const renamed = (
+    source: string,
+    refs: ReadonlyMap<string, construction_object>,
+): string =>
+    renameFormula(source, (name) => {
+        const ref = refs.get(name);
+        return ref && formatName(ref.name);
+    });
+
+// Its value, or its formula.
 export function expressionSource({
     formula,
     program,
     value,
 }: expression_object): string {
     if (!formula && !program) return formatValue(value);
-    const [source, refs] = formula
-        ? [formula.source, formula.refs]
-        : [
+    return formula
+        ? renamed(formula.source, formula.refs)
+        : renamed(
               formulaSource(program!.program),
               new Map([...program!.refs, ...program!.targets]),
-          ];
-    return renameFormula(source, (name) => {
-        const ref = refs.get(name);
-        return ref && formatName(ref.name);
-    });
+          );
 }
+
+// On one line, the grammar reading no line break.
+const oneLine = (source: string): string => source.replace(/\s*\n\s*/g, " ");
 
 // Its line, null when no command writes it.
 export function lineOf(
@@ -155,14 +170,17 @@ export function lineOf(
             object.C.GRID.is2D || pinned ? (parameters as number[]) : coords;
         return `${name} = (${shown.map(formatNumber).join(", ")})`;
     }
+    if (tag === "Fp") {
+        const { formula, refs } = object as formula_point_object;
+        return `${name} = ${pointFormulaText(oneLine(renamed(formulaSource(formula), refs)))}`;
+    }
     const decoded = decodeEntry(tag, parameters, (at) => objects[at]);
     if (decoded)
         return `${name} = ${commandName(decoded.command)}(${decoded.args.map(formatArg).join(", ")})`;
     const { mn, mx } = parameters as Record<string, unknown>;
     // Not a slider whose bounds are formulas.
     if (tag !== "Ex" || (mn !== undefined && mx !== undefined)) return null;
-    // On one line, the grammar reading no line break.
-    return `${name} = ${expressionSource(object as expression_object).replace(/\s*\n\s*/g, " ")}`;
+    return `${name} = ${oneLine(expressionSource(object as expression_object))}`;
 }
 
 // What the line defines, `target` being the object it redefines.
@@ -177,6 +195,8 @@ export function resolve(
     if (definition!.kind === "point") args = definition!.coords;
     else if (definition!.kind === "formula")
         ({ overload, args } = expression(c, definition!.source, target));
+    else if (definition!.kind === "pointFormula")
+        ({ overload, args } = formulaPoint(c, definition!.source));
     else {
         const call = definition!;
         const command = findCommand(call.command);
@@ -312,20 +332,58 @@ function expression(
             [content.kind]:
                 content.kind === "v"
                     ? content.value
-                    : named.size
-                      ? [
-                            source,
-                            Object.fromEntries(
-                                [...named].map(([name, object]) => [
-                                    name,
-                                    index(object),
-                                ]),
-                            ),
-                        ]
-                      : source,
+                    : formulaParameter(source, named, index),
         }),
         [...named.values()],
     );
+}
+
+// A formula's .dgo parameter, the objects it names given by their index.
+const formulaParameter = (
+    source: string,
+    named: ReadonlyMap<string, construction_object>,
+    index: (object: construction_object) => number,
+): unknown =>
+    named.size
+        ? [
+              source,
+              Object.fromEntries(
+                  [...named].map(([name, object]) => [name, index(object)]),
+              ),
+          ]
+        : source;
+
+// A point computed by a formula: the coordinates, or a point, it gives.
+function formulaPoint(
+    c: construction,
+    source: string,
+): { overload: Overload; args: Arg[] } {
+    const own = new Map(
+        figureObjects(c).map((object) => [object.name, object]),
+    );
+    let references: Set<string>;
+    try {
+        references = programReferences(
+            withObjects(new Set(own.keys()), () => parseProgram(source)),
+        );
+    } catch {
+        throw new TextError("syntax", source);
+    }
+    const named = new Map(
+        [...references].map((name) => {
+            const object = own.get(name);
+            if (!object) throw new TextError("unknown_object", name);
+            return [name, object];
+        }),
+    );
+    return {
+        overload: {
+            params: [],
+            tag: "Fp",
+            encode: (_, index) => [formulaParameter(source, named, index)],
+        },
+        args: [...named.values()],
+    };
 }
 
 // An expression's entry, `own` giving its value's keys, `parents` the
@@ -358,11 +416,17 @@ function expressionSpec(
     };
 }
 
-// Points in DocGeo's own style, named; regions filled, expressions shown,
-// as by DGPad's tools.
+// Points in DocGeo's own style, named, those built from others in DGPad's
+// grey; regions filled, expressions shown, as by DGPad's tools.
 function createdStyle(tag: string): Record<string, unknown> | undefined {
     if (isPointTag(tag))
-        return { c: "#604820", fc: "#e4ceb9", o: 1, sn: 1, f: 26 };
+        return {
+            c: "#604820",
+            fc: tag === "Pt" || tag === "On" ? "#e4ceb9" : "#cccccc",
+            o: 1,
+            sn: 1,
+            f: 26,
+        };
     if (tag === "Poly" || tag === "Sph" || tag === "Sec") return { o: 0.2 };
     // Its value shown, as by DGPad's calculator.
     if (tag === "Ex") return { p: 2, f: 24 };

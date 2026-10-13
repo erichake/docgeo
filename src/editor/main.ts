@@ -49,6 +49,7 @@ import {
     rebuild,
     redefine,
     resolve,
+    type Spec,
     type Studio,
 } from "./figure";
 import {
@@ -73,8 +74,10 @@ import {
     completionAt,
     formatName,
     parseLine,
+    pointFormulaText,
     TextError,
     type ArgumentCompletion,
+    type Line,
 } from "./text";
 import { labelAt, labelCenter, placeLabel } from "./labels";
 import { RING_SLOTS, toolsFor, type Tool } from "./tools";
@@ -191,6 +194,9 @@ $("head").append(`<style>
     .dge-complete div, .dge-menu div { padding: 3px 12px; font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 13px; cursor: pointer; }
     .dge-complete div.dge-selected, .dge-complete div:hover, .dge-menu div:hover { background: #2563eb; color: #fff; }
     .dge-complete:empty { display: none; }
+    .dge-choice { position: fixed; display: flex; gap: 3px; transform: translateY(-50%); z-index: 13; }
+    .dge-choice .dge-action { width: 28px; height: 28px; border-color: #d1d5db; border-radius: 7px; background: #fff; }
+    .dge-choice .dge-action svg { width: 18px; height: 18px; }
     .dge-magnet { position: fixed; display: flex; align-items: center; gap: 10px; padding: 6px 12px 6px 6px; border: 1px solid #fecaca; border-radius: 22px; background: #fff; box-shadow: 0 6px 20px rgb(15 23 42 / 0.16); z-index: 12; }
     .dge-magnet input { width: 150px; margin: 0; accent-color: #dc2626; }
     .dge-magnet output { width: 80px; white-space: nowrap; font-weight: 600; font-variant-numeric: tabular-nums; color: #b91c1c; }
@@ -237,6 +243,22 @@ const cancelButton = $.create("button")
     .att("title", message("cancel"));
 cancelButton.on("click", () => cancel());
 const complete = $.create("div").cls("dge-complete");
+// A formula whose value is a point, or a list of points, makes an
+// expression or what its value draws: buttons at the end of its line
+// choose, Enter the one lit.
+const CHOICES = {
+    point: button("formula_point", () => commitAs("point")),
+    points: button("points_list", () => commitAs("points")),
+    segments: button("segments_list", () => commitAs("segments")),
+    expression: button("as_expression", () => commitAs("expression")),
+};
+type Choice = keyof typeof CHOICES;
+const choice = $.create("div")
+    .cls("dge-choice")
+    .add(...Object.values(CHOICES))
+    .hide();
+// Keeps the focus in the line typed.
+choice.on("mousedown", () => {});
 // The objects under a click, for the user to choose one.
 const menu = $.create("div").cls("dge-menu").att("role", "menu").hide();
 // Keeps the focus in the line typed.
@@ -289,8 +311,10 @@ const springButton = button("spring", () => {
     showActions();
 }).att("aria-pressed", "false");
 // An expression's points drawn, joined or not, as by DGPad's calculator.
-const pointsButton = button("points_list", () => drawList(false));
-const segmentsButton = button("segments_list", () => drawList(true));
+const pointsButton = button("points_list", () => drawFrom("points"));
+const segmentsButton = button("segments_list", () => drawFrom("segments"));
+// The point an expression gives, as by DGPad's calculator.
+const pointButton = button("formula_point", () => drawFrom("point"));
 // In place of the actions while the magnets are chosen: the way out.
 const doneButton = $.create("button")
     .cls("dge-done")
@@ -310,6 +334,7 @@ const actions = $.create("div")
         springButton,
         pinButton,
         magnetButton,
+        pointButton,
         pointsButton,
         segmentsButton,
         doneButton,
@@ -383,6 +408,11 @@ explain(springButton, (name) => `${name}\n${message("spring_hint", name)}`);
         (name) =>
             `${nextName(scene(), false)} = ${commandName(findCommand("List")!)}(${name})\n${message("list_hint", name)}`,
     ),
+);
+explain(
+    pointButton,
+    (name) =>
+        `${nextName(scene(), true)} = ${pointFormulaText(name)}\n${message("formula_point_hint", name)}`,
 );
 const properties = propertiesPanel({
     scene,
@@ -474,6 +504,7 @@ $("body").add(
     hint,
     ring,
     complete,
+    choice,
     menu,
     magnetCard,
     spring,
@@ -550,6 +581,12 @@ let completions: {
     object?: construction_object;
 }[] = [];
 let selected = -1;
+// The line offered the choice, and what Enter makes.
+let choosing: {
+    field: HTMLInputElement;
+    object: construction_object | null;
+    lit: Choice;
+} | null = null;
 let figureName = "figure";
 // While erasing: the objects hidden, shown pale.
 let ghosts: Set<construction_object> | null = null;
@@ -727,6 +764,7 @@ function bindRow(row: DOMElement, object: construction_object | null): void {
         "blur",
         () => {
             closeCompletion();
+            hideChoice();
             closeMenu();
             clearPreview();
             showAccepted([]);
@@ -755,13 +793,29 @@ function bindRow(row: DOMElement, object: construction_object | null): void {
 async function commitText(
     field: HTMLInputElement,
     object: construction_object | null,
+    as: Choice = choosing?.field === field ? choosing.lit : "expression",
 ): Promise<void> {
     const c = scene();
     closeCompletion();
+    hideChoice();
     try {
         const line = parseLine(field.value, isCommand);
         const target =
             object ?? (line.name ? (c.getObj(line.name) ?? null) : null);
+        // What the expression draws, the expression kept, hidden.
+        const drawn = drawnFrom(line, target, as);
+        if (as === "point" && !drawn && line.definition?.kind === "formula")
+            line.definition = {
+                kind: "pointFormula",
+                source: line.definition.source,
+            };
+        const made = (object: construction_object | undefined) =>
+            drawn
+                ? derive(
+                      object as expression_object,
+                      as as Exclude<Choice, "expression">,
+                  )
+                : object;
         if (!line.definition) {
             if (!target) throw new TextError("unknown_object", line.name!);
             c.removeObject(target);
@@ -783,11 +837,11 @@ async function commitText(
                 return done(target);
             }
             await redefine(studio, target, spec);
-            return done(scene().getObj(spec.name));
+            return done(made(scene().getObj(spec.name)));
         }
         const spec = resolve(c, line);
         if (field === input.dom()) field.value = "";
-        return done(add(c, spec));
+        return done(made(add(c, spec)));
     } catch (error) {
         if (!(error instanceof TextError)) throw error;
         $(field).addClass("dge-error");
@@ -842,7 +896,119 @@ function updateCompletion(field: HTMLInputElement): void {
     showAccepted(candidates);
     selected = -1;
     showCompletion(field);
+    offerChoice(field);
 }
+
+// A list drawn from the expression the line makes, or a point from an
+// expression redefined; a new point holds the formula itself.
+const drawnFrom = (
+    line: Line,
+    target: construction_object | null,
+    as: Choice,
+): boolean =>
+    line.definition?.kind === "formula" &&
+    as !== "expression" &&
+    (as !== "point" || target instanceof expression_object);
+
+// When the formula typed gives a point or a list of points, the choice of
+// what it makes, tried on an expression added and removed at once; a point
+// by default for a capitalized name, as the editor names points, or a point
+// redefined, else an expression.
+function offerChoice(field: HTMLInputElement): void {
+    hideChoice();
+    let line: Line;
+    try {
+        line = parseLine(field.value, isCommand);
+    } catch (error) {
+        if (error instanceof TextError) return;
+        throw error;
+    }
+    if (line.definition?.kind !== "formula") return;
+    const c = scene();
+    const object =
+        [...rows].find(([, row]) => row.dom() === field)?.[0] ?? null;
+    const target = object ?? (line.name ? (c.getObj(line.name) ?? null) : null);
+    let spec: Spec;
+    try {
+        spec = resolve(c, line, target ?? undefined);
+    } catch (error) {
+        if (error instanceof TextError) return;
+        throw error;
+    }
+    const probe = add(c, { ...spec, name: "‧v" }, false);
+    c.flush();
+    const point = pointValue(probe);
+    const list = pointList(probe);
+    c.removeObject(probe);
+    if (!point && !list) return;
+    choosing = {
+        field,
+        object,
+        lit:
+            point &&
+            (target
+                ? entryOf(target, figureIndex(c))[0] === "Fp"
+                : /^\p{Lu}/u.test(line.name ?? ""))
+                ? "point"
+                : "expression",
+    };
+    for (const [key, action] of Object.entries(CHOICES)) {
+        const shown = key === "expression" || (key === "point" ? point : list);
+        if (shown) action.show("grid");
+        else action.hide();
+        action.toggleClass("dge-on", key === choosing.lit);
+    }
+    const box = field.getBoundingClientRect();
+    choice
+        .stl("right", `${window.innerWidth - box.right + 8}px`)
+        .stl("top", `${box.top + box.height / 2}px`)
+        .show("flex");
+    $(field).stl(
+        "padding-inline-end",
+        `${choice.dom().getBoundingClientRect().width + 14}px`,
+    );
+}
+
+function hideChoice(): void {
+    if (choosing) $(choosing.field).stl("padding-inline-end", "");
+    choosing = null;
+    choice.hide();
+}
+
+function commitAs(as: Choice): void {
+    const { field, object } = choosing!;
+    void commitText(field, object, as);
+}
+
+// Hovered, a choice shows the lines it writes.
+for (const [key, action] of Object.entries(CHOICES) as [Choice, DOMElement][])
+    action.on(
+        "pointerenter",
+        () => {
+            const { field, object } = choosing!;
+            const line = parseLine(field.value, isCommand);
+            const { source } = line.definition as { source: string };
+            const c = scene();
+            const target =
+                object ?? (line.name ? (c.getObj(line.name) ?? null) : null);
+            // The expression's name, which the line gives or the editor.
+            const name =
+                line.name ?? target?.name ?? nextName(c, key === "point");
+            const shown = formatName(name);
+            if (!drawnFrom(line, target, key))
+                return showHint(
+                    `${shown} = ${key === "point" ? pointFormulaText(source) : source}\n${message(key === "point" ? "point_choice" : "expression_choice")}`,
+                );
+            const drawn =
+                key === "point"
+                    ? pointFormulaText(shown)
+                    : `${commandName(findCommand("List")!)}(${shown})`;
+            showHint(
+                `${shown} = ${source}\n${nextName(c, key === "point", name)} = ${drawn}\n${message(key === "point" ? "formula_point_hint" : "list_hint", shown)}`,
+            );
+        },
+        false,
+    );
 
 function showCompletion(field: HTMLInputElement): void {
     complete.inner("");
@@ -1335,6 +1501,8 @@ function showActions(): void {
     [pointsButton, segmentsButton].forEach((action) =>
         !magnetizing && pointList(object) ? action.show("grid") : action.hide(),
     );
+    if (!magnetizing && pointValue(object)) pointButton.show("grid");
+    else pointButton.hide();
     showSpring(springOut && !magnetizing && springy(object) ? object : null);
     if (magnetizing) doneButton.show();
     else doneButton.hide();
@@ -1349,22 +1517,48 @@ const pointList = (object: construction_object) =>
     object.value.some((item) => Array.isArray(item) && item.length <= 3) &&
     object.value.every((item) => Array.isArray(item) && item.length >= 2);
 
-// The list of the points of the expression selected, its own text hidden.
-function drawList(segments: boolean): void {
-    const source = target()!;
+const pointValue = (object: construction_object) =>
+    object instanceof expression_object &&
+    Array.isArray(object.value) &&
+    (object.value.length === 2 || object.value.length === 3) &&
+    object.value.every((item) => typeof item === "number");
+
+// The point, or the list of the points, the expression's value gives, the
+// expression kept, its text hidden.
+function derive(
+    source: expression_object,
+    as: Exclude<Choice, "expression">,
+): construction_object {
     const c = scene();
-    closeRing();
-    const list = add(c, {
-        name: nextName(c, false),
-        overload: findCommand("List")!.overloads[0],
-        args: [source],
-    }) as expression_list_object;
+    const drawn =
+        as === "point"
+            ? add(
+                  c,
+                  resolve(c, {
+                      name: null,
+                      definition: {
+                          kind: "pointFormula",
+                          source: formatName(source.name),
+                      },
+                  }),
+              )
+            : add(c, {
+                  name: nextName(c, false),
+                  overload: findCommand("List")!.overloads[0],
+                  args: [source],
+              });
     // DGPad's segments.
-    if (segments) list.segmentsSize = 1;
+    if (as === "segments") (drawn as expression_list_object).segmentsSize = 1;
     source.hidden = 1;
     source.updateView();
-    c.invalidateGeometry(list);
-    done(list);
+    c.invalidateGeometry(drawn);
+    return drawn;
+}
+
+function drawFrom(as: Exclude<Choice, "expression">): void {
+    const source = target() as expression_object;
+    closeRing();
+    done(derive(source, as));
 }
 
 function remove(): void {

@@ -52,6 +52,20 @@ const MESSAGES = {
         "% garde ses coordonnées quand on zoome ou déplace la vue",
         "% keeps its coordinates when the view is zoomed or moved",
     ],
+    formula_point: ["Point", "Point"],
+    formula_point_hint: [
+        "Place le point que donne la valeur de %, et cache son texte",
+        "Places the point given by the value of %, and hides its text",
+    ],
+    as_expression: ["Expression", "Expression"],
+    point_choice: [
+        "Crée le point que donne la formule (Entrée si allumé)",
+        "Creates the point the formula gives (Enter when lit)",
+    ],
+    expression_choice: [
+        "Crée une expression qui affiche la valeur de la formule (Entrée si allumé)",
+        "Creates an expression showing the formula's value (Enter when lit)",
+    ],
     points_list: ["Liste de points", "List of points"],
     segments_list: ["Liste de segments", "List of segments"],
     list_hint: [

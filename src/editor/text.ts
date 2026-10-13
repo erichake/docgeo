@@ -1,8 +1,10 @@
 import { FormulaLexer, METHOD_ARITY, type Token } from "../import/dgp_formula";
 
 // The text of a construction, one line per object: `name = Command(args)`,
-// `A = (x, y)` for a free point, or `name = formula` for an expression. A
-// closed grammar, the formulas' own, never evaluated.
+// `A = (x, y)` for a free point, `M = (x(A) + 1, y(B))` or
+// `M = Point(2*B - A)` for a point computed by a formula, or
+// `name = formula` for an expression. A closed grammar, the formulas' own,
+// never evaluated.
 
 export type ArgText =
     { kind: "name"; name: string } | { kind: "number"; value: number };
@@ -10,7 +12,8 @@ export type ArgText =
 export type Definition =
     | { kind: "point"; coords: number[] }
     | { kind: "call"; command: string; args: ArgText[] }
-    | { kind: "formula"; source: string };
+    | { kind: "formula"; source: string }
+    | { kind: "pointFormula"; source: string };
 
 export interface Line {
     name: string | null;
@@ -66,12 +69,30 @@ function signed(tokens: Token[]): number | null {
         : null;
 }
 
+// The bracket opened by the token at `at`: where it closes, and the commas
+// between its own items.
+function group(
+    tokens: Token[],
+    at: number,
+): { end: number; commas: number[] } | null {
+    const commas: number[] = [];
+    let depth = 0;
+    for (let index = at; index < tokens.length; index++) {
+        const { type } = tokens[index];
+        if (type === "(" || type === "[" || type === "{") depth++;
+        else if (type === ")" || type === "]" || type === "}") {
+            if (!--depth) return { end: index, commas };
+        } else if (type === "," && depth === 1) commas.push(index);
+    }
+    return null;
+}
+
 // A command's line when the catalog has the name before "(".
 export function parseLine(
     text: string,
     isCommand: (name: string) => boolean,
 ): Line {
-    const { tokens, ends } = lex(text);
+    const { tokens, starts, ends } = lex(text);
     let position = 0;
     const peek = (offset = 0): Token | undefined => tokens[position + offset];
     let name: string | null = null;
@@ -89,15 +110,49 @@ export function parseLine(
         head.type === "identifier" &&
         peek(1)?.type === "(" &&
         isCommand(head.value as string)
-    )
+    ) {
+        // `Point(2*B - A)`: one argument, which no point on an object takes.
+        const inner = whole(position + 1);
+        if (
+            /^point$/i.test(head.value as string) &&
+            inner &&
+            !inner.commas.length &&
+            inner.end > position + 2
+        )
+            return {
+                name,
+                definition: {
+                    kind: "pointFormula",
+                    source: between(position + 1, inner.end),
+                },
+            };
         return { name, definition: call(head.value as string) };
+    }
     const coords = point();
-    return {
-        name,
-        definition: coords
-            ? { kind: "point", coords }
-            : { kind: "formula", source },
-    };
+    if (coords) return { name, definition: { kind: "point", coords } };
+    // Coordinates that aren't all numbers.
+    const pair = head.type === "(" ? whole(position) : null;
+    if (pair?.commas.length) {
+        if (pair.commas.length > 2) throw new TextError("coordinates");
+        return {
+            name,
+            definition: {
+                kind: "pointFormula",
+                source: `[${between(position, pair.end)}]`,
+            },
+        };
+    }
+    return { name, definition: { kind: "formula", source } };
+
+    // The bracket opened at `at`, closed at the end of the line.
+    function whole(at: number) {
+        const found = group(tokens, at);
+        return found && tokens[found.end + 1]?.type === "eof" ? found : null;
+    }
+
+    function between(open: number, close: number): string {
+        return text.slice(ends[open], starts[close]).trim();
+    }
 
     function next(): Token {
         const token = tokens[position++];
@@ -175,6 +230,27 @@ const PLAIN = /^[\p{L}_][\p{L}\p{N}_']*$/u;
 
 export const formatName = (name: string): string =>
     PLAIN.test(name) ? name : `\`${name}\``;
+
+// A formula point's definition: its coordinates between brackets, unless
+// they are numbers only, which a free point's are.
+export function pointFormulaText(source: string): string {
+    const { tokens, starts, ends } = lex(source);
+    const items = tokens[0]?.type === "[" ? group(tokens, 0) : null;
+    if (
+        items &&
+        tokens[items.end + 1]?.type === "eof" &&
+        items.commas.length &&
+        items.commas.length <= 2 &&
+        [0, ...items.commas].some(
+            (comma, index) =>
+                signed(
+                    tokens.slice(comma + 1, items.commas[index] ?? items.end),
+                ) === null,
+        )
+    )
+        return `(${source.slice(ends[0], starts[items.end]).trim()})`;
+    return `Point(${source})`;
+}
 
 // Rounded as shown, the object keeping its own value.
 export function formatNumber(value: number): string {

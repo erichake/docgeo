@@ -5,6 +5,7 @@ import {
     formatNumber,
     formatProgram,
     parseLine,
+    pointFormulaText,
     renameFormula,
     syntaxLine,
     TextError,
@@ -12,7 +13,7 @@ import {
 } from "../../src/editor/text";
 import { parseProgram, programReferences } from "../../src/import/dgp_formula";
 
-const COMMANDS = ["Milieu", "Intersection", "Cercle"];
+const COMMANDS = ["Milieu", "Intersection", "Cercle", "Point"];
 const read = (text: string) =>
     parseLine(text, (name) => COMMANDS.includes(name));
 
@@ -55,7 +56,7 @@ describe("Editor text", () => {
             ["f = 0.5x^2-4", "f", "0.5x^2-4"],
             ["E = d(H, `M 1`) ", "E", "d(H, `M 1`)"],
             ["A = (1)", "A", "(1)"],
-            ["A = (1, B)", "A", "(1, B)"],
+            ["A = (2*B)", "A", "(2*B)"],
             [
                 's = if(a>2){S1.setHidden(1)};"Faces"',
                 "s",
@@ -67,6 +68,27 @@ describe("Editor text", () => {
                 name,
                 definition: { kind: "formula", source },
             });
+    });
+
+    it("reads a point computed by a formula", () => {
+        for (const [text, source] of [
+            ["M = (1, B)", "[1, B]"],
+            ["M = (x(B) + 1, y(A), max(1, a))", "[x(B) + 1, y(A), max(1, a)]"],
+            ["M = Point(2*B - A)", "2*B - A"],
+            ["M = Point(B)", "B"],
+            ["M = Point(var u=A[0];[u, 0])", "var u=A[0];[u, 0]"],
+        ])
+            expect(read(text), text).toEqual({
+                name: "M",
+                definition: { kind: "pointFormula", source },
+            });
+        expect(read("M = Point(c, 0.5)").definition!.kind).toBe("call");
+        expect(() => read("M = (a, b, c, d)")).toThrow(TextError);
+        expect(pointFormulaText("[x(B) + 1, y(A)]")).toBe("(x(B) + 1, y(A))");
+        expect(pointFormulaText("2*B-A")).toBe("Point(2*B-A)");
+        expect(pointFormulaText("[1, -2]")).toBe("Point([1, -2])");
+        expect(pointFormulaText("[a]")).toBe("Point([a])");
+        expect(pointFormulaText("[a, b][0]")).toBe("Point([a, b][0])");
     });
 
     it("rejects what the grammar doesn't read", () => {

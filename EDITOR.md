@@ -804,6 +804,39 @@ Fait (2026-10-11) :
   annulation et rétablissement). Éditeur : +0,5 Ko (+0,1 Ko en gzip) ;
   lecteur inchangé.
 
+- Points définis par une formule (2026-10-13, entrée `Fp`, le
+  `Point("M","2*B-A","0")` de DGPad) : `M = (x(B) + 1, y(A))`, des
+  coordonnées qui ne sont pas toutes des nombres (un point libre sinon), et
+  `M = Point(2*B - A)`, un seul argument, qu'aucun point sur objet ne prend,
+  pour une formule dont la valeur est un point ; la ligne relit l'une ou
+  l'autre forme. Comme le bouton point de la calculatrice de DGPad, une
+  expression dont la valeur est un point a dans la zone contextuelle
+  « Point » : comme « Liste de points », il ajoute le point qu'elle donne
+  (`C = Point(a)`) et cache l'expression sans la supprimer, en une étape
+  d'annulation (décidé avec l'auteur le 2026-10-13). Lecteur :
+  les points fixes et à formule sont remplis en gris (défaut `.dgo` de
+  `Fix` et `Fp` changé), comme `point_fixed` dans DGPad. Vérifié dans
+  `editor.html` (figure DGPad, saisie des deux formes, redéfinition,
+  action « Point »). Éditeur : +2,2 Ko (+0,6 Ko en gzip) ; lecteur :
+  +30 octets.
+
+- Point, liste ou expression (2026-10-13, idée de l'auteur) : une ligne
+  `nom = formule` dont la valeur est un point ou une liste de points
+  (essayée sur une expression ajoutée et retirée aussitôt) montre au bout
+  de la ligne ses choix : « Point », ou « Liste de points » et « Liste de
+  segments », et « Expression » (calculatrice) ; leur survol montre les
+  lignes que chacun écrit. Entrée choisit celui qui est allumé : un point
+  pour un nom à majuscule (comme l'éditeur nomme les points) ou un point
+  redéfini, une expression sinon ; pas de raccourci pour l'autre choix
+  (décidé avec l'auteur). Une nouvelle ligne choisie « Point » est un
+  point qui porte la formule ; une liste, ou un point tiré d'une expression
+  existante, s'ajoute en gardant l'expression, cachée, comme les actions de
+  la zone contextuelle. Les boutons ne suivent pas le défilement du
+  panneau, comme la complétion (accepté). Les points construits (autres
+  que libres et sur objet) sont créés remplis de gris (`#cccccc`), comme
+  dans DGPad. Vérifié dans `editor.html`. Éditeur : +2,9 Ko (+0,9 Ko en
+  gzip) ; lecteur inchangé.
+
 Reste à faire :
 
 - Jeux d'outils de l'enseignant (section « Anneau d'outils »).
