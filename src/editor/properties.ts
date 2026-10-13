@@ -386,7 +386,8 @@ export function propertiesPanel(options: {
                 object.strokeOpacity = value / 100;
             },
         );
-        if (object.opacity !== undefined) {
+        // A locus has no default opacity in .dgo, yet is filled like DGPad's.
+        if (object.opacity !== undefined || object instanceof locus_object) {
             color(
                 appearance,
                 "fill_color",
