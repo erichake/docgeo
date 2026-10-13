@@ -33,6 +33,7 @@ interface Token {
 const NUMBER = /[+-]?(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][+-]?\d+)?/y;
 export const IDENTIFIER_START = /[$_\p{ID_Start}]/u;
 export const IDENTIFIER_PART = /[$_\u200c\u200d\p{ID_Continue}]/u;
+const IDENTIFIER_ESCAPE = /\\u(?:([0-9a-fA-F]{4})|\{(0*[0-9a-fA-F]{1,6})\})/y;
 
 class Lexer {
     private index = 0;
@@ -48,7 +49,8 @@ class Lexer {
         const line = this.line;
         const character = this.source[this.index];
         if (character === '"') return this.string(line);
-        if (IDENTIFIER_START.test(character)) return this.identifier(line);
+        const start = this.identifierCharacter(IDENTIFIER_START);
+        if (start !== null) return this.identifier(start, line);
 
         NUMBER.lastIndex = this.index;
         const number = NUMBER.exec(this.source);
@@ -170,19 +172,31 @@ class Lexer {
         return this.source.slice(start, this.index);
     }
 
-    private identifier(line: number): Token {
-        const start = this.index++;
-        while (
-            this.index < this.source.length &&
-            IDENTIFIER_PART.test(this.source[this.index])
-        ) {
+    private identifier(value: string, line: number): Token {
+        let character;
+        while ((character = this.identifierCharacter(IDENTIFIER_PART)) !== null)
+            value += character;
+        return { type: "identifier", value, line };
+    }
+
+    // As in JavaScript, an identifier may spell a character with an escape:
+    // DGPad writes Fπ as Fπ.
+    private identifierCharacter(pattern: RegExp): string | null {
+        if (this.index === this.source.length) return null;
+        const character = this.source[this.index];
+        if (pattern.test(character)) {
             this.index++;
+            return character;
         }
-        return {
-            type: "identifier",
-            value: this.source.slice(start, this.index),
-            line,
-        };
+        IDENTIFIER_ESCAPE.lastIndex = this.index;
+        const escape = IDENTIFIER_ESCAPE.exec(this.source);
+        if (!escape) return null;
+        const decoded = String.fromCodePoint(
+            parseInt(escape[1] ?? escape[2], 16),
+        );
+        if (!pattern.test(decoded)) return null;
+        this.index = IDENTIFIER_ESCAPE.lastIndex;
+        return decoded;
     }
 }
 

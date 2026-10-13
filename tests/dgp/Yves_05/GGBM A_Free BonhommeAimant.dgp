@@ -1,0 +1,348 @@
+// Macros :
+$macros={};
+$macros["ListeType1"]={
+	name:"ListeType1",
+	parameters:["point"],
+	exec:
+	function(dep){
+E5=Expression("E5","","","","var tab=[];var Orig=dep;var d1=[Orig[0],Orig[1]-1];var d2=[Orig[0]+1,Orig[1]-2];var d3=[Orig[0]+2,Orig[1]-2];var d4=[Orig[0]+2,Orig[1]-1];var d5=[Orig[0]+1,Orig[1]];var tab=[Orig,d1,d2,d3,d4,d5];tab","-11.432943100110924","12.478998733685218");
+List2=List("List2",E5);
+STL(List2,"c:#0000b2;s:1;f:30;p:0;sg:1");
+return [List2];
+}};
+
+$macros["Poly1plein"]={
+	name:"Poly 1 plein",
+	parameters:["point"],
+	exec:
+	function(dep){
+E5=Expression("E5","","","","var tab=[];var Orig=dep;var d1=[Orig[0],Orig[1]-1];var d2=[Orig[0]+1,Orig[1]-2];var d3=[Orig[0]+2,Orig[1]-2];var d4=[Orig[0]+2,Orig[1]-1];var d5=[Orig[0]+1,Orig[1]];var tab=[Orig,d1,d2,d3,d4,d5];tab","-11.432943100110924","12.478998733685218");
+List2=List("List2",E5);
+STL(List2,"c:#007c7c;o:0.2;s:0;f:30;p:0;sg:0.6");
+return [List2];
+}};
+
+$macros["Poly2plein"]={
+	name:"Poly2 plein",
+	parameters:["point"],
+	exec:
+	function(dep1){
+E6=Expression("E6","","","","var tab=[];var Orig=dep1;var d1=[Orig[0]+1,Orig[1]+1];var d2=[Orig[0]+2,Orig[1]+3];var d3=[Orig[0]+2,Orig[1]+4];var d4=[Orig[0]+1,Orig[1]+3];var d5=[Orig[0],Orig[1]+1];var tab=[Orig,d1,d2,d3,d4,d5,Orig];tab","-7.126219616991071","12.265107304035686");
+List3=List("List3",E6);
+STL(List3,"c:#966400;o:0.2;s:0;f:30;p:0;sg:1");
+return [List3];
+}};
+
+$macros["Poly3plein"]={
+	name:"Poly3 plein",
+	parameters:["point"],
+	exec:
+	function(dep2){
+E7=Expression("E7","","","","var tab=[];var Orig=dep2;var d1=[Orig[0]+1,Orig[1]];var d2=[Orig[0]+3,Orig[1]+1];var d3=[Orig[0]+4,Orig[1]+2];var d4=[Orig[0]+3,Orig[1]+2];var d5=[Orig[0]+1,Orig[1]+1];var tab=[Orig,d1,d2,d3,d4,d5,Orig];tab","-7.126219616991071","14.450923433494438");
+List4=List("List4",E7);
+STL(List4,"c:#cc66cc;o:0.2;s:0;f:30;p:0;sg:1");
+return [List4];
+}};
+
+// Coordinates System :
+SetCoords(453.9071469288137,562.8287623370886,35.13231361208592,false,1165,859);
+
+
+// Geometry :
+P543=Point("P543","[4,0]","0");
+P510=Point("P510","[-1,4]","0");
+P509=Point("P509","[0,3]","0");
+P508=Point("P508","[0,2]","0");
+P507=Point("P507","[0,1]","0");
+P506=Point("P506","[1,2]","0");
+P505=Point("P505","[2,2]","0");
+P504=Point("P504","[2,1]","0");
+P503=Point("P503","[1,0]","0");
+P502=Point("P502","[0,0]","0");
+P537=Point("P537","[2,4]","0");
+P536=Point("P536","[3,6]","0");
+P535=Point("P535","[4,7]","0");
+P534=Point("P534","[4,6]","0");
+P533=Point("P533","[3,4]","0");
+P532=Point("P532","[2,3]","0");
+P530=Point("P530","[6,4]","0");
+P529=Point("P529","[7,4]","0");
+P528=Point("P528","[6,3]","0");
+P527=Point("P527","[4,2]","0");
+P526=Point("P526","[3,2]","0");
+P525=Point("P525","[3,0]","0");
+P524=Point("P524","[4,-1]","0");
+P523=Point("P523","[4,-2]","0");
+P522=Point("P522","[3,-2]","0");
+P521=Point("P521","[2,-1]","0");
+P520=Point("P520","[2,0]","0");
+P519=Point("P519","[0,-1]","0");
+P518=Point("P518","[0,-2]","0");
+P516=Point("P516","[-2,-1]","0");
+P515=Point("P515","[-2,0]","0");
+P514=Point("P514","[-1,0]","0");
+P513=Point("P513","[-1,2]","0");
+P511=Point("P511","[-2,4]","0");
+P560=Point("P560","[-3,0]","0");
+P559=Point("P559","[-2,1]","0");
+P558=Point("P558","[-2,2]","0");
+P556=Point("P556","[-2,5]","0");
+P555=Point("P555","[0,4]","0");
+P554=Point("P554","[1,4]","0");
+P553=Point("P553","[2,5]","0");
+P552=Point("P552","[4,8]","0");
+P551=Point("P551","[5,8]","0");
+P550=Point("P550","[4,5]","0");
+P549=Point("P549","[4,4]","0");
+P548=Point("P548","[5,4]","0");
+P547=Point("P547","[8,5]","0");
+P546=Point("P546","[8,4]","0");
+P545=Point("P545","[5,2]","0");
+P544=Point("P544","[4,1]","0");
+P542=Point("P542","[5,-2]","0");
+P541=Point("P541","[4,-3]","0");
+P540=Point("P540","[2,-2]","0");
+P539=Point("P539","[1,-2]","0");
+P538=Point("P538","[0,-3]","0");
+P531=Point("P531","[4,3]","0");
+P512=Point("P512","[-2,3]","0");
+P561=Point("P561","[-2,-2]","0");
+P557=Point("P557","[-3,4]","0");
+P517=Point("P517","[-1,-2]","0");
+P21=Point("P21","[8,-1]","0");
+P20=Point("P20","[8,0]","0");
+P19=Point("P19","[5,0.5]","0");
+P18=Point("P18","[1,6]","0");
+P1=Point("P1","[5,3]","0");
+P2=Point("P2","[3,5]","0");
+P3=Point("P3","[-1,3]","0");
+P4=Point("P4","[-1,-1]","0");
+P5=Point("P5","[3,-1]","0");
+P6=Point("P6","[1,1]","0");
+P7=Point("P7","[5,1]","0");
+P8=Point("P8","[1,5]","0");
+P9=Point("P9","[-3,5]","0");
+P10=Point("P10","[5,-3]","0");
+P11=Point("P11","[5,5]","0");
+P12=Point("P12","[9,5]","0");
+P13=Point("P13","[5,9]","0");
+P14=Point("P14","[-3,1]","0");
+P15=Point("P15","[1,-3]","0");
+P16=Point("P16","[6,1]","0");
+P17=Point("P17","[6,6]","0");
+A=Point("A",6.94271623523677,8.936121598101035);
+P22=Point("P22","[6,2]","0");
+dep=Point("dep","[-6,4]","0");
+dep1=Point("dep1","[6,7]","0");
+dep2=Point("dep2","[7,6]","0");
+P34=Point("P34","[-4,0]","0");
+P35=Point("P35","[5,-2]","0");
+Poly1=Polygon("Poly1","_P504,_P505,_P506,_P507,_P502,_P503");
+Poly6=Polygon("Poly6","_P508,_P509,_P510,_P511,_P512,_P513");
+Poly2=Polygon("Poly2","_P519,_P514,_P515,_P516,_P517,_P518");
+Poly3=Polygon("Poly3","_P525,_P520,_P521,_P522,_P523,_P524");
+Poly4=Polygon("Poly4","_P526,_P527,_P528,_P529,_P530,_P531");
+Poly5=Polygon("Poly5","_P532,_P533,_P534,_P535,_P536,_P537");
+S1=Segment("S1",P16,P22);
+E5=Expression("E5","","","","var tab=[];var Orig=dep;var d1=[Orig[0],Orig[1]-1];var d2=[Orig[0]+1,Orig[1]-2];var d3=[Orig[0]+2,Orig[1]-2];var d4=[Orig[0]+2,Orig[1]-1];var d5=[Orig[0]+1,Orig[1]];var tab=[Orig,d1,d2,d3,d4,d5,Orig];tab","-11.49674204177276","12.604600062113484");
+P23=Point("P23","dep+[0,4]","0");
+P24=Point("P24","dep+[0,-4]","0");
+P25=Point("P25","dep+[4,4]","0");
+P26=Point("P26","dep+[4,-8]","0");
+P27=Point("P27","dep+[8,-8]","0");
+P28=Point("P28","dep+[12,-8]","0");
+P29=Point("P29","dep+[12,-4]","0");
+P30=Point("P30","dep1+[-4,0]","0");
+P31=Point("P31","dep1+[0,4]","0");
+E6=Expression("E6","","","","var tab=[];var Orig=dep1;var d1=[Orig[0]+1,Orig[1]+1];var d2=[Orig[0]+2,Orig[1]+3];var d3=[Orig[0]+2,Orig[1]+4];var d4=[Orig[0]+1,Orig[1]+3];var d5=[Orig[0],Orig[1]+1];var tab=[Orig,d1,d2,d3,d4,d5,Orig];tab","-11.49674204177276","10.612132364912945");
+E7=Expression("E7","","","","var tab=[];var Orig=dep2;var d1=[Orig[0]+1,Orig[1]];var d2=[Orig[0]+3,Orig[1]+1];var d3=[Orig[0]+4,Orig[1]+2];var d4=[Orig[0]+3,Orig[1]+2];var d5=[Orig[0]+1,Orig[1]+1];var tab=[Orig,d1,d2,d3,d4,d5,Orig];tab","-11.781380284229979","10.896770607370165");
+P32=Point("P32","dep2+[4,0]","0");
+P33=Point("P33","dep2+[0,-4]","0");
+n=Expression("n","","0","120","14","-1.8190417982272846","13.743153031942363");
+CoordA=Expression("CoordA","","","","A","-9.788912587029442","8.050388182797965");
+Bonhomme=Expression("Bonhomme","","","","[P556,P555,P554,P553,P552,P551,P550,P549,P548,P547,P546,P545,P544,P543,P542,P35,P541,P540,P539,P538,P561,P560,P559,P558,P557,P556]","-10.927465556858321","-0.48875909091863157");
+E1=Expression("E1","","","","var u=[A[0],A[1]];var gin=[u];for(i=1;i<=n;i++){v=[1- u[1]+abs(u[0]),u[0]];gin.push(v);u=v};gin","6.720105475489312","3.211538061025227");
+List2=List("List2",E5);
+E50=Expression("E50","","","","var tab=[];var Orig=P23;var d1=[Orig[0],Orig[1]-1];var d2=[Orig[0]+1,Orig[1]-2];var d3=[Orig[0]+2,Orig[1]-2];var d4=[Orig[0]+2,Orig[1]-1];var d5=[Orig[0]+1,Orig[1]];var tab=[Orig,d1,d2,d3,d4,d5,Orig];tab","-11.49674204177276","12.604600062113484");
+E51=Expression("E51","","","","var tab=[];var Orig=P25;var d1=[Orig[0],Orig[1]-1];var d2=[Orig[0]+1,Orig[1]-2];var d3=[Orig[0]+2,Orig[1]-2];var d4=[Orig[0]+2,Orig[1]-1];var d5=[Orig[0]+1,Orig[1]];var tab=[Orig,d1,d2,d3,d4,d5,Orig];tab","-11.49674204177276","12.604600062113484");
+E52=Expression("E52","","","","var tab=[];var Orig=P24;var d1=[Orig[0],Orig[1]-1];var d2=[Orig[0]+1,Orig[1]-2];var d3=[Orig[0]+2,Orig[1]-2];var d4=[Orig[0]+2,Orig[1]-1];var d5=[Orig[0]+1,Orig[1]];var tab=[Orig,d1,d2,d3,d4,d5,Orig];tab","-11.49674204177276","12.604600062113484");
+E53=Expression("E53","","","","var tab=[];var Orig=P26;var d1=[Orig[0],Orig[1]-1];var d2=[Orig[0]+1,Orig[1]-2];var d3=[Orig[0]+2,Orig[1]-2];var d4=[Orig[0]+2,Orig[1]-1];var d5=[Orig[0]+1,Orig[1]];var tab=[Orig,d1,d2,d3,d4,d5,Orig];tab","-11.49674204177276","12.604600062113484");
+E54=Expression("E54","","","","var tab=[];var Orig=P27;var d1=[Orig[0],Orig[1]-1];var d2=[Orig[0]+1,Orig[1]-2];var d3=[Orig[0]+2,Orig[1]-2];var d4=[Orig[0]+2,Orig[1]-1];var d5=[Orig[0]+1,Orig[1]];var tab=[Orig,d1,d2,d3,d4,d5,Orig];tab","-11.49674204177276","12.604600062113484");
+E55=Expression("E55","","","","var tab=[];var Orig=P28;var d1=[Orig[0],Orig[1]-1];var d2=[Orig[0]+1,Orig[1]-2];var d3=[Orig[0]+2,Orig[1]-2];var d4=[Orig[0]+2,Orig[1]-1];var d5=[Orig[0]+1,Orig[1]];var tab=[Orig,d1,d2,d3,d4,d5,Orig];tab","-11.49674204177276","12.604600062113484");
+E56=Expression("E56","","","","var tab=[];var Orig=P29;var d1=[Orig[0],Orig[1]-1];var d2=[Orig[0]+1,Orig[1]-2];var d3=[Orig[0]+2,Orig[1]-2];var d4=[Orig[0]+2,Orig[1]-1];var d5=[Orig[0]+1,Orig[1]];var tab=[Orig,d1,d2,d3,d4,d5,Orig];tab","-11.49674204177276","12.604600062113484");
+E60=Expression("E60","","","","var tab=[];var Orig=P30;var d1=[Orig[0]+1,Orig[1]+1];var d2=[Orig[0]+2,Orig[1]+3];var d3=[Orig[0]+2,Orig[1]+4];var d4=[Orig[0]+1,Orig[1]+3];var d5=[Orig[0],Orig[1]+1];var tab=[Orig,d1,d2,d3,d4,d5,Orig];tab","-11.49674204177276","10.612132364912945");
+E61=Expression("E61","","","","var tab=[];var Orig=P31;var d1=[Orig[0]+1,Orig[1]+1];var d2=[Orig[0]+2,Orig[1]+3];var d3=[Orig[0]+2,Orig[1]+4];var d4=[Orig[0]+1,Orig[1]+3];var d5=[Orig[0],Orig[1]+1];var tab=[Orig,d1,d2,d3,d4,d5,Orig];tab","-11.49674204177276","10.612132364912945");
+List3=List("List3",E6);
+List4=List("List4",E7);
+E70=Expression("E70","","","","var tab=[];var Orig=P32;var d1=[Orig[0]+1,Orig[1]];var d2=[Orig[0]+3,Orig[1]+1];var d3=[Orig[0]+4,Orig[1]+2];var d4=[Orig[0]+3,Orig[1]+2];var d5=[Orig[0]+1,Orig[1]+1];var tab=[Orig,d1,d2,d3,d4,d5,Orig];tab","-11.49674204177276","12.604600062113484");
+E71=Expression("E71","","","","var tab=[];var Orig=P33;var d1=[Orig[0]+1,Orig[1]];var d2=[Orig[0]+3,Orig[1]+1];var d3=[Orig[0]+4,Orig[1]+2];var d4=[Orig[0]+3,Orig[1]+2];var d5=[Orig[0]+1,Orig[1]+1];var tab=[Orig,d1,d2,d3,d4,d5,Orig];tab","-11.49674204177276","12.604600062113484");
+List1=List("List1",Bonhomme);
+GGBM=List("GGBM",E1);
+List20=List("List20",E50);
+List21=List("List21",E51);
+List22=List("List22",E52);
+List23=List("List23",E53);
+List24=List("List24",E54);
+List25=List("List25",E55);
+List26=List("List26",E56);
+List30=List("List30",E60);
+List31=List("List31",E61);
+List40=List("List40",E70);
+List41=List("List41",E71);
+PtFinal=Expression("PtFinal","Dernier point = ","","","E1[n]","-6.942530162457243","1.7883468487391276");
+P36=Point("P36","E1[n]","0");
+E2=Expression("E2","","","","[E1[n-1],E1[n]]","-11.212103799315543","3.780814545939667");
+FinListe=List("FinListe",E2);
+
+
+// Styles :
+STL(P543,"c:#0000b2;h:1;s:6;f:30");
+STL(P510,"c:#0000b2;h:1;s:6;f:30");
+STL(P509,"c:#0000b2;h:1;s:6;f:30");
+STL(P508,"c:#0000b2;h:1;s:6;f:30");
+STL(P507,"c:#0000b2;h:1;s:6;f:30");
+STL(P506,"c:#0000b2;h:1;s:6;f:30");
+STL(P505,"c:#0000b2;h:1;s:6;f:30");
+STL(P504,"c:#0000b2;h:1;s:6;f:30");
+STL(P503,"c:#0000b2;h:1;s:6;f:30");
+STL(P502,"c:#0000b2;h:1;s:6;f:30");
+STL(P537,"c:#0000b2;h:1;s:6;f:30");
+STL(P536,"c:#0000b2;h:1;s:6;f:30");
+STL(P535,"c:#0000b2;h:1;s:6;f:30");
+STL(P534,"c:#0000b2;h:1;s:6;f:30");
+STL(P533,"c:#0000b2;h:1;s:6;f:30");
+STL(P532,"c:#0000b2;h:1;s:6;f:30");
+STL(P530,"c:#0000b2;h:1;s:6;f:30");
+STL(P529,"c:#0000b2;h:1;s:6;f:30");
+STL(P528,"c:#0000b2;h:1;s:6;f:30");
+STL(P527,"c:#0000b2;h:1;s:6;f:30");
+STL(P526,"c:#0000b2;h:1;s:6;f:30");
+STL(P525,"c:#0000b2;h:1;s:6;f:30");
+STL(P524,"c:#0000b2;h:1;s:6;f:30");
+STL(P523,"c:#0000b2;h:1;s:6;f:30");
+STL(P522,"c:#0000b2;h:1;s:6;f:30");
+STL(P521,"c:#0000b2;h:1;s:6;f:30");
+STL(P520,"c:#0000b2;h:1;s:6;f:30");
+STL(P519,"c:#0000b2;h:1;s:6;f:30");
+STL(P518,"c:#0000b2;h:1;s:6;f:30");
+STL(P516,"c:#0000b2;h:1;s:6;f:30");
+STL(P515,"c:#0000b2;h:1;s:6;f:30");
+STL(P514,"c:#0000b2;h:1;s:6;f:30");
+STL(P513,"c:#0000b2;h:1;s:6;f:30");
+STL(P511,"c:#0000b2;h:1;s:6;f:30");
+STL(P560,"c:#0000b2;h:1;s:6;f:30");
+STL(P559,"c:#0000b2;h:1;s:6;f:30");
+STL(P558,"c:#0000b2;h:1;s:6;f:30");
+STL(P556,"c:#0000b2;h:1;s:6;f:30");
+STL(P555,"c:#0000b2;h:1;s:6;f:30");
+STL(P554,"c:#0000b2;h:1;s:6;f:30");
+STL(P553,"c:#0000b2;h:1;s:6;f:30");
+STL(P552,"c:#0000b2;h:1;s:6;f:30");
+STL(P551,"c:#0000b2;h:1;s:6;f:30");
+STL(P550,"c:#0000b2;h:1;s:6;f:30");
+STL(P549,"c:#0000b2;h:1;s:6;f:30");
+STL(P548,"c:#0000b2;h:1;s:6;f:30");
+STL(P547,"c:#0000b2;h:1;s:6;f:30");
+STL(P546,"c:#0000b2;h:1;s:6;f:30");
+STL(P545,"c:#0000b2;h:1;s:6;f:30");
+STL(P544,"c:#0000b2;h:1;s:6;f:30");
+STL(P542,"c:#0000b2;h:1;s:6;f:30");
+STL(P541,"c:#0000b2;h:1;s:6;f:30");
+STL(P540,"c:#0000b2;h:1;s:6;f:30");
+STL(P539,"c:#0000b2;h:1;s:6;f:30");
+STL(P538,"c:#0000b2;h:1;s:6;f:30");
+STL(P531,"c:#0000b2;h:1;s:6;f:30");
+STL(P512,"c:#0000b2;h:1;s:6;f:30");
+STL(P561,"c:#0000b2;h:1;s:6;f:30");
+STL(P557,"c:#0000b2;h:1;s:6;f:30");
+STL(P517,"c:#0000b2;h:1;s:6;f:30");
+STL(P21,"c:#0000b2;h:1;s:6;f:30");
+STL(P20,"c:#0000b2;h:1;s:6;f:30");
+STL(P19,"c:#0000b2;h:1;s:6;f:30");
+STL(P18,"c:#0000b2;h:1;s:6;f:30");
+STL(P1,"c:#0000b2;h:1;s:6;f:30");
+STL(P2,"c:#0000b2;h:1;s:6;f:30");
+STL(P3,"c:#0000b2;h:1;s:6;f:30");
+STL(P4,"c:#0000b2;h:1;s:6;f:30");
+STL(P5,"c:#0000b2;h:1;s:6;f:30");
+STL(P6,"c:#0000b2;h:1;s:6;f:30");
+STL(P7,"c:#0000b2;h:1;s:6;f:30");
+STL(P8,"c:#0000b2;h:1;s:6;f:30");
+STL(P9,"c:#0000b2;h:1;s:6;f:30");
+STL(P10,"c:#0000b2;h:1;s:6;f:30");
+STL(P11,"c:#0000b2;h:1;s:6;f:30");
+STL(P12,"c:#0000b2;h:1;s:6;f:30");
+STL(P13,"c:#0000b2;h:1;s:6;f:30");
+STL(P14,"c:#0000b2;h:1;s:6;f:30");
+STL(P15,"c:#0000b2;h:1;s:6;f:30");
+STL(P16,"c:#0000b2;h:1;s:6;f:30");
+STL(P17,"c:#0000b2;h:1;s:6;f:30");
+STL(A,"c:#b40000;o:1;s:6;sn:true;f:30;mg:[P12,5],[P17,5],[P11,5],[P2,5],[P18,5],[P8,5],[P9,5],[P3,5],[P14,5],[P4,5],[P6,5],[P15,5],[P5,5],[P10,5],[P19,5],[P7,5],[P16,5],[P21,5],[P20,5],[S1,5],[P34,10],[P35,20],[List1,20]");
+STL(P22,"c:#0000b2;h:1;s:6;f:30");
+STL(dep,"c:#0000b2;h:1;s:6;sn:true;f:18");
+STL(dep1,"c:#0000b2;h:1;s:6;sn:true;f:20");
+STL(dep2,"c:#0000b2;h:1;s:6;sn:true;f:19;np:4.484280304842891");
+STL(P34,"c:#0000b2;h:1;s:6;f:30");
+STL(P35,"c:#0000b2;h:1;s:6;f:30");
+STL(Poly1,"c:#b40000;o:0.28;s:1;f:30");
+STL(Poly6,"c:#006633;o:0.2;s:1;f:30");
+STL(Poly2,"c:#0000b2;o:0.29;s:1;f:30");
+STL(Poly3,"c:#006633;o:0.2;s:1;f:30");
+STL(Poly4,"c:#cc66cc;o:0.2;s:1;f:30");
+STL(Poly5,"c:#966400;o:0.2;s:1;f:30");
+STL(S1,"c:#006633;h:1;s:1;f:24");
+STL(E5,"c:#0d3e26;h:1;s:7;f:24;p:2;cL:200;cPT:YzojNzgwMDEzO2g6MTtzOjEwO2Y6MzA=");
+STL(P23,"c:#0000b2;h:1;s:6;f:30");
+STL(P24,"c:#0000b2;h:1;s:6;f:30");
+STL(P25,"c:#0000b2;h:1;s:6;f:30");
+STL(P26,"c:#0000b2;h:1;s:6;f:30");
+STL(P27,"c:#0000b2;h:1;s:6;f:30");
+STL(P28,"c:#0000b2;h:1;s:6;f:30");
+STL(P29,"c:#0000b2;h:1;s:6;f:30");
+STL(P30,"c:#0000b2;h:1;s:6;f:30");
+STL(P31,"c:#0000b2;h:1;s:6;f:30");
+STL(E6,"c:#733e6c;h:1;s:7;f:24;p:2;cL:200;cPT:YzojNzgwMDEzO2g6MTtzOjEwO2Y6MzA=");
+STL(E7,"c:#084a67;h:1;s:7;f:24;p:2;cL:200;cPT:YzojNzgwMDEzO2g6MTtzOjEwO2Y6MzA=");
+STL(P32,"c:#0000b2;h:1;s:6;f:30");
+STL(P33,"c:#0000b2;h:1;s:6;f:30");
+STL(n,"c:#4e273c;s:7;sn:true;f:24;p:2;i:1;cL:400;cPT:YzojNzgwMDEzO3M6MTA7ZjozMDtpOjE=");
+STL(CoordA,"c:#2d7d28;h:1;s:7;sn:true;f:18;p:4;cL:200;cPT:YzojNzgwMDEzO2g6MTtzOjEwO2Y6MzA=");
+STL(Bonhomme,"c:#0c2f1d;h:1;s:7;sn:true;f:15;p:2;cL:200;cPT:YzojNzgwMDEzO2g6MTtzOjEwO2Y6MzA=");
+STL(E1,"c:#056a27;h:1;s:7;f:13;p:4;cL:200;cPT:YzojNzgwMDEzO2g6MTtzOjEwO2Y6MzA=");
+STL(List2,"c:#007c7c;o:0.2;s:0;f:30;p:0;sg:0.6");
+STL(E50,"c:#780013;h:2;s:7;f:24;p:2;cL:200;cPT:YzojNzgwMDEzO2g6MjtzOjEwO2Y6MzA=");
+STL(E51,"c:#780013;h:2;s:7;f:24;p:2;cL:200;cPT:YzojNzgwMDEzO2g6MjtzOjEwO2Y6MzA=");
+STL(E52,"c:#780013;h:2;s:7;f:24;p:2;cL:200;cPT:YzojNzgwMDEzO2g6MjtzOjEwO2Y6MzA=");
+STL(E53,"c:#780013;h:2;s:7;f:24;p:2;cL:200;cPT:YzojNzgwMDEzO2g6MjtzOjEwO2Y6MzA=");
+STL(E54,"c:#780013;h:2;s:7;f:24;p:2;cL:200;cPT:YzojNzgwMDEzO2g6MjtzOjEwO2Y6MzA=");
+STL(E55,"c:#780013;h:2;s:7;f:24;p:2;cL:200;cPT:YzojNzgwMDEzO2g6MjtzOjEwO2Y6MzA=");
+STL(E56,"c:#780013;h:2;s:7;f:24;p:2;cL:200;cPT:YzojNzgwMDEzO2g6MjtzOjEwO2Y6MzA=");
+STL(E60,"c:#780013;h:2;s:7;f:24;p:2;cL:200;cPT:YzojNzgwMDEzO2g6MjtzOjEwO2Y6MzA=");
+STL(E61,"c:#780013;h:2;s:7;f:24;p:2;cL:200;cPT:YzojNzgwMDEzO2g6MjtzOjEwO2Y6MzA=");
+STL(List3,"c:#966400;o:0.2;s:0;f:30;p:0;sg:1");
+STL(List4,"c:#cc66cc;o:0.2;s:0;f:30;p:0;sg:1");
+STL(E70,"c:#780013;h:2;s:7;f:24;p:2;cL:200;cPT:YzojNzgwMDEzO2g6MjtzOjEwO2Y6MzA=");
+STL(E71,"c:#780013;h:2;s:7;f:24;p:2;cL:200;cPT:YzojNzgwMDEzO2g6MjtzOjEwO2Y6MzA=");
+STL(List1,"c:#2687e4;o:0.15;s:0;f:30;p:0;sg:1");
+STL(GGBM,"c:#3d73e0;s:0.2;sn:true;f:30;p:0;sg:0.7");
+STL(List20,"c:#007c7c;o:0.2;s:0;f:30;p:0;sg:0.6");
+STL(List21,"c:#007c7c;o:0.2;s:0;f:30;p:0;sg:0.6");
+STL(List22,"c:#007c7c;o:0.2;s:0;f:30;p:0;sg:0.6");
+STL(List23,"c:#007c7c;o:0.2;s:0;f:30;p:0;sg:0.6");
+STL(List24,"c:#007c7c;o:0.2;s:0;f:30;p:0;sg:0.6");
+STL(List25,"c:#007c7c;o:0.2;s:0;f:30;p:0;sg:0.6");
+STL(List26,"c:#007c7c;o:0.2;s:0;f:30;p:0;sg:0.6");
+STL(List30,"c:#966400;o:0.2;s:0;f:30;p:0;sg:1");
+STL(List31,"c:#966400;o:0.2;s:0;f:30;p:0;sg:1");
+STL(List40,"c:#cc66cc;o:0.2;s:0;f:30;p:0;sg:1");
+STL(List41,"c:#cc66cc;o:0.2;s:0;f:30;p:0;sg:1");
+STL(PtFinal,"c:#384b7b;h:1;s:7;sn:true;f:18;p:4;cL:200;cPT:YzojNzgwMDEzO2g6MTtzOjEwO2Y6MzA=");
+STL(P36,"c:#fc092f;s:5;f:30;sp:1");
+STL(E2,"c:#050202;h:1;s:7;f:24;p:2;cL:200;cPT:YzojNzgwMDEzO2g6MTtzOjEwO2Y6MzA=");
+STL(FinListe,"c:#fc092f;s:0.1;sn:true;f:30;p:0;sg:0.8");
+SetCoordsStyle("isAxis:true;isGrid:true;isOx:true;isOy:true;isLockOx:false;isLockOy:false;centerZoom:false;onlyPositive:false;color:#c35fdd;fontSize:18;axisWidth:1;gridWidth:0.1");
+SetGeneralStyle("background-color:#ffffff;degree:false;dragmoveable:true");
+
+
+// Texts :
+Text("<div style='font-size:18px;color:#CC0000;text-align:center'>$Gingerbread  \\; Man \\; map$\n<div style='font-size:16px;color:#0000FF;text-align:left'>\n$A=(x_0,y_0=(%A[0]% \\,;\\,%A[1]%)$\n$x_{n+1}=1-y_n+|x_n|$\n$y_{n+1}=x_n$\n<div style='color:#FF0000'>\n$(x_{%n%},y_{%n%}) = (%PtFinal[0]% \\, ; \\,%PtFinal[1]%)$",30,132,301,194,"c:rgba(227,178,122,0.18);s:3;r:15;p:4");

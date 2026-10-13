@@ -82,6 +82,23 @@ P=Point("P",1,2);`;
         ]);
     });
 
+    it("reads identifiers spelled with escapes as JavaScript does", () => {
+        const [, call] = parseDgp(
+            'F\\u03C0=Point("F",1,2);F\\u03C01=Symmetry("G",\\u{3C0}\\u{1D49C},F\\u03c0);',
+        );
+        expect(call).toMatchObject({
+            variable: "Fπ1",
+            arguments: [
+                { type: "literal", value: "G" },
+                { type: "reference", name: "π𝒜" },
+                { type: "reference", name: "Fπ" },
+            ],
+        });
+        expect(() => parseDgp('F\\u0028=Point("F",1,2);')).toThrow(
+            "Invalid DGP syntax",
+        );
+    });
+
     it("keeps a Blockly program's object whole, on its lines", () => {
         const calls = parseDgp(`BLK(P1,{"onlogo":{"xml":"<xml a=\\"}\\">",
 "js":[1,{"b":2}]}});

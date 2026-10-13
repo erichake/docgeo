@@ -1,0 +1,477 @@
+// Macros :
+$macros={};
+$macros["GGBMAetn"]={
+	name:"GGBM Aetn",
+	parameters:["expression"],
+	exec:
+	function(Aetn){
+A=Point("A","Aetn[0]","0");
+n=Expression("n","","","","Aetn[1]","-3.133606849886683","8.65499414182501");
+An=Expression("An","","","","var u=[A[0],A[1]];var gin=[u];for(i=1;i<=n;i++){v=[1- u[1]+abs(u[0]),u[0]];gin.push(v);u=v};gin","4.2","-3.8");
+GGBM=List("GGBM",An);
+STL(GGBM,"c:#3d73e0;s:0.2;sn:true;f:30;p:0;sg:0.7");
+STL(An,"c:#733e6c;s:7;f:16;p:2;cL:200;cPT:YzojNzgwMDEzO2g6MTtzOjEwO2Y6MzA=");
+return [GGBM];
+}};
+
+$macros["ListeType1"]={
+	name:"ListeType1",
+	parameters:["point"],
+	exec:
+	function(dep){
+E5=Expression("E5","","","","var tab=[];var Orig=dep;var d1=[Orig[0],Orig[1]-1];var d2=[Orig[0]+1,Orig[1]-2];var d3=[Orig[0]+2,Orig[1]-2];var d4=[Orig[0]+2,Orig[1]-1];var d5=[Orig[0]+1,Orig[1]];var tab=[Orig,d1,d2,d3,d4,d5];tab","-11.432943100110924","12.478998733685218");
+List2=List("List2",E5);
+STL(List2,"c:#0000b2;s:1;f:30;p:0;sg:1");
+return [List2];
+}};
+
+$macros["Newhexa1"]={
+	name:"New hexa 1",
+	parameters:["point"],
+	exec:
+	function(B){
+E4=Expression("E4","","","","[B,B+[0.25,-0.25],B+[0.75,0],B+[1,0.5],B+[0.75,0.75],B+[0.25,0.5],B]","-12.271096668215112","10.379069500932404");
+hexa=List("hexa",E4);
+STL(hexa,"c:#ff8a1c;o:0.2;s:0;sn:true;f:30;p:0;sg:0.5");
+return [hexa];
+}};
+
+$macros["Newhexa2"]={
+	name:"New hexa 2",
+	parameters:["point"],
+	exec:
+	function(Kh){
+E11=Expression("E11","","","","[Kh,Kh+[0.25,-0.75],Kh+[0.75,-1.5],Kh+[1,-1.5],Kh+[0.75,-0.75],Kh+[0.25,0],Kh]","-12.312659435597567","10.129692896637676");
+hexa20=List("hexa20",E11);
+STL(hexa20,"c:#ff8a1c;o:0.2;s:0;sn:true;f:30;p:0;sg:0.5");
+return [hexa20];
+}};
+
+$macros["Newhexa3"]={
+	name:"New hexa 3",
+	parameters:["point"],
+	exec:
+	function(Kk){
+E12=Expression("E12","","","","[Kk,Kk+[0.75,-0.5],Kk+[1.5,-0.75],Kk+[1.5,-0.5],Kk+[0.75,0],Kk+[0,0.25],Kk]","-11.445462057500837","-8.256193449084826");
+hexa30=List("hexa30",E12);
+STL(hexa30,"c:#ff8a1c;o:0.2;s:0;sn:true;f:30;p:0;sg:0.5");
+return [hexa30];
+}};
+
+$macros["Poly1plein"]={
+	name:"Poly 1 plein",
+	parameters:["point"],
+	exec:
+	function(dep){
+E5=Expression("E5","","","","var tab=[];var Orig=dep;var d1=[Orig[0],Orig[1]-1];var d2=[Orig[0]+1,Orig[1]-2];var d3=[Orig[0]+2,Orig[1]-2];var d4=[Orig[0]+2,Orig[1]-1];var d5=[Orig[0]+1,Orig[1]];var tab=[Orig,d1,d2,d3,d4,d5];tab","-11.432943100110924","12.478998733685218");
+List2=List("List2",E5);
+STL(List2,"c:#007c7c;o:0.2;s:0;f:30;p:0;sg:0.6");
+return [List2];
+}};
+
+$macros["Poly2plein"]={
+	name:"Poly2 plein",
+	parameters:["point"],
+	exec:
+	function(dep1){
+E6=Expression("E6","","","","var tab=[];var Orig=dep1;var d1=[Orig[0]+1,Orig[1]+1];var d2=[Orig[0]+2,Orig[1]+3];var d3=[Orig[0]+2,Orig[1]+4];var d4=[Orig[0]+1,Orig[1]+3];var d5=[Orig[0],Orig[1]+1];var tab=[Orig,d1,d2,d3,d4,d5,Orig];tab","-7.126219616991071","12.265107304035686");
+List3=List("List3",E6);
+STL(List3,"c:#966400;o:0.2;s:0;f:30;p:0;sg:1");
+return [List3];
+}};
+
+$macros["Poly3plein"]={
+	name:"Poly3 plein",
+	parameters:["point"],
+	exec:
+	function(dep2){
+E7=Expression("E7","","","","var tab=[];var Orig=dep2;var d1=[Orig[0]+1,Orig[1]];var d2=[Orig[0]+3,Orig[1]+1];var d3=[Orig[0]+4,Orig[1]+2];var d4=[Orig[0]+3,Orig[1]+2];var d5=[Orig[0]+1,Orig[1]+1];var tab=[Orig,d1,d2,d3,d4,d5,Orig];tab","-7.126219616991071","14.450923433494438");
+List4=List("List4",E7);
+STL(List4,"c:#cc66cc;o:0.2;s:0;f:30;p:0;sg:1");
+return [List4];
+}};
+
+// Coordinates System :
+SetCoords(503.60309874318307,568.9371340857223,25.224224451228505,false,1299,884);
+
+
+// Geometry :
+P543=Point("P543","[4,0]","0");
+P510=Point("P510","[-1,4]","0");
+P509=Point("P509","[0,3]","0");
+P508=Point("P508","[0,2]","0");
+P507=Point("P507","[0,1]","0");
+P506=Point("P506","[1,2]","0");
+P505=Point("P505","[2,2]","0");
+P504=Point("P504","[2,1]","0");
+P503=Point("P503","[1,0]","0");
+P502=Point("P502","[0,0]","0");
+P537=Point("P537","[2,4]","0");
+P536=Point("P536","[3,6]","0");
+P535=Point("P535","[4,7]","0");
+P534=Point("P534","[4,6]","0");
+P533=Point("P533","[3,4]","0");
+P532=Point("P532","[2,3]","0");
+P530=Point("P530","[6,4]","0");
+P529=Point("P529","[7,4]","0");
+P528=Point("P528","[6,3]","0");
+P527=Point("P527","[4,2]","0");
+P526=Point("P526","[3,2]","0");
+P525=Point("P525","[3,0]","0");
+P524=Point("P524","[4,-1]","0");
+P523=Point("P523","[4,-2]","0");
+P522=Point("P522","[3,-2]","0");
+P521=Point("P521","[2,-1]","0");
+P520=Point("P520","[2,0]","0");
+P519=Point("P519","[0,-1]","0");
+P518=Point("P518","[0,-2]","0");
+P516=Point("P516","[-2,-1]","0");
+P515=Point("P515","[-2,0]","0");
+P514=Point("P514","[-1,0]","0");
+P513=Point("P513","[-1,2]","0");
+P511=Point("P511","[-2,4]","0");
+P560=Point("P560","[-3,0]","0");
+P559=Point("P559","[-2,1]","0");
+P558=Point("P558","[-2,2]","0");
+P556=Point("P556","[-2,5]","0");
+P555=Point("P555","[0,4]","0");
+P554=Point("P554","[1,4]","0");
+P553=Point("P553","[2,5]","0");
+P552=Point("P552","[4,8]","0");
+P551=Point("P551","[5,8]","0");
+P550=Point("P550","[4,5]","0");
+P549=Point("P549","[4,4]","0");
+P548=Point("P548","[5,4]","0");
+P547=Point("P547","[8,5]","0");
+P546=Point("P546","[8,4]","0");
+P545=Point("P545","[5,2]","0");
+P544=Point("P544","[4,1]","0");
+P542=Point("P542","[5,-2]","0");
+P541=Point("P541","[4,-3]","0");
+P540=Point("P540","[2,-2]","0");
+P539=Point("P539","[1,-2]","0");
+P538=Point("P538","[0,-3]","0");
+P531=Point("P531","[4,3]","0");
+P512=Point("P512","[-2,3]","0");
+P561=Point("P561","[-2,-2]","0");
+P557=Point("P557","[-3,4]","0");
+P517=Point("P517","[-1,-2]","0");
+P21=Point("P21","[8,-1]","0");
+P20=Point("P20","[8,0]","0");
+P19=Point("P19","[5,0.5]","0");
+P18=Point("P18","[1,6]","0");
+P1=Point("P1","[5,3]","0");
+P2=Point("P2","[3,5]","0");
+P3=Point("P3","[-1,3]","0");
+P4=Point("P4","[-1,-1]","0");
+P5=Point("P5","[3,-1]","0");
+P6=Point("P6","[1,1]","0");
+P7=Point("P7","[5,1]","0");
+P8=Point("P8","[1,5]","0");
+P9=Point("P9","[-3,5]","0");
+P10=Point("P10","[5,-3]","0");
+P11=Point("P11","[5,5]","0");
+P12=Point("P12","[9,5]","0");
+P13=Point("P13","[5,9]","0");
+P14=Point("P14","[-3,1]","0");
+P15=Point("P15","[1,-3]","0");
+P16=Point("P16","[6,1]","0");
+P17=Point("P17","[6,6]","0");
+A=Point("A",10.00000000000002,1.66666666666666);
+P22=Point("P22","[6,2]","0");
+dep=Point("dep","[-6,4]","0");
+dep1=Point("dep1","[6,7]","0");
+dep2=Point("dep2","[7,6]","0");
+P34=Point("P34","[-4,0]","0");
+P35=Point("P35","[5,-2]","0");
+ExpGrilleTiers=Expression("ExpGrilleTiers","","","","var tab=[]; for (var i=0;i<50;i++) {for (var j=0;j<50;j++) {tab.push([-6+i/3,-5+j/3])}};tab","-18.379280585596124","-8.367467008643679");
+P47=Point("P47","[4.5,0.75]","0");
+Kh=Point("Kh","[-3.5,3.75]","0");
+Kk=Point("Kk","[-1.75,-2.75]","0");
+Aura=Expression("Aura","","","","[[6,-2],[5,0],[6,1],[6,2],[9,4],[10,5],[10,6],[9,6],[6,5],[6,6],[5,6],[6,9],[6,10],[5,10],[4,9],[2,6],[1,6],[0,5],[-2,6],[-3,6],[-4,5],[-4,4],[-3,2],[-4,1],[-4,0],[-3,-2],[-2,-3],[0,-4],[1,-4],[2,-3],[4,-4],[5,-4],[6,-3],[6,-2]]","-17.982836285818536","7.886749282237432");
+P52=Point("P52","[-(2+2/3),4+2/3]","0");
+P53=Point("P53","[-(2+1/3),5+1/3]","0");
+P54=Point("P54","[-(2+2/3),5+2/3]","0");
+P55=Point("P55","[-(3+1/3),5+1/3]","0");
+P56=Point("P56","[-(3+2/3),4+2/3]","0");
+P57=Point("P57","[-(3+1/3),4+1/3]","0");
+P44=Point("P44","[4.5,8.75]","0");
+HOblik1=Expression("HOblik1","","","","var tab=[];var LeH1=[[-3-2/3,4],[-3-1/3,3],[-3+1/3,2],[-2-1/3,2],[-2-2/3,3],[-3-1/3,4],[-3-2/3,4]];LeH1","-15.604170487153006","-9.556799907976442");
+HOblik1Ligne2=Expression("HOblik1Ligne2","","","","var tab=[];var LeH1=[[-3-2/3,4],[-3-1/3,3],[-3+1/3,2],[-2-1/3,2],[-2-2/3,3],[-3-1/3,4],[-3-2/3,4]];for (j=0;j<2;j++) {for (var i=0;i<7;i++) {var K=[LeH1[i][0]+8*j,LeH1[i][1]-4];tab.push(K)};tab.push([NaN,NaN]);};tab","-16.79350338648577","-8.367467008643679");
+HOblik2=Expression("HOblik2","","","","var tab=[];var LeH1=[[-2,5+2/3],[-2,5+1/3],[-1,5-1/3],[0,5-2/3],[0,5-1/3],[-1,5+1/3],[-2,5+2/3]];LeH1","-18.379280585596124","-7.178134109310915");
+CopieHOblik2=Expression("CopieHOblik2","","","","var tab=[];var LeH1=[[-2,5+2/3],[-2,5+1/3],[-1,5-1/3],[0,5-2/3],[0,5-1/3],[-1,5+1/3],[-2,5+2/3]];for (j=0;j<2;j++) {for (var i=0;i<7;i++) {var K=[LeH1[i][0]+4*j,LeH1[i][1]-8];tab.push(K)};tab.push([NaN,NaN]);};tab","-18.379280585596124","-9.556799907976442");
+HexaSeul1=Expression("HexaSeul1","","","","[[2,5+2/3],[2,5+1/3],[3,6+2/3],[4,8+1/3],[4,8+2/3],[3,7+1/3],[2,5+2/3]]","-10.846838889821948","-8.763911308421267");
+HexaSeul2=Expression("HexaSeul2","","","","[[4+1/3,5+1/3],[4+2/3,5+2/3],[5+1/3,7+1/3],[5+2/3,8+2/3],[5+1/3,8+1/3],[4+2/3,6+2/3],[4+1/3,5+1/3]]","-16.79350338648577","-7.178134109310915");
+HexaSeul3=Expression("HexaSeul3","","","","[[5+1/3,4+1/3],[6+2/3,4+2/3],[8+1/3,5+1/3],[8+2/3,5+2/3],[7+1/3,5+1/3],[5+2/3,4+2/3],[5+1/3,4+1/3]]","-17.982836285818536","-8.763911308421267");
+HexSeul4=Expression("HexSeul4","","","","[[5+1/3,2],[5+2/3,2],[7+1/3,3],[8+2/3,4],[8+1/3,4],[6+2/3,3],[5+1/3,2]]","-17.982836285818536","17.797856776677133");
+Poly1=Polygon("Poly1","_P504,_P505,_P506,_P507,_P502,_P503");
+Poly6=Polygon("Poly6","_P508,_P509,_P510,_P511,_P512,_P513");
+Poly2=Polygon("Poly2","_P519,_P514,_P515,_P516,_P517,_P518");
+Poly3=Polygon("Poly3","_P525,_P520,_P521,_P522,_P523,_P524");
+Poly4=Polygon("Poly4","_P526,_P527,_P528,_P529,_P530,_P531");
+Poly5=Polygon("Poly5","_P532,_P533,_P534,_P535,_P536,_P537");
+S1=Segment("S1",P16,P22);
+E5=Expression("E5","","","","var tab=[];var Orig=dep;var d1=[Orig[0],Orig[1]-1];var d2=[Orig[0]+1,Orig[1]-2];var d3=[Orig[0]+2,Orig[1]-2];var d4=[Orig[0]+2,Orig[1]-1];var d5=[Orig[0]+1,Orig[1]];var tab=[Orig,d1,d2,d3,d4,d5,Orig];tab","-17.586391986040947","16.608523877344368");
+P23=Point("P23","dep+[0,4]","0");
+P24=Point("P24","dep+[0,-4]","0");
+P25=Point("P25","dep+[4,4]","0");
+P26=Point("P26","dep+[4,-8]","0");
+P27=Point("P27","dep+[8,-8]","0");
+P28=Point("P28","dep+[12,-8]","0");
+P29=Point("P29","dep+[12,-4]","0");
+P30=Point("P30","dep1+[-4,0]","0");
+P31=Point("P31","dep1+[0,4]","0");
+E6=Expression("E6","","","","var tab=[];var Orig=dep1;var d1=[Orig[0]+1,Orig[1]+1];var d2=[Orig[0]+2,Orig[1]+3];var d3=[Orig[0]+2,Orig[1]+4];var d4=[Orig[0]+1,Orig[1]+3];var d5=[Orig[0],Orig[1]+1];var tab=[Orig,d1,d2,d3,d4,d5,Orig];tab","-18.775724885373712","13.040525179346076");
+E7=Expression("E7","","","","var tab=[];var Orig=dep2;var d1=[Orig[0]+1,Orig[1]];var d2=[Orig[0]+3,Orig[1]+1];var d3=[Orig[0]+4,Orig[1]+2];var d4=[Orig[0]+3,Orig[1]+2];var d5=[Orig[0]+1,Orig[1]+1];var tab=[Orig,d1,d2,d3,d4,d5,Orig];tab","-18.7757248853737","14.22985807867884");
+P32=Point("P32","dep2+[4,0]","0");
+P33=Point("P33","dep2+[0,-4]","0");
+n=Expression("n","","0","200","60","0.25360150395051617","19.383633975787482");
+CoordA=Expression("CoordA","","","","A","-15.604170487153006","11.454747980235727");
+Bonhomme=Expression("Bonhomme","","","","[P556,P555,P554,P553,P552,P551,P550,P549,P548,P547,P546,P545,P544,P543,P542,P35,P541,P540,P539,P538,P561,P560,P559,P558,P557,P556]","6.2002660006143415","-9.556799907976442");
+GrilleTiers=List("GrilleTiers",ExpGrilleTiers);
+Laura=List("Laura",Aura);
+HexaT1=Expression("HexaT1","","","","[P57,P52,P53,P54,P55,P56,P57]","-16.397059086708182","-8.367467008643679");
+E46=Expression("E46","","","","[P44,P44+[0.25,-0.25],P44+[0.75,0],P44+[1,0.5],P44+[0.75,0.75],P44+[0.25,0.5],P44]","-18.10176957575181","19.938655995476108");
+List6=List("List6",HOblik1);
+List7=List("List7",HOblik1Ligne2);
+List8=List("List8",HOblik2);
+List9=List("List9",CopieHOblik2);
+List11=List("List11",HexaSeul1);
+List13=List("List13",HexaSeul2);
+List12=List("List12",HexaSeul3);
+List14=List("List14",HexSeul4);
+E1=Expression("E1","","","","var u=[A[0],A[1]];var gin=[u];for(i=1;i<=n;i++){v=[1- u[1]+abs(u[0]),u[0]];gin.push(v);u=v};gin","12.146930497278158","-7.971022708866091");
+List2=List("List2",E5);
+E50=Expression("E50","","","","var tab=[];var Orig=P23;var d1=[Orig[0],Orig[1]-1];var d2=[Orig[0]+1,Orig[1]-2];var d3=[Orig[0]+2,Orig[1]-2];var d4=[Orig[0]+2,Orig[1]-1];var d5=[Orig[0]+1,Orig[1]];var tab=[Orig,d1,d2,d3,d4,d5,Orig];tab","-17.982836285818536","17.797856776677133");
+E51=Expression("E51","","","","var tab=[];var Orig=P25;var d1=[Orig[0],Orig[1]-1];var d2=[Orig[0]+1,Orig[1]-2];var d3=[Orig[0]+2,Orig[1]-2];var d4=[Orig[0]+2,Orig[1]-1];var d5=[Orig[0]+1,Orig[1]];var tab=[Orig,d1,d2,d3,d4,d5,Orig];tab","-17.982836285818536","17.797856776677133");
+E52=Expression("E52","","","","var tab=[];var Orig=P24;var d1=[Orig[0],Orig[1]-1];var d2=[Orig[0]+1,Orig[1]-2];var d3=[Orig[0]+2,Orig[1]-2];var d4=[Orig[0]+2,Orig[1]-1];var d5=[Orig[0]+1,Orig[1]];var tab=[Orig,d1,d2,d3,d4,d5,Orig];tab","-17.982836285818536","17.797856776677133");
+E53=Expression("E53","","","","var tab=[];var Orig=P26;var d1=[Orig[0],Orig[1]-1];var d2=[Orig[0]+1,Orig[1]-2];var d3=[Orig[0]+2,Orig[1]-2];var d4=[Orig[0]+2,Orig[1]-1];var d5=[Orig[0]+1,Orig[1]];var tab=[Orig,d1,d2,d3,d4,d5,Orig];tab","-17.982836285818536","17.797856776677133");
+E54=Expression("E54","","","","var tab=[];var Orig=P27;var d1=[Orig[0],Orig[1]-1];var d2=[Orig[0]+1,Orig[1]-2];var d3=[Orig[0]+2,Orig[1]-2];var d4=[Orig[0]+2,Orig[1]-1];var d5=[Orig[0]+1,Orig[1]];var tab=[Orig,d1,d2,d3,d4,d5,Orig];tab","-17.982836285818536","17.797856776677133");
+E55=Expression("E55","","","","var tab=[];var Orig=P28;var d1=[Orig[0],Orig[1]-1];var d2=[Orig[0]+1,Orig[1]-2];var d3=[Orig[0]+2,Orig[1]-2];var d4=[Orig[0]+2,Orig[1]-1];var d5=[Orig[0]+1,Orig[1]];var tab=[Orig,d1,d2,d3,d4,d5,Orig];tab","-17.982836285818536","17.797856776677133");
+E56=Expression("E56","","","","var tab=[];var Orig=P29;var d1=[Orig[0],Orig[1]-1];var d2=[Orig[0]+1,Orig[1]-2];var d3=[Orig[0]+2,Orig[1]-2];var d4=[Orig[0]+2,Orig[1]-1];var d5=[Orig[0]+1,Orig[1]];var tab=[Orig,d1,d2,d3,d4,d5,Orig];tab","-17.982836285818536","17.797856776677133");
+E60=Expression("E60","","","","var tab=[];var Orig=P30;var d1=[Orig[0]+1,Orig[1]+1];var d2=[Orig[0]+2,Orig[1]+3];var d3=[Orig[0]+2,Orig[1]+4];var d4=[Orig[0]+1,Orig[1]+3];var d5=[Orig[0],Orig[1]+1];var tab=[Orig,d1,d2,d3,d4,d5,Orig];tab","-17.982836285818536","15.022746678234016");
+E61=Expression("E61","","","","var tab=[];var Orig=P31;var d1=[Orig[0]+1,Orig[1]+1];var d2=[Orig[0]+2,Orig[1]+3];var d3=[Orig[0]+2,Orig[1]+4];var d4=[Orig[0]+1,Orig[1]+3];var d5=[Orig[0],Orig[1]+1];var tab=[Orig,d1,d2,d3,d4,d5,Orig];tab","-17.982836285818536","15.022746678234016");
+List3=List("List3",E6);
+List4=List("List4",E7);
+E70=Expression("E70","","","","var tab=[];var Orig=P32;var d1=[Orig[0]+1,Orig[1]];var d2=[Orig[0]+3,Orig[1]+1];var d3=[Orig[0]+4,Orig[1]+2];var d4=[Orig[0]+3,Orig[1]+2];var d5=[Orig[0]+1,Orig[1]+1];var tab=[Orig,d1,d2,d3,d4,d5,Orig];tab","-17.982836285818536","17.797856776677133");
+E71=Expression("E71","","","","var tab=[];var Orig=P33;var d1=[Orig[0]+1,Orig[1]];var d2=[Orig[0]+3,Orig[1]+1];var d3=[Orig[0]+4,Orig[1]+2];var d4=[Orig[0]+3,Orig[1]+2];var d5=[Orig[0]+1,Orig[1]+1];var tab=[Orig,d1,d2,d3,d4,d5,Orig];tab","-17.982836285818536","17.797856776677133");
+List1=List("List1",Bonhomme);
+HexaBase=List("HexaBase",HexaT1);
+H3Ligne1=Expression("H3Ligne1","","","","var tab=[];var LeHexa=HexaT1;for (j=1;j<4;j++) {for (var i=0;i<7;i++) {var K=[LeHexa[i][0]+4*j,LeHexa[i][1]];tab.push(K)};tab.push([NaN,NaN]);};tab","-17.18994768626336","-9.95324420775403");
+HLigne3=Expression("HLigne3","","","","var tab=[];var LeHexa=HexaT1;for (j=0;j<2;j++) {for (var i=0;i<7;i++) {var K=[LeHexa[i][0]+8*j,LeHexa[i][1]-4];tab.push(K)};tab.push([NaN,NaN]);};tab","-17.18994768626336","-7.178134109310915");
+HLigne2=Expression("HLigne2","","","","var tab=[];var LeHexa=HexaT1;for (j=0;j<2;j++) {for (var i=0;i<7;i++) {var K=[LeHexa[i][0]+4+4*j,LeHexa[i][1]-8];tab.push(K)};tab.push([NaN,NaN]);};tab","-17.982836285818536","-6.781689809533327");
+ExpHdoigt=Expression("ExpHdoigt","","","","var tab=[];var LeHexa=HexaT1;for (var i=0;i<7;i++) {var K=[LeHexa[i][0]+8,LeHexa[i][1]+4];tab.push(K)};tab","-17.18994768626336","-8.763911308421267");
+GGBM=List("GGBM",E1);
+List20=List("List20",E50);
+List21=List("List21",E51);
+List22=List("List22",E52);
+List23=List("List23",E53);
+List24=List("List24",E54);
+List25=List("List25",E55);
+List26=List("List26",E56);
+List30=List("List30",E60);
+List31=List("List31",E61);
+List40=List("List40",E70);
+List41=List("List41",E71);
+PtFinal=Expression("PtFinal","Dernier point = ","","","E1[n]","-18.775724885373716","3.129417684906375");
+P36=Point("P36","E1[n]","0");
+E2=Expression("E2","","","","[E1[n-1],E1[n]]","-17.586391986040947","5.5080834835719035");
+List5=List("List5",H3Ligne1);
+DeuxHH=List("DeuxHH",HLigne3);
+LHligne3=List("LHligne3",HLigne2);
+Hdoigt=List("Hdoigt",ExpHdoigt);
+FinListe=List("FinListe",E2);
+
+
+// Styles :
+STL(P543,"c:#0000b2;h:1;s:6;f:30");
+STL(P510,"c:#0000b2;h:1;s:6;f:30");
+STL(P509,"c:#0000b2;h:1;s:6;f:30");
+STL(P508,"c:#0000b2;h:1;s:6;f:30");
+STL(P507,"c:#0000b2;h:1;s:6;f:30");
+STL(P506,"c:#0000b2;h:1;s:6;f:30");
+STL(P505,"c:#0000b2;h:1;s:6;f:30");
+STL(P504,"c:#0000b2;h:1;s:6;f:30");
+STL(P503,"c:#0000b2;h:1;s:6;f:30");
+STL(P502,"c:#0000b2;h:1;s:6;f:30");
+STL(P537,"c:#0000b2;h:1;s:6;f:30");
+STL(P536,"c:#0000b2;h:1;s:6;f:30");
+STL(P535,"c:#0000b2;h:1;s:6;f:30");
+STL(P534,"c:#0000b2;h:1;s:6;f:30");
+STL(P533,"c:#0000b2;h:1;s:6;f:30");
+STL(P532,"c:#0000b2;h:1;s:6;f:30");
+STL(P530,"c:#0000b2;h:1;s:6;f:30");
+STL(P529,"c:#0000b2;h:1;s:6;f:30");
+STL(P528,"c:#0000b2;h:1;s:6;f:30");
+STL(P527,"c:#0000b2;h:1;s:6;f:30");
+STL(P526,"c:#0000b2;h:1;s:6;f:30");
+STL(P525,"c:#0000b2;h:1;s:6;f:30");
+STL(P524,"c:#0000b2;h:1;s:6;f:30");
+STL(P523,"c:#0000b2;h:1;s:6;f:30");
+STL(P522,"c:#0000b2;h:1;s:6;f:30");
+STL(P521,"c:#0000b2;h:1;s:6;f:30");
+STL(P520,"c:#0000b2;h:1;s:6;f:30");
+STL(P519,"c:#0000b2;h:1;s:6;f:30");
+STL(P518,"c:#0000b2;h:1;s:6;f:30");
+STL(P516,"c:#0000b2;h:1;s:6;f:30");
+STL(P515,"c:#0000b2;h:1;s:6;f:30");
+STL(P514,"c:#0000b2;h:1;s:6;f:30");
+STL(P513,"c:#0000b2;h:1;s:6;f:30");
+STL(P511,"c:#0000b2;h:1;s:6;f:30");
+STL(P560,"c:#0000b2;h:1;s:6;f:30");
+STL(P559,"c:#0000b2;h:1;s:6;f:30");
+STL(P558,"c:#0000b2;h:1;s:6;f:30");
+STL(P556,"c:#0000b2;h:1;s:6;f:30");
+STL(P555,"c:#0000b2;h:1;s:6;f:30");
+STL(P554,"c:#0000b2;h:1;s:6;f:30");
+STL(P553,"c:#0000b2;h:1;s:6;f:30");
+STL(P552,"c:#0000b2;h:1;s:6;f:30");
+STL(P551,"c:#0000b2;h:1;s:6;f:30");
+STL(P550,"c:#0000b2;h:1;s:6;f:30");
+STL(P549,"c:#0000b2;h:1;s:6;f:30");
+STL(P548,"c:#0000b2;h:1;s:6;f:30");
+STL(P547,"c:#0000b2;h:1;s:6;f:30");
+STL(P546,"c:#0000b2;h:1;s:6;f:30");
+STL(P545,"c:#0000b2;h:1;s:6;f:30");
+STL(P544,"c:#0000b2;h:1;s:6;f:30");
+STL(P542,"c:#0000b2;h:1;s:6;f:30");
+STL(P541,"c:#0000b2;h:1;s:6;f:30");
+STL(P540,"c:#0000b2;h:1;s:6;f:30");
+STL(P539,"c:#0000b2;h:1;s:6;f:30");
+STL(P538,"c:#0000b2;h:1;s:6;f:30");
+STL(P531,"c:#0000b2;h:1;s:6;f:30");
+STL(P512,"c:#0000b2;h:1;s:6;f:30");
+STL(P561,"c:#0000b2;h:1;s:6;f:30");
+STL(P557,"c:#0000b2;h:1;s:6;f:30");
+STL(P517,"c:#0000b2;h:1;s:6;f:30");
+STL(P21,"c:#0000b2;h:1;s:6;f:30");
+STL(P20,"c:#0000b2;h:1;s:6;f:30");
+STL(P19,"c:#0000b2;h:1;s:6;f:30");
+STL(P18,"c:#0000b2;h:1;s:6;f:30");
+STL(P1,"c:#0000b2;h:1;s:6;f:30");
+STL(P2,"c:#0000b2;h:1;s:6;f:30");
+STL(P3,"c:#0000b2;h:1;s:6;f:30");
+STL(P4,"c:#0000b2;h:1;s:6;f:30");
+STL(P5,"c:#0000b2;h:1;s:6;f:30");
+STL(P6,"c:#0000b2;h:1;s:6;f:30");
+STL(P7,"c:#0000b2;h:1;s:6;f:30");
+STL(P8,"c:#0000b2;h:1;s:6;f:30");
+STL(P9,"c:#0000b2;h:1;s:6;f:30");
+STL(P10,"c:#0000b2;h:1;s:6;f:30");
+STL(P11,"c:#0000b2;h:1;s:6;f:30");
+STL(P12,"c:#0000b2;h:1;s:6;f:30");
+STL(P13,"c:#0000b2;h:1;s:6;f:30");
+STL(P14,"c:#0000b2;h:1;s:6;f:30");
+STL(P15,"c:#0000b2;h:1;s:6;f:30");
+STL(P16,"c:#0000b2;h:1;s:6;f:30");
+STL(P17,"c:#0000b2;h:1;s:6;f:30");
+STL(A,"c:#b40000;o:1;s:6;sn:true;f:18;np:1.2175012412778385;mg:[P12,5],[P17,5],[P11,5],[P2,5],[P18,5],[P8,5],[P9,5],[P3,5],[P14,5],[P4,5],[P6,5],[P15,5],[P5,5],[P10,5],[P19,5],[P7,5],[P16,5],[P21,5],[P20,5],[S1,5],[P34,10],[P35,20],[GrilleTiers,10]");
+STL(P22,"c:#0000b2;h:1;s:6;f:30");
+STL(dep,"c:#0000b2;h:1;s:6;sn:true;f:18");
+STL(dep1,"c:#0000b2;h:1;s:6;sn:true;f:20");
+STL(dep2,"c:#0000b2;h:1;s:6;sn:true;f:19;np:4.484280304842891");
+STL(P34,"c:#0000b2;h:1;s:6;f:30");
+STL(P35,"c:#0000b2;h:1;s:6;f:30");
+STL(ExpGrilleTiers,"c:#01052f;h:1;s:7;sn:true;f:17;p:2;cL:200;cPT:YzojNzgwMDEzO2g6MTtzOjEwO2Y6MzA=");
+STL(P47,"c:#0000b2;h:1;s:6;f:30");
+STL(Kh,"c:#0000b2;h:1;s:6;sn:true;f:19");
+STL(Kk,"c:#0000b2;h:1;s:6;sn:true;f:19;np:3.4370118998823838");
+STL(Aura,"c:#3f6048;h:1;s:7;sn:true;f:18;p:2;cL:200;cPT:YzojNzgwMDEzO2g6MTtzOjEwO2Y6MzA=");
+STL(P52,"c:#0000b2;h:1;s:6;f:30");
+STL(P53,"c:#0000b2;h:1;s:6;f:30");
+STL(P54,"c:#0000b2;h:1;s:6;f:30");
+STL(P55,"c:#0000b2;h:1;s:6;f:30");
+STL(P56,"c:#0000b2;h:1;s:6;f:30");
+STL(P57,"c:#0000b2;h:1;s:6;f:30");
+STL(P44,"c:#0000b2;h:1;s:6;f:30");
+STL(HOblik1,"c:#324b1a;h:1;s:7;sn:true;f:15;p:2;cL:200;cPT:YzojNzgwMDEzO2g6MTtzOjEwO2Y6MzA=");
+STL(HOblik1Ligne2,"c:#114446;h:1;s:7;sn:true;f:15;p:2;cL:200;cPT:YzojNzgwMDEzO2g6MTtzOjEwO2Y6MzA=");
+STL(HOblik2,"c:#71753d;h:1;s:7;sn:true;f:16;p:2;cL:200;cPT:YzojNzgwMDEzO2g6MTtzOjEwO2Y6MzA=");
+STL(CopieHOblik2,"c:#513d03;h:1;s:7;sn:true;f:15;p:2;cL:200;cPT:YzojNzgwMDEzO2g6MTtzOjEwO2Y6MzA=");
+STL(HexaSeul1,"c:#1e0b10;h:1;s:7;sn:true;f:15;p:2;cL:200;cPT:YzojNzgwMDEzO2g6MTtzOjEwO2Y6MzA=");
+STL(HexaSeul2,"c:#7e175b;h:1;s:7;sn:true;f:17;p:2;cL:200;cPT:YzojNzgwMDEzO2g6MTtzOjEwO2Y6MzA=");
+STL(HexaSeul3,"c:#557e21;h:1;s:7;sn:true;f:15;p:2;cL:200;cPT:YzojNzgwMDEzO2g6MTtzOjEwO2Y6MzA=");
+STL(HexSeul4,"c:#1a2343;h:1;s:7;sn:true;f:17;p:2;cL:200;cPT:YzojNzgwMDEzO2g6MTtzOjEwO2Y6MzA=");
+STL(Poly1,"c:#b40000;o:0.28;s:1;l:2;f:30");
+STL(Poly6,"c:#006633;o:0.2;s:1;l:2;f:30");
+STL(Poly2,"c:#0000b2;o:0.29;s:1;l:2;f:30");
+STL(Poly3,"c:#006633;o:0.2;s:1;l:1;f:30");
+STL(Poly4,"c:#cc66cc;o:0.2;s:1;l:1;f:30");
+STL(Poly5,"c:#966400;o:0.2;s:1;l:2;f:30");
+STL(S1,"c:#006633;h:1;s:1;f:24");
+STL(E5,"c:#0d3e26;h:1;s:7;f:17;p:2;cL:200;cPT:YzojNzgwMDEzO2g6MTtzOjEwO2Y6MzA=");
+STL(P23,"c:#0000b2;h:1;s:6;f:30");
+STL(P24,"c:#0000b2;h:1;s:6;f:30");
+STL(P25,"c:#0000b2;h:1;s:6;f:30");
+STL(P26,"c:#0000b2;h:1;s:6;f:30");
+STL(P27,"c:#0000b2;h:1;s:6;f:30");
+STL(P28,"c:#0000b2;h:1;s:6;f:30");
+STL(P29,"c:#0000b2;h:1;s:6;f:30");
+STL(P30,"c:#0000b2;h:1;s:6;f:30");
+STL(P31,"c:#0000b2;h:1;s:6;f:30");
+STL(E6,"c:#733e6c;h:1;s:7;f:17;p:2;cL:200;cPT:YzojNzgwMDEzO2g6MTtzOjEwO2Y6MzA=");
+STL(E7,"c:#084a67;h:1;s:7;f:17;p:2;cL:200;cPT:YzojNzgwMDEzO2g6MTtzOjEwO2Y6MzA=");
+STL(P32,"c:#0000b2;h:1;s:6;f:30");
+STL(P33,"c:#0000b2;h:1;s:6;f:30");
+STL(n,"c:#4e273c;s:7;sn:true;f:17;p:2;i:1;cL:400;cPT:YzojNzgwMDEzO3M6MTA7ZjozMDtpOjE=");
+STL(CoordA,"c:#2d7d28;h:1;s:7;sn:true;f:17;p:4;cL:200;cPT:YzojNzgwMDEzO2g6MTtzOjEwO2Y6MzA=");
+STL(Bonhomme,"c:#0c2f1d;h:1;s:7;sn:true;f:17;p:2;cL:200;cPT:YzojNzgwMDEzO2g6MTtzOjEwO2Y6MzA=");
+STL(GrilleTiers,"c:#0000b2;h:1;s:1;sn:true;f:30;p:0;sg:0");
+STL(Laura,"c:#760012;o:0.06;s:0;sn:true;l:-3;f:30;p:0;sg:0.6");
+STL(HexaT1,"c:#314211;h:1;s:7;sn:true;f:17;p:2;cL:200;cPT:YzojNzgwMDEzO2g6MTtzOjEwO2Y6MzA=");
+STL(E46,"c:#780013;h:2;s:7;f:17;p:2;cL:200;cPT:YzojNzgwMDEzO2g6MjtzOjEwO2Y6MzA=");
+STL(List6,"c:#ff8a1c;o:0.2;s:0;f:30;p:0;sg:1");
+STL(List7,"c:#ff8a1c;o:0.2;s:0;f:30;p:0;sg:0.5");
+STL(List8,"c:#ff8a1c;o:0.2;s:0;f:30;p:0;sg:0.5");
+STL(List9,"c:#ff8a1c;o:0.2;s:0;f:30;p:0;sg:0.5");
+STL(List11,"c:#ff8a1c;o:0.2;s:0;f:30;p:0;sg:0.6");
+STL(List13,"c:#ff8a1c;o:0.2;s:0;f:30;p:0;sg:0.5");
+STL(List12,"c:#ff8a1c;o:0.2;s:0;f:30;p:0;sg:0.5");
+STL(List14,"c:#ff8a1c;o:0.2;s:0;f:30;p:0;sg:0.5");
+STL(E1,"c:#056a27;h:1;s:7;f:17;p:4;cL:200;cPT:YzojNzgwMDEzO2g6MTtzOjEwO2Y6MzA=");
+STL(List2,"c:#007c7c;o:0.2;s:0;f:30;p:0;sg:0.6");
+STL(E50,"c:#780013;h:2;s:7;f:17;p:2;cL:200;cPT:YzojNzgwMDEzO2g6MjtzOjEwO2Y6MzA=");
+STL(E51,"c:#780013;h:2;s:7;f:17;p:2;cL:200;cPT:YzojNzgwMDEzO2g6MjtzOjEwO2Y6MzA=");
+STL(E52,"c:#780013;h:2;s:7;f:17;p:2;cL:200;cPT:YzojNzgwMDEzO2g6MjtzOjEwO2Y6MzA=");
+STL(E53,"c:#780013;h:2;s:7;f:17;p:2;cL:200;cPT:YzojNzgwMDEzO2g6MjtzOjEwO2Y6MzA=");
+STL(E54,"c:#780013;h:2;s:7;f:17;p:2;cL:200;cPT:YzojNzgwMDEzO2g6MjtzOjEwO2Y6MzA=");
+STL(E55,"c:#780013;h:2;s:7;f:17;p:2;cL:200;cPT:YzojNzgwMDEzO2g6MjtzOjEwO2Y6MzA=");
+STL(E56,"c:#780013;h:2;s:7;f:17;p:2;cL:200;cPT:YzojNzgwMDEzO2g6MjtzOjEwO2Y6MzA=");
+STL(E60,"c:#780013;h:2;s:7;f:17;p:2;cL:200;cPT:YzojNzgwMDEzO2g6MjtzOjEwO2Y6MzA=");
+STL(E61,"c:#780013;h:2;s:7;f:17;p:2;cL:200;cPT:YzojNzgwMDEzO2g6MjtzOjEwO2Y6MzA=");
+STL(List3,"c:#966400;o:0.2;s:0;f:30;p:0;sg:1");
+STL(List4,"c:#cc66cc;o:0.2;s:0;f:30;p:0;sg:1");
+STL(E70,"c:#780013;h:2;s:7;f:17;p:2;cL:200;cPT:YzojNzgwMDEzO2g6MjtzOjEwO2Y6MzA=");
+STL(E71,"c:#780013;h:2;s:7;f:17;p:2;cL:200;cPT:YzojNzgwMDEzO2g6MjtzOjEwO2Y6MzA=");
+STL(List1,"c:#2687e4;o:0.15;s:0;f:30;p:0;sg:1.1");
+STL(HexaBase,"c:#ff8a1c;o:0.2;s:0;sn:true;f:30;p:0;sg:0.5");
+STL(H3Ligne1,"c:#743f31;h:1;s:7;sn:true;f:16;p:2;cL:200;cPT:YzojNzgwMDEzO2g6MTtzOjEwO2Y6MzA=");
+STL(HLigne3,"c:#272f24;h:1;s:7;sn:true;f:17;p:2;cL:200;cPT:YzojNzgwMDEzO2g6MTtzOjEwO2Y6MzA=");
+STL(HLigne2,"c:#6a2d7e;h:1;s:7;sn:true;f:17;p:2;cL:200;cPT:YzojNzgwMDEzO2g6MTtzOjEwO2Y6MzA=");
+STL(ExpHdoigt,"c:#2e1c6a;h:1;s:7;sn:true;f:15;p:2;cL:200;cPT:YzojNzgwMDEzO2g6MTtzOjEwO2Y6MzA=");
+STL(GGBM,"c:#3d73e0;s:1.7;sn:true;f:30;p:0;sg:0.8");
+STL(List20,"c:#007c7c;o:0.2;s:0;f:30;p:0;sg:0.6");
+STL(List21,"c:#007c7c;o:0.2;s:0;f:30;p:0;sg:0.6");
+STL(List22,"c:#007c7c;o:0.2;s:0;f:30;p:0;sg:0.6");
+STL(List23,"c:#007c7c;o:0.2;s:0;f:30;p:0;sg:0.6");
+STL(List24,"c:#007c7c;o:0.2;s:0;f:30;p:0;sg:0.6");
+STL(List25,"c:#007c7c;o:0.2;s:0;f:30;p:0;sg:0.6");
+STL(List26,"c:#007c7c;o:0.2;s:0;f:30;p:0;sg:0.6");
+STL(List30,"c:#966400;o:0.2;s:0;f:30;p:0;sg:1");
+STL(List31,"c:#966400;o:0.2;s:0;f:30;p:0;sg:1");
+STL(List40,"c:#cc66cc;o:0.2;s:0;f:30;p:0;sg:1");
+STL(List41,"c:#cc66cc;o:0.2;s:0;f:30;p:0;sg:1");
+STL(PtFinal,"c:#384b7b;s:7;sn:true;f:17;p:4;cL:200;cPT:YzojNzgwMDEzO3M6MTA7ZjozMA==");
+STL(P36,"c:#fc092f;s:5;f:30;sp:1");
+STL(E2,"c:#050202;h:1;s:7;f:17;p:2;cL:200;cPT:YzojNzgwMDEzO2g6MTtzOjEwO2Y6MzA=");
+STL(List5,"c:#ff8a1c;o:0.2;s:0;f:30;p:0;sg:0.5");
+STL(DeuxHH,"c:#ff8a1c;o:0.2;s:0;sn:true;f:30;p:0;sg:0.5");
+STL(LHligne3,"c:#ff8a1c;o:0.2;s:0;sn:true;f:30;p:0;sg:0.8");
+STL(Hdoigt,"c:#ff8a1c;o:0.19;s:0;sn:true;f:30;p:0;sg:0.5");
+STL(FinListe,"c:#fc092f;s:0.1;sn:true;f:30;p:0;sg:0.8");
+SetCoordsStyle("isAxis:true;isGrid:true;isOx:true;isOy:true;isLockOx:false;isLockOy:false;centerZoom:false;onlyPositive:false;color:#c35fdd;fontSize:18;axisWidth:1;gridWidth:0.1");
+SetGeneralStyle("background-color:#ffffff;degree:false;dragmoveable:true");
+
+
+// Texts :
+Text("<div style='font-size:18px;color:#CC0000;text-align:center'>$Gingerbread  \\; Man \\; map$\n<div style='font-size:16px;color:#0000FF;text-align:left'>\n$A=(x_0,y_0=(%A[0]% \\,;\\,%A[1]%)$\n$x_{n+1}=1-y_n+|x_n|$\n$y_{n+1}=x_n$\n<div style='color:#FF0000'>\n$(x_{%n%},y_{%n%}) = (%PtFinal[0]% \\, ; \\,%PtFinal[1]%)$",106,69,301,194,"c:rgba(227,178,122,0.18);s:3;r:15;p:4");
