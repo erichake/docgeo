@@ -252,6 +252,7 @@ describe("Editor", () => {
             "s = Segment(A, B)",
             "c = Circle(A, a)",
             'p = if(a>2){s.setHidden(1)};"Faces"',
+            "z = 3i-9",
         ];
         text.forEach((line) => type(c, line));
         c.flush();
@@ -260,6 +261,8 @@ describe("Editor", () => {
         const entry = (name: string) => entryOf(c.getObj(name)!, index);
         expect(entry("a")).toEqual(["Ex", { t: "", v: 3, xy: [20, 40] }]);
         expect(entry("L")[1]).toMatchObject({ v: [1, 2, 3], xy: [20, 70] });
+        expect(entry("z")[1]).toMatchObject({ s: "3i-9" });
+        expect((c.getObj("z") as expression_object).value).toEqual([-9, 3]);
         expect(entry("f")[1]).toMatchObject({ f: "0.5x^2-4" });
         expect(entry("E")[1]).toMatchObject({
             s: ["d(A, B)+f(2)", { A: 0, B: 1, f: 4 }],

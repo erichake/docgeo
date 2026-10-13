@@ -13,6 +13,7 @@ import {
 import {
     formulaIdentifiers,
     formulaSource,
+    parseProgram,
     programNodes,
     programReferences,
     programTargets,
@@ -269,6 +270,15 @@ function expression(
             method ?? source,
         );
     }
+    // A constant written otherwise than its value (`3i-9`, not `[-9, 3]`)
+    // keeps its text, as a formula.
+    if (
+        content.kind === "v" &&
+        Array.isArray(content.value) &&
+        source.replace(/\s/g, "") !==
+            formatValue(content.value).replace(/\s/g, "")
+    )
+        content = { kind: "s", program: parseProgram(source) };
     const names =
         content.kind === "v"
             ? []
