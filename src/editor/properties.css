@@ -203,11 +203,7 @@ body:not(.dge-adjusting) svg .dge-property-selected > foreignObject > div {
     border-radius: 6px;
     background: #fff;
     color: inherit;
-    font:
-        13px/1.5 ui-monospace,
-        Menlo,
-        Consolas,
-        monospace;
+    font: 13px/1.5 var(--dge-code);
     tab-size: 4;
     white-space: pre;
     overflow: auto;

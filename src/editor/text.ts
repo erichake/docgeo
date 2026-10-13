@@ -402,7 +402,7 @@ const OPERANDS = new Set<Token["type"]>([
 ]);
 
 export function completionAt(text: string): Completion | null {
-    const prefix = /[\p{L}_$][\p{L}\p{N}_$']*$/u.exec(text)?.[0] ?? "";
+    const prefix = /[\p{L}_$][\p{L}\p{M}\p{N}_$']*$/u.exec(text)?.[0] ?? "";
     const { tokens } = lex(text.slice(0, text.length - prefix.length));
     if (tokens.pop()?.type !== "eof") return null;
     type Call = Omit<ArgumentCompletion, "kind" | "prefix"> & {

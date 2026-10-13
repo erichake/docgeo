@@ -2,6 +2,7 @@ import type { construction } from "../construction";
 import type { Animation } from "../animation";
 import { figureObjects } from "../dgo";
 import { $, type DOMElement } from "../dom";
+import { DIR } from "../i18n";
 import { angle_object, RIGHT_ANGLE_MARKS } from "../objects/angle_object";
 import type { construction_object } from "../objects/construction_object";
 import { expression_object } from "../objects/expression_object";
@@ -20,6 +21,9 @@ import { formatProgram, syntaxLine, TextError } from "./text";
 
 type Field = HTMLInputElement | HTMLSelectElement;
 
+const PROGRAM_PLACEHOLDER =
+    "var t = [];\nfor (var i = 0; i < 10; i++) {\n    t.push([i, 0]);\n}\nt";
+
 export function propertiesPanel(options: {
     scene: () => construction;
     changed: () => void;
@@ -32,6 +36,7 @@ export function propertiesPanel(options: {
 }) {
     const panel = $.create("aside")
         .cls("dge-properties")
+        .att("dir", DIR)
         .att("id", "dge-properties")
         .att("aria-label", message("properties"));
     const close = $.create("button")
@@ -738,10 +743,11 @@ export function propertiesPanel(options: {
         const original = object ? expressionSource(object) : "";
         const editor = $.create("textarea")
             .cls("dge-program")
+            .att("dir", "ltr")
             .att("spellcheck", "false")
             .att("wrap", "off")
             .att("aria-label", message("definition"))
-            .att("placeholder", object ? "" : message("program_placeholder"));
+            .att("placeholder", object ? "" : PROGRAM_PLACEHOLDER);
         const area = editor.dom() as HTMLTextAreaElement;
         area.value = original;
         const error = $.create("p")

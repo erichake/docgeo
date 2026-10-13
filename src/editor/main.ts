@@ -12,6 +12,7 @@ import {
 import { importDgp, importDgpFromUrl } from "../dgp_importer";
 import { $, type DOMElement } from "../dom";
 import { importGgbFromBlob, importGgbFromUrl } from "../ggb_importer";
+import { LANG } from "../i18n";
 import type { construction_object } from "../objects/construction_object";
 import { point_object, type magnet_target } from "../objects/point_object";
 import type { point_on_object } from "../objects/point_on_object";
@@ -115,14 +116,17 @@ const studio = { prefs: new preferences() } as Studio;
 studio.scene = construction.create(studio);
 const scene = () => studio.scene;
 
-$("html").stl("width:100%;height:100%");
+$("html").att("lang", LANG).stl("width:100%;height:100%");
+document.title = message("title");
 // The figure fills the window beside the text.
 $("body")
     .cls("dge-editor")
     .stl("position:relative;overflow:hidden;touch-action:none")
     .att("oncontextmenu", "return false;");
 $("head").append(`<style>
-    .dge-editor { --dge-panel-size: min(var(--dge-panel-user, ${PANEL_WIDTH}px), calc(100vw - 56px)); --dge-panel-width: var(--dge-panel-size); --dge-bar-height: 60px; --dge-slide-duration: 0s; --dge-slide: var(--dge-slide-duration) cubic-bezier(0.22, 1, 0.36, 1); margin: 0; margin-inline-start: var(--dge-panel-width); margin-block-start: var(--dge-bar-height); width: calc(100% - var(--dge-panel-width)); height: calc(100% - var(--dge-bar-height)); transition: margin-inline-start var(--dge-slide), width var(--dge-slide); }
+    /* Menlo and DejaVu Sans Mono draw Arabic letters unjoined: a font of the system draws them. */
+    @font-face { font-family: dge-code; src: local("Menlo Regular"), local("Menlo-Regular"), local("Consolas"), local("DejaVu Sans Mono"); unicode-range: U+0-5FF, U+700-74F, U+780-89F, U+900-FB4F, U+FE00-FE6F, U+FF00-10FFFF; }
+    .dge-editor { --dge-code: ui-monospace, dge-code, "Geeza Pro", "Segoe UI", "Noto Sans Arabic", monospace; --dge-panel-size: min(var(--dge-panel-user, ${PANEL_WIDTH}px), calc(100vw - 56px)); --dge-panel-width: var(--dge-panel-size); --dge-bar-height: 60px; --dge-slide-duration: 0s; --dge-slide: var(--dge-slide-duration) cubic-bezier(0.22, 1, 0.36, 1); margin: 0; margin-inline-start: var(--dge-panel-width); margin-block-start: var(--dge-bar-height); width: calc(100% - var(--dge-panel-width)); height: calc(100% - var(--dge-bar-height)); transition: margin-inline-start var(--dge-slide), width var(--dge-slide); }
     .dge-editor.dge-panel-animated { --dge-slide-duration: 240ms; }
     .dge-editor.dge-panel-closed { --dge-panel-width: 0px; }
     .dge-panel-closed .dge-panel { transform: translateX(-100%); visibility: hidden; transition-delay: 0s, var(--dge-slide-duration); }
@@ -136,7 +140,7 @@ $("head").append(`<style>
     .dge-panel + .dge-resize { left: var(--dge-panel-size); }
     .dge-panel-closed .dge-panel + .dge-resize { display: none; }
     .dge-editor.dge-resizing { --dge-slide-duration: 0s; cursor: col-resize; user-select: none; }
-    .dge-row { display: block; width: 100%; box-sizing: border-box; padding: 5px 14px; border: 0; border-block-end: 1px solid #f1f5f9; background: none; font: 13.5px/1.5 ui-monospace, Menlo, Consolas, monospace; color: inherit; outline: none; }
+    .dge-row { display: block; width: 100%; box-sizing: border-box; padding: 5px 14px; border: 0; border-block-end: 1px solid #f1f5f9; background: none; font: 13.5px/1.5 var(--dge-code); color: inherit; outline: none; }
     .dge-row:focus { background: #eff6ff; box-shadow: inset 3px 0 #2563eb; }
     .dge-row.dge-hover { background: #fef3c7; }
     .dge-row.dge-new { animation: dge-new 1.2s ease-out; }
@@ -174,7 +178,7 @@ $("head").append(`<style>
     @media (max-width: 600px) { .dge-editor .dge-bar .dge-bar-object { position: fixed; top: calc(var(--dge-bar-height) + 8px); inset-inline: 0; width: fit-content; margin-inline: auto; box-shadow: 0 4px 12px rgb(15 23 42 / 0.12); } }
     .dge-panel-header .dge-action { width: 32px; height: 32px; border-radius: 8px; }
     @media (max-width: 400px) { .dge-bar { gap: 6px; padding-inline: 8px; } .dge-bar-group { gap: 2px; } .dge-bar-group + .dge-bar-group { padding-inline-start: 6px; } .dge-bar .dge-action { width: 36px; } }
-    .dge-hint { position: fixed; bottom: 16px; left: calc(50% + var(--dge-panel-width) / 2); transform: translateX(-50%); max-width: calc(100% - var(--dge-panel-width) - 32px); padding: 7px 14px; border-radius: 9px; background: rgb(17 24 39 / 0.86); color: #f9fafb; font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 13.5px; white-space: pre-wrap; z-index: 11; pointer-events: none; transition: left var(--dge-slide), max-width var(--dge-slide); }
+    .dge-hint { position: fixed; bottom: 16px; left: calc(50% + var(--dge-panel-width) / 2); transform: translateX(-50%); max-width: calc(100% - var(--dge-panel-width) - 32px); padding: 7px 14px; border-radius: 9px; background: rgb(17 24 39 / 0.86); color: #f9fafb; font-family: var(--dge-code); font-size: 13.5px; white-space: pre-wrap; unicode-bidi: plaintext; z-index: 11; pointer-events: none; transition: left var(--dge-slide), max-width var(--dge-slide); }
     @media (prefers-reduced-motion: reduce) { .dge-editor.dge-panel-animated { --dge-slide-duration: 0s; } .dge-bar-object { animation: none; } }
     .dge-hint:empty { display: none; }
     .dge-hint.dge-error { background: #b91c1c; }
@@ -191,7 +195,7 @@ $("head").append(`<style>
     .dge-ring .dge-result { color: #d14343; }
     .dge-ring button:hover .dge-result { color: inherit; }
     .dge-complete, .dge-menu { position: fixed; min-width: 160px; max-height: 240px; overflow: auto; padding: 4px 0; border: 1px solid #d1d5db; border-radius: 8px; background: #fff; box-shadow: 0 6px 20px rgb(0 0 0 / 0.14); z-index: 13; }
-    .dge-complete div, .dge-menu div { padding: 3px 12px; font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 13px; cursor: pointer; }
+    .dge-complete div, .dge-menu div { padding: 3px 12px; font-family: var(--dge-code); font-size: 13px; cursor: pointer; }
     .dge-complete div.dge-selected, .dge-complete div:hover, .dge-menu div:hover { background: #2563eb; color: #fff; }
     .dge-complete:empty { display: none; }
     .dge-choice { position: fixed; display: flex; gap: 3px; transform: translateY(-50%); z-index: 13; }
@@ -1181,7 +1185,7 @@ function insertWord(
 ): void {
     const caret = field.selectionStart!;
     const before = field.value.slice(0, caret);
-    const typed = /[\p{L}_$][\p{L}\p{N}_$']*$/u.exec(before)?.[0] ?? "";
+    const typed = /[\p{L}_$][\p{L}\p{M}\p{N}_$']*$/u.exec(before)?.[0] ?? "";
     const start =
         before.length - (replace || !scene().getObj(typed) ? typed.length : 0);
     field.value = field.value.slice(0, start) + word + field.value.slice(caret);
@@ -1325,11 +1329,11 @@ function describe(tool: Tool, args: (Arg | undefined)[]): string {
     const line = `${formatName(nextName(scene(), point))} = ${commandName(tool.command)}(${shown.join(", ")})`;
     if (tool.mode === "point") return line;
     if (tool.mode === "intersection")
-        return `${line}\n${message("designate", message("intersectable"))}`;
+        return `${line}\n${message("designate_intersectable")}`;
     if (tool.overload.variadic && args.length >= 3)
         return `${line}\n${message("polygon_end")}`;
     const param = paramAt(tool.overload, nextSlot({ tool, args }))!;
-    return `${line}\n${message("designate", message(param as MessageKey))}`;
+    return `${line}\n${message(`designate_${param}`)}`;
 }
 
 function prompt(): void {

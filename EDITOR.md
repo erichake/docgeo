@@ -119,8 +119,8 @@ de `src/import/dgp_commands.ts`.
   formes qui finissent par un nombre, tapé au clavier
   (`PointFixe(x, y)` / `(x, y, z)`). Un test vérifie la règle sur tout le
   catalogue.
-- Noms de commandes localisés (Milieu / Midpoint), ramenés à une forme
-  canonique.
+- Noms de commandes localisés, ceux de GeoGebra (section « Langues »),
+  ramenés à une forme canonique.
 - Réutilisation possible de `src/import/ggb_translate.ts` : une ligne tapée,
   ramenée à la commande GeoGebra canonique (nom, arguments, résultat), a la
   même structure qu'une commande du `geogebra.xml`. Il faudrait le découper
@@ -129,6 +129,46 @@ de `src/import/dgp_commands.ts`.
   jamais par `eval`.
 - Éditeur de texte : une saisie ligne à ligne avec une liste de complétion
   maison plutôt que CodeMirror ou Monaco, bien plus lourds.
+
+## Langues
+
+Décidé avec l'auteur le 2026-10-13 : l'éditeur parle les 12 langues de
+DocTools (`ar`, `de`, `el`, `en`, `es`, `fr`, `hi`, `it`, `nl`, `pt`, `zh`,
+`zh-TW`), choisies comme pour le lecteur (`LANG` de `src/i18n.ts` : paramètre
+`lang` de l'URL, puis langues du navigateur).
+
+- **Textes** : un fichier par langue dans `src/editor/lang/`. `en.ts` est la
+  référence (il définit les clés, `MessageKey`) et le seul chargé avec
+  l'éditeur ; les autres sont des chunks chargés à la demande, un seul par
+  page (`messages.ts`, `await` au chargement du module). Une clé absente
+  d'une langue s'affiche en anglais, mais un test exige que toutes les
+  langues traduisent tous les messages, avec autant de `%` : **tout nouveau
+  texte de l'éditeur est une clé ajoutée dans les 12 fichiers.** Jamais de
+  phrase composée de morceaux (« Désignez » + « un point ») : l'accord
+  change d'une langue à l'autre, d'où une phrase entière par cas
+  (`designate_point`…).
+- **Noms de commandes : ceux de GeoGebra dans chaque langue**, tirés de ses
+  fichiers de langue (`web3d/js/properties_keys_<langue>.js` de la version
+  compilée, tables `command` et, pour les commandes qui n'y sont que des
+  outils, `menu` : `Compass`, `ParallelLine`), y compris leurs bizarreries
+  (`خط0عمودي`, la perpendiculaire en arabe). Le nom anglais est accepté dans
+  toutes les langues, celui de la langue s'affiche ; le français garde ses
+  noms (`Milieu` et non `MilieuCentre`). Une commande sans équivalent
+  GeoGebra (`FixedPoint`, `Circumcircle`, `OtherIntersection`) reçoit un nom
+  composé dans l'esprit de la langue. En chinois de Taïwan, GeoGebra garde
+  les noms anglais : `zh-TW` n'a pas de table de commandes.
+- Deux commandes de même nom dans une langue (`Mittelpunkt` : `Midpoint` et
+  `Center` en allemand, comme dans GeoGebra) n'en font qu'une, départagée
+  par ses arguments ; le test vérifie que c'est le seul cas.
+- Noms comparés sans casse ni accents latins et grecs ; les signes des
+  autres écritures (voyelles du hindi) sont gardés, et acceptés par la
+  complétion.
+- **Arabe** : `lang` et la direction sur la page ; le panneau de propriétés
+  passe de droite à gauche, les champs de code restent de gauche à droite,
+  et chaque ligne de la bulle d'aide prend la direction de son texte
+  (`unicode-bidi: plaintext`). Menlo et DejaVu Sans Mono dessinent les
+  lettres arabes sans les lier : la police du code (`--dge-code`) les en
+  exclut (`unicode-range`) pour une police arabe du système.
 
 ## Points délicats
 
@@ -836,6 +876,12 @@ Fait (2026-10-11) :
   que libres et sur objet) sont créés remplis de gris (`#cccccc`), comme
   dans DGPad. Vérifié dans `editor.html`. Éditeur : +2,9 Ko (+0,9 Ko en
   gzip) ; lecteur inchangé.
+- Langues (2026-10-13, section du même nom) : 12 langues, noms de
+  commandes de GeoGebra. Vérifié dans `editor.html` en allemand, arabe,
+  hindi et chinois. Éditeur : −2,2 Ko (88,4 Ko, le français sorti du
+  chunk) et 2,2 à 3 Ko en gzip par langue chargée ; lecteur inchangé
+  (`index` 15,2 Ko), l'aide d'interopérabilité de Rolldown passant du
+  moteur dans un chunk à part (0,6 Ko).
 
 Reste à faire :
 

@@ -50,6 +50,9 @@ import type { point_on_object } from "../../src/objects/point_on_object";
 import { labelAt, labelCenter, placeLabel } from "../../src/editor/labels";
 import { crossing, meant, pick } from "../../src/editor/pick";
 import { parseLine, TextError } from "../../src/editor/text";
+import en from "../../src/editor/lang/en";
+import type { MessageKey, Texts } from "../../src/editor/messages";
+import { IDENTIFIER_PART, IDENTIFIER_START } from "../../src/import/dgp_parser";
 import type { point_object } from "../../src/objects/point_object";
 import type { circle1_object } from "../../src/objects/circle1_object";
 import type { expression_object } from "../../src/objects/expression_object";
@@ -58,6 +61,11 @@ import { createConstruction, disposeFigures, expectClose } from "./figures";
 import { vDot, vScale, vSub } from "../../src/vec";
 
 disposeFigures();
+
+const LANGUAGES = import.meta.glob<Texts>(
+    ["../../src/editor/lang/*.ts", "!../../src/editor/lang/en.ts"],
+    { import: "default", eager: true },
+);
 
 function studio(space = false): Studio {
     const scene = createConstruction([800, 600]);
@@ -79,6 +87,44 @@ const lines = (c: construction): string[] => {
 };
 
 describe("Editor", () => {
+    it("speaks every language of DocTools, with GeoGebra's command names", () => {
+        const placeholders = (text: string) => text.split("%").length;
+        const identifier = new RegExp(
+            `^${IDENTIFIER_START.source}${IDENTIFIER_PART.source}*$`,
+            "u",
+        );
+        const fold = (name: string) =>
+            name.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
+        const shared: string[][] = [];
+        for (const [path, { messages, commands }] of Object.entries(
+            LANGUAGES,
+        )) {
+            for (const key of Object.keys(en) as MessageKey[]) {
+                const text = messages[key];
+                expect(text, `${path}: ${key}`).toBeDefined();
+                expect(placeholders(text!), `${path}: ${key}`).toBe(
+                    placeholders(en[key]),
+                );
+            }
+            // Chinese (Taiwan) keeps the English names, as GeoGebra.
+            if (!commands) continue;
+            expect(Object.keys(commands).sort(), path).toEqual(
+                COMMANDS.map(({ name }) => name).sort(),
+            );
+            const named = new Map<string, Set<string>>();
+            for (const { name } of COMMANDS)
+                for (const each of [name, commands[name]!]) {
+                    expect(each, path).toMatch(identifier);
+                    const set = named.get(fold(each)) ?? new Set();
+                    named.set(fold(each), set.add(name));
+                }
+            for (const set of named.values())
+                if (set.size > 1) shared.push([...set]);
+        }
+        // Told apart by their arguments.
+        expect(shared).toEqual([["Midpoint", "Center"]]);
+    });
+
     it("writes back the line of each command", async () => {
         const { scene: c } = studio();
         const text = [
@@ -131,8 +177,8 @@ describe("Editor", () => {
         expect(type(c, "(1, 2)").name).toBe("A");
         expect(type(c, "(2, 2)").name).toBe("B");
         expect(type(c, "Segment(A, B)").name).toBe("a");
-        expect(type(c, "Milieu(A, B)").name).toBe("C");
-        expect(type(c, "Cercle(A, B)").name).toBe("b");
+        expect(type(c, "Midpoint(A, B)").name).toBe("C");
+        expect(type(c, "Circle(A, B)").name).toBe("b");
         for (const [text, key] of [
             ["Segment(A, Z)", "unknown_object"],
             ["Unknown(A, B)", "unknown_command"],
@@ -380,7 +426,7 @@ describe("Editor", () => {
     it("makes sliders, read back as such", async () => {
         const studied = studio();
         const c = studied.scene;
-        ["a = Curseur(0, 10, 3)", "b = Slider(-1, a, 2)", "E = 2*b"].forEach(
+        ["a = Slider(0, 10, 3)", "b = Slider(-1, a, 2)", "E = 2*b"].forEach(
             (line) => type(c, line),
         );
         c.flush();
@@ -486,7 +532,7 @@ describe("Editor", () => {
         expect(findCommand("d")!.formula).toBe(true);
         // A command's name only: no formula's function in the text's head.
         expect(isCommand("d")).toBe(false);
-        expect(isCommand("milieu")).toBe(true);
+        expect(isCommand("midpoint")).toBe(true);
         expect(findCommand("Sqrt")).toBeUndefined();
         expect([A, a, s].every(readable)).toBe(true);
         expect(readable(c.getObj("w")!)).toBe(true);

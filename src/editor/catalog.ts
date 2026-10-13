@@ -1,4 +1,3 @@
-import { LANG } from "../i18n";
 import { angle_object } from "../objects/angle_object";
 import type { construction_object } from "../objects/construction_object";
 import { curve_object } from "../objects/curve_object";
@@ -16,6 +15,7 @@ import { segment_object } from "../objects/segment_object";
 import { sphere_object } from "../objects/sphere_object";
 import { two_points_line_object } from "../objects/two_points_line_object";
 import { STYLE_NUMBER } from "../import/dgp_expression";
+import { TEXTS } from "./messages";
 import { formatName } from "./text";
 
 // The commands that build objects, in the text and by gestures: see
@@ -71,7 +71,6 @@ export interface Overload {
 
 export interface Command {
     name: string;
-    fr: string;
     // A function of the formulas, whose overloads build nothing.
     formula?: boolean;
     // The arguments of one, ending with an object, never begin those of
@@ -230,7 +229,6 @@ const numbered = (params: Param[]): Overload => ({
 export const COMMANDS: Command[] = [
     {
         name: "Point",
-        fr: "Point",
         overloads: [
             {
                 params: ["path", "number"],
@@ -264,7 +262,6 @@ export const COMMANDS: Command[] = [
     },
     {
         name: "FixedPoint",
-        fr: "PointFixe",
         overloads: [2, 3].map((count) => ({
             params: Array(count).fill("number"),
             tag: "Fix",
@@ -277,52 +274,42 @@ export const COMMANDS: Command[] = [
     },
     {
         name: "Midpoint",
-        fr: "Milieu",
         overloads: [objects("Mid", ["point", "point"]), ofSegment("Mid")],
     },
     {
         name: "Line",
-        fr: "Droite",
         overloads: [objects("Line", ["point", "point"])],
     },
     {
         name: "Segment",
-        fr: "Segment",
         overloads: [objects("Seg", ["point", "point"])],
     },
     {
         name: "Ray",
-        fr: "DemiDroite",
         overloads: [objects("Ray", ["point", "point"])],
     },
     {
         name: "Vector",
-        fr: "Vecteur",
         overloads: [objects("Vec", ["point", "point"])],
     },
     {
         name: "Parallel",
-        fr: "Parallèle",
         overloads: [objects("Par", ["point", "line"], [1, 0])],
     },
     {
         name: "Perpendicular",
-        fr: "Perpendiculaire",
         overloads: [objects("Perp", ["point", "line"], [1, 0])],
     },
     {
         name: "PerpendicularBisector",
-        fr: "Médiatrice",
         overloads: [objects("Med", ["point", "point"]), ofSegment("Med")],
     },
     {
         name: "AngleBisector",
-        fr: "Bissectrice",
         overloads: [objects("Bis", ["point", "point", "point"])],
     },
     {
         name: "Circle",
-        fr: "Cercle",
         overloads: [
             objects("Cir", ["point", "point"]),
             {
@@ -345,7 +332,6 @@ export const COMMANDS: Command[] = [
     },
     {
         name: "Circumcircle",
-        fr: "CercleCirconscrit",
         overloads: [
             objects("C3p", ["point", "point", "point"]),
             objects("C3s", ["point", "point", "point"]),
@@ -353,23 +339,19 @@ export const COMMANDS: Command[] = [
     },
     {
         name: "Compass",
-        fr: "Compas",
         overloads: [objects("C3", ["point", "point", "point"])],
     },
     {
         name: "Arc",
-        fr: "Arc",
         overloads: [objects("Arc", ["point", "point", "point"])],
     },
     {
         name: "Sector",
-        fr: "Secteur",
         overloads: [objects("Sec", ["point", "point", "point"])],
     },
-    { name: "Center", fr: "Centre", overloads: [objects("Ctr", ["circle"])] },
+    { name: "Center", overloads: [objects("Ctr", ["circle"])] },
     {
         name: "Intersection",
-        fr: "Intersection",
         overloads: [
             {
                 params: ["line", "line"],
@@ -394,7 +376,6 @@ export const COMMANDS: Command[] = [
     },
     {
         name: "OtherIntersection",
-        fr: "AutreIntersection",
         overloads: [
             {
                 params: ["intersectable", "intersectable", "point"],
@@ -415,7 +396,6 @@ export const COMMANDS: Command[] = [
     },
     {
         name: "Polygon",
-        fr: "Polygone",
         overloads: [
             {
                 params: ["point", "point", "point"],
@@ -431,12 +411,10 @@ export const COMMANDS: Command[] = [
     },
     {
         name: "Angle",
-        fr: "Angle",
         overloads: [objects("Ang", ["point", "point", "point"])],
     },
     {
         name: "Reflect",
-        fr: "Symétrie",
         overloads: [
             objects("Sym", ["point", "point"], [1, 0]),
             objects("Refl", ["point", "line"], [1, 0]),
@@ -444,24 +422,20 @@ export const COMMANDS: Command[] = [
     },
     {
         name: "Conic",
-        fr: "Conique",
         overloads: [objects("Quad", Array(5).fill("point"))],
     },
     {
         name: "Sphere",
-        fr: "Sphère",
         overloads: [objects("Sph", ["point", "point"])],
     },
     {
         name: "Locus",
-        fr: "Lieu",
         overloads: [objects("Loc", ["point", "pointOn"])],
     },
     // The points of an expression's value (see expression_list_object.ts).
-    { name: "List", fr: "Liste", overloads: [objects("ELst", ["expression"])] },
+    { name: "List", overloads: [objects("ELst", ["expression"])] },
     {
         name: "Slider",
-        fr: "Curseur",
         overloads: [
             {
                 params: ["real", "real", "number"],
@@ -497,7 +471,6 @@ export const COMMANDS: Command[] = [
 // DGPad (see FORMULA_ARITY in dgp_formula.ts).
 const formulaFunction = (name: string, params: Param[], variadic = false) => ({
     name,
-    fr: name,
     formula: true,
     overloads: [{ params, variadic, tag: "", encode: () => null }],
 });
@@ -526,21 +499,32 @@ export const FUNCTIONS: Command[] = [
     formulaFunction("max", ["real"], true),
 ];
 
-export const FRENCH = LANG === "fr";
-
 export const commandName = (command: Command): string =>
-    FRENCH ? command.fr : command.name;
+    TEXTS.commands?.[command.name] ?? command.name;
 
-// Names are compared without case nor accents.
+// Names are compared without case nor accents, the marks of other scripts
+// kept: Hindi's vowels.
 const fold = (name: string): string =>
-    name.normalize("NFD").replace(/\p{M}/gu, "").toLowerCase();
+    name.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
 
-const BY_NAME = new Map(
-    COMMANDS.flatMap((command) => [
-        [fold(command.name), command],
-        [fold(command.fr), command],
-    ]),
-);
+// English names hold in every language. Commands of one name, as Midpoint
+// and Center in German, are told apart by their arguments.
+const BY_NAME = new Map<string, Command>();
+for (const command of COMMANDS)
+    for (const name of new Set(
+        [command.name, commandName(command)].map(fold),
+    )) {
+        const known = BY_NAME.get(name);
+        BY_NAME.set(
+            name,
+            known
+                ? {
+                      ...known,
+                      overloads: [...known.overloads, ...command.overloads],
+                  }
+                : command,
+        );
+    }
 
 // A formula's function, by its exact name.
 export const findCommand = (name: string): Command | undefined =>
@@ -550,13 +534,17 @@ export const findCommand = (name: string): Command | undefined =>
 export const isCommand = (name: string): boolean => BY_NAME.has(fold(name));
 
 // The commands, or the functions, whose localized name starts with
-// `prefix`.
+// `prefix`, each name once.
 export const commandsStarting = (
     prefix: string,
     commands = COMMANDS,
 ): Command[] =>
-    commands.filter((command) =>
-        fold(commandName(command)).startsWith(fold(prefix)),
+    commands.filter(
+        (command, index) =>
+            fold(commandName(command)).startsWith(fold(prefix)) &&
+            commands.findIndex(
+                (other) => commandName(other) === commandName(command),
+            ) === index,
     );
 
 export function paramAt(overload: Overload, position: number): Param | null {

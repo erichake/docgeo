@@ -1,215 +1,25 @@
-import { FRENCH } from "./catalog";
+/// <reference types="vite/client" />
+import { LANG } from "../i18n";
+import en from "./lang/en";
 
-// The editor speaks French or English, as its command names.
-const MESSAGES = {
-    syntax: ["Écriture incomprise : %", "Can't read: %"],
-    expected: ["Attendu : %", "Expected: %"],
-    coordinates: [
-        "Un point a deux ou trois coordonnées",
-        "A point has two or three coordinates",
-    ],
-    unknown_command: ["Commande inconnue : %", "Unknown command: %"],
-    unknown_object: ["Objet inconnu : %", "Unknown object: %"],
-    unknown_method: [
-        "Méthode inconnue : % (setHidden, setRGBColor, setOpacity, setSize…)",
-        "Unknown method: % (setHidden, setRGBColor, setOpacity, setSize…)",
-    ],
-    arguments: ["Arguments incorrects pour %", "Wrong arguments for %"],
-    instead: ["Avec ces arguments : %", "With these arguments: %"],
-    branch: [
-        "Le numéro d'intersection va de 1 à 4",
-        "The intersection number goes from 1 to 4",
-    ],
-    name_taken: ["Le nom % est déjà pris", "The name % is taken"],
-    cycle: [
-        "Un objet ne peut dépendre de lui-même",
-        "An object can't depend on itself",
-    ],
-    read_only: [
-        "Cet objet ne s'écrit pas encore en texte",
-        "This object has no text form yet",
-    ],
-    input: ["Saisie…", "Input…"],
-    open: ["Ouvrir", "Open"],
-    save: ["Enregistrer", "Save"],
-    undo: ["Annuler", "Undo"],
-    redo: ["Refaire", "Redo"],
-    delete: ["Supprimer", "Delete"],
-    eraser: ["Gomme", "Eraser"],
-    axes: ["Repère", "Axes"],
-    actions: ["Actions de la figure", "Figure actions"],
-    construction: ["Construction", "Construction"],
-    history: ["Historique de la construction", "Construction history"],
-    close_history: ["Fermer l’historique", "Close history"],
-    properties: ["Propriétés", "Properties"],
-    settings: ["Réglages", "Settings"],
-    pin: ["Épingler à l’écran", "Pin to the screen"],
-    pin_hint: [
-        "% garde sa place dans la fenêtre quand on zoome ou déplace la vue",
-        "% keeps its place in the window when the view is zoomed or moved",
-    ],
-    unpin_hint: [
-        "% garde ses coordonnées quand on zoome ou déplace la vue",
-        "% keeps its coordinates when the view is zoomed or moved",
-    ],
-    formula_point: ["Point", "Point"],
-    formula_point_hint: [
-        "Place le point que donne la valeur de %, et cache son texte",
-        "Places the point given by the value of %, and hides its text",
-    ],
-    as_expression: ["Expression", "Expression"],
-    point_choice: [
-        "Crée le point que donne la formule (Entrée si allumé)",
-        "Creates the point the formula gives (Enter when lit)",
-    ],
-    expression_choice: [
-        "Crée une expression qui affiche la valeur de la formule (Entrée si allumé)",
-        "Creates an expression showing the formula's value (Enter when lit)",
-    ],
-    points_list: ["Liste de points", "List of points"],
-    segments_list: ["Liste de segments", "List of segments"],
-    list_hint: [
-        "Dessine les points de la valeur de %, et cache son texte",
-        "Draws the points of the value of %, and hides its text",
-    ],
-    magnet: ["Aimants", "Magnets"],
-    magnet_hint: [
-        "Désignez les objets qui attirent % · touchez le vide pour terminer",
-        "Select the objects that attract % · tap an empty spot to finish",
-    ],
-    magnets_of: ["Aimants de %", "Magnets of %"],
-    spring: ["Animer", "Animate"],
-    spring_hint: [
-        "Tirez le ressort de % : longueur = vitesse, côté = sens, en travers = aller-retour",
-        "Pull the spring of %: length = speed, side = direction, across = back and forth",
-    ],
-    done: ["Terminé", "Done"],
-    reach: ["Attraction de %", "Attraction of %"],
-    no_reach: ["Aucune", "None"],
-    full_reach: ["Partout", "Everywhere"],
-    close_properties: ["Fermer les propriétés", "Close properties"],
-    properties_hint: [
-        "Désignez un objet dans la figure, ou choisissez-le dans la liste.",
-        "Select an object in the figure, or choose it from the list.",
-    ],
-    choose_object: ["Choisir un objet…", "Choose an object…"],
-    object: ["Objet", "Object"],
-    name: ["Nom", "Name"],
-    name_required: ["Le nom ne peut pas être vide", "The name cannot be empty"],
-    appearance: ["Apparence", "Appearance"],
-    same_type: [
-        "Appliquer aux objets de même type",
-        "Apply to objects of the same type",
-    ],
-    color: ["Couleur", "Color"],
-    fill_color: ["Couleur du remplissage", "Fill color"],
-    point_size: ["Taille du point", "Point size"],
-    scrub_hint: [
-        "Glisser pour ajuster · Cliquer pour saisir · Maj : réglage fin",
-        "Drag to adjust · Click to type · Shift: fine adjustment",
-    ],
-    thickness: ["Épaisseur", "Thickness"],
-    stroke_opacity: ["Opacité du trait", "Stroke opacity"],
-    fill_opacity: ["Opacité du remplissage", "Fill opacity"],
-    dashed: ["Pointillés", "Dashed"],
-    level: ["Calque", "Layer"],
-    display: ["Affichage", "Display"],
-    visible: ["Objet visible", "Visible object"],
-    conditional_visibility: [
-        "La visibilité dépend aussi d’une condition de la figure.",
-        "Visibility also depends on a condition in the figure.",
-    ],
-    show_name: ["Afficher le nom", "Show name"],
-    font_size: ["Taille du texte", "Text size"],
-    precision: ["Décimales de la valeur", "Value decimal places"],
-    no_value: ["Ne pas afficher", "Do not display"],
-    point_settings: ["Point", "Point"],
-    point_shape: ["Forme", "Shape"],
-    shape_circle: ["Cercle", "Circle"],
-    shape_rect: ["Carré", "Square"],
-    shape_cross: ["Croix", "Cross"],
-    shape_diamond: ["Losange", "Diamond"],
-    name_position: ["Position du nom (°)", "Name position (°)"],
-    trace: ["Laisser une trace", "Leave a trace"],
-    step_x: ["Pas horizontal", "Horizontal step"],
-    step_y: ["Pas vertical", "Vertical step"],
-    decoration: ["Codage du segment", "Segment marking"],
-    none: ["Aucun", "None"],
-    angle_settings: ["Angle", "Angle"],
-    arc_radius: ["Rayon de l’arc", "Arc radius"],
-    right_angle: ["Marque d’angle droit", "Right angle mark"],
-    mark_dgpad: ["Équerre ouverte", "Open square"],
-    mark_none: ["Arc", "Arc"],
-    mark_square: ["Carré", "Square"],
-    mark_dot: ["Point", "Dot"],
-    mark_L: ["Équerre", "L"],
-    sampling: ["Échantillonnage", "Sampling"],
-    samples: ["Nombre de points", "Number of points"],
-    segments_size: ["Épaisseur des segments", "Segment thickness"],
-    definition: ["Définition", "Definition"],
-    definition_hint: [
-        "⌘-Entrée ou Ctrl-Entrée : appliquer · Tab : indenter · Échap : rétablir",
-        "⌘-Enter or Ctrl-Enter: apply · Tab: indent · Escape: restore",
-    ],
-    apply: ["Appliquer", "Apply"],
-    create: ["Créer", "Create"],
-    new_program: ["Nouveau programme", "New program"],
-    program_placeholder: [
-        "var t = [];\nfor (var i = 0; i < 10; i++) {\n    t.push([i, 0]);\n}\nt",
-        "var t = [];\nfor (var i = 0; i < 10; i++) {\n    t.push([i, 0]);\n}\nt",
-    ],
-    format_program: ["Mettre en forme", "Format"],
-    syntax_line: ["Écriture incomprise ligne %", "Can't read line %"],
-    program_syntax: ["Écriture incomprise", "Can't read it"],
-    slider_settings: ["Curseur", "Slider"],
-    increment: ["Pas", "Step"],
-    slider_length: ["Longueur", "Length"],
-    vertical: ["Vertical", "Vertical"],
-    knob_color: ["Couleur de la poignée", "Knob color"],
-    knob_size: ["Taille de la poignée", "Knob size"],
-    animation_settings: ["Animation", "Animation"],
-    animation_speed: ["Vitesse (0 : arrêt)", "Speed (0: stop)"],
-    reverse: ["Sens inverse", "Reverse direction"],
-    animation_end: ["À l’extrémité", "At the end"],
-    loop: ["Recommencer", "Repeat"],
-    bounce: ["Aller-retour", "Back and forth"],
-    once: ["Arrêter", "Stop"],
-    erasing: [
-        "Touchez un objet pour le cacher ou le montrer",
-        "Tap an object to hide or show it",
-    ],
-    cancel: ["Abandonner l'outil (Échap)", "Drop the tool (Escape)"],
-    designate: ["Désignez %", "Designate %"],
-    polygon_end: [
-        "Désignez un sommet, ou le premier pour finir",
-        "Designate a vertex, or the first one to finish",
-    ],
-    unsupported: ["Non importé : %", "Not imported: %"],
-    point: ["un point", "a point"],
-    pointOn: ["un point sur objet", "a point on an object"],
-    line: ["une droite", "a line"],
-    segment: ["un segment", "a segment"],
-    circle: ["un cercle", "a circle"],
-    intersectable: [
-        "une droite, un cercle, une conique ou une courbe",
-        "a line, a circle, a conic or a curve",
-    ],
-    curved: [
-        "un cercle, une conique ou une courbe",
-        "a circle, a conic or a curve",
-    ],
-    support: ["un objet", "an object"],
-    path: [
-        "une droite, un cercle ou une courbe",
-        "a line, a circle or a curve",
-    ],
-    outline: ["un polygone ou une conique", "a polygon or a conic"],
-    real: ["un nombre", "a number"],
-    number: ["un nombre", "a number"],
-    expression: ["une expression", "an expression"],
+// The editor speaks the languages of DocTools: see EDITOR.md.
+
+export type MessageKey = keyof typeof en;
+
+export interface Texts {
+    messages: Partial<Record<MessageKey, string>>;
+    // By English name, those of GeoGebra in this language.
+    commands?: Partial<Record<string, string>>;
+}
+
+// One chunk per language, loaded alone.
+const LANGUAGES = import.meta.glob<Texts>(["./lang/*.ts", "!./lang/en.ts"], {
+    import: "default",
+});
+
+export const TEXTS: Texts = (await LANGUAGES[`./lang/${LANG}.ts`]?.()) ?? {
+    messages: {},
 };
 
-export type MessageKey = keyof typeof MESSAGES;
-
 export const message = (key: MessageKey, detail = ""): string =>
-    MESSAGES[key][FRENCH ? 0 : 1].replace("%", detail);
+    (TEXTS.messages[key] ?? en[key]).replace("%", detail);
