@@ -45,7 +45,7 @@ export class formula_point_object extends point_object {
         refs: Map<string, construction_object>,
         vec3 = false,
     ) {
-        super(c, name, [0, 0, 0]);
+        super(c, name, [0, 0, 0], "intersection");
         this.formula = formula;
         const nodes = programNodes(formula);
         this.view = nodes.some(usesView) || nodes.some(usesCoords2D);

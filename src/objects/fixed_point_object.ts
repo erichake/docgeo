@@ -29,5 +29,6 @@ export function createFixedPoint(
     name: string | null | undefined,
     pt: Vec3,
 ): fixed_point_object {
-    return c.add(new fixed_point_object(c, name, pt));
+    // Filled as the points built from others, as DGPad's.
+    return c.add(new fixed_point_object(c, name, pt, "intersection"));
 }

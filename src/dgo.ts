@@ -131,8 +131,8 @@ const LIST: Look = ["#656148", "#656148", 2];
 const TEXT: Look = ["#000000", "#000000", 1];
 const LOOKS: Record<string, Look> = {
     Pt: POINT,
-    Fix: POINT,
-    Fp: POINT,
+    Fix: DERIVED_POINT,
+    Fp: DERIVED_POINT,
     On: POINT,
     DirP: POINT,
     Mid: DERIVED_POINT,
