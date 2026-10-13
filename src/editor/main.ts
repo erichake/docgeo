@@ -2046,6 +2046,9 @@ $("body").on(
             }
         }
         if (!inFigure(event) || !event.isPrimary) return;
+        // Only a line already begun takes what the figure designates.
+        const blank = editing();
+        if (blank && !blank.value.trim()) blank.blur();
         down = { x: event.clientX, y: event.clientY, time: performance.now() };
         const c = scene();
         const screen = c.pointerPosition(event);

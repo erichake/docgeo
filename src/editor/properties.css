@@ -137,11 +137,27 @@
         100% - var(--dge-panel-width) - var(--dge-properties-width) - 32px
     );
 }
-svg .dge-property-selected {
+/* A glow smears the letters: a text gets a light outline instead. Set
+   on the group, as on a child the glow would follow its scaling. */
+body:not(.dge-adjusting)
+    svg
+    .dge-property-selected:not(:has(> text, > foreignObject > div)),
+body:not(.dge-adjusting)
+    svg
+    .dge-property-selected:has(> text, > foreignObject > div)
+    > :not(text, foreignObject:has(> div)) {
     filter: drop-shadow(0 0 2px #2563eb) drop-shadow(0 0 3px #2563eb);
 }
-.dge-adjusting svg .dge-property-selected {
-    filter: none;
+body:not(.dge-adjusting) svg .dge-property-selected > text {
+    stroke: #bfdbfe;
+    stroke-opacity: 1;
+    stroke-width: 6px;
+    stroke-linejoin: round;
+    paint-order: stroke;
+}
+body:not(.dge-adjusting) svg .dge-property-selected > foreignObject > div {
+    background: #dbeafe;
+    border-radius: 4px;
 }
 .dge-editor .dge-bar .dge-action.dge-on {
     --dge-icon-bg: #e0ebff;
