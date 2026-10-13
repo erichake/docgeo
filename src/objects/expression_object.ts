@@ -297,7 +297,7 @@ export function styleObject(
 // object: DGPad pins it to a fixed window position (screen pixels, from
 // SetCoords at the time the figure was saved) and never moves it — not on
 // pan/zoom, not on a 3D rotation drag, only via an explicit drag of the
-// label itself (unsupported here) or by anchoring it to a point. So `screen`
+// label itself (in the editor only) or by anchoring it to a point. So `screen`
 // is computed once by the caller and only re-projected along its anchor.
 export class expression_object extends construction_object {
     text: string;

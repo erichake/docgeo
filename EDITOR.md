@@ -519,6 +519,14 @@ chemin de création de l'éditeur.
   zone contextuelle « Liste de points » et « Liste de segments »
   (épaisseur 1, réglable ensuite dans le panneau) : elles écrivent cette
   ligne et cachent le texte de `p`, en une étape d'annulation.
+- **Déplacement** (2026-10-12) : comme dans DGPad, une expression se
+  glisse par son texte (ou la piste de son curseur), qui suit le pointeur ;
+  ancrée à un point, elle garde son ancrage et son décalage change. La
+  poignée d'un curseur, une case à cocher ou un champ de saisie gardent
+  leur geste, et un objet géométrique sous le pointeur passe avant. Un
+  toucher la sélectionne toujours, ou écrit son nom dans la ligne en cours
+  de saisie, désignation désormais faite au relâcher pour qu'un glisser
+  reste possible pendant une saisie.
 - **À trancher** : nature déduite (DGPad) ou déclarée (`f(x) = …`,
   GeoGebra), la recommandation étant de déduire en acceptant aussi
   `f(x) =`, qui lève l'ambiguïté d'un point nommé `x` ou `t`.
@@ -789,6 +797,12 @@ Fait (2026-10-11) :
   zone, indentation au clavier, création, sélection du nouvel objet).
   Éditeur : 87,8 Ko, CSS inclus (31,0 Ko en gzip), soit +0,9 Ko ; lecteur
   inchangé.
+
+- Déplacement des expressions (2026-10-12, section « Expressions »).
+  Vérifié dans `editor.html` (expression et curseur glissés par leur
+  texte, poignée du curseur, nom écrit par un toucher pendant une saisie,
+  annulation et rétablissement). Éditeur : +0,5 Ko (+0,1 Ko en gzip) ;
+  lecteur inchangé.
 
 Reste à faire :
 

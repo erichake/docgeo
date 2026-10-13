@@ -1992,6 +1992,8 @@ let dragFrame: number | null = null;
 let aim: { button: Vec2 | null } | null = null;
 // The name being dragged, and where it was taken from its center.
 let label: { point: point_object; grab: Vec2 } | null = null;
+// The expression being dragged, and where it was taken from its position.
+let moved: { expression: expression_object; grab: Vec2 } | null = null;
 
 const onButton = (event: PointerEvent): boolean =>
     !!aim?.button &&
@@ -2056,6 +2058,22 @@ $("body").on(
         if (named && !(pick(c, screen)[0]?.object instanceof point_object)) {
             label = { point: named, grab: vSub(screen, labelCenter(named)) };
             // Pressed twice quickly, the name would be selected as text.
+            event.preventDefault();
+            event.stopPropagation();
+            c.svg.dom().setPointerCapture(event.pointerId);
+            return;
+        }
+        // As in DGPad, an expression is dragged by its text, its slider's
+        // knob, checkbox or field keeping their own gesture. A tap on it
+        // still selects it, or writes its name in the line being typed.
+        const widget = !pending && propertyObject(event);
+        moved = null;
+        if (
+            widget instanceof expression_object &&
+            !widget.dom.dom().contains(element(event.target)) &&
+            !pick(c, screen)[0]
+        ) {
+            moved = { expression: widget, grab: vSub(screen, widget.screen) };
             event.preventDefault();
             event.stopPropagation();
             c.svg.dom().setPointerCapture(event.pointerId);
@@ -2126,7 +2144,7 @@ $("body").on(
 $("body").on(
     "mousedown",
     (event) => {
-        if (inFigure(event) && editing() && (!down || typing))
+        if (inFigure(event) && editing() && (!down || typing || moved))
             event.preventDefault();
     },
     { capture: true, prevent: false },
@@ -2159,6 +2177,16 @@ $("body").on(
                 label.point,
                 vSub(scene().pointerPosition(event), label.grab),
             );
+        if (moved && event.isPrimary && event.buttons) {
+            const { expression, grab } = moved;
+            expression.screen = vSub(scene().pointerPosition(event), grab);
+            if (expression.anchor)
+                expression.alpha = vSub(
+                    expression.screen,
+                    expression.anchor.screen,
+                );
+            return scene().invalidateRender(expression);
+        }
         if (!event.isPrimary || (!aim && !inFigure(event))) return;
         if (event.buttons && !aim) return dragged();
         follow(event);
@@ -2201,6 +2229,11 @@ $("body").on(
             if (properties.selected === named) properties.select(named);
             return void record();
         }
+        const expression = moved?.expression;
+        moved = null;
+        if (expression && !tap) return void record();
+        const line = editing();
+        if (expression && line) return designateTyped(line, expression);
         if (!inFigure(event)) return;
         if (!tap) {
             void record().then(updateRows);
