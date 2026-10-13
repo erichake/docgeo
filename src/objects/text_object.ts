@@ -86,7 +86,7 @@ export class text_object extends construction_object {
                     this.refs,
                     name,
                     args,
-                    this.C.formulaView(),
+                    () => this.C.formulaView(),
                     derivatives,
                 ),
         };

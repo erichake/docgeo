@@ -71,7 +71,7 @@ export class formula_point_object extends point_object {
                         this.refs,
                         name,
                         args,
-                        this.C.formulaView(),
+                        () => this.C.formulaView(),
                         derivatives,
                     ),
             }),

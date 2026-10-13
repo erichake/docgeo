@@ -122,7 +122,7 @@ export class curve_object extends construction_object {
         if (this.min !== null && x < this.min) return null;
         if (this.max !== null && x > this.max) return null;
         const y = realPart(
-            evaluateFunction(this.formula, [x], this.C.formulaView()),
+            evaluateFunction(this.formula, [x], () => this.C.formulaView()),
         );
         return y === null ? null : [x, y, 0];
     }
@@ -187,7 +187,7 @@ export class curve_object extends construction_object {
     }
 
     private screenAt(x: number, view: FormulaView): Vec2 | null {
-        const y = realPart(evaluateFunction(this.formula, [x], view));
+        const y = realPart(evaluateFunction(this.formula, [x], () => view));
         if (y === null) return null;
         const screen = this.C.pt3D([x, y, 0]);
         return vIsFinite(screen) ? screen : null;

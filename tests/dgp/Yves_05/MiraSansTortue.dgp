@@ -1,0 +1,28 @@
+// Coordinates System :
+SetCoords(689.3668515600207,468.99440598508517,77.9009241973697,false,1330,819);
+
+
+// Geometry :
+A=Point("A",1.19930436634003,2.950535358280266);
+a=Expression("a","","-1","1","0.7888888888888885","-8.079067842192185","4.993450462789496");
+b=Expression("b","","0.99","1","0.9997820512820513","-8.079067842192185","5.635291371805158");
+n=Expression("n","","8","30","30","-7.693963296782788","-0.14127680933580547");
+f=Expression("f","","","","a*x+2*(1-a)*x*x/(1+x*x)","-8.079067842192186","-1.8100631727765284");
+E1=Expression("E1","","","","var GN=1000*n;tab=[[A[0],A[1]]];for (var i=0;i<=GN;i++){var nouvx=b*tab[i][1]+f(tab[i][0]);var nouvy=-tab[i][0]+f(nouvx);tab.push([nouvx,nouvy])};tab","-3.71454966088568","3.5814004629550378");
+List1=List("List1",E1);
+
+
+// Styles :
+STL(A,"c:#e11f63;s:6;sn:true;f:18;sp:1");
+STL(a,"c:#7a5d3f;s:7;sn:true;f:24;p:4;cL:540;cPT:YzojNzgwMDEzO3M6MTA7ZjozMA==");
+STL(b,"c:#736277;s:7;sn:true;f:24;p:4;cL:780;cPT:YzojNzgwMDEzO3M6MTA7ZjozMA==");
+STL(n,"c:#6a305a;s:7;sn:true;f:24;p:2;i:0.01;cL:200;cPT:YzojNzgwMDEzO3M6MTA7ZjozMDtpOjAuMDE=");
+STL(f,"c:#5f5e0c;h:1;s:7;sn:true;f:24;p:2;cL:200;cPT:YzojNzgwMDEzO2g6MTtzOjEwO2Y6MzA=");
+STL(E1,"c:#076519;s:7;f:24;p:2;cL:200;cPT:YzojNzgwMDEzO3M6MTA7ZjozMA==");
+STL(List1,"c:#0000b2;s:0.3;f:30;p:0;sg:0");
+SetCoordsStyle("isAxis:false;isGrid:true;isOx:true;isOy:true;isLockOx:false;isLockOy:false;centerZoom:false;onlyPositive:false;color:#111111;fontSize:18;axisWidth:1;gridWidth:0.1");
+SetGeneralStyle("background-color:#ffffff;degree:true;dragmoveable:true");
+
+
+// Texts :
+Text("<div style='font-size:18px;color:#FF0000;text-align:center'>$Attracteur \\; de \\; Gumowski-Mira$\n$(CERN)$\n<div style='color:#0000FF'>\n$x_{n+1}=by_n+f(x_n)$\n$y_{n+1}=-x_n+f(x_{n+1})$\n<div style='text-align:left;color:#6600FF'>\n$avec$\n<div style='text-align:center'>\n$\\displaystyle f(x) = ax+\\frac{2(1-a)x^2}{1+x^2}\n",31,133,334,259,"c:rgba(215,232,122,0.18);s:3;r:15;p:4");

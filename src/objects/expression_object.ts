@@ -1,6 +1,7 @@
 import { advance, type Animation } from "../animation";
 import type { construction } from "../construction";
 import { $, type DOMElement } from "../dom";
+import { t } from "../i18n";
 import { derivative } from "../import/dgp_derivative";
 import {
     evaluateFormula,
@@ -63,6 +64,14 @@ export function formatValue(value: ScriptValue, precision: number): string {
         value.map((item) => formatValue(item, precision)).join(" ; ") +
         "]"
     );
+}
+
+// As DGPad, a long list shows its first items and its size.
+const SHOWN_ITEMS = 3;
+function formatShown(value: ScriptValue, precision: number): string {
+    if (!Array.isArray(value) || value.length <= SHOWN_ITEMS)
+        return formatValue(value, precision);
+    return `${formatValue(value.slice(0, SHOWN_ITEMS), precision).slice(0, -1)} ; … (${value.length} ${t("list_items")})]`;
 }
 
 // A rounded "capsule" outline, used for the slider track.
@@ -155,12 +164,13 @@ const functionFormula = (ref: construction_object | undefined) =>
         : null;
 
 // A call "E1(...)" of a function-valued expression or a curve among `refs`,
-// or of its derivative with respect to each of `derivatives` in turn.
+// or of its derivative with respect to each of `derivatives` in turn. The
+// window is only read if the function needs it.
 export function callFunction(
     refs: Map<string, construction_object>,
     name: string,
     args: FormulaValue[],
-    view: FormulaView,
+    view: () => FormulaView,
     derivatives: string[] = [],
 ): FormulaValue | null {
     const formula = functionFormula(refs.get(name));
@@ -200,7 +210,7 @@ function derivedFormula(
 export function evaluateFunction(
     formula: ExpressionFormula,
     args: FormulaValue[],
-    view: FormulaView,
+    view: () => FormulaView,
 ): FormulaValue | null {
     return evaluateFormula(formula.node, {
         resolveIdentifier: (name) => {
@@ -209,7 +219,7 @@ export function evaluateFunction(
                 ? (args[index] ?? null)
                 : formula.refs.get(name)!.scriptValue(formula.vec3);
         },
-        view: () => view,
+        view,
         callFunction: (name, callArgs, derivatives) =>
             callFunction(formula.refs, name, callArgs, view, derivatives),
     });
@@ -473,9 +483,10 @@ export class expression_object extends construction_object {
     private evaluateProgram(): void {
         if (!this.program) return;
         const { program, refs, targets, vec3 } = this.program;
+        const view = () => this.C.formulaView();
         this.value = evaluateProgram(program, {
             resolveIdentifier: (name) => refs.get(name)!.scriptValue(vec3),
-            view: () => this.C.formulaView(),
+            view,
             coords2D: (name) => {
                 const ref = refs.get(name)!;
                 return ref instanceof point_object ? ref.coords2D() : null;
@@ -493,13 +504,7 @@ export class expression_object extends construction_object {
                 return angle - Math.floor(angle / turn) * turn;
             },
             callFunction: (name, args, derivatives) =>
-                callFunction(
-                    refs,
-                    name,
-                    args,
-                    this.C.formulaView(),
-                    derivatives,
-                ),
+                callFunction(refs, name, args, view, derivatives),
             center: (name) => scriptCenter(refs.get(name)!, vec3),
             // An expression_list_object's, which this file can't import.
             turtlePoints: (name) =>
@@ -633,7 +638,7 @@ export class expression_object extends construction_object {
                       : prefix +
                         (this.formula
                             ? this.formula.source
-                            : formatValue(this.value!, this.precision)),
+                            : formatShown(this.value!, this.precision)),
             );
 
         if (!this.cursor || !this.track || !this.progress || !this.knob) return;

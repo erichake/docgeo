@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 // First, as in main.ts: the object classes import each other.
 import "../../src/construction";
 import { importDgp, importDgpFromUrl } from "../../src/dgp_importer";
+import { t } from "../../src/i18n";
 import type { circle3pts_object } from "../../src/objects/circle3pts_object";
 import type { expression_list_object } from "../../src/objects/expression_list_object";
 import type { expression_object } from "../../src/objects/expression_object";
@@ -232,6 +233,24 @@ M=PointOn("M",LL,[1,0]);`,
 describe("DGPad's texts", () => {
     const panel = (c: ReturnType<typeof createConstruction>) =>
         c.OBJS.V.find((object) => object instanceof panel_object)!;
+
+    it("shows a long list by its first items and its size, as DGPad", async () => {
+        const c = createConstruction();
+        importDgp(
+            c,
+            `E1=Expression("E1","","","","var t=[];for(var i=0;i<1000;i++){t.push([i,i/4])};t","0","0");
+E2=Expression("E2","","","","[1,2,3]","0","0");
+STL(E1,"p:2");
+STL(E2,"p:2");`,
+        );
+        await frame();
+        const text = (name: string) =>
+            (c.getObj(name) as expression_object).dom.dom().textContent;
+        expect(text("E1")).toBe(
+            `E1 = [[0 ; 0] ; [1 ; 0,25] ; [2 ; 0,5] ; … (1000 ${t("list_items")})]`,
+        );
+        expect(text("E2")).toBe("E2 = [1 ; 2 ; 3]");
+    });
 
     it("shows their formulas and TeX, and their fields change the numbers they target", async () => {
         const c = createConstruction();

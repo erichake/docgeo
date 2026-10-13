@@ -764,10 +764,10 @@ P=PointOn("P",poly,0.5);`,
         // (0.5x^2-4) evaluated directly at the same x.
         [-3, 0, 2.5].forEach((x) => {
             const viaCurve = realPart(
-                evaluateFunction(f1.formula, [x], NO_VIEW),
+                evaluateFunction(f1.formula, [x], () => NO_VIEW),
             );
             const viaExpression = realPart(
-                evaluateFunction(e1.formula!, [x], NO_VIEW),
+                evaluateFunction(e1.formula!, [x], () => NO_VIEW),
             );
             expect(viaCurve).toBeCloseTo(0.5 * x * x - 4);
             expect(viaCurve).toBeCloseTo(viaExpression!);

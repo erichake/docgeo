@@ -10,6 +10,7 @@ const translations = {
         close: "إغلاق",
         pause: "إيقاف مؤقت",
         play: "تشغيل",
+        list_items: "عناصر",
     },
     de: {
         open_figure: "Figur öffnen",
@@ -21,6 +22,7 @@ const translations = {
         close: "Schließen",
         pause: "Pause",
         play: "Abspielen",
+        list_items: "Elemente",
     },
     el: {
         open_figure: "Άνοιγμα σχήματος",
@@ -32,6 +34,7 @@ const translations = {
         close: "Κλείσιμο",
         pause: "Παύση",
         play: "Αναπαραγωγή",
+        list_items: "στοιχεία",
     },
     en: {
         open_figure: "Open a figure",
@@ -43,6 +46,7 @@ const translations = {
         close: "Close",
         pause: "Pause",
         play: "Play",
+        list_items: "items",
     },
     es: {
         open_figure: "Abrir una figura",
@@ -54,6 +58,7 @@ const translations = {
         close: "Cerrar",
         pause: "Pausa",
         play: "Reproducir",
+        list_items: "elementos",
     },
     fr: {
         open_figure: "Ouvrir une figure",
@@ -65,6 +70,7 @@ const translations = {
         close: "Fermer",
         pause: "Pause",
         play: "Lecture",
+        list_items: "éléments",
     },
     hi: {
         open_figure: "आकृति खोलें",
@@ -76,6 +82,7 @@ const translations = {
         close: "बंद करें",
         pause: "रोकें",
         play: "चलाएँ",
+        list_items: "तत्व",
     },
     it: {
         open_figure: "Apri una figura",
@@ -87,6 +94,7 @@ const translations = {
         close: "Chiudi",
         pause: "Pausa",
         play: "Riproduci",
+        list_items: "elementi",
     },
     nl: {
         open_figure: "Figuur openen",
@@ -98,6 +106,7 @@ const translations = {
         close: "Sluiten",
         pause: "Pauzeren",
         play: "Afspelen",
+        list_items: "elementen",
     },
     pt: {
         open_figure: "Abrir uma figura",
@@ -109,6 +118,7 @@ const translations = {
         close: "Fechar",
         pause: "Pausar",
         play: "Reproduzir",
+        list_items: "elementos",
     },
     zh: {
         open_figure: "打开图形",
@@ -120,6 +130,7 @@ const translations = {
         close: "关闭",
         pause: "暂停",
         play: "播放",
+        list_items: "个元素",
     },
     "zh-TW": {
         open_figure: "開啟圖形",
@@ -130,6 +141,7 @@ const translations = {
         close: "關閉",
         pause: "暫停",
         play: "播放",
+        list_items: "個元素",
     },
 };
 

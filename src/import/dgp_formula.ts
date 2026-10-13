@@ -1770,8 +1770,9 @@ interface Frame {
     slots: (ScriptValue | null)[];
     steps: number;
     depth: number;
-    // The lists the script made or copied, which it changes in place.
-    owned: Set<ScriptValue[]>;
+    // The lists the script made or copied, which it changes in place: none
+    // until it makes one.
+    owned: Set<ScriptValue[]> | null;
     // Whether a return statement is leaving the function, and its value.
     returning: boolean;
     result: ScriptValue | null;
@@ -1820,9 +1821,9 @@ interface Scope {
 // made once, as it may be another object's value (a copy per change would
 // make building a list of n terms quadratic).
 function own(list: readonly ScriptValue[], frame: Frame): ScriptValue[] {
-    if (frame.owned.has(list as ScriptValue[])) return list as ScriptValue[];
+    if (frame.owned?.has(list as ScriptValue[])) return list as ScriptValue[];
     const copy = [...list];
-    frame.owned.add(copy);
+    (frame.owned ??= new Set()).add(copy);
     return copy;
 }
 
@@ -2171,7 +2172,7 @@ function compileNode(node: FormulaNode, scope: Scope): Code {
             const items = node.items.map(compile);
             return (frame) => {
                 const values = evalCodes(items, frame);
-                if (values) frame.owned.add(values);
+                if (values) (frame.owned ??= new Set()).add(values);
                 return values;
             };
         }
@@ -2352,55 +2353,51 @@ function checkedValue(value: ScriptValue): FormulaValue | null {
     return value as unknown as FormulaValue;
 }
 
-// What evalCall gives, with no list built for its most common uses: a
-// function of a finite number, or a coordinate of a point.
-function callCode(
-    fn: Exclude<FormulaFn, ListFn | "isNaN">,
-    args: Code[],
-): Code {
-    const [arg] = args;
+type UnaryCall = (frame: Frame, v: ScriptValue | null) => ScriptValue | null;
+
+// What evalCall gives for one argument, with no list built for its most
+// common uses: a function of a finite number, or a coordinate of a point.
+function unaryCall(fn: Exclude<FormulaFn, ListFn | "isNaN">): UnaryCall | null {
     const isReal = (v: ScriptValue | null): v is number =>
         typeof v === "number" && Number.isFinite(v);
     const real = REAL_FUNCTIONS[fn];
     const trigonometric = TRIGONOMETRIC[fn];
     const inverse = INVERSE_TRIGONOMETRIC[fn];
-    if (args.length === 1) {
-        if (real)
-            return (frame) => {
-                const v = arg(frame);
-                return isReal(v) ? real(v) : callValues(fn, [v], frame);
-            };
-        if (fn === "sqrt")
-            return (frame) => {
-                const v = arg(frame);
-                return isReal(v) && v >= 0
-                    ? Math.sqrt(v)
-                    : callValues(fn, [v], frame);
-            };
-        if (trigonometric)
-            return (frame) => {
-                const v = arg(frame);
-                return isReal(v)
-                    ? trigonometric(v * frameUnit(frame))
-                    : callValues(fn, [v], frame);
-            };
-        if (inverse)
-            return (frame) => {
-                const v = arg(frame);
-                return isReal(v)
-                    ? inverse(v) / frameUnit(frame)
-                    : callValues(fn, [v], frame);
-            };
-        if (fn === "x" || fn === "y") {
-            const axis = fn === "x" ? 0 : 1;
-            return (frame) => {
-                const v = arg(frame);
-                const point = v === null ? null : checkedValue(v);
-                return point === null || typeof point === "number"
-                    ? null
-                    : point[axis];
-            };
-        }
+    if (real)
+        return (frame, v) => (isReal(v) ? real(v) : callValues(fn, [v], frame));
+    if (fn === "sqrt")
+        return (frame, v) =>
+            isReal(v) && v >= 0 ? Math.sqrt(v) : callValues(fn, [v], frame);
+    if (trigonometric)
+        return (frame, v) =>
+            isReal(v)
+                ? trigonometric(v * frameUnit(frame))
+                : callValues(fn, [v], frame);
+    if (inverse)
+        return (frame, v) =>
+            isReal(v)
+                ? inverse(v) / frameUnit(frame)
+                : callValues(fn, [v], frame);
+    if (fn === "x" || fn === "y") {
+        const axis = fn === "x" ? 0 : 1;
+        return (_, v) => {
+            const point = v === null ? null : checkedValue(v);
+            return point === null || typeof point === "number"
+                ? null
+                : point[axis];
+        };
+    }
+    return null;
+}
+
+function callCode(
+    fn: Exclude<FormulaFn, ListFn | "isNaN">,
+    args: Code[],
+): Code {
+    const unary = args.length === 1 ? unaryCall(fn) : null;
+    if (unary) {
+        const [arg] = args;
+        return (frame) => unary(frame, arg(frame));
     }
     return (frame) => {
         const values: (ScriptValue | null)[] = [];
@@ -2491,7 +2488,14 @@ function callFunction(
     frame: Frame,
 ): ScriptValue | null {
     const values = evalCodes(args, frame);
-    if (values === null) return null;
+    return values && callScript(fn, values, frame);
+}
+
+function callScript(
+    fn: ScriptFunction,
+    values: ScriptValue[],
+    frame: Frame,
+): ScriptValue | null {
     if (++frame.depth > MAX_DEPTH) throw new StepLimitExceeded();
     const saved = fn.slots.map((slot) => frame.slots[slot]);
     fn.slots.forEach((slot) => (frame.slots[slot] = null));
@@ -2504,37 +2508,44 @@ function callFunction(
     return value;
 }
 
-// A block's value is its last statement's, null when it isn't an
-// expression, or the value it returns. Its functions can be called from
-// anywhere in it, as JavaScript's.
-function compileBlock(statements: Statement[], scope: Scope): Code {
+// The scope of a block that declares functions, their slots taken and their
+// bodies compiled once they are all known: they can be called from anywhere
+// in it, as JavaScript's.
+function declareFunctions(
+    statements: Statement[],
+    scope: Scope,
+    compile: (body: Statement[], scope: Scope) => Code,
+): Scope {
     const declared = statements.filter(
         (statement) => statement.kind === "function",
     );
-    if (declared.length > 0) {
-        const functions = new Map(scope.functions);
-        const bodies = declared.map((statement) => {
-            const slots = new Map(scope.slots);
-            statement.locals.forEach((name) =>
-                slots.set(name, scope.size.value++),
-            );
-            const fn: ScriptFunction = {
-                params: statement.params.map((name) => slots.get(name)!),
-                slots: [...statement.locals].map((name) => slots.get(name)!),
-                body: () => null,
-            };
-            functions.set(statement.name, fn);
-            return () => {
-                fn.body = compileBlock(statement.body, {
-                    slots,
-                    functions,
-                    size: scope.size,
-                });
-            };
-        });
-        scope = { ...scope, functions };
-        bodies.forEach((compileBody) => compileBody());
-    }
+    if (declared.length === 0) return scope;
+    const functions = new Map(scope.functions);
+    const bodies = declared.map((statement) => {
+        const slots = new Map(scope.slots);
+        statement.locals.forEach((name) => slots.set(name, scope.size.value++));
+        const fn: ScriptFunction = {
+            params: statement.params.map((name) => slots.get(name)!),
+            slots: [...statement.locals].map((name) => slots.get(name)!),
+            body: () => null,
+        };
+        functions.set(statement.name, fn);
+        return () => {
+            fn.body = compile(statement.body, {
+                slots,
+                functions,
+                size: scope.size,
+            });
+        };
+    });
+    bodies.forEach((compileBody) => compileBody());
+    return { ...scope, functions };
+}
+
+// A block's value is its last statement's, null when it isn't an
+// expression, or the value it returns.
+function compileBlock(statements: Statement[], scope: Scope): Code {
+    scope = declareFunctions(statements, scope, compileBlock);
     const codes = statements.map((statement) =>
         compileStatement(statement, scope),
     );
@@ -2592,27 +2603,433 @@ function compileStatement(statement: Statement, scope: Scope): Code {
     }
 }
 
-const COMPILED = new WeakMap<
-    FormulaNode | Program,
-    { code: Code; size: number }
->();
+// *************************************************
+// ************ Translation to JavaScript ***********
+// *************************************************
 
-function evaluate(
-    { code, size }: { code: Code; size: number },
-    env: FormulaEnv,
-) {
-    return code({
+// A program or formula that has run long enough is translated into
+// JavaScript, much faster than its closures. Its code depends on the shape
+// of the tree alone: the figure's names and texts, and the numbers that
+// aren't finite, stay in its constants, which it reads by their index. It
+// reads no global variable, only the helpers below, and reaches the items of
+// lists by numeric indices alone. It counts its steps and its depth as the
+// closures do, which remain the reference: it gives their results, runs
+// them for the nodes it doesn't translate, and they run in its place on a
+// page that forbids building JavaScript.
+
+type Value = ScriptValue | null;
+
+// What the translated code calls, all but the numbers' arithmetic and
+// comparisons, which it writes itself.
+const HELPERS = {
+    slowBinary,
+    truthy,
+    realPart,
+    negate,
+    isArray: Array.isArray,
+    pow: Math.pow,
+    not: (v: Value): Value => {
+        const real = realPart(v);
+        return real === null ? null : Number(real === 0);
+    },
+    nan: (v: Value): Value => Number(v === null || Number.isNaN(v)),
+    length: (v: Value): Value =>
+        typeof v === "string" || Array.isArray(v) ? v.length : null,
+    vector: (frame: Frame, values: ScriptValue[]): Value => {
+        (frame.owned ??= new Set()).add(values);
+        return values;
+    },
+    call: (
+        fn: Exclude<FormulaFn, ListFn | "isNaN">,
+        values: ScriptValue[],
+        frame: Frame,
+    ): Value => callValues(fn, values, frame),
+    callScript,
+    callEnv: (
+        frame: Frame,
+        name: string,
+        values: ScriptValue[],
+        derivatives: string[],
+    ): Value => {
+        const args = values.map(formulaValue);
+        return args.includes(null)
+            ? null
+            : frame.env.callFunction!(
+                  name,
+                  args as FormulaValue[],
+                  derivatives,
+              );
+    },
+    ownSlot,
+    // As an iteration of ownItem's loop.
+    ownItemAt: (
+        list: ScriptValue[],
+        i: number,
+        frame: Frame,
+    ): ScriptValue[] | null => {
+        const item = list[i];
+        return Array.isArray(item) ? (list[i] = own(item, frame)) : null;
+    },
+    listMethod: (pop: boolean, list: ScriptValue[] | null, values: Value[]) => {
+        if (!list || values.includes(null)) return null;
+        if (pop) return list.pop() ?? null;
+        list.push(...(values as ScriptValue[]));
+        return list.length;
+    },
+    stop: () => {
+        throw new StepLimitExceeded();
+    },
+};
+
+type Template = (a: string, b: string) => string;
+
+// A comparison of two numbers, as a boolean: COMPARISONS' own.
+const TESTS: Record<Comparison, Template> = {
+    "==": (a, b) =>
+        `(${a}===${b}||(${a}>${b}?${a}-${b}:${b}-${a})<${EQUALITY_PRECISION})`,
+    "!=": (a, b) =>
+        `!(${a}===${b}||(${a}>${b}?${a}-${b}:${b}-${a})<${EQUALITY_PRECISION})`,
+    "<": (a, b) => `${a}<${b}`,
+    "<=": (a, b) => `${a}<=${b}`,
+    ">": (a, b) => `${a}>${b}`,
+    ">=": (a, b) => `${a}>=${b}`,
+    "&&": (a, b) => `truthy(${a})&&truthy(${b})`,
+    "||": (a, b) => `truthy(${a})||truthy(${b})`,
+};
+
+// An operation on two numbers: ARITHMETIC's and COMPARISONS' own.
+const OPERATIONS: Record<BinaryOp, Template> = {
+    "+": (a, b) => `${a}+${b}`,
+    "-": (a, b) => `${a}-${b}`,
+    "*": (a, b) => `${a}*${b}`,
+    "/": (a, b) => `${a}/${b}`,
+    "%": (a, b) => `${a}%${b}`,
+    "^": (a, b) => `pow(${a},${b})`,
+    ...(Object.fromEntries(
+        Object.entries(TESTS).map(([op, test]) => [
+            op,
+            (a: string, b: string) => `(${test(a, b)}?1:0)`,
+        ]),
+    ) as Record<Comparison, Template>),
+};
+
+const STEP = `if(++f.steps>${MAX_STEPS})stop();`;
+
+// One function being translated: its constants and its temporary
+// variables, each one a node's, so that a script's function calling itself
+// has its own.
+class Translation {
+    private constants: unknown[] = [];
+    private temps = 0;
+
+    constant(value: unknown): string {
+        return `K[${this.constants.push(value) - 1}]`;
+    }
+
+    temp(): string {
+        return `t${this.temps++}`;
+    }
+
+    // A finite number as JavaScript reads it back, any other in the
+    // constants.
+    number(value: number): string {
+        return Number.isFinite(value) ? `(${value})` : this.constant(value);
+    }
+
+    code(body: string): Code {
+        const temps = Array.from({ length: this.temps }, (_, i) => `t${i}`);
+        return new Function(
+            "H",
+            "K",
+            `"use strict";const{${Object.keys(HELPERS)}}=H;return function(f){const S=f.slots;let v=null${temps.map((temp) => `,${temp}`).join("")};${body}}`,
+        )(HELPERS, this.constants);
+    }
+}
+
+// The values of the nodes, null as soon as one is, as evalCodes.
+function translateValues(
+    nodes: FormulaNode[],
+    scope: Scope,
+    t: Translation,
+    then: (values: string) => string,
+): string {
+    const temps = nodes.map(() => t.temp());
+    return nodes.reduceRight(
+        (rest, node, k) =>
+            `((${temps[k]}=${translateNode(node, scope, t)})===null?null:${rest})`,
+        then(temps.join()),
+    );
+}
+
+// Both operands, then the operation written for two numbers, slowBinary's
+// for any other values.
+function translateBinary(
+    node: Extract<FormulaNode, { kind: "binary" }>,
+    scope: Scope,
+    t: Translation,
+    numbers: Template,
+    other: (value: string) => string,
+): string {
+    const [a, b] = [t.temp(), t.temp()];
+    return `((${a}=${translateNode(node.left, scope, t)}),(${b}=${translateNode(node.right, scope, t)}),typeof ${a}==="number"&&typeof ${b}==="number"?${numbers(a, b)}:${other(`slowBinary(${t.constant(node.op)},${a},${b})`)})`;
+}
+
+// Whether the node's value is truthy, as a boolean.
+function translateTest(
+    node: FormulaNode,
+    scope: Scope,
+    t: Translation,
+): string {
+    if (node.kind === "binary" && isComparison(node.op))
+        return translateBinary(
+            node,
+            scope,
+            t,
+            TESTS[node.op],
+            (value) => `truthy(${value})`,
+        );
+    const v = t.temp();
+    return `(typeof(${v}=${translateNode(node, scope, t)})==="number"?${v}!==0&&${v}===${v}:${v}!==null&&${v}!=="")`;
+}
+
+// The item of a list at an index, a number.
+function translateItem(target: string, index: string, t: Translation) {
+    const list = t.temp();
+    return `(isArray(${list}=${target})?(${list}[${index}]??null):null)`;
+}
+
+function translateNode(
+    node: FormulaNode,
+    scope: Scope,
+    t: Translation,
+): string {
+    const translate = (child: FormulaNode) => translateNode(child, scope, t);
+    switch (node.kind) {
+        case "number":
+            return t.number(node.value);
+        case "string":
+            return t.constant(node.value);
+        case "imaginary":
+            return "[0,1]";
+        case "constant":
+            return t.number(Math.PI);
+        case "identifier": {
+            const slot = scope.slots.get(node.name);
+            return slot === undefined
+                ? `f.env.resolveIdentifier(${t.constant(node.name)})`
+                : `S[${slot}]`;
+        }
+        case "assign": {
+            const slot = scope.slots.get(node.name);
+            const value = translate(node.value);
+            return slot === undefined ? value : `(S[${slot}]=${value})`;
+        }
+        case "conditional":
+            return `(${translateTest(node.test, scope, t)}?${translate(node.then)}:${translate(node.otherwise)})`;
+        case "unary": {
+            if (node.op === "!") return `not(${translate(node.operand)})`;
+            const v = t.temp();
+            return `(typeof(${v}=${translate(node.operand)})==="number"?-${v}:${v}===null?null:negate(${v}))`;
+        }
+        case "index": {
+            if (node.target.kind === "vector") break;
+            if (node.index.kind === "number")
+                return translateItem(
+                    translate(node.target),
+                    t.number(node.index.value),
+                    t,
+                );
+            const i = t.temp();
+            return `((${i}=${translate(node.index)}),typeof ${i}==="number"||(${i}=realPart(${i}))!==null?${translateItem(translate(node.target), i, t)}:null)`;
+        }
+        case "length":
+            return `length(${translate(node.target)})`;
+        // As ownItem, false once it has given up on the list.
+        case "assignItem": {
+            const [list, i, value] = [t.temp(), t.temp(), t.temp()];
+            const indices = node.indices
+                .slice(0, -1)
+                .map(
+                    (index) =>
+                        `${list}=${list}===false?false:((${i}=realPart(${translate(index)})),${list}===null||${i}===null?false:ownItemAt(${list},${i},f))`,
+                );
+            return `(${[
+                `${list}=ownSlot(${scope.slots.get(node.name)!},f)`,
+                ...indices,
+                `${i}=realPart(${translate(node.indices[node.indices.length - 1])})`,
+                `${value}=${translate(node.value)}`,
+                `!${list}||${i}===null||${value}===null?null:(${list}[${i}]=${value})`,
+            ].join(",")})`;
+        }
+        case "vector":
+            return translateValues(
+                node.items,
+                scope,
+                t,
+                (values) => `vector(f,[${values}])`,
+            );
+        case "binary":
+            return translateBinary(
+                node,
+                scope,
+                t,
+                OPERATIONS[node.op],
+                (value) => value,
+            );
+        case "call": {
+            const { fn } = node;
+            if (fn === "isNaN") return `nan(${translate(node.args[0])})`;
+            if (fn in LIST_OPERATORS) break;
+            const unary =
+                node.args.length === 1
+                    ? unaryCall(fn as Exclude<FormulaFn, ListFn | "isNaN">)
+                    : null;
+            if (unary)
+                return `${t.constant(unary)}(f,${translate(node.args[0])})`;
+            return translateValues(
+                node.args,
+                scope,
+                t,
+                (values) => `call(${t.constant(fn)},[${values}],f)`,
+            );
+        }
+        case "userCall":
+        case "derivative": {
+            const fn =
+                node.kind === "userCall"
+                    ? scope.functions.get(node.name)
+                    : undefined;
+            if (fn)
+                return translateValues(
+                    node.args,
+                    scope,
+                    t,
+                    (values) => `callScript(${t.constant(fn)},[${values}],f)`,
+                );
+            const derivatives =
+                node.kind === "derivative" ? node.variables : [];
+            return `(f.env.callFunction?${translateValues(
+                node.args,
+                scope,
+                t,
+                (values) =>
+                    `callEnv(f,${t.constant(node.name)},[${values}],${t.constant(derivatives)})`,
+            )}:null)`;
+        }
+        case "method": {
+            if (!LIST_METHODS.has(node.method) || node.indices.length > 0)
+                break;
+            const slot = scope.slots.get(node.object);
+            const list = slot === undefined ? "null" : `ownSlot(${slot},f)`;
+            return `listMethod(${node.method === "pop"},${list},[${node.args.map(translate)}])`;
+        }
+    }
+    return `${t.constant(compileNode(node, scope))}(f)`;
+}
+
+// The block's statements, the value of the last one in v at the top of a
+// program or function: a return leaves the translated function at once, as
+// it leaves the closures of every block holding it.
+function translateBlock(
+    statements: Statement[],
+    scope: Scope,
+    t: Translation,
+    top: boolean,
+): string {
+    scope = declareFunctions(statements, scope, translateBody);
+    return statements
+        .map((statement) => {
+            const value = (code: string) => (top ? `v=${code};` : `${code};`);
+            const block = (body: Statement[]) =>
+                translateBlock(body, scope, t, false);
+            const node = (formula: FormulaNode) =>
+                translateNode(formula, scope, t);
+            switch (statement.kind) {
+                case "expression":
+                    return STEP + value(node(statement.node));
+                case "function":
+                    return STEP + value("null");
+                case "return":
+                    return `${STEP}f.result=${statement.node ? node(statement.node) : "null"};f.returning=true;return f.result;`;
+                case "if":
+                    return `${STEP}if(${translateTest(statement.test, scope, t)}){${block(statement.then)}}else{${block(statement.otherwise)}}${value("null")}`;
+                case "loop":
+                    return `${STEP}while(${statement.test ? translateTest(statement.test, scope, t) : "true"}){${STEP}${block(statement.body)}${statement.update ? `${node(statement.update)};` : ""}}${value("null")}`;
+            }
+        })
+        .join("");
+}
+
+function translateBody(statements: Statement[], scope: Scope): Code {
+    const t = new Translation();
+    return t.code(`${translateBlock(statements, scope, t, true)}return v;`);
+}
+
+// Whether the page lets JavaScript be built.
+let functionAllowed: boolean | undefined;
+function canTranslate(): boolean {
+    if (functionAllowed === undefined)
+        try {
+            new Function("");
+            functionAllowed = true;
+        } catch {
+            functionAllowed = false;
+        }
+    return functionAllowed;
+}
+
+// The work, in steps and evaluations, after which a program or formula is
+// translated: few for a script's loops, many for a formula, which only a
+// curve or a script evaluates that often.
+let TRANSLATE_AFTER = 1000;
+
+// For the tests, which compare the translations (0) with the closures
+// (Infinity).
+export function translateAfter(work: number): void {
+    TRANSLATE_AFTER = work;
+}
+
+interface Compiled {
+    code: Code;
+    size: number;
+    work: number;
+    translate: (() => Code) | null;
+}
+
+const COMPILED = new WeakMap<FormulaNode | Program, Compiled>();
+
+function evaluate(compiled: Compiled, env: FormulaEnv) {
+    if (
+        compiled.translate &&
+        compiled.work >= TRANSLATE_AFTER &&
+        canTranslate()
+    ) {
+        compiled.code = compiled.translate();
+        compiled.translate = null;
+    }
+    const frame: Frame = {
         env,
-        slots: new Array<ScriptValue | null>(size).fill(null),
+        slots: new Array<ScriptValue | null>(compiled.size).fill(null),
         steps: 0,
         depth: 0,
-        owned: new Set(),
+        owned: null,
         returning: false,
         result: null,
         turtle: null,
         precision: 1e14,
         unit: 0,
-    });
+    };
+    const value = compiled.code(frame);
+    compiled.work += 1 + frame.steps;
+    return value;
+}
+
+function programScope(program: Program): Scope {
+    return {
+        slots: new Map([...program.locals].map((name, i) => [name, i])),
+        functions: new Map(),
+        size: { value: program.locals.size },
+    };
 }
 
 // The value of the program's last statement, as DGPad's: null when it
@@ -2623,14 +3040,15 @@ export function evaluateProgram(
 ): ScriptValue | null {
     let compiled = COMPILED.get(program);
     if (!compiled) {
-        const size = { value: program.locals.size };
-        const slots = new Map([...program.locals].map((name, i) => [name, i]));
-        const code = compileBlock(program.body, {
-            slots,
-            functions: new Map(),
-            size,
-        });
-        compiled = { code, size: size.value };
+        const scope = programScope(program);
+        const code = compileBlock(program.body, scope);
+        compiled = {
+            code,
+            size: scope.size.value,
+            work: 0,
+            // Its own slots, the same as the closures'.
+            translate: () => translateBody(program.body, programScope(program)),
+        };
         COMPILED.set(program, compiled);
     }
     try {
@@ -2653,12 +3071,20 @@ export function evaluateFormula(
 ): FormulaValue | null {
     let compiled = COMPILED.get(node);
     if (!compiled) {
-        const code = compileNode(node, {
+        const scope = {
             slots: new Map(),
             functions: new Map(),
             size: { value: 0 },
-        });
-        compiled = { code, size: 0 };
+        };
+        compiled = {
+            code: compileNode(node, scope),
+            size: 0,
+            work: 0,
+            translate: () => {
+                const t = new Translation();
+                return t.code(`return ${translateNode(node, scope, t)};`);
+            },
+        };
         COMPILED.set(node, compiled);
     }
     return formulaValue(evaluate(compiled, env));

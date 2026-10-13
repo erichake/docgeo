@@ -55,6 +55,19 @@ const ANCHORS: Record<string, string> = { left: "start", right: "end" };
 const heading = (direction: readonly number[]) =>
     (-Math.atan2(direction[1], direction[0]) * 180) / Math.PI;
 
+// To the hundredth of a pixel: a path of thousands of points is then much
+// shorter for the browser to read.
+const px = (v: number) => Math.round(v * 100) / 100;
+
+function entry(map: Map<string, string[]>, key: string): string[] {
+    let list = map.get(key);
+    if (!list) map.set(key, (list = []));
+    return list;
+}
+
+const coordinate = (value: ScriptValue) =>
+    typeof value === "number" ? value : NaN;
+
 // Their natural size, for the images drawn with it (a negative width).
 const IMAGE_SIZES = new Map<string, Vec2 | null>();
 
@@ -110,9 +123,9 @@ export class expression_list_object extends list_object {
                     items.length = styles.length = 0;
                     break;
                 }
-                const last = styles[styles.length - 1];
-                const [code, a, b, n] = item as number[];
                 if (item.length > 3) {
+                    const last = styles[styles.length - 1];
+                    const [code, a, b, n] = item as number[];
                     switch (code) {
                         // A gradient from the color at the previous stop.
                         case 0: {
@@ -177,14 +190,12 @@ export class expression_list_object extends list_object {
                     }
                     continue;
                 }
-                const [x, y, z] = item.map((coord) =>
-                    typeof coord === "number" ? coord : NaN,
-                );
+                const [x, y] = [coordinate(item[0]), coordinate(item[1])];
                 // As DGPad's other 2D points, in the screen plane of a 3D
                 // figure (see GRID.FRAME2D).
                 items.push([
                     item.length === 3
-                        ? [x, y, z]
+                        ? [x, y, coordinate(item[2])]
                         : this.C.GRID.FRAME2D
                           ? this.C.screenPlanePoint([x, y])
                           : [x, y],
@@ -209,14 +220,21 @@ export class expression_list_object extends list_object {
         const points = this.screenItems.map(([p]) => p);
         const joined = this.segmentsSize > 0;
         const fills: [string, string][] = [];
-        const strokes = new Map<string, string>();
-        const dots = new Map<string, string>();
+        const strokes = new Map<string, string[]>();
+        const dots = new Map<string, string[]>();
         const labels: [Vec2, PointStyle][] = [];
         const pieceFill = `${this.fill_color};fill-opacity:${this.opacity}`;
         // Since the last break, filled when opaque, and since the last break
         // or fill, which a fill closes.
         let piece = "";
         let region = "";
+        let previous = "";
+        // What the points of the last style drawn add to, the style
+        // changing seldom along a list.
+        let last: PointStyle | null = null;
+        let stroke: string[] = [];
+        let dot: string[] = [];
+        let circle = "";
         points.forEach((p, i) => {
             if (!p) {
                 if (piece && joined && this.opacity)
@@ -225,31 +243,36 @@ export class expression_list_object extends list_object {
                 return;
             }
             const style = this.styles[i];
-            const color = `rgb(${style.rgb})`;
-            const at = `${p[0]} ${p[1]}`;
-            const previous = points[i - 1];
-            if (joined && previous) {
-                const key = `${this.styles[i - 1].rgb}|${this.styles[i - 1].width}`;
-                strokes.set(
-                    key,
-                    `${strokes.get(key) ?? ""}M${previous[0]} ${previous[1]}L${at}`,
-                );
+            const at = `${px(p[0])} ${px(p[1])}`;
+            if (joined && points[i - 1]) stroke.push(`M${previous}L${at}`);
+            previous = at;
+            if (
+                style.rgb !== last?.rgb ||
+                style.width !== last.width ||
+                style.radius !== last.radius
+            ) {
+                last = style;
+                stroke = entry(strokes, `${style.rgb}|${style.width}`);
+                dot = entry(dots, `rgb(${style.rgb})`);
+                const r = style.radius;
+                circle =
+                    r > 1e-10
+                        ? `a${r},${r} 0 1,0 ${2 * r},0a${r},${r} 0 1,0 ${-2 * r},0`
+                        : "";
             }
-            piece += `${piece ? "L" : "M"}${at}`;
-            region += `${region ? "L" : "M"}${at}`;
-            if (joined && style.fill !== undefined) {
-                fills.push([
-                    region,
-                    `rgb(${style.rgb});fill-opacity:${style.fill}`,
-                ]);
-                region = `M${at}`;
+            if (joined) {
+                piece += `${piece ? "L" : "M"}${at}`;
+                region += `${region ? "L" : "M"}${at}`;
+                if (style.fill !== undefined) {
+                    fills.push([
+                        region,
+                        `rgb(${style.rgb});fill-opacity:${style.fill}`,
+                    ]);
+                    region = `M${at}`;
+                }
             }
-            const r = style.radius;
-            if (r > 1e-10)
-                dots.set(
-                    color,
-                    `${dots.get(color) ?? ""}M${p[0] - r} ${p[1]}a${r},${r} 0 1,0 ${2 * r},0a${r},${r} 0 1,0 ${-2 * r},0`,
-                );
+            if (circle)
+                dot.push(`M${px(p[0] - style.radius)} ${px(p[1])}${circle}`);
             if (style.text || style.image) labels.push([p, style]);
         });
         if (piece && joined && this.opacity) fills.push([piece, pieceFill]);
@@ -257,21 +280,21 @@ export class expression_list_object extends list_object {
         this.shapes(this.fills, "path", fills.length).forEach((path, i) =>
             path.att("d", fills[i][0]).stl(`fill:${fills[i][1]}`),
         );
-        const segments = [...strokes];
+        const segments = [...strokes].filter(([, d]) => d.length);
         this.shapes(this.strokes, "path", segments.length).forEach(
             (path, i) => {
                 const [key, d] = segments[i];
                 const [rgb, width] = key.split("|");
-                path.att("d", d).stl(
+                path.att("d", d.join("")).stl(
                     `stroke:rgb(${rgb});stroke-width:${width}`,
                 );
             },
         );
         // As DGPad's points: white, or filled with their color when opaque.
-        const circles = [...dots];
+        const circles = [...dots].filter(([, d]) => d.length);
         this.shapes(this.dots, "path", circles.length).forEach((path, i) => {
             const [color, d] = circles[i];
-            path.att("d", d).stl(
+            path.att("d", d.join("")).stl(
                 `stroke:${color};fill:${this.opacity ? color : this.prefs.point.color.fill};fill-opacity:${this.opacity || 1}`,
             );
         });
