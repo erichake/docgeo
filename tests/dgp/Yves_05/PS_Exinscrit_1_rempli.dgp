@@ -1,0 +1,948 @@
+// Macros :
+$macros={};
+$macros["CercleCentrePoint"]={
+	name:"Cercle Centre Point",
+	parameters:["expression","expression"],
+	exec:
+	function (CdO,CdB){
+PthMin=Point("PthMin","[0,0]","0");
+PthMax=Point("PthMax","[2*\u03C0,0]","0");
+Scerc=Segment("Scerc",PthMin,PthMax);
+tCerc=PointOn("tCerc",Scerc,0.6);
+CstOB=Expression("CstOB","Const OB = ","","","[((exp(CdO[0])+exp(-CdO[0]))^2/4-(exp(CdB[0])+exp(-CdB[0]))^2/4+CdO[1]^2-CdB[1]^2)/(2*(CdB[1]-CdO[1])),(exp(CdO[0])+exp(-CdO[0]))^2/4+(CdO[1]+((exp(CdO[0])+exp(-CdO[0]))^2/4-(exp(CdB[0])+exp(-CdB[0]))^2/4+CdO[1]^2-CdB[1]^2)/(2*(CdB[1]-CdO[1])))^2]","1.2","-2.6");
+R=Expression("R","R = ","","","abs(log((sqrt(CstOB[1])+CdO[1]+CstOB[0])*(sqrt(CstOB[1])-CdB[1]-CstOB[0])/((sqrt(CstOB[1])-CdO[1]-CstOB[0])*(sqrt(CstOB[1])+CdB[1]+CstOB[0]))))/2","2.4","-0.4");
+ChuCerc=Expression("ChuCerc","ChuCerc = ","","","(exp(R)+exp(-R))*(exp(CdO[0])+exp(-CdO[0]))/4+(exp(R)-exp(-R))*(exp(CdO[0])+exp(-CdO[0]))*cos(x(tCerc))/4","2.3","-0.5");
+CdPtC=Expression("CdPtC","Coord PtCerc = ","","","[log(ChuCerc+sqrt(ChuCerc^2-1)),CdO[1]+(exp(R)-exp(-R))*(exp(CdO[0])+exp(-CdO[0]))*sin(x(tCerc))/4]","2.3","-0.4");
+LePtC=Point("LePtC","[2*cos(CdPtC[1])/(exp(CdPtC[0])+exp(-CdPtC[0])),2*sin(CdPtC[1])/(exp(CdPtC[0])+exp(-CdPtC[0])),CdPtC[0]-(exp(CdPtC[0])-exp(-CdPtC[0]))/(exp(CdPtC[0])+exp(-CdPtC[0]))]","0");
+LeCercle=Locus("LeCercle",LePtC,tCerc);
+STL(LeCercle,"c:#b40000;s:1;f:30;p:100");
+return [LeCercle];
+}};
+
+$macros["ConstDroiteck2"]={
+	name:"Const. Droite [c,k2]",
+	parameters:["expression","expression"],
+	exec:
+	function (CdA,CdB){
+CstGene=Expression("CstGene","Const2pts = ","","","[((exp(CdA[0])+exp(-CdA[0]))^2/4-(exp(CdB[0])+exp(-CdB[0]))^2/4+CdA[1]^2-CdB[1]^2)/(2*(CdB[1]-CdA[1])),(exp(CdA[0])+exp(-CdA[0]))^2/4+(CdA[1]+((exp(CdA[0])+exp(-CdA[0]))^2/4-(exp(CdB[0])+exp(-CdB[0]))^2/4+CdA[1]^2-CdB[1]^2)/(2*(CdB[1]-CdA[1])))^2]","1.5","-0.4");
+STL(CstGene,"c:#2f542d;s:7;f:18;p:4;cL:200;cPT:YzojNzgwMDEzO3M6MTA7ZjozMA==");
+return [CstGene];
+}};
+
+$macros["CoordInter2droites"]={
+	name:"Coord Inter 2 droites",
+	parameters:["expression","expression"],
+	exec:
+	function (CstDrt1,CstDrt2){
+CdInter=Expression("CdInter","CoordInter = ","","","[log(sqrt(CstDrt1[1]-(((CstDrt1[1]-CstDrt2[1])/(CstDrt1[0]-CstDrt2[0])-CstDrt1[0]-CstDrt2[0])/2+CstDrt1[0])^2)+sqrt(CstDrt1[1]-(((CstDrt1[1]-CstDrt2[1])/(CstDrt1[0]-CstDrt2[0])-CstDrt1[0]-CstDrt2[0])/2+CstDrt1[0])^2-1)),((CstDrt1[1]-CstDrt2[1])/(CstDrt1[0]-CstDrt2[0])-CstDrt1[0]-CstDrt2[0])/2]","2.3","-0.9");
+STL(CdInter,"c:#512475;s:7;f:18;p:4;cL:200;cPT:YzojNzgwMDEzO3M6MTA7ZjozMA==");
+return [CdInter];
+}};
+
+$macros["CoordMilieu"]={
+	name:"Coord Milieu",
+	parameters:["expression","expression"],
+	exec:
+	function (CdA,CdB){
+CstAB=Expression("CstAB","Const AB = ","","","[((exp(CdA[0])+exp(-CdA[0]))^2/4-(exp(CdB[0])+exp(-CdB[0]))^2/4+CdA[1]^2-CdB[1]^2)/(2*(CdB[1]-CdA[1])),(exp(CdA[0])+exp(-CdA[0]))^2/4+(CdA[1]+((exp(CdA[0])+exp(-CdA[0]))^2/4-(exp(CdB[0])+exp(-CdB[0]))^2/4+CdA[1]^2-CdB[1]^2)/(2*(CdB[1]-CdA[1])))^2]","-0.2","0.1");
+xIab=Expression("xIab","xIab = ","","","log((sqrt(CstAB[1])+CdA[1]+CstAB[0])*((sqrt(CstAB[1])+CdB[1]+CstAB[0]))/((sqrt(CstAB[1])-CdA[1]-CstAB[0])*(sqrt(CstAB[1])-CdB[1]-CstAB[0])))/4","1.8","-1.5");
+tI=Expression("tI","thetaI= ","","","sqrt(CstAB[1])*(exp(xIab)-exp(-xIab))/(exp(xIab)+exp(-xIab))-CstAB[0]","2.4","-1.6");
+chuI=Expression("chuI","chuI =","","","sqrt(CstAB[1]-(tI+CstAB[0])^2)","1.7","-0.9");
+uI=Expression("uI","uI = ","","","log(chuI+sqrt(chuI^2-1))","1.3","-0.9");
+CoordMilieu=Expression("CoordMilieu","coord Milieu =","","","[uI,tI]","1.8","-1.3");
+STL(CoordMilieu,"c:#697917;s:7;f:18;p:4;cL:200;cPT:YzojNzgwMDEzO3M6MTA7ZjoyMA==");
+return [CoordMilieu];
+}};
+
+$macros["CoordMilieu3Exp"]={
+	name:"Coord Milieu 3Exp",
+	parameters:["expression","expression","expression"],
+	exec:
+	function (CdA,CdB,CstAB){
+xIab=Expression("xIab","xIab = ","","","log((sqrt(CstAB[1])+CdA[1]+CstAB[0])*((sqrt(CstAB[1])+CdB[1]+CstAB[0]))/((sqrt(CstAB[1])-CdA[1]-CstAB[0])*(sqrt(CstAB[1])-CdB[1]-CstAB[0])))/4","1.8","-1.5");
+tI=Expression("tI","thetaI= ","","","sqrt(CstAB[1])*(exp(xIab)-exp(-xIab))/(exp(xIab)+exp(-xIab))-CstAB[0]","2.3","-1.7");
+chuI=Expression("chuI","chuI =","","","sqrt(CstAB[1]-(tI+CstAB[0])^2)","1.7","-0.9");
+uI=Expression("uI","uI = ","","","log(chuI+sqrt(chuI^2-1))","1.3","-0.9");
+CoordMilieu=Expression("CoordMilieu","coord Milieu =","","","[uI,tI]","1.8","-1.3");
+STL(CoordMilieu,"c:#697917;s:7;f:18;p:4;cL:200;cPT:YzojNzgwMDEzO3M6MTA7ZjoyMA==");
+return [CoordMilieu];
+}};
+
+$macros["CoordparAoAuA"]={
+	name:"Coord par A oA uA",
+	parameters:["point","point","point"],
+	exec:
+	function (A,oA,uA){
+E1=Expression("E1","","","","A-oA","0.36049591399451686","-0.736224049707112");
+CdA=Expression("CdA","","","","[uA[2],IF(E1[1]>0,acos(E1[0]/sqrt(E1[0]^2+E1[1]^2)),2*\u03C0-acos(E1[0]/sqrt(E1[0]^2+E1[1]^2)))]","0.6143662759624864","-1.4470610632174268");
+STL(CdA,"c:#435805;s:7;sn:true;f:24;p:4;cL:200;cPT:YzojNzgwMDEzO3M6MTA7ZjozMA==");
+return [CdA];
+}};
+
+$macros["DistanceparCoord"]={
+	name:"Distance par Coord",
+	parameters:["expression","expression"],
+	exec:
+	function (CdA,CdB){
+CstAB=Expression("CstAB","Const AB = ","","","[((exp(CdA[0])+exp(-CdA[0]))^2/4-(exp(CdB[0])+exp(-CdB[0]))^2/4+CdA[1]^2-CdB[1]^2)/(2*(CdB[1]-CdA[1])),(exp(CdA[0])+exp(-CdA[0]))^2/4+(CdA[1]+((exp(CdA[0])+exp(-CdA[0]))^2/4-(exp(CdB[0])+exp(-CdB[0]))^2/4+CdA[1]^2-CdB[1]^2)/(2*(CdB[1]-CdA[1])))^2]","1.2743523874591296","-2.73154653165846");
+dAB=Expression("dAB","d(A,B) = ","","","abs(log((sqrt(CstOB1[1])+CdA[1]+CstOB1[0])*(sqrt(CstOB1[1])-CdB[1]-CstOB1[0])/((sqrt(CstOB1[1])-CdA[1]-CstOB1[0])*(sqrt(CstOB1[1])+CdB[1]+CstOB1[0]))))/2","4","-2.25");
+STL(dAB,"c:#6c6834;s:7;sn:true;f:18;p:4;cL:200;cPT:YzojNzgwMDEzO3M6MTA7ZjozMA==");
+return [dAB];
+}};
+
+$macros["DroiteFeuillePrinc"]={
+	name:"Droite Feuille Princ",
+	parameters:["expression"],
+	exec:
+	function (CstAB){
+Pmax1F=Point("Pmax1F","[min(-CstAB[0]+sqrt(CstAB[1]-1),\u03C0),-1]","0");
+Pmin1F=Point("Pmin1F","[max(-CstAB[0]-sqrt(CstAB[1]-1),-\u03C0),-1]","0");
+SegDrte1F=Segment("SegDrte1F",Pmin1F,Pmax1F);
+tetaK=PointOn("tetaK",SegDrte1F,0.8);
+chuK=Expression("chuK","chuK = ","","","sqrt(CstAB[1]-(x(tetaK)+CstAB[0])^2)","2","-0.7");
+uK=Expression("uK","uK = ","","","log(chuK+sqrt(chuK^2-1))","2.","-0.5");
+PtDrt=Point("PtDrt","[cos(x(tetaK))/chuK,sin(x(tetaK))/chuK,uK-(exp(uK)-exp(-uK))/(exp(uK)+exp(-uK))]","0");
+LaDroite1F=Locus("LaDrt1F",PtDrt,tetaK);
+STL(LaDroite1F,"c:#b40000;s:3;f:30;p:0");
+return [LaDroite1F];
+}};
+
+$macros["DroiteparConst"]={
+	name:"Droite par Const",
+	parameters:["expression"],
+	exec:
+	function (CstAB){
+PmaxDrte=Point("PmaxDrte","[-CstAB[0]+sqrt(CstAB[1]-1),-1]","0");
+PminDrte=Point("PminDrte","[-CstAB[0]-sqrt(CstAB[1]-1),-1]","0");
+SegDrte=Segment("SegDrte",PminDrte,PmaxDrte);
+tetaK=PointOn("tetaK",SegDrte,0.8);
+chuK=Expression("chuK","chuK = ","","","sqrt(CstAB[1]-(x(tetaK)+CstAB[0])^2)","2","-0.7");
+uK=Expression("uK","uK = ","","","log(chuK+sqrt(chuK^2-1))","2.","-0.5");
+PtDrt=Point("PtDrt","[cos(x(tetaK))/chuK,sin(x(tetaK))/chuK,uK-(exp(uK)-exp(-uK))/(exp(uK)+exp(-uK))]","0");
+LaDroite=Locus("LaDroite",PtDrt,tetaK);
+STL(LaDroite,"c:#b40000;s:3;f:30;p:0");
+return [LaDroite];
+}};
+
+$macros["HauteurABC"]={
+	name:"Hauteur (AB) C",
+	parameters:["expression","expression","expression"],
+	exec:
+	function (CdA,CdB,CdC){
+CstAB=Expression("CstAB","Const AB = ","","","[((exp(CdA[0])+exp(-CdA[0]))^2/4-(exp(CdB[0])+exp(-CdB[0]))^2/4+CdA[1]^2-CdB[1]^2)/(2*(CdB[1]-CdA[1])),(exp(CdA[0])+exp(-CdA[0]))^2/4+(CdA[1]+((exp(CdA[0])+exp(-CdA[0]))^2/4-(exp(CdB[0])+exp(-CdB[0]))^2/4+CdA[1]^2-CdB[1]^2)/(2*(CdB[1]-CdA[1])))^2]","1.2","-1.3");
+tHc=Expression("tHc","theta H_C = ","","","(2*CdC[1]*CstAB[1]-CstAB[0]*((exp(CdC[0])+exp(-CdC[0]))^2/4+(CdC[1]+CstAB[0])^2-CstAB[1]))/((exp(CdC[0])+exp(-CdC[0]))^2/4+(CdC[1]+CstAB[0])^2+CstAB[1]) ","1.1","-0.8");
+chuHc=Expression("chuHc","chuHc = ","","","sqrt(CstAB[1]-(tHc+CstAB[0])^2)","1.6963991054406837","-2.393472484595991");
+uHc=Expression("uHc","uHc = ","","","log(chuHc+sqrt(chuHc^2-1))","1.93","-0.8");
+
+CdHc=Expression("CdHc","Coord Hc = ","","","[uHc,tHc]","1.3","-1.6");
+Hc=Point("Hc","[cos(tHc)/chuHc,sin(tHc)/chuHc,uHc-(exp(uHc)-exp(-uHc))/(exp(uHc)+exp(-uHc))]","0");
+CstHc=Expression("CstHc","Const Hauteur Hc = ","","","[((exp(CdHc[0])+exp(-CdHc[0]))^2/4-(exp(CdC[0])+exp(-CdC[0]))^2/4+CdHc[1]^2-CdC[1]^2)/(2*(CdC[1]-CdHc[1])),(exp(CdHc[0])+exp(-CdHc[0]))^2/4+(CdHc[1]+((exp(CdHc[0])+exp(-CdHc[0]))^2/4-(exp(CdC[0])+exp(-CdC[0]))^2/4+CdHc[1]^2-CdC[1]^2)/(2*(CdC[1]-CdHc[1])))^2]","1.5","-1.8");
+PmaxHt=Point("PmaxHt","[-CstHc[0]+sqrt(CstHc[1]-1),-1.3]","0");
+PminHt=Point("PminHt","[-CstHc[0]-sqrt(CstHc[1]-1),-1.3]","0");
+SegHaut=Segment("SegHaut",PminHt,PmaxHt);
+tetaK3=PointOn("tetaK3",SegHaut,0.7);
+chuK3=Expression("chuK3","chuK = ","","","sqrt(CstHc[1]-(x(tetaK3)+CstHc[0])^2)","-1.3","-0.7");
+uK3=Expression("uK3","uK = ","","","log(chuK3+sqrt(chuK3^2-1))","-1.1","-0.55");
+PtSurH=Point("PtSurH","[cos(x(tetaK3))/chuK3,sin(x(tetaK3))/chuK3,uK3-(exp(uK3)-exp(-uK3))/(exp(uK3)+exp(-uK3))]","0");
+Hauteur=Locus("Hauteur",PtSurH,tetaK3);
+STL(Hc,"c:#007c00;s:4;f:30");
+STL(Hauteur,"c:#007c00;s:2;f:30;p:200");
+return [Hc,CstHc,Hauteur];
+}};
+
+$macros["HoricycleAltitude"]={
+	name:"Horicycle Altitude",
+	parameters:["point"],
+	exec:
+	function (uG){
+altG=Expression("altG","","","","uG[2]","-1.6498183460809837","-0.40080332701402427");
+G1=Point("G1","[2/(exp(altG)+exp(-altG)),0,altG-(exp(altG)-exp(-altG))/(exp(altG)+exp(-altG))]","0");
+G2=Point("G2","[0,2/(exp(altG)+exp(-altG)),altG-(exp(altG)-exp(-altG))/(exp(altG)+exp(-altG))]","0");
+P13=Point("P13","[-2/(exp(altG)+exp(-altG)),0,altG-(exp(altG)-exp(-altG))/(exp(altG)+exp(-altG))]","0");
+C11=Circle3pts3D("C11",G1,G2,P13);
+STL(C11,"c:#cc66cc;s:1;f:30;p:0");
+return [C11];
+}};
+
+$macros["Inverse1ptcercle"]={
+	name:"Inverse 1pt (cercle)",
+	parameters:["circle","point"],
+	exec:
+	function (C1,M){
+Oo=Center("Oo",C1);
+P1=Point("P1","Oo+(M-Oo)*C1^2/d(Oo,M)^2","0");
+STL(P1,"c:#0000b2;s:6;f:30");
+return [P1];
+}};
+
+$macros["KBPrepareCex"]={
+	name:"KB Prepare Cex",
+	parameters:["circle","point","point","point"],
+	exec:
+	function (C1,A,B,C){
+Ohz=Center("Ohz",C1);
+L21=Line("L21",B,C);
+L1=Line("L1",A,B);
+L12=Line("L12",B,A);
+L2=Line("L2",A,C);
+P4=OrderedIntersection("P4",L2,C1,0);
+P42=OrderedIntersection("P42",L21,C1,0);
+P1=OrderedIntersection("P1",L1,C1,1);
+P2=OrderedIntersection("P2",L1,C1,0);
+P3=OrderedIntersection("P3",L2,C1,1);
+P21=OrderedIntersection("P21",L12,C1,0);
+S3=Segment("S3",P4,P3);
+S1=Segment("S1",P1,P2);
+S22=Segment("S22",P21,P42);
+S2=Segment("S2",P2,P4);
+Perp18=Perpendicular("Perp18",S3,Ohz);
+Perp11=Perpendicular("Perp11",S22,Ohz);
+Perp16=Perpendicular("Perp16",S1,Ohz);
+Perp17=Perpendicular("Perp17",S1,Ohz);
+Perp1=Perpendicular("Perp1",S2,Ohz);
+Perp15=Perpendicular("Perp15",S3,Ohz);
+P411=OrderedIntersection("P411",Perp11,S22,0);
+P41=OrderedIntersection("P41",Perp1,S2,0);
+P47=OrderedIntersection("P47",Perp16,S1,0);
+P48=OrderedIntersection("P48",Perp17,S1,0);
+P49=OrderedIntersection("P49",Perp18,S3,0);
+P46=OrderedIntersection("P46",Perp15,S3,0);
+P117=Point("P117","Ohz+(P48-Ohz)*C1^2/d(Ohz,P48)^2","0");
+P116=Point("P116","Ohz+(P47-Ohz)*C1^2/d(Ohz,P47)^2","0");
+P115=Point("P115","Ohz+(P46-Ohz)*C1^2/d(Ohz,P46)^2","0");
+P11=Point("P11","Ohz+(P41-Ohz)*C1^2/d(Ohz,P41)^2","0");
+P118=Point("P118","Ohz+(P49-Ohz)*C1^2/d(Ohz,P49)^2","0");
+P111=Point("P111","Ohz+(P411-Ohz)*C1^2/d(Ohz,P411)^2","0");
+L11=Line("L11",A,P11);
+L111=Line("L111",B,P111);
+P5=OrderedIntersection("P5",L11,C1,1);
+P51=OrderedIntersection("P51",L111,C1,1);
+P6=OrderedIntersection("P6",L11,C1,0);
+P61=OrderedIntersection("P61",L111,C1,0);
+S21=Segment("S21",P5,P6);
+S211=Segment("S211",P51,P61);
+Perp12=Perpendicular("Perp12",S21,Ohz);
+Perp14=Perpendicular("Perp14",S211,Ohz);
+I=OrderedIntersection("I",S211,S21,0);
+P43=OrderedIntersection("P43",Perp12,S21,0);
+L13=Line("L13",C,I);
+L18=Line("L18",I,P115);
+P45=OrderedIntersection("P45",Perp14,S211,0);
+P12=OrderedIntersection("P12",L13,C1,1);
+P65=OrderedIntersection("P65",L18,C1,0);
+P22=OrderedIntersection("P22",L13,C1,0);
+P55=OrderedIntersection("P55",L18,C1,1);
+P112=Point("P112","Ohz+(P43-Ohz)*C1^2/d(Ohz,P43)^2","0");
+P114=Point("P114","Ohz+(P45-Ohz)*C1^2/d(Ohz,P45)^2","0");
+S11=Segment("S11",P12,P22);
+L15=Line("L15",A,P112);
+S26=Segment("S26",P55,P65);
+L17=Line("L17",B,P114);
+P64=OrderedIntersection("P64",L17,C1,0);
+P52=OrderedIntersection("P52",L15,C1,1);
+P62=OrderedIntersection("P62",L15,C1,0);
+P54=OrderedIntersection("P54",L17,C1,1);
+Perp13=Perpendicular("Perp13",S11,Ohz);
+Ri=OrderedIntersection("Ri",S26,S3,0);
+P44=OrderedIntersection("P44",Perp13,S11,0);
+S23=Segment("S23",P52,P62);
+S25=Segment("S25",P54,P64);
+Ic=OrderedIntersection("Ic",S25,S23,0);
+P113=Point("P113","Ohz+(P44-Ohz)*C1^2/d(Ohz,P44)^2","0");
+L16=Line("L16",C,P113);
+L110=Line("L110",Ic,P117);
+P53=OrderedIntersection("P53",L16,C1,1);
+P63=OrderedIntersection("P63",L16,C1,0);
+P57=OrderedIntersection("P57",L110,C1,1);
+P67=OrderedIntersection("P67",L110,C1,0);
+S24=Segment("S24",P53,P63);
+S28=Segment("S28",P57,P67);
+Ia=OrderedIntersection("Ia",S25,S24,0);
+Ib=OrderedIntersection("Ib",S24,S23,0);
+Rc=OrderedIntersection("Rc",S28,S1,0);
+L112=Line("L112",Ia,P118);
+L19=Line("L19",Ib,P116);
+P66=OrderedIntersection("P66",L19,C1,0);
+P56=OrderedIntersection("P56",L19,C1,1);
+P58=OrderedIntersection("P58",L112,C1,1);
+P68=OrderedIntersection("P68",L112,C1,0);
+S27=Segment("S27",P56,P66);
+S29=Segment("S29",P58,P68);
+Rb=OrderedIntersection("Rb",S27,S1,0);
+Ra=OrderedIntersection("Ra",S29,S3,0);
+STL(I,"c:#0000b2;s:6;sn:true;f:15");
+STL(Ri,"c:#0000b2;s:6;sn:true;f:15");
+STL(Ic,"c:#0000b2;s:6;sn:true;f:15");
+STL(Ia,"c:#0000b2;s:6;sn:true;f:15");
+STL(Ib,"c:#0000b2;s:6;sn:true;f:15");
+STL(Rc,"c:#0000b2;s:6;sn:true;f:15");
+STL(Rb,"c:#0000b2;s:6;sn:true;f:15");
+STL(Ra,"c:#0000b2;s:6;sn:true;f:15");
+return [I,Ri,Ic,Ia,Ib,Rc,Rb,Ra];
+}};
+
+$macros["KBversPS"]={
+	name:"KB vers PS",
+	parameters:["point","point","point","point"],
+	exec:
+	function (Okb,Ikb,Kkb,U){
+CdU=Expression("CdU","","","","[log(sqrt(1-(x(U)-x(Okb))^2/(x(Ikb)-x(Okb))^2-(y(U)-y(Okb))^2/(y(Jkb)-y(Okb))^2)/(1-(x(U)-x(Okb))/(x(Ikb)-x(Okb)))+sqrt((sqrt(1-(x(U)-x(Okb))^2/(x(Ikb)-x(Okb))^2-(y(U)-y(Okb))^2/(y(Jkb)-y(Okb))^2)/(1-(x(U)-x(Okb))/(x(Ikb)-x(Okb))))^2-1)),((y(U)-y(Okb))/(y(Jkb)-y(Okb)))/((x(U)-x(Okb))/(x(Ikb)-x(Okb))-1)]","2.2","-2.8");
+STL(CdU,"c:#551b53;s:7;sn:true;f:17;p:4;cL:200;cPT:YzojNzgwMDEzO3M6MTA7ZjozMA==");
+return [CdU];
+}};
+
+$macros["Médiatriceetcoord"]={
+	name:"M\u00e9diatrice et coord",
+	parameters:["expression","expression"],
+	exec:
+	function (CdA,CdB){
+// calcul de la constante de la droite et du milieu du segment
+CstAB=Expression("CstAB","Const AB = ","","","[((exp(CdA[0])+exp(-CdA[0]))^2/4-(exp(CdB[0])+exp(-CdB[0]))^2/4+CdA[1]^2-CdB[1]^2)/(2*(CdB[1]-CdA[1])),(exp(CdA[0])+exp(-CdA[0]))^2/4+(CdA[1]+((exp(CdA[0])+exp(-CdA[0]))^2/4-(exp(CdB[0])+exp(-CdB[0]))^2/4+CdA[1]^2-CdB[1]^2)/(2*(CdB[1]-CdA[1])))^2]","1.8","-2.6");
+xIab=Expression("xIab","xIab = ","","","log((sqrt(CstAB[1])+CdA[1]+CstAB[0])*((sqrt(CstAB[1])+CdB[1]+CstAB[0]))/((sqrt(CstAB[1])-CdA[1]-CstAB[0])*(sqrt(CstAB[1])-CdB[1]-CstAB[0])))/4","1.8","-1.5");
+tI=Expression("tI","thetaI= ","","","sqrt(CstAB[1])*(exp(xIab)-exp(-xIab))/(exp(xIab)+exp(-xIab))-CstAB[0]","2.2","-1.2");
+chuI=Expression("chuI","chuI =","","","sqrt(CstAB[1]-(tI+CstAB[0])^2)","1.7","-0.9");
+uI=Expression("uI","uI = ","","","log(chuI+sqrt(chuI^2-1))","1.3","-0.9");
+CdIab=Expression("CdIab","coord Iab =","","","[uI,tI]","1.6","-2.2");
+CstMed=Expression("CstMed","Const Mediatrice AB = ","","","[CstAB[0]-CstAB[1]/(CdIab[1]+CstAB[0]),(CstAB[1]/(CdIab[1]+CstAB[0]))^2-CstAB[1]]","1.8","-2.9");
+PminMed=Point("PminMed","[-CstMed[0]-sqrt(CstMed[1]-1),-1.5]","0");
+PmaxMed=Point("PmaxMed","[-CstMed[0]+sqrt(CstMed[1]-1),-1.5]","0");
+SegMed=Segment("SegMed",PminMed,PmaxMed);
+tetaK=PointOn("tetaK",SegMed,0.7);
+chuK=Expression("chuK","chuK = ","","","sqrt(CstMed[1]-(x(tetaK)+CstMed[0])^2)","-1.3","-0.7");
+uK=Expression("uK","uK = ","","","log(chuK+sqrt(chuK^2-1))","1.2","-0.6");
+PtDrt=Point("PtDrt","[cos(x(tetaK))/chuK,sin(x(tetaK))/chuK,uK-(exp(uK)-exp(-uK))/(exp(uK)+exp(-uK))]","0");
+LaDroite=Locus("LaDroite",PtDrt,tetaK);
+STL(CdIab,"c:#697917;s:7;sn:true;f:18;p:4;cL:200;cPT:YzojNzgwMDEzO3M6MTA7ZjoyMA==");
+STL(CstMed,"c:#660937;s:7;f:17;p:4;cL:200;cPT:YzojNzgwMDEzO3M6MTA7ZjozMA==");
+STL(LaDroite,"c:#b40000;s:3;f:30;p:1000");
+return [CdIab,CstMed,LaDroite];
+}};
+
+$macros["PointparCoord"]={
+	name:"Point par Coord",
+	parameters:["expression"],
+	exec:
+	function (CdPtC){
+LePt=Point("LePt","[2*cos(CdPtC[1])/(exp(CdPtC[0])+exp(-CdPtC[0])),2*sin(CdPtC[1])/(exp(CdPtC[0])+exp(-CdPtC[0])),CdPtC[0]-(exp(CdPtC[0])-exp(-CdPtC[0]))/(exp(CdPtC[0])+exp(-CdPtC[0]))]","0");
+STL(LePt,"c:#0000b2;s:6;f:18");
+return [LePt];
+}};
+
+$macros["PSversKB"]={
+	name:"PS vers KB",
+	parameters:["point","point","point","expression"],
+	exec:
+	function (Okb,Ikb, Jkb, CdA){
+P2=Point("P2","[x(Okb)+((CdA[1]^2+(exp(CdA[0])+exp(-CdA[0]))^2/4-1)/(CdA[1]^2+(exp(CdA[0])+exp(-CdA[0]))^2/4+1))*(x(Ikb)-x(Okb)),y(Okb)+(-2*CdA[1]/(CdA[1]^2+(exp(CdA[0])+exp(-CdA[0]))^2/4+1))*(y(Jkb)-y(Okb))]","0");
+STL(P2,"c:#0000b2;s:6;f:30");
+return [P2];
+}};
+
+$macros["SegmentParCoord"]={
+	name:"Segment Par Coord",
+	parameters:["expression","expression"],
+	exec:
+	function (CdA,CdB){
+Cst2Pts=Expression("Cst2Pts","Const2pts = ","","","[((exp(CdA[0])+exp(-CdA[0]))^2/4-(exp(CdB[0])+exp(-CdB[0]))^2/4+CdA[1]^2-CdB[1]^2)/(2*(CdB[1]-CdA[1])),(exp(CdA[0])+exp(-CdA[0]))^2/4+(CdA[1]+((exp(CdA[0])+exp(-CdA[0]))^2/4-(exp(CdB[0])+exp(-CdB[0]))^2/4+CdA[1]^2-CdB[1]^2)/(2*(CdB[1]-CdA[1])))^2]","-1","-0.4")
+PmaxSeg=Point("PmaxSeg","[max(CdA[1],CdB[1]),-0.5]","0");
+PminSeg=Point("PminSeg","[min(CdA[1],CdB[1]),-0.5]","0");
+Segdeseg=Segment("Segdeseg",PminSeg,PmaxSeg);
+tetaK=PointOn("tetaK",Segdeseg,0.4);
+chuK=Expression("chuK","chuK = ","","","sqrt(Cst2Pts[1]-(x(tetaK)+Cst2Pts[0])^2)","0.9","-1.7");
+uK=Expression("uK","uK = ","","","log(chuK+sqrt(chuK^2-1))","0.8","-1.5");
+PtSeg=Point("PtSeg","[cos(x(tetaK))/chuK,sin(x(tetaK))/chuK,uK-(exp(uK)-exp(-uK))/(exp(uK)+exp(-uK))]","0");
+LeSeg=Locus("LeSeg",PtSeg,tetaK);
+STL(LeSeg,"c:#b40000;s:3;f:30;p:100");
+return [LeSeg];
+}};
+
+// Coordinates System :
+SetCoords(-81,33,252.04827862324208,true,759,763);
+
+
+// Geometry :
+O=Point("O",1.7337948205280977,-2.0472268361384405);
+PthMin=Point("PthMin","[0,0]","0");
+PthMax=Point("PthMax","[2*\u03C0,0]","0");
+PthMin1=Point("PthMin1","[0,0]","0");
+PthMax1=Point("PthMax1","[2*\u03C0,0]","0");
+PthMin2=Point("PthMin2","[0,0]","0");
+PthMax2=Point("PthMax2","[2*\u03C0,0]","0");
+PthMin3=Point("PthMin3","[0,0]","0");
+PthMax3=Point("PthMax3","[2*\u03C0,0]","0");
+X=Point("X","[1,0,0]","1");
+P11=Point("P11","[-sqrt(2)/2,-sqrt(2)/2,0]","1");
+Y=Point("Y","[0,1,0]","1");
+Z=Point("Z","[0,0,1]","1");
+Okb=Point("Okb",2.709798312175494,-1.3886228539698724);
+S11=Segment("S11",O,X);
+P1=Point("P1","[x(Okb)+1,y(Okb)]","0");
+Scerc3=Segment("Scerc3",PthMin3,PthMax3);
+C1=Circle3pts3D("C1",X,Y,P11);
+Scerc=Segment("Scerc",PthMin,PthMax);
+S31=Segment("S31",O,Z);
+Scerc2=Segment("Scerc2",PthMin2,PthMax2);
+S21=Segment("S21",O,Y);
+uI=Point("uI","[x(O.coords2D())+1,y(O.coords2D())]","0");
+Scerc1=Segment("Scerc1",PthMin1,PthMax1);
+Center1=Center("Center1",C1);
+tCerc3=PointOn("tCerc3",Scerc3,0.6);
+tCerc2=PointOn("tCerc2",Scerc2,0.6);
+tCerc1=PointOn("tCerc1",Scerc1,0.6);
+tCerc=PointOn("tCerc",Scerc,0.6);
+S2=Segment("S2",O,uI);
+S3=Segment("S3",uI,Y);
+R1=Ray("R1",Okb,P1);
+Perp1=Perpendicular("Perp1",R1,Okb);
+Symc1=Symmetry("Symc1",Z,Center1);
+Ikb=PointOn("Ikb",R1,1.8887954930416941);
+Symc2=Symmetry("Symc2",Symc1,Center1);
+C2=Circle("C2",Okb,Ikb);
+M2=MidPoint("M2",Okb,Ikb);
+Jkb=OrderedIntersection("Jkb",Perp1,C2,0);
+Symc3=Symmetry("Symc3",Symc2,Center1);
+Perp2=Perpendicular("Perp2",R1,M2);
+F1=Point("F1+","[x(Okb)+(\u03C0^2/(\u03C0^2+2))*(x(Ikb)-x(Okb)),y(Okb)+(2*\u03C0/(\u03C0^2+2))*(y(Jkb)-y(Okb))]","0");
+M1=MidPoint("M1",Jkb,Ikb);
+S1=Segment("S1",O,Symc3);
+uC=PointOn("uC",S1,0.1926217101292534);
+uG=PointOn("uG",S1,0.20052710313256453);
+uB=PointOn("uB",S1,0.23217336794246007);
+C3=Circle3("C3",Okb,M1,M2);
+F11=Reflection("F1-",R1,F1);
+S4=Segment("S4",Ikb,F1);
+uA=PointOn("uA",S1,0.25456716885360225);
+altG1=Expression("altG1","","","","uA[2]","0.32136700334731333","-0.31507738172021255");
+P7=OrderedIntersection("P7",Perp2,C3,0);
+S5=Segment("S5",Ikb,F11);
+altG2=Expression("altG2","","","","uB[2]","0.32136700334731333","-0.3230123694571833");
+altG=Expression("altG","","","","uG[2]","0.4403918194018738","-0.8212712307764674");
+P8=OrderedIntersection("P8",Perp2,C3,1);
+altG3=Expression("altG3","","","","uC[2]","0.32136700334731333","-0.31318833952686853");
+G12=Point("G12","[2/(exp(altG2)+exp(-altG2)),0,altG2-(exp(altG2)-exp(-altG2))/(exp(altG2)+exp(-altG2))]","1");
+G1=Point("G1","[2/(exp(altG)+exp(-altG)),0,altG-(exp(altG)-exp(-altG))/(exp(altG)+exp(-altG))]","1");
+G22=Point("G22","[0,2/(exp(altG2)+exp(-altG2)),altG2-(exp(altG2)-exp(-altG2))/(exp(altG2)+exp(-altG2))]","1");
+P131=Point("P131","[-2/(exp(altG1)+exp(-altG1)),0,altG1-(exp(altG1)-exp(-altG1))/(exp(altG1)+exp(-altG1))]","1");
+G21=Point("G21","[0,2/(exp(altG1)+exp(-altG1)),altG1-(exp(altG1)-exp(-altG1))/(exp(altG1)+exp(-altG1))]","1");
+Quad=Quadric("Quad",P8,F11,F1,Okb,Ikb);
+G11=Point("G11","[2/(exp(altG1)+exp(-altG1)),0,altG1-(exp(altG1)-exp(-altG1))/(exp(altG1)+exp(-altG1))]","1");
+G13=Point("G13","[2/(exp(altG3)+exp(-altG3)),0,altG3-(exp(altG3)-exp(-altG3))/(exp(altG3)+exp(-altG3))]","1");
+P132=Point("P132","[-2/(exp(altG2)+exp(-altG2)),0,altG2-(exp(altG2)-exp(-altG2))/(exp(altG2)+exp(-altG2))]","1");
+G23=Point("G23","[0,2/(exp(altG3)+exp(-altG3)),altG3-(exp(altG3)-exp(-altG3))/(exp(altG3)+exp(-altG3))]","1");
+P133=Point("P133","[-2/(exp(altG3)+exp(-altG3)),0,altG3-(exp(altG3)-exp(-altG3))/(exp(altG3)+exp(-altG3))]","1");
+P13=Point("P13","[-2/(exp(altG)+exp(-altG)),0,altG-(exp(altG)-exp(-altG))/(exp(altG)+exp(-altG))]","1");
+G2=Point("G2","[0,2/(exp(altG)+exp(-altG)),altG-(exp(altG)-exp(-altG))/(exp(altG)+exp(-altG))]","1");
+Generatrice1=Locus("Generatrice1",G1,uG);
+HoriB=Circle3pts3D("HoriB",G12,G22,P132);
+oG=MidPoint("oG",G1,P13);
+Par2=Parallel("Par2",S3,G2);
+HoriC=Circle3pts3D("HoriC",G13,G23,P133);
+Generatrice2=Locus("Generatrice2",P13,uG);
+HoriA=Circle3pts3D("HoriA",G11,G21,P131);
+Center40=Center("Center40",HoriB);
+Center3=Center("Center3",HoriC);
+Center2=Center("Center2",HoriA);
+A=PointOn("A",HoriA,115);
+Par1=Parallel("Par1",S2,oG);
+B=PointOn("B",HoriB,485);
+C=PointOn("C",HoriC,297);
+uG1=OrderedIntersection("uG1",Par2,Par1,0);
+E1=Expression("E1","","","","A-Center2","0.4403918194018738","-0.5832215986673464");
+E12=Expression("E12","","","","C-Center3","0.4245218439279323","-0.5752866109303757");
+E11=Expression("E11","","","","B-Center40","0.4403918194018738","-0.5832215986673464");
+CdC=Expression("CdC","","","","[uC[2],IF(E12[1]>0,acos(E12[0]/sqrt(E12[0]^2+E12[1]^2)),2*\u03C0-acos(E12[0]/sqrt(E12[0]^2+E12[1]^2)))]","1.7496647960020395","-0.2658220891885184");
+Generatrice3=Locus("Generatrice3",uG1,uG);
+CdA=Expression("CdA","","","","[uA[2],IF(E1[1]>0,acos(E1[0]/sqrt(E1[0]^2+E1[1]^2)),2*\u03C0-acos(E1[0]/sqrt(E1[0]^2+E1[1]^2)))]","1.8290146733717463","0.01190248160545605");
+CdB=Expression("CdB","","","","[uB[2],IF(E11[1]>0,acos(E11[0]/sqrt(E11[0]^2+E11[1]^2)),2*\u03C0-acos(E11[0]/sqrt(E11[0]^2+E11[1]^2)))]","1.7893397346868924","-0.14679727313395793");
+Symc4=Symmetry("Symc4",oG,uG1);
+CstGene1=Expression("CstGene1","Const2pts = ","","","[((exp(CdB[0])+exp(-CdB[0]))^2/4-(exp(CdC[0])+exp(-CdC[0]))^2/4+CdB[1]^2-CdC[1]^2)/(2*(CdC[1]-CdB[1])),(exp(CdB[0])+exp(-CdB[0]))^2/4+(CdB[1]+((exp(CdB[0])+exp(-CdB[0]))^2/4-(exp(CdC[0])+exp(-CdC[0]))^2/4+CdB[1]^2-CdC[1]^2)/(2*(CdC[1]-CdB[1])))^2]","1.948039489426307","-0.7022464147219069");
+Bkb=Point("Bkb","[x(Okb)+((CdB[1]^2+(exp(CdB[0])+exp(-CdB[0]))^2/4-1)/(CdB[1]^2+(exp(CdB[0])+exp(-CdB[0]))^2/4+1))*(x(Ikb)-x(Okb)),y(Okb)+(-2*CdB[1]/(CdB[1]^2+(exp(CdB[0])+exp(-CdB[0]))^2/4+1))*(y(Jkb)-y(Okb))]","0");
+Ckb=Point("Ckb","[x(Okb)+((CdC[1]^2+(exp(CdC[0])+exp(-CdC[0]))^2/4-1)/(CdC[1]^2+(exp(CdC[0])+exp(-CdC[0]))^2/4+1))*(x(Ikb)-x(Okb)),y(Okb)+(-2*CdC[1]/(CdC[1]^2+(exp(CdC[0])+exp(-CdC[0]))^2/4+1))*(y(Jkb)-y(Okb))]","0");
+CstGene=Expression("CstGene","Const2pts = ","","","[((exp(CdA[0])+exp(-CdA[0]))^2/4-(exp(CdB[0])+exp(-CdB[0]))^2/4+CdA[1]^2-CdB[1]^2)/(2*(CdB[1]-CdA[1])),(exp(CdA[0])+exp(-CdA[0]))^2/4+(CdA[1]+((exp(CdA[0])+exp(-CdA[0]))^2/4-(exp(CdB[0])+exp(-CdB[0]))^2/4+CdA[1]^2-CdB[1]^2)/(2*(CdB[1]-CdA[1])))^2]","1.948039489426307","-0.5038717212976395");
+CstGene2=Expression("CstGene2","Const2pts = ","","","[((exp(CdC[0])+exp(-CdC[0]))^2/4-(exp(CdA[0])+exp(-CdA[0]))^2/4+CdC[1]^2-CdA[1]^2)/(2*(CdA[1]-CdC[1])),(exp(CdC[0])+exp(-CdC[0]))^2/4+(CdC[1]+((exp(CdC[0])+exp(-CdC[0]))^2/4-(exp(CdA[0])+exp(-CdA[0]))^2/4+CdC[1]^2-CdA[1]^2)/(2*(CdA[1]-CdC[1])))^2]","1.948039489426307","-0.8609461694613207");
+Akb=Point("Akb","[x(Okb)+((CdA[1]^2+(exp(CdA[0])+exp(-CdA[0]))^2/4-1)/(CdA[1]^2+(exp(CdA[0])+exp(-CdA[0]))^2/4+1))*(x(Ikb)-x(Okb)),y(Okb)+(-2*CdA[1]/(CdA[1]^2+(exp(CdA[0])+exp(-CdA[0]))^2/4+1))*(y(Jkb)-y(Okb))]","0");
+Generatrice4=Locus("Generatrice4",Symc4,uG);
+Pmax1F=Point("Pmax1F","[min(-CstGene[0]+sqrt(CstGene[1]-1),\u03C0),-1]","0");
+Pmin1F1=Point("Pmin1F1","[max(-CstGene1[0]-sqrt(CstGene1[1]-1),-\u03C0),-1]","0");
+Pmin1F=Point("Pmin1F","[max(-CstGene[0]-sqrt(CstGene[1]-1),-\u03C0),-1]","0");
+L4=Line("L4",Bkb,Akb);
+L1=Line("L1",Akb,Bkb);
+L5=Line("L5",Akb,Ckb);
+L12=Line("L12",Bkb,Akb);
+L3=Line("L3",Ckb,Bkb);
+L21=Line("L21",Bkb,Ckb);
+Pmax1F2=Point("Pmax1F2","[min(-CstGene2[0]+sqrt(CstGene2[1]-1),\u03C0),-1]","0");
+Pmax1F1=Point("Pmax1F1","[min(-CstGene1[0]+sqrt(CstGene1[1]-1),\u03C0),-1]","0");
+Pmin1F2=Point("Pmin1F2","[max(-CstGene2[0]-sqrt(CstGene2[1]-1),-\u03C0),-1]","0");
+L2=Line("L2",Akb,Ckb);
+P4=OrderedIntersection("P4",L2,C2,0);
+SegDrte1F=Segment("SegDrte1F",Pmin1F,Pmax1F);
+P12=OrderedIntersection("P12",L1,C2,1);
+P2=OrderedIntersection("P2",L1,C2,0);
+SegDrte1F2=Segment("SegDrte1F2",Pmin1F2,Pmax1F2);
+P15=OrderedIntersection("P15",L4,Quad,0);
+P17=OrderedIntersection("P17",L5,Quad,1);
+P3=OrderedIntersection("P3",L2,C2,1);
+P10=OrderedIntersection("P10",L3,Quad,1);
+P14=OrderedIntersection("P14",L4,Quad,1);
+P16=OrderedIntersection("P16",L3,Quad,0);
+P42=OrderedIntersection("P42",L21,C2,0);
+P21=OrderedIntersection("P21",L12,C2,0);
+SegDrte1F1=Segment("SegDrte1F1",Pmin1F1,Pmax1F1);
+P18=OrderedIntersection("P18",L5,Quad,0);
+tetaK1=PointOn("tetaK1",SegDrte1F1,0.8);
+S6=Segment("S6",P17,P18);
+S23=Segment("S23",P2,P4);
+S12=Segment("S12",P12,P2);
+S8=Segment("S8",P15,P14);
+S22=Segment("S22",P21,P42);
+S7=Segment("S7",P16,P10);
+tetaK2=PointOn("tetaK2",SegDrte1F2,0.8);
+tetaK=PointOn("tetaK",SegDrte1F,0.8);
+S32=Segment("S32",P4,P3);
+chuK=Expression("chuK","chuK = ","","","sqrt(CstGene[1]-(x(tetaK)+CstGene[0])^2)","1.733405329124137","-0.5350786008672873");
+chuK1=Expression("chuK1","chuK = ","","","sqrt(CstGene1[1]-(x(tetaK1)+CstGene1[0])^2)","1.733405329124137","-0.5350786008672873");
+Perp15=Perpendicular("Perp15",S32,Okb);
+Perp16=Perpendicular("Perp16",S12,Okb);
+Perp11=Perpendicular("Perp11",S22,Okb);
+Perp18=Perpendicular("Perp18",S32,Okb);
+Perp12=Perpendicular("Perp12",S23,Okb);
+chuK2=Expression("chuK2","chuK = ","","","sqrt(CstGene2[1]-(x(tetaK2)+CstGene2[0])^2)","1.733405329124137","-0.5350786008672873");
+Perp17=Perpendicular("Perp17",S12,Okb);
+uK=Expression("uK","uK = ","","","log(chuK+sqrt(chuK^2-1))","1.733405329124137","-0.37879829158936074");
+P41=OrderedIntersection("P41",Perp12,S23,0);
+uK1=Expression("uK1","uK = ","","","log(chuK1+sqrt(chuK1^2-1))","1.733405329124137","-0.37879829158936074");
+P46=OrderedIntersection("P46",Perp15,S32,0);
+P49=OrderedIntersection("P49",Perp18,S32,0);
+P48=OrderedIntersection("P48",Perp17,S12,0);
+P411=OrderedIntersection("P411",Perp11,S22,0);
+P47=OrderedIntersection("P47",Perp16,S12,0);
+uK2=Expression("uK2","uK = ","","","log(chuK2+sqrt(chuK2^2-1))","1.733405329124137","-0.37879829158936074");
+P1111=Point("P1111","Okb+(P411-Okb)*C2^2/d(Okb,P411)^2","0");
+P117=Point("P117","Okb+(P48-Okb)*C2^2/d(Okb,P48)^2","0");
+P115=Point("P115","Okb+(P46-Okb)*C2^2/d(Okb,P46)^2","0");
+PtDrt1=Point("PtDrt1","[cos(x(tetaK1))/chuK1,sin(x(tetaK1))/chuK1,uK1-(exp(uK1)-exp(-uK1))/(exp(uK1)+exp(-uK1))]","1");
+PtDrt=Point("PtDrt","[cos(x(tetaK))/chuK,sin(x(tetaK))/chuK,uK-(exp(uK)-exp(-uK))/(exp(uK)+exp(-uK))]","1");
+P118=Point("P118","Okb+(P49-Okb)*C2^2/d(Okb,P49)^2","0");
+P111=Point("P111","Okb+(P41-Okb)*C2^2/d(Okb,P41)^2","0");
+P116=Point("P116","Okb+(P47-Okb)*C2^2/d(Okb,P47)^2","0");
+PtDrt2=Point("PtDrt2","[cos(x(tetaK2))/chuK2,sin(x(tetaK2))/chuK2,uK2-(exp(uK2)-exp(-uK2))/(exp(uK2)+exp(-uK2))]","1");
+LaDrt1F=Locus("LaDrt1F",PtDrt,tetaK);
+L111=Line("L111",Bkb,P1111);
+LaDrt1F1=Locus("LaDrt1F1",PtDrt1,tetaK1);
+LaDrt1F2=Locus("LaDrt1F2",PtDrt2,tetaK2);
+L11=Line("L11",Akb,P111);
+P5=OrderedIntersection("P5",L11,C2,1);
+P61=OrderedIntersection("P61",L111,C2,0);
+P51=OrderedIntersection("P51",L111,C2,1);
+P6=OrderedIntersection("P6",L11,C2,0);
+S2111=Segment("S2111",P51,P61);
+S211=Segment("S211",P5,P6);
+Perp121=Perpendicular("Perp121",S211,Okb);
+Perp14=Perpendicular("Perp14",S2111,Okb);
+I=OrderedIntersection("I",S2111,S211,0);
+CdI=Expression("CdI","","","","[log(sqrt(1-(x(I)-x(Okb))^2/(x(Ikb)-x(Okb))^2-(y(I)-y(Okb))^2/(y(Jkb)-y(Okb))^2)/(1-(x(I)-x(Okb))/(x(Ikb)-x(Okb)))+sqrt((sqrt(1-(x(I)-x(Okb))^2/(x(Ikb)-x(Okb))^2-(y(I)-y(Okb))^2/(y(Jkb)-y(Okb))^2)/(1-(x(I)-x(Okb))/(x(Ikb)-x(Okb))))^2-1)),((y(I)-y(Okb))/(y(Jkb)-y(Okb)))/((x(I)-x(Okb))/(x(Ikb)-x(Okb))-1)]","0.6387665128261413","-2.1702191460614864");
+L18=Line("L18",I,P115);
+P43=OrderedIntersection("P43",Perp121,S211,0);
+P45=OrderedIntersection("P45",Perp14,S2111,0);
+L13=Line("L13",Ckb,I);
+P22=OrderedIntersection("P22",L13,C2,0);
+P65=OrderedIntersection("P65",L18,C2,0);
+LePt4=Point("LePt4","[2*cos(CdI[1])/(exp(CdI[0])+exp(-CdI[0])),2*sin(CdI[1])/(exp(CdI[0])+exp(-CdI[0])),CdI[0]-(exp(CdI[0])-exp(-CdI[0]))/(exp(CdI[0])+exp(-CdI[0]))]","1");
+P114=Point("P114","Okb+(P45-Okb)*C2^2/d(Okb,P45)^2","0");
+P55=OrderedIntersection("P55",L18,C2,1);
+P112=Point("P112","Okb+(P43-Okb)*C2^2/d(Okb,P43)^2","0");
+P121=OrderedIntersection("P121",L13,C2,1);
+L15=Line("L15",Akb,P112);
+S111=Segment("S111",P121,P22);
+S26=Segment("S26",P55,P65);
+L17=Line("L17",Bkb,P114);
+P52=OrderedIntersection("P52",L15,C2,1);
+Ri=OrderedIntersection("Ri",S26,S32,0);
+P64=OrderedIntersection("P64",L17,C2,0);
+Perp13=Perpendicular("Perp13",S111,Okb);
+P62=OrderedIntersection("P62",L15,C2,0);
+P54=OrderedIntersection("P54",L17,C2,1);
+CdRi=Expression("CdRi","","","","[log(sqrt(1-(x(Ri)-x(Okb))^2/(x(Ikb)-x(Okb))^2-(y(Ri)-y(Okb))^2/(y(Jkb)-y(Okb))^2)/(1-(x(Ri)-x(Okb))/(x(Ikb)-x(Okb)))+sqrt((sqrt(1-(x(Ri)-x(Okb))^2/(x(Ikb)-x(Okb))^2-(y(Ri)-y(Okb))^2/(y(Jkb)-y(Okb))^2)/(1-(x(Ri)-x(Okb))/(x(Ikb)-x(Okb))))^2-1)),((y(Ri)-y(Okb))/(y(Jkb)-y(Okb)))/((x(Ri)-x(Okb))/(x(Ikb)-x(Okb))-1)]","1.8896856384020644","-2.176021848285518");
+S25=Segment("S25",P54,P64);
+S231=Segment("S231",P52,P62);
+P44=OrderedIntersection("P44",Perp13,S111,0);
+P113=Point("P113","Okb+(P44-Okb)*C2^2/d(Okb,P44)^2","0");
+Ic=OrderedIntersection("Ic",S25,S231,0);
+CstOB3=Expression("CstOB3","Const OB = ","","","[((exp(CdI[0])+exp(-CdI[0]))^2/4-(exp(CdRi[0])+exp(-CdRi[0]))^2/4+CdI[1]^2-CdRi[1]^2)/(2*(CdRi[1]-CdI[1])),(exp(CdI[0])+exp(-CdI[0]))^2/4+(CdI[1]+((exp(CdI[0])+exp(-CdI[0]))^2/4-(exp(CdRi[0])+exp(-CdRi[0]))^2/4+CdI[1]^2-CdRi[1]^2)/(2*(CdRi[1]-CdI[1])))^2]","1.1082840920124302","-2.0197415390075912");
+CdIc=Expression("CdIc","","","","[log(sqrt(1-(x(Ic)-x(Okb))^2/(x(Ikb)-x(Okb))^2-(y(Ic)-y(Okb))^2/(y(Jkb)-y(Okb))^2)/(1-(x(Ic)-x(Okb))/(x(Ikb)-x(Okb)))+sqrt((sqrt(1-(x(Ic)-x(Okb))^2/(x(Ikb)-x(Okb))^2-(y(Ic)-y(Okb))^2/(y(Jkb)-y(Okb))^2)/(1-(x(Ic)-x(Okb))/(x(Ikb)-x(Okb))))^2-1)),((y(Ic)-y(Okb))/(y(Jkb)-y(Okb)))/((x(Ic)-x(Okb))/(x(Ikb)-x(Okb))-1)]","2.9399129565476443","-0.22614715050366493");
+L110=Line("L110",Ic,P117);
+L16=Line("L16",Ckb,P113);
+R4=Expression("R4","R = ","","","abs(log((sqrt(CstOB3[1])+CdI[1]+CstOB3[0])*(sqrt(CstOB3[1])-CdRi[1]-CstOB3[0])/((sqrt(CstOB3[1])-CdI[1]-CstOB3[0])*(sqrt(CstOB3[1])+CdRi[1]+CstOB3[0]))))/2","2.0459659476799903","-0.3006581369503974");
+CstGene5=Expression("CstGene5","Const2pts = ","","","[((exp(CdC[0])+exp(-CdC[0]))^2/4-(exp(CdIc[0])+exp(-CdIc[0]))^2/4+CdC[1]^2-CdIc[1]^2)/(2*(CdIc[1]-CdC[1])),(exp(CdC[0])+exp(-CdC[0]))^2/4+(CdC[1]+((exp(CdC[0])+exp(-CdC[0]))^2/4-(exp(CdIc[0])+exp(-CdIc[0]))^2/4+CdC[1]^2-CdIc[1]^2)/(2*(CdIc[1]-CdC[1])))^2]","1.7099898573171854","-0.7419213534067604");
+P53=OrderedIntersection("P53",L16,C2,1);
+P67=OrderedIntersection("P67",L110,C2,0);
+P57=OrderedIntersection("P57",L110,C2,1);
+LePt2=Point("LePt2","[2*cos(CdIc[1])/(exp(CdIc[0])+exp(-CdIc[0])),2*sin(CdIc[1])/(exp(CdIc[0])+exp(-CdIc[0])),CdIc[0]-(exp(CdIc[0])-exp(-CdIc[0]))/(exp(CdIc[0])+exp(-CdIc[0]))]","1");
+P63=OrderedIntersection("P63",L16,C2,0);
+ChuCerc3=Expression("ChuCerc3","ChuCerc = ","","","(exp(R4)+exp(-R4))*(exp(CdI[0])+exp(-CdI[0]))/4+(exp(R4)-exp(-R4))*(exp(CdI[0])+exp(-CdI[0]))*cos(x(tCerc3))/4","1.9678257930410272","-0.37879829158936074");
+Pmax1F5=Point("Pmax1F5","[min(-CstGene5[0]+sqrt(CstGene5[1]-1),\u03C0),-1]","0");
+CdPtC3=Expression("CdPtC3","Coord PtCerc = ","","","[log(ChuCerc3+sqrt(ChuCerc3^2-1)),CdI[1]+(exp(R4)-exp(-R4))*(exp(CdI[0])+exp(-CdI[0]))*sin(x(tCerc3))/4]","1.9678257930410272","-0.3006581369503974");
+Pmin1F5=Point("Pmin1F5","[max(-CstGene5[0]-sqrt(CstGene5[1]-1),-\u03C0),-1]","0");
+S24=Segment("S24",P53,P63);
+S28=Segment("S28",P57,P67);
+LePtC3=Point("LePtC3","[2*cos(CdPtC3[1])/(exp(CdPtC3[0])+exp(-CdPtC3[0])),2*sin(CdPtC3[1])/(exp(CdPtC3[0])+exp(-CdPtC3[0])),CdPtC3[0]-(exp(CdPtC3[0])-exp(-CdPtC3[0]))/(exp(CdPtC3[0])+exp(-CdPtC3[0]))]","1");
+Rc=OrderedIntersection("Rc",S28,S12,0);
+SegDrte1F5=Segment("SegDrte1F5",Pmin1F5,Pmax1F5);
+Ia=OrderedIntersection("Ia",S25,S24,0);
+Ib=OrderedIntersection("Ib",S24,S231,0);
+CdIb=Expression("CdIb","","","","[log(sqrt(1-(x(Ib)-x(Okb))^2/(x(Ikb)-x(Okb))^2-(y(Ib)-y(Okb))^2/(y(Jkb)-y(Okb))^2)/(1-(x(Ib)-x(Okb))/(x(Ikb)-x(Okb)))+sqrt((sqrt(1-(x(Ib)-x(Okb))^2/(x(Ikb)-x(Okb))^2-(y(Ib)-y(Okb))^2/(y(Jkb)-y(Okb))^2)/(1-(x(Ib)-x(Okb))/(x(Ikb)-x(Okb))))^2-1)),((y(Ib)-y(Okb))/(y(Jkb)-y(Okb)))/((x(Ib)-x(Okb))/(x(Ikb)-x(Okb))-1)]","3.0589377726022047","-0.10712233444910445");
+CdIa=Expression("CdIa","","","","[log(sqrt(1-(x(Ia)-x(Okb))^2/(x(Ikb)-x(Okb))^2-(y(Ia)-y(Okb))^2/(y(Jkb)-y(Okb))^2)/(1-(x(Ia)-x(Okb))/(x(Ikb)-x(Okb)))+sqrt((sqrt(1-(x(Ia)-x(Okb))^2/(x(Ikb)-x(Okb))^2-(y(Ia)-y(Okb))^2/(y(Jkb)-y(Okb))^2)/(1-(x(Ia)-x(Okb))/(x(Ikb)-x(Okb))))^2-1)),((y(Ia)-y(Okb))/(y(Jkb)-y(Okb)))/((x(Ia)-x(Okb))/(x(Ikb)-x(Okb))-1)]","3.0589377726022047","0.01190248160545605");
+CdRc=Expression("CdRc","","","","[log(sqrt(1-(x(Rc)-x(Okb))^2/(x(Ikb)-x(Okb))^2-(y(Rc)-y(Okb))^2/(y(Jkb)-y(Okb))^2)/(1-(x(Rc)-x(Okb))/(x(Ikb)-x(Okb)))+sqrt((sqrt(1-(x(Rc)-x(Okb))^2/(x(Ikb)-x(Okb))^2-(y(Rc)-y(Okb))^2/(y(Jkb)-y(Okb))^2)/(1-(x(Rc)-x(Okb))/(x(Ikb)-x(Okb))))^2-1)),((y(Rc)-y(Okb))/(y(Jkb)-y(Okb)))/((x(Rc)-x(Okb))/(x(Ikb)-x(Okb))-1)]","0.7974662675655553","-2.20989408474634");
+tetaK5=PointOn("tetaK5",SegDrte1F5,0.8);
+LeCercle3=Locus("LeCercle3",LePtC3,tCerc3);
+L19=Line("L19",Ib,P116);
+L112=Line("L112",Ia,P118);
+LePt=Point("LePt","[2*cos(CdIa[1])/(exp(CdIa[0])+exp(-CdIa[0])),2*sin(CdIa[1])/(exp(CdIa[0])+exp(-CdIa[0])),CdIa[0]-(exp(CdIa[0])-exp(-CdIa[0]))/(exp(CdIa[0])+exp(-CdIa[0]))]","1");
+P58=OrderedIntersection("P58",L112,C2,1);
+CstGene4=Expression("CstGene4","Const2pts = ","","","[((exp(CdB[0])+exp(-CdB[0]))^2/4-(exp(CdIb[0])+exp(-CdIb[0]))^2/4+CdB[1]^2-CdIb[1]^2)/(2*(CdIb[1]-CdB[1])),(exp(CdB[0])+exp(-CdB[0]))^2/4+(CdB[1]+((exp(CdB[0])+exp(-CdB[0]))^2/4-(exp(CdIb[0])+exp(-CdIb[0]))^2/4+CdB[1]^2-CdIb[1]^2)/(2*(CdIb[1]-CdB[1])))^2]","1.7099898573171854","-0.5832215986673464");
+CstGene3=Expression("CstGene3","Const2pts = ","","","[((exp(CdA[0])+exp(-CdA[0]))^2/4-(exp(CdIa[0])+exp(-CdIa[0]))^2/4+CdA[1]^2-CdIa[1]^2)/(2*(CdIa[1]-CdA[1])),(exp(CdA[0])+exp(-CdA[0]))^2/4+(CdA[1]+((exp(CdA[0])+exp(-CdA[0]))^2/4-(exp(CdIa[0])+exp(-CdIa[0]))^2/4+CdA[1]^2-CdIa[1]^2)/(2*(CdIa[1]-CdA[1])))^2]","1.7099898573171854","-0.4641967826127859");
+LePt3=Point("LePt3","[2*cos(CdIb[1])/(exp(CdIb[0])+exp(-CdIb[0])),2*sin(CdIb[1])/(exp(CdIb[0])+exp(-CdIb[0])),CdIb[0]-(exp(CdIb[0])-exp(-CdIb[0]))/(exp(CdIb[0])+exp(-CdIb[0]))]","1");
+P56=OrderedIntersection("P56",L19,C2,1);
+P68=OrderedIntersection("P68",L112,C2,0);
+CstOB1=Expression("CstOB1","Const OB = ","","","[((exp(CdIc[0])+exp(-CdIc[0]))^2/4-(exp(CdRc[0])+exp(-CdRc[0]))^2/4+CdIc[1]^2-CdRc[1]^2)/(2*(CdRc[1]-CdIc[1])),(exp(CdIc[0])+exp(-CdIc[0]))^2/4+(CdIc[1]+((exp(CdIc[0])+exp(-CdIc[0]))^2/4-(exp(CdRc[0])+exp(-CdRc[0]))^2/4+CdIc[1]^2-CdRc[1]^2)/(2*(CdRc[1]-CdIc[1])))^2]","1.1082840920124302","-2.0197415390075912");
+chuK5=Expression("chuK5","chuK = ","","","sqrt(CstGene5[1]-(x(tetaK5)+CstGene5[0])^2)","1.709600365913225","-0.5112736376563751");
+P66=OrderedIntersection("P66",L19,C2,0);
+R2=Expression("R2","R = ","","","abs(log((sqrt(CstOB1[1])+CdIc[1]+CstOB1[0])*(sqrt(CstOB1[1])-CdRc[1]-CstOB1[0])/((sqrt(CstOB1[1])-CdIc[1]-CstOB1[0])*(sqrt(CstOB1[1])+CdRc[1]+CstOB1[0]))))/2","2.0459659476799903","-0.3006581369503974");
+S27=Segment("S27",P56,P66);
+Pmin1F3=Point("Pmin1F3","[max(-CstGene3[0]-sqrt(CstGene3[1]-1),-\u03C0),-1]","0");
+Pmax1F4=Point("Pmax1F4","[min(-CstGene4[0]+sqrt(CstGene4[1]-1),\u03C0),-1]","0");
+S29=Segment("S29",P58,P68);
+Pmin1F4=Point("Pmin1F4","[max(-CstGene4[0]-sqrt(CstGene4[1]-1),-\u03C0),-1]","0");
+uK5=Expression("uK5","uK = ","","","log(chuK5+sqrt(chuK5^2-1))","1.709600365913225","-0.3549933283784487");
+Pmax1F3=Point("Pmax1F3","[min(-CstGene3[0]+sqrt(CstGene3[1]-1),\u03C0),-1]","0");
+Rb=OrderedIntersection("Rb",S27,S12,0);
+PtDrt5=Point("PtDrt5","[cos(x(tetaK5))/chuK5,sin(x(tetaK5))/chuK5,uK5-(exp(uK5)-exp(-uK5))/(exp(uK5)+exp(-uK5))]","1");
+SegDrte1F3=Segment("SegDrte1F3",Pmin1F3,Pmax1F3);
+ChuCerc1=Expression("ChuCerc1","ChuCerc = ","","","(exp(R2)+exp(-R2))*(exp(CdIc[0])+exp(-CdIc[0]))/4+(exp(R2)-exp(-R2))*(exp(CdIc[0])+exp(-CdIc[0]))*cos(x(tCerc1))/4","1.9678257930410272","-0.37879829158936074");
+Ra=OrderedIntersection("Ra",S29,S32,0);
+SegDrte1F4=Segment("SegDrte1F4",Pmin1F4,Pmax1F4);
+tetaK3=PointOn("tetaK3",SegDrte1F3,0.8);
+CdRa=Expression("CdRa","","","","[log(sqrt(1-(x(Ra)-x(Okb))^2/(x(Ikb)-x(Okb))^2-(y(Ra)-y(Okb))^2/(y(Jkb)-y(Okb))^2)/(1-(x(Ra)-x(Okb))/(x(Ikb)-x(Okb)))+sqrt((sqrt(1-(x(Ra)-x(Okb))^2/(x(Ikb)-x(Okb))^2-(y(Ra)-y(Okb))^2/(y(Jkb)-y(Okb))^2)/(1-(x(Ra)-x(Okb))/(x(Ikb)-x(Okb))))^2-1)),((y(Ra)-y(Okb))/(y(Jkb)-y(Okb)))/((x(Ra)-x(Okb))/(x(Ikb)-x(Okb))-1)]","1.8686896120565992","-0.7419213534067604");
+LaDrt1F5=Locus("LaDrt1F5",PtDrt5,tetaK5);
+CdPtC1=Expression("CdPtC1","Coord PtCerc = ","","","[log(ChuCerc1+sqrt(ChuCerc1^2-1)),CdIc[1]+(exp(R2)-exp(-R2))*(exp(CdIc[0])+exp(-CdIc[0]))*sin(x(tCerc1))/4]","1.9678257930410272","-0.3006581369503974");
+CdRb=Expression("CdRb","","","","[log(sqrt(1-(x(Rb)-x(Okb))^2/(x(Ikb)-x(Okb))^2-(y(Rb)-y(Okb))^2/(y(Jkb)-y(Okb))^2)/(1-(x(Rb)-x(Okb))/(x(Ikb)-x(Okb)))+sqrt((sqrt(1-(x(Rb)-x(Okb))^2/(x(Ikb)-x(Okb))^2-(y(Rb)-y(Okb))^2/(y(Jkb)-y(Okb))^2)/(1-(x(Rb)-x(Okb))/(x(Ikb)-x(Okb))))^2-1)),((y(Rb)-y(Okb))/(y(Jkb)-y(Okb)))/((x(Rb)-x(Okb))/(x(Ikb)-x(Okb))-1)]","0.7181163901958483","-2.3289189008009004");
+tetaK4=PointOn("tetaK4",SegDrte1F4,0.8);
+CstOB2=Expression("CstOB2","Const OB = ","","","[((exp(CdIb[0])+exp(-CdIb[0]))^2/4-(exp(CdRb[0])+exp(-CdRb[0]))^2/4+CdIb[1]^2-CdRb[1]^2)/(2*(CdRb[1]-CdIb[1])),(exp(CdIb[0])+exp(-CdIb[0]))^2/4+(CdIb[1]+((exp(CdIb[0])+exp(-CdIb[0]))^2/4-(exp(CdRb[0])+exp(-CdRb[0]))^2/4+CdIb[1]^2-CdRb[1]^2)/(2*(CdRb[1]-CdIb[1])))^2]","1.1082840920124302","-2.0197415390075912");
+chuK3=Expression("chuK3","chuK = ","","","sqrt(CstGene3[1]-(x(tetaK3)+CstGene3[0])^2)","1.709600365913225","-0.5112736376563751");
+LePt1=Point("LePt1","[2*cos(CdRa[1])/(exp(CdRa[0])+exp(-CdRa[0])),2*sin(CdRa[1])/(exp(CdRa[0])+exp(-CdRa[0])),CdRa[0]-(exp(CdRa[0])-exp(-CdRa[0]))/(exp(CdRa[0])+exp(-CdRa[0]))]","1");
+chuK4=Expression("chuK4","chuK = ","","","sqrt(CstGene4[1]-(x(tetaK4)+CstGene4[0])^2)","1.709600365913225","-0.5112736376563751");
+LePtC1=Point("LePtC1","[2*cos(CdPtC1[1])/(exp(CdPtC1[0])+exp(-CdPtC1[0])),2*sin(CdPtC1[1])/(exp(CdPtC1[0])+exp(-CdPtC1[0])),CdPtC1[0]-(exp(CdPtC1[0])-exp(-CdPtC1[0]))/(exp(CdPtC1[0])+exp(-CdPtC1[0]))]","1");
+CstOB=Expression("CstOB","Const OB = ","","","[((exp(CdIa[0])+exp(-CdIa[0]))^2/4-(exp(CdRa[0])+exp(-CdRa[0]))^2/4+CdIa[1]^2-CdRa[1]^2)/(2*(CdRa[1]-CdIa[1])),(exp(CdIa[0])+exp(-CdIa[0]))^2/4+(CdIa[1]+((exp(CdIa[0])+exp(-CdIa[0]))^2/4-(exp(CdRa[0])+exp(-CdRa[0]))^2/4+CdIa[1]^2-CdRa[1]^2)/(2*(CdRa[1]-CdIa[1])))^2]","1.1082840920124302","-2.0197415390075912");
+R=Expression("R","R = ","","","abs(log((sqrt(CstOB[1])+CdIa[1]+CstOB[0])*(sqrt(CstOB[1])-CdRa[1]-CstOB[0])/((sqrt(CstOB[1])-CdIa[1]-CstOB[0])*(sqrt(CstOB[1])+CdRa[1]+CstOB[0]))))/2","2.0459659476799903","-0.3006581369503974");
+uK4=Expression("uK4","uK = ","","","log(chuK4+sqrt(chuK4^2-1))","1.709600365913225","-0.3549933283784487");
+uK3=Expression("uK3","uK = ","","","log(chuK3+sqrt(chuK3^2-1))","1.709600365913225","-0.3549933283784487");
+R3=Expression("R3","R = ","","","abs(log((sqrt(CstOB2[1])+CdIb[1]+CstOB2[0])*(sqrt(CstOB2[1])-CdRb[1]-CstOB2[0])/((sqrt(CstOB2[1])-CdIb[1]-CstOB2[0])*(sqrt(CstOB2[1])+CdRb[1]+CstOB2[0]))))/2","2.0459659476799903","-0.3006581369503974");
+LeCercle1=Locus("LeCercle1",LePtC1,tCerc1);
+ChuCerc=Expression("ChuCerc","ChuCerc = ","","","(exp(R)+exp(-R))*(exp(CdIa[0])+exp(-CdIa[0]))/4+(exp(R)-exp(-R))*(exp(CdIa[0])+exp(-CdIa[0]))*cos(x(tCerc))/4","1.9678257930410272","-0.37879829158936074");
+ChuCerc2=Expression("ChuCerc2","ChuCerc = ","","","(exp(R3)+exp(-R3))*(exp(CdIb[0])+exp(-CdIb[0]))/4+(exp(R3)-exp(-R3))*(exp(CdIb[0])+exp(-CdIb[0]))*cos(x(tCerc2))/4","1.9678257930410272","-0.37879829158936074");
+PtDrt3=Point("PtDrt3","[cos(x(tetaK3))/chuK3,sin(x(tetaK3))/chuK3,uK3-(exp(uK3)-exp(-uK3))/(exp(uK3)+exp(-uK3))]","1");
+PtDrt4=Point("PtDrt4","[cos(x(tetaK4))/chuK4,sin(x(tetaK4))/chuK4,uK4-(exp(uK4)-exp(-uK4))/(exp(uK4)+exp(-uK4))]","1");
+LaDrt1F4=Locus("LaDrt1F4",PtDrt4,tetaK4);
+CdPtC=Expression("CdPtC","Coord PtCerc = ","","","[log(ChuCerc+sqrt(ChuCerc^2-1)),CdIa[1]+(exp(R)-exp(-R))*(exp(CdIa[0])+exp(-CdIa[0]))*sin(x(tCerc))/4]","1.9678257930410272","-0.3006581369503974");
+CdPtC2=Expression("CdPtC2","Coord PtCerc = ","","","[log(ChuCerc2+sqrt(ChuCerc2^2-1)),CdIb[1]+(exp(R3)-exp(-R3))*(exp(CdIb[0])+exp(-CdIb[0]))*sin(x(tCerc2))/4]","1.9678257930410272","-0.3006581369503974");
+LaDrt1F3=Locus("LaDrt1F3",PtDrt3,tetaK3);
+LePtC=Point("LePtC","[2*cos(CdPtC[1])/(exp(CdPtC[0])+exp(-CdPtC[0])),2*sin(CdPtC[1])/(exp(CdPtC[0])+exp(-CdPtC[0])),CdPtC[0]-(exp(CdPtC[0])-exp(-CdPtC[0]))/(exp(CdPtC[0])+exp(-CdPtC[0]))]","1");
+LePtC2=Point("LePtC2","[2*cos(CdPtC2[1])/(exp(CdPtC2[0])+exp(-CdPtC2[0])),2*sin(CdPtC2[1])/(exp(CdPtC2[0])+exp(-CdPtC2[0])),CdPtC2[0]-(exp(CdPtC2[0])-exp(-CdPtC2[0]))/(exp(CdPtC2[0])+exp(-CdPtC2[0]))]","1");
+LeCercle=Locus("LeCercle",LePtC,tCerc);
+LeCercle2=Locus("LeCercle2",LePtC2,tCerc2);
+
+
+// Styles :
+STL(O,"c:#0000b2;s:5;sn:true;f:18;fl:true");
+STL(PthMin,"c:#0000b2;h:2;s:6;f:30");
+STL(PthMax,"c:#0000b2;h:2;s:6;f:30");
+STL(PthMin1,"c:#0000b2;h:2;s:6;f:30");
+STL(PthMax1,"c:#0000b2;h:2;s:6;f:30");
+STL(PthMin2,"c:#0000b2;h:2;s:6;f:30");
+STL(PthMax2,"c:#0000b2;h:2;s:6;f:30");
+STL(PthMin3,"c:#0000b2;h:2;s:6;f:30");
+STL(PthMax3,"c:#0000b2;h:2;s:6;f:30");
+STL(X,"c:#0000b2;o:1;s:5;sn:true;f:18");
+STL(P11,"c:#0000b2;h:1;s:5;f:18");
+STL(Y,"c:#0000b2;o:1;s:5;sn:true;f:18");
+STL(Z,"c:#0000b2;h:1;o:1;s:5;sn:true;f:18");
+STL(Okb,"c:#0000b2;h:1;s:5;sn:true;f:15;fl:true");
+STL(S11,"c:#117dad;s:1;f:24");
+STL(P1,"c:#0000b2;h:1;s:5;f:30");
+STL(Scerc3,"c:#006633;h:2;s:1;f:24");
+STL(C1,"c:#cc66cc;s:2.5;f:30;p:0");
+STL(Scerc,"c:#006633;h:2;s:1;f:24");
+STL(S31,"c:#117dad;h:1;s:1;f:24");
+STL(Scerc2,"c:#006633;h:2;s:1;f:24");
+STL(S21,"c:#117dad;s:1;f:24");
+STL(uI,"c:#0000b2;h:2;s:5;sn:true;f:18");
+STL(Scerc1,"c:#006633;h:2;s:1;f:24");
+STL(Center1,"c:#0000b2;h:1;s:5;f:18");
+STL(tCerc3,"c:#0000b2;h:2;s:6;f:30");
+STL(tCerc2,"c:#0000b2;h:2;s:6;f:30");
+STL(tCerc1,"c:#0000b2;h:2;s:6;f:30");
+STL(tCerc,"c:#0000b2;h:2;s:6;f:30");
+STL(S2,"c:#006633;h:2;s:1;f:24");
+STL(S3,"c:#006633;h:2;s:1;f:24");
+STL(R1,"c:#993300;h:1;s:1;f:30;p:0");
+STL(Perp1,"c:#780013;h:1;s:1;f:30;p:0");
+STL(Symc1,"c:#0000b2;h:1;s:5;f:18");
+STL(Ikb,"c:#0000b2;h:1;s:5;sn:true;f:15");
+STL(Symc2,"c:#0000b2;h:1;s:5;f:18");
+STL(C2,"c:#cc66cc;h:1;s:1;f:30;p:0");
+STL(M2,"c:#0000b2;h:1;s:6;f:30");
+STL(Jkb,"c:#0000b2;h:1;s:5;sn:true;f:15");
+STL(Symc3,"c:#0000b2;h:1;s:5;f:18");
+STL(Perp2,"c:#780013;h:1;s:1;f:30;p:0");
+STL(F1,"c:#404440;h:1;s:4;sn:true;f:14;sp:1");
+STL(M1,"c:#007c00;h:1;s:6;f:30;sp:1");
+STL(S1,"c:#006633;s:1;f:24");
+STL(uC,"c:#0000b2;s:5;sn:true;f:18");
+STL(uG,"c:#0000b2;h:2;s:5;sn:true;f:18");
+STL(uB,"c:#0000b2;s:5;sn:true;f:18");
+STL(C3,"c:#cc66cc;h:1;s:1;f:30;p:0");
+STL(F11,"c:#363836;h:1;s:4;sn:true;f:15;sp:1");
+STL(S4,"c:#353a38;h:1;s:1;f:24;dh:true");
+STL(uA,"c:#0000b2;s:5;sn:true;f:18");
+STL(altG1,"c:#780013;h:2;s:7;f:15;p:4;cL:200;cPT:YzojNzgwMDEzO2g6MjtzOjU7ZjoxOA==");
+STL(P7,"c:#007c00;h:1;s:6;f:30;sp:1");
+STL(S5,"c:#2e302f;h:1;s:1;f:24;dh:true");
+STL(altG2,"c:#780013;h:2;s:7;f:15;p:4;cL:200;cPT:YzojNzgwMDEzO2g6MjtzOjU7ZjoxOA==");
+STL(altG,"c:#567f3b;h:1;s:7;sn:true;f:15;p:4;cL:200;cPT:YzojNzgwMDEzO2g6MTtzOjU7ZjoxOA==");
+STL(P8,"c:#007c00;h:1;s:6;f:30;sp:1");
+STL(altG3,"c:#780013;h:2;s:7;f:15;p:4;cL:200;cPT:YzojNzgwMDEzO2g6MjtzOjU7ZjoxOA==");
+STL(G12,"c:#0000b2;h:2;s:5;f:18");
+STL(G1,"c:#0000b2;h:2;s:5;sn:true;f:18");
+STL(G22,"c:#0000b2;h:2;s:5;f:18");
+STL(P131,"c:#0000b2;h:2;s:5;f:18");
+STL(G21,"c:#0000b2;h:2;s:5;f:18");
+STL(Quad,"c:#ff00c4;h:1;s:1.5;f:30;p:500");
+STL(G11,"c:#0000b2;h:2;s:5;f:18");
+STL(G13,"c:#0000b2;h:2;s:5;f:18");
+STL(P132,"c:#0000b2;h:2;s:5;f:18");
+STL(G23,"c:#0000b2;h:2;s:5;f:18");
+STL(P133,"c:#0000b2;h:2;s:5;f:18");
+STL(P13,"c:#0000b2;h:2;s:5;f:18");
+STL(G2,"c:#0000b2;h:2;s:5;sn:true;f:18");
+STL(Generatrice1,"c:#780013;s:1;f:30;p:100");
+STL(HoriB,"c:#383438;s:1;sn:true;f:30;p:0;dh:true");
+STL(oG,"c:#0000b2;h:2;s:5;sn:true;f:18");
+STL(Par2,"c:#780013;h:2;s:1;f:30;p:0");
+STL(HoriC,"c:#423d42;s:1;sn:true;f:30;p:0;dh:true");
+STL(Generatrice2,"c:#780013;s:1;f:30;p:100");
+STL(HoriA,"c:#474547;s:1;sn:true;f:30;p:0;dh:true");
+STL(Center40,"c:#0000b2;h:1;s:5;sn:true;f:18");
+STL(Center3,"c:#0000b2;h:1;s:5;sn:true;f:18");
+STL(Center2,"c:#0000b2;h:1;s:5;sn:true;f:18");
+STL(A,"c:#0000b2;o:1;s:5;sn:true;f:18");
+STL(Par1,"c:#780013;h:1;s:1;f:30;p:0");
+STL(B,"c:#0000b2;o:1;s:5;sn:true;f:18");
+STL(C,"c:#0000b2;o:1;s:5;sn:true;f:18");
+STL(uG1,"c:#0000b2;h:2;s:5;sn:true;f:18");
+STL(E1,"c:#48314c;h:1;s:7;f:15;p:4;cL:200;cPT:YzojNzgwMDEzO2g6MTtzOjU7ZjoxOA==");
+STL(E12,"c:#780013;h:2;s:7;f:15;p:4;cL:200;cPT:YzojNzgwMDEzO2g6MjtzOjU7ZjoxOA==");
+STL(E11,"c:#780013;h:2;s:7;f:15;p:4;cL:200;cPT:YzojNzgwMDEzO2g6MjtzOjU7ZjoxOA==");
+STL(CdC,"c:#435805;h:1;s:7;sn:true;f:15;p:4;cL:200;cPT:YzojNzgwMDEzO2g6MTtzOjU7ZjoxOA==");
+STL(Generatrice3,"c:#780013;s:1;f:30;p:100");
+STL(CdA,"c:#435805;h:1;s:7;sn:true;f:15;p:4;cL:200;cPT:YzojNzgwMDEzO2g6MTtzOjU7ZjoxOA==");
+STL(CdB,"c:#435805;h:1;s:7;sn:true;f:15;p:4;cL:200;cPT:YzojNzgwMDEzO2g6MTtzOjU7ZjoxOA==");
+STL(Symc4,"c:#0000b2;h:1;s:5;f:18");
+STL(CstGene1,"c:#2f542d;h:1;s:7;f:18;p:4;cL:200;cPT:YzojNzgwMDEzO2g6MTtzOjEwO2Y6MzA=");
+STL(Bkb,"c:#0000b2;h:1;s:5;sn:true;f:15");
+STL(Ckb,"c:#0000b2;h:1;s:5;sn:true;f:15");
+STL(CstGene,"c:#2f542d;h:1;s:7;f:18;p:4;cL:200;cPT:YzojNzgwMDEzO2g6MTtzOjEwO2Y6MzA=");
+STL(CstGene2,"c:#2f542d;h:1;s:7;f:18;p:4;cL:200;cPT:YzojNzgwMDEzO2g6MTtzOjEwO2Y6MzA=");
+STL(Akb,"c:#0000b2;h:1;s:5;sn:true;f:17");
+STL(Generatrice4,"c:#780013;s:1;f:30;p:100");
+STL(Pmax1F,"c:#0000b2;h:2;s:6;f:30");
+STL(Pmin1F1,"c:#0000b2;h:2;s:6;f:30");
+STL(Pmin1F,"c:#0000b2;h:2;s:6;f:30");
+STL(L4,"c:#780013;h:1;s:1;f:30;p:0");
+STL(L1,"c:#780013;h:2;s:1;f:30;p:0");
+STL(L5,"c:#780013;h:1;s:1;f:30;p:0");
+STL(L12,"c:#780013;h:2;s:1;f:30;p:0");
+STL(L3,"c:#780013;h:1;s:1;f:30;p:0");
+STL(L21,"c:#780013;h:2;s:1;f:30;p:0");
+STL(Pmax1F2,"c:#0000b2;h:2;s:6;f:30");
+STL(Pmax1F1,"c:#0000b2;h:2;s:6;f:30");
+STL(Pmin1F2,"c:#0000b2;h:2;s:6;f:30");
+STL(L2,"c:#780013;h:2;s:1;f:30;p:0");
+STL(P4,"c:#0000b2;h:2;s:5;f:30");
+STL(SegDrte1F,"c:#006633;h:2;s:1;f:24");
+STL(P12,"c:#0000b2;h:2;s:5;f:30");
+STL(P2,"c:#0000b2;h:2;s:5;f:30");
+STL(SegDrte1F2,"c:#006633;h:2;s:1;f:24");
+STL(P15,"c:#0000b2;h:1;s:6;f:30");
+STL(P17,"c:#0000b2;h:1;s:6;f:30");
+STL(P3,"c:#0000b2;h:2;s:5;f:30");
+STL(P10,"c:#0000b2;h:1;s:6;f:30");
+STL(P14,"c:#0000b2;h:1;s:6;f:30");
+STL(P16,"c:#0000b2;h:1;s:6;f:30");
+STL(P42,"c:#0000b2;h:2;s:5;f:30");
+STL(P21,"c:#0000b2;h:2;s:5;f:30");
+STL(SegDrte1F1,"c:#006633;h:2;s:1;f:24");
+STL(P18,"c:#0000b2;h:1;s:6;f:30");
+STL(tetaK1,"c:#0000b2;h:2;s:6;f:30");
+STL(S6,"c:#006633;h:1;s:1;f:24");
+STL(S23,"c:#006633;h:2;s:1;f:24");
+STL(S12,"c:#006633;h:2;s:1;f:24");
+STL(S8,"c:#006633;h:1;s:1;f:24");
+STL(S22,"c:#006633;h:2;s:1;f:24");
+STL(S7,"c:#006633;h:1;s:1;f:24");
+STL(tetaK2,"c:#0000b2;h:2;s:6;f:30");
+STL(tetaK,"c:#0000b2;h:2;s:6;f:30");
+STL(S32,"c:#006633;h:2;s:1;f:24");
+STL(chuK,"c:#780013;h:2;s:7;f:24;p:4;cL:200;cPT:YzojNzgwMDEzO2g6MjtzOjEwO2Y6MzA=");
+STL(chuK1,"c:#780013;h:2;s:7;f:24;p:4;cL:200;cPT:YzojNzgwMDEzO2g6MjtzOjEwO2Y6MzA=");
+STL(Perp15,"c:#780013;h:2;s:1;f:30;p:0");
+STL(Perp16,"c:#780013;h:2;s:1;f:30;p:0");
+STL(Perp11,"c:#780013;h:2;s:1;f:30;p:0");
+STL(Perp18,"c:#780013;h:2;s:1;f:30;p:0");
+STL(Perp12,"c:#780013;h:2;s:1;f:30;p:0");
+STL(chuK2,"c:#780013;h:2;s:7;f:24;p:4;cL:200;cPT:YzojNzgwMDEzO2g6MjtzOjEwO2Y6MzA=");
+STL(Perp17,"c:#780013;h:2;s:1;f:30;p:0");
+STL(uK,"c:#780013;h:2;s:7;f:24;p:4;cL:200;cPT:YzojNzgwMDEzO2g6MjtzOjEwO2Y6MzA=");
+STL(P41,"c:#0000b2;h:2;s:5;f:30");
+STL(uK1,"c:#780013;h:2;s:7;f:24;p:4;cL:200;cPT:YzojNzgwMDEzO2g6MjtzOjEwO2Y6MzA=");
+STL(P46,"c:#0000b2;h:2;s:5;f:30");
+STL(P49,"c:#0000b2;h:2;s:5;f:30");
+STL(P48,"c:#0000b2;h:2;s:5;f:30");
+STL(P411,"c:#0000b2;h:2;s:5;f:30");
+STL(P47,"c:#0000b2;h:2;s:5;f:30");
+STL(uK2,"c:#780013;h:2;s:7;f:24;p:4;cL:200;cPT:YzojNzgwMDEzO2g6MjtzOjEwO2Y6MzA=");
+STL(P1111,"c:#0000b2;h:2;s:5;f:30");
+STL(P117,"c:#0000b2;h:2;s:5;f:30");
+STL(P115,"c:#0000b2;h:2;s:5;f:30");
+STL(PtDrt1,"c:#0000b2;h:2;s:6;f:30");
+STL(PtDrt,"c:#0000b2;h:2;s:6;f:30");
+STL(P118,"c:#0000b2;h:2;s:5;f:30");
+STL(P111,"c:#0000b2;h:2;s:5;f:30");
+STL(P116,"c:#0000b2;h:2;s:5;f:30");
+STL(PtDrt2,"c:#0000b2;h:2;s:6;f:30");
+STL(LaDrt1F,"c:#b40000;s:2.5;f:30;p:200");
+STL(L111,"c:#780013;h:2;s:1;f:30;p:0");
+STL(LaDrt1F1,"c:#b40000;s:2.5;f:30;p:200");
+STL(LaDrt1F2,"c:#b40000;s:2.5;f:30;p:200");
+STL(L11,"c:#780013;h:2;s:1;f:30;p:0");
+STL(P5,"c:#0000b2;h:2;s:5;f:30");
+STL(P61,"c:#0000b2;h:2;s:5;f:30");
+STL(P51,"c:#0000b2;h:2;s:5;f:30");
+STL(P6,"c:#0000b2;h:2;s:5;f:30");
+STL(S2111,"c:#006633;h:2;s:1;f:24");
+STL(S211,"c:#006633;h:2;s:1;f:24");
+STL(Perp121,"c:#780013;h:2;s:1;f:30;p:0");
+STL(Perp14,"c:#780013;h:2;s:1;f:30;p:0");
+STL(I,"c:#0000b2;h:1;s:5;sn:true;f:15");
+STL(CdI,"c:#551b53;h:1;s:7;sn:true;f:17;p:4;cL:200;cPT:YzojNzgwMDEzO2g6MTtzOjEwO2Y6MzA=");
+STL(L18,"c:#780013;h:2;s:1;f:30;p:0");
+STL(P43,"c:#0000b2;h:2;s:5;f:30");
+STL(P45,"c:#0000b2;h:2;s:5;f:30");
+STL(L13,"c:#780013;h:2;s:1;f:30;p:0");
+STL(P22,"c:#0000b2;h:2;s:5;f:30");
+STL(P65,"c:#0000b2;h:2;s:5;f:30");
+STL(LePt4,"c:#007c00;s:4;f:18;sp:2");
+STL(P114,"c:#0000b2;h:2;s:5;f:30");
+STL(P55,"c:#0000b2;h:2;s:5;f:30");
+STL(P112,"c:#0000b2;h:2;s:5;f:30");
+STL(P121,"c:#0000b2;h:2;s:5;f:30");
+STL(L15,"c:#780013;h:2;s:1;f:30;p:0");
+STL(S111,"c:#006633;h:2;s:1;f:24");
+STL(S26,"c:#006633;h:2;s:1;f:24");
+STL(L17,"c:#780013;h:2;s:1;f:30;p:0");
+STL(P52,"c:#0000b2;h:2;s:5;f:30");
+STL(Ri,"c:#0000b2;h:1;s:5;sn:true;f:15");
+STL(P64,"c:#0000b2;h:2;s:5;f:30");
+STL(Perp13,"c:#780013;h:2;s:1;f:30;p:0");
+STL(P62,"c:#0000b2;h:2;s:5;f:30");
+STL(P54,"c:#0000b2;h:2;s:5;f:30");
+STL(CdRi,"c:#551b53;h:1;s:7;sn:true;f:17;p:4;cL:200;cPT:YzojNzgwMDEzO2g6MTtzOjEwO2Y6MzA=");
+STL(S25,"c:#006633;h:2;s:1;f:24");
+STL(S231,"c:#006633;h:2;s:1;f:24");
+STL(P44,"c:#0000b2;h:2;s:5;f:30");
+STL(P113,"c:#0000b2;h:2;s:5;f:30");
+STL(Ic,"c:#0000b2;h:1;s:5;sn:true;f:15");
+STL(CstOB3,"c:#780013;h:2;s:7;f:24;p:4;cL:200;cPT:YzojNzgwMDEzO2g6MjtzOjEwO2Y6MzA=");
+STL(CdIc,"c:#551b53;h:1;s:7;sn:true;f:17;p:4;cL:200;cPT:YzojNzgwMDEzO2g6MTtzOjEwO2Y6MzA=");
+STL(L110,"c:#780013;h:2;s:1;f:30;p:0");
+STL(L16,"c:#780013;h:2;s:1;f:30;p:0");
+STL(R4,"c:#780013;h:2;s:7;f:24;p:4;cL:200;cPT:YzojNzgwMDEzO2g6MjtzOjEwO2Y6MzA=");
+STL(CstGene5,"c:#2f542d;h:1;s:7;f:18;p:4;cL:200;cPT:YzojNzgwMDEzO2g6MTtzOjEwO2Y6MzA=");
+STL(P53,"c:#0000b2;h:2;s:5;f:30");
+STL(P67,"c:#0000b2;h:2;s:5;f:30");
+STL(P57,"c:#0000b2;h:2;s:5;f:30");
+STL(LePt2,"c:#007c00;s:4;f:18;sp:2");
+STL(P63,"c:#0000b2;h:2;s:5;f:30");
+STL(ChuCerc3,"c:#780013;h:2;s:7;f:24;p:4;cL:200;cPT:YzojNzgwMDEzO2g6MjtzOjEwO2Y6MzA=");
+STL(Pmax1F5,"c:#0000b2;h:2;s:6;f:30");
+STL(CdPtC3,"c:#780013;h:2;s:7;f:24;p:4;cL:200;cPT:YzojNzgwMDEzO2g6MjtzOjEwO2Y6MzA=");
+STL(Pmin1F5,"c:#0000b2;h:2;s:6;f:30");
+STL(S24,"c:#006633;h:2;s:1;f:24");
+STL(S28,"c:#006633;h:2;s:1;f:24");
+STL(LePtC3,"c:#0000b2;h:2;s:6;f:30");
+STL(Rc,"c:#0000b2;h:1;s:5;sn:true;f:15");
+STL(SegDrte1F5,"c:#006633;h:2;s:1;f:24");
+STL(Ia,"c:#0000b2;h:1;s:5;sn:true;f:15");
+STL(Ib,"c:#0000b2;h:1;s:5;sn:true;f:15");
+STL(CdIb,"c:#551b53;h:1;s:7;sn:true;f:17;p:4;cL:200;cPT:YzojNzgwMDEzO2g6MTtzOjEwO2Y6MzA=");
+STL(CdIa,"c:#551b53;h:1;s:7;sn:true;f:17;p:4;cL:200;cPT:YzojNzgwMDEzO2g6MTtzOjEwO2Y6MzA=");
+STL(CdRc,"c:#551b53;h:1;s:7;sn:true;f:17;p:4;cL:200;cPT:YzojNzgwMDEzO2g6MTtzOjEwO2Y6MzA=");
+STL(tetaK5,"c:#0000b2;h:2;s:6;f:30");
+STL(LeCercle3,"c:#0044ff;s:2;f:30;p:100");
+STL(L19,"c:#780013;h:2;s:1;f:30;p:0");
+STL(L112,"c:#780013;h:2;s:1;f:30;p:0");
+STL(LePt,"c:#007c00;s:4;f:18;sp:2");
+STL(P58,"c:#0000b2;h:2;s:5;f:30");
+STL(CstGene4,"c:#2f542d;h:1;s:7;f:18;p:4;cL:200;cPT:YzojNzgwMDEzO2g6MTtzOjEwO2Y6MzA=");
+STL(CstGene3,"c:#2f542d;h:1;s:7;f:18;p:4;cL:200;cPT:YzojNzgwMDEzO2g6MTtzOjEwO2Y6MzA=");
+STL(LePt3,"c:#007c00;s:4;f:18;sp:2");
+STL(P56,"c:#0000b2;h:2;s:5;f:30");
+STL(P68,"c:#0000b2;h:2;s:5;f:30");
+STL(CstOB1,"c:#780013;h:2;s:7;f:24;p:4;cL:200;cPT:YzojNzgwMDEzO2g6MjtzOjEwO2Y6MzA=");
+STL(chuK5,"c:#780013;h:2;s:7;f:24;p:4;cL:200;cPT:YzojNzgwMDEzO2g6MjtzOjEwO2Y6MzA=");
+STL(P66,"c:#0000b2;h:2;s:5;f:30");
+STL(R2,"c:#780013;h:2;s:7;f:24;p:4;cL:200;cPT:YzojNzgwMDEzO2g6MjtzOjEwO2Y6MzA=");
+STL(S27,"c:#006633;h:2;s:1;f:24");
+STL(Pmin1F3,"c:#0000b2;h:2;s:6;f:30");
+STL(Pmax1F4,"c:#0000b2;h:2;s:6;f:30");
+STL(S29,"c:#006633;h:2;s:1;f:24");
+STL(Pmin1F4,"c:#0000b2;h:2;s:6;f:30");
+STL(uK5,"c:#780013;h:2;s:7;f:24;p:4;cL:200;cPT:YzojNzgwMDEzO2g6MjtzOjEwO2Y6MzA=");
+STL(Pmax1F3,"c:#0000b2;h:2;s:6;f:30");
+STL(Rb,"c:#0000b2;h:1;s:5;sn:true;f:15");
+STL(PtDrt5,"c:#0000b2;h:2;s:6;f:30");
+STL(SegDrte1F3,"c:#006633;h:2;s:1;f:24");
+STL(ChuCerc1,"c:#780013;h:2;s:7;f:24;p:4;cL:200;cPT:YzojNzgwMDEzO2g6MjtzOjEwO2Y6MzA=");
+STL(Ra,"c:#0000b2;h:1;s:5;sn:true;f:15");
+STL(SegDrte1F4,"c:#006633;h:2;s:1;f:24");
+STL(tetaK3,"c:#0000b2;h:2;s:6;f:30");
+STL(CdRa,"c:#551b53;h:1;s:7;sn:true;f:17;p:4;cL:200;cPT:YzojNzgwMDEzO2g6MTtzOjEwO2Y6MzA=");
+STL(LaDrt1F5,"c:#007c00;s:3;f:30;p:200");
+STL(CdPtC1,"c:#780013;h:2;s:7;f:24;p:4;cL:200;cPT:YzojNzgwMDEzO2g6MjtzOjEwO2Y6MzA=");
+STL(CdRb,"c:#551b53;h:1;s:7;sn:true;f:17;p:4;cL:200;cPT:YzojNzgwMDEzO2g6MTtzOjEwO2Y6MzA=");
+STL(tetaK4,"c:#0000b2;h:2;s:6;f:30");
+STL(CstOB2,"c:#780013;h:2;s:7;f:24;p:4;cL:200;cPT:YzojNzgwMDEzO2g6MjtzOjEwO2Y6MzA=");
+STL(chuK3,"c:#780013;h:2;s:7;f:24;p:4;cL:200;cPT:YzojNzgwMDEzO2g6MjtzOjEwO2Y6MzA=");
+STL(LePt1,"c:#0000b2;h:1;s:6;f:18");
+STL(chuK4,"c:#780013;h:2;s:7;f:24;p:4;cL:200;cPT:YzojNzgwMDEzO2g6MjtzOjEwO2Y6MzA=");
+STL(LePtC1,"c:#0000b2;h:2;s:6;f:30");
+STL(CstOB,"c:#780013;h:2;s:7;f:24;p:4;cL:200;cPT:YzojNzgwMDEzO2g6MjtzOjEwO2Y6MzA=");
+STL(R,"c:#780013;h:2;s:7;f:24;p:4;cL:200;cPT:YzojNzgwMDEzO2g6MjtzOjEwO2Y6MzA=");
+STL(uK4,"c:#780013;h:2;s:7;f:24;p:4;cL:200;cPT:YzojNzgwMDEzO2g6MjtzOjEwO2Y6MzA=");
+STL(uK3,"c:#780013;h:2;s:7;f:24;p:4;cL:200;cPT:YzojNzgwMDEzO2g6MjtzOjEwO2Y6MzA=");
+STL(R3,"c:#780013;h:2;s:7;f:24;p:4;cL:200;cPT:YzojNzgwMDEzO2g6MjtzOjEwO2Y6MzA=");
+STL(LeCercle1,"c:#2600ff;s:2;f:30;p:200");
+STL(ChuCerc,"c:#780013;h:2;s:7;f:24;p:4;cL:200;cPT:YzojNzgwMDEzO2g6MjtzOjEwO2Y6MzA=");
+STL(ChuCerc2,"c:#780013;h:2;s:7;f:24;p:4;cL:200;cPT:YzojNzgwMDEzO2g6MjtzOjEwO2Y6MzA=");
+STL(PtDrt3,"c:#0000b2;h:2;s:6;f:30");
+STL(PtDrt4,"c:#0000b2;h:2;s:6;f:30");
+STL(LaDrt1F4,"c:#007c00;s:3;f:30;p:200");
+STL(CdPtC,"c:#780013;h:2;s:7;f:24;p:4;cL:200;cPT:YzojNzgwMDEzO2g6MjtzOjEwO2Y6MzA=");
+STL(CdPtC2,"c:#780013;h:2;s:7;f:24;p:4;cL:200;cPT:YzojNzgwMDEzO2g6MjtzOjEwO2Y6MzA=");
+STL(LaDrt1F3,"c:#007c00;s:2.5;f:30;p:200");
+STL(LePtC,"c:#0000b2;h:2;s:6;f:30");
+STL(LePtC2,"c:#0000b2;h:2;s:6;f:30");
+STL(LeCercle,"c:#0016ff;o:0.04;s:2;f:30;p:200");
+STL(LeCercle2,"c:#0026ff;s:2;f:30;p:200");
+SetCoordsStyle("3Dmode:true;isAxis:false;isGrid:true;isOx:true;isOy:true;isLockOx:false;isLockOy:false;centerZoom:true;onlyPositive:false;color:#111111;fontSize:18;axisWidth:1;gridWidth:0.1");
+SetGeneralStyle("background-color:#F8F8F8;degree:false;dragmoveable:true");
