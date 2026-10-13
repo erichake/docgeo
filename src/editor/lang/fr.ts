@@ -24,6 +24,10 @@ const fr: Texts = {
         delete: "Supprimer",
         eraser: "Gomme",
         axes: "Repère",
+        space: "Vue 3D",
+        off_plane:
+            "Une figure plane garde ses objets dans le plan z = 0 : passez d’abord en vue 3D",
+        in_space: "% est hors du plan z = 0 : la figure reste en 3D",
         actions: "Actions de la figure",
         construction: "Construction",
         history: "Historique de la construction",

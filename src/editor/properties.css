@@ -162,7 +162,7 @@ body:not(.dge-adjusting) svg .dge-property-selected > foreignObject > div {
 .dge-editor .dge-bar .dge-action.dge-on {
     --dge-icon-bg: #e0ebff;
 }
-@media (max-width: 400px) {
+@media (max-width: 440px) {
     .dge-editor .dge-bar {
         gap: 4px;
         padding-inline: 4px;
@@ -174,7 +174,7 @@ body:not(.dge-adjusting) svg .dge-property-selected > foreignObject > div {
         padding-inline-start: 4px;
     }
     .dge-editor .dge-bar .dge-action {
-        width: 36px;
+        width: 32px;
     }
 }
 @media (max-width: 600px) {

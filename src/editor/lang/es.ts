@@ -24,6 +24,10 @@ const es: Texts = {
         delete: "Eliminar",
         eraser: "Goma de borrar",
         axes: "Ejes",
+        space: "Vista 3D",
+        off_plane:
+            "Una figura plana mantiene sus objetos en el plano z = 0: active primero la vista 3D",
+        in_space: "% está fuera del plano z = 0: la figura sigue en 3D",
         actions: "Acciones de la figura",
         construction: "Construcción",
         history: "Historial de la construcción",

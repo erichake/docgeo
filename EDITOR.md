@@ -270,7 +270,7 @@ bascule passe alors à « on », ce qui montre que les deux mènent au même
 panneau. L'objet sélectionné brille dans la figure, ce qui compte surtout
 quand aucun anneau ne s'ouvre.
 
-La barre est déjà pleine à 320 px : sous 600 px, la zone contextuelle
+La barre est déjà pleine à 320 px : sous 680 px, la zone contextuelle
 flotte, centrée, juste sous la barre, par-dessus le haut de la figure,
 sans la décaler.
 
@@ -333,6 +333,44 @@ Une ligne de texte modifiée déplace aussi un point épinglé. Chaque étape
 d'annulation garde l'origine et l'unité de sa vue : elle est relue dans
 cette vue, puis ramenée à la vue courante, pour qu'annuler après un zoom
 ne déplace pas les points épinglés dans la fenêtre.
+
+## Plan et espace
+
+Décidé avec l'auteur le 2026-10-13, après l'essai d'une bascule
+automatique (comme GeoGebra ouvre sa vue 3D), abandonnée : passer en 3D
+change le calcul des formules (les points y ont trois coordonnées, plus
+des nombres complexes), et une heuristique qui fait basculer la figure à
+l'insu de l'utilisateur le déroute. La 3D est donc un choix explicite,
+comme dans DGPad où elle se décidait à la création de la figure.
+
+- **Bouton « Vue 3D »** (un cube) dans la barre, après « Repère », bleu en
+  3D. Il n'apparaît pas dans les figures 3D de DGPad (`f2`), dont les
+  points libres sont dans le plan de l'écran.
+- **La caméra tourne** (`src/editor/space.ts`, 0,9 s, sans mouvement si
+  les animations sont réduites) : la figure est relue en 3D vue de dessus,
+  la projection de la vue plane, puis le plan bascule vers l'arrière comme
+  une table vue de face, légèrement tournée (θ = π/5, φ = 5π/2 − π/9), et
+  l'origine gagne le centre de la fenêtre, où la 3D la garde. Au retour, la
+  caméra revient au-dessus du plan par le plus court chemin, puis la figure
+  est relue en 2D.
+- **Retour au plan refusé** tant qu'un objet dessiné est hors du plan
+  z = 0 (point, ou point d'une liste, de cote non nulle ; sphère, section
+  de cylindre) : la consigne le nomme (« A est hors du plan z = 0 : la
+  figure reste en 3D »). Une expression, même de valeur `[1, 2, 3]`, n'est
+  pas dessinée ; une perpendiculaire (`plumb_line_object`) est celle d'une
+  droite, aussi dans le plan.
+- **Dans une figure plane, un objet hors du plan est refusé**, quel que
+  soit le chemin (`A = Point([1, 2, 3])`, `C = (2, 1, 1)`,
+  `Sphère(A, B)`, action « Point » d'une expression `[1, 2, 3]`) : la
+  figure revient à sa dernière étape et la consigne invite à passer en
+  3D ; la ligne tapée reste dans le champ. Plus de cote jetée en silence.
+  Une figure plane ouverte avec un objet hors du plan (aucune des 142 des
+  tests) n'est pas soumise au refus.
+- **Repère** : la 3D montre le trièdre et le plancher ; le retour au plan
+  rend le repère tel qu'il était avant la bascule.
+- **Annulation** : chaque bascule est une étape, qui garde de sa vue le
+  seul mode (`3d`) ; annuler ou refaire à travers une bascule fait tourner
+  la caméra. Les étapes attendent la fin de la rotation.
 
 ## Ressort
 
@@ -883,6 +921,15 @@ Fait (2026-10-11) :
   (`index` 15,2 Ko), l'aide d'interopérabilité de Rolldown passant du
   moteur dans un chunk à part (0,6 Ko).
 
+- Plan et espace (2026-10-13, section du même nom) : bouton « Vue 3D »,
+  caméra animée, objets hors du plan refusés dans une figure plane, retour
+  au plan refusé tant qu'il en reste, mode gardé par les étapes
+  d'annulation. La barre passe à des boutons de 32 px sous 440 px, et la
+  zone contextuelle flotte sous la barre jusqu'à 680 px. Vérifié dans
+  `editor.html` (refus, aller-retour, annuler / refaire, figure DGPad 3D,
+  barre de 320 à 800 px). Éditeur : 90,9 Ko, +2,1 Ko (+0,8 Ko en gzip) ;
+  lecteur inchangé (+10 octets d'exportations du moteur partagé).
+
 Reste à faire :
 
 - Jeux d'outils de l'enseignant (section « Anneau d'outils »).
@@ -893,7 +940,7 @@ Reste à faire :
 - Points sur objet et intersections au geste sur les lieux et listes ;
   choix explicite de l'intersection quand le geste est ambigu.
 - 3D : points libres dans le plan de l'écran des figures DGPad (`f2`) et
-  hors du plan z = 0.
+  hors du plan z = 0 au geste.
 - Lien « modifier cette figure » depuis le lecteur.
 - Réutilisation de `ggb_translate.ts` pour accepter davantage de commandes
   GeoGebra.

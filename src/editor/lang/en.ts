@@ -23,6 +23,10 @@ export default {
     delete: "Delete",
     eraser: "Eraser",
     axes: "Axes",
+    space: "3D view",
+    off_plane:
+        "A plane figure keeps its objects in the plane z = 0: turn on the 3D view first",
+    in_space: "% is off the plane z = 0: the figure stays in 3D",
     actions: "Figure actions",
     construction: "Construction",
     history: "Construction history",

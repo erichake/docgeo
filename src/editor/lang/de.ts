@@ -24,6 +24,10 @@ const de: Texts = {
         delete: "Löschen",
         eraser: "Radierer",
         axes: "Koordinatensystem",
+        space: "3D-Ansicht",
+        off_plane:
+            "Eine ebene Figur behält ihre Objekte in der Ebene z = 0: zuerst die 3D-Ansicht einschalten",
+        in_space: "% liegt außerhalb der Ebene z = 0: die Figur bleibt in 3D",
         actions: "Aktionen der Figur",
         construction: "Konstruktion",
         history: "Konstruktionsverlauf",

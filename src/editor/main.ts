@@ -8,6 +8,7 @@ import {
     importDgoFromUrl,
     readDgo,
     writeDgo,
+    type DgoFigure,
 } from "../dgo";
 import { importDgp, importDgpFromUrl } from "../dgp_importer";
 import { $, type DOMElement } from "../dom";
@@ -104,6 +105,7 @@ import {
     type Ghost,
     type Spring,
 } from "./spring";
+import { offPlane, PLANE, SPACE, turnView } from "./space";
 import "./properties.css";
 
 // The construction editor: see EDITOR.md.
@@ -175,7 +177,7 @@ $("head").append(`<style>
     .dge-action.dge-delete { color: #dc2626; }
     .dge-bar-object .dge-delete:hover:not(:disabled) { background: #dc2626; border-color: #dc2626; }
     @keyframes dge-arrive { from { opacity: 0; transform: translateY(-8px); } }
-    @media (max-width: 600px) { .dge-editor .dge-bar .dge-bar-object { position: fixed; top: calc(var(--dge-bar-height) + 8px); inset-inline: 0; width: fit-content; margin-inline: auto; box-shadow: 0 4px 12px rgb(15 23 42 / 0.12); } }
+    @media (max-width: 680px) { .dge-editor .dge-bar .dge-bar-object { position: fixed; top: calc(var(--dge-bar-height) + 8px); inset-inline: 0; width: fit-content; margin-inline: auto; box-shadow: 0 4px 12px rgb(15 23 42 / 0.12); } }
     .dge-panel-header .dge-action { width: 32px; height: 32px; border-radius: 8px; }
     @media (max-width: 400px) { .dge-bar { gap: 6px; padding-inline: 8px; } .dge-bar-group { gap: 2px; } .dge-bar-group + .dge-bar-group { padding-inline-start: 6px; } .dge-bar .dge-action { width: 36px; } }
     .dge-hint { position: fixed; bottom: 16px; left: calc(50% + var(--dge-panel-width) / 2); transform: translateX(-50%); max-width: calc(100% - var(--dge-panel-width) - 32px); padding: 7px 14px; border-radius: 9px; background: rgb(17 24 39 / 0.86); color: #f9fafb; font-family: var(--dge-code); font-size: 13.5px; white-space: pre-wrap; unicode-bidi: plaintext; z-index: 11; pointer-events: none; transition: left var(--dge-slide), max-width var(--dge-slide); }
@@ -286,6 +288,7 @@ const undoButton = button("undo", () => travel(-1));
 const redoButton = button("redo", () => travel(1));
 const eraserButton = button("eraser", () => setEraser(!ghosts));
 const axesButton = button("axes", () => setAxes(scene().GRID.hidden !== 0));
+const spaceButton = button("space", toggleSpace);
 eraserButton.att("aria-pressed", "false");
 axesButton.att("aria-pressed", "false");
 const historyButton = button("history", () =>
@@ -395,7 +398,15 @@ function explain(action: DOMElement, line: (name: string) => string): void {
         () => showHint(line(formatName(target()!.name))),
         false,
     );
-    action.on("pointerleave", () => showHint(restingHint()), false);
+    // Keeping what the action refused.
+    action.on(
+        "pointerleave",
+        () => {
+            if (!hint.dom().classList.contains("dge-error"))
+                showHint(restingHint());
+        },
+        false,
+    );
 }
 explain(deleteButton, (name) => `${name} =\n${message("delete")}`);
 explain(settingsButton, (name) => `${name}\n${message("settings")}`);
@@ -493,7 +504,13 @@ $("body").add(
                 ),
             $.create("div")
                 .cls("dge-bar-group")
-                .add(eraserButton, axesButton, propertiesButton, historyButton),
+                .add(
+                    eraserButton,
+                    axesButton,
+                    spaceButton,
+                    propertiesButton,
+                    historyButton,
+                ),
             $.create("div").cls("dge-bar-middle").add(actions),
             $.create("div")
                 .cls("dge-bar-group dge-bar-end")
@@ -837,15 +854,18 @@ async function commitText(
                 point.coords = [x, y, z];
                 if (point.pinned) point.pin();
                 c.invalidateGeometry(target);
-                c.flush();
+                if (await refusedOffPlane()) throw new TextError("off_plane");
                 return done(target);
             }
             await redefine(studio, target, spec);
-            return done(made(scene().getObj(spec.name)));
+            const result = made(scene().getObj(spec.name));
+            if (await refusedOffPlane()) throw new TextError("off_plane");
+            return done(result);
         }
-        const spec = resolve(c, line);
+        const result = made(add(c, resolve(c, line)));
+        if (await refusedOffPlane()) throw new TextError("off_plane");
         if (field === input.dom()) field.value = "";
-        return done(made(add(c, spec)));
+        return done(result);
     } catch (error) {
         if (!(error instanceof TextError)) throw error;
         $(field).addClass("dge-error");
@@ -1562,7 +1582,10 @@ function derive(
 function drawFrom(as: Exclude<Choice, "expression">): void {
     const source = target() as expression_object;
     closeRing();
-    done(derive(source, as));
+    const drawn = derive(source, as);
+    void refusedOffPlane().then((refused) =>
+        refused ? showHint(message("off_plane"), true) : done(drawn),
+    );
 }
 
 function remove(): void {
@@ -2138,6 +2161,11 @@ function setAxes(on: boolean): void {
     if (on) c.GRID.showGrid = true;
     if (!c.GRID.is2D) c.GRID.SHOWFLOOR = on;
     c.invalidateProjection();
+    showAxes();
+}
+
+function showAxes(): void {
+    const on = scene().GRID.hidden === 0;
     axesButton.toggleClass("dge-on", on).att("aria-pressed", String(on));
 }
 
@@ -2177,6 +2205,106 @@ function changed(object?: construction_object): void {
                 row ? (row.dom() as HTMLInputElement).value : restingHint(),
             );
     });
+}
+
+// ************************** SPACE *******************************
+
+type Step = (typeof history)[number];
+
+// Whether the plane view the figure left for space showed the axes, and
+// whether it had, when opened, objects off its plane, which aren't then
+// refused.
+let planeAxes: boolean | null = null;
+let planeFlaw = false;
+
+function showSpace(): void {
+    const { is2D, FRAME2D } = scene().GRID;
+    spaceButton.toggleClass("dge-on", !is2D).att("aria-pressed", String(!is2D));
+    // DGPad's 3D figures keep theirs.
+    if (FRAME2D) spaceButton.hide();
+    else spaceButton.show("grid");
+}
+
+// Back to the plane only without objects off it.
+function toggleSpace(): void {
+    cancel();
+    recording = recording.then(async () => {
+        const c = scene();
+        const off = !c.GRID.is2D && offPlane(c);
+        if (off)
+            return showHint(message("in_space", formatName(off.name)), true);
+        await (c.GRID.is2D ? toSpace() : toPlane());
+    });
+    void record().then(refreshRows);
+}
+
+// Read in space seen from above, as the plane was, the camera then turns.
+async function toSpace(step?: Step): Promise<void> {
+    planeAxes = scene().GRID.hidden === 0;
+    await reframe(
+        { "3d": 1, th: PLANE.theta, ph: PLANE.phi, ax: 1, fl: 1 },
+        step,
+    );
+    const c = scene();
+    await turnView(c, SPACE, [c.width / 2, c.height / 2]);
+}
+
+async function toPlane(step?: Step): Promise<void> {
+    const c = scene();
+    const turns = Math.round((c.GRID.PHI - PLANE.phi) / (2 * Math.PI));
+    const above = { ...PLANE, phi: PLANE.phi + turns * 2 * Math.PI };
+    await turnView(c, above, c.GRID.ORG);
+    await reframe(
+        {
+            "3d": 0,
+            th: PLANE.theta,
+            ph: PLANE.phi,
+            pe: 0,
+            fl: 0,
+            ...(planeAxes !== null && { ax: +planeAxes }),
+        },
+        step,
+    );
+}
+
+// The figure, or the step given, read again in the current view changed by
+// `view`, a step's pinned points keeping their place in the window.
+async function reframe(view: DgoFigure["v"], step?: Step): Promise<void> {
+    const figure = await withGhostsHidden(ghosts ?? [], () =>
+        describeDgo(scene()),
+    );
+    const { v } = figure;
+    if (held) closeRing();
+    rebuild(
+        studio,
+        step
+            ? {
+                  ...JSON.parse(step.figure),
+                  v: { ...v, ...view, o: step.o, u: step.u },
+              }
+            : { ...figure, v: { ...v, ...view } },
+    );
+    const c = scene();
+    if (step) {
+        c.GRID.ORG = v.o as Vec2;
+        c.GRID.UNIT = [v.u, v.u, v.u] as Vec3;
+        c.invalidateProjection();
+        c.flush();
+    }
+    if (ghosts) ghosts = showGhosts(c);
+    showAxes();
+    showSpace();
+    refreshRows();
+}
+
+// In a plane figure, an object put off the plane is refused, the figure
+// going back to its last step.
+async function refusedOffPlane(): Promise<boolean> {
+    const c = scene();
+    c.flush();
+    if (!c.GRID.is2D || planeFlaw || !offPlane(c)) return false;
+    await reframe({}, history[position]);
+    return true;
 }
 
 // ************************** POINTER *****************************
@@ -2544,8 +2672,8 @@ $("body").on(
 
 // ************************** HISTORY *****************************
 
-// Each step's figure, but its view, and the origin and unit its pinned
-// points' coordinates are given in.
+// Each step's figure, of its view only whether it is in space, and the
+// origin and unit its pinned points' coordinates are given in.
 let history: { figure: string; o: unknown; u: unknown }[] = [];
 let position = -1;
 let recording = Promise.resolve();
@@ -2555,7 +2683,7 @@ function record(): Promise<void> {
         const figure = await withGhostsHidden(ghosts ?? [], () =>
             describeDgo(scene()),
         );
-        const step = JSON.stringify({ ...figure, v: undefined });
+        const step = JSON.stringify({ ...figure, v: { "3d": figure.v["3d"] } });
         if (step === history[position]?.figure) return;
         const { o, u } = figure.v;
         history = [...history.slice(0, position + 1), { figure: step, o, u }];
@@ -2569,17 +2697,11 @@ function travel(step: number): void {
         if (!history[position + step]) return;
         cancel();
         position += step;
-        const { v } = await describeDgo(scene());
-        const { figure, o, u } = history[position];
-        rebuild(studio, { ...JSON.parse(figure), v: { ...v, o, u } });
-        // Back to the view, the pinned points keeping their place in it.
-        const c = scene();
-        c.GRID.ORG = v.o as Vec2;
-        c.GRID.UNIT = [v.u, v.u, v.u] as Vec3;
-        c.invalidateProjection();
-        c.flush();
-        if (ghosts) ghosts = showGhosts(scene());
-        refreshRows();
+        const target = history[position];
+        const space = JSON.parse(target.figure).v["3d"] === 1;
+        if (space === scene().GRID.is2D)
+            await (space ? toSpace(target) : toPlane(target));
+        else await reframe({}, target);
     });
 }
 
@@ -2610,9 +2732,10 @@ async function open(
     const unsupported = await load(studio.scene);
     studio.scene.flush();
     studio.scene.reveal();
-    axesButton
-        .toggleClass("dge-on", studio.scene.GRID.hidden === 0)
-        .att("aria-pressed", String(studio.scene.GRID.hidden === 0));
+    showAxes();
+    showSpace();
+    planeAxes = null;
+    planeFlaw = studio.scene.GRID.is2D && offPlane(studio.scene) !== undefined;
     figureName = name
         .split(/[/\\?#]/)
         .filter(Boolean)

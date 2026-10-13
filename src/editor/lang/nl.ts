@@ -24,6 +24,10 @@ const nl: Texts = {
         delete: "Verwijderen",
         eraser: "Gum",
         axes: "Assenstelsel",
+        space: "3D-weergave",
+        off_plane:
+            "Een vlakke figuur houdt haar objecten in het vlak z = 0: zet eerst de 3D-weergave aan",
+        in_space: "% ligt buiten het vlak z = 0: de figuur blijft in 3D",
         actions: "Acties van de figuur",
         construction: "Constructie",
         history: "Constructiegeschiedenis",

@@ -39,6 +39,7 @@ import {
     showZone,
 } from "../../src/editor/magnets";
 import { pinnable, togglePin } from "../../src/editor/pin";
+import { offPlane } from "../../src/editor/space";
 import {
     handleOf,
     pull,
@@ -720,6 +721,32 @@ describe("Editor", () => {
         expect((await describeDgo(c)).st?.some((style) => style.fl)).toBe(
             false,
         );
+    });
+
+    it("finds the objects that keep a figure off the plane z = 0", () => {
+        const { scene: c } = studio();
+        [
+            "A = (1, 2)",
+            "B = (3, 0, 0)",
+            "M = Midpoint(A, B)",
+            "d = Line(A, B)",
+            "q = Perpendicular(M, d)",
+            "a = [1, 2, 3]",
+        ].forEach((line) => type(c, line));
+        c.flush();
+        expect(offPlane(c)).toBeUndefined();
+        type(c, "P = Point([1, 2, 3])");
+        c.flush();
+        expect(offPlane(c)?.name).toBe("P");
+        c.removeObject(c.getObj("P")!);
+        type(c, "S = Sphere(A, B)");
+        c.flush();
+        expect(offPlane(c)?.name).toBe("S");
+        c.removeObject(c.getObj("S")!);
+        type(c, "p = [[0, 0, 1], [1, 1, 1]]");
+        type(c, "L = List(p)");
+        c.flush();
+        expect(offPlane(c)?.name).toBe("L");
     });
 
     it("animates a point on an object as DGPad's spring", async () => {
