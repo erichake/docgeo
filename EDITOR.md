@@ -1116,6 +1116,16 @@ Fait (2026-10-11) :
   annuler, renommage) et face au rendu de GeoGebra sur des figures du
   corpus. Lecteur +1,9 Ko (+0,6 Ko en gzip), éditeur +0,2 Ko
   (+0,1 Ko en gzip).
+- Fil à la patte de la conique par cinq points (`Quad`), que ni DGPad ni
+  GeoGebra ne montrent : dès le deuxième point, jusqu'à trois points
+  cachés complètent les points désignés et le pointeur sur la conique
+  passant par eux la plus proche d'un cercle (`src/editor/conic_preview.ts`).
+  Par deux points, le cercle de diamètre ; par trois, le cercle
+  circonscrit ; par quatre, la conique de leur faisceau qui minimise
+  ((λ − μ)/(λ + μ))² (λ, μ valeurs propres de sa partie quadratique) :
+  le cercle s'ils sont cocycliques, une ellipse s'ils sont en position
+  convexe, sinon une hyperbole. Éditeur +1,3 Ko (+0,6 Ko en gzip) ;
+  lecteur inchangé.
 
 Reste à faire :
 

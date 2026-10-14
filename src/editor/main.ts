@@ -64,6 +64,7 @@ import {
     type Spec,
     type Studio,
 } from "./figure";
+import { conicStandIns } from "./conic_preview";
 import { hideGhosts, showGhosts, toggleGhost, withHidden } from "./eraser";
 import { message, type MessageKey } from "./messages";
 import { ACTION_ICONS } from "./icons";
@@ -694,7 +695,7 @@ let preview: {
     candidate: construction_object | "pointer";
     objects: construction_object[];
     pointer?: point_object;
-    standIn?: point_object;
+    standIns: point_object[];
 } | null = null;
 let hovered: construction_object[] = [];
 let accepted: construction_object[] = [];
@@ -2299,13 +2300,17 @@ function turn(point: Vec3, center: Vec3, angle: number): Vec3 {
 // While the argument after the next one is missing too, a point stands in
 // for it, from the first argument and the next one, as in DGPad: the
 // bisector and the angle at the pointer, the circle on the diameter from the
-// first point to the pointer, the polygon reduced to a segment.
-const STAND_INS: Partial<Record<string, (first: Vec3, next: Vec3) => Vec3>> = {
-    Bis: (first) => first,
-    Ang: (first, next) => turn(first, next, Math.PI / 3),
-    C3p: (first, next) =>
+// first point to the pointer, the polygon reduced to a segment. The conic
+// through five points, which DGPad doesn't show, has up to three, from the
+// second point on.
+const STAND_INS: Partial<Record<string, (given: Vec3[]) => Vec3[]>> = {
+    Bis: ([first]) => [first],
+    Ang: ([first, next]) => [turn(first, next, Math.PI / 3)],
+    C3p: ([first, next]) => [
         turn(first, vScale(vAdd(first, next), 0.5), Math.PI / 2),
-    Poly: (_, next) => next,
+    ],
+    Poly: ([, next]) => [next],
+    Quad: conicStandIns,
 };
 STAND_INS.C3s = STAND_INS.C3p;
 
@@ -2356,7 +2361,10 @@ function updatePreview(screen: Vec2, hits: Hit[]): void {
     const missing = overload.variadic
         ? overload.params.length - args.length - 1
         : args.filter((arg) => arg === undefined).length - 1;
-    const stand = missing === 1 && STAND_INS[overload.tag];
+    const stand =
+        missing > 0 &&
+        missing <= (overload.tag === "Quad" ? 3 : 1) &&
+        STAND_INS[overload.tag];
     if (missing > 0 && !stand) return clearPreview();
     const param = paramAt(overload, slot)!;
     const hit = hits.find(({ object }) => accepts(object, param));
@@ -2382,11 +2390,14 @@ function updatePreview(screen: Vec2, hits: Hit[]): void {
         const full = [...args];
         if (overload.variadic) full.push(argument);
         else full[slot] = argument;
-        let standIn: point_object | undefined;
-        if (stand) {
-            standIn = add(
+        const standIns = Array.from({ length: stand ? missing : 0 }, (_, i) => {
+            const standIn = add(
                 c,
-                { name: "‧s", overload: FREE_POINT, args: coords ?? [0, 0] },
+                {
+                    name: `‧s${i}`,
+                    overload: FREE_POINT,
+                    args: coords ?? [0, 0],
+                },
                 false,
             ) as point_object;
             standIn.hidden = 1;
@@ -2394,7 +2405,8 @@ function updatePreview(screen: Vec2, hits: Hit[]): void {
             objects.push(standIn);
             if (overload.variadic) full.push(standIn);
             else full[full.indexOf(undefined)] = standIn;
-        }
+            return standIn;
+        });
         const result = add(
             c,
             { name: "‧r", overload, args: full as Arg[] },
@@ -2409,22 +2421,24 @@ function updatePreview(screen: Vec2, hits: Hit[]): void {
                 candidate === "pointer"
                     ? (argument as point_object)
                     : undefined,
-            standIn,
+            standIns,
         };
     }
-    const { pointer, standIn } = preview;
+    const { pointer, standIns } = preview;
     if (pointer) {
         const [x, y, z = 0] = coords!;
         pointer.coords = [x, y, z];
         c.invalidateGeometry(pointer);
     }
-    if (stand) {
-        standIn!.coords = stand(
-            (args[0] as point_object).coords,
-            (pointer ?? (candidate as point_object)).coords,
-        );
-        c.invalidateGeometry(standIn!);
-    }
+    if (stand)
+        stand(
+            [...args.filter(Boolean), pointer ?? candidate].map(
+                (point) => (point as point_object).coords,
+            ),
+        ).forEach((coords, index) => {
+            standIns[index].coords = coords;
+            c.invalidateGeometry(standIns[index]);
+        });
 }
 
 // A tap hides or shows the object under it, and nothing is built.
