@@ -38,6 +38,38 @@ export const isDash = (dash: number[]): boolean =>
     dash.every((length) => Number.isFinite(length) && length >= 0) &&
     (dash.length === 0 || dash.some((length) => length > 0));
 
+// Writes `name` then `after` in an SVG text, with in subscript what follows
+// its "_", a braced group or the rest of the name, as GeoGebra does, or else
+// its final digits, as DGPad does.
+export function writeName(
+    text: DOMElement,
+    name: string,
+    after = "",
+): DOMElement {
+    const match =
+        /^([^_]+)_\{([^}]+)\}(.*)$/.exec(name) ??
+        /^([^_]+)_(.+)()$/.exec(name) ??
+        /^(.*\D)(\d+)()$/.exec(name);
+    if (!match) return text.text(name + after);
+    const [, base, subscript, tail] = match;
+    text.text(base).add(
+        text
+            .shape("tspan")
+            .att("font-size", "70%")
+            .att("dy", ".4em")
+            .text(subscript),
+    );
+    // Back on the baseline: .4em of the subscript's font.
+    if (tail + after)
+        text.add(
+            text
+                .shape("tspan")
+                .att("dy", "-.28em")
+                .text(tail + after),
+        );
+    return text;
+}
+
 export class construction_object {
     class: typeof construction_object;
     C: construction;
@@ -229,12 +261,14 @@ export class construction_object {
             return;
         }
         if (!this.nameLabel) {
-            this.nameLabel = this.svg
-                .shape("text")
-                .stl(
-                    `fill:${this.stroke_color};font-family:Verdana;font-size:${this.fontSize}px;pointer-events:none`,
-                )
-                .text(this.name);
+            this.nameLabel = writeName(
+                this.svg
+                    .shape("text")
+                    .stl(
+                        `fill:${this.stroke_color};font-family:Verdana;font-size:${this.fontSize}px;pointer-events:none`,
+                    ),
+                this.name,
+            );
             this.dom.add(this.nameLabel);
         }
         this.nameLabel.att("x", at[0]).att("y", at[1]);

@@ -25,6 +25,7 @@ import {
     construction_object,
     dgoFormula,
     type DgoContext,
+    writeName,
 } from "./construction_object";
 import { angle_object } from "./angle_object";
 import { curve_object } from "./curve_object";
@@ -631,20 +632,20 @@ export class expression_object extends construction_object {
             return;
         }
 
-        const prefix = this.text === "" ? this.name + " = " : this.text;
-        this.valueText
-            .att("x", x)
-            .att("y", y)
-            .text(
-                typeof this.value === "string"
-                    ? this.rounded(",")
-                    : this.precision < 0
-                      ? prefix
-                      : prefix +
-                        (this.formula
-                            ? this.formula.source
-                            : formatShown(this.value!, this.precision)),
-            );
+        this.valueText.att("x", x).att("y", y);
+        if (typeof this.value === "string")
+            this.valueText.text(this.rounded(","));
+        else {
+            const shown =
+                this.precision < 0
+                    ? ""
+                    : this.formula
+                      ? this.formula.source
+                      : formatShown(this.value!, this.precision);
+            if (this.text === "")
+                writeName(this.valueText, this.name, " = " + shown);
+            else this.valueText.text(this.text + shown);
+        }
 
         if (!this.cursor || !this.track || !this.progress || !this.knob) return;
         // Bounds read from other objects can be undefined.

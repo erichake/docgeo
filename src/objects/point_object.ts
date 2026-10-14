@@ -14,7 +14,11 @@ import {
 } from "../vec";
 import { projectPoint } from "../projection";
 import { isOccluded } from "./hidden_line";
-import { construction_object, type DgoContext } from "./construction_object";
+import {
+    construction_object,
+    type DgoContext,
+    writeName,
+} from "./construction_object";
 import type { curve_object } from "./curve_object";
 import type { grid_object } from "./grid_object";
 import type { list_object } from "./list_object";
@@ -500,14 +504,16 @@ export class point_object extends construction_object {
         // A script may hide it again (see setShowName).
         t.nameText = undefined;
         if (t.showName) {
-            t.nameText = t.svg
-                .shape("text")
-                .att("x", s2)
-                .att("y", t.fontSize / 2)
-                .stl(
-                    `fill:${t.stroke_color};font-family:Verdana;font-size:${t.fontSize}px;pointer-events:none`,
-                )
-                .text(t.name);
+            t.nameText = writeName(
+                t.svg
+                    .shape("text")
+                    .att("x", s2)
+                    .att("y", t.fontSize / 2)
+                    .stl(
+                        `fill:${t.stroke_color};font-family:Verdana;font-size:${t.fontSize}px;pointer-events:none`,
+                    ),
+                t.name,
+            );
             dom.add(t.nameText);
         }
 

@@ -102,6 +102,30 @@ STL(B,"c:#0000b2;s:6;sn:true;f:30");`,
         expect(b.nameText!.getAtt("y")).toBe("15");
     });
 
+    it("writes what follows a name's underscore or its final digits in subscript", () => {
+        const c = createConstruction();
+        importDgp(
+            c,
+            `A_5=Point("A_5",0,0);
+B=Point("B_{12}'",1,0);
+C12=Point("C12",2,0);
+D=Point("D",3,0);
+STL(A_5,"sn:true");
+STL(B,"sn:true");
+STL(C12,"sn:true");
+STL(D,"sn:true");`,
+        );
+        const spans = (name: string) =>
+            [
+                ...(c.getObj(name) as point_object).nameText!.dom().childNodes,
+            ].map((node) => node.textContent);
+
+        expect(spans("A_5")).toEqual(["A", "5"]);
+        expect(spans("B_{12}'")).toEqual(["B", "12", "'"]);
+        expect(spans("C12")).toEqual(["C", "12"]);
+        expect(spans("D")).toEqual(["D"]);
+    });
+
     it("imports two points and their line from the public DGP file", async () => {
         const c = createConstruction();
         await importDgpFromUrl(c, figure("_Droite.dgp"));
