@@ -119,6 +119,7 @@ const ar: Texts = {
         color: "اللون",
         fill_color: "لون التعبئة",
         point_size: "حجم النقطة",
+        point_border: "سمك الحد",
         scrub_hint: "اسحب للضبط · انقر للكتابة · Shift: ضبط دقيق",
         thickness: "السمك",
         stroke_opacity: "عتامة الخط",

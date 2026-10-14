@@ -785,9 +785,7 @@ export class expression_object extends construction_object {
 
         t.track = t.svg
             .shape("path")
-            .stl(
-                `fill:none;stroke:${t.stroke_color};stroke-width:${t.prefs.point.border ?? 1}`,
-            );
+            .stl(`fill:none;stroke:${t.stroke_color};stroke-width:1`);
         t.progress = t.svg
             .shape("path")
             .stl(`fill:${t.stroke_color};stroke:none`);

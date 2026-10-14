@@ -124,6 +124,7 @@ const hi: Texts = {
         color: "रंग",
         fill_color: "भराव का रंग",
         point_size: "बिंदु का आकार",
+        point_border: "रूपरेखा की मोटाई",
         scrub_hint:
             "समायोजित करने के लिए खींचें · लिखने के लिए क्लिक करें · Shift: सूक्ष्म समायोजन",
         thickness: "मोटाई",

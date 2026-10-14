@@ -425,7 +425,7 @@ export class expression_list_object extends list_object {
         t.strokes = group(
             "fill:none;stroke-linecap:round;stroke-linejoin:round",
         );
-        t.dots = group(`stroke-width:${t.prefs.point.border ?? 1}`);
+        t.dots = group(`stroke-width:1`);
         t.labels = group("white-space:pre");
         t.formulaLabels = group("");
         t.images = group("");

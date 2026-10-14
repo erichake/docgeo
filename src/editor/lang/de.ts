@@ -125,6 +125,7 @@ const de: Texts = {
         color: "Farbe",
         fill_color: "Füllfarbe",
         point_size: "Punktgröße",
+        point_border: "Konturstärke",
         scrub_hint:
             "Ziehen zum Anpassen · Klicken zum Eingeben · Umschalt: Feineinstellung",
         thickness: "Linienstärke",

@@ -12,7 +12,6 @@ export interface ObjectPref {
     name: string;
     layer: number;
     opacity?: number;
-    border?: number;
 }
 
 export interface PointShapePref {
@@ -105,7 +104,6 @@ export class preferences implements Preferences {
             color: { fill: "rgb(255,255,255)", stroke: "rgb(80,80,80)" },
             size: 6,
             touchsize: 12,
-            border: 1,
             opacity: 0,
             layer: 5,
         };

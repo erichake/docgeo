@@ -315,6 +315,7 @@ const STYLE: Record<string, Property> = {
     sp: field(point_object, "shape", "circle", (value) =>
         POINT_SHAPES.includes(value as string),
     ),
+    pb: field(point_object, "border", 1, isNumber),
     np: field(point_object, "namePosition", 0, isNumber),
     nd: field(
         point_object,

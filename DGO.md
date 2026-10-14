@@ -342,6 +342,7 @@ postérieur.
 | `p`  | tous         | précision (lieu : nombre d'échantillons) | -1 (`Loc` : 1000, `Html` : 4)     |
 | `l`  | tous         | calque (entier, sous les `Html`)         | 0                                 |
 | `sp` | points       | `circle`, `cross`, `diamond`, `rect`     | `circle`                          |
+| `pb` | points       | épaisseur du contour                     | 1                                 |
 | `np` | points       | direction du nom (radians)               | 0                                 |
 | `nd` | points       | distance du nom (pixels)                 | `null` (deux fois la taille)      |
 | `tk` | points       | trace                                    | 0                                 |

@@ -123,6 +123,7 @@ const pt: Texts = {
         color: "Cor",
         fill_color: "Cor do preenchimento",
         point_size: "Tamanho do ponto",
+        point_border: "Espessura do contorno",
         scrub_hint:
             "Arraste para ajustar · Clique para digitar · Shift: ajuste fino",
         thickness: "Espessura",

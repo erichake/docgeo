@@ -26,6 +26,7 @@ type Field = HTMLInputElement | HTMLSelectElement;
 // How each number follows a drag (see Scrub).
 const SCRUB = {
     point_size: { pixel: 0.05 },
+    point_border: { pixel: 0.05 },
     thickness: { pixel: 0.05 },
     stroke_opacity: { pixel: 0.5 },
     fill_opacity: { pixel: 0.5 },
@@ -441,7 +442,6 @@ export function propertiesPanel(options: {
         );
         color(appearance, "color", object.stroke_color, (object, value) => {
             object.stroke_color = value;
-            object.fill_color = value;
         });
         number(
             appearance,
@@ -454,6 +454,18 @@ export function propertiesPanel(options: {
                 object.size = value;
             },
         );
+        if (object instanceof point_object)
+            number(
+                appearance,
+                "point_border",
+                object.border,
+                0,
+                20,
+                0.5,
+                (object, value) => {
+                    (object as point_object).border = value;
+                },
+            );
         number(
             appearance,
             "stroke_opacity",

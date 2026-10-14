@@ -125,6 +125,7 @@ const nl: Texts = {
         color: "Kleur",
         fill_color: "Vulkleur",
         point_size: "Puntgrootte",
+        point_border: "Contourdikte",
         scrub_hint:
             "Sleep om aan te passen · Klik om te typen · Shift: fijne afstelling",
         thickness: "Lijndikte",

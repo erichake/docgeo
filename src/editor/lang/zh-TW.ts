@@ -116,6 +116,7 @@ const zh_TW: Texts = {
         color: "顏色",
         fill_color: "填色顏色",
         point_size: "點的大小",
+        point_border: "輪廓粗細",
         scrub_hint: "拖曳以調整 · 點按以輸入 · Shift：微調",
         thickness: "粗細",
         stroke_opacity: "線條不透明度",

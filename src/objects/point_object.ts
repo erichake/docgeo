@@ -79,7 +79,7 @@ export class point_object extends construction_object {
     SCREEN: Vec2;
     projectionDefined: boolean;
     shape: string;
-    border: number | undefined;
+    border = 1;
     namePosition = 0;
     // Its name's distance in pixels, twice its size if null.
     nameDistance: number | null = null;
@@ -125,7 +125,6 @@ export class point_object extends construction_object {
         this.projectionDefined = true;
 
         this.shape = this.prefs.point.shape.current;
-        this.border = this.prefs[this.type].border;
     }
 
     get coords(): Vec3 {
@@ -434,7 +433,7 @@ export class point_object extends construction_object {
                         .stl("fill", fillColor)
                         .stl("fill-opacity", fillOpacity)
                         .stl("stroke", t.stroke_color)
-                        .stl("stroke-width", t.border ?? 0)
+                        .stl("stroke-width", t.border)
                         .stl("cursor:pointer"),
                 );
                 break;
@@ -448,7 +447,7 @@ export class point_object extends construction_object {
                         .stl("fill", fillColor)
                         .stl("fill-opacity", fillOpacity)
                         .stl("stroke", t.stroke_color)
-                        .stl("stroke-width", t.border ?? 0)
+                        .stl("stroke-width", t.border)
                         .stl("cursor:pointer"),
                 );
                 break;
@@ -472,8 +471,8 @@ export class point_object extends construction_object {
                     t.svg
                         .shape("path")
                         .att("d", d)
-                        .stl("stroke", t.fill_color)
-                        .stl("stroke-width", 2 * (t.border ?? 0))
+                        .stl("stroke", t.stroke_color)
+                        .stl("stroke-width", 2 * t.border)
                         .stl("cursor:pointer"),
                 );
                 break;
@@ -491,7 +490,7 @@ export class point_object extends construction_object {
                         .stl("fill", fillColor)
                         .stl("fill-opacity", fillOpacity)
                         .stl("stroke", t.stroke_color)
-                        .stl("stroke-width", t.border ?? 0)
+                        .stl("stroke-width", t.border)
                         .stl("cursor:pointer"),
                 );
                 break;

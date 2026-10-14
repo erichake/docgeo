@@ -152,9 +152,11 @@ describe("Object properties", () => {
     it("renders point styles, preserves one trace and saves the settings", async () => {
         const { c, properties, change, changes } = setup();
         const point = c.getObj("A") as point_object;
+        const fill = point.fill_color;
         properties.select(point);
         change("color", "#cc2244");
         change("point_size", "9");
+        change("point_border", "2.5");
         change("point_shape", "diamond");
         change("show_name", false);
         change("name_position", "90");
@@ -165,7 +167,7 @@ describe("Object properties", () => {
         expect(point.shape).toBe("diamond");
         expect(point.namePosition).toBeCloseTo(Math.PI / 2);
         expect(point.nameText).toBeUndefined();
-        expect(changes()).toBe(8);
+        expect(changes()).toBe(9);
         const restored = createConstruction([800, 600]);
         readDgo(restored, await describeDgo(c));
         const copy = restored.getObj("A") as point_object;
@@ -173,11 +175,12 @@ describe("Object properties", () => {
             copy.stroke_color,
             copy.fill_color,
             copy.size,
+            copy.border,
             copy.shape,
             copy.showName,
             copy.fontSize,
             copy.trace,
-        ]).toEqual(["#cc2244", "#cc2244", 10, "diamond", false, 24, true]);
+        ]).toEqual(["#cc2244", fill, 10, 2.5, "diamond", false, 24, true]);
         change("trace", false);
         expect(c.traceLayer.findAll("[data-trace=A]")).toHaveLength(0);
         properties.panel.dispose();

@@ -122,6 +122,7 @@ const fr: Texts = {
         color: "Couleur",
         fill_color: "Couleur du remplissage",
         point_size: "Taille du point",
+        point_border: "Épaisseur du contour",
         scrub_hint:
             "Glisser pour ajuster · Cliquer pour saisir · Maj : réglage fin",
         thickness: "Épaisseur",

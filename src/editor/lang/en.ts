@@ -121,6 +121,7 @@ export default {
     color: "Color",
     fill_color: "Fill color",
     point_size: "Point size",
+    point_border: "Outline width",
     scrub_hint: "Drag to adjust · Click to type · Shift: fine adjustment",
     thickness: "Thickness",
     stroke_opacity: "Stroke opacity",
