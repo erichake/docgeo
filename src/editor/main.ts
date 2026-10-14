@@ -1018,13 +1018,33 @@ function stepKey(event: KeyboardEvent): boolean {
     return true;
 }
 
+// The rows in sight, which alone follow a drag: rewriting thousands of
+// them each frame would slow it down.
+function rowsInSight(): construction_object[] {
+    const objects = [...items.keys()];
+    const { top, bottom } = rowsBox.dom().getBoundingClientRect();
+    const box = (index: number) =>
+        items.get(objects[index])!.dom().getBoundingClientRect();
+    let first = 0;
+    let after = objects.length;
+    while (first < after) {
+        const middle = (first + after) >> 1;
+        if (box(middle).bottom <= top) first = middle + 1;
+        else after = middle;
+    }
+    let last = first;
+    while (last < objects.length && box(last).top < bottom) last++;
+    return objects.slice(first, last);
+}
+
 // The values a drag changes.
-function updateRows(): void {
+function updateRows(shown = [...rows.keys()]): void {
     const c = scene();
     const index = figureIndex(c);
     const objects = figureObjects(c);
     const active = editing();
-    rows.forEach((row, object) => {
+    shown.forEach((object) => {
+        const row = rows.get(object)!;
         const field = row.dom() as HTMLInputElement;
         const line =
             field === active || row.getAtt("readonly") !== null
@@ -2941,7 +2961,11 @@ function dragged(): void {
     dragFrame ??= requestAnimationFrame(() => {
         dragFrame = null;
         forgetBranches();
-        updateRows();
+        const shown = rowsInSight();
+        // The figure first: its measures would force a layout after the
+        // rows are written.
+        scene().flush();
+        updateRows(shown);
         moveRing();
         showMagnets();
         if (renaming) placeName();
@@ -3042,7 +3066,7 @@ $("body").on(
         if (expression && line) return designateTyped(line, expression);
         if (!inFigure(event)) return;
         if (!tap) {
-            void record().then(updateRows);
+            void record().then(() => updateRows());
             return;
         }
         if (held) return closeRing();

@@ -2,7 +2,7 @@ import type { construction } from "../construction";
 import { figureObjects } from "../dgo";
 import { angle_object, RIGHT_ANGLE_TOLERANCE } from "../objects/angle_object";
 import type { construction_object } from "../objects/construction_object";
-import { createOrderedIntersection } from "../objects/intersection_object";
+import { intersection_object } from "../objects/intersection_object";
 import { curve_object } from "../objects/curve_object";
 import { fixed_angle_object } from "../objects/fixed_angle_object";
 import { list_object } from "../objects/list_object";
@@ -279,13 +279,16 @@ function branches(
     const known = branchMemo.find((memo) => memo.a === a && memo.b === b);
     if (known) return known.points;
     const points = ([0, 1, 2, 3] as const).map((order) => {
-        const point = createOrderedIntersection(
+        const point = new intersection_object(
             c,
             "‧i",
             a as never,
             b as never,
             order,
         );
+        // Without a view to make and unmake, as hundreds may be per move.
+        point.hidden = 1;
+        c.add(point);
         const coords =
             point.defined && point.projectionDefined ? point.coords : null;
         c.removeObject(point);

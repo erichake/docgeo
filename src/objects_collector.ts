@@ -40,7 +40,13 @@ export class objects_collector {
 
     remove(objects: ReadonlySet<construction_object>): void {
         this.frame++;
-        this.V = this.V.filter((object) => !objects.has(object));
+        // Most often the last ones added, as the editor's previews.
+        let end = this.V.length;
+        while (end && objects.has(this.V[end - 1])) end--;
+        this.V =
+            this.V.length - end === objects.size
+                ? this.V.slice(0, end)
+                : this.V.filter((object) => !objects.has(object));
         this.polygons = this.polygons.filter((object) => !objects.has(object));
         this.spheres = this.spheres.filter((object) => !objects.has(object));
         objects.forEach((object) => {

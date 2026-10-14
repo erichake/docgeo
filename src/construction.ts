@@ -183,14 +183,16 @@ export class construction {
             removed.add(descendant);
             descendants.push(...descendant.children);
         }
-        this.OBJS.V.forEach((object) => {
-            object.parents = object.parents.filter(
-                (parent) => !removed.has(parent),
-            );
-            object.children = object.children.filter(
-                (child) => !removed.has(child),
-            );
-        });
+        // Links are symmetric, and the children of a removed object are
+        // removed: only the parents left need their children trimmed.
+        removed.forEach((object) =>
+            object.parents.forEach((parent) => {
+                if (!removed.has(parent))
+                    parent.children = parent.children.filter(
+                        (child) => !removed.has(child),
+                    );
+            }),
+        );
         this.OBJS.remove(removed);
         removed.forEach((object) => {
             object.parents = [];
