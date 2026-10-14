@@ -112,6 +112,12 @@
     flex-shrink: 0;
     cursor: pointer;
 }
+.dge-color-field {
+    display: flex;
+    flex-direction: row-reverse;
+    align-items: center;
+    gap: 4px;
+}
 .dge-property-row input[type="checkbox"] {
     margin: 0;
     accent-color: #2563eb;

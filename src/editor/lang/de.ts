@@ -116,6 +116,7 @@ const de: Texts = {
         floor_line_color: "Linienfarbe",
         floor_line_width: "Linienstärke",
         same_as_floor: "Gleiche Farbe wie der Boden",
+        default_color: "Standardfarbe",
         view_section: "Ansicht",
         perspective: "Perspektive",
         figure_section: "Figur",

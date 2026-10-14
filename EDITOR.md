@@ -513,7 +513,10 @@ pointillés, calque, visibilité, nom affiché et décimales ; forme, position d
 nom, trace et pas des points ; codage des segments ; rayon et marque des
 angles droits ; échantillonnage des lieux ; segments des listes ; apparence
 des curseurs et animation des points sur objet et des curseurs. Les styles
-peuvent s'appliquer aux objets de la même classe. Les modifications sont
+peuvent s'appliquer aux objets de la même classe. Une couleur (trait,
+remplissage, bouton d'un curseur) différente de celle qu'un outil donne à un
+nouvel objet du même type montre à côté de son nuancier un bouton ↺ qui l'y
+ramène (chaque objet à la sienne, en mode « même type »). Les modifications sont
 immédiates, enregistrées dans les styles `.dgo` existants et annulables ;
 une saisie numérique ne produit qu'une étape d'historique à sa validation.
 Les champs numériques se règlent aussi en cliquant-glissant horizontalement
@@ -565,6 +568,9 @@ au lecteur, et doit rester plus clair que le panneau de GeoGebra :
   pas choisie (`gc` nul) ; un bouton l'y ramène.
 - **Figure** : fond, degrés ou radians, segments au-dessus des polygones ;
   les deux derniers relisent la figure.
+- Une couleur changée (axes, fond, grille, sol et ses lignes) montre à
+  côté de son nuancier un bouton ↺ qui la ramène à son défaut : celle de
+  DGPad, ou celle qu'elle suit (la grille les axes, les lignes le sol).
 - En 3D, au lieu du repère plan, les sections reprennent ce qui est
   dessiné : **Axes** (interrupteur `ax` du trièdre seul : couleur,
   épaisseur), **Sol** (interrupteur `fl` : couleur, que son bouton ramène

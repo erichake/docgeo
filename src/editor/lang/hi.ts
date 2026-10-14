@@ -115,6 +115,7 @@ const hi: Texts = {
         floor_line_color: "रेखाओं का रंग",
         floor_line_width: "रेखाओं की मोटाई",
         same_as_floor: "फ़र्श जैसा रंग",
+        default_color: "डिफ़ॉल्ट रंग",
         view_section: "दृश्य",
         perspective: "परिप्रेक्ष्य",
         figure_section: "आकृति",

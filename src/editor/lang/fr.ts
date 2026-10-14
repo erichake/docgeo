@@ -113,6 +113,7 @@ const fr: Texts = {
         floor_line_color: "Couleur des lignes",
         floor_line_width: "Épaisseur des lignes",
         same_as_floor: "Même couleur que le sol",
+        default_color: "Couleur par défaut",
         view_section: "Vue",
         perspective: "Perspective",
         figure_section: "Figure",

@@ -116,6 +116,7 @@ const nl: Texts = {
         floor_line_color: "Lijnkleur",
         floor_line_width: "Lijndikte",
         same_as_floor: "Zelfde kleur als de vloer",
+        default_color: "Standaardkleur",
         view_section: "Weergave",
         perspective: "Perspectief",
         figure_section: "Figuur",

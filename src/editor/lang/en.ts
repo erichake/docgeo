@@ -112,6 +112,7 @@ export default {
     floor_line_color: "Line color",
     floor_line_width: "Line thickness",
     same_as_floor: "Same color as the floor",
+    default_color: "Default color",
     view_section: "View",
     perspective: "Perspective",
     figure_section: "Figure",

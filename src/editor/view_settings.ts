@@ -81,8 +81,13 @@ const DASHES: [number[], MessageKey][] = [
 
 const SUBDIVISIONS = [0, 1, 2, 4, 5, 10];
 
+const BACKGROUND = "#FAFAFA";
+
 // The floor's own, seen from above.
 const FLOOR_COLOR = "rgb(35,141,227)";
+
+export const RESET_ICON =
+    '<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 6.5A5 5 0 1 1 3 9.5M3.5 2.5v4h4"/></svg>';
 
 const LINK_ICON =
     '<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M6.5 9.5l3-3M7 4.6l1.1-1.1a2.6 2.6 0 0 1 3.7 3.7L10.7 8.3M9 11.4l-1.1 1.1a2.6 2.6 0 0 1-3.7-3.7l1.1-1.1"/></svg>';
@@ -526,9 +531,10 @@ export function viewSettings(
         row(
             rows,
             "color",
-            color(
+            byDefault(
                 message("color"),
                 grid.stroke_color,
+                DGPAD.stroke_color,
                 draw((value) => {
                     grid.stroke_color = value;
                     followAxes(value);
@@ -567,9 +573,7 @@ export function viewSettings(
             .att("title", message(title))
             .att("aria-label", message(title))
             .stl("visibility", chosen ? "visible" : "hidden")
-            .append(
-                '<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 6.5A5 5 0 1 1 3 9.5M3.5 2.5v4h4"/></svg>',
-            );
+            .append(RESET_ICON);
         fields.push(reset);
         const input = swatch.dom() as HTMLInputElement;
         reset.on("click", () => {
@@ -587,6 +591,21 @@ export function viewSettings(
             },
         };
     }
+
+    // A color, back to `initial` by its button.
+    const byDefault = (
+        name: string,
+        value: string,
+        initial: string,
+        change: (value: string) => void,
+    ) =>
+        resettable(
+            name,
+            "default_color",
+            hexColor(value) === hexColor(initial) ? null : value,
+            initial,
+            (next) => change(next ?? initial),
+        ).field;
 
     if (grid.is2D) {
         const coords = section("coords", shown);
@@ -939,11 +958,16 @@ export function viewSettings(
     row(
         figure,
         "background",
-        color(message("background"), c.prefs.background.color, (value) => {
-            c.prefs.background.color = value;
-            c.svg.stl("background", value);
-            redraw();
-        }),
+        byDefault(
+            message("background"),
+            c.prefs.background.color,
+            BACKGROUND,
+            (value) => {
+                c.prefs.background.color = value;
+                c.svg.stl("background", value);
+                redraw();
+            },
+        ),
     );
     row(
         figure,

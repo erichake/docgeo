@@ -107,6 +107,7 @@ const zh_TW: Texts = {
         floor_line_color: "線條顏色",
         floor_line_width: "線條粗細",
         same_as_floor: "與地面同色",
+        default_color: "預設顏色",
         view_section: "檢視",
         perspective: "透視",
         figure_section: "圖形",

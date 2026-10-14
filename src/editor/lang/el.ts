@@ -116,6 +116,7 @@ const el: Texts = {
         floor_line_color: "Χρώμα γραμμών",
         floor_line_width: "Πάχος γραμμών",
         same_as_floor: "Ίδιο χρώμα με το δάπεδο",
+        default_color: "Προεπιλεγμένο χρώμα",
         view_section: "Προβολή",
         perspective: "Προοπτική",
         figure_section: "Σχήμα",

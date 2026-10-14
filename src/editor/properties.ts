@@ -15,11 +15,16 @@ import { point_object } from "../objects/point_object";
 import { point_on_object } from "../objects/point_on_object";
 import { polygon_object } from "../objects/polygon_object";
 import { segment_object } from "../objects/segment_object";
-import { expressionSource } from "./figure";
+import { createdColors, expressionSource } from "./figure";
 import { message, type MessageKey } from "./messages";
 import { scrubNumber, type Scrub } from "./scrub";
 import { formatProgram, syntaxLine, TextError } from "./text";
-import { hexColor, viewSettings, type ViewOptions } from "./view_settings";
+import {
+    hexColor,
+    RESET_ICON,
+    viewSettings,
+    type ViewOptions,
+} from "./view_settings";
 
 type Field = HTMLInputElement | HTMLSelectElement;
 
@@ -43,6 +48,9 @@ const SCRUB = {
     knob_size: { pixel: 0.1 },
     animation_speed: { pixel: 0.02, relative: true },
 } satisfies Partial<Record<MessageKey, Scrub>>;
+
+// DGPad's, that of a new slider.
+const KNOB_COLOR = "#780013";
 
 const PROGRAM_PLACEHOLDER =
     "var t = [];\nfor (var i = 0; i < 10; i++) {\n    t.push([i, 0]);\n}\nt";
@@ -214,10 +222,12 @@ export function propertiesPanel(options: {
         (picker.dom() as Field).value = selected?.name ?? "";
     }
 
+    // `control`: the field with what goes along with it.
     function row(
         section: DOMElement,
         key: MessageKey,
         field: DOMElement,
+        control = field,
     ): void {
         fields.push(field);
         section.add(
@@ -230,9 +240,10 @@ export function propertiesPanel(options: {
                                 ? " (%)"
                                 : ""),
                     ),
-                    field.att("aria-label", message(key)),
+                    control,
                 ),
         );
+        field.att("aria-label", message(key));
     }
 
     function section(key: MessageKey): DOMElement {
@@ -350,19 +361,51 @@ export function propertiesPanel(options: {
         );
     }
 
+    // Its button, after the field so that the label opens the field, brings
+    // each object back to its `initial` color.
     function color(
         box: DOMElement,
         key: MessageKey,
         value: string,
+        initial: (object: construction_object) => string,
         change: (object: construction_object, value: string) => void,
     ): void {
         const field = $.create("input").att("type", "color");
         const input = field.dom() as HTMLInputElement;
         input.value = hexColor(value);
-        row(box, key, field);
+        const reset = $.create("button")
+            .cls("dge-reset")
+            .att("type", "button")
+            .att("title", message("default_color"))
+            .att("aria-label", message("default_color"))
+            .append(RESET_ICON);
+        const showReset = () =>
+            reset.stl(
+                "visibility",
+                input.value === hexColor(initial(selected!))
+                    ? "hidden"
+                    : "visible",
+            );
+        showReset();
+        fields.push(reset);
+        reset.on("click", () => {
+            apply((object) => change(object, initial(object)));
+            input.value = hexColor(initial(selected!));
+            showReset();
+            options.changed();
+        });
+        row(
+            box,
+            key,
+            field,
+            $.create("span").cls("dge-color-field").add(field, reset),
+        );
         field.on(
             "input",
-            () => apply((object) => change(object, input.value)),
+            () => {
+                apply((object) => change(object, input.value));
+                showReset();
+            },
             false,
         );
         field.on("change", options.changed, false);
@@ -440,9 +483,15 @@ export function propertiesPanel(options: {
             },
             false,
         );
-        color(appearance, "color", object.stroke_color, (object, value) => {
-            object.stroke_color = value;
-        });
+        color(
+            appearance,
+            "color",
+            object.stroke_color,
+            (object) => createdColors(object)[0],
+            (object, value) => {
+                object.stroke_color = value;
+            },
+        );
         number(
             appearance,
             object instanceof point_object ? "point_size" : "thickness",
@@ -483,6 +532,7 @@ export function propertiesPanel(options: {
                 appearance,
                 "fill_color",
                 object.fill_color,
+                (object) => createdColors(object)[1],
                 (object, value) => {
                     object.fill_color = value;
                 },
@@ -730,9 +780,15 @@ export function propertiesPanel(options: {
             check(slider, "vertical", object.vertical, (object, value) => {
                 (object as expression_object).vertical = value;
             });
-            color(slider, "knob_color", object.cursorColor, (object, value) => {
-                (object as expression_object).cursorColor = value;
-            });
+            color(
+                slider,
+                "knob_color",
+                object.cursorColor,
+                () => KNOB_COLOR,
+                (object, value) => {
+                    (object as expression_object).cursorColor = value;
+                },
+            );
             number(
                 slider,
                 "knob_size",

@@ -3,6 +3,7 @@ import {
     addDgoEntries,
     describeDgo,
     figureObjects,
+    LOOKS,
     readDgo,
     type DgoFigure,
 } from "../dgo";
@@ -430,6 +431,14 @@ function createdStyle(tag: string): Record<string, unknown> | undefined {
     if (tag === "Poly" || tag === "Sph" || tag === "Sec") return { o: 0.2 };
     // Its value shown, as by DGPad's calculator.
     if (tag === "Ex") return { p: 2, f: 24 };
+}
+
+// The stroke and fill colors a tool gives a new object of its type.
+export function createdColors(object: construction_object): [string, string] {
+    const tag = entryOf(object, new Map())[0];
+    const [fill, stroke] = LOOKS[tag];
+    const style = createdStyle(tag) as Record<string, string> | undefined;
+    return [style?.c ?? stroke, style?.fc ?? style?.c ?? fill];
 }
 
 // Adds the object after the others, `styled` as by DGPad's tools.

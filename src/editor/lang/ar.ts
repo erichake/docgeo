@@ -110,6 +110,7 @@ const ar: Texts = {
         floor_line_color: "لون الخطوط",
         floor_line_width: "سُمك الخطوط",
         same_as_floor: "نفس لون الأرضية",
+        default_color: "اللون الافتراضي",
         view_section: "العرض",
         perspective: "المنظور",
         figure_section: "الشكل",

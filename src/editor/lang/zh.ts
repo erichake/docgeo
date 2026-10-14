@@ -107,6 +107,7 @@ const zh: Texts = {
         floor_line_color: "线条颜色",
         floor_line_width: "线条粗细",
         same_as_floor: "与地面同色",
+        default_color: "默认颜色",
         view_section: "视图",
         perspective: "透视",
         figure_section: "图形",

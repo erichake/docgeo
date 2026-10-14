@@ -129,7 +129,7 @@ const POLYGON: Look = ["rgb(35,141,227)", "rgb(80,80,80)", 2, 0];
 const CURVE: Look = ["#0b5b94", "#0b5b94", 2];
 const LIST: Look = ["#656148", "#656148", 2];
 const TEXT: Look = ["#000000", "#000000", 1];
-const LOOKS: Record<string, Look> = {
+export const LOOKS: Record<string, Look> = {
     Pt: POINT,
     Fix: DERIVED_POINT,
     Fp: DERIVED_POINT,

@@ -114,6 +114,7 @@ const es: Texts = {
         floor_line_color: "Color de las líneas",
         floor_line_width: "Grosor de las líneas",
         same_as_floor: "Mismo color que el suelo",
+        default_color: "Color predeterminado",
         view_section: "Vista",
         perspective: "Perspectiva",
         figure_section: "Figura",
