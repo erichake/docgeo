@@ -41,6 +41,7 @@ import {
     showZone,
 } from "../../src/editor/magnets";
 import { pinnable, togglePin } from "../../src/editor/pin";
+import { driverOf, toolsFor } from "../../src/editor/tools";
 import { offPlane } from "../../src/editor/space";
 import {
     handleOf,
@@ -823,6 +824,33 @@ describe("Editor", () => {
         type(c, "L = List(p)");
         c.flush();
         expect(offPlane(c)?.name).toBe("L");
+    });
+
+    it("offers the locus of a point moved by a point on an object, as DGPad", () => {
+        const { scene: c } = studio();
+        [
+            "A = (0, 0)",
+            "B = (4, 0)",
+            "s = Segment(A, B)",
+            "P = Point(s, 0.5)",
+            "Q = Point(s, 0.2)",
+            "M = Midpoint(A, P)",
+            "N = Midpoint(P, Q)",
+            "t = Segment(A, M)",
+        ].forEach((line) => type(c, line));
+        const objects = ["A", "P", "M", "N", "t"].map((name) =>
+            c.getObj(name)!,
+        );
+        const locus = (object: (typeof objects)[number]) =>
+            toolsFor(object, false).some(
+                ({ overload }) => overload.tag === "Loc",
+            );
+        expect(objects.map(locus)).toEqual([false, false, true, true, false]);
+        // The last built moves it.
+        expect([objects[2], objects[3]].map(driverOf)).toEqual([
+            c.getObj("P"),
+            c.getObj("Q"),
+        ]);
     });
 
     it("animates a point on an object as DGPad's spring", async () => {

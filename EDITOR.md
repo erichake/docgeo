@@ -199,13 +199,16 @@ icônes :
   points (point sur objet, intersection, milieu ou centre) ;
   droites (segment, droite, demi-droite, vecteur) ; constructions
   (perpendiculaire, parallèle, médiatrice, bissectrice) ; cercles (centre et
-  point, centre et rayon, trois points, sphère) ; polygone et angle ; symétries (centrale,
-  axiale). Chaque outil garde toujours la même place, quel que soit l'objet
+  point, centre et rayon, trois points, sphère) ; polygone, angle et lieu ;
+  symétries (centrale, axiale). Chaque outil garde toujours la même place, quel que soit l'objet
   désigné ; deux outils qui ne s'affichent jamais ensemble partagent une
   place (milieu de deux points, d'un segment, centre d'un cercle). La bande
   d'une famille couvre toutes ses places, même celles sans outil pour
   l'objet : l'élève retient la place autant que l'icône. Le rayon de
-  l'anneau est donc fixe (145 px). Le cercle centre et rayon se crée
+  l'anneau est donc fixe (152 px). Comme dans DGPad, « lieu » n'apparaît
+  que sur un point dont dépend un point sur objet, et se crée d'un clic :
+  le lieu du point quand se déplace le dernier construit de ces points sur
+  objet. Le cercle centre et rayon se crée
   d'un clic, sans autre désignation : un rayon numérique d'environ 150 px
   à l'échelle courante, arrondi à deux chiffres significatifs, qu'un
   glisser du cercle change ensuite. Un objet sans outil géométrique (texte,
@@ -1126,6 +1129,11 @@ Fait (2026-10-11) :
   le cercle s'ils sont cocycliques, une ellipse s'ils sont en position
   convexe, sinon une hyperbole. Éditeur +1,3 Ko (+0,6 Ko en gzip) ;
   lecteur inchangé.
+- Lieu dans l'anneau (2026-10-14, section « Anneau d'outils ») : sur un
+  point dont dépend un point sur objet, comme dans DGPad, `Lieu(M, P)`
+  créé d'un clic. Vérifié dans `editor.html` (outil présent sur le point
+  dépendant, absent sur un point libre, ligne survolée, création).
+  Éditeur +0,4 Ko (+0,1 Ko en gzip) ; lecteur inchangé.
 
 Reste à faire :
 

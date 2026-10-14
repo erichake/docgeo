@@ -1,4 +1,6 @@
 import type { construction_object } from "../objects/construction_object";
+import { point_on_object } from "../objects/point_on_object";
+import { point_object } from "../objects/point_object";
 import { accepts, COMMANDS, type Command, type Overload } from "./catalog";
 
 // The tools shown around a designated object: see EDITOR.md.
@@ -213,6 +215,16 @@ const FAMILIES: [hue: number, slots: Tool[][], tone?: number][] = [
                     ) + path("M4 19h16M4 19L13 4"),
                 ),
             ],
+            [
+                tool(
+                    "Locus",
+                    0,
+                    result(path("M3 16Q12 0 21 16")) +
+                        path("M3 20h18M14.7 20V8.7", true) +
+                        dot(14.7, 20) +
+                        dot(14.7, 8.7),
+                ),
+            ],
         ],
     ],
     [
@@ -265,6 +277,7 @@ export function toolsFor(object: construction_object, vec3: boolean): Tool[] {
     return TOOLS.filter(({ mode, overload }) => {
         if (overload.tag === (vec3 ? "C3p" : "C3s")) return false;
         if (overload.tag === "Sph" && !vec3) return false;
+        if (overload.tag === "Loc") return driverOf(object) !== null;
         // A point is put on the object, an intersection with another.
         if (mode === "point") return accepts(object, "support");
         if (mode === "intersection") return accepts(object, "intersectable");
@@ -273,4 +286,24 @@ export function toolsFor(object: construction_object, vec3: boolean): Tool[] {
             (param) => param !== "real" && accepts(object, param),
         );
     });
+}
+
+// The point on an object that moves the point, the last built of its
+// ancestors, as in DGPad: its path gives the point's locus.
+export function driverOf(object: construction_object): point_on_object | null {
+    if (!(object instanceof point_object)) return null;
+    let driver: point_on_object | null = null;
+    const seen = new Set<construction_object>();
+    const visit = (parent: construction_object): void => {
+        if (seen.has(parent)) return;
+        seen.add(parent);
+        if (
+            parent instanceof point_on_object &&
+            (!driver || parent.sequence > driver.sequence)
+        )
+            driver = parent;
+        parent.parents.forEach(visit);
+    };
+    object.parents.forEach(visit);
+    return driver;
 }

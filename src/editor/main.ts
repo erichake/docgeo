@@ -91,7 +91,7 @@ import {
     type Line,
 } from "./text";
 import { labelAt, labelHold, nameElement, placeLabel } from "./labels";
-import { RING_SLOTS, toolsFor, type Tool } from "./tools";
+import { driverOf, RING_SLOTS, toolsFor, type Tool } from "./tools";
 import { propertiesPanel } from "./properties";
 import { resizeHandle } from "./resize";
 import {
@@ -1620,6 +1620,7 @@ function firstArgs(
     // About 150 pixels, rounded to two significant digits.
     if (tool.overload.tag === "C1")
         return [object, Number((150 / scene().GRID.UNIT[0]).toPrecision(2))];
+    if (tool.overload.tag === "Loc") return [object, driverOf(object)!];
     const { params, variadic } = tool.overload;
     const args: (Arg | undefined)[] = variadic
         ? []
