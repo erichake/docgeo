@@ -142,6 +142,8 @@ export default {
     conditional_visibility:
         "Visibility also depends on a condition in the figure.",
     show_name: "Show name",
+    hide_name: "Hide name",
+    rename_hint: "Rename %: Enter to confirm, Esc to cancel",
     font_size: "Text size",
     precision: "Value decimal places",
     no_value: "Do not display",

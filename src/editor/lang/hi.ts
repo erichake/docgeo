@@ -146,6 +146,9 @@ const hi: Texts = {
         conditional_visibility:
             "दृश्यता आकृति की किसी शर्त पर भी निर्भर करती है।",
         show_name: "नाम दिखाएँ",
+        hide_name: "नाम छिपाएँ",
+        rename_hint:
+            "% का नाम बदलें: पुष्टि के लिए Enter, रद्द करने के लिए Esc",
         font_size: "पाठ का आकार",
         precision: "मान के दशमलव स्थान",
         no_value: "न दिखाएँ",

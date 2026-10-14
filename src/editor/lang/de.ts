@@ -147,6 +147,8 @@ const de: Texts = {
         conditional_visibility:
             "Die Sichtbarkeit hängt auch von einer Bedingung der Figur ab.",
         show_name: "Name anzeigen",
+        hide_name: "Name ausblenden",
+        rename_hint: "% umbenennen: Eingabe zum Bestätigen, Esc zum Abbrechen",
         font_size: "Textgröße",
         precision: "Dezimalstellen des Werts",
         no_value: "Nicht anzeigen",

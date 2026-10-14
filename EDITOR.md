@@ -450,10 +450,20 @@ règle aussi dans le panneau de propriétés) et en distance (`nd`, en
 pixels, deux fois la taille du point par défaut). Le nom ne recouvre
 jamais son point (distance au moins nulle) et ne s'en éloigne pas de plus
 de 80 px. Un point sous le pointeur l'emporte sur un nom. Survoler un nom
-fait briller son point ; le toucher sans le glisser désigne le point,
-comme un toucher sur lui (anneau ouvert sur le point, propriétés, gomme,
-aimant). Chaque glisser est une étape d'annulation. Les noms des autres
-objets ne sont pas encore dessinés par le moteur.
+fait briller son point et donne le curseur « doigt ». Chaque glisser est
+une étape d'annulation. Les noms des autres objets ne sont pas encore
+dessinés par le moteur.
+
+Décidé le 2026-10-14 : le toucher sans le glisser **renomme sur place**,
+sans dialogue. Un champ remplace le nom, dans sa police, sa taille et sa
+couleur, le texte sélectionné, suivi d'un bouton « Masquer le nom » (un
+œil barré) ; la consigne dit comment valider. Entrée ou un toucher
+ailleurs valident (ce toucher ne fait rien d'autre dans la figure), Échap
+annule ; un nom vide ou pris est refusé en rouge dans la consigne, le
+champ restant ouvert (quitté par un toucher ailleurs, il est abandonné).
+Renommer et masquer sont chacun une étape d'annulation ; le nom se
+réaffiche par le panneau de propriétés. Dans les modes propriétés, gomme
+et aimant, le toucher sur un nom désigne toujours son point.
 
 ## Gomme
 
@@ -1014,6 +1024,10 @@ Fait (2026-10-11) :
   d'outils ») ; une expression n'ouvre toujours pas d'anneau. Vérifié dans
   `editor.html` (ligne survolée, création, rayon après un zoom). Éditeur
   +0,2 Ko (+0,1 Ko en gzip) ; lecteur inchangé.
+- Noms des points renommés et masqués sur place (2026-10-14, section
+  « Noms des points ») : curseur « doigt » au survol d'un nom. Vérifié
+  dans `editor.html` (curseur, renommage, nom pris, Échap, masquer,
+  annuler, toucher ailleurs). Éditeur +2,0 Ko (+0,6 Ko en gzip) ; lecteur inchangé.
 
 Reste à faire :
 

@@ -147,6 +147,8 @@ const nl: Texts = {
         conditional_visibility:
             "De zichtbaarheid hangt ook af van een voorwaarde in de figuur.",
         show_name: "Naam tonen",
+        hide_name: "Naam verbergen",
+        rename_hint: "% hernoemen: Enter om te bevestigen, Esc om te annuleren",
         font_size: "Tekstgrootte",
         precision: "Decimalen van de waarde",
         no_value: "Niet tonen",

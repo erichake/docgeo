@@ -145,6 +145,8 @@ const pt: Texts = {
         conditional_visibility:
             "A visibilidade também depende de uma condição da figura.",
         show_name: "Exibir o nome",
+        hide_name: "Ocultar o nome",
+        rename_hint: "Renomeie %: Enter para confirmar, Esc para cancelar",
         font_size: "Tamanho do texto",
         precision: "Casas decimais do valor",
         no_value: "Não exibir",

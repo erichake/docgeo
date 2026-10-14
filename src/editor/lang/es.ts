@@ -145,6 +145,8 @@ const es: Texts = {
         conditional_visibility:
             "La visibilidad también depende de una condición de la figura.",
         show_name: "Mostrar el nombre",
+        hide_name: "Ocultar el nombre",
+        rename_hint: "Renombra %: Intro para confirmar, Esc para cancelar",
         font_size: "Tamaño del texto",
         precision: "Decimales del valor",
         no_value: "No mostrar",

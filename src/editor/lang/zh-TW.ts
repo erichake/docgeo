@@ -136,6 +136,8 @@ const zh_TW: Texts = {
         visible: "顯示物件",
         conditional_visibility: "可見性也取決於圖形中的一個條件。",
         show_name: "顯示名稱",
+        hide_name: "隱藏名稱",
+        rename_hint: "重新命名 %：按 Enter 確認，按 Esc 取消",
         font_size: "文字大小",
         precision: "數值的小數位數",
         no_value: "不顯示",

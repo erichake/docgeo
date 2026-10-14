@@ -201,8 +201,11 @@ $("head").append(`<style>
     .dge-complete div.dge-selected, .dge-complete div:hover, .dge-menu div:hover { background: #2563eb; color: #fff; }
     .dge-complete:empty { display: none; }
     .dge-choice { position: fixed; display: flex; gap: 3px; transform: translateY(-50%); z-index: 13; }
-    .dge-choice .dge-action { width: 28px; height: 28px; border-color: #d1d5db; border-radius: 7px; background: #fff; }
-    .dge-choice .dge-action svg { width: 18px; height: 18px; }
+    .dge-choice .dge-action, .dge-name .dge-action { width: 28px; height: 28px; border-color: #d1d5db; border-radius: 7px; background: #fff; }
+    .dge-choice .dge-action svg, .dge-name .dge-action svg { width: 18px; height: 18px; }
+    .dge-name { position: fixed; display: flex; align-items: center; gap: 6px; transform: translateY(-50%); z-index: 13; }
+    .dge-name input { min-width: 2ch; margin: 0 0 0 -5px; padding: 1px 4px; border: 1px solid #2563eb; border-radius: 4px; outline: 3px solid rgb(37 99 235 / 0.2); background: #fff; font-family: Verdana, sans-serif; }
+    svg.dge-on-name { cursor: pointer; }
     .dge-magnet { position: fixed; display: flex; align-items: center; gap: 10px; padding: 6px 12px 6px 6px; border: 1px solid #fecaca; border-radius: 22px; background: #fff; box-shadow: 0 6px 20px rgb(15 23 42 / 0.16); z-index: 12; }
     .dge-magnet input { width: 150px; margin: 0; accent-color: #dc2626; }
     .dge-magnet output { width: 80px; white-space: nowrap; font-weight: 600; font-variant-numeric: tabular-nums; color: #b91c1c; }
@@ -269,6 +272,18 @@ choice.on("mousedown", () => {});
 const menu = $.create("div").cls("dge-menu").att("role", "menu").hide();
 // Keeps the focus in the line typed.
 menu.on("mousedown", () => {});
+// A point's name, retyped where it shows, or hidden.
+const nameField = $.create("input")
+    .att("type", "text")
+    .att("spellcheck", "false")
+    .att("aria-label", message("name"));
+const hideNameButton = button("hide_name", hideName);
+// Keeps the focus in the name typed.
+hideNameButton.on("mousedown", () => {});
+const nameBox = $.create("div")
+    .cls("dge-name")
+    .add(nameField, hideNameButton)
+    .hide();
 function button(
     key: keyof typeof ACTION_ICONS,
     action: () => void,
@@ -436,14 +451,7 @@ explain(
 const properties = propertiesPanel({
     scene,
     changed: () => changed(),
-    rename: async (object, name) => {
-        const figure = await describeDgo(scene());
-        const index = figureObjects(scene()).indexOf(object);
-        (figure.o[index] as unknown[])[1] = name;
-        rebuild(studio, figure);
-        properties.select(scene().getObj(name)!);
-        changed();
-    },
+    rename,
     define: async (object, source) => {
         const spec = resolve(
             scene(),
@@ -536,6 +544,7 @@ $("body").add(
     menu,
     magnetCard,
     spring,
+    nameBox,
 );
 function setPanel(on: boolean, animate = true): void {
     if (on && propertiesOpen && window.innerWidth <= 900) setProperties(false);
@@ -2341,6 +2350,105 @@ async function refusedOffPlane(): Promise<boolean> {
     return true;
 }
 
+// ************************** NAMES *******************************
+
+// The point whose name is retyped.
+let renaming: point_object | null = null;
+
+const nameInput = () => nameField.dom() as HTMLInputElement;
+
+async function rename(object: construction_object, name: string) {
+    const figure = await describeDgo(scene());
+    const index = figureObjects(scene()).indexOf(object);
+    (figure.o[index] as unknown[])[1] = name;
+    rebuild(studio, figure);
+    if (properties.selected === object)
+        properties.select(scene().getObj(name)!);
+    changed();
+}
+
+// The field over the name, in its font, which it hides.
+function placeName(): void {
+    const box = renaming!.nameText!.dom().getBoundingClientRect();
+    nameBox
+        .stl("left", `${box.left}px`)
+        .stl("top", `${box.top + box.height / 2}px`);
+}
+
+function editName(point: point_object): void {
+    renaming = point;
+    point.nameText!.stl("visibility", "hidden");
+    nameInput().value = point.name;
+    nameField
+        .att("size", String(point.name.length))
+        .stl("font-size", `${point.fontSize}px`)
+        .stl("color", point.stroke_color);
+    placeName();
+    nameBox.show("flex");
+    nameInput().focus();
+    nameInput().select();
+    highlight(point);
+    showHint(message("rename_hint", formatName(point.name)));
+}
+
+function closeName(): void {
+    renaming?.nameText?.stl("visibility", "");
+    renaming = null;
+    nameBox.hide();
+    highlight();
+    showHint(restingHint());
+}
+
+// Why the name typed can't be taken.
+function nameError(): string {
+    const value = nameInput().value.trim();
+    const taken = scene().getObj(value);
+    return !value
+        ? message("name_required")
+        : taken && taken !== renaming
+          ? message("name_taken", value)
+          : "";
+}
+
+function hideName(): void {
+    const point = renaming!;
+    closeName();
+    point.showName = false;
+    point.createSVG();
+    changed();
+}
+
+nameField.on(
+    "input",
+    () => nameField.att("size", String(Math.max(nameInput().value.length, 1))),
+    false,
+);
+nameField.on(
+    "keydown",
+    (event) => {
+        event.stopPropagation();
+        if (event.key === "Escape") closeName();
+        if (event.key !== "Enter") return;
+        const error = nameError();
+        if (error) showHint(error, true);
+        else nameInput().blur();
+    },
+    false,
+);
+// Left, the name typed is taken, if it can be.
+nameField.on(
+    "blur",
+    () => {
+        const point = renaming;
+        if (!point) return;
+        const name = nameInput().value.trim();
+        const valid = !nameError();
+        closeName();
+        if (valid && name !== point.name) void rename(point, name);
+    },
+    false,
+);
+
 // ************************** POINTER *****************************
 
 let down: { x: number; y: number; time: number } | null = null;
@@ -2374,12 +2482,14 @@ function follow(event: PointerEvent): void {
     const screen = c.pointerPosition(event);
     const hits = button ? [] : pick(c, screen, previewed());
     if (pending || editing()) updatePreview(screen, hits);
-    if (held) return;
+    // As when pressed, a point near its name is taken rather than the name.
     const named =
-        !hits[0] &&
+        !(hits[0]?.object instanceof point_object) &&
         !pending &&
         !editing() &&
         labelAt(c, [event.clientX, event.clientY]);
+    c.svg.toggleClass("dge-on-name", !!named);
+    if (held) return;
     if (named) return highlight(named);
     // The two objects whose intersection a click would make.
     const cross = wantsPoint(hits) && crossing(c, screen, hits);
@@ -2399,6 +2509,16 @@ $("body").on(
         // Pressed elsewhere, the menu closes, and the figure does nothing.
         if (!menu.isHidden() && !menu.dom().contains(element(event.target))) {
             closeMenu();
+            if (inFigure(event)) {
+                down = null;
+                event.stopPropagation();
+                return;
+            }
+        }
+        // Pressed elsewhere, the name typed is taken, and the figure does
+        // nothing.
+        if (renaming && !nameBox.dom().contains(element(event.target))) {
+            nameInput().blur();
             if (inFigure(event)) {
                 down = null;
                 event.stopPropagation();
@@ -2521,6 +2641,7 @@ function dragged(): void {
         updateRows();
         moveRing();
         showMagnets();
+        if (renaming) placeName();
     });
 }
 
@@ -2646,6 +2767,7 @@ $("body").on(
                 changed();
             });
         }
+        if (named) return editName(named);
         const cross = crossing(c, screen, hits);
         if (cross) return done(addCrossing(cross));
         if (hits[0])

@@ -139,6 +139,8 @@ const ar: Texts = {
         visible: "عنصر ظاهر",
         conditional_visibility: "يعتمد الظهور أيضًا على شرط في الشكل.",
         show_name: "إظهار الاسم",
+        hide_name: "إخفاء الاسم",
+        rename_hint: "إعادة تسمية %: Enter للتأكيد، Esc للإلغاء",
         font_size: "حجم النص",
         precision: "الأرقام العشرية للقيمة",
         no_value: "عدم الإظهار",

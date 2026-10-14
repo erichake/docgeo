@@ -136,6 +136,8 @@ const zh: Texts = {
         visible: "显示对象",
         conditional_visibility: "可见性还取决于图形中的一个条件。",
         show_name: "显示名称",
+        hide_name: "隐藏名称",
+        rename_hint: "重命名 %：按 Enter 确认，按 Esc 取消",
         font_size: "文字大小",
         precision: "数值的小数位数",
         no_value: "不显示",
