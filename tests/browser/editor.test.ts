@@ -12,8 +12,10 @@ import {
     rebuild,
     redefine,
     resolve,
+    valueText,
     type Studio,
 } from "../../src/editor/figure";
+import { showStep, stepOf } from "../../src/editor/steps";
 import {
     accepts,
     COMMANDS,
@@ -28,7 +30,7 @@ import {
     hideGhosts,
     showGhosts,
     toggleGhost,
-    withGhostsHidden,
+    withHidden,
 } from "../../src/editor/eraser";
 import {
     attracts,
@@ -639,13 +641,81 @@ describe("Editor", () => {
         expect(pick(c, [400, 140])).toEqual([]);
         toggleGhost(ghosts, a);
         toggleGhost(ghosts, b);
-        const { o, st } = await withGhostsHidden(ghosts, () => describeDgo(c));
+        const { o, st } = await withHidden(ghosts, 1, () => describeDgo(c));
         expect(o.map((entry) => st?.[entry[3] as number]?.h ?? 0)).toEqual([
             1, 0, 2,
         ]);
         expect([a.hidden, b.hidden, a.hasView]).toEqual([0, 0, true]);
         hideGhosts(ghosts);
         expect([a.hidden, a.hasView, b.hidden]).toEqual([1, false, 0]);
+    });
+
+    it("shows the construction step by step, the figure saved whole", async () => {
+        const { scene: c } = studio();
+        [
+            "A = (0, 0)",
+            "B = (4, 0)",
+            "C = (0, 4)",
+            "s = Segment(A, B)",
+            "M = Midpoint(A, B)",
+        ].forEach((line) => type(c, line));
+        const [a, b, k, s, m] = ["A", "B", "C", "s", "M"].map((name) =>
+            c.getObj(name)!,
+        );
+        k.hidden = 1;
+        k.updateView();
+        let stepping = showStep(c, new Set(), 2);
+        expect(stepping.at).toBe(2);
+        expect([...stepping.later]).toEqual([s, m]);
+        expect([a, b, k, s, m].map((object) => object.hidden)).toEqual([
+            0, 0, 1, 1, 1,
+        ]);
+        // A hidden object goes with the step before it.
+        expect([a, k, s].map((object) => stepOf(c, stepping, object))).toEqual([
+            1, 2, 3,
+        ]);
+        const { o, st } = await withHidden(stepping.later, 0, () =>
+            describeDgo(c),
+        );
+        expect(o.map((entry) => st?.[entry[3] as number]?.h ?? 0)).toEqual([
+            0, 0, 1, 0, 0,
+        ]);
+        expect([s.hidden, m.hidden]).toEqual([1, 1]);
+        stepping = showStep(c, stepping.later, 9);
+        expect(stepping.at).toBe(4);
+        expect([...stepping.later]).toEqual([]);
+        expect([k.hidden, s.hidden, m.hidden, m.hasView]).toEqual([
+            1,
+            0,
+            0,
+            true,
+        ]);
+    });
+
+    it("writes below a line the value a formula reads", () => {
+        const { scene: c } = studio();
+        [
+            "A = (0, 0)",
+            "B = (3, 4)",
+            "C = (4, 0)",
+            "s = Segment(A, B)",
+            "M = Midpoint(A, B)",
+            "a = Angle(C, A, B)",
+            "k = 2",
+        ].forEach((line) => type(c, line));
+        const index = figureIndex(c);
+        const objects = figureObjects(c);
+        const value = (name: string) => {
+            const object = c.getObj(name)!;
+            return valueText(object, lineOf(object, index, objects), false);
+        };
+        expect(["A", "s", "M", "k"].map(value)).toEqual([
+            "",
+            "= 5",
+            "= (1.5, 2)",
+            "",
+        ]);
+        expect(value("a")).toMatch(/^= 0\.9273$|^= 53\.1301°$/);
     });
 
     it("sets magnets as DGPad, and drops those of removed targets", async () => {

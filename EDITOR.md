@@ -516,6 +516,39 @@ est retiré de la navigation au clavier dès le début du mouvement.
 Sur les écrans de 600 px ou moins, le panneau
 démarre fermé ; la barre reste sur une seule ligne à 320 px.
 
+Décidé le 2026-10-14, comme la vue Algèbre de GeoGebra : chaque ligne du
+panneau « Construction » commence par une pastille de la couleur de
+l'objet, pleine s'il est visible, vide s'il est caché, qui le cache ou le
+montre d'un toucher (en mode gomme, elle bascule son fantôme) ; les objets
+super-cachés n'en ont pas. Une ligne de point finit par un bouton « nom »
+(un A et un point) qui affiche ou masque le nom, discret tant que le nom
+est masqué : il n'apparaît qu'au survol de la ligne (toujours, pâle, sans
+survol). Chaque bascule est une étape d'annulation. L'en-tête compte les
+objets ; la ligne de saisie, un champ arrondi, reste collée au bas du
+panneau quand la liste défile.
+
+**Valeurs** (2026-10-14) : un bouton « = 1 » de l'en-tête, éteint au
+départ et non mémorisé, écrit en gris sous chaque ligne ce que le nom de
+l'objet vaut dans une formule (`scriptValue`) : coordonnées d'un point,
+longueur d'un segment, rayon d'un cercle, aire d'un polygone, mesure d'un
+angle (en degrés avec `°`), valeur d'une expression. Rien quand la ligne
+le dit déjà (point libre, constante). Les valeurs suivent les glissers.
+
+**Pas à pas** (2026-10-14), comme la barre de navigation de GeoGebra : un
+bouton « escalier » de l'en-tête rejoue la construction. Chaque objet
+visible est une étape ; un objet caché va avec l'étape d'avant. Une barre
+remplace la saisie : première, précédente, « Étape 3 / 10 », suivante,
+dernière (ces deux-là disparaissent sous 270 px de panneau), lecture
+(une étape par seconde) et pause ; ← → Début et Fin au clavier. Les
+objets des étapes suivantes sont cachés dans la figure (`steps.ts`), pas
+dans la figure enregistrée ni dans la pile d'annulation (`withHidden`,
+comme les fantômes de la gomme) ; leurs lignes sont pâlies, celle de
+l'étape montrée marquée, et la consigne la répète. Un toucher sur une
+ligne va à son étape. Les points se glissent toujours, mais un toucher
+dans la figure ne construit rien. Échap, le bouton, la fermeture du
+panneau, la gomme, les propriétés, un outil, annuler ou le focus dans une
+ligne en sortent, la figure entière revenant.
+
 Les deux panneaux latéraux (construction et propriétés) se redimensionnent
 en tirant leur bord intérieur (`src/editor/resize.ts`), qui s'éclaire en
 bleu au survol ; un double-clic sur ce bord rend la largeur par défaut. La
@@ -1046,6 +1079,15 @@ Fait (2026-10-11) :
   dans `editor.html` (curseur, glisser, annuler / refaire, sélection,
   champ du panneau suivi). Éditeur +1,8 Ko (+0,6 Ko en gzip) ; lecteur
   +30 octets (une exportation du moteur partagé).
+- Panneau « Construction » soigné (2026-10-14, section « Barre d'actions
+  et historique ») : pastilles de visibilité, bouton du nom des points,
+  compteur, saisie collée au bas. Vérifié dans `editor.html` (bascules,
+  annuler, gomme, liste qui défile). Éditeur +3,1 Ko (+0,7 Ko en gzip) ;
+  lecteur inchangé.
+- Valeurs sous les lignes et construction pas à pas (2026-10-14, même
+  section). Vérifiés dans `editor.html` (lecture, pause, clavier, toucher
+  sur une ligne, glisser pendant le pas à pas, Échap, annuler, panneau à
+  360 px). Éditeur +4,9 Ko (+1,5 Ko en gzip) ; lecteur inchangé.
 
 Reste à faire :
 

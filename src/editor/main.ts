@@ -56,18 +56,14 @@ import {
     isPointTag,
     lineOf,
     nextName,
+    valueText,
     rebuild,
     redefine,
     resolve,
     type Spec,
     type Studio,
 } from "./figure";
-import {
-    hideGhosts,
-    showGhosts,
-    toggleGhost,
-    withGhostsHidden,
-} from "./eraser";
+import { hideGhosts, showGhosts, toggleGhost, withHidden } from "./eraser";
 import { message, type MessageKey } from "./messages";
 import { ACTION_ICONS } from "./icons";
 import {
@@ -117,6 +113,7 @@ import {
     type Spring,
 } from "./spring";
 import { offPlane, PLANE, SPACE, turnView } from "./space";
+import { showStep as showStepOf, stepOf, steps, type Stepping } from "./steps";
 import "./properties.css";
 
 // The construction editor: see EDITOR.md.
@@ -144,23 +141,57 @@ $("head").append(`<style>
     .dge-editor.dge-panel-closed { --dge-panel-width: 0px; }
     .dge-panel-closed .dge-panel { transform: translateX(-100%); visibility: hidden; transition-delay: 0s, var(--dge-slide-duration); }
     .dge-panel, .dge-bar, .dge-hint, .dge-ring, .dge-complete, .dge-menu, .dge-magnet { font: 14px/1.4 system-ui, -apple-system, "Segoe UI", sans-serif; color: #1f2937; }
-    .dge-panel { position: fixed; inset-block: var(--dge-bar-height) 0; inset-inline-start: 0; width: var(--dge-panel-size); box-sizing: border-box; padding-block-end: 12px; overflow: auto; background: #fff; border-inline-end: 1px solid #e5e7eb; z-index: 10; touch-action: pan-y; transform: translateX(0); transition: transform var(--dge-slide), visibility 0s; }
+    .dge-panel { position: fixed; inset-block: var(--dge-bar-height) 0; inset-inline-start: 0; width: var(--dge-panel-size); box-sizing: border-box; overflow: auto; background: #fff; border-inline-end: 1px solid #e5e7eb; z-index: 10; touch-action: pan-y; transform: translateX(0); transition: transform var(--dge-slide), visibility 0s; }
     .dge-panel-header { position: sticky; top: 0; display: flex; align-items: center; justify-content: space-between; padding: 8px 12px 8px 16px; background: #fff; border-block-end: 1px solid #e5e7eb; z-index: 1; }
-    .dge-panel-header h2 { flex: 1; margin: 0; font-size: 14px; font-weight: 600; }
+    .dge-panel-header h2 { flex: 1; min-width: 0; margin: 0; overflow: hidden; font-size: 14px; font-weight: 600; white-space: nowrap; text-overflow: ellipsis; }
     .dge-resize { position: fixed; inset-block: var(--dge-bar-height) 0; width: 9px; margin-inline: -4px; z-index: 11; cursor: col-resize; touch-action: none; }
     .dge-resize::after { content: ""; position: absolute; inset-block: 0; left: 3px; width: 3px; transition: background 0.15s; }
     .dge-resize:hover::after, .dge-resize.dge-on::after { background: #2563eb; transition-delay: 0.1s; }
     .dge-panel + .dge-resize { left: var(--dge-panel-size); }
     .dge-panel-closed .dge-panel + .dge-resize { display: none; }
     .dge-editor.dge-resizing { --dge-slide-duration: 0s; cursor: col-resize; user-select: none; }
-    .dge-row { display: block; width: 100%; box-sizing: border-box; padding: 5px 14px; border: 0; border-block-end: 1px solid #f1f5f9; background: none; font: 13.5px/1.5 var(--dge-code); color: inherit; outline: none; }
-    .dge-row:focus { background: #eff6ff; box-shadow: inset 3px 0 #2563eb; }
-    .dge-row.dge-hover { background: #fef3c7; }
-    .dge-row.dge-new { animation: dge-new 1.2s ease-out; }
-    .dge-row.dge-error { box-shadow: inset 3px 0 #dc2626; background: #fef2f2; }
-    .dge-row[readonly] { color: #9ca3af; }
-    .dge-row.dge-hidden { color: #9ca3af; font-style: italic; }
-    .dge-input { margin-block-start: 6px; }
+    .dge-panel-header h2 .dge-count { margin-inline-start: 8px; padding: 1px 7px; border-radius: 9px; background: #f1f5f9; color: #64748b; font-size: 12px; font-weight: 500; font-variant-numeric: tabular-nums; vertical-align: 1px; }
+    .dge-count:empty { display: none; }
+    .dge-item { display: flex; align-items: flex-start; padding-inline: 4px; border-block-end: 1px solid #f1f5f9; }
+    .dge-item:hover { background: #f8fafc; }
+    .dge-item:has(> .dge-hover) { background: #fef3c7; }
+    .dge-item:has(> .dge-new) { animation: dge-new 1.2s ease-out; }
+    .dge-item:has(> .dge-row:focus) { background: #eff6ff; box-shadow: inset 3px 0 #2563eb; }
+    .dge-item:has(> .dge-error) { background: #fef2f2; box-shadow: inset 3px 0 #dc2626; }
+    .dge-row { flex: 1; min-width: 0; padding: 7px 4px; border: 0; background: none; font: 13.5px/1.5 var(--dge-code); color: inherit; outline: none; }
+    .dge-row[readonly], .dge-row.dge-hidden { color: #9ca3af; }
+    .dge-dot { flex-shrink: 0; display: grid; place-items: center; width: 30px; height: 30px; margin-block: 2px; padding: 0; border: 0; border-radius: 50%; background: none; cursor: pointer; }
+    .dge-dot::before { content: ""; box-sizing: border-box; width: 13px; height: 13px; border: 2px solid var(--dge-color); border-radius: 50%; background: var(--dge-color); box-shadow: 0 0 0 1px rgb(15 23 42 / 0.1); transition: background 0.15s; }
+    .dge-dot[aria-pressed="false"]::before { background: #fff; opacity: 0.7; }
+    .dge-dot:hover { background: rgb(15 23 42 / 0.06); }
+    .dge-dot:focus-visible, .dge-item .dge-label:focus-visible { outline: 2px solid #2563eb; outline-offset: -2px; }
+    .dge-dot:disabled { visibility: hidden; }
+    .dge-item .dge-label { width: 30px; height: 30px; margin-block: 2px; border: 0; border-radius: 8px; color: #94a3b8; opacity: 0; }
+    .dge-item .dge-label svg { width: 18px; height: 18px; }
+    .dge-item .dge-label.dge-on { background: none; color: #475569; opacity: 1; }
+    .dge-item:hover .dge-label, .dge-item:focus-within .dge-label { opacity: 1; }
+    .dge-item .dge-label:hover { background: rgb(15 23 42 / 0.06); color: #1d4ed8; }
+    @media (hover: none) { .dge-item .dge-label { opacity: 1; color: #cbd5e1; } }
+    .dge-text { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+    .dge-value { margin-block-start: -5px; padding: 0 4px 7px; overflow: hidden; font: 12.5px/1.4 var(--dge-code); color: #64748b; white-space: nowrap; text-overflow: ellipsis; unicode-bidi: plaintext; }
+    .dge-value:empty { display: none; }
+    .dge-later > .dge-dot, .dge-later > .dge-text { opacity: 0.3; }
+    .dge-item.dge-current { background: #eff6ff; box-shadow: inset 3px 0 #2563eb; }
+    .dge-stepping .dge-item, .dge-stepping .dge-row { cursor: pointer; }
+    .dge-stepping .dge-item button { pointer-events: none; }
+    .dge-steps { display: none; align-items: center; gap: 2px; }
+    .dge-steps .dge-action { width: 34px; height: 34px; border-radius: 8px; }
+    .dge-steps .dge-action svg { width: 20px; height: 20px; }
+    .dge-step { flex: 1; text-align: center; font-weight: 600; font-variant-numeric: tabular-nums; color: #334155; white-space: nowrap; }
+    .dge-stepping .dge-steps { display: flex; }
+    .dge-stepping .dge-input { display: none; }
+    .dge-entry { container-type: inline-size; }
+    @container (max-width: 270px) { .dge-steps .dge-end-step { display: none; } }
+    .dge-entry { position: sticky; bottom: 0; padding: 10px 12px 12px; background: #fff; z-index: 1; }
+    .dge-input { width: 100%; box-sizing: border-box; padding: 8px 12px; border: 1px solid #dbe2ea; border-radius: 9px; background: #f8fafc; font: 13.5px/1.5 var(--dge-code); color: inherit; outline: none; transition: border-color 0.15s, box-shadow 0.15s; }
+    .dge-input:hover { border-color: #c5cfdb; }
+    .dge-input:focus { border-color: #2563eb; background: #fff; box-shadow: 0 0 0 3px rgb(37 99 235 / 0.15); }
+    .dge-input.dge-error { border-color: #dc2626; background: #fef2f2; box-shadow: 0 0 0 3px rgb(220 38 38 / 0.12); }
     @keyframes dge-new { from { background: #bbf7d0; } }
     .dge-bar { position: fixed; inset-block-start: 0; inset-inline: 0; height: var(--dge-bar-height); box-sizing: border-box; display: flex; align-items: center; gap: 8px; padding: 8px 12px; background: #f8fafc; border-block-end: 1px solid #e2e8f0; z-index: 11; }
     .dge-bar-group { display: flex; gap: 4px; }
@@ -251,8 +282,38 @@ const panel = $.create("aside")
     .att("id", "dge-history")
     .att("aria-label", message("history"));
 const rowsBox = $.create("div");
+const count = $.create("span").cls("dge-count");
+const valuesButton = button("show_values", () => {
+    valuesShown = !valuesShown;
+    valuesButton
+        .toggleClass("dge-on", valuesShown)
+        .att("aria-pressed", String(valuesShown));
+    refreshRows();
+}).att("aria-pressed", "false");
+const stepsButton = button("steps", () => setSteps(!stepping)).att(
+    "aria-pressed",
+    "false",
+);
+const stepLabel = $.create("span").cls("dge-step").att("aria-live", "polite");
+const firstButton = button("first_step", () => go(1)).addClass("dge-end-step");
+const previousButton = button("previous_step", () => go(stepping!.at - 1));
+const nextButton = button("next_step", () => go(stepping!.at + 1));
+const lastButton = button("last_step", () => go(Infinity)).addClass(
+    "dge-end-step",
+);
+const playButton = button("play_steps", play);
+const stepsBar = $.create("div")
+    .cls("dge-steps")
+    .add(
+        firstButton,
+        previousButton,
+        stepLabel,
+        nextButton,
+        lastButton,
+        playButton,
+    );
 const input = $.create("input")
-    .cls("dge-row dge-input")
+    .cls("dge-input")
     .att("placeholder", message("input"))
     .att("spellcheck", "false");
 const hint = $.create("div").cls("dge-hint");
@@ -502,7 +563,9 @@ $("body").add(
         $.create("div")
             .cls("dge-panel-header")
             .add(
-                $.create("h2").text(message("construction")),
+                $.create("h2").text(message("construction")).add(count),
+                valuesButton,
+                stepsButton,
                 button("new_program", () => {
                     setProperties(true);
                     properties.create(nextName(scene(), false));
@@ -513,7 +576,7 @@ $("body").add(
                 }),
             ),
         rowsBox,
-        input,
+        $.create("div").cls("dge-entry").add(input, stepsBar),
     ),
     resizeHandle(panel, "left", () => "--dge-panel-user"),
     $.create("nav")
@@ -560,6 +623,7 @@ $("body").add(
 function setPanel(on: boolean, animate = true): void {
     if (on && propertiesOpen && window.innerWidth <= 900) setProperties(false);
     if (!on) {
+        setSteps(false);
         editing()?.blur();
         closeCompletion();
         clearPreview();
@@ -600,6 +664,7 @@ function setProperties(on: boolean): void {
 panel.on(
     "keydown",
     (event) => {
+        if (!editing()) stepKey(event);
         if (!event.metaKey && !event.ctrlKey) event.stopPropagation();
     },
     false,
@@ -607,8 +672,15 @@ panel.on(
 
 // ************************** STATE *******************************
 
-// The object of each row of the text.
+// The object of each row of the text, its row and the value shown below.
 const rows = new Map<construction_object, DOMElement>();
+const items = new Map<construction_object, DOMElement>();
+const values = new Map<construction_object, DOMElement>();
+let valuesShown = false;
+// Step by step, the step shown and the objects of the steps after it,
+// hidden meanwhile.
+let stepping: Stepping | null = null;
+let playing: number | null = null;
 // A tool waiting for its arguments.
 let pending: {
     tool: Tool;
@@ -686,7 +758,13 @@ const editing = (): HTMLInputElement | null => {
 const vec3 = () => !scene().GRID.is2D;
 const previewed = () => new Set(preview?.objects ?? []);
 const looksHidden = (object: construction_object) =>
-    object.isHidden || !!ghosts?.has(object);
+    (object.isHidden && !stepping?.later.has(object)) || !!ghosts?.has(object);
+// What `write` makes of the figure as saved: ghosts hidden, steps after the
+// one shown not.
+const asSaved = <T>(write: () => Promise<T>): Promise<T> =>
+    withHidden(ghosts ?? [], 1, () =>
+        withHidden(stepping?.later ?? [], 0, write),
+    );
 
 function propertyObject(event: PointerEvent): construction_object | null {
     const target = element(event.target);
@@ -729,6 +807,8 @@ function refreshRows(): void {
         propertiesOpen,
     );
     rows.clear();
+    items.clear();
+    values.clear();
     rowsBox.inner("");
     const c = scene();
     const index = figureIndex(c);
@@ -755,15 +835,182 @@ function refreshRows(): void {
             },
             false,
         );
-        row.on("mouseenter", () => highlight(object), false);
-        row.on("mouseleave", () => highlight(), false);
+        const text = $.create("div").cls("dge-text").add(row);
+        if (valuesShown) {
+            const value = $.create("div")
+                .cls("dge-value")
+                .text(valueText(object, line, vec3()));
+            values.set(object, value);
+            text.add(value);
+        }
+        const item = $.create("div")
+            .cls("dge-item")
+            .add(visibilityToggle(object), text);
+        if (object instanceof point_object) item.add(nameToggle(object));
+        item.on("mouseenter", () => highlight(object), false);
+        item.on("mouseleave", () => highlight(), false);
+        item.on(
+            "pointerdown",
+            (event) => {
+                if (!stepping) return;
+                event.preventDefault();
+                go(stepOf(scene(), stepping, object));
+            },
+            false,
+        );
         rows.set(object, row);
-        rowsBox.add(row);
+        items.set(object, item);
+        rowsBox.add(item);
     });
+    count.text(rows.size ? String(rows.size) : "");
+    if (stepping) markSteps();
     undoButton.dom().toggleAttribute("disabled", position <= 0);
     redoButton
         .dom()
         .toggleAttribute("disabled", position >= history.length - 1);
+}
+
+// As in GeoGebra's algebra view, a dot of the object's colour, full when it
+// shows. Super-hidden objects, which nobody ever saw, stay so.
+function visibilityToggle(object: construction_object): DOMElement {
+    const dot = $.create("button")
+        .cls("dge-dot")
+        .att("type", "button")
+        .stl("--dge-color", object.stroke_color);
+    if (object.hidden === 2) return dot.att("disabled", "");
+    const shown = !looksHidden(object);
+    dot.att("aria-pressed", String(shown))
+        .att("aria-label", message("visible"))
+        .att("title", message(shown ? "hide_object" : "show_object"))
+        .on("click", () => {
+            if (ghosts) toggleGhost(ghosts, object);
+            else {
+                object.hidden = shown ? 1 : 0;
+                if (shown) object.updateView();
+                else object.createSVG();
+            }
+            changed();
+        });
+    return dot;
+}
+
+function nameToggle(point: point_object): DOMElement {
+    const on = point.showName;
+    return button("show_name", () => {
+        point.showName = !on;
+        if (point.isHidden) point.updateView();
+        else point.createSVG();
+        changed();
+    })
+        .addClass("dge-label")
+        .toggleClass("dge-on", on)
+        .att("aria-pressed", String(on))
+        .att("title", message(on ? "hide_name" : "show_name"));
+}
+
+// ************************** STEPS *******************************
+
+const allSteps = () => steps(scene(), stepping!.later);
+
+function setSteps(on: boolean): void {
+    if (on === !!stepping) return;
+    if (on) {
+        if (propertiesOpen) setProperties(false);
+        setEraser(false);
+        cancel();
+        editing()?.blur();
+        closeCompletion();
+        stepping = { at: 0, later: new Set() };
+        showStep(1);
+    } else {
+        pause();
+        showStep(Infinity);
+        stepping = null;
+        items.forEach((item) =>
+            item.removeClass("dge-later").removeClass("dge-current"),
+        );
+        showHint("");
+    }
+    panel.toggleClass("dge-stepping", on);
+    stepsButton.toggleClass("dge-on", on).att("aria-pressed", String(on));
+}
+
+function showStep(at: number): void {
+    stepping = showStepOf(scene(), stepping!.later, at);
+    markSteps();
+}
+
+function markSteps(): void {
+    const { at } = stepping!;
+    const all = allSteps();
+    const index = figureIndex(scene());
+    const current = all[at - 1];
+    const last = current ? index.get(current)! : -1;
+    items.forEach((item, object) =>
+        item
+            .toggleClass("dge-later", index.get(object)! > last)
+            .toggleClass("dge-current", object === current),
+    );
+    stepLabel.text(message("step", `${at} / ${all.length}`));
+    [firstButton, previousButton].forEach((action) =>
+        action.dom().toggleAttribute("disabled", at <= 1),
+    );
+    [nextButton, lastButton].forEach((action) =>
+        action.dom().toggleAttribute("disabled", at >= all.length),
+    );
+    const item = current && items.get(current);
+    item?.dom().scrollIntoView({ block: "nearest" });
+    showHint(
+        current ? (rows.get(current)!.dom() as HTMLInputElement).value : "",
+    );
+}
+
+function go(at: number): void {
+    pause();
+    showStep(at);
+}
+
+function play(): void {
+    if (playing !== null) return pause();
+    if (stepping!.at >= allSteps().length) showStep(1);
+    playing = window.setInterval(() => {
+        if (stepping!.at >= allSteps().length) pause();
+        else showStep(stepping!.at + 1);
+    }, 1000);
+    showPlaying();
+}
+
+function pause(): void {
+    if (playing === null) return;
+    clearInterval(playing);
+    playing = null;
+    showPlaying();
+}
+
+function showPlaying(): void {
+    const key = playing === null ? "play_steps" : "pause_steps";
+    playButton
+        .inner(
+            `<svg viewBox="0 0 24 24" aria-hidden="true">${ACTION_ICONS[key]}</svg>`,
+        )
+        .att("title", message(key))
+        .att("aria-label", message(key));
+}
+
+// The keys of the steps: arrows, Home and End, and Escape out.
+function stepKey(event: KeyboardEvent): boolean {
+    if (!stepping) return false;
+    const at: Record<string, number> = {
+        ArrowLeft: stepping.at - 1,
+        ArrowRight: stepping.at + 1,
+        Home: 1,
+        End: Infinity,
+    };
+    if (event.key === "Escape") setSteps(false);
+    else if (event.key in at) go(at[event.key]);
+    else return false;
+    event.preventDefault();
+    return true;
 }
 
 // The values a drag changes.
@@ -773,8 +1020,13 @@ function updateRows(): void {
     const objects = figureObjects(c);
     const active = editing();
     rows.forEach((row, object) => {
-        if (row.dom() === active || row.getAtt("readonly") !== null) return;
-        (row.dom() as HTMLInputElement).value = lineOf(object, index, objects)!;
+        const field = row.dom() as HTMLInputElement;
+        const line =
+            field === active || row.getAtt("readonly") !== null
+                ? null
+                : lineOf(object, index, objects)!;
+        if (line !== null) field.value = line;
+        values.get(object)?.text(valueText(object, line, vec3()));
     });
 }
 
@@ -793,6 +1045,7 @@ function bindRow(row: DOMElement, object: construction_object | null): void {
                 setProperties(false);
             }
             setEraser(false);
+            setSteps(false);
             stopMagnets();
             original = field.value;
             updateCompletion(field);
@@ -2211,6 +2464,7 @@ function showAxes(): void {
 }
 
 function cancel(): void {
+    setSteps(false);
     stopMagnets();
     pending = null;
     aim = null;
@@ -2318,9 +2572,7 @@ async function reframe(
     step?: Step,
     patch: Partial<DgoFigure> = {},
 ): Promise<void> {
-    const figure = await withGhostsHidden(ghosts ?? [], () =>
-        describeDgo(scene()),
-    );
+    const figure = await asSaved(() => describeDgo(scene()));
     const { v } = figure;
     if (held) closeRing();
     const saved: DgoFigure | null = step && JSON.parse(step.figure);
@@ -2829,6 +3081,7 @@ $("body").on(
                 changed();
             });
         }
+        if (stepping) return;
         if (named) return editName(named);
         const cross = crossing(c, screen, hits);
         if (cross) return done(addCrossing(cross));
@@ -2869,6 +3122,7 @@ $("body").on(
                 event.key !== "Escape")
         )
             return;
+        else if (stepKey(event)) return;
         else if (command && event.key.toLowerCase() === "z") {
             event.preventDefault();
             travel(event.shiftKey ? 1 : -1);
@@ -2909,9 +3163,7 @@ const camera = (view: DgoFigure["v"], kept: boolean): DgoFigure["v"] =>
 
 function record(): Promise<void> {
     recording = recording.then(async () => {
-        const figure = await withGhostsHidden(ghosts ?? [], () =>
-            describeDgo(scene()),
-        );
+        const figure = await asSaved(() => describeDgo(scene()));
         const { o, u, ...view } = figure.v;
         const step = JSON.stringify({ ...figure, v: camera(view, false) });
         if (step === history[position]?.figure) return;
@@ -2937,9 +3189,7 @@ function travel(step: number): void {
 // ************************** FILES *******************************
 
 async function save(): Promise<void> {
-    const href = URL.createObjectURL(
-        await withGhostsHidden(ghosts ?? [], () => writeDgo(scene())),
-    );
+    const href = URL.createObjectURL(await asSaved(() => writeDgo(scene())));
     (
         $.create("a")
             .att("href", href)

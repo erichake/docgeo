@@ -37,6 +37,19 @@ export const ACTION_ICONS = {
     // An eye, crossed out.
     hide_name:
         '<path d="M2.5 12S6 6 12 6s9.5 6 9.5 6-3.5 6-9.5 6-9.5-6-9.5-6Z"/><circle cx="12" cy="12" r="2.5"/><path d="M4 20 20 4"/>',
+    // A point and its name.
+    show_name:
+        '<path d="M3.5 17 8 5h1l4.5 12M5.2 12.8h6.6"/><circle cx="18" cy="16.5" r="2.3"/>',
+    // A staircase.
+    steps: '<path d="M3 20h5v-5h5v-5h5V5h3"/>',
+    // "= 1".
+    show_values: '<path d="M3 9.5h7M3 14.5h7M14.5 7.5 17.5 5v14"/>',
+    first_step: '<path d="M6.5 6v12M17 6l-7 6 7 6"/>',
+    previous_step: '<path d="m15 6-6 6 6 6"/>',
+    next_step: '<path d="m9 6 6 6-6 6"/>',
+    last_step: '<path d="M17.5 6v12M7 6l7 6-7 6"/>',
+    play_steps: '<path d="M8 5.5v13l10-6.5Z" fill="currentColor"/>',
+    pause_steps: '<path d="M9 6v12M15 6v12" stroke-width="2.6"/>',
     // A pushpin, its needle towards the bottom left.
     pin: '<g transform="rotate(45 12 12)"><path d="M8 2.5h8M9.5 2.5v6L6 12.5h12l-3.5-4v-6M12 12.5v9"/></g>',
 };

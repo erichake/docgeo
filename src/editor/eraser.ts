@@ -34,14 +34,16 @@ export function hideGhosts(ghosts: Set<construction_object>): void {
     });
 }
 
-// What `write` makes of the figure, its ghosts hidden.
-export async function withGhostsHidden<T>(
-    ghosts: Iterable<construction_object>,
+// What `write` makes of the figure, the objects hidden (1) or shown (0)
+// meanwhile, as the ghosts are hidden in the figure saved.
+export async function withHidden<T>(
+    objects: Iterable<construction_object>,
+    hidden: number,
     write: () => Promise<T>,
 ): Promise<T> {
-    const shown = [...ghosts];
-    shown.forEach((ghost) => (ghost.hidden = 1));
+    const changed = [...objects];
+    changed.forEach((object) => (object.hidden = hidden));
     const result = await write();
-    shown.forEach((ghost) => (ghost.hidden = 0));
+    changed.forEach((object) => (object.hidden = 1 - hidden));
     return result;
 }

@@ -20,11 +20,13 @@ import {
     programTargets,
     withObjects,
 } from "../import/dgp_formula";
+import { angle_object } from "../objects/angle_object";
 import type { construction_object } from "../objects/construction_object";
 import { expression_object } from "../objects/expression_object";
+import { fixed_angle_object } from "../objects/fixed_angle_object";
 import type { formula_point_object } from "../objects/formula_point_object";
 import { point_on_object } from "../objects/point_on_object";
-import type { point_object } from "../objects/point_object";
+import { point_object } from "../objects/point_object";
 import { polygon_object } from "../objects/polygon_object";
 import { quadric5pts_object } from "../objects/quadric5pts_object";
 import type { Vec2, Vec3 } from "../vec";
@@ -157,6 +159,26 @@ export function expressionSource({
 const oneLine = (source: string): string => source.replace(/\s*\n\s*/g, " ");
 
 // Its line, null when no command writes it.
+// What the object's name means in a formula, shown below its line unless
+// the line says it.
+export function valueText(
+    object: construction_object,
+    line: string | null,
+    vec3: boolean,
+): string {
+    const value = object.scriptValue(vec3);
+    if (value === null) return "";
+    const degrees =
+        object.C.degrees &&
+        (object instanceof angle_object ||
+            object instanceof fixed_angle_object);
+    const text =
+        object instanceof point_object
+            ? `(${(value as number[]).map(formatNumber).join(", ")})`
+            : `${formatValue(value)}${degrees ? "°" : ""}`;
+    return line?.endsWith(` = ${text}`) ? "" : `= ${text}`;
+}
+
 export function lineOf(
     object: construction_object,
     index: ReadonlyMap<construction_object, number>,
