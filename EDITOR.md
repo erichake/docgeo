@@ -199,13 +199,16 @@ icônes :
   points (point sur objet, intersection, milieu ou centre) ;
   droites (segment, droite, demi-droite, vecteur) ; constructions
   (perpendiculaire, parallèle, médiatrice, bissectrice) ; cercles (centre et
-  point, trois points, sphère) ; polygone et angle ; symétries (centrale,
+  point, centre et rayon, trois points, sphère) ; polygone et angle ; symétries (centrale,
   axiale). Chaque outil garde toujours la même place, quel que soit l'objet
   désigné ; deux outils qui ne s'affichent jamais ensemble partagent une
   place (milieu de deux points, d'un segment, centre d'un cercle). La bande
   d'une famille couvre toutes ses places, même celles sans outil pour
   l'objet : l'élève retient la place autant que l'icône. Le rayon de
-  l'anneau est donc fixe (138 px). Un objet sans outil géométrique (texte,
+  l'anneau est donc fixe (145 px). Le cercle centre et rayon se crée
+  d'un clic, sans autre désignation : un rayon numérique d'environ 150 px
+  à l'échelle courante, arrondi à deux chiffres significatifs, qu'un
+  glisser du cercle change ensuite. Un objet sans outil géométrique (texte,
   expression, curseur…) n'ouvre pas d'anneau : le clic le sélectionne
   seulement. Près d'un bord de la figure, l'anneau
   se décale vers l'intérieur juste assez pour y tenir entier, plutôt que de
@@ -1006,6 +1009,11 @@ Fait (2026-10-11) :
   au format (`fc`, `fo`, `fe`, `fd`, `fg`, `fw`) et au dessin. Vérifié
   dans `editor.html` (réglages, annuler / refaire). Moteur partagé
   +0,7 Ko (+0,2 Ko en gzip), éditeur +1,1 Ko (+0,4 Ko en gzip).
+- Cercle centre et rayon dans l'anneau (2026-10-14) : `C1` à rayon
+  numérique d'environ 150 px, créé d'un clic (section « Anneau
+  d'outils ») ; une expression n'ouvre toujours pas d'anneau. Vérifié dans
+  `editor.html` (ligne survolée, création, rayon après un zoom). Éditeur
+  +0,2 Ko (+0,1 Ko en gzip) ; lecteur inchangé.
 
 Reste à faire :
 

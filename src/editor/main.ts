@@ -1339,6 +1339,9 @@ function firstArgs(
     object: construction_object,
 ): (Arg | undefined)[] {
     if (tool.mode !== "command") return [object];
+    // About 150 pixels, rounded to two significant digits.
+    if (tool.overload.tag === "C1")
+        return [object, Number((150 / scene().GRID.UNIT[0]).toPrecision(2))];
     const { params, variadic } = tool.overload;
     const args: (Arg | undefined)[] = variadic
         ? []
@@ -1359,6 +1362,7 @@ function describe(tool: Tool, args: (Arg | undefined)[]): string {
         return `${line}\n${message("designate_intersectable")}`;
     if (tool.overload.variadic && args.length >= 3)
         return `${line}\n${message("polygon_end")}`;
+    if (!tool.overload.variadic && !args.includes(undefined)) return line;
     const param = paramAt(tool.overload, nextSlot({ tool, args }))!;
     return `${line}\n${message(`designate_${param}`)}`;
 }

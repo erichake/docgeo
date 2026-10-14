@@ -162,6 +162,16 @@ const FAMILIES: [hue: number, slots: Tool[][], tone?: number][] = [
                 ),
             ],
             [
+                tool(
+                    "Circle",
+                    1,
+                    result(`<circle cx="9.5" cy="14.5" r="7"/>`) +
+                        path("M9.5 14.5h7", true) +
+                        dot(9.5, 14.5) +
+                        `<text x="15.5" y="9" font-size="12" font-family="Georgia, serif" font-style="italic" fill="currentColor" stroke="none">r</text>`,
+                ),
+            ],
+            [
                 tool("Circumcircle", 0, CIRCLE3),
                 tool("Circumcircle", 1, CIRCLE3),
             ],
@@ -258,6 +268,9 @@ export function toolsFor(object: construction_object, vec3: boolean): Tool[] {
         // A point is put on the object, an intersection with another.
         if (mode === "point") return accepts(object, "support");
         if (mode === "intersection") return accepts(object, "intersectable");
-        return overload.params.some((param) => accepts(object, param));
+        // A radius is given by the tool, not designated.
+        return overload.params.some(
+            (param) => param !== "real" && accepts(object, param),
+        );
     });
 }
