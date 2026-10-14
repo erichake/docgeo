@@ -315,6 +315,12 @@ body:not(.dge-adjusting) svg .dge-property-selected > foreignObject > div {
     grid-column: 4;
     justify-self: end;
 }
+.dge-view-rows > .dge-view-wide {
+    grid-column: 1 / 3;
+}
+.dge-view-rows > .dge-view-color {
+    grid-column: 3 / -1;
+}
 .dge-view-axis {
     font:
         italic 15px/1 "Times New Roman",

@@ -565,7 +565,13 @@ au lecteur, et doit rester plus clair que le panneau de GeoGebra :
   pas choisie (`gc` nul) ; un bouton l'y ramène.
 - **Figure** : fond, degrés ou radians, segments au-dessus des polygones ;
   les deux derniers relisent la figure.
-- En 3D : couleur et épaisseur du trièdre, sol, perspective.
+- En 3D, au lieu du repère plan, les sections reprennent ce qui est
+  dessiné : **Axes** (interrupteur `ax` du trièdre seul : couleur,
+  épaisseur), **Sol** (interrupteur `fl` : couleur, que son bouton ramène
+  au bleu et brun de DGPad, opacité, taille, écart, couleur et épaisseur
+  des lignes, leur couleur suivant celle du sol tant qu'elle n'est pas
+  choisie) et **Vue**
+  (perspective). Le bouton « Repère » de la barre montre ou cache les deux.
 
 Un réglage masqué (repère ou grille éteints) reste réglable, atténué. Les
 réglages s'appliquent en direct et chaque modification est une étape
@@ -989,6 +995,11 @@ Fait (2026-10-11) :
   dessin, à l'import et dans l'onglet « Figure ». Vérifié face au rendu de
   GeoGebra sur des figures du corpus. Lecteur +1,9 Ko (+0,8 Ko en gzip),
   éditeur +1,3 Ko (+0,4 Ko en gzip).
+- Onglet « Figure » en 3D (2026-10-14) : sections Axes, Sol et Vue ;
+  couleur, opacité, taille, écart, couleur et épaisseur des lignes du sol
+  au format (`fc`, `fo`, `fe`, `fd`, `fg`, `fw`) et au dessin. Vérifié
+  dans `editor.html` (réglages, annuler / refaire). Moteur partagé
+  +0,7 Ko (+0,2 Ko en gzip), éditeur +1,1 Ko (+0,4 Ko en gzip).
 
 Reste à faire :
 

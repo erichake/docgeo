@@ -153,6 +153,12 @@ enregistrée `w` × `h` est centrée dans la fenêtre au pixel près, en 2D comm
 | `nu` | nombres des axes affichés (Ox, Oy)   | [1, 1]          |
 | `au` | unités des nombres (Ox, Oy)          | ["", ""]        |
 | `ah` | flèches des axes                     | 0               |
+| `fc` | couleur du sol                       | `null`          |
+| `fo` | opacité du sol                       | 0.3             |
+| `fd` | écart des lignes du sol              | 1               |
+| `fg` | couleur des lignes du sol            | `null`          |
+| `fw` | épaisseur des lignes du sol          | 0.5             |
+| `fe` | demi-côté du sol                     | 8               |
 
 Dans une figure plane, comme dans GeoGebra : `td` est, par axe, la distance
 fixe entre deux nombres, une petite graduation à mi-chemin (0 : distance
@@ -179,6 +185,14 @@ force de dézoomer, les lignes secondaires seraient à moins de 3 pixels), `gs`
 le nombre d'intervalles entre deux lignes principales (0 : ceux des
 graduations, 1 : pas de lignes secondaires), `gc` sa couleur (`null` : celle
 des axes) et `gl` ses pointillés, en pixels comme `dh`.
+
+Sol d'une figure 3D (plan z = 0, carré centré sur l'origine, en unités de la
+figure) : `fc` sa couleur (`null` : bleu vu de dessus, brun vu de dessous, comme
+DGPad), `fo` l'opacité de son remplissage, `fd` l'écart de ses lignes,
+parallèles aux axes et passant par l'origine (0 : aucune), `fg` leur couleur
+(`null` : celle du sol, à demi transparente ; une couleur choisie est opaque),
+`fw` leur épaisseur en pixels, `fe` son demi-côté. `ax` et `fl` sont
+indépendants : le trièdre et le sol se montrent séparément.
 
 `f2` : coordonnées, dans le repère 2D d'une figure 3D de DGPad, de son origine
 3D. Ses objets 2D (points libres, points de formule à deux coordonnées, axes,

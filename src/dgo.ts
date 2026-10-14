@@ -501,6 +501,42 @@ const VIEW: Record<string, Property> = {
     ah: field(grid_object, "arrows", 0, (value) =>
         [0, 1, 2, 3].includes(value as number),
     ),
+    fc: field(
+        grid_object,
+        "floorColor",
+        null,
+        (value) => value === null || isColor(value),
+    ),
+    fo: field(
+        grid_object,
+        "floorOpacity",
+        0.3,
+        (value) => isNumber(value) && value >= 0 && value <= 1,
+    ),
+    fd: field(
+        grid_object,
+        "floorStep",
+        1,
+        (value) => isNumber(value) && (value === 0 || value >= 0.05),
+    ),
+    fg: field(
+        grid_object,
+        "floorLineColor",
+        null,
+        (value) => value === null || isColor(value),
+    ),
+    fw: field(
+        grid_object,
+        "floorLineWidth",
+        0.5,
+        (value) => isNumber(value) && value >= 0,
+    ),
+    fe: field(
+        grid_object,
+        "floorExtent",
+        8,
+        (value) => isNumber(value) && value > 0 && value <= 100,
+    ),
 };
 
 function initial(property: Property, tag: string, settings: Settings): Json {

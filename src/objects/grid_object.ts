@@ -15,18 +15,11 @@ import { point_object } from "./point_object";
 import { pathData, polygon_object } from "./polygon_object";
 import type { sphere_object } from "./sphere_object";
 
-// Half-side, in math units, of the floor's finite tiling. Kept smaller than
-// the visible area on purpose: a floor covering the whole window would read
-// as a flat background instead of a plane sitting in space.
-const FLOOR_EXTENT = 8;
-
 // The floor is two-sided: a blue "sky" tone seen from above (z>0 looking
 // down), an earthy brown seen from below, so which side is currently facing
 // the camera is never ambiguous.
 const FLOOR_TOP_COLOR = "rgb(35,141,227)";
 const FLOOR_BOTTOM_COLOR = "rgb(139,94,52)";
-const FLOOR_FILL_OPACITY = "0.3";
-const FLOOR_LINE_OPACITY = "0.5";
 
 function floorCorners(n: number): Vec3[] {
     return [
@@ -110,6 +103,18 @@ export class grid_object extends construction_object {
     gridSubdivisions = 0;
     gridColor: string | null = null;
     gridDash: number[] = [];
+    // The 3D floor: its color (null: blue above, brown below), opacity,
+    // its lines' distance (0: none), color (null: half-transparent, the
+    // floor's) and width, and its half-side, kept smaller than the window by
+    // default: a floor covering it would read as a flat background instead
+    // of a plane sitting in space.
+    floorColor: string | null = null;
+    floorOpacity = 0.3;
+    floorStep = 1;
+    floorLineColor: string | null = null;
+    floorLineWidth = 0.5;
+    private _floorExtent = 8;
+    private floorPoints: point_object[] = [];
     private axes2D!: axes_2d;
     // Defaults to shown, matching the default-visible axis (isAxis defaults
     // to true); applyCoordsStyle keeps the two in sync when isAxis is set
@@ -145,12 +150,16 @@ export class grid_object extends construction_object {
         // resolve DGP names through the parser's own variables map, not
         // this internal .name, so a collision here never breaks import, but
         // it does leave the object's displayed/looked-up name wrong).
-        const corners = floorCorners(FLOOR_EXTENT).map((p, index) => {
+        this.floorPoints = floorCorners(this._floorExtent).map((p, index) => {
             const point = new point_object(this.C, `floor corner ${index}`, p);
             point.hidden = 2;
             return this.C.add(point);
         });
-        const occluder = new polygon_object(this.C, "floor occluder", corners);
+        const occluder = new polygon_object(
+            this.C,
+            "floor occluder",
+            this.floorPoints,
+        );
         occluder.opacity = 0;
         occluder.size = 0;
         occluder.hidden = this._showFloor ? 0 : 1;
@@ -163,6 +172,17 @@ export class grid_object extends construction_object {
     set SHOWFLOOR(value: boolean) {
         this._showFloor = value;
         this.floorOccluder.hidden = value ? 0 : 1;
+    }
+
+    get floorExtent(): number {
+        return this._floorExtent;
+    }
+    set floorExtent(value: number) {
+        this._floorExtent = value;
+        const corners = floorCorners(value);
+        this.floorPoints.forEach((point, index) => {
+            point.coords = corners[index];
+        });
     }
 
     project(): void {
@@ -227,12 +247,20 @@ export class grid_object extends construction_object {
         // The camera looks down at the top (z>0 side) when moving toward it
         // decreases depth-along-DIR there, i.e. when DIR's z component is
         // negative; otherwise it's looking up at the underside.
-        const color = this.DIR[2] < 0 ? FLOOR_TOP_COLOR : FLOOR_BOTTOM_COLOR;
-        this.floorFill.stl("fill", color);
-        this.floorLines.stl("stroke", color);
+        const color =
+            this.floorColor ??
+            (this.DIR[2] < 0 ? FLOOR_TOP_COLOR : FLOOR_BOTTOM_COLOR);
+        this.floorFill
+            .stl("fill", color)
+            .stl("fill-opacity", String(this.floorOpacity));
+        this.floorLines
+            .stl("stroke", this.floorLineColor ?? color)
+            .stl("stroke-opacity", this.floorLineColor ? "1" : "0.5")
+            .stl("stroke-width", String(this.floorLineWidth));
 
         const frame = this.projectionFrame;
-        const n = FLOOR_EXTENT;
+        const n = this._floorExtent;
+        const step = this.floorStep;
         const project2 = (p: Vec3) => projectPoint(p, frame);
 
         const screenCorners = floorCorners(n).map(project2);
@@ -242,14 +270,16 @@ export class grid_object extends construction_object {
         );
 
         let d = "";
-        for (let k = -n; k <= n; k++) {
-            const [x1, y1] = project2([k, -n, 0]);
-            const [x2, y2] = project2([k, n, 0]);
-            d += `M${x1} ${y1} L${x2} ${y2}`;
-            const [x3, y3] = project2([-n, k, 0]);
-            const [x4, y4] = project2([n, k, 0]);
-            d += `M${x3} ${y3} L${x4} ${y4}`;
-        }
+        if (step > 0)
+            for (let k = -Math.floor(n / step); k * step <= n + 1e-9; k++) {
+                const t = k * step;
+                const [x1, y1] = project2([t, -n, 0]);
+                const [x2, y2] = project2([t, n, 0]);
+                d += `M${x1} ${y1} L${x2} ${y2}`;
+                const [x3, y3] = project2([-n, t, 0]);
+                const [x4, y4] = project2([n, t, 0]);
+                d += `M${x3} ${y3} L${x4} ${y4}`;
+            }
         this.floorLines.att("d", d);
 
         this.floorClipShape.att(
@@ -318,14 +348,9 @@ export class grid_object extends construction_object {
         const floorGroup = t.svg.shape("g").stl("clip-path", `url(#${clipId})`);
         t.floorFill = t.svg
             .shape("polygon")
-            .stl("fill-opacity", FLOOR_FILL_OPACITY)
             .stl("stroke", "none")
             .stl("pointer-events", "none");
-        t.floorLines = t.svg
-            .shape("path")
-            .stl("stroke-width", "0.5")
-            .stl("stroke-opacity", FLOOR_LINE_OPACITY)
-            .stl("pointer-events", "none");
+        t.floorLines = t.svg.shape("path").stl("pointer-events", "none");
         floorGroup.add(t.floorFill, t.floorLines);
         dom.add(floorGroup);
 

@@ -81,6 +81,9 @@ const DASHES: [number[], MessageKey][] = [
 
 const SUBDIVISIONS = [0, 1, 2, 4, 5, 10];
 
+// The floor's own, seen from above.
+const FLOOR_COLOR = "rgb(35,141,227)";
+
 const LINK_ICON =
     '<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M6.5 9.5l3-3M7 4.6l1.1-1.1a2.6 2.6 0 0 1 3.7 3.7L10.7 8.3M9 11.4l-1.1 1.1a2.6 2.6 0 0 1-3.7-3.7l1.1-1.1"/></svg>';
 
@@ -243,12 +246,19 @@ export function viewSettings(
     const label = (key: MessageKey) =>
         $.create("span").cls("dge-view-label").text(message(key));
 
-    // A label, then its control: a field in the column of y, else across
-    // the columns of x and y.
+    // A label, then its control: a field in the column of y, a color with
+    // its reset button after the column of x, else across the columns of x
+    // and y.
     function row(rows: DOMElement, key: MessageKey, control: DOMElement): void {
-        const field = control.dom() instanceof HTMLInputElement;
+        const dom = control.dom();
+        const field = dom instanceof HTMLInputElement;
         rows.add(
-            label(key).toggleClass("dge-view-long", field),
+            label(key)
+                .toggleClass("dge-view-long", field)
+                .toggleClass(
+                    "dge-view-wide",
+                    dom.classList.contains("dge-view-color"),
+                ),
             control.addClass(field ? "dge-view-field" : "dge-view-control"),
         );
     }
@@ -501,14 +511,15 @@ export function viewSettings(
         return field;
     }
 
-    const coords = section("coords", [
+    // In 3D, for the trihedron alone.
+    const shown: [boolean, (on: boolean) => void] = [
         grid.hidden === 0,
         (on) => {
             box.toggleClass("dge-coords-off", !on);
             grid.hidden = on ? 0 : 1;
             redraw(true);
         },
-    ]);
+    ];
     box.toggleClass("dge-coords-off", grid.hidden !== 0);
     let followAxes = (_color: string) => {};
     const axesStyle = (rows: DOMElement) => {
@@ -536,7 +547,49 @@ export function viewSettings(
         );
     };
 
+    // A color, back to `initial` (null) by a button that `title` names.
+    function resettable(
+        name: string,
+        title: MessageKey,
+        value: string | null,
+        initial: string,
+        change: (value: string | null) => void,
+    ): { field: DOMElement; follow: (value: string) => void } {
+        let chosen = value !== null;
+        const swatch = color(name, value ?? initial, (next) => {
+            chosen = true;
+            change(next);
+            reset.stl("visibility", "visible");
+        });
+        const reset = $.create("button")
+            .cls("dge-reset")
+            .att("type", "button")
+            .att("title", message(title))
+            .att("aria-label", message(title))
+            .stl("visibility", chosen ? "visible" : "hidden")
+            .append(
+                '<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 6.5A5 5 0 1 1 3 9.5M3.5 2.5v4h4"/></svg>',
+            );
+        fields.push(reset);
+        const input = swatch.dom() as HTMLInputElement;
+        reset.on("click", () => {
+            chosen = false;
+            input.value = hexColor(initial);
+            reset.stl("visibility", "hidden");
+            change(null);
+            commit();
+        });
+        return {
+            field: $.create("div").cls("dge-view-color").add(reset, swatch),
+            follow: (next) => {
+                initial = next;
+                if (!chosen) input.value = hexColor(next);
+            },
+        };
+    }
+
     if (grid.is2D) {
+        const coords = section("coords", shown);
         const presets = $.create("div").cls("dge-presets");
         const buttons = PRESETS.map(([key, preset]) => {
             const looks = { ...DGPAD, ...preset };
@@ -751,42 +804,15 @@ export function viewSettings(
                 draw((value) => (grid.gridSubdivisions = value)),
             ),
         );
-        const swatch = color(
+        const gridColor = resettable(
             message("grid_color"),
-            grid.gridColor ?? grid.stroke_color,
-            draw((value) => {
-                grid.gridColor = value;
-                reset.stl("visibility", "visible");
-            }),
+            "same_as_axes",
+            grid.gridColor,
+            grid.stroke_color,
+            draw((value) => (grid.gridColor = value)),
         );
-        const reset = $.create("button")
-            .cls("dge-reset")
-            .att("type", "button")
-            .att("title", message("same_as_axes"))
-            .att("aria-label", message("same_as_axes"))
-            .stl("visibility", grid.gridColor ? "visible" : "hidden")
-            .append(
-                '<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 6.5A5 5 0 1 1 3 9.5M3.5 2.5v4h4"/></svg>',
-            );
-        fields.push(reset);
-        reset.on("click", () => {
-            grid.gridColor = null;
-            (swatch.dom() as HTMLInputElement).value = hexColor(
-                grid.stroke_color,
-            );
-            reset.stl("visibility", "hidden");
-            redraw();
-            commit();
-        });
-        followAxes = (value) => {
-            if (!grid.gridColor)
-                (swatch.dom() as HTMLInputElement).value = value;
-        };
-        row(
-            lines,
-            "color",
-            $.create("div").cls("dge-view-color").add(reset, swatch),
-        );
+        followAxes = gridColor.follow;
+        row(lines, "color", gridColor.field);
         row(
             lines,
             "thickness",
@@ -828,18 +854,78 @@ export function viewSettings(
             }),
         );
     } else {
-        axesStyle(coords);
+        axesStyle(section("axes_section", shown));
+        const floor = section("floor", [
+            grid.SHOWFLOOR,
+            draw((on) => (grid.SHOWFLOOR = on), true),
+        ]);
+        let followFloor = (_color: string) => {};
         row(
-            coords,
-            "floor",
-            checkbox(
-                message("floor"),
-                grid.SHOWFLOOR,
-                draw((value) => (grid.SHOWFLOOR = value), true),
-            ),
+            floor,
+            "color",
+            resettable(
+                message("floor_color"),
+                "floor_colors",
+                grid.floorColor,
+                FLOOR_COLOR,
+                draw((value) => {
+                    grid.floorColor = value;
+                    followFloor(value ?? FLOOR_COLOR);
+                }),
+            ).field,
         );
         row(
-            coords,
+            floor,
+            "opacity",
+            number(
+                message("opacity"),
+                grid.floorOpacity,
+                [0, 1, 0.05, { pixel: 0.005 }],
+                draw((value) => (grid.floorOpacity = value)),
+            ).field,
+        );
+        row(
+            floor,
+            "floor_size",
+            number(
+                message("floor_size"),
+                grid.floorExtent * 2,
+                [1, 200, 1, { pixel: 0.1 }],
+                draw((value) => (grid.floorExtent = value / 2), true),
+            ).field,
+        );
+        row(
+            floor,
+            "grid_distance",
+            number(
+                message("grid_distance"),
+                grid.floorStep,
+                [0, 100, 0.05, { pixel: 0.01, relative: true }],
+                draw((value) => (grid.floorStep = value)),
+            ).field,
+        );
+        const lineColor = resettable(
+            message("floor_line_color"),
+            "same_as_floor",
+            grid.floorLineColor,
+            grid.floorColor ?? FLOOR_COLOR,
+            draw((value) => (grid.floorLineColor = value)),
+        );
+        followFloor = lineColor.follow;
+        row(floor, "floor_line_color", lineColor.field);
+        row(
+            floor,
+            "floor_line_width",
+            number(
+                message("floor_line_width"),
+                grid.floorLineWidth,
+                [0, 10, 0.1, { pixel: 0.01 }],
+                draw((value) => (grid.floorLineWidth = value)),
+            ).field,
+        );
+        const view = section("view_section");
+        row(
+            view,
             "perspective",
             checkbox(
                 message("perspective"),
