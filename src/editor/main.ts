@@ -188,7 +188,9 @@ $("head").append(`<style>
     .dge-stepping .dge-input { display: none; }
     .dge-entry { container-type: inline-size; }
     @container (max-width: 270px) { .dge-steps .dge-end-step { display: none; } }
-    .dge-entry { position: sticky; bottom: 0; padding: 10px 12px 12px; background: #fff; z-index: 1; }
+    .dge-entry { padding: 10px 12px; border-block-end: 1px solid #e5e7eb; }
+    #dge-history { display: flex; flex-direction: column; overflow: hidden; }
+    .dge-rows { flex: 1; overflow: auto; }
     .dge-input { width: 100%; box-sizing: border-box; padding: 8px 12px; border: 1px solid #dbe2ea; border-radius: 9px; background: #f8fafc; font: 13.5px/1.5 var(--dge-code); color: inherit; outline: none; transition: border-color 0.15s, box-shadow 0.15s; }
     .dge-input:hover { border-color: #c5cfdb; }
     .dge-input:focus { border-color: #2563eb; background: #fff; box-shadow: 0 0 0 3px rgb(37 99 235 / 0.15); }
@@ -282,7 +284,7 @@ const panel = $.create("aside")
     .cls("dge-panel")
     .att("id", "dge-history")
     .att("aria-label", message("history"));
-const rowsBox = $.create("div");
+const rowsBox = $.create("div").cls("dge-rows");
 const count = $.create("span").cls("dge-count");
 const valuesButton = button("show_values", () => {
     valuesShown = !valuesShown;
@@ -576,8 +578,8 @@ $("body").add(
                     (historyButton.dom() as HTMLButtonElement).focus();
                 }),
             ),
-        rowsBox,
         $.create("div").cls("dge-entry").add(input, stepsBar),
+        rowsBox,
     ),
     resizeHandle(panel, "left", () => "--dge-panel-user"),
     $.create("nav")
