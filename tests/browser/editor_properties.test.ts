@@ -87,9 +87,11 @@ describe("Object properties", () => {
         properties.select(c.getObj("A")!);
         const input = field("point_size");
         const box = centerAt(properties.panel.dom() as HTMLElement, input, 100);
-        const target = $.create("div").stl(
-            `position:fixed;left:${box.left + box.width / 2 + 46}px;top:${box.top + box.height / 2 - 2}px;width:4px;height:4px`,
-        );
+        const target = $.create("div")
+            .stl(
+                `position:fixed;left:${box.left + box.width / 2 + 46}px;top:${box.top + box.height / 2 - 2}px;width:4px;height:4px`,
+            )
+            .att("data-testid", "drop");
         $("body").add(target);
         const seen: number[] = [];
         $(input).on("pointermove", () => seen.push(c.getObj("A")!.size), false);
@@ -116,9 +118,11 @@ describe("Object properties", () => {
         properties.select(c.getObj("A")!);
         const input = field("point_size");
         const box = centerAt(properties.panel.dom() as HTMLElement, input, 220);
-        const target = $.create("div").stl(
-            `position:fixed;left:${box.left + box.width / 2 + 100}px;top:${box.top + box.height / 2 - 2}px;width:4px;height:4px`,
-        );
+        const target = $.create("div")
+            .stl(
+                `position:fixed;left:${box.left + box.width / 2 + 100}px;top:${box.top + box.height / 2 - 2}px;width:4px;height:4px`,
+            )
+            .att("data-testid", "drop");
         $("body").add(target);
         await userEvent.keyboard("{Shift>}");
         await userEvent.dragAndDrop(input, target.dom());
@@ -139,9 +143,11 @@ describe("Object properties", () => {
         change("stroke_opacity", "0");
         const input = field("stroke_opacity");
         const box = centerAt(properties.panel.dom() as HTMLElement, input, 100);
-        const target = $.create("div").stl(
-            `position:fixed;left:${box.left + box.width / 2 + 140}px;top:${box.top + box.height / 2 - 2}px;width:4px;height:4px`,
-        );
+        const target = $.create("div")
+            .stl(
+                `position:fixed;left:${box.left + box.width / 2 + 140}px;top:${box.top + box.height / 2 - 2}px;width:4px;height:4px`,
+            )
+            .att("data-testid", "drop");
         $("body").add(target);
         await userEvent.dragAndDrop(input, target.dom());
         expect(c.getObj("A")!.strokeOpacity).toBeCloseTo(0.7, 1);
@@ -342,7 +348,7 @@ describe("Object properties", () => {
                 (button) => button.textContent === message(key),
             )!;
         properties.select(scene.getObj("p")!);
-        expect(panel.dom().classList).toContain("dge-properties-wide");
+        expect(document.body.classList).toContain("dge-properties-wide");
         expect(area().value).toBe(
             'if(a>2){s.setHidden(1)}else{s.setHidden(0)};"Faces"',
         );
@@ -394,10 +400,10 @@ describe("Object properties", () => {
         // A constant's value too, in a narrower panel.
         properties.select(studio.scene.getObj("a")!);
         expect(area().value).toBe("3");
-        expect(panel.dom().classList).not.toContain("dge-properties-wide");
+        expect(document.body.classList).not.toContain("dge-properties-wide");
         // A new program, named and written before it exists.
         properties.create("q");
-        expect(panel.dom().classList).toContain("dge-properties-wide");
+        expect(document.body.classList).toContain("dge-properties-wide");
         expect(
             (
                 panel
@@ -484,9 +490,11 @@ describe("Figure settings", () => {
             `${message("tick_distance")} x`,
         ) as HTMLInputElement;
         const box = centerAt(properties.panel.dom() as HTMLElement, input, 100);
-        const target = $.create("div").stl(
-            `position:fixed;left:${box.left + box.width / 2 + 120}px;top:${box.top + box.height / 2 - 2}px;width:4px;height:4px`,
-        );
+        const target = $.create("div")
+            .stl(
+                `position:fixed;left:${box.left + box.width / 2 + 120}px;top:${box.top + box.height / 2 - 2}px;width:4px;height:4px`,
+            )
+            .att("data-testid", "drop");
         $("body").add(target);
         await userEvent.dragAndDrop(input, target.dom());
         const [x, y] = c.GRID.tickDistances;
