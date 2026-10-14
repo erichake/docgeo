@@ -771,8 +771,9 @@ const asSaved = <T>(write: () => Promise<T>): Promise<T> =>
 
 function propertyObject(event: PointerEvent): construction_object | null {
     const target = element(event.target);
+    const ignored = previewed();
     const objects = figureObjects(scene()).filter(
-        (object) => object.isVisible && object.hasView,
+        (object) => object.isVisible && object.hasView && !ignored.has(object),
     );
     const direct = objects.find(
         (object) => target && object.dom.dom().contains(target),
