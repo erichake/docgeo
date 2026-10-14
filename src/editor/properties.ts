@@ -5,6 +5,7 @@ import { $, type DOMElement } from "../dom";
 import { DIR } from "../i18n";
 import { angle_object, RIGHT_ANGLE_MARKS } from "../objects/angle_object";
 import type { construction_object } from "../objects/construction_object";
+import type { grid_object } from "../objects/grid_object";
 import { expression_object } from "../objects/expression_object";
 import { expression_list_object } from "../objects/expression_list_object";
 import { fixed_angle_object } from "../objects/fixed_angle_object";
@@ -16,10 +17,31 @@ import { polygon_object } from "../objects/polygon_object";
 import { segment_object } from "../objects/segment_object";
 import { expressionSource } from "./figure";
 import { message, type MessageKey } from "./messages";
-import { scrubNumber } from "./scrub";
+import { scrubNumber, type Scrub } from "./scrub";
 import { formatProgram, syntaxLine, TextError } from "./text";
+import { hexColor, viewSettings, type ViewOptions } from "./view_settings";
 
 type Field = HTMLInputElement | HTMLSelectElement;
+
+// How each number follows a drag (see Scrub).
+const SCRUB = {
+    point_size: { pixel: 0.05 },
+    thickness: { pixel: 0.05 },
+    stroke_opacity: { pixel: 0.5 },
+    fill_opacity: { pixel: 0.5 },
+    level: { pixel: 0.1 },
+    font_size: { pixel: 0.1 },
+    name_position: { pixel: 1.8 },
+    step_x: { pixel: 0.005, relative: true },
+    step_y: { pixel: 0.005, relative: true },
+    arc_radius: { pixel: 0.5 },
+    samples: { pixel: 1, relative: true },
+    segments_size: { pixel: 0.05 },
+    increment: { pixel: 0.005, relative: true },
+    slider_length: { pixel: 2 },
+    knob_size: { pixel: 0.1 },
+    animation_speed: { pixel: 0.02, relative: true },
+} satisfies Partial<Record<MessageKey, Scrub>>;
 
 const PROGRAM_PLACEHOLDER =
     "var t = [];\nfor (var i = 0; i < 10; i++) {\n    t.push([i, 0]);\n}\nt";
@@ -32,6 +54,7 @@ export function propertiesPanel(options: {
     define: (object: expression_object, source: string) => Promise<void>;
     // A new expression, given a name or not.
     create: (name: string, source: string) => Promise<void>;
+    figure: ViewOptions["figure"];
     close: () => void;
 }) {
     const panel = $.create("aside")
@@ -50,17 +73,38 @@ export function propertiesPanel(options: {
     close.on("click", options.close);
     const picker = $.create("select").att("aria-label", message("object"));
     const content = $.create("div").cls("dge-property-content");
+    const objectPane = $.create("div")
+        .att("role", "tabpanel")
+        .add($.create("div").cls("dge-property-picker").add(picker), content);
+    const figurePane = $.create("div").att("role", "tabpanel").hide();
+    const tab = (key: MessageKey, figure: boolean) => {
+        const button = $.create("button")
+            .att("type", "button")
+            .att("role", "tab")
+            .att("aria-selected", String(!figure))
+            .text(message(key));
+        button.on("click", () => (figure ? showFigure() : select(selected)));
+        return button;
+    };
+    const tabs = [tab("tab_object", false), tab("tab_figure", true)];
     panel.add(
         $.create("div")
             .cls("dge-panel-header")
             .add($.create("h2").text(message("properties")), close),
-        $.create("div").cls("dge-property-picker").add(picker),
-        content,
+        $.create("div")
+            .cls("dge-tabs")
+            .att("role", "tablist")
+            .add(...tabs),
+        objectPane,
+        figurePane,
     );
     let adjusting = 0;
     let selected: construction_object | null = null;
+    // The grid the figure tab shows, while it does.
+    let shownGrid: grid_object | null = null;
     let all = false;
     const fields: DOMElement[] = [];
+    const figureFields: DOMElement[] = [];
     const objects = () =>
         figureObjects(options.scene()).filter(({ hidden }) => hidden !== 2);
     picker.on(
@@ -103,7 +147,41 @@ export function propertiesPanel(options: {
         refreshPicker();
     }
 
+    function showTab(figure: boolean): void {
+        tabs.forEach((button, index) =>
+            button.att("aria-selected", String((index === 1) === figure)),
+        );
+        [objectPane, figurePane].forEach((pane, index) =>
+            (index === 1) === figure ? pane.show() : pane.hide(),
+        );
+        figureFields.splice(0).forEach((field) => field.dispose());
+        figurePane.inner("");
+        shownGrid = null;
+    }
+
+    // The coordinate system, the view and the figure's own settings.
+    function showFigure(): void {
+        showTab(true);
+        selected?.dom?.removeClass("dge-property-selected");
+        $("body").removeClass("dge-properties-wide");
+        shownGrid = options.scene().GRID;
+        figureFields.push(
+            ...viewSettings(figurePane, {
+                scene: options.scene,
+                changed: options.changed,
+                figure: options.figure,
+                rebuild: showFigure,
+            }),
+        );
+    }
+
+    // Kept while the figure tab shows, which an empty click doesn't leave.
     function select(object: construction_object | null): void {
+        if (shownGrid && !object) {
+            selected = null;
+            return;
+        }
+        if (shownGrid) showTab(false);
         clear(
             object,
             object instanceof expression_object &&
@@ -223,7 +301,7 @@ export function propertiesPanel(options: {
 
     function number(
         box: DOMElement,
-        key: MessageKey,
+        key: keyof typeof SCRUB,
         value: number,
         min: number,
         max: number,
@@ -247,6 +325,7 @@ export function propertiesPanel(options: {
                 apply((object) => change(object, value));
             },
             options.changed,
+            SCRUB[key],
         );
         field.on(
             "input",
@@ -725,6 +804,7 @@ export function propertiesPanel(options: {
     // as typing is.
     // A program to be made, written before it exists.
     function create(name: string): void {
+        if (shownGrid) showTab(false);
         clear(null, true);
         const field = $.create("input")
             .att("type", "text")
@@ -856,10 +936,16 @@ export function propertiesPanel(options: {
         }
     }
 
-    function refresh(): void {
+    // `figure`: the figure tab built again, its settings changed elsewhere.
+    function refresh(figure = false): void {
         const object = selected && options.scene().getObj(selected.name);
-        if (object !== selected) select(object ?? null);
-        else refreshPicker();
+        if (!shownGrid) {
+            if (object !== selected) select(object ?? null);
+            else refreshPicker();
+        } else {
+            selected = object ?? null;
+            if (figure || shownGrid !== options.scene().GRID) showFigure();
+        }
     }
 
     select(null);
@@ -868,25 +954,10 @@ export function propertiesPanel(options: {
         select,
         create,
         refresh,
+        figure: showFigure,
+        // None while the figure tab shows.
         get selected() {
-            return selected;
+            return shownGrid ? null : selected;
         },
     };
-}
-
-function hexColor(color: string): string {
-    if (color.startsWith("#"))
-        return color.length === 4
-            ? "#" +
-                  [...color.slice(1)]
-                      .map((channel) => channel + channel)
-                      .join("")
-            : color;
-    return (
-        "#" +
-        color
-            .match(/\d+/g)!
-            .map((channel) => Number(channel).toString(16).padStart(2, "0"))
-            .join("")
-    );
 }

@@ -1,9 +1,23 @@
 import { $, type DOMElement } from "../dom";
 
+// How far a number follows the pointer: by `pixel` per pixel, chosen so that
+// a gesture of about 200 pixels spans the setting's useful range; or, for a
+// quantity without a natural scale (`relative`), by 1 % of itself per pixel,
+// but at least `pixel`, rounded to two significant digits (three with
+// Shift).
+export interface Scrub {
+    pixel: number;
+    relative?: boolean;
+}
+
+const decimals = (quantum: number): number =>
+    Math.max(0, -Math.floor(Math.log10(quantum) + 1e-9));
+
 export function scrubNumber(
     field: DOMElement,
     update: (value: number) => void,
     commit: () => void,
+    { pixel, relative = false }: Scrub,
 ): void {
     const input = field.dom() as HTMLInputElement;
     const min = Number(input.min);
@@ -15,7 +29,6 @@ export function scrubNumber(
         origin: number;
         x: number;
         amount: number;
-        sensitivity: number;
         dragging: boolean;
         changed: boolean;
     } | null = null;
@@ -36,13 +49,13 @@ export function scrubNumber(
             event.stopPropagation();
             if (document.activeElement instanceof HTMLElement)
                 document.activeElement.blur();
-            const start = input.valueAsNumber;
+            // Empty: an automatic value, 0.
+            const start = input.valueAsNumber || 0;
             gesture = {
                 id: event.pointerId,
                 origin: event.clientX,
                 x: event.clientX,
                 amount: start,
-                sensitivity: Math.max(step, Math.abs(start) * 0.01) / 4,
                 dragging: false,
                 changed: false,
             };
@@ -62,21 +75,39 @@ export function scrubNumber(
             event.preventDefault();
             gesture.dragging = true;
             field.addClass("dge-scrubbing");
+            const fine = event.shiftKey ? 10 : 1;
+            const amount = gesture.amount;
+            const rate = relative
+                ? Math.max(pixel, Math.abs(amount) * 0.01)
+                : pixel;
             gesture.amount = Math.max(
                 min,
                 Math.min(
                     max,
-                    gesture.amount +
-                        ((event.clientX - gesture.x) * gesture.sensitivity) /
-                            (event.shiftKey ? 10 : 1),
+                    amount + ((event.clientX - gesture.x) * rate) / fine,
                 ),
             );
             gesture.x = event.clientX;
+            const size = Math.abs(gesture.amount);
+            const quantum =
+                relative && size >= step
+                    ? Math.max(
+                          step,
+                          10 ** (Math.floor(Math.log10(size)) - 1) / fine,
+                      )
+                    : step;
+            // From the bound, or from 0 if relative, for round values.
+            const origin = relative ? 0 : min;
             const value = Number(
-                (
-                    min +
-                    Math.round((gesture.amount - min) / step) * step
-                ).toFixed(digits),
+                Math.max(
+                    min,
+                    Math.min(
+                        max,
+                        origin +
+                            Math.round((gesture.amount - origin) / quantum) *
+                                quantum,
+                    ),
+                ).toFixed(Math.max(digits, decimals(quantum))),
             );
             if (value !== input.valueAsNumber) {
                 gesture.changed = true;

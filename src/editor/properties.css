@@ -49,6 +49,10 @@
     border-bottom: 1px solid #e5e7eb;
 }
 .dge-property-section h3 {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
     margin: 0 0 12px;
     font-size: 12px;
     font-weight: 600;
@@ -248,4 +252,268 @@ body:not(.dge-adjusting) svg .dge-property-selected > foreignObject > div {
 .dge-program-actions button:disabled {
     opacity: 0.5;
     cursor: default;
+}
+.dge-tabs {
+    display: flex;
+    gap: 2px;
+    margin: 12px 16px 0;
+    padding: 3px;
+    border-radius: 9px;
+    background: #f1f5f9;
+}
+.dge-tabs button {
+    flex: 1;
+    padding: 5px 10px;
+    border: 0;
+    border-radius: 7px;
+    background: none;
+    color: #64748b;
+    font: inherit;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition:
+        background 0.15s,
+        color 0.15s;
+}
+.dge-tabs button:hover {
+    color: #1f2937;
+}
+.dge-tabs button[aria-selected="true"] {
+    background: #fff;
+    color: #1f2937;
+    box-shadow:
+        0 1px 2px rgb(15 23 42 / 0.1),
+        0 1px 3px rgb(15 23 42 / 0.06);
+}
+.dge-properties button:focus-visible {
+    outline: 2px solid #2563eb;
+    outline-offset: 1px;
+}
+/* The figure tab: a label, then x, the link between them and y. */
+.dge-view-rows {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 64px 18px 64px;
+    align-items: center;
+    gap: 10px 4px;
+    font-size: 13px;
+}
+.dge-view-rows > * {
+    justify-self: center;
+}
+.dge-view-rows > .dge-view-label {
+    justify-self: stretch;
+}
+.dge-view-rows > .dge-view-control {
+    grid-column: 2 / -1;
+    justify-self: end;
+}
+.dge-view-rows > .dge-view-long {
+    grid-column: 1 / 4;
+}
+.dge-view-rows > .dge-view-field {
+    grid-column: 4;
+    justify-self: end;
+}
+.dge-view-axis {
+    font:
+        italic 15px/1 "Times New Roman",
+        serif;
+    color: #64748b;
+}
+.dge-view-rows input[type="number"] {
+    width: 64px;
+}
+.dge-view-rows input[type="number"]::placeholder {
+    color: #94a3b8;
+}
+.dge-view-rows input[type="checkbox"]:not(.dge-switch) {
+    width: 16px;
+    height: 16px;
+    margin: 0;
+    accent-color: #2563eb;
+}
+.dge-view-rows input[type="color"],
+.dge-view-color input[type="color"] {
+    width: 48px;
+    height: 30px;
+    padding: 2px;
+    cursor: pointer;
+}
+.dge-view-rows select {
+    max-width: 140px;
+}
+.dge-view-color {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+.dge-link,
+.dge-reset {
+    display: grid;
+    place-items: center;
+    width: 18px;
+    height: 24px;
+    padding: 0;
+    border: 0;
+    border-radius: 5px;
+    background: none;
+    color: #94a3b8;
+    cursor: pointer;
+}
+.dge-reset {
+    width: 24px;
+    color: #64748b;
+}
+.dge-link:hover,
+.dge-reset:hover {
+    background: #f1f5f9;
+    color: #1f2937;
+}
+.dge-link[aria-pressed="true"] {
+    color: #2563eb;
+}
+.dge-link svg,
+.dge-reset svg {
+    width: 14px;
+    height: 14px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.6;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+.dge-segmented {
+    display: inline-flex;
+    gap: 1px;
+    padding: 2px;
+    border-radius: 7px;
+    background: #f1f5f9;
+}
+.dge-segmented button {
+    display: grid;
+    place-items: center;
+    min-width: 19px;
+    height: 24px;
+    padding: 0 8px;
+    border: 0;
+    border-radius: 5px;
+    background: none;
+    color: #64748b;
+    font: inherit;
+    font-size: 12.5px;
+    cursor: pointer;
+}
+.dge-segmented button:has(svg) {
+    padding: 0;
+}
+.dge-segmented button:hover {
+    color: #1f2937;
+}
+.dge-segmented button[aria-pressed="true"] {
+    background: #fff;
+    color: #1d4ed8;
+    box-shadow: 0 1px 2px rgb(15 23 42 / 0.15);
+}
+.dge-segmented svg {
+    width: 16px;
+    height: 16px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.4;
+    stroke-linecap: round;
+}
+.dge-segmented svg[viewBox="0 0 24 16"] {
+    width: 26px;
+    stroke-width: 2;
+    stroke-linecap: butt;
+}
+.dge-presets {
+    grid-column: 1 / -1;
+    justify-self: stretch;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 8px;
+}
+.dge-presets button {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding: 4px 4px 5px;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    background: #fff;
+    color: #475569;
+    font: inherit;
+    font-size: 11.5px;
+    line-height: 1.2;
+    cursor: pointer;
+    transition:
+        border-color 0.15s,
+        box-shadow 0.15s;
+}
+.dge-presets button:hover {
+    border-color: #93c5fd;
+}
+.dge-presets button[aria-pressed="true"] {
+    border-color: #2563eb;
+    box-shadow: 0 0 0 1px #2563eb;
+    background: #eff6ff;
+    color: #1d4ed8;
+}
+.dge-presets svg {
+    display: block;
+    width: 100%;
+    height: auto;
+    border-radius: 4px;
+    box-shadow: inset 0 0 0 1px #e2e8f0;
+}
+.dge-presets span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.dge-properties input.dge-switch {
+    appearance: none;
+    position: relative;
+    flex-shrink: 0;
+    width: 30px;
+    height: 18px;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    border-radius: 9px;
+    background: #cbd5e1;
+    cursor: pointer;
+    transition: background 0.15s;
+}
+.dge-properties input.dge-switch::before {
+    content: "";
+    position: absolute;
+    top: 2px;
+    inset-inline-start: 2px;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: #fff;
+    box-shadow: 0 1px 2px rgb(15 23 42 / 0.25);
+    transition: transform 0.15s;
+}
+.dge-properties input.dge-switch:checked {
+    background: #2563eb;
+}
+.dge-properties input.dge-switch:checked::before {
+    transform: translateX(12px);
+}
+.dge-properties[dir="rtl"] input.dge-switch:checked::before {
+    transform: translateX(-12px);
+}
+/* Still set while hidden, dimmed. */
+.dge-off .dge-view-rows,
+.dge-coords-off .dge-coords-part {
+    opacity: 0.45;
+}
+.dge-view-rows,
+.dge-coords-part {
+    transition: opacity 0.15s;
 }

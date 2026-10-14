@@ -23,6 +23,15 @@ import { createConstruction, disposeFigures } from "./figures";
 
 disposeFigures();
 
+// The panel moved so that the field's center is at x, in the test's
+// 414 pixels wide window: its box then.
+function centerAt(panel: HTMLElement, input: HTMLElement, x: number): DOMRect {
+    panel.style.cssText = "position:fixed;left:0;top:0;width:300px";
+    const box = input.getBoundingClientRect();
+    panel.style.left = `${x - box.left - box.width / 2}px`;
+    return input.getBoundingClientRect();
+}
+
 function setup() {
     const c = createConstruction([800, 600]);
     readDgo(c, {
@@ -35,6 +44,7 @@ function setup() {
     );
     c.flush();
     let changes = 0;
+    const patches: object[] = [];
     const properties = propertiesPanel({
         scene: () => c,
         changed: () => {
@@ -43,6 +53,7 @@ function setup() {
         rename: async () => {},
         define: async () => {},
         create: async () => {},
+        figure: (patch) => patches.push(patch),
         close: () => {},
     });
     $("body").add(properties.panel);
@@ -60,16 +71,22 @@ function setup() {
         input.dispatchEvent(new Event("input", { bubbles: true }));
         input.dispatchEvent(new Event("change", { bubbles: true }));
     };
-    return { c, properties, field, change, changes: () => changes };
+    return {
+        c,
+        properties,
+        field,
+        change,
+        changes: () => changes,
+        patches,
+    };
 }
 
 describe("Object properties", () => {
     it("scrubs numbers live and commits once, keeping click and keyboard editing", async () => {
         const { c, properties, field, changes } = setup();
         properties.select(c.getObj("A")!);
-        properties.panel.stl("position:fixed;left:50px;top:0;width:300px");
         const input = field("point_size");
-        const box = input.getBoundingClientRect();
+        const box = centerAt(properties.panel.dom() as HTMLElement, input, 100);
         const target = $.create("div").stl(
             `position:fixed;left:${box.left + box.width / 2 + 46}px;top:${box.top + box.height / 2 - 2}px;width:4px;height:4px`,
         );
@@ -77,9 +94,10 @@ describe("Object properties", () => {
         const seen: number[] = [];
         $(input).on("pointermove", () => seen.push(c.getObj("A")!.size), false);
         await userEvent.dragAndDrop(input, target.dom());
-        expect(c.getObj("A")!.size).toBe(12);
-        expect(input.value).toBe("12");
-        expect(seen).toContain(12);
+        // 0.05 per pixel: 6 + 2.3, by steps of 0.5.
+        expect(c.getObj("A")!.size).toBe(8.5);
+        expect(input.value).toBe("8.5");
+        expect(seen).toContain(8.5);
         expect(changes()).toBe(1);
         expect(document.activeElement).not.toBe(input);
         await userEvent.click(input);
@@ -96,11 +114,10 @@ describe("Object properties", () => {
     it("scrubs more slowly with Shift and respects bounds and decimal steps", async () => {
         const { c, properties, field, changes } = setup();
         properties.select(c.getObj("A")!);
-        properties.panel.stl("position:fixed;left:150px;top:0;width:300px");
         const input = field("point_size");
-        const box = input.getBoundingClientRect();
+        const box = centerAt(properties.panel.dom() as HTMLElement, input, 220);
         const target = $.create("div").stl(
-            `position:fixed;left:${box.left + box.width / 2 + 46}px;top:${box.top + box.height / 2 - 2}px;width:4px;height:4px`,
+            `position:fixed;left:${box.left + box.width / 2 + 100}px;top:${box.top + box.height / 2 - 2}px;width:4px;height:4px`,
         );
         $("body").add(target);
         await userEvent.keyboard("{Shift>}");
@@ -108,10 +125,26 @@ describe("Object properties", () => {
         await userEvent.keyboard("{/Shift}");
         expect(c.getObj("A")!.size).toBe(6.5);
         expect(input.validity.valid).toBe(true);
-        target.stl("left", `${box.left + box.width / 2 - 102}px`);
+        target.stl("left", `${box.left + box.width / 2 - 202}px`);
         await userEvent.dragAndDrop(input, target.dom());
         expect(c.getObj("A")!.size).toBe(0);
         expect(changes()).toBe(2);
+        target.dispose();
+        properties.panel.dispose();
+    });
+
+    it("spans an opacity in about 200 pixels", async () => {
+        const { c, properties, field, change } = setup();
+        properties.select(c.getObj("A")!);
+        change("stroke_opacity", "0");
+        const input = field("stroke_opacity");
+        const box = centerAt(properties.panel.dom() as HTMLElement, input, 100);
+        const target = $.create("div").stl(
+            `position:fixed;left:${box.left + box.width / 2 + 140}px;top:${box.top + box.height / 2 - 2}px;width:4px;height:4px`,
+        );
+        $("body").add(target);
+        await userEvent.dragAndDrop(input, target.dom());
+        expect(c.getObj("A")!.strokeOpacity).toBeCloseTo(0.7, 1);
         target.dispose();
         properties.panel.dispose();
     });
@@ -294,6 +327,7 @@ describe("Object properties", () => {
                     ),
                 );
             },
+            figure: () => {},
             close: () => {},
         });
         $("body").add(properties.panel);
@@ -383,5 +417,120 @@ describe("Object properties", () => {
         ).toBe("q = var t=[]; t.push([1,2]); t");
         expect((q as expression_object).value).toEqual([[1, 2]]);
         panel.dispose();
+    });
+});
+
+describe("Figure settings", () => {
+    const named =
+        (properties: ReturnType<typeof setup>["properties"]) =>
+        (name: string) =>
+            properties.panel.find(`[aria-label="${name}"]`)!.dom() as
+                HTMLInputElement | HTMLButtonElement;
+    const type = (input: HTMLInputElement, value: string) => {
+        input.value = value;
+        input.dispatchEvent(new Event("input", { bubbles: true }));
+        input.dispatchEvent(new Event("change", { bubbles: true }));
+    };
+
+    it("sets the coordinate system, x and y linked or not, and saves it", async () => {
+        const { c, properties, changes } = setup();
+        const field = named(properties);
+        properties.select(c.getObj("A")!);
+        properties.figure();
+        // No object to delete while it shows.
+        expect(properties.selected).toBeNull();
+        const grid = c.GRID;
+        const spacing = `${message("tick_distance")} `;
+        const x = field(spacing + "x") as HTMLInputElement;
+        const y = field(spacing + "y") as HTMLInputElement;
+        expect([x.value, x.placeholder]).toEqual(["", message("auto")]);
+        type(x, "0.5");
+        expect(grid.tickDistances).toEqual([0.5, 0.5]);
+        expect(y.value).toBe("0.5");
+        (field(message("link")) as HTMLButtonElement).click();
+        type(y, "2");
+        expect(grid.tickDistances).toEqual([0.5, 2]);
+        type(y, "");
+        expect(grid.tickDistances).toEqual([0.5, 0]);
+        (field(message("ticks_none")) as HTMLButtonElement).click();
+        expect(grid.tickStyles).toEqual([2, 0]);
+        const show = field(`${message("show_axis")} y`) as HTMLInputElement;
+        show.click();
+        expect(grid.showOy).toBe(false);
+        const switches = properties.panel.findAll(".dge-switch");
+        (switches[1].dom() as HTMLInputElement).click();
+        expect(grid.showGrid).toBe(false);
+        expect(changes()).toBe(6);
+        const restored = createConstruction([800, 600]);
+        readDgo(restored, await describeDgo(c));
+        expect(restored.GRID.tickDistances).toEqual([0.5, 0]);
+        expect(restored.GRID.tickStyles).toEqual([2, 0]);
+        expect([restored.GRID.showOy, restored.GRID.showGrid]).toEqual([
+            false,
+            false,
+        ]);
+        properties.select(c.getObj("A")!);
+        expect(properties.selected).toBe(c.getObj("A"));
+        properties.panel.dispose();
+    });
+
+    it("drags a distance from automatic to a round value", async () => {
+        const { c, properties } = setup();
+        properties.figure();
+        const input = named(properties)(
+            `${message("tick_distance")} x`,
+        ) as HTMLInputElement;
+        const box = centerAt(properties.panel.dom() as HTMLElement, input, 100);
+        const target = $.create("div").stl(
+            `position:fixed;left:${box.left + box.width / 2 + 120}px;top:${box.top + box.height / 2 - 2}px;width:4px;height:4px`,
+        );
+        $("body").add(target);
+        await userEvent.dragAndDrop(input, target.dom());
+        const [x, y] = c.GRID.tickDistances;
+        expect(x).toBeGreaterThan(0.8);
+        expect(x).toBeLessThan(2);
+        // Two significant digits, y linked.
+        expect(Math.round(x * 10)).toBeCloseTo(x * 10, 9);
+        expect(y).toBe(x);
+        target.dispose();
+        properties.panel.dispose();
+    });
+
+    it("applies a preset, shows which one is set, and follows the axes' color", () => {
+        const { c, properties } = setup();
+        const field = named(properties);
+        properties.figure();
+        const pressed = () =>
+            properties.panel
+                .findAll(".dge-presets [aria-pressed=true]")
+                .map((button) => button.text());
+        expect(pressed()).toEqual([message("preset_dgpad")]);
+        const preset = [
+            ...properties.panel.dom().querySelectorAll(".dge-presets button"),
+        ].find(
+            (button) => button.textContent === message("preset_geogebra"),
+        ) as HTMLButtonElement;
+        preset.click();
+        expect(c.GRID.geogebraAxes).toBe(true);
+        expect(c.GRID.gridColor).toBe("#b4b3ba");
+        expect(pressed()).toEqual([message("preset_geogebra")]);
+        (field(message("same_as_axes")) as HTMLButtonElement).click();
+        expect(c.GRID.gridColor).toBeNull();
+        type(field(message("color")) as HTMLInputElement, "#aa0000");
+        expect((field(message("grid_color")) as HTMLInputElement).value).toBe(
+            "#aa0000",
+        );
+        expect(pressed()).toEqual([]);
+        properties.panel.dispose();
+    });
+
+    it("hands the angle unit and the segments order to the figure", () => {
+        const { properties, patches } = setup();
+        const field = named(properties);
+        properties.figure();
+        (field(message("radians")) as HTMLButtonElement).click();
+        (field(message("segments_over")) as HTMLInputElement).click();
+        expect(patches).toEqual([{ deg: 0 }, { sop: 1 }]);
+        properties.panel.dispose();
     });
 });

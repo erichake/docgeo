@@ -519,13 +519,61 @@ immédiates, enregistrées dans les styles `.dgo` existants et annulables ;
 une saisie numérique ne produit qu'une étape d'historique à sa validation.
 Les champs numériques se règlent aussi en cliquant-glissant horizontalement
 à la souris : gauche pour diminuer, droite pour augmenter, Maj pour ralentir
-d'un facteur dix. Le pas et les bornes sont respectés ; un glissement ne
+d'un facteur dix. Chaque champ a sa vitesse (`SCRUB` dans
+`src/editor/properties.ts`, l'étendue des champs dans `view_settings.ts`) :
+un réglage borné parcourt sa plage utile en environ 200 pixels (opacité
+0 à 100 %, épaisseur +10, calque +20, taille du texte +20, angle du nom
+360°) ; une grandeur sans échelle naturelle (écarts, pas, incréments,
+vitesse d'animation, nombre de points) varie de 1 % d'elle-même par pixel,
+avec un minimum pour partir de 0 ou d'« auto », arrondie à deux chiffres
+significatifs (trois avec Maj). Le pas et les bornes sont respectés ; un glissement ne
 produit qu'une étape d'historique au relâchement. Un clic simple sélectionne
 le nombre pour la saisie ; tant que le champ est en saisie, les gestes natifs
 de sélection du texte restent disponibles. Le tactile garde la saisie native
 et le défilement du panneau.
 Le renommage reconstruit la figure à partir de son `.dgo`, en conservant
 les références des dépendants, y compris les formules.
+
+### Onglet « Figure »
+
+Décidé le 2026-10-14. Le repère n'est pas un objet : il n'entre pas dans la
+liste « Choisir un objet… ». Deux onglets sous le titre, « Objet » et
+« Figure », séparent ce qui se règle sur un objet de ce qui se règle sur la
+figure (`src/editor/view_settings.ts`). Un clic sur un objet ou dans la
+liste ramène à « Objet » ; un clic sur un axe dans le plan ouvre « Figure »,
+où un clic vide ne change pas d'onglet. Tant que « Figure » est affiché,
+aucun objet n'est sélectionné (Suppr n'agit pas).
+
+L'onglet expose les réglages de la vue `.dgo` existants, sans rien ajouter
+au lecteur, et doit rester plus clair que le panneau de GeoGebra :
+
+- **Repère** : un interrupteur (`ax`, comme le bouton « Repère ») et, dans
+  le plan, six modèles en vignettes dessinées d'après leurs propres
+  réglages (DGPad, GeoGebra, axes seuls, grille pointillée, quadrillage,
+  millimétré). Un modèle remet toute l'apparence du repère, pas le zoom
+  ni le fond ; celui qui correspond aux réglages en cours est surligné,
+  aussi après une retouche à la main.
+- Dans **Axes** : nom, nombres affichés et unité de chaque axe (π proposé, qui
+  écrit les nombres en multiples de π/2), graduations, écart des nombres,
+  flèches (DGPad, aucune, ouverte ou pleine de GeoGebra), couleur,
+  épaisseur, taille et gras des nombres, style, demi-axes positifs.
+- **Axes**, **Grille** (interrupteur `gr`), **Zoom et déplacement** : ce
+  qui va par axe est dans deux colonnes _x_ et _y_ ; un maillon lie les
+  deux écarts (`td`, `gd`), lié au départ s'ils sont égaux. Un écart vide
+  affiche « auto » (0 dans le format). Graduations et trait de la grille se
+  choisissent par icônes, le style DGPad / GeoGebra (`gg`) par un bouton
+  double. La couleur de la grille suit celle des axes tant qu'elle n'est
+  pas choisie (`gc` nul) ; un bouton l'y ramène.
+- **Figure** : fond, degrés ou radians, segments au-dessus des polygones ;
+  les deux derniers relisent la figure.
+- En 3D : couleur et épaisseur du trièdre, sol, perspective.
+
+Un réglage masqué (repère ou grille éteints) reste réglable, atténué. Les
+réglages s'appliquent en direct et chaque modification est une étape
+d'annulation : une étape garde désormais toute la vue, sauf la fenêtre, le
+cadrage (origine et unité) et la caméra (θ, φ). Le bouton « Repère » de la
+barre devient lui aussi annulable, et ne rallume plus la grille : il cache
+ou montre le repère tel qu'il est réglé.
 
 Le panneau se ferme par sa croix, son bouton ou Échap. Sous 900 px, les deux
 panneaux s'ouvrent alternativement ; sous 600 px, les propriétés recouvrent
@@ -929,6 +977,18 @@ Fait (2026-10-11) :
   `editor.html` (refus, aller-retour, annuler / refaire, figure DGPad 3D,
   barre de 320 à 800 px). Éditeur : 90,9 Ko, +2,1 Ko (+0,8 Ko en gzip) ;
   lecteur inchangé (+10 octets d'exportations du moteur partagé).
+
+- Onglet « Figure » du panneau de propriétés (2026-10-14, section du même
+  nom) : repère, modèles, axes, grille, zoom, fond et unité d'angle ; vue
+  annulable. Vérifié dans `editor.html` (modèles, annuler / refaire,
+  synchronisation avec le bouton « Repère », 3D). Éditeur : 101,9 Ko,
+  +11,0 Ko (+3,7 Ko en gzip), CSS +4,1 Ko (+0,9 Ko en gzip) ; lecteur
+  inchangé.
+- Axes de GeoGebra (2026-10-14, item 23 de `GGB_IMPORT.md`) : flèches,
+  noms, nombres masqués et unité π, au format (`al`, `nu`, `au`, `ah`), au
+  dessin, à l'import et dans l'onglet « Figure ». Vérifié face au rendu de
+  GeoGebra sur des figures du corpus. Lecteur +1,9 Ko (+0,8 Ko en gzip),
+  éditeur +1,3 Ko (+0,4 Ko en gzip).
 
 Reste à faire :
 

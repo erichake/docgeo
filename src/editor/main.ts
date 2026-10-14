@@ -287,7 +287,11 @@ function button(
 const undoButton = button("undo", () => travel(-1));
 const redoButton = button("redo", () => travel(1));
 const eraserButton = button("eraser", () => setEraser(!ghosts));
-const axesButton = button("axes", () => setAxes(scene().GRID.hidden !== 0));
+const axesButton = button("axes", () => {
+    setAxes(scene().GRID.hidden !== 0);
+    properties.refresh(true);
+    void record();
+});
 const spaceButton = button("space", toggleSpace);
 eraserButton.att("aria-pressed", "false");
 axesButton.att("aria-pressed", "false");
@@ -449,6 +453,9 @@ const properties = propertiesPanel({
         await redefine(studio, object, spec);
         properties.select(scene().getObj(spec.name)!);
         changed();
+    },
+    figure: (patch) => {
+        recording = recording.then(() => reframe({}, undefined, patch));
     },
     create: async (name, source) => {
         const c = scene();
@@ -2153,15 +2160,25 @@ function setEraser(on: boolean): void {
     showHint(on ? message("erasing") : "");
 }
 
-// The axes with the grid, or in 3D the trihedron with the floor, as
+// The axes with the grid as set, or in 3D the trihedron with the floor, as
 // DGPad's isAxis.
 function setAxes(on: boolean): void {
     const c = scene();
     c.GRID.hidden = on ? 0 : 1;
-    if (on) c.GRID.showGrid = true;
     if (!c.GRID.is2D) c.GRID.SHOWFLOOR = on;
     c.invalidateProjection();
     showAxes();
+}
+
+// Near an axis drawn in the plane.
+function onAxis([x, y]: Vec2): boolean {
+    const { is2D, hidden, showOx, showOy, ORG } = scene().GRID;
+    return (
+        is2D &&
+        hidden === 0 &&
+        ((showOx && Math.abs(y - ORG[1]) < 6) ||
+            (showOy && Math.abs(x - ORG[0]) < 6))
+    );
 }
 
 function showAxes(): void {
@@ -2189,6 +2206,7 @@ function done(object?: construction_object): void {
 
 // After a change of the figure: its text, and a step to undo.
 function changed(object?: construction_object): void {
+    showAxes();
     forgetBranches();
     dropLostMagnets(scene());
     scene().flush();
@@ -2268,21 +2286,33 @@ async function toPlane(step?: Step): Promise<void> {
 }
 
 // The figure, or the step given, read again in the current view changed by
-// `view`, a step's pinned points keeping their place in the window.
-async function reframe(view: DgoFigure["v"], step?: Step): Promise<void> {
+// `view` (but a step keeps its own coordinate system), a step's pinned
+// points keeping their place in the window. `patch`: the figure's settings
+// changed.
+async function reframe(
+    view: DgoFigure["v"],
+    step?: Step,
+    patch: Partial<DgoFigure> = {},
+): Promise<void> {
     const figure = await withGhostsHidden(ghosts ?? [], () =>
         describeDgo(scene()),
     );
     const { v } = figure;
     if (held) closeRing();
+    const saved: DgoFigure | null = step && JSON.parse(step.figure);
     rebuild(
         studio,
-        step
+        saved
             ? {
-                  ...JSON.parse(step.figure),
-                  v: { ...v, ...view, o: step.o, u: step.u },
+                  ...saved,
+                  v: {
+                      ...saved.v,
+                      ...camera({ ...v, ...view }, true),
+                      o: step!.o,
+                      u: step!.u,
+                  },
               }
-            : { ...figure, v: { ...v, ...view } },
+            : { ...figure, ...patch, v: { ...v, ...view } },
     );
     const c = scene();
     if (step) {
@@ -2596,7 +2626,10 @@ $("body").on(
             const object = propertyObject(event);
             if (!hits.some((hit) => hit.object === object) && object)
                 return properties.select(object);
-            if (!hits[0]) return properties.select(null);
+            if (!hits[0])
+                return onAxis(screen)
+                    ? properties.figure()
+                    : properties.select(null);
             return chooseHit(hits, client, (hit) =>
                 properties.select(hit.object),
             );
@@ -2672,20 +2705,28 @@ $("body").on(
 
 // ************************** HISTORY *****************************
 
-// Each step's figure, of its view only whether it is in space, and the
+// Each step's figure, its view without the window and the camera, and the
 // origin and unit its pinned points' coordinates are given in.
 let history: { figure: string; o: unknown; u: unknown }[] = [];
 let position = -1;
 let recording = Promise.resolve();
+
+// A view's window and camera, or, if not `kept`, the rest.
+const camera = (view: DgoFigure["v"], kept: boolean): DgoFigure["v"] =>
+    Object.fromEntries(
+        Object.entries(view).filter(
+            ([key]) => ["w", "h", "th", "ph"].includes(key) === kept,
+        ),
+    );
 
 function record(): Promise<void> {
     recording = recording.then(async () => {
         const figure = await withGhostsHidden(ghosts ?? [], () =>
             describeDgo(scene()),
         );
-        const step = JSON.stringify({ ...figure, v: { "3d": figure.v["3d"] } });
+        const { o, u, ...view } = figure.v;
+        const step = JSON.stringify({ ...figure, v: camera(view, false) });
         if (step === history[position]?.figure) return;
-        const { o, u } = figure.v;
         history = [...history.slice(0, position + 1), { figure: step, o, u }];
         position = history.length - 1;
     });
