@@ -119,8 +119,8 @@ de `src/import/dgp_commands.ts`.
   formes qui finissent par un nombre, tapé au clavier
   (`PointFixe(x, y)` / `(x, y, z)`). Un test vérifie la règle sur tout le
   catalogue.
-- Noms de commandes localisés, ceux de GeoGebra (section « Langues »),
-  ramenés à une forme canonique.
+- Noms de commandes localisés, les mots usuels de la géométrie dans chaque
+  langue (section « Langues »), ramenés à une forme canonique.
 - Réutilisation possible de `src/import/ggb_translate.ts` : une ligne tapée,
   ramenée à la commande GeoGebra canonique (nom, arguments, résultat), a la
   même structure qu'une commande du `geogebra.xml`. Il faudrait le découper
@@ -147,19 +147,18 @@ DocTools (`ar`, `de`, `el`, `en`, `es`, `fr`, `hi`, `it`, `nl`, `pt`, `zh`,
   phrase composée de morceaux (« Désignez » + « un point ») : l'accord
   change d'une langue à l'autre, d'où une phrase entière par cas
   (`designate_point`…).
-- **Noms de commandes : ceux de GeoGebra dans chaque langue**, tirés de ses
-  fichiers de langue (`web3d/js/properties_keys_<langue>.js` de la version
-  compilée, tables `command` et, pour les commandes qui n'y sont que des
-  outils, `menu` : `Compass`, `ParallelLine`), y compris leurs bizarreries
-  (`خط0عمودي`, la perpendiculaire en arabe). Le nom anglais est accepté dans
-  toutes les langues, celui de la langue s'affiche ; le français garde ses
-  noms (`Milieu` et non `MilieuCentre`). Une commande sans équivalent
-  GeoGebra (`FixedPoint`, `Circumcircle`, `OtherIntersection`) reçoit un nom
-  composé dans l'esprit de la langue. En chinois de Taïwan, GeoGebra garde
-  les noms anglais : `zh-TW` n'a pas de table de commandes.
+- **Noms de commandes : les mots usuels de la géométrie scolaire dans
+  chaque langue**, des noms (`Spiegelung`, pas le verbe `Spiegle`), au
+  singulier, ceux des messages de la langue (`वृत्त`, `二次曲線`).
+  Établis par DocGeo (2026-10-14) et non tirés des fichiers de langue de
+  GeoGebra, sous licence CC BY-NC-SA, incompatible avec la GPL : ne pas y
+  recopier ses traductions. Beaucoup coïncident, ce sont les mots de la
+  géométrie. Le nom anglais est accepté dans toutes les langues, celui de
+  la langue s'affiche. Une commande composée garde le nom de sa forme
+  simple (`AutreIntersection`, `CercleCirconscrit`).
 - Deux commandes de même nom dans une langue (`Mittelpunkt` : `Midpoint` et
-  `Center` en allemand, comme dans GeoGebra) n'en font qu'une, départagée
-  par ses arguments ; le test vérifie que c'est le seul cas.
+  `Center` en allemand) n'en font qu'une, départagée par ses arguments ; le
+  test vérifie que c'est le seul cas.
 - Noms comparés sans casse ni accents latins et grecs ; les signes des
   autres écritures (voyelles du hindi) sont gardés, et acceptés par la
   complétion.
@@ -963,7 +962,8 @@ Fait (2026-10-11) :
   dans DGPad. Vérifié dans `editor.html`. Éditeur : +2,9 Ko (+0,9 Ko en
   gzip) ; lecteur inchangé.
 - Langues (2026-10-13, section du même nom) : 12 langues, noms de
-  commandes de GeoGebra. Vérifié dans `editor.html` en allemand, arabe,
+  commandes de GeoGebra, remplacés le 2026-10-14 par les mots usuels de
+  chaque langue (table ajoutée en `zh-TW`). Vérifié dans `editor.html` en allemand, arabe,
   hindi et chinois. Éditeur : −2,2 Ko (88,4 Ko, le français sorti du
   chunk) et 2,2 à 3 Ko en gzip par langue chargée ; lecteur inchangé
   (`index` 15,2 Ko), l'aide d'interopérabilité de Rolldown passant du

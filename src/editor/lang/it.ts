@@ -211,7 +211,7 @@ const it: Texts = {
         Segment: "Segmento",
         Ray: "Semiretta",
         Vector: "Vettore",
-        Parallel: "RettaParallela",
+        Parallel: "Parallela",
         Perpendicular: "Perpendicolare",
         PerpendicularBisector: "AsseSegmento",
         AngleBisector: "Bisettrice",
@@ -230,7 +230,7 @@ const it: Texts = {
         Sphere: "Sfera",
         Locus: "Luogo",
         List: "Lista",
-        Slider: "Slider",
+        Slider: "Cursore",
     },
 };
 

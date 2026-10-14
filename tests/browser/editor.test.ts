@@ -88,7 +88,7 @@ const lines = (c: construction): string[] => {
 };
 
 describe("Editor", () => {
-    it("speaks every language of DocTools, with GeoGebra's command names", () => {
+    it("speaks every language of DocTools, with localized command names", () => {
         const placeholders = (text: string) => text.split("%").length;
         const identifier = new RegExp(
             `^${IDENTIFIER_START.source}${IDENTIFIER_PART.source}*$`,
@@ -107,14 +107,12 @@ describe("Editor", () => {
                     placeholders(en[key]),
                 );
             }
-            // Chinese (Taiwan) keeps the English names, as GeoGebra.
-            if (!commands) continue;
-            expect(Object.keys(commands).sort(), path).toEqual(
+            expect(Object.keys(commands!).sort(), path).toEqual(
                 COMMANDS.map(({ name }) => name).sort(),
             );
             const named = new Map<string, Set<string>>();
             for (const { name } of COMMANDS)
-                for (const each of [name, commands[name]!]) {
+                for (const each of [name, commands![name]!]) {
                     expect(each, path).toMatch(identifier);
                     const set = named.get(fold(each)) ?? new Set();
                     named.set(fold(each), set.add(name));

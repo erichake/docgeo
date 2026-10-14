@@ -211,7 +211,7 @@ const pt: Texts = {
         Segment: "Segmento",
         Ray: "Semirreta",
         Vector: "Vetor",
-        Parallel: "RetaParalela",
+        Parallel: "Paralela",
         Perpendicular: "Perpendicular",
         PerpendicularBisector: "Mediatriz",
         AngleBisector: "Bissetriz",

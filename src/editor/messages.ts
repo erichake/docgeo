@@ -8,7 +8,7 @@ export type MessageKey = keyof typeof en;
 
 export interface Texts {
     messages: Partial<Record<MessageKey, string>>;
-    // By English name, those of GeoGebra in this language.
+    // By English name, the usual words of geometry in this language.
     commands?: Partial<Record<string, string>>;
 }
 
