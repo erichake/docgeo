@@ -265,7 +265,10 @@ $("head").append(`<style>
     svg .dge-hover { filter: drop-shadow(0 0 2px #f59e0b) drop-shadow(0 0 3px #f59e0b); }
     svg .dge-ok { filter: drop-shadow(0 0 2px #16a34a) drop-shadow(0 0 2px #16a34a); }
     svg .dge-preview { opacity: 0.55; }
-    .dge-ghost { opacity: 0.3 !important; }
+    /* Neither on the group, nor on the transparent hit areas, nor on a shape both filled and stroked whose fill is opaque or empty: each would be painted offscreen, frame after frame, too slow for thousands of ghosts. */
+    svg .dge-ghost > :not([style*="transparent"]) { opacity: 0.3 !important; }
+    svg .dge-ghost > :is([style*="fill-opacity: 0;"], [style*="fill-opacity: 1;"]) { opacity: 1 !important; stroke-opacity: 0.3 !important; }
+    svg .dge-ghost > [style*="fill-opacity: 1;"] { fill-opacity: 0.3 !important; }
     .dge-spring { position: fixed; width: 0; height: 0; z-index: 12; }
     .dge-spring svg { position: absolute; overflow: visible; pointer-events: none; }
     .dge-coil { fill: none; stroke: #536174; stroke-width: 1.6; stroke-linejoin: round; stroke-linecap: round; }
