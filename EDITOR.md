@@ -451,8 +451,23 @@ pixels, deux fois la taille du point par défaut). Le nom ne recouvre
 jamais son point (distance au moins nulle) et ne s'en éloigne pas de plus
 de 80 px. Un point sous le pointeur l'emporte sur un nom. Survoler un nom
 fait briller son point et donne le curseur « doigt ». Chaque glisser est
-une étape d'annulation. Les noms des autres objets ne sont pas encore
-dessinés par le moteur.
+une étape d'annulation.
+
+Les autres objets dont le moteur écrit le nom à la place de GeoGebra
+(segment, droite, demi-droite, vecteur, cercle, arc, conique, courbe,
+polygone : `nameAt`, item 24 de `GGB_IMPORT.md`) le montrent ou le masquent
+par le panneau « Construction » et le panneau de propriétés, comme les
+points. Contrairement à GeoGebra, ils sont créés sans nom affiché : seuls
+les points en ont un à leur création (décidé avec l'auteur le 2026-10-14).
+Leur nom se glisse et se renomme sur place comme celui d'un point
+(2026-10-14), sans limite de distance. Tant qu'il n'a pas été glissé, il
+est à la place que lui donne GeoGebra (milieu d'un segment, bord de la
+fenêtre pour une droite…). Glissé, il garde sa place relative à l'objet
+quand celui-ci change (`no`, décidé avec l'auteur) : la même fraction de
+segment et le même écart de côté, le même angle sur un cercle… GeoGebra,
+lui, garde un décalage fixe en pixels, qui laisse le nom en arrière quand
+on déplace un point. Un toucher sur ce nom désigne son objet dans les
+modes propriétés, gomme et aimant.
 
 Décidé le 2026-10-14 : le toucher sans le glisser **renomme sur place**,
 sans dialogue. Un champ remplace le nom, dans sa police, sa taille et sa
@@ -520,8 +535,9 @@ Décidé le 2026-10-14, comme la vue Algèbre de GeoGebra : chaque ligne du
 panneau « Construction » commence par une pastille de la couleur de
 l'objet, pleine s'il est visible, vide s'il est caché, qui le cache ou le
 montre d'un toucher (en mode gomme, elle bascule son fantôme) ; les objets
-super-cachés n'en ont pas. Une ligne de point finit par un bouton « nom »
-(un A et un point) qui affiche ou masque le nom, discret tant que le nom
+super-cachés n'en ont pas. Une ligne d'objet dont la figure écrit le nom
+(section « Noms des points ») finit par un bouton « nom » (un A et un
+point) qui affiche ou masque le nom, discret tant que le nom
 est masqué : il n'apparaît qu'au survol de la ligne (toujours, pâle, sans
 survol). Chaque bascule est une étape d'annulation. L'en-tête compte les
 objets ; la ligne de saisie, un champ arrondi, reste collée au bas du
@@ -1088,6 +1104,18 @@ Fait (2026-10-11) :
   section). Vérifiés dans `editor.html` (lecture, pause, clavier, toucher
   sur une ligne, glisser pendant le pas à pas, Échap, annuler, panneau à
   360 px). Éditeur +4,9 Ko (+1,5 Ko en gzip) ; lecteur inchangé.
+- Nom des objets autres que les points (2026-10-14, section « Noms des
+  points ») : bouton « nom » du panneau « Construction » et case du
+  panneau de propriétés pour tout objet dont le moteur écrit le nom
+  (`hasName`). Vérifié dans `editor.html` sur une figure GeoGebra.
+  Éditeur +62 octets ; lecteur inchangé.
+- Noms des autres objets glissés et renommés sur place (2026-10-14,
+  section « Noms des points ») : style `no`, place relative à l'objet,
+  convertie aussi depuis le `labelOffset` de GeoGebra. Vérifié dans
+  `editor.html` (glisser le nom puis un point du segment ou du cercle,
+  annuler, renommage) et face au rendu de GeoGebra sur des figures du
+  corpus. Lecteur +1,9 Ko (+0,6 Ko en gzip), éditeur +0,2 Ko
+  (+0,1 Ko en gzip).
 
 Reste à faire :
 

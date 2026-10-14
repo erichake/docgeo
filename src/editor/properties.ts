@@ -15,7 +15,7 @@ import { point_object } from "../objects/point_object";
 import { point_on_object } from "../objects/point_on_object";
 import { polygon_object } from "../objects/polygon_object";
 import { segment_object } from "../objects/segment_object";
-import { createdColors, expressionSource } from "./figure";
+import { createdColors, expressionSource, hasName } from "./figure";
 import { message, type MessageKey } from "./messages";
 import { scrubNumber, type Scrub } from "./scrub";
 import { formatProgram, syntaxLine, TextError } from "./text";
@@ -583,7 +583,7 @@ export function propertiesPanel(options: {
                     .cls("dge-property-help")
                     .text(message("conditional_visibility")),
             );
-        if (object instanceof point_object)
+        if (hasName(object))
             check(display, "show_name", object.showName, (object, value) => {
                 object.showName = value;
             });

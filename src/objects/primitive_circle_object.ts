@@ -8,6 +8,7 @@ import {
     vCross,
     vDot,
     vIsFinite,
+    vNorm,
     vNormalize,
     vScale,
     vSub,
@@ -15,6 +16,43 @@ import {
     type Vec3,
 } from "../vec";
 import { construction_object } from "./construction_object";
+
+// GeoGebra's DrawConic: up left of an ellipse's center, by its frame, for
+// the ellipse center + cos·u + sin·v on the screen.
+export function ellipseNameAt([x, y]: Vec2, u: Vec2, v: Vec2): Vec2 {
+    return [
+        x - Math.hypot(u[0], v[0]) / 2,
+        y - 0.85 * Math.hypot(u[1], v[1]) + 20,
+    ];
+}
+
+// A moved name's place on the ellipse center + cos·u + sin·v of the screen:
+// its angle there and its gap outward, in pixels.
+export function ellipseName(
+    center: Vec2,
+    u: Vec2,
+    v: Vec2,
+    [alpha, gap]: number[],
+): Vec2 {
+    const on = vAdd(vScale(u, Math.cos(alpha)), vScale(v, Math.sin(alpha)));
+    return vAdd(vAdd(center, on), vScale(vNormalize(on) ?? [0, 0], gap));
+}
+
+export function ellipseAnchor(
+    center: Vec2,
+    u: Vec2,
+    v: Vec2,
+    at: Vec2,
+): number[] {
+    const [x, y] = vSub(at, center);
+    const det = u[0] * v[1] - u[1] * v[0];
+    const alpha = Math.atan2(
+        (u[0] * y - u[1] * x) / det,
+        (x * v[1] - y * v[0]) / det,
+    );
+    const on = vAdd(vScale(u, Math.cos(alpha)), vScale(v, Math.sin(alpha)));
+    return [alpha, Math.hypot(x, y) - vNorm(on)];
+}
 
 export class primitive_circle_object extends construction_object {
     CENTER: Vec3 = [0, 0, 0];
@@ -158,6 +196,23 @@ export class primitive_circle_object extends construction_object {
         this.screenU = u;
         this.screenV = v;
         this.projectionDefined = true;
+    }
+
+    nameAt(): Vec2 | null {
+        return ellipseNameAt(this.centerScreen, this.screenU, this.screenV);
+    }
+
+    anchoredName(offset: number[]): Vec2 | null {
+        return ellipseName(
+            this.centerScreen,
+            this.screenU,
+            this.screenV,
+            offset,
+        );
+    }
+
+    anchorName(at: Vec2): number[] {
+        return ellipseAnchor(this.centerScreen, this.screenU, this.screenV, at);
     }
 
     render(): void {

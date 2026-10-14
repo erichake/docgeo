@@ -71,6 +71,12 @@ export class construction_object {
     dash: number[] = [];
     // GeoGebra's line opacity, its strokes' only.
     strokeOpacity = 1;
+    // Its name, which GeoGebra writes beside any object (see nameAt), a
+    // point writing its own.
+    nameLabel?: DOMElement;
+    // Where its name was moved, relative to it (see anchorName): null
+    // where GeoGebra writes it.
+    nameOffset: number[] | null = null;
     hasView: boolean;
     // Assigned by objects_collector.add(): a construction-order counter used
     // to process dirty objects in the same order as the (assumed
@@ -145,7 +151,7 @@ export class construction_object {
     refresh(): void {
         this.computeGeometry();
         this.project();
-        if (this.hasView) this.render();
+        if (this.hasView) this.draw();
         this.geometryDirty = false;
         this.projectionDirty = false;
         this.renderDirty = false;
@@ -188,6 +194,52 @@ export class construction_object {
 
     render(): void {}
 
+    // Where GeoGebra writes its name, at the start of the text's baseline on
+    // the screen: null when it has nowhere to.
+    nameAt(): Vec2 | null {
+        return null;
+    }
+
+    // Where its name moved to `offset` is written.
+    anchoredName([dx, dy]: number[]): Vec2 | null {
+        const at = this.nameAt();
+        return at && [at[0] + dx, at[1] + dy];
+    }
+
+    // The offset that keeps a name written at `at` in its place relative to
+    // the object as it changes: by default, in pixels from where GeoGebra
+    // writes it.
+    anchorName([x, y]: Vec2): number[] {
+        const [x0, y0] = this.nameAt()!;
+        return [x - x0, y - y0];
+    }
+
+    nameSpot(): Vec2 | null {
+        return this.nameOffset
+            ? this.anchoredName(this.nameOffset)
+            : this.nameAt();
+    }
+
+    draw(): void {
+        this.render();
+        const at = this.showName ? this.nameSpot() : null;
+        if (!at) {
+            this.nameLabel?.dispose();
+            this.nameLabel = undefined;
+            return;
+        }
+        if (!this.nameLabel) {
+            this.nameLabel = this.svg
+                .shape("text")
+                .stl(
+                    `fill:${this.stroke_color};font-family:Verdana;font-size:${this.fontSize}px;pointer-events:none`,
+                )
+                .text(this.name);
+            this.dom.add(this.nameLabel);
+        }
+        this.nameLabel.att("x", at[0]).att("y", at[1]);
+    }
+
     get strokeDashArray(): string {
         return this.dash.length ? this.dash.join(" ") : "none";
     }
@@ -218,6 +270,7 @@ export class construction_object {
 
     createSVG(): void {
         const previous = this.dom;
+        this.nameLabel = undefined;
         this.dom = this.class
             .createSVG(this)
             .stl("stroke-opacity", this.strokeOpacity);

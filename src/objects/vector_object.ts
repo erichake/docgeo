@@ -36,6 +36,12 @@ export class vector_object extends segment_object {
         );
     }
 
+    // GeoGebra's DrawVector: at its middle, shifted by a quarter of its
+    // coordinates as if they were pixels, which is next to nothing.
+    nameAt(): Vec2 {
+        return vScale(vAdd(this.P1.screen, this.P2.screen), 1 / 2);
+    }
+
     render(): void {
         super.render();
         if (!this.defined || !this.projectionDefined) return;

@@ -14,6 +14,11 @@ import {
 } from "../vec";
 import type { ScriptValue } from "../import/dgp_formula";
 import { construction_object } from "./construction_object";
+import {
+    ellipseAnchor,
+    ellipseName,
+    ellipseNameAt,
+} from "./primitive_circle_object";
 
 export type QuadricKind = "ellipse" | "hyperbola" | "parabola";
 
@@ -264,6 +269,25 @@ export class primitive_quadric_object extends construction_object {
         if (branchPoints.length === 0) return;
         this.branchScreenPoints = branchPoints;
         this.projectionDefined = true;
+    }
+
+    // GeoGebra's DrawConic: a hyperbola's or a parabola's by its vertex.
+    nameAt(): Vec2 | null {
+        return this.KIND === "ellipse"
+            ? ellipseNameAt(this.centerScreen, this.screenU, this.screenV)
+            : this.C.pt3D(this.BRANCHES[0](0));
+    }
+
+    anchoredName(offset: number[]): Vec2 | null {
+        return this.KIND === "ellipse"
+            ? ellipseName(this.centerScreen, this.screenU, this.screenV, offset)
+            : super.anchoredName(offset);
+    }
+
+    anchorName(at: Vec2): number[] {
+        return this.KIND === "ellipse"
+            ? ellipseAnchor(this.centerScreen, this.screenU, this.screenV, at)
+            : super.anchorName(at);
     }
 
     render(): void {

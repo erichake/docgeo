@@ -53,6 +53,7 @@ import {
     figureIndex,
     formatArg,
     FREE_POINT,
+    hasName,
     isPointTag,
     lineOf,
     nextName,
@@ -88,7 +89,7 @@ import {
     type ArgumentCompletion,
     type Line,
 } from "./text";
-import { labelAt, labelCenter, placeLabel } from "./labels";
+import { labelAt, labelHold, nameElement, placeLabel } from "./labels";
 import { RING_SLOTS, toolsFor, type Tool } from "./tools";
 import { propertiesPanel } from "./properties";
 import { resizeHandle } from "./resize";
@@ -846,7 +847,7 @@ function refreshRows(): void {
         const item = $.create("div")
             .cls("dge-item")
             .add(visibilityToggle(object), text);
-        if (object instanceof point_object) item.add(nameToggle(object));
+        if (hasName(object)) item.add(nameToggle(object));
         item.on("mouseenter", () => highlight(object), false);
         item.on("mouseleave", () => highlight(), false);
         item.on(
@@ -894,12 +895,12 @@ function visibilityToggle(object: construction_object): DOMElement {
     return dot;
 }
 
-function nameToggle(point: point_object): DOMElement {
-    const on = point.showName;
+function nameToggle(object: construction_object): DOMElement {
+    const on = object.showName;
     return button("show_name", () => {
-        point.showName = !on;
-        if (point.isHidden) point.updateView();
-        else point.createSVG();
+        object.showName = !on;
+        if (object.isHidden) object.updateView();
+        else object.createSVG();
         changed();
     })
         .addClass("dge-label")
@@ -2615,8 +2616,8 @@ async function refusedOffPlane(): Promise<boolean> {
 
 // ************************** NAMES *******************************
 
-// The point whose name is retyped.
-let renaming: point_object | null = null;
+// The object whose name is retyped.
+let renaming: construction_object | null = null;
 
 const nameInput = () => nameField.dom() as HTMLInputElement;
 
@@ -2632,30 +2633,30 @@ async function rename(object: construction_object, name: string) {
 
 // The field over the name, in its font, which it hides.
 function placeName(): void {
-    const box = renaming!.nameText!.dom().getBoundingClientRect();
+    const box = nameElement(renaming!)!.dom().getBoundingClientRect();
     nameBox
         .stl("left", `${box.left}px`)
         .stl("top", `${box.top + box.height / 2}px`);
 }
 
-function editName(point: point_object): void {
-    renaming = point;
-    point.nameText!.stl("visibility", "hidden");
-    nameInput().value = point.name;
+function editName(object: construction_object): void {
+    renaming = object;
+    nameElement(object)!.stl("visibility", "hidden");
+    nameInput().value = object.name;
     nameField
-        .att("size", String(point.name.length))
-        .stl("font-size", `${point.fontSize}px`)
-        .stl("color", point.stroke_color);
+        .att("size", String(object.name.length))
+        .stl("font-size", `${object.fontSize}px`)
+        .stl("color", object.stroke_color);
     placeName();
     nameBox.show("flex");
     nameInput().focus();
     nameInput().select();
-    highlight(point);
-    showHint(message("rename_hint", formatName(point.name)));
+    highlight(object);
+    showHint(message("rename_hint", formatName(object.name)));
 }
 
 function closeName(): void {
-    renaming?.nameText?.stl("visibility", "");
+    if (renaming) nameElement(renaming)?.stl("visibility", "");
     renaming = null;
     nameBox.hide();
     highlight();
@@ -2674,10 +2675,10 @@ function nameError(): string {
 }
 
 function hideName(): void {
-    const point = renaming!;
+    const object = renaming!;
     closeName();
-    point.showName = false;
-    point.createSVG();
+    object.showName = false;
+    object.createSVG();
     changed();
 }
 
@@ -2702,12 +2703,12 @@ nameField.on(
 nameField.on(
     "blur",
     () => {
-        const point = renaming;
-        if (!point) return;
+        const object = renaming;
+        if (!object) return;
         const name = nameInput().value.trim();
         const valid = !nameError();
         closeName();
-        if (valid && name !== point.name) void rename(point, name);
+        if (valid && name !== object.name) void rename(object, name);
     },
     false,
 );
@@ -2721,8 +2722,8 @@ let dragFrame: number | null = null;
 // A pointer pressed while a tool waits: it aims and designates where it's
 // released, unless still on the button that chose the tool.
 let aim: { button: Vec2 | null } | null = null;
-// The name being dragged, and where it was taken from its center.
-let label: { point: point_object; grab: Vec2 } | null = null;
+// The name being dragged, and where it was taken from (see labelHold).
+let label: { object: construction_object; grab: Vec2 } | null = null;
 // The angle whose mark is being dragged, its radius and the pointer's
 // distance to its vertex when taken.
 let sized: { angle: Angle; radius: number; from: number } | null = null;
@@ -2809,7 +2810,7 @@ $("body").on(
             !editing() &&
             labelAt(c, [event.clientX, event.clientY]);
         if (named && !(pick(c, screen)[0]?.object instanceof point_object)) {
-            label = { point: named, grab: vSub(screen, labelCenter(named)) };
+            label = { object: named, grab: vSub(screen, labelHold(named)) };
             // Pressed twice quickly, the name would be selected as text.
             event.preventDefault();
             event.stopPropagation();
@@ -2942,7 +2943,7 @@ $("body").on(
     (event) => {
         if (label && event.isPrimary && event.buttons)
             return placeLabel(
-                label.point,
+                label.object,
                 vSub(scene().pointerPosition(event), label.grab),
             );
         if (sized && event.isPrimary && event.buttons) {
@@ -3004,7 +3005,7 @@ $("body").on(
             Math.hypot(event.clientX - down.x, event.clientY - down.y) <=
                 $.clickRadius && performance.now() - down.time <= $.clickDelay;
         down = null;
-        const named = label?.point;
+        const named = label?.object;
         label = null;
         if (named && !tap) {
             if (properties.selected === named) properties.select(named);
@@ -3029,10 +3030,16 @@ $("body").on(
         if (held) return closeRing();
         const c = scene();
         const screen = c.pointerPosition(event);
-        // A tap on a name designates its point, there, on an angle's mark
-        // its angle.
+        // A tap on a name designates its object, a point there, on an
+        // angle's mark its angle.
         const hits = named
-            ? [{ object: named, distance: 0, at: named.coords }]
+            ? [
+                  {
+                      object: named,
+                      distance: 0,
+                      at: nearest(c, named, screen) ?? [0, 0, 0],
+                  },
+              ]
             : resized
               ? [
                     {
@@ -3045,9 +3052,10 @@ $("body").on(
                 ]
               : pick(c, screen, previewed());
         const box = c.svg.dom().getBoundingClientRect();
-        const client: Vec2 = named
-            ? [box.left + named.sx, box.top + named.sy]
-            : [event.clientX, event.clientY];
+        const client: Vec2 =
+            named instanceof point_object
+                ? [box.left + named.sx, box.top + named.sy]
+                : [event.clientX, event.clientY];
         if (magnetizing) {
             const { point } = magnetizing;
             const targets = hits.filter(({ object }) =>

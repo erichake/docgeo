@@ -21,7 +21,7 @@ import {
     withObjects,
 } from "../import/dgp_formula";
 import { angle_object } from "../objects/angle_object";
-import type { construction_object } from "../objects/construction_object";
+import { construction_object } from "../objects/construction_object";
 import { expression_object } from "../objects/expression_object";
 import { fixed_angle_object } from "../objects/fixed_angle_object";
 import type { formula_point_object } from "../objects/formula_point_object";
@@ -81,6 +81,12 @@ const POINT_TAGS = new Set([
     "Int",
 ]);
 export const isPointTag = (tag: string): boolean => POINT_TAGS.has(tag);
+
+// Whether the figure writes its name when shown: a point's, or that of an
+// object the engine places it beside, as GeoGebra does (nameAt).
+export const hasName = (object: construction_object): boolean =>
+    object instanceof point_object ||
+    object.nameAt !== construction_object.prototype.nameAt;
 
 // Free in formulas, or easily mistaken.
 const RESERVED = new Set(["e", "i", "k", "l", "o", "t", "x", "y", "z"]);

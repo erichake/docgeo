@@ -13,7 +13,7 @@ import { intersection_object } from "./objects/intersection_object";
 import { point_on_object } from "./objects/point_on_object";
 import type { construction_object } from "./objects/construction_object";
 import { projectPoint } from "./projection";
-import { vNorm, vSub, type Vec3 } from "./vec";
+import { vAdd, vNorm, vSub, type Vec3 } from "./vec";
 
 // Returns what the figure uses that couldn't be imported.
 export function importGgb(
@@ -25,6 +25,7 @@ export function importGgb(
         calls,
         targets,
         handles,
+        nameShifts,
         animations,
         startAnimation,
         unsupported,
@@ -53,6 +54,12 @@ export function importGgb(
             ]),
         ),
     );
+    c.flush();
+    nameShifts.forEach((shift, variable) => {
+        const object = variables.get(variable);
+        const at = object?.nameAt();
+        if (at) object!.nameOffset = object!.anchorName(vAdd(at, shift));
+    });
     animations.forEach((animation, variable) =>
         c.animations.add(
             variables.get(variable) as point_on_object | expression_object,

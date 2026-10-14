@@ -1,5 +1,5 @@
 import type { construction } from "../construction";
-import { geometryTolerance, type Vec3 } from "../vec";
+import { geometryTolerance, vAdd, vScale, type Vec2, type Vec3 } from "../vec";
 import type { construction_object, DgoContext } from "./construction_object";
 import type { point_object } from "./point_object";
 import { primitive_circle_object } from "./primitive_circle_object";
@@ -82,6 +82,21 @@ export class arc3pts_object extends primitive_circle_object {
         const tolerance = geometryTolerance(this.R) / this.R;
         const alpha = normalizeAngle(this.alphaOf(point) - from + tolerance);
         return alpha <= normalizeAngle(to - from) + 2 * tolerance;
+    }
+
+    // GeoGebra's DrawConicPart: beside its middle.
+    nameAt(): Vec2 | null {
+        const from = this.sweepFlag ? this.startAlpha : this.endAlpha;
+        const to = this.sweepFlag ? this.endAlpha : this.startAlpha;
+        const alpha = from + normalizeAngle(to - from) / 2;
+        const [x, y] = vAdd(
+            this.centerScreen,
+            vAdd(
+                vScale(this.screenU, Math.cos(alpha)),
+                vScale(this.screenV, Math.sin(alpha)),
+            ),
+        );
+        return [x + 6, y - 6];
     }
 
     render(): void {

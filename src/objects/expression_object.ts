@@ -248,7 +248,12 @@ export function styleObject(
         }
         case "setShowName": {
             const value = realPart(args[0]);
-            if (value === null || (value !== 0) === target.showName) return;
+            if (
+                value === null ||
+                !(target instanceof point_object) ||
+                (value !== 0) === target.showName
+            )
+                return;
             target.showName = value !== 0;
             break;
         }

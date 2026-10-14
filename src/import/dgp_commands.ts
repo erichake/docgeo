@@ -520,6 +520,7 @@ function validateObjectStyle(
                 validateNumber(propertyValue, lineNumber, 0);
                 break;
             case "sn":
+            case "lb":
             case "sb":
             case "tk":
             case "fl":
@@ -724,7 +725,13 @@ function applyObjectStyle(
             case "s":
                 target.size = Number(propertyValue);
                 break;
+            // DGPad writes only a point's name.
             case "sn":
+                if (target instanceof point_object)
+                    target.showName = propertyValue === "true";
+                break;
+            // DocGeo's, for GeoGebra's names of the other objects.
+            case "lb":
                 target.showName = propertyValue === "true";
                 break;
             case "sb":

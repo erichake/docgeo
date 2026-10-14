@@ -229,6 +229,35 @@ export class curve_object extends construction_object {
         return this.links[index];
     }
 
+    // GeoGebra's DrawParametricCurve: at its first point in the window,
+    // kept inside it.
+    nameAt(): Vec2 | null {
+        const at = this.screenPoints.find(
+            (point) =>
+                point &&
+                point[0] >= 0 &&
+                point[0] <= this.C.width &&
+                point[1] >= 0 &&
+                point[1] <= this.C.height,
+        );
+        return at ? [Math.max(at[0], 3), Math.max(at[1], this.fontSize)] : null;
+    }
+
+    // A moved name keeps its place from the curve's point of abscissa x
+    // nearest to it, in pixels.
+    anchoredName([x, dx, dy]: number[]): Vec2 | null {
+        const point = this.pointAt(x);
+        if (!point) return null;
+        const [sx, sy] = this.C.pt3D(point);
+        return [sx + dx, sy + dy];
+    }
+
+    anchorName(at: Vec2): number[] {
+        const x = this.alphaAtScreen(at)!;
+        const [sx, sy] = this.C.pt3D(this.pointAt(x)!);
+        return [x, at[0] - sx, at[1] - sy];
+    }
+
     render(): void {
         this.dom.stl("display", this.isVisible ? "block" : "none");
         if (!this.isVisible) return;

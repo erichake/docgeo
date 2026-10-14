@@ -47,6 +47,9 @@ export interface GgbTranslation {
     // The free numbers dragging a formula point shifts, per coordinate (see
     // changeableNumber).
     handles: Map<string, [string | null, string | null]>;
+    // Where GeoGebra moved the name of an object other than a point, in
+    // pixels from its default place (see anchorName).
+    nameShifts: Map<string, Vec2>;
     unsupported: string[];
     // The animations of points on paths and sliders that GeoGebra plays,
     // started with the figure if `startAnimation`.
@@ -693,6 +696,7 @@ export function translateGgb(
     const calls: DgpCall[] = [];
     const targets = new Map<string, Vec3>();
     const handles = new Map<string, [string | null, string | null]>();
+    const nameShifts = new Map<string, Vec2>();
     const animations = new Map<string, Animation>();
     const unsupported: string[] = [];
     const objects = new Map<string, { variable: string; kind: Kind }>();
@@ -1353,8 +1357,12 @@ export function translateGgb(
         const color = child(element, "objColor");
         if (color) parts.push(`c:${hexColor(color)}`);
         if (attribute(element, "show", "object") === "false") parts.push("h:1");
-        if (attribute(element, "show", "label") === "true")
-            parts.push("sn:true");
+        if (attribute(element, "show", "label") === "true") {
+            if (kind === "point" || kind === "pointOn") parts.push("sn:true");
+            // Its name, not its value nor its caption.
+            else if ((attribute(element, "labelMode", "val") ?? "0") === "0")
+                parts.push("lb:true");
+        }
         const layer = attribute(element, "layer", "val");
         if (layer && layer !== "0") parts.push(`l:${layer}`);
         if (kind === "point" || kind === "pointOn") {
@@ -1441,10 +1449,17 @@ export function translateGgb(
         // Without its own element (an unlabeled output, or an auxiliary
         // object built from a nested command), GeoGebra doesn't draw it:
         // super-hidden, nobody shows it again.
+        const shown = style ?? (element ? objectStyle(element, kind) : "h:2");
         push(null, "STL", [
             { type: "reference", name: variable },
-            literal(style ?? (element ? objectStyle(element, kind) : "h:2")),
+            literal(shown),
         ]);
+        const offset = element && child(element, "labelOffset");
+        if (offset && shown.split(";").includes("lb:true"))
+            nameShifts.set(variable, [
+                Number(offset.getAttribute("x")),
+                Number(offset.getAttribute("y")),
+            ]);
         return true;
     };
 
@@ -1499,7 +1514,7 @@ export function translateGgb(
     const shapeStyle = (element: Element): string =>
         objectStyle(element, "polygon")
             .split(";")
-            .filter((part) => !part.startsWith("sn:"))
+            .filter((part) => part !== "lb:true")
             .join(";");
 
     // The region GeoGebra shades for a number, bounded by a list's points.
@@ -2305,7 +2320,7 @@ export function translateGgb(
             const style = [
                 ...objectStyle(element, "polygon")
                     .split(";")
-                    .filter((part) => !/^sn?:/.test(part)),
+                    .filter((part) => !/^(s|lb):/.test(part)),
                 "s:0",
             ].join(";");
             lower.forEach((vertex, index) => {
@@ -4267,6 +4282,7 @@ export function translateGgb(
         calls,
         targets,
         handles,
+        nameShifts,
         animations,
         startAnimation:
             document

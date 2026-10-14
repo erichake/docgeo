@@ -317,6 +317,16 @@ const STYLE: Record<string, Property> = {
     ),
     pb: field(point_object, "border", 1, isNumber),
     np: field(point_object, "namePosition", 0, isNumber),
+    no: field(
+        object,
+        "nameOffset",
+        null,
+        (value) =>
+            value === null ||
+            (Array.isArray(value) &&
+                [2, 3].includes(value.length) &&
+                value.every(isNumber)),
+    ),
     nd: field(
         point_object,
         "nameDistance",

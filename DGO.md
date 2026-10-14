@@ -352,6 +352,7 @@ postérieur.
 | `o`  | tous         | opacité                                  | du type                           |
 | `h`  | tous         | 0 visible, 1 caché, 2 super-caché        | 0                                 |
 | `sn` | tous         | nom affiché                              | 0                                 |
+| `no` | tous         | place du nom déplacé (hors points)       | `null` (place de GeoGebra)        |
 | `f`  | tous         | taille de police                         | 16                                |
 | `p`  | tous         | précision (lieu : nombre d'échantillons) | -1 (`Loc` : 1000, `Html` : 4)     |
 | `l`  | tous         | calque (entier, sous les `Html`)         | 0                                 |
@@ -381,6 +382,26 @@ postérieur.
 | `cr` | `Ex`         | rayon du bouton                          | 10                                |
 | `co` | `Ex`         | opacité du bouton                        | 0                                 |
 | `sg` | `ELst`       | épaisseur des segments                   | -1                                |
+
+Nom `sn` : écrit, pour un objet autre qu'un point, à la place que lui donne
+GeoGebra (segment, droite, demi-droite, vecteur, cercle, arc, conique,
+courbe, polygone). Déplacé, il garde sa place relative à l'objet quand
+celui-ci change, `no` la donnant selon l'objet (pixels vers la droite et vers
+le bas) :
+
+- droite par deux points, segment, demi-droite, vecteur : `[t, d]`, à la
+  fraction `t` du chemin de son premier point au second, à `d` pixels à
+  gauche de ce chemin ;
+- autre droite : `[l, d]`, à `l` pixels de son point le long de la droite ;
+- cercle, arc, ellipse : `[α, d]`, à l'angle `α` du paramétrage de l'objet,
+  à `d` pixels à l'extérieur ;
+- courbe : `[x, dx, dy]`, décalé du point d'abscisse `x` ;
+- polygone, hyperbole, parabole : `[dx, dy]`, décalé de la place de GeoGebra
+  (moyenne des sommets, sommet).
+
+Un point place le sien par `np` et `nd`. Le `labelOffset` de GeoGebra, en
+pixels, est converti à l'import. DGPad n'écrit que le nom des points :
+l'import `.dgp` ignore son `sn` sur les autres objets.
 
 Calque `l` : comme dans DGPad et GeoGebra, un objet est peint au-dessus de
 ceux des calques plus bas, points compris ; à calque égal, l'ordre reste celui

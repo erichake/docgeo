@@ -326,6 +326,14 @@ export class polygon_object extends construction_object {
         return (point) => sign * vDot(normal, vSub(point, a));
     }
 
+    // GeoGebra's DrawPolygon: at its vertices' mean.
+    nameAt(): Vec2 {
+        return vScale(
+            this.screenPoints.reduce(vAdd),
+            1 / this.screenPoints.length,
+        );
+    }
+
     render(): void {
         this.dom.stl(
             "display",
@@ -340,11 +348,8 @@ export class polygon_object extends construction_object {
         this.hiddenOutline.att("d", this.edgePathData(this.edgeHidden));
         if (this.underlay) this.renderUnderlay(this.underlay);
         if (!this.measureText) return;
-        // DGPad writes the area centered on the vertices' mean.
-        const [x, y] = vScale(
-            this.screenPoints.reduce(vAdd),
-            1 / this.screenPoints.length,
-        );
+        // DGPad writes the area centered there.
+        const [x, y] = this.nameAt();
         this.measureText
             .att("x", x)
             .att("y", y)

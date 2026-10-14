@@ -38,6 +38,32 @@ function pointAtDistance(origin: Vec2, dir: Vec2, distance: number): Vec2 {
     return [origin[0] + distance * dir[0], origin[1] + distance * dir[1]];
 }
 
+// The parameters of the ends of the part of p + t·d (0 ≤ t ≤ 1) in the
+// window, if any.
+function windowSpan(
+    p: Vec2,
+    d: Vec2,
+    width: number,
+    height: number,
+): [number, number] | null {
+    let from = 0;
+    let to = 1;
+    for (const [start, delta, size] of [
+        [p[0], d[0], width],
+        [p[1], d[1], height],
+    ]) {
+        if (delta === 0) {
+            if (start < 0 || start > size) return null;
+            continue;
+        }
+        const a = -start / delta;
+        const b = (size - start) / delta;
+        from = Math.max(from, Math.min(a, b));
+        to = Math.min(to, Math.max(a, b));
+    }
+    return from <= to ? [from, to] : null;
+}
+
 // The dashes of a stroke `length` long, its pattern starting at `phase`.
 function dashIntervals(
     length: number,
@@ -109,6 +135,9 @@ export class primitive_line_object extends construction_object {
     // they no longer match the range project() below assumes.
     protected hiddenIntervals: Interval[] = [];
     protected visibleIntervals: Interval[] = [[0, 1]];
+    // Where its name was last written: GeoGebra keeps a line's by the end
+    // nearest to it.
+    private lastNameAt: Vec2 = [0, 0];
 
     constructor(
         c: construction,
@@ -301,6 +330,74 @@ export class primitive_line_object extends construction_object {
                 point3D2,
                 (polygon) => this.isOwnFace(polygon),
             ));
+    }
+
+    // GeoGebra's DrawLine, DrawRay and DrawSegment: a line's name by the
+    // window's edge, sloped away from it; a ray's or a segment's 16 pixels
+    // beside the middle of its part in the window or of the whole.
+    nameAt(): Vec2 | null {
+        const width = this.C.width;
+        const height = this.C.height;
+        const along = vSub(this.sP2, this.sP1);
+        const span = this.infinite
+            ? windowSpan(this.sP1, along, width, height)
+            : [0, 1];
+        if (!span) return null;
+        const [a, b] = span.map((t) => vAdd(this.sP1, vScale(along, t)));
+        if (this.oneSided || !this.infinite || this.partialDrawing)
+            return vAdd(
+                vScale(vAdd(a, b), 1 / 2),
+                vScale(vNormalize([-along[1], along[0]])!, 16),
+            );
+        const [x, y] =
+            vNorm(vSub(a, this.lastNameAt)) <= vNorm(vSub(b, this.lastNameAt))
+                ? a
+                : b;
+        const slope = along[1] / along[0];
+        const gap = 2 * y < height ? 16 : -8;
+        const shift = 2 * x < width ? 8 : -16;
+        this.lastNameAt =
+            x < 1
+                ? [5, y + gap + 16 * slope]
+                : x > width - 1
+                  ? [width - 15, y + gap - 16 * slope]
+                  : y < 1
+                    ? [x + shift + 16 / slope, 15]
+                    : [x + shift - 16 / slope, height - 5];
+        return this.lastNameAt;
+    }
+
+    // A moved name keeps its place from its point along nameAxis and, in
+    // pixels, beside it.
+    private nameFrame(): [Vec2, Vec2, Vec2] | null {
+        const axis = this.nameAxis();
+        const unit = vNormalize(axis);
+        return unit && [this.P1.screen, axis, [-unit[1], unit[0]]];
+    }
+
+    // One pixel along it.
+    protected nameAxis(): Vec2 {
+        return (
+            vNormalize(
+                vSub(
+                    this.C.pt3D(vAdd(this.P1.coords, this.VEC)),
+                    this.P1.screen,
+                ),
+            ) ?? [0, 0]
+        );
+    }
+
+    anchoredName([along, beside]: number[]): Vec2 | null {
+        const frame = this.nameFrame();
+        if (!frame) return null;
+        const [origin, axis, normal] = frame;
+        return vAdd(vAdd(origin, vScale(axis, along)), vScale(normal, beside));
+    }
+
+    anchorName(at: Vec2): number[] {
+        const [origin, axis, normal] = this.nameFrame()!;
+        const offset = vSub(at, origin);
+        return [vDot(offset, axis) / vDot(axis, axis), vDot(offset, normal)];
     }
 
     // *************************************************

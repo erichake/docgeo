@@ -1,6 +1,6 @@
 import type { construction } from "../construction";
 import type { PrefKey } from "../preferences";
-import { vNormalize, vSub, type Vec3 } from "../vec";
+import { vNormalize, vSub, type Vec2, type Vec3 } from "../vec";
 import type { DgoContext } from "./construction_object";
 import type { point_object } from "./point_object";
 import type { polygon_object } from "./polygon_object";
@@ -29,6 +29,12 @@ export class two_points_line_object extends primitive_line_object {
     computeVEC(): Vec3 | null {
         if (!this.P2.defined) return null;
         return vNormalize(vSub(this.P2.coords, this.P1.coords));
+    }
+
+    // The way to its second point: a moved name keeps its place between
+    // them, as a fraction of it.
+    protected nameAxis(): Vec2 {
+        return vSub(this.P2.screen, this.P1.screen);
     }
 
     protected referenceSpan(): [Vec3, Vec3] | null {

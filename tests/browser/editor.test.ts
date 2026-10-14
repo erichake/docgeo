@@ -986,6 +986,49 @@ describe("Editor", () => {
         expect(B.namePosition).toBe(A.namePosition);
     });
 
+    it("drags the name of a segment, which then keeps its place beside it", async () => {
+        const { scene: c } = studio();
+        readDgo(c, {
+            dgo: 1,
+            v: { o: [400, 300], u: 40, w: 800, h: 600 },
+            o: [
+                ["Pt", "A", [0, 0]],
+                ["Pt", "B", [4, 0]],
+                ["Seg", "s", [0, 1], 0],
+            ],
+            st: [{ sn: 1 }],
+        });
+        c.flush();
+        const s = c.getObj("s")!;
+        const B = c.getObj("B") as point_object;
+        const box = () => s.nameLabel!.dom().getBoundingClientRect();
+        const before = box();
+        expect(
+            labelAt(c, [
+                before.left + before.width / 2,
+                before.top + before.height / 2,
+            ]),
+        ).toBe(s);
+        // A quarter of the way from A, 20 pixels above.
+        placeLabel(s, [440, 280]);
+        c.flush();
+        expect(s.nameOffset).toEqual([0.25, -20]);
+        expect(s.nameSpot()).toEqual([440, 280]);
+        // B turned a quarter turn about A: the name follows, still a quarter
+        // of the way and 20 pixels on the same side.
+        B.coords = [0, 4, 0];
+        c.invalidateGeometry(B);
+        c.flush();
+        const [x, y] = s.nameSpot()!;
+        expect(x).toBeCloseTo(380);
+        expect(y).toBeCloseTo(260);
+        const figure = await describeDgo(c);
+        expect(figure.st).toContainEqual({ sn: 1, no: [0.25, -20] });
+        const { scene: copy } = studio();
+        readDgo(copy, figure);
+        expect(copy.getObj("s")!.nameOffset).toEqual([0.25, -20]);
+    });
+
     it("picks an angle by its mark, whose radius is then dragged", () => {
         const { scene: c } = studio();
         readDgo(c, {

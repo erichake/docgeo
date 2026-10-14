@@ -76,6 +76,7 @@ figure sont seulement comptés. L'API utilisée est
 | 2026-10-05 | —                  | 300,7 Ko | item 21 : calques (style, +0)                                      |
 | 2026-10-06 | —                  | 302,2 Ko | item 22 : grille (style, +0)                                       |
 | 2026-10-14 | —                  | 301,1 Ko | item 23 : flèches, noms, nombres et unité π des axes (style, +0)   |
+| 2026-10-14 | —                  | 303,8 Ko | item 24 : noms des objets autres que les points (style, +0)        |
 
 ## À faire, par rapport gain / coût
 
@@ -397,6 +398,24 @@ cause.
       Grilles isométrique et polaire, point de croisement des axes : aucune
       figure du corpus. Rapport x:y différent de 1 (14 figures) : écarté,
       chantier du moteur. Build +1,9 Ko (+0,8 Ko en gzip).
+- [x] **24. Noms des objets autres que les points** : seul le nom des
+      points était écrit. Mesuré sur le corpus : 151 figures sur 459
+      montrent le nom d'un segment (271), d'une droite (102), d'une
+      fonction (39), d'une conique (35), d'un vecteur (31), d'un polygone
+      (17), d'un arc (7) ou d'une demi-droite (4). Fait d'après
+      `DrawSegment`, `DrawLine`, `DrawRay`, `DrawVector`, `DrawConic`,
+      `DrawConicPart`, `DrawParametricCurve` et `DrawPolygon` : segment à
+      16 pixels du milieu, droite au bord de la fenêtre, cercle et ellipse en
+      haut à gauche, arc à côté de son milieu, courbe à son premier point
+      dans la fenêtre, polygone à la moyenne de ses sommets ; hyperbole et
+      parabole à leur sommet. Le style DGP `lb` (propre à DocGeo) les
+      distingue du `sn` de DGPad, qui n'écrit que le nom des points. Le
+      décalage `labelOffset` est converti à l'import en place relative à
+      l'objet (`no` de `DGO.md`), qui la garde quand l'objet change, là où
+      GeoGebra garde un décalage fixe en pixels (ajouté ensuite avec le
+      glisser des noms dans l'éditeur, +1,9 Ko). Écartés : la valeur (`labelMode` 1
+      et 2, 132 étiquettes) et la légende (`caption`, 94), qui n'écrivent
+      rien plutôt qu'un nom faux. Build +2 Ko (+0,6 Ko en gzip).
 
 À écarter, sauf changement de priorité : calcul formel, courbes implicites,
 statistiques et probabilités, tableur au-delà des cellules simples, matrices.

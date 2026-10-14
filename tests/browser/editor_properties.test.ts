@@ -192,6 +192,25 @@ describe("Object properties", () => {
         properties.panel.dispose();
     });
 
+    it("shows the name of a segment, created without it, and saves it", async () => {
+        const { c, properties, field, change } = setup();
+        const segment = c.getObj("s")!;
+        expect([segment.showName, c.getObj("d")!.showName]).toEqual([
+            false,
+            false,
+        ]);
+        properties.select(segment);
+        expect(field("show_name").checked).toBe(false);
+        change("show_name", true);
+        expect(segment.dom.find("text")!.dom().textContent).toBe("s");
+        const restored = createConstruction([800, 600]);
+        readDgo(restored, await describeDgo(c));
+        expect(restored.getObj("s")!.showName).toBe(true);
+        change("show_name", false);
+        expect(segment.dom.find("text")).toBeFalsy();
+        properties.panel.dispose();
+    });
+
     it("hides an object, selects it from the list and shows it again", () => {
         const { c, properties, field, change } = setup();
         const point = c.getObj("A")!;
