@@ -75,6 +75,7 @@ figure sont seulement comptés. L'API utilisée est
 | 2026-10-04 | 238 / 438 (54 %)   | 298,8 Ko | item 20 : `Mode`, `Roots`, `Point(A, vecteur)` (+6)                |
 | 2026-10-05 | —                  | 300,7 Ko | item 21 : calques (style, +0)                                      |
 | 2026-10-06 | —                  | 302,2 Ko | item 22 : grille (style, +0)                                       |
+| 2026-10-14 | —                  | 301,1 Ko | item 23 : flèches, noms, nombres et unité π des axes (style, +0)   |
 
 ## À faire, par rapport gain / coût
 
@@ -380,6 +381,22 @@ cause.
       figures du corpus sur 470 ont une grille, 39 pointillée). Les axes sont
       gradués sur une grille à distance fixe. Les grilles isométrique,
       polaire et en points restent cartésiennes. Build +1,5 Ko.
+- [x] **23. Axes** : DocGeo dessinait les axes de GeoGebra avec le gros
+      triangle de DGPad, sans leur nom ni leur unité, et avec tous leurs
+      nombres. Mesuré sur les 152 figures planes du corpus qui montrent axes
+      ou grille : flèches ouvertes (`lineStyle axes` 1 et 3, 114 figures),
+      pleines (9 et 11, 11 figures), aucune (0, 1 figure) ; noms d'axes
+      (`label`, 25 axes, un `$x$` LaTeX lu comme `x`) ; nombres masqués
+      (`showNumbers`, 21 axes, graduations gardées) ; unité π (`unitLabel`,
+      7 axes). Fait d'après `DrawAxis.java` : flèches d'un tiers de la taille
+      des nombres (un pixel de plus par axes gras), nom en bout d'axe, nombres
+      multiples de π/2 écrits `π/2`, `π`, `3π/2`… comme le `formatPiE` actuel
+      de GeoGebra (la version compilée de `doctools_MAIN` n'écrit encore que
+      `π`). Les nombres d'une distance fixe non décimale (`π/2` sans unité)
+      ont au plus les décimales de GeoGebra (`1.57`, plus `1.5707963268`).
+      Grilles isométrique et polaire, point de croisement des axes : aucune
+      figure du corpus. Rapport x:y différent de 1 (14 figures) : écarté,
+      chantier du moteur. Build +1,9 Ko (+0,8 Ko en gzip).
 
 À écarter, sauf changement de priorité : calcul formel, courbes implicites,
 statistiques et probabilités, tableur au-delà des cellules simples, matrices.

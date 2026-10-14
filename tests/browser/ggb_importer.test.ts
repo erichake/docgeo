@@ -1,5 +1,6 @@
 import { afterEach, describe, expect, it } from "vitest";
 import { construction } from "../../src/construction";
+import { describeDgo, readDgo } from "../../src/dgo";
 import { importGgb, importGgbFromBlob } from "../../src/ggb_importer";
 import { readZipEntry } from "../../src/import/ggb_zip";
 import { angle_object } from "../../src/objects/angle_object";
@@ -1866,6 +1867,46 @@ ${lines.map((line, index) => command("Plane", ["C", line], `p${index}`)).join("\
         expect(step(subMajor)).toBeCloseTo(2 * unit, 0);
         expect(step(subMinor)).toBeCloseTo((2 * unit) / 5, 0);
         expect(subTicks).toBe("");
+    });
+
+    it("draws GeoGebra's axis names, hidden numbers, unit of π and arrows", async () => {
+        const xml = (await loadXml("Animation"))
+            .replace('evSettings axes="false"', 'evSettings axes="true"')
+            .replace('lineStyle axes="1"', 'lineStyle axes="9"')
+            .replace(
+                /<axis id="0"[^>]*\/>/,
+                '<axis id="0" show="true" label="$x$" unitLabel="π" tickStyle="1" showNumbers="true" tickDistance="1.5707963267948966"/>',
+            )
+            .replace(
+                /<axis id="1"[^>]*\/>/,
+                '<axis id="1" show="true" label="f(x)" unitLabel="" tickStyle="1" showNumbers="false"/>',
+            );
+        const c = createConstruction();
+        importGgb(c, xml);
+        await new Promise((resolve) => requestAnimationFrame(resolve));
+        expect(c.GRID.axisLabels).toEqual(["x", "f(x)"]);
+        expect(c.GRID.axisUnits).toEqual(["π", ""]);
+        expect(c.GRID.showNumbers).toEqual([true, false]);
+        expect(c.GRID.arrows).toBe(3);
+        const texts = [...c.GRID.dom.dom().querySelectorAll("text")]
+            .filter((text) => (text as SVGElement).style.display !== "none")
+            .map((text) => text.textContent);
+        // Ox's name and numbers, all multiples of π/2: Oy's are hidden.
+        expect(texts).toContain("x");
+        expect(texts.filter((text) => text !== "x").length).toBeGreaterThan(2);
+        texts
+            .filter((text) => !["x", "f(x)", "0"].includes(text!))
+            .forEach((text) => expect(text).toMatch(/^-?\d*π(\/2)?$/));
+        const restored = createConstruction();
+        readDgo(restored, await describeDgo(c));
+        expect(restored.GRID.axisLabels).toEqual(["x", "f(x)"]);
+        expect(restored.GRID.axisUnits).toEqual(["π", ""]);
+        expect(restored.GRID.showNumbers).toEqual([true, false]);
+        expect(restored.GRID.arrows).toBe(3);
+        // Open by default.
+        const plain = createConstruction();
+        importGgb(plain, await loadXml("Animation"));
+        expect(plain.GRID.arrows).toBe(2);
     });
 
     it("reads the degree as a constant, as GeoGebra", () => {

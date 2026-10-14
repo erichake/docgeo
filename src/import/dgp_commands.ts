@@ -936,6 +936,17 @@ function applyCoordsStyle(context: CommandContext, value: string): void {
     );
     flag("boldNumbers", (value) => (grid.boldNumbers = value));
     flag("geogebraAxes", (value) => (grid.geogebraAxes = value));
+    // DocGeo's, for GeoGebra's axes, their texts URI-encoded.
+    (["X", "Y"] as const).forEach((name, axis) => {
+        const text = (key: string, texts: [string, string]) => {
+            const value = style.get(key + name);
+            if (value !== undefined) texts[axis] = decodeURIComponent(value);
+        };
+        text("axisLabel", grid.axisLabels);
+        text("axisUnit", grid.axisUnits);
+        flag("numbers" + name, (value) => (grid.showNumbers[axis] = value));
+    });
+    size("arrows", (value) => (grid.arrows = value));
     context.gridChanged = true;
 }
 

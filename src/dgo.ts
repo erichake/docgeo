@@ -195,6 +195,10 @@ const isNumber = (value: Json): value is number =>
 const isFlag = (value: Json): boolean => value === 0 || value === 1;
 const isColor = (value: Json): boolean =>
     typeof value === "string" && COLOR.test(value);
+const isTexts = (value: Json): boolean =>
+    Array.isArray(value) &&
+    value.length === 2 &&
+    value.every((text) => typeof text === "string");
 const isPair = (value: Json): value is Vec2 =>
     Array.isArray(value) && value.length === 2 && value.every(isNumber);
 const isRecord = (value: Json): value is Record<string, Json> =>
@@ -479,6 +483,23 @@ const VIEW: Record<string, Property> = {
     ),
     nb: flag(grid_object, "boldNumbers"),
     gg: flag(grid_object, "geogebraAxes"),
+    al: field(grid_object, "axisLabels", ["", ""], isTexts),
+    nu: property(
+        grid_object,
+        ({ showNumbers }) => showNumbers.map(Number),
+        (grid, value) =>
+            (grid.showNumbers = (value as number[]).map(Boolean) as [
+                boolean,
+                boolean,
+            ]),
+        [1, 1],
+        (value) =>
+            Array.isArray(value) && value.length === 2 && value.every(isFlag),
+    ),
+    au: field(grid_object, "axisUnits", ["", ""], isTexts),
+    ah: field(grid_object, "arrows", 0, (value) =>
+        [0, 1, 2, 3].includes(value as number),
+    ),
 };
 
 function initial(property: Property, tag: string, settings: Settings): Json {

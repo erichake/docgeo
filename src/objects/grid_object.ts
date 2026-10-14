@@ -88,6 +88,14 @@ export class grid_object extends construction_object {
     boldNumbers = false;
     // Graduations and numbers placed as GeoGebra's (see axes_2d).
     geogebraAxes = false;
+    // Per axis: its name, written at its end, whether it shows its numbers,
+    // and their unit, written after them ("π": multiples of π).
+    axisLabels: [string, string] = ["", ""];
+    showNumbers: [boolean, boolean] = [true, true];
+    axisUnits: [string, string] = ["", ""];
+    // The axes' ends: DGPad's arrow (0), none (1), GeoGebra's open (2) or
+    // filled one (3).
+    arrows = 0;
     // Ox (resp. Oy) stays put vertically (resp. horizontally) on pan and
     // zoom.
     lockOx = false;

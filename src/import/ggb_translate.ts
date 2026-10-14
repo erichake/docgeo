@@ -4066,16 +4066,29 @@ export function translateGgb(
             );
         const numbers = Math.max(Math.round(fontSize * 0.75), 10);
         // Per axis: its fixed distance between two numbers, if not
-        // automatic, and whether it has minor and major graduations (0),
-        // only major ones (1) or none (2).
+        // automatic, whether it has minor and major graduations (0), only
+        // major ones (1) or none (2), its name (a LaTeX one as its text),
+        // whether it shows its numbers and their unit.
         const graduations = ["X", "Y"]
             .map((name, id) => {
                 const settings = axis(String(id));
                 const distance = Number(settings?.getAttribute("tickDistance"));
                 const style = settings?.getAttribute("tickStyle") ?? "";
-                return `;tickDistance${name}:${distance > 0 ? distance : 0};tickStyle${name}:${/^[012]$/.test(style) ? style : 1}`;
+                const text = (attribute: string) =>
+                    encodeURIComponent(
+                        (settings?.getAttribute(attribute) ?? "").replace(
+                            /^\$(.*)\$$/,
+                            "$1",
+                        ),
+                    );
+                return `;tickDistance${name}:${distance > 0 ? distance : 0};tickStyle${name}:${/^[012]$/.test(style) ? style : 1};axisLabel${name}:${text("label")};numbers${name}:${settings?.getAttribute("showNumbers") !== "false"};axisUnit${name}:${text("unitLabel")}`;
             })
             .join("");
+        // Its arrows: none, open or filled.
+        const lineType = Number(
+            attribute(styledView, "lineStyle", "axes") ?? 1,
+        );
+        const arrows = lineType & 1 ? (lineType & 8 ? 3 : 2) : 1;
         const labelStyle = Number(attribute(styledView, "labelStyle", "axes"));
         // The grid: its major lines at a fixed distance if it has one, else
         // at the numbers', five minor intervals between two with a subgrid
@@ -4097,7 +4110,7 @@ export function translateGgb(
         }`;
         const plane = is3D
             ? ""
-            : `;axisWidth:${bold ? 2 : 1};fontSize:${numbers};onlyPositive:${positive}${graduations};boldNumbers:${Boolean(labelStyle & 1)};geogebraAxes:true${gridStyle}`;
+            : `;axisWidth:${bold ? 2 : 1};fontSize:${numbers};onlyPositive:${positive}${graduations};arrows:${arrows};boldNumbers:${Boolean(labelStyle & 1)};geogebraAxes:true${gridStyle}`;
         push(null, "SetCoordsStyle", [
             literal(
                 `isAxis:${axes || (grid && !is3D)};isGrid:${grid};isOx:${shown.includes("0")};isOy:${shown.includes("1")}${

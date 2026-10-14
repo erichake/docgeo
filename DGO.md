@@ -149,6 +149,10 @@ enregistrée `w` × `h` est centrée dans la fenêtre au pixel près, en 2D comm
 | `ts` | styles des graduations (Ox, Oy)      | [0, 0]          |
 | `nb` | nombres des graduations en gras      | 0               |
 | `gg` | graduations à la manière de GeoGebra | 0               |
+| `al` | noms des axes (Ox, Oy)               | ["", ""]        |
+| `nu` | nombres des axes affichés (Ox, Oy)   | [1, 1]          |
+| `au` | unités des nombres (Ox, Oy)          | ["", ""]        |
+| `ah` | flèches des axes                     | 0               |
 
 Dans une figure plane, comme dans GeoGebra : `td` est, par axe, la distance
 fixe entre deux nombres, une petite graduation à mi-chemin (0 : distance
@@ -160,6 +164,14 @@ une secondaire, 3 avec des axes de plus d'un pixel), aucune quand la grille est
 affichée à la distance des nombres ; nombres rapprochés des axes, un 0 en bas à
 gauche de l'origine ; lignes secondaires de la grille aussi épaisses que les
 principales (`gw` pixels), plus pâles (opacité 60/255).
+
+Axes d'une figure plane : `al` donne le nom écrit au bout de chaque axe, `nu`
+masque ses nombres (graduations gardées), `au` l'unité écrite après eux ;
+l'unité `π` place les nombres automatiques sur des multiples de π/2, écrits
+`π/2`, `π`, `3π/2`… (`td` reste en unités de la figure). `ah` : 0 flèche de
+DGPad, 1 aucune, 2 flèche ouverte de GeoGebra, 3 flèche pleine de GeoGebra
+(un tiers de la taille des nombres, un pixel de plus par axes de plus d'un
+pixel).
 
 Grille d'une figure plane : `gd` est, par axe, la distance fixe entre deux
 lignes principales (0 : celle des nombres ; elle reprend aussi la main quand, à
