@@ -1,8 +1,10 @@
 import type { construction } from "../construction";
 import { figureObjects } from "../dgo";
+import { angle_object, RIGHT_ANGLE_TOLERANCE } from "../objects/angle_object";
 import type { construction_object } from "../objects/construction_object";
 import { createOrderedIntersection } from "../objects/intersection_object";
 import { curve_object } from "../objects/curve_object";
+import { fixed_angle_object } from "../objects/fixed_angle_object";
 import { list_object } from "../objects/list_object";
 import { locus_object } from "../objects/locus_object";
 import { point_object } from "../objects/point_object";
@@ -16,7 +18,16 @@ import { sphere_object } from "../objects/sphere_object";
 import { two_points_line_object } from "../objects/two_points_line_object";
 import { projectPointOnLine, projectPointOnPlane } from "../projection";
 import { accepts } from "./catalog";
-import { vAdd, vIsFinite, vSub, type Vec2, type Vec3 } from "../vec";
+import {
+    vAdd,
+    vDot,
+    vIsFinite,
+    vNormalize,
+    vScale,
+    vSub,
+    type Vec2,
+    type Vec3,
+} from "../vec";
 
 // The objects under the pointer: see EDITOR.md.
 
@@ -119,8 +130,103 @@ function inside(polygon: Vec2[], [x, y]: Vec2): boolean {
     return result;
 }
 
+export type Angle = angle_object | fixed_angle_object;
+
+export const vertexOf = (angle: Angle): point_object =>
+    angle instanceof angle_object ? angle.O : angle.P1;
+
+function segmentDistance(p: Vec2, a: Vec2, b: Vec2): number {
+    const ab = vSub(b, a);
+    const t = Math.max(0, Math.min(1, vDot(vSub(p, a), ab) / vDot(ab, ab)));
+    return screenDistance(p, vAdd(a, vScale(ab, t)));
+}
+
+const cross = (a: Vec2, b: Vec2): number => a[0] * b[1] - a[1] * b[0];
+
+// How far `screen` is from the angle's mark as drawn: its arc, or the mark
+// of a right angle.
+export function arcDistance(
+    c: construction,
+    angle: Angle,
+    screen: Vec2,
+): number {
+    const o = vertexOf(angle).screen;
+    const u = vNormalize(vSub(angle.A.screen, o));
+    const v = vNormalize(
+        vSub(
+            angle instanceof angle_object
+                ? angle.B.screen
+                : c.pt3D(vAdd(angle.P1.coords, angle.VEC)),
+            o,
+        ),
+    );
+    if (!angle.projectionDefined || !u || !v) return Infinity;
+    const r = angle.arcRadius;
+    if (
+        angle instanceof angle_object &&
+        !["none", "dot"].includes(angle.rightAngleMark) &&
+        Math.abs(angle.value - Math.PI / 2) < RIGHT_ANGLE_TOLERANCE
+    ) {
+        const dgpad = angle.rightAngleMark === "dgpad";
+        const [U, V] = [u, v].map((w) =>
+            vScale(w, dgpad ? r : r * Math.SQRT1_2),
+        );
+        const corner =
+            angle.rightAngleMark === "L" ? vAdd(o, vScale(vAdd(U, V), 0.4)) : o;
+        const mark = [
+            vAdd(corner, U),
+            vAdd(vAdd(corner, U), V),
+            vAdd(corner, V),
+        ];
+        if (angle.rightAngleMark === "square") mark.push(o, mark[0]);
+        if (angle.rightAngleMark === "L") mark.splice(1, 1, corner);
+        return Math.min(
+            ...mark
+                .slice(1)
+                .map((b, index) => segmentDistance(screen, mark[index], b)),
+        );
+    }
+    const d = vSub(screen, o);
+    const turn = cross(u, v);
+    return cross(u, d) * turn >= 0 && cross(d, v) * turn >= 0
+        ? Math.abs(Math.hypot(...d) - r)
+        : Math.min(
+              screenDistance(screen, vAdd(o, vScale(u, r))),
+              screenDistance(screen, vAdd(o, vScale(v, r))),
+          );
+}
+
+// The angle whose mark is under the pointer, unless a point or a nearer
+// object of `hits` is.
+export function arcAt(
+    c: construction,
+    screen: Vec2,
+    hits: Hit[],
+): Angle | null {
+    let best: Angle | null = null;
+    let distance = PICK_RADIUS;
+    figureObjects(c).forEach((object) => {
+        if (
+            !(
+                object instanceof angle_object ||
+                object instanceof fixed_angle_object
+            ) ||
+            !object.isVisible ||
+            !object.hasView
+        )
+            return;
+        const d = arcDistance(c, object, screen);
+        if (d <= distance) [best, distance] = [object, d];
+    });
+    const hit = hits[0];
+    return hit &&
+        (hit.object instanceof point_object || hit.distance < distance)
+        ? null
+        : best;
+}
+
 // Within `radius` pixels, points first, then the nearest first. A polygon
-// or a sphere is under the pointer inside it.
+// or a sphere is under the pointer inside it, an angle near its mark.
 export function pick(
     c: construction,
     screen: Vec2,
@@ -130,12 +236,17 @@ export function pick(
     const hits: (Hit & { rank: number })[] = [];
     figureObjects(c).forEach((object) => {
         if (!object.isVisible || !object.hasView || ignored.has(object)) return;
-        const at = nearest(c, object, screen);
+        const at =
+            object instanceof angle_object
+                ? object.O.coords
+                : nearest(c, object, screen);
         if (!at || !vIsFinite(at)) return;
         const distance =
             object instanceof polygon_object || object instanceof sphere_object
                 ? radius
-                : screenDistance(c.pt3D(at), screen);
+                : object instanceof angle_object
+                  ? arcDistance(c, object, screen)
+                  : screenDistance(c.pt3D(at), screen);
         if (!(distance <= radius)) return;
         const rank = object instanceof point_object ? 0 : radius + 1;
         hits.push({ object, distance, at, rank: rank + distance });

@@ -8,7 +8,7 @@ import type { point_object } from "./point_object";
 
 const DEFAULT_ARC_RADIUS = 30;
 const LABEL_MARGIN = 5;
-const RIGHT_ANGLE_TOLERANCE = 1e-8;
+export const RIGHT_ANGLE_TOLERANCE = 1e-8;
 
 // How a right angle is drawn: DGPad's open square, GeoGebra's arc (none),
 // square, dot or L.

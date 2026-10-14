@@ -465,6 +465,19 @@ Renommer et masquer sont chacun une étape d'annulation ; le nom se
 réaffiche par le panneau de propriétés. Dans les modes propriétés, gomme
 et aimant, le toucher sur un nom désigne toujours son point.
 
+## Marques d'angles
+
+Décidé le 2026-10-14, comme dans DGPad : la marque d'un angle (son arc, ou
+celle d'un angle droit) se glisse pour en changer le rayon (`ar`), qui
+suit la distance du pointeur au sommet, proportionnellement à celle où on
+l'a prise (pas de saut au premier mouvement), entre 5 et 200 px comme le
+champ du panneau de propriétés. Vaut aussi pour les angles fixes de DGPad
+(`FA`). Un point, un nom ou un objet plus proche du pointeur passe avant ;
+survoler la marque fait briller l'angle et donne le curseur « doigt ».
+Chaque glisser est une étape d'annulation. Les angles deviennent aussi
+désignables par leur marque (`pick`) : un toucher les sélectionne, la
+gomme les cache, le panneau de propriétés les choisit.
+
 ## Gomme
 
 Décidé le 2026-10-11, comme dans DGPad plutôt que par le menu contextuel de
@@ -1028,6 +1041,11 @@ Fait (2026-10-11) :
   « Noms des points ») : curseur « doigt » au survol d'un nom. Vérifié
   dans `editor.html` (curseur, renommage, nom pris, Échap, masquer,
   annuler, toucher ailleurs). Éditeur +2,0 Ko (+0,6 Ko en gzip) ; lecteur inchangé.
+
+- Marques d'angles glissées (2026-10-14, section du même nom). Vérifié
+  dans `editor.html` (curseur, glisser, annuler / refaire, sélection,
+  champ du panneau suivi). Éditeur +1,8 Ko (+0,6 Ko en gzip) ; lecteur
+  +30 octets (une exportation du moteur partagé).
 
 Reste à faire :
 

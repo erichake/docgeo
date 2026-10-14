@@ -23,7 +23,15 @@ import type { expression_list_object } from "../objects/expression_list_object";
 import { polygon_object } from "../objects/polygon_object";
 import { sphere_object } from "../objects/sphere_object";
 import { preferences } from "../preferences";
-import { vAdd, vIsFinite, vScale, vSub, type Vec2, type Vec3 } from "../vec";
+import {
+    vAdd,
+    vIsFinite,
+    vNorm,
+    vScale,
+    vSub,
+    type Vec2,
+    type Vec3,
+} from "../vec";
 import {
     accepts,
     commandName,
@@ -63,12 +71,15 @@ import {
 import { message, type MessageKey } from "./messages";
 import { ACTION_ICONS } from "./icons";
 import {
+    arcAt,
     crossing,
     forgetBranches,
     meant,
     nearest,
     nearestBranch,
     pick,
+    vertexOf,
+    type Angle,
     type Crossing,
     type Hit,
 } from "./pick";
@@ -205,7 +216,7 @@ $("head").append(`<style>
     .dge-choice .dge-action svg, .dge-name .dge-action svg { width: 18px; height: 18px; }
     .dge-name { position: fixed; display: flex; align-items: center; gap: 6px; transform: translateY(-50%); z-index: 13; }
     .dge-name input { min-width: 2ch; margin: 0 0 0 -5px; padding: 1px 4px; border: 1px solid #2563eb; border-radius: 4px; outline: 3px solid rgb(37 99 235 / 0.2); background: #fff; font-family: Verdana, sans-serif; }
-    svg.dge-on-name { cursor: pointer; }
+    svg.dge-grip { cursor: pointer; }
     .dge-magnet { position: fixed; display: flex; align-items: center; gap: 10px; padding: 6px 12px 6px 6px; border: 1px solid #fecaca; border-radius: 22px; background: #fff; box-shadow: 0 6px 20px rgb(15 23 42 / 0.16); z-index: 12; }
     .dge-magnet input { width: 150px; margin: 0; accent-color: #dc2626; }
     .dge-magnet output { width: 80px; white-space: nowrap; font-weight: 600; font-variant-numeric: tabular-nums; color: #b91c1c; }
@@ -2460,6 +2471,9 @@ let dragFrame: number | null = null;
 let aim: { button: Vec2 | null } | null = null;
 // The name being dragged, and where it was taken from its center.
 let label: { point: point_object; grab: Vec2 } | null = null;
+// The angle whose mark is being dragged, its radius and the pointer's
+// distance to its vertex when taken.
+let sized: { angle: Angle; radius: number; from: number } | null = null;
 // The expression being dragged, and where it was taken from its position.
 let moved: { expression: expression_object; grab: Vec2 } | null = null;
 
@@ -2488,9 +2502,12 @@ function follow(event: PointerEvent): void {
         !pending &&
         !editing() &&
         labelAt(c, [event.clientX, event.clientY]);
-    c.svg.toggleClass("dge-on-name", !!named);
+    // As when pressed, an angle's mark rather than what is farther.
+    const arc = !named && !pending && !editing() && arcAt(c, screen, hits);
+    c.svg.toggleClass("dge-grip", !!named || !!arc);
     if (held) return;
     if (named) return highlight(named);
+    if (arc) return highlight(arc);
     // The two objects whose intersection a click would make.
     const cross = wantsPoint(hits) && crossing(c, screen, hits);
     const shown = magnetizing
@@ -2533,6 +2550,7 @@ $("body").on(
         const c = scene();
         const screen = c.pointerPosition(event);
         label = null;
+        sized = null;
         // A point near its name is dragged rather than the name.
         const named =
             !pending &&
@@ -2541,6 +2559,20 @@ $("body").on(
         if (named && !(pick(c, screen)[0]?.object instanceof point_object)) {
             label = { point: named, grab: vSub(screen, labelCenter(named)) };
             // Pressed twice quickly, the name would be selected as text.
+            event.preventDefault();
+            event.stopPropagation();
+            c.svg.dom().setPointerCapture(event.pointerId);
+            return;
+        }
+        // As in DGPad, an angle's mark is dragged to change its radius.
+        const angle =
+            !pending && !editing() && arcAt(c, screen, pick(c, screen));
+        if (angle) {
+            sized = {
+                angle,
+                radius: angle.arcRadius,
+                from: vNorm(vSub(screen, vertexOf(angle).screen)),
+            };
             event.preventDefault();
             event.stopPropagation();
             c.svg.dom().setPointerCapture(event.pointerId);
@@ -2661,6 +2693,19 @@ $("body").on(
                 label.point,
                 vSub(scene().pointerPosition(event), label.grab),
             );
+        if (sized && event.isPrimary && event.buttons) {
+            const { angle, radius, from } = sized;
+            const to = vNorm(
+                vSub(scene().pointerPosition(event), vertexOf(angle).screen),
+            );
+            // The bounds of the properties' field.
+            angle.arcRadius = Math.min(
+                200,
+                Math.max(5, Math.round((radius * to) / Math.max(from, 1))),
+            );
+            angle.project();
+            return scene().invalidateRender(angle);
+        }
         if (moved && event.isPrimary && event.buttons) {
             const { expression, grab } = moved;
             expression.screen = vSub(scene().pointerPosition(event), grab);
@@ -2713,6 +2758,12 @@ $("body").on(
             if (properties.selected === named) properties.select(named);
             return void record();
         }
+        const resized = sized?.angle;
+        sized = null;
+        if (resized && !tap) {
+            if (properties.selected === resized) properties.select(resized);
+            return void record();
+        }
         const expression = moved?.expression;
         moved = null;
         if (expression && !tap) return void record();
@@ -2726,10 +2777,21 @@ $("body").on(
         if (held) return closeRing();
         const c = scene();
         const screen = c.pointerPosition(event);
-        // A tap on a name designates its point, there.
+        // A tap on a name designates its point, there, on an angle's mark
+        // its angle.
         const hits = named
             ? [{ object: named, distance: 0, at: named.coords }]
-            : pick(c, screen, previewed());
+            : resized
+              ? [
+                    {
+                        object: resized,
+                        distance: 0,
+                        at:
+                            nearest(c, resized, screen) ??
+                            vertexOf(resized).coords,
+                    },
+                ]
+              : pick(c, screen, previewed());
         const box = c.svg.dom().getBoundingClientRect();
         const client: Vec2 = named
             ? [box.left + named.sx, box.top + named.sy]
@@ -2747,7 +2809,7 @@ $("body").on(
             return stopMagnets();
         }
         if (propertiesOpen) {
-            // A widget, or an object the figure can't pick, as an angle.
+            // A widget, or an object the figure can't pick.
             const object = propertyObject(event);
             if (!hits.some((hit) => hit.object === object) && object)
                 return properties.select(object);

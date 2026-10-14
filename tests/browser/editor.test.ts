@@ -49,7 +49,15 @@ import {
 } from "../../src/editor/spring";
 import type { point_on_object } from "../../src/objects/point_on_object";
 import { labelAt, labelCenter, placeLabel } from "../../src/editor/labels";
-import { crossing, meant, pick } from "../../src/editor/pick";
+import {
+    arcAt,
+    arcDistance,
+    crossing,
+    meant,
+    pick,
+} from "../../src/editor/pick";
+import type { angle_object } from "../../src/objects/angle_object";
+import type { fixed_angle_object } from "../../src/objects/fixed_angle_object";
 import { parseLine, TextError } from "../../src/editor/text";
 import en from "../../src/editor/lang/en";
 import type { MessageKey, Texts } from "../../src/editor/messages";
@@ -906,5 +914,50 @@ describe("Editor", () => {
         const B = copy.getObj("A") as point_object;
         expect(B.nameDistance).toBe(A.nameDistance);
         expect(B.namePosition).toBe(A.namePosition);
+    });
+
+    it("picks an angle by its mark, whose radius is then dragged", () => {
+        const { scene: c } = studio();
+        readDgo(c, {
+            dgo: 1,
+            v: { o: [400, 300], u: 40, w: 800, h: 600 },
+            o: [
+                ["Pt", "A", [1, 0]],
+                ["Pt", "O", [0, 0]],
+                ["Pt", "B", [1, 1]],
+                ["Pt", "C", [0, 1]],
+                ["Ang", "a", [0, 1, 2]],
+                ["Ang", "r", [0, 1, 3]],
+                ["FA", "f", [0, 1, 45, 1]],
+            ],
+        });
+        c.flush();
+        const a = c.getObj("a") as angle_object;
+        const r = c.getObj("r") as angle_object;
+        r.hidden = 1;
+        const at = (t: number, d: number): [number, number] => [
+            400 + d * Math.cos(t),
+            300 - d * Math.sin(t),
+        ];
+        // On its arc, beyond it, or past its sides.
+        expect(arcDistance(c, a, at(Math.PI / 8, 30))).toBeCloseTo(0);
+        expect(arcDistance(c, a, at(Math.PI / 8, 40))).toBeCloseTo(10);
+        expect(arcDistance(c, a, [430, 310])).toBeCloseTo(10);
+        // DGPad's square of a right angle.
+        expect(arcDistance(c, r, [430, 270])).toBeCloseTo(0);
+        expect(arcDistance(c, r, [415, 285])).toBeCloseTo(15);
+        const f = c.getObj("f") as fixed_angle_object;
+        expect(arcDistance(c, f, at(Math.PI / 8, 30))).toBeCloseTo(0);
+        expect(arcDistance(c, f, [430, 310])).toBeCloseTo(10);
+        f.hidden = 1;
+        r.rightAngleMark = "none";
+        expect(arcDistance(c, r, at(Math.PI / 4, 30))).toBeCloseTo(0);
+        const hits = pick(c, at(Math.PI / 8, 35));
+        expect(hits[0].object).toBe(a);
+        expect(arcAt(c, at(Math.PI / 8, 35), hits)).toBe(a);
+        // A point rather than a mark.
+        const vertex = pick(c, [430, 302]);
+        expect(vertex[0].object).toBe(c.getObj("A"));
+        expect(arcAt(c, [430, 302], vertex)).toBe(null);
     });
 });
