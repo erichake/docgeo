@@ -237,7 +237,7 @@ niveaux (familles, puis outils) seulement si l'anneau reste trop dense.
 Décidé avec l'auteur le 2026-10-14 : une troisième façon de construire, à
 la GeoGebra, l'outil choisi avant les objets.
 
-- **Un bouton « Outils »** (un compas) à droite de la ligne de saisie ouvre
+- **Un bouton « Outils »** (une équerre et un crayon) à droite de la ligne de saisie ouvre
   un menu des familles de l'anneau, mêmes couleurs, même ordre, l'icône de
   leur premier outil ; chacune ouvre son sous-menu (survol à la souris,
   toucher au doigt), à côté du menu, ou par-dessus quand la fenêtre est
