@@ -41,7 +41,14 @@ import {
     showZone,
 } from "../../src/editor/magnets";
 import { pinnable, togglePin } from "../../src/editor/pin";
-import { driverOf, toolsFor } from "../../src/editor/tools";
+import {
+    assign,
+    driverOf,
+    itemLabel,
+    TOOL_FAMILIES,
+    toolsFor,
+    usable,
+} from "../../src/editor/tools";
 import { offPlane } from "../../src/editor/space";
 import {
     handleOf,
@@ -851,6 +858,96 @@ describe("Editor", () => {
             c.getObj("P"),
             c.getObj("Q"),
         ]);
+    });
+
+    it("offers the ring's tools in a menu, by family, one item per command of a place, and others", () => {
+        const items = TOOL_FAMILIES.map(({ items }) =>
+            items.map((item) => [
+                itemLabel(item),
+                ...item.tools.map(({ overload }) => overload.tag),
+            ]),
+        );
+        expect(items).toEqual([
+            [
+                ["Point", "On"],
+                ["Intersection", "Int"],
+                ["Midpoint", "Mid", "Mid"],
+                ["Center", "Ctr"],
+                ["OtherIntersection", "Int"],
+            ],
+            [
+                ["Segment", "Seg"],
+                ["Line", "Line"],
+                ["Ray", "Ray"],
+                ["Vector", "Vec"],
+            ],
+            [
+                ["Perpendicular", "Perp"],
+                ["Parallel", "Par"],
+                ["PerpendicularBisector", "Med", "Med"],
+                ["AngleBisector", "Bis"],
+            ],
+            [
+                ["Circle (centre and point)", "Cir"],
+                ["Circle (centre and radius)", "C1"],
+                ["Circumcircle", "C3p", "C3s"],
+                ["Sphere", "Sph"],
+                ["Compass", "C3"],
+                ["Arc", "Arc"],
+                ["Sector", "Sec"],
+                ["Conic", "Quad"],
+            ],
+            [
+                ["Polygon", "Poly"],
+                ["Angle", "Ang"],
+                ["Locus", "Loc"],
+            ],
+            [
+                ["Point reflection", "Sym"],
+                ["Line reflection", "Refl"],
+            ],
+        ]);
+        const sphere = TOOL_FAMILIES[3].items[3].tools[0];
+        expect([false, true].map((space) => usable(sphere, space))).toEqual([
+            false,
+            true,
+        ]);
+    });
+
+    it("gives the objects selected to the menu's tools, in their order, where their types fit", () => {
+        const { scene: c } = studio();
+        [
+            "A = (0, 0)",
+            "B = (4, 0)",
+            "C = (1, 3)",
+            "D = (5, 2)",
+            "d = Line(A, B)",
+            "s = Segment(A, C)",
+            "k = Circle(A, B)",
+        ].forEach((line) => type(c, line));
+        const [A, B, C, D, d, s, k] = ["A", "B", "C", "D", "d", "s", "k"].map(
+            (name) => c.getObj(name)!,
+        );
+        const item = (label: string) =>
+            TOOL_FAMILIES.flatMap(({ items }) => items).find(
+                (item) => itemLabel(item) === label,
+            )!.tools;
+        const given = (label: string, objects: (typeof A)[]) =>
+            item(label)
+                .filter((tool) => usable(tool, false))
+                .map((tool) => assign(tool, objects, 3.8));
+        // Any order of types, points in their order.
+        expect(given("Perpendicular", [d, C])).toEqual([[C, d]]);
+        expect(given("Segment", [B, A])).toEqual([[B, A]]);
+        expect(given("Segment", [A])).toEqual([[A, undefined]]);
+        expect(given("Segment", [d])).toEqual([null]);
+        expect(given("Midpoint", [s])).toEqual([null, [s]]);
+        expect(given("Circle (centre and radius)", [A])).toEqual([[A, 3.8]]);
+        expect(given("Polygon", [A, B, D, C])).toEqual([[A, B, D, C]]);
+        expect(given("Point", [k])).toEqual([[k]]);
+        expect(given("Intersection", [d, k])).toEqual([[d, k]]);
+        expect(given("Intersection", [d, A])).toEqual([null]);
+        expect(given("Locus", [A])).toEqual([null]);
     });
 
     it("animates a point on an object as DGPad's spring", async () => {

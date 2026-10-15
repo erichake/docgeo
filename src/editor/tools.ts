@@ -1,7 +1,15 @@
 import type { construction_object } from "../objects/construction_object";
 import { point_on_object } from "../objects/point_on_object";
 import { point_object } from "../objects/point_object";
-import { accepts, COMMANDS, type Command, type Overload } from "./catalog";
+import {
+    accepts,
+    commandName,
+    COMMANDS,
+    type Arg,
+    type Command,
+    type Overload,
+} from "./catalog";
+import { message, type MessageKey } from "./messages";
 
 // The tools shown around a designated object: see EDITOR.md.
 
@@ -18,11 +26,20 @@ export interface Tool {
 }
 
 export interface Family {
+    name: MessageKey;
     hue: number;
     // The saturation, relative to the other families'.
     tone: number;
     first: number;
     last: number;
+    // In the tools' menu.
+    items: Item[];
+}
+
+// A tool of the menu: those of a place of the ring that write the same
+// command, the objects designated choosing one.
+export interface Item {
+    tools: Tool[];
 }
 
 const dot = (x: number, y: number) =>
@@ -55,9 +72,16 @@ const MIDPOINT = path("M5 12h14", true) + result(dot(12, 12));
 
 // The families of tools, clockwise from the first one, centred on the top,
 // each tool keeping its place whatever the object, so that the hand learns
-// it; the tools of a slot never show together.
-const FAMILIES: [hue: number, slots: Tool[][], tone?: number][] = [
+// it; the tools of a slot never show together. Others are only in the menu.
+const FAMILIES: [
+    name: MessageKey,
+    hue: number,
+    slots: Tool[][],
+    menuOnly?: Tool[],
+    tone?: number,
+][] = [
     [
+        "family_points",
         35,
         [
             [
@@ -82,8 +106,19 @@ const FAMILIES: [hue: number, slots: Tool[][], tone?: number][] = [
                 tool("Center", 0, CIRCLE + result(dot(12, 12))),
             ],
         ],
+        [
+            tool(
+                "OtherIntersection",
+                0,
+                path("M2 12h20", true) +
+                    `<circle class="dge-guide" cx="12" cy="12" r="7"/>` +
+                    dot(5, 12) +
+                    result(dot(19, 12)),
+            ),
+        ],
     ],
     [
+        "family_lines",
         215,
         [
             [tool("Segment", 0, SEGMENT)],
@@ -111,6 +146,7 @@ const FAMILIES: [hue: number, slots: Tool[][], tone?: number][] = [
         ],
     ],
     [
+        "family_constructions",
         265,
         [
             [
@@ -151,6 +187,7 @@ const FAMILIES: [hue: number, slots: Tool[][], tone?: number][] = [
         ],
     ],
     [
+        "family_circles",
         145,
         [
             [
@@ -188,8 +225,49 @@ const FAMILIES: [hue: number, slots: Tool[][], tone?: number][] = [
                 ),
             ],
         ],
+        [
+            // The radius of the first two points, the centre the third.
+            tool(
+                "Compass",
+                0,
+                path("M3 20h7", true) +
+                    dot(3, 20) +
+                    dot(10, 20) +
+                    result(`<circle cx="15" cy="10" r="6"/>`) +
+                    dot(15, 10),
+            ),
+            tool(
+                "Arc",
+                0,
+                result(path("M4 17A8 8 0 0 1 20 17")) +
+                    dot(4, 17) +
+                    dot(12, 9) +
+                    dot(20, 17),
+            ),
+            tool(
+                "Sector",
+                0,
+                result(
+                    `<path d="M6 18H18A12 12 0 0 0 6 6Z" fill="currentColor" fill-opacity=".1"/>`,
+                ) +
+                    dot(18, 18) +
+                    dot(14.5, 9.5) +
+                    dot(6, 6),
+            ),
+            tool(
+                "Conic",
+                0,
+                result(`<ellipse cx="12" cy="12" rx="9" ry="6"/>`) +
+                    dot(3, 12) +
+                    dot(7.5, 6.8) +
+                    dot(16.5, 6.8) +
+                    dot(21, 12) +
+                    dot(12, 18),
+            ),
+        ],
     ],
     [
+        "family_shapes",
         185,
         [
             [
@@ -228,6 +306,7 @@ const FAMILIES: [hue: number, slots: Tool[][], tone?: number][] = [
         ],
     ],
     [
+        "family_symmetries",
         320,
         [
             [
@@ -258,25 +337,67 @@ const FAMILIES: [hue: number, slots: Tool[][], tone?: number][] = [
 const GAP = 0.45;
 
 export const TOOLS: Tool[] = [];
-const start = (1 - FAMILIES[0][1].length) / 2;
+export const TOOL_FAMILIES: Family[] = [];
+const start = (1 - FAMILIES[0][2].length) / 2;
 let slot = start;
-for (const [hue, slots, tone = 1] of FAMILIES) {
-    const family = { hue, tone, first: slot, last: slot + slots.length - 1 };
+for (const [name, hue, slots, menuOnly = [], tone = 1] of FAMILIES) {
+    const family: Family = {
+        name,
+        hue,
+        tone,
+        first: slot,
+        last: slot + slots.length - 1,
+        items: [],
+    };
+    TOOL_FAMILIES.push(family);
     for (const tools of slots) {
-        for (const tool of tools)
+        for (const tool of tools) {
             TOOLS.push(Object.assign(tool, { slot, family }));
+            const item = family.items.find(
+                ({ tools: [first] }) =>
+                    first.slot === slot && first.command === tool.command,
+            );
+            if (item) item.tools.push(tool);
+            else family.items.push({ tools: [tool] });
+        }
         slot++;
     }
+    for (const tool of menuOnly)
+        family.items.push({
+            tools: [Object.assign(tool, { slot: -1, family })],
+        });
     slot += GAP;
 }
 // The ring's circumference, in buttons.
 export const RING_SLOTS = slot - start;
 
+// The circle through three points is in their plane in space, the sphere
+// only there.
+export const usable = ({ overload: { tag } }: Tool, vec3: boolean): boolean =>
+    tag !== (vec3 ? "C3p" : "C3s") && (tag !== "Sph" || vec3);
+
+// The commands of more than one item, told apart.
+const LABELS: Partial<Record<string, MessageKey>> = {
+    Cir: "tool_circle_point",
+    C1: "tool_circle_radius",
+    Sym: "tool_central",
+    Refl: "tool_axial",
+};
+
+export const itemLabel = ({ tools: [tool] }: Item): string => {
+    const key = LABELS[tool.overload.tag];
+    return key ? message(key) : commandName(tool.command);
+};
+
 // The tools that take the object as one of their arguments.
-export function toolsFor(object: construction_object, vec3: boolean): Tool[] {
-    return TOOLS.filter(({ mode, overload }) => {
-        if (overload.tag === (vec3 ? "C3p" : "C3s")) return false;
-        if (overload.tag === "Sph" && !vec3) return false;
+export function toolsFor(
+    object: construction_object,
+    vec3: boolean,
+    tools = TOOLS,
+): Tool[] {
+    return tools.filter((tool) => {
+        const { mode, overload } = tool;
+        if (!usable(tool, vec3)) return false;
         if (overload.tag === "Loc") return driverOf(object) !== null;
         // A point is put on the object, an intersection with another.
         if (mode === "point") return accepts(object, "support");
@@ -306,4 +427,48 @@ export function driverOf(object: construction_object): point_on_object | null {
     };
     object.parents.forEach(visit);
     return driver;
+}
+
+// The arguments of a tool, none designated yet.
+export const emptyArgs = ({ mode, overload }: Tool): (Arg | undefined)[] =>
+    mode !== "command" || overload.variadic
+        ? []
+        : Array(overload.params.length).fill(undefined);
+
+// The tool's arguments, the objects taking in their order the first places
+// that accept them, a circle's radius given; null if one fits nowhere.
+export function assign(
+    tool: Tool,
+    objects: construction_object[],
+    radius: number,
+): (Arg | undefined)[] | null {
+    const { mode, overload } = tool;
+    if (mode === "point")
+        return objects.length === 1 && accepts(objects[0], "support")
+            ? [...objects]
+            : null;
+    if (mode === "intersection")
+        return objects.length <= 2 &&
+            objects.every((object) => accepts(object, "intersectable"))
+            ? [...objects]
+            : null;
+    if (overload.tag === "Loc") {
+        const driver = objects.length === 1 && driverOf(objects[0]);
+        return driver ? [objects[0], driver] : null;
+    }
+    if (overload.variadic)
+        return objects.every((object) => accepts(object, overload.params[0]))
+            ? [...objects]
+            : null;
+    const args = emptyArgs(tool);
+    for (const object of objects) {
+        const slot = overload.params.findIndex(
+            (param, index) =>
+                args[index] === undefined && accepts(object, param),
+        );
+        if (slot < 0) return null;
+        args[slot] = object;
+    }
+    if (overload.tag === "C1") args[1] ??= radius;
+    return args;
 }

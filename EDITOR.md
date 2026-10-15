@@ -232,6 +232,86 @@ Plus tard : des jeux d'outils choisis par l'enseignant (« Collège début »,
 « Tout »…), enregistrés dans la figure ou passés par l'URL. Un anneau à deux
 niveaux (familles, puis outils) seulement si l'anneau reste trop dense.
 
+## Menu des outils
+
+Décidé avec l'auteur le 2026-10-14 : une troisième façon de construire, à
+la GeoGebra, l'outil choisi avant les objets.
+
+- **Un bouton « Outils »** (un compas) à droite de la ligne de saisie ouvre
+  un menu des familles de l'anneau, mêmes couleurs, même ordre, l'icône de
+  leur premier outil ; chacune ouvre son sous-menu (survol à la souris,
+  toucher au doigt), à côté du menu, ou par-dessus quand la fenêtre est
+  trop étroite. L'élève n'apprend qu'un classement. Pas de recherche dans
+  le menu : la complétion de la ligne de saisie le fait déjà.
+- **Plus d'outils que l'anneau**, qui reste léger : à la fin de leur
+  famille, `AutreIntersection` (points), `Compas`, `Arc`, `Secteur` et
+  `Conique` (« Cercles, arcs, coniques »). Toute commande du catalogue qui
+  se construit par désignation y a sa place (rotation, homothétie,
+  tangentes… à mesure qu'elles s'ajoutent) ; `PointFixe`, `Curseur` et
+  `Liste` restent au clavier ou dans la barre.
+- **Un item par commande d'une place de l'anneau** (`Item` de `tools.ts`) :
+  les formes d'une commande à la même place n'en font qu'un, le premier
+  objet désigné choisit la forme comme il choisit les outils de l'anneau
+  (`Milieu` de deux points ou d'un segment, `Médiatrice`, le cercle par
+  trois points du plan ou de l'espace). Deux places d'une même commande
+  ont un nom chacune : « Cercle (centre et point) » / « (centre et
+  rayon) », « Symétrie centrale » / « axiale ». La sphère n'apparaît qu'en
+  3D.
+- **Survol** : la ligne que l'outil écrira et ce qu'il faut désigner,
+  comme sur l'anneau.
+- **Désignation** : celle de l'anneau, sans clavier virtuel ; la ligne en
+  cours s'affiche dans la consigne. Le premier objet peut prendre
+  n'importe quelle place que son type accepte (une droite d'abord pour
+  `Perpendiculaire`) ; à défaut, un point est créé là, libre, sur objet ou
+  à une intersection. « Point » crée le point où l'on touche ;
+  « Intersection » prend un croisement d'un toucher ou deux objets l'un
+  après l'autre ; « Lieu » ne prend qu'un point dont dépend un point sur
+  objet, « AutreIntersection » qu'un point déjà là.
+- **Cercle (centre et rayon)** : comme sur l'anneau, le centre désigné
+  suffit, le rayon d'environ 150 px se change ensuite en glissant le
+  cercle ; rien à taper (décidé avec l'auteur le 2026-10-14, qui avait
+  d'abord retenu un rayon tapé).
+- **Outil persistant** : après chaque objet, il attend de nouveau son
+  premier argument. Le bouton prend l'icône de l'outil, enfoncé, aux
+  couleurs de sa famille, et la zone contextuelle de la barre devient un
+  bandeau (icône, nom, « Terminé »), comme pour les aimants. Ce bouton
+  pressé quitte l'outil et rouvre aussitôt le menu, d'un seul clic. On en
+  sort aussi par « Terminé », Échap, la croix de la consigne, un autre outil,
+  le focus dans une ligne de texte, la gomme, les propriétés ou le pas à
+  pas ; annuler, refaire et la vue 3D le gardent, sans ses arguments. Un
+  toucher dans le vide crée un point : il ne peut pas faire sortir de
+  l'outil. Pendant l'outil, un glisser vise (comme après un outil de
+  l'anneau) ; le bouton droit, lui, glisse les objets et la vue, outil en
+  cours ou non : sur un objet, l'éditeur lui passe l'appui comme un appui
+  gauche, ailleurs la figure déplace la vue (la tourne en 3D). Au doigt,
+  rien encore : il faut sortir de l'outil pour déplacer.
+- **Petit écran** (600 px ou moins) : choisir un outil referme le panneau
+  « Construction », pour que la figure se voie entière.
+
+### Sélection multiple
+
+Décidé avec l'auteur le 2026-10-14 : l'objet d'abord, comme l'anneau, mais
+pour plusieurs objets.
+
+- ⌘-clic, Ctrl-clic, Maj-clic ou appui long (immobile au-delà du délai
+  d'un clic, 700 ms : rien d'autre ne l'utilisait) ajoutent l'objet à la
+  sélection, ou l'en retirent. L'objet dont l'anneau est ouvert en devient
+  le premier. Chacun brille en bleu, son rang dans une pastille ; la
+  consigne rappelle le geste, la barre montre les noms et « Supprimer »,
+  qui les supprime tous (Suppr aussi). Un toucher simple, Échap, un outil,
+  la gomme, les propriétés, annuler ou refaire la vident.
+- Le menu des outils grise les familles et les outils qui ne prennent pas
+  la sélection (`assign` dans `tools.ts`) : chaque objet, dans l'ordre,
+  prend la première place libre qui accepte son type (droite puis point
+  donnent `Perpendiculaire(P, d)`, les points gardent leur ordre). Le
+  survol montre la ligne préremplie, le clic l'écrit et l'outil attend le
+  reste ; complète, elle est construite aussitôt, le polygone fermé dès
+  trois sommets (A, B, C puis « CercleCirconscrit » écrit
+  `CercleCirconscrit(A, B, C)`). Sans sélection, l'objet dont l'anneau est
+  ouvert sert de premier argument.
+- Plus tard : mettre en forme plusieurs objets ensemble dans le panneau de
+  propriétés.
+
 ## Actions sur l'objet sélectionné
 
 Décidé le 2026-10-12. Les utilitaires de DGPad (sa rangée grise : nom,
@@ -1134,10 +1214,31 @@ Fait (2026-10-11) :
   créé d'un clic. Vérifié dans `editor.html` (outil présent sur le point
   dépendant, absent sur un point libre, ligne survolée, création).
   Éditeur +0,4 Ko (+0,1 Ko en gzip) ; lecteur inchangé.
+- Menu des outils (2026-10-14, section du même nom) : bouton à droite de
+  la ligne de saisie, familles et sous-menus, aide au survol, outil
+  persistant avec son bandeau, rayon tapé, petit écran. Vérifié dans
+  `editor.html` avec Playwright (cercles enchaînés, perpendiculaire par
+  la droite d'abord, intersection, polygone, milieu d'un segment, point
+  sur objet, annuler en gardant l'outil, sortie par Échap et par la ligne
+  de saisie ; à 380 px au doigt, panneau refermé ; arabe). Puis outils
+  hors de l'anneau (conique, arc…), cercle de rayon par défaut et bouton
+  droit pendant l'outil (point glissé, vue déplacée). Éditeur : 128,4 Ko,
+  +7,6 Ko (+2,0 Ko en gzip) ; lecteur inchangé.
+- Sélection multiple (2026-10-14, section du même nom) : vérifiée dans
+  `editor.html` avec Playwright (⌘-clic sur A, B, C puis
+  CercleCirconscrit, droite puis point pour Perpendiculaire, polygone de
+  quatre sommets, segment depuis l'objet de l'anneau, suppression de deux
+  points, appui long au doigt, toucher qui vide). Éditeur : 131,4 Ko,
+  +3,0 Ko (+0,9 Ko en gzip) ; lecteur inchangé.
 
 Reste à faire :
 
 - Jeux d'outils de l'enseignant (section « Anneau d'outils »).
+- Propriétés de plusieurs objets sélectionnés (section « Sélection
+  multiple »).
+- Outils du moteur sans commande dans l'éditeur, à ajouter au catalogue
+  puis au menu : angle fixe, rotation, homothétie, translation (objets ou
+  points formules), intersection droite-plan.
 
 - Expressions (section du même nom) : formules en argument
   (`Cercle(O, 2*a)`, bornes d'un curseur), ressort des curseurs, listes

@@ -52,4 +52,6 @@ export const ACTION_ICONS = {
     pause_steps: '<path d="M9 6v12M15 6v12" stroke-width="2.6"/>',
     // A pushpin, its needle towards the bottom left.
     pin: '<g transform="rotate(45 12 12)"><path d="M8 2.5h8M9.5 2.5v6L6 12.5h12l-3.5-4v-6M12 12.5v9"/></g>',
+    // A compass and its arc.
+    tools: '<circle cx="12" cy="4.5" r="1.8"/><path d="M11.2 6.2 6 20M12.8 6.2 18 20M5 15.5a12 12 0 0 0 14 0"/>',
 };

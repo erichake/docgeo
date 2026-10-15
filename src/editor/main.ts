@@ -91,7 +91,19 @@ import {
     type Line,
 } from "./text";
 import { labelAt, labelHold, nameElement, placeLabel } from "./labels";
-import { driverOf, RING_SLOTS, toolsFor, type Tool } from "./tools";
+import {
+    assign,
+    driverOf,
+    emptyArgs,
+    itemLabel,
+    RING_SLOTS,
+    TOOL_FAMILIES,
+    toolsFor,
+    usable,
+    type Family,
+    type Item,
+    type Tool,
+} from "./tools";
 import { propertiesPanel } from "./properties";
 import { resizeHandle } from "./resize";
 import {
@@ -142,7 +154,7 @@ $("head").append(`<style>
     .dge-editor.dge-panel-animated { --dge-slide-duration: 240ms; }
     .dge-editor.dge-panel-closed { --dge-panel-width: 0px; }
     .dge-panel-closed .dge-panel { transform: translateX(-100%); visibility: hidden; transition-delay: 0s, var(--dge-slide-duration); }
-    .dge-panel, .dge-bar, .dge-hint, .dge-ring, .dge-complete, .dge-menu, .dge-magnet { font: 14px/1.4 system-ui, -apple-system, "Segoe UI", sans-serif; color: #1f2937; }
+    .dge-panel, .dge-bar, .dge-hint, .dge-ring, .dge-complete, .dge-menu, .dge-magnet, .dge-tools { font: 14px/1.4 system-ui, -apple-system, "Segoe UI", sans-serif; color: #1f2937; }
     .dge-panel { position: fixed; inset-block: var(--dge-bar-height) 0; inset-inline-start: 0; width: var(--dge-panel-size); box-sizing: border-box; overflow: auto; background: #fff; border-inline-end: 1px solid #e5e7eb; z-index: 10; touch-action: pan-y; transform: translateX(0); transition: transform var(--dge-slide), visibility 0s; }
     .dge-panel-header { position: sticky; top: 0; display: flex; align-items: center; justify-content: space-between; padding: 8px 12px 8px 16px; background: #fff; border-block-end: 1px solid #e5e7eb; z-index: 1; }
     .dge-panel-header h2 { flex: 1; min-width: 0; margin: 0; overflow: hidden; font-size: 14px; font-weight: 600; white-space: nowrap; text-overflow: ellipsis; }
@@ -186,7 +198,11 @@ $("head").append(`<style>
     .dge-steps .dge-action svg { width: 20px; height: 20px; }
     .dge-step { flex: 1; text-align: center; font-weight: 600; font-variant-numeric: tabular-nums; color: #334155; white-space: nowrap; }
     .dge-stepping .dge-steps { display: flex; }
-    .dge-stepping .dge-input { display: none; }
+    .dge-stepping .dge-line { display: none; }
+    .dge-line { display: flex; align-items: center; gap: 6px; }
+    .dge-line .dge-input { flex: 1; min-width: 0; }
+    .dge-line .dge-action { width: 38px; height: 38px; }
+    .dge-line .dge-action.dge-armed { background: hsl(var(--dge-hue) calc(70% * var(--dge-tone)) 92%); border-color: hsl(var(--dge-hue) calc(55% * var(--dge-tone)) 55%); color: #334155; box-shadow: inset 0 1px 3px rgb(15 23 42 / 0.18); }
     .dge-entry { container-type: inline-size; }
     @container (max-width: 270px) { .dge-steps .dge-end-step { display: none; } }
     .dge-entry { padding: 10px 12px; border-block-end: 1px solid #e5e7eb; }
@@ -239,13 +255,24 @@ $("head").append(`<style>
     .dge-ring .dge-sectors { position: absolute; overflow: visible; fill: none; stroke-width: ${2 * RING_BUTTON + 12}px; stroke-linecap: round; pointer-events: none; }
     .dge-ring .dge-tie { stroke: #f59e0b; stroke-width: 2px; stroke-dasharray: 2 5; }
     .dge-ring button svg { display: block; width: 24px; height: 24px; fill: none; stroke: currentColor; stroke-width: 1.65; stroke-linecap: round; stroke-linejoin: round; }
-    .dge-ring .dge-guide { opacity: 0.65; }
-    .dge-ring .dge-result { color: #d14343; }
+    .dge-guide { opacity: 0.65; }
+    .dge-result { color: #d14343; }
     .dge-ring button:hover .dge-result { color: inherit; }
     .dge-complete, .dge-menu { position: fixed; min-width: 160px; max-height: 240px; overflow: auto; padding: 4px 0; border: 1px solid #d1d5db; border-radius: 8px; background: #fff; box-shadow: 0 6px 20px rgb(0 0 0 / 0.14); z-index: 13; }
     .dge-complete div, .dge-menu div { padding: 3px 12px; font-family: var(--dge-code); font-size: 13px; cursor: pointer; }
     .dge-complete div.dge-selected, .dge-complete div:hover, .dge-menu div:hover { background: #2563eb; color: #fff; }
     .dge-complete:empty { display: none; }
+    .dge-tools { position: fixed; max-height: calc(100vh - 16px); box-sizing: border-box; overflow: auto; padding: 4px; border: 1px solid #d1d5db; border-radius: 10px; background: #fff; box-shadow: 0 6px 20px rgb(0 0 0 / 0.14); z-index: 13; }
+    .dge-tools button { display: flex; align-items: center; gap: 10px; width: 100%; padding: 3px 10px 3px 3px; border: 0; border-radius: 8px; background: none; font: inherit; color: inherit; text-align: start; white-space: nowrap; cursor: pointer; }
+    .dge-tools button:hover, .dge-tools button:focus-visible, .dge-tools button.dge-open { background: hsl(var(--dge-hue) calc(70% * var(--dge-tone)) 93%); outline: none; }
+    .dge-tools .dge-family::after { content: "›"; margin-inline-start: auto; padding-inline-start: 16px; font-size: 18px; line-height: 1; color: #94a3b8; }
+    .dge-tool-icon { display: grid; place-items: center; flex-shrink: 0; width: 34px; height: 34px; box-sizing: border-box; border: 1px solid hsl(var(--dge-hue) calc(55% * var(--dge-tone)) 60%); border-radius: 50%; background: hsl(var(--dge-hue) calc(70% * var(--dge-tone)) 96%); color: #536174; }
+    .dge-tool-icon svg { display: block; width: 24px; height: 24px; fill: none; stroke: currentColor; stroke-width: 1.65; stroke-linecap: round; stroke-linejoin: round; }
+    .dge-bar-object.dge-bar-tool .dge-bar-name { max-width: 240px; }
+    .dge-tools button.dge-off { opacity: 0.4; cursor: default; }
+    .dge-tools button.dge-off:not(.dge-family) { background: none; }
+    svg .dge-picked { filter: drop-shadow(0 0 2px #2563eb) drop-shadow(0 0 3px #2563eb); }
+    .dge-badges span { position: fixed; min-width: 18px; height: 18px; padding: 0 5px; box-sizing: border-box; border-radius: 9px; background: #2563eb; color: #fff; font: 600 11px/18px system-ui, -apple-system, "Segoe UI", sans-serif; text-align: center; transform: translate(7px, -25px); pointer-events: none; z-index: 11; }
     .dge-choice { position: fixed; display: flex; gap: 3px; transform: translateY(-50%); z-index: 13; }
     .dge-choice .dge-action, .dge-name .dge-action { width: 28px; height: 28px; border-color: #d1d5db; border-radius: 7px; background: #fff; }
     .dge-choice .dge-action svg, .dge-name .dge-action svg { width: 18px; height: 18px; }
@@ -323,6 +350,20 @@ const input = $.create("input")
     .cls("dge-input")
     .att("placeholder", message("input"))
     .att("spellcheck", "false");
+// The ring's tools, by family, each kept to build one object after another.
+// Pressed during a tool, it drops it and opens the menu at once.
+const toolsButton = button("tools", () => {
+    if (armed) cancel();
+    else if (!toolsMenu.isHidden()) return closeTools();
+    openTools();
+})
+    .att("aria-haspopup", "menu")
+    .att("aria-expanded", "false")
+    .att("aria-pressed", "false");
+const toolsMenu = $.create("div").cls("dge-tools").att("role", "menu").hide();
+const toolsSub = $.create("div").cls("dge-tools").att("role", "menu").hide();
+// The ranks of the objects selected.
+const badges = $.create("div").cls("dge-badges");
 const hint = $.create("div").cls("dge-hint");
 const ring = $.create("div").cls("dge-ring").hide();
 // Escape, for the fingers.
@@ -420,12 +461,14 @@ const pointsButton = button("points_list", () => drawFrom("points"));
 const segmentsButton = button("segments_list", () => drawFrom("segments"));
 // The point an expression gives, as by DGPad's calculator.
 const pointButton = button("formula_point", () => drawFrom("point"));
-// In place of the actions while the magnets are chosen: the way out.
+// In place of the actions while the magnets are chosen, or a tool of the
+// menu is in use: the way out.
 const doneButton = $.create("button")
     .cls("dge-done")
     .att("type", "button")
     .text(message("done"));
-doneButton.on("click", () => stopMagnets());
+doneButton.on("click", () => (armed ? cancel() : stopMagnets()));
+const toolIcon = $.create("span").cls("dge-tool-icon").hide();
 const swatch = $.create("span").cls("dge-swatch");
 const objectName = $.create("span");
 // The actions on the selected object.
@@ -433,7 +476,7 @@ const actions = $.create("div")
     .cls("dge-bar-group dge-bar-object")
     .att("role", "group")
     .add(
-        $.create("span").cls("dge-bar-name").add(swatch, objectName),
+        $.create("span").cls("dge-bar-name").add(toolIcon, swatch, objectName),
         deleteButton,
         settingsButton,
         springButton,
@@ -493,7 +536,14 @@ reachInput.on(
 function explain(action: DOMElement, line: (name: string) => string): void {
     action.on(
         "pointerenter",
-        () => showHint(line(formatName(target()!.name))),
+        () =>
+            showHint(
+                line(
+                    selection.length
+                        ? selectedNames()
+                        : formatName(target()!.name),
+                ),
+            ),
         false,
     );
     // Keeping what the action refused.
@@ -582,7 +632,12 @@ $("body").add(
                     (historyButton.dom() as HTMLButtonElement).focus();
                 }),
             ),
-        $.create("div").cls("dge-entry").add(input, stepsBar),
+        $.create("div")
+            .cls("dge-entry")
+            .add(
+                $.create("div").cls("dge-line").add(input, toolsButton),
+                stepsBar,
+            ),
         rowsBox,
     ),
     resizeHandle(panel, "left", () => "--dge-panel-user"),
@@ -623,6 +678,9 @@ $("body").add(
     complete,
     choice,
     menu,
+    toolsMenu,
+    toolsSub,
+    badges,
     magnetCard,
     spring,
     nameBox,
@@ -671,7 +729,7 @@ function setProperties(on: boolean): void {
 panel.on(
     "keydown",
     (event) => {
-        if (!editing()) stepKey(event);
+        if (!editing() && !stepKey(event) && event.key === "Escape") escape();
         if (!event.metaKey && !event.ctrlKey) event.stopPropagation();
     },
     false,
@@ -688,6 +746,11 @@ let valuesShown = false;
 // hidden meanwhile.
 let stepping: Stepping | null = null;
 let playing: number | null = null;
+// The tool chosen in the menu, kept to build one object after another.
+let armed: Item | null = null;
+// The objects selected one after the other, the tools' arguments in this
+// order.
+let selection: Hit[] = [];
 // A tool waiting for its arguments.
 let pending: {
     tool: Tool;
@@ -1075,6 +1138,7 @@ function bindRow(row: DOMElement, object: construction_object | null): void {
             setEraser(false);
             setSteps(false);
             stopMagnets();
+            if (armed) cancel();
             original = field.value;
             updateCompletion(field);
         },
@@ -1577,11 +1641,15 @@ function addCrossing({ a, b, order }: Crossing): construction_object {
 
 // Whether a click there would designate a point, made where it is.
 function wantsPoint(hits: Hit[]): boolean {
-    if (pending)
+    if (pending) {
+        const { mode, overload } = pending.tool;
+        if (fresh()) return mode !== "command" || makesPoint(hits);
         return (
-            pending.tool.mode === "command" &&
-            paramAt(pending.tool.overload, nextSlot()) === "point"
+            mode === "command" &&
+            makesPoints(overload) &&
+            paramAt(overload, nextSlot()) === "point"
         );
+    }
     const field = editing();
     if (!field) return !propertiesOpen && !ghosts && !magnetizing;
     const call = typedCall(field);
@@ -1634,15 +1702,17 @@ function nextSlot({ tool, args } = pending!): number {
     return args.findIndex((arg) => arg === undefined);
 }
 
+// About 150 pixels, rounded to two significant digits.
+const defaultRadius = (): number =>
+    Number((150 / scene().GRID.UNIT[0]).toPrecision(2));
+
 // The tool's arguments, the object designated first.
 function firstArgs(
     tool: Tool,
     object: construction_object,
 ): (Arg | undefined)[] {
     if (tool.mode !== "command") return [object];
-    // About 150 pixels, rounded to two significant digits.
-    if (tool.overload.tag === "C1")
-        return [object, Number((150 / scene().GRID.UNIT[0]).toPrecision(2))];
+    if (tool.overload.tag === "C1") return [object, defaultRadius()];
     if (tool.overload.tag === "Loc") return [object, driverOf(object)!];
     const { params, variadic } = tool.overload;
     const args: (Arg | undefined)[] = variadic
@@ -1659,7 +1729,8 @@ function describe(tool: Tool, args: (Arg | undefined)[]): string {
     const shown = args.map((arg) => (arg === undefined ? "…" : formatArg(arg)));
     if (tool.mode !== "command" || tool.overload.variadic) shown.push("…");
     const line = `${formatName(nextName(scene(), point))} = ${commandName(tool.command)}(${shown.join(", ")})`;
-    if (tool.mode === "point") return line;
+    if (tool.mode === "point")
+        return args.length ? line : `${line}\n${message("designate_place")}`;
     if (tool.mode === "intersection")
         return `${line}\n${message("designate_intersectable")}`;
     if (tool.overload.variadic && args.length >= 3)
@@ -1671,6 +1742,304 @@ function describe(tool: Tool, args: (Arg | undefined)[]): string {
 
 function prompt(): void {
     showHint(pending ? describe(pending.tool, pending.args) : "");
+}
+
+// ************************** TOOLS MENU **************************
+
+const toolSvg = (icon: string) =>
+    `<svg viewBox="0 0 24 24" aria-hidden="true">${icon}</svg>`;
+
+function toolEntry(icon: string, label: string, family: Family): DOMElement {
+    return $.create("button")
+        .att("type", "button")
+        .att("role", "menuitem")
+        .stl("--dge-hue", `${family.hue}`)
+        .stl("--dge-tone", `${family.tone}`)
+        .add(
+            $.create("span").cls("dge-tool-icon").append(toolSvg(icon)),
+            $.create("span").text(label),
+        );
+}
+
+// The families of the ring, each opening its tools; those that don't take
+// the objects selected are greyed.
+function openTools(): void {
+    toolsMenu.inner("");
+    TOOL_FAMILIES.forEach((family) => {
+        const items = family.items.filter(({ tools }) =>
+            tools.some((tool) => usable(tool, vec3())),
+        );
+        if (!items[0]) return;
+        const row = toolEntry(
+            items[0].tools[0].icon,
+            message(family.name),
+            family,
+        )
+            .addClass("dge-family")
+            .toggleClass("dge-off", !items.some((item) => takes(item)))
+            .att("aria-haspopup", "menu");
+        row.on(
+            "pointerenter",
+            (event) => {
+                if (event.pointerType === "mouse")
+                    openFamily(row, family, items);
+            },
+            false,
+        );
+        row.on("click", () => openFamily(row, family, items));
+        toolsMenu.add(row);
+    });
+    const box = toolsButton.dom().getBoundingClientRect();
+    toolsMenu.show();
+    const { width } = toolsMenu.dom().getBoundingClientRect();
+    toolsMenu
+        .stl(
+            "left",
+            `${Math.max(8, Math.min(box.right - width, window.innerWidth - width - 8))}px`,
+        )
+        .stl("top", `${box.bottom + 6}px`);
+    toolsButton.att("aria-expanded", "true");
+}
+
+// Beside the menu, or over it when the window is too narrow.
+function openFamily(row: DOMElement, family: Family, items: Item[]): void {
+    toolsMenu
+        .findAll(".dge-open")
+        .forEach((open) => open.removeClass("dge-open"));
+    row.addClass("dge-open");
+    toolsSub.inner("");
+    const objects = chosen().map(({ object }) => object);
+    items.forEach((item) => {
+        const tool = takes(item);
+        const shown = tool || item.tools.find((tool) => usable(tool, vec3()))!;
+        const entry = toolEntry(shown.icon, itemLabel(item), family)
+            .toggleClass("dge-off", !tool)
+            .att("aria-disabled", String(!tool));
+        entry.on(
+            "pointerenter",
+            () =>
+                showHint(
+                    describe(
+                        shown,
+                        tool && objects[0]
+                            ? assign(tool, objects, defaultRadius())!
+                            : emptyArgs(shown),
+                    ),
+                ),
+            false,
+        );
+        entry.on(
+            "pointerleave",
+            () => (pending ? prompt() : showHint(restingHint())),
+            false,
+        );
+        entry.on("click", () => {
+            if (tool) arm(item);
+        });
+        toolsSub.add(entry);
+    });
+    toolsSub.show();
+    const menuBox = toolsMenu.dom().getBoundingClientRect();
+    const rowBox = row.dom().getBoundingClientRect();
+    const { width, height } = toolsSub.dom().getBoundingClientRect();
+    const beside = [menuBox.right + 4, menuBox.left - width - 4].find(
+        (left) => left >= 8 && left + width <= window.innerWidth - 8,
+    );
+    const top = beside === undefined ? rowBox.bottom : rowBox.top - 5;
+    toolsSub
+        .stl(
+            "left",
+            `${beside ?? Math.max(8, Math.min(rowBox.left + 24, window.innerWidth - width - 8))}px`,
+        )
+        .stl(
+            "top",
+            `${Math.max(8, Math.min(top, window.innerHeight - height - 8))}px`,
+        );
+}
+
+function closeTools(): void {
+    toolsMenu.hide().inner("");
+    toolsSub.hide().inner("");
+    toolsButton.att("aria-expanded", "false");
+}
+
+// No keyboard comes up: the arguments are designated in the figure, which
+// a narrow window shows whole.
+function arm(item: Item): void {
+    const picked = chosen();
+    closeTools();
+    cancel();
+    armed = item;
+    if (window.matchMedia("(max-width: 600px)").matches) setPanel(false);
+    rearm();
+    if (picked[0]) take(picked);
+    else prompt();
+}
+
+// The tool of the menu waits for its first argument.
+function rearm(): void {
+    const tool = armed?.tools.find((tool) => usable(tool, vec3()));
+    if (!tool) armed = null;
+    pending = tool ? { tool, args: emptyArgs(tool) } : null;
+    const shown = armed?.tools[0];
+    toolsButton
+        .inner(toolSvg(shown?.icon ?? ACTION_ICONS.tools))
+        .toggleClass("dge-armed", !!shown)
+        .att("aria-pressed", String(!!shown));
+    if (shown)
+        toolsButton
+            .stl("--dge-hue", `${shown.family.hue}`)
+            .stl("--dge-tone", `${shown.family.tone}`);
+    showActions();
+}
+
+// ************************** SELECTION ***************************
+
+// The objects selected, or the one whose ring is open.
+const chosen = (): Hit[] =>
+    selection.length ? [...selection] : held ? [held.hit] : [];
+
+const selectedNames = (): string =>
+    selection.map(({ object }) => formatName(object.name)).join(", ");
+
+// The form of the item that takes the objects chosen, any without them.
+function takes(item: Item): Tool | undefined {
+    const objects = chosen().map(({ object }) => object);
+    return item.tools.find(
+        (tool) =>
+            usable(tool, vec3()) &&
+            (!objects[0] || assign(tool, objects, defaultRadius())),
+    );
+}
+
+// The objects chosen are the first arguments of the tool of the menu, a
+// polygon of three vertices or more closed at once.
+function take(picked: Hit[]): void {
+    const c = scene();
+    const objects = picked.map(({ object }) => object);
+    const tool = takes(armed!)!;
+    const args = assign(tool, objects, defaultRadius())!;
+    if (tool.mode === "point")
+        return done(addPointOn(c, nextName(c, true), objects[0], picked[0].at));
+    pending = { tool, args };
+    if (tool.mode === "intersection") {
+        if (!args[1]) return prompt();
+        const [a, b] = objects;
+        const found = intersection(
+            a,
+            b,
+            nearestBranch(c, a, b, c.pt3D(picked[1].at))?.order ?? 0,
+        );
+        return build(found.overload, found.args);
+    }
+    if (tool.overload.variadic && args.length >= 3)
+        return build(tool.overload, args as Arg[]);
+    proceed();
+}
+
+// Added, or removed if it was, after the object whose ring is open.
+function select(hit: Hit): void {
+    const first = held?.hit;
+    closeRing();
+    if (first && !selection[0] && first.object !== hit.object)
+        selection.push(first);
+    const at = selection.findIndex(({ object }) => object === hit.object);
+    if (at < 0) selection.push(hit);
+    else selection.splice(at, 1);
+    showSelection();
+}
+
+function clearSelection(): void {
+    if (!selection[0]) return;
+    selection = [];
+    showSelection();
+}
+
+// Each object selected lit, its rank beside it.
+function showSelection(): void {
+    const c = scene();
+    c.svg
+        .findAll(".dge-picked")
+        .forEach((picked) => picked.removeClass("dge-picked"));
+    badges.inner("");
+    selection.forEach(({ object }, index) => {
+        if (object.hasView) object.dom.addClass("dge-picked");
+        badges.add($.create("span").text(String(index + 1)));
+    });
+    placeBadges();
+    showActions();
+    showHint(restingHint());
+}
+
+function placeBadges(): void {
+    if (!selection[0]) return;
+    const c = scene();
+    c.flush();
+    const box = c.svg.dom().getBoundingClientRect();
+    selection.forEach((hit, index) => {
+        const [x, y] = hold(c, hit, c.pt3D(hit.at));
+        $(badges.dom().children[index])
+            .stl("left", `${box.left + x}px`)
+            .stl("top", `${box.top + y}px`);
+    });
+}
+
+// A tool of the menu before its first argument, which chooses its form.
+const fresh = (): boolean =>
+    !!armed && !!pending && pending.args.every((arg) => arg === undefined);
+
+// The form of the tool of the menu that takes the object first.
+const fitting = (object: construction_object): Tool | undefined =>
+    toolsFor(object, vec3(), armed!.tools)[0];
+
+// Whether, nothing it takes being designated, a point is made there for it.
+const makesPoint = (hits: Hit[]): boolean =>
+    !hits.some(({ object }) => fitting(object)) &&
+    armed!.tools.some(
+        (tool) =>
+            tool.mode === "command" &&
+            usable(tool, vec3()) &&
+            makesPoints(tool.overload) &&
+            tool.overload.params.includes("point"),
+    );
+
+// A locus takes a point that a point on an object moves, the other
+// intersection a point already there.
+const makesPoints = ({ tag }: Overload): boolean =>
+    tag !== "Loc" && tag !== "Int";
+
+function designateFirst(screen: Vec2, hits: Hit[], client: Vec2): void {
+    const c = scene();
+    const { mode } = pending!.tool;
+    if (mode === "point")
+        return designatePoint(screen, hits, client, (point) => {
+            if (point !== hits[0]?.object) done(point);
+        });
+    if (mode === "intersection") {
+        const cross = crossing(c, screen, hits);
+        if (cross) return done(addCrossing(cross));
+        const curves = hits.filter(({ object }) =>
+            accepts(object, "intersectable"),
+        );
+        if (curves[0])
+            chooseHit(curves, client, ({ object }) => {
+                pending!.args = [object];
+                prompt();
+            });
+        return;
+    }
+    const start = (hit: Hit) => choose(fitting(hit.object)!, hit);
+    const taken = hits.filter(({ object }) => fitting(object));
+    if (taken[0]) return chooseHit(taken, client, start);
+    if (makesPoint(hits))
+        designatePoint(screen, hits, client, (point) => {
+            if (point !== hits[0]?.object) changed(point);
+            start({
+                object: point,
+                distance: 0,
+                at: (point as point_object).coords,
+            });
+        });
 }
 
 const onRing = (slot: number): Vec2 => {
@@ -1804,9 +2173,51 @@ function closeRing(): void {
 const target = (): construction_object | null =>
     propertiesOpen ? properties.selected : (held?.hit.object ?? null);
 
+const OBJECT_ACTIONS = [
+    deleteButton,
+    settingsButton,
+    springButton,
+    pinButton,
+    magnetButton,
+    pointButton,
+    pointsButton,
+    segmentsButton,
+];
+
 // The bar's actions, shown with the ring, and gone once one is applied.
 function showActions(): void {
     const object = held?.hit.object ?? magnetizing?.point;
+    actions.toggleClass("dge-bar-tool", !!armed);
+    if (armed) {
+        const { icon, family } = armed.tools[0];
+        const label = itemLabel(armed);
+        toolIcon
+            .inner(toolSvg(icon))
+            .stl("--dge-hue", `${family.hue}`)
+            .stl("--dge-tone", `${family.tone}`)
+            .show("grid");
+        swatch.hide();
+        objectName.text(label);
+        OBJECT_ACTIONS.forEach((action) => action.hide());
+        doneButton.show();
+        actions.att("aria-label", label).show("flex");
+        return;
+    }
+    toolIcon.hide();
+    // Several objects selected: their names, in their order, and Delete.
+    if (selection.length) {
+        springOut = false;
+        showSpring(null);
+        const label = selectedNames();
+        swatch.hide();
+        objectName.text(label);
+        OBJECT_ACTIONS.forEach((action) => action.hide());
+        deleteButton.show("grid");
+        doneButton.hide();
+        actions.att("aria-label", label).show("flex");
+        return;
+    }
+    swatch.show();
     if (!object) {
         springOut = false;
         showSpring(null);
@@ -1902,10 +2313,17 @@ function drawFrom(as: Exclude<Choice, "expression">): void {
 }
 
 function remove(): void {
-    const object = target()!;
+    const objects = selection.length
+        ? selection.map(({ object }) => object)
+        : [target()!];
     stopMagnets();
     closeRing();
-    scene().removeObject(object);
+    clearSelection();
+    const c = scene();
+    // Some may go with others built from them.
+    objects.forEach((object) => {
+        if (c.getObj(object.name) === object) c.removeObject(object);
+    });
     done();
 }
 
@@ -2104,7 +2522,9 @@ const restingHint = (): string =>
         ? message("erasing")
         : magnetizing
           ? message("magnet_hint", formatName(magnetizing.point.name))
-          : "";
+          : selection.length
+            ? `${selectedNames()}\n${message("selection_hint")}`
+            : "";
 
 // Its targets attract the point while it's dragged, as in DGPad: a tap on
 // an object makes it one, or chooses it to set its reach.
@@ -2268,6 +2688,7 @@ function build(overload: Overload, args: Arg[]): void {
 }
 
 function designate(screen: Vec2, hits: Hit[], client: Vec2): void {
+    if (fresh()) return designateFirst(screen, hits, client);
     const { tool, args } = pending!;
     if (tool.mode === "intersection") {
         const first = args[0] as construction_object;
@@ -2294,7 +2715,7 @@ function designate(screen: Vec2, hits: Hit[], client: Vec2): void {
         else args[nextSlot()] = arg;
         proceed();
     };
-    if (param === "point") {
+    if (param === "point" && makesPoints(overload)) {
         clearPreview();
         return designatePoint(screen, hits, client, (arg) => {
             if (arg !== hits[0]?.object) changed(arg);
@@ -2375,7 +2796,7 @@ function updatePreview(screen: Vec2, hits: Hit[]): void {
         ? pending.tool.mode === "command" && {
               overload: pending.tool.overload,
               args: pending.args,
-              free: true,
+              free: makesPoints(pending.tool.overload),
           }
         : field && typedPending(field, hits);
     if (!call) return clearPreview();
@@ -2505,19 +2926,31 @@ function showAxes(): void {
     axesButton.toggleClass("dge-on", on).att("aria-pressed", String(on));
 }
 
-function cancel(): void {
+// Drops the tool waiting, or with `keepTool`, takes the tool of the menu
+// again from its first argument.
+function cancel(keepTool = false): void {
     setSteps(false);
     stopMagnets();
-    pending = null;
+    if (!keepTool) armed = null;
     aim = null;
     clearPreview();
     closeMenu();
     closeRing();
-    showHint("");
+    clearSelection();
+    rearm();
+    prompt();
+}
+
+function escape(): void {
+    if (!menu.isHidden()) closeMenu();
+    else if (!toolsMenu.isHidden()) closeTools();
+    else if (propertiesOpen) setProperties(false);
+    else if (ghosts) setEraser(false);
+    else cancel();
 }
 
 function done(object?: construction_object): void {
-    pending = null;
+    rearm();
     clearPreview();
     highlight();
     showAccepted([]);
@@ -2565,7 +2998,7 @@ function showSpace(): void {
 
 // Back to the plane only without objects off it.
 function toggleSpace(): void {
-    cancel();
+    cancel(true);
     recording = recording.then(async () => {
         const c = scene();
         const off = !c.GRID.is2D && offPlane(c);
@@ -2757,6 +3190,8 @@ nameField.on(
 // ************************** POINTER *****************************
 
 let down: { x: number; y: number; time: number } | null = null;
+// A right press passed on to the object under it as a left one.
+let relaying = false;
 // The line typed for which a tap in the void makes a point.
 let typing: HTMLInputElement | null = null;
 let dragFrame: number | null = null;
@@ -2817,7 +3252,21 @@ function follow(event: PointerEvent): void {
 $("body").on(
     "pointerdown",
     (event) => {
-        // Pressed elsewhere, the menu closes, and the figure does nothing.
+        if (relaying) return;
+        // Pressed elsewhere, the menus close, and the figure does nothing.
+        if (
+            !toolsMenu.isHidden() &&
+            ![toolsMenu, toolsSub, toolsButton].some((box) =>
+                box.dom().contains(element(event.target)),
+            )
+        ) {
+            closeTools();
+            if (inFigure(event)) {
+                down = null;
+                event.stopPropagation();
+                return;
+            }
+        }
         if (!menu.isHidden() && !menu.dom().contains(element(event.target))) {
             closeMenu();
             if (inFigure(event)) {
@@ -2837,6 +3286,39 @@ $("body").on(
             }
         }
         if (!inFigure(event) || !event.isPrimary) return;
+        // The right button drags the objects, and elsewhere the view, even
+        // while a tool waits or a line is typed.
+        if (event.button === 2) {
+            down = {
+                x: event.clientX,
+                y: event.clientY,
+                time: performance.now(),
+            };
+            const target = element(event.target);
+            const ignored = previewed();
+            const object = figureObjects(scene()).find(
+                (object) =>
+                    object.hasView &&
+                    !ignored.has(object) &&
+                    object.dom.dom().contains(target),
+            );
+            if (!object) return;
+            event.stopPropagation();
+            relaying = true;
+            object.dom.dom().dispatchEvent(
+                new PointerEvent("pointerdown", {
+                    pointerId: event.pointerId,
+                    pointerType: event.pointerType,
+                    isPrimary: true,
+                    clientX: event.clientX,
+                    clientY: event.clientY,
+                    button: 0,
+                    buttons: 1,
+                }),
+            );
+            relaying = false;
+            return;
+        }
         // Only a line already begun takes what the figure designates.
         const blank = editing();
         if (blank && !blank.value.trim()) blank.blur();
@@ -2970,6 +3452,7 @@ function dragged(): void {
         scene().flush();
         updateRows(shown);
         moveRing();
+        placeBadges();
         showMagnets();
         if (renaming) placeName();
     });
@@ -3046,9 +3529,10 @@ $("body").on(
             return;
         }
         if (!down) return;
-        const tap =
+        const still =
             Math.hypot(event.clientX - down.x, event.clientY - down.y) <=
-                $.clickRadius && performance.now() - down.time <= $.clickDelay;
+            $.clickRadius;
+        const tap = still && performance.now() - down.time <= $.clickDelay;
         down = null;
         const named = label?.object;
         label = null;
@@ -3068,11 +3552,19 @@ $("body").on(
         const line = editing();
         if (expression && line) return designateTyped(line, expression);
         if (!inFigure(event)) return;
-        if (!tap) {
-            void record().then(() => updateRows());
-            return;
-        }
-        if (held) return closeRing();
+        // A long press, or a click with ⌘, Ctrl or Shift, adds the object to
+        // the selection.
+        const adding =
+            event.button !== 2 &&
+            !propertiesOpen &&
+            !ghosts &&
+            !magnetizing &&
+            !stepping &&
+            (tap ? event.metaKey || event.ctrlKey || event.shiftKey : still);
+        if (!tap) void record().then(() => updateRows());
+        if (!adding && (!tap || event.button === 2)) return;
+        if (!adding && held) return closeRing();
+        if (!adding && selection[0]) return clearSelection();
         const c = scene();
         const screen = c.pointerPosition(event);
         // A tap on a name designates its object, a point there, on an
@@ -3101,6 +3593,10 @@ $("body").on(
             named instanceof point_object
                 ? [box.left + named.sx, box.top + named.sy]
                 : [event.clientX, event.clientY];
+        if (adding) {
+            if (hits[0]) chooseHit(hits, client, select);
+            return;
+        }
         if (magnetizing) {
             const { point } = magnetizing;
             const targets = hits.filter(({ object }) =>
@@ -3184,16 +3680,11 @@ $("body").on(
             travel(1);
         } else if (
             (event.key === "Delete" || event.key === "Backspace") &&
-            target()
+            (target() || selection.length)
         ) {
             event.preventDefault();
             remove();
-        } else if (event.key === "Escape") {
-            if (!menu.isHidden()) closeMenu();
-            else if (propertiesOpen) setProperties(false);
-            else if (ghosts) setEraser(false);
-            else cancel();
-        }
+        } else if (event.key === "Escape") escape();
     },
     false,
 );
@@ -3229,7 +3720,7 @@ function record(): Promise<void> {
 function travel(step: number): void {
     recording = recording.then(async () => {
         if (!history[position + step]) return;
-        cancel();
+        cancel(true);
         position += step;
         const target = history[position];
         const space = JSON.parse(target.figure).v["3d"] === 1;
