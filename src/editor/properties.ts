@@ -52,6 +52,15 @@ const SCRUB = {
 // DGPad's, that of a new slider.
 const KNOB_COLOR = "#780013";
 
+// Whose value the figure writes beside it.
+const measured = (object: construction_object): boolean =>
+    object instanceof segment_object ||
+    object instanceof angle_object ||
+    object instanceof fixed_angle_object ||
+    object instanceof polygon_object ||
+    (object instanceof list_object &&
+        !(object instanceof expression_list_object));
+
 const PROGRAM_PLACEHOLDER =
     "var t = [];\nfor (var i = 0; i < 10; i++) {\n    t.push([i, 0]);\n}\nt";
 
@@ -108,7 +117,8 @@ export function propertiesPanel(options: {
         figurePane,
     );
     let adjusting = 0;
-    let selected: construction_object | null = null;
+    // In the order they were selected, the first giving the values shown.
+    let selected: construction_object[] = [];
     // The grid the figure tab shows, while it does.
     let shownGrid: grid_object | null = null;
     let all = false;
@@ -145,11 +155,16 @@ export function propertiesPanel(options: {
         false,
     );
 
+    const mark = (on: boolean) =>
+        selected.forEach((object) =>
+            object.dom?.toggleClass("dge-property-selected", on),
+        );
+
     // Wider for a formula's lines.
-    function clear(object: construction_object | null, wide: boolean): void {
-        selected?.dom?.removeClass("dge-property-selected");
-        selected = object;
-        selected?.dom?.addClass("dge-property-selected");
+    function clear(objects: construction_object[], wide: boolean): void {
+        mark(false);
+        selected = objects;
+        mark(true);
         fields.splice(0).forEach((field) => field.dispose());
         content.inner("");
         $("body").toggleClass("dge-properties-wide", wide);
@@ -171,7 +186,7 @@ export function propertiesPanel(options: {
     // The coordinate system, the view and the figure's own settings.
     function showFigure(): void {
         showTab(true);
-        selected?.dom?.removeClass("dge-property-selected");
+        mark(false);
         $("body").removeClass("dge-properties-wide");
         shownGrid = options.scene().GRID;
         figureFields.push(
@@ -185,15 +200,20 @@ export function propertiesPanel(options: {
     }
 
     // Kept while the figure tab shows, which an empty click doesn't leave.
-    function select(object: construction_object | null): void {
-        if (shownGrid && !object) {
-            selected = null;
+    function select(
+        chosen: construction_object | construction_object[] | null,
+    ): void {
+        const objects = [chosen ?? []].flat();
+        if (shownGrid && !objects[0]) {
+            selected = [];
             return;
         }
         if (shownGrid) showTab(false);
+        const [object] = objects;
         clear(
-            object,
-            object instanceof expression_object &&
+            objects,
+            !objects[1] &&
+                object instanceof expression_object &&
                 !!(object.formula || object.program),
         );
         if (!object) {
@@ -204,13 +224,30 @@ export function propertiesPanel(options: {
             );
             return;
         }
-        build(object);
+        build(objects);
+    }
+
+    // Added to the objects shown, or removed if it was.
+    function toggle(object: construction_object): void {
+        select(
+            shownGrid
+                ? object
+                : selected.includes(object)
+                  ? selected.filter((other) => other !== object)
+                  : [...selected, object],
+        );
     }
 
     function refreshPicker(): void {
         picker.inner("");
         picker.add(
-            $.create("option").att("value", "").text(message("choose_object")),
+            $.create("option")
+                .att("value", "")
+                .text(
+                    selected[1]
+                        ? selected.map(({ name }) => name).join(", ")
+                        : message("choose_object"),
+                ),
         );
         objects().forEach((candidate) =>
             picker.add(
@@ -219,7 +256,9 @@ export function propertiesPanel(options: {
                     .text(candidate.name),
             ),
         );
-        (picker.dom() as Field).value = selected?.name ?? "";
+        (picker.dom() as Field).value = selected[1]
+            ? ""
+            : (selected[0]?.name ?? "");
     }
 
     // `control`: the field with what goes along with it.
@@ -252,11 +291,22 @@ export function propertiesPanel(options: {
         return box;
     }
 
-    function apply(change: (object: construction_object) => void): void {
-        const targets = all
-            ? objects().filter((object) => object.class === selected!.class)
-            : [selected!];
-        targets.forEach((object) => {
+    // Whether all the objects shown have the setting: only then is it shown.
+    const common = (targets: construction_object[]) =>
+        targets.length === selected.length;
+
+    // `targets`: the objects shown, and with "same type", all those of their
+    // types.
+    function apply<T extends construction_object>(
+        targets: T[],
+        change: (object: T) => void,
+    ): void {
+        (all
+            ? (objects().filter((object) =>
+                  targets.some((target) => target.class === object.class),
+              ) as T[])
+            : targets
+        ).forEach((object) => {
             change(object);
             // Traces live outside the object's SVG group.
             const trace =
@@ -280,7 +330,7 @@ export function propertiesPanel(options: {
         const c = options.scene();
         c.invalidateProjection();
         c.flush();
-        selected?.dom?.addClass("dge-property-selected");
+        mark(true);
         // The object shows bare while it is being adjusted.
         $("body").addClass("dge-adjusting");
         clearTimeout(adjusting);
@@ -290,36 +340,54 @@ export function propertiesPanel(options: {
         );
     }
 
-    function check(
+    // The value of the first target, set apart if the others differ.
+    function first<T extends construction_object, V>(
+        field: DOMElement,
+        targets: T[],
+        read: (object: T) => V,
+    ): V {
+        const value = read(targets[0]);
+        field.toggleClass(
+            "dge-mixed",
+            targets.some((object) => read(object) !== value),
+        );
+        return value;
+    }
+
+    function check<T extends construction_object>(
         box: DOMElement,
         key: MessageKey,
-        value: boolean,
-        change: (object: construction_object, value: boolean) => void,
+        targets: T[],
+        read: (object: T) => boolean,
+        change: (object: T, value: boolean) => void,
     ): void {
+        if (!common(targets)) return;
         const field = $.create("input").att("type", "checkbox");
-        (field.dom() as HTMLInputElement).checked = value;
+        const input = field.dom() as HTMLInputElement;
+        input.checked = first(field, targets, read);
+        input.indeterminate = field.dom().classList.contains("dge-mixed");
         row(box, key, field);
         field.on(
             "change",
             () => {
-                apply((object) =>
-                    change(object, (field.dom() as HTMLInputElement).checked),
-                );
+                apply(targets, (object) => change(object, input.checked));
                 options.changed();
             },
             false,
         );
     }
 
-    function number(
+    function number<T extends construction_object>(
         box: DOMElement,
         key: keyof typeof SCRUB,
-        value: number,
+        targets: T[],
+        read: (object: T) => number,
         min: number,
         max: number,
         step: number,
-        change: (object: construction_object, value: number) => void,
+        change: (object: T, value: number) => void,
     ): void {
+        if (!common(targets)) return;
         const field = $.create("input")
             .att("type", "number")
             .att("title", message("scrub_hint"))
@@ -327,14 +395,19 @@ export function propertiesPanel(options: {
             .att("max", max)
             .att("step", step);
         const input = field.dom() as HTMLInputElement;
+        let value = first(field, targets, read);
         input.value = String(value);
         row(box, key, field);
+        const set = () => {
+            field.removeClass("dge-mixed");
+            apply(targets, (object) => change(object, value));
+        };
         scrubNumber(
             field,
             (next) => {
                 value = next;
                 input.value = String(value);
-                apply((object) => change(object, value));
+                set();
             },
             options.changed,
             SCRUB[key],
@@ -344,7 +417,7 @@ export function propertiesPanel(options: {
             () => {
                 if (input.value !== "" && input.validity.valid) {
                     value = input.valueAsNumber;
-                    apply((object) => change(object, value));
+                    set();
                 }
             },
             false,
@@ -363,16 +436,18 @@ export function propertiesPanel(options: {
 
     // Its button, after the field so that the label opens the field, brings
     // each object back to its `initial` color.
-    function color(
+    function color<T extends construction_object>(
         box: DOMElement,
         key: MessageKey,
-        value: string,
-        initial: (object: construction_object) => string,
-        change: (object: construction_object, value: string) => void,
+        targets: T[],
+        read: (object: T) => string,
+        initial: (object: T) => string,
+        change: (object: T, value: string) => void,
     ): void {
+        if (!common(targets)) return;
         const field = $.create("input").att("type", "color");
         const input = field.dom() as HTMLInputElement;
-        input.value = hexColor(value);
+        input.value = first(field, targets, (object) => hexColor(read(object)));
         const reset = $.create("button")
             .cls("dge-reset")
             .att("type", "button")
@@ -382,15 +457,20 @@ export function propertiesPanel(options: {
         const showReset = () =>
             reset.stl(
                 "visibility",
-                input.value === hexColor(initial(selected!))
-                    ? "hidden"
-                    : "visible",
+                targets.some(
+                    (object) =>
+                        hexColor(read(object)) !== hexColor(initial(object)),
+                )
+                    ? "visible"
+                    : "hidden",
             );
         showReset();
         fields.push(reset);
         reset.on("click", () => {
-            apply((object) => change(object, initial(object)));
-            input.value = hexColor(initial(selected!));
+            apply(targets, (object) => change(object, initial(object)));
+            input.value = first(field, targets, (object) =>
+                hexColor(read(object)),
+            );
             showReset();
             options.changed();
         });
@@ -403,7 +483,8 @@ export function propertiesPanel(options: {
         field.on(
             "input",
             () => {
-                apply((object) => change(object, input.value));
+                field.removeClass("dge-mixed");
+                apply(targets, (object) => change(object, input.value));
                 showReset();
             },
             false,
@@ -411,36 +492,515 @@ export function propertiesPanel(options: {
         field.on("change", options.changed, false);
     }
 
-    function choice(
+    function choice<T extends construction_object>(
         box: DOMElement,
         key: MessageKey,
-        value: string,
+        targets: T[],
+        read: (object: T) => string,
         choices: [string, string][],
-        change: (object: construction_object, value: string) => void,
+        change: (object: T, value: string) => void,
     ): void {
+        if (!common(targets)) return;
         const field = $.create("select");
         choices.forEach(([value, label]) =>
             field.add($.create("option").att("value", value).text(label)),
         );
-        (field.dom() as Field).value = value;
+        (field.dom() as Field).value = first(field, targets, read);
         row(box, key, field);
         field.on(
             "change",
             () => {
-                apply((object) => change(object, (field.dom() as Field).value));
+                field.removeClass("dge-mixed");
+                apply(targets, (object) =>
+                    change(object, (field.dom() as Field).value),
+                );
                 options.changed();
             },
             false,
         );
     }
 
-    function build(object: construction_object): void {
-        const identity = section("object");
+    // The settings common to the objects, the name and the definition of a
+    // single one.
+    function build(objects: construction_object[]): void {
+        const [object] = objects;
+        if (objects[1])
+            content.add(
+                $.create("p")
+                    .cls("dge-property-help")
+                    .text(message("several_objects", String(objects.length))),
+            );
+        else identity(object);
+
+        const appearance = section("appearance");
+        const scope = $.create("input").att("type", "checkbox");
+        (scope.dom() as HTMLInputElement).checked = all;
+        row(appearance, "same_type", scope);
+        scope.on(
+            "change",
+            () => {
+                all = (scope.dom() as HTMLInputElement).checked;
+            },
+            false,
+        );
+        color(
+            appearance,
+            "color",
+            objects,
+            (object) => object.stroke_color,
+            (object) => createdColors(object)[0],
+            (object, value) => {
+                object.stroke_color = value;
+            },
+        );
+        const points = objects.filter(
+            (object) => object instanceof point_object,
+        );
+        number(
+            appearance,
+            "point_size",
+            points,
+            (object) => object.size,
+            0,
+            50,
+            0.5,
+            (object, value) => {
+                object.size = value;
+            },
+        );
+        number(
+            appearance,
+            "thickness",
+            objects.filter((object) => !(object instanceof point_object)),
+            (object) => object.size,
+            0,
+            50,
+            0.5,
+            (object, value) => {
+                object.size = value;
+            },
+        );
+        number(
+            appearance,
+            "point_border",
+            points,
+            (object) => object.border,
+            0,
+            20,
+            0.5,
+            (object, value) => {
+                object.border = value;
+            },
+        );
+        number(
+            appearance,
+            "stroke_opacity",
+            objects,
+            (object) => object.strokeOpacity * 100,
+            0,
+            100,
+            1,
+            (object, value) => {
+                object.strokeOpacity = value / 100;
+            },
+        );
+        // A locus has no default opacity in .dgo, yet is filled like DGPad's.
+        const filled = objects.filter(
+            (object) =>
+                object.opacity !== undefined || object instanceof locus_object,
+        );
+        color(
+            appearance,
+            "fill_color",
+            filled,
+            (object) => object.fill_color,
+            (object) => createdColors(object)[1],
+            (object, value) => {
+                object.fill_color = value;
+            },
+        );
+        number(
+            appearance,
+            "fill_opacity",
+            filled,
+            (object) => (object.opacity ?? 0) * 100,
+            0,
+            100,
+            1,
+            (object, value) => {
+                object.opacity = value / 100;
+            },
+        );
+        check(
+            appearance,
+            "dashed",
+            objects.filter(
+                (object) =>
+                    !(
+                        object instanceof point_object ||
+                        object instanceof expression_object
+                    ),
+            ),
+            (object) => object.dash.length > 0,
+            (object, value) => {
+                object.dash = value ? [6, 6] : [];
+            },
+        );
+        number(
+            appearance,
+            "level",
+            objects,
+            (object) => object.level,
+            -100,
+            100,
+            1,
+            (object, value) => {
+                object.level = value;
+            },
+        );
+
+        const display = section("display");
+        check(
+            display,
+            "visible",
+            objects,
+            (object) => object.hidden === 0,
+            (object, value) => {
+                object.hidden = value ? 0 : 1;
+            },
+        );
+        if (objects.some(({ condition }) => condition))
+            display.add(
+                $.create("p")
+                    .cls("dge-property-help")
+                    .text(message("conditional_visibility")),
+            );
+        check(
+            display,
+            "show_name",
+            objects.filter((object) => hasName(object)),
+            (object) => object.showName,
+            (object, value) => {
+                object.showName = value;
+            },
+        );
+        number(
+            display,
+            "font_size",
+            objects.filter(
+                (object) =>
+                    object instanceof point_object ||
+                    measured(object) ||
+                    ["expression", "text", "button"].includes(object.type),
+            ),
+            (object) => object.fontSize,
+            6,
+            72,
+            1,
+            (object, value) => {
+                object.fontSize = value;
+            },
+        );
+        choice(
+            display,
+            "precision",
+            objects.filter(
+                (object) =>
+                    measured(object) || object instanceof expression_object,
+            ),
+            (object) => String(object.precision),
+            [
+                ["-1", message("no_value")],
+                ...Array.from({ length: 11 }, (_, i): [string, string] => [
+                    String(i),
+                    String(i),
+                ]),
+            ],
+            (object, value) => {
+                object.precision = Number(value);
+            },
+        );
+
+        if (common(points)) {
+            const point = section("point_settings");
+            choice(
+                point,
+                "point_shape",
+                points,
+                (object) => object.shape,
+                ["circle", "cross", "diamond", "rect"].map((shape) => [
+                    shape,
+                    message(("shape_" + shape) as MessageKey),
+                ]),
+                (object, value) => {
+                    object.shape = value;
+                },
+            );
+            number(
+                point,
+                "name_position",
+                points,
+                (object) => Math.round((object.namePosition * 180) / Math.PI),
+                -360,
+                360,
+                1,
+                (object, value) => {
+                    object.namePosition = (value * Math.PI) / 180;
+                },
+            );
+            check(
+                point,
+                "trace",
+                points,
+                (object) => object.trace,
+                (object, value) => {
+                    object.trace = value;
+                },
+            );
+            const moveable = points.filter(({ moveable }) => moveable);
+            number(
+                point,
+                "step_x",
+                moveable,
+                (object) => object.increment[0],
+                0,
+                1000,
+                0.01,
+                (object, value) => {
+                    object.increment[0] = value;
+                },
+            );
+            number(
+                point,
+                "step_y",
+                moveable,
+                (object) => object.increment[1],
+                0,
+                1000,
+                0.01,
+                (object, value) => {
+                    object.increment[1] = value;
+                },
+            );
+        }
+        choice(
+            appearance,
+            "decoration",
+            objects.filter((object) => object instanceof segment_object),
+            (object) => String(object.decoration),
+            Array.from({ length: 7 }, (_, i) => [
+                String(i),
+                i
+                    ? "│".repeat(i <= 3 ? i : i - 3) + (i > 3 ? " × 2" : "")
+                    : message("none"),
+            ]),
+            (object, value) => {
+                object.decoration = Number(value);
+            },
+        );
+        const angles = objects.filter(
+            (object) =>
+                object instanceof angle_object ||
+                object instanceof fixed_angle_object,
+        );
+        if (common(angles)) {
+            const angle = section("angle_settings");
+            number(
+                angle,
+                "arc_radius",
+                angles,
+                (object) => object.arcRadius,
+                5,
+                200,
+                1,
+                (object, value) => {
+                    object.arcRadius = value;
+                },
+            );
+            choice(
+                angle,
+                "right_angle",
+                angles.filter((object) => object instanceof angle_object),
+                (object) => object.rightAngleMark,
+                RIGHT_ANGLE_MARKS.map((value) => [
+                    value,
+                    message(("mark_" + value) as MessageKey),
+                ]),
+                (object, value) => {
+                    object.rightAngleMark =
+                        value as (typeof RIGHT_ANGLE_MARKS)[number];
+                },
+            );
+        }
+        const loci = objects.filter((object) => object instanceof locus_object);
+        if (common(loci))
+            number(
+                section("sampling"),
+                "samples",
+                loci,
+                (object) => object.precision,
+                10,
+                5000,
+                1,
+                (object, value) => {
+                    object.precision = value;
+                },
+            );
+        number(
+            appearance,
+            "segments_size",
+            objects.filter(
+                (object) => object instanceof expression_list_object,
+            ),
+            (object) => object.segmentsSize,
+            -1,
+            50,
+            0.5,
+            (object, value) => {
+                object.segmentsSize = value;
+            },
+        );
+        const sliders = objects.filter(
+            (object): object is expression_object =>
+                object instanceof expression_object && object.isCursor,
+        );
+        if (common(sliders)) {
+            const slider = section("slider_settings");
+            number(
+                slider,
+                "increment",
+                sliders,
+                (object) => object.increment,
+                0,
+                1000,
+                0.01,
+                (object, value) => {
+                    object.increment = value;
+                },
+            );
+            number(
+                slider,
+                "slider_length",
+                sliders,
+                (object) => object.cursorLength,
+                20,
+                1000,
+                1,
+                (object, value) => {
+                    object.cursorLength = value;
+                },
+            );
+            check(
+                slider,
+                "vertical",
+                sliders,
+                (object) => object.vertical,
+                (object, value) => {
+                    object.vertical = value;
+                },
+            );
+            color(
+                slider,
+                "knob_color",
+                sliders,
+                (object) => object.cursorColor,
+                () => KNOB_COLOR,
+                (object, value) => {
+                    object.cursorColor = value;
+                },
+            );
+            number(
+                slider,
+                "knob_size",
+                sliders,
+                (object) => object.cursorRadius,
+                2,
+                40,
+                0.5,
+                (object, value) => {
+                    object.cursorRadius = value;
+                },
+            );
+        }
+        const animated = objects.filter(
+            (object): object is point_on_object | expression_object =>
+                object instanceof point_on_object ||
+                (object instanceof expression_object && object.isCursor),
+        );
+        if (common(animated)) {
+            const animation = section("animation_settings");
+            // Each object's, kept while it isn't animated.
+            const settings = new Map<construction_object, Animation>();
+            const update = (
+                owner: point_on_object | expression_object,
+                change: (settings: Animation) => void,
+            ) => {
+                if (!settings.has(owner))
+                    settings.set(owner, {
+                        speed: 0,
+                        direction: 1,
+                        ar: false,
+                        ...owner.animation,
+                    });
+                const own = settings.get(owner)!;
+                change(own);
+                if (own.speed > 0) owner.C.animations.add(owner, { ...own });
+                else if (owner.animation) Object.assign(owner.animation, own);
+            };
+            number(
+                animation,
+                "animation_speed",
+                animated,
+                (object) => object.animation?.speed ?? 0,
+                0,
+                100,
+                0.1,
+                (object, value) =>
+                    update(object, (settings) => {
+                        settings.speed = value;
+                    }),
+            );
+            check(
+                animation,
+                "reverse",
+                animated,
+                (object) => object.animation?.direction === -1,
+                (object, value) =>
+                    update(object, (settings) => {
+                        settings.direction = value ? -1 : 1;
+                    }),
+            );
+            choice(
+                animation,
+                "animation_end",
+                animated,
+                (object) =>
+                    object.animation?.once
+                        ? "once"
+                        : object.animation?.ar
+                          ? "bounce"
+                          : "loop",
+                [
+                    ["loop", message("loop")],
+                    ["bounce", message("bounce")],
+                    ["once", message("once")],
+                ],
+                (object, value) =>
+                    update(object, (settings) => {
+                        settings.ar = value === "bounce";
+                        settings.once = value === "once";
+                    }),
+            );
+        }
+    }
+
+    function identity(object: construction_object): void {
+        const box = section("object");
         const name = $.create("input")
             .att("type", "text")
             .att("spellcheck", "false");
         (name.dom() as HTMLInputElement).value = object.name;
-        row(identity, "name", name);
+        row(box, "name", name);
         name.on(
             "change",
             () => {
@@ -464,406 +1024,12 @@ export function propertiesPanel(options: {
             () => (name.dom() as HTMLInputElement).setCustomValidity(""),
             false,
         );
-
         if (
             object instanceof expression_object &&
             !object.isCursor &&
             !object.bounds
         )
             definition(object);
-
-        const appearance = section("appearance");
-        const scope = $.create("input").att("type", "checkbox");
-        (scope.dom() as HTMLInputElement).checked = all;
-        row(appearance, "same_type", scope);
-        scope.on(
-            "change",
-            () => {
-                all = (scope.dom() as HTMLInputElement).checked;
-            },
-            false,
-        );
-        color(
-            appearance,
-            "color",
-            object.stroke_color,
-            (object) => createdColors(object)[0],
-            (object, value) => {
-                object.stroke_color = value;
-            },
-        );
-        number(
-            appearance,
-            object instanceof point_object ? "point_size" : "thickness",
-            object.size,
-            0,
-            50,
-            0.5,
-            (object, value) => {
-                object.size = value;
-            },
-        );
-        if (object instanceof point_object)
-            number(
-                appearance,
-                "point_border",
-                object.border,
-                0,
-                20,
-                0.5,
-                (object, value) => {
-                    (object as point_object).border = value;
-                },
-            );
-        number(
-            appearance,
-            "stroke_opacity",
-            object.strokeOpacity * 100,
-            0,
-            100,
-            1,
-            (object, value) => {
-                object.strokeOpacity = value / 100;
-            },
-        );
-        // A locus has no default opacity in .dgo, yet is filled like DGPad's.
-        if (object.opacity !== undefined || object instanceof locus_object) {
-            color(
-                appearance,
-                "fill_color",
-                object.fill_color,
-                (object) => createdColors(object)[1],
-                (object, value) => {
-                    object.fill_color = value;
-                },
-            );
-            number(
-                appearance,
-                "fill_opacity",
-                (object.opacity ?? 0) * 100,
-                0,
-                100,
-                1,
-                (object, value) => {
-                    object.opacity = value / 100;
-                },
-            );
-        }
-        if (!(
-            object instanceof point_object ||
-            object instanceof expression_object
-        ))
-            check(
-                appearance,
-                "dashed",
-                object.dash.length > 0,
-                (object, value) => {
-                    object.dash = value ? [6, 6] : [];
-                },
-            );
-        number(
-            appearance,
-            "level",
-            object.level,
-            -100,
-            100,
-            1,
-            (object, value) => {
-                object.level = value;
-            },
-        );
-
-        const display = section("display");
-        check(display, "visible", object.hidden === 0, (object, value) => {
-            object.hidden = value ? 0 : 1;
-        });
-        if (object.condition)
-            display.add(
-                $.create("p")
-                    .cls("dge-property-help")
-                    .text(message("conditional_visibility")),
-            );
-        if (hasName(object))
-            check(display, "show_name", object.showName, (object, value) => {
-                object.showName = value;
-            });
-        const measured =
-            object instanceof segment_object ||
-            object instanceof angle_object ||
-            object instanceof fixed_angle_object ||
-            object instanceof polygon_object ||
-            (object instanceof list_object &&
-                !(object instanceof expression_list_object));
-        if (
-            object instanceof point_object ||
-            measured ||
-            ["expression", "text", "button"].includes(object.type)
-        )
-            number(
-                display,
-                "font_size",
-                object.fontSize,
-                6,
-                72,
-                1,
-                (object, value) => {
-                    object.fontSize = value;
-                },
-            );
-        if (measured || object instanceof expression_object) {
-            choice(
-                display,
-                "precision",
-                String(object.precision),
-                [
-                    ["-1", message("no_value")],
-                    ...Array.from({ length: 11 }, (_, i): [string, string] => [
-                        String(i),
-                        String(i),
-                    ]),
-                ],
-                (object, value) => {
-                    object.precision = Number(value);
-                },
-            );
-        }
-
-        if (object instanceof point_object) {
-            const point = section("point_settings");
-            choice(
-                point,
-                "point_shape",
-                object.shape,
-                ["circle", "cross", "diamond", "rect"].map((shape) => [
-                    shape,
-                    message(("shape_" + shape) as MessageKey),
-                ]),
-                (object, value) => {
-                    (object as point_object).shape = value;
-                },
-            );
-            number(
-                point,
-                "name_position",
-                Math.round((object.namePosition * 180) / Math.PI),
-                -360,
-                360,
-                1,
-                (object, value) => {
-                    (object as point_object).namePosition =
-                        (value * Math.PI) / 180;
-                },
-            );
-            check(point, "trace", object.trace, (object, value) => {
-                (object as point_object).trace = value;
-            });
-            if (object.moveable) {
-                number(
-                    point,
-                    "step_x",
-                    object.increment[0],
-                    0,
-                    1000,
-                    0.01,
-                    (object, value) => {
-                        (object as point_object).increment[0] = value;
-                    },
-                );
-                number(
-                    point,
-                    "step_y",
-                    object.increment[1],
-                    0,
-                    1000,
-                    0.01,
-                    (object, value) => {
-                        (object as point_object).increment[1] = value;
-                    },
-                );
-            }
-        }
-        if (object instanceof segment_object)
-            choice(
-                appearance,
-                "decoration",
-                String(object.decoration),
-                Array.from({ length: 7 }, (_, i) => [
-                    String(i),
-                    i
-                        ? "│".repeat(i <= 3 ? i : i - 3) + (i > 3 ? " × 2" : "")
-                        : message("none"),
-                ]),
-                (object, value) => {
-                    (object as segment_object).decoration = Number(value);
-                },
-            );
-        if (
-            object instanceof angle_object ||
-            object instanceof fixed_angle_object
-        ) {
-            const angle = section("angle_settings");
-            number(
-                angle,
-                "arc_radius",
-                object.arcRadius,
-                5,
-                200,
-                1,
-                (object, value) => {
-                    (object as angle_object | fixed_angle_object).arcRadius =
-                        value;
-                },
-            );
-            if (object instanceof angle_object)
-                choice(
-                    angle,
-                    "right_angle",
-                    object.rightAngleMark,
-                    RIGHT_ANGLE_MARKS.map((value) => [
-                        value,
-                        message(("mark_" + value) as MessageKey),
-                    ]),
-                    (object, value) => {
-                        (object as angle_object).rightAngleMark =
-                            value as (typeof RIGHT_ANGLE_MARKS)[number];
-                    },
-                );
-        }
-        if (object instanceof locus_object)
-            number(
-                section("sampling"),
-                "samples",
-                object.precision,
-                10,
-                5000,
-                1,
-                (object, value) => {
-                    object.precision = value;
-                },
-            );
-        if (object instanceof expression_list_object)
-            number(
-                appearance,
-                "segments_size",
-                object.segmentsSize,
-                -1,
-                50,
-                0.5,
-                (object, value) => {
-                    (object as expression_list_object).segmentsSize = value;
-                },
-            );
-        if (object instanceof expression_object && object.isCursor) {
-            const slider = section("slider_settings");
-            number(
-                slider,
-                "increment",
-                object.increment,
-                0,
-                1000,
-                0.01,
-                (object, value) => {
-                    (object as expression_object).increment = value;
-                },
-            );
-            number(
-                slider,
-                "slider_length",
-                object.cursorLength,
-                20,
-                1000,
-                1,
-                (object, value) => {
-                    (object as expression_object).cursorLength = value;
-                },
-            );
-            check(slider, "vertical", object.vertical, (object, value) => {
-                (object as expression_object).vertical = value;
-            });
-            color(
-                slider,
-                "knob_color",
-                object.cursorColor,
-                () => KNOB_COLOR,
-                (object, value) => {
-                    (object as expression_object).cursorColor = value;
-                },
-            );
-            number(
-                slider,
-                "knob_size",
-                object.cursorRadius,
-                2,
-                40,
-                0.5,
-                (object, value) => {
-                    (object as expression_object).cursorRadius = value;
-                },
-            );
-        }
-        if (
-            object instanceof point_on_object ||
-            (object instanceof expression_object && object.isCursor)
-        ) {
-            const animation = section("animation_settings");
-            const settings: Animation = {
-                speed: 0,
-                direction: 1,
-                ar: false,
-                ...object.animation,
-            };
-            const update = (
-                object: construction_object,
-                change: (settings: Animation) => void,
-            ) => {
-                const owner = object as point_on_object | expression_object;
-                change(settings);
-                if (settings.speed > 0)
-                    owner.C.animations.add(owner, { ...settings });
-                else if (owner.animation)
-                    Object.assign(owner.animation, settings);
-            };
-            number(
-                animation,
-                "animation_speed",
-                object.animation?.speed ?? 0,
-                0,
-                100,
-                0.1,
-                (object, value) =>
-                    update(object, (settings) => {
-                        settings.speed = value;
-                    }),
-            );
-            check(
-                animation,
-                "reverse",
-                object.animation?.direction === -1,
-                (object, value) =>
-                    update(object, (settings) => {
-                        settings.direction = value ? -1 : 1;
-                    }),
-            );
-            choice(
-                animation,
-                "animation_end",
-                object.animation?.once
-                    ? "once"
-                    : object.animation?.ar
-                      ? "bounce"
-                      : "loop",
-                [
-                    ["loop", message("loop")],
-                    ["bounce", message("bounce")],
-                    ["once", message("once")],
-                ],
-                (object, value) =>
-                    update(object, (settings) => {
-                        settings.ar = value === "bounce";
-                        settings.once = value === "once";
-                    }),
-            );
-        }
     }
 
     // Its value, formula or program, on as many lines as it takes: Enter
@@ -873,7 +1039,7 @@ export function propertiesPanel(options: {
     // A program to be made, written before it exists.
     function create(name: string): void {
         if (shownGrid) showTab(false);
-        clear(null, true);
+        clear([], true);
         const field = $.create("input")
             .att("type", "text")
             .att("spellcheck", "false");
@@ -1006,12 +1172,18 @@ export function propertiesPanel(options: {
 
     // `figure`: the figure tab built again, its settings changed elsewhere.
     function refresh(figure = false): void {
-        const object = selected && options.scene().getObj(selected.name);
+        const objects = selected.flatMap(
+            ({ name }) => options.scene().getObj(name) ?? [],
+        );
         if (!shownGrid) {
-            if (object !== selected) select(object ?? null);
+            if (
+                objects.length < selected.length ||
+                objects.some((object, index) => object !== selected[index])
+            )
+                select(objects);
             else refreshPicker();
         } else {
-            selected = object ?? null;
+            selected = objects;
             if (figure || shownGrid !== options.scene().GRID) showFigure();
         }
     }
@@ -1021,11 +1193,15 @@ export function propertiesPanel(options: {
         panel,
         select,
         create,
+        toggle,
         refresh,
         figure: showFigure,
         // None while the figure tab shows.
         get selected() {
-            return shownGrid ? null : selected;
+            return shownGrid ? null : (selected[0] ?? null);
+        },
+        get selection() {
+            return shownGrid ? [] : selected;
         },
     };
 }

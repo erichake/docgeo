@@ -60,7 +60,9 @@ export default {
     full_reach: "Everywhere",
     close_properties: "Close properties",
     properties_hint:
-        "Select an object in the figure, or choose it from the list. The axes and the grid are set in the Figure tab.",
+        "Select an object in the figure, or choose it from the list; ⌘-click, Ctrl-click or a long press adds others. The axes and the grid are set in the Figure tab.",
+    several_objects:
+        "% objects selected: only the settings they share are shown.",
     tab_object: "Object",
     tab_figure: "Figure",
     coords: "Coordinate system",

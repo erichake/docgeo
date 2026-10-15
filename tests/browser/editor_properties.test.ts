@@ -289,6 +289,53 @@ describe("Object properties", () => {
         properties.panel.dispose();
     });
 
+    it("sets several objects together, showing only their common settings", () => {
+        const { c, properties, field, change, changes } = setup();
+        const [A, B, s] = ["A", "B", "s"].map((name) => c.getObj(name)!);
+        const shown = (key: Parameters<typeof message>[0]) =>
+            !!properties.panel.find(`[aria-label="${message(key)}"]`);
+        B.stroke_color = "#00aa00";
+        B.size = 8;
+        properties.select(A);
+        properties.toggle(B);
+        expect(properties.selection).toEqual([A, B]);
+        expect(
+            (field("object") as unknown as HTMLSelectElement).selectedOptions[0]
+                .text,
+        ).toBe("A, B");
+        // The first one's value, the others' differing.
+        expect(field("color").classList).toContain("dge-mixed");
+        expect(field("point_size").value).toBe(String(A.size));
+        expect(field("point_size").classList).toContain("dge-mixed");
+        expect(shown("point_shape")).toBe(true);
+        // Without the name of any.
+        expect(shown("name")).toBe(false);
+        change("point_size", "9");
+        expect([A.size, B.size, s.size]).toEqual([9, 9, s.size]);
+        properties.toggle(s);
+        expect(shown("point_size")).toBe(false);
+        expect(shown("thickness")).toBe(false);
+        expect(shown("point_shape")).toBe(false);
+        expect(shown("decoration")).toBe(false);
+        expect(field("show_name").indeterminate).toBe(true);
+        change("color", "#112233");
+        expect([A, B, s].map(({ stroke_color }) => stroke_color)).toEqual([
+            "#112233",
+            "#112233",
+            "#112233",
+        ]);
+        expect(field("color").classList).not.toContain("dge-mixed");
+        change("show_name", true);
+        expect([A, B, s].every(({ showName }) => showName)).toBe(true);
+        expect(changes()).toBe(3);
+        properties.toggle(A);
+        properties.toggle(B);
+        expect(properties.selected).toBe(s);
+        expect(field("name").value).toBe("s");
+        expect(shown("thickness")).toBe(true);
+        properties.panel.dispose();
+    });
+
     it("rebinds selection after restoring a figure and rejects invalid numbers", async () => {
         const { c, properties, field, change } = setup();
         properties.select(c.getObj("A")!);

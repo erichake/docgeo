@@ -64,7 +64,9 @@ const nl: Texts = {
         full_reach: "Overal",
         close_properties: "Eigenschappen sluiten",
         properties_hint:
-            "Selecteer een object in de figuur of kies het uit de lijst. De assen en het rooster stel je in op het tabblad Figuur.",
+            "Selecteer een object in de figuur of kies het uit de lijst; ⌘-klik, Ctrl-klik of lang drukken voegt er meer toe. De assen en het rooster stel je in op het tabblad Figuur.",
+        several_objects:
+            "% objecten geselecteerd: alleen hun gemeenschappelijke instellingen worden getoond.",
         tab_object: "Object",
         tab_figure: "Figuur",
         coords: "Assenstelsel",

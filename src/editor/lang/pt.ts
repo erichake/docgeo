@@ -62,7 +62,9 @@ const pt: Texts = {
         full_reach: "Em toda parte",
         close_properties: "Fechar as propriedades",
         properties_hint:
-            "Selecione um objeto na figura ou escolha-o na lista. Os eixos e a malha são ajustados na aba Figura.",
+            "Selecione um objeto na figura ou escolha-o na lista; ⌘-clique, Ctrl-clique ou um toque longo adicionam outros. Os eixos e a malha são ajustados na aba Figura.",
+        several_objects:
+            "% objetos selecionados: só são mostrados os ajustes comuns.",
         tab_object: "Objeto",
         tab_figure: "Figura",
         coords: "Sistema de coordenadas",

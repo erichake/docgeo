@@ -64,7 +64,9 @@ const de: Texts = {
         full_reach: "Überall",
         close_properties: "Eigenschaften schließen",
         properties_hint:
-            "Wählen Sie ein Objekt in der Figur oder in der Liste aus. Achsen und Gitter werden im Tab „Figur“ eingestellt.",
+            "Wählen Sie ein Objekt in der Figur oder in der Liste aus; ⌘-Klick, Strg-Klick oder langes Drücken fügt weitere hinzu. Achsen und Gitter werden im Tab „Figur“ eingestellt.",
+        several_objects:
+            "% Objekte ausgewählt: Nur ihre gemeinsamen Einstellungen werden angezeigt.",
         tab_object: "Objekt",
         tab_figure: "Figur",
         coords: "Koordinatensystem",

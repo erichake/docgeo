@@ -297,9 +297,10 @@ pour plusieurs objets.
   d'un clic, 700 ms : rien d'autre ne l'utilisait) ajoutent l'objet à la
   sélection, ou l'en retirent. L'objet dont l'anneau est ouvert en devient
   le premier. Chacun brille en bleu, son rang dans une pastille ; la
-  consigne rappelle le geste, la barre montre les noms et « Supprimer »,
-  qui les supprime tous (Suppr aussi). Un toucher simple, Échap, un outil,
-  la gomme, les propriétés, annuler ou refaire la vident.
+  consigne rappelle le geste, la barre montre les noms, « Supprimer »,
+  qui les supprime tous (Suppr aussi), et « Réglages ». Un toucher simple,
+  Échap, un outil, la gomme, annuler ou refaire la vident ; les propriétés
+  la reprennent.
 - Le menu des outils grise les familles et les outils qui ne prennent pas
   la sélection (`assign` dans `tools.ts`) : chaque objet, dans l'ordre,
   prend la première place libre qui accepte son type (droite puis point
@@ -309,8 +310,20 @@ pour plusieurs objets.
   trois sommets (A, B, C puis « CercleCirconscrit » écrit
   `CercleCirconscrit(A, B, C)`). Sans sélection, l'objet dont l'anneau est
   ouvert sert de premier argument.
-- Plus tard : mettre en forme plusieurs objets ensemble dans le panneau de
-  propriétés.
+- **Propriétés de plusieurs objets** (2026-10-14) : « Réglages », ou le
+  bouton « Propriétés » de la barre, ouvre le panneau sur la sélection.
+  Panneau ouvert, le même geste (⌘-clic, Ctrl-clic, Maj-clic, appui long,
+  et ⌘-clic sur une ligne du panneau « Construction ») y ajoute un objet ou
+  l'en retire ; un toucher simple ou la liste reviennent à un seul. La
+  liste montre leurs noms, une ligne dit qu'il y en a plusieurs ; ni nom ni
+  définition. **Seuls les réglages communs à tous** sont affichés (décidé
+  avec l'auteur le 2026-10-14, après un essai où chacun s'appliquait aux
+  seuls objets qui l'avaient) : des points et un segment n'ont en commun
+  ni taille ni épaisseur, mais couleur, opacité, calque, visibilité, nom
+  affiché… Un réglage montre la valeur du premier objet, en italique gris
+  (le nuancier en pointillé, la case indéterminée) si les autres en ont
+  une autre. « Même type » s'étend aux objets des types sélectionnés.
+  Annuler garde les objets du panneau, Suppr les supprime tous.
 
 ## Actions sur l'objet sélectionné
 
@@ -1231,11 +1244,16 @@ Fait (2026-10-11) :
   points, appui long au doigt, toucher qui vide). Éditeur : 131,4 Ko,
   +3,0 Ko (+0,9 Ko en gzip) ; lecteur inchangé.
 
+- Propriétés de plusieurs objets (2026-10-14, section « Sélection
+  multiple ») : vérifiées dans `editor.html` avec Playwright (« Réglages »
+  sur A et B, ⌘-clic sur le segment puis sur une ligne pour ajouter et
+  retirer, réglages communs, couleur appliquée aux trois, annuler,
+  toucher simple, suppression de deux objets). Éditeur : 132,9 Ko,
+  +1,5 Ko (+0,5 Ko en gzip), CSS +0,1 Ko ; lecteur inchangé.
+
 Reste à faire :
 
 - Jeux d'outils de l'enseignant (section « Anneau d'outils »).
-- Propriétés de plusieurs objets sélectionnés (section « Sélection
-  multiple »).
 - Outils du moteur sans commande dans l'éditeur, à ajouter au catalogue
   puis au menu : angle fixe, rotation, homothétie, translation (objets ou
   points formules), intersection droite-plan.

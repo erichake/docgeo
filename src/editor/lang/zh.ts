@@ -55,7 +55,8 @@ const zh: Texts = {
         full_reach: "任意位置",
         close_properties: "关闭属性",
         properties_hint:
-            "在图形中选择一个对象，或从列表中选择。坐标轴和网格在“图形”标签页中设置。",
+            "在图形中选择一个对象，或从列表中选择；⌘-点击、Ctrl-点击或长按可添加其他对象。坐标轴和网格在“图形”标签页中设置。",
+        several_objects: "已选择 % 个对象：仅显示它们的共同设置。",
         tab_object: "对象",
         tab_figure: "图形",
         coords: "坐标系",

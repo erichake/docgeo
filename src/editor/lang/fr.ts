@@ -61,7 +61,9 @@ const fr: Texts = {
         full_reach: "Partout",
         close_properties: "Fermer les propriétés",
         properties_hint:
-            "Désignez un objet dans la figure, ou choisissez-le dans la liste. Les axes et la grille se règlent dans l'onglet Figure.",
+            "Désignez un objet dans la figure, ou choisissez-le dans la liste ; ⌘-clic, Ctrl-clic ou appui long en ajoutent d'autres. Les axes et la grille se règlent dans l'onglet Figure.",
+        several_objects:
+            "% objets sélectionnés : seuls leurs réglages communs sont affichés.",
         tab_object: "Objet",
         tab_figure: "Figure",
         coords: "Repère",

@@ -62,7 +62,9 @@ const it: Texts = {
         full_reach: "Ovunque",
         close_properties: "Chiudi le proprietà",
         properties_hint:
-            "Seleziona un oggetto nella figura o sceglilo dall'elenco. Assi e griglia si regolano nella scheda Figura.",
+            "Seleziona un oggetto nella figura o sceglilo dall'elenco; ⌘-clic, Ctrl-clic o una pressione prolungata ne aggiungono altri. Assi e griglia si regolano nella scheda Figura.",
+        several_objects:
+            "% oggetti selezionati: sono mostrate solo le impostazioni comuni.",
         tab_object: "Oggetto",
         tab_figure: "Figura",
         coords: "Sistema di riferimento",

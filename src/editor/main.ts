@@ -704,7 +704,9 @@ function setPanel(on: boolean, animate = true): void {
 }
 function setProperties(on: boolean): void {
     if (on) {
-        const object = target();
+        const objects = selection.length
+            ? selection.map(({ object }) => object)
+            : target();
         setEraser(false);
         cancel();
         editing()?.blur();
@@ -713,7 +715,7 @@ function setProperties(on: boolean): void {
         highlight();
         if (window.innerWidth <= 900) setPanel(false);
         properties.refresh();
-        properties.select(object ?? properties.selected);
+        properties.select(objects ?? properties.selection);
     }
     propertiesOpen = on;
     properties.panel.dom().toggleAttribute("inert", !on);
@@ -721,7 +723,7 @@ function setProperties(on: boolean): void {
         .addClass("dge-panel-animated")
         .toggleClass("dge-properties-open", on);
     propertiesButton.toggleClass("dge-on", on).att("aria-expanded", String(on));
-    properties.selected?.dom?.toggleClass("dge-property-selected", on);
+    shine(on);
     showHint("");
 }
 // Typing doesn't reach the figure's own keys (3D view, floor), shortcuts
@@ -836,6 +838,21 @@ const asSaved = <T>(write: () => Promise<T>): Promise<T> =>
         withHidden(stepping?.later ?? [], 0, write),
     );
 
+// The objects of the properties lit while they are shown.
+const shine = (on: boolean) =>
+    properties.selection.forEach((object) =>
+        object.dom?.toggleClass("dge-property-selected", on),
+    );
+
+// With ⌘, Ctrl or Shift, the object is added to those of the properties.
+const showProperties = (
+    event: PointerEvent,
+    object: construction_object,
+): void =>
+    event.metaKey || event.ctrlKey || event.shiftKey
+        ? properties.toggle(object)
+        : properties.select(object);
+
 function propertyObject(event: PointerEvent): construction_object | null {
     const target = element(event.target);
     const ignored = previewed();
@@ -873,10 +890,7 @@ function showHint(text: string, error = false): void {
 
 function refreshRows(): void {
     properties.refresh();
-    properties.selected?.dom?.toggleClass(
-        "dge-property-selected",
-        propertiesOpen,
-    );
+    shine(propertiesOpen);
     rows.clear();
     items.clear();
     values.clear();
@@ -902,7 +916,7 @@ function refreshRows(): void {
             (event) => {
                 if (!propertiesOpen) return;
                 event.preventDefault();
-                properties.select(object);
+                showProperties(event, object);
             },
             false,
         );
@@ -2212,7 +2226,7 @@ function showActions(): void {
         swatch.hide();
         objectName.text(label);
         OBJECT_ACTIONS.forEach((action) => action.hide());
-        deleteButton.show("grid");
+        [deleteButton, settingsButton].forEach((action) => action.show("grid"));
         doneButton.hide();
         actions.att("aria-label", label).show("flex");
         return;
@@ -2315,7 +2329,9 @@ function drawFrom(as: Exclude<Choice, "expression">): void {
 function remove(): void {
     const objects = selection.length
         ? selection.map(({ object }) => object)
-        : [target()!];
+        : propertiesOpen
+          ? properties.selection
+          : [target()!];
     stopMagnets();
     closeRing();
     clearSelection();
@@ -3100,8 +3116,11 @@ async function rename(object: construction_object, name: string) {
     const index = figureObjects(scene()).indexOf(object);
     (figure.o[index] as unknown[])[1] = name;
     rebuild(studio, figure);
-    if (properties.selected === object)
-        properties.select(scene().getObj(name)!);
+    properties.select(
+        properties.selection.map((shown) =>
+            scene().getObj(shown === object ? name : shown.name)!,
+        ),
+    );
     changed();
 }
 
@@ -3380,7 +3399,7 @@ $("body").on(
                 down = null;
                 event.preventDefault();
                 event.stopPropagation();
-                properties.select(object);
+                showProperties(event, object);
             }
             return;
         }
@@ -3537,13 +3556,15 @@ $("body").on(
         const named = label?.object;
         label = null;
         if (named && !tap) {
-            if (properties.selected === named) properties.select(named);
+            if (properties.selection.includes(named))
+                properties.select(properties.selection);
             return void record();
         }
         const resized = sized?.angle;
         sized = null;
         if (resized && !tap) {
-            if (properties.selected === resized) properties.select(resized);
+            if (properties.selection.includes(resized))
+                properties.select(properties.selection);
             return void record();
         }
         const expression = moved?.expression;
@@ -3556,7 +3577,6 @@ $("body").on(
         // the selection.
         const adding =
             event.button !== 2 &&
-            !propertiesOpen &&
             !ghosts &&
             !magnetizing &&
             !stepping &&
@@ -3593,6 +3613,14 @@ $("body").on(
             named instanceof point_object
                 ? [box.left + named.sx, box.top + named.sy]
                 : [event.clientX, event.clientY];
+        if (adding && propertiesOpen) {
+            const object = propertyObject(event);
+            if (!hits.some((hit) => hit.object === object) && object)
+                return properties.toggle(object);
+            if (hits[0])
+                chooseHit(hits, client, (hit) => properties.toggle(hit.object));
+            return;
+        }
         if (adding) {
             if (hits[0]) chooseHit(hits, client, select);
             return;
