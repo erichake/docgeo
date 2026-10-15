@@ -1720,7 +1720,7 @@ function nextSlot({ tool, args } = pending!): number {
 // The number a tool gives: a circle's radius of about 150 px, a quarter
 // turn, a ratio of 2, the first tangent, a square.
 const defaultReal = (tag: string): number | undefined =>
-    tag === "C1"
+    ["C1", "Sph1", "Cyl", "Cone"].includes(tag)
         ? Number((150 / scene().GRID.UNIT[0]).toPrecision(2))
         : tag === "Rot"
           ? scene().degrees

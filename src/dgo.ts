@@ -109,6 +109,10 @@ import {
     revolution_object,
 } from "./objects/revolution_object";
 import { createDisk } from "./objects/disk_object";
+import {
+    createPolyhedron,
+    polyhedron_object,
+} from "./objects/polyhedron_object";
 import { createNetVertex, type net_turn } from "./objects/net_vertex_object";
 import { createSymmetry } from "./objects/symmetry_object";
 import { createText } from "./objects/text_object";
@@ -157,6 +161,8 @@ const RAY: Look = ["rgb(35,141,227)", "#993300", 2];
 const SEGMENT: Look = ["rgb(35,141,227)", "rgb(180,80,80)", 4];
 const CIRCLE: Look = ["#CC66CC", "#CC66CC", 2, 0];
 const POLYGON: Look = ["rgb(35,141,227)", "rgb(80,80,80)", 2, 0];
+// Seen through, as GeoGebra's solids.
+const SOLID: Look = ["rgb(35,141,227)", "rgb(80,80,80)", 2, 0.4];
 const CURVE: Look = ["#0b5b94", "#0b5b94", 2];
 const LIST: Look = ["#656148", "#656148", 2];
 const TEXT: Look = ["#000000", "#000000", 1];
@@ -220,8 +226,11 @@ export const LOOKS: Record<string, Look> = {
     EqQ: CIRCLE,
     Sph: POLYGON,
     Sph1: POLYGON,
-    Cyl: POLYGON,
-    Cone: POLYGON,
+    Cyl: SOLID,
+    Cone: SOLID,
+    Cube: SOLID,
+    Prsm: SOLID,
+    Pyr: SOLID,
     Poly: POLYGON,
     RegP: POLYGON,
     PlS: POLYGON,
@@ -1054,6 +1063,18 @@ function radius(value: Json, { formula }: Reader): circle1_radius {
     return { formula: node, refs };
 }
 
+// A prism or a pyramid on a polygon, by a point.
+const onPolygon =
+    (tag: "Prsm" | "Pyr"): Builder =>
+    (parameters, { c, name, at }) => {
+        const [base, point] = list(parameters, 2);
+        return createPolyhedron(c, name, {
+            tag,
+            base: at(base, polygon_object),
+            point: at(point, point_object),
+        });
+    };
+
 // A cylinder or a cone of axis AB and radius r.
 const revolution =
     (cone: boolean): Builder =>
@@ -1422,7 +1443,7 @@ const BUILDERS: Record<string, Builder> = {
         return createVertex(
             c,
             name,
-            at(polygon, polygon_object),
+            at(polygon, polygon_object, polyhedron_object),
             rank as number,
         );
     },
@@ -1480,6 +1501,17 @@ const BUILDERS: Record<string, Builder> = {
             at(plane, plane_object),
         );
     },
+    Cube: (parameters, { c, name, points }) =>
+        createPolyhedron(c, name, {
+            tag: "Cube",
+            points: points(parameters, 3) as [
+                point_object,
+                point_object,
+                point_object,
+            ],
+        }),
+    Prsm: onPolygon("Prsm"),
+    Pyr: onPolygon("Pyr"),
     Cyl: revolution(false),
     Cone: revolution(true),
     Disk: (parameters, { c, name, at }) => {

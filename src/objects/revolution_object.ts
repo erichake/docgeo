@@ -19,6 +19,7 @@ import { dgoRadius, radiusValue, type circle1_radius } from "./circle1_object";
 import { construction_object, type DgoContext } from "./construction_object";
 import type { point_object } from "./point_object";
 import { lighting, pathData, shade } from "./polygon_object";
+import { solid_object } from "./solid_object";
 import { convexHull } from "./sphere_object";
 
 // Rim points of its silhouette, generators of its shading.
@@ -30,7 +31,7 @@ let gradients = 0;
 // centered at A and apex B: radius r at A, r or 0 at B. Drawn as its
 // silhouette, lit along its generators; it hides what lies behind it, as
 // its faces would (see hidden_line.ts).
-export class revolution_object extends construction_object {
+export class revolution_object extends solid_object {
     A: point_object;
     B: point_object;
     radius: circle1_radius;
@@ -44,11 +45,11 @@ export class revolution_object extends construction_object {
     R1 = 0;
     U: Vec3 = [1, 0, 0];
     V: Vec3 = [0, 1, 0];
-    projectionDefined = true;
-    outline: Vec2[] = [];
     readonly fill = `url(#revolution-gradient-${++gradients})`;
     private path!: DOMElement;
     private gradient!: DOMElement;
+    private edges!: DOMElement;
+    private hiddenEdges!: DOMElement;
     private stops: DOMElement[] = [];
 
     constructor(
@@ -59,8 +60,7 @@ export class revolution_object extends construction_object {
         radius: circle1_radius,
         cone: boolean,
     ) {
-        super(c, name, "polygon");
-        this.familytype = "solid";
+        super(c, name);
         this.A = a;
         this.B = b;
         this.radius = radius;
@@ -196,18 +196,6 @@ export class revolution_object extends construction_object {
         return depths.length ? Math.min(...depths) : null;
     }
 
-    // Whether it hides `point`, behind its surface seen from the camera.
-    hides(point: Vec3): boolean {
-        const entry = this.entryDepth(this.C.pt3D(point));
-        const depth = vDot(
-            point,
-            vNormalize(viewDirection(this.C.projectionFrame))!,
-        );
-        return (
-            entry !== null && depth - entry > geometryTolerance(depth, entry)
-        );
-    }
-
     render(): void {
         this.dom.stl(
             "display",
@@ -260,9 +248,44 @@ export class revolution_object extends construction_object {
                 shade(this.fill_color, factor),
             );
         });
+        if (this.size > 0) this.renderEdges();
         // Seen through, its far side too, as GeoGebra draws it.
         this.path.stl("fill-opacity", 1 - (1 - (this.opacity ?? 0)) ** 2);
         this.path.att("d", pathData(this.outline));
+    }
+
+    // The rims of its disks, dashed where it hides them, and the
+    // generators of its outline, between a rim and the other or the apex.
+    private renderEdges(): void {
+        const paths = ["", ""];
+        const at = ([x, y]: Vec2) => `${x} ${y}`;
+        (this.cone ? [false] : [false, true]).forEach((top) => {
+            let previous: number | null = null;
+            for (let k = 0; k <= SAMPLES; k++) {
+                const point = this.rim(top, (2 * Math.PI * k) / SAMPLES);
+                const hidden = +this.hides(point);
+                const screen = at(this.C.pt3D(point));
+                if (previous === null) paths[hidden] += ` M${screen}`;
+                else if (previous === hidden) paths[hidden] += ` L${screen}`;
+                else {
+                    paths[previous] += ` L${screen}`;
+                    paths[hidden] += ` M${screen}`;
+                }
+                previous = hidden;
+            }
+        });
+        const tops = new Set(
+            Array.from({ length: SAMPLES }, (_, k) =>
+                at(this.C.pt3D(this.rim(true, (2 * Math.PI * k) / SAMPLES))),
+            ),
+        );
+        this.outline.forEach((p, i) => {
+            const q = this.outline[(i + 1) % this.outline.length];
+            if (tops.has(at(p)) !== tops.has(at(q)))
+                paths[0] += ` M${at(p)} L${at(q)}`;
+        });
+        this.edges.att("d", paths[0]);
+        this.hiddenEdges.att("d", paths[1]);
     }
 
     static createSVG(_this: construction_object): DOMElement {
@@ -279,9 +302,24 @@ export class revolution_object extends construction_object {
             .stl("fill-opacity", t.opacity ?? 0)
             .stl("stroke", "none")
             .stl("pointer-events", "none");
+        const stroke = (dash: string) =>
+            t.svg
+                .shape("path")
+                .stl("fill", "none")
+                .stl("stroke", t.stroke_color)
+                .stl("stroke-width", t.size)
+                .stl("stroke-dasharray", dash)
+                .stl("pointer-events", "none");
+        t.edges = stroke(t.strokeDashArray);
+        t.hiddenEdges = stroke(`${t.size * 3} ${t.size * 2}`);
         return t.svg
             .shape("g")
-            .add(t.svg.shape("defs").add(t.gradient), t.path);
+            .add(
+                t.svg.shape("defs").add(t.gradient),
+                t.path,
+                t.edges,
+                t.hiddenEdges,
+            );
     }
 }
 

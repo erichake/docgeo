@@ -75,6 +75,7 @@ import { IDENTIFIER_PART, IDENTIFIER_START } from "../../src/import/dgp_parser";
 import type { point_object } from "../../src/objects/point_object";
 import type { circle1_object } from "../../src/objects/circle1_object";
 import type { equation_circle_object } from "../../src/objects/equation_circle_object";
+import type { polyhedron_object } from "../../src/objects/polyhedron_object";
 import type { expression_object } from "../../src/objects/expression_object";
 import type { expression_list_object } from "../../src/objects/expression_list_object";
 import { importGgb } from "../../src/ggb_importer";
@@ -419,6 +420,37 @@ describe("Editor", () => {
             expect(() => resolve(c, parseLine(line, isCommand)), line).toThrow(
                 expect.objectContaining({ key }),
             );
+    });
+
+    it("writes and reads solids in space, drawn whole", async () => {
+        const { scene: c } = studio(true);
+        const text = [
+            "A = (0, 0, 0)",
+            "B = (2, 0, 0)",
+            "C = (2, 2, 0)",
+            "D = (0, 0, 3)",
+            "a = Cube(A, B, C)",
+            "b = Cylinder(A, D, 1.5)",
+            "d = Cone(B, C, 1)",
+            "e = Sphere(C, 0.5)",
+            "f = Polygon(A, B, C)",
+            "g = Prism(f, D)",
+            "h = Pyramid(f, D)",
+            "E = Vertex(a, 7)",
+        ];
+        text.forEach((line) => type(c, line));
+        c.flush();
+        expect(lines(c)).toEqual(text);
+        const other = createConstruction([800, 600]);
+        readDgo(other, await describeDgo(c));
+        expect(lines(other)).toEqual(text);
+        // The cube's G, over C.
+        expectClose((c.getObj("E") as point_object).coords, [2, 2, 2]);
+        const cube = c.getObj("a") as polyhedron_object;
+        // Seen from above.
+        expect(cube.hides([1, 1, 5])).toBe(false);
+        expect(cube.hides([1, 1, -5])).toBe(true);
+        expect(cube.hides([1, 1, 1])).toBe(true);
     });
 
     it("writes GeoGebra's equations, read back as the same objects", () => {
@@ -1027,6 +1059,13 @@ describe("Editor", () => {
                 ["Translation", "Tra"],
                 ["Dilation", "Dil"],
                 ["Inversion", "Inv"],
+            ],
+            [
+                ["Cylinder", "Cyl"],
+                ["Cone", "Cone"],
+                ["Cube", "Cube"],
+                ["Prism", "Prsm"],
+                ["Pyramid", "Pyr"],
             ],
         ]);
         const sphere = TOOL_FAMILIES[3].items[3].tools[0];

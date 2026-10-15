@@ -14,6 +14,7 @@ import { segment_object } from "../objects/segment_object";
 import { sphere_object } from "../objects/sphere_object";
 import { two_points_line_object } from "../objects/two_points_line_object";
 import { vector_object } from "../objects/vector_object";
+import { polyhedron_object } from "../objects/polyhedron_object";
 import { STYLE_NUMBER } from "../import/dgp_expression";
 import { TEXTS } from "./messages";
 import { formatName } from "./text";
@@ -46,6 +47,8 @@ export type Param =
     | "vector"
     | "circle"
     | "polygon"
+    // A polygon or a polyhedron.
+    | "faceted"
     // A circle or a conic, and a function's curve.
     | "tangible"
     | "graph"
@@ -121,6 +124,8 @@ export function accepts(arg: Arg, param: Param): boolean {
             return kind === "circle" || kind === "conic";
         case "graph":
             return arg instanceof curve_object;
+        case "faceted":
+            return kind === "polygon" || arg instanceof polyhedron_object;
         case "intersectable":
             return (
                 kind === "line" ||
@@ -412,7 +417,7 @@ export const COMMANDS: Command[] = [
         name: "Vertex",
         overloads: [
             {
-                params: ["polygon", "number"],
+                params: ["faceted", "number"],
                 tag: "Vtx",
                 encode: ([polygon, k], index) => [
                     index(polygon as construction_object),
@@ -575,8 +580,18 @@ export const COMMANDS: Command[] = [
     { name: "Parabola", overloads: [objects("Prb", ["point", "line"])] },
     {
         name: "Sphere",
-        overloads: [objects("Sph", ["point", "point"])],
+        overloads: [
+            objects("Sph", ["point", "point"]),
+            withReal("Sph1", ["point"]),
+        ],
     },
+    // Solids: of axis AB and radius r, the cube on the square ABCD of
+    // plane ABC, a prism or a pyramid on a polygon.
+    { name: "Cylinder", overloads: [withReal("Cyl", ["point", "point"])] },
+    { name: "Cone", overloads: [withReal("Cone", ["point", "point"])] },
+    { name: "Cube", overloads: [objects("Cube", ["point", "point", "point"])] },
+    { name: "Prism", overloads: [objects("Prsm", ["polygon", "point"])] },
+    { name: "Pyramid", overloads: [objects("Pyr", ["polygon", "point"])] },
     {
         name: "Locus",
         overloads: [objects("Loc", ["point", "pointOn"])],

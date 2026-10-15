@@ -2,17 +2,18 @@ import type { construction } from "../construction";
 import type { DgoContext } from "./construction_object";
 import { point_object } from "./point_object";
 import type { polygon_object } from "./polygon_object";
+import type { polyhedron_object } from "./polyhedron_object";
 
-// The vertex of a polygon of rank k, from 0.
+// The vertex of a polygon or a polyhedron of rank k, from 0.
 export class vertex_object extends point_object {
     moveable = false;
-    polygon: polygon_object;
+    polygon: polygon_object | polyhedron_object;
     rank: number;
 
     constructor(
         c: construction,
         name: string | null | undefined,
-        polygon: polygon_object,
+        polygon: polygon_object | polyhedron_object,
         rank: number,
     ) {
         super(c, name, [0, 0, 0], "intersection");
@@ -41,7 +42,7 @@ export class vertex_object extends point_object {
 export function createVertex(
     c: construction,
     name: string | null | undefined,
-    polygon: polygon_object,
+    polygon: polygon_object | polyhedron_object,
     rank: number,
 ): vertex_object {
     return c.add(new vertex_object(c, name, polygon, rank));

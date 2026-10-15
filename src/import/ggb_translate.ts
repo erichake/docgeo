@@ -2042,12 +2042,16 @@ export function translateGgb(
             const r = formula(radius, VALUE_KINDS);
             if (extra !== undefined || r === null || !points(a, b))
                 return false;
+            // Its disks draw its rims.
             const label = side || solid || auxiliary();
-            define(label, "sphere", cone ? "Cone" : "Cylinder", [
-                ref(a),
-                ref(b),
-                literal(r),
-            ]);
+            const element = elements.get(label);
+            define(
+                label,
+                "sphere",
+                cone ? "Cone" : "Cylinder",
+                [ref(a), ref(b), literal(r)],
+                element && `${objectStyle(element, "sphere")};s:0`,
+            );
             [solid, side].forEach((name) => {
                 if (!name) return;
                 revolutions.set(name, { label, cone });

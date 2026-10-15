@@ -22,7 +22,7 @@ import {
 import type { construction_object } from "./construction_object";
 import type { point_object } from "./point_object";
 import type { polygon_object } from "./polygon_object";
-import type { revolution_object } from "./revolution_object";
+import type { solid_object } from "./solid_object";
 import { segment_object } from "./segment_object";
 
 // A sub-range of a segment's parameter (0 at p1, 1 at p2).
@@ -392,8 +392,8 @@ export function hiddenIntervalsBetween(
         candidates.push({ screenPoly, depthDiffAt, opaque: isOpaque(polygon) });
     });
 
-    // Cylinders and cones, by where the view ray enters them.
-    (c.OBJS.solids as revolution_object[]).forEach((solid) => {
+    // Solids, by where the view ray enters them.
+    (c.OBJS.solids as solid_object[]).forEach((solid) => {
         const screenPoly = solid.outline;
         if (
             !solid.isVisible ||

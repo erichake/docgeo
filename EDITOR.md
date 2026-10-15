@@ -257,7 +257,8 @@ la GeoGebra, l'outil choisi avant les objets.
 - **Plus d'outils que l'anneau**, qui reste léger : à la fin de leur
   famille, `AutreIntersection` (points), `Compas`, `Arc`, `Secteur`,
   `ArcCentre`, `SecteurCentre` (le centre, le début, puis un point de la
-  demi-droite où il finit), `DemiCercle`,
+  demi-droite où il finit), `DemiCercle`, et la famille « Solides »
+  (3D),
   `Conique`, `Ellipse`, `Hyperbole` et `Parabole` (« Cercles, arcs,
   coniques »), ces trois-là comme dans GeoGebra : deux foyers puis un
   point, ou un foyer puis la directrice (au clavier, `Ellipse(F, G, a)` et
@@ -1314,6 +1315,18 @@ Fait (2026-10-11) :
   change ; `Sommet(p, k)`, de rang k depuis 1, au clavier ;
   `Inversion(P, c)`, au menu des transformations (le point, puis le
   cercle). Éditeur +1,5 Ko (+0,4 Ko en gzip).
+
+- Solides (2026-10-15, décidé avec l'auteur : un objet unique qui dessine
+  tout) : `Cylindre(A, B, r)`, `Cône(A, B, r)` (base de centre A, sommet
+  B), `Cube(A, B, C)` (sur le carré ABCD du plan ABC), `Prisme(p, P)`,
+  `Pyramide(p, S)` sur un polygone p, et `Sphère(O, r)` à côté de
+  `Sphère(O, A)`. Un solide est une seule ligne : il dessine ses faces ou
+  sa silhouette, ses arêtes ou ses bords (en pointillé derrière) et cache
+  ce qui est derrière lui ; `Sommet(c, k)` donne les sommets d'un
+  polyèdre. Au menu, une famille « Solides », hors de l'anneau et en 3D
+  seulement ; le cylindre et le cône prennent le rayon par défaut du
+  cercle. Éditeur +1,1 Ko (+0,3 Ko en gzip) ; lecteur +4,8 Ko (+1,4 Ko en
+  gzip).
 
 Reste à faire :
 

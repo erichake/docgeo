@@ -486,6 +486,59 @@ const FAMILIES: [
             ),
         ],
     ],
+    [
+        "family_solids",
+        265,
+        [],
+        [
+            // Two points of the axis, then a radius the line changes.
+            tool(
+                "Cylinder",
+                0,
+                result(
+                    `<path d="M5 6V18M19 6V18"/><ellipse cx="12" cy="6" rx="7" ry="2.5"/><path d="M5 18A7 2.5 0 0 0 19 18"/>`,
+                ) +
+                    dot(12, 6) +
+                    dot(12, 18),
+            ),
+            tool(
+                "Cone",
+                0,
+                result(
+                    `<path d="M5 18L12 4L19 18"/><path d="M5 18A7 2.5 0 0 0 19 18"/>`,
+                ) +
+                    dot(12, 18) +
+                    dot(12, 4),
+            ),
+            tool(
+                "Cube",
+                0,
+                result(path("M4 9H15V20H4ZM4 9L9 4H20L15 9M20 4V15L15 20")) +
+                    dot(4, 20) +
+                    dot(15, 20) +
+                    dot(15, 9),
+            ),
+            // The base, then the first top vertex or the apex.
+            tool(
+                "Prism",
+                0,
+                result(
+                    path(
+                        "M4 19L12 21L20 18L12 15ZM4 9L12 11L20 8M4 9V19M12 11V21M20 8V18",
+                    ),
+                ) + dot(4, 9),
+            ),
+            tool(
+                "Pyramid",
+                0,
+                result(
+                    path(
+                        "M4 18L12 21L20 17L12 14ZM12 3L4 18M12 3L12 21M12 3L20 17",
+                    ),
+                ) + dot(12, 3),
+            ),
+        ],
+    ],
 ];
 
 // Between two families, in buttons.
@@ -517,6 +570,8 @@ for (const [name, hue, slots, menuOnly = [], tone = 1] of FAMILIES) {
         }
         slot++;
     }
+    // A family only in the menu takes no room on the ring.
+    if (!slots.length) slot -= GAP;
     for (const tools of menuOnly)
         family.items.push({
             tools: [tools]
@@ -531,7 +586,9 @@ export const RING_SLOTS = slot - start;
 // The circle through three points is in their plane in space, the sphere
 // only there.
 export const usable = ({ overload: { tag } }: Tool, vec3: boolean): boolean =>
-    tag !== (vec3 ? "C3p" : "C3s") && (tag !== "Sph" || vec3);
+    tag !== (vec3 ? "C3p" : "C3s") && (!SOLIDS.includes(tag) || vec3);
+
+const SOLIDS = ["Sph", "Cyl", "Cone", "Cube", "Prsm", "Pyr"];
 
 // The commands of more than one item, told apart.
 const LABELS: Partial<Record<string, MessageKey>> = {

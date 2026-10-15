@@ -237,7 +237,7 @@ sa dérivée par rapport à l'une de ses variables, comme dans DGPad, par
 | `Tra`  | P translaté du vecteur u               | `[u, P]` (15)                                   |
 | `Inv`  | inverse de P dans le cercle c          | `[c, P]`                                        |
 | `TC`   | centre du triangle ABC                 | `[A, B, C, n]` (18)                             |
-| `Vtx`  | sommet de rang k d'un polygone         | `[polygone, k]` (18)                            |
+| `Vtx`  | sommet k d'un polygone ou polyèdre     | `[polygone ou polyèdre, k]` (18)                |
 | `Ctr`  | centre d'un cercle                     | `[cercle]`                                      |
 | `DirP` | P + vecteur directeur unitaire de d    | `[d, P]`                                        |
 | `PlI`  | intersection droite-plan               | `[d, plan]`                                     |
@@ -278,6 +278,9 @@ sa dérivée par rapport à l'une de ses variables, comme dans DGPad, par
 | `Cyl`  | cylindre d'axe AB et de rayon r        | `[A, B, r]` (4, 5)                              |
 | `Cone` | cône de base de centre A, de sommet B  | `[A, B, r]` (4, 5)                              |
 | `Disk` | disque d'un cylindre ou d'un cône      | `[solide, 0 ou 1]` (4)                          |
+| `Cube` | cube sur le carré ABCD du plan ABC     | `[A, B, C]` (21)                                |
+| `Prsm` | prisme sur un polygone, jusqu'à P      | `[polygone, P]` (21)                            |
+| `Pyr`  | pyramide sur un polygone, de sommet S  | `[polygone, S]` (21)                            |
 | `Pl`   | plan passant par A, B et C             | `[A, B, C]` (19)                                |
 | `PlP`  | plan par A parallèle à un plan         | `[A, plan]` (19)                                |
 | `PlL`  | plan par A contenant d                 | `[A, d]` (19)                                   |
@@ -333,7 +336,10 @@ sa dérivée par rapport à l'une de ses variables, comme dans DGPad, par
    et cache ce qui est derrière lui comme ses faces le feraient. Ses
    disques sont celui de A (0) et celui de B (1, cylindre seulement), leur
    bord en pointillé là où le solide le cache. La section d'un cylindre
-   par un plan ne garde que la partie entre ses disques.
+   par un plan ne garde que la partie entre ses disques. D'une épaisseur
+   de trait non nulle, le cylindre ou le cône trace lui-même le bord de
+   ses disques et les génératrices de sa silhouette (l'import de GeoGebra
+   lui donne une épaisseur nulle : ses disques le font).
 5. `r` nombre (rayon qu'un glisser change, `null` s'il n'est pas fini) ou
    formule ; `axe` : droite normale au plan du cercle. `a`, demi-grand axe
    d'une ellipse, demi-axe transverse d'une hyperbole : nombre ou formule,
@@ -433,6 +439,14 @@ alignement]]` police, `[30, url, l, h, zoom, opacité, u]` image (largeur
     le long de sa normale tournée vers le haut. `NetV` : P tourné autour de chaque arête OE de sa suite de faces, de f
     fois l'angle de (OC) à la direction qui s'éloigne de Q dans la face
     parente.
+21. Un polyèdre se dessine entier : ses faces, celles du fond d'abord,
+    éclairées comme les polygones, et ses arêtes, en pointillé là où ne se
+    rencontrent que des faces du fond ; il cache ce qui est derrière lui.
+    Le cube a pour sommets A..H = 0..7 : A, B, puis B + w, A + w, A + h,
+    B + h, B + w + h, A + w + h (voir `CubV`), C ne donnant que le plan et
+    le côté. Le prisme a pour sommets ceux du polygone puis P et les
+    autres sommets du haut, translatés de P moins le premier sommet ; la
+    pyramide, ceux du polygone puis S.
 
 ### Styles `st`
 
@@ -538,7 +552,8 @@ non définie).
 | `Cir`, `C1`, `C3`, `C3p`, `C3s`, `Arc`, `Sec`, `CyS`, `EqC`   | `#CC66CC`, `#CC66CC`, 2, 0                |
 | `CArc`, `CSec`, `Semi`, `SphC`, `Disk`                        | `#CC66CC`, `#CC66CC`, 2, 0                |
 | `Quad`, `Ell`, `Ell1`, `Hyp`, `Hyp1`, `Prb`, `EqQ`            | `#CC66CC`, `#CC66CC`, 2, 0                |
-| `Sph`, `Sph1`, `Cyl`, `Cone`, `Poly`, `RegP`, `PlS`           | `rgb(35,141,227)`, `rgb(80,80,80)`, 2, 0  |
+| `Sph`, `Sph1`, `Poly`, `RegP`, `PlS`                          | `rgb(35,141,227)`, `rgb(80,80,80)`, 2, 0  |
+| `Cyl`, `Cone`, `Cube`, `Prsm`, `Pyr` (opacité 0,4)            | `rgb(35,141,227)`, `rgb(80,80,80)`, 2     |
 | `Pl`, `PlP`, `PlL`, `PlO`, `PlE` (`pl` : 1)                   | `rgb(35,141,227)`, `rgb(80,80,80)`, 2, 0  |
 | `Loc`, `Cur`                                                  | `#0b5b94`, `#0b5b94`, 2                   |
 | `Lst`, `ELst`, `Itr`                                          | `#656148`, `#656148`, 2                   |
