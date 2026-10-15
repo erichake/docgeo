@@ -564,7 +564,7 @@ cause.
       l'éditeur (plans, sections, patron natif `Net`, `NATIVE_OBJECTS.md`),
       moteur +3,3 Ko (+1,1 Ko en gzip).
 - [x] **34. `Sequence` imbriqués et `Sequence` de cercles** :
-      `tests/dgp/Yves_06/CerclesDeCercles.ggb` (GeoGebra 3.2) dessine des
+      `tests/ggb/Yves_06/CerclesDeCercles.ggb` (GeoGebra 3.2) dessine des
       cercles `Circle[Element[Element[LesCtr, j], i], Element[Rayon, j]]`
       par deux `Sequence` imbriqués, `LesCtr` étant lui-même un `Sequence`
       de `Sequence` de points tournés : rien n'était dessiné. Fait : une
