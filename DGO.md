@@ -235,6 +235,9 @@ sa dérivée par rapport à l'une de ses variables, comme dans DGPad, par
 | `Rot`  | P tourné autour de O                   | `[O, P, a]`, `[O, P, a, d]` (15)                |
 | `Dil`  | image de P par l'homothétie (O, k)     | `[O, P, k]` (15)                                |
 | `Tra`  | P translaté du vecteur u               | `[u, P]` (15)                                   |
+| `Inv`  | inverse de P dans le cercle c          | `[c, P]`                                        |
+| `TC`   | centre du triangle ABC                 | `[A, B, C, n]` (18)                             |
+| `Vtx`  | sommet de rang k d'un polygone         | `[polygone, k]` (18)                            |
 | `Ctr`  | centre d'un cercle                     | `[cercle]`                                      |
 | `DirP` | P + vecteur directeur unitaire de d    | `[d, P]`                                        |
 | `PlI`  | intersection droite-plan (ABC)         | `[d, A, B, C]`                                  |
@@ -248,6 +251,7 @@ sa dérivée par rapport à l'une de ses variables, comme dans DGPad, par
 | `Perp` | perpendiculaire à d par P              | `[d, P]`                                        |
 | `Med`  | médiatrice                             | `[A, B]`                                        |
 | `EqL`  | droite d'équation g = d                | `[g, d]` (14)                                   |
+| `Tan`  | tangente par P                         | `[P, conique, n]`, `[P, courbe]` (17)           |
 | `Bis`  | bissectrice de l'angle AOB             | `[A, O, B]`                                     |
 | `FA`   | angle fixe : demi-droite [OA) tournée  | `[A, O, degrés ou formule, sens trigo]` (10)    |
 | `Ang`  | angle AOB                              | `[A, O, B]`                                     |
@@ -272,6 +276,7 @@ sa dérivée par rapport à l'une de ses variables, comme dans DGPad, par
 | `Sph`  | sphère de centre O passant par A       | `[O, A]`                                        |
 | `CyS`  | section d'un cylindre par le plan PQR  | `[A, B, R, P, Q, R']` (4)                       |
 | `Poly` | polygone                               | `[A, B, C, …]`                                  |
+| `RegP` | polygone régulier de n côtés sur [AB]  | `[A, B, n]` (18)                                |
 | `Loc`  | lieu de P quand M parcourt son support | `[P, M]`                                        |
 | `Ex`   | expression                             | objet (6)                                       |
 | `Cur`  | courbe y = f(x)                        | `[formule, min ou null, max ou null]`           |
@@ -375,6 +380,17 @@ alignement]]` police, `[30, url, l, h, zoom, opacité, u]` image (largeur
     sur le cercle de centre M passant par A ; avec `1`, dans le sens
     indirect (l'image d'un arc par une symétrie axiale). Le demi-cercle est
     à gauche de AB, parcouru de A à B dans le sens indirect.
+17. À un cercle ou une conique, la tangente `n` (0 ou 1) des deux qui
+    passent par P, leurs points de contact (sur la polaire de P) rangés
+    par paramètre croissant le long de la polaire, dirigée par (b, −a) pour
+    ax + by + c = 0 ; P sur la conique, la tangente en P. À la courbe
+    d'une fonction (`Cur`), la tangente au point d'abscisse celle de P. Son
+    point (2) est le point de contact.
+18. `n` du centre : 1 cercle inscrit, 2 gravité, 3 cercle circonscrit,
+    4 orthocentre, 5 cercle d'Euler (premiers centres de Kimberling). Le
+    polygone régulier tourne dans le sens direct de A à B, ses autres
+    sommets lui étant propres ; `k` d'un sommet compte depuis 0, dans
+    l'ordre des sommets du polygone.
 
 ### Styles `st`
 
@@ -470,8 +486,8 @@ non définie).
 | ------------------------------------------------------------- | ----------------------------------------- |
 | `Pt`, `On`, `DirP`                                            | `rgb(255,255,255)`, `rgb(80,80,80)`, 6, 0 |
 | `Fix`, `Fp`, `Mid`, `Int`, `CyI`, `PlI`, `Ctr`, `Sym`, `Refl` | `rgb(180,180,180)`, `rgb(80,80,80)`, 6, 0 |
-| `Rot`, `Dil`, `Tra`                                           | `rgb(180,180,180)`, `rgb(80,80,80)`, 6, 0 |
-| `Line`, `Par`, `Perp`, `Med`, `EqL`                           | `rgb(35,141,227)`, `rgb(80,80,80)`, 2     |
+| `Rot`, `Dil`, `Tra`, `Inv`, `TC`, `Vtx`                       | `rgb(180,180,180)`, `rgb(80,80,80)`, 6, 0 |
+| `Line`, `Par`, `Perp`, `Med`, `EqL`, `Tan`                    | `rgb(35,141,227)`, `rgb(80,80,80)`, 2     |
 | `Ray`, `Bis`                                                  | `rgb(35,141,227)`, `#993300`, 2           |
 | `Seg`, `Vec`                                                  | `rgb(35,141,227)`, `rgb(180,80,80)`, 4    |
 | `FA`                                                          | `#006633`, `#006633`, 1, 0                |
@@ -479,7 +495,7 @@ non définie).
 | `Cir`, `C1`, `C3`, `C3p`, `C3s`, `Arc`, `Sec`, `CyS`, `EqC`   | `#CC66CC`, `#CC66CC`, 2, 0                |
 | `CArc`, `CSec`, `Semi`                                        | `#CC66CC`, `#CC66CC`, 2, 0                |
 | `Quad`, `Ell`, `Ell1`, `Hyp`, `Hyp1`, `Prb`, `EqQ`            | `#CC66CC`, `#CC66CC`, 2, 0                |
-| `Sph`, `Poly`                                                 | `rgb(35,141,227)`, `rgb(80,80,80)`, 2, 0  |
+| `Sph`, `Poly`, `RegP`                                         | `rgb(35,141,227)`, `rgb(80,80,80)`, 2, 0  |
 | `Loc`, `Cur`                                                  | `#0b5b94`, `#0b5b94`, 2                   |
 | `Lst`, `ELst`, `Itr`                                          | `#656148`, `#656148`, 2                   |
 | `Ex`                                                          | `rgb(0,0,178)`, `rgb(0,0,178)`, 7, 0      |

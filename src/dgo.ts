@@ -20,6 +20,11 @@ import {
 import { createArc3pts } from "./objects/arc3pts_object";
 import { createCenterArc } from "./objects/center_arc_object";
 import { createSemicircle } from "./objects/semicircle_object";
+import { createTangent } from "./objects/tangent_object";
+import { createInversion } from "./objects/inversion_object";
+import { createRegularPolygon } from "./objects/regular_polygon_object";
+import { createTriangleCenter } from "./objects/triangle_center_object";
+import { createVertex } from "./objects/vertex_object";
 import { createCenter } from "./objects/center_object";
 import { createCircle1, type circle1_radius } from "./objects/circle1_object";
 import { createCircle3 } from "./objects/circle3_object";
@@ -156,6 +161,9 @@ export const LOOKS: Record<string, Look> = {
     Sym: DERIVED_POINT,
     Refl: DERIVED_POINT,
     Rot: DERIVED_POINT,
+    Inv: DERIVED_POINT,
+    TC: DERIVED_POINT,
+    Vtx: DERIVED_POINT,
     Dil: DERIVED_POINT,
     Tra: DERIVED_POINT,
     Line: LINE,
@@ -163,6 +171,7 @@ export const LOOKS: Record<string, Look> = {
     Perp: LINE,
     Med: LINE,
     EqL: LINE,
+    Tan: LINE,
     Ray: RAY,
     Bis: RAY,
     Seg: SEGMENT,
@@ -190,6 +199,7 @@ export const LOOKS: Record<string, Look> = {
     EqQ: CIRCLE,
     Sph: POLYGON,
     Poly: POLYGON,
+    RegP: POLYGON,
     Loc: CURVE,
     Cur: CURVE,
     Lst: LIST,
@@ -1317,6 +1327,65 @@ const BUILDERS: Record<string, Builder> = {
     Sec: threePoints((c, name, p, q, r) =>
         createArc3pts(c, name, p, q, r, true),
     ),
+    Inv: (parameters, { c, name, at }) => {
+        const [circle, point] = list(parameters, 2);
+        return createInversion(
+            c,
+            name,
+            at(circle, primitive_circle_object),
+            at(point, point_object),
+        );
+    },
+    TC: (parameters, { c, name, points }) => {
+        check(Array.isArray(parameters) && parameters.length === 4);
+        const kind = (parameters as Json[])[3];
+        check(isNumber(kind) && [1, 2, 3, 4, 5].includes(kind));
+        return createTriangleCenter(
+            c,
+            name,
+            points((parameters as Json[]).slice(0, 3), 3),
+            kind as number,
+        );
+    },
+    RegP: (parameters, { c, name, at }) => {
+        const [a, b, sides] = list(parameters, 3);
+        check(Number.isInteger(sides) && (sides as number) >= 3);
+        return createRegularPolygon(
+            c,
+            name,
+            at(a, point_object),
+            at(b, point_object),
+            sides as number,
+        );
+    },
+    Vtx: (parameters, { c, name, at }) => {
+        const [polygon, rank] = list(parameters, 2);
+        check(Number.isInteger(rank) && (rank as number) >= 0);
+        return createVertex(
+            c,
+            name,
+            at(polygon, polygon_object),
+            rank as number,
+        );
+    },
+    Tan: (parameters, { c, name, at }) => {
+        const [point, support, branch] = list(parameters, 2, 3);
+        const curve = branch === undefined;
+        check(curve || branch === 0 || branch === 1);
+        return createTangent(
+            c,
+            name,
+            at(point, point_object),
+            curve
+                ? at(support, curve_object)
+                : at(
+                      support,
+                      primitive_circle_object,
+                      primitive_quadric_object,
+                  ),
+            curve ? 0 : (branch as number),
+        );
+    },
     CArc: centerArc(false),
     CSec: centerArc(true),
     Semi: (parameters, { c, name, points }) => {

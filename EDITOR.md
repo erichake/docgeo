@@ -1297,6 +1297,24 @@ Fait (2026-10-11) :
   dans le sens indirect, s'affiche en lecture seule. Éditeur +0,5 Ko
   (+0,1 Ko en gzip).
 
+- Tangentes (2026-10-15) : `Tangente(P, c, n)`, la tangente n (1 ou 2)
+  par P à un cercle ou une conique, comme `Intersection(c, d, n)`, et
+  `Tangente(P, f)`, à la courbe d'une fonction (entrée `Tan`). Au menu,
+  famille « Constructions », un seul outil pour les deux formes (le point,
+  puis le cercle, la conique ou la courbe), qui donne la tangente 1, que
+  la ligne change ; les formes d'un item du menu hors de l'anneau peuvent
+  désormais être plusieurs. Éditeur +0,7 Ko (+0,2 Ko en gzip).
+
+- Centres, polygone régulier, sommet, inversion (2026-10-15) : un nom
+  d'école par centre plutôt que le numéro de Kimberling de GeoGebra,
+  `CentreInscrit`, `CentreGravité`, `CentreCirconscrit`, `Orthocentre`
+  (A, B, C), au menu des points ; le centre du cercle d'Euler, rare,
+  s'affiche en lecture seule. `PolygoneRégulier(A, B, n)` (n ≥ 3), au
+  menu « Polygones, angles, lieux », qui donne un carré que la ligne
+  change ; `Sommet(p, k)`, de rang k depuis 1, au clavier ;
+  `Inversion(P, c)`, au menu des transformations (le point, puis le
+  cercle). Éditeur +1,5 Ko (+0,4 Ko en gzip).
+
 Reste à faire :
 
 - Jeux d'outils de l'enseignant (section « Anneau d'outils »).

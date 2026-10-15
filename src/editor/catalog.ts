@@ -45,6 +45,10 @@ export type Param =
     | "segment"
     | "vector"
     | "circle"
+    | "polygon"
+    // A circle or a conic, and a function's curve.
+    | "tangible"
+    | "graph"
     | "intersectable"
     // Intersectable, but not a line.
     | "curved"
@@ -113,6 +117,10 @@ export function accepts(arg: Arg, param: Param): boolean {
             return arg instanceof segment_object;
         case "vector":
             return arg instanceof vector_object;
+        case "tangible":
+            return kind === "circle" || kind === "conic";
+        case "graph":
+            return arg instanceof curve_object;
         case "intersectable":
             return (
                 kind === "line" ||
@@ -260,6 +268,21 @@ function withReal(tag: string, params: Param[], order?: number[]): Overload {
     };
 }
 
+// A center of a triangle, of Kimberling's number n (see
+// triangle_center_object.ts).
+const center = (n: number): Overload => ({
+    params: ["point", "point", "point"],
+    tag: "TC",
+    encode: (args, index) => [
+        ...args.map((arg) => index(arg as construction_object)),
+        n,
+    ],
+    decode: (parameters, at) => {
+        const [a, b, c, kind] = parameters as number[];
+        return kind === n ? [at(a), at(b), at(c)] : null;
+    },
+});
+
 export const COMMANDS: Command[] = [
     {
         name: "Point",
@@ -380,6 +403,51 @@ export const COMMANDS: Command[] = [
     // On the left of AB.
     { name: "Semicircle", overloads: [objects("Semi", ["point", "point"])] },
     { name: "Center", overloads: [objects("Ctr", ["circle"])] },
+    { name: "Incenter", overloads: [center(1)] },
+    { name: "Centroid", overloads: [center(2)] },
+    { name: "Circumcenter", overloads: [center(3)] },
+    { name: "Orthocenter", overloads: [center(4)] },
+    // Of rank k, from 1.
+    {
+        name: "Vertex",
+        overloads: [
+            {
+                params: ["polygon", "number"],
+                tag: "Vtx",
+                encode: ([polygon, k], index) => [
+                    index(polygon as construction_object),
+                    (k as number) - 1,
+                ],
+                decode: (parameters, at) => {
+                    const [polygon, rank] = parameters as number[];
+                    return [at(polygon), rank + 1];
+                },
+            },
+        ],
+    },
+    // Through P, the first or the second to a circle or a conic, or to a
+    // function's curve.
+    {
+        name: "Tangent",
+        overloads: [
+            {
+                params: ["point", "tangible", "number"],
+                tag: "Tan",
+                encode: ([point, curve, n], index) => [
+                    index(point as construction_object),
+                    index(curve as construction_object),
+                    (n as number) - 1,
+                ],
+                decode: (parameters, at) => {
+                    const [point, curve, branch] = parameters as number[];
+                    return branch === undefined
+                        ? null
+                        : [at(point), at(curve), branch + 1];
+                },
+            },
+            objects("Tan", ["point", "graph"]),
+        ],
+    },
     {
         name: "Intersection",
         overloads: [
@@ -424,6 +492,25 @@ export const COMMANDS: Command[] = [
             },
         ],
     },
+    // Of n sides on [AB].
+    {
+        name: "RegularPolygon",
+        overloads: [
+            {
+                params: ["point", "point", "number"],
+                tag: "RegP",
+                encode: ([a, b, n], index) => [
+                    index(a as construction_object),
+                    index(b as construction_object),
+                    n,
+                ],
+                decode: (parameters, at) => {
+                    const [a, b, n] = parameters as number[];
+                    return [at(a), at(b), n];
+                },
+            },
+        ],
+    },
     {
         name: "Polygon",
         overloads: [
@@ -462,6 +549,10 @@ export const COMMANDS: Command[] = [
     {
         name: "Translation",
         overloads: [objects("Tra", ["point", "vector"], [1, 0])],
+    },
+    {
+        name: "Inversion",
+        overloads: [objects("Inv", ["point", "circle"], [1, 0])],
     },
     {
         name: "Conic",

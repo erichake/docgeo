@@ -87,6 +87,9 @@ const POINT_TAGS = new Set([
     "Dil",
     "Tra",
     "Ctr",
+    "TC",
+    "Vtx",
+    "Inv",
     "Int",
 ]);
 export const isPointTag = (tag: string): boolean => POINT_TAGS.has(tag);
@@ -276,6 +279,23 @@ export function resolve(
             if (!Number.isInteger(branch) || branch < 1 || branch > 4)
                 throw new TextError("branch");
         }
+        if (
+            overload.tag === "Tan" &&
+            overload.params[2] === "number" &&
+            args[2] !== 1 &&
+            args[2] !== 2
+        )
+            throw new TextError("tangent_branch");
+        // A polygon's number of sides, a vertex's rank.
+        const count = args[overload.params.indexOf("number")] as number;
+        if (
+            (overload.tag === "RegP" || overload.tag === "Vtx") &&
+            !(
+                Number.isInteger(count) &&
+                count >= (overload.tag === "Vtx" ? 1 : 3)
+            )
+        )
+            throw new TextError("arguments", commandName(command));
         // A slider.
         if (overload.tag === "Ex") {
             const { encode } = overload;

@@ -1718,7 +1718,7 @@ function nextSlot({ tool, args } = pending!): number {
 
 // About 150 pixels, rounded to two significant digits.
 // The number a tool gives: a circle's radius of about 150 px, a quarter
-// turn, a ratio of 2.
+// turn, a ratio of 2, the first tangent, a square.
 const defaultReal = (tag: string): number | undefined =>
     tag === "C1"
         ? Number((150 / scene().GRID.UNIT[0]).toPrecision(2))
@@ -1728,7 +1728,11 @@ const defaultReal = (tag: string): number | undefined =>
               : Math.PI / 2
           : tag === "Dil"
             ? 2
-            : undefined;
+            : tag === "Tan"
+              ? 1
+              : tag === "RegP"
+                ? 4
+                : undefined;
 
 // The tool's arguments, the object designated first.
 function firstArgs(
@@ -1742,8 +1746,10 @@ function firstArgs(
         ? []
         : Array(params.length).fill(undefined);
     args[params.findIndex((param) => accepts(object, param))] = object;
-    if (params.includes("real"))
-        args[params.indexOf("real")] = defaultReal(tag);
+    const given = params.findIndex(
+        (param) => param === "real" || param === "number",
+    );
+    if (given >= 0) args[given] = defaultReal(tag);
     return args;
 }
 

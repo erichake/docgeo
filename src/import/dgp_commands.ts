@@ -9,6 +9,11 @@ import {
 import { createArc3pts } from "../objects/arc3pts_object";
 import { createCenterArc } from "../objects/center_arc_object";
 import { createSemicircle } from "../objects/semicircle_object";
+import { createInversion } from "../objects/inversion_object";
+import { createRegularPolygon } from "../objects/regular_polygon_object";
+import { createTriangleCenter } from "../objects/triangle_center_object";
+import { createVertex } from "../objects/vertex_object";
+import { createTangent, type tangent_support } from "../objects/tangent_object";
 import { createCenter } from "../objects/center_object";
 import { createCircle1, type circle1_radius } from "../objects/circle1_object";
 import { createCircle3 } from "../objects/circle3_object";
@@ -1745,6 +1750,82 @@ const COMMANDS = new Map<string, CommandDefinition>([
     ],
     // Not DGPad commands: GeoGebra's CircleArc, CircleSector and
     // Semicircle, clockwise as images by a reflection.
+    // Not a DGPad command: GeoGebra's Tangent through a point, to a circle
+    // or a conic (one of two), or to a function's curve.
+    [
+        "Tangent",
+        {
+            parameters: [string, point, object, { ...number, optional: true }],
+            result: "line",
+            execute: (context, args) =>
+                createTangent(
+                    context.construction,
+                    args[0] as string,
+                    args[1] as point_object,
+                    args[2] as tangent_support,
+                    (args[3] as number | undefined) ?? 0,
+                ),
+        },
+    ],
+    // Not DGPad commands: GeoGebra's Polygon(A, B, n), its vertices,
+    // Mirror(P, circle) and TriangleCenter(A, B, C, n).
+    [
+        "RegularPolygon",
+        {
+            parameters: [string, point, point, number],
+            result: "polygon",
+            execute: (context, args) =>
+                createRegularPolygon(
+                    context.construction,
+                    args[0] as string,
+                    args[1] as point_object,
+                    args[2] as point_object,
+                    args[3] as number,
+                ),
+        },
+    ],
+    [
+        "Vertex",
+        {
+            parameters: [string, object, number],
+            result: "point",
+            execute: (context, args) =>
+                createVertex(
+                    context.construction,
+                    args[0] as string,
+                    args[1] as polygon_object,
+                    args[2] as number,
+                ),
+        },
+    ],
+    [
+        "Inversion",
+        {
+            parameters: [string, circle, point],
+            result: "point",
+            execute: (context, args) =>
+                createInversion(
+                    context.construction,
+                    args[0] as string,
+                    args[1] as primitive_circle_object,
+                    args[2] as point_object,
+                ),
+        },
+    ],
+    [
+        "TriangleCenter",
+        {
+            parameters: [string, point, point, point, number],
+            result: "point",
+            execute: (context, args) =>
+                createTriangleCenter(
+                    context.construction,
+                    args[0] as string,
+                    args.slice(1, 4) as point_object[],
+                    args[4] as number,
+                ),
+        },
+    ],
     ["CenterArc", centerArc(false)],
     ["CenterSector", centerArc(true)],
     [

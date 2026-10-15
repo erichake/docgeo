@@ -105,33 +105,26 @@ de base des arcs ; l'orientation des images par une symétrie axiale est
 gardée (`orientedShape`, à réutiliser pour tout objet orienté). Éditeur :
 `ArcCentre`, `SecteurCentre`, `DemiCercle`, au clavier et au menu.
 
-### 4. Tangentes
+### 4. Tangentes — fait
 
-`Tangent` :
+Objet `Tan` (item 29 de `GGB_IMPORT.md`) : à un cercle ou une conique
+depuis un point (deux solutions), à la courbe d'une fonction. Éditeur :
+`Tangente`, au clavier et au menu. Reste, si des figures le demandent :
+les tangentes parallèles à une droite et communes à deux cercles.
 
-- à un cercle depuis un point extérieur : centre caché, milieu, cercle de
-  diamètre, intersections, puis droites ;
-- en un point du cercle : centre et droite cachés, puis perpendiculaire ;
-- à la courbe d'une fonction : une droite par deux points calculés.
+### 5. Autres constructions planes — fait, sauf un point
 
-Un objet « tangente » (à un cercle ou à une conique depuis un point, deux
-solutions départagées comme les intersections dans `DGO.md` ; à une
-courbe en un point). Les tangentes à une conique quelconque, non
-importées aujourd'hui, viendront avec.
+Objets `Inv`, `TC`, `RegP`, `Vtx` (item 30 de `GGB_IMPORT.md`). Éditeur :
+`CentreInscrit`, `CentreGravité`, `CentreCirconscrit`, `Orthocentre`,
+`PolygoneRégulier`, `Sommet`, `Inversion`.
 
-### 5. Autres constructions planes
-
-- Inversion `Mirror(P, cercle)` (`inversion`) : centre, droite et
-  intersection cachés, puis un point formule.
-- Polygone régulier `Polygon(A, B, n)` (`regularVertices`) : sommets
-  formules. Un objet « polygone régulier » (commande de l'éditeur aussi).
-- `TriangleCenter` : point formule en coordonnées barycentriques (centres
-  1 à 5 : centre du cercle inscrit, centre de gravité, centre du cercle
-  circonscrit, orthocentre, centre du cercle d'Euler).
-- Point sur une droite « dirigée » (parallèle ou perpendiculaire
-  GeoGebra) : `directedLine` ajoute une droite cachée pour placer le point
-  comme GeoGebra. À résoudre par le paramètre du point sur l'objet plutôt
-  que par une droite en plus.
+Reste le point sur une droite « dirigée » (parallèle ou perpendiculaire
+GeoGebra) : la droite cachée de `directedLine` ne corrige pas la
+direction, qui est déjà celle de GeoGebra, mais l'échelle du paramètre :
+GeoGebra avance le point en longueurs du vecteur directeur de la droite
+de départ (AB), ce qui règle la vitesse de son animation. Le faire par le
+paramètre du point demanderait un paramètre de plus aux points sur objet,
+pour un gain faible ; laissé de côté.
 
 ### 6. La 3D, le plus gros chantier
 
@@ -159,4 +152,4 @@ rester des expressions : `Distance`, `Length`, `Slope`, `Corner`,
 
 Corpus : 238 figures sur 438 sans perte, aucun plantage (après le
 correctif du nom d'un segment de longueur nulle, item 24 bis de
-`GGB_IMPORT.md`). Moteur : 314,9 Ko après l'item 3.
+`GGB_IMPORT.md`). Moteur : 319,3 Ko après l'item 5.

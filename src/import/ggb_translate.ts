@@ -734,6 +734,9 @@ export function translateGgb(
     const vectors = new Map<string, [string, string]>();
     // A point of each line, where it is known.
     const lineStarts = new Map<string, string>();
+    // A tangent to a function's curve, of the function through a point:
+    // its slope triangle starts where it touches.
+    const curveTangents = new Map<string, [string, string]>();
     // GeoGebra places a point on a line from its start along its direction,
     // not normalized: the vector between two points, turned by quarter
     // turns. Only kept for the lines DGP draws from a unit vector.
@@ -742,8 +745,6 @@ export function translateGgb(
         string,
         { start: string; ends: string[]; turns: number }
     >();
-    // The points known to lie on a circle.
-    const circlePoints = new Map<string, string[]>();
     const polygons = new Map<string, string[]>();
     const polyhedra = new Map<string, [string, string][]>();
     // A polyhedron's faces, all drawn by its image with their sides.
@@ -1588,13 +1589,6 @@ export function translateGgb(
             return true;
         };
 
-    const addOnCircle = (circle: string, ...labels: string[]): void => {
-        circlePoints.set(circle, [
-            ...(circlePoints.get(circle) ?? []),
-            ...labels,
-        ]);
-    };
-
     const target = (label: string): void => {
         const element = elements.get(label);
         const coords = element && pointCoords(element);
@@ -1842,7 +1836,6 @@ export function translateGgb(
         );
         target(label);
         animate(label);
-        addOnCircle(support, label);
         return true;
     };
 
@@ -2081,31 +2074,15 @@ export function translateGgb(
     );
     const mirror: Handler = (inputs, outputs) =>
         is(inputs[1], ["circle"])
-            ? points(inputs[0]) && inversion(outputs[0], inputs[0], inputs[1])
+            ? points(inputs[0]) &&
+              define(outputs[0], "point", "Inversion", [
+                  ref(inputs[1]),
+                  ref(inputs[0]),
+              ])
             : (points(inputs[1]) ? pointReflection : lineReflection)(
                   inputs,
                   outputs,
               );
-
-    // The inverse of P in a circle of center M and radius r is
-    // M + (P - M)·r²/MP², r being read off a point where MP meets it.
-    const inversion = (label: string, source: string, circle: string): true => {
-        const center = auxiliary();
-        define(center, "point", "Center", [ref(circle)]);
-        const line = auxiliary();
-        define(line, "line", "Line", [ref(center), ref(source)]);
-        const onCircle = auxiliary();
-        define(onCircle, "point", "OrderedIntersection", [
-            ref(line),
-            ref(circle),
-            literal(0),
-        ]);
-        const [p, m, t] = [source, center, onCircle].map(
-            (input) => objects.get(input)!.variable,
-        );
-        formulaPoint(`${m}+(${p}-${m})*d(${m},${t})^2/d(${m},${p})^2`, label);
-        return true;
-    };
 
     let auxiliaries = 0;
     const auxiliary = (): string => `aux ${++auxiliaries}`;
@@ -2389,10 +2366,6 @@ export function translateGgb(
         Angle: onePoint("Angle", 3, "angle"),
         Circle: ([center, second, third], [label]) => {
             if (!points(center)) return false;
-            addOnCircle(
-                label,
-                ...(points(third) ? [center, second, third] : [second]),
-            );
             if (points(second, third))
                 return define(label, "circle", "Circle3pts", [
                     ref(center),
@@ -2495,6 +2468,41 @@ export function translateGgb(
             ) {
                 const n = Number(count);
                 if (!Number.isInteger(n) || n < 3) return false;
+                if (!normal) {
+                    // Its vertices, GeoGebra's outputs after its sides;
+                    // its image by a reflection is on B'A'.
+                    orientedShape(label, [a, b], (image, [p, q], reversed) =>
+                        define(image, "polygon", "RegularPolygon", [
+                            ...(reversed ? [q, p] : [p, q]).map(ref),
+                            literal(n),
+                        ]),
+                    );
+                    const vertices = [
+                        a,
+                        b,
+                        ...Array.from({ length: n - 2 }, (_, index) => {
+                            const vertex = sides[n + index] || auxiliary();
+                            define(vertex, "point", "Vertex", [
+                                ref(label),
+                                literal(index + 2),
+                            ]);
+                            return vertex;
+                        }),
+                    ];
+                    polygons.set(label, vertices);
+                    sides
+                        .slice(0, n)
+                        .forEach(
+                            (side, index) =>
+                                side &&
+                                defineSegment(
+                                    side,
+                                    vertices[index],
+                                    vertices[(index + 1) % n],
+                                ),
+                        );
+                    return true;
+                }
                 return HANDLERS.Polygon(
                     [a, b, ...regularVertices(a, b, n, sides.slice(n), normal)],
                     [label, ...sides.slice(0, n)],
@@ -3210,38 +3218,13 @@ export function translateGgb(
         // Kimberling's first centers, by their barycentric coordinates:
         // incenter, centroid, circumcenter, orthocenter and nine-point
         // center.
-        TriangleCenter: ([a, b, c, n], [label]) => {
-            if (!points(a, b, c) || !["1", "2", "3", "4", "5"].includes(n))
-                return false;
-            const [A, B, C] = [a, b, c].map(
-                (point) => objects.get(point)!.variable,
-            );
-            const sides = [
-                [B, C],
-                [C, A],
-                [A, B],
-            ].map(([p, q]) => `d(${p},${q})`);
-            const barycenter = (weights: string[]): string =>
-                `(${weights.map((weight, index) => `(${weight})*${[A, B, C][index]}`).join("+")})/(${weights.join("+")})`;
-            const squares = sides.map((side) => `${side}^2`);
-            const circumcenter = barycenter(
-                squares.map(
-                    (square, index) =>
-                        `${square}*(${squares[(index + 1) % 3]}+${squares[(index + 2) % 3]}-${square})`,
-                ),
-            );
-            formulaPoint(
-                [
-                    barycenter(sides),
-                    `(${A}+${B}+${C})/3`,
-                    circumcenter,
-                    `${A}+${B}+${C}-2*(${circumcenter})`,
-                    `(${A}+${B}+${C}-(${circumcenter}))/2`,
-                ][Number(n) - 1],
-                label,
-            );
-            return true;
-        },
+        TriangleCenter: ([a, b, c, n], [label]) =>
+            points(a, b, c) &&
+            ["1", "2", "3", "4", "5"].includes(n) &&
+            define(label, "point", "TriangleCenter", [
+                ...[a, b, c].map(ref),
+                literal(Number(n)),
+            ]),
         Corner: (inputs, [label]) => {
             const corner = cornerFormula(inputs);
             if (corner === null) return false;
@@ -3258,57 +3241,40 @@ export function translateGgb(
         // At x(A) on a function's graph; at A on a circle through it; from
         // A, touching the circle where the circle of diameter A and its
         // center cuts it.
-        Tangent: ([p, conic, extra], outputs) => {
+        // Through a point, to a function's curve, or to a circle or a
+        // conic: two tangents.
+        Tangent: ([p, curve, extra], outputs) => {
             if (extra !== undefined || !points(p)) return false;
-            const [label] = outputs;
-            if (functions.has(conic)) {
-                const f = objects.get(conic)!.variable;
-                const x = `x(${objects.get(p)!.variable})`;
-                const touch = formulaPoint(planar(x, `${f}(${x})`));
-                const t = objects.get(touch)!.variable;
-                lineStarts.set(label, touch);
-                return define(label, "line", "Line", [
-                    ref(touch),
-                    ref(
-                        formulaPoint(
-                            `${t}+${planar("1", derivative(f, `x(${t})`))}`,
-                        ),
-                    ),
+            if (functions.has(curve)) {
+                curveTangents.set(outputs[0], [curve, p]);
+                return define(outputs[0], "line", "Tangent", [
+                    ref(p),
+                    ref(curve),
                 ]);
             }
-            if (is(conic, ["circle"])) {
-                const center = auxiliary();
-                define(center, "point", "Center", [ref(conic)]);
-                const line = auxiliary();
-                if (circlePoints.get(conic)?.includes(p)) {
-                    define(line, "line", "Line", [ref(center), ref(p)]);
-                    return define(label, "line", "Perpendicular", [
-                        ref(line),
+            if (!is(curve, ["circle", "quadric"])) return false;
+            outputs.forEach(
+                (output, index) =>
+                    output &&
+                    define(output, "line", "Tangent", [
                         ref(p),
-                    ]);
-                }
-                const middle = auxiliary();
-                define(middle, "point", "MidPoint", [ref(p), ref(center)]);
-                define(line, "circle", "Circle", [ref(middle), ref(p)]);
-                outputs.forEach((output, index) => {
-                    if (!output) return;
-                    const touch = auxiliary();
-                    define(touch, "point", "OrderedIntersection", [
-                        ref(conic),
-                        ref(line),
+                        ref(curve),
                         literal(index),
-                    ]);
-                    define(output, "line", "Line", [ref(p), ref(touch)]);
-                });
-                return true;
-            }
-            return false;
+                    ]),
+            );
+            return true;
         },
         // Drawn as GeoGebra's slope triangle, from the line's start point.
         Slope: ([line, extra], [label]) => {
             if (extra !== undefined || !is(line, ["line"])) return false;
             const m = hiddenExpression(slopeFormula(line), label);
-            const start = linePoint(line);
+            const tangent = curveTangents.get(line);
+            const [f, p] = (tangent ?? []).map(
+                (input) => objects.get(input)!.variable,
+            );
+            const start =
+                linePoint(line) ??
+                (tangent && formulaPoint(planar(`x(${p})`, `${f}(x(${p}))`)));
             const element = elements.get(label);
             if (start && element) {
                 const s = objects.get(start)!.variable;

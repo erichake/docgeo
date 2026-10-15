@@ -168,6 +168,14 @@ describe("Editor", () => {
             "j = Arc(A, C, D)",
             "n = Sector(B, C, D)",
             "i = CenterArc(A, B, C)",
+            "j2 = Tangent(E, c, 2)",
+            "W2 = Orthocenter(A, B, C)",
+            "W3 = Incenter(A, B, C)",
+            "W4 = Centroid(A, B, C)",
+            "W5 = Circumcenter(A, B, C)",
+            "W6 = Inversion(D, c)",
+            "p3 = RegularPolygon(A, B, 5)",
+            "W7 = Vertex(p3, 3)",
             "q2 = CenterSector(A, C, D)",
             "r2 = Semicircle(D, E)",
             "O = Center(g)",
@@ -216,6 +224,8 @@ describe("Editor", () => {
             ["Unknown(A, B)", "unknown_command"],
             ["Circle(a, A)", "arguments"],
             ["Intersection(b, a, 5)", "branch"],
+            ["Tangent(A, b, 3)", "tangent_branch"],
+            ["RegularPolygon(A, B, 2)", "arguments"],
             ["Intersection(b, a)", "arguments"],
             ["Intersection(a, a, 1)", "arguments"],
             ["A = (3, 3)", "name_taken"],
@@ -970,6 +980,10 @@ describe("Editor", () => {
                 ["Midpoint", "Mid", "Mid"],
                 ["Center", "Ctr"],
                 ["OtherIntersection", "Int"],
+                ["Incenter", "TC"],
+                ["Centroid", "TC"],
+                ["Circumcenter", "TC"],
+                ["Orthocenter", "TC"],
             ],
             [
                 ["Segment", "Seg"],
@@ -982,6 +996,7 @@ describe("Editor", () => {
                 ["Parallel", "Par"],
                 ["PerpendicularBisector", "Med", "Med"],
                 ["AngleBisector", "Bis"],
+                ["Tangent", "Tan", "Tan"],
             ],
             [
                 ["Circle (centre and point)", "Cir"],
@@ -1003,6 +1018,7 @@ describe("Editor", () => {
                 ["Polygon", "Poly"],
                 ["Angle", "Ang"],
                 ["Locus", "Loc"],
+                ["RegularPolygon", "RegP"],
             ],
             [
                 ["Point reflection", "Sym"],
@@ -1010,6 +1026,7 @@ describe("Editor", () => {
                 ["Rotation", "Rot"],
                 ["Translation", "Tra"],
                 ["Dilation", "Dil"],
+                ["Inversion", "Inv"],
             ],
         ]);
         const sphere = TOOL_FAMILIES[3].items[3].tools[0];
@@ -1050,6 +1067,7 @@ describe("Editor", () => {
         expect(given("Circle (centre and radius)", [A])).toEqual([[A, 3.8]]);
         expect(given("Rotation", [B, A])).toEqual([[B, A, 3.8]]);
         expect(given("Dilation", [B])).toEqual([[B, undefined, 3.8]]);
+        expect(given("Tangent", [D, k])).toEqual([[D, k, 3.8], null]);
         expect(given("Polygon", [A, B, D, C])).toEqual([[A, B, D, C]]);
         expect(given("Point", [k])).toEqual([[k]]);
         expect(given("Intersection", [d, k])).toEqual([[d, k]]);

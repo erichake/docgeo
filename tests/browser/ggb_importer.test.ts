@@ -31,6 +31,10 @@ import { quadric5pts_object } from "../../src/objects/quadric5pts_object";
 import { rotation_object } from "../../src/objects/rotation_object";
 import { segment_object } from "../../src/objects/segment_object";
 import { translation_object } from "../../src/objects/translation_object";
+import { tangent_object } from "../../src/objects/tangent_object";
+import { inversion_object } from "../../src/objects/inversion_object";
+import { regular_polygon_object } from "../../src/objects/regular_polygon_object";
+import { vertex_object } from "../../src/objects/vertex_object";
 import { dilation_object } from "../../src/objects/dilation_object";
 import { sphere_object } from "../../src/objects/sphere_object";
 import { text_object } from "../../src/objects/text_object";
@@ -1344,6 +1348,126 @@ ${lines.map((line, index) => command("Plane", ["C", line], `p${index}`)).join("\
         c.invalidateGeometry(a);
         await new Promise((resolve) => requestAnimationFrame(resolve));
         check(3);
+    });
+
+    it("draws tangents to circles, conics and functions' curves", async () => {
+        const c = createConstruction();
+        expect(
+            importGgb(
+                c,
+                `<geogebra><construction>
+<element type="point" label="O"><coords x="0" y="0" z="1"/></element>
+<element type="point" label="P"><coords x="4" y="0" z="1"/></element>
+<element type="numeric" label="r"><value val="2"/></element>
+<command name="Circle"><input a0="O" a1="r"/><output a0="c"/></command>
+<element type="conic" label="c"/>
+<command name="Tangent"><input a0="P" a1="c"/><output a0="t1" a1="t2"/></command>
+<element type="line" label="t1"/>
+<element type="line" label="t2"/>
+<command name="Point"><input a0="c"/><output a0="A"/></command>
+<element type="point" label="A"><coords x="0" y="2" z="1"/></element>
+<command name="Tangent"><input a0="A" a1="c"/><output a0="ta" a1=""/></command>
+<element type="line" label="ta"/>
+<expression label="e" exp="x^(2) / 9 + y^(2) / 4 = 1" type="conic"/>
+<element type="conic" label="e"><matrix A0="4" A1="9" A2="-36" A3="0" A4="0" A5="0"/></element>
+<element type="point" label="Q"><coords x="0" y="4" z="1"/></element>
+<command name="Tangent"><input a0="Q" a1="e"/><output a0="u1" a1="u2"/></command>
+<element type="line" label="u1"/>
+<element type="line" label="u2"/>
+<expression label="f" exp="f(x) = x^(2)"/>
+<element type="function" label="f"/>
+<element type="point" label="B"><coords x="1" y="0" z="1"/></element>
+<command name="Tangent"><input a0="B" a1="f"/><output a0="tf"/></command>
+<element type="line" label="tf"/>
+<command name="Slope"><input a0="tf"/><output a0="m"/></command>
+<element type="numeric" label="m"/>
+</construction></geogebra>`,
+            ),
+        ).toEqual([]);
+        const line = (name: string) => c.getObj(name) as tangent_object;
+        ["t1", "t2", "ta", "u1", "u2", "tf"].forEach((name) =>
+            expect(line(name), name).toBeInstanceOf(tangent_object),
+        );
+        expect(line("t1").parents.slice(1)).toEqual(
+            ["P", "c"].map((name) => c.getObj(name)),
+        );
+        // Through its point, touching where it is perpendicular to the
+        // radius, the first on the left of OP.
+        const touches = ["t1", "t2"].map((name) => line(name).P1.coords);
+        expectClose(touches[0], [1, Math.sqrt(3), 0]);
+        expectClose(touches[1], [1, -Math.sqrt(3), 0]);
+        expectClose(line("ta").P1.coords, [0, 2, 0]);
+        expect(Math.abs(line("ta").VEC[1])).toBeCloseTo(0, 9);
+        // x²/9 + y²/4 = 1 from (0, 4): touching at y = 1.
+        ["u1", "u2"].forEach((name) =>
+            expect(line(name).P1.coords[1]).toBeCloseTo(1, 9),
+        );
+        expectClose(line("tf").P1.coords, [1, 1, 0]);
+        expect(line("tf").VEC[1] / line("tf").VEC[0]).toBeCloseTo(2, 9);
+        expect((c.getObj("m") as expression_object).value).toBeCloseTo(2, 9);
+    });
+
+    it("builds inversions, triangle centers and regular polygons", async () => {
+        const c = createConstruction();
+        expect(
+            importGgb(
+                c,
+                `<geogebra><construction>
+<element type="point" label="A"><coords x="0" y="0" z="1"/></element>
+<element type="point" label="B"><coords x="4" y="0" z="1"/></element>
+<element type="point" label="C"><coords x="0" y="3" z="1"/></element>
+<command name="Circle"><input a0="A" a1="B"/><output a0="c"/></command>
+<element type="conic" label="c"/>
+<element type="point" label="P"><coords x="2" y="0" z="1"/></element>
+<command name="Mirror"><input a0="P" a1="c"/><output a0="P'"/></command>
+<element type="point" label="P'"/>
+${[1, 2, 3, 4, 5]
+    .map(
+        (n) =>
+            `<command name="TriangleCenter"><input a0="A" a1="B" a2="C" a3="${n}"/><output a0="X${n}"/></command><element type="point" label="X${n}"/>`,
+    )
+    .join("")}
+<command name="Polygon"><input a0="A" a1="B" a2="4"/><output a0="sq" a1="s1" a2="s2" a3="s3" a4="s4" a5="D" a6="E"/></command>
+<element type="polygon" label="sq"/>
+<element type="point" label="D"/>
+<element type="point" label="E"/>
+<command name="Line"><input a0="A" a1="B"/><output a0="d"/></command>
+<element type="line" label="d"/>
+<command name="Mirror"><input a0="sq" a1="d"/><output a0="sq'"/></command>
+<element type="polygon" label="sq'"/>
+</construction></geogebra>`,
+            ),
+        ).toEqual([]);
+        const at = (name: string) => (c.getObj(name) as point_object).coords;
+        expect(c.getObj("P'")).toBeInstanceOf(inversion_object);
+        expectClose(at("P'"), [8, 0, 0]);
+        // In the right triangle ABC of sides 3, 4, 5.
+        expectClose(at("X1"), [1, 1, 0]);
+        expectClose(at("X2"), [4 / 3, 1, 0]);
+        expectClose(at("X3"), [2, 1.5, 0]);
+        expectClose(at("X4"), [0, 0, 0]);
+        expectClose(at("X5"), [1, 0.75, 0]);
+        expect(c.getObj("X3")!.parents).toEqual(
+            ["A", "B", "C"].map((name) => c.getObj(name)),
+        );
+        const square = c.getObj("sq") as regular_polygon_object;
+        expect(square).toBeInstanceOf(regular_polygon_object);
+        expect(square.parents.slice(0, 2)).toEqual([
+            c.getObj("A"),
+            c.getObj("B"),
+        ]);
+        expect(c.getObj("D")).toBeInstanceOf(vertex_object);
+        expectClose(at("D"), [4, 4, 0]);
+        expectClose(at("E"), [0, 4, 0]);
+        expect(square.area).toBeCloseTo(16, 9);
+        expect((c.getObj("s3") as segment_object).P1).toBe(c.getObj("D"));
+        // Its image by a reflection, below AB.
+        const image = c.getObj("sq'") as regular_polygon_object;
+        expect(image).toBeInstanceOf(regular_polygon_object);
+        expectClose(
+            image.points.map((point) => point.coords[1]).sort((u, v) => u - v),
+            [-4, -4, 0, 0],
+        );
     });
 
     it("iterates segments into a Koch snowflake following its slider", async () => {

@@ -286,6 +286,66 @@ describe(".dgo writer", () => {
             },
         ));
 
+    it("keeps tangents to circles, conics and functions' curves", () =>
+        roundTrip(
+            async (c) =>
+                importGgb(
+                    c,
+                    `<geogebra><construction>
+<element type="point" label="O"><coords x="0" y="0" z="1"/></element>
+<element type="point" label="P"><coords x="4" y="1" z="1"/></element>
+<element type="point" label="A"><coords x="2" y="0" z="1"/></element>
+<command name="Circle"><input a0="O" a1="A"/><output a0="c"/></command>
+<element type="conic" label="c"/>
+<command name="Tangent"><input a0="P" a1="c"/><output a0="t1" a1="t2"/></command>
+<element type="line" label="t1"/>
+<element type="line" label="t2"/>
+<expression label="e" exp="x^(2) / 9 + y^(2) / 4 = 1" type="conic"/>
+<element type="conic" label="e"><matrix A0="4" A1="9" A2="-36" A3="0" A4="0" A5="0"/></element>
+<command name="Tangent"><input a0="P" a1="e"/><output a0="u1" a1="u2"/></command>
+<element type="line" label="u1"/>
+<element type="line" label="u2"/>
+<expression label="f" exp="f(x) = x^(2) / 4"/>
+<element type="function" label="f"/>
+<command name="Tangent"><input a0="P" a1="f"/><output a0="tf"/></command>
+<element type="line" label="tf"/>
+</construction></geogebra>`,
+                ),
+            (c) => {
+                const p = c.getObj("P") as point_object;
+                p.coords = [-3, 3, 0];
+                c.invalidateGeometry(p);
+            },
+        ));
+
+    it("keeps inversions, triangle centers and regular polygons", () =>
+        roundTrip(
+            async (c) =>
+                importGgb(
+                    c,
+                    `<geogebra><construction>
+<element type="point" label="A"><coords x="0" y="0" z="1"/></element>
+<element type="point" label="B"><coords x="4" y="0" z="1"/></element>
+<element type="point" label="C"><coords x="1" y="3" z="1"/></element>
+<command name="Circle"><input a0="A" a1="B"/><output a0="c"/></command>
+<element type="conic" label="c"/>
+<command name="Mirror"><input a0="C" a1="c"/><output a0="C'"/></command>
+<element type="point" label="C'"/>
+<command name="TriangleCenter"><input a0="A" a1="B" a2="C" a3="4"/><output a0="H"/></command>
+<element type="point" label="H"/>
+<command name="Polygon"><input a0="A" a1="C" a2="6"/><output a0="h" a1="s1" a2="s2" a3="s3" a4="s4" a5="s5" a6="s6" a7="D" a8="E" a9="F" a10="G"/></command>
+<element type="polygon" label="h"/>
+<command name="Point"><input a0="h"/><output a0="P"/></command>
+<element type="point" label="P"><coords x="1" y="1" z="1"/></element>
+</construction></geogebra>`,
+                ),
+            (c) => {
+                const point = c.getObj("C") as point_object;
+                point.coords = [-1, 2, 0];
+                c.invalidateGeometry(point);
+            },
+        ));
+
     it("keeps integrals, sums and slope triangles", () =>
         roundTrip(async (c) =>
             importGgb(

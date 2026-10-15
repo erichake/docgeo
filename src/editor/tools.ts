@@ -64,6 +64,8 @@ function tool(
 }
 
 const SEGMENT = result(path("M6 18L18 6")) + dot(6, 18) + dot(18, 6);
+const TRIANGLE =
+    path("M4 19L20 19L9 5Z") + dot(4, 19) + dot(20, 19) + dot(9, 5);
 const BISECTOR =
     path("M4 12h16M8 10.5v3M16 10.5v3", true) + result(path("M12 4v16"));
 const CIRCLE = `<circle cx="12" cy="12" r="7.5"/>`;
@@ -77,7 +79,8 @@ const FAMILIES: [
     name: MessageKey,
     hue: number,
     slots: Tool[][],
-    menuOnly?: Tool[],
+    // The forms of one item together.
+    menuOnly?: (Tool | Tool[])[],
     tone?: number,
 ][] = [
     [
@@ -114,6 +117,35 @@ const FAMILIES: [
                     `<circle class="dge-guide" cx="12" cy="12" r="7"/>` +
                     dot(5, 12) +
                     result(dot(19, 12)),
+            ),
+            // The centers of a triangle, of its three vertices.
+            tool(
+                "Incenter",
+                0,
+                TRIANGLE +
+                    `<circle class="dge-guide" cx="10.5" cy="14.4" r="4.6"/>` +
+                    result(dot(10.5, 14.4)),
+            ),
+            tool(
+                "Centroid",
+                0,
+                TRIANGLE +
+                    path("M4 19L14.5 12M20 19L6.5 12M9 5L12 19", true) +
+                    result(dot(11, 14.3)),
+            ),
+            tool(
+                "Circumcenter",
+                0,
+                TRIANGLE +
+                    `<circle class="dge-guide" cx="12" cy="14" r="9.4"/>` +
+                    result(dot(12, 14)),
+            ),
+            tool(
+                "Orthocenter",
+                0,
+                TRIANGLE +
+                    path("M9 5V19M4 19L14.5 10.8", true) +
+                    result(dot(9, 15.1)),
             ),
         ],
     ],
@@ -184,6 +216,19 @@ const FAMILIES: [
                         path("M10 19a6 6 0 0 0-3-5.2", true),
                 ),
             ],
+        ],
+        [
+            // The point, then a circle or a conic (the first tangent, which
+            // the line changes), or a function's curve.
+            [0, 1].map((overload) =>
+                tool(
+                    "Tangent",
+                    overload,
+                    `<circle cx="11" cy="15" r="6"/>` +
+                        result(path("M2 9H22")) +
+                        dot(19, 9),
+                ),
+            ),
         ],
     ],
     [
@@ -363,6 +408,18 @@ const FAMILIES: [
                 ),
             ],
         ],
+        [
+            // Two vertices: a square, which the line changes.
+            tool(
+                "RegularPolygon",
+                0,
+                result(
+                    `<path d="M7 19H17L20 9.5L12 3.7L4 9.5Z" fill="currentColor" fill-opacity=".1"/>`,
+                ) +
+                    dot(7, 19) +
+                    dot(17, 19),
+            ),
+        ],
     ],
     [
         "family_transformations",
@@ -418,6 +475,15 @@ const FAMILIES: [
                     result(path("M12 12L20 12L12 4Z")) +
                     dot(4, 20),
             ),
+            // The point, then the circle.
+            tool(
+                "Inversion",
+                0,
+                `<circle cx="9" cy="12" r="6"/>` +
+                    path("M9 12H22", true) +
+                    dot(12, 12) +
+                    result(dot(21, 12)),
+            ),
         ],
     ],
 ];
@@ -451,9 +517,11 @@ for (const [name, hue, slots, menuOnly = [], tone = 1] of FAMILIES) {
         }
         slot++;
     }
-    for (const tool of menuOnly)
+    for (const tools of menuOnly)
         family.items.push({
-            tools: [Object.assign(tool, { slot: -1, family })],
+            tools: [tools]
+                .flat()
+                .map((tool) => Object.assign(tool, { slot: -1, family })),
         });
     slot += GAP;
 }
@@ -559,7 +627,9 @@ export function assign(
         if (slot < 0) return null;
         args[slot] = object;
     }
-    const at = overload.params.indexOf("real");
+    const at = overload.params.findIndex(
+        (param) => param === "real" || param === "number",
+    );
     if (at >= 0) args[at] ??= real;
     return args;
 }

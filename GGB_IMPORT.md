@@ -82,6 +82,8 @@ figure sont seulement comptés. L'API utilisée est
 | 2026-10-15 | 238 / 438 (54 %)   | 309,4 Ko | item 26 : droite, cercle et conique d'équation natifs (+0)         |
 | 2026-10-15 | 238 / 438 (54 %)   | 313,3 Ko | item 27 : rotation, homothétie et translation natives (+0)         |
 | 2026-10-15 | 238 / 438 (54 %)   | 314,9 Ko | item 28 : arc et secteur de centre donné, demi-cercle natifs (+0)  |
+| 2026-10-15 | 238 / 438 (54 %)   | 316,4 Ko | item 29 : tangentes natives, aussi aux coniques (+0)               |
+| 2026-10-15 | 238 / 438 (54 %)   | 319,3 Ko | item 30 : inversion, centres, polygone régulier natifs (+0)        |
 
 ## À faire, par rapport gain / coût
 
@@ -479,6 +481,33 @@ cause.
       demi-tour, est désormais une transformation directe. Corpus inchangé
       (238 figures sur 438 sans perte, aucun élément perdu), points
       enregistrés retrouvés comme avant. Moteur +1,6 Ko (+0,4 Ko en gzip).
+- [x] **29. Tangentes natives** : `Tangent(P, cercle)` passait par un
+      centre, un milieu, un cercle de diamètre et des intersections cachés,
+      en un point du cercle par une perpendiculaire, et `Tangent(P, f)` par
+      deux points calculés ; les tangentes à une autre conique étaient
+      ignorées. Elles deviennent l'objet `Tan` de `DGO.md` (commande DGP
+      propre à DocGeo `Tangent`), de parents P et le cercle, la conique ou
+      la courbe : contacts sur la polaire de P, dérivée exacte d'une
+      fonction. Le triangle de pente d'une tangente à une fonction
+      (`Slope`) part de son point de contact, calculé pour lui seul.
+      Corpus : 238 figures sur 438 sans perte, mais deux figures perdent
+      bien moins d'éléments (17 → 1 et 6 → 1) ; les 18 tangentes du corpus
+      importées coïncident avec les droites enregistrées par GeoGebra (13
+      avant), dans l'ordre de ses deux solutions. Moteur +1,5 Ko (+0,6 Ko
+      en gzip).
+- [x] **30. Inversion, centres de triangle, polygone régulier natifs** :
+      `Mirror(P, cercle)` passait par un centre, une droite et une
+      intersection cachés, `TriangleCenter(A, B, C, n)` (n de 1 à 5) était
+      un point formule, et les sommets de `Polygon(A, B, n)` aussi. Ils
+      deviennent les objets `Inv`, `TC`, `RegP` et `Vtx` de `DGO.md`
+      (commandes DGP propres à DocGeo `Inversion`, `TriangleCenter`,
+      `RegularPolygon`, `Vertex`) : le polygone régulier calcule ses
+      sommets, et ceux que GeoGebra nomme en sont les sommets ; son image
+      par une symétrie axiale est celui de [B'A']. Le polygone régulier
+      dans un plan de l'espace attend l'objet plan (item 6 de
+      `NATIVE_OBJECTS.md`). Corpus inchangé (238 figures sur 438 sans
+      perte, aucun élément perdu), points enregistrés retrouvés comme
+      avant. Moteur +2,9 Ko (+0,7 Ko en gzip).
 
 À écarter, sauf changement de priorité : calcul formel, courbes implicites,
 statistiques et probabilités, tableur au-delà des cellules simples, matrices.
