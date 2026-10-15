@@ -3062,6 +3062,28 @@ ${command("Translate", ["Q", "u"], ["Q1"])}
         );
     });
 
+    it("builds Cube(A, B, p) only while AB is parallel to p, as GeoGebra", async () => {
+        const c = createConstruction();
+        importGgb(
+            c,
+            `<geogebra><construction>
+<element type="point3d" label="A"><coords x="0" y="0" z="0" w="1"/></element>
+<element type="point3d" label="B"><coords x="1" y="0" z="0" w="1"/></element>
+<expression label="p" exp="z = 0" type="plane"/>
+<element type="plane3d" label="p"/>
+<command name="Cube"><input a0="A" a1="B" a2="p"/><output a0="k" a1="C" a2="D" a3="E"/></command>
+</construction></geogebra>`,
+        );
+        const vertex = (name: string) => c.getObj(name) as point_object;
+        expectClose(vertex("C").coords, [1, 1, 0]);
+        expectClose(vertex("E").coords, [0, 0, 1]);
+        const b = vertex("B");
+        b.coords = [1, 0, 1e-7];
+        c.invalidateGeometry(b);
+        await new Promise((resolve) => requestAnimationFrame(resolve));
+        expect(vertex("C").defined).toBe(false);
+    });
+
     it("reads GeoGebra's list commands", async () => {
         const c = createConstruction();
         const list = (label: string, name: string, inputs: string[]) =>

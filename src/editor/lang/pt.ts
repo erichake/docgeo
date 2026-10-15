@@ -250,6 +250,7 @@ const pt: Texts = {
         designate_path: "Selecione uma reta, um círculo ou uma curva",
         designate_outline: "Selecione um polígono ou uma cônica",
         designate_plane: "Selecione um plano",
+        designate_planar: "Selecione um plano ou um polígono",
         designate_sphere: "Selecione uma esfera",
         designate_polyhedron: "Selecione um poliedro",
         designate_revolution: "Selecione um cilindro ou um cone",

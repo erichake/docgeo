@@ -251,6 +251,7 @@ const hi: Texts = {
         designate_path: "एक रेखा, वृत्त या वक्र चुनें",
         designate_outline: "एक बहुभुज या शांकव चुनें",
         designate_plane: "एक समतल चुनें",
+        designate_planar: "एक समतल या एक बहुभुज चुनें",
         designate_sphere: "एक गोला चुनें",
         designate_polyhedron: "एक बहुफलक चुनें",
         designate_revolution: "एक बेलन या शंकु चुनें",

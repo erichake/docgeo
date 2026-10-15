@@ -1323,7 +1323,8 @@ Fait (2026-10-11) :
 
 - Solides (2026-10-15, décidé avec l'auteur : un objet unique qui dessine
   tout) : `Cylindre(A, B, r)`, `Cône(A, B, r)` (base de centre A, sommet
-  B), `Cube(A, B, C)` (sur le carré ABCD du plan ABC), `Prisme(p, P)`,
+  B), `Cube(A, B, C)` (sur le carré ABCD du plan ABC ; voir plus bas
+  le cube en deux clics), `Prisme(p, P)`,
   `Pyramide(p, S)` sur un polygone p, et `Sphère(O, r)` à côté de
   `Sphère(O, A)`. Un solide est une seule ligne : il dessine ses faces ou
   sa silhouette, ses arêtes ou ses bords (en pointillé derrière) et cache
@@ -1348,6 +1349,22 @@ Fait (2026-10-11) :
   comme les polygones.
   Éditeur +2,5 Ko (+0,75 Ko en gzip) ; moteur +3,3 Ko (+1,1 Ko en gzip,
   avec l'item 33 de `GGB_IMPORT.md`), lecteur inchangé.
+
+- Cube en deux clics (décidé avec l'auteur le 2026-10-15) : deux points
+  ne déterminent pas le plan du carré, sauf s'ils le partagent. Deux
+  points sur un même plan ou polygone donnent `Cube(A, B, p, ±1)`, le
+  cube du côté du plan tourné vers la caméra à sa création, mémorisé
+  (±1 : du côté de la normale de p ou de l'autre) ; deux points libres de
+  même cote, comme sur le sol, `Cube(A, B, 1)`, carré horizontal, cube
+  au-dessus (−1 au-dessous, au clavier). Sinon, le troisième point reste
+  à désigner ; l'aperçu montre le cube dès le survol du deuxième. Ces
+  cubes, comme `Cube(A, B, p)` importé de GeoGebra, sont indéfinis dès
+  que AB n'est plus parallèle au plan, comme dans GeoGebra (DocGeo
+  dessinait un parallélépipède). Les faces d'un solide n'étant pas des
+  objets, deux sommets d'un cube n'en empilent pas un autre. Au passage :
+  un plan tout juste créé n'était pas désignable avant un changement de
+  vue, ses coins n'étant pas projetés. Éditeur +1,0 Ko (+0,4 Ko en
+  gzip) ; moteur +0,6 Ko (+0,2 Ko en gzip), lecteur inchangé.
 
 Reste à faire :
 

@@ -268,6 +268,8 @@ export class polygon_object extends construction_object {
     }
 
     project(): void {
+        // Also when refreshed alone, as just built.
+        this.ownVertices.forEach((vertex) => vertex.project());
         this.projectionDefined =
             this.defined && this.points.every((p) => p.projectionDefined);
         if (!this.projectionDefined) return;

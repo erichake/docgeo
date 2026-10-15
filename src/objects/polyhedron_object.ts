@@ -25,11 +25,19 @@ import {
 import { solid_object } from "./solid_object";
 import { convexHull } from "./sphere_object";
 
-// The cube on the square ABCD of plane ABC, on the side of AB × BC; the
-// prism of a base polygon whose first vertex is translated to P; the
-// pyramid of a base polygon and an apex S.
+// The cube on the square ABCD of plane ABC, on the side of AB × BC, or
+// of a plane, or horizontal, on the side of its normal, or up, times
+// `side` (1 or -1); the prism of a base polygon whose first vertex is
+// translated to P; the pyramid of a base polygon and an apex S.
 export type polyhedron_definition =
     | { tag: "Cube"; points: [point_object, point_object, point_object] }
+    | {
+          tag: "CubP";
+          points: [point_object, point_object];
+          plane: polygon_object;
+          side: number;
+      }
+    | { tag: "CubZ"; points: [point_object, point_object]; side: number }
     | { tag: "Prsm" | "Pyr"; base: polygon_object; point: point_object };
 
 // The cube's faces, by its vertices A..H = 0..7, as GeoGebra's.
@@ -41,6 +49,31 @@ const CUBE_FACES = [
     [3, 2, 6, 7],
     [4, 7, 6, 5],
 ];
+
+// The unit normal of a polygon's plane, that of its first three vertices.
+export function normalOf({ points }: polygon_object): Vec3 | null {
+    const [p, q, r] = points.map((point) => point.coords);
+    return vNormalize(vCross(vSub(q, p), vSub(r, p)));
+}
+
+// Vertices C to H of the cube on AB rising along the unit vector n, its
+// square ABCD on the side of n × AB; none unless n is orthogonal to AB, as
+// in GeoGebra.
+export function cubeVertices(a: Vec3, b: Vec3, n: Vec3 | null): Vec3[] | null {
+    const side = vSub(b, a);
+    const length = vNorm(side);
+    if (!n || !length || Math.abs(vDot(n, side)) > 1e-9 * length) return null;
+    const across = vCross(n, side);
+    const up = vScale(n, length);
+    return [
+        vAdd(b, across),
+        vAdd(a, across),
+        vAdd(a, up),
+        vAdd(b, up),
+        vAdd(vAdd(b, across), up),
+        vAdd(vAdd(a, across), up),
+    ];
+}
 
 // A polyhedron drawn whole: its faces, the far ones first, lit like
 // polygons, and its edges, dashed when only far faces meet there; its
@@ -70,11 +103,12 @@ export class polyhedron_object extends solid_object {
                 { length: count },
                 () => new point_object(c, null, [0, 0, 0]),
             ));
-        if (definition.tag === "Cube") {
-            const [a, b, third] = definition.points;
+        if ("points" in definition) {
+            const [a, b] = definition.points;
             this.vertices = [a, b, ...own(6)];
             this.faces = CUBE_FACES;
-            this.addParents(a, b, third);
+            this.addParents(...definition.points);
+            if (definition.tag === "CubP") this.addParents(definition.plane);
         } else {
             const { base, point } = definition;
             const n = base.vertices.length;
@@ -99,11 +133,16 @@ export class polyhedron_object extends solid_object {
 
     dgo(context: DgoContext): [string, unknown] {
         const d = this.definition;
+        if (!("points" in d))
+            return [d.tag, [d.base, d.point].map(context.index)];
+        const points = d.points.map(context.index);
         return [
             d.tag,
-            (d.tag === "Cube" ? d.points : [d.base, d.point]).map(
-                context.index,
-            ),
+            d.tag === "Cube"
+                ? points
+                : d.tag === "CubP"
+                  ? [...points, context.index(d.plane), d.side]
+                  : [...points, d.side],
         ];
     }
 
@@ -112,27 +151,24 @@ export class polyhedron_object extends solid_object {
         this.defined = this.parents.every((parent) => parent.defined);
         if (!this.defined) return;
         const coords = this.vertices.map((vertex) => vertex.coords);
-        if (d.tag === "Cube") {
-            // AB turned a quarter in plane ABC, and the height.
+        if ("points" in d) {
             const [a, b] = coords;
-            const side = vSub(b, a);
-            const normal = vNormalize(
-                vCross(side, vSub(d.points[2].coords, b)),
+            const along: Vec3 | null =
+                d.tag === "CubP" ? normalOf(d.plane) : [0, 0, 1];
+            const vertices = cubeVertices(
+                a,
+                b,
+                d.tag === "Cube"
+                    ? vNormalize(
+                          vCross(vSub(b, a), vSub(d.points[2].coords, b)),
+                      )
+                    : along && vScale(along, d.side),
             );
-            if (!normal) {
+            if (!vertices) {
                 this.defined = false;
                 return;
             }
-            const across = vCross(normal, side);
-            const up = vScale(normal, vNorm(side));
-            [
-                vAdd(b, across),
-                vAdd(a, across),
-                vAdd(a, up),
-                vAdd(b, up),
-                vAdd(vAdd(b, across), up),
-                vAdd(vAdd(a, across), up),
-            ].forEach((point, i) => (coords[i + 2] = point));
+            vertices.forEach((point, i) => (coords[i + 2] = point));
         } else if (d.tag === "Prsm") {
             const n = d.base.vertices.length;
             const shift = vSub(coords[n], coords[0]);

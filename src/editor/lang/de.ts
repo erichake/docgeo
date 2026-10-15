@@ -253,6 +253,7 @@ const de: Texts = {
         designate_path: "Wählen Sie eine Gerade, einen Kreis oder eine Kurve",
         designate_outline: "Wählen Sie ein Vieleck oder einen Kegelschnitt",
         designate_plane: "Wählen Sie eine Ebene",
+        designate_planar: "Wählen Sie eine Ebene oder ein Vieleck",
         designate_sphere: "Wählen Sie eine Kugel",
         designate_polyhedron: "Wählen Sie einen Polyeder",
         designate_revolution: "Wählen Sie einen Zylinder oder einen Kegel",

@@ -245,6 +245,7 @@ export default {
     designate_path: "Designate a line, a circle or a curve",
     designate_outline: "Designate a polygon or a conic",
     designate_plane: "Designate a plane",
+    designate_planar: "Designate a plane or a polygon",
     designate_sphere: "Designate a sphere",
     designate_polyhedron: "Designate a polyhedron",
     designate_revolution: "Designate a cylinder or a cone",

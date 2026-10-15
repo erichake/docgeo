@@ -249,6 +249,7 @@ const fr: Texts = {
         designate_path: "Désignez une droite, un cercle ou une courbe",
         designate_outline: "Désignez un polygone ou une conique",
         designate_plane: "Désignez un plan",
+        designate_planar: "Désignez un plan ou un polygone",
         designate_sphere: "Désignez une sphère",
         designate_polyhedron: "Désignez un polyèdre",
         designate_revolution: "Désignez un cylindre ou un cône",

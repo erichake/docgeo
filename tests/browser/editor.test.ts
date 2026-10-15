@@ -6,6 +6,7 @@ import { describeDgo, figureObjects, readDgo } from "../../src/dgo";
 import {
     add,
     addPointOn,
+    cubeOn,
     entryOf,
     figureIndex,
     lineOf,
@@ -84,7 +85,7 @@ import type { expression_object } from "../../src/objects/expression_object";
 import type { expression_list_object } from "../../src/objects/expression_list_object";
 import { importGgb } from "../../src/ggb_importer";
 import { createConstruction, disposeFigures, expectClose } from "./figures";
-import { vAdd, vDot, vNorm, vScale, vSub } from "../../src/vec";
+import { vAdd, vDot, vNorm, vScale, vSub, type Vec3 } from "../../src/vec";
 
 disposeFigures();
 
@@ -455,6 +456,61 @@ describe("Editor", () => {
         expect(cube.hides([1, 1, 5])).toBe(false);
         expect(cube.hides([1, 1, -5])).toBe(true);
         expect(cube.hides([1, 1, 1])).toBe(true);
+    });
+
+    it("builds a cube from two points that give its plane", async () => {
+        const { scene: c } = studio(true);
+        ["A = (0, 0, 0)", "B = (2, 0, 0)", "p = z = 1", "q = -z = -1"].forEach(
+            (line) => type(c, line),
+        );
+        // Its corners projected as soon as it is built.
+        expect(
+            pick(c, c.pt3D([1, 1, 1])).map(({ object }) => object.name),
+        ).toEqual(["p", "q"]);
+        const on = (name: string, plane: string, at: Vec3) =>
+            addPointOn(c, name, c.getObj(plane)!, at);
+        const [P, Q, R, S] = [
+            on("P", "p", [0, 0, 1]),
+            on("Q", "p", [2, 0, 1]),
+            on("R", "q", [0, 0, 1]),
+            on("S", "q", [2, 0, 1]),
+        ];
+        const [A, B] = ["A", "B"].map((name) => c.getObj(name)!);
+        const cube = findCommand("Cube")!.overloads[0];
+        const [a, b, d] = [
+            [A, B],
+            [P, Q],
+            [R, S],
+        ].map(([first, second], index) =>
+            add(c, {
+                name: "abd"[index],
+                ...cubeOn(c, cube, [first, second, undefined])!,
+            }),
+        ) as polyhedron_object[];
+        expect(cubeOn(c, cube, [A, P, undefined])).toBe(null);
+        expect(cubeOn(c, cube, [A, B, P])).toBe(null);
+        // Horizontal, above AB.
+        expectClose(a.vertices[2].coords, [2, 2, 0]);
+        expectClose(a.vertices[4].coords, [0, 0, 2]);
+        // On the camera's side, whichever way the plane's normal goes.
+        b.vertices.forEach((vertex, index) =>
+            expectClose(vertex.coords, d.vertices[index].coords),
+        );
+        type(c, "D = (2, 0, 1)");
+        const e = type(c, "e = Cube(A, D, 1)");
+        c.flush();
+        expect(e.defined).toBe(false);
+        const text = lines(c);
+        expect(text.slice(-5)).toEqual([
+            "a = Cube(A, B, 1)",
+            `b = Cube(P, Q, p, ${(b.definition as { side: number }).side})`,
+            `d = Cube(R, S, q, ${(d.definition as { side: number }).side})`,
+            "D = (2, 0, 1)",
+            "e = Cube(A, D, 1)",
+        ]);
+        const other = createConstruction([800, 600]);
+        readDgo(other, await describeDgo(c));
+        expect(lines(other)).toEqual(text);
     });
 
     it("writes and reads planes, sections and nets in space", async () => {

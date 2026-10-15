@@ -237,6 +237,7 @@ const zh: Texts = {
         designate_path: "选择直线、圆或曲线",
         designate_outline: "选择多边形或圆锥曲线",
         designate_plane: "选择一个平面",
+        designate_planar: "选择一个平面或一个多边形",
         designate_sphere: "选择一个球",
         designate_polyhedron: "选择一个多面体",
         designate_revolution: "选择一个圆柱或圆锥",

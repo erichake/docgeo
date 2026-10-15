@@ -279,6 +279,8 @@ sa dérivée par rapport à l'une de ses variables, comme dans DGPad, par
 | `Cone` | cône de base de centre A, de sommet B  | `[A, B, r]` (4, 5)                              |
 | `Disk` | disque d'un cylindre ou d'un cône      | `[solide, 0 ou 1]` (4)                          |
 | `Cube` | cube sur le carré ABCD du plan ABC     | `[A, B, C]` (21)                                |
+| `CubP` | cube sur AB parallèle à un plan        | `[A, B, plan ou polygone, ±1]` (20, 21)         |
+| `CubZ` | cube sur AB, carré ABCD horizontal     | `[A, B, ±1]` (20, 21)                           |
 | `Prsm` | prisme sur un polygone, jusqu'à P      | `[polygone, P]` (21)                            |
 | `Pyr`  | pyramide sur un polygone, de sommet S  | `[polygone, S]` (21)                            |
 | `Pl`   | plan passant par A, B et C             | `[A, B, C]` (19)                                |
@@ -438,7 +440,10 @@ alignement]]` police, `[30, url, l, h, zoom, opacité, u]` image (largeur
 20. `CubV` : de rang k parmi B + w, A + w, A + h, B + h, B + w + h,
     A + w + h, w étant AB tourné d'un quart de tour dans le plan ABC (ou
     parallèle au plan), h la normale de longueur AB du côté de AB × BC (ou
-    de la normale du plan). `Abv` : à la hauteur h (nombre ou formule)
+    de la normale du plan) ; indéfini, comme dans GeoGebra, si AB n'est
+    pas parallèle au plan (à 10⁻⁹ près, relativement). `CubP` et `CubZ`
+    font de même, du côté de la normale du plan (celle de ses trois
+    premiers sommets) ou du haut (0, 0, 1), multipliée par ±1. `Abv` : à la hauteur h (nombre ou formule)
     au-dessus du centre de gravité du polygone (k = −1) ou de son sommet k,
     le long de sa normale tournée vers le haut. `NetV` : P tourné autour de chaque arête OE de sa suite de faces, de f
     fois l'angle de (OC) à la direction qui s'éloigne de Q dans la face
@@ -448,7 +453,7 @@ alignement]]` police, `[30, url, l, h, zoom, opacité, u]` image (largeur
     rencontrent que des faces du fond ; il cache ce qui est derrière lui.
     Le cube a pour sommets A..H = 0..7 : A, B, puis B + w, A + w, A + h,
     B + h, B + w + h, A + w + h (voir `CubV`), C ne donnant que le plan et
-    le côté. Le prisme a pour sommets ceux du polygone puis P et les
+    le côté (`CubP` et `CubZ` : le plan ou l'horizontale, et ±1). Le prisme a pour sommets ceux du polygone puis P et les
     autres sommets du haut, translatés de P moins le premier sommet ; la
     pyramide, ceux du polygone puis S. Le patron (`Net`) se dessine entier,
     ses faces éclairées, celles du fond d'abord : chacune pend à la
@@ -547,28 +552,28 @@ demi-droites et courbes infinies comprimées comme le fait son `PathNormalizer`)
 Défauts par type : `[remplissage, trait, taille, opacité]` (opacité absente :
 non définie).
 
-| Types                                                         | Défauts                                   |
-| ------------------------------------------------------------- | ----------------------------------------- |
-| `Pt`, `On`, `DirP`                                            | `rgb(255,255,255)`, `rgb(80,80,80)`, 6, 0 |
-| `Fix`, `Fp`, `Mid`, `Int`, `CyI`, `PlI`, `Ctr`, `Sym`, `Refl` | `rgb(180,180,180)`, `rgb(80,80,80)`, 6, 0 |
-| `Rot`, `Dil`, `Tra`, `Inv`, `TC`, `Vtx`                       | `rgb(180,180,180)`, `rgb(80,80,80)`, 6, 0 |
-| `CubV`, `Abv`, `NetV`                                         | `rgb(180,180,180)`, `rgb(80,80,80)`, 6, 0 |
-| `Line`, `Par`, `Perp`, `Med`, `EqL`, `Tan`, `PlPl`, `Nrm`     | `rgb(35,141,227)`, `rgb(80,80,80)`, 2     |
-| `Ray`, `Bis`                                                  | `rgb(35,141,227)`, `#993300`, 2           |
-| `Seg`, `Vec`                                                  | `rgb(35,141,227)`, `rgb(180,80,80)`, 4    |
-| `FA`                                                          | `#006633`, `#006633`, 1, 0                |
-| `Ang`                                                         | `#006633`, `#006633`, 4, 0                |
-| `Cir`, `C1`, `C3`, `C3p`, `C3s`, `Arc`, `Sec`, `CyS`, `EqC`   | `#CC66CC`, `#CC66CC`, 2, 0                |
-| `CArc`, `CSec`, `Semi`, `SphC`, `Disk`                        | `#CC66CC`, `#CC66CC`, 2, 0                |
-| `Quad`, `Ell`, `Ell1`, `Hyp`, `Hyp1`, `Prb`, `EqQ`            | `#CC66CC`, `#CC66CC`, 2, 0                |
-| `Sph`, `Sph1`, `Poly`, `RegP`, `PlS`                          | `rgb(35,141,227)`, `rgb(80,80,80)`, 2, 0  |
-| `Cyl`, `Cone`, `Cube`, `Prsm`, `Pyr`, `Net` (opacité 0,4)     | `rgb(35,141,227)`, `rgb(80,80,80)`, 2     |
-| `Pl`, `PlP`, `PlL`, `PlO`, `PlE` (`pl` : 1)                   | `rgb(35,141,227)`, `rgb(80,80,80)`, 2, 0  |
-| `Loc`, `Cur`                                                  | `#0b5b94`, `#0b5b94`, 2                   |
-| `Lst`, `ELst`, `Itr`                                          | `#656148`, `#656148`, 2                   |
-| `Ex`                                                          | `rgb(0,0,178)`, `rgb(0,0,178)`, 7, 0      |
-| `Txt`, `Img`                                                  | `#000000`, `#000000`, 1                   |
-| `Html`                                                        | `#000000`, `#000000`, 3                   |
+| Types                                                                     | Défauts                                   |
+| ------------------------------------------------------------------------- | ----------------------------------------- |
+| `Pt`, `On`, `DirP`                                                        | `rgb(255,255,255)`, `rgb(80,80,80)`, 6, 0 |
+| `Fix`, `Fp`, `Mid`, `Int`, `CyI`, `PlI`, `Ctr`, `Sym`, `Refl`             | `rgb(180,180,180)`, `rgb(80,80,80)`, 6, 0 |
+| `Rot`, `Dil`, `Tra`, `Inv`, `TC`, `Vtx`                                   | `rgb(180,180,180)`, `rgb(80,80,80)`, 6, 0 |
+| `CubV`, `Abv`, `NetV`                                                     | `rgb(180,180,180)`, `rgb(80,80,80)`, 6, 0 |
+| `Line`, `Par`, `Perp`, `Med`, `EqL`, `Tan`, `PlPl`, `Nrm`                 | `rgb(35,141,227)`, `rgb(80,80,80)`, 2     |
+| `Ray`, `Bis`                                                              | `rgb(35,141,227)`, `#993300`, 2           |
+| `Seg`, `Vec`                                                              | `rgb(35,141,227)`, `rgb(180,80,80)`, 4    |
+| `FA`                                                                      | `#006633`, `#006633`, 1, 0                |
+| `Ang`                                                                     | `#006633`, `#006633`, 4, 0                |
+| `Cir`, `C1`, `C3`, `C3p`, `C3s`, `Arc`, `Sec`, `CyS`, `EqC`               | `#CC66CC`, `#CC66CC`, 2, 0                |
+| `CArc`, `CSec`, `Semi`, `SphC`, `Disk`                                    | `#CC66CC`, `#CC66CC`, 2, 0                |
+| `Quad`, `Ell`, `Ell1`, `Hyp`, `Hyp1`, `Prb`, `EqQ`                        | `#CC66CC`, `#CC66CC`, 2, 0                |
+| `Sph`, `Sph1`, `Poly`, `RegP`, `PlS`                                      | `rgb(35,141,227)`, `rgb(80,80,80)`, 2, 0  |
+| `Cyl`, `Cone`, `Cube`, `CubP`, `CubZ`, `Prsm`, `Pyr`, `Net` (opacité 0,4) | `rgb(35,141,227)`, `rgb(80,80,80)`, 2     |
+| `Pl`, `PlP`, `PlL`, `PlO`, `PlE` (`pl` : 1)                               | `rgb(35,141,227)`, `rgb(80,80,80)`, 2, 0  |
+| `Loc`, `Cur`                                                              | `#0b5b94`, `#0b5b94`, 2                   |
+| `Lst`, `ELst`, `Itr`                                                      | `#656148`, `#656148`, 2                   |
+| `Ex`                                                                      | `rgb(0,0,178)`, `rgb(0,0,178)`, 7, 0      |
+| `Txt`, `Img`                                                              | `#000000`, `#000000`, 1                   |
+| `Html`                                                                    | `#000000`, `#000000`, 3                   |
 
 ## État élève
 

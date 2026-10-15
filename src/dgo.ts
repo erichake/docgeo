@@ -230,6 +230,8 @@ export const LOOKS: Record<string, Look> = {
     Cyl: SOLID,
     Cone: SOLID,
     Cube: SOLID,
+    CubP: SOLID,
+    CubZ: SOLID,
     Prsm: SOLID,
     Pyr: SOLID,
     Net: SOLID,
@@ -1513,6 +1515,25 @@ const BUILDERS: Record<string, Builder> = {
                 point_object,
             ],
         }),
+    CubP: (parameters, { c, name, at }) => {
+        const [a, b, plane, side] = list(parameters, 4);
+        check(side === 1 || side === -1);
+        return createPolyhedron(c, name, {
+            tag: "CubP",
+            points: [at(a, point_object), at(b, point_object)],
+            plane: at(plane, polygon_object),
+            side,
+        });
+    },
+    CubZ: (parameters, { c, name, points }) => {
+        const [a, b, side] = list(parameters, 3);
+        check(side === 1 || side === -1);
+        return createPolyhedron(c, name, {
+            tag: "CubZ",
+            points: points([a, b], 2) as [point_object, point_object],
+            side,
+        });
+    },
     Prsm: onPolygon("Prsm"),
     Pyr: onPolygon("Pyr"),
     Net: (parameters, reader) => {

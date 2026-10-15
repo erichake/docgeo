@@ -53,6 +53,8 @@ export type Param =
     // A polygon or a polyhedron.
     | "faceted"
     | "plane"
+    // A plane or a polygon.
+    | "planar"
     | "sphere"
     | "polyhedron"
     // A cylinder or a cone.
@@ -137,6 +139,8 @@ export function accepts(arg: Arg, param: Param): boolean {
             return arg instanceof curve_object;
         case "faceted":
             return kind === "polygon" || arg instanceof polyhedron_object;
+        case "planar":
+            return arg instanceof polygon_object;
         case "polyhedron":
             return arg instanceof polyhedron_object;
         case "revolution":
@@ -294,6 +298,20 @@ function withReal(tag: string, params: Param[], order?: number[]): Overload {
         },
     };
 }
+
+// Objects, then a side, 1 or -1.
+const sided = (tag: string, params: Param[]): Overload => ({
+    params: [...params, "number"],
+    tag,
+    encode: (args, index) => [
+        ...args.slice(0, -1).map((arg) => index(arg as construction_object)),
+        args[params.length],
+    ],
+    decode: (parameters, at) => {
+        const values = parameters as number[];
+        return [...values.slice(0, -1).map(at), values[params.length]];
+    },
+});
 
 // A center of a triangle, of Kimberling's number n (see
 // triangle_center_object.ts).
@@ -615,10 +633,19 @@ export const COMMANDS: Command[] = [
         ],
     },
     // Solids: of axis AB and radius r, the cube on the square ABCD of
-    // plane ABC, a prism or a pyramid on a polygon.
+    // plane ABC, or parallel to a plane or horizontal, on the side of its
+    // normal or up (1) or the other (-1), a prism or a pyramid on a
+    // polygon.
     { name: "Cylinder", overloads: [withReal("Cyl", ["point", "point"])] },
     { name: "Cone", overloads: [withReal("Cone", ["point", "point"])] },
-    { name: "Cube", overloads: [objects("Cube", ["point", "point", "point"])] },
+    {
+        name: "Cube",
+        overloads: [
+            objects("Cube", ["point", "point", "point"]),
+            sided("CubP", ["point", "point", "planar"]),
+            sided("CubZ", ["point", "point"]),
+        ],
+    },
     { name: "Prism", overloads: [objects("Prsm", ["polygon", "point"])] },
     { name: "Pyramid", overloads: [objects("Pyr", ["polygon", "point"])] },
     // Through three points, or a point and a line; through a point,

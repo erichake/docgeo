@@ -243,6 +243,7 @@ const ar: Texts = {
         designate_path: "حدّد مستقيمًا أو دائرة أو منحنى",
         designate_outline: "حدّد مضلعًا أو قطعًا مخروطيًا",
         designate_plane: "حدّد مستوى",
+        designate_planar: "حدّد مستوى أو مضلعًا",
         designate_sphere: "حدّد كرة",
         designate_polyhedron: "حدّد متعدد سطوح",
         designate_revolution: "حدّد أسطوانة أو مخروطًا",

@@ -50,6 +50,7 @@ import {
 import {
     add,
     addPointOn,
+    cubeOn,
     entryOf,
     figureIndex,
     formatArg,
@@ -2716,9 +2717,12 @@ function choose(tool: Tool, { object, at }: Hit): void {
     proceed();
 }
 
-// Builds the object once all its arguments are designated.
+// Builds the object once all its arguments are designated, or a cube
+// from two points that give its plane.
 function proceed(): void {
     const { tool, args } = pending!;
+    const cube = cubeOn(scene(), tool.overload, args);
+    if (cube) return build(cube.overload, cube.args);
     if (tool.overload.variadic || args.includes(undefined)) return prompt();
     build(formOf(tool, args as Arg[]), args as Arg[]);
 }
@@ -2857,7 +2861,9 @@ function updatePreview(screen: Vec2, hits: Hit[]): void {
         missing > 0 &&
         missing <= (overload.tag === "Quad" ? 3 : 1) &&
         STAND_INS[overload.tag];
-    if (missing > 0 && !stand) return clearPreview();
+    // A cube from two points, which may not give its plane.
+    const cube = !!pending && overload.tag === "Cube" && slot === 1;
+    if (missing > 0 && !stand && !cube) return clearPreview();
     const param = paramAt(overload, slot)!;
     const hit = hits.find(({ object }) => accepts(object, param));
     const candidate =
@@ -2865,7 +2871,14 @@ function updatePreview(screen: Vec2, hits: Hit[]): void {
         (param === "point" && free ? ("pointer" as const) : null);
     const c = scene();
     const coords = freeCoords(screen);
-    if (!candidate || (candidate === "pointer" && !coords))
+    if (
+        !candidate ||
+        (candidate === "pointer" &&
+            (!coords ||
+                // Not free there, the cube can't be told.
+                (cube &&
+                    hits.some(({ object }) => accepts(object, "support")))))
+    )
         return clearPreview();
     if (preview?.candidate !== candidate) {
         clearPreview();
@@ -2899,19 +2912,19 @@ function updatePreview(screen: Vec2, hits: Hit[]): void {
             else full[full.indexOf(undefined)] = standIn;
             return standIn;
         });
-        const result = add(
-            c,
-            {
-                name: "‧r",
-                overload: pending
-                    ? formOf(pending.tool, full as Arg[])
-                    : overload,
-                args: full as Arg[],
-            },
-            false,
-        );
-        if (result.hasView) result.dom.addClass("dge-preview");
-        objects.push(result);
+        const form = cube
+            ? cubeOn(c, overload, full)
+            : {
+                  overload: pending
+                      ? formOf(pending.tool, full as Arg[])
+                      : overload,
+                  args: full as Arg[],
+              };
+        if (form) {
+            const result = add(c, { name: "‧r", ...form }, false);
+            if (result.hasView) result.dom.addClass("dge-preview");
+            objects.push(result);
+        }
         preview = {
             candidate,
             objects,

@@ -35,8 +35,9 @@ import { point_on_object } from "../objects/point_on_object";
 import { point_object } from "../objects/point_object";
 import { plane_object } from "../objects/plane_object";
 import { polygon_object } from "../objects/polygon_object";
+import { normalOf } from "../objects/polyhedron_object";
 import { primitive_quadric_object } from "../objects/primitive_quadric_object";
-import type { Vec2, Vec3 } from "../vec";
+import { vDot, vScale, vSub, type Vec2, type Vec3 } from "../vec";
 import {
     commandName,
     COMMANDS,
@@ -678,6 +679,40 @@ export function addPointOn(
     c.invalidateGeometry(point);
     c.flush();
     return point;
+}
+
+// Cube(A, B, C) with A and B alone: two points on one plane or polygon
+// give its square, the cube on the camera's side; two free points at one
+// height, as on the floor, a horizontal square, the cube above.
+export function cubeOn(
+    c: construction,
+    { tag }: Overload,
+    [a, b, third]: (Arg | undefined)[],
+): Omit<Spec, "name"> | null {
+    if (tag !== "Cube" || !b || third) return null;
+    const [, onPlane, horizontal] = findCommand("Cube")!.overloads;
+    const [p, q] = [a, b] as point_object[];
+    if (p instanceof point_on_object && q instanceof point_on_object) {
+        const { support } = p;
+        const normal =
+            support === q.support &&
+            support instanceof polygon_object &&
+            normalOf(support);
+        if (!normal) return null;
+        const { dir, focal } = c.projectionFrame;
+        const facing =
+            focal === undefined
+                ? -vDot(normal, dir!)
+                : vDot(normal, vSub(vScale(dir!, -focal), p.coords));
+        return {
+            overload: onPlane,
+            args: [p, q, support, facing < 0 ? -1 : 1],
+        };
+    }
+    const free = (point: point_object) => entryOf(point, new Map())[0] === "Pt";
+    return free(p) && free(q) && p.coords[2] === q.coords[2]
+        ? { overload: horizontal, args: [p, q, 1] }
+        : null;
 }
 
 export function descendants(

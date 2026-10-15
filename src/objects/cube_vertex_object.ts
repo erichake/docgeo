@@ -1,11 +1,13 @@
 import type { construction } from "../construction";
-import { vAdd, vCross, vNorm, vNormalize, vScale, vSub } from "../vec";
+import { vCross, vNormalize, vSub } from "../vec";
 import type { DgoContext } from "./construction_object";
 import { plane_object } from "./plane_object";
 import { point_object } from "./point_object";
+import { cubeVertices, normalOf } from "./polyhedron_object";
 
 // A vertex of GeoGebra's cube on the square ABCD of plane ABC, on the side
-// of AB × BC, or parallel to a plane, on the side of its normal: of rank k
+// of AB × BC, or parallel to a plane, on the side of its normal, none when
+// AB isn't: of rank k
 // among B + w, A + w, A + h, B + h, B + w + h and A + w + h, w being AB
 // turned a quarter in the square's plane and h its height.
 export class cube_vertex_object extends point_object {
@@ -40,27 +42,23 @@ export class cube_vertex_object extends point_object {
 
     computeGeometry(): void {
         const { A, B, third } = this;
-        const side = vSub(B.coords, A.coords);
-        const normal = vNormalize(
-            third instanceof plane_object
-                ? third.NORMAL
-                : vCross(side, vSub(third.coords, B.coords)),
-        );
-        if (!A.defined || !B.defined || !third.defined || !normal) {
+        const [a, b] = [A.coords, B.coords];
+        const vertices =
+            A.defined &&
+            B.defined &&
+            third.defined &&
+            cubeVertices(
+                a,
+                b,
+                third instanceof plane_object
+                    ? normalOf(third)
+                    : vNormalize(vCross(vSub(b, a), vSub(third.coords, b))),
+            );
+        if (!vertices) {
             this.defined = false;
             return;
         }
-        const across = vCross(normal, side);
-        const up = vScale(normal, vNorm(side));
-        const [a, b] = [A.coords, B.coords];
-        this.coords = [
-            vAdd(b, across),
-            vAdd(a, across),
-            vAdd(a, up),
-            vAdd(b, up),
-            vAdd(vAdd(b, across), up),
-            vAdd(vAdd(a, across), up),
-        ][this.rank];
+        this.coords = vertices[this.rank];
         super.computeGeometry();
     }
 
