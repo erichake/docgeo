@@ -12,7 +12,8 @@ import {
     type Vec3,
 } from "../vec";
 import { construction_object, type DgoContext } from "./construction_object";
-import type { point_object } from "./point_object";
+import { dgoRadius, radiusValue, type circle1_radius } from "./circle1_object";
+import { point_object } from "./point_object";
 import { AMBIENT, LIGHT, pathData, shade } from "./polygon_object";
 
 const CIRCLE_POINTS = 96;
@@ -32,7 +33,7 @@ function circle(center: Vec3, radius: number, u: Vec3, v: Vec3): Vec3[] {
 }
 
 // Andrew's monotone chain.
-function convexHull(points: Vec2[]): Vec2[] {
+export function convexHull(points: Vec2[]): Vec2[] {
     const sorted = [...points].sort((p, q) => p[0] - q[0] || p[1] - q[1]);
     const turn = (o: Vec2, a: Vec2, b: Vec2) =>
         (a[0] - o[0]) * (b[1] - o[1]) - (a[1] - o[1]) * (b[0] - o[0]);
@@ -59,7 +60,8 @@ function convexHull(points: Vec2[]): Vec2[] {
 // hull of the contour's points on that side and of the floor's section.
 export class sphere_object extends construction_object {
     P1: point_object;
-    P2: point_object;
+    // Through a point, or of a radius.
+    P2: point_object | circle1_radius;
     CENTER: Vec3 = [0, 0, 0];
     R = 0;
     projectionDefined = true;
@@ -77,23 +79,40 @@ export class sphere_object extends construction_object {
         c: construction,
         name: string | null | undefined,
         p1: point_object,
-        p2: point_object,
+        p2: point_object | circle1_radius,
     ) {
         super(c, name, "polygon");
         this.familytype = "sphere";
         this.P1 = p1;
         this.P2 = p2;
-        this.addParents(p1, p2);
+        this.addParents(
+            p1,
+            ...(p2 instanceof point_object
+                ? [p2]
+                : typeof p2 === "number"
+                  ? []
+                  : p2.refs.values()),
+        );
     }
 
     dgo(context: DgoContext): [string, unknown] {
-        return ["Sph", [this.P1, this.P2].map(context.index)];
+        const { P1, P2 } = this;
+        return P2 instanceof point_object
+            ? ["Sph", [P1, P2].map(context.index)]
+            : ["Sph1", [context.index(P1), dgoRadius(P2, context)]];
     }
 
     computeGeometry(): void {
-        this.defined = this.P1.defined && this.P2.defined;
-        this.CENTER = this.P1.coords;
-        this.R = vNorm(vSub(this.P2.coords, this.P1.coords));
+        const { P1, P2 } = this;
+        const radius =
+            P2 instanceof point_object
+                ? P2.defined
+                    ? vNorm(vSub(P2.coords, P1.coords))
+                    : null
+                : radiusValue(P2, this.C);
+        this.defined = P1.defined && radius !== null;
+        this.CENTER = P1.coords;
+        this.R = radius ?? 0;
     }
 
     // With the eye at E, the contour is the circle of the points P where
@@ -202,7 +221,7 @@ export function createSphere(
     c: construction,
     name: string | null | undefined,
     p1: point_object,
-    p2: point_object,
+    p2: point_object | circle1_radius,
 ): sphere_object {
     return c.add(new sphere_object(c, name, p1, p2));
 }

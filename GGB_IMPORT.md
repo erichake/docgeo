@@ -85,6 +85,7 @@ figure sont seulement comptés. L'API utilisée est
 | 2026-10-15 | 238 / 438 (54 %)   | 316,4 Ko | item 29 : tangentes natives, aussi aux coniques (+0)               |
 | 2026-10-15 | 238 / 438 (54 %)   | 319,3 Ko | item 30 : inversion, centres, polygone régulier natifs (+0)        |
 | 2026-10-15 | 238 / 438 (54 %)   | 326,8 Ko | item 31 : plans, sections et sommets des solides natifs (+0)       |
+| 2026-10-15 | 238 / 438 (54 %)   | 330,6 Ko | item 32 : cylindre, cône et sphère de rayon donné natifs (+0)      |
 
 ## À faire, par rapport gain / coût
 
@@ -521,14 +522,31 @@ cause.
       régulier et cube posés sur un plan. Les sommets calculés des solides
       deviennent des points natifs : cube (`CubV`), sommets du haut d'un
       prisme (translations), apex et sommet à la hauteur h (`Abv`), bords
-      du cylindre et du cône (`Rim`), sommets d'un patron (`NetV`). Un
+      du cylindre et du cône (`Rim`, remplacés à l'item 32), sommets d'un
+      patron (`NetV`). Un
       polygone projette ses sommets propres avec les points de la figure
       (`ownVertices`), avant les segments dont il cache une partie.
-      Restent approchés par des facettes le cylindre et le cône, et
-      `Sphere(A, r)` passe encore par le point A + (r, 0, 0), que lit
-      l'intersection avec une droite. Corpus inchangé (238 figures sur 438
+      Corpus inchangé (238 figures sur 438
       sans perte, aucun élément perdu), points enregistrés retrouvés comme
       avant. Moteur +7,5 Ko (+1,5 Ko en gzip).
+- [x] **32. Cylindre, cône et sphère de rayon donné natifs** : le
+      cylindre et le cône étaient approchés par 60 facettes (polygones) sur
+      des points de leurs bords, leurs disques par des polygones réguliers.
+      Ils deviennent les objets `Cyl` et `Cone` de `DGO.md`, sous
+      l'étiquette et le style de leur face latérale (celle du solide
+      désignant le même objet), dessinés par leur silhouette ombrée le long
+      de leurs génératrices tournées vers la caméra, deux fois transparente
+      comme GeoGebra dessine aussi leur côté caché ; ils cachent les
+      segments par la profondeur où le rayon de vue les rencontre (paroi et
+      disques), comme leurs facettes. Leurs disques sont des `Disk`, au
+      bord en pointillé là où le solide le cache. L'intersection avec une
+      droite (`CyI`) et la section par un plan (`CyS`) lisent le solide
+      lui-même, ce qui étend la première au cône, et `Sphere(A, r)` n'a
+      plus de point caché A + (r, 0, 0) (`Sph1`). Un solide qui bouge fait
+      recalculer les parties cachées de tous les segments, comme un
+      polygone. Corpus inchangé (238 figures sur 438 sans perte, aucun
+      élément perdu), points enregistrés retrouvés comme avant. Moteur
+      +3,8 Ko (+1,0 Ko en gzip).
 
 À écarter, sauf changement de priorité : calcul formel, courbes implicites,
 statistiques et probabilités, tableur au-delà des cellules simples, matrices.

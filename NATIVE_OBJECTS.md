@@ -126,17 +126,17 @@ de départ (AB), ce qui règle la vitesse de son animation. Le faire par le
 paramètre du point demanderait un paramètre de plus aux points sur objet,
 pour un gain faible ; laissé de côté.
 
-### 6. La 3D — fait pour l'essentiel
+### 6. La 3D — fait
 
 Plans, intersections, sections et sommets des solides (item 31 de
-`GGB_IMPORT.md`). Restent :
+`GGB_IMPORT.md`) ; cylindre, cône et sphère de rayon donné (item 32).
+Restent :
 
-- le cylindre et le cône, approchés par des facettes (désormais sur des
-  points natifs) : de vrais objets de révolution, dessinés par leur
-  silhouette comme la sphère, coûteraient plusieurs Ko ;
-- `Sphere(A, r)`, qui passe par un point caché A + (r, 0, 0) parce que
-  l'intersection droite-sphère (`CyI`) lit deux points ;
-- l'éditeur : aucune commande pour les plans, sections et solides.
+- l'éditeur : aucune commande pour les plans, sections et solides. Il
+  faut d'abord que chaque solide soit un objet unique (une ligne, une
+  entrée `.dgo`), comme le cylindre et le cône aujourd'hui : cube, prisme,
+  pyramide, patron ne sont encore que leurs sommets, faces et arêtes ;
+- la section d'un cône par un plan (une conique), non importée.
 
 ### Hors du chantier
 
@@ -148,4 +148,4 @@ rester des expressions : `Distance`, `Length`, `Slope`, `Corner`,
 
 Corpus : 238 figures sur 438 sans perte, aucun plantage (après le
 correctif du nom d'un segment de longueur nulle, item 24 bis de
-`GGB_IMPORT.md`). Moteur : 326,8 Ko après l'item 6.
+`GGB_IMPORT.md`). Moteur : 330,6 Ko après l'item 6.

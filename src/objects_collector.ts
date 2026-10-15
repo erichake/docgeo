@@ -16,6 +16,9 @@ export class objects_collector {
     // Spheres, whose part in front of the floor clips it, and whose part
     // behind it is drawn by it (see grid_object.renderFloor) :
     spheres: construction_object[] = [];
+    // Cylinders and cones, which hide segments as polygons do (see
+    // hidden_line.ts).
+    solids: construction_object[] = [];
     private grid?: grid_object;
     // Objects with at least one dirty flag, processed by update() :
     private dirty = new Set<construction_object>();
@@ -35,6 +38,7 @@ export class objects_collector {
         this.O[o.name] = o;
         if (o.familytype === "polygon") this.polygons.push(o);
         if (o.familytype === "sphere") this.spheres.push(o);
+        if (o.familytype === "solid") this.solids.push(o);
         if (o instanceof grid_object) this.grid = o;
         return o;
     }
@@ -50,6 +54,7 @@ export class objects_collector {
                 : this.V.filter((object) => !objects.has(object));
         this.polygons = this.polygons.filter((object) => !objects.has(object));
         this.spheres = this.spheres.filter((object) => !objects.has(object));
+        this.solids = this.solids.filter((object) => !objects.has(object));
         objects.forEach((object) => {
             delete this.O[object.name];
             this.dirty.delete(object);
@@ -71,7 +76,12 @@ export class objects_collector {
             object.projectionDirty = true;
             object.renderDirty = true;
             this.dirty.add(object);
-            if (object.familytype === "polygon") touchesPolygon = true;
+            // A cylinder or a cone hides segments as a polygon does.
+            if (
+                object.familytype === "polygon" ||
+                object.familytype === "solid"
+            )
+                touchesPolygon = true;
             if (object.familytype === "sphere") touchesSphere = true;
             descendants.push(...object.children);
         }
@@ -139,7 +149,9 @@ export class objects_collector {
                 object.projectionDirty &&
                 (object instanceof point_object ||
                     object instanceof grid_object ||
-                    object instanceof expression_object)
+                    object instanceof expression_object ||
+                    // Its outline hides segments, as a polygon's points.
+                    object.familytype === "solid")
             ) {
                 object.project();
                 object.projectionDirty = false;

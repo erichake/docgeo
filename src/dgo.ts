@@ -104,7 +104,11 @@ import { createSphereSection } from "./objects/sphere_section_object";
 import { createPlaneSection } from "./objects/plane_section_object";
 import { createCubeVertex } from "./objects/cube_vertex_object";
 import { createAbove } from "./objects/above_object";
-import { createRim } from "./objects/rim_object";
+import {
+    createRevolution,
+    revolution_object,
+} from "./objects/revolution_object";
+import { createDisk } from "./objects/disk_object";
 import { createNetVertex, type net_turn } from "./objects/net_vertex_object";
 import { createSymmetry } from "./objects/symmetry_object";
 import { createText } from "./objects/text_object";
@@ -174,7 +178,6 @@ export const LOOKS: Record<string, Look> = {
     Inv: DERIVED_POINT,
     CubV: DERIVED_POINT,
     Abv: DERIVED_POINT,
-    Rim: DERIVED_POINT,
     NetV: DERIVED_POINT,
     TC: DERIVED_POINT,
     Vtx: DERIVED_POINT,
@@ -203,6 +206,7 @@ export const LOOKS: Record<string, Look> = {
     Sec: CIRCLE,
     CArc: CIRCLE,
     SphC: CIRCLE,
+    Disk: CIRCLE,
     CSec: CIRCLE,
     Semi: CIRCLE,
     CyS: CIRCLE,
@@ -215,6 +219,9 @@ export const LOOKS: Record<string, Look> = {
     Prb: CIRCLE,
     EqQ: CIRCLE,
     Sph: POLYGON,
+    Sph1: POLYGON,
+    Cyl: POLYGON,
+    Cone: POLYGON,
     Poly: POLYGON,
     RegP: POLYGON,
     PlS: POLYGON,
@@ -1047,6 +1054,21 @@ function radius(value: Json, { formula }: Reader): circle1_radius {
     return { formula: node, refs };
 }
 
+// A cylinder or a cone of axis AB and radius r.
+const revolution =
+    (cone: boolean): Builder =>
+    (parameters, reader) => {
+        const [a, b, value] = list(parameters, 3);
+        return createRevolution(
+            reader.c,
+            reader.name,
+            reader.at(a, point_object),
+            reader.at(b, point_object),
+            radius(value, reader),
+            cone,
+        );
+    };
+
 // Through a point, containing a line or orthogonal to it.
 const throughLine =
     (tag: "PlL" | "PlO"): Builder =>
@@ -1293,15 +1315,13 @@ const BUILDERS: Record<string, Builder> = {
         );
     },
     CyI: (parameters, { c, name, at }) => {
-        const [line, a, b, r, order] = list(parameters, 5);
+        const [line, solid, order] = list(parameters, 3);
         check(order === 0 || order === 1);
         return createCylinderIntersection(
             c,
             name,
             at(line, primitive_line_object),
-            at(a, point_object),
-            b === null ? null : at(b, point_object),
-            at(r, point_object),
+            at(solid, revolution_object, sphere_object),
             order,
         );
     },
@@ -1451,16 +1471,29 @@ const BUILDERS: Record<string, Builder> = {
     EqC: equation(createEquationCircle),
     EqQ: equation(createEquationConic),
     Sph: twoPoints(createSphere),
-    CyS: (parameters, { c, name, at, points }) => {
-        check(Array.isArray(parameters) && parameters.length === 4);
-        const [a, b, r] = points((parameters as Json[]).slice(0, 3), 3);
+    CyS: (parameters, { c, name, at }) => {
+        const [solid, plane] = list(parameters, 2);
         return createCylinderSection(
             c,
             name,
-            a,
-            b,
-            r,
-            at((parameters as Json[])[3], plane_object),
+            at(solid, revolution_object),
+            at(plane, plane_object),
+        );
+    },
+    Cyl: revolution(false),
+    Cone: revolution(true),
+    Disk: (parameters, { c, name, at }) => {
+        const [solid, top] = list(parameters, 2);
+        check(top === 0 || top === 1);
+        return createDisk(c, name, at(solid, revolution_object), top === 1);
+    },
+    Sph1: (parameters, reader) => {
+        const [center, value] = list(parameters, 2);
+        return createSphere(
+            reader.c,
+            reader.name,
+            reader.at(center, point_object),
+            radius(value, reader),
         );
     },
     Pl: (parameters, { c, name, points }) =>
@@ -1498,24 +1531,6 @@ const BUILDERS: Record<string, Builder> = {
             points.flatMap((_, index) =>
                 index % 4 ? [] : [points.slice(index, index + 4)],
             ) as net_turn[],
-        );
-    },
-    Rim: (parameters, reader) => {
-        const [a, b, radiusValue, rank, count, top] = list(parameters, 6);
-        check(
-            Number.isInteger(count) &&
-                Number.isInteger(rank) &&
-                (top === 0 || top === 1),
-        );
-        return createRim(
-            reader.c,
-            reader.name,
-            reader.at(a, point_object),
-            reader.at(b, point_object),
-            radius(radiusValue, reader),
-            rank as number,
-            count as number,
-            top === 1,
         );
     },
     Abv: (parameters, reader) => {

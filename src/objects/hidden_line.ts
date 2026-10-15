@@ -22,6 +22,7 @@ import {
 import type { construction_object } from "./construction_object";
 import type { point_object } from "./point_object";
 import type { polygon_object } from "./polygon_object";
+import type { revolution_object } from "./revolution_object";
 import { segment_object } from "./segment_object";
 
 // A sub-range of a segment's parameter (0 at p1, 1 at p2).
@@ -389,6 +390,45 @@ export function hiddenIntervalsBetween(
             );
         }
         candidates.push({ screenPoly, depthDiffAt, opaque: isOpaque(polygon) });
+    });
+
+    // Cylinders and cones, by where the view ray enters them.
+    (c.OBJS.solids as revolution_object[]).forEach((solid) => {
+        const screenPoly = solid.outline;
+        if (
+            !solid.isVisible ||
+            !solid.projectionDefined ||
+            screenPoly.every(([x]) => x < segMinX) ||
+            screenPoly.every(([x]) => x > segMaxX) ||
+            screenPoly.every(([, y]) => y < segMinY) ||
+            screenPoly.every(([, y]) => y > segMaxY)
+        )
+            return;
+        screenPoly.forEach((a, i) => {
+            const b = screenPoly[(i + 1) % screenPoly.length];
+            const t = segmentIntersectionParameter(sP1, sP2, a, b);
+            if (t !== null) breakpoints.add(t);
+        });
+        const segmentDir = vSub(point3D2, point3D1);
+        const depthDiffAt = (t: number): number => {
+            const screen = vAdd(sP1, vScale(vSub(sP2, sP1), t));
+            const point3D =
+                frame.focal === undefined
+                    ? vAdd(point3D1, vScale(segmentDir, t))
+                    : projectPointOnLine(screen, point3D1, segmentDir, frame);
+            const entry = solid.entryDepth(screen);
+            return point3D && entry !== null
+                ? vDot(point3D, dir) - entry
+                : -Infinity;
+        };
+        findDepthCrossings(depthDiffAt, depthDiffAt(0), depthDiffAt(1)).forEach(
+            (t) => breakpoints.add(t),
+        );
+        candidates.push({
+            screenPoly,
+            depthDiffAt,
+            opaque: (solid.opacity ?? 0) >= 1,
+        });
     });
 
     const sorted = [...breakpoints].sort((a, b) => a - b);

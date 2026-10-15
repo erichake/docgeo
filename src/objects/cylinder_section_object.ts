@@ -3,11 +3,9 @@ import type { DOMElement } from "../dom";
 import {
     GEOMETRY_EPSILON,
     vAdd,
-    vCross,
     vDot,
     vIsFinite,
     vNorm,
-    vNormalize,
     vScale,
     vSub,
     type Vec2,
@@ -15,16 +13,14 @@ import {
 } from "../vec";
 import { construction_object, type DgoContext } from "./construction_object";
 import type { plane_object } from "./plane_object";
-import type { point_object } from "./point_object";
+import type { revolution_object } from "./revolution_object";
 
-// Where a plane cuts the side of the cylinder of
-// axis AB through R, like GeoGebra's IntersectPath(plane, cylinder): the
+// Where a plane cuts the side of a cylinder, like GeoGebra's
+// IntersectPath(plane, cylinder): the
 // ellipse CENTER + cos t·U + sin t·V, drawn as an affine image of the unit
 // circle, keeping only its arcs between the planes of the disks.
 export class cylinder_section_object extends construction_object {
-    A: point_object;
-    B: point_object;
-    R: point_object;
+    SOLID: revolution_object;
     PLANE: plane_object;
     CENTER: Vec3 = [0, 0, 0];
     U: Vec3 = [1, 0, 0];
@@ -40,34 +36,24 @@ export class cylinder_section_object extends construction_object {
     constructor(
         c: construction,
         name: string | null | undefined,
-        a: point_object,
-        b: point_object,
-        r: point_object,
+        solid: revolution_object,
         plane: plane_object,
     ) {
         super(c, name, "circle");
-        this.A = a;
-        this.B = b;
-        this.R = r;
+        this.SOLID = solid;
         this.PLANE = plane;
-        this.addParents(a, b, r, plane);
+        this.addParents(solid, plane);
     }
 
     dgo(context: DgoContext): [string, unknown] {
-        return ["CyS", [this.A, this.B, this.R, this.PLANE].map(context.index)];
+        return ["CyS", [this.SOLID, this.PLANE].map(context.index)];
     }
 
     computeGeometry(): void {
         this.defined = false;
-        const { A: a, B: b, R: r, PLANE: plane } = this;
-        if (![a, b, r, plane].every((object) => object.defined)) return;
-        const axis = vSub(b.coords, a.coords);
-        const w = vNormalize(axis);
-        const toR = vSub(r.coords, a.coords);
-        const u = w && vNormalize(vSub(toR, vScale(w, vDot(toR, w))));
-        if (!w || !u) return;
-        const v = vCross(w, u);
-        const radius = vDot(toR, u);
+        const { SOLID: solid, PLANE: plane } = this;
+        if (!solid.defined || !plane.defined) return;
+        const { A: a, AXIS: w, U: u, V: v, R0: radius, HEIGHT: height } = solid;
         const { CENTER: p, NORMAL: normal } = plane;
         const slope = vDot(normal, w);
         if (Math.abs(slope) <= GEOMETRY_EPSILON * vNorm(normal)) return;
@@ -84,7 +70,7 @@ export class cylinder_section_object extends construction_object {
         const phi = Math.atan2(hv, hu);
         // Kept where inner ≤ |t - phi| ≤ outer. A plane orthogonal to the
         // axis (rho = 0) through a disk gives 0/0: the whole ellipse.
-        const top = (vNorm(axis) - h0) / rho;
+        const top = (height - h0) / rho;
         const bottom = -h0 / rho;
         const inner = !(top < 1) ? 0 : top <= -1 ? Math.PI : Math.acos(top);
         const outer = !(bottom > -1)
@@ -157,10 +143,8 @@ export class cylinder_section_object extends construction_object {
 export function createCylinderSection(
     c: construction,
     name: string | null | undefined,
-    a: point_object,
-    b: point_object,
-    r: point_object,
+    solid: revolution_object,
     plane: plane_object,
 ): cylinder_section_object {
-    return c.add(new cylinder_section_object(c, name, a, b, r, plane));
+    return c.add(new cylinder_section_object(c, name, solid, plane));
 }

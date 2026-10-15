@@ -228,7 +228,6 @@ const DERIVATIVE_STEP = 1e-4;
 const SIMPSON_INTERVALS = 1000;
 const REGION_INTERVALS = 200;
 const EXTREMUM_SAMPLES = 16;
-const CYLINDER_SIDES = 60;
 // The samples among which a function's roots are sought.
 const ROOT_SAMPLES = 200;
 const VALUE_KINDS: Kind[] = ["point", "pointOn", "expression"];
@@ -724,12 +723,9 @@ export function translateGgb(
     const segments = new Map<string, [string, string]>();
     // The planes, GeoGebra's xOy plane being z = 0 (see isPlane).
     const planes = new Set<string>();
-    // A cylinder's side, by its axis and a point on it.
-    const cylinders = new Map<string, [string, string, string]>();
-    // The same, for a limited cylinder.
-    const solidCylinders = new Map<string, [string, string, string]>();
-    // A sphere, by its center and a point on it.
-    const spheres = new Map<string, [string, string]>();
+    // A cylinder or a cone, by its solid's or its side's label.
+    const revolutions = new Map<string, { label: string; cone: boolean }>();
+    const spheres = new Set<string>();
     const vectors = new Map<string, [string, string]>();
     // A point of each line, where it is known.
     const lineStarts = new Map<string, string>();
@@ -2037,10 +2033,8 @@ export function translateGgb(
             return true;
         };
 
-    // Cylinder(A, B, r): the bottom and top disks as regular polygons on
-    // their rims (see rim_object), defined first so that they own, and
-    // outline, the edges they share with the lateral faces, which have no
-    // outline. A cone's lateral faces meet at B.
+    // Cylinder(A, B, r), Cone(A, B, r) of apex B: drawn in the style of
+    // GeoGebra's side, which it is, and its disks.
     const revolution =
         (cone: boolean): Handler =>
         ([a, b, radius, extra], [solid, bottom, ...rest]) => {
@@ -2048,45 +2042,26 @@ export function translateGgb(
             const r = formula(radius, VALUE_KINDS);
             if (extra !== undefined || r === null || !points(a, b))
                 return false;
-            const rim = (top: boolean) =>
-                Array.from({ length: CYLINDER_SIDES }, (_, index) => {
-                    const point = auxiliary();
-                    define(point, "point", "Rim", [
-                        ref(a),
-                        ref(b),
-                        literal(r),
-                        literal(index),
-                        literal(CYLINDER_SIDES),
-                        literal(top),
-                    ]);
-                    return point;
-                });
-            const lower = rim(false);
-            const upper = cone ? [] : rim(true);
-            definePolygon(bottom || auxiliary(), lower);
-            if (!cone) {
-                definePolygon(top || auxiliary(), upper);
-                if (solid) solidCylinders.set(solid, [a, b, lower[0]]);
-                if (side) cylinders.set(side, [a, b, lower[0]]);
-            }
-            const element = side && elements.get(side);
-            if (!element) return true;
-            const style = [
-                ...objectStyle(element, "polygon")
-                    .split(";")
-                    .filter((part) => !/^(s|lb):/.test(part)),
-                "s:0",
-            ].join(";");
-            lower.forEach((vertex, index) => {
-                const next = (index + 1) % CYLINDER_SIDES;
-                definePolygon(
-                    auxiliary(),
-                    cone
-                        ? [vertex, lower[next], b]
-                        : [vertex, lower[next], upper[next], upper[index]],
-                    style,
-                );
+            const label = side || solid || auxiliary();
+            define(label, "sphere", cone ? "Cone" : "Cylinder", [
+                ref(a),
+                ref(b),
+                literal(r),
+            ]);
+            [solid, side].forEach((name) => {
+                if (!name) return;
+                revolutions.set(name, { label, cone });
+                objects.set(name, objects.get(label)!);
             });
+            define(bottom || auxiliary(), "circle", "Disk", [
+                ref(label),
+                literal(false),
+            ]);
+            if (!cone)
+                define(top || auxiliary(), "circle", "Disk", [
+                    ref(label),
+                    literal(true),
+                ]);
             return true;
         };
 
@@ -2125,24 +2100,18 @@ export function translateGgb(
             const [path, surface] = is(first, ["line"])
                 ? [first, second]
                 : [second, first];
-            const cylinder = cylinders.get(surface);
-            const sphere = spheres.get(surface);
-            if (cylinder || sphere) {
+            const solid =
+                revolutions.get(surface)?.label ??
+                (spheres.has(surface) ? surface : undefined);
+            if (solid) {
                 if (third !== undefined || !is(path, ["line"])) return false;
                 outputs.slice(0, 2).forEach((label, index) => {
                     if (!label) return;
-                    define(
-                        label,
-                        "point",
-                        cylinder
-                            ? "CylinderIntersection"
-                            : "SphereIntersection",
-                        [
-                            ref(path),
-                            ...(cylinder ?? sphere!).map(ref),
-                            literal(index),
-                        ],
-                    );
+                    define(label, "point", "CylinderIntersection", [
+                        ref(path),
+                        ref(solid),
+                        literal(index),
+                    ]);
                     target(label);
                 });
                 return true;
@@ -2665,16 +2634,13 @@ export function translateGgb(
         // Sphere(A, B) or Sphere(A, r), through B or A + (r, 0, 0).
         Sphere: ([center, through, extra], [label]) => {
             if (extra !== undefined || !points(center)) return false;
-            let point = through;
-            if (!points(through)) {
-                const r = formula(through, VALUE_KINDS);
-                if (r === null) return false;
-                point = formulaPoint(
-                    `${objects.get(center)!.variable}+[${r},0,0]`,
-                );
-            }
-            spheres.set(label, [center, point]);
-            return define(label, "sphere", "Sphere", [ref(center), ref(point)]);
+            const r = !points(through) && formula(through, VALUE_KINDS);
+            if (r === null) return false;
+            spheres.add(label);
+            return define(label, "sphere", r ? "Sphere1" : "Sphere", [
+                ref(center),
+                r ? literal(r) : ref(through),
+            ]);
         },
         // Plane(A, B, C), Plane(A, p) through A parallel to p, Plane(A, f)
         // through A and f.
@@ -2707,11 +2673,10 @@ export function translateGgb(
                     ref(second),
                     ref(first),
                 ]);
-            const cylinder =
-                cylinders.get(second) ?? solidCylinders.get(second);
-            if (cylinder)
+            const cylinder = revolutions.get(second);
+            if (cylinder && !cylinder.cone)
                 return define(label, "section", "CylinderSection", [
-                    ...cylinder.map(ref),
+                    ref(cylinder.label),
                     ref(first),
                 ]);
             const edges = polyhedra.get(second);

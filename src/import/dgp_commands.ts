@@ -19,8 +19,12 @@ import { createNormalLine } from "../objects/normal_line_object";
 import { createSphereSection } from "../objects/sphere_section_object";
 import { createPlaneSection } from "../objects/plane_section_object";
 import { createCubeVertex } from "../objects/cube_vertex_object";
+import {
+    createRevolution,
+    type revolution_object,
+} from "../objects/revolution_object";
+import { createDisk } from "../objects/disk_object";
 import { createAbove } from "../objects/above_object";
-import { createRim } from "../objects/rim_object";
 import { createNetVertex, type net_turn } from "../objects/net_vertex_object";
 import { createTangent, type tangent_support } from "../objects/tangent_object";
 import { createCenter } from "../objects/center_object";
@@ -1872,34 +1876,6 @@ const COMMANDS = new Map<string, CommandDefinition>([
                 ),
         },
     ],
-    [
-        "Rim",
-        {
-            parameters: [
-                string,
-                point,
-                point,
-                formula,
-                number,
-                number,
-                boolean,
-            ],
-            result: "point",
-            validate: (args, lineNumber, variables) =>
-                validateRadius(args[3], lineNumber, variables),
-            execute: (context, args) =>
-                createRim(
-                    context.construction,
-                    args[0] as string,
-                    args[1] as point_object,
-                    args[2] as point_object,
-                    radiusArgument(args[3], context),
-                    args[4] as number,
-                    args[5] as number,
-                    args[6] as boolean,
-                ),
-        },
-    ],
     // Its turns' points, by fours.
     [
         "NetVertex",
@@ -2245,15 +2221,32 @@ const COMMANDS = new Map<string, CommandDefinition>([
                 ),
         },
     ],
-    // Not a DGPad command: GeoGebra's Intersect(line, cylinder), the
-    // cylinder being given by its axis AB and a point R on it.
+    // Not a DGPad command: GeoGebra's Sphere(A, r).
+    [
+        "Sphere1",
+        {
+            parameters: [string, point, formula],
+            result: "sphere",
+            validate: (args, lineNumber, variables) =>
+                validateRadius(args[2], lineNumber, variables),
+            execute: (context, args) =>
+                createSphere(
+                    context.construction,
+                    args[0] as string,
+                    args[1] as point_object,
+                    radiusArgument(args[2], context),
+                ),
+        },
+    ],
+    // Not DGPad commands: GeoGebra's Intersect(line, solid) for a cylinder,
+    // a cone or a sphere.
     [
         "CylinderIntersection",
         {
-            parameters: [string, line, point, point, point, number],
+            parameters: [string, line, object, number],
             result: "point",
             validate: (args, lineNumber) => {
-                const order = (args[5] as { value: number }).value;
+                const order = (args[3] as { value: number }).value;
                 if (order !== 0 && order !== 1)
                     throw new Error(
                         `Invalid intersection order at line ${lineNumber}`,
@@ -2264,29 +2257,56 @@ const COMMANDS = new Map<string, CommandDefinition>([
                     context.construction,
                     args[0] as string,
                     args[1] as primitive_line_object,
-                    args[2] as point_object,
-                    args[3] as point_object,
-                    args[4] as point_object,
-                    args[5] as 0 | 1,
+                    args[2] as revolution_object | sphere_object,
+                    args[3] as 0 | 1,
                 ),
         },
     ],
-    // Not a DGPad command: GeoGebra's IntersectPath(plane, cylinder), the
-    // cylinder being given by its axis AB and a point R on it, the plane by
-    // three of its points.
+    // GeoGebra's Cylinder(A, B, r) and Cone(A, B, r), and their disks.
+    ...[false, true].map((cone): [string, CommandDefinition] => [
+        cone ? "Cone" : "Cylinder",
+        {
+            parameters: [string, point, point, formula],
+            result: "sphere",
+            validate: (args, lineNumber, variables) =>
+                validateRadius(args[3], lineNumber, variables),
+            execute: (context, args) =>
+                createRevolution(
+                    context.construction,
+                    args[0] as string,
+                    args[1] as point_object,
+                    args[2] as point_object,
+                    radiusArgument(args[3], context),
+                    cone,
+                ),
+        },
+    ]),
+    [
+        "Disk",
+        {
+            parameters: [string, object, boolean],
+            result: "circle",
+            execute: (context, args) =>
+                createDisk(
+                    context.construction,
+                    args[0] as string,
+                    args[1] as revolution_object,
+                    args[2] as boolean,
+                ),
+        },
+    ],
+    // Not a DGPad command: GeoGebra's IntersectPath(plane, cylinder).
     [
         "CylinderSection",
         {
-            parameters: [string, point, point, point, object],
+            parameters: [string, object, object],
             result: "section",
             execute: (context, args) =>
                 createCylinderSection(
                     context.construction,
                     args[0] as string,
-                    args[1] as point_object,
-                    args[2] as point_object,
-                    args[3] as point_object,
-                    args[4] as plane_object,
+                    args[1] as revolution_object,
+                    args[2] as plane_object,
                 ),
         },
     ],
@@ -2534,32 +2554,6 @@ const COMMANDS = new Map<string, CommandDefinition>([
                     }),
                 );
             },
-        },
-    ],
-    // Not a DGPad command: GeoGebra's Intersect(line, sphere), the sphere
-    // being given by its center and a point on it.
-    [
-        "SphereIntersection",
-        {
-            parameters: [string, line, point, point, number],
-            result: "point",
-            validate: (args, lineNumber) => {
-                const order = (args[4] as { value: number }).value;
-                if (order !== 0 && order !== 1)
-                    throw new Error(
-                        `Invalid intersection order at line ${lineNumber}`,
-                    );
-            },
-            execute: (context, args) =>
-                createCylinderIntersection(
-                    context.construction,
-                    args[0] as string,
-                    args[1] as primitive_line_object,
-                    args[2] as point_object,
-                    null,
-                    args[3] as point_object,
-                    args[4] as 0 | 1,
-                ),
         },
     ],
     // Not a DGPad command: GeoGebra's Intersect(line, plane), the plane

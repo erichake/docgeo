@@ -61,6 +61,23 @@ export function shade(color: string, factor: number): string {
     return `rgb(${channels.map((channel) => Math.round(channel * factor)).join(",")})`;
 }
 
+// The shade of a surface of unit normal `normal`, lit like GeoGebra's,
+// whichever its side.
+export function lighting(c: construction, normal: Vec3): number {
+    const f = c.projectionFrame;
+    const eye: Vec3 = [
+        vDot(normal, [f.sinPhi, f.cosPhi, 0]),
+        vDot(normal, [
+            f.cosPhi * f.sinTheta,
+            -f.sinPhi * f.sinTheta,
+            -f.cosTheta,
+        ]),
+        vDot(normal, f.dir!),
+    ];
+    const facing = vScale(eye, eye[2] > 0 ? -1 : 1);
+    return AMBIENT + (1 - AMBIENT) * Math.max(0, vDot(facing, LIGHT));
+}
+
 export function pathData(points: readonly Vec2[]): string {
     return points.length === 0
         ? ""
@@ -274,19 +291,7 @@ export class polygon_object extends construction_object {
     private lighting(): number {
         const [a, b, c] = this.points.map((p) => p.coords);
         const normal = vNormalize(vCross(vSub(b, a), vSub(c, a)));
-        if (!normal) return 1;
-        const f = this.C.projectionFrame;
-        const eye: Vec3 = [
-            vDot(normal, [f.sinPhi, f.cosPhi, 0]),
-            vDot(normal, [
-                f.cosPhi * f.sinTheta,
-                -f.sinPhi * f.sinTheta,
-                -f.cosTheta,
-            ]),
-            vDot(normal, f.dir!),
-        ];
-        const facing = vScale(eye, eye[2] > 0 ? -1 : 1);
-        return AMBIENT + (1 - AMBIENT) * Math.max(0, vDot(facing, LIGHT));
+        return normal ? lighting(this.C, normal) : 1;
     }
 
     // A piece behind several planes is drawn beneath the first of them.

@@ -38,7 +38,8 @@ import { sphere_section_object } from "../../src/objects/sphere_section_object";
 import { normal_line_object } from "../../src/objects/normal_line_object";
 import { plane_intersection_object } from "../../src/objects/plane_intersection_object";
 import { plane_section_object } from "../../src/objects/plane_section_object";
-import { rim_object } from "../../src/objects/rim_object";
+import { revolution_object } from "../../src/objects/revolution_object";
+import { disk_object } from "../../src/objects/disk_object";
 import { cube_vertex_object } from "../../src/objects/cube_vertex_object";
 import { net_vertex_object } from "../../src/objects/net_vertex_object";
 import { inversion_object } from "../../src/objects/inversion_object";
@@ -907,10 +908,15 @@ ${[
         await new Promise((resolve) => requestAnimationFrame(resolve));
 
         const [bottom, top] = ["c", "d"].map(
-            (name) => c.getObj(name) as polygon_object,
+            (name) => c.getObj(name) as disk_object,
         );
+        expect(bottom).toBeInstanceOf(disk_object);
         expect(bottom.opacity).toBeCloseTo(0.4, 6);
-        expect(top.outline.getAtt("d")).toMatch(/^M/);
+        const solid = bottom.solid;
+        expect(solid).toBeInstanceOf(revolution_object);
+        expect(solid.parents.slice(0, 2)).toEqual(
+            ["A", "B"].map((name) => c.getObj(name)),
+        );
         const b = c.getObj("B") as point_on_object;
         const [x, y] = c.pt3D([0, 0, 2]);
         b.mousedrag(
@@ -918,19 +924,24 @@ ${[
         );
         await new Promise((resolve) => requestAnimationFrame(resolve));
 
+        // Of radius 2, in the planes orthogonal to AB at A and B.
         [
             [bottom, "A"],
             [top, "B"],
         ].forEach(([disk, name]) => {
             const center = (c.getObj(name as string) as point_object).coords;
-            const vertices = (disk as polygon_object).points;
-            expect(vertices).toHaveLength(60);
-            vertices.forEach((vertex) => {
-                const offset = vSub(vertex.coords, center);
-                expect(vNorm(offset)).toBeCloseTo(2, 9);
-                expect(offset[2]).toBeCloseTo(0, 9);
-            });
+            expectClose((disk as disk_object).CENTER, center);
+            expect((disk as disk_object).R).toBeCloseTo(2, 9);
+            expect((disk as disk_object).NORMAL[2]).toBeCloseTo(1, 9);
         });
+        // Seen from above, the top disk hides nothing, the bottom's far side
+        // is hidden.
+        expect(solid.hides(solid.rim(true, 0))).toBe(false);
+        expect(
+            Array.from({ length: 8 }, (_, k) =>
+                solid.hides(solid.rim(false, (k * Math.PI) / 4)),
+            ),
+        ).toContain(true);
         expect((c.getObj("B") as point_object).coords[2]).toBeCloseTo(2, 6);
     });
 
@@ -1518,7 +1529,8 @@ ${[1, 2, 3, 4, 5]
         ).toBeInstanceOf(plane_object);
         const kinds = (c: construction) =>
             new Set(c.OBJS.V.map((object) => object.constructor));
-        expect(kinds(c)).toContain(rim_object);
+        expect(kinds(c)).toContain(revolution_object);
+        expect(kinds(c)).toContain(disk_object);
         expect(kinds(await open("3d_plan"))).toContain(cube_vertex_object);
         expect(kinds(await open("3d_prisme"))).toContain(translation_object);
         expect(kinds(await open("_patronsCube"))).toContain(net_vertex_object);
@@ -2932,11 +2944,10 @@ ${command("Translate", ["Q", "u"], ["Q1"])}
         ).toEqual(["A", "B", "S"]);
         expect((c.getObj("s1") as segment_object).P2.name).toBe("S");
         expect((c.getObj("t1") as polygon_object).points[2].name).toBe("T");
-        const base = c.getObj("base") as polygon_object;
-        base.points.forEach((vertex) => {
-            expect(vertex.coords[2]).toBeCloseTo(0, 9);
-            expect(vNorm(vertex.coords)).toBeCloseTo(2, 9);
-        });
+        const base = c.getObj("base") as disk_object;
+        expectClose(base.CENTER, [0, 0, 0]);
+        expect(base.R).toBeCloseTo(2, 9);
+        expect(base.solid.cone).toBe(true);
         ["p", "q"].forEach((name, index) =>
             (c.getObj(name) as polygon_object).points.forEach((corner) =>
                 expect(corner.coords[index ? 0 : 2]).toBeCloseTo(3, 9),
