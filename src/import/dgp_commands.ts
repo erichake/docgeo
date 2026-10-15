@@ -80,6 +80,12 @@ import { primitive_line_object } from "../objects/primitive_line_object";
 import { createQuadric5pts } from "../objects/quadric5pts_object";
 import { createFocalConic } from "../objects/focal_conic_object";
 import { createParabola } from "../objects/parabola_object";
+import { createEquationCircle } from "../objects/equation_circle_object";
+import {
+    createEquationConic,
+    type Equation,
+} from "../objects/equation_conic_object";
+import { createEquationLine } from "../objects/equation_line_object";
 import { createRay } from "../objects/ray_line_object";
 import { createReflection } from "../objects/reflection_object";
 import { createSegment, segment_object } from "../objects/segment_object";
@@ -467,6 +473,48 @@ const focalConic = (
             third === point
                 ? (args[3] as point_object)
                 : radiusArgument(args[3], context),
+        ),
+});
+
+// Of an equation, its two sides each a formula in x and y.
+const equationCommand = (
+    result: ObjectKind,
+    create: (
+        c: construction,
+        name: string,
+        equation: Equation,
+    ) => construction_object,
+): CommandDefinition => ({
+    parameters: [string, string, string],
+    result,
+    validate: (args, lineNumber, variables) =>
+        args.slice(1).forEach((arg) => {
+            const node = tryParseFormula(literalString(arg));
+            if (!node)
+                throw new Error(`Invalid DGP equation at line ${lineNumber}`);
+            validateReferences(
+                functionReferences(node, ["x", "y"]),
+                variables,
+                lineNumber,
+            );
+        }),
+    execute: (context, args) =>
+        create(
+            context.construction,
+            args[0] as string,
+            args.slice(1).map((source) => {
+                const node = parseFormula(source as string);
+                return {
+                    node,
+                    source: source as string,
+                    variables: ["x", "y"],
+                    refs: formulaRefs(
+                        functionReferences(node, ["x", "y"]),
+                        context.variables,
+                    ),
+                    vec3: false,
+                };
+            }) as Equation,
         ),
 });
 
@@ -1707,6 +1755,11 @@ const COMMANDS = new Map<string, CommandDefinition>([
                 ),
         },
     ],
+    // Not DGPad commands: GeoGebra's lines, circles and conics given by an
+    // equation.
+    ["EquationLine", equationCommand("line", createEquationLine)],
+    ["EquationCircle", equationCommand("circle", createEquationCircle)],
+    ["EquationConic", equationCommand("quadric", createEquationConic)],
     [
         "Sphere",
         {

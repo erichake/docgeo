@@ -2,6 +2,7 @@ import type { construction } from "../construction";
 import { conicConicIntersectionsXY, type ConicCoeffs } from "./conic_algebra";
 import type { DOMElement } from "../dom";
 import {
+    geometryTolerance,
     numEqual,
     vAdd,
     vCross,
@@ -181,9 +182,88 @@ export abstract class primitive_quadric_object extends construction_object {
         this.COEFFS = coeffs.map((v) => v / norm) as unknown as ConicCoeffs;
     }
 
+    // The conic a·x² + b·xy + c·y² + d·x + e·y + f = 0 of its plane, and its
+    // axes: none for an imaginary ellipse or a pair of lines.
+    protected setConic(coeffs: readonly number[]): void {
+        const norm = Math.hypot(...coeffs);
+        const [a, b, c, d, e, f] = coeffs.map((value) => value / norm);
+        this.COEFFS = [a, b, c, d, e, f];
+        this.defined = false;
+        // The eigenvalues of its quadratic part, along e1 and e2.
+        const theta = Math.atan2(b, a - c) / 2;
+        const half = Math.hypot((a - c) / 2, b / 2);
+        const lambdas = [(a + c) / 2 + half, (a + c) / 2 - half];
+        const e1: Vec2 = [Math.cos(theta), Math.sin(theta)];
+        const e2: Vec2 = [-e1[1], e1[0]];
+        const det = 4 * a * c - b * b;
+        if (Math.abs(det) <= geometryTolerance(a, b, c)) {
+            const curved = Math.abs(lambdas[0]) >= Math.abs(lambdas[1]);
+            const l = lambdas[curved ? 0 : 1];
+            const u = curved ? e1 : e2;
+            const v: Vec2 = [-u[1], u[0]];
+            const du = d * u[0] + e * u[1];
+            const dv = d * v[0] + e * v[1];
+            if (
+                Math.abs(l) <= geometryTolerance(a, b, c) ||
+                Math.abs(dv) <= geometryTolerance(d, e)
+            )
+                return;
+            // s² = 2p·t in the frame of its vertex, u and v.
+            const u0 = -du / (2 * l);
+            const v0 = ((du * du) / (4 * l) - f) / dv;
+            const p = -dv / (2 * l);
+            const at = (s: number, t: number): Vec2 => [
+                (u0 + s) * u[0] + (v0 + t) * v[0],
+                (u0 + s) * u[1] + (v0 + t) * v[1],
+            ];
+            this.setBranches("parabola", at(0, 0), [
+                (s) => at(s, (s * s) / (2 * p)),
+            ]);
+            this.axes = [at(0, 0), at(Math.abs(p), 0), at(0, p)].map(
+                ([x, y]) => [x, y, 0],
+            );
+            return;
+        }
+        const center: Vec2 = [
+            (b * e - 2 * c * d) / det,
+            (b * d - 2 * a * e) / det,
+        ];
+        const f0 = (d * center[0] + e * center[1]) / 2 + f;
+        const [m1, m2] = lambdas.map((lambda) => -f0 / lambda);
+        if (!(m1 > 0 || m2 > 0)) return;
+        // Its transverse axis first.
+        const [r1, r2, u, v] = m1 > 0 ? [m1, m2, e1, e2] : [m2, m1, e2, e1];
+        const [s1, s2] = [Math.sqrt(r1), Math.sqrt(Math.abs(r2))];
+        const end = ([x, y]: Vec2, r: number): Vec3 => [
+            center[0] + r * x,
+            center[1] + r * y,
+            0,
+        ];
+        this.axes = [[...center, 0], end(u, s1), end(v, s2)];
+        if (r2 > 0)
+            this.setEllipse(
+                center,
+                [s1 * u[0], s1 * u[1]],
+                [s2 * v[0], s2 * v[1]],
+            );
+        else
+            this.setBranches(
+                "hyperbola",
+                center,
+                hyperbolaBranches(center, u, s1, v, s2),
+            );
+    }
+
     // Three points of its plane, in plane coordinates, whose affine frame
-    // gives the parameter of a point on it.
-    protected abstract frame(): Vec3[];
+    // gives the parameter of a point on it: by default, its center and the
+    // ends of its semi-axes or, for a parabola, its vertex and two points at
+    // the focus-directrix distance p from it, along the directrix and
+    // towards the focus.
+    protected axes: Vec3[] = [];
+
+    protected frame(): Vec3[] {
+        return this.axes;
+    }
 
     // PointOn's parameter for a quadric: affine coordinates of a (generally
     // off-curve) point in the frame of the conic's own frame() points,

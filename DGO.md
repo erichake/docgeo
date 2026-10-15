@@ -244,6 +244,7 @@ sa dérivée par rapport à l'une de ses variables, comme dans DGPad, par
 | `Par`  | parallèle à d par P                    | `[d, P]`                                        |
 | `Perp` | perpendiculaire à d par P              | `[d, P]`                                        |
 | `Med`  | médiatrice                             | `[A, B]`                                        |
+| `EqL`  | droite d'équation g = d                | `[g, d]` (14)                                   |
 | `Bis`  | bissectrice de l'angle AOB             | `[A, O, B]`                                     |
 | `FA`   | angle fixe : demi-droite [OA) tournée  | `[A, O, degrés ou formule, sens trigo]` (10)    |
 | `Ang`  | angle AOB                              | `[A, O, B]`                                     |
@@ -254,12 +255,14 @@ sa dérivée par rapport à l'une de ses variables, comme dans DGPad, par
 | `C3s`  | idem, dans leur plan de l'espace       | `[A, B, C]`                                     |
 | `Arc`  | arc de A à C passant par B             | `[A, B, C]`                                     |
 | `Sec`  | secteur de A à C passant par B         | `[A, B, C]`                                     |
+| `EqC`  | cercle d'équation g = d                | `[g, d]` (14)                                   |
 | `Quad` | conique passant par cinq points        | `[A, B, C, D, E]`                               |
 | `Ell`  | ellipse de foyers F, G passant par P   | `[F, G, P]`                                     |
 | `Ell1` | ellipse de foyers F, G et demi-axe a   | `[F, G, a]` (5)                                 |
 | `Hyp`  | hyperbole de foyers F, G passant par P | `[F, G, P]`                                     |
 | `Hyp1` | hyperbole de foyers F, G et demi-axe a | `[F, G, a]` (5)                                 |
 | `Prb`  | parabole de foyer F, de directrice d   | `[F, d]`                                        |
+| `EqQ`  | conique d'équation g = d               | `[g, d]` (14)                                   |
 | `Sph`  | sphère de centre O passant par A       | `[O, A]`                                        |
 | `CyS`  | section d'un cylindre par le plan PQR  | `[A, B, R, P, Q, R']` (4)                       |
 | `Poly` | polygone                               | `[A, B, C, …]`                                  |
@@ -348,6 +351,13 @@ alignement]]` police, `[30, url, l, h, zoom, opacité, u]` image (largeur
     en forme des objets et, par `SET_EXP("E", valeur)`, changer le nombre
     d'une `Ex` de valeur constante, comme une manipulation (état élève de
     `E`). Sans `"s"`, il ne fait rien.
+14. `g` et `d` : formules en x et y des deux membres de l'équation, de degré
+    1 pour une droite, 2 au plus pour une conique, recalculés à chaque
+    mouvement. Un cercle a le même coefficient en x² et en y², sans xy ; une
+    conique est une ellipse, une hyperbole ou une parabole selon ses
+    coefficients du moment. Le point P d'une droite (2) est son point le
+    plus proche de l'origine, son vecteur directeur (b, −a) pour
+    l'équation ax + by + c = 0.
 
 ### Styles `st`
 
@@ -443,13 +453,13 @@ non définie).
 | ------------------------------------------------------------- | ----------------------------------------- |
 | `Pt`, `On`, `DirP`                                            | `rgb(255,255,255)`, `rgb(80,80,80)`, 6, 0 |
 | `Fix`, `Fp`, `Mid`, `Int`, `CyI`, `PlI`, `Ctr`, `Sym`, `Refl` | `rgb(180,180,180)`, `rgb(80,80,80)`, 6, 0 |
-| `Line`, `Par`, `Perp`, `Med`                                  | `rgb(35,141,227)`, `rgb(80,80,80)`, 2     |
+| `Line`, `Par`, `Perp`, `Med`, `EqL`                           | `rgb(35,141,227)`, `rgb(80,80,80)`, 2     |
 | `Ray`, `Bis`                                                  | `rgb(35,141,227)`, `#993300`, 2           |
 | `Seg`, `Vec`                                                  | `rgb(35,141,227)`, `rgb(180,80,80)`, 4    |
 | `FA`                                                          | `#006633`, `#006633`, 1, 0                |
 | `Ang`                                                         | `#006633`, `#006633`, 4, 0                |
-| `Cir`, `C1`, `C3`, `C3p`, `C3s`, `Arc`, `Sec`, `CyS`          | `#CC66CC`, `#CC66CC`, 2, 0                |
-| `Quad`, `Ell`, `Ell1`, `Hyp`, `Hyp1`, `Prb`                   | `#CC66CC`, `#CC66CC`, 2, 0                |
+| `Cir`, `C1`, `C3`, `C3p`, `C3s`, `Arc`, `Sec`, `CyS`, `EqC`   | `#CC66CC`, `#CC66CC`, 2, 0                |
+| `Quad`, `Ell`, `Ell1`, `Hyp`, `Hyp1`, `Prb`, `EqQ`            | `#CC66CC`, `#CC66CC`, 2, 0                |
 | `Sph`, `Poly`                                                 | `rgb(35,141,227)`, `rgb(80,80,80)`, 2, 0  |
 | `Loc`, `Cur`                                                  | `#0b5b94`, `#0b5b94`, 2                   |
 | `Lst`, `ELst`, `Itr`                                          | `#656148`, `#656148`, 2                   |

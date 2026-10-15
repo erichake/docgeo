@@ -74,6 +74,12 @@ import { primitive_quadric_object } from "./objects/primitive_quadric_object";
 import { createQuadric5pts } from "./objects/quadric5pts_object";
 import { createFocalConic } from "./objects/focal_conic_object";
 import { createParabola } from "./objects/parabola_object";
+import { createEquationCircle } from "./objects/equation_circle_object";
+import {
+    createEquationConic,
+    type Equation,
+} from "./objects/equation_conic_object";
+import { createEquationLine } from "./objects/equation_line_object";
 import { createRay } from "./objects/ray_line_object";
 import { createReflection } from "./objects/reflection_object";
 import { createSegment, segment_object } from "./objects/segment_object";
@@ -145,6 +151,7 @@ export const LOOKS: Record<string, Look> = {
     Par: LINE,
     Perp: LINE,
     Med: LINE,
+    EqL: LINE,
     Ray: RAY,
     Bis: RAY,
     Seg: SEGMENT,
@@ -159,12 +166,14 @@ export const LOOKS: Record<string, Look> = {
     Arc: CIRCLE,
     Sec: CIRCLE,
     CyS: CIRCLE,
+    EqC: CIRCLE,
     Quad: CIRCLE,
     Ell: CIRCLE,
     Ell1: CIRCLE,
     Hyp: CIRCLE,
     Hyp1: CIRCLE,
     Prb: CIRCLE,
+    EqQ: CIRCLE,
     Sph: POLYGON,
     Poly: POLYGON,
     Loc: CURVE,
@@ -991,6 +1000,33 @@ function radius(value: Json, { formula }: Reader): circle1_radius {
     return { formula: node, refs };
 }
 
+// Of an equation, its two sides each a formula in x and y.
+const equation =
+    (
+        create: (
+            c: construction,
+            name: string | null,
+            equation: Equation,
+        ) => construction_object,
+    ): Builder =>
+    (parameters, { c, name, formula }) =>
+        create(
+            c,
+            name,
+            list(parameters, 2).map((side) => {
+                const { source, refs } = formula(side, construction_object);
+                const node = parseFormula(source);
+                checkNames(formulaIdentifiers(node), refs, ["x", "y"]);
+                return {
+                    node,
+                    source,
+                    variables: ["x", "y"],
+                    refs,
+                    vec3: false,
+                };
+            }) as Equation,
+        );
+
 // The ellipse or the hyperbola of two foci, through a third point or of a
 // semi-major axis.
 const focalConic =
@@ -1231,6 +1267,9 @@ const BUILDERS: Record<string, Builder> = {
             at(directrix, primitive_line_object),
         );
     },
+    EqL: equation(createEquationLine),
+    EqC: equation(createEquationCircle),
+    EqQ: equation(createEquationConic),
     Sph: twoPoints(createSphere),
     CyS: (parameters, { c, name, points }) => {
         const [a, b, r, ...plane] = points(parameters, 6);

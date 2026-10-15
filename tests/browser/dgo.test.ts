@@ -187,6 +187,40 @@ describe(".dgo writer", () => {
             },
         ));
 
+    it("keeps lines, circles and conics of their equation", () =>
+        roundTrip(
+            async (c) =>
+                importGgb(
+                    c,
+                    `<geogebra><construction>
+<element type="numeric" label="a"><value val="2"/></element>
+<expression label="d" exp="y = (a * x) + 1" type="line"/>
+<element type="line" label="d"><coords x="-2" y="1" z="-1"/></element>
+<element type="line" label="w"><coords x="1" y="1" z="-2"/></element>
+<expression label="ell" exp="x^(2) / a^(2) + y^(2) = 1" type="conic"/>
+<element type="conic" label="ell"><matrix A0="0.25" A1="1" A2="-1" A3="0" A4="0" A5="0"/></element>
+<expression label="hyp" exp="y^(2) - x^(2) = a" type="conic"/>
+<element type="conic" label="hyp"><matrix A0="-1" A1="1" A2="-2" A3="0" A4="0" A5="0"/></element>
+<element type="conic" label="par"><matrix A0="0" A1="1" A2="0" A3="0" A4="-4" A5="0"/></element>
+<expression label="c" exp="(x - a)^(2) + y^(2) = 4" type="conic"/>
+<element type="conic" label="c"><matrix A0="1" A1="1" A2="0" A3="0" A4="-2" A5="0"/></element>
+<command name="Point"><input a0="d"/><output a0="A"/></command>
+<element type="point" label="A"><coords x="1" y="3" z="1"/></element>
+<command name="Point"><input a0="ell"/><output a0="B"/></command>
+<element type="point" label="B"><coords x="0" y="1" z="1"/></element>
+<command name="Point"><input a0="par"/><output a0="C"/></command>
+<element type="point" label="C"><coords x="2" y="4" z="1"/></element>
+<command name="Point"><input a0="c"/><output a0="D"/></command>
+<element type="point" label="D"><coords x="4" y="0" z="1"/></element>
+</construction></geogebra>`,
+                ),
+            (c) => {
+                const a = c.getObj("a") as expression_object;
+                a.value = 3;
+                c.invalidateGeometry(a);
+            },
+        ));
+
     it("keeps integrals, sums and slope triangles", () =>
         roundTrip(async (c) =>
             importGgb(

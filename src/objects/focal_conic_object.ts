@@ -1,6 +1,6 @@
 import type { construction } from "../construction";
 import { usesView } from "../import/dgp_formula";
-import { geometryTolerance, numEqual, type Vec2, type Vec3 } from "../vec";
+import { geometryTolerance, numEqual, type Vec2 } from "../vec";
 import { dgoRadius, radiusValue, type circle1_radius } from "./circle1_object";
 import type { DgoContext } from "./construction_object";
 import { point_object } from "./point_object";
@@ -16,8 +16,6 @@ export class focal_conic_object extends primitive_quadric_object {
     G: point_object;
     third: point_object | circle1_radius;
     hyperbola: boolean;
-    // Its center and the ends of its semi-axes.
-    private axes: Vec3[] = [];
 
     constructor(
         c: construction,
@@ -110,10 +108,6 @@ export class focal_conic_object extends primitive_quadric_object {
             [center[0] + a * u[0], center[1] + a * u[1], 0],
             [center[0] + b * v[0], center[1] + b * v[1], 0],
         ];
-    }
-
-    protected frame(): Vec3[] {
-        return this.axes;
     }
 }
 

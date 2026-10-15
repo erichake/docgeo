@@ -1,11 +1,5 @@
 import type { construction } from "../construction";
-import {
-    geometryTolerance,
-    numEqual,
-    vAdd,
-    type Vec2,
-    type Vec3,
-} from "../vec";
+import { geometryTolerance, numEqual, vAdd, type Vec2 } from "../vec";
 import type { DgoContext } from "./construction_object";
 import type { point_object } from "./point_object";
 import type { primitive_line_object } from "./primitive_line_object";
@@ -15,9 +9,6 @@ import { primitive_quadric_object } from "./primitive_quadric_object";
 export class parabola_object extends primitive_quadric_object {
     F: point_object;
     D: primitive_line_object;
-    // Its vertex, and two points at the focus-directrix distance from it,
-    // along d and towards F.
-    private axes: Vec3[] = [];
 
     constructor(
         c: construction,
@@ -75,10 +66,6 @@ export class parabola_object extends primitive_quadric_object {
             [vertex[0] + p * u[0], vertex[1] + p * u[1], 0],
             [vertex[0] + p * w[0], vertex[1] + p * w[1], 0],
         ];
-    }
-
-    protected frame(): Vec3[] {
-        return this.axes;
     }
 }
 

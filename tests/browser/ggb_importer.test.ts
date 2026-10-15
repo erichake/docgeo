@@ -9,6 +9,9 @@ import { circle1_object } from "../../src/objects/circle1_object";
 import { curve_object } from "../../src/objects/curve_object";
 import { cylinder_intersection_object } from "../../src/objects/cylinder_intersection_object";
 import { cylinder_section_object } from "../../src/objects/cylinder_section_object";
+import { equation_circle_object } from "../../src/objects/equation_circle_object";
+import { equation_conic_object } from "../../src/objects/equation_conic_object";
+import { equation_line_object } from "../../src/objects/equation_line_object";
 import { expression_object } from "../../src/objects/expression_object";
 import { focal_conic_object } from "../../src/objects/focal_conic_object";
 import { image_object } from "../../src/objects/image_object";
@@ -2362,6 +2365,26 @@ ${conic("circle", "(x - a)^(2) + y^(2) = 4", [1, 1, 0, 0, -2, 0])}
 </construction></geogebra>`,
             ),
         ).toEqual([]);
+        // Objects of their equation, read by a, without objects in between.
+        (
+            [
+                ["d v", equation_line_object, true],
+                ["w", equation_line_object, false],
+                ["ell hyp hyp2 par tilted", equation_conic_object, true],
+                ["side fixed", equation_conic_object, false],
+                ["circle", equation_circle_object, true],
+            ] as const
+        ).forEach(([labels, kind, read]) =>
+            labels.split(" ").forEach((label) => {
+                const object = c.getObj(label)!;
+                expect(object, label).toBeInstanceOf(kind);
+                expect(
+                    object.parents.filter((parent) =>
+                        c.OBJS.V.includes(parent),
+                    ),
+                ).toEqual(read ? [c.getObj("a")] : []);
+            }),
+        );
         // a·x² + b·xy + c·y² + d·x + e·y + f, and A·x + B·y + C, as each
         // object's own ones, up to a factor.
         const expectLine = (name: string, [A, B, C]: number[]) => {
@@ -2389,9 +2412,9 @@ ${conic("circle", "(x - a)^(2) + y^(2) = 4", [1, 1, 0, 0, -2, 0])}
             expectConic("side", [0, 0, 1, -8, 0, 0]);
             expectConic("tilted", [0, 1, 0, 0, 0, -a]);
             expectConic("fixed", [0.25, 0, 1, 0, 0, -1]);
-            const circle = c.getObj("circle") as circle1_object;
+            const circle = c.getObj("circle") as equation_circle_object;
             expect(circle.R).toBeCloseTo(2, 9);
-            expect(circle.P1.coords[0]).toBeCloseTo(a, 9);
+            expect(circle.CENTER[0]).toBeCloseTo(a, 9);
         };
         check(2);
 

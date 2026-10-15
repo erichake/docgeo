@@ -232,6 +232,12 @@ const CYLINDER_SIDES = 60;
 // The samples among which a function's roots are sought.
 const ROOT_SAMPLES = 200;
 const VALUE_KINDS: Kind[] = ["point", "pointOn", "expression"];
+// An equation's x and y stay its variables, z of the plane is 0.
+const EQUATION_VARIABLES = new Map([
+    ["x", "x"],
+    ["y", "y"],
+    ["z", "0"],
+]);
 // A text also reads a polygon, as its area.
 const TEXT_KINDS: Kind[] = [...VALUE_KINDS, "polygon"];
 
@@ -1990,124 +1996,6 @@ export function translateGgb(
             : null;
     };
 
-    // A conic equation's a, b, c, d, e, f (see equationConic), from its
-    // values at (0, 0), (1, 0), (-1, 0), (0, 1), (0, -1) and (1, 1).
-    const conicCoefficients = (source: string): string[] | null => {
-        const values = equationValues(source, [
-            [0, 0],
-            [1, 0],
-            [-1, 0],
-            [0, 1],
-            [0, -1],
-            [1, 1],
-        ]);
-        if (!values) return null;
-        const [g, p, m, q, n, r] = values;
-        return [
-            `((${p}+${m})/2-${g})`,
-            `(${r}-${p}-${q}+${g})`,
-            `((${q}+${n})/2-${g})`,
-            `((${p}-${m})/2)`,
-            `((${q}-${n})/2)`,
-            g,
-        ];
-    };
-
-    // The conic a·x² + b·xy + c·y² + d·x + e·y + f = 0, reduced as
-    // quadric5pts_object does, through five points in its own frame. Its
-    // kind, which GeoGebra's `saved` coefficients tell, stays that one.
-    const equationConic = (
-        label: string,
-        coefficients: string[],
-        saved: number[],
-    ): boolean => {
-        const terms = ([a, b, c, d, e, f]: string[]) => {
-            const det = `(4*${a}*${c}-${b}^2)`;
-            const [x0, y0] = [
-                `${b}*${e}-2*${c}*${d}`,
-                `${b}*${d}-2*${a}*${e}`,
-            ].map((value) => `((${value})/${det})`);
-            const half = `sqrt(((${a}-${c})/2)^2+(${b}/2)^2)`;
-            const lambdas = [
-                `((${a}+${c})/2+${half})`,
-                `((${a}+${c})/2-${half})`,
-            ];
-            const f0 = `((${d}*${x0}+${e}*${y0})/2+${f})`;
-            return {
-                det,
-                center: `[${x0},${y0}]`,
-                angle: `(atan2(${b},${a}-${c})/2)`,
-                lambdas,
-                mus: lambdas.map((lambda) => `(-${f0}/${lambda})`),
-            };
-        };
-        // GeoGebra's coefficients tell whether it has a center, and
-        // whether it is an ellipse or a hyperbola, whatever their sign: the
-        // axes are chosen as it moves.
-        const known = terms(saved.map((value) => `(${value})`));
-        const [det, m1, m2] = [known.det, ...known.mus].map((term) =>
-            evaluateConstant(term)!,
-        );
-        const [a, b, c] = saved;
-        const { center, angle, lambdas, mus } = terms(coefficients);
-        const [, , , d, e, f] = coefficients;
-        const axes = (t: string): string[] => [
-            `[cos(${t}),sin(${t})]`,
-            `[-sin(${t}),cos(${t})]`,
-        ];
-        let local: string[];
-        if (Math.abs(det) <= 1e-9 * (a * a + b * b + c * c)) {
-            // A parabola, V = kU² in the frame of its axis, U along the
-            // direction it curves in.
-            const [l1, l2] = lambdas.map((lambda) => hiddenExpression(lambda));
-            const flat = hiddenExpression(`abs(${l1})<abs(${l2})`);
-            const [l, t] = [`${flat}?${l2}:${l1}`, `${angle}+${flat}*π/2`].map(
-                (term) => hiddenExpression(term),
-            );
-            const [u, v] = axes(t);
-            const [dp, ep] = [u, v].map((axis) =>
-                hiddenExpression(`dot([${d},${e}],${axis})`),
-            );
-            local = [0, 1, -1, 2, -2].map(
-                (s) =>
-                    `(${s}-${dp}/(2*${l}))*${u}+((${dp}^2/(4*${l})-${f}-${l}*${s * s})/${ep})*${v}`,
-            );
-        } else if (m1 > 0 || m2 > 0) {
-            const [o, t, r1, r2, first] = [
-                center,
-                angle,
-                ...mus.map((mu) => `sqrt(abs(${mu}))`),
-                `${mus[0]}>0`,
-            ].map((term) => hiddenExpression(term));
-            const [u, v] = axes(t);
-            // Five points of x² ± y² = 1, x along the first axis if it
-            // crosses a hyperbola.
-            local = (
-                m1 > 0 && m2 > 0
-                    ? [0, 1, 2, 3, 4].map((k) => [
-                          Math.cos((2 * k * Math.PI) / 5),
-                          Math.sin((2 * k * Math.PI) / 5),
-                      ])
-                    : [
-                          [1, 0],
-                          [-1, 0],
-                          [Math.cosh(1), Math.sinh(1)],
-                          [Math.cosh(1), -Math.sinh(1)],
-                          [-Math.cosh(1), Math.sinh(1)],
-                      ]
-            ).map(
-                ([s, t]) =>
-                    `${o}+(${first}?${s}:${t})*${r1}*${u}+(${first}?${t}:${s})*${r2}*${v}`,
-            );
-        } else return false;
-        return define(
-            label,
-            "quadric",
-            "Quadric",
-            local.map((point) => ref(formulaPoint(point))),
-        );
-    };
-
     // Ellipse(F, G, P) and Hyperbola(F, G, P) through P, or with semi-major
     // axis a.
     const focalConic =
@@ -3807,11 +3695,9 @@ export function translateGgb(
                     : undefined,
             );
         }
-        // GeoGebra saves a line as xX + yY + z = 0, a plane as xX + yY +
-        // zZ + w = 0.
-        const plane = type === "plane3d";
-        if ((type === "line" && !is3D) || plane) {
-            const names = plane ? ["w", "x", "y", "z"] : ["z", "x", "y"];
+        // GeoGebra saves a plane as xX + yY + zZ + w = 0.
+        if (type === "plane3d") {
+            const names = ["w", "x", "y", "z"];
             const values =
                 source === undefined
                     ? names.map(
@@ -3830,39 +3716,62 @@ export function translateGgb(
             if (!values) return false;
             const [g, ...normal] = values;
             const n = `[${normal}]`;
-            const point = formulaPoint(`-${g}*${n}/dot(${n},${n})`);
-            if (plane) return planeThrough(label, point, n);
-            // Along GeoGebra's direction (y, -x).
-            const [x, y] = normal;
-            return define(label, "line", "Line", [
-                ref(point),
-                ref(
-                    formulaPoint(
-                        `${objects.get(point)!.variable}+[${y},-${x}]`,
-                    ),
-                ),
-            ]);
-        }
-        // GeoGebra saves a conic as A0x² + A1y² + A2 + 2A3xy + 2A4x + 2A5y
-        // = 0: a circle when A0 = A1 and A3 = 0.
-        if (type === "conic" && !is3D) {
-            const [a0, a1, a2, a3, a4, a5] = [0, 1, 2, 3, 4, 5].map((index) =>
-                Number(attribute(element, "matrix", `A${index}`)),
+            return planeThrough(
+                label,
+                formulaPoint(`-${g}*${n}/dot(${n},${n})`),
+                n,
             );
-            const saved = [a0, 2 * a3, a1, 2 * a4, 2 * a5, a2];
-            const coefficients =
+        }
+        // A line, a circle or a conic of the plane, of its equation or of
+        // the one GeoGebra saves: xX + yY + z = 0 for a line, A0x² + A1y² +
+        // A2 + 2A3xy + 2A4x + 2A5y = 0 for a conic, a circle when A0 = A1
+        // and A3 = 0.
+        if ((type === "line" || type === "conic") && !is3D) {
+            const line = type === "line";
+            const saved = (
+                line
+                    ? ["x", "y", "z"].map((name) =>
+                          attribute(element, "coords", name),
+                      )
+                    : [0, 1, 2, 3, 4, 5].map((index) =>
+                          attribute(element, "matrix", `A${index}`),
+                      )
+            ).map(Number);
+            const [a0, a1, a2, a3, a4, a5] = saved;
+            const circle = !line && a0 !== 0 && a0 === a1 && a3 === 0;
+            const sides =
                 source === undefined
-                    ? saved.map((value) => `(${value})`)
-                    : conicCoefficients(source);
-            if (!coefficients) return false;
-            if (a0 === 0 || a0 !== a1 || a3 !== 0)
-                return equationConic(label, coefficients, saved);
-            if (!((a4 * a4 + a5 * a5) / (a0 * a0) - a2 / a0 > 0)) return false;
-            const [a, , , d, e, f] = coefficients;
-            return define(label, "circle", "Circle1", [
-                ref(formulaPoint(`[-${d},-${e}]/(2*${a})`)),
-                literal(`sqrt((${d}^2+${e}^2)/(4*${a}^2)-${f}/${a})`),
-            ]);
+                    ? saved.every(Number.isFinite) && [
+                          (line
+                              ? [`${a0}*x`, `${a1}*y`, a2]
+                              : [
+                                    `${a0}*x^2`,
+                                    `${a1}*y^2`,
+                                    a2,
+                                    `${2 * a3}*x*y`,
+                                    `${2 * a4}*x`,
+                                    `${2 * a5}*y`,
+                                ]
+                          ).join("+"),
+                          "0",
+                      ]
+                    : source
+                          .split("=")
+                          .map((side) =>
+                              formula(side, VALUE_KINDS, EQUATION_VARIABLES),
+                          );
+            if (!sides || sides.length !== 2 || sides.includes(null))
+                return false;
+            return define(
+                label,
+                line ? "line" : circle ? "circle" : "quadric",
+                line
+                    ? "EquationLine"
+                    : circle
+                      ? "EquationCircle"
+                      : "EquationConic",
+                (sides as string[]).map(literal),
+            );
         }
         if (type === "numeric" || type === "angle")
             return numeric(label, element);

@@ -79,6 +79,7 @@ figure sont seulement comptés. L'API utilisée est
 | 2026-10-15 | 229 / 438 (52 %)   | 308,7 Ko | item 25 : ellipse, hyperbole et parabole natives (+0)              |
 | 2026-10-14 | —                  | 303,8 Ko | item 24 : noms des objets autres que les points (style, +0)        |
 | 2026-10-15 | 238 / 438 (54 %)   | 308,8 Ko | item 24 bis : pas de nom pour un segment de longueur nulle (+9)    |
+| 2026-10-15 | 238 / 438 (54 %)   | 309,4 Ko | item 26 : droite, cercle et conique d'équation natifs (+0)         |
 
 ## À faire, par rapport gain / coût
 
@@ -432,6 +433,22 @@ cause.
       les 15 plantages dans `nameAt` d'un segment sont antérieurs), points
       enregistrés retrouvés dans les figures qui les utilisent. Moteur
       +2,6 Ko (+0,9 Ko en gzip).
+- [x] **26. Droite, cercle et conique d'équation natifs** : une droite
+      (`y = a x + 1`) était une `Line` par deux points calculés, une
+      conique (`x²/9 + y²/4 = 1`) une `Quadric` par cinq points calculés
+      sur des nombres cachés, un cercle un `Circle1` de centre calculé.
+      Ils deviennent les objets `EqL`, `EqC` et `EqQ` de `DGO.md`
+      (commandes DGP propres à DocGeo `EquationLine`, `EquationCircle`,
+      `EquationConic`), dont les parents sont les objets que lit
+      l'équation, gardée telle que l'auteur l'a écrite : ses deux membres,
+      formules en x et y, donnent les coefficients à chaque mouvement. Une
+      conique d'équation change de nature (ellipse, hyperbole, parabole)
+      avec eux, comme dans GeoGebra ; la réduction d'une conique par ses
+      coefficients est passée de `Quad` à la classe de base. L'image d'une
+      droite ou d'une conique d'équation par une transformation n'est plus
+      construite (aucune figure du corpus ne l'emploie) : elle viendra avec
+      les transformations natives. Corpus inchangé (238 figures sur 438
+      sans perte). Moteur +0,7 Ko (inchangé en gzip).
 
 À écarter, sauf changement de priorité : calcul formel, courbes implicites,
 statistiques et probabilités, tableur au-delà des cellules simples, matrices.

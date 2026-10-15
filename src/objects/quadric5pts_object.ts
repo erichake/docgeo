@@ -1,12 +1,9 @@
 import type { construction } from "../construction";
-import { geometryTolerance, numEqual, type Vec2, type Vec3 } from "../vec";
+import { geometryTolerance, numEqual, type Vec3 } from "../vec";
 import type { ConicCoeffs } from "./conic_algebra";
 import type { DgoContext } from "./construction_object";
 import type { point_object } from "./point_object";
-import {
-    hyperbolaBranches,
-    primitive_quadric_object,
-} from "./primitive_quadric_object";
+import { primitive_quadric_object } from "./primitive_quadric_object";
 
 // Fits a·x² + b·xy + c·y² + d·x + e·y + f = 0 through 5 points: a
 // homogeneous system with a 1-dimensional null space, solved exactly by
@@ -104,81 +101,7 @@ export class quadric5pts_object extends primitive_quadric_object {
             this.COEFFS = null;
             return;
         }
-        this.COEFFS = coeffs;
-        const [a, b, c, d, e, f] = coeffs;
-
-        // Center: where the quadratic form's gradient vanishes. Singular
-        // exactly when the conic has no center, i.e. a parabola (or a fully
-        // degenerate pair of parallel/coincident lines).
-        const m00 = 2 * a,
-            m01 = b,
-            m10 = b,
-            m11 = 2 * c;
-        const det = m00 * m11 - m01 * m10;
-        if (Math.abs(det) <= geometryTolerance(a, b, c)) {
-            const branch = fitParabola(a, b, c, d, e, f);
-            if (!branch) {
-                this.defined = false;
-                return;
-            }
-            this.setBranches("parabola", branch.vertex, [branch.pointAt]);
-            return;
-        }
-        const r0 = -d,
-            r1 = -e;
-        const x0 = (r0 * m11 - m01 * r1) / det;
-        const y0 = (m00 * r1 - m10 * r0) / det;
-        const f0 =
-            a * x0 * x0 + b * x0 * y0 + c * y0 * y0 + d * x0 + e * y0 + f;
-        const center: Vec2 = [x0, y0];
-
-        // Diagonalize the quadratic part (closed-form eigendecomposition of
-        // a symmetric 2x2 matrix) to get the conic's own axis directions.
-        const p = a,
-            q = b / 2,
-            s = c;
-        const theta = 0.5 * Math.atan2(2 * q, p - s);
-        const half = Math.sqrt(((p - s) / 2) ** 2 + q * q);
-        const lambda1 = (p + s) / 2 + half;
-        const lambda2 = (p + s) / 2 - half;
-        const mu1 = -f0 / lambda1;
-        const mu2 = -f0 / lambda2;
-        const e1: Vec2 = [Math.cos(theta), Math.sin(theta)];
-        const e2: Vec2 = [-Math.sin(theta), Math.cos(theta)];
-
-        if (mu1 > 0 && mu2 > 0) {
-            const semiA = Math.sqrt(mu1);
-            const semiB = Math.sqrt(mu2);
-            this.setEllipse(center, scale(e1, semiA), scale(e2, semiB));
-        } else if (mu1 > 0 && mu2 < 0) {
-            this.setBranches(
-                "hyperbola",
-                center,
-                hyperbolaBranches(
-                    center,
-                    e1,
-                    Math.sqrt(mu1),
-                    e2,
-                    Math.sqrt(-mu2),
-                ),
-            );
-        } else if (mu2 > 0 && mu1 < 0) {
-            this.setBranches(
-                "hyperbola",
-                center,
-                hyperbolaBranches(
-                    center,
-                    e2,
-                    Math.sqrt(mu2),
-                    e1,
-                    Math.sqrt(-mu1),
-                ),
-            );
-        } else {
-            // No real locus (imaginary ellipse), or a degenerate pair of
-            // intersecting lines (f0 ≈ 0): nothing to display.
-            this.defined = false;
-        }
+        this.setConic(coeffs);
     }
 
     // Its first 3 points, in plane coordinates.
@@ -187,54 +110,6 @@ export class quadric5pts_object extends primitive_quadric_object {
             this.toPlane(point.coords),
         );
     }
-}
-
-function scale([x, y]: Vec2, k: number): Vec2 {
-    return [x * k, y * k];
-}
-
-// Reduces a·x² + b·xy + c·y² + d·x + e·y + f = 0 to U² = 4pV in the local
-// frame of its own axis (found by rotating away the xy cross term), then
-// completing the square along the flat (axis) direction. Returns null when
-// that reduction has no v-dependence left, i.e. the "parabola" is actually
-// a degenerate pair of parallel lines (or has no real locus).
-function fitParabola(
-    a: number,
-    b: number,
-    c: number,
-    d: number,
-    e: number,
-    f: number,
-): { vertex: Vec2; pointAt: (t: number) => Vec2 } | null {
-    const p = a,
-        q = b / 2,
-        s = c;
-    const theta = 0.5 * Math.atan2(2 * q, p - s);
-    const half = Math.sqrt(((p - s) / 2) ** 2 + q * q);
-    const lambda1 = (p + s) / 2 + half;
-    const lambda2 = (p + s) / 2 - half;
-    const curvedIsFirst = Math.abs(lambda1) >= Math.abs(lambda2);
-    const lambdaCurved = curvedIsFirst ? lambda1 : lambda2;
-    if (Math.abs(lambdaCurved) <= geometryTolerance(a, b, c)) return null;
-    const thetaCurved = curvedIsFirst ? theta : theta + Math.PI / 2;
-    const cosT = Math.cos(thetaCurved),
-        sinT = Math.sin(thetaCurved);
-    const dp = d * cosT + e * sinT;
-    const ep = -d * sinT + e * cosT;
-    if (Math.abs(ep) <= geometryTolerance(d, e)) return null;
-    const uVertex = -dp / (2 * lambdaCurved);
-    const constTerm = f - (dp * dp) / (4 * lambdaCurved);
-    const vVertex = -constTerm / ep;
-    const param = -ep / (4 * lambdaCurved);
-    const rotateBack = (u: number, v: number): Vec2 => [
-        u * cosT - v * sinT,
-        u * sinT + v * cosT,
-    ];
-    return {
-        vertex: rotateBack(uVertex, vVertex),
-        pointAt: (t: number) =>
-            rotateBack(uVertex + t, vVertex + (t * t) / (4 * param)),
-    };
 }
 
 export function createQuadric5pts(
