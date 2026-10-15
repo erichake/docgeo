@@ -2429,6 +2429,63 @@ ${["90*°", "90°", "(540 / n)°", "180 / n * °"]
         ]);
     });
 
+    it("draws Sequences of Sequences, of circles by their radius", () => {
+        const c = createConstruction();
+        expect(
+            importGgb(
+                c,
+                `<geogebra><construction>
+<element type="point" label="A"><coords x="0" y="0" z="1"/></element>
+<element type="numeric" label="m"><value val="2"/><slider min="0" max="5"/></element>
+<expression label="R" exp="{0.5, 0.25}"/>
+<element type="list" label="R"/>
+<command name="Sequence"><input a0="Sequence[Rotate[(i, 0), j * 90°, A], j, 0, 2]" a1="i" a2="1" a3="m"/><output a0="P"/></command>
+<element type="list" label="P"/>
+<expression label="n" exp="Length[P]"/>
+<element type="numeric" label="n"/>
+<command name="Sequence"><input a0="Sequence[Circle[Element[Element[P, i], j], Element[R, j]], j, 1, 3]" a1="i" a2="1" a3="2"/><output a0="c"/></command>
+<element type="list" label="c"/>
+</construction></geogebra>`,
+            ),
+        ).toEqual([]);
+        const items = (name: string) =>
+            (c.getObj(name) as list_object).items.map((values) =>
+                values.map((value) =>
+                    typeof value === "number"
+                        ? value
+                        : (value?.map((v) => Math.round(v * 1e9) / 1e9 || 0) ??
+                          null),
+                ),
+            );
+        expect(items("P")).toEqual([
+            [[1, 0]],
+            [[0, 1]],
+            [[-1, 0]],
+            [[2, 0]],
+            [[0, 2]],
+            [[-2, 0]],
+        ]);
+        expect((c.getObj("n") as expression_object).value).toBe(2);
+        const circles = c.getObj("c") as list_object;
+        expect(circles.nature).toBe("circle");
+        expect(items("c")).toEqual([
+            [[1, 0], 0.5],
+            [[0, 1], 0.25],
+            [[-1, 0], null],
+            [[2, 0], 0.5],
+            [[0, 2], 0.25],
+            [[-2, 0], null],
+        ]);
+        expect(circles.screenItems.map(([center]) => center !== null)).toEqual([
+            true,
+            true,
+            false,
+            true,
+            true,
+            false,
+        ]);
+    });
+
     it("shows objects under boolean conditions, reading lengths and angles", async () => {
         const c = createConstruction();
         expect(

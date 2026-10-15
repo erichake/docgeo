@@ -563,6 +563,21 @@ cause.
       patrons retrouvés aux positions enregistrées. Avec les commandes de
       l'éditeur (plans, sections, patron natif `Net`, `NATIVE_OBJECTS.md`),
       moteur +3,3 Ko (+1,1 Ko en gzip).
+- [x] **34. `Sequence` imbriqués et `Sequence` de cercles** :
+      `tests/dgp/Yves_06/CerclesDeCercles.ggb` (GeoGebra 3.2) dessine des
+      cercles `Circle[Element[Element[LesCtr, j], i], Element[Rayon, j]]`
+      par deux `Sequence` imbriqués, `LesCtr` étant lui-même un `Sequence`
+      de `Sequence` de points tournés : rien n'était dessiné. Fait : une
+      liste de listes (`sub` de `ListFormula`) se lit par `Element` et
+      `Length`, et se dessine aplatie quand la taille de ses listes ne
+      dépend pas de leur indice ; un `Sequence` de `Circle(centre, rayon)`
+      est une nouvelle nature de liste `circle` (centre, rayon), additive
+      dans le `.dgo`, chaque cercle étant tracé par quatre arcs de Bézier,
+      images affines de ceux d'un cercle (juste aussi en 3D, dans le plan
+      xOy). Corpus inchangé (242 figures sur 438 sans perte) : ses
+      `Sequence` imbriqués sont triangulaires (`i, j, n` ; `j, 2, n - i`)
+      ou d'images de polygones. Restent ceux-ci et `Flatten` d'un
+      `Sequence` imbriqué (5 figures). Moteur +1,3 Ko (+0,5 Ko en gzip).
 
 À écarter, sauf changement de priorité : calcul formel, courbes implicites,
 statistiques et probabilités, tableur au-delà des cellules simples, matrices.

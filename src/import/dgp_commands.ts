@@ -2855,7 +2855,8 @@ const COMMANDS = new Map<string, CommandDefinition>([
                     nature !== "line" &&
                     nature !== "label" &&
                     nature !== "polygon" &&
-                    nature !== "polygons"
+                    nature !== "polygons" &&
+                    nature !== "circle"
                 )
                     throw new Error(
                         `Invalid DGP list nature at line ${lineNumber}`,

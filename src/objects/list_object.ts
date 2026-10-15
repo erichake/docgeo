@@ -17,12 +17,12 @@ import {
 } from "./construction_object";
 import { callFunction, formatValue } from "./expression_object";
 import { MAX_SCREEN } from "./point_object";
-import { vNorm, vNormalize, vSub, type Vec2, type Vec3 } from "../vec";
+import { vAdd, vNorm, vNormalize, vSub, type Vec2, type Vec3 } from "../vec";
 
 // "polygon": the points, in turn, bound a filled region; "polygons": each
-// run of defined points bounds one.
+// run of defined points bounds one; "circle": a center and a radius.
 export type ListNature =
-    "point" | "segment" | "line" | "label" | "polygon" | "polygons";
+    "point" | "segment" | "line" | "label" | "polygon" | "polygons" | "circle";
 
 // point/segment/line results are folded into a single <path>, so this only
 // bounds computation (mirrors locus_object's MAX_SAMPLES); label results
@@ -161,17 +161,43 @@ export class list_object extends construction_object {
 
     project(): void {
         this.screenItems = this.items.map((values) =>
-            values.map((value, index) => {
-                // The "label" nature's second formula is a value to format
-                // as text, not a position.
-                if (this.nature === "label" && index > 0) return null;
-                if (value === null || typeof value === "number") return null;
-                const screen = this.C.pt3D([value[0], value[1], value[2] ?? 0]);
-                return screen.every((v) => Math.abs(v) < MAX_SCREEN)
-                    ? screen
-                    : null;
-            }),
+            this.nature === "circle"
+                ? this.circleScreen(values)
+                : values.map((value, index) => {
+                      // The "label" nature's second formula is a value to format
+                      // as text, not a position.
+                      if (this.nature === "label" && index > 0) return null;
+                      if (value === null || typeof value === "number")
+                          return null;
+                      const screen = this.C.pt3D([
+                          value[0],
+                          value[1],
+                          value[2] ?? 0,
+                      ]);
+                      return screen.every((v) => Math.abs(v) < MAX_SCREEN)
+                          ? screen
+                          : null;
+                  }),
         );
+    }
+
+    // The circle's center on the screen, and its images of the x and y
+    // radii: conjugate half-diameters of the drawn ellipse.
+    private circleScreen([
+        center,
+        radius,
+    ]: (FormulaValue | null)[]): (Vec2 | null)[] {
+        const r = radius === null ? null : realPart(radius);
+        if (!center || typeof center === "number" || r === null || r < 0)
+            return [null];
+        const c: Vec3 = [center[0], center[1], center[2] ?? 0];
+        const screen = [c, vAdd(c, [r, 0, 0]), vAdd(c, [0, r, 0])].map(
+            (point) => this.C.pt3D(point),
+        );
+        if (!screen.flat().every((v) => Math.abs(v) < MAX_SCREEN))
+            return [null];
+        const [o, u, v] = screen;
+        return [o, vSub(u, o), vSub(v, o)];
     }
 
     // *************************************************
@@ -267,6 +293,7 @@ export class list_object extends construction_object {
                     if (!p) return "";
                     return `M${p[0] - r} ${p[1]} a${r},${r} 0 1,0 ${2 * r},0 a${r},${r} 0 1,0 ${-2 * r},0`;
                 }
+                if (this.nature === "circle") return ellipsePath(points);
                 const [p1, p2] = points;
                 if (!p1 || !p2) return "";
                 if (this.nature === "segment")
@@ -334,10 +361,20 @@ export class list_object extends construction_object {
             .stl(
                 t.nature === "point"
                     ? `fill:${t.fill_color};stroke:none`
-                    : `fill:${t.nature.startsWith("polygon") ? t.fill_color : "none"};fill-opacity:${t.opacity ?? 0};stroke:${t.stroke_color};stroke-width:${t.size}`,
+                    : `fill:${t.nature === "segment" || t.nature === "line" ? "none" : t.fill_color};fill-opacity:${t.opacity ?? 0};stroke:${t.stroke_color};stroke-width:${t.size}`,
             );
         return dom.add(t.path);
     }
+}
+
+// Four Bézier arcs, exact images of those approximating a circle within
+// 0.03 %: an affine map keeps them on the ellipse's conjugate diameters.
+function ellipsePath([o, u, v]: (Vec2 | null)[]): string {
+    if (!o) return "";
+    const K = 0.5523;
+    const at = (a: number, b: number) =>
+        `${o[0] + a * u![0] + b * v![0]} ${o[1] + a * u![1] + b * v![1]}`;
+    return `M${at(1, 0)}C${at(1, K)} ${at(K, 1)} ${at(0, 1)}C${at(-K, 1)} ${at(-1, K)} ${at(-1, 0)}C${at(-1, -K)} ${at(-K, -1)} ${at(0, -1)}C${at(K, -1)} ${at(1, -K)} ${at(1, 0)}Z`;
 }
 
 export function createList(

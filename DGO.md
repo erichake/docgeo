@@ -352,9 +352,10 @@ sa dérivée par rapport à l'une de ses variables, comme dans DGPad, par
    ou `"s"` (script) ; position `"xy": [x, y]` en pixels, ou attachée à un
    point : `"on": point, "d": [dx, dy]`.
 7. Nature `point`, `segment`, `line`, `label`, `polygon` (région remplie
-   bordée par les points, pris dans l'ordre) ou `polygons` (chaque suite de
-   points définis borne une région, un point indéfini les séparant) ; une
-   seule formule pour `point`, `polygon` et `polygons`. `k` et `count` y
+   bordée par les points, pris dans l'ordre), `polygons` (chaque suite de
+   points définis borne une région, un point indéfini les séparant) ou
+   `circle` (centre, puis rayon, dans le plan xOy) ; une seule formule pour
+   `point`, `polygon` et `polygons`. `k` et `count` y
    sont l'indice et le nombre d'éléments ; dans une figure 3D, les points y
    ont leurs trois coordonnées, comme dans les autres formules.
 8. Texte dont les parties `%formule%` affichent leur valeur, `%%` étant un

@@ -265,6 +265,7 @@ const LIST_NATURES = [
     "label",
     "polygon",
     "polygons",
+    "circle",
 ];
 const ONE_FORMULA: unknown[] = ["point", "polygon", "polygons"];
 

@@ -12,7 +12,8 @@ existant, déjà sandboxé ([dgp_formula.ts](src/import/dgp_formula.ts)).
 List(name, nature, countFormula, formula1 [, formula2]);
 ```
 
-- `nature` : `"point" | "segment" | "line" | "label"`.
+- `nature` : `"point"`, `"segment"`, `"line"`, `"label"`, `"polygon"`,
+  `"polygons"` ou `"circle"`.
 - `countFormula` : une formule DGP (même grammaire que le 2e argument de
   `Point`/`Circle1`), évaluée une fois → `count`.
 - `formula1`/`formula2` : évaluées une fois par indice `k = 0..count-1`.
@@ -20,6 +21,9 @@ List(name, nature, countFormula, formula1 [, formula2]);
     - `"segment"`/`"line"` : 2 formules → les deux extrémités (segment :
       tracé entre elles ; line : tracé à travers, prolongé hors champ).
     - `"label"` : 2 formules → position, puis une valeur numérique à afficher.
+    - `"polygon"`/`"polygons"` : 1 formule → les sommets (`"polygons"` :
+      un point indéfini sépare deux polygones).
+    - `"circle"` : 2 formules → centre, puis rayon (cercle du plan xOy).
 
 Implémentation : [list_object.ts](src/objects/list_object.ts), commande
 enregistrée dans [dgp_commands.ts](src/import/dgp_commands.ts).

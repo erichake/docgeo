@@ -67,6 +67,8 @@ type TextPart = string | { formula: string };
 interface ListFormula {
     count: string;
     item: (n: string) => string | null;
+    // A list of lists: its n-th list, its item being null.
+    sub?: (n: string) => ListFormula | null;
 }
 
 export interface GgbView3D {
@@ -1342,19 +1344,23 @@ export function translateGgb(
                 formula(bound, VALUE_KINDS, locals),
             );
             if (a === null || b === null || s === null) return null;
-            return {
-                // With a margin for the bounds' rounding errors.
-                count: `floor(((${b})-(${a}))/(${s})+1.000001)`,
-                item: (n) =>
-                    formula(
-                        expression,
-                        VALUE_KINDS,
-                        new Map([
-                            ...locals,
-                            [variable, `(${a})+((${n})-1)*(${s})`],
-                        ]),
-                    ),
-            };
+            const at = (n: string) =>
+                new Map([...locals, [variable, `(${a})+((${n})-1)*(${s})`]]);
+            // With a margin for the bounds' rounding errors.
+            const count = `floor(((${b})-(${a}))/(${s})+1.000001)`;
+            const sub = (n: string) => listFormula(expression, at(n));
+            return sub("1")
+                ? { count, item: () => null, sub }
+                : {
+                      count,
+                      item: (n) => formula(expression, VALUE_KINDS, at(n)),
+                  };
+        }
+        if (name === "Element" && args.length === 2) {
+            const n = formula(args[1], VALUE_KINDS, locals);
+            return (
+                (n !== null && listFormula(args[0], locals)?.sub?.(n)) || null
+            );
         }
         // Sequence(b) and Sequence(a, b): the integers up to b.
         if (name === "Sequence" && args.length <= 2)
@@ -1416,6 +1422,25 @@ export function translateGgb(
             );
         }
         return null;
+    };
+
+    // A list of lists as the items of its lists in turn, when their size
+    // doesn't depend on their index.
+    const flatten = (list: ListFormula): ListFormula | null => {
+        if (!list.sub) return list;
+        const row = (n: string) => {
+            const sub = list.sub!(n);
+            return sub && flatten(sub);
+        };
+        const size = row("$a")?.count;
+        if (!size || size !== row("$b")?.count) return null;
+        return {
+            count: `(${list.count})*(${size})`,
+            item: (n) =>
+                row(`floor(((${n})-1)/(${size}))+1`)?.item(
+                    `((${n})-1)%(${size})+1`,
+                ) ?? null,
+        };
     };
 
     const objectStyle = (element: Element, kind: Kind): string => {
@@ -2884,24 +2909,43 @@ export function translateGgb(
             );
         },
         // Sequence(f(i), i, a, b, s): the List of f(a), f(a + s), … up to b,
-        // f being a point, a segment or a polygon. The vertices of the
-        // polygons come in turn, each followed by an undefined point.
+        // f being a point, a segment, a polygon or a circle by its radius,
+        // the Sequences of Sequences drawing all their items. The vertices
+        // of the polygons come in turn, each followed by an undefined point.
         Sequence: (
             [expression, variable, from, to, step = "1", extra],
             [label],
         ) => {
-            const call = commandCall(normalizeBrackets(expression));
+            // The Sequences' innermost expression, and them around one of
+            // its arguments.
+            let around = (end: string) =>
+                `Sequence(${end},${variable},${from},${to},${step})`;
+            let inner = normalizeBrackets(expression);
+            let call = commandCall(inner);
+            while (
+                call?.[0] === "Sequence" &&
+                call[1].length >= 4 &&
+                call[1].length <= 5
+            ) {
+                const [nested, ...bounds] = call[1];
+                const outer = around;
+                around = (end) => outer(`Sequence(${end},${bounds})`);
+                inner = nested;
+                call = commandCall(inner);
+            }
+            const circle =
+                call?.[0] === "Circle" &&
+                call[1].length === 2 &&
+                !points(call[1][1]);
             const ends =
                 call &&
-                ((call[0] === "Segment" && call[1].length === 2) ||
+                (circle ||
+                    (call[0] === "Segment" && call[1].length === 2) ||
                     (call[0] === "Polygon" && call[1].length > 2))
                     ? call[1]
-                    : [expression];
-            const sequences = ends.map((end) =>
-                listFormula(
-                    `Sequence(${end},${variable},${from},${to},${step})`,
-                ),
-            );
+                    : [inner];
+            const nested = ends.map((end) => listFormula(around(end)));
+            const sequences = nested.map((list) => list && flatten(list));
             if (
                 extra !== undefined ||
                 !IDENTIFIER.test(variable) ||
@@ -2915,7 +2959,7 @@ export function translateGgb(
             );
             if (items.includes(null)) return false;
             const [list] = sequences as ListFormula[];
-            if (ends.length === 1) lists.set(label, list);
+            if (ends.length === 1) lists.set(label, nested[0]!);
             const element = elements.get(label);
             const size = element && attribute(element, "pointSize", "val");
             return define(
@@ -2926,9 +2970,11 @@ export function translateGgb(
                     literal(
                         polygon
                             ? "polygons"
-                            : ends.length === 2
-                              ? "segment"
-                              : "point",
+                            : circle
+                              ? "circle"
+                              : ends.length === 2
+                                ? "segment"
+                                : "point",
                     ),
                     literal(polygon ? `${n}*${list.count}` : list.count),
                     ...(polygon ? [`[${items},0/0][k%${n}]`] : items).map(
