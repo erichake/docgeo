@@ -232,6 +232,9 @@ sa dérivée par rapport à l'une de ses variables, comme dans DGPad, par
 | `Mid`  | milieu                                 | `[A, B]`                                        |
 | `Sym`  | symétrique de P par rapport à O        | `[O, P]`                                        |
 | `Refl` | symétrique de P par rapport à d        | `[d, P]`                                        |
+| `Rot`  | P tourné autour de O                   | `[O, P, a]`, `[O, P, a, d]` (15)                |
+| `Dil`  | image de P par l'homothétie (O, k)     | `[O, P, k]` (15)                                |
+| `Tra`  | P translaté du vecteur u               | `[u, P]` (15)                                   |
 | `Ctr`  | centre d'un cercle                     | `[cercle]`                                      |
 | `DirP` | P + vecteur directeur unitaire de d    | `[d, P]`                                        |
 | `PlI`  | intersection droite-plan (ABC)         | `[d, A, B, C]`                                  |
@@ -358,6 +361,13 @@ alignement]]` police, `[30, url, l, h, zoom, opacité, u]` image (largeur
     coefficients du moment. Le point P d'une droite (2) est son point le
     plus proche de l'origine, son vecteur directeur (b, −a) pour
     l'équation ax + by + c = 0.
+15. `O` : centre, `null` pour l'origine. `a` (angle, dans l'unité d'angle de
+    la figure) et `k` (rapport) : nombre ou formule, comme `r` (5), sans
+    glisser. La rotation garde la hauteur de P (axe vertical par O) ; avec
+    une droite `d`, elle tourne autour de d, ou de sa parallèle par O, dans
+    le sens direct autour de son vecteur directeur. `u` : un vecteur
+    (`Vec`), un point (son vecteur position) ou une formule dont la valeur
+    est un vecteur.
 
 ### Styles `st`
 
@@ -453,6 +463,7 @@ non définie).
 | ------------------------------------------------------------- | ----------------------------------------- |
 | `Pt`, `On`, `DirP`                                            | `rgb(255,255,255)`, `rgb(80,80,80)`, 6, 0 |
 | `Fix`, `Fp`, `Mid`, `Int`, `CyI`, `PlI`, `Ctr`, `Sym`, `Refl` | `rgb(180,180,180)`, `rgb(80,80,80)`, 6, 0 |
+| `Rot`, `Dil`, `Tra`                                           | `rgb(180,180,180)`, `rgb(80,80,80)`, 6, 0 |
 | `Line`, `Par`, `Perp`, `Med`, `EqL`                           | `rgb(35,141,227)`, `rgb(80,80,80)`, 2     |
 | `Ray`, `Bis`                                                  | `rgb(35,141,227)`, `#993300`, 2           |
 | `Seg`, `Vec`                                                  | `rgb(35,141,227)`, `rgb(180,80,80)`, 4    |

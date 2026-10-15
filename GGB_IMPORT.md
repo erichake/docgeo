@@ -80,6 +80,7 @@ figure sont seulement comptés. L'API utilisée est
 | 2026-10-14 | —                  | 303,8 Ko | item 24 : noms des objets autres que les points (style, +0)        |
 | 2026-10-15 | 238 / 438 (54 %)   | 308,8 Ko | item 24 bis : pas de nom pour un segment de longueur nulle (+9)    |
 | 2026-10-15 | 238 / 438 (54 %)   | 309,4 Ko | item 26 : droite, cercle et conique d'équation natifs (+0)         |
+| 2026-10-15 | 238 / 438 (54 %)   | 313,3 Ko | item 27 : rotation, homothétie et translation natives (+0)         |
 
 ## À faire, par rapport gain / coût
 
@@ -449,6 +450,20 @@ cause.
       construite (aucune figure du corpus ne l'emploie) : elle viendra avec
       les transformations natives. Corpus inchangé (238 figures sur 438
       sans perte). Moteur +0,7 Ko (inchangé en gzip).
+- [x] **27. Rotation, homothétie et translation natives** : l'image d'un
+      point par `Rotate`, `Dilate` et `Translate` était un point formule.
+      Elle devient les objets `Rot`, `Dil` et `Tra` de `DGO.md` (commandes
+      DGP propres à DocGeo `Rotation`, `AxisRotation`, `Dilation`,
+      `Translation`, `Translation1`), de parents les arguments de
+      GeoGebra : centre (l'origine sans lui), angle ou rapport (nombre ou
+      formule), axe en 3D (une droite ou un vecteur, ou leur parallèle par
+      un point), vecteur, point (son vecteur position) ou formule. Les
+      images de segments, polygones, coniques… restent construites sur les
+      images de leurs points (`shapes`). Corpus : 238 figures sur 438 sans
+      perte, inchangé, mais deux figures perdent moins d'éléments (16 → 9
+      et 9 → 7) : un axe de rotation n'a plus besoin d'un point connu de la
+      traduction ; leurs images tombent sur les positions enregistrées par
+      GeoGebra. Moteur +3,6 Ko (+0,7 Ko en gzip).
 
 À écarter, sauf changement de priorité : calcul formel, courbes implicites,
 statistiques et probabilités, tableur au-delà des cellules simples, matrices.

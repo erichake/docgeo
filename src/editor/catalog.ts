@@ -13,6 +13,7 @@ import { primitive_quadric_object } from "../objects/primitive_quadric_object";
 import { segment_object } from "../objects/segment_object";
 import { sphere_object } from "../objects/sphere_object";
 import { two_points_line_object } from "../objects/two_points_line_object";
+import { vector_object } from "../objects/vector_object";
 import { STYLE_NUMBER } from "../import/dgp_expression";
 import { TEXTS } from "./messages";
 import { formatName } from "./text";
@@ -42,6 +43,7 @@ export type Param =
     | "pointOn"
     | "line"
     | "segment"
+    | "vector"
     | "circle"
     | "intersectable"
     // Intersectable, but not a line.
@@ -109,6 +111,8 @@ export function accepts(arg: Arg, param: Param): boolean {
             return arg instanceof point_on_object;
         case "segment":
             return arg instanceof segment_object;
+        case "vector":
+            return arg instanceof vector_object;
         case "intersectable":
             return (
                 kind === "line" ||
@@ -225,15 +229,17 @@ const numbered = (params: Param[]): Overload => ({
     },
 });
 
-// Objects, then a number.
-function withReal(tag: string, params: Param[]): Overload {
+// Objects, then a number, the entry listing the objects in this order of
+// the arguments.
+function withReal(tag: string, params: Param[], order?: number[]): Overload {
+    const positions = order ?? params.map((_, index) => index);
     return {
         params: [...params, "real"],
         tag,
         encode: (args, index) => [
-            ...args
-                .slice(0, -1)
-                .map((arg) => index(arg as construction_object)),
+            ...positions.map((position) =>
+                index(args[position] as construction_object),
+            ),
             realParameter(args[params.length], index),
         ],
         decode: (parameters, at) => {
@@ -244,9 +250,12 @@ function withReal(tag: string, params: Param[]): Overload {
                 return null;
             const arg = realArgument(parameters[params.length], at);
             const objects = parameters.slice(0, -1);
-            return objects.every(isIndex) && arg !== null
-                ? [...objects.map(at), arg]
-                : null;
+            if (!objects.every(isIndex) || arg === null) return null;
+            const args: Arg[] = [];
+            positions.forEach(
+                (position, k) => (args[position] = at(objects[k])),
+            );
+            return [...args, arg];
         },
     };
 }
@@ -429,6 +438,19 @@ export const COMMANDS: Command[] = [
             objects("Sym", ["point", "point"], [1, 0]),
             objects("Refl", ["point", "line"], [1, 0]),
         ],
+    },
+    // Of a point P: around O by an angle, of center O and ratio k, by u.
+    {
+        name: "Rotation",
+        overloads: [withReal("Rot", ["point", "point"], [1, 0])],
+    },
+    {
+        name: "Dilation",
+        overloads: [withReal("Dil", ["point", "point"], [1, 0])],
+    },
+    {
+        name: "Translation",
+        overloads: [objects("Tra", ["point", "vector"], [1, 0])],
     },
     {
         name: "Conic",

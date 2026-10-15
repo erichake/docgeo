@@ -2937,32 +2937,31 @@ export function translateGgb(
         },
         Mirror: mirror,
         Reflect: mirror,
-        // Rotate(P, a, C) as P + (R(a) - I)(P - C), which keeps P's height
-        // in 3D; C defaults to the origin.
+        // Rotate(P, a, C), keeping P's height; C defaults to the origin.
+        // In space, around a line, or around the axis through a point
+        // along a vector or a line.
         Rotate: transform(([angle, center, axis]) => {
             const a = formula(angle, VALUE_KINDS);
-            if (a === null) return null;
-            // In space, around a line, or around the axis through a point
-            // along a vector or a line.
             const line = axis ?? (points(center) ? undefined : center);
-            if (line !== undefined) {
-                const origin = axis ? center : linePoint(line);
-                const k = unitDirection(line);
-                if (!points(origin) || !k) return null;
-                return (p, label) =>
-                    formulaPoint(
-                        turn3D(
-                            objects.get(p)!.variable,
-                            objects.get(origin!)!.variable,
-                            k,
-                            a,
-                        ),
-                        label,
-                    );
-            }
-            const c = center && objects.get(center)!.variable;
+            if (
+                a === null ||
+                (line !== undefined && !is(line, ["line"])) ||
+                (axis !== undefined && !points(center))
+            )
+                return null;
             return (p, label) =>
-                formulaPoint(turn(objects.get(p)!.variable, a, c), label);
+                line === undefined
+                    ? define(label, "point", "Rotation", [
+                          ref(p),
+                          literal(a),
+                          ...(center ? [ref(center)] : []),
+                      ])
+                    : define(label, "point", "AxisRotation", [
+                          ref(p),
+                          literal(a),
+                          ref(line),
+                          ...(axis ? [ref(center)] : []),
+                      ]);
         }),
         Dilate: transform(([factor, center, extra]) => {
             const k = formula(factor, VALUE_KINDS);
@@ -2972,26 +2971,34 @@ export function translateGgb(
                 (center !== undefined && !points(center))
             )
                 return null;
-            const c = center && objects.get(center)!.variable;
-            return (p, label) => {
-                const v = objects.get(p)!.variable;
-                formulaPoint(
-                    c ? `${c}+(${v}-${c})*(${k})` : `${v}*(${k})`,
-                    label,
-                );
-            };
+            return (p, label) =>
+                define(label, "point", "Dilation", [
+                    ref(p),
+                    literal(k),
+                    ...(center ? [ref(center)] : []),
+                ]);
         }),
         Vector: ([p, q], [label]) => {
             if (!points(p, q)) return false;
             vectors.set(label, [p, q]);
             return define(label, "line", "Vector", [ref(p), ref(q)]);
         },
-        // By a vector, or a point's position vector.
+        // By a vector, a point's position vector or a formula.
         Translate: transform(([vector, extra]) => {
-            const v = extra === undefined && formula(vector, VALUE_KINDS);
+            if (extra !== undefined) return null;
+            if (vectors.has(vector) || points(vector))
+                return (p, label) =>
+                    define(label, "point", "Translation", [
+                        ref(p),
+                        ref(vector),
+                    ]);
+            const v = formula(vector, VALUE_KINDS);
             return v
                 ? (p, label) =>
-                      formulaPoint(`${objects.get(p)!.variable}+(${v})`, label)
+                      define(label, "point", "Translation1", [
+                          ref(p),
+                          literal(v),
+                      ])
                 : null;
         }),
         // Iteration(Flatten(Zip({f1(k), f2(k), …}, k, m)), m, {s1, …}, n):

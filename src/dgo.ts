@@ -80,6 +80,12 @@ import {
     type Equation,
 } from "./objects/equation_conic_object";
 import { createEquationLine } from "./objects/equation_line_object";
+import { createDilation } from "./objects/dilation_object";
+import { createRotation } from "./objects/rotation_object";
+import {
+    createTranslation,
+    type translation_vector,
+} from "./objects/translation_object";
 import { createRay } from "./objects/ray_line_object";
 import { createReflection } from "./objects/reflection_object";
 import { createSegment, segment_object } from "./objects/segment_object";
@@ -89,7 +95,7 @@ import { createText } from "./objects/text_object";
 import { createPanel, panelNames, parsePanel } from "./objects/panel_object";
 import { createButton } from "./objects/button_object";
 import { createLine } from "./objects/two_points_line_object";
-import { createVector } from "./objects/vector_object";
+import { createVector, vector_object } from "./objects/vector_object";
 import type { Vec2, Vec3 } from "./vec";
 
 // DocGeo's native format: see DGO.md.
@@ -147,6 +153,9 @@ export const LOOKS: Record<string, Look> = {
     Ctr: DERIVED_POINT,
     Sym: DERIVED_POINT,
     Refl: DERIVED_POINT,
+    Rot: DERIVED_POINT,
+    Dil: DERIVED_POINT,
+    Tra: DERIVED_POINT,
     Line: LINE,
     Par: LINE,
     Perp: LINE,
@@ -1152,6 +1161,42 @@ const BUILDERS: Record<string, Builder> = {
     Mid: twoPoints(createMidpoint),
     Sym: twoPoints(createSymmetry),
     Refl: linePoint(createReflection),
+    Rot: (parameters, reader) => {
+        const [center, point, angle, axis] = list(parameters, 3, 4);
+        return createRotation(
+            reader.c,
+            reader.name,
+            center === null ? null : reader.at(center, point_object),
+            reader.at(point, point_object),
+            radius(angle, reader),
+            axis === undefined
+                ? undefined
+                : reader.at(axis, primitive_line_object),
+        );
+    },
+    Dil: (parameters, reader) => {
+        const [center, point, ratio] = list(parameters, 3);
+        return createDilation(
+            reader.c,
+            reader.name,
+            center === null ? null : reader.at(center, point_object),
+            reader.at(point, point_object),
+            radius(ratio, reader),
+        );
+    },
+    Tra: (parameters, reader) => {
+        const [vector, point] = list(parameters, 2);
+        const u = isNumber(vector)
+            ? reader.at(vector, vector_object, point_object)
+            : radius(vector, reader);
+        check(typeof u !== "number");
+        return createTranslation(
+            reader.c,
+            reader.name,
+            u as translation_vector,
+            reader.at(point, point_object),
+        );
+    },
     Ctr: (parameters, { c, name, at }) => {
         const [circle] = list(parameters, 1);
         return createCenter(c, name, at(circle, primitive_circle_object));

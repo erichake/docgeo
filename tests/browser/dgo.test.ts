@@ -221,6 +221,41 @@ describe(".dgo writer", () => {
             },
         ));
 
+    it("keeps rotations, dilations and translations", () =>
+        roundTrip(
+            async (c) =>
+                importGgb(
+                    c,
+                    `<geogebra><construction>
+<element type="numeric" label="a"><value val="2"/></element>
+<element type="point" label="P"><coords x="1" y="2" z="1"/></element>
+<element type="point" label="O"><coords x="-1" y="0" z="1"/></element>
+<element type="point" label="B"><coords x="1" y="0" z="1"/></element>
+<command name="Vector"><input a0="O" a1="B"/><output a0="u"/></command>
+<element type="vector" label="u"/>
+<command name="Rotate"><input a0="P" a1="30°"/><output a0="R"/></command>
+<element type="point" label="R"/>
+<command name="Rotate"><input a0="P" a1="a"/><output a0="S"/></command>
+<element type="point" label="S"/>
+<command name="Rotate"><input a0="P" a1="45°" a2="O"/><output a0="Q"/></command>
+<element type="point" label="Q"/>
+<command name="Dilate"><input a0="P" a1="a" a2="O"/><output a0="D"/></command>
+<element type="point" label="D"/>
+<command name="Translate"><input a0="P" a1="u"/><output a0="T"/></command>
+<element type="point" label="T"/>
+<command name="Translate"><input a0="P" a1="B"/><output a0="U"/></command>
+<element type="point" label="U"/>
+<command name="Translate"><input a0="P" a1="Vector[(a, 1)]"/><output a0="V"/></command>
+<element type="point" label="V"/>
+</construction></geogebra>`,
+                ),
+            (c) => {
+                const a = c.getObj("a") as expression_object;
+                a.value = 3;
+                c.invalidateGeometry(a);
+            },
+        ));
+
     it("keeps integrals, sums and slope triangles", () =>
         roundTrip(async (c) =>
             importGgb(

@@ -25,7 +25,10 @@ import { point_on_object } from "../../src/objects/point_on_object";
 import { point_object } from "../../src/objects/point_object";
 import { polygon_object } from "../../src/objects/polygon_object";
 import { quadric5pts_object } from "../../src/objects/quadric5pts_object";
+import { rotation_object } from "../../src/objects/rotation_object";
 import { segment_object } from "../../src/objects/segment_object";
+import { translation_object } from "../../src/objects/translation_object";
+import { dilation_object } from "../../src/objects/dilation_object";
 import { sphere_object } from "../../src/objects/sphere_object";
 import { text_object } from "../../src/objects/text_object";
 import { two_points_line_object } from "../../src/objects/two_points_line_object";
@@ -45,7 +48,7 @@ import {
     type Vec2,
     type Vec3,
 } from "../../src/vec";
-import { figure } from "./figures";
+import { expectClose, figure } from "./figures";
 
 function createConstruction(): construction {
     document.documentElement.style.width = "100%";
@@ -1256,6 +1259,20 @@ ${lines.map((line, index) => command("Plane", ["C", line], `p${index}`)).join("\
         expect(importGgb(c, xml)).toEqual([]);
         expectSavedPoints(c, xml);
         expect(c.getObj("t1'")).toBeInstanceOf(polygon_object);
+        // GeoGebra's arguments as parents, without objects in between.
+        (
+            [
+                ["H'", rotation_object, "KH"],
+                ["L'", translation_object, "uL"],
+                ["O'", dilation_object, "PO"],
+            ] as const
+        ).forEach(([label, kind, parents]) => {
+            const image = c.getObj(label)!;
+            expect(image, label).toBeInstanceOf(kind);
+            expect(image.parents).toEqual(
+                [...parents].map((name) => c.getObj(name)),
+            );
+        });
         const vector = c.getObj("u") as vector_object;
         expect(vector).toBeInstanceOf(vector_object);
         await new Promise((resolve) => requestAnimationFrame(resolve));
@@ -1276,6 +1293,46 @@ ${lines.map((line, index) => command("Plane", ["C", line], `p${index}`)).join("\
         expect(k[0]).toBeCloseTo(2, 6);
         expect(image[0]).toBeCloseTo(k[0] + cos * (dx - dy), 9);
         expect(image[1]).toBeCloseTo(k[1] + cos * (dx + dy), 9);
+    });
+
+    it("rotates, dilates and translates around the origin, an axis, by formulas", async () => {
+        const c = createConstruction();
+        expect(
+            importGgb(
+                c,
+                `<geogebra><construction>
+<element type="numeric" label="a"><value val="2"/></element>
+<element type="point" label="P"><coords x="1" y="2" z="1"/></element>
+<element type="point" label="A"><coords x="0" y="0" z="1"/></element>
+<element type="point" label="B"><coords x="1" y="0" z="1"/></element>
+<command name="Line"><input a0="A" a1="B"/><output a0="d"/></command>
+<element type="line" label="d"/>
+<command name="Rotate"><input a0="P" a1="90°"/><output a0="R"/></command>
+<element type="point" label="R"/>
+<command name="Dilate"><input a0="P" a1="a"/><output a0="D"/></command>
+<element type="point" label="D"/>
+<command name="Translate"><input a0="P" a1="Vector[(a, 1)]"/><output a0="T"/></command>
+<element type="point" label="T"/>
+<command name="Translate"><input a0="P" a1="B"/><output a0="U"/></command>
+<element type="point" label="U"/>
+</construction></geogebra>`,
+            ),
+        ).toEqual([]);
+        const at = (name: string) => (c.getObj(name) as point_object).coords;
+        const check = (k: number) => {
+            expectClose(at("R"), [-2, 1, 0]);
+            expectClose(at("D"), [k, 2 * k, 0]);
+            expectClose(at("T"), [1 + k, 3, 0]);
+            expectClose(at("U"), [2, 2, 0]);
+        };
+        check(2);
+        expect(c.getObj("R")!.parents).toEqual([c.getObj("P")]);
+        expect(c.getObj("D")!.parents).toEqual([c.getObj("P"), c.getObj("a")]);
+        const a = c.getObj("a") as expression_object;
+        a.value = 3;
+        c.invalidateGeometry(a);
+        await new Promise((resolve) => requestAnimationFrame(resolve));
+        check(3);
     });
 
     it("iterates segments into a Koch snowflake following its slider", async () => {

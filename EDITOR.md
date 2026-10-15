@@ -210,7 +210,8 @@ icônes :
   droites (segment, droite, demi-droite, vecteur) ; constructions
   (perpendiculaire, parallèle, médiatrice, bissectrice) ; cercles (centre et
   point, centre et rayon, trois points, sphère) ; polygone, angle et lieu ;
-  symétries (centrale, axiale). Chaque outil garde toujours la même place, quel que soit l'objet
+  transformations (symétries centrale et axiale ; famille renommée
+  « Transformations » le 2026-10-15). Chaque outil garde toujours la même place, quel que soit l'objet
   désigné ; deux outils qui ne s'affichent jamais ensemble partagent une
   place (milieu de deux points, d'un segment, centre d'un cercle). La bande
   d'une famille couvre toutes ses places, même celles sans outil pour
@@ -259,8 +260,9 @@ la GeoGebra, l'outil choisi avant les objets.
   coniques »), ces trois-là comme dans GeoGebra : deux foyers puis un
   point, ou un foyer puis la directrice (au clavier, `Ellipse(F, G, a)` et
   `Hyperbole(F, G, a)` prennent aussi le demi-axe a). Toute commande du catalogue qui
-  se construit par désignation y a sa place (rotation, homothétie,
-  tangentes… à mesure qu'elles s'ajoutent) ; `PointFixe`, `Curseur` et
+  se construit par désignation y a sa place (`Rotation`, `Translation`
+  et `Homothétie` à la fin des transformations ; tangentes… à mesure
+  qu'elles s'ajoutent) ; `PointFixe`, `Curseur` et
   `Liste` restent au clavier ou dans la barre.
 - **Un item par commande d'une place de l'anneau** (`Item` de `tools.ts`) :
   les formes d'une commande à la même place n'en font qu'un, le premier
@@ -284,6 +286,10 @@ la GeoGebra, l'outil choisi avant les objets.
   suffit, le rayon d'environ 150 px se change ensuite en glissant le
   cercle ; rien à taper (décidé avec l'auteur le 2026-10-14, qui avait
   d'abord retenu un rayon tapé).
+- **Rotation et homothétie** (décidé avec l'auteur le 2026-10-15) : le
+  point puis le centre désignés suffisent, l'outil donne un quart de tour
+  (90°, ou π/2 dans une figure en radians) ou un rapport de 2, que la
+  ligne change ensuite.
 - **Outil persistant** : après chaque objet, il attend de nouveau son
   premier argument. Le bouton prend l'icône de l'outil, enfoncé, aux
   couleurs de sa famille, et la zone contextuelle de la barre devient un
@@ -1271,12 +1277,20 @@ Fait (2026-10-11) :
   termes nuls (`x - y - 2 = 0`). Éditeur +1,4 Ko (+0,5 Ko en gzip) ;
   lecteur +0,2 Ko.
 
+- Rotation, homothétie, translation (2026-10-15) : `Rotation(P, O, a)`,
+  `Homothétie(P, O, k)` (a, k nombres ou expressions nommées) et
+  `Translation(P, u)` (u vecteur) au clavier, images de points (entrées
+  `Rot`, `Dil`, `Tra`), nommées comme des points. Au menu des outils,
+  dans la famille « Symétries » renommée « Transformations » : rotation
+  et homothétie (le point, puis le centre ; 90° et un rapport de 2,
+  section « Menu des outils »), translation (le point, puis le vecteur).
+  Éditeur +0,9 Ko (+0,3 Ko en gzip).
+
 Reste à faire :
 
 - Jeux d'outils de l'enseignant (section « Anneau d'outils »).
 - Outils du moteur sans commande dans l'éditeur, à ajouter au catalogue
-  puis au menu : angle fixe, rotation, homothétie, translation (objets ou
-  points formules), intersection droite-plan.
+  puis au menu : angle fixe, intersection droite-plan.
 
 - Expressions (section du même nom) : formules en argument
   (`Cercle(O, 2*a)`, bornes d'un curseur), ressort des curseurs, listes

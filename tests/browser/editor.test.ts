@@ -178,6 +178,9 @@ describe("Editor", () => {
             "w = Angle(A, B, C)",
             "S = Reflect(D, A)",
             "T = Reflect(D, d)",
+            "K = Rotation(D, A, 30)",
+            "L = Dilation(D, A, 2)",
+            "N = Translation(D, u)",
             "a = Conic(A, B, C, D, E)",
             "k = Ellipse(A, B, C)",
             "t = Ellipse(A, B, 4)",
@@ -204,6 +207,7 @@ describe("Editor", () => {
         expect(type(c, "Segment(A, B)").name).toBe("a");
         expect(type(c, "Midpoint(A, B)").name).toBe("C");
         expect(type(c, "Circle(A, B)").name).toBe("b");
+        expect(type(c, "Rotation(A, B, 90)").name).toBe("D");
         for (const [text, key] of [
             ["Segment(A, Z)", "unknown_object"],
             ["Unknown(A, B)", "unknown_command"],
@@ -997,6 +1001,9 @@ describe("Editor", () => {
             [
                 ["Point reflection", "Sym"],
                 ["Line reflection", "Refl"],
+                ["Rotation", "Rot"],
+                ["Translation", "Tra"],
+                ["Dilation", "Dil"],
             ],
         ]);
         const sphere = TOOL_FAMILIES[3].items[3].tools[0];
@@ -1035,6 +1042,8 @@ describe("Editor", () => {
         expect(given("Segment", [d])).toEqual([null]);
         expect(given("Midpoint", [s])).toEqual([null, [s]]);
         expect(given("Circle (centre and radius)", [A])).toEqual([[A, 3.8]]);
+        expect(given("Rotation", [B, A])).toEqual([[B, A, 3.8]]);
+        expect(given("Dilation", [B])).toEqual([[B, undefined, 3.8]]);
         expect(given("Polygon", [A, B, D, C])).toEqual([[A, B, D, C]]);
         expect(given("Point", [k])).toEqual([[k]]);
         expect(given("Intersection", [d, k])).toEqual([[d, k]]);

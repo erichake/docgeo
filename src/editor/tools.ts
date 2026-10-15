@@ -336,7 +336,7 @@ const FAMILIES: [
         ],
     ],
     [
-        "family_symmetries",
+        "family_transformations",
         320,
         [
             [
@@ -359,6 +359,36 @@ const FAMILIES: [
                         result(dot(19, 10)),
                 ),
             ],
+        ],
+        [
+            // The point, then the center: a quarter turn, which the line
+            // changes.
+            tool(
+                "Rotation",
+                0,
+                path("M19 15A12.2 12.2 0 0 0 11.3 5.6", true) +
+                    dot(7, 17) +
+                    dot(19, 15) +
+                    result(dot(11.3, 5.6)),
+            ),
+            // The point, then the vector.
+            tool(
+                "Translation",
+                0,
+                path("M4 9L15 4M11.2 3.2L15 4L12.6 6.9") +
+                    `<path class="dge-guide" d="M6 19L17 14" stroke-dasharray="2 3"/>` +
+                    dot(6, 19) +
+                    result(dot(17, 14)),
+            ),
+            // The point, then the center: a ratio of 2.
+            tool(
+                "Dilation",
+                0,
+                path("M4 20L20 12M4 20L12 4", true) +
+                    path("M8 16L12 16L8 12Z") +
+                    result(path("M12 12L20 12L12 4Z")) +
+                    dot(4, 20),
+            ),
         ],
     ],
 ];
@@ -466,11 +496,12 @@ export const emptyArgs = ({ mode, overload }: Tool): (Arg | undefined)[] =>
         : Array(overload.params.length).fill(undefined);
 
 // The tool's arguments, the objects taking in their order the first places
-// that accept them, a circle's radius given; null if one fits nowhere.
+// that accept them, its number given (a circle's radius, an angle, a
+// ratio); null if one fits nowhere.
 export function assign(
     tool: Tool,
     objects: construction_object[],
-    radius: number,
+    real?: number,
 ): (Arg | undefined)[] | null {
     const { mode, overload } = tool;
     if (mode === "point")
@@ -499,6 +530,7 @@ export function assign(
         if (slot < 0) return null;
         args[slot] = object;
     }
-    if (overload.tag === "C1") args[1] ??= radius;
+    const at = overload.params.indexOf("real");
+    if (at >= 0) args[at] ??= real;
     return args;
 }

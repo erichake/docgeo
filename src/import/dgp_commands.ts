@@ -86,6 +86,12 @@ import {
     type Equation,
 } from "../objects/equation_conic_object";
 import { createEquationLine } from "../objects/equation_line_object";
+import { createDilation } from "../objects/dilation_object";
+import { createRotation } from "../objects/rotation_object";
+import {
+    createTranslation,
+    type translation_vector,
+} from "../objects/translation_object";
 import { createRay } from "../objects/ray_line_object";
 import { createReflection } from "../objects/reflection_object";
 import { createSegment, segment_object } from "../objects/segment_object";
@@ -1760,6 +1766,97 @@ const COMMANDS = new Map<string, CommandDefinition>([
     ["EquationLine", equationCommand("line", createEquationLine)],
     ["EquationCircle", equationCommand("circle", createEquationCircle)],
     ["EquationConic", equationCommand("quadric", createEquationConic)],
+    // Not DGPad commands: GeoGebra's Rotate, Dilate and Translate of a
+    // point, around the origin without a center.
+    [
+        "Rotation",
+        {
+            parameters: [string, point, formula, { ...point, optional: true }],
+            result: "point",
+            validate: (args, lineNumber, variables) =>
+                validateRadius(args[2], lineNumber, variables),
+            execute: (context, args) =>
+                createRotation(
+                    context.construction,
+                    args[0] as string,
+                    (args[3] as point_object | undefined) ?? null,
+                    args[1] as point_object,
+                    radiusArgument(args[2], context),
+                ),
+        },
+    ],
+    [
+        "AxisRotation",
+        {
+            parameters: [
+                string,
+                point,
+                formula,
+                line,
+                { ...point, optional: true },
+            ],
+            result: "point",
+            validate: (args, lineNumber, variables) =>
+                validateRadius(args[2], lineNumber, variables),
+            execute: (context, args) =>
+                createRotation(
+                    context.construction,
+                    args[0] as string,
+                    (args[4] as point_object | undefined) ?? null,
+                    args[1] as point_object,
+                    radiusArgument(args[2], context),
+                    args[3] as primitive_line_object,
+                ),
+        },
+    ],
+    [
+        "Dilation",
+        {
+            parameters: [string, point, formula, { ...point, optional: true }],
+            result: "point",
+            validate: (args, lineNumber, variables) =>
+                validateRadius(args[2], lineNumber, variables),
+            execute: (context, args) =>
+                createDilation(
+                    context.construction,
+                    args[0] as string,
+                    (args[3] as point_object | undefined) ?? null,
+                    args[1] as point_object,
+                    radiusArgument(args[2], context),
+                ),
+        },
+    ],
+    // By a vector or a point's position vector, or by a formula.
+    [
+        "Translation",
+        {
+            parameters: [string, point, object],
+            result: "point",
+            execute: (context, args) =>
+                createTranslation(
+                    context.construction,
+                    args[0] as string,
+                    args[2] as translation_vector,
+                    args[1] as point_object,
+                ),
+        },
+    ],
+    [
+        "Translation1",
+        {
+            parameters: [string, point, formula],
+            result: "point",
+            validate: (args, lineNumber, variables) =>
+                validateRadius(args[2], lineNumber, variables),
+            execute: (context, args) =>
+                createTranslation(
+                    context.construction,
+                    args[0] as string,
+                    radiusArgument(args[2], context) as translation_vector,
+                    args[1] as point_object,
+                ),
+        },
+    ],
     [
         "Sphere",
         {

@@ -90,22 +90,13 @@ conique par ses coefficients dans `primitive_quadric_object`. L'éditeur
 les saisit en `c = x^2 + y^2 = 4` (`EDITOR.md`, « Langage textuel »).
 Leur image par une transformation viendra avec l'item 2.
 
-### 2. Rotation, homothétie, translation
+### 2. Rotation, homothétie, translation — fait
 
-`Rotate`, `Dilate` et `Translate` (gestionnaires `transform`, `turn`,
-`turn3D`) : chaque image de point est un point formule, et l'image d'un
-segment, d'un polygone, d'une conique… est reconstruite sur les images de
-ses points (`shapes`). Les symétries centrale et axiale sont déjà des
-objets natifs (`symmetry_object`, `reflection_object`) : faire de même.
-
-- Objets « image d'un point par une rotation (centre, angle formule), une
-  homothétie (centre, rapport formule), une translation (vecteur) », en
-  2D et autour d'un axe en 3D pour la rotation.
-- Garder le mécanisme `shapes` pour les objets construits sur des points,
-  ou mieux, si c'est plus simple et plus léger, des images natives de
-  segments, polygones, cercles et coniques.
-- Commandes `Rotation`, `Homothétie`, `Translation` de l'éditeur : le
-  mémo (`EDITOR.md`, « Menu des outils ») les attend déjà.
+Objets `Rot`, `Dil`, `Tra` (item 27 de `GGB_IMPORT.md`) ; les images
+d'objets construits sur des points restent faites par `shapes`. Éditeur :
+`Rotation`, `Homothétie`, `Translation` au clavier et au menu (famille
+« Transformations »). Reste : les images des droites et coniques
+d'équation (item 1).
 
 ### 3. Arc et secteur de centre donné, demi-cercle
 
@@ -170,4 +161,4 @@ rester des expressions : `Distance`, `Length`, `Slope`, `Corner`,
 
 Corpus : 238 figures sur 438 sans perte, aucun plantage (après le
 correctif du nom d'un segment de longueur nulle, item 24 bis de
-`GGB_IMPORT.md`). Moteur : 309,7 Ko après l'item 1.
+`GGB_IMPORT.md`). Moteur : 313,3 Ko après l'item 2.

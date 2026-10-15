@@ -83,6 +83,9 @@ const POINT_TAGS = new Set([
     "Mid",
     "Sym",
     "Refl",
+    "Rot",
+    "Dil",
+    "Tra",
     "Ctr",
     "Int",
 ]);

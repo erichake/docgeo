@@ -1717,8 +1717,18 @@ function nextSlot({ tool, args } = pending!): number {
 }
 
 // About 150 pixels, rounded to two significant digits.
-const defaultRadius = (): number =>
-    Number((150 / scene().GRID.UNIT[0]).toPrecision(2));
+// The number a tool gives: a circle's radius of about 150 px, a quarter
+// turn, a ratio of 2.
+const defaultReal = (tag: string): number | undefined =>
+    tag === "C1"
+        ? Number((150 / scene().GRID.UNIT[0]).toPrecision(2))
+        : tag === "Rot"
+          ? scene().degrees
+              ? 90
+              : Math.PI / 2
+          : tag === "Dil"
+            ? 2
+            : undefined;
 
 // The tool's arguments, the object designated first.
 function firstArgs(
@@ -1726,13 +1736,14 @@ function firstArgs(
     object: construction_object,
 ): (Arg | undefined)[] {
     if (tool.mode !== "command") return [object];
-    if (tool.overload.tag === "C1") return [object, defaultRadius()];
     if (tool.overload.tag === "Loc") return [object, driverOf(object)!];
-    const { params, variadic } = tool.overload;
+    const { params, variadic, tag } = tool.overload;
     const args: (Arg | undefined)[] = variadic
         ? []
         : Array(params.length).fill(undefined);
     args[params.findIndex((param) => accepts(object, param))] = object;
+    if (params.includes("real"))
+        args[params.indexOf("real")] = defaultReal(tag);
     return args;
 }
 
@@ -1836,7 +1847,11 @@ function openFamily(row: DOMElement, family: Family, items: Item[]): void {
                     describe(
                         shown,
                         tool && objects[0]
-                            ? assign(tool, objects, defaultRadius())!
+                            ? assign(
+                                  tool,
+                                  objects,
+                                  defaultReal(tool.overload.tag),
+                              )!
                             : emptyArgs(shown),
                     ),
                 ),
@@ -1922,7 +1937,8 @@ function takes(item: Item): Tool | undefined {
     return item.tools.find(
         (tool) =>
             usable(tool, vec3()) &&
-            (!objects[0] || assign(tool, objects, defaultRadius())),
+            (!objects[0] ||
+                assign(tool, objects, defaultReal(tool.overload.tag))),
     );
 }
 
@@ -1932,7 +1948,7 @@ function take(picked: Hit[]): void {
     const c = scene();
     const objects = picked.map(({ object }) => object);
     const tool = takes(armed!)!;
-    const args = assign(tool, objects, defaultRadius())!;
+    const args = assign(tool, objects, defaultReal(tool.overload.tag))!;
     if (tool.mode === "point")
         return done(addPointOn(c, nextName(c, true), objects[0], picked[0].at));
     pending = { tool, args };
