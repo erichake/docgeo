@@ -21,6 +21,7 @@ import {
     COMMANDS,
     findCommand,
     isCommand,
+    overloadFor,
     paramAt,
     readable,
     type Arg,
@@ -76,11 +77,14 @@ import type { point_object } from "../../src/objects/point_object";
 import type { circle1_object } from "../../src/objects/circle1_object";
 import type { equation_circle_object } from "../../src/objects/equation_circle_object";
 import type { polyhedron_object } from "../../src/objects/polyhedron_object";
+import type { net_object } from "../../src/objects/net_object";
+import type { cylinder_section_object } from "../../src/objects/cylinder_section_object";
+import type { polygon_object } from "../../src/objects/polygon_object";
 import type { expression_object } from "../../src/objects/expression_object";
 import type { expression_list_object } from "../../src/objects/expression_list_object";
 import { importGgb } from "../../src/ggb_importer";
 import { createConstruction, disposeFigures, expectClose } from "./figures";
-import { vDot, vScale, vSub } from "../../src/vec";
+import { vAdd, vDot, vNorm, vScale, vSub } from "../../src/vec";
 
 disposeFigures();
 
@@ -451,6 +455,96 @@ describe("Editor", () => {
         expect(cube.hides([1, 1, 5])).toBe(false);
         expect(cube.hides([1, 1, -5])).toBe(true);
         expect(cube.hides([1, 1, 1])).toBe(true);
+    });
+
+    it("writes and reads planes, sections and nets in space", async () => {
+        const { scene: c } = studio(true);
+        const text = [
+            "A = (0, 0, 0)",
+            "B = (2, 0, 0)",
+            "C = (2, 2, 0)",
+            "D = (0, 0, 3)",
+            "E = (1, 1, 1)",
+            "a = Cube(A, B, C)",
+            "p = x + y + z = 3",
+            "q = Plane(A, B, D)",
+            "r = ParallelPlane(E, q)",
+            "d = Line(A, D)",
+            "t = OrthogonalPlane(E, d)",
+            "s = Plane(E, d)",
+            "F = Intersection(d, p)",
+            "g = Intersection(p, q)",
+            "h = Perpendicular(E, p)",
+            "b = Sphere(E, 1)",
+            "S = Sphere(A, B)",
+            "k = Intersection(b, S)",
+            "l = Section(b, t)",
+            "c = Cylinder(A, D, 1)",
+            "m = Section(c, t)",
+            "e = Cone(A, D, 1)",
+            "n = Section(e, t)",
+            "o = Section(a, p)",
+            "f = Net(a, 1)",
+        ];
+        text.forEach((line) => type(c, line));
+        c.flush();
+        expect(lines(c)).toEqual(text);
+        const other = createConstruction([800, 600]);
+        readDgo(other, await describeDgo(c));
+        expect(lines(other)).toEqual(text);
+        expectClose((c.getObj("F") as point_object).coords, [0, 0, 3]);
+        // The cone's radius at height 1.
+        const cone = c.getObj("n") as cylinder_section_object;
+        cone.arcs.flat().forEach(([x, y, z]) => {
+            expect(z).toBeCloseTo(1, 9);
+            expect(Math.hypot(x, y)).toBeCloseTo(2 / 3, 9);
+        });
+        // A regular hexagon, its vertices in turn.
+        const hexagon = (c.getObj("o") as polygon_object).points.map(
+            ({ coords }) => coords,
+        );
+        expect(hexagon).toHaveLength(6);
+        hexagon.forEach((vertex, k) => {
+            expect(vertex.reduce((sum, value) => sum + value)).toBeCloseTo(
+                3,
+                9,
+            );
+            expect(vNorm(vSub(vertex, hexagon[(k + 1) % 6]))).toBeCloseTo(
+                Math.SQRT2,
+                9,
+            );
+        });
+        // Flat on the cube's base, its six faces apart.
+        const net = c.getObj("f") as net_object;
+        net.faces.flat().forEach(([, , z]) => expect(z).toBeCloseTo(0, 9));
+        const middles = net.faces.map((face) =>
+            vScale(face.reduce(vAdd), 1 / face.length)
+                .map(Math.round)
+                .join(),
+        );
+        expect(new Set(middles).size).toBe(6);
+        // Folded, the cube's faces.
+        const cube = c.getObj("a") as polyhedron_object;
+        expect((type(c, "j = Net(a, 0)") as net_object).faces).toEqual(
+            cube.faces.map((face) => face.map((i) => cube.vertices[i].coords)),
+        );
+        // The menu's section takes the plane first, then any solid.
+        const [section] = TOOL_FAMILIES.flatMap(({ items }) => items).find(
+            (item) => itemLabel(item) === "Section",
+        )!.tools;
+        const args = assign(section, [c.getObj("p")!, c.getObj("a")!]);
+        expect(args).toEqual([c.getObj("a"), c.getObj("p")]);
+        expect(overloadFor(section.command, args as Arg[], true)!.tag).toBe(
+            "PlS",
+        );
+        expect([false, true].map((space) => usable(section, space))).toEqual([
+            false,
+            true,
+        ]);
+        // A plane is of degree 1.
+        expect(() => resolve(c, parseLine("u = x*z = 1", isCommand))).toThrow(
+            expect.objectContaining({ key: "degree" }),
+        );
     });
 
     it("writes GeoGebra's equations, read back as the same objects", () => {
@@ -1061,11 +1155,18 @@ describe("Editor", () => {
                 ["Inversion", "Inv"],
             ],
             [
+                ["Plane", "Pl", "PlL"],
+                ["ParallelPlane", "PlP"],
+                ["OrthogonalPlane", "PlO"],
+            ],
+            [
                 ["Cylinder", "Cyl"],
                 ["Cone", "Cone"],
                 ["Cube", "Cube"],
                 ["Prism", "Prsm"],
                 ["Pyramid", "Pyr"],
+                ["Section", ""],
+                ["Net", "Net"],
             ],
         ]);
         const sphere = TOOL_FAMILIES[3].items[3].tools[0];

@@ -33,6 +33,7 @@ import { fixed_angle_object } from "../objects/fixed_angle_object";
 import type { formula_point_object } from "../objects/formula_point_object";
 import { point_on_object } from "../objects/point_on_object";
 import { point_object } from "../objects/point_object";
+import { plane_object } from "../objects/plane_object";
 import { polygon_object } from "../objects/polygon_object";
 import { primitive_quadric_object } from "../objects/primitive_quadric_object";
 import type { Vec2, Vec3 } from "../vec";
@@ -216,7 +217,9 @@ export function lineOf(
         return `${name} = ${pointFormulaText(oneLine(renamed(formulaSource(formula), refs)))}`;
     }
     if (EQUATIONS.includes(tag)) {
-        const { equation } = object as unknown as { equation: Equation };
+        const { equation } = (object instanceof plane_object
+            ? object.definition
+            : object) as unknown as { equation: Equation };
         return `${name} = ${equation.map((side) => oneLine(renamed(side.source, side.refs))).join(" = ")}`;
     }
     const decoded = decodeEntry(tag, parameters, (at) => objects[at]);
@@ -450,10 +453,11 @@ function formulaPoint(
     };
 }
 
-const EQUATIONS = ["EqL", "EqC", "EqQ"];
+const EQUATIONS = ["EqL", "EqC", "EqQ", "PlE"];
 
 // A line, a circle or a conic, as the equation's coefficients are now: of
-// degree 1, 2 with one coefficient for x² and y² and none for xy, or 2.
+// degree 1, 2 with one coefficient for x² and y² and none for xy, or 2; a
+// plane, of degree 1, when it reads z, which names no object.
 function equation(
     c: construction,
     sides: string[],
@@ -461,16 +465,22 @@ function equation(
     const own = new Map(
         figureObjects(c).map((object) => [object.name, object]),
     );
-    const formulas = sides.map((source) => {
-        const node = withObjects(new Set(own.keys()), () => {
+    const nodes = sides.map((source) =>
+        withObjects(new Set(own.keys()), () => {
             try {
                 return parseFormula(source);
             } catch {
                 throw new TextError("syntax", source);
             }
-        });
+        }),
+    );
+    const plane =
+        !own.has("z") &&
+        nodes.some((node) => formulaIdentifiers(node).has("z"));
+    const variables = plane ? ["x", "y", "z"] : ["x", "y"];
+    const formulas = nodes.map((node, index) => {
         const names = [...formulaIdentifiers(node)].filter(
-            (name) => name !== "x" && name !== "y",
+            (name) => !variables.includes(name),
         );
         const refs = new Map(
             names.map((name) => {
@@ -479,35 +489,9 @@ function equation(
                 return [name, object];
             }),
         );
-        return { node, source, variables: ["x", "y"], refs, vec3: false };
+        return { node, source: sides[index], variables, refs, vec3: plane };
     }) as Equation;
-    const coeffs = equationCoeffs(formulas, c);
-    const scale = Math.max(...(coeffs ?? []).map(Math.abs));
-    const zero = (value: number) => Math.abs(value) <= 1e-9 * scale;
-    // Its other values are those of its polynomial.
-    if (
-        !coeffs ||
-        !scale ||
-        [
-            [2, 3],
-            [-3, 1.5],
-            [0.5, -2],
-        ].some(([x, y]) => {
-            const [a, b, cc, d, e, f] = coeffs;
-            return !zero(
-                equationValue(formulas, c, [x, y]) -
-                    (a * x * x + b * x * y + cc * y * y + d * x + e * y + f),
-            );
-        })
-    )
-        throw new TextError("degree");
-    const [a, b, cc] = coeffs;
-    const tag =
-        zero(a) && zero(b) && zero(cc)
-            ? "EqL"
-            : zero(b) && zero(a - cc)
-              ? "EqC"
-              : "EqQ";
+    const tag = plane ? planeTag(formulas, c) : conicTag(formulas, c);
     return {
         overload: {
             params: [],
@@ -519,6 +503,66 @@ function equation(
         },
         args: [...new Set(formulas.flatMap(({ refs }) => [...refs.values()]))],
     };
+}
+
+// Its other values are those of its polynomial.
+const OTHERS = [
+    [2, 3, -1],
+    [-3, 1.5, 2],
+    [0.5, -2, 4],
+];
+
+function conicTag(formulas: Equation, c: construction): string {
+    const coeffs = equationCoeffs(formulas, c);
+    const scale = Math.max(...(coeffs ?? []).map(Math.abs));
+    const zero = (value: number) => Math.abs(value) <= 1e-9 * scale;
+    if (
+        !coeffs ||
+        !scale ||
+        OTHERS.some(([x, y]) => {
+            const [a, b, cc, d, e, f] = coeffs;
+            return !zero(
+                equationValue(formulas, c, [x, y]) -
+                    (a * x * x + b * x * y + cc * y * y + d * x + e * y + f),
+            );
+        })
+    )
+        throw new TextError("degree");
+    const [a, b, cc] = coeffs;
+    return zero(a) && zero(b) && zero(cc)
+        ? "EqL"
+        : zero(b) && zero(a - cc)
+          ? "EqC"
+          : "EqQ";
+}
+
+function planeTag(formulas: Equation, c: construction): string {
+    const value = (point: number[]) => equationValue(formulas, c, point);
+    const g = value([0, 0, 0]);
+    const normal = [
+        [1, 0, 0],
+        [0, 1, 0],
+        [0, 0, 1],
+    ].map((point) => value(point) - g);
+    const scale = Math.max(Math.abs(g), ...normal.map(Math.abs));
+    if (
+        !Number.isFinite(scale) ||
+        normal.every((coefficient) => !coefficient) ||
+        OTHERS.some(
+            (point) =>
+                Math.abs(
+                    value(point) -
+                        point.reduce(
+                            (sum, coordinate, index) =>
+                                sum + normal[index] * coordinate,
+                            g,
+                        ),
+                ) >
+                1e-9 * scale,
+        )
+    )
+        throw new TextError("degree");
+    return "PlE";
 }
 
 // An expression's entry, `own` giving its value's keys, `parents` the
@@ -562,7 +606,21 @@ function createdStyle(tag: string): Record<string, unknown> | undefined {
             sn: 1,
             f: 26,
         };
-    if (tag === "Poly" || tag === "Sph" || tag === "Sec") return { o: 0.2 };
+    if (
+        [
+            "Poly",
+            "Sph",
+            "Sph1",
+            "Sec",
+            "PlS",
+            "Pl",
+            "PlP",
+            "PlL",
+            "PlO",
+            "PlE",
+        ].includes(tag)
+    )
+        return { o: 0.2 };
     // Its value shown, as by DGPad's calculator.
     if (tag === "Ex") return { p: 2, f: 24 };
 }

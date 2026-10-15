@@ -22,6 +22,7 @@ import { expression_object } from "../objects/expression_object";
 import type { expression_list_object } from "../objects/expression_list_object";
 import { polygon_object } from "../objects/polygon_object";
 import { sphere_object } from "../objects/sphere_object";
+import { solid_object } from "../objects/solid_object";
 import { preferences } from "../preferences";
 import {
     vAdd,
@@ -1718,7 +1719,7 @@ function nextSlot({ tool, args } = pending!): number {
 
 // About 150 pixels, rounded to two significant digits.
 // The number a tool gives: a circle's radius of about 150 px, a quarter
-// turn, a ratio of 2, the first tangent, a square.
+// turn, a ratio of 2, the first tangent, a square, a flat net.
 const defaultReal = (tag: string): number | undefined =>
     ["C1", "Sph1", "Cyl", "Cone"].includes(tag)
         ? Number((150 / scene().GRID.UNIT[0]).toPrecision(2))
@@ -1732,7 +1733,9 @@ const defaultReal = (tag: string): number | undefined =>
               ? 1
               : tag === "RegP"
                 ? 4
-                : undefined;
+                : tag === "Net"
+                  ? 1
+                  : undefined;
 
 // The tool's arguments, the object designated first.
 function firstArgs(
@@ -2088,10 +2091,12 @@ const onRing = (slot: number): Vec2 => {
 let held: { hit: Hit; client: Vec2; screen: Vec2 } | null = null;
 
 // The point held, moved with its object: the nearest to where it was, or the
-// centre of a polygon or a sphere.
+// centre of a polygon, a sphere or a solid's outline.
 function hold(c: construction, hit: Hit, previous: Vec2): Vec2 {
     const { object } = hit;
     if (object instanceof sphere_object) return c.pt3D(object.CENTER);
+    if (object instanceof solid_object)
+        return vScale(object.outline.reduce(vAdd), 1 / object.outline.length);
     if (object instanceof polygon_object)
         return vScale(
             object.points.reduce<Vec2>(
@@ -2715,8 +2720,12 @@ function choose(tool: Tool, { object, at }: Hit): void {
 function proceed(): void {
     const { tool, args } = pending!;
     if (tool.overload.variadic || args.includes(undefined)) return prompt();
-    build(tool.overload, args as Arg[]);
+    build(formOf(tool, args as Arg[]), args as Arg[]);
 }
+
+// A tool of the menu that takes any solid builds the form of its arguments.
+const formOf = ({ command, overload }: Tool, args: Arg[]): Overload =>
+    overload.tag ? overload : overloadFor(command, args, vec3())!;
 
 function build(overload: Overload, args: Arg[]): void {
     clearPreview();
@@ -2892,7 +2901,13 @@ function updatePreview(screen: Vec2, hits: Hit[]): void {
         });
         const result = add(
             c,
-            { name: "‧r", overload, args: full as Arg[] },
+            {
+                name: "‧r",
+                overload: pending
+                    ? formOf(pending.tool, full as Arg[])
+                    : overload,
+                args: full as Arg[],
+            },
             false,
         );
         if (result.hasView) result.dom.addClass("dge-preview");

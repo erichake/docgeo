@@ -15,6 +15,8 @@ import { sphere_object } from "../objects/sphere_object";
 import { two_points_line_object } from "../objects/two_points_line_object";
 import { vector_object } from "../objects/vector_object";
 import { polyhedron_object } from "../objects/polyhedron_object";
+import { plane_object } from "../objects/plane_object";
+import { revolution_object } from "../objects/revolution_object";
 import { STYLE_NUMBER } from "../import/dgp_expression";
 import { TEXTS } from "./messages";
 import { formatName } from "./text";
@@ -28,6 +30,7 @@ export type Kind =
     | "circle"
     | "conic"
     | "polygon"
+    | "plane"
     | "sphere"
     | "curve"
     | "number"
@@ -49,6 +52,13 @@ export type Param =
     | "polygon"
     // A polygon or a polyhedron.
     | "faceted"
+    | "plane"
+    | "sphere"
+    | "polyhedron"
+    // A cylinder or a cone.
+    | "revolution"
+    // A sphere, a cylinder, a cone or a polyhedron.
+    | "solid"
     // A circle or a conic, and a function's curve.
     | "tangible"
     | "graph"
@@ -92,6 +102,7 @@ export function kindOf(object: construction_object): Kind {
     if (object instanceof primitive_line_object) return "line";
     if (object instanceof primitive_circle_object) return "circle";
     if (object instanceof primitive_quadric_object) return "conic";
+    if (object instanceof plane_object) return "plane";
     if (object instanceof polygon_object) return "polygon";
     if (object instanceof sphere_object) return "sphere";
     if (
@@ -126,6 +137,16 @@ export function accepts(arg: Arg, param: Param): boolean {
             return arg instanceof curve_object;
         case "faceted":
             return kind === "polygon" || arg instanceof polyhedron_object;
+        case "polyhedron":
+            return arg instanceof polyhedron_object;
+        case "revolution":
+            return arg instanceof revolution_object;
+        case "solid":
+            return (
+                kind === "sphere" ||
+                arg instanceof polyhedron_object ||
+                arg instanceof revolution_object
+            );
         case "intersectable":
             return (
                 kind === "line" ||
@@ -141,6 +162,7 @@ export function accepts(arg: Arg, param: Param): boolean {
                 kind === "circle" ||
                 kind === "conic" ||
                 kind === "polygon" ||
+                kind === "plane" ||
                 kind === "curve"
             );
         case "path":
@@ -358,9 +380,13 @@ export const COMMANDS: Command[] = [
         name: "Parallel",
         overloads: [objects("Par", ["point", "line"], [1, 0])],
     },
+    // In space, also orthogonal to a plane.
     {
         name: "Perpendicular",
-        overloads: [objects("Perp", ["point", "line"], [1, 0])],
+        overloads: [
+            objects("Perp", ["point", "line"], [1, 0]),
+            objects("Nrm", ["point", "plane"], [1, 0]),
+        ],
     },
     {
         name: "PerpendicularBisector",
@@ -475,6 +501,9 @@ export const COMMANDS: Command[] = [
             },
             numbered(["curved", "intersectable", "number"]),
             numbered(["line", "curved", "number"]),
+            objects("PlI", ["line", "plane"]),
+            objects("PlPl", ["plane", "plane"]),
+            objects("SphC", ["sphere", "sphere"]),
         ],
     },
     {
@@ -592,6 +621,34 @@ export const COMMANDS: Command[] = [
     { name: "Cube", overloads: [objects("Cube", ["point", "point", "point"])] },
     { name: "Prism", overloads: [objects("Prsm", ["polygon", "point"])] },
     { name: "Pyramid", overloads: [objects("Pyr", ["polygon", "point"])] },
+    // Through three points, or a point and a line; through a point,
+    // parallel to a plane or orthogonal to a line.
+    {
+        name: "Plane",
+        overloads: [
+            objects("Pl", ["point", "point", "point"]),
+            objects("PlL", ["point", "line"]),
+        ],
+    },
+    { name: "ParallelPlane", overloads: [objects("PlP", ["point", "plane"])] },
+    {
+        name: "OrthogonalPlane",
+        overloads: [objects("PlO", ["point", "line"])],
+    },
+    // By a plane: a sphere's circle, a cylinder's or a cone's conic, a
+    // polyhedron's polygon. The menu's tool takes any solid, its form being
+    // that of the arguments (see build in main.ts).
+    {
+        name: "Section",
+        overloads: [
+            objects("SphC", ["sphere", "plane"]),
+            objects("CyS", ["revolution", "plane"]),
+            objects("PlS", ["polyhedron", "plane"], [1, 0]),
+            { params: ["solid", "plane"], tag: "", encode: () => null },
+        ],
+    },
+    // Unfolded by f, from 0 (folded) to 1 (flat).
+    { name: "Net", overloads: [withReal("Net", ["polyhedron"])] },
     {
         name: "Locus",
         overloads: [objects("Loc", ["point", "pointOn"])],

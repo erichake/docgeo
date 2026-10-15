@@ -3,7 +3,10 @@ import { figureObjects } from "../dgo";
 import type { construction_object } from "../objects/construction_object";
 import { cylinder_section_object } from "../objects/cylinder_section_object";
 import { list_object } from "../objects/list_object";
+import { net_object } from "../objects/net_object";
+import { plane_object } from "../objects/plane_object";
 import { point_object } from "../objects/point_object";
+import { solid_object } from "../objects/solid_object";
 import { sphere_object } from "../objects/sphere_object";
 import type { Vec2 } from "../vec";
 
@@ -20,7 +23,7 @@ const outside = (z: unknown): boolean =>
     typeof z === "number" && Math.abs(z) > 1e-9;
 
 // The first object drawn off the plane z = 0, which keeps a figure in
-// space.
+// space: a plane or a solid too.
 export const offPlane = (c: construction): construction_object | undefined =>
     figureObjects(c).find((object) =>
         object instanceof point_object
@@ -30,7 +33,10 @@ export const offPlane = (c: construction): construction_object | undefined =>
                     ([point]) => Array.isArray(point) && outside(point[2]),
                 )
               : object instanceof sphere_object ||
-                object instanceof cylinder_section_object,
+                object instanceof cylinder_section_object ||
+                object instanceof plane_object ||
+                object instanceof solid_object ||
+                object instanceof net_object,
     );
 
 // Turns the camera to these angles, and the origin to `origin`.

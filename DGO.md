@@ -289,11 +289,12 @@ sa dérivée par rapport à l'une de ses variables, comme dans DGPad, par
 | `PlPl` | intersection de deux plans             | `[plan, plan]` (19)                             |
 | `Nrm`  | droite par P orthogonale à un plan     | `[plan, P]`                                     |
 | `SphC` | section d'une sphère                   | `[sphère, plan ou sphère]` (19)                 |
-| `PlS`  | section d'un polyèdre par un plan      | `[plan, A1, B1, A2, B2, …]` (19)                |
+| `PlS`  | section d'un polyèdre par un plan      | `[plan, A1, B1, …]`, `[plan, polyèdre]` (19)    |
 | `CubV` | sommet de cube                         | `[A, B, C ou plan, k]` (20)                     |
 | `Abv`  | point au-dessus d'un polygone          | `[polygone, h, k]` (20)                         |
 | `NetV` | sommet du patron d'un polyèdre         | `[P, f, O1, E1, C1, Q1, …]` (20)                |
-| `CyS`  | section d'un cylindre par un plan      | `[cylindre, plan]` (4)                          |
+| `Net`  | patron d'un polyèdre, déplié de f      | `[polyèdre, f]` (5, 21)                         |
+| `CyS`  | section d'un cylindre ou d'un cône     | `[solide, plan]` (4)                            |
 | `Poly` | polygone                               | `[A, B, C, …]`                                  |
 | `RegP` | polygone régulier de n côtés sur [AB]  | `[A, B, n]`, `[A, B, n, plan]` (18)             |
 | `Loc`  | lieu de P quand M parcourt son support | `[P, M]`                                        |
@@ -336,10 +337,11 @@ sa dérivée par rapport à l'une de ses variables, comme dans DGPad, par
    et cache ce qui est derrière lui comme ses faces le feraient. Ses
    disques sont celui de A (0) et celui de B (1, cylindre seulement), leur
    bord en pointillé là où le solide le cache. La section d'un cylindre
-   par un plan ne garde que la partie entre ses disques. D'une épaisseur
-   de trait non nulle, le cylindre ou le cône trace lui-même le bord de
-   ses disques et les génératrices de sa silhouette (l'import de GeoGebra
-   lui donne une épaisseur nulle : ses disques le font).
+   ou d'un cône par un plan ne garde que la partie entre ses disques (une
+   conique pour le cône), un point par génératrice. D'une épaisseur de
+   trait non nulle, le cylindre ou le cône trace lui-même le bord de ses
+   disques et les génératrices de sa silhouette (l'import de GeoGebra lui
+   donne une épaisseur nulle : ses disques le font).
 5. `r` nombre (rayon qu'un glisser change, `null` s'il n'est pas fini) ou
    formule ; `axe` : droite normale au plan du cercle. `a`, demi-grand axe
    d'une ellipse, demi-axe transverse d'une hyperbole : nombre ou formule,
@@ -430,7 +432,8 @@ alignement]]` police, `[30, url, l, h, zoom, opacité, u]` image (largeur
     part du pied, sur elle, du milieu de leurs centres, et se dessine sur
     la moyenne de leurs demi-côtés de part et d'autre. Section d'un
     polyèdre : un sommet par arête (ses deux extrémités), indéfini là où
-    le plan la manque.
+    le plan la manque ; celle d'un polyèdre de DocGeo (21), convexe, a ses
+    sommets rangés autour de leur centre.
 20. `CubV` : de rang k parmi B + w, A + w, A + h, B + h, B + w + h,
     A + w + h, w étant AB tourné d'un quart de tour dans le plan ABC (ou
     parallèle au plan), h la normale de longueur AB du côté de AB × BC (ou
@@ -446,7 +449,12 @@ alignement]]` police, `[30, url, l, h, zoom, opacité, u]` image (largeur
     B + h, B + w + h, A + w + h (voir `CubV`), C ne donnant que le plan et
     le côté. Le prisme a pour sommets ceux du polygone puis P et les
     autres sommets du haut, translatés de P moins le premier sommet ; la
-    pyramide, ceux du polygone puis S.
+    pyramide, ceux du polygone puis S. Le patron (`Net`) se dessine entier,
+    ses faces éclairées, celles du fond d'abord : chacune pend à la
+    première face atteinte en largeur depuis la première face du polyèdre,
+    les faces dans leur ordre, et tourne autour de leur arête commune de f
+    fois son angle avec elle (0 : plié, 1 : à plat), ses descendantes
+    avec elle, comme les patrons de GeoGebra.
 
 ### Styles `st`
 
@@ -477,7 +485,7 @@ postérieur.
 | `sb` | `On`         | sur le bord du polygone                  | 0                                 |
 | `an` | `On`, `Ex`   | animation (ci-dessous)                   | `null`                            |
 | `pl` | `Poly`       | plan                                     | 0                                 |
-| `su` | `Poly`       | section (garde ses sommets définis)      | 0                                 |
+| `su` | `Poly`       | section (garde ses sommets définis)      | 0, 1 pour `PlS`                   |
 | `ar` | `Ang`, `FA`  | rayon de l'arc                           | 30                                |
 | `ra` | `Ang`        | marque d'angle droit                     | `dgpad`                           |
 | `dc` | `Seg`, `Vec` | décoration (0 à 6)                       | 0                                 |
@@ -553,7 +561,7 @@ non définie).
 | `CArc`, `CSec`, `Semi`, `SphC`, `Disk`                        | `#CC66CC`, `#CC66CC`, 2, 0                |
 | `Quad`, `Ell`, `Ell1`, `Hyp`, `Hyp1`, `Prb`, `EqQ`            | `#CC66CC`, `#CC66CC`, 2, 0                |
 | `Sph`, `Sph1`, `Poly`, `RegP`, `PlS`                          | `rgb(35,141,227)`, `rgb(80,80,80)`, 2, 0  |
-| `Cyl`, `Cone`, `Cube`, `Prsm`, `Pyr` (opacité 0,4)            | `rgb(35,141,227)`, `rgb(80,80,80)`, 2     |
+| `Cyl`, `Cone`, `Cube`, `Prsm`, `Pyr`, `Net` (opacité 0,4)     | `rgb(35,141,227)`, `rgb(80,80,80)`, 2     |
 | `Pl`, `PlP`, `PlL`, `PlO`, `PlE` (`pl` : 1)                   | `rgb(35,141,227)`, `rgb(80,80,80)`, 2, 0  |
 | `Loc`, `Cur`                                                  | `#0b5b94`, `#0b5b94`, 2                   |
 | `Lst`, `ELst`, `Itr`                                          | `#656148`, `#656148`, 2                   |

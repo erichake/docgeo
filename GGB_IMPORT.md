@@ -86,6 +86,7 @@ figure sont seulement comptés. L'API utilisée est
 | 2026-10-15 | 238 / 438 (54 %)   | 319,3 Ko | item 30 : inversion, centres, polygone régulier natifs (+0)        |
 | 2026-10-15 | 238 / 438 (54 %)   | 326,8 Ko | item 31 : plans, sections et sommets des solides natifs (+0)       |
 | 2026-10-15 | 238 / 438 (54 %)   | 330,6 Ko | item 32 : cylindre, cône et sphère de rayon donné natifs (+0)      |
+| 2026-10-15 | 242 / 438 (55 %)   | 338,8 Ko | item 33 : section d'un cône, patrons des prismes et pyramides (+4) |
 
 ## À faire, par rapport gain / coût
 
@@ -547,6 +548,21 @@ cause.
       polygone. Corpus inchangé (238 figures sur 438 sans perte, aucun
       élément perdu), points enregistrés retrouvés comme avant. Moteur
       +3,8 Ko (+1,0 Ko en gzip).
+- [x] **33. Section d'un cône par un plan, patrons des prismes et des
+      pyramides** : `IntersectPath(plan, cône)` est un `CyS`, dont la
+      section suit désormais chaque génératrice, du bord du disque au bord
+      de l'autre ou au sommet : une conique limitée au cône, comme dans
+      GeoGebra. `Net` ne savait déplier que les cubes : les prismes et
+      les pyramides, que GeoGebra déplie par des algorithmes propres
+      (`AlgoPolyhedronNetPrism`, `AlgoPolyhedronNetPyramid`), ont leurs
+      sommets numérotés comme eux (ceux de la base, puis ceux de chaque
+      face latérale, puis le reste du haut, pendu à la première face
+      latérale). Figures de test `3d_cone_section` et `3d_patrons`,
+      générées par GeoGebra. Corpus : 242 figures sur 438 sans perte (+4 :
+      trois patrons, une section de cône), aucun élément perdu, sommets des
+      patrons retrouvés aux positions enregistrées. Avec les commandes de
+      l'éditeur (plans, sections, patron natif `Net`, `NATIVE_OBJECTS.md`),
+      moteur +3,3 Ko (+1,1 Ko en gzip).
 
 À écarter, sauf changement de priorité : calcul formel, courbes implicites,
 statistiques et probabilités, tableur au-delà des cellules simples, matrices.

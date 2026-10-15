@@ -15,22 +15,21 @@ import { construction_object, type DgoContext } from "./construction_object";
 import type { plane_object } from "./plane_object";
 import type { revolution_object } from "./revolution_object";
 
-// Where a plane cuts the side of a cylinder, like GeoGebra's
-// IntersectPath(plane, cylinder): the
-// ellipse CENTER + cos t·U + sin t·V, drawn as an affine image of the unit
-// circle, keeping only its arcs between the planes of the disks.
+// Points per turn.
+const SAMPLES = 96;
+
+// Where a plane cuts the side of a cylinder or a cone, like GeoGebra's
+// IntersectPath(plane, solid): on the generator at angle t, from the rim
+// of A's disk at t to that of B's (the apex), the point at s(t) of it in
+// the plane, kept where 0 ≤ s ≤ 1, between the disks: arcs of an ellipse
+// for a cylinder, of a conic for a cone.
 export class cylinder_section_object extends construction_object {
     SOLID: revolution_object;
     PLANE: plane_object;
-    CENTER: Vec3 = [0, 0, 0];
-    U: Vec3 = [1, 0, 0];
-    V: Vec3 = [0, 1, 0];
-    // Each kept arc's parameters t, increasing.
-    arcs: [number, number][] = [];
+    // Each kept arc, sampled.
+    arcs: Vec3[][] = [];
     projectionDefined = true;
-    centerScreen: Vec2 = [0, 0];
-    screenU: Vec2 = [0, 0];
-    screenV: Vec2 = [0, 0];
+    private screens: Vec2[][] = [];
     path!: DOMElement;
 
     constructor(
@@ -53,33 +52,31 @@ export class cylinder_section_object extends construction_object {
         this.defined = false;
         const { SOLID: solid, PLANE: plane } = this;
         if (!solid.defined || !plane.defined) return;
-        const { A: a, AXIS: w, U: u, V: v, R0: radius, HEIGHT: height } = solid;
+        const { A, B, U: u, V: v, R0, R1 } = solid;
         const { CENTER: p, NORMAL: normal } = plane;
-        const slope = vDot(normal, w);
-        if (Math.abs(slope) <= GEOMETRY_EPSILON * vNorm(normal)) return;
-        // Heights along the axis from A: h0 at the center, h0 + hu·cos t +
-        // hv·sin t = h0 + rho·cos(t - phi) around it.
-        const h0 = vDot(normal, vSub(p, a.coords)) / slope;
-        const [hu, hv] = [u, v].map(
-            (direction) => (-radius * vDot(normal, direction)) / slope,
-        );
-        this.CENTER = vAdd(a.coords, vScale(w, h0));
-        this.U = vAdd(vScale(u, radius), vScale(w, hu));
-        this.V = vAdd(vScale(v, radius), vScale(w, hv));
-        const rho = Math.hypot(hu, hv);
-        const phi = Math.atan2(hv, hu);
+        // s = (e0 - R0·rho·x) / (d0 - (R0 - R1)·rho·x), x = cos(t - phi):
+        // 0 at x0, 1 at x1, infinite for a cone, whose s reaches 1 only at
+        // its apex.
+        const e0 = vDot(normal, vSub(p, A.coords));
+        const d0 = vDot(normal, vSub(B.coords, A.coords));
+        // A plane along a cylinder's axis cuts it along two generators.
+        if (
+            !solid.cone &&
+            Math.abs(d0) <= GEOMETRY_EPSILON * vNorm(normal) * solid.HEIGHT
+        )
+            return;
+        const [nu, nv] = [vDot(normal, u), vDot(normal, v)];
+        const rho = Math.hypot(nu, nv);
+        const phi = Math.atan2(nv, nu);
+        const x0 = e0 / (R0 * rho);
+        const x1 = (e0 - d0) / (R1 * rho);
         // Kept where inner ≤ |t - phi| ≤ outer. A plane orthogonal to the
         // axis (rho = 0) through a disk gives 0/0: the whole ellipse.
-        const top = (height - h0) / rho;
-        const bottom = -h0 / rho;
-        const inner = !(top < 1) ? 0 : top <= -1 ? Math.PI : Math.acos(top);
-        const outer = !(bottom > -1)
-            ? Math.PI
-            : bottom >= 1
-              ? 0
-              : Math.acos(bottom);
+        const [low, high] = [Math.min(x0, x1), Math.max(x0, x1)];
+        const inner = !(high < 1) ? 0 : high <= -1 ? Math.PI : Math.acos(high);
+        const outer = !(low > -1) ? Math.PI : low >= 1 ? 0 : Math.acos(low);
         if (inner >= outer) return;
-        this.arcs =
+        const ranges =
             inner === 0
                 ? [[phi - outer, phi + outer]]
                 : outer === Math.PI
@@ -88,42 +85,47 @@ export class cylinder_section_object extends construction_object {
                         [phi + inner, phi + outer],
                         [phi - outer, phi - inner],
                     ];
+        this.arcs = ranges.map(([start, end]) => {
+            const count = Math.ceil((SAMPLES * (end - start)) / (2 * Math.PI));
+            return Array.from({ length: count + 1 }, (_, k) => {
+                const t = start + ((end - start) * k) / count;
+                const [r0, r1] = [solid.rim(false, t), solid.rim(true, t)];
+                const along = vSub(r1, r0);
+                return vAdd(
+                    r0,
+                    vScale(
+                        along,
+                        vDot(normal, vSub(p, r0)) / vDot(normal, along),
+                    ),
+                );
+            });
+        });
         this.defined = true;
     }
 
     project(): void {
-        this.projectionDefined = false;
-        if (!this.defined) return;
-        const center = this.C.pt3D(this.CENTER);
-        const u = vSub(this.C.pt3D(vAdd(this.CENTER, this.U)), center);
-        const v = vSub(this.C.pt3D(vAdd(this.CENTER, this.V)), center);
-        if (!vIsFinite(center) || !vIsFinite(u) || !vIsFinite(v)) return;
-        this.centerScreen = center;
-        this.screenU = u;
-        this.screenV = v;
-        this.projectionDefined = true;
+        this.screens = this.arcs.map((arc) =>
+            arc.map((point) => this.C.pt3D(point)),
+        );
+        this.projectionDefined =
+            this.defined && this.screens.flat().every(vIsFinite);
     }
 
-    // Each arc through its middle, so that both halves span at most π.
     render(): void {
         this.dom.stl(
             "display",
             this.isVisible && this.projectionDefined ? "block" : "none",
         );
         if (!this.defined || !this.projectionDefined) return;
-        const at = (t: number) => `${Math.cos(t)} ${Math.sin(t)}`;
-        const d = this.arcs
-            .map(
-                ([start, end]) =>
-                    `M${at(start)} A1 1 0 0 1 ${at((start + end) / 2)} A1 1 0 0 1 ${at(end)}`,
-            )
-            .join(" ");
-        this.path
-            .att("d", d)
-            .att(
-                "transform",
-                `matrix(${this.screenU[0]} ${this.screenU[1]} ${this.screenV[0]} ${this.screenV[1]} ${this.centerScreen[0]} ${this.centerScreen[1]})`,
-            );
+        this.path.att(
+            "d",
+            this.screens
+                .map(
+                    (arc) =>
+                        `M${arc.map((point) => point.join(" ")).join(" L")}`,
+                )
+                .join(" "),
+        );
     }
 
     static createSVG(_this: construction_object): DOMElement {
@@ -134,8 +136,8 @@ export class cylinder_section_object extends construction_object {
             .stl("fill-opacity", t.opacity ?? 0)
             .stl("stroke", t.stroke_color)
             .stl("stroke-width", t.size)
-            .stl("pointer-events", "none")
-            .stl("vector-effect", "non-scaling-stroke");
+            .stl("stroke-linejoin", "round")
+            .stl("pointer-events", "none");
         return t.svg.shape("g").add(t.path);
     }
 }

@@ -114,6 +114,7 @@ import {
     polyhedron_object,
 } from "./objects/polyhedron_object";
 import { createNetVertex, type net_turn } from "./objects/net_vertex_object";
+import { createNet } from "./objects/net_object";
 import { createSymmetry } from "./objects/symmetry_object";
 import { createText } from "./objects/text_object";
 import { createPanel, panelNames, parsePanel } from "./objects/panel_object";
@@ -231,6 +232,7 @@ export const LOOKS: Record<string, Look> = {
     Cube: SOLID,
     Prsm: SOLID,
     Pyr: SOLID,
+    Net: SOLID,
     Poly: POLYGON,
     RegP: POLYGON,
     PlS: POLYGON,
@@ -452,7 +454,7 @@ const STYLE: Record<string, Property> = {
                 (isFlag(value[2]) || value[2] === 2)),
     ),
     pl: flag(polygon_object, "plane", (tag) => +PLANES.includes(tag)),
-    su: flag(polygon_object, "section"),
+    su: flag(polygon_object, "section", (tag) => +(tag === "PlS")),
     ar: field<angle_object | fixed_angle_object>(
         [angle_object, fixed_angle_object],
         "arcRadius",
@@ -1512,6 +1514,15 @@ const BUILDERS: Record<string, Builder> = {
         }),
     Prsm: onPolygon("Prsm"),
     Pyr: onPolygon("Pyr"),
+    Net: (parameters, reader) => {
+        const [solid, value] = list(parameters, 2);
+        return createNet(
+            reader.c,
+            reader.name,
+            reader.at(solid, polyhedron_object),
+            radius(value, reader),
+        );
+    },
     Cyl: revolution(false),
     Cone: revolution(true),
     Disk: (parameters, { c, name, at }) => {
@@ -1620,10 +1631,17 @@ const BUILDERS: Record<string, Builder> = {
     PlS: (parameters, { c, name, at, points }) => {
         check(
             Array.isArray(parameters) &&
-                parameters.length % 2 === 1 &&
-                parameters.length >= 7,
+                (parameters.length === 2 ||
+                    (parameters.length % 2 === 1 && parameters.length >= 7)),
         );
         const [plane, ...ends] = parameters as Json[];
+        if (ends.length === 1)
+            return createPlaneSection(
+                c,
+                name,
+                at(plane, plane_object),
+                at(ends[0], polyhedron_object),
+            );
         const vertices = points(ends, ends.length);
         return createPlaneSection(
             c,

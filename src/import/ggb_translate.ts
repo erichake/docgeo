@@ -657,6 +657,46 @@ function unfold(
     };
 }
 
+// GeoGebra's net of a prism or a pyramid (AlgoPolyhedronNetPrism,
+// AlgoPolyhedronNetPyramid), its faces the base, the lateral faces
+// V(i)V(i+1)… and the top: the base's points, then each lateral face's
+// own, its top vertices or the apex, then the top's others, the top
+// hanging from the first lateral face. Each face's points in the order of
+// its edges' outputs.
+function sidedNet(faces: string[][], prism: boolean): Net {
+    const base = faces[0];
+    const n = base.length;
+    const top = prism ? faces[n + 1] : [];
+    const points: Net["points"] = base.map((vertex) => ({ vertex, face: 0 }));
+    const own = (vertices: string[], face: number) =>
+        vertices.map((vertex) => points.push({ vertex, face }) - 1);
+    const netFaces = [base.map((_, k) => k)];
+    const links: Net["links"] = [null];
+    base.forEach((vertex, k) => {
+        const lateral = prism ? [top[k], top[(k + 1) % n]] : [faces[k + 1][2]];
+        netFaces.push([k, ...own(lateral, k + 1), (k + 1) % n]);
+        links.push({
+            edge: [vertex, base[(k + 1) % n]],
+            inside: lateral[0],
+            parentInside: base[(k + 2) % n],
+        });
+    });
+    if (prism) {
+        netFaces.push([n, n + 1, ...own(top.slice(2), n + 1)]);
+        links.push({
+            edge: [top[0], top[1]],
+            inside: top[2],
+            parentInside: base[0],
+        });
+    }
+    return {
+        points,
+        faces: netFaces,
+        parents: faces.map((_, k) => (k ? (k > n ? 1 : 0) : -1)),
+        links,
+    };
+}
+
 // GeoGebra chains comparisons: "a < x ≤ b" is "a < x ∧ x ≤ b". Each
 // nesting level remembers where the operand after its last comparison
 // starts, forgotten past an operator of lower precedence.
@@ -744,6 +784,8 @@ export function translateGgb(
     const polyhedra = new Map<string, [string, string][]>();
     // A polyhedron's faces, all drawn by its image with their sides.
     const shells = new Map<string, string[][]>();
+    // The prisms and the pyramids, which GeoGebra unfolds its own way.
+    const sided = new Map<string, boolean>();
     // The objects drawing an object that isn't one itself.
     const parts = new Map<string, string[]>();
     // The points an object is built from, and how to build it from others:
@@ -757,8 +799,6 @@ export function translateGgb(
         }
     >();
     const labels = new Map<string, string>();
-    // A convex polyhedron's faces, as their vertices.
-    const solids = new Map<string, string[][]>();
     const iterations = new Map<
         string,
         { ends: string[][]; levels: string; maps: SegmentMap[] }
@@ -2436,15 +2476,15 @@ export function translateGgb(
                 const label = outputs[others.length + 6 + index];
                 if (label) defineSegment(label, vertices[p], vertices[q]);
             });
-            solids.set(solid, faces);
             shells.set(solid, faces);
             return true;
         },
         // Net(P, v, base, e1, e2, …): P's net unfolded by v (0: folded, 1:
-        // flat) from its base face, e1, e2, … being cut; after the net
-        // itself come its points, its faces as P's and then its edges.
+        // flat) from its base face, e1, e2, … being cut, which a prism or a
+        // pyramid ignores; after the net itself come its points, its faces
+        // as P's and then its edges.
         Net: ([solid, value, ...rest], [, ...outputs]) => {
-            const faces = solids.get(solid);
+            const faces = shells.get(solid);
             const f = formula(value, VALUE_KINDS);
             if (!faces || f === null) return false;
             const base = polygons.get(rest[0]);
@@ -2452,17 +2492,23 @@ export function translateGgb(
                 segments.get(edge),
             );
             if (cuts.some((edge) => !edge)) return false;
-            const net = unfold(
-                faces,
-                base
-                    ? faces.findIndex(
-                          (face) =>
-                              face.length === base.length &&
-                              face.every((vertex) => base.includes(vertex)),
-                      )
-                    : 0,
-                cuts as [string, string][],
-            );
+            const prism = sided.get(solid);
+            const net =
+                prism !== undefined
+                    ? sidedNet(faces, prism)
+                    : unfold(
+                          faces,
+                          base
+                              ? faces.findIndex(
+                                    (face) =>
+                                        face.length === base.length &&
+                                        face.every((vertex) =>
+                                            base.includes(vertex),
+                                        ),
+                                )
+                              : 0,
+                          cuts as [string, string][],
+                      );
             if (!net) return false;
             // Each face turns by f times its angle with its parent around
             // their common edge, taking its descendants along: a point is
@@ -2563,6 +2609,7 @@ export function translateGgb(
                 ]),
             );
             shells.set(solid, polygon ? [base, ...faces] : faces);
+            sided.set(solid, false);
             return true;
         },
         // Prism(A, B, C, …, P) or Prism(poly, P): P is the top vertex over A,
@@ -2630,6 +2677,7 @@ export function translateGgb(
                 if (label) defineSegment(label, p, q);
             });
             shells.set(solid, polygon ? [base, ...faces] : faces);
+            sided.set(solid, true);
             return true;
         },
         Cylinder: revolution(false),
@@ -2668,8 +2716,9 @@ export function translateGgb(
                 ref(line),
             ]);
         },
-        // Where plane p cuts a sphere, the side of a cylinder or a pyramid
-        // (a vertex where p cuts each edge), or where planes p and q meet.
+        // Where plane p cuts a sphere, the side of a cylinder or a cone, or a
+        // pyramid (a vertex where p cuts each edge), or where planes p and q
+        // meet.
         IntersectPath: ([first, second, extra], [label, vertex]) => {
             if (extra !== undefined || !isPlane(first)) return false;
             if (spheres.has(second))
@@ -2677,10 +2726,10 @@ export function translateGgb(
                     ref(second),
                     ref(first),
                 ]);
-            const cylinder = revolutions.get(second);
-            if (cylinder && !cylinder.cone)
+            const solid = revolutions.get(second);
+            if (solid)
                 return define(label, "section", "CylinderSection", [
-                    ref(cylinder.label),
+                    ref(solid.label),
                     ref(first),
                 ]);
             const edges = polyhedra.get(second);
@@ -2694,7 +2743,6 @@ export function translateGgb(
                             .join(","),
                     ),
                 ]);
-                push(null, "STL", [ref(label), literal("su:true")]);
                 // GeoGebra names the section's vertices in turn, whichever
                 // edges they lie on: they take its first vertex's style,
                 // without a name.

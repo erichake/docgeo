@@ -2295,7 +2295,7 @@ const COMMANDS = new Map<string, CommandDefinition>([
                 ),
         },
     ],
-    // Not a DGPad command: GeoGebra's IntersectPath(plane, cylinder).
+    // Not a DGPad command: GeoGebra's IntersectPath(plane, cylinder or cone).
     [
         "CylinderSection",
         {

@@ -15,6 +15,9 @@ import { primitive_quadric_object } from "../objects/primitive_quadric_object";
 import { ray_line_object } from "../objects/ray_line_object";
 import { segment_object } from "../objects/segment_object";
 import { sphere_object } from "../objects/sphere_object";
+import { solid_object } from "../objects/solid_object";
+import { polyhedron_object } from "../objects/polyhedron_object";
+import type { revolution_object } from "../objects/revolution_object";
 import { two_points_line_object } from "../objects/two_points_line_object";
 import { projectPointOnLine, projectPointOnPlane } from "../projection";
 import { accepts } from "./catalog";
@@ -107,6 +110,14 @@ export function nearest(
     if (object instanceof sphere_object)
         return object.projectionDefined && inside(object.contour, screen)
             ? object.CENTER
+            : null;
+    // Its first point: the ring opens at the middle of its outline.
+    if (object instanceof solid_object)
+        return object.projectionDefined && inside(object.outline, screen)
+            ? (object instanceof polyhedron_object
+                  ? object.vertices[0]
+                  : (object as revolution_object).A
+              ).coords
             : null;
     if (object instanceof polygon_object && object.points.length >= 3) {
         const [p, q, r] = object.points.map(({ coords }) => coords);
@@ -226,7 +237,7 @@ export function arcAt(
 }
 
 // Within `radius` pixels, points first, then the nearest first. A polygon
-// or a sphere is under the pointer inside it, an angle near its mark.
+// or a solid is under the pointer inside it, an angle near its mark.
 export function pick(
     c: construction,
     screen: Vec2,
@@ -242,7 +253,9 @@ export function pick(
                 : nearest(c, object, screen);
         if (!at || !vIsFinite(at)) return;
         const distance =
-            object instanceof polygon_object || object instanceof sphere_object
+            object instanceof polygon_object ||
+            object instanceof sphere_object ||
+            object instanceof solid_object
                 ? radius
                 : object instanceof angle_object
                   ? arcDistance(c, object, screen)

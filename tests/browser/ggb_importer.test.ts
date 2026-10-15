@@ -1166,6 +1166,39 @@ ${[
         expect(circle.defined).toBe(false);
     });
 
+    it("cuts a cone by a plane, keeping the conic between its base and apex", async () => {
+        const c = createConstruction();
+        const xml = await loadXml("3d_cone_section");
+        expect(importGgb(c, xml)).toEqual([]);
+        // The cone of base x² + y² ≤ 4, z = 0, and apex (0, 0, 4); planes
+        // z = 0.5x + 1, cutting an ellipse, and z = 3x + 1, a hyperbola.
+        [
+            ["s", 0.5],
+            ["t", 3],
+        ].forEach(([name, slope]) => {
+            const section = c.getObj(name as string) as cylinder_section_object;
+            expect(section).toBeInstanceOf(cylinder_section_object);
+            expect(section.arcs).toHaveLength(1);
+            const [arc] = section.arcs;
+            arc.forEach(([x, y, z]) => {
+                expect(z).toBeCloseTo((slope as number) * x + 1, 9);
+                expect(Math.hypot(x, y)).toBeCloseTo(2 - z / 2, 9);
+                expect(z).toBeGreaterThanOrEqual(-1e-9);
+            });
+            const ends = [arc[0], arc[arc.length - 1]];
+            if (slope === 3)
+                ends.forEach(([, , z]) => expect(z).toBeCloseTo(0, 9));
+            else expectClose(ends[0], ends[1]);
+        });
+    });
+
+    it("unfolds the nets of a prism and a pyramid like GeoGebra", async () => {
+        const c = createConstruction();
+        const xml = await loadXml("3d_patrons");
+        expect(importGgb(c, xml)).toEqual([]);
+        expectSavedPoints(c, xml);
+    });
+
     it("cuts a limited cylinder by a plane, keeping the section on its side", async () => {
         const c = createConstruction();
         const xml = await loadXml("3d_inter5");
@@ -1185,25 +1218,17 @@ ${[
 
         const section = c.getObj("e") as cylinder_section_object;
         expect(section).toBeInstanceOf(cylinder_section_object);
-        const at = (t: number) =>
-            vAdd(
-                section.CENTER,
-                vAdd(
-                    vScale(section.U, Math.cos(t)),
-                    vScale(section.V, Math.sin(t)),
-                ),
-            );
-        const expectOnSide = (t: number) => {
-            const x = at(t);
+        const expectOnSide = (x: Vec3) => {
             expect(vDot(vSub(x, point("C")), normal)).toBeCloseTo(0, 9);
             expect(Math.hypot(x[0] - g[0], x[1] - g[1])).toBeCloseTo(1, 9);
             expect(x[2]).toBeGreaterThanOrEqual(-1e-9);
             expect(x[2]).toBeLessThanOrEqual(top + 1e-9);
         };
+        // Closed.
         expect(section.arcs).toHaveLength(1);
-        const [[start, end]] = section.arcs;
-        expect(end - start).toBeCloseTo(2 * Math.PI, 9);
-        [0, 1, 2, 3].forEach((k) => expectOnSide(k));
+        const [whole] = section.arcs;
+        expectClose(whole[0], whole[whole.length - 1]);
+        whole.forEach(expectOnSide);
 
         // C such that the plane cuts the axis at height h.
         const moveC = async (h: number) => {
@@ -1219,13 +1244,10 @@ ${[
         await moveC(top - 0.1);
         expect(section.defined).toBe(true);
         expect(section.arcs).toHaveLength(1);
-        const [[first, last]] = section.arcs;
-        expect(last - first).toBeLessThan(2 * Math.PI);
-        expect(at(first)[2]).toBeCloseTo(top, 9);
-        expect(at(last)[2]).toBeCloseTo(top, 9);
-        [0, 0.25, 0.5, 0.75, 1].forEach((k) =>
-            expectOnSide(first + k * (last - first)),
-        );
+        const [arc] = section.arcs;
+        expect(arc[0][2]).toBeCloseTo(top, 9);
+        expect(arc[arc.length - 1][2]).toBeCloseTo(top, 9);
+        arc.forEach(expectOnSide);
 
         await moveC(top + 1);
         expect(section.defined).toBe(false);

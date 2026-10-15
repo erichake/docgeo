@@ -129,15 +129,15 @@ pour un gain faible ; laissé de côté.
 ### 6. La 3D — fait
 
 Plans, intersections, sections et sommets des solides (item 31 de
-`GGB_IMPORT.md`) ; cylindre, cône et sphère de rayon donné (item 32).
-Restent :
+`GGB_IMPORT.md`) ; cylindre, cône et sphère de rayon donné (item 32) ;
+section d'un cône par un plan et patrons des prismes et pyramides
+importés (item 33). L'éditeur a ses solides (`Cyl`, `Cone`, `Cube`,
+`Prsm`, `Pyr`, objets uniques qui dessinent tout), ses plans (`Plan`,
+`PlanParallèle`, `PlanOrthogonal`, équation en x, y, z), `Section` d'un
+solide par un plan et `Patron` (`Net`, objet unique) : voir `EDITOR.md`.
 
-- l'éditeur a ses solides (`Cyl`, `Cone`, `Cube`, `Prsm`, `Pyr`, objets
-  uniques qui dessinent tout), mais pas encore de commandes pour les
-  plans, les sections ni le patron ; l'import GeoGebra garde ses cubes,
-  prismes et pyramides en sommets, faces et arêtes nommés, qui ont leurs
-  styles propres ;
-- la section d'un cône par un plan (une conique), non importée.
+Reste : l'import GeoGebra garde ses cubes, prismes, pyramides et patrons
+en sommets, faces et arêtes nommés, qui ont leurs styles propres.
 
 ### Hors du chantier
 
@@ -149,4 +149,5 @@ rester des expressions : `Distance`, `Length`, `Slope`, `Corner`,
 
 Corpus : 238 figures sur 438 sans perte, aucun plantage (après le
 correctif du nom d'un segment de longueur nulle, item 24 bis de
-`GGB_IMPORT.md`). Moteur : 335,4 Ko après l'item 6 et les solides de l'éditeur.
+`GGB_IMPORT.md`), 242 après l'item 33. Moteur : 338,8 Ko après les plans,
+sections et patrons de l'éditeur.

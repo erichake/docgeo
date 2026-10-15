@@ -130,7 +130,9 @@ de `src/import/dgp_commands.ts`.
   sans xy, un cercle (`EqC`) ; sinon une conique (`EqQ`). Une équation de
   degré supérieur, ou qui n'est pas un polynôme (vérifié en trois points
   de plus), est refusée (`degree`). La ligne relit les deux membres tels
-  qu'écrits.
+  qu'écrits. Une équation qui lit z (s'il ne nomme pas d'objet) est un
+  plan (`PlE`), de degré 1 ; z en tête de ligne reste un nom : `z = 3` est
+  une expression, le plan s'écrit `p = z = 3`.
 - Réutilisation possible de `src/import/ggb_translate.ts` : une ligne tapée,
   ramenée à la commande GeoGebra canonique (nom, arguments, résultat), a la
   même structure qu'une commande du `geogebra.xml`. Il faudrait le découper
@@ -257,8 +259,8 @@ la GeoGebra, l'outil choisi avant les objets.
 - **Plus d'outils que l'anneau**, qui reste léger : à la fin de leur
   famille, `AutreIntersection` (points), `Compas`, `Arc`, `Secteur`,
   `ArcCentre`, `SecteurCentre` (le centre, le début, puis un point de la
-  demi-droite où il finit), `DemiCercle`, et la famille « Solides »
-  (3D),
+  demi-droite où il finit), `DemiCercle`, et les familles « Plans » et
+  « Solides » (3D),
   `Conique`, `Ellipse`, `Hyperbole` et `Parabole` (« Cercles, arcs,
   coniques »), ces trois-là comme dans GeoGebra : deux foyers puis un
   point, ou un foyer puis la directrice (au clavier, `Ellipse(F, G, a)` et
@@ -273,8 +275,11 @@ la GeoGebra, l'outil choisi avant les objets.
   (`Milieu` de deux points ou d'un segment, `Médiatrice`, le cercle par
   trois points du plan ou de l'espace). Deux places d'une même commande
   ont un nom chacune : « Cercle (centre et point) » / « (centre et
-  rayon) », « Symétrie centrale » / « axiale ». La sphère n'apparaît qu'en
-  3D.
+  rayon) », « Symétrie centrale » / « axiale ». La sphère, les plans et
+  les solides n'apparaissent qu'en 3D. Exception : « Section » a une seule
+  forme au menu, qui prend n'importe quel solide (sphère, cylindre, cône,
+  polyèdre), avant ou après le plan ; l'objet construit est celui de ses
+  arguments (`formOf` dans `main.ts`).
 - **Survol** : la ligne que l'outil écrira et ce qu'il faut désigner,
   comme sur l'anneau.
 - **Désignation** : celle de l'anneau, sans clavier virtuel ; la ligne en
@@ -474,8 +479,8 @@ comme dans DGPad où elle se décidait à la création de la figure.
   caméra revient au-dessus du plan par le plus court chemin, puis la figure
   est relue en 2D.
 - **Retour au plan refusé** tant qu'un objet dessiné est hors du plan
-  z = 0 (point, ou point d'une liste, de cote non nulle ; sphère, section
-  de cylindre) : la consigne le nomme (« A est hors du plan z = 0 : la
+  z = 0 (point, ou point d'une liste, de cote non nulle ; sphère, plan,
+  solide, patron, section de cylindre ou de cône) : la consigne le nomme (« A est hors du plan z = 0 : la
   figure reste en 3D »). Une expression, même de valeur `[1, 2, 3]`, n'est
   pas dessinée ; une perpendiculaire (`plumb_line_object`) est celle d'une
   droite, aussi dans le plan.
@@ -1327,6 +1332,22 @@ Fait (2026-10-11) :
   seulement ; le cylindre et le cône prennent le rayon par défaut du
   cercle. Éditeur +1,1 Ko (+0,3 Ko en gzip) ; lecteur +4,8 Ko (+1,4 Ko en
   gzip).
+
+- Plans, sections et patron (2026-10-15) : `Plan(A, B, C)`, `Plan(A, d)`
+  (contenant d), `PlanParallèle(A, p)`, `PlanOrthogonal(A, d)` et
+  `p = x + y + z = 3` ; `Section(s, p)` d'une sphère (cercle), d'un
+  cylindre ou d'un cône (conique limitée au solide), d'un polyèdre
+  (polygone) ; `Patron(c, f)` d'un cube, d'un prisme ou d'une pyramide,
+  déplié de f (0 : plié, 1 : à plat), un objet unique qui dessine ses
+  faces, comme les patrons de GeoGebra. Au clavier seulement :
+  `Intersection(d, p)`, `Intersection(p, q)`, `Intersection(s, t)` de deux
+  sphères, `Perpendiculaire(A, p)`. Au menu, une famille « Plans » (3D),
+  et `Section` et `Patron` à la fin des « Solides ». Les solides se
+  désignent à l'intérieur de leur contour, l'anneau s'ouvrant en son
+  milieu ; plans, sections et sphères de rayon donné créés sont remplis
+  comme les polygones.
+  Éditeur +2,5 Ko (+0,75 Ko en gzip) ; moteur +3,3 Ko (+1,1 Ko en gzip,
+  avec l'item 33 de `GGB_IMPORT.md`), lecteur inchangé.
 
 Reste à faire :
 

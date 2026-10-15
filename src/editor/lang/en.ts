@@ -217,6 +217,7 @@ export default {
     family_shapes: "Polygons, angles, loci",
     family_transformations: "Transformations",
     family_solids: "Solids",
+    family_planes: "Planes",
     tool_circle_point: "Circle (centre and point)",
     tool_circle_radius: "Circle (centre and radius)",
     tool_central: "Point reflection",
@@ -243,5 +244,10 @@ export default {
     designate_support: "Designate an object",
     designate_path: "Designate a line, a circle or a curve",
     designate_outline: "Designate a polygon or a conic",
+    designate_plane: "Designate a plane",
+    designate_sphere: "Designate a sphere",
+    designate_polyhedron: "Designate a polyhedron",
+    designate_revolution: "Designate a cylinder or a cone",
+    designate_solid: "Designate a solid",
     unsupported: "Not imported: %",
 };
