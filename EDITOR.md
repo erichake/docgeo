@@ -313,7 +313,8 @@ la GeoGebra, l'outil choisi avant les objets.
   gauche, ailleurs la figure déplace la vue (la tourne en 3D). Au doigt,
   rien encore : il faut sortir de l'outil pour déplacer.
 - **Petit écran** (600 px ou moins) : choisir un outil referme le panneau
-  « Construction », pour que la figure se voie entière.
+  « Construction » et celui des propriétés, pour que la figure se voie
+  entière.
 
 ### Sélection multiple
 
@@ -705,6 +706,16 @@ panneau sélectionne l'objet. La liste permet de retrouver aussi les objets
 cachés ; les objets super-cachés en sont exclus. Dans ce mode, un clic vide
 ne crée pas de point et les boutons, cases à cocher et champs de la figure
 se désignent sans s'actionner. Les points et les curseurs restent déplaçables.
+
+Ce mode ne vaut que sans outil : le panneau ne bloque pas la construction
+(décidé le 2026-10-15). Un outil choisi dans le menu « Outils », ou la
+ligne de saisie, prend les clics comme panneau fermé, et chaque objet
+construit s'affiche dans le panneau, prêt à être réglé. Ouvrir le panneau
+garde l'outil du menu ; Échap lâche l'outil, puis ferme le panneau. L'anneau
+ne s'ouvre pas tant que le panneau est ouvert. Écarté : un panneau qui
+suivrait la sélection, figure toujours en mode construction, qui aurait
+fait perdre la désignation des boutons et des cases sans les actionner, le
+clic vide qui désélectionne et le clic sur un axe vers l'onglet « Figure ».
 
 Les contrôles sont adaptés à l'objet : nom, couleurs, taille, opacités,
 pointillés, calque, visibilité, nom affiché et décimales ; forme, position du
@@ -1365,6 +1376,12 @@ Fait (2026-10-11) :
   un plan tout juste créé n'était pas désignable avant un changement de
   vue, ses coins n'étant pas projetés. Éditeur +1,0 Ko (+0,4 Ko en
   gzip) ; moteur +0,6 Ko (+0,2 Ko en gzip), lecteur inchangé.
+- Construction panneau de propriétés ouvert (2026-10-15, section « Panneau
+  de propriétés ») : un outil du menu ou la ligne de saisie prend les
+  clics, l'objet construit s'affiche dans le panneau ; auparavant, l'outil
+  restait armé mais inerte. Vérifié dans `editor.html` (outil Segment,
+  ligne de saisie avec désignation et point libre, sélection après Échap,
+  Échap deux fois). Éditeur +57 octets (+21 en gzip) ; lecteur inchangé.
 
 Reste à faire :
 

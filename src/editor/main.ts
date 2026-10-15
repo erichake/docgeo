@@ -710,7 +710,7 @@ function setProperties(on: boolean): void {
             ? selection.map(({ object }) => object)
             : target();
         setEraser(false);
-        cancel();
+        cancel(true);
         editing()?.blur();
         closeCompletion();
         showAccepted([]);
@@ -726,7 +726,7 @@ function setProperties(on: boolean): void {
         .toggleClass("dge-properties-open", on);
     propertiesButton.toggleClass("dge-on", on).att("aria-expanded", String(on));
     shine(on);
-    showHint("");
+    if (!pending) showHint("");
 }
 // Typing doesn't reach the figure's own keys (3D view, floor), shortcuts
 // do.
@@ -1143,13 +1143,10 @@ function bindRow(row: DOMElement, object: construction_object | null): void {
     row.on(
         "focus",
         () => {
-            if (propertiesOpen) {
-                if (object) {
-                    properties.select(object);
-                    field.blur();
-                    return;
-                }
-                setProperties(false);
+            if (propertiesOpen && object) {
+                properties.select(object);
+                field.blur();
+                return;
             }
             setEraser(false);
             setSteps(false);
@@ -1909,7 +1906,10 @@ function arm(item: Item): void {
     closeTools();
     cancel();
     armed = item;
-    if (window.matchMedia("(max-width: 600px)").matches) setPanel(false);
+    if (window.matchMedia("(max-width: 600px)").matches) {
+        setPanel(false);
+        if (propertiesOpen) setProperties(false);
+    }
     rearm();
     if (picked[0]) take(picked);
     else prompt();
@@ -2214,6 +2214,10 @@ function closeRing(): void {
 // The object the actions act on, Delete included.
 const target = (): construction_object | null =>
     propertiesOpen ? properties.selected : (held?.hit.object ?? null);
+
+// Panel open, a click designates for it, unless a tool or the line being
+// typed takes it.
+const inspecting = (): boolean => propertiesOpen && !pending && !editing();
 
 const OBJECT_ACTIONS = [
     deleteButton,
@@ -3010,12 +3014,13 @@ function cancel(keepTool = false): void {
 function escape(): void {
     if (!menu.isHidden()) closeMenu();
     else if (!toolsMenu.isHidden()) closeTools();
-    else if (propertiesOpen) setProperties(false);
+    else if (propertiesOpen && !pending) setProperties(false);
     else if (ghosts) setEraser(false);
     else cancel();
 }
 
 function done(object?: construction_object): void {
+    if (object && propertiesOpen) properties.select(object);
     rearm();
     clearPreview();
     highlight();
@@ -3439,7 +3444,7 @@ $("body").on(
             c.svg.dom().setPointerCapture(event.pointerId);
             return;
         }
-        if (propertiesOpen) {
+        if (inspecting()) {
             const object = propertyObject(event);
             if (
                 object instanceof button_object ||
@@ -3663,7 +3668,7 @@ $("body").on(
             named instanceof point_object
                 ? [box.left + named.sx, box.top + named.sy]
                 : [event.clientX, event.clientY];
-        if (adding && propertiesOpen) {
+        if (adding && inspecting()) {
             const object = propertyObject(event);
             if (!hits.some((hit) => hit.object === object) && object)
                 return properties.toggle(object);
@@ -3687,7 +3692,7 @@ $("body").on(
                 );
             return stopMagnets();
         }
-        if (propertiesOpen) {
+        if (inspecting()) {
             // A widget, or an object the figure can't pick.
             const object = propertyObject(event);
             if (!hits.some((hit) => hit.object === object) && object)
