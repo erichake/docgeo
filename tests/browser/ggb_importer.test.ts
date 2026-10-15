@@ -391,6 +391,26 @@ ${[
         expect(t.screen).toEqual([a.screen[0] + 5, a.screen[1] - 10]);
     });
 
+    it("writes no name for a segment of zero length", async () => {
+        const c = createConstruction();
+        importGgb(
+            c,
+            `<geogebra><construction>
+<element type="point" label="A"><coords x="1" y="2" z="1"/></element>
+<element type="point" label="B"><coords x="1" y="2" z="1"/></element>
+<command name="Segment"><input a0="A" a1="B"/><output a0="s"/></command>
+<element type="segment" label="s"><show object="true" label="true"/><labelOffset x="5" y="-10"/></element>
+</construction></geogebra>`,
+        );
+        const s = c.getObj("s") as segment_object;
+        expect(s.nameSpot()).toBeNull();
+        const b = c.getObj("B") as point_object;
+        b.coords = [3, 2, 0];
+        c.invalidateGeometry(b);
+        await new Promise((resolve) => requestAnimationFrame(resolve));
+        expect(s.nameSpot()).not.toBeNull();
+    });
+
     it("builds nested commands as hidden auxiliary objects", async () => {
         const c = createConstruction();
         importGgb(c, await loadXml("transform"));

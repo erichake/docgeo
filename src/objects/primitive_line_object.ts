@@ -336,6 +336,7 @@ export class primitive_line_object extends construction_object {
     // window's edge, sloped away from it; a ray's or a segment's 16 pixels
     // beside the middle of its part in the window or of the whole.
     nameAt(): Vec2 | null {
+        if (!this.projectionDefined) return null;
         const width = this.C.width;
         const height = this.C.height;
         const along = vSub(this.sP2, this.sP1);
