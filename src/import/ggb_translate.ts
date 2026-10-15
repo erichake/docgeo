@@ -232,6 +232,19 @@ const CYLINDER_SIDES = 60;
 // The samples among which a function's roots are sought.
 const ROOT_SAMPLES = 200;
 const VALUE_KINDS: Kind[] = ["point", "pointOn", "expression"];
+// Its terms, each a coefficient and a monomial, written as a teacher
+// would: "x - 2y + 3".
+const polynomial = (terms: [number, string][]): string =>
+    terms
+        .filter(([k]) => k !== 0)
+        .map(
+            ([k, monomial], index) =>
+                (k < 0 ? (index ? " - " : "-") : index ? " + " : "") +
+                (Math.abs(k) === 1 && monomial ? "" : Math.abs(k)) +
+                monomial,
+        )
+        .join("") || "0";
+
 // An equation's x and y stay its variables, z of the plane is 0.
 const EQUATION_VARIABLES = new Map([
     ["x", "x"],
@@ -978,8 +991,15 @@ export function translateGgb(
                 else if (word === "true" || word === "false") result += word;
                 // GeoGebra's imaginary unit.
                 else if (word === "ί") result += "i";
-                else if (locals.has(word)) result += `(${locals.get(word)})`;
-                else if (vectors.has(word) && kinds.length > 0) {
+                else if (locals.has(word)) {
+                    // An equation's x stays x, unless a call would read it.
+                    const local = locals.get(word)!;
+                    result +=
+                        IDENTIFIER.test(local) &&
+                        !/^ ?\(/.test(text.slice(index, index + 2))
+                            ? local
+                            : `(${local})`;
+                } else if (vectors.has(word) && kinds.length > 0) {
                     const [p, q] = vectors
                         .get(word)!
                         .map((end) => objects.get(end)!.variable);
@@ -3742,23 +3762,32 @@ export function translateGgb(
             const sides =
                 source === undefined
                     ? saved.every(Number.isFinite) && [
-                          (line
-                              ? [`${a0}*x`, `${a1}*y`, a2]
-                              : [
-                                    `${a0}*x^2`,
-                                    `${a1}*y^2`,
-                                    a2,
-                                    `${2 * a3}*x*y`,
-                                    `${2 * a4}*x`,
-                                    `${2 * a5}*y`,
-                                ]
-                          ).join("+"),
+                          polynomial(
+                              line
+                                  ? [
+                                        [a0, "x"],
+                                        [a1, "y"],
+                                        [a2, ""],
+                                    ]
+                                  : [
+                                        [a0, "x^2"],
+                                        [2 * a3, "x*y"],
+                                        [a1, "y^2"],
+                                        [2 * a4, "x"],
+                                        [2 * a5, "y"],
+                                        [a2, ""],
+                                    ],
+                          ),
                           "0",
                       ]
                     : source
                           .split("=")
                           .map((side) =>
-                              formula(side, VALUE_KINDS, EQUATION_VARIABLES),
+                              formula(
+                                  side.trim(),
+                                  VALUE_KINDS,
+                                  EQUATION_VARIABLES,
+                              ),
                           );
             if (!sides || sides.length !== 2 || sides.includes(null))
                 return false;

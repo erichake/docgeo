@@ -11,6 +11,7 @@ const zh_TW: Texts = {
         unknown_method:
             "未知方法：%（setHidden、setRGBColor、setOpacity、setSize…）",
         arguments: "% 的參數不正確",
+        degree: "直線或二次曲線的方程式是一次或二次的",
         instead: "使用這些參數：%",
         branch: "交點編號為 1 到 4",
         name_taken: "名稱 % 已被使用",

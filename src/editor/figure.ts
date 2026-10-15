@@ -14,6 +14,7 @@ import {
 import {
     formulaIdentifiers,
     formulaSource,
+    parseFormula,
     parseProgram,
     programNodes,
     programReferences,
@@ -22,6 +23,11 @@ import {
 } from "../import/dgp_formula";
 import { angle_object } from "../objects/angle_object";
 import { construction_object } from "../objects/construction_object";
+import {
+    equationCoeffs,
+    equationValue,
+    type Equation,
+} from "../objects/equation_conic_object";
 import { expression_object } from "../objects/expression_object";
 import { fixed_angle_object } from "../objects/fixed_angle_object";
 import type { formula_point_object } from "../objects/formula_point_object";
@@ -203,6 +209,10 @@ export function lineOf(
         const { formula, refs } = object as formula_point_object;
         return `${name} = ${pointFormulaText(oneLine(renamed(formulaSource(formula), refs)))}`;
     }
+    if (EQUATIONS.includes(tag)) {
+        const { equation } = object as unknown as { equation: Equation };
+        return `${name} = ${equation.map((side) => oneLine(renamed(side.source, side.refs))).join(" = ")}`;
+    }
     const decoded = decodeEntry(tag, parameters, (at) => objects[at]);
     if (decoded)
         return `${name} = ${commandName(decoded.command)}(${decoded.args.map(formatArg).join(", ")})`;
@@ -226,6 +236,8 @@ export function resolve(
         ({ overload, args } = expression(c, definition!.source, target));
     else if (definition!.kind === "pointFormula")
         ({ overload, args } = formulaPoint(c, definition!.source));
+    else if (definition!.kind === "equation")
+        ({ overload, args } = equation(c, definition!.sides));
     else {
         const call = definition!;
         const command = findCommand(call.command);
@@ -412,6 +424,77 @@ function formulaPoint(
             encode: (_, index) => [formulaParameter(source, named, index)],
         },
         args: [...named.values()],
+    };
+}
+
+const EQUATIONS = ["EqL", "EqC", "EqQ"];
+
+// A line, a circle or a conic, as the equation's coefficients are now: of
+// degree 1, 2 with one coefficient for x² and y² and none for xy, or 2.
+function equation(
+    c: construction,
+    sides: string[],
+): { overload: Overload; args: Arg[] } {
+    const own = new Map(
+        figureObjects(c).map((object) => [object.name, object]),
+    );
+    const formulas = sides.map((source) => {
+        const node = withObjects(new Set(own.keys()), () => {
+            try {
+                return parseFormula(source);
+            } catch {
+                throw new TextError("syntax", source);
+            }
+        });
+        const names = [...formulaIdentifiers(node)].filter(
+            (name) => name !== "x" && name !== "y",
+        );
+        const refs = new Map(
+            names.map((name) => {
+                const object = own.get(name);
+                if (!object) throw new TextError("unknown_object", name);
+                return [name, object];
+            }),
+        );
+        return { node, source, variables: ["x", "y"], refs, vec3: false };
+    }) as Equation;
+    const coeffs = equationCoeffs(formulas, c);
+    const scale = Math.max(...(coeffs ?? []).map(Math.abs));
+    const zero = (value: number) => Math.abs(value) <= 1e-9 * scale;
+    // Its other values are those of its polynomial.
+    if (
+        !coeffs ||
+        !scale ||
+        [
+            [2, 3],
+            [-3, 1.5],
+            [0.5, -2],
+        ].some(([x, y]) => {
+            const [a, b, cc, d, e, f] = coeffs;
+            return !zero(
+                equationValue(formulas, c, [x, y]) -
+                    (a * x * x + b * x * y + cc * y * y + d * x + e * y + f),
+            );
+        })
+    )
+        throw new TextError("degree");
+    const [a, b, cc] = coeffs;
+    const tag =
+        zero(a) && zero(b) && zero(cc)
+            ? "EqL"
+            : zero(b) && zero(a - cc)
+              ? "EqC"
+              : "EqQ";
+    return {
+        overload: {
+            params: [],
+            tag,
+            encode: (_, index) =>
+                formulas.map(({ source, refs }) =>
+                    formulaParameter(source, refs, index),
+                ),
+        },
+        args: [...new Set(formulas.flatMap(({ refs }) => [...refs.values()]))],
     };
 }
 

@@ -11,6 +11,7 @@ const hi: Texts = {
         unknown_method:
             "अज्ञात मेथड: % (setHidden, setRGBColor, setOpacity, setSize…)",
         arguments: "% के लिए गलत आर्गुमेंट",
+        degree: "रेखा या शांकव का समीकरण घात 1 या 2 का होता है",
         instead: "इन आर्गुमेंट के साथ: %",
         branch: "प्रतिच्छेद संख्या 1 से 4 तक होती है",
         name_taken: "नाम % पहले से उपयोग में है",

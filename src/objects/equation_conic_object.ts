@@ -21,21 +21,27 @@ const SAMPLES = [
     [1, 1],
 ];
 
+// Left - right at (x, y), NaN where it is undefined.
+export function equationValue(
+    equation: Equation,
+    c: construction,
+    point: number[],
+): number {
+    const [left, right] = equation.map((side) =>
+        realPart(evaluateFunction(side, point, () => c.formulaView())),
+    );
+    return left === null || right === null ? NaN : left - right;
+}
+
 // Its a, b, c, d, e, f, a·x² + b·xy + c·y² + d·x + e·y + f being left -
 // right, from its values at SAMPLES: exact for a degree 2 at most.
 export function equationCoeffs(
     equation: Equation,
     c: construction,
 ): number[] | null {
-    const view = () => c.formulaView();
-    const values = SAMPLES.map((point) => {
-        const [left, right] = equation.map((side) =>
-            realPart(evaluateFunction(side, point, view)),
-        );
-        return left === null || right === null ? null : left - right;
-    });
+    const values = SAMPLES.map((point) => equationValue(equation, c, point));
     if (!values.every(Number.isFinite)) return null;
-    const [g, p, m, q, n, r] = values as number[];
+    const [g, p, m, q, n, r] = values;
     return [
         (p + m) / 2 - g,
         r - p - q + g,

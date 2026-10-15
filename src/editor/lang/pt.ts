@@ -11,6 +11,7 @@ const pt: Texts = {
         unknown_method:
             "Método desconhecido: % (setHidden, setRGBColor, setOpacity, setSize…)",
         arguments: "Argumentos incorretos para %",
+        degree: "A equação de uma reta ou de uma cônica é de grau 1 ou 2",
         instead: "Com estes argumentos: %",
         branch: "O número da interseção vai de 1 a 4",
         name_taken: "O nome % já está em uso",

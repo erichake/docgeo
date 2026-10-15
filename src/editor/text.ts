@@ -3,7 +3,8 @@ import { FormulaLexer, METHOD_ARITY, type Token } from "../import/dgp_formula";
 // The text of a construction, one line per object: `name = Command(args)`,
 // `A = (x, y)` for a free point, `M = (x(A) + 1, y(B))` or
 // `M = Point(2*B - A)` for a point computed by a formula, or
-// `name = formula` for an expression. A closed grammar, the formulas' own,
+// `name = formula` for an expression, `name = left = right` for a line, a
+// circle or a conic of its equation. A closed grammar, the formulas' own,
 // never evaluated.
 
 export type ArgText =
@@ -13,7 +14,8 @@ export type Definition =
     | { kind: "point"; coords: number[] }
     | { kind: "call"; command: string; args: ArgText[] }
     | { kind: "formula"; source: string }
-    | { kind: "pointFormula"; source: string };
+    | { kind: "pointFormula"; source: string }
+    | { kind: "equation"; sides: [string, string] };
 
 export interface Line {
     name: string | null;
@@ -96,7 +98,12 @@ export function parseLine(
     let position = 0;
     const peek = (offset = 0): Token | undefined => tokens[position + offset];
     let name: string | null = null;
-    if (peek()?.type === "identifier" && peek(1)?.type === "=") {
+    // `y = 2x + 1` is an equation, as in GeoGebra.
+    if (
+        peek()?.type === "identifier" &&
+        !["x", "y"].includes(peek()!.value as string) &&
+        peek(1)?.type === "="
+    ) {
         name = peek()!.value as string;
         position = 2;
     }
@@ -104,6 +111,27 @@ export function parseLine(
     if (!source) {
         if (name === null) throw new TextError("expected", "");
         return { name, definition: null };
+    }
+    // One "=" outside brackets, and no statement.
+    let depth = 0;
+    const equals = tokens.flatMap(({ type }, index) => {
+        if (type === "(" || type === "[") depth++;
+        else if (type === ")" || type === "]") depth--;
+        return index >= position && !depth && type === "=" ? [index] : [];
+    });
+    if (
+        equals.length === 1 &&
+        !tokens.some(({ type }) => type === ";" || type === "{")
+    ) {
+        const sides = [
+            text.slice(position && ends[1], starts[equals[0]]),
+            text.slice(ends[equals[0]]),
+        ].map((side) => side.trim());
+        if (sides.includes("")) throw new TextError("syntax", source);
+        return {
+            name,
+            definition: { kind: "equation", sides: sides as [string, string] },
+        };
     }
     const head = peek()!;
     if (

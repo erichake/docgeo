@@ -11,6 +11,7 @@ const ar: Texts = {
         unknown_method:
             "طريقة غير معروفة: % (setHidden, setRGBColor, setOpacity, setSize…)",
         arguments: "وسائط غير صحيحة للأمر %",
+        degree: "معادلة المستقيم أو القطع المخروطي من الدرجة 1 أو 2",
         instead: "بهذه الوسائط: %",
         branch: "رقم التقاطع من 1 إلى 4",
         name_taken: "الاسم % مستخدم بالفعل",

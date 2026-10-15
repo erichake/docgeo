@@ -10,6 +10,7 @@ export default {
     unknown_method:
         "Unknown method: % (setHidden, setRGBColor, setOpacity, setSize…)",
     arguments: "Wrong arguments for %",
+    degree: "An equation of a line or a conic has degree 1 or 2",
     instead: "With these arguments: %",
     branch: "The intersection number goes from 1 to 4",
     name_taken: "The name % is taken",

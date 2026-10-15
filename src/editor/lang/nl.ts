@@ -11,6 +11,7 @@ const nl: Texts = {
         unknown_method:
             "Onbekende methode: % (setHidden, setRGBColor, setOpacity, setSize…)",
         arguments: "Ongeldige argumenten voor %",
+        degree: "De vergelijking van een rechte of een kegelsnede is van graad 1 of 2",
         instead: "Met deze argumenten: %",
         branch: "Het nummer van het snijpunt gaat van 1 tot 4",
         name_taken: "De naam % is al in gebruik",

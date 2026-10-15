@@ -74,8 +74,10 @@ import type { MessageKey, Texts } from "../../src/editor/messages";
 import { IDENTIFIER_PART, IDENTIFIER_START } from "../../src/import/dgp_parser";
 import type { point_object } from "../../src/objects/point_object";
 import type { circle1_object } from "../../src/objects/circle1_object";
+import type { equation_circle_object } from "../../src/objects/equation_circle_object";
 import type { expression_object } from "../../src/objects/expression_object";
 import type { expression_list_object } from "../../src/objects/expression_list_object";
+import { importGgb } from "../../src/ggb_importer";
 import { createConstruction, disposeFigures, expectClose } from "./figures";
 import { vDot, vScale, vSub } from "../../src/vec";
 
@@ -353,6 +355,87 @@ describe("Editor", () => {
             expect(() => resolve(c, parseLine(line, isCommand)), line).toThrow(
                 expect.objectContaining({ key, detail }),
             );
+    });
+
+    it("writes and reads equations, a line, a circle or a conic", async () => {
+        const { scene: c } = studio();
+        const text = [
+            "a = 2",
+            "d = y = a*x + 1",
+            "v = x = a",
+            "c = (x - a)^2 + y^2 = 4",
+            "e = x^2/9 + y^2/4 = 1",
+            "h = x*y = a",
+            "p = y = x^2",
+        ];
+        text.forEach((line) => type(c, line));
+        c.flush();
+        expect(lines(c)).toEqual(text);
+        const index = figureIndex(c);
+        const tag = (name: string) => entryOf(c.getObj(name)!, index)[0];
+        expect(["d", "v", "c", "e", "h", "p"].map(tag)).toEqual([
+            "EqL",
+            "EqL",
+            "EqC",
+            "EqQ",
+            "EqQ",
+            "EqQ",
+        ]);
+        expect(entryOf(c.getObj("c")!, index)[1]).toEqual([
+            ["(x - a)^2 + y^2", { a: 0 }],
+            "4",
+        ]);
+        expect((c.getObj("c") as equation_circle_object).R).toBeCloseTo(2, 9);
+        // As in GeoGebra, without a name.
+        expect(tag(type(c, "y = 2x - 1").name)).toBe("EqL");
+        // Saved and read, the same text.
+        const other = createConstruction([800, 600]);
+        readDgo(other, await describeDgo(c));
+        expect(lines(other)).toEqual([...text, "b = y = 2x - 1"]);
+        for (const [line, key] of [
+            ["q = sin(x) = y", "degree"],
+            ["q = x^3 = y", "degree"],
+            ["q = x = x", "degree"],
+            ["q = x^2 = r", "unknown_object"],
+            ["q = x^2 = ", "syntax"],
+        ])
+            expect(() => resolve(c, parseLine(line, isCommand)), line).toThrow(
+                expect.objectContaining({ key }),
+            );
+    });
+
+    it("writes GeoGebra's equations, read back as the same objects", () => {
+        const { scene: c } = studio();
+        importGgb(
+            c,
+            `<geogebra><construction>
+<element type="numeric" label="a"><value val="2"/></element>
+<expression label="d" exp="y = (a * x) + 1" type="line"/>
+<element type="line" label="d"><coords x="-2" y="1" z="-1"/></element>
+<element type="line" label="w"><coords x="1" y="-1" z="-2"/></element>
+<expression label="ell" exp="x^(2) / a^(2) + y^(2) = 1" type="conic"/>
+<element type="conic" label="ell"><matrix A0="0.25" A1="1" A2="-1" A3="0" A4="0" A5="0"/></element>
+<element type="conic" label="f"><matrix A0="0.25" A1="1" A2="-1" A3="0.5" A4="0" A5="-1"/></element>
+</construction></geogebra>`,
+        );
+        const index = figureIndex(c);
+        const objects = figureObjects(c);
+        const written = objects
+            .slice(1)
+            .map(
+                (object) => [object, lineOf(object, index, objects)!] as const,
+            );
+        expect(written.map(([, line]) => line)).toEqual([
+            "d = y = (a * x) + 1",
+            "w = x - y - 2 = 0",
+            "ell = x^(2) / a^(2) + y^(2) = 1",
+            "f = 0.25x^2 + x*y + y^2 - 2y - 1 = 0",
+        ]);
+        written.forEach(([object, line]) =>
+            expect(
+                resolve(c, parseLine(line, isCommand), object).overload.tag,
+            ).toBe(entryOf(object, index)[0]),
+        );
     });
 
     it("redefines and renames expressions, their targets before them", async () => {

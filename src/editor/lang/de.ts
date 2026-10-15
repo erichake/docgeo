@@ -11,6 +11,7 @@ const de: Texts = {
         unknown_method:
             "Unbekannte Methode: % (setHidden, setRGBColor, setOpacity, setSize…)",
         arguments: "Ungültige Argumente für %",
+        degree: "Die Gleichung einer Geraden oder eines Kegelschnitts hat den Grad 1 oder 2",
         instead: "Mit diesen Argumenten: %",
         branch: "Die Nummer des Schnittpunkts geht von 1 bis 4",
         name_taken: "Der Name % ist bereits vergeben",

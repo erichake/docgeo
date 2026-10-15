@@ -11,6 +11,7 @@ const el: Texts = {
         unknown_method:
             "Άγνωστη μέθοδος: % (setHidden, setRGBColor, setOpacity, setSize…)",
         arguments: "Λανθασμένα ορίσματα για %",
+        degree: "Η εξίσωση ευθείας ή κωνικής τομής είναι βαθμού 1 ή 2",
         instead: "Με αυτά τα ορίσματα: %",
         branch: "Ο αριθμός της τομής είναι από 1 έως 4",
         name_taken: "Το όνομα % χρησιμοποιείται ήδη",

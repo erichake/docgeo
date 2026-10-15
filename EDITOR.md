@@ -121,6 +121,16 @@ de `src/import/dgp_commands.ts`.
   catalogue.
 - Noms de commandes localisés, les mots usuels de la géométrie dans chaque
   langue (section « Langues »), ramenés à une forme canonique.
+- **Équations** (décidé avec l'auteur le 2026-10-15) : `c = x^2 + y^2 = 4`,
+  les deux membres des formules en x et y, sans commande à traduire. Un
+  `=` hors des parenthèses, sans `;` ni `{`, fait l'équation ; `y = 2x + 1`
+  et `x = 3` en sont, comme dans GeoGebra (x et y ne nomment pas d'objet
+  en tête de ligne). La nature est lue dans les coefficients du moment :
+  degré 1, une droite (`EqL`) ; degré 2 de même coefficient en x² et y²
+  sans xy, un cercle (`EqC`) ; sinon une conique (`EqQ`). Une équation de
+  degré supérieur, ou qui n'est pas un polynôme (vérifié en trois points
+  de plus), est refusée (`degree`). La ligne relit les deux membres tels
+  qu'écrits.
 - Réutilisation possible de `src/import/ggb_translate.ts` : une ligne tapée,
   ramenée à la commande GeoGebra canonique (nom, arguments, résultat), a la
   même structure qu'une commande du `geogebra.xml`. Il faudrait le découper
@@ -1253,6 +1263,13 @@ Fait (2026-10-11) :
   retirer, réglages communs, couleur appliquée aux trois, annuler,
   toucher simple, suppression de deux objets). Éditeur : 132,9 Ko,
   +1,5 Ko (+0,5 Ko en gzip), CSS +0,1 Ko ; lecteur inchangé.
+
+- Équations (2026-10-15, section « Langage textuel ») : droites, cercles
+  et coniques d'une équation tapée, de nature lue dans ses coefficients ;
+  celles d'une figure GeoGebra se relisent en objets de même type, les
+  équations enregistrées par leurs seuls coefficients écrites sans
+  termes nuls (`x - y - 2 = 0`). Éditeur +1,4 Ko (+0,5 Ko en gzip) ;
+  lecteur +0,2 Ko.
 
 Reste à faire :
 

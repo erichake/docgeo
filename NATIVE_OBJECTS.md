@@ -86,10 +86,9 @@ numéros de ligne changent).
 ### 1. Coniques et droites données par une équation — fait
 
 Objets `EqL`, `EqC`, `EqQ` (item 26 de `GGB_IMPORT.md`), réduction d'une
-conique par ses coefficients dans `primitive_quadric_object`. Reste pour
-l'éditeur : la saisie d'une équation (syntaxe à trancher avec l'auteur) ;
-ces objets s'y affichent en lecture seule. Leur image par une
-transformation viendra avec l'item 2.
+conique par ses coefficients dans `primitive_quadric_object`. L'éditeur
+les saisit en `c = x^2 + y^2 = 4` (`EDITOR.md`, « Langage textuel »).
+Leur image par une transformation viendra avec l'item 2.
 
 ### 2. Rotation, homothétie, translation
 
@@ -171,4 +170,4 @@ rester des expressions : `Distance`, `Length`, `Slope`, `Corner`,
 
 Corpus : 238 figures sur 438 sans perte, aucun plantage (après le
 correctif du nom d'un segment de longueur nulle, item 24 bis de
-`GGB_IMPORT.md`). Moteur : 309,4 Ko après l'item 1.
+`GGB_IMPORT.md`). Moteur : 309,7 Ko après l'item 1.
