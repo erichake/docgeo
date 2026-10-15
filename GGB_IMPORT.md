@@ -76,6 +76,7 @@ figure sont seulement comptés. L'API utilisée est
 | 2026-10-05 | —                  | 300,7 Ko | item 21 : calques (style, +0)                                      |
 | 2026-10-06 | —                  | 302,2 Ko | item 22 : grille (style, +0)                                       |
 | 2026-10-14 | —                  | 301,1 Ko | item 23 : flèches, noms, nombres et unité π des axes (style, +0)   |
+| 2026-10-15 | 229 / 438 (52 %)   | 308,7 Ko | item 25 : ellipse, hyperbole et parabole natives (+0)              |
 | 2026-10-14 | —                  | 303,8 Ko | item 24 : noms des objets autres que les points (style, +0)        |
 
 ## À faire, par rapport gain / coût
@@ -416,6 +417,20 @@ cause.
       glisser des noms dans l'éditeur, +1,9 Ko). Écartés : la valeur (`labelMode` 1
       et 2, 132 étiquettes) et la légende (`caption`, 94), qui n'écrivent
       rien plutôt qu'un nom faux. Build +2 Ko (+0,6 Ko en gzip).
+- [x] **25. Ellipse, hyperbole et parabole natives** : `Ellipse(F, G, P)`,
+      `Ellipse(F, G, a)`, `Hyperbola(…)` et `Parabola(F, d)` étaient
+      traduites en une `Quadric` par cinq points calculés, avec leurs
+      objets cachés intermédiaires (nombres, points). Elles deviennent les
+      objets `Ell`, `Ell1`, `Hyp`, `Hyp1` et `Prb` de `DGO.md` (commandes DGP
+      propres à DocGeo `Ellipse`, `Ellipse1`, `Hyperbola`, `Hyperbola1`,
+      `Parabola`), de parents les arguments de GeoGebra, calculés dans leur
+      repère propre, ainsi que les commandes de même nom de l'éditeur.
+      L'image d'une parabole par une similitude est la parabole des images
+      de son foyer et de sa directrice, si celle-ci passe par deux points.
+      Corpus inchangé (229 figures sur 438 sans perte, comme juste avant :
+      les 15 plantages dans `nameAt` d'un segment sont antérieurs), points
+      enregistrés retrouvés dans les figures qui les utilisent. Moteur
+      +2,6 Ko (+0,9 Ko en gzip).
 
 À écarter, sauf changement de priorité : calcul formel, courbes implicites,
 statistiques et probabilités, tableur au-delà des cellules simples, matrices.

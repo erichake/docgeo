@@ -8,7 +8,7 @@ import {
 } from "../objects/angle_object";
 import { createArc3pts } from "../objects/arc3pts_object";
 import { createCenter } from "../objects/center_object";
-import { createCircle1 } from "../objects/circle1_object";
+import { createCircle1, type circle1_radius } from "../objects/circle1_object";
 import { createCircle3 } from "../objects/circle3_object";
 import {
     circle3pts_object,
@@ -78,6 +78,8 @@ import { createPolygon, polygon_object } from "../objects/polygon_object";
 import { primitive_circle_object } from "../objects/primitive_circle_object";
 import { primitive_line_object } from "../objects/primitive_line_object";
 import { createQuadric5pts } from "../objects/quadric5pts_object";
+import { createFocalConic } from "../objects/focal_conic_object";
+import { createParabola } from "../objects/parabola_object";
 import { createRay } from "../objects/ray_line_object";
 import { createReflection } from "../objects/reflection_object";
 import { createSegment, segment_object } from "../objects/segment_object";
@@ -416,6 +418,57 @@ function parseRadiusFormula(value: string, lineNumber: number): FormulaNode {
         throw new Error(`Invalid DGP circle radius at line ${lineNumber}`);
     }
 }
+
+// A circle's radius or a conic's semi-axis: a number, or a formula.
+function validateRadius(
+    arg: DgpValue,
+    lineNumber: number,
+    variables: Map<string, ObjectKind>,
+): void {
+    if (arg.type !== "literal" || typeof arg.value !== "string") return;
+    validateReferences(
+        formulaIdentifiers(parseRadiusFormula(arg.value, lineNumber)),
+        variables,
+        lineNumber,
+    );
+}
+
+function radiusArgument(
+    arg: RuntimeValue,
+    context: CommandContext,
+): circle1_radius {
+    if (typeof arg !== "string") return arg as number;
+    const node = parseFormula(arg);
+    return {
+        formula: node,
+        refs: formulaRefs(formulaIdentifiers(node), context.variables),
+    };
+}
+
+// Of foci F and G, through a point or of a semi-major axis.
+const focalConic = (
+    hyperbola: boolean,
+    third: Parameter,
+): CommandDefinition => ({
+    parameters: [string, point, point, third],
+    result: "quadric",
+    validate:
+        third === formula
+            ? (args, lineNumber, variables) =>
+                  validateRadius(args[3], lineNumber, variables)
+            : undefined,
+    execute: (context, args) =>
+        createFocalConic(
+            context.construction,
+            args[0] as string,
+            hyperbola,
+            args[1] as point_object,
+            args[2] as point_object,
+            third === point
+                ? (args[3] as point_object)
+                : radiusArgument(args[3], context),
+        ),
+});
 
 function parseListFormula(value: string, lineNumber: number): FormulaNode {
     try {
@@ -1529,49 +1582,16 @@ const COMMANDS = new Map<string, CommandDefinition>([
             // the horizontal plane.
             parameters: [string, point, formula, { ...line, optional: true }],
             result: "circle",
-            validate: (args, lineNumber, variables) => {
-                const radiusArg = args[2];
-                if (
-                    radiusArg.type !== "literal" ||
-                    typeof radiusArg.value !== "string"
-                )
-                    return;
-                const radiusFormula = parseRadiusFormula(
-                    radiusArg.value,
-                    lineNumber,
-                );
-                validateReferences(
-                    formulaIdentifiers(radiusFormula),
-                    variables,
-                    lineNumber,
-                );
-            },
-            execute: (context, args) => {
-                const name = args[0] as string;
-                const center = args[1] as point_object;
-                const radiusArg = args[2];
-                const axis = args[3] as primitive_line_object | undefined;
-                if (typeof radiusArg !== "string")
-                    return createCircle1(
-                        context.construction,
-                        name,
-                        center,
-                        radiusArg as number,
-                        axis,
-                    );
-                const radiusFormula = parseFormula(radiusArg);
-                const refs = formulaRefs(
-                    formulaIdentifiers(radiusFormula),
-                    context.variables,
-                );
-                return createCircle1(
+            validate: (args, lineNumber, variables) =>
+                validateRadius(args[2], lineNumber, variables),
+            execute: (context, args) =>
+                createCircle1(
                     context.construction,
-                    name,
-                    center,
-                    { formula: radiusFormula, refs },
-                    axis,
-                );
-            },
+                    args[0] as string,
+                    args[1] as point_object,
+                    radiusArgument(args[2], context),
+                    args[3] as primitive_line_object | undefined,
+                ),
         },
     ],
     [
@@ -1665,6 +1685,25 @@ const COMMANDS = new Map<string, CommandDefinition>([
                     args[3] as point_object,
                     args[4] as point_object,
                     args[5] as point_object,
+                ),
+        },
+    ],
+    // Not DGPad commands: GeoGebra's Ellipse, Hyperbola and Parabola.
+    ["Ellipse", focalConic(false, point)],
+    ["Ellipse1", focalConic(false, formula)],
+    ["Hyperbola", focalConic(true, point)],
+    ["Hyperbola1", focalConic(true, formula)],
+    [
+        "Parabola",
+        {
+            parameters: [string, point, line],
+            result: "quadric",
+            execute: (context, args) =>
+                createParabola(
+                    context.construction,
+                    args[0] as string,
+                    args[1] as point_object,
+                    args[2] as primitive_line_object,
                 ),
         },
     ],

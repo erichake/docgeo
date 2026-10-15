@@ -10,7 +10,6 @@ import { polygon_object } from "../objects/polygon_object";
 import { primitive_circle_object } from "../objects/primitive_circle_object";
 import { primitive_line_object } from "../objects/primitive_line_object";
 import { primitive_quadric_object } from "../objects/primitive_quadric_object";
-import { quadric5pts_object } from "../objects/quadric5pts_object";
 import { segment_object } from "../objects/segment_object";
 import { sphere_object } from "../objects/sphere_object";
 import { two_points_line_object } from "../objects/two_points_line_object";
@@ -132,7 +131,7 @@ export function accepts(arg: Arg, param: Param): boolean {
         case "outline":
             return (
                 arg instanceof polygon_object ||
-                arg instanceof quadric5pts_object
+                arg instanceof primitive_quadric_object
             );
         default:
             return kind === param;
@@ -226,6 +225,32 @@ const numbered = (params: Param[]): Overload => ({
     },
 });
 
+// Objects, then a number.
+function withReal(tag: string, params: Param[]): Overload {
+    return {
+        params: [...params, "real"],
+        tag,
+        encode: (args, index) => [
+            ...args
+                .slice(0, -1)
+                .map((arg) => index(arg as construction_object)),
+            realParameter(args[params.length], index),
+        ],
+        decode: (parameters, at) => {
+            if (
+                !Array.isArray(parameters) ||
+                parameters.length !== params.length + 1
+            )
+                return null;
+            const arg = realArgument(parameters[params.length], at);
+            const objects = parameters.slice(0, -1);
+            return objects.every(isIndex) && arg !== null
+                ? [...objects.map(at), arg]
+                : null;
+        },
+    };
+}
+
 export const COMMANDS: Command[] = [
     {
         name: "Point",
@@ -312,22 +337,7 @@ export const COMMANDS: Command[] = [
         name: "Circle",
         overloads: [
             objects("Cir", ["point", "point"]),
-            {
-                params: ["point", "real"],
-                tag: "C1",
-                encode: ([center, radius], index) => [
-                    index(center as construction_object),
-                    realParameter(radius, index),
-                ],
-                decode: (parameters, at) => {
-                    const [center, radius] = parameters as unknown[];
-                    const arg = realArgument(radius, at);
-                    return (parameters as unknown[]).length === 2 &&
-                        arg !== null
-                        ? [at(center as number), arg]
-                        : null;
-                },
-            },
+            withReal("C1", ["point"]),
         ],
     },
     {
@@ -424,6 +434,21 @@ export const COMMANDS: Command[] = [
         name: "Conic",
         overloads: [objects("Quad", Array(5).fill("point"))],
     },
+    {
+        name: "Ellipse",
+        overloads: [
+            objects("Ell", ["point", "point", "point"]),
+            withReal("Ell1", ["point", "point"]),
+        ],
+    },
+    {
+        name: "Hyperbola",
+        overloads: [
+            objects("Hyp", ["point", "point", "point"]),
+            withReal("Hyp1", ["point", "point"]),
+        ],
+    },
+    { name: "Parabola", overloads: [objects("Prb", ["point", "line"])] },
     {
         name: "Sphere",
         overloads: [objects("Sph", ["point", "point"])],

@@ -45,7 +45,7 @@ function findBound(isOutside: (t: number) => boolean): number {
     return hi;
 }
 
-export class primitive_quadric_object extends construction_object {
+export abstract class primitive_quadric_object extends construction_object {
     KIND: QuadricKind = "ellipse";
     // Implicit a·x²+b·xy+c·y²+d·x+e·y+f=0 form, in the quadric's own
     // (x,y) plane — the algebraic representation intersection math works
@@ -153,6 +153,63 @@ export class primitive_quadric_object extends construction_object {
             (branch) => (t) => this.fromPlane(branch(t)),
         );
         this.defined = vIsFinite(this.CENTER);
+    }
+
+    // The conic α·x'² + β·y'² + γ·y' + δ = 0 in the frame of `origin` and of
+    // the unit `u` of its plane, y' along u turned a quarter.
+    protected setCoeffs(
+        [ox, oy]: Vec2,
+        [ux, uy]: Vec2,
+        alpha: number,
+        beta: number,
+        gamma: number,
+        delta: number,
+    ): void {
+        const a = alpha * ux * ux + beta * uy * uy;
+        const b = 2 * ux * uy * (alpha - beta);
+        const c = alpha * uy * uy + beta * ux * ux;
+        const [d, e] = [-gamma * uy, gamma * ux];
+        const coeffs = [
+            a,
+            b,
+            c,
+            d - 2 * a * ox - b * oy,
+            e - 2 * c * oy - b * ox,
+            a * ox * ox + b * ox * oy + c * oy * oy - d * ox - e * oy + delta,
+        ];
+        const norm = Math.hypot(...coeffs);
+        this.COEFFS = coeffs.map((v) => v / norm) as unknown as ConicCoeffs;
+    }
+
+    // Three points of its plane, in plane coordinates, whose affine frame
+    // gives the parameter of a point on it.
+    protected abstract frame(): Vec3[];
+
+    // PointOn's parameter for a quadric: affine coordinates of a (generally
+    // off-curve) point in the frame of the conic's own frame() points,
+    // projected onto the true conic — DGPad's own Alpha convention for a
+    // point on a quadric, so saved figures round-trip.
+    pointAt([g0, g1]: readonly [number, number]): Vec3 {
+        const [AA, BB, CC] = this.frame();
+        return this.projectPoint(
+            this.fromPlane([
+                AA[0] + g0 * (BB[0] - AA[0]) + g1 * (CC[0] - AA[0]),
+                AA[1] + g0 * (BB[1] - AA[1]) + g1 * (CC[1] - AA[1]),
+            ]),
+        );
+    }
+
+    alphaOf(target: Vec3): readonly [number, number] {
+        const [px, py] = this.toPlane(this.projectPoint(target));
+        const [AA, BB, CC] = this.frame();
+        const a = BB[0] - AA[0],
+            b = CC[0] - AA[0],
+            d = BB[1] - AA[1],
+            e = CC[1] - AA[1];
+        const det = a * e - d * b;
+        const cx = px - AA[0],
+            cy = py - AA[1];
+        return [(cx * e - b * cy) / det, (a * cy - cx * d) / det];
     }
 
     // Foot of the point on the conic whose normal passes through `target`
@@ -367,6 +424,26 @@ export class primitive_quadric_object extends construction_object {
             t.curvePath,
         );
     }
+}
+
+export function hyperbolaBranches(
+    center: Vec2,
+    transverseDir: Vec2,
+    semiTransverse: number,
+    conjugateDir: Vec2,
+    semiConjugate: number,
+): ((t: number) => Vec2)[] {
+    const branch =
+        (sign: 1 | -1) =>
+        (t: number): Vec2 => {
+            const u = sign * semiTransverse * Math.cosh(t);
+            const v = semiConjugate * Math.sinh(t);
+            return [
+                center[0] + u * transverseDir[0] + v * conjugateDir[0],
+                center[1] + u * transverseDir[1] + v * conjugateDir[1],
+            ];
+        };
+    return [branch(1), branch(-1)];
 }
 
 // The value of DGPad's "conic.center()", the middle of its foci, as a

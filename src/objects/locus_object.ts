@@ -19,7 +19,7 @@ import { point_object } from "./point_object";
 import { polygon_object } from "./polygon_object";
 import { primitive_circle_object } from "./primitive_circle_object";
 import { primitive_line_object } from "./primitive_line_object";
-import { quadric5pts_object } from "./quadric5pts_object";
+import { primitive_quadric_object } from "./primitive_quadric_object";
 import { segment_object } from "./segment_object";
 import { two_points_line_object } from "./two_points_line_object";
 
@@ -166,7 +166,7 @@ export class locus_object extends construction_object {
                 : [];
         if (support.familytype === "curve")
             return this.curveSamples(support as curve_object, count);
-        return this.quadricAlphas(support as quadric5pts_object, count);
+        return this.quadricAlphas(support as primitive_quadric_object, count);
     }
 
     private curveSamples(support: curve_object, count: number): DriverSample[] {
@@ -211,7 +211,7 @@ export class locus_object extends construction_object {
     }
 
     private quadricAlphas(
-        support: quadric5pts_object,
+        support: primitive_quadric_object,
         count: number,
     ): (readonly [number, number] | null)[] {
         if (support.KIND === "ellipse") {

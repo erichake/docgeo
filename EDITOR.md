@@ -244,8 +244,11 @@ la GeoGebra, l'outil choisi avant les objets.
   trop étroite. L'élève n'apprend qu'un classement. Pas de recherche dans
   le menu : la complétion de la ligne de saisie le fait déjà.
 - **Plus d'outils que l'anneau**, qui reste léger : à la fin de leur
-  famille, `AutreIntersection` (points), `Compas`, `Arc`, `Secteur` et
-  `Conique` (« Cercles, arcs, coniques »). Toute commande du catalogue qui
+  famille, `AutreIntersection` (points), `Compas`, `Arc`, `Secteur`,
+  `Conique`, `Ellipse`, `Hyperbole` et `Parabole` (« Cercles, arcs,
+  coniques »), ces trois-là comme dans GeoGebra : deux foyers puis un
+  point, ou un foyer puis la directrice (au clavier, `Ellipse(F, G, a)` et
+  `Hyperbole(F, G, a)` prennent aussi le demi-axe a). Toute commande du catalogue qui
   se construit par désignation y a sa place (rotation, homothétie,
   tangentes… à mesure qu'elles s'ajoutent) ; `PointFixe`, `Curseur` et
   `Liste` restent au clavier ou dans la barre.

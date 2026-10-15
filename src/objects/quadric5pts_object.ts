@@ -3,7 +3,10 @@ import { geometryTolerance, numEqual, type Vec2, type Vec3 } from "../vec";
 import type { ConicCoeffs } from "./conic_algebra";
 import type { DgoContext } from "./construction_object";
 import type { point_object } from "./point_object";
-import { primitive_quadric_object } from "./primitive_quadric_object";
+import {
+    hyperbolaBranches,
+    primitive_quadric_object,
+} from "./primitive_quadric_object";
 
 // Fits a·x² + b·xy + c·y² + d·x + e·y + f = 0 through 5 points: a
 // homogeneous system with a 1-dimensional null space, solved exactly by
@@ -178,35 +181,8 @@ export class quadric5pts_object extends primitive_quadric_object {
         }
     }
 
-    // PointOn's parameter for a quadric: affine coordinates of a (generally
-    // off-curve) point in the frame of the conic's own first 3 defining
-    // points, projected onto the true conic — matches DGPad's own Alpha
-    // convention for a point on a quadric, so saved figures round-trip.
-    pointAt([g0, g1]: readonly [number, number]): Vec3 {
-        const [AA, BB, CC] = this.frame();
-        return this.projectPoint(
-            this.fromPlane([
-                AA[0] + g0 * (BB[0] - AA[0]) + g1 * (CC[0] - AA[0]),
-                AA[1] + g0 * (BB[1] - AA[1]) + g1 * (CC[1] - AA[1]),
-            ]),
-        );
-    }
-
-    alphaOf(target: Vec3): readonly [number, number] {
-        const [px, py] = this.toPlane(this.projectPoint(target));
-        const [AA, BB, CC] = this.frame();
-        const a = BB[0] - AA[0],
-            b = CC[0] - AA[0],
-            d = BB[1] - AA[1],
-            e = CC[1] - AA[1];
-        const det = a * e - d * b;
-        const cx = px - AA[0],
-            cy = py - AA[1];
-        return [(cx * e - b * cy) / det, (a * cy - cx * d) / det];
-    }
-
     // Its first 3 points, in plane coordinates.
-    private frame(): Vec3[] {
+    protected frame(): Vec3[] {
         return [this.P1, this.P2, this.P3].map((point) =>
             this.toPlane(point.coords),
         );
@@ -215,26 +191,6 @@ export class quadric5pts_object extends primitive_quadric_object {
 
 function scale([x, y]: Vec2, k: number): Vec2 {
     return [x * k, y * k];
-}
-
-function hyperbolaBranches(
-    center: Vec2,
-    transverseDir: Vec2,
-    semiTransverse: number,
-    conjugateDir: Vec2,
-    semiConjugate: number,
-): ((t: number) => Vec2)[] {
-    const branch =
-        (sign: 1 | -1) =>
-        (t: number): Vec2 => {
-            const u = sign * semiTransverse * Math.cosh(t);
-            const v = semiConjugate * Math.sinh(t);
-            return [
-                center[0] + u * transverseDir[0] + v * conjugateDir[0],
-                center[1] + u * transverseDir[1] + v * conjugateDir[1],
-            ];
-        };
-    return [branch(1), branch(-1)];
 }
 
 // Reduces a·x² + b·xy + c·y² + d·x + e·y + f = 0 to U² = 4pV in the local

@@ -10,15 +10,18 @@ import { curve_object } from "../../src/objects/curve_object";
 import { cylinder_intersection_object } from "../../src/objects/cylinder_intersection_object";
 import { cylinder_section_object } from "../../src/objects/cylinder_section_object";
 import { expression_object } from "../../src/objects/expression_object";
+import { focal_conic_object } from "../../src/objects/focal_conic_object";
 import { image_object } from "../../src/objects/image_object";
 import { fixed_point_object } from "../../src/objects/fixed_point_object";
 import { isOccluded } from "../../src/objects/hidden_line";
 import { iteration_object } from "../../src/objects/iteration_object";
 import { list_object } from "../../src/objects/list_object";
 import { locus_object } from "../../src/objects/locus_object";
+import { parabola_object } from "../../src/objects/parabola_object";
 import { point_on_object } from "../../src/objects/point_on_object";
 import { point_object } from "../../src/objects/point_object";
 import { polygon_object } from "../../src/objects/polygon_object";
+import { quadric5pts_object } from "../../src/objects/quadric5pts_object";
 import { segment_object } from "../../src/objects/segment_object";
 import { sphere_object } from "../../src/objects/sphere_object";
 import { text_object } from "../../src/objects/text_object";
@@ -568,6 +571,22 @@ ${[
         const xml = await loadXml("allconics");
 
         expect(importGgb(c, xml)).toEqual([]);
+        // GeoGebra's own commands, without objects in between.
+        (
+            [
+                ["c", focal_conic_object, "ABC"],
+                ["d", focal_conic_object, "DEF"],
+                ["e", parabola_object, "If"],
+                ["g", quadric5pts_object, "JKLMN"],
+            ] as const
+        ).forEach(([label, kind, parents]) => {
+            const conic = c.getObj(label)!;
+            expect(conic, label).toBeInstanceOf(kind);
+            expect(conic.parents).toEqual(
+                parents.split("").map((name) => c.getObj(name)),
+            );
+        });
+        expect((c.getObj("d") as focal_conic_object).hyperbola).toBe(true);
         const saved = new DOMParser().parseFromString(xml, "application/xml");
         (
             [

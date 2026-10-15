@@ -23,7 +23,7 @@ import { polygon_object } from "./polygon_object";
 import { primitive_circle_object } from "./primitive_circle_object";
 import { primitive_line_object } from "./primitive_line_object";
 import { point_object } from "./point_object";
-import { quadric5pts_object } from "./quadric5pts_object";
+import { primitive_quadric_object } from "./primitive_quadric_object";
 import { ray_line_object } from "./ray_line_object";
 import { segment_object } from "./segment_object";
 import { two_points_line_object } from "./two_points_line_object";
@@ -32,7 +32,7 @@ export type point_support_object =
     | primitive_line_object
     | primitive_circle_object
     | polygon_object
-    | quadric5pts_object
+    | primitive_quadric_object
     | locus_object
     | list_object
     | curve_object;
@@ -146,7 +146,7 @@ export class point_on_object extends point_object {
             }
             this.coords = coords;
             this.alpha = this.support.alphaOf(coords, this.onBoundary)!;
-        } else if (this.support instanceof quadric5pts_object) {
+        } else if (this.support instanceof primitive_quadric_object) {
             this.coords = this.support.pointAt(
                 this.alpha as readonly [number, number],
             );
@@ -261,7 +261,7 @@ export class point_on_object extends point_object {
             const alpha = this.walk(support, step);
             if (!alpha) return;
             this.alpha = alpha;
-        } else if (support instanceof quadric5pts_object) {
+        } else if (support instanceof primitive_quadric_object) {
             const alpha = this.glide(support, step);
             if (!alpha) return;
             this.alpha = alpha;
@@ -402,7 +402,7 @@ export class point_on_object extends point_object {
     // Along the conic by a few pixels at a time, each along its tangent and
     // back onto it. An ellipse goes round; a branch of a parabola or of a
     // hyperbola turns back where it would leave the window.
-    private glide(conic: quadric5pts_object, step: number): Alpha | null {
+    private glide(conic: primitive_quadric_object, step: number): Alpha | null {
         const c = this.C;
         const [a, b, cc, d, e] = conic.COEFFS!;
         const animation = this.animation!;
@@ -536,7 +536,7 @@ export class point_on_object extends point_object {
                 this.support.VEC,
                 this.C.projectionFrame,
             );
-        if (this.support instanceof quadric5pts_object)
+        if (this.support instanceof primitive_quadric_object)
             return projectPointOnPlane(
                 screen,
                 this.support.ORIGIN,
@@ -554,7 +554,7 @@ export class point_on_object extends point_object {
         if (this.support instanceof polygon_object) {
             return this.support.alphaOf(target, this.onBoundary);
         }
-        if (this.support instanceof quadric5pts_object) {
+        if (this.support instanceof primitive_quadric_object) {
             return this.support.alphaOf(target);
         }
         if (this.support instanceof two_points_line_object) {

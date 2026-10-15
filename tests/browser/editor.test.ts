@@ -177,6 +177,12 @@ describe("Editor", () => {
             "S = Reflect(D, A)",
             "T = Reflect(D, d)",
             "a = Conic(A, B, C, D, E)",
+            "k = Ellipse(A, B, C)",
+            "t = Ellipse(A, B, 4)",
+            "e = Hyperbola(A, B, E)",
+            "o = Hyperbola(A, B, 1)",
+            "z = Parabola(E, d)",
+            "V = Point(k, 0.5, 0.5)",
             "U = FixedPoint(1, 1)",
             "l = Locus(M, P)",
         ];
@@ -896,6 +902,9 @@ describe("Editor", () => {
                 ["Arc", "Arc"],
                 ["Sector", "Sec"],
                 ["Conic", "Quad"],
+                ["Ellipse", "Ell"],
+                ["Hyperbola", "Hyp"],
+                ["Parabola", "Prb"],
             ],
             [
                 ["Polygon", "Poly"],

@@ -28,7 +28,7 @@ import type { formula_point_object } from "../objects/formula_point_object";
 import { point_on_object } from "../objects/point_on_object";
 import { point_object } from "../objects/point_object";
 import { polygon_object } from "../objects/polygon_object";
-import { quadric5pts_object } from "../objects/quadric5pts_object";
+import { primitive_quadric_object } from "../objects/primitive_quadric_object";
 import type { Vec2, Vec3 } from "../vec";
 import {
     commandName,
@@ -503,7 +503,7 @@ export function addPointOn(
 ): point_on_object {
     const pair =
         support instanceof polygon_object ||
-        support instanceof quadric5pts_object;
+        support instanceof primitive_quadric_object;
     const point = add(c, {
         name,
         overload: findCommand("Point")!.overloads[pair ? 1 : 0],

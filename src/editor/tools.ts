@@ -264,6 +264,36 @@ const FAMILIES: [
                     dot(21, 12) +
                     dot(12, 18),
             ),
+            // Its foci, then a point.
+            tool(
+                "Ellipse",
+                0,
+                result(`<ellipse cx="12" cy="12" rx="9" ry="6"/>`) +
+                    path("M5.3 12L16.5 6.8L18.7 12", true) +
+                    dot(5.3, 12) +
+                    dot(18.7, 12) +
+                    dot(16.5, 6.8),
+            ),
+            tool(
+                "Hyperbola",
+                0,
+                result(
+                    path(
+                        "M2.6 3.5Q10.3 12 2.6 20.5M21.4 3.5Q13.7 12 21.4 20.5",
+                    ),
+                ) +
+                    dot(4.5, 12) +
+                    dot(19.5, 12) +
+                    dot(19.4, 6.1),
+            ),
+            // Its focus, then its directrix.
+            tool(
+                "Parabola",
+                0,
+                path("M3 5h18") +
+                    result(path("M2 16.3Q12 -0.3 22 16.3")) +
+                    dot(12, 11),
+            ),
         ],
     ],
     [

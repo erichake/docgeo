@@ -19,7 +19,7 @@ import {
 } from "./objects/angle_object";
 import { createArc3pts } from "./objects/arc3pts_object";
 import { createCenter } from "./objects/center_object";
-import { createCircle1 } from "./objects/circle1_object";
+import { createCircle1, type circle1_radius } from "./objects/circle1_object";
 import { createCircle3 } from "./objects/circle3_object";
 import { createCircle3pts } from "./objects/circle3pts_object";
 import { createCircle } from "./objects/circle_object";
@@ -71,10 +71,9 @@ import { createPolygon, polygon_object } from "./objects/polygon_object";
 import { primitive_circle_object } from "./objects/primitive_circle_object";
 import { primitive_line_object } from "./objects/primitive_line_object";
 import { primitive_quadric_object } from "./objects/primitive_quadric_object";
-import {
-    createQuadric5pts,
-    quadric5pts_object,
-} from "./objects/quadric5pts_object";
+import { createQuadric5pts } from "./objects/quadric5pts_object";
+import { createFocalConic } from "./objects/focal_conic_object";
+import { createParabola } from "./objects/parabola_object";
 import { createRay } from "./objects/ray_line_object";
 import { createReflection } from "./objects/reflection_object";
 import { createSegment, segment_object } from "./objects/segment_object";
@@ -161,6 +160,11 @@ export const LOOKS: Record<string, Look> = {
     Sec: CIRCLE,
     CyS: CIRCLE,
     Quad: CIRCLE,
+    Ell: CIRCLE,
+    Ell1: CIRCLE,
+    Hyp: CIRCLE,
+    Hyp1: CIRCLE,
+    Prb: CIRCLE,
     Sph: POLYGON,
     Poly: POLYGON,
     Loc: CURVE,
@@ -978,6 +982,37 @@ function threePoints(
     };
 }
 
+// A number, or a formula.
+function radius(value: Json, { formula }: Reader): circle1_radius {
+    if (value === null || isNumber(value)) return real(value);
+    const { source, refs } = formula(value, construction_object);
+    const node = parseFormula(source);
+    checkNames(formulaIdentifiers(node), refs);
+    return { formula: node, refs };
+}
+
+// The ellipse or the hyperbola of two foci, through a third point or of a
+// semi-major axis.
+const focalConic =
+    (hyperbola: boolean): Builder =>
+    (parameters, { c, name, points }) => {
+        const [f, g, p] = points(parameters, 3);
+        return createFocalConic(c, name, hyperbola, f, g, p);
+    };
+const focalConic1 =
+    (hyperbola: boolean): Builder =>
+    (parameters, reader) => {
+        const [f, g, value] = list(parameters, 3);
+        return createFocalConic(
+            reader.c,
+            reader.name,
+            hyperbola,
+            reader.at(f, point_object),
+            reader.at(g, point_object),
+            radius(value, reader),
+        );
+    };
+
 // A line, then a point.
 function linePoint(
     create: (
@@ -1065,14 +1100,14 @@ const BUILDERS: Record<string, Builder> = {
             primitive_line_object,
             primitive_circle_object,
             polygon_object,
-            quadric5pts_object,
+            primitive_quadric_object,
             locus_object,
             list_object,
             curve_object,
         );
         if (
             !(support instanceof polygon_object) &&
-            !(support instanceof quadric5pts_object)
+            !(support instanceof primitive_quadric_object)
         )
             return createPointOn(c, name, support, real(alpha));
         const [a, b] = list(alpha, 2).map(real);
@@ -1158,27 +1193,16 @@ const BUILDERS: Record<string, Builder> = {
         );
     },
     Cir: twoPoints(createCircle),
-    C1: (parameters, { c, name, at, formula }) => {
-        const [center, radius, axis] = list(parameters, 2, 3);
-        const line =
-            axis === undefined ? undefined : at(axis, primitive_line_object);
-        if (radius === null || isNumber(radius))
-            return createCircle1(
-                c,
-                name,
-                at(center, point_object),
-                real(radius),
-                line,
-            );
-        const { source, refs } = formula(radius, construction_object);
-        const node = parseFormula(source);
-        checkNames(formulaIdentifiers(node), refs);
+    C1: (parameters, reader) => {
+        const [center, value, axis] = list(parameters, 2, 3);
         return createCircle1(
-            c,
-            name,
-            at(center, point_object),
-            { formula: node, refs },
-            line,
+            reader.c,
+            reader.name,
+            reader.at(center, point_object),
+            radius(value, reader),
+            axis === undefined
+                ? undefined
+                : reader.at(axis, primitive_line_object),
         );
     },
     C3: threePoints(createCircle3),
@@ -1193,6 +1217,19 @@ const BUILDERS: Record<string, Builder> = {
     Quad: (parameters, { c, name, points }) => {
         const [p1, p2, p3, p4, p5] = points(parameters, 5);
         return createQuadric5pts(c, name, p1, p2, p3, p4, p5);
+    },
+    Ell: focalConic(false),
+    Ell1: focalConic1(false),
+    Hyp: focalConic(true),
+    Hyp1: focalConic1(true),
+    Prb: (parameters, { c, name, at }) => {
+        const [focus, directrix] = list(parameters, 2);
+        return createParabola(
+            c,
+            name,
+            at(focus, point_object),
+            at(directrix, primitive_line_object),
+        );
     },
     Sph: twoPoints(createSphere),
     CyS: (parameters, { c, name, points }) => {

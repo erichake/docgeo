@@ -255,6 +255,11 @@ sa dérivée par rapport à l'une de ses variables, comme dans DGPad, par
 | `Arc`  | arc de A à C passant par B             | `[A, B, C]`                                     |
 | `Sec`  | secteur de A à C passant par B         | `[A, B, C]`                                     |
 | `Quad` | conique passant par cinq points        | `[A, B, C, D, E]`                               |
+| `Ell`  | ellipse de foyers F, G passant par P   | `[F, G, P]`                                     |
+| `Ell1` | ellipse de foyers F, G et demi-axe a   | `[F, G, a]` (5)                                 |
+| `Hyp`  | hyperbole de foyers F, G passant par P | `[F, G, P]`                                     |
+| `Hyp1` | hyperbole de foyers F, G et demi-axe a | `[F, G, a]` (5)                                 |
+| `Prb`  | parabole de foyer F, de directrice d   | `[F, d]`                                        |
 | `Sph`  | sphère de centre O passant par A       | `[O, A]`                                        |
 | `CyS`  | section d'un cylindre par le plan PQR  | `[A, B, R, P, Q, R']` (4)                       |
 | `Poly` | polygone                               | `[A, B, C, …]`                                  |
@@ -276,7 +281,12 @@ sa dérivée par rapport à l'une de ses variables, comme dans DGPad, par
 2. Droite (AB), segment, demi-droite : `t` tel que M = A + t·AB. Autre
    droite, définie par un point P et une direction : distance signée à P, en
    unités, le long de son vecteur directeur. Cercle : angle. Polygone,
-   conique : couple. Lieu, liste, courbe : leur paramètre.
+   conique : couple. Lieu, liste, courbe : leur paramètre. Le couple d'une
+   conique : coordonnées, dans le repère affine de trois points, du point
+   ensuite projeté sur elle. Ces points sont ses trois premiers pour `Quad` ;
+   le centre et les extrémités des deux demi-axes pour une ellipse ou une
+   hyperbole ; pour une parabole, le sommet et les points à la distance p du
+   foyer à la directrice, le long de celle-ci puis vers le foyer.
 3. Deux solutions au plus (droite-cercle, cercle-cercle, droite-conique) :
    0 ou 1, droite-cercle dans l'ordre A + (t₀ + h)·u puis A + (t₀ − h)·u,
    droite-conique par paramètre croissant le long de la droite, cercle-cercle
@@ -289,7 +299,9 @@ sa dérivée par rapport à l'une de ses variables, comme dans DGPad, par
 4. Cylindre d'axe AB passant par R, ou sans B sphère de centre A passant par
    R. Solutions triées le long de la droite.
 5. `r` nombre (rayon qu'un glisser change, `null` s'il n'est pas fini) ou
-   formule ; `axe` : droite normale au plan du cercle.
+   formule ; `axe` : droite normale au plan du cercle. `a`, demi-grand axe
+   d'une ellipse, demi-axe transverse d'une hyperbole : nombre ou formule,
+   comme `r`, sans glisser.
 6. `{"t": texte, "mn": min, "mx": max, …}` (bornes nombres, ou formules
    toutes deux quand l'une lit d'autres objets) avec exactement l'un de `"v"`
    (valeur constante ou de curseur), `"f"` (formule de fonction en x, y, z, t)
@@ -436,7 +448,8 @@ non définie).
 | `Seg`, `Vec`                                                  | `rgb(35,141,227)`, `rgb(180,80,80)`, 4    |
 | `FA`                                                          | `#006633`, `#006633`, 1, 0                |
 | `Ang`                                                         | `#006633`, `#006633`, 4, 0                |
-| `Cir`, `C1`, `C3`, `C3p`, `C3s`, `Arc`, `Sec`, `CyS`, `Quad`  | `#CC66CC`, `#CC66CC`, 2, 0                |
+| `Cir`, `C1`, `C3`, `C3p`, `C3s`, `Arc`, `Sec`, `CyS`          | `#CC66CC`, `#CC66CC`, 2, 0                |
+| `Quad`, `Ell`, `Ell1`, `Hyp`, `Hyp1`, `Prb`                   | `#CC66CC`, `#CC66CC`, 2, 0                |
 | `Sph`, `Poly`                                                 | `rgb(35,141,227)`, `rgb(80,80,80)`, 2, 0  |
 | `Loc`, `Cur`                                                  | `#0b5b94`, `#0b5b94`, 2                   |
 | `Lst`, `ELst`, `Itr`                                          | `#656148`, `#656148`, 2                   |

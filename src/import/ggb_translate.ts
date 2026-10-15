@@ -1965,27 +1965,6 @@ export function translateGgb(
             );
         };
 
-    // A conic as the Quadric through five points given in its own frame:
-    // origin, unit axis (ux, uy) and local coordinates (along, across).
-    const conicThrough = (
-        label: string,
-        origin: string,
-        [ux, uy]: [string, string],
-        local: [string, string][],
-    ): true =>
-        define(
-            label,
-            "quadric",
-            "Quadric",
-            local.map(([p, q]) =>
-                ref(
-                    formulaPoint(
-                        `${origin}+${planar(`(${p})*${ux}-(${q})*${uy}`, `(${p})*${uy}+(${q})*${ux}`)}`,
-                    ),
-                ),
-            ),
-        );
-
     // The polynomial L - R of an equation "L = R" in x, y and z, as its
     // values at the given points.
     const equationValues = (
@@ -2130,44 +2109,26 @@ export function translateGgb(
     };
 
     // Ellipse(F, G, P) and Hyperbola(F, G, P) through P, or with semi-major
-    // axis a: both centered at the foci's midpoint, along FG.
+    // axis a.
     const focalConic =
-        (hyperbola: boolean): Handler =>
+        (command: string): Handler =>
         ([f, g, third, extra], [label]) => {
             if (extra !== undefined || !points(f, g)) return false;
-            const [p, q] = [f, g].map((input) => objects.get(input)!.variable);
-            let a: string | null;
-            if (points(third)) {
-                const r = objects.get(third)!.variable;
-                a = `sqrt((d(${r},${p})${hyperbola ? "-" : "+"}d(${r},${q}))^2)/2`;
-            } else a = formula(third, VALUE_KINDS);
-            if (a === null) return false;
-            const c = `(d(${p},${q})/2)`;
-            const b = hyperbola
-                ? `sqrt(${c}^2-(${a})^2)`
-                : `sqrt((${a})^2-${c}^2)`;
-            const axis: [string, string] = [
-                `(x(${q})-x(${p}))/d(${p},${q})`,
-                `(y(${q})-y(${p}))/d(${p},${q})`,
-            ];
-            const [cosh, sinh] = [Math.cosh(1), Math.sinh(1)];
-            const local: [number, number][] = hyperbola
-                ? [
-                      [1, 0],
-                      [-1, 0],
-                      [cosh, sinh],
-                      [cosh, -sinh],
-                      [-cosh, sinh],
-                  ]
-                : Array.from({ length: 5 }, (_, k) => [
-                      Math.cos((2 * k * Math.PI) / 5),
-                      Math.sin((2 * k * Math.PI) / 5),
-                  ]);
-            return conicThrough(
-                label,
-                `(${p}+${q})/2`,
-                axis,
-                local.map(([s, t]) => [`${s}*(${a})`, `${t}*${b}`]),
+            if (points(third))
+                return define(
+                    label,
+                    "quadric",
+                    command,
+                    [f, g, third].map(ref),
+                );
+            const a = formula(third, VALUE_KINDS);
+            return (
+                a !== null &&
+                define(label, "quadric", `${command}1`, [
+                    ref(f),
+                    ref(g),
+                    literal(a),
+                ])
             );
         };
 
@@ -2576,10 +2537,8 @@ export function translateGgb(
             );
         },
         Conic: onePoint("Quadric", 5, "quadric"),
-        Ellipse: focalConic(false),
-        Hyperbola: focalConic(true),
-        // With p the focus-directrix distance, the vertex midway, and
-        // y = x²/(2p) in the frame whose axis points to the focus.
+        Ellipse: focalConic("Ellipse"),
+        Hyperbola: focalConic("Hyperbola"),
         Parabola: ([focus, directrix, extra], [label]) => {
             if (
                 extra !== undefined ||
@@ -2587,23 +2546,24 @@ export function translateGgb(
                 !is(directrix, ["line"])
             )
                 return false;
-            const image = auxiliary();
-            define(image, "point", "Reflection", [ref(directrix), ref(focus)]);
-            const [f, g] = [focus, image].map(
-                (input) => objects.get(input)!.variable,
-            );
-            const p = `(d(${f},${g})/2)`;
-            return conicThrough(
+            // Its image, of the images of its focus and directrix.
+            const line = shapes.get(directrix);
+            if (line)
+                shapes.set(label, {
+                    get points() {
+                        return [focus, ...line.points];
+                    },
+                    build: (image, [f, ...ends]) => {
+                        const d = auxiliary();
+                        line.build(d, ends);
+                        define(image, "quadric", "Parabola", [f, d].map(ref));
+                    },
+                });
+            return define(
                 label,
-                `(3*${f}+${g})/4`,
-                [
-                    `(x(${f})-x(${g}))/d(${f},${g})`,
-                    `(y(${f})-y(${g}))/d(${f},${g})`,
-                ],
-                [0, 1, -1, 2, -2].map((t) => [
-                    `${(t * t) / 2}*${p}`,
-                    `${t}*${p}`,
-                ]),
+                "quadric",
+                "Parabola",
+                [focus, directrix].map(ref),
             );
         },
         Polygon: (inputs, [label, ...sides]) => {

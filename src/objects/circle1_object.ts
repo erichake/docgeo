@@ -24,6 +24,31 @@ export type circle1_radius =
           refs: Map<string, construction_object>;
       };
 
+export function radiusValue(
+    radius: circle1_radius,
+    c: construction,
+): number | null {
+    return typeof radius === "number"
+        ? radius
+        : realPart(
+              evaluateFormula(radius.formula, {
+                  resolveIdentifier: (n) =>
+                      radius.refs.get(n)!.scriptValue(false),
+                  view: () => c.formulaView(),
+              }),
+          );
+}
+
+// Its value, as a .dgo parameter.
+export function dgoRadius(
+    radius: circle1_radius,
+    context: DgoContext,
+): unknown {
+    return typeof radius === "number"
+        ? radius
+        : dgoFormula(formulaSource(radius.formula), radius.refs, context);
+}
+
 export class circle1_object extends primitive_circle_object {
     P1: point_object;
     radius: circle1_radius;
@@ -51,19 +76,11 @@ export class circle1_object extends primitive_circle_object {
     }
 
     dgo(context: DgoContext): [string, unknown] {
-        const radius =
-            typeof this.radius === "number"
-                ? this.radius
-                : dgoFormula(
-                      formulaSource(this.radius.formula),
-                      this.radius.refs,
-                      context,
-                  );
         return [
             "C1",
             [
                 context.index(this.P1),
-                radius,
+                dgoRadius(this.radius, context),
                 ...(this.axis ? [context.index(this.axis)] : []),
             ],
         ];
@@ -74,17 +91,7 @@ export class circle1_object extends primitive_circle_object {
             this.defined = false;
             return;
         }
-        const definition = this.radius;
-        const radius =
-            typeof definition === "number"
-                ? definition
-                : realPart(
-                      evaluateFormula(definition.formula, {
-                          resolveIdentifier: (n) =>
-                              definition.refs.get(n)!.scriptValue(false),
-                          view: () => this.C.formulaView(),
-                      }),
-                  );
+        const radius = radiusValue(this.radius, this.C);
         if (radius === null) {
             this.defined = false;
             return;
