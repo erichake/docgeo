@@ -258,6 +258,9 @@ sa dérivée par rapport à l'une de ses variables, comme dans DGPad, par
 | `C3s`  | idem, dans leur plan de l'espace       | `[A, B, C]`                                     |
 | `Arc`  | arc de A à C passant par B             | `[A, B, C]`                                     |
 | `Sec`  | secteur de A à C passant par B         | `[A, B, C]`                                     |
+| `CArc` | arc de centre M, de A à [MB)           | `[M, A, B]`, `[M, A, B, 1]` (16)                |
+| `CSec` | secteur de centre M, de A à [MB)       | idem                                            |
+| `Semi` | demi-cercle de diamètre [AB]           | `[A, B]` (16)                                   |
 | `EqC`  | cercle d'équation g = d                | `[g, d]` (14)                                   |
 | `Quad` | conique passant par cinq points        | `[A, B, C, D, E]`                               |
 | `Ell`  | ellipse de foyers F, G passant par P   | `[F, G, P]`                                     |
@@ -368,6 +371,10 @@ alignement]]` police, `[30, url, l, h, zoom, opacité, u]` image (largeur
     le sens direct autour de son vecteur directeur. `u` : un vecteur
     (`Vec`), un point (son vecteur position) ou une formule dont la valeur
     est un vecteur.
+16. Arc et secteur dans le sens direct, de A jusqu'à la demi-droite [MB),
+    sur le cercle de centre M passant par A ; avec `1`, dans le sens
+    indirect (l'image d'un arc par une symétrie axiale). Le demi-cercle est
+    à gauche de AB, parcouru de A à B dans le sens indirect.
 
 ### Styles `st`
 
@@ -470,6 +477,7 @@ non définie).
 | `FA`                                                          | `#006633`, `#006633`, 1, 0                |
 | `Ang`                                                         | `#006633`, `#006633`, 4, 0                |
 | `Cir`, `C1`, `C3`, `C3p`, `C3s`, `Arc`, `Sec`, `CyS`, `EqC`   | `#CC66CC`, `#CC66CC`, 2, 0                |
+| `CArc`, `CSec`, `Semi`                                        | `#CC66CC`, `#CC66CC`, 2, 0                |
 | `Quad`, `Ell`, `Ell1`, `Hyp`, `Hyp1`, `Prb`, `EqQ`            | `#CC66CC`, `#CC66CC`, 2, 0                |
 | `Sph`, `Poly`                                                 | `rgb(35,141,227)`, `rgb(80,80,80)`, 2, 0  |
 | `Loc`, `Cur`                                                  | `#0b5b94`, `#0b5b94`, 2                   |

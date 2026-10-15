@@ -368,6 +368,17 @@ export const COMMANDS: Command[] = [
         name: "Sector",
         overloads: [objects("Sec", ["point", "point", "point"])],
     },
+    // Of center M, from A to the ray [MB), counterclockwise.
+    {
+        name: "CenterArc",
+        overloads: [objects("CArc", ["point", "point", "point"])],
+    },
+    {
+        name: "CenterSector",
+        overloads: [objects("CSec", ["point", "point", "point"])],
+    },
+    // On the left of AB.
+    { name: "Semicircle", overloads: [objects("Semi", ["point", "point"])] },
     { name: "Center", overloads: [objects("Ctr", ["circle"])] },
     {
         name: "Intersection",

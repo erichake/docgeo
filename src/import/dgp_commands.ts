@@ -7,6 +7,8 @@ import {
     type RightAngleMark,
 } from "../objects/angle_object";
 import { createArc3pts } from "../objects/arc3pts_object";
+import { createCenterArc } from "../objects/center_arc_object";
+import { createSemicircle } from "../objects/semicircle_object";
 import { createCenter } from "../objects/center_object";
 import { createCircle1, type circle1_radius } from "../objects/circle1_object";
 import { createCircle3 } from "../objects/circle3_object";
@@ -479,6 +481,22 @@ const focalConic = (
             third === point
                 ? (args[3] as point_object)
                 : radiusArgument(args[3], context),
+        ),
+});
+
+// Of center M, from A to the ray [MB).
+const centerArc = (sector: boolean): CommandDefinition => ({
+    parameters: [string, point, point, point, { ...boolean, optional: true }],
+    result: "circle",
+    execute: (context, args) =>
+        createCenterArc(
+            context.construction,
+            args[0] as string,
+            args[1] as point_object,
+            args[2] as point_object,
+            args[3] as point_object,
+            sector,
+            args[4] === true,
         ),
 });
 
@@ -1722,6 +1740,24 @@ const COMMANDS = new Map<string, CommandDefinition>([
                     args[2] as point_object,
                     args[3] as point_object,
                     true,
+                ),
+        },
+    ],
+    // Not DGPad commands: GeoGebra's CircleArc, CircleSector and
+    // Semicircle, clockwise as images by a reflection.
+    ["CenterArc", centerArc(false)],
+    ["CenterSector", centerArc(true)],
+    [
+        "Semicircle",
+        {
+            parameters: [string, point, point],
+            result: "circle",
+            execute: (context, args) =>
+                createSemicircle(
+                    context.construction,
+                    args[0] as string,
+                    args[1] as point_object,
+                    args[2] as point_object,
                 ),
         },
     ],

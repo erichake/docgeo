@@ -254,7 +254,7 @@ const EQUATION_VARIABLES = new Map([
 // A text also reads a polygon, as its area.
 const TEXT_KINDS: Kind[] = [...VALUE_KINDS, "polygon"];
 
-const literal = (value: string | number): DgpValue => ({
+const literal = (value: string | number | boolean): DgpValue => ({
     type: "literal",
     value,
 });
@@ -751,10 +751,14 @@ export function translateGgb(
     // The objects drawing an object that isn't one itself.
     const parts = new Map<string, string[]>();
     // The points an object is built from, and how to build it from others:
-    // its image by a similarity is built from their images.
+    // its image by a similarity is built from their images, `direct` false
+    // when the similarity reverses the orientation.
     const shapes = new Map<
         string,
-        { points: string[]; build: (label: string, points: string[]) => void }
+        {
+            points: string[];
+            build: (label: string, points: string[], direct: boolean) => void;
+        }
     >();
     const labels = new Map<string, string>();
     // A convex polyhedron's faces, as their vertices.
@@ -1736,7 +1740,7 @@ export function translateGgb(
                     );
                 const shape = shapes.get(source);
                 if (shape) {
-                    shape.build(label, shape.points.map(image));
+                    shape.build(label, shape.points.map(image), direct);
                     for (const known of [segments, vectors, polygons] as Map<
                         string,
                         string[]
@@ -1960,36 +1964,43 @@ export function translateGgb(
             ref(ends[1]),
         ]);
 
+    // An object of points whose image by a reflection runs the other way,
+    // as do the images of that image: `build` makes it, reversed or not.
+    const orientedShape = (
+        label: string,
+        points: string[],
+        build: (label: string, points: string[], reversed: boolean) => void,
+        reversed = false,
+    ): true => {
+        build(label, points, reversed);
+        shapes.set(label, {
+            points,
+            build: (image, images, direct) =>
+                orientedShape(
+                    image,
+                    images,
+                    build,
+                    direct ? reversed : !reversed,
+                ),
+        });
+        return true;
+    };
+
     // CircleArc(M, A, B): counterclockwise from A to the ray MB, on the
-    // circle centered at M through A. Its middle is at the start angle plus
-    // half the span atan2(-sin, -cos) + π, which lies in ]0, 2π].
+    // circle centered at M through A; clockwise, its image by a reflection.
     const centerArc =
         (sector: boolean): Handler =>
-        ([center, start, direction], [label]) => {
-            if (!points(center, start, direction)) return false;
-            const [m, a, b] = [center, start, direction].map(
-                (input) => objects.get(input)!.variable,
+        (inputs, [label]) =>
+            inputs.length === 3 &&
+            points(...inputs) &&
+            orientedShape(label, inputs, (image, [m, a, b], reversed) =>
+                define(image, "circle", sector ? "CenterSector" : "CenterArc", [
+                    ref(m),
+                    ref(a),
+                    ref(b),
+                    ...(reversed ? [literal(true)] : []),
+                ]),
             );
-            const [ax, ay, bx, by] = [
-                `(x(${a})-x(${m}))`,
-                `(y(${a})-y(${m}))`,
-                `(x(${b})-x(${m}))`,
-                `(y(${b})-y(${m}))`,
-            ];
-            const span = `(atan2(${ay}*${bx}-${ax}*${by},-${ax}*${bx}-${ay}*${by})+π)`;
-            const angle = `(atan2(${ay},${ax})+${span}/2)`;
-            return arcThrough(
-                label,
-                sector,
-                [
-                    start,
-                    formulaPoint(`${m}+(${b}-${m})*d(${m},${a})/d(${m},${b})`),
-                ],
-                formulaPoint(
-                    `${m}+d(${m},${a})*${planar(`cos(${angle})`, `sin(${angle})`)}`,
-                ),
-            );
-        };
 
     // The polynomial L - R of an equation "L = R" in x, y and z, as its
     // values at the given points.
@@ -2054,24 +2065,27 @@ export function translateGgb(
             inputs.length === arity &&
             points(...inputs) &&
             define(label, kind, command, inputs.map(ref));
-    const reflection = transform(
-        ([mirror]) =>
-            points(mirror)
+    // A point reflection is a half turn, which keeps the orientation.
+    const pointReflection = transform(
+        ([center]) =>
+            (p, label) =>
+                define(label, "point", "Symmetry", [ref(center), ref(p)]),
+    );
+    const lineReflection = transform(
+        ([line]) =>
+            is(line, ["line"])
                 ? (p, label) =>
-                      define(label, "point", "Symmetry", [ref(mirror), ref(p)])
-                : is(mirror, ["line"])
-                  ? (p, label) =>
-                        define(label, "point", "Reflection", [
-                            ref(mirror),
-                            ref(p),
-                        ])
-                  : null,
+                      define(label, "point", "Reflection", [ref(line), ref(p)])
+                : null,
         false,
     );
     const mirror: Handler = (inputs, outputs) =>
         is(inputs[1], ["circle"])
             ? points(inputs[0]) && inversion(outputs[0], inputs[0], inputs[1])
-            : reflection(inputs, outputs);
+            : (points(inputs[1]) ? pointReflection : lineReflection)(
+                  inputs,
+                  outputs,
+              );
 
     // The inverse of P in a circle of center M and radius r is
     // M + (P - M)·r²/MP², r being read off a point where MP meets it.
@@ -2428,22 +2442,19 @@ export function translateGgb(
         CircularArc: centerArc(false),
         CircleSector: centerArc(true),
         CircularSector: centerArc(true),
-        // Clockwise from A to B, i.e. on the left of B - A.
-        Semicircle: ([a, b, extra], [label]) => {
-            if (extra !== undefined || !points(a, b)) return false;
-            const [p, q] = [a, b].map((input) => objects.get(input)!.variable);
-            return arcThrough(
-                label,
-                false,
-                [a, b],
-                formulaPoint(
-                    planar(
-                        `(x(${p})+x(${q})+y(${p})-y(${q}))/2`,
-                        `(y(${p})+y(${q})-x(${p})+x(${q}))/2`,
-                    ),
+        // On the left of AB: its image by a reflection is on the left of
+        // B'A'.
+        Semicircle: ([a, b, extra], [label]) =>
+            extra === undefined &&
+            points(a, b) &&
+            orientedShape(label, [a, b], (image, [p, q], reversed) =>
+                define(
+                    image,
+                    "circle",
+                    "Semicircle",
+                    (reversed ? [q, p] : [p, q]).map(ref),
                 ),
-            );
-        },
+            ),
         Conic: onePoint("Quadric", 5, "quadric"),
         Ellipse: focalConic("Ellipse"),
         Hyperbola: focalConic("Hyperbola"),
@@ -2461,9 +2472,9 @@ export function translateGgb(
                     get points() {
                         return [focus, ...line.points];
                     },
-                    build: (image, [f, ...ends]) => {
+                    build: (image, [f, ...ends], direct) => {
                         const d = auxiliary();
-                        line.build(d, ends);
+                        line.build(d, ends, direct);
                         define(image, "quadric", "Parabola", [f, d].map(ref));
                     },
                 });

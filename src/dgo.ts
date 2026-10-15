@@ -18,6 +18,8 @@ import {
     type RightAngleMark,
 } from "./objects/angle_object";
 import { createArc3pts } from "./objects/arc3pts_object";
+import { createCenterArc } from "./objects/center_arc_object";
+import { createSemicircle } from "./objects/semicircle_object";
 import { createCenter } from "./objects/center_object";
 import { createCircle1, type circle1_radius } from "./objects/circle1_object";
 import { createCircle3 } from "./objects/circle3_object";
@@ -174,6 +176,9 @@ export const LOOKS: Record<string, Look> = {
     C3s: CIRCLE,
     Arc: CIRCLE,
     Sec: CIRCLE,
+    CArc: CIRCLE,
+    CSec: CIRCLE,
+    Semi: CIRCLE,
     CyS: CIRCLE,
     EqC: CIRCLE,
     Quad: CIRCLE,
@@ -1009,6 +1014,23 @@ function radius(value: Json, { formula }: Reader): circle1_radius {
     return { formula: node, refs };
 }
 
+// Of center M, from A to the ray [MB), clockwise after a 1.
+const centerArc =
+    (sector: boolean): Builder =>
+    (parameters, { c, name, at }) => {
+        const [m, a, b, clockwise] = list(parameters, 3, 4);
+        check(clockwise === undefined || clockwise === 1);
+        return createCenterArc(
+            c,
+            name,
+            at(m, point_object),
+            at(a, point_object),
+            at(b, point_object),
+            sector,
+            clockwise === 1,
+        );
+    };
+
 // Of an equation, its two sides each a formula in x and y.
 const equation =
     (
@@ -1295,6 +1317,12 @@ const BUILDERS: Record<string, Builder> = {
     Sec: threePoints((c, name, p, q, r) =>
         createArc3pts(c, name, p, q, r, true),
     ),
+    CArc: centerArc(false),
+    CSec: centerArc(true),
+    Semi: (parameters, { c, name, points }) => {
+        const [a, b] = points(parameters, 2);
+        return createSemicircle(c, name, a, b);
+    },
     Quad: (parameters, { c, name, points }) => {
         const [p1, p2, p3, p4, p5] = points(parameters, 5);
         return createQuadric5pts(c, name, p1, p2, p3, p4, p5);

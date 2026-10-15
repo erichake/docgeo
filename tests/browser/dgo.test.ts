@@ -256,6 +256,36 @@ describe(".dgo writer", () => {
             },
         ));
 
+    it("keeps arcs and sectors of a center, semicircles, reflected", () =>
+        roundTrip(
+            async (c) =>
+                importGgb(
+                    c,
+                    `<geogebra><construction>
+<element type="point" label="M"><coords x="0" y="0" z="1"/></element>
+<element type="point" label="A"><coords x="2" y="0" z="1"/></element>
+<element type="point" label="B"><coords x="-1" y="2" z="1"/></element>
+<command name="Line"><input a0="M" a1="A"/><output a0="l"/></command>
+<element type="line" label="l"/>
+<command name="CircleArc"><input a0="M" a1="A" a2="B"/><output a0="k"/></command>
+<element type="conicpart" label="k"/>
+<command name="CircleSector"><input a0="M" a1="B" a2="A"/><output a0="s"/></command>
+<element type="conicpart" label="s"/>
+<command name="Semicircle"><input a0="A" a1="B"/><output a0="g"/></command>
+<element type="conicpart" label="g"/>
+<command name="Mirror"><input a0="k" a1="l"/><output a0="k'"/></command>
+<element type="conicpart" label="k'"/>
+<command name="Point"><input a0="k"/><output a0="P"/></command>
+<element type="point" label="P"><coords x="0" y="2" z="1"/></element>
+</construction></geogebra>`,
+                ),
+            (c) => {
+                const b = c.getObj("B") as point_object;
+                b.coords = [1, 2, 0];
+                c.invalidateGeometry(b);
+            },
+        ));
+
     it("keeps integrals, sums and slope triangles", () =>
         roundTrip(async (c) =>
             importGgb(

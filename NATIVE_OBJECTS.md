@@ -98,14 +98,12 @@ d'objets construits sur des points restent faites par `shapes`. Éditeur :
 « Transformations »). Reste : les images des droites et coniques
 d'équation (item 1).
 
-### 3. Arc et secteur de centre donné, demi-cercle
+### 3. Arc et secteur de centre donné, demi-cercle — fait
 
-- `CircleArc(M, A, B)`, `CircleSector` (`centerArc`) : un `Arc3pts` par
-  deux points calculés cachés (extrémité sur [MB), milieu).
-- `Semicircle(A, B)` : un `Arc3pts` par un milieu calculé.
-
-Objets « arc (ou secteur) de centre M, de A jusqu'à la demi-droite [MB) »
-et « demi-cercle ». Commandes de l'éditeur correspondantes.
+Objets `CArc`, `CSec`, `Semi` (item 28 de `GGB_IMPORT.md`) sur une classe
+de base des arcs ; l'orientation des images par une symétrie axiale est
+gardée (`orientedShape`, à réutiliser pour tout objet orienté). Éditeur :
+`ArcCentre`, `SecteurCentre`, `DemiCercle`, au clavier et au menu.
 
 ### 4. Tangentes
 
@@ -161,4 +159,4 @@ rester des expressions : `Distance`, `Length`, `Slope`, `Corner`,
 
 Corpus : 238 figures sur 438 sans perte, aucun plantage (après le
 correctif du nom d'un segment de longueur nulle, item 24 bis de
-`GGB_IMPORT.md`). Moteur : 313,3 Ko après l'item 2.
+`GGB_IMPORT.md`). Moteur : 314,9 Ko après l'item 3.

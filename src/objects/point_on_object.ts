@@ -12,7 +12,7 @@ import {
     type Vec3,
 } from "../vec";
 import { angle_bisector_object } from "./angle_bisector_object";
-import { arc3pts_object } from "./arc3pts_object";
+import { primitive_arc_object } from "./primitive_arc_object";
 import { circle3pts_object, SAMPLES } from "./circle3pts_object";
 import type { curve_object } from "./curve_object";
 import type { DgoContext } from "./construction_object";
@@ -287,7 +287,7 @@ export class point_on_object extends point_object {
         const support = this.support;
         const alpha = this.alpha as number;
         const set = (t: number) => (this.alpha = t);
-        if (support instanceof arc3pts_object) {
+        if (support instanceof primitive_arc_object) {
             const from = support.startAlpha;
             const sign = support.sweepFlag ? 1 : -1;
             const span = angle(sign * (support.endAlpha - from));

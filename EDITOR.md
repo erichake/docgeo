@@ -256,6 +256,8 @@ la GeoGebra, l'outil choisi avant les objets.
   le menu : la complétion de la ligne de saisie le fait déjà.
 - **Plus d'outils que l'anneau**, qui reste léger : à la fin de leur
   famille, `AutreIntersection` (points), `Compas`, `Arc`, `Secteur`,
+  `ArcCentre`, `SecteurCentre` (le centre, le début, puis un point de la
+  demi-droite où il finit), `DemiCercle`,
   `Conique`, `Ellipse`, `Hyperbole` et `Parabole` (« Cercles, arcs,
   coniques »), ces trois-là comme dans GeoGebra : deux foyers puis un
   point, ou un foyer puis la directrice (au clavier, `Ellipse(F, G, a)` et
@@ -1285,6 +1287,15 @@ Fait (2026-10-11) :
   et homothétie (le point, puis le centre ; 90° et un rapport de 2,
   section « Menu des outils »), translation (le point, puis le vecteur).
   Éditeur +0,9 Ko (+0,3 Ko en gzip).
+
+- Arcs de centre donné et demi-cercle (2026-10-15) : `ArcCentre(M, A, B)`
+  et `SecteurCentre(M, A, B)`, de A à la demi-droite [MB) dans le sens
+  direct, et `DemiCercle(A, B)`, à gauche de AB (entrées `CArc`, `CSec`,
+  `Semi`), au clavier et au menu (« Cercles, arcs, coniques »). Noms
+  composés qui contiennent ceux d'`Arc` et `Secteur`, qui restent l'arc
+  par trois points. L'image d'un arc par une symétrie axiale, parcourue
+  dans le sens indirect, s'affiche en lecture seule. Éditeur +0,5 Ko
+  (+0,1 Ko en gzip).
 
 Reste à faire :
 

@@ -254,6 +254,35 @@ const FAMILIES: [
                     dot(14.5, 9.5) +
                     dot(6, 6),
             ),
+            // The center, the start, then a point of the ray where it ends.
+            tool(
+                "CenterArc",
+                0,
+                path("M6 18L14 4.1", true) +
+                    result(path("M18 18A12 12 0 0 0 12 7.6")) +
+                    dot(6, 18) +
+                    dot(18, 18) +
+                    dot(9.5, 11.9),
+            ),
+            tool(
+                "CenterSector",
+                0,
+                path("M12 7.6L14 4.1", true) +
+                    result(
+                        `<path d="M6 18H18A12 12 0 0 0 12 7.6Z" fill="currentColor" fill-opacity=".1"/>`,
+                    ) +
+                    dot(6, 18) +
+                    dot(18, 18) +
+                    dot(9.5, 11.9),
+            ),
+            tool(
+                "Semicircle",
+                0,
+                path("M4 16H20", true) +
+                    result(path("M4 16A8 8 0 0 1 20 16")) +
+                    dot(4, 16) +
+                    dot(20, 16),
+            ),
             tool(
                 "Conic",
                 0,

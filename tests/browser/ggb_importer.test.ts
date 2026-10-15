@@ -5,6 +5,9 @@ import { importGgb, importGgbFromBlob } from "../../src/ggb_importer";
 import { readZipEntry } from "../../src/import/ggb_zip";
 import { angle_object } from "../../src/objects/angle_object";
 import { arc3pts_object } from "../../src/objects/arc3pts_object";
+import { center_arc_object } from "../../src/objects/center_arc_object";
+import { semicircle_object } from "../../src/objects/semicircle_object";
+import type { primitive_arc_object } from "../../src/objects/primitive_arc_object";
 import { circle1_object } from "../../src/objects/circle1_object";
 import { curve_object } from "../../src/objects/curve_object";
 import { cylinder_intersection_object } from "../../src/objects/cylinder_intersection_object";
@@ -437,7 +440,16 @@ ${[
             "application/xml",
         );
         const labels = ["g", "h", "k", "p", "q"];
-        const arcs = labels.map((label) => c.getObj(label) as arc3pts_object);
+        const arcs = labels.map(
+            (label) => c.getObj(label) as primitive_arc_object,
+        );
+        expect(arcs.map((arc) => arc.constructor)).toEqual([
+            semicircle_object,
+            center_arc_object,
+            arc3pts_object,
+            center_arc_object,
+            arc3pts_object,
+        ]);
         arcs.forEach((arc, index) => {
             const matrix = document.querySelector(
                 `element[label="${labels[index]}"] > matrix`,
@@ -445,7 +457,6 @@ ${[
             const [a2, a4, a5] = ["A2", "A4", "A5"].map((name) =>
                 Number(matrix.getAttribute(name)),
             );
-            expect(arc).toBeInstanceOf(arc3pts_object);
             expect(arc.CENTER[0]).toBeCloseTo(-a4, 9);
             expect(arc.CENTER[1]).toBeCloseTo(-a5, 9);
             expect(arc.R).toBeCloseTo(Math.sqrt(a4 * a4 + a5 * a5 - a2), 9);
@@ -458,7 +469,7 @@ ${[
             true,
         ]);
         const [g, h, , p] = arcs;
-        expect(g.P2.coords[1]).toBeGreaterThan(g.CENTER[1]);
+        expect(g.insideBounds([g.CENTER[0], g.CENTER[1] + g.R, 0])).toBe(true);
         [h, p].forEach((arc, index) => {
             const [center, direction] = [
                 ["J", "L"],
@@ -2058,6 +2069,11 @@ ${["90*°", "90°", "(540 / n)°", "180 / n * °"]
 <command name="Mirror"><input a0="t" a1="l"/><output a0="t2"/></command>
 <command name="Dilate"><input a0="t" a1="2" a2="A"/><output a0="t3"/></command>
 <command name="Rotate"><input a0="k" a1="90°" a2="A"/><output a0="k1"/></command>
+<command name="Mirror"><input a0="k" a1="l"/><output a0="k2"/></command>
+<command name="Semicircle"><input a0="A" a1="B"/><output a0="g"/></command>
+<command name="Mirror"><input a0="g" a1="l"/><output a0="g2"/></command>
+<command name="Mirror"><input a0="k" a1="A"/><output a0="k3"/></command>
+<command name="Mirror"><input a0="k2" a1="l"/><output a0="k4"/></command>
 <command name="Translate"><input a0="A" a1="Vector[(2 * v)]"/><output a0="P"/></command>
 <command name="Translate"><input a0="A" a1="(1, 0)"/><output a0="Q"/></command>
 </construction></geogebra>`,
@@ -2082,10 +2098,42 @@ ${["90*°", "90°", "(540 / n)°", "180 / n * °"]
             [4, 0, 0],
             [0, 4, 0],
         ]);
-        const arc = c.getObj("k1") as arc3pts_object;
-        expect(arc).toBeInstanceOf(arc3pts_object);
-        expect(arc.P1.coords[0]).toBeCloseTo(0, 9);
-        expect(arc.P1.coords[1]).toBeCloseTo(2, 9);
+        const arc = c.getObj("k1") as center_arc_object;
+        expect(arc).toBeInstanceOf(center_arc_object);
+        expectClose(arc.A.coords, [0, 2, 0]);
+        // A reflection reverses an arc, not a half turn.
+        const inside = ([name, x, y]: [string, number, number]) =>
+            (c.getObj(name) as primitive_arc_object).insideBounds([x, y, 0]);
+        const r = Math.SQRT2;
+        expect(
+            (
+                [
+                    ["k", r, r],
+                    ["k", r, -r],
+                    ["k2", r, -r],
+                    ["k2", r, r],
+                    ["k3", -r, -r],
+                    ["k3", r, r],
+                    ["g", 1, 1],
+                    ["g2", 1, -1],
+                    ["g2", 1, 1],
+                    ["k4", r, r],
+                    ["k4", r, -r],
+                ] as [string, number, number][]
+            ).map(inside),
+        ).toEqual([
+            true,
+            false,
+            true,
+            false,
+            true,
+            false,
+            true,
+            true,
+            false,
+            true,
+            false,
+        ]);
         expect((c.getObj("P") as point_object).coords).toEqual([0, 4, 0]);
         expect((c.getObj("Q") as point_object).coords).toEqual([1, 0, 0]);
     });

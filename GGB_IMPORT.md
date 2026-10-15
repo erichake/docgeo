@@ -81,6 +81,7 @@ figure sont seulement comptés. L'API utilisée est
 | 2026-10-15 | 238 / 438 (54 %)   | 308,8 Ko | item 24 bis : pas de nom pour un segment de longueur nulle (+9)    |
 | 2026-10-15 | 238 / 438 (54 %)   | 309,4 Ko | item 26 : droite, cercle et conique d'équation natifs (+0)         |
 | 2026-10-15 | 238 / 438 (54 %)   | 313,3 Ko | item 27 : rotation, homothétie et translation natives (+0)         |
+| 2026-10-15 | 238 / 438 (54 %)   | 314,9 Ko | item 28 : arc et secteur de centre donné, demi-cercle natifs (+0)  |
 
 ## À faire, par rapport gain / coût
 
@@ -464,6 +465,20 @@ cause.
       et 9 → 7) : un axe de rotation n'a plus besoin d'un point connu de la
       traduction ; leurs images tombent sur les positions enregistrées par
       GeoGebra. Moteur +3,6 Ko (+0,7 Ko en gzip).
+- [x] **28. Arc et secteur de centre donné, demi-cercle natifs** :
+      `CircleArc(M, A, B)` et `CircleSector` étaient un `Arc3pts` par deux
+      points calculés cachés, `Semicircle(A, B)` par un milieu calculé. Ils
+      deviennent les objets `CArc`, `CSec` et `Semi` de `DGO.md` (commandes
+      DGP propres à DocGeo `CenterArc`, `CenterSector`, `Semicircle`), de
+      parents les arguments de GeoGebra, sur une classe de base des arcs
+      (`primitive_arc_object`) que partage `Arc3pts`. Une symétrie axiale
+      renverse le sens de parcours : l'image d'un arc de centre donné est
+      parcourue dans le sens indirect (`[M, A, B, 1]`), celle d'un
+      demi-cercle de [AB] est le demi-cercle de [B'A'], et les images de
+      ces images le savent (`orientedShape`) ; une symétrie centrale, un
+      demi-tour, est désormais une transformation directe. Corpus inchangé
+      (238 figures sur 438 sans perte, aucun élément perdu), points
+      enregistrés retrouvés comme avant. Moteur +1,6 Ko (+0,4 Ko en gzip).
 
 À écarter, sauf changement de priorité : calcul formel, courbes implicites,
 statistiques et probabilités, tableur au-delà des cellules simples, matrices.
