@@ -96,7 +96,16 @@ import {
 import { createRay } from "./objects/ray_line_object";
 import { createReflection } from "./objects/reflection_object";
 import { createSegment, segment_object } from "./objects/segment_object";
-import { createSphere } from "./objects/sphere_object";
+import { createSphere, sphere_object } from "./objects/sphere_object";
+import { createPlane, plane_object } from "./objects/plane_object";
+import { createPlaneLine } from "./objects/plane_line_object";
+import { createNormalLine } from "./objects/normal_line_object";
+import { createSphereSection } from "./objects/sphere_section_object";
+import { createPlaneSection } from "./objects/plane_section_object";
+import { createCubeVertex } from "./objects/cube_vertex_object";
+import { createAbove } from "./objects/above_object";
+import { createRim } from "./objects/rim_object";
+import { createNetVertex, type net_turn } from "./objects/net_vertex_object";
 import { createSymmetry } from "./objects/symmetry_object";
 import { createText } from "./objects/text_object";
 import { createPanel, panelNames, parsePanel } from "./objects/panel_object";
@@ -147,6 +156,7 @@ const POLYGON: Look = ["rgb(35,141,227)", "rgb(80,80,80)", 2, 0];
 const CURVE: Look = ["#0b5b94", "#0b5b94", 2];
 const LIST: Look = ["#656148", "#656148", 2];
 const TEXT: Look = ["#000000", "#000000", 1];
+const PLANES = ["Pl", "PlP", "PlL", "PlO", "PlE"];
 export const LOOKS: Record<string, Look> = {
     Pt: POINT,
     Fix: DERIVED_POINT,
@@ -162,6 +172,10 @@ export const LOOKS: Record<string, Look> = {
     Refl: DERIVED_POINT,
     Rot: DERIVED_POINT,
     Inv: DERIVED_POINT,
+    CubV: DERIVED_POINT,
+    Abv: DERIVED_POINT,
+    Rim: DERIVED_POINT,
+    NetV: DERIVED_POINT,
     TC: DERIVED_POINT,
     Vtx: DERIVED_POINT,
     Dil: DERIVED_POINT,
@@ -172,6 +186,8 @@ export const LOOKS: Record<string, Look> = {
     Med: LINE,
     EqL: LINE,
     Tan: LINE,
+    PlPl: LINE,
+    Nrm: LINE,
     Ray: RAY,
     Bis: RAY,
     Seg: SEGMENT,
@@ -186,6 +202,7 @@ export const LOOKS: Record<string, Look> = {
     Arc: CIRCLE,
     Sec: CIRCLE,
     CArc: CIRCLE,
+    SphC: CIRCLE,
     CSec: CIRCLE,
     Semi: CIRCLE,
     CyS: CIRCLE,
@@ -200,6 +217,12 @@ export const LOOKS: Record<string, Look> = {
     Sph: POLYGON,
     Poly: POLYGON,
     RegP: POLYGON,
+    PlS: POLYGON,
+    Pl: POLYGON,
+    PlP: POLYGON,
+    PlL: POLYGON,
+    PlO: POLYGON,
+    PlE: POLYGON,
     Loc: CURVE,
     Cur: CURVE,
     Lst: LIST,
@@ -412,7 +435,7 @@ const STYLE: Record<string, Property> = {
                 (value[1] === 1 || value[1] === -1) &&
                 (isFlag(value[2]) || value[2] === 2)),
     ),
-    pl: flag(polygon_object, "plane"),
+    pl: flag(polygon_object, "plane", (tag) => +PLANES.includes(tag)),
     su: flag(polygon_object, "section"),
     ar: field<angle_object | fixed_angle_object>(
         [angle_object, fixed_angle_object],
@@ -1024,6 +1047,18 @@ function radius(value: Json, { formula }: Reader): circle1_radius {
     return { formula: node, refs };
 }
 
+// Through a point, containing a line or orthogonal to it.
+const throughLine =
+    (tag: "PlL" | "PlO"): Builder =>
+    (parameters, { c, name, at }) => {
+        const [point, line] = list(parameters, 2);
+        return createPlane(c, name, {
+            tag,
+            point: at(point, point_object),
+            line: at(line, primitive_line_object),
+        });
+    };
+
 // Of center M, from A to the ray [MB), clockwise after a 1.
 const centerArc =
     (sector: boolean): Builder =>
@@ -1041,7 +1076,8 @@ const centerArc =
         );
     };
 
-// Of an equation, its two sides each a formula in x and y.
+// Of an equation, its two sides each a formula in x and y, or in x, y and
+// z for a plane.
 const equation =
     (
         create: (
@@ -1049,6 +1085,7 @@ const equation =
             name: string | null,
             equation: Equation,
         ) => construction_object,
+        variables = ["x", "y"],
     ): Builder =>
     (parameters, { c, name, formula }) =>
         create(
@@ -1057,13 +1094,13 @@ const equation =
             list(parameters, 2).map((side) => {
                 const { source, refs } = formula(side, construction_object);
                 const node = parseFormula(source);
-                checkNames(formulaIdentifiers(node), refs, ["x", "y"]);
+                checkNames(formulaIdentifiers(node), refs, variables);
                 return {
                     node,
                     source,
-                    variables: ["x", "y"],
+                    variables,
                     refs,
-                    vec3: false,
+                    vec3: variables.length === 3,
                 };
             }) as Equation,
         );
@@ -1234,13 +1271,13 @@ const BUILDERS: Record<string, Builder> = {
         return createCenter(c, name, at(circle, primitive_circle_object));
     },
     DirP: linePoint(createDirectionPoint),
-    PlI: (parameters, { c, name, at, points }) => {
-        const [line, ...plane] = list(parameters, 4);
+    PlI: (parameters, { c, name, at }) => {
+        const [line, plane] = list(parameters, 2);
         return createPlaneIntersection(
             c,
             name,
             at(line, primitive_line_object),
-            points(plane, 3) as [point_object, point_object, point_object],
+            at(plane, plane_object),
         );
     },
     Int: (parameters, { c, name, at }) => {
@@ -1348,7 +1385,7 @@ const BUILDERS: Record<string, Builder> = {
         );
     },
     RegP: (parameters, { c, name, at }) => {
-        const [a, b, sides] = list(parameters, 3);
+        const [a, b, sides, plane] = list(parameters, 3, 4);
         check(Number.isInteger(sides) && (sides as number) >= 3);
         return createRegularPolygon(
             c,
@@ -1356,6 +1393,7 @@ const BUILDERS: Record<string, Builder> = {
             at(a, point_object),
             at(b, point_object),
             sides as number,
+            plane === undefined ? undefined : at(plane, plane_object),
         );
     },
     Vtx: (parameters, { c, name, at }) => {
@@ -1413,15 +1451,140 @@ const BUILDERS: Record<string, Builder> = {
     EqC: equation(createEquationCircle),
     EqQ: equation(createEquationConic),
     Sph: twoPoints(createSphere),
-    CyS: (parameters, { c, name, points }) => {
-        const [a, b, r, ...plane] = points(parameters, 6);
+    CyS: (parameters, { c, name, at, points }) => {
+        check(Array.isArray(parameters) && parameters.length === 4);
+        const [a, b, r] = points((parameters as Json[]).slice(0, 3), 3);
         return createCylinderSection(
             c,
             name,
             a,
             b,
             r,
-            plane as [point_object, point_object, point_object],
+            at((parameters as Json[])[3], plane_object),
+        );
+    },
+    Pl: (parameters, { c, name, points }) =>
+        createPlane(c, name, {
+            tag: "Pl",
+            points: points(parameters, 3) as [
+                point_object,
+                point_object,
+                point_object,
+            ],
+        }),
+    PlP: (parameters, { c, name, at }) => {
+        const [point, plane] = list(parameters, 2);
+        return createPlane(c, name, {
+            tag: "PlP",
+            point: at(point, point_object),
+            plane: at(plane, plane_object),
+        });
+    },
+    PlL: throughLine("PlL"),
+    PlO: throughLine("PlO"),
+    PlE: equation(
+        (c, name, equation) => createPlane(c, name, { tag: "PlE", equation }),
+        ["x", "y", "z"],
+    ),
+    NetV: (parameters, reader) => {
+        check(Array.isArray(parameters) && parameters.length % 4 === 2);
+        const [vertex, unfolding, ...ends] = parameters as Json[];
+        const points = reader.points(ends, ends.length);
+        return createNetVertex(
+            reader.c,
+            reader.name,
+            reader.at(vertex, point_object),
+            radius(unfolding, reader),
+            points.flatMap((_, index) =>
+                index % 4 ? [] : [points.slice(index, index + 4)],
+            ) as net_turn[],
+        );
+    },
+    Rim: (parameters, reader) => {
+        const [a, b, radiusValue, rank, count, top] = list(parameters, 6);
+        check(
+            Number.isInteger(count) &&
+                Number.isInteger(rank) &&
+                (top === 0 || top === 1),
+        );
+        return createRim(
+            reader.c,
+            reader.name,
+            reader.at(a, point_object),
+            reader.at(b, point_object),
+            radius(radiusValue, reader),
+            rank as number,
+            count as number,
+            top === 1,
+        );
+    },
+    Abv: (parameters, reader) => {
+        const [polygon, height, rank] = list(parameters, 3);
+        check(Number.isInteger(rank) && (rank as number) >= -1);
+        return createAbove(
+            reader.c,
+            reader.name,
+            reader.at(polygon, polygon_object),
+            radius(height, reader),
+            rank as number,
+        );
+    },
+    CubV: (parameters, { c, name, at }) => {
+        const [a, b, third, rank] = list(parameters, 4);
+        check(
+            Number.isInteger(rank) &&
+                (rank as number) >= 0 &&
+                (rank as number) < 6,
+        );
+        return createCubeVertex(
+            c,
+            name,
+            at(a, point_object),
+            at(b, point_object),
+            at(third, point_object, plane_object),
+            rank as number,
+        );
+    },
+    PlPl: (parameters, { c, name, at }) => {
+        const [p, q] = list(parameters, 2);
+        return createPlaneLine(c, name, [
+            at(p, plane_object),
+            at(q, plane_object),
+        ]);
+    },
+    Nrm: (parameters, { c, name, at }) => {
+        const [plane, point] = list(parameters, 2);
+        return createNormalLine(
+            c,
+            name,
+            at(plane, plane_object),
+            at(point, point_object),
+        );
+    },
+    SphC: (parameters, { c, name, at }) => {
+        const [sphere, other] = list(parameters, 2);
+        return createSphereSection(
+            c,
+            name,
+            at(sphere, sphere_object),
+            at(other, plane_object, sphere_object),
+        );
+    },
+    PlS: (parameters, { c, name, at, points }) => {
+        check(
+            Array.isArray(parameters) &&
+                parameters.length % 2 === 1 &&
+                parameters.length >= 7,
+        );
+        const [plane, ...ends] = parameters as Json[];
+        const vertices = points(ends, ends.length);
+        return createPlaneSection(
+            c,
+            name,
+            at(plane, plane_object),
+            vertices.flatMap((end, index) =>
+                index % 2 ? [] : [[end, vertices[index + 1]]],
+            ) as [point_object, point_object][],
         );
     },
     Poly: (parameters, { c, name, points }) => {

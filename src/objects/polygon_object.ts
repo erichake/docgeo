@@ -72,7 +72,11 @@ export function pathData(points: readonly Vec2[]): string {
 
 export class polygon_object extends construction_object {
     points: point_object[];
-    private vertices: point_object[];
+    // As given; a section keeps its defined ones in points.
+    readonly vertices: point_object[];
+    // Those it computes itself, outside the figure: projected with the
+    // figure's points (see objects_collector.update).
+    ownVertices: point_object[] = [];
     // A plane's section of a solid (see IntersectPath in ggb_translate.ts)
     // has a vertex on each edge, undefined where the plane misses the edge:
     // unlike DGPad's polygons, it keeps its defined vertices.

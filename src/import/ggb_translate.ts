@@ -245,6 +245,8 @@ const polynomial = (terms: [number, string][]): string =>
         )
         .join("") || "0";
 
+// A plane's equation keeps x, y and z.
+const PLANE_VARIABLES = new Map(["x", "y", "z"].map((name) => [name, name]));
 // An equation's x and y stay its variables, z of the plane is 0.
 const EQUATION_VARIABLES = new Map([
     ["x", "x"],
@@ -720,11 +722,8 @@ export function translateGgb(
     const unsupported: string[] = [];
     const objects = new Map<string, { variable: string; kind: Kind }>();
     const segments = new Map<string, [string, string]>();
-    // A plane, drawn around its center, and three of its points.
-    const planes = new Map<
-        string,
-        { center: string; normal: string; half: string; points?: string[] }
-    >([["xOyPlane", { center: "[0,0,0]", normal: "[0,0,1]", half: "5" }]]);
+    // The planes, GeoGebra's xOy plane being z = 0 (see isPlane).
+    const planes = new Set<string>();
     // A cylinder's side, by its axis and a point on it.
     const cylinders = new Map<string, [string, string, string]>();
     // The same, for a limited cylinder.
@@ -1595,63 +1594,53 @@ export function translateGgb(
         if (coords) targets.set(objects.get(label)!.variable, coords);
     };
 
-    const defineSegment = (label: string, p: string, q: string): true => {
-        segments.set(label, [p, q]);
-        return define(label, "line", "Segment", [ref(p), ref(q)]);
+    // GeoGebra's xOy plane is made when first needed, hidden.
+    const isPlane = (input: string): boolean => {
+        if (input === "xOyPlane" && !planes.has(input)) {
+            define(
+                input,
+                "polygon",
+                "EquationPlane",
+                [literal("z"), literal("0")],
+                "h:2",
+            );
+            planes.add(input);
+        }
+        return planes.has(input);
     };
 
-    // A plane, drawn like GeoGebra's clipped plane: a square of half side
-    // `half` around `center`, along the unit vector u orthogonal to `normal`.
+    // After its style, a plane sits with the floor, whatever GeoGebra's
+    // layer (see polygon_object.plane).
     const definePlane = (
         label: string,
-        center: string,
-        normal: string,
-        half: string,
-        u: string,
+        command: string,
+        args: DgpValue[],
     ): true => {
-        const v = `cross(${normal},${u})/d(${normal},[0,0,0])`;
-        const corners = [
-            [-1, -1],
-            [1, -1],
-            [1, 1],
-            [-1, 1],
-        ].map(([s, t]) =>
-            formulaPoint(`${center}+(${s}*${u}+${t}*${v})*${half}`),
-        );
-        definePolygon(label, corners);
+        planes.add(label);
+        define(label, "polygon", command, args);
         push(null, "STL", [ref(label), literal("pl:true")]);
-        planes.set(label, { center, normal, half, points: corners });
+        // Its image, the polygon of its corners' images: made when needed.
+        const corners: string[] = [];
+        shapes.set(label, {
+            get points() {
+                if (!corners.length)
+                    for (let rank = 0; rank < 4; rank++) {
+                        corners.push(auxiliary());
+                        define(corners[rank], "point", "Vertex", [
+                            ref(label),
+                            literal(rank),
+                        ]);
+                    }
+                return corners;
+            },
+            build: (image, points) => definePolygon(image, points),
+        });
         return true;
     };
 
-    const planePoints = (plane: { points?: string[] }): string[] =>
-        (plane.points ??= ["[0,0,0]", "[1,0,0]", "[0,1,0]"].map((point) =>
-            formulaPoint(point),
-        )).slice(0, 3);
-
-    // A plane through a point: a square around the foot of the origin,
-    // where GeoGebra's view is centered, at least as large as the floor and
-    // always reaching past the point. (-sin θ, cos θ, 0), θ = atan2(y, x) of
-    // the normal, is orthogonal to it (see Cylinder).
-    const planeThrough = (
-        label: string,
-        point: string,
-        normal: string,
-    ): true => {
-        const p = objects.get(point)!.variable;
-        const center = objects.get(
-            formulaPoint(
-                `${normal}*dot(${normal},${p})/dot(${normal},${normal})`,
-            ),
-        )!.variable;
-        const angle = `atan2(y(${normal}),x(${normal}))`;
-        return definePlane(
-            label,
-            center,
-            normal,
-            `sqrt(25+d(${center},${p})^2)`,
-            `[-sin(${angle}),cos(${angle}),0]`,
-        );
+    const defineSegment = (label: string, p: string, q: string): true => {
+        segments.set(label, [p, q]);
+        return define(label, "line", "Segment", [ref(p), ref(q)]);
     };
 
     const definePolygon = (
@@ -1882,49 +1871,10 @@ export function translateGgb(
         )}`;
     };
 
-    // P turned by t around the axis through O along the unit vector k.
-    const turn3D = (p: string, o: string, k: string, t: string): string =>
-        `${o}+(${p}-${o})*cos(${t})+cross(${k},${p}-${o})*sin(${t})+${k}*dot(${k},${p}-${o})*(1-cos(${t}))`;
-
-    // A plane polygon's unit normal, upwards like GeoGebra's.
-    const upNormal = ([a, b, c]: string[]): string => {
-        const n = objects.get(
-            formulaPoint(`cross(${b}-${a},${c}-${a})`),
-        )!.variable;
-        return objects.get(
-            formulaPoint(`${n}*(dot(${n},[0,0,1])<0?-1:1)/d(${n},[0,0,0])`),
-        )!.variable;
-    };
-
     // Polygon(A, B, n)'s other vertices, counterclockwise like GeoGebra's:
     // the k-th is A + (B - A)·(1 - w^k)/(1 - w) with w = e^(2iπ/n), i.e.
     // B - A rotated by (k - 1)π/n and scaled by sin(kπ/n)/sin(π/n). In a
     // plane, the rotation is around its normal.
-    const regularVertices = (
-        a: string,
-        b: string,
-        n: number,
-        labels: string[],
-        normal?: string,
-    ): string[] => {
-        const [p, q] = [a, b].map((label) => objects.get(label)!.variable);
-        const dx = `(x(${q})-x(${p}))`;
-        const dy = `(y(${q})-y(${p}))`;
-        return Array.from({ length: n - 2 }, (_, index) => {
-            const k = index + 2;
-            const scale = Math.sin((k * Math.PI) / n) / Math.sin(Math.PI / n);
-            const angle = ((k - 1) * Math.PI) / n;
-            const cos = scale * Math.cos(angle);
-            const sin = scale * Math.sin(angle);
-            return formulaPoint(
-                normal
-                    ? `${p}+${cos}*(${q}-${p})+${sin}*cross(${normal},${q}-${p})/d(${normal},[0,0,0])`
-                    : `${p}+${planar(`${cos}*${dx}-${sin}*${dy}`, `${sin}*${dx}+${cos}*${dy}`)}`,
-                labels[index],
-            );
-        });
-    };
-
     const planar = (x: string, y: string): string =>
         `[${x},${y}${is3D ? ",0" : ""}]`;
 
@@ -1995,31 +1945,6 @@ export function translateGgb(
                 ]),
             );
 
-    // The polynomial L - R of an equation "L = R" in x, y and z, as its
-    // values at the given points.
-    const equationValues = (
-        source: string,
-        at: number[][],
-    ): string[] | null => {
-        const sides = source.split("=");
-        if (sides.length !== 2) return null;
-        const values = at.map((point) =>
-            formula(
-                `(${sides[0]})-(${sides[1]})`,
-                VALUE_KINDS,
-                new Map(
-                    ["x", "y", "z"].map((name, axis) => [
-                        name,
-                        String(point[axis] ?? 0),
-                    ]),
-                ),
-            ),
-        );
-        return values.every((value) => value !== null)
-            ? values.map((value) => hiddenExpression(value))
-            : null;
-    };
-
     // Ellipse(F, G, P) and Hyperbola(F, G, P) through P, or with semi-major
     // axis a.
     const focalConic =
@@ -2087,33 +2012,6 @@ export function translateGgb(
     let auxiliaries = 0;
     const auxiliary = (): string => `aux ${++auxiliaries}`;
 
-    // The circle of a sphere centered at o through t, centered at `center`
-    // in the plane orthogonal to `normal`.
-    const sphereSection = (
-        label: string,
-        [o, t]: string[],
-        normal: string,
-        center: string,
-    ): true => {
-        const point = formulaPoint(center);
-        const m = objects.get(point)!.variable;
-        const axis = auxiliary();
-        define(axis, "line", "Line", [
-            ref(point),
-            ref(formulaPoint(`${m}+${normal}`)),
-        ]);
-        // Computed by a 3D point, as Circle1 drops its formula points' z;
-        // complex, hence undefined, when the plane misses the sphere.
-        const radius = objects.get(
-            formulaPoint(`[sqrt(d(${o},${t})^2-d(${o},${m})^2),0,0]`),
-        )!.variable;
-        return define(label, "circle", "Circle1", [
-            ref(point),
-            literal(`x(${radius})`),
-            ref(axis),
-        ]);
-    };
-
     // A random number or point keeps the value GeoGebra saved.
     const savedValue: Handler = (_, [label]) => {
         const element = elements.get(label);
@@ -2139,12 +2037,10 @@ export function translateGgb(
             return true;
         };
 
-    // Cylinder(A, B, r): the bottom and top disks as regular polygons,
-    // defined first so that they own, and outline, the edges they share
-    // with the lateral faces, which have no outline. (-sin θ, cos θ, 0),
-    // θ = atan2(y, x) of AB, is a unit vector orthogonal to AB even when
-    // AB is vertical, since atan2(0, 0) = 0. A cone's lateral faces meet
-    // at B.
+    // Cylinder(A, B, r): the bottom and top disks as regular polygons on
+    // their rims (see rim_object), defined first so that they own, and
+    // outline, the edges they share with the lateral faces, which have no
+    // outline. A cone's lateral faces meet at B.
     const revolution =
         (cone: boolean): Handler =>
         ([a, b, radius, extra], [solid, bottom, ...rest]) => {
@@ -2152,23 +2048,21 @@ export function translateGgb(
             const r = formula(radius, VALUE_KINDS);
             if (extra !== undefined || r === null || !points(a, b))
                 return false;
-            const [p, q] = [a, b].map((input) => objects.get(input)!.variable);
-            const angle = `atan2(y(${q}-${p}),x(${q}-${p}))`;
-            const u = objects.get(
-                formulaPoint(`[-sin(${angle}),cos(${angle}),0]`),
-            )!.variable;
-            const v = objects.get(
-                formulaPoint(`cross(${q}-${p},${u})/d(${p},${q})`),
-            )!.variable;
-            const rim = (center: string) =>
+            const rim = (top: boolean) =>
                 Array.from({ length: CYLINDER_SIDES }, (_, index) => {
-                    const t = (2 * Math.PI * index) / CYLINDER_SIDES;
-                    return formulaPoint(
-                        `${center}+(${r})*(${Math.cos(t)}*${u}+${Math.sin(t)}*${v})`,
-                    );
+                    const point = auxiliary();
+                    define(point, "point", "Rim", [
+                        ref(a),
+                        ref(b),
+                        literal(r),
+                        literal(index),
+                        literal(CYLINDER_SIDES),
+                        literal(top),
+                    ]);
+                    return point;
                 });
-            const lower = rim(p);
-            const upper = cone ? [] : rim(q);
+            const lower = rim(false);
+            const upper = cone ? [] : rim(true);
             definePolygon(bottom || auxiliary(), lower);
             if (!cone) {
                 definePolygon(top || auxiliary(), upper);
@@ -2253,12 +2147,11 @@ export function translateGgb(
                 });
                 return true;
             }
-            const plane = planes.get(surface);
-            if (plane) {
+            if (isPlane(surface)) {
                 if (third !== undefined || !is(path, ["line"])) return false;
                 return define(outputs[0], "point", "PlaneIntersection", [
                     ref(path),
-                    ...planePoints(plane).map(ref),
+                    ref(surface),
                 ]);
             }
             const kinds: Kind[] = ["line", "circle", "quadric"];
@@ -2326,7 +2219,7 @@ export function translateGgb(
         // In space, or in the xOy plane, a line's orthogonal through P is
         // DGP's perpendicular (see plumb_line_object).
         OrthogonalLine: ([p, line, extra], [label]) => {
-            const plane = planes.get(line);
+            const plane = isPlane(line);
             if (
                 (extra !== undefined &&
                     ((extra !== "space" && extra !== "xOyPlane") || plane)) ||
@@ -2334,14 +2227,7 @@ export function translateGgb(
             )
                 return false;
             if (plane)
-                return define(label, "line", "Line", [
-                    ref(p),
-                    ref(
-                        formulaPoint(
-                            `${objects.get(p)!.variable}+${plane.normal}`,
-                        ),
-                    ),
-                ]);
+                return define(label, "line", "NormalLine", [ref(line), ref(p)]);
             const direction = extra === undefined && lineDirection(line);
             if (direction)
                 directedLines.set(label, {
@@ -2460,53 +2346,61 @@ export function translateGgb(
         },
         Polygon: (inputs, [label, ...sides]) => {
             const [a, b, count, plane] = inputs;
-            const normal = planes.get(plane)?.normal;
+            const onPlane = plane !== undefined && isPlane(plane);
             if (
-                inputs.length === (normal ? 4 : 3) &&
+                inputs.length === (onPlane ? 4 : 3) &&
                 points(a, b) &&
                 NUMBER.test(count)
             ) {
                 const n = Number(count);
                 if (!Number.isInteger(n) || n < 3) return false;
-                if (!normal) {
-                    // Its vertices, GeoGebra's outputs after its sides;
-                    // its image by a reflection is on B'A'.
+                // Its vertices, GeoGebra's outputs after its sides;
+                // its image by a reflection is on B'A'.
+                if (onPlane)
+                    define(label, "polygon", "RegularPolygon", [
+                        ref(a),
+                        ref(b),
+                        literal(n),
+                        ref(plane),
+                    ]);
+                else
                     orientedShape(label, [a, b], (image, [p, q], reversed) =>
                         define(image, "polygon", "RegularPolygon", [
                             ...(reversed ? [q, p] : [p, q]).map(ref),
                             literal(n),
                         ]),
                     );
-                    const vertices = [
-                        a,
-                        b,
-                        ...Array.from({ length: n - 2 }, (_, index) => {
-                            const vertex = sides[n + index] || auxiliary();
-                            define(vertex, "point", "Vertex", [
-                                ref(label),
-                                literal(index + 2),
-                            ]);
-                            return vertex;
-                        }),
-                    ];
-                    polygons.set(label, vertices);
-                    sides
-                        .slice(0, n)
-                        .forEach(
-                            (side, index) =>
-                                side &&
-                                defineSegment(
-                                    side,
-                                    vertices[index],
-                                    vertices[(index + 1) % n],
-                                ),
-                        );
-                    return true;
-                }
-                return HANDLERS.Polygon(
-                    [a, b, ...regularVertices(a, b, n, sides.slice(n), normal)],
-                    [label, ...sides.slice(0, n)],
-                );
+                const vertices = [
+                    a,
+                    b,
+                    ...Array.from({ length: n - 2 }, (_, index) => {
+                        const vertex = sides[n + index] || auxiliary();
+                        define(vertex, "point", "Vertex", [
+                            ref(label),
+                            literal(index + 2),
+                        ]);
+                        return vertex;
+                    }),
+                ];
+                polygons.set(label, vertices);
+                // On a plane, its image is the polygon of its vertices'.
+                if (onPlane)
+                    shapes.set(label, {
+                        points: vertices,
+                        build: (image, points) => definePolygon(image, points),
+                    });
+                sides
+                    .slice(0, n)
+                    .forEach(
+                        (side, index) =>
+                            side &&
+                            defineSegment(
+                                side,
+                                vertices[index],
+                                vertices[(index + 1) % n],
+                            ),
+                    );
+                return true;
             }
             // A list's points, in turn.
             const list = inputs.length === 1 && listFormula(inputs[0]);
@@ -2534,37 +2428,28 @@ export function translateGgb(
         // Cube(A, B, C), or Cube(A, B, p) whose square ABCD is parallel to
         // plane p.
         Cube: (inputs, [solid, ...outputs]) => {
-            const plane = planes.get(inputs[2]);
-            if (
-                inputs.length !== 3 ||
-                !points(...(plane ? inputs.slice(0, 2) : inputs))
-            )
+            const [a, b, c] = inputs;
+            const plane = isPlane(c);
+            if (inputs.length !== 3 || !points(a, b) || !(plane || points(c)))
                 return false;
-            const [a, b, c] = inputs.map(
-                (input) => objects.get(input)?.variable,
-            );
             // The square ABCD lies in plane ABC, the cube on the side of
             // AB × BC, exactly as GeoGebra builds it; or on the side of p's
             // normal.
-            const side = `(${b}-${a})`;
-            const normal = plane?.normal ?? `cross(${side},${c}-${b})`;
-            const normalLength = `d(${normal},[0,0,0])`;
-            const across = `cross(${normal},${side})/${normalLength}`;
-            const up = `${normal}*d(${a},${b})/${normalLength}`;
-            const others = [
-                `${b}+${across}`,
-                `${a}+${across}`,
-                `${a}+${up}`,
-                `${b}+${up}`,
-                `${b}+${across}+${up}`,
-                `${a}+${across}+${up}`,
-            ].slice(plane ? 0 : 1);
+            const ranks = plane ? [0, 1, 2, 3, 4, 5] : [1, 2, 3, 4, 5];
             const vertices = [
                 ...inputs.slice(0, plane ? 2 : 3),
-                ...others.map((vertex, index) =>
-                    formulaPoint(vertex, outputs[index] || auxiliary()),
-                ),
+                ...ranks.map((rank, index) => {
+                    const vertex = outputs[index] || auxiliary();
+                    define(vertex, "point", "CubeVertex", [
+                        ref(a),
+                        ref(b),
+                        ref(c),
+                        literal(rank),
+                    ]);
+                    return vertex;
+                }),
             ];
+            const others = ranks;
             const faces = CUBE_FACES.map((face) =>
                 face.map((vertex) => vertices[vertex]),
             );
@@ -2609,50 +2494,23 @@ export function translateGgb(
             // Each face turns by f times its angle with its parent around
             // their common edge, taking its descendants along: a point is
             // turned by its own face first, then by each of its ancestors.
-            const turns = net.links.map((link, face) => {
-                if (!link) return null;
-                const [o, e, c, q] = [
-                    ...link.edge,
-                    link.inside,
-                    link.parentInside,
-                ].map((label) => objects.get(label)!.variable);
-                const k = objects.get(
-                    formulaPoint(`(${e}-${o})/d(${e},${o})`),
-                )!.variable;
-                // The angle from c's direction off the edge to the direction
-                // away from the parent face, in the parent's plane.
-                const away = `(${k}*dot(${k},${q}-${o})-(${q}-${o}))`;
-                const angle = auxiliary();
-                define(
-                    angle,
-                    "expression",
-                    "Expression",
-                    [
-                        "",
-                        "",
-                        "",
-                        `(${f})*atan2(dot(${k},cross(${c}-${o},${away})),dot(${c}-${o},${away}))`,
-                        "0",
-                        "0",
-                    ].map(literal),
-                    "h:2",
-                );
-                return {
-                    o,
-                    k,
-                    t: objects.get(angle)!.variable,
-                    parent: net.parents[face],
-                };
-            });
             const vertexLabels = net.points.map(({ vertex, face }, index) => {
-                let point = objects.get(vertex)!.variable;
-                for (let turn = turns[face]; turn; turn = turns[turn.parent]) {
-                    const { o, k, t } = turn;
-                    point = objects.get(
-                        formulaPoint(turn3D(point, o, k, t)),
-                    )!.variable;
+                const turns: string[] = [];
+                for (let at = face; net.links[at]; at = net.parents[at]) {
+                    const link = net.links[at]!;
+                    turns.push(...link.edge, link.inside, link.parentInside);
                 }
-                return formulaPoint(point, outputs[index] || auxiliary());
+                const label = outputs[index] || auxiliary();
+                define(label, "point", "NetVertex", [
+                    ref(vertex),
+                    literal(f),
+                    literal(
+                        turns
+                            .map((point) => `_${objects.get(point)!.variable}`)
+                            .join(","),
+                    ),
+                ]);
+                return label;
             });
             const edges = new Set<string>();
             let output = net.points.length + faces.length;
@@ -2692,13 +2550,12 @@ export function translateGgb(
             if (polygon && !points(apex)) {
                 const h = formula(apex, VALUE_KINDS);
                 if (h === null) return false;
-                const vertices = base.map(
-                    (vertex) => objects.get(vertex)!.variable,
-                );
-                apex = formulaPoint(
-                    `(${vertices.join("+")})/${n}+(${h})*${upNormal(vertices)}`,
-                    outputs.shift() || auxiliary(),
-                );
+                apex = outputs.shift() || auxiliary();
+                define(apex, "point", "Above", [
+                    ref(inputs[0]),
+                    literal(h),
+                    literal(-1),
+                ]);
             }
             if (!points(apex)) return false;
             const faces = [
@@ -2746,17 +2603,14 @@ export function translateGgb(
             if (polygon && inputs.length === 2 && !points(inputs[1])) {
                 const h = formula(inputs[1], VALUE_KINDS);
                 if (h === null || !points(...polygon)) return false;
-                const vertices = polygon.map(
-                    (vertex) => objects.get(vertex)!.variable,
-                );
+                const top = outputs[0] || auxiliary();
+                define(top, "point", "Above", [
+                    ref(inputs[0]),
+                    literal(h),
+                    literal(0),
+                ]);
                 return HANDLERS.Prism(
-                    [
-                        inputs[0],
-                        formulaPoint(
-                            `${vertices[0]}+(${h})*${upNormal(vertices)}`,
-                            outputs[0] || auxiliary(),
-                        ),
-                    ],
+                    [inputs[0], top],
                     [solid, ...outputs.slice(1)],
                 );
             }
@@ -2770,10 +2624,10 @@ export function translateGgb(
                 apex,
                 ...base.slice(1).map((vertex, index) => {
                     const label = outputs[index] || auxiliary();
-                    formulaPoint(
-                        `${objects.get(vertex)!.variable}+${shift}`,
-                        label,
-                    );
+                    define(label, "point", "Translation1", [
+                        ref(vertex),
+                        literal(shift),
+                    ]);
                     return label;
                 }),
             ];
@@ -2822,78 +2676,56 @@ export function translateGgb(
             spheres.set(label, [center, point]);
             return define(label, "sphere", "Sphere", [ref(center), ref(point)]);
         },
-        // Plane(A, B, C): a square in plane ABC around the triangle's
-        // centroid, along AB, at least as large as the floor and always
-        // reaching past A, B and C. Plane(A, p): through A, parallel to p.
-        // Plane(A, f): through A and f, normal to f's direction and to A's
-        // reflection in f.
+        // Plane(A, B, C), Plane(A, p) through A parallel to p, Plane(A, f)
+        // through A and f.
         Plane: (inputs, [label]) => {
-            const parallel = planes.get(inputs[1]);
-            if (inputs.length === 2 && points(inputs[0]) && parallel)
-                return planeThrough(label, inputs[0], parallel.normal);
-            const [point, line] = inputs;
-            if (inputs.length === 2 && points(point) && is(line, ["line"])) {
-                const [tip, image] = [auxiliary(), auxiliary()];
-                define(tip, "point", "DirectionPoint", [ref(line), ref(point)]);
-                define(image, "point", "Reflection", [ref(line), ref(point)]);
-                const [a, t, r] = [point, tip, image].map(
-                    (input) => objects.get(input)!.variable,
-                );
-                return planeThrough(label, point, `cross(${t}-${a},${r}-${a})`);
-            }
-            if (inputs.length !== 3 || !points(...inputs)) return false;
-            const [a, b, c] = inputs.map(
-                (input) => objects.get(input)!.variable,
-            );
-            const center = `(${a}+${b}+${c})/3`;
-            return definePlane(
-                label,
-                center,
-                `cross(${b}-${a},${c}-${a})`,
-                `sqrt(25+d(${center},${a})^2+d(${center},${b})^2+d(${center},${c})^2)`,
-                `(${b}-${a})/d(${a},${b})`,
-            );
+            const [point, other] = inputs;
+            const command =
+                inputs.length === 3
+                    ? points(...inputs) && "Plane"
+                    : inputs.length === 2 &&
+                      points(point) &&
+                      (isPlane(other)
+                          ? "ParallelPlane"
+                          : is(other, ["line"]) && "LinePlane");
+            return !!command && definePlane(label, command, inputs.map(ref));
         },
         OrthogonalPlane: ([point, line, extra], [label]) => {
             if (extra !== undefined || !points(point) || !is(line, ["line"]))
                 return false;
-            const tip = auxiliary();
-            define(tip, "point", "DirectionPoint", [ref(line), ref(point)]);
-            const [p, q] = [point, tip].map(
-                (input) => objects.get(input)!.variable,
-            );
-            return planeThrough(label, point, `(${q}-${p})`);
+            return definePlane(label, "OrthogonalPlane", [
+                ref(point),
+                ref(line),
+            ]);
         },
-        // The section of a pyramid by plane p, with a vertex where p cuts each
-        // edge; the circle where p cuts a sphere; the part of the ellipse
-        // where p cuts a cylinder that lies on its side; or the line where
-        // planes p and q meet, defined like a line AB
-        // by two points centered on the foot of the planes' centers'
-        // midpoint, as far apart as the planes are wide, so its tips frame
-        // them.
+        // Where plane p cuts a sphere, the side of a cylinder or a pyramid
+        // (a vertex where p cuts each edge), or where planes p and q meet.
         IntersectPath: ([first, second, extra], [label, vertex]) => {
-            const [p, q] = [first, second].map((input) => planes.get(input));
-            const sphere = spheres.get(second);
-            if (extra === undefined && p && sphere) {
-                const [o, t] = sphere.map(
-                    (input) => objects.get(input)!.variable,
-                );
-                return sphereSection(
-                    label,
-                    [o, t],
-                    p.normal,
-                    `${o}+${p.normal}*dot(${p.normal},${p.center}-${o})/dot(${p.normal},${p.normal})`,
-                );
-            }
+            if (extra !== undefined || !isPlane(first)) return false;
+            if (spheres.has(second))
+                return define(label, "circle", "SphereSection", [
+                    ref(second),
+                    ref(first),
+                ]);
             const cylinder =
                 cylinders.get(second) ?? solidCylinders.get(second);
-            if (extra === undefined && p && cylinder)
+            if (cylinder)
                 return define(label, "section", "CylinderSection", [
                     ...cylinder.map(ref),
-                    ...planePoints(p).map(ref),
+                    ref(first),
                 ]);
             const edges = polyhedra.get(second);
-            if (extra === undefined && p && edges) {
+            if (edges) {
+                define(label, "polygon", "PlaneSection", [
+                    ref(first),
+                    literal(
+                        edges
+                            .flat()
+                            .map((end) => `_${objects.get(end)!.variable}`)
+                            .join(","),
+                    ),
+                ]);
+                push(null, "STL", [ref(label), literal("su:true")]);
                 // GeoGebra names the section's vertices in turn, whichever
                 // edges they lie on: they take its first vertex's style,
                 // without a name.
@@ -2904,55 +2736,33 @@ export function translateGgb(
                         .split(";")
                         .filter((part) => part !== "sn:true")
                         .join(";");
-                // asin(2t - 1) is undefined unless the plane cuts the edge.
-                definePolygon(
-                    label,
-                    edges.map((ends) => {
-                        const [a, b] = ends.map(
-                            (end) => objects.get(end)!.variable,
-                        );
-                        const t = `dot(${p.normal},${p.center}-${a})/dot(${p.normal},${b}-${a})`;
-                        return formulaPoint(
-                            `${a}+(${b}-${a})*(${t}+0*asin(2*${t}-1))`,
-                            auxiliary(),
-                            style,
-                        );
-                    }),
+                edges.forEach((_, index) =>
+                    define(
+                        auxiliary(),
+                        "point",
+                        "Vertex",
+                        [ref(label), literal(index)],
+                        style,
+                    ),
                 );
-                push(null, "STL", [ref(label), literal("su:true")]);
                 return true;
             }
-            if (extra !== undefined || !p || !q) return false;
-            const direction = `cross(${p.normal},${q.normal})`;
-            const across = `cross(${p.normal},${direction})`;
-            const onBoth = `(${p.center}+${across}*dot(${q.normal},${q.center}-${p.center})/dot(${q.normal},${across}))`;
-            const foot = objects.get(
-                formulaPoint(
-                    `${onBoth}+${direction}*dot((${p.center}+${q.center})/2-${onBoth},${direction})/dot(${direction},${direction})`,
-                ),
-            )!.variable;
-            const reach = `${direction}*(${p.half}+${q.half})/2/sqrt(dot(${direction},${direction}))`;
-            return define(label, "line", "Line", [
-                ref(formulaPoint(`${foot}-${reach}`)),
-                ref(formulaPoint(`${foot}+${reach}`)),
-            ]);
+            return (
+                isPlane(second) &&
+                define(label, "line", "PlaneLine", [ref(first), ref(second)])
+            );
         },
         // A plane's section of a sphere, or the circle where two spheres meet,
         // in the plane orthogonal to their centers' line where the powers
         // of its points with respect to both spheres are equal.
         IntersectConic: ([first, second, extra], outputs) => {
-            const [a, b] = [first, second].map((input) => spheres.get(input));
-            if (extra !== undefined || !b) return false;
-            if (!a) return HANDLERS.IntersectPath([first, second], outputs);
-            const [o, t, p, q] = [...a, ...b].map(
-                (input) => objects.get(input)!.variable,
-            );
-            return sphereSection(
-                outputs[0],
-                [o, t],
-                `(${p}-${o})`,
-                `${o}+(${p}-${o})*(d(${o},${p})^2+d(${o},${t})^2-d(${p},${q})^2)/(2*d(${o},${p})^2)`,
-            );
+            if (extra !== undefined || !spheres.has(second)) return false;
+            if (!spheres.has(first))
+                return HANDLERS.IntersectPath([first, second], outputs);
+            return define(outputs[0], "circle", "SphereSection", [
+                ref(first),
+                ref(second),
+            ]);
         },
         Mirror: mirror,
         Reflect: mirror,
@@ -3699,31 +3509,39 @@ export function translateGgb(
                     : undefined,
             );
         }
-        // GeoGebra saves a plane as xX + yY + zZ + w = 0.
+        // A plane, of its equation or of the one GeoGebra saves: xX + yY +
+        // zZ + w = 0.
         if (type === "plane3d") {
-            const names = ["w", "x", "y", "z"];
-            const values =
+            const saved = ["x", "y", "z", "w"].map((name) =>
+                Number(attribute(element, "coords", name)),
+            );
+            const [a, b, c, d] = saved;
+            const sides =
                 source === undefined
-                    ? names.map(
-                          (name) => `(${attribute(element, "coords", name)})`,
-                      )
-                    : equationValues(
-                          source,
-                          names.map((_, index) =>
-                              names.map((_, axis) =>
-                                  Number(axis === index - 1),
+                    ? saved.every(Number.isFinite) && [
+                          polynomial([
+                              [a, "x"],
+                              [b, "y"],
+                              [c, "z"],
+                              [d, ""],
+                          ]),
+                          "0",
+                      ]
+                    : source
+                          .split("=")
+                          .map((side) =>
+                              formula(
+                                  side.trim(),
+                                  VALUE_KINDS,
+                                  PLANE_VARIABLES,
                               ),
-                          ),
-                      )?.map((value, index, [g]) =>
-                          index ? `(${value}-${g})` : value,
-                      );
-            if (!values) return false;
-            const [g, ...normal] = values;
-            const n = `[${normal}]`;
-            return planeThrough(
+                          );
+            if (!sides || sides.length !== 2 || sides.includes(null))
+                return false;
+            return definePlane(
                 label,
-                formulaPoint(`-${g}*${n}/dot(${n},${n})`),
-                n,
+                "EquationPlane",
+                (sides as string[]).map(literal),
             );
         }
         // A line, a circle or a conic of the plane, of its equation or of

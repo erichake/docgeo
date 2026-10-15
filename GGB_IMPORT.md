@@ -84,6 +84,7 @@ figure sont seulement comptés. L'API utilisée est
 | 2026-10-15 | 238 / 438 (54 %)   | 314,9 Ko | item 28 : arc et secteur de centre donné, demi-cercle natifs (+0)  |
 | 2026-10-15 | 238 / 438 (54 %)   | 316,4 Ko | item 29 : tangentes natives, aussi aux coniques (+0)               |
 | 2026-10-15 | 238 / 438 (54 %)   | 319,3 Ko | item 30 : inversion, centres, polygone régulier natifs (+0)        |
+| 2026-10-15 | 238 / 438 (54 %)   | 326,8 Ko | item 31 : plans, sections et sommets des solides natifs (+0)       |
 
 ## À faire, par rapport gain / coût
 
@@ -508,6 +509,26 @@ cause.
       `NATIVE_OBJECTS.md`). Corpus inchangé (238 figures sur 438 sans
       perte, aucun élément perdu), points enregistrés retrouvés comme
       avant. Moteur +2,9 Ko (+0,7 Ko en gzip).
+- [x] **31. Plans, sections et sommets des solides natifs** : un plan
+      était un carré de quatre points calculés, dont les formules
+      (centre, normale, demi-côté) étaient recopiées dans celles des
+      intersections. Il devient un objet (`Pl`, `PlP`, `PlL`, `PlO`, `PlE`
+      de `DGO.md`), dessiné comme avant, ses coins lui étant propres, le
+      plan xOy de GeoGebra un `PlE` caché ; et ce qui le lit aussi :
+      intersection droite-plan (`PlI`) et plan-plan (`PlPl`), sections d'une
+      sphère (`SphC`, aussi entre deux sphères), d'un cylindre (`CyS`) et
+      d'un polyèdre (`PlS`), perpendiculaire à un plan (`Nrm`), polygone
+      régulier et cube posés sur un plan. Les sommets calculés des solides
+      deviennent des points natifs : cube (`CubV`), sommets du haut d'un
+      prisme (translations), apex et sommet à la hauteur h (`Abv`), bords
+      du cylindre et du cône (`Rim`), sommets d'un patron (`NetV`). Un
+      polygone projette ses sommets propres avec les points de la figure
+      (`ownVertices`), avant les segments dont il cache une partie.
+      Restent approchés par des facettes le cylindre et le cône, et
+      `Sphere(A, r)` passe encore par le point A + (r, 0, 0), que lit
+      l'intersection avec une droite. Corpus inchangé (238 figures sur 438
+      sans perte, aucun élément perdu), points enregistrés retrouvés comme
+      avant. Moteur +7,5 Ko (+1,5 Ko en gzip).
 
 À écarter, sauf changement de priorité : calcul formel, courbes implicites,
 statistiques et probabilités, tableur au-delà des cellules simples, matrices.

@@ -32,6 +32,15 @@ import { rotation_object } from "../../src/objects/rotation_object";
 import { segment_object } from "../../src/objects/segment_object";
 import { translation_object } from "../../src/objects/translation_object";
 import { tangent_object } from "../../src/objects/tangent_object";
+import { plane_object } from "../../src/objects/plane_object";
+import { plane_line_object } from "../../src/objects/plane_line_object";
+import { sphere_section_object } from "../../src/objects/sphere_section_object";
+import { normal_line_object } from "../../src/objects/normal_line_object";
+import { plane_intersection_object } from "../../src/objects/plane_intersection_object";
+import { plane_section_object } from "../../src/objects/plane_section_object";
+import { rim_object } from "../../src/objects/rim_object";
+import { cube_vertex_object } from "../../src/objects/cube_vertex_object";
+import { net_vertex_object } from "../../src/objects/net_vertex_object";
 import { inversion_object } from "../../src/objects/inversion_object";
 import { regular_polygon_object } from "../../src/objects/regular_polygon_object";
 import { vertex_object } from "../../src/objects/vertex_object";
@@ -782,8 +791,11 @@ ${[
         importGgb(c, await loadXml("3d_inter_plans"));
         await new Promise((resolve) => requestAnimationFrame(resolve));
 
-        const line = c.getObj("f") as two_points_line_object;
-        expect(line).toBeInstanceOf(two_points_line_object);
+        const line = c.getObj("f") as plane_line_object;
+        expect(line).toBeInstanceOf(plane_line_object);
+        expect(line.parents.slice(1).map((plane) => plane.constructor)).toEqual(
+            [plane_object, plane_object],
+        );
         const apex = c.getObj("C") as point_on_object;
         const [x, y] = c.pt3D([0, 0, 2]);
         apex.mousedrag(
@@ -799,7 +811,10 @@ ${[
             vCross(vSub(b, a), vSub(apexCoords, a)),
             vCross(vSub(e, d), vSub(f, d)),
         ];
-        const ends = [line.P1.coords, line.P2.coords];
+        // As far as the planes are wide.
+        const ends = (
+            line as unknown as { referenceSpan(): Vec3[] }
+        ).referenceSpan();
         ends.forEach((point) => {
             expect(vDot(vSub(point, a), normals[0])).toBeCloseTo(0, 6);
             expect(vDot(vSub(point, d), normals[1])).toBeCloseTo(0, 6);
@@ -1468,6 +1483,45 @@ ${[1, 2, 3, 4, 5]
             image.points.map((point) => point.coords[1]).sort((u, v) => u - v),
             [-4, -4, 0, 0],
         );
+    });
+
+    it("builds planes, their sections and solids' vertices as objects of their own", async () => {
+        const open = async (name: string) => {
+            const c = createConstruction();
+            expect(importGgb(c, await loadXml(name)), name).toEqual([]);
+            return c;
+        };
+        const tag = (object: unknown) =>
+            (object as plane_object).definition.tag;
+        let c = await open("3d_inter5");
+        expect([tag(c.getObj("p")), tag(c.getObj("q"))]).toEqual([
+            "PlO",
+            "PlP",
+        ]);
+        expect(c.getObj("e")!.parents).toContain(c.getObj("p"));
+        c = await open("3d_inter2");
+        expect(c.getObj("c")).toBeInstanceOf(sphere_section_object);
+        expect(c.getObj("f")).toBeInstanceOf(normal_line_object);
+        expect(c.getObj("I")).toBeInstanceOf(plane_intersection_object);
+        c = await open("3d_inter4");
+        expect(c.getObj("c")!.parents).toEqual(
+            ["a", "b"].map((name) => c.getObj(name)),
+        );
+        c = await open("3d_inter_plan_pyra");
+        expect(c.getObj("H")).toBeInstanceOf(plane_section_object);
+        c = await open("3d_inter6");
+        // GeoGebra's xOy plane, hidden.
+        expect(tag(c.getObj("g")!.parents[2])).toBe("PlE");
+        c = await open("3d_inter");
+        expect(
+            (c.getObj("poly1") as regular_polygon_object).support,
+        ).toBeInstanceOf(plane_object);
+        const kinds = (c: construction) =>
+            new Set(c.OBJS.V.map((object) => object.constructor));
+        expect(kinds(c)).toContain(rim_object);
+        expect(kinds(await open("3d_plan"))).toContain(cube_vertex_object);
+        expect(kinds(await open("3d_prisme"))).toContain(translation_object);
+        expect(kinds(await open("_patronsCube"))).toContain(net_vertex_object);
     });
 
     it("iterates segments into a Koch snowflake following its slider", async () => {

@@ -13,6 +13,15 @@ import { createInversion } from "../objects/inversion_object";
 import { createRegularPolygon } from "../objects/regular_polygon_object";
 import { createTriangleCenter } from "../objects/triangle_center_object";
 import { createVertex } from "../objects/vertex_object";
+import { createPlane, type plane_object } from "../objects/plane_object";
+import { createPlaneLine } from "../objects/plane_line_object";
+import { createNormalLine } from "../objects/normal_line_object";
+import { createSphereSection } from "../objects/sphere_section_object";
+import { createPlaneSection } from "../objects/plane_section_object";
+import { createCubeVertex } from "../objects/cube_vertex_object";
+import { createAbove } from "../objects/above_object";
+import { createRim } from "../objects/rim_object";
+import { createNetVertex, type net_turn } from "../objects/net_vertex_object";
 import { createTangent, type tangent_support } from "../objects/tangent_object";
 import { createCenter } from "../objects/center_object";
 import { createCircle1, type circle1_radius } from "../objects/circle1_object";
@@ -102,7 +111,7 @@ import {
 import { createRay } from "../objects/ray_line_object";
 import { createReflection } from "../objects/reflection_object";
 import { createSegment, segment_object } from "../objects/segment_object";
-import { createSphere } from "../objects/sphere_object";
+import { createSphere, type sphere_object } from "../objects/sphere_object";
 import { createSymmetry } from "../objects/symmetry_object";
 import {
     createLine,
@@ -505,7 +514,8 @@ const centerArc = (sector: boolean): CommandDefinition => ({
         ),
 });
 
-// Of an equation, its two sides each a formula in x and y.
+// Of an equation, its two sides each a formula in x and y, or in x, y and
+// z for a plane.
 const equationCommand = (
     result: ObjectKind,
     create: (
@@ -513,17 +523,18 @@ const equationCommand = (
         name: string,
         equation: Equation,
     ) => construction_object,
+    variables = ["x", "y"],
 ): CommandDefinition => ({
     parameters: [string, string, string],
     result,
-    validate: (args, lineNumber, variables) =>
+    validate: (args, lineNumber, names) =>
         args.slice(1).forEach((arg) => {
             const node = tryParseFormula(literalString(arg));
             if (!node)
                 throw new Error(`Invalid DGP equation at line ${lineNumber}`);
             validateReferences(
-                functionReferences(node, ["x", "y"]),
-                variables,
+                functionReferences(node, variables),
+                names,
                 lineNumber,
             );
         }),
@@ -536,12 +547,12 @@ const equationCommand = (
                 return {
                     node,
                     source: source as string,
-                    variables: ["x", "y"],
+                    variables,
                     refs: formulaRefs(
-                        functionReferences(node, ["x", "y"]),
+                        functionReferences(node, variables),
                         context.variables,
                     ),
-                    vec3: false,
+                    vec3: variables.length === 3,
                 };
             }) as Equation,
         ),
@@ -1767,12 +1778,257 @@ const COMMANDS = new Map<string, CommandDefinition>([
                 ),
         },
     ],
+    // Not DGPad commands: GeoGebra's planes, through three points, through
+    // a point parallel to a plane, containing a line or orthogonal to it, or
+    // of an equation in x, y and z; where two planes, a plane and a sphere or
+    // two spheres meet; a line orthogonal to a plane; a plane's section of a
+    // polyhedron, by its edges' ends.
+    [
+        "Plane",
+        {
+            parameters: [string, point, point, point],
+            result: "polygon",
+            execute: (context, args) =>
+                createPlane(context.construction, args[0] as string, {
+                    tag: "Pl",
+                    points: args.slice(1) as [
+                        point_object,
+                        point_object,
+                        point_object,
+                    ],
+                }),
+        },
+    ],
+    [
+        "ParallelPlane",
+        {
+            parameters: [string, point, object],
+            result: "polygon",
+            execute: (context, args) =>
+                createPlane(context.construction, args[0] as string, {
+                    tag: "PlP",
+                    point: args[1] as point_object,
+                    plane: args[2] as plane_object,
+                }),
+        },
+    ],
+    ...(
+        [
+            ["LinePlane", "PlL"],
+            ["OrthogonalPlane", "PlO"],
+        ] as const
+    ).map(([name, tag]): [string, CommandDefinition] => [
+        name,
+        {
+            parameters: [string, point, line],
+            result: "polygon",
+            execute: (context, args) =>
+                createPlane(context.construction, args[0] as string, {
+                    tag,
+                    point: args[1] as point_object,
+                    line: args[2] as primitive_line_object,
+                }),
+        },
+    ]),
+    [
+        "EquationPlane",
+        equationCommand(
+            "polygon",
+            (c, name, equation) =>
+                createPlane(c, name, { tag: "PlE", equation }),
+            ["x", "y", "z"],
+        ),
+    ],
+    [
+        "CubeVertex",
+        {
+            parameters: [string, point, point, object, number],
+            result: "point",
+            execute: (context, args) =>
+                createCubeVertex(
+                    context.construction,
+                    args[0] as string,
+                    args[1] as point_object,
+                    args[2] as point_object,
+                    args[3] as point_object | plane_object,
+                    args[4] as number,
+                ),
+        },
+    ],
+    [
+        "Above",
+        {
+            parameters: [string, object, formula, number],
+            result: "point",
+            validate: (args, lineNumber, variables) =>
+                validateRadius(args[2], lineNumber, variables),
+            execute: (context, args) =>
+                createAbove(
+                    context.construction,
+                    args[0] as string,
+                    args[1] as polygon_object,
+                    radiusArgument(args[2], context),
+                    args[3] as number,
+                ),
+        },
+    ],
+    [
+        "Rim",
+        {
+            parameters: [
+                string,
+                point,
+                point,
+                formula,
+                number,
+                number,
+                boolean,
+            ],
+            result: "point",
+            validate: (args, lineNumber, variables) =>
+                validateRadius(args[3], lineNumber, variables),
+            execute: (context, args) =>
+                createRim(
+                    context.construction,
+                    args[0] as string,
+                    args[1] as point_object,
+                    args[2] as point_object,
+                    radiusArgument(args[3], context),
+                    args[4] as number,
+                    args[5] as number,
+                    args[6] as boolean,
+                ),
+        },
+    ],
+    // Its turns' points, by fours.
+    [
+        "NetVertex",
+        {
+            parameters: [string, point, formula, string],
+            result: "point",
+            validate: (args, lineNumber, variables) => {
+                validateRadius(args[2], lineNumber, variables);
+                literalString(args[3])
+                    .split(",")
+                    .filter(Boolean)
+                    .forEach((token) => {
+                        const name = polygonPointName(token, lineNumber);
+                        if (!accepts(variables.get(name)!, "point"))
+                            throw new Error(
+                                `Unknown DGP reference at line ${lineNumber}`,
+                            );
+                    });
+            },
+            execute: (context, args) => {
+                const points = (args[3] as string)
+                    .split(",")
+                    .filter(Boolean)
+                    .map(
+                        (token) =>
+                            context.variables.get(
+                                token.slice(1),
+                            ) as point_object,
+                    );
+                return createNetVertex(
+                    context.construction,
+                    args[0] as string,
+                    args[1] as point_object,
+                    radiusArgument(args[2], context),
+                    points.flatMap((_, index) =>
+                        index % 4 ? [] : [points.slice(index, index + 4)],
+                    ) as net_turn[],
+                );
+            },
+        },
+    ],
+    [
+        "PlaneLine",
+        {
+            parameters: [string, object, object],
+            result: "line",
+            execute: (context, args) =>
+                createPlaneLine(
+                    context.construction,
+                    args[0] as string,
+                    args.slice(1) as [plane_object, plane_object],
+                ),
+        },
+    ],
+    [
+        "NormalLine",
+        {
+            parameters: [string, object, point],
+            result: "line",
+            execute: (context, args) =>
+                createNormalLine(
+                    context.construction,
+                    args[0] as string,
+                    args[1] as plane_object,
+                    args[2] as point_object,
+                ),
+        },
+    ],
+    [
+        "SphereSection",
+        {
+            parameters: [string, object, object],
+            result: "circle",
+            execute: (context, args) =>
+                createSphereSection(
+                    context.construction,
+                    args[0] as string,
+                    args[1] as sphere_object,
+                    args[2] as plane_object | sphere_object,
+                ),
+        },
+    ],
+    [
+        "PlaneSection",
+        {
+            parameters: [string, object, string],
+            result: "polygon",
+            validate: (args, lineNumber, variables) =>
+                literalString(args[2])
+                    .split(",")
+                    .forEach((token) => {
+                        const name = polygonPointName(token, lineNumber);
+                        if (!accepts(variables.get(name)!, "point"))
+                            throw new Error(
+                                `Unknown DGP reference at line ${lineNumber}`,
+                            );
+                    }),
+            execute: (context, args) => {
+                const ends = (args[2] as string)
+                    .split(",")
+                    .map(
+                        (token) =>
+                            context.variables.get(
+                                token.slice(1),
+                            ) as point_object,
+                    );
+                return createPlaneSection(
+                    context.construction,
+                    args[0] as string,
+                    args[1] as plane_object,
+                    ends.flatMap((end, index) =>
+                        index % 2 ? [] : [[end, ends[index + 1]]],
+                    ) as [point_object, point_object][],
+                );
+            },
+        },
+    ],
     // Not DGPad commands: GeoGebra's Polygon(A, B, n), its vertices,
     // Mirror(P, circle) and TriangleCenter(A, B, C, n).
     [
         "RegularPolygon",
         {
-            parameters: [string, point, point, number],
+            parameters: [
+                string,
+                point,
+                point,
+                number,
+                { ...object, optional: true },
+            ],
             result: "polygon",
             execute: (context, args) =>
                 createRegularPolygon(
@@ -1781,6 +2037,7 @@ const COMMANDS = new Map<string, CommandDefinition>([
                     args[1] as point_object,
                     args[2] as point_object,
                     args[3] as number,
+                    args[4] as plane_object | undefined,
                 ),
         },
     ],
@@ -2020,7 +2277,7 @@ const COMMANDS = new Map<string, CommandDefinition>([
     [
         "CylinderSection",
         {
-            parameters: [string, point, point, point, point, point, point],
+            parameters: [string, point, point, point, object],
             result: "section",
             execute: (context, args) =>
                 createCylinderSection(
@@ -2029,7 +2286,7 @@ const COMMANDS = new Map<string, CommandDefinition>([
                     args[1] as point_object,
                     args[2] as point_object,
                     args[3] as point_object,
-                    args.slice(4) as [point_object, point_object, point_object],
+                    args[4] as plane_object,
                 ),
         },
     ],
@@ -2310,14 +2567,14 @@ const COMMANDS = new Map<string, CommandDefinition>([
     [
         "PlaneIntersection",
         {
-            parameters: [string, line, point, point, point],
+            parameters: [string, line, object],
             result: "point",
             execute: (context, args) =>
                 createPlaneIntersection(
                     context.construction,
                     args[0] as string,
                     args[1] as primitive_line_object,
-                    args.slice(2) as [point_object, point_object, point_object],
+                    args[2] as plane_object,
                 ),
         },
     ],

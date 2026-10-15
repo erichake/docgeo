@@ -240,7 +240,7 @@ sa dérivée par rapport à l'une de ses variables, comme dans DGPad, par
 | `Vtx`  | sommet de rang k d'un polygone         | `[polygone, k]` (18)                            |
 | `Ctr`  | centre d'un cercle                     | `[cercle]`                                      |
 | `DirP` | P + vecteur directeur unitaire de d    | `[d, P]`                                        |
-| `PlI`  | intersection droite-plan (ABC)         | `[d, A, B, C]`                                  |
+| `PlI`  | intersection droite-plan               | `[d, plan]`                                     |
 | `Int`  | intersection                           | `[o1, o2, branche]`, `[o1, o2, rang, P]` (3)    |
 | `CyI`  | intersection droite-cylindre (sphère)  | `[d, A, B ou null, R, 0 ou 1]` (4)              |
 | `Line` | droite (AB)                            | `[A, B]`                                        |
@@ -274,9 +274,22 @@ sa dérivée par rapport à l'une de ses variables, comme dans DGPad, par
 | `Prb`  | parabole de foyer F, de directrice d   | `[F, d]`                                        |
 | `EqQ`  | conique d'équation g = d               | `[g, d]` (14)                                   |
 | `Sph`  | sphère de centre O passant par A       | `[O, A]`                                        |
-| `CyS`  | section d'un cylindre par le plan PQR  | `[A, B, R, P, Q, R']` (4)                       |
+| `Pl`   | plan passant par A, B et C             | `[A, B, C]` (19)                                |
+| `PlP`  | plan par A parallèle à un plan         | `[A, plan]` (19)                                |
+| `PlL`  | plan par A contenant d                 | `[A, d]` (19)                                   |
+| `PlO`  | plan par A orthogonal à d              | `[A, d]` (19)                                   |
+| `PlE`  | plan d'équation g = d                  | `[g, d]` (14, 19)                               |
+| `PlPl` | intersection de deux plans             | `[plan, plan]` (19)                             |
+| `Nrm`  | droite par P orthogonale à un plan     | `[plan, P]`                                     |
+| `SphC` | section d'une sphère                   | `[sphère, plan ou sphère]` (19)                 |
+| `PlS`  | section d'un polyèdre par un plan      | `[plan, A1, B1, A2, B2, …]` (19)                |
+| `CubV` | sommet de cube                         | `[A, B, C ou plan, k]` (20)                     |
+| `Abv`  | point au-dessus d'un polygone          | `[polygone, h, k]` (20)                         |
+| `Rim`  | point du bord d'un cylindre, d'un cône | `[A, B, r, k, n, haut]` (20)                    |
+| `NetV` | sommet du patron d'un polyèdre         | `[P, f, O1, E1, C1, Q1, …]` (20)                |
+| `CyS`  | section d'un cylindre par un plan      | `[A, B, R, plan]` (4)                           |
 | `Poly` | polygone                               | `[A, B, C, …]`                                  |
-| `RegP` | polygone régulier de n côtés sur [AB]  | `[A, B, n]` (18)                                |
+| `RegP` | polygone régulier de n côtés sur [AB]  | `[A, B, n]`, `[A, B, n, plan]` (18)             |
 | `Loc`  | lieu de P quand M parcourt son support | `[P, M]`                                        |
 | `Ex`   | expression                             | objet (6)                                       |
 | `Cur`  | courbe y = f(x)                        | `[formule, min ou null, max ou null]`           |
@@ -390,7 +403,30 @@ alignement]]` police, `[30, url, l, h, zoom, opacité, u]` image (largeur
     4 orthocentre, 5 cercle d'Euler (premiers centres de Kimberling). Le
     polygone régulier tourne dans le sens direct de A à B, ses autres
     sommets lui étant propres ; `k` d'un sommet compte depuis 0, dans
-    l'ordre des sommets du polygone.
+    l'ordre des sommets du polygone. Dans un plan, il tourne autour de la
+    normale de ce plan.
+19. Un plan est dessiné comme celui de GeoGebra, un carré de demi-côté h
+    autour de son centre, ses coins lui étant propres. Par trois points :
+    centré en leur centre de gravité, le long de AB, h² = 25 + somme des
+    carrés des distances du centre aux points. Autrement : centré au pied
+    de l'origine, le long de (−sin θ, cos θ, 0), θ angle polaire de la
+    normale, h² = 25 + carré de la distance du centre à A. Le plan
+    « xOy » de GeoGebra est `PlE` z = 0, caché. La droite de deux plans
+    part du pied, sur elle, du milieu de leurs centres, et se dessine sur
+    la moyenne de leurs demi-côtés de part et d'autre. Section d'un
+    polyèdre : un sommet par arête (ses deux extrémités), indéfini là où
+    le plan la manque.
+20. `CubV` : de rang k parmi B + w, A + w, A + h, B + h, B + w + h,
+    A + w + h, w étant AB tourné d'un quart de tour dans le plan ABC (ou
+    parallèle au plan), h la normale de longueur AB du côté de AB × BC (ou
+    de la normale du plan). `Abv` : à la hauteur h (nombre ou formule)
+    au-dessus du centre de gravité du polygone (k = −1) ou de son sommet k,
+    le long de sa normale tournée vers le haut. `Rim` : le k-ième de n
+    points du cercle de rayon r centré en A (haut = 0) ou B (1),
+    orthogonal à AB, à partir de (−sin θ, cos θ, 0), θ angle polaire de AB.
+    `NetV` : P tourné autour de chaque arête OE de sa suite de faces, de f
+    fois l'angle de (OC) à la direction qui s'éloigne de Q dans la face
+    parente.
 
 ### Styles `st`
 
@@ -487,15 +523,17 @@ non définie).
 | `Pt`, `On`, `DirP`                                            | `rgb(255,255,255)`, `rgb(80,80,80)`, 6, 0 |
 | `Fix`, `Fp`, `Mid`, `Int`, `CyI`, `PlI`, `Ctr`, `Sym`, `Refl` | `rgb(180,180,180)`, `rgb(80,80,80)`, 6, 0 |
 | `Rot`, `Dil`, `Tra`, `Inv`, `TC`, `Vtx`                       | `rgb(180,180,180)`, `rgb(80,80,80)`, 6, 0 |
-| `Line`, `Par`, `Perp`, `Med`, `EqL`, `Tan`                    | `rgb(35,141,227)`, `rgb(80,80,80)`, 2     |
+| `CubV`, `Abv`, `Rim`, `NetV`                                  | `rgb(180,180,180)`, `rgb(80,80,80)`, 6, 0 |
+| `Line`, `Par`, `Perp`, `Med`, `EqL`, `Tan`, `PlPl`, `Nrm`     | `rgb(35,141,227)`, `rgb(80,80,80)`, 2     |
 | `Ray`, `Bis`                                                  | `rgb(35,141,227)`, `#993300`, 2           |
 | `Seg`, `Vec`                                                  | `rgb(35,141,227)`, `rgb(180,80,80)`, 4    |
 | `FA`                                                          | `#006633`, `#006633`, 1, 0                |
 | `Ang`                                                         | `#006633`, `#006633`, 4, 0                |
 | `Cir`, `C1`, `C3`, `C3p`, `C3s`, `Arc`, `Sec`, `CyS`, `EqC`   | `#CC66CC`, `#CC66CC`, 2, 0                |
-| `CArc`, `CSec`, `Semi`                                        | `#CC66CC`, `#CC66CC`, 2, 0                |
+| `CArc`, `CSec`, `Semi`, `SphC`                                | `#CC66CC`, `#CC66CC`, 2, 0                |
 | `Quad`, `Ell`, `Ell1`, `Hyp`, `Hyp1`, `Prb`, `EqQ`            | `#CC66CC`, `#CC66CC`, 2, 0                |
-| `Sph`, `Poly`, `RegP`                                         | `rgb(35,141,227)`, `rgb(80,80,80)`, 2, 0  |
+| `Sph`, `Poly`, `RegP`, `PlS`                                  | `rgb(35,141,227)`, `rgb(80,80,80)`, 2, 0  |
+| `Pl`, `PlP`, `PlL`, `PlO`, `PlE` (`pl` : 1)                   | `rgb(35,141,227)`, `rgb(80,80,80)`, 2, 0  |
 | `Loc`, `Cur`                                                  | `#0b5b94`, `#0b5b94`, 2                   |
 | `Lst`, `ELst`, `Itr`                                          | `#656148`, `#656148`, 2                   |
 | `Ex`                                                          | `rgb(0,0,178)`, `rgb(0,0,178)`, 7, 0      |

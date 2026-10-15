@@ -14,9 +14,10 @@ import {
     type Vec3,
 } from "../vec";
 import { construction_object, type DgoContext } from "./construction_object";
+import type { plane_object } from "./plane_object";
 import type { point_object } from "./point_object";
 
-// Where the plane through three points cuts the side of the cylinder of
+// Where a plane cuts the side of the cylinder of
 // axis AB through R, like GeoGebra's IntersectPath(plane, cylinder): the
 // ellipse CENTER + cos t·U + sin t·V, drawn as an affine image of the unit
 // circle, keeping only its arcs between the planes of the disks.
@@ -24,7 +25,7 @@ export class cylinder_section_object extends construction_object {
     A: point_object;
     B: point_object;
     R: point_object;
-    PLANE: [point_object, point_object, point_object];
+    PLANE: plane_object;
     CENTER: Vec3 = [0, 0, 0];
     U: Vec3 = [1, 0, 0];
     V: Vec3 = [0, 1, 0];
@@ -42,27 +43,24 @@ export class cylinder_section_object extends construction_object {
         a: point_object,
         b: point_object,
         r: point_object,
-        plane: [point_object, point_object, point_object],
+        plane: plane_object,
     ) {
         super(c, name, "circle");
         this.A = a;
         this.B = b;
         this.R = r;
         this.PLANE = plane;
-        this.addParents(a, b, r, ...plane);
+        this.addParents(a, b, r, plane);
     }
 
     dgo(context: DgoContext): [string, unknown] {
-        return [
-            "CyS",
-            [this.A, this.B, this.R, ...this.PLANE].map(context.index),
-        ];
+        return ["CyS", [this.A, this.B, this.R, this.PLANE].map(context.index)];
     }
 
     computeGeometry(): void {
         this.defined = false;
         const { A: a, B: b, R: r, PLANE: plane } = this;
-        if (![a, b, r, ...plane].every((point) => point.defined)) return;
+        if (![a, b, r, plane].every((object) => object.defined)) return;
         const axis = vSub(b.coords, a.coords);
         const w = vNormalize(axis);
         const toR = vSub(r.coords, a.coords);
@@ -70,8 +68,7 @@ export class cylinder_section_object extends construction_object {
         if (!w || !u) return;
         const v = vCross(w, u);
         const radius = vDot(toR, u);
-        const [p, q, s] = plane.map((point) => point.coords);
-        const normal = vCross(vSub(q, p), vSub(s, p));
+        const { CENTER: p, NORMAL: normal } = plane;
         const slope = vDot(normal, w);
         if (Math.abs(slope) <= GEOMETRY_EPSILON * vNorm(normal)) return;
         // Heights along the axis from A: h0 at the center, h0 + hu·cos t +
@@ -163,7 +160,7 @@ export function createCylinderSection(
     a: point_object,
     b: point_object,
     r: point_object,
-    plane: [point_object, point_object, point_object],
+    plane: plane_object,
 ): cylinder_section_object {
     return c.add(new cylinder_section_object(c, name, a, b, r, plane));
 }

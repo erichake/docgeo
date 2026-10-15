@@ -126,21 +126,17 @@ de départ (AB), ce qui règle la vitesse de son animation. Le faire par le
 paramètre du point demanderait un paramètre de plus aux points sur objet,
 pour un gain faible ; laissé de côté.
 
-### 6. La 3D, le plus gros chantier
+### 6. La 3D — fait pour l'essentiel
 
-- Plans (`definePlane`, `planeThrough`) : un polygone de quatre coins
-  calculés ; `Plane(A, d)` et `OrthogonalPlane` passent par des points de
-  direction et des symétriques cachés.
-- Intersections : deux plans → droite par deux points calculés ;
-  plan-sphère et sphère-sphère → `Circle1` de rayon formule avec axe et
-  points cachés (`sphereSection`) ; plan-pyramide → polygone de points
-  calculés.
-- Solides `Cube`, `Prism`, `Pyramid`, `Net` : points formules, polygones et
-  segments, sans objet solide. `Cylinder` et `Cone` (`revolution`) sont
-  approchés par des facettes. `Sphere(A, r)` passe par un point caché
-  A + (r, 0, 0).
+Plans, intersections, sections et sommets des solides (item 31 de
+`GGB_IMPORT.md`). Restent :
 
-Commencer par l'objet « plan », dont dépend le reste.
+- le cylindre et le cône, approchés par des facettes (désormais sur des
+  points natifs) : de vrais objets de révolution, dessinés par leur
+  silhouette comme la sphère, coûteraient plusieurs Ko ;
+- `Sphere(A, r)`, qui passe par un point caché A + (r, 0, 0) parce que
+  l'intersection droite-sphère (`CyI`) lit deux points ;
+- l'éditeur : aucune commande pour les plans, sections et solides.
 
 ### Hors du chantier
 
@@ -152,4 +148,4 @@ rester des expressions : `Distance`, `Length`, `Slope`, `Corner`,
 
 Corpus : 238 figures sur 438 sans perte, aucun plantage (après le
 correctif du nom d'un segment de longueur nulle, item 24 bis de
-`GGB_IMPORT.md`). Moteur : 319,3 Ko après l'item 5.
+`GGB_IMPORT.md`). Moteur : 326,8 Ko après l'item 6.

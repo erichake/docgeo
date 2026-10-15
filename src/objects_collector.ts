@@ -3,6 +3,7 @@ import { expression_object } from "./objects/expression_object";
 import { grid_object } from "./objects/grid_object";
 import { paintByDepth } from "./objects/hidden_line";
 import { point_object } from "./objects/point_object";
+import { polygon_object } from "./objects/polygon_object";
 
 export class objects_collector {
     // All construction objects, in construction order :
@@ -143,6 +144,8 @@ export class objects_collector {
                 object.project();
                 object.projectionDirty = false;
             }
+            if (object.projectionDirty && object instanceof polygon_object)
+                object.ownVertices.forEach((vertex) => vertex.project());
         });
         let polygonsProjected = false;
         objects.forEach((object) => {

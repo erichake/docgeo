@@ -26,7 +26,7 @@ export class vertex_object extends point_object {
     }
 
     computeGeometry(): void {
-        const vertex = this.polygon.points[this.rank];
+        const vertex = this.polygon.vertices[this.rank];
         if (!this.polygon.defined || !vertex?.defined) {
             this.defined = false;
             return;
