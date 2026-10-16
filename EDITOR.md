@@ -472,13 +472,15 @@ comme dans DGPad où elle se décidait à la création de la figure.
 - **Bouton « Vue 3D »** (un cube) dans la barre, après « Repère », bleu en
   3D. Il n'apparaît pas dans les figures 3D de DGPad (`f2`), dont les
   points libres sont dans le plan de l'écran.
-- **La caméra tourne** (`src/editor/space.ts`, 0,9 s, sans mouvement si
+- **La caméra tourne** (`src/editor/space.ts`, 1,1 s, sans mouvement si
   les animations sont réduites) : la figure est relue en 3D vue de dessus,
   la projection de la vue plane, puis le plan bascule vers l'arrière comme
-  une table vue de face, légèrement tournée (θ = π/5, φ = 5π/2 − π/9), et
-  l'origine gagne le centre de la fenêtre, où la 3D la garde. Au retour, la
-  caméra revient au-dessus du plan par le plus court chemin, puis la figure
-  est relue en 2D.
+  une table vue de face, rasante et légèrement tournée (θ = π/12,
+  φ = 5π/2 − 2π/15), et l'origine gagne le centre de la fenêtre, où la 3D
+  la garde. Le plan bascule d'abord, puis tourne, les deux mouvements se
+  chevauchant (accélération sans à-coup, _smootherstep_). Au retour, la
+  caméra revient au-dessus du plan par le plus court chemin, en tournant
+  d'abord puis en se redressant, puis la figure est relue en 2D.
 - **Retour au plan refusé** tant qu'un objet dessiné est hors du plan
   z = 0 (point, ou point d'une liste, de cote non nulle ; sphère, plan,
   solide, patron, section de cylindre ou de cône) : la consigne le nomme (« A est hors du plan z = 0 : la

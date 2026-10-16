@@ -15,9 +15,28 @@ import type { Vec2 } from "../vec";
 // The plane view, seen from above, that of a 2D figure.
 export const PLANE = { theta: Math.PI / 2, phi: (5 * Math.PI) / 2 };
 // The plane tilted back as a table seen from in front, slightly turned.
-export const SPACE = { theta: Math.PI / 5, phi: PLANE.phi - Math.PI / 9 };
+export const SPACE = {
+    theta: Math.PI / 12,
+    phi: PLANE.phi - (2 * Math.PI) / 15,
+};
 
-const TURN = 900;
+const TURN = 1100;
+
+// Smootherstep: no jolt of acceleration at the start, the middle or the end.
+const ease = (t: number): number => t ** 3 * (t * (6 * t - 15) + 10);
+
+// The share of the turn given to each of theta, phi and the origin: tilting
+// back, the plane tips before it turns; returning above, it turns back first.
+const BACK = [
+    [0, 0.8],
+    [0.25, 1],
+    [0, 0.8],
+];
+const ABOVE = [
+    [0.2, 1],
+    [0, 0.75],
+    [0.2, 1],
+];
 
 const outside = (z: unknown): boolean =>
     typeof z === "number" && Math.abs(z) > 1e-9;
@@ -48,6 +67,8 @@ export function turnView(
     const grid = c.GRID;
     const from = [grid.THETA, grid.PHI, ...grid.ORG];
     const to = [theta, phi, ...origin];
+    const [tilt, turn, pan] = theta < grid.THETA ? BACK : ABOVE;
+    const shares = [tilt, turn, pan, pan];
     const duration = window.matchMedia("(prefers-reduced-motion: reduce)")
         .matches
         ? 0
@@ -56,10 +77,11 @@ export function turnView(
     return new Promise((resolve) => {
         const step = (now: number) => {
             const t = duration ? Math.min((now - start) / duration, 1) : 1;
-            const eased = t < 0.5 ? 4 * t ** 3 : 1 - (2 - 2 * t) ** 3 / 2;
-            const [th, ph, x, y] = from.map(
-                (value, index) => value + (to[index] - value) * eased,
-            );
+            const [th, ph, x, y] = from.map((value, index) => {
+                const [a, b] = shares[index];
+                const local = Math.min(Math.max((t - a) / (b - a), 0), 1);
+                return value + (to[index] - value) * ease(local);
+            });
             grid.THETA = th;
             grid.PHI = ph;
             grid.ORG = [x, y];
