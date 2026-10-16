@@ -1,0 +1,820 @@
+// Macros :
+$macros={};
+$macros["CyclesCercleHypCtrPt"]={
+	name:"Cycles/Cercle Hyp Ctr Pt",
+	parameters:["circle","point","point"],
+	exec:
+	function (Hz,O,A){
+OHz=Center("OHz",Hz);
+mInvO=Point("mInvO","(OHz+(O-OHz)*Hz^2/d(OHz,O)^2+O)/2","0");
+mAA=Point("mAA","(mInvO+(A-mInvO)*d(mInvO,O)^2/d(mInvO,A)^2+A)/2","0");
+L2=Line("L2",mInvO,A);
+L1=Line("L1",OHz,mInvO);
+Perp1=Perpendicular("Perp1",L2,mAA);
+P1=OrderedIntersection("P1",L1,Perp1,0);
+chOA=Circle("chOA",P1,A);
+STL(chOA,"c:#b40000;s:2;sn:true;f:30;p:0");
+return [chOA];
+}};
+
+$macros["CyclesEquidistanteAxePt"]={
+	name:"Cycles/Equidistante Axe Pt",
+	parameters:["circle","circle","point"],
+	exec:
+	function (Hz,C1,A){
+OHz=Center("OHz",Hz);
+IdA=DefinitionPoint("IdA",C1,0);
+IdB=DefinitionPoint("IdB",C1,2);
+P20=DefinitionPoint("P20",C1,1);
+CtrAB=Center("CtrAB",C1);
+S1=Segment("S1",CtrAB,OHz);
+P3=OrderedIntersection("P3",S1,C1,0);
+C2=Circle("C2",CtrAB,P3);
+P4=OrderedIntersection("P4",Hz,C2,1);
+P5=OrderedIntersection("P5",Hz,C2,0);
+C3=Arc3pts("C3",P4,A,P5);
+Center1=Center("Center1",C3);
+STL(C3,"c:#f90808;s:2;f:30;p:0");
+return [C3];
+}};
+
+$macros["DroitesBissectriceAOB"]={
+	name:"Droites/Bissectrice AOB",
+	parameters:["circle","point","point","point"],
+	exec:
+	function (c1,P3,P2,P4){
+OHz=Center("OHz",c1);
+oAB=Point("oAB","[(y(P3)*(x(P2)^2+y(P2)^2+c1^2)-y(P2)*(x(P3)^2+y(P3)^2+c1^2))/(2*(x(P2)*y(P3)-x(P3)*y(P2))),(x(P2)*(x(P3)^2+y(P3)^2+c1^2)-x(P3)*(x(P2)^2+y(P2)^2+c1^2))/(2*(x(P2)*y(P3)-x(P3)*y(P2)))]","0");
+oAB0=Point("oAB0","[(y(P4)*(x(P2)^2+y(P2)^2+c1^2)-y(P2)*(x(P4)^2+y(P4)^2+c1^2))/(2*(x(P2)*y(P4)-x(P4)*y(P2))),(x(P2)*(x(P4)^2+y(P4)^2+c1^2)-x(P4)*(x(P2)^2+y(P2)^2+c1^2))/(2*(x(P2)*y(P4)-x(P4)*y(P2)))]","0");
+mPC1=Point("mPC1","(OHz+(P2-OHz)*c1^2/d(OHz,P2)^2+P2)/2","0");
+U=Point("U","[(2*c1^2*x(oAB)^2+2*c1*y(oAB)*sqrt(x(oAB)^2+y(oAB)^2-c1^2)*abs(x(oAB)))/(2*x(oAB)*(x(oAB)^2+y(oAB)^2)),(2*y(oAB)*c1^2-2*c1*sqrt(x(oAB)^2+y(oAB)^2-c1^2)*abs(x(oAB)))/(2*(x(oAB)^2+y(oAB)^2))]","0");
+V=Point("V","[(2*c1^2*x(oAB)^2-2*c1*y(oAB)*sqrt(x(oAB)^2+y(oAB)^2-c1^2)*abs(x(oAB)))/(2*x(oAB)*(x(oAB)^2+y(oAB)^2)),(2*y(oAB)*c1^2+2*c1*sqrt(x(oAB)^2+y(oAB)^2-c1^2)*abs(x(oAB)))/(2*(x(oAB)^2+y(oAB)^2))]","0");
+U0=Point("U0","[(2*c1^2*x(oAB0)^2+2*c1*y(oAB0)*sqrt(x(oAB0)^2+y(oAB0)^2-c1^2)*abs(x(oAB0)))/(2*x(oAB0)*(x(oAB0)^2+y(oAB0)^2)),(2*y(oAB0)*c1^2-2*c1*sqrt(x(oAB0)^2+y(oAB0)^2-c1^2)*abs(x(oAB0)))/(2*(x(oAB0)^2+y(oAB0)^2))]","0");
+V0=Point("V0","[(2*c1^2*x(oAB0)^2-2*c1*y(oAB0)*sqrt(x(oAB0)^2+y(oAB0)^2-c1^2)*abs(x(oAB0)))/(2*x(oAB0)*(x(oAB0)^2+y(oAB0)^2)),(2*y(oAB0)*c1^2+2*c1*sqrt(x(oAB0)^2+y(oAB0)^2-c1^2)*abs(x(oAB0)))/(2*(x(oAB0)^2+y(oAB0)^2))]","0");
+L1=Line("L1",OHz,mPC1);
+IdB=Point("IdB","V*(d(P2,V)>d(P3,V))+U*(d(P2,V)<d(P3,V))","0");
+IdB0=Point("IdB0","V0*(d(P2,V0)>d(P4,V0))+U0*(d(P2,V0)<d(P4,V0))","0");
+Perp1=Perpendicular("Perp1",L1,mPC1);
+oAB1=Point("oAB1","[(y(IdB)*(x(IdB0)^2+y(IdB0)^2+c1^2)-y(IdB0)*(x(IdB)^2+y(IdB)^2+c1^2))/(2*(x(IdB0)*y(IdB)-x(IdB)*y(IdB0))),(x(IdB0)*(x(IdB)^2+y(IdB)^2+c1^2)-x(IdB)*(x(IdB0)^2+y(IdB0)^2+c1^2))/(2*(x(IdB0)*y(IdB)-x(IdB)*y(IdB0)))]","0");
+P20=Point("P20","oAB1+d(IdB0,oAB1)*((IdB0+IdB)/2-oAB1)/d((IdB0+IdB)/2,oAB1)","0");
+U1=Point("U1","[(2*c1^2*x(oAB1)^2+2*c1*y(oAB1)*sqrt(x(oAB1)^2+y(oAB1)^2-c1^2)*abs(x(oAB1)))/(2*x(oAB1)*(x(oAB1)^2+y(oAB1)^2)),(2*y(oAB1)*c1^2-2*c1*sqrt(x(oAB1)^2+y(oAB1)^2-c1^2)*abs(x(oAB1)))/(2*(x(oAB1)^2+y(oAB1)^2))]","0");
+V1=Point("V1","[(2*c1^2*x(oAB1)^2-2*c1*y(oAB1)*sqrt(x(oAB1)^2+y(oAB1)^2-c1^2)*abs(x(oAB1)))/(2*x(oAB1)*(x(oAB1)^2+y(oAB1)^2)),(2*y(oAB1)*c1^2+2*c1*sqrt(x(oAB1)^2+y(oAB1)^2-c1^2)*abs(x(oAB1)))/(2*(x(oAB1)^2+y(oAB1)^2))]","0");
+IdB1=Point("IdB1","V1*(d(IdB0,V1)>d(IdB,V1))+U1*(d(IdB0,V1)<d(IdB,V1))","0");
+IdA=Point("IdA","V1*(d(IdB0,V1)<d(IdB,V1))+U1*(d(IdB0,V1)>d(IdB,V1))","0");
+C11=Arc3pts("C11",IdA,P20,IdB1);
+CtrAB=Center("CtrAB",C11);
+mPAB=Point("mPAB","(CtrAB+(P2-CtrAB)*d(CtrAB,IdA)^2/d(CtrAB,P2)^2+P2)/2","0");
+L2=Line("L2",CtrAB,P2);
+Perp2=Perpendicular("Perp2",L2,mPAB);
+P1=OrderedIntersection("P1",Perp1,Perp2,0);
+C2=Circle("C2",P1,P2);
+R1=Ray("R1",P1,mPAB);
+P40=OrderedIntersection("P40",R1,C2,0);
+P5=OrderedIntersection("P5",C2,c1,1);
+P6=OrderedIntersection("P6",C2,c1,0);
+Hperp=Arc3pts("Hperp",P5,P40,P6);
+STL(Hperp,"c:#2ea3e4;s:1;sn:true;f:30;p:0");
+return [Hperp];
+}};
+
+$macros["DroitesDroiteHyper"]={
+	name:"Droites/Droite Hyper",
+	parameters:["circle","point","point"],
+	exec:
+	function (c1,A,B){
+oAB=Point("oAB","[(y(B)*(x(A)^2+y(A)^2+c1^2)-y(A)*(x(B)^2+y(B)^2+c1^2))/(2*(x(A)*y(B)-x(B)*y(A))),(x(A)*(x(B)^2+y(B)^2+c1^2)-x(B)*(x(A)^2+y(A)^2+c1^2))/(2*(x(A)*y(B)-x(B)*y(A)))]","0");
+IdA=Point("IdA","[(2*c1^2*x(oAB)^2+2*c1*y(oAB)*sqrt(x(oAB)^2+y(oAB)^2-c1^2)*abs(x(oAB)))/(2*x(oAB)*(x(oAB)^2+y(oAB)^2)),(2*y(oAB)*c1^2-2*c1*sqrt(x(oAB)^2+y(oAB)^2-c1^2)*abs(x(oAB)))/(2*(x(oAB)^2+y(oAB)^2))]","0");
+IdB=Point("IdB","[(2*c1^2*x(oAB)^2-2*c1*y(oAB)*sqrt(x(oAB)^2+y(oAB)^2-c1^2)*abs(x(oAB)))/(2*x(oAB)*(x(oAB)^2+y(oAB)^2)),(2*y(oAB)*c1^2+2*c1*sqrt(x(oAB)^2+y(oAB)^2-c1^2)*abs(x(oAB)))/(2*(x(oAB)^2+y(oAB)^2))]","0");
+P2=Point("P2","oAB+d(IdA,oAB)*((IdA+IdB)/2-oAB)/d((IdA+IdB)/2,oAB)","0");
+C1=Arc3pts("C1",IdA,P2,IdB);
+STL(C1,"c:#cc66cc;s:1;f:30;p:0");
+return [C1];
+}};
+
+$macros["DroitesMédiatriceHyper"]={
+	name:"Droites/M\u00e9diatrice Hyper",
+	parameters:["circle","point","point"],
+	exec:
+	function (Hz,A,B){
+OHz=Center("OHz",Hz);
+mInvO=Point("mInvO","(OHz+(A-OHz)*Hz^2/d(OHz,A)^2+A)/2","0");
+mInvO1=Point("mInvO1","(OHz+(B-OHz)*Hz^2/d(OHz,B)^2+B)/2","0");
+mAA=Point("mAA","(mInvO+(B-mInvO)*d(mInvO,A)^2/d(mInvO,B)^2+B)/2","0");
+L2=Line("L2",mInvO,B);
+L1=Line("L1",OHz,mInvO);
+mAA1=Point("mAA1","(mInvO1+(A-mInvO1)*d(mInvO1,B)^2/d(mInvO1,A)^2+A)/2","0");
+L21=Line("L21",mInvO1,A);
+L11=Line("L11",OHz,mInvO1);
+Perp1=Perpendicular("Perp1",L2,mAA);
+Perp11=Perpendicular("Perp11",L21,mAA1);
+P1=OrderedIntersection("P1",L1,Perp1,0);
+P11=OrderedIntersection("P11",L11,Perp11,0);
+chOA=Circle("chOA",P1,B);
+chOA1=Circle("chOA1",P11,A);
+P2=OrderedIntersection("P2",chOA1,chOA,1);
+P5=OrderedIntersection("P5",chOA1,chOA,0);
+oAB=Point("oAB","[(y(P2)*(x(P5)^2+y(P5)^2+Hz^2)-y(P5)*(x(P2)^2+y(P2)^2+Hz^2))/(2*(x(P5)*y(P2)-x(P2)*y(P5))),(x(P5)*(x(P2)^2+y(P2)^2+Hz^2)-x(P2)*(x(P5)^2+y(P5)^2+Hz^2))/(2*(x(P5)*y(P2)-x(P2)*y(P5)))]","0");
+IdA=Point("IdA","[(2*Hz^2*x(oAB)^2+2*Hz*y(oAB)*sqrt(x(oAB)^2+y(oAB)^2-Hz^2)*abs(x(oAB)))/(2*x(oAB)*(x(oAB)^2+y(oAB)^2)),(2*y(oAB)*Hz^2-2*Hz*sqrt(x(oAB)^2+y(oAB)^2-Hz^2)*abs(x(oAB)))/(2*(x(oAB)^2+y(oAB)^2))]","0");
+IdB=Point("IdB","[(2*Hz^2*x(oAB)^2-2*Hz*y(oAB)*sqrt(x(oAB)^2+y(oAB)^2-Hz^2)*abs(x(oAB)))/(2*x(oAB)*(x(oAB)^2+y(oAB)^2)),(2*y(oAB)*Hz^2+2*Hz*sqrt(x(oAB)^2+y(oAB)^2-Hz^2)*abs(x(oAB)))/(2*(x(oAB)^2+y(oAB)^2))]","0");
+P21=Point("P21","oAB+d(IdA,oAB)*((IdA+IdB)/2-oAB)/d((IdA+IdB)/2,oAB)","0");
+C1=Arc3pts("C1",IdA,P21,IdB);
+STL(C1,"c:#0026ff;s:1.5;f:30;p:0");
+return [C1];
+}};
+
+$macros["DroitesPerpCommune"]={
+	name:"Droites/Perp Commune",
+	parameters:["circle","circle","circle"],
+	exec:
+	function (Hz,C11,C1){
+OHz=Center("OHz",Hz);
+IdU=DefinitionPoint("IdU",C1,0);
+IdV=DefinitionPoint("IdV",C1,2);
+IdN=DefinitionPoint("IdN",C11,0);
+IdM=DefinitionPoint("IdM",C11,2);
+L1=Line("L1",IdN,IdM);
+L2=Line("L2",IdU,IdV);
+oPC=OrderedIntersection("oPC",L2,L1,0);
+C2=Circle1("C2",oPC,"sqrt(d(OHz,oPC)^2-Hz^2)");
+S1=Segment("S1",OHz,oPC);
+P1=OrderedIntersection("P1",C2,Hz,1);
+P3=OrderedIntersection("P3",S1,C2,1);
+P4=OrderedIntersection("P4",C2,Hz,0);
+PComm=Arc3pts("PComm",P1,P3,P4);
+STL(PComm,"c:#007c00;s:1.5;sn:true;f:30;p:0");
+return [PComm];
+}};
+
+$macros["DroitesPerpendiculaireHyper"]={
+	name:"Droites/Perpendiculaire Hyper",
+	parameters:["circle","circle","point"],
+	exec:
+	function (c1,C1,P){
+OHz=Center("OHz",c1);
+mPC1=Point("mPC1","(OHz+(P-OHz)*c1^2/d(OHz,P)^2+P)/2","0");
+IdA=DefinitionPoint("IdA",C1,0);
+L1=Line("L1",OHz,mPC1);
+Perp1=Perpendicular("Perp1",L1,mPC1);
+CtrAB=Center("CtrAB",C1);
+mPAB=Point("mPAB","(CtrAB+(P-CtrAB)*d(CtrAB,IdA)^2/d(CtrAB,P)^2+P)/2","0");
+L2=Line("L2",CtrAB,P);
+Perp2=Perpendicular("Perp2",L2,mPAB);
+P1=OrderedIntersection("P1",Perp1,Perp2,0);
+C2=Circle("C2",P1,P);
+R1=Ray("R1",P1,mPAB);
+P4=OrderedIntersection("P4",R1,C2,0);
+P5=OrderedIntersection("P5",C2,c1,1);
+P6=OrderedIntersection("P6",C2,c1,0);
+Hperp=Arc3pts("Hperp",P5,P4,P6);
+STL(Hperp,"c:#007c00;s:2;sn:true;f:30;p:0");
+return [Hperp];
+}};
+
+$macros["DroitesSegmenthyper"]={
+	name:"Droites/Segment hyper",
+	parameters:["circle","point","point"],
+	exec:
+	function (c1,A,B){
+oAB=Point("oAB","[(y(B)*(x(A)^2+y(A)^2+c1^2)-y(A)*(x(B)^2+y(B)^2+c1^2))/(2*(x(A)*y(B)-x(B)*y(A))),(x(A)*(x(B)^2+y(B)^2+c1^2)-x(B)*(x(A)^2+y(A)^2+c1^2))/(2*(x(A)*y(B)-x(B)*y(A)))]","0");
+P2=Point("P2","oAB+d(A,oAB)*((A+B)/2-oAB)/d((A+B)/2,oAB)","0");
+C1=Arc3pts("C1",A,P2,B);
+STL(C1,"c:#cc66cc;s:1;f:30;p:0");
+return [C1];
+}};
+
+$macros["FaisceauxDroiteFaisceau1pt"]={
+	name:"Faisceaux/Droite Faisceau 1 pt",
+	parameters:["circle","circle","circle","point"],
+	exec:
+	function (Hz,C1,C11,P){
+OHz=Center("OHz",Hz);
+L1=Line("L1",OHz,P);
+P1=Point("P1","(OHz+(P-OHz)*Hz^2/d(OHz,P)^2+P)/2","0");
+Perp1=Perpendicular("Perp1",L1,P1);
+Center1=Center("Center1",C1);
+Center2=Center("Center2",C11);
+L2=Line("L2",Center2,Center1);
+P3=OrderedIntersection("P3",L2,Perp1,0);
+C2=Circle("C2",P3,P);
+P4=OrderedIntersection("P4",C2,Hz,1);
+P5=OrderedIntersection("P5",C2,Hz,0);
+C3=Arc3pts("C3",P4,P,P5);
+STL(C3,"c:#0000b2;s:2.5;f:30;p:0");
+return [C3];
+}};
+
+$macros["FaisceauxHauteurdefaisceauffd"]={
+	name:"Faisceaux/Hauteur de faisceau ffd",
+	parameters:["circle","circle","circle","circle"],
+	exec:
+	function (Hz,C11,C1,C12){
+OHz=Center("OHz",Hz);
+IdA=DefinitionPoint("IdA",C12,0);
+IdB=DefinitionPoint("IdB",C12,2);
+L3=Line("L3",IdB,IdA);
+Center1=Center("Center1",C1);
+Center2=Center("Center2",C11);
+L1=Line("L1",Center2,Center1);
+P1=OrderedIntersection("P1",L3,L1,0);
+M1=MidPoint("M1",OHz,P1);
+C2=Circle("C2",M1,OHz);
+P5=OrderedIntersection("P5",C2,Hz,0);
+P6=OrderedIntersection("P6",C2,Hz,1);
+oAB3=Point("oAB3","[(y(P6)*(x(P5)^2+y(P5)^2+Hz^2)-y(P5)*(x(P6)^2+y(P6)^2+Hz^2))/(2*(x(P5)*y(P6)-x(P6)*y(P5))),(x(P5)*(x(P6)^2+y(P6)^2+Hz^2)-x(P6)*(x(P5)^2+y(P5)^2+Hz^2))/(2*(x(P5)*y(P6)-x(P6)*y(P5)))]","0");
+P23=Point("P23","oAB3+d(P5,oAB3)*((P5+P6)/2-oAB3)/d((P5+P6)/2,oAB3)","0");
+C13=Arc3pts("C13",P5,P23,P6);
+STL(C13,"c:#cc66cc;s:1;f:30;p:0");
+return [C13];
+}};
+
+$macros["FaisceauxInter2faisceaux"]={
+	name:"Faisceaux/Inter 2 faisceaux",
+	parameters:["circle","circle","circle","circle","circle"],
+	exec:
+	function (Hz,C1,C10,C11,C12){
+OHz=Center("OHz",Hz);
+Center1=Center("Center1",C1);
+Center2=Center("Center2",C10);
+Center3=Center("Center3",C11);
+Center4=Center("Center4",C12);
+L1=Line("L1",Center2,Center1);
+L2=Line("L2",Center3,Center4);
+P1=OrderedIntersection("P1",L1,L2,0);
+M1=MidPoint("M1",P1,OHz);
+R1=Ray("R1",P1,OHz);
+C2=Circle("C2",M1,P1);
+P3=OrderedIntersection("P3",Hz,C2,0);
+P4=OrderedIntersection("P4",Hz,C2,1);
+C3=Circle("C3",P1,P3);
+P5=OrderedIntersection("P5",R1,C3,0);
+C4=Arc3pts("C4",P4,P5,P3);
+STL(C4,"c:#cc66cc;s:1;f:30;p:0");
+return [C4];
+}};
+
+$macros["FaisceauxProduitabca1"]={
+	name:"Faisceaux/Produit abc a1",
+	parameters:["circle","circle","circle","circle","point"],
+	exec:
+	function(Hz,C1,C3,C10,a1){
+OHz=Center("OHz",Hz);
+P1=DefinitionPoint("P1",C3,1);
+L1=Line("L1",OHz,P1);
+P10=Point("P10","(OHz+(P1-OHz)*Hz^2/d(OHz,P1)^2+P1)/2","0");
+mInvO=Point("mInvO","(OHz+(a1-OHz)*Hz^2/d(OHz,a1)^2+a1)/2","0");
+IdA0=DefinitionPoint("IdA0",C10,0);
+Perp1=Perpendicular("Perp1",L1,P10);
+L10=Line("L10",OHz,mInvO);
+Oo=Center("Oo",C1);
+Oo1=Center("Oo1",C10);
+L2=Line("L2",Oo1,Oo);
+P3=OrderedIntersection("P3",L2,Perp1,0);
+C2=Circle("C2",P3,P1);
+P4=DefinitionPoint("P4",C3,0);
+Oo0=Center("Oo0",C3);
+P11=Point("P11","Oo0+(a1-Oo0)*d(Oo0,P4)^2/d(Oo0,a1)^2","0");
+P12=Point("P12","Oo1+(P11-Oo1)*d(Oo1,IdA0)^2/d(Oo1,P11)^2","0");
+mInvO1=Point("mInvO1","(OHz+(P12-OHz)*Hz^2/d(OHz,P12)^2+P12)/2","0");
+mAA=Point("mAA","(mInvO+(P12-mInvO)*d(mInvO,a1)^2/d(mInvO,P12)^2+P12)/2","0");
+L20=Line("L20",mInvO,P12);
+mAA1=Point("mAA1","(mInvO1+(a1-mInvO1)*d(mInvO1,P12)^2/d(mInvO1,a1)^2+a1)/2","0");
+L21=Line("L21",mInvO1,a1);
+L11=Line("L11",OHz,mInvO1);
+Perp10=Perpendicular("Perp10",L20,mAA);
+Perp11=Perpendicular("Perp11",L21,mAA1);
+P13=OrderedIntersection("P13",L10,Perp10,0);
+P110=OrderedIntersection("P110",L11,Perp11,0);
+chOA=Circle("chOA",P13,P12);
+chOA1=Circle("chOA1",P110,a1);
+P21=OrderedIntersection("P21",chOA1,chOA,1);
+P50=OrderedIntersection("P50",chOA1,chOA,0);
+oAB1=Point("oAB1","[(y(P21)*(x(P50)^2+y(P50)^2+Hz^2)-y(P50)*(x(P21)^2+y(P21)^2+Hz^2))/(2*(x(P50)*y(P21)-x(P21)*y(P50))),(x(P50)*(x(P21)^2+y(P21)^2+Hz^2)-x(P21)*(x(P50)^2+y(P50)^2+Hz^2))/(2*(x(P50)*y(P21)-x(P21)*y(P50)))]","0");
+IdA1=Point("IdA1","[(2*Hz^2*x(oAB1)^2+2*Hz*y(oAB1)*sqrt(x(oAB1)^2+y(oAB1)^2-Hz^2)*abs(x(oAB1)))/(2*x(oAB1)*(x(oAB1)^2+y(oAB1)^2)),(2*y(oAB1)*Hz^2-2*Hz*sqrt(x(oAB1)^2+y(oAB1)^2-Hz^2)*abs(x(oAB1)))/(2*(x(oAB1)^2+y(oAB1)^2))]","0");
+IdB1=Point("IdB1","[(2*Hz^2*x(oAB1)^2-2*Hz*y(oAB1)*sqrt(x(oAB1)^2+y(oAB1)^2-Hz^2)*abs(x(oAB1)))/(2*x(oAB1)*(x(oAB1)^2+y(oAB1)^2)),(2*y(oAB1)*Hz^2+2*Hz*sqrt(x(oAB1)^2+y(oAB1)^2-Hz^2)*abs(x(oAB1)))/(2*(x(oAB1)^2+y(oAB1)^2))]","0");
+P210=Point("P210","oAB1+d(IdA1,oAB1)*((IdA1+IdB1)/2-oAB1)/d((IdA1+IdB1)/2,oAB1)","0");
+C11=Arc3pts("C11",IdA1,P210,IdB1);
+STL(C11,"c:#0026ff;s:1;f:30;p:0");
+STL(IdA1,"c:#0026ff;s:4.5;sn:true;f:15");
+STL(IdB1,"c:#0026ff;s:4.5;sn:true;f:15");
+return [IdA1,IdB1,C11];
+}};
+
+$macros["TechniqueDroiteetptsidéaux"]={
+	name:"Technique/Droite et pts id\u00e9aux",
+	parameters:["circle","point","point"],
+	exec:
+	function (c1,A,B){
+oAB=Point("oAB","[(y(B)*(x(A)^2+y(A)^2+c1^2)-y(A)*(x(B)^2+y(B)^2+c1^2))/(2*(x(A)*y(B)-x(B)*y(A))),(x(A)*(x(B)^2+y(B)^2+c1^2)-x(B)*(x(A)^2+y(A)^2+c1^2))/(2*(x(A)*y(B)-x(B)*y(A)))]","0");
+P2=Point("P2","oAB+d(A,oAB)*((A+B)/2-oAB)/d((A+B)/2,oAB)","0");
+U=Point("U","[(2*c1^2*x(oAB)^2+2*c1*y(oAB)*sqrt(x(oAB)^2+y(oAB)^2-c1^2)*abs(x(oAB)))/(2*x(oAB)*(x(oAB)^2+y(oAB)^2)),(2*y(oAB)*c1^2-2*c1*sqrt(x(oAB)^2+y(oAB)^2-c1^2)*abs(x(oAB)))/(2*(x(oAB)^2+y(oAB)^2))]","0");
+V=Point("V","[(2*c1^2*x(oAB)^2-2*c1*y(oAB)*sqrt(x(oAB)^2+y(oAB)^2-c1^2)*abs(x(oAB)))/(2*x(oAB)*(x(oAB)^2+y(oAB)^2)),(2*y(oAB)*c1^2+2*c1*sqrt(x(oAB)^2+y(oAB)^2-c1^2)*abs(x(oAB)))/(2*(x(oAB)^2+y(oAB)^2))]","0");
+IdB=Point("IdB","V*(d(A,V)>d(B,V))+U*(d(A,V)<d(B,V))","0");
+IdA=Point("IdA","V*(d(A,V)<d(B,V))+U*(d(A,V)>d(B,V))","0");
+C1=Arc3pts("C1",IdA,P2,IdB);
+STL(IdB,"c:#0000b2;s:6;sn:true;f:30");
+STL(IdA,"c:#0000b2;s:6;sn:true;f:30");
+STL(C1,"c:#cc66cc;s:1;f:30;p:0");
+return [IdB,IdA,C1];
+}};
+
+$macros["TechniqueDroiteHyporientée"]={
+	name:"Technique/Droite Hyp orient\u00e9e",
+	parameters:["circle","point","point"],
+	exec:
+	function (Hz,U,V){
+oAB=Point("oAB","[(y(V)*(x(U)^2+y(U)^2+Hz^2)-y(U)*(x(V)^2+y(V)^2+Hz^2))/(2*(x(U)*y(V)-x(V)*y(U))),(x(U)*(x(V)^2+y(V)^2+Hz^2)-x(V)*(x(U)^2+y(U)^2+Hz^2))/(2*(x(U)*y(V)-x(V)*y(U)))]","0");
+IdU=Point("IdU","[(2*Hz^2*x(oAB)^2+2*Hz*y(oAB)*sqrt(x(oAB)^2+y(oAB)^2-Hz^2)*abs(x(oAB)))/(2*x(oAB)*(x(oAB)^2+y(oAB)^2)),(2*y(oAB)*Hz^2-2*Hz*sqrt(x(oAB)^2+y(oAB)^2-Hz^2)*abs(x(oAB)))/(2*(x(oAB)^2+y(oAB)^2))]","0");
+IdV=Point("IdV","[(2*Hz^2*x(oAB)^2-2*Hz*y(oAB)*sqrt(x(oAB)^2+y(oAB)^2-Hz^2)*abs(x(oAB)))/(2*x(oAB)*(x(oAB)^2+y(oAB)^2)),(2*y(oAB)*Hz^2+2*Hz*sqrt(x(oAB)^2+y(oAB)^2-Hz^2)*abs(x(oAB)))/(2*(x(oAB)^2+y(oAB)^2))]","0");
+P2=Point("P2","oAB+d(IdU,oAB)*((IdU+IdV)/2-oAB)/d((IdU+IdV)/2,oAB)","0");
+IdUor=Point("IdUor","IdU*(d(IdU,U)<d(IdV,U))+IdV*(d(IdU,U)>d(IdV,U))","0");
+IdVor=Point("IdVor","IdV*(d(IdV,V)<d(IdV,U))+IdU*(d(IdV,V)>d(IdV,U))","0");
+C1=Arc3pts("C1",IdUor,P2,IdVor);
+STL(C1,"c:#cc66cc;s:1;f:20;p:0");
+return [C1];
+}};
+
+$macros["TechniqueIntersection2droites"]={
+	name:"Technique/Intersection 2 droites",
+	parameters:["circle","circle","circle"],
+	exec:
+	function (Hz,C11,C1){
+OHz=Center("OHz",Hz);
+IdU=DefinitionPoint("IdU",C1,0);
+IdN=DefinitionPoint("IdN",C11,0);
+cMN=Center("cMN",C11);
+cUV=Center("cUV",C1);
+C2=Circle("C2",cMN,IdN);
+C3=Circle("C3",cUV,IdU);
+Int1=OrderedIntersection("Int1",C3,C2,0);
+Int2=OrderedIntersection("Int2",C3,C2,1);
+Inter=Point("Inter","Int1*(d(OHz,Int1)<Hz)+Int2*(d(OHz,Int2)<Hz)","0");
+STL(Inter,"c:#0000b2;s:6;sn:true;f:17");
+return [Inter];
+}};
+
+$macros["TechniqueSymorthogonale1pt"]={
+	name:"Technique/Sym orthogonale 1pt",
+	parameters:["circle","point"],
+	exec:
+	function (C1,M){
+Aa=DefinitionPoint("Aa",C1,0);
+Oo=Center("Oo",C1);
+P1=Point("P1","Oo+(M-Oo)*d(Oo,Aa)^2/d(Oo,M)^2","0");
+STL(P1,"c:#0000b2;s:6;f:30");
+return [P1];
+}};
+
+// Coordinates System :
+SetCoords(695.5080971581536,328.75870954030995,62.61982560307938,false,1562,842);
+
+
+// Geometry :
+OHz=Point("OHz","[0,0]","0");
+O=Point("O",-1.6295721584939407,-0.8033860513230633);
+a1=Point("a1",-0.6893913069503463,3.4630439438179605);
+a2=Point("a2",2.198592837940502,1.7626482673832955);
+c1=Point("c1",1.9570683755849496,-2.3577745482231274);
+b1=Point("b1",-2.1249488073413443,1.6194118003567932);
+b2=Point("b2",1.9568879888249506,1.4215912227847833);
+LieuOK=Expression("LieuOK","","","","true","-4.559388251380144","-4.331556146115354");
+Hz=Circle1("Hz",OHz,3.926439347504396);
+L110=Line("L110",OHz,c1);
+L115=Line("L115",OHz,c1);
+u=PointOn("u",Hz,4.98049423992027);
+v=PointOn("v",Hz,5.61263468370217);
+mPC1=Point("mPC1","(OHz+(O-OHz)*Hz^2/d(OHz,O)^2+O)/2","0");
+mInvO2=Point("mInvO2","(OHz+(O-OHz)*Hz^2/d(OHz,O)^2+O)/2","0");
+mInvO0=Point("mInvO0","(OHz+(O-OHz)*Hz^2/d(OHz,O)^2+O)/2","0");
+mPC14=Point("mPC14","(OHz+(O-OHz)*Hz^2/d(OHz,O)^2+O)/2","0");
+u0=PointOn("u0",Hz,5.069797650534793);
+v0=PointOn("v0",Hz,5.742332359989593);
+u1=PointOn("u1",Hz,5.069797650534793);
+v1=PointOn("v1",Hz,5.742332359989593);
+oAB1=Point("oAB1","[(y(a2)*(x(a1)^2+y(a1)^2+Hz^2)-y(a1)*(x(a2)^2+y(a2)^2+Hz^2))/(2*(x(a1)*y(a2)-x(a2)*y(a1))),(x(a1)*(x(a2)^2+y(a2)^2+Hz^2)-x(a2)*(x(a1)^2+y(a1)^2+Hz^2))/(2*(x(a1)*y(a2)-x(a2)*y(a1)))]","0");
+mPC10=Point("mPC10","(OHz+(O-OHz)*Hz^2/d(OHz,O)^2+O)/2","0");
+mPC11=Point("mPC11","(OHz+(O-OHz)*Hz^2/d(OHz,O)^2+O)/2","0");
+mPC12=Point("mPC12","(OHz+(O-OHz)*Hz^2/d(OHz,O)^2+O)/2","0");
+mPC13=Point("mPC13","(OHz+(O-OHz)*Hz^2/d(OHz,O)^2+O)/2","0");
+P17=Point("P17","(OHz+(c1-OHz)*Hz^2/d(OHz,c1)^2+c1)/2","0");
+mPC15=Point("mPC15","(OHz+(O-OHz)*Hz^2/d(OHz,O)^2+O)/2","0");
+oAB4=Point("oAB4","[(y(b2)*(x(b1)^2+y(b1)^2+Hz^2)-y(b1)*(x(b2)^2+y(b2)^2+Hz^2))/(2*(x(b1)*y(b2)-x(b2)*y(b1))),(x(b1)*(x(b2)^2+y(b2)^2+Hz^2)-x(b2)*(x(b1)^2+y(b1)^2+Hz^2))/(2*(x(b1)*y(b2)-x(b2)*y(b1)))]","0");
+mPC16=Point("mPC16","(OHz+(O-OHz)*Hz^2/d(OHz,O)^2+O)/2","0");
+P16=Point("P16","(OHz+(c1-OHz)*Hz^2/d(OHz,c1)^2+c1)/2","0");
+mPC17=Point("mPC17","(OHz+(O-OHz)*Hz^2/d(OHz,O)^2+O)/2","0");
+oAB=Point("oAB","[(y(u)*(x(O)^2+y(O)^2+Hz^2)-y(O)*(x(u)^2+y(u)^2+Hz^2))/(2*(x(O)*y(u)-x(u)*y(O))),(x(O)*(x(u)^2+y(u)^2+Hz^2)-x(u)*(x(O)^2+y(O)^2+Hz^2))/(2*(x(O)*y(u)-x(u)*y(O)))]","0");
+oAB0=Point("oAB0","[(y(v)*(x(O)^2+y(O)^2+Hz^2)-y(O)*(x(v)^2+y(v)^2+Hz^2))/(2*(x(O)*y(v)-x(v)*y(O))),(x(O)*(x(v)^2+y(v)^2+Hz^2)-x(v)*(x(O)^2+y(O)^2+Hz^2))/(2*(x(O)*y(v)-x(v)*y(O)))]","0");
+L12=Line("L12",OHz,mPC1);
+L16=Line("L16",OHz,mInvO2);
+L19=Line("L19",OHz,mInvO0);
+L111=Line("L111",OHz,mPC14);
+IdA1=Point("IdA1","[(2*Hz^2*x(oAB1)^2+2*Hz*y(oAB1)*sqrt(x(oAB1)^2+y(oAB1)^2-Hz^2)*abs(x(oAB1)))/(2*x(oAB1)*(x(oAB1)^2+y(oAB1)^2)),(2*y(oAB1)*Hz^2-2*Hz*sqrt(x(oAB1)^2+y(oAB1)^2-Hz^2)*abs(x(oAB1)))/(2*(x(oAB1)^2+y(oAB1)^2))]","0");
+IdB1=Point("IdB1","[(2*Hz^2*x(oAB1)^2-2*Hz*y(oAB1)*sqrt(x(oAB1)^2+y(oAB1)^2-Hz^2)*abs(x(oAB1)))/(2*x(oAB1)*(x(oAB1)^2+y(oAB1)^2)),(2*y(oAB1)*Hz^2+2*Hz*sqrt(x(oAB1)^2+y(oAB1)^2-Hz^2)*abs(x(oAB1)))/(2*(x(oAB1)^2+y(oAB1)^2))]","0");
+L10=Line("L10",OHz,mPC10);
+L11=Line("L11",OHz,mPC11);
+L15=Line("L15",OHz,mPC12);
+L18=Line("L18",OHz,mPC13);
+Perp17=Perpendicular("Perp17",L110,P17);
+L113=Line("L113",OHz,mPC15);
+IdA4=Point("IdA4","[(2*Hz^2*x(oAB4)^2+2*Hz*y(oAB4)*sqrt(x(oAB4)^2+y(oAB4)^2-Hz^2)*abs(x(oAB4)))/(2*x(oAB4)*(x(oAB4)^2+y(oAB4)^2)),(2*y(oAB4)*Hz^2-2*Hz*sqrt(x(oAB4)^2+y(oAB4)^2-Hz^2)*abs(x(oAB4)))/(2*(x(oAB4)^2+y(oAB4)^2))]","0");
+IdB4=Point("IdB4","[(2*Hz^2*x(oAB4)^2-2*Hz*y(oAB4)*sqrt(x(oAB4)^2+y(oAB4)^2-Hz^2)*abs(x(oAB4)))/(2*x(oAB4)*(x(oAB4)^2+y(oAB4)^2)),(2*y(oAB4)*Hz^2+2*Hz*sqrt(x(oAB4)^2+y(oAB4)^2-Hz^2)*abs(x(oAB4)))/(2*(x(oAB4)^2+y(oAB4)^2))]","0");
+L114=Line("L114",OHz,mPC16);
+Perp112=Perpendicular("Perp112",L115,P16);
+L116=Line("L116",OHz,mPC17);
+IdA=Point("IdA","[(2*Hz^2*x(oAB)^2+2*Hz*y(oAB)*sqrt(x(oAB)^2+y(oAB)^2-Hz^2)*abs(x(oAB)))/(2*x(oAB)*(x(oAB)^2+y(oAB)^2)),(2*y(oAB)*Hz^2-2*Hz*sqrt(x(oAB)^2+y(oAB)^2-Hz^2)*abs(x(oAB)))/(2*(x(oAB)^2+y(oAB)^2))]","0");
+IdB=Point("IdB","[(2*Hz^2*x(oAB)^2-2*Hz*y(oAB)*sqrt(x(oAB)^2+y(oAB)^2-Hz^2)*abs(x(oAB)))/(2*x(oAB)*(x(oAB)^2+y(oAB)^2)),(2*y(oAB)*Hz^2+2*Hz*sqrt(x(oAB)^2+y(oAB)^2-Hz^2)*abs(x(oAB)))/(2*(x(oAB)^2+y(oAB)^2))]","0");
+IdA0=Point("IdA0","[(2*Hz^2*x(oAB0)^2+2*Hz*y(oAB0)*sqrt(x(oAB0)^2+y(oAB0)^2-Hz^2)*abs(x(oAB0)))/(2*x(oAB0)*(x(oAB0)^2+y(oAB0)^2)),(2*y(oAB0)*Hz^2-2*Hz*sqrt(x(oAB0)^2+y(oAB0)^2-Hz^2)*abs(x(oAB0)))/(2*(x(oAB0)^2+y(oAB0)^2))]","0");
+IdB0=Point("IdB0","[(2*Hz^2*x(oAB0)^2-2*Hz*y(oAB0)*sqrt(x(oAB0)^2+y(oAB0)^2-Hz^2)*abs(x(oAB0)))/(2*x(oAB0)*(x(oAB0)^2+y(oAB0)^2)),(2*y(oAB0)*Hz^2+2*Hz*sqrt(x(oAB0)^2+y(oAB0)^2-Hz^2)*abs(x(oAB0)))/(2*(x(oAB0)^2+y(oAB0)^2))]","0");
+Perp12=Perpendicular("Perp12",L12,mPC1);
+Perp110=Perpendicular("Perp110",L111,mPC14);
+P21=Point("P21","oAB1+d(IdA1,oAB1)*((IdA1+IdB1)/2-oAB1)/d((IdA1+IdB1)/2,oAB1)","0");
+Perp10=Perpendicular("Perp10",L10,mPC10);
+Perp11=Perpendicular("Perp11",L11,mPC11);
+Perp15=Perpendicular("Perp15",L15,mPC12);
+L17=Line("L17",IdA1,IdB1);
+Perp16=Perpendicular("Perp16",L18,mPC13);
+Perp18=Perpendicular("Perp18",L113,mPC15);
+P24=Point("P24","oAB4+d(IdA4,oAB4)*((IdA4+IdB4)/2-oAB4)/d((IdA4+IdB4)/2,oAB4)","0");
+Perp19=Perpendicular("Perp19",L114,mPC16);
+Perp113=Perpendicular("Perp113",L116,mPC17);
+L117=Line("L117",IdA1,IdB1);
+L24=Line("L24",IdA4,IdB4);
+oAB7=Point("oAB7","[(y(IdA1)*(x(b1)^2+y(b1)^2+Hz^2)-y(b1)*(x(IdA1)^2+y(IdA1)^2+Hz^2))/(2*(x(b1)*y(IdA1)-x(IdA1)*y(b1))),(x(b1)*(x(IdA1)^2+y(IdA1)^2+Hz^2)-x(IdA1)*(x(b1)^2+y(b1)^2+Hz^2))/(2*(x(b1)*y(IdA1)-x(IdA1)*y(b1)))]","0");
+P2=Point("P2","oAB+d(IdA,oAB)*((IdA+IdB)/2-oAB)/d((IdA+IdB)/2,oAB)","0");
+P20=Point("P20","oAB0+d(IdA0,oAB0)*((IdA0+IdB0)/2-oAB0)/d((IdA0+IdB0)/2,oAB0)","0");
+da=Arc3pts("da",IdA1,P21,IdB1);
+C11=Arc3pts("C11",IdA4,P24,IdB4);
+oPC=OrderedIntersection("oPC",L24,L117,0);
+IdA7=Point("IdA7","[(2*Hz^2*x(oAB7)^2+2*Hz*y(oAB7)*sqrt(x(oAB7)^2+y(oAB7)^2-Hz^2)*abs(x(oAB7)))/(2*x(oAB7)*(x(oAB7)^2+y(oAB7)^2)),(2*y(oAB7)*Hz^2-2*Hz*sqrt(x(oAB7)^2+y(oAB7)^2-Hz^2)*abs(x(oAB7)))/(2*(x(oAB7)^2+y(oAB7)^2))]","0");
+IdB7=Point("IdB7","[(2*Hz^2*x(oAB7)^2-2*Hz*y(oAB7)*sqrt(x(oAB7)^2+y(oAB7)^2-Hz^2)*abs(x(oAB7)))/(2*x(oAB7)*(x(oAB7)^2+y(oAB7)^2)),(2*y(oAB7)*Hz^2+2*Hz*sqrt(x(oAB7)^2+y(oAB7)^2-Hz^2)*abs(x(oAB7)))/(2*(x(oAB7)^2+y(oAB7)^2))]","0");
+Center10=Center("Center10",da);
+Center20=Center("Center20",C11);
+C1=Arc3pts("C1",IdA,P2,IdB);
+C10=Arc3pts("C10",IdA0,P20,IdB0);
+L1=Line("L1",OHz,P2);
+P10=Point("P10","(OHz+(P2-OHz)*Hz^2/d(OHz,P2)^2+P2)/2","0");
+L13=Line("L13",OHz,P2);
+P100=Point("P100","(OHz+(P2-OHz)*Hz^2/d(OHz,P2)^2+P2)/2","0");
+L14=Line("L14",OHz,P20);
+P101=Point("P101","(OHz+(P20-OHz)*Hz^2/d(OHz,P20)^2+P20)/2","0");
+L112=Line("L112",OHz,P2);
+P102=Point("P102","(OHz+(P2-OHz)*Hz^2/d(OHz,P2)^2+P2)/2","0");
+C210=Circle1("C210",oPC,"sqrt(d(OHz,oPC)^2-Hz^2)");
+S1=Segment("S1",OHz,oPC);
+P27=Point("P27","oAB7+d(IdA7,oAB7)*((IdA7+IdB7)/2-oAB7)/d((IdA7+IdB7)/2,oAB7)","0");
+Oo0=Center("Oo0",C1);
+Oo=Center("Oo",C10);
+Perp1=Perpendicular("Perp1",L1,P10);
+Perp13=Perpendicular("Perp13",L13,P100);
+Perp14=Perpendicular("Perp14",L14,P101);
+Perp111=Perpendicular("Perp111",L112,P102);
+mPAB=Point("mPAB","(Center10+(O-Center10)*da(Center10,IdA1)^2/da(Center10,O)^2+O)/2","0");
+L2=Line("L2",Center10,O);
+C20=Circle("C20",Center10,IdA1);
+mPAB0=Point("mPAB0","(Center10+(O-Center10)*d(Center10,IdA1)^2/d(Center10,O)^2+O)/2","0");
+L20=Line("L20",Center10,O);
+C30=Circle("C30",Center10,IdA1);
+C211=Circle("C211",Center10,IdA1);
+mPAB1=Point("mPAB1","(Center20+(O-Center20)*d(Center20,IdA4)^2/d(Center20,O)^2+O)/2","0");
+L21=Line("L21",Center20,O);
+C24=Circle("C24",Center20,IdA4);
+L22=Line("L22",Center20,Center10);
+ax1=OrderedIntersection("ax1",C210,Hz,1);
+P30=OrderedIntersection("P30",S1,C210,1);
+ax2=OrderedIntersection("ax2",C210,Hz,0);
+C14=Arc3pts("C14",IdA7,P27,IdB7);
+Center4=Center("Center4",C14);
+Perp2=Perpendicular("Perp2",L2,mPAB);
+Perp20=Perpendicular("Perp20",L20,mPAB0);
+Perp21=Perpendicular("Perp21",L21,mPAB1);
+P3=OrderedIntersection("P3",L22,Perp112,0);
+axeab=Arc3pts("axeab",ax1,P30,ax2);
+Center2=Center("Center2",axeab);
+P11=OrderedIntersection("P11",Perp10,Perp2,0);
+P1=OrderedIntersection("P1",Perp11,Perp20,0);
+P14=OrderedIntersection("P14",Perp19,Perp21,0);
+C26=Circle("C26",P3,c1);
+C2=Circle("C2",P11,O);
+R1=Ray("R1",P11,mPAB);
+C21=Circle("C21",P1,O);
+R10=Ray("R10",P1,mPAB0);
+C23=Circle("C23",P14,O);
+R11=Ray("R11",P14,mPAB1);
+P42=OrderedIntersection("P42",C26,Hz,1);
+P52=OrderedIntersection("P52",C26,Hz,0);
+P4=OrderedIntersection("P4",R1,C2,0);
+P5=OrderedIntersection("P5",C2,Hz,1);
+P6=OrderedIntersection("P6",C2,Hz,0);
+P40=OrderedIntersection("P40",R10,C21,0);
+P50=OrderedIntersection("P50",C21,Hz,1);
+P60=OrderedIntersection("P60",C21,Hz,0);
+P41=OrderedIntersection("P41",R11,C23,0);
+P51=OrderedIntersection("P51",C23,Hz,1);
+P61=OrderedIntersection("P61",C23,Hz,0);
+C32=Arc3pts("C32",P42,c1,P52);
+cUV1=Center("cUV1",C32);
+Hperp=Arc3pts("Hperp",P5,P4,P6);
+Hperp0=Arc3pts("Hperp0",P50,P40,P60);
+Hperp1=Arc3pts("Hperp1",P51,P41,P61);
+cUV=Center("cUV",Hperp);
+cMN=Center("cMN",Hperp0);
+cUV0=Center("cUV0",Hperp1);
+mPAB2=Point("mPAB2","(cUV1+(O-cUV1)*d(cUV1,P42)^2/d(cUV1,O)^2+O)/2","0");
+L23=Line("L23",cUV1,O);
+C33=Circle("C33",cUV1,P42);
+C3=Circle("C3",cUV,P5);
+C22=Circle("C22",cMN,P50);
+C31=Circle("C31",cUV0,P51);
+Perp22=Perpendicular("Perp22",L23,mPAB2);
+Int1=OrderedIntersection("Int1",C3,C20,0);
+Int2=OrderedIntersection("Int2",C3,C20,1);
+Int10=OrderedIntersection("Int10",C30,C22,0);
+Int20=OrderedIntersection("Int20",C30,C22,1);
+Int11=OrderedIntersection("Int11",C31,C24,0);
+Int21=OrderedIntersection("Int21",C31,C24,1);
+P18=OrderedIntersection("P18",Perp113,Perp22,0);
+Q=Point("Q","Int1*(da(OHz,Int1)<Hz)+Int2*(da(OHz,Int2)<Hz)","0");
+A=Point("A","Int10*(d(OHz,Int10)<Hz)+Int20*(d(OHz,Int20)<Hz)","0");
+B=Point("B","Int11*(d(OHz,Int11)<Hz)+Int21*(d(OHz,Int21)<Hz)","0");
+C27=Circle("C27",P18,O);
+R12=Ray("R12",P18,mPAB2);
+P12=Point("P12","Oo0+(Q-Oo0)*da(Oo0,IdA)^2/da(Oo0,Q)^2","0");
+P13=Point("P13","Oo0+(A-Oo0)*d(Oo0,IdA)^2/d(Oo0,A)^2","0");
+P15=Point("P15","Oo0+(B-Oo0)*d(Oo0,IdA)^2/d(Oo0,B)^2","0");
+P43=OrderedIntersection("P43",R12,C27,0);
+P53=OrderedIntersection("P53",C27,Hz,1);
+P62=OrderedIntersection("P62",C27,Hz,0);
+imQ=Point("imQ","Oo+(P12-Oo)*da(Oo,IdA0)^2/da(Oo,P12)^2","0");
+imA=Point("imA","Oo+(P13-Oo)*d(Oo,IdA0)^2/d(Oo,P13)^2","0");
+imB=Point("imB","Oo+(P15-Oo)*d(Oo,IdA0)^2/d(Oo,P15)^2","0");
+Hperp2=Arc3pts("Hperp2",P53,P43,P62);
+cMN0=Center("cMN0",Hperp2);
+oAB2=Point("oAB2","[(y(Q)*(x(imQ)^2+y(imQ)^2+Hz^2)-y(imQ)*(x(Q)^2+y(Q)^2+Hz^2))/(2*(x(imQ)*y(Q)-x(Q)*y(imQ))),(x(imQ)*(x(Q)^2+y(Q)^2+Hz^2)-x(Q)*(x(imQ)^2+y(imQ)^2+Hz^2))/(2*(x(imQ)*y(Q)-x(Q)*y(imQ)))]","0");
+oAB3=Point("oAB3","[(y(A)*(x(imA)^2+y(imA)^2+Hz^2)-y(imA)*(x(A)^2+y(A)^2+Hz^2))/(2*(x(imA)*y(A)-x(A)*y(imA))),(x(imA)*(x(A)^2+y(A)^2+Hz^2)-x(A)*(x(imA)^2+y(imA)^2+Hz^2))/(2*(x(imA)*y(A)-x(A)*y(imA)))]","0");
+oAB5=Point("oAB5","[(y(B)*(x(imB)^2+y(imB)^2+Hz^2)-y(imB)*(x(B)^2+y(B)^2+Hz^2))/(2*(x(imB)*y(B)-x(B)*y(imB))),(x(imB)*(x(B)^2+y(B)^2+Hz^2)-x(B)*(x(imB)^2+y(imB)^2+Hz^2))/(2*(x(imB)*y(B)-x(B)*y(imB)))]","0");
+IdA2=Point("IdA2","[(2*Hz^2*x(oAB2)^2+2*Hz*y(oAB2)*sqrt(x(oAB2)^2+y(oAB2)^2-Hz^2)*abs(x(oAB2)))/(2*x(oAB2)*(x(oAB2)^2+y(oAB2)^2)),(2*y(oAB2)*Hz^2-2*Hz*sqrt(x(oAB2)^2+y(oAB2)^2-Hz^2)*abs(x(oAB2)))/(2*(x(oAB2)^2+y(oAB2)^2))]","0");
+IdB2=Point("IdB2","[(2*Hz^2*x(oAB2)^2-2*Hz*y(oAB2)*sqrt(x(oAB2)^2+y(oAB2)^2-Hz^2)*abs(x(oAB2)))/(2*x(oAB2)*(x(oAB2)^2+y(oAB2)^2)),(2*y(oAB2)*Hz^2+2*Hz*sqrt(x(oAB2)^2+y(oAB2)^2-Hz^2)*abs(x(oAB2)))/(2*(x(oAB2)^2+y(oAB2)^2))]","0");
+IdA3=Point("IdA3","[(2*Hz^2*x(oAB3)^2+2*Hz*y(oAB3)*sqrt(x(oAB3)^2+y(oAB3)^2-Hz^2)*abs(x(oAB3)))/(2*x(oAB3)*(x(oAB3)^2+y(oAB3)^2)),(2*y(oAB3)*Hz^2-2*Hz*sqrt(x(oAB3)^2+y(oAB3)^2-Hz^2)*abs(x(oAB3)))/(2*(x(oAB3)^2+y(oAB3)^2))]","0");
+IdB3=Point("IdB3","[(2*Hz^2*x(oAB3)^2-2*Hz*y(oAB3)*sqrt(x(oAB3)^2+y(oAB3)^2-Hz^2)*abs(x(oAB3)))/(2*x(oAB3)*(x(oAB3)^2+y(oAB3)^2)),(2*y(oAB3)*Hz^2+2*Hz*sqrt(x(oAB3)^2+y(oAB3)^2-Hz^2)*abs(x(oAB3)))/(2*(x(oAB3)^2+y(oAB3)^2))]","0");
+IdA5=Point("IdA5","[(2*Hz^2*x(oAB5)^2+2*Hz*y(oAB5)*sqrt(x(oAB5)^2+y(oAB5)^2-Hz^2)*abs(x(oAB5)))/(2*x(oAB5)*(x(oAB5)^2+y(oAB5)^2)),(2*y(oAB5)*Hz^2-2*Hz*sqrt(x(oAB5)^2+y(oAB5)^2-Hz^2)*abs(x(oAB5)))/(2*(x(oAB5)^2+y(oAB5)^2))]","0");
+IdB5=Point("IdB5","[(2*Hz^2*x(oAB5)^2-2*Hz*y(oAB5)*sqrt(x(oAB5)^2+y(oAB5)^2-Hz^2)*abs(x(oAB5)))/(2*x(oAB5)*(x(oAB5)^2+y(oAB5)^2)),(2*y(oAB5)*Hz^2+2*Hz*sqrt(x(oAB5)^2+y(oAB5)^2-Hz^2)*abs(x(oAB5)))/(2*(x(oAB5)^2+y(oAB5)^2))]","0");
+C28=Circle("C28",cMN0,P53);
+P22=Point("P22","oAB2+da(IdA2,oAB2)*((IdA2+IdB2)/2-oAB2)/da((IdA2+IdB2)/2,oAB2)","0");
+P23=Point("P23","oAB3+d(IdA3,oAB3)*((IdA3+IdB3)/2-oAB3)/d((IdA3+IdB3)/2,oAB3)","0");
+P25=Point("P25","oAB5+d(IdA5,oAB5)*((IdA5+IdB5)/2-oAB5)/d((IdA5+IdB5)/2,oAB5)","0");
+Int12=OrderedIntersection("Int12",C33,C28,0);
+Int22=OrderedIntersection("Int22",C33,C28,1);
+Hda=Arc3pts("Hda",IdA2,P22,IdB2);
+imda=Arc3pts("imda",IdA3,P23,IdB3);
+C12=Arc3pts("C12",IdA5,P25,IdB5);
+C=Point("C","Int12*(d(OHz,Int12)<Hz)+Int22*(d(OHz,Int22)<Hz)","0");
+Center1=Center("Center1",Hda);
+cMN1=Center("cMN1",imda);
+cUV2=Center("cUV2",C12);
+P19=Point("P19","Oo0+(C-Oo0)*d(Oo0,IdA)^2/d(Oo0,C)^2","0");
+C25=Circle("C25",cMN1,IdA3);
+C36=Circle("C36",cMN1,IdA3);
+imC=Point("imC","Oo+(P19-Oo)*d(Oo,IdA0)^2/d(Oo,P19)^2","0");
+C29=Circle("C29",cMN1,IdA3);
+C34=Circle("C34",cUV2,IdA5);
+Int15=OrderedIntersection("Int15",C36,C211,0);
+Int25=OrderedIntersection("Int25",C36,C211,1);
+oAB6=Point("oAB6","[(y(C)*(x(imC)^2+y(imC)^2+Hz^2)-y(imC)*(x(C)^2+y(C)^2+Hz^2))/(2*(x(imC)*y(C)-x(C)*y(imC))),(x(imC)*(x(C)^2+y(C)^2+Hz^2)-x(C)*(x(imC)^2+y(imC)^2+Hz^2))/(2*(x(imC)*y(C)-x(C)*y(imC)))]","0");
+Int13=OrderedIntersection("Int13",C34,C29,0);
+Int23=OrderedIntersection("Int23",C34,C29,1);
+IdA6=Point("IdA6","[(2*Hz^2*x(oAB6)^2+2*Hz*y(oAB6)*sqrt(x(oAB6)^2+y(oAB6)^2-Hz^2)*abs(x(oAB6)))/(2*x(oAB6)*(x(oAB6)^2+y(oAB6)^2)),(2*y(oAB6)*Hz^2-2*Hz*sqrt(x(oAB6)^2+y(oAB6)^2-Hz^2)*abs(x(oAB6)))/(2*(x(oAB6)^2+y(oAB6)^2))]","0");
+IdB6=Point("IdB6","[(2*Hz^2*x(oAB6)^2-2*Hz*y(oAB6)*sqrt(x(oAB6)^2+y(oAB6)^2-Hz^2)*abs(x(oAB6)))/(2*x(oAB6)*(x(oAB6)^2+y(oAB6)^2)),(2*y(oAB6)*Hz^2+2*Hz*sqrt(x(oAB6)^2+y(oAB6)^2-Hz^2)*abs(x(oAB6)))/(2*(x(oAB6)^2+y(oAB6)^2))]","0");
+Cim=Point("Cim","Int13*(d(OHz,Int13)<Hz)+Int23*(d(OHz,Int23)<Hz)","0");
+P26=Point("P26","oAB6+d(IdA6,oAB6)*((IdA6+IdB6)/2-oAB6)/d((IdA6+IdB6)/2,oAB6)","0");
+LieuCentre=Locus("LieuCentre",Cim,v);
+C13=Arc3pts("C13",IdA6,P26,IdB6);
+E1=Expression("E1","","","","LieuCentre.setHidden(LieuOK==0);\"Montrer le lieu\"","-4.559388251380144","-4.970331479881741");
+Center3=Center("Center3",C13);
+
+
+// Styles :
+STL(OHz,"c:#0000b2;h:1;s:4.5;sn:true;f:15");
+STL(O,"c:#2687e4;s:4.5;sn:true;f:15;np:5.285562162607912");
+STL(a1,"c:#ff8a1c;s:4.5;sn:true;f:15");
+STL(a2,"c:#ff8a1c;s:4.5;sn:true;f:15");
+STL(c1,"c:#0024ff;s:4.5;sn:true;f:15");
+STL(b1,"c:#0bd81f;s:4.5;sn:true;f:15");
+STL(b2,"c:#0bd81f;s:4.5;sn:true;f:15;mg:[C14,5]");
+STL(LieuOK,"c:#0b2f1d;h:1;s:7;sn:true;f:14;p:2;cL:200;cPT:YzojNzgwMDEzO2g6MTtzOjEwO2Y6MzA=");
+STL(Hz,"c:#21cccc;o:0.05;s:2;sn:true;f:28;p:0");
+STL(L110,"c:#780013;h:2;s:1;f:30;p:0");
+STL(L115,"c:#780013;h:2;s:1;f:30;p:0");
+STL(u,"c:#2687e4;s:4.5;sn:true;f:15;np:5.293972742302327");
+STL(v,"c:#2687e4;s:4.5;sn:true;f:15;np:5.411337140659963");
+STL(mPC1,"c:#0000b2;h:2;s:4.5;f:15");
+STL(mInvO2,"c:#0000b2;h:2;s:4.5;f:15");
+STL(mInvO0,"c:#0000b2;h:2;s:4.5;f:15");
+STL(mPC14,"c:#0000b2;h:2;s:4.5;f:15");
+STL(u0,"c:#0000b2;h:2;s:4.5;f:15");
+STL(v0,"c:#0000b2;h:2;s:4.5;f:15");
+STL(u1,"c:#0000b2;h:2;s:4.5;f:15");
+STL(v1,"c:#0000b2;h:2;s:4.5;f:15");
+STL(oAB1,"c:#0000b2;h:2;s:4.5;f:15");
+STL(mPC10,"c:#0000b2;h:2;s:4.5;f:15");
+STL(mPC11,"c:#0000b2;h:2;s:4.5;f:15");
+STL(mPC12,"c:#0000b2;h:2;s:4.5;f:15");
+STL(mPC13,"c:#0000b2;h:2;s:4.5;f:15");
+STL(P17,"c:#0000b2;h:2;s:4.5;f:15");
+STL(mPC15,"c:#0000b2;h:2;s:4.5;f:15");
+STL(oAB4,"c:#0000b2;h:2;s:4.5;f:15");
+STL(mPC16,"c:#0000b2;h:2;s:4.5;f:15");
+STL(P16,"c:#0000b2;h:2;s:4.5;f:15");
+STL(mPC17,"c:#0000b2;h:2;s:4.5;f:15");
+STL(oAB,"c:#0000b2;h:2;s:4.5;f:15");
+STL(oAB0,"c:#0000b2;h:2;s:4.5;f:15");
+STL(L12,"c:#780013;h:2;s:1;f:30;p:0");
+STL(L16,"c:#780013;h:2;s:1;f:30;p:0");
+STL(L19,"c:#780013;h:2;s:1;f:30;p:0");
+STL(L111,"c:#780013;h:2;s:1;f:30;p:0");
+STL(IdA1,"c:#0000b2;h:1;s:4.5;f:15");
+STL(IdB1,"c:#0000b2;h:1;s:4.5;f:15");
+STL(L10,"c:#780013;h:2;s:1;f:30;p:0");
+STL(L11,"c:#780013;h:2;s:1;f:30;p:0");
+STL(L15,"c:#780013;h:2;s:1;f:30;p:0");
+STL(L18,"c:#780013;h:2;s:1;f:30;p:0");
+STL(Perp17,"c:#780013;h:2;s:1;f:30;p:0");
+STL(L113,"c:#780013;h:2;s:1;f:30;p:0");
+STL(IdA4,"c:#0000b2;h:2;s:4.5;f:15");
+STL(IdB4,"c:#0000b2;h:2;s:4.5;f:15");
+STL(L114,"c:#780013;h:2;s:1;f:30;p:0");
+STL(Perp112,"c:#780013;h:2;s:1;f:30;p:0");
+STL(L116,"c:#780013;h:2;s:1;f:30;p:0");
+STL(IdA,"c:#0000b2;h:2;s:4.5;f:15");
+STL(IdB,"c:#0000b2;h:2;s:4.5;f:15");
+STL(IdA0,"c:#0000b2;h:2;s:4.5;f:15");
+STL(IdB0,"c:#0000b2;h:2;s:4.5;f:15");
+STL(Perp12,"c:#780013;h:2;s:1;f:30;p:0");
+STL(Perp110,"c:#780013;h:2;s:1;f:30;p:0");
+STL(P21,"c:#0000b2;h:2;s:4.5;f:15");
+STL(Perp10,"c:#780013;h:2;s:1;f:30;p:0");
+STL(Perp11,"c:#780013;h:2;s:1;f:30;p:0");
+STL(Perp15,"c:#780013;h:2;s:1;f:30;p:0");
+STL(L17,"c:#780013;h:2;s:1;f:30;p:0");
+STL(Perp16,"c:#780013;h:2;s:1;f:30;p:0");
+STL(Perp18,"c:#780013;h:2;s:1;f:30;p:0");
+STL(P24,"c:#0000b2;h:2;s:4.5;f:15");
+STL(Perp19,"c:#780013;h:2;s:1;f:30;p:0");
+STL(Perp113,"c:#780013;h:2;s:1;f:30;p:0");
+STL(L117,"c:#780013;h:2;s:1;f:30;p:0");
+STL(L24,"c:#780013;h:2;s:1;f:30;p:0");
+STL(oAB7,"c:#0000b2;h:2;s:6;f:30");
+STL(P2,"c:#0000b2;h:2;s:4.5;f:15");
+STL(P20,"c:#0000b2;h:2;s:4.5;f:15");
+STL(da,"c:#ff8a1c;s:1;sn:true;f:30;p:0");
+STL(C11,"c:#0bd81f;s:1;f:30;p:0");
+STL(oPC,"c:#0000b2;h:2;s:4.5;f:15");
+STL(IdA7,"c:#0000b2;h:2;s:6;f:30");
+STL(IdB7,"c:#0000b2;h:2;s:6;f:30");
+STL(Center10,"c:#0000b2;h:1;s:4.5;f:15");
+STL(Center20,"c:#0000b2;h:1;s:4.5;f:15");
+STL(C1,"c:#2687e4;s:1;f:30;p:0");
+STL(C10,"c:#2687e4;s:1;f:30;p:0");
+STL(L1,"c:#780013;h:2;s:1;f:30;p:0");
+STL(P10,"c:#0000b2;h:2;s:4.5;f:15");
+STL(L13,"c:#780013;h:2;s:1;f:30;p:0");
+STL(P100,"c:#0000b2;h:2;s:4.5;f:15");
+STL(L14,"c:#780013;h:2;s:1;f:30;p:0");
+STL(P101,"c:#0000b2;h:2;s:4.5;f:15");
+STL(L112,"c:#780013;h:2;s:1;f:30;p:0");
+STL(P102,"c:#0000b2;h:2;s:4.5;f:15");
+STL(C210,"c:#cc66cc;h:2;s:1;f:30;p:0");
+STL(S1,"c:#006633;h:2;s:1;f:24");
+STL(P27,"c:#0000b2;h:2;s:6;f:30");
+STL(Oo0,"c:#0000b2;h:1;s:4.5;f:15");
+STL(Oo,"c:#0000b2;h:1;s:4.5;f:15");
+STL(Perp1,"c:#780013;h:2;s:1;f:30;p:0");
+STL(Perp13,"c:#780013;h:2;s:1;f:30;p:0");
+STL(Perp14,"c:#780013;h:2;s:1;f:30;p:0");
+STL(Perp111,"c:#780013;h:2;s:1;f:30;p:0");
+STL(mPAB,"c:#0000b2;h:2;s:4.5;f:15");
+STL(L2,"c:#780013;h:2;s:1;f:30;p:0");
+STL(C20,"c:#cc66cc;h:2;s:1;f:30;p:0");
+STL(mPAB0,"c:#0000b2;h:2;s:4.5;f:15");
+STL(L20,"c:#780013;h:2;s:1;f:30;p:0");
+STL(C30,"c:#cc66cc;h:2;s:1;f:30;p:0");
+STL(C211,"c:#cc66cc;h:2;s:1;f:30;p:0");
+STL(mPAB1,"c:#0000b2;h:2;s:4.5;f:15");
+STL(L21,"c:#780013;h:2;s:1;f:30;p:0");
+STL(C24,"c:#cc66cc;h:2;s:1;f:30;p:0");
+STL(L22,"c:#780013;h:2;s:1;f:30;p:0");
+STL(ax1,"c:#44444a;s:4.5;sn:true;f:15;sp:1");
+STL(P30,"c:#0000b2;h:2;s:4.5;f:15");
+STL(ax2,"c:#535358;s:4.5;sn:true;f:15;sp:1");
+STL(C14,"c:#cc66cc;h:1;s:1;f:30;p:0");
+STL(Center4,"c:#0000b2;h:1;s:6;f:30");
+STL(Perp2,"c:#780013;h:2;s:1;f:30;p:0");
+STL(Perp20,"c:#780013;h:2;s:1;f:30;p:0");
+STL(Perp21,"c:#780013;h:2;s:1;f:30;p:0");
+STL(P3,"c:#0000b2;h:2;s:4.5;f:15");
+STL(axeab,"c:#767c76;s:1.5;sn:true;f:30;p:0;dh:true");
+STL(Center2,"c:#0000b2;h:1;s:4.5;f:15");
+STL(P11,"c:#0000b2;h:2;s:4.5;f:15");
+STL(P1,"c:#0000b2;h:2;s:4.5;f:15");
+STL(P14,"c:#0000b2;h:2;s:4.5;f:15");
+STL(C26,"c:#cc66cc;h:2;s:1;f:30;p:0");
+STL(C2,"c:#cc66cc;h:2;s:1;f:30;p:0");
+STL(R1,"c:#993300;h:2;s:1;f:30;p:0");
+STL(C21,"c:#cc66cc;h:2;s:1;f:30;p:0");
+STL(R10,"c:#993300;h:2;s:1;f:30;p:0");
+STL(C23,"c:#cc66cc;h:2;s:1;f:30;p:0");
+STL(R11,"c:#993300;h:2;s:1;f:30;p:0");
+STL(P42,"c:#0000b2;h:2;s:4.5;f:15");
+STL(P52,"c:#0000b2;h:2;s:4.5;f:15");
+STL(P4,"c:#0000b2;h:2;s:4.5;f:15");
+STL(P5,"c:#0000b2;h:2;s:4.5;f:15");
+STL(P6,"c:#0000b2;h:2;s:4.5;f:15");
+STL(P40,"c:#0000b2;h:2;s:4.5;f:15");
+STL(P50,"c:#0000b2;h:2;s:4.5;f:15");
+STL(P60,"c:#0000b2;h:2;s:4.5;f:15");
+STL(P41,"c:#0000b2;h:2;s:4.5;f:15");
+STL(P51,"c:#0000b2;h:2;s:4.5;f:15");
+STL(P61,"c:#0000b2;h:2;s:4.5;f:15");
+STL(C32,"c:#0024ff;s:1;f:30;p:0");
+STL(cUV1,"c:#0000b2;h:1;s:4.5;f:15");
+STL(Hperp,"c:#007c00;h:1;s:2;sn:true;f:30;p:0");
+STL(Hperp0,"c:#007c00;h:1;s:2;sn:true;f:30;p:0");
+STL(Hperp1,"c:#007c00;h:1;s:2;sn:true;f:30;p:0");
+STL(cUV,"c:#0000b2;h:1;s:4.5;f:15");
+STL(cMN,"c:#0000b2;h:1;s:4.5;f:15");
+STL(cUV0,"c:#0000b2;h:1;s:4.5;f:15");
+STL(mPAB2,"c:#0000b2;h:2;s:4.5;f:15");
+STL(L23,"c:#780013;h:2;s:1;f:30;p:0");
+STL(C33,"c:#cc66cc;h:2;s:1;f:30;p:0");
+STL(C3,"c:#cc66cc;h:2;s:1;f:30;p:0");
+STL(C22,"c:#cc66cc;h:2;s:1;f:30;p:0");
+STL(C31,"c:#cc66cc;h:2;s:1;f:30;p:0");
+STL(Perp22,"c:#780013;h:2;s:1;f:30;p:0");
+STL(Int1,"c:#0000b2;h:2;s:4.5;f:15");
+STL(Int2,"c:#0000b2;h:2;s:4.5;f:15");
+STL(Int10,"c:#0000b2;h:2;s:4.5;f:15");
+STL(Int20,"c:#0000b2;h:2;s:4.5;f:15");
+STL(Int11,"c:#0000b2;h:2;s:4.5;f:15");
+STL(Int21,"c:#0000b2;h:2;s:4.5;f:15");
+STL(P18,"c:#0000b2;h:2;s:4.5;f:15");
+STL(Q,"c:#0000b2;h:1;s:4.5;sn:true;f:15");
+STL(A,"c:#ff8a1c;s:4.5;sn:true;f:15;sp:2");
+STL(B,"c:#007c7c;s:4.5;sn:true;f:15;sp:2");
+STL(C27,"c:#cc66cc;h:2;s:1;f:30;p:0");
+STL(R12,"c:#993300;h:2;s:1;f:30;p:0");
+STL(P12,"c:#0000b2;h:1;s:4.5;f:15");
+STL(P13,"c:#0000b2;h:1;s:4.5;f:15");
+STL(P15,"c:#0000b2;h:1;s:4.5;f:15");
+STL(P43,"c:#0000b2;h:2;s:4.5;f:15");
+STL(P53,"c:#0000b2;h:2;s:4.5;f:15");
+STL(P62,"c:#0000b2;h:2;s:4.5;f:15");
+STL(imQ,"c:#0000b2;h:1;s:4.5;sn:true;f:15");
+STL(imA,"c:#0000b2;h:1;s:4.5;sn:true;f:15");
+STL(imB,"c:#0000b2;h:1;s:4.5;sn:true;f:15");
+STL(Hperp2,"c:#007c00;h:1;s:2;sn:true;f:30;p:0");
+STL(cMN0,"c:#0000b2;h:1;s:4.5;f:15");
+STL(oAB2,"c:#0000b2;h:2;s:4.5;f:15");
+STL(oAB3,"c:#0000b2;h:2;s:4.5;f:15");
+STL(oAB5,"c:#0000b2;h:2;s:4.5;f:15");
+STL(IdA2,"c:#0000b2;h:2;s:4.5;f:15");
+STL(IdB2,"c:#0000b2;h:2;s:4.5;f:15");
+STL(IdA3,"c:#0000b2;h:2;s:4.5;f:15");
+STL(IdB3,"c:#0000b2;h:2;s:4.5;f:15");
+STL(IdA5,"c:#0000b2;h:2;s:4.5;f:15");
+STL(IdB5,"c:#0000b2;h:2;s:4.5;f:15");
+STL(C28,"c:#cc66cc;h:2;s:1;f:30;p:0");
+STL(P22,"c:#0000b2;h:2;s:4.5;f:15");
+STL(P23,"c:#0000b2;h:2;s:4.5;f:15");
+STL(P25,"c:#0000b2;h:2;s:4.5;f:15");
+STL(Int12,"c:#0000b2;h:2;s:4.5;f:15");
+STL(Int22,"c:#0000b2;h:2;s:4.5;f:15");
+STL(Hda,"c:#ff8a1c;s:1;sn:true;f:30;p:0");
+STL(imda,"c:#ff8a1c;s:1;sn:true;f:30;p:0");
+STL(C12,"c:#0bd81f;s:1;f:30;p:0");
+STL(C,"c:#0000b2;s:4.5;sn:true;f:15;sp:2");
+STL(Center1,"c:#0000b2;h:1;s:4.5;f:15");
+STL(cMN1,"c:#0000b2;h:1;s:4.5;f:15");
+STL(cUV2,"c:#0000b2;h:1;s:4.5;f:15");
+STL(P19,"c:#0000b2;h:1;s:4.5;f:15");
+STL(C25,"c:#cc66cc;h:2;s:1;f:30;p:0");
+STL(C36,"c:#cc66cc;h:2;s:1;f:30;p:0");
+STL(imC,"c:#0000b2;h:1;s:4.5;sn:true;f:15");
+STL(C29,"c:#cc66cc;h:2;s:1;f:30;p:0");
+STL(C34,"c:#cc66cc;h:2;s:1;f:30;p:0");
+STL(Int15,"c:#0000b2;h:2;s:4.5;f:15");
+STL(Int25,"c:#0000b2;h:2;s:4.5;f:15");
+STL(oAB6,"c:#0000b2;h:2;s:4.5;f:15");
+STL(Int13,"c:#0000b2;h:2;s:4.5;f:15");
+STL(Int23,"c:#0000b2;h:2;s:4.5;f:15");
+STL(IdA6,"c:#0000b2;h:2;s:4.5;f:15");
+STL(IdB6,"c:#0000b2;h:2;s:4.5;f:15");
+STL(Cim,"c:#fc092f;s:4.5;sn:true;f:15;sp:3");
+STL(P26,"c:#0000b2;h:2;s:4.5;f:15");
+STL(LieuCentre,"c:#fc092f;s:2;sn:true;f:30;p:1000");
+STL(C13,"c:#0024ff;s:1;f:30;p:0");
+STL(E1,"c:#081d5d;h:1;s:7;f:13;p:2;cL:200;cPT:YzojNzgwMDEzO2g6MTtzOjEwO2Y6MzA=");
+STL(Center3,"c:#0000b2;h:1;s:4.5;f:15");
+SetCoordsStyle("isAxis:false;isGrid:true;isOx:true;isOy:true;isLockOx:false;isLockOy:false;centerZoom:false;onlyPositive:false;color:#111111;fontSize:18;axisWidth:1;gridWidth:0.1");
+SetGeneralStyle("background-color:#ffffff;degree:true;dragmoveable:true");
+
+
+// Texts :
+Text("<div style='font-size:16px;color:#CC0000;text-align:center'>Axiomatique de Bachmann\nImage d'un pinceau par $H_{uv}$\n<div style='font-size:14px;color:#0000FF;text-align:left'>\nLe pinceau $\\mathscr{P}_{ab}$  est d\u00e9fini par les droites $a=(a_1a_2)$ et $b=(b_1b_2)$. Il contient une droite $c$ d\u00e9finie par la poign\u00e9e $c_1$.\n<div style='color:#333366'>\nLe pinceau $H_{uv}(\\mathscr{P}_{ab})$ est donn\u00e9 par les droites de m\u00eame couleur. Une droite du pinceau et son image se coupent en la projection orthogonale de $O$ sur la droite initiale : $A$ sur $a$, $B$ sur $b$ et $C$ sur $c$.\n<div style='font-size:14px;color:#FF0000;text-align:left'>\nSi le pinceau image est \u00e0 centre, on nomme $C_{im}$ son centre. Le lieu de $C_{im}$, quand $v$ d\u00e9crit le cercle horizon, passe par $A, B, C$ et $O$ (pour $u \\perp v)$.\nMontrer ce lieu  <input type=checkbox target=\"LieuOK\">\n<div style='color:#996600'>\nLe lieu des centres est ferm\u00e9 si le pinceau initial est \u00e0 centre, sinon il a pour fronti\u00e8re les points ideaux de l'axe du pinceau.\n<div style='color:#006633'>\nTr\u00e9s d\u00e9sol\u00e9 pour l'artefact du lieu dans le cas du pinceau \u00e0 axe qui subsiste malgr\u00e9s diff\u00e9rentes tentatives.\n<div style='color:#3333DD'>\nAgir sur les poign\u00e9es $a_1,a_2,b_1,b_2,c_1$  mais aussi $u, v$ (tester $u \\perp v$) et $O$. Le point $b_2$ est l\u00e9g\u00e8rement aimant\u00e9 pour que le pinceau soit \"sans support\".",28,18,354,538,"c:rgba(253,130,11,0.18);s:3;r:15;p:4");
