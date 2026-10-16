@@ -3,7 +3,10 @@ const END_OF_CENTRAL_DIRECTORY = 0x06054b50;
 // Reads a single entry of a .ggb archive (a plain zip file) through the
 // central directory, whose sizes stay valid even when the local headers
 // defer them to a trailing data descriptor.
-export function readZipEntry(data: ArrayBuffer, name: string): Promise<string> {
+export async function readZipEntry(
+    data: ArrayBuffer,
+    name: string,
+): Promise<string> {
     return readZipResponse(data, name).text();
 }
 

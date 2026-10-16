@@ -87,6 +87,7 @@ figure sont seulement comptés. L'API utilisée est
 | 2026-10-15 | 238 / 438 (54 %)   | 326,8 Ko | item 31 : plans, sections et sommets des solides natifs (+0)       |
 | 2026-10-15 | 238 / 438 (54 %)   | 330,6 Ko | item 32 : cylindre, cône et sphère de rayon donné natifs (+0)      |
 | 2026-10-15 | 242 / 438 (55 %)   | 338,8 Ko | item 33 : section d'un cône, patrons des prismes et pyramides (+4) |
+| 2026-10-15 | 265 / 470 (56 %)   | 342,2 Ko | item 35 : macros, `Sequence` de cercles par un point (+2)          |
 
 ## À faire, par rapport gain / coût
 
@@ -578,6 +579,22 @@ cause.
       `Sequence` imbriqués sont triangulaires (`i, j, n` ; `j, 2, n - i`)
       ou d'images de polygones. Restent ceux-ci et `Flatten` d'un
       `Sequence` imbriqué (5 figures). Moteur +1,3 Ko (+0,5 Ko en gzip).
+
+- [x] **35. Outils personnalisés (macros) et `Sequence` de cercles par un
+      point** : `tests/ggb/Yves_06/TgtesComm_2Paraboles_parwxM.ggb` construit
+      sa seconde parabole par l'outil `Para3ptsetcoef` de son
+      `geogebra_macro.xml` : ni elle ni les tangentes communes n'étaient
+      justes. `TICE_M2_Maths_limacon_de_Pascal.ggb` trace ses cercles par
+      `Sequence(Circle[Element[LesPts, i], P], …)`, cercle de centre passant
+      par un point : rien n'était dessiné. Fait : chaque commande d'un outil
+      est remplacée, avant la traduction, par la construction de l'outil,
+      ses entrées et sorties renommées en celles de la commande, ses autres
+      objets en étiquettes neuves (`c1_{1}`) cachées ; `Circle(M, A)` dans
+      un `Sequence` se lit comme `Circle(M, Distance(M, A))`. Corpus :
+      265 figures sur 470 sans perte (+2, deux figures à macros), éléments
+      non importés 2809 → 2786 ; les macros dont une commande interne
+      n'est pas prise en charge signalent désormais celle-ci. Moteur
+      +1,5 Ko (+0,5 Ko en gzip).
 
 À écarter, sauf changement de priorité : calcul formel, courbes implicites,
 statistiques et probabilités, tableur au-delà des cellules simples, matrices.

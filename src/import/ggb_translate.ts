@@ -281,6 +281,90 @@ function indexedAttributes(element: Element | undefined): string[] {
     return values;
 }
 
+// Replaces each command of a user-defined tool (geogebra_macro.xml) by the
+// tool's construction, its inputs and outputs renamed to the command's and
+// its other objects to fresh ones, hidden as GeoGebra doesn't have them.
+function expandMacros(construction: Element, xml: string): void {
+    const macros = new Map(
+        [
+            ...new DOMParser()
+                .parseFromString(xml, "application/xml")
+                .querySelectorAll("macro"),
+        ].map((macro) => [macro.getAttribute("cmdName"), macro]),
+    );
+    const outputsOf = (node: Element): string[] =>
+        node.tagName === "command"
+            ? indexedAttributes(child(node, "output"))
+            : [node.getAttribute("label") ?? ""];
+    const used = new Set([...construction.children].flatMap(outputsOf));
+    const words = new RegExp(`"[^"]*"|${LABEL_WORDS.source}`, "gu");
+    let node = construction.firstElementChild;
+    while (node) {
+        const macro =
+            node.tagName === "command" && macros.get(node.getAttribute("name"));
+        if (!macro) {
+            node = node.nextElementSibling;
+            continue;
+        }
+        const names = new Map<string, string>();
+        const inputs = indexedAttributes(child(macro, "macroInput"));
+        const outputs = indexedAttributes(child(macro, "macroOutput"));
+        const sources = indexedAttributes(child(node, "input"));
+        const labels = indexedAttributes(child(node, "output"));
+        inputs.forEach((input, index) => {
+            const source = sources[index] ?? "";
+            names.set(
+                input,
+                LABEL.exec(source)?.[0] === source ? source : `(${source})`,
+            );
+        });
+        outputs.forEach(
+            (output, index) =>
+                labels[index] && names.set(output, labels[index]),
+        );
+        const body = [...child(macro, "construction")!.children];
+        body.flatMap(outputsOf).forEach((label) => {
+            if (names.has(label)) return;
+            let index = 1;
+            while (used.has(`${label}_{${index}}`)) index++;
+            used.add(`${label}_{${index}}`);
+            names.set(label, `${label}_{${index}}`);
+        });
+        const rename = (text: string) =>
+            text.replace(words, (word) => names.get(word) ?? word);
+        let first: Element | null = null;
+        for (const source of body) {
+            const [label] = outputsOf(source);
+            if (
+                inputs.includes(label) ||
+                (source.tagName === "element" && outputs.includes(label))
+            )
+                continue;
+            const copy = construction.ownerDocument.importNode(source, true);
+            for (const item of [copy, ...copy.querySelectorAll("*")])
+                for (const attr of item.attributes)
+                    if (
+                        ["input", "output"].includes(item.tagName) ||
+                        ["label", "exp", "showObject"].includes(attr.name)
+                    )
+                        attr.value = rename(attr.value);
+            if (copy.tagName === "element") {
+                const show =
+                    child(copy, "show") ??
+                    copy.appendChild(
+                        construction.ownerDocument.createElement("show"),
+                    );
+                show.setAttribute("object", "false");
+            }
+            construction.insertBefore(copy, node);
+            first ??= copy;
+        }
+        const next = first ?? node.nextElementSibling;
+        node.remove();
+        node = next;
+    }
+}
+
 // GeoGebra's legacy "Command[args]" syntax: square brackets never mean
 // anything else in its expressions (lists use braces).
 function normalizeBrackets(source: string): string {
@@ -749,11 +833,13 @@ export interface GgbImage {
 export function translateGgb(
     xml: string,
     images = new Map<string, GgbImage>(),
+    macros?: string,
 ): GgbTranslation {
     const document = new DOMParser().parseFromString(xml, "application/xml");
     const construction = document.querySelector("construction");
     if (document.querySelector("parsererror") || !construction)
         throw new Error("Invalid GGB XML");
+    if (macros) expandMacros(construction, macros);
 
     const calls: DgpCall[] = [];
     const targets = new Map<string, Vec3>();
@@ -2933,10 +3019,10 @@ export function translateGgb(
                 inner = nested;
                 call = commandCall(inner);
             }
-            const circle =
-                call?.[0] === "Circle" &&
-                call[1].length === 2 &&
-                !points(call[1][1]);
+            const circle = call?.[0] === "Circle" && call[1].length === 2;
+            // Circle(M, A) as Circle(M, Distance(M, A)).
+            if (circle && points(call![1][1]))
+                call![1] = [call![1][0], `Distance(${call![1]})`];
             const ends =
                 call &&
                 (circle ||

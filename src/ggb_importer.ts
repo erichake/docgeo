@@ -20,6 +20,7 @@ export function importGgb(
     c: construction,
     xml: string,
     images?: Map<string, GgbImage>,
+    macros?: string,
 ): string[] {
     const {
         calls,
@@ -31,7 +32,7 @@ export function importGgb(
         unsupported,
         is3D,
         view3D,
-    } = translateGgb(xml, images);
+    } = translateGgb(xml, images, macros);
     // First, since sliders are placed with the camera's unit.
     if (view3D) applyView3D(c, view3D);
     c.segmentsOverPolygons = true;
@@ -116,7 +117,11 @@ export async function importGgbFromBlob(
             });
         } catch {}
     }
-    return importGgb(c, xml, images);
+    // The user-defined tools, if the figure has any.
+    const macros = await readZipEntry(data, "geogebra_macro.xml").catch(
+        () => undefined,
+    );
+    return importGgb(c, xml, images, macros);
 }
 
 const IMAGE_TYPES: Record<string, string> = {

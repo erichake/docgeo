@@ -2486,6 +2486,65 @@ ${["90*°", "90°", "(540 / n)°", "180 / n * °"]
         ]);
     });
 
+    it("draws Sequences of circles through a point", () => {
+        const c = createConstruction();
+        expect(
+            importGgb(
+                c,
+                `<geogebra><construction>
+<element type="point" label="A"><coords x="0" y="0" z="1"/></element>
+<element type="point" label="P"><coords x="0" y="3" z="1"/></element>
+<expression label="L" exp="{(4, 0), (0, 1)}"/>
+<element type="list" label="L"/>
+<command name="Sequence"><input a0="Circle[Element[L, i], P]" a1="i" a2="1" a3="2"/><output a0="c"/></command>
+<element type="list" label="c"/>
+</construction></geogebra>`,
+            ),
+        ).toEqual([]);
+        const circles = c.getObj("c") as list_object;
+        expect(circles.nature).toBe("circle");
+        expect(circles.items).toEqual([
+            [[4, 0], 5],
+            [[0, 1], 2],
+        ]);
+    });
+
+    it("expands user-defined tools", () => {
+        const c = createConstruction();
+        expect(
+            importGgb(
+                c,
+                `<geogebra><construction>
+<element type="point" label="M"><coords x="5" y="5" z="1"/></element>
+<element type="point" label="P"><coords x="0" y="0" z="1"/></element>
+<element type="point" label="Q"><coords x="4" y="0" z="1"/></element>
+<command name="MidCircle"><input a0="P" a1="Q"/><output a0="c" a1="r"/></command>
+<element type="conic" label="c"/>
+<element type="numeric" label="r"/>
+</construction></geogebra>`,
+                undefined,
+                `<geogebra><macro cmdName="MidCircle">
+<macroInput a0="A" a1="B"/><macroOutput a0="k" a1="d"/>
+<construction>
+<element type="point" label="A"><coords x="0" y="0" z="1"/></element>
+<element type="point" label="B"><coords x="1" y="0" z="1"/></element>
+<command name="Midpoint"><input a0="A" a1="B"/><output a0="M"/></command>
+<element type="point" label="M"><show object="true"/></element>
+<command name="Circle"><input a0="M" a1="A"/><output a0="k"/></command>
+<element type="conic" label="k"/>
+<expression label="d" exp="Distance[A, M]"/>
+<element type="numeric" label="d"/>
+</construction></macro></geogebra>`,
+            ),
+        ).toEqual([]);
+        const center = c.getObj("M_{1}") as point_object;
+        expect(center.coords).toEqual([2, 0, 0]);
+        expect(center.hidden).toBe(1);
+        expect((c.getObj("M") as point_object).coords).toEqual([5, 5, 0]);
+        expect((c.getObj("c") as circle1_object).R).toBeCloseTo(2, 12);
+        expect((c.getObj("r") as expression_object).value).toBe(2);
+    });
+
     it("shows objects under boolean conditions, reading lengths and angles", async () => {
         const c = createConstruction();
         expect(
