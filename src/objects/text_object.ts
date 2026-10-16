@@ -78,7 +78,7 @@ export class text_object extends construction_object {
         return {
             resolveIdentifier: (name) => {
                 const ref = this.refs.get(name);
-                return ref ? ref.scriptValue(false) : null;
+                return ref ? ref.scriptValue(!this.C.GRID.is2D) : null;
             },
             view: () => this.C.formulaView(),
             callFunction: (name, args, derivatives) =>

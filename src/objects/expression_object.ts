@@ -468,7 +468,8 @@ export class expression_object extends construction_object {
         if (this.bounds) {
             const { min, max, refs } = this.bounds;
             const env: FormulaEnv = {
-                resolveIdentifier: (name) => refs.get(name)!.scriptValue(false),
+                resolveIdentifier: (name) =>
+                    refs.get(name)!.scriptValue(!this.C.GRID.is2D),
                 view: () => this.C.formulaView(),
             };
             this.min = realPart(evaluateFormula(min, env));

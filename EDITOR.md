@@ -835,9 +835,13 @@ chemin de création de l'éditeur.
 - **Dépendances** : les `refs` sont les parents ; un programme est parent
   des objets qu'il stylise (`targets`), dont le refus des cycles de la
   redéfinition doit tenir compte.
-- **Expressions en argument** : un paramètre `real` accepte une expression
-  nommée (`Cercle(O, r)`), puis une formule en ligne (`Cercle(O, 2*r)`),
-  que le `.dgo` stocke déjà pour `C1`, sans objet auxiliaire caché.
+- **Expressions en argument** (formules en ligne tranchées le
+  2026-10-16) : un paramètre `real` accepte une expression nommée
+  (`Cercle(O, r)`) ou une formule en ligne (`Cercle(O, 2*r)`), que le
+  `.dgo` stocke déjà pour `C1`, sans objet auxiliaire caché. Une formule
+  seulement, lue par `parseFormula` comme le moteur la relit : un
+  programme (instructions, `var`, boucles) passe par une expression
+  nommée.
 - **Curseur** (tranché le 2026-10-12) : une commande
   `Curseur(min, max, valeur)` (`Slider`), relue sous cette forme ; les
   bornes sont des nombres ou des expressions nommées, la valeur un nombre.
@@ -1128,7 +1132,7 @@ Fait (2026-10-11) :
   bornes (sous la piste des curseurs déjà affichés), relue par le
   catalogue, dont la relecture vérifie désormais que les arguments décodés
   sont acceptés ; un curseur à bornes calculées par formule reste en
-  lecture seule. Section « Définition » du panneau de propriétés
+  lecture seule (il a sa ligne depuis les formules en argument). Section « Définition » du panneau de propriétés
   (`formatProgram`, `syntaxLine`, `unknownMethod` dans `text.ts`). Un
   toucher sur un curseur, un texte ou une expression le sélectionne au
   lieu de créer un point. Vérifiés dans `editor.html` (création, glisser
@@ -1416,6 +1420,24 @@ Fait (2026-10-11) :
   `GGB_IMPORT.md`. Éditeur +0,6 Ko (+0,14 Ko en gzip) ; moteur +0,85 Ko
   (+0,27 Ko en gzip). Les cercles et arcs de l'espace sont en pointillés
   là où le sol ou une face les cache (même item), moteur +1,1 Ko.
+- Formules en argument (2026-10-16, section « Expressions ») : un
+  paramètre `real` (rayon d'un cercle, d'une sphère, d'un cylindre ou
+  d'un cône, angle d'une rotation, rapport d'une homothétie, demi-axe
+  d'une ellipse ou d'une hyperbole, dépliement d'un patron, bornes d'un
+  curseur) accepte une formule (`Cylindre(A, C, d(A, B))`), un argument
+  courant jusqu'à la virgule ou la `)` de l'appel. Elle est lue par
+  `parseFormula`, ses noms étant ceux des objets (`FormulaArg` dans
+  `catalog.ts`), écrite `[texte, {nom: indice}]` et relue telle quelle,
+  renommage compris ; un curseur à bornes calculées a désormais sa ligne.
+  Les fonctions de formule sont complétées en position d'un tel
+  paramètre. Une formule dont la valeur n'est pas un nombre donne un
+  objet non défini. Dans une figure 3D, le moteur évalue désormais ces
+  formules (rayons, angles, rapports, bornes de curseur), ainsi que celles
+  des textes et des angles fixes, avec les trois coordonnées des points,
+  comme les expressions : `d(A, C)` y valait 0
+  pour C à la verticale de A, ce qui faussait aussi l'import GeoGebra
+  (`Sphere(A, Distance(A, C))`). Éditeur +0,8 Ko (+0,2 Ko en gzip) ;
+  moteur +60 octets.
 
 Reste à faire :
 
@@ -1423,9 +1445,8 @@ Reste à faire :
 - Outils du moteur sans commande dans l'éditeur, à ajouter au catalogue
   puis au menu : angle fixe, intersection droite-plan.
 
-- Expressions (section du même nom) : formules en argument
-  (`Cercle(O, 2*a)`, bornes d'un curseur), ressort des curseurs, listes
-  en k (`Lst`) ; trancher `f(x) =`.
+- Expressions (section du même nom) : ressort des curseurs, listes en k
+  (`Lst`) ; trancher `f(x) =`.
 - Points sur objet et intersections au geste sur les lieux et listes ;
   choix explicite de l'intersection quand le geste est ambigu.
 - 3D : points libres dans le plan de l'écran des figures DGPad (`f2`) et

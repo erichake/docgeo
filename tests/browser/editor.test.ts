@@ -80,6 +80,7 @@ import type { point_object } from "../../src/objects/point_object";
 import type { circle1_object } from "../../src/objects/circle1_object";
 import type { equation_circle_object } from "../../src/objects/equation_circle_object";
 import type { polyhedron_object } from "../../src/objects/polyhedron_object";
+import type { sphere_object } from "../../src/objects/sphere_object";
 import type { net_object } from "../../src/objects/net_object";
 import type { cylinder_section_object } from "../../src/objects/cylinder_section_object";
 import type { polygon_object } from "../../src/objects/polygon_object";
@@ -768,6 +769,47 @@ describe("Editor", () => {
         );
     });
 
+    it("reads a formula where a command takes a number", async () => {
+        const { scene: c } = studio(true);
+        const text = [
+            "A = (0, 0, 0)",
+            "B = (3, 4, 0)",
+            "C = (0, 0, 4)",
+            "a = 2",
+            "b = Cylinder(A, C, d(A, B))",
+            "c = Sphere(B, a/2 + 1)",
+            "D = Dilation(B, A, -a)",
+            "e = Slider(0, 2*a, 1)",
+            "f = Sphere(C, d(A, C)/4)",
+            "g = Slider(0, d(A, C), 1)",
+        ];
+        text.forEach((line) => type(c, line));
+        c.flush();
+        expect(lines(c)).toEqual(text);
+        const index = figureIndex(c);
+        expect(entryOf(c.getObj("b")!, index)).toEqual([
+            "Cyl",
+            [0, 2, ["d(A, B)", { A: 0, B: 1 }]],
+        ]);
+        expect((c.getObj("c") as sphere_object).R).toBe(2);
+        expectClose((c.getObj("D") as point_object).coords, [-6, -8, 0]);
+        expect((c.getObj("e") as expression_object).max).toBe(4);
+        // In space, a formula reads the points' three coordinates.
+        expect((c.getObj("f") as sphere_object).R).toBe(1);
+        expect((c.getObj("g") as expression_object).max).toBe(4);
+        const other = createConstruction([800, 600]);
+        readDgo(other, await describeDgo(c));
+        expect(lines(other)).toEqual(text);
+        for (const [line, key, detail] of [
+            ["h = Cylinder(A, C, d(A, Z))", "unknown_object", "Z"],
+            ["h = Cylinder(A, C, 1 +)", "syntax", "1 +"],
+            ["F = Midpoint(A, 1 + 2)", "arguments", "Midpoint"],
+        ])
+            expect(() => resolve(c, parseLine(line, isCommand)), line).toThrow(
+                expect.objectContaining({ key, detail }),
+            );
+    });
+
     it("makes sliders, read back as such", async () => {
         const studied = studio();
         const c = studied.scene;
@@ -823,13 +865,13 @@ describe("Editor", () => {
             ),
         );
         expect(lines(studied.scene)[1]).toBe("b = Slider(0, 5, 1)");
-        // Bounds that are formulas have no line yet.
+        // Bounds that are formulas.
         const bounded = await describeDgo(studied.scene);
         Object.assign((bounded.o[1] as unknown[])[2] as object, {
             mx: ["2*a", { a: 0 }],
         });
         rebuild(studied, bounded);
-        expect(lines(studied.scene)[1]).toBeNull();
+        expect(lines(studied.scene)[1]).toBe("b = Slider(0, 2*a, 1)");
     });
 
     it("draws the points of an expression's value as a list", async () => {

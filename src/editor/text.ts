@@ -7,8 +7,10 @@ import { FormulaLexer, METHOD_ARITY, type Token } from "../import/dgp_formula";
 // circle or a conic of its equation. A closed grammar, the formulas' own,
 // never evaluated.
 
-export type ArgText =
+type Operand =
     { kind: "name"; name: string } | { kind: "number"; value: number };
+
+export type ArgText = Operand | { kind: "formula"; source: string };
 
 export type Definition =
     | { kind: "point"; coords: number[] }
@@ -216,13 +218,27 @@ export function parseLine(
         return { kind: "call", command, args };
     }
 
+    // Up to a comma or the call's ")".
     function argument(): ArgText {
-        const token = next();
-        if (token.type === "identifier")
-            return { kind: "name", name: token.value as string };
-        const value = signed(token.type === "-" ? [token, next()] : [token]);
-        if (value === null) throw new TextError("expected", describe(token));
-        return { kind: "number", value };
+        const start = position;
+        let depth = 0;
+        for (
+            let type = peek()?.type;
+            type && type !== "eof" && (depth || (type !== "," && type !== ")"));
+            type = peek()?.type
+        ) {
+            if (type === "(" || type === "[" || type === "{") depth++;
+            else if (type === ")" || type === "]" || type === "}") depth--;
+            position++;
+        }
+        const arg = tokens.slice(start, position);
+        if (!arg.length) throw new TextError("expected", describe(next()));
+        if (arg.length === 1 && arg[0].type === "identifier")
+            return { kind: "name", name: arg[0].value as string };
+        const value = signed(arg);
+        return value === null
+            ? { kind: "formula", source: between(start - 1, position) }
+            : { kind: "number", value };
     }
 
     // Two or three numbers between brackets, and nothing after.
@@ -408,7 +424,7 @@ export type ArgumentCompletion = {
     kind: "argument";
     command: string;
     position: number;
-    args: (ArgText | undefined)[];
+    args: (Operand | undefined)[];
     prefix: string;
 };
 

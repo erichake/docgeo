@@ -91,14 +91,35 @@ describe("Editor text", () => {
         expect(pointFormulaText("[a, b][0]")).toBe("Point([a, b][0])");
     });
 
+    it("reads a formula in an argument", () => {
+        expect(read("c = Cercle(A, d(A, `B 1`) / 2)")).toEqual({
+            name: "c",
+            definition: {
+                kind: "call",
+                command: "Cercle",
+                args: [
+                    { kind: "name", name: "A" },
+                    { kind: "formula", source: "d(A, `B 1`) / 2" },
+                ],
+            },
+        });
+        expect(read("Cercle(A, -a, [1, 2][0])").definition).toMatchObject({
+            args: [
+                { kind: "name", name: "A" },
+                { kind: "formula", source: "-a" },
+                { kind: "formula", source: "[1, 2][0]" },
+            ],
+        });
+    });
+
     it("rejects what the grammar doesn't read", () => {
         for (const text of [
             "",
             "A = (1, 2, 3, 4)",
             "A = Milieu(B, C",
-            "A = Milieu(B C)",
+            "A = Milieu(B, , C)",
             "A = Milieu(B, C) D",
-            "A = Milieu(B, 1 + 2)",
+            "A = Milieu(B, (C)",
             "A = Milieu(B, @)",
         ])
             expect(() => read(text), text).toThrow(TextError);

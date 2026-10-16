@@ -43,7 +43,9 @@ import {
     COMMANDS,
     decodeEntry,
     findCommand,
+    FormulaArg,
     overloadFor,
+    argObjects,
     type Arg,
     type Overload,
 } from "./catalog";
@@ -168,7 +170,11 @@ export const entryOf = (
     });
 
 export const formatArg = (arg: Arg): string =>
-    typeof arg === "number" ? formatNumber(arg) : formatName(arg.name);
+    typeof arg === "number"
+        ? formatNumber(arg)
+        : arg instanceof FormulaArg
+          ? oneLine(renamed(arg.source, arg.refs))
+          : formatName(arg.name);
 
 const formatValue = (value: unknown): string =>
     typeof value === "number"
@@ -281,6 +287,7 @@ export function resolve(
         if (!command) throw new TextError("unknown_command", call.command);
         args = call.args.map((arg) => {
             if (arg.kind === "number") return arg.value;
+            if (arg.kind === "formula") return formulaArg(c, arg.source);
             const object = c.getObj(arg.name);
             if (!object || !own.has(object))
                 throw new TextError("unknown_object", arg.name);
@@ -335,10 +342,7 @@ export function resolve(
                 c,
                 target,
                 (index) => encode(values, index) as object,
-                values.filter(
-                    (arg): arg is construction_object =>
-                        typeof arg !== "number",
-                ),
+                argObjects(values),
             ));
         }
     }
@@ -479,6 +483,31 @@ function formulaPoint(
         },
         args: [...named.values()],
     };
+}
+
+// A number computed by a formula, read in an argument.
+function formulaArg(c: construction, source: string): FormulaArg {
+    const own = new Map(
+        figureObjects(c).map((object) => [object.name, object]),
+    );
+    let names: Set<string>;
+    try {
+        names = formulaIdentifiers(
+            withObjects(new Set(own.keys()), () => parseFormula(source)),
+        );
+    } catch {
+        throw new TextError("syntax", source);
+    }
+    return new FormulaArg(
+        source,
+        new Map(
+            [...names].map((name) => {
+                const object = own.get(name);
+                if (!object) throw new TextError("unknown_object", name);
+                return [name, object];
+            }),
+        ),
+    );
 }
 
 const EQUATIONS = ["EqL", "EqC", "EqQ", "PlE"];
@@ -796,9 +825,7 @@ export async function redefine(
     { name, overload, args }: Spec,
 ): Promise<void> {
     const c = studio.scene;
-    const parents = args.filter(
-        (arg): arg is construction_object => typeof arg !== "number",
-    );
+    const parents = argObjects(args);
     const objects = figureObjects(c);
     // Each object's entry naming only earlier ones, one pass finds those
     // that name it, directly or not.

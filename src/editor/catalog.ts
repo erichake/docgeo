@@ -74,7 +74,25 @@ export type Param =
     | "path"
     | "outline";
 
-export type Arg = construction_object | number;
+// A number given by a formula, its names designating these objects.
+export class FormulaArg {
+    constructor(
+        readonly source: string,
+        readonly refs: ReadonlyMap<string, construction_object>,
+    ) {}
+}
+
+export type Arg = construction_object | number | FormulaArg;
+
+// The objects the arguments name, those their formulas read included.
+export const argObjects = (args: Arg[]): construction_object[] =>
+    args.flatMap((arg) =>
+        typeof arg === "number"
+            ? []
+            : arg instanceof FormulaArg
+              ? [...arg.refs.values()]
+              : [arg],
+    );
 
 export interface Overload {
     params: Param[];
@@ -122,6 +140,7 @@ export function kindOf(object: construction_object): Kind {
 
 export function accepts(arg: Arg, param: Param): boolean {
     if (typeof arg === "number") return param === "number" || param === "real";
+    if (arg instanceof FormulaArg) return param === "real";
     const kind = kindOf(arg);
     switch (param) {
         case "number":
@@ -232,30 +251,50 @@ function ofSegment(tag: string): Overload {
 }
 
 // An expression, a formula of its name alone.
-const realParameter = (
+function realParameter(
     arg: Arg,
     index: (object: construction_object) => number,
-): unknown =>
-    typeof arg === "number"
-        ? arg
-        : [formatName(arg.name), { [arg.name]: index(arg) }];
+): unknown {
+    if (typeof arg === "number") return arg;
+    if (!(arg instanceof FormulaArg))
+        return [formatName(arg.name), { [arg.name]: index(arg) }];
+    const { source, refs } = arg;
+    return refs.size
+        ? [
+              source,
+              Object.fromEntries(
+                  [...refs].map(([name, object]) => [name, index(object)]),
+              ),
+          ]
+        : source;
+}
 
 // A number, also written as a formula, or an object read by name.
-function realArgument(
-    parameter: unknown,
-    at: (index: number) => Arg,
-): Arg | null {
+function realArgument(parameter: unknown, at: (index: number) => Arg): Arg {
     if (typeof parameter === "number") return parameter;
     if (typeof parameter === "string")
-        return STYLE_NUMBER.test(parameter) ? Number(parameter) : null;
+        return STYLE_NUMBER.test(parameter)
+            ? Number(parameter)
+            : new FormulaArg(parameter, new Map());
     const [source, refs] = parameter as [string, Record<string, number>];
     const [name, ...others] = Object.keys(refs);
     return !others.length && source === formatName(name)
         ? at(refs[name])
-        : null;
+        : new FormulaArg(
+              source,
+              new Map(
+                  Object.entries(refs).map(([ref, index]) => [
+                      ref,
+                      at(index) as construction_object,
+                  ]),
+              ),
+          );
 }
 
-const isLine = (arg: Arg) => typeof arg !== "number" && kindOf(arg) === "line";
+const isLine = (arg: Arg) =>
+    typeof arg !== "number" &&
+    !(arg instanceof FormulaArg) &&
+    kindOf(arg) === "line";
 
 // The intersection of rank n, from 1, not of two lines.
 const numbered = (params: Param[]): Overload => ({
@@ -291,14 +330,13 @@ function withReal(tag: string, params: Param[], order?: number[]): Overload {
                 parameters.length !== params.length + 1
             )
                 return null;
-            const arg = realArgument(parameters[params.length], at);
             const objects = parameters.slice(0, -1);
-            if (!objects.every(isIndex) || arg === null) return null;
+            if (!objects.every(isIndex)) return null;
             const args: Arg[] = [];
             positions.forEach(
                 (position, k) => (args[position] = at(objects[k])),
             );
-            return [...args, arg];
+            return [...args, realArgument(parameters[params.length], at)];
         },
     };
 }
@@ -437,11 +475,13 @@ export const COMMANDS: Command[] = [
                 ],
                 decode: (parameters, at) => {
                     const [center, r, axis] = parameters as unknown[];
-                    const radius =
-                        axis === undefined ? null : realArgument(r, at);
-                    return radius === null
+                    return axis === undefined
                         ? null
-                        : [at(center as number), radius, at(axis as number)];
+                        : [
+                              at(center as number),
+                              realArgument(r, at),
+                              at(axis as number),
+                          ];
                 },
             },
             objects("CAx", ["line", "point"]),
@@ -729,12 +769,7 @@ export const COMMANDS: Command[] = [
                         mx === undefined
                     )
                         return null;
-                    const bounds = [mn, mx].map((bound) =>
-                        realArgument(bound, at),
-                    );
-                    return bounds.includes(null)
-                        ? null
-                        : [...(bounds as Arg[]), v];
+                    return [realArgument(mn, at), realArgument(mx, at), v];
                 },
             },
         ],

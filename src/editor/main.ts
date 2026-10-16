@@ -1276,11 +1276,14 @@ function updateCompletion(field: HTMLInputElement): void {
         context?.kind === "argument" ? findCommand(context.command) : undefined;
     const prefix = context?.prefix ?? "";
     let candidates: construction_object[] = [];
+    // A formula's functions, where it can be written.
+    let functions = !call || !!call.formula;
     if (call) {
         const { position } = context as ArgumentCompletion;
         const params = overloadsAt(context as ArgumentCompletion).map(
             (overload) => paramAt(overload, position)!,
         );
+        functions ||= params.includes("real");
         candidates = figureObjects(scene()).filter((object) =>
             params.some((param) => accepts(object, param)),
         );
@@ -1302,7 +1305,7 @@ function updateCompletion(field: HTMLInputElement): void {
     if (prefix) {
         if (context!.kind === "command")
             completions.push(...calls(commandsStarting(prefix)));
-        if (!call || call.formula)
+        if (functions)
             completions.push(...calls(commandsStarting(prefix, FUNCTIONS)));
     }
     showAccepted(candidates);

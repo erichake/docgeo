@@ -470,6 +470,28 @@ describe(".dgo region", () => {
 });
 
 describe(".dgo reader", () => {
+    it("reads the three coordinates of points in a 3D figure's formulas", () => {
+        const c = createConstruction();
+        readDgo(c, {
+            dgo: 1,
+            v: { o: [400, 300], u: 40, w: 800, h: 600, "3d": 1 },
+            o: [
+                ["Pt", "A", [1, 2, 0]],
+                ["Pt", "C", [1, 2, 4]],
+                ["Pt", "O", [0, 0, 0]],
+                ["Sph1", "s", [0, ["d(A, C)/2", { A: 0, C: 1 }]]],
+                ["Txt", "t", [0, [0, 0], ["d = %d(A, C)%", { A: 0, C: 1 }]]],
+                ["FA", "f", [0, 2, ["10*d(A, C)", { A: 0, C: 1 }], 1]],
+            ],
+        });
+        c.flush();
+        const value = (name: string, key: string) =>
+            (c.getObj(name) as unknown as Record<string, unknown>)[key];
+        expect(value("s", "R")).toBe(2);
+        expect(value("t", "content")).toBe("d = 4");
+        expect(value("f", "valueDegrees")).toBe(40);
+    });
+
     it("reads plain JSON as well as gzip", async () => {
         const c = createConstruction();
         const figure = {
