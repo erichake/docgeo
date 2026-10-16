@@ -396,7 +396,9 @@ export class construction {
         this.bindSceneEvents(this.svg);
         $("body").add(
             this.svg
-                .stl("position:absolute;border:0")
+                .stl(
+                    "position:absolute;border:0;user-select:none;-webkit-user-select:none",
+                )
                 // Until its figure is built (see reveal), rather than the
                 // default scene, 3D floor included, flashing before it.
                 .stl("visibility", "hidden")
