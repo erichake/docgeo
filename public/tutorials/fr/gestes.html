@@ -1,0 +1,197 @@
+<!doctype html>
+<html lang="fr">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <title>Construire au geste — Manuel DocGeo</title>
+        <link rel="icon" type="image/svg+xml" href="../../favicon.svg" />
+        <link rel="stylesheet" href="manual.css" />
+        <script src="icons.js" defer></script>
+        <script src="manual.js" defer></script>
+    </head>
+    <body>
+        <main>
+            <h1>Construire au geste</h1>
+
+            <h2>Toucher la figure</h2>
+            <div class="table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Endroit touché</th>
+                            <th>Résultat</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>le vide</td>
+                            <td>
+                                point libre (sur le sol <em>z</em> = 0 en 3D)
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>près d’un croisement</td>
+                            <td>
+                                intersection des deux objets, qui brillent au
+                                survol (à moins de 24 px)
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>un objet</td>
+                            <td>sélection et anneau de ses outils</td>
+                        </tr>
+                        <tr>
+                            <td>le vide, anneau ouvert</td>
+                            <td>fermeture de l’anneau, sans créer de point</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <p>
+                Un texte, une expression ou un curseur sont seulement
+                sélectionnés : ils n’ont pas d’anneau.
+            </p>
+
+            <h2>L’anneau d’outils</h2>
+            <figure>
+                <img
+                    src="img/editeur-anneau.webp"
+                    alt="Anneau d’outils autour du point C, outil Segment survolé"
+                    width="880"
+                    height="720"
+                />
+                <figcaption>
+                    Anneau du point C ; la consigne montre la ligne de l’outil
+                    survolé.
+                </figcaption>
+            </figure>
+            <p>
+                L’anneau ne montre que les outils applicables à l’objet touché.
+                Chaque outil occupe toujours la même place ; un outil
+                inapplicable laisse sa place vide. Familles, dans le sens
+                horaire depuis le haut :
+            </p>
+            <div class="table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Famille</th>
+                            <th>Outils</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><i data-t="Point"></i> Points</td>
+                            <td>
+                                point sur objet, intersection, milieu ou centre
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><i data-t="Segment"></i> Droites</td>
+                            <td>segment, droite, demi-droite, vecteur</td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <i data-t="Perpendiculaire"></i> Constructions
+                            </td>
+                            <td>
+                                perpendiculaire, parallèle, médiatrice,
+                                bissectrice
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <i data-t="Cercle (centre et point)"></i>
+                                Cercles
+                            </td>
+                            <td>
+                                centre et point, centre et rayon, trois points,
+                                sphère (3D)
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <i data-t="Polygone"></i> Polygones, angles,
+                                lieux
+                            </td>
+                            <td>polygone, angle, lieu</td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <i data-t="Symétrie centrale"></i>
+                                Transformations
+                            </td>
+                            <td>symétries centrale et axiale</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <p>
+                Survoler un outil affiche dans la consigne la ligne qu’il écrira
+                et l’argument attendu : <code>b = Segment(C, …)</code>, «
+                Désignez un point ». Les actions sur l’objet lui-même
+                (supprimer, régler…) sont dans la
+                <a href="objets.html#la-zone-contextuelle">zone contextuelle</a>
+                de la barre.
+            </p>
+
+            <h2>Désigner les arguments</h2>
+            <p>
+                L’outil choisi, un aperçu de l’objet suit le pointeur et les
+                objets acceptés brillent au survol. Là où un point est attendu,
+                on désigne au choix un point existant, un objet (point sur objet
+                créé), un croisement (intersection créée) ou le vide (point
+                libre créé).
+            </p>
+            <ul>
+                <li>
+                    <i data-t="Polygone"></i> Polygone : les sommets, puis de
+                    nouveau le premier.
+                </li>
+                <li>
+                    <i data-t="Cercle (centre et rayon)"></i> Cercle (centre et
+                    rayon) : créé d’un clic, rayon d’environ 150 px arrondi à
+                    deux chiffres ; glisser le cercle change le rayon.
+                </li>
+                <li>
+                    <i data-t="Lieu"></i> Lieu : proposé sur un point qui dépend
+                    d’un point sur objet ; créé d’un clic.
+                </li>
+                <li>
+                    <i data-t="Angle"></i> Angle et
+                    <i data-t="Bissectrice"></i> bissectrice : un point du
+                    premier côté, le sommet, un point du second côté.
+                </li>
+            </ul>
+
+            <h2>Cas particuliers</h2>
+            <ul>
+                <li>
+                    <strong>Objets superposés</strong> : un menu donne la ligne
+                    de chacun ; son survol fait briller l’objet. Un point
+                    l’emporte toujours, et un croisement donne directement
+                    l’intersection.
+                </li>
+                <li>
+                    <strong>Au doigt</strong> : pendant un outil, le doigt
+                    appuyé montre l’aperçu sans rien déplacer et désigne au
+                    lever. On peut appuyer sur l’icône et glisser jusqu’à la
+                    cible d’un seul geste.
+                </li>
+                <li>
+                    <strong>Bord de la fenêtre</strong> : l’anneau se décale
+                    pour tenir entier, relié à l’objet par un pointillé ; il
+                    suit l’objet si la figure bouge.
+                </li>
+                <li>
+                    <strong>Abandonner</strong> : <kbd>Échap</kbd> ou
+                    <strong>✕</strong> de la consigne.
+                </li>
+                <li>
+                    <strong>Déplacer</strong> : pendant un outil, glisser vise ;
+                    le bouton droit déplace toujours objets et vue.
+                </li>
+            </ul>
+        </main>
+    </body>
+</html>

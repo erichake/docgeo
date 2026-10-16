@@ -1,0 +1,204 @@
+<!doctype html>
+<html lang="fr">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <title>L’interface — Manuel DocGeo</title>
+        <link rel="icon" type="image/svg+xml" href="../../favicon.svg" />
+        <link rel="stylesheet" href="manual.css" />
+        <script src="icons.js" defer></script>
+        <script src="manual.js" defer></script>
+    </head>
+    <body>
+        <main>
+            <h1>L’interface</h1>
+
+            <figure>
+                <img
+                    src="img/editeur-interface.webp"
+                    alt="L’éditeur : barre d’actions, panneau Construction et figure"
+                    width="1200"
+                    height="720"
+                />
+            </figure>
+
+            <h2>La barre d’actions</h2>
+            <div class="table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th></th>
+                            <th>Bouton</th>
+                            <th>Rôle</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><i data-i="open"></i></td>
+                            <td>Ouvrir</td>
+                            <td>
+                                <code>.dgo</code>, <code>.dgp</code>,
+                                <code>.ggb</code>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><i data-i="save"></i></td>
+                            <td>Enregistrer</td>
+                            <td>en <code>.dgo</code></td>
+                        </tr>
+                        <tr>
+                            <td><i data-i="eraser"></i></td>
+                            <td>Gomme</td>
+                            <td>
+                                cacher ou montrer des objets (<a
+                                    href="objets.html#la-gomme"
+                                    >gomme</a
+                                >)
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><i data-i="axes"></i></td>
+                            <td>Repère</td>
+                            <td>axes et grille ; en 3D, trièdre et sol</td>
+                        </tr>
+                        <tr>
+                            <td><i data-i="space"></i></td>
+                            <td>Vue 3D</td>
+                            <td>
+                                passer dans l’espace ou revenir au plan (<a
+                                    href="3d.html"
+                                    >3D</a
+                                >)
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><i data-i="properties"></i></td>
+                            <td>Propriétés</td>
+                            <td>
+                                panneau de droite (<a href="proprietes.html"
+                                    >propriétés</a
+                                >)
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><i data-i="history"></i></td>
+                            <td>Construction</td>
+                            <td>panneau de gauche</td>
+                        </tr>
+                        <tr>
+                            <td><i data-i="undo"></i> <i data-i="redo"></i></td>
+                            <td>Annuler, Refaire</td>
+                            <td>
+                                <kbd>Ctrl</kbd> <kbd>Z</kbd>, <kbd>Ctrl</kbd>
+                                <kbd>Maj</kbd> <kbd>Z</kbd> ou <kbd>Ctrl</kbd>
+                                <kbd>Y</kbd>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <p>
+                Au centre, la
+                <a href="objets.html#la-zone-contextuelle">zone contextuelle</a>
+                donne le nom et les actions de l’objet sélectionné.
+            </p>
+
+            <h2>Le panneau « Construction »</h2>
+            <ul>
+                <li>
+                    Une ligne par objet, dans l’ordre de construction :
+                    <code>M = Milieu(A, B)</code>. Chaque ligne se modifie (<a
+                        href="saisie.html#modifier-une-ligne"
+                        >redéfinition</a
+                    >).
+                </li>
+                <li>
+                    La pastille de début de ligne cache ou montre l’objet ;
+                    <i data-i="show_name"></i> en fin de ligne affiche son nom.
+                </li>
+                <li>
+                    En-tête : nombre d’objets, <i data-i="show_values"></i>
+                    <a href="objets.html#les-valeurs">valeurs</a>,
+                    <i data-i="steps"></i>
+                    <a href="objets.html#la-construction-pas-a-pas">pas à pas</a
+                    >, <i data-i="new_program"></i>
+                    <a href="expressions.html#les-programmes"
+                        >nouveau programme</a
+                    >.
+                </li>
+                <li>
+                    Ligne de saisie « Saisie… » et bouton
+                    <i data-i="tools"></i> du
+                    <a href="menu-outils.html">menu des outils</a>.
+                </li>
+                <li>
+                    Survoler une ligne fait briller l’objet, et inversement.
+                </li>
+            </ul>
+
+            <h2>La consigne</h2>
+            <p>
+                La bulle au bas de la figure indique ce qui est attendu («
+                Désignez un point »), la ligne que l’outil va écrire, et les
+                erreurs en rouge. Sa croix <strong>✕</strong> abandonne l’outil
+                en cours.
+            </p>
+
+            <h2>Naviguer</h2>
+            <div class="table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Action</th>
+                            <th>Geste</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Déplacer la vue</td>
+                            <td>glisser le vide ; bouton droit n’importe où</td>
+                        </tr>
+                        <tr>
+                            <td>Zoomer</td>
+                            <td>molette ou pavé tactile, autour du pointeur</td>
+                        </tr>
+                        <tr>
+                            <td>Tourner une figure 3D</td>
+                            <td>bouton droit, ou un doigt dans le vide</td>
+                        </tr>
+                        <tr>
+                            <td>Perspective, sol (3D)</td>
+                            <td><kbd>P</kbd>, <kbd>S</kbd></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <p>
+                Le bouton rond en bas à gauche, présent quand la figure contient
+                des animations, les met en pause ou les relance.
+            </p>
+
+            <h2>Annuler</h2>
+            <p>
+                Toute modification est une étape d’une pile unique :
+                construction, suppression, déplacement, style, réglage du
+                repère, passage en 3D. Le zoom, le déplacement et la rotation de
+                la vue n’en sont pas.
+            </p>
+
+            <h2>Les panneaux</h2>
+            <ul>
+                <li>
+                    Leur bord intérieur se tire pour les redimensionner ; un
+                    double-clic rend la largeur par défaut.
+                </li>
+                <li>
+                    Sous 900 px de large, un seul panneau est ouvert à la fois ;
+                    à 600 px et moins, le panneau « Construction » démarre fermé
+                    et les propriétés recouvrent la figure, et choisir un outil
+                    referme les panneaux.
+                </li>
+            </ul>
+        </main>
+    </body>
+</html>

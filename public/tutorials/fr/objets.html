@@ -1,0 +1,212 @@
+<!doctype html>
+<html lang="fr">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <title>Gérer les objets — Manuel DocGeo</title>
+        <link rel="icon" type="image/svg+xml" href="../../favicon.svg" />
+        <link rel="stylesheet" href="manual.css" />
+        <script src="icons.js" defer></script>
+        <script src="manual.js" defer></script>
+    </head>
+    <body>
+        <main>
+            <h1>Gérer les objets</h1>
+
+            <h2 id="la-zone-contextuelle">Sélection et zone contextuelle</h2>
+            <p>
+                Toucher un objet le sélectionne ; la zone contextuelle, au
+                centre de la barre, montre son nom et ses actions. Survoler une
+                action affiche son effet dans la consigne. <kbd>Échap</kbd> ou
+                un toucher dans le vide désélectionnent.
+            </p>
+            <div class="table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th></th>
+                            <th>Action</th>
+                            <th>Objets</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><i data-i="delete"></i></td>
+                            <td>Supprimer, avec les dépendants</td>
+                            <td>tous</td>
+                        </tr>
+                        <tr>
+                            <td><i data-i="settings"></i></td>
+                            <td>Réglages : panneau de propriétés</td>
+                            <td>tous</td>
+                        </tr>
+                        <tr>
+                            <td><i data-i="spring"></i></td>
+                            <td>
+                                <a href="points-dynamiques.html#ressort"
+                                    >Animer</a
+                                >
+                                au ressort
+                            </td>
+                            <td>point sur objet</td>
+                        </tr>
+                        <tr>
+                            <td><i data-i="pin"></i></td>
+                            <td>
+                                <a href="points-dynamiques.html#punaise"
+                                    >Épingler à l’écran</a
+                                >
+                            </td>
+                            <td>point libre, figure plane</td>
+                        </tr>
+                        <tr>
+                            <td><i data-i="magnet"></i></td>
+                            <td>
+                                <a href="points-dynamiques.html#aimants"
+                                    >Aimants</a
+                                >
+                            </td>
+                            <td>point libre</td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <i data-i="formula_point"></i>
+                                <i data-i="points_list"></i>
+                                <i data-i="segments_list"></i>
+                            </td>
+                            <td>Point, Liste de points, Liste de segments</td>
+                            <td>expression de valeur point ou liste</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <h2 id="selectionner-plusieurs-objets">Sélection multiple</h2>
+            <p>
+                <kbd>Ctrl</kbd>-clic, <kbd>Maj</kbd>-clic ou appui long (0,7 s)
+                ajoutent ou retirent un objet ; chacun brille en bleu avec son
+                rang. La barre propose alors Supprimer et Réglages (<a
+                    href="proprietes.html#regler-plusieurs-objets"
+                    >réglages communs</a
+                >), et le menu des outils
+                <a href="menu-outils.html#avec-une-selection"
+                    >prend la sélection comme arguments</a
+                >. Un toucher simple, <kbd>Échap</kbd>, un outil, la gomme,
+                annuler ou refaire la vident.
+            </p>
+
+            <h2 id="supprimer">Supprimer</h2>
+            <p>
+                <i data-i="delete"></i>, <kbd>Suppr</kbd> ou <kbd>⌫</kbd>, ou la
+                ligne <code>A =</code>. Les dépendants sont supprimés aussi :
+                pour les garder, cacher l’objet plutôt.
+            </p>
+
+            <h2>Cacher et montrer</h2>
+            <ul>
+                <li>
+                    La pastille d’une ligne du panneau « Construction » est
+                    pleine si l’objet est visible, vide s’il est caché ; la
+                    toucher bascule.
+                </li>
+                <li id="la-gomme">
+                    <i data-i="eraser"></i> <strong>Gomme</strong> : chaque
+                    toucher cache ou montre un objet ; les objets cachés
+                    apparaissent en fantômes. Ni anneau ni création de point ;
+                    le glisser déplace toujours. <kbd>Échap</kbd> ou le bouton
+                    en sortent.
+                </li>
+                <li>
+                    Propriétés : case <strong>Objet visible</strong> ; la liste
+                    « Choisir un objet… » retrouve les objets cachés.
+                </li>
+                <li>
+                    Les objets internes des macros DGPad et les objets
+                    auxiliaires de GeoGebra n’ont ni pastille ni fantôme.
+                </li>
+            </ul>
+
+            <h2>Noms</h2>
+            <ul>
+                <li>
+                    Seuls les points ont un nom affiché à leur création.
+                    <i data-i="show_name"></i> en fin de ligne, ou
+                    <strong>Afficher le nom</strong> dans les propriétés,
+                    l’affiche pour les autres objets.
+                </li>
+                <li>
+                    Un nom se glisse autour de son objet (à 80 px au plus d’un
+                    point) et garde ensuite sa place relative quand l’objet
+                    change.
+                </li>
+                <li>
+                    Toucher un nom sans le glisser le rend modifiable sur place
+                    : <kbd>Entrée</kbd> ou un toucher ailleurs valident,
+                    <kbd>Échap</kbd> annule, <i data-i="hide_name"></i> le
+                    masque. Un nom vide ou pris est refusé.
+                </li>
+            </ul>
+
+            <h2>Marques d’angles</h2>
+            <p>
+                L’arc d’un angle, ou sa marque d’angle droit, se glisse pour
+                changer son rayon (5 à 200 px).
+            </p>
+
+            <h2 id="les-valeurs">Valeurs</h2>
+            <p>
+                <i data-i="show_values"></i> écrit sous chaque ligne la valeur
+                de l’objet dans une formule : coordonnées, longueur, rayon,
+                aire, mesure d’angle en degrés, valeur d’expression. Les valeurs
+                suivent les déplacements.
+            </p>
+
+            <h2 id="la-construction-pas-a-pas">Construction pas à pas</h2>
+            <p>
+                <i data-i="steps"></i> rejoue la construction : chaque objet
+                visible est une étape, un objet caché rejoint l’étape
+                précédente. Une barre remplace la saisie :
+            </p>
+            <div class="table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Bouton</th>
+                            <th>Touche</th>
+                            <th>Effet</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>
+                                <i data-i="first_step"></i>
+                                <i data-i="last_step"></i>
+                            </td>
+                            <td><kbd>Début</kbd> <kbd>Fin</kbd></td>
+                            <td>première, dernière étape</td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <i data-i="previous_step"></i>
+                                <i data-i="next_step"></i>
+                            </td>
+                            <td><kbd>←</kbd> <kbd>→</kbd></td>
+                            <td>étape précédente, suivante</td>
+                        </tr>
+                        <tr>
+                            <td><i data-i="play_steps"></i></td>
+                            <td></td>
+                            <td>lecture, une étape par seconde</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <p>
+                Toucher une ligne va à son étape. Les points restent
+                déplaçables, rien ne se construit. <kbd>Échap</kbd>, le bouton,
+                un outil, la gomme, les propriétés ou annuler en sortent. La
+                figure enregistrée n’est pas affectée.
+            </p>
+        </main>
+    </body>
+</html>

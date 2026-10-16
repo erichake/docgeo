@@ -1,0 +1,154 @@
+<!doctype html>
+<html lang="fr">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <title>Expressions et curseurs — Manuel DocGeo</title>
+        <link rel="icon" type="image/svg+xml" href="../../favicon.svg" />
+        <link rel="stylesheet" href="manual.css" />
+        <script src="icons.js" defer></script>
+        <script src="manual.js" defer></script>
+    </head>
+    <body>
+        <main>
+            <h1>Expressions et curseurs</h1>
+
+            <h2>Expressions</h2>
+            <p>
+                Toute ligne qui n’est ni un point ni une commande crée une
+                expression, affichée en haut à gauche avec deux décimales. Sa
+                nature se déduit du texte :
+            </p>
+            <div class="table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Ligne</th>
+                            <th>Nature</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>
+                                <code>a = 3</code>,
+                                <code>liste = [1, 2, 3]</code>
+                            </td>
+                            <td>constante</td>
+                        </tr>
+                        <tr>
+                            <td><code>t = "Bonjour"</code></td>
+                            <td>texte</td>
+                        </tr>
+                        <tr>
+                            <td><code>f = 0.5x^2 - 4</code></td>
+                            <td>
+                                fonction de x (y, z, t) ;
+                                <code>f(2)</code> l’appelle
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><code>E = d(A, B)</code></td>
+                            <td>mesure, recalculée quand la figure bouge</td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <code
+                                    >u = "AB = " + round(d(A, B)*100)/100</code
+                                >
+                            </td>
+                            <td>texte calculé</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <p>
+                Dans une formule, un point vaut ses coordonnées, un segment sa
+                longueur, un cercle son rayon, un polygone son aire, un angle sa
+                mesure. Syntaxe complète :
+                <a href="formules.html">Formules et programmes</a>.
+            </p>
+            <p>
+                Une expression se déplace en glissant son texte ; attachée à un
+                point, elle le suit. La toucher la sélectionne, ou écrit son nom
+                pendant une saisie.
+            </p>
+
+            <h2>Curseurs</h2>
+            <p>
+                <code>r = Curseur(0, 5, 2)</code> : de 0 à 5, valeur 2. Les
+                bornes peuvent être des expressions ou des formules (<code
+                    >Curseur(0, d(A, B), 1)</code
+                >). Pas, longueur, orientation, poignée et animation se règlent
+                dans les <a href="proprietes.html#curseurs">propriétés</a>.
+                <code>r = 5</code> en refait une constante.
+            </p>
+
+            <h2>Points calculés</h2>
+            <ul>
+                <li>
+                    <code>M = (x(B) + 1, y(A))</code> : coordonnées données par
+                    des formules.
+                </li>
+                <li>
+                    <code>N = Point(2*B - A)</code> : formule dont la valeur est
+                    un point.
+                </li>
+            </ul>
+            <p>
+                Quand la valeur d’une ligne <code>nom = formule</code> est un
+                point ou une liste de points, des boutons en bout de ligne
+                proposent <i data-i="formula_point"></i> Point,
+                <i data-i="points_list"></i> Liste de points,
+                <i data-i="segments_list"></i> Liste de segments ou
+                <i data-i="as_expression"></i> Expression.
+                <kbd>Entrée</kbd> prend le bouton allumé : point ou liste pour
+                un nom en majuscule, expression sinon. D’où
+                <code>liste = [1, 2, 3]</code> et non
+                <code>L = [1, 2, 3]</code>, qui serait lu comme un point de
+                l’espace.
+            </p>
+
+            <h2>Listes de points</h2>
+            <p>
+                <code>q = Liste(pts)</code> dessine les points de l’expression
+                <code>pts</code> ; un point non défini coupe le tracé. Une
+                expression de valeur liste de points sélectionnée propose aussi
+                <i data-i="points_list"></i> et
+                <i data-i="segments_list"></i> dans la zone contextuelle (et
+                <i data-i="formula_point"></i> pour une valeur point) : la ligne
+                est écrite et l’expression cachée.
+            </p>
+
+            <h2 id="les-programmes">Programmes</h2>
+            <p>
+                Une expression peut être un programme : instructions séparées
+                par <code>;</code>, la dernière donnant la valeur ; il peut
+                mettre en forme d’autres objets (<code>S1.setHidden(1)</code>).
+                Langage :
+                <a href="formules.html#programmes">Formules et programmes</a>.
+            </p>
+            <ul>
+                <li>
+                    <i data-i="new_program"></i> (en-tête du panneau «
+                    Construction ») ouvre un éditeur vide ;
+                    <strong>Créer</strong> ou <kbd>Ctrl</kbd>
+                    <kbd>Entrée</kbd> crée l’expression.
+                </li>
+                <li>
+                    Pour une expression existante, la section
+                    <strong>Définition</strong> des propriétés édite le texte
+                    sur plusieurs lignes : <kbd>Entrée</kbd> garde
+                    l’indentation, <kbd>Tab</kbd> indente,
+                    <kbd>}</kbd> désindente, <kbd>Ctrl</kbd>
+                    <kbd>Entrée</kbd> applique, <kbd>Échap</kbd> rétablit,
+                    <strong>Mettre en forme</strong> indente selon les
+                    accolades.
+                </li>
+                <li>
+                    Une erreur sélectionne la ligne fautive ou le délimiteur non
+                    apparié.
+                </li>
+            </ul>
+        </main>
+    </body>
+</html>

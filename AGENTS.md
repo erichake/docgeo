@@ -138,6 +138,23 @@ JavaScript (`ggbApplet.setCoords`, `setValue`…). Pour la sémantique précise
 d'une commande, se référer au dépôt public `geogebra/geogebra`. Les figures de
 test sont dans `tests/ggb/` (et `tests/dgp/` pour DGPad).
 
+### Manuel d'utilisation
+
+Le manuel de l'éditeur, destiné à des professeurs de mathématiques (aller
+au but, rien sur le lecteur), est un mini-site statique dans `public/tutorials/<langue>/` (pour
+l'instant `fr`) : une page HTML par rubrique, dont le `<main>` seul porte le
+contenu ; `manual.js` (liste des pages `PAGES`, tables des matières,
+recherche) et `manual.css` font le reste. Il n'entre pas dans le poids du
+build qui compte (moteur, lecteur, éditeur).
+
+Les icônes (`icons.js`) et les captures (`img/`) sont générées depuis
+l'éditeur : `npm run manual` (ou `-- icons`, `-- shots`, `-- check`, voir
+`tools/manual/generate.mjs`, captures décrites dans `tools/manual/shots.mjs`).
+Après un changement de l'interface, d'un outil ou d'une commande, relancer
+`npm run manual` : son contrôle signale les outils et commandes de l'éditeur
+absents du manuel, et les icônes, outils ou captures que le manuel nomme sans
+qu'ils existent. Mettre alors à jour les pages concernées.
+
 - **Code minimal** : produire le strict nécessaire, sans code défensif superflu.
 - **Pas de `try/catch`** sauf si une exception est réellement possible et doit être traitée différemment.
 - **Pas de tests de conditions impossibles** : faire confiance au code interne et aux garanties du framework.

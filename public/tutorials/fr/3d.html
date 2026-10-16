@@ -1,0 +1,195 @@
+<!doctype html>
+<html lang="fr">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <title>La 3D — Manuel DocGeo</title>
+        <link rel="icon" type="image/svg+xml" href="../../favicon.svg" />
+        <link rel="stylesheet" href="manual.css" />
+        <script src="icons.js" defer></script>
+        <script src="manual.js" defer></script>
+    </head>
+    <body>
+        <main>
+            <h1>La 3D</h1>
+
+            <figure>
+                <img
+                    src="img/editeur-3d.webp"
+                    alt="Pyramide coupée par le plan z = 1,5"
+                    width="1200"
+                    height="720"
+                />
+            </figure>
+
+            <h2>Passer en 3D</h2>
+            <ul>
+                <li>
+                    Une nouvelle figure est plane. <i data-i="space"></i>
+                    <strong>Vue 3D</strong> fait basculer la caméra : le plan de
+                    la figure devient le sol <em>z</em> = 0, le repère un
+                    trièdre. Un second appui revient au plan, avec le repère
+                    d’avant.
+                </li>
+                <li>
+                    Le retour au plan est refusé tant qu’un objet sort du plan
+                    <em>z</em> = 0 ; la consigne le nomme. Inversement, une
+                    figure plane refuse tout objet de l’espace (<code
+                        >A = (1, 2, 3)</code
+                    >, sphère…).
+                </li>
+                <li>Chaque bascule est une étape d’annulation.</li>
+                <li>
+                    Les figures 3D de DGPad, aux points libres dans le plan de
+                    l’écran, n’ont pas ce bouton.
+                </li>
+            </ul>
+
+            <h2>Vue</h2>
+            <ul>
+                <li>
+                    Tourner : bouton droit, ou un doigt dans le vide. Déplacer :
+                    bouton gauche dans le vide. Zoom : molette.
+                </li>
+                <li>
+                    <kbd>P</kbd> : perspective ou projection parallèle ;
+                    <kbd>S</kbd> : sol. Mêmes réglages dans l’<a
+                        href="proprietes.html#l-onglet-figure-en-3d"
+                        >onglet Figure</a
+                    >.
+                </li>
+                <li>
+                    Les parties cachées (arêtes, cercles, droites sous le sol ou
+                    derrière une face) sont en pointillés.
+                </li>
+            </ul>
+
+            <h2>Construire</h2>
+            <ul>
+                <li>
+                    Un clic dans le vide crée un point sur le sol ; au clavier,
+                    <code>S = (0, 0, 4)</code>.
+                </li>
+                <li>
+                    Le menu gagne les familles <strong>Plans</strong> et
+                    <strong>Solides</strong> et deux cercles ; l’anneau d’un
+                    point propose la sphère.
+                </li>
+                <li>
+                    Tout outil qui attend un plan accepte le
+                    <strong>sol</strong> : un plan <code>z = 0</code> caché est
+                    créé, puis réutilisé.
+                </li>
+                <li>
+                    Les formules lisent les trois coordonnées :
+                    <code>d(A, B)</code> est la distance dans l’espace.
+                </li>
+            </ul>
+            <div class="table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Objet</th>
+                            <th>Commande</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Plan</td>
+                            <td>
+                                <code>Plan(A, B, C)</code>,
+                                <code>Plan(A, d)</code>,
+                                <code>PlanParallèle(A, p)</code>,
+                                <code>PlanOrthogonal(A, d)</code>,
+                                <code>p = x + y + z = 3</code>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Perpendiculaire à un plan</td>
+                            <td><code>Perpendiculaire(A, p)</code></td>
+                        </tr>
+                        <tr>
+                            <td>Sphère</td>
+                            <td>
+                                <code>Sphère(O, A)</code>,
+                                <code>Sphère(O, r)</code>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Cercles</td>
+                            <td>
+                                <code>Cercle(d, P)</code> d’axe d ;
+                                <code>Cercle(O, r, d)</code> orthogonal à la
+                                droite d ou parallèle au plan d
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Solides</td>
+                            <td>
+                                <code>Cylindre(A, B, r)</code>,
+                                <code>Cône(A, B, r)</code>,
+                                <code>Cube(A, B, C)</code>,
+                                <code>Prisme(p, P)</code>,
+                                <code>Pyramide(p, S)</code>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Section</td>
+                            <td>
+                                <code>Section(s, p)</code> : cercle, conique ou
+                                polygone
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Patron</td>
+                            <td>
+                                <code>Patron(c, f)</code>, f de 0 (plié) à 1 (à
+                                plat)
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Intersections</td>
+                            <td>
+                                <code>Intersection(d, p)</code> point,
+                                <code>Intersection(p, q)</code> droite,
+                                <code>Intersection(s, t)</code> cercle de deux
+                                sphères
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Sommets</td>
+                            <td><code>Sommet(c, k)</code>, k à partir de 1</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <h2>Solides</h2>
+            <ul>
+                <li>
+                    Un solide est un seul objet : il dessine faces, arêtes
+                    (pointillées derrière) et cache ce qui est derrière lui. Il
+                    se désigne à l’intérieur de son contour.
+                </li>
+                <li>
+                    <strong>Cube en deux clics</strong> : deux points d’un même
+                    plan ou polygone donnent <code>Cube(A, B, p, ±1)</code>, du
+                    côté tourné vers la caméra ; deux points de même cote
+                    donnent <code>Cube(A, B, 1)</code>, au-dessus (−1 :
+                    au-dessous). Sinon l’outil attend un troisième point. Le
+                    cube devient indéfini si [AB] cesse d’être parallèle au
+                    plan.
+                </li>
+                <li>
+                    L’outil <strong>Section</strong> prend le solide et le plan
+                    dans n’importe quel ordre.
+                </li>
+                <li>
+                    Un curseur en second argument de <code>Patron</code> anime
+                    le dépliage : <code>f = Curseur(0, 1, 0)</code>,
+                    <code>n = Patron(c, f)</code>.
+                </li>
+            </ul>
+        </main>
+    </body>
+</html>

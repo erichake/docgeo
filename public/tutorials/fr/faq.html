@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="fr">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <title>Questions fréquentes — Manuel DocGeo</title>
+        <link rel="icon" type="image/svg+xml" href="../../favicon.svg" />
+        <link rel="stylesheet" href="manual.css" />
+        <script src="icons.js" defer></script>
+        <script src="manual.js" defer></script>
+    </head>
+    <body>
+        <main>
+            <h1>Questions fréquentes</h1>
+
+            <h2>Construction</h2>
+            <h3>Le clic crée un point au lieu d’ouvrir l’anneau</h3>
+            <p>
+                Le clic est tombé à côté de l’objet. <kbd>Ctrl</kbd>
+                <kbd>Z</kbd>, puis viser le trait. Près d’un croisement, le clic
+                crée l’intersection.
+            </p>
+            <h3>L’outil reste actif</h3>
+            <p>
+                Les outils du menu sont persistants : <strong>Terminé</strong>,
+                <kbd>Échap</kbd> ou <strong>✕</strong> en sortent.
+            </p>
+            <h3>Le clic ne construit rien</h3>
+            <p>
+                Un mode est actif : gomme (<i data-i="eraser"></i> bleu), pas à
+                pas, aimants, ou panneau de propriétés sans outil.
+                <kbd>Échap</kbd> en sort.
+            </p>
+            <h3><code>(2,5, 1)</code> donne un point de l’espace</h3>
+            <p>Le séparateur décimal est le point : <code>(2.5, 1)</code>.</p>
+            <h3><code>L = [1, 2, 3]</code> est refusé</h3>
+            <p>
+                Un nom en majuscule fait un point, ici de l’espace. Écrire
+                <code>liste = [1, 2, 3]</code>.
+            </p>
+            <h3><code>pi</code> est un objet inconnu</h3>
+            <p>Écrire <code>PI</code> ou <code>π</code>.</p>
+            <h3>Impossible de nommer un objet x ou y</h3>
+            <p>
+                En tête de ligne, ils introduisent une équation (<code
+                    >y = 2x + 1</code
+                >).
+            </p>
+            <h3>Transformer un polygone</h3>
+            <p>
+                Les transformations s’appliquent aux points : transformer les
+                sommets, puis <strong>Polygone</strong> sur les images
+                (sélection multiple, puis l’outil).
+            </p>
+            <h3>Changer le rayon d’un cercle créé d’un clic</h3>
+            <p>
+                Glisser le cercle, ou modifier sa ligne (<code
+                    >Cercle(O, r)</code
+                >
+                avec un nombre, un curseur ou une formule).
+            </p>
+            <h3>Supprimer un point a effacé d’autres objets</h3>
+            <p>
+                Les dépendants sont supprimés avec lui. Annuler, puis cacher le
+                point au lieu de le supprimer.
+            </p>
+
+            <h2>3D et vue</h2>
+            <h3>« Vue 3D » ne revient pas au plan</h3>
+            <p>Un objet sort du plan <em>z</em> = 0 ; la consigne le nomme.</p>
+            <h3>Tourner à la souris</h3>
+            <p>Bouton droit ; le bouton gauche déplace la vue.</p>
+            <h3>Zoomer sur tablette</h3>
+            <p>Le pincement à deux doigts n’est pas encore pris en charge.</p>
+            <h3>Les traces ont disparu</h3>
+            <p>Elles s’effacent à chaque déplacement ou zoom de la vue.</p>
+
+            <h2>Fichiers</h2>
+            <h3>Une figure ouverte par <code>?url=</code> ne se charge pas</h3>
+            <p>
+                Le serveur doit autoriser la lecture depuis un autre site
+                (<code>Access-Control-Allow-Origin</code>). L’extension doit
+                être <code>.ggb</code> ou <code>.dgo</code> ; tout le reste est
+                lu comme DGPad.
+            </p>
+            <h3>Import incomplet</h3>
+            <p>
+                Les éléments listés ne sont pas pris en charge (<a
+                    href="formats.html"
+                    >Import DGPad et GeoGebra</a
+                >) ; le reste de la figure fonctionne et s’enregistre.
+            </p>
+        </main>
+    </body>
+</html>

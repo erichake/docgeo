@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="fr">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <title>Aimants, punaise et ressort — Manuel DocGeo</title>
+        <link rel="icon" type="image/svg+xml" href="../../favicon.svg" />
+        <link rel="stylesheet" href="manual.css" />
+        <script src="icons.js" defer></script>
+        <script src="manual.js" defer></script>
+    </head>
+    <body>
+        <main>
+            <h1>Aimants, punaise et ressort</h1>
+
+            <h2 id="aimants">Aimants</h2>
+            <p>
+                Un point libre aimanté se colle aux objets choisis quand on le
+                glisse près d’eux, sans leur être lié.
+            </p>
+            <figure>
+                <img
+                    src="img/editeur-aimants.webp"
+                    alt="Mode Aimants : cercle et point A aimantent P"
+                    width="880"
+                    height="720"
+                />
+            </figure>
+            <ol>
+                <li>
+                    Sélectionner le point libre, puis <i data-i="magnet"></i>
+                    <strong>Aimants</strong>. Le reste de la figure passe sous
+                    un voile.
+                </li>
+                <li>
+                    Toucher chaque objet attirant (point, droite, cercle,
+                    conique, courbe, liste) : il passe en rouge, attraction
+                    initiale 20 px. Le point et ses dépendants sont exclus.
+                </li>
+                <li>
+                    Régler l’attraction de l’aimant choisi par le curseur de sa
+                    carte : <strong>Aucune</strong> (retire l’aimant), 1 à 1 000
+                    px, <strong>Partout</strong>. La zone d’attraction de chaque
+                    aimant est dessinée en rouge pâle.
+                </li>
+                <li>
+                    Terminer par un toucher dans le vide,
+                    <strong>Terminé</strong> ou <kbd>Échap</kbd>.
+                </li>
+            </ol>
+            <p>
+                Le point se glisse pendant le réglage pour essayer. Chaque
+                réglage est une étape d’annulation.
+            </p>
+
+            <h2 id="punaise">Punaise</h2>
+            <p>
+                <i data-i="pin"></i> <strong>Épingler à l’écran</strong> (point
+                libre, figure plane) : le point garde sa place dans la fenêtre,
+                et non ses coordonnées, quand on zoome ou déplace la vue. Il
+                reste déplaçable. Second appui : retrait.
+            </p>
+
+            <h2 id="ressort">Ressort</h2>
+            <p>
+                <i data-i="spring"></i> <strong>Animer</strong> (point sur
+                droite, segment, demi-droite, cercle, arc, polygone, conique ou
+                lieu) sort sous le point un ressort terminé par une boule.
+            </p>
+            <ul>
+                <li>
+                    Tirer la boule puis la lâcher lance le point ; pendant la
+                    traction, un fantôme du point montre déjà le mouvement.
+                </li>
+                <li>
+                    <strong>Longueur</strong> : vitesse, par crans affichés
+                    (px/s sur une droite, un polygone ou une conique ; °/s sur
+                    un cercle ; % sur un lieu).
+                </li>
+                <li>
+                    <strong>Côté</strong> : sens ; le point part à l’opposé de
+                    la traction.
+                </li>
+                <li>
+                    <strong>En travers</strong> d’une droite (plus de 45°) :
+                    aller-retour. Ailleurs, le point boucle.
+                </li>
+                <li>En deçà du premier cran : arrêt.</li>
+            </ul>
+            <p>
+                Sur un point déjà animé, le ressort sort tendu à la vitesse
+                actuelle. Second appui sur <i data-i="spring"></i> : le ressort
+                est rangé. Vitesse exacte, sens inverse, arrêt à l’extrémité :
+                section <a href="proprietes.html#animation">Animation</a> des
+                propriétés, qui anime aussi les curseurs.
+            </p>
+        </main>
+    </body>
+</html>

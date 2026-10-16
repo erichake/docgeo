@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="fr">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <title>Ouvrir et enregistrer — Manuel DocGeo</title>
+        <link rel="icon" type="image/svg+xml" href="../../favicon.svg" />
+        <link rel="stylesheet" href="manual.css" />
+        <script src="icons.js" defer></script>
+        <script src="manual.js" defer></script>
+    </head>
+    <body>
+        <main>
+            <h1>Ouvrir et enregistrer</h1>
+
+            <h2>Ouvrir</h2>
+            <p>
+                <i data-i="open"></i> <strong>Ouvrir</strong> charge un fichier
+                :
+            </p>
+            <div class="table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Extension</th>
+                            <th>Origine</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><code>.dgo</code></td>
+                            <td>DocGeo, format natif</td>
+                        </tr>
+                        <tr>
+                            <td><code>.dgp</code></td>
+                            <td>DGPad, importé</td>
+                        </tr>
+                        <tr>
+                            <td><code>.ggb</code></td>
+                            <td>GeoGebra, importé</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <p>
+                La figure ouverte remplace la figure en cours et vide
+                l’historique d’annulation.
+            </p>
+            <p>
+                Une figure en ligne s’ouvre par l’adresse de l’éditeur :
+                <code>editor.html?url=https://exemple.fr/thales.ggb</code>. Le
+                format est déduit de l’extension (<code>.ggb</code>,
+                <code>.dgo</code>, DGPad sinon) ; le serveur doit autoriser la
+                lecture depuis un autre site (CORS).
+            </p>
+
+            <h2>Import incomplet</h2>
+            <p>
+                Un élément DGPad ou GeoGebra non pris en charge est ignoré avec
+                ses dépendants ; la consigne en donne la liste (« Non importé :
+                … »). Le détail est dans
+                <a href="formats.html">Import DGPad et GeoGebra</a>.
+            </p>
+
+            <h2>Enregistrer</h2>
+            <p>
+                <i data-i="save"></i> ou <kbd>Ctrl</kbd> <kbd>S</kbd> télécharge
+                la figure en <code>.dgo</code>, sous le nom de la figure ouverte
+                (<code>figure.dgo</code> pour une nouvelle figure). La vue
+                (zoom, orientation 3D, repère) est enregistrée.
+            </p>
+            <p>
+                <code>.dgo</code> est le seul format d’enregistrement : ouvrir
+                une figure DGPad ou GeoGebra puis l’enregistrer la convertit.
+            </p>
+
+            <h2>Langue</h2>
+            <p>
+                L’éditeur prend la langue du navigateur ;
+                <code>?lang=</code> l’impose (<code>ar</code>, <code>de</code>,
+                <code>el</code>, <code>en</code>, <code>es</code>,
+                <code>fr</code>, <code>hi</code>, <code>it</code>,
+                <code>nl</code>, <code>pt</code>, <code>zh</code>,
+                <code>zh-TW</code>). La langue fixe aussi le nom des commandes
+                (<code>Milieu</code>, <code>Mittelpunkt</code>…) ; les noms
+                anglais sont compris dans toutes les langues.
+            </p>
+        </main>
+    </body>
+</html>

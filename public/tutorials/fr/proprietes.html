@@ -1,0 +1,238 @@
+<!doctype html>
+<html lang="fr">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <title>Propriétés et repère — Manuel DocGeo</title>
+        <link rel="icon" type="image/svg+xml" href="../../favicon.svg" />
+        <link rel="stylesheet" href="manual.css" />
+        <script src="icons.js" defer></script>
+        <script src="manual.js" defer></script>
+    </head>
+    <body>
+        <main>
+            <h1>Propriétés et repère</h1>
+
+            <figure>
+                <img
+                    src="img/editeur-proprietes.webp"
+                    alt="Panneau de propriétés sur le point C"
+                    width="1200"
+                    height="720"
+                />
+            </figure>
+
+            <h2>Le panneau</h2>
+            <ul>
+                <li>
+                    Ouvert par <i data-i="properties"></i> ou par
+                    <i data-i="settings"></i> de la zone contextuelle ; fermé
+                    par sa croix, le même bouton ou <kbd>Échap</kbd>.
+                </li>
+                <li>
+                    Deux onglets : <strong>Objet</strong> et
+                    <strong>Figure</strong>.
+                </li>
+                <li>
+                    L’objet réglé se choisit dans la figure, par sa ligne, ou
+                    dans la liste « Choisir un objet… » (objets cachés compris).
+                    Un clic dans la figure y sélectionne au lieu de construire ;
+                    boutons et cases s’y désignent sans s’actionner. Un outil du
+                    menu ou la ligne de saisie construisent normalement, l’objet
+                    créé s’affichant dans le panneau.
+                </li>
+                <li>Les modifications sont immédiates et annulables.</li>
+                <li>
+                    Champs numériques : glisser horizontalement règle la valeur
+                    (<kbd>Maj</kbd> : dix fois plus fin), un clic permet de la
+                    taper. Un glissement compte pour une seule étape
+                    d’annulation.
+                </li>
+                <li>
+                    Un bouton <strong>↺</strong> près d’une couleur la ramène à
+                    celle que l’outil donne par défaut.
+                </li>
+            </ul>
+
+            <h2>L’onglet « Objet »</h2>
+            <div class="table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Section</th>
+                            <th>Réglages</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Objet</td>
+                            <td>
+                                nom ; pour une expression,
+                                <a href="expressions.html#les-programmes"
+                                    >définition</a
+                                >
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Apparence</td>
+                            <td>
+                                appliquer aux objets de même type, couleur,
+                                taille du point, épaisseur, contour, opacités du
+                                trait et du remplissage, couleur du remplissage,
+                                pointillés, calque (ordre de dessin)
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Affichage</td>
+                            <td>
+                                objet visible, afficher le nom, taille du texte,
+                                décimales de la valeur (ou ne pas l’afficher)
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Point</td>
+                            <td>
+                                forme (cercle, carré, croix, losange), position
+                                du nom en degrés, trace, pas horizontal et
+                                vertical (déplacement par sauts)
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Segment</td>
+                            <td>codage (traits de longueur égale)</td>
+                        </tr>
+                        <tr>
+                            <td>Angle</td>
+                            <td>
+                                rayon de l’arc, marque d’angle droit (équerre
+                                ouverte, arc, carré, point, équerre)
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Lieu, liste</td>
+                            <td>nombre de points ; épaisseur des segments</td>
+                        </tr>
+                        <tr>
+                            <td id="curseurs">Curseur</td>
+                            <td>
+                                pas, longueur, vertical, couleur et taille de la
+                                poignée
+                            </td>
+                        </tr>
+                        <tr>
+                            <td id="animation">Animation</td>
+                            <td>
+                                vitesse (0 : arrêt), sens inverse, à l’extrémité
+                                : recommencer, aller-retour ou arrêter
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <h3 id="regler-plusieurs-objets">Plusieurs objets</h3>
+            <p>
+                Sur une sélection multiple, seuls les réglages communs à tous
+                sont affichés ; une valeur qui diffère d’un objet à l’autre est
+                en italique gris. <kbd>Ctrl</kbd>-clic, <kbd>Maj</kbd>-clic ou
+                appui long (figure ou panneau « Construction ») ajoutent ou
+                retirent un objet.
+            </p>
+
+            <h2>L’onglet « Figure »</h2>
+            <figure>
+                <img
+                    src="img/editeur-onglet-figure.webp"
+                    alt="Onglet Figure : modèles de repère et axes"
+                    width="600"
+                    height="720"
+                />
+            </figure>
+            <p>Un clic sur un axe ouvre cet onglet.</p>
+            <div class="table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Section</th>
+                            <th>Réglages</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Repère</td>
+                            <td>
+                                affiché ou non ; modèles DGPad, GeoGebra, axes
+                                seuls, grille pointillée, quadrillage,
+                                millimétré (apparence seule, ni zoom ni fond)
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Axes (x et y)</td>
+                            <td>
+                                affiché, nom, nombres, unité (π : multiples de
+                                π/2), graduations, écart des nombres (vide :
+                                auto ; 🔗 lie x et y), flèches, couleur, taille
+                                et gras des nombres, style DGPad ou GeoGebra,
+                                demi-axes positifs
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Grille</td>
+                            <td>
+                                affichée ou non, écart des lignes, subdivisions,
+                                couleur (celle des axes par défaut), épaisseur,
+                                trait continu, pointillé ou tirets
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Zoom et déplacement</td>
+                            <td>
+                                axe fixe à l’écran, zoom centré sur l’origine
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Figure</td>
+                            <td>
+                                fond ; angles en degrés (défaut) ou radians ;
+                                segments au-dessus des polygones
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <h3 id="l-onglet-figure-en-3d">En 3D</h3>
+            <div class="table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Section</th>
+                            <th>Réglages</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Axes</td>
+                            <td>trièdre affiché, couleur, épaisseur</td>
+                        </tr>
+                        <tr>
+                            <td>Sol</td>
+                            <td>
+                                affiché, couleur (↺ : bleu dessus, brun
+                                dessous), opacité, taille, écart, couleur et
+                                épaisseur des lignes
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Vue</td>
+                            <td>perspective</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <p>
+                Ces réglages sont annulables ; le zoom, le déplacement et la
+                rotation de la vue ne le sont pas.
+            </p>
+        </main>
+    </body>
+</html>

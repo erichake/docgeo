@@ -1,0 +1,281 @@
+<!doctype html>
+<html lang="fr">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <title>Construire au clavier — Manuel DocGeo</title>
+        <link rel="icon" type="image/svg+xml" href="../../favicon.svg" />
+        <link rel="stylesheet" href="manual.css" />
+        <script src="icons.js" defer></script>
+        <script src="manual.js" defer></script>
+    </head>
+    <body>
+        <main>
+            <h1>Construire au clavier</h1>
+
+            <p class="lead">
+                Une ligne par objet : <code>nom = Commande(arguments)</code>,
+                tapée dans la ligne de saisie du panneau « Construction » et
+                validée par <kbd>Entrée</kbd>.
+            </p>
+            <pre><code>A = (-5, -2)
+B = (4, -3)
+C = (-1, 4)
+p = Polygone(A, B, C)
+c = CercleCirconscrit(A, B, C)
+M = Milieu(A, B)</code></pre>
+
+            <h2>Syntaxe</h2>
+            <div class="table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Élément</th>
+                            <th>Règle</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Point libre</td>
+                            <td>
+                                <code>A = (2, 3)</code> ;
+                                <code>A = (2, 3, 1)</code> en 3D
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Nombres</td>
+                            <td>
+                                séparateur décimal : le
+                                <strong>point</strong> (<code>2.5</code>) ;
+                                <code>(1,5, 2)</code> est un point à trois
+                                coordonnées
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Commande</td>
+                            <td>
+                                sans casse ni accents (<code
+                                    >mediatrice(A, B)</code
+                                >), nom anglais accepté ; la ligne est réécrite
+                                dans la forme usuelle
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Nombre en argument</td>
+                            <td>
+                                nombre, nom d’expression ou de curseur, ou
+                                formule : <code>Cercle(A, 2*r)</code>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Nom omis</td>
+                            <td>
+                                <code>Milieu(A, B)</code> : nom automatique,
+                                majuscule pour un point, minuscule sinon (ni e,
+                                i, k, l, o, t, x, y, z)
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Nom existant</td>
+                            <td>la ligne redéfinit l’objet</td>
+                        </tr>
+                        <tr>
+                            <td>Nom spécial</td>
+                            <td>
+                                apostrophe admise (<code>A'</code>) ; autres
+                                caractères entre accents graves (<code
+                                    >`aux 2`</code
+                                >)
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Noms à éviter</td>
+                            <td>
+                                <code>x</code>, <code>y</code> (équations),
+                                <code>i</code> (unité imaginaire)
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Autre ligne</td>
+                            <td>
+                                ni point ni commande : une
+                                <a href="expressions.html">expression</a> (<code
+                                    >a = 3</code
+                                >, <code>E = d(A, B)</code>)
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <p>
+                Formes et arguments de chaque commande :
+                <a href="commandes.html">Les commandes</a>.
+            </p>
+
+            <h2 id="la-completion">Complétion et désignation</h2>
+            <ul>
+                <li>
+                    La liste propose les commandes en tête de ligne, puis, entre
+                    parenthèses, les seuls objets acceptés par l’argument en
+                    cours, mis en évidence dans la figure. <kbd>↑</kbd>
+                    <kbd>↓</kbd> choisissent, <kbd>Tab</kbd> ou
+                    <kbd>Entrée</kbd> insèrent, <kbd>Échap</kbd> ferme.
+                </li>
+                <li>
+                    Un clic sur un objet écrit son nom, suivi de
+                    <code>, </code> ou <code>)</code> selon ce qui reste à
+                    désigner : <code>M = Milieu(</code>, clic sur A, clic sur B
+                    donne <code>M = Milieu(A, B)</code>.
+                </li>
+                <li>
+                    Dans la ligne de saisie, un clic là où il n’y a pas de point
+                    en crée un (libre, sur objet ou intersection) ; un aperçu
+                    suit le pointeur. Recliquer le premier sommet d’un polygone
+                    le termine.
+                </li>
+                <li>
+                    Même geste dans une formule : <code>E = d(</code>, clic sur
+                    H puis M.
+                </li>
+            </ul>
+
+            <h2 id="modifier-une-ligne">Modifier une ligne</h2>
+            <p>
+                Chaque ligne du panneau est un champ : <kbd>Entrée</kbd> valide,
+                <kbd>Échap</kbd> rétablit.
+            </p>
+            <ul>
+                <li>Nouvelles coordonnées : le point libre est déplacé.</li>
+                <li>
+                    Nouvelle définition : l’objet est redéfini, garde son style,
+                    et ses dépendants suivent (<code>M = Milieu(A, B)</code> →
+                    <code>M = (5, 5)</code> → <code>M = Milieu(B, C)</code>). La
+                    construction est réordonnée si besoin ; un cycle est refusé.
+                </li>
+                <li>
+                    Nouveau nom : l’objet est renommé dans toutes les lignes et
+                    formules.
+                </li>
+                <li><code>A =</code> supprime A et ses dépendants.</li>
+            </ul>
+
+            <h2 id="equations">Équations</h2>
+            <p>
+                Deux membres en x, y (et z) séparés par <code>=</code> ; la
+                nature se lit dans les coefficients, qui peuvent dépendre de
+                curseurs.
+            </p>
+            <div class="table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Ligne</th>
+                            <th>Objet</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>
+                                <code>d = y = a*x + b</code>, <code>x = 3</code>
+                            </td>
+                            <td>droite</td>
+                        </tr>
+                        <tr>
+                            <td><code>c = x^2 + y^2 = 4</code></td>
+                            <td>cercle</td>
+                        </tr>
+                        <tr>
+                            <td><code>e = x^2/9 + y^2/4 = 1</code></td>
+                            <td>conique</td>
+                        </tr>
+                        <tr>
+                            <td><code>p = x + y + z = 3</code></td>
+                            <td>plan (3D)</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <p>
+                Degré supérieur à 2 ou non polynomial : refusé. En tête de
+                ligne, <code>z</code> est un nom : <code>z = 3</code> est une
+                expression, le plan s’écrit <code>p = z = 3</code>.
+            </p>
+
+            <h2>Intersections et points sur objet</h2>
+            <ul>
+                <li>
+                    <code>Intersection(d1, d2)</code> pour deux droites ;
+                    <code>Intersection(c, d, n)</code>, n de 1 à 4, sinon.
+                </li>
+                <li>
+                    <code>AutreIntersection(c, d, P)</code> : le point commun le
+                    plus éloigné de P.
+                </li>
+                <li>
+                    <code>Point(c, t)</code>, ou <code>Point(p, a, b)</code> sur
+                    un polygone ou une conique : position sur l’objet, écrite
+                    par le geste.
+                </li>
+            </ul>
+
+            <h2>Erreurs</h2>
+            <p>
+                Une ligne fautive n’est pas appliquée : elle reste encadrée de
+                rouge, la consigne donne la raison, le reste de la figure est
+                intact.
+            </p>
+            <div class="table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Message</th>
+                            <th>Cause</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Écriture incomprise</td>
+                            <td>parenthèse, virgule ou caractère</td>
+                        </tr>
+                        <tr>
+                            <td>Commande inconnue, Objet inconnu</td>
+                            <td>nom mal orthographié ou absent</td>
+                        </tr>
+                        <tr>
+                            <td>Arguments incorrects pour …</td>
+                            <td>
+                                aucune forme ne correspond ; « Avec ces
+                                arguments » rappelle les formes
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Le nom … est déjà pris</td>
+                            <td>renommage</td>
+                        </tr>
+                        <tr>
+                            <td>Un objet ne peut dépendre de lui-même</td>
+                            <td>cycle</td>
+                        </tr>
+                        <tr>
+                            <td>
+                                Une figure plane garde ses objets dans le plan z
+                                = 0…
+                            </td>
+                            <td>
+                                objet de l’espace : passer en
+                                <a href="3d.html">vue 3D</a>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Cet objet ne s’écrit pas encore en texte</td>
+                            <td>
+                                objet importé sans commande : ligne
+                                <code>nom = …</code> en lecture seule
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </main>
+    </body>
+</html>
