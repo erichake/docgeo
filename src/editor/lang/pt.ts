@@ -223,6 +223,8 @@ const pt: Texts = {
         family_planes: "Planos",
         tool_circle_point: "Círculo (centro e ponto)",
         tool_circle_radius: "Círculo (centro e raio)",
+        tool_circle_direction: "Círculo (centro, direção e raio)",
+        tool_circle_axis: "Círculo (eixo e ponto)",
         tool_central: "Simetria central",
         tool_axial: "Simetria axial",
         designate_place:
@@ -251,6 +253,7 @@ const pt: Texts = {
         designate_outline: "Selecione um polígono ou uma cônica",
         designate_plane: "Selecione um plano",
         designate_planar: "Selecione um plano ou um polígono",
+        designate_linear: "Selecione uma reta ou um plano",
         designate_sphere: "Selecione uma esfera",
         designate_polyhedron: "Selecione um poliedro",
         designate_revolution: "Selecione um cilindro ou um cone",

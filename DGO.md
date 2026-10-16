@@ -257,6 +257,7 @@ sa dérivée par rapport à l'une de ses variables, comme dans DGPad, par
 | `Ang`  | angle AOB                              | `[A, O, B]`                                     |
 | `Cir`  | cercle de centre O passant par A       | `[O, A]`                                        |
 | `C1`   | cercle de centre O et de rayon r       | `[O, r]`, `[O, r, axe]` (5)                     |
+| `CAx`  | cercle d'axe d passant par P           | `[d, P]`                                        |
 | `C3`   | cercle de centre O et de rayon AB      | `[A, B, O]`                                     |
 | `C3p`  | cercle passant par trois points        | `[A, B, C]`                                     |
 | `C3s`  | idem, dans leur plan de l'espace       | `[A, B, C]`                                     |
@@ -345,7 +346,8 @@ sa dérivée par rapport à l'une de ses variables, comme dans DGPad, par
    disques et les génératrices de sa silhouette (l'import de GeoGebra lui
    donne une épaisseur nulle : ses disques le font).
 5. `r` nombre (rayon qu'un glisser change, `null` s'il n'est pas fini) ou
-   formule ; `axe` : droite normale au plan du cercle. `a`, demi-grand axe
+   formule ; `axe` : droite normale au plan du cercle, ou plan parallèle
+   au sien. `a`, demi-grand axe
    d'une ellipse, demi-axe transverse d'une hyperbole : nombre ou formule,
    comme `r`, sans glisser.
 6. `{"t": texte, "mn": min, "mx": max, …}` (bornes nombres, ou formules
@@ -563,7 +565,7 @@ non définie).
 | `Seg`, `Vec`                                                              | `rgb(35,141,227)`, `rgb(180,80,80)`, 4    |
 | `FA`                                                                      | `#006633`, `#006633`, 1, 0                |
 | `Ang`                                                                     | `#006633`, `#006633`, 4, 0                |
-| `Cir`, `C1`, `C3`, `C3p`, `C3s`, `Arc`, `Sec`, `CyS`, `EqC`               | `#CC66CC`, `#CC66CC`, 2, 0                |
+| `Cir`, `C1`, `CAx`, `C3`, `C3p`, `C3s`, `Arc`, `Sec`, `CyS`, `EqC`        | `#CC66CC`, `#CC66CC`, 2, 0                |
 | `CArc`, `CSec`, `Semi`, `SphC`, `Disk`                                    | `#CC66CC`, `#CC66CC`, 2, 0                |
 | `Quad`, `Ell`, `Ell1`, `Hyp`, `Hyp1`, `Prb`, `EqQ`                        | `#CC66CC`, `#CC66CC`, 2, 0                |
 | `Sph`, `Sph1`, `Poly`, `RegP`, `PlS`                                      | `rgb(35,141,227)`, `rgb(80,80,80)`, 2, 0  |

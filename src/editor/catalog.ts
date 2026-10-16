@@ -55,6 +55,8 @@ export type Param =
     | "plane"
     // A plane or a polygon.
     | "planar"
+    // A line or a plane.
+    | "linear"
     | "sphere"
     | "polyhedron"
     // A cylinder or a cone.
@@ -141,6 +143,8 @@ export function accepts(arg: Arg, param: Param): boolean {
             return kind === "polygon" || arg instanceof polyhedron_object;
         case "planar":
             return arg instanceof polygon_object;
+        case "linear":
+            return kind === "line" || kind === "plane";
         case "polyhedron":
             return arg instanceof polyhedron_object;
         case "revolution":
@@ -404,6 +408,8 @@ export const COMMANDS: Command[] = [
         overloads: [
             objects("Perp", ["point", "line"], [1, 0]),
             objects("Nrm", ["point", "plane"], [1, 0]),
+            // The tool's, in space.
+            { params: ["point", "linear"], tag: "", encode: () => null },
         ],
     },
     {
@@ -419,6 +425,26 @@ export const COMMANDS: Command[] = [
         overloads: [
             objects("Cir", ["point", "point"]),
             withReal("C1", ["point"]),
+            // In space: of radius r around a line, or orthogonal to a
+            // plane; of axis d through P.
+            {
+                params: ["point", "real", "linear"],
+                tag: "C1",
+                encode: ([center, r, axis], index) => [
+                    index(center as construction_object),
+                    realParameter(r, index),
+                    index(axis as construction_object),
+                ],
+                decode: (parameters, at) => {
+                    const [center, r, axis] = parameters as unknown[];
+                    const radius =
+                        axis === undefined ? null : realArgument(r, at);
+                    return radius === null
+                        ? null
+                        : [at(center as number), radius, at(axis as number)];
+                },
+            },
+            objects("CAx", ["line", "point"]),
         ],
     },
     {

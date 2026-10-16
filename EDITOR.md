@@ -257,7 +257,9 @@ la GeoGebra, l'outil choisi avant les objets.
   trop étroite. L'élève n'apprend qu'un classement. Pas de recherche dans
   le menu : la complétion de la ligne de saisie le fait déjà.
 - **Plus d'outils que l'anneau**, qui reste léger : à la fin de leur
-  famille, `AutreIntersection` (points), `Compas`, `Arc`, `Secteur`,
+  famille, `AutreIntersection` (points), `Compas`, en 3D « Cercle
+  (centre, direction et rayon) » et « Cercle (axe et point) », `Arc`,
+  `Secteur`,
   `ArcCentre`, `SecteurCentre` (le centre, le début, puis un point de la
   demi-droite où il finit), `DemiCercle`, et les familles « Plans » et
   « Solides » (3D),
@@ -279,7 +281,9 @@ la GeoGebra, l'outil choisi avant les objets.
   les solides n'apparaissent qu'en 3D. Exception : « Section » a une seule
   forme au menu, qui prend n'importe quel solide (sphère, cylindre, cône,
   polyèdre), avant ou après le plan ; l'objet construit est celui de ses
-  arguments (`formOf` dans `main.ts`).
+  arguments (`formOf` dans `main.ts`). De même, en 3D, « Perpendiculaire »
+  prend une droite ou un plan (`Perp` ou `Nrm`, comme la commande de
+  GeoGebra), la forme à une droite seule restant celle du plan.
 - **Survol** : la ligne que l'outil écrira et ce qu'il faut désigner,
   comme sur l'anneau.
 - **Désignation** : celle de l'anneau, sans clavier virtuel ; la ligne en
@@ -483,7 +487,8 @@ comme dans DGPad où elle se décidait à la création de la figure.
   d'abord puis en se redressant, puis la figure est relue en 2D.
 - **Retour au plan refusé** tant qu'un objet dessiné est hors du plan
   z = 0 (point, ou point d'une liste, de cote non nulle ; sphère, plan,
-  solide, patron, section de cylindre ou de cône) : la consigne le nomme (« A est hors du plan z = 0 : la
+  solide, patron, section de cylindre ou de cône, cercle d'un plan non
+  horizontal) : la consigne le nomme (« A est hors du plan z = 0 : la
   figure reste en 3D »). Une expression, même de valeur `[1, 2, 3]`, n'est
   pas dessinée ; une perpendiculaire (`plumb_line_object`) est celle d'une
   droite, aussi dans le plan.
@@ -1355,7 +1360,7 @@ Fait (2026-10-11) :
   déplié de f (0 : plié, 1 : à plat), un objet unique qui dessine ses
   faces, comme les patrons de GeoGebra. Au clavier seulement :
   `Intersection(d, p)`, `Intersection(p, q)`, `Intersection(s, t)` de deux
-  sphères, `Perpendiculaire(A, p)`. Au menu, une famille « Plans » (3D),
+  sphères, `Perpendiculaire(A, p)` (au geste depuis le 2026-10-16). Au menu, une famille « Plans » (3D),
   et `Section` et `Patron` à la fin des « Solides ». Les solides se
   désignent à l'intérieur de leur contour, l'anneau s'ouvrant en son
   milieu ; plans, sections et sphères de rayon donné créés sont remplis
@@ -1384,6 +1389,33 @@ Fait (2026-10-11) :
   restait armé mais inerte. Vérifié dans `editor.html` (outil Segment,
   ligne de saisie avec désignation et point libre, sélection après Échap,
   Échap deux fois). Éditeur +57 octets (+21 en gzip) ; lecteur inchangé.
+- Perpendiculaire à un plan au geste (2026-10-16) : en 3D, l'outil
+  « Perpendiculaire » prend une droite ou un plan (paramètre `linear`,
+  forme sans étiquette résolue à la construction comme « Section »), dans
+  l'ordre qu'on veut ; dans le plan, il ne prend toujours qu'une droite.
+  Le sol se désigne comme un plan, là où aucun objet n'en prend un, pour
+  tout outil qui attend un plan (`Perpendiculaire`, `PlanParallèle`,
+  `Section`) : il devient un plan `z = 0` caché (le `xOyPlane` de
+  GeoGebra), ajouté à la première désignation puis réutilisé, et l'aperçu
+  le prend déjà au survol, montrant le sol jusqu'à ce que l'outil
+  s'applique. Éditeur +0,9 Ko (+0,3 Ko en gzip) ; lecteur
+  inchangé.
+- Cercles d'axe donné (2026-10-16), les outils 3D de GeoGebra « cercle
+  d'axe donné passant par un point » et « cercle (centre, rayon,
+  direction) » : `Cercle(d, P)`, d'axe d (droite, segment, demi-droite,
+  vecteur) passant par P (entrée `CAx`), et `Cercle(O, r, d)`, de centre
+  O et de rayon r autour d'une droite, ou parallèle à un plan
+  (`C1` à axe, qui prend désormais un plan), dans l'ordre de GeoGebra.
+  Au menu, en 3D, à la suite du compas : « Cercle (centre, direction et
+  rayon) » (le centre, puis une droite ou un plan, le sol compris, le
+  rayon d'environ 150 px de « Cercle (centre et rayon) ») et « Cercle
+  (axe et point) ». Un cercle d'un plan non horizontal garde la figure
+  en 3D. Les libellés des outils d'une même commande sont portés par
+  l'outil (`labelled` dans `tools.ts`) et non plus par l'étiquette `.dgo`,
+  que les deux formes de `C1` partagent. Import GeoGebra : item 36 de
+  `GGB_IMPORT.md`. Éditeur +0,6 Ko (+0,14 Ko en gzip) ; moteur +0,85 Ko
+  (+0,27 Ko en gzip). Les cercles et arcs de l'espace sont en pointillés
+  là où le sol ou une face les cache (même item), moteur +1,1 Ko.
 
 Reste à faire :
 

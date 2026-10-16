@@ -109,6 +109,7 @@ import {
     revolution_object,
 } from "./objects/revolution_object";
 import { createDisk } from "./objects/disk_object";
+import { createAxisCircle } from "./objects/axis_circle_object";
 import {
     createPolyhedron,
     polyhedron_object,
@@ -206,6 +207,7 @@ export const LOOKS: Record<string, Look> = {
     Ang: ["#006633", "#006633", 4, 0],
     Cir: CIRCLE,
     C1: CIRCLE,
+    CAx: CIRCLE,
     C3: CIRCLE,
     C3p: CIRCLE,
     C3s: CIRCLE,
@@ -1398,7 +1400,16 @@ const BUILDERS: Record<string, Builder> = {
             radius(value, reader),
             axis === undefined
                 ? undefined
-                : reader.at(axis, primitive_line_object),
+                : reader.at(axis, primitive_line_object, plane_object),
+        );
+    },
+    CAx: (parameters, { c, name, at }) => {
+        const [axis, point] = list(parameters, 2);
+        return createAxisCircle(
+            c,
+            name,
+            at(axis, primitive_line_object),
+            at(point, point_object),
         );
     },
     C3: threePoints(createCircle3),

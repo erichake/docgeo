@@ -222,6 +222,8 @@ const fr: Texts = {
         family_planes: "Plans",
         tool_circle_point: "Cercle (centre et point)",
         tool_circle_radius: "Cercle (centre et rayon)",
+        tool_circle_direction: "Cercle (centre, direction et rayon)",
+        tool_circle_axis: "Cercle (axe et point)",
         tool_central: "Symétrie centrale",
         tool_axial: "Symétrie axiale",
         designate_place:
@@ -250,6 +252,7 @@ const fr: Texts = {
         designate_outline: "Désignez un polygone ou une conique",
         designate_plane: "Désignez un plan",
         designate_planar: "Désignez un plan ou un polygone",
+        designate_linear: "Désignez une droite ou un plan",
         designate_sphere: "Désignez une sphère",
         designate_polyhedron: "Désignez un polyèdre",
         designate_revolution: "Désignez un cylindre ou un cône",

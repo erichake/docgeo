@@ -12,10 +12,11 @@ import {
     type construction_object,
     type DgoContext,
 } from "./construction_object";
+import { plane_object } from "./plane_object";
 import type { point_object } from "./point_object";
 import { primitive_circle_object } from "./primitive_circle_object";
 import type { primitive_line_object } from "./primitive_line_object";
-import { vCross, vNormalize } from "../vec";
+import { vCross, vNormalize, type Vec3 } from "../vec";
 
 export type circle1_radius =
     | number
@@ -39,6 +40,11 @@ export function radiusValue(
           );
 }
 
+// A first direction of the plane orthogonal to a unit normal.
+export const axisBasis = (normal: Vec3): Vec3 =>
+    vNormalize(vCross(normal, [0, 0, 1])) ??
+    vNormalize(vCross(normal, [1, 0, 0]))!;
+
 // Its value, as a .dgo parameter.
 export function dgoRadius(
     radius: circle1_radius,
@@ -52,14 +58,15 @@ export function dgoRadius(
 export class circle1_object extends primitive_circle_object {
     P1: point_object;
     radius: circle1_radius;
-    axis?: primitive_line_object;
+    // A line, or a plane by its normal.
+    axis?: primitive_line_object | plane_object;
 
     constructor(
         c: construction,
         name: string | null | undefined,
         p1: point_object,
         radius: circle1_radius,
-        axis?: primitive_line_object,
+        axis?: primitive_line_object | plane_object,
     ) {
         super(c, name);
         this.P1 = p1;
@@ -105,10 +112,11 @@ export class circle1_object extends primitive_circle_object {
             );
             return;
         }
-        const normal = vNormalize(this.axis.VEC)!;
-        const u =
-            vNormalize(vCross(normal, [0, 0, 1])) ??
-            vNormalize(vCross(normal, [1, 0, 0]))!;
+        const { axis } = this;
+        const normal = vNormalize(
+            axis instanceof plane_object ? axis.NORMAL : axis.VEC,
+        )!;
+        const u = axisBasis(normal);
         this.setCircle(this.P1.coords, radius, u, vCross(normal, u));
     }
 
@@ -142,7 +150,7 @@ export function createCircle1(
     name: string | null | undefined,
     center: point_object,
     radius: circle1_radius,
-    axis?: primitive_line_object,
+    axis?: primitive_line_object | plane_object,
 ): circle1_object {
     return c.add(new circle1_object(c, name, center, radius, axis));
 }

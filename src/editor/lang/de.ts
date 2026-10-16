@@ -225,6 +225,8 @@ const de: Texts = {
         family_planes: "Ebenen",
         tool_circle_point: "Kreis (Mittelpunkt und Punkt)",
         tool_circle_radius: "Kreis (Mittelpunkt und Radius)",
+        tool_circle_direction: "Kreis (Mittelpunkt, Richtung und Radius)",
+        tool_circle_axis: "Kreis (Achse und Punkt)",
         tool_central: "Punktspiegelung",
         tool_axial: "Achsenspiegelung",
         designate_place:
@@ -254,6 +256,7 @@ const de: Texts = {
         designate_outline: "Wählen Sie ein Vieleck oder einen Kegelschnitt",
         designate_plane: "Wählen Sie eine Ebene",
         designate_planar: "Wählen Sie eine Ebene oder ein Vieleck",
+        designate_linear: "Wählen Sie eine Gerade oder eine Ebene",
         designate_sphere: "Wählen Sie eine Kugel",
         designate_polyhedron: "Wählen Sie einen Polyeder",
         designate_revolution: "Wählen Sie einen Zylinder oder einen Kegel",

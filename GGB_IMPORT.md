@@ -88,6 +88,7 @@ figure sont seulement comptés. L'API utilisée est
 | 2026-10-15 | 238 / 438 (54 %)   | 330,6 Ko | item 32 : cylindre, cône et sphère de rayon donné natifs (+0)      |
 | 2026-10-15 | 242 / 438 (55 %)   | 338,8 Ko | item 33 : section d'un cône, patrons des prismes et pyramides (+4) |
 | 2026-10-15 | 265 / 470 (56 %)   | 342,2 Ko | item 35 : macros, `Sequence` de cercles par un point (+2)          |
+| 2026-10-16 | —                  | 360,1 Ko | item 36 : cercle d'axe donné, de direction un plan (+1)            |
 
 ## À faire, par rapport gain / coût
 
@@ -595,6 +596,25 @@ cause.
       non importés 2809 → 2786 ; les macros dont une commande interne
       n'est pas prise en charge signalent désormais celle-ci. Moteur
       +1,5 Ko (+0,5 Ko en gzip).
+- [x] **36. Cercle d'axe donné, cercle de direction un plan** :
+      `Circle(d, P)`, le cercle d'axe d (droite, segment, demi-droite,
+      vecteur) passant par P, n'était pas importé, ni `Circle(A, r, p)`
+      dont la direction est un plan (seule une droite l'était). Fait :
+      entrée `.dgo` `CAx` (commande DGP propre à DocGeo `AxisCircle`), de
+      centre le projeté de P sur d ; l'axe de `C1` peut être un plan, sa
+      normale, et l'import passe par une normale cachée au plan par le
+      centre. Vérifié face à GeoGebra (`tests/ggb/3D/3d_cercles_axe.ggb`,
+      centres et rayons relevés dans GeoGebra). Corpus : +1 figure sans
+      perte (`roots.py` : 244 → 245 sur 438), éléments non importés
+      2786 → 2770 (patrons de cubes qui font tourner leurs faces). Moteur
+      +0,85 Ko (+0,27 Ko en gzip). Puis, comme dans GeoGebra, le trait
+      des cercles et des arcs de l'espace est en pointillés là où le sol,
+      un plan, un polygone transparent ou un solide le cache, et absent
+      derrière une face opaque, comme celui des droites : il est
+      échantillonné en cordes, découpées chacune par
+      `hiddenIntervalsBetween` (`polylineSplit`), les disques des
+      cylindres et des cônes gardant leur propre calcul. Moteur +1,1 Ko
+      (+0,5 Ko en gzip).
 
 À écarter, sauf changement de priorité : calcul formel, courbes implicites,
 statistiques et probabilités, tableur au-delà des cellules simples, matrices.

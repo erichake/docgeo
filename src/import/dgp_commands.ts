@@ -29,6 +29,7 @@ import { createNetVertex, type net_turn } from "../objects/net_vertex_object";
 import { createTangent, type tangent_support } from "../objects/tangent_object";
 import { createCenter } from "../objects/center_object";
 import { createCircle1, type circle1_radius } from "../objects/circle1_object";
+import { createAxisCircle } from "../objects/axis_circle_object";
 import { createCircle3 } from "../objects/circle3_object";
 import {
     circle3pts_object,
@@ -1683,6 +1684,21 @@ const COMMANDS = new Map<string, CommandDefinition>([
                     args[1] as point_object,
                     radiusArgument(args[2], context),
                     args[3] as primitive_line_object | undefined,
+                ),
+        },
+    ],
+    // Not a DGPad command: GeoGebra's Circle(d, P), of axis d through P.
+    [
+        "AxisCircle",
+        {
+            parameters: [string, line, point],
+            result: "circle",
+            execute: (context, args) =>
+                createAxisCircle(
+                    context.construction,
+                    args[0] as string,
+                    args[1] as primitive_line_object,
+                    args[2] as point_object,
                 ),
         },
     ],

@@ -27,6 +27,9 @@ export class disk_object extends primitive_circle_object {
         this.addParents(solid);
     }
 
+    // Hidden by its own solid instead (see render).
+    protected drawStroke(): void {}
+
     dgo(context: DgoContext): [string, unknown] {
         return ["Disk", [context.index(this.solid), +this.top]];
     }

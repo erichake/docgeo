@@ -23,6 +23,8 @@ export interface Tool {
     // Its place on the ring, clockwise from the top, in buttons.
     slot: number;
     family: Family;
+    // Its name, when its command has more than one item.
+    label?: MessageKey;
 }
 
 export interface Family {
@@ -63,12 +65,18 @@ function tool(
     } as Tool;
 }
 
+// The tool of an item of its own among its command's.
+const labelled = (label: MessageKey, tool: Tool): Tool =>
+    Object.assign(tool, { label });
+
 const SEGMENT = result(path("M6 18L18 6")) + dot(6, 18) + dot(18, 6);
 const TRIANGLE =
     path("M4 19L20 19L9 5Z") + dot(4, 19) + dot(20, 19) + dot(9, 5);
 const BISECTOR =
     path("M4 12h16M8 10.5v3M16 10.5v3", true) + result(path("M12 4v16"));
 const CIRCLE = `<circle cx="12" cy="12" r="7.5"/>`;
+const RADIUS = (x: number, y: number) =>
+    `<text x="${x}" y="${y}" font-size="12" font-family="Georgia, serif" font-style="italic" fill="currentColor" stroke="none">r</text>`;
 const CIRCLE3 = result(CIRCLE) + dot(4.5, 12) + dot(16.5, 18) + dot(16.5, 6);
 const MIDPOINT = path("M5 12h14", true) + result(dot(12, 12));
 const PLANE =
@@ -188,15 +196,15 @@ const FAMILIES: [
         "family_constructions",
         265,
         [
-            [
+            [0, 2].map((overload) =>
                 tool(
                     "Perpendicular",
-                    0,
+                    overload,
                     path("M3 18h18M12 14h4v4", true) +
                         result(path("M12 4v16")) +
                         dot(12, 7),
                 ),
-            ],
+            ),
             [
                 tool(
                     "Parallel",
@@ -243,23 +251,29 @@ const FAMILIES: [
         145,
         [
             [
-                tool(
-                    "Circle",
-                    0,
-                    result(CIRCLE) +
-                        path("M12 12L18 7.5", true) +
-                        dot(12, 12) +
-                        dot(18, 7.5),
+                labelled(
+                    "tool_circle_point",
+                    tool(
+                        "Circle",
+                        0,
+                        result(CIRCLE) +
+                            path("M12 12L18 7.5", true) +
+                            dot(12, 12) +
+                            dot(18, 7.5),
+                    ),
                 ),
             ],
             [
-                tool(
-                    "Circle",
-                    1,
-                    result(`<circle cx="9.5" cy="14.5" r="7"/>`) +
-                        path("M9.5 14.5h7", true) +
-                        dot(9.5, 14.5) +
-                        `<text x="15.5" y="9" font-size="12" font-family="Georgia, serif" font-style="italic" fill="currentColor" stroke="none">r</text>`,
+                labelled(
+                    "tool_circle_radius",
+                    tool(
+                        "Circle",
+                        1,
+                        result(`<circle cx="9.5" cy="14.5" r="7"/>`) +
+                            path("M9.5 14.5h7", true) +
+                            dot(9.5, 14.5) +
+                            RADIUS(15.5, 9),
+                    ),
                 ),
             ],
             [
@@ -287,6 +301,29 @@ const FAMILIES: [
                     dot(10, 20) +
                     result(`<circle cx="15" cy="10" r="6"/>`) +
                     dot(15, 10),
+            ),
+            // In space: the center, then a line or a plane, the radius
+            // given; the axis, then a point.
+            labelled(
+                "tool_circle_direction",
+                tool(
+                    "Circle",
+                    2,
+                    path("M10 16V3M7.5 5.5 10 3l2.5 2.5") +
+                        result(`<ellipse cx="10" cy="16" rx="8" ry="3.5"/>`) +
+                        dot(10, 16) +
+                        RADIUS(15.5, 11),
+                ),
+            ),
+            labelled(
+                "tool_circle_axis",
+                tool(
+                    "Circle",
+                    3,
+                    path("M12 2v20") +
+                        result(`<ellipse cx="12" cy="13" rx="8.5" ry="3.5"/>`) +
+                        dot(20.5, 13),
+                ),
             ),
             tool(
                 "Arc",
@@ -433,23 +470,29 @@ const FAMILIES: [
         320,
         [
             [
-                tool(
-                    "Reflect",
-                    0,
-                    path("M5 18L19 6", true) +
-                        dot(5, 18) +
-                        dot(12, 12) +
-                        result(dot(19, 6)),
+                labelled(
+                    "tool_central",
+                    tool(
+                        "Reflect",
+                        0,
+                        path("M5 18L19 6", true) +
+                            dot(5, 18) +
+                            dot(12, 12) +
+                            result(dot(19, 6)),
+                    ),
                 ),
             ],
             [
-                tool(
-                    "Reflect",
-                    1,
-                    path("M12 3v18") +
-                        `<path class="dge-guide" d="M5 10h14" stroke-dasharray="2 3"/>` +
-                        dot(5, 10) +
-                        result(dot(19, 10)),
+                labelled(
+                    "tool_axial",
+                    tool(
+                        "Reflect",
+                        1,
+                        path("M12 3v18") +
+                            `<path class="dge-guide" d="M5 10h14" stroke-dasharray="2 3"/>` +
+                            dot(5, 10) +
+                            result(dot(19, 10)),
+                    ),
                 ),
             ],
         ],
@@ -635,29 +678,24 @@ for (const [name, hue, slots, menuOnly = [], tone = 1] of FAMILIES) {
 // The ring's circumference, in buttons.
 export const RING_SLOTS = slot - start;
 
-// The circle through three points is in their plane in space, the sphere,
-// the planes and the solids only there.
+// The circle through three points is in their plane in space, the
+// perpendicular there to a line or a plane; the sphere, the circles around
+// an axis, the tools taking a plane, the planes and the solids only there.
 export const usable = (
-    { overload: { tag }, family }: Tool,
+    { command, overload: { tag, params }, family }: Tool,
     vec3: boolean,
 ): boolean =>
     tag !== (vec3 ? "C3p" : "C3s") &&
-    (vec3 || (tag !== "Sph" && !SPACE.includes(family.name)));
+    (command.name !== "Perpendicular" || !tag === vec3) &&
+    (vec3 ||
+        (!["Sph", "CAx"].includes(tag) &&
+            !params.includes("linear") &&
+            !SPACE.includes(family.name)));
 
 const SPACE = ["family_planes", "family_solids"];
 
-// The commands of more than one item, told apart.
-const LABELS: Partial<Record<string, MessageKey>> = {
-    Cir: "tool_circle_point",
-    C1: "tool_circle_radius",
-    Sym: "tool_central",
-    Refl: "tool_axial",
-};
-
-export const itemLabel = ({ tools: [tool] }: Item): string => {
-    const key = LABELS[tool.overload.tag];
-    return key ? message(key) : commandName(tool.command);
-};
+export const itemLabel = ({ tools: [tool] }: Item): string =>
+    tool.label ? message(tool.label) : commandName(tool.command);
 
 // The tools that take the object as one of their arguments.
 export function toolsFor(

@@ -2375,6 +2375,16 @@ export function translateGgb(
         AngularBisector: onePoint("AngleBisector", 3),
         Angle: onePoint("Angle", 3, "angle"),
         Circle: ([center, second, third], [label]) => {
+            // Of axis d through P.
+            if (is(center, ["line"]))
+                return (
+                    third === undefined &&
+                    points(second) &&
+                    define(label, "circle", "AxisCircle", [
+                        ref(center),
+                        ref(second),
+                    ])
+                );
             if (!points(center)) return false;
             if (points(second, third))
                 return define(label, "circle", "Circle3pts", [
@@ -2384,15 +2394,21 @@ export function translateGgb(
                 ]);
             if (third !== undefined) {
                 const radius = formula(second, VALUE_KINDS);
-                return (
-                    radius !== null &&
-                    is(third, ["line"]) &&
-                    define(label, "circle", "Circle1", [
-                        ref(center),
-                        literal(radius),
+                if (radius === null) return false;
+                // A plane's direction, its normal through the center.
+                let axis = third;
+                if (isPlane(third)) {
+                    axis = auxiliary();
+                    define(axis, "line", "NormalLine", [
                         ref(third),
-                    ])
-                );
+                        ref(center),
+                    ]);
+                } else if (!is(third, ["line"])) return false;
+                return define(label, "circle", "Circle1", [
+                    ref(center),
+                    literal(radius),
+                    ref(axis),
+                ]);
             }
             if (points(second))
                 return define(label, "circle", "Circle", [

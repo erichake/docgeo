@@ -46,14 +46,17 @@ import {
     type Arg,
     type Command,
     type Overload,
+    type Param,
 } from "./catalog";
 import {
     add,
+    addFloor,
     addPointOn,
     cubeOn,
     entryOf,
     figureIndex,
     formatArg,
+    floorOf,
     FREE_POINT,
     hasName,
     isPointTag,
@@ -762,7 +765,7 @@ let pending: {
 } | null = null;
 // What the next argument would build, followed by the pointer.
 let preview: {
-    candidate: construction_object | "pointer";
+    candidate: construction_object | "pointer" | "floor";
     objects: construction_object[];
     pointer?: point_object;
     standIns: point_object[];
@@ -2032,6 +2035,21 @@ const fresh = (): boolean =>
 const fitting = (object: construction_object): Tool | undefined =>
     toolsFor(object, vec3(), armed!.tools)[0];
 
+// In space, the floor takes a plane where no object does.
+const FLOORED: Param[] = ["plane", "planar", "linear"];
+const floorTakes = (param: Param, screen: Vec2): boolean =>
+    vec3() && FLOORED.includes(param) && !!groundPoint(screen);
+
+function designateFloor(then: (floor: construction_object) => void): void {
+    // Its preview's floor gone, not taken.
+    clearPreview();
+    const c = scene();
+    const known = floorOf(c);
+    const floor = known ?? addFloor(c);
+    if (!known) changed(floor);
+    then(floor);
+}
+
 // Whether, nothing it takes being designated, a point is made there for it.
 const makesPoint = (hits: Hit[]): boolean =>
     !hits.some(({ object }) => fitting(object)) &&
@@ -2080,6 +2098,17 @@ function designateFirst(screen: Vec2, hits: Hit[], client: Vec2): void {
                 at: (point as point_object).coords,
             });
         });
+    else if (
+        armed!.tools.some(
+            (tool) =>
+                tool.mode === "command" &&
+                usable(tool, vec3()) &&
+                tool.overload.params.some((param) => floorTakes(param, screen)),
+        )
+    )
+        designateFloor((floor) =>
+            start({ object: floor, distance: 0, at: groundPoint(screen)! }),
+        );
 }
 
 const onRing = (slot: number): Vec2 => {
@@ -2779,6 +2808,7 @@ function designate(screen: Vec2, hits: Hit[], client: Vec2): void {
     }
     const taken = hits.filter(({ object }) => accepts(object, param));
     if (taken[0]) chooseHit(taken, client, ({ object }) => next(object));
+    else if (floorTakes(param, screen)) designateFloor(next);
 }
 
 function clearPreview(): void {
@@ -2872,7 +2902,11 @@ function updatePreview(screen: Vec2, hits: Hit[]): void {
     const hit = hits.find(({ object }) => accepts(object, param));
     const candidate =
         hit?.object ??
-        (param === "point" && free ? ("pointer" as const) : null);
+        (param === "point" && free
+            ? ("pointer" as const)
+            : pending && floorTakes(param, screen)
+              ? ("floor" as const)
+              : null);
     const c = scene();
     const coords = freeCoords(screen);
     if (
@@ -2887,10 +2921,19 @@ function updatePreview(screen: Vec2, hits: Hit[]): void {
     if (preview?.candidate !== candidate) {
         clearPreview();
         const objects: construction_object[] = [];
+        // Shown until the tool is applied, the floor hidden in the figure.
+        const known = floorOf(c);
+        const floor = candidate === "floor" ? addFloor(c, "‧f", 0) : null;
+        if (floor) {
+            floor.dom.addClass("dge-preview");
+            objects.push(floor);
+        }
         const argument =
             candidate === "pointer"
                 ? add(c, { name: "‧p", overload: FREE_POINT, args: coords! })
-                : candidate;
+                : candidate === "floor"
+                  ? (known ?? floor!)
+                  : candidate;
         if (candidate === "pointer") {
             argument.showName = false;
             argument.updateView();

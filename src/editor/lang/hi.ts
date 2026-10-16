@@ -225,6 +225,8 @@ const hi: Texts = {
         family_planes: "समतल",
         tool_circle_point: "वृत्त (केन्द्र और बिन्दु)",
         tool_circle_radius: "वृत्त (केन्द्र और त्रिज्या)",
+        tool_circle_direction: "वृत्त (केन्द्र, दिशा और त्रिज्या)",
+        tool_circle_axis: "वृत्त (अक्ष और बिन्दु)",
         tool_central: "केन्द्रीय सममिति",
         tool_axial: "अक्षीय सममिति",
         designate_place:
@@ -252,6 +254,7 @@ const hi: Texts = {
         designate_outline: "एक बहुभुज या शांकव चुनें",
         designate_plane: "एक समतल चुनें",
         designate_planar: "एक समतल या एक बहुभुज चुनें",
+        designate_linear: "एक रेखा या एक समतल चुनें",
         designate_sphere: "एक गोला चुनें",
         designate_polyhedron: "एक बहुफलक चुनें",
         designate_revolution: "एक बेलन या शंकु चुनें",

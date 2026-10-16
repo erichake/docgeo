@@ -225,6 +225,8 @@ const nl: Texts = {
         family_planes: "Vlakken",
         tool_circle_point: "Cirkel (middelpunt en punt)",
         tool_circle_radius: "Cirkel (middelpunt en straal)",
+        tool_circle_direction: "Cirkel (middelpunt, richting en straal)",
+        tool_circle_axis: "Cirkel (as en punt)",
         tool_central: "Puntspiegeling",
         tool_axial: "Lijnspiegeling",
         designate_place:
@@ -253,6 +255,7 @@ const nl: Texts = {
         designate_outline: "Selecteer een veelhoek of een kegelsnede",
         designate_plane: "Selecteer een vlak",
         designate_planar: "Selecteer een vlak of een veelhoek",
+        designate_linear: "Selecteer een rechte of een vlak",
         designate_sphere: "Selecteer een bol",
         designate_polyhedron: "Selecteer een veelvlak",
         designate_revolution: "Selecteer een cilinder of een kegel",

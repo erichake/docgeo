@@ -652,6 +652,43 @@ function mergeIntervals(intervals: Interval[]): Interval[] {
     return merged;
 }
 
+// The visible and the hidden runs of a 3D polyline, as SVG paths, a run
+// crossing its vertices drawn in one piece so that its dashes flow along.
+export function polylineSplit(
+    c: construction,
+    points: Vec3[],
+): [string, string] {
+    const paths = ["", ""];
+    const open = [false, false];
+    for (let k = 1; k < points.length; k++) {
+        const [p1, p2] = [points[k - 1], points[k]];
+        const [s1, s2] = [c.pt3D(p1), c.pt3D(p2)];
+        const at = (t: number): string => {
+            const [x, y] = vAdd(s1, vScale(vSub(s2, s1), t));
+            return `${x} ${y}`;
+        };
+        const { visible, hidden } = hiddenIntervalsBetween(
+            c,
+            s1,
+            s2,
+            p1,
+            p2,
+            () => false,
+        );
+        [visible, hidden].forEach((intervals, kind) => {
+            intervals.forEach(([a, b], index) => {
+                if (!open[kind] || index > 0 || a > GEOMETRY_EPSILON)
+                    paths[kind] += `M${at(a)}`;
+                paths[kind] += `L${at(b)}`;
+            });
+            open[kind] =
+                intervals.length > 0 &&
+                intervals[intervals.length - 1][1] >= 1 - GEOMETRY_EPSILON;
+        });
+    }
+    return [paths[0], paths[1]];
+}
+
 // Renders a set of sub-ranges of [sP1, sP2] as disconnected SVG path
 // commands, one "M...L..." per range. Each range starts from its leftmost
 // (then topmost) end whichever way the segment runs, so that coincident

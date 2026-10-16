@@ -5,10 +5,12 @@ import type { construction } from "../../src/construction";
 import { describeDgo, figureObjects, readDgo } from "../../src/dgo";
 import {
     add,
+    addFloor,
     addPointOn,
     cubeOn,
     entryOf,
     figureIndex,
+    floorOf,
     lineOf,
     rebuild,
     redefine,
@@ -228,7 +230,7 @@ describe("Editor", () => {
         for (const [text, key] of [
             ["Segment(A, Z)", "unknown_object"],
             ["Unknown(A, B)", "unknown_command"],
-            ["Circle(a, A)", "arguments"],
+            ["Circle(A, a)", "arguments"],
             ["Intersection(b, a, 5)", "branch"],
             ["Tangent(A, b, 3)", "tangent_branch"],
             ["RegularPolygon(A, B, 2)", "arguments"],
@@ -541,6 +543,9 @@ describe("Editor", () => {
             "n = Section(e, t)",
             "o = Section(a, p)",
             "f = Net(a, 1)",
+            "w = Circle(E, 1, d)",
+            "v = Circle(E, 2, p)",
+            "e1 = Circle(d, E)",
         ];
         text.forEach((line) => type(c, line));
         c.flush();
@@ -549,6 +554,15 @@ describe("Editor", () => {
         readDgo(other, await describeDgo(c));
         expect(lines(other)).toEqual(text);
         expectClose((c.getObj("F") as point_object).coords, [0, 0, 3]);
+        // Around a line, orthogonal to a plane, of axis d through E.
+        const circle = (name: string) => {
+            const { CENTER, R, NORMAL } = c.getObj(name) as circle1_object;
+            return [...CENTER, R, ...NORMAL.map(Math.abs)];
+        };
+        const third = 1 / Math.sqrt(3);
+        expectClose(circle("w"), [1, 1, 1, 1, 0, 0, 1]);
+        expectClose(circle("v"), [1, 1, 1, 2, third, third, third]);
+        expectClose(circle("e1"), [0, 0, 1, Math.SQRT2, 0, 0, 1]);
         // The cone's radius at height 1.
         const cone = c.getObj("n") as cylinder_section_object;
         cone.arcs.flat().forEach(([x, y, z]) => {
@@ -597,6 +611,32 @@ describe("Editor", () => {
             false,
             true,
         ]);
+        // In space, the menu's perpendicular to a line or a plane.
+        const perpendicular = TOOL_FAMILIES.flatMap(({ items }) => items)
+            .find((item) => itemLabel(item) === "Perpendicular")!
+            .tools.filter((tool) => usable(tool, true));
+        expect(perpendicular.map(({ overload }) => overload.tag)).toEqual([""]);
+        expect(
+            ["p", "d"].map(
+                (name) =>
+                    overloadFor(
+                        perpendicular[0].command,
+                        assign(perpendicular[0], [
+                            c.getObj(name)!,
+                            c.getObj("E")!,
+                        ]) as Arg[],
+                        true,
+                    )!.tag,
+            ),
+        ).toEqual(["Nrm", "Perp"]);
+        // The floor designated, a hidden plane z = 0, made once.
+        expect(floorOf(c)).toBeUndefined();
+        const floor = addFloor(c);
+        expect([
+            floorOf(c),
+            floor.hidden,
+            lineOf(floor, figureIndex(c), figureObjects(c)),
+        ]).toEqual([floor, 1, `${floor.name} = z = 0`]);
         // A plane is of degree 1.
         expect(() => resolve(c, parseLine("u = x*z = 1", isCommand))).toThrow(
             expect.objectContaining({ key: "degree" }),
@@ -1115,6 +1155,11 @@ describe("Editor", () => {
         c.flush();
         expect(offPlane(c)?.name).toBe("S");
         c.removeObject(c.getObj("S")!);
+        // A circle of axis d, in a vertical plane.
+        type(c, "k = Circle(d, M)");
+        c.flush();
+        expect(offPlane(c)?.name).toBe("k");
+        c.removeObject(c.getObj("k")!);
         type(c, "p = [[0, 0, 1], [1, 1, 1]]");
         type(c, "L = List(p)");
         c.flush();
@@ -1174,7 +1219,7 @@ describe("Editor", () => {
                 ["Vector", "Vec"],
             ],
             [
-                ["Perpendicular", "Perp"],
+                ["Perpendicular", "Perp", ""],
                 ["Parallel", "Par"],
                 ["PerpendicularBisector", "Med", "Med"],
                 ["AngleBisector", "Bis"],
@@ -1186,6 +1231,8 @@ describe("Editor", () => {
                 ["Circumcircle", "C3p", "C3s"],
                 ["Sphere", "Sph"],
                 ["Compass", "C3"],
+                ["Circle (centre, direction and radius)", "C1"],
+                ["Circle (axis and point)", "CAx"],
                 ["Arc", "Arc"],
                 ["Sector", "Sec"],
                 ["CenterArc", "CArc"],

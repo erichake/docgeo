@@ -16,6 +16,7 @@ import {
     type Vec3,
 } from "../vec";
 import { construction_object } from "./construction_object";
+import { polylineSplit } from "./hidden_line";
 
 // GeoGebra's DrawConic: up left of an ellipse's center, by its frame, for
 // the ellipse center + cos·u + sin·v on the screen.
@@ -66,6 +67,9 @@ export class primitive_circle_object extends construction_object {
     screenV: Vec2 = [0, 0];
     path!: DOMElement;
     hitArea!: DOMElement;
+    // In space, its stroke: solid, and dashed where a face hides it.
+    edge!: DOMElement;
+    hiddenEdge!: DOMElement;
 
     constructor(c: construction, name: string | null | undefined) {
         super(c, name, "circle");
@@ -215,6 +219,32 @@ export class primitive_circle_object extends construction_object {
         return ellipseAnchor(this.centerScreen, this.screenU, this.screenV, at);
     }
 
+    // Its points from the angle `from` over `span`, close enough that the
+    // chords between them don't show.
+    protected strokePoints(from: number, span: number): Vec3[] {
+        const radius = Math.max(vNorm(this.screenU), vNorm(this.screenV));
+        const turn = Math.min(
+            360,
+            Math.max(16, Math.PI * Math.sqrt(2 * radius)),
+        );
+        const count = Math.max(1, Math.ceil((turn * span) / (2 * Math.PI)));
+        return Array.from({ length: count + 1 }, (_, k) =>
+            this.pointAt(from + (span * k) / count),
+        );
+    }
+
+    // In space, its stroke split where faces and solids hide it (see
+    // hidden_line.ts), drawn by its edges instead of its path.
+    protected drawStroke(points: () => Vec3[]): void {
+        const space = !this.C.GRID.is2D;
+        this.path.stl("stroke", space ? "none" : this.stroke_color);
+        const [visible, hidden] = space
+            ? polylineSplit(this.C, points())
+            : ["", ""];
+        this.edge.att("d", visible);
+        this.hiddenEdge.att("d", hidden);
+    }
+
     render(): void {
         this.dom.stl(
             "display",
@@ -224,6 +254,34 @@ export class primitive_circle_object extends construction_object {
         const transform = `matrix(${this.screenU[0]} ${this.screenU[1]} ${this.screenV[0]} ${this.screenV[1]} ${this.centerScreen[0]} ${this.centerScreen[1]})`;
         this.path.att("transform", transform);
         this.hitArea.att("transform", transform);
+        this.drawStroke(() => this.strokePoints(0, 2 * Math.PI));
+    }
+
+    // Its path, and the edges drawing its stroke in space.
+    static addStroke(
+        t: primitive_circle_object,
+        dom: DOMElement,
+        path: DOMElement,
+    ): DOMElement {
+        t.path = path
+            .stl("fill", t.fill_color)
+            .stl("fill-opacity", t.opacity ?? 0)
+            .stl("stroke", t.stroke_color)
+            .stl("stroke-width", t.size)
+            .stl("stroke-dasharray", t.strokeDashArray)
+            .stl("pointer-events", "none")
+            .stl("vector-effect", "non-scaling-stroke");
+        const edge = (dash: string) =>
+            t.svg
+                .shape("path")
+                .stl("fill", "none")
+                .stl("stroke", t.stroke_color)
+                .stl("stroke-width", t.size)
+                .stl("stroke-dasharray", dash)
+                .stl("pointer-events", "none");
+        t.edge = edge(t.strokeDashArray);
+        t.hiddenEdge = edge(`${t.size * 3} ${t.size * 2}`);
+        return dom.add(t.hitArea, t.path, t.edge, t.hiddenEdge);
     }
 
     static createSVG(_this: construction_object): DOMElement {
@@ -238,18 +296,10 @@ export class primitive_circle_object extends construction_object {
                 "fill:transparent;stroke:transparent;pointer-events:stroke;cursor:pointer;vector-effect:non-scaling-stroke",
             )
             .stl("stroke-width", t.prefs.circle.touchsize);
-        t.path = t.svg
-            .shape("circle")
-            .att("cx", 0)
-            .att("cy", 0)
-            .att("r", 1)
-            .stl("fill", t.fill_color)
-            .stl("fill-opacity", t.opacity ?? 0)
-            .stl("stroke", t.stroke_color)
-            .stl("stroke-width", t.size)
-            .stl("stroke-dasharray", t.strokeDashArray)
-            .stl("pointer-events", "none")
-            .stl("vector-effect", "non-scaling-stroke");
-        return dom.add(t.hitArea, t.path);
+        return primitive_circle_object.addStroke(
+            t,
+            dom,
+            t.svg.shape("circle").att("cx", 0).att("cy", 0).att("r", 1),
+        );
     }
 }

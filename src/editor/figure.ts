@@ -77,6 +77,33 @@ export const FREE_POINT: Overload = {
     encode: (args) => args,
 };
 
+// The floor, the plane z = 0 (GeoGebra's xOyPlane): the figure's plane of
+// that equation, or one added hidden, the floor being drawn already.
+export function floorOf(c: construction): plane_object | undefined {
+    return figureObjects(c).find(
+        (object): object is plane_object =>
+            object instanceof plane_object &&
+            object.definition.tag === "PlE" &&
+            object.definition.equation[0].source === "z" &&
+            object.definition.equation[1].source === "0",
+    );
+}
+
+export function addFloor(
+    c: construction,
+    name = nextName(c, false),
+    hidden = 1,
+) {
+    const floor = add(c, {
+        name,
+        overload: { params: [], tag: "PlE", encode: () => ["z", "0"] },
+        args: [],
+    });
+    floor.hidden = hidden;
+    floor.updateView();
+    return floor as plane_object;
+}
+
 const POINT_TAGS = new Set([
     "Pt",
     "Fix",

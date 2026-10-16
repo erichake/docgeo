@@ -1050,6 +1050,44 @@ ${[
         );
     });
 
+    it("draws circles around an axis, or of a direction", async () => {
+        const c = createConstruction();
+        expect(importGgb(c, await loadXml("3d_cercles_axe"))).toEqual([]);
+        // GeoGebra's centers and radii; normal to the axis or the plane.
+        const third = 1 / Math.sqrt(3);
+        const fifth = 1 / Math.sqrt(5);
+        (
+            [
+                ["c1", [0, 0, 1], Math.SQRT2, [0, 0, 1]],
+                ["c2", [1, 1, 1], 2, [third, third, third]],
+                ["c3", [1, 1, 1], 1.5, [fifth, 2 * fifth, 0]],
+                ["c4", [1, 1, 1], 1, [0, 0, 1]],
+                [
+                    "c5",
+                    [1.2, 0, 0.6],
+                    2.6832815729997477,
+                    [2 * fifth, 0, fifth],
+                ],
+            ] as const
+        ).forEach(([name, center, radius, normal]) => {
+            const circle = c.getObj(name) as primitive_circle_object;
+            expectClose(
+                [
+                    ...circle.CENTER,
+                    circle.R,
+                    Math.abs(vDot(circle.NORMAL, normal)),
+                ],
+                [...center, radius, 1],
+            );
+        });
+        // Dashed below the floor, as a line is.
+        await new Promise((resolve) => requestAnimationFrame(resolve));
+        const { edge, hiddenEdge } = c.getObj("c3") as primitive_circle_object;
+        [edge, hiddenEdge].forEach((path) =>
+            expect(path.getAtt("d")).toMatch(/^M/),
+        );
+    });
+
     it("intersects a line and an orthogonal plane with a sphere", async () => {
         const c = createConstruction();
         expect(importGgb(c, await loadXml("3d_inter2"))).toEqual([]);

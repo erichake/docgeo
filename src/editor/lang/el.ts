@@ -226,6 +226,8 @@ const el: Texts = {
         family_planes: "Επίπεδα",
         tool_circle_point: "Κύκλος (κέντρο και σημείο)",
         tool_circle_radius: "Κύκλος (κέντρο και ακτίνα)",
+        tool_circle_direction: "Κύκλος (κέντρο, διεύθυνση και ακτίνα)",
+        tool_circle_axis: "Κύκλος (άξονας και σημείο)",
         tool_central: "Κεντρική συμμετρία",
         tool_axial: "Αξονική συμμετρία",
         designate_place:
@@ -254,6 +256,7 @@ const el: Texts = {
         designate_outline: "Επιλέξτε ένα πολύγωνο ή μια κωνική τομή",
         designate_plane: "Επιλέξτε ένα επίπεδο",
         designate_planar: "Επιλέξτε ένα επίπεδο ή ένα πολύγωνο",
+        designate_linear: "Επιλέξτε μια ευθεία ή ένα επίπεδο",
         designate_sphere: "Επιλέξτε μια σφαίρα",
         designate_polyhedron: "Επιλέξτε ένα πολύεδρο",
         designate_revolution: "Επιλέξτε έναν κύλινδρο ή έναν κώνο",

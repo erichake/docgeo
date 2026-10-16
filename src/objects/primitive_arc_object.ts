@@ -82,6 +82,12 @@ export abstract class primitive_arc_object extends primitive_circle_object {
         const d = this.sector ? `M0 0 L${start} ${arc} Z` : `M${start} ${arc}`;
         this.path.att("d", d).att("transform", transform);
         this.hitArea.att("d", d).att("transform", transform);
+        const from = this.sweepFlag ? this.startAlpha : this.endAlpha;
+        const to = this.sweepFlag ? this.endAlpha : this.startAlpha;
+        this.drawStroke(() => {
+            const points = this.strokePoints(from, normalizeAngle(to - from));
+            return this.sector ? [this.CENTER, ...points, this.CENTER] : points;
+        });
     }
 
     static createSVG(_this: construction_object) {
@@ -93,15 +99,6 @@ export abstract class primitive_arc_object extends primitive_circle_object {
                 "fill:none;stroke:transparent;pointer-events:stroke;cursor:pointer;vector-effect:non-scaling-stroke",
             )
             .stl("stroke-width", t.prefs.circle.touchsize);
-        t.path = t.svg
-            .shape("path")
-            .stl("fill", t.fill_color)
-            .stl("fill-opacity", t.opacity ?? 0)
-            .stl("stroke", t.stroke_color)
-            .stl("stroke-width", t.size)
-            .stl("stroke-dasharray", t.strokeDashArray)
-            .stl("pointer-events", "none")
-            .stl("vector-effect", "non-scaling-stroke");
-        return dom.add(t.hitArea, t.path);
+        return primitive_circle_object.addStroke(t, dom, t.svg.shape("path"));
     }
 }
