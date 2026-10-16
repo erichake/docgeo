@@ -1,7 +1,7 @@
 <?php
     // Index of the test figures, each opened in DocGeo through its ?url= parameter.
-    // ?viewer=… replaces the viewer, e.g. ?viewer=http://localhost:5175/apps/docgeo/index.html
-    $viewer = 'https://doctools.org/apps/docgeo/index.html';
+    // ?viewer=… replaces the viewer, e.g. ?viewer=http://localhost:5175/apps/docgeo/editor.html
+    $viewer = 'https://doctools.org/apps/docgeo/editor.html';
     if (isset($_GET['viewer']) && preg_match('#^https?://#', $_GET['viewer'])) {
     $viewer = $_GET['viewer'];
     }
