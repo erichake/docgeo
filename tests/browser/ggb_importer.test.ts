@@ -1339,7 +1339,7 @@ ${lines.map((line, index) => command("Plane", ["C", line], `p${index}`)).join("\
         const vector = c.getObj("u") as vector_object;
         expect(vector).toBeInstanceOf(vector_object);
         await new Promise((resolve) => requestAnimationFrame(resolve));
-        expect(vector.tipPath2.getAtt("d")).toMatch(/^M/);
+        expect(vector.head.getAtt("d")).toMatch(/^M/);
 
         const center = c.getObj("K") as point_object;
         const [x, y] = c.pt3D([2, 1, 0]);

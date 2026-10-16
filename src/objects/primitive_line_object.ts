@@ -18,6 +18,7 @@ import {
     hiddenIntervalsBetween,
     intervalsToPath,
     type Interval,
+    type Split,
 } from "./hidden_line";
 import type { point_object } from "./point_object";
 import type { polygon_object } from "./polygon_object";
@@ -25,7 +26,7 @@ import type { polygon_object } from "./polygon_object";
 // In 3D, an infinite line isn't run to the edge of the canvas, which has
 // no relation to the scene: it is drawn Cabri-style, as long as the
 // segment given by referenceSpan() (e.g. A-B for a two-point line), plus a
-// short tapered overhang on each side. That overhang is a fixed screen
+// short overhang on each side fading out. That overhang is a fixed screen
 // length regardless of how long the segment itself is (matching Cabri
 // Express: a long AB doesn't grow a long tail) — but, since it's applied
 // to the already-projected reference points rather than measured against
@@ -33,6 +34,8 @@ import type { polygon_object } from "./polygon_object";
 // the canvas edge, as in DGPad and GeoGebra: drawn partially, it would
 // read as a segment.
 const LINE_TIP_LENGTH = 100;
+
+let tipGradients = 0;
 
 function pointAtDistance(origin: Vec2, dir: Vec2, distance: number): Vec2 {
     return [origin[0] + distance * dir[0], origin[1] + distance * dir[1]];
@@ -81,29 +84,26 @@ function dashIntervals(
     return intervals;
 }
 
-// Path for a tapered tip: a triangle from `base` (as wide as the stroke,
-// offset by +/-perp) narrowing to a point at `apex`, drawn over the given
-// distances from its base.
-function tipPath(
-    base: Vec2,
-    apex: Vec2,
-    perp: Vec2,
-    intervals: Interval[],
-): string {
+function intersectIntervals(a: Interval[], b: Interval[]): Interval[] {
+    return a.flatMap(([from, to]) =>
+        b.map(([start, end]): Interval => [
+            Math.max(from, start),
+            Math.min(to, end),
+        ]),
+    );
+}
+
+// Path for a tip from `base` to `apex`, drawn over the given distances
+// from its base.
+function tipPath(base: Vec2, apex: Vec2, intervals: Interval[]): string {
     const length = vNorm(vSub(apex, base));
-    const corner = (s: number, side: number): string => {
-        const [x, y] = vAdd(
-            vAdd(base, vScale(vSub(apex, base), s / length)),
-            vScale(perp, side * (1 - s / length)),
-        );
+    const at = (s: number): string => {
+        const [x, y] = vAdd(base, vScale(vSub(apex, base), s / length));
         return `${x} ${y}`;
     };
     return intervals
         .filter(([from, to]) => to > from)
-        .map(
-            ([from, to]) =>
-                `M${corner(from, 1)} L${corner(to, 1)} L${corner(to, -1)} L${corner(from, -1)} Z`,
-        )
+        .map(([from, to]) => `M${at(from)} L${at(to)}`)
         .join(" ");
 }
 
@@ -112,8 +112,8 @@ export class primitive_line_object extends construction_object {
     VEC: Vec3;
     sP1: Vec2 = [0, 0];
     sP2: Vec2 = [0, 0];
-    // Full reach of the line (where the tapered tips end), vs. sP1/sP2
-    // which are pulled back by the taper length for the solid/dashed body.
+    // Full reach of the line (where the faded tips end), vs. sP1/sP2
+    // where the solid/dashed body ends.
     // Only meaningful when partialDrawing is true.
     tipP1: Vec2 = [0, 0];
     tipP2: Vec2 = [0, 0];
@@ -122,8 +122,13 @@ export class primitive_line_object extends construction_object {
     path!: DOMElement;
     hitArea!: DOMElement;
     hiddenPath!: DOMElement;
+    // Only created for infinite lines, drawn partially in 3D.
     tipPath1!: DOMElement;
     tipPath2!: DOMElement;
+    hiddenTipPath1!: DOMElement;
+    hiddenTipPath2!: DOMElement;
+    tipGradient1!: DOMElement;
+    tipGradient2!: DOMElement;
     // False for segment_object, which has real endpoints.
     protected infinite = true;
     // A ray from P1, in the direction of VEC.
@@ -135,6 +140,11 @@ export class primitive_line_object extends construction_object {
     // they no longer match the range project() below assumes.
     protected hiddenIntervals: Interval[] = [];
     protected visibleIntervals: Interval[] = [[0, 1]];
+    // The same for each tip, from its base to its apex.
+    private tipSplits: [Split, Split] = [
+        { hidden: [], visible: [] },
+        { hidden: [], visible: [] },
+    ];
     // Where its name was last written: GeoGebra keeps a line's by the end
     // nearest to it.
     private lastNameAt: Vec2 = [0, 0];
@@ -272,6 +282,24 @@ export class primitive_line_object extends construction_object {
                     : pointAtDistance(bodyP1, dir, -LINE_TIP_LENGTH);
                 this.tipP2 = pointAtDistance(bodyP2, dir, LINE_TIP_LENGTH);
                 this.updateHiddenSplit(span[0], span[1]);
+                const reach = vScale(
+                    vSub(span[1], span[0]),
+                    LINE_TIP_LENGTH / bodyLength,
+                );
+                this.tipSplits = [
+                    this.splitBetween(
+                        bodyP1,
+                        this.tipP1,
+                        span[0],
+                        vSub(span[0], reach),
+                    ),
+                    this.splitBetween(
+                        bodyP2,
+                        this.tipP2,
+                        span[1],
+                        vAdd(span[1], reach),
+                    ),
+                ];
                 return;
             }
         }
@@ -322,14 +350,23 @@ export class primitive_line_object extends construction_object {
     // given the 3D positions matching them.
     protected updateHiddenSplit(point3D1: Vec3, point3D2: Vec3): void {
         ({ hidden: this.hiddenIntervals, visible: this.visibleIntervals } =
-            hiddenIntervalsBetween(
-                this.C,
-                this.sP1,
-                this.sP2,
-                point3D1,
-                point3D2,
-                (polygon) => this.isOwnFace(polygon),
-            ));
+            this.splitBetween(this.sP1, this.sP2, point3D1, point3D2));
+    }
+
+    private splitBetween(
+        sP1: Vec2,
+        sP2: Vec2,
+        point3D1: Vec3,
+        point3D2: Vec3,
+    ): Split {
+        return hiddenIntervalsBetween(
+            this.C,
+            sP1,
+            sP2,
+            point3D1,
+            point3D2,
+            (polygon) => this.isOwnFace(polygon),
+        );
     }
 
     // GeoGebra's DrawLine, DrawRay and DrawSegment: a line's name by the
@@ -427,14 +464,46 @@ export class primitive_line_object extends construction_object {
             intervalsToPath(this.sP1, this.sP2, this.hiddenIntervals),
         );
         if (this.partialDrawing) {
-            const half = this.size / 2;
-            const perp: Vec2 = [
-                -this.screenDir[1] * half,
-                this.screenDir[0] * half,
-            ];
-            const [tip1, tip2] = this.tipIntervals();
-            this.tipPath1.att("d", tipPath(this.sP1, this.tipP1, perp, tip1));
-            this.tipPath2.att("d", tipPath(this.sP2, this.tipP2, perp, tip2));
+            const dashes = this.tipIntervals();
+            for (const [i, path, hiddenPath, gradient, base, apex] of [
+                [
+                    0,
+                    this.tipPath1,
+                    this.hiddenTipPath1,
+                    this.tipGradient1,
+                    this.sP1,
+                    this.tipP1,
+                ],
+                [
+                    1,
+                    this.tipPath2,
+                    this.hiddenTipPath2,
+                    this.tipGradient2,
+                    this.sP2,
+                    this.tipP2,
+                ],
+            ] as const) {
+                const length = vNorm(vSub(apex, base));
+                const { hidden, visible } = this.tipSplits[i];
+                const along = (intervals: Interval[]): Interval[] =>
+                    intervals.map(([from, to]) => [from * length, to * length]);
+                path.att(
+                    "d",
+                    tipPath(
+                        base,
+                        apex,
+                        intersectIntervals(dashes[i], along(visible)),
+                    ),
+                );
+                hiddenPath.att("d", tipPath(base, apex, along(hidden)));
+                const [x1, y1] = base;
+                const [x2, y2] = apex;
+                gradient
+                    .att("x1", x1)
+                    .att("y1", y1)
+                    .att("x2", x2)
+                    .att("y2", y2);
+            }
         }
     }
 
@@ -486,18 +555,45 @@ export class primitive_line_object extends construction_object {
             .stl("stroke-width", t.size)
             .stl("stroke-dasharray", `${t.size * 3} ${t.size * 2}`)
             .stl("pointer-events", "none");
-        t.tipPath1 = t.svg
-            .shape("path")
-            .stl("fill", t.stroke_color)
-            .stl("fill-opacity", t.strokeOpacity)
-            .stl("stroke", "none")
-            .stl("pointer-events", "none");
-        t.tipPath2 = t.svg
-            .shape("path")
-            .stl("fill", t.stroke_color)
-            .stl("fill-opacity", t.strokeOpacity)
-            .stl("stroke", "none")
-            .stl("pointer-events", "none");
-        return dom.add(t.hitArea, t.path, t.hiddenPath, t.tipPath1, t.tipPath2);
+        dom.add(t.hitArea, t.path, t.hiddenPath);
+        if (!t.infinite) return dom;
+        // userSpaceOnUse: a horizontal or vertical stroke has an empty
+        // bounding box, which would cancel an objectBoundingBox gradient.
+        const tip = (): [DOMElement, DOMElement, DOMElement] => {
+            const id = `line-tip-gradient-${++tipGradients}`;
+            const gradient = t.svg
+                .shape("linearGradient")
+                .att("id", id)
+                .att("gradientUnits", "userSpaceOnUse")
+                .add(
+                    t.svg
+                        .shape("stop")
+                        .att("offset", 0)
+                        .stl("stop-color", t.stroke_color),
+                    t.svg
+                        .shape("stop")
+                        .att("offset", 1)
+                        .stl("stop-color", t.stroke_color)
+                        .stl("stop-opacity", 0),
+                );
+            const path = (dash: string) =>
+                t.svg
+                    .shape("path")
+                    .stl("fill", "none")
+                    .stl("stroke", `url(#${id})`)
+                    .stl("stroke-width", t.size)
+                    .stl("stroke-dasharray", dash)
+                    .stl("pointer-events", "none");
+            return [gradient, path(""), path(`${t.size * 3} ${t.size * 2}`)];
+        };
+        [t.tipGradient1, t.tipPath1, t.hiddenTipPath1] = tip();
+        [t.tipGradient2, t.tipPath2, t.hiddenTipPath2] = tip();
+        return dom.add(
+            t.svg.shape("defs").add(t.tipGradient1, t.tipGradient2),
+            t.tipPath1,
+            t.tipPath2,
+            t.hiddenTipPath1,
+            t.hiddenTipPath2,
+        );
     }
 }

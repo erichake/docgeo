@@ -73,7 +73,7 @@ export function drawing(element: Element): string {
         )
         .join("");
     return `<${element.tagName} ${attributes.join(" ")}>${content}</>`.replace(
-        /(sphere-gradient-|revolution-gradient-|floor-clip-)\d+/g,
+        /(sphere-gradient-|revolution-gradient-|line-tip-gradient-|floor-clip-)\d+/g,
         "$1",
     );
 }

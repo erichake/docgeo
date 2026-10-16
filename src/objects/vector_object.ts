@@ -1,7 +1,8 @@
 import type { construction } from "../construction";
 import type { ScriptValue } from "../import/dgp_formula";
+import type { DOMElement } from "../dom";
 import { vAdd, vNorm, vScale, vSub, type Vec2 } from "../vec";
-import type { DgoContext } from "./construction_object";
+import type { construction_object, DgoContext } from "./construction_object";
 import type { point_object } from "./point_object";
 import { segment_object } from "./segment_object";
 
@@ -10,6 +11,8 @@ const HEAD_LENGTH = 20;
 const HEAD_ANGLE = Math.PI / 10;
 
 export class vector_object extends segment_object {
+    head!: DOMElement;
+
     dgo(context: DgoContext): [string, unknown] {
         return ["Vec", super.dgo(context)[1]];
     }
@@ -52,10 +55,21 @@ export class vector_object extends segment_object {
             apex[1] - HEAD_LENGTH * Math.sin(angle + offset),
         ];
         const [left, right] = [side(-HEAD_ANGLE), side(HEAD_ANGLE)];
-        this.tipPath2.att(
+        this.head.att(
             "d",
             `M${apex[0]} ${apex[1]} L${left[0]} ${left[1]} L${right[0]} ${right[1]} Z`,
         );
+    }
+
+    static createSVG(_this: construction_object): DOMElement {
+        const t = _this as vector_object;
+        t.head = t.svg
+            .shape("path")
+            .stl("fill", t.stroke_color)
+            .stl("fill-opacity", t.strokeOpacity)
+            .stl("stroke", "none")
+            .stl("pointer-events", "none");
+        return segment_object.createSVG(t).add(t.head);
     }
 }
 
