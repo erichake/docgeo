@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="zh-TW">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <title>用多選作圖 — DocGeo 手冊</title>
+        <link rel="icon" type="image/svg+xml" href="../../favicon.svg" />
+        <link rel="stylesheet" href="../manual.css" />
+        <script src="../icons.js" defer></script>
+        <script src="../manual.js" defer></script>
+    </head>
+    <body>
+        <main>
+            <h1>用多選作圖</h1>
+
+            <p class="lead">
+                先選物件，再選工具：所選物件成為選單中所選工具的參數。
+            </p>
+
+            <h2>步驟</h2>
+            <ol>
+                <li>
+                    選取物件：<kbd>Ctrl</kbd>-點按、<kbd>Shift</kbd>-點按或長按（0.7
+                    秒）。每個物件以藍色醒目顯示並標出其序號。如果某個物件的工具環已開啟，該物件成為所選的第一個物件。
+                </li>
+                <li>
+                    開啟選單<i data-i="tools"></i
+                    >：不接受所選物件的工具族和工具會變灰。指標停在某個工具上時，提示中顯示它將寫出的那一列。
+                </li>
+                <li>
+                    選擇工具：每個物件依選取的順序，佔據其類型的第一個空位。
+                </li>
+            </ol>
+
+            <h2 id="selection-incomplete">完整或不完整的選取</h2>
+            <ul>
+                <li>選取完整：立即寫出該列。</li>
+                <li>選取不完整：工具等待缺少的參數，之後在圖中指定。</li>
+                <li>
+                    數值（半徑、角度、比例、邊數）無法選取：工具取一個預設值，之後可在它的那一列中修改。
+                </li>
+                <li>
+                    之後工具保持啟用，與不先選取物件、<a href="menu-outils.html"
+                        >直接從選單選擇</a
+                    >時相同。
+                </li>
+            </ul>
+
+            <h2>特殊情況</h2>
+            <div class="table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>工具</th>
+                            <th>所選物件</th>
+                            <th>結果</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><i data-t="Polygon"></i> 多邊形</td>
+                            <td>三個或更多頂點</td>
+                            <td>
+                                立即作出封閉的多邊形；少於三個時，工具等待後續頂點
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><i data-t="Intersection"></i> 交點</td>
+                            <td>兩個物件</td>
+                            <td>離第二個物件被選取位置最近的交點</td>
+                        </tr>
+                        <tr>
+                            <td><i data-t="Point"></i> 點</td>
+                            <td>一個物件</td>
+                            <td>該物件上的點，位於它被選取的位置</td>
+                        </tr>
+                        <tr>
+                            <td><i data-t="Locus"></i> 軌跡</td>
+                            <td>一個點</td>
+                            <td>它的軌跡；它所依賴的物件上的點會自動找到</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <h2>範例</h2>
+            <div class="table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>所選物件</th>
+                            <th>工具</th>
+                            <th>寫出的列</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>A, B, C</td>
+                            <td>外接圓</td>
+                            <td><code>外接圓(A, B, C)</code></td>
+                        </tr>
+                        <tr>
+                            <td>D、E、F，即 A、B、C 的像</td>
+                            <td>多邊形</td>
+                            <td><code>多邊形(D, E, F)</code></td>
+                        </tr>
+                        <tr>
+                            <td>P, O</td>
+                            <td>旋轉</td>
+                            <td><code>旋轉(P, O, 90)</code></td>
+                        </tr>
+                        <tr>
+                            <td>O</td>
+                            <td>圓（圓心和半徑）</td>
+                            <td><code>圓(O, 3.8)</code></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </main>
+    </body>
+</html>

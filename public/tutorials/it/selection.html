@@ -1,0 +1,146 @@
+<!doctype html>
+<html lang="it">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <title>Costruire per selezione multipla — Manuale di DocGeo</title>
+        <link rel="icon" type="image/svg+xml" href="../../favicon.svg" />
+        <link rel="stylesheet" href="../manual.css" />
+        <script src="../icons.js" defer></script>
+        <script src="../manual.js" defer></script>
+    </head>
+    <body>
+        <main>
+            <h1>Costruire per selezione multipla</h1>
+
+            <p class="lead">
+                Prima gli oggetti, poi lo strumento: gli oggetti selezionati
+                diventano gli argomenti dello strumento scelto nel menu.
+            </p>
+
+            <h2>Passi</h2>
+            <ol>
+                <li>
+                    Selezionare gli oggetti: <kbd>Ctrl</kbd>-clic,
+                    <kbd>Maiusc</kbd>-clic o pressione prolungata (0,7 s).
+                    Ognuno brilla in blu con il suo numero d’ordine. Se l’anello
+                    di un oggetto è aperto, quell’oggetto diventa il primo della
+                    selezione.
+                </li>
+                <li>
+                    Aprire il menu <i data-i="tools"></i>: le famiglie e gli
+                    strumenti che non accettano la selezione sono disattivati.
+                    Passando su uno strumento, il suggerimento mostra la riga
+                    che scriverà.
+                </li>
+                <li>
+                    Scegliere lo strumento: ogni oggetto, nell’ordine della
+                    selezione, occupa il primo posto libero del suo tipo.
+                </li>
+            </ol>
+
+            <h2 id="selection-incomplete">Selezione completa o incompleta</h2>
+            <ul>
+                <li>Selezione completa: la riga viene scritta subito.</li>
+                <li>
+                    Selezione incompleta: lo strumento attende gli argomenti
+                    mancanti, da designare poi nella figura.
+                </li>
+                <li>
+                    Un numero (raggio, angolo, rapporto, numero di lati) non si
+                    seleziona: lo strumento prende un valore predefinito, da
+                    cambiare poi nella sua riga.
+                </li>
+                <li>
+                    Lo strumento resta poi attivo, come quando è
+                    <a href="menu-outils.html">scelto dal menu</a> senza
+                    selezione.
+                </li>
+            </ul>
+
+            <h2>Casi particolari</h2>
+            <div class="table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Strumento</th>
+                            <th>Selezione</th>
+                            <th>Risultato</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><i data-t="Polygon"></i> Poligono</td>
+                            <td>tre vertici o più</td>
+                            <td>
+                                poligono chiuso subito; con meno, lo strumento
+                                attende i vertici successivi
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><i data-t="Intersection"></i> Intersezione</td>
+                            <td>due oggetti</td>
+                            <td>
+                                il punto di intersezione più vicino al punto in
+                                cui è stato selezionato il secondo
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><i data-t="Point"></i> Punto</td>
+                            <td>un oggetto</td>
+                            <td>
+                                punto su questo oggetto, dove è stato
+                                selezionato
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><i data-t="Locus"></i> Luogo</td>
+                            <td>un punto</td>
+                            <td>
+                                il suo luogo; il punto su oggetto da cui dipende
+                                viene trovato da solo
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <h2>Esempi</h2>
+            <div class="table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Selezione</th>
+                            <th>Strumento</th>
+                            <th>Riga scritta</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>A, B, C</td>
+                            <td>CirconferenzaCircoscritta</td>
+                            <td>
+                                <code>CirconferenzaCircoscritta(A, B, C)</code>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>D, E, F, immagini di A, B, C</td>
+                            <td>Poligono</td>
+                            <td><code>Poligono(D, E, F)</code></td>
+                        </tr>
+                        <tr>
+                            <td>P, O</td>
+                            <td>Rotazione</td>
+                            <td><code>Rotazione(P, O, 90)</code></td>
+                        </tr>
+                        <tr>
+                            <td>O</td>
+                            <td>Circonferenza (centro e raggio)</td>
+                            <td><code>Circonferenza(O, 3.8)</code></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </main>
+    </body>
+</html>

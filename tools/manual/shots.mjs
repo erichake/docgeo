@@ -15,12 +15,12 @@ const TRIANGLE = [
 
 export const SHOTS = [
     {
-        file: "editeur-interface.webp",
+        file: "interface.webp",
         page: "editor.html",
         run: ({ type }) => type(TRIANGLE),
     },
     {
-        file: "editeur-anneau.webp",
+        file: "anneau.webp",
         page: "editor.html",
         clip: { x: 320, y: 0, width: 880, height: 720 },
         run: async ({ page, type, point, command }) => {
@@ -33,7 +33,7 @@ export const SHOTS = [
         },
     },
     {
-        file: "editeur-menu-outils.webp",
+        file: "menu-outils.webp",
         page: "editor.html",
         clip: { x: 0, y: 0, width: 620, height: 720 },
         run: async ({ page, type, button, t }) => {
@@ -45,7 +45,7 @@ export const SHOTS = [
         },
     },
     {
-        file: "editeur-proprietes.webp",
+        file: "proprietes.webp",
         page: "editor.html",
         run: async ({ page, type, point, button }) => {
             await type(TRIANGLE);
@@ -54,7 +54,7 @@ export const SHOTS = [
         },
     },
     {
-        file: "editeur-onglet-figure.webp",
+        file: "onglet-figure.webp",
         page: "editor.html",
         clip: { x: 600, y: 0, width: 600, height: 720 },
         run: async ({ page, type, point, button, t }) => {
@@ -65,7 +65,7 @@ export const SHOTS = [
         },
     },
     {
-        file: "editeur-aimants.webp",
+        file: "aimants.webp",
         page: "editor.html",
         clip: { x: 320, y: 0, width: 880, height: 720 },
         run: async ({ page, type, point, on, button }) => {
@@ -84,7 +84,7 @@ export const SHOTS = [
         },
     },
     {
-        file: "editeur-3d.webp",
+        file: "3d.webp",
         page: "editor.html",
         run: async ({ page, type, button }) => {
             await button("space");

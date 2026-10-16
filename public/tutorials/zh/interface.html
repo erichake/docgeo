@@ -1,9 +1,9 @@
 <!doctype html>
-<html lang="zh-TW">
+<html lang="zh">
     <head>
         <meta charset="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <title>介面 — DocGeo 手冊</title>
+        <title>界面 — DocGeo 手册</title>
         <link rel="icon" type="image/svg+xml" href="../../favicon.svg" />
         <link rel="stylesheet" href="../manual.css" />
         <script src="../icons.js" defer></script>
@@ -11,31 +11,31 @@
     </head>
     <body>
         <main>
-            <h1>介面</h1>
+            <h1>界面</h1>
 
             <figure>
                 <img
-                    src="img/editeur-interface.webp"
-                    alt="編輯器：操作列、作圖面板和圖形"
+                    src="img/interface.webp"
+                    alt="DocGeo：操作栏、作图面板和图形"
                     width="1200"
                     height="720"
                 />
             </figure>
 
-            <h2>操作列</h2>
+            <h2>操作栏</h2>
             <div class="table">
                 <table>
                     <thead>
                         <tr>
                             <th></th>
-                            <th>按鈕</th>
+                            <th>按钮</th>
                             <th>作用</th>
                         </tr>
                     </thead>
                     <tbody>
                         <tr>
                             <td><i data-i="open"></i></td>
-                            <td>開啟</td>
+                            <td>打开</td>
                             <td>
                                 <code>.dgo</code>、<code>.dgp</code>、<code
                                     >.ggb</code
@@ -44,140 +44,150 @@
                         </tr>
                         <tr>
                             <td><i data-i="save"></i></td>
-                            <td>儲存</td>
-                            <td>儲存為 <code>.dgo</code></td>
+                            <td>保存</td>
+                            <td>保存为 <code>.dgo</code></td>
                         </tr>
                         <tr>
                             <td><i data-i="eraser"></i></td>
                             <td>橡皮擦</td>
                             <td>
-                                隱藏或顯示物件（<a href="objets.html#la-gomme"
+                                隐藏或显示对象（<a href="objets.html#la-gomme"
                                     >橡皮擦</a
                                 >）
                             </td>
                         </tr>
                         <tr>
                             <td><i data-i="axes"></i></td>
-                            <td>座標系</td>
-                            <td>座標軸和格線；3D 中為三面角和地面</td>
+                            <td>坐标系</td>
+                            <td>坐标轴和网格；3D 中为三面角和地面</td>
                         </tr>
                         <tr>
                             <td><i data-i="space"></i></td>
-                            <td>3D 檢視</td>
+                            <td>3D 视图</td>
                             <td>
-                                進入空間或返回平面（<a href="3d.html">3D</a>）
+                                进入空间或返回平面（<a href="3d.html">3D</a>）
                             </td>
                         </tr>
                         <tr>
                             <td><i data-i="properties"></i></td>
-                            <td>屬性</td>
+                            <td>属性</td>
                             <td>
-                                右側面板（<a href="proprietes.html">屬性</a>）
+                                右侧面板（<a href="proprietes.html">属性</a>）
                             </td>
                         </tr>
                         <tr>
                             <td><i data-i="history"></i></td>
-                            <td>作圖</td>
-                            <td>左側面板</td>
+                            <td>作图</td>
+                            <td>左侧面板</td>
                         </tr>
                         <tr>
                             <td><i data-i="undo"></i> <i data-i="redo"></i></td>
-                            <td>復原、重做</td>
+                            <td>撤销、重做</td>
                             <td>
                                 <kbd>Ctrl</kbd> <kbd>Z</kbd>，<kbd>Ctrl</kbd>
                                 <kbd>Shift</kbd> <kbd>Z</kbd> 或 <kbd>Ctrl</kbd>
                                 <kbd>Y</kbd>
                             </td>
                         </tr>
+                        <tr>
+                            <td><i data-i="help"></i></td>
+                            <td>使用手册</td>
+                            <td>在新标签页中以 DocGeo 的语言打开手册</td>
+                        </tr>
                     </tbody>
                 </table>
             </div>
             <p>
-                中間的<a href="objets.html#la-zone-contextuelle">情境區</a
-                >顯示所選物件的名稱和操作。
+                中间的<a href="objets.html#la-zone-contextuelle">上下文区</a
+                >显示所选对象的名称和操作。
             </p>
 
-            <h2>「作圖」面板</h2>
+            <h2>“作图”面板</h2>
             <ul>
                 <li>
-                    每個物件一列，按作圖順序排列：<code>M = 中點(A, B)</code
-                    >。每一列都可以修改（<a
+                    每个对象一行，按作图顺序排列：<code>M = 中点(A, B)</code
+                    >。每一行都可以修改（<a
                         href="saisie.html#modifier-une-ligne"
-                        >重新定義</a
+                        >重新定义</a
                     >）。
                 </li>
                 <li>
-                    列首的圓點用於隱藏或顯示物件；列尾的<i
+                    行首的圆点用于隐藏或显示对象；行尾的<i
                         data-i="show_name"
                     ></i
-                    >顯示其名稱。
+                    >显示其名称。
                 </li>
                 <li>
-                    標題列：物件數量、<i data-i="show_values"></i
-                    ><a href="objets.html#les-valeurs">數值</a>、<i
+                    标题栏：对象数量、<i data-i="show_values"></i>
+                    <a href="objets.html#les-valeurs">数值</a>、<i
                         data-i="steps"
-                    ></i
-                    ><a href="objets.html#la-construction-pas-a-pas">逐步構造</a
-                    >、<i data-i="new_program"></i
-                    ><a href="expressions.html#les-programmes">新程式</a>。
+                    ></i>
+                    <a href="objets.html#la-construction-pas-a-pas">逐步构造</a
+                    >、<i data-i="new_program"></i>
+                    <a href="expressions.html#les-programmes">新程序</a>。
                 </li>
                 <li>
-                    輸入列「輸入…」以及<a href="menu-outils.html">工具選單</a
-                    >的<i data-i="tools"></i> 按鈕。
+                    输入行“输入…”以及<a href="menu-outils.html">工具菜单</a>的<i
+                        data-i="tools"
+                    ></i
+                    >按钮。
                 </li>
-                <li>游標停留在某一列上時對應物件會醒目顯示，反之亦然。</li>
+                <li>鼠标悬停在某一行上时对应对象会高亮，反之亦然。</li>
             </ul>
 
             <h2>提示</h2>
             <p>
-                圖形底部的泡泡顯示目前需要什麼（「選取一個點」）、工具將要寫出的列，以及紅色的錯誤訊息。其上的<strong>✕</strong>用於離開目前的工具。
+                图形底部的气泡显示当前需要什么（“选择一个点”）、工具将要写出的行，以及红色的错误信息。其上的<strong
+                    >✕</strong
+                >
+                用于退出当前工具。
             </p>
 
-            <h2>瀏覽</h2>
+            <h2>浏览</h2>
             <div class="table">
                 <table>
                     <thead>
                         <tr>
                             <th>操作</th>
-                            <th>手勢</th>
+                            <th>手势</th>
                         </tr>
                     </thead>
                     <tbody>
                         <tr>
-                            <td>平移檢視</td>
-                            <td>拖曳空白處；在任意處按住右鍵</td>
+                            <td>平移视图</td>
+                            <td>拖动空白处；在任意处按住右键</td>
                         </tr>
                         <tr>
-                            <td>縮放</td>
-                            <td>滾輪或觸控板，以游標為中心</td>
+                            <td>缩放</td>
+                            <td>滚轮或触控板，以指针为中心</td>
                         </tr>
                         <tr>
-                            <td>旋轉 3D 圖形</td>
-                            <td>右鍵，或單指在空白處拖曳</td>
+                            <td>旋转 3D 图形</td>
+                            <td>右键，或单指在空白处拖动</td>
                         </tr>
                         <tr>
-                            <td>透視、地面（3D）</td>
+                            <td>透视、地面（3D）</td>
                             <td><kbd>P</kbd>、<kbd>S</kbd></td>
                         </tr>
                     </tbody>
                 </table>
             </div>
             <p>
-                當圖形含有動畫時，左下角會出現一個圓形按鈕，用於暫停或繼續動畫。
+                当图形含有动画时，左下角会出现一个圆形按钮，用于暂停或继续动画。
             </p>
 
-            <h2>復原</h2>
+            <h2>撤销</h2>
             <p>
-                每一次修改都是同一個堆疊中的一步：作圖、刪除、移動、樣式、座標系設定、進入
-                3D。檢視的縮放、平移和旋轉不算在內。
+                每一次修改都是同一个栈中的一步：作图、删除、移动、样式、坐标系设置、进入
+                3D。视图的缩放、平移和旋转不算在内。
             </p>
 
             <h2>面板</h2>
             <ul>
-                <li>拖曳面板的內側邊緣可調整寬度；按兩下恢復預設寬度。</li>
+                <li>拖动面板的内侧边缘可调整宽度；双击恢复默认宽度。</li>
                 <li>
-                    寬度小於 900 px 時，一次只開啟一個面板；寬度為 600 px
-                    或更小時，「作圖」面板啟動時關閉，屬性面板覆蓋在圖形上，選取工具會關閉面板。
+                    宽度小于 900 px 时，一次只打开一个面板；宽度为 600 px
+                    或更小时，“作图”面板启动时关闭，属性面板覆盖在图形上，选择工具会关闭面板。
                 </li>
             </ul>
         </main>

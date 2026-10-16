@@ -1,0 +1,147 @@
+<!doctype html>
+<html lang="es">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <title>Construir por selección múltiple — Manual de DocGeo</title>
+        <link rel="icon" type="image/svg+xml" href="../../favicon.svg" />
+        <link rel="stylesheet" href="../manual.css" />
+        <script src="../icons.js" defer></script>
+        <script src="../manual.js" defer></script>
+    </head>
+    <body>
+        <main>
+            <h1>Construir por selección múltiple</h1>
+
+            <p class="lead">
+                Primero los objetos, después la herramienta: los objetos
+                seleccionados se convierten en los argumentos de la herramienta
+                elegida en el menú.
+            </p>
+
+            <h2>Pasos</h2>
+            <ol>
+                <li>
+                    Seleccionar los objetos: <kbd>Ctrl</kbd>-clic,
+                    <kbd>Mayús</kbd>-clic o pulsación larga (0,7 s). Cada uno
+                    brilla en azul con su número de orden. Si el anillo de un
+                    objeto está abierto, ese objeto pasa a ser el primero de la
+                    selección.
+                </li>
+                <li>
+                    Abrir el menú <i data-i="tools"></i>: las familias y las
+                    herramientas que no aceptan la selección aparecen atenuadas.
+                    Al pasar sobre una herramienta, la indicación muestra la
+                    línea que escribirá.
+                </li>
+                <li>
+                    Elegir la herramienta: cada objeto, en el orden de la
+                    selección, ocupa el primer lugar libre de su tipo.
+                </li>
+            </ol>
+
+            <h2 id="selection-incomplete">Selección completa o incompleta</h2>
+            <ul>
+                <li>Selección completa: la línea se escribe en el acto.</li>
+                <li>
+                    Selección incompleta: la herramienta espera los argumentos
+                    que faltan, que se designan luego en la figura.
+                </li>
+                <li>
+                    Un número (radio, ángulo, razón, número de lados) no se
+                    selecciona: la herramienta toma un valor por defecto, que
+                    luego se cambia en su línea.
+                </li>
+                <li>
+                    Después, la herramienta sigue activa, como cuando se
+                    <a href="menu-outils.html">elige en el menú</a> sin
+                    selección.
+                </li>
+            </ul>
+
+            <h2>Casos particulares</h2>
+            <div class="table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Herramienta</th>
+                            <th>Selección</th>
+                            <th>Resultado</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><i data-t="Polygon"></i> Polígono</td>
+                            <td>tres vértices o más</td>
+                            <td>
+                                polígono cerrado en el acto; con menos, la
+                                herramienta espera los vértices siguientes
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><i data-t="Intersection"></i> Intersección</td>
+                            <td>dos objetos</td>
+                            <td>
+                                el punto de intersección más cercano al lugar
+                                donde se seleccionó el segundo
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><i data-t="Point"></i> Punto</td>
+                            <td>un objeto</td>
+                            <td>
+                                punto sobre ese objeto, en el lugar donde se
+                                seleccionó
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><i data-t="Locus"></i> LugarGeométrico</td>
+                            <td>un punto</td>
+                            <td>
+                                su lugar geométrico; el punto sobre objeto del
+                                que depende se encuentra solo
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <h2>Ejemplos</h2>
+            <div class="table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Selección</th>
+                            <th>Herramienta</th>
+                            <th>Línea escrita</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>A, B, C</td>
+                            <td>CircunferenciaCircunscrita</td>
+                            <td>
+                                <code>CircunferenciaCircunscrita(A, B, C)</code>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>D, E, F, imágenes de A, B, C</td>
+                            <td>Polígono</td>
+                            <td><code>Polígono(D, E, F)</code></td>
+                        </tr>
+                        <tr>
+                            <td>P, O</td>
+                            <td>Rotación</td>
+                            <td><code>Rotación(P, O, 90)</code></td>
+                        </tr>
+                        <tr>
+                            <td>O</td>
+                            <td>Circunferencia (centro y radio)</td>
+                            <td><code>Circunferencia(O, 3.8)</code></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </main>
+    </body>
+</html>

@@ -1,0 +1,143 @@
+<!doctype html>
+<html lang="fr">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <title>Construire par sélection multiple — Manuel DocGeo</title>
+        <link rel="icon" type="image/svg+xml" href="../../favicon.svg" />
+        <link rel="stylesheet" href="../manual.css" />
+        <script src="../icons.js" defer></script>
+        <script src="../manual.js" defer></script>
+    </head>
+    <body>
+        <main>
+            <h1>Construire par sélection multiple</h1>
+
+            <p class="lead">
+                Les objets d’abord, l’outil ensuite : les objets sélectionnés
+                deviennent les arguments de l’outil choisi dans le menu.
+            </p>
+
+            <h2>Étapes</h2>
+            <ol>
+                <li>
+                    Sélectionner les objets : <kbd>Ctrl</kbd>-clic,
+                    <kbd>Maj</kbd>-clic ou appui long (0,7 s). Chacun brille en
+                    bleu avec son rang. Si l’anneau d’un objet est ouvert, cet
+                    objet devient le premier de la sélection.
+                </li>
+                <li>
+                    Ouvrir le menu <i data-i="tools"></i> : les familles et les
+                    outils qui n’acceptent pas la sélection sont grisés.
+                    Survoler un outil affiche dans la consigne la ligne qu’il
+                    écrira.
+                </li>
+                <li>
+                    Choisir l’outil : chaque objet, dans l’ordre de la
+                    sélection, prend la première place libre de son type.
+                </li>
+            </ol>
+
+            <h2 id="selection-incomplete">Sélection complète ou incomplète</h2>
+            <ul>
+                <li>Sélection complète : la ligne est écrite aussitôt.</li>
+                <li>
+                    Sélection incomplète : l’outil attend les arguments
+                    manquants, désignés ensuite dans la figure.
+                </li>
+                <li>
+                    Un nombre (rayon, angle, rapport, nombre de côtés) ne se
+                    sélectionne pas : l’outil prend une valeur par défaut, que
+                    l’on change ensuite dans sa ligne.
+                </li>
+                <li>
+                    L’outil reste ensuite actif, comme
+                    <a href="menu-outils.html">choisi dans le menu</a> sans
+                    sélection.
+                </li>
+            </ul>
+
+            <h2>Cas particuliers</h2>
+            <div class="table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Outil</th>
+                            <th>Sélection</th>
+                            <th>Résultat</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><i data-t="Polygon"></i> Polygone</td>
+                            <td>trois sommets ou plus</td>
+                            <td>
+                                polygone fermé aussitôt ; avec moins, l’outil
+                                attend les sommets suivants
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><i data-t="Intersection"></i> Intersection</td>
+                            <td>deux objets</td>
+                            <td>
+                                le point d’intersection le plus proche de
+                                l’endroit où le second a été sélectionné
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><i data-t="Point"></i> Point</td>
+                            <td>un objet</td>
+                            <td>
+                                point sur cet objet, à l’endroit où il a été
+                                sélectionné
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><i data-t="Locus"></i> Lieu</td>
+                            <td>un point</td>
+                            <td>
+                                son lieu ; le point sur objet dont il dépend est
+                                trouvé seul
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <h2>Exemples</h2>
+            <div class="table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Sélection</th>
+                            <th>Outil</th>
+                            <th>Ligne écrite</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>A, B, C</td>
+                            <td>CercleCirconscrit</td>
+                            <td><code>CercleCirconscrit(A, B, C)</code></td>
+                        </tr>
+                        <tr>
+                            <td>D, E, F, images de A, B, C</td>
+                            <td>Polygone</td>
+                            <td><code>Polygone(D, E, F)</code></td>
+                        </tr>
+                        <tr>
+                            <td>P, O</td>
+                            <td>Rotation</td>
+                            <td><code>Rotation(P, O, 90)</code></td>
+                        </tr>
+                        <tr>
+                            <td>O</td>
+                            <td>Cercle (centre et rayon)</td>
+                            <td><code>Cercle(O, 3.8)</code></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </main>
+    </body>
+</html>

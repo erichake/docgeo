@@ -1,0 +1,139 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <title>الإنشاء بالتحديد المتعدد — دليل DocGeo</title>
+        <link rel="icon" type="image/svg+xml" href="../../favicon.svg" />
+        <link rel="stylesheet" href="../manual.css" />
+        <script src="../icons.js" defer></script>
+        <script src="../manual.js" defer></script>
+    </head>
+    <body>
+        <main>
+            <h1>الإنشاء بالتحديد المتعدد</h1>
+
+            <p class="lead">
+                العناصر أولًا ثم الأداة: تصبح العناصر المحدَّدة وسائطَ الأداة
+                المختارة من القائمة.
+            </p>
+
+            <h2>الخطوات</h2>
+            <ol>
+                <li>
+                    تحديد العناصر: <kbd>Ctrl</kbd>-نقر أو <kbd>Shift</kbd>-نقر
+                    أو ضغط مطوّل (0.7 ث). يتوهج كل عنصر بالأزرق مع رقم ترتيبه.
+                    وإذا كانت حلقة عنصر مفتوحة، يصبح هذا العنصر أول التحديد.
+                </li>
+                <li>
+                    فتح القائمة <i data-i="tools"></i>: تُعطَّل العائلات
+                    والأدوات التي لا تقبل التحديد. وعند المرور فوق أداة، يعرض
+                    الإرشاد السطر الذي ستكتبه.
+                </li>
+                <li>
+                    اختيار الأداة: يأخذ كل عنصر، بترتيب التحديد، أول موضع شاغر
+                    من نوعه.
+                </li>
+            </ol>
+
+            <h2 id="selection-incomplete">تحديد مكتمل أو ناقص</h2>
+            <ul>
+                <li>تحديد مكتمل: يُكتب السطر فورًا.</li>
+                <li>
+                    تحديد ناقص: تنتظر الأداة الوسائط الناقصة، التي تُعيَّن بعد
+                    ذلك في الشكل.
+                </li>
+                <li>
+                    العدد (نصف القطر، الزاوية، النسبة، عدد الأضلاع) لا يُحدَّد:
+                    تأخذ الأداة قيمة افتراضية تُغيَّر بعد ذلك في سطرها.
+                </li>
+                <li>
+                    تبقى الأداة بعد ذلك نشطة، كما عند
+                    <a href="menu-outils.html">اختيارها من القائمة</a> دون
+                    تحديد.
+                </li>
+            </ul>
+
+            <h2>حالات خاصة</h2>
+            <div class="table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>الأداة</th>
+                            <th>التحديد</th>
+                            <th>النتيجة</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><i data-t="Polygon"></i> مضلع</td>
+                            <td>ثلاثة رؤوس أو أكثر</td>
+                            <td>
+                                مضلع مغلق فورًا؛ ومع عدد أقل، تنتظر الأداة
+                                الرؤوس التالية
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><i data-t="Intersection"></i> تقاطع</td>
+                            <td>عنصران</td>
+                            <td>
+                                نقطة التقاطع الأقرب إلى الموضع الذي حُدِّد فيه
+                                العنصر الثاني
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><i data-t="Point"></i> نقطة</td>
+                            <td>عنصر واحد</td>
+                            <td>
+                                نقطة على هذا العنصر، في الموضع الذي حُدِّد فيه
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><i data-t="Locus"></i> محلهندسي</td>
+                            <td>نقطة واحدة</td>
+                            <td>
+                                محلها الهندسي؛ وتُعثَر تلقائيًا على النقطة على
+                                العنصر التي تتبعها
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <h2>أمثلة</h2>
+            <div class="table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>التحديد</th>
+                            <th>الأداة</th>
+                            <th>السطر المكتوب</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>A و B و C</td>
+                            <td>دائرةمحيطة</td>
+                            <td><code>دائرةمحيطة(A, B, C)</code></td>
+                        </tr>
+                        <tr>
+                            <td>D و E و F، صور A و B و C</td>
+                            <td>مضلع</td>
+                            <td><code>مضلع(D, E, F)</code></td>
+                        </tr>
+                        <tr>
+                            <td>P و O</td>
+                            <td>دوران</td>
+                            <td><code>دوران(P, O, 90)</code></td>
+                        </tr>
+                        <tr>
+                            <td>O</td>
+                            <td>دائرة (مركز ونصف قطر)</td>
+                            <td><code>دائرة(O, 3.8)</code></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </main>
+    </body>
+</html>

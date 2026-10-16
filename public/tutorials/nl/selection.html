@@ -1,0 +1,145 @@
+<!doctype html>
+<html lang="nl">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <title>Construeren via meervoudige selectie — DocGeo-handleiding</title>
+        <link rel="icon" type="image/svg+xml" href="../../favicon.svg" />
+        <link rel="stylesheet" href="../manual.css" />
+        <script src="../icons.js" defer></script>
+        <script src="../manual.js" defer></script>
+    </head>
+    <body>
+        <main>
+            <h1>Construeren via meervoudige selectie</h1>
+
+            <p class="lead">
+                Eerst de objecten, dan het gereedschap: de geselecteerde
+                objecten worden de argumenten van het gereedschap dat in het
+                menu gekozen wordt.
+            </p>
+
+            <h2>Stappen</h2>
+            <ol>
+                <li>
+                    De objecten selecteren: <kbd>Ctrl</kbd>-klik,
+                    <kbd>Shift</kbd>-klik of lang drukken (0,7 s). Elk licht
+                    blauw op met zijn rangnummer. Is de ring van een object
+                    open, dan wordt dat object het eerste van de selectie.
+                </li>
+                <li>
+                    Het menu <i data-i="tools"></i> openen: de families en
+                    gereedschappen die de selectie niet aanvaarden, zijn grijs.
+                    Bij het aanwijzen van een gereedschap toont de aanwijzing de
+                    regel die het zal schrijven.
+                </li>
+                <li>
+                    Het gereedschap kiezen: elk object neemt, in de volgorde van
+                    de selectie, de eerste vrije plaats van zijn type in.
+                </li>
+            </ol>
+
+            <h2 id="selection-incomplete">Volledige of onvolledige selectie</h2>
+            <ul>
+                <li>Volledige selectie: de regel wordt meteen geschreven.</li>
+                <li>
+                    Onvolledige selectie: het gereedschap wacht op de
+                    ontbrekende argumenten, die daarna in de figuur aangewezen
+                    worden.
+                </li>
+                <li>
+                    Een getal (straal, hoek, factor, aantal zijden) is niet te
+                    selecteren: het gereedschap neemt een standaardwaarde, die
+                    je daarna in zijn regel wijzigt.
+                </li>
+                <li>
+                    Het gereedschap blijft daarna actief, zoals wanneer het
+                    <a href="menu-outils.html">in het menu gekozen</a> wordt
+                    zonder selectie.
+                </li>
+            </ul>
+
+            <h2>Bijzondere gevallen</h2>
+            <div class="table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Gereedschap</th>
+                            <th>Selectie</th>
+                            <th>Resultaat</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><i data-t="Polygon"></i> Veelhoek</td>
+                            <td>drie hoekpunten of meer</td>
+                            <td>
+                                veelhoek meteen gesloten; met minder wacht het
+                                gereedschap op de volgende hoekpunten
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><i data-t="Intersection"></i> Snijpunt</td>
+                            <td>twee objecten</td>
+                            <td>
+                                het snijpunt dat het dichtst ligt bij de plaats
+                                waar het tweede geselecteerd werd
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><i data-t="Point"></i> Punt</td>
+                            <td>één object</td>
+                            <td>
+                                punt op dat object, op de plaats waar het
+                                geselecteerd werd
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><i data-t="Locus"></i> MeetkundigePlaats</td>
+                            <td>één punt</td>
+                            <td>
+                                zijn meetkundige plaats; het punt op object
+                                waarvan het afhangt, wordt vanzelf gevonden
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <h2>Voorbeelden</h2>
+            <div class="table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Selectie</th>
+                            <th>Gereedschap</th>
+                            <th>Geschreven regel</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>A, B, C</td>
+                            <td>OmgeschrevenCirkel</td>
+                            <td><code>OmgeschrevenCirkel(A, B, C)</code></td>
+                        </tr>
+                        <tr>
+                            <td>D, E, F, beelden van A, B, C</td>
+                            <td>Veelhoek</td>
+                            <td><code>Veelhoek(D, E, F)</code></td>
+                        </tr>
+                        <tr>
+                            <td>P, O</td>
+                            <td>Draaiing</td>
+                            <td><code>Draaiing(P, O, 90)</code></td>
+                        </tr>
+                        <tr>
+                            <td>O</td>
+                            <td>Cirkel (middelpunt en straal)</td>
+                            <td><code>Cirkel(O, 3.8)</code></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </main>
+    </body>
+</html>

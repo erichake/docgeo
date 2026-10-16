@@ -1,0 +1,139 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <title>Building by multiple selection — DocGeo manual</title>
+        <link rel="icon" type="image/svg+xml" href="../../favicon.svg" />
+        <link rel="stylesheet" href="../manual.css" />
+        <script src="../icons.js" defer></script>
+        <script src="../manual.js" defer></script>
+    </head>
+    <body>
+        <main>
+            <h1>Building by multiple selection</h1>
+
+            <p class="lead">
+                Objects first, tool second: the selected objects become the
+                arguments of the tool chosen in the menu.
+            </p>
+
+            <h2>Steps</h2>
+            <ol>
+                <li>
+                    Select the objects: <kbd>Ctrl</kbd>-click,
+                    <kbd>Shift</kbd>-click or long press (0.7 s). Each one glows
+                    blue with its rank. If an object’s ring is open, that object
+                    becomes the first of the selection.
+                </li>
+                <li>
+                    Open the menu <i data-i="tools"></i>: the families and tools
+                    that do not accept the selection are grayed out. Hovering
+                    over a tool shows in the prompt the line it will write.
+                </li>
+                <li>
+                    Choose the tool: each object, in the order of the selection,
+                    takes the first free place of its type.
+                </li>
+            </ol>
+
+            <h2 id="selection-incomplete">Complete or incomplete selection</h2>
+            <ul>
+                <li>Complete selection: the line is written at once.</li>
+                <li>
+                    Incomplete selection: the tool waits for the missing
+                    arguments, then designated in the figure.
+                </li>
+                <li>
+                    A number (radius, angle, ratio, number of sides) cannot be
+                    selected: the tool takes a default value, which you then
+                    change in its line.
+                </li>
+                <li>
+                    The tool then stays active, as when
+                    <a href="menu-outils.html">chosen from the menu</a> without
+                    a selection.
+                </li>
+            </ul>
+
+            <h2>Special cases</h2>
+            <div class="table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Tool</th>
+                            <th>Selection</th>
+                            <th>Result</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><i data-t="Polygon"></i> Polygon</td>
+                            <td>three vertices or more</td>
+                            <td>
+                                polygon closed at once; with fewer, the tool
+                                waits for the next vertices
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><i data-t="Intersection"></i> Intersection</td>
+                            <td>two objects</td>
+                            <td>
+                                the intersection point nearest to where the
+                                second one was selected
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><i data-t="Point"></i> Point</td>
+                            <td>one object</td>
+                            <td>point on this object, where it was selected</td>
+                        </tr>
+                        <tr>
+                            <td><i data-t="Locus"></i> Locus</td>
+                            <td>one point</td>
+                            <td>
+                                its locus; the point on object it depends on is
+                                found automatically
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <h2>Examples</h2>
+            <div class="table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Selection</th>
+                            <th>Tool</th>
+                            <th>Line written</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>A, B, C</td>
+                            <td>Circumcircle</td>
+                            <td><code>Circumcircle(A, B, C)</code></td>
+                        </tr>
+                        <tr>
+                            <td>D, E, F, images of A, B, C</td>
+                            <td>Polygon</td>
+                            <td><code>Polygon(D, E, F)</code></td>
+                        </tr>
+                        <tr>
+                            <td>P, O</td>
+                            <td>Rotation</td>
+                            <td><code>Rotation(P, O, 90)</code></td>
+                        </tr>
+                        <tr>
+                            <td>O</td>
+                            <td>Circle (centre and radius)</td>
+                            <td><code>Circle(O, 3.8)</code></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </main>
+    </body>
+</html>
