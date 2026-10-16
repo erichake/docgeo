@@ -1,0 +1,197 @@
+<!doctype html>
+<html lang="nl">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <title>3D — DocGeo-handleiding</title>
+        <link rel="icon" type="image/svg+xml" href="../../favicon.svg" />
+        <link rel="stylesheet" href="../manual.css" />
+        <script src="../icons.js" defer></script>
+        <script src="../manual.js" defer></script>
+    </head>
+    <body>
+        <main>
+            <h1>3D</h1>
+
+            <figure>
+                <img
+                    src="img/editeur-3d.webp"
+                    alt="Piramide gesneden door het vlak z = 1,5"
+                    width="1200"
+                    height="720"
+                />
+            </figure>
+
+            <h2>Overschakelen naar 3D</h2>
+            <ul>
+                <li>
+                    Een nieuwe figuur is vlak. <i data-i="space"></i>
+                    <strong>3D-weergave</strong> kantelt de camera: het vlak van
+                    de figuur wordt de vloer <em>z</em> = 0, het assenstelsel
+                    een assenkruis. Een tweede druk keert terug naar het vlak,
+                    met het vorige assenstelsel.
+                </li>
+                <li>
+                    Terugkeren naar het vlak wordt geweigerd zolang een object
+                    buiten het vlak <em>z</em> = 0 ligt; de aanwijzing noemt
+                    het. Omgekeerd weigert een vlakke figuur elk object in de
+                    ruimte (<code>A = (1, 2, 3)</code>, bol…).
+                </li>
+                <li>Elke overschakeling is een stap van ongedaan maken.</li>
+                <li>
+                    3D-figuren uit DGPad, met vrije punten in het vlak van het
+                    scherm, hebben deze knop niet.
+                </li>
+            </ul>
+
+            <h2>Weergave</h2>
+            <ul>
+                <li>
+                    Draaien: rechtermuisknop, of één vinger op een lege plek.
+                    Verschuiven: linkermuisknop op een lege plek. Zoomen:
+                    scrollwiel.
+                </li>
+                <li>
+                    <kbd>P</kbd>: perspectief of parallelle projectie;
+                    <kbd>S</kbd>: vloer. Dezelfde instellingen in het
+                    <a href="proprietes.html#l-onglet-figure-en-3d"
+                        >tabblad Figuur</a
+                    >.
+                </li>
+                <li>
+                    Verborgen delen (ribben, cirkels, rechten onder de vloer of
+                    achter een zijvlak) zijn gestippeld.
+                </li>
+            </ul>
+
+            <h2>Construeren</h2>
+            <ul>
+                <li>
+                    Een klik op een lege plek maakt een punt op de vloer; via
+                    het toetsenbord <code>S = (0, 0, 4)</code>.
+                </li>
+                <li>
+                    Het menu krijgt de families <strong>Vlakken</strong> en
+                    <strong>Ruimtefiguren</strong> en twee cirkels; de ring van
+                    een punt biedt de bol aan.
+                </li>
+                <li>
+                    Elk gereedschap dat een vlak verwacht, aanvaardt de
+                    <strong>vloer</strong>: er wordt een verborgen vlak
+                    <code>z = 0</code> gemaakt en daarna hergebruikt.
+                </li>
+                <li>
+                    Formules lezen de drie coördinaten: <code>d(A, B)</code> is
+                    de afstand in de ruimte.
+                </li>
+            </ul>
+            <div class="table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Object</th>
+                            <th>Opdracht</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Vlak</td>
+                            <td>
+                                <code>Vlak(A, B, C)</code>,
+                                <code>Vlak(A, d)</code>,
+                                <code>EvenwijdigVlak(A, p)</code>,
+                                <code>LoodrechtVlak(A, d)</code>,
+                                <code>p = x + y + z = 3</code>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Loodlijn op een vlak</td>
+                            <td><code>Loodlijn(A, p)</code></td>
+                        </tr>
+                        <tr>
+                            <td>Bol</td>
+                            <td>
+                                <code>Bol(O, A)</code>,
+                                <code>Bol(O, r)</code>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Cirkels</td>
+                            <td>
+                                <code>Cirkel(d, P)</code> met as d;
+                                <code>Cirkel(O, r, d)</code> loodrecht op de
+                                rechte d of evenwijdig aan het vlak d
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Ruimtefiguren</td>
+                            <td>
+                                <code>Cilinder(A, B, r)</code>,
+                                <code>Kegel(A, B, r)</code>,
+                                <code>Kubus(A, B, C)</code>,
+                                <code>Prisma(p, P)</code>,
+                                <code>Piramide(p, S)</code>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Doorsnede</td>
+                            <td>
+                                <code>Doorsnede(s, p)</code>: cirkel, kegelsnede
+                                of veelhoek
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Uitslag</td>
+                            <td>
+                                <code>Uitslag(c, f)</code>, f van 0 (dicht) tot
+                                1 (plat)
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Snijpunten</td>
+                            <td>
+                                <code>Snijpunt(d, p)</code> punt,
+                                <code>Snijpunt(p, q)</code> rechte,
+                                <code>Snijpunt(s, t)</code> cirkel van twee
+                                bollen
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Hoekpunten</td>
+                            <td><code>Hoekpunt(c, k)</code>, k vanaf 1</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <h2>Ruimtefiguren</h2>
+            <ul>
+                <li>
+                    Een ruimtefiguur is één object: hij tekent zijvlakken en
+                    ribben (achteraan gestippeld) en verbergt wat erachter ligt.
+                    Je selecteert hem binnen zijn omtrek.
+                </li>
+                <li>
+                    <strong>Kubus in twee klikken</strong>: twee punten van
+                    eenzelfde vlak of veelhoek geven
+                    <code>Kubus(A, B, p, ±1)</code>, aan de kant naar de camera;
+                    twee punten op dezelfde hoogte geven
+                    <code>Kubus(A, B, 1)</code>, erboven (−1: eronder). Anders
+                    wacht het gereedschap op een derde punt. De kubus wordt
+                    ongedefinieerd als [AB] niet meer evenwijdig is aan het
+                    vlak.
+                </li>
+                <li>
+                    Het gereedschap <strong>Doorsnede</strong> neemt de
+                    ruimtefiguur en het vlak in willekeurige volgorde.
+                </li>
+                <li>
+                    Een schuifknop als tweede argument van
+                    <code>Uitslag</code> animeert het openvouwen:
+                    <code>f = Schuifknop(0, 1, 0)</code>,
+                    <code>n = Uitslag(c, f)</code>.
+                </li>
+            </ul>
+        </main>
+    </body>
+</html>

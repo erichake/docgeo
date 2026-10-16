@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <title>Opening and saving — DocGeo manual</title>
+        <link rel="icon" type="image/svg+xml" href="../../favicon.svg" />
+        <link rel="stylesheet" href="../manual.css" />
+        <script src="../icons.js" defer></script>
+        <script src="../manual.js" defer></script>
+    </head>
+    <body>
+        <main>
+            <h1>Opening and saving</h1>
+
+            <h2>Opening</h2>
+            <p><i data-i="open"></i> <strong>Open</strong> loads a file:</p>
+            <div class="table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Extension</th>
+                            <th>Origin</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><code>.dgo</code></td>
+                            <td>DocGeo, native format</td>
+                        </tr>
+                        <tr>
+                            <td><code>.dgp</code></td>
+                            <td>DGPad, imported</td>
+                        </tr>
+                        <tr>
+                            <td><code>.ggb</code></td>
+                            <td>GeoGebra, imported</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <p>
+                The opened figure replaces the current one and clears the undo
+                history.
+            </p>
+            <p>
+                An online figure opens through the editor’s address:
+                <code>editor.html?url=https://example.com/thales.ggb</code>. The
+                format is deduced from the extension (<code>.ggb</code>,
+                <code>.dgo</code>, DGPad otherwise); the server must allow
+                reading from another site (CORS).
+            </p>
+
+            <h2>Incomplete import</h2>
+            <p>
+                An unsupported DGPad or GeoGebra element is ignored along with
+                its dependents; the prompt lists them (“Not imported: …”).
+                Details are in
+                <a href="formats.html">DGPad and GeoGebra import</a>.
+            </p>
+
+            <h2>Saving</h2>
+            <p>
+                <i data-i="save"></i> or <kbd>Ctrl</kbd> <kbd>S</kbd> downloads
+                the figure as <code>.dgo</code>, under the name of the opened
+                figure (<code>figure.dgo</code> for a new figure). The view
+                (zoom, 3D orientation, coordinate system) is saved.
+            </p>
+            <p>
+                <code>.dgo</code> is the only save format: opening a DGPad or
+                GeoGebra figure and saving it converts it.
+            </p>
+
+            <h2>Language</h2>
+            <p>
+                The editor takes the browser’s language;
+                <code>?lang=</code> forces it (<code>ar</code>, <code>de</code>,
+                <code>el</code>, <code>en</code>, <code>es</code>,
+                <code>fr</code>, <code>hi</code>, <code>it</code>,
+                <code>nl</code>, <code>pt</code>, <code>zh</code>,
+                <code>zh-TW</code>). The language also sets the command names
+                (<code>Midpoint</code>, <code>Milieu</code>,
+                <code>Mittelpunkt</code>…); English names are understood in
+                every language.
+            </p>
+        </main>
+    </body>
+</html>

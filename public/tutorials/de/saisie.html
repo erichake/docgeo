@@ -1,0 +1,292 @@
+<!doctype html>
+<html lang="de">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <title>Mit der Tastatur — DocGeo-Handbuch</title>
+        <link rel="icon" type="image/svg+xml" href="../../favicon.svg" />
+        <link rel="stylesheet" href="../manual.css" />
+        <script src="../icons.js" defer></script>
+        <script src="../manual.js" defer></script>
+    </head>
+    <body>
+        <main>
+            <h1>Mit der Tastatur konstruieren</h1>
+
+            <p class="lead">
+                Eine Zeile pro Objekt: <code>Name = Befehl(Argumente)</code>, in
+                die Eingabezeile des Feldes „Konstruktion“ getippt und mit
+                <kbd>Eingabe</kbd> bestätigt.
+            </p>
+            <pre><code>A = (-5, -2)
+B = (4, -3)
+C = (-1, 4)
+p = Vieleck(A, B, C)
+c = Umkreis(A, B, C)
+M = Mittelpunkt(A, B)</code></pre>
+
+            <h2>Syntax</h2>
+            <div class="table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Element</th>
+                            <th>Regel</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Freier Punkt</td>
+                            <td>
+                                <code>A = (2, 3)</code>;
+                                <code>A = (2, 3, 1)</code> in 3D
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Zahlen</td>
+                            <td>
+                                Dezimaltrennzeichen: der
+                                <strong>Punkt</strong> (<code>2.5</code>);
+                                <code>(1,5, 2)</code> ist ein Punkt mit drei
+                                Koordinaten
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Befehl</td>
+                            <td>
+                                ohne Groß- und Kleinschreibung und Akzente
+                                (<code>mittelsenkrechte(A, B)</code>), der
+                                englische Name wird akzeptiert; die Zeile wird
+                                in der üblichen Form neu geschrieben
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Zahl als Argument</td>
+                            <td>
+                                Zahl, Name eines Ausdrucks oder Schiebereglers,
+                                oder Formel: <code>Kreis(A, 2*r)</code>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Name weggelassen</td>
+                            <td>
+                                <code>Mittelpunkt(A, B)</code>: automatischer
+                                Name, großgeschrieben für einen Punkt, sonst
+                                kleingeschrieben (weder e, i, k, l, o, t, x, y
+                                noch z)
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Vorhandener Name</td>
+                            <td>die Zeile definiert das Objekt neu</td>
+                        </tr>
+                        <tr>
+                            <td>Besonderer Name</td>
+                            <td>
+                                Apostroph erlaubt (<code>A'</code>); andere
+                                Zeichen zwischen Backticks (<code>`aux 2`</code
+                                >)
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Zu vermeidende Namen</td>
+                            <td>
+                                <code>x</code>, <code>y</code> (Gleichungen),
+                                <code>i</code> (imaginäre Einheit)
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Andere Zeile</td>
+                            <td>
+                                weder Punkt noch Befehl: ein
+                                <a href="expressions.html">Ausdruck</a> (<code
+                                    >a = 3</code
+                                >, <code>E = d(A, B)</code>)
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <p>
+                Formen und Argumente jedes Befehls:
+                <a href="commandes.html">Die Befehle</a>.
+            </p>
+
+            <h2 id="la-completion">Vervollständigung und Auswahl</h2>
+            <ul>
+                <li>
+                    Die Liste schlägt am Zeilenanfang die Befehle vor, dann
+                    zwischen den Klammern nur die Objekte, die das aktuelle
+                    Argument annimmt, hervorgehoben in der Figur. <kbd>↑</kbd>
+                    <kbd>↓</kbd> wählen, <kbd>Tab</kbd> oder
+                    <kbd>Eingabe</kbd> fügen ein, <kbd>Esc</kbd> schließt.
+                </li>
+                <li>
+                    Ein Klick auf ein Objekt schreibt seinen Namen, gefolgt von
+                    <code>, </code> oder <code>)</code>, je nachdem, was noch zu
+                    wählen ist: <code>M = Mittelpunkt(</code>, Klick auf A,
+                    Klick auf B ergibt <code>M = Mittelpunkt(A, B)</code>.
+                </li>
+                <li>
+                    In der Eingabezeile erzeugt ein Klick dort, wo kein Punkt
+                    ist, einen (frei, auf Objekt oder Schnittpunkt); eine
+                    Vorschau folgt dem Zeiger. Ein erneuter Klick auf die erste
+                    Ecke eines Vielecks schließt es ab.
+                </li>
+                <li>
+                    Dieselbe Geste in einer Formel: <code>E = d(</code>, Klick
+                    auf H, dann auf M.
+                </li>
+            </ul>
+
+            <h2 id="modifier-une-ligne">Eine Zeile bearbeiten</h2>
+            <p>
+                Jede Zeile des Feldes ist ein Eingabefeld:
+                <kbd>Eingabe</kbd> bestätigt, <kbd>Esc</kbd> stellt wieder her.
+            </p>
+            <ul>
+                <li>Neue Koordinaten: Der freie Punkt wird verschoben.</li>
+                <li>
+                    Neue Definition: Das Objekt wird neu definiert, behält
+                    seinen Stil, und seine abhängigen Objekte folgen (<code
+                        >M = Mittelpunkt(A, B)</code
+                    >
+                    → <code>M = (5, 5)</code> →
+                    <code>M = Mittelpunkt(B, C)</code>). Die Konstruktion wird
+                    bei Bedarf neu geordnet; ein Zyklus wird abgelehnt.
+                </li>
+                <li>
+                    Neuer Name: Das Objekt wird in allen Zeilen und Formeln
+                    umbenannt.
+                </li>
+                <li><code>A =</code> löscht A und seine abhängigen Objekte.</li>
+            </ul>
+
+            <h2 id="equations">Gleichungen</h2>
+            <p>
+                Zwei Seiten in x, y (und z), getrennt durch <code>=</code>; die
+                Art des Objekts ergibt sich aus den Koeffizienten, die von
+                Schiebereglern abhängen dürfen.
+            </p>
+            <div class="table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Zeile</th>
+                            <th>Objekt</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>
+                                <code>d = y = a*x + b</code>, <code>x = 3</code>
+                            </td>
+                            <td>Gerade</td>
+                        </tr>
+                        <tr>
+                            <td><code>c = x^2 + y^2 = 4</code></td>
+                            <td>Kreis</td>
+                        </tr>
+                        <tr>
+                            <td><code>e = x^2/9 + y^2/4 = 1</code></td>
+                            <td>Kegelschnitt</td>
+                        </tr>
+                        <tr>
+                            <td><code>p = x + y + z = 3</code></td>
+                            <td>Ebene (3D)</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <p>
+                Grad über 2 oder nicht polynomial: abgelehnt. Am Zeilenanfang
+                ist <code>z</code> ein Name: <code>z = 3</code> ist ein
+                Ausdruck, die Ebene schreibt sich <code>p = z = 3</code>.
+            </p>
+
+            <h2>Schnittpunkte und Punkte auf Objekten</h2>
+            <ul>
+                <li>
+                    <code>Schnittpunkt(d1, d2)</code> für zwei Geraden;
+                    <code>Schnittpunkt(c, d, n)</code>, n von 1 bis 4, sonst.
+                </li>
+                <li>
+                    <code>AndererSchnittpunkt(c, d, P)</code>: der gemeinsame
+                    Punkt, der am weitesten von P entfernt ist.
+                </li>
+                <li>
+                    <code>Punkt(c, t)</code> oder
+                    <code>Punkt(p, a, b)</code> auf einem Vieleck oder einem
+                    Kegelschnitt: Position auf dem Objekt, von der Geste
+                    geschrieben.
+                </li>
+            </ul>
+
+            <h2>Fehler</h2>
+            <p>
+                Eine fehlerhafte Zeile wird nicht übernommen: Sie bleibt rot
+                umrandet, der Hinweis nennt den Grund, der Rest der Figur bleibt
+                unverändert.
+            </p>
+            <div class="table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Meldung</th>
+                            <th>Ursache</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Unverständliche Eingabe</td>
+                            <td>Klammer, Komma oder Zeichen</td>
+                        </tr>
+                        <tr>
+                            <td>Unbekannter Befehl, Unbekanntes Objekt</td>
+                            <td>
+                                Name falsch geschrieben oder nicht vorhanden
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Ungültige Argumente für …</td>
+                            <td>
+                                keine Form passt; „Mit diesen Argumenten“ nennt
+                                die Formen
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Der Name … ist bereits vergeben</td>
+                            <td>Umbenennung</td>
+                        </tr>
+                        <tr>
+                            <td>
+                                Ein Objekt kann nicht von sich selbst abhängen
+                            </td>
+                            <td>Zyklus</td>
+                        </tr>
+                        <tr>
+                            <td>
+                                Eine ebene Figur behält ihre Objekte in der
+                                Ebene z = 0…
+                            </td>
+                            <td>
+                                Objekt im Raum: in die
+                                <a href="3d.html">3D-Ansicht</a> wechseln
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                Dieses Objekt lässt sich noch nicht als Text
+                                schreiben
+                            </td>
+                            <td>
+                                importiertes Objekt ohne Befehl:
+                                schreibgeschützte Zeile <code>Name = …</code>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </main>
+    </body>
+</html>

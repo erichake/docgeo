@@ -1,0 +1,897 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <title>Commands — DocGeo manual</title>
+        <link rel="icon" type="image/svg+xml" href="../../favicon.svg" />
+        <link rel="stylesheet" href="../manual.css" />
+        <script src="../icons.js" defer></script>
+        <script src="../manual.js" defer></script>
+    </head>
+    <body>
+        <main>
+            <h1>Commands</h1>
+            <ul>
+                <li>
+                    Names ignore case and accents; the English name, in small
+                    print, is accepted in every language.
+                </li>
+                <li>
+                    <code>A</code>, <code>B</code>, <code>O</code>,
+                    <code>P</code>: points; <code>d</code>: line, segment or
+                    ray; <code>c</code>: circle or curve; <code>p</code>:
+                    polygon or plane; <code>s</code>: segment or solid;
+                    <code>u</code>: vector.
+                </li>
+                <li>
+                    <code>r</code>, <code>a</code>, <code>k</code>,
+                    <code>f</code>: number, expression, slider or formula (<code
+                        >Circle(O, 2*r)</code
+                    >); <code>n</code>, <code>t</code>: written numbers.
+                </li>
+                <li>
+                    The icon is that of the tool in the
+                    <a href="menu-outils.html">menu</a>;
+                    <span class="badge d3">3D</span>: forms in space.
+                </li>
+            </ul>
+
+            <h2>Points</h2>
+            <div class="table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Command</th>
+                            <th>Form</th>
+                            <th>Result</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td rowspan="3">
+                                <i data-t="Point"></i> <strong>Point</strong>
+                            </td>
+                            <td class="syntax"><code>Point(c, t)</code></td>
+                            <td>
+                                point on the object c (line, circle, curve,
+                                locus…) at position t
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="syntax"><code>Point(p, a, b)</code></td>
+                            <td>
+                                point on a polygon or a conic, its position
+                                given by two numbers
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="syntax"><code>Point(formula)</code></td>
+                            <td>
+                                point whose coordinates the formula gives:
+                                <code>Point(2*B - A)</code>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td rowspan="2"><strong>(x, y)</strong></td>
+                            <td class="syntax"><code>A = (x, y)</code></td>
+                            <td>free point; <code>(x, y, z)</code> in 3D</td>
+                        </tr>
+                        <tr>
+                            <td class="syntax">
+                                <code>M = (x(B) + 1, y(A))</code>
+                            </td>
+                            <td>
+                                point with at least one coordinate given by a
+                                formula
+                            </td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1"><strong>FixedPoint</strong></td>
+                            <td class="syntax">
+                                <code>FixedPoint(x, y)</code>
+                            </td>
+                            <td>
+                                fixed point, which cannot be moved;
+                                <code>FixedPoint(x, y, z)</code> in 3D
+                            </td>
+                        </tr>
+                        <tr>
+                            <td rowspan="2">
+                                <i data-t="Midpoint"></i>
+                                <strong>Midpoint</strong>
+                            </td>
+                            <td class="syntax"><code>Midpoint(A, B)</code></td>
+                            <td>midpoint of [AB]</td>
+                        </tr>
+                        <tr>
+                            <td class="syntax"><code>Midpoint(s)</code></td>
+                            <td>midpoint of the segment s</td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1">
+                                <i data-t="Center"></i> <strong>Center</strong>
+                            </td>
+                            <td class="syntax"><code>Center(c)</code></td>
+                            <td>center of the circle c</td>
+                        </tr>
+                        <tr>
+                            <td rowspan="5">
+                                <i data-t="Intersection"></i>
+                                <strong>Intersection</strong>
+                            </td>
+                            <td class="syntax">
+                                <code>Intersection(d1, d2)</code>
+                            </td>
+                            <td>common point of two lines</td>
+                        </tr>
+                        <tr>
+                            <td class="syntax">
+                                <code>Intersection(a, b, n)</code>
+                            </td>
+                            <td>
+                                n-th common point (n from 1 to 4) of objects at
+                                least one of which is not a line: circles,
+                                conics, curves
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="syntax">
+                                <code>Intersection(d, p)</code>
+                            </td>
+                            <td>
+                                <span class="badge d3">3D</span> common point of
+                                a line and a plane
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="syntax">
+                                <code>Intersection(p, q)</code>
+                            </td>
+                            <td>
+                                <span class="badge d3">3D</span> common line of
+                                two planes
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="syntax">
+                                <code>Intersection(s, t)</code>
+                            </td>
+                            <td>
+                                <span class="badge d3">3D</span> common circle
+                                of two spheres
+                            </td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1">
+                                <i data-t="OtherIntersection"></i>
+                                <strong>OtherIntersection</strong>
+                            </td>
+                            <td class="syntax">
+                                <code>OtherIntersection(a, b, P)</code>
+                            </td>
+                            <td>the common point of a and b farthest from P</td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1">
+                                <i data-t="Incenter"></i>
+                                <strong>Incenter</strong>
+                            </td>
+                            <td class="syntax">
+                                <code>Incenter(A, B, C)</code>
+                            </td>
+                            <td>
+                                center of the circle inscribed in the triangle
+                                ABC
+                            </td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1">
+                                <i data-t="Centroid"></i>
+                                <strong>Centroid</strong>
+                            </td>
+                            <td class="syntax">
+                                <code>Centroid(A, B, C)</code>
+                            </td>
+                            <td>centroid of the triangle ABC</td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1">
+                                <i data-t="Circumcenter"></i>
+                                <strong>Circumcenter</strong>
+                            </td>
+                            <td class="syntax">
+                                <code>Circumcenter(A, B, C)</code>
+                            </td>
+                            <td>
+                                center of the circle circumscribed about the
+                                triangle ABC
+                            </td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1">
+                                <i data-t="Orthocenter"></i>
+                                <strong>Orthocenter</strong>
+                            </td>
+                            <td class="syntax">
+                                <code>Orthocenter(A, B, C)</code>
+                            </td>
+                            <td>orthocenter of the triangle ABC</td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1"><strong>Vertex</strong></td>
+                            <td class="syntax"><code>Vertex(p, k)</code></td>
+                            <td>
+                                k-th vertex (from 1) of a polygon or a
+                                polyhedron
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <h2>Lines</h2>
+            <div class="table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Command</th>
+                            <th>Form</th>
+                            <th>Result</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td rowspan="1">
+                                <i data-t="Segment"></i>
+                                <strong>Segment</strong>
+                            </td>
+                            <td class="syntax"><code>Segment(A, B)</code></td>
+                            <td>segment [AB]</td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1">
+                                <i data-t="Line"></i> <strong>Line</strong>
+                            </td>
+                            <td class="syntax"><code>Line(A, B)</code></td>
+                            <td>line (AB)</td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1">
+                                <i data-t="Ray"></i> <strong>Ray</strong>
+                            </td>
+                            <td class="syntax"><code>Ray(A, B)</code></td>
+                            <td>ray [AB), with origin A</td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1">
+                                <i data-t="Vector"></i> <strong>Vector</strong>
+                            </td>
+                            <td class="syntax"><code>Vector(A, B)</code></td>
+                            <td>vector from A to B</td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1"><strong>equation</strong></td>
+                            <td class="syntax"><code>d = y = 2x + 1</code></td>
+                            <td>
+                                line given by an equation of degree 1 (see
+                                <a href="saisie.html#equations">Equations</a>)
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <h2>Constructions</h2>
+            <div class="table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Command</th>
+                            <th>Form</th>
+                            <th>Result</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td rowspan="2">
+                                <i data-t="Perpendicular"></i>
+                                <strong>Perpendicular</strong>
+                            </td>
+                            <td class="syntax">
+                                <code>Perpendicular(P, d)</code>
+                            </td>
+                            <td>perpendicular to the line d through P</td>
+                        </tr>
+                        <tr>
+                            <td class="syntax">
+                                <code>Perpendicular(P, p)</code>
+                            </td>
+                            <td>
+                                <span class="badge d3">3D</span> line through P,
+                                orthogonal to the plane p
+                            </td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1">
+                                <i data-t="Parallel"></i>
+                                <strong>Parallel</strong>
+                            </td>
+                            <td class="syntax"><code>Parallel(P, d)</code></td>
+                            <td>parallel to d through P</td>
+                        </tr>
+                        <tr>
+                            <td rowspan="2">
+                                <i data-t="PerpendicularBisector"></i>
+                                <strong>PerpendicularBisector</strong>
+                            </td>
+                            <td class="syntax">
+                                <code>PerpendicularBisector(A, B)</code>
+                            </td>
+                            <td>perpendicular bisector of [AB]</td>
+                        </tr>
+                        <tr>
+                            <td class="syntax">
+                                <code>PerpendicularBisector(s)</code>
+                            </td>
+                            <td>perpendicular bisector of the segment s</td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1">
+                                <i data-t="AngleBisector"></i>
+                                <strong>AngleBisector</strong>
+                            </td>
+                            <td class="syntax">
+                                <code>AngleBisector(A, O, B)</code>
+                            </td>
+                            <td>bisector of the angle with vertex O</td>
+                        </tr>
+                        <tr>
+                            <td rowspan="2">
+                                <i data-t="Tangent"></i>
+                                <strong>Tangent</strong>
+                            </td>
+                            <td class="syntax">
+                                <code>Tangent(P, c, n)</code>
+                            </td>
+                            <td>
+                                tangent n (1 or 2) from P to the circle or the
+                                conic c
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="syntax"><code>Tangent(P, f)</code></td>
+                            <td>
+                                tangent to the graph of a function, at the point
+                                with the abscissa of P
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <h2>Circles, arcs, conics</h2>
+            <div class="table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Command</th>
+                            <th>Form</th>
+                            <th>Result</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td rowspan="4">
+                                <i data-t="Circle (centre and point)"></i>
+                                <strong>Circle</strong>
+                            </td>
+                            <td class="syntax"><code>Circle(O, A)</code></td>
+                            <td>circle with center O through A</td>
+                        </tr>
+                        <tr>
+                            <td class="syntax"><code>Circle(O, r)</code></td>
+                            <td>
+                                circle with center O and radius r (number,
+                                expression or formula)
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="syntax"><code>Circle(O, r, d)</code></td>
+                            <td>
+                                <span class="badge d3">3D</span> circle with
+                                center O and radius r, orthogonal to the line d
+                                or parallel to the plane d
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="syntax"><code>Circle(d, P)</code></td>
+                            <td>
+                                <span class="badge d3">3D</span> circle with
+                                axis d through P
+                            </td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1">
+                                <i data-t="Circumcircle"></i>
+                                <strong>Circumcircle</strong>
+                            </td>
+                            <td class="syntax">
+                                <code>Circumcircle(A, B, C)</code>
+                            </td>
+                            <td>
+                                circle through A, B and C (in their plane in 3D)
+                            </td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1">
+                                <i data-t="Compass"></i>
+                                <strong>Compass</strong>
+                            </td>
+                            <td class="syntax">
+                                <code>Compass(A, B, O)</code>
+                            </td>
+                            <td>circle with center O and radius AB</td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1">
+                                <i data-t="Arc"></i> <strong>Arc</strong>
+                            </td>
+                            <td class="syntax"><code>Arc(A, B, C)</code></td>
+                            <td>arc from A to C through B</td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1">
+                                <i data-t="Sector"></i> <strong>Sector</strong>
+                            </td>
+                            <td class="syntax"><code>Sector(A, B, C)</code></td>
+                            <td>sector of the arc from A to C through B</td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1">
+                                <i data-t="CenterArc"></i>
+                                <strong>CenterArc</strong>
+                            </td>
+                            <td class="syntax">
+                                <code>CenterArc(M, A, B)</code>
+                            </td>
+                            <td>
+                                arc with center M, from A to the ray [MB),
+                                counterclockwise
+                            </td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1">
+                                <i data-t="CenterSector"></i>
+                                <strong>CenterSector</strong>
+                            </td>
+                            <td class="syntax">
+                                <code>CenterSector(M, A, B)</code>
+                            </td>
+                            <td>matching sector</td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1">
+                                <i data-t="Semicircle"></i>
+                                <strong>Semicircle</strong>
+                            </td>
+                            <td class="syntax">
+                                <code>Semicircle(A, B)</code>
+                            </td>
+                            <td>
+                                semicircle with diameter [AB], to the left of A
+                                towards B
+                            </td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1">
+                                <i data-t="Conic"></i> <strong>Conic</strong>
+                            </td>
+                            <td class="syntax">
+                                <code>Conic(A, B, C, D, E)</code>
+                            </td>
+                            <td>conic through five points</td>
+                        </tr>
+                        <tr>
+                            <td rowspan="2">
+                                <i data-t="Ellipse"></i>
+                                <strong>Ellipse</strong>
+                            </td>
+                            <td class="syntax">
+                                <code>Ellipse(F, G, P)</code>
+                            </td>
+                            <td>ellipse with foci F and G through P</td>
+                        </tr>
+                        <tr>
+                            <td class="syntax">
+                                <code>Ellipse(F, G, a)</code>
+                            </td>
+                            <td>
+                                ellipse with foci F and G and semi-major axis a
+                            </td>
+                        </tr>
+                        <tr>
+                            <td rowspan="2">
+                                <i data-t="Hyperbola"></i>
+                                <strong>Hyperbola</strong>
+                            </td>
+                            <td class="syntax">
+                                <code>Hyperbola(F, G, P)</code>
+                            </td>
+                            <td>hyperbola with foci F and G through P</td>
+                        </tr>
+                        <tr>
+                            <td class="syntax">
+                                <code>Hyperbola(F, G, a)</code>
+                            </td>
+                            <td>hyperbola with foci F and G and semi-axis a</td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1">
+                                <i data-t="Parabola"></i>
+                                <strong>Parabola</strong>
+                            </td>
+                            <td class="syntax"><code>Parabola(F, d)</code></td>
+                            <td>parabola with focus F and directrix d</td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1"><strong>equation</strong></td>
+                            <td class="syntax">
+                                <code>c = x^2 + y^2 = 4</code>
+                            </td>
+                            <td>
+                                circle or conic given by an equation of degree 2
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <h2>Polygons, angles, loci</h2>
+            <div class="table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Command</th>
+                            <th>Form</th>
+                            <th>Result</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td rowspan="1">
+                                <i data-t="Polygon"></i>
+                                <strong>Polygon</strong>
+                            </td>
+                            <td class="syntax">
+                                <code>Polygon(A, B, C, …)</code>
+                            </td>
+                            <td>polygon with three vertices or more</td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1">
+                                <i data-t="RegularPolygon"></i>
+                                <strong>RegularPolygon</strong>
+                            </td>
+                            <td class="syntax">
+                                <code>RegularPolygon(A, B, n)</code>
+                            </td>
+                            <td>
+                                regular polygon with n sides (n ≥ 3) built on
+                                [AB]
+                            </td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1">
+                                <i data-t="Angle"></i> <strong>Angle</strong>
+                            </td>
+                            <td class="syntax"><code>Angle(A, O, B)</code></td>
+                            <td>angle with vertex O, from [OA) to [OB)</td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1">
+                                <i data-t="Locus"></i> <strong>Locus</strong>
+                            </td>
+                            <td class="syntax"><code>Locus(M, P)</code></td>
+                            <td>
+                                locus of the point M as the point on object P
+                                runs along its object
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <h2>Transformations</h2>
+            <div class="table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Command</th>
+                            <th>Form</th>
+                            <th>Result</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td rowspan="2">
+                                <i data-t="Point reflection"></i>
+                                <strong>Reflect</strong>
+                            </td>
+                            <td class="syntax"><code>Reflect(P, O)</code></td>
+                            <td>reflection of the point P in the point O</td>
+                        </tr>
+                        <tr>
+                            <td class="syntax"><code>Reflect(P, d)</code></td>
+                            <td>reflection of the point P in the line d</td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1">
+                                <i data-t="Rotation"></i>
+                                <strong>Rotation</strong>
+                            </td>
+                            <td class="syntax">
+                                <code>Rotation(P, O, a)</code>
+                            </td>
+                            <td>
+                                image of the point P by the rotation with center
+                                O and angle a (in degrees or radians, depending
+                                on the figure)
+                            </td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1">
+                                <i data-t="Translation"></i>
+                                <strong>Translation</strong>
+                            </td>
+                            <td class="syntax">
+                                <code>Translation(P, u)</code>
+                            </td>
+                            <td>
+                                image of the point P by the translation by the
+                                vector u
+                            </td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1">
+                                <i data-t="Dilation"></i>
+                                <strong>Dilation</strong>
+                            </td>
+                            <td class="syntax">
+                                <code>Dilation(P, O, k)</code>
+                            </td>
+                            <td>
+                                image of the point P by the dilation with center
+                                O and ratio k
+                            </td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1">
+                                <i data-t="Inversion"></i>
+                                <strong>Inversion</strong>
+                            </td>
+                            <td class="syntax"><code>Inversion(P, c)</code></td>
+                            <td>
+                                image of the point P by the inversion in the
+                                circle c
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <h2>Planes</h2>
+            <div class="table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Command</th>
+                            <th>Form</th>
+                            <th>Result</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td rowspan="2">
+                                <i data-t="Plane"></i> <strong>Plane</strong>
+                            </td>
+                            <td class="syntax"><code>Plane(A, B, C)</code></td>
+                            <td>plane through three points</td>
+                        </tr>
+                        <tr>
+                            <td class="syntax"><code>Plane(A, d)</code></td>
+                            <td>plane containing the point A and the line d</td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1">
+                                <i data-t="ParallelPlane"></i>
+                                <strong>ParallelPlane</strong>
+                            </td>
+                            <td class="syntax">
+                                <code>ParallelPlane(A, p)</code>
+                            </td>
+                            <td>plane through A, parallel to the plane p</td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1">
+                                <i data-t="OrthogonalPlane"></i>
+                                <strong>OrthogonalPlane</strong>
+                            </td>
+                            <td class="syntax">
+                                <code>OrthogonalPlane(A, d)</code>
+                            </td>
+                            <td>plane through A, orthogonal to the line d</td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1"><strong>equation</strong></td>
+                            <td class="syntax">
+                                <code>p = x + y + z = 3</code>
+                            </td>
+                            <td>
+                                plane given by an equation of degree 1 in x, y
+                                and z
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <h2>Solids</h2>
+            <div class="table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Command</th>
+                            <th>Form</th>
+                            <th>Result</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td rowspan="2">
+                                <i data-t="Sphere"></i> <strong>Sphere</strong>
+                            </td>
+                            <td class="syntax"><code>Sphere(O, A)</code></td>
+                            <td>sphere with center O through A</td>
+                        </tr>
+                        <tr>
+                            <td class="syntax"><code>Sphere(O, r)</code></td>
+                            <td>sphere with center O and radius r</td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1">
+                                <i data-t="Cylinder"></i>
+                                <strong>Cylinder</strong>
+                            </td>
+                            <td class="syntax">
+                                <code>Cylinder(A, B, r)</code>
+                            </td>
+                            <td>cylinder with axis [AB] and radius r</td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1">
+                                <i data-t="Cone"></i> <strong>Cone</strong>
+                            </td>
+                            <td class="syntax"><code>Cone(A, B, r)</code></td>
+                            <td>
+                                cone whose base has center A and radius r, with
+                                apex B
+                            </td>
+                        </tr>
+                        <tr>
+                            <td rowspan="3">
+                                <i data-t="Cube"></i> <strong>Cube</strong>
+                            </td>
+                            <td class="syntax"><code>Cube(A, B, C)</code></td>
+                            <td>cube on the square ABCD of the plane ABC</td>
+                        </tr>
+                        <tr>
+                            <td class="syntax">
+                                <code>Cube(A, B, p, s)</code>
+                            </td>
+                            <td>
+                                cube with edge [AB] standing on the plane or the
+                                polygon p, on side s (1 or −1)
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="syntax"><code>Cube(A, B, s)</code></td>
+                            <td>
+                                cube with edge [AB] on a horizontal square,
+                                above (1) or below (−1)
+                            </td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1">
+                                <i data-t="Prism"></i> <strong>Prism</strong>
+                            </td>
+                            <td class="syntax"><code>Prism(p, P)</code></td>
+                            <td>
+                                prism with base the polygon p, P being the image
+                                of the first vertex of p
+                            </td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1">
+                                <i data-t="Pyramid"></i>
+                                <strong>Pyramid</strong>
+                            </td>
+                            <td class="syntax"><code>Pyramid(p, S)</code></td>
+                            <td>pyramid with base the polygon p and apex S</td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1">
+                                <i data-t="Section"></i>
+                                <strong>Section</strong>
+                            </td>
+                            <td class="syntax"><code>Section(s, p)</code></td>
+                            <td>
+                                section of the solid s by the plane p: circle
+                                (sphere), conic (cylinder, cone) or polygon
+                                (polyhedron)
+                            </td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1">
+                                <i data-t="Net"></i> <strong>Net</strong>
+                            </td>
+                            <td class="syntax"><code>Net(c, f)</code></td>
+                            <td>
+                                net of a cube, a prism or a pyramid, unfolded by
+                                f (0: folded, 1: flat)
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <h2>Numbers and lists</h2>
+            <div class="table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Command</th>
+                            <th>Form</th>
+                            <th>Result</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td rowspan="1"><strong>Slider</strong></td>
+                            <td class="syntax">
+                                <code>Slider(min, max, value)</code>
+                            </td>
+                            <td>
+                                slider between two bounds (numbers, expressions
+                                or formulas)
+                            </td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1"><strong>List</strong></td>
+                            <td class="syntax"><code>List(e)</code></td>
+                            <td>
+                                draws the points of the value of the expression
+                                e, a list of points
+                            </td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1"><strong>expression</strong></td>
+                            <td class="syntax"><code>a = 3</code></td>
+                            <td>
+                                number, text, function or formula (see
+                                <a href="expressions.html">Expressions</a>)
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <h2>Formula functions</h2>
+            <p>
+                <code>d</code>, <code>x</code>, <code>sqrt</code>,
+                <code>sin</code>… compute without creating an object: see
+                <a href="formules.html#fonctions">Formulas and programs</a>.
+            </p>
+        </main>
+    </body>
+</html>

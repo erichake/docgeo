@@ -1,0 +1,223 @@
+<!doctype html>
+<html lang="de">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <title>Objekte verwalten — DocGeo-Handbuch</title>
+        <link rel="icon" type="image/svg+xml" href="../../favicon.svg" />
+        <link rel="stylesheet" href="../manual.css" />
+        <script src="../icons.js" defer></script>
+        <script src="../manual.js" defer></script>
+    </head>
+    <body>
+        <main>
+            <h1>Objekte verwalten</h1>
+
+            <h2 id="la-zone-contextuelle">Auswahl und Kontextbereich</h2>
+            <p>
+                Antippen eines Objekts wählt es aus; der Kontextbereich in der
+                Mitte der Leiste zeigt seinen Namen und seine Aktionen. Das
+                Überfahren einer Aktion zeigt ihre Wirkung im Hinweis.
+                <kbd>Esc</kbd> oder Antippen einer leeren Stelle heben die
+                Auswahl auf.
+            </p>
+            <div class="table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th></th>
+                            <th>Aktion</th>
+                            <th>Objekte</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><i data-i="delete"></i></td>
+                            <td>Löschen, mit den abhängigen Objekten</td>
+                            <td>alle</td>
+                        </tr>
+                        <tr>
+                            <td><i data-i="settings"></i></td>
+                            <td>Einstellungen: Eigenschaftenfeld</td>
+                            <td>alle</td>
+                        </tr>
+                        <tr>
+                            <td><i data-i="spring"></i></td>
+                            <td>
+                                Mit der Feder
+                                <a href="points-dynamiques.html#ressort"
+                                    >animieren</a
+                                >
+                            </td>
+                            <td>Punkt auf Objekt</td>
+                        </tr>
+                        <tr>
+                            <td><i data-i="pin"></i></td>
+                            <td>
+                                <a href="points-dynamiques.html#punaise"
+                                    >Am Bildschirm fixieren</a
+                                >
+                            </td>
+                            <td>freier Punkt, ebene Figur</td>
+                        </tr>
+                        <tr>
+                            <td><i data-i="magnet"></i></td>
+                            <td>
+                                <a href="points-dynamiques.html#aimants"
+                                    >Magnete</a
+                                >
+                            </td>
+                            <td>freier Punkt</td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <i data-i="formula_point"></i>
+                                <i data-i="points_list"></i>
+                                <i data-i="segments_list"></i>
+                            </td>
+                            <td>
+                                Punkt, Liste von Punkten, Liste von Strecken
+                            </td>
+                            <td>
+                                Ausdruck mit einem Punkt oder einer Liste als
+                                Wert
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <h2 id="selectionner-plusieurs-objets">Mehrfachauswahl</h2>
+            <p>
+                <kbd>Strg</kbd>-Klick, <kbd>Umschalt</kbd>-Klick oder langes
+                Drücken (0,7 s) fügen ein Objekt hinzu oder entfernen es; jedes
+                leuchtet blau mit seiner Nummer. Die Leiste bietet dann Löschen
+                und Einstellungen an (<a
+                    href="proprietes.html#regler-plusieurs-objets"
+                    >gemeinsame Einstellungen</a
+                >), und das Werkzeugmenü
+                <a href="menu-outils.html#avec-une-selection"
+                    >nimmt die Auswahl als Argumente</a
+                >. Einfaches Antippen, <kbd>Esc</kbd>, ein Werkzeug, der
+                Radierer, Rückgängig oder Wiederherstellen leeren sie.
+            </p>
+
+            <h2 id="supprimer">Löschen</h2>
+            <p>
+                <i data-i="delete"></i>, <kbd>Entf</kbd> oder <kbd>⌫</kbd>, oder
+                die Zeile <code>A =</code>. Die abhängigen Objekte werden
+                ebenfalls gelöscht: Um sie zu behalten, das Objekt besser
+                ausblenden.
+            </p>
+
+            <h2>Aus- und einblenden</h2>
+            <ul>
+                <li>
+                    Der Punkt einer Zeile im Feld „Konstruktion“ ist gefüllt,
+                    wenn das Objekt sichtbar ist, leer, wenn es ausgeblendet
+                    ist; Antippen schaltet um.
+                </li>
+                <li id="la-gomme">
+                    <i data-i="eraser"></i> <strong>Radierer</strong>: Jedes
+                    Antippen blendet ein Objekt aus oder ein; ausgeblendete
+                    Objekte erscheinen als Schatten. Weder Ring noch neue
+                    Punkte; Ziehen verschiebt weiterhin. <kbd>Esc</kbd> oder die
+                    Schaltfläche beenden ihn.
+                </li>
+                <li>
+                    Eigenschaften: Kästchen <strong>Objekt sichtbar</strong>;
+                    die Liste „Objekt wählen…“ findet ausgeblendete Objekte.
+                </li>
+                <li>
+                    Interne Objekte von DGPad-Makros und Hilfsobjekte aus
+                    GeoGebra haben weder Punkt noch Schatten.
+                </li>
+            </ul>
+
+            <h2>Namen</h2>
+            <ul>
+                <li>
+                    Nur Punkte zeigen beim Erzeugen ihren Namen.
+                    <i data-i="show_name"></i> am Zeilenende oder
+                    <strong>Name anzeigen</strong> in den Eigenschaften zeigt
+                    ihn bei anderen Objekten.
+                </li>
+                <li>
+                    Ein Name lässt sich um sein Objekt ziehen (höchstens 80 px
+                    von einem Punkt entfernt) und behält danach seine relative
+                    Lage, wenn sich das Objekt ändert.
+                </li>
+                <li>
+                    Antippen eines Namens ohne Ziehen macht ihn direkt
+                    bearbeitbar: <kbd>Eingabe</kbd> oder Antippen an anderer
+                    Stelle bestätigen, <kbd>Esc</kbd> bricht ab,
+                    <i data-i="hide_name"></i> blendet ihn aus. Ein leerer oder
+                    vergebener Name wird abgelehnt.
+                </li>
+            </ul>
+
+            <h2>Winkelmarkierungen</h2>
+            <p>
+                Der Bogen eines Winkels oder seine Markierung des rechten
+                Winkels lässt sich ziehen, um den Radius zu ändern (5 bis 200
+                px).
+            </p>
+
+            <h2 id="les-valeurs">Werte</h2>
+            <p>
+                <i data-i="show_values"></i> schreibt unter jede Zeile den Wert
+                des Objekts in einer Formel: Koordinaten, Länge, Radius,
+                Flächeninhalt, Winkelmaß in Grad, Wert eines Ausdrucks. Die
+                Werte folgen den Bewegungen.
+            </p>
+
+            <h2 id="la-construction-pas-a-pas">Schritt für Schritt</h2>
+            <p>
+                <i data-i="steps"></i> spielt die Konstruktion erneut ab: Jedes
+                sichtbare Objekt ist ein Schritt, ein ausgeblendetes Objekt
+                gehört zum vorherigen Schritt. Eine Leiste ersetzt die Eingabe:
+            </p>
+            <div class="table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Schaltfläche</th>
+                            <th>Taste</th>
+                            <th>Wirkung</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>
+                                <i data-i="first_step"></i>
+                                <i data-i="last_step"></i>
+                            </td>
+                            <td><kbd>Pos1</kbd> <kbd>Ende</kbd></td>
+                            <td>erster, letzter Schritt</td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <i data-i="previous_step"></i>
+                                <i data-i="next_step"></i>
+                            </td>
+                            <td><kbd>←</kbd> <kbd>→</kbd></td>
+                            <td>vorheriger, nächster Schritt</td>
+                        </tr>
+                        <tr>
+                            <td><i data-i="play_steps"></i></td>
+                            <td></td>
+                            <td>Abspielen, ein Schritt pro Sekunde</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <p>
+                Antippen einer Zeile springt zu ihrem Schritt. Die Punkte
+                bleiben verschiebbar, nichts wird konstruiert. <kbd>Esc</kbd>,
+                die Schaltfläche, ein Werkzeug, der Radierer, die Eigenschaften
+                oder Rückgängig beenden den Modus. Die gespeicherte Figur bleibt
+                unverändert.
+            </p>
+        </main>
+    </body>
+</html>

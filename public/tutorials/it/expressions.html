@@ -1,0 +1,154 @@
+<!doctype html>
+<html lang="it">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <title>Espressioni e slider — Manuale di DocGeo</title>
+        <link rel="icon" type="image/svg+xml" href="../../favicon.svg" />
+        <link rel="stylesheet" href="../manual.css" />
+        <script src="../icons.js" defer></script>
+        <script src="../manual.js" defer></script>
+    </head>
+    <body>
+        <main>
+            <h1>Espressioni e slider</h1>
+
+            <h2>Espressioni</h2>
+            <p>
+                Ogni riga che non è né un punto né un comando crea
+                un’espressione, mostrata in alto a sinistra con due decimali. Il
+                suo tipo si deduce dal testo:
+            </p>
+            <div class="table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Riga</th>
+                            <th>Tipo</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>
+                                <code>a = 3</code>,
+                                <code>lista = [1, 2, 3]</code>
+                            </td>
+                            <td>costante</td>
+                        </tr>
+                        <tr>
+                            <td><code>t = "Ciao"</code></td>
+                            <td>testo</td>
+                        </tr>
+                        <tr>
+                            <td><code>f = 0.5x^2 - 4</code></td>
+                            <td>
+                                funzione di x (y, z, t); <code>f(2)</code> la
+                                chiama
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><code>E = d(A, B)</code></td>
+                            <td>
+                                misura, ricalcolata quando la figura si muove
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <code
+                                    >u = "AB = " + round(d(A, B)*100)/100</code
+                                >
+                            </td>
+                            <td>testo calcolato</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <p>
+                In una formula, un punto vale le sue coordinate, un segmento la
+                sua lunghezza, una circonferenza il suo raggio, un poligono la
+                sua area, un angolo la sua misura. Sintassi completa:
+                <a href="formules.html">Formule e programmi</a>.
+            </p>
+            <p>
+                Un’espressione si sposta trascinandone il testo; agganciata a un
+                punto, lo segue. Toccarla la seleziona, oppure ne scrive il nome
+                durante un inserimento.
+            </p>
+
+            <h2>Slider</h2>
+            <p>
+                <code>r = Cursore(0, 5, 2)</code>: da 0 a 5, valore 2. Gli
+                estremi possono essere espressioni o formule (<code
+                    >Cursore(0, d(A, B), 1)</code
+                >). Incremento, lunghezza, orientamento, manopola e animazione
+                si impostano nelle
+                <a href="proprietes.html#curseurs">proprietà</a>.
+                <code>r = 5</code> lo trasforma di nuovo in una costante.
+            </p>
+
+            <h2>Punti calcolati</h2>
+            <ul>
+                <li>
+                    <code>M = (x(B) + 1, y(A))</code>: coordinate date da
+                    formule.
+                </li>
+                <li>
+                    <code>N = Punto(2*B - A)</code>: formula il cui valore è un
+                    punto.
+                </li>
+            </ul>
+            <p>
+                Quando il valore di una riga <code>nome = formula</code> è un
+                punto o una lista di punti, dei pulsanti a fine riga propongono
+                <i data-i="formula_point"></i> Punto,
+                <i data-i="points_list"></i> Lista di punti,
+                <i data-i="segments_list"></i> Lista di segmenti o
+                <i data-i="as_expression"></i> Espressione. <kbd>Invio</kbd>
+                sceglie il pulsante evidenziato: punto o lista per un nome
+                maiuscolo, espressione altrimenti. Da qui
+                <code>lista = [1, 2, 3]</code> e non <code>L = [1, 2, 3]</code>,
+                che verrebbe letto come un punto dello spazio.
+            </p>
+
+            <h2>Liste di punti</h2>
+            <p>
+                <code>q = Lista(pts)</code> disegna i punti dell’espressione
+                <code>pts</code>; un punto non definito interrompe il tracciato.
+                Un’espressione selezionata il cui valore è una lista di punti
+                propone anche <i data-i="points_list"></i> e
+                <i data-i="segments_list"></i> nella zona contestuale (e
+                <i data-i="formula_point"></i> per un valore punto): la riga
+                viene scritta e l’espressione nascosta.
+            </p>
+
+            <h2 id="les-programmes">Programmi</h2>
+            <p>
+                Un’espressione può essere un programma: istruzioni separate da
+                <code>;</code>, l’ultima delle quali dà il valore; può
+                formattare altri oggetti (<code>S1.setHidden(1)</code>).
+                Linguaggio:
+                <a href="formules.html#programmes">Formule e programmi</a>.
+            </p>
+            <ul>
+                <li>
+                    <i data-i="new_program"></i> (intestazione del pannello
+                    «Costruzione») apre un editor vuoto; <strong>Crea</strong> o
+                    <kbd>Ctrl</kbd> <kbd>Invio</kbd> crea l’espressione.
+                </li>
+                <li>
+                    Per un’espressione esistente, la sezione
+                    <strong>Definizione</strong> delle proprietà modifica il
+                    testo su più righe: <kbd>Invio</kbd> mantiene il rientro,
+                    <kbd>Tab</kbd> rientra, <kbd>}</kbd> riduce il rientro,
+                    <kbd>Ctrl</kbd> <kbd>Invio</kbd> applica,
+                    <kbd>Esc</kbd> ripristina, <strong>Formatta</strong> rientra
+                    secondo le parentesi graffe.
+                </li>
+                <li>
+                    Un errore seleziona la riga errata o il delimitatore non
+                    appaiato.
+                </li>
+            </ul>
+        </main>
+    </body>
+</html>

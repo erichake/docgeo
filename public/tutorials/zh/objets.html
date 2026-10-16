@@ -1,0 +1,188 @@
+<!doctype html>
+<html lang="zh">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <title>管理对象 — DocGeo 手册</title>
+        <link rel="icon" type="image/svg+xml" href="../../favicon.svg" />
+        <link rel="stylesheet" href="../manual.css" />
+        <script src="../icons.js" defer></script>
+        <script src="../manual.js" defer></script>
+    </head>
+    <body>
+        <main>
+            <h1>管理对象</h1>
+
+            <h2 id="la-zone-contextuelle">选择与上下文区</h2>
+            <p>
+                点按一个对象即选中它；操作栏中间的上下文区显示其名称和操作。悬停在某个操作上时，提示会显示其效果。<kbd>Esc</kbd>或点按空白处取消选择。
+            </p>
+            <div class="table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th></th>
+                            <th>操作</th>
+                            <th>对象</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><i data-i="delete"></i></td>
+                            <td>删除，连同依赖对象</td>
+                            <td>全部</td>
+                        </tr>
+                        <tr>
+                            <td><i data-i="settings"></i></td>
+                            <td>设置：属性面板</td>
+                            <td>全部</td>
+                        </tr>
+                        <tr>
+                            <td><i data-i="spring"></i></td>
+                            <td>
+                                用弹簧<a href="points-dynamiques.html#ressort"
+                                    >制作动画</a
+                                >
+                            </td>
+                            <td>对象上的点</td>
+                        </tr>
+                        <tr>
+                            <td><i data-i="pin"></i></td>
+                            <td>
+                                <a href="points-dynamiques.html#punaise"
+                                    >固定在屏幕上</a
+                                >
+                            </td>
+                            <td>自由点，平面图形</td>
+                        </tr>
+                        <tr>
+                            <td><i data-i="magnet"></i></td>
+                            <td>
+                                <a href="points-dynamiques.html#aimants"
+                                    >磁铁</a
+                                >
+                            </td>
+                            <td>自由点</td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <i data-i="formula_point"></i>
+                                <i data-i="points_list"></i>
+                                <i data-i="segments_list"></i>
+                            </td>
+                            <td>点、点列表、线段列表</td>
+                            <td>值为点或列表的表达式</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <h2 id="selectionner-plusieurs-objets">多选</h2>
+            <p>
+                <kbd>Ctrl</kbd>-点击、<kbd>Shift</kbd>-点击或长按（0.7
+                秒）可添加或移除一个对象；每个对象以蓝色高亮并显示其序号。此时操作栏提供删除和设置（<a
+                    href="proprietes.html#regler-plusieurs-objets"
+                    >共同设置</a
+                >），工具菜单<a href="menu-outils.html#avec-une-selection"
+                    >把所选对象作为参数</a
+                >。单次点按、<kbd>Esc</kbd>、选择工具、橡皮擦、撤销或重做都会清空选择。
+            </p>
+
+            <h2 id="supprimer">删除</h2>
+            <p>
+                <i data-i="delete"></i>、<kbd>Delete</kbd>
+                或<kbd>⌫</kbd>，或输入<code>A =</code
+                >这一行。依赖对象也会被删除：若想保留它们，请改为隐藏该对象。
+            </p>
+
+            <h2>隐藏与显示</h2>
+            <ul>
+                <li>
+                    “作图”面板中每行的圆点：对象可见时为实心，隐藏时为空心；点按即可切换。
+                </li>
+                <li id="la-gomme">
+                    <i data-i="eraser"></i>
+                    <strong>橡皮擦</strong
+                    >：每次点按都会隐藏或显示一个对象；隐藏的对象以虚影显示。不会打开工具环，也不会创建点；拖动仍可移动。按<kbd>Esc</kbd>或该按钮退出。
+                </li>
+                <li>
+                    属性：<strong>显示对象</strong>复选框；“选择对象…”列表可找到隐藏的对象。
+                </li>
+                <li>
+                    DGPad 宏的内部对象和 GeoGebra
+                    的辅助对象既没有圆点也没有虚影。
+                </li>
+            </ul>
+
+            <h2>名称</h2>
+            <ul>
+                <li>
+                    只有点在创建时会显示名称。行尾的<i data-i="show_name"></i
+                    >或属性中的<strong>显示名称</strong>可显示其他对象的名称。
+                </li>
+                <li>
+                    名称可以在其对象周围拖动（离点最多 80
+                    px），之后对象变化时保持相对位置。
+                </li>
+                <li>
+                    点按名称而不拖动，即可就地编辑：<kbd>Enter</kbd>或点按别处确认，<kbd>Esc</kbd>取消，<i
+                        data-i="hide_name"
+                    ></i
+                    >隐藏名称。空名称或已被占用的名称会被拒绝。
+                </li>
+            </ul>
+
+            <h2>角的标记</h2>
+            <p>拖动角的弧或直角标记可改变其半径（5 到 200 px）。</p>
+
+            <h2 id="les-valeurs">数值</h2>
+            <p>
+                <i data-i="show_values"></i
+                >在每一行下方写出该对象在公式中的值：坐标、长度、半径、面积、角的度数、表达式的值。这些值随移动而更新。
+            </p>
+
+            <h2 id="la-construction-pas-a-pas">逐步构造</h2>
+            <p>
+                <i data-i="steps"></i
+                >重放作图过程：每个可见对象是一步，隐藏的对象并入前一步。一个控制条会替换输入行：
+            </p>
+            <div class="table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>按钮</th>
+                            <th>按键</th>
+                            <th>作用</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>
+                                <i data-i="first_step"></i>
+                                <i data-i="last_step"></i>
+                            </td>
+                            <td><kbd>Home</kbd> <kbd>End</kbd></td>
+                            <td>第一步、最后一步</td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <i data-i="previous_step"></i>
+                                <i data-i="next_step"></i>
+                            </td>
+                            <td><kbd>←</kbd> <kbd>→</kbd></td>
+                            <td>上一步、下一步</td>
+                        </tr>
+                        <tr>
+                            <td><i data-i="play_steps"></i></td>
+                            <td></td>
+                            <td>播放，每秒一步</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <p>
+                点按某一行即跳到该步。点仍可移动，但不会作出任何新对象。<kbd>Esc</kbd>、该按钮、选择工具、橡皮擦、属性或撤销都会退出此模式。已保存的图形不受影响。
+            </p>
+        </main>
+    </body>
+</html>

@@ -1,0 +1,182 @@
+<!doctype html>
+<html lang="zh">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <title>3D — DocGeo 手册</title>
+        <link rel="icon" type="image/svg+xml" href="../../favicon.svg" />
+        <link rel="stylesheet" href="../manual.css" />
+        <script src="../icons.js" defer></script>
+        <script src="../manual.js" defer></script>
+    </head>
+    <body>
+        <main>
+            <h1>3D</h1>
+
+            <figure>
+                <img
+                    src="img/editeur-3d.webp"
+                    alt="被平面 z = 1.5 截开的棱锥"
+                    width="1200"
+                    height="720"
+                />
+            </figure>
+
+            <h2>进入 3D</h2>
+            <ul>
+                <li>
+                    新图形是平面图形。<i data-i="space"></i>
+                    <strong>3D 视图</strong>使相机倾斜：图形所在平面变为地面<em
+                        >z</em
+                    >
+                    =
+                    0，坐标系变为三面角。再按一次返回平面，并恢复原来的坐标系。
+                </li>
+                <li>
+                    只要有对象离开平面 <em>z</em> =
+                    0，就不能返回平面；提示会指出该对象。反之，平面图形不接受任何空间对象（<code
+                        >A = (1, 2, 3)</code
+                    >、球…）。
+                </li>
+                <li>每次切换都是一个撤销步骤。</li>
+                <li>
+                    DGPad 的 3D 图形（其自由点位于屏幕平面内）没有这个按钮。
+                </li>
+            </ul>
+
+            <h2>视图</h2>
+            <ul>
+                <li>
+                    旋转：右键，或单指在空白处拖动。平移：左键在空白处拖动。缩放：滚轮。
+                </li>
+                <li>
+                    <kbd>P</kbd>：透视或平行投影；<kbd>S</kbd>：地面。<a
+                        href="proprietes.html#l-onglet-figure-en-3d"
+                        >图形选项卡</a
+                    >中有相同的设置。
+                </li>
+                <li>
+                    被遮挡的部分（棱、圆、地面以下或面后方的直线）用虚线表示。
+                </li>
+            </ul>
+
+            <h2>作图</h2>
+            <ul>
+                <li>
+                    在空白处单击会在地面上创建一个点；用键盘则输入<code
+                        >S = (0, 0, 4)</code
+                    >。
+                </li>
+                <li>
+                    菜单中增加<strong>平面</strong>和<strong>立体图形</strong>两个工具族以及两种圆；点的工具环中会出现球。
+                </li>
+                <li>
+                    所有需要平面的工具都接受<strong>地面</strong>：会创建一个隐藏的平面<code
+                        >z = 0</code
+                    >，之后重复使用。
+                </li>
+                <li>
+                    公式读取全部三个坐标：<code>d(A, B)</code> 是空间中的距离。
+                </li>
+            </ul>
+            <div class="table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>对象</th>
+                            <th>命令</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>平面</td>
+                            <td>
+                                <code>平面(A, B, C)</code>、<code
+                                    >平面(A, d)</code
+                                >、<code>平行平面(A, p)</code>、<code
+                                    >垂直平面(A, d)</code
+                                >、<code>p = x + y + z = 3</code>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>平面的垂线</td>
+                            <td><code>垂线(A, p)</code></td>
+                        </tr>
+                        <tr>
+                            <td>球</td>
+                            <td>
+                                <code>球(O, A)</code>、<code>球(O, r)</code>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>圆</td>
+                            <td>
+                                <code>圆(d, P)</code> 以 d 为轴；<code
+                                    >圆(O, r, d)</code
+                                >垂直于直线 d 或平行于平面 d
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>立体图形</td>
+                            <td>
+                                <code>圆柱(A, B, r)</code>、<code
+                                    >圆锥(A, B, r)</code
+                                >、<code>立方体(A, B, C)</code>、<code
+                                    >棱柱(p, P)</code
+                                >、<code>棱锥(p, S)</code>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>截面</td>
+                            <td>
+                                <code>截面(s, p)</code>：圆、圆锥曲线或多边形
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>展开图</td>
+                            <td>
+                                <code>展开图(c, f)</code>，f 从 0（折叠）到
+                                1（展平）
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>交点与交线</td>
+                            <td>
+                                <code>交点(d, p)</code> 点，<code
+                                    >交点(p, q)</code
+                                >直线，<code>交点(s, t)</code> 两球的交线圆
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>顶点</td>
+                            <td><code>顶点(c, k)</code>，k 从 1 开始</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <h2>立体图形</h2>
+            <ul>
+                <li>
+                    立体图形是一个整体对象：它画出面和棱（背面的棱为虚线），并遮挡其后的物体。在其轮廓内部即可选中它。
+                </li>
+                <li>
+                    <strong>两次单击作立方体</strong
+                    >：同一平面或多边形上的两个点给出<code
+                        >立方体(A, B, p, ±1)</code
+                    >，位于朝向相机的一侧；同一高度的两个点给出<code
+                        >立方体(A, B, 1)</code
+                    >，在上方（−1：在下方）。否则工具会等待第三个点。如果 [AB]
+                    不再与该平面平行，立方体就变为未定义。
+                </li>
+                <li><strong>截面</strong>工具以任意顺序接受立体图形和平面。</li>
+                <li>
+                    把滑动条作为<code>展开图</code>
+                    的第二个参数可以产生展开动画：<code
+                        >f = 滑动条(0, 1, 0)</code
+                    >、<code>n = 展开图(c, f)</code>。
+                </li>
+            </ul>
+        </main>
+    </body>
+</html>

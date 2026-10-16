@@ -1,0 +1,218 @@
+<!doctype html>
+<html lang="nl">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <title>Objecten beheren — DocGeo-handleiding</title>
+        <link rel="icon" type="image/svg+xml" href="../../favicon.svg" />
+        <link rel="stylesheet" href="../manual.css" />
+        <script src="../icons.js" defer></script>
+        <script src="../manual.js" defer></script>
+    </head>
+    <body>
+        <main>
+            <h1>Objecten beheren</h1>
+
+            <h2 id="la-zone-contextuelle">Selectie en contextzone</h2>
+            <p>
+                Een object aantikken selecteert het; de contextzone, in het
+                midden van de balk, toont zijn naam en zijn acties. Een actie
+                aanwijzen toont haar effect in de aanwijzing. <kbd>Esc</kbd>
+                of een tik op een lege plek heffen de selectie op.
+            </p>
+            <div class="table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th></th>
+                            <th>Actie</th>
+                            <th>Objecten</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><i data-i="delete"></i></td>
+                            <td>Verwijderen, met de afhankelijke objecten</td>
+                            <td>alle</td>
+                        </tr>
+                        <tr>
+                            <td><i data-i="settings"></i></td>
+                            <td>Instellingen: eigenschappenpaneel</td>
+                            <td>alle</td>
+                        </tr>
+                        <tr>
+                            <td><i data-i="spring"></i></td>
+                            <td>
+                                Met de veer
+                                <a href="points-dynamiques.html#ressort"
+                                    >animeren</a
+                                >
+                            </td>
+                            <td>punt op object</td>
+                        </tr>
+                        <tr>
+                            <td><i data-i="pin"></i></td>
+                            <td>
+                                <a href="points-dynamiques.html#punaise"
+                                    >Vastzetten op het scherm</a
+                                >
+                            </td>
+                            <td>vrij punt, vlakke figuur</td>
+                        </tr>
+                        <tr>
+                            <td><i data-i="magnet"></i></td>
+                            <td>
+                                <a href="points-dynamiques.html#aimants"
+                                    >Magneten</a
+                                >
+                            </td>
+                            <td>vrij punt</td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <i data-i="formula_point"></i>
+                                <i data-i="points_list"></i>
+                                <i data-i="segments_list"></i>
+                            </td>
+                            <td>
+                                Punt, Lijst van punten, Lijst van lijnstukken
+                            </td>
+                            <td>
+                                uitdrukking met een punt of een lijst als waarde
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <h2 id="selectionner-plusieurs-objets">Meervoudige selectie</h2>
+            <p>
+                <kbd>Ctrl</kbd>-klik, <kbd>Shift</kbd>-klik of lang drukken (0,7
+                s) voegen een object toe of nemen het weg; elk licht blauw op
+                met zijn rangnummer. De balk biedt dan Verwijderen en
+                Instellingen aan (<a
+                    href="proprietes.html#regler-plusieurs-objets"
+                    >gemeenschappelijke instellingen</a
+                >), en het gereedschapsmenu
+                <a href="menu-outils.html#avec-une-selection"
+                    >neemt de selectie als argumenten</a
+                >. Een gewone tik, <kbd>Esc</kbd>, een gereedschap, de gum,
+                ongedaan maken of opnieuw wissen haar.
+            </p>
+
+            <h2 id="supprimer">Verwijderen</h2>
+            <p>
+                <i data-i="delete"></i>, <kbd>Delete</kbd> of <kbd>⌫</kbd>, of
+                de regel <code>A =</code>. De afhankelijke objecten worden ook
+                verwijderd: om ze te behouden kun je het object beter verbergen.
+            </p>
+
+            <h2>Verbergen en tonen</h2>
+            <ul>
+                <li>
+                    Het bolletje van een regel in het paneel „Constructie” is
+                    gevuld als het object zichtbaar is, leeg als het verborgen
+                    is; aantikken wisselt.
+                </li>
+                <li id="la-gomme">
+                    <i data-i="eraser"></i> <strong>Gum</strong>: elke tik
+                    verbergt of toont een object; verborgen objecten verschijnen
+                    als schim. Geen ring en geen nieuwe punten; slepen
+                    verplaatst nog steeds. <kbd>Esc</kbd> of de knop beëindigen
+                    hem.
+                </li>
+                <li>
+                    Eigenschappen: vakje <strong>Object zichtbaar</strong>; de
+                    lijst „Kies een object…” vindt verborgen objecten terug.
+                </li>
+                <li>
+                    Interne objecten van DGPad-macro’s en hulpobjecten uit
+                    GeoGebra hebben geen bolletje en geen schim.
+                </li>
+            </ul>
+
+            <h2>Namen</h2>
+            <ul>
+                <li>
+                    Alleen punten tonen hun naam bij het maken.
+                    <i data-i="show_name"></i> achteraan de regel, of
+                    <strong>Naam tonen</strong> bij de eigenschappen, toont hem
+                    voor andere objecten.
+                </li>
+                <li>
+                    Een naam sleep je rond zijn object (hoogstens 80 px van een
+                    punt) en hij behoudt daarna zijn relatieve plaats als het
+                    object verandert.
+                </li>
+                <li>
+                    Een naam aantikken zonder te slepen maakt hem ter plaatse
+                    bewerkbaar: <kbd>Enter</kbd> of een tik elders bevestigen,
+                    <kbd>Esc</kbd> annuleert, <i data-i="hide_name"></i>
+                    verbergt hem. Een lege of bezette naam wordt geweigerd.
+                </li>
+            </ul>
+
+            <h2>Hoekmarkeringen</h2>
+            <p>
+                De boog van een hoek, of zijn markering van de rechte hoek,
+                sleep je om de straal te veranderen (5 tot 200 px).
+            </p>
+
+            <h2 id="les-valeurs">Waarden</h2>
+            <p>
+                <i data-i="show_values"></i> schrijft onder elke regel de waarde
+                van het object in een formule: coördinaten, lengte, straal,
+                oppervlakte, hoekgrootte in graden, waarde van een uitdrukking.
+                De waarden volgen de verplaatsingen.
+            </p>
+
+            <h2 id="la-construction-pas-a-pas">Stap voor stap</h2>
+            <p>
+                <i data-i="steps"></i> speelt de constructie opnieuw af: elk
+                zichtbaar object is een stap, een verborgen object hoort bij de
+                vorige stap. Een balk vervangt de invoer:
+            </p>
+            <div class="table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Knop</th>
+                            <th>Toets</th>
+                            <th>Effect</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>
+                                <i data-i="first_step"></i>
+                                <i data-i="last_step"></i>
+                            </td>
+                            <td><kbd>Home</kbd> <kbd>End</kbd></td>
+                            <td>eerste, laatste stap</td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <i data-i="previous_step"></i>
+                                <i data-i="next_step"></i>
+                            </td>
+                            <td><kbd>←</kbd> <kbd>→</kbd></td>
+                            <td>vorige, volgende stap</td>
+                        </tr>
+                        <tr>
+                            <td><i data-i="play_steps"></i></td>
+                            <td></td>
+                            <td>afspelen, één stap per seconde</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <p>
+                Een regel aantikken gaat naar zijn stap. Punten blijven
+                verplaatsbaar, er wordt niets geconstrueerd. <kbd>Esc</kbd>, de
+                knop, een gereedschap, de gum, de eigenschappen of ongedaan
+                maken beëindigen de modus. De opgeslagen figuur blijft
+                ongewijzigd.
+            </p>
+        </main>
+    </body>
+</html>

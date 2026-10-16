@@ -1,0 +1,347 @@
+<!doctype html>
+<html lang="it">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <title>Formule e programmi — Manuale di DocGeo</title>
+        <link rel="icon" type="image/svg+xml" href="../../favicon.svg" />
+        <link rel="stylesheet" href="../manual.css" />
+        <script src="../icons.js" defer></script>
+        <script src="../manual.js" defer></script>
+    </head>
+    <body>
+        <main>
+            <h1>Formule e programmi</h1>
+
+            <p class="lead">
+                Il linguaggio delle espressioni è quello di DGPad. DocGeo lo
+                interpreta da sé: non viene mai eseguito come JavaScript.
+            </p>
+
+            <h2>Valori</h2>
+            <div class="table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Scrittura</th>
+                            <th>Valore</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>
+                                <code>3</code>, <code>-2.5</code>,
+                                <code>.5</code>, <code>2e3</code>
+                            </td>
+                            <td>numeri (punto decimale)</td>
+                        </tr>
+                        <tr>
+                            <td><code>PI</code>, <code>π</code></td>
+                            <td>π (<code>pi</code> non è riconosciuto)</td>
+                        </tr>
+                        <tr>
+                            <td><code>1 + 2i</code></td>
+                            <td>numero complesso</td>
+                        </tr>
+                        <tr>
+                            <td><code>"testo"</code></td>
+                            <td>testo; <code>+</code> concatena</td>
+                        </tr>
+                        <tr>
+                            <td><code>[1, 2, 3]</code></td>
+                            <td>
+                                lista; <code>[x, y]</code>,
+                                <code>[x, y, z]</code>: punto o vettore
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><code>A</code></td>
+                            <td>
+                                punto: coordinate; segmento: lunghezza;
+                                circonferenza: raggio; poligono: area; angolo:
+                                misura
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <code>x</code>, <code>y</code>, <code>z</code>,
+                                <code>t</code>
+                            </td>
+                            <td>variabili di una funzione</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <p>
+                Nel piano, un punto è un numero complesso:
+                <code>(A + B)/2</code> è il punto medio, <code>2*B - A</code> il
+                simmetrico di A rispetto a B.
+            </p>
+
+            <h2>Operatori</h2>
+            <div class="table">
+                <table>
+                    <tbody>
+                        <tr>
+                            <td><code>+ - * / ^ %</code></td>
+                            <td>operazioni, potenza, resto</td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <code>2x</code>, <code>2π</code>,
+                                <code>3(x + 1)</code>
+                            </td>
+                            <td>moltiplicazione implicita</td>
+                        </tr>
+                        <tr>
+                            <td><code>== != &lt; &lt;= &gt; &gt;=</code></td>
+                            <td>
+                                confronti, che valgono 1 o 0; <code>==</code>
+                                tollera gli errori di arrotondamento
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><code>&amp;&amp; || !</code></td>
+                            <td>e, o, non</td>
+                        </tr>
+                        <tr>
+                            <td><code>test ? a : b</code></td>
+                            <td>condizione</td>
+                        </tr>
+                        <tr>
+                            <td><code>L[0]</code>, <code>A[1]</code></td>
+                            <td>elemento, coordinata (a partire da 0)</td>
+                        </tr>
+                        <tr>
+                            <td><code>L.length</code></td>
+                            <td>lunghezza di una lista</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <h2 id="fonctions">Funzioni</h2>
+            <div class="table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Funzione</th>
+                            <th>Valore</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>
+                                <code>d(A, B)</code>,
+                                <code>distance(A, B)</code>
+                            </td>
+                            <td>distanza (nello spazio in 3D)</td>
+                        </tr>
+                        <tr>
+                            <td><code>x(A)</code>, <code>y(A)</code></td>
+                            <td>coordinate</td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <code>Angle360(A, O, B)</code>,
+                                <code>Angle180(A, O, B)</code>
+                            </td>
+                            <td>
+                                angolo orientato da [OA) a [OB); angolo
+                                geometrico AOB
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <code>sqrt</code>, <code>abs</code>,
+                                <code>exp</code>, <code>log</code>
+                            </td>
+                            <td>
+                                radice quadrata, valore assoluto, esponenziale,
+                                logaritmo naturale
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <code>sin</code>, <code>cos</code>,
+                                <code>tan</code>, <code>asin</code>,
+                                <code>acos</code>, <code>atan</code>,
+                                <code>atan2(y, x)</code>
+                            </td>
+                            <td>
+                                in gradi o radianti secondo l’impostazione
+                                <strong>Angoli</strong> della figura (gradi per
+                                impostazione predefinita)
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <code>floor</code>, <code>ceil</code>,
+                                <code>round</code>
+                            </td>
+                            <td>arrotondamenti</td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <code>min(…)</code>, <code>max(…)</code>,
+                                <code>gcd(a, b)</code>, <code>isNaN(a)</code>
+                            </td>
+                            <td>
+                                minimo, massimo, MCD, test di valore non
+                                definito
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <code>arg</code>, <code>mod</code>,
+                                <code>conj</code>
+                            </td>
+                            <td>argomento, modulo, coniugato</td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <code>dot(u, v)</code>,
+                                <code>cross(u, v)</code>,
+                                <code>unitVector(u)</code>, <code>perp(u)</code>
+                            </td>
+                            <td>
+                                prodotti scalare e vettoriale, versore, versore
+                                ortogonale
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <code>pixel()</code>, <code>windoww()</code>,
+                                <code>windowh()</code>, <code>windowcx()</code>,
+                                <code>windowcy()</code>
+                            </td>
+                            <td>
+                                pixel per unità; dimensioni e centro della
+                                finestra in unità
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><code>theta()</code>, <code>phi()</code></td>
+                            <td>angoli della telecamera 3D</td>
+                        </tr>
+                        <tr>
+                            <td><code>f(2)</code></td>
+                            <td>chiamata di un’espressione funzione di x</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <h2 id="programmes">Programmi</h2>
+            <p>
+                Istruzioni separate da <code>;</code> o da a capo; l’ultima dà
+                il valore.
+            </p>
+            <div class="table">
+                <table>
+                    <tbody>
+                        <tr>
+                            <td>variabili</td>
+                            <td>
+                                <code>var s = 0</code> (<code>let</code>,
+                                <code>const</code>); <code>s += 2</code>,
+                                <code>-=</code>, <code>*=</code>,
+                                <code>/=</code>, <code>L[2] = 5</code>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>condizioni</td>
+                            <td><code>if (a &gt; 0) { … } else { … }</code></td>
+                        </tr>
+                        <tr>
+                            <td>cicli</td>
+                            <td>
+                                <code
+                                    >for (var k = 0; k &lt; 10; k++) { … }</code
+                                >, <code>while (…) { … }</code>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>funzioni</td>
+                            <td>
+                                <code>function quadrato(u) { return u*u }</code>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>liste</td>
+                            <td>
+                                <code>L.push(P)</code>, <code>L.pop()</code>,
+                                <code>L.concat(M)</code>,
+                                <code>L.join(", ")</code>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <p>
+                Le variabili di un programma nascondono gli oggetti con lo
+                stesso nome. Un ciclo infinito viene interrotto.
+            </p>
+            <h3>Metodi degli oggetti</h3>
+            <div class="table">
+                <table>
+                    <tbody>
+                        <tr>
+                            <td>
+                                <code>S.setHidden(1)</code>,
+                                <code>S.setShowName(1)</code>
+                            </td>
+                            <td>
+                                nascondere, mostrare il nome (0: il contrario)
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <code>S.setRGBColor(r, g, b)</code>,
+                                <code>S.setOpacity(o)</code>,
+                                <code>S.setSize(t)</code>
+                            </td>
+                            <td>
+                                colore (da 0 a 255), opacità (da 0 a 1),
+                                dimensione o spessore
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <code>a.setPrecision(n)</code>,
+                                <code>a.setIncrement(p)</code>
+                            </td>
+                            <td>decimali, incremento di uno slider</td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <code>P.getX()</code>, <code>P.getY()</code>,
+                                <code>P.coords3D()</code>,
+                                <code>P.coords2D()</code>
+                            </td>
+                            <td>coordinate; coordinate sullo schermo</td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <code>S.getName()</code>,
+                                <code>c.center()</code>
+                            </td>
+                            <td>nome, centro di una circonferenza</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <pre><code>if (a &lt; 0) {
+    p.setRGBColor(220, 38, 38)
+} else {
+    p.setRGBColor(37, 99, 235)
+};
+"a = " + a</code></pre>
+            <p>
+                Un programma è genitore degli oggetti che formatta: viene
+                ricalcolato con la figura, e una ridefinizione che creerebbe un
+                ciclo viene rifiutata.
+            </p>
+        </main>
+    </body>
+</html>

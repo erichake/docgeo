@@ -1,0 +1,196 @@
+<!doctype html>
+<html lang="de">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <title>3D — DocGeo-Handbuch</title>
+        <link rel="icon" type="image/svg+xml" href="../../favicon.svg" />
+        <link rel="stylesheet" href="../manual.css" />
+        <script src="../icons.js" defer></script>
+        <script src="../manual.js" defer></script>
+    </head>
+    <body>
+        <main>
+            <h1>3D</h1>
+
+            <figure>
+                <img
+                    src="img/editeur-3d.webp"
+                    alt="Pyramide, geschnitten von der Ebene z = 1,5"
+                    width="1200"
+                    height="720"
+                />
+            </figure>
+
+            <h2>In 3D wechseln</h2>
+            <ul>
+                <li>
+                    Eine neue Figur ist eben. <i data-i="space"></i>
+                    <strong>3D-Ansicht</strong> kippt die Kamera: Die Ebene der
+                    Figur wird zum Boden <em>z</em> = 0, das Koordinatensystem
+                    zu einem Dreibein. Ein zweites Drücken kehrt zur Ebene
+                    zurück, mit dem vorherigen Koordinatensystem.
+                </li>
+                <li>
+                    Die Rückkehr zur Ebene wird abgelehnt, solange ein Objekt
+                    die Ebene <em>z</em> = 0 verlässt; der Hinweis nennt es.
+                    Umgekehrt lehnt eine ebene Figur jedes Objekt im Raum ab
+                    (<code>A = (1, 2, 3)</code>, Kugel…).
+                </li>
+                <li>Jeder Wechsel ist ein Rückgängig-Schritt.</li>
+                <li>
+                    3D-Figuren aus DGPad, deren freie Punkte in der
+                    Bildschirmebene liegen, haben diese Schaltfläche nicht.
+                </li>
+            </ul>
+
+            <h2>Ansicht</h2>
+            <ul>
+                <li>
+                    Drehen: rechte Maustaste oder ein Finger auf einer leeren
+                    Stelle. Verschieben: linke Maustaste auf einer leeren
+                    Stelle. Zoomen: Mausrad.
+                </li>
+                <li>
+                    <kbd>P</kbd>: Perspektive oder Parallelprojektion;
+                    <kbd>S</kbd>: Boden. Dieselben Einstellungen im
+                    <a href="proprietes.html#l-onglet-figure-en-3d"
+                        >Tab „Figur“</a
+                    >.
+                </li>
+                <li>
+                    Verdeckte Teile (Kanten, Kreise, Geraden unter dem Boden
+                    oder hinter einer Fläche) sind gestrichelt.
+                </li>
+            </ul>
+
+            <h2>Konstruieren</h2>
+            <ul>
+                <li>
+                    Ein Klick auf eine leere Stelle erzeugt einen Punkt auf dem
+                    Boden; über die Tastatur <code>S = (0, 0, 4)</code>.
+                </li>
+                <li>
+                    Das Menü erhält die Familien <strong>Ebenen</strong> und
+                    <strong>Körper</strong> sowie zwei Kreise; der Ring eines
+                    Punktes bietet die Kugel an.
+                </li>
+                <li>
+                    Jedes Werkzeug, das eine Ebene erwartet, nimmt den
+                    <strong>Boden</strong> an: Eine ausgeblendete Ebene
+                    <code>z = 0</code> wird erzeugt und danach wiederverwendet.
+                </li>
+                <li>
+                    Formeln lesen die drei Koordinaten: <code>d(A, B)</code> ist
+                    der Abstand im Raum.
+                </li>
+            </ul>
+            <div class="table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Objekt</th>
+                            <th>Befehl</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Ebene</td>
+                            <td>
+                                <code>Ebene(A, B, C)</code>,
+                                <code>Ebene(A, d)</code>,
+                                <code>ParallelEbene(A, p)</code>,
+                                <code>OrthogonalEbene(A, d)</code>,
+                                <code>p = x + y + z = 3</code>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Senkrechte zu einer Ebene</td>
+                            <td><code>Senkrechte(A, p)</code></td>
+                        </tr>
+                        <tr>
+                            <td>Kugel</td>
+                            <td>
+                                <code>Kugel(O, A)</code>,
+                                <code>Kugel(O, r)</code>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Kreise</td>
+                            <td>
+                                <code>Kreis(d, P)</code> mit Achse d;
+                                <code>Kreis(O, r, d)</code> orthogonal zur
+                                Geraden d oder parallel zur Ebene d
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Körper</td>
+                            <td>
+                                <code>Zylinder(A, B, r)</code>,
+                                <code>Kegel(A, B, r)</code>,
+                                <code>Würfel(A, B, C)</code>,
+                                <code>Prisma(p, P)</code>,
+                                <code>Pyramide(p, S)</code>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Schnitt</td>
+                            <td>
+                                <code>Schnitt(s, p)</code>: Kreis, Kegelschnitt
+                                oder Vieleck
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Netz</td>
+                            <td>
+                                <code>Netz(c, f)</code>, f von 0 (gefaltet) bis
+                                1 (flach)
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Schnitte</td>
+                            <td>
+                                <code>Schnittpunkt(d, p)</code> Punkt,
+                                <code>Schnittpunkt(p, q)</code> Gerade,
+                                <code>Schnittpunkt(s, t)</code> Kreis zweier
+                                Kugeln
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Ecken</td>
+                            <td><code>Ecke(c, k)</code>, k ab 1</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <h2>Körper</h2>
+            <ul>
+                <li>
+                    Ein Körper ist ein einziges Objekt: Er zeichnet Flächen und
+                    Kanten (dahinter gestrichelt) und verdeckt, was hinter ihm
+                    liegt. Er wird innerhalb seines Umrisses gewählt.
+                </li>
+                <li>
+                    <strong>Würfel mit zwei Klicks</strong>: Zwei Punkte
+                    derselben Ebene oder desselben Vielecks ergeben
+                    <code>Würfel(A, B, p, ±1)</code>, auf der der Kamera
+                    zugewandten Seite; zwei Punkte derselben Höhe ergeben
+                    <code>Würfel(A, B, 1)</code>, darüber (−1: darunter). Sonst
+                    wartet das Werkzeug auf einen dritten Punkt. Der Würfel wird
+                    undefiniert, wenn [AB] nicht mehr parallel zur Ebene ist.
+                </li>
+                <li>
+                    Das Werkzeug <strong>Schnitt</strong> nimmt den Körper und
+                    die Ebene in beliebiger Reihenfolge.
+                </li>
+                <li>
+                    Ein Schieberegler als zweites Argument von
+                    <code>Netz</code> animiert das Aufklappen:
+                    <code>f = Schieberegler(0, 1, 0)</code>,
+                    <code>n = Netz(c, f)</code>.
+                </li>
+            </ul>
+        </main>
+    </body>
+</html>

@@ -1,0 +1,258 @@
+<!doctype html>
+<html lang="zh">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <title>用键盘作图 — DocGeo 手册</title>
+        <link rel="icon" type="image/svg+xml" href="../../favicon.svg" />
+        <link rel="stylesheet" href="../manual.css" />
+        <script src="../icons.js" defer></script>
+        <script src="../manual.js" defer></script>
+    </head>
+    <body>
+        <main>
+            <h1>用键盘作图</h1>
+
+            <p class="lead">
+                每个对象一行：<code>名称 = 命令(参数)</code
+                >，在“作图”面板的输入行中输入，按 <kbd>Enter</kbd> 确认。
+            </p>
+            <pre><code>A = (-5, -2)
+B = (4, -3)
+C = (-1, 4)
+p = 多边形(A, B, C)
+c = 外接圆(A, B, C)
+M = 中点(A, B)</code></pre>
+
+            <h2>语法</h2>
+            <div class="table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>元素</th>
+                            <th>规则</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>自由点</td>
+                            <td>
+                                <code>A = (2, 3)</code>；3D 中为<code
+                                    >A = (2, 3, 1)</code
+                                >
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>数</td>
+                            <td>
+                                小数分隔符为<strong>点</strong>（<code>2.5</code>）；<code
+                                    >(1,5, 2)</code
+                                >是一个有三个坐标的点
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>命令</td>
+                            <td>
+                                不区分大小写和重音符号，也接受英文名称；该行会改写为通常形式
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>数作为参数</td>
+                            <td>
+                                数、表达式或滑动条的名称，或公式：<code
+                                    >圆(A, 2*r)</code
+                                >
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>省略名称</td>
+                            <td>
+                                <code>中点(A, B)</code
+                                >：自动命名，点用大写字母，其他用小写字母（不用
+                                e、i、k、l、o、t、x、y、z）
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>已有名称</td>
+                            <td>该行重新定义此对象</td>
+                        </tr>
+                        <tr>
+                            <td>特殊名称</td>
+                            <td>
+                                可使用撇号（<code>A'</code>）；其他字符放在反引号之间（<code
+                                    >`aux 2`</code
+                                >）
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>应避免的名称</td>
+                            <td>
+                                <code>x</code
+                                >、<code>y</code>（方程）、<code>i</code>（虚数单位）
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>其他行</td>
+                            <td>
+                                既不是点也不是命令：一个<a
+                                    href="expressions.html"
+                                    >表达式</a
+                                >（<code>a = 3</code>、<code>E = d(A, B)</code
+                                >）
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <p>各命令的形式和参数：<a href="commandes.html">命令</a>。</p>
+
+            <h2 id="la-completion">自动补全与选取</h2>
+            <ul>
+                <li>
+                    在行首，列表提示命令；在括号内，只提示当前参数可接受的对象，并在图形中高亮显示。<kbd
+                        >↑</kbd
+                    >
+                    <kbd>↓</kbd> 选择，<kbd>Tab</kbd> 或<kbd>Enter</kbd>
+                    插入，<kbd>Esc</kbd> 关闭。
+                </li>
+                <li>
+                    点击一个对象会写入其名称，后面根据还需选取的内容加上<code
+                        >, </code
+                    >或 <code>)</code>：<code>M = 中点(</code>，点击 A，再点击
+                    B，得到 <code>M = 中点(A, B)</code>。
+                </li>
+                <li>
+                    在输入行中，点击没有点的地方会创建一个点（自由点、对象上的点或交点）；预览跟随指针。再次点击多边形的第一个顶点即可完成多边形。
+                </li>
+                <li>在公式中也一样：<code>E = d(</code>，点击 H，再点击 M。</li>
+            </ul>
+
+            <h2 id="modifier-une-ligne">修改一行</h2>
+            <p>
+                面板中的每一行都是一个输入框：<kbd>Enter</kbd>
+                确认，<kbd>Esc</kbd>还原。
+            </p>
+            <ul>
+                <li>新坐标：移动自由点。</li>
+                <li>
+                    新定义：对象被重新定义，保留其样式，其依赖对象随之改变（<code
+                        >M = 中点(A, B)</code
+                    >
+                    → <code>M = (5, 5)</code> →
+                    <code>M = 中点(B, C)</code
+                    >）。必要时会重新排列作图顺序；循环依赖会被拒绝。
+                </li>
+                <li>新名称：对象在所有行和公式中都会被重命名。</li>
+                <li><code>A =</code> 删除 A 及其依赖对象。</li>
+            </ul>
+
+            <h2 id="equations">方程</h2>
+            <p>
+                用 <code>=</code> 分隔的关于 x、y（和
+                z）的两边；对象类型由系数决定，系数可以依赖于滑动条。
+            </p>
+            <div class="table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>行</th>
+                            <th>对象</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>
+                                <code>d = y = a*x + b</code>、<code>x = 3</code>
+                            </td>
+                            <td>直线</td>
+                        </tr>
+                        <tr>
+                            <td><code>c = x^2 + y^2 = 4</code></td>
+                            <td>圆</td>
+                        </tr>
+                        <tr>
+                            <td><code>e = x^2/9 + y^2/4 = 1</code></td>
+                            <td>圆锥曲线</td>
+                        </tr>
+                        <tr>
+                            <td><code>p = x + y + z = 3</code></td>
+                            <td>平面（3D）</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <p>
+                次数高于 2 或非多项式：拒绝。在行首，<code>z</code>是名称：<code
+                    >z = 3</code
+                >
+                是表达式，平面应写作<code>p = z = 3</code>。
+            </p>
+
+            <h2>交点与对象上的点</h2>
+            <ul>
+                <li>
+                    两条直线用 <code>交点(d1, d2)</code>；其他情况用<code
+                        >交点(c, d, n)</code
+                    >，n 为 1 到 4。
+                </li>
+                <li><code>另一交点(c, d, P)</code>：离 P 最远的公共点。</li>
+                <li>
+                    <code>点(c, t)</code>，或多边形、圆锥曲线上的<code
+                        >点(p, a, b)</code
+                    >：在对象上的位置，由手势写出。
+                </li>
+            </ul>
+
+            <h2>错误</h2>
+            <p>
+                有错误的行不会被应用：它保持红框，提示给出原因，图形的其余部分不受影响。
+            </p>
+            <div class="table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>信息</th>
+                            <th>原因</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>无法理解</td>
+                            <td>括号、逗号或字符</td>
+                        </tr>
+                        <tr>
+                            <td>未知命令、未知对象</td>
+                            <td>名称拼写错误或不存在</td>
+                        </tr>
+                        <tr>
+                            <td>… 的参数不正确</td>
+                            <td>
+                                没有匹配的形式；“使用这些参数”会列出各种形式
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>名称 … 已被占用</td>
+                            <td>重命名</td>
+                        </tr>
+                        <tr>
+                            <td>对象不能依赖于自身</td>
+                            <td>循环依赖</td>
+                        </tr>
+                        <tr>
+                            <td>平面图形的对象都在平面 z = 0 内…</td>
+                            <td>
+                                空间对象：切换到 <a href="3d.html">3D 视图</a>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>此对象暂时无法写成文本</td>
+                            <td>
+                                没有命令的导入对象：只读行 <code>名称 = …</code>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </main>
+    </body>
+</html>

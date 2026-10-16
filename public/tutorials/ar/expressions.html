@@ -1,0 +1,140 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <title>التعابير والمنزلقات — دليل DocGeo</title>
+        <link rel="icon" type="image/svg+xml" href="../../favicon.svg" />
+        <link rel="stylesheet" href="../manual.css" />
+        <script src="../icons.js" defer></script>
+        <script src="../manual.js" defer></script>
+    </head>
+    <body>
+        <main>
+            <h1>التعابير والمنزلقات</h1>
+
+            <h2>التعابير</h2>
+            <p>
+                كل سطر ليس نقطة ولا أمرًا ينشئ تعبيرًا، يُعرض في أعلى الشكل
+                برقمين عشريين. وتُستنتج طبيعته من النص:
+            </p>
+            <div class="table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>السطر</th>
+                            <th>الطبيعة</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>
+                                <code>a = 3</code>،
+                                <code>list = [1, 2, 3]</code>
+                            </td>
+                            <td>ثابت</td>
+                        </tr>
+                        <tr>
+                            <td><code>t = "مرحبا"</code></td>
+                            <td>نص</td>
+                        </tr>
+                        <tr>
+                            <td><code>f = 0.5x^2 - 4</code></td>
+                            <td>
+                                دالة في x (y، z، t)؛ و<code>f(2)</code>
+                                يستدعيها
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><code>E = d(A, B)</code></td>
+                            <td>قياس يُعاد حسابه عندما يتحرك الشكل</td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <code
+                                    >u = "AB = " + round(d(A, B)*100)/100</code
+                                >
+                            </td>
+                            <td>نص محسوب</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <p>
+                في الصيغة، تساوي النقطة إحداثياتها، والقطعة المستقيمة طولها،
+                والدائرة نصف قطرها، والمضلع مساحته، والزاوية قياسها. الصياغة
+                الكاملة: <a href="formules.html">الصيغ والبرامج</a>.
+            </p>
+            <p>
+                يُحرَّك التعبير بسحب نصه؛ وإذا رُبط بنقطة تبعها. ولمسه يحدده، أو
+                يكتب اسمه أثناء الإدخال.
+            </p>
+
+            <h2>المنزلقات</h2>
+            <p>
+                <code>r = منزلقة(0, 5, 2)</code>: من 0 إلى 5، والقيمة 2. يمكن أن
+                يكون الحدّان تعبيرين أو صيغتين (<code
+                    >منزلقة(0, d(A, B), 1)</code
+                >). والخطوة والطول والاتجاه والمقبض والتحريك تُضبط في
+                <a href="proprietes.html#curseurs">الخصائص</a>. و<code
+                    >r = 5</code
+                >
+                يعيدها ثابتًا.
+            </p>
+
+            <h2>النقاط المحسوبة</h2>
+            <ul>
+                <li><code>M = (x(B) + 1, y(A))</code>: إحداثيات تعطيها صيغ.</li>
+                <li><code>N = نقطة(2*B - A)</code>: صيغة قيمتها نقطة.</li>
+            </ul>
+            <p>
+                عندما تكون قيمة سطر <code>name = formula</code> نقطة أو قائمة
+                نقاط، تقترح أزرار في نهاية السطر
+                <i data-i="formula_point"></i> نقطة،
+                <i data-i="points_list"></i> قائمة نقاط،
+                <i data-i="segments_list"></i> قائمة قطع مستقيمة أو
+                <i data-i="as_expression"></i> تعبير. ويأخذ <kbd>Enter</kbd>
+                الزر المضاء: نقطة أو قائمة لاسم بحرف كبير، وتعبير لغيره. ومن هنا
+                <code>list = [1, 2, 3]</code> وليس <code>L = [1, 2, 3]</code>
+                الذي سيُقرأ نقطة في الفضاء.
+            </p>
+
+            <h2>قوائم النقاط</h2>
+            <p>
+                <code>q = قائمة(pts)</code> يرسم نقاط التعبير <code>pts</code>؛
+                والنقطة غير المعرّفة تقطع الرسم. والتعبير المحدَّد الذي قيمته
+                قائمة نقاط يقترح أيضًا <i data-i="points_list"></i> و
+                <i data-i="segments_list"></i> في منطقة السياق (و
+                <i data-i="formula_point"></i> لقيمة هي نقطة): يُكتب السطر
+                ويُخفى التعبير.
+            </p>
+
+            <h2 id="les-programmes">البرامج</h2>
+            <p>
+                يمكن أن يكون التعبير برنامجًا: تعليمات يفصل بينها
+                <code>;</code>، وآخرها يعطي القيمة؛ ويمكنه تنسيق عناصر أخرى
+                (<code>S1.setHidden(1)</code>). اللغة:
+                <a href="formules.html#programmes">الصيغ والبرامج</a>.
+            </p>
+            <ul>
+                <li>
+                    <i data-i="new_program"></i> (ترويسة لوحة «الإنشاء») يفتح
+                    محررًا فارغًا؛ و<strong>إنشاء</strong> أو <kbd>Ctrl</kbd>
+                    <kbd>Enter</kbd> ينشئ التعبير.
+                </li>
+                <li>
+                    لتعبير موجود، يحرر قسم <strong>التعريف</strong> في الخصائص
+                    النص على عدة أسطر: <kbd>Enter</kbd> يحافظ على الإزاحة، و<kbd
+                        >Tab</kbd
+                    >
+                    يزيح، و<kbd>}</kbd> يلغي الإزاحة، و<kbd>Ctrl</kbd>
+                    <kbd>Enter</kbd> يطبّق، و<kbd>Esc</kbd> يستعيد، و<strong
+                        >تنسيق</strong
+                    >
+                    يزيح حسب الأقواس المعقوفة.
+                </li>
+                <li>يحدد الخطأ السطر الخاطئ أو المحدِّد غير المقترن.</li>
+            </ul>
+        </main>
+    </body>
+</html>

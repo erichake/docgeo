@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="nl">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <title>Veelgestelde vragen — DocGeo-handleiding</title>
+        <link rel="icon" type="image/svg+xml" href="../../favicon.svg" />
+        <link rel="stylesheet" href="../manual.css" />
+        <script src="../icons.js" defer></script>
+        <script src="../manual.js" defer></script>
+    </head>
+    <body>
+        <main>
+            <h1>Veelgestelde vragen</h1>
+
+            <h2>Constructie</h2>
+            <h3>De klik maakt een punt in plaats van de ring te openen</h3>
+            <p>
+                De klik viel naast het object. <kbd>Ctrl</kbd> <kbd>Z</kbd>, en
+                dan op de lijn mikken. Bij een kruising maakt de klik het
+                snijpunt.
+            </p>
+            <h3>Het gereedschap blijft actief</h3>
+            <p>
+                De gereedschappen uit het menu blijven actief:
+                <strong>Klaar</strong>, <kbd>Esc</kbd> of <strong>✕</strong>
+                beëindigen ze.
+            </p>
+            <h3>De klik construeert niets</h3>
+            <p>
+                Er is een modus actief: gum (<i data-i="eraser"></i> blauw),
+                stap voor stap, magneten, of eigenschappenpaneel zonder
+                gereedschap. <kbd>Esc</kbd> beëindigt hem.
+            </p>
+            <h3><code>(2,5, 1)</code> geeft een punt in de ruimte</h3>
+            <p>Het decimaalteken is de punt: <code>(2.5, 1)</code>.</p>
+            <h3><code>L = [1, 2, 3]</code> wordt geweigerd</h3>
+            <p>
+                Een naam met hoofdletter maakt een punt, hier in de ruimte.
+                Schrijf <code>lijst = [1, 2, 3]</code>.
+            </p>
+            <h3><code>pi</code> is een onbekend object</h3>
+            <p>Schrijf <code>PI</code> of <code>π</code>.</p>
+            <h3>Een object kan niet x of y heten</h3>
+            <p>
+                Vooraan de regel leiden ze een vergelijking in (<code
+                    >y = 2x + 1</code
+                >).
+            </p>
+            <h3>Een veelhoek transformeren</h3>
+            <p>
+                De transformaties werken op punten: de hoekpunten transformeren,
+                en dan <strong>Veelhoek</strong> op de beelden (meervoudige
+                selectie, dan het gereedschap).
+            </p>
+            <h3>De straal van een met één klik gemaakte cirkel veranderen</h3>
+            <p>
+                De cirkel slepen, of zijn regel wijzigen (<code
+                    >Cirkel(O, r)</code
+                >
+                met een getal, een schuifknop of een formule).
+            </p>
+            <h3>Een punt verwijderen heeft andere objecten gewist</h3>
+            <p>
+                De afhankelijke objecten worden mee verwijderd. Ongedaan maken,
+                en het punt verbergen in plaats van het te verwijderen.
+            </p>
+
+            <h2>3D en weergave</h2>
+            <h3>„3D-weergave” keert niet terug naar het vlak</h3>
+            <p>
+                Een object ligt buiten het vlak <em>z</em> = 0; de aanwijzing
+                noemt het.
+            </p>
+            <h3>Draaien met de muis</h3>
+            <p>Rechtermuisknop; de linkermuisknop verschuift de weergave.</p>
+            <h3>Zoomen op een tablet</h3>
+            <p>Knijpen met twee vingers wordt nog niet ondersteund.</p>
+            <h3>De sporen zijn verdwenen</h3>
+            <p>
+                Ze worden gewist bij elke verschuiving of zoom van de weergave.
+            </p>
+
+            <h2>Bestanden</h2>
+            <h3>Een met <code>?url=</code> geopende figuur laadt niet</h3>
+            <p>
+                De server moet lezen vanaf een andere site toestaan
+                (<code>Access-Control-Allow-Origin</code>). De extensie moet
+                <code>.ggb</code> of <code>.dgo</code> zijn; al het andere wordt
+                als DGPad gelezen.
+            </p>
+            <h3>Onvolledige import</h3>
+            <p>
+                De opgesomde elementen worden niet ondersteund (<a
+                    href="formats.html"
+                    >Import uit DGPad en GeoGebra</a
+                >); de rest van de figuur werkt en kan opgeslagen worden.
+            </p>
+        </main>
+    </body>
+</html>

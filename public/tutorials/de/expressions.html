@@ -1,0 +1,159 @@
+<!doctype html>
+<html lang="de">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <title>Ausdrücke und Schieberegler — DocGeo-Handbuch</title>
+        <link rel="icon" type="image/svg+xml" href="../../favicon.svg" />
+        <link rel="stylesheet" href="../manual.css" />
+        <script src="../icons.js" defer></script>
+        <script src="../manual.js" defer></script>
+    </head>
+    <body>
+        <main>
+            <h1>Ausdrücke und Schieberegler</h1>
+
+            <h2>Ausdrücke</h2>
+            <p>
+                Jede Zeile, die weder ein Punkt noch ein Befehl ist, erzeugt
+                einen Ausdruck, oben links mit zwei Dezimalstellen angezeigt.
+                Seine Art ergibt sich aus dem Text:
+            </p>
+            <div class="table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Zeile</th>
+                            <th>Art</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>
+                                <code>a = 3</code>,
+                                <code>liste = [1, 2, 3]</code>
+                            </td>
+                            <td>Konstante</td>
+                        </tr>
+                        <tr>
+                            <td><code>t = "Hallo"</code></td>
+                            <td>Text</td>
+                        </tr>
+                        <tr>
+                            <td><code>f = 0.5x^2 - 4</code></td>
+                            <td>
+                                Funktion von x (y, z, t);
+                                <code>f(2)</code> ruft sie auf
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><code>E = d(A, B)</code></td>
+                            <td>
+                                Messwert, neu berechnet, wenn sich die Figur
+                                bewegt
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <code
+                                    >u = "AB = " + round(d(A, B)*100)/100</code
+                                >
+                            </td>
+                            <td>berechneter Text</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <p>
+                In einer Formel steht ein Punkt für seine Koordinaten, eine
+                Strecke für ihre Länge, ein Kreis für seinen Radius, ein Vieleck
+                für seinen Flächeninhalt, ein Winkel für sein Maß. Vollständige
+                Syntax: <a href="formules.html">Formeln und Programme</a>.
+            </p>
+            <p>
+                Ein Ausdruck wird durch Ziehen seines Textes verschoben; an
+                einen Punkt geheftet, folgt er ihm. Antippen wählt ihn aus oder
+                schreibt während einer Eingabe seinen Namen.
+            </p>
+
+            <h2>Schieberegler</h2>
+            <p>
+                <code>r = Schieberegler(0, 5, 2)</code>: von 0 bis 5, Wert 2.
+                Die Grenzen dürfen Ausdrücke oder Formeln sein (<code
+                    >Schieberegler(0, d(A, B), 1)</code
+                >). Schrittweite, Länge, Ausrichtung, Griff und Animation werden
+                in den
+                <a href="proprietes.html#curseurs">Eigenschaften</a>
+                eingestellt. <code>r = 5</code> macht daraus wieder eine
+                Konstante.
+            </p>
+
+            <h2>Berechnete Punkte</h2>
+            <ul>
+                <li>
+                    <code>M = (x(B) + 1, y(A))</code>: Koordinaten durch Formeln
+                    gegeben.
+                </li>
+                <li>
+                    <code>N = Punkt(2*B - A)</code>: eine Formel, deren Wert ein
+                    Punkt ist.
+                </li>
+            </ul>
+            <p>
+                Ist der Wert einer Zeile <code>Name = Formel</code> ein Punkt
+                oder eine Liste von Punkten, bieten Schaltflächen am Zeilenende
+                <i data-i="formula_point"></i> Punkt,
+                <i data-i="points_list"></i> Liste von Punkten,
+                <i data-i="segments_list"></i> Liste von Strecken oder
+                <i data-i="as_expression"></i> Ausdruck an.
+                <kbd>Eingabe</kbd> nimmt die hervorgehobene Schaltfläche: Punkt
+                oder Liste bei einem großgeschriebenen Namen, sonst Ausdruck.
+                Daher <code>liste = [1, 2, 3]</code> und nicht
+                <code>L = [1, 2, 3]</code>, was als Punkt im Raum gelesen würde.
+            </p>
+
+            <h2>Listen von Punkten</h2>
+            <p>
+                <code>q = Liste(pts)</code> zeichnet die Punkte des Ausdrucks
+                <code>pts</code>; ein undefinierter Punkt unterbricht die Linie.
+                Ein ausgewählter Ausdruck, dessen Wert eine Liste von Punkten
+                ist, bietet im Kontextbereich auch
+                <i data-i="points_list"></i> und
+                <i data-i="segments_list"></i> an (und
+                <i data-i="formula_point"></i> bei einem Punkt als Wert): Die
+                Zeile wird geschrieben und der Ausdruck ausgeblendet.
+            </p>
+
+            <h2 id="les-programmes">Programme</h2>
+            <p>
+                Ein Ausdruck kann ein Programm sein: Anweisungen, getrennt durch
+                <code>;</code>, wobei die letzte den Wert liefert; es kann
+                andere Objekte gestalten (<code>S1.setHidden(1)</code>).
+                Sprache:
+                <a href="formules.html#programmes">Formeln und Programme</a>.
+            </p>
+            <ul>
+                <li>
+                    <i data-i="new_program"></i> (Kopfzeile des Feldes
+                    „Konstruktion“) öffnet einen leeren Editor;
+                    <strong>Erstellen</strong> oder <kbd>Strg</kbd>
+                    <kbd>Eingabe</kbd> erzeugt den Ausdruck.
+                </li>
+                <li>
+                    Bei einem vorhandenen Ausdruck bearbeitet der Abschnitt
+                    <strong>Definition</strong> der Eigenschaften den Text über
+                    mehrere Zeilen: <kbd>Eingabe</kbd> behält die Einrückung,
+                    <kbd>Tab</kbd> rückt ein, <kbd>}</kbd> rückt aus,
+                    <kbd>Strg</kbd> <kbd>Eingabe</kbd> übernimmt,
+                    <kbd>Esc</kbd> stellt wieder her,
+                    <strong>Formatieren</strong> rückt nach den geschweiften
+                    Klammern ein.
+                </li>
+                <li>
+                    Ein Fehler markiert die fehlerhafte Zeile oder das nicht
+                    passende Trennzeichen.
+                </li>
+            </ul>
+        </main>
+    </body>
+</html>

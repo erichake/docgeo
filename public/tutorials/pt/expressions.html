@@ -1,0 +1,150 @@
+<!doctype html>
+<html lang="pt">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <title>Expressões e controles deslizantes — Manual do DocGeo</title>
+        <link rel="icon" type="image/svg+xml" href="../../favicon.svg" />
+        <link rel="stylesheet" href="../manual.css" />
+        <script src="../icons.js" defer></script>
+        <script src="../manual.js" defer></script>
+    </head>
+    <body>
+        <main>
+            <h1>Expressões e controles deslizantes</h1>
+
+            <h2>Expressões</h2>
+            <p>
+                Toda linha que não é nem um ponto nem um comando cria uma
+                expressão, exibida no canto superior esquerdo com duas casas
+                decimais. Seu tipo é deduzido do texto:
+            </p>
+            <div class="table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Linha</th>
+                            <th>Tipo</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>
+                                <code>a = 3</code>,
+                                <code>lista = [1, 2, 3]</code>
+                            </td>
+                            <td>constante</td>
+                        </tr>
+                        <tr>
+                            <td><code>t = "Olá"</code></td>
+                            <td>texto</td>
+                        </tr>
+                        <tr>
+                            <td><code>f = 0.5x^2 - 4</code></td>
+                            <td>
+                                função de x (y, z, t); <code>f(2)</code> a chama
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><code>E = d(A, B)</code></td>
+                            <td>medida, recalculada quando a figura se move</td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <code
+                                    >u = "AB = " + round(d(A, B)*100)/100</code
+                                >
+                            </td>
+                            <td>texto calculado</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <p>
+                Numa fórmula, um ponto vale suas coordenadas, um segmento seu
+                comprimento, um círculo seu raio, um polígono sua área, um
+                ângulo sua medida. Sintaxe completa:
+                <a href="formules.html">Fórmulas e programas</a>.
+            </p>
+            <p>
+                Uma expressão é movida arrastando seu texto; presa a um ponto,
+                ela o acompanha. Tocá-la a seleciona, ou escreve seu nome
+                durante uma entrada.
+            </p>
+
+            <h2>Controles deslizantes</h2>
+            <p>
+                <code>r = ControleDeslizante(0, 5, 2)</code>: de 0 a 5, valor 2.
+                Os limites podem ser expressões ou fórmulas (<code
+                    >ControleDeslizante(0, d(A, B), 1)</code
+                >). Incremento, comprimento, orientação, alça e animação são
+                ajustados nas
+                <a href="proprietes.html#curseurs">propriedades</a>.
+                <code>r = 5</code> o transforma de novo numa constante.
+            </p>
+
+            <h2>Pontos calculados</h2>
+            <ul>
+                <li>
+                    <code>M = (x(B) + 1, y(A))</code>: coordenadas dadas por
+                    fórmulas.
+                </li>
+                <li>
+                    <code>N = Ponto(2*B - A)</code>: fórmula cujo valor é um
+                    ponto.
+                </li>
+            </ul>
+            <p>
+                Quando o valor de uma linha <code>nome = fórmula</code> é um
+                ponto ou uma lista de pontos, botões no fim da linha propõem
+                <i data-i="formula_point"></i> Ponto,
+                <i data-i="points_list"></i> Lista de pontos,
+                <i data-i="segments_list"></i> Lista de segmentos ou
+                <i data-i="as_expression"></i> Expressão. <kbd>Enter</kbd> usa o
+                botão destacado: ponto ou lista para um nome com maiúscula,
+                expressão senão. Daí <code>lista = [1, 2, 3]</code> e não
+                <code>L = [1, 2, 3]</code>, que seria lido como um ponto do
+                espaço.
+            </p>
+
+            <h2>Listas de pontos</h2>
+            <p>
+                <code>q = Lista(pts)</code> desenha os pontos da expressão
+                <code>pts</code>; um ponto não definido interrompe o traçado.
+                Uma expressão selecionada cujo valor é uma lista de pontos
+                propõe também <i data-i="points_list"></i> e
+                <i data-i="segments_list"></i> na zona contextual (e
+                <i data-i="formula_point"></i> para um valor ponto): a linha é
+                escrita e a expressão ocultada.
+            </p>
+
+            <h2 id="les-programmes">Programas</h2>
+            <p>
+                Uma expressão pode ser um programa: instruções separadas por
+                <code>;</code>, a última dando o valor; ele pode formatar outros
+                objetos (<code>S1.setHidden(1)</code>). Linguagem:
+                <a href="formules.html#programmes">Fórmulas e programas</a>.
+            </p>
+            <ul>
+                <li>
+                    <i data-i="new_program"></i> (cabeçalho do painel
+                    “Construção”) abre um editor vazio;
+                    <strong>Criar</strong> ou <kbd>Ctrl</kbd>
+                    <kbd>Enter</kbd> cria a expressão.
+                </li>
+                <li>
+                    Para uma expressão existente, a seção
+                    <strong>Definição</strong> das propriedades edita o texto em
+                    várias linhas: <kbd>Enter</kbd> mantém o recuo,
+                    <kbd>Tab</kbd> recua, <kbd>}</kbd> desfaz o recuo,
+                    <kbd>Ctrl</kbd> <kbd>Enter</kbd> aplica,
+                    <kbd>Esc</kbd> restaura, <strong>Formatar</strong> recua
+                    conforme as chaves.
+                </li>
+                <li>
+                    Um erro seleciona a linha com erro ou o delimitador sem par.
+                </li>
+            </ul>
+        </main>
+    </body>
+</html>

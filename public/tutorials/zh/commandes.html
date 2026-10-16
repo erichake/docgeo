@@ -1,0 +1,842 @@
+<!doctype html>
+<html lang="zh">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <title>命令 — DocGeo 手册</title>
+        <link rel="icon" type="image/svg+xml" href="../../favicon.svg" />
+        <link rel="stylesheet" href="../manual.css" />
+        <script src="../icons.js" defer></script>
+        <script src="../manual.js" defer></script>
+    </head>
+    <body>
+        <main>
+            <h1>命令</h1>
+            <ul>
+                <li>
+                    名称不区分大小写和重音符号；英文名称（下方小字）在所有语言中都可使用。
+                </li>
+                <li>
+                    <code>A</code
+                    >、<code>B</code>、<code>O</code>、<code>P</code>：点；<code>d</code>：直线、线段或射线；<code>c</code>：圆或曲线；<code>p</code>：多边形或平面；<code>s</code>：线段或立体图形；<code>u</code>：向量。
+                </li>
+                <li>
+                    <code>r</code
+                    >、<code>a</code>、<code>k</code>、<code>f</code>：数、表达式、滑动条或公式（<code
+                        >圆(O, 2*r)</code
+                    >）；<code>n</code>、<code>t</code>：直接写出的数。
+                </li>
+                <li>
+                    图标即<a href="menu-outils.html">菜单</a>中工具的图标；<span
+                        class="badge d3"
+                        >3D</span
+                    >：空间中的形式。
+                </li>
+            </ul>
+
+            <h2>点</h2>
+            <div class="table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>命令</th>
+                            <th>形式</th>
+                            <th>结果</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td rowspan="3">
+                                <i data-t="Point"></i> <strong>点</strong
+                                ><br /><small>Point</small>
+                            </td>
+                            <td class="syntax"><code>点(c, t)</code></td>
+                            <td>
+                                对象 c（直线、圆、曲线、轨迹…）上位置为 t 的点
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="syntax"><code>点(p, a, b)</code></td>
+                            <td>多边形或圆锥曲线上的点，位置由两个数给出</td>
+                        </tr>
+                        <tr>
+                            <td class="syntax"><code>点(公式)</code></td>
+                            <td>
+                                坐标由公式给出的点：<code>点(2*B - A)</code>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td rowspan="2"><strong>(x, y)</strong></td>
+                            <td class="syntax"><code>A = (x, y)</code></td>
+                            <td>自由点；3D 中为 <code>(x, y, z)</code></td>
+                        </tr>
+                        <tr>
+                            <td class="syntax">
+                                <code>M = (x(B) + 1, y(A))</code>
+                            </td>
+                            <td>至少有一个坐标是公式的点</td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1">
+                                <strong>定点</strong><br /><small
+                                    >FixedPoint</small
+                                >
+                            </td>
+                            <td class="syntax"><code>定点(x, y)</code></td>
+                            <td>
+                                不能移动的定点；3D 中为<code
+                                    >定点(x, y, z)</code
+                                >
+                            </td>
+                        </tr>
+                        <tr>
+                            <td rowspan="2">
+                                <i data-t="Midpoint"></i> <strong>中点</strong
+                                ><br /><small>Midpoint</small>
+                            </td>
+                            <td class="syntax"><code>中点(A, B)</code></td>
+                            <td>[AB] 的中点</td>
+                        </tr>
+                        <tr>
+                            <td class="syntax"><code>中点(s)</code></td>
+                            <td>线段 s 的中点</td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1">
+                                <i data-t="Center"></i> <strong>圆心</strong
+                                ><br /><small>Center</small>
+                            </td>
+                            <td class="syntax"><code>圆心(c)</code></td>
+                            <td>圆 c 的圆心</td>
+                        </tr>
+                        <tr>
+                            <td rowspan="5">
+                                <i data-t="Intersection"></i>
+                                <strong>交点</strong><br /><small
+                                    >Intersection</small
+                                >
+                            </td>
+                            <td class="syntax"><code>交点(d1, d2)</code></td>
+                            <td>两条直线的交点</td>
+                        </tr>
+                        <tr>
+                            <td class="syntax"><code>交点(a, b, n)</code></td>
+                            <td>
+                                至少一个不是直线的两个对象（圆、圆锥曲线、曲线）的第
+                                n 个交点（n 为 1 到 4）
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="syntax"><code>交点(d, p)</code></td>
+                            <td>
+                                <span class="badge d3">3D</span>直线与平面的交点
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="syntax"><code>交点(p, q)</code></td>
+                            <td>
+                                <span class="badge d3">3D</span> 两个平面的交线
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="syntax"><code>交点(s, t)</code></td>
+                            <td>
+                                <span class="badge d3">3D</span> 两个球的交线圆
+                            </td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1">
+                                <i data-t="OtherIntersection"></i>
+                                <strong>另一交点</strong><br /><small
+                                    >OtherIntersection</small
+                                >
+                            </td>
+                            <td class="syntax">
+                                <code>另一交点(a, b, P)</code>
+                            </td>
+                            <td>a 与 b 的交点中离 P 最远的一个</td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1">
+                                <i data-t="Incenter"></i> <strong>内心</strong
+                                ><br /><small>Incenter</small>
+                            </td>
+                            <td class="syntax"><code>内心(A, B, C)</code></td>
+                            <td>三角形 ABC 内切圆的圆心</td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1">
+                                <i data-t="Centroid"></i> <strong>重心</strong
+                                ><br /><small>Centroid</small>
+                            </td>
+                            <td class="syntax"><code>重心(A, B, C)</code></td>
+                            <td>三角形 ABC 的重心</td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1">
+                                <i data-t="Circumcenter"></i>
+                                <strong>外心</strong><br /><small
+                                    >Circumcenter</small
+                                >
+                            </td>
+                            <td class="syntax"><code>外心(A, B, C)</code></td>
+                            <td>三角形 ABC 外接圆的圆心</td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1">
+                                <i data-t="Orthocenter"></i>
+                                <strong>垂心</strong><br /><small
+                                    >Orthocenter</small
+                                >
+                            </td>
+                            <td class="syntax"><code>垂心(A, B, C)</code></td>
+                            <td>三角形 ABC 的垂心</td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1">
+                                <strong>顶点</strong><br /><small>Vertex</small>
+                            </td>
+                            <td class="syntax"><code>顶点(p, k)</code></td>
+                            <td>多边形或多面体的第 k 个顶点（从 1 开始）</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <h2>直线</h2>
+            <div class="table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>命令</th>
+                            <th>形式</th>
+                            <th>结果</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td rowspan="1">
+                                <i data-t="Segment"></i> <strong>线段</strong
+                                ><br /><small>Segment</small>
+                            </td>
+                            <td class="syntax"><code>线段(A, B)</code></td>
+                            <td>线段 [AB]</td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1">
+                                <i data-t="Line"></i> <strong>直线</strong
+                                ><br /><small>Line</small>
+                            </td>
+                            <td class="syntax"><code>直线(A, B)</code></td>
+                            <td>直线 (AB)</td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1">
+                                <i data-t="Ray"></i> <strong>射线</strong
+                                ><br /><small>Ray</small>
+                            </td>
+                            <td class="syntax"><code>射线(A, B)</code></td>
+                            <td>以 A 为端点的射线 [AB)</td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1">
+                                <i data-t="Vector"></i> <strong>向量</strong
+                                ><br /><small>Vector</small>
+                            </td>
+                            <td class="syntax"><code>向量(A, B)</code></td>
+                            <td>从 A 到 B 的向量</td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1"><strong>方程</strong></td>
+                            <td class="syntax"><code>d = y = 2x + 1</code></td>
+                            <td>
+                                由一次方程给出的直线（见<a
+                                    href="saisie.html#equations"
+                                    >方程</a
+                                >）
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <h2>作图</h2>
+            <div class="table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>命令</th>
+                            <th>形式</th>
+                            <th>结果</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td rowspan="2">
+                                <i data-t="Perpendicular"></i>
+                                <strong>垂线</strong><br /><small
+                                    >Perpendicular</small
+                                >
+                            </td>
+                            <td class="syntax"><code>垂线(P, d)</code></td>
+                            <td>过 P 且垂直于直线 d 的直线</td>
+                        </tr>
+                        <tr>
+                            <td class="syntax"><code>垂线(P, p)</code></td>
+                            <td>
+                                <span class="badge d3">3D</span> 过 P
+                                且垂直于平面 p 的直线
+                            </td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1">
+                                <i data-t="Parallel"></i> <strong>平行线</strong
+                                ><br /><small>Parallel</small>
+                            </td>
+                            <td class="syntax"><code>平行线(P, d)</code></td>
+                            <td>过 P 且平行于 d 的直线</td>
+                        </tr>
+                        <tr>
+                            <td rowspan="2">
+                                <i data-t="PerpendicularBisector"></i>
+                                <strong>中垂线</strong><br /><small
+                                    >PerpendicularBisector</small
+                                >
+                            </td>
+                            <td class="syntax"><code>中垂线(A, B)</code></td>
+                            <td>[AB] 的中垂线</td>
+                        </tr>
+                        <tr>
+                            <td class="syntax"><code>中垂线(s)</code></td>
+                            <td>线段 s 的中垂线</td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1">
+                                <i data-t="AngleBisector"></i>
+                                <strong>角平分线</strong><br /><small
+                                    >AngleBisector</small
+                                >
+                            </td>
+                            <td class="syntax">
+                                <code>角平分线(A, O, B)</code>
+                            </td>
+                            <td>以 O 为顶点的角的平分线</td>
+                        </tr>
+                        <tr>
+                            <td rowspan="2">
+                                <i data-t="Tangent"></i> <strong>切线</strong
+                                ><br /><small>Tangent</small>
+                            </td>
+                            <td class="syntax"><code>切线(P, c, n)</code></td>
+                            <td>
+                                从 P 向圆或圆锥曲线 c 所作的第 n 条切线（1 或
+                                2）
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="syntax"><code>切线(P, f)</code></td>
+                            <td>函数图像在横坐标与 P 相同之点处的切线</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <h2>圆、弧、圆锥曲线</h2>
+            <div class="table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>命令</th>
+                            <th>形式</th>
+                            <th>结果</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td rowspan="4">
+                                <i data-t="Circle (centre and point)"></i>
+                                <strong>圆</strong><br /><small>Circle</small>
+                            </td>
+                            <td class="syntax"><code>圆(O, A)</code></td>
+                            <td>以 O 为圆心、过 A 的圆</td>
+                        </tr>
+                        <tr>
+                            <td class="syntax"><code>圆(O, r)</code></td>
+                            <td>
+                                以 O 为圆心、r 为半径的圆（数、表达式或公式）
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="syntax"><code>圆(O, r, d)</code></td>
+                            <td>
+                                <span class="badge d3">3D</span> 以 O 为圆心、r
+                                为半径的圆，垂直于直线 d 或平行于平面 d
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="syntax"><code>圆(d, P)</code></td>
+                            <td>
+                                <span class="badge d3">3D</span> 以 d 为轴、过 P
+                                的圆
+                            </td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1">
+                                <i data-t="Circumcircle"></i>
+                                <strong>外接圆</strong><br /><small
+                                    >Circumcircle</small
+                                >
+                            </td>
+                            <td class="syntax"><code>外接圆(A, B, C)</code></td>
+                            <td>
+                                过 A、B、C 的圆（3D 中位于它们所在的平面内）
+                            </td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1">
+                                <i data-t="Compass"></i> <strong>圆规</strong
+                                ><br /><small>Compass</small>
+                            </td>
+                            <td class="syntax"><code>圆规(A, B, O)</code></td>
+                            <td>以 O 为圆心、AB 为半径的圆</td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1">
+                                <i data-t="Arc"></i> <strong>圆弧</strong
+                                ><br /><small>Arc</small>
+                            </td>
+                            <td class="syntax"><code>圆弧(A, B, C)</code></td>
+                            <td>从 A 经过 B 到 C 的圆弧</td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1">
+                                <i data-t="Sector"></i> <strong>扇形</strong
+                                ><br /><small>Sector</small>
+                            </td>
+                            <td class="syntax"><code>扇形(A, B, C)</code></td>
+                            <td>从 A 经过 B 到 C 的圆弧所对的扇形</td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1">
+                                <i data-t="CenterArc"></i>
+                                <strong>圆心弧</strong><br /><small
+                                    >CenterArc</small
+                                >
+                            </td>
+                            <td class="syntax"><code>圆心弧(M, A, B)</code></td>
+                            <td>
+                                以 M 为圆心、从 A 到射线 [MB)
+                                的圆弧，按逆时针方向
+                            </td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1">
+                                <i data-t="CenterSector"></i>
+                                <strong>圆心扇形</strong><br /><small
+                                    >CenterSector</small
+                                >
+                            </td>
+                            <td class="syntax">
+                                <code>圆心扇形(M, A, B)</code>
+                            </td>
+                            <td>对应的扇形</td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1">
+                                <i data-t="Semicircle"></i> <strong>半圆</strong
+                                ><br /><small>Semicircle</small>
+                            </td>
+                            <td class="syntax"><code>半圆(A, B)</code></td>
+                            <td>
+                                以 [AB] 为直径、位于从 A 到 B 方向左侧的半圆
+                            </td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1">
+                                <i data-t="Conic"></i> <strong>圆锥曲线</strong
+                                ><br /><small>Conic</small>
+                            </td>
+                            <td class="syntax">
+                                <code>圆锥曲线(A, B, C, D, E)</code>
+                            </td>
+                            <td>过五点的圆锥曲线</td>
+                        </tr>
+                        <tr>
+                            <td rowspan="2">
+                                <i data-t="Ellipse"></i> <strong>椭圆</strong
+                                ><br /><small>Ellipse</small>
+                            </td>
+                            <td class="syntax"><code>椭圆(F, G, P)</code></td>
+                            <td>以 F、G 为焦点、过 P 的椭圆</td>
+                        </tr>
+                        <tr>
+                            <td class="syntax"><code>椭圆(F, G, a)</code></td>
+                            <td>以 F、G 为焦点、长半轴为 a 的椭圆</td>
+                        </tr>
+                        <tr>
+                            <td rowspan="2">
+                                <i data-t="Hyperbola"></i>
+                                <strong>双曲线</strong><br /><small
+                                    >Hyperbola</small
+                                >
+                            </td>
+                            <td class="syntax"><code>双曲线(F, G, P)</code></td>
+                            <td>以 F、G 为焦点、过 P 的双曲线</td>
+                        </tr>
+                        <tr>
+                            <td class="syntax"><code>双曲线(F, G, a)</code></td>
+                            <td>以 F、G 为焦点、半轴为 a 的双曲线</td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1">
+                                <i data-t="Parabola"></i> <strong>抛物线</strong
+                                ><br /><small>Parabola</small>
+                            </td>
+                            <td class="syntax"><code>抛物线(F, d)</code></td>
+                            <td>以 F 为焦点、d 为准线的抛物线</td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1"><strong>方程</strong></td>
+                            <td class="syntax">
+                                <code>c = x^2 + y^2 = 4</code>
+                            </td>
+                            <td>由二次方程给出的圆或圆锥曲线</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <h2>多边形、角、轨迹</h2>
+            <div class="table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>命令</th>
+                            <th>形式</th>
+                            <th>结果</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td rowspan="1">
+                                <i data-t="Polygon"></i> <strong>多边形</strong
+                                ><br /><small>Polygon</small>
+                            </td>
+                            <td class="syntax">
+                                <code>多边形(A, B, C, …)</code>
+                            </td>
+                            <td>三个或更多顶点的多边形</td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1">
+                                <i data-t="RegularPolygon"></i>
+                                <strong>正多边形</strong><br /><small
+                                    >RegularPolygon</small
+                                >
+                            </td>
+                            <td class="syntax">
+                                <code>正多边形(A, B, n)</code>
+                            </td>
+                            <td>以 [AB] 为边的正 n 边形（n ≥ 3）</td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1">
+                                <i data-t="Angle"></i> <strong>角</strong
+                                ><br /><small>Angle</small>
+                            </td>
+                            <td class="syntax"><code>角(A, O, B)</code></td>
+                            <td>以 O 为顶点、从 [OA) 到 [OB) 的角</td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1">
+                                <i data-t="Locus"></i> <strong>轨迹</strong
+                                ><br /><small>Locus</small>
+                            </td>
+                            <td class="syntax"><code>轨迹(M, P)</code></td>
+                            <td>当对象上的点 P 在其对象上运动时点 M 的轨迹</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <h2>变换</h2>
+            <div class="table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>命令</th>
+                            <th>形式</th>
+                            <th>结果</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td rowspan="2">
+                                <i data-t="Point reflection"></i>
+                                <strong>对称</strong><br /><small
+                                    >Reflect</small
+                                >
+                            </td>
+                            <td class="syntax"><code>对称(P, O)</code></td>
+                            <td>点 P 关于点 O 的对称点</td>
+                        </tr>
+                        <tr>
+                            <td class="syntax"><code>对称(P, d)</code></td>
+                            <td>点 P 关于直线 d 的对称点</td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1">
+                                <i data-t="Rotation"></i> <strong>旋转</strong
+                                ><br /><small>Rotation</small>
+                            </td>
+                            <td class="syntax"><code>旋转(P, O, a)</code></td>
+                            <td>
+                                点 P 在以 O 为中心、角为
+                                a（按图形设置为度或弧度）的旋转下的像
+                            </td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1">
+                                <i data-t="Translation"></i>
+                                <strong>平移</strong><br /><small
+                                    >Translation</small
+                                >
+                            </td>
+                            <td class="syntax"><code>平移(P, u)</code></td>
+                            <td>点 P 在向量 u 的平移下的像</td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1">
+                                <i data-t="Dilation"></i> <strong>位似</strong
+                                ><br /><small>Dilation</small>
+                            </td>
+                            <td class="syntax"><code>位似(P, O, k)</code></td>
+                            <td>点 P 在以 O 为中心、比为 k 的位似下的像</td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1">
+                                <i data-t="Inversion"></i> <strong>反演</strong
+                                ><br /><small>Inversion</small>
+                            </td>
+                            <td class="syntax"><code>反演(P, c)</code></td>
+                            <td>点 P 关于圆 c 的反演像</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <h2>平面</h2>
+            <div class="table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>命令</th>
+                            <th>形式</th>
+                            <th>结果</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td rowspan="2">
+                                <i data-t="Plane"></i> <strong>平面</strong
+                                ><br /><small>Plane</small>
+                            </td>
+                            <td class="syntax"><code>平面(A, B, C)</code></td>
+                            <td>过三点的平面</td>
+                        </tr>
+                        <tr>
+                            <td class="syntax"><code>平面(A, d)</code></td>
+                            <td>包含点 A 和直线 d 的平面</td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1">
+                                <i data-t="ParallelPlane"></i>
+                                <strong>平行平面</strong><br /><small
+                                    >ParallelPlane</small
+                                >
+                            </td>
+                            <td class="syntax"><code>平行平面(A, p)</code></td>
+                            <td>过 A 且平行于平面 p 的平面</td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1">
+                                <i data-t="OrthogonalPlane"></i>
+                                <strong>垂直平面</strong><br /><small
+                                    >OrthogonalPlane</small
+                                >
+                            </td>
+                            <td class="syntax"><code>垂直平面(A, d)</code></td>
+                            <td>过 A 且垂直于直线 d 的平面</td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1"><strong>方程</strong></td>
+                            <td class="syntax">
+                                <code>p = x + y + z = 3</code>
+                            </td>
+                            <td>由 x、y、z 的一次方程给出的平面</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <h2>立体图形</h2>
+            <div class="table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>命令</th>
+                            <th>形式</th>
+                            <th>结果</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td rowspan="2">
+                                <i data-t="Sphere"></i> <strong>球</strong
+                                ><br /><small>Sphere</small>
+                            </td>
+                            <td class="syntax"><code>球(O, A)</code></td>
+                            <td>以 O 为球心、过 A 的球</td>
+                        </tr>
+                        <tr>
+                            <td class="syntax"><code>球(O, r)</code></td>
+                            <td>以 O 为球心、r 为半径的球</td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1">
+                                <i data-t="Cylinder"></i> <strong>圆柱</strong
+                                ><br /><small>Cylinder</small>
+                            </td>
+                            <td class="syntax"><code>圆柱(A, B, r)</code></td>
+                            <td>以 [AB] 为轴、r 为半径的圆柱</td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1">
+                                <i data-t="Cone"></i> <strong>圆锥</strong
+                                ><br /><small>Cone</small>
+                            </td>
+                            <td class="syntax"><code>圆锥(A, B, r)</code></td>
+                            <td>底面圆心为 A、半径为 r，顶点为 B 的圆锥</td>
+                        </tr>
+                        <tr>
+                            <td rowspan="3">
+                                <i data-t="Cube"></i> <strong>立方体</strong
+                                ><br /><small>Cube</small>
+                            </td>
+                            <td class="syntax"><code>立方体(A, B, C)</code></td>
+                            <td>以平面 ABC 内的正方形 ABCD 为底的立方体</td>
+                        </tr>
+                        <tr>
+                            <td class="syntax">
+                                <code>立方体(A, B, p, s)</code>
+                            </td>
+                            <td>
+                                以 [AB] 为棱、放在平面或多边形 p 上 s 一侧（1 或
+                                −1）的立方体
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="syntax"><code>立方体(A, B, s)</code></td>
+                            <td>
+                                以 [AB]
+                                为棱、位于水平正方形上方（1）或下方（−1）的立方体
+                            </td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1">
+                                <i data-t="Prism"></i> <strong>棱柱</strong
+                                ><br /><small>Prism</small>
+                            </td>
+                            <td class="syntax"><code>棱柱(p, P)</code></td>
+                            <td>
+                                以多边形 p 为底面的棱柱，P 是 p 的第一个顶点的像
+                            </td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1">
+                                <i data-t="Pyramid"></i> <strong>棱锥</strong
+                                ><br /><small>Pyramid</small>
+                            </td>
+                            <td class="syntax"><code>棱锥(p, S)</code></td>
+                            <td>以多边形 p 为底面、S 为顶点的棱锥</td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1">
+                                <i data-t="Section"></i> <strong>截面</strong
+                                ><br /><small>Section</small>
+                            </td>
+                            <td class="syntax"><code>截面(s, p)</code></td>
+                            <td>
+                                平面 p 截立体图形 s
+                                所得的截面：圆（球）、圆锥曲线（圆柱、圆锥）或多边形（多面体）
+                            </td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1">
+                                <i data-t="Net"></i> <strong>展开图</strong
+                                ><br /><small>Net</small>
+                            </td>
+                            <td class="syntax"><code>展开图(c, f)</code></td>
+                            <td>
+                                立方体、棱柱或棱锥的展开图，展开程度为
+                                f（0：折叠，1：展平）
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <h2>数与列表</h2>
+            <div class="table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>命令</th>
+                            <th>形式</th>
+                            <th>结果</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td rowspan="1">
+                                <strong>滑动条</strong><br /><small
+                                    >Slider</small
+                                >
+                            </td>
+                            <td class="syntax">
+                                <code>滑动条(min, max, 值)</code>
+                            </td>
+                            <td>两个界限（数、表达式或公式）之间的滑动条</td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1">
+                                <strong>列表</strong><br /><small>List</small>
+                            </td>
+                            <td class="syntax"><code>列表(e)</code></td>
+                            <td>画出表达式 e 的值（一个点列表）中的点</td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1"><strong>表达式</strong></td>
+                            <td class="syntax"><code>a = 3</code></td>
+                            <td>
+                                数、文本、函数或公式（见<a
+                                    href="expressions.html"
+                                    >表达式</a
+                                >）
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <h2>公式中的函数</h2>
+            <p>
+                <code>d</code
+                >、<code>x</code>、<code>sqrt</code>、<code>sin</code>…只计算而不创建对象：见<a
+                    href="formules.html#fonctions"
+                    >公式与程序</a
+                >。
+            </p>
+        </main>
+    </body>
+</html>

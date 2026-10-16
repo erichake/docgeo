@@ -23,6 +23,7 @@ const nl: Texts = {
         save: "Opslaan",
         undo: "Ongedaan maken",
         redo: "Opnieuw",
+        help: "Gebruikershandleiding",
         delete: "Verwijderen",
         eraser: "Gum",
         axes: "Assenstelsel",

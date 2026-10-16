@@ -1,0 +1,203 @@
+<!doctype html>
+<html lang="es">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <title>Con gestos — Manual de DocGeo</title>
+        <link rel="icon" type="image/svg+xml" href="../../favicon.svg" />
+        <link rel="stylesheet" href="../manual.css" />
+        <script src="../icons.js" defer></script>
+        <script src="../manual.js" defer></script>
+    </head>
+    <body>
+        <main>
+            <h1>Construir con gestos</h1>
+
+            <h2>Tocar la figura</h2>
+            <div class="table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Lugar tocado</th>
+                            <th>Resultado</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>un lugar vacío</td>
+                            <td>
+                                punto libre (sobre el suelo <em>z</em> = 0 en
+                                3D)
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>cerca de un cruce</td>
+                            <td>
+                                intersección de los dos objetos, que brillan al
+                                pasar el puntero (a menos de 24 px)
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>un objeto</td>
+                            <td>selección y anillo de sus herramientas</td>
+                        </tr>
+                        <tr>
+                            <td>un lugar vacío, con el anillo abierto</td>
+                            <td>cierre del anillo, sin crear ningún punto</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <p>
+                Un texto, una expresión o un deslizador solo se seleccionan: no
+                tienen anillo.
+            </p>
+
+            <h2>El anillo de herramientas</h2>
+            <figure>
+                <img
+                    src="img/editeur-anneau.webp"
+                    alt="Anillo de herramientas alrededor del punto C, herramienta Segmento bajo el puntero"
+                    width="880"
+                    height="720"
+                />
+                <figcaption>
+                    Anillo del punto C; la indicación muestra la línea de la
+                    herramienta bajo el puntero.
+                </figcaption>
+            </figure>
+            <p>
+                El anillo solo muestra las herramientas aplicables al objeto
+                tocado. Cada herramienta ocupa siempre el mismo lugar; una
+                herramienta no aplicable deja su lugar vacío. Familias, en el
+                sentido de las agujas del reloj desde arriba:
+            </p>
+            <div class="table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Familia</th>
+                            <th>Herramientas</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><i data-t="Point"></i> Puntos</td>
+                            <td>
+                                punto sobre objeto, intersección, punto medio o
+                                centro
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><i data-t="Segment"></i> Rectas</td>
+                            <td>segmento, recta, semirrecta, vector</td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <i data-t="Perpendicular"></i> Construcciones
+                            </td>
+                            <td>
+                                perpendicular, paralela, mediatriz, bisectriz
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <i data-t="Circle (centre and point)"></i>
+                                Circunferencias
+                            </td>
+                            <td>
+                                centro y punto, centro y radio, tres puntos,
+                                esfera (3D)
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <i data-t="Polygon"></i> Polígonos, ángulos,
+                                lugares
+                            </td>
+                            <td>polígono, ángulo, lugar</td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <i data-t="Point reflection"></i>
+                                Transformaciones
+                            </td>
+                            <td>simetrías central y axial</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <p>
+                Pasar el puntero por una herramienta muestra en la indicación la
+                línea que escribirá y el argumento esperado:
+                <code>b = Segmento(C, …)</code>, «Selecciona un punto». Las
+                acciones sobre el propio objeto (eliminar, configurar…) están en
+                la
+                <a href="objets.html#la-zone-contextuelle">zona contextual</a>
+                de la barra.
+            </p>
+
+            <h2>Seleccionar los argumentos</h2>
+            <p>
+                Elegida la herramienta, una vista previa del objeto sigue al
+                puntero y los objetos aceptados brillan al pasar por encima.
+                Donde se espera un punto, se selecciona a elección un punto
+                existente, un objeto (se crea un punto sobre objeto), un cruce
+                (se crea una intersección) o un lugar vacío (se crea un punto
+                libre).
+            </p>
+            <ul>
+                <li>
+                    <i data-t="Polygon"></i> Polígono: los vértices y luego de
+                    nuevo el primero.
+                </li>
+                <li>
+                    <i data-t="Circle (centre and radius)"></i> Circunferencia
+                    (centro y radio): creada con un clic, radio de unos 150 px
+                    redondeado a dos cifras; arrastrar la circunferencia cambia
+                    el radio.
+                </li>
+                <li>
+                    <i data-t="Locus"></i> Lugar geométrico: se ofrece en un
+                    punto que depende de un punto sobre objeto; se crea con un
+                    clic.
+                </li>
+                <li>
+                    <i data-t="Angle"></i> Ángulo y
+                    <i data-t="AngleBisector"></i> bisectriz: un punto del
+                    primer lado, el vértice, un punto del segundo lado.
+                </li>
+            </ul>
+
+            <h2>Casos particulares</h2>
+            <ul>
+                <li>
+                    <strong>Objetos superpuestos</strong>: un menú da la línea
+                    de cada uno; al pasar por ella, el objeto brilla. Un punto
+                    tiene siempre prioridad, y un cruce da directamente la
+                    intersección.
+                </li>
+                <li>
+                    <strong>Con el dedo</strong>: durante una herramienta, el
+                    dedo apoyado muestra la vista previa sin mover nada y
+                    selecciona al levantarlo. Se puede pulsar el icono y
+                    deslizar hasta el objetivo en un solo gesto.
+                </li>
+                <li>
+                    <strong>Borde de la ventana</strong>: el anillo se desplaza
+                    para caber entero, unido al objeto por una línea de puntos;
+                    sigue al objeto si la figura se mueve.
+                </li>
+                <li>
+                    <strong>Abandonar</strong>: <kbd>Esc</kbd> o la
+                    <strong>✕</strong> de la indicación.
+                </li>
+                <li>
+                    <strong>Mover</strong>: durante una herramienta, arrastrar
+                    sirve para apuntar; el botón derecho siempre mueve objetos y
+                    vista.
+                </li>
+            </ul>
+        </main>
+    </body>
+</html>

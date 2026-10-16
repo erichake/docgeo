@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="hi">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <title>DGPad और GeoGebra से आयात — DocGeo पुस्तिका</title>
+        <link rel="icon" type="image/svg+xml" href="../../favicon.svg" />
+        <link rel="stylesheet" href="../manual.css" />
+        <script src="../icons.js" defer></script>
+        <script src="../manual.js" defer></script>
+    </head>
+    <body>
+        <main>
+            <h1>DGPad और GeoGebra से आयात</h1>
+
+            <p class="lead">
+                <code>.dgo</code> DocGeo का फ़ॉर्मेट है; <code>.dgp</code> और
+                <code>.ggb</code> आयात किए जाते हैं, फिर <code>.dgo</code> में
+                सहेजे जाते हैं। DGPad या GeoGebra में निर्यात नहीं होता।
+            </p>
+
+            <h2>.dgo फ़ॉर्मेट</h2>
+            <p>
+                संपीड़ित JSON: ऑब्जेक्ट, शैलियाँ और दृश्य। यह केवल जोड़ों से
+                विकसित होता है: सहेजी गई फ़ाइल आगे के संस्करणों में भी पढ़ी जा
+                सकती है।
+            </p>
+
+            <h2 id="figures-dgpad">DGPad</h2>
+            <p>
+                समतल और 3D आकृतियाँ, शैलियाँ, व्यंजक, स्लाइडर, एनीमेशन,
+                बिन्दुपथ, चुंबक, निशान और मैक्रो ले लिए जाते हैं।
+            </p>
+            <div class="table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>DGPad प्रोग्राम</th>
+                            <th>DocGeo</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>
+                                व्यंजकों की स्क्रिप्ट, व्यंजक की गणना करने वाला
+                                Blockly, Blockly कछुआ
+                            </td>
+                            <td>व्याख्यायित</td>
+                        </tr>
+                        <tr>
+                            <td>Blockly बटन (फ़ॉर्मेटिंग, संख्या बदलना)</td>
+                            <td>व्याख्यायित</td>
+                        </tr>
+                        <tr>
+                            <td>घटना वाले Blockly, JavaScript, सक्रिय HTML</td>
+                            <td>अनदेखे और सूचित</td>
+                        </tr>
+                        <tr>
+                            <td>«restrictions» व्यंजक (इंटरफ़ेस लॉक करना)</td>
+                            <td>अनदेखा</td>
+                        </tr>
+                        <tr>
+                            <td>3D घूर्णन की सीमाएँ</td>
+                            <td>लागू</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <p>
+                आकृति का कोई भी कोड ब्राउज़र द्वारा नहीं चलाया जाता। जानबूझकर
+                अंतर: वक्र को उसकी असंततताओं पर ऊर्ध्वाधर रेखा से नहीं जोड़ा
+                जाता।
+            </p>
+
+            <h2>GeoGebra</h2>
+            <p>
+                हर कमांड संगत DocGeo ऑब्जेक्ट बन जाता है, उन्हीं आर्गुमेंट के
+                साथ; ऑब्जेक्ट पर बिन्दु और प्रतिच्छेद GeoGebra द्वारा सहेजी गई
+                स्थितियों पर लौटा दिए जाते हैं।
+            </p>
+            <ul>
+                <li>
+                    लिए जाते हैं: समतल और 3D ज्यामिति, फलन और वक्र (संख्यात्मक
+                    अवकलज और समाकल), स्लाइडर, चेकबॉक्स, इनपुट बॉक्स, प्रदर्शन की
+                    शर्तें, LaTeX पाठ, चित्र, नामों की शैली और स्थिति, अक्ष और
+                    ग्रिड, एनीमेशन, निशान, मैक्रो।
+                </li>
+                <li>
+                    नहीं लिए जाते: स्क्रिप्ट (GGBScript, JavaScript),
+                    प्रतीकात्मक गणना, सूचियों के कुछ कमांड।
+                </li>
+            </ul>
+            <p>
+                geogebra.org के एक संग्रह की 470 आकृतियों में से आधी से अधिक
+                बिना हानि के खुलती हैं। असमर्थित तत्व अपने आश्रितों सहित अनदेखा
+                और सूचित किया जाता है।
+            </p>
+        </main>
+    </body>
+</html>

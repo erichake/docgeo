@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="es">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <title>Imanes, chincheta y resorte — Manual de DocGeo</title>
+        <link rel="icon" type="image/svg+xml" href="../../favicon.svg" />
+        <link rel="stylesheet" href="../manual.css" />
+        <script src="../icons.js" defer></script>
+        <script src="../manual.js" defer></script>
+    </head>
+    <body>
+        <main>
+            <h1>Imanes, chincheta y resorte</h1>
+
+            <h2 id="aimants">Imanes</h2>
+            <p>
+                Un punto libre imantado se pega a los objetos elegidos cuando se
+                arrastra cerca de ellos, sin quedar ligado a ellos.
+            </p>
+            <figure>
+                <img
+                    src="img/editeur-aimants.webp"
+                    alt="Modo Imanes: una circunferencia y el punto A atraen a P"
+                    width="880"
+                    height="720"
+                />
+            </figure>
+            <ol>
+                <li>
+                    Seleccionar el punto libre y luego <i data-i="magnet"></i>
+                    <strong>Imanes</strong>. El resto de la figura queda bajo un
+                    velo.
+                </li>
+                <li>
+                    Tocar cada objeto que atrae (punto, recta, circunferencia,
+                    cónica, curva, lista): se vuelve rojo, con una atracción
+                    inicial de 20 px. El punto y sus dependientes quedan
+                    excluidos.
+                </li>
+                <li>
+                    Ajustar la atracción del imán elegido con el deslizador de
+                    su tarjeta: <strong>Ninguna</strong> (quita el imán), de 1 a
+                    1000 px, <strong>En todas partes</strong>. La zona de
+                    atracción de cada imán se dibuja en rojo pálido.
+                </li>
+                <li>
+                    Terminar con un toque en un lugar vacío,
+                    <strong>Listo</strong> o <kbd>Esc</kbd>.
+                </li>
+            </ol>
+            <p>
+                El punto se puede arrastrar durante el ajuste para probar. Cada
+                ajuste es un paso de deshacer.
+            </p>
+
+            <h2 id="punaise">Chincheta</h2>
+            <p>
+                <i data-i="pin"></i> <strong>Fijar en la pantalla</strong>
+                (punto libre, figura plana): el punto conserva su lugar en la
+                ventana, y no sus coordenadas, cuando se hace zoom o se mueve la
+                vista. Sigue siendo desplazable. Segunda pulsación: se retira.
+            </p>
+
+            <h2 id="ressort">Resorte</h2>
+            <p>
+                <i data-i="spring"></i> <strong>Animar</strong> (punto sobre
+                recta, segmento, semirrecta, circunferencia, arco, polígono,
+                cónica o lugar) saca bajo el punto un resorte terminado en una
+                bola.
+            </p>
+            <ul>
+                <li>
+                    Tirar de la bola y soltarla lanza el punto; durante la
+                    tracción, un fantasma del punto ya muestra el movimiento.
+                </li>
+                <li>
+                    <strong>Longitud</strong>: velocidad, por niveles mostrados
+                    (px/s en una recta, un polígono o una cónica; °/s en una
+                    circunferencia; % en un lugar).
+                </li>
+                <li>
+                    <strong>Lado</strong>: sentido; el punto sale en dirección
+                    opuesta a la tracción.
+                </li>
+                <li>
+                    <strong>De través</strong> respecto de una recta (más de
+                    45°): ida y vuelta. En los demás casos, el punto da vueltas.
+                </li>
+                <li>Por debajo del primer nivel: parada.</li>
+            </ul>
+            <p>
+                En un punto ya animado, el resorte sale tenso a la velocidad
+                actual. Segunda pulsación en <i data-i="spring"></i>: el resorte
+                se guarda. Velocidad exacta, sentido inverso, parada en el
+                extremo: sección
+                <a href="proprietes.html#animation">Animación</a>
+                de las propiedades, que también anima los deslizadores.
+            </p>
+        </main>
+    </body>
+</html>

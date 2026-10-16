@@ -1,0 +1,201 @@
+<!doctype html>
+<html lang="zh-TW">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <title>屬性與座標系 — DocGeo 手冊</title>
+        <link rel="icon" type="image/svg+xml" href="../../favicon.svg" />
+        <link rel="stylesheet" href="../manual.css" />
+        <script src="../icons.js" defer></script>
+        <script src="../manual.js" defer></script>
+    </head>
+    <body>
+        <main>
+            <h1>屬性與座標系</h1>
+
+            <figure>
+                <img
+                    src="img/editeur-proprietes.webp"
+                    alt="點 C 的屬性面板"
+                    width="1200"
+                    height="720"
+                />
+            </figure>
+
+            <h2>面板</h2>
+            <ul>
+                <li>
+                    透過 <i data-i="properties"></i> 或情境區的<i
+                        data-i="settings"
+                    ></i
+                    >開啟；透過其 ✕、同一個按鈕或<kbd>Esc</kbd> 關閉。
+                </li>
+                <li>
+                    兩個分頁：<strong>物件</strong>和<strong>圖形</strong>。
+                </li>
+                <li>
+                    要設定的物件可以在圖形中、透過其列，或在「選擇物件…」清單（包括隱藏物件）中選取。在圖形中按一下只選取而不作圖；按鈕和核取方塊被選取而不會被觸發。選單中的工具或輸入列照常作圖，新建的物件顯示在面板中。
+                </li>
+                <li>修改立即生效，並可復原。</li>
+                <li>
+                    數值欄位：水平拖曳可調整數值（<kbd>Shift</kbd>：精細十倍），按一下可直接輸入。一次拖曳算作一個復原步驟。
+                </li>
+                <li>
+                    顏色旁的 <strong>↺</strong> 按鈕將其恢復為工具的預設顏色。
+                </li>
+            </ul>
+
+            <h2>「物件」分頁</h2>
+            <div class="table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>部分</th>
+                            <th>設定</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>物件</td>
+                            <td>
+                                名稱；運算式還有<a
+                                    href="expressions.html#les-programmes"
+                                    >定義</a
+                                >
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>外觀</td>
+                            <td>
+                                套用至同類物件、顏色、點的大小、粗細、輪廓、線條和填色的不透明度、填色顏色、虛線、圖層（繪製順序）
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>顯示</td>
+                            <td>
+                                顯示物件、顯示名稱、文字大小、數值的小數位數（或不顯示）
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>點</td>
+                            <td>
+                                形狀（圓、正方形、叉、菱形）、名稱位置（度）、軌跡、水平和垂直步長（跳躍式移動）
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>線段</td>
+                            <td>標記（表示等長的短線）</td>
+                        </tr>
+                        <tr>
+                            <td>角</td>
+                            <td>
+                                弧的半徑、直角標記（開口直角、弧、正方形、點、直角尺）
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>軌跡、列表</td>
+                            <td>點數；線段粗細</td>
+                        </tr>
+                        <tr>
+                            <td id="curseurs">滑桿</td>
+                            <td>增量、長度、垂直、滑鈕顏色和大小</td>
+                        </tr>
+                        <tr>
+                            <td id="animation">動畫</td>
+                            <td>
+                                速度（0：停止）、反向、到達端點時：重新開始、來回或停止
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <h3 id="regler-plusieurs-objets">多個物件</h3>
+            <p>
+                多選時只顯示所有物件共有的設定；各物件取值不同的項目以灰色斜體顯示。<kbd>Ctrl</kbd>-點按、<kbd>Shift</kbd>-點按或長按（在圖形或「作圖」面板中）可加入或移除一個物件。
+            </p>
+
+            <h2>「圖形」分頁</h2>
+            <figure>
+                <img
+                    src="img/editeur-onglet-figure.webp"
+                    alt="圖形分頁：座標系樣式和座標軸"
+                    width="600"
+                    height="720"
+                />
+            </figure>
+            <p>按一下座標軸即可開啟此分頁。</p>
+            <div class="table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>部分</th>
+                            <th>設定</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>座標系</td>
+                            <td>
+                                是否顯示；DGPad、GeoGebra、僅座標軸、點狀格線、方格紙、公釐方格紙樣式（只影響外觀，不影響縮放和背景）
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>座標軸（x 和 y）</td>
+                            <td>
+                                顯示、名稱、數字、單位（π：π/2
+                                的倍數）、刻度、數字間距（留空：auto；🔗 使 x 和
+                                y 相同）、箭頭、顏色、數字大小和粗體、DGPad 或
+                                GeoGebra 樣式、正半軸
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>格線</td>
+                            <td>
+                                是否顯示、線條間距、細分、顏色（預設與座標軸相同）、粗細、實線、點線或虛線
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>縮放與平移</td>
+                            <td>座標軸固定於螢幕、以原點為中心縮放</td>
+                        </tr>
+                        <tr>
+                            <td>圖形</td>
+                            <td>
+                                背景；角度用度（預設）或弧度；線段位於多邊形之上
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <h3 id="l-onglet-figure-en-3d">3D 中</h3>
+            <div class="table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>部分</th>
+                            <th>設定</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>座標軸</td>
+                            <td>顯示三面角、顏色、粗細</td>
+                        </tr>
+                        <tr>
+                            <td>地面</td>
+                            <td>
+                                顯示、顏色（↺：上方藍色，下方棕色）、不透明度、大小、間距、線條顏色和粗細
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>檢視</td>
+                            <td>透視</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <p>這些設定可以復原；檢視的縮放、平移和旋轉則不能。</p>
+        </main>
+    </body>
+</html>

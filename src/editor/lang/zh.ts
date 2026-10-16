@@ -23,6 +23,7 @@ const zh: Texts = {
         save: "保存",
         undo: "撤销",
         redo: "重做",
+        help: "使用手册",
         delete: "删除",
         eraser: "橡皮擦",
         axes: "坐标系",

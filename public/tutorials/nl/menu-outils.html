@@ -1,0 +1,765 @@
+<!doctype html>
+<html lang="nl">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <title>Het gereedschapsmenu — DocGeo-handleiding</title>
+        <link rel="icon" type="image/svg+xml" href="../../favicon.svg" />
+        <link rel="stylesheet" href="../manual.css" />
+        <script src="../icons.js" defer></script>
+        <script src="../manual.js" defer></script>
+    </head>
+    <body>
+        <main>
+            <h1>Het gereedschapsmenu</h1>
+            <figure>
+                <img
+                    src="img/editeur-menu-outils.webp"
+                    alt="Gereedschapsmenu geopend bij Cirkels, bogen, kegelsneden"
+                    width="620"
+                    height="720"
+                />
+            </figure>
+
+            <h2>Gebruik</h2>
+            <ul>
+                <li>
+                    <i data-i="tools"></i>, rechts van de invoerregel, opent het
+                    menu: de families van de ring, dezelfde kleuren, dezelfde
+                    volgorde, en dan hun gereedschappen bij het aanwijzen of
+                    aantikken.
+                </li>
+                <li>
+                    Het menu bevat alle gereedschappen van de ring en meer
+                    (kenmerk <span class="badge ring">ring</span> hieronder). De
+                    families Vlakken en Ruimtefiguren en de gereedschappen met
+                    <span class="badge d3">3D</span> verschijnen alleen in de
+                    3D-weergave.
+                </li>
+                <li>
+                    Het eerst geselecteerde object neemt elke plaats in die zijn
+                    type toelaat: bij een loodlijn mag de rechte vóór het punt
+                    komen.
+                </li>
+                <li>
+                    Het gereedschap blijft <strong>actief</strong>: na elk
+                    object wacht het opnieuw op zijn eerste argument. De
+                    menuknop neemt zijn pictogram over en de balk toont een
+                    strook met <strong>Klaar</strong>.
+                </li>
+                <li>
+                    Stoppen: <strong>Klaar</strong>, <kbd>Esc</kbd>, het
+                    <strong>✕</strong> van de aanwijzing, de menuknop (die het
+                    menu opnieuw opent), de gum, stap voor stap of een klik in
+                    een tekstregel. Ongedaan maken, opnieuw, de eigenschappen en
+                    de 3D-weergave behouden het gereedschap.
+                </li>
+            </ul>
+
+            <h2 id="avec-une-selection">Met een selectie</h2>
+            <p>
+                Zijn er eerst objecten geselecteerd (<kbd>Ctrl</kbd>-klik,
+                <kbd>Shift</kbd>-klik of lang drukken), dan grijst het menu de
+                gereedschappen uit die ze niet aanvaarden. Elk object neemt op
+                volgorde de eerste vrije plaats van zijn type in; de regel wordt
+                meteen gemaakt als hij volledig is. Voorbeeld: A, B, C en dan
+                <strong>OmgeschrevenCirkel</strong> schrijft
+                <code>OmgeschrevenCirkel(A, B, C)</code>.
+            </p>
+
+            <h2>Alle gereedschappen</h2>
+            <p>
+                Voor elk gereedschap: wat je selecteert, en dan de geschreven
+                regel.
+            </p>
+            <h3 id="famille-points">Punten</h3>
+            <div class="family" style="--h: 35">
+                <ul>
+                    <li>
+                        <i data-t="Point"></i>
+                        <div>
+                            <strong
+                                >Punt<span class="badge ring"
+                                    >ring</span
+                                ></strong
+                            ><span
+                                >Het punt dat je aantikt: vrij op een lege plek,
+                                op een object of op het snijpunt van twee
+                                objecten.</span
+                            ><span><code>Punt(c, t)</code></span>
+                        </div>
+                    </li>
+                    <li>
+                        <i data-t="Intersection"></i>
+                        <div>
+                            <strong
+                                >Snijpunt<span class="badge ring"
+                                    >ring</span
+                                ></strong
+                            ><span
+                                >Een kruising met één tik, of de twee objecten
+                                na elkaar.</span
+                            ><span><code>Snijpunt(a, b)</code></span>
+                        </div>
+                    </li>
+                    <li>
+                        <i data-t="Midpoint"></i>
+                        <div>
+                            <strong
+                                >Midden<span class="badge ring"
+                                    >ring</span
+                                ></strong
+                            ><span>Twee punten, of een lijnstuk.</span
+                            ><span><code>Midden(A, B)</code></span>
+                        </div>
+                    </li>
+                    <li>
+                        <i data-t="Center"></i>
+                        <div>
+                            <strong
+                                >Middelpunt<span class="badge ring"
+                                    >ring</span
+                                ></strong
+                            ><span>Een cirkel: zijn middelpunt.</span
+                            ><span><code>Middelpunt(c)</code></span>
+                        </div>
+                    </li>
+                    <li>
+                        <i data-t="OtherIntersection"></i>
+                        <div>
+                            <strong>AnderSnijpunt</strong
+                            ><span
+                                >Twee objecten, en dan een punt dat al op een
+                                van hun snijpunten ligt: het snijpunt dat er het
+                                verst van ligt.</span
+                            ><span><code>AnderSnijpunt(a, b, P)</code></span>
+                        </div>
+                    </li>
+                    <li>
+                        <i data-t="Incenter"></i>
+                        <div>
+                            <strong>MiddelpuntIngeschrevenCirkel</strong
+                            ><span
+                                >Drie punten, hoekpunten van een driehoek: het
+                                middelpunt van de ingeschreven cirkel.</span
+                            ><span
+                                ><code
+                                    >MiddelpuntIngeschrevenCirkel(A, B, C)</code
+                                ></span
+                            >
+                        </div>
+                    </li>
+                    <li>
+                        <i data-t="Centroid"></i>
+                        <div>
+                            <strong>Zwaartepunt</strong
+                            ><span
+                                >Drie punten: het zwaartepunt van de
+                                driehoek.</span
+                            ><span><code>Zwaartepunt(A, B, C)</code></span>
+                        </div>
+                    </li>
+                    <li>
+                        <i data-t="Circumcenter"></i>
+                        <div>
+                            <strong>MiddelpuntOmgeschrevenCirkel</strong
+                            ><span
+                                >Drie punten: het middelpunt van de omgeschreven
+                                cirkel.</span
+                            ><span
+                                ><code
+                                    >MiddelpuntOmgeschrevenCirkel(A, B, C)</code
+                                ></span
+                            >
+                        </div>
+                    </li>
+                    <li>
+                        <i data-t="Orthocenter"></i>
+                        <div>
+                            <strong>Hoogtepunt</strong
+                            ><span
+                                >Drie punten: het hoogtepunt van de
+                                driehoek.</span
+                            ><span><code>Hoogtepunt(A, B, C)</code></span>
+                        </div>
+                    </li>
+                </ul>
+            </div>
+            <h3 id="famille-lines">Rechten</h3>
+            <div class="family" style="--h: 215">
+                <ul>
+                    <li>
+                        <i data-t="Segment"></i>
+                        <div>
+                            <strong
+                                >Lijnstuk<span class="badge ring"
+                                    >ring</span
+                                ></strong
+                            ><span>Twee punten, de eindpunten.</span
+                            ><span><code>Lijnstuk(A, B)</code></span>
+                        </div>
+                    </li>
+                    <li>
+                        <i data-t="Line"></i>
+                        <div>
+                            <strong
+                                >Rechte<span class="badge ring"
+                                    >ring</span
+                                ></strong
+                            ><span>Twee punten van de rechte.</span
+                            ><span><code>Rechte(A, B)</code></span>
+                        </div>
+                    </li>
+                    <li>
+                        <i data-t="Ray"></i>
+                        <div>
+                            <strong
+                                >Halfrechte<span class="badge ring"
+                                    >ring</span
+                                ></strong
+                            ><span
+                                >Twee punten: het beginpunt, en dan een punt van
+                                de halfrechte.</span
+                            ><span><code>Halfrechte(A, B)</code></span>
+                        </div>
+                    </li>
+                    <li>
+                        <i data-t="Vector"></i>
+                        <div>
+                            <strong
+                                >Vector<span class="badge ring"
+                                    >ring</span
+                                ></strong
+                            ><span
+                                >Twee punten: het beginpunt, en dan het
+                                eindpunt.</span
+                            ><span><code>Vector(A, B)</code></span>
+                        </div>
+                    </li>
+                </ul>
+            </div>
+            <h3 id="famille-constructions">Constructies</h3>
+            <div class="family" style="--h: 265">
+                <ul>
+                    <li>
+                        <i data-t="Perpendicular"></i>
+                        <div>
+                            <strong
+                                >Loodlijn<span class="badge ring"
+                                    >ring</span
+                                ></strong
+                            ><span
+                                >Een punt en een rechte, in willekeurige
+                                volgorde. In 3D een rechte of een vlak.</span
+                            ><span><code>Loodlijn(P, d)</code></span>
+                        </div>
+                    </li>
+                    <li>
+                        <i data-t="Parallel"></i>
+                        <div>
+                            <strong
+                                >Evenwijdige<span class="badge ring"
+                                    >ring</span
+                                ></strong
+                            ><span
+                                >Een punt en een rechte, in willekeurige
+                                volgorde.</span
+                            ><span><code>Evenwijdige(P, d)</code></span>
+                        </div>
+                    </li>
+                    <li>
+                        <i data-t="PerpendicularBisector"></i>
+                        <div>
+                            <strong
+                                >Middelloodlijn<span class="badge ring"
+                                    >ring</span
+                                ></strong
+                            ><span>Twee punten, of een lijnstuk.</span
+                            ><span><code>Middelloodlijn(A, B)</code></span>
+                        </div>
+                    </li>
+                    <li>
+                        <i data-t="AngleBisector"></i>
+                        <div>
+                            <strong
+                                >Bissectrice<span class="badge ring"
+                                    >ring</span
+                                ></strong
+                            ><span
+                                >Drie punten: een punt van het eerste been, het
+                                hoekpunt, een punt van het tweede been.</span
+                            ><span><code>Bissectrice(A, O, B)</code></span>
+                        </div>
+                    </li>
+                    <li>
+                        <i data-t="Tangent"></i>
+                        <div>
+                            <strong>Raaklijn</strong
+                            ><span
+                                >Een punt, en dan een cirkel, een kegelsnede of
+                                de grafiek van een functie. Het gereedschap
+                                geeft raaklijn nr. 1; verander dat getal in 2 in
+                                de regel voor de andere.</span
+                            ><span><code>Raaklijn(P, c, 1)</code></span>
+                        </div>
+                    </li>
+                </ul>
+            </div>
+            <h3 id="famille-circles">Cirkels, bogen, kegelsneden</h3>
+            <div class="family" style="--h: 145">
+                <ul>
+                    <li>
+                        <i data-t="Circle (centre and point)"></i>
+                        <div>
+                            <strong
+                                >Cirkel (middelpunt en punt)<span
+                                    class="badge ring"
+                                    >ring</span
+                                ></strong
+                            ><span
+                                >Het middelpunt, en dan een punt van de
+                                cirkel.</span
+                            ><span><code>Cirkel(O, A)</code></span>
+                        </div>
+                    </li>
+                    <li>
+                        <i data-t="Circle (centre and radius)"></i>
+                        <div>
+                            <strong
+                                >Cirkel (middelpunt en straal)<span
+                                    class="badge ring"
+                                    >ring</span
+                                ></strong
+                            ><span
+                                >Alleen het middelpunt: de straal, ongeveer 150
+                                pixels, verander je daarna door de cirkel te
+                                slepen of in de regel.</span
+                            ><span><code>Cirkel(O, 3.8)</code></span>
+                        </div>
+                    </li>
+                    <li>
+                        <i data-t="Circumcircle"></i>
+                        <div>
+                            <strong
+                                >OmgeschrevenCirkel<span class="badge ring"
+                                    >ring</span
+                                ></strong
+                            ><span>Drie punten van de cirkel.</span
+                            ><span
+                                ><code>OmgeschrevenCirkel(A, B, C)</code></span
+                            >
+                        </div>
+                    </li>
+                    <li>
+                        <i data-t="Sphere"></i>
+                        <div>
+                            <strong
+                                >Bol<span class="badge ring">ring</span
+                                ><span class="badge d3">3D</span></strong
+                            ><span
+                                >Het middelpunt, en dan een punt van de
+                                bol.</span
+                            ><span><code>Bol(O, A)</code></span>
+                        </div>
+                    </li>
+                    <li>
+                        <i data-t="Compass"></i>
+                        <div>
+                            <strong>Passer</strong
+                            ><span
+                                >Twee punten die de straal geven, en dan het
+                                middelpunt.</span
+                            ><span><code>Passer(A, B, O)</code></span>
+                        </div>
+                    </li>
+                    <li>
+                        <i data-t="Circle (centre, direction and radius)"></i>
+                        <div>
+                            <strong
+                                >Cirkel (middelpunt, richting en straal)<span
+                                    class="badge d3"
+                                    >3D</span
+                                ></strong
+                            ><span
+                                >Het middelpunt, en dan een rechte (de as) of
+                                een vlak (evenwijdig aan de cirkel), de vloer
+                                inbegrepen. Straal ongeveer 150 pixels.</span
+                            ><span><code>Cirkel(O, 3.8, d)</code></span>
+                        </div>
+                    </li>
+                    <li>
+                        <i data-t="Circle (axis and point)"></i>
+                        <div>
+                            <strong
+                                >Cirkel (as en punt)<span class="badge d3"
+                                    >3D</span
+                                ></strong
+                            ><span
+                                >Een rechte, de as, en dan een punt van de
+                                cirkel.</span
+                            ><span><code>Cirkel(d, P)</code></span>
+                        </div>
+                    </li>
+                    <li>
+                        <i data-t="Arc"></i>
+                        <div>
+                            <strong>Boog</strong
+                            ><span
+                                >Drie punten: het begin, een punt waar de boog
+                                door gaat, het einde.</span
+                            ><span><code>Boog(A, B, C)</code></span>
+                        </div>
+                    </li>
+                    <li>
+                        <i data-t="Sector"></i>
+                        <div>
+                            <strong>Sector</strong
+                            ><span
+                                >Drie punten, zoals bij de boog: de sector die
+                                hij begrenst.</span
+                            ><span><code>Sector(A, B, C)</code></span>
+                        </div>
+                    </li>
+                    <li>
+                        <i data-t="CenterArc"></i>
+                        <div>
+                            <strong>BoogMiddelpunt</strong
+                            ><span
+                                >Het middelpunt, het begin, en dan een punt van
+                                de halfrechte waar de boog stopt (tegen de
+                                wijzers van de klok in).</span
+                            ><span><code>BoogMiddelpunt(M, A, B)</code></span>
+                        </div>
+                    </li>
+                    <li>
+                        <i data-t="CenterSector"></i>
+                        <div>
+                            <strong>SectorMiddelpunt</strong
+                            ><span
+                                >Zoals <code>BoogMiddelpunt</code>: de
+                                sector.</span
+                            ><span><code>SectorMiddelpunt(M, A, B)</code></span>
+                        </div>
+                    </li>
+                    <li>
+                        <i data-t="Semicircle"></i>
+                        <div>
+                            <strong>Halvecirkel</strong
+                            ><span
+                                >Twee punten, eindpunten van de middellijn: de
+                                halve cirkel links van [AB].</span
+                            ><span><code>Halvecirkel(A, B)</code></span>
+                        </div>
+                    </li>
+                    <li>
+                        <i data-t="Conic"></i>
+                        <div>
+                            <strong>Kegelsnede</strong
+                            ><span
+                                >Vijf punten van de kegelsnede. Vanaf het tweede
+                                toont het voorbeeld de kegelsnede die het
+                                dichtst bij een cirkel ligt.</span
+                            ><span><code>Kegelsnede(A, B, C, D, E)</code></span>
+                        </div>
+                    </li>
+                    <li>
+                        <i data-t="Ellipse"></i>
+                        <div>
+                            <strong>Ellips</strong
+                            ><span
+                                >De twee brandpunten, en dan een punt van de
+                                ellips.</span
+                            ><span><code>Ellips(F, G, P)</code></span>
+                        </div>
+                    </li>
+                    <li>
+                        <i data-t="Hyperbola"></i>
+                        <div>
+                            <strong>Hyperbool</strong
+                            ><span
+                                >De twee brandpunten, en dan een punt van de
+                                hyperbool.</span
+                            ><span><code>Hyperbool(F, G, P)</code></span>
+                        </div>
+                    </li>
+                    <li>
+                        <i data-t="Parabola"></i>
+                        <div>
+                            <strong>Parabool</strong
+                            ><span>Het brandpunt, en dan de richtlijn.</span
+                            ><span><code>Parabool(F, d)</code></span>
+                        </div>
+                    </li>
+                </ul>
+            </div>
+            <h3 id="famille-shapes">
+                Veelhoeken, hoeken, meetkundige plaatsen
+            </h3>
+            <div class="family" style="--h: 185">
+                <ul>
+                    <li>
+                        <i data-t="Polygon"></i>
+                        <div>
+                            <strong
+                                >Veelhoek<span class="badge ring"
+                                    >ring</span
+                                ></strong
+                            ><span
+                                >De hoekpunten een voor een, en dan opnieuw het
+                                eerste om te sluiten.</span
+                            ><span><code>Veelhoek(A, B, C)</code></span>
+                        </div>
+                    </li>
+                    <li>
+                        <i data-t="Angle"></i>
+                        <div>
+                            <strong
+                                >Hoek<span class="badge ring"
+                                    >ring</span
+                                ></strong
+                            ><span
+                                >Drie punten: een punt van het eerste been, het
+                                hoekpunt, een punt van het tweede been.</span
+                            ><span><code>Hoek(A, O, B)</code></span>
+                        </div>
+                    </li>
+                    <li>
+                        <i data-t="Locus"></i>
+                        <div>
+                            <strong
+                                >MeetkundigePlaats<span class="badge ring"
+                                    >ring</span
+                                ></strong
+                            ><span
+                                >Een punt dat afhangt van een punt op object:
+                                zijn meetkundige plaats wanneer dat punt zijn
+                                object doorloopt.</span
+                            ><span><code>MeetkundigePlaats(M, P)</code></span>
+                        </div>
+                    </li>
+                    <li>
+                        <i data-t="RegularPolygon"></i>
+                        <div>
+                            <strong>RegelmatigeVeelhoek</strong
+                            ><span
+                                >Twee opeenvolgende hoekpunten: het gereedschap
+                                geeft een vierkant; verander het aantal zijden
+                                in de regel.</span
+                            ><span
+                                ><code>RegelmatigeVeelhoek(A, B, 4)</code></span
+                            >
+                        </div>
+                    </li>
+                </ul>
+            </div>
+            <h3 id="famille-transformations">Transformaties</h3>
+            <div class="family" style="--h: 320">
+                <ul>
+                    <li>
+                        <i data-t="Point reflection"></i>
+                        <div>
+                            <strong
+                                >Puntspiegeling<span class="badge ring"
+                                    >ring</span
+                                ></strong
+                            ><span
+                                >Het te transformeren punt, en dan het
+                                centrum.</span
+                            ><span><code>Spiegeling(P, O)</code></span>
+                        </div>
+                    </li>
+                    <li>
+                        <i data-t="Line reflection"></i>
+                        <div>
+                            <strong
+                                >Lijnspiegeling<span class="badge ring"
+                                    >ring</span
+                                ></strong
+                            ><span
+                                >Het te transformeren punt en de as, in
+                                willekeurige volgorde.</span
+                            ><span><code>Spiegeling(P, d)</code></span>
+                        </div>
+                    </li>
+                    <li>
+                        <i data-t="Rotation"></i>
+                        <div>
+                            <strong>Draaiing</strong
+                            ><span
+                                >Het punt, en dan het centrum: een kwartslag,
+                                die je in de regel verandert.</span
+                            ><span><code>Draaiing(P, O, 90)</code></span>
+                        </div>
+                    </li>
+                    <li>
+                        <i data-t="Translation"></i>
+                        <div>
+                            <strong>Verschuiving</strong
+                            ><span>Het punt, en dan de vector.</span
+                            ><span><code>Verschuiving(P, u)</code></span>
+                        </div>
+                    </li>
+                    <li>
+                        <i data-t="Dilation"></i>
+                        <div>
+                            <strong>Vermenigvuldiging</strong
+                            ><span
+                                >Het punt, en dan het centrum: een factor 2, die
+                                je in de regel verandert.</span
+                            ><span
+                                ><code>Vermenigvuldiging(P, O, 2)</code></span
+                            >
+                        </div>
+                    </li>
+                    <li>
+                        <i data-t="Inversion"></i>
+                        <div>
+                            <strong>Inversie</strong
+                            ><span>Het punt, en dan de inversiecirkel.</span
+                            ><span><code>Inversie(P, c)</code></span>
+                        </div>
+                    </li>
+                </ul>
+            </div>
+            <h3 id="famille-planes">Vlakken</h3>
+            <div class="family" style="--h: 240">
+                <ul>
+                    <li>
+                        <i data-t="Plane"></i>
+                        <div>
+                            <strong>Vlak<span class="badge d3">3D</span></strong
+                            ><span>Drie punten, of een punt en een rechte.</span
+                            ><span><code>Vlak(A, B, C)</code></span>
+                        </div>
+                    </li>
+                    <li>
+                        <i data-t="ParallelPlane"></i>
+                        <div>
+                            <strong
+                                >EvenwijdigVlak<span class="badge d3"
+                                    >3D</span
+                                ></strong
+                            ><span
+                                >Een punt en een vlak (de vloer inbegrepen): het
+                                evenwijdige vlak door het punt.</span
+                            ><span><code>EvenwijdigVlak(A, p)</code></span>
+                        </div>
+                    </li>
+                    <li>
+                        <i data-t="OrthogonalPlane"></i>
+                        <div>
+                            <strong
+                                >LoodrechtVlak<span class="badge d3"
+                                    >3D</span
+                                ></strong
+                            ><span
+                                >Een punt en een rechte: het vlak loodrecht op
+                                de rechte.</span
+                            ><span><code>LoodrechtVlak(A, d)</code></span>
+                        </div>
+                    </li>
+                </ul>
+            </div>
+            <h3 id="famille-solids">Ruimtefiguren</h3>
+            <div class="family" style="--h: 265">
+                <ul>
+                    <li>
+                        <i data-t="Cylinder"></i>
+                        <div>
+                            <strong
+                                >Cilinder<span class="badge d3"
+                                    >3D</span
+                                ></strong
+                            ><span
+                                >Twee punten, uiteinden van de as. Straal
+                                ongeveer 150 pixels.</span
+                            ><span><code>Cilinder(A, B, 3.8)</code></span>
+                        </div>
+                    </li>
+                    <li>
+                        <i data-t="Cone"></i>
+                        <div>
+                            <strong
+                                >Kegel<span class="badge d3">3D</span></strong
+                            ><span
+                                >Het middelpunt van het grondvlak, en dan de
+                                top. Straal ongeveer 150 pixels.</span
+                            ><span><code>Kegel(A, B, 3.8)</code></span>
+                        </div>
+                    </li>
+                    <li>
+                        <i data-t="Cube"></i>
+                        <div>
+                            <strong
+                                >Kubus<span class="badge d3">3D</span></strong
+                            ><span
+                                >Twee punten van eenzelfde vlak of op dezelfde
+                                hoogte, anders drie punten (zie 3D).</span
+                            ><span><code>Kubus(A, B, C)</code></span>
+                        </div>
+                    </li>
+                    <li>
+                        <i data-t="Prism"></i>
+                        <div>
+                            <strong
+                                >Prisma<span class="badge d3">3D</span></strong
+                            ><span
+                                >Een veelhoek, het grondvlak, en dan een punt,
+                                hoekpunt van het tegenoverliggende
+                                zijvlak.</span
+                            ><span><code>Prisma(p, P)</code></span>
+                        </div>
+                    </li>
+                    <li>
+                        <i data-t="Pyramid"></i>
+                        <div>
+                            <strong
+                                >Piramide<span class="badge d3"
+                                    >3D</span
+                                ></strong
+                            ><span
+                                >Een veelhoek, het grondvlak, en dan de
+                                top.</span
+                            ><span><code>Piramide(p, S)</code></span>
+                        </div>
+                    </li>
+                    <li>
+                        <i data-t="Section"></i>
+                        <div>
+                            <strong
+                                >Doorsnede<span class="badge d3"
+                                    >3D</span
+                                ></strong
+                            ><span
+                                >Een ruimtefiguur (bol, cilinder, kegel,
+                                veelvlak) en een vlak, in willekeurige
+                                volgorde.</span
+                            ><span><code>Doorsnede(s, p)</code></span>
+                        </div>
+                    </li>
+                    <li>
+                        <i data-t="Net"></i>
+                        <div>
+                            <strong
+                                >Uitslag<span class="badge d3">3D</span></strong
+                            ><span
+                                >Een kubus, een prisma of een piramide: de
+                                platte uitslag.</span
+                            ><span><code>Uitslag(c, 1)</code></span>
+                        </div>
+                    </li>
+                </ul>
+            </div>
+
+            <p>
+                De transformaties maken het beeld van een <strong>punt</strong>.
+                Alleen via het toetsenbord: <code>VastPunt</code>,
+                <code>Hoekpunt</code>, <code>Schuifknop</code>,
+                <code>Lijst</code>, de snijpunten in de ruimte,
+                <code>Ellips(F, G, a)</code> en
+                <code>Hyperbool(F, G, a)</code> (zie
+                <a href="commandes.html">De opdrachten</a>).
+            </p>
+        </main>
+    </body>
+</html>

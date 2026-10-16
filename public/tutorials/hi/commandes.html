@@ -1,0 +1,975 @@
+<!doctype html>
+<html lang="hi">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <title>कमांड — DocGeo पुस्तिका</title>
+        <link rel="icon" type="image/svg+xml" href="../../favicon.svg" />
+        <link rel="stylesheet" href="../manual.css" />
+        <script src="../icons.js" defer></script>
+        <script src="../manual.js" defer></script>
+    </head>
+    <body>
+        <main>
+            <h1>कमांड</h1>
+            <ul>
+                <li>
+                    नामों में बड़े-छोटे अक्षरों और विशेषक चिह्नों का भेद नहीं
+                    होता; अंग्रेज़ी नाम, जो छोटे अक्षरों में दिया है, सभी भाषाओं
+                    में स्वीकार्य है।
+                </li>
+                <li>
+                    <code>A</code>, <code>B</code>, <code>O</code>,
+                    <code>P</code>: बिन्दु; <code>d</code>: रेखा, रेखाखण्ड या
+                    किरण; <code>c</code>: वृत्त या वक्र; <code>p</code>: बहुभुज
+                    या समतल; <code>s</code>: रेखाखण्ड या ठोस; <code>u</code>:
+                    सदिश।
+                </li>
+                <li>
+                    <code>r</code>, <code>a</code>, <code>k</code>,
+                    <code>f</code>: संख्या, व्यंजक, स्लाइडर या सूत्र (<code
+                        >वृत्त(O, 2*r)</code
+                    >); <code>n</code>, <code>t</code>: लिखी हुई संख्याएँ।
+                </li>
+                <li>
+                    आइकन वही है जो <a href="menu-outils.html">मेनू</a> में टूल
+                    का है; <span class="badge d3">3D</span>: त्रिविम आकृतियों
+                    वाले रूप।
+                </li>
+            </ul>
+
+            <h2>बिन्दु</h2>
+            <div class="table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>कमांड</th>
+                            <th>रूप</th>
+                            <th>परिणाम</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td rowspan="3">
+                                <i data-t="Point"></i> <strong>बिन्दु</strong
+                                ><br /><small>Point</small>
+                            </td>
+                            <td class="syntax"><code>बिन्दु(c, t)</code></td>
+                            <td>
+                                ऑब्जेक्ट c (रेखा, वृत्त, वक्र, बिन्दुपथ…) पर
+                                स्थिति t वाला बिन्दु
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="syntax"><code>बिन्दु(p, a, b)</code></td>
+                            <td>
+                                बहुभुज या शांकव पर बिन्दु, जिसकी स्थिति दो
+                                संख्याओं से दी जाती है
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="syntax"><code>बिन्दु(सूत्र)</code></td>
+                            <td>
+                                बिन्दु जिसके निर्देशांक सूत्र देता है:
+                                <code>बिन्दु(2*B - A)</code>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td rowspan="2"><strong>(x, y)</strong></td>
+                            <td class="syntax"><code>A = (x, y)</code></td>
+                            <td>मुक्त बिन्दु; 3D में <code>(x, y, z)</code></td>
+                        </tr>
+                        <tr>
+                            <td class="syntax">
+                                <code>M = (x(B) + 1, y(A))</code>
+                            </td>
+                            <td>
+                                बिन्दु जिसका कम से कम एक निर्देशांक सूत्र है
+                            </td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1">
+                                <strong>स्थिरबिन्दु</strong><br /><small
+                                    >FixedPoint</small
+                                >
+                            </td>
+                            <td class="syntax">
+                                <code>स्थिरबिन्दु(x, y)</code>
+                            </td>
+                            <td>
+                                स्थिर बिन्दु, जिसे खिसकाया नहीं जा सकता; 3D में
+                                <code>स्थिरबिन्दु(x, y, z)</code>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td rowspan="2">
+                                <i data-t="Midpoint"></i>
+                                <strong>मध्यबिन्दु</strong><br /><small
+                                    >Midpoint</small
+                                >
+                            </td>
+                            <td class="syntax">
+                                <code>मध्यबिन्दु(A, B)</code>
+                            </td>
+                            <td>[AB] का मध्यबिन्दु</td>
+                        </tr>
+                        <tr>
+                            <td class="syntax"><code>मध्यबिन्दु(s)</code></td>
+                            <td>रेखाखण्ड s का मध्यबिन्दु</td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1">
+                                <i data-t="Center"></i> <strong>केन्द्र</strong
+                                ><br /><small>Center</small>
+                            </td>
+                            <td class="syntax"><code>केन्द्र(c)</code></td>
+                            <td>वृत्त c का केन्द्र</td>
+                        </tr>
+                        <tr>
+                            <td rowspan="5">
+                                <i data-t="Intersection"></i>
+                                <strong>प्रतिच्छेद</strong><br /><small
+                                    >Intersection</small
+                                >
+                            </td>
+                            <td class="syntax">
+                                <code>प्रतिच्छेद(d1, d2)</code>
+                            </td>
+                            <td>दो रेखाओं का उभयनिष्ठ बिन्दु</td>
+                        </tr>
+                        <tr>
+                            <td class="syntax">
+                                <code>प्रतिच्छेद(a, b, n)</code>
+                            </td>
+                            <td>
+                                ऐसे ऑब्जेक्टों का n-वाँ उभयनिष्ठ बिन्दु (n 1 से
+                                4 तक) जिनमें से कम से कम एक रेखा नहीं है: वृत्त,
+                                शांकव, वक्र
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="syntax">
+                                <code>प्रतिच्छेद(d, p)</code>
+                            </td>
+                            <td>
+                                <span class="badge d3">3D</span> एक रेखा और एक
+                                समतल का उभयनिष्ठ बिन्दु
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="syntax">
+                                <code>प्रतिच्छेद(p, q)</code>
+                            </td>
+                            <td>
+                                <span class="badge d3">3D</span> दो समतलों की
+                                उभयनिष्ठ रेखा
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="syntax">
+                                <code>प्रतिच्छेद(s, t)</code>
+                            </td>
+                            <td>
+                                <span class="badge d3">3D</span> दो गोलों का
+                                उभयनिष्ठ वृत्त
+                            </td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1">
+                                <i data-t="OtherIntersection"></i>
+                                <strong>अन्यप्रतिच्छेद</strong><br /><small
+                                    >OtherIntersection</small
+                                >
+                            </td>
+                            <td class="syntax">
+                                <code>अन्यप्रतिच्छेद(a, b, P)</code>
+                            </td>
+                            <td>
+                                a और b का वह उभयनिष्ठ बिन्दु जो P से सबसे दूर है
+                            </td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1">
+                                <i data-t="Incenter"></i>
+                                <strong>अंतःकेंद्र</strong><br /><small
+                                    >Incenter</small
+                                >
+                            </td>
+                            <td class="syntax">
+                                <code>अंतःकेंद्र(A, B, C)</code>
+                            </td>
+                            <td>त्रिभुज ABC के अंतर्वृत्त का केन्द्र</td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1">
+                                <i data-t="Centroid"></i>
+                                <strong>केन्द्रक</strong><br /><small
+                                    >Centroid</small
+                                >
+                            </td>
+                            <td class="syntax">
+                                <code>केन्द्रक(A, B, C)</code>
+                            </td>
+                            <td>त्रिभुज ABC का केन्द्रक</td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1">
+                                <i data-t="Circumcenter"></i>
+                                <strong>परिकेंद्र</strong><br /><small
+                                    >Circumcenter</small
+                                >
+                            </td>
+                            <td class="syntax">
+                                <code>परिकेंद्र(A, B, C)</code>
+                            </td>
+                            <td>त्रिभुज ABC के परिवृत्त का केन्द्र</td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1">
+                                <i data-t="Orthocenter"></i>
+                                <strong>लंबकेंद्र</strong><br /><small
+                                    >Orthocenter</small
+                                >
+                            </td>
+                            <td class="syntax">
+                                <code>लंबकेंद्र(A, B, C)</code>
+                            </td>
+                            <td>त्रिभुज ABC का लंबकेंद्र</td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1">
+                                <strong>शीर्ष</strong><br /><small
+                                    >Vertex</small
+                                >
+                            </td>
+                            <td class="syntax"><code>शीर्ष(p, k)</code></td>
+                            <td>बहुभुज या बहुफलक का k-वाँ शीर्ष (1 से आरंभ)</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <h2>रेखाएँ</h2>
+            <div class="table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>कमांड</th>
+                            <th>रूप</th>
+                            <th>परिणाम</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td rowspan="1">
+                                <i data-t="Segment"></i>
+                                <strong>रेखाखण्ड</strong><br /><small
+                                    >Segment</small
+                                >
+                            </td>
+                            <td class="syntax"><code>रेखाखण्ड(A, B)</code></td>
+                            <td>रेखाखण्ड [AB]</td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1">
+                                <i data-t="Line"></i> <strong>रेखा</strong
+                                ><br /><small>Line</small>
+                            </td>
+                            <td class="syntax"><code>रेखा(A, B)</code></td>
+                            <td>रेखा (AB)</td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1">
+                                <i data-t="Ray"></i> <strong>किरण</strong
+                                ><br /><small>Ray</small>
+                            </td>
+                            <td class="syntax"><code>किरण(A, B)</code></td>
+                            <td>किरण [AB), जिसका आरंभ-बिन्दु A है</td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1">
+                                <i data-t="Vector"></i> <strong>सदिश</strong
+                                ><br /><small>Vector</small>
+                            </td>
+                            <td class="syntax"><code>सदिश(A, B)</code></td>
+                            <td>A से B तक का सदिश</td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1"><strong>समीकरण</strong></td>
+                            <td class="syntax"><code>d = y = 2x + 1</code></td>
+                            <td>
+                                प्रथम घात के समीकरण से दी गई रेखा (देखें
+                                <a href="saisie.html#equations">समीकरण</a>)
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <h2>रचनाएँ</h2>
+            <div class="table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>कमांड</th>
+                            <th>रूप</th>
+                            <th>परिणाम</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td rowspan="2">
+                                <i data-t="Perpendicular"></i>
+                                <strong>लंबरेखा</strong><br /><small
+                                    >Perpendicular</small
+                                >
+                            </td>
+                            <td class="syntax"><code>लंबरेखा(P, d)</code></td>
+                            <td>P से होकर रेखा d पर लंब</td>
+                        </tr>
+                        <tr>
+                            <td class="syntax"><code>लंबरेखा(P, p)</code></td>
+                            <td>
+                                <span class="badge d3">3D</span> P से होकर समतल
+                                p पर लंब रेखा
+                            </td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1">
+                                <i data-t="Parallel"></i>
+                                <strong>समानांतररेखा</strong><br /><small
+                                    >Parallel</small
+                                >
+                            </td>
+                            <td class="syntax">
+                                <code>समानांतररेखा(P, d)</code>
+                            </td>
+                            <td>P से होकर d के समानांतर रेखा</td>
+                        </tr>
+                        <tr>
+                            <td rowspan="2">
+                                <i data-t="PerpendicularBisector"></i>
+                                <strong>लम्बसमद्विभाजक</strong><br /><small
+                                    >PerpendicularBisector</small
+                                >
+                            </td>
+                            <td class="syntax">
+                                <code>लम्बसमद्विभाजक(A, B)</code>
+                            </td>
+                            <td>[AB] का लम्बसमद्विभाजक</td>
+                        </tr>
+                        <tr>
+                            <td class="syntax">
+                                <code>लम्बसमद्विभाजक(s)</code>
+                            </td>
+                            <td>रेखाखण्ड s का लम्बसमद्विभाजक</td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1">
+                                <i data-t="AngleBisector"></i>
+                                <strong>कोणसमद्विभाजक</strong><br /><small
+                                    >AngleBisector</small
+                                >
+                            </td>
+                            <td class="syntax">
+                                <code>कोणसमद्विभाजक(A, O, B)</code>
+                            </td>
+                            <td>शीर्ष O वाले कोण का समद्विभाजक</td>
+                        </tr>
+                        <tr>
+                            <td rowspan="2">
+                                <i data-t="Tangent"></i>
+                                <strong>स्पर्शरेखा</strong><br /><small
+                                    >Tangent</small
+                                >
+                            </td>
+                            <td class="syntax">
+                                <code>स्पर्शरेखा(P, c, n)</code>
+                            </td>
+                            <td>
+                                P से वृत्त या शांकव c पर खींची गई स्पर्शरेखा n
+                                (1 या 2)
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="syntax">
+                                <code>स्पर्शरेखा(P, f)</code>
+                            </td>
+                            <td>
+                                किसी फलन के ग्राफ़ की स्पर्शरेखा, उस बिन्दु पर
+                                जिसका भुज P का भुज है
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <h2>वृत्त, चाप, शांकव</h2>
+            <div class="table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>कमांड</th>
+                            <th>रूप</th>
+                            <th>परिणाम</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td rowspan="4">
+                                <i data-t="Circle (centre and point)"></i>
+                                <strong>वृत्त</strong><br /><small
+                                    >Circle</small
+                                >
+                            </td>
+                            <td class="syntax"><code>वृत्त(O, A)</code></td>
+                            <td>केन्द्र O वाला और A से होकर जाने वाला वृत्त</td>
+                        </tr>
+                        <tr>
+                            <td class="syntax"><code>वृत्त(O, r)</code></td>
+                            <td>
+                                केन्द्र O और त्रिज्या r (संख्या, व्यंजक या
+                                सूत्र) वाला वृत्त
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="syntax"><code>वृत्त(O, r, d)</code></td>
+                            <td>
+                                <span class="badge d3">3D</span> केन्द्र O और
+                                त्रिज्या r वाला वृत्त, रेखा d पर लंब या समतल d
+                                के समानांतर
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="syntax"><code>वृत्त(d, P)</code></td>
+                            <td>
+                                <span class="badge d3">3D</span> अक्ष d वाला और
+                                P से होकर जाने वाला वृत्त
+                            </td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1">
+                                <i data-t="Circumcircle"></i>
+                                <strong>परिवृत्त</strong><br /><small
+                                    >Circumcircle</small
+                                >
+                            </td>
+                            <td class="syntax">
+                                <code>परिवृत्त(A, B, C)</code>
+                            </td>
+                            <td>
+                                A, B और C से होकर जाने वाला वृत्त (3D में उनके
+                                समतल में)
+                            </td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1">
+                                <i data-t="Compass"></i> <strong>परकार</strong
+                                ><br /><small>Compass</small>
+                            </td>
+                            <td class="syntax"><code>परकार(A, B, O)</code></td>
+                            <td>केन्द्र O और त्रिज्या AB वाला वृत्त</td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1">
+                                <i data-t="Arc"></i> <strong>चाप</strong
+                                ><br /><small>Arc</small>
+                            </td>
+                            <td class="syntax"><code>चाप(A, B, C)</code></td>
+                            <td>B से होकर A से C तक चाप</td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1">
+                                <i data-t="Sector"></i>
+                                <strong>त्रिज्यखण्ड</strong><br /><small
+                                    >Sector</small
+                                >
+                            </td>
+                            <td class="syntax">
+                                <code>त्रिज्यखण्ड(A, B, C)</code>
+                            </td>
+                            <td>B से होकर A से C तक के चाप का त्रिज्यखण्ड</td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1">
+                                <i data-t="CenterArc"></i>
+                                <strong>केंद्रचाप</strong><br /><small
+                                    >CenterArc</small
+                                >
+                            </td>
+                            <td class="syntax">
+                                <code>केंद्रचाप(M, A, B)</code>
+                            </td>
+                            <td>
+                                केन्द्र M वाला चाप, A से किरण [MB) तक, वामावर्त
+                                दिशा में
+                            </td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1">
+                                <i data-t="CenterSector"></i>
+                                <strong>केंद्रत्रिज्यखण्ड</strong><br /><small
+                                    >CenterSector</small
+                                >
+                            </td>
+                            <td class="syntax">
+                                <code>केंद्रत्रिज्यखण्ड(M, A, B)</code>
+                            </td>
+                            <td>संगत त्रिज्यखण्ड</td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1">
+                                <i data-t="Semicircle"></i>
+                                <strong>अर्धवृत्त</strong><br /><small
+                                    >Semicircle</small
+                                >
+                            </td>
+                            <td class="syntax"><code>अर्धवृत्त(A, B)</code></td>
+                            <td>
+                                व्यास [AB] वाला अर्धवृत्त, A से B की ओर बाईं
+                                तरफ़
+                            </td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1">
+                                <i data-t="Conic"></i> <strong>शांकव</strong
+                                ><br /><small>Conic</small>
+                            </td>
+                            <td class="syntax">
+                                <code>शांकव(A, B, C, D, E)</code>
+                            </td>
+                            <td>पाँच बिन्दुओं से होकर जाने वाला शांकव</td>
+                        </tr>
+                        <tr>
+                            <td rowspan="2">
+                                <i data-t="Ellipse"></i>
+                                <strong>दीर्घवृत्त</strong><br /><small
+                                    >Ellipse</small
+                                >
+                            </td>
+                            <td class="syntax">
+                                <code>दीर्घवृत्त(F, G, P)</code>
+                            </td>
+                            <td>
+                                नाभियाँ F और G वाला और P से होकर जाने वाला
+                                दीर्घवृत्त
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="syntax">
+                                <code>दीर्घवृत्त(F, G, a)</code>
+                            </td>
+                            <td>
+                                नाभियाँ F और G तथा अर्ध-दीर्घ अक्ष a वाला
+                                दीर्घवृत्त
+                            </td>
+                        </tr>
+                        <tr>
+                            <td rowspan="2">
+                                <i data-t="Hyperbola"></i>
+                                <strong>अतिपरवलय</strong><br /><small
+                                    >Hyperbola</small
+                                >
+                            </td>
+                            <td class="syntax">
+                                <code>अतिपरवलय(F, G, P)</code>
+                            </td>
+                            <td>
+                                नाभियाँ F और G वाला और P से होकर जाने वाला
+                                अतिपरवलय
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="syntax">
+                                <code>अतिपरवलय(F, G, a)</code>
+                            </td>
+                            <td>
+                                नाभियाँ F और G तथा अर्ध-अक्ष a वाला अतिपरवलय
+                            </td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1">
+                                <i data-t="Parabola"></i> <strong>परवलय</strong
+                                ><br /><small>Parabola</small>
+                            </td>
+                            <td class="syntax"><code>परवलय(F, d)</code></td>
+                            <td>नाभि F और नियता d वाला परवलय</td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1"><strong>समीकरण</strong></td>
+                            <td class="syntax">
+                                <code>c = x^2 + y^2 = 4</code>
+                            </td>
+                            <td>
+                                द्वितीय घात के समीकरण से दिया गया वृत्त या शांकव
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <h2>बहुभुज, कोण, बिन्दुपथ</h2>
+            <div class="table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>कमांड</th>
+                            <th>रूप</th>
+                            <th>परिणाम</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td rowspan="1">
+                                <i data-t="Polygon"></i> <strong>बहुभुज</strong
+                                ><br /><small>Polygon</small>
+                            </td>
+                            <td class="syntax">
+                                <code>बहुभुज(A, B, C, …)</code>
+                            </td>
+                            <td>तीन या अधिक शीर्षों वाला बहुभुज</td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1">
+                                <i data-t="RegularPolygon"></i>
+                                <strong>समबहुभुज</strong><br /><small
+                                    >RegularPolygon</small
+                                >
+                            </td>
+                            <td class="syntax">
+                                <code>समबहुभुज(A, B, n)</code>
+                            </td>
+                            <td>[AB] पर बना n भुजाओं (n ≥ 3) वाला समबहुभुज</td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1">
+                                <i data-t="Angle"></i> <strong>कोण</strong
+                                ><br /><small>Angle</small>
+                            </td>
+                            <td class="syntax"><code>कोण(A, O, B)</code></td>
+                            <td>शीर्ष O वाला कोण, [OA) से [OB) तक</td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1">
+                                <i data-t="Locus"></i> <strong>बिन्दुपथ</strong
+                                ><br /><small>Locus</small>
+                            </td>
+                            <td class="syntax"><code>बिन्दुपथ(M, P)</code></td>
+                            <td>
+                                बिन्दु M का बिन्दुपथ, जब ऑब्जेक्ट पर बिन्दु P
+                                अपने ऑब्जेक्ट पर चलता है
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <h2>रूपांतरण</h2>
+            <div class="table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>कमांड</th>
+                            <th>रूप</th>
+                            <th>परिणाम</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td rowspan="2">
+                                <i data-t="Point reflection"></i>
+                                <strong>परावर्तन</strong><br /><small
+                                    >Reflect</small
+                                >
+                            </td>
+                            <td class="syntax"><code>परावर्तन(P, O)</code></td>
+                            <td>बिन्दु O के सापेक्ष बिन्दु P का प्रतिबिम्ब</td>
+                        </tr>
+                        <tr>
+                            <td class="syntax"><code>परावर्तन(P, d)</code></td>
+                            <td>रेखा d के सापेक्ष बिन्दु P का प्रतिबिम्ब</td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1">
+                                <i data-t="Rotation"></i> <strong>घूर्णन</strong
+                                ><br /><small>Rotation</small>
+                            </td>
+                            <td class="syntax"><code>घूर्णन(P, O, a)</code></td>
+                            <td>
+                                केन्द्र O और कोण a (आकृति के अनुसार डिग्री या
+                                रेडियन में) वाले घूर्णन से बिन्दु P का
+                                प्रतिबिम्ब
+                            </td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1">
+                                <i data-t="Translation"></i>
+                                <strong>स्थानांतरण</strong><br /><small
+                                    >Translation</small
+                                >
+                            </td>
+                            <td class="syntax">
+                                <code>स्थानांतरण(P, u)</code>
+                            </td>
+                            <td>
+                                सदिश u वाले स्थानांतरण से बिन्दु P का प्रतिबिम्ब
+                            </td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1">
+                                <i data-t="Dilation"></i> <strong>आवर्धन</strong
+                                ><br /><small>Dilation</small>
+                            </td>
+                            <td class="syntax"><code>आवर्धन(P, O, k)</code></td>
+                            <td>
+                                केन्द्र O और अनुपात k वाले आवर्धन से बिन्दु P का
+                                प्रतिबिम्ब
+                            </td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1">
+                                <i data-t="Inversion"></i>
+                                <strong>व्युत्क्रमण</strong><br /><small
+                                    >Inversion</small
+                                >
+                            </td>
+                            <td class="syntax">
+                                <code>व्युत्क्रमण(P, c)</code>
+                            </td>
+                            <td>
+                                वृत्त c के सापेक्ष व्युत्क्रमण से बिन्दु P का
+                                प्रतिबिम्ब
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <h2>समतल</h2>
+            <div class="table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>कमांड</th>
+                            <th>रूप</th>
+                            <th>परिणाम</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td rowspan="2">
+                                <i data-t="Plane"></i> <strong>समतल</strong
+                                ><br /><small>Plane</small>
+                            </td>
+                            <td class="syntax"><code>समतल(A, B, C)</code></td>
+                            <td>तीन बिन्दुओं से होकर जाने वाला समतल</td>
+                        </tr>
+                        <tr>
+                            <td class="syntax"><code>समतल(A, d)</code></td>
+                            <td>बिन्दु A और रेखा d को समाहित करने वाला समतल</td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1">
+                                <i data-t="ParallelPlane"></i>
+                                <strong>समांतरसमतल</strong><br /><small
+                                    >ParallelPlane</small
+                                >
+                            </td>
+                            <td class="syntax">
+                                <code>समांतरसमतल(A, p)</code>
+                            </td>
+                            <td>A से होकर समतल p के समानांतर समतल</td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1">
+                                <i data-t="OrthogonalPlane"></i>
+                                <strong>लंबसमतल</strong><br /><small
+                                    >OrthogonalPlane</small
+                                >
+                            </td>
+                            <td class="syntax"><code>लंबसमतल(A, d)</code></td>
+                            <td>A से होकर रेखा d पर लंब समतल</td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1"><strong>समीकरण</strong></td>
+                            <td class="syntax">
+                                <code>p = x + y + z = 3</code>
+                            </td>
+                            <td>
+                                x, y और z में प्रथम घात के समीकरण से दिया गया
+                                समतल
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <h2>ठोस</h2>
+            <div class="table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>कमांड</th>
+                            <th>रूप</th>
+                            <th>परिणाम</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td rowspan="2">
+                                <i data-t="Sphere"></i> <strong>गोला</strong
+                                ><br /><small>Sphere</small>
+                            </td>
+                            <td class="syntax"><code>गोला(O, A)</code></td>
+                            <td>केन्द्र O वाला और A से होकर जाने वाला गोला</td>
+                        </tr>
+                        <tr>
+                            <td class="syntax"><code>गोला(O, r)</code></td>
+                            <td>केन्द्र O और त्रिज्या r वाला गोला</td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1">
+                                <i data-t="Cylinder"></i> <strong>बेलन</strong
+                                ><br /><small>Cylinder</small>
+                            </td>
+                            <td class="syntax"><code>बेलन(A, B, r)</code></td>
+                            <td>अक्ष [AB] और त्रिज्या r वाला बेलन</td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1">
+                                <i data-t="Cone"></i> <strong>शंकु</strong
+                                ><br /><small>Cone</small>
+                            </td>
+                            <td class="syntax"><code>शंकु(A, B, r)</code></td>
+                            <td>
+                                शंकु जिसके आधार का केन्द्र A और त्रिज्या r है,
+                                और शीर्ष B है
+                            </td>
+                        </tr>
+                        <tr>
+                            <td rowspan="3">
+                                <i data-t="Cube"></i> <strong>घन</strong
+                                ><br /><small>Cube</small>
+                            </td>
+                            <td class="syntax"><code>घन(A, B, C)</code></td>
+                            <td>समतल ABC के वर्ग ABCD पर घन</td>
+                        </tr>
+                        <tr>
+                            <td class="syntax"><code>घन(A, B, p, s)</code></td>
+                            <td>
+                                किनारे [AB] वाला घन, समतल या बहुभुज p पर, s ओर
+                                (1 या −1)
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="syntax"><code>घन(A, B, s)</code></td>
+                            <td>
+                                किनारे [AB] वाला घन, क्षैतिज वर्ग पर, ऊपर (1) या
+                                नीचे (−1)
+                            </td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1">
+                                <i data-t="Prism"></i> <strong>प्रिज़्म</strong
+                                ><br /><small>Prism</small>
+                            </td>
+                            <td class="syntax"><code>प्रिज़्म(p, P)</code></td>
+                            <td>
+                                आधार बहुभुज p वाला प्रिज़्म, जहाँ P, p के पहले
+                                शीर्ष का प्रतिबिम्ब है
+                            </td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1">
+                                <i data-t="Pyramid"></i> <strong>पिरामिड</strong
+                                ><br /><small>Pyramid</small>
+                            </td>
+                            <td class="syntax"><code>पिरामिड(p, S)</code></td>
+                            <td>आधार बहुभुज p और शीर्ष S वाला पिरामिड</td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1">
+                                <i data-t="Section"></i>
+                                <strong>अनुप्रस्थकाट</strong><br /><small
+                                    >Section</small
+                                >
+                            </td>
+                            <td class="syntax">
+                                <code>अनुप्रस्थकाट(s, p)</code>
+                            </td>
+                            <td>
+                                समतल p द्वारा ठोस s का अनुप्रस्थ काट: वृत्त
+                                (गोला), शांकव (बेलन, शंकु) या बहुभुज (बहुफलक)
+                            </td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1">
+                                <i data-t="Net"></i> <strong>जाल</strong
+                                ><br /><small>Net</small>
+                            </td>
+                            <td class="syntax"><code>जाल(c, f)</code></td>
+                            <td>
+                                घन, प्रिज़्म या पिरामिड का जाल, f तक खुला हुआ
+                                (0: मुड़ा हुआ, 1: समतल)
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <h2>संख्याएँ और सूचियाँ</h2>
+            <div class="table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>कमांड</th>
+                            <th>रूप</th>
+                            <th>परिणाम</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td rowspan="1">
+                                <strong>स्लाइडर</strong><br /><small
+                                    >Slider</small
+                                >
+                            </td>
+                            <td class="syntax">
+                                <code>स्लाइडर(min, max, मान)</code>
+                            </td>
+                            <td>
+                                दो सीमाओं (संख्याएँ, व्यंजक या सूत्र) के बीच
+                                स्लाइडर
+                            </td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1">
+                                <strong>सूची</strong><br /><small>List</small>
+                            </td>
+                            <td class="syntax"><code>सूची(e)</code></td>
+                            <td>
+                                व्यंजक e के मान, यानी बिन्दुओं की एक सूची, के
+                                बिन्दु खींचता है
+                            </td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1"><strong>व्यंजक</strong></td>
+                            <td class="syntax"><code>a = 3</code></td>
+                            <td>
+                                संख्या, पाठ, फलन या सूत्र (देखें
+                                <a href="expressions.html">व्यंजक</a>)
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <h2>सूत्रों के फलन</h2>
+            <p>
+                <code>d</code>, <code>x</code>, <code>sqrt</code>,
+                <code>sin</code>… कोई ऑब्जेक्ट बनाए बिना गणना करते हैं: देखें
+                <a href="formules.html#fonctions">सूत्र और प्रोग्राम</a>।
+            </p>
+        </main>
+    </body>
+</html>

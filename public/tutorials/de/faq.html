@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="de">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <title>Häufige Fragen — DocGeo-Handbuch</title>
+        <link rel="icon" type="image/svg+xml" href="../../favicon.svg" />
+        <link rel="stylesheet" href="../manual.css" />
+        <script src="../icons.js" defer></script>
+        <script src="../manual.js" defer></script>
+    </head>
+    <body>
+        <main>
+            <h1>Häufige Fragen</h1>
+
+            <h2>Konstruktion</h2>
+            <h3>Der Klick erzeugt einen Punkt, statt den Ring zu öffnen</h3>
+            <p>
+                Der Klick hat das Objekt verfehlt. <kbd>Strg</kbd> <kbd>Z</kbd>,
+                dann genau auf die Linie zielen. Nahe einem Schnitt erzeugt der
+                Klick den Schnittpunkt.
+            </p>
+            <h3>Das Werkzeug bleibt aktiv</h3>
+            <p>
+                Die Werkzeuge des Menüs bleiben aktiv: <strong>Fertig</strong>,
+                <kbd>Esc</kbd> oder <strong>✕</strong> beenden sie.
+            </p>
+            <h3>Der Klick konstruiert nichts</h3>
+            <p>
+                Ein Modus ist aktiv: Radierer (<i data-i="eraser"></i> blau),
+                Schritt für Schritt, Magnete oder Eigenschaftenfeld ohne
+                Werkzeug. <kbd>Esc</kbd> beendet ihn.
+            </p>
+            <h3><code>(2,5, 1)</code> ergibt einen Punkt im Raum</h3>
+            <p>Das Dezimaltrennzeichen ist der Punkt: <code>(2.5, 1)</code>.</p>
+            <h3><code>L = [1, 2, 3]</code> wird abgelehnt</h3>
+            <p>
+                Ein großgeschriebener Name ergibt einen Punkt, hier im Raum.
+                <code>liste = [1, 2, 3]</code> schreiben.
+            </p>
+            <h3><code>pi</code> ist ein unbekanntes Objekt</h3>
+            <p><code>PI</code> oder <code>π</code> schreiben.</p>
+            <h3>Ein Objekt lässt sich nicht x oder y nennen</h3>
+            <p>
+                Am Zeilenanfang leiten sie eine Gleichung ein (<code
+                    >y = 2x + 1</code
+                >).
+            </p>
+            <h3>Ein Vieleck abbilden</h3>
+            <p>
+                Die Abbildungen wirken auf Punkte: die Ecken abbilden, dann
+                <strong>Vieleck</strong> auf die Bilder anwenden
+                (Mehrfachauswahl, dann das Werkzeug).
+            </p>
+            <h3>Den Radius eines mit einem Klick erzeugten Kreises ändern</h3>
+            <p>
+                Den Kreis ziehen oder seine Zeile bearbeiten (<code
+                    >Kreis(O, r)</code
+                >
+                mit einer Zahl, einem Schieberegler oder einer Formel).
+            </p>
+            <h3>Das Löschen eines Punktes hat andere Objekte entfernt</h3>
+            <p>
+                Die abhängigen Objekte werden mit ihm gelöscht. Rückgängig
+                machen und den Punkt ausblenden, statt ihn zu löschen.
+            </p>
+
+            <h2>3D und Ansicht</h2>
+            <h3>„3D-Ansicht“ kehrt nicht zur Ebene zurück</h3>
+            <p>
+                Ein Objekt verlässt die Ebene <em>z</em> = 0; der Hinweis nennt
+                es.
+            </p>
+            <h3>Mit der Maus drehen</h3>
+            <p>Rechte Maustaste; die linke verschiebt die Ansicht.</p>
+            <h3>Auf dem Tablet zoomen</h3>
+            <p>Das Zoomen mit zwei Fingern wird noch nicht unterstützt.</p>
+            <h3>Die Spuren sind verschwunden</h3>
+            <p>
+                Sie werden bei jedem Verschieben oder Zoomen der Ansicht
+                gelöscht.
+            </p>
+
+            <h2>Dateien</h2>
+            <h3>Eine über <code>?url=</code> geöffnete Figur lädt nicht</h3>
+            <p>
+                Der Server muss das Lesen von einer anderen Website erlauben
+                (<code>Access-Control-Allow-Origin</code>). Die Endung muss
+                <code>.ggb</code> oder <code>.dgo</code> sein; alles andere wird
+                als DGPad gelesen.
+            </p>
+            <h3>Unvollständiger Import</h3>
+            <p>
+                Die aufgelisteten Elemente werden nicht unterstützt (<a
+                    href="formats.html"
+                    >Import aus DGPad und GeoGebra</a
+                >); der Rest der Figur funktioniert und lässt sich speichern.
+            </p>
+        </main>
+    </body>
+</html>

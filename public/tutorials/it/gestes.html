@@ -1,0 +1,200 @@
+<!doctype html>
+<html lang="it">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <title>Con i gesti — Manuale di DocGeo</title>
+        <link rel="icon" type="image/svg+xml" href="../../favicon.svg" />
+        <link rel="stylesheet" href="../manual.css" />
+        <script src="../icons.js" defer></script>
+        <script src="../manual.js" defer></script>
+    </head>
+    <body>
+        <main>
+            <h1>Costruire con i gesti</h1>
+
+            <h2>Toccare la figura</h2>
+            <div class="table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Punto toccato</th>
+                            <th>Risultato</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>uno spazio vuoto</td>
+                            <td>
+                                punto libero (sul pavimento <em>z</em> = 0 in
+                                3D)
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>vicino a un incrocio</td>
+                            <td>
+                                intersezione dei due oggetti, che brillano al
+                                passaggio del puntatore (entro 24 px)
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>un oggetto</td>
+                            <td>selezione e anello dei suoi strumenti</td>
+                        </tr>
+                        <tr>
+                            <td>uno spazio vuoto, con l’anello aperto</td>
+                            <td>chiusura dell’anello, senza creare punti</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <p>
+                Un testo, un’espressione o uno slider vengono solo selezionati:
+                non hanno anello.
+            </p>
+
+            <h2>L’anello degli strumenti</h2>
+            <figure>
+                <img
+                    src="img/editeur-anneau.webp"
+                    alt="Anello degli strumenti attorno al punto C, strumento Segmento sotto il puntatore"
+                    width="880"
+                    height="720"
+                />
+                <figcaption>
+                    Anello del punto C; il suggerimento mostra la riga dello
+                    strumento sotto il puntatore.
+                </figcaption>
+            </figure>
+            <p>
+                L’anello mostra solo gli strumenti applicabili all’oggetto
+                toccato. Ogni strumento occupa sempre lo stesso posto; uno
+                strumento non applicabile lascia il suo posto vuoto. Famiglie,
+                in senso orario dall’alto:
+            </p>
+            <div class="table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Famiglia</th>
+                            <th>Strumenti</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><i data-t="Point"></i> Punti</td>
+                            <td>
+                                punto su oggetto, intersezione, punto medio o
+                                centro
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><i data-t="Segment"></i> Rette</td>
+                            <td>segmento, retta, semiretta, vettore</td>
+                        </tr>
+                        <tr>
+                            <td><i data-t="Perpendicular"></i> Costruzioni</td>
+                            <td>
+                                perpendicolare, parallela, asse del segmento,
+                                bisettrice
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <i data-t="Circle (centre and point)"></i>
+                                Circonferenze
+                            </td>
+                            <td>
+                                centro e punto, centro e raggio, tre punti,
+                                sfera (3D)
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <i data-t="Polygon"></i> Poligoni, angoli,
+                                luoghi
+                            </td>
+                            <td>poligono, angolo, luogo</td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <i data-t="Point reflection"></i>
+                                Trasformazioni
+                            </td>
+                            <td>simmetrie centrale e assiale</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <p>
+                Passare con il puntatore su uno strumento mostra nel
+                suggerimento la riga che scriverà e l’argomento atteso:
+                <code>b = Segmento(C, …)</code>, «Seleziona un punto». Le azioni
+                sull’oggetto stesso (eliminare, impostare…) sono nella
+                <a href="objets.html#la-zone-contextuelle">zona contestuale</a>
+                della barra.
+            </p>
+
+            <h2>Selezionare gli argomenti</h2>
+            <p>
+                Scelto lo strumento, un’anteprima dell’oggetto segue il
+                puntatore e gli oggetti accettati brillano al passaggio. Dove è
+                atteso un punto, si seleziona a scelta un punto esistente, un
+                oggetto (viene creato un punto su oggetto), un incrocio (viene
+                creata un’intersezione) o uno spazio vuoto (viene creato un
+                punto libero).
+            </p>
+            <ul>
+                <li>
+                    <i data-t="Polygon"></i> Poligono: i vertici, poi di nuovo
+                    il primo.
+                </li>
+                <li>
+                    <i data-t="Circle (centre and radius)"></i> Circonferenza
+                    (centro e raggio): creata con un clic, raggio di circa 150
+                    px arrotondato a due cifre; trascinare la circonferenza
+                    cambia il raggio.
+                </li>
+                <li>
+                    <i data-t="Locus"></i> Luogo: proposto su un punto che
+                    dipende da un punto su oggetto; creato con un clic.
+                </li>
+                <li>
+                    <i data-t="Angle"></i> Angolo e
+                    <i data-t="AngleBisector"></i> bisettrice: un punto del
+                    primo lato, il vertice, un punto del secondo lato.
+                </li>
+            </ul>
+
+            <h2>Casi particolari</h2>
+            <ul>
+                <li>
+                    <strong>Oggetti sovrapposti</strong>: un menu dà la riga di
+                    ciascuno; passandoci sopra l’oggetto brilla. Un punto ha
+                    sempre la precedenza, e un incrocio dà direttamente
+                    l’intersezione.
+                </li>
+                <li>
+                    <strong>Con il dito</strong>: durante uno strumento, il dito
+                    appoggiato mostra l’anteprima senza spostare nulla e
+                    seleziona al sollevamento. Si può premere l’icona e
+                    scivolare fino al bersaglio con un solo gesto.
+                </li>
+                <li>
+                    <strong>Bordo della finestra</strong>: l’anello si sposta
+                    per restare intero, collegato all’oggetto da una linea
+                    tratteggiata; segue l’oggetto se la figura si muove.
+                </li>
+                <li>
+                    <strong>Abbandonare</strong>: <kbd>Esc</kbd> o la
+                    <strong>✕</strong> del suggerimento.
+                </li>
+                <li>
+                    <strong>Spostare</strong>: durante uno strumento, trascinare
+                    serve a mirare; il tasto destro sposta sempre oggetti e
+                    vista.
+                </li>
+            </ul>
+        </main>
+    </body>
+</html>

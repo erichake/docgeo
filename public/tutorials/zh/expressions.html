@@ -1,0 +1,139 @@
+<!doctype html>
+<html lang="zh">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <title>表达式与滑动条 — DocGeo 手册</title>
+        <link rel="icon" type="image/svg+xml" href="../../favicon.svg" />
+        <link rel="stylesheet" href="../manual.css" />
+        <script src="../icons.js" defer></script>
+        <script src="../manual.js" defer></script>
+    </head>
+    <body>
+        <main>
+            <h1>表达式与滑动条</h1>
+
+            <h2>表达式</h2>
+            <p>
+                凡是既不是点也不是命令的行，都会创建一个表达式，显示在左上角，保留两位小数。其类型由文本决定：
+            </p>
+            <div class="table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>行</th>
+                            <th>类型</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>
+                                <code>a = 3</code>、<code
+                                    >list = [1, 2, 3]</code
+                                >
+                            </td>
+                            <td>常量</td>
+                        </tr>
+                        <tr>
+                            <td><code>t = "你好"</code></td>
+                            <td>文本</td>
+                        </tr>
+                        <tr>
+                            <td><code>f = 0.5x^2 - 4</code></td>
+                            <td>
+                                x（y、z、t）的函数；<code>f(2)</code> 调用它
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><code>E = d(A, B)</code></td>
+                            <td>度量值，图形移动时重新计算</td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <code
+                                    >u = "AB = " + round(d(A, B)*100)/100</code
+                                >
+                            </td>
+                            <td>计算出的文本</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <p>
+                在公式中，点代表其坐标，线段代表其长度，圆代表其半径，多边形代表其面积，角代表其度数。完整语法：<a
+                    href="formules.html"
+                    >公式与程序</a
+                >。
+            </p>
+            <p>
+                拖动表达式的文本可以移动它；附着在点上的表达式会跟随该点。点按表达式会选中它，在输入时则写入其名称。
+            </p>
+
+            <h2>滑动条</h2>
+            <p>
+                <code>r = 滑动条(0, 5, 2)</code>：从 0 到 5，值为
+                2。界限可以是表达式或公式（<code>滑动条(0, d(A, B), 1)</code
+                >）。增量、长度、方向、滑块和动画在<a
+                    href="proprietes.html#curseurs"
+                    >属性</a
+                >中设置。<code>r = 5</code> 会把它重新变为常量。
+            </p>
+
+            <h2>计算点</h2>
+            <ul>
+                <li><code>M = (x(B) + 1, y(A))</code>：坐标由公式给出。</li>
+                <li><code>N = 点(2*B - A)</code>：值为点的公式。</li>
+            </ul>
+            <p>
+                当<code>name = formula</code
+                >这一行的值是一个点或点列表时，行尾的按钮会提供<i
+                    data-i="formula_point"
+                ></i
+                >点、<i data-i="points_list"></i>点列表、<i
+                    data-i="segments_list"
+                ></i
+                >线段列表或<i data-i="as_expression"></i
+                >表达式。<kbd>Enter</kbd>选择高亮的按钮：名称为大写时为点或列表，否则为表达式。因此要写<code
+                    >list = [1, 2, 3]</code
+                >而不是<code>L = [1, 2, 3]</code>，后者会被当作空间中的点。
+            </p>
+
+            <h2>点列表</h2>
+            <p>
+                <code>q = 列表(pts)</code>
+                画出表达式<code>pts</code>中的点；未定义的点会使连线断开。选中一个值为点列表的表达式时，上下文区也会提供<i
+                    data-i="points_list"
+                ></i
+                >和<i data-i="segments_list"></i>（值为点时提供<i
+                    data-i="formula_point"
+                ></i
+                >）：写出相应的行并隐藏该表达式。
+            </p>
+
+            <h2 id="les-programmes">程序</h2>
+            <p>
+                表达式可以是一个程序：语句之间用<code>;</code>分隔，最后一条给出值；程序可以设置其他对象的样式（<code>S1.setHidden(1)</code>）。语言：<a
+                    href="formules.html#programmes"
+                    >公式与程序</a
+                >。
+            </p>
+            <ul>
+                <li>
+                    <i data-i="new_program"></i
+                    >（“作图”面板标题栏）打开一个空的编辑器；<strong>创建</strong>或<kbd
+                        >Ctrl</kbd
+                    >
+                    <kbd>Enter</kbd> 创建该表达式。
+                </li>
+                <li>
+                    对于已有的表达式，属性中的<strong>定义</strong>部分可多行编辑其文本：<kbd>Enter</kbd>保持缩进，<kbd>Tab</kbd>增加缩进，<kbd>}</kbd>减少缩进，<kbd
+                        >Ctrl</kbd
+                    >
+                    <kbd>Enter</kbd
+                    >应用，<kbd>Esc</kbd>还原，<strong>格式化</strong>按花括号缩进。
+                </li>
+                <li>出错时会选中出错的行或未配对的分隔符。</li>
+            </ul>
+        </main>
+    </body>
+</html>

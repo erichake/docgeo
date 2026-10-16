@@ -1,0 +1,341 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <title>الصيغ والبرامج — دليل DocGeo</title>
+        <link rel="icon" type="image/svg+xml" href="../../favicon.svg" />
+        <link rel="stylesheet" href="../manual.css" />
+        <script src="../icons.js" defer></script>
+        <script src="../manual.js" defer></script>
+    </head>
+    <body>
+        <main>
+            <h1>الصيغ والبرامج</h1>
+
+            <p class="lead">
+                لغة التعابير هي لغة DGPad. يفسّرها DocGeo بنفسه: لا تُنفَّذ
+                أبدًا على أنها JavaScript.
+            </p>
+
+            <h2>القيم</h2>
+            <div class="table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>الكتابة</th>
+                            <th>القيمة</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>
+                                <code>3</code>، <code>-2.5</code>،
+                                <code>.5</code>، <code>2e3</code>
+                            </td>
+                            <td>أعداد (الفاصل العشري نقطة)</td>
+                        </tr>
+                        <tr>
+                            <td><code>PI</code>، <code>π</code></td>
+                            <td>π (<code>pi</code> غير معروف)</td>
+                        </tr>
+                        <tr>
+                            <td><code>1 + 2i</code></td>
+                            <td>عدد مركّب</td>
+                        </tr>
+                        <tr>
+                            <td><code>"نص"</code></td>
+                            <td>نص؛ و<code>+</code> يضمّ النصوص</td>
+                        </tr>
+                        <tr>
+                            <td><code>[1, 2, 3]</code></td>
+                            <td>
+                                قائمة؛ <code>[x, y]</code>،
+                                <code>[x, y, z]</code>: نقطة أو متجه
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><code>A</code></td>
+                            <td>
+                                النقطة: الإحداثيات؛ القطعة: الطول؛ الدائرة: نصف
+                                القطر؛ المضلع: المساحة؛ الزاوية: القياس
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <code>x</code>، <code>y</code>، <code>z</code>،
+                                <code>t</code>
+                            </td>
+                            <td>متغيرات دالة</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <p>
+                في المستوى، النقطة عدد مركّب: <code>(A + B)/2</code> هو المنتصف،
+                و<code>2*B - A</code> مماثل A بالنسبة إلى B.
+            </p>
+
+            <h2>العوامل</h2>
+            <div class="table">
+                <table>
+                    <tbody>
+                        <tr>
+                            <td><code>+ - * / ^ %</code></td>
+                            <td>العمليات، الأس، باقي القسمة</td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <code>2x</code>، <code>2π</code>،
+                                <code>3(x + 1)</code>
+                            </td>
+                            <td>ضرب ضمني</td>
+                        </tr>
+                        <tr>
+                            <td><code>== != &lt; &lt;= &gt; &gt;=</code></td>
+                            <td>
+                                مقارنات قيمتها 1 أو 0؛ و<code>==</code> يتسامح
+                                مع أخطاء التقريب
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><code>&amp;&amp; || !</code></td>
+                            <td>و، أو، نفي</td>
+                        </tr>
+                        <tr>
+                            <td><code>test ? a : b</code></td>
+                            <td>شرط</td>
+                        </tr>
+                        <tr>
+                            <td><code>L[0]</code>، <code>A[1]</code></td>
+                            <td>عنصر، إحداثي (بدءًا من 0)</td>
+                        </tr>
+                        <tr>
+                            <td><code>L.length</code></td>
+                            <td>طول قائمة</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <h2 id="fonctions">الدوال</h2>
+            <div class="table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>الدالة</th>
+                            <th>القيمة</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>
+                                <code>d(A, B)</code>،
+                                <code>distance(A, B)</code>
+                            </td>
+                            <td>المسافة (في الفضاء في الأبعاد الثلاثة)</td>
+                        </tr>
+                        <tr>
+                            <td><code>x(A)</code>، <code>y(A)</code></td>
+                            <td>الإحداثيات</td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <code>Angle360(A, O, B)</code>،
+                                <code>Angle180(A, O, B)</code>
+                            </td>
+                            <td>
+                                الزاوية الموجهة من [OA) إلى [OB)؛ الزاوية
+                                الهندسية AOB
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <code>sqrt</code>، <code>abs</code>،
+                                <code>exp</code>، <code>log</code>
+                            </td>
+                            <td>
+                                الجذر التربيعي، القيمة المطلقة، الدالة الأسية،
+                                اللوغاريتم الطبيعي
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <code>sin</code>، <code>cos</code>،
+                                <code>tan</code>، <code>asin</code>،
+                                <code>acos</code>، <code>atan</code>،
+                                <code>atan2(y, x)</code>
+                            </td>
+                            <td>
+                                بالدرجات أو بالراديان حسب إعداد
+                                <strong>الزوايا</strong> في الشكل (الدرجات
+                                افتراضيًا)
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <code>floor</code>، <code>ceil</code>،
+                                <code>round</code>
+                            </td>
+                            <td>التقريب</td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <code>min(…)</code>، <code>max(…)</code>،
+                                <code>gcd(a, b)</code>، <code>isNaN(a)</code>
+                            </td>
+                            <td>
+                                الأصغر، الأكبر، القاسم المشترك الأكبر، اختبار
+                                قيمة غير معرّفة
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <code>arg</code>، <code>mod</code>،
+                                <code>conj</code>
+                            </td>
+                            <td>العمدة، الطويلة، المرافق</td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <code>dot(u, v)</code>،
+                                <code>cross(u, v)</code>،
+                                <code>unitVector(u)</code>، <code>perp(u)</code>
+                            </td>
+                            <td>
+                                الجداء السلمي والجداء المتجهي، متجه الوحدة، متجه
+                                وحدة عمودي
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <code>pixel()</code>، <code>windoww()</code>،
+                                <code>windowh()</code>، <code>windowcx()</code>،
+                                <code>windowcy()</code>
+                            </td>
+                            <td>
+                                البكسلات لكل وحدة؛ حجم النافذة ومركزها بالوحدات
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><code>theta()</code>، <code>phi()</code></td>
+                            <td>زاويتا الكاميرا ثلاثية الأبعاد</td>
+                        </tr>
+                        <tr>
+                            <td><code>f(2)</code></td>
+                            <td>استدعاء تعبير هو دالة في x</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <h2 id="programmes">البرامج</h2>
+            <p>
+                تعليمات يفصل بينها <code>;</code> أو فواصل الأسطر؛ وآخرها يعطي
+                القيمة.
+            </p>
+            <div class="table">
+                <table>
+                    <tbody>
+                        <tr>
+                            <td>المتغيرات</td>
+                            <td>
+                                <code>var s = 0</code> (<code>let</code>،
+                                <code>const</code>)؛ <code>s += 2</code>،
+                                <code>-=</code>، <code>*=</code>،
+                                <code>/=</code>، <code>L[2] = 5</code>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>الشروط</td>
+                            <td><code>if (a &gt; 0) { … } else { … }</code></td>
+                        </tr>
+                        <tr>
+                            <td>الحلقات</td>
+                            <td>
+                                <code
+                                    >for (var k = 0; k &lt; 10; k++) { … }</code
+                                >، <code>while (…) { … }</code>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>الدوال</td>
+                            <td>
+                                <code>function square(u) { return u*u }</code>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>القوائم</td>
+                            <td>
+                                <code>L.push(P)</code>، <code>L.pop()</code>،
+                                <code>L.concat(M)</code>،
+                                <code>L.join(", ")</code>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <p>
+                تحجب متغيرات البرنامج العناصر التي تحمل الاسم نفسه. وتُقطع
+                الحلقة التي لا تنتهي.
+            </p>
+            <h3>طرائق العناصر</h3>
+            <div class="table">
+                <table>
+                    <tbody>
+                        <tr>
+                            <td>
+                                <code>S.setHidden(1)</code>،
+                                <code>S.setShowName(1)</code>
+                            </td>
+                            <td>إخفاء، إظهار الاسم (0: العكس)</td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <code>S.setRGBColor(r, g, b)</code>،
+                                <code>S.setOpacity(o)</code>،
+                                <code>S.setSize(t)</code>
+                            </td>
+                            <td>
+                                اللون (من 0 إلى 255)، العتامة (من 0 إلى 1)،
+                                الحجم أو السمك
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <code>a.setPrecision(n)</code>،
+                                <code>a.setIncrement(p)</code>
+                            </td>
+                            <td>الأرقام العشرية، خطوة منزلقة</td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <code>P.getX()</code>، <code>P.getY()</code>،
+                                <code>P.coords3D()</code>،
+                                <code>P.coords2D()</code>
+                            </td>
+                            <td>الإحداثيات؛ الإحداثيات على الشاشة</td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <code>S.getName()</code>،
+                                <code>c.center()</code>
+                            </td>
+                            <td>الاسم، مركز دائرة</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <pre><code>if (a &lt; 0) {
+    p.setRGBColor(220, 38, 38)
+} else {
+    p.setRGBColor(37, 99, 235)
+};
+"a = " + a</code></pre>
+            <p>
+                البرنامج أصلٌ للعناصر التي ينسّقها: يُعاد حسابه مع الشكل، وتُرفض
+                إعادة التعريف التي تنشئ حلقة دائرية.
+            </p>
+        </main>
+    </body>
+</html>

@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="de">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <title>Magnete, Reißzwecke und Feder — DocGeo-Handbuch</title>
+        <link rel="icon" type="image/svg+xml" href="../../favicon.svg" />
+        <link rel="stylesheet" href="../manual.css" />
+        <script src="../icons.js" defer></script>
+        <script src="../manual.js" defer></script>
+    </head>
+    <body>
+        <main>
+            <h1>Magnete, Reißzwecke und Feder</h1>
+
+            <h2 id="aimants">Magnete</h2>
+            <p>
+                Ein magnetischer freier Punkt haftet an den gewählten Objekten,
+                wenn man ihn in ihre Nähe zieht, ohne an sie gebunden zu sein.
+            </p>
+            <figure>
+                <img
+                    src="img/editeur-aimants.webp"
+                    alt="Modus Magnete: Kreis und Punkt A ziehen P an"
+                    width="880"
+                    height="720"
+                />
+            </figure>
+            <ol>
+                <li>
+                    Den freien Punkt auswählen, dann <i data-i="magnet"></i>
+                    <strong>Magnete</strong>. Der Rest der Figur liegt unter
+                    einem Schleier.
+                </li>
+                <li>
+                    Jedes anziehende Objekt antippen (Punkt, Gerade, Kreis,
+                    Kegelschnitt, Kurve, Liste): Es wird rot, Anfangsanziehung
+                    20 px. Der Punkt und seine abhängigen Objekte sind
+                    ausgeschlossen.
+                </li>
+                <li>
+                    Die Anziehung des gewählten Magneten mit dem Schieberegler
+                    seiner Karte einstellen: <strong>Keine</strong> (entfernt
+                    den Magneten), 1 bis 1000 px, <strong>Überall</strong>. Die
+                    Anziehungszone jedes Magneten ist blassrot gezeichnet.
+                </li>
+                <li>
+                    Mit Antippen einer leeren Stelle,
+                    <strong>Fertig</strong> oder <kbd>Esc</kbd> beenden.
+                </li>
+            </ol>
+            <p>
+                Der Punkt lässt sich während der Einstellung zum Ausprobieren
+                ziehen. Jede Einstellung ist ein Rückgängig-Schritt.
+            </p>
+
+            <h2 id="punaise">Reißzwecke</h2>
+            <p>
+                <i data-i="pin"></i> <strong>Am Bildschirm fixieren</strong>
+                (freier Punkt, ebene Figur): Der Punkt behält beim Zoomen oder
+                Verschieben der Ansicht seinen Platz im Fenster, nicht seine
+                Koordinaten. Er bleibt verschiebbar. Zweites Drücken: aufheben.
+            </p>
+
+            <h2 id="ressort">Feder</h2>
+            <p>
+                <i data-i="spring"></i> <strong>Animieren</strong> (Punkt auf
+                Gerade, Strecke, Strahl, Kreis, Bogen, Vieleck, Kegelschnitt
+                oder Ortslinie) lässt unter dem Punkt eine Feder mit einer Kugel
+                am Ende erscheinen.
+            </p>
+            <ul>
+                <li>
+                    Die Kugel ziehen und loslassen startet den Punkt; während
+                    des Ziehens zeigt ein Schatten des Punktes bereits die
+                    Bewegung.
+                </li>
+                <li>
+                    <strong>Länge</strong>: Geschwindigkeit, in angezeigten
+                    Stufen (px/s auf einer Geraden, einem Vieleck oder einem
+                    Kegelschnitt; °/s auf einem Kreis; % auf einer Ortslinie).
+                </li>
+                <li>
+                    <strong>Seite</strong>: Richtung; der Punkt läuft entgegen
+                    der Zugrichtung.
+                </li>
+                <li>
+                    <strong>Quer</strong> zu einer Geraden (mehr als 45°): hin
+                    und her. Sonst läuft der Punkt im Kreis.
+                </li>
+                <li>Unterhalb der ersten Stufe: Stopp.</li>
+            </ul>
+            <p>
+                Bei einem bereits animierten Punkt erscheint die Feder gespannt
+                auf die aktuelle Geschwindigkeit. Zweites Drücken auf
+                <i data-i="spring"></i>: Die Feder wird weggeräumt. Genaue
+                Geschwindigkeit, umgekehrte Richtung, Anhalten am Ende:
+                Abschnitt <a href="proprietes.html#animation">Animation</a> der
+                Eigenschaften, der auch Schieberegler animiert.
+            </p>
+        </main>
+    </body>
+</html>

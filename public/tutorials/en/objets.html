@@ -1,0 +1,211 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <title>Managing objects — DocGeo manual</title>
+        <link rel="icon" type="image/svg+xml" href="../../favicon.svg" />
+        <link rel="stylesheet" href="../manual.css" />
+        <script src="../icons.js" defer></script>
+        <script src="../manual.js" defer></script>
+    </head>
+    <body>
+        <main>
+            <h1>Managing objects</h1>
+
+            <h2 id="la-zone-contextuelle">Selection and context area</h2>
+            <p>
+                Touching an object selects it; the context area, in the middle
+                of the bar, shows its name and its actions. Hovering an action
+                shows its effect in the prompt. <kbd>Esc</kbd> or a touch on an
+                empty spot deselects.
+            </p>
+            <div class="table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th></th>
+                            <th>Action</th>
+                            <th>Objects</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><i data-i="delete"></i></td>
+                            <td>Delete, with the dependents</td>
+                            <td>all</td>
+                        </tr>
+                        <tr>
+                            <td><i data-i="settings"></i></td>
+                            <td>Settings: properties panel</td>
+                            <td>all</td>
+                        </tr>
+                        <tr>
+                            <td><i data-i="spring"></i></td>
+                            <td>
+                                <a href="points-dynamiques.html#ressort"
+                                    >Animate</a
+                                >
+                                with the spring
+                            </td>
+                            <td>point on object</td>
+                        </tr>
+                        <tr>
+                            <td><i data-i="pin"></i></td>
+                            <td>
+                                <a href="points-dynamiques.html#punaise"
+                                    >Pin to the screen</a
+                                >
+                            </td>
+                            <td>free point, plane figure</td>
+                        </tr>
+                        <tr>
+                            <td><i data-i="magnet"></i></td>
+                            <td>
+                                <a href="points-dynamiques.html#aimants"
+                                    >Magnets</a
+                                >
+                            </td>
+                            <td>free point</td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <i data-i="formula_point"></i>
+                                <i data-i="points_list"></i>
+                                <i data-i="segments_list"></i>
+                            </td>
+                            <td>Point, List of points, List of segments</td>
+                            <td>expression whose value is a point or a list</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <h2 id="selectionner-plusieurs-objets">Multiple selection</h2>
+            <p>
+                <kbd>Ctrl</kbd>-click, <kbd>Shift</kbd>-click or long press (0.7
+                s) add or remove an object; each one glows blue with its rank.
+                The bar then offers Delete and Settings (<a
+                    href="proprietes.html#regler-plusieurs-objets"
+                    >shared settings</a
+                >), and the tools menu
+                <a href="menu-outils.html#avec-une-selection"
+                    >takes the selection as arguments</a
+                >. A simple touch, <kbd>Esc</kbd>, a tool, the eraser, undo or
+                redo clear it.
+            </p>
+
+            <h2 id="supprimer">Deleting</h2>
+            <p>
+                <i data-i="delete"></i>, <kbd>Delete</kbd> or <kbd>⌫</kbd>, or
+                the line <code>A =</code>. The dependents are deleted too: to
+                keep them, hide the object instead.
+            </p>
+
+            <h2>Hiding and showing</h2>
+            <ul>
+                <li>
+                    The dot of a line of the “Construction” panel is filled if
+                    the object is visible, empty if it is hidden; touching it
+                    toggles.
+                </li>
+                <li id="la-gomme">
+                    <i data-i="eraser"></i> <strong>Eraser</strong>: each touch
+                    hides or shows an object; hidden objects appear as ghosts.
+                    No ring and no point creation; dragging still moves.
+                    <kbd>Esc</kbd> or the button leave it.
+                </li>
+                <li>
+                    Properties: <strong>Visible object</strong> checkbox; the
+                    “Choose an object…” list finds hidden objects.
+                </li>
+                <li>
+                    Internal objects of DGPad macros and auxiliary objects of
+                    GeoGebra have neither dot nor ghost.
+                </li>
+            </ul>
+
+            <h2>Names</h2>
+            <ul>
+                <li>
+                    Only points show their name when created.
+                    <i data-i="show_name"></i> at the end of the line, or
+                    <strong>Show name</strong> in the properties, shows it for
+                    other objects.
+                </li>
+                <li>
+                    A name can be dragged around its object (at most 80 px from
+                    a point) and then keeps its relative place when the object
+                    changes.
+                </li>
+                <li>
+                    Touching a name without dragging it makes it editable in
+                    place: <kbd>Enter</kbd> or a touch elsewhere confirm,
+                    <kbd>Esc</kbd> cancels, <i data-i="hide_name"></i> hides it.
+                    An empty or taken name is refused.
+                </li>
+            </ul>
+
+            <h2>Angle marks</h2>
+            <p>
+                The arc of an angle, or its right angle mark, can be dragged to
+                change its radius (5 to 200 px).
+            </p>
+
+            <h2 id="les-valeurs">Values</h2>
+            <p>
+                <i data-i="show_values"></i> writes under each line the value of
+                the object in a formula: coordinates, length, radius, area,
+                angle measure in degrees, value of an expression. The values
+                follow the moves.
+            </p>
+
+            <h2 id="la-construction-pas-a-pas">Step by step</h2>
+            <p>
+                <i data-i="steps"></i> replays the construction: each visible
+                object is a step, a hidden object joins the previous step. A bar
+                replaces the input:
+            </p>
+            <div class="table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Button</th>
+                            <th>Key</th>
+                            <th>Effect</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>
+                                <i data-i="first_step"></i>
+                                <i data-i="last_step"></i>
+                            </td>
+                            <td><kbd>Home</kbd> <kbd>End</kbd></td>
+                            <td>first, last step</td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <i data-i="previous_step"></i>
+                                <i data-i="next_step"></i>
+                            </td>
+                            <td><kbd>←</kbd> <kbd>→</kbd></td>
+                            <td>previous, next step</td>
+                        </tr>
+                        <tr>
+                            <td><i data-i="play_steps"></i></td>
+                            <td></td>
+                            <td>play, one step per second</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <p>
+                Touching a line goes to its step. Points can still be moved,
+                nothing is built. <kbd>Esc</kbd>, the button, a tool, the
+                eraser, the properties or undo leave it. The saved figure is not
+                affected.
+            </p>
+        </main>
+    </body>
+</html>

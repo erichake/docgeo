@@ -1,0 +1,214 @@
+<!doctype html>
+<html lang="el">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <title>Το περιβάλλον εργασίας — Εγχειρίδιο DocGeo</title>
+        <link rel="icon" type="image/svg+xml" href="../../favicon.svg" />
+        <link rel="stylesheet" href="../manual.css" />
+        <script src="../icons.js" defer></script>
+        <script src="../manual.js" defer></script>
+    </head>
+    <body>
+        <main>
+            <h1>Το περιβάλλον εργασίας</h1>
+
+            <figure>
+                <img
+                    src="img/editeur-interface.webp"
+                    alt="Ο επεξεργαστής: γραμμή ενεργειών, πλαίσιο Κατασκευή και σχήμα"
+                    width="1200"
+                    height="720"
+                />
+            </figure>
+
+            <h2>Η γραμμή ενεργειών</h2>
+            <div class="table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th></th>
+                            <th>Κουμπί</th>
+                            <th>Ρόλος</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><i data-i="open"></i></td>
+                            <td>Άνοιγμα</td>
+                            <td>
+                                <code>.dgo</code>, <code>.dgp</code>,
+                                <code>.ggb</code>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><i data-i="save"></i></td>
+                            <td>Αποθήκευση</td>
+                            <td>σε <code>.dgo</code></td>
+                        </tr>
+                        <tr>
+                            <td><i data-i="eraser"></i></td>
+                            <td>Γόμα</td>
+                            <td>
+                                απόκρυψη ή εμφάνιση αντικειμένων (<a
+                                    href="objets.html#la-gomme"
+                                    >γόμα</a
+                                >)
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><i data-i="axes"></i></td>
+                            <td>Σύστημα αξόνων</td>
+                            <td>
+                                άξονες και πλέγμα· σε 3D, τρίεδρο και δάπεδο
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><i data-i="space"></i></td>
+                            <td>Προβολή 3D</td>
+                            <td>
+                                μετάβαση στον χώρο ή επιστροφή στο επίπεδο (<a
+                                    href="3d.html"
+                                    >3D</a
+                                >)
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><i data-i="properties"></i></td>
+                            <td>Ιδιότητες</td>
+                            <td>
+                                δεξί πλαίσιο (<a href="proprietes.html"
+                                    >ιδιότητες</a
+                                >)
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><i data-i="history"></i></td>
+                            <td>Κατασκευή</td>
+                            <td>αριστερό πλαίσιο</td>
+                        </tr>
+                        <tr>
+                            <td><i data-i="undo"></i> <i data-i="redo"></i></td>
+                            <td>Αναίρεση, Ακύρωση αναίρεσης</td>
+                            <td>
+                                <kbd>Ctrl</kbd> <kbd>Z</kbd>, <kbd>Ctrl</kbd>
+                                <kbd>Shift</kbd> <kbd>Z</kbd> ή <kbd>Ctrl</kbd>
+                                <kbd>Y</kbd>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <p>
+                Στο κέντρο, η
+                <a href="objets.html#la-zone-contextuelle"
+                    >ζώνη περιβάλλοντος</a
+                >
+                δίνει το όνομα και τις ενέργειες του επιλεγμένου αντικειμένου.
+            </p>
+
+            <h2>Το πλαίσιο «Κατασκευή»</h2>
+            <ul>
+                <li>
+                    Μία γραμμή ανά αντικείμενο, με τη σειρά της κατασκευής:
+                    <code>M = Μέσο(A, B)</code>. Κάθε γραμμή τροποποιείται (<a
+                        href="saisie.html#modifier-une-ligne"
+                        >επαναορισμός</a
+                    >).
+                </li>
+                <li>
+                    Η κουκκίδα στην αρχή της γραμμής κρύβει ή εμφανίζει το
+                    αντικείμενο· το <i data-i="show_name"></i> στο τέλος της
+                    γραμμής εμφανίζει το όνομά του.
+                </li>
+                <li>
+                    Κεφαλίδα: πλήθος αντικειμένων,
+                    <i data-i="show_values"></i>
+                    <a href="objets.html#les-valeurs">τιμές</a>,
+                    <i data-i="steps"></i>
+                    <a href="objets.html#la-construction-pas-a-pas"
+                        >βήμα προς βήμα</a
+                    >, <i data-i="new_program"></i>
+                    <a href="expressions.html#les-programmes">νέο πρόγραμμα</a>.
+                </li>
+                <li>
+                    Γραμμή εισαγωγής «Εισαγωγή…» και κουμπί
+                    <i data-i="tools"></i> του
+                    <a href="menu-outils.html">μενού εργαλείων</a>.
+                </li>
+                <li>
+                    Όταν ο δείκτης περνά πάνω από μια γραμμή, το αντικείμενο
+                    λάμπει, και αντίστροφα.
+                </li>
+            </ul>
+
+            <h2>Η υπόδειξη</h2>
+            <p>
+                Το συννεφάκι στο κάτω μέρος του σχήματος δείχνει τι αναμένεται
+                («Επιλέξτε ένα σημείο»), τη γραμμή που θα γράψει το εργαλείο και
+                τα λάθη με κόκκινο. Το <strong>✕</strong> του εγκαταλείπει το
+                τρέχον εργαλείο.
+            </p>
+
+            <h2>Πλοήγηση</h2>
+            <div class="table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Ενέργεια</th>
+                            <th>Χειρονομία</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Μετακίνηση της προβολής</td>
+                            <td>
+                                σύρσιμο κενού σημείου· δεξί κουμπί οπουδήποτε
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Ζουμ</td>
+                            <td>
+                                ροδέλα ή επιφάνεια αφής, γύρω από τον δείκτη
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Περιστροφή σχήματος 3D</td>
+                            <td>δεξί κουμπί, ή ένα δάχτυλο σε κενό σημείο</td>
+                        </tr>
+                        <tr>
+                            <td>Προοπτική, δάπεδο (3D)</td>
+                            <td><kbd>P</kbd>, <kbd>S</kbd></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <p>
+                Το στρογγυλό κουμπί κάτω αριστερά, που υπάρχει όταν το σχήμα
+                περιέχει κινήσεις, τις σταματά προσωρινά ή τις ξαναξεκινά.
+            </p>
+
+            <h2>Αναίρεση</h2>
+            <p>
+                Κάθε τροποποίηση είναι ένα βήμα μιας ενιαίας στοίβας: κατασκευή,
+                διαγραφή, μετακίνηση, στυλ, ρύθμιση του συστήματος
+                συντεταγμένων, μετάβαση σε 3D. Το ζουμ, η μετακίνηση και η
+                περιστροφή της προβολής δεν είναι.
+            </p>
+
+            <h2>Τα πλαίσια</h2>
+            <ul>
+                <li>
+                    Η εσωτερική τους άκρη σύρεται για να αλλάξει το μέγεθός
+                    τους· ένα διπλό κλικ επαναφέρει το προεπιλεγμένο πλάτος.
+                </li>
+                <li>
+                    Κάτω από 900 px πλάτος, μόνο ένα πλαίσιο είναι ανοιχτό κάθε
+                    φορά· στα 600 px και κάτω, το πλαίσιο «Κατασκευή» ξεκινά
+                    κλειστό, οι ιδιότητες καλύπτουν το σχήμα και η επιλογή
+                    εργαλείου κλείνει τα πλαίσια.
+                </li>
+            </ul>
+        </main>
+    </body>
+</html>

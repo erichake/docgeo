@@ -23,6 +23,7 @@ const zh_TW: Texts = {
         save: "儲存",
         undo: "復原",
         redo: "重做",
+        help: "使用手冊",
         delete: "刪除",
         eraser: "橡皮擦",
         axes: "座標系",

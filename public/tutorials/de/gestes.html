@@ -1,0 +1,205 @@
+<!doctype html>
+<html lang="de">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <title>Mit Gesten — DocGeo-Handbuch</title>
+        <link rel="icon" type="image/svg+xml" href="../../favicon.svg" />
+        <link rel="stylesheet" href="../manual.css" />
+        <script src="../icons.js" defer></script>
+        <script src="../manual.js" defer></script>
+    </head>
+    <body>
+        <main>
+            <h1>Mit Gesten konstruieren</h1>
+
+            <h2>Die Figur antippen</h2>
+            <div class="table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Angetippte Stelle</th>
+                            <th>Ergebnis</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>eine leere Stelle</td>
+                            <td>
+                                freier Punkt (in 3D auf dem Boden
+                                <em>z</em> = 0)
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>nahe einem Schnitt</td>
+                            <td>
+                                Schnittpunkt der beiden Objekte, die beim
+                                Überfahren aufleuchten (unter 24 px)
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>ein Objekt</td>
+                            <td>Auswahl und Ring seiner Werkzeuge</td>
+                        </tr>
+                        <tr>
+                            <td>eine leere Stelle, Ring geöffnet</td>
+                            <td>der Ring schließt sich, ohne Punkt</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <p>
+                Ein Text, ein Ausdruck oder ein Schieberegler wird nur
+                ausgewählt: Sie haben keinen Ring.
+            </p>
+
+            <h2>Der Werkzeugring</h2>
+            <figure>
+                <img
+                    src="img/editeur-anneau.webp"
+                    alt="Werkzeugring um den Punkt C, Werkzeug Strecke überfahren"
+                    width="880"
+                    height="720"
+                />
+                <figcaption>
+                    Ring des Punktes C; der Hinweis zeigt die Zeile des
+                    überfahrenen Werkzeugs.
+                </figcaption>
+            </figure>
+            <p>
+                Der Ring zeigt nur die Werkzeuge, die auf das angetippte Objekt
+                anwendbar sind. Jedes Werkzeug hat immer denselben Platz; ein
+                nicht anwendbares Werkzeug lässt seinen Platz leer. Familien, im
+                Uhrzeigersinn von oben:
+            </p>
+            <div class="table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Familie</th>
+                            <th>Werkzeuge</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><i data-t="Point"></i> Punkte</td>
+                            <td>
+                                Punkt auf Objekt, Schnittpunkt, Mittelpunkt
+                                einer Strecke oder eines Kreises
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><i data-t="Segment"></i> Geraden</td>
+                            <td>Strecke, Gerade, Strahl, Vektor</td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <i data-t="Perpendicular"></i> Konstruktionen
+                            </td>
+                            <td>
+                                Senkrechte, Parallele, Mittelsenkrechte,
+                                Winkelhalbierende
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <i data-t="Circle (centre and point)"></i>
+                                Kreise
+                            </td>
+                            <td>
+                                Mittelpunkt und Punkt, Mittelpunkt und Radius,
+                                drei Punkte, Kugel (3D)
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <i data-t="Polygon"></i> Vielecke, Winkel,
+                                Ortslinien
+                            </td>
+                            <td>Vieleck, Winkel, Ortslinie</td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <i data-t="Point reflection"></i> Abbildungen
+                            </td>
+                            <td>Punkt- und Achsenspiegelung</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <p>
+                Das Überfahren eines Werkzeugs zeigt im Hinweis die Zeile, die
+                es schreiben wird, und das erwartete Argument:
+                <code>b = Strecke(C, …)</code>, „Wählen Sie einen Punkt“. Die
+                Aktionen für das Objekt selbst (Löschen, Einstellungen…)
+                befinden sich im
+                <a href="objets.html#la-zone-contextuelle">Kontextbereich</a>
+                der Leiste.
+            </p>
+
+            <h2>Die Argumente wählen</h2>
+            <p>
+                Ist das Werkzeug gewählt, folgt eine Vorschau des Objekts dem
+                Zeiger, und die zulässigen Objekte leuchten beim Überfahren auf.
+                Wo ein Punkt erwartet wird, wählt man wahlweise einen
+                vorhandenen Punkt, ein Objekt (ein Punkt auf Objekt entsteht),
+                einen Schnitt (ein Schnittpunkt entsteht) oder eine leere Stelle
+                (ein freier Punkt entsteht).
+            </p>
+            <ul>
+                <li>
+                    <i data-t="Polygon"></i> Vieleck: die Ecken, dann noch
+                    einmal die erste.
+                </li>
+                <li>
+                    <i data-t="Circle (centre and radius)"></i> Kreis
+                    (Mittelpunkt und Radius): mit einem Klick erzeugt, Radius
+                    etwa 150 px, auf zwei Stellen gerundet; Ziehen des Kreises
+                    ändert den Radius.
+                </li>
+                <li>
+                    <i data-t="Locus"></i> Ortslinie: angeboten bei einem Punkt,
+                    der von einem Punkt auf Objekt abhängt; mit einem Klick
+                    erzeugt.
+                </li>
+                <li>
+                    <i data-t="Angle"></i> Winkel und
+                    <i data-t="AngleBisector"></i> Winkelhalbierende: ein Punkt
+                    des ersten Schenkels, der Scheitel, ein Punkt des zweiten
+                    Schenkels.
+                </li>
+            </ul>
+
+            <h2>Sonderfälle</h2>
+            <ul>
+                <li>
+                    <strong>Übereinanderliegende Objekte</strong>: Ein Menü
+                    zeigt die Zeile jedes Objekts; beim Überfahren leuchtet das
+                    Objekt auf. Ein Punkt hat immer Vorrang, und ein Schnitt
+                    liefert direkt den Schnittpunkt.
+                </li>
+                <li>
+                    <strong>Mit dem Finger</strong>: Während eines Werkzeugs
+                    zeigt der aufgelegte Finger die Vorschau, ohne etwas zu
+                    verschieben, und wählt beim Anheben. Man kann auf das Symbol
+                    drücken und in einer einzigen Geste bis zum Ziel gleiten.
+                </li>
+                <li>
+                    <strong>Fensterrand</strong>: Der Ring verschiebt sich, um
+                    ganz sichtbar zu sein, und ist mit dem Objekt durch eine
+                    gepunktete Linie verbunden; er folgt dem Objekt, wenn sich
+                    die Figur bewegt.
+                </li>
+                <li>
+                    <strong>Abbrechen</strong>: <kbd>Esc</kbd> oder
+                    <strong>✕</strong> des Hinweises.
+                </li>
+                <li>
+                    <strong>Verschieben</strong>: Während eines Werkzeugs zielt
+                    das Ziehen; die rechte Maustaste verschiebt immer Objekte
+                    und Ansicht.
+                </li>
+            </ul>
+        </main>
+    </body>
+</html>

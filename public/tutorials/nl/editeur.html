@@ -1,0 +1,208 @@
+<!doctype html>
+<html lang="nl">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <title>De interface — DocGeo-handleiding</title>
+        <link rel="icon" type="image/svg+xml" href="../../favicon.svg" />
+        <link rel="stylesheet" href="../manual.css" />
+        <script src="../icons.js" defer></script>
+        <script src="../manual.js" defer></script>
+    </head>
+    <body>
+        <main>
+            <h1>De interface</h1>
+
+            <figure>
+                <img
+                    src="img/editeur-interface.webp"
+                    alt="De editor: actiebalk, paneel Constructie en figuur"
+                    width="1200"
+                    height="720"
+                />
+            </figure>
+
+            <h2>De actiebalk</h2>
+            <div class="table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th></th>
+                            <th>Knop</th>
+                            <th>Functie</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><i data-i="open"></i></td>
+                            <td>Openen</td>
+                            <td>
+                                <code>.dgo</code>, <code>.dgp</code>,
+                                <code>.ggb</code>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><i data-i="save"></i></td>
+                            <td>Opslaan</td>
+                            <td>als <code>.dgo</code></td>
+                        </tr>
+                        <tr>
+                            <td><i data-i="eraser"></i></td>
+                            <td>Gum</td>
+                            <td>
+                                objecten verbergen of tonen (<a
+                                    href="objets.html#la-gomme"
+                                    >gum</a
+                                >)
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><i data-i="axes"></i></td>
+                            <td>Assenstelsel</td>
+                            <td>assen en rooster; in 3D assenkruis en vloer</td>
+                        </tr>
+                        <tr>
+                            <td><i data-i="space"></i></td>
+                            <td>3D-weergave</td>
+                            <td>
+                                naar de ruimte gaan of terug naar het vlak (<a
+                                    href="3d.html"
+                                    >3D</a
+                                >)
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><i data-i="properties"></i></td>
+                            <td>Eigenschappen</td>
+                            <td>
+                                rechterpaneel (<a href="proprietes.html"
+                                    >eigenschappen</a
+                                >)
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><i data-i="history"></i></td>
+                            <td>Constructie</td>
+                            <td>linkerpaneel</td>
+                        </tr>
+                        <tr>
+                            <td><i data-i="undo"></i> <i data-i="redo"></i></td>
+                            <td>Ongedaan maken, Opnieuw</td>
+                            <td>
+                                <kbd>Ctrl</kbd> <kbd>Z</kbd>, <kbd>Ctrl</kbd>
+                                <kbd>Shift</kbd> <kbd>Z</kbd> of <kbd>Ctrl</kbd>
+                                <kbd>Y</kbd>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <p>
+                In het midden toont de
+                <a href="objets.html#la-zone-contextuelle">contextzone</a> de
+                naam en de acties van het geselecteerde object.
+            </p>
+
+            <h2>Het paneel „Constructie”</h2>
+            <ul>
+                <li>
+                    Eén regel per object, in de volgorde van de constructie:
+                    <code>M = Midden(A, B)</code>. Elke regel is te wijzigen (<a
+                        href="saisie.html#modifier-une-ligne"
+                        >herdefinitie</a
+                    >).
+                </li>
+                <li>
+                    Het bolletje vooraan de regel verbergt of toont het object;
+                    <i data-i="show_name"></i> achteraan de regel toont zijn
+                    naam.
+                </li>
+                <li>
+                    Kop: aantal objecten, <i data-i="show_values"></i>
+                    <a href="objets.html#les-valeurs">waarden</a>,
+                    <i data-i="steps"></i>
+                    <a href="objets.html#la-construction-pas-a-pas"
+                        >stap voor stap</a
+                    >, <i data-i="new_program"></i>
+                    <a href="expressions.html#les-programmes">nieuw programma</a
+                    >.
+                </li>
+                <li>
+                    Invoerregel „Invoer…” en knop <i data-i="tools"></i> van het
+                    <a href="menu-outils.html">gereedschapsmenu</a>.
+                </li>
+                <li>
+                    Een regel aanwijzen laat het object oplichten, en omgekeerd.
+                </li>
+            </ul>
+
+            <h2>De aanwijzing</h2>
+            <p>
+                De ballon onderaan de figuur geeft aan wat er verwacht wordt
+                („Selecteer een punt”), de regel die het gereedschap zal
+                schrijven, en fouten in het rood. Het kruisje
+                <strong>✕</strong> verlaat het huidige gereedschap.
+            </p>
+
+            <h2>Navigeren</h2>
+            <div class="table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Actie</th>
+                            <th>Gebaar</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>De weergave verschuiven</td>
+                            <td>
+                                een lege plek slepen; rechtermuisknop overal
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Zoomen</td>
+                            <td>scrollwiel of trackpad, rond de aanwijzer</td>
+                        </tr>
+                        <tr>
+                            <td>Een 3D-figuur draaien</td>
+                            <td>
+                                rechtermuisknop, of één vinger op een lege plek
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Perspectief, vloer (3D)</td>
+                            <td><kbd>P</kbd>, <kbd>S</kbd></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <p>
+                De ronde knop linksonder, aanwezig als de figuur animaties
+                bevat, pauzeert ze of start ze opnieuw.
+            </p>
+
+            <h2>Ongedaan maken</h2>
+            <p>
+                Elke wijziging is een stap van één enkele stapel: constructie,
+                verwijdering, verplaatsing, stijl, instelling van het
+                assenstelsel, overgang naar 3D. Zoomen, verschuiven en draaien
+                van de weergave horen daar niet bij.
+            </p>
+
+            <h2>De panelen</h2>
+            <ul>
+                <li>
+                    Hun binnenrand sleep je om ze te vergroten of te verkleinen;
+                    dubbelklikken herstelt de standaardbreedte.
+                </li>
+                <li>
+                    Onder 900 px breedte is er maar één paneel tegelijk open;
+                    bij 600 px en minder start het paneel „Constructie”
+                    gesloten, bedekken de eigenschappen de figuur en sluit het
+                    kiezen van een gereedschap de panelen.
+                </li>
+            </ul>
+        </main>
+    </body>
+</html>

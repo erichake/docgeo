@@ -1,0 +1,1006 @@
+<!doctype html>
+<html lang="nl">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <title>De opdrachten — DocGeo-handleiding</title>
+        <link rel="icon" type="image/svg+xml" href="../../favicon.svg" />
+        <link rel="stylesheet" href="../manual.css" />
+        <script src="../icons.js" defer></script>
+        <script src="../manual.js" defer></script>
+    </head>
+    <body>
+        <main>
+            <h1>De opdrachten</h1>
+            <ul>
+                <li>
+                    Namen zonder onderscheid tussen hoofd- en kleine letters en
+                    zonder accenten; de Engelse naam, in kleine letters eronder,
+                    wordt in alle talen aanvaard.
+                </li>
+                <li>
+                    <code>A</code>, <code>B</code>, <code>O</code>,
+                    <code>P</code>: punten; <code>d</code>: rechte, lijnstuk of
+                    halfrechte; <code>c</code>: cirkel of kromme;
+                    <code>p</code>: veelhoek of vlak; <code>s</code>: lijnstuk
+                    of ruimtefiguur; <code>u</code>: vector.
+                </li>
+                <li>
+                    <code>r</code>, <code>a</code>, <code>k</code>,
+                    <code>f</code>: getal, uitdrukking, schuifknop of formule
+                    (<code>Cirkel(O, 2*r)</code>); <code>n</code>,
+                    <code>t</code>: geschreven getallen.
+                </li>
+                <li>
+                    Het pictogram is dat van het gereedschap in het
+                    <a href="menu-outils.html">menu</a>;
+                    <span class="badge d3">3D</span>: vormen in de ruimte.
+                </li>
+            </ul>
+
+            <h2>Punten</h2>
+            <div class="table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Opdracht</th>
+                            <th>Vorm</th>
+                            <th>Resultaat</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td rowspan="3">
+                                <i data-t="Point"></i> <strong>Punt</strong
+                                ><br /><small>Point</small>
+                            </td>
+                            <td class="syntax"><code>Punt(c, t)</code></td>
+                            <td>
+                                punt op het object c (rechte, cirkel, kromme,
+                                meetkundige plaats…) op positie t
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="syntax"><code>Punt(p, a, b)</code></td>
+                            <td>
+                                punt op een veelhoek of een kegelsnede, met de
+                                positie gegeven door twee getallen
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="syntax"><code>Punt(formule)</code></td>
+                            <td>
+                                punt waarvan de formule de coördinaten geeft:
+                                <code>Punt(2*B - A)</code>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td rowspan="2"><strong>(x, y)</strong></td>
+                            <td class="syntax"><code>A = (x, y)</code></td>
+                            <td>vrij punt; <code>(x, y, z)</code> in 3D</td>
+                        </tr>
+                        <tr>
+                            <td class="syntax">
+                                <code>M = (x(B) + 1, y(A))</code>
+                            </td>
+                            <td>
+                                punt waarvan minstens één coördinaat een formule
+                                is
+                            </td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1">
+                                <strong>VastPunt</strong><br /><small
+                                    >FixedPoint</small
+                                >
+                            </td>
+                            <td class="syntax"><code>VastPunt(x, y)</code></td>
+                            <td>
+                                vast punt, dat niet verplaatst kan worden;
+                                <code>VastPunt(x, y, z)</code> in 3D
+                            </td>
+                        </tr>
+                        <tr>
+                            <td rowspan="2">
+                                <i data-t="Midpoint"></i> <strong>Midden</strong
+                                ><br /><small>Midpoint</small>
+                            </td>
+                            <td class="syntax"><code>Midden(A, B)</code></td>
+                            <td>midden van [AB]</td>
+                        </tr>
+                        <tr>
+                            <td class="syntax"><code>Midden(s)</code></td>
+                            <td>midden van het lijnstuk s</td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1">
+                                <i data-t="Center"></i>
+                                <strong>Middelpunt</strong><br /><small
+                                    >Center</small
+                                >
+                            </td>
+                            <td class="syntax"><code>Middelpunt(c)</code></td>
+                            <td>middelpunt van de cirkel c</td>
+                        </tr>
+                        <tr>
+                            <td rowspan="5">
+                                <i data-t="Intersection"></i>
+                                <strong>Snijpunt</strong><br /><small
+                                    >Intersection</small
+                                >
+                            </td>
+                            <td class="syntax">
+                                <code>Snijpunt(d1, d2)</code>
+                            </td>
+                            <td>gemeenschappelijk punt van twee rechten</td>
+                        </tr>
+                        <tr>
+                            <td class="syntax">
+                                <code>Snijpunt(a, b, n)</code>
+                            </td>
+                            <td>
+                                n-de gemeenschappelijk punt (n van 1 tot 4) van
+                                objecten waarvan minstens één geen rechte is:
+                                cirkels, kegelsneden, krommen
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="syntax"><code>Snijpunt(d, p)</code></td>
+                            <td>
+                                <span class="badge d3">3D</span>
+                                gemeenschappelijk punt van een rechte en een
+                                vlak
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="syntax"><code>Snijpunt(p, q)</code></td>
+                            <td>
+                                <span class="badge d3">3D</span>
+                                gemeenschappelijke rechte van twee vlakken
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="syntax"><code>Snijpunt(s, t)</code></td>
+                            <td>
+                                <span class="badge d3">3D</span>
+                                gemeenschappelijke cirkel van twee bollen
+                            </td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1">
+                                <i data-t="OtherIntersection"></i>
+                                <strong>AnderSnijpunt</strong><br /><small
+                                    >OtherIntersection</small
+                                >
+                            </td>
+                            <td class="syntax">
+                                <code>AnderSnijpunt(a, b, P)</code>
+                            </td>
+                            <td>
+                                het gemeenschappelijke punt van a en b dat het
+                                verst van P ligt
+                            </td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1">
+                                <i data-t="Incenter"></i>
+                                <strong>MiddelpuntIngeschrevenCirkel</strong
+                                ><br /><small>Incenter</small>
+                            </td>
+                            <td class="syntax">
+                                <code
+                                    >MiddelpuntIngeschrevenCirkel(A, B, C)</code
+                                >
+                            </td>
+                            <td>
+                                middelpunt van de ingeschreven cirkel van
+                                driehoek ABC
+                            </td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1">
+                                <i data-t="Centroid"></i>
+                                <strong>Zwaartepunt</strong><br /><small
+                                    >Centroid</small
+                                >
+                            </td>
+                            <td class="syntax">
+                                <code>Zwaartepunt(A, B, C)</code>
+                            </td>
+                            <td>zwaartepunt van driehoek ABC</td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1">
+                                <i data-t="Circumcenter"></i>
+                                <strong>MiddelpuntOmgeschrevenCirkel</strong
+                                ><br /><small>Circumcenter</small>
+                            </td>
+                            <td class="syntax">
+                                <code
+                                    >MiddelpuntOmgeschrevenCirkel(A, B, C)</code
+                                >
+                            </td>
+                            <td>
+                                middelpunt van de omgeschreven cirkel van
+                                driehoek ABC
+                            </td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1">
+                                <i data-t="Orthocenter"></i>
+                                <strong>Hoogtepunt</strong><br /><small
+                                    >Orthocenter</small
+                                >
+                            </td>
+                            <td class="syntax">
+                                <code>Hoogtepunt(A, B, C)</code>
+                            </td>
+                            <td>hoogtepunt van driehoek ABC</td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1">
+                                <strong>Hoekpunt</strong><br /><small
+                                    >Vertex</small
+                                >
+                            </td>
+                            <td class="syntax"><code>Hoekpunt(p, k)</code></td>
+                            <td>
+                                k-de hoekpunt (vanaf 1) van een veelhoek of een
+                                veelvlak
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <h2>Rechten</h2>
+            <div class="table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Opdracht</th>
+                            <th>Vorm</th>
+                            <th>Resultaat</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td rowspan="1">
+                                <i data-t="Segment"></i>
+                                <strong>Lijnstuk</strong><br /><small
+                                    >Segment</small
+                                >
+                            </td>
+                            <td class="syntax"><code>Lijnstuk(A, B)</code></td>
+                            <td>lijnstuk [AB]</td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1">
+                                <i data-t="Line"></i> <strong>Rechte</strong
+                                ><br /><small>Line</small>
+                            </td>
+                            <td class="syntax"><code>Rechte(A, B)</code></td>
+                            <td>rechte (AB)</td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1">
+                                <i data-t="Ray"></i> <strong>Halfrechte</strong
+                                ><br /><small>Ray</small>
+                            </td>
+                            <td class="syntax">
+                                <code>Halfrechte(A, B)</code>
+                            </td>
+                            <td>halfrechte [AB), met beginpunt A</td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1">
+                                <i data-t="Vector"></i> <strong>Vector</strong>
+                            </td>
+                            <td class="syntax"><code>Vector(A, B)</code></td>
+                            <td>vector van A naar B</td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1"><strong>vergelijking</strong></td>
+                            <td class="syntax"><code>d = y = 2x + 1</code></td>
+                            <td>
+                                rechte gegeven door een vergelijking van graad 1
+                                (zie
+                                <a href="saisie.html#equations"
+                                    >Vergelijkingen</a
+                                >)
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <h2>Constructies</h2>
+            <div class="table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Opdracht</th>
+                            <th>Vorm</th>
+                            <th>Resultaat</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td rowspan="2">
+                                <i data-t="Perpendicular"></i>
+                                <strong>Loodlijn</strong><br /><small
+                                    >Perpendicular</small
+                                >
+                            </td>
+                            <td class="syntax"><code>Loodlijn(P, d)</code></td>
+                            <td>loodlijn op de rechte d door P</td>
+                        </tr>
+                        <tr>
+                            <td class="syntax"><code>Loodlijn(P, p)</code></td>
+                            <td>
+                                <span class="badge d3">3D</span> rechte door P,
+                                loodrecht op het vlak p
+                            </td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1">
+                                <i data-t="Parallel"></i>
+                                <strong>Evenwijdige</strong><br /><small
+                                    >Parallel</small
+                                >
+                            </td>
+                            <td class="syntax">
+                                <code>Evenwijdige(P, d)</code>
+                            </td>
+                            <td>evenwijdige aan d door P</td>
+                        </tr>
+                        <tr>
+                            <td rowspan="2">
+                                <i data-t="PerpendicularBisector"></i>
+                                <strong>Middelloodlijn</strong><br /><small
+                                    >PerpendicularBisector</small
+                                >
+                            </td>
+                            <td class="syntax">
+                                <code>Middelloodlijn(A, B)</code>
+                            </td>
+                            <td>middelloodlijn van [AB]</td>
+                        </tr>
+                        <tr>
+                            <td class="syntax">
+                                <code>Middelloodlijn(s)</code>
+                            </td>
+                            <td>middelloodlijn van het lijnstuk s</td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1">
+                                <i data-t="AngleBisector"></i>
+                                <strong>Bissectrice</strong><br /><small
+                                    >AngleBisector</small
+                                >
+                            </td>
+                            <td class="syntax">
+                                <code>Bissectrice(A, O, B)</code>
+                            </td>
+                            <td>bissectrice van de hoek met hoekpunt O</td>
+                        </tr>
+                        <tr>
+                            <td rowspan="2">
+                                <i data-t="Tangent"></i>
+                                <strong>Raaklijn</strong><br /><small
+                                    >Tangent</small
+                                >
+                            </td>
+                            <td class="syntax">
+                                <code>Raaklijn(P, c, n)</code>
+                            </td>
+                            <td>
+                                raaklijn n (1 of 2) vanuit P aan de cirkel of de
+                                kegelsnede c
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="syntax"><code>Raaklijn(P, f)</code></td>
+                            <td>
+                                raaklijn aan de grafiek van een functie, in het
+                                punt met de x-coördinaat van P
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <h2>Cirkels, bogen, kegelsneden</h2>
+            <div class="table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Opdracht</th>
+                            <th>Vorm</th>
+                            <th>Resultaat</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td rowspan="4">
+                                <i data-t="Circle (centre and point)"></i>
+                                <strong>Cirkel</strong><br /><small
+                                    >Circle</small
+                                >
+                            </td>
+                            <td class="syntax"><code>Cirkel(O, A)</code></td>
+                            <td>cirkel met middelpunt O door A</td>
+                        </tr>
+                        <tr>
+                            <td class="syntax"><code>Cirkel(O, r)</code></td>
+                            <td>
+                                cirkel met middelpunt O en straal r (getal,
+                                uitdrukking of formule)
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="syntax"><code>Cirkel(O, r, d)</code></td>
+                            <td>
+                                <span class="badge d3">3D</span> cirkel met
+                                middelpunt O en straal r, loodrecht op de rechte
+                                d of evenwijdig aan het vlak d
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="syntax"><code>Cirkel(d, P)</code></td>
+                            <td>
+                                <span class="badge d3">3D</span> cirkel met as d
+                                door P
+                            </td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1">
+                                <i data-t="Circumcircle"></i>
+                                <strong>OmgeschrevenCirkel</strong><br /><small
+                                    >Circumcircle</small
+                                >
+                            </td>
+                            <td class="syntax">
+                                <code>OmgeschrevenCirkel(A, B, C)</code>
+                            </td>
+                            <td>cirkel door A, B en C (in hun vlak in 3D)</td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1">
+                                <i data-t="Compass"></i> <strong>Passer</strong
+                                ><br /><small>Compass</small>
+                            </td>
+                            <td class="syntax"><code>Passer(A, B, O)</code></td>
+                            <td>cirkel met middelpunt O en straal AB</td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1">
+                                <i data-t="Arc"></i> <strong>Boog</strong
+                                ><br /><small>Arc</small>
+                            </td>
+                            <td class="syntax"><code>Boog(A, B, C)</code></td>
+                            <td>boog van A naar C door B</td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1">
+                                <i data-t="Sector"></i> <strong>Sector</strong>
+                            </td>
+                            <td class="syntax"><code>Sector(A, B, C)</code></td>
+                            <td>sector van de boog van A naar C door B</td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1">
+                                <i data-t="CenterArc"></i>
+                                <strong>BoogMiddelpunt</strong><br /><small
+                                    >CenterArc</small
+                                >
+                            </td>
+                            <td class="syntax">
+                                <code>BoogMiddelpunt(M, A, B)</code>
+                            </td>
+                            <td>
+                                boog met middelpunt M, van A tot de halfrechte
+                                [MB), tegen de wijzers van de klok in
+                            </td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1">
+                                <i data-t="CenterSector"></i>
+                                <strong>SectorMiddelpunt</strong><br /><small
+                                    >CenterSector</small
+                                >
+                            </td>
+                            <td class="syntax">
+                                <code>SectorMiddelpunt(M, A, B)</code>
+                            </td>
+                            <td>bijbehorende sector</td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1">
+                                <i data-t="Semicircle"></i>
+                                <strong>Halvecirkel</strong><br /><small
+                                    >Semicircle</small
+                                >
+                            </td>
+                            <td class="syntax">
+                                <code>Halvecirkel(A, B)</code>
+                            </td>
+                            <td>
+                                halve cirkel met middellijn [AB], links van A
+                                naar B
+                            </td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1">
+                                <i data-t="Conic"></i>
+                                <strong>Kegelsnede</strong><br /><small
+                                    >Conic</small
+                                >
+                            </td>
+                            <td class="syntax">
+                                <code>Kegelsnede(A, B, C, D, E)</code>
+                            </td>
+                            <td>kegelsnede door vijf punten</td>
+                        </tr>
+                        <tr>
+                            <td rowspan="2">
+                                <i data-t="Ellipse"></i> <strong>Ellips</strong
+                                ><br /><small>Ellipse</small>
+                            </td>
+                            <td class="syntax"><code>Ellips(F, G, P)</code></td>
+                            <td>ellips met brandpunten F en G door P</td>
+                        </tr>
+                        <tr>
+                            <td class="syntax"><code>Ellips(F, G, a)</code></td>
+                            <td>
+                                ellips met brandpunten F en G en halve lange as
+                                a
+                            </td>
+                        </tr>
+                        <tr>
+                            <td rowspan="2">
+                                <i data-t="Hyperbola"></i>
+                                <strong>Hyperbool</strong><br /><small
+                                    >Hyperbola</small
+                                >
+                            </td>
+                            <td class="syntax">
+                                <code>Hyperbool(F, G, P)</code>
+                            </td>
+                            <td>hyperbool met brandpunten F en G door P</td>
+                        </tr>
+                        <tr>
+                            <td class="syntax">
+                                <code>Hyperbool(F, G, a)</code>
+                            </td>
+                            <td>
+                                hyperbool met brandpunten F en G en halve as a
+                            </td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1">
+                                <i data-t="Parabola"></i>
+                                <strong>Parabool</strong><br /><small
+                                    >Parabola</small
+                                >
+                            </td>
+                            <td class="syntax"><code>Parabool(F, d)</code></td>
+                            <td>parabool met brandpunt F en richtlijn d</td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1"><strong>vergelijking</strong></td>
+                            <td class="syntax">
+                                <code>c = x^2 + y^2 = 4</code>
+                            </td>
+                            <td>
+                                cirkel of kegelsnede gegeven door een
+                                vergelijking van graad 2
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <h2>Veelhoeken, hoeken, meetkundige plaatsen</h2>
+            <div class="table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Opdracht</th>
+                            <th>Vorm</th>
+                            <th>Resultaat</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td rowspan="1">
+                                <i data-t="Polygon"></i>
+                                <strong>Veelhoek</strong><br /><small
+                                    >Polygon</small
+                                >
+                            </td>
+                            <td class="syntax">
+                                <code>Veelhoek(A, B, C, …)</code>
+                            </td>
+                            <td>veelhoek met drie of meer hoekpunten</td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1">
+                                <i data-t="RegularPolygon"></i>
+                                <strong>RegelmatigeVeelhoek</strong><br /><small
+                                    >RegularPolygon</small
+                                >
+                            </td>
+                            <td class="syntax">
+                                <code>RegelmatigeVeelhoek(A, B, n)</code>
+                            </td>
+                            <td>
+                                regelmatige veelhoek met n zijden (n ≥ 3) op
+                                [AB]
+                            </td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1">
+                                <i data-t="Angle"></i> <strong>Hoek</strong
+                                ><br /><small>Angle</small>
+                            </td>
+                            <td class="syntax"><code>Hoek(A, O, B)</code></td>
+                            <td>hoek met hoekpunt O, van [OA) naar [OB)</td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1">
+                                <i data-t="Locus"></i>
+                                <strong>MeetkundigePlaats</strong><br /><small
+                                    >Locus</small
+                                >
+                            </td>
+                            <td class="syntax">
+                                <code>MeetkundigePlaats(M, P)</code>
+                            </td>
+                            <td>
+                                meetkundige plaats van het punt M wanneer het
+                                punt op object P zijn object doorloopt
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <h2>Transformaties</h2>
+            <div class="table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Opdracht</th>
+                            <th>Vorm</th>
+                            <th>Resultaat</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td rowspan="2">
+                                <i data-t="Point reflection"></i>
+                                <strong>Spiegeling</strong><br /><small
+                                    >Reflect</small
+                                >
+                            </td>
+                            <td class="syntax">
+                                <code>Spiegeling(P, O)</code>
+                            </td>
+                            <td>
+                                spiegelbeeld van het punt P ten opzichte van het
+                                punt O
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="syntax">
+                                <code>Spiegeling(P, d)</code>
+                            </td>
+                            <td>
+                                spiegelbeeld van het punt P ten opzichte van de
+                                rechte d
+                            </td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1">
+                                <i data-t="Rotation"></i>
+                                <strong>Draaiing</strong><br /><small
+                                    >Rotation</small
+                                >
+                            </td>
+                            <td class="syntax">
+                                <code>Draaiing(P, O, a)</code>
+                            </td>
+                            <td>
+                                beeld van het punt P door de draaiing met
+                                centrum O en hoek a (in graden of radialen,
+                                afhankelijk van de figuur)
+                            </td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1">
+                                <i data-t="Translation"></i>
+                                <strong>Verschuiving</strong><br /><small
+                                    >Translation</small
+                                >
+                            </td>
+                            <td class="syntax">
+                                <code>Verschuiving(P, u)</code>
+                            </td>
+                            <td>
+                                beeld van het punt P door de verschuiving over
+                                de vector u
+                            </td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1">
+                                <i data-t="Dilation"></i>
+                                <strong>Vermenigvuldiging</strong><br /><small
+                                    >Dilation</small
+                                >
+                            </td>
+                            <td class="syntax">
+                                <code>Vermenigvuldiging(P, O, k)</code>
+                            </td>
+                            <td>
+                                beeld van het punt P door de vermenigvuldiging
+                                met centrum O en factor k
+                            </td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1">
+                                <i data-t="Inversion"></i>
+                                <strong>Inversie</strong><br /><small
+                                    >Inversion</small
+                                >
+                            </td>
+                            <td class="syntax"><code>Inversie(P, c)</code></td>
+                            <td>
+                                beeld van het punt P door de inversie ten
+                                opzichte van de cirkel c
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <h2>Vlakken</h2>
+            <div class="table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Opdracht</th>
+                            <th>Vorm</th>
+                            <th>Resultaat</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td rowspan="2">
+                                <i data-t="Plane"></i> <strong>Vlak</strong
+                                ><br /><small>Plane</small>
+                            </td>
+                            <td class="syntax"><code>Vlak(A, B, C)</code></td>
+                            <td>vlak door drie punten</td>
+                        </tr>
+                        <tr>
+                            <td class="syntax"><code>Vlak(A, d)</code></td>
+                            <td>vlak dat het punt A en de rechte d bevat</td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1">
+                                <i data-t="ParallelPlane"></i>
+                                <strong>EvenwijdigVlak</strong><br /><small
+                                    >ParallelPlane</small
+                                >
+                            </td>
+                            <td class="syntax">
+                                <code>EvenwijdigVlak(A, p)</code>
+                            </td>
+                            <td>vlak door A, evenwijdig aan het vlak p</td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1">
+                                <i data-t="OrthogonalPlane"></i>
+                                <strong>LoodrechtVlak</strong><br /><small
+                                    >OrthogonalPlane</small
+                                >
+                            </td>
+                            <td class="syntax">
+                                <code>LoodrechtVlak(A, d)</code>
+                            </td>
+                            <td>vlak door A, loodrecht op de rechte d</td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1"><strong>vergelijking</strong></td>
+                            <td class="syntax">
+                                <code>p = x + y + z = 3</code>
+                            </td>
+                            <td>
+                                vlak gegeven door een vergelijking van graad 1
+                                in x, y en z
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <h2>Ruimtefiguren</h2>
+            <div class="table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Opdracht</th>
+                            <th>Vorm</th>
+                            <th>Resultaat</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td rowspan="2">
+                                <i data-t="Sphere"></i> <strong>Bol</strong
+                                ><br /><small>Sphere</small>
+                            </td>
+                            <td class="syntax"><code>Bol(O, A)</code></td>
+                            <td>bol met middelpunt O door A</td>
+                        </tr>
+                        <tr>
+                            <td class="syntax"><code>Bol(O, r)</code></td>
+                            <td>bol met middelpunt O en straal r</td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1">
+                                <i data-t="Cylinder"></i>
+                                <strong>Cilinder</strong><br /><small
+                                    >Cylinder</small
+                                >
+                            </td>
+                            <td class="syntax">
+                                <code>Cilinder(A, B, r)</code>
+                            </td>
+                            <td>cilinder met as [AB] en straal r</td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1">
+                                <i data-t="Cone"></i> <strong>Kegel</strong
+                                ><br /><small>Cone</small>
+                            </td>
+                            <td class="syntax"><code>Kegel(A, B, r)</code></td>
+                            <td>
+                                kegel met grondvlak met middelpunt A en straal
+                                r, en top B
+                            </td>
+                        </tr>
+                        <tr>
+                            <td rowspan="3">
+                                <i data-t="Cube"></i> <strong>Kubus</strong
+                                ><br /><small>Cube</small>
+                            </td>
+                            <td class="syntax"><code>Kubus(A, B, C)</code></td>
+                            <td>kubus op het vierkant ABCD van het vlak ABC</td>
+                        </tr>
+                        <tr>
+                            <td class="syntax">
+                                <code>Kubus(A, B, p, s)</code>
+                            </td>
+                            <td>
+                                kubus met ribbe [AB] op het vlak of de veelhoek
+                                p, aan kant s (1 of −1)
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="syntax"><code>Kubus(A, B, s)</code></td>
+                            <td>
+                                kubus met ribbe [AB] op een horizontaal
+                                vierkant, erboven (1) of eronder (−1)
+                            </td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1">
+                                <i data-t="Prism"></i> <strong>Prisma</strong
+                                ><br /><small>Prism</small>
+                            </td>
+                            <td class="syntax"><code>Prisma(p, P)</code></td>
+                            <td>
+                                prisma met grondvlak de veelhoek p, waarbij P
+                                het beeld is van het eerste hoekpunt van p
+                            </td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1">
+                                <i data-t="Pyramid"></i>
+                                <strong>Piramide</strong><br /><small
+                                    >Pyramid</small
+                                >
+                            </td>
+                            <td class="syntax"><code>Piramide(p, S)</code></td>
+                            <td>
+                                piramide met grondvlak de veelhoek p en top S
+                            </td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1">
+                                <i data-t="Section"></i>
+                                <strong>Doorsnede</strong><br /><small
+                                    >Section</small
+                                >
+                            </td>
+                            <td class="syntax"><code>Doorsnede(s, p)</code></td>
+                            <td>
+                                doorsnede van de ruimtefiguur s met het vlak p:
+                                cirkel (bol), kegelsnede (cilinder, kegel) of
+                                veelhoek (veelvlak)
+                            </td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1">
+                                <i data-t="Net"></i> <strong>Uitslag</strong
+                                ><br /><small>Net</small>
+                            </td>
+                            <td class="syntax"><code>Uitslag(c, f)</code></td>
+                            <td>
+                                uitslag van een kubus, een prisma of een
+                                piramide, opengevouwen volgens f (0: dicht, 1:
+                                plat)
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <h2>Getallen en lijsten</h2>
+            <div class="table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Opdracht</th>
+                            <th>Vorm</th>
+                            <th>Resultaat</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td rowspan="1">
+                                <strong>Schuifknop</strong><br /><small
+                                    >Slider</small
+                                >
+                            </td>
+                            <td class="syntax">
+                                <code>Schuifknop(min, max, waarde)</code>
+                            </td>
+                            <td>
+                                schuifknop tussen twee grenzen (getallen,
+                                uitdrukkingen of formules)
+                            </td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1">
+                                <strong>Lijst</strong><br /><small>List</small>
+                            </td>
+                            <td class="syntax"><code>Lijst(e)</code></td>
+                            <td>
+                                tekent de punten van de waarde van de
+                                uitdrukking e, een lijst van punten
+                            </td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1"><strong>uitdrukking</strong></td>
+                            <td class="syntax"><code>a = 3</code></td>
+                            <td>
+                                getal, tekst, functie of formule (zie
+                                <a href="expressions.html">Uitdrukkingen</a>)
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <h2>Functies in formules</h2>
+            <p>
+                <code>d</code>, <code>x</code>, <code>sqrt</code>,
+                <code>sin</code>… rekenen zonder een object te maken: zie
+                <a href="formules.html#fonctions">Formules en programma’s</a>.
+            </p>
+        </main>
+    </body>
+</html>

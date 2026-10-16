@@ -1,0 +1,914 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <title>الأوامر — دليل DocGeo</title>
+        <link rel="icon" type="image/svg+xml" href="../../favicon.svg" />
+        <link rel="stylesheet" href="../manual.css" />
+        <script src="../icons.js" defer></script>
+        <script src="../manual.js" defer></script>
+    </head>
+    <body>
+        <main>
+            <h1>الأوامر</h1>
+            <ul>
+                <li>
+                    الأسماء لا تميّز بين الأحرف الكبيرة والصغيرة ولا تراعي
+                    علامات التشكيل؛ والاسم الإنجليزي، المكتوب بخط صغير، مقبول في
+                    كل اللغات.
+                </li>
+                <li>
+                    <code>A</code>، <code>B</code>، <code>O</code>،
+                    <code>P</code>: نقاط؛ <code>d</code>: مستقيم أو قطعة مستقيمة
+                    أو شعاع؛ <code>c</code>: دائرة أو منحنى؛ <code>p</code>:
+                    مضلع أو مستوى؛ <code>s</code>: قطعة مستقيمة أو مجسم؛
+                    <code>u</code>: متجه.
+                </li>
+                <li>
+                    <code>r</code>، <code>a</code>، <code>k</code>،
+                    <code>f</code>: عدد أو تعبير أو منزلقة أو صيغة (<code
+                        >دائرة(O, 2*r)</code
+                    >)؛ <code>n</code>، <code>t</code>: أعداد مكتوبة.
+                </li>
+                <li>
+                    الأيقونة هي أيقونة الأداة في
+                    <a href="menu-outils.html">القائمة</a>؛
+                    <span class="badge d3">3D</span>: صيغ الفضاء.
+                </li>
+            </ul>
+
+            <h2>نقاط</h2>
+            <div class="table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>الأمر</th>
+                            <th>الصيغة</th>
+                            <th>النتيجة</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td rowspan="3">
+                                <i data-t="Point"></i> <strong>نقطة</strong
+                                ><br /><small>Point</small>
+                            </td>
+                            <td class="syntax"><code>نقطة(c, t)</code></td>
+                            <td>
+                                نقطة على العنصر c (مستقيم، دائرة، منحنى، محل
+                                هندسي…) في الموضع t
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="syntax"><code>نقطة(p, a, b)</code></td>
+                            <td>
+                                نقطة على مضلع أو قطع مخروطي، يحدد موضعها عددان
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="syntax"><code>نقطة(صيغة)</code></td>
+                            <td>
+                                نقطة تعطي الصيغة إحداثياتها:
+                                <code>نقطة(2*B - A)</code>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td rowspan="2"><strong>(x, y)</strong></td>
+                            <td class="syntax"><code>A = (x, y)</code></td>
+                            <td>
+                                نقطة حرة؛ <code>(x, y, z)</code> في الأبعاد
+                                الثلاثة
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="syntax">
+                                <code>M = (x(B) + 1, y(A))</code>
+                            </td>
+                            <td>نقطة إحدى إحداثياتها على الأقل صيغة</td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1">
+                                <strong>نقطةثابتة</strong><br /><small
+                                    >FixedPoint</small
+                                >
+                            </td>
+                            <td class="syntax"><code>نقطةثابتة(x, y)</code></td>
+                            <td>
+                                نقطة ثابتة لا يمكن تحريكها؛
+                                <code>نقطةثابتة(x, y, z)</code> في الأبعاد
+                                الثلاثة
+                            </td>
+                        </tr>
+                        <tr>
+                            <td rowspan="2">
+                                <i data-t="Midpoint"></i> <strong>منتصف</strong
+                                ><br /><small>Midpoint</small>
+                            </td>
+                            <td class="syntax"><code>منتصف(A, B)</code></td>
+                            <td>منتصف [AB]</td>
+                        </tr>
+                        <tr>
+                            <td class="syntax"><code>منتصف(s)</code></td>
+                            <td>منتصف القطعة المستقيمة s</td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1">
+                                <i data-t="Center"></i> <strong>مركز</strong
+                                ><br /><small>Center</small>
+                            </td>
+                            <td class="syntax"><code>مركز(c)</code></td>
+                            <td>مركز الدائرة c</td>
+                        </tr>
+                        <tr>
+                            <td rowspan="5">
+                                <i data-t="Intersection"></i>
+                                <strong>تقاطع</strong><br /><small
+                                    >Intersection</small
+                                >
+                            </td>
+                            <td class="syntax"><code>تقاطع(d1, d2)</code></td>
+                            <td>النقطة المشتركة بين مستقيمين</td>
+                        </tr>
+                        <tr>
+                            <td class="syntax"><code>تقاطع(a, b, n)</code></td>
+                            <td>
+                                النقطة المشتركة رقم n (n من 1 إلى 4) لعنصرين
+                                أحدهما على الأقل ليس مستقيمًا: دوائر، قطوع
+                                مخروطية، منحنيات
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="syntax"><code>تقاطع(d, p)</code></td>
+                            <td>
+                                <span class="badge d3">3D</span> النقطة المشتركة
+                                بين مستقيم ومستوى
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="syntax"><code>تقاطع(p, q)</code></td>
+                            <td>
+                                <span class="badge d3">3D</span> المستقيم
+                                المشترك بين مستويين
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="syntax"><code>تقاطع(s, t)</code></td>
+                            <td>
+                                <span class="badge d3">3D</span> الدائرة
+                                المشتركة بين كرتين
+                            </td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1">
+                                <i data-t="OtherIntersection"></i>
+                                <strong>تقاطعآخر</strong><br /><small
+                                    >OtherIntersection</small
+                                >
+                            </td>
+                            <td class="syntax">
+                                <code>تقاطعآخر(a, b, P)</code>
+                            </td>
+                            <td>النقطة المشتركة بين a و b الأبعد عن P</td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1">
+                                <i data-t="Incenter"></i>
+                                <strong>مركزالدائرةالداخلية</strong><br /><small
+                                    >Incenter</small
+                                >
+                            </td>
+                            <td class="syntax">
+                                <code>مركزالدائرةالداخلية(A, B, C)</code>
+                            </td>
+                            <td>مركز الدائرة الداخلية للمثلث ABC</td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1">
+                                <i data-t="Centroid"></i>
+                                <strong>مركزالثقل</strong><br /><small
+                                    >Centroid</small
+                                >
+                            </td>
+                            <td class="syntax">
+                                <code>مركزالثقل(A, B, C)</code>
+                            </td>
+                            <td>مركز ثقل المثلث ABC</td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1">
+                                <i data-t="Circumcenter"></i>
+                                <strong>مركزالدائرةالمحيطة</strong><br /><small
+                                    >Circumcenter</small
+                                >
+                            </td>
+                            <td class="syntax">
+                                <code>مركزالدائرةالمحيطة(A, B, C)</code>
+                            </td>
+                            <td>مركز الدائرة المحيطة بالمثلث ABC</td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1">
+                                <i data-t="Orthocenter"></i>
+                                <strong>ملتقىالارتفاعات</strong><br /><small
+                                    >Orthocenter</small
+                                >
+                            </td>
+                            <td class="syntax">
+                                <code>ملتقىالارتفاعات(A, B, C)</code>
+                            </td>
+                            <td>ملتقى ارتفاعات المثلث ABC</td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1">
+                                <strong>رأس</strong><br /><small>Vertex</small>
+                            </td>
+                            <td class="syntax"><code>رأس(p, k)</code></td>
+                            <td>
+                                الرأس رقم k (بدءًا من 1) لمضلع أو متعدد سطوح
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <h2>مستقيمات</h2>
+            <div class="table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>الأمر</th>
+                            <th>الصيغة</th>
+                            <th>النتيجة</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td rowspan="1">
+                                <i data-t="Segment"></i> <strong>قطعة</strong
+                                ><br /><small>Segment</small>
+                            </td>
+                            <td class="syntax"><code>قطعة(A, B)</code></td>
+                            <td>القطعة المستقيمة [AB]</td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1">
+                                <i data-t="Line"></i> <strong>مستقيم</strong
+                                ><br /><small>Line</small>
+                            </td>
+                            <td class="syntax"><code>مستقيم(A, B)</code></td>
+                            <td>المستقيم (AB)</td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1">
+                                <i data-t="Ray"></i> <strong>شعاع</strong
+                                ><br /><small>Ray</small>
+                            </td>
+                            <td class="syntax"><code>شعاع(A, B)</code></td>
+                            <td>الشعاع [AB) ذو المبدأ A</td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1">
+                                <i data-t="Vector"></i> <strong>متجه</strong
+                                ><br /><small>Vector</small>
+                            </td>
+                            <td class="syntax"><code>متجه(A, B)</code></td>
+                            <td>المتجه من A إلى B</td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1"><strong>معادلة</strong></td>
+                            <td class="syntax"><code>d = y = 2x + 1</code></td>
+                            <td>
+                                مستقيم تعطيه معادلة من الدرجة الأولى (انظر
+                                <a href="saisie.html#equations">المعادلات</a>)
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <h2>إنشاءات</h2>
+            <div class="table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>الأمر</th>
+                            <th>الصيغة</th>
+                            <th>النتيجة</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td rowspan="2">
+                                <i data-t="Perpendicular"></i>
+                                <strong>عمودي</strong><br /><small
+                                    >Perpendicular</small
+                                >
+                            </td>
+                            <td class="syntax"><code>عمودي(P, d)</code></td>
+                            <td>العمودي على المستقيم d المار بالنقطة P</td>
+                        </tr>
+                        <tr>
+                            <td class="syntax"><code>عمودي(P, p)</code></td>
+                            <td>
+                                <span class="badge d3">3D</span> مستقيم يمر
+                                بالنقطة P عمودي على المستوى p
+                            </td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1">
+                                <i data-t="Parallel"></i> <strong>موازي</strong
+                                ><br /><small>Parallel</small>
+                            </td>
+                            <td class="syntax"><code>موازي(P, d)</code></td>
+                            <td>الموازي للمستقيم d المار بالنقطة P</td>
+                        </tr>
+                        <tr>
+                            <td rowspan="2">
+                                <i data-t="PerpendicularBisector"></i>
+                                <strong>منصفعمودي</strong><br /><small
+                                    >PerpendicularBisector</small
+                                >
+                            </td>
+                            <td class="syntax"><code>منصفعمودي(A, B)</code></td>
+                            <td>المنصف العمودي للقطعة [AB]</td>
+                        </tr>
+                        <tr>
+                            <td class="syntax"><code>منصفعمودي(s)</code></td>
+                            <td>المنصف العمودي للقطعة المستقيمة s</td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1">
+                                <i data-t="AngleBisector"></i>
+                                <strong>منصفالزاوية</strong><br /><small
+                                    >AngleBisector</small
+                                >
+                            </td>
+                            <td class="syntax">
+                                <code>منصفالزاوية(A, O, B)</code>
+                            </td>
+                            <td>منصف الزاوية التي رأسها O</td>
+                        </tr>
+                        <tr>
+                            <td rowspan="2">
+                                <i data-t="Tangent"></i> <strong>مماس</strong
+                                ><br /><small>Tangent</small>
+                            </td>
+                            <td class="syntax"><code>مماس(P, c, n)</code></td>
+                            <td>
+                                المماس رقم n (1 أو 2) المرسوم من P إلى الدائرة
+                                أو القطع المخروطي c
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="syntax"><code>مماس(P, f)</code></td>
+                            <td>
+                                مماس التمثيل البياني لدالة في النقطة ذات فاصلة P
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <h2>دوائر، أقواس، قطوع مخروطية</h2>
+            <div class="table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>الأمر</th>
+                            <th>الصيغة</th>
+                            <th>النتيجة</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td rowspan="4">
+                                <i data-t="Circle (centre and point)"></i>
+                                <strong>دائرة</strong><br /><small
+                                    >Circle</small
+                                >
+                            </td>
+                            <td class="syntax"><code>دائرة(O, A)</code></td>
+                            <td>دائرة مركزها O تمر بالنقطة A</td>
+                        </tr>
+                        <tr>
+                            <td class="syntax"><code>دائرة(O, r)</code></td>
+                            <td>
+                                دائرة مركزها O ونصف قطرها r (عدد أو تعبير أو
+                                صيغة)
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="syntax"><code>دائرة(O, r, d)</code></td>
+                            <td>
+                                <span class="badge d3">3D</span> دائرة مركزها O
+                                ونصف قطرها r، عمودية على المستقيم d أو موازية
+                                للمستوى d
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="syntax"><code>دائرة(d, P)</code></td>
+                            <td>
+                                <span class="badge d3">3D</span> دائرة محورها d
+                                تمر بالنقطة P
+                            </td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1">
+                                <i data-t="Circumcircle"></i>
+                                <strong>دائرةمحيطة</strong><br /><small
+                                    >Circumcircle</small
+                                >
+                            </td>
+                            <td class="syntax">
+                                <code>دائرةمحيطة(A, B, C)</code>
+                            </td>
+                            <td>
+                                دائرة تمر بالنقاط A و B و C (في مستواها في
+                                الأبعاد الثلاثة)
+                            </td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1">
+                                <i data-t="Compass"></i> <strong>بركار</strong
+                                ><br /><small>Compass</small>
+                            </td>
+                            <td class="syntax"><code>بركار(A, B, O)</code></td>
+                            <td>دائرة مركزها O ونصف قطرها AB</td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1">
+                                <i data-t="Arc"></i> <strong>قوس</strong
+                                ><br /><small>Arc</small>
+                            </td>
+                            <td class="syntax"><code>قوس(A, B, C)</code></td>
+                            <td>قوس من A إلى C يمر بالنقطة B</td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1">
+                                <i data-t="Sector"></i> <strong>قطاع</strong
+                                ><br /><small>Sector</small>
+                            </td>
+                            <td class="syntax"><code>قطاع(A, B, C)</code></td>
+                            <td>قطاع القوس من A إلى C المار بالنقطة B</td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1">
+                                <i data-t="CenterArc"></i>
+                                <strong>قوسمركز</strong><br /><small
+                                    >CenterArc</small
+                                >
+                            </td>
+                            <td class="syntax">
+                                <code>قوسمركز(M, A, B)</code>
+                            </td>
+                            <td>
+                                قوس مركزه M، من A حتى الشعاع [MB)، في الاتجاه
+                                الموجب (عكس عقارب الساعة)
+                            </td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1">
+                                <i data-t="CenterSector"></i>
+                                <strong>قطاعمركز</strong><br /><small
+                                    >CenterSector</small
+                                >
+                            </td>
+                            <td class="syntax">
+                                <code>قطاعمركز(M, A, B)</code>
+                            </td>
+                            <td>القطاع الموافق</td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1">
+                                <i data-t="Semicircle"></i>
+                                <strong>نصفدائرة</strong><br /><small
+                                    >Semicircle</small
+                                >
+                            </td>
+                            <td class="syntax"><code>نصفدائرة(A, B)</code></td>
+                            <td>
+                                نصف دائرة قطرها [AB]، على يسار الاتجاه من A إلى
+                                B
+                            </td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1">
+                                <i data-t="Conic"></i> <strong>قطعمخروطي</strong
+                                ><br /><small>Conic</small>
+                            </td>
+                            <td class="syntax">
+                                <code>قطعمخروطي(A, B, C, D, E)</code>
+                            </td>
+                            <td>قطع مخروطي يمر بخمس نقاط</td>
+                        </tr>
+                        <tr>
+                            <td rowspan="2">
+                                <i data-t="Ellipse"></i> <strong>قطعناقص</strong
+                                ><br /><small>Ellipse</small>
+                            </td>
+                            <td class="syntax">
+                                <code>قطعناقص(F, G, P)</code>
+                            </td>
+                            <td>قطع ناقص بؤرتاه F و G يمر بالنقطة P</td>
+                        </tr>
+                        <tr>
+                            <td class="syntax">
+                                <code>قطعناقص(F, G, a)</code>
+                            </td>
+                            <td>قطع ناقص بؤرتاه F و G ونصف محوره الأكبر a</td>
+                        </tr>
+                        <tr>
+                            <td rowspan="2">
+                                <i data-t="Hyperbola"></i>
+                                <strong>قطعزائد</strong><br /><small
+                                    >Hyperbola</small
+                                >
+                            </td>
+                            <td class="syntax">
+                                <code>قطعزائد(F, G, P)</code>
+                            </td>
+                            <td>قطع زائد بؤرتاه F و G يمر بالنقطة P</td>
+                        </tr>
+                        <tr>
+                            <td class="syntax">
+                                <code>قطعزائد(F, G, a)</code>
+                            </td>
+                            <td>قطع زائد بؤرتاه F و G ونصف محوره a</td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1">
+                                <i data-t="Parabola"></i>
+                                <strong>قطعمكافئ</strong><br /><small
+                                    >Parabola</small
+                                >
+                            </td>
+                            <td class="syntax"><code>قطعمكافئ(F, d)</code></td>
+                            <td>قطع مكافئ بؤرته F ودليله d</td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1"><strong>معادلة</strong></td>
+                            <td class="syntax">
+                                <code>c = x^2 + y^2 = 4</code>
+                            </td>
+                            <td>
+                                دائرة أو قطع مخروطي تعطيهما معادلة من الدرجة
+                                الثانية
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <h2>مضلعات، زوايا، محال هندسية</h2>
+            <div class="table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>الأمر</th>
+                            <th>الصيغة</th>
+                            <th>النتيجة</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td rowspan="1">
+                                <i data-t="Polygon"></i> <strong>مضلع</strong
+                                ><br /><small>Polygon</small>
+                            </td>
+                            <td class="syntax">
+                                <code>مضلع(A, B, C, …)</code>
+                            </td>
+                            <td>مضلع له ثلاثة رؤوس أو أكثر</td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1">
+                                <i data-t="RegularPolygon"></i>
+                                <strong>مضلعمنتظم</strong><br /><small
+                                    >RegularPolygon</small
+                                >
+                            </td>
+                            <td class="syntax">
+                                <code>مضلعمنتظم(A, B, n)</code>
+                            </td>
+                            <td>مضلع منتظم له n ضلعًا (n ≥ 3) مبني على [AB]</td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1">
+                                <i data-t="Angle"></i> <strong>زاوية</strong
+                                ><br /><small>Angle</small>
+                            </td>
+                            <td class="syntax"><code>زاوية(A, O, B)</code></td>
+                            <td>زاوية رأسها O، من [OA) إلى [OB)</td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1">
+                                <i data-t="Locus"></i> <strong>محلهندسي</strong
+                                ><br /><small>Locus</small>
+                            </td>
+                            <td class="syntax"><code>محلهندسي(M, P)</code></td>
+                            <td>
+                                المحل الهندسي للنقطة M عندما تجري النقطة P على
+                                عنصرها
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <h2>تحويلات</h2>
+            <div class="table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>الأمر</th>
+                            <th>الصيغة</th>
+                            <th>النتيجة</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td rowspan="2">
+                                <i data-t="Point reflection"></i>
+                                <strong>انعكاس</strong><br /><small
+                                    >Reflect</small
+                                >
+                            </td>
+                            <td class="syntax"><code>انعكاس(P, O)</code></td>
+                            <td>مماثل النقطة P بالنسبة إلى النقطة O</td>
+                        </tr>
+                        <tr>
+                            <td class="syntax"><code>انعكاس(P, d)</code></td>
+                            <td>مماثل النقطة P بالنسبة إلى المستقيم d</td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1">
+                                <i data-t="Rotation"></i> <strong>دوران</strong
+                                ><br /><small>Rotation</small>
+                            </td>
+                            <td class="syntax"><code>دوران(P, O, a)</code></td>
+                            <td>
+                                صورة النقطة P بالدوران الذي مركزه O وزاويته a
+                                (بالدرجات أو بالراديان حسب الشكل)
+                            </td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1">
+                                <i data-t="Translation"></i>
+                                <strong>انسحاب</strong><br /><small
+                                    >Translation</small
+                                >
+                            </td>
+                            <td class="syntax"><code>انسحاب(P, u)</code></td>
+                            <td>صورة النقطة P بالانسحاب الذي متجهه u</td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1">
+                                <i data-t="Dilation"></i> <strong>تحاكي</strong
+                                ><br /><small>Dilation</small>
+                            </td>
+                            <td class="syntax"><code>تحاكي(P, O, k)</code></td>
+                            <td>
+                                صورة النقطة P بالتحاكي الذي مركزه O ونسبته k
+                            </td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1">
+                                <i data-t="Inversion"></i>
+                                <strong>انقلاب</strong><br /><small
+                                    >Inversion</small
+                                >
+                            </td>
+                            <td class="syntax"><code>انقلاب(P, c)</code></td>
+                            <td>
+                                صورة النقطة P بالانقلاب بالنسبة إلى الدائرة c
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <h2>مستويات</h2>
+            <div class="table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>الأمر</th>
+                            <th>الصيغة</th>
+                            <th>النتيجة</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td rowspan="2">
+                                <i data-t="Plane"></i> <strong>مستوى</strong
+                                ><br /><small>Plane</small>
+                            </td>
+                            <td class="syntax"><code>مستوى(A, B, C)</code></td>
+                            <td>مستوى يمر بثلاث نقاط</td>
+                        </tr>
+                        <tr>
+                            <td class="syntax"><code>مستوى(A, d)</code></td>
+                            <td>مستوى يحوي النقطة A والمستقيم d</td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1">
+                                <i data-t="ParallelPlane"></i>
+                                <strong>مستوىموازي</strong><br /><small
+                                    >ParallelPlane</small
+                                >
+                            </td>
+                            <td class="syntax">
+                                <code>مستوىموازي(A, p)</code>
+                            </td>
+                            <td>مستوى يمر بالنقطة A موازٍ للمستوى p</td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1">
+                                <i data-t="OrthogonalPlane"></i>
+                                <strong>مستوىعمودي</strong><br /><small
+                                    >OrthogonalPlane</small
+                                >
+                            </td>
+                            <td class="syntax">
+                                <code>مستوىعمودي(A, d)</code>
+                            </td>
+                            <td>مستوى يمر بالنقطة A عمودي على المستقيم d</td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1"><strong>معادلة</strong></td>
+                            <td class="syntax">
+                                <code>p = x + y + z = 3</code>
+                            </td>
+                            <td>
+                                مستوى تعطيه معادلة من الدرجة الأولى في x و y و z
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <h2>مجسمات</h2>
+            <div class="table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>الأمر</th>
+                            <th>الصيغة</th>
+                            <th>النتيجة</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td rowspan="2">
+                                <i data-t="Sphere"></i> <strong>كرة</strong
+                                ><br /><small>Sphere</small>
+                            </td>
+                            <td class="syntax"><code>كرة(O, A)</code></td>
+                            <td>كرة مركزها O تمر بالنقطة A</td>
+                        </tr>
+                        <tr>
+                            <td class="syntax"><code>كرة(O, r)</code></td>
+                            <td>كرة مركزها O ونصف قطرها r</td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1">
+                                <i data-t="Cylinder"></i>
+                                <strong>أسطوانة</strong><br /><small
+                                    >Cylinder</small
+                                >
+                            </td>
+                            <td class="syntax">
+                                <code>أسطوانة(A, B, r)</code>
+                            </td>
+                            <td>أسطوانة محورها [AB] ونصف قطرها r</td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1">
+                                <i data-t="Cone"></i> <strong>مخروط</strong
+                                ><br /><small>Cone</small>
+                            </td>
+                            <td class="syntax"><code>مخروط(A, B, r)</code></td>
+                            <td>
+                                مخروط قاعدته دائرة مركزها A ونصف قطرها r، ورأسه
+                                B
+                            </td>
+                        </tr>
+                        <tr>
+                            <td rowspan="3">
+                                <i data-t="Cube"></i> <strong>مكعب</strong
+                                ><br /><small>Cube</small>
+                            </td>
+                            <td class="syntax"><code>مكعب(A, B, C)</code></td>
+                            <td>مكعب على المربع ABCD من المستوى ABC</td>
+                        </tr>
+                        <tr>
+                            <td class="syntax">
+                                <code>مكعب(A, B, p, s)</code>
+                            </td>
+                            <td>
+                                مكعب حرفه [AB] موضوع على المستوى أو المضلع p، من
+                                الجهة s (1 أو −1)
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="syntax"><code>مكعب(A, B, s)</code></td>
+                            <td>
+                                مكعب حرفه [AB] على مربع أفقي، فوقه (1) أو تحته
+                                (−1)
+                            </td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1">
+                                <i data-t="Prism"></i> <strong>موشور</strong
+                                ><br /><small>Prism</small>
+                            </td>
+                            <td class="syntax"><code>موشور(p, P)</code></td>
+                            <td>
+                                موشور قاعدته المضلع p، و P صورة الرأس الأول من p
+                            </td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1">
+                                <i data-t="Pyramid"></i> <strong>هرم</strong
+                                ><br /><small>Pyramid</small>
+                            </td>
+                            <td class="syntax"><code>هرم(p, S)</code></td>
+                            <td>هرم قاعدته المضلع p ورأسه S</td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1">
+                                <i data-t="Section"></i> <strong>مقطع</strong
+                                ><br /><small>Section</small>
+                            </td>
+                            <td class="syntax"><code>مقطع(s, p)</code></td>
+                            <td>
+                                مقطع المجسم s بالمستوى p: دائرة (كرة)، قطع
+                                مخروطي (أسطوانة، مخروط) أو مضلع (متعدد سطوح)
+                            </td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1">
+                                <i data-t="Net"></i> <strong>شبكة</strong
+                                ><br /><small>Net</small>
+                            </td>
+                            <td class="syntax"><code>شبكة(c, f)</code></td>
+                            <td>
+                                شبكة مكعب أو موشور أو هرم، مفتوحة بقدر f (0:
+                                مطوية، 1: مسطحة)
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <h2>الأعداد والقوائم</h2>
+            <div class="table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>الأمر</th>
+                            <th>الصيغة</th>
+                            <th>النتيجة</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td rowspan="1">
+                                <strong>منزلقة</strong><br /><small
+                                    >Slider</small
+                                >
+                            </td>
+                            <td class="syntax">
+                                <code>منزلقة(min, max, قيمة)</code>
+                            </td>
+                            <td>منزلقة بين حدّين (أعداد أو تعابير أو صيغ)</td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1">
+                                <strong>قائمة</strong><br /><small>List</small>
+                            </td>
+                            <td class="syntax"><code>قائمة(e)</code></td>
+                            <td>يرسم نقاط قيمة التعبير e، وهي قائمة نقاط</td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1"><strong>تعبير</strong></td>
+                            <td class="syntax"><code>a = 3</code></td>
+                            <td>
+                                عدد أو نص أو دالة أو صيغة (انظر
+                                <a href="expressions.html">التعابير</a>)
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <h2>دوال الصيغ</h2>
+            <p>
+                <code>d</code>، <code>x</code>، <code>sqrt</code>،
+                <code>sin</code>… تحسب دون إنشاء عنصر: انظر
+                <a href="formules.html#fonctions">الصيغ والبرامج</a>.
+            </p>
+        </main>
+    </body>
+</html>

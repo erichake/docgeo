@@ -23,6 +23,7 @@ const fr: Texts = {
         save: "Enregistrer",
         undo: "Annuler",
         redo: "Refaire",
+        help: "Manuel d’utilisation",
         delete: "Supprimer",
         eraser: "Gomme",
         axes: "Repère",

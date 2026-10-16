@@ -1,0 +1,690 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <title>قائمة الأدوات — دليل DocGeo</title>
+        <link rel="icon" type="image/svg+xml" href="../../favicon.svg" />
+        <link rel="stylesheet" href="../manual.css" />
+        <script src="../icons.js" defer></script>
+        <script src="../manual.js" defer></script>
+    </head>
+    <body>
+        <main>
+            <h1>قائمة الأدوات</h1>
+            <figure>
+                <img
+                    src="img/editeur-menu-outils.webp"
+                    alt="قائمة الأدوات مفتوحة على دوائر، أقواس، قطوع مخروطية"
+                    width="620"
+                    height="720"
+                />
+            </figure>
+
+            <h2>الاستعمال</h2>
+            <ul>
+                <li>
+                    الزر <i data-i="tools"></i>، بجانب سطر الإدخال، يفتح
+                    القائمة: عائلات الحلقة، بالألوان نفسها والترتيب نفسه، ثم
+                    أدواتها عند مرور المؤشر أو اللمس.
+                </li>
+                <li>
+                    تضم القائمة كل أدوات الحلقة وأدوات أخرى (الشارة
+                    <span class="badge ring">الحلقة</span> أدناه). لا تظهر
+                    عائلتا مستويات ومجسمات والأدوات الموسومة بـ
+                    <span class="badge d3">3D</span> إلا في العرض ثلاثي الأبعاد.
+                </li>
+                <li>
+                    يأخذ العنصر المحدَّد أولًا أي موضع يقبله نوعه: في العمودي،
+                    يمكن أن يأتي المستقيم قبل النقطة.
+                </li>
+                <li>
+                    الأداة <strong>دائمة</strong>: بعد كل عنصر، تنتظر من جديد
+                    وسيطها الأول. يأخذ زر القائمة أيقونتها ويُظهر الشريط شريطًا
+                    فيه <strong>تم</strong>.
+                </li>
+                <li>
+                    الخروج: <strong>تم</strong>، <kbd>Esc</kbd>، علامة
+                    <strong>✕</strong> في الإرشاد، زر القائمة (الذي يعيد فتح
+                    القائمة)، الممحاة، خطوة بخطوة، أو نقرة في سطر نصي. التراجع
+                    والإعادة والخصائص والعرض ثلاثي الأبعاد تُبقي الأداة.
+                </li>
+            </ul>
+
+            <h2 id="avec-une-selection">مع تحديد مسبق</h2>
+            <p>
+                إذا حُدّدت عناصر أولًا (<kbd>Ctrl</kbd>-نقر أو
+                <kbd>Shift</kbd>-نقر أو ضغط مطوّل)، تُعطّل القائمة الأدوات التي
+                لا تقبلها. يأخذ كل عنصر، بالترتيب، أول موضع شاغر من نوعه؛ ويُنشأ
+                السطر فورًا إن اكتمل. مثال: A و B و C ثم
+                <strong>دائرةمحيطة</strong> يكتب
+                <code>دائرةمحيطة(A, B, C)</code>.
+            </p>
+
+            <h2>كل الأدوات</h2>
+            <p>لكل أداة: ما تحدّده، ثم السطر المكتوب.</p>
+            <h3 id="famille-points">نقاط</h3>
+            <div class="family" style="--h: 35">
+                <ul>
+                    <li>
+                        <i data-t="Point"></i>
+                        <div>
+                            <strong
+                                >نقطة<span class="badge ring"
+                                    >الحلقة</span
+                                ></strong
+                            ><span
+                                >النقطة التي تلمسها: حرة في مكان فارغ، أو على
+                                عنصر، أو عند تقاطع عنصرين.</span
+                            ><span><code>نقطة(c, t)</code></span>
+                        </div>
+                    </li>
+                    <li>
+                        <i data-t="Intersection"></i>
+                        <div>
+                            <strong
+                                >تقاطع<span class="badge ring"
+                                    >الحلقة</span
+                                ></strong
+                            ><span
+                                >تقاطع بلمسة واحدة، أو العنصران أحدهما بعد
+                                الآخر.</span
+                            ><span><code>تقاطع(a, b)</code></span>
+                        </div>
+                    </li>
+                    <li>
+                        <i data-t="Midpoint"></i>
+                        <div>
+                            <strong
+                                >منتصف<span class="badge ring"
+                                    >الحلقة</span
+                                ></strong
+                            ><span>نقطتان، أو قطعة مستقيمة.</span
+                            ><span><code>منتصف(A, B)</code></span>
+                        </div>
+                    </li>
+                    <li>
+                        <i data-t="Center"></i>
+                        <div>
+                            <strong
+                                >مركز<span class="badge ring"
+                                    >الحلقة</span
+                                ></strong
+                            ><span>دائرة: مركزها.</span
+                            ><span><code>مركز(c)</code></span>
+                        </div>
+                    </li>
+                    <li>
+                        <i data-t="OtherIntersection"></i>
+                        <div>
+                            <strong>تقاطعآخر</strong
+                            ><span
+                                >عنصران، ثم نقطة موضوعة مسبقًا على أحد
+                                تقاطعاتهما: نقطة التقاطع الأبعد عنها.</span
+                            ><span><code>تقاطعآخر(a, b, P)</code></span>
+                        </div>
+                    </li>
+                    <li>
+                        <i data-t="Incenter"></i>
+                        <div>
+                            <strong>مركزالدائرةالداخلية</strong
+                            ><span
+                                >ثلاث نقاط، رؤوس مثلث: مركز دائرته
+                                الداخلية.</span
+                            ><span
+                                ><code>مركزالدائرةالداخلية(A, B, C)</code></span
+                            >
+                        </div>
+                    </li>
+                    <li>
+                        <i data-t="Centroid"></i>
+                        <div>
+                            <strong>مركزالثقل</strong
+                            ><span>ثلاث نقاط: مركز ثقل المثلث.</span
+                            ><span><code>مركزالثقل(A, B, C)</code></span>
+                        </div>
+                    </li>
+                    <li>
+                        <i data-t="Circumcenter"></i>
+                        <div>
+                            <strong>مركزالدائرةالمحيطة</strong
+                            ><span>ثلاث نقاط: مركز الدائرة المحيطة.</span
+                            ><span
+                                ><code>مركزالدائرةالمحيطة(A, B, C)</code></span
+                            >
+                        </div>
+                    </li>
+                    <li>
+                        <i data-t="Orthocenter"></i>
+                        <div>
+                            <strong>ملتقىالارتفاعات</strong
+                            ><span>ثلاث نقاط: ملتقى ارتفاعات المثلث.</span
+                            ><span><code>ملتقىالارتفاعات(A, B, C)</code></span>
+                        </div>
+                    </li>
+                </ul>
+            </div>
+            <h3 id="famille-lines">مستقيمات</h3>
+            <div class="family" style="--h: 215">
+                <ul>
+                    <li>
+                        <i data-t="Segment"></i>
+                        <div>
+                            <strong
+                                >قطعة<span class="badge ring"
+                                    >الحلقة</span
+                                ></strong
+                            ><span>نقطتان، طرفاها.</span
+                            ><span><code>قطعة(A, B)</code></span>
+                        </div>
+                    </li>
+                    <li>
+                        <i data-t="Line"></i>
+                        <div>
+                            <strong
+                                >مستقيم<span class="badge ring"
+                                    >الحلقة</span
+                                ></strong
+                            ><span>نقطتان من المستقيم.</span
+                            ><span><code>مستقيم(A, B)</code></span>
+                        </div>
+                    </li>
+                    <li>
+                        <i data-t="Ray"></i>
+                        <div>
+                            <strong
+                                >شعاع<span class="badge ring"
+                                    >الحلقة</span
+                                ></strong
+                            ><span>نقطتان: المبدأ، ثم نقطة من الشعاع.</span
+                            ><span><code>شعاع(A, B)</code></span>
+                        </div>
+                    </li>
+                    <li>
+                        <i data-t="Vector"></i>
+                        <div>
+                            <strong
+                                >متجه<span class="badge ring"
+                                    >الحلقة</span
+                                ></strong
+                            ><span>نقطتان: المبدأ، ثم النهاية.</span
+                            ><span><code>متجه(A, B)</code></span>
+                        </div>
+                    </li>
+                </ul>
+            </div>
+            <h3 id="famille-constructions">إنشاءات</h3>
+            <div class="family" style="--h: 265">
+                <ul>
+                    <li>
+                        <i data-t="Perpendicular"></i>
+                        <div>
+                            <strong
+                                >عمودي<span class="badge ring"
+                                    >الحلقة</span
+                                ></strong
+                            ><span
+                                >نقطة ومستقيم، بأي ترتيب. في الأبعاد الثلاثة،
+                                مستقيم أو مستوى.</span
+                            ><span><code>عمودي(P, d)</code></span>
+                        </div>
+                    </li>
+                    <li>
+                        <i data-t="Parallel"></i>
+                        <div>
+                            <strong
+                                >موازي<span class="badge ring"
+                                    >الحلقة</span
+                                ></strong
+                            ><span>نقطة ومستقيم، بأي ترتيب.</span
+                            ><span><code>موازي(P, d)</code></span>
+                        </div>
+                    </li>
+                    <li>
+                        <i data-t="PerpendicularBisector"></i>
+                        <div>
+                            <strong
+                                >منصفعمودي<span class="badge ring"
+                                    >الحلقة</span
+                                ></strong
+                            ><span>نقطتان، أو قطعة مستقيمة.</span
+                            ><span><code>منصفعمودي(A, B)</code></span>
+                        </div>
+                    </li>
+                    <li>
+                        <i data-t="AngleBisector"></i>
+                        <div>
+                            <strong
+                                >منصفالزاوية<span class="badge ring"
+                                    >الحلقة</span
+                                ></strong
+                            ><span
+                                >ثلاث نقاط: نقطة من الضلع الأول، الرأس، نقطة من
+                                الضلع الثاني.</span
+                            ><span><code>منصفالزاوية(A, O, B)</code></span>
+                        </div>
+                    </li>
+                    <li>
+                        <i data-t="Tangent"></i>
+                        <div>
+                            <strong>مماس</strong
+                            ><span
+                                >نقطة، ثم دائرة أو قطع مخروطي أو التمثيل البياني
+                                لدالة. تعطي الأداة المماس رقم 1؛ غيّر هذا الرقم
+                                إلى 2 في سطره للحصول على الآخر.</span
+                            ><span><code>مماس(P, c, 1)</code></span>
+                        </div>
+                    </li>
+                </ul>
+            </div>
+            <h3 id="famille-circles">دوائر، أقواس، قطوع مخروطية</h3>
+            <div class="family" style="--h: 145">
+                <ul>
+                    <li>
+                        <i data-t="Circle (centre and point)"></i>
+                        <div>
+                            <strong
+                                >دائرة (مركز ونقطة)<span class="badge ring"
+                                    >الحلقة</span
+                                ></strong
+                            ><span>المركز، ثم نقطة من الدائرة.</span
+                            ><span><code>دائرة(O, A)</code></span>
+                        </div>
+                    </li>
+                    <li>
+                        <i data-t="Circle (centre and radius)"></i>
+                        <div>
+                            <strong
+                                >دائرة (مركز ونصف قطر)<span class="badge ring"
+                                    >الحلقة</span
+                                ></strong
+                            ><span
+                                >المركز وحده: نصف القطر، نحو 150 بكسل، يُغيَّر
+                                بعد ذلك بسحب الدائرة أو في سطرها.</span
+                            ><span><code>دائرة(O, 3.8)</code></span>
+                        </div>
+                    </li>
+                    <li>
+                        <i data-t="Circumcircle"></i>
+                        <div>
+                            <strong
+                                >دائرةمحيطة<span class="badge ring"
+                                    >الحلقة</span
+                                ></strong
+                            ><span>ثلاث نقاط من الدائرة.</span
+                            ><span><code>دائرةمحيطة(A, B, C)</code></span>
+                        </div>
+                    </li>
+                    <li>
+                        <i data-t="Sphere"></i>
+                        <div>
+                            <strong
+                                >كرة<span class="badge ring">الحلقة</span
+                                ><span class="badge d3">3D</span></strong
+                            ><span>المركز، ثم نقطة من الكرة.</span
+                            ><span><code>كرة(O, A)</code></span>
+                        </div>
+                    </li>
+                    <li>
+                        <i data-t="Compass"></i>
+                        <div>
+                            <strong>بركار</strong
+                            ><span>نقطتان تعطيان نصف القطر، ثم المركز.</span
+                            ><span><code>بركار(A, B, O)</code></span>
+                        </div>
+                    </li>
+                    <li>
+                        <i data-t="Circle (centre, direction and radius)"></i>
+                        <div>
+                            <strong
+                                >دائرة (مركز واتجاه ونصف قطر)<span
+                                    class="badge d3"
+                                    >3D</span
+                                ></strong
+                            ><span
+                                >المركز، ثم مستقيم (المحور) أو مستوى (موازٍ
+                                للدائرة)، بما في ذلك الأرضية. نصف القطر نحو 150
+                                بكسل.</span
+                            ><span><code>دائرة(O, 3.8, d)</code></span>
+                        </div>
+                    </li>
+                    <li>
+                        <i data-t="Circle (axis and point)"></i>
+                        <div>
+                            <strong
+                                >دائرة (محور ونقطة)<span class="badge d3"
+                                    >3D</span
+                                ></strong
+                            ><span>مستقيم، هو المحور، ثم نقطة من الدائرة.</span
+                            ><span><code>دائرة(d, P)</code></span>
+                        </div>
+                    </li>
+                    <li>
+                        <i data-t="Arc"></i>
+                        <div>
+                            <strong>قوس</strong
+                            ><span
+                                >ثلاث نقاط: البداية، نقطة يمر بها،
+                                النهاية.</span
+                            ><span><code>قوس(A, B, C)</code></span>
+                        </div>
+                    </li>
+                    <li>
+                        <i data-t="Sector"></i>
+                        <div>
+                            <strong>قطاع</strong
+                            ><span
+                                >ثلاث نقاط، كما في القوس: القطاع الذي
+                                يحدّه.</span
+                            ><span><code>قطاع(A, B, C)</code></span>
+                        </div>
+                    </li>
+                    <li>
+                        <i data-t="CenterArc"></i>
+                        <div>
+                            <strong>قوسمركز</strong
+                            ><span
+                                >المركز، البداية، ثم نقطة من الشعاع الذي ينتهي
+                                عنده القوس (الاتجاه الموجب).</span
+                            ><span><code>قوسمركز(M, A, B)</code></span>
+                        </div>
+                    </li>
+                    <li>
+                        <i data-t="CenterSector"></i>
+                        <div>
+                            <strong>قطاعمركز</strong
+                            ><span>مثل <code>قوسمركز</code>: القطاع.</span
+                            ><span><code>قطاعمركز(M, A, B)</code></span>
+                        </div>
+                    </li>
+                    <li>
+                        <i data-t="Semicircle"></i>
+                        <div>
+                            <strong>نصفدائرة</strong
+                            ><span
+                                >نقطتان، طرفا القطر: نصف الدائرة على يسار
+                                [AB].</span
+                            ><span><code>نصفدائرة(A, B)</code></span>
+                        </div>
+                    </li>
+                    <li>
+                        <i data-t="Conic"></i>
+                        <div>
+                            <strong>قطعمخروطي</strong
+                            ><span
+                                >خمس نقاط من القطع المخروطي. من النقطة الثانية،
+                                تُظهر المعاينة القطع المخروطي الأقرب إلى
+                                دائرة.</span
+                            ><span><code>قطعمخروطي(A, B, C, D, E)</code></span>
+                        </div>
+                    </li>
+                    <li>
+                        <i data-t="Ellipse"></i>
+                        <div>
+                            <strong>قطعناقص</strong
+                            ><span>البؤرتان، ثم نقطة من القطع الناقص.</span
+                            ><span><code>قطعناقص(F, G, P)</code></span>
+                        </div>
+                    </li>
+                    <li>
+                        <i data-t="Hyperbola"></i>
+                        <div>
+                            <strong>قطعزائد</strong
+                            ><span>البؤرتان، ثم نقطة من القطع الزائد.</span
+                            ><span><code>قطعزائد(F, G, P)</code></span>
+                        </div>
+                    </li>
+                    <li>
+                        <i data-t="Parabola"></i>
+                        <div>
+                            <strong>قطعمكافئ</strong
+                            ><span>البؤرة، ثم الدليل.</span
+                            ><span><code>قطعمكافئ(F, d)</code></span>
+                        </div>
+                    </li>
+                </ul>
+            </div>
+            <h3 id="famille-shapes">مضلعات، زوايا، محال هندسية</h3>
+            <div class="family" style="--h: 185">
+                <ul>
+                    <li>
+                        <i data-t="Polygon"></i>
+                        <div>
+                            <strong
+                                >مضلع<span class="badge ring"
+                                    >الحلقة</span
+                                ></strong
+                            ><span
+                                >الرؤوس واحدًا تلو الآخر، ثم الأول مرة أخرى
+                                للإغلاق.</span
+                            ><span><code>مضلع(A, B, C)</code></span>
+                        </div>
+                    </li>
+                    <li>
+                        <i data-t="Angle"></i>
+                        <div>
+                            <strong
+                                >زاوية<span class="badge ring"
+                                    >الحلقة</span
+                                ></strong
+                            ><span
+                                >ثلاث نقاط: نقطة من الضلع الأول، الرأس، نقطة من
+                                الضلع الثاني.</span
+                            ><span><code>زاوية(A, O, B)</code></span>
+                        </div>
+                    </li>
+                    <li>
+                        <i data-t="Locus"></i>
+                        <div>
+                            <strong
+                                >محلهندسي<span class="badge ring"
+                                    >الحلقة</span
+                                ></strong
+                            ><span
+                                >نقطة تتعلق بنقطة على عنصر: محلها الهندسي عندما
+                                تجري تلك النقطة على عنصرها.</span
+                            ><span><code>محلهندسي(M, P)</code></span>
+                        </div>
+                    </li>
+                    <li>
+                        <i data-t="RegularPolygon"></i>
+                        <div>
+                            <strong>مضلعمنتظم</strong
+                            ><span
+                                >رأسان متتاليان: تعطي الأداة مربعًا؛ غيّر عدد
+                                الأضلاع في سطره.</span
+                            ><span><code>مضلعمنتظم(A, B, 4)</code></span>
+                        </div>
+                    </li>
+                </ul>
+            </div>
+            <h3 id="famille-transformations">تحويلات</h3>
+            <div class="family" style="--h: 320">
+                <ul>
+                    <li>
+                        <i data-t="Point reflection"></i>
+                        <div>
+                            <strong
+                                >تماثل مركزي<span class="badge ring"
+                                    >الحلقة</span
+                                ></strong
+                            ><span>النقطة المراد تحويلها، ثم المركز.</span
+                            ><span><code>انعكاس(P, O)</code></span>
+                        </div>
+                    </li>
+                    <li>
+                        <i data-t="Line reflection"></i>
+                        <div>
+                            <strong
+                                >تماثل محوري<span class="badge ring"
+                                    >الحلقة</span
+                                ></strong
+                            ><span
+                                >النقطة المراد تحويلها والمحور، بأي ترتيب.</span
+                            ><span><code>انعكاس(P, d)</code></span>
+                        </div>
+                    </li>
+                    <li>
+                        <i data-t="Rotation"></i>
+                        <div>
+                            <strong>دوران</strong
+                            ><span
+                                >النقطة، ثم المركز: ربع دورة، تغيّرها في
+                                سطره.</span
+                            ><span><code>دوران(P, O, 90)</code></span>
+                        </div>
+                    </li>
+                    <li>
+                        <i data-t="Translation"></i>
+                        <div>
+                            <strong>انسحاب</strong
+                            ><span>النقطة، ثم المتجه.</span
+                            ><span><code>انسحاب(P, u)</code></span>
+                        </div>
+                    </li>
+                    <li>
+                        <i data-t="Dilation"></i>
+                        <div>
+                            <strong>تحاكي</strong
+                            ><span
+                                >النقطة، ثم المركز: نسبة 2، تغيّرها في
+                                سطره.</span
+                            ><span><code>تحاكي(P, O, 2)</code></span>
+                        </div>
+                    </li>
+                    <li>
+                        <i data-t="Inversion"></i>
+                        <div>
+                            <strong>انقلاب</strong
+                            ><span>النقطة، ثم دائرة الانقلاب.</span
+                            ><span><code>انقلاب(P, c)</code></span>
+                        </div>
+                    </li>
+                </ul>
+            </div>
+            <h3 id="famille-planes">مستويات</h3>
+            <div class="family" style="--h: 240">
+                <ul>
+                    <li>
+                        <i data-t="Plane"></i>
+                        <div>
+                            <strong
+                                >مستوى<span class="badge d3">3D</span></strong
+                            ><span>ثلاث نقاط، أو نقطة ومستقيم.</span
+                            ><span><code>مستوى(A, B, C)</code></span>
+                        </div>
+                    </li>
+                    <li>
+                        <i data-t="ParallelPlane"></i>
+                        <div>
+                            <strong
+                                >مستوىموازي<span class="badge d3"
+                                    >3D</span
+                                ></strong
+                            ><span
+                                >نقطة ومستوى (بما في ذلك الأرضية): المستوى
+                                الموازي المار بالنقطة.</span
+                            ><span><code>مستوىموازي(A, p)</code></span>
+                        </div>
+                    </li>
+                    <li>
+                        <i data-t="OrthogonalPlane"></i>
+                        <div>
+                            <strong
+                                >مستوىعمودي<span class="badge d3"
+                                    >3D</span
+                                ></strong
+                            ><span
+                                >نقطة ومستقيم: المستوى العمودي على
+                                المستقيم.</span
+                            ><span><code>مستوىعمودي(A, d)</code></span>
+                        </div>
+                    </li>
+                </ul>
+            </div>
+            <h3 id="famille-solids">مجسمات</h3>
+            <div class="family" style="--h: 265">
+                <ul>
+                    <li>
+                        <i data-t="Cylinder"></i>
+                        <div>
+                            <strong
+                                >أسطوانة<span class="badge d3">3D</span></strong
+                            ><span
+                                >نقطتان، طرفا المحور. نصف القطر نحو 150
+                                بكسل.</span
+                            ><span><code>أسطوانة(A, B, 3.8)</code></span>
+                        </div>
+                    </li>
+                    <li>
+                        <i data-t="Cone"></i>
+                        <div>
+                            <strong
+                                >مخروط<span class="badge d3">3D</span></strong
+                            ><span
+                                >مركز القاعدة، ثم الرأس. نصف القطر نحو 150
+                                بكسل.</span
+                            ><span><code>مخروط(A, B, 3.8)</code></span>
+                        </div>
+                    </li>
+                    <li>
+                        <i data-t="Cube"></i>
+                        <div>
+                            <strong>مكعب<span class="badge d3">3D</span></strong
+                            ><span
+                                >نقطتان من المستوى نفسه أو على الارتفاع نفسه،
+                                وإلا فثلاث نقاط (انظر الأبعاد الثلاثة).</span
+                            ><span><code>مكعب(A, B, C)</code></span>
+                        </div>
+                    </li>
+                    <li>
+                        <i data-t="Prism"></i>
+                        <div>
+                            <strong
+                                >موشور<span class="badge d3">3D</span></strong
+                            ><span
+                                >مضلع، هو القاعدة، ثم نقطة، رأس للوجه
+                                المقابل.</span
+                            ><span><code>موشور(p, P)</code></span>
+                        </div>
+                    </li>
+                    <li>
+                        <i data-t="Pyramid"></i>
+                        <div>
+                            <strong>هرم<span class="badge d3">3D</span></strong
+                            ><span>مضلع، هو القاعدة، ثم الرأس.</span
+                            ><span><code>هرم(p, S)</code></span>
+                        </div>
+                    </li>
+                    <li>
+                        <i data-t="Section"></i>
+                        <div>
+                            <strong>مقطع<span class="badge d3">3D</span></strong
+                            ><span
+                                >مجسم (كرة، أسطوانة، مخروط، متعدد سطوح) ومستوى،
+                                بأي ترتيب.</span
+                            ><span><code>مقطع(s, p)</code></span>
+                        </div>
+                    </li>
+                    <li>
+                        <i data-t="Net"></i>
+                        <div>
+                            <strong>شبكة<span class="badge d3">3D</span></strong
+                            ><span>مكعب أو موشور أو هرم: شبكته المسطحة.</span
+                            ><span><code>شبكة(c, 1)</code></span>
+                        </div>
+                    </li>
+                </ul>
+            </div>
+
+            <p>
+                تنشئ التحويلات صورة <strong>نقطة</strong>. بلوحة المفاتيح فقط:
+                <code>نقطةثابتة</code>، <code>رأس</code>، <code>منزلقة</code>،
+                <code>قائمة</code>، تقاطعات الفضاء،
+                <code>قطعناقص(F, G, a)</code> و
+                <code>قطعزائد(F, G, a)</code> (انظر
+                <a href="commandes.html">الأوامر</a>).
+            </p>
+        </main>
+    </body>
+</html>

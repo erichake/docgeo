@@ -1,0 +1,339 @@
+<!doctype html>
+<html lang="hi">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <title>सूत्र और प्रोग्राम — DocGeo पुस्तिका</title>
+        <link rel="icon" type="image/svg+xml" href="../../favicon.svg" />
+        <link rel="stylesheet" href="../manual.css" />
+        <script src="../icons.js" defer></script>
+        <script src="../manual.js" defer></script>
+    </head>
+    <body>
+        <main>
+            <h1>सूत्र और प्रोग्राम</h1>
+
+            <p class="lead">
+                व्यंजकों की भाषा DGPad की भाषा है। DocGeo उसे स्वयं व्याख्यायित
+                करता है: वह कभी JavaScript के रूप में नहीं चलाई जाती।
+            </p>
+
+            <h2>मान</h2>
+            <div class="table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>लेखन</th>
+                            <th>मान</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>
+                                <code>3</code>, <code>-2.5</code>,
+                                <code>.5</code>, <code>2e3</code>
+                            </td>
+                            <td>संख्याएँ (दशमलव बिन्दु)</td>
+                        </tr>
+                        <tr>
+                            <td><code>PI</code>, <code>π</code></td>
+                            <td>π (<code>pi</code> पहचाना नहीं जाता)</td>
+                        </tr>
+                        <tr>
+                            <td><code>1 + 2i</code></td>
+                            <td>सम्मिश्र संख्या</td>
+                        </tr>
+                        <tr>
+                            <td><code>"पाठ"</code></td>
+                            <td>पाठ; <code>+</code> जोड़ता है</td>
+                        </tr>
+                        <tr>
+                            <td><code>[1, 2, 3]</code></td>
+                            <td>
+                                सूची; <code>[x, y]</code>,
+                                <code>[x, y, z]</code>: बिन्दु या सदिश
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><code>A</code></td>
+                            <td>
+                                बिन्दु: निर्देशांक; रेखाखण्ड: लंबाई; वृत्त:
+                                त्रिज्या; बहुभुज: क्षेत्रफल; कोण: माप
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <code>x</code>, <code>y</code>, <code>z</code>,
+                                <code>t</code>
+                            </td>
+                            <td>फलन के चर</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <p>
+                समतल में बिन्दु एक सम्मिश्र संख्या है:
+                <code>(A + B)/2</code> मध्यबिन्दु है, <code>2*B - A</code> B के
+                सापेक्ष A का प्रतिबिम्ब।
+            </p>
+
+            <h2>संकारक</h2>
+            <div class="table">
+                <table>
+                    <tbody>
+                        <tr>
+                            <td><code>+ - * / ^ %</code></td>
+                            <td>संक्रियाएँ, घात, शेषफल</td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <code>2x</code>, <code>2π</code>,
+                                <code>3(x + 1)</code>
+                            </td>
+                            <td>अंतर्निहित गुणा</td>
+                        </tr>
+                        <tr>
+                            <td><code>== != &lt; &lt;= &gt; &gt;=</code></td>
+                            <td>
+                                तुलनाएँ, जिनका मान 1 या 0 है; <code>==</code>
+                                पूर्णांकन की त्रुटियों को सह लेता है
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><code>&amp;&amp; || !</code></td>
+                            <td>और, या, नहीं</td>
+                        </tr>
+                        <tr>
+                            <td><code>test ? a : b</code></td>
+                            <td>शर्त</td>
+                        </tr>
+                        <tr>
+                            <td><code>L[0]</code>, <code>A[1]</code></td>
+                            <td>अवयव, निर्देशांक (0 से आरंभ)</td>
+                        </tr>
+                        <tr>
+                            <td><code>L.length</code></td>
+                            <td>सूची की लंबाई</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <h2 id="fonctions">फलन</h2>
+            <div class="table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>फलन</th>
+                            <th>मान</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>
+                                <code>d(A, B)</code>,
+                                <code>distance(A, B)</code>
+                            </td>
+                            <td>दूरी (3D में त्रिविम दूरी)</td>
+                        </tr>
+                        <tr>
+                            <td><code>x(A)</code>, <code>y(A)</code></td>
+                            <td>निर्देशांक</td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <code>Angle360(A, O, B)</code>,
+                                <code>Angle180(A, O, B)</code>
+                            </td>
+                            <td>
+                                [OA) से [OB) तक दिष्ट कोण; ज्यामितीय कोण AOB
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <code>sqrt</code>, <code>abs</code>,
+                                <code>exp</code>, <code>log</code>
+                            </td>
+                            <td>
+                                वर्गमूल, निरपेक्ष मान, चरघातांकी, प्राकृत लघुगणक
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <code>sin</code>, <code>cos</code>,
+                                <code>tan</code>, <code>asin</code>,
+                                <code>acos</code>, <code>atan</code>,
+                                <code>atan2(y, x)</code>
+                            </td>
+                            <td>
+                                आकृति की <strong>कोण</strong> सेटिंग के अनुसार
+                                डिग्री या रेडियन में (डिफ़ॉल्ट रूप से डिग्री)
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <code>floor</code>, <code>ceil</code>,
+                                <code>round</code>
+                            </td>
+                            <td>पूर्णांकन</td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <code>min(…)</code>, <code>max(…)</code>,
+                                <code>gcd(a, b)</code>, <code>isNaN(a)</code>
+                            </td>
+                            <td>
+                                न्यूनतम, अधिकतम, म.स.प., अपरिभाषित मान की जाँच
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <code>arg</code>, <code>mod</code>,
+                                <code>conj</code>
+                            </td>
+                            <td>कोणांक, मापांक, संयुग्मी</td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <code>dot(u, v)</code>,
+                                <code>cross(u, v)</code>,
+                                <code>unitVector(u)</code>, <code>perp(u)</code>
+                            </td>
+                            <td>
+                                अदिश और सदिश गुणनफल, इकाई सदिश, लंब इकाई सदिश
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <code>pixel()</code>, <code>windoww()</code>,
+                                <code>windowh()</code>, <code>windowcx()</code>,
+                                <code>windowcy()</code>
+                            </td>
+                            <td>
+                                प्रति इकाई पिक्सेल; इकाइयों में विंडो का आकार और
+                                केन्द्र
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><code>theta()</code>, <code>phi()</code></td>
+                            <td>3D कैमरे के कोण</td>
+                        </tr>
+                        <tr>
+                            <td><code>f(2)</code></td>
+                            <td>x के फलन वाले व्यंजक को बुलाना</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <h2 id="programmes">प्रोग्राम</h2>
+            <p>
+                <code>;</code> या नई पंक्तियों से अलग किए गए निर्देश; अंतिम
+                निर्देश मान देता है।
+            </p>
+            <div class="table">
+                <table>
+                    <tbody>
+                        <tr>
+                            <td>चर</td>
+                            <td>
+                                <code>var s = 0</code> (<code>let</code>,
+                                <code>const</code>); <code>s += 2</code>,
+                                <code>-=</code>, <code>*=</code>,
+                                <code>/=</code>, <code>L[2] = 5</code>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>शर्तें</td>
+                            <td><code>if (a &gt; 0) { … } else { … }</code></td>
+                        </tr>
+                        <tr>
+                            <td>लूप</td>
+                            <td>
+                                <code
+                                    >for (var k = 0; k &lt; 10; k++) { … }</code
+                                >, <code>while (…) { … }</code>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>फलन</td>
+                            <td>
+                                <code>function square(u) { return u*u }</code>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>सूचियाँ</td>
+                            <td>
+                                <code>L.push(P)</code>, <code>L.pop()</code>,
+                                <code>L.concat(M)</code>,
+                                <code>L.join(", ")</code>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <p>
+                प्रोग्राम के चर समान नाम वाले ऑब्जेक्टों को ढक देते हैं। अंतहीन
+                लूप रोक दिया जाता है।
+            </p>
+            <h3>ऑब्जेक्टों की विधियाँ</h3>
+            <div class="table">
+                <table>
+                    <tbody>
+                        <tr>
+                            <td>
+                                <code>S.setHidden(1)</code>,
+                                <code>S.setShowName(1)</code>
+                            </td>
+                            <td>छिपाना, नाम दिखाना (0: उल्टा)</td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <code>S.setRGBColor(r, g, b)</code>,
+                                <code>S.setOpacity(o)</code>,
+                                <code>S.setSize(t)</code>
+                            </td>
+                            <td>
+                                रंग (0 से 255), अपारदर्शिता (0 से 1), आकार या
+                                मोटाई
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <code>a.setPrecision(n)</code>,
+                                <code>a.setIncrement(p)</code>
+                            </td>
+                            <td>दशमलव स्थान, स्लाइडर का चरण</td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <code>P.getX()</code>, <code>P.getY()</code>,
+                                <code>P.coords3D()</code>,
+                                <code>P.coords2D()</code>
+                            </td>
+                            <td>निर्देशांक; स्क्रीन पर निर्देशांक</td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <code>S.getName()</code>,
+                                <code>c.center()</code>
+                            </td>
+                            <td>नाम, वृत्त का केन्द्र</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <pre><code>if (a &lt; 0) {
+    p.setRGBColor(220, 38, 38)
+} else {
+    p.setRGBColor(37, 99, 235)
+};
+"a = " + a</code></pre>
+            <p>
+                प्रोग्राम उन ऑब्जेक्टों का जनक है जिन्हें वह फ़ॉर्मेट करता है:
+                वह आकृति के साथ फिर से परिकलित होता है, और चक्र बनाने वाली
+                पुनर्परिभाषा अस्वीकार की जाती है।
+            </p>
+        </main>
+    </body>
+</html>

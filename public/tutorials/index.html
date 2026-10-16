@@ -1,0 +1,62 @@
+<!doctype html>
+<html>
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <title>DocGeo</title>
+        <link rel="icon" type="image/svg+xml" href="../favicon.svg" />
+        <script>
+            // The manual in the language of the `lang` parameter, else of the
+            // browser, chosen as src/i18n.ts does.
+            const LANGS = [
+                "ar",
+                "de",
+                "el",
+                "en",
+                "es",
+                "fr",
+                "hi",
+                "it",
+                "nl",
+                "pt",
+                "zh",
+                "zh-TW",
+            ];
+            const tags = [
+                new URLSearchParams(location.search).get("lang"),
+                ...navigator.languages,
+            ];
+            let lang = "en";
+            for (const tag of tags) {
+                if (!tag) continue;
+                const lower = tag.toLowerCase();
+                const found =
+                    LANGS.find((code) => code.toLowerCase() === lower) ??
+                    LANGS.find((code) => code === lower.split("-")[0]);
+                if (found) {
+                    lang = found;
+                    break;
+                }
+            }
+            location.replace(`${lang}/index.html${location.hash}`);
+        </script>
+    </head>
+    <body>
+        <noscript>
+            <ul>
+                <li><a href="de/index.html">Deutsch</a></li>
+                <li><a href="en/index.html">English</a></li>
+                <li><a href="es/index.html">Español</a></li>
+                <li><a href="fr/index.html">Français</a></li>
+                <li><a href="el/index.html">Ελληνικά</a></li>
+                <li><a href="it/index.html">Italiano</a></li>
+                <li><a href="nl/index.html">Nederlands</a></li>
+                <li><a href="pt/index.html">Português</a></li>
+                <li><a href="ar/index.html">العربية</a></li>
+                <li><a href="hi/index.html">हिन्दी</a></li>
+                <li><a href="zh/index.html">中文</a></li>
+                <li><a href="zh-TW/index.html">繁體中文</a></li>
+            </ul>
+        </noscript>
+    </body>
+</html>

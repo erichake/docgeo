@@ -1,0 +1,210 @@
+<!doctype html>
+<html lang="de">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <title>Die Oberfläche — DocGeo-Handbuch</title>
+        <link rel="icon" type="image/svg+xml" href="../../favicon.svg" />
+        <link rel="stylesheet" href="../manual.css" />
+        <script src="../icons.js" defer></script>
+        <script src="../manual.js" defer></script>
+    </head>
+    <body>
+        <main>
+            <h1>Die Oberfläche</h1>
+
+            <figure>
+                <img
+                    src="img/editeur-interface.webp"
+                    alt="Der Editor: Aktionsleiste, Feld Konstruktion und Figur"
+                    width="1200"
+                    height="720"
+                />
+            </figure>
+
+            <h2>Die Aktionsleiste</h2>
+            <div class="table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th></th>
+                            <th>Schaltfläche</th>
+                            <th>Funktion</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><i data-i="open"></i></td>
+                            <td>Öffnen</td>
+                            <td>
+                                <code>.dgo</code>, <code>.dgp</code>,
+                                <code>.ggb</code>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><i data-i="save"></i></td>
+                            <td>Speichern</td>
+                            <td>als <code>.dgo</code></td>
+                        </tr>
+                        <tr>
+                            <td><i data-i="eraser"></i></td>
+                            <td>Radierer</td>
+                            <td>
+                                Objekte aus- oder einblenden (<a
+                                    href="objets.html#la-gomme"
+                                    >Radierer</a
+                                >)
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><i data-i="axes"></i></td>
+                            <td>Koordinatensystem</td>
+                            <td>Achsen und Gitter; in 3D Dreibein und Boden</td>
+                        </tr>
+                        <tr>
+                            <td><i data-i="space"></i></td>
+                            <td>3D-Ansicht</td>
+                            <td>
+                                in den Raum wechseln oder zur Ebene zurückkehren
+                                (<a href="3d.html">3D</a>)
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><i data-i="properties"></i></td>
+                            <td>Eigenschaften</td>
+                            <td>
+                                rechtes Feld (<a href="proprietes.html"
+                                    >Eigenschaften</a
+                                >)
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><i data-i="history"></i></td>
+                            <td>Konstruktion</td>
+                            <td>linkes Feld</td>
+                        </tr>
+                        <tr>
+                            <td><i data-i="undo"></i> <i data-i="redo"></i></td>
+                            <td>Rückgängig, Wiederherstellen</td>
+                            <td>
+                                <kbd>Strg</kbd> <kbd>Z</kbd>, <kbd>Strg</kbd>
+                                <kbd>Umschalt</kbd> <kbd>Z</kbd> oder
+                                <kbd>Strg</kbd> <kbd>Y</kbd>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <p>
+                In der Mitte zeigt der
+                <a href="objets.html#la-zone-contextuelle">Kontextbereich</a>
+                den Namen und die Aktionen des ausgewählten Objekts.
+            </p>
+
+            <h2>Das Feld „Konstruktion“</h2>
+            <ul>
+                <li>
+                    Eine Zeile pro Objekt, in der Reihenfolge der Konstruktion:
+                    <code>M = Mittelpunkt(A, B)</code>. Jede Zeile lässt sich
+                    bearbeiten (<a href="saisie.html#modifier-une-ligne"
+                        >Neudefinition</a
+                    >).
+                </li>
+                <li>
+                    Der Punkt am Zeilenanfang blendet das Objekt aus oder ein;
+                    <i data-i="show_name"></i> am Zeilenende zeigt seinen Namen.
+                </li>
+                <li>
+                    Kopfzeile: Anzahl der Objekte,
+                    <i data-i="show_values"></i>
+                    <a href="objets.html#les-valeurs">Werte</a>,
+                    <i data-i="steps"></i>
+                    <a href="objets.html#la-construction-pas-a-pas"
+                        >Schritt für Schritt</a
+                    >, <i data-i="new_program"></i>
+                    <a href="expressions.html#les-programmes">neues Programm</a
+                    >.
+                </li>
+                <li>
+                    Eingabezeile „Eingabe…“ und Schaltfläche
+                    <i data-i="tools"></i> des
+                    <a href="menu-outils.html">Werkzeugmenüs</a>.
+                </li>
+                <li>
+                    Das Überfahren einer Zeile lässt das Objekt aufleuchten, und
+                    umgekehrt.
+                </li>
+            </ul>
+
+            <h2>Der Hinweis</h2>
+            <p>
+                Die Sprechblase unten in der Figur zeigt, was erwartet wird
+                („Wählen Sie einen Punkt“), die Zeile, die das Werkzeug
+                schreiben wird, und Fehler in Rot. Ihr Kreuz
+                <strong>✕</strong> verlässt das aktuelle Werkzeug.
+            </p>
+
+            <h2>Navigieren</h2>
+            <div class="table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Aktion</th>
+                            <th>Geste</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Ansicht verschieben</td>
+                            <td>
+                                eine leere Stelle ziehen; rechte Maustaste
+                                überall
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Zoomen</td>
+                            <td>Mausrad oder Trackpad, um den Zeiger</td>
+                        </tr>
+                        <tr>
+                            <td>3D-Figur drehen</td>
+                            <td>
+                                rechte Maustaste, oder ein Finger auf einer
+                                leeren Stelle
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Perspektive, Boden (3D)</td>
+                            <td><kbd>P</kbd>, <kbd>S</kbd></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <p>
+                Die runde Schaltfläche unten links, vorhanden, wenn die Figur
+                Animationen enthält, hält sie an oder startet sie neu.
+            </p>
+
+            <h2>Rückgängig machen</h2>
+            <p>
+                Jede Änderung ist ein Schritt eines einzigen Stapels:
+                Konstruktion, Löschen, Verschieben, Stil, Einstellung des
+                Koordinatensystems, Wechsel in 3D. Zoomen, Verschieben und
+                Drehen der Ansicht gehören nicht dazu.
+            </p>
+
+            <h2>Die Felder</h2>
+            <ul>
+                <li>
+                    Ihr innerer Rand lässt sich ziehen, um die Größe zu ändern;
+                    ein Doppelklick stellt die Standardbreite wieder her.
+                </li>
+                <li>
+                    Unter 900 px Breite ist nur ein Feld zugleich geöffnet; bei
+                    600 px und weniger startet das Feld „Konstruktion“
+                    geschlossen, die Eigenschaften überdecken die Figur, und die
+                    Wahl eines Werkzeugs schließt die Felder.
+                </li>
+            </ul>
+        </main>
+    </body>
+</html>

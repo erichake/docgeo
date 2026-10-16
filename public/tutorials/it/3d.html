@@ -1,0 +1,198 @@
+<!doctype html>
+<html lang="it">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <title>Il 3D — Manuale di DocGeo</title>
+        <link rel="icon" type="image/svg+xml" href="../../favicon.svg" />
+        <link rel="stylesheet" href="../manual.css" />
+        <script src="../icons.js" defer></script>
+        <script src="../manual.js" defer></script>
+    </head>
+    <body>
+        <main>
+            <h1>Il 3D</h1>
+
+            <figure>
+                <img
+                    src="img/editeur-3d.webp"
+                    alt="Piramide tagliata dal piano z = 1,5"
+                    width="1200"
+                    height="720"
+                />
+            </figure>
+
+            <h2>Passare al 3D</h2>
+            <ul>
+                <li>
+                    Una nuova figura è piana. <i data-i="space"></i>
+                    <strong>Vista 3D</strong> inclina la telecamera: il piano
+                    della figura diventa il pavimento <em>z</em> = 0, il sistema
+                    di riferimento un triedro. Una seconda pressione torna al
+                    piano, con il sistema di riferimento precedente.
+                </li>
+                <li>
+                    Il ritorno al piano viene rifiutato finché un oggetto esce
+                    dal piano <em>z</em> = 0; il suggerimento lo nomina.
+                    Viceversa, una figura piana rifiuta qualsiasi oggetto dello
+                    spazio (<code>A = (1, 2, 3)</code>, sfera…).
+                </li>
+                <li>Ogni passaggio è un passo di annullamento.</li>
+                <li>
+                    Le figure 3D di DGPad, con i punti liberi nel piano dello
+                    schermo, non hanno questo pulsante.
+                </li>
+            </ul>
+
+            <h2>Vista</h2>
+            <ul>
+                <li>
+                    Ruotare: tasto destro, o un dito in uno spazio vuoto.
+                    Spostare: tasto sinistro in uno spazio vuoto. Zoom:
+                    rotellina.
+                </li>
+                <li>
+                    <kbd>P</kbd>: prospettiva o proiezione parallela;
+                    <kbd>S</kbd>: pavimento. Le stesse impostazioni nella
+                    <a href="proprietes.html#l-onglet-figure-en-3d"
+                        >scheda Figura</a
+                    >.
+                </li>
+                <li>
+                    Le parti nascoste (spigoli, circonferenze, rette sotto il
+                    pavimento o dietro una faccia) sono tratteggiate.
+                </li>
+            </ul>
+
+            <h2>Costruire</h2>
+            <ul>
+                <li>
+                    Un clic in uno spazio vuoto crea un punto sul pavimento; da
+                    tastiera, <code>S = (0, 0, 4)</code>.
+                </li>
+                <li>
+                    Il menu acquisisce le famiglie <strong>Piani</strong> e
+                    <strong>Solidi</strong> e due circonferenze; l’anello di un
+                    punto propone la sfera.
+                </li>
+                <li>
+                    Ogni strumento che attende un piano accetta il
+                    <strong>pavimento</strong>: viene creato un piano
+                    <code>z = 0</code> nascosto, poi riutilizzato.
+                </li>
+                <li>
+                    Le formule leggono le tre coordinate:
+                    <code>d(A, B)</code> è la distanza nello spazio.
+                </li>
+            </ul>
+            <div class="table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Oggetto</th>
+                            <th>Comando</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Piano</td>
+                            <td>
+                                <code>Piano(A, B, C)</code>,
+                                <code>Piano(A, d)</code>,
+                                <code>PianoParallelo(A, p)</code>,
+                                <code>PianoOrtogonale(A, d)</code>,
+                                <code>p = x + y + z = 3</code>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Perpendicolare a un piano</td>
+                            <td><code>Perpendicolare(A, p)</code></td>
+                        </tr>
+                        <tr>
+                            <td>Sfera</td>
+                            <td>
+                                <code>Sfera(O, A)</code>,
+                                <code>Sfera(O, r)</code>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Circonferenze</td>
+                            <td>
+                                <code>Circonferenza(d, P)</code> di asse d;
+                                <code>Circonferenza(O, r, d)</code> ortogonale
+                                alla retta d o parallela al piano d
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Solidi</td>
+                            <td>
+                                <code>Cilindro(A, B, r)</code>,
+                                <code>Cono(A, B, r)</code>,
+                                <code>Cubo(A, B, C)</code>,
+                                <code>Prisma(p, P)</code>,
+                                <code>Piramide(p, S)</code>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Sezione</td>
+                            <td>
+                                <code>Sezione(s, p)</code>: circonferenza,
+                                conica o poligono
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Sviluppo</td>
+                            <td>
+                                <code>Sviluppo(c, f)</code>, f da 0 (piegato) a
+                                1 (piatto)
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Intersezioni</td>
+                            <td>
+                                <code>Intersezione(d, p)</code> punto,
+                                <code>Intersezione(p, q)</code> retta,
+                                <code>Intersezione(s, t)</code> circonferenza di
+                                due sfere
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Vertici</td>
+                            <td>
+                                <code>Vertice(c, k)</code>, k a partire da 1
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <h2>Solidi</h2>
+            <ul>
+                <li>
+                    Un solido è un unico oggetto: disegna facce e spigoli
+                    (tratteggiati dietro) e nasconde ciò che gli sta dietro. Si
+                    seleziona all’interno del suo contorno.
+                </li>
+                <li>
+                    <strong>Cubo in due clic</strong>: due punti di uno stesso
+                    piano o poligono danno <code>Cubo(A, B, p, ±1)</code>, dal
+                    lato rivolto verso la telecamera; due punti della stessa
+                    quota danno <code>Cubo(A, B, 1)</code>, sopra (−1: sotto).
+                    Altrimenti lo strumento attende un terzo punto. Il cubo
+                    diventa indefinito se [AB] smette di essere parallelo al
+                    piano.
+                </li>
+                <li>
+                    Lo strumento <strong>Sezione</strong> prende il solido e il
+                    piano in qualsiasi ordine.
+                </li>
+                <li>
+                    Uno slider come secondo argomento di
+                    <code>Sviluppo</code> anima l’apertura:
+                    <code>f = Cursore(0, 1, 0)</code>,
+                    <code>n = Sviluppo(c, f)</code>.
+                </li>
+            </ul>
+        </main>
+    </body>
+</html>

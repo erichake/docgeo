@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="pt">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <title>Perguntas frequentes — Manual do DocGeo</title>
+        <link rel="icon" type="image/svg+xml" href="../../favicon.svg" />
+        <link rel="stylesheet" href="../manual.css" />
+        <script src="../icons.js" defer></script>
+        <script src="../manual.js" defer></script>
+    </head>
+    <body>
+        <main>
+            <h1>Perguntas frequentes</h1>
+
+            <h2>Construção</h2>
+            <h3>O clique cria um ponto em vez de abrir o anel</h3>
+            <p>
+                O clique caiu ao lado do objeto. <kbd>Ctrl</kbd> <kbd>Z</kbd> e
+                depois mirar no traço. Perto de um cruzamento, o clique cria a
+                interseção.
+            </p>
+            <h3>A ferramenta continua ativa</h3>
+            <p>
+                As ferramentas do menu são persistentes:
+                <strong>Concluído</strong>, <kbd>Esc</kbd> ou
+                <strong>✕</strong> saem delas.
+            </p>
+            <h3>O clique não constrói nada</h3>
+            <p>
+                Um modo está ativo: borracha (<i data-i="eraser"></i> azul),
+                passo a passo, ímãs ou painel de propriedades sem ferramenta.
+                <kbd>Esc</kbd> sai dele.
+            </p>
+            <h3><code>(2,5, 1)</code> dá um ponto do espaço</h3>
+            <p>O separador decimal é o ponto: <code>(2.5, 1)</code>.</p>
+            <h3><code>L = [1, 2, 3]</code> é recusado</h3>
+            <p>
+                Um nome com maiúscula cria um ponto, aqui do espaço. Escrever
+                <code>lista = [1, 2, 3]</code>.
+            </p>
+            <h3><code>pi</code> é um objeto desconhecido</h3>
+            <p>Escrever <code>PI</code> ou <code>π</code>.</p>
+            <h3>Não é possível chamar um objeto de x ou y</h3>
+            <p>
+                No início da linha, eles introduzem uma equação (<code
+                    >y = 2x + 1</code
+                >).
+            </p>
+            <h3>Transformar um polígono</h3>
+            <p>
+                As transformações se aplicam aos pontos: transformar os vértices
+                e depois aplicar <strong>Polígono</strong> às imagens (seleção
+                múltipla e depois a ferramenta).
+            </p>
+            <h3>Mudar o raio de um círculo criado com um clique</h3>
+            <p>
+                Arrastar o círculo ou modificar sua linha (<code
+                    >Círculo(O, r)</code
+                >
+                com um número, um controle deslizante ou uma fórmula).
+            </p>
+            <h3>Excluir um ponto apagou outros objetos</h3>
+            <p>
+                Os dependentes são excluídos com ele. Desfazer e depois ocultar
+                o ponto em vez de excluí-lo.
+            </p>
+
+            <h2>3D e vista</h2>
+            <h3>“Visualização 3D” não volta ao plano</h3>
+            <p>Um objeto sai do plano <em>z</em> = 0; a indicação o nomeia.</p>
+            <h3>Girar com o mouse</h3>
+            <p>Botão direito; o botão esquerdo move a vista.</p>
+            <h3>Dar zoom num tablet</h3>
+            <p>O movimento de pinça com dois dedos ainda não é suportado.</p>
+            <h3>Os rastros sumiram</h3>
+            <p>Eles se apagam a cada deslocamento ou zoom da vista.</p>
+
+            <h2>Arquivos</h2>
+            <h3>Uma figura aberta por <code>?url=</code> não carrega</h3>
+            <p>
+                O servidor precisa permitir a leitura a partir de outro site
+                (<code>Access-Control-Allow-Origin</code>). A extensão precisa
+                ser <code>.ggb</code> ou <code>.dgo</code>; todo o resto é lido
+                como DGPad.
+            </p>
+            <h3>Importação incompleta</h3>
+            <p>
+                Os elementos listados não são suportados (<a href="formats.html"
+                    >Importação do DGPad e do GeoGebra</a
+                >); o resto da figura funciona e pode ser salvo.
+            </p>
+        </main>
+    </body>
+</html>

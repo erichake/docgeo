@@ -1,0 +1,338 @@
+<!doctype html>
+<html lang="zh-TW">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <title>公式與程式 — DocGeo 手冊</title>
+        <link rel="icon" type="image/svg+xml" href="../../favicon.svg" />
+        <link rel="stylesheet" href="../manual.css" />
+        <script src="../icons.js" defer></script>
+        <script src="../manual.js" defer></script>
+    </head>
+    <body>
+        <main>
+            <h1>公式與程式</h1>
+
+            <p class="lead">
+                運算式的語言與 DGPad 相同。DocGeo 自行直譯它：它從不作為
+                JavaScript 執行。
+            </p>
+
+            <h2>值</h2>
+            <div class="table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>寫法</th>
+                            <th>值</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>
+                                <code>3</code
+                                >、<code>-2.5</code>、<code>.5</code>、<code
+                                    >2e3</code
+                                >
+                            </td>
+                            <td>數（小數點）</td>
+                        </tr>
+                        <tr>
+                            <td><code>PI</code>、<code>π</code></td>
+                            <td>π（不識別 <code>pi</code>）</td>
+                        </tr>
+                        <tr>
+                            <td><code>1 + 2i</code></td>
+                            <td>複數</td>
+                        </tr>
+                        <tr>
+                            <td><code>"文字"</code></td>
+                            <td>文字；<code>+</code> 用於串接</td>
+                        </tr>
+                        <tr>
+                            <td><code>[1, 2, 3]</code></td>
+                            <td>
+                                列表；<code>[x, y]</code>、<code>[x, y, z]</code
+                                >：點或向量
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><code>A</code></td>
+                            <td>
+                                點：座標；線段：長度；圓：半徑；多邊形：面積；角：度數
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <code>x</code
+                                >、<code>y</code>、<code>z</code>、<code
+                                    >t</code
+                                >
+                            </td>
+                            <td>函數的變數</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <p>
+                在平面中，點是一個複數：<code>(A + B)/2</code> 是中點，<code
+                    >2*B - A</code
+                >是 A 關於 B 的對稱點。
+            </p>
+
+            <h2>運算子</h2>
+            <div class="table">
+                <table>
+                    <tbody>
+                        <tr>
+                            <td><code>+ - * / ^ %</code></td>
+                            <td>運算、乘方、餘數</td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <code>2x</code>、<code>2π</code>、<code
+                                    >3(x + 1)</code
+                                >
+                            </td>
+                            <td>隱含乘法</td>
+                        </tr>
+                        <tr>
+                            <td><code>== != &lt; &lt;= &gt; &gt;=</code></td>
+                            <td>
+                                比較，值為 1 或 0；<code>==</code> 容許捨入誤差
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><code>&amp;&amp; || !</code></td>
+                            <td>且、或、非</td>
+                        </tr>
+                        <tr>
+                            <td><code>test ? a : b</code></td>
+                            <td>條件</td>
+                        </tr>
+                        <tr>
+                            <td><code>L[0]</code>、<code>A[1]</code></td>
+                            <td>元素、座標（從 0 開始）</td>
+                        </tr>
+                        <tr>
+                            <td><code>L.length</code></td>
+                            <td>列表的長度</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <h2 id="fonctions">函數</h2>
+            <div class="table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>函數</th>
+                            <th>值</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>
+                                <code>d(A, B)</code>、<code
+                                    >distance(A, B)</code
+                                >
+                            </td>
+                            <td>距離（3D 中為空間距離）</td>
+                        </tr>
+                        <tr>
+                            <td><code>x(A)</code>、<code>y(A)</code></td>
+                            <td>座標</td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <code>Angle360(A, O, B)</code>、<code
+                                    >Angle180(A, O, B)</code
+                                >
+                            </td>
+                            <td>從 [OA) 到 [OB) 的有向角；幾何角 AOB</td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <code>sqrt</code
+                                >、<code>abs</code>、<code>exp</code>、<code
+                                    >log</code
+                                >
+                            </td>
+                            <td>平方根、絕對值、指數函數、自然對數</td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <code>sin</code
+                                >、<code>cos</code>、<code>tan</code>、<code>asin</code>、<code>acos</code>、<code>atan</code>、<code
+                                    >atan2(y, x)</code
+                                >
+                            </td>
+                            <td>
+                                依圖形的<strong>角度</strong>設定使用度或弧度（預設為度）
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <code>floor</code>、<code>ceil</code>、<code
+                                    >round</code
+                                >
+                            </td>
+                            <td>取整</td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <code>min(…)</code>、<code>max(…)</code>、<code
+                                    >gcd(a, b)</code
+                                >、<code>isNaN(a)</code>
+                            </td>
+                            <td>最小值、最大值、最大公因數、檢測未定義值</td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <code>arg</code>、<code>mod</code>、<code
+                                    >conj</code
+                                >
+                            </td>
+                            <td>輻角、絕對值（模）、共軛</td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <code>dot(u, v)</code>、<code>cross(u, v)</code
+                                >、<code>unitVector(u)</code>、<code
+                                    >perp(u)</code
+                                >
+                            </td>
+                            <td>內積和外積、單位向量、垂直單位向量</td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <code>pixel()</code
+                                >、<code>windoww()</code>、<code>windowh()</code>、<code>windowcx()</code>、<code
+                                    >windowcy()</code
+                                >
+                            </td>
+                            <td>每單位像素數；以單位表示的視窗大小和中心</td>
+                        </tr>
+                        <tr>
+                            <td><code>theta()</code>、<code>phi()</code></td>
+                            <td>3D 相機的角度</td>
+                        </tr>
+                        <tr>
+                            <td><code>f(2)</code></td>
+                            <td>呼叫一個關於 x 的函數運算式</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <h2 id="programmes">程式</h2>
+            <p>敘述之間用 <code>;</code> 或換行分隔；最後一條給出值。</p>
+            <div class="table">
+                <table>
+                    <tbody>
+                        <tr>
+                            <td>變數</td>
+                            <td>
+                                <code>var s = 0</code
+                                >（<code>let</code>、<code>const</code>）；<code
+                                    >s += 2</code
+                                >、<code>-=</code>、<code>*=</code>、<code>/=</code>、<code
+                                    >L[2] = 5</code
+                                >
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>條件</td>
+                            <td><code>if (a &gt; 0) { … } else { … }</code></td>
+                        </tr>
+                        <tr>
+                            <td>迴圈</td>
+                            <td>
+                                <code
+                                    >for (var k = 0; k &lt; 10; k++) { … }</code
+                                >、<code>while (…) { … }</code>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>函數</td>
+                            <td>
+                                <code>function square(u) { return u*u }</code>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>列表</td>
+                            <td>
+                                <code>L.push(P)</code
+                                >、<code>L.pop()</code>、<code>L.concat(M)</code>、<code
+                                    >L.join(", ")</code
+                                >
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <p>程式中的變數會遮蔽同名的物件。無窮迴圈會被中斷。</p>
+            <h3>物件的方法</h3>
+            <div class="table">
+                <table>
+                    <tbody>
+                        <tr>
+                            <td>
+                                <code>S.setHidden(1)</code>、<code
+                                    >S.setShowName(1)</code
+                                >
+                            </td>
+                            <td>隱藏、顯示名稱（0：相反）</td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <code>S.setRGBColor(r, g, b)</code
+                                >、<code>S.setOpacity(o)</code>、<code
+                                    >S.setSize(t)</code
+                                >
+                            </td>
+                            <td>
+                                顏色（0 到 255）、不透明度（0 到 1）、大小或粗細
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <code>a.setPrecision(n)</code>、<code
+                                    >a.setIncrement(p)</code
+                                >
+                            </td>
+                            <td>小數位數、滑桿的增量</td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <code>P.getX()</code
+                                >、<code>P.getY()</code>、<code>P.coords3D()</code>、<code
+                                    >P.coords2D()</code
+                                >
+                            </td>
+                            <td>座標；螢幕座標</td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <code>S.getName()</code>、<code
+                                    >c.center()</code
+                                >
+                            </td>
+                            <td>名稱、圓的圓心</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <pre><code>if (a &lt; 0) {
+    p.setRGBColor(220, 38, 38)
+} else {
+    p.setRGBColor(37, 99, 235)
+};
+"a = " + a</code></pre>
+            <p>
+                程式是它所設定樣式之物件的父物件：它隨圖形一起重新計算，會造成循環依賴的重新定義會被拒絕。
+            </p>
+        </main>
+    </body>
+</html>

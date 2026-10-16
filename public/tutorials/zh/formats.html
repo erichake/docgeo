@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="zh">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <title>导入 DGPad 和 GeoGebra 图形 — DocGeo 手册</title>
+        <link rel="icon" type="image/svg+xml" href="../../favicon.svg" />
+        <link rel="stylesheet" href="../manual.css" />
+        <script src="../icons.js" defer></script>
+        <script src="../manual.js" defer></script>
+    </head>
+    <body>
+        <main>
+            <h1>导入 DGPad 和 GeoGebra 图形</h1>
+
+            <p class="lead">
+                <code>.dgo</code> 是 DocGeo 的格式；<code>.dgp</code>
+                和<code>.ggb</code>先被导入，再保存为
+                <code>.dgo</code>。不能导出为 DGPad 或 GeoGebra 格式。
+            </p>
+
+            <h2>.dgo 格式</h2>
+            <p>
+                压缩的
+                JSON：对象、样式和视图。它只以增补的方式演进：保存的文件在以后的版本中仍可读取。
+            </p>
+
+            <h2 id="figures-dgpad">DGPad</h2>
+            <p>
+                平面和 3D
+                图形、样式、表达式、滑动条、动画、轨迹、磁铁、踪迹和宏都会被保留。
+            </p>
+            <div class="table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>DGPad 程序</th>
+                            <th>DocGeo</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>
+                                表达式脚本、计算表达式的 Blockly、Blockly 海龟
+                            </td>
+                            <td>解释执行</td>
+                        </tr>
+                        <tr>
+                            <td>Blockly 按钮（设置样式、修改数值）</td>
+                            <td>解释执行</td>
+                        </tr>
+                        <tr>
+                            <td>事件 Blockly、JavaScript、活动 HTML</td>
+                            <td>忽略并提示</td>
+                        </tr>
+                        <tr>
+                            <td>“restrictions”表达式（锁定界面）</td>
+                            <td>忽略</td>
+                        </tr>
+                        <tr>
+                            <td>3D 旋转限制</td>
+                            <td>应用</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <p>
+                浏览器不会执行图形中的任何代码。有意的差异：曲线在间断点处不会用竖线连接。
+            </p>
+
+            <h2>GeoGebra</h2>
+            <p>
+                每条命令都变成对应的 DocGeo
+                对象，参数相同；对象上的点和交点会放回 GeoGebra 保存的位置。
+            </p>
+            <ul>
+                <li>
+                    保留：平面和 3D
+                    几何、函数和曲线（数值导数和积分）、滑动条、复选框、输入框、显示条件、LaTeX
+                    文本、图片、名称的样式和位置、坐标轴和网格、动画、踪迹、宏。
+                </li>
+                <li>
+                    不保留：脚本（GGBScript、JavaScript）、符号计算、部分列表命令。
+                </li>
+            </ul>
+            <p>
+                在一个来自 geogebra.org 的 470
+                个图形的语料中，一半以上可以无损打开。不支持的元素会连同其依赖对象一起被忽略并提示。
+            </p>
+        </main>
+    </body>
+</html>

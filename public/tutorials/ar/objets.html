@@ -1,0 +1,208 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <title>إدارة العناصر — دليل DocGeo</title>
+        <link rel="icon" type="image/svg+xml" href="../../favicon.svg" />
+        <link rel="stylesheet" href="../manual.css" />
+        <script src="../icons.js" defer></script>
+        <script src="../manual.js" defer></script>
+    </head>
+    <body>
+        <main>
+            <h1>إدارة العناصر</h1>
+
+            <h2 id="la-zone-contextuelle">التحديد ومنطقة السياق</h2>
+            <p>
+                لمس عنصر يحدده؛ وتعرض منطقة السياق، في وسط الشريط، اسمه
+                وإجراءاته. ومرور المؤشر على إجراء يعرض أثره في الإرشاد. و<kbd
+                    >Esc</kbd
+                >
+                أو لمسة في مكان فارغ يلغيان التحديد.
+            </p>
+            <div class="table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th></th>
+                            <th>الإجراء</th>
+                            <th>العناصر</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><i data-i="delete"></i></td>
+                            <td>حذف، مع العناصر التابعة</td>
+                            <td>الكل</td>
+                        </tr>
+                        <tr>
+                            <td><i data-i="settings"></i></td>
+                            <td>الإعدادات: لوحة الخصائص</td>
+                            <td>الكل</td>
+                        </tr>
+                        <tr>
+                            <td><i data-i="spring"></i></td>
+                            <td>
+                                <a href="points-dynamiques.html#ressort"
+                                    >التحريك</a
+                                >
+                                بالنابض
+                            </td>
+                            <td>نقطة على عنصر</td>
+                        </tr>
+                        <tr>
+                            <td><i data-i="pin"></i></td>
+                            <td>
+                                <a href="points-dynamiques.html#punaise"
+                                    >تثبيت على الشاشة</a
+                                >
+                            </td>
+                            <td>نقطة حرة، شكل مستوٍ</td>
+                        </tr>
+                        <tr>
+                            <td><i data-i="magnet"></i></td>
+                            <td>
+                                <a href="points-dynamiques.html#aimants"
+                                    >مغانط</a
+                                >
+                            </td>
+                            <td>نقطة حرة</td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <i data-i="formula_point"></i>
+                                <i data-i="points_list"></i>
+                                <i data-i="segments_list"></i>
+                            </td>
+                            <td>نقطة، قائمة نقاط، قائمة قطع مستقيمة</td>
+                            <td>تعبير قيمته نقطة أو قائمة</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <h2 id="selectionner-plusieurs-objets">التحديد المتعدد</h2>
+            <p>
+                <kbd>Ctrl</kbd>-نقر أو <kbd>Shift</kbd>-نقر أو الضغط المطوّل
+                (0.7 ث) تضيف عنصرًا أو تزيله؛ ويتوهج كل منها بالأزرق مع رقم
+                ترتيبه. ويقترح الشريط عندئذ الحذف والإعدادات (<a
+                    href="proprietes.html#regler-plusieurs-objets"
+                    >الإعدادات المشتركة</a
+                >)، و<a href="menu-outils.html#avec-une-selection"
+                    >تأخذ قائمة الأدوات التحديد وسائطَ لها</a
+                >. ولمسة بسيطة أو <kbd>Esc</kbd> أو أداة أو الممحاة أو التراجع
+                أو الإعادة تفرغه.
+            </p>
+
+            <h2 id="supprimer">الحذف</h2>
+            <p>
+                <i data-i="delete"></i> أو <kbd>Delete</kbd> أو <kbd>⌫</kbd>، أو
+                السطر <code>A =</code>. وتُحذف العناصر التابعة أيضًا: للاحتفاظ
+                بها، الأفضل إخفاء العنصر.
+            </p>
+
+            <h2>الإخفاء والإظهار</h2>
+            <ul>
+                <li>
+                    الدائرة الصغيرة لسطر في لوحة «الإنشاء» ممتلئة إذا كان العنصر
+                    ظاهرًا، وفارغة إذا كان مخفيًا؛ ولمسها يبدّل الحالة.
+                </li>
+                <li id="la-gomme">
+                    <i data-i="eraser"></i> <strong>الممحاة</strong>: كل لمسة
+                    تخفي عنصرًا أو تظهره؛ وتظهر العناصر المخفية كأشباح. لا حلقة
+                    ولا إنشاء نقاط؛ والسحب يحرك دائمًا. و<kbd>Esc</kbd> أو الزر
+                    يخرجان منها.
+                </li>
+                <li>
+                    الخصائص: خانة <strong>عنصر ظاهر</strong>؛ وقائمة «اختر
+                    عنصرًا…» تعثر على العناصر المخفية.
+                </li>
+                <li>
+                    العناصر الداخلية لماكرو DGPad والعناصر المساعدة في GeoGebra
+                    ليست لها دائرة صغيرة ولا شبح.
+                </li>
+            </ul>
+
+            <h2>الأسماء</h2>
+            <ul>
+                <li>
+                    النقاط وحدها تُظهر اسمها عند إنشائها. و
+                    <i data-i="show_name"></i> في نهاية السطر، أو
+                    <strong>إظهار الاسم</strong> في الخصائص، يظهره للعناصر
+                    الأخرى.
+                </li>
+                <li>
+                    يُسحب الاسم حول عنصره (على 80 px من النقطة على الأكثر) ثم
+                    يحتفظ بموضعه النسبي عندما يتغير العنصر.
+                </li>
+                <li>
+                    لمس اسم دون سحبه يجعله قابلًا للتعديل في مكانه:
+                    <kbd>Enter</kbd> أو لمسة في مكان آخر للتأكيد، و<kbd
+                        >Esc</kbd
+                    >
+                    للإلغاء، و<i data-i="hide_name"></i> لإخفائه. ويُرفض الاسم
+                    الفارغ أو المستخدم.
+                </li>
+            </ul>
+
+            <h2>علامات الزوايا</h2>
+            <p>
+                يُسحب قوس الزاوية، أو علامة الزاوية القائمة، لتغيير نصف قطره (من
+                5 إلى 200 px).
+            </p>
+
+            <h2 id="les-valeurs">القيم</h2>
+            <p>
+                <i data-i="show_values"></i> يكتب تحت كل سطر قيمة العنصر في
+                صيغة: الإحداثيات، الطول، نصف القطر، المساحة، قياس الزاوية
+                بالدرجات، قيمة التعبير. وتتبع القيمُ التحريكات.
+            </p>
+
+            <h2 id="la-construction-pas-a-pas">خطوة بخطوة</h2>
+            <p>
+                <i data-i="steps"></i> يعيد تشغيل الإنشاء: كل عنصر ظاهر خطوة،
+                والعنصر المخفي ينضم إلى الخطوة السابقة. ويحل شريط محل الإدخال:
+            </p>
+            <div class="table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>الزر</th>
+                            <th>المفتاح</th>
+                            <th>الأثر</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>
+                                <i data-i="first_step"></i>
+                                <i data-i="last_step"></i>
+                            </td>
+                            <td><kbd>Home</kbd> <kbd>End</kbd></td>
+                            <td>الخطوة الأولى، الأخيرة</td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <i data-i="previous_step"></i>
+                                <i data-i="next_step"></i>
+                            </td>
+                            <td><kbd>←</kbd> <kbd>→</kbd></td>
+                            <td>الخطوة السابقة، التالية</td>
+                        </tr>
+                        <tr>
+                            <td><i data-i="play_steps"></i></td>
+                            <td></td>
+                            <td>تشغيل، خطوة كل ثانية</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <p>
+                لمس سطر ينتقل إلى خطوته. تبقى النقاط قابلة للتحريك، ولا يُنشأ
+                شيء. و<kbd>Esc</kbd> أو الزر أو أداة أو الممحاة أو الخصائص أو
+                التراجع تخرج من هذا الوضع. ولا يتأثر الشكل المحفوظ.
+            </p>
+        </main>
+    </body>
+</html>

@@ -1,0 +1,153 @@
+<!doctype html>
+<html lang="nl">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <title>Uitdrukkingen en schuifknoppen — DocGeo-handleiding</title>
+        <link rel="icon" type="image/svg+xml" href="../../favicon.svg" />
+        <link rel="stylesheet" href="../manual.css" />
+        <script src="../icons.js" defer></script>
+        <script src="../manual.js" defer></script>
+    </head>
+    <body>
+        <main>
+            <h1>Uitdrukkingen en schuifknoppen</h1>
+
+            <h2>Uitdrukkingen</h2>
+            <p>
+                Elke regel die geen punt en geen opdracht is, maakt een
+                uitdrukking, linksboven getoond met twee decimalen. De soort
+                volgt uit de tekst:
+            </p>
+            <div class="table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Regel</th>
+                            <th>Soort</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>
+                                <code>a = 3</code>,
+                                <code>lijst = [1, 2, 3]</code>
+                            </td>
+                            <td>constante</td>
+                        </tr>
+                        <tr>
+                            <td><code>t = "Hallo"</code></td>
+                            <td>tekst</td>
+                        </tr>
+                        <tr>
+                            <td><code>f = 0.5x^2 - 4</code></td>
+                            <td>
+                                functie van x (y, z, t); <code>f(2)</code> roept
+                                haar aan
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><code>E = d(A, B)</code></td>
+                            <td>meting, herberekend als de figuur beweegt</td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <code
+                                    >u = "AB = " + round(d(A, B)*100)/100</code
+                                >
+                            </td>
+                            <td>berekende tekst</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <p>
+                In een formule staat een punt voor zijn coördinaten, een
+                lijnstuk voor zijn lengte, een cirkel voor zijn straal, een
+                veelhoek voor zijn oppervlakte, een hoek voor zijn grootte.
+                Volledige syntaxis:
+                <a href="formules.html">Formules en programma’s</a>.
+            </p>
+            <p>
+                Een uitdrukking verplaats je door haar tekst te slepen; aan een
+                punt gekoppeld volgt ze dat punt. Aantikken selecteert haar, of
+                schrijft haar naam tijdens een invoer.
+            </p>
+
+            <h2>Schuifknoppen</h2>
+            <p>
+                <code>r = Schuifknop(0, 5, 2)</code>: van 0 tot 5, waarde 2. De
+                grenzen mogen uitdrukkingen of formules zijn (<code
+                    >Schuifknop(0, d(A, B), 1)</code
+                >). Stap, lengte, richting, knop en animatie stel je in bij de
+                <a href="proprietes.html#curseurs">eigenschappen</a>.
+                <code>r = 5</code> maakt er weer een constante van.
+            </p>
+
+            <h2>Berekende punten</h2>
+            <ul>
+                <li>
+                    <code>M = (x(B) + 1, y(A))</code>: coördinaten gegeven door
+                    formules.
+                </li>
+                <li>
+                    <code>N = Punt(2*B - A)</code>: een formule waarvan de
+                    waarde een punt is.
+                </li>
+            </ul>
+            <p>
+                Is de waarde van een regel <code>naam = formule</code> een punt
+                of een lijst van punten, dan bieden knoppen achteraan de regel
+                <i data-i="formula_point"></i> Punt,
+                <i data-i="points_list"></i> Lijst van punten,
+                <i data-i="segments_list"></i> Lijst van lijnstukken of
+                <i data-i="as_expression"></i> Uitdrukking aan.
+                <kbd>Enter</kbd> neemt de opgelichte knop: punt of lijst bij een
+                naam met hoofdletter, anders uitdrukking. Vandaar
+                <code>lijst = [1, 2, 3]</code> en niet
+                <code>L = [1, 2, 3]</code>, dat als een punt in de ruimte
+                gelezen zou worden.
+            </p>
+
+            <h2>Lijsten van punten</h2>
+            <p>
+                <code>q = Lijst(pts)</code> tekent de punten van de uitdrukking
+                <code>pts</code>; een niet-gedefinieerd punt onderbreekt de
+                lijn. Een geselecteerde uitdrukking waarvan de waarde een lijst
+                van punten is, biedt ook <i data-i="points_list"></i> en
+                <i data-i="segments_list"></i> aan in de contextzone (en
+                <i data-i="formula_point"></i> bij een punt als waarde): de
+                regel wordt geschreven en de uitdrukking verborgen.
+            </p>
+
+            <h2 id="les-programmes">Programma’s</h2>
+            <p>
+                Een uitdrukking kan een programma zijn: instructies gescheiden
+                door <code>;</code>, waarvan de laatste de waarde geeft; het kan
+                andere objecten opmaken (<code>S1.setHidden(1)</code>). Taal:
+                <a href="formules.html#programmes">Formules en programma’s</a>.
+            </p>
+            <ul>
+                <li>
+                    <i data-i="new_program"></i> (kop van het paneel
+                    „Constructie”) opent een lege editor;
+                    <strong>Maken</strong> of <kbd>Ctrl</kbd>
+                    <kbd>Enter</kbd> maakt de uitdrukking.
+                </li>
+                <li>
+                    Bij een bestaande uitdrukking bewerkt de sectie
+                    <strong>Definitie</strong> van de eigenschappen de tekst
+                    over meerdere regels: <kbd>Enter</kbd> behoudt het
+                    inspringen, <kbd>Tab</kbd> springt in, <kbd>}</kbd> springt
+                    uit, <kbd>Ctrl</kbd> <kbd>Enter</kbd> past toe,
+                    <kbd>Esc</kbd> herstelt, <strong>Opmaken</strong> springt in
+                    volgens de accolades.
+                </li>
+                <li>
+                    Een fout selecteert de foute regel of het niet-gepaarde
+                    scheidingsteken.
+                </li>
+            </ul>
+        </main>
+    </body>
+</html>

@@ -1,0 +1,346 @@
+<!doctype html>
+<html lang="nl">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <title>Formules en programma’s — DocGeo-handleiding</title>
+        <link rel="icon" type="image/svg+xml" href="../../favicon.svg" />
+        <link rel="stylesheet" href="../manual.css" />
+        <script src="../icons.js" defer></script>
+        <script src="../manual.js" defer></script>
+    </head>
+    <body>
+        <main>
+            <h1>Formules en programma’s</h1>
+
+            <p class="lead">
+                De taal van de uitdrukkingen is die van DGPad. DocGeo
+                interpreteert ze zelf: ze wordt nooit als JavaScript uitgevoerd.
+            </p>
+
+            <h2>Waarden</h2>
+            <div class="table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Schrijfwijze</th>
+                            <th>Waarde</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>
+                                <code>3</code>, <code>-2.5</code>,
+                                <code>.5</code>, <code>2e3</code>
+                            </td>
+                            <td>getallen (decimale punt)</td>
+                        </tr>
+                        <tr>
+                            <td><code>PI</code>, <code>π</code></td>
+                            <td>π (<code>pi</code> wordt niet herkend)</td>
+                        </tr>
+                        <tr>
+                            <td><code>1 + 2i</code></td>
+                            <td>complex getal</td>
+                        </tr>
+                        <tr>
+                            <td><code>"tekst"</code></td>
+                            <td>tekst; <code>+</code> voegt samen</td>
+                        </tr>
+                        <tr>
+                            <td><code>[1, 2, 3]</code></td>
+                            <td>
+                                lijst; <code>[x, y]</code>,
+                                <code>[x, y, z]</code>: punt of vector
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><code>A</code></td>
+                            <td>
+                                punt: coördinaten; lijnstuk: lengte; cirkel:
+                                straal; veelhoek: oppervlakte; hoek: grootte
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <code>x</code>, <code>y</code>, <code>z</code>,
+                                <code>t</code>
+                            </td>
+                            <td>variabelen van een functie</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <p>
+                In het vlak is een punt een complex getal:
+                <code>(A + B)/2</code> is het midden, <code>2*B - A</code> het
+                spiegelbeeld van A ten opzichte van B.
+            </p>
+
+            <h2>Operatoren</h2>
+            <div class="table">
+                <table>
+                    <tbody>
+                        <tr>
+                            <td><code>+ - * / ^ %</code></td>
+                            <td>bewerkingen, macht, rest</td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <code>2x</code>, <code>2π</code>,
+                                <code>3(x + 1)</code>
+                            </td>
+                            <td>impliciete vermenigvuldiging</td>
+                        </tr>
+                        <tr>
+                            <td><code>== != &lt; &lt;= &gt; &gt;=</code></td>
+                            <td>
+                                vergelijkingen met waarde 1 of 0;
+                                <code>==</code> verdraagt afrondingsfouten
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><code>&amp;&amp; || !</code></td>
+                            <td>en, of, niet</td>
+                        </tr>
+                        <tr>
+                            <td><code>test ? a : b</code></td>
+                            <td>voorwaarde</td>
+                        </tr>
+                        <tr>
+                            <td><code>L[0]</code>, <code>A[1]</code></td>
+                            <td>element, coördinaat (vanaf 0)</td>
+                        </tr>
+                        <tr>
+                            <td><code>L.length</code></td>
+                            <td>lengte van een lijst</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <h2 id="fonctions">Functies</h2>
+            <div class="table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Functie</th>
+                            <th>Waarde</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>
+                                <code>d(A, B)</code>,
+                                <code>distance(A, B)</code>
+                            </td>
+                            <td>afstand (in de ruimte in 3D)</td>
+                        </tr>
+                        <tr>
+                            <td><code>x(A)</code>, <code>y(A)</code></td>
+                            <td>coördinaten</td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <code>Angle360(A, O, B)</code>,
+                                <code>Angle180(A, O, B)</code>
+                            </td>
+                            <td>
+                                georiënteerde hoek van [OA) naar [OB);
+                                meetkundige hoek AOB
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <code>sqrt</code>, <code>abs</code>,
+                                <code>exp</code>, <code>log</code>
+                            </td>
+                            <td>
+                                vierkantswortel, absolute waarde, exponentiële
+                                functie, natuurlijke logaritme
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <code>sin</code>, <code>cos</code>,
+                                <code>tan</code>, <code>asin</code>,
+                                <code>acos</code>, <code>atan</code>,
+                                <code>atan2(y, x)</code>
+                            </td>
+                            <td>
+                                in graden of radialen volgens de instelling
+                                <strong>Hoeken</strong> van de figuur (standaard
+                                graden)
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <code>floor</code>, <code>ceil</code>,
+                                <code>round</code>
+                            </td>
+                            <td>afrondingen</td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <code>min(…)</code>, <code>max(…)</code>,
+                                <code>gcd(a, b)</code>, <code>isNaN(a)</code>
+                            </td>
+                            <td>
+                                minimum, maximum, ggd, test op een
+                                ongedefinieerde waarde
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <code>arg</code>, <code>mod</code>,
+                                <code>conj</code>
+                            </td>
+                            <td>argument, modulus, toegevoegde</td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <code>dot(u, v)</code>,
+                                <code>cross(u, v)</code>,
+                                <code>unitVector(u)</code>, <code>perp(u)</code>
+                            </td>
+                            <td>
+                                scalair en vectorieel product, eenheidsvector,
+                                loodrechte eenheidsvector
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <code>pixel()</code>, <code>windoww()</code>,
+                                <code>windowh()</code>, <code>windowcx()</code>,
+                                <code>windowcy()</code>
+                            </td>
+                            <td>
+                                pixels per eenheid; grootte en midden van het
+                                venster in eenheden
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><code>theta()</code>, <code>phi()</code></td>
+                            <td>hoeken van de 3D-camera</td>
+                        </tr>
+                        <tr>
+                            <td><code>f(2)</code></td>
+                            <td>
+                                aanroep van een uitdrukking die functie van x is
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <h2 id="programmes">Programma’s</h2>
+            <p>
+                Instructies gescheiden door <code>;</code> of regeleinden; de
+                laatste geeft de waarde.
+            </p>
+            <div class="table">
+                <table>
+                    <tbody>
+                        <tr>
+                            <td>variabelen</td>
+                            <td>
+                                <code>var s = 0</code> (<code>let</code>,
+                                <code>const</code>); <code>s += 2</code>,
+                                <code>-=</code>, <code>*=</code>,
+                                <code>/=</code>, <code>L[2] = 5</code>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>voorwaarden</td>
+                            <td><code>if (a &gt; 0) { … } else { … }</code></td>
+                        </tr>
+                        <tr>
+                            <td>lussen</td>
+                            <td>
+                                <code
+                                    >for (var k = 0; k &lt; 10; k++) { … }</code
+                                >, <code>while (…) { … }</code>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>functies</td>
+                            <td>
+                                <code>function kwadraat(u) { return u*u }</code>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>lijsten</td>
+                            <td>
+                                <code>L.push(P)</code>, <code>L.pop()</code>,
+                                <code>L.concat(M)</code>,
+                                <code>L.join(", ")</code>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <p>
+                De variabelen van een programma verbergen objecten met dezelfde
+                naam. Een oneindige lus wordt onderbroken.
+            </p>
+            <h3>Methoden van de objecten</h3>
+            <div class="table">
+                <table>
+                    <tbody>
+                        <tr>
+                            <td>
+                                <code>S.setHidden(1)</code>,
+                                <code>S.setShowName(1)</code>
+                            </td>
+                            <td>verbergen, de naam tonen (0: omgekeerd)</td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <code>S.setRGBColor(r, g, b)</code>,
+                                <code>S.setOpacity(o)</code>,
+                                <code>S.setSize(t)</code>
+                            </td>
+                            <td>
+                                kleur (0 tot 255), dekking (0 tot 1), grootte of
+                                dikte
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <code>a.setPrecision(n)</code>,
+                                <code>a.setIncrement(p)</code>
+                            </td>
+                            <td>decimalen, stap van een schuifknop</td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <code>P.getX()</code>, <code>P.getY()</code>,
+                                <code>P.coords3D()</code>,
+                                <code>P.coords2D()</code>
+                            </td>
+                            <td>coördinaten; coördinaten op het scherm</td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <code>S.getName()</code>,
+                                <code>c.center()</code>
+                            </td>
+                            <td>naam, middelpunt van een cirkel</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <pre><code>if (a &lt; 0) {
+    p.setRGBColor(220, 38, 38)
+} else {
+    p.setRGBColor(37, 99, 235)
+};
+"a = " + a</code></pre>
+            <p>
+                Een programma is ouder van de objecten die het opmaakt: het
+                wordt met de figuur herberekend, en een herdefinitie die een
+                cyclus zou maken wordt geweigerd.
+            </p>
+        </main>
+    </body>
+</html>

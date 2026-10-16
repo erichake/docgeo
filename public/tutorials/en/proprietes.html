@@ -1,0 +1,233 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <title>Properties and coordinate system — DocGeo manual</title>
+        <link rel="icon" type="image/svg+xml" href="../../favicon.svg" />
+        <link rel="stylesheet" href="../manual.css" />
+        <script src="../icons.js" defer></script>
+        <script src="../manual.js" defer></script>
+    </head>
+    <body>
+        <main>
+            <h1>Properties and coordinate system</h1>
+
+            <figure>
+                <img
+                    src="img/editeur-proprietes.webp"
+                    alt="Properties panel on point C"
+                    width="1200"
+                    height="720"
+                />
+            </figure>
+
+            <h2>The panel</h2>
+            <ul>
+                <li>
+                    Opened by <i data-i="properties"></i> or by
+                    <i data-i="settings"></i> of the context area; closed by its
+                    cross, the same button or <kbd>Esc</kbd>.
+                </li>
+                <li>
+                    Two tabs: <strong>Object</strong> and
+                    <strong>Figure</strong>.
+                </li>
+                <li>
+                    The object to set is chosen in the figure, by its line, or
+                    in the “Choose an object…” list (hidden objects included). A
+                    click in the figure selects instead of building; buttons and
+                    checkboxes are designated without being triggered. A menu
+                    tool or the input line build as usual, the created object
+                    showing in the panel.
+                </li>
+                <li>Changes are immediate and can be undone.</li>
+                <li>
+                    Number fields: dragging horizontally sets the value
+                    (<kbd>Shift</kbd>: ten times finer), a click lets you type
+                    it. A drag counts as a single undo step.
+                </li>
+                <li>
+                    A <strong>↺</strong> button next to a color brings it back
+                    to the tool’s default.
+                </li>
+            </ul>
+
+            <h2>The “Object” tab</h2>
+            <div class="table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Section</th>
+                            <th>Settings</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Object</td>
+                            <td>
+                                name; for an expression,
+                                <a href="expressions.html#les-programmes"
+                                    >definition</a
+                                >
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Appearance</td>
+                            <td>
+                                apply to objects of the same type, color, point
+                                size, thickness, outline, stroke and fill
+                                opacities, fill color, dashes, layer (drawing
+                                order)
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Display</td>
+                            <td>
+                                visible object, show name, text size, value
+                                decimal places (or do not display it)
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Point</td>
+                            <td>
+                                shape (circle, square, cross, diamond), name
+                                position in degrees, trace, horizontal and
+                                vertical step (moving by jumps)
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Segment</td>
+                            <td>marking (equal length ticks)</td>
+                        </tr>
+                        <tr>
+                            <td>Angle</td>
+                            <td>
+                                arc radius, right angle mark (open square, arc,
+                                square, dot, L)
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Locus, list</td>
+                            <td>number of points; segment thickness</td>
+                        </tr>
+                        <tr>
+                            <td id="curseurs">Slider</td>
+                            <td>step, length, vertical, knob color and size</td>
+                        </tr>
+                        <tr>
+                            <td id="animation">Animation</td>
+                            <td>
+                                speed (0: stop), reverse direction, at the end:
+                                repeat, back and forth or stop
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <h3 id="regler-plusieurs-objets">Several objects</h3>
+            <p>
+                On a multiple selection, only the settings shared by all are
+                shown; a value that differs from one object to another is in
+                gray italics. <kbd>Ctrl</kbd>-click, <kbd>Shift</kbd>-click or
+                long press (figure or “Construction” panel) add or remove an
+                object.
+            </p>
+
+            <h2>The “Figure” tab</h2>
+            <figure>
+                <img
+                    src="img/editeur-onglet-figure.webp"
+                    alt="Figure tab: coordinate system presets and axes"
+                    width="600"
+                    height="720"
+                />
+            </figure>
+            <p>A click on an axis opens this tab.</p>
+            <div class="table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Section</th>
+                            <th>Settings</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Coordinate system</td>
+                            <td>
+                                shown or not; DGPad, GeoGebra, axes only, dotted
+                                grid, squared paper, graph paper presets
+                                (appearance only, neither zoom nor background)
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Axes (x and y)</td>
+                            <td>
+                                shown, name, numbers, unit (π: multiples of
+                                π/2), graduations, number spacing (empty: auto;
+                                🔗 links x and y), arrows, color, size and bold
+                                numbers, DGPad or GeoGebra style, positive
+                                half-axes
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Grid</td>
+                            <td>
+                                shown or not, line spacing, subdivisions, color
+                                (that of the axes by default), thickness, solid,
+                                dotted or dashed line
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Zoom and pan</td>
+                            <td>
+                                axis fixed on screen, zoom around the origin
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Figure</td>
+                            <td>
+                                background; angles in degrees (default) or
+                                radians; segments above polygons
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <h3 id="l-onglet-figure-en-3d">In 3D</h3>
+            <div class="table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Section</th>
+                            <th>Settings</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Axes</td>
+                            <td>trihedron shown, color, thickness</td>
+                        </tr>
+                        <tr>
+                            <td>Floor</td>
+                            <td>
+                                shown, color (↺: blue above, brown below),
+                                opacity, size, spacing, line color and thickness
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>View</td>
+                            <td>perspective</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <p>
+                These settings can be undone; zooming, moving and rotating the
+                view cannot.
+            </p>
+        </main>
+    </body>
+</html>

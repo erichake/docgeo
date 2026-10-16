@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="zh">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <title>常见问题 — DocGeo 手册</title>
+        <link rel="icon" type="image/svg+xml" href="../../favicon.svg" />
+        <link rel="stylesheet" href="../manual.css" />
+        <script src="../icons.js" defer></script>
+        <script src="../manual.js" defer></script>
+    </head>
+    <body>
+        <main>
+            <h1>常见问题</h1>
+
+            <h2>作图</h2>
+            <h3>单击创建了点，而不是打开工具环</h3>
+            <p>
+                单击没有落在对象上。按 <kbd>Ctrl</kbd>
+                <kbd>Z</kbd>，再瞄准线条。在交叉处附近，单击会创建交点。
+            </p>
+            <h3>工具一直处于激活状态</h3>
+            <p>
+                菜单中的工具是持续的：<strong>完成</strong>、<kbd>Esc</kbd>或<strong
+                    >✕</strong
+                >
+                可退出。
+            </p>
+            <h3>单击没有作出任何东西</h3>
+            <p>
+                某个模式处于激活状态：橡皮擦（<i data-i="eraser"></i
+                >蓝色）、逐步构造、磁铁，或未选工具时的属性面板。按<kbd>Esc</kbd>退出。
+            </p>
+            <h3><code>(2,5, 1)</code> 得到了一个空间中的点</h3>
+            <p>小数分隔符是点：<code>(2.5, 1)</code>。</p>
+            <h3><code>L = [1, 2, 3]</code> 被拒绝</h3>
+            <p>
+                大写名称会创建一个点，这里是空间中的点。请写<code
+                    >list = [1, 2, 3]</code
+                >。
+            </p>
+            <h3><code>pi</code> 是未知对象</h3>
+            <p>请写 <code>PI</code> 或 <code>π</code>。</p>
+            <h3>不能把对象命名为 x 或 y</h3>
+            <p>在行首，它们表示方程的开始（<code>y = 2x + 1</code>）。</p>
+            <h3>变换多边形</h3>
+            <p>
+                变换作用于点：先变换各顶点，再对它们的像使用<strong>多边形</strong>（先多选，再选工具）。
+            </p>
+            <h3>修改单击创建的圆的半径</h3>
+            <p>
+                拖动圆，或修改其行（<code>圆(O, r)</code>，r
+                为数、滑动条或公式）。
+            </p>
+            <h3>删除一个点时其他对象也被删除了</h3>
+            <p>依赖对象会随之删除。先撤销，然后隐藏该点而不是删除它。</p>
+
+            <h2>3D 与视图</h2>
+            <h3>“3D 视图”无法返回平面</h3>
+            <p>有对象离开了平面 <em>z</em> = 0；提示会指出该对象。</p>
+            <h3>用鼠标旋转</h3>
+            <p>右键；左键平移视图。</p>
+            <h3>在平板上缩放</h3>
+            <p>暂不支持双指捏合。</p>
+            <h3>踪迹消失了</h3>
+            <p>每次平移或缩放视图时踪迹都会被清除。</p>
+
+            <h2>文件</h2>
+            <h3>用 <code>?url=</code> 打开的图形无法加载</h3>
+            <p>
+                服务器必须允许从其他网站读取（<code>Access-Control-Allow-Origin</code>）。扩展名必须是<code>.ggb</code>或
+                <code>.dgo</code>；其他一律按 DGPad 读取。
+            </p>
+            <h3>导入不完整</h3>
+            <p>
+                列出的元素不受支持（<a href="formats.html"
+                    >导入 DGPad 和 GeoGebra 图形</a
+                >）；图形的其余部分可以正常使用和保存。
+            </p>
+        </main>
+    </body>
+</html>

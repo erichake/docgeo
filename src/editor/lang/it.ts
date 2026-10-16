@@ -23,6 +23,7 @@ const it: Texts = {
         save: "Salva",
         undo: "Annulla",
         redo: "Ripristina",
+        help: "Manuale d’uso",
         delete: "Elimina",
         eraser: "Gomma",
         axes: "Assi",

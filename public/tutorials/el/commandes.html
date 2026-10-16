@@ -1,0 +1,1001 @@
+<!doctype html>
+<html lang="el">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <title>Οι εντολές — Εγχειρίδιο DocGeo</title>
+        <link rel="icon" type="image/svg+xml" href="../../favicon.svg" />
+        <link rel="stylesheet" href="../manual.css" />
+        <script src="../icons.js" defer></script>
+        <script src="../manual.js" defer></script>
+    </head>
+    <body>
+        <main>
+            <h1>Οι εντολές</h1>
+            <ul>
+                <li>
+                    Ονόματα χωρίς διάκριση πεζών-κεφαλαίων και χωρίς τόνους· το
+                    αγγλικό όνομα, με μικρά γράμματα, γίνεται δεκτό σε όλες τις
+                    γλώσσες.
+                </li>
+                <li>
+                    <code>A</code>, <code>B</code>, <code>O</code>,
+                    <code>P</code>: σημεία· <code>d</code>: ευθεία, τμήμα ή
+                    ημιευθεία· <code>c</code>: κύκλος ή καμπύλη· <code>p</code>:
+                    πολύγωνο ή επίπεδο· <code>s</code>: τμήμα ή στερεό·
+                    <code>u</code>: διάνυσμα.
+                </li>
+                <li>
+                    <code>r</code>, <code>a</code>, <code>k</code>,
+                    <code>f</code>: αριθμός, έκφραση, δρομέας ή τύπος (<code
+                        >Κύκλος(O, 2*r)</code
+                    >)· <code>n</code>, <code>t</code>: γραμμένοι αριθμοί.
+                </li>
+                <li>
+                    Το εικονίδιο είναι αυτό του εργαλείου του
+                    <a href="menu-outils.html">μενού</a>·
+                    <span class="badge d3">3D</span>: μορφές του χώρου.
+                </li>
+            </ul>
+
+            <h2>Σημεία</h2>
+            <div class="table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Εντολή</th>
+                            <th>Μορφή</th>
+                            <th>Αποτέλεσμα</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td rowspan="3">
+                                <i data-t="Point"></i> <strong>Σημείο</strong
+                                ><br /><small>Point</small>
+                            </td>
+                            <td class="syntax"><code>Σημείο(c, t)</code></td>
+                            <td>
+                                σημείο πάνω στο αντικείμενο c (ευθεία, κύκλος,
+                                καμπύλη, γεωμετρικός τόπος…) στη θέση t
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="syntax"><code>Σημείο(p, a, b)</code></td>
+                            <td>
+                                σημείο πάνω σε πολύγωνο ή κωνική τομή, με θέση
+                                που δίνεται από δύο αριθμούς
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="syntax"><code>Σημείο(τύπος)</code></td>
+                            <td>
+                                σημείο του οποίου τις συντεταγμένες δίνει ο
+                                τύπος: <code>Σημείο(2*B - A)</code>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td rowspan="2"><strong>(x, y)</strong></td>
+                            <td class="syntax"><code>A = (x, y)</code></td>
+                            <td>
+                                ελεύθερο σημείο· <code>(x, y, z)</code> σε 3D
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="syntax">
+                                <code>M = (x(B) + 1, y(A))</code>
+                            </td>
+                            <td>
+                                σημείο με τουλάχιστον μία συντεταγμένη που
+                                δίνεται από τύπο
+                            </td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1">
+                                <strong>ΣταθερόΣημείο</strong><br /><small
+                                    >FixedPoint</small
+                                >
+                            </td>
+                            <td class="syntax">
+                                <code>ΣταθερόΣημείο(x, y)</code>
+                            </td>
+                            <td>
+                                σταθερό σημείο, που δεν μετακινείται·
+                                <code>ΣταθερόΣημείο(x, y, z)</code> σε 3D
+                            </td>
+                        </tr>
+                        <tr>
+                            <td rowspan="2">
+                                <i data-t="Midpoint"></i> <strong>Μέσο</strong
+                                ><br /><small>Midpoint</small>
+                            </td>
+                            <td class="syntax"><code>Μέσο(A, B)</code></td>
+                            <td>μέσο του [AB]</td>
+                        </tr>
+                        <tr>
+                            <td class="syntax"><code>Μέσο(s)</code></td>
+                            <td>μέσο του τμήματος s</td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1">
+                                <i data-t="Center"></i> <strong>Κέντρο</strong
+                                ><br /><small>Center</small>
+                            </td>
+                            <td class="syntax"><code>Κέντρο(c)</code></td>
+                            <td>κέντρο του κύκλου c</td>
+                        </tr>
+                        <tr>
+                            <td rowspan="5">
+                                <i data-t="Intersection"></i>
+                                <strong>Τομή</strong><br /><small
+                                    >Intersection</small
+                                >
+                            </td>
+                            <td class="syntax"><code>Τομή(d1, d2)</code></td>
+                            <td>κοινό σημείο δύο ευθειών</td>
+                        </tr>
+                        <tr>
+                            <td class="syntax"><code>Τομή(a, b, n)</code></td>
+                            <td>
+                                n-οστό κοινό σημείο (n από 1 έως 4) αντικειμένων
+                                από τα οποία τουλάχιστον ένα δεν είναι ευθεία:
+                                κύκλοι, κωνικές, καμπύλες
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="syntax"><code>Τομή(d, p)</code></td>
+                            <td>
+                                <span class="badge d3">3D</span> κοινό σημείο
+                                ευθείας και επιπέδου
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="syntax"><code>Τομή(p, q)</code></td>
+                            <td>
+                                <span class="badge d3">3D</span> κοινή ευθεία
+                                δύο επιπέδων
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="syntax"><code>Τομή(s, t)</code></td>
+                            <td>
+                                <span class="badge d3">3D</span> κοινός κύκλος
+                                δύο σφαιρών
+                            </td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1">
+                                <i data-t="OtherIntersection"></i>
+                                <strong>ΆλληΤομή</strong><br /><small
+                                    >OtherIntersection</small
+                                >
+                            </td>
+                            <td class="syntax">
+                                <code>ΆλληΤομή(a, b, P)</code>
+                            </td>
+                            <td>
+                                το κοινό σημείο των a και b που απέχει
+                                περισσότερο από το P
+                            </td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1">
+                                <i data-t="Incenter"></i>
+                                <strong>Έγκεντρο</strong><br /><small
+                                    >Incenter</small
+                                >
+                            </td>
+                            <td class="syntax">
+                                <code>Έγκεντρο(A, B, C)</code>
+                            </td>
+                            <td>
+                                κέντρο του εγγεγραμμένου κύκλου του τριγώνου ABC
+                            </td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1">
+                                <i data-t="Centroid"></i>
+                                <strong>Βαρύκεντρο</strong><br /><small
+                                    >Centroid</small
+                                >
+                            </td>
+                            <td class="syntax">
+                                <code>Βαρύκεντρο(A, B, C)</code>
+                            </td>
+                            <td>βαρύκεντρο του τριγώνου ABC</td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1">
+                                <i data-t="Circumcenter"></i>
+                                <strong>Περίκεντρο</strong><br /><small
+                                    >Circumcenter</small
+                                >
+                            </td>
+                            <td class="syntax">
+                                <code>Περίκεντρο(A, B, C)</code>
+                            </td>
+                            <td>
+                                κέντρο του περιγεγραμμένου κύκλου του τριγώνου
+                                ABC
+                            </td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1">
+                                <i data-t="Orthocenter"></i>
+                                <strong>Ορθόκεντρο</strong><br /><small
+                                    >Orthocenter</small
+                                >
+                            </td>
+                            <td class="syntax">
+                                <code>Ορθόκεντρο(A, B, C)</code>
+                            </td>
+                            <td>ορθόκεντρο του τριγώνου ABC</td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1">
+                                <strong>Κορυφή</strong><br /><small
+                                    >Vertex</small
+                                >
+                            </td>
+                            <td class="syntax"><code>Κορυφή(p, k)</code></td>
+                            <td>
+                                k-οστή κορυφή (από το 1) πολυγώνου ή πολυέδρου
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <h2>Ευθείες</h2>
+            <div class="table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Εντολή</th>
+                            <th>Μορφή</th>
+                            <th>Αποτέλεσμα</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td rowspan="1">
+                                <i data-t="Segment"></i> <strong>Τμήμα</strong
+                                ><br /><small>Segment</small>
+                            </td>
+                            <td class="syntax"><code>Τμήμα(A, B)</code></td>
+                            <td>τμήμα [AB]</td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1">
+                                <i data-t="Line"></i> <strong>Ευθεία</strong
+                                ><br /><small>Line</small>
+                            </td>
+                            <td class="syntax"><code>Ευθεία(A, B)</code></td>
+                            <td>ευθεία (AB)</td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1">
+                                <i data-t="Ray"></i> <strong>Ημιευθεία</strong
+                                ><br /><small>Ray</small>
+                            </td>
+                            <td class="syntax"><code>Ημιευθεία(A, B)</code></td>
+                            <td>ημιευθεία [AB), με αρχή το A</td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1">
+                                <i data-t="Vector"></i> <strong>Διάνυσμα</strong
+                                ><br /><small>Vector</small>
+                            </td>
+                            <td class="syntax"><code>Διάνυσμα(A, B)</code></td>
+                            <td>διάνυσμα από το A στο B</td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1"><strong>εξίσωση</strong></td>
+                            <td class="syntax"><code>d = y = 2x + 1</code></td>
+                            <td>
+                                ευθεία που δίνεται από εξίσωση 1ου βαθμού (βλ.
+                                <a href="saisie.html#equations">Εξισώσεις</a>)
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <h2>Κατασκευές</h2>
+            <div class="table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Εντολή</th>
+                            <th>Μορφή</th>
+                            <th>Αποτέλεσμα</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td rowspan="2">
+                                <i data-t="Perpendicular"></i>
+                                <strong>Κάθετη</strong><br /><small
+                                    >Perpendicular</small
+                                >
+                            </td>
+                            <td class="syntax"><code>Κάθετη(P, d)</code></td>
+                            <td>κάθετη στην ευθεία d που διέρχεται από το P</td>
+                        </tr>
+                        <tr>
+                            <td class="syntax"><code>Κάθετη(P, p)</code></td>
+                            <td>
+                                <span class="badge d3">3D</span> ευθεία που
+                                διέρχεται από το P, κάθετη στο επίπεδο p
+                            </td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1">
+                                <i data-t="Parallel"></i>
+                                <strong>Παράλληλη</strong><br /><small
+                                    >Parallel</small
+                                >
+                            </td>
+                            <td class="syntax"><code>Παράλληλη(P, d)</code></td>
+                            <td>παράλληλη προς την d που διέρχεται από το P</td>
+                        </tr>
+                        <tr>
+                            <td rowspan="2">
+                                <i data-t="PerpendicularBisector"></i>
+                                <strong>Μεσοκάθετη</strong><br /><small
+                                    >PerpendicularBisector</small
+                                >
+                            </td>
+                            <td class="syntax">
+                                <code>Μεσοκάθετη(A, B)</code>
+                            </td>
+                            <td>μεσοκάθετη του [AB]</td>
+                        </tr>
+                        <tr>
+                            <td class="syntax"><code>Μεσοκάθετη(s)</code></td>
+                            <td>μεσοκάθετη του τμήματος s</td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1">
+                                <i data-t="AngleBisector"></i>
+                                <strong>Διχοτόμος</strong><br /><small
+                                    >AngleBisector</small
+                                >
+                            </td>
+                            <td class="syntax">
+                                <code>Διχοτόμος(A, O, B)</code>
+                            </td>
+                            <td>διχοτόμος της γωνίας με κορυφή O</td>
+                        </tr>
+                        <tr>
+                            <td rowspan="2">
+                                <i data-t="Tangent"></i>
+                                <strong>Εφαπτομένη</strong><br /><small
+                                    >Tangent</small
+                                >
+                            </td>
+                            <td class="syntax">
+                                <code>Εφαπτομένη(P, c, n)</code>
+                            </td>
+                            <td>
+                                εφαπτομένη n (1 ή 2) από το P προς τον κύκλο ή
+                                την κωνική c
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="syntax">
+                                <code>Εφαπτομένη(P, f)</code>
+                            </td>
+                            <td>
+                                εφαπτομένη στη γραφική παράσταση συνάρτησης, στο
+                                σημείο με την τετμημένη του P
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <h2>Κύκλοι, τόξα, κωνικές</h2>
+            <div class="table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Εντολή</th>
+                            <th>Μορφή</th>
+                            <th>Αποτέλεσμα</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td rowspan="4">
+                                <i data-t="Circle (centre and point)"></i>
+                                <strong>Κύκλος</strong><br /><small
+                                    >Circle</small
+                                >
+                            </td>
+                            <td class="syntax"><code>Κύκλος(O, A)</code></td>
+                            <td>κύκλος με κέντρο O που διέρχεται από το A</td>
+                        </tr>
+                        <tr>
+                            <td class="syntax"><code>Κύκλος(O, r)</code></td>
+                            <td>
+                                κύκλος με κέντρο O και ακτίνα r (αριθμός,
+                                έκφραση ή τύπος)
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="syntax"><code>Κύκλος(O, r, d)</code></td>
+                            <td>
+                                <span class="badge d3">3D</span> κύκλος με
+                                κέντρο O και ακτίνα r, κάθετος στην ευθεία d ή
+                                παράλληλος προς το επίπεδο d
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="syntax"><code>Κύκλος(d, P)</code></td>
+                            <td>
+                                <span class="badge d3">3D</span> κύκλος με άξονα
+                                d που διέρχεται από το P
+                            </td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1">
+                                <i data-t="Circumcircle"></i>
+                                <strong>ΠεριγεγραμμένοςΚύκλος</strong
+                                ><br /><small>Circumcircle</small>
+                            </td>
+                            <td class="syntax">
+                                <code>ΠεριγεγραμμένοςΚύκλος(A, B, C)</code>
+                            </td>
+                            <td>
+                                κύκλος που διέρχεται από τα A, B και C (στο
+                                επίπεδό τους σε 3D)
+                            </td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1">
+                                <i data-t="Compass"></i>
+                                <strong>Διαβήτης</strong><br /><small
+                                    >Compass</small
+                                >
+                            </td>
+                            <td class="syntax">
+                                <code>Διαβήτης(A, B, O)</code>
+                            </td>
+                            <td>κύκλος με κέντρο O και ακτίνα AB</td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1">
+                                <i data-t="Arc"></i> <strong>Τόξο</strong
+                                ><br /><small>Arc</small>
+                            </td>
+                            <td class="syntax"><code>Τόξο(A, B, C)</code></td>
+                            <td>τόξο από το A στο C μέσω του B</td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1">
+                                <i data-t="Sector"></i> <strong>Τομέας</strong
+                                ><br /><small>Sector</small>
+                            </td>
+                            <td class="syntax"><code>Τομέας(A, B, C)</code></td>
+                            <td>τομέας του τόξου από το A στο C μέσω του B</td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1">
+                                <i data-t="CenterArc"></i>
+                                <strong>ΤόξοΚέντρου</strong><br /><small
+                                    >CenterArc</small
+                                >
+                            </td>
+                            <td class="syntax">
+                                <code>ΤόξοΚέντρου(M, A, B)</code>
+                            </td>
+                            <td>
+                                τόξο με κέντρο M, από το A έως την ημιευθεία
+                                [MB), κατά τη θετική φορά
+                            </td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1">
+                                <i data-t="CenterSector"></i>
+                                <strong>ΤομέαςΚέντρου</strong><br /><small
+                                    >CenterSector</small
+                                >
+                            </td>
+                            <td class="syntax">
+                                <code>ΤομέαςΚέντρου(M, A, B)</code>
+                            </td>
+                            <td>αντίστοιχος τομέας</td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1">
+                                <i data-t="Semicircle"></i>
+                                <strong>Ημικύκλιο</strong><br /><small
+                                    >Semicircle</small
+                                >
+                            </td>
+                            <td class="syntax"><code>Ημικύκλιο(A, B)</code></td>
+                            <td>
+                                ημικύκλιο με διάμετρο [AB], αριστερά από το A
+                                προς το B
+                            </td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1">
+                                <i data-t="Conic"></i>
+                                <strong>ΚωνικήΤομή</strong><br /><small
+                                    >Conic</small
+                                >
+                            </td>
+                            <td class="syntax">
+                                <code>ΚωνικήΤομή(A, B, C, D, E)</code>
+                            </td>
+                            <td>κωνική τομή που διέρχεται από πέντε σημεία</td>
+                        </tr>
+                        <tr>
+                            <td rowspan="2">
+                                <i data-t="Ellipse"></i> <strong>Έλλειψη</strong
+                                ><br /><small>Ellipse</small>
+                            </td>
+                            <td class="syntax">
+                                <code>Έλλειψη(F, G, P)</code>
+                            </td>
+                            <td>
+                                έλλειψη με εστίες F και G που διέρχεται από το P
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="syntax">
+                                <code>Έλλειψη(F, G, a)</code>
+                            </td>
+                            <td>
+                                έλλειψη με εστίες F και G και μεγάλο ημιάξονα a
+                            </td>
+                        </tr>
+                        <tr>
+                            <td rowspan="2">
+                                <i data-t="Hyperbola"></i>
+                                <strong>Υπερβολή</strong><br /><small
+                                    >Hyperbola</small
+                                >
+                            </td>
+                            <td class="syntax">
+                                <code>Υπερβολή(F, G, P)</code>
+                            </td>
+                            <td>
+                                υπερβολή με εστίες F και G που διέρχεται από το
+                                P
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="syntax">
+                                <code>Υπερβολή(F, G, a)</code>
+                            </td>
+                            <td>υπερβολή με εστίες F και G και ημιάξονα a</td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1">
+                                <i data-t="Parabola"></i>
+                                <strong>Παραβολή</strong><br /><small
+                                    >Parabola</small
+                                >
+                            </td>
+                            <td class="syntax"><code>Παραβολή(F, d)</code></td>
+                            <td>παραβολή με εστία F και διευθετούσα d</td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1"><strong>εξίσωση</strong></td>
+                            <td class="syntax">
+                                <code>c = x^2 + y^2 = 4</code>
+                            </td>
+                            <td>
+                                κύκλος ή κωνική που δίνονται από εξίσωση 2ου
+                                βαθμού
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <h2>Πολύγωνα, γωνίες, γεωμετρικοί τόποι</h2>
+            <div class="table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Εντολή</th>
+                            <th>Μορφή</th>
+                            <th>Αποτέλεσμα</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td rowspan="1">
+                                <i data-t="Polygon"></i>
+                                <strong>Πολύγωνο</strong><br /><small
+                                    >Polygon</small
+                                >
+                            </td>
+                            <td class="syntax">
+                                <code>Πολύγωνο(A, B, C, …)</code>
+                            </td>
+                            <td>πολύγωνο με τρεις ή περισσότερες κορυφές</td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1">
+                                <i data-t="RegularPolygon"></i>
+                                <strong>ΚανονικόΠολύγωνο</strong><br /><small
+                                    >RegularPolygon</small
+                                >
+                            </td>
+                            <td class="syntax">
+                                <code>ΚανονικόΠολύγωνο(A, B, n)</code>
+                            </td>
+                            <td>
+                                κανονικό πολύγωνο με n πλευρές (n ≥ 3) πάνω στο
+                                [AB]
+                            </td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1">
+                                <i data-t="Angle"></i> <strong>Γωνία</strong
+                                ><br /><small>Angle</small>
+                            </td>
+                            <td class="syntax"><code>Γωνία(A, O, B)</code></td>
+                            <td>γωνία με κορυφή O, από την [OA) στην [OB)</td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1">
+                                <i data-t="Locus"></i>
+                                <strong>ΓεωμετρικόςΤόπος</strong><br /><small
+                                    >Locus</small
+                                >
+                            </td>
+                            <td class="syntax">
+                                <code>ΓεωμετρικόςΤόπος(M, P)</code>
+                            </td>
+                            <td>
+                                γεωμετρικός τόπος του σημείου M όταν το σημείο
+                                πάνω σε αντικείμενο P διατρέχει το αντικείμενό
+                                του
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <h2>Μετασχηματισμοί</h2>
+            <div class="table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Εντολή</th>
+                            <th>Μορφή</th>
+                            <th>Αποτέλεσμα</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td rowspan="2">
+                                <i data-t="Point reflection"></i>
+                                <strong>Συμμετρία</strong><br /><small
+                                    >Reflect</small
+                                >
+                            </td>
+                            <td class="syntax"><code>Συμμετρία(P, O)</code></td>
+                            <td>
+                                συμμετρικό του σημείου P ως προς το σημείο O
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="syntax"><code>Συμμετρία(P, d)</code></td>
+                            <td>
+                                συμμετρικό του σημείου P ως προς την ευθεία d
+                            </td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1">
+                                <i data-t="Rotation"></i> <strong>Στροφή</strong
+                                ><br /><small>Rotation</small>
+                            </td>
+                            <td class="syntax"><code>Στροφή(P, O, a)</code></td>
+                            <td>
+                                εικόνα του σημείου P με τη στροφή κέντρου O και
+                                γωνίας a (σε μοίρες ή ακτίνια, ανάλογα με το
+                                σχήμα)
+                            </td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1">
+                                <i data-t="Translation"></i>
+                                <strong>Μεταφορά</strong><br /><small
+                                    >Translation</small
+                                >
+                            </td>
+                            <td class="syntax"><code>Μεταφορά(P, u)</code></td>
+                            <td>
+                                εικόνα του σημείου P με τη μεταφορά κατά το
+                                διάνυσμα u
+                            </td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1">
+                                <i data-t="Dilation"></i>
+                                <strong>Ομοιοθεσία</strong><br /><small
+                                    >Dilation</small
+                                >
+                            </td>
+                            <td class="syntax">
+                                <code>Ομοιοθεσία(P, O, k)</code>
+                            </td>
+                            <td>
+                                εικόνα του σημείου P με την ομοιοθεσία κέντρου O
+                                και λόγου k
+                            </td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1">
+                                <i data-t="Inversion"></i>
+                                <strong>Αντιστροφή</strong><br /><small
+                                    >Inversion</small
+                                >
+                            </td>
+                            <td class="syntax">
+                                <code>Αντιστροφή(P, c)</code>
+                            </td>
+                            <td>
+                                εικόνα του σημείου P με την αντιστροφή ως προς
+                                τον κύκλο c
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <h2>Επίπεδα</h2>
+            <div class="table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Εντολή</th>
+                            <th>Μορφή</th>
+                            <th>Αποτέλεσμα</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td rowspan="2">
+                                <i data-t="Plane"></i> <strong>Επίπεδο</strong
+                                ><br /><small>Plane</small>
+                            </td>
+                            <td class="syntax">
+                                <code>Επίπεδο(A, B, C)</code>
+                            </td>
+                            <td>επίπεδο που διέρχεται από τρία σημεία</td>
+                        </tr>
+                        <tr>
+                            <td class="syntax"><code>Επίπεδο(A, d)</code></td>
+                            <td>
+                                επίπεδο που περιέχει το σημείο A και την ευθεία
+                                d
+                            </td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1">
+                                <i data-t="ParallelPlane"></i>
+                                <strong>ΠαράλληλοΕπίπεδο</strong><br /><small
+                                    >ParallelPlane</small
+                                >
+                            </td>
+                            <td class="syntax">
+                                <code>ΠαράλληλοΕπίπεδο(A, p)</code>
+                            </td>
+                            <td>
+                                επίπεδο που διέρχεται από το A, παράλληλο προς
+                                το επίπεδο p
+                            </td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1">
+                                <i data-t="OrthogonalPlane"></i>
+                                <strong>ΚάθετοΕπίπεδο</strong><br /><small
+                                    >OrthogonalPlane</small
+                                >
+                            </td>
+                            <td class="syntax">
+                                <code>ΚάθετοΕπίπεδο(A, d)</code>
+                            </td>
+                            <td>
+                                επίπεδο που διέρχεται από το A, κάθετο στην
+                                ευθεία d
+                            </td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1"><strong>εξίσωση</strong></td>
+                            <td class="syntax">
+                                <code>p = x + y + z = 3</code>
+                            </td>
+                            <td>
+                                επίπεδο που δίνεται από εξίσωση 1ου βαθμού ως
+                                προς x, y και z
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <h2>Στερεά</h2>
+            <div class="table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Εντολή</th>
+                            <th>Μορφή</th>
+                            <th>Αποτέλεσμα</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td rowspan="2">
+                                <i data-t="Sphere"></i> <strong>Σφαίρα</strong
+                                ><br /><small>Sphere</small>
+                            </td>
+                            <td class="syntax"><code>Σφαίρα(O, A)</code></td>
+                            <td>σφαίρα με κέντρο O που διέρχεται από το A</td>
+                        </tr>
+                        <tr>
+                            <td class="syntax"><code>Σφαίρα(O, r)</code></td>
+                            <td>σφαίρα με κέντρο O και ακτίνα r</td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1">
+                                <i data-t="Cylinder"></i>
+                                <strong>Κύλινδρος</strong><br /><small
+                                    >Cylinder</small
+                                >
+                            </td>
+                            <td class="syntax">
+                                <code>Κύλινδρος(A, B, r)</code>
+                            </td>
+                            <td>κύλινδρος με άξονα [AB] και ακτίνα r</td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1">
+                                <i data-t="Cone"></i> <strong>Κώνος</strong
+                                ><br /><small>Cone</small>
+                            </td>
+                            <td class="syntax"><code>Κώνος(A, B, r)</code></td>
+                            <td>
+                                κώνος με βάση κέντρου A και ακτίνας r και κορυφή
+                                B
+                            </td>
+                        </tr>
+                        <tr>
+                            <td rowspan="3">
+                                <i data-t="Cube"></i> <strong>Κύβος</strong
+                                ><br /><small>Cube</small>
+                            </td>
+                            <td class="syntax"><code>Κύβος(A, B, C)</code></td>
+                            <td>
+                                κύβος πάνω στο τετράγωνο ABCD του επιπέδου ABC
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="syntax">
+                                <code>Κύβος(A, B, p, s)</code>
+                            </td>
+                            <td>
+                                κύβος με ακμή [AB] πάνω στο επίπεδο ή στο
+                                πολύγωνο p, από την πλευρά s (1 ή −1)
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="syntax"><code>Κύβος(A, B, s)</code></td>
+                            <td>
+                                κύβος με ακμή [AB] πάνω σε οριζόντιο τετράγωνο,
+                                από πάνω (1) ή από κάτω (−1)
+                            </td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1">
+                                <i data-t="Prism"></i> <strong>Πρίσμα</strong
+                                ><br /><small>Prism</small>
+                            </td>
+                            <td class="syntax"><code>Πρίσμα(p, P)</code></td>
+                            <td>
+                                πρίσμα με βάση το πολύγωνο p, όπου P η εικόνα
+                                της πρώτης κορυφής του p
+                            </td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1">
+                                <i data-t="Pyramid"></i>
+                                <strong>Πυραμίδα</strong><br /><small
+                                    >Pyramid</small
+                                >
+                            </td>
+                            <td class="syntax"><code>Πυραμίδα(p, S)</code></td>
+                            <td>πυραμίδα με βάση το πολύγωνο p και κορυφή S</td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1">
+                                <i data-t="Section"></i> <strong>Διατομή</strong
+                                ><br /><small>Section</small>
+                            </td>
+                            <td class="syntax"><code>Διατομή(s, p)</code></td>
+                            <td>
+                                διατομή του στερεού s με το επίπεδο p: κύκλος
+                                (σφαίρα), κωνική (κύλινδρος, κώνος) ή πολύγωνο
+                                (πολύεδρο)
+                            </td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1">
+                                <i data-t="Net"></i> <strong>Ανάπτυγμα</strong
+                                ><br /><small>Net</small>
+                            </td>
+                            <td class="syntax"><code>Ανάπτυγμα(c, f)</code></td>
+                            <td>
+                                ανάπτυγμα κύβου, πρίσματος ή πυραμίδας,
+                                ανοιγμένο κατά f (0: κλειστό, 1: επίπεδο)
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <h2>Αριθμοί και λίστες</h2>
+            <div class="table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Εντολή</th>
+                            <th>Μορφή</th>
+                            <th>Αποτέλεσμα</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td rowspan="1">
+                                <strong>Δρομέας</strong><br /><small
+                                    >Slider</small
+                                >
+                            </td>
+                            <td class="syntax">
+                                <code>Δρομέας(min, max, τιμή)</code>
+                            </td>
+                            <td>
+                                δρομέας ανάμεσα σε δύο όρια (αριθμοί, εκφράσεις
+                                ή τύποι)
+                            </td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1">
+                                <strong>Λίστα</strong><br /><small>List</small>
+                            </td>
+                            <td class="syntax"><code>Λίστα(e)</code></td>
+                            <td>
+                                σχεδιάζει τα σημεία της τιμής της έκφρασης e,
+                                μιας λίστας σημείων
+                            </td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1"><strong>έκφραση</strong></td>
+                            <td class="syntax"><code>a = 3</code></td>
+                            <td>
+                                αριθμός, κείμενο, συνάρτηση ή τύπος (βλ.
+                                <a href="expressions.html">Εκφράσεις</a>)
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <h2>Συναρτήσεις των τύπων</h2>
+            <p>
+                Οι <code>d</code>, <code>x</code>, <code>sqrt</code>,
+                <code>sin</code>… υπολογίζουν χωρίς να δημιουργούν αντικείμενο:
+                βλ. <a href="formules.html#fonctions">Τύποι και προγράμματα</a>.
+            </p>
+        </main>
+    </body>
+</html>

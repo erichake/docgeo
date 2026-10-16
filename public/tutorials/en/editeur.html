@@ -1,0 +1,202 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <title>The interface — DocGeo manual</title>
+        <link rel="icon" type="image/svg+xml" href="../../favicon.svg" />
+        <link rel="stylesheet" href="../manual.css" />
+        <script src="../icons.js" defer></script>
+        <script src="../manual.js" defer></script>
+    </head>
+    <body>
+        <main>
+            <h1>The interface</h1>
+
+            <figure>
+                <img
+                    src="img/editeur-interface.webp"
+                    alt="The editor: action bar, Construction panel and figure"
+                    width="1200"
+                    height="720"
+                />
+            </figure>
+
+            <h2>The action bar</h2>
+            <div class="table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th></th>
+                            <th>Button</th>
+                            <th>Role</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><i data-i="open"></i></td>
+                            <td>Open</td>
+                            <td>
+                                <code>.dgo</code>, <code>.dgp</code>,
+                                <code>.ggb</code>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><i data-i="save"></i></td>
+                            <td>Save</td>
+                            <td>as <code>.dgo</code></td>
+                        </tr>
+                        <tr>
+                            <td><i data-i="eraser"></i></td>
+                            <td>Eraser</td>
+                            <td>
+                                hide or show objects (<a
+                                    href="objets.html#la-gomme"
+                                    >eraser</a
+                                >)
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><i data-i="axes"></i></td>
+                            <td>Axes</td>
+                            <td>axes and grid; in 3D, trihedron and floor</td>
+                        </tr>
+                        <tr>
+                            <td><i data-i="space"></i></td>
+                            <td>3D view</td>
+                            <td>
+                                switch to space or back to the plane (<a
+                                    href="3d.html"
+                                    >3D</a
+                                >)
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><i data-i="properties"></i></td>
+                            <td>Properties</td>
+                            <td>
+                                right panel (<a href="proprietes.html"
+                                    >properties</a
+                                >)
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><i data-i="history"></i></td>
+                            <td>Construction</td>
+                            <td>left panel</td>
+                        </tr>
+                        <tr>
+                            <td><i data-i="undo"></i> <i data-i="redo"></i></td>
+                            <td>Undo, Redo</td>
+                            <td>
+                                <kbd>Ctrl</kbd> <kbd>Z</kbd>, <kbd>Ctrl</kbd>
+                                <kbd>Shift</kbd> <kbd>Z</kbd> or <kbd>Ctrl</kbd>
+                                <kbd>Y</kbd>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <p>
+                In the middle, the
+                <a href="objets.html#la-zone-contextuelle">context area</a>
+                gives the name and the actions of the selected object.
+            </p>
+
+            <h2>The “Construction” panel</h2>
+            <ul>
+                <li>
+                    One line per object, in construction order:
+                    <code>M = Midpoint(A, B)</code>. Each line can be edited (<a
+                        href="saisie.html#modifier-une-ligne"
+                        >redefinition</a
+                    >).
+                </li>
+                <li>
+                    The dot at the start of a line hides or shows the object;
+                    <i data-i="show_name"></i> at the end of the line shows its
+                    name.
+                </li>
+                <li>
+                    Header: number of objects, <i data-i="show_values"></i>
+                    <a href="objets.html#les-valeurs">values</a>,
+                    <i data-i="steps"></i>
+                    <a href="objets.html#la-construction-pas-a-pas"
+                        >step by step</a
+                    >, <i data-i="new_program"></i>
+                    <a href="expressions.html#les-programmes">new program</a>.
+                </li>
+                <li>
+                    The “Input…” line and the <i data-i="tools"></i> button of
+                    the <a href="menu-outils.html">tools menu</a>.
+                </li>
+                <li>Hovering a line highlights the object, and vice versa.</li>
+            </ul>
+
+            <h2>The prompt</h2>
+            <p>
+                The bubble at the bottom of the figure says what is expected
+                (“Designate a point”), the line the tool is about to write, and
+                errors in red. Its cross <strong>✕</strong> drops the current
+                tool.
+            </p>
+
+            <h2>Navigating</h2>
+            <div class="table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Action</th>
+                            <th>Gesture</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Move the view</td>
+                            <td>drag an empty spot; right button anywhere</td>
+                        </tr>
+                        <tr>
+                            <td>Zoom</td>
+                            <td>wheel or trackpad, around the pointer</td>
+                        </tr>
+                        <tr>
+                            <td>Rotate a 3D figure</td>
+                            <td>
+                                right button, or one finger on an empty spot
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Perspective, floor (3D)</td>
+                            <td><kbd>P</kbd>, <kbd>S</kbd></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <p>
+                The round button at the bottom left, present when the figure has
+                animations, pauses or restarts them.
+            </p>
+
+            <h2>Undoing</h2>
+            <p>
+                Every change is a step of a single stack: construction,
+                deletion, move, style, coordinate system setting, switch to 3D.
+                Zooming, moving and rotating the view are not.
+            </p>
+
+            <h2>The panels</h2>
+            <ul>
+                <li>
+                    Drag their inner edge to resize them; a double-click
+                    restores the default width.
+                </li>
+                <li>
+                    Below 900 px wide, only one panel is open at a time; at 600
+                    px and less, the “Construction” panel starts closed, the
+                    properties cover the figure, and choosing a tool closes the
+                    panels.
+                </li>
+            </ul>
+        </main>
+    </body>
+</html>

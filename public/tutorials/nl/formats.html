@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="nl">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <title>Import uit DGPad en GeoGebra — DocGeo-handleiding</title>
+        <link rel="icon" type="image/svg+xml" href="../../favicon.svg" />
+        <link rel="stylesheet" href="../manual.css" />
+        <script src="../icons.js" defer></script>
+        <script src="../manual.js" defer></script>
+    </head>
+    <body>
+        <main>
+            <h1>Import uit DGPad en GeoGebra</h1>
+
+            <p class="lead">
+                <code>.dgo</code> is het formaat van DocGeo;
+                <code>.dgp</code> en <code>.ggb</code> worden geïmporteerd en
+                dan als <code>.dgo</code> opgeslagen. Geen export naar DGPad of
+                GeoGebra.
+            </p>
+
+            <h2>Het formaat .dgo</h2>
+            <p>
+                Gecomprimeerde JSON: objecten, stijlen en weergave. Het
+                evolueert alleen door toevoegingen: een opgeslagen bestand
+                blijft leesbaar voor latere versies.
+            </p>
+
+            <h2 id="figures-dgpad">DGPad</h2>
+            <p>
+                Vlakke en 3D-figuren, stijlen, uitdrukkingen, schuifknoppen,
+                animaties, meetkundige plaatsen, magneten, sporen en macro’s
+                worden overgenomen.
+            </p>
+            <div class="table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Programma in DGPad</th>
+                            <th>DocGeo</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>
+                                scripts van uitdrukkingen, Blockly dat een
+                                uitdrukking berekent, Blockly-schildpad
+                            </td>
+                            <td>geïnterpreteerd</td>
+                        </tr>
+                        <tr>
+                            <td>
+                                Blockly-knoppen (opmaak, een getal wijzigen)
+                            </td>
+                            <td>geïnterpreteerd</td>
+                        </tr>
+                        <tr>
+                            <td>
+                                gebeurtenis-Blockly, JavaScript, actieve HTML
+                            </td>
+                            <td>genegeerd en gemeld</td>
+                        </tr>
+                        <tr>
+                            <td>
+                                uitdrukking „restrictions” (vergrendeling van de
+                                interface)
+                            </td>
+                            <td>genegeerd</td>
+                        </tr>
+                        <tr>
+                            <td>beperkingen van de 3D-draaiing</td>
+                            <td>toegepast</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <p>
+                Geen enkele code van een figuur wordt door de browser
+                uitgevoerd. Bewust verschil: een kromme wordt bij haar
+                discontinuïteiten niet met een verticale lijn verbonden.
+            </p>
+
+            <h2>GeoGebra</h2>
+            <p>
+                Elke opdracht wordt het overeenkomstige DocGeo-object, met
+                dezelfde argumenten; punten op objecten en snijpunten worden op
+                de door GeoGebra opgeslagen posities teruggezet.
+            </p>
+            <ul>
+                <li>
+                    Overgenomen: vlakke en ruimtelijke meetkunde, functies en
+                    krommen (numerieke afgeleiden en integralen), schuifknoppen,
+                    selectievakjes, invoervelden, zichtbaarheidsvoorwaarden,
+                    LaTeX-teksten, afbeeldingen, stijlen en positie van de
+                    namen, assen en rooster, animaties, sporen, macro’s.
+                </li>
+                <li>
+                    Niet overgenomen: scripts (GGBScript, JavaScript),
+                    computeralgebra, sommige lijstopdrachten.
+                </li>
+            </ul>
+            <p>
+                Meer dan de helft van de 470 figuren van een corpus van
+                geogebra.org opent zonder verlies. Een niet-ondersteund element
+                wordt samen met zijn afhankelijke objecten genegeerd en gemeld.
+            </p>
+        </main>
+    </body>
+</html>

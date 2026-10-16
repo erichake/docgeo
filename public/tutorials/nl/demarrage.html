@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="nl">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <title>Openen en opslaan — DocGeo-handleiding</title>
+        <link rel="icon" type="image/svg+xml" href="../../favicon.svg" />
+        <link rel="stylesheet" href="../manual.css" />
+        <script src="../icons.js" defer></script>
+        <script src="../manual.js" defer></script>
+    </head>
+    <body>
+        <main>
+            <h1>Openen en opslaan</h1>
+
+            <h2>Openen</h2>
+            <p>
+                <i data-i="open"></i> <strong>Openen</strong> laadt een bestand:
+            </p>
+            <div class="table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Extensie</th>
+                            <th>Herkomst</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><code>.dgo</code></td>
+                            <td>DocGeo, eigen formaat</td>
+                        </tr>
+                        <tr>
+                            <td><code>.dgp</code></td>
+                            <td>DGPad, geïmporteerd</td>
+                        </tr>
+                        <tr>
+                            <td><code>.ggb</code></td>
+                            <td>GeoGebra, geïmporteerd</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <p>
+                De geopende figuur vervangt de huidige figuur en wist de
+                geschiedenis van ongedaan maken.
+            </p>
+            <p>
+                Een online figuur open je via het adres van de editor:
+                <code>editor.html?url=https://voorbeeld.nl/thales.ggb</code>.
+                Het formaat volgt uit de extensie (<code>.ggb</code>,
+                <code>.dgo</code>, anders DGPad); de server moet lezen vanaf een
+                andere site toestaan (CORS).
+            </p>
+
+            <h2>Onvolledige import</h2>
+            <p>
+                Een niet-ondersteund element uit DGPad of GeoGebra wordt samen
+                met zijn afhankelijke objecten genegeerd; de aanwijzing geeft de
+                lijst („Niet geïmporteerd: …”). De details staan in
+                <a href="formats.html">Import uit DGPad en GeoGebra</a>.
+            </p>
+
+            <h2>Opslaan</h2>
+            <p>
+                <i data-i="save"></i> of <kbd>Ctrl</kbd> <kbd>S</kbd> downloadt
+                de figuur als <code>.dgo</code>, onder de naam van de geopende
+                figuur (<code>figure.dgo</code> voor een nieuwe figuur). De
+                weergave (zoom, 3D-oriëntatie, assenstelsel) wordt opgeslagen.
+            </p>
+            <p>
+                <code>.dgo</code> is het enige opslagformaat: een figuur uit
+                DGPad of GeoGebra openen en opslaan zet ze om.
+            </p>
+
+            <h2>Taal</h2>
+            <p>
+                De editor neemt de taal van de browser over;
+                <code>?lang=</code> legt een taal op (<code>ar</code>,
+                <code>de</code>, <code>el</code>, <code>en</code>,
+                <code>es</code>, <code>fr</code>, <code>hi</code>,
+                <code>it</code>, <code>nl</code>, <code>pt</code>,
+                <code>zh</code>, <code>zh-TW</code>). De taal bepaalt ook de
+                namen van de opdrachten (<code>Midden</code>,
+                <code lang="de">Mittelpunkt</code>…); de Engelse namen worden in
+                alle talen begrepen.
+            </p>
+        </main>
+    </body>
+</html>

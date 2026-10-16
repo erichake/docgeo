@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <title>الفتح والحفظ — دليل DocGeo</title>
+        <link rel="icon" type="image/svg+xml" href="../../favicon.svg" />
+        <link rel="stylesheet" href="../manual.css" />
+        <script src="../icons.js" defer></script>
+        <script src="../manual.js" defer></script>
+    </head>
+    <body>
+        <main>
+            <h1>الفتح والحفظ</h1>
+
+            <h2>الفتح</h2>
+            <p><i data-i="open"></i> <strong>فتح</strong> يحمّل ملفًا:</p>
+            <div class="table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>الامتداد</th>
+                            <th>المصدر</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><code>.dgo</code></td>
+                            <td>DocGeo، الصيغة الأصلية</td>
+                        </tr>
+                        <tr>
+                            <td><code>.dgp</code></td>
+                            <td>DGPad، مستورد</td>
+                        </tr>
+                        <tr>
+                            <td><code>.ggb</code></td>
+                            <td>GeoGebra، مستورد</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <p>يحل الشكل المفتوح محل الشكل الحالي ويفرغ سجل التراجع.</p>
+            <p>
+                يُفتح شكل منشور على الإنترنت عبر عنوان المحرر:
+                <code>editor.html?url=https://example.com/thales.ggb</code>.
+                تُستنتج الصيغة من الامتداد (<code>.ggb</code>،
+                <code>.dgo</code>، وإلا فـ DGPad)؛ ويجب أن يسمح الخادم بالقراءة
+                من موقع آخر (CORS).
+            </p>
+
+            <h2>الاستيراد غير المكتمل</h2>
+            <p>
+                يُتجاهل عنصر DGPad أو GeoGebra غير المدعوم مع العناصر التابعة
+                له؛ ويعرض الإرشاد قائمتها («لم يُستورد: …»). التفاصيل في
+                <a href="formats.html">الاستيراد من DGPad وGeoGebra</a>.
+            </p>
+
+            <h2>الحفظ</h2>
+            <p>
+                <i data-i="save"></i> أو <kbd>Ctrl</kbd> <kbd>S</kbd> ينزّل
+                الشكل بصيغة <code>.dgo</code>، باسم الشكل المفتوح (<code
+                    >figure.dgo</code
+                >
+                لشكل جديد). ويُحفظ العرض (التكبير، اتجاه الأبعاد الثلاثة،
+                المَعلم).
+            </p>
+            <p>
+                <code>.dgo</code> هي صيغة الحفظ الوحيدة: فتح شكل من DGPad أو
+                GeoGebra ثم حفظه يحوّله إليها.
+            </p>
+
+            <h2>اللغة</h2>
+            <p>
+                يأخذ المحرر لغة المتصفح؛ ويفرض <code>?lang=</code> لغة معينة
+                (<code>ar</code>، <code>de</code>، <code>el</code>،
+                <code>en</code>، <code>es</code>، <code>fr</code>،
+                <code>hi</code>، <code>it</code>، <code>nl</code>،
+                <code>pt</code>، <code>zh</code>، <code>zh-TW</code>). وتحدد
+                اللغة أيضًا أسماء الأوامر (<code>منتصف</code>،
+                <code lang="fr">Milieu</code>…)؛ والأسماء الإنجليزية مفهومة في
+                كل اللغات.
+            </p>
+        </main>
+    </body>
+</html>

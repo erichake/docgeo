@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="es">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <title>Historia del proyecto — Manual de DocGeo</title>
+        <link rel="icon" type="image/svg+xml" href="../../favicon.svg" />
+        <link rel="stylesheet" href="../manual.css" />
+        <script src="../icons.js" defer></script>
+        <script src="../manual.js" defer></script>
+    </head>
+    <body>
+        <main>
+            <h1>Historia del proyecto</h1>
+
+            <p class="lead">
+                DocGeo prolonga DGPad: la misma forma de construir, con 3D
+                nativo y dibujo vectorial.
+            </p>
+
+            <h2>2012-2017: DGPad</h2>
+            <p>
+                El desarrollo de DGPad comienza en la primavera de 2012 y se
+                detiene en 2017. El programa sigue en línea y sus figuras siguen
+                circulando: DocGeo las abre.
+            </p>
+
+            <h2>2017-2018: DGPad Pro</h2>
+            <p>
+                Justo después, un ensayo, DGPad Pro, parte de cero para dar a
+                DGPad lo que le falta: objetos nativamente en el espacio (cada
+                punto tiene tres coordenadas, la vista gira alrededor del
+                sistema de coordenadas) y un dibujo en SVG, donde cada objeto es
+                un elemento vectorial, nítido con cualquier zoom.
+            </p>
+            <p>
+                De octubre de 2017 a abril de 2018 recibe puntos, rectas,
+                semirrectas, segmentos, paralelas, perpendiculares, puntos
+                medios e intersecciones. El proyecto se detiene ahí: recuperar
+                una parte apreciable de las funciones de DGPad exigía un trabajo
+                desmesurado.
+            </p>
+
+            <h2>2021: un segundo intento</h2>
+            <p>
+                Una reanudación se queda corta: el dibujo SVG de DGPad Pro
+                resulta entonces mucho más lento que el dibujo sobre
+                <em>canvas</em> de DGPad.
+            </p>
+
+            <h2>2026: DocGeo</h2>
+            <p>
+                El 13 de septiembre de 2026, el código de DGPad Pro, sin cambios
+                desde 2018, se retoma con el asistente Claude Code y se
+                reescribe en TypeScript. El SVG es ahora lo bastante rápido: los
+                navegadores han progresado, y la figura solo se vuelve a dibujar
+                una vez por imagen mostrada, sea cual sea el número de
+                movimientos del ratón.
+            </p>
+            <p>
+                La prioridad pasa a ser la lectura fiel de las figuras
+                existentes, primero de DGPad y luego de GeoGebra, antes que la
+                construcción.
+            </p>
+            <div class="table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Fecha</th>
+                            <th>Etapa</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>13 sept. 2026</td>
+                            <td>Se retoma DGPad Pro, paso a TypeScript</td>
+                        </tr>
+                        <tr>
+                            <td>15 sept.</td>
+                            <td>
+                                Apertura de las figuras de DGPad
+                                (<code>.dgp</code>)
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>24 sept.</td>
+                            <td>
+                                Importación de las figuras de GeoGebra
+                                (<code>.ggb</code>)
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>27 sept.</td>
+                            <td>
+                                Formato nativo <code>.dgo</code>; figura
+                                integrada en una página web
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>11 oct.</td>
+                            <td>Comienzo del editor de construcciones</td>
+                        </tr>
+                        <tr>
+                            <td>16 oct.</td>
+                            <td>Primer manual del editor</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <h2>Lo que procede de DGPad Pro</h2>
+            <ul>
+                <li>
+                    El 3D nativo y la rotación de la vista, con sus límites de
+                    ángulo.
+                </li>
+                <li>El dibujo de cada objeto en SVG.</li>
+                <li>
+                    El recálculo solo de los objetos que dependen del que se
+                    mueve.
+                </li>
+            </ul>
+        </main>
+    </body>
+</html>

@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <title>Magnets, pin and spring — DocGeo manual</title>
+        <link rel="icon" type="image/svg+xml" href="../../favicon.svg" />
+        <link rel="stylesheet" href="../manual.css" />
+        <script src="../icons.js" defer></script>
+        <script src="../manual.js" defer></script>
+    </head>
+    <body>
+        <main>
+            <h1>Magnets, pin and spring</h1>
+
+            <h2 id="aimants">Magnets</h2>
+            <p>
+                A magnetized free point sticks to the chosen objects when it is
+                dragged near them, without being bound to them.
+            </p>
+            <figure>
+                <img
+                    src="img/editeur-aimants.webp"
+                    alt="Magnets mode: a circle and point A attract P"
+                    width="880"
+                    height="720"
+                />
+            </figure>
+            <ol>
+                <li>
+                    Select the free point, then <i data-i="magnet"></i>
+                    <strong>Magnets</strong>. The rest of the figure goes under
+                    a veil.
+                </li>
+                <li>
+                    Touch each attracting object (point, line, circle, conic,
+                    curve, list): it turns red, with an initial attraction of 20
+                    px. The point and its dependents are excluded.
+                </li>
+                <li>
+                    Set the attraction of the chosen magnet with the slider of
+                    its card: <strong>None</strong> (removes the magnet), 1 to
+                    1,000 px, <strong>Everywhere</strong>. The attraction zone
+                    of each magnet is drawn in pale red.
+                </li>
+                <li>
+                    Finish with a touch on an empty spot,
+                    <strong>Done</strong> or <kbd>Esc</kbd>.
+                </li>
+            </ol>
+            <p>
+                The point can be dragged during the setting to try it out. Each
+                setting is an undo step.
+            </p>
+
+            <h2 id="punaise">Pin</h2>
+            <p>
+                <i data-i="pin"></i> <strong>Pin to the screen</strong> (free
+                point, plane figure): the point keeps its place in the window,
+                not its coordinates, when the view is zoomed or moved. It can
+                still be moved. Pressing again: removal.
+            </p>
+
+            <h2 id="ressort">Spring</h2>
+            <p>
+                <i data-i="spring"></i> <strong>Animate</strong> (point on a
+                line, segment, ray, circle, arc, polygon, conic or locus) brings
+                out under the point a spring ending in a ball.
+            </p>
+            <ul>
+                <li>
+                    Pulling the ball and releasing it launches the point; while
+                    pulling, a ghost of the point already shows the motion.
+                </li>
+                <li>
+                    <strong>Length</strong>: speed, in displayed notches (px/s
+                    on a line, a polygon or a conic; °/s on a circle; % on a
+                    locus).
+                </li>
+                <li>
+                    <strong>Side</strong>: direction; the point goes opposite to
+                    the pull.
+                </li>
+                <li>
+                    <strong>Across</strong> a line (more than 45°): back and
+                    forth. Otherwise, the point loops.
+                </li>
+                <li>Below the first notch: stop.</li>
+            </ul>
+            <p>
+                On a point already animated, the spring comes out stretched to
+                the current speed. Pressing <i data-i="spring"></i> again puts
+                the spring away. Exact speed, reverse direction, stop at the
+                end: <a href="proprietes.html#animation">Animation</a> section
+                of the properties, which also animates sliders.
+            </p>
+        </main>
+    </body>
+</html>

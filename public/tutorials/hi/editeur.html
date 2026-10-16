@@ -1,0 +1,200 @@
+<!doctype html>
+<html lang="hi">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <title>इंटरफ़ेस — DocGeo पुस्तिका</title>
+        <link rel="icon" type="image/svg+xml" href="../../favicon.svg" />
+        <link rel="stylesheet" href="../manual.css" />
+        <script src="../icons.js" defer></script>
+        <script src="../manual.js" defer></script>
+    </head>
+    <body>
+        <main>
+            <h1>इंटरफ़ेस</h1>
+
+            <figure>
+                <img
+                    src="img/editeur-interface.webp"
+                    alt="संपादक: क्रिया बार, रचना पैनल और आकृति"
+                    width="1200"
+                    height="720"
+                />
+            </figure>
+
+            <h2>क्रिया बार</h2>
+            <div class="table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th></th>
+                            <th>बटन</th>
+                            <th>भूमिका</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><i data-i="open"></i></td>
+                            <td>खोलें</td>
+                            <td>
+                                <code>.dgo</code>, <code>.dgp</code>,
+                                <code>.ggb</code>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><i data-i="save"></i></td>
+                            <td>सहेजें</td>
+                            <td><code>.dgo</code> में</td>
+                        </tr>
+                        <tr>
+                            <td><i data-i="eraser"></i></td>
+                            <td>रबड़</td>
+                            <td>
+                                ऑब्जेक्ट छिपाना या दिखाना (<a
+                                    href="objets.html#la-gomme"
+                                    >रबड़</a
+                                >)
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><i data-i="axes"></i></td>
+                            <td>अक्ष</td>
+                            <td>अक्ष और ग्रिड; 3D में त्रिफलकी और फ़र्श</td>
+                        </tr>
+                        <tr>
+                            <td><i data-i="space"></i></td>
+                            <td>3D दृश्य</td>
+                            <td>
+                                त्रिविम में जाना या समतल पर लौटना (<a
+                                    href="3d.html"
+                                    >3D</a
+                                >)
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><i data-i="properties"></i></td>
+                            <td>गुण</td>
+                            <td>
+                                दायाँ पैनल (<a href="proprietes.html">गुण</a>)
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><i data-i="history"></i></td>
+                            <td>रचना</td>
+                            <td>बायाँ पैनल</td>
+                        </tr>
+                        <tr>
+                            <td><i data-i="undo"></i> <i data-i="redo"></i></td>
+                            <td>पूर्ववत करें, फिर से करें</td>
+                            <td>
+                                <kbd>Ctrl</kbd> <kbd>Z</kbd>, <kbd>Ctrl</kbd>
+                                <kbd>Shift</kbd> <kbd>Z</kbd> या <kbd>Ctrl</kbd>
+                                <kbd>Y</kbd>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <p>
+                बीच में,
+                <a href="objets.html#la-zone-contextuelle">संदर्भ क्षेत्र</a>
+                चयनित ऑब्जेक्ट का नाम और उसकी क्रियाएँ दिखाता है।
+            </p>
+
+            <h2>«रचना» पैनल</h2>
+            <ul>
+                <li>
+                    हर ऑब्जेक्ट के लिए एक पंक्ति, रचना के क्रम में:
+                    <code>M = मध्यबिन्दु(A, B)</code>। हर पंक्ति बदली जा सकती है
+                    (<a href="saisie.html#modifier-une-ligne">पुनर्परिभाषा</a>)।
+                </li>
+                <li>
+                    पंक्ति की शुरुआत का रंगीन बिन्दु ऑब्जेक्ट को छिपाता या
+                    दिखाता है; पंक्ति के अंत में <i data-i="show_name"></i> उसका
+                    नाम दिखाता है।
+                </li>
+                <li>
+                    शीर्ष भाग: ऑब्जेक्टों की संख्या,
+                    <i data-i="show_values"></i>
+                    <a href="objets.html#les-valeurs">मान</a>,
+                    <i data-i="steps"></i>
+                    <a href="objets.html#la-construction-pas-a-pas"
+                        >चरण-दर-चरण</a
+                    >, <i data-i="new_program"></i>
+                    <a href="expressions.html#les-programmes">नया प्रोग्राम</a>।
+                </li>
+                <li>
+                    «इनपुट…» इनपुट पंक्ति और
+                    <a href="menu-outils.html">टूल मेनू</a> का
+                    <i data-i="tools"></i> बटन।
+                </li>
+                <li>
+                    किसी पंक्ति पर पॉइंटर ले जाने से ऑब्जेक्ट चमकता है, और इसका
+                    उल्टा भी।
+                </li>
+            </ul>
+
+            <h2>संकेत</h2>
+            <p>
+                आकृति के नीचे का बुलबुला बताता है कि क्या अपेक्षित है («एक बिंदु
+                चुनें»), टूल कौन-सी पंक्ति लिखेगा, और त्रुटियाँ लाल रंग में।
+                उसका <strong>✕</strong> चल रहे टूल को छोड़ देता है।
+            </p>
+
+            <h2>नेविगेशन</h2>
+            <div class="table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>क्रिया</th>
+                            <th>इशारा</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>दृश्य खिसकाना</td>
+                            <td>खाली जगह खींचें; कहीं भी दायाँ बटन</td>
+                        </tr>
+                        <tr>
+                            <td>ज़ूम करना</td>
+                            <td>व्हील या टचपैड, पॉइंटर के चारों ओर</td>
+                        </tr>
+                        <tr>
+                            <td>3D आकृति घुमाना</td>
+                            <td>दायाँ बटन, या खाली जगह पर एक उँगली</td>
+                        </tr>
+                        <tr>
+                            <td>परिप्रेक्ष्य, फ़र्श (3D)</td>
+                            <td><kbd>P</kbd>, <kbd>S</kbd></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <p>
+                नीचे बाईं ओर का गोल बटन, जो आकृति में एनीमेशन होने पर दिखता है,
+                उन्हें रोकता या फिर से चलाता है।
+            </p>
+
+            <h2>पूर्ववत करना</h2>
+            <p>
+                हर बदलाव एक ही स्टैक का एक चरण है: रचना, हटाना, खिसकाना, शैली,
+                निर्देशांक प्रणाली की सेटिंग, 3D में जाना। दृश्य का ज़ूम,
+                खिसकाना और घुमाना चरण नहीं हैं।
+            </p>
+
+            <h2>पैनल</h2>
+            <ul>
+                <li>
+                    आकार बदलने के लिए उनका भीतरी किनारा खींचें; डबल-क्लिक
+                    डिफ़ॉल्ट चौड़ाई लौटाता है।
+                </li>
+                <li>
+                    900 px से कम चौड़ाई पर एक समय में एक ही पैनल खुला रहता है;
+                    600 px या उससे कम पर «रचना» पैनल बंद अवस्था में शुरू होता
+                    है, गुण आकृति को ढक लेते हैं, और टूल चुनने पर पैनल बंद हो
+                    जाते हैं।
+                </li>
+            </ul>
+        </main>
+    </body>
+</html>

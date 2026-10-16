@@ -23,6 +23,7 @@ const ar: Texts = {
         save: "حفظ",
         undo: "تراجع",
         redo: "إعادة",
+        help: "دليل الاستخدام",
         delete: "حذف",
         eraser: "ممحاة",
         axes: "المحاور",

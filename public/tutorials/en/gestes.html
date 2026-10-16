@@ -1,0 +1,196 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <title>By gesture — DocGeo manual</title>
+        <link rel="icon" type="image/svg+xml" href="../../favicon.svg" />
+        <link rel="stylesheet" href="../manual.css" />
+        <script src="../icons.js" defer></script>
+        <script src="../manual.js" defer></script>
+    </head>
+    <body>
+        <main>
+            <h1>Building by gesture</h1>
+
+            <h2>Touching the figure</h2>
+            <div class="table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Spot touched</th>
+                            <th>Result</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>an empty spot</td>
+                            <td>
+                                free point (on the floor <em>z</em> = 0 in 3D)
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>near a crossing</td>
+                            <td>
+                                intersection of the two objects, which light up
+                                on hover (within 24 px)
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>an object</td>
+                            <td>selection and ring of its tools</td>
+                        </tr>
+                        <tr>
+                            <td>an empty spot, ring open</td>
+                            <td>the ring closes, no point is created</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <p>
+                A text, an expression or a slider is only selected: they have no
+                ring.
+            </p>
+
+            <h2>The tool ring</h2>
+            <figure>
+                <img
+                    src="img/editeur-anneau.webp"
+                    alt="Tool ring around point C, Segment tool hovered"
+                    width="880"
+                    height="720"
+                />
+                <figcaption>
+                    Ring of point C; the prompt shows the line of the hovered
+                    tool.
+                </figcaption>
+            </figure>
+            <p>
+                The ring only shows the tools that apply to the touched object.
+                Each tool always has the same place; a tool that does not apply
+                leaves its place empty. Families, clockwise from the top:
+            </p>
+            <div class="table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Family</th>
+                            <th>Tools</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><i data-t="Point"></i> Points</td>
+                            <td>
+                                point on object, intersection, midpoint or
+                                center
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><i data-t="Segment"></i> Lines</td>
+                            <td>segment, line, ray, vector</td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <i data-t="Perpendicular"></i> Constructions
+                            </td>
+                            <td>
+                                perpendicular, parallel, perpendicular bisector,
+                                angle bisector
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <i data-t="Circle (centre and point)"></i>
+                                Circles
+                            </td>
+                            <td>
+                                center and point, center and radius, three
+                                points, sphere (3D)
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <i data-t="Polygon"></i> Polygons, angles, loci
+                            </td>
+                            <td>polygon, angle, locus</td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <i data-t="Point reflection"></i>
+                                Transformations
+                            </td>
+                            <td>point and line reflections</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <p>
+                Hovering a tool shows in the prompt the line it will write and
+                the expected argument: <code>b = Segment(C, …)</code>,
+                “Designate a point”. The actions on the object itself (delete,
+                settings…) are in the
+                <a href="objets.html#la-zone-contextuelle">context area</a>
+                of the bar.
+            </p>
+
+            <h2>Designating the arguments</h2>
+            <p>
+                Once the tool is chosen, a preview of the object follows the
+                pointer and the accepted objects light up on hover. Where a
+                point is expected, designate an existing point, an object (a
+                point on object is created), a crossing (an intersection is
+                created) or an empty spot (a free point is created).
+            </p>
+            <ul>
+                <li>
+                    <i data-t="Polygon"></i> Polygon: the vertices, then the
+                    first one again.
+                </li>
+                <li>
+                    <i data-t="Circle (centre and radius)"></i> Circle (centre
+                    and radius): created with one click, radius about 150 px
+                    rounded to two digits; dragging the circle changes the
+                    radius.
+                </li>
+                <li>
+                    <i data-t="Locus"></i> Locus: offered on a point that
+                    depends on a point on object; created with one click.
+                </li>
+                <li>
+                    <i data-t="Angle"></i> Angle and
+                    <i data-t="AngleBisector"></i> angle bisector: a point of
+                    the first side, the vertex, a point of the second side.
+                </li>
+            </ul>
+
+            <h2>Special cases</h2>
+            <ul>
+                <li>
+                    <strong>Overlapping objects</strong>: a menu gives the line
+                    of each one; hovering it highlights the object. A point
+                    always wins, and a crossing directly gives the intersection.
+                </li>
+                <li>
+                    <strong>With a finger</strong>: during a tool, the pressed
+                    finger shows the preview without moving anything and
+                    designates on release. You can press the icon and slide to
+                    the target in a single gesture.
+                </li>
+                <li>
+                    <strong>Window edge</strong>: the ring shifts to fit
+                    entirely, linked to the object by a dotted line; it follows
+                    the object if the figure moves.
+                </li>
+                <li>
+                    <strong>Dropping a tool</strong>: <kbd>Esc</kbd> or the
+                    <strong>✕</strong> of the prompt.
+                </li>
+                <li>
+                    <strong>Moving</strong>: during a tool, dragging aims; the
+                    right button always moves objects and the view.
+                </li>
+            </ul>
+        </main>
+    </body>
+</html>

@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="zh-TW">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <title>匯入 DGPad 和 GeoGebra 圖形 — DocGeo 手冊</title>
+        <link rel="icon" type="image/svg+xml" href="../../favicon.svg" />
+        <link rel="stylesheet" href="../manual.css" />
+        <script src="../icons.js" defer></script>
+        <script src="../manual.js" defer></script>
+    </head>
+    <body>
+        <main>
+            <h1>匯入 DGPad 和 GeoGebra 圖形</h1>
+
+            <p class="lead">
+                <code>.dgo</code> 是 DocGeo 的格式；<code>.dgp</code>
+                和<code>.ggb</code>先被匯入，再儲存為
+                <code>.dgo</code>。不能匯出為 DGPad 或 GeoGebra 格式。
+            </p>
+
+            <h2>.dgo 格式</h2>
+            <p>
+                壓縮的
+                JSON：物件、樣式和檢視。它只以增補的方式演進：儲存的檔案在以後的版本中仍可讀取。
+            </p>
+
+            <h2 id="figures-dgpad">DGPad</h2>
+            <p>
+                平面和 3D
+                圖形、樣式、運算式、滑桿、動畫、軌跡、磁鐵、軌跡顯示和巨集都會被保留。
+            </p>
+            <div class="table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>DGPad 程式</th>
+                            <th>DocGeo</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>
+                                運算式指令碼、計算運算式的 Blockly、Blockly 海龜
+                            </td>
+                            <td>直譯執行</td>
+                        </tr>
+                        <tr>
+                            <td>Blockly 按鈕（設定樣式、修改數值）</td>
+                            <td>直譯執行</td>
+                        </tr>
+                        <tr>
+                            <td>事件 Blockly、JavaScript、主動式 HTML</td>
+                            <td>忽略並提示</td>
+                        </tr>
+                        <tr>
+                            <td>「restrictions」運算式（鎖定介面）</td>
+                            <td>忽略</td>
+                        </tr>
+                        <tr>
+                            <td>3D 旋轉限制</td>
+                            <td>套用</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <p>
+                瀏覽器不會執行圖形中的任何程式碼。刻意的差異：曲線在間斷點處不會用垂直線連接。
+            </p>
+
+            <h2>GeoGebra</h2>
+            <p>
+                每條指令都變成對應的 DocGeo
+                物件，參數相同；物件上的點和交點會放回 GeoGebra 儲存的位置。
+            </p>
+            <ul>
+                <li>
+                    保留：平面和 3D
+                    幾何、函數和曲線（數值導數和積分）、滑桿、核取方塊、輸入框、顯示條件、LaTeX
+                    文字、圖片、名稱的樣式和位置、座標軸和格線、動畫、軌跡顯示、巨集。
+                </li>
+                <li>
+                    不保留：指令碼（GGBScript、JavaScript）、符號運算、部分列表指令。
+                </li>
+            </ul>
+            <p>
+                在一個來自 geogebra.org 的 470
+                個圖形的語料中，一半以上可以無損開啟。不支援的元素會連同其依賴物件一起被忽略並提示。
+            </p>
+        </main>
+    </body>
+</html>

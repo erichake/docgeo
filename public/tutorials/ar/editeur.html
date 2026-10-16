@@ -1,0 +1,200 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <title>الواجهة — دليل DocGeo</title>
+        <link rel="icon" type="image/svg+xml" href="../../favicon.svg" />
+        <link rel="stylesheet" href="../manual.css" />
+        <script src="../icons.js" defer></script>
+        <script src="../manual.js" defer></script>
+    </head>
+    <body>
+        <main>
+            <h1>الواجهة</h1>
+
+            <figure>
+                <img
+                    src="img/editeur-interface.webp"
+                    alt="المحرر: شريط الإجراءات ولوحة الإنشاء والشكل"
+                    width="1200"
+                    height="720"
+                />
+            </figure>
+
+            <h2>شريط الإجراءات</h2>
+            <div class="table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th></th>
+                            <th>الزر</th>
+                            <th>الوظيفة</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><i data-i="open"></i></td>
+                            <td>فتح</td>
+                            <td>
+                                <code>.dgo</code>، <code>.dgp</code>،
+                                <code>.ggb</code>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><i data-i="save"></i></td>
+                            <td>حفظ</td>
+                            <td>بصيغة <code>.dgo</code></td>
+                        </tr>
+                        <tr>
+                            <td><i data-i="eraser"></i></td>
+                            <td>ممحاة</td>
+                            <td>
+                                إخفاء عناصر أو إظهارها (<a
+                                    href="objets.html#la-gomme"
+                                    >الممحاة</a
+                                >)
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><i data-i="axes"></i></td>
+                            <td>المحاور</td>
+                            <td>
+                                المحاور والشبكة؛ في الأبعاد الثلاثة، ثلاثي
+                                السطوح والأرضية
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><i data-i="space"></i></td>
+                            <td>عرض ثلاثي الأبعاد</td>
+                            <td>
+                                الانتقال إلى الفضاء أو العودة إلى المستوى (<a
+                                    href="3d.html"
+                                    >الأبعاد الثلاثة</a
+                                >)
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><i data-i="properties"></i></td>
+                            <td>الخصائص</td>
+                            <td>
+                                اللوحة الجانبية (<a href="proprietes.html"
+                                    >الخصائص</a
+                                >)
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><i data-i="history"></i></td>
+                            <td>الإنشاء</td>
+                            <td>لوحة الإنشاء</td>
+                        </tr>
+                        <tr>
+                            <td><i data-i="undo"></i> <i data-i="redo"></i></td>
+                            <td>تراجع، إعادة</td>
+                            <td>
+                                <kbd>Ctrl</kbd> <kbd>Z</kbd>، <kbd>Ctrl</kbd>
+                                <kbd>Shift</kbd> <kbd>Z</kbd> أو <kbd>Ctrl</kbd>
+                                <kbd>Y</kbd>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <p>
+                في الوسط، تعرض
+                <a href="objets.html#la-zone-contextuelle">منطقة السياق</a>
+                اسم العنصر المحدَّد وإجراءاته.
+            </p>
+
+            <h2>لوحة «الإنشاء»</h2>
+            <ul>
+                <li>
+                    سطر لكل عنصر، بترتيب الإنشاء:
+                    <code>M = منتصف(A, B)</code>. ويمكن تعديل كل سطر (<a
+                        href="saisie.html#modifier-une-ligne"
+                        >إعادة التعريف</a
+                    >).
+                </li>
+                <li>
+                    الدائرة الصغيرة في بداية السطر تخفي العنصر أو تظهره؛ و
+                    <i data-i="show_name"></i> في نهاية السطر يظهر اسمه.
+                </li>
+                <li>
+                    الترويسة: عدد العناصر، <i data-i="show_values"></i>
+                    <a href="objets.html#les-valeurs">القيم</a>،
+                    <i data-i="steps"></i>
+                    <a href="objets.html#la-construction-pas-a-pas"
+                        >خطوة بخطوة</a
+                    >، <i data-i="new_program"></i>
+                    <a href="expressions.html#les-programmes">برنامج جديد</a>.
+                </li>
+                <li>
+                    سطر الإدخال «إدخال…» وزر <i data-i="tools"></i>
+                    <a href="menu-outils.html">قائمة الأدوات</a>.
+                </li>
+                <li>مرور المؤشر على سطر يُبرز العنصر، والعكس بالعكس.</li>
+            </ul>
+
+            <h2>الإرشاد</h2>
+            <p>
+                تبيّن الفقاعة أسفل الشكل ما هو منتظر («حدّد نقطة»)، والسطر الذي
+                ستكتبه الأداة، والأخطاء باللون الأحمر. وعلامتها
+                <strong>✕</strong> تترك الأداة الحالية.
+            </p>
+
+            <h2>التنقل</h2>
+            <div class="table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>الإجراء</th>
+                            <th>الإيماءة</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>تحريك العرض</td>
+                            <td>سحب مكان فارغ؛ الزر الأيمن في أي مكان</td>
+                        </tr>
+                        <tr>
+                            <td>التكبير والتصغير</td>
+                            <td>عجلة الفأرة أو لوحة اللمس، حول المؤشر</td>
+                        </tr>
+                        <tr>
+                            <td>تدوير شكل ثلاثي الأبعاد</td>
+                            <td>الزر الأيمن، أو إصبع واحد في مكان فارغ</td>
+                        </tr>
+                        <tr>
+                            <td>المنظور، الأرضية (الأبعاد الثلاثة)</td>
+                            <td><kbd>P</kbd>، <kbd>S</kbd></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <p>
+                الزر الدائري في الزاوية السفلية، الظاهر عندما يحوي الشكل
+                تحريكات، يوقفها مؤقتًا أو يعيد تشغيلها.
+            </p>
+
+            <h2>التراجع</h2>
+            <p>
+                كل تعديل خطوة في مكدس واحد: الإنشاء، الحذف، التحريك، النمط، ضبط
+                المَعلم، الانتقال إلى الأبعاد الثلاثة. أما تكبير العرض وتحريكه
+                وتدويره فليست خطوات.
+            </p>
+
+            <h2>اللوحات</h2>
+            <ul>
+                <li>
+                    تُسحب حافتها الداخلية لتغيير حجمها؛ والنقر المزدوج يعيد
+                    العرض الافتراضي.
+                </li>
+                <li>
+                    تحت 900 px من العرض، تُفتح لوحة واحدة فقط في كل مرة؛ وعند
+                    600 px أو أقل، تبدأ لوحة «الإنشاء» مغلقة، وتغطي الخصائص
+                    الشكل، ويغلق اختيار أداة اللوحات.
+                </li>
+            </ul>
+        </main>
+    </body>
+</html>

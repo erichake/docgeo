@@ -1,0 +1,195 @@
+<!doctype html>
+<html lang="es">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <title>3D — Manual de DocGeo</title>
+        <link rel="icon" type="image/svg+xml" href="../../favicon.svg" />
+        <link rel="stylesheet" href="../manual.css" />
+        <script src="../icons.js" defer></script>
+        <script src="../manual.js" defer></script>
+    </head>
+    <body>
+        <main>
+            <h1>El 3D</h1>
+
+            <figure>
+                <img
+                    src="img/editeur-3d.webp"
+                    alt="Pirámide cortada por el plano z = 1,5"
+                    width="1200"
+                    height="720"
+                />
+            </figure>
+
+            <h2>Pasar a 3D</h2>
+            <ul>
+                <li>
+                    Una figura nueva es plana. <i data-i="space"></i>
+                    <strong>Vista 3D</strong> inclina la cámara: el plano de la
+                    figura se convierte en el suelo <em>z</em> = 0 y el sistema
+                    de coordenadas en un triedro. Una segunda pulsación vuelve
+                    al plano, con el sistema de coordenadas anterior.
+                </li>
+                <li>
+                    La vuelta al plano se rechaza mientras un objeto salga del
+                    plano <em>z</em> = 0; la indicación lo nombra. A la inversa,
+                    una figura plana rechaza cualquier objeto del espacio (<code
+                        >A = (1, 2, 3)</code
+                    >, esfera…).
+                </li>
+                <li>Cada cambio es un paso de deshacer.</li>
+                <li>
+                    Las figuras 3D de DGPad, con los puntos libres en el plano
+                    de la pantalla, no tienen este botón.
+                </li>
+            </ul>
+
+            <h2>Vista</h2>
+            <ul>
+                <li>
+                    Girar: botón derecho, o un dedo en un lugar vacío. Mover:
+                    botón izquierdo en un lugar vacío. Zoom: rueda.
+                </li>
+                <li>
+                    <kbd>P</kbd>: perspectiva o proyección paralela;
+                    <kbd>S</kbd>: suelo. Los mismos ajustes en la
+                    <a href="proprietes.html#l-onglet-figure-en-3d"
+                        >pestaña Figura</a
+                    >.
+                </li>
+                <li>
+                    Las partes ocultas (aristas, circunferencias, rectas bajo el
+                    suelo o detrás de una cara) aparecen discontinuas.
+                </li>
+            </ul>
+
+            <h2>Construir</h2>
+            <ul>
+                <li>
+                    Un clic en un lugar vacío crea un punto sobre el suelo; con
+                    el teclado, <code>S = (0, 0, 4)</code>.
+                </li>
+                <li>
+                    El menú gana las familias <strong>Planos</strong> y
+                    <strong>Sólidos</strong> y dos circunferencias; el anillo de
+                    un punto propone la esfera.
+                </li>
+                <li>
+                    Toda herramienta que espera un plano acepta el
+                    <strong>suelo</strong>: se crea un plano <code>z = 0</code>
+                    oculto, que luego se reutiliza.
+                </li>
+                <li>
+                    Las fórmulas leen las tres coordenadas:
+                    <code>d(A, B)</code> es la distancia en el espacio.
+                </li>
+            </ul>
+            <div class="table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Objeto</th>
+                            <th>Comando</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Plano</td>
+                            <td>
+                                <code>Plano(A, B, C)</code>,
+                                <code>Plano(A, d)</code>,
+                                <code>PlanoParalelo(A, p)</code>,
+                                <code>PlanoOrtogonal(A, d)</code>,
+                                <code>p = x + y + z = 3</code>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Perpendicular a un plano</td>
+                            <td><code>Perpendicular(A, p)</code></td>
+                        </tr>
+                        <tr>
+                            <td>Esfera</td>
+                            <td>
+                                <code>Esfera(O, A)</code>,
+                                <code>Esfera(O, r)</code>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Circunferencias</td>
+                            <td>
+                                <code>Circunferencia(d, P)</code> de eje d;
+                                <code>Circunferencia(O, r, d)</code> ortogonal a
+                                la recta d o paralela al plano d
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Sólidos</td>
+                            <td>
+                                <code>Cilindro(A, B, r)</code>,
+                                <code>Cono(A, B, r)</code>,
+                                <code>Cubo(A, B, C)</code>,
+                                <code>Prisma(p, P)</code>,
+                                <code>Pirámide(p, S)</code>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Sección</td>
+                            <td>
+                                <code>Sección(s, p)</code>: circunferencia,
+                                cónica o polígono
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Desarrollo</td>
+                            <td>
+                                <code>Desarrollo(c, f)</code>, f de 0 (plegado)
+                                a 1 (plano)
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Intersecciones</td>
+                            <td>
+                                <code>Intersección(d, p)</code> punto,
+                                <code>Intersección(p, q)</code> recta,
+                                <code>Intersección(s, t)</code> circunferencia
+                                de dos esferas
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Vértices</td>
+                            <td><code>Vértice(c, k)</code>, k a partir de 1</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <h2>Sólidos</h2>
+            <ul>
+                <li>
+                    Un sólido es un único objeto: dibuja caras y aristas
+                    (discontinuas por detrás) y oculta lo que hay detrás de él.
+                    Se selecciona dentro de su contorno.
+                </li>
+                <li>
+                    <strong>Cubo en dos clics</strong>: dos puntos de un mismo
+                    plano o polígono dan <code>Cubo(A, B, p, ±1)</code>, del
+                    lado que mira a la cámara; dos puntos de la misma altura dan
+                    <code>Cubo(A, B, 1)</code>, por encima (−1: por debajo). Si
+                    no, la herramienta espera un tercer punto. El cubo queda
+                    indefinido si [AB] deja de ser paralelo al plano.
+                </li>
+                <li>
+                    La herramienta <strong>Sección</strong> toma el sólido y el
+                    plano en cualquier orden.
+                </li>
+                <li>
+                    Un deslizador como segundo argumento de
+                    <code>Desarrollo</code> anima el despliegue:
+                    <code>f = Deslizador(0, 1, 0)</code>,
+                    <code>n = Desarrollo(c, f)</code>.
+                </li>
+            </ul>
+        </main>
+    </body>
+</html>

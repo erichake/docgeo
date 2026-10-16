@@ -1,0 +1,139 @@
+<!doctype html>
+<html lang="zh-TW">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <title>運算式與滑桿 — DocGeo 手冊</title>
+        <link rel="icon" type="image/svg+xml" href="../../favicon.svg" />
+        <link rel="stylesheet" href="../manual.css" />
+        <script src="../icons.js" defer></script>
+        <script src="../manual.js" defer></script>
+    </head>
+    <body>
+        <main>
+            <h1>運算式與滑桿</h1>
+
+            <h2>運算式</h2>
+            <p>
+                凡是既不是點也不是指令的列，都會建立一個運算式，顯示在左上角，保留兩位小數。其類型由文字決定：
+            </p>
+            <div class="table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>列</th>
+                            <th>類型</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>
+                                <code>a = 3</code>、<code
+                                    >list = [1, 2, 3]</code
+                                >
+                            </td>
+                            <td>常數</td>
+                        </tr>
+                        <tr>
+                            <td><code>t = "你好"</code></td>
+                            <td>文字</td>
+                        </tr>
+                        <tr>
+                            <td><code>f = 0.5x^2 - 4</code></td>
+                            <td>
+                                x（y、z、t）的函數；<code>f(2)</code> 呼叫它
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><code>E = d(A, B)</code></td>
+                            <td>測量值，圖形移動時重新計算</td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <code
+                                    >u = "AB = " + round(d(A, B)*100)/100</code
+                                >
+                            </td>
+                            <td>計算出的文字</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <p>
+                在公式中，點代表其座標，線段代表其長度，圓代表其半徑，多邊形代表其面積，角代表其度數。完整語法：<a
+                    href="formules.html"
+                    >公式與程式</a
+                >。
+            </p>
+            <p>
+                拖曳運算式的文字可以移動它；附著在點上的運算式會跟隨該點。點按運算式會選取它，在輸入時則寫入其名稱。
+            </p>
+
+            <h2>滑桿</h2>
+            <p>
+                <code>r = 滑桿(0, 5, 2)</code>：從 0 到 5，值為
+                2。界限可以是運算式或公式（<code>滑桿(0, d(A, B), 1)</code
+                >）。增量、長度、方向、滑鈕和動畫在<a
+                    href="proprietes.html#curseurs"
+                    >屬性</a
+                >中設定。<code>r = 5</code> 會把它重新變為常數。
+            </p>
+
+            <h2>計算點</h2>
+            <ul>
+                <li><code>M = (x(B) + 1, y(A))</code>：座標由公式給出。</li>
+                <li><code>N = 點(2*B - A)</code>：值為點的公式。</li>
+            </ul>
+            <p>
+                當<code>name = formula</code
+                >這一列的值是一個點或點列表時，列尾的按鈕會提供<i
+                    data-i="formula_point"
+                ></i
+                >點、<i data-i="points_list"></i>點列表、<i
+                    data-i="segments_list"
+                ></i
+                >線段列表或<i data-i="as_expression"></i
+                >運算式。<kbd>Enter</kbd>選擇醒目顯示的按鈕：名稱為大寫時為點或列表，否則為運算式。因此要寫<code
+                    >list = [1, 2, 3]</code
+                >而不是<code>L = [1, 2, 3]</code>，後者會被當作空間中的點。
+            </p>
+
+            <h2>點列表</h2>
+            <p>
+                <code>q = 列表(pts)</code>
+                畫出運算式<code>pts</code>中的點；未定義的點會使連線斷開。選取一個值為點列表的運算式時，情境區也會提供<i
+                    data-i="points_list"
+                ></i
+                >和<i data-i="segments_list"></i>（值為點時提供<i
+                    data-i="formula_point"
+                ></i
+                >）：寫出相應的列並隱藏該運算式。
+            </p>
+
+            <h2 id="les-programmes">程式</h2>
+            <p>
+                運算式可以是一個程式：敘述之間用<code>;</code>分隔，最後一條給出值；程式可以設定其他物件的樣式（<code>S1.setHidden(1)</code>）。語言：<a
+                    href="formules.html#programmes"
+                    >公式與程式</a
+                >。
+            </p>
+            <ul>
+                <li>
+                    <i data-i="new_program"></i
+                    >（「作圖」面板標題列）開啟一個空白的編輯器；<strong>建立</strong>或<kbd
+                        >Ctrl</kbd
+                    >
+                    <kbd>Enter</kbd> 建立該運算式。
+                </li>
+                <li>
+                    對於已有的運算式，屬性中的<strong>定義</strong>部分可多列編輯其文字：<kbd>Enter</kbd>保持縮排，<kbd>Tab</kbd>增加縮排，<kbd>}</kbd>減少縮排，<kbd
+                        >Ctrl</kbd
+                    >
+                    <kbd>Enter</kbd
+                    >套用，<kbd>Esc</kbd>還原，<strong>格式化</strong>依大括號縮排。
+                </li>
+                <li>出錯時會選取出錯的列或未配對的分隔符號。</li>
+            </ul>
+        </main>
+    </body>
+</html>

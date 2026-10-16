@@ -1,0 +1,159 @@
+<!doctype html>
+<html lang="zh">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <title>用手势作图 — DocGeo 手册</title>
+        <link rel="icon" type="image/svg+xml" href="../../favicon.svg" />
+        <link rel="stylesheet" href="../manual.css" />
+        <script src="../icons.js" defer></script>
+        <script src="../manual.js" defer></script>
+    </head>
+    <body>
+        <main>
+            <h1>用手势作图</h1>
+
+            <h2>点按图形</h2>
+            <div class="table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>点按位置</th>
+                            <th>结果</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>空白处</td>
+                            <td>自由点（3D 中位于地面 <em>z</em> = 0 上）</td>
+                        </tr>
+                        <tr>
+                            <td>交叉处附近</td>
+                            <td>
+                                两个对象的交点，悬停时两者会高亮（距离小于 24
+                                px）
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>一个对象</td>
+                            <td>选中该对象并打开其工具环</td>
+                        </tr>
+                        <tr>
+                            <td>空白处（工具环已打开）</td>
+                            <td>关闭工具环，不创建点</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <p>文本、表达式或滑动条只会被选中：它们没有工具环。</p>
+
+            <h2>工具环</h2>
+            <figure>
+                <img
+                    src="img/editeur-anneau.webp"
+                    alt="点 C 周围的工具环，指针悬停在线段工具上"
+                    width="880"
+                    height="720"
+                />
+                <figcaption>点 C 的工具环；提示显示所悬停工具的行。</figcaption>
+            </figure>
+            <p>
+                工具环只显示适用于所点按对象的工具。每个工具的位置始终不变；不适用的工具会留下空位。工具族从上方开始按顺时针排列：
+            </p>
+            <div class="table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>工具族</th>
+                            <th>工具</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><i data-t="Point"></i> 点</td>
+                            <td>对象上的点、交点、中点或圆心</td>
+                        </tr>
+                        <tr>
+                            <td><i data-t="Segment"></i> 直线</td>
+                            <td>线段、直线、射线、向量</td>
+                        </tr>
+                        <tr>
+                            <td><i data-t="Perpendicular"></i> 作图</td>
+                            <td>垂线、平行线、中垂线、角平分线</td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <i data-t="Circle (centre and point)"></i> 圆
+                            </td>
+                            <td>圆心和点、圆心和半径、三点、球（3D）</td>
+                        </tr>
+                        <tr>
+                            <td><i data-t="Polygon"></i> 多边形、角、轨迹</td>
+                            <td>多边形、角、轨迹</td>
+                        </tr>
+                        <tr>
+                            <td><i data-t="Point reflection"></i> 变换</td>
+                            <td>中心对称和轴对称</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <p>
+                悬停在工具上时，提示会显示它将写出的行和所需的参数：<code
+                    >b = 线段(C, …)</code
+                >，“选择一个点”。对对象本身的操作（删除、设置…）在操作栏的<a
+                    href="objets.html#la-zone-contextuelle"
+                    >上下文区</a
+                >中。
+            </p>
+
+            <h2>选择参数</h2>
+            <p>
+                选定工具后，对象的预览会跟随指针，可接受的对象在悬停时高亮。在需要点的位置，可以任选一个已有的点、一个对象（创建对象上的点）、一个交叉处（创建交点）或空白处（创建自由点）。
+            </p>
+            <ul>
+                <li>
+                    <i data-t="Polygon"></i
+                    >多边形：依次选顶点，最后再选第一个顶点。
+                </li>
+                <li>
+                    <i data-t="Circle (centre and radius)"></i
+                    >圆（圆心和半径）：单击即可创建，半径约 150
+                    px，取两位有效数字；拖动圆可改变半径。
+                </li>
+                <li>
+                    <i data-t="Locus"></i
+                    >轨迹：在依赖于对象上的点的点上提供；单击即可创建。
+                </li>
+                <li>
+                    <i data-t="Angle"></i> 角和<i data-t="AngleBisector"></i
+                    >角平分线：第一条边上的一点、顶点、第二条边上的一点。
+                </li>
+            </ul>
+
+            <h2>特殊情况</h2>
+            <ul>
+                <li>
+                    <strong>重叠的对象</strong
+                    >：会出现一个菜单，列出每个对象的行；悬停时对应对象高亮。点总是优先，交叉处直接给出交点。
+                </li>
+                <li>
+                    <strong>用手指</strong
+                    >：使用工具时，按住的手指只显示预览而不移动任何东西，抬起时才选中。可以按住图标，一次滑动到目标。
+                </li>
+                <li>
+                    <strong>窗口边缘</strong
+                    >：工具环会移位以完整显示，并用虚线与对象相连；图形移动时它会跟随对象。
+                </li>
+                <li>
+                    <strong>放弃</strong
+                    >：<kbd>Esc</kbd>或提示中的<strong>✕</strong>。
+                </li>
+                <li>
+                    <strong>移动</strong
+                    >：使用工具时，拖动用于瞄准；右键总是移动对象和视图。
+                </li>
+            </ul>
+        </main>
+    </body>
+</html>

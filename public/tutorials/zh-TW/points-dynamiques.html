@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="zh-TW">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <title>磁鐵、圖釘和彈簧 — DocGeo 手冊</title>
+        <link rel="icon" type="image/svg+xml" href="../../favicon.svg" />
+        <link rel="stylesheet" href="../manual.css" />
+        <script src="../icons.js" defer></script>
+        <script src="../manual.js" defer></script>
+    </head>
+    <body>
+        <main>
+            <h1>磁鐵、圖釘和彈簧</h1>
+
+            <h2 id="aimants">磁鐵</h2>
+            <p>
+                帶磁性的自由點被拖曳到所選物件附近時會吸附在上面，但並不與它們綁定。
+            </p>
+            <figure>
+                <img
+                    src="img/editeur-aimants.webp"
+                    alt="磁鐵模式：一個圓和點 A 吸引點 P"
+                    width="880"
+                    height="720"
+                />
+            </figure>
+            <ol>
+                <li>
+                    選取自由點，然後點 <i data-i="magnet"></i>
+                    <strong>磁鐵</strong>。圖形的其餘部分被蒙上一層遮罩。
+                </li>
+                <li>
+                    點按每個發揮吸引作用的物件（點、直線、圓、圓錐曲線、曲線、列表）：它變為紅色，初始吸引範圍為
+                    20 px。該點本身及其依賴物件不能選取。
+                </li>
+                <li>
+                    用所選磁鐵卡片上的滑桿調整吸引範圍：<strong>無</strong>（移除該磁鐵）、1
+                    到 1000
+                    px、<strong>任意位置</strong>。每個磁鐵的吸引區域以淺紅色顯示。
+                </li>
+                <li>
+                    點按空白處、<strong>完成</strong>或 <kbd>Esc</kbd> 結束。
+                </li>
+            </ol>
+            <p>調整時可以拖曳該點進行試驗。每次調整都是一個復原步驟。</p>
+
+            <h2 id="punaise">圖釘</h2>
+            <p>
+                <i data-i="pin"></i>
+                <strong>固定在螢幕上</strong
+                >（自由點，平面圖形）：縮放或平移檢視時，該點保持在視窗中的位置，而不是保持其座標。它仍可移動。再按一次：取消固定。
+            </p>
+
+            <h2 id="ressort">彈簧</h2>
+            <p>
+                <i data-i="spring"></i>
+                <strong>動畫</strong
+                >（直線、線段、射線、圓、圓弧、多邊形、圓錐曲線或軌跡上的點）會在點下方伸出一根末端帶球的彈簧。
+            </p>
+            <ul>
+                <li>
+                    拉動小球再放開即可讓點移動；拉動時，點的虛影已顯示移動情形。
+                </li>
+                <li>
+                    <strong>長度</strong
+                    >：速度，按顯示的檔位（直線、多邊形或圓錐曲線上為
+                    px/s；圓上為 °/s；軌跡上為 %）。
+                </li>
+                <li><strong>方向</strong>：點朝拉動的反方向移動。</li>
+                <li>
+                    相對於直線<strong>橫向</strong>拉（超過
+                    45°）：來回移動。否則點循環移動。
+                </li>
+                <li>低於第一檔：停止。</li>
+            </ul>
+            <p>
+                對已在移動的點，彈簧伸出時已按目前速度拉緊。再按一次<i
+                    data-i="spring"
+                ></i
+                >：收起彈簧。精確速度、反向、到達端點時停止：見屬性中的<a
+                    href="proprietes.html#animation"
+                    >動畫</a
+                >部分，它也可以讓滑桿移動。
+            </p>
+        </main>
+    </body>
+</html>

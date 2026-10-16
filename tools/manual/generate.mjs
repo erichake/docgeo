@@ -5,11 +5,14 @@
 //   npm run manual -- shots     the screenshots of shots.mjs
 //   npm run manual -- check     what the pages name that the editor lacks, and
 //                               the reverse
+//   npm run manual -- shots de  the same, for the languages named only
+//
+// The pages name the tools' icons by their English labels.
 //
 // DocGeo is served by Vite and driven by Playwright, the modules of the
 // editor being read in the page itself.
 
-import { readFileSync, readdirSync, writeFileSync } from "node:fs";
+import { readFileSync, readdirSync, statSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { chromium } from "playwright";
@@ -17,13 +20,19 @@ import { format } from "prettier";
 import { createServer } from "vite";
 import { SHOTS } from "./shots.mjs";
 
-const LANG = "fr";
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "../..");
-const MANUAL = join(ROOT, "public/tutorials", LANG);
+const MANUAL = join(ROOT, "public/tutorials");
 const VIEWPORT = { width: 1200, height: 720 };
 const QUALITY = 0.8;
 
-const tasks = process.argv.slice(2);
+const LANGS = readdirSync(MANUAL).filter((name) =>
+    statSync(join(MANUAL, name)).isDirectory(),
+);
+const args = process.argv.slice(2);
+const tasks = args.filter((arg) => !LANGS.includes(arg));
+const langs = args.some((arg) => LANGS.includes(arg))
+    ? LANGS.filter((lang) => args.includes(lang))
+    : LANGS;
 const wanted = (task) => !tasks.length || tasks.includes(task);
 
 const server = await createServer({
@@ -37,16 +46,39 @@ const browser = await chromium.launch();
 let failed = false;
 
 try {
-    const editor = await open("editor.html");
+    const data = await editorData("en");
+    if (wanted("icons")) await writeIcons(data);
+    for (const lang of langs) {
+        if (wanted("shots"))
+            for (const shot of SHOTS) await capture(shot, lang);
+        if (wanted("check"))
+            check(lang, data, (await editorData(lang)).commands);
+    }
+} finally {
+    await browser.close();
+    await server.close();
+}
+process.exitCode = failed ? 1 : 0;
+
+async function open(path, lang) {
+    const page = await browser.newPage({ viewport: VIEWPORT });
+    const separator = path.includes("?") ? "&" : "?";
+    await page.goto(`${base}${path}${separator}lang=${lang}`);
+    await page.waitForLoadState("networkidle");
+    await page.waitForTimeout(800);
+    return page;
+}
+
+// The editor's icons and tools, and its commands in a language.
+async function editorData(lang) {
+    const editor = await open("editor.html", lang);
     const data = await editor.evaluate(async () => {
         const tools = await import("/src/editor/tools.ts");
-        const { message } = await import("/src/editor/messages.ts");
         const catalog = await import("/src/editor/catalog.ts");
         const { ACTION_ICONS } = await import("/src/editor/icons.ts");
         return {
             actions: ACTION_ICONS,
             families: tools.TOOL_FAMILIES.map((family) => ({
-                name: message(family.name),
                 hue: family.hue,
                 tone: family.tone,
                 items: family.items.map((item) => ({
@@ -58,23 +90,7 @@ try {
         };
     });
     await editor.close();
-
-    if (wanted("icons")) await writeIcons(data);
-    if (wanted("shots")) for (const shot of SHOTS) await capture(shot);
-    if (wanted("check")) check(data);
-} finally {
-    await browser.close();
-    await server.close();
-}
-process.exitCode = failed ? 1 : 0;
-
-async function open(path) {
-    const page = await browser.newPage({ viewport: VIEWPORT });
-    const separator = path.includes("?") ? "&" : "?";
-    await page.goto(`${base}${path}${separator}lang=${LANG}`);
-    await page.waitForLoadState("networkidle");
-    await page.waitForTimeout(800);
-    return page;
+    return data;
 }
 
 async function writeIcons({ actions, families }) {
@@ -156,17 +172,17 @@ function helpers(page) {
     return { page, point, on, t, command, button, type };
 }
 
-async function capture({ file, page: path, clip, run }) {
-    const page = await open(path);
+async function capture({ file, page: path, clip, run }, lang) {
+    const page = await open(path, lang);
     try {
         await run?.(helpers(page));
         await page.waitForTimeout(500);
         const png = await page.screenshot({ clip });
-        writeFileSync(join(MANUAL, "img", file), await webp(png));
-        console.log("img/" + file);
+        writeFileSync(join(MANUAL, lang, "img", file), await webp(png));
+        console.log(`${lang}/img/${file}`);
     } catch (error) {
         failed = true;
-        console.error(`img/${file}: ${error.message}`);
+        console.error(`${lang}/img/${file}: ${error.message}`);
     } finally {
         await page.close();
     }
@@ -193,15 +209,23 @@ async function webp(png) {
 }
 
 // The manual's icons, tools and commands against the editor's.
-function check({ actions, families, commands }) {
-    const pages = readdirSync(MANUAL).filter((file) => file.endsWith(".html"));
+function check(lang, { actions, families }, commands) {
+    const dir = join(MANUAL, lang);
+    const pages = readdirSync(dir).filter((file) => file.endsWith(".html"));
     const html = Object.fromEntries(
-        pages.map((file) => [file, readFileSync(join(MANUAL, file), "utf8")]),
+        pages.map((file) => [
+            `${lang}/${file}`,
+            readFileSync(join(dir, file), "utf8"),
+        ]),
     );
     const labels = new Set(
         families.flatMap(({ items }) => items.map(({ label }) => label)),
     );
     const problems = [];
+    for (const other of LANGS)
+        for (const file of readdirSync(join(MANUAL, other)))
+            if (file.endsWith(".html") && !pages.includes(file))
+                problems.push(`${lang}/${file}: missing, ${other} has it`);
     for (const [file, text] of Object.entries(html)) {
         for (const [, name] of text.matchAll(/data-i="([^"]*)"/g))
             if (!(name in actions))
@@ -215,22 +239,22 @@ function check({ actions, families, commands }) {
     }
     for (const { file } of SHOTS)
         if (!Object.values(html).some((text) => text.includes(`img/${file}`)))
-            problems.push(`shots.mjs: img/${file} is used by no page`);
+            problems.push(`shots.mjs: ${lang}/img/${file} is used by no page`);
     for (const label of labels)
-        if (!html["menu-outils.html"].includes(`data-t="${label}"`))
-            problems.push(`menu-outils.html: tool "${label}" not described`);
+        if (!html[`${lang}/menu-outils.html`].includes(`data-t="${label}"`))
+            problems.push(`${lang}/menu-outils.html: tool "${label}" missing`);
     const escape = (text) => text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
     for (const name of commands)
         if (
             !new RegExp(`<strong>\\s*${escape(name)}\\s*</strong\\s*>`).test(
-                html["commandes.html"],
+                html[`${lang}/commandes.html`],
             )
         )
-            problems.push(`commandes.html: command "${name}" not described`);
+            problems.push(`${lang}/commandes.html: command "${name}" missing`);
     if (problems.length) failed = true;
     console.log(
         problems.length
             ? problems.join("\n")
-            : "check: the manual names every tool and command of the editor",
+            : `check ${lang}: the manual names every tool and command`,
     );
 }

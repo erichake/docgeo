@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="it">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <title>Calamite, puntina e molla — Manuale di DocGeo</title>
+        <link rel="icon" type="image/svg+xml" href="../../favicon.svg" />
+        <link rel="stylesheet" href="../manual.css" />
+        <script src="../icons.js" defer></script>
+        <script src="../manual.js" defer></script>
+    </head>
+    <body>
+        <main>
+            <h1>Calamite, puntina e molla</h1>
+
+            <h2 id="aimants">Calamite</h2>
+            <p>
+                Un punto libero calamitato si attacca agli oggetti scelti quando
+                lo si trascina vicino a essi, senza esservi legato.
+            </p>
+            <figure>
+                <img
+                    src="img/editeur-aimants.webp"
+                    alt="Modalità Calamite: una circonferenza e il punto A attraggono P"
+                    width="880"
+                    height="720"
+                />
+            </figure>
+            <ol>
+                <li>
+                    Selezionare il punto libero, poi <i data-i="magnet"></i>
+                    <strong>Calamite</strong>. Il resto della figura passa sotto
+                    un velo.
+                </li>
+                <li>
+                    Toccare ogni oggetto che attrae (punto, retta,
+                    circonferenza, conica, curva, lista): diventa rosso, con
+                    un’attrazione iniziale di 20 px. Il punto e i suoi
+                    dipendenti sono esclusi.
+                </li>
+                <li>
+                    Regolare l’attrazione della calamita scelta con lo slider
+                    della sua scheda: <strong>Nessuna</strong> (toglie la
+                    calamita), da 1 a 1000 px, <strong>Ovunque</strong>. La zona
+                    di attrazione di ogni calamita è disegnata in rosso chiaro.
+                </li>
+                <li>
+                    Terminare con un tocco in uno spazio vuoto,
+                    <strong>Fatto</strong> o <kbd>Esc</kbd>.
+                </li>
+            </ol>
+            <p>
+                Il punto si può trascinare durante la regolazione per provare.
+                Ogni regolazione è un passo di annullamento.
+            </p>
+
+            <h2 id="punaise">Puntina</h2>
+            <p>
+                <i data-i="pin"></i> <strong>Fissa sullo schermo</strong>
+                (punto libero, figura piana): il punto mantiene il suo posto
+                nella finestra, e non le sue coordinate, quando si zooma o si
+                sposta la vista. Resta spostabile. Seconda pressione: rimozione.
+            </p>
+
+            <h2 id="ressort">Molla</h2>
+            <p>
+                <i data-i="spring"></i> <strong>Anima</strong> (punto su retta,
+                segmento, semiretta, circonferenza, arco, poligono, conica o
+                luogo) fa uscire sotto il punto una molla che termina con una
+                pallina.
+            </p>
+            <ul>
+                <li>
+                    Tirare la pallina e lasciarla lancia il punto; durante la
+                    trazione, un fantasma del punto mostra già il movimento.
+                </li>
+                <li>
+                    <strong>Lunghezza</strong>: velocità, a scatti mostrati
+                    (px/s su una retta, un poligono o una conica; °/s su una
+                    circonferenza; % su un luogo).
+                </li>
+                <li>
+                    <strong>Lato</strong>: verso; il punto parte in direzione
+                    opposta alla trazione.
+                </li>
+                <li>
+                    <strong>Di traverso</strong> rispetto a una retta (più di
+                    45°): avanti e indietro. Altrimenti, il punto gira in tondo.
+                </li>
+                <li>Sotto il primo scatto: arresto.</li>
+            </ul>
+            <p>
+                Su un punto già animato, la molla esce tesa alla velocità
+                attuale. Seconda pressione su <i data-i="spring"></i>: la molla
+                viene riposta. Velocità esatta, verso inverso, arresto
+                all’estremità: sezione
+                <a href="proprietes.html#animation">Animazione</a> delle
+                proprietà, che anima anche gli slider.
+            </p>
+        </main>
+    </body>
+</html>

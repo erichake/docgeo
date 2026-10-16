@@ -1,0 +1,701 @@
+<!doctype html>
+<html lang="hi">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <title>टूल मेनू — DocGeo पुस्तिका</title>
+        <link rel="icon" type="image/svg+xml" href="../../favicon.svg" />
+        <link rel="stylesheet" href="../manual.css" />
+        <script src="../icons.js" defer></script>
+        <script src="../manual.js" defer></script>
+    </head>
+    <body>
+        <main>
+            <h1>टूल मेनू</h1>
+            <figure>
+                <img
+                    src="img/editeur-menu-outils.webp"
+                    alt="वृत्त, चाप, शांकव पर खुला टूल मेनू"
+                    width="620"
+                    height="720"
+                />
+            </figure>
+
+            <h2>उपयोग</h2>
+            <ul>
+                <li>
+                    इनपुट पंक्ति के दाईं ओर <i data-i="tools"></i> मेनू खोलता
+                    है: वलय के परिवार, वही रंग, वही क्रम, फिर पॉइंटर ले जाने या
+                    छूने पर उनके टूल।
+                </li>
+                <li>
+                    मेनू में वलय के सभी टूल और कुछ और भी हैं (नीचे
+                    <span class="badge ring">वलय</span> चिह्न)। समतल और ठोस
+                    परिवार तथा <span class="badge d3">3D</span> चिह्नित टूल केवल
+                    3D दृश्य में दिखते हैं।
+                </li>
+                <li>
+                    पहला चुना गया ऑब्जेक्ट कोई भी ऐसा स्थान लेता है जिसे उसका
+                    प्रकार स्वीकार करे: लंब के लिए रेखा बिन्दु से पहले आ सकती
+                    है।
+                </li>
+                <li>
+                    टूल <strong>स्थायी</strong> है: हर ऑब्जेक्ट के बाद वह फिर से
+                    अपने पहले आर्गुमेंट की प्रतीक्षा करता है। मेनू का बटन उसका
+                    आइकन ले लेता है और बार में <strong>हो गया</strong> वाली
+                    पट्टी दिखती है।
+                </li>
+                <li>
+                    बाहर निकलना: <strong>हो गया</strong>, <kbd>Esc</kbd>, संकेत
+                    का <strong>✕</strong>, मेनू का बटन (जो मेनू फिर खोलता है),
+                    रबड़, चरण-दर-चरण, या किसी पाठ पंक्ति में क्लिक। पूर्ववत
+                    करना, फिर से करना, गुण और 3D दृश्य टूल को बनाए रखते हैं।
+                </li>
+            </ul>
+
+            <h2 id="avec-une-selection">चयन के साथ</h2>
+            <p>
+                यदि ऑब्जेक्ट पहले चुने गए हों (<kbd>Ctrl</kbd>-क्लिक,
+                <kbd>Shift</kbd>-क्लिक या देर तक दबाना), तो मेनू उन टूलों को
+                धुंधला कर देता है जो उन्हें स्वीकार नहीं करते। हर ऑब्जेक्ट क्रम
+                से अपने प्रकार का पहला खाली स्थान लेता है; पंक्ति पूरी हो तो
+                तुरंत बन जाती है। उदाहरण: A, B, C, फिर
+                <strong>परिवृत्त</strong> लिखता है
+                <code>परिवृत्त(A, B, C)</code>।
+            </p>
+
+            <h2>सभी टूल</h2>
+            <p>हर टूल के लिए: क्या चुनना है, फिर लिखी जाने वाली पंक्ति।</p>
+            <h3 id="famille-points">बिन्दु</h3>
+            <div class="family" style="--h: 35">
+                <ul>
+                    <li>
+                        <i data-t="Point"></i>
+                        <div>
+                            <strong
+                                >बिन्दु<span class="badge ring"
+                                    >वलय</span
+                                ></strong
+                            ><span
+                                >वह बिन्दु जिसे आप छूते हैं: खाली जगह पर मुक्त,
+                                किसी ऑब्जेक्ट पर, या दो ऑब्जेक्टों के प्रतिच्छेद
+                                पर।</span
+                            ><span><code>बिन्दु(c, t)</code></span>
+                        </div>
+                    </li>
+                    <li>
+                        <i data-t="Intersection"></i>
+                        <div>
+                            <strong
+                                >प्रतिच्छेद<span class="badge ring"
+                                    >वलय</span
+                                ></strong
+                            ><span
+                                >एक ही स्पर्श से कोई कटान-बिन्दु, या दोनों
+                                ऑब्जेक्ट एक के बाद एक।</span
+                            ><span><code>प्रतिच्छेद(a, b)</code></span>
+                        </div>
+                    </li>
+                    <li>
+                        <i data-t="Midpoint"></i>
+                        <div>
+                            <strong
+                                >मध्यबिन्दु<span class="badge ring"
+                                    >वलय</span
+                                ></strong
+                            ><span>दो बिन्दु, या एक रेखाखण्ड।</span
+                            ><span><code>मध्यबिन्दु(A, B)</code></span>
+                        </div>
+                    </li>
+                    <li>
+                        <i data-t="Center"></i>
+                        <div>
+                            <strong
+                                >केन्द्र<span class="badge ring"
+                                    >वलय</span
+                                ></strong
+                            ><span>एक वृत्त: उसका केन्द्र।</span
+                            ><span><code>केन्द्र(c)</code></span>
+                        </div>
+                    </li>
+                    <li>
+                        <i data-t="OtherIntersection"></i>
+                        <div>
+                            <strong>अन्यप्रतिच्छेद</strong
+                            ><span
+                                >दो ऑब्जेक्ट, फिर उनके किसी प्रतिच्छेद पर पहले
+                                से रखा बिन्दु: उससे सबसे दूर वाला प्रतिच्छेद
+                                बिन्दु।</span
+                            ><span><code>अन्यप्रतिच्छेद(a, b, P)</code></span>
+                        </div>
+                    </li>
+                    <li>
+                        <i data-t="Incenter"></i>
+                        <div>
+                            <strong>अंतःकेंद्र</strong
+                            ><span
+                                >तीन बिन्दु, किसी त्रिभुज के शीर्ष: उसके
+                                अंतर्वृत्त का केन्द्र।</span
+                            ><span><code>अंतःकेंद्र(A, B, C)</code></span>
+                        </div>
+                    </li>
+                    <li>
+                        <i data-t="Centroid"></i>
+                        <div>
+                            <strong>केन्द्रक</strong
+                            ><span>तीन बिन्दु: त्रिभुज का केन्द्रक।</span
+                            ><span><code>केन्द्रक(A, B, C)</code></span>
+                        </div>
+                    </li>
+                    <li>
+                        <i data-t="Circumcenter"></i>
+                        <div>
+                            <strong>परिकेंद्र</strong
+                            ><span>तीन बिन्दु: परिवृत्त का केन्द्र।</span
+                            ><span><code>परिकेंद्र(A, B, C)</code></span>
+                        </div>
+                    </li>
+                    <li>
+                        <i data-t="Orthocenter"></i>
+                        <div>
+                            <strong>लंबकेंद्र</strong
+                            ><span>तीन बिन्दु: त्रिभुज का लंबकेंद्र।</span
+                            ><span><code>लंबकेंद्र(A, B, C)</code></span>
+                        </div>
+                    </li>
+                </ul>
+            </div>
+            <h3 id="famille-lines">रेखाएँ</h3>
+            <div class="family" style="--h: 215">
+                <ul>
+                    <li>
+                        <i data-t="Segment"></i>
+                        <div>
+                            <strong
+                                >रेखाखण्ड<span class="badge ring"
+                                    >वलय</span
+                                ></strong
+                            ><span>दो बिन्दु, उसके अंत्य बिन्दु।</span
+                            ><span><code>रेखाखण्ड(A, B)</code></span>
+                        </div>
+                    </li>
+                    <li>
+                        <i data-t="Line"></i>
+                        <div>
+                            <strong
+                                >रेखा<span class="badge ring">वलय</span></strong
+                            ><span>रेखा के दो बिन्दु।</span
+                            ><span><code>रेखा(A, B)</code></span>
+                        </div>
+                    </li>
+                    <li>
+                        <i data-t="Ray"></i>
+                        <div>
+                            <strong
+                                >किरण<span class="badge ring">वलय</span></strong
+                            ><span
+                                >दो बिन्दु: आरंभ-बिन्दु, फिर किरण का एक
+                                बिन्दु।</span
+                            ><span><code>किरण(A, B)</code></span>
+                        </div>
+                    </li>
+                    <li>
+                        <i data-t="Vector"></i>
+                        <div>
+                            <strong
+                                >सदिश<span class="badge ring">वलय</span></strong
+                            ><span>दो बिन्दु: आरंभ-बिन्दु, फिर अंत-बिन्दु।</span
+                            ><span><code>सदिश(A, B)</code></span>
+                        </div>
+                    </li>
+                </ul>
+            </div>
+            <h3 id="famille-constructions">रचनाएँ</h3>
+            <div class="family" style="--h: 265">
+                <ul>
+                    <li>
+                        <i data-t="Perpendicular"></i>
+                        <div>
+                            <strong
+                                >लंबरेखा<span class="badge ring"
+                                    >वलय</span
+                                ></strong
+                            ><span
+                                >एक बिन्दु और एक रेखा, किसी भी क्रम में। 3D में,
+                                एक रेखा या एक समतल।</span
+                            ><span><code>लंबरेखा(P, d)</code></span>
+                        </div>
+                    </li>
+                    <li>
+                        <i data-t="Parallel"></i>
+                        <div>
+                            <strong
+                                >समानांतररेखा<span class="badge ring"
+                                    >वलय</span
+                                ></strong
+                            ><span>एक बिन्दु और एक रेखा, किसी भी क्रम में।</span
+                            ><span><code>समानांतररेखा(P, d)</code></span>
+                        </div>
+                    </li>
+                    <li>
+                        <i data-t="PerpendicularBisector"></i>
+                        <div>
+                            <strong
+                                >लम्बसमद्विभाजक<span class="badge ring"
+                                    >वलय</span
+                                ></strong
+                            ><span>दो बिन्दु, या एक रेखाखण्ड।</span
+                            ><span><code>लम्बसमद्विभाजक(A, B)</code></span>
+                        </div>
+                    </li>
+                    <li>
+                        <i data-t="AngleBisector"></i>
+                        <div>
+                            <strong
+                                >कोणसमद्विभाजक<span class="badge ring"
+                                    >वलय</span
+                                ></strong
+                            ><span
+                                >तीन बिन्दु: पहली भुजा का एक बिन्दु, शीर्ष,
+                                दूसरी भुजा का एक बिन्दु।</span
+                            ><span><code>कोणसमद्विभाजक(A, O, B)</code></span>
+                        </div>
+                    </li>
+                    <li>
+                        <i data-t="Tangent"></i>
+                        <div>
+                            <strong>स्पर्शरेखा</strong
+                            ><span
+                                >एक बिन्दु, फिर एक वृत्त, शांकव या किसी फलन का
+                                ग्राफ़। टूल स्पर्शरेखा क्रमांक 1 देता है; दूसरी
+                                के लिए उसकी पंक्ति में यह संख्या 2 कर दें।</span
+                            ><span><code>स्पर्शरेखा(P, c, 1)</code></span>
+                        </div>
+                    </li>
+                </ul>
+            </div>
+            <h3 id="famille-circles">वृत्त, चाप, शांकव</h3>
+            <div class="family" style="--h: 145">
+                <ul>
+                    <li>
+                        <i data-t="Circle (centre and point)"></i>
+                        <div>
+                            <strong
+                                >वृत्त (केन्द्र और बिन्दु)<span
+                                    class="badge ring"
+                                    >वलय</span
+                                ></strong
+                            ><span>केन्द्र, फिर वृत्त का एक बिन्दु।</span
+                            ><span><code>वृत्त(O, A)</code></span>
+                        </div>
+                    </li>
+                    <li>
+                        <i data-t="Circle (centre and radius)"></i>
+                        <div>
+                            <strong
+                                >वृत्त (केन्द्र और त्रिज्या)<span
+                                    class="badge ring"
+                                    >वलय</span
+                                ></strong
+                            ><span
+                                >केवल केन्द्र: त्रिज्या, लगभग 150 पिक्सेल, बाद
+                                में वृत्त को खींचकर या उसकी पंक्ति में बदली जाती
+                                है।</span
+                            ><span><code>वृत्त(O, 3.8)</code></span>
+                        </div>
+                    </li>
+                    <li>
+                        <i data-t="Circumcircle"></i>
+                        <div>
+                            <strong
+                                >परिवृत्त<span class="badge ring"
+                                    >वलय</span
+                                ></strong
+                            ><span>वृत्त के तीन बिन्दु।</span
+                            ><span><code>परिवृत्त(A, B, C)</code></span>
+                        </div>
+                    </li>
+                    <li>
+                        <i data-t="Sphere"></i>
+                        <div>
+                            <strong
+                                >गोला<span class="badge ring">वलय</span
+                                ><span class="badge d3">3D</span></strong
+                            ><span>केन्द्र, फिर गोले का एक बिन्दु।</span
+                            ><span><code>गोला(O, A)</code></span>
+                        </div>
+                    </li>
+                    <li>
+                        <i data-t="Compass"></i>
+                        <div>
+                            <strong>परकार</strong
+                            ><span
+                                >त्रिज्या देने वाले दो बिन्दु, फिर
+                                केन्द्र।</span
+                            ><span><code>परकार(A, B, O)</code></span>
+                        </div>
+                    </li>
+                    <li>
+                        <i data-t="Circle (centre, direction and radius)"></i>
+                        <div>
+                            <strong
+                                >वृत्त (केन्द्र, दिशा और त्रिज्या)<span
+                                    class="badge d3"
+                                    >3D</span
+                                ></strong
+                            ><span
+                                >केन्द्र, फिर एक रेखा (अक्ष) या एक समतल (वृत्त
+                                के समानांतर), फ़र्श सहित। त्रिज्या लगभग 150
+                                पिक्सेल।</span
+                            ><span><code>वृत्त(O, 3.8, d)</code></span>
+                        </div>
+                    </li>
+                    <li>
+                        <i data-t="Circle (axis and point)"></i>
+                        <div>
+                            <strong
+                                >वृत्त (अक्ष और बिन्दु)<span class="badge d3"
+                                    >3D</span
+                                ></strong
+                            ><span
+                                >एक रेखा, यानी अक्ष, फिर वृत्त का एक
+                                बिन्दु।</span
+                            ><span><code>वृत्त(d, P)</code></span>
+                        </div>
+                    </li>
+                    <li>
+                        <i data-t="Arc"></i>
+                        <div>
+                            <strong>चाप</strong
+                            ><span
+                                >तीन बिन्दु: आरंभ, बीच से गुज़रने वाला एक
+                                बिन्दु, अंत।</span
+                            ><span><code>चाप(A, B, C)</code></span>
+                        </div>
+                    </li>
+                    <li>
+                        <i data-t="Sector"></i>
+                        <div>
+                            <strong>त्रिज्यखण्ड</strong
+                            ><span
+                                >तीन बिन्दु, चाप की तरह: उससे घिरा
+                                त्रिज्यखण्ड।</span
+                            ><span><code>त्रिज्यखण्ड(A, B, C)</code></span>
+                        </div>
+                    </li>
+                    <li>
+                        <i data-t="CenterArc"></i>
+                        <div>
+                            <strong>केंद्रचाप</strong
+                            ><span
+                                >केन्द्र, आरंभ, फिर उस किरण का एक बिन्दु जहाँ
+                                चाप रुकता है (वामावर्त)।</span
+                            ><span><code>केंद्रचाप(M, A, B)</code></span>
+                        </div>
+                    </li>
+                    <li>
+                        <i data-t="CenterSector"></i>
+                        <div>
+                            <strong>केंद्रत्रिज्यखण्ड</strong
+                            ><span
+                                ><code>केंद्रचाप</code> की तरह:
+                                त्रिज्यखण्ड।</span
+                            ><span
+                                ><code>केंद्रत्रिज्यखण्ड(M, A, B)</code></span
+                            >
+                        </div>
+                    </li>
+                    <li>
+                        <i data-t="Semicircle"></i>
+                        <div>
+                            <strong>अर्धवृत्त</strong
+                            ><span
+                                >दो बिन्दु, व्यास के सिरे: [AB] के बाईं ओर का
+                                अर्धवृत्त।</span
+                            ><span><code>अर्धवृत्त(A, B)</code></span>
+                        </div>
+                    </li>
+                    <li>
+                        <i data-t="Conic"></i>
+                        <div>
+                            <strong>शांकव</strong
+                            ><span
+                                >शांकव के पाँच बिन्दु। दूसरे बिन्दु से ही,
+                                पूर्वावलोकन वृत्त के सबसे निकट वाला शांकव दिखाता
+                                है।</span
+                            ><span><code>शांकव(A, B, C, D, E)</code></span>
+                        </div>
+                    </li>
+                    <li>
+                        <i data-t="Ellipse"></i>
+                        <div>
+                            <strong>दीर्घवृत्त</strong
+                            ><span
+                                >दोनों नाभियाँ, फिर दीर्घवृत्त का एक
+                                बिन्दु।</span
+                            ><span><code>दीर्घवृत्त(F, G, P)</code></span>
+                        </div>
+                    </li>
+                    <li>
+                        <i data-t="Hyperbola"></i>
+                        <div>
+                            <strong>अतिपरवलय</strong
+                            ><span
+                                >दोनों नाभियाँ, फिर अतिपरवलय का एक बिन्दु।</span
+                            ><span><code>अतिपरवलय(F, G, P)</code></span>
+                        </div>
+                    </li>
+                    <li>
+                        <i data-t="Parabola"></i>
+                        <div>
+                            <strong>परवलय</strong><span>नाभि, फिर नियता।</span
+                            ><span><code>परवलय(F, d)</code></span>
+                        </div>
+                    </li>
+                </ul>
+            </div>
+            <h3 id="famille-shapes">बहुभुज, कोण, बिन्दुपथ</h3>
+            <div class="family" style="--h: 185">
+                <ul>
+                    <li>
+                        <i data-t="Polygon"></i>
+                        <div>
+                            <strong
+                                >बहुभुज<span class="badge ring"
+                                    >वलय</span
+                                ></strong
+                            ><span
+                                >शीर्ष एक-एक करके, फिर बंद करने के लिए पहला
+                                शीर्ष दोबारा।</span
+                            ><span><code>बहुभुज(A, B, C)</code></span>
+                        </div>
+                    </li>
+                    <li>
+                        <i data-t="Angle"></i>
+                        <div>
+                            <strong
+                                >कोण<span class="badge ring">वलय</span></strong
+                            ><span
+                                >तीन बिन्दु: पहली भुजा का एक बिन्दु, शीर्ष,
+                                दूसरी भुजा का एक बिन्दु।</span
+                            ><span><code>कोण(A, O, B)</code></span>
+                        </div>
+                    </li>
+                    <li>
+                        <i data-t="Locus"></i>
+                        <div>
+                            <strong
+                                >बिन्दुपथ<span class="badge ring"
+                                    >वलय</span
+                                ></strong
+                            ><span
+                                >ऐसा बिन्दु जो ऑब्जेक्ट पर किसी बिन्दु पर निर्भर
+                                है: उसका बिन्दुपथ जब वह बिन्दु अपने ऑब्जेक्ट पर
+                                चलता है।</span
+                            ><span><code>बिन्दुपथ(M, P)</code></span>
+                        </div>
+                    </li>
+                    <li>
+                        <i data-t="RegularPolygon"></i>
+                        <div>
+                            <strong>समबहुभुज</strong
+                            ><span
+                                >दो क्रमागत शीर्ष: टूल एक वर्ग देता है; उसकी
+                                पंक्ति में भुजाओं की संख्या बदलें।</span
+                            ><span><code>समबहुभुज(A, B, 4)</code></span>
+                        </div>
+                    </li>
+                </ul>
+            </div>
+            <h3 id="famille-transformations">रूपांतरण</h3>
+            <div class="family" style="--h: 320">
+                <ul>
+                    <li>
+                        <i data-t="Point reflection"></i>
+                        <div>
+                            <strong
+                                >केन्द्रीय सममिति<span class="badge ring"
+                                    >वलय</span
+                                ></strong
+                            ><span
+                                >रूपांतरित किया जाने वाला बिन्दु, फिर
+                                केन्द्र।</span
+                            ><span><code>परावर्तन(P, O)</code></span>
+                        </div>
+                    </li>
+                    <li>
+                        <i data-t="Line reflection"></i>
+                        <div>
+                            <strong
+                                >अक्षीय सममिति<span class="badge ring"
+                                    >वलय</span
+                                ></strong
+                            ><span
+                                >रूपांतरित किया जाने वाला बिन्दु और अक्ष, किसी
+                                भी क्रम में।</span
+                            ><span><code>परावर्तन(P, d)</code></span>
+                        </div>
+                    </li>
+                    <li>
+                        <i data-t="Rotation"></i>
+                        <div>
+                            <strong>घूर्णन</strong
+                            ><span
+                                >बिन्दु, फिर केन्द्र: चौथाई चक्कर, जिसे उसकी
+                                पंक्ति में बदला जा सकता है।</span
+                            ><span><code>घूर्णन(P, O, 90)</code></span>
+                        </div>
+                    </li>
+                    <li>
+                        <i data-t="Translation"></i>
+                        <div>
+                            <strong>स्थानांतरण</strong
+                            ><span>बिन्दु, फिर सदिश।</span
+                            ><span><code>स्थानांतरण(P, u)</code></span>
+                        </div>
+                    </li>
+                    <li>
+                        <i data-t="Dilation"></i>
+                        <div>
+                            <strong>आवर्धन</strong
+                            ><span
+                                >बिन्दु, फिर केन्द्र: अनुपात 2, जिसे उसकी पंक्ति
+                                में बदला जा सकता है।</span
+                            ><span><code>आवर्धन(P, O, 2)</code></span>
+                        </div>
+                    </li>
+                    <li>
+                        <i data-t="Inversion"></i>
+                        <div>
+                            <strong>व्युत्क्रमण</strong
+                            ><span>बिन्दु, फिर व्युत्क्रमण वृत्त।</span
+                            ><span><code>व्युत्क्रमण(P, c)</code></span>
+                        </div>
+                    </li>
+                </ul>
+            </div>
+            <h3 id="famille-planes">समतल</h3>
+            <div class="family" style="--h: 240">
+                <ul>
+                    <li>
+                        <i data-t="Plane"></i>
+                        <div>
+                            <strong>समतल<span class="badge d3">3D</span></strong
+                            ><span>तीन बिन्दु, या एक बिन्दु और एक रेखा।</span
+                            ><span><code>समतल(A, B, C)</code></span>
+                        </div>
+                    </li>
+                    <li>
+                        <i data-t="ParallelPlane"></i>
+                        <div>
+                            <strong
+                                >समांतरसमतल<span class="badge d3"
+                                    >3D</span
+                                ></strong
+                            ><span
+                                >एक बिन्दु और एक समतल (फ़र्श सहित): बिन्दु से
+                                होकर समानांतर समतल।</span
+                            ><span><code>समांतरसमतल(A, p)</code></span>
+                        </div>
+                    </li>
+                    <li>
+                        <i data-t="OrthogonalPlane"></i>
+                        <div>
+                            <strong
+                                >लंबसमतल<span class="badge d3">3D</span></strong
+                            ><span>एक बिन्दु और एक रेखा: रेखा पर लंब समतल।</span
+                            ><span><code>लंबसमतल(A, d)</code></span>
+                        </div>
+                    </li>
+                </ul>
+            </div>
+            <h3 id="famille-solids">ठोस</h3>
+            <div class="family" style="--h: 265">
+                <ul>
+                    <li>
+                        <i data-t="Cylinder"></i>
+                        <div>
+                            <strong>बेलन<span class="badge d3">3D</span></strong
+                            ><span
+                                >दो बिन्दु, अक्ष के सिरे। त्रिज्या लगभग 150
+                                पिक्सेल।</span
+                            ><span><code>बेलन(A, B, 3.8)</code></span>
+                        </div>
+                    </li>
+                    <li>
+                        <i data-t="Cone"></i>
+                        <div>
+                            <strong>शंकु<span class="badge d3">3D</span></strong
+                            ><span
+                                >आधार का केन्द्र, फिर शीर्ष। त्रिज्या लगभग 150
+                                पिक्सेल।</span
+                            ><span><code>शंकु(A, B, 3.8)</code></span>
+                        </div>
+                    </li>
+                    <li>
+                        <i data-t="Cube"></i>
+                        <div>
+                            <strong>घन<span class="badge d3">3D</span></strong
+                            ><span
+                                >एक ही समतल के या एक ही ऊँचाई के दो बिन्दु,
+                                अन्यथा तीन बिन्दु (देखें 3D)।</span
+                            ><span><code>घन(A, B, C)</code></span>
+                        </div>
+                    </li>
+                    <li>
+                        <i data-t="Prism"></i>
+                        <div>
+                            <strong
+                                >प्रिज़्म<span class="badge d3"
+                                    >3D</span
+                                ></strong
+                            ><span
+                                >एक बहुभुज, यानी आधार, फिर एक बिन्दु, सामने वाले
+                                फलक का शीर्ष।</span
+                            ><span><code>प्रिज़्म(p, P)</code></span>
+                        </div>
+                    </li>
+                    <li>
+                        <i data-t="Pyramid"></i>
+                        <div>
+                            <strong
+                                >पिरामिड<span class="badge d3">3D</span></strong
+                            ><span>एक बहुभुज, यानी आधार, फिर शीर्ष।</span
+                            ><span><code>पिरामिड(p, S)</code></span>
+                        </div>
+                    </li>
+                    <li>
+                        <i data-t="Section"></i>
+                        <div>
+                            <strong
+                                >अनुप्रस्थकाट<span class="badge d3"
+                                    >3D</span
+                                ></strong
+                            ><span
+                                >एक ठोस (गोला, बेलन, शंकु, बहुफलक) और एक समतल,
+                                किसी भी क्रम में।</span
+                            ><span><code>अनुप्रस्थकाट(s, p)</code></span>
+                        </div>
+                    </li>
+                    <li>
+                        <i data-t="Net"></i>
+                        <div>
+                            <strong>जाल<span class="badge d3">3D</span></strong
+                            ><span>घन, प्रिज़्म या पिरामिड: उसका समतल जाल।</span
+                            ><span><code>जाल(c, 1)</code></span>
+                        </div>
+                    </li>
+                </ul>
+            </div>
+
+            <p>
+                रूपांतरण किसी <strong>बिन्दु</strong> का प्रतिबिम्ब बनाते हैं।
+                केवल कीबोर्ड से: <code>स्थिरबिन्दु</code>, <code>शीर्ष</code>,
+                <code>स्लाइडर</code>, <code>सूची</code>, त्रिविम प्रतिच्छेद,
+                <code>दीर्घवृत्त(F, G, a)</code> और
+                <code>अतिपरवलय(F, G, a)</code> (देखें
+                <a href="commandes.html">कमांड</a>)।
+            </p>
+        </main>
+    </body>
+</html>

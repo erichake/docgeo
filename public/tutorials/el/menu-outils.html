@@ -1,0 +1,750 @@
+<!doctype html>
+<html lang="el">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <title>Το μενού εργαλείων — Εγχειρίδιο DocGeo</title>
+        <link rel="icon" type="image/svg+xml" href="../../favicon.svg" />
+        <link rel="stylesheet" href="../manual.css" />
+        <script src="../icons.js" defer></script>
+        <script src="../manual.js" defer></script>
+    </head>
+    <body>
+        <main>
+            <h1>Το μενού εργαλείων</h1>
+            <figure>
+                <img
+                    src="img/editeur-menu-outils.webp"
+                    alt="Μενού εργαλείων ανοιχτό στα Κύκλοι, τόξα, κωνικές"
+                    width="620"
+                    height="720"
+                />
+            </figure>
+
+            <h2>Χρήση</h2>
+            <ul>
+                <li>
+                    Το <i data-i="tools"></i>, δεξιά από τη γραμμή εισαγωγής,
+                    ανοίγει το μενού: οι οικογένειες του δακτυλίου, με τα ίδια
+                    χρώματα και την ίδια σειρά, και έπειτα τα εργαλεία τους όταν
+                    περνά ο δείκτης από πάνω ή με άγγιγμα.
+                </li>
+                <li>
+                    Το μενού περιέχει όλα τα εργαλεία του δακτυλίου και επιπλέον
+                    άλλα (σήμα
+                    <span class="badge ring">δακτύλιος</span> παρακάτω). Οι
+                    οικογένειες Επίπεδα και Στερεά και τα εργαλεία με σήμα
+                    <span class="badge d3">3D</span> εμφανίζονται μόνο στην
+                    προβολή 3D.
+                </li>
+                <li>
+                    Το πρώτο επιλεγμένο αντικείμενο παίρνει οποιαδήποτε θέση
+                    δέχεται ο τύπος του: για μια κάθετη, η ευθεία μπορεί να
+                    έρθει πριν από το σημείο.
+                </li>
+                <li>
+                    Το εργαλείο είναι <strong>μόνιμο</strong>: μετά από κάθε
+                    αντικείμενο, περιμένει ξανά το πρώτο του όρισμα. Το κουμπί
+                    του μενού παίρνει το εικονίδιό του και η γραμμή δείχνει μια
+                    λωρίδα με το <strong>Τέλος</strong>.
+                </li>
+                <li>
+                    Έξοδος: <strong>Τέλος</strong>, <kbd>Esc</kbd>, το
+                    <strong>✕</strong> της υπόδειξης, το κουμπί του μενού (που
+                    ξανανοίγει το μενού), η γόμα, το βήμα προς βήμα ή ένα κλικ
+                    σε μια γραμμή κειμένου. Η αναίρεση, η ακύρωση αναίρεσης, οι
+                    ιδιότητες και η προβολή 3D κρατούν το εργαλείο.
+                </li>
+            </ul>
+
+            <h2 id="avec-une-selection">Με επιλογή</h2>
+            <p>
+                Με αντικείμενα επιλεγμένα πρώτα (<kbd>Ctrl</kbd>-κλικ,
+                <kbd>Shift</kbd>-κλικ ή παρατεταμένο πάτημα), το μενού
+                απενεργοποιεί τα εργαλεία που δεν τα δέχονται. Κάθε αντικείμενο
+                παίρνει, με τη σειρά, την πρώτη ελεύθερη θέση του τύπου του· η
+                γραμμή κατασκευάζεται αμέσως αν είναι πλήρης. Παράδειγμα: A, B,
+                C και μετά <strong>ΠεριγεγραμμένοςΚύκλος</strong> γράφει
+                <code>ΠεριγεγραμμένοςΚύκλος(A, B, C)</code>.
+            </p>
+
+            <h2>Όλα τα εργαλεία</h2>
+            <p>
+                Για κάθε εργαλείο: τι επιλέγετε, και έπειτα η γραμμή που
+                γράφεται.
+            </p>
+            <h3 id="famille-points">Σημεία</h3>
+            <div class="family" style="--h: 35">
+                <ul>
+                    <li>
+                        <i data-t="Point"></i>
+                        <div>
+                            <strong
+                                >Σημείο<span class="badge ring"
+                                    >δακτύλιος</span
+                                ></strong
+                            ><span
+                                >Το σημείο που αγγίζετε: ελεύθερο σε κενό
+                                σημείο, πάνω σε αντικείμενο ή στην τομή δύο
+                                αντικειμένων.</span
+                            ><span><code>Σημείο(c, t)</code></span>
+                        </div>
+                    </li>
+                    <li>
+                        <i data-t="Intersection"></i>
+                        <div>
+                            <strong
+                                >Τομή<span class="badge ring"
+                                    >δακτύλιος</span
+                                ></strong
+                            ><span
+                                >Μια διασταύρωση με ένα μόνο άγγιγμα, ή τα δύο
+                                αντικείμενα το ένα μετά το άλλο.</span
+                            ><span><code>Τομή(a, b)</code></span>
+                        </div>
+                    </li>
+                    <li>
+                        <i data-t="Midpoint"></i>
+                        <div>
+                            <strong
+                                >Μέσο<span class="badge ring"
+                                    >δακτύλιος</span
+                                ></strong
+                            ><span>Δύο σημεία, ή ένα τμήμα.</span
+                            ><span><code>Μέσο(A, B)</code></span>
+                        </div>
+                    </li>
+                    <li>
+                        <i data-t="Center"></i>
+                        <div>
+                            <strong
+                                >Κέντρο<span class="badge ring"
+                                    >δακτύλιος</span
+                                ></strong
+                            ><span>Ένας κύκλος: το κέντρο του.</span
+                            ><span><code>Κέντρο(c)</code></span>
+                        </div>
+                    </li>
+                    <li>
+                        <i data-t="OtherIntersection"></i>
+                        <div>
+                            <strong>ΆλληΤομή</strong
+                            ><span
+                                >Δύο αντικείμενα, έπειτα ένα σημείο ήδη
+                                τοποθετημένο σε μία από τις τομές τους: το
+                                σημείο τομής που απέχει περισσότερο από
+                                αυτό.</span
+                            ><span><code>ΆλληΤομή(a, b, P)</code></span>
+                        </div>
+                    </li>
+                    <li>
+                        <i data-t="Incenter"></i>
+                        <div>
+                            <strong>Έγκεντρο</strong
+                            ><span
+                                >Τρία σημεία, κορυφές τριγώνου: το κέντρο του
+                                εγγεγραμμένου κύκλου του.</span
+                            ><span><code>Έγκεντρο(A, B, C)</code></span>
+                        </div>
+                    </li>
+                    <li>
+                        <i data-t="Centroid"></i>
+                        <div>
+                            <strong>Βαρύκεντρο</strong
+                            ><span
+                                >Τρία σημεία: το βαρύκεντρο του τριγώνου.</span
+                            ><span><code>Βαρύκεντρο(A, B, C)</code></span>
+                        </div>
+                    </li>
+                    <li>
+                        <i data-t="Circumcenter"></i>
+                        <div>
+                            <strong>Περίκεντρο</strong
+                            ><span
+                                >Τρία σημεία: το κέντρο του περιγεγραμμένου
+                                κύκλου.</span
+                            ><span><code>Περίκεντρο(A, B, C)</code></span>
+                        </div>
+                    </li>
+                    <li>
+                        <i data-t="Orthocenter"></i>
+                        <div>
+                            <strong>Ορθόκεντρο</strong
+                            ><span
+                                >Τρία σημεία: το ορθόκεντρο του τριγώνου.</span
+                            ><span><code>Ορθόκεντρο(A, B, C)</code></span>
+                        </div>
+                    </li>
+                </ul>
+            </div>
+            <h3 id="famille-lines">Ευθείες</h3>
+            <div class="family" style="--h: 215">
+                <ul>
+                    <li>
+                        <i data-t="Segment"></i>
+                        <div>
+                            <strong
+                                >Τμήμα<span class="badge ring"
+                                    >δακτύλιος</span
+                                ></strong
+                            ><span>Δύο σημεία, τα άκρα του.</span
+                            ><span><code>Τμήμα(A, B)</code></span>
+                        </div>
+                    </li>
+                    <li>
+                        <i data-t="Line"></i>
+                        <div>
+                            <strong
+                                >Ευθεία<span class="badge ring"
+                                    >δακτύλιος</span
+                                ></strong
+                            ><span>Δύο σημεία της ευθείας.</span
+                            ><span><code>Ευθεία(A, B)</code></span>
+                        </div>
+                    </li>
+                    <li>
+                        <i data-t="Ray"></i>
+                        <div>
+                            <strong
+                                >Ημιευθεία<span class="badge ring"
+                                    >δακτύλιος</span
+                                ></strong
+                            ><span
+                                >Δύο σημεία: η αρχή, έπειτα ένα σημείο της
+                                ημιευθείας.</span
+                            ><span><code>Ημιευθεία(A, B)</code></span>
+                        </div>
+                    </li>
+                    <li>
+                        <i data-t="Vector"></i>
+                        <div>
+                            <strong
+                                >Διάνυσμα<span class="badge ring"
+                                    >δακτύλιος</span
+                                ></strong
+                            ><span>Δύο σημεία: η αρχή, έπειτα το πέρας.</span
+                            ><span><code>Διάνυσμα(A, B)</code></span>
+                        </div>
+                    </li>
+                </ul>
+            </div>
+            <h3 id="famille-constructions">Κατασκευές</h3>
+            <div class="family" style="--h: 265">
+                <ul>
+                    <li>
+                        <i data-t="Perpendicular"></i>
+                        <div>
+                            <strong
+                                >Κάθετη<span class="badge ring"
+                                    >δακτύλιος</span
+                                ></strong
+                            ><span
+                                >Ένα σημείο και μια ευθεία, με όποια σειρά
+                                θέλετε. Σε 3D, μια ευθεία ή ένα επίπεδο.</span
+                            ><span><code>Κάθετη(P, d)</code></span>
+                        </div>
+                    </li>
+                    <li>
+                        <i data-t="Parallel"></i>
+                        <div>
+                            <strong
+                                >Παράλληλη<span class="badge ring"
+                                    >δακτύλιος</span
+                                ></strong
+                            ><span
+                                >Ένα σημείο και μια ευθεία, με όποια σειρά
+                                θέλετε.</span
+                            ><span><code>Παράλληλη(P, d)</code></span>
+                        </div>
+                    </li>
+                    <li>
+                        <i data-t="PerpendicularBisector"></i>
+                        <div>
+                            <strong
+                                >Μεσοκάθετη<span class="badge ring"
+                                    >δακτύλιος</span
+                                ></strong
+                            ><span>Δύο σημεία, ή ένα τμήμα.</span
+                            ><span><code>Μεσοκάθετη(A, B)</code></span>
+                        </div>
+                    </li>
+                    <li>
+                        <i data-t="AngleBisector"></i>
+                        <div>
+                            <strong
+                                >Διχοτόμος<span class="badge ring"
+                                    >δακτύλιος</span
+                                ></strong
+                            ><span
+                                >Τρία σημεία: ένα σημείο της πρώτης πλευράς, η
+                                κορυφή, ένα σημείο της δεύτερης πλευράς.</span
+                            ><span><code>Διχοτόμος(A, O, B)</code></span>
+                        </div>
+                    </li>
+                    <li>
+                        <i data-t="Tangent"></i>
+                        <div>
+                            <strong>Εφαπτομένη</strong
+                            ><span
+                                >Ένα σημείο, έπειτα ένας κύκλος, μια κωνική ή η
+                                γραφική παράσταση συνάρτησης. Το εργαλείο δίνει
+                                την εφαπτομένη αρ. 1· αλλάξτε τον αριθμό σε 2
+                                στη γραμμή της για την άλλη.</span
+                            ><span><code>Εφαπτομένη(P, c, 1)</code></span>
+                        </div>
+                    </li>
+                </ul>
+            </div>
+            <h3 id="famille-circles">Κύκλοι, τόξα, κωνικές</h3>
+            <div class="family" style="--h: 145">
+                <ul>
+                    <li>
+                        <i data-t="Circle (centre and point)"></i>
+                        <div>
+                            <strong
+                                >Κύκλος (κέντρο και σημείο)<span
+                                    class="badge ring"
+                                    >δακτύλιος</span
+                                ></strong
+                            ><span
+                                >Το κέντρο, έπειτα ένα σημείο του κύκλου.</span
+                            ><span><code>Κύκλος(O, A)</code></span>
+                        </div>
+                    </li>
+                    <li>
+                        <i data-t="Circle (centre and radius)"></i>
+                        <div>
+                            <strong
+                                >Κύκλος (κέντρο και ακτίνα)<span
+                                    class="badge ring"
+                                    >δακτύλιος</span
+                                ></strong
+                            ><span
+                                >Μόνο το κέντρο: η ακτίνα, περίπου 150 pixel,
+                                αλλάζει έπειτα σύροντας τον κύκλο ή στη γραμμή
+                                του.</span
+                            ><span><code>Κύκλος(O, 3.8)</code></span>
+                        </div>
+                    </li>
+                    <li>
+                        <i data-t="Circumcircle"></i>
+                        <div>
+                            <strong
+                                >ΠεριγεγραμμένοςΚύκλος<span class="badge ring"
+                                    >δακτύλιος</span
+                                ></strong
+                            ><span>Τρία σημεία του κύκλου.</span
+                            ><span
+                                ><code
+                                    >ΠεριγεγραμμένοςΚύκλος(A, B, C)</code
+                                ></span
+                            >
+                        </div>
+                    </li>
+                    <li>
+                        <i data-t="Sphere"></i>
+                        <div>
+                            <strong
+                                >Σφαίρα<span class="badge ring">δακτύλιος</span
+                                ><span class="badge d3">3D</span></strong
+                            ><span
+                                >Το κέντρο, έπειτα ένα σημείο της σφαίρας.</span
+                            ><span><code>Σφαίρα(O, A)</code></span>
+                        </div>
+                    </li>
+                    <li>
+                        <i data-t="Compass"></i>
+                        <div>
+                            <strong>Διαβήτης</strong
+                            ><span
+                                >Δύο σημεία που δίνουν την ακτίνα, έπειτα το
+                                κέντρο.</span
+                            ><span><code>Διαβήτης(A, B, O)</code></span>
+                        </div>
+                    </li>
+                    <li>
+                        <i data-t="Circle (centre, direction and radius)"></i>
+                        <div>
+                            <strong
+                                >Κύκλος (κέντρο, διεύθυνση και ακτίνα)<span
+                                    class="badge d3"
+                                    >3D</span
+                                ></strong
+                            ><span
+                                >Το κέντρο, έπειτα μια ευθεία (ο άξονας) ή ένα
+                                επίπεδο (παράλληλο προς τον κύκλο),
+                                συμπεριλαμβανομένου του δαπέδου. Ακτίνα περίπου
+                                150 pixel.</span
+                            ><span><code>Κύκλος(O, 3.8, d)</code></span>
+                        </div>
+                    </li>
+                    <li>
+                        <i data-t="Circle (axis and point)"></i>
+                        <div>
+                            <strong
+                                >Κύκλος (άξονας και σημείο)<span
+                                    class="badge d3"
+                                    >3D</span
+                                ></strong
+                            ><span
+                                >Μια ευθεία, ο άξονας, έπειτα ένα σημείο του
+                                κύκλου.</span
+                            ><span><code>Κύκλος(d, P)</code></span>
+                        </div>
+                    </li>
+                    <li>
+                        <i data-t="Arc"></i>
+                        <div>
+                            <strong>Τόξο</strong
+                            ><span
+                                >Τρία σημεία: η αρχή, ένα σημείο από το οποίο
+                                περνά, το τέλος.</span
+                            ><span><code>Τόξο(A, B, C)</code></span>
+                        </div>
+                    </li>
+                    <li>
+                        <i data-t="Sector"></i>
+                        <div>
+                            <strong>Τομέας</strong
+                            ><span
+                                >Τρία σημεία, όπως για το τόξο: ο τομέας που
+                                ορίζει.</span
+                            ><span><code>Τομέας(A, B, C)</code></span>
+                        </div>
+                    </li>
+                    <li>
+                        <i data-t="CenterArc"></i>
+                        <div>
+                            <strong>ΤόξοΚέντρου</strong
+                            ><span
+                                >Το κέντρο, η αρχή, έπειτα ένα σημείο της
+                                ημιευθείας όπου σταματά το τόξο (θετική
+                                φορά).</span
+                            ><span><code>ΤόξοΚέντρου(M, A, B)</code></span>
+                        </div>
+                    </li>
+                    <li>
+                        <i data-t="CenterSector"></i>
+                        <div>
+                            <strong>ΤομέαςΚέντρου</strong
+                            ><span
+                                >Όπως το <code>ΤόξοΚέντρου</code>: ο
+                                τομέας.</span
+                            ><span><code>ΤομέαςΚέντρου(M, A, B)</code></span>
+                        </div>
+                    </li>
+                    <li>
+                        <i data-t="Semicircle"></i>
+                        <div>
+                            <strong>Ημικύκλιο</strong
+                            ><span
+                                >Δύο σημεία, άκρα της διαμέτρου: το ημικύκλιο
+                                αριστερά από το [AB].</span
+                            ><span><code>Ημικύκλιο(A, B)</code></span>
+                        </div>
+                    </li>
+                    <li>
+                        <i data-t="Conic"></i>
+                        <div>
+                            <strong>ΚωνικήΤομή</strong
+                            ><span
+                                >Πέντε σημεία της κωνικής. Από το δεύτερο και
+                                μετά, η προεπισκόπηση δείχνει την κωνική που
+                                πλησιάζει περισσότερο έναν κύκλο.</span
+                            ><span><code>ΚωνικήΤομή(A, B, C, D, E)</code></span>
+                        </div>
+                    </li>
+                    <li>
+                        <i data-t="Ellipse"></i>
+                        <div>
+                            <strong>Έλλειψη</strong
+                            ><span
+                                >Οι δύο εστίες, έπειτα ένα σημείο της
+                                έλλειψης.</span
+                            ><span><code>Έλλειψη(F, G, P)</code></span>
+                        </div>
+                    </li>
+                    <li>
+                        <i data-t="Hyperbola"></i>
+                        <div>
+                            <strong>Υπερβολή</strong
+                            ><span
+                                >Οι δύο εστίες, έπειτα ένα σημείο της
+                                υπερβολής.</span
+                            ><span><code>Υπερβολή(F, G, P)</code></span>
+                        </div>
+                    </li>
+                    <li>
+                        <i data-t="Parabola"></i>
+                        <div>
+                            <strong>Παραβολή</strong
+                            ><span>Η εστία, έπειτα η διευθετούσα.</span
+                            ><span><code>Παραβολή(F, d)</code></span>
+                        </div>
+                    </li>
+                </ul>
+            </div>
+            <h3 id="famille-shapes">Πολύγωνα, γωνίες, γεωμετρικοί τόποι</h3>
+            <div class="family" style="--h: 185">
+                <ul>
+                    <li>
+                        <i data-t="Polygon"></i>
+                        <div>
+                            <strong
+                                >Πολύγωνο<span class="badge ring"
+                                    >δακτύλιος</span
+                                ></strong
+                            ><span
+                                >Οι κορυφές μία μία, έπειτα ξανά η πρώτη για να
+                                κλείσει.</span
+                            ><span><code>Πολύγωνο(A, B, C)</code></span>
+                        </div>
+                    </li>
+                    <li>
+                        <i data-t="Angle"></i>
+                        <div>
+                            <strong
+                                >Γωνία<span class="badge ring"
+                                    >δακτύλιος</span
+                                ></strong
+                            ><span
+                                >Τρία σημεία: ένα σημείο της πρώτης πλευράς, η
+                                κορυφή, ένα σημείο της δεύτερης πλευράς.</span
+                            ><span><code>Γωνία(A, O, B)</code></span>
+                        </div>
+                    </li>
+                    <li>
+                        <i data-t="Locus"></i>
+                        <div>
+                            <strong
+                                >ΓεωμετρικόςΤόπος<span class="badge ring"
+                                    >δακτύλιος</span
+                                ></strong
+                            ><span
+                                >Ένα σημείο που εξαρτάται από σημείο πάνω σε
+                                αντικείμενο: ο γεωμετρικός του τόπος όταν αυτό
+                                το σημείο διατρέχει το αντικείμενό του.</span
+                            ><span><code>ΓεωμετρικόςΤόπος(M, P)</code></span>
+                        </div>
+                    </li>
+                    <li>
+                        <i data-t="RegularPolygon"></i>
+                        <div>
+                            <strong>ΚανονικόΠολύγωνο</strong
+                            ><span
+                                >Δύο διαδοχικές κορυφές: το εργαλείο δίνει
+                                τετράγωνο· αλλάξτε τον αριθμό των πλευρών στη
+                                γραμμή του.</span
+                            ><span><code>ΚανονικόΠολύγωνο(A, B, 4)</code></span>
+                        </div>
+                    </li>
+                </ul>
+            </div>
+            <h3 id="famille-transformations">Μετασχηματισμοί</h3>
+            <div class="family" style="--h: 320">
+                <ul>
+                    <li>
+                        <i data-t="Point reflection"></i>
+                        <div>
+                            <strong
+                                >Κεντρική συμμετρία<span class="badge ring"
+                                    >δακτύλιος</span
+                                ></strong
+                            ><span
+                                >Το σημείο που μετασχηματίζεται, έπειτα το
+                                κέντρο.</span
+                            ><span><code>Συμμετρία(P, O)</code></span>
+                        </div>
+                    </li>
+                    <li>
+                        <i data-t="Line reflection"></i>
+                        <div>
+                            <strong
+                                >Αξονική συμμετρία<span class="badge ring"
+                                    >δακτύλιος</span
+                                ></strong
+                            ><span
+                                >Το σημείο που μετασχηματίζεται και ο άξονας, με
+                                όποια σειρά θέλετε.</span
+                            ><span><code>Συμμετρία(P, d)</code></span>
+                        </div>
+                    </li>
+                    <li>
+                        <i data-t="Rotation"></i>
+                        <div>
+                            <strong>Στροφή</strong
+                            ><span
+                                >Το σημείο, έπειτα το κέντρο: ένα τέταρτο της
+                                στροφής, που αλλάζει στη γραμμή της.</span
+                            ><span><code>Στροφή(P, O, 90)</code></span>
+                        </div>
+                    </li>
+                    <li>
+                        <i data-t="Translation"></i>
+                        <div>
+                            <strong>Μεταφορά</strong
+                            ><span>Το σημείο, έπειτα το διάνυσμα.</span
+                            ><span><code>Μεταφορά(P, u)</code></span>
+                        </div>
+                    </li>
+                    <li>
+                        <i data-t="Dilation"></i>
+                        <div>
+                            <strong>Ομοιοθεσία</strong
+                            ><span
+                                >Το σημείο, έπειτα το κέντρο: λόγος 2, που
+                                αλλάζει στη γραμμή της.</span
+                            ><span><code>Ομοιοθεσία(P, O, 2)</code></span>
+                        </div>
+                    </li>
+                    <li>
+                        <i data-t="Inversion"></i>
+                        <div>
+                            <strong>Αντιστροφή</strong
+                            ><span>Το σημείο, έπειτα ο κύκλος αντιστροφής.</span
+                            ><span><code>Αντιστροφή(P, c)</code></span>
+                        </div>
+                    </li>
+                </ul>
+            </div>
+            <h3 id="famille-planes">Επίπεδα</h3>
+            <div class="family" style="--h: 240">
+                <ul>
+                    <li>
+                        <i data-t="Plane"></i>
+                        <div>
+                            <strong
+                                >Επίπεδο<span class="badge d3">3D</span></strong
+                            ><span
+                                >Τρία σημεία, ή ένα σημείο και μια ευθεία.</span
+                            ><span><code>Επίπεδο(A, B, C)</code></span>
+                        </div>
+                    </li>
+                    <li>
+                        <i data-t="ParallelPlane"></i>
+                        <div>
+                            <strong
+                                >ΠαράλληλοΕπίπεδο<span class="badge d3"
+                                    >3D</span
+                                ></strong
+                            ><span
+                                >Ένα σημείο και ένα επίπεδο (συμπεριλαμβανομένου
+                                του δαπέδου): το παράλληλο επίπεδο που διέρχεται
+                                από το σημείο.</span
+                            ><span><code>ΠαράλληλοΕπίπεδο(A, p)</code></span>
+                        </div>
+                    </li>
+                    <li>
+                        <i data-t="OrthogonalPlane"></i>
+                        <div>
+                            <strong
+                                >ΚάθετοΕπίπεδο<span class="badge d3"
+                                    >3D</span
+                                ></strong
+                            ><span
+                                >Ένα σημείο και μια ευθεία: το επίπεδο κάθετο
+                                στην ευθεία.</span
+                            ><span><code>ΚάθετοΕπίπεδο(A, d)</code></span>
+                        </div>
+                    </li>
+                </ul>
+            </div>
+            <h3 id="famille-solids">Στερεά</h3>
+            <div class="family" style="--h: 265">
+                <ul>
+                    <li>
+                        <i data-t="Cylinder"></i>
+                        <div>
+                            <strong
+                                >Κύλινδρος<span class="badge d3"
+                                    >3D</span
+                                ></strong
+                            ><span
+                                >Δύο σημεία, άκρα του άξονα. Ακτίνα περίπου 150
+                                pixel.</span
+                            ><span><code>Κύλινδρος(A, B, 3.8)</code></span>
+                        </div>
+                    </li>
+                    <li>
+                        <i data-t="Cone"></i>
+                        <div>
+                            <strong
+                                >Κώνος<span class="badge d3">3D</span></strong
+                            ><span
+                                >Το κέντρο της βάσης, έπειτα η κορυφή. Ακτίνα
+                                περίπου 150 pixel.</span
+                            ><span><code>Κώνος(A, B, 3.8)</code></span>
+                        </div>
+                    </li>
+                    <li>
+                        <i data-t="Cube"></i>
+                        <div>
+                            <strong
+                                >Κύβος<span class="badge d3">3D</span></strong
+                            ><span
+                                >Δύο σημεία του ίδιου επιπέδου ή του ίδιου
+                                ύψους, αλλιώς τρία σημεία (βλ. 3D).</span
+                            ><span><code>Κύβος(A, B, C)</code></span>
+                        </div>
+                    </li>
+                    <li>
+                        <i data-t="Prism"></i>
+                        <div>
+                            <strong
+                                >Πρίσμα<span class="badge d3">3D</span></strong
+                            ><span
+                                >Ένα πολύγωνο, η βάση, έπειτα ένα σημείο, κορυφή
+                                της απέναντι έδρας.</span
+                            ><span><code>Πρίσμα(p, P)</code></span>
+                        </div>
+                    </li>
+                    <li>
+                        <i data-t="Pyramid"></i>
+                        <div>
+                            <strong
+                                >Πυραμίδα<span class="badge d3"
+                                    >3D</span
+                                ></strong
+                            ><span>Ένα πολύγωνο, η βάση, έπειτα η κορυφή.</span
+                            ><span><code>Πυραμίδα(p, S)</code></span>
+                        </div>
+                    </li>
+                    <li>
+                        <i data-t="Section"></i>
+                        <div>
+                            <strong
+                                >Διατομή<span class="badge d3">3D</span></strong
+                            ><span
+                                >Ένα στερεό (σφαίρα, κύλινδρος, κώνος, πολύεδρο)
+                                και ένα επίπεδο, με όποια σειρά θέλετε.</span
+                            ><span><code>Διατομή(s, p)</code></span>
+                        </div>
+                    </li>
+                    <li>
+                        <i data-t="Net"></i>
+                        <div>
+                            <strong
+                                >Ανάπτυγμα<span class="badge d3"
+                                    >3D</span
+                                ></strong
+                            ><span
+                                >Ένας κύβος, ένα πρίσμα ή μια πυραμίδα: το
+                                επίπεδο ανάπτυγμά του.</span
+                            ><span><code>Ανάπτυγμα(c, 1)</code></span>
+                        </div>
+                    </li>
+                </ul>
+            </div>
+
+            <p>
+                Οι μετασχηματισμοί κατασκευάζουν την εικόνα ενός
+                <strong>σημείου</strong>. Μόνο από το πληκτρολόγιο:
+                <code>ΣταθερόΣημείο</code>, <code>Κορυφή</code>,
+                <code>Δρομέας</code>, <code>Λίστα</code>, οι τομές στον χώρο,
+                <code>Έλλειψη(F, G, a)</code> και
+                <code>Υπερβολή(F, G, a)</code> (βλ.
+                <a href="commandes.html">Οι εντολές</a>).
+            </p>
+        </main>
+    </body>
+</html>

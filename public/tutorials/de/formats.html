@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="de">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <title>Import aus DGPad und GeoGebra — DocGeo-Handbuch</title>
+        <link rel="icon" type="image/svg+xml" href="../../favicon.svg" />
+        <link rel="stylesheet" href="../manual.css" />
+        <script src="../icons.js" defer></script>
+        <script src="../manual.js" defer></script>
+    </head>
+    <body>
+        <main>
+            <h1>Import aus DGPad und GeoGebra</h1>
+
+            <p class="lead">
+                <code>.dgo</code> ist das Format von DocGeo;
+                <code>.dgp</code> und <code>.ggb</code> werden importiert und
+                dann als <code>.dgo</code> gespeichert. Kein Export nach DGPad
+                oder GeoGebra.
+            </p>
+
+            <h2>Das Format .dgo</h2>
+            <p>
+                Komprimiertes JSON: Objekte, Stile und Ansicht. Es entwickelt
+                sich nur durch Ergänzungen weiter: Eine gespeicherte Datei
+                bleibt in späteren Versionen lesbar.
+            </p>
+
+            <h2 id="figures-dgpad">DGPad</h2>
+            <p>
+                Ebene und 3D-Figuren, Stile, Ausdrücke, Schieberegler,
+                Animationen, Ortslinien, Magnete, Spuren und Makros werden
+                übernommen.
+            </p>
+            <div class="table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Programm in DGPad</th>
+                            <th>DocGeo</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>
+                                Skripte von Ausdrücken, Blockly, das einen
+                                Ausdruck berechnet, Blockly-Schildkröte
+                            </td>
+                            <td>interpretiert</td>
+                        </tr>
+                        <tr>
+                            <td>
+                                Blockly-Schaltflächen (Gestaltung, Ändern einer
+                                Zahl)
+                            </td>
+                            <td>interpretiert</td>
+                        </tr>
+                        <tr>
+                            <td>Ereignis-Blockly, JavaScript, aktives HTML</td>
+                            <td>ignoriert und gemeldet</td>
+                        </tr>
+                        <tr>
+                            <td>
+                                Ausdruck „restrictions“ (Sperren der Oberfläche)
+                            </td>
+                            <td>ignoriert</td>
+                        </tr>
+                        <tr>
+                            <td>Einschränkungen der 3D-Drehung</td>
+                            <td>angewendet</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <p>
+                Kein Code einer Figur wird vom Browser ausgeführt. Bewusste
+                Abweichung: Eine Kurve wird an ihren Unstetigkeitsstellen nicht
+                durch eine senkrechte Linie verbunden.
+            </p>
+
+            <h2>GeoGebra</h2>
+            <p>
+                Jeder Befehl wird zum entsprechenden DocGeo-Objekt, mit
+                denselben Argumenten; Punkte auf Objekten und Schnittpunkte
+                werden an die von GeoGebra gespeicherten Positionen gesetzt.
+            </p>
+            <ul>
+                <li>
+                    Übernommen: ebene und räumliche Geometrie, Funktionen und
+                    Kurven (numerische Ableitungen und Integrale),
+                    Schieberegler, Kontrollkästchen, Eingabefelder,
+                    Anzeigebedingungen, LaTeX-Texte, Bilder, Stile und Position
+                    der Namen, Achsen und Gitter, Animationen, Spuren, Makros.
+                </li>
+                <li>
+                    Nicht übernommen: Skripte (GGBScript, JavaScript),
+                    Computeralgebra, einige Listenbefehle.
+                </li>
+            </ul>
+            <p>
+                Mehr als die Hälfte der 470 Figuren eines Korpus von
+                geogebra.org öffnen sich ohne Verlust. Ein nicht unterstütztes
+                Element wird samt seinen abhängigen Objekten ignoriert und
+                gemeldet.
+            </p>
+        </main>
+    </body>
+</html>

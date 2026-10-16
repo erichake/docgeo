@@ -1,0 +1,237 @@
+<!doctype html>
+<html lang="pt">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <title>Propriedades e sistema de coordenadas — Manual do DocGeo</title>
+        <link rel="icon" type="image/svg+xml" href="../../favicon.svg" />
+        <link rel="stylesheet" href="../manual.css" />
+        <script src="../icons.js" defer></script>
+        <script src="../manual.js" defer></script>
+    </head>
+    <body>
+        <main>
+            <h1>Propriedades e sistema de coordenadas</h1>
+
+            <figure>
+                <img
+                    src="img/editeur-proprietes.webp"
+                    alt="Painel de propriedades do ponto C"
+                    width="1200"
+                    height="720"
+                />
+            </figure>
+
+            <h2>O painel</h2>
+            <ul>
+                <li>
+                    Aberto por <i data-i="properties"></i> ou por
+                    <i data-i="settings"></i> da zona contextual; fechado pelo
+                    seu ✕, pelo mesmo botão ou por <kbd>Esc</kbd>.
+                </li>
+                <li>
+                    Duas abas: <strong>Objeto</strong> e
+                    <strong>Figura</strong>.
+                </li>
+                <li>
+                    O objeto a ajustar é escolhido na figura, pela sua linha ou
+                    na lista “Escolher um objeto…” (objetos ocultos incluídos).
+                    Um clique na figura seleciona em vez de construir; botões e
+                    caixas são selecionados sem serem acionados. Uma ferramenta
+                    do menu ou a linha de entrada constroem normalmente, e o
+                    objeto criado aparece no painel.
+                </li>
+                <li>As modificações são imediatas e podem ser desfeitas.</li>
+                <li>
+                    Campos numéricos: arrastar na horizontal ajusta o valor
+                    (<kbd>Shift</kbd>: dez vezes mais fino), um clique permite
+                    digitá-lo. Um arrasto conta como um só passo de desfazer.
+                </li>
+                <li>
+                    Um botão <strong>↺</strong> ao lado de uma cor a devolve à
+                    cor padrão da ferramenta.
+                </li>
+            </ul>
+
+            <h2>A aba “Objeto”</h2>
+            <div class="table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Seção</th>
+                            <th>Ajustes</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Objeto</td>
+                            <td>
+                                nome; para uma expressão, a
+                                <a href="expressions.html#les-programmes"
+                                    >definição</a
+                                >
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Aparência</td>
+                            <td>
+                                aplicar aos objetos do mesmo tipo, cor, tamanho
+                                do ponto, espessura, contorno, opacidades do
+                                traço e do preenchimento, cor do preenchimento,
+                                tracejado, camada (ordem de desenho)
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Exibição</td>
+                            <td>
+                                objeto visível, exibir o nome, tamanho do texto,
+                                casas decimais do valor (ou não exibi-lo)
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Ponto</td>
+                            <td>
+                                forma (círculo, quadrado, cruz, losango),
+                                posição do nome em graus, rastro, passo
+                                horizontal e vertical (deslocamento aos saltos)
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Segmento</td>
+                            <td>marcação (traços de comprimentos iguais)</td>
+                        </tr>
+                        <tr>
+                            <td>Ângulo</td>
+                            <td>
+                                raio do arco, marca de ângulo reto (esquadro
+                                aberto, arco, quadrado, ponto, esquadro)
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Lugar, lista</td>
+                            <td>número de pontos; espessura dos segmentos</td>
+                        </tr>
+                        <tr>
+                            <td id="curseurs">Controle deslizante</td>
+                            <td>
+                                incremento, comprimento, vertical, cor e tamanho
+                                da alça
+                            </td>
+                        </tr>
+                        <tr>
+                            <td id="animation">Animação</td>
+                            <td>
+                                velocidade (0: parada), sentido inverso, na
+                                extremidade: recomeçar, vaivém ou parar
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <h3 id="regler-plusieurs-objets">Vários objetos</h3>
+            <p>
+                Numa seleção múltipla, só aparecem os ajustes comuns a todos; um
+                valor que difere de um objeto para outro fica em itálico cinza.
+                <kbd>Ctrl</kbd>-clique, <kbd>Shift</kbd>-clique ou toque longo
+                (figura ou painel “Construção”) acrescentam ou retiram um
+                objeto.
+            </p>
+
+            <h2>A aba “Figura”</h2>
+            <figure>
+                <img
+                    src="img/editeur-onglet-figure.webp"
+                    alt="Aba Figura: modelos de sistema de coordenadas e eixos"
+                    width="600"
+                    height="720"
+                />
+            </figure>
+            <p>Um clique num eixo abre esta aba.</p>
+            <div class="table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Seção</th>
+                            <th>Ajustes</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Sistema de coordenadas</td>
+                            <td>
+                                exibido ou não; modelos DGPad, GeoGebra, só os
+                                eixos, malha pontilhada, papel quadriculado,
+                                papel milimetrado (só a aparência, nem zoom nem
+                                fundo)
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Eixos (x e y)</td>
+                            <td>
+                                exibido, nome, números, unidade (π: múltiplos de
+                                π/2), marcações, espaçamento dos números (vazio:
+                                auto; 🔗 liga x e y), setas, cor, tamanho e
+                                negrito dos números, estilo DGPad ou GeoGebra,
+                                semieixos positivos
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Malha</td>
+                            <td>
+                                exibida ou não, espaçamento das linhas,
+                                subdivisões, cor (a dos eixos por padrão),
+                                espessura, traço contínuo, pontilhado ou
+                                tracejado
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Zoom e deslocamento</td>
+                            <td>eixo fixo na tela, zoom centrado na origem</td>
+                        </tr>
+                        <tr>
+                            <td>Figura</td>
+                            <td>
+                                fundo; ângulos em graus (padrão) ou radianos;
+                                segmentos acima dos polígonos
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <h3 id="l-onglet-figure-en-3d">Em 3D</h3>
+            <div class="table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Seção</th>
+                            <th>Ajustes</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Eixos</td>
+                            <td>triedro exibido, cor, espessura</td>
+                        </tr>
+                        <tr>
+                            <td>Piso</td>
+                            <td>
+                                exibido, cor (↺: azul por cima, marrom por
+                                baixo), opacidade, tamanho, espaçamento, cor e
+                                espessura das linhas
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Vista</td>
+                            <td>perspectiva</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <p>
+                Esses ajustes podem ser desfeitos; o zoom, o deslocamento e a
+                rotação da vista não.
+            </p>
+        </main>
+    </body>
+</html>

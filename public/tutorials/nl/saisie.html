@@ -1,0 +1,289 @@
+<!doctype html>
+<html lang="nl">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <title>Met het toetsenbord — DocGeo-handleiding</title>
+        <link rel="icon" type="image/svg+xml" href="../../favicon.svg" />
+        <link rel="stylesheet" href="../manual.css" />
+        <script src="../icons.js" defer></script>
+        <script src="../manual.js" defer></script>
+    </head>
+    <body>
+        <main>
+            <h1>Construeren met het toetsenbord</h1>
+
+            <p class="lead">
+                Eén regel per object: <code>naam = Opdracht(argumenten)</code>,
+                getypt in de invoerregel van het paneel „Constructie” en
+                bevestigd met <kbd>Enter</kbd>.
+            </p>
+            <pre><code>A = (-5, -2)
+B = (4, -3)
+C = (-1, 4)
+p = Veelhoek(A, B, C)
+c = OmgeschrevenCirkel(A, B, C)
+M = Midden(A, B)</code></pre>
+
+            <h2>Syntaxis</h2>
+            <div class="table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Element</th>
+                            <th>Regel</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Vrij punt</td>
+                            <td>
+                                <code>A = (2, 3)</code>;
+                                <code>A = (2, 3, 1)</code> in 3D
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Getallen</td>
+                            <td>
+                                decimaalteken: de
+                                <strong>punt</strong> (<code>2.5</code>);
+                                <code>(1,5, 2)</code> is een punt met drie
+                                coördinaten
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Opdracht</td>
+                            <td>
+                                zonder onderscheid tussen hoofd- en kleine
+                                letters en zonder accenten (<code
+                                    >middelloodlijn(A, B)</code
+                                >), Engelse naam aanvaard; de regel wordt in de
+                                gebruikelijke vorm herschreven
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Getal als argument</td>
+                            <td>
+                                getal, naam van een uitdrukking of een
+                                schuifknop, of formule:
+                                <code>Cirkel(A, 2*r)</code>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Naam weggelaten</td>
+                            <td>
+                                <code>Midden(A, B)</code>: automatische naam,
+                                hoofdletter voor een punt, anders kleine letter
+                                (geen e, i, k, l, o, t, x, y, z)
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Bestaande naam</td>
+                            <td>de regel herdefinieert het object</td>
+                        </tr>
+                        <tr>
+                            <td>Bijzondere naam</td>
+                            <td>
+                                apostrof toegestaan (<code>A'</code>); andere
+                                tekens tussen backticks (<code>`aux 2`</code>)
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Te vermijden namen</td>
+                            <td>
+                                <code>x</code>, <code>y</code> (vergelijkingen),
+                                <code>i</code> (imaginaire eenheid)
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Andere regel</td>
+                            <td>
+                                punt noch opdracht: een
+                                <a href="expressions.html">uitdrukking</a>
+                                (<code>a = 3</code>, <code>E = d(A, B)</code>)
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <p>
+                Vormen en argumenten van elke opdracht:
+                <a href="commandes.html">De opdrachten</a>.
+            </p>
+
+            <h2 id="la-completion">Aanvulling en selectie</h2>
+            <ul>
+                <li>
+                    De lijst stelt vooraan de regel de opdrachten voor, en dan
+                    tussen de haakjes alleen de objecten die het huidige
+                    argument aanvaardt, gemarkeerd in de figuur. <kbd>↑</kbd>
+                    <kbd>↓</kbd> kiezen, <kbd>Tab</kbd> of
+                    <kbd>Enter</kbd> voegen in, <kbd>Esc</kbd> sluit.
+                </li>
+                <li>
+                    Een klik op een object schrijft zijn naam, gevolgd door
+                    <code>, </code> of <code>)</code> naargelang wat er nog te
+                    selecteren is: <code>M = Midden(</code>, klik op A, klik op
+                    B geeft <code>M = Midden(A, B)</code>.
+                </li>
+                <li>
+                    In de invoerregel maakt een klik waar geen punt is er een
+                    (vrij, op object of snijpunt); een voorbeeld volgt de
+                    aanwijzer. Opnieuw klikken op het eerste hoekpunt van een
+                    veelhoek sluit hem af.
+                </li>
+                <li>
+                    Hetzelfde gebaar in een formule: <code>E = d(</code>, klik
+                    op H en dan op M.
+                </li>
+            </ul>
+
+            <h2 id="modifier-une-ligne">Een regel wijzigen</h2>
+            <p>
+                Elke regel van het paneel is een veld:
+                <kbd>Enter</kbd> bevestigt, <kbd>Esc</kbd> herstelt.
+            </p>
+            <ul>
+                <li>Nieuwe coördinaten: het vrije punt wordt verplaatst.</li>
+                <li>
+                    Nieuwe definitie: het object wordt geherdefinieerd, behoudt
+                    zijn stijl, en zijn afhankelijke objecten volgen (<code
+                        >M = Midden(A, B)</code
+                    >
+                    → <code>M = (5, 5)</code> → <code>M = Midden(B, C)</code>).
+                    De constructie wordt zo nodig herschikt; een cyclus wordt
+                    geweigerd.
+                </li>
+                <li>
+                    Nieuwe naam: het object wordt in alle regels en formules
+                    hernoemd.
+                </li>
+                <li>
+                    <code>A =</code> verwijdert A en zijn afhankelijke objecten.
+                </li>
+            </ul>
+
+            <h2 id="equations">Vergelijkingen</h2>
+            <p>
+                Twee leden in x, y (en z) gescheiden door <code>=</code>; de
+                soort object volgt uit de coëfficiënten, die van schuifknoppen
+                mogen afhangen.
+            </p>
+            <div class="table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Regel</th>
+                            <th>Object</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>
+                                <code>d = y = a*x + b</code>, <code>x = 3</code>
+                            </td>
+                            <td>rechte</td>
+                        </tr>
+                        <tr>
+                            <td><code>c = x^2 + y^2 = 4</code></td>
+                            <td>cirkel</td>
+                        </tr>
+                        <tr>
+                            <td><code>e = x^2/9 + y^2/4 = 1</code></td>
+                            <td>kegelsnede</td>
+                        </tr>
+                        <tr>
+                            <td><code>p = x + y + z = 3</code></td>
+                            <td>vlak (3D)</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <p>
+                Graad hoger dan 2 of niet veeltermig: geweigerd. Vooraan de
+                regel is <code>z</code> een naam: <code>z = 3</code> is een
+                uitdrukking, het vlak schrijf je <code>p = z = 3</code>.
+            </p>
+
+            <h2>Snijpunten en punten op objecten</h2>
+            <ul>
+                <li>
+                    <code>Snijpunt(d1, d2)</code> voor twee rechten;
+                    <code>Snijpunt(c, d, n)</code>, n van 1 tot 4, in de andere
+                    gevallen.
+                </li>
+                <li>
+                    <code>AnderSnijpunt(c, d, P)</code>: het gemeenschappelijke
+                    punt dat het verst van P ligt.
+                </li>
+                <li>
+                    <code>Punt(c, t)</code>, of <code>Punt(p, a, b)</code> op
+                    een veelhoek of een kegelsnede: positie op het object,
+                    geschreven door het gebaar.
+                </li>
+            </ul>
+
+            <h2>Fouten</h2>
+            <p>
+                Een foute regel wordt niet toegepast: hij blijft rood omkaderd,
+                de aanwijzing geeft de reden, de rest van de figuur blijft
+                ongewijzigd.
+            </p>
+            <div class="table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Melding</th>
+                            <th>Oorzaak</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Onbegrijpelijke invoer</td>
+                            <td>haakje, komma of teken</td>
+                        </tr>
+                        <tr>
+                            <td>Onbekende opdracht, Onbekend object</td>
+                            <td>naam verkeerd gespeld of afwezig</td>
+                        </tr>
+                        <tr>
+                            <td>Ongeldige argumenten voor …</td>
+                            <td>
+                                geen enkele vorm past; „Met deze argumenten”
+                                herinnert aan de vormen
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>De naam … is al in gebruik</td>
+                            <td>hernoemen</td>
+                        </tr>
+                        <tr>
+                            <td>Een object kan niet van zichzelf afhangen</td>
+                            <td>cyclus</td>
+                        </tr>
+                        <tr>
+                            <td>
+                                Een vlakke figuur houdt haar objecten in het
+                                vlak z = 0…
+                            </td>
+                            <td>
+                                object in de ruimte: overschakelen naar de
+                                <a href="3d.html">3D-weergave</a>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                Dit object kan nog niet als tekst worden
+                                geschreven
+                            </td>
+                            <td>
+                                geïmporteerd object zonder opdracht: regel
+                                <code>naam = …</code> alleen-lezen
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </main>
+    </body>
+</html>

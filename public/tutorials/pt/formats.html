@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="pt">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <title>Importação do DGPad e do GeoGebra — Manual do DocGeo</title>
+        <link rel="icon" type="image/svg+xml" href="../../favicon.svg" />
+        <link rel="stylesheet" href="../manual.css" />
+        <script src="../icons.js" defer></script>
+        <script src="../manual.js" defer></script>
+    </head>
+    <body>
+        <main>
+            <h1>Importação do DGPad e do GeoGebra</h1>
+
+            <p class="lead">
+                <code>.dgo</code> é o formato do DocGeo; <code>.dgp</code> e
+                <code>.ggb</code> são importados e depois salvos em
+                <code>.dgo</code>. Não há exportação para o DGPad nem para o
+                GeoGebra.
+            </p>
+
+            <h2>O formato .dgo</h2>
+            <p>
+                JSON comprimido: objetos, estilos e vista. Ele só evolui por
+                acréscimos: um arquivo salvo continua legível pelas versões
+                seguintes.
+            </p>
+
+            <h2 id="figures-dgpad">DGPad</h2>
+            <p>
+                São recuperados figuras planas e 3D, estilos, expressões,
+                controles deslizantes, animações, lugares, ímãs, rastros e
+                macros.
+            </p>
+            <div class="table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Programa do DGPad</th>
+                            <th>DocGeo</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>
+                                scripts de expressões, Blockly que calcula uma
+                                expressão, tartaruga Blockly
+                            </td>
+                            <td>interpretados</td>
+                        </tr>
+                        <tr>
+                            <td>
+                                botões Blockly (formatação, mudança de um
+                                número)
+                            </td>
+                            <td>interpretados</td>
+                        </tr>
+                        <tr>
+                            <td>Blockly de eventos, JavaScript, HTML ativo</td>
+                            <td>ignorados e sinalizados</td>
+                        </tr>
+                        <tr>
+                            <td>
+                                expressão “restrictions” (bloqueio da interface)
+                            </td>
+                            <td>ignorada</td>
+                        </tr>
+                        <tr>
+                            <td>restrições de rotação 3D</td>
+                            <td>aplicadas</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <p>
+                Nenhum código de uma figura é executado pelo navegador.
+                Diferença intencional: uma curva não é ligada por um traço
+                vertical nas suas descontinuidades.
+            </p>
+
+            <h2>GeoGebra</h2>
+            <p>
+                Cada comando vira o objeto DocGeo correspondente, com os mesmos
+                argumentos; pontos sobre objeto e interseções são recolocados
+                nas posições salvas pelo GeoGebra.
+            </p>
+            <ul>
+                <li>
+                    Recuperados: geometria plana e 3D, funções e curvas
+                    (derivadas e integrais numéricas), controles deslizantes,
+                    caixas de seleção, campos de entrada, condições de exibição,
+                    textos LaTeX, imagens, estilos e posição dos nomes, eixos e
+                    malha, animações, rastros, macros.
+                </li>
+                <li>
+                    Não recuperados: scripts (GGBScript, JavaScript), cálculo
+                    simbólico, alguns comandos de listas.
+                </li>
+            </ul>
+            <p>
+                Mais da metade das 470 figuras de um corpus do geogebra.org
+                abrem sem perda. Um elemento não suportado é ignorado junto com
+                seus dependentes e sinalizado.
+            </p>
+        </main>
+    </body>
+</html>

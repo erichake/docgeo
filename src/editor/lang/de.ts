@@ -23,6 +23,7 @@ const de: Texts = {
         save: "Speichern",
         undo: "Rückgängig",
         redo: "Wiederherstellen",
+        help: "Benutzerhandbuch",
         delete: "Löschen",
         eraser: "Radierer",
         axes: "Koordinatensystem",

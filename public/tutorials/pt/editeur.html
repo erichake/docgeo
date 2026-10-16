@@ -1,0 +1,209 @@
+<!doctype html>
+<html lang="pt">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <title>A interface — Manual do DocGeo</title>
+        <link rel="icon" type="image/svg+xml" href="../../favicon.svg" />
+        <link rel="stylesheet" href="../manual.css" />
+        <script src="../icons.js" defer></script>
+        <script src="../manual.js" defer></script>
+    </head>
+    <body>
+        <main>
+            <h1>A interface</h1>
+
+            <figure>
+                <img
+                    src="img/editeur-interface.webp"
+                    alt="O editor: barra de ações, painel Construção e figura"
+                    width="1200"
+                    height="720"
+                />
+            </figure>
+
+            <h2>A barra de ações</h2>
+            <div class="table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th></th>
+                            <th>Botão</th>
+                            <th>Função</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><i data-i="open"></i></td>
+                            <td>Abrir</td>
+                            <td>
+                                <code>.dgo</code>, <code>.dgp</code>,
+                                <code>.ggb</code>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><i data-i="save"></i></td>
+                            <td>Salvar</td>
+                            <td>em <code>.dgo</code></td>
+                        </tr>
+                        <tr>
+                            <td><i data-i="eraser"></i></td>
+                            <td>Borracha</td>
+                            <td>
+                                ocultar ou exibir objetos (<a
+                                    href="objets.html#la-gomme"
+                                    >borracha</a
+                                >)
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><i data-i="axes"></i></td>
+                            <td>Eixos</td>
+                            <td>eixos e malha; em 3D, triedro e piso</td>
+                        </tr>
+                        <tr>
+                            <td><i data-i="space"></i></td>
+                            <td>Visualização 3D</td>
+                            <td>
+                                passar ao espaço ou voltar ao plano (<a
+                                    href="3d.html"
+                                    >3D</a
+                                >)
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><i data-i="properties"></i></td>
+                            <td>Propriedades</td>
+                            <td>
+                                painel da direita (<a href="proprietes.html"
+                                    >propriedades</a
+                                >)
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><i data-i="history"></i></td>
+                            <td>Construção</td>
+                            <td>painel da esquerda</td>
+                        </tr>
+                        <tr>
+                            <td><i data-i="undo"></i> <i data-i="redo"></i></td>
+                            <td>Desfazer, Refazer</td>
+                            <td>
+                                <kbd>Ctrl</kbd> <kbd>Z</kbd>, <kbd>Ctrl</kbd>
+                                <kbd>Shift</kbd> <kbd>Z</kbd> ou <kbd>Ctrl</kbd>
+                                <kbd>Y</kbd>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <p>
+                No centro, a
+                <a href="objets.html#la-zone-contextuelle">zona contextual</a>
+                mostra o nome e as ações do objeto selecionado.
+            </p>
+
+            <h2>O painel “Construção”</h2>
+            <ul>
+                <li>
+                    Uma linha por objeto, na ordem da construção:
+                    <code>M = PontoMédio(A, B)</code>. Cada linha pode ser
+                    modificada (<a href="saisie.html#modifier-une-ligne"
+                        >redefinição</a
+                    >).
+                </li>
+                <li>
+                    A bolinha no início da linha oculta ou exibe o objeto;
+                    <i data-i="show_name"></i> no fim da linha exibe seu nome.
+                </li>
+                <li>
+                    Cabeçalho: número de objetos, <i data-i="show_values"></i>
+                    <a href="objets.html#les-valeurs">valores</a>,
+                    <i data-i="steps"></i>
+                    <a href="objets.html#la-construction-pas-a-pas"
+                        >passo a passo</a
+                    >, <i data-i="new_program"></i>
+                    <a href="expressions.html#les-programmes">novo programa</a>.
+                </li>
+                <li>
+                    Linha de entrada “Entrada…” e botão
+                    <i data-i="tools"></i> do
+                    <a href="menu-outils.html">menu de ferramentas</a>.
+                </li>
+                <li>
+                    Passar o ponteiro sobre uma linha faz o objeto brilhar, e
+                    vice-versa.
+                </li>
+            </ul>
+
+            <h2>A indicação</h2>
+            <p>
+                O balão na parte de baixo da figura indica o que é esperado
+                (“Selecione um ponto”), a linha que a ferramenta vai escrever e
+                os erros em vermelho. Seu <strong>✕</strong> abandona a
+                ferramenta em uso.
+            </p>
+
+            <h2>Navegar</h2>
+            <div class="table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Ação</th>
+                            <th>Gesto</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Mover a vista</td>
+                            <td>
+                                arrastar um lugar vazio; botão direito em
+                                qualquer lugar
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Dar zoom</td>
+                            <td>
+                                roda do mouse ou trackpad, em torno do ponteiro
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Girar uma figura 3D</td>
+                            <td>botão direito, ou um dedo num lugar vazio</td>
+                        </tr>
+                        <tr>
+                            <td>Perspectiva, piso (3D)</td>
+                            <td><kbd>P</kbd>, <kbd>S</kbd></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <p>
+                O botão redondo no canto inferior esquerdo, presente quando a
+                figura tem animações, pausa-as ou retoma-as.
+            </p>
+
+            <h2>Desfazer</h2>
+            <p>
+                Toda modificação é um passo de uma pilha única: construção,
+                exclusão, deslocamento, estilo, ajuste do sistema de
+                coordenadas, passagem ao 3D. O zoom, o deslocamento e a rotação
+                da vista não são.
+            </p>
+
+            <h2>Os painéis</h2>
+            <ul>
+                <li>
+                    A borda interna deles é arrastada para redimensioná-los; um
+                    clique duplo restaura a largura padrão.
+                </li>
+                <li>
+                    Abaixo de 900 px de largura, só um painel fica aberto por
+                    vez; com 600 px ou menos, o painel “Construção” começa
+                    fechado, as propriedades cobrem a figura e escolher uma
+                    ferramenta fecha os painéis.
+                </li>
+            </ul>
+        </main>
+    </body>
+</html>

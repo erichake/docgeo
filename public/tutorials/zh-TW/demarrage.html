@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="zh-TW">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <title>開啟與儲存 — DocGeo 手冊</title>
+        <link rel="icon" type="image/svg+xml" href="../../favicon.svg" />
+        <link rel="stylesheet" href="../manual.css" />
+        <script src="../icons.js" defer></script>
+        <script src="../manual.js" defer></script>
+    </head>
+    <body>
+        <main>
+            <h1>開啟與儲存</h1>
+
+            <h2>開啟</h2>
+            <p><i data-i="open"></i> <strong>開啟</strong>載入一個檔案：</p>
+            <div class="table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>副檔名</th>
+                            <th>來源</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><code>.dgo</code></td>
+                            <td>DocGeo，原生格式</td>
+                        </tr>
+                        <tr>
+                            <td><code>.dgp</code></td>
+                            <td>DGPad，匯入</td>
+                        </tr>
+                        <tr>
+                            <td><code>.ggb</code></td>
+                            <td>GeoGebra，匯入</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <p>開啟的圖形會取代目前的圖形，並清除復原歷程。</p>
+            <p>
+                線上圖形可透過編輯器的網址開啟：<code>editor.html?url=https://example.com/thales.ggb</code>。格式由副檔名判斷（<code>.ggb</code>、<code>.dgo</code>，其他按
+                DGPad 處理）；伺服器必須允許從其他網站讀取（CORS）。
+            </p>
+
+            <h2>匯入不完整</h2>
+            <p>
+                不支援的 DGPad 或 GeoGebra
+                元素會連同其依賴物件一起被忽略；提示中會列出它們（「未匯入：…」）。詳見<a
+                    href="formats.html"
+                    >匯入 DGPad 和 GeoGebra 圖形</a
+                >。
+            </p>
+
+            <h2>儲存</h2>
+            <p>
+                <i data-i="save"></i> 或 <kbd>Ctrl</kbd>
+                <kbd>S</kbd
+                >將圖形下載為<code>.dgo</code>，檔名與開啟的圖形相同（新圖形為<code>figure.dgo</code>）。檢視（縮放、3D
+                方向、座標系）也會儲存。
+            </p>
+            <p>
+                <code>.dgo</code> 是唯一的儲存格式：開啟 DGPad 或 GeoGebra
+                圖形後儲存，即完成轉換。
+            </p>
+
+            <h2>語言</h2>
+            <p>
+                編輯器使用瀏覽器的語言；<code>?lang=</code>可指定語言（<code>ar</code>、<code>de</code>、<code>el</code>、<code>en</code>、<code>es</code>、<code>fr</code>、<code>hi</code>、<code>it</code>、<code>nl</code>、<code>pt</code>、<code>zh</code>、<code>zh-TW</code>）。語言也決定指令的名稱（<code>中點</code>、<code
+                    lang="fr"
+                    >Milieu</code
+                >…）；英文名稱在所有語言中都能識別。
+            </p>
+        </main>
+    </body>
+</html>

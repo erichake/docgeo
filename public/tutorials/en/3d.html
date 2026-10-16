@@ -1,0 +1,193 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <title>3D — DocGeo manual</title>
+        <link rel="icon" type="image/svg+xml" href="../../favicon.svg" />
+        <link rel="stylesheet" href="../manual.css" />
+        <script src="../icons.js" defer></script>
+        <script src="../manual.js" defer></script>
+    </head>
+    <body>
+        <main>
+            <h1>3D</h1>
+
+            <figure>
+                <img
+                    src="img/editeur-3d.webp"
+                    alt="Pyramid cut by the plane z = 1.5"
+                    width="1200"
+                    height="720"
+                />
+            </figure>
+
+            <h2>Switching to 3D</h2>
+            <ul>
+                <li>
+                    A new figure is plane. <i data-i="space"></i>
+                    <strong>3D view</strong> tilts the camera: the plane of the
+                    figure becomes the floor <em>z</em> = 0, the coordinate
+                    system a trihedron. Pressing again returns to the plane,
+                    with the previous coordinate system.
+                </li>
+                <li>
+                    Returning to the plane is refused as long as an object
+                    leaves the plane <em>z</em> = 0; the prompt names it.
+                    Conversely, a plane figure refuses any object in space
+                    (<code>A = (1, 2, 3)</code>, sphere…).
+                </li>
+                <li>Each switch is an undo step.</li>
+                <li>
+                    DGPad 3D figures, whose free points lie in the plane of the
+                    screen, do not have this button.
+                </li>
+            </ul>
+
+            <h2>View</h2>
+            <ul>
+                <li>
+                    Rotate: right button, or one finger on an empty spot. Move:
+                    left button on an empty spot. Zoom: wheel.
+                </li>
+                <li>
+                    <kbd>P</kbd>: perspective or parallel projection;
+                    <kbd>S</kbd>: floor. Same settings in the
+                    <a href="proprietes.html#l-onglet-figure-en-3d"
+                        >Figure tab</a
+                    >.
+                </li>
+                <li>
+                    Hidden parts (edges, circles, lines under the floor or
+                    behind a face) are dashed.
+                </li>
+            </ul>
+
+            <h2>Building</h2>
+            <ul>
+                <li>
+                    A click on an empty spot creates a point on the floor; with
+                    the keyboard, <code>S = (0, 0, 4)</code>.
+                </li>
+                <li>
+                    The menu gains the <strong>Planes</strong> and
+                    <strong>Solids</strong> families and two circles; the ring
+                    of a point offers the sphere.
+                </li>
+                <li>
+                    Any tool that expects a plane accepts the
+                    <strong>floor</strong>: a hidden plane <code>z = 0</code> is
+                    created, then reused.
+                </li>
+                <li>
+                    Formulas read the three coordinates:
+                    <code>d(A, B)</code> is the distance in space.
+                </li>
+            </ul>
+            <div class="table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Object</th>
+                            <th>Command</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Plane</td>
+                            <td>
+                                <code>Plane(A, B, C)</code>,
+                                <code>Plane(A, d)</code>,
+                                <code>ParallelPlane(A, p)</code>,
+                                <code>OrthogonalPlane(A, d)</code>,
+                                <code>p = x + y + z = 3</code>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Perpendicular to a plane</td>
+                            <td><code>Perpendicular(A, p)</code></td>
+                        </tr>
+                        <tr>
+                            <td>Sphere</td>
+                            <td>
+                                <code>Sphere(O, A)</code>,
+                                <code>Sphere(O, r)</code>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Circles</td>
+                            <td>
+                                <code>Circle(d, P)</code> with axis d;
+                                <code>Circle(O, r, d)</code> orthogonal to the
+                                line d or parallel to the plane d
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Solids</td>
+                            <td>
+                                <code>Cylinder(A, B, r)</code>,
+                                <code>Cone(A, B, r)</code>,
+                                <code>Cube(A, B, C)</code>,
+                                <code>Prism(p, P)</code>,
+                                <code>Pyramid(p, S)</code>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Section</td>
+                            <td>
+                                <code>Section(s, p)</code>: circle, conic or
+                                polygon
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Net</td>
+                            <td>
+                                <code>Net(c, f)</code>, f from 0 (folded) to 1
+                                (flat)
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Intersections</td>
+                            <td>
+                                <code>Intersection(d, p)</code> point,
+                                <code>Intersection(p, q)</code> line,
+                                <code>Intersection(s, t)</code> circle of two
+                                spheres
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Vertices</td>
+                            <td><code>Vertex(c, k)</code>, k from 1</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <h2>Solids</h2>
+            <ul>
+                <li>
+                    A solid is a single object: it draws faces and edges (dashed
+                    behind) and hides what is behind it. It is designated inside
+                    its outline.
+                </li>
+                <li>
+                    <strong>Cube in two clicks</strong>: two points of the same
+                    plane or polygon give <code>Cube(A, B, p, ±1)</code>, on the
+                    side facing the camera; two points at the same height give
+                    <code>Cube(A, B, 1)</code>, above (−1: below). Otherwise the
+                    tool waits for a third point. The cube becomes undefined if
+                    [AB] stops being parallel to the plane.
+                </li>
+                <li>
+                    The <strong>Section</strong> tool takes the solid and the
+                    plane in any order.
+                </li>
+                <li>
+                    A slider as the second argument of <code>Net</code> animates
+                    the unfolding: <code>f = Slider(0, 1, 0)</code>,
+                    <code>n = Net(c, f)</code>.
+                </li>
+            </ul>
+        </main>
+    </body>
+</html>

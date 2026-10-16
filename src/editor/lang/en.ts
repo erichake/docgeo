@@ -22,6 +22,7 @@ export default {
     save: "Save",
     undo: "Undo",
     redo: "Redo",
+    help: "User manual",
     delete: "Delete",
     eraser: "Eraser",
     axes: "Axes",

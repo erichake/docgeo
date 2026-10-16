@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="zh-TW">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <title>專案歷史 — DocGeo 手冊</title>
+        <link rel="icon" type="image/svg+xml" href="../../favicon.svg" />
+        <link rel="stylesheet" href="../manual.css" />
+        <script src="../icons.js" defer></script>
+        <script src="../manual.js" defer></script>
+    </head>
+    <body>
+        <main>
+            <h1>專案歷史</h1>
+
+            <p class="lead">
+                DocGeo 延續了 DGPad：同樣的作圖方式，並帶有原生 3D 和向量繪製。
+            </p>
+
+            <h2>2012-2017：DGPad</h2>
+            <p>
+                DGPad 的開發始於 2012 年春，於 2017
+                年停止。該軟體仍在線上，其圖形仍在流傳：DocGeo 可以開啟它們。
+            </p>
+
+            <h2>2017-2018：DGPad Pro</h2>
+            <p>
+                緊接著，一次名為 DGPad Pro 的嘗試從零開始，要為 DGPad
+                補上它所缺少的：原生位於空間中的物件（每個點有三個座標，檢視繞座標系旋轉），以及
+                SVG 繪製，每個物件都是向量元素，任意縮放都清晰。
+            </p>
+            <p>
+                從 2017 年 10 月到 2018 年 4
+                月，它實現了點、直線、射線、線段、平行線、垂線、中點和交點。專案就此停止：要重現
+                DGPad 相當一部分功能，工作量過於龐大。
+            </p>
+
+            <h2>2021：第二次嘗試</h2>
+            <p>
+                一次重啟很快中止：當時 DGPad Pro 的 SVG 繪製比 DGPad
+                在<em>canvas</em>上的繪製慢得多。
+            </p>
+
+            <h2>2026：DocGeo</h2>
+            <p>
+                2026 年 9 月 13 日，自 2018 年起未再改動的 DGPad Pro 程式碼借助
+                Claude Code 助理重新啟用，並用 TypeScript 重寫。如今 SVG
+                已足夠快：瀏覽器有了進步，而且無論滑鼠移動多少次，圖形在每幀顯示中只重繪一次。
+            </p>
+            <p>
+                優先事項變為忠實地讀取既有圖形，先是 DGPad，再是
+                GeoGebra，然後才是作圖。
+            </p>
+            <div class="table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>日期</th>
+                            <th>階段</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>2026 年 9 月 13 日</td>
+                            <td>重新啟用 DGPad Pro，改用 TypeScript</td>
+                        </tr>
+                        <tr>
+                            <td>9 月 15 日</td>
+                            <td>開啟 DGPad 圖形（<code>.dgp</code>）</td>
+                        </tr>
+                        <tr>
+                            <td>9 月 24 日</td>
+                            <td>匯入 GeoGebra 圖形（<code>.ggb</code>）</td>
+                        </tr>
+                        <tr>
+                            <td>9 月 27 日</td>
+                            <td>
+                                原生格式 <code>.dgo</code>；可嵌入網頁的圖形
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>10 月 11 日</td>
+                            <td>開始開發作圖編輯器</td>
+                        </tr>
+                        <tr>
+                            <td>10 月 16 日</td>
+                            <td>編輯器的第一版手冊</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <h2>來自 DGPad Pro 的部分</h2>
+            <ul>
+                <li>原生 3D 和檢視旋轉，以及其角度限制。</li>
+                <li>每個物件的 SVG 繪製。</li>
+                <li>只重新計算依賴於被移動物件的那些物件。</li>
+            </ul>
+        </main>
+    </body>
+</html>

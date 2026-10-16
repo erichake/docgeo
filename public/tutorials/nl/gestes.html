@@ -1,0 +1,199 @@
+<!doctype html>
+<html lang="nl">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <title>Met gebaren — DocGeo-handleiding</title>
+        <link rel="icon" type="image/svg+xml" href="../../favicon.svg" />
+        <link rel="stylesheet" href="../manual.css" />
+        <script src="../icons.js" defer></script>
+        <script src="../manual.js" defer></script>
+    </head>
+    <body>
+        <main>
+            <h1>Construeren met gebaren</h1>
+
+            <h2>De figuur aantikken</h2>
+            <div class="table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Aangetikte plek</th>
+                            <th>Resultaat</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>een lege plek</td>
+                            <td>
+                                vrij punt (op de vloer <em>z</em> = 0 in 3D)
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>bij een kruising</td>
+                            <td>
+                                snijpunt van de twee objecten, die oplichten bij
+                                het aanwijzen (binnen 24 px)
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>een object</td>
+                            <td>selectie en ring met zijn gereedschappen</td>
+                        </tr>
+                        <tr>
+                            <td>een lege plek, ring open</td>
+                            <td>de ring sluit, zonder punt te maken</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <p>
+                Een tekst, een uitdrukking of een schuifknop wordt alleen
+                geselecteerd: ze hebben geen ring.
+            </p>
+
+            <h2>De gereedschapsring</h2>
+            <figure>
+                <img
+                    src="img/editeur-anneau.webp"
+                    alt="Gereedschapsring rond punt C, gereedschap Lijnstuk aangewezen"
+                    width="880"
+                    height="720"
+                />
+                <figcaption>
+                    Ring van punt C; de aanwijzing toont de regel van het
+                    aangewezen gereedschap.
+                </figcaption>
+            </figure>
+            <p>
+                De ring toont alleen de gereedschappen die op het aangetikte
+                object van toepassing zijn. Elk gereedschap heeft altijd
+                dezelfde plaats; een niet-toepasbaar gereedschap laat zijn
+                plaats leeg. Families, met de wijzers van de klok mee vanaf
+                boven:
+            </p>
+            <div class="table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Familie</th>
+                            <th>Gereedschappen</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><i data-t="Point"></i> Punten</td>
+                            <td>
+                                punt op object, snijpunt, midden of middelpunt
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><i data-t="Segment"></i> Rechten</td>
+                            <td>lijnstuk, rechte, halfrechte, vector</td>
+                        </tr>
+                        <tr>
+                            <td><i data-t="Perpendicular"></i> Constructies</td>
+                            <td>
+                                loodlijn, evenwijdige, middelloodlijn,
+                                bissectrice
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <i data-t="Circle (centre and point)"></i>
+                                Cirkels
+                            </td>
+                            <td>
+                                middelpunt en punt, middelpunt en straal, drie
+                                punten, bol (3D)
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <i data-t="Polygon"></i> Veelhoeken, hoeken,
+                                meetkundige plaatsen
+                            </td>
+                            <td>veelhoek, hoek, meetkundige plaats</td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <i data-t="Point reflection"></i> Transformaties
+                            </td>
+                            <td>punt- en lijnspiegeling</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <p>
+                Een gereedschap aanwijzen toont in de aanwijzing de regel die
+                het zal schrijven en het verwachte argument:
+                <code>b = Lijnstuk(C, …)</code>, „Selecteer een punt”. De acties
+                op het object zelf (verwijderen, instellen…) staan in de
+                <a href="objets.html#la-zone-contextuelle">contextzone</a> van
+                de balk.
+            </p>
+
+            <h2>De argumenten selecteren</h2>
+            <p>
+                Is het gereedschap gekozen, dan volgt een voorbeeld van het
+                object de aanwijzer en lichten de aanvaarde objecten op bij het
+                aanwijzen. Waar een punt verwacht wordt, selecteer je naar keuze
+                een bestaand punt, een object (er ontstaat een punt op object),
+                een kruising (er ontstaat een snijpunt) of een lege plek (er
+                ontstaat een vrij punt).
+            </p>
+            <ul>
+                <li>
+                    <i data-t="Polygon"></i> Veelhoek: de hoekpunten, en dan
+                    opnieuw het eerste.
+                </li>
+                <li>
+                    <i data-t="Circle (centre and radius)"></i> Cirkel
+                    (middelpunt en straal): met één klik gemaakt, straal van
+                    ongeveer 150 px afgerond op twee cijfers; de cirkel slepen
+                    verandert de straal.
+                </li>
+                <li>
+                    <i data-t="Locus"></i> Meetkundige plaats: aangeboden bij
+                    een punt dat afhangt van een punt op object; met één klik
+                    gemaakt.
+                </li>
+                <li>
+                    <i data-t="Angle"></i> Hoek en
+                    <i data-t="AngleBisector"></i> bissectrice: een punt van het
+                    eerste been, het hoekpunt, een punt van het tweede been.
+                </li>
+            </ul>
+
+            <h2>Bijzondere gevallen</h2>
+            <ul>
+                <li>
+                    <strong>Overlappende objecten</strong>: een menu geeft de
+                    regel van elk object; bij het aanwijzen licht het object op.
+                    Een punt gaat altijd voor, en een kruising geeft meteen het
+                    snijpunt.
+                </li>
+                <li>
+                    <strong>Met de vinger</strong>: tijdens een gereedschap
+                    toont de opgelegde vinger het voorbeeld zonder iets te
+                    verplaatsen en selecteert bij het loslaten. Je kunt op het
+                    pictogram drukken en in één gebaar naar het doel schuiven.
+                </li>
+                <li>
+                    <strong>Rand van het venster</strong>: de ring schuift op om
+                    helemaal zichtbaar te zijn, met het object verbonden door
+                    een stippellijn; hij volgt het object als de figuur beweegt.
+                </li>
+                <li>
+                    <strong>Verlaten</strong>: <kbd>Esc</kbd> of het
+                    <strong>✕</strong> van de aanwijzing.
+                </li>
+                <li>
+                    <strong>Verplaatsen</strong>: tijdens een gereedschap dient
+                    slepen om te mikken; de rechtermuisknop verplaatst altijd
+                    objecten en weergave.
+                </li>
+            </ul>
+        </main>
+    </body>
+</html>

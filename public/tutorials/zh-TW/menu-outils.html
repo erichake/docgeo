@@ -1,0 +1,642 @@
+<!doctype html>
+<html lang="zh-TW">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <title>工具選單 — DocGeo 手冊</title>
+        <link rel="icon" type="image/svg+xml" href="../../favicon.svg" />
+        <link rel="stylesheet" href="../manual.css" />
+        <script src="../icons.js" defer></script>
+        <script src="../manual.js" defer></script>
+    </head>
+    <body>
+        <main>
+            <h1>工具選單</h1>
+            <figure>
+                <img
+                    src="img/editeur-menu-outils.webp"
+                    alt="工具選單開啟在「圓、弧、圓錐曲線」上"
+                    width="620"
+                    height="720"
+                />
+            </figure>
+
+            <h2>用法</h2>
+            <ul>
+                <li>
+                    輸入列右側的<i data-i="tools"></i
+                    >開啟選單：與工具環相同的工具族，顏色和順序都一樣，游標停留或點按時顯示其中的工具。
+                </li>
+                <li>
+                    選單包含工具環的全部工具以及更多工具（下文標有<span
+                        class="badge ring"
+                        >工具環</span
+                    >）。「平面」和「立體圖形」工具族以及標有<span
+                        class="badge d3"
+                        >3D</span
+                    >的工具只在 3D 檢視中出現。
+                </li>
+                <li>
+                    第一個選取的物件可以佔據其類型允許的任何位置：作垂線時，直線可以先於點選取。
+                </li>
+                <li>
+                    工具是<strong>持續</strong>的：每完成一個物件，它都會重新等待第一個參數。選單按鈕換成該工具的圖示，工具列顯示一條帶有<strong>完成</strong>的橫幅。
+                </li>
+                <li>
+                    離開：<strong>完成</strong>、<kbd>Esc</kbd>、提示中的<strong>✕</strong>、選單按鈕（會重新開啟選單）、橡皮擦、逐步構造，或在文字列中點按。復原、重做、屬性和
+                    3D 檢視會保留目前的工具。
+                </li>
+            </ul>
+
+            <h2 id="avec-une-selection">先選取物件</h2>
+            <p>
+                如果先選取了物件（<kbd>Ctrl</kbd>-點按、<kbd>Shift</kbd>-點按或長按），選單會將不接受它們的工具變灰。每個物件依序佔據其類型的第一個空位；若一列已完整，則立即作出。例如：選取
+                A、B、C 後選 <strong>外接圓</strong>，寫出<code
+                    >外接圓(A, B, C)</code
+                >。
+            </p>
+
+            <h2>全部工具</h2>
+            <p>每個工具：需要選取什麼，以及寫出的列。</p>
+            <h3 id="famille-points">點</h3>
+            <div class="family" style="--h: 35">
+                <ul>
+                    <li>
+                        <i data-t="Point"></i>
+                        <div>
+                            <strong
+                                >點<span class="badge ring"
+                                    >工具環</span
+                                ></strong
+                            ><span
+                                >點按的位置：空白處為自由點，在物件上為物件上的點，在兩個物件交叉處為交點。</span
+                            ><span><code>點(c, t)</code></span>
+                        </div>
+                    </li>
+                    <li>
+                        <i data-t="Intersection"></i>
+                        <div>
+                            <strong
+                                >交點<span class="badge ring"
+                                    >工具環</span
+                                ></strong
+                            ><span>點按一次交叉處，或依次選取兩個物件。</span
+                            ><span><code>交點(a, b)</code></span>
+                        </div>
+                    </li>
+                    <li>
+                        <i data-t="Midpoint"></i>
+                        <div>
+                            <strong
+                                >中點<span class="badge ring"
+                                    >工具環</span
+                                ></strong
+                            ><span>兩個點，或一條線段。</span
+                            ><span><code>中點(A, B)</code></span>
+                        </div>
+                    </li>
+                    <li>
+                        <i data-t="Center"></i>
+                        <div>
+                            <strong
+                                >圓心<span class="badge ring"
+                                    >工具環</span
+                                ></strong
+                            ><span>一個圓：它的圓心。</span
+                            ><span><code>圓心(c)</code></span>
+                        </div>
+                    </li>
+                    <li>
+                        <i data-t="OtherIntersection"></i>
+                        <div>
+                            <strong>另一交點</strong
+                            ><span
+                                >兩個物件，再選已位於其中一個交點上的點：離它最遠的交點。</span
+                            ><span><code>另一交點(a, b, P)</code></span>
+                        </div>
+                    </li>
+                    <li>
+                        <i data-t="Incenter"></i>
+                        <div>
+                            <strong>內心</strong
+                            ><span>三個點，三角形的頂點：其內切圓的圓心。</span
+                            ><span><code>內心(A, B, C)</code></span>
+                        </div>
+                    </li>
+                    <li>
+                        <i data-t="Centroid"></i>
+                        <div>
+                            <strong>重心</strong
+                            ><span>三個點：三角形的重心。</span
+                            ><span><code>重心(A, B, C)</code></span>
+                        </div>
+                    </li>
+                    <li>
+                        <i data-t="Circumcenter"></i>
+                        <div>
+                            <strong>外心</strong
+                            ><span>三個點：外接圓的圓心。</span
+                            ><span><code>外心(A, B, C)</code></span>
+                        </div>
+                    </li>
+                    <li>
+                        <i data-t="Orthocenter"></i>
+                        <div>
+                            <strong>垂心</strong
+                            ><span>三個點：三角形的垂心。</span
+                            ><span><code>垂心(A, B, C)</code></span>
+                        </div>
+                    </li>
+                </ul>
+            </div>
+            <h3 id="famille-lines">直線</h3>
+            <div class="family" style="--h: 215">
+                <ul>
+                    <li>
+                        <i data-t="Segment"></i>
+                        <div>
+                            <strong
+                                >線段<span class="badge ring"
+                                    >工具環</span
+                                ></strong
+                            ><span>兩個點，即端點。</span
+                            ><span><code>線段(A, B)</code></span>
+                        </div>
+                    </li>
+                    <li>
+                        <i data-t="Line"></i>
+                        <div>
+                            <strong
+                                >直線<span class="badge ring"
+                                    >工具環</span
+                                ></strong
+                            ><span>直線上的兩個點。</span
+                            ><span><code>直線(A, B)</code></span>
+                        </div>
+                    </li>
+                    <li>
+                        <i data-t="Ray"></i>
+                        <div>
+                            <strong
+                                >射線<span class="badge ring"
+                                    >工具環</span
+                                ></strong
+                            ><span>兩個點：端點，然後射線上的一點。</span
+                            ><span><code>射線(A, B)</code></span>
+                        </div>
+                    </li>
+                    <li>
+                        <i data-t="Vector"></i>
+                        <div>
+                            <strong
+                                >向量<span class="badge ring"
+                                    >工具環</span
+                                ></strong
+                            ><span>兩個點：起點，然後終點。</span
+                            ><span><code>向量(A, B)</code></span>
+                        </div>
+                    </li>
+                </ul>
+            </div>
+            <h3 id="famille-constructions">作圖</h3>
+            <div class="family" style="--h: 265">
+                <ul>
+                    <li>
+                        <i data-t="Perpendicular"></i>
+                        <div>
+                            <strong
+                                >垂線<span class="badge ring"
+                                    >工具環</span
+                                ></strong
+                            ><span
+                                >一個點和一條直線，順序任意。3D
+                                中為一條直線或一個平面。</span
+                            ><span><code>垂線(P, d)</code></span>
+                        </div>
+                    </li>
+                    <li>
+                        <i data-t="Parallel"></i>
+                        <div>
+                            <strong
+                                >平行線<span class="badge ring"
+                                    >工具環</span
+                                ></strong
+                            ><span>一個點和一條直線，順序任意。</span
+                            ><span><code>平行線(P, d)</code></span>
+                        </div>
+                    </li>
+                    <li>
+                        <i data-t="PerpendicularBisector"></i>
+                        <div>
+                            <strong
+                                >中垂線<span class="badge ring"
+                                    >工具環</span
+                                ></strong
+                            ><span>兩個點，或一條線段。</span
+                            ><span><code>中垂線(A, B)</code></span>
+                        </div>
+                    </li>
+                    <li>
+                        <i data-t="AngleBisector"></i>
+                        <div>
+                            <strong
+                                >角平分線<span class="badge ring"
+                                    >工具環</span
+                                ></strong
+                            ><span
+                                >三個點：第一條邊上的一點、頂點、第二條邊上的一點。</span
+                            ><span><code>角平分線(A, O, B)</code></span>
+                        </div>
+                    </li>
+                    <li>
+                        <i data-t="Tangent"></i>
+                        <div>
+                            <strong>切線</strong
+                            ><span
+                                >一個點，然後一個圓、一條圓錐曲線或函數圖形。工具給出第
+                                1 條切線；在該列中把這個編號改為 2
+                                可得另一條。</span
+                            ><span><code>切線(P, c, 1)</code></span>
+                        </div>
+                    </li>
+                </ul>
+            </div>
+            <h3 id="famille-circles">圓、弧、圓錐曲線</h3>
+            <div class="family" style="--h: 145">
+                <ul>
+                    <li>
+                        <i data-t="Circle (centre and point)"></i>
+                        <div>
+                            <strong
+                                >圓（圓心和點）<span class="badge ring"
+                                    >工具環</span
+                                ></strong
+                            ><span>圓心，然後圓上的一點。</span
+                            ><span><code>圓(O, A)</code></span>
+                        </div>
+                    </li>
+                    <li>
+                        <i data-t="Circle (centre and radius)"></i>
+                        <div>
+                            <strong
+                                >圓（圓心和半徑）<span class="badge ring"
+                                    >工具環</span
+                                ></strong
+                            ><span
+                                >只選圓心：半徑約 150
+                                像素，之後可拖曳圓或在其列中修改。</span
+                            ><span><code>圓(O, 3.8)</code></span>
+                        </div>
+                    </li>
+                    <li>
+                        <i data-t="Circumcircle"></i>
+                        <div>
+                            <strong
+                                >外接圓<span class="badge ring"
+                                    >工具環</span
+                                ></strong
+                            ><span>圓上的三個點。</span
+                            ><span><code>外接圓(A, B, C)</code></span>
+                        </div>
+                    </li>
+                    <li>
+                        <i data-t="Sphere"></i>
+                        <div>
+                            <strong
+                                >球<span class="badge ring">工具環</span
+                                ><span class="badge d3">3D</span></strong
+                            ><span>球心，然後球面上的一點。</span
+                            ><span><code>球(O, A)</code></span>
+                        </div>
+                    </li>
+                    <li>
+                        <i data-t="Compass"></i>
+                        <div>
+                            <strong>圓規</strong
+                            ><span>兩個給出半徑的點，然後圓心。</span
+                            ><span><code>圓規(A, B, O)</code></span>
+                        </div>
+                    </li>
+                    <li>
+                        <i data-t="Circle (centre, direction and radius)"></i>
+                        <div>
+                            <strong
+                                >圓（圓心、方向和半徑）<span class="badge d3"
+                                    >3D</span
+                                ></strong
+                            ><span
+                                >圓心，然後一條直線（軸）或一個平面（與圓平行），包括地面。半徑約
+                                150 像素。</span
+                            ><span><code>圓(O, 3.8, d)</code></span>
+                        </div>
+                    </li>
+                    <li>
+                        <i data-t="Circle (axis and point)"></i>
+                        <div>
+                            <strong
+                                >圓（軸和點）<span class="badge d3"
+                                    >3D</span
+                                ></strong
+                            ><span>一條直線（軸），然後圓上的一點。</span
+                            ><span><code>圓(d, P)</code></span>
+                        </div>
+                    </li>
+                    <li>
+                        <i data-t="Arc"></i>
+                        <div>
+                            <strong>圓弧</strong
+                            ><span>三個點：起點、經過的點、終點。</span
+                            ><span><code>圓弧(A, B, C)</code></span>
+                        </div>
+                    </li>
+                    <li>
+                        <i data-t="Sector"></i>
+                        <div>
+                            <strong>扇形</strong
+                            ><span>三個點，同圓弧：它所圍成的扇形。</span
+                            ><span><code>扇形(A, B, C)</code></span>
+                        </div>
+                    </li>
+                    <li>
+                        <i data-t="CenterArc"></i>
+                        <div>
+                            <strong>圓心弧</strong
+                            ><span
+                                >圓心、起點，然後圓弧終止處射線上的一點（逆時針）。</span
+                            ><span><code>圓心弧(M, A, B)</code></span>
+                        </div>
+                    </li>
+                    <li>
+                        <i data-t="CenterSector"></i>
+                        <div>
+                            <strong>圓心扇形</strong
+                            ><span>同 <code>圓心弧</code>：扇形。</span
+                            ><span><code>圓心扇形(M, A, B)</code></span>
+                        </div>
+                    </li>
+                    <li>
+                        <i data-t="Semicircle"></i>
+                        <div>
+                            <strong>半圓</strong
+                            ><span
+                                >兩個點，直徑的端點：位於 [AB]
+                                左側的半圓。</span
+                            ><span><code>半圓(A, B)</code></span>
+                        </div>
+                    </li>
+                    <li>
+                        <i data-t="Conic"></i>
+                        <div>
+                            <strong>二次曲線</strong
+                            ><span
+                                >圓錐曲線上的五個點。從第二個點起，預覽顯示最接近圓的圓錐曲線。</span
+                            ><span><code>二次曲線(A, B, C, D, E)</code></span>
+                        </div>
+                    </li>
+                    <li>
+                        <i data-t="Ellipse"></i>
+                        <div>
+                            <strong>橢圓</strong
+                            ><span>兩個焦點，然後橢圓上的一點。</span
+                            ><span><code>橢圓(F, G, P)</code></span>
+                        </div>
+                    </li>
+                    <li>
+                        <i data-t="Hyperbola"></i>
+                        <div>
+                            <strong>雙曲線</strong
+                            ><span>兩個焦點，然後雙曲線上的一點。</span
+                            ><span><code>雙曲線(F, G, P)</code></span>
+                        </div>
+                    </li>
+                    <li>
+                        <i data-t="Parabola"></i>
+                        <div>
+                            <strong>拋物線</strong><span>焦點，然後準線。</span
+                            ><span><code>拋物線(F, d)</code></span>
+                        </div>
+                    </li>
+                </ul>
+            </div>
+            <h3 id="famille-shapes">多邊形、角、軌跡</h3>
+            <div class="family" style="--h: 185">
+                <ul>
+                    <li>
+                        <i data-t="Polygon"></i>
+                        <div>
+                            <strong
+                                >多邊形<span class="badge ring"
+                                    >工具環</span
+                                ></strong
+                            ><span
+                                >逐個選取頂點，最後再選第一個頂點以閉合。</span
+                            ><span><code>多邊形(A, B, C)</code></span>
+                        </div>
+                    </li>
+                    <li>
+                        <i data-t="Angle"></i>
+                        <div>
+                            <strong
+                                >角<span class="badge ring"
+                                    >工具環</span
+                                ></strong
+                            ><span
+                                >三個點：第一條邊上的一點、頂點、第二條邊上的一點。</span
+                            ><span><code>角(A, O, B)</code></span>
+                        </div>
+                    </li>
+                    <li>
+                        <i data-t="Locus"></i>
+                        <div>
+                            <strong
+                                >軌跡<span class="badge ring"
+                                    >工具環</span
+                                ></strong
+                            ><span
+                                >一個依賴於物件上的點的點：當該點在其物件上移動時它的軌跡。</span
+                            ><span><code>軌跡(M, P)</code></span>
+                        </div>
+                    </li>
+                    <li>
+                        <i data-t="RegularPolygon"></i>
+                        <div>
+                            <strong>正多邊形</strong
+                            ><span
+                                >兩個相鄰頂點：工具給出正方形；在其列中修改邊數。</span
+                            ><span><code>正多邊形(A, B, 4)</code></span>
+                        </div>
+                    </li>
+                </ul>
+            </div>
+            <h3 id="famille-transformations">變換</h3>
+            <div class="family" style="--h: 320">
+                <ul>
+                    <li>
+                        <i data-t="Point reflection"></i>
+                        <div>
+                            <strong
+                                >中心對稱<span class="badge ring"
+                                    >工具環</span
+                                ></strong
+                            ><span>要變換的點，然後中心。</span
+                            ><span><code>對稱(P, O)</code></span>
+                        </div>
+                    </li>
+                    <li>
+                        <i data-t="Line reflection"></i>
+                        <div>
+                            <strong
+                                >軸對稱<span class="badge ring"
+                                    >工具環</span
+                                ></strong
+                            ><span>要變換的點和對稱軸，順序任意。</span
+                            ><span><code>對稱(P, d)</code></span>
+                        </div>
+                    </li>
+                    <li>
+                        <i data-t="Rotation"></i>
+                        <div>
+                            <strong>旋轉</strong
+                            ><span
+                                >點，然後中心：旋轉四分之一圈，可在其列中修改。</span
+                            ><span><code>旋轉(P, O, 90)</code></span>
+                        </div>
+                    </li>
+                    <li>
+                        <i data-t="Translation"></i>
+                        <div>
+                            <strong>平移</strong><span>點，然後向量。</span
+                            ><span><code>平移(P, u)</code></span>
+                        </div>
+                    </li>
+                    <li>
+                        <i data-t="Dilation"></i>
+                        <div>
+                            <strong>位似</strong
+                            ><span>點，然後中心：比為 2，可在其列中修改。</span
+                            ><span><code>位似(P, O, 2)</code></span>
+                        </div>
+                    </li>
+                    <li>
+                        <i data-t="Inversion"></i>
+                        <div>
+                            <strong>反演</strong><span>點，然後反演圓。</span
+                            ><span><code>反演(P, c)</code></span>
+                        </div>
+                    </li>
+                </ul>
+            </div>
+            <h3 id="famille-planes">平面</h3>
+            <div class="family" style="--h: 240">
+                <ul>
+                    <li>
+                        <i data-t="Plane"></i>
+                        <div>
+                            <strong>平面<span class="badge d3">3D</span></strong
+                            ><span>三個點，或一個點和一條直線。</span
+                            ><span><code>平面(A, B, C)</code></span>
+                        </div>
+                    </li>
+                    <li>
+                        <i data-t="ParallelPlane"></i>
+                        <div>
+                            <strong
+                                >平行平面<span class="badge d3"
+                                    >3D</span
+                                ></strong
+                            ><span
+                                >一個點和一個平面（包括地面）：過該點的平行平面。</span
+                            ><span><code>平行平面(A, p)</code></span>
+                        </div>
+                    </li>
+                    <li>
+                        <i data-t="OrthogonalPlane"></i>
+                        <div>
+                            <strong
+                                >垂直平面<span class="badge d3"
+                                    >3D</span
+                                ></strong
+                            ><span>一個點和一條直線：垂直於該直線的平面。</span
+                            ><span><code>垂直平面(A, d)</code></span>
+                        </div>
+                    </li>
+                </ul>
+            </div>
+            <h3 id="famille-solids">立體圖形</h3>
+            <div class="family" style="--h: 265">
+                <ul>
+                    <li>
+                        <i data-t="Cylinder"></i>
+                        <div>
+                            <strong>圓柱<span class="badge d3">3D</span></strong
+                            ><span>兩個點，軸的兩端。半徑約 150 像素。</span
+                            ><span><code>圓柱(A, B, 3.8)</code></span>
+                        </div>
+                    </li>
+                    <li>
+                        <i data-t="Cone"></i>
+                        <div>
+                            <strong>圓錐<span class="badge d3">3D</span></strong
+                            ><span>底面圓心，然後頂點。半徑約 150 像素。</span
+                            ><span><code>圓錐(A, B, 3.8)</code></span>
+                        </div>
+                    </li>
+                    <li>
+                        <i data-t="Cube"></i>
+                        <div>
+                            <strong
+                                >立方體<span class="badge d3">3D</span></strong
+                            ><span
+                                >同一平面上或同一高度的兩個點，否則為三個點（見
+                                3D）。</span
+                            ><span><code>立方體(A, B, C)</code></span>
+                        </div>
+                    </li>
+                    <li>
+                        <i data-t="Prism"></i>
+                        <div>
+                            <strong>稜柱<span class="badge d3">3D</span></strong
+                            ><span
+                                >一個多邊形（底面），然後一個點，即對面一個面的頂點。</span
+                            ><span><code>稜柱(p, P)</code></span>
+                        </div>
+                    </li>
+                    <li>
+                        <i data-t="Pyramid"></i>
+                        <div>
+                            <strong>稜錐<span class="badge d3">3D</span></strong
+                            ><span>一個多邊形（底面），然後頂點。</span
+                            ><span><code>稜錐(p, S)</code></span>
+                        </div>
+                    </li>
+                    <li>
+                        <i data-t="Section"></i>
+                        <div>
+                            <strong>截面<span class="badge d3">3D</span></strong
+                            ><span
+                                >一個立體圖形（球、圓柱、圓錐、多面體）和一個平面，順序任意。</span
+                            ><span><code>截面(s, p)</code></span>
+                        </div>
+                    </li>
+                    <li>
+                        <i data-t="Net"></i>
+                        <div>
+                            <strong
+                                >展開圖<span class="badge d3">3D</span></strong
+                            ><span>立方體、稜柱或稜錐：它的平面展開圖。</span
+                            ><span><code>展開圖(c, 1)</code></span>
+                        </div>
+                    </li>
+                </ul>
+            </div>
+
+            <p>
+                變換作出的是<strong>點</strong>的像。只能用鍵盤輸入的：<code>定點</code>、<code>頂點</code>、<code>滑桿</code>、<code>列表</code>、空間中的交點、<code
+                    >橢圓(F, G, a)</code
+                >和 <code>雙曲線(F, G, a)</code>（見<a href="commandes.html"
+                    >指令</a
+                >）。
+            </p>
+        </main>
+    </body>
+</html>

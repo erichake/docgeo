@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <title>الاستيراد من DGPad وGeoGebra — دليل DocGeo</title>
+        <link rel="icon" type="image/svg+xml" href="../../favicon.svg" />
+        <link rel="stylesheet" href="../manual.css" />
+        <script src="../icons.js" defer></script>
+        <script src="../manual.js" defer></script>
+    </head>
+    <body>
+        <main>
+            <h1>الاستيراد من DGPad وGeoGebra</h1>
+
+            <p class="lead">
+                <code>.dgo</code> هي صيغة DocGeo؛ أما <code>.dgp</code> و<code
+                    >.ggb</code
+                >
+                فتُستورد ثم تُحفظ بصيغة <code>.dgo</code>. لا يوجد تصدير إلى
+                DGPad أو GeoGebra.
+            </p>
+
+            <h2>صيغة ‎.dgo</h2>
+            <p>
+                JSON مضغوط: العناصر والأنماط والعرض. ولا تتطور إلا بالإضافة:
+                يبقى الملف المحفوظ مقروءًا في الإصدارات اللاحقة.
+            </p>
+
+            <h2 id="figures-dgpad">DGPad</h2>
+            <p>
+                تُنقل الأشكال المستوية وثلاثية الأبعاد، والأنماط، والتعابير،
+                والمنزلقات، والتحريكات، والمحال الهندسية، والمغانط، والآثار،
+                والماكرو.
+            </p>
+            <div class="table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>برنامج DGPad</th>
+                            <th>DocGeo</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>
+                                سكربتات التعابير، Blockly الذي يحسب تعبيرًا،
+                                سلحفاة Blockly
+                            </td>
+                            <td>تُفسَّر</td>
+                        </tr>
+                        <tr>
+                            <td>أزرار Blockly (تنسيق، تغيير عدد)</td>
+                            <td>تُفسَّر</td>
+                        </tr>
+                        <tr>
+                            <td>Blockly الأحداث، JavaScript، HTML النشط</td>
+                            <td>تُتجاهل ويُبلَّغ عنها</td>
+                        </tr>
+                        <tr>
+                            <td>التعبير «restrictions» (قفل الواجهة)</td>
+                            <td>يُتجاهل</td>
+                        </tr>
+                        <tr>
+                            <td>قيود التدوير ثلاثي الأبعاد</td>
+                            <td>تُطبَّق</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <p>
+                لا يُنفّذ المتصفح أي شيفرة من الشكل. واختلاف مقصود: لا يُوصل
+                المنحنى بخط عمودي عند نقاط انقطاعه.
+            </p>
+
+            <h2>GeoGebra</h2>
+            <p>
+                يصبح كل أمر عنصر DocGeo الموافق، بالوسائط نفسها؛ وتُعاد النقاط
+                على العناصر والتقاطعات إلى المواضع التي حفظها GeoGebra.
+            </p>
+            <ul>
+                <li>
+                    يُنقل: الهندسة المستوية وثلاثية الأبعاد، الدوال والمنحنيات
+                    (المشتقات والتكاملات العددية)، المنزلقات، خانات الاختيار،
+                    حقول الإدخال، شروط الإظهار، نصوص LaTeX، الصور، أنماط الأسماء
+                    ومواضعها، المحاور والشبكة، التحريكات، الآثار، الماكرو.
+                </li>
+                <li>
+                    لا يُنقل: السكربتات (GGBScript، JavaScript)، الحساب الرمزي،
+                    بعض أوامر القوائم.
+                </li>
+            </ul>
+            <p>
+                أكثر من نصف الأشكال الـ 470 من مجموعة أشكال من geogebra.org
+                تُفتح دون فقدان. ويُتجاهل العنصر غير المدعوم مع العناصر التابعة
+                له ويُبلَّغ عنه.
+            </p>
+        </main>
+    </body>
+</html>

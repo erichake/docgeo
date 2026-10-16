@@ -23,6 +23,7 @@ const pt: Texts = {
         save: "Salvar",
         undo: "Desfazer",
         redo: "Refazer",
+        help: "Manual de utilização",
         delete: "Excluir",
         eraser: "Borracha",
         axes: "Eixos",

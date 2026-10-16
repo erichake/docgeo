@@ -141,19 +141,35 @@ test sont dans `tests/ggb/` (et `tests/dgp/` pour DGPad).
 ### Manuel d'utilisation
 
 Le manuel de l'éditeur, destiné à des professeurs de mathématiques (aller
-au but, rien sur le lecteur), est un mini-site statique dans `public/tutorials/<langue>/` (pour
-l'instant `fr`) : une page HTML par rubrique, dont le `<main>` seul porte le
-contenu ; `manual.js` (liste des pages `PAGES`, tables des matières,
-recherche) et `manual.css` font le reste. Il n'entre pas dans le poids du
-build qui compte (moteur, lecteur, éditeur).
+au but, rien sur le lecteur), est un mini-site statique dans
+`public/tutorials/<langue>/`, dans les 12 langues de l'éditeur : une page
+HTML par rubrique, dont le `<main>` seul porte le contenu, aux mêmes noms de
+fichiers et aux mêmes `id` des titres visés par un lien dans toutes les
+langues (le changement de langue garde la page et l'ancre). Les fichiers
+communs sont dans `public/tutorials/` : `manual.js` (liste des pages
+`PAGES`, titres et textes de l'interface par langue `LANGS`, tables des
+matières, recherche, sélecteur de langue), `manual.css` (propriétés
+logiques, pour l'arabe écrit de droite à gauche), `icons.js`, et
+`index.html`, qui ouvre la langue du navigateur ou de `?lang=`. Il n'entre
+pas dans le poids du build qui compte (moteur, lecteur, éditeur).
 
-Les icônes (`icons.js`) et les captures (`img/`) sont générées depuis
-l'éditeur : `npm run manual` (ou `-- icons`, `-- shots`, `-- check`, voir
-`tools/manual/generate.mjs`, captures décrites dans `tools/manual/shots.mjs`).
-Après un changement de l'interface, d'un outil ou d'une commande, relancer
-`npm run manual` : son contrôle signale les outils et commandes de l'éditeur
-absents du manuel, et les icônes, outils ou captures que le manuel nomme sans
-qu'ils existent. Mettre alors à jour les pages concernées.
+Le français est la version de référence : toute modification d'une page se
+reporte dans les 12 langues. Les termes de l'interface sont ceux des
+fichiers `src/editor/lang/`, les noms de commandes ceux de la langue (dans
+les exemples de code comme dans `commandes.html`), les icônes d'outils
+(`data-t`) sont désignées par le libellé anglais de l'outil. En chinois, pas
+de saut de ligne du source entre deux caractères chinois : le navigateur
+l'afficherait comme une espace.
+
+Les icônes (`icons.js`) et les captures (`<langue>/img/`) sont générées
+depuis l'éditeur : `npm run manual` (ou `-- icons`, `-- shots`, `-- check`,
+suivis éventuellement de codes de langue, voir `tools/manual/generate.mjs`,
+captures décrites dans `tools/manual/shots.mjs`). Après un changement de
+l'interface, d'un outil ou d'une commande, relancer `npm run manual` : son
+contrôle signale, pour chaque langue, les pages manquantes, les outils et
+commandes de l'éditeur absents du manuel, et les icônes, outils ou captures
+que le manuel nomme sans qu'ils existent. Mettre alors à jour les pages
+concernées.
 
 - **Code minimal** : produire le strict nécessaire, sans code défensif superflu.
 - **Pas de `try/catch`** sauf si une exception est réellement possible et doit être traitée différemment.

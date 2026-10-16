@@ -1,0 +1,247 @@
+<!doctype html>
+<html lang="de">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <title>Eigenschaften und Koordinatensystem — DocGeo-Handbuch</title>
+        <link rel="icon" type="image/svg+xml" href="../../favicon.svg" />
+        <link rel="stylesheet" href="../manual.css" />
+        <script src="../icons.js" defer></script>
+        <script src="../manual.js" defer></script>
+    </head>
+    <body>
+        <main>
+            <h1>Eigenschaften und Koordinatensystem</h1>
+
+            <figure>
+                <img
+                    src="img/editeur-proprietes.webp"
+                    alt="Eigenschaftenfeld für den Punkt C"
+                    width="1200"
+                    height="720"
+                />
+            </figure>
+
+            <h2>Das Feld</h2>
+            <ul>
+                <li>
+                    Geöffnet mit <i data-i="properties"></i> oder mit
+                    <i data-i="settings"></i> im Kontextbereich; geschlossen mit
+                    seinem Kreuz, derselben Schaltfläche oder <kbd>Esc</kbd>.
+                </li>
+                <li>
+                    Zwei Tabs: <strong>Objekt</strong> und
+                    <strong>Figur</strong>.
+                </li>
+                <li>
+                    Das einzustellende Objekt wird in der Figur, über seine
+                    Zeile oder in der Liste „Objekt wählen…“ gewählt
+                    (ausgeblendete Objekte eingeschlossen). Ein Klick in die
+                    Figur wählt dort aus, statt zu konstruieren; Schaltflächen
+                    und Kästchen werden gewählt, ohne ausgelöst zu werden. Ein
+                    Werkzeug des Menüs oder die Eingabezeile konstruieren
+                    normal, und das erzeugte Objekt erscheint im Feld.
+                </li>
+                <li>
+                    Änderungen wirken sofort und lassen sich rückgängig machen.
+                </li>
+                <li>
+                    Zahlenfelder: Waagerechtes Ziehen stellt den Wert ein
+                    (<kbd>Umschalt</kbd>: zehnmal feiner), ein Klick erlaubt das
+                    Eintippen. Ein Ziehen zählt als ein einziger
+                    Rückgängig-Schritt.
+                </li>
+                <li>
+                    Eine Schaltfläche <strong>↺</strong> neben einer Farbe setzt
+                    sie auf die Standardfarbe des Werkzeugs zurück.
+                </li>
+            </ul>
+
+            <h2>Der Tab „Objekt“</h2>
+            <div class="table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Abschnitt</th>
+                            <th>Einstellungen</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Objekt</td>
+                            <td>
+                                Name; bei einem Ausdruck die
+                                <a href="expressions.html#les-programmes"
+                                    >Definition</a
+                                >
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Darstellung</td>
+                            <td>
+                                auf Objekte desselben Typs anwenden, Farbe,
+                                Punktgröße, Linienstärke, Kontur, Deckkraft von
+                                Linie und Füllung, Füllfarbe, gestrichelt, Ebene
+                                (Zeichenreihenfolge)
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Anzeige</td>
+                            <td>
+                                Objekt sichtbar, Name anzeigen, Textgröße,
+                                Dezimalstellen des Werts (oder nicht anzeigen)
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Punkt</td>
+                            <td>
+                                Form (Kreis, Quadrat, Kreuz, Raute), Position
+                                des Namens in Grad, Spur, horizontale und
+                                vertikale Schrittweite (Bewegung in Sprüngen)
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Strecke</td>
+                            <td>Markierung (Striche für gleiche Längen)</td>
+                        </tr>
+                        <tr>
+                            <td>Winkel</td>
+                            <td>
+                                Radius des Bogens, Markierung des rechten
+                                Winkels (offenes Winkelzeichen, Bogen, Quadrat,
+                                Punkt, Winkelzeichen)
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Ortslinie, Liste</td>
+                            <td>
+                                Anzahl der Punkte; Linienstärke der Strecken
+                            </td>
+                        </tr>
+                        <tr>
+                            <td id="curseurs">Schieberegler</td>
+                            <td>
+                                Schrittweite, Länge, vertikal, Farbe und Größe
+                                des Griffs
+                            </td>
+                        </tr>
+                        <tr>
+                            <td id="animation">Animation</td>
+                            <td>
+                                Geschwindigkeit (0: Stopp), umgekehrte Richtung,
+                                am Ende: neu beginnen, hin und her oder anhalten
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <h3 id="regler-plusieurs-objets">Mehrere Objekte</h3>
+            <p>
+                Bei einer Mehrfachauswahl werden nur die allen gemeinsamen
+                Einstellungen angezeigt; ein Wert, der von Objekt zu Objekt
+                verschieden ist, steht grau und kursiv. <kbd>Strg</kbd>-Klick,
+                <kbd>Umschalt</kbd>-Klick oder langes Drücken (Figur oder Feld
+                „Konstruktion“) fügen ein Objekt hinzu oder entfernen es.
+            </p>
+
+            <h2>Der Tab „Figur“</h2>
+            <figure>
+                <img
+                    src="img/editeur-onglet-figure.webp"
+                    alt="Tab Figur: Vorlagen des Koordinatensystems und Achsen"
+                    width="600"
+                    height="720"
+                />
+            </figure>
+            <p>Ein Klick auf eine Achse öffnet diesen Tab.</p>
+            <div class="table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Abschnitt</th>
+                            <th>Einstellungen</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Koordinatensystem</td>
+                            <td>
+                                angezeigt oder nicht; Vorlagen DGPad, GeoGebra,
+                                nur Achsen, gepunktetes Gitter, Karopapier,
+                                Millimeterpapier (nur Darstellung, weder Zoom
+                                noch Hintergrund)
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Achsen (x und y)</td>
+                            <td>
+                                angezeigt, Name, Zahlen, Einheit (π: Vielfache
+                                von π/2), Teilstriche, Zahlenabstand (leer:
+                                auto; 🔗 verbindet x und y), Pfeile, Farbe,
+                                Größe und Fettdruck der Zahlen, Stil DGPad oder
+                                GeoGebra, positive Halbachsen
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Gitter</td>
+                            <td>
+                                angezeigt oder nicht, Linienabstand,
+                                Unterteilungen, Farbe (standardmäßig die der
+                                Achsen), Dicke, Linie durchgezogen, gepunktet
+                                oder gestrichelt
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Zoomen und Verschieben</td>
+                            <td>
+                                Achse am Bildschirm fixiert, um den Ursprung
+                                zoomen
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Figur</td>
+                            <td>
+                                Hintergrund; Winkel in Grad (Standard) oder im
+                                Bogenmaß; Strecken über Polygonen
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <h3 id="l-onglet-figure-en-3d">In 3D</h3>
+            <div class="table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Abschnitt</th>
+                            <th>Einstellungen</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Achsen</td>
+                            <td>Dreibein angezeigt, Farbe, Linienstärke</td>
+                        </tr>
+                        <tr>
+                            <td>Boden</td>
+                            <td>
+                                angezeigt, Farbe (↺: oben blau, unten braun),
+                                Deckkraft, Größe, Abstand, Farbe und Stärke der
+                                Linien
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Ansicht</td>
+                            <td>Perspektive</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <p>
+                Diese Einstellungen lassen sich rückgängig machen; Zoomen,
+                Verschieben und Drehen der Ansicht nicht.
+            </p>
+        </main>
+    </body>
+</html>

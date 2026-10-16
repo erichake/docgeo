@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="hi">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <title>खोलना और सहेजना — DocGeo पुस्तिका</title>
+        <link rel="icon" type="image/svg+xml" href="../../favicon.svg" />
+        <link rel="stylesheet" href="../manual.css" />
+        <script src="../icons.js" defer></script>
+        <script src="../manual.js" defer></script>
+    </head>
+    <body>
+        <main>
+            <h1>खोलना और सहेजना</h1>
+
+            <h2>खोलना</h2>
+            <p>
+                <i data-i="open"></i> <strong>खोलें</strong> एक फ़ाइल लोड करता
+                है:
+            </p>
+            <div class="table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>एक्सटेंशन</th>
+                            <th>स्रोत</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><code>.dgo</code></td>
+                            <td>DocGeo, मूल फ़ॉर्मेट</td>
+                        </tr>
+                        <tr>
+                            <td><code>.dgp</code></td>
+                            <td>DGPad, आयातित</td>
+                        </tr>
+                        <tr>
+                            <td><code>.ggb</code></td>
+                            <td>GeoGebra, आयातित</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <p>
+                खोली गई आकृति वर्तमान आकृति की जगह ले लेती है और पूर्ववत करने का
+                इतिहास खाली कर देती है।
+            </p>
+            <p>
+                ऑनलाइन आकृति संपादक के पते से खुलती है:
+                <code>editor.html?url=https://example.com/thales.ggb</code>।
+                फ़ॉर्मेट एक्सटेंशन से तय होता है (<code>.ggb</code>,
+                <code>.dgo</code>, अन्यथा DGPad); सर्वर को किसी दूसरी साइट से
+                पढ़ने की अनुमति देनी चाहिए (CORS)।
+            </p>
+
+            <h2>अधूरा आयात</h2>
+            <p>
+                DGPad या GeoGebra का कोई असमर्थित तत्व अपने आश्रितों सहित अनदेखा
+                कर दिया जाता है; संकेत उनकी सूची देता है («आयात नहीं हुआ: …»)।
+                विवरण <a href="formats.html">DGPad और GeoGebra से आयात</a> में
+                है।
+            </p>
+
+            <h2>सहेजना</h2>
+            <p>
+                <i data-i="save"></i> या <kbd>Ctrl</kbd> <kbd>S</kbd> आकृति को
+                <code>.dgo</code> में डाउनलोड करता है, खुली आकृति के नाम से (नई
+                आकृति के लिए <code>figure.dgo</code>)। दृश्य (ज़ूम, 3D दिशा,
+                निर्देशांक प्रणाली) भी सहेजा जाता है।
+            </p>
+            <p>
+                <code>.dgo</code> ही एकमात्र सहेजने का फ़ॉर्मेट है: DGPad या
+                GeoGebra की आकृति खोलकर सहेजने से वह बदल जाती है।
+            </p>
+
+            <h2>भाषा</h2>
+            <p>
+                संपादक ब्राउज़र की भाषा लेता है; <code>?lang=</code> भाषा तय
+                करता है (<code>ar</code>, <code>de</code>, <code>el</code>,
+                <code>en</code>, <code>es</code>, <code>fr</code>,
+                <code>hi</code>, <code>it</code>, <code>nl</code>,
+                <code>pt</code>, <code>zh</code>, <code>zh-TW</code>)। भाषा
+                कमांडों के नाम भी तय करती है (<code>मध्यबिन्दु</code>,
+                <code lang="fr">Milieu</code>…); अंग्रेज़ी नाम सभी भाषाओं में
+                समझे जाते हैं।
+            </p>
+        </main>
+    </body>
+</html>

@@ -1,0 +1,248 @@
+<!doctype html>
+<html lang="nl">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <title>Eigenschappen en assenstelsel — DocGeo-handleiding</title>
+        <link rel="icon" type="image/svg+xml" href="../../favicon.svg" />
+        <link rel="stylesheet" href="../manual.css" />
+        <script src="../icons.js" defer></script>
+        <script src="../manual.js" defer></script>
+    </head>
+    <body>
+        <main>
+            <h1>Eigenschappen en assenstelsel</h1>
+
+            <figure>
+                <img
+                    src="img/editeur-proprietes.webp"
+                    alt="Eigenschappenpaneel van punt C"
+                    width="1200"
+                    height="720"
+                />
+            </figure>
+
+            <h2>Het paneel</h2>
+            <ul>
+                <li>
+                    Geopend met <i data-i="properties"></i> of met
+                    <i data-i="settings"></i> in de contextzone; gesloten met
+                    zijn kruisje, dezelfde knop of <kbd>Esc</kbd>.
+                </li>
+                <li>
+                    Twee tabbladen: <strong>Object</strong> en
+                    <strong>Figuur</strong>.
+                </li>
+                <li>
+                    Het in te stellen object kies je in de figuur, via zijn
+                    regel of in de lijst „Kies een object…” (verborgen objecten
+                    inbegrepen). Een klik in de figuur selecteert in plaats van
+                    te construeren; knoppen en vakjes worden geselecteerd zonder
+                    te reageren. Een gereedschap uit het menu of de invoerregel
+                    construeren normaal, en het gemaakte object verschijnt in
+                    het paneel.
+                </li>
+                <li>
+                    Wijzigingen zijn onmiddellijk en kunnen ongedaan gemaakt
+                    worden.
+                </li>
+                <li>
+                    Getalvelden: horizontaal slepen stelt de waarde in
+                    (<kbd>Shift</kbd>: tien keer fijner), een klik laat je ze
+                    typen. Eén sleepbeweging telt als één stap van ongedaan
+                    maken.
+                </li>
+                <li>
+                    Een knop <strong>↺</strong> naast een kleur zet die terug op
+                    de standaardkleur van het gereedschap.
+                </li>
+            </ul>
+
+            <h2>Het tabblad „Object”</h2>
+            <div class="table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Sectie</th>
+                            <th>Instellingen</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Object</td>
+                            <td>
+                                naam; bij een uitdrukking de
+                                <a href="expressions.html#les-programmes"
+                                    >definitie</a
+                                >
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Uiterlijk</td>
+                            <td>
+                                toepassen op objecten van hetzelfde type, kleur,
+                                puntgrootte, lijndikte, contour, dekking van
+                                lijn en vulling, vulkleur, gestippeld, laag
+                                (tekenvolgorde)
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Weergave</td>
+                            <td>
+                                object zichtbaar, naam tonen, tekstgrootte,
+                                decimalen van de waarde (of niet tonen)
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Punt</td>
+                            <td>
+                                vorm (cirkel, vierkant, kruis, ruit), positie
+                                van de naam in graden, spoor, horizontale en
+                                verticale stap (verplaatsing in sprongen)
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Lijnstuk</td>
+                            <td>markering (streepjes voor gelijke lengtes)</td>
+                        </tr>
+                        <tr>
+                            <td>Hoek</td>
+                            <td>
+                                straal van de boog, markering van de rechte hoek
+                                (open winkelhaak, boog, vierkant, punt,
+                                winkelhaak)
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Meetkundige plaats, lijst</td>
+                            <td>aantal punten; dikte van de lijnstukken</td>
+                        </tr>
+                        <tr>
+                            <td id="curseurs">Schuifknop</td>
+                            <td>
+                                stap, lengte, verticaal, kleur en grootte van de
+                                knop
+                            </td>
+                        </tr>
+                        <tr>
+                            <td id="animation">Animatie</td>
+                            <td>
+                                snelheid (0: stop), omgekeerde richting, aan het
+                                uiteinde: opnieuw beginnen, heen en weer of
+                                stoppen
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <h3 id="regler-plusieurs-objets">Meerdere objecten</h3>
+            <p>
+                Bij een meervoudige selectie worden alleen de instellingen
+                getoond die alle objecten gemeen hebben; een waarde die van
+                object tot object verschilt, staat grijs en cursief.
+                <kbd>Ctrl</kbd>-klik, <kbd>Shift</kbd>-klik of lang drukken
+                (figuur of paneel „Constructie”) voegen een object toe of nemen
+                het weg.
+            </p>
+
+            <h2>Het tabblad „Figuur”</h2>
+            <figure>
+                <img
+                    src="img/editeur-onglet-figure.webp"
+                    alt="Tabblad Figuur: sjablonen voor het assenstelsel en assen"
+                    width="600"
+                    height="720"
+                />
+            </figure>
+            <p>Een klik op een as opent dit tabblad.</p>
+            <div class="table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Sectie</th>
+                            <th>Instellingen</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Assenstelsel</td>
+                            <td>
+                                zichtbaar of niet; sjablonen DGPad, GeoGebra,
+                                alleen assen, gestippeld rooster, ruitjespapier,
+                                millimeterpapier (alleen uiterlijk, geen zoom of
+                                achtergrond)
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Assen (x en y)</td>
+                            <td>
+                                zichtbaar, naam, getallen, eenheid (π:
+                                veelvouden van π/2), maatstreepjes, afstand
+                                tussen getallen (leeg: auto; 🔗 koppelt x en y),
+                                pijlen, kleur, grootte en vetheid van de
+                                getallen, stijl DGPad of GeoGebra, positieve
+                                halve assen
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Rooster</td>
+                            <td>
+                                zichtbaar of niet, afstand tussen lijnen,
+                                onderverdelingen, kleur (standaard die van de
+                                assen), dikte, lijn doorgetrokken, gestippeld of
+                                gestreept
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Zoomen en verschuiven</td>
+                            <td>
+                                as vast op het scherm, zoomen rond de oorsprong
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Figuur</td>
+                            <td>
+                                achtergrond; hoeken in graden (standaard) of
+                                radialen; lijnstukken boven veelhoeken
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <h3 id="l-onglet-figure-en-3d">In 3D</h3>
+            <div class="table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Sectie</th>
+                            <th>Instellingen</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Assen</td>
+                            <td>assenkruis zichtbaar, kleur, lijndikte</td>
+                        </tr>
+                        <tr>
+                            <td>Vloer</td>
+                            <td>
+                                zichtbaar, kleur (↺: boven blauw, onder bruin),
+                                dekking, grootte, afstand, kleur en dikte van de
+                                lijnen
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Weergave</td>
+                            <td>perspectief</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <p>
+                Deze instellingen kunnen ongedaan gemaakt worden; zoomen,
+                verschuiven en draaien van de weergave niet.
+            </p>
+        </main>
+    </body>
+</html>

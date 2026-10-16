@@ -1,0 +1,161 @@
+<!doctype html>
+<html lang="zh-TW">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <title>用手勢作圖 — DocGeo 手冊</title>
+        <link rel="icon" type="image/svg+xml" href="../../favicon.svg" />
+        <link rel="stylesheet" href="../manual.css" />
+        <script src="../icons.js" defer></script>
+        <script src="../manual.js" defer></script>
+    </head>
+    <body>
+        <main>
+            <h1>用手勢作圖</h1>
+
+            <h2>點按圖形</h2>
+            <div class="table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>點按位置</th>
+                            <th>結果</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>空白處</td>
+                            <td>自由點（3D 中位於地面 <em>z</em> = 0 上）</td>
+                        </tr>
+                        <tr>
+                            <td>交叉處附近</td>
+                            <td>
+                                兩個物件的交點，游標停留時兩者會醒目顯示（距離小於
+                                24 px）
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>一個物件</td>
+                            <td>選取該物件並開啟其工具環</td>
+                        </tr>
+                        <tr>
+                            <td>空白處（工具環已開啟）</td>
+                            <td>關閉工具環，不建立點</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <p>文字、運算式或滑桿只會被選取：它們沒有工具環。</p>
+
+            <h2>工具環</h2>
+            <figure>
+                <img
+                    src="img/editeur-anneau.webp"
+                    alt="點 C 周圍的工具環，游標停留在線段工具上"
+                    width="880"
+                    height="720"
+                />
+                <figcaption>
+                    點 C 的工具環；提示顯示游標所停工具的列。
+                </figcaption>
+            </figure>
+            <p>
+                工具環只顯示適用於所點按物件的工具。每個工具的位置始終不變；不適用的工具會留下空位。工具族從上方開始按順時針排列：
+            </p>
+            <div class="table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>工具族</th>
+                            <th>工具</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><i data-t="Point"></i> 點</td>
+                            <td>物件上的點、交點、中點或圓心</td>
+                        </tr>
+                        <tr>
+                            <td><i data-t="Segment"></i> 直線</td>
+                            <td>線段、直線、射線、向量</td>
+                        </tr>
+                        <tr>
+                            <td><i data-t="Perpendicular"></i> 作圖</td>
+                            <td>垂線、平行線、中垂線、角平分線</td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <i data-t="Circle (centre and point)"></i> 圓
+                            </td>
+                            <td>圓心和點、圓心和半徑、三點、球（3D）</td>
+                        </tr>
+                        <tr>
+                            <td><i data-t="Polygon"></i> 多邊形、角、軌跡</td>
+                            <td>多邊形、角、軌跡</td>
+                        </tr>
+                        <tr>
+                            <td><i data-t="Point reflection"></i> 變換</td>
+                            <td>中心對稱和軸對稱</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <p>
+                游標停留在工具上時，提示會顯示它將寫出的列和所需的參數：<code
+                    >b = 線段(C, …)</code
+                >，「選取一個點」。對物件本身的操作（刪除、設定…）在操作列的<a
+                    href="objets.html#la-zone-contextuelle"
+                    >情境區</a
+                >中。
+            </p>
+
+            <h2>選取參數</h2>
+            <p>
+                選定工具後，物件的預覽會跟隨游標，可接受的物件在游標停留時醒目顯示。在需要點的位置，可以任選一個已有的點、一個物件（建立物件上的點）、一個交叉處（建立交點）或空白處（建立自由點）。
+            </p>
+            <ul>
+                <li>
+                    <i data-t="Polygon"></i
+                    >多邊形：依次選取頂點，最後再選第一個頂點。
+                </li>
+                <li>
+                    <i data-t="Circle (centre and radius)"></i
+                    >圓（圓心和半徑）：按一下即可建立，半徑約 150
+                    px，取兩位有效數字；拖曳圓可改變半徑。
+                </li>
+                <li>
+                    <i data-t="Locus"></i
+                    >軌跡：在依賴於物件上的點的點上提供；按一下即可建立。
+                </li>
+                <li>
+                    <i data-t="Angle"></i> 角和<i data-t="AngleBisector"></i
+                    >角平分線：第一條邊上的一點、頂點、第二條邊上的一點。
+                </li>
+            </ul>
+
+            <h2>特殊情況</h2>
+            <ul>
+                <li>
+                    <strong>重疊的物件</strong
+                    >：會出現一個選單，列出每個物件的列；游標停留時對應物件醒目顯示。點總是優先，交叉處直接給出交點。
+                </li>
+                <li>
+                    <strong>用手指</strong
+                    >：使用工具時，按住的手指只顯示預覽而不移動任何東西，抬起時才選取。可以按住圖示，一次滑動到目標。
+                </li>
+                <li>
+                    <strong>視窗邊緣</strong
+                    >：工具環會移位以完整顯示，並用虛線與物件相連；圖形移動時它會跟隨物件。
+                </li>
+                <li>
+                    <strong>放棄</strong
+                    >：<kbd>Esc</kbd>或提示中的<strong>✕</strong>。
+                </li>
+                <li>
+                    <strong>移動</strong
+                    >：使用工具時，拖曳用於瞄準；右鍵總是移動物件和檢視。
+                </li>
+            </ul>
+        </main>
+    </body>
+</html>

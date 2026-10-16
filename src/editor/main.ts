@@ -222,6 +222,7 @@ $("head").append(`<style>
     .dge-bar-group { display: flex; gap: 4px; }
     .dge-bar-group + .dge-bar-group { padding-inline-start: 8px; border-inline-start: 1px solid #dbe2ea; }
     .dge-action { display: grid; place-items: center; flex-shrink: 0; width: 40px; height: 40px; padding: 0; border: 1px solid transparent; border-radius: 10px; background: transparent; color: #536174; cursor: pointer; }
+    .dge-help { margin-inline-start: 8px; text-decoration: none; }
     .dge-action svg { display: block; width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 1.65; stroke-linecap: round; stroke-linejoin: round; pointer-events: none; }
     .dge-action:hover:not(:disabled) { background: #e8eef7; color: #1d4ed8; }
     .dge-action:focus-visible { outline: 2px solid #2563eb; outline-offset: 2px; }
@@ -670,7 +671,20 @@ $("body").add(
             $.create("div").cls("dge-bar-middle").add(actions),
             $.create("div")
                 .cls("dge-bar-group dge-bar-end")
-                .add(undoButton, redoButton),
+                .add(
+                    undoButton,
+                    redoButton,
+                    $.create("a")
+                        .cls("dge-action dge-help")
+                        .att("href", `tutorials/index.html?lang=${LANG}`)
+                        .att("target", "_blank")
+                        .att("rel", "noopener")
+                        .att("title", message("help"))
+                        .att("aria-label", message("help"))
+                        .append(
+                            `<svg viewBox="0 0 24 24" aria-hidden="true">${ACTION_ICONS.help}</svg>`,
+                        ),
+                ),
         ),
     properties.panel,
     resizeHandle(properties.panel, "right", () =>

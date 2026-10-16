@@ -1,0 +1,281 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <title>With the keyboard — DocGeo manual</title>
+        <link rel="icon" type="image/svg+xml" href="../../favicon.svg" />
+        <link rel="stylesheet" href="../manual.css" />
+        <script src="../icons.js" defer></script>
+        <script src="../manual.js" defer></script>
+    </head>
+    <body>
+        <main>
+            <h1>Building with the keyboard</h1>
+
+            <p class="lead">
+                One line per object: <code>name = Command(arguments)</code>,
+                typed in the input line of the “Construction” panel and
+                confirmed with <kbd>Enter</kbd>.
+            </p>
+            <pre><code>A = (-5, -2)
+B = (4, -3)
+C = (-1, 4)
+p = Polygon(A, B, C)
+c = Circumcircle(A, B, C)
+M = Midpoint(A, B)</code></pre>
+
+            <h2>Syntax</h2>
+            <div class="table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Element</th>
+                            <th>Rule</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Free point</td>
+                            <td>
+                                <code>A = (2, 3)</code>;
+                                <code>A = (2, 3, 1)</code> in 3D
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Numbers</td>
+                            <td>
+                                decimal separator: the
+                                <strong>point</strong> (<code>2.5</code>);
+                                <code>(1,5, 2)</code> is a point with three
+                                coordinates
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Command</td>
+                            <td>
+                                case and accents ignored (<code
+                                    >perpendicularbisector(A, B)</code
+                                >), the English name is accepted in every
+                                language; the line is rewritten in the usual
+                                form
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Number argument</td>
+                            <td>
+                                number, name of an expression or a slider, or
+                                formula: <code>Circle(A, 2*r)</code>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Name left out</td>
+                            <td>
+                                <code>Midpoint(A, B)</code>: automatic name,
+                                uppercase for a point, lowercase otherwise (not
+                                e, i, k, l, o, t, x, y, z)
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Existing name</td>
+                            <td>the line redefines the object</td>
+                        </tr>
+                        <tr>
+                            <td>Special name</td>
+                            <td>
+                                apostrophe allowed (<code>A'</code>); other
+                                characters between backquotes (<code
+                                    >`aux 2`</code
+                                >)
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Names to avoid</td>
+                            <td>
+                                <code>x</code>, <code>y</code> (equations),
+                                <code>i</code> (imaginary unit)
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Other line</td>
+                            <td>
+                                neither point nor command: an
+                                <a href="expressions.html">expression</a> (<code
+                                    >a = 3</code
+                                >, <code>E = d(A, B)</code>)
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <p>
+                Forms and arguments of each command:
+                <a href="commandes.html">Commands</a>.
+            </p>
+
+            <h2 id="la-completion">Completion and designation</h2>
+            <ul>
+                <li>
+                    The list offers the commands at the start of a line, then,
+                    between parentheses, only the objects the current argument
+                    accepts, highlighted in the figure. <kbd>↑</kbd>
+                    <kbd>↓</kbd> choose, <kbd>Tab</kbd> or
+                    <kbd>Enter</kbd> insert, <kbd>Esc</kbd> closes.
+                </li>
+                <li>
+                    A click on an object writes its name, followed by
+                    <code>, </code> or <code>)</code> depending on what remains
+                    to designate: <code>M = Midpoint(</code>, click on A, click
+                    on B gives <code>M = Midpoint(A, B)</code>.
+                </li>
+                <li>
+                    In the input line, a click where there is no point creates
+                    one (free, on object or intersection); a preview follows the
+                    pointer. Clicking the first vertex of a polygon again ends
+                    it.
+                </li>
+                <li>
+                    Same gesture in a formula: <code>E = d(</code>, click on H
+                    then M.
+                </li>
+            </ul>
+
+            <h2 id="modifier-une-ligne">Editing a line</h2>
+            <p>
+                Each line of the panel is a field: <kbd>Enter</kbd> confirms,
+                <kbd>Esc</kbd> restores.
+            </p>
+            <ul>
+                <li>New coordinates: the free point is moved.</li>
+                <li>
+                    New definition: the object is redefined, keeps its style,
+                    and its dependents follow (<code>M = Midpoint(A, B)</code> →
+                    <code>M = (5, 5)</code> → <code>M = Midpoint(B, C)</code>).
+                    The construction is reordered if needed; a cycle is refused.
+                </li>
+                <li>
+                    New name: the object is renamed in every line and formula.
+                </li>
+                <li><code>A =</code> deletes A and its dependents.</li>
+            </ul>
+
+            <h2 id="equations">Equations</h2>
+            <p>
+                Two sides in x, y (and z) separated by <code>=</code>; the kind
+                of object is read from the coefficients, which may depend on
+                sliders.
+            </p>
+            <div class="table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Line</th>
+                            <th>Object</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>
+                                <code>d = y = a*x + b</code>, <code>x = 3</code>
+                            </td>
+                            <td>line</td>
+                        </tr>
+                        <tr>
+                            <td><code>c = x^2 + y^2 = 4</code></td>
+                            <td>circle</td>
+                        </tr>
+                        <tr>
+                            <td><code>e = x^2/9 + y^2/4 = 1</code></td>
+                            <td>conic</td>
+                        </tr>
+                        <tr>
+                            <td><code>p = x + y + z = 3</code></td>
+                            <td>plane (3D)</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <p>
+                Degree higher than 2 or not polynomial: refused. At the start of
+                a line, <code>z</code> is a name: <code>z = 3</code> is an
+                expression, the plane is written <code>p = z = 3</code>.
+            </p>
+
+            <h2>Intersections and points on objects</h2>
+            <ul>
+                <li>
+                    <code>Intersection(d1, d2)</code> for two lines;
+                    <code>Intersection(c, d, n)</code>, n from 1 to 4,
+                    otherwise.
+                </li>
+                <li>
+                    <code>OtherIntersection(c, d, P)</code>: the common point
+                    farthest from P.
+                </li>
+                <li>
+                    <code>Point(c, t)</code>, or <code>Point(p, a, b)</code> on
+                    a polygon or a conic: position on the object, written by the
+                    gesture.
+                </li>
+            </ul>
+
+            <h2>Errors</h2>
+            <p>
+                A faulty line is not applied: it stays framed in red, the prompt
+                gives the reason, the rest of the figure is untouched.
+            </p>
+            <div class="table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Message</th>
+                            <th>Cause</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Can’t read</td>
+                            <td>parenthesis, comma or character</td>
+                        </tr>
+                        <tr>
+                            <td>Unknown command, Unknown object</td>
+                            <td>name misspelled or missing</td>
+                        </tr>
+                        <tr>
+                            <td>Wrong arguments for …</td>
+                            <td>
+                                no form matches; “With these arguments” recalls
+                                the forms
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>The name … is taken</td>
+                            <td>renaming</td>
+                        </tr>
+                        <tr>
+                            <td>An object can’t depend on itself</td>
+                            <td>cycle</td>
+                        </tr>
+                        <tr>
+                            <td>
+                                A plane figure keeps its objects in the plane z
+                                = 0…
+                            </td>
+                            <td>
+                                object in space: switch to
+                                <a href="3d.html">3D view</a>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>This object has no text form yet</td>
+                            <td>
+                                imported object without a command: read-only
+                                line <code>name = …</code>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </main>
+    </body>
+</html>

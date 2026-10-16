@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <title>DGPad and GeoGebra import — DocGeo manual</title>
+        <link rel="icon" type="image/svg+xml" href="../../favicon.svg" />
+        <link rel="stylesheet" href="../manual.css" />
+        <script src="../icons.js" defer></script>
+        <script src="../manual.js" defer></script>
+    </head>
+    <body>
+        <main>
+            <h1>DGPad and GeoGebra import</h1>
+
+            <p class="lead">
+                <code>.dgo</code> is the DocGeo format; <code>.dgp</code> and
+                <code>.ggb</code> are imported, then saved as <code>.dgo</code>.
+                No export to DGPad or GeoGebra.
+            </p>
+
+            <h2>The .dgo format</h2>
+            <p>
+                Compressed JSON: objects, styles and view. It only evolves by
+                additions: a saved file remains readable by later versions.
+            </p>
+
+            <h2 id="figures-dgpad">DGPad</h2>
+            <p>
+                Plane and 3D figures, styles, expressions, sliders, animations,
+                loci, magnets, traces and macros are carried over.
+            </p>
+            <div class="table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>DGPad program</th>
+                            <th>DocGeo</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>
+                                expression scripts, Blockly that computes an
+                                expression, Blockly turtle
+                            </td>
+                            <td>interpreted</td>
+                        </tr>
+                        <tr>
+                            <td>
+                                Blockly buttons (styling, changing a number)
+                            </td>
+                            <td>interpreted</td>
+                        </tr>
+                        <tr>
+                            <td>event Blockly, JavaScript, active HTML</td>
+                            <td>ignored and reported</td>
+                        </tr>
+                        <tr>
+                            <td>
+                                “restrictions” expression (locking of the
+                                interface)
+                            </td>
+                            <td>ignored</td>
+                        </tr>
+                        <tr>
+                            <td>3D rotation restrictions</td>
+                            <td>applied</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <p>
+                No code of a figure is run by the browser. Deliberate
+                difference: a curve is not joined by a vertical line at its
+                discontinuities.
+            </p>
+
+            <h2>GeoGebra</h2>
+            <p>
+                Each command becomes the matching DocGeo object, with the same
+                arguments; points on objects and intersections are put back at
+                the positions saved by GeoGebra.
+            </p>
+            <ul>
+                <li>
+                    Carried over: plane and 3D geometry, functions and curves
+                    (numerical derivatives and integrals), sliders, checkboxes,
+                    input boxes, display conditions, LaTeX texts, images, styles
+                    and position of names, axes and grid, animations, traces,
+                    macros.
+                </li>
+                <li>
+                    Not carried over: scripts (GGBScript, JavaScript), computer
+                    algebra, some list commands.
+                </li>
+            </ul>
+            <p>
+                More than half of the 470 figures of a corpus from geogebra.org
+                open without loss. An unsupported element is ignored along with
+                its dependents and reported.
+            </p>
+        </main>
+    </body>
+</html>

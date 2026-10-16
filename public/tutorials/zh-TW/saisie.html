@@ -1,0 +1,256 @@
+<!doctype html>
+<html lang="zh-TW">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <title>用鍵盤作圖 — DocGeo 手冊</title>
+        <link rel="icon" type="image/svg+xml" href="../../favicon.svg" />
+        <link rel="stylesheet" href="../manual.css" />
+        <script src="../icons.js" defer></script>
+        <script src="../manual.js" defer></script>
+    </head>
+    <body>
+        <main>
+            <h1>用鍵盤作圖</h1>
+
+            <p class="lead">
+                每個物件一列：<code>名稱 = 指令(參數)</code
+                >，在「作圖」面板的輸入列中輸入，按<kbd>Enter</kbd> 確認。
+            </p>
+            <pre><code>A = (-5, -2)
+B = (4, -3)
+C = (-1, 4)
+p = 多邊形(A, B, C)
+c = 外接圓(A, B, C)
+M = 中點(A, B)</code></pre>
+
+            <h2>語法</h2>
+            <div class="table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>元素</th>
+                            <th>規則</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>自由點</td>
+                            <td>
+                                <code>A = (2, 3)</code>；3D 中為<code
+                                    >A = (2, 3, 1)</code
+                                >
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>數</td>
+                            <td>
+                                小數分隔符號為<strong>點</strong>（<code>2.5</code>）；<code
+                                    >(1,5, 2)</code
+                                >是一個有三個座標的點
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>指令</td>
+                            <td>
+                                不區分大小寫和重音符號，也接受英文名稱；該列會改寫為通常形式
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>數作為參數</td>
+                            <td>
+                                數、運算式或滑桿的名稱，或公式：<code
+                                    >圓(A, 2*r)</code
+                                >
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>省略名稱</td>
+                            <td>
+                                <code>中點(A, B)</code
+                                >：自動命名，點用大寫字母，其他用小寫字母（不用
+                                e、i、k、l、o、t、x、y、z）
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>已有名稱</td>
+                            <td>該列重新定義此物件</td>
+                        </tr>
+                        <tr>
+                            <td>特殊名稱</td>
+                            <td>
+                                可使用撇號（<code>A'</code>）；其他字元放在反引號之間（<code
+                                    >`aux 2`</code
+                                >）
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>應避免的名稱</td>
+                            <td>
+                                <code>x</code
+                                >、<code>y</code>（方程式）、<code>i</code>（虛數單位）
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>其他列</td>
+                            <td>
+                                既不是點也不是指令：一個<a
+                                    href="expressions.html"
+                                    >運算式</a
+                                >（<code>a = 3</code>、<code>E = d(A, B)</code
+                                >）
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <p>各指令的形式和參數：<a href="commandes.html">指令</a>。</p>
+
+            <h2 id="la-completion">自動完成與選取</h2>
+            <ul>
+                <li>
+                    在列首，清單提示指令；在括號內，只提示目前參數可接受的物件，並在圖形中醒目顯示。<kbd
+                        >↑</kbd
+                    >
+                    <kbd>↓</kbd> 選擇，<kbd>Tab</kbd> 或<kbd>Enter</kbd>
+                    插入，<kbd>Esc</kbd>關閉。
+                </li>
+                <li>
+                    點按一個物件會寫入其名稱，後面依還需選取的內容加上<code
+                        >, </code
+                    >或 <code>)</code>：<code>M = 中點(</code>，點按 A，再點按
+                    B，得到 <code>M = 中點(A, B)</code>。
+                </li>
+                <li>
+                    在輸入列中，點按沒有點的地方會建立一個點（自由點、物件上的點或交點）；預覽跟隨游標。再次點按多邊形的第一個頂點即可完成多邊形。
+                </li>
+                <li>在公式中也一樣：<code>E = d(</code>，點按 H，再點按 M。</li>
+            </ul>
+
+            <h2 id="modifier-une-ligne">修改一列</h2>
+            <p>
+                面板中的每一列都是一個輸入欄位：<kbd>Enter</kbd>確認，<kbd>Esc</kbd>還原。
+            </p>
+            <ul>
+                <li>新座標：移動自由點。</li>
+                <li>
+                    新定義：物件被重新定義，保留其樣式，其依賴物件隨之改變（<code
+                        >M = 中點(A, B)</code
+                    >
+                    → <code>M = (5, 5)</code> →
+                    <code>M = 中點(B, C)</code
+                    >）。必要時會重新排列作圖順序；循環依賴會被拒絕。
+                </li>
+                <li>新名稱：物件在所有列和公式中都會被重新命名。</li>
+                <li><code>A =</code> 刪除 A 及其依賴物件。</li>
+            </ul>
+
+            <h2 id="equations">方程式</h2>
+            <p>
+                用 <code>=</code> 分隔的關於 x、y（和
+                z）的兩邊；物件類型由係數決定，係數可以依賴於滑桿。
+            </p>
+            <div class="table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>列</th>
+                            <th>物件</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>
+                                <code>d = y = a*x + b</code>、<code>x = 3</code>
+                            </td>
+                            <td>直線</td>
+                        </tr>
+                        <tr>
+                            <td><code>c = x^2 + y^2 = 4</code></td>
+                            <td>圓</td>
+                        </tr>
+                        <tr>
+                            <td><code>e = x^2/9 + y^2/4 = 1</code></td>
+                            <td>圓錐曲線</td>
+                        </tr>
+                        <tr>
+                            <td><code>p = x + y + z = 3</code></td>
+                            <td>平面（3D）</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <p>
+                次數高於 2 或非多項式：拒絕。在列首，<code>z</code>是名稱：<code
+                    >z = 3</code
+                >是運算式，平面應寫作<code>p = z = 3</code>。
+            </p>
+
+            <h2>交點與物件上的點</h2>
+            <ul>
+                <li>
+                    兩條直線用 <code>交點(d1, d2)</code>；其他情況用<code
+                        >交點(c, d, n)</code
+                    >，n 為 1 到 4。
+                </li>
+                <li><code>另一交點(c, d, P)</code>：離 P 最遠的公共點。</li>
+                <li>
+                    <code>點(c, t)</code>，或多邊形、圓錐曲線上的<code
+                        >點(p, a, b)</code
+                    >：在物件上的位置，由手勢寫出。
+                </li>
+            </ul>
+
+            <h2>錯誤</h2>
+            <p>
+                有錯誤的列不會被套用：它保持紅框，提示給出原因，圖形的其餘部分不受影響。
+            </p>
+            <div class="table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>訊息</th>
+                            <th>原因</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>無法理解</td>
+                            <td>括號、逗號或字元</td>
+                        </tr>
+                        <tr>
+                            <td>未知指令、未知物件</td>
+                            <td>名稱拼寫錯誤或不存在</td>
+                        </tr>
+                        <tr>
+                            <td>… 的參數不正確</td>
+                            <td>
+                                沒有相符的形式；「使用這些參數」會列出各種形式
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>名稱 … 已被使用</td>
+                            <td>重新命名</td>
+                        </tr>
+                        <tr>
+                            <td>物件不能依賴於自身</td>
+                            <td>循環依賴</td>
+                        </tr>
+                        <tr>
+                            <td>平面圖形的物件都在平面 z = 0 內…</td>
+                            <td>
+                                空間物件：切換到 <a href="3d.html">3D 檢視</a>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>此物件暫時無法寫成文字</td>
+                            <td>
+                                沒有指令的匯入物件：唯讀列 <code>名稱 = …</code>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </main>
+    </body>
+</html>

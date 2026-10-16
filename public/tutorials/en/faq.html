@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <title>FAQ — DocGeo manual</title>
+        <link rel="icon" type="image/svg+xml" href="../../favicon.svg" />
+        <link rel="stylesheet" href="../manual.css" />
+        <script src="../icons.js" defer></script>
+        <script src="../manual.js" defer></script>
+    </head>
+    <body>
+        <main>
+            <h1>Frequently asked questions</h1>
+
+            <h2>Construction</h2>
+            <h3>The click creates a point instead of opening the ring</h3>
+            <p>
+                The click missed the object. <kbd>Ctrl</kbd> <kbd>Z</kbd>, then
+                aim at the stroke. Near a crossing, the click creates the
+                intersection.
+            </p>
+            <h3>The tool stays active</h3>
+            <p>
+                Menu tools are persistent: <strong>Done</strong>,
+                <kbd>Esc</kbd> or <strong>✕</strong> leave them.
+            </p>
+            <h3>The click builds nothing</h3>
+            <p>
+                A mode is active: eraser (<i data-i="eraser"></i> blue), step by
+                step, magnets, or properties panel without a tool.
+                <kbd>Esc</kbd> leaves it.
+            </p>
+            <h3><code>(2,5, 1)</code> gives a point in space</h3>
+            <p>The decimal separator is the point: <code>(2.5, 1)</code>.</p>
+            <h3><code>L = [1, 2, 3]</code> is refused</h3>
+            <p>
+                An uppercase name makes a point, here in space. Write
+                <code>list = [1, 2, 3]</code>.
+            </p>
+            <h3><code>pi</code> is an unknown object</h3>
+            <p>Write <code>PI</code> or <code>π</code>.</p>
+            <h3>An object cannot be named x or y</h3>
+            <p>
+                At the start of a line, they introduce an equation (<code
+                    >y = 2x + 1</code
+                >).
+            </p>
+            <h3>Transforming a polygon</h3>
+            <p>
+                Transformations apply to points: transform the vertices, then
+                <strong>Polygon</strong> on the images (multiple selection, then
+                the tool).
+            </p>
+            <h3>Changing the radius of a circle created with one click</h3>
+            <p>
+                Drag the circle, or edit its line (<code>Circle(O, r)</code>
+                with a number, a slider or a formula).
+            </p>
+            <h3>Deleting a point erased other objects</h3>
+            <p>
+                The dependents are deleted with it. Undo, then hide the point
+                instead of deleting it.
+            </p>
+
+            <h2>3D and view</h2>
+            <h3>“3D view” does not return to the plane</h3>
+            <p>
+                An object leaves the plane <em>z</em> = 0; the prompt names it.
+            </p>
+            <h3>Rotating with the mouse</h3>
+            <p>Right button; the left button moves the view.</p>
+            <h3>Zooming on a tablet</h3>
+            <p>Two-finger pinch is not supported yet.</p>
+            <h3>The traces have disappeared</h3>
+            <p>They are cleared each time the view is moved or zoomed.</p>
+
+            <h2>Files</h2>
+            <h3>A figure opened with <code>?url=</code> does not load</h3>
+            <p>
+                The server must allow reading from another site
+                (<code>Access-Control-Allow-Origin</code>). The extension must
+                be <code>.ggb</code> or <code>.dgo</code>; anything else is read
+                as DGPad.
+            </p>
+            <h3>Incomplete import</h3>
+            <p>
+                The listed elements are not supported (<a href="formats.html"
+                    >DGPad and GeoGebra import</a
+                >); the rest of the figure works and can be saved.
+            </p>
+        </main>
+    </body>
+</html>

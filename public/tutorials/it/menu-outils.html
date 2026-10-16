@@ -1,0 +1,741 @@
+<!doctype html>
+<html lang="it">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <title>Il menu degli strumenti — Manuale di DocGeo</title>
+        <link rel="icon" type="image/svg+xml" href="../../favicon.svg" />
+        <link rel="stylesheet" href="../manual.css" />
+        <script src="../icons.js" defer></script>
+        <script src="../manual.js" defer></script>
+    </head>
+    <body>
+        <main>
+            <h1>Il menu degli strumenti</h1>
+            <figure>
+                <img
+                    src="img/editeur-menu-outils.webp"
+                    alt="Menu degli strumenti aperto su Circonferenze, archi, coniche"
+                    width="620"
+                    height="720"
+                />
+            </figure>
+
+            <h2>Uso</h2>
+            <ul>
+                <li>
+                    <i data-i="tools"></i>, a destra della riga di inserimento,
+                    apre il menu: le famiglie dell’anello, stessi colori, stesso
+                    ordine, poi i loro strumenti al passaggio del puntatore o al
+                    tocco.
+                </li>
+                <li>
+                    Il menu contiene tutti gli strumenti dell’anello e altri
+                    ancora (contrassegno
+                    <span class="badge ring">anello</span> qui sotto). Le
+                    famiglie Piani e Solidi e gli strumenti marcati
+                    <span class="badge d3">3D</span> compaiono solo nella vista
+                    3D.
+                </li>
+                <li>
+                    Il primo oggetto selezionato occupa qualsiasi posto che il
+                    suo tipo accetta: per una perpendicolare, la retta può
+                    venire prima del punto.
+                </li>
+                <li>
+                    Lo strumento è <strong>persistente</strong>: dopo ogni
+                    oggetto, attende di nuovo il suo primo argomento. Il
+                    pulsante del menu prende la sua icona e la barra mostra una
+                    fascia con <strong>Fatto</strong>.
+                </li>
+                <li>
+                    Uscita: <strong>Fatto</strong>, <kbd>Esc</kbd>, la
+                    <strong>✕</strong> del suggerimento, il pulsante del menu
+                    (che riapre il menu), la gomma, il passo dopo passo o un
+                    clic in una riga di testo. Annulla, ripristina, le proprietà
+                    e la vista 3D mantengono lo strumento.
+                </li>
+            </ul>
+
+            <h2 id="avec-une-selection">Con una selezione</h2>
+            <p>
+                Con oggetti selezionati prima (<kbd>Ctrl</kbd>-clic,
+                <kbd>Maiusc</kbd>-clic o pressione prolungata), il menu
+                disattiva gli strumenti che non li accettano. Ogni oggetto
+                occupa, nell’ordine, il primo posto libero del suo tipo; la riga
+                viene costruita subito se è completa. Esempio: A, B, C poi
+                <strong>CirconferenzaCircoscritta</strong> scrive
+                <code>CirconferenzaCircoscritta(A, B, C)</code>.
+            </p>
+
+            <h2>Tutti gli strumenti</h2>
+            <p>
+                Per ogni strumento: ciò che si seleziona, poi la riga scritta.
+            </p>
+            <h3 id="famille-points">Punti</h3>
+            <div class="family" style="--h: 35">
+                <ul>
+                    <li>
+                        <i data-t="Point"></i>
+                        <div>
+                            <strong
+                                >Punto<span class="badge ring"
+                                    >anello</span
+                                ></strong
+                            ><span
+                                >Il punto che si tocca: libero in uno spazio
+                                vuoto, su un oggetto o all’intersezione di due
+                                oggetti.</span
+                            ><span><code>Punto(c, t)</code></span>
+                        </div>
+                    </li>
+                    <li>
+                        <i data-t="Intersection"></i>
+                        <div>
+                            <strong
+                                >Intersezione<span class="badge ring"
+                                    >anello</span
+                                ></strong
+                            ><span
+                                >Un incrocio con un solo tocco, oppure i due
+                                oggetti uno dopo l’altro.</span
+                            ><span><code>Intersezione(a, b)</code></span>
+                        </div>
+                    </li>
+                    <li>
+                        <i data-t="Midpoint"></i>
+                        <div>
+                            <strong
+                                >PuntoMedio<span class="badge ring"
+                                    >anello</span
+                                ></strong
+                            ><span>Due punti, oppure un segmento.</span
+                            ><span><code>PuntoMedio(A, B)</code></span>
+                        </div>
+                    </li>
+                    <li>
+                        <i data-t="Center"></i>
+                        <div>
+                            <strong
+                                >Centro<span class="badge ring"
+                                    >anello</span
+                                ></strong
+                            ><span>Una circonferenza: il suo centro.</span
+                            ><span><code>Centro(c)</code></span>
+                        </div>
+                    </li>
+                    <li>
+                        <i data-t="OtherIntersection"></i>
+                        <div>
+                            <strong>AltraIntersezione</strong
+                            ><span
+                                >Due oggetti, poi un punto già posto su una
+                                delle loro intersezioni: il punto d’intersezione
+                                più lontano da esso.</span
+                            ><span
+                                ><code>AltraIntersezione(a, b, P)</code></span
+                            >
+                        </div>
+                    </li>
+                    <li>
+                        <i data-t="Incenter"></i>
+                        <div>
+                            <strong>Incentro</strong
+                            ><span
+                                >Tre punti, vertici di un triangolo: il centro
+                                della sua circonferenza inscritta.</span
+                            ><span><code>Incentro(A, B, C)</code></span>
+                        </div>
+                    </li>
+                    <li>
+                        <i data-t="Centroid"></i>
+                        <div>
+                            <strong>Baricentro</strong
+                            ><span>Tre punti: il baricentro del triangolo.</span
+                            ><span><code>Baricentro(A, B, C)</code></span>
+                        </div>
+                    </li>
+                    <li>
+                        <i data-t="Circumcenter"></i>
+                        <div>
+                            <strong>Circocentro</strong
+                            ><span
+                                >Tre punti: il centro della circonferenza
+                                circoscritta.</span
+                            ><span><code>Circocentro(A, B, C)</code></span>
+                        </div>
+                    </li>
+                    <li>
+                        <i data-t="Orthocenter"></i>
+                        <div>
+                            <strong>Ortocentro</strong
+                            ><span>Tre punti: l’ortocentro del triangolo.</span
+                            ><span><code>Ortocentro(A, B, C)</code></span>
+                        </div>
+                    </li>
+                </ul>
+            </div>
+            <h3 id="famille-lines">Rette</h3>
+            <div class="family" style="--h: 215">
+                <ul>
+                    <li>
+                        <i data-t="Segment"></i>
+                        <div>
+                            <strong
+                                >Segmento<span class="badge ring"
+                                    >anello</span
+                                ></strong
+                            ><span>Due punti, i suoi estremi.</span
+                            ><span><code>Segmento(A, B)</code></span>
+                        </div>
+                    </li>
+                    <li>
+                        <i data-t="Line"></i>
+                        <div>
+                            <strong
+                                >Retta<span class="badge ring"
+                                    >anello</span
+                                ></strong
+                            ><span>Due punti della retta.</span
+                            ><span><code>Retta(A, B)</code></span>
+                        </div>
+                    </li>
+                    <li>
+                        <i data-t="Ray"></i>
+                        <div>
+                            <strong
+                                >Semiretta<span class="badge ring"
+                                    >anello</span
+                                ></strong
+                            ><span
+                                >Due punti: l’origine, poi un punto della
+                                semiretta.</span
+                            ><span><code>Semiretta(A, B)</code></span>
+                        </div>
+                    </li>
+                    <li>
+                        <i data-t="Vector"></i>
+                        <div>
+                            <strong
+                                >Vettore<span class="badge ring"
+                                    >anello</span
+                                ></strong
+                            ><span>Due punti: l’origine, poi l’estremo.</span
+                            ><span><code>Vettore(A, B)</code></span>
+                        </div>
+                    </li>
+                </ul>
+            </div>
+            <h3 id="famille-constructions">Costruzioni</h3>
+            <div class="family" style="--h: 265">
+                <ul>
+                    <li>
+                        <i data-t="Perpendicular"></i>
+                        <div>
+                            <strong
+                                >Perpendicolare<span class="badge ring"
+                                    >anello</span
+                                ></strong
+                            ><span
+                                >Un punto e una retta, nell’ordine che si
+                                preferisce. In 3D, una retta o un piano.</span
+                            ><span><code>Perpendicolare(P, d)</code></span>
+                        </div>
+                    </li>
+                    <li>
+                        <i data-t="Parallel"></i>
+                        <div>
+                            <strong
+                                >Parallela<span class="badge ring"
+                                    >anello</span
+                                ></strong
+                            ><span
+                                >Un punto e una retta, nell’ordine che si
+                                preferisce.</span
+                            ><span><code>Parallela(P, d)</code></span>
+                        </div>
+                    </li>
+                    <li>
+                        <i data-t="PerpendicularBisector"></i>
+                        <div>
+                            <strong
+                                >AsseSegmento<span class="badge ring"
+                                    >anello</span
+                                ></strong
+                            ><span>Due punti, oppure un segmento.</span
+                            ><span><code>AsseSegmento(A, B)</code></span>
+                        </div>
+                    </li>
+                    <li>
+                        <i data-t="AngleBisector"></i>
+                        <div>
+                            <strong
+                                >Bisettrice<span class="badge ring"
+                                    >anello</span
+                                ></strong
+                            ><span
+                                >Tre punti: un punto del primo lato, il vertice,
+                                un punto del secondo lato.</span
+                            ><span><code>Bisettrice(A, O, B)</code></span>
+                        </div>
+                    </li>
+                    <li>
+                        <i data-t="Tangent"></i>
+                        <div>
+                            <strong>Tangente</strong
+                            ><span
+                                >Un punto, poi una circonferenza, una conica o
+                                il grafico di una funzione. Lo strumento dà la
+                                tangente n. 1; cambia questo numero in 2 nella
+                                sua riga per l’altra.</span
+                            ><span><code>Tangente(P, c, 1)</code></span>
+                        </div>
+                    </li>
+                </ul>
+            </div>
+            <h3 id="famille-circles">Circonferenze, archi, coniche</h3>
+            <div class="family" style="--h: 145">
+                <ul>
+                    <li>
+                        <i data-t="Circle (centre and point)"></i>
+                        <div>
+                            <strong
+                                >Circonferenza (centro e punto)<span
+                                    class="badge ring"
+                                    >anello</span
+                                ></strong
+                            ><span
+                                >Il centro, poi un punto della
+                                circonferenza.</span
+                            ><span><code>Circonferenza(O, A)</code></span>
+                        </div>
+                    </li>
+                    <li>
+                        <i data-t="Circle (centre and radius)"></i>
+                        <div>
+                            <strong
+                                >Circonferenza (centro e raggio)<span
+                                    class="badge ring"
+                                    >anello</span
+                                ></strong
+                            ><span
+                                >Solo il centro: il raggio, di circa 150 pixel,
+                                si cambia poi trascinando la circonferenza o
+                                nella sua riga.</span
+                            ><span><code>Circonferenza(O, 3.8)</code></span>
+                        </div>
+                    </li>
+                    <li>
+                        <i data-t="Circumcircle"></i>
+                        <div>
+                            <strong
+                                >CirconferenzaCircoscritta<span
+                                    class="badge ring"
+                                    >anello</span
+                                ></strong
+                            ><span>Tre punti della circonferenza.</span
+                            ><span
+                                ><code
+                                    >CirconferenzaCircoscritta(A, B, C)</code
+                                ></span
+                            >
+                        </div>
+                    </li>
+                    <li>
+                        <i data-t="Sphere"></i>
+                        <div>
+                            <strong
+                                >Sfera<span class="badge ring">anello</span
+                                ><span class="badge d3">3D</span></strong
+                            ><span>Il centro, poi un punto della sfera.</span
+                            ><span><code>Sfera(O, A)</code></span>
+                        </div>
+                    </li>
+                    <li>
+                        <i data-t="Compass"></i>
+                        <div>
+                            <strong>Compasso</strong
+                            ><span
+                                >Due punti che danno il raggio, poi il
+                                centro.</span
+                            ><span><code>Compasso(A, B, O)</code></span>
+                        </div>
+                    </li>
+                    <li>
+                        <i data-t="Circle (centre, direction and radius)"></i>
+                        <div>
+                            <strong
+                                >Circonferenza (centro, direzione e raggio)<span
+                                    class="badge d3"
+                                    >3D</span
+                                ></strong
+                            ><span
+                                >Il centro, poi una retta (l’asse) o un piano
+                                (parallelo alla circonferenza), pavimento
+                                compreso. Raggio di circa 150 pixel.</span
+                            ><span><code>Circonferenza(O, 3.8, d)</code></span>
+                        </div>
+                    </li>
+                    <li>
+                        <i data-t="Circle (axis and point)"></i>
+                        <div>
+                            <strong
+                                >Circonferenza (asse e punto)<span
+                                    class="badge d3"
+                                    >3D</span
+                                ></strong
+                            ><span
+                                >Una retta, l’asse, poi un punto della
+                                circonferenza.</span
+                            ><span><code>Circonferenza(d, P)</code></span>
+                        </div>
+                    </li>
+                    <li>
+                        <i data-t="Arc"></i>
+                        <div>
+                            <strong>Arco</strong
+                            ><span
+                                >Tre punti: l’inizio, un punto di passaggio, la
+                                fine.</span
+                            ><span><code>Arco(A, B, C)</code></span>
+                        </div>
+                    </li>
+                    <li>
+                        <i data-t="Sector"></i>
+                        <div>
+                            <strong>Settore</strong
+                            ><span
+                                >Tre punti, come per l’arco: il settore che
+                                delimita.</span
+                            ><span><code>Settore(A, B, C)</code></span>
+                        </div>
+                    </li>
+                    <li>
+                        <i data-t="CenterArc"></i>
+                        <div>
+                            <strong>ArcoCentro</strong
+                            ><span
+                                >Il centro, l’inizio, poi un punto della
+                                semiretta dove l’arco si ferma (senso
+                                antiorario).</span
+                            ><span><code>ArcoCentro(M, A, B)</code></span>
+                        </div>
+                    </li>
+                    <li>
+                        <i data-t="CenterSector"></i>
+                        <div>
+                            <strong>SettoreCentro</strong
+                            ><span
+                                >Come <code>ArcoCentro</code>: il settore.</span
+                            ><span><code>SettoreCentro(M, A, B)</code></span>
+                        </div>
+                    </li>
+                    <li>
+                        <i data-t="Semicircle"></i>
+                        <div>
+                            <strong>Semicirconferenza</strong
+                            ><span
+                                >Due punti, estremi del diametro: la
+                                semicirconferenza a sinistra di [AB].</span
+                            ><span><code>Semicirconferenza(A, B)</code></span>
+                        </div>
+                    </li>
+                    <li>
+                        <i data-t="Conic"></i>
+                        <div>
+                            <strong>Conica</strong
+                            ><span
+                                >Cinque punti della conica. Dal secondo in poi,
+                                l’anteprima mostra la conica più vicina a una
+                                circonferenza.</span
+                            ><span><code>Conica(A, B, C, D, E)</code></span>
+                        </div>
+                    </li>
+                    <li>
+                        <i data-t="Ellipse"></i>
+                        <div>
+                            <strong>Ellisse</strong
+                            ><span
+                                >I due fuochi, poi un punto dell’ellisse.</span
+                            ><span><code>Ellisse(F, G, P)</code></span>
+                        </div>
+                    </li>
+                    <li>
+                        <i data-t="Hyperbola"></i>
+                        <div>
+                            <strong>Iperbole</strong
+                            ><span
+                                >I due fuochi, poi un punto dell’iperbole.</span
+                            ><span><code>Iperbole(F, G, P)</code></span>
+                        </div>
+                    </li>
+                    <li>
+                        <i data-t="Parabola"></i>
+                        <div>
+                            <strong>Parabola</strong
+                            ><span>Il fuoco, poi la direttrice.</span
+                            ><span><code>Parabola(F, d)</code></span>
+                        </div>
+                    </li>
+                </ul>
+            </div>
+            <h3 id="famille-shapes">Poligoni, angoli, luoghi</h3>
+            <div class="family" style="--h: 185">
+                <ul>
+                    <li>
+                        <i data-t="Polygon"></i>
+                        <div>
+                            <strong
+                                >Poligono<span class="badge ring"
+                                    >anello</span
+                                ></strong
+                            ><span
+                                >I vertici uno alla volta, poi di nuovo il primo
+                                per chiudere.</span
+                            ><span><code>Poligono(A, B, C)</code></span>
+                        </div>
+                    </li>
+                    <li>
+                        <i data-t="Angle"></i>
+                        <div>
+                            <strong
+                                >Angolo<span class="badge ring"
+                                    >anello</span
+                                ></strong
+                            ><span
+                                >Tre punti: un punto del primo lato, il vertice,
+                                un punto del secondo lato.</span
+                            ><span><code>Angolo(A, O, B)</code></span>
+                        </div>
+                    </li>
+                    <li>
+                        <i data-t="Locus"></i>
+                        <div>
+                            <strong
+                                >Luogo<span class="badge ring"
+                                    >anello</span
+                                ></strong
+                            ><span
+                                >Un punto che dipende da un punto su oggetto: il
+                                suo luogo quando questo punto percorre il suo
+                                oggetto.</span
+                            ><span><code>Luogo(M, P)</code></span>
+                        </div>
+                    </li>
+                    <li>
+                        <i data-t="RegularPolygon"></i>
+                        <div>
+                            <strong>PoligonoRegolare</strong
+                            ><span
+                                >Due vertici consecutivi: lo strumento dà un
+                                quadrato; cambia il numero di lati nella sua
+                                riga.</span
+                            ><span><code>PoligonoRegolare(A, B, 4)</code></span>
+                        </div>
+                    </li>
+                </ul>
+            </div>
+            <h3 id="famille-transformations">Trasformazioni</h3>
+            <div class="family" style="--h: 320">
+                <ul>
+                    <li>
+                        <i data-t="Point reflection"></i>
+                        <div>
+                            <strong
+                                >Simmetria centrale<span class="badge ring"
+                                    >anello</span
+                                ></strong
+                            ><span>Il punto da trasformare, poi il centro.</span
+                            ><span><code>Simmetrico(P, O)</code></span>
+                        </div>
+                    </li>
+                    <li>
+                        <i data-t="Line reflection"></i>
+                        <div>
+                            <strong
+                                >Simmetria assiale<span class="badge ring"
+                                    >anello</span
+                                ></strong
+                            ><span
+                                >Il punto da trasformare e l’asse, nell’ordine
+                                che si preferisce.</span
+                            ><span><code>Simmetrico(P, d)</code></span>
+                        </div>
+                    </li>
+                    <li>
+                        <i data-t="Rotation"></i>
+                        <div>
+                            <strong>Rotazione</strong
+                            ><span
+                                >Il punto, poi il centro: un quarto di giro, che
+                                si cambia nella sua riga.</span
+                            ><span><code>Rotazione(P, O, 90)</code></span>
+                        </div>
+                    </li>
+                    <li>
+                        <i data-t="Translation"></i>
+                        <div>
+                            <strong>Traslazione</strong
+                            ><span>Il punto, poi il vettore.</span
+                            ><span><code>Traslazione(P, u)</code></span>
+                        </div>
+                    </li>
+                    <li>
+                        <i data-t="Dilation"></i>
+                        <div>
+                            <strong>Omotetia</strong
+                            ><span
+                                >Il punto, poi il centro: un rapporto di 2, che
+                                si cambia nella sua riga.</span
+                            ><span><code>Omotetia(P, O, 2)</code></span>
+                        </div>
+                    </li>
+                    <li>
+                        <i data-t="Inversion"></i>
+                        <div>
+                            <strong>Inversione</strong
+                            ><span
+                                >Il punto, poi la circonferenza
+                                d’inversione.</span
+                            ><span><code>Inversione(P, c)</code></span>
+                        </div>
+                    </li>
+                </ul>
+            </div>
+            <h3 id="famille-planes">Piani</h3>
+            <div class="family" style="--h: 240">
+                <ul>
+                    <li>
+                        <i data-t="Plane"></i>
+                        <div>
+                            <strong
+                                >Piano<span class="badge d3">3D</span></strong
+                            ><span>Tre punti, oppure un punto e una retta.</span
+                            ><span><code>Piano(A, B, C)</code></span>
+                        </div>
+                    </li>
+                    <li>
+                        <i data-t="ParallelPlane"></i>
+                        <div>
+                            <strong
+                                >PianoParallelo<span class="badge d3"
+                                    >3D</span
+                                ></strong
+                            ><span
+                                >Un punto e un piano (pavimento compreso): il
+                                piano parallelo passante per il punto.</span
+                            ><span><code>PianoParallelo(A, p)</code></span>
+                        </div>
+                    </li>
+                    <li>
+                        <i data-t="OrthogonalPlane"></i>
+                        <div>
+                            <strong
+                                >PianoOrtogonale<span class="badge d3"
+                                    >3D</span
+                                ></strong
+                            ><span
+                                >Un punto e una retta: il piano ortogonale alla
+                                retta.</span
+                            ><span><code>PianoOrtogonale(A, d)</code></span>
+                        </div>
+                    </li>
+                </ul>
+            </div>
+            <h3 id="famille-solids">Solidi</h3>
+            <div class="family" style="--h: 265">
+                <ul>
+                    <li>
+                        <i data-t="Cylinder"></i>
+                        <div>
+                            <strong
+                                >Cilindro<span class="badge d3"
+                                    >3D</span
+                                ></strong
+                            ><span
+                                >Due punti, estremi dell’asse. Raggio di circa
+                                150 pixel.</span
+                            ><span><code>Cilindro(A, B, 3.8)</code></span>
+                        </div>
+                    </li>
+                    <li>
+                        <i data-t="Cone"></i>
+                        <div>
+                            <strong>Cono<span class="badge d3">3D</span></strong
+                            ><span
+                                >Il centro della base, poi il vertice. Raggio di
+                                circa 150 pixel.</span
+                            ><span><code>Cono(A, B, 3.8)</code></span>
+                        </div>
+                    </li>
+                    <li>
+                        <i data-t="Cube"></i>
+                        <div>
+                            <strong>Cubo<span class="badge d3">3D</span></strong
+                            ><span
+                                >Due punti di uno stesso piano o della stessa
+                                quota, altrimenti tre punti (vedi il 3D).</span
+                            ><span><code>Cubo(A, B, C)</code></span>
+                        </div>
+                    </li>
+                    <li>
+                        <i data-t="Prism"></i>
+                        <div>
+                            <strong
+                                >Prisma<span class="badge d3">3D</span></strong
+                            ><span
+                                >Un poligono, la base, poi un punto, vertice
+                                della faccia opposta.</span
+                            ><span><code>Prisma(p, P)</code></span>
+                        </div>
+                    </li>
+                    <li>
+                        <i data-t="Pyramid"></i>
+                        <div>
+                            <strong
+                                >Piramide<span class="badge d3"
+                                    >3D</span
+                                ></strong
+                            ><span>Un poligono, la base, poi il vertice.</span
+                            ><span><code>Piramide(p, S)</code></span>
+                        </div>
+                    </li>
+                    <li>
+                        <i data-t="Section"></i>
+                        <div>
+                            <strong
+                                >Sezione<span class="badge d3">3D</span></strong
+                            ><span
+                                >Un solido (sfera, cilindro, cono, poliedro) e
+                                un piano, nell’ordine che si preferisce.</span
+                            ><span><code>Sezione(s, p)</code></span>
+                        </div>
+                    </li>
+                    <li>
+                        <i data-t="Net"></i>
+                        <div>
+                            <strong
+                                >Sviluppo<span class="badge d3"
+                                    >3D</span
+                                ></strong
+                            ><span
+                                >Un cubo, un prisma o una piramide: il suo
+                                sviluppo piano.</span
+                            ><span><code>Sviluppo(c, 1)</code></span>
+                        </div>
+                    </li>
+                </ul>
+            </div>
+
+            <p>
+                Le trasformazioni costruiscono l’immagine di un
+                <strong>punto</strong>. Solo da tastiera:
+                <code>PuntoFisso</code>, <code>Vertice</code>,
+                <code>Cursore</code>, <code>Lista</code>, le intersezioni nello
+                spazio, <code>Ellisse(F, G, a)</code> e
+                <code>Iperbole(F, G, a)</code> (vedi
+                <a href="commandes.html">I comandi</a>).
+            </p>
+        </main>
+    </body>
+</html>

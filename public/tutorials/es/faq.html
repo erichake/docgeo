@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="es">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <title>Preguntas frecuentes — Manual de DocGeo</title>
+        <link rel="icon" type="image/svg+xml" href="../../favicon.svg" />
+        <link rel="stylesheet" href="../manual.css" />
+        <script src="../icons.js" defer></script>
+        <script src="../manual.js" defer></script>
+    </head>
+    <body>
+        <main>
+            <h1>Preguntas frecuentes</h1>
+
+            <h2>Construcción</h2>
+            <h3>El clic crea un punto en lugar de abrir el anillo</h3>
+            <p>
+                El clic no ha caído sobre el objeto. <kbd>Ctrl</kbd>
+                <kbd>Z</kbd> y apuntar al trazo. Cerca de un cruce, el clic crea
+                la intersección.
+            </p>
+            <h3>La herramienta sigue activa</h3>
+            <p>
+                Las herramientas del menú son persistentes:
+                <strong>Listo</strong>, <kbd>Esc</kbd> o <strong>✕</strong>
+                salen de ellas.
+            </p>
+            <h3>El clic no construye nada</h3>
+            <p>
+                Hay un modo activo: goma (<i data-i="eraser"></i> azul), paso a
+                paso, imanes o panel de propiedades sin herramienta.
+                <kbd>Esc</kbd> sale de él.
+            </p>
+            <h3><code>(2,5, 1)</code> da un punto del espacio</h3>
+            <p>El separador decimal es el punto: <code>(2.5, 1)</code>.</p>
+            <h3><code>L = [1, 2, 3]</code> se rechaza</h3>
+            <p>
+                Un nombre en mayúscula crea un punto, aquí del espacio. Escribir
+                <code>lista = [1, 2, 3]</code>.
+            </p>
+            <h3><code>pi</code> es un objeto desconocido</h3>
+            <p>Escribir <code>PI</code> o <code>π</code>.</p>
+            <h3>No se puede llamar x o y a un objeto</h3>
+            <p>
+                Al principio de la línea, introducen una ecuación (<code
+                    >y = 2x + 1</code
+                >).
+            </p>
+            <h3>Transformar un polígono</h3>
+            <p>
+                Las transformaciones se aplican a los puntos: transformar los
+                vértices y luego aplicar <strong>Polígono</strong> a las
+                imágenes (selección múltiple y luego la herramienta).
+            </p>
+            <h3>Cambiar el radio de una circunferencia creada con un clic</h3>
+            <p>
+                Arrastrar la circunferencia o modificar su línea (<code
+                    >Circunferencia(O, r)</code
+                >
+                con un número, un deslizador o una fórmula).
+            </p>
+            <h3>Eliminar un punto ha borrado otros objetos</h3>
+            <p>
+                Los dependientes se eliminan con él. Deshacer y luego ocultar el
+                punto en lugar de eliminarlo.
+            </p>
+
+            <h2>3D y vista</h2>
+            <h3>«Vista 3D» no vuelve al plano</h3>
+            <p>
+                Un objeto sale del plano <em>z</em> = 0; la indicación lo
+                nombra.
+            </p>
+            <h3>Girar con el ratón</h3>
+            <p>Botón derecho; el botón izquierdo mueve la vista.</p>
+            <h3>Hacer zoom en una tableta</h3>
+            <p>El pellizco con dos dedos aún no es compatible.</p>
+            <h3>Los rastros han desaparecido</h3>
+            <p>Se borran en cada desplazamiento o zoom de la vista.</p>
+
+            <h2>Archivos</h2>
+            <h3>Una figura abierta con <code>?url=</code> no se carga</h3>
+            <p>
+                El servidor debe permitir la lectura desde otro sitio
+                (<code>Access-Control-Allow-Origin</code>). La extensión debe
+                ser <code>.ggb</code> o <code>.dgo</code>; todo lo demás se lee
+                como DGPad.
+            </p>
+            <h3>Importación incompleta</h3>
+            <p>
+                Los elementos de la lista no son compatibles (<a
+                    href="formats.html"
+                    >Importación de DGPad y GeoGebra</a
+                >); el resto de la figura funciona y se puede guardar.
+            </p>
+        </main>
+    </body>
+</html>

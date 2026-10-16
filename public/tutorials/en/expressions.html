@@ -1,0 +1,150 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <title>Expressions and sliders — DocGeo manual</title>
+        <link rel="icon" type="image/svg+xml" href="../../favicon.svg" />
+        <link rel="stylesheet" href="../manual.css" />
+        <script src="../icons.js" defer></script>
+        <script src="../manual.js" defer></script>
+    </head>
+    <body>
+        <main>
+            <h1>Expressions and sliders</h1>
+
+            <h2>Expressions</h2>
+            <p>
+                Any line that is neither a point nor a command creates an
+                expression, shown at the top left with two decimal places. Its
+                kind is deduced from the text:
+            </p>
+            <div class="table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Line</th>
+                            <th>Kind</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>
+                                <code>a = 3</code>,
+                                <code>list = [1, 2, 3]</code>
+                            </td>
+                            <td>constant</td>
+                        </tr>
+                        <tr>
+                            <td><code>t = "Hello"</code></td>
+                            <td>text</td>
+                        </tr>
+                        <tr>
+                            <td><code>f = 0.5x^2 - 4</code></td>
+                            <td>
+                                function of x (y, z, t);
+                                <code>f(2)</code> calls it
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><code>E = d(A, B)</code></td>
+                            <td>measure, recomputed when the figure moves</td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <code
+                                    >u = "AB = " + round(d(A, B)*100)/100</code
+                                >
+                            </td>
+                            <td>computed text</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <p>
+                In a formula, a point stands for its coordinates, a segment for
+                its length, a circle for its radius, a polygon for its area, an
+                angle for its measure. Full syntax:
+                <a href="formules.html">Formulas and programs</a>.
+            </p>
+            <p>
+                An expression is moved by dragging its text; attached to a
+                point, it follows it. Touching it selects it, or writes its name
+                during an input.
+            </p>
+
+            <h2>Sliders</h2>
+            <p>
+                <code>r = Slider(0, 5, 2)</code>: from 0 to 5, value 2. The
+                bounds can be expressions or formulas (<code
+                    >Slider(0, d(A, B), 1)</code
+                >). Step, length, orientation, knob and animation are set in the
+                <a href="proprietes.html#curseurs">properties</a>.
+                <code>r = 5</code> turns it back into a constant.
+            </p>
+
+            <h2>Computed points</h2>
+            <ul>
+                <li>
+                    <code>M = (x(B) + 1, y(A))</code>: coordinates given by
+                    formulas.
+                </li>
+                <li>
+                    <code>N = Point(2*B - A)</code>: a formula whose value is a
+                    point.
+                </li>
+            </ul>
+            <p>
+                When the value of a line <code>name = formula</code> is a point
+                or a list of points, buttons at the end of the line offer
+                <i data-i="formula_point"></i> Point,
+                <i data-i="points_list"></i> List of points,
+                <i data-i="segments_list"></i> List of segments or
+                <i data-i="as_expression"></i> Expression.
+                <kbd>Enter</kbd> takes the lit button: point or list for an
+                uppercase name, expression otherwise. Hence
+                <code>list = [1, 2, 3]</code> and not
+                <code>L = [1, 2, 3]</code>, which would be read as a point in
+                space.
+            </p>
+
+            <h2>Lists of points</h2>
+            <p>
+                <code>q = List(pts)</code> draws the points of the expression
+                <code>pts</code>; an undefined point breaks the drawing. A
+                selected expression whose value is a list of points also offers
+                <i data-i="points_list"></i> and
+                <i data-i="segments_list"></i> in the context area (and
+                <i data-i="formula_point"></i> for a point value): the line is
+                written and the expression hidden.
+            </p>
+
+            <h2 id="les-programmes">Programs</h2>
+            <p>
+                An expression can be a program: statements separated by
+                <code>;</code>, the last one giving the value; it can style
+                other objects (<code>S1.setHidden(1)</code>). Language:
+                <a href="formules.html#programmes">Formulas and programs</a>.
+            </p>
+            <ul>
+                <li>
+                    <i data-i="new_program"></i> (header of the “Construction”
+                    panel) opens an empty editor; <strong>Create</strong> or
+                    <kbd>Ctrl</kbd> <kbd>Enter</kbd> creates the expression.
+                </li>
+                <li>
+                    For an existing expression, the
+                    <strong>Definition</strong> section of the properties edits
+                    the text on several lines: <kbd>Enter</kbd> keeps the
+                    indentation, <kbd>Tab</kbd> indents, <kbd>}</kbd> unindents,
+                    <kbd>Ctrl</kbd> <kbd>Enter</kbd> applies,
+                    <kbd>Esc</kbd> restores, <strong>Format</strong> indents
+                    according to the braces.
+                </li>
+                <li>
+                    An error selects the faulty line or the unmatched delimiter.
+                </li>
+            </ul>
+        </main>
+    </body>
+</html>
