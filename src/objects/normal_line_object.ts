@@ -1,5 +1,5 @@
 import type { construction } from "../construction";
-import { vAdd, type Vec3 } from "../vec";
+import { vAdd, vDot, vScale, vSub, type Vec3 } from "../vec";
 import type { DgoContext } from "./construction_object";
 import type { plane_object } from "./plane_object";
 import type { point_object } from "./point_object";
@@ -28,8 +28,16 @@ export class normal_line_object extends primitive_line_object {
         return this.PLANE.defined ? this.PLANE.NORMAL : null;
     }
 
+    // From P to its foot on the plane, so that it visibly crosses it; when
+    // P is near the plane, centered on P, as long as half the plane's side.
     protected referenceSpan(): [Vec3, Vec3] | null {
-        return [this.P1.coords, vAdd(this.P1.coords, this.PLANE.NORMAL)];
+        const p = this.P1.coords;
+        const normal = this.PLANE.NORMAL;
+        const distance = vDot(vSub(p, this.PLANE.CENTER), normal);
+        const half = this.PLANE.HALF / 2;
+        if (Math.abs(distance) >= half)
+            return [p, vSub(p, vScale(normal, distance))];
+        return [vSub(p, vScale(normal, half)), vAdd(p, vScale(normal, half))];
     }
 }
 
