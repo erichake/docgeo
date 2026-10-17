@@ -496,6 +496,7 @@ postérieur.
 | `an` | `On`, `Ex`   | animation (ci-dessous)                   | `null`                            |
 | `pl` | `Poly`       | plan                                     | 0                                 |
 | `su` | `Poly`       | section (garde ses sommets définis)      | 0, 1 pour `PlS`                   |
+| `fx` | `Poly`       | fixé : ne se déplace pas par translation | 0                                 |
 | `ar` | `Ang`, `FA`  | rayon de l'arc                           | 30                                |
 | `ra` | `Ang`        | marque d'angle droit                     | `dgpad`                           |
 | `dc` | `Seg`, `Vec` | décoration (0 à 6)                       | 0                                 |
@@ -531,6 +532,12 @@ le bas) :
 Un point place le sien par `np` et `nd`. Le `labelOffset` de GeoGebra, en
 pixels, est converti à l'import. DGPad n'écrit que le nom des points :
 l'import `.dgp` ignore son `sn` sur les autres objets.
+
+Fixé `fx` : comme dans GeoGebra, un polygone dont les sommets (hors ceux
+qu'il calcule, comme ceux d'un `RegP`) sont tous des points libres, non
+punaisés, se glisse en translatant ces sommets, sauf s'il est fixé. L'import
+GeoGebra fixe les polygones fixés (`fixed`) ou non sélectionnables
+(`selectionAllowed`). Ses sommets restent manipulables un à un.
 
 Calque `l` : comme dans DGPad et GeoGebra, un objet est peint au-dessus de
 ceux des calques plus bas, points compris ; à calque égal, l'ordre reste celui

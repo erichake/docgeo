@@ -460,6 +460,7 @@ const STYLE: Record<string, Property> = {
     ),
     pl: flag(polygon_object, "plane", (tag) => +PLANES.includes(tag)),
     su: flag(polygon_object, "section", (tag) => +(tag === "PlS")),
+    fx: flag(polygon_object, "fixed"),
     ar: field<angle_object | fixed_angle_object>(
         [angle_object, fixed_angle_object],
         "arcRadius",

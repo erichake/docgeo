@@ -14,6 +14,7 @@ import { importGgb, importGgbFromUrl } from "../../src/ggb_importer";
 import { expression_object } from "../../src/objects/expression_object";
 import { point_on_object } from "../../src/objects/point_on_object";
 import { point_object } from "../../src/objects/point_object";
+import { polygon_object } from "../../src/objects/polygon_object";
 import {
     createConstruction,
     DGP,
@@ -345,6 +346,29 @@ describe(".dgo writer", () => {
                 c.invalidateGeometry(point);
             },
         ));
+
+    it("keeps GeoGebra's fixed and unselectable polygons fixed", () =>
+        roundTrip(async (c) => {
+            await importGgb(
+                c,
+                `<geogebra><construction>
+<element type="point" label="A"><coords x="0" y="0" z="1"/></element>
+<element type="point" label="B"><coords x="4" y="0" z="1"/></element>
+<element type="point" label="C"><coords x="1" y="3" z="1"/></element>
+<command name="Polygon"><input a0="A" a1="B" a2="C"/><output a0="t"/></command>
+<element type="polygon" label="t"><fixed val="true"/></element>
+<command name="Polygon"><input a0="A" a1="C" a2="4"/><output a0="q"/></command>
+<element type="polygon" label="q"><selectionAllowed val="false"/></element>
+<command name="Polygon"><input a0="B" a1="C" a2="A"/><output a0="u"/></command>
+<element type="polygon" label="u"/>
+</construction></geogebra>`,
+            );
+            expect(
+                ["t", "q", "u"].map(
+                    (name) => (c.getObj(name) as polygon_object).fixed,
+                ),
+            ).toEqual([true, true, false]);
+        }));
 
     it("keeps integrals, sums and slope triangles", () =>
         roundTrip(async (c) =>

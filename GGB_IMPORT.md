@@ -89,6 +89,7 @@ figure sont seulement comptés. L'API utilisée est
 | 2026-10-15 | 242 / 438 (55 %)   | 338,8 Ko | item 33 : section d'un cône, patrons des prismes et pyramides (+4) |
 | 2026-10-15 | 265 / 470 (56 %)   | 342,2 Ko | item 35 : macros, `Sequence` de cercles par un point (+2)          |
 | 2026-10-16 | —                  | 360,1 Ko | item 36 : cercle d'axe donné, de direction un plan (+1)            |
+| 2026-10-16 | —                  | 362,1 Ko | item 37 : translation des polygones, polygones fixés (+0)          |
 
 ## À faire, par rapport gain / coût
 
@@ -615,6 +616,15 @@ cause.
       `hiddenIntervalsBetween` (`polylineSplit`), les disques des
       cylindres et des cônes gardant leur propre calcul. Moteur +1,1 Ko
       (+0,5 Ko en gzip).
+- [x] **37. Translation des polygones, polygones fixés** : dans GeoGebra,
+      un polygone dont tous les sommets sont des points libres se glisse
+      par translation. Fait : comme un point seul, son premier sommet suit
+      la grille aimantée ; les sommets d'un polygone régulier qu'il calcule
+      suivent les deux points donnés. Un polygone fixé (`fixed`) ou non
+      sélectionnable (`selectionAllowed`) ne bouge pas : style `.dgo` `fx`
+      (DGP `fx:true`). Corpus : 799 polygones, 40 fixés (29 à sommets
+      libres), 73 non sélectionnables (19 à sommets libres). Moteur +0,8 Ko
+      (+0,23 Ko en gzip).
 
 À écarter, sauf changement de priorité : calcul formel, courbes implicites,
 statistiques et probabilités, tableur au-delà des cellules simples, matrices.

@@ -1542,6 +1542,12 @@ export function translateGgb(
         }
         const layer = attribute(element, "layer", "val");
         if (layer && layer !== "0") parts.push(`l:${layer}`);
+        if (
+            kind === "polygon" &&
+            (attribute(element, "fixed", "val") === "true" ||
+                attribute(element, "selectionAllowed", "val") === "false")
+        )
+            parts.push("fx:true");
         if (kind === "point" || kind === "pointOn") {
             const size = attribute(element, "pointSize", "val");
             if (size) parts.push(`s:${size}`);

@@ -29,7 +29,7 @@ import { createSegment } from "../../src/objects/segment_object";
 import { createSymmetry } from "../../src/objects/symmetry_object";
 import { createLine } from "../../src/objects/two_points_line_object";
 import { preferences } from "../../src/preferences";
-import { vDot } from "../../src/vec";
+import { vDot, type Vec2, type Vec3 } from "../../src/vec";
 
 function createConstruction(): construction {
     document.documentElement.style.width = "100%";
@@ -124,6 +124,50 @@ describe("DGPad geometric constructors", () => {
 
         expect(fixed.R).toBeCloseTo(2);
         expect(movable.R).toBeCloseTo(5);
+    });
+
+    it("translates a polygon whose vertices are all free points", () => {
+        const c = createConstruction();
+        const a = createPoint(c, "A", [0, 0, 0]);
+        const b = createPoint(c, "B", [4, 0, 0]);
+        const d = createPoint(c, "D", [0, 3, 0]);
+        const free = createPolygon(c, "free", [a, b, d]);
+        const m = createPointOn(c, "M", createSegment(c, "s", a, b), 0.5);
+        const bound = createPolygon(c, "bound", [a, m, d]);
+        c.OBJS.update();
+        const drag = (hitArea: Element, from: Vec3, to: Vec3): void => {
+            const [start, end] = [c.pt3D(from), c.pt3D(to)];
+            const pointer = (type: string, [x, y]: Vec2) =>
+                new PointerEvent(type, {
+                    bubbles: true,
+                    button: 0,
+                    clientX: x,
+                    clientY: y,
+                    isPrimary: true,
+                    pointerId: 1,
+                    pointerType: "mouse",
+                });
+            hitArea.dispatchEvent(pointer("pointerdown", start));
+            hitArea.dispatchEvent(pointer("pointermove", end));
+            hitArea.dispatchEvent(pointer("pointerup", end));
+            c.OBJS.update();
+        };
+
+        drag(free.hitArea.dom(), [1, 1, 0], [3, 2, 0]);
+        expect(a.coords[0]).toBeCloseTo(2);
+        expect(a.coords[1]).toBeCloseTo(1);
+        expect(b.coords[0]).toBeCloseTo(6);
+        expect(d.coords[1]).toBeCloseTo(4);
+        expect(m.coords[0]).toBeCloseTo(4);
+
+        drag(bound.hitArea.dom(), [2.5, 1.5, 0], [5, 5, 0]);
+        expect(a.coords[0]).toBeCloseTo(2);
+        expect(a.coords[1]).toBeCloseTo(1);
+
+        free.fixed = true;
+        drag(free.hitArea.dom(), [3, 2, 0], [5, 5, 0]);
+        expect(a.coords[0]).toBeCloseTo(2);
+        expect(a.coords[1]).toBeCloseTo(1);
     });
 
     it("keeps PointOn constrained to lines, segments and circles", () => {
