@@ -310,6 +310,21 @@ la GeoGebra, l'outil choisi avant les objets.
   « Intersection » prend un croisement d'un toucher ou deux objets l'un
   après l'autre ; « Lieu » ne prend qu'un point dont dépend un point sur
   objet, « AutreIntersection » qu'un point déjà là.
+- **Désignation dans le panneau « Construction »** (décidé avec l'auteur
+  le 2026-10-17) : outil en main (menu ou anneau), un toucher sur une
+  ligne désigne son objet au lieu d'éditer la ligne ; pour l'éditer, on
+  lâche l'outil. Les lignes que l'outil prend comme argument suivant
+  sont sur fond vert, un trait vert au bord, comme le vert des objets
+  acceptés dans la figure ; les autres sont pâlies, sans être masquées
+  (la liste ne saute pas d'un argument à l'autre), et le gris garde son
+  sens : objet caché. Un objet caché, que la figure ne désigne pas, s'y
+  désigne. Les lignes des objets déjà désignés, dans la liste ou dans la
+  figure, passent en bleu (fond et trait, comme la sélection multiple),
+  une pastille bleue au bout disant leur place dans la commande : 2 pour
+  la droite désignée d'abord de `Perpendiculaire(…, a)`. La liste n'a pas de position : un point ne s'y désigne que
+  s'il existe (ni point sur objet, ni outil « Point »), l'intersection de
+  deux courbes y est la première (`rowTakes`, `designateRow`), le plancher
+  3D n'y est pas.
 - **Cercle (centre et rayon)** : comme sur l'anneau, le centre désigné
   suffit, le rayon d'environ 150 px se change ensuite en glissant le
   cercle ; rien à taper (décidé avec l'auteur le 2026-10-14, qui avait
@@ -324,7 +339,7 @@ la GeoGebra, l'outil choisi avant les objets.
   bandeau (icône, nom, « Terminé »), comme pour les aimants. Ce bouton
   pressé quitte l'outil et rouvre aussitôt le menu, d'un seul clic. On en
   sort aussi par « Terminé », Échap, la croix de la consigne, un autre outil,
-  le focus dans une ligne de texte, la gomme, les propriétés ou le pas à
+  le focus dans la ligne de saisie (ou au clavier dans une ligne), la gomme, les propriétés ou le pas à
   pas ; annuler, refaire et la vue 3D le gardent, sans ses arguments. Un
   toucher dans le vide crée un point : il ne peut pas faire sortir de
   l'outil. Pendant l'outil, un glisser vise (comme après un outil de
@@ -1488,6 +1503,15 @@ Fait (2026-10-11) :
   curseurs, annulation ; vecteur glissé à la souris ; parabole
   `f(x)=ax^2+bx+c` tracée). Éditeur +2,8 Ko (+1,1 Ko en gzip) ; moteur +0,9 Ko (+0,3 Ko en gzip, dont 0,6 Ko pour
   le vecteur libre) ; `index` +0,1 Ko (état élève).
+
+- Désignation dans le panneau « Construction » (2026-10-17, section
+  « Menu des outils ») : lignes acceptées en vert, autres pâlies, objets
+  cachés désignables, lignes déjà désignées en bleu avec leur place.
+  Vérifié dans `editor.html` avec Playwright (droite par deux points dont
+  un caché, intersection de deux courbes, polygone fermé sur son premier
+  sommet, perpendiculaire par sa droite d'abord, ligne de nouveau
+  éditable après Échap, sélection par ligne du panneau de propriétés).
+  Éditeur +1,5 Ko (+0,4 Ko en gzip) ; moteur inchangé.
 
 Reste à faire :
 

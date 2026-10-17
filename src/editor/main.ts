@@ -196,6 +196,15 @@ $("head").append(`<style>
     .dge-value { margin-block-start: -5px; padding: 0 4px 7px; overflow: hidden; font: 12.5px/1.4 var(--dge-code); color: #64748b; white-space: nowrap; text-overflow: ellipsis; unicode-bidi: plaintext; }
     .dge-value:empty { display: none; }
     .dge-later > .dge-dot, .dge-later > .dge-text { opacity: 0.3; }
+    .dge-taking .dge-row { cursor: default; }
+    .dge-taking .dge-item:not(.dge-takes, .dge-chosen) > :not(.dge-label) { opacity: 0.3; }
+    .dge-item.dge-takes { background: #f0fdf4; box-shadow: inset 3px 0 #16a34a; }
+    .dge-item.dge-takes:hover { background: #dcfce7; }
+    .dge-item.dge-chosen { background: #eff6ff; box-shadow: inset 3px 0 #2563eb; }
+    .dge-item.dge-chosen:hover { background: #dbeafe; }
+    .dge-chosen::after { content: attr(data-places); align-self: center; min-width: 18px; height: 18px; padding: 0 5px; box-sizing: border-box; border-radius: 9px; background: #2563eb; color: #fff; font: 600 11px/18px system-ui, -apple-system, "Segoe UI", sans-serif; text-align: center; }
+    .dge-item > .dge-label { order: 1; }
+    .dge-takes .dge-text, .dge-takes .dge-row { cursor: pointer; }
     .dge-item.dge-current { background: #eff6ff; box-shadow: inset 3px 0 #2563eb; }
     .dge-stepping .dge-item, .dge-stepping .dge-row { cursor: pointer; }
     .dge-stepping .dge-item button { pointer-events: none; }
@@ -936,16 +945,19 @@ function refreshRows(): void {
         if (line === null)
             row.att("readonly", "").att("title", message("read_only"));
         else bindRow(row, object);
-        row.on(
+        const text = $.create("div").cls("dge-text").add(row);
+        // With a tool, the row designates its object instead of being
+        // edited.
+        text.on(
             "pointerdown",
             (event) => {
-                if (!propertiesOpen) return;
+                if (!pending && !propertiesOpen) return;
                 event.preventDefault();
-                showProperties(event, object);
+                if (!pending) showProperties(event, object);
+                else if (rowTakes(object)) designateRow(object);
             },
             false,
         );
-        const text = $.create("div").cls("dge-text").add(row);
         if (valuesShown) {
             const value = $.create("div")
                 .cls("dge-value")
@@ -973,6 +985,7 @@ function refreshRows(): void {
         rowsBox.add(item);
     });
     count.text(rows.size ? String(rows.size) : "");
+    markTaken();
     if (stepping) markSteps();
     undoButton.dom().toggleAttribute("disabled", position <= 0);
     redoButton
@@ -1188,7 +1201,13 @@ function bindRow(row: DOMElement, object: construction_object | null): void {
         },
         false,
     );
-    row.on("click", () => updateCompletion(field), false);
+    row.on(
+        "click",
+        () => {
+            if (editing() === field) updateCompletion(field);
+        },
+        false,
+    );
     row.on(
         "blur",
         () => {
@@ -1806,6 +1825,36 @@ function describe(tool: Tool, args: (Arg | undefined)[]): string {
 
 function prompt(): void {
     showHint(pending ? describe(pending.tool, pending.args) : "");
+    markTaken();
+}
+
+// Whether the tool takes the object of a row, hidden or not, as its next
+// argument: only the figure gives a place, where a point would be made.
+function rowTakes(object: construction_object): boolean {
+    if (fresh()) {
+        const tool = fitting(object);
+        return !!tool && tool.mode !== "point";
+    }
+    const { tool, args } = pending!;
+    if (tool.mode === "intersection")
+        return object !== args[0] && accepts(object, "intersectable");
+    return accepts(object, paramAt(tool.overload, nextSlot())!);
+}
+
+// With a tool, the rows it takes are marked, the others faded, and those
+// already designated show their places in the line.
+function markTaken(): void {
+    rowsBox.toggleClass("dge-taking", !!pending);
+    items.forEach((item, object) => {
+        const places = pending
+            ? pending.args.flatMap((arg, index) =>
+                  arg === object ? [index + 1] : [],
+              )
+            : [];
+        item.toggleClass("dge-takes", !!pending && rowTakes(object))
+            .toggleClass("dge-chosen", !!places[0])
+            .att("data-places", places.join(" "));
+    });
 }
 
 // ************************** TOOLS MENU **************************
@@ -2820,23 +2869,43 @@ function designate(screen: Vec2, hits: Hit[], client: Vec2): void {
     }
     const overload = tool.overload;
     const param = paramAt(overload, nextSlot())!;
-    if (overload.variadic && args.length >= 3 && hits[0]?.object === args[0])
-        return build(overload, args as Arg[]);
-    const next = (arg: construction_object) => {
-        if (overload.variadic) args.push(arg);
-        else args[nextSlot()] = arg;
-        proceed();
-    };
     if (param === "point" && makesPoints(overload)) {
         clearPreview();
         return designatePoint(screen, hits, client, (arg) => {
             if (arg !== hits[0]?.object) changed(arg);
-            next(arg);
+            designateNext(arg);
         });
     }
     const taken = hits.filter(({ object }) => accepts(object, param));
-    if (taken[0]) chooseHit(taken, client, ({ object }) => next(object));
-    else if (floorTakes(param, screen)) designateFloor(next);
+    if (taken[0])
+        chooseHit(taken, client, ({ object }) => designateNext(object));
+    else if (floorTakes(param, screen)) designateFloor(designateNext);
+}
+
+// The first vertex designated again closes the polygon.
+function designateNext(arg: construction_object): void {
+    const { overload } = pending!.tool;
+    const { args } = pending!;
+    if (overload.variadic && args.length >= 3 && arg === args[0])
+        return build(overload, args as Arg[]);
+    if (overload.variadic) args.push(arg);
+    else args[nextSlot()] = arg;
+    proceed();
+}
+
+// Designated in its row, the object takes no place: an intersection of two
+// curves is their first.
+function designateRow(object: construction_object): void {
+    clearPreview();
+    if (fresh()) {
+        const tool = fitting(object)!;
+        pending = { tool, args: firstArgs(tool, object) };
+        return tool.mode === "intersection" ? prompt() : proceed();
+    }
+    const { tool, args } = pending!;
+    if (tool.mode !== "intersection") return designateNext(object);
+    const found = intersection(args[0] as construction_object, object, 0);
+    build(found.overload, found.args);
 }
 
 function clearPreview(): void {
