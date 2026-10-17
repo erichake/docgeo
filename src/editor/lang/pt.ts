@@ -200,6 +200,13 @@ const pt: Texts = {
         apply: "Aplicar",
         create: "Criar",
         new_program: "Novo programa",
+        program_text: "Texto",
+        program_blocks: "Blocos",
+        blocks_unsupported:
+            "Este programa tem instruções sem bloco: escreve-se em texto.",
+        turtle: "Tartaruga",
+        turtle_hint:
+            "Desenha a partir de % com uma tartaruga programada em blocos",
         format_program: "Formatar",
         syntax_line: "Escrita não compreendida na linha %",
         program_syntax: "Escrita não compreendida",

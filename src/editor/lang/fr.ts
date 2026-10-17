@@ -199,6 +199,12 @@ const fr: Texts = {
         apply: "Appliquer",
         create: "Créer",
         new_program: "Nouveau programme",
+        program_text: "Texte",
+        program_blocks: "Blocs",
+        blocks_unsupported:
+            "Ce programme a des instructions sans bloc : il s'écrit en texte.",
+        turtle: "Tortue",
+        turtle_hint: "Dessine depuis % avec une tortue programmée en blocs",
         format_program: "Mettre en forme",
         syntax_line: "Écriture incomprise ligne %",
         program_syntax: "Écriture incomprise",

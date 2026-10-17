@@ -84,6 +84,40 @@ export const SHOTS = [
         },
     },
     {
+        file: "tortue.webp",
+        page: "editor.html",
+        run: async ({ page, type, point, button, t }) => {
+            await type(["A = (-8, -1)"]);
+            await page.mouse.click(...(await point("A")));
+            await page.waitForTimeout(700);
+            await button("turtle");
+            const tab = async (key) =>
+                page
+                    .getByRole("tab", { name: await t(key), exact: true })
+                    .click();
+            await tab("program_text");
+            await page.fill(
+                "textarea.dge-program",
+                [
+                    'TURTLE_INIT("A", A);',
+                    "TURTLE_WIDTH(3);",
+                    "for (var k = 1; k <= 5; k = k + 1) {",
+                    "    TURTLE_COLOUR(10 * k);",
+                    "    TURTLE_MV(160, true);",
+                    "    TURTLE_TURN(144°);",
+                    "}",
+                    "return TURTLE_RESULT();",
+                ].join("\n"),
+            );
+            await page
+                .getByRole("button", { name: await t("apply"), exact: true })
+                .click();
+            await page.waitForTimeout(500);
+            await tab("program_blocks");
+            await page.waitForTimeout(1500);
+        },
+    },
+    {
         file: "3d.webp",
         page: "editor.html",
         run: async ({ page, type, button }) => {

@@ -1019,6 +1019,88 @@ tokenizer de la saisie, qui ne connaît que `( ) , =`, échoue et
 - Dans la ligne de saisie du bas, un clic dans le vide pendant `d(H, `
   crée un point libre, comme pour les commandes (`expectsPoint`).
 
+## Blocs et tortue
+
+Décidé avec l'auteur le 2026-10-17, après examen de l'implémentation de
+DGPad (son `BlocklyManager`, ses `BlocklyObjects`, sa `TurtleObject`) : la
+tortue et les programmes Blockly de DGPad, avec le rendu « zelos » de
+Blockly (style Scratch 3), choisi par l'auteur. Ce que DGPad faisait mal et
+qui n'est pas repris : le programme stocké trois fois (XML, source et code
+compilé, renommés par expressions régulières), des dépendances relevées
+pendant la génération du code et enregistrées, du JavaScript exécuté par
+`eval`, un moteur de calcul qui appelle l'interface, Blockly modifié dans
+ses méthodes internes et figé dans sa version de 2016.
+
+- **Apparence** (choisie par l'auteur sur des captures comparées) : rendu
+  zelos à l'échelle 0,7, plus compact que celui de Scratch, et les trois
+  teintes de Scratch pour chaque catégorie de DocGeo (fond, menus plus
+  sombres, contour plus sombre encore), le contour séparant les blocs
+  d'une pile ; les blocs de départ (« tortue partant de A »,
+  « programme ») ont la couleur de « quand le drapeau vert est cliqué ».
+- **Le texte du programme reste la seule source** : le `.dgo` ne change
+  pas. Les blocs en sont une vue, reconstruite depuis l'arbre de
+  `parseProgram` (`programBlocks`), et réécrivent le texte du programme
+  (`blocksProgram`), dans la grammaire fermée de `dgp_formula.ts`, appliqué
+  comme le texte de la section « Définition ». Ouvrir les blocs ne réécrit
+  rien : seule une modification applique le texte qu'ils écrivent (le
+  programme compilé par le Blockly de DGPad devient alors lisible :
+  `blockly_var_m` → `m`, sans la fonction qui l'enveloppait).
+- **Aller-retour vérifié par les valeurs** (`tests/unit/editor_blocks.test.ts`) :
+  un programme et le texte de ses blocs calculent la même chose, mêmes
+  mises en forme comprises, et les blocs de ce texte le réécrivent à
+  l'identique ; sur les tortues des figures DGPad des tests et sur des
+  programmes qui éprouvent les priorités des opérateurs.
+- **Une instruction sans bloc** (fonction, liste modifiée, indice…) laisse
+  le programme en texte, avec un message ; on ne perd rien.
+- **Section « Définition »** d'un programme (ou d'un nouveau programme) :
+  bascule **Texte** / **Blocs**. Une tortue s'ouvre en blocs, un autre
+  programme en texte ; un choix vaut ensuite pour la session. Le programme
+  s'applique à chaque changement des blocs, une fois le glisser, le menu ou
+  la saisie d'un nombre terminés (une étape d'annulation chacun) ; un
+  nouveau programme est créé à son premier bloc. Le panneau, reconstruit
+  après chaque changement, retrouve l'espace de travail tel qu'il était
+  (`blocks/view.ts`) ; une annulation hors du panneau recharge les blocs du
+  programme rétabli. Dans le panneau, ⌘-Z est celui de Blockly, comme
+  celui du navigateur dans le texte.
+- **Bouton « Tortue »** (zone contextuelle d'un point, et de la liste d'une
+  tortue) : crée, comme DGPad, l'expression super-cachée
+  `blk_turtle_exp_P` (`TURTLE_INIT("P", P); … return TURTLE_RESULT();`) et
+  la liste `blk_turtle_list_P` qui la dessine, en une étape, et l'ouvre en
+  blocs. Les noms de DGPad sont gardés : `TURTLE_GET` et `TURTLE_LENGTH`
+  désignent une tortue par le nom de son point, et les figures DGPad
+  restent semblables. Les tortues de DGPad, dont la liste est inerte et le
+  point souvent caché, s'ouvrent depuis leur ligne du panneau
+  « Construction », panneau de propriétés ouvert (le sélecteur d'objet
+  montre alors l'expression super-cachée).
+- **La tortue dessinée** (demandé par l'auteur, comme dans DGPad) : tant
+  que le panneau de propriétés montre son programme (texte ou blocs), elle
+  est dessinée là où elle finit, tournée dans sa direction, et suit chaque
+  bloc ajouté, les glissers et la vue (`src/editor/turtle.ts`, un calque
+  recalé à chaque image). Dans le plan, une tortue vue de dessus, la tête
+  dans sa direction ; dans l'espace, la flèche de DGPad, bâtie sur sa
+  direction et sa gauche à l'écran, verte quand son dessus est tourné vers
+  soi, grise sinon. Point d'accroche du moteur : `programTurtle`, la
+  tortue telle que le dernier calcul de chaque programme l'a laissée.
+- **Angles de la tortue en degrés**, quelle que soit l'unité de la figure :
+  ses blocs écrivent `TURTLE_TURN(90°)`. Un angle sans `°` (DGPad passait
+  la figure en degrés) ne se lit en blocs que dans une figure en degrés.
+- **Blocs** : ceux de DGPad pour la tortue (avancer, tourner, pivoter en
+  3D, crayon, couleur n° de la palette 7 × 10 ou `#rrggbb`, épaisseur et
+  taille des points, remplissage, écriture, police, image, se tourner vers
+  un point, y aller, position, point n° et nombre de points d'une tortue,
+  décimales écrites), ceux de Blockly (boucles, logique, maths, texte,
+  variables) et une catégorie « Figure » : objet de la figure (menu de ses
+  noms), abscisse, ordonnée, distance, point, mise en forme d'un objet
+  (`setHidden`…, `setRGBColor`), « renvoyer ». Textes dans les 12 langues
+  (`blocks/messages.ts`), ceux de Blockly par ses fichiers de langue.
+- **Poids** : Blockly (13.4, ses blocs et le rendu zelos) est un chunk à
+  part, `workspace-*.js`, chargé à la première ouverture des blocs, comme
+  le fichier de ses textes dans la langue de la page. Il n'importe rien du
+  moteur ni de l'éditeur à l'exécution : le programme lui arrive lu, la
+  langue et l'écriture des noms par `view.ts`, sinon le moteur serait coupé
+  en deux fichiers pour lui. Ni corbeille, ni boutons de zoom, ni sons :
+  Blockly irait chercher ses images ailleurs (le build reste autonome).
+
 ## Lien avec le lecteur
 
 Un lien « modifier cette figure » pourrait ouvrir la figure du lecteur dans
@@ -1592,7 +1674,33 @@ Fait (2026-10-11) :
   et par la section « Définition », script refusé). Éditeur +2,7 Ko
   (+0,9 Ko en gzip) ; moteur et lecteur +0,05 Ko (exports partagés).
 
+- Blocs et tortue (2026-10-17, section du même nom) : `src/editor/blocks/`
+  (`program_blocks.ts` pur, `workspace.ts` seul à importer Blockly,
+  `view.ts`, `messages.ts`), bascule de la section « Définition », bouton
+  « Tortue », manuel (section « Blocs et tortue » d'`expressions.html`,
+  capture `tortue.webp`, 12 langues). Vérifié dans `editor.html` avec
+  Playwright (tortue créée sur un point, bloc glissé sous le départ et
+  appliqué, nombre modifié, annulation par la barre, nouveau programme créé
+  par un bloc, figure `partage_dgpad.dgp` ouverte en blocs sans être
+  réécrite, arabe de droite à gauche). Éditeur : 159,1 Ko, +2,8 Ko
+  (+1,1 Ko en gzip), CSS +0,2 Ko ; lecteur : mêmes octets (366,5 Ko), l'aide
+  de préchargement de Vite (1,2 Ko) sortie du moteur dans un fichier à
+  part, que Blockly partage ; à la demande : Blockly 748,8 Ko (207 Ko en
+  gzip) et ses textes, 80 à 94 Ko (18 à 21 Ko en gzip) par langue.
+
+- Tortue dessinée pendant l'édition de son programme (2026-10-17, section
+  « Blocs et tortue »). Vérifié dans `editor.html` avec Playwright (sur A,
+  tête à droite ; après « avancer de 100 pixels » et « tourner à gauche de
+  90 », 100 pixels plus loin, tête en haut ; A glissé, la tortue le suit ;
+  panneau fermé, elle disparaît ; en 3D, la flèche verte inclinée par
+  « pivoter vers le haut »). Éditeur +2,0 Ko (+0,7 Ko en gzip) ; moteur
+  +80 octets.
+
 Reste à faire :
+
+- Blocs : un toucher sur un objet de la figure qui
+  remplit le menu du bloc sélectionné (le `getName` de DGPad) ; fonctions
+  et listes en blocs.
 
 - Jeux d'outils de l'enseignant (section « Anneau d'outils »).
 - Outils du moteur sans commande dans l'éditeur, à ajouter au catalogue

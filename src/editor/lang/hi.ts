@@ -202,6 +202,12 @@ const hi: Texts = {
         apply: "लागू करें",
         create: "बनाएँ",
         new_program: "नया प्रोग्राम",
+        program_text: "पाठ",
+        program_blocks: "ब्लॉक",
+        blocks_unsupported:
+            "इस प्रोग्राम में बिना ब्लॉक वाले निर्देश हैं: इसे पाठ के रूप में लिखा जाता है।",
+        turtle: "कछुआ",
+        turtle_hint: "ब्लॉकों से प्रोग्राम किए गए कछुए से % से चित्र बनाता है",
         format_program: "फ़ॉर्मेट करें",
         syntax_line: "पंक्ति % समझ में नहीं आई",
         program_syntax: "समझ में नहीं आया",

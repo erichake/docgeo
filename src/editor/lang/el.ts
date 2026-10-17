@@ -203,6 +203,13 @@ const el: Texts = {
         apply: "Εφαρμογή",
         create: "Δημιουργία",
         new_program: "Νέο πρόγραμμα",
+        program_text: "Κείμενο",
+        program_blocks: "Μπλοκ",
+        blocks_unsupported:
+            "Αυτό το πρόγραμμα έχει εντολές χωρίς μπλοκ: γράφεται ως κείμενο.",
+        turtle: "Χελώνα",
+        turtle_hint:
+            "Σχεδιάζει από το % με μια χελώνα προγραμματισμένη σε μπλοκ",
         format_program: "Μορφοποίηση",
         syntax_line: "Ακατανόητη γραφή στη γραμμή %",
         program_syntax: "Ακατανόητη γραφή",

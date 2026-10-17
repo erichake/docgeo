@@ -185,6 +185,44 @@
                     An error selects the faulty line or the unmatched delimiter.
                 </li>
             </ul>
+
+            <h2 id="blocs">Blocks and turtle</h2>
+            <p>
+                A program can also be written in blocks: the
+                <strong>Definition</strong> section switches from
+                <strong>Text</strong> to <strong>Blocks</strong>. Blocks are
+                dragged from the categories (Loops, Logic, Maths, Text,
+                Variables, Figure) and snapped under the
+                <strong>program</strong> block; a <strong>return</strong> block
+                gives the value. Each change applies at once and is undone like
+                the others. Text and blocks show the same program: the choice is
+                kept for the next ones.
+            </p>
+            <p>
+                <i data-i="turtle"></i> <strong>Turtle</strong>, in a point’s
+                contextual area, creates the turtle starting from that point and
+                opens it in blocks. It moves (in pixels or units), turns (in
+                degrees), lifts or puts down the pen, changes colour and width,
+                fills, writes, turns towards a point or goes to it. Its drawing,
+                a list, follows the point and the objects the program reads.
+                While its program shows, the turtle is drawn where it ends,
+                facing its heading (an arrowhead in 3D, green when its top faces
+                you): each block added shows it moving or turning.
+            </p>
+            <figure>
+                <img
+                    src="img/tortue.webp"
+                    alt="Turtle starting at A, its blocks in the properties"
+                    width="1200"
+                    height="720"
+                />
+            </figure>
+            <p>
+                The turtles of DGPad figures open the same way: with the
+                properties panel open, touch their
+                <code>blk_turtle_exp_…</code> row in the “Construction” panel. A
+                program with an instruction that has no block stays in text.
+            </p>
         </main>
     </body>
 </html>

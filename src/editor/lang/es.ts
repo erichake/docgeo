@@ -200,6 +200,12 @@ const es: Texts = {
         apply: "Aplicar",
         create: "Crear",
         new_program: "Nuevo programa",
+        program_text: "Texto",
+        program_blocks: "Bloques",
+        blocks_unsupported:
+            "Este programa tiene instrucciones sin bloque: se escribe como texto.",
+        turtle: "Tortuga",
+        turtle_hint: "Dibuja desde % con una tortuga programada con bloques",
         format_program: "Dar formato",
         syntax_line: "No se entiende la línea %",
         program_syntax: "No se entiende",

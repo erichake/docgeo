@@ -55,6 +55,7 @@ function setup() {
         rename: async () => {},
         define: async () => {},
         create: async () => {},
+        shown: () => {},
         figure: (patch) => patches.push(patch),
         close: () => {},
     });
@@ -422,6 +423,7 @@ describe("Object properties", () => {
         const properties = propertiesPanel({
             scene: () => studio.scene,
             changed: () => {},
+            shown: () => {},
             rename: async () => {},
             define: async (object, source) => {
                 const spec = resolve(

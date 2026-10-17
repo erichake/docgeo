@@ -236,6 +236,21 @@ body:not(.dge-adjusting) svg .dge-property-selected > foreignObject > div {
     border-color: #dc2626;
     background: #fef2f2;
 }
+/* Text or blocks, above a program. */
+.dge-tabs.dge-modes {
+    margin: 0 0 8px;
+}
+.dge-blocks {
+    height: min(62vh, 560px);
+    min-height: 260px;
+    border: 1px solid #cbd5e1;
+    border-radius: 6px;
+    overflow: hidden;
+}
+/* Blockly's category icons, unused, would fetch its sprites. */
+.dge-blocks .blocklyToolboxCategoryIcon {
+    background-image: none !important;
+}
 .dge-program-error {
     margin: 8px 0 0;
     color: #b91c1c;

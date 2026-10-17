@@ -193,6 +193,12 @@ const ar: Texts = {
         apply: "تطبيق",
         create: "إنشاء",
         new_program: "برنامج جديد",
+        program_text: "نص",
+        program_blocks: "كتل",
+        blocks_unsupported:
+            "يحتوي هذا البرنامج على تعليمات بلا كتل: يُكتب نصًا.",
+        turtle: "سلحفاة",
+        turtle_hint: "يرسم انطلاقًا من % بسلحفاة مبرمجة بالكتل",
         format_program: "تنسيق",
         syntax_line: "كتابة غير مفهومة في السطر %",
         program_syntax: "كتابة غير مفهومة",

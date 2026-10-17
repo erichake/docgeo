@@ -202,6 +202,13 @@ const de: Texts = {
         apply: "Übernehmen",
         create: "Erstellen",
         new_program: "Neues Programm",
+        program_text: "Text",
+        program_blocks: "Blöcke",
+        blocks_unsupported:
+            "Dieses Programm enthält Anweisungen ohne Block: Es wird als Text geschrieben.",
+        turtle: "Schildkröte",
+        turtle_hint:
+            "Zeichnet ab % mit einer in Blöcken programmierten Schildkröte",
         format_program: "Formatieren",
         syntax_line: "Unverständliche Eingabe in Zeile %",
         program_syntax: "Unverständliche Eingabe",

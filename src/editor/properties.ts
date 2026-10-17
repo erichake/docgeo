@@ -16,6 +16,7 @@ import { point_object } from "../objects/point_object";
 import { point_on_object } from "../objects/point_on_object";
 import { polygon_object } from "../objects/polygon_object";
 import { segment_object } from "../objects/segment_object";
+import { blocksView, isTurtle } from "./blocks/view";
 import { createdColors, definitionSource, hasName } from "./figure";
 import { message, type MessageKey } from "./messages";
 import { scrubNumber, type Scrub } from "./scrub";
@@ -62,6 +63,9 @@ const measured = (object: construction_object): boolean =>
     (object instanceof list_object &&
         !(object instanceof expression_list_object));
 
+// The lists DGPad draws its turtles with, by the turtle's name.
+const TURTLE_LIST = "blk_turtle_list_";
+
 const PROGRAM_PLACEHOLDER =
     "var t = [];\nfor (var i = 0; i < 10; i++) {\n    t.push([i, 0]);\n}\nt";
 
@@ -76,6 +80,8 @@ export function propertiesPanel(options: {
     ) => Promise<void>;
     // A new expression, given a name or not.
     create: (name: string, source: string) => Promise<void>;
+    // After each selection.
+    shown: () => void;
     figure: ViewOptions["figure"];
     close: () => void;
 }) {
@@ -126,10 +132,16 @@ export function propertiesPanel(options: {
     // The grid the figure tab shows, while it does.
     let shownGrid: grid_object | null = null;
     let all = false;
+    // Programs as blocks rather than text, once chosen; until then, only
+    // turtles.
+    let preferBlocks: boolean | null = null;
     const fields: DOMElement[] = [];
     const figureFields: DOMElement[] = [];
+    // A turtle's program, super-hidden, while it shows.
     const objects = () =>
-        figureObjects(options.scene()).filter(({ hidden }) => hidden !== 2);
+        figureObjects(options.scene()).filter(
+            (object) => object.hidden !== 2 || selected.includes(object),
+        );
     picker.on(
         "change",
         () =>
@@ -229,6 +241,7 @@ export function propertiesPanel(options: {
             return;
         }
         build(objects);
+        options.shown();
     }
 
     // Added to the objects shown, or removed if it was.
@@ -1086,6 +1099,8 @@ export function propertiesPanel(options: {
         const original = object ? definitionSource(object) : "";
         // HTML, its lines wrapped, isn't a program to lay out.
         const html = object instanceof panel_object;
+        // A program, or one to be made, shows as text or as blocks.
+        const program = !object || !!(object as expression_object).program;
         const editor = $.create("textarea")
             .cls("dge-program")
             .att("dir", "ltr")
@@ -1107,14 +1122,41 @@ export function propertiesPanel(options: {
             .text(message("format_program"));
         if (html) format.hide();
         fields.push(editor, apply, format);
-        box.add(
-            editor,
-            error,
-            $.create("div").cls("dge-program-actions").add(apply, format),
-            $.create("p")
-                .cls("dge-property-help")
-                .text(message("definition_hint")),
-        );
+        const actions = $.create("div")
+            .cls("dge-program-actions")
+            .add(apply, format);
+        const hint = $.create("p")
+            .cls("dge-property-help")
+            .text(message("definition_hint"));
+        const slot = $.create("div");
+        const mode = (key: MessageKey, blocks: boolean) => {
+            const button = $.create("button")
+                .att("type", "button")
+                .att("role", "tab")
+                .text(message(key));
+            button.on(
+                "click",
+                () => {
+                    preferBlocks = blocks;
+                    show(blocks);
+                },
+                false,
+            );
+            fields.push(button);
+            return button;
+        };
+        const modes = [
+            mode("program_text", false),
+            mode("program_blocks", true),
+        ];
+        if (program)
+            box.add(
+                $.create("div")
+                    .cls("dge-tabs dge-modes")
+                    .att("role", "tablist")
+                    .add(...modes),
+            );
+        box.add(editor, slot, error, actions, hint);
         const update = () => {
             area.rows = Math.min(
                 // The example too, while empty.
@@ -1162,6 +1204,42 @@ export function propertiesPanel(options: {
             false,
         );
         apply.on("click", () => void submit(), false);
+
+        function show(blocks: boolean): void {
+            modes.forEach((button, index) =>
+                button.att("aria-selected", String((index === 1) === blocks)),
+            );
+            [editor, actions, hint].forEach((element) =>
+                blocks ? element.hide() : element.show(),
+            );
+            editor.removeClass("dge-error");
+            error.text("");
+            if (!blocks) return void slot.inner("");
+            const c = options.scene();
+            const names = () => figureObjects(c).map(({ name }) => name);
+            slot.add(
+                blocksView({
+                    key: object?.name ?? "",
+                    source: object ? original : area.value,
+                    degrees: c.degrees,
+                    figure: {
+                        objects: names,
+                        turtles: () =>
+                            names().flatMap((name) =>
+                                name.startsWith(TURTLE_LIST)
+                                    ? [name.slice(TURTLE_LIST.length)]
+                                    : [],
+                            ),
+                    },
+                    apply: (source) => void submit(source),
+                    fallback: () => {
+                        show(false);
+                        error.text(message("blocks_unsupported"));
+                    },
+                }),
+            );
+        }
+        if (program) show(preferBlocks ?? isTurtle(original));
         format.on(
             "click",
             () => {
@@ -1172,15 +1250,15 @@ export function propertiesPanel(options: {
             false,
         );
 
-        async function submit(): Promise<void> {
+        async function submit(text = area.value): Promise<void> {
             try {
                 await (object
-                    ? options.define(object, area.value)
-                    : options.create(name!(), area.value));
+                    ? options.define(object, text)
+                    : options.create(name!(), text));
             } catch (failure) {
                 if (!(failure instanceof TextError)) throw failure;
                 const syntax = failure.key === "syntax";
-                const line = syntax ? syntaxLine(area.value) : null;
+                const line = syntax ? syntaxLine(text) : null;
                 editor.addClass("dge-error");
                 error.text(
                     line
@@ -1189,7 +1267,7 @@ export function propertiesPanel(options: {
                           ? message("program_syntax")
                           : message(failure.key as MessageKey, failure.detail),
                 );
-                if (!line) return;
+                if (!line || editor.isHidden()) return;
                 // The line selected.
                 const lines = area.value.split("\n");
                 const start = lines
@@ -1227,6 +1305,10 @@ export function propertiesPanel(options: {
         toggle,
         refresh,
         figure: showFigure,
+        // Programs shown as blocks from now on.
+        showBlocks: () => {
+            preferBlocks = true;
+        },
         // None while the figure tab shows.
         get selected() {
             return shownGrid ? null : (selected[0] ?? null);

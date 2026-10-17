@@ -191,6 +191,45 @@
                     apparié.
                 </li>
             </ul>
+
+            <h2 id="blocs">Blocs et tortue</h2>
+            <p>
+                Un programme s’écrit aussi en blocs : la section
+                <strong>Définition</strong> passe de <strong>Texte</strong> à
+                <strong>Blocs</strong>. Les blocs se tirent des catégories
+                (Boucles, Logique, Maths, Texte, Variables, Figure) et
+                s’accrochent sous le bloc <strong>programme</strong> ; un bloc
+                <strong>renvoyer</strong> donne la valeur. Chaque changement
+                s’applique aussitôt et s’annule comme les autres. Texte et blocs
+                montrent le même programme : le choix est gardé pour les
+                suivants.
+            </p>
+            <p>
+                <i data-i="turtle"></i> <strong>Tortue</strong>, dans la zone
+                contextuelle d’un point, crée la tortue qui part de ce point et
+                l’ouvre en blocs. Elle avance (en pixels ou en unités), tourne
+                (en degrés), lève ou baisse le crayon, change de couleur et
+                d’épaisseur, remplit, écrit, se tourne vers un point ou y va.
+                Son dessin, une liste, suit le point et les objets que lit le
+                programme. Tant que son programme est affiché, la tortue est
+                dessinée là où elle finit, tournée dans sa direction (une flèche
+                en 3D, verte quand son dessus est tourné vers soi) : chaque bloc
+                ajouté la montre avancer ou tourner.
+            </p>
+            <figure>
+                <img
+                    src="img/tortue.webp"
+                    alt="Tortue partant de A, ses blocs dans les propriétés"
+                    width="1200"
+                    height="720"
+                />
+            </figure>
+            <p>
+                Les tortues des figures DGPad s’ouvrent de même : panneau de
+                propriétés ouvert, toucher leur ligne
+                <code>blk_turtle_exp_…</code> dans le panneau « Construction ».
+                Un programme qui a une instruction sans bloc reste en texte.
+            </p>
         </main>
     </body>
 </html>

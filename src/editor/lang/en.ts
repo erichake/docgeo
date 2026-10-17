@@ -197,6 +197,12 @@ export default {
     apply: "Apply",
     create: "Create",
     new_program: "New program",
+    program_text: "Text",
+    program_blocks: "Blocks",
+    blocks_unsupported:
+        "This program has instructions without a block: it is written as text.",
+    turtle: "Turtle",
+    turtle_hint: "Draws from % with a turtle programmed in blocks",
     format_program: "Format",
     syntax_line: "Can't read line %",
     program_syntax: "Can't read it",

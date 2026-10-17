@@ -1844,7 +1844,7 @@ interface Frame {
 
 // Where the turtle is and which way it heads (u), its left (v) and its top
 // (w), and what it has drawn so far.
-interface Turtle {
+export interface Turtle {
     name: string;
     u: Vec3;
     v: Vec3;
@@ -3057,7 +3057,13 @@ interface Compiled {
 
 const COMPILED = new WeakMap<FormulaNode | Program, Compiled>();
 
-function evaluate(compiled: Compiled, env: FormulaEnv) {
+// The turtle each program last drew, as it ended: the editor shows it.
+const TURTLES = new WeakMap<Program, Turtle>();
+
+export const programTurtle = (program: Program): Turtle | null =>
+    TURTLES.get(program) ?? null;
+
+function evaluate(compiled: Compiled, env: FormulaEnv, program?: Program) {
     if (
         compiled.translate &&
         compiled.work >= TRANSLATE_AFTER &&
@@ -3080,6 +3086,7 @@ function evaluate(compiled: Compiled, env: FormulaEnv) {
     };
     const value = compiled.code(frame);
     compiled.work += 1 + frame.steps;
+    if (program && frame.turtle) TURTLES.set(program, frame.turtle);
     return value;
 }
 
@@ -3111,7 +3118,7 @@ export function evaluateProgram(
         COMPILED.set(program, compiled);
     }
     try {
-        const value = evaluate(compiled, env);
+        const value = evaluate(compiled, env, program);
         return typeof value === "number" && !Number.isFinite(value)
             ? null
             : value;

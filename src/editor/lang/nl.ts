@@ -202,6 +202,13 @@ const nl: Texts = {
         apply: "Toepassen",
         create: "Maken",
         new_program: "Nieuw programma",
+        program_text: "Tekst",
+        program_blocks: "Blokken",
+        blocks_unsupported:
+            "Dit programma bevat instructies zonder blok: het wordt als tekst geschreven.",
+        turtle: "Schildpad",
+        turtle_hint:
+            "Tekent vanaf % met een schildpad die in blokken is geprogrammeerd",
         format_program: "Opmaken",
         syntax_line: "Onbegrijpelijke invoer op regel %",
         program_syntax: "Onbegrijpelijke invoer",

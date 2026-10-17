@@ -200,6 +200,12 @@ const it: Texts = {
         apply: "Applica",
         create: "Crea",
         new_program: "Nuovo programma",
+        program_text: "Testo",
+        program_blocks: "Blocchi",
+        blocks_unsupported:
+            "Questo programma ha istruzioni senza blocco: si scrive come testo.",
+        turtle: "Tartaruga",
+        turtle_hint: "Disegna da % con una tartaruga programmata a blocchi",
         format_program: "Formatta",
         syntax_line: "Scrittura non compresa alla riga %",
         program_syntax: "Scrittura non compresa",

@@ -8,6 +8,7 @@ import {
     parseProgram,
     programReferences,
     programTargets,
+    programTurtle,
     type FormulaEnv,
     type FormulaView,
     withObjects,
@@ -728,5 +729,19 @@ describe("Blockly programs", () => {
                 ),
             ),
         ).toEqual(new Set(["A", "blk_turtle_list_C"]));
+    });
+});
+
+describe("programTurtle", () => {
+    it("keeps where the turtle ends and which way it heads", () => {
+        const program = parseProgram(
+            'TURTLE_INIT("A", A); TURTLE_MV(2, false); TURTLE_TURN(90°); return TURTLE_RESULT();',
+        );
+        expect(programTurtle(program)).toBeNull();
+        evaluateProgram(program, envWith({ A: [1, 1] }));
+        const turtle = programTurtle(program)!;
+        expect(turtle.last).toEqual([3, 1]);
+        expect(turtle.u[0]).toBeCloseTo(0);
+        expect(turtle.u[1]).toBeCloseTo(1);
     });
 });

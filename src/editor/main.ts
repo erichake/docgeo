@@ -74,6 +74,7 @@ import { conicStandIns } from "./conic_preview";
 import { hideGhosts, showGhosts, toggleGhost, withHidden } from "./eraser";
 import { message, type MessageKey } from "./messages";
 import { ACTION_ICONS } from "./icons";
+import { turtleLayer } from "./turtle";
 import {
     arcAt,
     asleep,
@@ -314,6 +315,8 @@ $("head").append(`<style>
     svg .dge-ghost > :is([style*="fill-opacity: 0;"], [style*="fill-opacity: 1;"]) { opacity: 1 !important; stroke-opacity: 0.3 !important; }
     svg .dge-ghost > [style*="fill-opacity: 1;"] { fill-opacity: 0.3 !important; }
     .dge-spring { position: fixed; width: 0; height: 0; z-index: 12; }
+    .dge-turtle { position: fixed; width: 0; height: 0; z-index: 9; pointer-events: none; }
+    .dge-turtle svg { position: absolute; overflow: visible; }
     .dge-spring svg { position: absolute; overflow: visible; pointer-events: none; }
     .dge-coil { fill: none; stroke: #536174; stroke-width: 1.6; stroke-linejoin: round; stroke-linecap: round; }
     .dge-spring circle { pointer-events: all; cursor: grab; touch-action: none; }
@@ -478,6 +481,7 @@ const pointsButton = button("points_list", () => drawFrom("points"));
 const segmentsButton = button("segments_list", () => drawFrom("segments"));
 // The point an expression gives, as by DGPad's calculator.
 const pointButton = button("formula_point", () => drawFrom("point"));
+const turtleButton = button("turtle", openTurtle);
 // In place of the actions while the magnets are chosen, or a tool of the
 // menu is in use: the way out.
 const doneButton = $.create("button")
@@ -499,6 +503,7 @@ const actions = $.create("div")
         springButton,
         pinButton,
         magnetButton,
+        turtleButton,
         pointButton,
         pointsButton,
         segmentsButton,
@@ -581,6 +586,10 @@ explain(
         `${name}\n${message((target() as point_object).pinned ? "unpin_hint" : "pin_hint", name)}`,
 );
 explain(magnetButton, (name) => `${name}\n${message("magnet")}`);
+explain(
+    turtleButton,
+    (name) => `${name}\n${message("turtle_hint", turtleOf(target()!)!)}`,
+);
 explain(springButton, (name) => `${name}\n${message("spring_hint", name)}`);
 [pointsButton, segmentsButton].forEach((action) =>
     explain(
@@ -594,9 +603,14 @@ explain(
     (name) =>
         `${nextName(scene(), true)} = ${pointFormulaText(name)}\n${message("formula_point_hint", name)}`,
 );
+// The turtle whose program the panel shows.
+const turtle = turtleLayer(scene, () =>
+    propertiesOpen ? properties.selected : null,
+);
 const properties = propertiesPanel({
     scene,
     changed: () => changed(),
+    shown: () => turtle.watch(),
     rename,
     define: async (object, source) => {
         const spec = resolve(
@@ -722,6 +736,7 @@ $("body").add(
     toolsSub,
     badges,
     magnetCard,
+    turtle.element,
     spring,
     nameBox,
 );
@@ -2347,6 +2362,7 @@ const OBJECT_ACTIONS = [
     springButton,
     pinButton,
     magnetButton,
+    turtleButton,
     pointButton,
     pointsButton,
     segmentsButton,
@@ -2419,6 +2435,8 @@ function showActions(): void {
     );
     if (!magnetizing && pointValue(object)) pointButton.show("grid");
     else pointButton.hide();
+    if (!magnetizing && turtleOf(object)) turtleButton.show("grid");
+    else turtleButton.hide();
     showSpring(springOut && !magnetizing && springy(object) ? object : null);
     if (magnetizing) doneButton.show();
     else doneButton.hide();
@@ -2469,6 +2487,50 @@ function derive(
     source.updateView();
     c.invalidateGeometry(drawn);
     return drawn;
+}
+
+// DGPad's turtles: from a point, a program, super-hidden, whose value a
+// list draws, both named after the point (see TURTLE_GET).
+const TURTLE = /^blk_turtle_(?:exp|list)_/;
+
+// The name of the turtle the object starts or draws, if it can have one.
+const turtleOf = (object: construction_object): string | null =>
+    object instanceof point_object
+        ? object.name
+        : TURTLE.test(object.name) &&
+            scene().getObj(object.name.replace(TURTLE, "blk_turtle_exp_"))
+          ? object.name.replace(TURTLE, "")
+          : null;
+
+// The turtle's program in blocks, made if it has none.
+function openTurtle(): void {
+    const name = turtleOf(target()!)!;
+    closeRing();
+    properties.showBlocks();
+    const c = scene();
+    const existing = c.getObj(`blk_turtle_exp_${name}`);
+    if (!propertiesOpen) setProperties(true);
+    if (existing) return properties.select(existing);
+    const program = add(
+        c,
+        resolve(c, {
+            name: `blk_turtle_exp_${name}`,
+            definition: {
+                kind: "formula",
+                source: `TURTLE_INIT("${name.replace(/[\\"]/g, "\\$&")}", ${formatName(name)});\nreturn TURTLE_RESULT();`,
+            },
+        }),
+    );
+    program.hidden = 2;
+    program.updateView();
+    const list = add(c, {
+        name: `blk_turtle_list_${name}`,
+        overload: findCommand("List")!.overloads[0],
+        args: [program],
+    }) as expression_list_object;
+    list.segmentsSize = 1;
+    c.invalidateGeometry(list);
+    done(program);
 }
 
 function drawFrom(as: Exclude<Choice, "expression">): void {
