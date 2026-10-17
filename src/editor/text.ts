@@ -323,25 +323,35 @@ export const formatName = (name: string): string =>
 
 // A formula point's definition: its coordinates between brackets, unless
 // they are numbers only, which a free point's are.
-export function pointFormulaText(source: string): string {
+export const pointFormulaText = (source: string): string =>
+    coordinatesText(source) ?? `Point(${source})`;
+
+// The coordinates a point's formula gives, `(x, y)` or `(r; θ)`, else null;
+// all numbers only if `numeric`, a line reading them as a free point.
+export function coordinatesText(
+    source: string,
+    numeric = false,
+): string | null {
     const coordinates = POLAR.exec(source);
     if (coordinates) return `(${coordinates[1]}; ${coordinates[2]})`;
     const { tokens, starts, ends } = lex(source);
     const items = tokens[0]?.type === "[" ? group(tokens, 0) : null;
-    if (
-        items &&
+    return items &&
         tokens[items.end + 1]?.type === "eof" &&
         items.commas.length &&
         items.commas.length <= 2 &&
-        [0, ...items.commas].some(
-            (comma, index) =>
-                signed(
-                    tokens.slice(comma + 1, items.commas[index] ?? items.end),
-                ) === null,
-        )
-    )
-        return `(${source.slice(ends[0], starts[items.end]).trim()})`;
-    return `Point(${source})`;
+        (numeric ||
+            [0, ...items.commas].some(
+                (comma, index) =>
+                    signed(
+                        tokens.slice(
+                            comma + 1,
+                            items.commas[index] ?? items.end,
+                        ),
+                    ) === null,
+            ))
+        ? `(${source.slice(ends[0], starts[items.end]).trim()})`
+        : null;
 }
 
 // Rounded as shown, the object keeping its own value.

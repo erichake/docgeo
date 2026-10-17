@@ -1259,7 +1259,9 @@ export function translateGgb(
                 const [p, a, c] = values as string[];
                 if (name === "Translate")
                     return args.length === 2 ? `(${p}+${a})` : null;
-                return args.length <= 3 ? `(${turn(`(${p})`, a, c)})` : null;
+                return args.length <= 3
+                    ? `rotate(${p},${c ?? planar("0", "0")},${a})`
+                    : null;
             }
             // GeoGebra's LaTeX fraction, the first continued fraction
             // convergent within 1e-8.
@@ -1508,6 +1510,17 @@ export function translateGgb(
             );
         }
         return null;
+    };
+
+    // A list read by name, of lists `depth` deep.
+    const named = (list: string, depth: number): ListFormula => {
+        const at = (n: string) =>
+            `${list}[${IDENTIFIER.test(n) || NUMBER.test(n) ? n : `(${n})`}-1]`;
+        return {
+            count: `${list}.length`,
+            item: (n) => (depth > 1 ? null : at(n)),
+            sub: depth > 1 ? (n) => named(at(n), depth - 1) : undefined,
+        };
     };
 
     // A list of lists as the items of its lists in turn, when their size
@@ -2012,17 +2025,6 @@ export function translateGgb(
             (slider.getAttribute("absoluteScreenLocation") ??
                 slider.getAttribute("fixed")) === "true",
         );
-
-    // P turned by a around C (the origin by default), keeping its height.
-    const turn = (p: string, a: string, c?: string): string => {
-        const [dx, dy] = c
-            ? [`(x(${p})-x(${c}))`, `(y(${p})-y(${c}))`]
-            : [`x(${p})`, `y(${p})`];
-        return `${p}+${planar(
-            `(cos(${a})-1)*${dx}-sin(${a})*${dy}`,
-            `sin(${a})*${dx}+(cos(${a})-1)*${dy}`,
-        )}`;
-    };
 
     // Polygon(A, B, n)'s other vertices, counterclockwise like GeoGebra's:
     // the k-th is A + (B - A)·(1 - w^k)/(1 - w) with w = e^(2iπ/n), i.e.
@@ -3016,18 +3018,15 @@ export function translateGgb(
                 )
             );
         },
-        // Sequence(f(i), i, a, b, s): the List of f(a), f(a + s), … up to b,
-        // f being a point, a segment, a polygon or a circle by its radius,
-        // the Sequences of Sequences drawing all their items. The vertices
-        // of the polygons come in turn, each followed by an undefined point.
+        // Sequence(f(i), i, a, b, s): the list of f(a), f(a + s), … up to
+        // b, f being a point or a number, a segment, a polygon, a circle by
+        // its radius, or another Sequence, whose bounds read i (see
+        // sequence_object.ts). Read by name, a list of points is its value.
         Sequence: (
             [expression, variable, from, to, step = "1", extra],
             [label],
         ) => {
-            // The Sequences' innermost expression, and them around one of
-            // its arguments.
-            let around = (end: string) =>
-                `Sequence(${end},${variable},${from},${to},${step})`;
+            const loops = [[variable, from, to, step]];
             let inner = normalizeBrackets(expression);
             let call = commandCall(inner);
             while (
@@ -3035,63 +3034,64 @@ export function translateGgb(
                 call[1].length >= 4 &&
                 call[1].length <= 5
             ) {
-                const [nested, ...bounds] = call[1];
-                const outer = around;
-                around = (end) => outer(`Sequence(${end},${bounds})`);
+                const [nested, name, a, b, s = "1"] = call[1];
+                loops.push([name, a, b, s]);
                 inner = nested;
                 call = commandCall(inner);
             }
-            const circle = call?.[0] === "Circle" && call[1].length === 2;
+            const nature =
+                call?.[0] === "Circle" && call[1].length === 2
+                    ? "circle"
+                    : call?.[0] === "Segment" && call[1].length === 2
+                      ? "segment"
+                      : call?.[0] === "Polygon" && call[1].length > 2
+                        ? "polygons"
+                        : "point";
+            const ends = nature === "point" ? [inner] : call![1];
             // Circle(M, A) as Circle(M, Distance(M, A)).
-            if (circle && points(call![1][1]))
-                call![1] = [call![1][0], `Distance(${call![1]})`];
-            const ends =
-                call &&
-                (circle ||
-                    (call[0] === "Segment" && call[1].length === 2) ||
-                    (call[0] === "Polygon" && call[1].length > 2))
-                    ? call[1]
-                    : [inner];
-            const nested = ends.map((end) => listFormula(around(end)));
-            const sequences = nested.map((list) => list && flatten(list));
+            if (nature === "circle" && points(ends[1]))
+                ends[1] = `Distance(${ends})`;
+            const names = loops.map(([name]) => name);
             if (
                 extra !== undefined ||
-                !IDENTIFIER.test(variable) ||
-                sequences.some((sequence) => !sequence)
+                !names.every((name) => IDENTIFIER.test(name)) ||
+                new Set(names).size < names.length
             )
                 return false;
-            const polygon = ends.length > 2;
-            const n = ends.length + 1;
-            const items = sequences.map((sequence) =>
-                sequence!.item(polygon ? `floor(k/${n})+1` : "k+1"),
+            const locals = new Map<string, string>();
+            const bounds = loops.map(([name, ...range]) => {
+                const values = range.map((bound) =>
+                    formula(bound, VALUE_KINDS, locals),
+                );
+                locals.set(name, name);
+                return [
+                    name,
+                    ...(values[2] === "1" ? values.slice(0, 2) : values),
+                ];
+            });
+            const formulas = ends.map((end) =>
+                formula(end, VALUE_KINDS, locals),
             );
-            if (items.includes(null)) return false;
-            const [list] = sequences as ListFormula[];
-            if (ends.length === 1) lists.set(label, nested[0]!);
+            if (bounds.flat().includes(null) || formulas.includes(null))
+                return false;
             const element = elements.get(label);
             const size = element && attribute(element, "pointSize", "val");
-            return define(
+            define(
                 label,
                 "list",
-                "List",
-                [
-                    literal(
-                        polygon
-                            ? "polygons"
-                            : circle
-                              ? "circle"
-                              : ends.length === 2
-                                ? "segment"
-                                : "point",
-                    ),
-                    literal(polygon ? `${n}*${list.count}` : list.count),
-                    ...(polygon ? [`[${items},0/0][k%${n}]`] : items).map(
-                        (item) => literal(item!),
-                    ),
-                ],
+                "Sequence",
+                [nature, JSON.stringify(bounds), JSON.stringify(formulas)].map(
+                    literal,
+                ),
                 element &&
-                    `${objectStyle(element, "list")}${ends.length === 1 && size ? `;s:${size}` : ""}`,
+                    `${objectStyle(element, "list")}${nature === "point" && size ? `;s:${size}` : ""}`,
             );
+            if (nature === "point")
+                lists.set(
+                    label,
+                    named(objects.get(label)!.variable, loops.length),
+                );
+            return true;
         },
         // IterationList(f(z), z, {s}, n): s, f(s), f(f(s)), … n times,
         // computed by a hidden Expression's script.
@@ -3380,7 +3380,26 @@ export function translateGgb(
         const list = listFormula(source);
         if (!list) return false;
         lists.set(label, list);
-        if (attribute(element, "listType", "val") !== "point") return true;
+        if (attribute(element, "listType", "val") !== "point") {
+            // Written {…}, an expression the formulas read by name.
+            const text = normalizeBrackets(source.trim());
+            if (!/^\{.*\}$/.test(text)) return true;
+            const items = splitArguments(text.slice(1, -1))!.map((item) =>
+                formula(item, VALUE_KINDS),
+            );
+            define(
+                label,
+                "expression",
+                "Expression",
+                ["", "", "", `[${items}]`, "0", "0"].map(literal),
+                "h:1",
+            );
+            lists.set(label, {
+                ...named(objects.get(label)!.variable, 1),
+                count: list.count,
+            });
+            return true;
+        }
         const item = list.item("k+1");
         const size = attribute(element, "pointSize", "val");
         return (

@@ -261,6 +261,7 @@ const it: Texts = {
         designate_polyhedron: "Seleziona un poliedro",
         designate_revolution: "Seleziona un cilindro o un cono",
         designate_solid: "Seleziona un solido",
+        designate_readable: "Seleziona un oggetto",
         unsupported: "Non importato: %",
     },
     commands: {
@@ -317,6 +318,7 @@ const it: Texts = {
         Net: "Sviluppo",
         Locus: "Luogo",
         List: "Lista",
+        Sequence: "Successione",
         Slider: "Cursore",
     },
 };

@@ -218,7 +218,9 @@ s'il n'est pas un identifiant (`` `A 1` ``), comme l'écrit l'éditeur.
 Comme dans DGPad, un objet nommé vaut : ses coordonnées (point), sa valeur
 (expression), sa longueur (segment), ses composantes (vecteur), son rayon
 (cercle, arc), sa mesure dans l'unité d'angle de la figure (angle, angle
-fixe), son aire (polygone) ; tout autre objet est indéfini. Dans une figure
+fixe), son aire (polygone), ses points (liste de nature `point`, `Lst` ou
+`Seq`, en listes de listes pour des boucles imbriquées) ; tout autre objet
+est indéfini. Dans une figure
 3D, un point y a ses trois coordonnées, dans toute formule (sauf les objets
 2D d'une figure à `f2`). Une expression
 de fonction (`"f"`) ou une courbe (`Cur`) s'appelle par son nom : `f(2)`, et
@@ -227,7 +229,10 @@ sa dérivée par rapport à l'une de ses variables, comme dans DGPad, par
 variable, comme dans GeoGebra, par `f'(…)` (`f''(…)` pour la dérivée
 seconde), sauf si un objet s'appelle `f'`. Un nombre suivi de `°` est un
 angle en degrés, converti dans l'unité d'angle de la figure (`cos(60°)`
-vaut 0,5 en degrés comme en radians).
+vaut 0,5 en degrés comme en radians). `rotate(P, O, a)` est l'image du
+point P par la rotation de centre O et d'angle a (dans l'unité d'angle de
+la figure, autour de la verticale de O dans l'espace, sa hauteur gardée),
+`dilate(P, O, k)` son image par l'homothétie de centre O et de rapport k.
 
 | Type   | Objet                                  | Paramètres                                      |
 | ------ | -------------------------------------- | ----------------------------------------------- |
@@ -311,6 +316,7 @@ vaut 0,5 en degrés comme en radians).
 | `Ex`   | expression                             | objet (6)                                       |
 | `Cur`  | courbe y = f(x)                        | `[formule, min ou null, max ou null]`           |
 | `Lst`  | liste de formules en k                 | `[nature, nombre, formule, formule?]` (7)       |
+| `Seq`  | suite (`Sequence` de GeoGebra)         | `[nature, [boucle, …], formule, …]` (22)        |
 | `ELst` | points d'une expression                | `[expression]` (12)                             |
 | `Itr`  | itération de segments                  | `[[P1, Q1, …], niveaux, [[ax,ay,bx,by], …]]`    |
 | `Txt`  | texte attaché à un point               | `[point, [dx, dy], texte]` (8)                  |
@@ -470,6 +476,21 @@ alignement]]` police, `[30, url, l, h, zoom, opacité, u]` image (largeur
     les faces dans leur ordre, et tourne autour de leur arête commune de f
     fois son angle avec elle (0 : plié, 1 : à plat), ses descendantes
     avec elle, comme les patrons de GeoGebra.
+22. Une boucle `[v, début, fin, pas?]` (pas : 1 par défaut, formules
+    toutes trois) fait prendre à la variable v les valeurs début,
+    début + pas… tant qu'elle ne dépasse pas fin (à 10⁻⁶ pas près, comme
+    GeoGebra) ; un pas nul n'en donne aucune. Les boucles suivantes sont
+    imbriquées dans la précédente, et leurs bornes, comme les formules,
+    lisent les variables de celles qui les entourent, aux noms distincts,
+    qui masquent les objets de même nom (`i` aussi, sinon l'unité
+    imaginaire). Pour chaque tour de la boucle la plus intérieure, les
+    formules donnent un élément : un point ou un nombre (nature `point`,
+    une formule), les extrémités d'un segment ou deux points d'une droite
+    (`segment`, `line`), le centre et le rayon d'un cercle (`circle`, dans
+    le plan xOy), ou les sommets d'un polygone (`polygons`, trois formules
+    ou plus). Au plus 100 000 tours en tout. Lue par son nom, une suite de
+    points vaut la liste de ses points, une liste par tour de chaque
+    boucle extérieure (un point indéfini y vaut `NaN`).
 
 ### Styles `st`
 

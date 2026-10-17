@@ -912,6 +912,25 @@ chemin de création de l'éditeur.
   zone contextuelle « Liste de points » et « Liste de segments »
   (épaisseur 1, réglable ensuite dans le panneau) : elles écrivent cette
   ligne et cachent le texte de `p`, en une étape d'annulation.
+- **Suites** (décidé avec l'auteur le 2026-10-17, comme dans GeoGebra) :
+  `L = Séquence(f, k, a, b)` ou `Séquence(f, k, a, b, s)` (`Sequence`,
+  entrée `Seq`) prend f pour k de a à b par s (1 par défaut). f est une
+  formule qui donne un point ou un nombre, `Segment(P, Q)`,
+  `Droite(P, Q)`, `Cercle(O, r)` ou `Polygone(A, B, C, …)` de formules,
+  ou une autre `Séquence`, dont les bornes lisent k (suites
+  triangulaires). La ligne se relit telle qu'écrite ; une variable déjà
+  prise par une suite qui l'entoure, ou f d'une autre forme, est refusée.
+  Une liste de points se lit dans une formule par son nom, comme une
+  liste de DGPad (`L[k-1]`, `L[j-1][i-1]` pour des suites imbriquées,
+  `L.length`), et les formules ont `rotate(P, O, a)` et
+  `dilate(P, O, k)`, pour que les suites importées de GeoGebra se
+  relisent sans cos ni sin : `liste1 =
+Séquence(Séquence(Cercle(LesCtr[j-1][i-1], Rayon[j-1]), j, 1, n), i, 1,
+n)` dans `CerclesDeCercles.ggb`. Nommées comme les commandes, ces
+  fonctions auraient été lues comme `Rotation(…)` (noms comparés sans la
+  casse). Comme dans toute formule, `2i` est le nombre imaginaire : écrire
+  `2*i`. Pas de valeur sous la ligne d'une liste : ce qu'elle dessine
+  suffit, et ses milliers de points seraient réécrits à chaque glisser.
 - **Déplacement** (2026-10-12) : comme dans DGPad, une expression se
   glisse par son texte (ou la piste de son curseur), qui suit le pointeur ;
   ancrée à un point, elle garde son ancrage et son décalage change. La
@@ -1512,6 +1531,14 @@ Fait (2026-10-11) :
   sommet, perpendiculaire par sa droite d'abord, ligne de nouveau
   éditable après Échap, sélection par ligne du panneau de propriétés).
   Éditeur +1,5 Ko (+0,4 Ko en gzip) ; moteur inchangé.
+
+- Suites (2026-10-17, section « Expressions ») : `Séquence` au catalogue
+  (paramètre `readable` pour f, un objet que lit une formule), entrée
+  `.dgo` `Seq` que l'import GeoGebra produit aussi (`GGB_IMPORT.md`,
+  item 38). Vérifié dans `editor.html` avec Playwright sur
+  `CerclesDeCercles.ggb` (lignes de `Ctr`, `Rayon`, `LesCtr` et `liste1`
+  modifiables, `liste1` redéfinie par sa ligne en segments). Éditeur
+  +1,8 Ko (+0,7 Ko en gzip) ; moteur +3,0 Ko (+1,0 Ko en gzip).
 
 Reste à faire :
 

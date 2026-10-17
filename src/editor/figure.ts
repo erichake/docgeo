@@ -21,6 +21,7 @@ import {
     programReferences,
     programTargets,
     withObjects,
+    type FormulaNode,
 } from "../import/dgp_formula";
 import { angle_object } from "../objects/angle_object";
 import { construction_object } from "../objects/construction_object";
@@ -39,6 +40,11 @@ import { plane_object } from "../objects/plane_object";
 import { polygon_object } from "../objects/polygon_object";
 import { normalOf } from "../objects/polyhedron_object";
 import { primitive_quadric_object } from "../objects/primitive_quadric_object";
+import { list_object, type ListNature } from "../objects/list_object";
+import {
+    sequenceShape,
+    type sequence_object,
+} from "../objects/sequence_object";
 import { vDot, vScale, vSub, type Vec2, type Vec3 } from "../vec";
 import {
     commandName,
@@ -46,6 +52,7 @@ import {
     decodeEntry,
     findCommand,
     FormulaArg,
+    isCommand,
     overloadFor,
     argObjects,
     type Arg,
@@ -53,12 +60,15 @@ import {
 } from "./catalog";
 import {
     formatName,
+    coordinatesText,
     formatNumber,
+    parseLine,
     pointFormulaText,
     renameFormula,
     splitProducts,
     TextError,
     unknownMethod,
+    type ArgText,
     type Definition,
     type Line,
 } from "./text";
@@ -234,7 +244,9 @@ export function valueText(
     line: string | null,
     vec3: boolean,
 ): string {
-    const value = object.scriptValue(vec3);
+    // A list's values are what it draws.
+    const value =
+        object instanceof list_object ? null : object.scriptValue(vec3);
     if (value === null) return "";
     const degrees =
         object.C.degrees &&
@@ -259,6 +271,25 @@ export function lineOf(
         return min === null && max === null
             ? `${name}(x) = ${oneLine(renamed(formula.source, formula.refs))}`
             : null;
+    }
+    if (tag === "Seq") {
+        const { nature, loops, formulas, refs } = object as sequence_object;
+        const text = (formula: FormulaNode) => {
+            const source = oneLine(renamed(formulaSource(formula), refs));
+            return coordinatesText(source, true) ?? source;
+        };
+        const items = formulas.map(text).join(", ");
+        let body =
+            nature === "point"
+                ? items
+                : `${commandName(findCommand(ITEM_COMMANDS[nature]!)!)}(${items})`;
+        for (const { variable, from, to, step } of [...loops].reverse())
+            body = `${commandName(findCommand("Sequence")!)}(${[
+                body,
+                variable,
+                ...[from, to, ...(step ? [step] : [])].map(text),
+            ].join(", ")})`;
+        return `${name} = ${body}`;
     }
     if (tag === "VecF")
         return `${name} = (${(parameters as number[]).map(formatNumber).join(", ")})`;
@@ -314,6 +345,8 @@ export function resolve(
         ({ overload, args } = equation(c, definition!.sides));
     else if (definition!.kind === "curve")
         ({ overload, args } = curve(c, definition!.source));
+    else if (findCommand(definition!.command)?.name === "Sequence")
+        ({ overload, args } = sequence(c, definition!.args));
     else {
         const call = definition!;
         const command = findCommand(call.command);
@@ -622,7 +655,9 @@ function formulaArg(
     let names: Set<string>;
     try {
         names = formulaIdentifiers(
-            withObjects(new Set(own.keys()), () => parseFormula(source)),
+            withObjects(new Set(own.keys()), () =>
+                parseFormula(source, variables),
+            ),
         );
     } catch {
         throw new TextError("syntax", source);
@@ -639,6 +674,102 @@ function formulaArg(
                 }),
         ),
     );
+}
+
+// An argument as typed.
+const argSource = (arg: ArgText): string =>
+    arg.kind === "name"
+        ? formatName(arg.name)
+        : arg.kind === "number"
+          ? formatNumber(arg.value)
+          : arg.source;
+
+// Of a nature, the command a Sequence's items are written with.
+const ITEM_COMMANDS: Partial<Record<ListNature, string>> = {
+    segment: "Segment",
+    line: "Line",
+    circle: "Circle",
+    polygons: "Polygon",
+};
+
+// Sequence(f, k, a, b, s): f for k from a to b by s, f being a point or a
+// number, Segment(P, Q), Line(P, Q), Circle(O, r) or Polygon(A, B, C, …) of
+// formulas, or another Sequence, whose bounds read k (see
+// sequence_object.ts).
+function sequence(
+    c: construction,
+    args: ArgText[],
+): { overload: Overload; args: Arg[] } {
+    const loops: [string, ...FormulaArg[]][] = [];
+    const variables: string[] = [];
+    let body = args;
+    for (;;) {
+        const [expression, variable, ...bounds] = body;
+        if (
+            variable?.kind !== "name" ||
+            bounds.length < 2 ||
+            bounds.length > 3 ||
+            variables.includes(variable.name)
+        )
+            throw new TextError(
+                "arguments",
+                commandName(findCommand("Sequence")!),
+            );
+        loops.push([
+            variable.name,
+            ...bounds.map((bound) =>
+                formulaArg(c, argSource(bound), variables),
+            ),
+        ]);
+        variables.push(variable.name);
+        const inner = parseLine(argSource(expression), isCommand).definition!;
+        const command =
+            inner.kind === "call" ? findCommand(inner.command)!.name : "";
+        if (command === "Sequence") {
+            body = (inner as { args: ArgText[] }).args;
+            continue;
+        }
+        const nature = (Object.keys(ITEM_COMMANDS) as ListNature[]).find(
+            (key) => ITEM_COMMANDS[key] === command,
+        );
+        // Each a formula, or coordinates, read as on a line of its own.
+        const item = (text: string): string => {
+            const read = parseLine(text, isCommand).definition!;
+            if (read.kind === "point") return `[${read.coords.join(", ")}]`;
+            if (read.kind === "formula" || read.kind === "pointFormula")
+                return read.source;
+            throw new TextError("syntax", text);
+        };
+        const items =
+            inner.kind === "call"
+                ? inner.args.map((arg) => item(argSource(arg)))
+                : [item(argSource(expression))];
+        if (!sequenceShape(nature ?? "point", items.length))
+            throw new TextError("syntax", argSource(expression));
+        const formulas = items.map((item) => formulaArg(c, item, variables));
+        const parameter = (
+            { source, refs }: FormulaArg,
+            index: (object: construction_object) => number,
+        ) => formulaParameter(source, refs, index);
+        return {
+            overload: {
+                params: [],
+                tag: "Seq",
+                encode: (_, index) => [
+                    nature ?? "point",
+                    loops.map(([name, ...range]) => [
+                        name,
+                        ...range.map((bound) => parameter(bound, index)),
+                    ]),
+                    ...formulas.map((formula) => parameter(formula, index)),
+                ],
+            },
+            args: argObjects([
+                ...loops.flatMap(([, ...range]) => range),
+                ...formulas,
+            ]),
+        };
+    }
 }
 
 // `f(x) = …`, the curve of a function of x, which formulas call as one.

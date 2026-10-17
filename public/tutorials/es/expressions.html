@@ -141,6 +141,27 @@
                 escribe y la expresión se oculta.
             </p>
 
+            <h2 id="suites">Secuencias</h2>
+            <p>
+                <code>L = Secuencia((k, k^2), k, -2, 2)</code> coloca los puntos
+                (k, k²) para k de −2 a 2, con paso 1; un quinto argumento da
+                otro paso. El elemento también puede ser un número,
+                <code>Segmento(P, Q)</code>, <code>Recta(P, Q)</code>,
+                <code>Circunferencia(O, r)</code> o
+                <code>Polígono(A, B, C, …)</code>, cuyos argumentos son fórmulas
+                en k: <code>Secuencia(Circunferencia(A, k), k, 1, 3)</code>.
+            </p>
+            <p>
+                Una secuencia puede contener otra, cuyos límites leen la
+                variable de la primera:
+                <code>Secuencia(Secuencia((i, j), j, 1, i), i, 1, 4)</code>. En
+                una fórmula, una lista de puntos se lee por su nombre, desde 0:
+                <code>L[0]</code>, <code>L[k-1]</code>,
+                <code>L[i][j]</code> para secuencias anidadas,
+                <code>L.length</code> para su número de elementos. Escribe
+                <code>2*i</code>: <code>2i</code> es un número complejo.
+            </p>
+
             <h2 id="les-programmes">Programas</h2>
             <p>
                 Una expresión puede ser un programa: instrucciones separadas por

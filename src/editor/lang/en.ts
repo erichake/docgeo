@@ -256,5 +256,6 @@ export default {
     designate_polyhedron: "Designate a polyhedron",
     designate_revolution: "Designate a cylinder or a cone",
     designate_solid: "Designate a solid",
+    designate_readable: "Designate an object",
     unsupported: "Not imported: %",
 };

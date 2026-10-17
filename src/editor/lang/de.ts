@@ -264,6 +264,7 @@ const de: Texts = {
         designate_polyhedron: "Wählen Sie einen Polyeder",
         designate_revolution: "Wählen Sie einen Zylinder oder einen Kegel",
         designate_solid: "Wählen Sie einen Körper",
+        designate_readable: "Wählen Sie ein Objekt",
         unsupported: "Nicht importiert: %",
     },
     commands: {
@@ -320,6 +321,7 @@ const de: Texts = {
         Net: "Netz",
         Locus: "Ortslinie",
         List: "Liste",
+        Sequence: "Folge",
         Slider: "Schieberegler",
     },
 };

@@ -50,6 +50,8 @@ export type FormulaFn =
     | "Angle180"
     | "crossProduct"
     | "gcd"
+    | "rotate"
+    | "dilate"
     // "30°", an angle in degrees in the figure's unit: no name calls it.
     | "°"
     | ListFn;
@@ -108,6 +110,8 @@ const FORMULA_ARITY: Record<FormulaFn, number> = {
     Angle180: 3,
     crossProduct: 2,
     gcd: 2,
+    rotate: 3,
+    dilate: 3,
     "°": 1,
     plus: 2,
     minus: 2,
@@ -547,13 +551,14 @@ class FormulaParser {
     private current: Token;
     locals = new Set<string>();
     // The variables of the functions and program enclosing the function
-    // being parsed.
-    private readonly outer: Set<string>[] = [];
+    // being parsed, the first ones bound around the formula.
+    private readonly outer: Set<string>[];
     // The functions built by Function(…) in the function or program being
     // parsed, declared at its start.
     private built: Statement[] = [];
 
-    constructor(source: string) {
+    constructor(source: string, variables: Iterable<string> = []) {
+        this.outer = [new Set(variables)];
         this.lexer = new FormulaLexer(source);
         this.current = this.lexer.next();
     }
@@ -1142,8 +1147,12 @@ function methodNode(
 // stores rather than the tree.
 const SOURCES = new WeakMap<FormulaNode | Program, string>();
 
-export function parseFormula(source: string): FormulaNode {
-    const node = new FormulaParser(source).parse();
+// `variables`: the names a Sequence binds around it, "i" among them.
+export function parseFormula(
+    source: string,
+    variables?: Iterable<string>,
+): FormulaNode {
+    const node = new FormulaParser(source, variables).parse();
     SOURCES.set(node, source);
     return node;
 }
@@ -1756,6 +1765,37 @@ function evalCall(
                 Math.atan2(a[1] - o[1], a[0] - o[0]);
             const turn = 2 * Math.PI;
             return (angle - Math.floor(angle / turn) * turn) / angleUnit(env);
+        }
+        // P turned around O by an angle, its height kept in space.
+        case "rotate": {
+            const [p, o, a] = args;
+            if (
+                typeof p === "number" ||
+                typeof o === "number" ||
+                typeof a !== "number" ||
+                p.length !== o.length
+            )
+                return null;
+            const angle = a * angleUnit(env);
+            const [cos, sin] = [Math.cos(angle), Math.sin(angle)];
+            const [dx, dy] = [p[0] - o[0], p[1] - o[1]];
+            const x = o[0] + cos * dx - sin * dy;
+            const y = o[1] + sin * dx + cos * dy;
+            return p.length === 3 ? [x, y, p[2]] : [x, y];
+        }
+        // The image of P by the dilation of center O and ratio k.
+        case "dilate": {
+            const [p, o, k] = args;
+            if (
+                typeof p === "number" ||
+                typeof o === "number" ||
+                typeof k !== "number" ||
+                p.length !== o.length
+            )
+                return null;
+            return p.length === 3
+                ? vAdd(vScale(vSub(p as Vec3, o as Vec3), k), o as Vec3)
+                : vAdd(vScale(vSub(p as Vec2, o as Vec2), k), o as Vec2);
         }
         // The geometric angle AOC, within [0, π], in the plane or in space.
         case "Angle180": {

@@ -91,6 +91,7 @@ import type { expression_object } from "../../src/objects/expression_object";
 import type { construction_object } from "../../src/objects/construction_object";
 import type { free_vector_object } from "../../src/objects/free_vector_object";
 import type { expression_list_object } from "../../src/objects/expression_list_object";
+import type { list_object } from "../../src/objects/list_object";
 import { importGgb } from "../../src/ggb_importer";
 import { createConstruction, disposeFigures, expectClose } from "./figures";
 import { vAdd, vDot, vNorm, vScale, vSub, type Vec3 } from "../../src/vec";
@@ -1052,6 +1053,100 @@ describe("Editor", () => {
         );
         expect(accepts(c.getObj("p")!, "expression")).toBe(true);
         expect(accepts(1, "expression")).toBe(false);
+    });
+
+    it("writes Sequences, nested ones reading the variables around them", async () => {
+        const { scene: c } = studio();
+        const text = [
+            "A = (1, 0)",
+            "n = 3",
+            "L = Sequence(rotate(A, [0, 0], 90°*i), i, 0, n - 1)",
+            "c = Sequence(Sequence(Circle(L[i], 0.5*j), j, 1, i + 1), i, 0, 1)",
+            "s = Sequence(Segment(L[k], dilate(L[k], [0, 0], 2)), k, 0, 2, 2)",
+            "p = Sequence(Polygon((k, 0), (k + 1, 0), (k, 1)), k, 1, 2)",
+            "q = Sequence(Sequence((i, j), j, 1, i), i, 1, 3)",
+            "r = Sequence((2; 30°*k), k, 0, 1)",
+            "t = Sequence(Segment(A, (1, 2)), k, 0, 1)",
+        ];
+        text.forEach((line) => type(c, line));
+        c.flush();
+        expect(lines(c)).toEqual(text);
+        const round = (values: unknown): unknown =>
+            Array.isArray(values)
+                ? values.map(round)
+                : typeof values === "number"
+                  ? Math.round(values * 1e9) / 1e9 || 0
+                  : values;
+        const items = (name: string) =>
+            round((c.getObj(name) as list_object).items);
+        expect(round(c.getObj("L")!.scriptValue(false))).toEqual([
+            [1, 0],
+            [0, 1],
+            [-1, 0],
+        ]);
+        expect(items("c")).toEqual([
+            [[1, 0], 0.5],
+            [[0, 1], 0.5],
+            [[0, 1], 1],
+        ]);
+        expect(items("s")).toEqual([
+            [
+                [1, 0],
+                [2, 0],
+            ],
+            [
+                [-1, 0],
+                [-2, 0],
+            ],
+        ]);
+        expect(items("p")).toEqual([
+            [[1, 0]],
+            [[2, 0]],
+            [[1, 1]],
+            [null],
+            [[2, 0]],
+            [[3, 0]],
+            [[2, 1]],
+            [null],
+        ]);
+        expect(round(c.getObj("q")!.scriptValue(false))).toEqual([
+            [[1, 1]],
+            [
+                [2, 1],
+                [2, 2],
+            ],
+            [
+                [3, 1],
+                [3, 2],
+                [3, 3],
+            ],
+        ]);
+        expect(items("r")).toEqual(round([[[2, 0]], [[Math.sqrt(3), 1]]]));
+        expect(entryOf(c.getObj("L")!, figureIndex(c))).toEqual([
+            "Seq",
+            [
+                "point",
+                [["i", "0", ["n - 1", { n: 1 }]]],
+                ["rotate(A, [0, 0], 90°*i)", { A: 0 }],
+            ],
+        ]);
+        const other = createConstruction([800, 600]);
+        readDgo(other, await describeDgo(c));
+        expect(lines(other)).toEqual(text);
+        expect(readable(c.getObj("L")!)).toBe(true);
+        expect(readable(c.getObj("s")!)).toBe(false);
+        expect(() => type(c, "q = Sequence(A, 1, 0, 2)")).toThrow(
+            expect.objectContaining({ key: "arguments" }),
+        );
+        expect(() =>
+            type(c, "q = Sequence(Sequence(A, i, 0, 1), i, 0, 1)"),
+        ).toThrow(expect.objectContaining({ key: "arguments" }));
+        expect(() => type(c, "q = Sequence(Segment(A), k, 0, 1)")).toThrow(
+            expect.objectContaining({ key: "syntax" }),
+        );
+        expect(() => type(c, "q = Sequence(B, k, 0, 1)")).toThrow(
+            expect.objectContaining({ key: "unknown_object", detail: "B" }),
+        );
     });
 
     it("signs the formulas' functions, a real number reading expressions", () => {

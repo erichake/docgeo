@@ -9,6 +9,7 @@ import {
     type FormulaEnv,
     type FormulaNode,
     type FormulaValue,
+    type ScriptValue,
 } from "../import/dgp_formula";
 import {
     construction_object,
@@ -44,7 +45,7 @@ export class list_object extends construction_object {
     formulas: FormulaNode[];
     refs: Map<string, construction_object>;
     // True in a 3D figure: a point then reads its 3D coordinates.
-    private vec3: boolean;
+    protected vec3: boolean;
     count = 0;
     items: (FormulaValue | null)[][] = [];
     screenItems: (Vec2 | null)[][] = [];
@@ -157,6 +158,13 @@ export class list_object extends construction_object {
             );
         }
         this.defined = this.count > 0;
+    }
+
+    // Read by name, a list of points is their values.
+    scriptValue(): ScriptValue | null {
+        return this.nature === "point"
+            ? this.items.map(([value]) => value ?? NaN)
+            : null;
     }
 
     project(): void {

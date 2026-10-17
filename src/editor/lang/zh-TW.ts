@@ -248,6 +248,7 @@ const zh_TW: Texts = {
         designate_polyhedron: "選取一個多面體",
         designate_revolution: "選取一個圓柱或圓錐",
         designate_solid: "選取一個立體圖形",
+        designate_readable: "選取一個物件",
         unsupported: "未匯入：%",
     },
     commands: {
@@ -304,6 +305,7 @@ const zh_TW: Texts = {
         Net: "展開圖",
         Locus: "軌跡",
         List: "列表",
+        Sequence: "序列",
         Slider: "滑桿",
     },
 };

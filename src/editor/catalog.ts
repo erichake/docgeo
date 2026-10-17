@@ -72,7 +72,9 @@ export type Param =
     | "support"
     // A support whose points take one number, or two.
     | "path"
-    | "outline";
+    | "outline"
+    // What a formula reads.
+    | "readable";
 
 // A number given by a formula, its names designating these objects.
 export class FormulaArg {
@@ -199,6 +201,8 @@ export function accepts(arg: Arg, param: Param): boolean {
                 arg instanceof polygon_object ||
                 arg instanceof primitive_quadric_object
             );
+        case "readable":
+            return readable(arg);
         default:
             return kind === param;
     }
@@ -207,6 +211,7 @@ export function accepts(arg: Arg, param: Param): boolean {
 // What a formula reads by name (see READABLE in dgp_commands.ts).
 export const readable = (object: construction_object): boolean =>
     object instanceof curve_object ||
+    (object instanceof list_object && object.nature === "point") ||
     ["point", "line", "circle", "conic", "polygon", "number", "angle"].includes(
         kindOf(object),
     );
@@ -748,6 +753,18 @@ export const COMMANDS: Command[] = [
     },
     // The points of an expression's value (see expression_list_object.ts).
     { name: "List", overloads: [objects("ELst", ["expression"])] },
+    // A formula for a variable from a to b, by s: see sequence in
+    // figure.ts.
+    {
+        name: "Sequence",
+        overloads: [4, 5].map((count) => ({
+            params: (
+                ["readable", "number", "real", "real", "real"] as Param[]
+            ).slice(0, count),
+            tag: "Seq",
+            encode: () => null,
+        })),
+    },
     {
         name: "Slider",
         overloads: [
@@ -804,6 +821,9 @@ export const FUNCTIONS: Command[] = [
         "round",
     ].map((name) => formulaFunction(name, ["real"])),
     formulaFunction("atan2", ["real", "real"]),
+    // The image of a point around a center, by an angle or a ratio.
+    formulaFunction("rotate", ["point", "point", "real"]),
+    formulaFunction("dilate", ["point", "point", "real"]),
     formulaFunction("min", ["real"], true),
     formulaFunction("max", ["real"], true),
 ];

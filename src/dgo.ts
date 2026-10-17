@@ -67,6 +67,11 @@ import {
     type ListNature,
 } from "./objects/list_object";
 import { createLocus, locus_object } from "./objects/locus_object";
+import {
+    createSequence,
+    SEQUENCE_VARIABLE,
+    sequenceShape,
+} from "./objects/sequence_object";
 import { createMidpoint } from "./objects/midpoint_object";
 import { createParallel } from "./objects/parallel_line_object";
 import { createPerpendicularBisector } from "./objects/perpendicular_bisector_object";
@@ -250,6 +255,7 @@ export const LOOKS: Record<string, Look> = {
     Loc: CURVE,
     Cur: CURVE,
     Lst: LIST,
+    Seq: LIST,
     ELst: LIST,
     Itr: LIST,
     Ex: ["rgb(0,0,178)", "rgb(0,0,178)", 7, 0],
@@ -1208,15 +1214,17 @@ const INTERSECTABLE = [
     curve_object,
 ];
 
-// A List's or a text's formula, "k" and "count" being a List's own.
+// A List's or a text's formula, "k" and "count" being a List's own, or a
+// Sequence's, which reads its variables.
 function listFormula(
     reader: Reader,
     value: Json,
     refs: Map<string, construction_object>,
+    variables?: string[],
 ): FormulaNode {
     const { source, refs: own } = reader.formula(value, construction_object);
-    const node = parseFormula(source);
-    checkNames(formulaIdentifiers(node), own, ["k", "count"]);
+    const node = parseFormula(source, variables);
+    checkNames(formulaIdentifiers(node), own, variables ?? ["k", "count"]);
     own.forEach((ref, name) => refs.set(name, ref));
     return node;
 }
@@ -1794,6 +1802,44 @@ const BUILDERS: Record<string, Builder> = {
             nature as ListNature,
             listFormula(reader, count, refs),
             formulas.map((formula) => listFormula(reader, formula, refs)),
+            refs,
+            reader.vec3,
+        );
+    },
+    // Each variable read by the loops inside its own and the formulas.
+    Seq: (parameters, reader) => {
+        const [nature, loops, ...formulas] = list(parameters, 3, Infinity);
+        check(
+            sequenceShape(nature, formulas.length) &&
+                Array.isArray(loops) &&
+                loops.length > 0,
+        );
+        const refs = new Map<string, construction_object>();
+        const variables: string[] = [];
+        const read = (value: Json) =>
+            listFormula(reader, value, refs, variables);
+        const parsed = loops.map((loop) => {
+            const [variable, from, to, step] = list(loop, 3, 4);
+            check(
+                typeof variable === "string" &&
+                    SEQUENCE_VARIABLE.test(variable) &&
+                    !variables.includes(variable),
+            );
+            const bounds = {
+                variable,
+                from: read(from),
+                to: read(to),
+                step: step === undefined ? null : read(step),
+            };
+            variables.push(variable);
+            return bounds;
+        });
+        return createSequence(
+            reader.c,
+            reader.name,
+            nature as ListNature,
+            parsed,
+            formulas.map(read),
             refs,
             reader.vec3,
         );

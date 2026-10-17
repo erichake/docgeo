@@ -262,6 +262,7 @@ const hi: Texts = {
         designate_polyhedron: "एक बहुफलक चुनें",
         designate_revolution: "एक बेलन या शंकु चुनें",
         designate_solid: "एक ठोस चुनें",
+        designate_readable: "एक वस्तु चुनें",
         unsupported: "आयात नहीं हुआ: %",
     },
     commands: {
@@ -318,6 +319,7 @@ const hi: Texts = {
         Net: "जाल",
         Locus: "बिन्दुपथ",
         List: "सूची",
+        Sequence: "अनुक्रम",
         Slider: "स्लाइडर",
     },
 };

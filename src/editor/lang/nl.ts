@@ -263,6 +263,7 @@ const nl: Texts = {
         designate_polyhedron: "Selecteer een veelvlak",
         designate_revolution: "Selecteer een cilinder of een kegel",
         designate_solid: "Selecteer een ruimtefiguur",
+        designate_readable: "Selecteer een object",
         unsupported: "Niet geïmporteerd: %",
     },
     commands: {
@@ -319,6 +320,7 @@ const nl: Texts = {
         Net: "Uitslag",
         Locus: "MeetkundigePlaats",
         List: "Lijst",
+        Sequence: "Rij",
         Slider: "Schuifknop",
     },
 };

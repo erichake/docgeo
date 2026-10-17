@@ -79,6 +79,12 @@ import {
     list_object,
     type ListNature,
 } from "../objects/list_object";
+import {
+    createSequence,
+    SEQUENCE_VARIABLE,
+    sequenceShape,
+    type SequenceLoop,
+} from "../objects/sequence_object";
 import { createLocus } from "../objects/locus_object";
 import { createMidpoint } from "../objects/midpoint_object";
 import { createParallel } from "../objects/parallel_line_object";
@@ -351,6 +357,7 @@ const READABLE: ReadonlySet<ObjectKind> = new Set([
     "angle",
     "curve",
     "quadric",
+    "list",
 ]);
 
 // A List's own names (see list_object).
@@ -563,12 +570,67 @@ const equationCommand = (
         ),
 });
 
-function parseListFormula(value: string, lineNumber: number): FormulaNode {
+function parseListFormula(
+    value: string,
+    lineNumber: number,
+    variables?: string[],
+): FormulaNode {
     try {
-        return parseFormula(value);
+        return parseFormula(value, variables);
     } catch {
         throw new Error(`Invalid DGP list formula at line ${lineNumber}`);
     }
+}
+
+// A Sequence's loops and formulas, from their JSON texts, and the names
+// they read that its variables don't stand for.
+function sequenceParts(
+    loopsText: string,
+    formulasText: string,
+    lineNumber: number,
+): { loops: SequenceLoop[]; formulas: FormulaNode[]; names: string[] } {
+    const invalid = () =>
+        new Error(`Invalid DGP sequence at line ${lineNumber}`);
+    let loops: unknown;
+    let sources: unknown;
+    try {
+        loops = JSON.parse(loopsText);
+        sources = JSON.parse(formulasText);
+    } catch {
+        throw invalid();
+    }
+    if (!Array.isArray(loops) || !loops.length || !Array.isArray(sources))
+        throw invalid();
+    const variables: string[] = [];
+    const names: string[] = [];
+    const read = (source: unknown): FormulaNode => {
+        if (typeof source !== "string") throw invalid();
+        const node = parseListFormula(source, lineNumber, variables);
+        formulaIdentifiers(node).forEach((name) => {
+            if (!variables.includes(name)) names.push(name);
+        });
+        return node;
+    };
+    const parsed = loops.map((loop: unknown) => {
+        if (!Array.isArray(loop) || loop.length < 3 || loop.length > 4)
+            throw invalid();
+        const [variable, from, to, step] = loop as unknown[];
+        if (
+            typeof variable !== "string" ||
+            !SEQUENCE_VARIABLE.test(variable) ||
+            variables.includes(variable)
+        )
+            throw invalid();
+        const bounds = {
+            variable,
+            from: read(from),
+            to: read(to),
+            step: step === undefined ? null : read(step),
+        };
+        variables.push(variable);
+        return bounds;
+    });
+    return { loops: parsed, formulas: sources.map(read), names };
 }
 
 // An AnchoredText's content: text alternating with "%formula%" parts, "%%"
@@ -2954,6 +3016,43 @@ const COMMANDS = new Map<string, CommandDefinition>([
                     countFormula,
                     formulas,
                     refs,
+                    context.is3D,
+                );
+            },
+        },
+    ],
+    [
+        // Not a DGPad command: GeoGebra's Sequence (see sequence_object),
+        // its loops and formulas in JSON.
+        "Sequence",
+        {
+            parameters: [string, string, string, string],
+            result: "list",
+            validate: (args, lineNumber, variables) => {
+                const { formulas, names } = sequenceParts(
+                    literalString(args[2]),
+                    literalString(args[3]),
+                    lineNumber,
+                );
+                if (!sequenceShape(literalString(args[1]), formulas.length))
+                    throw new Error(
+                        `Invalid DGP sequence at line ${lineNumber}`,
+                    );
+                validateReferences(names, variables, lineNumber);
+            },
+            execute: (context, args) => {
+                const { loops, formulas, names } = sequenceParts(
+                    args[2] as string,
+                    args[3] as string,
+                    0,
+                );
+                return createSequence(
+                    context.construction,
+                    args[0] as string,
+                    args[1] as ListNature,
+                    loops,
+                    formulas,
+                    formulaRefs(names, context.variables),
                     context.is3D,
                 );
             },

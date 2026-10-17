@@ -264,6 +264,7 @@ const el: Texts = {
         designate_polyhedron: "Επιλέξτε ένα πολύεδρο",
         designate_revolution: "Επιλέξτε έναν κύλινδρο ή έναν κώνο",
         designate_solid: "Επιλέξτε ένα στερεό",
+        designate_readable: "Επιλέξτε ένα αντικείμενο",
         unsupported: "Δεν εισήχθη: %",
     },
     commands: {
@@ -320,6 +321,7 @@ const el: Texts = {
         Net: "Ανάπτυγμα",
         Locus: "ΓεωμετρικόςΤόπος",
         List: "Λίστα",
+        Sequence: "Ακολουθία",
         Slider: "Δρομέας",
     },
 };

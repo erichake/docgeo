@@ -90,6 +90,7 @@ figure sont seulement comptés. L'API utilisée est
 | 2026-10-15 | 265 / 470 (56 %)   | 342,2 Ko | item 35 : macros, `Sequence` de cercles par un point (+2)          |
 | 2026-10-16 | —                  | 360,1 Ko | item 36 : cercle d'axe donné, de direction un plan (+1)            |
 | 2026-10-16 | —                  | 362,1 Ko | item 37 : translation des polygones, polygones fixés (+0)          |
+| 2026-10-17 | 245 / 438 (56 %)   | 365,9 Ko | item 38 : `Sequence` natifs, listes lues par leur nom (+0)         |
 
 ## À faire, par rapport gain / coût
 
@@ -625,6 +626,23 @@ cause.
       (DGP `fx:true`). Corpus : 799 polygones, 40 fixés (29 à sommets
       libres), 73 non sélectionnables (19 à sommets libres). Moteur +0,8 Ko
       (+0,23 Ko en gzip).
+- [x] **38. `Sequence` natifs, listes lues par leur nom** : un `Sequence`
+      était compilé en liste de formules en k (`Lst`), ses `Sequence`
+      imbriqués mis à plat (`floor`, `%`) et les listes qu'il lit
+      recopiées dans ses formules : `liste1` de
+      `tests/ggb/Yves_06/CerclesDeCercles.ggb` avait deux formules de
+      2 000 caractères, que l'éditeur ne pouvait pas écrire. Fait : entrée
+      `.dgo` `Seq` (commande DGP propre à DocGeo `Sequence`), ses boucles
+      imbriquées gardant leurs variables, dont les bornes lisent celles
+      des boucles qui les entourent (les `Sequence` triangulaires
+      `i, j, n` ; `j, 2, n - i` sont désormais importés) ; une liste de
+      points se lit par son nom (`LesCtr[j-1][i-1]`), une liste écrite
+      `{…}` non dessinée devient une expression cachée
+      (`Ctr = [B1, …, B22]`), et `Rotate` dans une formule la fonction
+      `rotate(P, O, a)` (avec `dilate(P, O, k)`). L'éditeur écrit et
+      relit ces lignes (`EDITOR.md`). Corpus : figures sans perte
+      inchangées (245 sur 438), éléments non importés 2770 → 2765, figures
+      où `Sequence` en perd 12 → 11. Moteur +3,0 Ko (+1,0 Ko en gzip).
 
 À écarter, sauf changement de priorité : calcul formel, courbes implicites,
 statistiques et probabilités, tableur au-delà des cellules simples, matrices.

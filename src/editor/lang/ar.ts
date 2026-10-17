@@ -254,6 +254,7 @@ const ar: Texts = {
         designate_polyhedron: "حدّد متعدد سطوح",
         designate_revolution: "حدّد أسطوانة أو مخروطًا",
         designate_solid: "حدّد مجسمًا",
+        designate_readable: "حدّد كائنًا",
         unsupported: "لم يُستورد: %",
     },
     commands: {
@@ -310,6 +311,7 @@ const ar: Texts = {
         Net: "شبكة",
         Locus: "محلهندسي",
         List: "قائمة",
+        Sequence: "متتالية",
         Slider: "منزلقة",
     },
 };
