@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 // First, as in main.ts: the object classes import each other.
-import "../../src/construction";
+import { AWAKE } from "../../src/construction";
 import { importDgp, importDgpFromUrl } from "../../src/dgp_importer";
 import { t } from "../../src/i18n";
 import type { circle3pts_object } from "../../src/objects/circle3pts_object";
@@ -46,6 +46,30 @@ BLK_GLOB_SET({"T":0});`,
         ]);
         expect(unsupported[0]).toContain("…");
         expect(unsupported[1]).toContain("onchange");
+    });
+
+    it("makes an inert object, which the pointer passes through unless the body wakes it", () => {
+        const c = createConstruction();
+        importDgp(
+            c,
+            `P1=Point("P1",1,2);
+P2=Point("P2",-1,2);
+STL(P1,"nmi:true");`,
+        );
+        c.flush();
+        c.reveal();
+        const [inert, other] = ["P1", "P2"].map(
+            (name) => c.getObj(name) as point_object,
+        );
+        expect([inert.inert, other.inert]).toEqual([true, false]);
+        const box = c.svg.dom().getBoundingClientRect();
+        const under = (point: point_object) =>
+            document.elementFromPoint(box.left + point.sx, box.top + point.sy);
+        expect(inert.dom.dom().contains(under(inert))).toBe(false);
+        expect(other.dom.dom().contains(under(other))).toBe(true);
+        document.body.classList.add(AWAKE);
+        expect(inert.dom.dom().contains(under(inert))).toBe(true);
+        document.body.classList.remove(AWAKE);
     });
 
     it("reads the early SetCoords, without 3D flag nor window size", () => {

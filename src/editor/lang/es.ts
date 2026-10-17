@@ -151,6 +151,7 @@ const es: Texts = {
             "La visibilidad también depende de una condición de la figura.",
         show_name: "Mostrar el nombre",
         fixed_object: "Objeto fijo",
+        inert_object: "Objeto inerte",
         hide_name: "Ocultar el nombre",
         show_object: "Mostrar el objeto",
         hide_object: "Ocultar el objeto",

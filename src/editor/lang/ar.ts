@@ -145,6 +145,7 @@ const ar: Texts = {
         conditional_visibility: "يعتمد الظهور أيضًا على شرط في الشكل.",
         show_name: "إظهار الاسم",
         fixed_object: "عنصر ثابت",
+        inert_object: "عنصر خامل",
         hide_name: "إخفاء الاسم",
         show_object: "إظهار الكائن",
         hide_object: "إخفاء الكائن",

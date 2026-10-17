@@ -17,6 +17,14 @@ import { vAdd, vDot, vScale, type Vec2, type Vec3 } from "./vec";
 const MIN_UNIT = 1e-3;
 const MAX_UNIT = 1e8;
 
+// While the page's body has this class, as in DGPad's properties mode,
+// inert objects answer the pointer: their parts keep their own
+// pointer-events otherwise overridden.
+export const AWAKE = "docgeo-awake";
+$("head").append(
+    `<style>body:not(.${AWAKE}) [data-inert], body:not(.${AWAKE}) [data-inert] * { pointer-events: none !important; }</style>`,
+);
+
 export interface DgpadLike {
     prefs: preferences;
 }

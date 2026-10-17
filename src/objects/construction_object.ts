@@ -99,6 +99,9 @@ export class construction_object {
     // The embedding page forbids the user to manipulate it (see EMBED.md,
     // lock), which only its view reflects.
     locked = false;
+    // DGPad's inert object, which answers neither hover, click nor touch
+    // (see AWAKE).
+    inert = false;
     // Its stroke's dash pattern, in pixels: solid when empty.
     dash: number[] = [];
     // GeoGebra's line opacity, its strokes' only.
@@ -308,6 +311,7 @@ export class construction_object {
         this.dom = this.class
             .createSVG(this)
             .stl("stroke-opacity", this.strokeOpacity);
+        if (this.inert) this.dom.att("data-inert", "");
         this.C.mountObject(this);
         previous?.dispose();
         this.hasView = true;

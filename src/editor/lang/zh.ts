@@ -141,6 +141,7 @@ const zh: Texts = {
         conditional_visibility: "可见性还取决于图形中的一个条件。",
         show_name: "显示名称",
         fixed_object: "固定对象",
+        inert_object: "惰性对象",
         hide_name: "隐藏名称",
         show_object: "显示对象",
         hide_object: "隐藏对象",

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { userEvent } from "vitest/browser";
-import "../../src/construction";
+import { AWAKE } from "../../src/construction";
 import { describeDgo, figureObjects, readDgo } from "../../src/dgo";
 import { $ } from "../../src/dom";
 import {
@@ -12,6 +12,7 @@ import {
     type Studio,
 } from "../../src/editor/figure";
 import { message } from "../../src/editor/messages";
+import { pick } from "../../src/editor/pick";
 import { propertiesPanel } from "../../src/editor/properties";
 import { parseLine } from "../../src/editor/text";
 import { isCommand } from "../../src/editor/catalog";
@@ -230,6 +231,28 @@ describe("Object properties", () => {
         const restored = createConstruction([800, 600]);
         readDgo(restored, await describeDgo(c));
         expect((restored.getObj("p") as polygon_object).fixed).toBe(true);
+        properties.panel.dispose();
+    });
+
+    it("makes an object inert, which picking skips unless awake, and saves it", async () => {
+        const { c, properties, field, change } = setup();
+        const point = c.getObj("A") as point_object;
+        const picked = () =>
+            pick(c, [point.sx, point.sy]).some(
+                ({ object }) => object === point,
+            );
+        properties.select(point);
+        expect(field("inert_object").checked).toBe(false);
+        change("inert_object", true);
+        expect(point.inert).toBe(true);
+        expect(point.dom.getAtt("data-inert")).toBe("");
+        expect(picked()).toBe(false);
+        document.body.classList.add(AWAKE);
+        expect(picked()).toBe(true);
+        document.body.classList.remove(AWAKE);
+        const restored = createConstruction([800, 600]);
+        readDgo(restored, await describeDgo(c));
+        expect(restored.getObj("A")!.inert).toBe(true);
         properties.panel.dispose();
     });
 

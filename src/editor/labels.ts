@@ -3,6 +3,7 @@ import { figureObjects } from "../dgo";
 import type { DOMElement } from "../dom";
 import type { construction_object } from "../objects/construction_object";
 import { point_object } from "../objects/point_object";
+import { asleep } from "./pick";
 import type { Vec2 } from "../vec";
 
 // The names of the objects, dragged as in GeoGebra: see EDITOR.md.
@@ -21,7 +22,7 @@ export function labelAt(
     [x, y]: Vec2,
 ): construction_object | null {
     for (const object of figureObjects(c)) {
-        if (!object.isVisible) continue;
+        if (!object.isVisible || asleep(object)) continue;
         const text = nameElement(object)?.dom();
         if (!text?.isConnected) continue;
         const box = text.getBoundingClientRect();

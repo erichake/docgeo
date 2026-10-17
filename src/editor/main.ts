@@ -1,5 +1,5 @@
 // First, as in the player: the object classes import each other.
-import { construction } from "../construction";
+import { AWAKE, construction } from "../construction";
 import type { Animation } from "../animation";
 import {
     describeDgo,
@@ -75,6 +75,7 @@ import { message, type MessageKey } from "./messages";
 import { ACTION_ICONS } from "./icons";
 import {
     arcAt,
+    asleep,
     crossing,
     forgetBranches,
     meant,
@@ -740,7 +741,8 @@ function setProperties(on: boolean): void {
     properties.panel.dom().toggleAttribute("inert", !on);
     $("body")
         .addClass("dge-panel-animated")
-        .toggleClass("dge-properties-open", on);
+        .toggleClass("dge-properties-open", on)
+        .toggleClass(AWAKE, on);
     propertiesButton.toggleClass("dge-on", on).att("aria-expanded", String(on));
     shine(on);
     if (!pending) showHint("");
@@ -876,7 +878,11 @@ function propertyObject(event: PointerEvent): construction_object | null {
     const target = element(event.target);
     const ignored = previewed();
     const objects = figureObjects(scene()).filter(
-        (object) => object.isVisible && object.hasView && !ignored.has(object),
+        (object) =>
+            object.isVisible &&
+            object.hasView &&
+            !ignored.has(object) &&
+            !asleep(object),
     );
     const direct = objects.find(
         (object) => target && object.dom.dom().contains(target),

@@ -153,6 +153,7 @@ const de: Texts = {
             "Die Sichtbarkeit hängt auch von einer Bedingung der Figur ab.",
         show_name: "Name anzeigen",
         fixed_object: "Objekt fixiert",
+        inert_object: "Objekt inaktiv",
         hide_name: "Name ausblenden",
         show_object: "Objekt anzeigen",
         hide_object: "Objekt ausblenden",

@@ -386,6 +386,7 @@ const STYLE: Record<string, Property> = {
     ),
     h: field(object, "hidden", 0, isHidden),
     sn: flag(object, "showName"),
+    in: flag(object, "inert"),
     f: field(object, "fontSize", 16, isNumber),
     // A locus's number of samples.
     p: field(

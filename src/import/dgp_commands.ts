@@ -673,6 +673,7 @@ function validateObjectStyle(
             case "pl":
             case "su":
             case "fx":
+            case "nmi":
             case "cV":
             case "cB":
             case "tx":
@@ -896,6 +897,9 @@ function applyObjectStyle(
             case "fx":
                 if (target instanceof polygon_object)
                     target.fixed = propertyValue === "true";
+                break;
+            case "nmi":
+                target.inert = propertyValue === "true";
                 break;
             case "tk":
                 if (target instanceof point_object)

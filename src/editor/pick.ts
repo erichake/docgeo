@@ -1,4 +1,4 @@
-import type { construction } from "../construction";
+import { AWAKE, type construction } from "../construction";
 import { figureObjects } from "../dgo";
 import { angle_object, RIGHT_ANGLE_TOLERANCE } from "../objects/angle_object";
 import type { construction_object } from "../objects/construction_object";
@@ -35,6 +35,10 @@ import {
 // The objects under the pointer: see EDITOR.md.
 
 export const PICK_RADIUS = 12;
+
+// An inert object, which the pointer passes through (see AWAKE).
+export const asleep = (object: construction_object): boolean =>
+    object.inert && !document.body.classList.contains(AWAKE);
 
 export interface Hit {
     object: construction_object;
@@ -223,7 +227,8 @@ export function arcAt(
                 object instanceof fixed_angle_object
             ) ||
             !object.isVisible ||
-            !object.hasView
+            !object.hasView ||
+            asleep(object)
         )
             return;
         const d = arcDistance(c, object, screen);
@@ -246,7 +251,13 @@ export function pick(
 ): Hit[] {
     const hits: (Hit & { rank: number })[] = [];
     figureObjects(c).forEach((object) => {
-        if (!object.isVisible || !object.hasView || ignored.has(object)) return;
+        if (
+            !object.isVisible ||
+            !object.hasView ||
+            ignored.has(object) ||
+            asleep(object)
+        )
+            return;
         const at =
             object instanceof angle_object
                 ? object.O.coords

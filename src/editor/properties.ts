@@ -698,6 +698,15 @@ export function propertiesPanel(options: {
                 object.fixed = value;
             },
         );
+        check(
+            display,
+            "inert_object",
+            objects,
+            (object) => object.inert,
+            (object, value) => {
+                object.inert = value;
+            },
+        );
         number(
             display,
             "font_size",

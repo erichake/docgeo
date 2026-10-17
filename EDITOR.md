@@ -713,6 +713,9 @@ panneau sélectionne l'objet. La liste permet de retrouver aussi les objets
 cachés ; les objets super-cachés en sont exclus. Dans ce mode, un clic vide
 ne crée pas de point et les boutons, cases à cocher et champs de la figure
 se désignent sans s'actionner. Les points et les curseurs restent déplaçables.
+Comme dans le mode propriétés de DGPad, aucun objet n'y est inerte : la
+classe `docgeo-awake` du `body` rend le pointeur aux objets inertes, que
+`pick`, les noms et les widgets ignorent sinon.
 
 Ce mode ne vaut que sans outil : le panneau ne bloque pas la construction
 (décidé le 2026-10-15). Un outil choisi dans le menu « Outils », ou la
@@ -726,7 +729,8 @@ clic vide qui désélectionne et le clic sur un axe vers l'onglet « Figure ».
 
 Les contrôles sont adaptés à l'objet : nom, couleurs, taille, opacités,
 pointillés, calque, visibilité, nom affiché et décimales ; polygone fixé
-(`fx`, qu'un glisser ne translate plus) ; forme, position du
+(`fx`, qu'un glisser ne translate plus) ; objet inerte (`in`, que le
+pointeur traverse, sauf panneau ouvert) ; forme, position du
 nom, trace et pas des points ; codage des segments ; rayon et marque des
 angles droits ; échantillonnage des lieux ; segments des listes ; apparence
 des curseurs et animation des points sur objet et des curseurs. Les styles

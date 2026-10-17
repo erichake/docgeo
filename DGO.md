@@ -481,6 +481,7 @@ postérieur.
 | `o`  | tous         | opacité                                  | du type                           |
 | `h`  | tous         | 0 visible, 1 caché, 2 super-caché        | 0                                 |
 | `sn` | tous         | nom affiché                              | 0                                 |
+| `in` | tous         | inerte : ignore survol, clic et toucher  | 0                                 |
 | `no` | tous         | place du nom déplacé (hors points)       | `null` (place de GeoGebra)        |
 | `f`  | tous         | taille de police                         | 16                                |
 | `p`  | tous         | précision (lieu : nombre d'échantillons) | -1 (`Loc` : 1000, `Html` : 4)     |
@@ -532,6 +533,11 @@ le bas) :
 Un point place le sien par `np` et `nd`. Le `labelOffset` de GeoGebra, en
 pixels, est converti à l'import. DGPad n'écrit que le nom des points :
 l'import `.dgp` ignore son `sn` sur les autres objets.
+
+Inerte `in` : comme l'objet inerte de DGPad (`nmi:true`, importé), l'objet
+ne répond plus au pointeur, qui atteint ce qui est dessous : ni survol, ni
+clic, ni toucher, ni déplacement. Le panneau de propriétés de l'éditeur
+ouvert, aucun objet n'est inerte.
 
 Fixé `fx` : comme dans GeoGebra, un polygone dont les sommets (hors ceux
 qu'il calcule, comme ceux d'un `RegP`) sont tous des points libres, non

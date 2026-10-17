@@ -152,6 +152,7 @@ const hi: Texts = {
             "दृश्यता आकृति की किसी शर्त पर भी निर्भर करती है।",
         show_name: "नाम दिखाएँ",
         fixed_object: "स्थिर ऑब्जेक्ट",
+        inert_object: "निष्क्रिय ऑब्जेक्ट",
         hide_name: "नाम छिपाएँ",
         show_object: "वस्तु दिखाएँ",
         hide_object: "वस्तु छिपाएँ",
