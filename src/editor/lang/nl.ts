@@ -152,6 +152,7 @@ const nl: Texts = {
         conditional_visibility:
             "De zichtbaarheid hangt ook af van een voorwaarde in de figuur.",
         show_name: "Naam tonen",
+        fixed_object: "Object vast",
         hide_name: "Naam verbergen",
         show_object: "Object tonen",
         hide_object: "Object verbergen",

@@ -150,6 +150,7 @@ const pt: Texts = {
         conditional_visibility:
             "A visibilidade também depende de uma condição da figura.",
         show_name: "Exibir o nome",
+        fixed_object: "Objeto fixo",
         hide_name: "Ocultar o nome",
         show_object: "Exibir o objeto",
         hide_object: "Ocultar o objeto",

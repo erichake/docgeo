@@ -147,6 +147,7 @@ export default {
     conditional_visibility:
         "Visibility also depends on a condition in the figure.",
     show_name: "Show name",
+    fixed_object: "Fixed object",
     hide_name: "Hide name",
     show_object: "Show object",
     hide_object: "Hide object",

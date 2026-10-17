@@ -684,6 +684,20 @@ export function propertiesPanel(options: {
                 object.showName = value;
             },
         );
+        check(
+            display,
+            "fixed_object",
+            objects.filter(
+                (object): object is polygon_object =>
+                    object instanceof polygon_object &&
+                    !object.plane &&
+                    !object.section,
+            ),
+            (object) => object.fixed,
+            (object, value) => {
+                object.fixed = value;
+            },
+        );
         number(
             display,
             "font_size",

@@ -140,6 +140,7 @@ const zh_TW: Texts = {
         visible: "顯示物件",
         conditional_visibility: "可見性也取決於圖形中的一個條件。",
         show_name: "顯示名稱",
+        fixed_object: "固定物件",
         hide_name: "隱藏名稱",
         show_object: "顯示物件",
         hide_object: "隱藏物件",

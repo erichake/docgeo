@@ -18,6 +18,7 @@ import { isCommand } from "../../src/editor/catalog";
 import type { expression_object } from "../../src/objects/expression_object";
 import type { point_object } from "../../src/objects/point_object";
 import type { point_on_object } from "../../src/objects/point_on_object";
+import type { polygon_object } from "../../src/objects/polygon_object";
 import type { segment_object } from "../../src/objects/segment_object";
 import { createConstruction, disposeFigures } from "./figures";
 
@@ -208,6 +209,27 @@ describe("Object properties", () => {
         expect(restored.getObj("s")!.showName).toBe(true);
         change("show_name", false);
         expect(segment.dom.find("text")).toBeFalsy();
+        properties.panel.dispose();
+    });
+
+    it("fixes a polygon, which its vertices no longer translate, and saves it", async () => {
+        const { c, properties, field, change } = setup();
+        ["C = (0, 3)", "p = Polygon(A, B, C)"].forEach((line) =>
+            add(c, resolve(c, parseLine(line, isCommand))),
+        );
+        c.flush();
+        properties.select(c.getObj("A")!);
+        expect(
+            properties.panel.find(`[aria-label="${message("fixed_object")}"]`),
+        ).toBeFalsy();
+        const polygon = c.getObj("p") as polygon_object;
+        properties.select(polygon);
+        expect(field("fixed_object").checked).toBe(false);
+        change("fixed_object", true);
+        expect(polygon.fixed).toBe(true);
+        const restored = createConstruction([800, 600]);
+        readDgo(restored, await describeDgo(c));
+        expect((restored.getObj("p") as polygon_object).fixed).toBe(true);
         properties.panel.dispose();
     });
 

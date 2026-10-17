@@ -725,7 +725,8 @@ fait perdre la désignation des boutons et des cases sans les actionner, le
 clic vide qui désélectionne et le clic sur un axe vers l'onglet « Figure ».
 
 Les contrôles sont adaptés à l'objet : nom, couleurs, taille, opacités,
-pointillés, calque, visibilité, nom affiché et décimales ; forme, position du
+pointillés, calque, visibilité, nom affiché et décimales ; polygone fixé
+(`fx`, qu'un glisser ne translate plus) ; forme, position du
 nom, trace et pas des points ; codage des segments ; rayon et marque des
 angles droits ; échantillonnage des lieux ; segments des listes ; apparence
 des curseurs et animation des points sur objet et des curseurs. Les styles
