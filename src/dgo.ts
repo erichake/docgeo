@@ -122,6 +122,7 @@ import { createPanel, panelNames, parsePanel } from "./objects/panel_object";
 import { createButton } from "./objects/button_object";
 import { createLine } from "./objects/two_points_line_object";
 import { createVector, vector_object } from "./objects/vector_object";
+import { createFreeVector } from "./objects/free_vector_object";
 import type { Vec2, Vec3 } from "./vec";
 
 // DocGeo's native format: see DGO.md.
@@ -203,6 +204,7 @@ export const LOOKS: Record<string, Look> = {
     Bis: RAY,
     Seg: SEGMENT,
     Vec: SEGMENT,
+    VecF: SEGMENT,
     FA: ["#006633", "#006633", 1, 0],
     Ang: ["#006633", "#006633", 4, 0],
     Cir: CIRCLE,
@@ -1359,6 +1361,8 @@ const BUILDERS: Record<string, Builder> = {
     Ray: twoPoints(createRay),
     Seg: twoPoints(createSegment),
     Vec: twoPoints(createVector),
+    VecF: (parameters, { c, name }) =>
+        createFreeVector(c, name, coordinates(parameters)),
     Par: (parameters, reader) =>
         linePoint((c, name, line, p) => createParallel(c, name, p, line))(
             parameters,

@@ -1,3 +1,4 @@
+import { FUNCTION_VARIABLES } from "../import/dgp_expression";
 import { FormulaLexer, METHOD_ARITY, type Token } from "../import/dgp_formula";
 
 // The text of a construction, one line per object: `name = Command(args)`,
@@ -16,6 +17,8 @@ export type Definition =
     | { kind: "point"; coords: number[] }
     | { kind: "call"; command: string; args: ArgText[] }
     | { kind: "formula"; source: string }
+    // `f(x) = …`.
+    | { kind: "curve"; source: string }
     | { kind: "pointFormula"; source: string }
     | { kind: "equation"; sides: [string, string] };
 
@@ -74,22 +77,29 @@ function signed(tokens: Token[]): number | null {
 }
 
 // The bracket opened by the token at `at`: where it closes, and the commas
-// between its own items.
+// and semicolons between its own items.
 function group(
     tokens: Token[],
     at: number,
-): { end: number; commas: number[] } | null {
+): { end: number; commas: number[]; semicolons: number[] } | null {
     const commas: number[] = [];
+    const semicolons: number[] = [];
     let depth = 0;
     for (let index = at; index < tokens.length; index++) {
         const { type } = tokens[index];
         if (type === "(" || type === "[" || type === "{") depth++;
         else if (type === ")" || type === "]" || type === "}") {
-            if (!--depth) return { end: index, commas };
-        } else if (type === "," && depth === 1) commas.push(index);
+            if (!--depth) return { end: index, commas, semicolons };
+        } else if (depth === 1 && type === ",") commas.push(index);
+        else if (depth === 1 && type === ";") semicolons.push(index);
     }
     return null;
 }
+
+// The source of a point of polar coordinates, which its line reads back.
+const polar = (radius: string, angle: string) =>
+    `[(${radius})*cos(${angle}), (${radius})*sin(${angle})]`;
+const POLAR = /^\[\((.*)\)\*cos\((.*)\), \(\1\)\*sin\(\2\)\]$/;
 
 // A command's line when the catalog has the name before "(".
 export function parseLine(
@@ -100,20 +110,24 @@ export function parseLine(
     let position = 0;
     const peek = (offset = 0): Token | undefined => tokens[position + offset];
     let name: string | null = null;
-    // `y = 2x + 1` is an equation, as in GeoGebra.
+    // `y = 2x + 1` is an equation, as in GeoGebra; `f(x) = x^2` a function
+    // named with its variables, the curve of a function of x.
+    const declared = declaration();
+    const curve = declared === 5 && tokens[2].value === "x";
     if (
         peek()?.type === "identifier" &&
         !["x", "y"].includes(peek()!.value as string) &&
-        peek(1)?.type === "="
+        (peek(1)?.type === "=" || declared)
     ) {
         name = peek()!.value as string;
-        position = 2;
+        position = declared || 2;
     }
-    const source = text.slice(position && ends[1]).trim();
+    const source = text.slice(position && ends[position - 1]).trim();
     if (!source) {
         if (name === null) throw new TextError("expected", "");
         return { name, definition: null };
     }
+    if (curve) return { name, definition: { kind: "curve", source } };
     // One "=" outside brackets, and no statement.
     let depth = 0;
     const equals = tokens.flatMap(({ type }, index) => {
@@ -126,7 +140,7 @@ export function parseLine(
         !tokens.some(({ type }) => type === ";" || type === "{")
     ) {
         const sides = [
-            text.slice(position && ends[1], starts[equals[0]]),
+            text.slice(position && ends[position - 1], starts[equals[0]]),
             text.slice(ends[equals[0]]),
         ].map((side) => side.trim());
         if (sides.includes("")) throw new TextError("syntax", source);
@@ -160,8 +174,21 @@ export function parseLine(
     }
     const coords = point();
     if (coords) return { name, definition: { kind: "point", coords } };
-    // Coordinates that aren't all numbers.
+    // Coordinates that aren't all numbers, or polar ones: `(3; 60°)`.
     const pair = head.type === "(" ? whole(position) : null;
+    if (pair?.semicolons.length === 1 && !pair.commas.length) {
+        const [semicolon] = pair.semicolons;
+        return {
+            name,
+            definition: {
+                kind: "pointFormula",
+                source: polar(
+                    between(position, semicolon),
+                    between(semicolon, pair.end),
+                ),
+            },
+        };
+    }
     if (pair?.commas.length) {
         if (pair.commas.length > 2) throw new TextError("coordinates");
         return {
@@ -173,6 +200,25 @@ export function parseLine(
         };
     }
     return { name, definition: { kind: "formula", source } };
+
+    // After the "=" of `f(x) =` or `f(x, y) =`, the variables being those
+    // of functions; else 0.
+    function declaration(): number {
+        if (peek()?.type !== "identifier" || peek(1)?.type !== "(") return 0;
+        let at = 2;
+        do {
+            const variable = tokens[at];
+            if (
+                variable?.type !== "identifier" ||
+                !FUNCTION_VARIABLES.includes(variable.value as string)
+            )
+                return 0;
+            at++;
+        } while (tokens[at++]?.type === ",");
+        return tokens[at - 1].type === ")" && tokens[at]?.type === "="
+            ? at + 1
+            : 0;
+    }
 
     // The bracket opened at `at`, closed at the end of the line.
     function whole(at: number) {
@@ -278,6 +324,8 @@ export const formatName = (name: string): string =>
 // A formula point's definition: its coordinates between brackets, unless
 // they are numbers only, which a free point's are.
 export function pointFormulaText(source: string): string {
+    const coordinates = POLAR.exec(source);
+    if (coordinates) return `(${coordinates[1]}; ${coordinates[2]})`;
     const { tokens, starts, ends } = lex(source);
     const items = tokens[0]?.type === "[" ? group(tokens, 0) : null;
     if (
@@ -312,12 +360,53 @@ export function renameFormula(
     let text = "";
     let end = 0;
     tokens.forEach((token, index) => {
+        const name = token.value as string;
+        // `f'(x)`, f's derivative.
+        const primes = /'*$/.exec(name)![0];
         const renamed =
             token.type === "identifier" &&
             tokens[index - 1]?.type !== "." &&
-            rename(token.value as string);
+            (rename(name) ??
+                (primes &&
+                    rename(name.slice(0, -primes.length))?.concat(primes)));
         if (!renamed) return;
         text += source.slice(end, starts[index]) + renamed;
+        end = ends[index];
+    });
+    return text + source.slice(end);
+}
+
+// Read, as in GeoGebra, as the product of its letters, written apart: a
+// name of letters that no object has, ending with a function's variable
+// (`ax^2 + bx`), outside a call, a method or a program's own variables.
+export function splitProducts(
+    source: string,
+    known: (name: string) => boolean,
+): string {
+    const { tokens, starts, ends, stop } = lex(source);
+    if (
+        stop !== null ||
+        tokens.some(
+            ({ type, value }) =>
+                type === ";" ||
+                type === "{" ||
+                (type === "identifier" && value === "var"),
+        )
+    )
+        return source;
+    let text = "";
+    let end = 0;
+    tokens.forEach(({ type, value }, index) => {
+        const name = value as string;
+        if (
+            type !== "identifier" ||
+            !/^\p{L}+[xyzt]$/u.test(source.slice(starts[index], ends[index])) ||
+            known(name) ||
+            ["(", "."].includes(tokens[index + 1].type) ||
+            tokens[index - 1]?.type === "."
+        )
+            return;
+        text += source.slice(end, starts[index]) + [...name].join(" ");
         end = ends[index];
     });
     return text + source.slice(end);

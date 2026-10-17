@@ -59,13 +59,13 @@ import {
     floorOf,
     FREE_POINT,
     hasName,
-    isPointTag,
     lineOf,
     nextName,
     valueText,
     rebuild,
     redefine,
     resolve,
+    resolveWithSliders,
     type Spec,
     type Studio,
 } from "./figure";
@@ -1227,6 +1227,8 @@ async function commitText(
     const c = scene();
     closeCompletion();
     hideChoice();
+    // The sliders of the names the line reads that no object has.
+    const sliders: construction_object[] = [];
     try {
         const line = parseLine(field.value, isCommand);
         const target =
@@ -1251,7 +1253,7 @@ async function commitText(
             return done();
         }
         if (target) {
-            const spec = resolve(c, line, target);
+            const spec = resolveWithSliders(c, line, target, sliders);
             if (
                 spec.overload === FREE_POINT &&
                 entryOf(target, figureIndex(c))[0] === "Pt" &&
@@ -1270,12 +1272,16 @@ async function commitText(
             if (await refusedOffPlane()) throw new TextError("off_plane");
             return done(result);
         }
-        const result = made(add(c, resolve(c, line)));
+        const result = made(
+            add(c, resolveWithSliders(c, line, undefined, sliders)),
+        );
         if (await refusedOffPlane()) throw new TextError("off_plane");
         if (field === input.dom()) field.value = "";
         return done(result);
     } catch (error) {
         if (!(error instanceof TextError)) throw error;
+        if (sliders.length && error.key !== "off_plane")
+            await reframe({}, history[position]);
         $(field).addClass("dge-error");
         showHint(message(error.key as MessageKey, error.detail), true);
     }
@@ -1783,10 +1789,10 @@ function firstArgs(
 // The line the tool writes, its missing arguments elided, and what remains
 // to designate.
 function describe(tool: Tool, args: (Arg | undefined)[]): string {
-    const point = tool.mode !== "command" || isPointTag(tool.overload.tag);
+    const kind = tool.mode !== "command" || tool.overload.tag;
     const shown = args.map((arg) => (arg === undefined ? "…" : formatArg(arg)));
     if (tool.mode !== "command" || tool.overload.variadic) shown.push("…");
-    const line = `${formatName(nextName(scene(), point))} = ${commandName(tool.command)}(${shown.join(", ")})`;
+    const line = `${formatName(nextName(scene(), kind))} = ${commandName(tool.command)}(${shown.join(", ")})`;
     if (tool.mode === "point")
         return args.length ? line : `${line}\n${message("designate_place")}`;
     if (tool.mode === "intersection")
@@ -2790,8 +2796,7 @@ const formOf = ({ command, overload }: Tool, args: Arg[]): Overload =>
 function build(overload: Overload, args: Arg[]): void {
     clearPreview();
     const c = scene();
-    const point = isPointTag(overload.tag);
-    done(add(c, { name: nextName(c, point), overload, args }));
+    done(add(c, { name: nextName(c, overload.tag), overload, args }));
 }
 
 function designate(screen: Vec2, hits: Hit[], client: Vec2): void {

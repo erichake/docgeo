@@ -1,6 +1,7 @@
 import type { construction } from "../construction";
 import { figureObjects } from "../dgo";
 import type { construction_object } from "../objects/construction_object";
+import { free_vector_object } from "../objects/free_vector_object";
 import { cylinder_section_object } from "../objects/cylinder_section_object";
 import { list_object } from "../objects/list_object";
 import { net_object } from "../objects/net_object";
@@ -48,17 +49,19 @@ export const offPlane = (c: construction): construction_object | undefined =>
     figureObjects(c).find((object) =>
         object instanceof point_object
             ? outside(object.z)
-            : object instanceof list_object
-              ? object.items.some(
-                    ([point]) => Array.isArray(point) && outside(point[2]),
-                )
-              : object instanceof primitive_circle_object
-                ? outside(object.NORMAL[0]) || outside(object.NORMAL[1])
-                : object instanceof sphere_object ||
-                  object instanceof cylinder_section_object ||
-                  object instanceof plane_object ||
-                  object instanceof solid_object ||
-                  object instanceof net_object,
+            : object instanceof free_vector_object
+              ? outside(object.P2.z)
+              : object instanceof list_object
+                ? object.items.some(
+                      ([point]) => Array.isArray(point) && outside(point[2]),
+                  )
+                : object instanceof primitive_circle_object
+                  ? outside(object.NORMAL[0]) || outside(object.NORMAL[1])
+                  : object instanceof sphere_object ||
+                    object instanceof cylinder_section_object ||
+                    object instanceof plane_object ||
+                    object instanceof solid_object ||
+                    object instanceof net_object,
     );
 
 // Turns the camera to these angles, and the origin to `origin`.

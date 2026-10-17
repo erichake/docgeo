@@ -14,7 +14,10 @@ import {
     lineOf,
     rebuild,
     redefine,
+    FREE_POINT,
+    nextName,
     resolve,
+    resolveWithSliders,
     valueText,
     type Studio,
 } from "../../src/editor/figure";
@@ -85,6 +88,8 @@ import type { net_object } from "../../src/objects/net_object";
 import type { cylinder_section_object } from "../../src/objects/cylinder_section_object";
 import type { polygon_object } from "../../src/objects/polygon_object";
 import type { expression_object } from "../../src/objects/expression_object";
+import type { construction_object } from "../../src/objects/construction_object";
+import type { free_vector_object } from "../../src/objects/free_vector_object";
 import type { expression_list_object } from "../../src/objects/expression_list_object";
 import { importGgb } from "../../src/ggb_importer";
 import { createConstruction, disposeFigures, expectClose } from "./figures";
@@ -676,6 +681,152 @@ describe("Editor", () => {
                 resolve(c, parseLine(line, isCommand), object).overload.tag,
             ).toBe(entryOf(object, index)[0]),
         );
+    });
+
+    it("types GeoGebra's shortcuts: sliders, degrees, polar points, primes", () => {
+        const { scene: c } = studio();
+        const typed = (text: string, added: construction_object[] = []) =>
+            add(
+                c,
+                resolveWithSliders(
+                    c,
+                    parseLine(text, isCommand),
+                    undefined,
+                    added,
+                ),
+            );
+        // A slider for each name no object has, an angle for a Greek one.
+        [
+            "A = (a, 4)",
+            "O = (0, 0)",
+            "c = Circle(O, r)",
+            "d = y = m x + p",
+            "B = Rotation(A, O, α)",
+            "f(x) = x^2 + 3x",
+            "g = f'(2)",
+            "h(x) = f'(x)",
+            "k = h'(1)",
+            "P = (2; 90°)",
+            "w = cos(60°)",
+            "Vector(O, A)",
+            "Angle(A, O, B)",
+        ].forEach((text) => typed(text));
+        c.flush();
+        expect(lines(c)).toEqual([
+            "a = Slider(-5, 5, 1)",
+            "A = (a, 4)",
+            "O = (0, 0)",
+            "r = Slider(-5, 5, 1)",
+            "c = Circle(O, r)",
+            "m = Slider(-5, 5, 1)",
+            "p = Slider(-5, 5, 1)",
+            "d = y = m x + p",
+            "α = Slider(0, 360, 45)",
+            "B = Rotation(A, O, α)",
+            "f(x) = x^2 + 3x",
+            "g = f'(2)",
+            "h(x) = f'(x)",
+            "k = h'(1)",
+            "P = (2; 90°)",
+            "w = cos(60°)",
+            "u = Vector(O, A)",
+            "β = Angle(A, O, B)",
+        ]);
+        const value = (name: string) => c.getObj(name)!.scriptValue(false);
+        expect(
+            ["a", "α"].map(
+                (name) => (c.getObj(name) as expression_object).increment,
+            ),
+        ).toEqual([0.1, 1]);
+        expect(value("g")).toBe(7);
+        expect(value("k")).toBe(2);
+        expectClose(value("w") as number, 0.5);
+        expectClose((c.getObj("P") as point_object).coords, [0, 2, 0]);
+        // Refused, the line leaves its sliders to undo; the formulas' own
+        // names are none, nor are capitalized ones.
+        const added: construction_object[] = [];
+        expect(() => typed("M = Midpoint(a, q)", added)).toThrow(
+            expect.objectContaining({ key: "arguments" }),
+        );
+        expect(added.map(({ name }) => name)).toEqual(["q"]);
+        for (const text of ["e1 = Circle(O, x)", "e1 = Midpoint(A, Q)"])
+            expect(() => typed(text), text).toThrow(
+                expect.objectContaining({ key: "unknown_object" }),
+            );
+        // In radians.
+        c.degrees = false;
+        typed("C = Rotation(A, O, θ)");
+        expect(lines(c).slice(-2, -1)).toEqual(["θ = Slider(0, 2π, 0.7854)"]);
+    });
+
+    it("plots f(x) = ax^2 + bx + c, its sliders made", () => {
+        const { scene: c } = studio();
+        add(
+            c,
+            resolveWithSliders(
+                c,
+                parseLine("f(x) = ax^2 + bx + c", isCommand),
+                undefined,
+                [],
+            ),
+        );
+        type(c, "v = f(2)");
+        c.flush();
+        expect(lines(c)).toEqual([
+            "a = Slider(-5, 5, 1)",
+            "b = Slider(-5, 5, 1)",
+            "c = Slider(-5, 5, 1)",
+            "f(x) = a x^2 + b x + c",
+            "v = f(2)",
+        ]);
+        expect(entryOf(c.getObj("f")!, figureIndex(c))[0]).toBe("Cur");
+        expect(c.getObj("v")!.scriptValue(false)).toBe(7);
+    });
+
+    it("reads a small letter's coordinates as a free vector", async () => {
+        const studied = studio();
+        const c = studied.scene;
+        [
+            "u = (1, 2)",
+            "A = (3, 0)",
+            "B = Translation(A, u)",
+            "p = (1, 1)",
+        ].forEach((line) => type(c, line));
+        c.flush();
+        expect(lines(c)).toEqual([
+            "u = (1, 2)",
+            "A = (3, 0)",
+            "B = Translation(A, u)",
+            "p = (1, 1)",
+        ]);
+        const u = c.getObj("u") as free_vector_object;
+        expect(entryOf(u, figureIndex(c))[0]).toBe("VecF");
+        expect(entryOf(c.getObj("p")!, figureIndex(c))[0]).toBe("VecF");
+        expect(u.scriptValue(false)).toEqual([1, 2]);
+        expectClose((c.getObj("B") as point_object).coords, [4, 2, 0]);
+        // Its tip dragged, from where the last move left it.
+        const unit = c.GRID.UNIT[0];
+        u.mousedrag(new PointerEvent("pointermove"), [unit, 0]);
+        u.mousedrag(new PointerEvent("pointermove"), [0, -unit]);
+        c.flush();
+        expectClose(u.scriptValue(false) as number[], [2, 3]);
+        expectClose((c.getObj("B") as point_object).coords, [5, 3, 0]);
+        // Redefined in place, read back from the .dgo; a free point stays
+        // one.
+        await redefine(
+            studied,
+            u,
+            resolve(c, parseLine("u = (0, 1)", isCommand), u),
+        );
+        rebuild(studied, await describeDgo(studied.scene));
+        const read = studied.scene;
+        expect(lines(read)[0]).toBe("u = (0, 1)");
+        expectClose((read.getObj("B") as point_object).coords, [3, 1, 0]);
+        const q = add(read, { name: "q", overload: FREE_POINT, args: [1, 1] });
+        expect(
+            resolve(read, parseLine("q = (2, 1)", isCommand), q).overload.tag,
+        ).toBe("Pt");
+        expect(nextName(read, "VecF")).toBe("v");
     });
 
     it("redefines and renames expressions, their targets before them", async () => {

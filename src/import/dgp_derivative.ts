@@ -200,6 +200,8 @@ export function derivative(
             case "ceil":
             case "round":
                 return ZERO;
+            case "°":
+                return call("°", du());
         }
         throw NOT_DERIVABLE;
     };

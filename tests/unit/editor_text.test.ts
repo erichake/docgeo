@@ -7,6 +7,7 @@ import {
     parseLine,
     pointFormulaText,
     renameFormula,
+    splitProducts,
     syntaxLine,
     TextError,
     unknownMethod,
@@ -77,6 +78,7 @@ describe("Editor text", () => {
             ["M = Point(2*B - A)", "2*B - A"],
             ["M = Point(B)", "B"],
             ["M = Point(var u=A[0];[u, 0])", "var u=A[0];[u, 0]"],
+            ["M = (r + 1; 60°)", "[(r + 1)*cos(60°), (r + 1)*sin(60°)]"],
         ])
             expect(read(text), text).toEqual({
                 name: "M",
@@ -89,6 +91,22 @@ describe("Editor text", () => {
         expect(pointFormulaText("[1, -2]")).toBe("Point([1, -2])");
         expect(pointFormulaText("[a]")).toBe("Point([a])");
         expect(pointFormulaText("[a, b][0]")).toBe("Point([a, b][0])");
+        expect(pointFormulaText("[(r + 1)*cos(60°), (r + 1)*sin(60°)]")).toBe(
+            "(r + 1; 60°)",
+        );
+    });
+
+    it("reads a function named with its variables", () => {
+        expect(read("f(x) = x^2")).toEqual({
+            name: "f",
+            definition: { kind: "curve", source: "x^2" },
+        });
+        expect(read("g(x, y) = x y")).toEqual({
+            name: "g",
+            definition: { kind: "formula", source: "x y" },
+        });
+        expect(read("f(x) =")).toEqual({ name: "f", definition: null });
+        expect(read("x(A) = 2").name).toBeNull();
     });
 
     it("reads a formula in an argument", () => {
@@ -143,6 +161,17 @@ describe("Editor text", () => {
         );
     });
 
+    it("reads unknown names of letters ending with a variable as products", () => {
+        const known = (name: string) => ["max", "box"].includes(name);
+        for (const [source, read] of [
+            ["ax^2+bx+c", "a x^2+b x+c"],
+            ["abt + box + max(1, kx)", "a b t + box + max(1, k x)"],
+            ["`ax` + A.x + ax2", "`ax` + A.x + ax2"],
+            ["var ax = 2; ax", "var ax = 2; ax"],
+        ])
+            expect(splitProducts(source, known), source).toBe(read);
+    });
+
     it("writes a formula's names anew", () => {
         const names: Record<string, string> = { A: "`A 1`", S1: "T", B: "B" };
         expect(
@@ -151,6 +180,10 @@ describe("Editor text", () => {
                 (name) => names[name],
             ),
         ).toBe("if(d(`A 1`,B)>2){T.setHidden(1)};`A 1`.x");
+        // A derivative's prime, after its function's name.
+        expect(
+            renameFormula("f'(x) + f''(1)", (name) => ({ f: "g" })[name]),
+        ).toBe("g'(x) + g''(1)");
     });
 
     it("lays a program out, changing only spaces and line breaks", () => {

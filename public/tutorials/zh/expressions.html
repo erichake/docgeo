@@ -41,7 +41,16 @@
                         <tr>
                             <td><code>f = 0.5x^2 - 4</code></td>
                             <td>
-                                x（y、z、t）的函数；<code>f(2)</code> 调用它
+                                x（y、z、t）的函数；<code>f(2)</code>
+                                调用它，<code>f'(2)</code> 调用它的导数
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><code>f(x) = ax^2 + bx + c</code></td>
+                            <td>
+                                函数的曲线，会被画出：<code>ax</code> 读作 a
+                                x，并创建滑动条 a、b、c；<code>f(2)</code>
+                                也调用它
                             </td>
                         </tr>
                         <tr>
@@ -78,11 +87,20 @@
                     >属性</a
                 >中设置。<code>r = 5</code> 会把它重新变为常量。
             </p>
+            <p id="curseurs-automatiques">
+                以小写字母开头的未知名称会创建一个从 −5 到 5 的滑动条，增量为
+                0.1，值为 1：<code>A = (a, 4)</code>、<code
+                    >d = y = m x + p</code
+                >。希腊字母会创建一个从 0 到 360° 的角，增量为 1°，值为
+                45°（弧度制下为 0 到 2π）：<code>P = (3; α)</code
+                >。被拒绝的行不会保留它的滑动条。
+            </p>
 
             <h2>计算点</h2>
             <ul>
                 <li><code>M = (x(B) + 1, y(A))</code>：坐标由公式给出。</li>
                 <li><code>N = 点(2*B - A)</code>：值为点的公式。</li>
+                <li><code>P = (3; 60°)</code>：极坐标，半径和角。</li>
             </ul>
             <p>
                 当<code>name = formula</code

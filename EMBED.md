@@ -108,8 +108,8 @@ changer la valeur de l'objet : point libre (punaisé compris), point sur objet,
 expression de valeur constante (curseur, case à cocher, nombre que modifie un
 champ de saisie ou le glisser d'un point `Fp`). Ce sont les objets de l'état
 (`DGO.md`, « État élève »), hors numéros de branche des intersections, qui ne
-se manipulent pas directement, et hors rayons des cercles `C1`, qui ne sont
-ni des points ni des expressions. Un point construit (un orthocentre, par
+se manipulent pas directement, et hors rayons des cercles `C1` et vecteurs
+libres `VecF`, qui ne sont ni des points ni des expressions. Un point construit (un orthocentre, par
 exemple) n'est pas `movable`.
 
 `value` renvoie :
@@ -135,8 +135,8 @@ L'état est décrit dans `DGO.md` (section « État élève ») :
 
 - `getState` renvoie les valeurs des objets modifiables qui diffèrent de la
   figure de base : points, expressions, numéros de branche des intersections
-  et rayons des cercles `C1` de rayon numérique (celui qu'un glisser du
-  cercle change), sous leur nom. Un point punaisé y figure par ses
+  rayons des cercles `C1` de rayon numérique (celui qu'un glisser du
+  cercle change) et coordonnées des vecteurs libres, sous leur nom. Un point punaisé y figure par ses
   coordonnées dans la vue de base. Toute modification qu'une manipulation peut
   faire à la figure, hors vue et traces, s'y retrouve. État vide : figure non
   manipulée. La vue (zoom,
@@ -154,7 +154,8 @@ L'état est décrit dans `DGO.md` (section « État élève ») :
 
 `rebase` fait de la figure courante la figure de base : les valeurs des
 objets de l'état (points libres et punaisés, points sur objet, expressions
-constantes, numéros de branche, rayons des cercles `C1`) deviennent celles de
+constantes, numéros de branche, rayons des cercles `C1`, vecteurs libres)
+deviennent celles de
 la figure de base. Il sert à tirer une variante d'une figure : l'hôte applique
 l'état de la variante par `setState`, puis `rebase`, et la variante se
 comporte ensuite exactement comme une figure chargée :
@@ -178,7 +179,8 @@ au fichier chargé.
 semi-libres** : les points libres et les points sur objet ne peuvent plus être
 déplacés par l'utilisateur, sauf ceux nommés dans `except`. Ce qui change un
 nombre reste toujours manipulable : curseurs, cases à cocher, champs de
-saisie, panneaux, points `Fp` et rayons des cercles `C1`. Un objet verrouillé ne prend plus le pointeur, comme un point fixe : le glisser
+saisie, panneaux, points `Fp`, rayons des cercles `C1`, et les vecteurs
+libres, qui ne sont pas des cibles. Un objet verrouillé ne prend plus le pointeur, comme un point fixe : le glisser
 commencé dessus agit sur ce qui se trouve dessous.
 
 - Le zoom, la rotation 3D et le déplacement de la vue au bouton droit restent

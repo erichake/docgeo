@@ -43,6 +43,21 @@ M = Milieu(A, B)</code></pre>
                             </td>
                         </tr>
                         <tr>
+                            <td>Coordonnées polaires</td>
+                            <td>
+                                <code>P = (3; 60°)</code> : rayon et angle
+                                séparés par un point-virgule
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Vecteur libre</td>
+                            <td>
+                                <code>u = (2, 1)</code> : nom en minuscule ;
+                                tracé depuis l’origine, il se glisse par sa
+                                pointe
+                            </td>
+                        </tr>
+                        <tr>
                             <td>Nombres</td>
                             <td>
                                 séparateur décimal : le
@@ -71,8 +86,20 @@ M = Milieu(A, B)</code></pre>
                             <td>Nom omis</td>
                             <td>
                                 <code>Milieu(A, B)</code> : nom automatique,
-                                majuscule pour un point, minuscule sinon (ni e,
-                                i, k, l, o, t, x, y, z)
+                                majuscule pour un point, u, v, w pour un
+                                vecteur, lettre grecque pour un angle, minuscule
+                                sinon (ni e, i, k, l, o, t, x, y, z)
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Nom inconnu</td>
+                            <td>
+                                commençant par une minuscule, il devient un
+                                <a href="expressions.html#curseurs-automatiques"
+                                    >curseur</a
+                                >
+                                : <code>A = (a, 4)</code>,
+                                <code>d = y = m x + p</code>
                             </td>
                         </tr>
                         <tr>

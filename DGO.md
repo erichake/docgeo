@@ -223,7 +223,11 @@ fixe), son aire (polygone) ; tout autre objet est indéfini. Dans une figure
 2D d'une figure à `f2`). Une expression
 de fonction (`"f"`) ou une courbe (`Cur`) s'appelle par son nom : `f(2)`, et
 sa dérivée par rapport à l'une de ses variables, comme dans DGPad, par
-`f.dx(…)`, `f.dy(…)`, `f.dz(…)` ou `f.dt(…)`.
+`f.dx(…)`, `f.dy(…)`, `f.dz(…)` ou `f.dt(…)`, ou par rapport à sa première
+variable, comme dans GeoGebra, par `f'(…)` (`f''(…)` pour la dérivée
+seconde), sauf si un objet s'appelle `f'`. Un nombre suivi de `°` est un
+angle en degrés, converti dans l'unité d'angle de la figure (`cos(60°)`
+vaut 0,5 en degrés comme en radians).
 
 | Type   | Objet                                  | Paramètres                                      |
 | ------ | -------------------------------------- | ----------------------------------------------- |
@@ -249,6 +253,7 @@ sa dérivée par rapport à l'une de ses variables, comme dans DGPad, par
 | `Ray`  | demi-droite [AB)                       | `[A, B]`                                        |
 | `Seg`  | segment                                | `[A, B]`                                        |
 | `Vec`  | vecteur                                | `[A, B]`                                        |
+| `VecF` | vecteur libre, tracé depuis l'origine  | `[x, y]` ou `[x, y, z]`                         |
 | `Par`  | parallèle à d par P                    | `[d, P]`                                        |
 | `Perp` | perpendiculaire à d par P              | `[d, P]`                                        |
 | `Med`  | médiatrice                             | `[A, B]`                                        |
@@ -411,7 +416,7 @@ alignement]]` police, `[30, url, l, h, zoom, opacité, u]` image (largeur
     glisser. La rotation garde la hauteur de P (axe vertical par O) ; avec
     une droite `d`, elle tourne autour de d, ou de sa parallèle par O, dans
     le sens direct autour de son vecteur directeur. `u` : un vecteur
-    (`Vec`), un point (son vecteur position) ou une formule dont la valeur
+    (`Vec`, `VecF`), un point (son vecteur position) ou une formule dont la valeur
     est un vecteur.
 16. Arc et secteur dans le sens direct, de A jusqu'à la demi-droite [MB),
     sur le cercle de centre M passant par A ; avec `1`, dans le sens
@@ -500,7 +505,7 @@ postérieur.
 | `fx` | `Poly`       | fixé : ne se déplace pas par translation | 0                                 |
 | `ar` | `Ang`, `FA`  | rayon de l'arc                           | 30                                |
 | `ra` | `Ang`        | marque d'angle droit                     | `dgpad`                           |
-| `dc` | `Seg`, `Vec` | décoration (0 à 6)                       | 0                                 |
+| `dc` | `Seg`, `Vec` | décoration (0 à 6), `VecF` compris       | 0                                 |
 | `dh` | tous         | motif de pointillés, en pixels           | `[]` (trait plein)                |
 | `lo` | tous         | opacité du trait (GeoGebra)              | 1                                 |
 | `is` | `Ex`         | pas du curseur                           | 0                                 |
@@ -577,7 +582,7 @@ non définie).
 | `CubV`, `Abv`, `NetV`                                                     | `rgb(180,180,180)`, `rgb(80,80,80)`, 6, 0 |
 | `Line`, `Par`, `Perp`, `Med`, `EqL`, `Tan`, `PlPl`, `Nrm`                 | `rgb(35,141,227)`, `rgb(80,80,80)`, 2     |
 | `Ray`, `Bis`                                                              | `rgb(35,141,227)`, `#993300`, 2           |
-| `Seg`, `Vec`                                                              | `rgb(35,141,227)`, `rgb(180,80,80)`, 4    |
+| `Seg`, `Vec`, `VecF`                                                      | `rgb(35,141,227)`, `rgb(180,80,80)`, 4    |
 | `FA`                                                                      | `#006633`, `#006633`, 1, 0                |
 | `Ang`                                                                     | `#006633`, `#006633`, 4, 0                |
 | `Cir`, `C1`, `CAx`, `C3`, `C3p`, `C3s`, `Arc`, `Sec`, `CyS`, `EqC`        | `#CC66CC`, `#CC66CC`, 2, 0                |
@@ -615,6 +620,7 @@ objet manipulable y entre donc, par une nouvelle ligne du tableau ci-dessous.
 | `Ex` de valeur constante numérique (`"v"`)             | le nombre                                                          |
 | `Int` sans point P dont les solutions sont suivies (2) | le numéro de branche de `.dgo` (note 3 des objets)                 |
 | `C1` à rayon numérique (non formule)                   | le rayon, qu'un glisser du cercle change                           |
+| `VecF` (vecteur libre)                                 | ses coordonnées, comme un point libre (1)                          |
 
 Comme dans `.dgo`, un nombre non fini s'écrit `null`.
 

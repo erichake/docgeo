@@ -133,6 +133,22 @@ de `src/import/dgp_commands.ts`.
   qu'écrits. Une équation qui lit z (s'il ne nomme pas d'objet) est un
   plan (`PlE`), de degré 1 ; z en tête de ligne reste un nom : `z = 3` est
   une expression, le plan s'écrit `p = z = 3`.
+- **Coordonnées polaires** (2026-10-17, comme dans GeoGebra) :
+  `P = (3; 60°)`, rayon et angle séparés par un point-virgule, est un point
+  défini par une formule (`Fp`, `[(3)*cos(60°), (3)*sin(60°)]`), que la
+  ligne relit `(3; 60°)`.
+- **Vecteur libre** (décidé avec l'auteur le 2026-10-17, comme dans
+  GeoGebra) : des coordonnées nommées d'une minuscule, `u = (1, 2)`, font
+  un vecteur libre (`VecF`), tracé depuis l'origine, dont un glisser
+  déplace la pointe ; la ligne relit `u = (1, 2)`. Un objet du moteur, qui
+  porte ses deux extrémités hors de la construction, plutôt que deux
+  points cachés qui auraient rompu « une ligne, un objet ». Un point libre
+  déjà nommé d'une minuscule (figure DGPad) le reste quand on le redéfinit.
+  Il entre dans l'état élève ; comme les rayons des cercles, il n'est pas
+  une cible du mode intégré et reste manipulable sous `lock`.
+- **Noms par défaut** (2026-10-17, comme dans GeoGebra) : u, v, w pour les
+  vecteurs, des lettres grecques pour les angles (sans ι, ο, ni π, qui est
+  un nombre), puis numérotées.
 - Réutilisation possible de `src/import/ggb_translate.ts` : une ligne tapée,
   ramenée à la commande GeoGebra canonique (nom, arguments, résultat), a la
   même structure qu'une commande du `geogebra.xml`. Il faudrait le découper
@@ -889,9 +905,29 @@ chemin de création de l'éditeur.
   toucher la sélectionne toujours, ou écrit son nom dans la ligne en cours
   de saisie, désignation désormais faite au relâcher pour qu'un glisser
   reste possible pendant une saisie.
-- **À trancher** : nature déduite (DGPad) ou déclarée (`f(x) = …`,
-  GeoGebra), la recommandation étant de déduire en acceptant aussi
-  `f(x) =`, qui lève l'ambiguïté d'un point nommé `x` ou `t`.
+- **Nature déduite** (2026-10-17) : comme dans DGPad. `f(x) = …` est,
+  comme dans GeoGebra, la courbe de la fonction (`Cur`, sans bornes),
+  qu'une formule appelle comme une expression (`f(2)`, `f'(2)`) et que la
+  ligne relit `f(x) = …` ; `f(x, y) = …` (variables parmi x, y, z, t) est
+  l'expression `f = …`.
+- **Produits à la GeoGebra** (2026-10-17) : dans une ligne tapée, un nom
+  fait de lettres qu'aucun objet ne porte et qui finit par x, y, z ou t
+  est le produit de ses lettres, écrites séparées (`ax^2 + bx` devient
+  `a x^2 + b x`), hors appel, méthode et programme (`splitProducts`).
+- **Curseurs créés à la volée** (2026-10-17, comme dans GeoGebra) : un nom
+  lu par la ligne qu'aucun objet ne porte, commençant par une minuscule
+  (`(a, 4)`, `y = m x + p`, `Cercle(O, r)`), devient un curseur ajouté
+  avant elle, dans la même étape d'annulation : de −5 à 5 au pas de 0,1,
+  valeur 1 ; d'une lettre grecque (`Rotation(A, O, α)`), un angle de 0 à
+  360 au pas de 1, valeur 45 (en radians, de 0 à 2π, valeur π/4, pas de
+  1°). Pas pour les noms propres aux formules (x, y, z, t, e, i, π) ni
+  pour le nom de la ligne. Une ligne refusée ensuite ramène la figure à sa
+  dernière étape, sans ses curseurs (`resolveWithSliders`).
+- **Degrés et dérivées** (2026-10-17) : `30°` est un angle en degrés,
+  converti dans l'unité de la figure, et `f'(x)` la dérivée de f par
+  rapport à sa première variable (`f''` la seconde), à côté de `f.dx(x)`
+  de DGPad ; tous deux dans la grammaire du moteur, qui les relit dans le
+  `.dgo` (`DGO.md`).
 
 ### Désignation au clic dans une formule
 
@@ -1444,6 +1480,15 @@ Fait (2026-10-11) :
   (`Sphere(A, Distance(A, C))`). Éditeur +0,8 Ko (+0,2 Ko en gzip) ;
   moteur +60 octets.
 
+- Raccourcis de GeoGebra (2026-10-17) : curseurs créés à la volée,
+  `30°`, `f'(x)`, `f(x) = …` tracée, `ax` lu a x, coordonnées polaires, noms des vecteurs et
+  des angles (sections « Langage textuel » et « Expressions »), puis le
+  vecteur libre `VecF` (même section). Vérifié
+  dans `editor.html` avec Playwright (lignes, ligne refusée sans ses
+  curseurs, annulation ; vecteur glissé à la souris ; parabole
+  `f(x)=ax^2+bx+c` tracée). Éditeur +2,8 Ko (+1,1 Ko en gzip) ; moteur +0,9 Ko (+0,3 Ko en gzip, dont 0,6 Ko pour
+  le vecteur libre) ; `index` +0,1 Ko (état élève).
+
 Reste à faire :
 
 - Jeux d'outils de l'enseignant (section « Anneau d'outils »).
@@ -1451,7 +1496,7 @@ Reste à faire :
   puis au menu : angle fixe, intersection droite-plan.
 
 - Expressions (section du même nom) : ressort des curseurs, listes en k
-  (`Lst`) ; trancher `f(x) =`.
+  (`Lst`).
 - Points sur objet et intersections au geste sur les lieux et listes ;
   choix explicite de l'intersection quand le geste est ambigu.
 - 3D : points libres dans le plan de l'écran des figures DGPad (`f2`) et

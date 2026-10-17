@@ -3,6 +3,7 @@ import { circle1_object } from "./objects/circle1_object";
 import { figureObjects, type DgoFigure } from "./dgo";
 import type { construction_object } from "./objects/construction_object";
 import { expression_object } from "./objects/expression_object";
+import { free_vector_object } from "./objects/free_vector_object";
 import type { grid_object } from "./objects/grid_object";
 import { intersection_object } from "./objects/intersection_object";
 import { list_object } from "./objects/list_object";
@@ -20,7 +21,8 @@ export interface Target {
     movable: boolean;
 }
 
-type Stated = point_object | expression_object | circle1_object;
+type Stated =
+    point_object | expression_object | circle1_object | free_vector_object;
 
 // The view a figure was built with, which pinned points' coordinates are
 // read in: a drag changes their window position, not the view, which isn't
@@ -52,8 +54,8 @@ const isReals = (value: unknown, min: number, max = min): boolean =>
 
 // What a manipulation changes: free points, pinned ones included, points on
 // objects (their parameter), numbers (sliders, checkboxes, what input boxes
-// and points defined by formulas change) and the radii of circles that
-// aren't formulas. Besides, the branch of an intersection whose solutions
+// and points defined by formulas change), the radii of circles that aren't
+// formulas and free vectors. Besides, the branch of an intersection whose solutions
 // are followed as the figure moves (see intersection_object.groupAssign):
 // the same objects' values reached otherwise could lead to another one.
 function stated(c: construction): Stated[] {
@@ -69,7 +71,8 @@ function stated(c: construction): Stated[] {
                 !object.away &&
                 object.branch !== null) ||
             (object instanceof circle1_object &&
-                typeof object.radius === "number"),
+                typeof object.radius === "number") ||
+            object instanceof free_vector_object,
     );
 }
 
@@ -94,6 +97,10 @@ const movable = (c: construction): Stated[] =>
 function stateValue(object: Stated, vec3: boolean, view: BuiltView): Value {
     if (object instanceof intersection_object) return object.branch;
     if (object instanceof circle1_object) return json(object.radius as number);
+    if (object instanceof free_vector_object)
+        return (vec3 ? object.P2.coords : object.P2.coords.slice(0, 2)).map(
+            json,
+        );
     if (object instanceof point_on_object)
         return typeof object.alpha === "number"
             ? json(object.alpha)
@@ -172,7 +179,10 @@ export function stateFigure(
                     : isReals(value, 2),
             );
             changed = [(parameters as unknown[])[0], value];
-        } else if (object instanceof point_object) {
+        } else if (
+            object instanceof point_object ||
+            object instanceof free_vector_object
+        ) {
             check(isReals(value, 2, 3));
             changed = value;
         } else {
@@ -252,7 +262,8 @@ export function objectValue(c: construction, name: string): Value {
 
 // Of the free points and the points on objects, only those named in `except`
 // remain manipulable: what changes a number (sliders, checkboxes, input
-// boxes, panels, points defined by formulas, radii of circles) always does.
+// boxes, panels, points defined by formulas, radii of circles), and free
+// vectors, which aren't targets, always does.
 // The 2D view no longer pans with the left mouse button or a finger.
 export function lockFigure(c: construction, except: string[]): void {
     except.forEach((name) => target(c, name));

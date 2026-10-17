@@ -175,7 +175,15 @@ export function callFunction(
     derivatives: string[] = [],
 ): FormulaValue | null {
     const formula = functionFormula(refs.get(name));
-    const derived = formula && derivedFormula(formula, derivatives);
+    // A prime ("f'(x)") derives with respect to the function's variable.
+    const derived =
+        formula &&
+        derivedFormula(
+            formula,
+            derivatives.map((variable) =>
+                variable === "'" ? formula.variables[0] : variable,
+            ),
+        );
     return derived ? evaluateFunction(derived, args, view) : null;
 }
 

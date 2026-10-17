@@ -42,7 +42,16 @@
                         <tr>
                             <td><code>f = 0.5x^2 - 4</code></td>
                             <td>
-                                função de x (y, z, t); <code>f(2)</code> a chama
+                                função de x (y, z, t); <code>f(2)</code> a
+                                chama, <code>f'(2)</code> chama a sua derivada
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><code>f(x) = ax^2 + bx + c</code></td>
+                            <td>
+                                curva da função, traçada: <code>ax</code> lê-se
+                                a x, os controles deslizantes a, b, c são
+                                criados; <code>f(2)</code> também a chama
                             </td>
                         </tr>
                         <tr>
@@ -82,6 +91,14 @@
                 <a href="proprietes.html#curseurs">propriedades</a>.
                 <code>r = 5</code> o transforma de novo numa constante.
             </p>
+            <p id="curseurs-automatiques">
+                Um nome desconhecido que começa por minúscula cria um controle
+                deslizante de −5 a 5, com incremento 0,1 e valor 1:
+                <code>A = (a, 4)</code>, <code>d = y = m x + p</code>. Uma letra
+                grega cria um ângulo de 0 a 360°, com incremento 1° e valor 45°
+                (de 0 a 2π em radianos): <code>P = (3; α)</code>. Uma linha
+                recusada não mantém os seus controles deslizantes.
+            </p>
 
             <h2>Pontos calculados</h2>
             <ul>
@@ -92,6 +109,10 @@
                 <li>
                     <code>N = Ponto(2*B - A)</code>: fórmula cujo valor é um
                     ponto.
+                </li>
+                <li>
+                    <code>P = (3; 60°)</code>: coordenadas polares, raio e
+                    ângulo.
                 </li>
             </ul>
             <p>

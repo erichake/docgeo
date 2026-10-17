@@ -50,6 +50,8 @@ export type FormulaFn =
     | "Angle180"
     | "crossProduct"
     | "gcd"
+    // "30°", an angle in degrees in the figure's unit: no name calls it.
+    | "°"
     | ListFn;
 
 // DGPad's own names for its operators, also applying to lists, and its
@@ -106,6 +108,7 @@ const FORMULA_ARITY: Record<FormulaFn, number> = {
     Angle180: 3,
     crossProduct: 2,
     gcd: 2,
+    "°": 1,
     plus: 2,
     minus: 2,
     times: 2,
@@ -394,6 +397,7 @@ export type TokenType =
     | Comparison
     | "!"
     | "."
+    | "°"
     | "("
     | ")"
     | "["
@@ -483,7 +487,7 @@ export class FormulaLexer {
             return { type, value: type };
         }
 
-        if ("+-*/%^(),[].".includes(character)) {
+        if ("+-*/%^(),[].°".includes(character)) {
             this.index++;
             return { type: character as TokenType, value: character };
         }
@@ -854,6 +858,7 @@ class FormulaParser {
             base = { kind: "index", target: base, index: this.expression() };
             this.take("]");
         }
+        while (this.skip("°")) base = { kind: "call", fn: "°", args: [base] };
         if (this.current.type === "^") {
             this.advance();
             return { kind: "binary", op: "^", left: base, right: this.unary() };
@@ -1047,6 +1052,16 @@ class FormulaParser {
                 throw new Error(`Invalid DGP turtle function "${name}" arity`);
             return { kind: "turtle", fn, args };
         }
+        // "f'(x)", f's derivative with respect to its variable, unless an
+        // object has the name (see callFunction in expression_object.ts).
+        const primes = /^(.+?)('+)$/.exec(name);
+        if (primes && !objects.has(name) && !this.isLocal(name))
+            return {
+                kind: "derivative",
+                name: primes[1],
+                variables: [...primes[2]],
+                args,
+            };
         if (!(name in FORMULA_ARITY)) return { kind: "userCall", name, args };
         const fn = name as FormulaFn;
         const arity = FORMULA_ARITY[fn];
@@ -1633,6 +1648,10 @@ function evalCall(
         case "tan": {
             const unit = angleUnit(env);
             return realUnary((x) => Math[fn](x * unit), args[0]);
+        }
+        case "°": {
+            const unit = angleUnit(env);
+            return realUnary((x) => (x * Math.PI) / 180 / unit, args[0]);
         }
         case "asin":
         case "acos":

@@ -9,6 +9,7 @@ import {
 } from "../dgo";
 import {
     expressionContent,
+    FUNCTION_VARIABLES,
     type ExpressionContent,
 } from "../import/dgp_expression";
 import {
@@ -23,6 +24,7 @@ import {
 } from "../import/dgp_formula";
 import { angle_object } from "../objects/angle_object";
 import { construction_object } from "../objects/construction_object";
+import type { curve_object } from "../objects/curve_object";
 import {
     equationCoeffs,
     equationValue,
@@ -54,8 +56,10 @@ import {
     formatNumber,
     pointFormulaText,
     renameFormula,
+    splitProducts,
     TextError,
     unknownMethod,
+    type Definition,
     type Line,
 } from "./text";
 
@@ -78,6 +82,9 @@ export const FREE_POINT: Overload = {
     tag: "Pt",
     encode: (args) => args,
 };
+
+// `u = (1, 2)`, named with a small letter, as in GeoGebra.
+const FREE_VECTOR: Overload = { ...FREE_POINT, tag: "VecF" };
 
 // The floor, the plane z = 0 (GeoGebra's xOyPlane): the figure's plane of
 // that equation, or one added hidden, the floor being drawn already.
@@ -134,17 +141,25 @@ export const hasName = (object: construction_object): boolean =>
 // Free in formulas, or easily mistaken.
 const RESERVED = new Set(["e", "i", "k", "l", "o", "t", "x", "y", "z"]);
 
-// A point's name is a capital letter, any other object's a small one, then
-// numbered; not `taken`, about to be given.
+// As GeoGebra names them, π being a number.
+const LETTERS: Record<string, string> = {
+    Vec: "uvw",
+    VecF: "uvw",
+    Ang: "αβγδεζηθκλμνξρστυφχψω",
+};
+
+// A point's name is a capital letter, a vector's u, v or w, an angle's a
+// Greek letter, any other object's a small one, then numbered; not `taken`,
+// about to be given. `kind` is true for a point, or the object's type.
 export function nextName(
     c: construction,
-    point: boolean,
+    kind: boolean | string,
     taken?: string,
 ): string {
     const letters = [
-        ...(point
+        ...(kind === true || (typeof kind === "string" && isPointTag(kind))
             ? "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-            : "abcdefghijklmnopqrstuvwxyz"),
+            : (LETTERS[kind as string] ?? "abcdefghijklmnopqrstuvwxyz")),
     ].filter((letter) => !RESERVED.has(letter));
     for (let number = 0; ; number++)
         for (const letter of letters) {
@@ -239,6 +254,14 @@ export function lineOf(
 ): string | null {
     const [tag, parameters] = entryOf(object, index);
     const name = formatName(object.name);
+    if (tag === "Cur") {
+        const { formula, min, max } = object as curve_object;
+        return min === null && max === null
+            ? `${name}(x) = ${oneLine(renamed(formula.source, formula.refs))}`
+            : null;
+    }
+    if (tag === "VecF")
+        return `${name} = (${(parameters as number[]).map(formatNumber).join(", ")})`;
     if (tag === "Pt") {
         // In space, its three coordinates.
         const { pinned, coords } = object as point_object;
@@ -274,13 +297,23 @@ export function resolve(
     const own = new Set(figureObjects(c));
     let overload: Overload | undefined = FREE_POINT;
     let args: Arg[];
-    if (definition!.kind === "point") args = definition!.coords;
-    else if (definition!.kind === "formula")
+    if (definition!.kind === "point") {
+        args = definition!.coords;
+        // A free point stays one.
+        const kept = target && entryOf(target, figureIndex(c))[0];
+        if (
+            kept !== "Pt" &&
+            (kept === "VecF" || /^\p{Ll}/u.test(name ?? target?.name ?? ""))
+        )
+            overload = FREE_VECTOR;
+    } else if (definition!.kind === "formula")
         ({ overload, args } = expression(c, definition!.source, target));
     else if (definition!.kind === "pointFormula")
         ({ overload, args } = formulaPoint(c, definition!.source));
     else if (definition!.kind === "equation")
         ({ overload, args } = equation(c, definition!.sides));
+    else if (definition!.kind === "curve")
+        ({ overload, args } = curve(c, definition!.source));
     else {
         const call = definition!;
         const command = findCommand(call.command);
@@ -346,11 +379,102 @@ export function resolve(
             ));
         }
     }
-    const chosen =
-        name ?? target?.name ?? nextName(c, isPointTag(overload.tag));
+    const chosen = name ?? target?.name ?? nextName(c, overload.tag);
     const named = c.getObj(chosen);
     if (named && named !== target) throw new TextError("name_taken", chosen);
     return { name: chosen, overload, args };
+}
+
+// What a slider stands for when no object has the name, as in GeoGebra: a
+// name starting with a small letter, but the formulas' own.
+const SLIDER_NAME = /^\p{Ll}[\p{L}\p{N}_]*$/u;
+const FREE_NAMES = new Set([...FUNCTION_VARIABLES, "e", "i", "π"]);
+
+// The line resolved as GeoGebra reads it, `ax^2 + bx` being a x^2 + b x
+// (see splitProducts), a slider added first for each name it reads that no
+// object has, which `added` gets: the caller undoes them if the line is
+// refused.
+export function resolveWithSliders(
+    c: construction,
+    line: Line,
+    target: construction_object | undefined,
+    added: construction_object[],
+): Spec {
+    const split = (source: string) =>
+        splitProducts(source, (name) => !!c.getObj(name));
+    const definition = line.definition && products(line.definition, split);
+    for (;;) {
+        try {
+            return resolve(c, { ...line, definition }, target);
+        } catch (error) {
+            const name =
+                error instanceof TextError && error.key === "unknown_object"
+                    ? error.detail
+                    : "";
+            if (
+                !SLIDER_NAME.test(name) ||
+                FREE_NAMES.has(name) ||
+                name === line.name
+            )
+                throw error;
+            added.push(addSlider(c, name));
+        }
+    }
+}
+
+function products(
+    definition: Definition,
+    split: (source: string) => string,
+): Definition {
+    switch (definition.kind) {
+        case "formula":
+        case "pointFormula":
+        case "curve":
+            return { ...definition, source: split(definition.source) };
+        case "equation":
+            return {
+                ...definition,
+                sides: definition.sides.map(split) as [string, string],
+            };
+        case "call":
+            return {
+                ...definition,
+                args: definition.args.map((arg) =>
+                    arg.kind === "formula"
+                        ? { ...arg, source: split(arg.source) }
+                        : arg,
+                ),
+            };
+    }
+    return definition;
+}
+
+// From −5 to 5 by 0.1; of a Greek letter, an angle, from 0 to 360° by 1°.
+function addSlider(c: construction, name: string): expression_object {
+    const angle = /^\p{Script=Greek}/u.test(name);
+    const [min, max, value, step]: [number, number | string, number, number] =
+        !angle
+            ? [-5, 5, 1, 0.1]
+            : c.degrees
+              ? [0, 360, 45, 1]
+              : [0, "2π", Math.PI / 4, Math.PI / 180];
+    const slider = add(
+        c,
+        resolve(c, {
+            name,
+            definition: {
+                kind: "call",
+                command: "Slider",
+                args: [min, max, value].map((value) =>
+                    typeof value === "number"
+                        ? { kind: "number", value }
+                        : { kind: "formula", source: value },
+                ),
+            },
+        }),
+    ) as expression_object;
+    slider.increment = step;
+    return slider;
 }
 
 // Under the expressions the window shows, as DGPad's calculator stacks them.
@@ -485,8 +609,13 @@ function formulaPoint(
     };
 }
 
-// A number computed by a formula, read in an argument.
-function formulaArg(c: construction, source: string): FormulaArg {
+// A number computed by a formula, read in an argument, or a function of
+// these variables.
+function formulaArg(
+    c: construction,
+    source: string,
+    variables: string[] = [],
+): FormulaArg {
     const own = new Map(
         figureObjects(c).map((object) => [object.name, object]),
     );
@@ -501,13 +630,35 @@ function formulaArg(c: construction, source: string): FormulaArg {
     return new FormulaArg(
         source,
         new Map(
-            [...names].map((name) => {
-                const object = own.get(name);
-                if (!object) throw new TextError("unknown_object", name);
-                return [name, object];
-            }),
+            [...names]
+                .filter((name) => !variables.includes(name))
+                .map((name) => {
+                    const object = own.get(name);
+                    if (!object) throw new TextError("unknown_object", name);
+                    return [name, object];
+                }),
         ),
     );
+}
+
+// `f(x) = …`, the curve of a function of x, which formulas call as one.
+function curve(
+    c: construction,
+    source: string,
+): { overload: Overload; args: Arg[] } {
+    const { refs } = formulaArg(c, source, ["x"]);
+    return {
+        overload: {
+            params: [],
+            tag: "Cur",
+            encode: (_, index) => [
+                formulaParameter(source, refs, index),
+                null,
+                null,
+            ],
+        },
+        args: [...refs.values()],
+    };
 }
 
 const EQUATIONS = ["EqL", "EqC", "EqQ", "PlE"];

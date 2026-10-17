@@ -42,8 +42,16 @@
                         <tr>
                             <td><code>f = 0.5x^2 - 4</code></td>
                             <td>
-                                function of x (y, z, t);
-                                <code>f(2)</code> calls it
+                                function of x (y, z, t); <code>f(2)</code> calls
+                                it, <code>f'(2)</code> calls its derivative
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><code>f(x) = ax^2 + bx + c</code></td>
+                            <td>
+                                curve of the function, plotted:
+                                <code>ax</code> reads a x, the sliders a, b, c
+                                are created; <code>f(2)</code> calls it too
                             </td>
                         </tr>
                         <tr>
@@ -82,6 +90,14 @@
                 <a href="proprietes.html#curseurs">properties</a>.
                 <code>r = 5</code> turns it back into a constant.
             </p>
+            <p id="curseurs-automatiques">
+                An unknown name starting with a lowercase letter creates a
+                slider from −5 to 5, with step 0.1 and value 1:
+                <code>A = (a, 4)</code>, <code>d = y = m x + p</code>. A Greek
+                letter creates an angle from 0 to 360°, with step 1° and value
+                45° (from 0 to 2π in radians): <code>P = (3; α)</code>. A
+                refused line does not keep its sliders.
+            </p>
 
             <h2>Computed points</h2>
             <ul>
@@ -92,6 +108,10 @@
                 <li>
                     <code>N = Point(2*B - A)</code>: a formula whose value is a
                     point.
+                </li>
+                <li>
+                    <code>P = (3; 60°)</code>: polar coordinates, radius and
+                    angle.
                 </li>
             </ul>
             <p>

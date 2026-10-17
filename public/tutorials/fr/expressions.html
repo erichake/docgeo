@@ -43,7 +43,16 @@
                             <td><code>f = 0.5x^2 - 4</code></td>
                             <td>
                                 fonction de x (y, z, t) ;
-                                <code>f(2)</code> l’appelle
+                                <code>f(2)</code> l’appelle,
+                                <code>f'(2)</code> appelle sa dérivée
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><code>f(x) = ax^2 + bx + c</code></td>
+                            <td>
+                                courbe de la fonction, tracée :
+                                <code>ax</code> se lit a x, les curseurs a, b, c
+                                sont créés ; <code>f(2)</code> l’appelle aussi
                             </td>
                         </tr>
                         <tr>
@@ -82,6 +91,14 @@
                 dans les <a href="proprietes.html#curseurs">propriétés</a>.
                 <code>r = 5</code> en refait une constante.
             </p>
+            <p id="curseurs-automatiques">
+                Un nom inconnu commençant par une minuscule crée un curseur de
+                −5 à 5, de pas 0,1 et de valeur 1 : <code>A = (a, 4)</code>,
+                <code>d = y = m x + p</code>. Une lettre grecque crée un angle
+                de 0 à 360°, de pas 1° et de valeur 45° (de 0 à 2π en radians) :
+                <code>P = (3; α)</code>. Une ligne refusée ne garde pas ses
+                curseurs.
+            </p>
 
             <h2>Points calculés</h2>
             <ul>
@@ -92,6 +109,10 @@
                 <li>
                     <code>N = Point(2*B - A)</code> : formule dont la valeur est
                     un point.
+                </li>
+                <li>
+                    <code>P = (3; 60°)</code> : coordonnées polaires, rayon et
+                    angle.
                 </li>
             </ul>
             <p>

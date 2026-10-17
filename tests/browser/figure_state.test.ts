@@ -14,6 +14,7 @@ import {
 import { importGgbFromUrl } from "../../src/ggb_importer";
 import { circle1_object } from "../../src/objects/circle1_object";
 import { expression_object } from "../../src/objects/expression_object";
+import { free_vector_object } from "../../src/objects/free_vector_object";
 import { point_on_object } from "../../src/objects/point_on_object";
 import { point_object } from "../../src/objects/point_object";
 import {
@@ -47,6 +48,7 @@ const FIGURE = {
         ["Pt", "M", [3, 3], 0],
         ["Ex", "d", { t: "", s: ["d(H,M)", { H: 7, M: 8 }], xy: [20, 20] }],
         ["Ex", "k", { t: "", v: 2, mn: 0, mx: 10, xy: [20, 60] }],
+        ["VecF", "u", [1, 2]],
     ],
 };
 
@@ -68,6 +70,9 @@ function manipulate(c: construction): void {
                 point.z && point.z + 0.13,
             ];
             if (point.pinned) point.pin();
+        } else if (object instanceof free_vector_object) {
+            const [x, y, z] = object.P2.coords;
+            object.P2.coords = [x + 0.37, y - 0.21, z && z + 0.13];
         } else if (
             object instanceof circle1_object &&
             typeof object.radius === "number"
