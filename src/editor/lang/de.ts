@@ -18,6 +18,9 @@ const de: Texts = {
         name_taken: "Der Name % ist bereits vergeben",
         cycle: "Ein Objekt kann nicht von sich selbst abhängen",
         read_only: "Dieses Objekt lässt sich noch nicht als Text schreiben",
+        image_file:
+            "Ein Bild kommt mit seiner Datei: seine Zeile ändert nur seine Ecken",
+        html: "Dieses HTML enthält ein Skript, oder ein Element oder eine Formel, die DocGeo nicht liest",
         input: "Eingabe…",
         open: "Öffnen",
         save: "Speichern",
@@ -323,6 +326,9 @@ const de: Texts = {
         List: "Liste",
         Sequence: "Folge",
         Slider: "Schieberegler",
+        Text: "Text",
+        Html: "Html",
+        Image: "Bild",
     },
 };
 

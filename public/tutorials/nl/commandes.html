@@ -1012,6 +1012,68 @@
                 </table>
             </div>
 
+            <h2>Teksten en afbeeldingen</h2>
+            <div class="table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Opdracht</th>
+                            <th>Vorm</th>
+                            <th>Resultaat</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td rowspan="1">
+                                <strong>Tekst</strong><br /><small>Text</small>
+                            </td>
+                            <td class="syntax">
+                                <code>Tekst("tekst", P)</code>
+                            </td>
+                            <td>
+                                tekst vastgemaakt aan het punt P, waarvan de
+                                delen <code>%formule%</code> hun waarde tonen
+                                (<code>%%</code>: een %); tussen de
+                                aanhalingstekens begint <code>\n</code> een
+                                nieuwe regel
+                            </td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1"><strong>Html</strong></td>
+                            <td class="syntax"><code>Html("html")</code></td>
+                            <td>
+                                HTML-tekstkader van DGPad, vast in het venster;
+                                ook op meerdere regels te bewerken in de sectie
+                                <strong>Definitie</strong> van de eigenschappen
+                                (zie
+                                <a href="expressions.html#les-programmes"
+                                    >Programma’s</a
+                                >)
+                            </td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1">
+                                <strong>Afbeelding</strong><br /><small
+                                    >Image</small
+                                >
+                            </td>
+                            <td class="syntax">
+                                <code>Afbeelding(A)</code>,
+                                <code>Afbeelding(A, B)</code>,
+                                <code>Afbeelding(A, B, C)</code>,
+                                <code>Afbeelding(x, y)</code>
+                            </td>
+                            <td>
+                                afbeelding van de figuur, door haar hoeken
+                                linksonder, rechtsonder en linksboven, of vast
+                                op de plaats (x, y) van het venster, in pixels;
+                                een afbeelding wordt niet met een regel gemaakt
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
             <h2>Functies in formules</h2>
             <p>
                 <code>d</code>, <code>x</code>, <code>sqrt</code>,

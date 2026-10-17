@@ -921,6 +921,60 @@
                 </table>
             </div>
 
+            <h2>النصوص والصور</h2>
+            <div class="table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>الأمر</th>
+                            <th>الصيغة</th>
+                            <th>النتيجة</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td rowspan="1">
+                                <strong>نص</strong><br /><small>Text</small>
+                            </td>
+                            <td class="syntax"><code>نص("نص", P)</code></td>
+                            <td>
+                                نص مرتبط بالنقطة P، تعرض أجزاؤه
+                                <code>%صيغة%</code> قيمتها (<code>%%</code>:
+                                علامة %)؛ بين علامتي التنصيص، يبدأ
+                                <code>\n</code> سطرًا جديدًا
+                            </td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1"><strong>Html</strong></td>
+                            <td class="syntax"><code>Html("html")</code></td>
+                            <td>
+                                إطار نص HTML من DGPad، ثابت في النافذة؛ ويُحرَّر
+                                أيضًا على عدة أسطر في قسم
+                                <strong>التعريف</strong> من الخصائص (انظر
+                                <a href="expressions.html#les-programmes"
+                                    >البرامج</a
+                                >)
+                            </td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1">
+                                <strong>صورة</strong><br /><small>Image</small>
+                            </td>
+                            <td class="syntax">
+                                <code>صورة(A)</code>, <code>صورة(A, B)</code>,
+                                <code>صورة(A, B, C)</code>,
+                                <code>صورة(x, y)</code>
+                            </td>
+                            <td>
+                                صورة الشكل، بزواياها السفلية اليسرى والسفلية
+                                اليمنى والعلوية اليسرى، أو مثبتة في الموضع (x,
+                                y) من النافذة، بالبكسل؛ لا تُنشأ الصورة بسطر
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
             <h2>دوال الصيغ</h2>
             <p>
                 <code>d</code>، <code>x</code>، <code>sqrt</code>،

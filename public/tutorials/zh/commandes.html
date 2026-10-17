@@ -847,6 +847,58 @@
                 </table>
             </div>
 
+            <h2>文本与图像</h2>
+            <div class="table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>命令</th>
+                            <th>形式</th>
+                            <th>结果</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td rowspan="1">
+                                <strong>文本</strong><br /><small>Text</small>
+                            </td>
+                            <td class="syntax"><code>文本("文本", P)</code></td>
+                            <td>
+                                附在点 P 上的文本，其中
+                                <code>%公式%</code>
+                                部分显示其值（<code>%%</code>：一个
+                                %）；在引号之间，<code>\n</code> 表示换行
+                            </td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1"><strong>Html</strong></td>
+                            <td class="syntax"><code>Html("html")</code></td>
+                            <td>
+                                DGPad 的 HTML
+                                文本框，固定在窗口中；也可在属性的<strong>定义</strong>部分多行编辑（见<a
+                                    href="expressions.html#les-programmes"
+                                    >程序</a
+                                >）
+                            </td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1">
+                                <strong>图像</strong><br /><small>Image</small>
+                            </td>
+                            <td class="syntax">
+                                <code>图像(A)</code>, <code>图像(A, B)</code>,
+                                <code>图像(A, B, C)</code>,
+                                <code>图像(x, y)</code>
+                            </td>
+                            <td>
+                                图形中的图像，由其左下角、右下角和左上角确定，或以像素固定在窗口的
+                                (x, y) 处；图像不能通过一行创建
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
             <h2>公式中的函数</h2>
             <p>
                 <code>d</code

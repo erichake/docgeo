@@ -17,6 +17,9 @@ export default {
     name_taken: "The name % is taken",
     cycle: "An object can't depend on itself",
     read_only: "This object has no text form yet",
+    image_file:
+        "An image comes with its file: its line only changes its corners",
+    html: "This HTML holds a script, or an element or a formula DocGeo doesn't read",
     input: "Input…",
     open: "Open",
     save: "Save",

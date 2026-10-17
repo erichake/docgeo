@@ -1000,6 +1000,68 @@
                 </table>
             </div>
 
+            <h2>Textos e imágenes</h2>
+            <div class="table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Comando</th>
+                            <th>Forma</th>
+                            <th>Resultado</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td rowspan="1">
+                                <strong>Texto</strong><br /><small>Text</small>
+                            </td>
+                            <td class="syntax">
+                                <code>Texto("texto", P)</code>
+                            </td>
+                            <td>
+                                texto unido al punto P, cuyas partes
+                                <code>%fórmula%</code> muestran su valor
+                                (<code>%%</code>: un %); entre las comillas,
+                                <code>\n</code> pasa a la línea siguiente
+                            </td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1"><strong>Html</strong></td>
+                            <td class="syntax"><code>Html("html")</code></td>
+                            <td>
+                                marco de texto HTML de DGPad, fijo en la
+                                ventana; también se edita en varias líneas en la
+                                sección <strong>Definición</strong> de las
+                                propiedades (ver
+                                <a href="expressions.html#les-programmes"
+                                    >Programas</a
+                                >)
+                            </td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1">
+                                <strong>Imagen</strong><br /><small
+                                    >Image</small
+                                >
+                            </td>
+                            <td class="syntax">
+                                <code>Imagen(A)</code>,
+                                <code>Imagen(A, B)</code>,
+                                <code>Imagen(A, B, C)</code>,
+                                <code>Imagen(x, y)</code>
+                            </td>
+                            <td>
+                                imagen de la figura, por sus esquinas inferior
+                                izquierda, inferior derecha y superior
+                                izquierda, o fija en el lugar (x, y) de la
+                                ventana, en píxeles; una imagen no se crea con
+                                una línea
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
             <h2>Funciones de las fórmulas</h2>
             <p>
                 <code>d</code>, <code>x</code>, <code>sqrt</code>,

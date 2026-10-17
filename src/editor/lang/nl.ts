@@ -18,6 +18,9 @@ const nl: Texts = {
         name_taken: "De naam % is al in gebruik",
         cycle: "Een object kan niet van zichzelf afhangen",
         read_only: "Dit object kan nog niet als tekst worden geschreven",
+        image_file:
+            "Een afbeelding komt met haar bestand: haar regel verandert alleen haar hoeken",
+        html: "Deze HTML bevat een script, of een element of een formule die DocGeo niet leest",
         input: "Invoer…",
         open: "Openen",
         save: "Opslaan",
@@ -322,6 +325,9 @@ const nl: Texts = {
         List: "Lijst",
         Sequence: "Rij",
         Slider: "Schuifknop",
+        Text: "Tekst",
+        Html: "Html",
+        Image: "Afbeelding",
     },
 };
 

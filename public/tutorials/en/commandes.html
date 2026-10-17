@@ -899,6 +899,58 @@
                 </table>
             </div>
 
+            <h2>Texts and images</h2>
+            <div class="table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Command</th>
+                            <th>Form</th>
+                            <th>Result</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td rowspan="1"><strong>Text</strong></td>
+                            <td class="syntax"><code>Text("text", P)</code></td>
+                            <td>
+                                text attached to the point P, whose
+                                <code>%formula%</code> parts show their value
+                                (<code>%%</code>: a %); between the quotes,
+                                <code>\n</code> starts a new line
+                            </td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1"><strong>Html</strong></td>
+                            <td class="syntax"><code>Html("html")</code></td>
+                            <td>
+                                DGPad’s HTML text frame, fixed in the window;
+                                also edited on several lines in the
+                                <strong>Definition</strong> section of the
+                                properties (see
+                                <a href="expressions.html#les-programmes"
+                                    >Programs</a
+                                >)
+                            </td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1"><strong>Image</strong></td>
+                            <td class="syntax">
+                                <code>Image(A)</code>, <code>Image(A, B)</code>,
+                                <code>Image(A, B, C)</code>,
+                                <code>Image(x, y)</code>
+                            </td>
+                            <td>
+                                image of the figure, by its bottom left, bottom
+                                right and top left corners, or fixed at the
+                                place (x, y) of the window, in pixels; an image
+                                is not created by a line
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
             <h2>Formula functions</h2>
             <p>
                 <code>d</code>, <code>x</code>, <code>sqrt</code>,

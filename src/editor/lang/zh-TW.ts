@@ -18,6 +18,8 @@ const zh_TW: Texts = {
         name_taken: "名稱 % 已被使用",
         cycle: "物件不能依賴於自身",
         read_only: "此物件暫時無法寫成文字",
+        image_file: "圖像隨其檔案而來：它的行只能改變它的角點",
+        html: "此 HTML 含有指令碼，或 DocGeo 不讀取的元素或公式",
         input: "輸入…",
         open: "開啟",
         save: "儲存",
@@ -307,6 +309,9 @@ const zh_TW: Texts = {
         List: "列表",
         Sequence: "序列",
         Slider: "滑桿",
+        Text: "文字",
+        Html: "Html",
+        Image: "圖像",
     },
 };
 

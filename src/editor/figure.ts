@@ -38,6 +38,7 @@ import { point_on_object } from "../objects/point_on_object";
 import { point_object } from "../objects/point_object";
 import { plane_object } from "../objects/plane_object";
 import { polygon_object } from "../objects/polygon_object";
+import { panelNames, parsePanel, panel_object } from "../objects/panel_object";
 import { normalOf } from "../objects/polyhedron_object";
 import { primitive_quadric_object } from "../objects/primitive_quadric_object";
 import { list_object, type ListNature } from "../objects/list_object";
@@ -53,6 +54,7 @@ import {
     findCommand,
     FormulaArg,
     isCommand,
+    TextArg,
     overloadFor,
     argObjects,
     type Arg,
@@ -64,6 +66,7 @@ import {
     formatNumber,
     parseLine,
     pointFormulaText,
+    quoteText,
     renameFormula,
     splitProducts,
     TextError,
@@ -199,7 +202,9 @@ export const formatArg = (arg: Arg): string =>
         ? formatNumber(arg)
         : arg instanceof FormulaArg
           ? oneLine(renamed(arg.source, arg.refs))
-          : formatName(arg.name);
+          : arg instanceof TextArg
+            ? quoteText(renamedText(arg))
+            : formatName(arg.name);
 
 const formatValue = (value: unknown): string =>
     typeof value === "number"
@@ -217,6 +222,39 @@ const renamed = (
         const ref = refs.get(name);
         return ref && formatName(ref.name);
     });
+
+// A text written with the names of the objects it reads: in its formulas
+// ("%…%"), outside the tags of a panel's HTML, and its fields' targets.
+function renamedText({ text, refs, html }: TextArg): string {
+    const formulas = (source: string) =>
+        source
+            .split("%")
+            .map((part, index) =>
+                index % 2 && part ? renamed(part, refs) : part,
+            )
+            .join("%");
+    if (!html) return formulas(text);
+    return text
+        .replace(
+            /(^|>)([^<]*)/g,
+            (_, tag: string, between: string) => tag + formulas(between),
+        )
+        .replace(
+            /(\btarget\s*=\s*(["']?))([^"'\s>]+)\2/gi,
+            (_, before: string, quote: string, name: string) =>
+                before + (refs.get(name)?.name ?? name) + quote,
+        );
+}
+
+// What the properties' definition edits: an expression's value, formula or
+// program, a panel's HTML.
+export function definitionSource(
+    object: expression_object | panel_object,
+): string {
+    return object instanceof panel_object
+        ? renamedText(new TextArg(object.content, object.refs, true))
+        : expressionSource(object);
+}
 
 // Its value, or its formula.
 export function expressionSource({
@@ -353,6 +391,8 @@ export function resolve(
         if (!command) throw new TextError("unknown_command", call.command);
         args = call.args.map((arg) => {
             if (arg.kind === "number") return arg.value;
+            if (arg.kind === "string")
+                return textArg(c, arg.value, command.name === "Html");
             if (arg.kind === "formula") return formulaArg(c, arg.source);
             const object = c.getObj(arg.name);
             if (!object || !own.has(object))
@@ -400,6 +440,10 @@ export function resolve(
             )
         )
             throw new TextError("arguments", commandName(command));
+        if (overload.tag === "Img" && args.length > 3)
+            throw new TextError("arguments", commandName(command));
+        if (["Txt", "Html", "Img"].includes(overload.tag))
+            overload = keeping(overload, target);
         // A slider.
         if (overload.tag === "Ex") {
             const { encode } = overload;
@@ -416,6 +460,32 @@ export function resolve(
     const named = c.getObj(chosen);
     if (named && named !== target) throw new TextError("name_taken", chosen);
     return { name: chosen, overload, args };
+}
+
+// Unsaid by its line, as null: a text's offset, a panel's frame, an image's
+// file and size, those of the object it redefines; an image comes with its
+// file only.
+const UNSAID: Record<string, unknown[]> = {
+    Txt: [, [0, 0]],
+    Html: [[20, 20, 300, 150], 15],
+};
+
+function keeping(
+    overload: Overload,
+    target: construction_object | undefined,
+): Overload {
+    const [tag, parameters] = target
+        ? entryOf(target, new Map())
+        : [null, null];
+    const kept = tag === overload.tag ? (parameters as unknown[]) : null;
+    if (overload.tag === "Img" && !kept) throw new TextError("image_file");
+    return {
+        ...overload,
+        encode: (args, index) =>
+            (overload.encode(args, index) as unknown[]).map(
+                (value, at) => value ?? kept?.[at] ?? UNSAID[overload.tag][at],
+            ),
+    };
 }
 
 // What a slider stands for when no object has the name, as in GeoGebra: a
@@ -676,13 +746,51 @@ function formulaArg(
     );
 }
 
+// A text, the objects its formulas name, or a panel's HTML, those of its
+// formulas and fields: both read as the figure reads them.
+function textArg(c: construction, text: string, html: boolean): TextArg {
+    const own = new Map(
+        figureObjects(c).map((object) => [object.name, object]),
+    );
+    let names: Set<string>;
+    try {
+        names = withObjects(new Set(own.keys()), () => {
+            if (html) return panelNames(parsePanel(text));
+            const parts = text.split("%");
+            if (parts.length % 2 === 0) throw new Error();
+            return new Set(
+                parts.flatMap((part, index) =>
+                    index % 2 && part
+                        ? [...formulaIdentifiers(parseFormula(part))]
+                        : [],
+                ),
+            );
+        });
+    } catch {
+        throw new TextError(html ? "html" : "syntax", html ? "" : text);
+    }
+    return new TextArg(
+        text,
+        new Map(
+            [...names].map((name) => {
+                const object = own.get(name);
+                if (!object) throw new TextError("unknown_object", name);
+                return [name, object];
+            }),
+        ),
+        html,
+    );
+}
+
 // An argument as typed.
 const argSource = (arg: ArgText): string =>
     arg.kind === "name"
         ? formatName(arg.name)
         : arg.kind === "number"
           ? formatNumber(arg.value)
-          : arg.source;
+          : arg.kind === "string"
+            ? quoteText(arg.value)
+            : arg.source;
 
 // Of a nature, the command a Sequence's items are written with.
 const ITEM_COMMANDS: Partial<Record<ListNature, string>> = {
@@ -1150,11 +1258,13 @@ export async function redefine(
         unknown,
         number?,
     ];
-    const entry: unknown[] = [
-        overload.tag,
-        name,
-        overload.encode(args, (object) => order.indexOf(object)),
-    ];
+    const parameters = overload.encode(args, (object) => order.indexOf(object));
+    // An image's file, by its key.
+    if (overload.tag === "Img")
+        (parameters as unknown[])[0] = Object.keys(figure.img!).find(
+            (key) => figure.img![key] === (parameters as unknown[])[0],
+        );
+    const entry: unknown[] = [overload.tag, name, parameters];
     if (style !== undefined) {
         const kept =
             tag === overload.tag

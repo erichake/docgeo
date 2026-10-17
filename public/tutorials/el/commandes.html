@@ -1008,6 +1008,69 @@
                 </table>
             </div>
 
+            <h2>Κείμενα και εικόνες</h2>
+            <div class="table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Εντολή</th>
+                            <th>Μορφή</th>
+                            <th>Αποτέλεσμα</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td rowspan="1">
+                                <strong>Κείμενο</strong><br /><small
+                                    >Text</small
+                                >
+                            </td>
+                            <td class="syntax">
+                                <code>Κείμενο("κείμενο", P)</code>
+                            </td>
+                            <td>
+                                κείμενο προσαρτημένο στο σημείο P, του οποίου τα
+                                μέρη <code>%τύπος%</code> δείχνουν την τιμή τους
+                                (<code>%%</code>: ένα %)· ανάμεσα στα
+                                εισαγωγικά, το <code>\n</code> αλλάζει γραμμή
+                            </td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1"><strong>Html</strong></td>
+                            <td class="syntax"><code>Html("html")</code></td>
+                            <td>
+                                πλαίσιο κειμένου HTML του DGPad, σταθερό στο
+                                παράθυρο· επεξεργάζεται και σε πολλές γραμμές
+                                στην ενότητα <strong>Ορισμός</strong> των
+                                ιδιοτήτων (βλ.
+                                <a href="expressions.html#les-programmes"
+                                    >Προγράμματα</a
+                                >)
+                            </td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1">
+                                <strong>Εικόνα</strong><br /><small
+                                    >Image</small
+                                >
+                            </td>
+                            <td class="syntax">
+                                <code>Εικόνα(A)</code>,
+                                <code>Εικόνα(A, B)</code>,
+                                <code>Εικόνα(A, B, C)</code>,
+                                <code>Εικόνα(x, y)</code>
+                            </td>
+                            <td>
+                                εικόνα του σχήματος, από την κάτω αριστερή, την
+                                κάτω δεξιά και την πάνω αριστερή γωνία της, ή
+                                σταθερή στη θέση (x, y) του παραθύρου, σε pixel·
+                                μια εικόνα δεν δημιουργείται με μια γραμμή
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
             <h2>Συναρτήσεις των τύπων</h2>
             <p>
                 Οι <code>d</code>, <code>x</code>, <code>sqrt</code>,

@@ -20,6 +20,7 @@ import type { point_on_object } from "../objects/point_on_object";
 import { button_object } from "../objects/button_object";
 import { expression_object } from "../objects/expression_object";
 import type { expression_list_object } from "../objects/expression_list_object";
+import { panel_object } from "../objects/panel_object";
 import { polygon_object } from "../objects/polygon_object";
 import { sphere_object } from "../objects/sphere_object";
 import { solid_object } from "../objects/solid_object";
@@ -600,7 +601,17 @@ const properties = propertiesPanel({
     define: async (object, source) => {
         const spec = resolve(
             scene(),
-            { name: object.name, definition: { kind: "formula", source } },
+            {
+                name: object.name,
+                definition:
+                    object instanceof panel_object
+                        ? {
+                              kind: "call",
+                              command: "Html",
+                              args: [{ kind: "string", value: source }],
+                          }
+                        : { kind: "formula", source },
+            },
             object,
         );
         await redefine(studio, object, spec);
@@ -1819,7 +1830,11 @@ function describe(tool: Tool, args: (Arg | undefined)[]): string {
     if (tool.overload.variadic && args.length >= 3)
         return `${line}\n${message("polygon_end")}`;
     if (!tool.overload.variadic && !args.includes(undefined)) return line;
-    const param = paramAt(tool.overload, nextSlot({ tool, args }))!;
+    // No tool takes a text.
+    const param = paramAt(tool.overload, nextSlot({ tool, args })) as Exclude<
+        Param,
+        "text"
+    >;
     return `${line}\n${message(`designate_${param}`)}`;
 }
 

@@ -74,7 +74,9 @@ export type Param =
     | "path"
     | "outline"
     // What a formula reads.
-    | "readable";
+    | "readable"
+    // Written between quotes.
+    | "text";
 
 // A number given by a formula, its names designating these objects.
 export class FormulaArg {
@@ -84,14 +86,24 @@ export class FormulaArg {
     ) {}
 }
 
-export type Arg = construction_object | number | FormulaArg;
+// A text whose "%formula%" parts show their value, or a panel's HTML, its
+// formulas' names designating these objects.
+export class TextArg {
+    constructor(
+        readonly text: string,
+        readonly refs: ReadonlyMap<string, construction_object>,
+        readonly html = false,
+    ) {}
+}
+
+export type Arg = construction_object | number | FormulaArg | TextArg;
 
 // The objects the arguments name, those their formulas read included.
 export const argObjects = (args: Arg[]): construction_object[] =>
     args.flatMap((arg) =>
         typeof arg === "number"
             ? []
-            : arg instanceof FormulaArg
+            : arg instanceof FormulaArg || arg instanceof TextArg
               ? [...arg.refs.values()]
               : [arg],
     );
@@ -143,9 +155,11 @@ export function kindOf(object: construction_object): Kind {
 export function accepts(arg: Arg, param: Param): boolean {
     if (typeof arg === "number") return param === "number" || param === "real";
     if (arg instanceof FormulaArg) return param === "real";
+    if (arg instanceof TextArg) return param === "text";
     const kind = kindOf(arg);
     switch (param) {
         case "number":
+        case "text":
             return false;
         case "real":
         case "expression":
@@ -261,8 +275,10 @@ function realParameter(
     index: (object: construction_object) => number,
 ): unknown {
     if (typeof arg === "number") return arg;
-    if (!(arg instanceof FormulaArg))
-        return [formatName(arg.name), { [arg.name]: index(arg) }];
+    if (!(arg instanceof FormulaArg)) {
+        const object = arg as construction_object;
+        return [formatName(object.name), { [object.name]: index(object) }];
+    }
     const { source, refs } = arg;
     return refs.size
         ? [
@@ -296,9 +312,45 @@ function realArgument(parameter: unknown, at: (index: number) => Arg): Arg {
           );
 }
 
+function textParameter(
+    { text, refs }: TextArg,
+    index: (object: construction_object) => number,
+): unknown {
+    return refs.size
+        ? [
+              text,
+              Object.fromEntries(
+                  [...refs].map(([name, object]) => [name, index(object)]),
+              ),
+          ]
+        : text;
+}
+
+function textArgument(
+    parameter: unknown,
+    at: (index: number) => Arg,
+    html = false,
+): TextArg {
+    const [text, refs = {}] =
+        typeof parameter === "string"
+            ? [parameter]
+            : (parameter as [string, Record<string, number>]);
+    return new TextArg(
+        text,
+        new Map(
+            Object.entries(refs).map(([name, index]) => [
+                name,
+                at(index) as construction_object,
+            ]),
+        ),
+        html,
+    );
+}
+
 const isLine = (arg: Arg) =>
     typeof arg !== "number" &&
     !(arg instanceof FormulaArg) &&
+    !(arg instanceof TextArg) &&
     kindOf(arg) === "line";
 
 // The intersection of rank n, from 1, not of two lines.
@@ -764,6 +816,74 @@ export const COMMANDS: Command[] = [
             tag: "Seq",
             encode: () => null,
         })),
+    },
+    // Of a point, shifted by an offset in pixels; a panel of HTML, framed;
+    // an image of the figure, by its corners or at a place of the window.
+    // What the line doesn't say is null, kept by a redefinition (see
+    // keeping in figure.ts).
+    {
+        name: "Text",
+        overloads: [
+            {
+                params: ["text", "point"],
+                tag: "Txt",
+                encode: ([text, point], index) => [
+                    index(point as construction_object),
+                    null,
+                    textParameter(text as TextArg, index),
+                ],
+                decode: (parameters, at) => {
+                    const [point, , text] = parameters as unknown[];
+                    return [textArgument(text, at), at(point as number)];
+                },
+            },
+        ],
+    },
+    {
+        name: "Html",
+        overloads: [
+            {
+                params: ["text"],
+                tag: "Html",
+                encode: ([text], index) => [
+                    null,
+                    null,
+                    textParameter(text as TextArg, index),
+                ],
+                decode: (parameters, at) => [
+                    textArgument((parameters as unknown[])[2], at, true),
+                ],
+            },
+        ],
+    },
+    {
+        name: "Image",
+        overloads: [
+            {
+                params: ["point"],
+                variadic: true,
+                tag: "Img",
+                encode: (corners, index) => [
+                    null,
+                    null,
+                    null,
+                    ...corners.map(index as never),
+                ],
+                decode: (parameters, at) => {
+                    const corners = (parameters as unknown[]).slice(3);
+                    return corners.every(isIndex) ? corners.map(at) : null;
+                },
+            },
+            {
+                params: ["number", "number"],
+                tag: "Img",
+                encode: (place) => [null, null, null, place],
+                decode: (parameters) => {
+                    const place = (parameters as unknown[])[3];
+                    return Array.isArray(place) ? place : null;
+                },
+            },
+        ],
     },
     {
         name: "Slider",

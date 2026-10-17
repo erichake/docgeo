@@ -149,6 +149,26 @@ de `src/import/dgp_commands.ts`.
 - **Noms par défaut** (2026-10-17, comme dans GeoGebra) : u, v, w pour les
   vecteurs, des lettres grecques pour les angles (sans ι, ο, ni π, qui est
   un nombre), puis numérotées.
+- **Textes, cadres HTML et images** (décidé avec l'auteur le 2026-10-17) :
+  `t = Texte("Aire : %poly1% cm²", P)` (`Txt`), un texte entre guillemets
+  dont les parties `%formule%` affichent leur valeur (`%%` est un `%`),
+  attaché au point P ; `Text1 = Html("<b>…</b>")` (`Html`), le cadre HTML
+  de DGPad, lu par le même filtre que dans le lecteur (un script, un
+  élément ou un attribut inconnus sont refusés : `html`) ;
+  `pic1 = Image(A, B, C)` (`Img`), une image par ses coins (un à trois),
+  ou `Image(x, y)` fixée à cette place de la fenêtre, en pixels. Entre
+  guillemets, `\\`, `\"` et `\n` sont une barre oblique inverse, un
+  guillemet et un saut de ligne. Ce que la ligne ne dit pas est gardé par
+  la redéfinition : le décalage du texte en pixels (nul pour un nouveau),
+  le cadre du HTML (300 × 150 pixels en haut à gauche pour un nouveau), le
+  fichier et la taille de l'image, qui ne se crée donc pas par une ligne
+  (`image_file`). Un texte placé par GeoGebra à une position fixe garde
+  son point d'ancrage caché, nommé dans sa ligne
+  (``A1 = Texte("pt A", `aux 2`)``), sans changement du moteur. Le HTML
+  s'édite aussi sur plusieurs lignes dans la section « Définition » du
+  panneau de propriétés, comme un programme, sans « Mettre en forme ».
+  Renommer un objet le renomme dans les formules des textes et du HTML et
+  dans les cibles (`target`) de ses champs.
 - Réutilisation possible de `src/import/ggb_translate.ts` : une ligne tapée,
   ramenée à la commande GeoGebra canonique (nom, arguments, résultat), a la
   même structure qu'une commande du `geogebra.xml`. Il faudrait le découper
@@ -1005,6 +1025,28 @@ Un lien « modifier cette figure » pourrait ouvrir la figure du lecteur dans
 `editor.html` (par l'URL ou en passant son `.dgo`) : le lecteur reste le
 format de diffusion, l'éditeur l'atelier.
 
+## Mesure de l'éditabilité
+
+Une figure importée n'est modifiable dans le panneau Construction que si
+chacun de ses objets a une ligne (`lineOf`) et que cette ligne, relue telle
+quelle, est acceptée (`parseLine` puis `resolve`). Plutôt que de corriger
+figure par figure, on mesure sur toutes les figures de `tests/` et du corpus
+GeoGebra (`tools/ggb_corpus/corpus`, voir `GGB_IMPORT.md`), ouvertes comme
+dans l'éditeur :
+
+```sh
+npx vitest run --config tools/editability/vitest.editability.config.ts   # → results.jsonl (~40 s)
+python3 tools/editability/summary.py [tests/dgp …]   # résumé, éventuellement restreint à des chemins
+```
+
+`summary.py` donne par origine le nombre de figures entièrement modifiables
+et la part d'objets modifiables, puis, pour les objets en lecture seule, le
+type `.dgo` et, pour GeoGebra, la commande ou le type d'élément d'origine
+(nombre d'objets, de figures, et de figures où c'est la **seule** cause), et
+enfin les lignes refusées par erreur. Le relancer après chaque extension du
+langage textuel, et se fixer sur les causes qui touchent beaucoup de figures
+ou en sont souvent la seule cause.
+
 ## Avancement
 
 Fait (2026-10-11) :
@@ -1539,6 +1581,16 @@ Fait (2026-10-11) :
   `CerclesDeCercles.ggb` (lignes de `Ctr`, `Rayon`, `LesCtr` et `liste1`
   modifiables, `liste1` redéfinie par sa ligne en segments). Éditeur
   +1,8 Ko (+0,7 Ko en gzip) ; moteur +3,0 Ko (+1,0 Ko en gzip).
+
+- Textes, cadres HTML et images (2026-10-17, section « Langage
+  textuel ») : `Texte`, `Html` et `Image` au catalogue (paramètre `text`,
+  argument `TextArg`), édition du HTML dans la section « Définition ».
+  Mesure (section « Mesure de l'éditabilité ») : figures entièrement
+  modifiables de 359 à 530 sur 649 (objets modifiables de 93,4 à
+  94,9 %). Vérifié dans `editor.html` avec Playwright (texte à formule et
+  saut de ligne, image redéfinie par ses coins, HTML modifié par sa ligne
+  et par la section « Définition », script refusé). Éditeur +2,7 Ko
+  (+0,9 Ko en gzip) ; moteur et lecteur +0,05 Ko (exports partagés).
 
 Reste à faire :
 

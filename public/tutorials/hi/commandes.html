@@ -981,6 +981,61 @@
                 </table>
             </div>
 
+            <h2>पाठ और चित्र</h2>
+            <div class="table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>कमांड</th>
+                            <th>रूप</th>
+                            <th>परिणाम</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td rowspan="1">
+                                <strong>पाठ</strong><br /><small>Text</small>
+                            </td>
+                            <td class="syntax"><code>पाठ("पाठ", P)</code></td>
+                            <td>
+                                बिंदु P से जुड़ा पाठ, जिसके
+                                <code>%सूत्र%</code> भाग अपना मान दिखाते हैं
+                                (<code>%%</code>: एक %); उद्धरण चिह्नों के बीच,
+                                <code>\n</code> नई पंक्ति शुरू करता है
+                            </td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1"><strong>Html</strong></td>
+                            <td class="syntax"><code>Html("html")</code></td>
+                            <td>
+                                DGPad का HTML पाठ फ़्रेम, विंडो में स्थिर; गुणों
+                                के <strong>परिभाषा</strong> भाग में कई पंक्तियों
+                                में भी संपादित होता है (देखें
+                                <a href="expressions.html#les-programmes"
+                                    >प्रोग्राम</a
+                                >)
+                            </td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1">
+                                <strong>चित्र</strong><br /><small>Image</small>
+                            </td>
+                            <td class="syntax">
+                                <code>चित्र(A)</code>, <code>चित्र(A, B)</code>,
+                                <code>चित्र(A, B, C)</code>,
+                                <code>चित्र(x, y)</code>
+                            </td>
+                            <td>
+                                आकृति का चित्र, उसके निचले बाएँ, निचले दाएँ और
+                                ऊपरी बाएँ कोनों से, या विंडो के स्थान (x, y) पर
+                                पिक्सेल में स्थिर; चित्र किसी पंक्ति से नहीं
+                                बनता
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
             <h2>सूत्रों के फलन</h2>
             <p>
                 <code>d</code>, <code>x</code>, <code>sqrt</code>,

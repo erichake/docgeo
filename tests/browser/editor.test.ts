@@ -92,6 +92,7 @@ import type { construction_object } from "../../src/objects/construction_object"
 import type { free_vector_object } from "../../src/objects/free_vector_object";
 import type { expression_list_object } from "../../src/objects/expression_list_object";
 import type { list_object } from "../../src/objects/list_object";
+import type { text_object } from "../../src/objects/text_object";
 import { importGgb } from "../../src/ggb_importer";
 import { createConstruction, disposeFigures, expectClose } from "./figures";
 import { vAdd, vDot, vNorm, vScale, vSub, type Vec3 } from "../../src/vec";
@@ -1147,6 +1148,110 @@ describe("Editor", () => {
         expect(() => type(c, "q = Sequence(B, k, 0, 1)")).toThrow(
             expect.objectContaining({ key: "unknown_object", detail: "B" }),
         );
+    });
+
+    it("writes texts, panels and images, keeping what their lines don't say", async () => {
+        const scene = createConstruction([800, 600]);
+        readDgo(scene, {
+            dgo: 1,
+            v: { o: [400, 300], u: 40, w: 800, h: 600 },
+            img: { k: "data:image/png;base64,iVBORw0KGgo=" },
+            o: [
+                ["Pt", "A", [0, 0]],
+                ["Pt", "B", [2, 0]],
+                ["Ex", "a", { t: "", v: 2, xy: [20, 20] }],
+                ["Txt", "t", [0, [5, -3], ["a = %a%", { a: 2 }]]],
+                ["Html", "h", [[10, 20, 100, 50], 8, "<b>x</b>"]],
+                ["Img", "p", ["k", 10, 5, 0, 1]],
+                ["Img", "q", ["k", 10, 5, [30, 40]]],
+            ],
+        });
+        const studied: Studio = { prefs: scene.prefs, scene };
+        let c = scene;
+        expect(lines(c).slice(3)).toEqual([
+            't = Text("a = %a%", A)',
+            'h = Html("<b>x</b>")',
+            "p = Image(A, B)",
+            "q = Image(30, 40)",
+        ]);
+        const define = async (text: string) => {
+            const line = parseLine(text, isCommand);
+            await redefine(
+                studied,
+                studied.scene.getObj(line.name!)!,
+                resolve(studied.scene, line, studied.scene.getObj(line.name!)),
+            );
+            c = studied.scene;
+        };
+        await define(String.raw`t = Text("2a = %2*a%, 100 %%\n\"\\o/\"", B)`);
+        await define(
+            String.raw`h = Html("<b>%a%</b> <input type=\"number\" target=\"a\">")`,
+        );
+        await define("p = Image(B)");
+        await define("q = Image(50, 60)");
+        const text = [
+            String.raw`t = Text("2a = %2*a%, 100 %%\n\"\\o/\"", B)`,
+            String.raw`h = Html("<b>%a%</b> <input type=\"number\" target=\"a\">")`,
+            "p = Image(B)",
+            "q = Image(50, 60)",
+        ];
+        expect(lines(c).slice(3)).toEqual(text);
+        const entries = ["t", "h", "p", "q"].map(
+            (name) => entryOf(c.getObj(name)!, figureIndex(c))[1],
+        );
+        expect(entries).toEqual([
+            [1, [5, -3], ['2a = %2*a%, 100 %%\n"\\o/"', { a: 2 }]],
+            [
+                [10, 20, 100, 50],
+                8,
+                ['<b>%a%</b> <input type="number" target="a">', { a: 2 }],
+            ],
+            ["data:image/png;base64,iVBORw0KGgo=", 10, 5, 1],
+            ["data:image/png;base64,iVBORw0KGgo=", 10, 5, [50, 60]],
+        ]);
+        expect((c.getObj("t") as text_object).content).toBe(
+            '2a = 4, 100 %\n"\\o/"',
+        );
+        // A name changed, in their formulas and their fields' targets.
+        const a = c.getObj("a")!;
+        await redefine(
+            studied,
+            a,
+            resolve(c, parseLine("r = 2", isCommand), a),
+        );
+        c = studied.scene;
+        expect(lines(c).slice(3, 5)).toEqual([
+            String.raw`t = Text("2a = %2*r%, 100 %%\n\"\\o/\"", B)`,
+            String.raw`h = Html("<b>%r%</b> <input type=\"number\" target=\"r\">")`,
+        ]);
+        const other = createConstruction([800, 600]);
+        readDgo(other, await describeDgo(c));
+        expect(lines(other)).toEqual(lines(c));
+        // New ones: a text at its point, a panel at the window's corner.
+        const index = figureIndex(c);
+        expect(entryOf(type(c, 'u = Text("%r%", A)'), index)).toEqual([
+            "Txt",
+            [
+                index.get(c.getObj("A")!),
+                [0, 0],
+                ["%r%", { r: index.get(c.getObj("r")!) }],
+            ],
+        ]);
+        for (const [text, key] of [
+            ["v = Image(A)", "image_file"],
+            ["p = Image(A, A, B, B)", "arguments"],
+            ['v = Text("%a%", A)', "unknown_object"],
+            ['v = Text("100 % sûr", A)', "syntax"],
+            ['v = Html("<script>alert(1)</script>")', "html"],
+            ['v = Html("<b onclick=\\"x\\">a</b>")', "html"],
+        ])
+            expect(() => type(c, text), text).toThrow(
+                expect.objectContaining({ key }),
+            );
+        expect(entryOf(type(c, 'v = Html("ok")'), figureIndex(c))).toEqual([
+            "Html",
+            [[20, 20, 300, 150], 15, "ok"],
+        ]);
     });
 
     it("signs the formulas' functions, a real number reading expressions", () => {

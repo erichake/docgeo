@@ -1010,6 +1010,61 @@
                 </table>
             </div>
 
+            <h2>Texte und Bilder</h2>
+            <div class="table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Befehl</th>
+                            <th>Form</th>
+                            <th>Ergebnis</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td rowspan="1"><strong>Text</strong></td>
+                            <td class="syntax"><code>Text("Text", P)</code></td>
+                            <td>
+                                an den Punkt P gebundener Text, dessen Teile
+                                <code>%Formel%</code> ihren Wert zeigen
+                                (<code>%%</code>: ein %); zwischen den
+                                Anführungszeichen beginnt <code>\n</code> eine
+                                neue Zeile
+                            </td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1"><strong>Html</strong></td>
+                            <td class="syntax"><code>Html("html")</code></td>
+                            <td>
+                                HTML-Textrahmen von DGPad, fest im Fenster; auch
+                                mehrzeilig im Abschnitt
+                                <strong>Definition</strong> der Eigenschaften
+                                bearbeitbar (siehe
+                                <a href="expressions.html#les-programmes"
+                                    >Programme</a
+                                >)
+                            </td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1">
+                                <strong>Bild</strong><br /><small>Image</small>
+                            </td>
+                            <td class="syntax">
+                                <code>Bild(A)</code>, <code>Bild(A, B)</code>,
+                                <code>Bild(A, B, C)</code>,
+                                <code>Bild(x, y)</code>
+                            </td>
+                            <td>
+                                Bild der Figur, durch seine Ecken unten links,
+                                unten rechts und oben links, oder fest an der
+                                Stelle (x, y) des Fensters, in Pixeln; ein Bild
+                                wird nicht durch eine Zeile erzeugt
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
             <h2>Funktionen in Formeln</h2>
             <p>
                 <code>d</code>, <code>x</code>, <code>sqrt</code>,

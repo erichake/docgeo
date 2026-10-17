@@ -18,6 +18,8 @@ const zh: Texts = {
         name_taken: "名称 % 已被占用",
         cycle: "对象不能依赖于自身",
         read_only: "此对象暂时无法写成文本",
+        image_file: "图像随其文件而来：它的行只能改变它的角点",
+        html: "此 HTML 包含脚本，或 DocGeo 不读取的元素或公式",
         input: "输入…",
         open: "打开",
         save: "保存",
@@ -307,6 +309,9 @@ const zh: Texts = {
         List: "列表",
         Sequence: "序列",
         Slider: "滑动条",
+        Text: "文本",
+        Html: "Html",
+        Image: "图像",
     },
 };
 

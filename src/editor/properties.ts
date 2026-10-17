@@ -11,11 +11,12 @@ import { expression_list_object } from "../objects/expression_list_object";
 import { fixed_angle_object } from "../objects/fixed_angle_object";
 import { list_object } from "../objects/list_object";
 import { locus_object } from "../objects/locus_object";
+import { panel_object } from "../objects/panel_object";
 import { point_object } from "../objects/point_object";
 import { point_on_object } from "../objects/point_on_object";
 import { polygon_object } from "../objects/polygon_object";
 import { segment_object } from "../objects/segment_object";
-import { createdColors, expressionSource, hasName } from "./figure";
+import { createdColors, definitionSource, hasName } from "./figure";
 import { message, type MessageKey } from "./messages";
 import { scrubNumber, type Scrub } from "./scrub";
 import { formatProgram, syntaxLine, TextError } from "./text";
@@ -69,7 +70,10 @@ export function propertiesPanel(options: {
     changed: () => void;
     rename: (object: construction_object, name: string) => Promise<void>;
     // Throws a TextError where the text is wrong.
-    define: (object: expression_object, source: string) => Promise<void>;
+    define: (
+        object: expression_object | panel_object,
+        source: string,
+    ) => Promise<void>;
     // A new expression, given a name or not.
     create: (name: string, source: string) => Promise<void>;
     figure: ViewOptions["figure"];
@@ -1048,9 +1052,10 @@ export function propertiesPanel(options: {
             false,
         );
         if (
-            object instanceof expression_object &&
-            !object.isCursor &&
-            !object.bounds
+            (object instanceof expression_object &&
+                !object.isCursor &&
+                !object.bounds) ||
+            object instanceof panel_object
         )
             definition(object);
     }
@@ -1074,16 +1079,18 @@ export function propertiesPanel(options: {
     }
 
     function definition(
-        object: expression_object | null,
+        object: expression_object | panel_object | null,
         name?: () => string,
     ): void {
         const box = section("definition");
-        const original = object ? expressionSource(object) : "";
+        const original = object ? definitionSource(object) : "";
+        // HTML, its lines wrapped, isn't a program to lay out.
+        const html = object instanceof panel_object;
         const editor = $.create("textarea")
             .cls("dge-program")
             .att("dir", "ltr")
             .att("spellcheck", "false")
-            .att("wrap", "off")
+            .att("wrap", html ? "soft" : "off")
             .att("aria-label", message("definition"))
             .att("placeholder", object ? "" : PROGRAM_PLACEHOLDER);
         const area = editor.dom() as HTMLTextAreaElement;
@@ -1098,6 +1105,7 @@ export function propertiesPanel(options: {
         const format = $.create("button")
             .att("type", "button")
             .text(message("format_program"));
+        if (html) format.hide();
         fields.push(editor, apply, format);
         box.add(
             editor,

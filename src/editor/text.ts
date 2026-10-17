@@ -11,7 +11,10 @@ import { FormulaLexer, METHOD_ARITY, type Token } from "../import/dgp_formula";
 type Operand =
     { kind: "name"; name: string } | { kind: "number"; value: number };
 
-export type ArgText = Operand | { kind: "formula"; source: string };
+export type ArgText =
+    | Operand
+    | { kind: "formula"; source: string }
+    | { kind: "string"; value: string };
 
 export type Definition =
     | { kind: "point"; coords: number[] }
@@ -281,6 +284,15 @@ export function parseLine(
         if (!arg.length) throw new TextError("expected", describe(next()));
         if (arg.length === 1 && arg[0].type === "identifier")
             return { kind: "name", name: arg[0].value as string };
+        if (arg.length === 1 && arg[0].type === "string")
+            return {
+                kind: "string",
+                value: text
+                    .slice(starts[start] + 1, ends[start] - 1)
+                    .replace(/\\(.)/g, (_, escaped: string) =>
+                        escaped === "n" ? "\n" : escaped,
+                    ),
+            };
         const value = signed(arg);
         return value === null
             ? { kind: "formula", source: between(start - 1, position) }
@@ -353,6 +365,11 @@ export function coordinatesText(
         ? `(${source.slice(ends[0], starts[items.end]).trim()})`
         : null;
 }
+
+// Between quotes, on one line: `\\`, `\"` and `\n` stand for a backslash,
+// a quote and a line break.
+export const quoteText = (text: string): string =>
+    `"${text.replace(/[\\"]/g, "\\$&").replace(/\n/g, "\\n")}"`;
 
 // Rounded as shown, the object keeping its own value.
 export function formatNumber(value: number): string {
