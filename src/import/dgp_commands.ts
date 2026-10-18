@@ -367,7 +367,14 @@ const READABLE: ReadonlySet<ObjectKind> = new Set([
 // A List's own names (see list_object).
 const LIST_NAMES = ["k", "count"];
 
-class UnknownReference extends Error {}
+class UnknownReference extends Error {
+    constructor(
+        readonly reference: string,
+        lineNumber: number,
+    ) {
+        super(`Unknown DGP reference at line ${lineNumber}`);
+    }
+}
 
 const GLOBAL_NAME = /GLOBAL_(?:SET|GET|INC)\(\s*\\?(["'])(.*?)\\?\1/g;
 
@@ -436,9 +443,7 @@ function validateReferences(
     for (const name of names) {
         const kind = variables.get(name);
         if (!free.includes(name) && !(kind && READABLE.has(kind)))
-            throw new UnknownReference(
-                `Unknown DGP reference at line ${lineNumber}`,
-            );
+            throw new UnknownReference(name, lineNumber);
     }
 }
 
@@ -3570,6 +3575,49 @@ function attachButtonPrograms(calls: DgpCall[]): DgpCall[] {
     });
 }
 
+// DGPad rebuilds the Expression of a turtle ("onlogo") or an "oncompute"
+// from its BLK's source, as it reads the file: the source the Expression
+// saved has lost the escaping of its texts' quotes (TURTLE_TEXT('L'arc')).
+function compileBlocklyPrograms(calls: DgpCall[]): DgpCall[] {
+    const sources = new Map<string, string>();
+    calls.forEach((call) => {
+        const [target, source] = call.arguments;
+        if (
+            call.name !== "BLK" ||
+            target?.type !== "reference" ||
+            source?.type !== "literal"
+        )
+            return;
+        const modes = JSON.parse(String(source.value));
+        const sync = (mode: string) =>
+            typeof modes[mode]?.sync === "string"
+                ? modes[mode].sync.replace(/^\s*var\s*\w+(\s*,\s*\w+)*;/gm, "")
+                : null;
+        const logo = sync("onlogo");
+        if (logo !== null)
+            sources.set(
+                `blk_turtle_exp_${target.name}`,
+                `var bl=function(){\nTURTLE_INIT("${target.name}",${target.name});\n${logo}\nreturn TURTLE_RESULT()\n};\nbl()`,
+            );
+        const compute = sync("oncompute");
+        if (compute !== null)
+            sources.set(
+                target.name,
+                `var bl=function(){\n${compute}\n};\nbl()`,
+            );
+    });
+    return calls.map((call) => {
+        const source =
+            call.name === "Expression"
+                ? sources.get(call.variable!)
+                : undefined;
+        if (source === undefined) return call;
+        const args = [...call.arguments];
+        args[4] = { type: "literal", value: source };
+        return { ...call, arguments: args };
+    });
+}
+
 // DGPad finds the objects a script styles when it runs: a script styling
 // objects the file declares later is moved after them, with the objects
 // that read it (e.g. the List drawing a turtle styling a later point).
@@ -3650,11 +3698,13 @@ function validateCalls(calls: DgpCall[]): {
             validateCall(call, variables);
             return true;
         } catch (error) {
-            // A turtle whose point DGPad deleted, keeping its program, draws
-            // nothing there.
+            // A turtle naming an object the figure lacks, as its point
+            // DGPad deleted keeping its program, fails there in DGPad and
+            // draws nothing.
             const deleted =
                 error instanceof UnknownReference &&
-                turtleStarts(call).some((name) => !named.has(name));
+                !named.has(error.reference) &&
+                turtleStarts(call).length > 0;
             if (
                 !deleted &&
                 !call.arguments
@@ -3701,7 +3751,9 @@ function executeCalls(
     const { valid, unsupported } = validateCalls(
         orderStyleTargets(
             orderSliderBounds(
-                attachButtonPrograms(convertLegacyPoint3D(calls)),
+                attachButtonPrograms(
+                    compileBlocklyPrograms(convertLegacyPoint3D(calls)),
+                ),
             ),
         ),
     );

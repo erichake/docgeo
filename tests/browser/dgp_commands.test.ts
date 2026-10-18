@@ -81,6 +81,25 @@ lt=List("lt",t);`,
         expect((c.getObj("f") as curve_object).max).toBe(6);
     });
 
+    it("rebuilds a turtle from its BLK's source, and ignores one naming an object the figure lacks", () => {
+        const c = createConstruction();
+        const unsupported = importDgp(
+            c,
+            `A=Point("A",1,2);
+B=Point("B",0,0);
+blk_turtle_exp_A=Expression("blk_turtle_exp_A","","","","var bl_a=function(){\\nTURTLE_INIT(\\"A\\",A);\\nTURTLE_PRINT(TURTLE_TEXT('L\\'arc'));\\nreturn TURTLE_RESULT()\\n};\\nbl_a()","0","0");
+blk_turtle_list_A=List("blk_turtle_list_A",blk_turtle_exp_A);
+blk_turtle_exp_B=Expression("blk_turtle_exp_B","","","","var bl_b=function(){\\nTURTLE_INIT(\\"B\\",B);\\nif ((Init) == 1) {\\n  TURTLE_MV(1,false);\\n}\\nreturn TURTLE_RESULT()\\n};\\nbl_b()","0","0");
+blk_turtle_list_B=List("blk_turtle_list_B",blk_turtle_exp_B);
+BLK(A,{"onlogo":{"xml":"<xml/>","sync":"var blockly_var_t;\\nTURTLE_PRINT(TURTLE_TEXT('L\\\\'arc'));"}});`,
+        );
+        c.OBJS.update();
+        expect(unsupported).toEqual([]);
+        expect(JSON.stringify(value(c, "blk_turtle_exp_A"))).toContain("L'arc");
+        expect(c.getObj("blk_turtle_list_A")).toBeTruthy();
+        expect(c.getObj("blk_turtle_list_B")).toBeFalsy();
+    });
+
     it("shares DGPad's Blockly globals between programs and buttons", () => {
         const c = createConstruction();
         const unsupported = importDgp(
