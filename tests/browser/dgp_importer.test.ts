@@ -43,7 +43,7 @@ import {
     type Vec2,
     type Vec3,
 } from "../../src/vec";
-import { expectClose, figure } from "./figures";
+import { expectClose, figure, frame } from "./figures";
 
 function createConstruction(): construction {
     document.documentElement.style.width = "100%";
@@ -1186,6 +1186,44 @@ E=Point("E","A+Z","0");`,
 C1=Circle1("C1",A,"d(A,Z)");`,
             ),
         ).toEqual(['Circle1("C1", A, "d(A,Z)")']);
+    });
+
+    it("imports a script styling an object missing from the figure", () => {
+        const c = createConstruction();
+        expect(
+            importDgp(
+                c,
+                `A=Point("A",0,0);
+E1=Expression("E1","","","","A.setRGBColor(0,127,255);Z.setRGBColor(1,2,3);\\"ok\\"","0","0");`,
+            ),
+        ).toEqual([]);
+        expect(c.getObj("A")?.stroke_color).toBe("rgb(0,127,255)");
+        expect((c.getObj("E1") as expression_object).value).toBe("ok");
+    });
+
+    it("redraws a List a script colors as its value changes", async () => {
+        const c = createConstruction();
+        importDgp(
+            c,
+            `k=Expression("k","","","","1","0","0");
+E1=Expression("E1","","","","[[0,0],[1,1]]","0","0");
+L1=List("L1",E1);
+E2=Expression("E2","","","","if(k==1){L1.setRGBColor(255,0,0)} else {L1.setRGBColor(0,0,255)};1","0","0");
+STL(L1,"c:#000000;s:0;sg:1");`,
+        );
+        await frame();
+        const stroke = () =>
+            c
+                .getObj("L1")!
+                .dom.dom()
+                .querySelector<SVGPathElement>("path[style*='stroke: rgb']")
+                ?.style.stroke;
+        expect(stroke()).toBe("rgb(255, 0, 0)");
+        const k = c.getObj("k") as expression_object;
+        k.value = 2;
+        c.invalidateGeometry(k);
+        await frame();
+        expect(stroke()).toBe("rgb(0, 0, 255)");
     });
 
     it("imports an Arc3pts figure and its center", async () => {

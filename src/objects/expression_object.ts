@@ -373,6 +373,8 @@ export function styleObject(
             return;
     }
     if (target.hasView) target.createSVG();
+    // A List's points take its color and size as it computes them.
+    if ("segmentsSize" in target) c.invalidateGeometry(target);
     // An opaque face hides the edges behind it (see hidden_line.ts).
     c.invalidateProjection();
 }

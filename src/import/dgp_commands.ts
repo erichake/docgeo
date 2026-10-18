@@ -147,7 +147,6 @@ import {
     type FormulaValue,
     type Program,
     type ScriptValue,
-    isFigureObject,
     withObjects,
 } from "./dgp_formula";
 import {
@@ -462,14 +461,9 @@ function validateProgramReferences(
     lineNumber: number,
 ): void {
     validateReferences(programReferences(program), variables, lineNumber);
-    // One declared later reads it, as the List drawing it: DGPad styles it
-    // once it exists, as its style keeps.
-    programTargets(program).forEach((name) => {
-        if (!variables.has(name) && !isFigureObject(name))
-            throw new UnknownReference(
-                `Unknown DGP reference at line ${lineNumber}`,
-            );
-    });
+    // The objects it styles aren't checked: one declared later (the List
+    // drawing it) already has its style, and styling one the figure lacks
+    // (a typo of its author) changes nothing.
 }
 
 // DGPad applies restrictTheta/restrictPhi to the view as it reads the
