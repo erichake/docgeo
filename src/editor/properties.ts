@@ -82,6 +82,8 @@ export function propertiesPanel(options: {
     create: (name: string, source: string) => Promise<void>;
     // After each selection.
     shown: () => void;
+    // Lights or unlights an object shown.
+    mark: (object: construction_object, on: boolean) => void;
     figure: ViewOptions["figure"];
     close: () => void;
 }) {
@@ -172,9 +174,7 @@ export function propertiesPanel(options: {
     );
 
     const mark = (on: boolean) =>
-        selected.forEach((object) =>
-            object.dom?.toggleClass("dge-property-selected", on),
-        );
+        selected.forEach((object) => options.mark(object, on));
 
     // Wider for a formula's lines.
     function clear(objects: construction_object[], wide: boolean): void {

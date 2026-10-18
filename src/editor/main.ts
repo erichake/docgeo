@@ -198,6 +198,8 @@ $("head").append(`<style>
     .dge-value { margin-block-start: -5px; padding: 0 4px 7px; overflow: hidden; font: 12.5px/1.4 var(--dge-code); color: #64748b; white-space: nowrap; text-overflow: ellipsis; unicode-bidi: plaintext; }
     .dge-value:empty { display: none; }
     .dge-later > .dge-dot, .dge-later > .dge-text { opacity: 0.3; }
+    .dge-properties-open .dge-text, .dge-properties-open .dge-row { cursor: pointer; }
+    .dge-rows:not(.dge-taking) .dge-item.dge-shown { background: #eff6ff; box-shadow: inset 3px 0 #2563eb; }
     .dge-taking .dge-row { cursor: default; }
     .dge-taking .dge-item:not(.dge-takes, .dge-chosen) > :not(.dge-label) { opacity: 0.3; }
     .dge-item.dge-takes { background: #f0fdf4; box-shadow: inset 3px 0 #16a34a; }
@@ -611,6 +613,7 @@ const properties = propertiesPanel({
     scene,
     changed: () => changed(),
     shown: () => turtle.watch(),
+    mark: (object, on) => lit(object, on),
     rename,
     define: async (object, source) => {
         const spec = resolve(
@@ -894,11 +897,14 @@ const asSaved = <T>(write: () => Promise<T>): Promise<T> =>
         withHidden(stepping?.later ?? [], 0, write),
     );
 
-// The objects of the properties lit while they are shown.
+// The objects of the properties lit, in the figure and in the text, while
+// they are shown.
+const lit = (object: construction_object, on: boolean) => {
+    object.dom?.toggleClass("dge-property-selected", on);
+    items.get(object)?.toggleClass("dge-shown", on);
+};
 const shine = (on: boolean) =>
-    properties.selection.forEach((object) =>
-        object.dom?.toggleClass("dge-property-selected", on),
-    );
+    properties.selection.forEach((object) => lit(object, on));
 
 // With ⌘, Ctrl or Shift, the object is added to those of the properties.
 const showProperties = (
@@ -950,7 +956,6 @@ function showHint(text: string, error = false): void {
 
 function refreshRows(): void {
     properties.refresh();
-    shine(propertiesOpen);
     rows.clear();
     items.clear();
     values.clear();
@@ -1011,6 +1016,7 @@ function refreshRows(): void {
         rowsBox.add(item);
     });
     count.text(rows.size ? String(rows.size) : "");
+    shine(propertiesOpen);
     markTaken();
     if (stepping) markSteps();
     undoButton.dom().toggleAttribute("disabled", position <= 0);
