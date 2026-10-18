@@ -3879,8 +3879,11 @@ $("body").on(
         }
         if (inspecting()) {
             const object = propertyObject(event);
+            // Its arrow and label run the program being edited, its tools
+            // circle selects it.
             if (
-                object instanceof button_object ||
+                (object instanceof button_object &&
+                    !object.frame.dom().contains(element(event.target))) ||
                 (object instanceof expression_object &&
                     (object.checkbox || object.inputLength > 0))
             ) {
@@ -4134,6 +4137,11 @@ $("body").on(
         if (inspecting()) {
             // A widget, or an object the figure can't pick.
             const object = propertyObject(event);
+            if (
+                object instanceof button_object &&
+                object.frame.dom().contains(element(event.target))
+            )
+                return dragged();
             if (!hits.some((hit) => hit.object === object) && object)
                 return properties.select(object);
             if (!hits[0])

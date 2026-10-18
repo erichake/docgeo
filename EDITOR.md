@@ -1086,12 +1086,14 @@ ses méthodes internes et figé dans sa version de 2016.
   point souvent caché, s'ouvrent depuis leur ligne du panneau
   « Construction », panneau de propriétés ouvert (le sélecteur d'objet
   montre alors l'expression super-cachée).
-- **Boutons** (2026-10-18, comme dans DGPad) : un clic sur la flèche
-  lance le programme, sans sélectionner le bouton (la liste « Construction »
-  montre ensuite les valeurs qu'il a changées) ; un clic sur le libellé le
-  sélectionne (anneau, zone contextuelle), un glisser du libellé le
-  déplace, comme le texte d'une expression. Panneau ouvert, un clic sur la
-  flèche désigne le bouton sans le lancer. La zone contextuelle d'un bouton
+- **Boutons** (2026-10-18, comme dans DGPad) : un clic sur la flèche ou
+  le libellé lance le programme, sans sélectionner le bouton (la liste
+  « Construction » montre ensuite les valeurs qu'il a changées) ; un clic
+  sur son cercle à trois points le sélectionne (anneau, zone
+  contextuelle), un glisser du cercle le déplace, comme le texte d'une
+  expression. Panneau ouvert (blocs agrandis compris), un clic sur le
+  bouton le lance aussi, pour essayer le programme qu'on modifie ; son
+  cercle le sélectionne. La zone contextuelle d'un bouton
   a un bouton « Programme » (une pièce de puzzle, l'icône Blockly de DGPad)
   qui ouvre son programme en blocs ; la section « Définition » de ses
   propriétés le montre aussi, en blocs par défaut. Bloc « fixer [objet] à
