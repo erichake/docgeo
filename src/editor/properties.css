@@ -260,14 +260,26 @@ body.dge-editor.dge-blocks-wide {
 }
 body.dge-blocks-out .dge-panel,
 body.dge-blocks-out .dge-properties {
+    opacity: 0;
     visibility: hidden;
-    transition-delay: 0s, var(--dge-slide-duration);
+    pointer-events: none;
 }
 body.dge-blocks-out .dge-panel {
-    transform: translateX(-100%);
+    transform: translateX(-8px);
 }
 body.dge-blocks-out .dge-properties {
-    transform: translateX(100%);
+    transform: translateX(8px);
+}
+.dge-blocks-transition .dge-panel,
+.dge-blocks-transition .dge-properties {
+    transition:
+        opacity var(--dge-blocks-duration) ease,
+        transform var(--dge-blocks-duration) cubic-bezier(0.2, 0.7, 0.2, 1),
+        visibility 0s;
+}
+.dge-blocks-transition.dge-blocks-out .dge-panel,
+.dge-blocks-transition.dge-blocks-out .dge-properties {
+    transition-delay: 0s, 0s, var(--dge-blocks-duration);
 }
 .dge-blocks-out .dge-resize {
     display: none;
@@ -275,28 +287,24 @@ body.dge-blocks-out .dge-properties {
 .dge-blocks-frame.dge-blocks-large {
     position: fixed;
     z-index: 12;
-    left: var(--dge-blocks-left, 12px);
-    top: var(--dge-blocks-top, calc(var(--dge-bar-height) + 12px));
-    width: var(--dge-blocks-width, min(calc(100vw - 24px), max(640px, 60vw)));
+    left: var(--dge-blocks-left, 24px);
+    top: var(--dge-blocks-top, calc(var(--dge-bar-height) + 24px));
+    width: var(--dge-blocks-width, min(calc(100vw - 48px), max(640px, 64vw)));
     height: var(
         --dge-blocks-height,
-        calc(100vh - var(--dge-bar-height) - 24px)
+        min(760px, calc(100dvh - var(--dge-bar-height) - 48px))
     );
     box-sizing: border-box;
     display: flex;
     flex-direction: column;
-    border: 1px solid #cbd5e1;
-    border-radius: 8px;
+    border: 1px solid rgb(148 163 184 / 0.4);
+    border-radius: 16px;
     overflow: hidden;
     background: rgb(255 255 255 / 0.5);
-    box-shadow: 0 12px 40px rgb(15 23 42 / 0.25);
-    animation: dge-blocks-in var(--dge-slide-duration) ease-out;
-}
-@keyframes dge-blocks-in {
-    from {
-        opacity: 0;
-        transform: scale(0.96);
-    }
+    box-shadow:
+        0 24px 64px -16px rgb(15 23 42 / 0.22),
+        0 4px 16px -4px rgb(15 23 42 / 0.1),
+        inset 0 1px 0 rgb(255 255 255 / 0.85);
 }
 .dge-blocks-bar {
     display: none;
@@ -304,26 +312,64 @@ body.dge-blocks-out .dge-properties {
 .dge-blocks-large .dge-blocks-bar {
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 10px;
     flex: none;
-    height: 32px;
-    padding-inline: 12px 44px;
-    background: #f1f5f9;
-    border-bottom: 1px solid #cbd5e1;
+    height: 48px;
+    padding-inline: 16px 60px;
+    background: rgb(248 250 252 / 0.9);
+    border-bottom: 1px solid rgb(148 163 184 / 0.2);
+    backdrop-filter: blur(16px);
     font:
         13px/1 system-ui,
         -apple-system,
         "Segoe UI",
         sans-serif;
     color: #64748b;
-    cursor: move;
+    cursor: grab;
     touch-action: none;
     user-select: none;
 }
-.dge-blocks-bar b {
-    margin-inline-end: 8px;
+.dge-blocks-bar:active {
+    cursor: grabbing;
+}
+.dge-blocks-title {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-width: 0;
+    font-weight: 600;
+}
+.dge-blocks-title b {
+    padding: 4px 8px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    border: 1px solid rgb(148 163 184 / 0.25);
+    border-radius: 6px;
+    background: rgb(255 255 255 / 0.7);
     font-family: var(--dge-code);
-    color: #1f2937;
+    font-size: 12px;
+    font-weight: 500;
+    color: #334155;
+}
+.dge-blocks-mark {
+    display: grid;
+    place-items: center;
+    flex: none;
+    width: 28px;
+    height: 28px;
+    border-radius: 8px;
+    background: #e8eef8;
+    color: #526b96;
+}
+.dge-blocks-mark svg {
+    width: 18px;
+    height: 18px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.7;
+    stroke-linecap: round;
+    stroke-linejoin: round;
 }
 .dge-blocks-large .dge-blocks {
     flex: 1;
@@ -338,17 +384,17 @@ body.dge-blocks-out .dge-properties {
 .dge-blocks-large .dge-blocks-corner {
     display: block;
     position: absolute;
-    right: 0;
-    bottom: 0;
+    right: 5px;
+    bottom: 5px;
     z-index: 75;
-    width: 18px;
-    height: 18px;
+    width: 20px;
+    height: 20px;
     background: linear-gradient(
         135deg,
         transparent 50%,
-        #94a3b8 50% 58%,
+        #94a3b8 50% 55%,
         transparent 58% 70%,
-        #94a3b8 70% 78%,
+        #94a3b8 70% 75%,
         transparent 78%
     );
     cursor: nwse-resize;
@@ -372,14 +418,20 @@ body.dge-blocks-out .dge-properties {
     cursor: pointer;
 }
 .dge-blocks-large .dge-blocks-size {
-    inset-block: 3px auto;
-    inset-inline-end: 6px;
-    width: 26px;
-    height: 26px;
+    inset-block: 8px auto;
+    inset-inline-end: 10px;
+    width: 32px;
+    height: 32px;
+    border-color: transparent;
+    background: transparent;
     box-shadow: none;
 }
+.dge-blocks-size:focus-visible {
+    outline: 2px solid #2563eb;
+    outline-offset: 2px;
+}
 .dge-blocks-size:hover {
-    background: #f1f5f9;
+    background: #e8eef5;
 }
 .dge-blocks-size svg {
     width: 18px;
@@ -389,6 +441,48 @@ body.dge-blocks-out .dge-properties {
     stroke-width: 2;
     stroke-linecap: round;
     stroke-linejoin: round;
+}
+.dge-blocks-large .blocklyToolbox {
+    box-sizing: border-box;
+    padding: 12px 8px;
+    border-inline-end: 1px solid rgb(148 163 184 / 0.18);
+    background: rgb(248 250 252 / 0.88) !important;
+    backdrop-filter: blur(16px);
+}
+.dge-blocks-large .blocklyToolboxCategory {
+    display: flex;
+    align-items: center;
+    height: 32px;
+    margin-block: 3px;
+    padding-inline-end: 12px;
+    border-inline-start-width: 3px !important;
+    border-radius: 5px;
+}
+.dge-blocks-large .blocklyToolboxCategory:hover {
+    background-color: rgb(148 163 184 / 0.12);
+}
+.dge-blocks-large .blocklyToolboxCategoryLabel {
+    padding-inline: 10px 0;
+    font:
+        500 13px/1.4 system-ui,
+        -apple-system,
+        "Segoe UI",
+        sans-serif;
+}
+.dge-blocks-large .blocklyToolboxCategoryIcon {
+    display: none !important;
+}
+@media (max-width: 600px) {
+    .dge-blocks-frame.dge-blocks-large {
+        left: var(--dge-blocks-left, 8px);
+        top: var(--dge-blocks-top, calc(var(--dge-bar-height) + 8px));
+        width: var(--dge-blocks-width, calc(100vw - 16px));
+        height: var(
+            --dge-blocks-height,
+            calc(100dvh - var(--dge-bar-height) - 16px)
+        );
+        border-radius: 12px;
+    }
 }
 /* Blockly's questions: a name to type, a confirmation. */
 .dge-dialog-back {

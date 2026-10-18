@@ -209,17 +209,14 @@ const de: Texts = {
         turtle: "Schildkröte",
         turtle_hint:
             "Zeichnet ab % mit einer in Blöcken programmierten Schildkröte",
-        button_program: "Programm",
-        button_program_hint:
-            "Öffnet das Programm, das sein Pfeil startet, als Blöcke",
-        point_programs_hint:
-            "Öffnet in Blöcken seine Programme, die laufen, wenn % gezogen, gedrückt oder losgelassen wird",
-        change_program_hint:
-            "Öffnet in Blöcken das Programm, das läuft, wenn sich der Wert von % ändert",
         event_drag: "wenn % gezogen wird",
         event_down: "wenn % gedrückt wird",
         event_up: "wenn % losgelassen wird",
         event_change: "wenn sich % ändert",
+        when_dragged: "Wenn das Objekt gezogen wird",
+        when_pressed: "Wenn das Objekt gedrückt wird",
+        when_released: "Wenn das Objekt losgelassen wird",
+        when_changed: "Wenn sich der Wert ändert",
         programs: "Programme",
         add_program: "Programm hinzufügen",
         enlarge_blocks: "Blöcke über der Figur vergrößern",
@@ -269,6 +266,7 @@ const de: Texts = {
         designate_real: "Wählen Sie eine Zahl",
         designate_expression: "Wählen Sie einen Ausdruck",
         designate_point: "Wählen Sie einen Punkt",
+        designate_moveable: "Wählen Sie einen verschiebbaren Punkt",
         designate_button: "Wählen Sie die Stelle der Schaltfläche",
         designate_pointOn: "Wählen Sie einen Punkt auf einem Objekt",
         designate_line: "Wählen Sie eine Gerade",

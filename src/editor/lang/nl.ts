@@ -209,17 +209,14 @@ const nl: Texts = {
         turtle: "Schildpad",
         turtle_hint:
             "Tekent vanaf % met een schildpad die in blokken is geprogrammeerd",
-        button_program: "Programma",
-        button_program_hint:
-            "Opent het programma dat zijn pijl uitvoert in blokken",
-        point_programs_hint:
-            "Opent in blokken zijn programma's, die lopen wanneer % wordt gesleept, ingedrukt of losgelaten",
-        change_program_hint:
-            "Opent in blokken het programma dat loopt wanneer de waarde van % verandert",
         event_drag: "wanneer % wordt gesleept",
         event_down: "wanneer % wordt ingedrukt",
         event_up: "wanneer % wordt losgelaten",
         event_change: "wanneer % verandert",
+        when_dragged: "Wanneer het object wordt gesleept",
+        when_pressed: "Wanneer het object wordt ingedrukt",
+        when_released: "Wanneer het object wordt losgelaten",
+        when_changed: "Wanneer de waarde verandert",
         programs: "Programma's",
         add_program: "Programma toevoegen",
         enlarge_blocks: "Blokken vergroten over de figuur",
@@ -269,6 +266,7 @@ const nl: Texts = {
         designate_real: "Selecteer een getal",
         designate_expression: "Selecteer een uitdrukking",
         designate_point: "Selecteer een punt",
+        designate_moveable: "Selecteer een punt dat versleept kan worden",
         designate_button: "Selecteer waar de knop komt",
         designate_pointOn: "Selecteer een punt op een object",
         designate_line: "Selecteer een rechte",

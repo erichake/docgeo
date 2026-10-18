@@ -527,7 +527,6 @@ const segmentsButton = button("segments_list", () => drawFrom("segments"));
 // The point an expression gives, as by DGPad's calculator.
 const pointButton = button("formula_point", () => drawFrom("point"));
 const turtleButton = button("turtle", openTurtle);
-const programButton = button("button_program", openProgram);
 // In place of the actions while the magnets are chosen, or a tool of the
 // menu is in use: the way out.
 const doneButton = $.create("button")
@@ -550,7 +549,6 @@ const actions = $.create("div")
         pinButton,
         magnetButton,
         turtleButton,
-        programButton,
         pointButton,
         pointsButton,
         segmentsButton,
@@ -637,19 +635,6 @@ explain(turtleButton, (name) => {
     const turtle = turtleOf(target()!)!;
     const start = turtleStart(turtle);
     return `${name}\n${message("turtle_hint", start ? (start.point?.name ?? start.name) : turtle.name)}`;
-});
-explain(programButton, (name) => {
-    const object = target()!;
-    return `${name}\n${
-        object instanceof button_object
-            ? message("button_program_hint")
-            : message(
-                  object instanceof point_object
-                      ? "point_programs_hint"
-                      : "change_program_hint",
-                  name,
-              )
-    }`;
 });
 explain(springButton, (name) => `${name}\n${message("spring_hint", name)}`);
 [pointsButton, segmentsButton].forEach((action) =>
@@ -879,15 +864,19 @@ function setProperties(on: boolean): void {
     shine(on);
     if (!pending) showHint("");
 }
-// The blocks enlarged: the figure fills the window at once under the
-// panels, staying where it was on the screen, and the panels slide out of
-// the way; back, they slide over it before it gives them their place.
+// Preserve the figure's screen coordinates while the panels fade over it.
 let narrowing = 0;
-onEnlarge((out) => {
+onEnlarge((out, duration) => {
     clearTimeout(narrowing);
     if (out) widen(true);
-    else narrowing = window.setTimeout(() => widen(false), SLIDE);
-    $("body").addClass("dge-panel-animated").toggleClass("dge-blocks-out", out);
+    $("body")
+        .stl("--dge-blocks-duration", `${duration}ms`)
+        .addClass("dge-blocks-transition")
+        .toggleClass("dge-blocks-out", out);
+    narrowing = window.setTimeout(() => {
+        if (!out) widen(false);
+        $("body").removeClass("dge-blocks-transition");
+    }, duration);
 });
 function widen(on: boolean): void {
     const c = scene();
@@ -1982,6 +1971,8 @@ function firstArgs(
 function describe(tool: Tool, args: (Arg | undefined)[]): string {
     if (tool.mode === "turtle")
         return `${message("turtle")}\n${message("designate_point")}`;
+    if (tool.mode === "event")
+        return `${message(tool.label!)}\n${message(tool.gesture ? "designate_moveable" : "designate_expression")}`;
     if (tool.mode === "button")
         return `${formatName(nextName(scene(), "Btn"))} = ${commandName(tool.command)}(${quoteText(message("button_caption"))})\n${message("designate_button")}`;
     const kind = tool.mode !== "command" || tool.overload.tag;
@@ -2223,6 +2214,7 @@ function take(picked: Hit[]): void {
     if (tool.mode === "point")
         return done(addPointOn(c, nextName(c, true), objects[0], picked[0].at));
     if (tool.mode === "turtle") return startTurtle(objects[0]);
+    if (tool.mode === "event") return answer(tool, objects[0]);
     if (tool.mode === "button") return prompt();
     pending = { tool, args };
     if (tool.mode === "intersection") {
@@ -2518,7 +2510,6 @@ const OBJECT_ACTIONS = [
     pinButton,
     magnetButton,
     turtleButton,
-    programButton,
     pointButton,
     pointsButton,
     segmentsButton,
@@ -2593,14 +2584,6 @@ function showActions(): void {
     else pointButton.hide();
     if (!magnetizing && turtleOf(object)) turtleButton.show("grid");
     else turtleButton.hide();
-    if (
-        !magnetizing &&
-        (object instanceof button_object ||
-            object instanceof expression_object ||
-            (object instanceof point_object && object.moveable))
-    )
-        programButton.show("grid");
-    else programButton.hide();
     showSpring(springOut && !magnetizing && springy(object) ? object : null);
     if (magnetizing) doneButton.show();
     else doneButton.hide();
@@ -2713,15 +2696,6 @@ function editTurtle(turtle: construction_object): void {
     done(program);
 }
 
-function openProgram(): void {
-    const object = target()!;
-    closeRing();
-    if (object instanceof button_object) return showProgram(object);
-    properties.showBlocks();
-    if (!propertiesOpen) setProperties(true);
-    properties.programs(object);
-}
-
 // The program of the point's gesture, or of the change of the
 // expression's value, in blocks, made if it has none.
 function startEvent(
@@ -2739,6 +2713,12 @@ function startEvent(
     properties.showBlocks();
     if (!propertiesOpen) setProperties(true);
     done(addEvent(c, owner, gesture));
+}
+
+// From the menu's tool, which is put down.
+function answer(tool: Tool, owner: construction_object): void {
+    cancel();
+    startEvent(owner as point_object | expression_object, tool.gesture ?? null);
 }
 
 // A program, in blocks.
@@ -3127,6 +3107,7 @@ function choose(tool: Tool, { object, at }: Hit): void {
     const c = scene();
     if (tool.mode === "point")
         return done(addPointOn(c, nextName(c, true), object, at));
+    if (tool.mode === "event") return answer(tool, object);
     pending = { tool, args: firstArgs(tool, object) };
     // An intersection waits for its second object.
     if (tool.mode === "intersection") return prompt();
@@ -3205,6 +3186,7 @@ function designateRow(object: construction_object): void {
     if (fresh()) {
         const tool = fitting(object)!;
         if (tool.mode === "turtle") return startTurtle(object);
+        if (tool.mode === "event") return answer(tool, object);
         pending = { tool, args: firstArgs(tool, object) };
         return tool.mode === "intersection" ? prompt() : proceed();
     }

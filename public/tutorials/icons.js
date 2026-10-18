@@ -20,8 +20,6 @@ window.DG_ICONS = {
         magnet: '<g transform="rotate(45 12 12)"><path d="M6 4h4v8a2 2 0 0 0 4 0V4h4v8a6 6 0 0 1-12 0ZM6 8h4m4 0h4"/></g>',
         spring: '<path d="M2.5 21.5l2-2 3 1.2-2.5-5.9 6 2.4-2.5-5.9 6 2.4-2.5-5.9 3 1.2 1.2-1.2"/><circle cx="18.2" cy="5.8" r="2.6"/>',
         turtle: '<ellipse cx="11" cy="12" rx="6" ry="4.5"/><circle cx="19.5" cy="12" r="2"/><path d="M7.5 8.3 6 5.5M14.5 8.3 16 5.5M7.5 15.7 6 18.5M14.5 15.7 16 18.5M5 12H2.5M8 12h6"/>',
-        button_program:
-            '<path d="M3 9h4.7a3 3 0 1 1 3.6 0H16v4.2a3 3 0 1 1 0 3.6V21H3Z"/>',
         new_program:
             '<path d="M9 4H8a2 2 0 0 0-2 2v4l-2 2 2 2v4a2 2 0 0 0 2 2h1M15 4h1a2 2 0 0 1 2 2v4l2 2-2 2v4a2 2 0 0 1-2 2h-1"/>',
         formula_point:
@@ -327,6 +325,26 @@ window.DG_ICONS = {
             95,
             1,
             '<path d="M2 12h6" class="dge-guide"/><g class="dge-result"><rect x="11" y="7" width="11" height="10" rx="3"/><path d="M15 9.8v4.4l3.4-2.2Z" fill="currentColor"/></g>',
+        ],
+        "When the object is dragged": [
+            95,
+            1,
+            '<path d="M4 20l9-9" class="dge-guide"/><g class="dge-result"><circle cx="16" cy="8" r="3"/></g>',
+        ],
+        "When the object is pressed": [
+            95,
+            1,
+            '<path d="M12 2v8m-3-3 3 3 3-3" class="dge-guide"/><g class="dge-result"><circle cx="12" cy="17" r="3"/></g>',
+        ],
+        "When the object is released": [
+            95,
+            1,
+            '<path d="M12 10V2M9 5l3-3 3 3" class="dge-guide"/><g class="dge-result"><circle cx="12" cy="17" r="3"/></g>',
+        ],
+        "When the value changes": [
+            95,
+            1,
+            '<g class="dge-result"><path d="M4 9h14l-3-3M20 15H6l3 3"/></g>',
         ],
     },
 };

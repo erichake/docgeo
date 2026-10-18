@@ -1,4 +1,6 @@
+import type { Gesture } from "../construction";
 import type { construction_object } from "../objects/construction_object";
+import { expression_object } from "../objects/expression_object";
 import { point_on_object } from "../objects/point_on_object";
 import { point_object } from "../objects/point_object";
 import {
@@ -17,9 +19,11 @@ import { message, type MessageKey } from "./messages";
 export interface Tool {
     // The command, whose arguments are designated one after the other; or a
     // point put on the object or an intersection, where it was designated;
-    // or a program to write, of a turtle from a point or of a button put
-    // there.
-    mode: "command" | "point" | "intersection" | "turtle" | "button";
+    // or a program to write, of a turtle from a point, of a button put
+    // there, or answering the object designated.
+    mode: "command" | "point" | "intersection" | "turtle" | "button" | "event";
+    // The event's, null for the change of an expression's value.
+    gesture?: Gesture | null;
     command: Command;
     overload: Overload;
     icon: string;
@@ -71,6 +75,13 @@ function tool(
 // The tool of an item of its own among its command's.
 const labelled = (label: MessageKey, tool: Tool): Tool =>
     Object.assign(tool, { label });
+
+// The program of the gesture on a point, or of the change of an
+// expression's value (see startEvent in main.ts).
+const event = (label: MessageKey, gesture: Gesture | null, icon: string) =>
+    Object.assign(labelled(label, tool("List", 0, icon, "event")), {
+        gesture,
+    });
 
 const SEGMENT = result(path("M6 18L18 6")) + dot(6, 18) + dot(18, 6);
 const TRIANGLE =
@@ -657,6 +668,29 @@ const FAMILIES: [
                     ),
                 "button",
             ),
+            event(
+                "when_dragged",
+                "drag",
+                path("M4 20l9-9", true) +
+                    result(`<circle cx="16" cy="8" r="3"/>`),
+            ),
+            event(
+                "when_pressed",
+                "down",
+                path("M12 2v8m-3-3 3 3 3-3", true) +
+                    result(`<circle cx="12" cy="17" r="3"/>`),
+            ),
+            event(
+                "when_released",
+                "up",
+                path("M12 10V2M9 5l3-3 3 3", true) +
+                    result(`<circle cx="12" cy="17" r="3"/>`),
+            ),
+            event(
+                "when_changed",
+                null,
+                result(path("M4 9h14l-3-3M20 15H6l3 3")),
+            ),
         ],
     ],
 ];
@@ -722,6 +756,15 @@ const SPACE = ["family_planes", "family_solids"];
 export const itemLabel = ({ tools: [tool] }: Item): string =>
     tool.label ? message(tool.label) : commandName(tool.command);
 
+// The point a turtle starts from, the point dragged or the expression whose
+// value changes that a program answers.
+function answers({ mode, gesture }: Tool, object: construction_object) {
+    if (mode === "turtle") return object instanceof point_object;
+    return gesture
+        ? object instanceof point_object && object.moveable
+        : object instanceof expression_object && !object.program;
+}
+
 // The tools that take the object as one of their arguments.
 export function toolsFor(
     object: construction_object,
@@ -734,7 +777,7 @@ export function toolsFor(
         if (overload.tag === "Loc") return driverOf(object) !== null;
         // A point is put on the object, an intersection with another.
         if (mode === "point") return accepts(object, "support");
-        if (mode === "turtle") return object instanceof point_object;
+        if (mode === "turtle" || mode === "event") return answers(tool, object);
         if (mode === "intersection") return accepts(object, "intersectable");
         // A radius is given by the tool, not designated.
         return overload.params.some(
@@ -782,8 +825,8 @@ export function assign(
         return objects.length === 1 && accepts(objects[0], "support")
             ? [...objects]
             : null;
-    if (mode === "turtle")
-        return objects.length === 1 && objects[0] instanceof point_object
+    if (mode === "turtle" || mode === "event")
+        return objects.length === 1 && answers(tool, objects[0])
             ? [...objects]
             : null;
     // A button takes no object, the selection ignored.

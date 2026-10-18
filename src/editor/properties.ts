@@ -1463,11 +1463,6 @@ export function propertiesPanel(options: {
         showBlocks: () => {
             preferBlocks = true;
         },
-        // Its programs, blocks to start one if it has none.
-        programs: (owner: construction_object) => {
-            adding = owner;
-            select(owner);
-        },
         // The program whose text or blocks show.
         get program() {
             return shownProgram;

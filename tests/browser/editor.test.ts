@@ -1793,6 +1793,10 @@ describe("Editor", () => {
             [
                 ["Turtle", "ELst"],
                 ["Button", "Btn"],
+                ["When the object is dragged", "ELst"],
+                ["When the object is pressed", "ELst"],
+                ["When the object is released", "ELst"],
+                ["When the value changes", "ELst"],
             ],
         ]);
         const sphere = TOOL_FAMILIES[3].items[3].tools[0];
@@ -1839,6 +1843,15 @@ describe("Editor", () => {
         expect(given("Intersection", [d, k])).toEqual([[d, k]]);
         expect(given("Intersection", [d, A])).toEqual([null]);
         expect(given("Locus", [A])).toEqual([null]);
+        // A program answers a point that is dragged, or an expression.
+        type(c, "a = 3");
+        type(c, "M = Midpoint(A, B)");
+        const [a, M] = ["a", "M"].map((name) => c.getObj(name)!);
+        expect(given("When the object is dragged", [A])).toEqual([[A]]);
+        expect(given("When the object is pressed", [M])).toEqual([null]);
+        expect(given("When the object is released", [A, B])).toEqual([null]);
+        expect(given("When the value changes", [a])).toEqual([[a]]);
+        expect(given("When the value changes", [A])).toEqual([null]);
     });
 
     it("animates a point on an object as DGPad's spring", async () => {

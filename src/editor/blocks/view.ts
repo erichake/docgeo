@@ -1,6 +1,7 @@
 import { $, type DOMElement } from "../../dom";
 import { LANG } from "../../i18n";
 import { parseProgram, type Program } from "../../import/dgp_formula";
+import { ACTION_ICONS } from "../icons";
 import { message } from "../messages";
 import { formatName } from "../text";
 import type { BlocksEditor, BlocksFigure } from "./workspace";
@@ -47,8 +48,18 @@ const host = $.create("div").cls("dge-blocks");
 // The button enlarging the blocks over the figure, or putting them back.
 const resize = $.create("button").cls("dge-blocks-size").att("type", "button");
 // Enlarged, the blocks are moved by their bar and sized by their corner.
-const title = $.create("span");
-const bar = $.create("div").cls("dge-blocks-bar").add(title);
+const title = $.create("span").cls("dge-blocks-title");
+const bar = $.create("div")
+    .cls("dge-blocks-bar")
+    .add(
+        $.create("span")
+            .cls("dge-blocks-mark")
+            .att("aria-hidden", "true")
+            .inner(
+                `<svg viewBox="0 0 24 24">${ACTION_ICONS.new_program}</svg>`,
+            ),
+        title,
+    );
 const corner = $.create("div").cls("dge-blocks-corner");
 const frame = $.create("div")
     .cls("dge-blocks-frame")
@@ -58,13 +69,15 @@ let stand: DOMElement | null = null;
 // The panel, built again, shows them still.
 let claimed = false;
 // The panels out of the way of the enlarged blocks, or back.
-let panels = (_out: boolean) => {};
+let panels = (_out: boolean, _duration: number) => {};
 export const onEnlarge = (f: typeof panels) => (panels = f);
 const ENLARGE =
     '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 4h6v6M10 20H4v-6M20 4l-7 7M4 20l7-7"/></svg>';
 const SHRINK =
     '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 10h-6V4M4 14h6v6M14 10l7-7M10 14l-7 7"/></svg>';
-resize.on("click", () => enlarge(!stand), false);
+let motion: Animation | null = null;
+let closing = false;
+resize.on("click", () => enlarge(!stand || closing, true), false);
 enlarge(false);
 
 // Where the enlarged blocks were left, and their size, for the session.
@@ -104,19 +117,43 @@ corner.drag((event) => {
     );
 }, grab);
 
-function enlarge(on: boolean): void {
+function enlarge(on: boolean, animate = false): void {
+    motion?.cancel();
+    motion = null;
+    closing = false;
+    const duration = window.matchMedia("(prefers-reduced-motion: reduce)")
+        .matches
+        ? 0
+        : 180;
+    if (!on && stand && animate && duration) {
+        closing = true;
+        motion = frame.dom().animate(
+            [
+                { opacity: 1, transform: "none" },
+                { opacity: 0, transform: "translateY(6px)" },
+            ],
+            { duration: 120, easing: "cubic-bezier(0.4, 0, 1, 1)" },
+        );
+        motion.onfinish = () => {
+            enlarge(false);
+            motion = frame
+                .dom()
+                .animate([{ opacity: 0 }, { opacity: 1 }], { duration });
+        };
+        return;
+    }
     if (on && !stand) {
         stand = $.create("p")
             .cls("dge-property-help")
             .text(message("blocks_enlarged"));
         frame.dom().replaceWith(stand.dom());
         $("body").add(frame);
-        panels(true);
+        panels(true, duration);
     } else if (!on && stand) {
         if (stand.dom().isConnected) stand.dom().replaceWith(frame.dom());
         else frame.remove();
         stand = null;
-        panels(false);
+        panels(false, duration);
     }
     const key = on ? "shrink_blocks" : "enlarge_blocks";
     frame.toggleClass("dge-blocks-large", on);
@@ -124,6 +161,14 @@ function enlarge(on: boolean): void {
         .att("title", message(key))
         .att("aria-label", message(key))
         .inner(on ? SHRINK : ENLARGE);
+    if (on && animate && duration)
+        motion = frame.dom().animate(
+            [
+                { opacity: 0, transform: "translateY(8px)" },
+                { opacity: 1, transform: "none" },
+            ],
+            { duration, easing: "cubic-bezier(0.2, 0.7, 0.2, 1)" },
+        );
 }
 
 // Before the panel is built again: the blocks go back to it unless it
@@ -221,8 +266,8 @@ export function blocksView(view: BlocksView) {
     title
         .inner("")
         .add(
-            $.create("b").text(formatName(view.owner)),
             $.create("span").text(message("programs")),
+            $.create("b").text(formatName(view.owner)),
         );
     editor ??= import("./workspace").then(({ blocksEditor }) =>
         blocksEditor(

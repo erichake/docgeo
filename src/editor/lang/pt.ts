@@ -207,16 +207,14 @@ const pt: Texts = {
         turtle: "Tartaruga",
         turtle_hint:
             "Desenha a partir de % com uma tartaruga programada em blocos",
-        button_program: "Programa",
-        button_program_hint: "Abre em blocos o programa que a sua seta executa",
-        point_programs_hint:
-            "Abre em blocos os seus programas, executados quando % é arrastado, pressionado ou solto",
-        change_program_hint:
-            "Abre em blocos o programa executado quando o valor de % muda",
         event_drag: "quando % for arrastado",
         event_down: "quando % for pressionado",
         event_up: "quando % for solto",
         event_change: "quando % mudar",
+        when_dragged: "Quando o objeto for arrastado",
+        when_pressed: "Quando o objeto for pressionado",
+        when_released: "Quando o objeto for solto",
+        when_changed: "Quando o valor mudar",
         programs: "Programas",
         add_program: "Adicionar um programa",
         enlarge_blocks: "Ampliar os blocos sobre a figura",
@@ -266,6 +264,7 @@ const pt: Texts = {
         designate_real: "Selecione um número",
         designate_expression: "Selecione uma expressão",
         designate_point: "Selecione um ponto",
+        designate_moveable: "Selecione um ponto que possa ser arrastado",
         designate_button: "Selecione onde fica o botão",
         designate_pointOn: "Selecione um ponto em um objeto",
         designate_line: "Selecione uma reta",

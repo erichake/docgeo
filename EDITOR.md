@@ -295,10 +295,12 @@ la GeoGebra, l'outil choisi avant les objets.
 - **Famille « Programmes »** (décidé avec l'auteur le 2026-10-18), la
   seule propre au menu, en dernier (teinte 95) : l'anneau ne porte que de
   la géométrie. « Tortue » prend un point (un toucher dans le vide en crée
-  un), « Bouton » l'endroit de sa flèche ; chacun crée son objet, ouvre
-  son programme en blocs dans les propriétés et repose l'outil, qui ne
-  reste pas en main comme les autres (modes `turtle` et `button` de
-  `tools.ts`). Une sélection est ignorée par « Bouton ».
+  un), « Bouton » l'endroit de sa flèche, « Quand l'objet est glissé »,
+  « … appuyé », « … lâché » un point déplaçable, « Quand la valeur change »
+  une expression ; chacun crée son objet ou son programme (ou montre celui
+  qui existe), l'ouvre en blocs dans les propriétés et repose l'outil, qui
+  ne reste pas en main comme les autres (modes `turtle`, `button` et
+  `event` de `tools.ts`). Une sélection est ignorée par « Bouton ».
 - **Plus d'outils que l'anneau**, qui reste léger : à la fin de leur
   famille, `AutreIntersection` (points), `Compas`, en 3D « Cercle
   (centre, direction et rayon) » et « Cercle (axe et point) », `Arc`,
@@ -1134,10 +1136,15 @@ ses méthodes internes et figé dans sa version de 2016.
       se déplace par sa barre de titre (le nom de l'objet ; un double clic
       rend sa place par défaut), se redimensionne par son coin, et laisse
       voir la figure par transparence ; sa place vaut pour la session.
-      Les panneaux de construction et de propriétés glissent hors de l'écran
-      pendant ce temps : la figure s'étend d'abord dessous sans bouger à
-      l'écran, puis ils la découvrent ; au retour, ils glissent par-dessus
-      avant qu'elle ne leur rende leur place. La fenêtre apparaît en fondu.
+      Les panneaux de construction et de propriétés s'effacent en 180 ms,
+      avec un déplacement de 8 px : la figure s'étend d'abord dessous sans
+      bouger à l'écran ; au retour, ils réapparaissent avant qu'elle ne leur
+      rende leur place. La fenêtre apparaît en fondu et se lève de 8 px ;
+      la réduction l'efface en 120 ms, puis les blocs réapparaissent dans le
+      panneau. Aucun mouvement si les animations sont réduites. Barre de
+      titre translucide, nom dans une pastille, catégories espacées à liseré
+      fin, contour arrondi et ombre douce ; le fond de travail garde sa
+      transparence, sans flouter la figure.
       Fermer le panneau de propriétés, ou montrer un objet sans blocs, ramène
       les blocs ; le bouton du panneau de construction aussi, et l'ouvre.
     - Dialogues de Blockly (nom d'une variable ou d'une globale,
