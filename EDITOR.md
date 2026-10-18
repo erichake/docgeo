@@ -1077,6 +1077,17 @@ ses méthodes internes et figé dans sa version de 2016.
   point souvent caché, s'ouvrent depuis leur ligne du panneau
   « Construction », panneau de propriétés ouvert (le sélecteur d'objet
   montre alors l'expression super-cachée).
+- **Boutons** (2026-10-18, comme dans DGPad) : un clic sur la flèche
+  lance le programme, sans sélectionner le bouton (la liste « Construction »
+  montre ensuite les valeurs qu'il a changées) ; un clic sur le libellé le
+  sélectionne (anneau, zone contextuelle), un glisser du libellé le
+  déplace, comme le texte d'une expression. Panneau ouvert, un clic sur la
+  flèche désigne le bouton sans le lancer. La zone contextuelle d'un bouton
+  a un bouton « Programme » (une pièce de puzzle, l'icône Blockly de DGPad)
+  qui ouvre son programme en blocs ; la section « Définition » de ses
+  propriétés le montre aussi, en blocs par défaut. Bloc « fixer [objet] à
+  … » de la catégorie « Figure » (`X.setExpression(v)`, le `SET_EXP` de
+  DGPad), bloc « fraction aléatoire » de Blockly (`random()`).
 - **La tortue dessinée** (demandé par l'auteur, comme dans DGPad) : tant
   que le panneau de propriétés montre son programme (texte ou blocs), elle
   est dessinée là où elle finit, tournée dans sa direction, et suit chaque
@@ -1714,6 +1725,17 @@ Fait (2026-10-11) :
   valeurs. Supprimer un programme garde ce qu'il met en forme ou change.
   Vérifié dans `editor.html` avec Playwright (globale créée par une ligne,
   lue par une autre, programme qui l'écrit redéfini).
+
+- Boutons (2026-10-18, section « Blocs et tortue ») : flèche qui lance
+  sans sélectionner, libellé qui sélectionne et se glisse, action
+  « Programme » de la zone contextuelle, programme d'un bouton dans la
+  section « Définition » (entrée `Btn` réécrite, libellé, place et style
+  gardés), blocs « fixer … à » et « fraction aléatoire », liste
+  « Construction » rafraîchie après un bouton. Vérifié dans `editor.html`
+  avec Playwright sur `lancer2desNew.dgp` (flèche d'« Interrompre » :
+  `départ = 0`, aucune zone ; libellé : zone et « Programme » ; libellé
+  glissé de (60, 120) ; programme réécrit en texte, montré en blocs, lancé,
+  annulé). Éditeur +0,95 Ko, Blockly +1 Ko ; lecteur : mêmes octets.
 
 Reste à faire :
 

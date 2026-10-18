@@ -193,6 +193,8 @@ const zh: Texts = {
         blocks_unsupported: "此程序含有没有积木的指令：只能以文本编写。",
         turtle: "海龟",
         turtle_hint: "用积木编程的海龟从 % 出发作图",
+        button_program: "程序",
+        button_program_hint: "以积木打开其箭头运行的程序",
         format_program: "格式化",
         syntax_line: "第 % 行无法理解",
         program_syntax: "无法理解",

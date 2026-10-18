@@ -203,6 +203,8 @@ export default {
         "This program has instructions without a block: it is written as text.",
     turtle: "Turtle",
     turtle_hint: "Draws from % with a turtle programmed in blocks",
+    button_program: "Program",
+    button_program_hint: "Opens in blocks the program its arrow runs",
     format_program: "Format",
     syntax_line: "Can't read line %",
     program_syntax: "Can't read it",

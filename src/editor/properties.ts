@@ -12,6 +12,7 @@ import { fixed_angle_object } from "../objects/fixed_angle_object";
 import { list_object } from "../objects/list_object";
 import { locus_object } from "../objects/locus_object";
 import { panel_object } from "../objects/panel_object";
+import { button_object } from "../objects/button_object";
 import { point_object } from "../objects/point_object";
 import { point_on_object } from "../objects/point_on_object";
 import { polygon_object } from "../objects/polygon_object";
@@ -78,7 +79,7 @@ export function propertiesPanel(options: {
     rename: (object: construction_object, name: string) => Promise<void>;
     // Throws a TextError where the text is wrong.
     define: (
-        object: expression_object | panel_object,
+        object: expression_object | panel_object | button_object,
         source: string,
     ) => Promise<void>;
     // A new expression, given a name or not.
@@ -1071,7 +1072,8 @@ export function propertiesPanel(options: {
             (object instanceof expression_object &&
                 !object.isCursor &&
                 !object.bounds) ||
-            object instanceof panel_object
+            object instanceof panel_object ||
+            object instanceof button_object
         )
             definition(object);
     }
@@ -1095,7 +1097,7 @@ export function propertiesPanel(options: {
     }
 
     function definition(
-        object: expression_object | panel_object | null,
+        object: expression_object | panel_object | button_object | null,
         name?: () => string,
     ): void {
         const box = section("definition");
@@ -1103,7 +1105,10 @@ export function propertiesPanel(options: {
         // HTML, its lines wrapped, isn't a program to lay out.
         const html = object instanceof panel_object;
         // A program, or one to be made, shows as text or as blocks.
-        const program = !object || !!(object as expression_object).program;
+        const program =
+            !object ||
+            object instanceof button_object ||
+            !!(object as expression_object).program;
         const editor = $.create("textarea")
             .cls("dge-program")
             .att("dir", "ltr")
@@ -1239,7 +1244,11 @@ export function propertiesPanel(options: {
                 }),
             );
         }
-        if (program) show(preferBlocks ?? isTurtle(original));
+        if (program)
+            show(
+                preferBlocks ??
+                    (isTurtle(original) || object instanceof button_object),
+            );
         format.on(
             "click",
             () => {

@@ -205,6 +205,8 @@ const fr: Texts = {
             "Ce programme a des instructions sans bloc : il s'écrit en texte.",
         turtle: "Tortue",
         turtle_hint: "Dessine depuis % avec une tortue programmée en blocs",
+        button_program: "Programme",
+        button_program_hint: "Ouvre en blocs le programme que lance sa flèche",
         format_program: "Mettre en forme",
         syntax_line: "Écriture incomprise ligne %",
         program_syntax: "Écriture incomprise",

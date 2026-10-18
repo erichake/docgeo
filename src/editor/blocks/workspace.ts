@@ -330,6 +330,18 @@ function defineBlocks(): void {
             extensions: ["dg_style_object"],
         },
         {
+            type: "dg_set_value",
+            message0: msg("SET_VALUE"),
+            args0: [
+                { type: "input_dummy", name: "OBJECT" },
+                { type: "input_value", name: "VALUE" },
+            ],
+            inputsInline: true,
+            ...statement,
+            style: "figure_blocks",
+            extensions: ["dg_style_object"],
+        },
+        {
             type: "dg_global_get",
             message0: msg("GLOBAL_GET"),
             args0: [{ type: "input_dummy", name: "NAME" }],
@@ -499,6 +511,7 @@ function toolbox(turtle: boolean) {
                     block("math_trig", { NUM: num(45) }),
                     block("math_constant"),
                     block("math_round", { NUM: num(3.1) }),
+                    block("math_random_float"),
                     block("math_modulo", {
                         DIVIDEND: num(64),
                         DIVISOR: num(10),
@@ -540,6 +553,7 @@ function toolbox(turtle: boolean) {
                     block("dg_distance"),
                     block("dg_point", { X: num(0), Y: num(0) }),
                     block("dg_point3", { X: num(0), Y: num(0), Z: num(0) }),
+                    block("dg_set_value", { VALUE: num(0) }),
                     block("dg_style", { VALUE: num(1) }),
                     block("dg_style_rgb", {
                         R: num(0),

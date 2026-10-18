@@ -210,6 +210,9 @@ const el: Texts = {
         turtle: "Χελώνα",
         turtle_hint:
             "Σχεδιάζει από το % με μια χελώνα προγραμματισμένη σε μπλοκ",
+        button_program: "Πρόγραμμα",
+        button_program_hint:
+            "Ανοίγει σε μπλοκ το πρόγραμμα που εκτελεί το βέλος του",
         format_program: "Μορφοποίηση",
         syntax_line: "Ακατανόητη γραφή στη γραμμή %",
         program_syntax: "Ακατανόητη γραφή",

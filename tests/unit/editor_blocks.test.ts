@@ -138,6 +138,14 @@ return s;`);
         roundTrip("var t = 0; for (var k = 1; k <= n; k++) { t = t + k; } t");
     });
 
+    it("sets the value of expressions, as DGPad's buttons", () => {
+        expect(
+            roundTrip(`SET_EXP("de1", Math.floor(c * 6) + 1);
+a.setExpression(a + 1);`),
+        ).toBe(`de1.setExpression(floor(c * 6) + 1);
+a.setExpression(a + 1);`);
+    });
+
     it("draws turtles in degrees whatever the figure's unit", () => {
         const turn = `TURTLE_INIT("P", P);
 TURTLE_TURN(30);
@@ -148,6 +156,14 @@ return TURTLE_RESULT();`;
         roundTrip(turn);
         expect(programBlocks(turn, false)).toBeNull();
         roundTrip(turn.replace(/\((-?\d+)(,|\))/g, "($1°$2"), false);
+    });
+
+    it("draws at random", () => {
+        const program = blocksProgram(
+            programBlocks("Math.floor(Math.random() * 6) + 1", true)!,
+        );
+        expect(program).toBe("return floor(random() * 6) + 1;");
+        expect(blocksProgram(programBlocks(program!, true)!)).toBe(program);
     });
 
     it("refuses what has no block", () => {

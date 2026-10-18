@@ -206,6 +206,9 @@ const es: Texts = {
             "Este programa tiene instrucciones sin bloque: se escribe como texto.",
         turtle: "Tortuga",
         turtle_hint: "Dibuja desde % con una tortuga programada con bloques",
+        button_program: "Programa",
+        button_program_hint:
+            "Abre en bloques el programa que ejecuta su flecha",
         format_program: "Dar formato",
         syntax_line: "No se entiende la línea %",
         program_syntax: "No se entiende",

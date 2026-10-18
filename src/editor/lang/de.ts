@@ -209,6 +209,9 @@ const de: Texts = {
         turtle: "Schildkröte",
         turtle_hint:
             "Zeichnet ab % mit einer in Blöcken programmierten Schildkröte",
+        button_program: "Programm",
+        button_program_hint:
+            "Öffnet das Programm, das sein Pfeil startet, als Blöcke",
         format_program: "Formatieren",
         syntax_line: "Unverständliche Eingabe in Zeile %",
         program_syntax: "Unverständliche Eingabe",

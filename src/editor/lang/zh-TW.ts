@@ -193,6 +193,8 @@ const zh_TW: Texts = {
         blocks_unsupported: "此程式含有沒有積木的指令：只能以文字撰寫。",
         turtle: "海龜",
         turtle_hint: "用積木編程的海龜從 % 出發作圖",
+        button_program: "程式",
+        button_program_hint: "以積木開啟其箭頭執行的程式",
         format_program: "格式化",
         syntax_line: "第 % 行無法理解",
         program_syntax: "無法理解",

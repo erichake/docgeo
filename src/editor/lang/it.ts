@@ -206,6 +206,9 @@ const it: Texts = {
             "Questo programma ha istruzioni senza blocco: si scrive come testo.",
         turtle: "Tartaruga",
         turtle_hint: "Disegna da % con una tartaruga programmata a blocchi",
+        button_program: "Programma",
+        button_program_hint:
+            "Apre a blocchi il programma che la sua freccia esegue",
         format_program: "Formatta",
         syntax_line: "Scrittura non compresa alla riga %",
         program_syntax: "Scrittura non compresa",

@@ -22,7 +22,8 @@ export class button_object extends construction_object {
     screen: Vec2;
     program: ExpressionProgram | null;
     private caption!: DOMElement;
-    private frame!: DOMElement;
+    // The "play" button, the only part that runs the program.
+    frame!: DOMElement;
 
     constructor(
         c: construction,

@@ -209,6 +209,9 @@ const nl: Texts = {
         turtle: "Schildpad",
         turtle_hint:
             "Tekent vanaf % met een schildpad die in blokken is geprogrammeerd",
+        button_program: "Programma",
+        button_program_hint:
+            "Opent het programma dat zijn pijl uitvoert in blokken",
         format_program: "Opmaken",
         syntax_line: "Onbegrijpelijke invoer op regel %",
         program_syntax: "Onbegrijpelijke invoer",

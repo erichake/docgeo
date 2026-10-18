@@ -488,6 +488,7 @@ const segmentsButton = button("segments_list", () => drawFrom("segments"));
 // The point an expression gives, as by DGPad's calculator.
 const pointButton = button("formula_point", () => drawFrom("point"));
 const turtleButton = button("turtle", openTurtle);
+const programButton = button("button_program", openProgram);
 // In place of the actions while the magnets are chosen, or a tool of the
 // menu is in use: the way out.
 const doneButton = $.create("button")
@@ -510,6 +511,7 @@ const actions = $.create("div")
         pinButton,
         magnetButton,
         turtleButton,
+        programButton,
         pointButton,
         pointsButton,
         segmentsButton,
@@ -597,6 +599,7 @@ explain(turtleButton, (name) => {
     const start = turtleStart(turtle);
     return `${name}\n${message("turtle_hint", start ? (start.point?.name ?? start.name) : turtle.name)}`;
 });
+explain(programButton, (name) => `${name}\n${message("button_program_hint")}`);
 explain(springButton, (name) => `${name}\n${message("spring_hint", name)}`);
 [pointsButton, segmentsButton].forEach((action) =>
     explain(
@@ -2401,6 +2404,7 @@ const OBJECT_ACTIONS = [
     pinButton,
     magnetButton,
     turtleButton,
+    programButton,
     pointButton,
     pointsButton,
     segmentsButton,
@@ -2475,6 +2479,9 @@ function showActions(): void {
     else pointButton.hide();
     if (!magnetizing && turtleOf(object)) turtleButton.show("grid");
     else turtleButton.hide();
+    if (!magnetizing && object instanceof button_object)
+        programButton.show("grid");
+    else programButton.hide();
     showSpring(springOut && !magnetizing && springy(object) ? object : null);
     if (magnetizing) doneButton.show();
     else doneButton.hide();
@@ -2575,6 +2582,15 @@ function openTurtle(): void {
     list.segmentsSize = 1;
     c.invalidateGeometry(list);
     done(program);
+}
+
+// A button's program, in blocks.
+function openProgram(): void {
+    const object = target()!;
+    closeRing();
+    properties.showBlocks();
+    if (!propertiesOpen) setProperties(true);
+    properties.select(object);
 }
 
 function drawFrom(as: Exclude<Choice, "expression">): void {
@@ -3538,8 +3554,12 @@ let label: { object: construction_object; grab: Vec2 } | null = null;
 // The angle whose mark is being dragged, its radius and the pointer's
 // distance to its vertex when taken.
 let sized: { angle: Angle; radius: number; from: number } | null = null;
-// The expression being dragged, and where it was taken from its position.
-let moved: { expression: expression_object; grab: Vec2 } | null = null;
+// The expression or button being dragged, and where it was taken from its
+// position.
+let moved: {
+    expression: expression_object | button_object;
+    grab: Vec2;
+} | null = null;
 
 const onButton = (event: PointerEvent): boolean =>
     !!aim?.button &&
@@ -3690,12 +3710,14 @@ $("body").on(
             return;
         }
         // As in DGPad, an expression is dragged by its text, its slider's
-        // knob, checkbox or field keeping their own gesture. A tap on it
-        // still selects it, or writes its name in the line being typed.
+        // knob, checkbox or field keeping their own gesture, and a button by
+        // its caption. A tap on it still selects it, or writes its name in
+        // the line being typed.
         const widget = !pending && propertyObject(event);
         moved = null;
         if (
-            widget instanceof expression_object &&
+            (widget instanceof expression_object ||
+                widget instanceof button_object) &&
             !widget.dom.dom().contains(element(event.target)) &&
             !pick(c, screen)[0]
         ) {
@@ -3825,7 +3847,7 @@ $("body").on(
         if (moved && event.isPrimary && event.buttons) {
             const { expression, grab } = moved;
             expression.screen = vSub(scene().pointerPosition(event), grab);
-            if (expression.anchor)
+            if (expression instanceof expression_object && expression.anchor)
                 expression.alpha = vSub(
                     expression.screen,
                     expression.anchor.screen,
@@ -3980,8 +4002,15 @@ $("body").on(
         if (cross) return done(addCrossing(cross));
         if (hits[0])
             return chooseHit(hits, client, (hit) => openRing(hit, client));
-        // A slider, a text… is selected rather than taken for a free spot.
+        // A slider, a text… is selected rather than taken for a free spot;
+        // a button by its caption, as in DGPad, its "play" button running it:
+        // the rows show the values it sets on the next frame, once it has run.
         const widget = propertyObject(event);
+        if (
+            widget instanceof button_object &&
+            widget.frame.dom().contains(element(event.target))
+        )
+            return dragged();
         if (widget)
             return openRing(
                 {

@@ -18,6 +18,7 @@ import {
     parseFormula,
     parseProgram,
     programNodes,
+    type Program,
     programReferences,
     globalName,
     globalOf,
@@ -27,6 +28,7 @@ import {
     type FormulaNode,
 } from "../import/dgp_formula";
 import { angle_object } from "../objects/angle_object";
+import { button_object } from "../objects/button_object";
 import { construction_object } from "../objects/construction_object";
 import type { curve_object } from "../objects/curve_object";
 import {
@@ -34,7 +36,10 @@ import {
     equationValue,
     type Equation,
 } from "../objects/equation_conic_object";
-import { expression_object } from "../objects/expression_object";
+import {
+    expression_object,
+    type ExpressionProgram,
+} from "../objects/expression_object";
 import { expression_list_object } from "../objects/expression_list_object";
 import { fixed_angle_object } from "../objects/fixed_angle_object";
 import type { formula_point_object } from "../objects/formula_point_object";
@@ -251,14 +256,21 @@ function renamedText({ text, refs, html }: TextArg): string {
 }
 
 // What the properties' definition edits: an expression's value, formula or
-// program, a panel's HTML.
+// program, a panel's HTML, a button's program.
 export function definitionSource(
-    object: expression_object | panel_object,
+    object: expression_object | panel_object | button_object,
 ): string {
     return object instanceof panel_object
         ? renamedText(new TextArg(object.content, object.refs, true))
-        : expressionSource(object);
+        : object instanceof button_object
+          ? object.program
+              ? programSource(object.program)
+              : ""
+          : expressionSource(object);
 }
+
+const programSource = ({ program, refs, targets }: ExpressionProgram) =>
+    renamed(formulaSource(program), new Map([...refs, ...targets]));
 
 // Its value, or its formula.
 export function expressionSource({
@@ -269,10 +281,7 @@ export function expressionSource({
     if (!formula && !program) return formatValue(value);
     return formula
         ? renamed(formula.source, formula.refs)
-        : renamed(
-              formulaSource(program!.program),
-              new Map([...program!.refs, ...program!.targets]),
-          );
+        : programSource(program!);
 }
 
 // On one line, the grammar reading no line break.
@@ -380,7 +389,10 @@ export function resolve(
         )
             overload = FREE_VECTOR;
     } else if (definition!.kind === "formula")
-        ({ overload, args } = expression(c, definition!.source, target));
+        ({ overload, args } =
+            target instanceof button_object
+                ? buttonProgram(c, definition!.source, target)
+                : expression(c, definition!.source, target));
     else if (definition!.kind === "pointFormula")
         ({ overload, args } = formulaPoint(c, definition!.source));
     else if (definition!.kind === "equation")
@@ -756,20 +768,10 @@ function expression(
                     ...programReferences(content.program),
                     ...programTargets(content.program),
                 ];
-    const named = new Map(
-        names.map((name) => {
-            const object = own.get(name);
-            if (object) return [name, object];
-            const called =
-                content.kind !== "v" &&
-                programNodes(content.program).some(
-                    (node) => node.kind === "userCall" && node.name === name,
-                );
-            throw new TextError(
-                called ? "unknown_command" : "unknown_object",
-                shownName(name),
-            );
-        }),
+    const named = namedObjects(
+        own,
+        names,
+        content.kind === "v" ? null : content.program,
     );
     return expressionSpec(
         c,
@@ -782,6 +784,67 @@ function expression(
         }),
         [...named.values()],
     );
+}
+
+// The objects a formula or a program names, an unknown name being refused.
+const namedObjects = (
+    own: ReadonlyMap<string, construction_object>,
+    names: Iterable<string>,
+    program: Program | null,
+): Map<string, construction_object> =>
+    new Map(
+        [...names].map((name) => {
+            const object = own.get(name);
+            if (object) return [name, object];
+            const called =
+                program &&
+                programNodes(program).some(
+                    (node) => node.kind === "userCall" && node.name === name,
+                );
+            throw new TextError(
+                called ? "unknown_command" : "unknown_object",
+                shownName(name),
+            );
+        }),
+    );
+
+// A button's program, its caption and place kept.
+function buttonProgram(
+    c: construction,
+    source: string,
+    target: button_object,
+): { overload: Overload; args: Arg[] } {
+    const own = readable(c);
+    let program: Program;
+    try {
+        program = withObjects(new Set(own.keys()), () => parseProgram(source));
+    } catch {
+        const method = unknownMethod(source);
+        throw new TextError(
+            method ? "unknown_method" : "syntax",
+            method ?? source,
+        );
+    }
+    const named = namedObjects(
+        own,
+        [...programReferences(program), ...programTargets(program)],
+        program,
+    );
+    return {
+        overload: {
+            params: [],
+            tag: "Btn",
+            encode: (_, index) => ({
+                ...(target.dgo({
+                    index,
+                    image: (url) => url,
+                    screen: (position) => position,
+                })[1] as object),
+                s: formulaParameter(source, named, index),
+            }),
+        },
+        args: [...named.values()],
+    };
 }
 
 // A formula's .dgo parameter, the objects it names given by their index.

@@ -534,6 +534,12 @@ class Decompiler {
                         : { VALUE: value(this.value(assigned)) },
                 };
             }
+            if (node.method === "setExpression")
+                return {
+                    type: "dg_set_value",
+                    fields: { OBJECT: node.object },
+                    inputs: { VALUE: value(this.value(node.args[0])) },
+                };
             if (node.method === "setRGBColor") {
                 const [r, g, b] = node.args.map((arg) =>
                     value(this.value(arg)),
@@ -805,6 +811,8 @@ class Decompiler {
                     fields: { AXIS: fn },
                     inputs: { POINT: value(this.value(a)) },
                 };
+            case "random":
+                return { type: "math_random_float" };
         }
         return unsupported();
     }
@@ -1109,6 +1117,10 @@ class Generator {
                 return line(
                     `${this.format(String(fields.OBJECT))}.${fields.METHOD}(${this.arg(block, "VALUE")});`,
                 );
+            case "dg_set_value":
+                return line(
+                    `${this.format(String(fields.OBJECT))}.setExpression(${this.arg(block, "VALUE")});`,
+                );
             case "dg_style_rgb":
                 return line(
                     `${this.format(String(fields.OBJECT))}.setRGBColor(${["R", "G", "B"].map((c) => this.arg(block, c)).join(", ")});`,
@@ -1319,6 +1331,8 @@ class Generator {
                     `${FUNCTIONS[String(fields.OP)]}(${this.arg(block, "NUM")})`,
                     ATOM,
                 ];
+            case "math_random_float":
+                return ["random()", ATOM];
             case "math_trig":
             case "math_round":
                 return [

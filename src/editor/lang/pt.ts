@@ -207,6 +207,8 @@ const pt: Texts = {
         turtle: "Tartaruga",
         turtle_hint:
             "Desenha a partir de % com uma tartaruga programada em blocos",
+        button_program: "Programa",
+        button_program_hint: "Abre em blocos o programa que a sua seta executa",
         format_program: "Formatar",
         syntax_line: "Escrita não compreendida na linha %",
         program_syntax: "Escrita não compreendida",
