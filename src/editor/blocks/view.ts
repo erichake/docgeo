@@ -50,7 +50,7 @@ export function blocksView(view: BlocksView) {
             (shown === view.key || shown === "") &&
             same(blocks.written, view.source);
         shown = view.key;
-        if (kept) return;
+        if (kept) return blocks.resume();
         const program = parsed(view.source);
         if (!program || !blocks.load(program, view.degrees)) {
             shown = null;

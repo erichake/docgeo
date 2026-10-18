@@ -553,6 +553,9 @@ export interface BlocksEditor {
     load(program: Program, degrees: boolean): boolean;
     // The program the blocks write.
     readonly written: string;
+    // The field being typed in, its editor closed by the panel built again,
+    // edited again as it was.
+    resume(): void;
 }
 
 // The workspace, in `host`, `changed` told the program its blocks write
@@ -594,15 +597,12 @@ export async function blocksEditor(
     let written = "";
     let timer = 0;
     // Plugging a block in, choosing in a dropdown or typing a number all
-    // end in a change of the program the blocks write.
+    // end in a change of the program the blocks write: a number or a text as
+    // it is typed, as in DGPad.
     const settle = () => {
         clearTimeout(timer);
         timer = window.setTimeout(() => {
-            if (
-                workspace.isDragging() ||
-                Blockly.WidgetDiv.isVisible() ||
-                Blockly.DropDownDiv.isVisible()
-            )
+            if (workspace.isDragging() || Blockly.DropDownDiv.isVisible())
                 return settle();
             const program = blocksProgram(
                 Blockly.serialization.workspaces.save(
@@ -612,10 +612,21 @@ export async function blocksEditor(
             );
             if (program === null || program === written) return;
             written = program;
+            const input = Blockly.WidgetDiv.getDiv()?.querySelector("input");
+            typing = input && edited ? { field: edited, input } : null;
             changed(program);
         }, 250);
     };
+    // The field being typed in when its program was applied: the panel, built
+    // again, takes the workspace out of the page, which closes its editor.
+    let edited: Blockly.Field | null = null;
+    let typing: { field: Blockly.Field; input: HTMLInputElement } | null = null;
     workspace.addChangeListener((event) => {
+        if (event.type === Blockly.Events.BLOCK_FIELD_INTERMEDIATE_CHANGE) {
+            const { blockId, name } =
+                event as Blockly.Events.BlockFieldIntermediateChange;
+            edited = workspace.getBlockById(blockId!)!.getField(name!);
+        }
         if (!event.isUiEvent) settle();
     });
     return {
@@ -634,6 +645,15 @@ export async function blocksEditor(
         },
         get written() {
             return written;
+        },
+        resume() {
+            if (!typing || Blockly.WidgetDiv.isVisible()) return;
+            const { field, input } = typing;
+            typing = null;
+            field.showEditor();
+            Blockly.WidgetDiv.getDiv()!
+                .querySelector("input")!
+                .setSelectionRange(input.selectionStart, input.selectionEnd);
         },
     };
 }

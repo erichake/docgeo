@@ -1055,11 +1055,13 @@ ses méthodes internes et figé dans sa version de 2016.
 - **Section « Définition »** d'un programme (ou d'un nouveau programme) :
   bascule **Texte** / **Blocs**. Une tortue s'ouvre en blocs, un autre
   programme en texte ; un choix vaut ensuite pour la session. Le programme
-  s'applique à chaque changement des blocs, une fois le glisser, le menu ou
-  la saisie d'un nombre terminés (une étape d'annulation chacun) ; un
+  s'applique à chaque changement des blocs, une fois le glisser ou le menu
+  terminés, et pendant la saisie d'un nombre ou d'un texte, comme dans DGPad
+  (250 ms après la dernière frappe ; une étape d'annulation chacun) ; un
   nouveau programme est créé à son premier bloc. Le panneau, reconstruit
   après chaque changement, retrouve l'espace de travail tel qu'il était
-  (`blocks/view.ts`) ; une annulation hors du panneau recharge les blocs du
+  (`blocks/view.ts`), et rouvre le champ en cours de saisie que sa
+  reconstruction a fermé, curseur en place ; une annulation hors du panneau recharge les blocs du
   programme rétabli. Dans le panneau, ⌘-Z est celui de Blockly, comme
   celui du navigateur dans le texte.
 - **Bouton « Tortue »** (zone contextuelle d'un point, et de la liste d'une
