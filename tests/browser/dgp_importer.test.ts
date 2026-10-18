@@ -1377,16 +1377,23 @@ STL(L1,"c:#000000;s:0;sg:1");`,
             c,
             figure("decomposition_facteurs_premiers.dgp"),
         );
-        // Its text holds an input field.
-        expect(unsupported).toHaveLength(1);
-        expect(unsupported[0]).toMatch(/^Text\(/);
-        expect(
+        // Its field's onclick, which selects its text, is dropped.
+        expect(unsupported).toEqual([]);
+        const tex = () =>
             [...c.svg.dom().querySelectorAll("[data-tex]")].map((tex) =>
                 tex.getAttribute("data-tex"),
-            ),
-        ).toEqual([
+            );
+        expect(tex()).toEqual([
             "$$294=2\\times3\\times7\\times7$$",
             "$$294=2\\times3\\times7^{2}$$",
+        ]);
+        const field = c.svg.dom().querySelector("input")!;
+        field.value = "360";
+        field.dispatchEvent(new Event("input"));
+        c.OBJS.update();
+        expect(tex()).toEqual([
+            "$$360=2\\times2\\times2\\times3\\times3\\times5$$",
+            "$$360=2^{3}\\times3^{2}\\times5$$",
         ]);
     });
 

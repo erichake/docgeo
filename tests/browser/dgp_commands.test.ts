@@ -517,9 +517,9 @@ Text("%M[2]%",0,0,10,10);`,
         const unsupported = importDgp(
             c,
             `E1=Expression("E1","","","","2","0","0");
-Text("<input type=button onclick=\\"alert(1)\\" target=\\"E1\\">",0,0,10,10);
 Text("§ name=\\"run\\"\\nalert(1)\\n§",0,0,10,10);
 Text("<script>alert(1)</script>",0,0,10,10);
+Text("<script>alert(1)</script><b onclick=\\"x\\">a</b>",0,0,10,10);
 Text("<iframe src=\\"https://x.org\\"></iframe>",0,0,10,10);
 Text("<img src=x>",0,0,10,10);
 Text("OK",0,0,10,10);`,
@@ -528,5 +528,22 @@ Text("OK",0,0,10,10);`,
         expect(
             c.OBJS.V.filter((object) => object instanceof panel_object),
         ).toHaveLength(1);
+    });
+
+    it("drops the scripts of their elements' events", () => {
+        const c = createConstruction();
+        const unsupported = importDgp(
+            c,
+            `E1=Expression("E1","","","","2","0","0");
+Text("<input onclick=\\"alert(1)\\" onInput=\\"alert(2)\\" target=\\"E1\\">",0,0,10,10);`,
+        );
+        expect(unsupported).toEqual([]);
+        expect(panel(c).content).toBe('<input target="E1">');
+        const field = panel(c).dom.dom().querySelector("input")!;
+        expect(field.getAttributeNames()).toEqual(["target", "style"]);
+        field.value = "5";
+        field.dispatchEvent(new Event("input"));
+        c.OBJS.update();
+        expect(value(c, "E1")).toBe(5);
     });
 });

@@ -32,9 +32,14 @@ Les développements doivent servir en priorité :
 - l'import sûr des formats `.dgp` et `.ggb`, toute exécution de leur contenu
   devant avoir lieu dans un environnement sécurisé et strictement contrôlé (les
   scripts GeoGebra ne sont jamais exécutés, ni le JavaScript et le HTML actif
-  des figures DGPad, ignorés et signalés). Les scripts des expressions DGPad,
-  dont les programmes Blockly qui calculent une expression (`oncompute`),
-  compilés en JavaScript par DGPad, sont lus par l'analyseur de
+  des figures DGPad, ignorés et signalés). Un texte DGPad est gardé sous
+  forme assainie (`src/objects/panel_object.ts`) : ses champs
+  `<input target="E">` changent le nombre de l'expression `E` comme une
+  manipulation. Les attributs d'événement de ses éléments (`onclick`…, un
+  champ qui sélectionne son texte quand on clique) sont retirés à l'import,
+  sans être signalés : son HTML ne garde aucun script. Les scripts des
+  expressions DGPad, dont les programmes Blockly qui calculent une
+  expression (`oncompute`), compilés en JavaScript par DGPad, sont lus par l'analyseur de
   `src/import/dgp_formula.ts` : n'étendre sa grammaire fermée qu'aux
   constructions qu'utilisent des figures réelles. Leur texte n'est jamais
   exécuté par le moteur JavaScript du navigateur. Pour les performances, un

@@ -70,6 +70,7 @@ import {
     panelNames,
     panelTargets,
     parsePanel,
+    withoutEvents,
 } from "../objects/panel_object";
 import { createImage } from "../objects/image_object";
 import { createFormulaPoint } from "../objects/formula_point_object";
@@ -2498,7 +2499,7 @@ const COMMANDS = new Map<string, CommandDefinition>([
                 { ...string, optional: true },
             ],
             validate: (args, lineNumber, variables) => {
-                const nodes = parsePanel(literalString(args[0]));
+                const nodes = parsePanel(withoutEvents(literalString(args[0])));
                 validateReferences(
                     [...panelFormulas(nodes).values()].flatMap((formula) => [
                         ...formulaIdentifiers(formula),
@@ -2516,7 +2517,7 @@ const COMMANDS = new Map<string, CommandDefinition>([
                     validatePanelStyle(literalString(args[5]), lineNumber);
             },
             execute: (context, args) => {
-                const content = args[0] as string;
+                const content = withoutEvents(args[0] as string);
                 const style = properties((args[5] as string | undefined) ?? "");
                 const panel = createPanel(
                     context.construction,

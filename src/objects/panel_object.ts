@@ -67,6 +67,22 @@ const LINK = /^https?:\/\//i;
 // A resource other than an embedded image.
 const EXTERNAL = /image-set\(|url\(\s*(?!["']?data:image\/)/i;
 
+// DGPad's text without its elements' event attributes, scripts the import
+// drops (a field selecting its text when clicked): a text that keeps another
+// script is still refused by parsePanel.
+export function withoutEvents(html: string): string {
+    const { head, body } = new DOMParser().parseFromString(html, "text/html");
+    let dropped = false;
+    body.querySelectorAll("*").forEach((element) =>
+        element.getAttributeNames().forEach((name) => {
+            if (!/^on/i.test(name)) return;
+            element.removeAttribute(name);
+            dropped = true;
+        }),
+    );
+    return dropped && !head.childNodes.length ? body.innerHTML : html;
+}
+
 // Only the allowed elements, attributes and styles are kept, so that
 // nothing in it runs or loads. Throws on a script (DGPad's "§…§" buttons,
 // an element or attribute that holds one), and on an element it doesn't

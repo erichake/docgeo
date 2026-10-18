@@ -395,7 +395,8 @@ la figure, autour de la verticale de O dans l'espace, sa hauteur gardée),
 10. Une formule donne l'angle dans l'unité d'angle de la figure.
 11. Le texte de DGPad, dont seuls sont gardés une liste fermée d'éléments,
     d'attributs et de styles (`src/objects/panel_object.ts`) : un texte qui
-    contient un script, ou un élément inconnu, est refusé. Ses parties
+    contient un script, ou un élément inconnu, est refusé (l'import `.dgp`
+    retire d'abord les attributs d'événement, `onclick`…, de ses éléments). Ses parties
     `%formule%` affichent leur valeur (`%%` est un `%`), ses parties `$TeX$`
     sont dessinées par KaTeX ; un champ `target="E"` change le nombre de
     l'expression `E` (état élève de `E`). Position et taille intérieure en
