@@ -82,6 +82,7 @@ function manipulate(c: construction): void {
             object instanceof expression_object &&
             !object.formula &&
             !object.program &&
+            !object.global &&
             typeof object.value === "number"
         )
             object.value = object.checkbox

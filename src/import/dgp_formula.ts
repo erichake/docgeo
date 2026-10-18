@@ -719,7 +719,7 @@ class FormulaParser {
             : right;
         if (node.kind === "identifier") return this.assign(node.name, value);
         const { name, indices } = listItem(node);
-        this.declare(name);
+        if (globalOf(name) === null) this.declare(name);
         return { kind: "assignItem", name, indices, value };
     }
 
@@ -1379,6 +1379,8 @@ function nodeNames(node: FormulaNode): string[] {
             return [node.name];
         case "method":
             return READ_METHODS.has(node.method) ? [node.object] : [];
+        case "assignItem":
+            return [node.name];
         case "turtle": {
             const [name] = node.args;
             return (node.fn === "TURTLE_GET" || node.fn === "TURTLE_LENGTH") &&
@@ -1430,7 +1432,9 @@ export function programTargets(program: Program): Set<string> {
             !LIST_METHODS.has(node.method) &&
             !SKIPPED_METHODS.has(node.method)
                 ? [node.object]
-                : [],
+                : node.kind === "assignItem" && globalOf(node.name) !== null
+                  ? [node.name]
+                  : [],
         ),
     );
 }
@@ -1990,14 +1994,13 @@ function ownSlot(slot: number, frame: Frame): ScriptValue[] | null {
     return Array.isArray(list) ? (frame.slots[slot] = own(list, frame)) : null;
 }
 
-// The item at these indices of one of the script's own lists, made its own
-// as are the lists holding it.
+// The item at these indices of a list the script owns, made its own as are
+// the lists holding it.
 function ownItem(
-    slot: number,
+    list: ScriptValue[] | null,
     indices: Code[],
     frame: Frame,
 ): ScriptValue[] | null {
-    let list = ownSlot(slot, frame);
     for (const index of indices) {
         const i = realPart(index(frame));
         if (!list || i === null) return null;
@@ -2239,17 +2242,29 @@ function compileNode(node: FormulaNode, scope: Scope): Code {
                 ? value
                 : (frame) => (frame.slots[slot] = value(frame));
         }
+        // An item of a Blockly global's list, which DGPad's programs change
+        // in place: the global set to the changed list.
         case "assignItem": {
-            const slot = scope.slots.get(node.name)!;
+            const { name } = node;
+            const slot = scope.slots.get(name);
             const indices = node.indices.map(compile);
             const last = indices.pop()!;
             const value = compile(node.value);
             return (frame) => {
-                const list = ownItem(slot, indices, frame);
+                const read =
+                    slot === undefined && frame.env.resolveIdentifier(name);
+                const global = Array.isArray(read) ? own(read, frame) : null;
+                const list = ownItem(
+                    slot === undefined ? global : ownSlot(slot, frame),
+                    indices,
+                    frame,
+                );
                 const index = realPart(last(frame));
                 const item = value(frame);
                 if (!list || index === null || item === null) return null;
                 list[index] = item;
+                if (global)
+                    frame.env.callMethod?.(name, "setExpression", [global]);
                 return item;
             };
         }
@@ -2645,7 +2660,10 @@ function compileMethod(
     const slot = scope.slots.get(object);
     const indices = node.indices.map((index) => compileNode(index, scope));
     return (frame) => {
-        const list = slot === undefined ? null : ownItem(slot, indices, frame);
+        const list =
+            slot === undefined
+                ? null
+                : ownItem(ownSlot(slot, frame), indices, frame);
         const values = args.map((arg) => arg(frame));
         if (!list || values.includes(null)) return null;
         if (method === "pop") return list.pop() ?? null;
@@ -3022,6 +3040,7 @@ function translateNode(
             return `length(${translate(node.target)})`;
         // As ownItem, false once it has given up on the list.
         case "assignItem": {
+            if (globalOf(node.name) !== null) break;
             const [list, i, value] = [t.temp(), t.temp(), t.temp()];
             const indices = node.indices
                 .slice(0, -1)

@@ -1371,6 +1371,28 @@ STL(L1,"c:#000000;s:0;sg:1");`,
         expect(poly6.hidden).toBe(1);
     });
 
+    it("draws at each frame of an animated NaN, adding to a global's list", async () => {
+        const c = createConstruction();
+        expect(await importDgpFromUrl(c, figure("urne_00_01_01.dgp"))).toEqual(
+            [],
+        );
+        const a = c.getObj("a") as expression_object;
+        const global = (name: string) =>
+            (c.getObj(name) as expression_object).value;
+        (c.getObj("blk_btn0") as button_object).run();
+        c.flush();
+        for (let i = 0; i < 4; i++) {
+            a.animate(0.1);
+            c.gesture(a, "drag");
+            c.flush();
+        }
+        expect(a.isCursor).toBe(false);
+        expect(global("TIRAGES")).toBe(5);
+        const results = global("RESULTATS") as number[];
+        expect(results[0] + results[1]).toBe(5);
+        expect(results[2]).toBe(0);
+    });
+
     it("draws a turtle setting the increment of a point declared after it", async () => {
         const c = createConstruction();
         const unsupported = await importDgpFromUrl(

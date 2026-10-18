@@ -436,6 +436,16 @@ GLOBAL_GET("côté")`);
             new Set([globalName("côté")]),
         );
         expect(programTargets(program)).toEqual(new Set([globalName("côté")]));
+        // An item of a global's list, changed in place in DGPad.
+        const saved = [0, [0, 0]];
+        side = saved;
+        const item = parseProgram(
+            'var i=2;(GLOBAL_GET("côté"))[i-1][1]=(GLOBAL_GET("côté"))[0]+5;GLOBAL_GET("côté")',
+        );
+        expect(evaluateProgram(item, env)).toEqual([0, [0, 5]]);
+        expect(saved).toEqual([0, [0, 0]]);
+        expect(programReferences(item)).toEqual(new Set([globalName("côté")]));
+        expect(programTargets(item)).toEqual(new Set([globalName("côté")]));
         expect(
             run(
                 "function f(p) { return p.slice(-1)[0]; } [f([1,2,3]), [4,5,6].slice(1,-1), null + 1]",

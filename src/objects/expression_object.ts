@@ -615,6 +615,7 @@ export class expression_object extends construction_object {
     get isCursor(): boolean {
         return (
             typeof this.value === "number" &&
+            !Number.isNaN(this.value) &&
             this.min !== null &&
             this.max !== null
         );

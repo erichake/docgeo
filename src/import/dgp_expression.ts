@@ -70,6 +70,8 @@ function parseExpressionValue(value: string): number | number[] | null {
     if (STYLE_NUMBER.test(value)) return Number(value);
     // A checkbox's value.
     if (value === "true" || value === "false") return Number(value === "true");
+    // Animated, a clock: its dependents recomputed at each frame.
+    if (value === "NaN") return NaN;
     return parseVectorLiteral(value) ?? parseComplexLiteral(value);
 }
 
