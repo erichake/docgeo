@@ -1,5 +1,5 @@
 /// <reference types="vite/client" />
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import {
     evaluateProgram,
     NO_VIEW,
@@ -64,6 +64,12 @@ const FIGURES = import.meta.glob<string>(
     ],
     { query: "?raw", import: "default", eager: true },
 );
+
+const BUTTONS = import.meta.glob<string>("../dgp/Blockly/urne_et_boules.dgp", {
+    query: "?raw",
+    import: "default",
+    eager: true,
+})["../dgp/Blockly/urne_et_boules.dgp"];
 
 const EVENTS = import.meta.glob<string>("../dgp/Yves_10_Blockly/*.dgp", {
     query: "?raw",
@@ -178,8 +184,43 @@ return TURTLE_RESULT();`;
             "function f(x) { return x; } f(2)",
             "function f(x) { return; } f(2)",
             "var t = []; t.push(1); t",
-            "L[0]",
+            "L.slice(-1)[0]",
         ].forEach((source) => expect(programBlocks(source, true)).toBeNull());
+    });
+
+    it("reads DGPad's lists and random integers", () => {
+        vi.spyOn(Math, "random").mockReturnValue(0.7);
+        expect(
+            roundTrip(`var t = listsRepeat(2, 4);
+t[3 - 1] = t[1 - 1] + [a, 5, 1, 2][n] + Math.floor(Math.random() * 6) + [].length;
+GLOBAL_SET("R", t);
+(GLOBAL_GET("R"))[t.length - 1] = (GLOBAL_GET("R"))[(Math.floor(Math.random()*(Math.abs(1-(n))+1)+(1+(n)-Math.abs(1-(n)))/2))-1];
+return [t, [a]][2 - 1][1 - 1];
+function listsRepeat(blockly_local_value, blockly_local_n) {
+  var blockly_var_array = [];
+  for (var blockly_var_i = 0; blockly_var_i < blockly_local_n; blockly_var_i++) {
+    blockly_var_array[blockly_var_i] = blockly_local_value;
+  }
+  return blockly_var_array;
+}`),
+        ).toBe(`function listsRepeat(value, n) {
+    var list = [];
+    for (var k = 0; k < n; k++) {
+        list[k] = value;
+    }
+    return list;
+}
+t = listsRepeat(2, 4);
+t[3 - 1] = t[1 - 1] + [a, 5, 1, 2][n + 1 - 1] + floor(random() * 6) + [].length;
+GLOBAL_SET("R", t);
+GLOBAL_GET("R")[t.length - 1] = GLOBAL_GET("R")[floor(random() * (abs(1 - n) + 1) + (1 + n - abs(1 - n)) / 2) - 1];
+return [t, [a]][2 - 1][1 - 1];`);
+        const buttons = [
+            ...BUTTONS.matchAll(/^BLK\(blk_btn\d*,(.*)\);$/gm),
+        ].map((match) => JSON.parse(match[1]).onprogram.sync as string);
+        expect(buttons).toHaveLength(4);
+        buttons.forEach((program) => roundTrip(program));
+        vi.restoreAllMocks();
     });
 
     it("writes DGPad's procedures and global variables", () => {
@@ -217,10 +258,7 @@ return TURTLE_RESULT();`);
             ),
         );
         expect(programs).toHaveLength(10);
-        // Read with blocks but those taking the item of an object.
-        expect(
-            programs.filter((program) => programBlocks(program, true)),
-        ).toHaveLength(7);
+        programs.forEach((program) => roundTrip(program));
         expect(
             roundTrip(
                 programs.find((program) => program.includes("Math.min"))!,

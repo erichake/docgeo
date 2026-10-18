@@ -1,4 +1,9 @@
-import type { FormulaNode, Program, Statement } from "../../import/dgp_formula";
+import type {
+    FormulaFn,
+    FormulaNode,
+    Program,
+    Statement,
+} from "../../import/dgp_formula";
 
 // A program and its blocks, both ways, as Blockly saves its workspace
 // (serialization.workspaces): the program's text stays the figure's source,
@@ -144,6 +149,57 @@ const FUNCTIONS = Object.fromEntries(
 const globalOf = (name: string): string | null =>
     name.startsWith("GLOBAL ") ? name.slice(7) : null;
 
+// The function Blockly's "list with an item repeated" calls, which the
+// program defines.
+const LISTS_REPEAT = "listsRepeat";
+const LISTS_REPEAT_FUNCTION = [
+    `function ${LISTS_REPEAT}(value, n) {`,
+    "    var list = [];",
+    "    for (var k = 0; k < n; k++) {",
+    "        list[k] = value;",
+    "    }",
+    "    return list;",
+    "}",
+];
+
+const isListsRepeat = (statement: Statement): boolean =>
+    statement.kind === "function" &&
+    statement.name === LISTS_REPEAT &&
+    statement.params.length === 2;
+
+// A node read through the shape it may have.
+type Loose = FormulaNode & { left?: Loose; right?: Loose; args?: Loose[] };
+
+// DGPad's random integer from a to b, as its Blockly writes it.
+function randomInt(a: FormulaNode, b: FormulaNode): FormulaNode {
+    const call = (fn: FormulaFn, ...args: FormulaNode[]): FormulaNode => ({
+        kind: "call",
+        fn,
+        args,
+    });
+    const binary = (
+        op: "+" | "-" | "*" | "/",
+        left: FormulaNode,
+        right: FormulaNode,
+    ): FormulaNode => ({ kind: "binary", op, left, right });
+    const span = call("abs", binary("-", a, b));
+    return call(
+        "floor",
+        binary(
+            "+",
+            binary(
+                "*",
+                call("random"),
+                binary("+", span, { kind: "number", value: 1 }),
+            ),
+            binary("/", binary("-", binary("+", a, b), span), {
+                kind: "number",
+                value: 2,
+            }),
+        ),
+    );
+}
+
 class Unsupported extends Error {}
 
 function unsupported(): never {
@@ -205,14 +261,20 @@ function increment(node: FormulaNode, name: string): FormulaNode | null {
         node.right.value === 1
     )
         node = node.left;
-    return node.kind === "assign" &&
-        node.name === name &&
-        node.value.kind === "binary" &&
-        node.value.op === "+" &&
-        node.value.left.kind === "identifier" &&
-        node.value.left.name === name
-        ? node.value.right
+    return node.kind === "assign" && node.name === name
+        ? added(node.value, name)
         : null;
+}
+
+// What "v + d", or Blockly's "Math.plus(v, d)", adds to v.
+function added(node: FormulaNode, name: string): FormulaNode | null {
+    const [left, right] =
+        node.kind === "binary" && node.op === "+"
+            ? [node.left, node.right]
+            : node.kind === "call" && node.fn === "plus"
+              ? node.args
+              : [];
+    return left?.kind === "identifier" && left.name === name ? right : null;
 }
 
 function readsName(statements: Statement[], name: string): boolean {
@@ -251,6 +313,7 @@ class Decompiler {
     private readonly used = new Set<string>();
     // The program's procedures, by name: the names of their parameters.
     private readonly procedures = new Map<string, string[]>();
+    private repeats = false;
 
     constructor(private readonly degrees: boolean) {}
 
@@ -272,6 +335,10 @@ class Decompiler {
     }
 
     workspace(body: Statement[], locals: ReadonlySet<string>): WorkspaceState {
+        if (body.some(isListsRepeat)) {
+            this.repeats = true;
+            body = body.filter((statement) => !isListsRepeat(statement));
+        }
         // Blockly's "var f = function(){…}; f()".
         const [fn, call] = body;
         if (
@@ -531,19 +598,30 @@ class Decompiler {
                       inputs: { VALUE: value(this.value(node.value)) },
                   };
         }
+        if (node.kind === "assignItem") {
+            const { name, indices } = node;
+            const list = indices
+                .slice(0, -1)
+                .reduce<FormulaNode>(
+                    (target, index) => ({ kind: "index", target, index }),
+                    { kind: "identifier", name },
+                );
+            return {
+                type: "dg_list_set",
+                inputs: {
+                    LIST: value(this.value(list)),
+                    INDEX: value(this.position(indices[indices.length - 1])),
+                    VALUE: value(this.value(node.value)),
+                },
+            };
+        }
         if (node.kind === "method") {
             if (node.indices.length) unsupported();
             const global = globalOf(node.object);
             if (global !== null && node.method === "setExpression") {
                 const [assigned] = node.args;
                 // GLOBAL_INC's "g = g + d".
-                const delta =
-                    assigned.kind === "binary" &&
-                    assigned.op === "+" &&
-                    assigned.left.kind === "identifier" &&
-                    assigned.left.name === node.object
-                        ? assigned.right
-                        : null;
+                const delta = added(assigned, node.object);
                 return {
                     type: delta ? "dg_global_inc" : "dg_global_set",
                     fields: { NAME: global },
@@ -688,6 +766,30 @@ class Decompiler {
         return unsupported();
     }
 
+    // The rank, from 1, of the item at `index`, which Blockly writes "i-1".
+    private position(index: FormulaNode): BlockState {
+        if (
+            index.kind === "binary" &&
+            index.op === "-" &&
+            index.right.kind === "number" &&
+            index.right.value === 1
+        )
+            return this.value(index.left);
+        return index.kind === "number"
+            ? number(index.value + 1)
+            : this.arithmetic("ADD", index, { kind: "number", value: 1 });
+    }
+
+    private list(items: FormulaNode[]): BlockState {
+        return {
+            type: "lists_create_with",
+            extraState: { itemCount: items.length },
+            inputs: Object.fromEntries(
+                items.map((item, i) => [`ADD${i}`, value(this.value(item))]),
+            ),
+        };
+    }
+
     // An angle in degrees.
     private angle(node: FormulaNode): BlockState {
         if (node.kind === "call" && node.fn === "°")
@@ -741,7 +843,7 @@ class Decompiler {
                 };
             case "vector":
                 if (node.items.length !== 2 && node.items.length !== 3)
-                    unsupported();
+                    return this.list(node.items);
                 return {
                     type: node.items.length === 2 ? "dg_point" : "dg_point3",
                     inputs: Object.fromEntries(
@@ -753,6 +855,35 @@ class Decompiler {
                 };
             case "call":
                 return this.call(node);
+            case "index":
+                return {
+                    type: "dg_list_get",
+                    inputs: {
+                        LIST: value(this.value(node.target)),
+                        INDEX: value(this.position(node.index)),
+                    },
+                };
+            case "length":
+                return {
+                    type: "lists_length",
+                    inputs: { VALUE: value(this.value(node.target)) },
+                };
+            case "userCall": {
+                const [item, count] = node.args;
+                if (
+                    node.name !== LISTS_REPEAT ||
+                    !this.repeats ||
+                    node.args.length !== 2
+                )
+                    unsupported();
+                return {
+                    type: "lists_repeat",
+                    inputs: {
+                        ITEM: value(this.value(item)),
+                        NUM: value(this.value(count)),
+                    },
+                };
+            }
             // DGPad's later text join: "[a, b].join('')".
             case "join":
                 if (
@@ -807,6 +938,21 @@ class Decompiler {
         });
         if (fn in SINGLE) return single("math_single", SINGLE[fn]);
         if (fn in TRIG) return single("math_trig", TRIG[fn]);
+        // Its terms: floor(random()*(abs(a-b)+1)+…).
+        const span = (a as Loose | undefined)?.left?.right?.left?.args?.[0];
+        if (
+            fn === "floor" &&
+            span?.kind === "binary" &&
+            JSON.stringify(randomInt(span.left, span.right)) ===
+                JSON.stringify(node)
+        )
+            return {
+                type: "math_random_int",
+                inputs: {
+                    FROM: value(this.value(span.left)),
+                    TO: value(this.value(span.right)),
+                },
+            };
         if (fn in ROUND) return single("math_round", ROUND[fn]);
         switch (fn) {
             case "°":
@@ -837,20 +983,7 @@ class Decompiler {
                 return {
                     type: "math_on_list",
                     fields: { OP: fn.toUpperCase() },
-                    inputs: {
-                        LIST: {
-                            block: {
-                                type: "lists_create_with",
-                                extraState: { itemCount: args.length },
-                                inputs: Object.fromEntries(
-                                    args.map((arg, i) => [
-                                        `ADD${i}`,
-                                        value(this.value(arg)),
-                                    ]),
-                                ),
-                            },
-                        },
-                    },
+                    inputs: { LIST: { block: this.list(args) } },
                 };
         }
         return unsupported();
@@ -1054,6 +1187,12 @@ export function stackState(
     };
 }
 
+// A list a program can change an item of.
+const assignable = (block: BlockState | undefined): boolean =>
+    block?.type === "variables_get" ||
+    block?.type === "dg_global_get" ||
+    (block?.type === "dg_list_get" && assignable(block.inputs?.LIST?.block));
+
 const paramsOf = (block: BlockState): string[] =>
     ((block.extraState?.params ?? []) as (string | { name: string })[]).map(
         (param) => (typeof param === "string" ? param : param.name),
@@ -1064,6 +1203,7 @@ class Generator {
     // The names the program uses, which a counter mustn't take.
     private readonly taken = new Set<string>();
     private depth = 0;
+    private repeats = false;
 
     constructor(
         state: WorkspaceState,
@@ -1114,6 +1254,7 @@ class Generator {
                 .map(({ fields }) => `${this.format(String(fields!.NAME))};`),
             ...this.statements(root.next?.block, ""),
         ];
+        if (this.repeats) body.unshift(...LISTS_REPEAT_FUNCTION);
         if (root.type !== "dg_turtle") return body.join("\n");
         return [
             `TURTLE_INIT(${quoted(root.data ?? "")}, ${this.format(String(root.fields!.POINT))});`,
@@ -1282,6 +1423,12 @@ class Generator {
                     quoted(String(fields.NAME)),
                     this.arg(block, "DELTA", "1"),
                 );
+            // Of a variable's list or a global's: a list built is lost.
+            case "dg_list_set":
+                if (!assignable(block.inputs?.LIST?.block)) return [];
+                return line(
+                    `${this.item(block)} = ${this.arg(block, "VALUE")};`,
+                );
             case "procedures_callnoreturn":
                 return call(
                     this.format(String(block.extraState!.name)),
@@ -1336,6 +1483,11 @@ class Generator {
             );
         // A value left alone does nothing.
         return [];
+    }
+
+    // Its item at INDEX, counted from 1.
+    private item(block: BlockState): string {
+        return `${this.operand(block, "LIST", ATOM, "[]")}[${this.operand(block, "INDEX", SUM, "1")} - 1]`;
     }
 
     // A counter of its own for each loop it is nested in.
@@ -1407,6 +1559,36 @@ class Generator {
                 ];
             case "math_random_float":
                 return ["random()", ATOM];
+            case "math_random_int": {
+                const a = this.operand(block, "FROM", SUM);
+                const b = this.operand(block, "TO", PRODUCT);
+                return [
+                    `floor(random() * (abs(${a} - ${b}) + 1) + (${a} + ${b} - abs(${a} - ${b})) / 2)`,
+                    ATOM,
+                ];
+            }
+            // Its item binds as tightly as a name.
+            case "dg_list_get":
+                return [this.item(block), ATOM];
+            case "lists_create_with":
+                return [
+                    `[${Array.from(
+                        { length: Number(block.extraState?.itemCount ?? 0) },
+                        (_, i) => this.arg(block, `ADD${i}`),
+                    ).join(", ")}]`,
+                    ATOM,
+                ];
+            case "lists_repeat":
+                this.repeats = true;
+                return [
+                    `${LISTS_REPEAT}(${this.arg(block, "ITEM")}, ${this.arg(block, "NUM")})`,
+                    ATOM,
+                ];
+            case "lists_length":
+                return [
+                    `${this.operand(block, "VALUE", ATOM, "[]")}.length`,
+                    ATOM,
+                ];
             // Of a list it builds.
             case "math_on_list": {
                 const list = block.inputs?.LIST?.block;

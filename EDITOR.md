@@ -1059,8 +1059,24 @@ ses méthodes internes et figé dans sa version de 2016.
   mises en forme comprises, et les blocs de ce texte le réécrivent à
   l'identique ; sur les tortues des figures DGPad des tests et sur des
   programmes qui éprouvent les priorités des opérateurs.
-- **Une instruction sans bloc** (fonction, liste modifiée, indice…) laisse
-  le programme en texte, avec un message ; on ne perd rien.
+- **Une instruction sans bloc** (fonction qui renvoie une valeur, `push`,
+  `slice`…) laisse le programme en texte, avec un message ; on ne perd
+  rien.
+- **Listes** (2026-10-18, pour les boutons de `urne_et_boules.dgp`) :
+  catégorie « Listes » avec les blocs de DGPad `L [ i ]` et `L [ i ] = v`
+  (`dg_list_get`, `dg_list_set`, élément compté depuis 1, écrit
+  `L[i - 1]` ; `L [ i ] = v` ne vise qu'une variable, une globale ou un de
+  leurs éléments : sur un autre bloc, il n'écrit rien), et ceux de Blockly
+  « créer une liste vide / avec », « liste avec l'élément … répété … fois »
+  (la fonction `listsRepeat` qu'écrit Blockly, recopiée en tête du
+  programme) et « longueur de » ; une liste littérale de 2 ou 3 éléments
+  reste un bloc « point ». Bloc « entier aléatoire entre » de Blockly,
+  sous la forme qu'écrit le Blockly de DGPad
+  (`floor(random() * (abs(a - b) + 1) + (a + b - abs(a - b)) / 2)`).
+  Les menus d'objets et de globales gardent les noms que citent les
+  programmes affichés, même absents de la figure (DGPad n'en change
+  rien) : sinon Blockly les remplace par le premier objet du menu, que le
+  programme réécrit viserait.
 - **Section « Définition »** d'un programme (ou d'un nouveau programme) :
   bascule **Texte** / **Blocs**. Une tortue s'ouvre en blocs, un autre
   programme en texte ; un choix vaut ensuite pour la session. Le programme

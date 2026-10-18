@@ -64,6 +64,22 @@ let figure: BlocksFigure;
 // The globals created in the blocks, the figure's once a program sets them.
 const created = new Set<string>();
 const globals = () => [...new Set([...figure.globals(), ...created])];
+// The objects the programs shown name, the figure's or not (DGPad sets
+// nothing of an object it lacks): their dropdowns keep them.
+const named = new Set<string>();
+const objects = () => [...new Set([...figure.objects(), ...named])];
+
+function nameObjects(block: BlockState | undefined): void {
+    if (!block) return;
+    const { NAME, OBJECT } = block.fields ?? {};
+    if (block.type.startsWith("dg_global_")) created.add(String(NAME));
+    else if (block.type === "dg_object") named.add(String(NAME));
+    else if (OBJECT !== undefined) named.add(String(OBJECT));
+    Object.values(block.inputs ?? {}).forEach((input) =>
+        nameObjects(input.block),
+    );
+    nameObjects(block.next?.block);
+}
 
 const options = (names: string[]): Blockly.MenuOption[] =>
     names.length ? names.map((name) => [name, name]) : [["?", ""]];
@@ -391,6 +407,27 @@ function defineBlocks(): void {
             style: "global_blocks",
             extensions: ["dg_global_name"],
         })),
+        // DGPad's, of an item counted from 1.
+        {
+            type: "dg_list_get",
+            message0: "%1 [ %2 ]",
+            args0: [{ type: "input_value", name: "LIST" }, number("INDEX")],
+            inputsInline: true,
+            output: null,
+            style: "list_blocks",
+        },
+        {
+            type: "dg_list_set",
+            message0: "%1 [ %2 ] = %3",
+            args0: [
+                { type: "input_value", name: "LIST" },
+                number("INDEX"),
+                { type: "input_value", name: "VALUE" },
+            ],
+            inputsInline: true,
+            ...statement,
+            style: "list_blocks",
+        },
         {
             type: "dg_style_rgb",
             message0: msg("STYLE_RGB"),
@@ -429,14 +466,8 @@ function registerObjectFields(): void {
                 name,
             );
         };
-    Blockly.Extensions.register(
-        "dg_object_name",
-        field("NAME", () => figure.objects()),
-    );
-    Blockly.Extensions.register(
-        "dg_style_object",
-        field("OBJECT", () => figure.objects()),
-    );
+    Blockly.Extensions.register("dg_object_name", field("NAME", objects));
+    Blockly.Extensions.register("dg_style_object", field("OBJECT", objects));
     Blockly.Extensions.register(
         "dg_turtle_name",
         field("NAME", () => figure.turtles()),
@@ -609,6 +640,7 @@ function toolbox(kinds: string[], owner: string, starts: string[]) {
                     block("math_constant"),
                     block("math_round", { NUM: num(3.1) }),
                     block("math_random_float"),
+                    block("math_random_int", { FROM: num(1), TO: num(6) }),
                     block("math_modulo", {
                         DIVIDEND: num(64),
                         DIVISOR: num(10),
@@ -629,6 +661,22 @@ function toolbox(kinds: string[], owner: string, starts: string[]) {
                 name: text("CAT_TEXT"),
                 categorystyle: "text_category",
                 contents: [block("text"), block("text_join")],
+            },
+            {
+                kind: "category",
+                name: text("CAT_LISTS"),
+                categorystyle: "list_category",
+                contents: [
+                    {
+                        ...block("lists_create_with"),
+                        extraState: { itemCount: 0 },
+                    },
+                    block("lists_create_with"),
+                    block("lists_repeat", { ITEM: num(0), NUM: num(5) }),
+                    block("lists_length"),
+                    block("dg_list_get", { INDEX: num(1) }),
+                    block("dg_list_set", { INDEX: num(1) }),
+                ],
             },
             {
                 kind: "category",
@@ -1045,6 +1093,8 @@ export async function blocksEditor(
                 },
                 variables: [...variables.values()],
             };
+            named.clear();
+            state.blocks!.blocks.forEach(nameObjects);
             Blockly.Events.disable();
             Blockly.serialization.workspaces.load(state, workspace);
             // Those the user folded stay so, with their blocks of now.
