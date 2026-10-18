@@ -47,6 +47,7 @@ import {
     createExpression,
     expression_object,
     listArrow,
+    runProgram,
     type ExpressionFormula,
     type SliderBounds,
     type ExpressionProgram,
@@ -222,6 +223,8 @@ interface CommandContext {
     // (see SetCoords' execute) and can keep changing afterward (e.g. on
     // window resize).
     labelOrigin: Vec2;
+    // The "oninit" programs, run once the figure is read (see BLK).
+    inits: ExpressionProgram[];
 }
 
 interface CommandDefinition {
@@ -463,6 +466,20 @@ function formulaRefs(
         [...names]
             .filter((name) => !free.includes(name))
             .map((name) => [name, variables.get(name)!]),
+    );
+}
+
+// The objects a program styles or sets that the figure has: styling one it
+// lacks (a typo of its author, or one DGPad deleted) changes nothing.
+function programTargetRefs(
+    program: Program,
+    variables: Map<string, construction_object>,
+): Map<string, construction_object> {
+    return new Map(
+        [...programTargets(program)].flatMap((name) => {
+            const target = variables.get(name);
+            return target ? [[name, target]] : [];
+        }),
     );
 }
 
@@ -1329,12 +1346,7 @@ function executeExpression(
         program = {
             program: parsed,
             refs: formulaRefs(programReferences(parsed), context.variables),
-            targets: new Map(
-                [...programTargets(parsed)].flatMap((name) => {
-                    const target = context.variables.get(name);
-                    return target ? [[name, target]] : [];
-                }),
-            ),
+            targets: programTargetRefs(parsed, context.variables),
             vec3: context.is3D,
         };
         applyViewRestrictions(context, parsed);
@@ -3220,10 +3232,7 @@ const COMMANDS = new Map<string, CommandDefinition>([
                             programReferences(program),
                             context.variables,
                         ),
-                        targets: formulaRefs(
-                            programTargets(program),
-                            context.variables,
-                        ),
+                        targets: programTargetRefs(program, context.variables),
                         vec3: context.is3D,
                     },
                 );
@@ -3238,8 +3247,10 @@ const COMMANDS = new Map<string, CommandDefinition>([
             // and a point's turtle ("onlogo") is compiled into the
             // Expression its List draws. An Expression's "onchange" runs
             // when its value changes, a point's "ondrag", "onmousedown" and
-            // "onmouseup" at these gestures (see event_object.ts). The other
-            // programs never run.
+            // "onmouseup" at these gestures (see event_object.ts). The
+            // "oninit" of an Expression or a button runs once, as DGPad
+            // runs it when it opens the figure. The other programs never
+            // run.
             parameters: [object, string],
             validate: (args, lineNumber, variables) => {
                 const modes = JSON.parse(literalString(args[1]));
@@ -3252,6 +3263,7 @@ const COMMANDS = new Map<string, CommandDefinition>([
                 const events = Object.keys(modes).filter(
                     (mode) =>
                         mode === "onchange" ||
+                        mode === "oninit" ||
                         Object.prototype.hasOwnProperty.call(GESTURES, mode),
                 );
                 if (
@@ -3263,7 +3275,11 @@ const COMMANDS = new Map<string, CommandDefinition>([
                             !events.includes(mode),
                     ) ||
                     events.some((mode) =>
-                        mode === "onchange" ? kind !== "expression" : !point,
+                        mode === "onchange"
+                            ? kind !== "expression"
+                            : mode === "oninit"
+                              ? kind !== "expression" && kind !== "button"
+                              : !point,
                     )
                 )
                     throw new Error(
@@ -3281,31 +3297,34 @@ const COMMANDS = new Map<string, CommandDefinition>([
             execute: (context, args) => {
                 const modes = JSON.parse(args[1] as string);
                 const owner = args[0] as expression_object | point_object;
-                ["onchange", ...Object.keys(GESTURES)].forEach((mode) => {
-                    const sync = modes[mode]?.sync;
-                    if (typeof sync !== "string") return;
-                    const program = parseProgram(sync);
-                    createEvent(
-                        context.construction,
-                        `${owner.name}.${mode}`,
-                        owner,
-                        {
+                ["onchange", "oninit", ...Object.keys(GESTURES)].forEach(
+                    (mode) => {
+                        const sync = modes[mode]?.sync;
+                        if (typeof sync !== "string") return;
+                        const program = parseProgram(sync);
+                        const expression: ExpressionProgram = {
                             program,
                             refs: formulaRefs(
                                 programReferences(program),
                                 context.variables,
                             ),
-                            targets: new Map(
-                                [...programTargets(program)].map((name) => [
-                                    name,
-                                    context.variables.get(name)!,
-                                ]),
+                            targets: programTargetRefs(
+                                program,
+                                context.variables,
                             ),
                             vec3: context.is3D,
-                        },
-                        GESTURES[mode] ?? null,
-                    );
-                });
+                        };
+                        if (mode === "oninit") context.inits.push(expression);
+                        else
+                            createEvent(
+                                context.construction,
+                                `${owner.name}.${mode}`,
+                                owner,
+                                expression,
+                                GESTURES[mode] ?? null,
+                            );
+                    },
+                );
             },
         },
     ],
@@ -3543,7 +3562,7 @@ function orderSliderBounds(calls: DgpCall[]): DgpCall[] {
 
 // A BlocklyButton's program is the "onprogram" of its BLK, at the end of
 // the file: the button moves there, with its program, which may read any
-// object, followed by its style.
+// object, followed by its style and by its "oninit", left to the BLK.
 function attachButtonPrograms(calls: DgpCall[]): DgpCall[] {
     const buttons = new Map(
         calls.flatMap((call) =>
@@ -3553,6 +3572,7 @@ function attachButtonPrograms(calls: DgpCall[]): DgpCall[] {
         ),
     );
     const programs = new Map<DgpCall, DgpCall>();
+    const inits = new Map<DgpCall, DgpCall[]>();
     calls.forEach((call) => {
         const [target, source] = call.arguments;
         const button =
@@ -3560,13 +3580,13 @@ function attachButtonPrograms(calls: DgpCall[]): DgpCall[] {
                 ? buttons.get(target.name)
                 : undefined;
         if (!button || source?.type !== "literal") return;
-        const modes = JSON.parse(String(source.value));
+        const { oninit, ...modes } = JSON.parse(String(source.value));
         if (
             Object.keys(modes).every(
                 (mode) => mode === "onprogram" || mode === "current",
             ) &&
             typeof modes.onprogram?.sync === "string"
-        )
+        ) {
             programs.set(call, {
                 ...button,
                 arguments: [
@@ -3574,6 +3594,24 @@ function attachButtonPrograms(calls: DgpCall[]): DgpCall[] {
                     { type: "literal", value: modes.onprogram.sync },
                 ],
             });
+            inits.set(
+                call,
+                oninit
+                    ? [
+                          {
+                              ...call,
+                              arguments: [
+                                  target,
+                                  {
+                                      type: "literal",
+                                      value: JSON.stringify({ oninit }),
+                                  },
+                              ],
+                          },
+                      ]
+                    : [],
+            );
+        }
     });
     const moved = new Set([...programs.values()].map((call) => call.variable));
     const follows = (call: DgpCall, name: string | null) =>
@@ -3590,6 +3628,7 @@ function attachButtonPrograms(calls: DgpCall[]): DgpCall[] {
                     (other) =>
                         other !== call && follows(other, button.variable),
                 ),
+                ...inits.get(call)!,
             ];
         return moved.has(call.variable) ||
             [...moved].some((name) => follows(call, name))
@@ -3798,6 +3837,7 @@ function executeCalls(
         is3D,
         origin3DAssigned: is3D,
         labelOrigin: [0, 0],
+        inits: [],
     };
 
     c.beginBatch();
@@ -3838,6 +3878,7 @@ function executeCalls(
     }
     if (context.gridChanged) c.GRID.createSVG();
     c.endBatch();
+    context.inits.forEach((program) => runProgram(c, program));
     if (context.projectionChanged) c.invalidateProjection();
     return { variables: context.variables, unsupported };
 }

@@ -1373,7 +1373,7 @@ STL(L1,"c:#000000;s:0;sg:1");`,
 
     it("draws at each frame of an animated NaN, adding to a global's list", async () => {
         const c = createConstruction();
-        expect(await importDgpFromUrl(c, figure("urne_00_01_01.dgp"))).toEqual(
+        expect(await importDgpFromUrl(c, figure("urne_et_boules.dgp"))).toEqual(
             [],
         );
         const a = c.getObj("a") as expression_object;
@@ -1389,8 +1389,21 @@ STL(L1,"c:#000000;s:0;sg:1");`,
         expect(a.isCursor).toBe(false);
         expect(global("TIRAGES")).toBe(5);
         const results = global("RESULTATS") as number[];
-        expect(results[0] + results[1]).toBe(5);
-        expect(results[2]).toBe(0);
+        expect(results[0] + results[1] + results[2]).toBe(5);
+    });
+
+    it("runs a button's oninit program as DGPad opens the figure", async () => {
+        const c = createConstruction();
+        expect(await importDgpFromUrl(c, figure("urne_et_boules.dgp"))).toEqual(
+            [],
+        );
+        c.flush();
+        const global = (name: string) =>
+            (c.getObj(name) as expression_object).value;
+        expect((c.getObj("blk_btn") as button_object).program).not.toBeNull();
+        expect(global("RESULTATS")).toEqual([0, 0, 0]);
+        expect(global("TIRAGES")).toBe(0);
+        expect(global("DERNIER")).toBe(-1);
     });
 
     it("draws a turtle setting the increment of a point declared after it", async () => {
