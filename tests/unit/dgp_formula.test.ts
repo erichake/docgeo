@@ -443,6 +443,18 @@ GLOBAL_GET("côté")`);
         ).toEqual([3, [5], 1]);
     });
 
+    it("draws a number at random at each computation", () => {
+        // A die as DGPad's Blockly writes it: random integer from 1 to 6.
+        const die = parseProgram(
+            "Math.floor(Math.random()*(Math.abs(1-6)+1)+(1+6-Math.abs(1-6))/2)",
+        );
+        const faces = new Set(
+            Array.from({ length: 200 }, () => evaluateProgram(die, noPoints)),
+        );
+        expect([...faces].sort()).toEqual([1, 2, 3, 4, 5, 6]);
+        expect(() => parseProgram("random(2)")).toThrow();
+    });
+
     it("computes on lists term by term, as DGPad's operators", () => {
         const env: FormulaEnv = {
             resolveIdentifier: (name) =>

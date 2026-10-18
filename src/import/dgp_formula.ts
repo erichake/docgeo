@@ -50,6 +50,7 @@ export type FormulaFn =
     | "Angle180"
     | "crossProduct"
     | "gcd"
+    | "random"
     | "rotate"
     | "dilate"
     // "30°", an angle in degrees in the figure's unit: no name calls it.
@@ -109,6 +110,7 @@ const FORMULA_ARITY: Record<FormulaFn, number> = {
     Angle180: 3,
     crossProduct: 2,
     gcd: 2,
+    random: 0,
     rotate: 3,
     dilate: 3,
     "°": 1,
@@ -1800,6 +1802,9 @@ function evalCall(
                 ? null
                 : Math[fn](...(values as number[]));
         }
+        // Drawn again at each computation, as in DGPad.
+        case "random":
+            return Math.random();
         case "gcd": {
             let [a, b] = args.map(realPart);
             if (a === null || b === null) return null;
