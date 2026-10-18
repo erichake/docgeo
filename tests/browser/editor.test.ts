@@ -1297,6 +1297,46 @@ describe("Editor", () => {
         ]);
     });
 
+    it("writes buttons, keeping the program and the place their lines don't say", async () => {
+        const scene = createConstruction([800, 600]);
+        readDgo(scene, {
+            dgo: 1,
+            v: { o: [400, 300], u: 40, w: 800, h: 600 },
+            o: [
+                ["Ex", "a", { t: "", v: 2, xy: [20, 20] }],
+                [
+                    "Btn",
+                    "b",
+                    {
+                        t: "+1",
+                        s: ["a.setExpression(a + 1)", { a: 0 }],
+                        xy: [100, 50],
+                    },
+                ],
+            ],
+        });
+        const studied: Studio = { prefs: scene.prefs, scene };
+        expect(lines(scene)[1]).toBe('b = Button("+1")');
+        const line = parseLine('b = Button("50 % de plus")', isCommand);
+        await redefine(
+            studied,
+            scene.getObj("b")!,
+            resolve(scene, line, scene.getObj("b")!),
+        );
+        const c = studied.scene;
+        expect(lines(c)[1]).toBe('b = Button("50 % de plus")');
+        expect(entryOf(c.getObj("b")!, figureIndex(c))[1]).toEqual({
+            t: "50 % de plus",
+            s: ["a.setExpression(a + 1)", { a: 0 }],
+            xy: [100, 50],
+        });
+        // A new one, its arrow at the window's centre.
+        expect(entryOf(type(c, 'Button("Go")'), figureIndex(c))).toEqual([
+            "Btn",
+            { t: "Go", xy: [420, 300] },
+        ]);
+    });
+
     it("signs the formulas' functions, a real number reading expressions", () => {
         const { scene: c } = studio();
         ["A = (0, 0)", "a = 3", "s = Segment(A, A)", "w = Point(s, 0)"].forEach(
@@ -1706,6 +1746,10 @@ describe("Editor", () => {
                 ["Pyramid", "Pyr"],
                 ["Section", ""],
                 ["Net", "Net"],
+            ],
+            [
+                ["Turtle", "ELst"],
+                ["Button", "Btn"],
             ],
         ]);
         const sphere = TOOL_FAMILIES[3].items[3].tools[0];

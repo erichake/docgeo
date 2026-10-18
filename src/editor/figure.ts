@@ -28,7 +28,7 @@ import {
     type FormulaNode,
 } from "../import/dgp_formula";
 import { angle_object } from "../objects/angle_object";
-import { button_object } from "../objects/button_object";
+import { BUTTON_WIDTH, button_object } from "../objects/button_object";
 import { construction_object } from "../objects/construction_object";
 import type { curve_object } from "../objects/curve_object";
 import {
@@ -235,6 +235,8 @@ const renamed = (
 // A text written with the names of the objects it reads: in its formulas
 // ("%…%"), outside the tags of a panel's HTML, and its fields' targets.
 function renamedText({ text, refs, html }: TextArg): string {
+    // Nothing to rename, a button's caption reading no formula between "%".
+    if (!refs.size) return text;
     const formulas = (source: string) =>
         source
             .split("%")
@@ -407,8 +409,11 @@ export function resolve(
         if (!command) throw new TextError("unknown_command", call.command);
         args = call.args.map((arg) => {
             if (arg.kind === "number") return arg.value;
+            // A button's caption reads no formula.
             if (arg.kind === "string")
-                return textArg(c, arg.value, command.name === "Html");
+                return command.name === "Button"
+                    ? new TextArg(arg.value, new Map())
+                    : textArg(c, arg.value, command.name === "Html");
             if (arg.kind === "formula") return formulaArg(c, arg.source);
             const object = c.getObj(arg.name);
             if (!object || !own.has(object))
@@ -460,6 +465,7 @@ export function resolve(
             throw new TextError("arguments", commandName(command));
         if (["Txt", "Html", "Img"].includes(overload.tag))
             overload = keeping(overload, target);
+        if (overload.tag === "Btn") overload = buttonOverload(c, target);
         // A slider.
         if (overload.tag === "Ex") {
             const { encode } = overload;
@@ -835,15 +841,40 @@ function buttonProgram(
             params: [],
             tag: "Btn",
             encode: (_, index) => ({
-                ...(target.dgo({
-                    index,
-                    image: (url) => url,
-                    screen: (position) => position,
-                })[1] as object),
+                ...buttonEntry(target, index),
                 s: formulaParameter(source, named, index),
             }),
         },
         args: [...named.values()],
+    };
+}
+
+const buttonEntry = (
+    button: button_object,
+    index: (object: construction_object) => number,
+): object =>
+    button.dgo({
+        index,
+        image: (url) => url,
+        screen: (position) => position,
+    })[1] as object;
+
+// A button keeps the program and the place of the button it redefines; a
+// new one has its arrow centred on `at`, the window's centre by default.
+export function buttonOverload(
+    c: construction,
+    target?: construction_object,
+    [x, y]: Vec2 = [c.width / 2, c.height / 2],
+): Overload {
+    const overload = findCommand("Button")!.overloads[0];
+    return {
+        ...overload,
+        encode: (args, index) => ({
+            ...(target instanceof button_object
+                ? buttonEntry(target, index)
+                : { xy: [x + BUTTON_WIDTH / 2, y] }),
+            ...(overload.encode(args, index) as object),
+        }),
     };
 }
 

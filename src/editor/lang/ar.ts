@@ -201,6 +201,7 @@ const ar: Texts = {
         turtle_hint: "يرسم انطلاقًا من % بسلحفاة مبرمجة بالكتل",
         button_program: "البرنامج",
         button_program_hint: "يفتح بالكتل البرنامج الذي يشغّله سهمه",
+        button_caption: "تشغيل",
         format_program: "تنسيق",
         syntax_line: "كتابة غير مفهومة في السطر %",
         program_syntax: "كتابة غير مفهومة",
@@ -228,6 +229,7 @@ const ar: Texts = {
         family_transformations: "تحويلات",
         family_solids: "مجسمات",
         family_planes: "مستويات",
+        family_programs: "برامج",
         tool_circle_point: "دائرة (مركز ونقطة)",
         tool_circle_radius: "دائرة (مركز ونصف قطر)",
         tool_circle_direction: "دائرة (مركز واتجاه ونصف قطر)",
@@ -242,6 +244,7 @@ const ar: Texts = {
         designate_real: "حدّد عددًا",
         designate_expression: "حدّد تعبيرًا",
         designate_point: "حدّد نقطة",
+        designate_button: "حدّد موضع الزر",
         designate_pointOn: "حدّد نقطة على عنصر",
         designate_line: "حدّد مستقيمًا",
         designate_segment: "حدّد قطعة مستقيمة",
@@ -326,6 +329,7 @@ const ar: Texts = {
         Text: "نص",
         Html: "Html",
         Image: "صورة",
+        Button: "زر",
     },
 };
 

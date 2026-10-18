@@ -212,6 +212,7 @@ const de: Texts = {
         button_program: "Programm",
         button_program_hint:
             "Öffnet das Programm, das sein Pfeil startet, als Blöcke",
+        button_caption: "Starten",
         format_program: "Formatieren",
         syntax_line: "Unverständliche Eingabe in Zeile %",
         program_syntax: "Unverständliche Eingabe",
@@ -239,6 +240,7 @@ const de: Texts = {
         family_transformations: "Abbildungen",
         family_solids: "Körper",
         family_planes: "Ebenen",
+        family_programs: "Programme",
         tool_circle_point: "Kreis (Mittelpunkt und Punkt)",
         tool_circle_radius: "Kreis (Mittelpunkt und Radius)",
         tool_circle_direction: "Kreis (Mittelpunkt, Richtung und Radius)",
@@ -254,6 +256,7 @@ const de: Texts = {
         designate_real: "Wählen Sie eine Zahl",
         designate_expression: "Wählen Sie einen Ausdruck",
         designate_point: "Wählen Sie einen Punkt",
+        designate_button: "Wählen Sie die Stelle der Schaltfläche",
         designate_pointOn: "Wählen Sie einen Punkt auf einem Objekt",
         designate_line: "Wählen Sie eine Gerade",
         designate_segment: "Wählen Sie eine Strecke",
@@ -339,6 +342,7 @@ const de: Texts = {
         Text: "Text",
         Html: "Html",
         Image: "Bild",
+        Button: "Schaltfläche",
     },
 };
 

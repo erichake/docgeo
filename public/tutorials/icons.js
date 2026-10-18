@@ -318,5 +318,15 @@ window.DG_ICONS = {
             1,
             '<g class="dge-result"><path d="M9.5 2h5v20h-5ZM4.5 7h15v5h-15Z" fill="currentColor" fill-opacity=".14"/><path d="M9.5 7v5m5-5v5m-5 5h5"/></g>',
         ],
+        Turtle: [
+            95,
+            1,
+            '<g class="dge-result"><ellipse cx="11" cy="12" rx="6" ry="4.5"/><circle cx="19.5" cy="12" r="2"/><path d="M7.5 8.3 6 5.5M14.5 8.3 16 5.5M7.5 15.7 6 18.5M14.5 15.7 16 18.5M5 12H2.5M8 12h6"/></g>',
+        ],
+        Button: [
+            95,
+            1,
+            '<path d="M2 12h6" class="dge-guide"/><g class="dge-result"><rect x="11" y="7" width="11" height="10" rx="3"/><path d="M15 9.8v4.4l3.4-2.2Z" fill="currentColor"/></g>',
+        ],
     },
 };

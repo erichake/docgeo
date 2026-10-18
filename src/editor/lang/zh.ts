@@ -195,6 +195,7 @@ const zh: Texts = {
         turtle_hint: "用积木编程的海龟从 % 出发作图",
         button_program: "程序",
         button_program_hint: "以积木打开其箭头运行的程序",
+        button_caption: "运行",
         format_program: "格式化",
         syntax_line: "第 % 行无法理解",
         program_syntax: "无法理解",
@@ -222,6 +223,7 @@ const zh: Texts = {
         family_transformations: "变换",
         family_solids: "立体图形",
         family_planes: "平面",
+        family_programs: "程序",
         tool_circle_point: "圆（圆心和点）",
         tool_circle_radius: "圆（圆心和半径）",
         tool_circle_direction: "圆（圆心、方向和半径）",
@@ -236,6 +238,7 @@ const zh: Texts = {
         designate_real: "选择一个数",
         designate_expression: "选择一个表达式",
         designate_point: "选择一个点",
+        designate_button: "选择按钮的位置",
         designate_pointOn: "选择对象上的一个点",
         designate_line: "选择一条直线",
         designate_segment: "选择一条线段",
@@ -319,6 +322,7 @@ const zh: Texts = {
         Text: "文本",
         Html: "Html",
         Image: "图像",
+        Button: "按钮",
     },
 };
 

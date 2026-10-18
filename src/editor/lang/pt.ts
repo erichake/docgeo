@@ -209,6 +209,7 @@ const pt: Texts = {
             "Desenha a partir de % com uma tartaruga programada em blocos",
         button_program: "Programa",
         button_program_hint: "Abre em blocos o programa que a sua seta executa",
+        button_caption: "Executar",
         format_program: "Formatar",
         syntax_line: "Escrita não compreendida na linha %",
         program_syntax: "Escrita não compreendida",
@@ -236,6 +237,7 @@ const pt: Texts = {
         family_transformations: "Transformações",
         family_solids: "Sólidos",
         family_planes: "Planos",
+        family_programs: "Programas",
         tool_circle_point: "Círculo (centro e ponto)",
         tool_circle_radius: "Círculo (centro e raio)",
         tool_circle_direction: "Círculo (centro, direção e raio)",
@@ -251,6 +253,7 @@ const pt: Texts = {
         designate_real: "Selecione um número",
         designate_expression: "Selecione uma expressão",
         designate_point: "Selecione um ponto",
+        designate_button: "Selecione onde fica o botão",
         designate_pointOn: "Selecione um ponto em um objeto",
         designate_line: "Selecione uma reta",
         designate_segment: "Selecione um segmento",
@@ -335,6 +338,7 @@ const pt: Texts = {
         Text: "Texto",
         Html: "Html",
         Image: "Imagem",
+        Button: "Botão",
     },
 };
 

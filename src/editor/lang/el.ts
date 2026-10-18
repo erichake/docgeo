@@ -213,6 +213,7 @@ const el: Texts = {
         button_program: "Πρόγραμμα",
         button_program_hint:
             "Ανοίγει σε μπλοκ το πρόγραμμα που εκτελεί το βέλος του",
+        button_caption: "Εκτέλεση",
         format_program: "Μορφοποίηση",
         syntax_line: "Ακατανόητη γραφή στη γραμμή %",
         program_syntax: "Ακατανόητη γραφή",
@@ -240,6 +241,7 @@ const el: Texts = {
         family_transformations: "Μετασχηματισμοί",
         family_solids: "Στερεά",
         family_planes: "Επίπεδα",
+        family_programs: "Προγράμματα",
         tool_circle_point: "Κύκλος (κέντρο και σημείο)",
         tool_circle_radius: "Κύκλος (κέντρο και ακτίνα)",
         tool_circle_direction: "Κύκλος (κέντρο, διεύθυνση και ακτίνα)",
@@ -255,6 +257,7 @@ const el: Texts = {
         designate_real: "Επιλέξτε έναν αριθμό",
         designate_expression: "Επιλέξτε μια έκφραση",
         designate_point: "Επιλέξτε ένα σημείο",
+        designate_button: "Επιλέξτε τη θέση του κουμπιού",
         designate_pointOn: "Επιλέξτε ένα σημείο σε αντικείμενο",
         designate_line: "Επιλέξτε μια ευθεία",
         designate_segment: "Επιλέξτε ένα τμήμα",
@@ -339,6 +342,7 @@ const el: Texts = {
         Text: "Κείμενο",
         Html: "Html",
         Image: "Εικόνα",
+        Button: "Κουμπί",
     },
 };
 

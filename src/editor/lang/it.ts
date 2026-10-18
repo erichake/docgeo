@@ -209,6 +209,7 @@ const it: Texts = {
         button_program: "Programma",
         button_program_hint:
             "Apre a blocchi il programma che la sua freccia esegue",
+        button_caption: "Esegui",
         format_program: "Formatta",
         syntax_line: "Scrittura non compresa alla riga %",
         program_syntax: "Scrittura non compresa",
@@ -236,6 +237,7 @@ const it: Texts = {
         family_transformations: "Trasformazioni",
         family_solids: "Solidi",
         family_planes: "Piani",
+        family_programs: "Programmi",
         tool_circle_point: "Circonferenza (centro e punto)",
         tool_circle_radius: "Circonferenza (centro e raggio)",
         tool_circle_direction: "Circonferenza (centro, direzione e raggio)",
@@ -251,6 +253,7 @@ const it: Texts = {
         designate_real: "Seleziona un numero",
         designate_expression: "Seleziona un'espressione",
         designate_point: "Seleziona un punto",
+        designate_button: "Seleziona dove mettere il pulsante",
         designate_pointOn: "Seleziona un punto su un oggetto",
         designate_line: "Seleziona una retta",
         designate_segment: "Seleziona un segmento",
@@ -335,6 +338,7 @@ const it: Texts = {
         Text: "Testo",
         Html: "Html",
         Image: "Immagine",
+        Button: "Pulsante",
     },
 };
 

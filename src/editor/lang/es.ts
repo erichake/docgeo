@@ -209,6 +209,7 @@ const es: Texts = {
         button_program: "Programa",
         button_program_hint:
             "Abre en bloques el programa que ejecuta su flecha",
+        button_caption: "Ejecutar",
         format_program: "Dar formato",
         syntax_line: "No se entiende la línea %",
         program_syntax: "No se entiende",
@@ -236,6 +237,7 @@ const es: Texts = {
         family_transformations: "Transformaciones",
         family_solids: "Sólidos",
         family_planes: "Planos",
+        family_programs: "Programas",
         tool_circle_point: "Circunferencia (centro y punto)",
         tool_circle_radius: "Circunferencia (centro y radio)",
         tool_circle_direction: "Circunferencia (centro, dirección y radio)",
@@ -251,6 +253,7 @@ const es: Texts = {
         designate_real: "Selecciona un número",
         designate_expression: "Selecciona una expresión",
         designate_point: "Selecciona un punto",
+        designate_button: "Selecciona dónde va el botón",
         designate_pointOn: "Selecciona un punto sobre un objeto",
         designate_line: "Selecciona una recta",
         designate_segment: "Selecciona un segmento",
@@ -336,6 +339,7 @@ const es: Texts = {
         Text: "Texto",
         Html: "Html",
         Image: "Imagen",
+        Button: "Botón",
     },
 };
 

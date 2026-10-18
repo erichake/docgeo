@@ -885,6 +885,21 @@ export const COMMANDS: Command[] = [
             },
         ],
     },
+    // DGPad's button, of this caption, its program and its place written
+    // by the editor (see buttonOverload in figure.ts).
+    {
+        name: "Button",
+        overloads: [
+            {
+                params: ["text"],
+                tag: "Btn",
+                encode: ([caption]) => ({ t: (caption as TextArg).text }),
+                decode: (parameters) => [
+                    new TextArg((parameters as { t: string }).t, new Map()),
+                ],
+            },
+        ],
+    },
     {
         name: "Slider",
         overloads: [

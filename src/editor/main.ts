@@ -44,6 +44,7 @@ import {
     overloadFor,
     paramAt,
     readable,
+    TextArg,
     type Arg,
     type Command,
     type Overload,
@@ -53,6 +54,7 @@ import {
     add,
     addFloor,
     addPointOn,
+    buttonOverload,
     cubeOn,
     entryOf,
     figureIndex,
@@ -1359,6 +1361,7 @@ async function commitText(
         );
         if (await refusedOffPlane()) throw new TextError("off_plane");
         if (field === input.dom()) field.value = "";
+        if (result instanceof button_object) showProgram(result);
         return done(result);
     } catch (error) {
         if (!(error instanceof TextError)) throw error;
@@ -1774,7 +1777,8 @@ function addCrossing({ a, b, order }: Crossing): construction_object {
 function wantsPoint(hits: Hit[]): boolean {
     if (pending) {
         const { mode, overload } = pending.tool;
-        if (fresh()) return mode !== "command" || makesPoint(hits);
+        if (fresh())
+            return mode === "command" ? makesPoint(hits) : mode !== "button";
         return (
             mode === "command" &&
             makesPoints(overload) &&
@@ -1875,6 +1879,10 @@ function firstArgs(
 // The line the tool writes, its missing arguments elided, and what remains
 // to designate.
 function describe(tool: Tool, args: (Arg | undefined)[]): string {
+    if (tool.mode === "turtle")
+        return `${message("turtle")}\n${message("designate_point")}`;
+    if (tool.mode === "button")
+        return `${formatName(nextName(scene(), "Btn"))} = ${commandName(tool.command)}(${quoteText(message("button_caption"))})\n${message("designate_button")}`;
     const kind = tool.mode !== "command" || tool.overload.tag;
     const shown = args.map((arg) => (arg === undefined ? "…" : formatArg(arg)));
     if (tool.mode !== "command" || tool.overload.variadic) shown.push("…");
@@ -2113,6 +2121,8 @@ function take(picked: Hit[]): void {
     const args = assign(tool, objects, defaultReal(tool.overload.tag))!;
     if (tool.mode === "point")
         return done(addPointOn(c, nextName(c, true), objects[0], picked[0].at));
+    if (tool.mode === "turtle") return startTurtle(objects[0]);
+    if (tool.mode === "button") return prompt();
     pending = { tool, args };
     if (tool.mode === "intersection") {
         if (!args[1]) return prompt();
@@ -2222,6 +2232,9 @@ function designateFirst(screen: Vec2, hits: Hit[], client: Vec2): void {
         return designatePoint(screen, hits, client, (point) => {
             if (point !== hits[0]?.object) done(point);
         });
+    if (mode === "turtle")
+        return designatePoint(screen, hits, client, startTurtle);
+    if (mode === "button") return placeButton(screen);
     if (mode === "intersection") {
         const cross = crossing(c, screen, hits);
         if (cross) return done(addCrossing(cross));
@@ -2547,10 +2560,20 @@ const turtleOf = (object: construction_object): construction_object | null =>
           ? object.source
           : null;
 
-// The turtle's program in blocks, made if it has none.
 function openTurtle(): void {
     const turtle = turtleOf(target()!)!;
     closeRing();
+    editTurtle(turtle);
+}
+
+// From the menu's tool, which is put down.
+function startTurtle(point: construction_object): void {
+    cancel();
+    editTurtle(point);
+}
+
+// The turtle's program in blocks, made if it has none.
+function editTurtle(turtle: construction_object): void {
     properties.showBlocks();
     const c = scene();
     const existing =
@@ -2584,13 +2607,30 @@ function openTurtle(): void {
     done(program);
 }
 
-// A button's program, in blocks.
 function openProgram(): void {
     const object = target()!;
     closeRing();
+    showProgram(object);
+}
+
+// A button's program, in blocks.
+function showProgram(button: construction_object): void {
     properties.showBlocks();
     if (!propertiesOpen) setProperties(true);
-    properties.select(object);
+    properties.select(button);
+}
+
+// Its arrow there, by the menu's tool, which is put down.
+function placeButton(at: Vec2): void {
+    cancel();
+    const c = scene();
+    const button = add(c, {
+        name: nextName(c, "Btn"),
+        overload: buttonOverload(c, undefined, at),
+        args: [new TextArg(message("button_caption"), new Map())],
+    });
+    showProgram(button);
+    done(button);
 }
 
 function drawFrom(as: Exclude<Choice, "expression">): void {
@@ -3036,6 +3076,7 @@ function designateRow(object: construction_object): void {
     clearPreview();
     if (fresh()) {
         const tool = fitting(object)!;
+        if (tool.mode === "turtle") return startTurtle(object);
         pending = { tool, args: firstArgs(tool, object) };
         return tool.mode === "intersection" ? prompt() : proceed();
     }

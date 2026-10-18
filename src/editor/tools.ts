@@ -9,14 +9,17 @@ import {
     type Command,
     type Overload,
 } from "./catalog";
+import { ACTION_ICONS } from "./icons";
 import { message, type MessageKey } from "./messages";
 
 // The tools shown around a designated object: see EDITOR.md.
 
 export interface Tool {
     // The command, whose arguments are designated one after the other; or a
-    // point put on the object or an intersection, where it was designated.
-    mode: "command" | "point" | "intersection";
+    // point put on the object or an intersection, where it was designated;
+    // or a program to write, of a turtle from a point or of a button put
+    // there.
+    mode: "command" | "point" | "intersection" | "turtle" | "button";
     command: Command;
     overload: Overload;
     icon: string;
@@ -89,7 +92,8 @@ const PLANE =
 
 // The families of tools, clockwise from the first one, centred on the top,
 // each tool keeping its place whatever the object, so that the hand learns
-// it; the tools of a slot never show together. Others are only in the menu.
+// it; the tools of a slot never show together. Others are only in the menu,
+// as the programs, which the ring's geometry leaves out.
 const FAMILIES: [
     name: MessageKey,
     hue: number,
@@ -634,6 +638,27 @@ const FAMILIES: [
             ),
         ],
     ],
+    [
+        "family_programs",
+        95,
+        [],
+        [
+            // The list it draws (see openTurtle in main.ts).
+            labelled(
+                "turtle",
+                tool("List", 0, result(ACTION_ICONS.turtle), "turtle"),
+            ),
+            tool(
+                "Button",
+                0,
+                path("M2 12h6", true) +
+                    result(
+                        `<rect x="11" y="7" width="11" height="10" rx="3"/><path d="M15 9.8v4.4l3.4-2.2Z" fill="currentColor"/>`,
+                    ),
+                "button",
+            ),
+        ],
+    ],
 ];
 
 // Between two families, in buttons.
@@ -709,6 +734,7 @@ export function toolsFor(
         if (overload.tag === "Loc") return driverOf(object) !== null;
         // A point is put on the object, an intersection with another.
         if (mode === "point") return accepts(object, "support");
+        if (mode === "turtle") return object instanceof point_object;
         if (mode === "intersection") return accepts(object, "intersectable");
         // A radius is given by the tool, not designated.
         return overload.params.some(
@@ -756,6 +782,12 @@ export function assign(
         return objects.length === 1 && accepts(objects[0], "support")
             ? [...objects]
             : null;
+    if (mode === "turtle")
+        return objects.length === 1 && objects[0] instanceof point_object
+            ? [...objects]
+            : null;
+    // A button takes no object, the selection ignored.
+    if (mode === "button") return [];
     if (mode === "intersection")
         return objects.length <= 2 &&
             objects.every((object) => accepts(object, "intersectable"))

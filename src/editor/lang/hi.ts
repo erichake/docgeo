@@ -211,6 +211,7 @@ const hi: Texts = {
         button_program: "प्रोग्राम",
         button_program_hint:
             "इसके तीर से चलने वाले प्रोग्राम को ब्लॉकों में खोलता है",
+        button_caption: "चलाएँ",
         format_program: "फ़ॉर्मेट करें",
         syntax_line: "पंक्ति % समझ में नहीं आई",
         program_syntax: "समझ में नहीं आया",
@@ -238,6 +239,7 @@ const hi: Texts = {
         family_transformations: "रूपांतरण",
         family_solids: "ठोस",
         family_planes: "समतल",
+        family_programs: "प्रोग्राम",
         tool_circle_point: "वृत्त (केन्द्र और बिन्दु)",
         tool_circle_radius: "वृत्त (केन्द्र और त्रिज्या)",
         tool_circle_direction: "वृत्त (केन्द्र, दिशा और त्रिज्या)",
@@ -253,6 +255,7 @@ const hi: Texts = {
         designate_real: "एक संख्या चुनें",
         designate_expression: "एक व्यंजक चुनें",
         designate_point: "एक बिंदु चुनें",
+        designate_button: "बटन का स्थान चुनें",
         designate_pointOn: "किसी ऑब्जेक्ट पर एक बिंदु चुनें",
         designate_line: "एक रेखा चुनें",
         designate_segment: "एक रेखाखंड चुनें",
@@ -336,6 +339,7 @@ const hi: Texts = {
         Text: "पाठ",
         Html: "Html",
         Image: "चित्र",
+        Button: "बटन",
     },
 };
 

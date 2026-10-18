@@ -212,6 +212,7 @@ const nl: Texts = {
         button_program: "Programma",
         button_program_hint:
             "Opent het programma dat zijn pijl uitvoert in blokken",
+        button_caption: "Uitvoeren",
         format_program: "Opmaken",
         syntax_line: "Onbegrijpelijke invoer op regel %",
         program_syntax: "Onbegrijpelijke invoer",
@@ -239,6 +240,7 @@ const nl: Texts = {
         family_transformations: "Transformaties",
         family_solids: "Ruimtefiguren",
         family_planes: "Vlakken",
+        family_programs: "Programma's",
         tool_circle_point: "Cirkel (middelpunt en punt)",
         tool_circle_radius: "Cirkel (middelpunt en straal)",
         tool_circle_direction: "Cirkel (middelpunt, richting en straal)",
@@ -254,6 +256,7 @@ const nl: Texts = {
         designate_real: "Selecteer een getal",
         designate_expression: "Selecteer een uitdrukking",
         designate_point: "Selecteer een punt",
+        designate_button: "Selecteer waar de knop komt",
         designate_pointOn: "Selecteer een punt op een object",
         designate_line: "Selecteer een rechte",
         designate_segment: "Selecteer een lijnstuk",
@@ -338,6 +341,7 @@ const nl: Texts = {
         Text: "Tekst",
         Html: "Html",
         Image: "Afbeelding",
+        Button: "Knop",
     },
 };
 

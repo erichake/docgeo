@@ -195,6 +195,7 @@ const zh_TW: Texts = {
         turtle_hint: "用積木編程的海龜從 % 出發作圖",
         button_program: "程式",
         button_program_hint: "以積木開啟其箭頭執行的程式",
+        button_caption: "執行",
         format_program: "格式化",
         syntax_line: "第 % 行無法理解",
         program_syntax: "無法理解",
@@ -222,6 +223,7 @@ const zh_TW: Texts = {
         family_transformations: "變換",
         family_solids: "立體圖形",
         family_planes: "平面",
+        family_programs: "程式",
         tool_circle_point: "圓（圓心和點）",
         tool_circle_radius: "圓（圓心和半徑）",
         tool_circle_direction: "圓（圓心、方向和半徑）",
@@ -236,6 +238,7 @@ const zh_TW: Texts = {
         designate_real: "選取一個數",
         designate_expression: "選取一個運算式",
         designate_point: "選取一個點",
+        designate_button: "選取按鈕的位置",
         designate_pointOn: "選取物件上的一個點",
         designate_line: "選取一條直線",
         designate_segment: "選取一條線段",
@@ -319,6 +322,7 @@ const zh_TW: Texts = {
         Text: "文字",
         Html: "Html",
         Image: "圖像",
+        Button: "按鈕",
     },
 };
 

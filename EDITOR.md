@@ -292,6 +292,13 @@ la GeoGebra, l'outil choisi avant les objets.
   toucher au doigt), à côté du menu, ou par-dessus quand la fenêtre est
   trop étroite. L'élève n'apprend qu'un classement. Pas de recherche dans
   le menu : la complétion de la ligne de saisie le fait déjà.
+- **Famille « Programmes »** (décidé avec l'auteur le 2026-10-18), la
+  seule propre au menu, en dernier (teinte 95) : l'anneau ne porte que de
+  la géométrie. « Tortue » prend un point (un toucher dans le vide en crée
+  un), « Bouton » l'endroit de sa flèche ; chacun crée son objet, ouvre
+  son programme en blocs dans les propriétés et repose l'outil, qui ne
+  reste pas en main comme les autres (modes `turtle` et `button` de
+  `tools.ts`). Une sélection est ignorée par « Bouton ».
 - **Plus d'outils que l'anneau**, qui reste léger : à la fin de leur
   famille, `AutreIntersection` (points), `Compas`, en 3D « Cercle
   (centre, direction et rayon) » et « Cercle (axe et point) », `Arc`,
@@ -1088,6 +1095,13 @@ ses méthodes internes et figé dans sa version de 2016.
   propriétés le montre aussi, en blocs par défaut. Bloc « fixer [objet] à
   … » de la catégorie « Figure » (`X.setExpression(v)`, le `SET_EXP` de
   DGPad), bloc « fraction aléatoire » de Blockly (`random()`).
+  Commande `Button("libellé")` (2026-10-18, `Bouton` en français) : la
+  ligne d'un bouton, qui ne dit que son libellé (lu tel quel, ses « % »
+  compris) ; sa redéfinition garde programme, place et style
+  (`buttonOverload` de `figure.ts`). Tapée, elle crée le bouton la flèche
+  au centre de la vue et ouvre son programme en blocs, comme l'outil
+  « Bouton » du menu, qui le pose là où l'on touche. Libellé par défaut
+  de l'outil : « Lancer » (`button_caption`).
 - **La tortue dessinée** (demandé par l'auteur, comme dans DGPad) : tant
   que le panneau de propriétés montre son programme (texte ou blocs), elle
   est dessinée là où elle finit, tournée dans sa direction, et suit chaque
@@ -1736,6 +1750,16 @@ Fait (2026-10-11) :
   `départ = 0`, aucune zone ; libellé : zone et « Programme » ; libellé
   glissé de (60, 120) ; programme réécrit en texte, montré en blocs, lancé,
   annulé). Éditeur +0,95 Ko, Blockly +1 Ko ; lecteur : mêmes octets.
+
+- Création des boutons et des tortues (2026-10-18, sections « Menu des
+  outils » et « Blocs et tortue ») : commande `Button`, famille
+  « Programmes » du menu (« Tortue », « Bouton »), manuel des 12 langues
+  (`menu-outils.html`, `commandes.html`, `expressions.html`). Vérifié dans
+  `editor.html` avec Playwright : bouton posé par l'outil (flèche centrée
+  sur le toucher), programme ouvert en blocs, écrit en texte, appliqué et
+  lancé (`k = 2`), libellé changé par sa ligne, programme et place
+  gardés ; tortue d'un point créé dans le vide ; `Bouton("Go")` tapé, au
+  centre de la vue. Éditeur +1,4 Ko ; lecteur : −9 octets.
 
 Reste à faire :
 

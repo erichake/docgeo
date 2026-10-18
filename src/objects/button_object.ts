@@ -9,7 +9,7 @@ import {
 } from "./construction_object";
 import { runProgram, type ExpressionProgram } from "./expression_object";
 
-const WIDTH = 40;
+export const BUTTON_WIDTH = 40;
 const HEIGHT = 35;
 const RADIUS = 10;
 const LABEL_GAP = 20;
@@ -64,8 +64,8 @@ export class button_object extends construction_object {
         this.dom.stl("display", this.isVisible ? "block" : "none");
         if (!this.isVisible) return;
         const [x, y] = this.screen;
-        this.caption.att("x", x - WIDTH - LABEL_GAP).att("y", y);
-        this.frame.att("transform", `translate(${x - WIDTH} ${y - 20})`);
+        this.caption.att("x", x - BUTTON_WIDTH - LABEL_GAP).att("y", y);
+        this.frame.att("transform", `translate(${x - BUTTON_WIDTH} ${y - 20})`);
     }
 
     static createSVG(_this: construction_object): DOMElement {
@@ -78,14 +78,14 @@ export class button_object extends construction_object {
                 `fill:${t.stroke_color};font-family:Verdana;font-size:${t.fontSize}px;pointer-events:none`,
             )
             .text(t.label);
-        const [w, h] = [WIDTH / 5, HEIGHT / 5];
+        const [w, h] = [BUTTON_WIDTH / 5, HEIGHT / 5];
         t.frame = t.svg
             .shape("g")
             .stl("cursor:pointer")
             .add(
                 t.svg
                     .shape("rect")
-                    .att("width", WIDTH)
+                    .att("width", BUTTON_WIDTH)
                     .att("height", HEIGHT)
                     .att("rx", RADIUS)
                     .stl(

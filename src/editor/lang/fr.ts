@@ -207,6 +207,7 @@ const fr: Texts = {
         turtle_hint: "Dessine depuis % avec une tortue programmée en blocs",
         button_program: "Programme",
         button_program_hint: "Ouvre en blocs le programme que lance sa flèche",
+        button_caption: "Lancer",
         format_program: "Mettre en forme",
         syntax_line: "Écriture incomprise ligne %",
         program_syntax: "Écriture incomprise",
@@ -234,6 +235,7 @@ const fr: Texts = {
         family_transformations: "Transformations",
         family_solids: "Solides",
         family_planes: "Plans",
+        family_programs: "Programmes",
         tool_circle_point: "Cercle (centre et point)",
         tool_circle_radius: "Cercle (centre et rayon)",
         tool_circle_direction: "Cercle (centre, direction et rayon)",
@@ -249,6 +251,7 @@ const fr: Texts = {
         designate_real: "Désignez un nombre",
         designate_expression: "Désignez une expression",
         designate_point: "Désignez un point",
+        designate_button: "Désignez l'endroit du bouton",
         designate_pointOn: "Désignez un point sur objet",
         designate_line: "Désignez une droite",
         designate_segment: "Désignez un segment",
@@ -333,6 +336,7 @@ const fr: Texts = {
         Text: "Texte",
         Html: "Html",
         Image: "Image",
+        Button: "Bouton",
     },
 };
 
