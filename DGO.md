@@ -323,6 +323,7 @@ la figure, autour de la verticale de O dans l'espace, sa hauteur gardée),
 | `Img`  | image                                  | `[clé, largeur, hauteur, A, B?, C?]` (9)        |
 | `Html` | texte HTML dans un cadre de la fenêtre | `[[x, y, largeur, hauteur], rayon, texte]` (11) |
 | `Btn`  | bouton qui exécute un script           | objet (13)                                      |
+| `Evt`  | script lancé au changement d'une `Ex`  | `{"on": expression, "s": script}` (24)          |
 
 1. La formule peut être un script, dont la dernière instruction donne les
    coordonnées (`"var u=A[0]-B[0];[u,0]"`). `n1`, `n2` : les nombres
@@ -506,6 +507,10 @@ alignement]]` police, `[30, url, l, h, zoom, opacité, u]` image (largeur
     boucle extérieure (un point indéfini y vaut `NaN`).
 23. `min` et `max` : nombre, `null` (bord de la fenêtre) ou formule d'autres
     objets, comme `a*c/d`.
+24. Programme « onchange » de DGPad (`BLK`) : quand la valeur de
+    l'expression `on` change (curseur, animation, `SET_EXP`), le script
+    s'exécute comme celui d'un bouton (13), une fois les objets qu'il lit et
+    change calculés ; jamais à l'ouverture de la figure. Jamais dessiné.
 
 ### Styles `st`
 

@@ -1,18 +1,13 @@
 import type { construction } from "../construction";
 import type { DOMElement } from "../dom";
-import { evaluateProgram, formulaSource } from "../import/dgp_formula";
+import { formulaSource } from "../import/dgp_formula";
 import type { Vec2 } from "../vec";
 import {
     construction_object,
     dgoFormula,
     type DgoContext,
 } from "./construction_object";
-import {
-    expression_object,
-    setValue,
-    styleObject,
-    type ExpressionProgram,
-} from "./expression_object";
+import { runProgram, type ExpressionProgram } from "./expression_object";
 
 const WIDTH = 40;
 const HEIGHT = 35;
@@ -60,26 +55,8 @@ export class button_object extends construction_object {
         ];
     }
 
-    // A program sets a number only, as a manipulation does.
     run(): void {
-        if (!this.program) return;
-        const { program, refs, targets, vec3 } = this.program;
-        evaluateProgram(program, {
-            resolveIdentifier: (name) => refs.get(name)!.scriptValue(vec3),
-            view: () => this.C.formulaView(),
-            callMethod: (name, method, args) => {
-                const target = targets.get(name);
-                if (!target) return;
-                if (method !== "setExpression")
-                    styleObject(this.C, target, method, args);
-                // An expression only, its number or a global's value.
-                else if (
-                    target instanceof expression_object &&
-                    setValue(target, args[0])
-                )
-                    this.C.invalidateGeometry(target);
-            },
-        });
+        if (this.program) runProgram(this.C, this.program);
     }
 
     render(): void {

@@ -39,6 +39,7 @@ import { createCircle } from "../objects/circle_object";
 import { construction_object, isDash } from "../objects/construction_object";
 import { createCurve, type CurveBound } from "../objects/curve_object";
 import { createButton } from "../objects/button_object";
+import { createEvent } from "../objects/event_object";
 import { createCylinderIntersection } from "../objects/cylinder_intersection_object";
 import { createCylinderSection } from "../objects/cylinder_section_object";
 import { createDirectionPoint } from "../objects/direction_point_object";
@@ -3229,22 +3230,61 @@ const COMMANDS = new Map<string, CommandDefinition>([
             // The source of an object's Blockly editor: an Expression's
             // "oncompute" program is also its formula, run as any script,
             // and a point's turtle ("onlogo") is compiled into the
-            // Expression its List draws. The other programs never run.
+            // Expression its List draws. An Expression's "onchange" runs
+            // when its value changes (see event_object.ts). The other
+            // programs never run.
             parameters: [object, string],
-            validate: (args, lineNumber) => {
+            validate: (args, lineNumber, variables) => {
+                const modes = JSON.parse(literalString(args[1]));
+                const owner = args[0];
                 if (
-                    Object.keys(JSON.parse(literalString(args[1]))).some(
+                    Object.keys(modes).some(
                         (mode) =>
                             mode !== "oncompute" &&
                             mode !== "onlogo" &&
+                            mode !== "onchange" &&
                             mode !== "current",
-                    )
+                    ) ||
+                    (modes.onchange &&
+                        (owner.type !== "reference" ||
+                            variables.get(owner.name) !== "expression"))
                 )
                     throw new Error(
                         `Unsupported Blockly program at line ${lineNumber}`,
                     );
+                if (!modes.onchange) return;
+                const program = tryParseProgram(String(modes.onchange.sync));
+                if (!program)
+                    throw new Error(
+                        `Unsupported Blockly program at line ${lineNumber}`,
+                    );
+                validateProgramReferences(program, variables, lineNumber);
             },
-            execute: () => {},
+            execute: (context, args) => {
+                const sync = JSON.parse(args[1] as string).onchange?.sync;
+                if (typeof sync !== "string") return;
+                const owner = args[0] as expression_object;
+                const program = parseProgram(sync);
+                createEvent(
+                    context.construction,
+                    `${owner.name}.onchange`,
+                    owner,
+                    {
+                        program,
+                        refs: formulaRefs(
+                            programReferences(program),
+                            context.variables,
+                        ),
+                        targets: new Map(
+                            [...programTargets(program)].map((name) => [
+                                name,
+                                context.variables.get(name)!,
+                            ]),
+                        ),
+                        vec3: context.is3D,
+                    },
+                );
+            },
         },
     ],
     [

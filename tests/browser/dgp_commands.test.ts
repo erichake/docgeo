@@ -113,6 +113,30 @@ BLK_GLOB_SET({"n":3,"old":true});`,
         expect(c.getObj("r")).toBeTruthy();
     });
 
+    it("runs an expression's onchange program when its value changes, not as the figure opens", () => {
+        const c = createConstruction();
+        const unsupported = importDgp(
+            c,
+            `s=Expression("s","","0","10","2","0","0");
+n=Expression("n","","","","0","0","0");
+r=Expression("r","","","","GLOBAL_GET(\\"total\\")","0","0");
+BLK(s,{"onchange":{"xml":"<xml/>","sync":"SET_EXP(\\"n\\",n+1);\\nGLOBAL_INC(\\"total\\",s);"}});
+BLK_GLOB_SET({"total":0});`,
+        );
+        c.OBJS.update();
+        expect(unsupported).toEqual([]);
+        expect([value(c, "n"), value(c, "r")]).toEqual([0, 0]);
+        const s = c.getObj("s") as expression_object;
+        s.value = 5;
+        c.invalidateGeometry(s);
+        c.OBJS.update();
+        expect([value(c, "n"), value(c, "r")]).toEqual([1, 5]);
+        // The same value again: nothing changed.
+        c.invalidateGeometry(s);
+        c.OBJS.update();
+        expect(value(c, "n")).toBe(1);
+    });
+
     it("turns the view as a script restricting it is computed again", () => {
         const c = createConstruction();
         importDgp(

@@ -124,6 +124,7 @@ import { createNet } from "./objects/net_object";
 import { createSymmetry } from "./objects/symmetry_object";
 import { createText } from "./objects/text_object";
 import { createPanel, panelNames, parsePanel } from "./objects/panel_object";
+import { createEvent } from "./objects/event_object";
 import { createButton } from "./objects/button_object";
 import { createLine } from "./objects/two_points_line_object";
 import { createVector, vector_object } from "./objects/vector_object";
@@ -263,6 +264,7 @@ export const LOOKS: Record<string, Look> = {
     Img: TEXT,
     Html: ["#000000", "#000000", 3],
     Btn: ["#000000", "#000000", 3, 0.1],
+    Evt: ["#000000", "#000000", 1],
 };
 
 const BACKGROUND = "#FAFAFA";
@@ -1891,6 +1893,15 @@ const BUILDERS: Record<string, Builder> = {
             label,
             [xy[0] + reader.offset[0], xy[1] + reader.offset[1]],
             s === undefined ? null : scriptProgram(reader, s),
+        );
+    },
+    Evt: (parameters, reader) => {
+        check(isRecord(parameters) && parameters.s !== undefined);
+        return createEvent(
+            reader.c,
+            reader.name,
+            reader.at(parameters.on, expression_object),
+            scriptProgram(reader, parameters.s),
         );
     },
     Html: (parameters, { c, name, formula, offset, vec3 }) => {

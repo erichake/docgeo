@@ -274,6 +274,28 @@ export const listArrow = (value: unknown): Vec2 | null =>
         ? [value[0], value[1]]
         : null;
 
+// A button's program, or an expression's when its value changes (see
+// event_object.ts): it styles objects and sets the value of expressions,
+// as a manipulation does.
+export function runProgram(c: construction, expression: ExpressionProgram) {
+    const { program, refs, targets, vec3 } = expression;
+    evaluateProgram(program, {
+        resolveIdentifier: (name) => refs.get(name)!.scriptValue(vec3),
+        view: () => c.formulaView(),
+        callMethod: (name, method, args) => {
+            const target = targets.get(name);
+            if (!target) return;
+            if (method !== "setExpression")
+                styleObject(c, target, method, args);
+            else if (
+                target instanceof expression_object &&
+                setValue(target, args[0])
+            )
+                c.invalidateGeometry(target);
+        },
+    });
+}
+
 // Carries out a script's styling method on one of the figure's objects.
 export function styleObject(
     c: construction,
