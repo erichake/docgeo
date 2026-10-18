@@ -298,12 +298,21 @@
                                 <code>L.join(", ")</code>
                             </td>
                         </tr>
+                        <tr>
+                            <td>globali</td>
+                            <td>
+                                <code>GLOBAL_SET("n", 5)</code>,
+                                <code>GLOBAL_INC("n", 1)</code>,
+                                <code>GLOBAL_GET("n")</code>
+                            </td>
+                        </tr>
                     </tbody>
                 </table>
             </div>
             <p>
                 Le variabili di un programma nascondono gli oggetti con lo
-                stesso nome. Un ciclo infinito viene interrotto.
+                stesso nome. Un ciclo infinito viene interrotto. Le globali sono
+                condivise da tutti i programmi della figura, pulsanti compresi.
             </p>
             <h3>Metodi degli oggetti</h3>
             <div class="table">

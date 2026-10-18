@@ -189,18 +189,34 @@ export class construction {
             const descendant = descendants.pop()!;
             if (removed.has(descendant)) continue;
             removed.add(descendant);
-            descendants.push(...descendant.children);
+            // But for what its program styles or sets, which stays: an
+            // expression_object's, which this file can't import.
+            const { program } = descendant as {
+                program?: { targets: Map<string, construction_object> } | null;
+            };
+            const targets = [...(program?.targets.values() ?? [])];
+            descendants.push(
+                ...descendant.children.filter(
+                    (child) => !targets.includes(child),
+                ),
+            );
         }
-        // Links are symmetric, and the children of a removed object are
-        // removed: only the parents left need their children trimmed.
-        removed.forEach((object) =>
+        // Links are symmetric: the objects left need their links to the
+        // removed ones trimmed.
+        removed.forEach((object) => {
             object.parents.forEach((parent) => {
                 if (!removed.has(parent))
                     parent.children = parent.children.filter(
                         (child) => !removed.has(child),
                     );
-            }),
-        );
+            });
+            object.children.forEach((child) => {
+                if (!removed.has(child))
+                    child.parents = child.parents.filter(
+                        (parent) => !removed.has(parent),
+                    );
+            });
+        });
         this.OBJS.remove(removed);
         removed.forEach((object) => {
             object.parents = [];

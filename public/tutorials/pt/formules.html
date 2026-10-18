@@ -296,12 +296,21 @@
                                 <code>L.join(", ")</code>
                             </td>
                         </tr>
+                        <tr>
+                            <td>globais</td>
+                            <td>
+                                <code>GLOBAL_SET("n", 5)</code>,
+                                <code>GLOBAL_INC("n", 1)</code>,
+                                <code>GLOBAL_GET("n")</code>
+                            </td>
+                        </tr>
                     </tbody>
                 </table>
             </div>
             <p>
                 As variáveis de um programa escondem os objetos de mesmo nome.
-                Um laço infinito é interrompido.
+                Um laço infinito é interrompido. As globais são partilhadas por
+                todos os programas da figura, incluindo os seus botões.
             </p>
             <h3>Métodos dos objetos</h3>
             <div class="table">

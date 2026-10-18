@@ -297,12 +297,22 @@
                                 <code>L.join(", ")</code>
                             </td>
                         </tr>
+                        <tr>
+                            <td>globales</td>
+                            <td>
+                                <code>GLOBAL_SET("n", 5)</code>,
+                                <code>GLOBAL_INC("n", 1)</code>,
+                                <code>GLOBAL_GET("n")</code>
+                            </td>
+                        </tr>
                     </tbody>
                 </table>
             </div>
             <p>
                 Las variables de un programa ocultan los objetos del mismo
-                nombre. Un bucle infinito se interrumpe.
+                nombre. Un bucle infinito se interrumpe. Las globales las
+                comparten todos los programas de la figura, incluidos sus
+                botones.
             </p>
             <h3>Métodos de los objetos</h3>
             <div class="table">

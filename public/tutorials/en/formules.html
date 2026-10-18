@@ -297,12 +297,21 @@
                                 <code>L.join(", ")</code>
                             </td>
                         </tr>
+                        <tr>
+                            <td>globals</td>
+                            <td>
+                                <code>GLOBAL_SET("n", 5)</code>,
+                                <code>GLOBAL_INC("n", 1)</code>,
+                                <code>GLOBAL_GET("n")</code>
+                            </td>
+                        </tr>
                     </tbody>
                 </table>
             </div>
             <p>
                 The variables of a program hide the objects with the same name.
-                An endless loop is interrupted.
+                An endless loop is interrupted. Globals are shared by all the
+                programs of the figure, its buttons included.
             </p>
             <h3>Object methods</h3>
             <div class="table">

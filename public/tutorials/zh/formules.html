@@ -290,10 +290,20 @@
                                 >
                             </td>
                         </tr>
+                        <tr>
+                            <td>全局变量</td>
+                            <td>
+                                <code>GLOBAL_SET("n", 5)</code>、<code
+                                    >GLOBAL_INC("n", 1)</code
+                                >、<code>GLOBAL_GET("n")</code>
+                            </td>
+                        </tr>
                     </tbody>
                 </table>
             </div>
-            <p>程序中的变量会遮蔽同名的对象。无限循环会被中断。</p>
+            <p>
+                程序中的变量会遮蔽同名的对象。无限循环会被中断。全局变量由图形的所有程序共享，包括其按钮。
+            </p>
             <h3>对象的方法</h3>
             <div class="table">
                 <table>

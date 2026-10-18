@@ -3,6 +3,7 @@ import {
     evaluateFormula,
     evaluateProgram,
     formulaIdentifiers,
+    globalName,
     NO_VIEW,
     parseFormula,
     parseProgram,
@@ -11,6 +12,7 @@ import {
     programTurtle,
     type FormulaEnv,
     type FormulaView,
+    type ScriptValue,
     withObjects,
 } from "../../src/import/dgp_formula";
 
@@ -412,14 +414,28 @@ describe("evaluateProgram", () => {
         expect(run('"AB = "+round(2.6)')).toBe("AB = 3");
     });
 
-    it("reads Blockly's comments and global variables", () => {
-        expect(
-            run(`// Décrire cette fonction…
+    it("reads Blockly's comments, its globals as objects, and its lists", () => {
+        // The global, an object of the figure that the program sets.
+        let side: ScriptValue | null = null;
+        const env: FormulaEnv = {
+            resolveIdentifier: (name) =>
+                name === globalName("côté") ? side : null,
+            view: () => NO_VIEW,
+            callMethod: (object, method, args) => {
+                if (object === globalName("côté") && method === "setExpression")
+                    side = args[0];
+            },
+        };
+        const program = parseProgram(`// Décrire cette fonction…
 function f() { GLOBAL_SET("côté", 3); /* puis */ g(); }
-function g() { GLOBAL_SET("côté", GLOBAL_GET("côté") * 2); }
+function g() { GLOBAL_INC("côté", GLOBAL_GET("côté")); GLOBAL_INC("côté"); }
 f();
-GLOBAL_GET("côté")`),
-        ).toBe(6);
+GLOBAL_GET("côté")`);
+        expect(evaluateProgram(program, env)).toBe(7);
+        expect(programReferences(program)).toEqual(
+            new Set([globalName("côté")]),
+        );
+        expect(programTargets(program)).toEqual(new Set([globalName("côté")]));
         expect(
             run(
                 "function f(p) { return p.slice(-1)[0]; } [f([1,2,3]), [4,5,6].slice(1,-1), null + 1]",

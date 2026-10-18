@@ -368,11 +368,15 @@ la figure, autour de la verticale de O dans l'espace, sa hauteur gardée),
    (valeur constante ou de curseur), `"f"` (formule de fonction en x, y, z, t)
    ou `"s"` (script) ; position `"xy": [x, y]` en pixels, ou attachée à un
    point : `"on": point, "d": [dx, dy]`. Un script peut, par
-   `SET_EXP("E", valeur)`, changer le nombre d'une `Ex` de valeur constante
+   `SET_EXP("E", valeur)`, changer la valeur d'une `Ex` de valeur constante
    ou placer un point libre (`[x, y]` ou `[x, y, z]`), recalculés après
    lui, comme DGPad. Un objet qu'il met en forme sans que sa formule le
    désigne (déclaré après lui, comme la liste qui le dessine) n'est pas mis
-   en forme : son style l'est déjà.
+   en forme : son style l'est déjà. `"g": nom` fait de l'`Ex` (de valeur
+   `"v"`, nombre, texte ou liste) une globale Blockly de DGPad, partagée par
+   les scripts : `GLOBAL_GET("nom")` la lit, `GLOBAL_SET("nom", valeur)` et
+   `GLOBAL_INC("nom", pas)` la changent comme `SET_EXP` ; la formule associe
+   la globale au nom `GLOBAL nom`.
 7. Nature `point`, `segment`, `line`, `label`, `polygon` (région remplie
    bordée par les points, pris dans l'ordre), `polygons` (chaque suite de
    points définis borne une région, un point indéfini les séparant) ou
@@ -416,9 +420,9 @@ alignement]]` police, `[30, url, l, h, zoom, opacité, u]` image (largeur
 13. `{"t": légende, "s": script, "xy": [x, y]}` : bouton « lecture » de DGPad
     (`BlocklyButton`), légendé à sa gauche, dont `xy` est le bord droit à
     mi-hauteur, en pixels. Un clic exécute le script, qui ne fait que mettre
-    en forme des objets et, par `SET_EXP("E", valeur)`, changer le nombre
-    d'une `Ex` de valeur constante, comme une manipulation (état élève de
-    `E`). Sans `"s"`, il ne fait rien.
+    en forme des objets et, par `SET_EXP("E", valeur)` ou une globale (6),
+    changer la valeur d'une `Ex` de valeur constante, comme une manipulation
+    (état élève de `E`). Sans `"s"`, il ne fait rien.
 14. `g` et `d` : formules en x et y des deux membres de l'équation, de degré
     1 pour une droite, 2 au plus pour une conique, recalculés à chaque
     mouvement. Un cercle a le même coefficient en x² et en y², sans xy ; une

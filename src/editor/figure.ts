@@ -19,6 +19,8 @@ import {
     parseProgram,
     programNodes,
     programReferences,
+    globalName,
+    globalOf,
     programTargets,
     turtleList,
     withObjects,
@@ -508,21 +510,43 @@ export function resolveWithSliders(
     const split = (source: string) =>
         splitProducts(source, (name) => !!c.getObj(name));
     const definition = line.definition && products(line.definition, split);
+    return resolveAdding(c, { ...line, definition }, target, added, (name) =>
+        SLIDER_NAME.test(name) && !FREE_NAMES.has(name) && name !== line.name
+            ? addSlider(c, name)
+            : null,
+    );
+}
+
+// The line resolved, a global added first for each one it names that no
+// object holds, which `added` gets: the caller removes them if the line is
+// refused.
+export const resolveWithGlobals = (
+    c: construction,
+    line: Line,
+    target: construction_object | undefined,
+    added: construction_object[],
+): Spec => resolveAdding(c, line, target, added, () => null);
+
+function resolveAdding(
+    c: construction,
+    line: Line,
+    target: construction_object | undefined,
+    added: construction_object[],
+    missing: (name: string) => construction_object | null,
+): Spec {
     for (;;) {
         try {
-            return resolve(c, { ...line, definition }, target);
+            return resolve(c, line, target);
         } catch (error) {
             const name =
                 error instanceof TextError && error.key === "unknown_object"
                     ? error.detail
                     : "";
-            if (
-                !SLIDER_NAME.test(name) ||
-                FREE_NAMES.has(name) ||
-                name === line.name
-            )
-                throw error;
-            added.push(addSlider(c, name));
+            const global = globalOf(name);
+            const object =
+                global !== null ? addGlobal(c, global) : missing(name);
+            if (!object) throw error;
+            added.push(object);
         }
     }
 }
@@ -643,7 +667,50 @@ const readable = (c: construction): Map<string, construction_object> =>
             ([name, list]) =>
                 [turtleList(name), list] as [string, construction_object],
         ),
+        ...figureGlobals(c).map(
+            (object) =>
+                [globalName(object.global!), object] as [
+                    string,
+                    construction_object,
+                ],
+        ),
     ]);
+
+// Whether a program sets values (SET_EXP, a global), which trying it would.
+export const setsValues = (source: string): boolean =>
+    programNodes(parseProgram(source)).some(
+        (node) => node.kind === "method" && node.method === "setExpression",
+    );
+
+// DGPad's Blockly globals: an Ex each, which programs read and set.
+export const figureGlobals = (c: construction): expression_object[] =>
+    figureObjects(c).filter(
+        (object): object is expression_object =>
+            object instanceof expression_object && object.global !== null,
+    );
+
+// A global that a program names before any other does, undefined until one
+// sets it, hidden as DGPad's.
+function addGlobal(c: construction, global: string): expression_object {
+    let name = global;
+    for (let n = 1; c.getObj(name); n++) name = `${global}${n}`;
+    const object = add(
+        c,
+        {
+            name,
+            overload: {
+                params: [],
+                tag: "Ex",
+                encode: () => ({ t: "", v: null, g: global, xy: [0, 0] }),
+            },
+            args: [],
+        },
+        false,
+    ) as expression_object;
+    object.hidden = 2;
+    object.updateView();
+    return object;
+}
 
 const shownName = (name: string): string =>
     name.startsWith(turtleList(""))

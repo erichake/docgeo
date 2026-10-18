@@ -134,6 +134,7 @@ import type { Vec2, Vec3 } from "../vec";
 import {
     evaluateFormula,
     formulaIdentifiers,
+    globalName,
     NO_VIEW,
     parseFormula,
     parseProgram,
@@ -144,6 +145,7 @@ import {
     type FormulaNode,
     type FormulaValue,
     type Program,
+    type ScriptValue,
     isFigureObject,
     withObjects,
 } from "./dgp_formula";
@@ -366,6 +368,46 @@ const READABLE: ReadonlySet<ObjectKind> = new Set([
 const LIST_NAMES = ["k", "count"];
 
 class UnknownReference extends Error {}
+
+const GLOBAL_NAME = /GLOBAL_(?:SET|GET|INC)\(\s*\\?(["'])(.*?)\\?\1/g;
+
+// DGPad's Blockly globals the figure's programs name, an Ex each (see
+// globalName in dgp_formula.ts), with the values the figure saved
+// (BLK_GLOB_SET), undefined for the others.
+function figureGlobals(calls: DgpCall[]): Map<string, ScriptValue | null> {
+    const globals = new Map<string, ScriptValue | null>();
+    calls.forEach((call) => {
+        if (isRestrictionsProgram(call)) return;
+        call.arguments.forEach((value) => {
+            if (value.type !== "literal" || typeof value.value !== "string")
+                return;
+            for (const [, , name] of value.value.matchAll(GLOBAL_NAME))
+                globals.set(name, null);
+        });
+    });
+    const saved = calls.find((call) => call.name === "BLK_GLOB_SET")
+        ?.arguments[0];
+    let values: unknown = null;
+    try {
+        values = saved?.type === "literal" && JSON.parse(String(saved.value));
+    } catch {
+        // Values of a file DGPad didn't write: undefined.
+    }
+    if (values && typeof values === "object")
+        Object.entries(values).forEach(([name, value]) => {
+            if (globals.has(name)) globals.set(name, jsonValue(value));
+        });
+    return globals;
+}
+
+// A saved global's value: true and false as DGPad's programs read them.
+function jsonValue(value: unknown): ScriptValue | null {
+    if (typeof value === "number" || typeof value === "string") return value;
+    if (typeof value === "boolean") return +value;
+    if (!Array.isArray(value)) return null;
+    const items = value.map(jsonValue);
+    return items.includes(null) ? null : (items as ScriptValue[]);
+}
 
 // The points an Expression's turtles start from.
 function turtleStarts(call: DgpCall): string[] {
@@ -3560,10 +3602,11 @@ function validateCalls(calls: DgpCall[]): {
     const skipped = new Set<string>();
     const unsupported: string[] = [];
     const named = new Set(calls.flatMap((call) => call.variable ?? []));
+    figureGlobals(calls).forEach((_, name) =>
+        variables.set(globalName(name), "expression"),
+    );
     const valid = calls.filter((call) => {
-        // The initial values of the Blockly programs' global variables,
-        // which only the programs never run use: each is reported with its
-        // object.
+        // Read with the globals (see figureGlobals).
         if (call.name === "BLK_GLOB_SET") return false;
         if (isRestrictionsProgram(call)) {
             skipped.add(call.variable!);
@@ -3649,6 +3692,25 @@ function executeCalls(
     };
 
     c.beginBatch();
+    // First, as the programs read them.
+    const names = new Set(calls.flatMap((call) => call.variable ?? []));
+    figureGlobals(calls).forEach((value, global) => {
+        let name = global;
+        for (let n = 1; names.has(name) || c.getObj(name); n++)
+            name = `${global}${n}`;
+        const expression = createExpression(
+            c,
+            name,
+            "",
+            value,
+            null,
+            null,
+            [0, 0],
+        );
+        expression.global = global;
+        expression.hidden = 2;
+        context.variables.set(globalName(global), expression);
+    });
     valid.forEach((call) => {
         const definition = COMMANDS.get(call.name)!;
         const result = definition.execute(

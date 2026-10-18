@@ -20,6 +20,7 @@ import { blocksView, isTurtle } from "./blocks/view";
 import {
     createdColors,
     definitionSource,
+    figureGlobals,
     figureTurtles,
     hasName,
 } from "./figure";
@@ -1227,6 +1228,8 @@ export function propertiesPanel(options: {
                     figure: {
                         objects: names,
                         turtles: () => figureTurtles(c).map(([name]) => name),
+                        globals: () =>
+                            figureGlobals(c).map((object) => object.global!),
                     },
                     apply: (source) => void submit(source),
                     fallback: () => {

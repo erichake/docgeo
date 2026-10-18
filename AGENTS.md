@@ -48,9 +48,11 @@ Les développements doivent servir en priorité :
   (page hôte interdisant `new Function`, construction non traduite). La tortue
   Blockly (fonctions `TURTLE_…`, compilées dans l'expression que dessine sa
   liste) et les boutons Blockly (`BlocklyButton`,
-  dont le programme ne peut que mettre en forme des objets et changer le
-  nombre d'une expression constante, comme une manipulation) sont lus par le
-  même interpréteur. Les autres programmes Blockly (événements) restent
+  dont le programme ne peut que mettre en forme des objets et changer la
+  valeur d'une expression constante, comme une manipulation) sont lus par le
+  même interpréteur. Les globales Blockly (`GLOBAL_GET`, `GLOBAL_SET`,
+  `GLOBAL_INC`) sont des expressions cachées de la figure, partagées par ses
+  programmes et ses boutons (voir `DGO.md`). Les autres programmes Blockly (événements) restent
   ignorés et signalés. Exception : l'expression « restrictions » (programme
   Blockly recopié de figure en figure qui verrouille l'interface de DGPad : zoom,
   déplacement de la vue, panneau de contrôle, déplacement des widgets…) est

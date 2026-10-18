@@ -20,6 +20,8 @@ export interface BlocksFigure {
     objects(): string[];
     // The names the turtles are known by (see TURTLE_GET).
     turtles(): string[];
+    // DGPad's Blockly globals, which the figure's programs share.
+    globals(): string[];
 }
 
 // Blockly's texts, by DocGeo's language.
@@ -43,10 +45,15 @@ const LOCALES: Record<string, () => Promise<object>> = {
 const TURTLE = ["#0d9488", "#0b8277", "#086b62"];
 const FIGURE = ["#b45309", "#9e4808", "#813b06"];
 const PROGRAM = ["#2563eb", "#1f55cf", "#1a46ab"];
+// DGPad's, for its globals.
+const GLOBAL = ["#4f7fa0", "#456f8c", "#3a5e77"];
 // Where a program starts: Scratch's "when the green flag is clicked".
 const START = ["#ffbf00", "#e6ac00", "#cc9900"];
 
 let figure: BlocksFigure;
+// The globals created in the blocks, the figure's once a program sets them.
+const created = new Set<string>();
+const globals = () => [...new Set([...figure.globals(), ...created])];
 
 const options = (names: string[]): Blockly.MenuOption[] =>
     names.length ? names.map((name) => [name, name]) : [["?", ""]];
@@ -323,6 +330,31 @@ function defineBlocks(): void {
             extensions: ["dg_style_object"],
         },
         {
+            type: "dg_global_get",
+            message0: msg("GLOBAL_GET"),
+            args0: [{ type: "input_dummy", name: "NAME" }],
+            output: null,
+            style: "global_blocks",
+            extensions: ["dg_global_name"],
+        },
+        ...(
+            [
+                ["dg_global_set", "GLOBAL_SET", "VALUE"],
+                ["dg_global_inc", "GLOBAL_INC", "DELTA"],
+            ] as [string, BlockMessage, string][]
+        ).map(([type, key, input]) => ({
+            type,
+            message0: msg(key),
+            args0: [
+                { type: "input_dummy", name: "NAME" },
+                { type: "input_value", name: input },
+            ],
+            inputsInline: true,
+            ...statement,
+            style: "global_blocks",
+            extensions: ["dg_global_name"],
+        })),
+        {
             type: "dg_style_rgb",
             message0: msg("STYLE_RGB"),
             args0: [
@@ -372,6 +404,7 @@ function registerObjectFields(): void {
         "dg_turtle_name",
         field("NAME", () => figure.turtles()),
     );
+    Blockly.Extensions.register("dg_global_name", field("NAME", globals));
 }
 
 const shadow = (type: string, fields: Record<string, unknown>) => ({
@@ -487,6 +520,12 @@ function toolbox(turtle: boolean) {
             },
             {
                 kind: "category",
+                name: text("CAT_GLOBALS"),
+                categorystyle: "global_category",
+                custom: "DG_GLOBALS",
+            },
+            {
+                kind: "category",
                 name: text("CAT_FUNCTIONS"),
                 categorystyle: "procedure_category",
                 custom: "PROCEDURE",
@@ -530,10 +569,12 @@ function theme(): Blockly.Theme {
             figure_blocks: style(FIGURE),
             program_blocks: style(PROGRAM),
             start_blocks: style(START),
+            global_blocks: style(GLOBAL),
         },
         categoryStyles: {
             turtle_category: { colour: TURTLE[0] },
             figure_category: { colour: FIGURE[0] },
+            global_category: { colour: GLOBAL[0] },
         },
         componentStyles: {
             workspaceBackgroundColour: "#ffffff",
@@ -601,6 +642,32 @@ export async function blocksEditor(
         zoom: { controls: false, wheel: true, startScale: 0.7 },
         move: { scrollbars: true, drag: true, wheel: false },
     });
+    // A button creating a global, then its blocks once there is one.
+    workspace.registerToolboxCategoryCallback(
+        "DG_GLOBALS",
+        () =>
+            [
+                {
+                    kind: "button",
+                    text: Blockly.Msg.DG_NEW_GLOBAL,
+                    callbackkey: "DG_NEW_GLOBAL",
+                },
+                ...(globals().length
+                    ? [
+                          block("dg_global_set", { VALUE: num(0) }),
+                          block("dg_global_inc", { DELTA: num(1) }),
+                          block("dg_global_get"),
+                      ]
+                    : []),
+            ] as Blockly.utils.toolbox.FlyoutItemInfoArray,
+    );
+    workspace.registerButtonCallback("DG_NEW_GLOBAL", () =>
+        Blockly.dialog.prompt(Blockly.Msg.NEW_VARIABLE_TITLE, "", (name) => {
+            if (!name?.trim()) return;
+            created.add(name.trim());
+            workspace.refreshToolboxSelection();
+        }),
+    );
     // Moved from panel to panel, or the panel resized.
     new ResizeObserver(() => Blockly.svgResize(workspace)).observe(host);
     let written = "";

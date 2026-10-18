@@ -299,12 +299,21 @@
                                 <code>L.join(", ")</code>
                             </td>
                         </tr>
+                        <tr>
+                            <td>globales</td>
+                            <td>
+                                <code>GLOBAL_SET("n", 5)</code>,
+                                <code>GLOBAL_INC("n", 1)</code>,
+                                <code>GLOBAL_GET("n")</code>
+                            </td>
+                        </tr>
                     </tbody>
                 </table>
             </div>
             <p>
                 Les variables d’un programme masquent les objets de même nom.
-                Une boucle sans fin est interrompue.
+                Une boucle sans fin est interrompue. Les globales sont partagées
+                par tous les programmes de la figure, ses boutons compris.
             </p>
             <h3>Méthodes des objets</h3>
             <div class="table">

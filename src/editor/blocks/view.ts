@@ -13,7 +13,7 @@ export interface BlocksView {
     key: string;
     source: string;
     degrees: boolean;
-    figure: Pick<BlocksFigure, "objects" | "turtles">;
+    figure: Pick<BlocksFigure, "objects" | "turtles" | "globals">;
     // The program the blocks now write.
     apply: (source: string) => void;
     // The program has some part without a block.
@@ -39,6 +39,7 @@ export function blocksView(view: BlocksView) {
                 format: formatName,
                 objects: () => current.figure.objects(),
                 turtles: () => current.figure.turtles(),
+                globals: () => current.figure.globals(),
             },
             (source) => current.apply(source),
         ),

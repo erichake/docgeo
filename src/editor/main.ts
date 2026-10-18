@@ -66,7 +66,9 @@ import {
     rebuild,
     redefine,
     resolve,
+    resolveWithGlobals,
     resolveWithSliders,
+    setsValues,
     turtleStart,
     type Spec,
     type Studio,
@@ -612,6 +614,19 @@ explain(
 const turtle = turtleLayer(scene, () =>
     propertiesOpen ? properties.selected : null,
 );
+// The program's line resolved, the globals it adds taken out if refused.
+function withGlobals(
+    resolveLine: (added: construction_object[]) => Spec,
+): Spec {
+    const added: construction_object[] = [];
+    try {
+        return resolveLine(added);
+    } catch (error) {
+        added.forEach((global) => scene().removeObject(global));
+        throw error;
+    }
+}
+
 const properties = propertiesPanel({
     scene,
     changed: () => changed(),
@@ -619,20 +634,23 @@ const properties = propertiesPanel({
     mark: (object, on) => lit(object, on),
     rename,
     define: async (object, source) => {
-        const spec = resolve(
-            scene(),
-            {
-                name: object.name,
-                definition:
-                    object instanceof panel_object
-                        ? {
-                              kind: "call",
-                              command: "Html",
-                              args: [{ kind: "string", value: source }],
-                          }
-                        : { kind: "formula", source },
-            },
-            object,
+        const spec = withGlobals((added) =>
+            resolveWithGlobals(
+                scene(),
+                {
+                    name: object.name,
+                    definition:
+                        object instanceof panel_object
+                            ? {
+                                  kind: "call",
+                                  command: "Html",
+                                  args: [{ kind: "string", value: source }],
+                              }
+                            : { kind: "formula", source },
+                },
+                object,
+                added,
+            ),
         );
         await redefine(studio, object, spec);
         properties.select(scene().getObj(spec.name)!);
@@ -645,10 +663,17 @@ const properties = propertiesPanel({
         const c = scene();
         const object = add(
             c,
-            resolve(c, {
-                name: name || null,
-                definition: { kind: "formula", source },
-            }),
+            withGlobals((added) =>
+                resolveWithGlobals(
+                    c,
+                    {
+                        name: name || null,
+                        definition: { kind: "formula", source },
+                    },
+                    undefined,
+                    added,
+                ),
+            ),
         );
         properties.select(object);
         done(object);
@@ -1418,7 +1443,11 @@ function offerChoice(field: HTMLInputElement): void {
         if (error instanceof TextError) return;
         throw error;
     }
-    if (line.definition?.kind !== "formula") return;
+    if (
+        line.definition?.kind !== "formula" ||
+        setsValues(line.definition.source)
+    )
+        return;
     const c = scene();
     const object =
         [...rows].find(([, row]) => row.dom() === field)?.[0] ?? null;

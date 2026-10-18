@@ -121,6 +121,11 @@ const FUNCTIONS = Object.fromEntries(
     ]),
 );
 
+// The global a name read by a program is (see globalName in
+// dgp_formula.ts, which Blockly's chunk doesn't import).
+const globalOf = (name: string): string | null =>
+    name.startsWith("GLOBAL ") ? name.slice(7) : null;
+
 class Unsupported extends Error {}
 
 function unsupported(): never {
@@ -235,10 +240,7 @@ class Decompiler {
     private name(locals: ReadonlySet<string>): void {
         const plain = (name: string) =>
             blocklyName(
-                name.replace(
-                    /^(?:blockly_var_|blockly_local_|GLOBAL )(?=.)/,
-                    "",
-                ),
+                name.replace(/^(?:blockly_var_|blockly_local_)(?=.)/, ""),
             );
         const shown = [...locals].map(plain);
         locals.forEach((name) =>
@@ -311,7 +313,8 @@ class Decompiler {
             (statement) =>
                 statement.kind === "expression" &&
                 statement.node.kind === "identifier" &&
-                !this.names.has(statement.node.name),
+                !this.names.has(statement.node.name) &&
+                globalOf(statement.node.name) === null,
         );
         const chain = this.chain(
             body.filter(
@@ -512,6 +515,25 @@ class Decompiler {
         }
         if (node.kind === "method") {
             if (node.indices.length) unsupported();
+            const global = globalOf(node.object);
+            if (global !== null && node.method === "setExpression") {
+                const [assigned] = node.args;
+                // GLOBAL_INC's "g = g + d".
+                const delta =
+                    assigned.kind === "binary" &&
+                    assigned.op === "+" &&
+                    assigned.left.kind === "identifier" &&
+                    assigned.left.name === node.object
+                        ? assigned.right
+                        : null;
+                return {
+                    type: delta ? "dg_global_inc" : "dg_global_set",
+                    fields: { NAME: global },
+                    inputs: delta
+                        ? { DELTA: value(this.value(delta)) }
+                        : { VALUE: value(this.value(assigned)) },
+                };
+            }
             if (node.method === "setRGBColor") {
                 const [r, g, b] = node.args.map((arg) =>
                     value(this.value(arg)),
@@ -658,6 +680,11 @@ class Decompiler {
             case "constant":
                 return { type: "math_constant", fields: { CONSTANT: "PI" } };
             case "identifier":
+                if (globalOf(node.name) !== null)
+                    return {
+                        type: "dg_global_get",
+                        fields: { NAME: globalOf(node.name) },
+                    };
                 return this.names.has(node.name)
                     ? {
                           type: "variables_get",
@@ -1157,6 +1184,18 @@ class Generator {
                     String(dir === "up" || dir === "down"),
                 );
             }
+            case "dg_global_set":
+                return call(
+                    "GLOBAL_SET",
+                    quoted(String(fields.NAME)),
+                    this.arg(block, "VALUE"),
+                );
+            case "dg_global_inc":
+                return call(
+                    "GLOBAL_INC",
+                    quoted(String(fields.NAME)),
+                    this.arg(block, "DELTA", "1"),
+                );
             case "procedures_callnoreturn":
                 return call(
                     this.format(String(block.extraState!.name)),
@@ -1236,6 +1275,8 @@ class Generator {
                 return [this.variable(block), ATOM];
             case "dg_object":
                 return [this.format(String(fields.NAME)), ATOM];
+            case "dg_global_get":
+                return [`GLOBAL_GET(${quoted(String(fields.NAME))})`, ATOM];
             case "math_arithmetic": {
                 if (fields.OP === "POWER")
                     return [

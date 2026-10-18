@@ -167,6 +167,7 @@ TURTLE_INIT("A",A);
 function Carr_C3_A9(blockly_local_c) {
   GLOBAL_SET("côté",Math.times(blockly_local_c,2));
   TURTLE_MV(GLOBAL_GET("côté"),false);
+  GLOBAL_INC("côté");
 }
 Carr_C3_A9(3);
 Z;
@@ -175,14 +176,14 @@ return TURTLE_RESULT()
 };
 bl_x()`),
         ).toBe(`TURTLE_INIT("A", A);
-var côté;
 function Carré(c) {
-    côté = c * 2;
-    TURTLE_MV(côté, false);
+    GLOBAL_SET("côté", c * 2);
+    TURTLE_MV(GLOBAL_GET("côté"), false);
+    GLOBAL_INC("côté", 1);
 }
 Z;
 Carré(3);
-TURTLE_MV(côté, false);
+TURTLE_MV(GLOBAL_GET("côté"), false);
 return TURTLE_RESULT();`);
     });
 

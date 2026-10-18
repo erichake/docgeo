@@ -248,8 +248,13 @@ type TurtleFn = keyof typeof TURTLE_ARITY;
 // DocGeo (see DGO.md).
 export const turtleList = (name: string) => `blk_turtle_list_${name}`;
 
-// Not an identifier: no clash with the program's own names.
-const globalName = (name: string) => `GLOBAL ${name}`;
+// The name a program reads one of DGPad's Blockly globals by, an Ex of the
+// figure (see DGO.md): not an identifier, no clash with other names.
+export const globalName = (name: string) => `GLOBAL ${name}`;
+
+// The global a name read by a program is, if any.
+export const globalOf = (name: string): string | null =>
+    name.startsWith("GLOBAL ") ? name.slice(7) : null;
 
 type BinaryOp = "+" | "-" | "*" | "/" | "%" | "^" | Comparison;
 
@@ -1047,20 +1052,35 @@ class FormulaParser {
                 left: { kind: "string", value: "" },
                 right: args[0],
             };
-        // Blockly's global variables, those of the program here: a program
-        // sets them before it reads them.
-        if (name === "GLOBAL_SET" || name === "GLOBAL_GET") {
+        // DGPad's Blockly globals, shared by the figure's programs: read as
+        // an object, set as SET_EXP sets one.
+        if (
+            name === "GLOBAL_GET" ||
+            name === "GLOBAL_SET" ||
+            name === "GLOBAL_INC"
+        ) {
             const [variable, value] = args;
             if (
-                args.length !== (name === "GLOBAL_SET" ? 2 : 1) ||
-                variable.kind !== "string"
+                variable?.kind !== "string" ||
+                args.length > (name === "GLOBAL_GET" ? 1 : 2) ||
+                (name === "GLOBAL_SET" && !value)
             )
                 throw new Error("Invalid DGP formula syntax");
-            const global = globalName(variable.value);
-            (this.outer[1] ?? this.locals).add(global);
-            return value
-                ? { kind: "assign", name: global, value }
-                : { kind: "identifier", name: global };
+            const global: FormulaNode = {
+                kind: "identifier",
+                name: globalName(variable.value),
+            };
+            if (name === "GLOBAL_GET") return global;
+            return methodNode(global.name, "setExpression", [
+                name === "GLOBAL_SET"
+                    ? value
+                    : {
+                          kind: "binary",
+                          op: "+",
+                          left: global,
+                          right: value ?? { kind: "number", value: 1 },
+                      },
+            ]);
         }
         if (name === "SET_EXP") {
             const [object, value] = args;

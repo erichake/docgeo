@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import { AWAKE } from "../../src/construction";
 import { importDgp, importDgpFromUrl } from "../../src/dgp_importer";
 import { t } from "../../src/i18n";
+import type { button_object } from "../../src/objects/button_object";
 import type { circle3pts_object } from "../../src/objects/circle3pts_object";
 import type { curve_object } from "../../src/objects/curve_object";
 import type { expression_list_object } from "../../src/objects/expression_list_object";
@@ -31,11 +32,10 @@ describe("DGPad's commands", () => {
             c,
             `P1=Point("P1",1,2);
 btn=BlocklyButton("btn","reset","0","0");
-c=Expression("c","","","","var bl_a=function(){GLOBAL_INC(\\"T\\",1);return GLOBAL_GET(\\"T\\")};bl_a()","0","0");
+c=Expression("c","","","","var bl_a=function(){ALERT(\\"Ce programme montre un message\\");return 1};bl_a()","0","0");
 d=Expression("d","","","","c+1","0","0");
 BLK(P1,{"onlogo":{"xml":"<xml/>","sync":"TURTLE_INIT(\\"P1\\",P1);"}});
-BLK(P1,{"onchange":{"xml":"<xml/>","sync":"ALERT(1);"}});
-BLK_GLOB_SET({"T":0});`,
+BLK(P1,{"onchange":{"xml":"<xml/>","sync":"ALERT(1);"}});`,
         );
         expect(c.getObj("P1")).toBeTruthy();
         // A button without a program, which does nothing.
@@ -79,6 +79,38 @@ lt=List("lt",t);`,
             8, 3,
         ]);
         expect((c.getObj("f") as curve_object).max).toBe(6);
+    });
+
+    it("shares DGPad's Blockly globals between programs and buttons", () => {
+        const c = createConstruction();
+        const unsupported = importDgp(
+            c,
+            `btn=BlocklyButton("btn","+","0","0");
+a=Expression("a","","","","2","0","0");
+w=Expression("w","","","","GLOBAL_SET(\\"n\\",a+3);0","0","0");
+r=Expression("r","","","","GLOBAL_GET(\\"n\\")*10","0","0");
+BLK(btn,{"onprogram":{"xml":"<xml/>","sync":"GLOBAL_INC(\\"n\\",1);"}});
+BLK_GLOB_SET({"n":3,"old":true});`,
+        );
+        c.OBJS.update();
+        expect(unsupported).toEqual([]);
+        const n = c.getObj("n") as expression_object;
+        expect([n.global, n.hidden]).toEqual(["n", 2]);
+        // Only the globals the programs name.
+        expect(c.getObj("old")).toBeFalsy();
+        expect(value(c, "r")).toBe(50);
+        (c.getObj("btn") as button_object).run();
+        c.OBJS.update();
+        expect(value(c, "r")).toBe(60);
+        const a = c.getObj("a") as expression_object;
+        a.value = 4;
+        c.invalidateGeometry(a);
+        c.OBJS.update();
+        expect(value(c, "r")).toBe(70);
+        // What a program sets stays without it.
+        c.removeObject(c.getObj("w")!);
+        expect(c.getObj("n")).toBe(n);
+        expect(c.getObj("r")).toBeTruthy();
     });
 
     it("turns the view as a script restricting it is computed again", () => {

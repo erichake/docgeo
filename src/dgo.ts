@@ -1726,8 +1726,9 @@ const BUILDERS: Record<string, Builder> = {
     Ex: (parameters, reader) => {
         const { c, name, at, formula: read, vec3, offset } = reader;
         check(isRecord(parameters));
-        const { t: text, v: value, f, s, mn = null, mx = null } = parameters;
+        const { t: text, v: value, f, s, g, mn = null, mx = null } = parameters;
         check(typeof text === "string");
+        check(g === undefined || typeof g === "string");
         check([value, f, s].filter((item) => item !== undefined).length === 1);
         // Bounds that read other objects are formulas.
         const numeric = (bound: Json) => bound === null || isNumber(bound);
@@ -1773,6 +1774,7 @@ const BUILDERS: Record<string, Builder> = {
             program,
             bounds,
         );
+        expression.global = (g as string | undefined) ?? null;
         if (anchored) {
             expression.anchor = at(parameters.on, point_object);
             expression.alpha = screen;

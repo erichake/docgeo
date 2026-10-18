@@ -234,19 +234,24 @@ export function evaluateFunction(
     });
 }
 
-// DGPad's SET_EXP in a program, as a manipulation: the number of a
-// constant expression, or where a free point is. Read later by the program,
-// or computed after it as its child.
-function setValue(target: construction_object, value: ScriptValue | null) {
+// DGPad's SET_EXP, as a manipulation: the value of a constant expression,
+// a Blockly global among them, or where a free point is. Read later by the
+// program, or computed after it as its child. Whether it was set.
+export function setValue(
+    target: construction_object,
+    value: ScriptValue | null,
+): boolean {
     if (
         target instanceof expression_object &&
         !target.formula &&
-        !target.program &&
-        typeof value === "number"
+        !target.program
     ) {
         target.value = value;
+        target.defined = value !== null;
         target.C.invalidateRender(target);
-    } else if (
+        return true;
+    }
+    if (
         target.constructor === point_object &&
         Array.isArray(value) &&
         (value.length === 2 || value.length === 3) &&
@@ -255,7 +260,9 @@ function setValue(target: construction_object, value: ScriptValue | null) {
         const point = target as point_object;
         point.coords = [value[0], value[1], (value[2] as number) ?? point.z];
         if (point.pinned) point.pin();
+        return true;
     }
+    return false;
 }
 
 // DGPad's arrows at the end of a List's segments, [length, half width] in
@@ -385,6 +392,9 @@ export class expression_object extends construction_object {
     cursorOpacity: number;
     // GeoGebra's checkbox, captioned by `text`, worth 1 or 0.
     checkbox = false;
+    // The name of DGPad's Blockly global it holds, which programs read and
+    // set (see globalName in dgp_formula.ts).
+    global: string | null = null;
     // A string value is LaTeX, drawn by KaTeX from its top left corner.
     latex = false;
     // GeoGebra's input box, as many characters wide, from its top left
@@ -486,6 +496,7 @@ export class expression_object extends construction_object {
             {
                 t: this.text,
                 ...content,
+                ...(this.global !== null && { g: this.global }),
                 ...(this.bounds
                     ? {
                           mn: this.dgoBound(this.bounds.min, context),

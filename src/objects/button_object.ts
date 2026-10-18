@@ -1,10 +1,6 @@
 import type { construction } from "../construction";
 import type { DOMElement } from "../dom";
-import {
-    evaluateProgram,
-    formulaSource,
-    type ScriptValue,
-} from "../import/dgp_formula";
+import { evaluateProgram, formulaSource } from "../import/dgp_formula";
 import type { Vec2 } from "../vec";
 import {
     construction_object,
@@ -13,6 +9,7 @@ import {
 } from "./construction_object";
 import {
     expression_object,
+    setValue,
     styleObject,
     type ExpressionProgram,
 } from "./expression_object";
@@ -75,15 +72,12 @@ export class button_object extends construction_object {
                 if (!target) return;
                 if (method !== "setExpression")
                     styleObject(this.C, target, method, args);
+                // An expression only, its number or a global's value.
                 else if (
                     target instanceof expression_object &&
-                    !target.formula &&
-                    !target.program &&
-                    args[0] !== null
-                ) {
-                    target.value = args[0] as ScriptValue;
+                    setValue(target, args[0])
+                )
                     this.C.invalidateGeometry(target);
-                }
             },
         });
     }

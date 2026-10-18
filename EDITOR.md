@@ -1094,9 +1094,13 @@ ses méthodes internes et figé dans sa version de 2016.
   taille des points, remplissage, écriture, police, image, se tourner vers
   un point, y aller, position, point n° et nombre de points d'une tortue,
   décimales écrites), ceux de Blockly (boucles, logique, maths, texte,
-  variables) et une catégorie « Figure » : objet de la figure (menu de ses
+  variables, fonctions sans valeur), une catégorie « Globales » (créer une
+  globale, la fixer, l'augmenter, la lire : les globales de DGPad, `Ex`
+  cachées de la figure, créées à l'application du programme qui en nomme une
+  nouvelle) et une catégorie « Figure » : objet de la figure (menu de ses
   noms), abscisse, ordonnée, distance, point, mise en forme d'un objet
-  (`setHidden`…, `setRGBColor`), « renvoyer ». Textes dans les 12 langues
+  (`setHidden`…, `setRGBColor`), « renvoyer ». Un bloc d'objet laissé seul
+  s'écrit `Z;`, comme DGPad. Textes dans les 12 langues
   (`blocks/messages.ts`), ceux de Blockly par ses fichiers de langue.
 - **Poids** : Blockly (13.4, ses blocs et le rendu zelos) est un chunk à
   part, `workspace-*.js`, chargé à la première ouverture des blocs, comme
@@ -1701,11 +1705,21 @@ Fait (2026-10-11) :
   « pivoter vers le haut »). Éditeur +2,0 Ko (+0,7 Ko en gzip) ; moteur
   +80 octets.
 
+- Globales Blockly (2026-10-18) : `Ex` cachées de la figure (`"g"` du
+  `.dgo`), partagées par les programmes et les boutons, catégorie
+  « Globales » des blocs, manuel (`expressions.html`, `formules.html`, 12
+  langues). Une globale nommée par un programme est ajoutée à son
+  application, comme les curseurs d'une ligne, jamais pendant la frappe ;
+  le choix point / expression n'essaie pas un programme qui change des
+  valeurs. Supprimer un programme garde ce qu'il met en forme ou change.
+  Vérifié dans `editor.html` avec Playwright (globale créée par une ligne,
+  lue par une autre, programme qui l'écrit redéfini).
+
 Reste à faire :
 
 - Blocs : un toucher sur un objet de la figure qui
   remplit le menu du bloc sélectionné (le `getName` de DGPad) ; fonctions
-  et listes en blocs.
+  qui renvoient une valeur, listes en blocs.
 
 - Jeux d'outils de l'enseignant (section « Anneau d'outils »).
 - Outils du moteur sans commande dans l'éditeur, à ajouter au catalogue

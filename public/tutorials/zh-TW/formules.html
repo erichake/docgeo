@@ -290,10 +290,20 @@
                                 >
                             </td>
                         </tr>
+                        <tr>
+                            <td>全域變數</td>
+                            <td>
+                                <code>GLOBAL_SET("n", 5)</code>、<code
+                                    >GLOBAL_INC("n", 1)</code
+                                >、<code>GLOBAL_GET("n")</code>
+                            </td>
+                        </tr>
                     </tbody>
                 </table>
             </div>
-            <p>程式中的變數會遮蔽同名的物件。無窮迴圈會被中斷。</p>
+            <p>
+                程式中的變數會遮蔽同名的物件。無窮迴圈會被中斷。全域變數由圖形的所有程式共用，包括其按鈕。
+            </p>
             <h3>物件的方法</h3>
             <div class="table">
                 <table>
