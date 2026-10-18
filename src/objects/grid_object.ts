@@ -7,6 +7,7 @@ import {
     viewDirection,
     type ProjectionFrame,
 } from "../projection";
+import type { ScriptValue } from "../import/dgp_formula";
 import { vNormalize, type Vec2, type Vec3 } from "../vec";
 import { axes_2d } from "./axes_2d";
 import { construction_object } from "./construction_object";
@@ -140,6 +141,25 @@ export class grid_object extends construction_object {
     // reads c.GRID.projectionFrame (via hidden_line.ts) — it must run only
     // once c.GRID itself has been assigned. Called once by construction.ts
     // right after createGrid().
+    // DGPad's restrictTheta and restrictPhi: the angle kept within the
+    // range, a single value turning the view to it. Whether the view moved.
+    restrict(angle: "THETA" | "PHI", range: ScriptValue | null): boolean {
+        if (
+            !Array.isArray(range) ||
+            range.length !== 2 ||
+            typeof range[0] !== "number" ||
+            typeof range[1] !== "number" ||
+            !(range[0] <= range[1])
+        )
+            return false;
+        const [low, high] = range;
+        this[`RESTRICT_${angle}`] = [low, high];
+        const value = Math.min(Math.max(this[angle], low), high);
+        if (value === this[angle]) return false;
+        this[angle] = value;
+        return true;
+    }
+
     initFloorOccluder(): void {
         // Named with a space, which the DGP identifier grammar never
         // produces (see IDENTIFIER_PART in dgp_parser.ts): these internal

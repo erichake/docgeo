@@ -566,6 +566,10 @@ export class expression_object extends construction_object {
             // An expression_list_object's, which this file can't import.
             turtlePoints: (name) =>
                 (refs.get(name) as { points?: ScriptValue[] }).points ?? null,
+            restrictView: (angle, range) => {
+                if (this.C.GRID.restrict(angle, range))
+                    this.C.invalidateProjection();
+            },
             callMethod: (name, method, args) => {
                 // None for an object declared after it (see DGO.md).
                 const target = targets.get(name);

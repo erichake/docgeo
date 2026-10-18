@@ -57,8 +57,7 @@ export type FormulaFn =
     | ListFn;
 
 // DGPad's own names for its operators, also applying to lists, and its
-// view restrictions, which the import applies once (see Expression in
-// dgp_commands.ts).
+// view restrictions (see restrictView).
 type ListFn =
     | "plus"
     | "minus"
@@ -1475,6 +1474,9 @@ export interface FormulaEnv {
     ): FormulaValue | null;
     // The points another turtle drew (see turtleList).
     turtlePoints?(list: string): readonly ScriptValue[] | null;
+    // DGPad's restrictTheta and restrictPhi, which also turn the view as
+    // they run, e.g. to make it spin with an animated number.
+    restrictView?(angle: "THETA" | "PHI", range: ScriptValue | null): void;
     // Carries out a script's styling method on one of the figure's objects.
     callMethod?(
         object: string,
@@ -2308,9 +2310,12 @@ function compileNode(node: FormulaNode, scope: Scope): Code {
                 return (frame) => {
                     const values = evalCodes(args, frame);
                     if (values === null) return null;
-                    return op
-                        ? evalBinary(op, values[0], values[1])
-                        : values[0];
+                    if (op) return evalBinary(op, values[0], values[1]);
+                    frame.env.restrictView?.(
+                        fn === "restrictTheta" ? "THETA" : "PHI",
+                        values[0],
+                    );
+                    return values[0];
                 };
             }
             return callCode(fn as Exclude<FormulaFn, ListFn | "isNaN">, args);

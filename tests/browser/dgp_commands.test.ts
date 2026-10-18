@@ -81,6 +81,24 @@ lt=List("lt",t);`,
         expect((c.getObj("f") as curve_object).max).toBe(6);
     });
 
+    it("turns the view as a script restricting it is computed again", () => {
+        const c = createConstruction();
+        importDgp(
+            c,
+            `a=Expression("a","","","","20","0","0");
+r=Expression("r","","","","restrictPhi([a/10,a/10]);0","0","0");
+SetCoordsStyle("3Dmode:true");`,
+        );
+        c.OBJS.update();
+        expect(c.GRID.PHI).toBe(2);
+        const a = c.getObj("a") as expression_object;
+        a.value = 30;
+        c.invalidateGeometry(a);
+        c.OBJS.update();
+        expect(c.GRID.PHI).toBe(3);
+        expect(c.GRID.RESTRICT_PHI).toEqual([3, 3]);
+    });
+
     it("makes an inert object, which the pointer passes through unless the body wakes it", () => {
         const c = createConstruction();
         importDgp(

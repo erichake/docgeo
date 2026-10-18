@@ -121,14 +121,24 @@ export class objects_collector {
         // point's coords (e.g. an intersection lying on it) even though
         // that point is necessarily later in construction order and would
         // otherwise still hold last frame's position.
-        const objects = [...this.dirty].sort((a, b) => a.sequence - b.sequence);
-        this.dirty.clear();
-        objects.forEach((object) => {
-            if (object.geometryDirty) {
-                object.computeGeometry();
-                object.geometryDirty = false;
-            }
-        });
+        // What computing marks dirty, as a script turning the view, is
+        // updated in this same pass, once a few times over: a view kept
+        // turning would otherwise never end it.
+        const updated = new Set<construction_object>();
+        for (let round = 0; this.dirty.size && round < 3; round++) {
+            const marked = [...this.dirty].sort(
+                (a, b) => a.sequence - b.sequence,
+            );
+            this.dirty.clear();
+            marked.forEach((object) => {
+                updated.add(object);
+                if (object.geometryDirty) {
+                    object.computeGeometry();
+                    object.geometryDirty = false;
+                }
+            });
+        }
+        const objects = [...updated].sort((a, b) => a.sequence - b.sequence);
         // The grid (its projectionFrame's cached rotation trig) and points
         // (their screen position) project first, within this same step: a
         // line/segment's project() tests hidden-line occlusion against any

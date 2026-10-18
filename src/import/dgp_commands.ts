@@ -447,17 +447,8 @@ function applyViewRestrictions(
             resolveIdentifier: () => null,
             view: () => NO_VIEW,
         });
-        if (
-            range === null ||
-            typeof range === "number" ||
-            range.length !== 2 ||
-            range[0] > range[1]
-        )
-            return;
-        const angle = node.fn === "restrictTheta" ? "THETA" : "PHI";
-        grid[`RESTRICT_${angle}`] = range;
-        grid[angle] = Math.min(Math.max(grid[angle], range[0]), range[1]);
-        context.projectionChanged = true;
+        if (grid.restrict(node.fn === "restrictTheta" ? "THETA" : "PHI", range))
+            context.projectionChanged = true;
     });
 }
 
