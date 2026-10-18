@@ -487,6 +487,12 @@ function toolbox(turtle: boolean) {
             },
             {
                 kind: "category",
+                name: text("CAT_FUNCTIONS"),
+                categorystyle: "procedure_category",
+                custom: "PROCEDURE",
+            },
+            {
+                kind: "category",
                 name: text("CAT_FIGURE"),
                 categorystyle: "figure_category",
                 contents: [
@@ -581,6 +587,9 @@ export async function blocksEditor(
     });
     registerObjectFields();
     defineBlocks();
+    // Procedures without a value only: DGPad's turtles have no other.
+    delete Blockly.Blocks.procedures_defreturn;
+    delete Blockly.Blocks.procedures_ifreturn;
     const workspace = Blockly.inject(host, {
         renderer: "zelos",
         theme: theme(),
@@ -635,6 +644,8 @@ export async function blocksEditor(
             if (!state) return false;
             Blockly.Events.disable();
             Blockly.serialization.workspaces.load(state, workspace);
+            // Its procedures under it.
+            if (state.blocks!.blocks.length > 1) workspace.cleanUp();
             Blockly.Events.enable();
             const turtle = state.blocks!.blocks[0].type === "dg_turtle";
             workspace.updateToolbox(toolbox(turtle));

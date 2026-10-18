@@ -412,6 +412,16 @@ describe("evaluateProgram", () => {
         expect(run('"AB = "+round(2.6)')).toBe("AB = 3");
     });
 
+    it("reads Blockly's comments and global variables", () => {
+        expect(
+            run(`// Décrire cette fonction…
+function f() { GLOBAL_SET("côté", 3); /* puis */ g(); }
+function g() { GLOBAL_SET("côté", GLOBAL_GET("côté") * 2); }
+f();
+GLOBAL_GET("côté")`),
+        ).toBe(6);
+    });
+
     it("computes on lists term by term, as DGPad's operators", () => {
         const env: FormulaEnv = {
             resolveIdentifier: (name) =>

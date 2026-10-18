@@ -59,6 +59,7 @@ const FIGURES = import.meta.glob<string>(
         "../dgp/partage_dgpad.dgp",
         "../dgp/Yves/Remplissage_P237_SurfaceKlein.dgp",
         "../dgp/Monique/Pythagore_en_liquide.dgp",
+        "../dgp/Yves_07_Blockly/*.dgp",
     ],
     { query: "?raw", import: "default", eager: true },
 );
@@ -152,9 +153,37 @@ return TURTLE_RESULT();`;
     it("refuses what has no block", () => {
         [
             "function f(x) { return x; } f(2)",
+            "function f(x) { return; } f(2)",
             "var t = []; t.push(1); t",
             "L[0]",
         ].forEach((source) => expect(programBlocks(source, true)).toBeNull());
+    });
+
+    it("writes DGPad's procedures and global variables", () => {
+        expect(
+            roundTrip(`var bl_x=function(){
+TURTLE_INIT("A",A);
+// Décrire cette fonction…
+function Carr_C3_A9(blockly_local_c) {
+  GLOBAL_SET("côté",Math.times(blockly_local_c,2));
+  TURTLE_MV(GLOBAL_GET("côté"),false);
+}
+Carr_C3_A9(3);
+Z;
+TURTLE_MV(GLOBAL_GET("côté"),false);
+return TURTLE_RESULT()
+};
+bl_x()`),
+        ).toBe(`TURTLE_INIT("A", A);
+var côté;
+function Carré(c) {
+    côté = c * 2;
+    TURTLE_MV(côté, false);
+}
+Z;
+Carré(3);
+TURTLE_MV(côté, false);
+return TURTLE_RESULT();`);
     });
 
     it("ignores the blocks left apart", () => {

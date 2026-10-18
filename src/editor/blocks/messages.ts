@@ -64,6 +64,7 @@ const en = {
     CAT_TEXT: "Text",
     CAT_VARIABLES: "Variables",
     CAT_FIGURE: "Figure",
+    CAT_FUNCTIONS: "Functions",
 };
 
 export type BlockMessage = keyof typeof en;
@@ -133,6 +134,7 @@ export const BLOCK_MESSAGES: Record<string, Record<BlockMessage, string>> = {
         CAT_TEXT: "Texte",
         CAT_VARIABLES: "Variables",
         CAT_FIGURE: "Figure",
+        CAT_FUNCTIONS: "Fonctions",
     },
     de: {
         TURTLE: "Schildkröte ab %1",
@@ -197,6 +199,7 @@ export const BLOCK_MESSAGES: Record<string, Record<BlockMessage, string>> = {
         CAT_TEXT: "Text",
         CAT_VARIABLES: "Variablen",
         CAT_FIGURE: "Figur",
+        CAT_FUNCTIONS: "Funktionen",
     },
     es: {
         TURTLE: "tortuga desde %1",
@@ -261,6 +264,7 @@ export const BLOCK_MESSAGES: Record<string, Record<BlockMessage, string>> = {
         CAT_TEXT: "Texto",
         CAT_VARIABLES: "Variables",
         CAT_FIGURE: "Figura",
+        CAT_FUNCTIONS: "Funciones",
     },
     it: {
         TURTLE: "tartaruga che parte da %1",
@@ -325,6 +329,7 @@ export const BLOCK_MESSAGES: Record<string, Record<BlockMessage, string>> = {
         CAT_TEXT: "Testo",
         CAT_VARIABLES: "Variabili",
         CAT_FIGURE: "Figura",
+        CAT_FUNCTIONS: "Funzioni",
     },
     pt: {
         TURTLE: "tartaruga a partir de %1",
@@ -389,6 +394,7 @@ export const BLOCK_MESSAGES: Record<string, Record<BlockMessage, string>> = {
         CAT_TEXT: "Texto",
         CAT_VARIABLES: "Variáveis",
         CAT_FIGURE: "Figura",
+        CAT_FUNCTIONS: "Funções",
     },
     nl: {
         TURTLE: "schildpad vanaf %1",
@@ -453,6 +459,7 @@ export const BLOCK_MESSAGES: Record<string, Record<BlockMessage, string>> = {
         CAT_TEXT: "Tekst",
         CAT_VARIABLES: "Variabelen",
         CAT_FIGURE: "Figuur",
+        CAT_FUNCTIONS: "Functies",
     },
     el: {
         TURTLE: "χελώνα από το %1",
@@ -517,6 +524,7 @@ export const BLOCK_MESSAGES: Record<string, Record<BlockMessage, string>> = {
         CAT_TEXT: "Κείμενο",
         CAT_VARIABLES: "Μεταβλητές",
         CAT_FIGURE: "Σχήμα",
+        CAT_FUNCTIONS: "Συναρτήσεις",
     },
     ar: {
         TURTLE: "سلحفاة تنطلق من %1",
@@ -581,6 +589,7 @@ export const BLOCK_MESSAGES: Record<string, Record<BlockMessage, string>> = {
         CAT_TEXT: "النص",
         CAT_VARIABLES: "المتغيرات",
         CAT_FIGURE: "الشكل",
+        CAT_FUNCTIONS: "الدوال",
     },
     hi: {
         TURTLE: "%1 से शुरू होने वाला कछुआ",
@@ -645,6 +654,7 @@ export const BLOCK_MESSAGES: Record<string, Record<BlockMessage, string>> = {
         CAT_TEXT: "पाठ",
         CAT_VARIABLES: "चर",
         CAT_FIGURE: "आकृति",
+        CAT_FUNCTIONS: "फ़ंक्शन",
     },
     zh: {
         TURTLE: "从 %1 出发的海龟",
@@ -709,6 +719,7 @@ export const BLOCK_MESSAGES: Record<string, Record<BlockMessage, string>> = {
         CAT_TEXT: "文本",
         CAT_VARIABLES: "变量",
         CAT_FIGURE: "图形",
+        CAT_FUNCTIONS: "函数",
     },
     "zh-TW": {
         TURTLE: "從 %1 出發的海龜",
@@ -773,5 +784,6 @@ export const BLOCK_MESSAGES: Record<string, Record<BlockMessage, string>> = {
         CAT_TEXT: "文字",
         CAT_VARIABLES: "變數",
         CAT_FIGURE: "圖形",
+        CAT_FUNCTIONS: "函式",
     },
 };

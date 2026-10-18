@@ -247,6 +247,9 @@ type TurtleFn = keyof typeof TURTLE_ARITY;
 // DocGeo (see DGO.md).
 export const turtleList = (name: string) => `blk_turtle_list_${name}`;
 
+// Not an identifier: no clash with the program's own names.
+const globalName = (name: string) => `GLOBAL ${name}`;
+
 type BinaryOp = "+" | "-" | "*" | "/" | "%" | "^" | Comparison;
 
 export type FormulaNode =
@@ -438,6 +441,7 @@ const KEYWORDS: ReadonlySet<string> = new Set(
 const NUMBER = /(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][+-]?\d+)?/y;
 const OPERATOR = /^(?:[=!]==?|[<>]=?|[-+*/]=|\+\+|--|&&|\|\||[!=?:;{}])/;
 const STRING = /"(?:[^"\\]|\\.)*"|'(?:[^'\\]|\\.)*'/y;
+const SPACE = /(?:\s|\/\/.*|\/\*[^]*?\*\/)*/y;
 
 // Also the editor's (see EDITOR.md), which reads where each token ends.
 export class FormulaLexer {
@@ -508,12 +512,11 @@ export class FormulaLexer {
         return true;
     }
 
+    // Comments too, as Blockly's "// Décrire cette fonction…".
     private skipSpace(): void {
-        while (
-            this.index < this.source.length &&
-            /\s/.test(this.source[this.index])
-        )
-            this.index++;
+        SPACE.lastIndex = this.index;
+        SPACE.exec(this.source);
+        this.index = SPACE.lastIndex;
     }
 
     // Primes too, as the editor names a point's image (A').
@@ -1025,6 +1028,21 @@ class FormulaParser {
                 left: { kind: "string", value: "" },
                 right: args[0],
             };
+        // Blockly's global variables, those of the program here: a program
+        // sets them before it reads them.
+        if (name === "GLOBAL_SET" || name === "GLOBAL_GET") {
+            const [variable, value] = args;
+            if (
+                args.length !== (name === "GLOBAL_SET" ? 2 : 1) ||
+                variable.kind !== "string"
+            )
+                throw new Error("Invalid DGP formula syntax");
+            const global = globalName(variable.value);
+            (this.outer[1] ?? this.locals).add(global);
+            return value
+                ? { kind: "assign", name: global, value }
+                : { kind: "identifier", name: global };
+        }
         if (name === "SET_EXP") {
             const [object, value] = args;
             if (args.length !== 2 || object.kind !== "string")

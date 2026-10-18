@@ -1,0 +1,98 @@
+// Coordinates System :
+SetCoords(1795.78643774431,14.584324674151986,98.35673015286389,true,1414,739);
+
+
+// Geometry :
+O=Point("O",-15.075597119178276,-5.545280678588795);
+X=Point("X","[1,0,0]","1");
+Y=Point("Y","[0,1,0]","1");
+Z=Point("Z","[0,0,1]","1");
+P11=Point("P11","[3,-3,0]","1");
+P12=Point("P12","[3,3,0]","1");
+P14=Point("P14","[2,-3,0]","1");
+P13=Point("P13","[3,-2,0]","1");
+S11=Segment("S11",O,X);
+S21=Segment("S21",O,Y);
+S31=Segment("S31",O,Z);
+Symc1=Symmetry("Symc1",O,P12);
+Symc2=Symmetry("Symc2",O,P11);
+Symc4=Symmetry("Symc4",P13,P11);
+Symc10=Symmetry("Symc10",O,P14);
+Symc9=Symmetry("Symc9",O,P13);
+Symc3=Symmetry("Symc3",P14,P11);
+E2=Expression("E2","Montrer le sol","0","1","0","-17.205598794451536","-0.20756764986105594");
+a=Expression("a","","0","90","18.5","-15.41111050955545","-0.25840301203941535");
+M4=MidPoint("M4",Symc4,P12);
+M1=MidPoint("M1",Symc3,Symc1);
+Poly2=Polygon("Poly2","_P11,_Symc1,_Symc2,_P12");
+Symc8=Symmetry("Symc8",O,Symc4);
+Symc11=Symmetry("Symc11",O,Symc3);
+Symc6=Symmetry("Symc6",O,M4);
+M6=MidPoint("M6",M4,Symc4);
+M5=MidPoint("M5",P12,M4);
+M2=MidPoint("M2",Symc1,M1);
+Symc13=Symmetry("Symc13",O,M1);
+M3=MidPoint("M3",M1,Symc3);
+A=PointOn("A",Poly2,[-0.2956431586615424,0.5933866182714458]);
+B=PointOn("B",Poly2,[-0.3545024552636328,0.807594605042029]);
+Symc12=Symmetry("Symc12",O,M3);
+Symc5=Symmetry("Symc5",O,M5);
+Symc14=Symmetry("Symc14",O,M2);
+Symc7=Symmetry("Symc7",O,M6);
+blk_turtle_exp_A=Expression("blk_turtle_exp_A","","","","var bl_bjigeebga=function(){\nTURTLE_INIT(\"A\",A);\n// Décrire cette fonction…\nfunction initialisation() {\n  GLOBAL_SET(\"cote\",(d((B),(A))));\n  TURTLE_ROTATE_PT((B));\n  TURTLE_COLOUR(53);\n  for (var blockly_var_count = 1 ; blockly_var_count <= 4 ; blockly_var_count++){\n    TURTLE_MV((GLOBAL_GET(\"cote\")),false);\n    TURTLE_TURN((90));\n  };\n  TURTLE_TURN(-(90));\n  TURTLE_FILL(20);\n}\n\n// Décrire cette fonction…\nfunction DeuxDernieresFaces() {\n  TURTLE_UP(true);\n  TURTLE_TURN((90));\n  TURTLE_MV((GLOBAL_GET(\"cote\")),false);\n  TURTLE_UP(false);\n  TURTLE_COLOUR(39);\n  face();\n  TURTLE_ROTATE(-(a),true);\n  TURTLE_UP(true);\n  TURTLE_TURN((180));\n  TURTLE_MV((GLOBAL_GET(\"cote\")),false);\n  TURTLE_TURN(-(90));\n  TURTLE_MV((GLOBAL_GET(\"cote\")),false);\n  TURTLE_TURN((90));\n  TURTLE_UP(false);\n  face();\n}\n\n// Décrire cette fonction…\nfunction face() {\n  TURTLE_ROTATE((a),true);\n  for (var blockly_var_count3 = 1 ; blockly_var_count3 <= 4 ; blockly_var_count3++){\n    TURTLE_MV((GLOBAL_GET(\"cote\")),false);\n    TURTLE_TURN((90));\n  };\n  TURTLE_FILL(20);\n}\n\n\ninitialisation();\nTURTLE_COLOUR(18);\nfor (var blockly_var_count2 = 1 ; blockly_var_count2 <= 3 ; blockly_var_count2++){\n  face();\n  TURTLE_MV((GLOBAL_GET(\"cote\")),false);\n};\nDeuxDernieresFaces();\nreturn TURTLE_RESULT()\n};\nbl_bjigeebga()","-17.749537169759986","-0.36007373639613416");
+Poly1=Polygon("Poly1","_P11,_Symc1,_Symc5,_P13,_Symc4,_Symc6,_Symc7,_M6,_M4,_Symc8,_Symc9,_M5,_P12,_Symc14,_P14,_Symc3,_Symc13,_Symc12,_M3,_M1,_Symc11,_Symc10,_M2");
+blk_turtle_list_A=List("blk_turtle_list_A",blk_turtle_exp_A);
+E1=Expression("E1","","","","Poly2.setHidden(1-E2);Poly1.setHidden(1-E2);Poly1.noMouseInside();if(theta()<0) {Poly2.setRGBColor(151,101,0);Poly2.setLayer(2);Poly2.setOpacity(1)} else {Poly2.setRGBColor(0,124,125);;Poly2.setLayer(0);Poly2.setOpacity(0.2)};\"prog\"","-16.019227197267654","-1.4677380207937263");
+
+
+// Styles :
+STL(O,"c:#f60748;s:6;sn:true;f:21;sp:1;fl:true");
+STL(X,"c:#0000b2;h:1;o:1;s:4;sn:true;f:24");
+STL(Y,"c:#0000b2;h:1;o:1;s:4;sn:true;f:24");
+STL(Z,"c:#0000b2;h:1;o:1;s:4;sn:true;f:24");
+STL(P11,"c:#0000b2;h:2;s:6;f:30");
+STL(P12,"c:#0000b2;h:2;s:6;f:30");
+STL(P14,"c:#0000b2;h:2;s:6;f:30");
+STL(P13,"c:#0000b2;h:2;s:6;f:30");
+STL(S11,"c:#117dad;h:1;s:1;f:24");
+STL(S21,"c:#117dad;h:1;s:1;f:24");
+STL(S31,"c:#117dad;h:1;s:1;f:24");
+STL(Symc1,"c:#0000b2;h:2;s:6;f:30");
+STL(Symc2,"c:#0000b2;h:2;s:6;f:30");
+STL(Symc4,"c:#0000b2;h:2;s:6;f:30");
+STL(Symc10,"c:#0000b2;h:2;s:6;f:30");
+STL(Symc9,"c:#0000b2;h:2;s:6;f:30");
+STL(Symc3,"c:#0000b2;h:2;s:6;f:30");
+STL(E2,"c:#007c7c;s:8;f:18;i:1;p:-1;cL:40;cPT:YzojMDA3YzdjO286MTtzOjc7ZjozMDtpOjE=");
+STL(a,"c:#031a59;s:7;sn:true;f:24;p:2;cL:180;cPT:YzojNzgwMDEzO3M6MTA7ZjozMA==");
+STL(M4,"c:#0000b2;h:2;s:6;f:30");
+STL(M1,"c:#0000b2;h:2;s:6;f:30");
+STL(Poly2,"c:#007c7d;h:1;o:0.2;s:1;f:30");
+STL(Symc8,"c:#0000b2;h:2;s:6;f:30");
+STL(Symc11,"c:#0000b2;h:2;s:6;f:30");
+STL(Symc6,"c:#0000b2;h:2;s:6;f:30");
+STL(M6,"c:#0000b2;h:2;s:6;f:30");
+STL(M5,"c:#0000b2;h:2;s:6;f:30");
+STL(M2,"c:#0000b2;h:2;s:6;f:30");
+STL(Symc13,"c:#0000b2;h:2;s:6;f:30");
+STL(M3,"c:#0000b2;h:2;s:6;f:30");
+STL(A,"c:#0000b2;s:6;sn:true;f:20");
+STL(B,"c:#0000b2;s:6;sn:true;f:20");
+STL(Symc12,"c:#0000b2;h:2;s:6;f:30");
+STL(Symc5,"c:#0000b2;h:2;s:6;f:30");
+STL(Symc14,"c:#0000b2;h:2;s:6;f:30");
+STL(Symc7,"c:#0000b2;h:2;s:6;f:30");
+STL(blk_turtle_exp_A,"c:#780013;h:2;s:7;f:24;p:2;cL:200;cPT:YzojNzgwMDEzO2g6MjtzOjEwO2Y6MzA=");
+STL(Poly1,"c:#007c7c;h:1;o:0.2;s:1;f:30;nmi:true");
+STL(blk_turtle_list_A,"c:#0000b2;s:0;f:30;p:0;nmi:true;sg:1");
+STL(E1,"c:#780013;h:2;s:7;f:24;p:2;cL:200;cPT:YzojNzgwMDEzO2g6MjtzOjEwO2Y6MzA=");
+SetCoordsStyle("3Dmode:true;isAxis:false;isGrid:true;isOx:true;isOy:true;isLockOx:false;isLockOy:false;centerZoom:true;color:#111111;fontSize:18;axisWidth:1;gridWidth:0.1");
+SetGeneralStyle("background-color:#ffffff;degree:true;dragmoveable:true");
+
+
+// Blockly :
+BLK(A,{"onlogo":{"xml":"<xml xmlns=\"http://www.w3.org/1999/xhtml\"><block type=\"procedures_defnoreturn\" id=\"_#O8n=wNfm4m}pmso4d7\" x=\"-1502\" y=\"-432\"><field name=\"NAME\">initialisation</field><comment pinned=\"false\" h=\"80\" w=\"160\">Décrire cette fonction…</comment><statement name=\"STACK\"><block type=\"dgpad_global_set\" id=\"-@th%g8X!+/usU]O5Ymp\"><field name=\"VAR\">cote</field><value name=\"NAME\"><block type=\"dgpad_distance\" id=\"`2!e5r)ZU)VTz4cKtm}i\"><value name=\"FROM\"><block type=\"dgpad_get_point_short\" id=\"AB|]m-*k?S[c(NepA!~A\"><field name=\"NAME\">B</field></block></value><value name=\"TO\"><block type=\"dgpad_get_point_short\" id=\"YzSRBc+D=/MG-Wa0t4;!\"><field name=\"NAME\">A</field></block></value></block></value><next><block type=\"turtle_turn_pt\" id=\"/+Ow!eC]XgyX0tDdsRc(\"><value name=\"VALUE\"><shadow type=\"dgpad_get_point_short_turtle\" id=\";j1}.V;%n.BMEZm4m^U4\"><field name=\"NAME\">B</field></shadow></value><next><block type=\"turtle_colour\" id=\")F_:^Iw3bEX35{wha1F@\"><field name=\"RGB_col\">#3366ff</field><value name=\"N\"><shadow type=\"math_number\" id=\"Ra1%mc:{+1*cW:l9--w0\"><field name=\"NUM\">53</field></shadow></value><next><block type=\"controls_repeat_ext\" id=\"//k2ISnZR|.~rDRgEl!x\"><value name=\"TIMES\"><block type=\"math_number\" id=\"CL%(YT~SlBFW|7Hbe7:1\"><field name=\"NUM\">4</field></block></value><statement name=\"DO\"><block type=\"turtle_move\" id=\"9TGFA1JewZ2yIkxJ!s`6\"><field name=\"DIR\">moveForward</field><field name=\"UNITS\">un</field><value name=\"VALUE\"><shadow type=\"math_number\" id=\"We[lbS4pvife*k#PO/_)\"><field name=\"NUM\">60</field></shadow><block type=\"dgpad_global_get\" id=\"0|eaygRwO5{+:nf]U3I2\"><field name=\"VAR\">cote</field></block></value><next><block type=\"turtle_turn\" id=\"mFA~}!5VWh6}HN+TC%^c\"><field name=\"DIR\">turnLeft</field><value name=\"VALUE\"><shadow type=\"turtle_angle_input\" id=\"-;~/O!k*VV=85*Y@xtzX\"><field name=\"ANGLE\">90</field></shadow></value></block></next></block></statement><next><block type=\"turtle_turn\" id=\"KH%k}[y)[:Q}CEB~!(%8\"><field name=\"DIR\">turnRight</field><value name=\"VALUE\"><shadow type=\"turtle_angle_input\" id=\"ys0%[i^XYlS0soTv|4dB\"><field name=\"ANGLE\">90</field></shadow></value><next><block type=\"turtle_fill\" id=\"SDM,ch{^-hSOz_~duhrt\"><value name=\"OP\"><shadow type=\"math_number\" id=\"*,pDnx#cN2Q7u:xAp[BG\"><field name=\"NUM\">20</field></shadow></value></block></next></block></next></block></next></block></next></block></next></block></statement></block><block type=\"procedures_callnoreturn\" id=\"=q#SWL+O}9E}Ey|#zv4Q\" x=\"-1848\" y=\"-256\"><mutation name=\"initialisation\"></mutation><next><block type=\"turtle_colour\" id=\"Kp:1k`S@[w5|G]]J./[g\"><field name=\"RGB_col\">#ff6600</field><value name=\"N\"><shadow type=\"math_number\" id=\";|z8Z;(b758_oP{yxNyl\"><field name=\"NUM\">18</field></shadow></value><next><block type=\"controls_repeat_ext\" id=\"K)aPzI{VpZ+Zw/f9=-5E\"><value name=\"TIMES\"><block type=\"math_number\" id=\"7597h4l3M-xHs|RF%%T1\"><field name=\"NUM\">3</field></block></value><statement name=\"DO\"><block type=\"procedures_callnoreturn\" id=\"]eev=E,L6*An9Rd2Aa9o\"><mutation name=\"face\"></mutation><next><block type=\"turtle_move\" id=\"P)T?c6?w/o,f~+vTaq],\"><field name=\"DIR\">moveForward</field><field name=\"UNITS\">un</field><value name=\"VALUE\"><shadow type=\"math_number\" id=\"We[lbS4pvife*k#PO/_)\"><field name=\"NUM\">60</field></shadow><block type=\"dgpad_global_get\" id=\"^369r:RmkZlWO:.GX=x-\"><field name=\"VAR\">cote</field></block></value></block></next></block></statement><next><block type=\"procedures_callnoreturn\" id=\"W8y)Sw+eJ7OU6k#yU5lu\"><mutation name=\"DeuxDernieresFaces\"></mutation></block></next></block></next></block></next></block><block type=\"procedures_defnoreturn\" id=\"eFu^|J?~6a=kVO.3hP5?\" x=\"-1813\" y=\"107\"><field name=\"NAME\">DeuxDernieresFaces</field><comment pinned=\"false\" h=\"80\" w=\"160\">Décrire cette fonction…</comment><statement name=\"STACK\"><block type=\"turtle_pen\" id=\"WOI6RPt(|k|eZYVw24#[\"><field name=\"PEN\">penUp</field><next><block type=\"turtle_turn\" id=\"Vda[pV,r7ym(]/Fc8fvp\"><field name=\"DIR\">turnLeft</field><value name=\"VALUE\"><shadow type=\"turtle_angle_input\" id=\"ieUkSCl8!nOLtgcaC68C\"><field name=\"ANGLE\">90</field></shadow></value><next><block type=\"turtle_move\" id=\"tqC~5OUa.99/d=YZ?wtw\"><field name=\"DIR\">moveForward</field><field name=\"UNITS\">un</field><value name=\"VALUE\"><shadow type=\"math_number\" id=\"We[lbS4pvife*k#PO/_)\"><field name=\"NUM\">60</field></shadow><block type=\"dgpad_global_get\" id=\"Qr9/=KgtgMtOKBi`?,eE\"><field name=\"VAR\">cote</field></block></value><next><block type=\"turtle_pen\" id=\"^/mf[1m.`-f6GN.LiJq3\"><field name=\"PEN\">penDown</field><next><block type=\"turtle_colour\" id=\"Dt/EiKD)G+kzrOtxpn1@\"><field name=\"RGB_col\">#33cc00</field><value name=\"N\"><shadow type=\"math_number\" id=\"9T*Qhe+Xeo{91Z;_k-Ra\"><field name=\"NUM\">39</field></shadow></value><next><block type=\"procedures_callnoreturn\" id=\"N.M^-9qS^aN]zscVG!V.\"><mutation name=\"face\"></mutation><next><block type=\"turtle_rotate\" id=\"O23G}SyMA)]6xlAz,W{l\"><field name=\"DIR\">rotate_bottom</field><value name=\"VALUE\"><shadow type=\"turtle_angle_input\" id=\"y.,tcx(F5fqrQ9twGjwE\"><field name=\"ANGLE\">90</field></shadow><block type=\"dgpad_get_object_short\" id=\"NaXQTK#!xNx@%wSq*W]Z\"><field name=\"NAME\">a</field></block></value><next><block type=\"turtle_pen\" id=\"rdQxhZ/wQyT#%vTA)XHY\"><field name=\"PEN\">penUp</field><next><block type=\"turtle_turn\" id=\"F@lg(Une2#UaFux2*}XP\"><field name=\"DIR\">turnLeft</field><value name=\"VALUE\"><shadow type=\"turtle_angle_input\" id=\"WWPsrgey?^AJ{L=7~xcM\"><field name=\"ANGLE\">180</field></shadow></value><next><block type=\"turtle_move\" id=\"Lc0Wgs:Cp?_0/f!2a9]k\"><field name=\"DIR\">moveForward</field><field name=\"UNITS\">un</field><value name=\"VALUE\"><shadow type=\"math_number\" id=\"We[lbS4pvife*k#PO/_)\"><field name=\"NUM\">60</field></shadow><block type=\"dgpad_global_get\" id=\"C/x|USL#`wT7I7U#bzX)\"><field name=\"VAR\">cote</field></block></value><next><block type=\"turtle_turn\" id=\"h.([`_6zn8:0Uhz/w[9+\"><field name=\"DIR\">turnRight</field><value name=\"VALUE\"><shadow type=\"turtle_angle_input\" id=\"BsODIV`=K.*JxS:hb@M#\"><field name=\"ANGLE\">90</field></shadow></value><next><block type=\"turtle_move\" id=\"tZC@YHiU5FsS{i7_+B*P\"><field name=\"DIR\">moveForward</field><field name=\"UNITS\">un</field><value name=\"VALUE\"><shadow type=\"math_number\" id=\"We[lbS4pvife*k#PO/_)\"><field name=\"NUM\">60</field></shadow><block type=\"dgpad_global_get\" id=\"vLxd-5b7g;]2~_-7ELkf\"><field name=\"VAR\">cote</field></block></value><next><block type=\"turtle_turn\" id=\".@LPFeBRk,M-sXnZgrYd\"><field name=\"DIR\">turnLeft</field><value name=\"VALUE\"><shadow type=\"turtle_angle_input\" id=\"H*]!fqLI]c!tbT70)d/{\"><field name=\"ANGLE\">90</field></shadow></value><next><block type=\"turtle_pen\" id=\"N#*?PaCCtKpi_UVyReGH\"><field name=\"PEN\">penDown</field><next><block type=\"procedures_callnoreturn\" id=\"9-_aF;`uqa_X.B;abQay\"><mutation name=\"face\"></mutation></block></next></block></next></block></next></block></next></block></next></block></next></block></next></block></next></block></next></block></next></block></next></block></next></block></next></block></next></block></statement></block><block type=\"procedures_defnoreturn\" id=\"@Wvis@+RAe0_hIbSSBC+\" x=\"-1432\" y=\"157\"><field name=\"NAME\">face</field><comment pinned=\"false\" h=\"80\" w=\"160\">Décrire cette fonction…</comment><statement name=\"STACK\"><block type=\"turtle_rotate\" id=\"-[tcP)Wz;DBaDcv{SsaX\"><field name=\"DIR\">rotate_top</field><value name=\"VALUE\"><shadow type=\"turtle_angle_input\" id=\"y.,tcx(F5fqrQ9twGjwE\"><field name=\"ANGLE\">90</field></shadow><block type=\"dgpad_get_object_short\" id=\"w48IzO%~*6bwaa0+*/)X\"><field name=\"NAME\">a</field></block></value><next><block type=\"controls_repeat_ext\" id=\"4E(apN00yoMV;kk(MZB,\"><value name=\"TIMES\"><block type=\"math_number\" id=\"K*dWz)As.LTgJ?#*_2Gl\"><field name=\"NUM\">4</field></block></value><statement name=\"DO\"><block type=\"turtle_move\" id=\"asM-8tQ;^X`tsB{NwWYs\"><field name=\"DIR\">moveForward</field><field name=\"UNITS\">un</field><value name=\"VALUE\"><shadow type=\"math_number\" id=\"|J{0*f,i2N5o2+QGHUv`\"><field name=\"NUM\">60</field></shadow><block type=\"dgpad_global_get\" id=\"(Pjm8:EQgCFeL}+k)2b`\"><field name=\"VAR\">cote</field></block></value><next><block type=\"turtle_turn\" id=\"(^QaxGV[Fq7;#!Wl)pz|\"><field name=\"DIR\">turnLeft</field><value name=\"VALUE\"><shadow type=\"turtle_angle_input\" id=\"/20B~J-I6%gQzI55fD1{\"><field name=\"ANGLE\">90</field></shadow></value></block></next></block></statement><next><block type=\"turtle_fill\" id=\"A@bwI_2z!Hm(.?,Pkj8+\"><value name=\"OP\"><shadow type=\"math_number\" id=\"Q[hYAx:U}yM*wN7wmJ#Z\"><field name=\"NUM\">20</field></shadow></value></block></next></block></next></block></statement></block></xml>","sync":"// Décrire cette fonction…\nfunction initialisation() {\n  GLOBAL_SET(\"cote\",(d((B),(A))));\n  TURTLE_ROTATE_PT((B));\n  TURTLE_COLOUR(53);\n  for (var blockly_var_count = 1 ; blockly_var_count <= 4 ; blockly_var_count++){\n    TURTLE_MV((GLOBAL_GET(\"cote\")),false);\n    TURTLE_TURN((90));\n  };\n  TURTLE_TURN(-(90));\n  TURTLE_FILL(20);\n}\n\n// Décrire cette fonction…\nfunction DeuxDernieresFaces() {\n  TURTLE_UP(true);\n  TURTLE_TURN((90));\n  TURTLE_MV((GLOBAL_GET(\"cote\")),false);\n  TURTLE_UP(false);\n  TURTLE_COLOUR(39);\n  face();\n  TURTLE_ROTATE(-(a),true);\n  TURTLE_UP(true);\n  TURTLE_TURN((180));\n  TURTLE_MV((GLOBAL_GET(\"cote\")),false);\n  TURTLE_TURN(-(90));\n  TURTLE_MV((GLOBAL_GET(\"cote\")),false);\n  TURTLE_TURN((90));\n  TURTLE_UP(false);\n  face();\n}\n\n// Décrire cette fonction…\nfunction face() {\n  TURTLE_ROTATE((a),true);\n  for (var blockly_var_count3 = 1 ; blockly_var_count3 <= 4 ; blockly_var_count3++){\n    TURTLE_MV((GLOBAL_GET(\"cote\")),false);\n    TURTLE_TURN((90));\n  };\n  TURTLE_FILL(20);\n}\n\n\ninitialisation();\nTURTLE_COLOUR(18);\nfor (var blockly_var_count2 = 1 ; blockly_var_count2 <= 3 ; blockly_var_count2++){\n  face();\n  TURTLE_MV((GLOBAL_GET(\"cote\")),false);\n};\nDeuxDernieresFaces();","parents":["B","a"]},"current":"onlogo"});
+
+
+// Blockly Globals :
+BLK_GLOB_SET({"cote":1.5876580163260223});

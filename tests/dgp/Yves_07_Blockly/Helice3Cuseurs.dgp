@@ -1,0 +1,102 @@
+// Coordinates System :
+SetCoords(428,21,68,true,1089,795);
+
+
+// Geometry :
+P1=Point("P1",7.132352941176471,-5.205882352941177);
+Y=Point("Y","[0,1,0]","1");
+X=Point("X","[1,0,0]","1");
+P14=Point("P14","[2,-3,0]","1");
+Z=Point("Z","[0,0,1]","1");
+P13=Point("P13","[3,-2,0]","1");
+P11=Point("P11","[3,-3,0]","1");
+P12=Point("P12","[3,3,0]","1");
+S31=Segment("S31",P1,Z);
+Symc1=Symmetry("Symc1",P1,P12);
+Symc2=Symmetry("Symc2",P1,P11);
+Symc4=Symmetry("Symc4",P13,P11);
+Symc10=Symmetry("Symc10",P1,P14);
+Symc9=Symmetry("Symc9",P1,P13);
+S21=Segment("S21",P1,Y);
+n=Expression("n","","3","500","366","-5.5588235294117645","-0.4264705882352941");
+S11=Segment("S11",P1,X);
+haut=Expression("haut","","0","15","4.35","5.176470588235294","-0.4264705882352941");
+gauche=Expression("gauche","","0","15","9.3","1.6470588235294117","-0.4264705882352941");
+d=Expression("d","","4","20","17","-2.176470588235294","-0.4264705882352941");
+E2=Expression("E2","Montrer le sol","0","1","1","-5.507352941176471","-1.8235294117647058");
+Symc3=Symmetry("Symc3",P14,P11);
+M1=MidPoint("M1",Symc3,Symc1);
+M4=MidPoint("M4",Symc4,P12);
+Poly2=Polygon("Poly2","_P11,_Symc1,_Symc2,_P12");
+Symc8=Symmetry("Symc8",P1,Symc4);
+Symc11=Symmetry("Symc11",P1,Symc3);
+M2=MidPoint("M2",Symc1,M1);
+M3=MidPoint("M3",M1,Symc3);
+Symc13=Symmetry("Symc13",P1,M1);
+Symc6=Symmetry("Symc6",P1,M4);
+M5=MidPoint("M5",P12,M4);
+M6=MidPoint("M6",M4,Symc4);
+A=PointOn("A",Poly2,[0.3088464019268672,0.28141252793396976]);
+Symc5=Symmetry("Symc5",P1,M5);
+Symc7=Symmetry("Symc7",P1,M6);
+blk_turtle_exp_A=Expression("blk_turtle_exp_A","","","","var bl_dcgfddhaj=function(){\nTURTLE_INIT(\"A\",A);\nTURTLE_WIDTH(2);\nTURTLE_COLOUR(39);\nfor (var blockly_var_count = 1 ; blockly_var_count <= (n) ; blockly_var_count++){\n  TURTLE_MV((d),true);\n  TURTLE_TURN((gauche));\n  TURTLE_ROTATE((haut),true);\n};\n\nZ;\nreturn TURTLE_RESULT()\n};\nbl_dcgfddhaj()","-5.5588235294117645","-0.4264705882352941");
+Symc12=Symmetry("Symc12",P1,M3);
+Symc14=Symmetry("Symc14",P1,M2);
+Poly1=Polygon("Poly1","_P11,_Symc1,_Symc5,_P13,_Symc4,_Symc6,_Symc7,_M6,_M4,_Symc8,_Symc9,_M5,_P12,_Symc14,_P14,_Symc3,_Symc13,_Symc12,_M3,_M1,_Symc11,_Symc10,_M2");
+blk_turtle_list_A=List("blk_turtle_list_A",blk_turtle_exp_A);
+E1=Expression("E1","","","","Poly2.setHidden(1-E2);Poly1.setHidden(1-E2);Poly1.noMouseInside();if(theta()<0) {Poly2.setRGBColor(151,101,0);Poly2.setLayer(2);Poly2.setOpacity(1)} else {Poly2.setRGBColor(0,124,125);;Poly2.setLayer(0);Poly2.setOpacity(0.2)};\"prog\"","-3.056064249334746","-2.028621134124397");
+
+
+// Styles :
+STL(P1,"c:#0000b2;s:6;f:30;fl:true");
+STL(Y,"c:#0000b2;o:1;s:4;sn:true;f:24");
+STL(X,"c:#0000b2;o:1;s:4;sn:true;f:24");
+STL(P14,"c:#0000b2;h:2;s:6;f:30");
+STL(Z,"c:#0000b2;o:1;s:4;sn:true;f:24");
+STL(P13,"c:#0000b2;h:2;s:6;f:30");
+STL(P11,"c:#0000b2;h:2;s:6;f:30");
+STL(P12,"c:#0000b2;h:2;s:6;f:30");
+STL(S31,"c:#117dad;s:1;f:24");
+STL(Symc1,"c:#0000b2;h:2;s:6;f:30");
+STL(Symc2,"c:#0000b2;h:2;s:6;f:30");
+STL(Symc4,"c:#0000b2;h:2;s:6;f:30");
+STL(Symc10,"c:#0000b2;h:2;s:6;f:30");
+STL(Symc9,"c:#0000b2;h:2;s:6;f:30");
+STL(S21,"c:#117dad;s:1;f:24");
+STL(n,"c:#237564;s:7;sn:true;f:19;p:2;i:1;cL:200;cPT:YzojNzgwMDEzO3M6MTA7ZjozMDtpOjE=");
+STL(S11,"c:#117dad;s:1;f:24");
+STL(haut,"c:#1e784d;s:7;sn:true;f:18;p:2;cL:200;cPT:YzojNzgwMDEzO3M6MTA7ZjozMA==");
+STL(gauche,"c:#743923;s:7;sn:true;f:18;p:4;cL:200;cPT:YzojNzgwMDEzO3M6MTA7ZjozMA==");
+STL(d,"c:#554e6e;s:7;sn:true;f:18;p:2;i:1;cL:200;cPT:YzojNzgwMDEzO3M6MTA7ZjozMDtpOjE=");
+STL(E2,"c:#007c7c;s:8.5;f:17;i:1;p:-1;cL:40;cPT:YzojMDA3YzdjO286MTtzOjEwO2Y6MzA7aTox");
+STL(Symc3,"c:#0000b2;h:2;s:6;f:30");
+STL(M1,"c:#0000b2;h:2;s:6;f:30");
+STL(M4,"c:#0000b2;h:2;s:6;f:30");
+STL(Poly2,"c:#007c7d;o:0.2;s:1;f:30");
+STL(Symc8,"c:#0000b2;h:2;s:6;f:30");
+STL(Symc11,"c:#0000b2;h:2;s:6;f:30");
+STL(M2,"c:#0000b2;h:2;s:6;f:30");
+STL(M3,"c:#0000b2;h:2;s:6;f:30");
+STL(Symc13,"c:#0000b2;h:2;s:6;f:30");
+STL(Symc6,"c:#0000b2;h:2;s:6;f:30");
+STL(M5,"c:#0000b2;h:2;s:6;f:30");
+STL(M6,"c:#0000b2;h:2;s:6;f:30");
+STL(A,"c:#db101e;o:1;s:6;sn:true;f:20");
+STL(Symc5,"c:#0000b2;h:2;s:6;f:30");
+STL(Symc7,"c:#0000b2;h:2;s:6;f:30");
+STL(blk_turtle_exp_A,"c:#780013;h:2;s:7;f:24;p:2;cL:200;cPT:YzojNzgwMDEzO2g6MjtzOjEwO2Y6MzA=");
+STL(Symc12,"c:#0000b2;h:2;s:6;f:30");
+STL(Symc14,"c:#0000b2;h:2;s:6;f:30");
+STL(Poly1,"c:#007c7c;o:0.2;s:1;f:30;nmi:true");
+STL(blk_turtle_list_A,"c:#0000b2;s:0;f:30;p:0;nmi:true;sg:1");
+STL(E1,"c:#780013;h:2;s:7;f:24;p:2;cL:200;cPT:YzojNzgwMDEzO2g6MjtzOjEwO2Y6MzA=");
+SetCoordsStyle("3Dmode:true;isAxis:false;isGrid:true;isOx:true;isOy:true;isLockOx:false;isLockOy:false;centerZoom:true;onlyPositive:false;color:#111111;fontSize:18;axisWidth:1;gridWidth:0.1");
+SetGeneralStyle("background-color:#ffffff;degree:true;dragmoveable:true");
+
+
+// Blockly :
+BLK(A,{"onlogo":{"xml":"<xml xmlns=\"http://www.w3.org/1999/xhtml\"><block type=\"turtle_width\" id=\"n#mv,kz.R_27P(U#Hqyi\" x=\"6\" y=\"19\"><field name=\"WHAT\">pen</field><value name=\"WIDTH\"><shadow type=\"math_number\" id=\"]r4~xQP9k)hIz3LoFv0j\"><field name=\"NUM\">2</field></shadow></value><next><block type=\"turtle_colour\" id=\"k#b^qQH1`W^`;UQOx97L\"><field name=\"RGB_col\">#33cc00</field><value name=\"N\"><shadow type=\"math_number\" id=\"pjFlz_jeDw2fX(j.jW__\"><field name=\"NUM\">39</field></shadow></value><next><block type=\"controls_repeat_ext\" id=\"hzQmD)vj3Ms-A(FW7AKJ\"><value name=\"TIMES\"><block type=\"dgpad_get_object_short\" id=\",6gW(5mg]MzE_3Whe82c\"><field name=\"NAME\">n</field></block></value><statement name=\"DO\"><block type=\"turtle_move\" id=\"mret.CxKr,u(_w5kcnWM\"><field name=\"DIR\">moveForward</field><field name=\"UNITS\">px</field><value name=\"VALUE\"><shadow type=\"math_number\" id=\"w!Uk?Rqowl10#26Qh=TY\"><field name=\"NUM\">60</field></shadow><block type=\"dgpad_get_object_short\" id=\"Xombv.yDJi%Tpt+tGya}\"><field name=\"NAME\">d</field></block></value><next><block type=\"turtle_turn\" id=\"u4PI1IgVc}oZzh*qMl36\"><field name=\"DIR\">turnLeft</field><value name=\"VALUE\"><shadow type=\"turtle_angle_input\" id=\"+|IOVt%B!N^[MOlL^zKd\"><field name=\"ANGLE\">90</field></shadow><block type=\"dgpad_get_object_short\" id=\"5I`T:(qfKa2Knlyrr%fl\"><field name=\"NAME\">gauche</field></block></value><next><block type=\"turtle_rotate\" id=\"p[.=*-#.bgowpgFZO-/k\"><field name=\"DIR\">rotate_top</field><value name=\"VALUE\"><shadow type=\"turtle_angle_input\" id=\"|02MLX?LDOI#OTEvSJ}6\"><field name=\"ANGLE\">90</field></shadow><block type=\"dgpad_get_object_short\" id=\"n-s~|!yOSyy--+=`6XdR\"><field name=\"NAME\">haut</field></block></value></block></next></block></next></block></statement></block></next></block></next></block><block type=\"dgpad_get_object_short\" id=\"`JN:FoV]Jo!S`}!k=i/e\" x=\"782\" y=\"298\"><field name=\"NAME\">Z</field></block></xml>","sync":"TURTLE_WIDTH(2);\nTURTLE_COLOUR(39);\nfor (var blockly_var_count = 1 ; blockly_var_count <= (n) ; blockly_var_count++){\n  TURTLE_MV((d),true);\n  TURTLE_TURN((gauche));\n  TURTLE_ROTATE((haut),true);\n};\n\nZ;","parents":["n","d","gauche","haut","Z"]},"current":"onlogo"});
+
+
+// Texts :
+Text("<div style='font-size:18px;color:#0000FF;text-align:center'>Exercice sur les h\u00e9lices (influence des curseurs)",407,499,442,46,"c:rgba(112,155,232,0.18);s:3;r:15;p:4");
