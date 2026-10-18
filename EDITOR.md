@@ -1129,10 +1129,17 @@ ses méthodes internes et figé dans sa version de 2016.
       départ, sans encoche dessous, une pastille donnant le nombre de ses
       blocs, qui la déplie d'un clic ; son programme garde son texte (`id`
       `dgf:`). Elle reste pliée pour la session.
-    - Bouton en bas à droite de l'espace de travail : il l'agrandit sur la
-      figure, entre les deux panneaux, et l'y ramène ; le panneau le dit
-      pendant ce temps. Fermer le panneau, ou montrer un objet sans blocs,
-      le ramène.
+    - Bouton en haut à droite de l'espace de travail : il l'agrandit sur la
+      figure dans une fenêtre, et l'y ramène. Comme dans DGPad, la fenêtre
+      se déplace par sa barre de titre (le nom de l'objet ; un double clic
+      rend sa place par défaut), se redimensionne par son coin, et laisse
+      voir la figure par transparence ; sa place vaut pour la session.
+      Les panneaux de construction et de propriétés glissent hors de l'écran
+      pendant ce temps : la figure s'étend d'abord dessous sans bouger à
+      l'écran, puis ils la découvrent ; au retour, ils glissent par-dessus
+      avant qu'elle ne leur rende leur place. La fenêtre apparaît en fondu.
+      Fermer le panneau de propriétés, ou montrer un objet sans blocs, ramène
+      les blocs ; le bouton du panneau de construction aussi, et l'ouvre.
     - Dialogues de Blockly (nom d'une variable ou d'une globale,
       confirmation) dans le style de l'éditeur (`dialog` de `view.ts`), ses
       textes « OK » et « Annuler » étant ceux de Blockly.

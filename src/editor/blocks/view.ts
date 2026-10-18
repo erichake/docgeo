@@ -46,17 +46,63 @@ export interface BlocksView {
 const host = $.create("div").cls("dge-blocks");
 // The button enlarging the blocks over the figure, or putting them back.
 const resize = $.create("button").cls("dge-blocks-size").att("type", "button");
-const frame = $.create("div").cls("dge-blocks-frame").add(host, resize);
+// Enlarged, the blocks are moved by their bar and sized by their corner.
+const title = $.create("span");
+const bar = $.create("div").cls("dge-blocks-bar").add(title);
+const corner = $.create("div").cls("dge-blocks-corner");
+const frame = $.create("div")
+    .cls("dge-blocks-frame")
+    .add(bar, host, resize, corner);
 // In the panel while the blocks are enlarged.
 let stand: DOMElement | null = null;
 // The panel, built again, shows them still.
 let claimed = false;
+// The panels out of the way of the enlarged blocks, or back.
+let panels = (_out: boolean) => {};
+export const onEnlarge = (f: typeof panels) => (panels = f);
 const ENLARGE =
     '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 4h6v6M10 20H4v-6M20 4l-7 7M4 20l7-7"/></svg>';
 const SHRINK =
     '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 10h-6V4M4 14h6v6M14 10l7-7M10 14l-7 7"/></svg>';
 resize.on("click", () => enlarge(!stand), false);
 enlarge(false);
+
+// Where the enlarged blocks were left, and their size, for the session.
+const BOUNDS = ["left", "top", "width", "height"].map(
+    (side) => `--dge-blocks-${side}`,
+);
+function place(...values: number[]): void {
+    BOUNDS.forEach((name, i) => frame.stl(name, `${Math.round(values[i])}px`));
+}
+// The frame and the pointer where the gesture began: the frame follows the
+// pointer, even after a bound held it.
+let start = [0, 0, 0, 0, 0, 0];
+const grab = (event: PointerEvent) => {
+    const { left, top, width, height } = frame.dom().getBoundingClientRect();
+    start = [left, top, width, height, event.clientX, event.clientY];
+};
+bar.drag((event) => {
+    const [left, top, width, height, x, y] = start;
+    place(
+        Math.min(
+            Math.max(left + event.clientX - x, 60 - width),
+            window.innerWidth - 60,
+        ),
+        Math.min(Math.max(top + event.clientY - y, 0), window.innerHeight - 40),
+        width,
+        height,
+    );
+}, grab);
+bar.on("dblclick", () => BOUNDS.forEach((name) => frame.stl(name, "")));
+corner.drag((event) => {
+    const [left, top, width, height, x, y] = start;
+    place(
+        left,
+        top,
+        Math.max(width + event.clientX - x, 320),
+        Math.max(height + event.clientY - y, 200),
+    );
+}, grab);
 
 function enlarge(on: boolean): void {
     if (on && !stand) {
@@ -65,10 +111,12 @@ function enlarge(on: boolean): void {
             .text(message("blocks_enlarged"));
         frame.dom().replaceWith(stand.dom());
         $("body").add(frame);
+        panels(true);
     } else if (!on && stand) {
         if (stand.dom().isConnected) stand.dom().replaceWith(frame.dom());
         else frame.remove();
         stand = null;
+        panels(false);
     }
     const key = on ? "shrink_blocks" : "enlarge_blocks";
     frame.toggleClass("dge-blocks-large", on);
@@ -87,7 +135,12 @@ export function releaseBlocks(): void {
     });
 }
 
-export const shrinkBlocks = () => enlarge(false);
+// Whether they were enlarged.
+export function shrinkBlocks(): boolean {
+    const enlarged = stand !== null;
+    enlarge(false);
+    return enlarged;
+}
 
 // A question Blockly asks: a text to type (`value`), or a confirmation.
 // Null when cancelled.
@@ -165,6 +218,12 @@ const same = (a: string, b: string) =>
 export function blocksView(view: BlocksView) {
     current = view;
     claimed = true;
+    title
+        .inner("")
+        .add(
+            $.create("b").text(formatName(view.owner)),
+            $.create("span").text(message("programs")),
+        );
     editor ??= import("./workspace").then(({ blocksEditor }) =>
         blocksEditor(
             host.dom() as HTMLElement,

@@ -247,29 +247,116 @@ body:not(.dge-adjusting) svg .dge-property-selected > foreignObject > div {
     border-radius: 6px;
     overflow: hidden;
 }
-/* The blocks, enlarged on demand over the figure, between the panels. */
+/* The blocks, enlarged on demand over the figure, the panels out of the
+   way: the figure shows through, as in DGPad. */
 .dge-blocks-frame {
     position: relative;
+    /* Blockly's toolbox stays under the panel's header. */
+    isolation: isolate;
+}
+body.dge-editor.dge-blocks-wide {
+    --dge-panel-width: 0px;
+    --dge-properties-width: 0px;
+}
+body.dge-blocks-out .dge-panel,
+body.dge-blocks-out .dge-properties {
+    visibility: hidden;
+    transition-delay: 0s, var(--dge-slide-duration);
+}
+body.dge-blocks-out .dge-panel {
+    transform: translateX(-100%);
+}
+body.dge-blocks-out .dge-properties {
+    transform: translateX(100%);
+}
+.dge-blocks-out .dge-resize {
+    display: none;
 }
 .dge-blocks-frame.dge-blocks-large {
     position: fixed;
     z-index: 12;
-    inset-block: calc(var(--dge-bar-height) + 12px) 12px;
-    inset-inline: calc(var(--dge-panel-width) + 12px)
-        calc(var(--dge-properties-width) + 12px);
+    left: var(--dge-blocks-left, 12px);
+    top: var(--dge-blocks-top, calc(var(--dge-bar-height) + 12px));
+    width: var(--dge-blocks-width, min(calc(100vw - 24px), max(640px, 60vw)));
+    height: var(
+        --dge-blocks-height,
+        calc(100vh - var(--dge-bar-height) - 24px)
+    );
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    border: 1px solid #cbd5e1;
     border-radius: 8px;
-    background: #fff;
+    overflow: hidden;
+    background: rgb(255 255 255 / 0.5);
     box-shadow: 0 12px 40px rgb(15 23 42 / 0.25);
+    animation: dge-blocks-in var(--dge-slide-duration) ease-out;
+}
+@keyframes dge-blocks-in {
+    from {
+        opacity: 0;
+        transform: scale(0.96);
+    }
+}
+.dge-blocks-bar {
+    display: none;
+}
+.dge-blocks-large .dge-blocks-bar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex: none;
+    height: 32px;
+    padding-inline: 12px 44px;
+    background: #f1f5f9;
+    border-bottom: 1px solid #cbd5e1;
+    font:
+        13px/1 system-ui,
+        -apple-system,
+        "Segoe UI",
+        sans-serif;
+    color: #64748b;
+    cursor: move;
+    touch-action: none;
+    user-select: none;
+}
+.dge-blocks-bar b {
+    margin-inline-end: 8px;
+    font-family: var(--dge-code);
+    color: #1f2937;
 }
 .dge-blocks-large .dge-blocks {
-    height: 100%;
+    flex: 1;
+    height: auto;
     min-height: 0;
-    box-sizing: border-box;
-    border-radius: 8px;
+    border: 0;
+    border-radius: 0;
+}
+.dge-blocks-corner {
+    display: none;
+}
+.dge-blocks-large .dge-blocks-corner {
+    display: block;
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    z-index: 75;
+    width: 18px;
+    height: 18px;
+    background: linear-gradient(
+        135deg,
+        transparent 50%,
+        #94a3b8 50% 58%,
+        transparent 58% 70%,
+        #94a3b8 70% 78%,
+        transparent 78%
+    );
+    cursor: nwse-resize;
+    touch-action: none;
 }
 .dge-blocks-size {
     position: absolute;
-    inset-block-end: 12px;
+    inset-block-start: 12px;
     inset-inline-end: 24px;
     z-index: 75;
     display: grid;
@@ -283,6 +370,13 @@ body:not(.dge-adjusting) svg .dge-property-selected > foreignObject > div {
     color: #475569;
     box-shadow: 0 1px 2px rgb(15 23 42 / 0.12);
     cursor: pointer;
+}
+.dge-blocks-large .dge-blocks-size {
+    inset-block: 3px auto;
+    inset-inline-end: 6px;
+    width: 26px;
+    height: 26px;
+    box-shadow: none;
 }
 .dge-blocks-size:hover {
     background: #f1f5f9;

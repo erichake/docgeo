@@ -699,7 +699,8 @@ function theme(): Blockly.Theme {
             event_category: { colour: START[0] },
         },
         componentStyles: {
-            workspaceBackgroundColour: "#ffffff",
+            // Enlarged, the blocks let the figure show through.
+            workspaceBackgroundColour: "transparent",
             toolboxBackgroundColour: "#f8fafc",
             toolboxForegroundColour: "#334155",
             flyoutBackgroundColour: "#f1f5f9",

@@ -82,7 +82,7 @@ import { hideGhosts, showGhosts, toggleGhost, withHidden } from "./eraser";
 import { message, type MessageKey } from "./messages";
 import { ACTION_ICONS } from "./icons";
 import { turtleLayer } from "./turtle";
-import { shrinkBlocks } from "./blocks/view";
+import { onEnlarge, shrinkBlocks } from "./blocks/view";
 import {
     arcAt,
     asleep,
@@ -150,6 +150,8 @@ import "./properties.css";
 // The construction editor: see EDITOR.md.
 
 const PANEL_WIDTH = 320;
+// How long the panels take to slide, in milliseconds.
+const SLIDE = 240;
 const RING_BUTTON = 20;
 const RING_RADIUS = (RING_SLOTS * (2 * RING_BUTTON + 2)) / (2 * Math.PI);
 
@@ -198,7 +200,7 @@ $("head").append(`<style>
     /* Menlo and DejaVu Sans Mono draw Arabic letters unjoined: a font of the system draws them. */
     @font-face { font-family: dge-code; src: local("Menlo Regular"), local("Menlo-Regular"), local("Consolas"), local("DejaVu Sans Mono"); unicode-range: U+0-5FF, U+700-74F, U+780-89F, U+900-FB4F, U+FE00-FE6F, U+FF00-10FFFF; }
     .dge-editor { --dge-code: ui-monospace, dge-code, "Geeza Pro", "Segoe UI", "Noto Sans Arabic", monospace; --dge-panel-size: min(var(--dge-panel-user, ${PANEL_WIDTH}px), calc(100vw - 56px)); --dge-panel-width: var(--dge-panel-size); --dge-bar-height: 60px; --dge-slide-duration: 0s; --dge-slide: var(--dge-slide-duration) cubic-bezier(0.22, 1, 0.36, 1); margin: 0; margin-inline-start: var(--dge-panel-width); margin-block-start: var(--dge-bar-height); width: calc(100% - var(--dge-panel-width)); height: calc(100% - var(--dge-bar-height)); transition: margin-inline-start var(--dge-slide), width var(--dge-slide); }
-    .dge-editor.dge-panel-animated { --dge-slide-duration: 240ms; }
+    .dge-editor.dge-panel-animated { --dge-slide-duration: ${SLIDE}ms; }
     .dge-editor.dge-panel-closed { --dge-panel-width: 0px; }
     .dge-panel-closed .dge-panel { transform: translateX(-100%); visibility: hidden; transition-delay: 0s, var(--dge-slide-duration); }
     .dge-panel, .dge-bar, .dge-hint, .dge-ring, .dge-complete, .dge-menu, .dge-magnet, .dge-tools { font: 14px/1.4 system-ui, -apple-system, "Segoe UI", sans-serif; color: #1f2937; }
@@ -492,7 +494,9 @@ const spaceButton = button("space", toggleSpace);
 eraserButton.att("aria-pressed", "false");
 axesButton.att("aria-pressed", "false");
 const historyButton = button("history", () =>
-    setPanel(historyButton.getAtt("aria-expanded") === "false"),
+    setPanel(
+        shrinkBlocks() || historyButton.getAtt("aria-expanded") === "false",
+    ),
 )
     .att("aria-controls", "dge-history")
     .att("aria-expanded", "true")
@@ -874,6 +878,29 @@ function setProperties(on: boolean): void {
     propertiesButton.toggleClass("dge-on", on).att("aria-expanded", String(on));
     shine(on);
     if (!pending) showHint("");
+}
+// The blocks enlarged: the figure fills the window at once under the
+// panels, staying where it was on the screen, and the panels slide out of
+// the way; back, they slide over it before it gives them their place.
+let narrowing = 0;
+onEnlarge((out) => {
+    clearTimeout(narrowing);
+    if (out) widen(true);
+    else narrowing = window.setTimeout(() => widen(false), SLIDE);
+    $("body").addClass("dge-panel-animated").toggleClass("dge-blocks-out", out);
+});
+function widen(on: boolean): void {
+    const c = scene();
+    const [x, y] = c.GRID.ORG;
+    const before = c.svg.dom().getBoundingClientRect().left;
+    const body = $("body").stl("transition", "none");
+    body.toggleClass("dge-blocks-wide", on);
+    const { left, width, height } = c.svg.dom().getBoundingClientRect();
+    body.stl("transition", "");
+    c.resize(width, height);
+    c.GRID.ORG = [x + before - left, y];
+    c.traceEpoch++;
+    c.invalidateProjection();
 }
 // Typing doesn't reach the figure's own keys (3D view, floor), shortcuts
 // do.
