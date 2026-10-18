@@ -19,7 +19,7 @@ import { point_object, type magnet_target } from "../objects/point_object";
 import type { point_on_object } from "../objects/point_on_object";
 import { button_object } from "../objects/button_object";
 import { expression_object } from "../objects/expression_object";
-import type { expression_list_object } from "../objects/expression_list_object";
+import { expression_list_object } from "../objects/expression_list_object";
 import { panel_object } from "../objects/panel_object";
 import { polygon_object } from "../objects/polygon_object";
 import { sphere_object } from "../objects/sphere_object";
@@ -67,6 +67,7 @@ import {
     redefine,
     resolve,
     resolveWithSliders,
+    turtleStart,
     type Spec,
     type Studio,
 } from "./figure";
@@ -94,6 +95,7 @@ import {
     formatName,
     parseLine,
     pointFormulaText,
+    quoteText,
     TextError,
     type ArgumentCompletion,
     type Line,
@@ -588,10 +590,11 @@ explain(
         `${name}\n${message((target() as point_object).pinned ? "unpin_hint" : "pin_hint", name)}`,
 );
 explain(magnetButton, (name) => `${name}\n${message("magnet")}`);
-explain(
-    turtleButton,
-    (name) => `${name}\n${message("turtle_hint", turtleOf(target()!)!)}`,
-);
+explain(turtleButton, (name) => {
+    const turtle = turtleOf(target()!)!;
+    const start = turtleStart(turtle);
+    return `${name}\n${message("turtle_hint", start ? (start.point?.name ?? start.name) : turtle.name)}`;
+});
 explain(springButton, (name) => `${name}\n${message("spring_hint", name)}`);
 [pointsButton, segmentsButton].forEach((action) =>
     explain(
@@ -2496,41 +2499,47 @@ function derive(
 }
 
 // DGPad's turtles: from a point, a program, super-hidden, whose value a
-// list draws, both named after the point (see TURTLE_GET).
-const TURTLE = /^blk_turtle_(?:exp|list)_/;
+// list draws. They are found by what they draw, whatever their names
+// (DGPad's blk_turtle_exp_A and blk_turtle_list_A, see figureTurtles).
 
-// The name of the turtle the object starts or draws, if it can have one.
-const turtleOf = (object: construction_object): string | null =>
-    object instanceof point_object
-        ? object.name
-        : TURTLE.test(object.name) &&
-            scene().getObj(object.name.replace(TURTLE, "blk_turtle_exp_"))
-          ? object.name.replace(TURTLE, "")
+// The point that starts a turtle, or the program of the turtle the object
+// is or draws.
+const turtleOf = (object: construction_object): construction_object | null =>
+    object instanceof point_object || turtleStart(object)
+        ? object
+        : object instanceof expression_list_object && turtleStart(object.source)
+          ? object.source
           : null;
 
 // The turtle's program in blocks, made if it has none.
 function openTurtle(): void {
-    const name = turtleOf(target()!)!;
+    const turtle = turtleOf(target()!)!;
     closeRing();
     properties.showBlocks();
     const c = scene();
-    const existing = c.getObj(`blk_turtle_exp_${name}`);
+    const existing =
+        turtle instanceof point_object
+            ? figureObjects(c).find(
+                  (object) => turtleStart(object)?.point === turtle,
+              )
+            : turtle;
     if (!propertiesOpen) setProperties(true);
     if (existing) return properties.select(existing);
+    const { name } = turtle;
     const program = add(
         c,
         resolve(c, {
-            name: `blk_turtle_exp_${name}`,
+            name: nextName(c, false),
             definition: {
                 kind: "formula",
-                source: `TURTLE_INIT("${name.replace(/[\\"]/g, "\\$&")}", ${formatName(name)});\nreturn TURTLE_RESULT();`,
+                source: `TURTLE_INIT(${quoteText(name)}, ${formatName(name)});\nreturn TURTLE_RESULT();`,
             },
         }),
     );
     program.hidden = 2;
     program.updateView();
     const list = add(c, {
-        name: `blk_turtle_list_${name}`,
+        name: nextName(c, false),
         overload: findCommand("List")!.overloads[0],
         args: [program],
     }) as expression_list_object;

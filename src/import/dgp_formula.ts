@@ -242,8 +242,9 @@ const TURTLE_ARITY = {
 
 type TurtleFn = keyof typeof TURTLE_ARITY;
 
-// The objects a turtle reads with TURTLE_GET and TURTLE_LENGTH: the Lists
-// DGPad draws the other turtles with.
+// The name a program reads, with TURTLE_GET and TURTLE_LENGTH, the List
+// that draws another turtle by: that List's in DGPad, whatever its own in
+// DocGeo (see DGO.md).
 export const turtleList = (name: string) => `blk_turtle_list_${name}`;
 
 type BinaryOp = "+" | "-" | "*" | "/" | "%" | "^" | Comparison;

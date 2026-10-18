@@ -403,7 +403,11 @@ la figure, autour de la verticale de O dans l'espace, sa hauteur gardée),
     dernier point dans la direction `u`, `[21, 0, 0, [police, taille, style,
 alignement]]` police, `[30, url, l, h, zoom, opacité, u]` image (largeur
     négative : taille naturelle). Les couleurs et tailles s'appliquent aux
-    points qui suivent.
+    points qui suivent. `TURTLE_GET("A", n)` et `TURTLE_LENGTH("A")` lisent
+    les points de la liste (`ELst`) qui dessine la tortue `"A"`, celle du
+    `TURTLE_INIT("A", …)` de son script : la formule associe cette liste au
+    nom `blk_turtle_list_A` (celui que lui donne DGPad), quel que soit son
+    nom à elle.
 13. `{"t": légende, "s": script, "xy": [x, y]}` : bouton « lecture » de DGPad
     (`BlocklyButton`), légendé à sa gauche, dont `xy` est le bord droit à
     mi-hauteur, en pixels. Un clic exécute le script, qui ne fait que mettre

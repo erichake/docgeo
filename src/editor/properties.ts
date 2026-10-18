@@ -17,7 +17,12 @@ import { point_on_object } from "../objects/point_on_object";
 import { polygon_object } from "../objects/polygon_object";
 import { segment_object } from "../objects/segment_object";
 import { blocksView, isTurtle } from "./blocks/view";
-import { createdColors, definitionSource, hasName } from "./figure";
+import {
+    createdColors,
+    definitionSource,
+    figureTurtles,
+    hasName,
+} from "./figure";
 import { message, type MessageKey } from "./messages";
 import { scrubNumber, type Scrub } from "./scrub";
 import { formatProgram, syntaxLine, TextError } from "./text";
@@ -62,9 +67,6 @@ const measured = (object: construction_object): boolean =>
     object instanceof polygon_object ||
     (object instanceof list_object &&
         !(object instanceof expression_list_object));
-
-// The lists DGPad draws its turtles with, by the turtle's name.
-const TURTLE_LIST = "blk_turtle_list_";
 
 const PROGRAM_PLACEHOLDER =
     "var t = [];\nfor (var i = 0; i < 10; i++) {\n    t.push([i, 0]);\n}\nt";
@@ -1224,12 +1226,7 @@ export function propertiesPanel(options: {
                     degrees: c.degrees,
                     figure: {
                         objects: names,
-                        turtles: () =>
-                            names().flatMap((name) =>
-                                name.startsWith(TURTLE_LIST)
-                                    ? [name.slice(TURTLE_LIST.length)]
-                                    : [],
-                            ),
+                        turtles: () => figureTurtles(c).map(([name]) => name),
                     },
                     apply: (source) => void submit(source),
                     fallback: () => {

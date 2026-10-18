@@ -1065,12 +1065,15 @@ ses méthodes internes et figé dans sa version de 2016.
   programme rétabli. Dans le panneau, ⌘-Z est celui de Blockly, comme
   celui du navigateur dans le texte.
 - **Bouton « Tortue »** (zone contextuelle d'un point, et de la liste d'une
-  tortue) : crée, comme DGPad, l'expression super-cachée
-  `blk_turtle_exp_P` (`TURTLE_INIT("P", P); … return TURTLE_RESULT();`) et
-  la liste `blk_turtle_list_P` qui la dessine, en une étape, et l'ouvre en
-  blocs. Les noms de DGPad sont gardés : `TURTLE_GET` et `TURTLE_LENGTH`
-  désignent une tortue par le nom de son point, et les figures DGPad
-  restent semblables. Les tortues de DGPad, dont la liste est inerte et le
+  tortue) : crée, comme DGPad, une expression super-cachée
+  (`TURTLE_INIT("P", P); … return TURTLE_RESULT();`) et la liste qui la
+  dessine, en une étape, et l'ouvre en blocs. Elles reçoivent des noms
+  ordinaires, pas ceux de DGPad (`blk_turtle_exp_P`, `blk_turtle_list_P`) :
+  une tortue est retrouvée par ce qu'elle dessine (`figureTurtles`,
+  `turtleStart`), son programme par son `TURTLE_INIT`, et `TURTLE_GET` et
+  `TURTLE_LENGTH` la désignent par le nom que lui donne son `TURTLE_INIT`,
+  quels que soient les noms de son point, de son programme et de sa
+  liste. Les tortues de DGPad, dont la liste est inerte et le
   point souvent caché, s'ouvrent depuis leur ligne du panneau
   « Construction », panneau de propriétés ouvert (le sélecteur d'objet
   montre alors l'expression super-cachée).

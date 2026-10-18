@@ -20,6 +20,7 @@ import {
     programNodes,
     programReferences,
     programTargets,
+    turtleList,
     withObjects,
     type FormulaNode,
 } from "../import/dgp_formula";
@@ -32,6 +33,7 @@ import {
     type Equation,
 } from "../objects/equation_conic_object";
 import { expression_object } from "../objects/expression_object";
+import { expression_list_object } from "../objects/expression_list_object";
 import { fixed_angle_object } from "../objects/fixed_angle_object";
 import type { formula_point_object } from "../objects/formula_point_object";
 import { point_on_object } from "../objects/point_on_object";
@@ -595,15 +597,66 @@ function freeSpot(c: construction): Vec2 {
     return [20, Math.max(10, ...bottoms) + 30];
 }
 
+// A turtle's program, from TURTLE_INIT("A", A): the name TURTLE_GET reads
+// it by, and the point it starts from.
+export function turtleStart(
+    object: construction_object,
+): { name: string; point: construction_object | undefined } | null {
+    if (!(object instanceof expression_object) || !object.program) return null;
+    const { program, refs } = object.program;
+    const init = programNodes(program).find(
+        (node) => node.kind === "turtle" && node.fn === "TURTLE_INIT",
+    );
+    if (init?.kind !== "turtle") return null;
+    const [name, point] = init.args;
+    return name.kind === "string"
+        ? {
+              name: name.value,
+              point:
+                  point.kind === "identifier"
+                      ? refs.get(point.name)
+                      : undefined,
+          }
+        : null;
+}
+
+// The lists that draw turtles, by the turtles' names: found by what they
+// draw, whatever their own names (DGPad's blk_turtle_list_A).
+export const figureTurtles = (
+    c: construction,
+): [string, expression_list_object][] =>
+    figureObjects(c).flatMap((object) => {
+        const start =
+            object instanceof expression_list_object &&
+            turtleStart(object.source);
+        return start ? [[start.name, object]] : [];
+    });
+
+// What a formula can read, by name: the objects, and the turtles' lists by
+// the name TURTLE_GET reads them by (see turtleList).
+const readable = (c: construction): Map<string, construction_object> =>
+    new Map<string, construction_object>([
+        ...figureObjects(c).map(
+            (object) => [object.name, object] as [string, construction_object],
+        ),
+        ...figureTurtles(c).map(
+            ([name, list]) =>
+                [turtleList(name), list] as [string, construction_object],
+        ),
+    ]);
+
+const shownName = (name: string): string =>
+    name.startsWith(turtleList(""))
+        ? quoteText(name.slice(turtleList("").length))
+        : name;
+
 // An expression's entry, its nature told by the text (see EDITOR.md).
 function expression(
     c: construction,
     source: string,
     target?: construction_object,
 ): { overload: Overload; args: Arg[] } {
-    const own = new Map(
-        figureObjects(c).map((object) => [object.name, object]),
-    );
+    const own = readable(c);
     let content: ExpressionContent;
     try {
         content = withObjects(new Set(own.keys()), () =>
@@ -647,7 +700,7 @@ function expression(
                 );
             throw new TextError(
                 called ? "unknown_command" : "unknown_object",
-                name,
+                shownName(name),
             );
         }),
     );
@@ -684,9 +737,7 @@ function formulaPoint(
     c: construction,
     source: string,
 ): { overload: Overload; args: Arg[] } {
-    const own = new Map(
-        figureObjects(c).map((object) => [object.name, object]),
-    );
+    const own = readable(c);
     let references: Set<string>;
     try {
         references = programReferences(
@@ -698,7 +749,7 @@ function formulaPoint(
     const named = new Map(
         [...references].map((name) => {
             const object = own.get(name);
-            if (!object) throw new TextError("unknown_object", name);
+            if (!object) throw new TextError("unknown_object", shownName(name));
             return [name, object];
         }),
     );

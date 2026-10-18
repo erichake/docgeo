@@ -10,6 +10,7 @@ import {
     cubeOn,
     entryOf,
     figureIndex,
+    figureTurtles,
     floorOf,
     lineOf,
     rebuild,
@@ -18,6 +19,7 @@ import {
     nextName,
     resolve,
     resolveWithSliders,
+    turtleStart,
     valueText,
     type Studio,
 } from "../../src/editor/figure";
@@ -1054,6 +1056,47 @@ describe("Editor", () => {
         );
         expect(accepts(c.getObj("p")!, "expression")).toBe(true);
         expect(accepts(1, "expression")).toBe(false);
+    });
+
+    it("reads a turtle by its name, whatever its list's", async () => {
+        const { scene: c } = studio();
+        const program = (name: string, source: string) =>
+            add(
+                c,
+                resolve(c, { name, definition: { kind: "formula", source } }),
+            );
+        type(c, "A = (0, 0)");
+        type(c, "B = (5, 0)");
+        program(
+            "p",
+            'TURTLE_INIT("A", A); TURTLE_MV(2, false); return TURTLE_RESULT();',
+        );
+        type(c, "L = List(p)");
+        program("q", 'TURTLE_INIT("B", B); return TURTLE_RESULT();');
+        type(c, "M = List(q)");
+        expect(
+            figureTurtles(c).map(([name, list]) => [name, list.name]),
+        ).toEqual([
+            ["A", "L"],
+            ["B", "M"],
+        ]);
+        expect(turtleStart(c.getObj("q")!)!.point).toBe(c.getObj("B"));
+        const reader = program(
+            "r",
+            'TURTLE_INIT("B", B); [TURTLE_LENGTH("A"), TURTLE_GET("A", 2)]',
+        ) as expression_object;
+        c.flush();
+        expect(reader.value).toEqual([2, [2, 0]]);
+        const other = createConstruction([800, 600]);
+        readDgo(other, await describeDgo(c));
+        other.flush();
+        expect((other.getObj("r") as expression_object).value).toEqual([
+            2,
+            [2, 0],
+        ]);
+        expect(() => program("s", 'TURTLE_GET("C", 1)')).toThrow(
+            expect.objectContaining({ key: "unknown_object", detail: '"C"' }),
+        );
     });
 
     it("writes Sequences, nested ones reading the variables around them", async () => {
