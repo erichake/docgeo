@@ -10,19 +10,19 @@ import {
 import { runProgram, type ExpressionProgram } from "./expression_object";
 
 export const BUTTON_WIDTH = 40;
-const HEIGHT = 35;
-const RADIUS = 10;
-const LABEL_GAP = 20;
+const HEIGHT = 40;
+const TOOLS_WIDTH = 36;
 
-// DGPad's BlocklyButton: a "play" button, captioned on its left, that runs
-// its program when clicked. Like an expression, it keeps its place in the
-// window, `screen` being its right end, halfway up.
+// Like an expression, it keeps its place in the window, `screen` being
+// its right end, halfway up.
 export class button_object extends construction_object {
     label: string;
     screen: Vec2;
     program: ExpressionProgram | null;
     private caption!: DOMElement;
-    // The "play" button, the only part that runs the program.
+    private background!: DOMElement;
+    private hit!: DOMElement;
+    accessory!: DOMElement;
     frame!: DOMElement;
 
     constructor(
@@ -64,46 +64,61 @@ export class button_object extends construction_object {
         this.dom.stl("display", this.isVisible ? "block" : "none");
         if (!this.isVisible) return;
         const [x, y] = this.screen;
-        this.caption.att("x", x - BUTTON_WIDTH - LABEL_GAP).att("y", y);
-        this.frame.att("transform", `translate(${x - BUTTON_WIDTH} ${y - 20})`);
+        const height = Math.max(HEIGHT, this.fontSize + 20);
+        const width = Math.max(
+            BUTTON_WIDTH,
+            (this.caption.dom() as SVGTextElement).getComputedTextLength() + 56,
+        );
+        const tools = this.accessory.dom().childElementCount ? TOOLS_WIDTH : 0;
+        this.dom.att(
+            "transform",
+            `translate(${x - width - tools} ${y - height / 2})`,
+        );
+        this.background.att("width", width + tools).att("height", height);
+        this.hit.att("width", width).att("height", height);
+        this.caption.att("x", 36).att("y", height / 2);
+        this.frame
+            .find("path")!
+            .att("transform", `translate(15 ${height / 2})`);
+        this.accessory
+            .att("transform", `translate(${width + 14} ${height / 2})`)
+            .stl("--button-height", `${height}px`);
     }
 
     static createSVG(_this: construction_object): DOMElement {
         const t = _this as button_object;
         t.caption = t.svg
             .shape("text")
-            .att("text-anchor", "end")
-            .att("dominant-baseline", "middle")
+            .att("dominant-baseline", "central")
             .stl(
-                `fill:${t.stroke_color};font-family:Verdana;font-size:${t.fontSize}px;pointer-events:none`,
+                `fill:${t.stroke_color};font-family:system-ui,sans-serif;font-size:${t.fontSize}px;font-weight:500;pointer-events:none`,
             )
             .text(t.label);
-        const [w, h] = [BUTTON_WIDTH / 5, HEIGHT / 5];
+        t.background = t.svg
+            .shape("rect")
+            .att("rx", 7)
+            .stl(
+                "fill:#f1f2f4;stroke:#b7bdc6;stroke-width:1;pointer-events:none",
+            );
+        t.hit = t.svg.shape("rect").att("rx", 7).stl("fill:transparent");
         t.frame = t.svg
             .shape("g")
             .stl("cursor:pointer")
             .add(
-                t.svg
-                    .shape("rect")
-                    .att("width", BUTTON_WIDTH)
-                    .att("height", HEIGHT)
-                    .att("rx", RADIUS)
-                    .stl(
-                        `fill:${t.fill_color};fill-opacity:${t.opacity};stroke:${t.stroke_color};stroke-width:${t.size}`,
-                    ),
+                t.hit,
                 t.svg
                     .shape("path")
-                    .att("d", `M${w} ${h}V${4 * h}L${4 * w} ${HEIGHT / 2}Z`)
-                    .stl(`fill:${t.stroke_color}`),
+                    .att("d", "M0 -6V6L10 0Z")
+                    .stl(`fill:${t.stroke_color};pointer-events:none`),
+                t.caption,
             )
-            .drag(
-                () => {},
-                undefined,
-                (_, cancelled) => {
-                    if (!cancelled) t.run();
-                },
-            );
-        return t.svg.shape("g").add(t.caption, t.frame);
+            .tap(() => t.run());
+        t.frame.on("pointerdown", (event) => event.stopPropagation());
+        t.accessory = t.svg.shape("g");
+        const button = t.svg.shape("g").add(t.background, t.frame, t.accessory);
+        button.on("pointerenter", () => t.background.stl("fill", "#e9eaec"));
+        button.on("pointerleave", () => t.background.stl("fill", "#f1f2f4"));
+        return button;
     }
 }
 

@@ -150,7 +150,37 @@ const PANEL_WIDTH = 320;
 const RING_BUTTON = 20;
 const RING_RADIUS = (RING_SLOTS * (2 * RING_BUTTON + 2)) / (2 * Math.PI);
 
-const studio = { prefs: new preferences() } as Studio;
+function mountButtonTools(object: construction_object): void {
+    if (!(object instanceof button_object)) return;
+    const tools = object.accessory.stl("cursor:pointer");
+    const hit = tools
+        .shape("rect")
+        .att("x", -14)
+        .att("width", 36)
+        .att("rx", 7)
+        .stl(
+            "y:calc(var(--button-height) * -0.5);height:var(--button-height);fill:transparent",
+        );
+    const circle = tools
+        .shape("circle")
+        .att("r", 14)
+        .stl("fill:#f8f9fa;stroke:#b7bdc6;stroke-width:1");
+    tools.add(hit, circle);
+    [-5, 0, 5].forEach((y) =>
+        tools.add(
+            tools
+                .shape("circle")
+                .att("cy", y)
+                .att("r", 1.5)
+                .stl(`fill:${object.stroke_color};pointer-events:none`),
+        ),
+    );
+}
+
+const studio = {
+    prefs: new preferences(),
+    mountObject: mountButtonTools,
+} as Studio;
 studio.scene = construction.create(studio);
 const scene = () => studio.scene;
 
@@ -3750,16 +3780,15 @@ $("body").on(
             c.svg.dom().setPointerCapture(event.pointerId);
             return;
         }
-        // As in DGPad, an expression is dragged by its text, its slider's
-        // knob, checkbox or field keeping their own gesture, and a button by
-        // its caption. A tap on it still selects it, or writes its name in
-        // the line being typed.
+        // The tools circle also drags a button; a tap still opens its tools.
         const widget = !pending && propertyObject(event);
         moved = null;
         if (
             (widget instanceof expression_object ||
                 widget instanceof button_object) &&
-            !widget.dom.dom().contains(element(event.target)) &&
+            (widget instanceof button_object
+                ? widget.accessory.dom().contains(element(event.target))
+                : !widget.dom.dom().contains(element(event.target))) &&
             !pick(c, screen)[0]
         ) {
             moved = { expression: widget, grab: vSub(screen, widget.screen) };
@@ -4043,9 +4072,7 @@ $("body").on(
         if (cross) return done(addCrossing(cross));
         if (hits[0])
             return chooseHit(hits, client, (hit) => openRing(hit, client));
-        // A slider, a text… is selected rather than taken for a free spot;
-        // a button by its caption, as in DGPad, its "play" button running it:
-        // the rows show the values it sets on the next frame, once it has run.
+        // The rows show the button's values on the next frame, after it runs.
         const widget = propertyObject(event);
         if (
             widget instanceof button_object &&

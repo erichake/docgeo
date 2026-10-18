@@ -27,6 +27,7 @@ $("head").append(
 
 export interface DgpadLike {
     prefs: preferences;
+    mountObject?: (object: construction_object) => void;
 }
 
 export class construction {
@@ -386,6 +387,7 @@ export class construction {
         if (before) before.after(view);
         else layer.prepend(view);
         this.viewObjects.set(view, obj);
+        this.dgpad.mountObject?.(obj);
     }
 
     layer(level: number, layer: number): DOMElement {

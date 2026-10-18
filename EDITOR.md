@@ -1782,3 +1782,11 @@ Reste à faire :
   GeoGebra.
 - Mesures de fluidité sur des figures de plusieurs milliers d'objets (la vue
   texte est entièrement reconstruite après chaque changement).
+
+### Boutons de programme — 2026-10-18
+
+Le bouton adopte un fond gris clair et un contour fin. Toute sa zone
+« ▶ libellé » exécute le programme. À droite, les trois points dans un
+cercle ouvrent les outils contextuels ; glisser ce cercle déplace le bouton.
+Le lecteur affiche uniquement la zone d'exécution. La décoration des outils
+est ajoutée par l'éditeur au montage de la vue et reste hors du lecteur.
