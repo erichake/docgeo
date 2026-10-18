@@ -4069,7 +4069,13 @@ $("body").on(
             !magnetizing &&
             !stepping &&
             (tap ? event.metaKey || event.ctrlKey || event.shiftKey : still);
-        if (!tap) void record().then(() => updateRows());
+        // Once the point has its pointerup too (this listener captures):
+        // the programs it runs when let go are then in the step and rows.
+        if (!tap)
+            window.setTimeout(() => {
+                scene().flush();
+                void record().then(() => updateRows());
+            });
         if (!adding && (!tap || event.button === 2)) return;
         if (!adding && held) return closeRing();
         if (!adding && selection[0]) return clearSelection();
