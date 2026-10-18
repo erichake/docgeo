@@ -147,6 +147,7 @@ export type ObjectMethod =
     | "center"
     | "push"
     | "pop"
+    | "shift"
     | "concat"
     | "setHidden"
     | "setShowName"
@@ -173,7 +174,11 @@ const READ_METHODS: ReadonlySet<ObjectMethod> = new Set([
     "concat",
 ]);
 
-const LIST_METHODS: ReadonlySet<ObjectMethod> = new Set(["push", "pop"]);
+const LIST_METHODS: ReadonlySet<ObjectMethod> = new Set([
+    "push",
+    "pop",
+    "shift",
+]);
 
 // DGPad's layers and dashes only make up for its lack of depth ordering,
 // which the reader does on its own (see paintByDepth and hidden_line.ts),
@@ -196,6 +201,7 @@ export const METHOD_ARITY: Record<ObjectMethod, number> = {
     center: 0,
     push: -1,
     pop: 0,
+    shift: 0,
     concat: -1,
     setHidden: 1,
     setShowName: 1,
@@ -864,13 +870,8 @@ class FormulaParser {
             if (this.skip(".")) {
                 const name = this.name();
                 if (name === "length") base = { kind: "length", target: base };
-                else if (name === "join") {
-                    this.take("(");
-                    const [separator = null, ...rest] = this.arguments();
-                    if (rest.length > 0)
-                        throw new Error("Invalid DGP formula syntax");
-                    base = { kind: "join", target: base, separator };
-                } else if (name === "slice") base = this.slice(base);
+                else if (name === "join") base = this.join(base);
+                else if (name === "slice") base = this.slice(base);
                 else if (LIST_METHODS.has(name as ObjectMethod)) {
                     const { name: list, indices } = listItem(base);
                     this.take("(");
@@ -1018,6 +1019,8 @@ class FormulaParser {
                 kind: "length",
                 target: { kind: "identifier", name: object },
             };
+        if (name === "join")
+            return this.join({ kind: "identifier", name: object });
         if (name === "slice")
             return this.slice({ kind: "identifier", name: object });
         if (/^d[xyzt]$/.test(name)) {
@@ -1031,6 +1034,13 @@ class FormulaParser {
         }
         this.take("(");
         return methodNode(object, name, this.arguments());
+    }
+
+    private join(target: FormulaNode): FormulaNode {
+        this.take("(");
+        const [separator = null, ...rest] = this.arguments();
+        if (rest.length > 0) throw new Error("Invalid DGP formula syntax");
+        return { kind: "join", target, separator };
     }
 
     private slice(target: FormulaNode): FormulaNode {
@@ -2666,10 +2676,18 @@ function compileMethod(
                 : ownItem(ownSlot(slot, frame), indices, frame);
         const values = args.map((arg) => arg(frame));
         if (!list || values.includes(null)) return null;
-        if (method === "pop") return list.pop() ?? null;
-        list.push(...(values as ScriptValue[]));
-        return list.length;
+        return listMethod(method, list, values as ScriptValue[]);
     };
+}
+
+function listMethod(
+    method: ObjectMethod,
+    list: ScriptValue[],
+    values: ScriptValue[],
+): ScriptValue | null {
+    if (method === "pop") return list.pop() ?? null;
+    if (method === "shift") return list.shift() ?? null;
+    return list.push(...values);
 }
 
 function step(frame: Frame): void {
@@ -2864,12 +2882,14 @@ const HELPERS = {
         const item = list[i];
         return Array.isArray(item) ? (list[i] = own(item, frame)) : null;
     },
-    listMethod: (pop: boolean, list: ScriptValue[] | null, values: Value[]) => {
-        if (!list || values.includes(null)) return null;
-        if (pop) return list.pop() ?? null;
-        list.push(...(values as ScriptValue[]));
-        return list.length;
-    },
+    listMethod: (
+        method: ObjectMethod,
+        list: ScriptValue[] | null,
+        values: Value[],
+    ) =>
+        !list || values.includes(null)
+            ? null
+            : listMethod(method, list, values as ScriptValue[]),
     stop: () => {
         throw new StepLimitExceeded();
     },
@@ -3116,7 +3136,7 @@ function translateNode(
                 break;
             const slot = scope.slots.get(node.object);
             const list = slot === undefined ? "null" : `ownSlot(${slot},f)`;
-            return `listMethod(${node.method === "pop"},${list},[${node.args.map(translate)}])`;
+            return `listMethod(${t.constant(node.method)},${list},[${node.args.map(translate)}])`;
         }
     }
     return `${t.constant(compileNode(node, scope))}(f)`;

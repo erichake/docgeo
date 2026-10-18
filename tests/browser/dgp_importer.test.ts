@@ -1371,6 +1371,25 @@ STL(L1,"c:#000000;s:0;sg:1");`,
         expect(poly6.hidden).toBe(1);
     });
 
+    it("draws a turtle that shifts and joins its lists", async () => {
+        const c = createConstruction();
+        const unsupported = await importDgpFromUrl(
+            c,
+            figure("decomposition_facteurs_premiers.dgp"),
+        );
+        // Its text holds an input field.
+        expect(unsupported).toHaveLength(1);
+        expect(unsupported[0]).toMatch(/^Text\(/);
+        expect(
+            [...c.svg.dom().querySelectorAll("[data-tex]")].map((tex) =>
+                tex.getAttribute("data-tex"),
+            ),
+        ).toEqual([
+            "$$294=2\\times3\\times7\\times7$$",
+            "$$294=2\\times3\\times7^{2}$$",
+        ]);
+    });
+
     it("draws at each frame of an animated NaN, adding to a global's list", async () => {
         const c = createConstruction();
         expect(await importDgpFromUrl(c, figure("urne_et_boules.dgp"))).toEqual(

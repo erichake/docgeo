@@ -650,6 +650,12 @@ GLOBAL_GET("côté")`);
         ).toEqual([3, 2, 3, "abc", 2]);
     });
 
+    it("takes the first item of a list and joins a list it names", () => {
+        expect(
+            run("var t=[1,2,3];var f=t.shift();[f,t.length,t.join('x')]"),
+        ).toEqual([1, 2, "2x3"]);
+    });
+
     it("tells an undefined value by its difference with itself, as JavaScript", () => {
         expect(run("var x=NaN;[x!=x,x==x,1!=1]")).toEqual([1, 0, 0]);
     });
