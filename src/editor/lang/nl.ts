@@ -212,6 +212,19 @@ const nl: Texts = {
         button_program: "Programma",
         button_program_hint:
             "Opent het programma dat zijn pijl uitvoert in blokken",
+        point_programs_hint:
+            "Opent in blokken zijn programma's, die lopen wanneer % wordt gesleept, ingedrukt of losgelaten",
+        change_program_hint:
+            "Opent in blokken het programma dat loopt wanneer de waarde van % verandert",
+        event_drag: "wanneer % wordt gesleept",
+        event_down: "wanneer % wordt ingedrukt",
+        event_up: "wanneer % wordt losgelaten",
+        event_change: "wanneer % verandert",
+        programs: "Programma's",
+        add_program: "Programma toevoegen",
+        enlarge_blocks: "Blokken vergroten over de figuur",
+        shrink_blocks: "Blokken terug in het paneel",
+        blocks_enlarged: "De blokken zijn vergroot over de figuur.",
         button_caption: "Uitvoeren",
         format_program: "Opmaken",
         syntax_line: "Onbegrijpelijke invoer op regel %",

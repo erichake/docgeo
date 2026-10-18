@@ -1105,16 +1105,20 @@ class FormulaParser {
                 throw new Error("Invalid DGP formula syntax");
             return methodNode(object.value, "setExpression", [value]);
         }
-        // Blockly's coordinate of an object: Coordinate("A",1), A[1].
+        // Blockly's coordinate of an object: Coordinate("A",1), y(A), or
+        // A[2].
         if (name === "Coordinate") {
             const [object, index] = args;
             if (args.length !== 2 || object.kind !== "string")
                 throw new Error("Invalid DGP formula syntax");
-            return {
-                kind: "index",
-                target: { kind: "identifier", name: object.value },
-                index,
+            const target: FormulaNode = {
+                kind: "identifier",
+                name: object.value,
             };
+            return index.kind === "number" &&
+                (index.value === 0 || index.value === 1)
+                ? { kind: "call", fn: index.value ? "y" : "x", args: [target] }
+                : { kind: "index", target, index };
         }
         // Blockly's form of a styling method: BLK_STL("S1","setHidden",[1]),
         // or BLK_STL(TURTLE_TEXT('dgpad_object_S1'),…) in a turtle's program.

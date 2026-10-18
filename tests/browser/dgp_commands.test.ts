@@ -175,18 +175,56 @@ BLK(N,{"ondrag":{"xml":"<xml/>","sync":"SET_EXP(\\"M\\",Math.minus(Math.times(2,
         c.OBJS.update();
         expect(N.coords).toEqual([2, -1, 0]);
         M.coords = [-3, -2, 0];
-        c.dragged.add(M);
+        c.gesture(M, "drag");
         c.invalidateGeometry(M);
-        c.OBJS.update();
+        c.flush();
         expect(N.coords).toEqual([3, 2, 0]);
         expect(L.coords).toEqual([0, -2, 0]);
         // Moved by a parent, or by another program: not dragged.
         c.invalidateGeometry(M);
-        c.OBJS.update();
+        c.flush();
         M.coords = [-1, 0, 0];
         c.invalidateGeometry(M);
-        c.OBJS.update();
+        c.flush();
         expect(N.coords).toEqual([3, 2, 0]);
+    });
+
+    it("runs a point's onmousedown and onmouseup programs as it is pressed and released", async () => {
+        const c = createConstruction();
+        const unsupported = importDgp(
+            c,
+            `A=Point("A",1,1);
+n=Expression("n","","","","0","0","0");
+BLK(A,{"onmousedown":{"xml":"<xml/>","sync":"SET_EXP(\\"n\\",n+1);"},"onmouseup":{"xml":"<xml/>","sync":"SET_EXP(\\"n\\",n+10);"},"current":"onmousedown"});`,
+        );
+        expect(unsupported).toEqual([]);
+        c.flush();
+        c.reveal();
+        await frame();
+        const A = c.getObj("A") as point_object;
+        const box = c.svg.dom().getBoundingClientRect();
+        const target = document.elementFromPoint(
+            box.left + A.sx,
+            box.top + A.sy,
+        )!;
+        const pointer = (type: string) =>
+            target.dispatchEvent(
+                new PointerEvent(type, {
+                    bubbles: true,
+                    pointerId: 1,
+                    isPrimary: true,
+                    button: 0,
+                    buttons: 1,
+                    clientX: box.left + A.sx,
+                    clientY: box.top + A.sy,
+                }),
+            );
+        pointer("pointerdown");
+        c.flush();
+        expect(value(c, "n")).toBe(1);
+        pointer("pointerup");
+        c.flush();
+        expect(value(c, "n")).toBe(11);
     });
 
     it("turns the view as a script restricting it is computed again", () => {

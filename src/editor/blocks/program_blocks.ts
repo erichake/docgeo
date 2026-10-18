@@ -6,9 +6,11 @@ import type { FormulaNode, Program, Statement } from "../../import/dgp_formula";
 
 export interface BlockState {
     type: string;
+    id?: string;
     x?: number;
     y?: number;
     data?: string;
+    collapsed?: boolean;
     fields?: Record<string, unknown>;
     inputs?: Record<string, Input>;
     next?: { block?: BlockState };
@@ -36,6 +38,22 @@ export const TURTLE_FONTS = [
 ];
 export const FONT_STYLES = ["normal", "italic", "bold"];
 export const FONT_ALIGNS = ["center", "left", "right"];
+
+// The first block of an event's program, by its gesture ("change" for an
+// expression's value): "when A is dragged".
+export const EVENT_HATS: Record<string, string> = {
+    drag: "dg_when_dragged",
+    down: "dg_when_pressed",
+    up: "dg_when_released",
+    change: "dg_when_changed",
+};
+
+// The first blocks of programs: a turtle's, an event's, another's.
+const ROOTS = new Set([
+    "dg_turtle",
+    "dg_program",
+    ...Object.values(EVENT_HATS),
+]);
 
 // The styles a program sets, one value each.
 export const STYLE_METHODS = [
@@ -813,6 +831,27 @@ class Decompiler {
                 };
             case "random":
                 return { type: "math_random_float" };
+            // Blockly's minimum or maximum of the list it builds.
+            case "min":
+            case "max":
+                return {
+                    type: "math_on_list",
+                    fields: { OP: fn.toUpperCase() },
+                    inputs: {
+                        LIST: {
+                            block: {
+                                type: "lists_create_with",
+                                extraState: { itemCount: args.length },
+                                inputs: Object.fromEntries(
+                                    args.map((arg, i) => [
+                                        `ADD${i}`,
+                                        value(this.value(arg)),
+                                    ]),
+                                ),
+                            },
+                        },
+                    },
+                };
         }
         return unsupported();
     }
@@ -967,17 +1006,52 @@ const numberCode = (value: unknown): Code => {
     return [String(n), n < 0 ? UNARY : ATOM];
 };
 
-// The program the blocks write, null without its first block (turtle or
-// program), the objects' names written by `format`.
+// The program the blocks write, null without its first block (turtle,
+// event or program), the objects' names written by `format`. The other
+// programs shown with it, folded, don't count.
 export function blocksProgram(
     state: WorkspaceState,
     format: (name: string) => string,
 ): string | null {
     const blocks = state.blocks?.blocks ?? [];
     const root = blocks.find(
-        (block) => block.type === "dg_turtle" || block.type === "dg_program",
+        (block) => ROOTS.has(block.type) && !block.collapsed,
     );
     return root ? new Generator(state, format).program(root, blocks) : null;
+}
+
+// One of the programs a workspace shows, from its first block, with the
+// procedures it calls, directly or not.
+export function stackState(
+    state: WorkspaceState,
+    root: BlockState,
+): WorkspaceState {
+    const procedures = (state.blocks?.blocks ?? []).filter(
+        (block) => block.type === "procedures_defnoreturn",
+    );
+    const called: BlockState[] = [];
+    const walk = (block: BlockState | undefined): void => {
+        if (!block) return;
+        const procedure =
+            block.type === "procedures_callnoreturn" &&
+            procedures.find(
+                ({ fields }) => fields?.NAME === block.extraState?.name,
+            );
+        if (procedure && !called.includes(procedure)) {
+            called.push(procedure);
+            walk(procedure);
+        }
+        Object.values(block.inputs ?? {}).forEach((input) => {
+            walk(input.block);
+            walk(input.shadow);
+        });
+        walk(block.next?.block);
+    };
+    walk(root);
+    return {
+        ...state,
+        blocks: { languageVersion: 0, blocks: [root, ...called] },
+    };
 }
 
 const paramsOf = (block: BlockState): string[] =>
@@ -1040,7 +1114,7 @@ class Generator {
                 .map(({ fields }) => `${this.format(String(fields!.NAME))};`),
             ...this.statements(root.next?.block, ""),
         ];
-        if (root.type === "dg_program") return body.join("\n");
+        if (root.type !== "dg_turtle") return body.join("\n");
         return [
             `TURTLE_INIT(${quoted(root.data ?? "")}, ${this.format(String(root.fields!.POINT))});`,
             ...body,
@@ -1333,6 +1407,31 @@ class Generator {
                 ];
             case "math_random_float":
                 return ["random()", ATOM];
+            // Of a list it builds.
+            case "math_on_list": {
+                const list = block.inputs?.LIST?.block;
+                const count =
+                    list?.type === "lists_create_with"
+                        ? Number(list.extraState?.itemCount ?? 0)
+                        : 0;
+                const items = Array.from({ length: count }, (_, i) =>
+                    this.operand(list!, `ADD${i}`, SUM),
+                );
+                if (!items.length) break;
+                switch (fields.OP) {
+                    case "MIN":
+                    case "MAX":
+                        return [
+                            `${String(fields.OP).toLowerCase()}(${items.join(", ")})`,
+                            ATOM,
+                        ];
+                    case "SUM":
+                        return [items.join(" + "), SUM];
+                    case "AVERAGE":
+                        return [`(${items.join(" + ")}) / ${count}`, PRODUCT];
+                }
+                break;
+            }
             case "math_trig":
             case "math_round":
                 return [

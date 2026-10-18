@@ -1,5 +1,5 @@
 // First, as in the player: the object classes import each other.
-import { AWAKE, construction } from "../construction";
+import { AWAKE, construction, type Gesture } from "../construction";
 import type { Animation } from "../animation";
 import {
     describeDgo,
@@ -18,6 +18,7 @@ import type { construction_object } from "../objects/construction_object";
 import { point_object, type magnet_target } from "../objects/point_object";
 import type { point_on_object } from "../objects/point_on_object";
 import { button_object } from "../objects/button_object";
+import { event_object } from "../objects/event_object";
 import { expression_object } from "../objects/expression_object";
 import { expression_list_object } from "../objects/expression_list_object";
 import { panel_object } from "../objects/panel_object";
@@ -61,6 +62,7 @@ import {
     formatArg,
     floorOf,
     FREE_POINT,
+    addEvent,
     hasName,
     lineOf,
     nextName,
@@ -80,6 +82,7 @@ import { hideGhosts, showGhosts, toggleGhost, withHidden } from "./eraser";
 import { message, type MessageKey } from "./messages";
 import { ACTION_ICONS } from "./icons";
 import { turtleLayer } from "./turtle";
+import { shrinkBlocks } from "./blocks/view";
 import {
     arcAt,
     asleep,
@@ -631,7 +634,19 @@ explain(turtleButton, (name) => {
     const start = turtleStart(turtle);
     return `${name}\n${message("turtle_hint", start ? (start.point?.name ?? start.name) : turtle.name)}`;
 });
-explain(programButton, (name) => `${name}\n${message("button_program_hint")}`);
+explain(programButton, (name) => {
+    const object = target()!;
+    return `${name}\n${
+        object instanceof button_object
+            ? message("button_program_hint")
+            : message(
+                  object instanceof point_object
+                      ? "point_programs_hint"
+                      : "change_program_hint",
+                  name,
+              )
+    }`;
+});
 explain(springButton, (name) => `${name}\n${message("spring_hint", name)}`);
 [pointsButton, segmentsButton].forEach((action) =>
     explain(
@@ -647,7 +662,7 @@ explain(
 );
 // The turtle whose program the panel shows.
 const turtle = turtleLayer(scene, () =>
-    propertiesOpen ? properties.selected : null,
+    propertiesOpen ? properties.program : null,
 );
 // The program's line resolved, the globals it adds taken out if refused.
 function withGlobals(
@@ -693,6 +708,17 @@ const properties = propertiesPanel({
     },
     figure: (patch) => {
         recording = recording.then(() => reframe({}, undefined, patch));
+    },
+    start: (kind, object) =>
+        kind === "turtle"
+            ? editTurtle(object)
+            : startEvent(
+                  object as point_object | expression_object,
+                  kind === "change" ? null : (kind as Gesture),
+              ),
+    remove: (program) => {
+        scene().removeObject(program);
+        done();
     },
     create: async (name, source) => {
         const c = scene();
@@ -838,6 +864,7 @@ function setProperties(on: boolean): void {
         properties.refresh();
         properties.select(objects ?? properties.selection);
     }
+    if (!on) shrinkBlocks();
     propertiesOpen = on;
     properties.panel.dom().toggleAttribute("inert", !on);
     $("body")
@@ -1017,6 +1044,14 @@ function showHint(text: string, error = false): void {
 
 // ************************** TEXT ********************************
 
+// An event's line: when its program runs.
+const EVENT_TEXTS: Record<string, MessageKey> = {
+    drag: "event_drag",
+    down: "event_down",
+    up: "event_up",
+    change: "event_change",
+};
+
 function refreshRows(): void {
     properties.refresh();
     rows.clear();
@@ -1035,7 +1070,13 @@ function refreshRows(): void {
             .att("spellcheck", "false")
             .toggleClass("dge-hidden", looksHidden(object));
         (row.dom() as HTMLInputElement).value =
-            line ?? `${formatName(object.name)} = …`;
+            line ??
+            (object instanceof event_object
+                ? message(
+                      EVENT_TEXTS[object.gesture ?? "change"],
+                      formatName(object.owner.name),
+                  )
+                : `${formatName(object.name)} = …`);
         if (line === null)
             row.att("readonly", "").att("title", message("read_only"));
         else bindRow(row, object);
@@ -1045,10 +1086,13 @@ function refreshRows(): void {
         text.on(
             "pointerdown",
             (event) => {
-                if (!pending && !propertiesOpen) return;
+                const program = object instanceof event_object;
+                if (!pending && !propertiesOpen && !program) return;
                 event.preventDefault();
-                if (!pending) showProperties(event, object);
-                else if (rowTakes(object)) designateRow(object);
+                if (pending) {
+                    if (rowTakes(object)) designateRow(object);
+                } else if (program) showProgram(object);
+                else showProperties(event, object);
             },
             false,
         );
@@ -2522,7 +2566,12 @@ function showActions(): void {
     else pointButton.hide();
     if (!magnetizing && turtleOf(object)) turtleButton.show("grid");
     else turtleButton.hide();
-    if (!magnetizing && object instanceof button_object)
+    if (
+        !magnetizing &&
+        (object instanceof button_object ||
+            object instanceof expression_object ||
+            (object instanceof point_object && object.moveable))
+    )
         programButton.show("grid");
     else programButton.hide();
     showSpring(springOut && !magnetizing && springy(object) ? object : null);
@@ -2640,10 +2689,32 @@ function editTurtle(turtle: construction_object): void {
 function openProgram(): void {
     const object = target()!;
     closeRing();
-    showProgram(object);
+    if (object instanceof button_object) return showProgram(object);
+    properties.showBlocks();
+    if (!propertiesOpen) setProperties(true);
+    properties.programs(object);
 }
 
-// A button's program, in blocks.
+// The program of the point's gesture, or of the change of the
+// expression's value, in blocks, made if it has none.
+function startEvent(
+    owner: point_object | expression_object,
+    gesture: Gesture | null,
+): void {
+    const c = scene();
+    const existing = figureObjects(c).find(
+        (object) =>
+            object instanceof event_object &&
+            object.owner === owner &&
+            object.gesture === gesture,
+    );
+    if (existing) return showProgram(existing);
+    properties.showBlocks();
+    if (!propertiesOpen) setProperties(true);
+    done(addEvent(c, owner, gesture));
+}
+
+// A program, in blocks.
 function showProgram(button: construction_object): void {
     properties.showBlocks();
     if (!propertiesOpen) setProperties(true);

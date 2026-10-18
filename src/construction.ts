@@ -25,6 +25,10 @@ $("head").append(
     `<style>body:not(.${AWAKE}) [data-inert], body:not(.${AWAKE}) [data-inert] * { pointer-events: none !important; }</style>`,
 );
 
+// What the pointer does to an object, which its programs answer (see
+// event_object.ts).
+export type Gesture = "drag" | "down" | "up";
+
 export interface DgpadLike {
     prefs: preferences;
     mountObject?: (object: construction_object) => void;
@@ -59,9 +63,13 @@ export class construction {
     // button or a finger no longer pans it.
     panLocked = false;
     animations: animations;
-    // Dragged or animated since the last update: DGPad then runs their
-    // "ondrag" program (see event_object.ts).
-    readonly dragged = new Set<construction_object>();
+    // The objects each gesture was made on since the last update, an
+    // animation dragging them, as in DGPad.
+    readonly gestures: Record<Gesture, Set<construction_object>> = {
+        drag: new Set(),
+        down: new Set(),
+        up: new Set(),
+    };
     private updateFrame: number | null = null;
     private batchedObjects: construction_object[] | null = null;
     // The object each view of a layer shows.
@@ -249,6 +257,15 @@ export class construction {
             construction.constructions.indexOf(this),
             1,
         );
+    }
+
+    // Its programs for the gesture run at the next update.
+    gesture(obj: construction_object, gesture: Gesture): void {
+        this.gestures[gesture].add(obj);
+        obj.children.forEach((child) => {
+            if ((child as { gesture?: Gesture | null }).gesture === gesture)
+                this.invalidateGeometry(child);
+        });
     }
 
     invalidateGeometry(obj: construction_object): void {
@@ -506,6 +523,6 @@ export class construction {
 
     private update(): void {
         this.OBJS.update();
-        this.dragged.clear();
+        Object.values(this.gestures).forEach((objects) => objects.clear());
     }
 }

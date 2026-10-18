@@ -211,6 +211,19 @@ const hi: Texts = {
         button_program: "प्रोग्राम",
         button_program_hint:
             "इसके तीर से चलने वाले प्रोग्राम को ब्लॉकों में खोलता है",
+        point_programs_hint:
+            "इसके प्रोग्राम ब्लॉकों में खोलता है, जो % को खींचने, दबाने या छोड़ने पर चलते हैं",
+        change_program_hint:
+            "वह प्रोग्राम ब्लॉकों में खोलता है जो % का मान बदलने पर चलता है",
+        event_drag: "जब % खींचा जाए",
+        event_down: "जब % दबाया जाए",
+        event_up: "जब % छोड़ा जाए",
+        event_change: "जब % बदले",
+        programs: "प्रोग्राम",
+        add_program: "प्रोग्राम जोड़ें",
+        enlarge_blocks: "ब्लॉकों को आकृति पर बड़ा करें",
+        shrink_blocks: "ब्लॉकों को पैनल में वापस लाएँ",
+        blocks_enlarged: "ब्लॉक आकृति पर बड़े किए गए हैं।",
         button_caption: "चलाएँ",
         format_program: "फ़ॉर्मेट करें",
         syntax_line: "पंक्ति % समझ में नहीं आई",

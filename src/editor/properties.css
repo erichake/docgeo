@@ -247,6 +247,113 @@ body:not(.dge-adjusting) svg .dge-property-selected > foreignObject > div {
     border-radius: 6px;
     overflow: hidden;
 }
+/* The blocks, enlarged on demand over the figure, between the panels. */
+.dge-blocks-frame {
+    position: relative;
+}
+.dge-blocks-frame.dge-blocks-large {
+    position: fixed;
+    z-index: 12;
+    inset-block: calc(var(--dge-bar-height) + 12px) 12px;
+    inset-inline: calc(var(--dge-panel-width) + 12px)
+        calc(var(--dge-properties-width) + 12px);
+    border-radius: 8px;
+    background: #fff;
+    box-shadow: 0 12px 40px rgb(15 23 42 / 0.25);
+}
+.dge-blocks-large .dge-blocks {
+    height: 100%;
+    min-height: 0;
+    box-sizing: border-box;
+    border-radius: 8px;
+}
+.dge-blocks-size {
+    position: absolute;
+    inset-block-end: 12px;
+    inset-inline-end: 24px;
+    z-index: 75;
+    display: grid;
+    place-items: center;
+    width: 30px;
+    height: 30px;
+    padding: 0;
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    background: #fff;
+    color: #475569;
+    box-shadow: 0 1px 2px rgb(15 23 42 / 0.12);
+    cursor: pointer;
+}
+.dge-blocks-size:hover {
+    background: #f1f5f9;
+}
+.dge-blocks-size svg {
+    width: 18px;
+    height: 18px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+/* Blockly's questions: a name to type, a confirmation. */
+.dge-dialog-back {
+    position: fixed;
+    inset: 0;
+    z-index: 100000;
+    display: grid;
+    place-items: center;
+    background: rgb(15 23 42 / 0.25);
+}
+.dge-dialog {
+    width: min(360px, calc(100vw - 32px));
+    box-sizing: border-box;
+    padding: 18px;
+    border-radius: 12px;
+    background: #fff;
+    box-shadow: 0 16px 48px rgb(15 23 42 / 0.3);
+    font:
+        14px/1.4 system-ui,
+        -apple-system,
+        "Segoe UI",
+        sans-serif;
+    color: #1f2937;
+}
+.dge-dialog p {
+    margin: 0 0 12px;
+}
+.dge-dialog input {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 7px 10px;
+    border: 1px solid #cbd5e1;
+    border-radius: 6px;
+    font: inherit;
+}
+.dge-dialog input:focus-visible {
+    outline: 2px solid #2563eb;
+    outline-offset: 1px;
+}
+.dge-dialog-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    margin-top: 16px;
+}
+.dge-dialog-actions button {
+    padding: 6px 14px;
+    border: 1px solid #cbd5e1;
+    border-radius: 6px;
+    background: #fff;
+    color: inherit;
+    font: inherit;
+    cursor: pointer;
+}
+.dge-dialog-actions button.dge-primary {
+    border-color: #2563eb;
+    background: #2563eb;
+    color: #fff;
+}
 /* Blockly's category icons, unused, would fetch its sprites. */
 .dge-blocks .blocklyToolboxCategoryIcon {
     background-image: none !important;

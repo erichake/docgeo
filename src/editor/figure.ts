@@ -1,4 +1,4 @@
-import { construction, type DgpadLike } from "../construction";
+import { construction, type DgpadLike, type Gesture } from "../construction";
 import {
     addDgoEntries,
     describeDgo,
@@ -40,6 +40,7 @@ import {
     expression_object,
     type ExpressionProgram,
 } from "../objects/expression_object";
+import { event_object } from "../objects/event_object";
 import { expression_list_object } from "../objects/expression_list_object";
 import { fixed_angle_object } from "../objects/fixed_angle_object";
 import type { formula_point_object } from "../objects/formula_point_object";
@@ -84,6 +85,7 @@ import {
     type Definition,
     type Line,
 } from "./text";
+import type { ProgramHat } from "./blocks/view";
 
 // The figure being edited, as .dgo entries: see EDITOR.md.
 
@@ -260,7 +262,7 @@ function renamedText({ text, refs, html }: TextArg): string {
 // What the properties' definition edits: an expression's value, formula or
 // program, a panel's HTML, a button's program.
 export function definitionSource(
-    object: expression_object | panel_object | button_object,
+    object: expression_object | panel_object | button_object | event_object,
 ): string {
     return object instanceof panel_object
         ? renamedText(new TextArg(object.content, object.refs, true))
@@ -268,7 +270,9 @@ export function definitionSource(
           ? object.program
               ? programSource(object.program)
               : ""
-          : expressionSource(object);
+          : object instanceof event_object
+            ? programSource(object.program)
+            : expressionSource(object);
 }
 
 const programSource = ({ program, refs, targets }: ExpressionProgram) =>
@@ -394,7 +398,9 @@ export function resolve(
         ({ overload, args } =
             target instanceof button_object
                 ? buttonProgram(c, definition!.source, target)
-                : expression(c, definition!.source, target));
+                : target instanceof event_object
+                  ? eventProgram(c, definition!.source, target)
+                  : expression(c, definition!.source, target));
     else if (definition!.kind === "pointFormula")
         ({ overload, args } = formulaPoint(c, definition!.source));
     else if (definition!.kind === "equation")
@@ -814,12 +820,11 @@ const namedObjects = (
         }),
     );
 
-// A button's program, its caption and place kept.
-function buttonProgram(
+// The objects a program run by a button or an event names.
+function programObjects(
     c: construction,
     source: string,
-    target: button_object,
-): { overload: Overload; args: Arg[] } {
+): Map<string, construction_object> {
     const own = readable(c);
     let program: Program;
     try {
@@ -831,11 +836,20 @@ function buttonProgram(
             method ?? source,
         );
     }
-    const named = namedObjects(
+    return namedObjects(
         own,
         [...programReferences(program), ...programTargets(program)],
         program,
     );
+}
+
+// A button's program, its caption and place kept.
+function buttonProgram(
+    c: construction,
+    source: string,
+    target: button_object,
+): { overload: Overload; args: Arg[] } {
+    const named = programObjects(c, source);
     return {
         overload: {
             params: [],
@@ -848,6 +862,97 @@ function buttonProgram(
         args: [...named.values()],
     };
 }
+
+// An event's program, answering the same gesture on the same point, or the
+// change of the same expression.
+function eventProgram(
+    c: construction,
+    source: string,
+    target: event_object,
+): { overload: Overload; args: Arg[] } {
+    const named = programObjects(c, source);
+    return {
+        overload: eventOverload(target.owner, target.gesture, (index) =>
+            formulaParameter(source, named, index),
+        ),
+        args: [target.owner, ...named.values()],
+    };
+}
+
+const eventOverload = (
+    owner: construction_object,
+    gesture: Gesture | null,
+    script: (index: (object: construction_object) => number) => unknown,
+): Overload => ({
+    params: [],
+    tag: "Evt",
+    encode: (_, index) => ({
+        on: index(owner),
+        ...(gesture && { e: gesture }),
+        s: script(index),
+    }),
+});
+
+// An empty program for the gesture on the point, or the change of the
+// expression.
+export function addEvent(
+    c: construction,
+    owner: point_object | expression_object,
+    gesture: Gesture | null,
+): construction_object {
+    const event = add(
+        c,
+        {
+            name: nextName(c, false),
+            overload: eventOverload(owner, gesture, () => ""),
+            args: [owner],
+        },
+        false,
+    );
+    event.hidden = 2;
+    event.updateView();
+    return event;
+}
+
+// The object whose programs show together: the point a turtle starts from,
+// the object an event answers.
+export function programOwner(object: construction_object): construction_object {
+    if (object instanceof event_object) return object.owner;
+    return turtleStart(object)?.point ?? object;
+}
+
+// A program by its first block.
+export function programHat(object: construction_object): ProgramHat {
+    if (object instanceof event_object)
+        return {
+            key: object.name,
+            kind: object.gesture ?? "change",
+            object: object.owner.name,
+        };
+    const start = turtleStart(object);
+    return start
+        ? {
+              key: object.name,
+              kind: "turtle",
+              object: start.point?.name ?? start.name,
+          }
+        : { key: object.name, kind: "program", object: object.name };
+}
+
+// Its programs, in the figure's order: its turtles, those its events run,
+// its own (a button's, an expression's).
+export const ownPrograms = (
+    c: construction,
+    owner: construction_object,
+): construction_object[] =>
+    figureObjects(c).filter(
+        (object) =>
+            (object === owner &&
+                (object instanceof button_object ||
+                    (object instanceof expression_object &&
+                        !!object.program))) ||
+            (object !== owner && programOwner(object) === owner),
+    );
 
 const buttonEntry = (
     button: button_object,

@@ -13,17 +13,21 @@ import { list_object } from "../objects/list_object";
 import { locus_object } from "../objects/locus_object";
 import { panel_object } from "../objects/panel_object";
 import { button_object } from "../objects/button_object";
+import { event_object } from "../objects/event_object";
 import { point_object } from "../objects/point_object";
 import { point_on_object } from "../objects/point_on_object";
 import { polygon_object } from "../objects/polygon_object";
 import { segment_object } from "../objects/segment_object";
-import { blocksView, isTurtle } from "./blocks/view";
+import { blocksView, isTurtle, releaseBlocks } from "./blocks/view";
 import {
     createdColors,
     definitionSource,
     figureGlobals,
     figureTurtles,
     hasName,
+    ownPrograms,
+    programHat,
+    programOwner,
 } from "./figure";
 import { message, type MessageKey } from "./messages";
 import { scrubNumber, type Scrub } from "./scrub";
@@ -36,6 +40,9 @@ import {
 } from "./view_settings";
 
 type Field = HTMLInputElement | HTMLSelectElement;
+
+// What the definition section edits.
+type Defined = expression_object | panel_object | button_object | event_object;
 
 // How each number follows a drag (see Scrub).
 const SCRUB = {
@@ -78,10 +85,12 @@ export function propertiesPanel(options: {
     changed: () => void;
     rename: (object: construction_object, name: string) => Promise<void>;
     // Throws a TextError where the text is wrong.
-    define: (
-        object: expression_object | panel_object | button_object,
-        source: string,
-    ) => Promise<void>;
+    define: (object: Defined, source: string) => Promise<void>;
+    // A program for the object, a turtle's or an event's ("drag", "down",
+    // "up", "change"), the object's own shown if it has one.
+    start: (kind: string, object: construction_object) => void;
+    // One of its programs, its first block deleted.
+    remove: (program: construction_object) => void;
     // A new expression, given a name or not.
     create: (name: string, source: string) => Promise<void>;
     // After each selection.
@@ -141,6 +150,12 @@ export function propertiesPanel(options: {
     // Programs as blocks rather than text, once chosen; until then, only
     // turtles.
     let preferBlocks: boolean | null = null;
+    // The program of the object shown, among its others, by name; the
+    // object whose blocks show without a program yet.
+    let expanded: string | null = null;
+    let adding: construction_object | null = null;
+    // The program whose text or blocks show.
+    let shownProgram: construction_object | null = null;
     const fields: DOMElement[] = [];
     const figureFields: DOMElement[] = [];
     // A turtle's program, super-hidden, while it shows.
@@ -186,7 +201,9 @@ export function propertiesPanel(options: {
         selected = objects;
         mark(true);
         fields.splice(0).forEach((field) => field.dispose());
+        releaseBlocks();
         content.inner("");
+        shownProgram = null;
         $("body").toggleClass("dge-properties-wide", wide);
         refreshPicker();
     }
@@ -220,10 +237,20 @@ export function propertiesPanel(options: {
     }
 
     // Kept while the figure tab shows, which an empty click doesn't leave.
+    // A program, a turtle's or an event's, shows with its object.
     function select(
         chosen: construction_object | construction_object[] | null,
     ): void {
-        const objects = [chosen ?? []].flat();
+        const objects = [
+            ...new Set(
+                [chosen ?? []].flat().map((object) => {
+                    const owner = programOwner(object);
+                    if (owner === object) return object;
+                    expanded = object.name;
+                    return owner;
+                }),
+            ),
+        ];
         if (shownGrid && !objects[0]) {
             selected = [];
             return;
@@ -233,8 +260,11 @@ export function propertiesPanel(options: {
         clear(
             objects,
             !objects[1] &&
-                object instanceof expression_object &&
-                !!(object.formula || object.program),
+                ((object instanceof expression_object &&
+                    !!(object.formula || object.program)) ||
+                    (!!object &&
+                        (adding === object ||
+                            ownPrograms(options.scene(), object).length > 0))),
         );
         if (!object) {
             content.add(
@@ -552,6 +582,8 @@ export function propertiesPanel(options: {
                     .text(message("several_objects", String(objects.length))),
             );
         else identity(object);
+        // Never drawn.
+        if (objects.every((object) => object instanceof event_object)) return;
 
         const appearance = section("appearance");
         const scope = $.create("input").att("type", "checkbox");
@@ -1076,7 +1108,72 @@ export function propertiesPanel(options: {
             object instanceof button_object
         )
             definition(object);
+        if (
+            object instanceof point_object ||
+            (object instanceof expression_object && !object.program)
+        )
+            programs(object);
     }
+
+    // Those it can still have: a turtle from a point, a program for each
+    // gesture on one that is dragged, for the change of an expression.
+    function starts(owner: construction_object): string[] {
+        const kinds =
+            owner instanceof point_object
+                ? ["turtle", ...(owner.moveable ? ["drag", "down", "up"] : [])]
+                : owner instanceof expression_object
+                  ? ["change"]
+                  : [];
+        const own = ownPrograms(options.scene(), owner).map(programHat);
+        return kinds.filter((kind) => !own.some((hat) => hat.kind === kind));
+    }
+
+    // A point's or an expression's programs, one of them shown, or blocks
+    // to start one.
+    function programs(owner: point_object | expression_object): void {
+        const c = options.scene();
+        const own = ownPrograms(c, owner);
+        const shown = own.find(({ name }) => name === expanded) ?? own[0];
+        if (shown) return definition(shown as Defined);
+        if (!starts(owner).length) return;
+        const box = section("programs");
+        if (adding !== owner) {
+            const open = $.create("button")
+                .att("type", "button")
+                .text(message("add_program"));
+            open.on(
+                "click",
+                () => {
+                    adding = owner;
+                    select(owner);
+                },
+                false,
+            );
+            fields.push(open);
+            return void box.add(open);
+        }
+        box.add(
+            blocksView({
+                programs: [],
+                key: "",
+                degrees: c.degrees,
+                figure: blocksFigure(c),
+                owner: owner.name,
+                starts: starts(owner),
+                apply: () => {},
+                open: () => {},
+                start: (kind) => options.start(kind, owner),
+                remove: () => {},
+                fallback: () => {},
+            }),
+        );
+    }
+
+    const blocksFigure = (c: construction) => ({
+        objects: () => figureObjects(c).map(({ name }) => name),
+        turtles: () => figureTurtles(c).map(([name]) => name),
+        globals: () => figureGlobals(c).map((object) => object.global!),
+    });
 
     // Its value, formula or program, on as many lines as it takes: Enter
     // keeps the indentation, Tab indents, ⌘-Enter or Ctrl-Enter applies and
@@ -1096,11 +1193,12 @@ export function propertiesPanel(options: {
         (content.find("textarea")!.dom() as HTMLTextAreaElement).focus();
     }
 
-    function definition(
-        object: expression_object | panel_object | button_object | null,
-        name?: () => string,
-    ): void {
-        const box = section("definition");
+    // An object's, or one of the programs of its object (see programs).
+    function definition(object: Defined | null, name?: () => string): void {
+        const owner = object && programOwner(object);
+        const box = section(
+            owner && owner !== object ? "programs" : "definition",
+        );
         const original = object ? definitionSource(object) : "";
         // HTML, its lines wrapped, isn't a program to lay out.
         const html = object instanceof panel_object;
@@ -1108,7 +1206,9 @@ export function propertiesPanel(options: {
         const program =
             !object ||
             object instanceof button_object ||
+            object instanceof event_object ||
             !!(object as expression_object).program;
+        if (program) shownProgram = object;
         const editor = $.create("textarea")
             .cls("dge-program")
             .att("dir", "ltr")
@@ -1146,7 +1246,10 @@ export function propertiesPanel(options: {
                 "click",
                 () => {
                     preferBlocks = blocks;
-                    show(blocks);
+                    // The text of the program last clicked in the blocks.
+                    if (!blocks && object && expanded !== object.name)
+                        select(selected);
+                    else show(blocks);
                 },
                 false,
             );
@@ -1224,19 +1327,43 @@ export function propertiesPanel(options: {
             error.text("");
             if (!blocks) return void slot.inner("");
             const c = options.scene();
-            const names = () => figureObjects(c).map(({ name }) => name);
             slot.add(
                 blocksView({
+                    programs: owner
+                        ? ownPrograms(c, owner).map((program) => ({
+                              ...programHat(program),
+                              source:
+                                  program === object
+                                      ? original
+                                      : definitionSource(program as Defined),
+                          }))
+                        : [
+                              {
+                                  key: "",
+                                  kind: "program",
+                                  object: "",
+                                  source: area.value,
+                              },
+                          ],
                     key: object?.name ?? "",
-                    source: object ? original : area.value,
                     degrees: c.degrees,
-                    figure: {
-                        objects: names,
-                        turtles: () => figureTurtles(c).map(([name]) => name),
-                        globals: () =>
-                            figureGlobals(c).map((object) => object.global!),
+                    figure: blocksFigure(c),
+                    owner: owner?.name ?? "",
+                    starts: owner ? starts(owner) : [],
+                    apply: (changes) => void applyAll(changes),
+                    // Not shown again: the user may be dragging it.
+                    open: (key) => {
+                        expanded = key;
+                        shownProgram = options.scene().getObj(key) ?? null;
+                        options.shown();
                     },
-                    apply: (source) => void submit(source),
+                    start: (kind) => owner && options.start(kind, owner),
+                    remove: (key) => {
+                        const removed = options.scene().getObj(key);
+                        if (removed && removed !== owner)
+                            options.remove(removed);
+                        select(selected);
+                    },
                     fallback: () => {
                         show(false);
                         error.text(message("blocks_unsupported"));
@@ -1247,7 +1374,9 @@ export function propertiesPanel(options: {
         if (program)
             show(
                 preferBlocks ??
-                    (isTurtle(original) || object instanceof button_object),
+                    (isTurtle(original) ||
+                        object instanceof button_object ||
+                        object instanceof event_object),
             );
         format.on(
             "click",
@@ -1258,6 +1387,22 @@ export function propertiesPanel(options: {
             },
             false,
         );
+
+        // The programs of the object the blocks changed, this one or others,
+        // found again in the figure each change rebuilds.
+        async function applyAll(changes: [string, string][]): Promise<void> {
+            for (const [key, source] of changes) {
+                const target = key ? options.scene().getObj(key) : object;
+                if (target === object) await submit(source);
+                else
+                    await options
+                        .define(target as Defined, source)
+                        .catch((failure) => {
+                            if (!(failure instanceof TextError)) throw failure;
+                            error.text(message("program_syntax"));
+                        });
+            }
+        }
 
         async function submit(text = area.value): Promise<void> {
             try {
@@ -1317,6 +1462,15 @@ export function propertiesPanel(options: {
         // Programs shown as blocks from now on.
         showBlocks: () => {
             preferBlocks = true;
+        },
+        // Its programs, blocks to start one if it has none.
+        programs: (owner: construction_object) => {
+            adding = owner;
+            select(owner);
+        },
+        // The program whose text or blocks show.
+        get program() {
+            return shownProgram;
         },
         // None while the figure tab shows.
         get selected() {

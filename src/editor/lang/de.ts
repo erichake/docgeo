@@ -212,6 +212,19 @@ const de: Texts = {
         button_program: "Programm",
         button_program_hint:
             "Öffnet das Programm, das sein Pfeil startet, als Blöcke",
+        point_programs_hint:
+            "Öffnet in Blöcken seine Programme, die laufen, wenn % gezogen, gedrückt oder losgelassen wird",
+        change_program_hint:
+            "Öffnet in Blöcken das Programm, das läuft, wenn sich der Wert von % ändert",
+        event_drag: "wenn % gezogen wird",
+        event_down: "wenn % gedrückt wird",
+        event_up: "wenn % losgelassen wird",
+        event_change: "wenn sich % ändert",
+        programs: "Programme",
+        add_program: "Programm hinzufügen",
+        enlarge_blocks: "Blöcke über der Figur vergrößern",
+        shrink_blocks: "Blöcke zurück ins Feld",
+        blocks_enlarged: "Die Blöcke sind über der Figur vergrößert.",
         button_caption: "Starten",
         format_program: "Formatieren",
         syntax_line: "Unverständliche Eingabe in Zeile %",

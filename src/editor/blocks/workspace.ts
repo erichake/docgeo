@@ -4,13 +4,17 @@ import type { Program } from "../../import/dgp_formula";
 import { BLOCK_MESSAGES, type BlockMessage } from "./messages";
 import {
     blocksProgram,
+    EVENT_HATS,
     FONT_ALIGNS,
     FONT_STYLES,
     programBlocks,
+    stackState,
     STYLE_METHODS,
     TURTLE_FONTS,
+    type BlockState,
     type WorkspaceState,
 } from "./program_blocks";
+import type { ProgramHat } from "./view";
 
 // The figure the blocks name objects of, in the editor's language.
 export interface BlocksFigure {
@@ -22,6 +26,12 @@ export interface BlocksFigure {
     turtles(): string[];
     // DGPad's Blockly globals, which the figure's programs share.
     globals(): string[];
+    // Asks a text to type (`value`), or a confirmation, null when
+    // cancelled.
+    dialog(
+        question: { text: string; value?: string; ok: string; cancel?: string },
+        done: (answer: string | null) => void,
+    ): void;
 }
 
 // Blockly's texts, by DocGeo's language.
@@ -65,6 +75,13 @@ function objectField(list: () => string[]): () => Blockly.MenuOption[] {
 
 const msg = (key: BlockMessage) => `%{BKY_DG_${key}}`;
 
+const EVENT_MESSAGES: Record<string, BlockMessage> = {
+    drag: "WHEN_DRAGGED",
+    down: "WHEN_PRESSED",
+    up: "WHEN_RELEASED",
+    change: "WHEN_CHANGED",
+};
+
 const statement = { previousStatement: null, nextStatement: null };
 
 const number = (name: string) => ({
@@ -96,6 +113,14 @@ function defineBlocks(): void {
             nextStatement: null,
             style: "start_blocks",
         },
+        // Of the object whose programs show, said in one label.
+        ...Object.values(EVENT_HATS).map((type) => ({
+            type,
+            message0: "%1",
+            args0: [{ type: "field_label_serializable", name: "TEXT" }],
+            nextStatement: null,
+            style: "start_blocks",
+        })),
         {
             type: "dg_return",
             message0: msg("RETURN"),
@@ -419,6 +444,57 @@ function registerObjectFields(): void {
     Blockly.Extensions.register("dg_global_name", field("NAME", globals));
 }
 
+// The first block of one of the programs shown together.
+function hatBlock({ kind, object }: ProgramHat): BlockState {
+    if (kind === "turtle")
+        return { type: "dg_turtle", fields: { POINT: object } };
+    if (kind === "program") return { type: "dg_program" };
+    return {
+        type: EVENT_HATS[kind],
+        fields: {
+            TEXT: Blockly.Msg[`DG_${EVENT_MESSAGES[kind]}`].replace(
+                "%1",
+                object,
+            ),
+        },
+    };
+}
+
+// The first block of the program `key` has this id, or, folded by the
+// user, this one.
+const ROOT = "dge:";
+const FOLDED = "dgf:";
+
+// The blocks of a stack but its first one.
+function blockCount(state: BlockState): number {
+    const inner = (block: BlockState | undefined): number =>
+        block
+            ? 1 +
+              Object.values(block.inputs ?? {}).reduce(
+                  (sum, input) => sum + inner(input.block),
+                  0,
+              ) +
+              inner(block.next?.block)
+            : 0;
+    return inner(state) - 1;
+}
+
+// A pill with the number of blocks a folded stack holds.
+function pill(count: number): [string, number] {
+    const text = String(count);
+    const width = 12 + 7 * text.length;
+    const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="18"><rect width="${width}" height="18" rx="9" fill="#fff"/><text x="${width / 2}" y="13" text-anchor="middle" font-family="system-ui,sans-serif" font-size="12" font-weight="700" fill="#996600">${text}</text></svg>`;
+    return [`data:image/svg+xml,${encodeURIComponent(svg)}`, width];
+}
+
+// What a first block dropped from the toolbox starts.
+const STARTS: Record<string, string> = {
+    dg_turtle: "turtle",
+    ...Object.fromEntries(
+        Object.entries(EVENT_HATS).map(([gesture, type]) => [type, gesture]),
+    ),
+};
+
 const shadow = (type: string, fields: Record<string, unknown>) => ({
     shadow: { type, fields },
 });
@@ -429,11 +505,32 @@ const block = (type: string, inputs?: Record<string, unknown>) => ({
     ...(inputs && { inputs }),
 });
 
-function toolbox(turtle: boolean) {
+// The blocks of the programs `kinds` (a turtle's, an event's, another's,
+// which returns a value), and the first blocks of the programs `starts` the
+// object `owner` can still have.
+function toolbox(kinds: string[], owner: string, starts: string[]) {
+    const turtle = kinds.includes("turtle");
     const text = (key: BlockMessage) => Blockly.Msg[`DG_${key}`];
     return {
         kind: "categoryToolbox",
         contents: [
+            ...(starts.length
+                ? [
+                      {
+                          kind: "category",
+                          name: text("CAT_EVENTS"),
+                          categorystyle: "event_category",
+                          contents: starts.map((start) => ({
+                              kind: "block",
+                              ...hatBlock({
+                                  key: "",
+                                  kind: start,
+                                  object: owner,
+                              }),
+                          })),
+                      },
+                  ]
+                : []),
             ...(turtle
                 ? [
                       {
@@ -517,6 +614,14 @@ function toolbox(turtle: boolean) {
                         DIVISOR: num(10),
                     }),
                     block("dg_degrees", { VALUE: num(90) }),
+                    block("math_on_list", {
+                        LIST: {
+                            block: {
+                                type: "lists_create_with",
+                                extraState: { itemCount: 2 },
+                            },
+                        },
+                    }),
                 ],
             },
             {
@@ -560,7 +665,9 @@ function toolbox(turtle: boolean) {
                         G: num(0),
                         B: num(255),
                     }),
-                    ...(turtle ? [] : [block("dg_return", { VALUE: num(0) })]),
+                    ...(kinds.includes("program")
+                        ? [block("dg_return", { VALUE: num(0) })]
+                        : []),
                 ],
             },
         ],
@@ -589,6 +696,7 @@ function theme(): Blockly.Theme {
             turtle_category: { colour: TURTLE[0] },
             figure_category: { colour: FIGURE[0] },
             global_category: { colour: GLOBAL[0] },
+            event_category: { colour: START[0] },
         },
         componentStyles: {
             workspaceBackgroundColour: "#ffffff",
@@ -609,22 +717,46 @@ function theme(): Blockly.Theme {
     });
 }
 
+// One of the programs shown, null for one without blocks.
+export interface ShownStack {
+    hat: ProgramHat;
+    program: Program | null;
+}
+
 export interface BlocksEditor {
-    // Shows the program's blocks: false when it has none.
-    load(program: Program, degrees: boolean): boolean;
-    // The program the blocks write.
-    readonly written: string;
+    // Shows the programs of `owner`, `starts` those it can still have, each
+    // with its blocks but those that have none, folded: false when the
+    // program `current` has none.
+    load(
+        programs: ShownStack[],
+        current: string,
+        degrees: boolean,
+        owner: string,
+        starts: string[],
+    ): boolean;
+    // The programs the blocks write, by key, null for those shown as text.
+    readonly written: ReadonlyMap<string, string | null>;
     // The field being typed in, its editor closed by the panel built again,
     // edited again as it was.
     resume(): void;
 }
 
-// The workspace, in `host`, `changed` told the program its blocks write
-// after each change, once the user is no longer dragging or typing.
+// What the workspace tells: the programs its blocks write after each change,
+// once the user is no longer dragging or typing; a program clicked; a
+// program to start, from a first block dropped from the toolbox; a program
+// taken out, its first block deleted.
+export interface BlocksActions {
+    changed(changes: [string, string][]): void;
+    open(key: string): void;
+    start(kind: string): void;
+    removed(key: string): void;
+}
+
+// The workspace, in `host`.
 export async function blocksEditor(
     host: HTMLElement,
     owner: BlocksFigure,
-    changed: (source: string) => void,
+    actions: BlocksActions,
 ): Promise<BlocksEditor> {
     figure = owner;
     const { lang, format } = owner;
@@ -642,13 +774,27 @@ export async function blocksEditor(
     });
     registerObjectFields();
     defineBlocks();
+    // In the editor's own dialogs.
+    const ok = () => Blockly.Msg.DIALOG_OK;
+    const cancel = () => Blockly.Msg.DIALOG_CANCEL;
+    Blockly.dialog.setPrompt((text, value, done) =>
+        owner.dialog({ text, value, ok: ok(), cancel: cancel() }, done),
+    );
+    Blockly.dialog.setConfirm((text, done) =>
+        owner.dialog({ text, ok: ok(), cancel: cancel() }, (answer) =>
+            done(answer !== null),
+        ),
+    );
+    Blockly.dialog.setAlert((text, done) =>
+        owner.dialog({ text, ok: ok() }, () => done?.()),
+    );
     // Procedures without a value only: DGPad's turtles have no other.
     delete Blockly.Blocks.procedures_defreturn;
     delete Blockly.Blocks.procedures_ifreturn;
     const workspace = Blockly.inject(host, {
         renderer: "zelos",
         theme: theme(),
-        toolbox: toolbox(true),
+        toolbox: toolbox(["turtle"], "", []),
         trashcan: false,
         sounds: false,
         media: "./",
@@ -684,27 +830,145 @@ export async function blocksEditor(
     );
     // Moved from panel to panel, or the panel resized.
     new ResizeObserver(() => Blockly.svgResize(workspace)).observe(host);
-    let written = "";
+    let written = new Map<string, string | null>();
+    let current = "";
+    // The stacks the user folded, by key, and their blocks meanwhile.
+    const folds = new Map<string, BlockState>();
+    // A folded stack: its first block alone, which takes no block under
+    // it, the number of blocks it holds in a pill unfolding it.
+    const fold = (
+        key: string,
+        state: BlockState,
+        at: Blockly.utils.Coordinate,
+    ) => {
+        folds.set(key, state);
+        const { type, fields, data } = state;
+        const block = Blockly.serialization.blocks.append(
+            { type, fields, data, id: FOLDED + key, x: at.x, y: at.y },
+            workspace,
+        ) as Blockly.BlockSvg;
+        const [src, width] = pill(blockCount(state));
+        block.setNextStatement(false);
+        block.setInputsInline(true);
+        block
+            .appendDummyInput()
+            .appendField(
+                new Blockly.FieldImage(
+                    src,
+                    width,
+                    18,
+                    Blockly.Msg.DG_FOLDED_BLOCKS.replace(
+                        "%1",
+                        String(blockCount(state)),
+                    ),
+                    () => toggle(block),
+                ),
+            );
+        return block;
+    };
+    // Folds or unfolds the stack of its first block, which the program
+    // ignores: it keeps its text meanwhile.
+    const toggle = (block: Blockly.BlockSvg) => {
+        const at = block.getRelativeToSurfaceXY();
+        const folded = block.id.startsWith(FOLDED);
+        const key = block.id.slice(folded ? FOLDED.length : ROOT.length);
+        Blockly.Events.disable();
+        const state = folded
+            ? folds.get(key)!
+            : (Blockly.serialization.blocks.save(block) as BlockState);
+        block.dispose(false);
+        if (folded) {
+            folds.delete(key);
+            Blockly.serialization.blocks.append(
+                { ...state, x: at.x, y: at.y },
+                workspace,
+            );
+        } else fold(key, state, at);
+        Blockly.Events.enable();
+    };
+    // In the context menu of a first block, in place of Blockly's folding of
+    // a block alone.
+    const first = (block: Blockly.BlockSvg | undefined) =>
+        !!block && (block.id.startsWith(ROOT) || block.id.startsWith(FOLDED));
+    const collapse = Blockly.ContextMenuRegistry.registry.getItem(
+        "blockCollapseExpand",
+    );
+    if (collapse && "preconditionFn" in collapse) {
+        const precondition = collapse.preconditionFn!;
+        collapse.preconditionFn = (scope, event) =>
+            first(scope.block as Blockly.BlockSvg)
+                ? "hidden"
+                : precondition(scope, event);
+    }
+    Blockly.ContextMenuRegistry.registry.register({
+        id: "dg_fold_stack",
+        scopeType: Blockly.ContextMenuRegistry.ScopeType.BLOCK,
+        weight: 4,
+        displayText: (scope) =>
+            scope.block!.id.startsWith(FOLDED)
+                ? Blockly.Msg.DG_UNFOLD_STACK
+                : Blockly.Msg.DG_FOLD_STACK,
+        preconditionFn: (scope) => {
+            const block = scope.block as Blockly.BlockSvg | undefined;
+            return first(block) && !block!.isCollapsed() ? "enabled" : "hidden";
+        },
+        callback: (scope) => toggle(scope.block as Blockly.BlockSvg),
+    });
+    // The programs the blocks write, by key, null for one that shows as
+    // text. An object's block left alone (DGPad's "Z;") belongs to the
+    // program being edited.
+    const stacks = (): Map<string, string | null> => {
+        const state = Blockly.serialization.workspaces.save(
+            workspace,
+        ) as WorkspaceState;
+        const tops = state.blocks?.blocks ?? [];
+        const alone = tops.filter((block) => block.type === "dg_object");
+        return new Map(
+            tops.flatMap((root) => {
+                if (root.id?.startsWith(FOLDED))
+                    return [[root.id.slice(FOLDED.length), null]];
+                if (!root.id?.startsWith(ROOT)) return [];
+                const key = root.id.slice(ROOT.length);
+                if (root.collapsed) return [[key, null]];
+                const stack = stackState(state, root);
+                if (key === current) stack.blocks!.blocks.push(...alone);
+                return [[key, blocksProgram(stack, format)]];
+            }),
+        );
+    };
     let timer = 0;
     // Plugging a block in, choosing in a dropdown or typing a number all
-    // end in a change of the program the blocks write: a number or a text as
-    // it is typed, as in DGPad.
+    // end in a change of the programs the blocks write: a number or a text
+    // as it is typed, as in DGPad.
     const settle = () => {
         clearTimeout(timer);
         timer = window.setTimeout(() => {
             if (workspace.isDragging() || Blockly.DropDownDiv.isVisible())
                 return settle();
-            const program = blocksProgram(
-                Blockly.serialization.workspaces.save(
-                    workspace,
-                ) as WorkspaceState,
-                format,
-            );
-            if (program === null || program === written) return;
-            written = program;
+            const dropped = workspace
+                .getTopBlocks(false)
+                .find((block) => block.type in STARTS && !first(block));
+            if (dropped) {
+                dropped.dispose();
+                return actions.start(STARTS[dropped.type]);
+            }
+            const now = stacks();
+            const gone = [...written.keys()].find((key) => !now.has(key));
+            if (gone !== undefined) {
+                written.delete(gone);
+                folds.delete(gone);
+                return actions.removed(gone);
+            }
+            const changes: [string, string][] = [];
+            now.forEach((program, key) => {
+                if (program === null || program === written.get(key)) return;
+                written.set(key, program);
+                changes.push([key, program]);
+            });
+            if (!changes.length) return;
             const input = Blockly.WidgetDiv.getDiv()?.querySelector("input");
             typing = input && edited ? { field: edited, input } : null;
-            changed(program);
+            actions.changed(changes);
         }, 250);
     };
     // The field being typed in when its program was applied: the panel, built
@@ -712,6 +976,18 @@ export async function blocksEditor(
     let edited: Blockly.Field | null = null;
     let typing: { field: Blockly.Field; input: HTMLInputElement } | null = null;
     workspace.addChangeListener((event) => {
+        // The program of the block clicked becomes the one edited.
+        if (event.type === Blockly.Events.SELECTED) {
+            const id = workspace
+                .getBlockById(
+                    (event as Blockly.Events.Selected).newElementId ?? "",
+                )
+                ?.getRootBlock().id;
+            if (id?.startsWith(ROOT) && id.slice(ROOT.length) !== current) {
+                current = id.slice(ROOT.length);
+                actions.open(current);
+            }
+        }
         if (event.type === Blockly.Events.BLOCK_FIELD_INTERMEDIATE_CHANGE) {
             const { blockId, name } =
                 event as Blockly.Events.BlockFieldIntermediateChange;
@@ -720,19 +996,88 @@ export async function blocksEditor(
         if (!event.isUiEvent) settle();
     });
     return {
-        load(program, degrees) {
-            const state = programBlocks(program, degrees);
-            if (!state) return false;
+        load(programs, key, degrees, owner, starts) {
+            const blocks: BlockState[] = [];
+            const variables = new Map<string, { name: string; id: string }>();
+            const shown = programs.map(({ hat, program }) => {
+                const state = program && programBlocks(program, degrees);
+                const [root, ...rest] = state?.blocks!.blocks ?? [
+                    { ...hatBlock(hat), collapsed: true },
+                ];
+                // An event's first block says when it runs.
+                const first: BlockState = {
+                    ...root,
+                    ...(root.type === "dg_program" && hat.kind !== "program"
+                        ? hatBlock(hat)
+                        : {}),
+                    id: ROOT + hat.key,
+                };
+                // Its procedures, but those of the same name another
+                // program has already.
+                rest.forEach((block) => {
+                    if (
+                        !blocks.some(
+                            (other) =>
+                                other.type === block.type &&
+                                other.fields?.NAME === block.fields?.NAME,
+                        )
+                    )
+                        blocks.push(block);
+                });
+                state?.variables?.forEach((variable) =>
+                    variables.set(variable.id, variable),
+                );
+                return { hat, first, state };
+            });
+            if (
+                !shown.find(({ hat }) => hat.key === key)?.state &&
+                programs.length
+            )
+                return false;
+            // In the figure's order, procedures under them.
+            const state: WorkspaceState = {
+                blocks: {
+                    languageVersion: 0,
+                    blocks: [...shown.map(({ first }) => first), ...blocks].map(
+                        (block, i) => ({ ...block, x: 16, y: 16 + i }),
+                    ),
+                },
+                variables: [...variables.values()],
+            };
             Blockly.Events.disable();
             Blockly.serialization.workspaces.load(state, workspace);
-            // Its procedures under it.
+            // Those the user folded stay so, with their blocks of now.
+            shown.forEach(({ hat, first, state }) => {
+                const block = workspace.getBlockById(first.id!);
+                if (!state || !folds.has(hat.key) || !block) return;
+                const at = block.getRelativeToSurfaceXY();
+                block.dispose(false);
+                fold(hat.key, first, at);
+            });
             if (state.blocks!.blocks.length > 1) workspace.cleanUp();
+            // Those without blocks, which show as text.
+            workspace.getTopBlocks(false).forEach((block) => {
+                if (!block.isCollapsed()) return;
+                block.setMovable(false);
+                block.setDeletable(false);
+                block.setEditable(false);
+                block.contextMenu = false;
+            });
             Blockly.Events.enable();
-            const turtle = state.blocks!.blocks[0].type === "dg_turtle";
-            workspace.updateToolbox(toolbox(turtle));
+            current = key;
+            written = stacks();
+            workspace.updateToolbox(
+                toolbox(
+                    programs.map(({ hat }) => hat.kind),
+                    owner,
+                    starts,
+                ),
+            );
+            // Its first blocks offered, without a program yet.
+            if (!programs.length)
+                workspace.getToolbox()?.selectItemByPosition(0);
             // Its first block clear of the edge, its top rounded as a hat.
             workspace.scroll(workspace.scrollX + 12, workspace.scrollY + 16);
-            written = blocksProgram(state, format)!;
             return true;
         },
         get written() {

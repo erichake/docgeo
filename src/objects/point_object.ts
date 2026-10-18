@@ -397,10 +397,14 @@ export class point_object extends construction_object {
             .shape("g")
             .att("transform", `translate(${t.sx} ${t.sy})`)
             .stl("pointer-events", "none")
-            .drag((event) => {
-                t.mousedrag(event);
-                t.C.dragged.add(t);
-            });
+            .drag(
+                (event) => {
+                    t.mousedrag(event);
+                    t.C.gesture(t, "drag");
+                },
+                () => t.C.gesture(t, "down"),
+                () => t.C.gesture(t, "up"),
+            );
 
         if (t.trace) {
             t.tracePath = t.svg

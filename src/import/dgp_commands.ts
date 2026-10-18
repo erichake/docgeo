@@ -1,4 +1,4 @@
-import type { construction } from "../construction";
+import type { construction, Gesture } from "../construction";
 import { createAngleBisector } from "../objects/angle_bisector_object";
 import {
     angle_object,
@@ -446,6 +446,13 @@ function validateReferences(
             throw new UnknownReference(name, lineNumber);
     }
 }
+
+// DGPad's programs of a point's gestures.
+const GESTURES: Record<string, Gesture> = {
+    ondrag: "drag",
+    onmousedown: "down",
+    onmouseup: "up",
+};
 
 function formulaRefs(
     names: Iterable<string>,
@@ -3230,8 +3237,9 @@ const COMMANDS = new Map<string, CommandDefinition>([
             // "oncompute" program is also its formula, run as any script,
             // and a point's turtle ("onlogo") is compiled into the
             // Expression its List draws. An Expression's "onchange" runs
-            // when its value changes, a point's "ondrag" when it is dragged
-            // (see event_object.ts). The other programs never run.
+            // when its value changes, a point's "ondrag", "onmousedown" and
+            // "onmouseup" at these gestures (see event_object.ts). The other
+            // programs never run.
             parameters: [object, string],
             validate: (args, lineNumber, variables) => {
                 const modes = JSON.parse(literalString(args[1]));
@@ -3240,57 +3248,64 @@ const COMMANDS = new Map<string, CommandDefinition>([
                     owner.type === "reference"
                         ? variables.get(owner.name)
                         : undefined;
+                const point = kind === "point" || kind === "pointOn";
+                const events = Object.keys(modes).filter(
+                    (mode) =>
+                        mode === "onchange" ||
+                        Object.prototype.hasOwnProperty.call(GESTURES, mode),
+                );
                 if (
                     Object.keys(modes).some(
                         (mode) =>
                             mode !== "oncompute" &&
                             mode !== "onlogo" &&
-                            mode !== "onchange" &&
-                            mode !== "ondrag" &&
-                            mode !== "current",
+                            mode !== "current" &&
+                            !events.includes(mode),
                     ) ||
-                    (modes.onchange && kind !== "expression") ||
-                    (modes.ondrag && kind !== "point" && kind !== "pointOn")
+                    events.some((mode) =>
+                        mode === "onchange" ? kind !== "expression" : !point,
+                    )
                 )
                     throw new Error(
                         `Unsupported Blockly program at line ${lineNumber}`,
                     );
-                const event = modes.onchange ?? modes.ondrag;
-                if (!event) return;
-                const program = tryParseProgram(String(event.sync));
-                if (!program)
-                    throw new Error(
-                        `Unsupported Blockly program at line ${lineNumber}`,
-                    );
-                validateProgramReferences(program, variables, lineNumber);
+                events.forEach((mode) => {
+                    const program = tryParseProgram(String(modes[mode].sync));
+                    if (!program)
+                        throw new Error(
+                            `Unsupported Blockly program at line ${lineNumber}`,
+                        );
+                    validateProgramReferences(program, variables, lineNumber);
+                });
             },
             execute: (context, args) => {
                 const modes = JSON.parse(args[1] as string);
-                const mode = modes.onchange ? "onchange" : "ondrag";
-                const sync = modes[mode]?.sync;
-                if (typeof sync !== "string") return;
                 const owner = args[0] as expression_object | point_object;
-                const program = parseProgram(sync);
-                createEvent(
-                    context.construction,
-                    `${owner.name}.${mode}`,
-                    owner,
-                    {
-                        program,
-                        refs: formulaRefs(
-                            programReferences(program),
-                            context.variables,
-                        ),
-                        targets: new Map(
-                            [...programTargets(program)].map((name) => [
-                                name,
-                                context.variables.get(name)!,
-                            ]),
-                        ),
-                        vec3: context.is3D,
-                    },
-                    mode === "ondrag",
-                );
+                ["onchange", ...Object.keys(GESTURES)].forEach((mode) => {
+                    const sync = modes[mode]?.sync;
+                    if (typeof sync !== "string") return;
+                    const program = parseProgram(sync);
+                    createEvent(
+                        context.construction,
+                        `${owner.name}.${mode}`,
+                        owner,
+                        {
+                            program,
+                            refs: formulaRefs(
+                                programReferences(program),
+                                context.variables,
+                            ),
+                            targets: new Map(
+                                [...programTargets(program)].map((name) => [
+                                    name,
+                                    context.variables.get(name)!,
+                                ]),
+                            ),
+                            vec3: context.is3D,
+                        },
+                        GESTURES[mode] ?? null,
+                    );
+                });
             },
         },
     ],

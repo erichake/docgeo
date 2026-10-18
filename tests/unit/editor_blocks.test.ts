@@ -9,6 +9,7 @@ import {
 import {
     blocksProgram as programOf,
     programBlocks as blocksOf,
+    stackState,
     type WorkspaceState,
 } from "../../src/editor/blocks/program_blocks";
 import { formatName } from "../../src/editor/text";
@@ -63,6 +64,12 @@ const FIGURES = import.meta.glob<string>(
     ],
     { query: "?raw", import: "default", eager: true },
 );
+
+const EVENTS = import.meta.glob<string>("../dgp/Yves_10_Blockly/*.dgp", {
+    query: "?raw",
+    import: "default",
+    eager: true,
+});
 
 // DGPad's turtles in a figure, their programs compiled by its Blockly.
 function turtles(path: string): string[] {
@@ -201,6 +208,53 @@ Z;
 Carré(3);
 TURTLE_MV(GLOBAL_GET("côté"), false);
 return TURTLE_RESULT();`);
+    });
+
+    it("reads DGPad's ondrag programs, with their lists' minimum and maximum", () => {
+        const programs = Object.values(EVENTS).flatMap((text) =>
+            [...text.matchAll(/^BLK\(\w+,(.*)\);$/gm)].map(
+                (match) => JSON.parse(match[1]).ondrag.sync as string,
+            ),
+        );
+        expect(programs).toHaveLength(10);
+        // Read with blocks but those taking the item of an object.
+        expect(
+            programs.filter((program) => programBlocks(program, true)),
+        ).toHaveLength(7);
+        expect(
+            roundTrip(
+                programs.find((program) => program.includes("Math.min"))!,
+            ),
+        ).toBe(`temp_var = [0, min(y(M), y(MinAD))];
+MinAD.setExpression(temp_var);
+temp_var2 = [0, max(y(M), y(MaxAD))];
+MaxAD.setExpression(temp_var2);`);
+        expect(roundTrip("return (a + b) / 2 + min(a, b, c);")).toBe(
+            "return (a + b) / 2 + min(a, b, c);",
+        );
+    });
+
+    it("writes each program a workspace shows, with the procedures it calls", () => {
+        const turtle = programBlocks(
+            'TURTLE_INIT("A", A);\nfunction f() {\n    TURTLE_MV(1, true);\n}\nf();\nreturn TURTLE_RESULT();',
+            true,
+        )!;
+        const event = programBlocks("a.setExpression(a + 1);", true)!;
+        const [root, procedure] = turtle.blocks!.blocks;
+        const hat = {
+            ...event.blocks!.blocks[0],
+            type: "dg_when_dragged",
+            fields: { TEXT: "when A is dragged" },
+        };
+        const state: WorkspaceState = {
+            blocks: { languageVersion: 0, blocks: [root, hat, procedure] },
+        };
+        expect(blocksProgram(stackState(state, hat))).toBe(
+            "a.setExpression(a + 1);",
+        );
+        expect(blocksProgram(stackState(state, root))).toBe(
+            'TURTLE_INIT("A", A);\nfunction f() {\n    TURTLE_MV(1, true);\n}\nf();\nreturn TURTLE_RESULT();',
+        );
     });
 
     it("ignores the blocks left apart", () => {

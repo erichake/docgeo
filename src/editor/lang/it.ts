@@ -209,6 +209,19 @@ const it: Texts = {
         button_program: "Programma",
         button_program_hint:
             "Apre a blocchi il programma che la sua freccia esegue",
+        point_programs_hint:
+            "Apre a blocchi i suoi programmi, eseguiti quando % viene trascinato, premuto o rilasciato",
+        change_program_hint:
+            "Apre a blocchi il programma eseguito quando il valore di % cambia",
+        event_drag: "quando % viene trascinato",
+        event_down: "quando % viene premuto",
+        event_up: "quando % viene rilasciato",
+        event_change: "quando % cambia",
+        programs: "Programmi",
+        add_program: "Aggiungi un programma",
+        enlarge_blocks: "Ingrandisci i blocchi sulla figura",
+        shrink_blocks: "Riporta i blocchi nel pannello",
+        blocks_enlarged: "I blocchi sono ingranditi sulla figura.",
         button_caption: "Esegui",
         format_program: "Formatta",
         syntax_line: "Scrittura non compresa alla riga %",

@@ -1,36 +1,170 @@
-import { $ } from "../../dom";
+import { $, type DOMElement } from "../../dom";
 import { LANG } from "../../i18n";
 import { parseProgram, type Program } from "../../import/dgp_formula";
+import { message } from "../messages";
 import { formatName } from "../text";
 import type { BlocksEditor, BlocksFigure } from "./workspace";
 
-// A program's blocks in the properties panel. Blockly, heavy, is loaded the
-// first time, and its workspace kept: the panel, built again after each
-// change, finds it as it was.
+// An object's programs as blocks in the properties panel, each under its
+// first block. Blockly, heavy, is loaded the first time, and its workspace
+// kept: the panel, built again after each change, finds it as it was.
+
+// One of the programs of an object, by its first block.
+export interface ProgramHat {
+    key: string;
+    // "turtle", "program", or the gesture an event's answers ("change" for
+    // an expression's value).
+    kind: string;
+    // The point a turtle starts from, the object an event answers.
+    object: string;
+}
 
 export interface BlocksView {
-    // The program's name, "" for one to be created.
+    // The programs of the object, by their first block and their text: a
+    // key "" for one to be created.
+    programs: (ProgramHat & { source: string })[];
+    // The one being edited, among them.
     key: string;
-    source: string;
     degrees: boolean;
     figure: Pick<BlocksFigure, "objects" | "turtles" | "globals">;
-    // The program the blocks now write.
-    apply: (source: string) => void;
-    // The program has some part without a block.
+    // The object, and the programs it can still have ("turtle", or a
+    // gesture).
+    owner: string;
+    starts: string[];
+    // The programs the blocks now write, by key.
+    apply: (changes: [string, string][]) => void;
+    // Another of the programs edited.
+    open: (key: string) => void;
+    // A program of the object to start from its first block.
+    start: (kind: string) => void;
+    // A program taken out, its first block deleted.
+    remove: (key: string) => void;
+    // The program edited has some part without a block.
     fallback: () => void;
 }
 
 const host = $.create("div").cls("dge-blocks");
+// The button enlarging the blocks over the figure, or putting them back.
+const resize = $.create("button").cls("dge-blocks-size").att("type", "button");
+const frame = $.create("div").cls("dge-blocks-frame").add(host, resize);
+// In the panel while the blocks are enlarged.
+let stand: DOMElement | null = null;
+// The panel, built again, shows them still.
+let claimed = false;
+const ENLARGE =
+    '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 4h6v6M10 20H4v-6M20 4l-7 7M4 20l7-7"/></svg>';
+const SHRINK =
+    '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 10h-6V4M4 14h6v6M14 10l7-7M10 14l-7 7"/></svg>';
+resize.on("click", () => enlarge(!stand), false);
+enlarge(false);
+
+function enlarge(on: boolean): void {
+    if (on && !stand) {
+        stand = $.create("p")
+            .cls("dge-property-help")
+            .text(message("blocks_enlarged"));
+        frame.dom().replaceWith(stand.dom());
+        $("body").add(frame);
+    } else if (!on && stand) {
+        if (stand.dom().isConnected) stand.dom().replaceWith(frame.dom());
+        else frame.remove();
+        stand = null;
+    }
+    const key = on ? "shrink_blocks" : "enlarge_blocks";
+    frame.toggleClass("dge-blocks-large", on);
+    resize
+        .att("title", message(key))
+        .att("aria-label", message(key))
+        .inner(on ? SHRINK : ENLARGE);
+}
+
+// Before the panel is built again: the blocks go back to it unless it
+// shows them.
+export function releaseBlocks(): void {
+    claimed = false;
+    queueMicrotask(() => {
+        if (!claimed) enlarge(false);
+    });
+}
+
+export const shrinkBlocks = () => enlarge(false);
+
+// A question Blockly asks: a text to type (`value`), or a confirmation.
+// Null when cancelled.
+function dialog(
+    {
+        text,
+        value,
+        ok,
+        cancel,
+    }: { text: string; value?: string; ok: string; cancel?: string },
+    done: (answer: string | null) => void,
+): void {
+    const back = $.create("div").cls("dge-dialog-back");
+    const form = $.create("form")
+        .cls("dge-dialog")
+        .att("role", "dialog")
+        .att("aria-modal", "true")
+        .add($.create("p").text(text));
+    const input =
+        value === undefined
+            ? null
+            : $.create("input").att("type", "text").att("spellcheck", "false");
+    if (input) {
+        (input.dom() as HTMLInputElement).value = value!;
+        form.add(input);
+    }
+    const close = (answer: string | null) => {
+        back.dispose();
+        done(answer);
+    };
+    const actions = $.create("div").cls("dge-dialog-actions");
+    if (cancel !== undefined) {
+        const no = $.create("button").att("type", "button").text(cancel);
+        no.on("click", () => close(null));
+        actions.add(no);
+    }
+    const yes = $.create("button")
+        .cls("dge-primary")
+        .att("type", "submit")
+        .text(ok);
+    form.add(actions.add(yes));
+    form.on("submit", () =>
+        close(input ? (input.dom() as HTMLInputElement).value : ""),
+    );
+    form.on(
+        "keydown",
+        (event) => {
+            if (event.key !== "Escape") return;
+            event.stopPropagation();
+            close(cancel === undefined ? "" : null);
+        },
+        false,
+    );
+    back.on(
+        "pointerdown",
+        (event) => {
+            if (event.target === back.dom()) close(null);
+        },
+        false,
+    );
+    $("body").add(back.add(form));
+    const focused = (input ?? yes).dom() as HTMLInputElement;
+    focused.focus();
+    if (input) focused.select();
+}
+
 let editor: Promise<BlocksEditor> | null = null;
 let current: BlocksView;
-// The program whose blocks show.
-let shown: string | null = null;
+// The programs whose blocks show, and those they can still have.
+let shown = "";
 
 const same = (a: string, b: string) =>
     a.replace(/\s+/g, "") === b.replace(/\s+/g, "");
 
 export function blocksView(view: BlocksView) {
     current = view;
+    claimed = true;
     editor ??= import("./workspace").then(({ blocksEditor }) =>
         blocksEditor(
             host.dom() as HTMLElement,
@@ -40,25 +174,51 @@ export function blocksView(view: BlocksView) {
                 objects: () => current.figure.objects(),
                 turtles: () => current.figure.turtles(),
                 globals: () => current.figure.globals(),
+                dialog,
             },
-            (source) => current.apply(source),
+            {
+                changed: (changes) => current.apply(changes),
+                open: (key) => current.open(key),
+                start: (kind) => current.start(kind),
+                removed: (key) => current.remove(key),
+            },
         ),
     );
     void editor.then((blocks) => {
         if (current !== view) return;
-        // Its own change, applied, or the program just created by it.
+        const programs = JSON.stringify([
+            view.programs.map(({ key, kind, object }) => [key, kind, object]),
+            view.starts,
+            view.owner,
+        ]);
+        // Their own change, applied, or the program just created by them:
+        // the blocks stay as they are, whichever is edited.
+        const created = blocks.written.has("");
         const kept =
-            (shown === view.key || shown === "") &&
-            same(blocks.written, view.source);
-        shown = view.key;
+            (shown === programs || created) &&
+            view.programs.every(({ key, source }) => {
+                const written = blocks.written.get(created ? "" : key);
+                return written === null || same(written ?? "", source);
+            });
+        shown = programs;
         if (kept) return blocks.resume();
-        const program = parsed(view.source);
-        if (!program || !blocks.load(program, view.degrees)) {
-            shown = null;
+        if (
+            !blocks.load(
+                view.programs.map((hat) => ({
+                    hat,
+                    program: parsed(hat.source),
+                })),
+                view.key,
+                view.degrees,
+                view.owner,
+                view.starts,
+            )
+        ) {
+            shown = "";
             view.fallback();
         }
     });
-    return host;
+    return stand ?? frame;
 }
 
 // Null for a text the grammar doesn't read, shown as text with its error.

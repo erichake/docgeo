@@ -511,10 +511,13 @@ alignement]]` police, `[30, url, l, h, zoom, opacité, u]` image (largeur
     l'expression `on` change (curseur, animation, `SET_EXP`), le script
     s'exécute comme celui d'un bouton (13), une fois les objets qu'il lit et
     change calculés ; jamais à l'ouverture de la figure. Jamais dessiné.
-    Avec `"e": "drag"`, programme « ondrag » de DGPad : `on` est un point,
-    et le script s'exécute une fois par pas de son glisser ou de son
-    animation, pas quand un parent ou un autre programme le déplace. Le
-    script fixe aussi la place des points libres (`SET_EXP`).
+    Avec `"e"`, programme d'un geste sur le point `on` (« quand A est
+    glissé, appuyé, lâché » de l'éditeur) : `"drag"` (« ondrag » de DGPad),
+    une fois par pas de son glisser ou de son animation, pas quand un parent
+    ou un autre programme le déplace ; `"down"` et `"up"` (« onmousedown »,
+    « onmouseup »), quand on l'appuie et le relâche. Plusieurs programmes
+    d'un même geste s'exécutent chacun, dans l'ordre de la figure. Le script
+    fixe aussi la place des points libres (`SET_EXP`).
 
 ### Styles `st`
 

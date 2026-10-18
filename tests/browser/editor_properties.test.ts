@@ -58,6 +58,8 @@ function setup() {
         shown: () => {},
         mark: () => {},
         figure: (patch) => patches.push(patch),
+        start: () => {},
+        remove: () => {},
         close: () => {},
     });
     $("body").add(properties.panel);
@@ -452,6 +454,8 @@ describe("Object properties", () => {
                 );
             },
             figure: () => {},
+            start: () => {},
+            remove: () => {},
             close: () => {},
         });
         $("body").add(properties.panel);

@@ -1896,18 +1896,15 @@ const BUILDERS: Record<string, Builder> = {
         );
     },
     Evt: (parameters, reader) => {
-        check(
-            isRecord(parameters) &&
-                parameters.s !== undefined &&
-                (parameters.e === undefined || parameters.e === "drag"),
-        );
-        const drag = parameters.e === "drag";
+        check(isRecord(parameters) && parameters.s !== undefined);
+        const { e } = parameters;
+        check(e === undefined || e === "drag" || e === "down" || e === "up");
         return createEvent(
             reader.c,
             reader.name,
-            reader.at(parameters.on, drag ? point_object : expression_object),
+            reader.at(parameters.on, e ? point_object : expression_object),
             scriptProgram(reader, parameters.s),
-            drag,
+            e ?? null,
         );
     },
     Html: (parameters, { c, name, formula, offset, vec3 }) => {

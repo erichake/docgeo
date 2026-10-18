@@ -109,7 +109,7 @@ export class animations {
         this.time = time;
         this.objects.forEach((object) => {
             object.animate(seconds);
-            this.c.dragged.add(object);
+            this.c.gesture(object, "drag");
         });
         this.c.flush();
         this.frame = requestAnimationFrame(this.tick);

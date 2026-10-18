@@ -209,6 +209,19 @@ const es: Texts = {
         button_program: "Programa",
         button_program_hint:
             "Abre en bloques el programa que ejecuta su flecha",
+        point_programs_hint:
+            "Abre en bloques sus programas, que se ejecutan al arrastrar, presionar o soltar %",
+        change_program_hint:
+            "Abre en bloques el programa que se ejecuta cuando cambia el valor de %",
+        event_drag: "al arrastrar %",
+        event_down: "al presionar %",
+        event_up: "al soltar %",
+        event_change: "cuando % cambia",
+        programs: "Programas",
+        add_program: "Añadir un programa",
+        enlarge_blocks: "Ampliar los bloques sobre la figura",
+        shrink_blocks: "Devolver los bloques al panel",
+        blocks_enlarged: "Los bloques están ampliados sobre la figura.",
         button_caption: "Ejecutar",
         format_program: "Dar formato",
         syntax_line: "No se entiende la línea %",

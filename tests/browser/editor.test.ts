@@ -5,6 +5,7 @@ import type { construction } from "../../src/construction";
 import { describeDgo, figureObjects, readDgo } from "../../src/dgo";
 import {
     add,
+    addEvent,
     addFloor,
     addPointOn,
     cubeOn,
@@ -17,6 +18,9 @@ import {
     redefine,
     FREE_POINT,
     nextName,
+    ownPrograms,
+    programHat,
+    programOwner,
     resolve,
     resolveWithSliders,
     turtleStart,
@@ -1335,6 +1339,45 @@ describe("Editor", () => {
             "Btn",
             { t: "Go", xy: [420, 300] },
         ]);
+    });
+
+    it("makes and redefines the programs of a point's gestures, shown with it", async () => {
+        const { scene } = studio();
+        ["A = (0, 0)", "n = 0"].forEach((line) => type(scene, line));
+        const event = addEvent(scene, scene.getObj("A") as point_object, "up");
+        expect(event.hidden).toBe(2);
+        expect(programOwner(event)).toBe(scene.getObj("A"));
+        expect(entryOf(event, figureIndex(scene))).toEqual([
+            "Evt",
+            { on: 0, e: "up", s: "" },
+        ]);
+        const studied: Studio = { prefs: scene.prefs, scene };
+        await redefine(
+            studied,
+            event,
+            resolve(
+                scene,
+                {
+                    name: event.name,
+                    definition: {
+                        kind: "formula",
+                        source: "n.setExpression(n + 1);",
+                    },
+                },
+                event,
+            ),
+        );
+        const c = studied.scene;
+        expect(entryOf(c.getObj(event.name)!, figureIndex(c))).toEqual([
+            "Evt",
+            { on: 0, e: "up", s: ["n.setExpression(n + 1);", { n: 1 }] },
+        ]);
+        expect(ownPrograms(c, c.getObj("A")!).map(programHat)).toEqual([
+            { key: event.name, kind: "up", object: "A" },
+        ]);
+        c.gesture(c.getObj("A")!, "up");
+        c.flush();
+        expect((c.getObj("n") as expression_object).value).toBe(1);
     });
 
     it("signs the formulas' functions, a real number reading expressions", () => {

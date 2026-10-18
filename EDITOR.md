@@ -1102,6 +1102,56 @@ ses méthodes internes et figé dans sa version de 2016.
   au centre de la vue et ouvre son programme en blocs, comme l'outil
   « Bouton » du menu, qui le pose là où l'on touche. Libellé par défaut
   de l'outil : « Lancer » (`button_caption`).
+- **Événements** (proposé par l'auteur le 2026-10-18, à l'essai, comme
+  Scratch, à la place des onglets « Appuyé », « Déplacé », « Relâché » de
+  DGPad). Les programmes d'un objet sont ses propriétés : le panneau montre
+  toujours l'objet (A), jamais l'un de ses programmes. Écartés après essai
+  par l'auteur : chaque programme sélectionné comme un objet, avec un bloc
+  de départ qui pouvait viser un autre objet (déroutant) ; puis un
+  accordéon qui repliait les autres programmes (l'utilisateur croit avoir
+  perdu les blocs qui disparaissent : engagement direct).
+    - Section « Programmes » d'un point ou d'une expression (sans programme
+      propre) : un espace de travail avec tous ses programmes (tortue,
+      gestes, changement de valeur), toujours tous visibles et modifiables,
+      chacun sous son bloc de départ (`id` `dge:` + son nom), rangés dans
+      l'ordre de la figure, leurs procédures dessous. Chaque pile écrit son
+      programme avec les procédures qu'elle appelle (`stackState`). Un clic
+      dans une pile en fait le programme courant, sans reconstruire le
+      panneau (le geste serait interrompu) : celui de « Texte » et de la
+      tortue dessinée. Un programme sans blocs n'est que son bloc de départ,
+      replié, figé, montré en texte quand on le choisit. Sans programme, un
+      bouton « Ajouter un programme » ouvre l'espace de travail vide, sur la
+      catégorie « Événements ». Une expression ou un bouton qui a son propre
+      programme montre les autres dans sa section « Définition ».
+    - Pliage par l'utilisateur, lui seul : « Réduire la pile » / « Développer
+      la pile » du menu contextuel d'un bloc de départ (à la place de
+      « Réduire le bloc » de Blockly). Pliée, la pile n'est que son bloc de
+      départ, sans encoche dessous, une pastille donnant le nombre de ses
+      blocs, qui la déplie d'un clic ; son programme garde son texte (`id`
+      `dgf:`). Elle reste pliée pour la session.
+    - Bouton en bas à droite de l'espace de travail : il l'agrandit sur la
+      figure, entre les deux panneaux, et l'y ramène ; le panneau le dit
+      pendant ce temps. Fermer le panneau, ou montrer un objet sans blocs,
+      le ramène.
+    - Dialogues de Blockly (nom d'une variable ou d'une globale,
+      confirmation) dans le style de l'éditeur (`dialog` de `view.ts`), ses
+      textes « OK » et « Annuler » étant ceux de Blockly.
+    - Catégorie « Événements » : les blocs de départ que l'objet peut encore
+      avoir, son nom écrit dedans (pas de menu) : « tortue partant de A »,
+      « quand A est glissé », « … est appuyé », « … est lâché » (point
+      déplaçable), « quand a change » (expression). Lâché dans l'espace de
+      travail, il crée le programme (`Evt` super-caché, ou la tortue). Une
+      pile glissée sur la boîte à outils (ou son bloc de départ supprimé)
+      supprime son programme. « Tortue » quand l'objet a une tortue.
+        - Sélectionner un programme (ligne « quand M est glissé » ou de la
+          tortue, menu des objets, création) sélectionne son objet et en fait
+          le programme courant (`programOwner`, `ownPrograms` de `figure.ts`).
+          Bouton « Programme » de la zone contextuelle d'un point déplaçable ou
+          d'une expression.
+        - Blocs « minimum / maximum de la liste » (`min(a, b)`), et
+          `Coordinate("A", 1)` de DGPad lu `y(A)`.
+        - Le manuel n'est pas encore mis à jour (attente de la décision de
+          l'auteur).
 - **La tortue dessinée** (demandé par l'auteur, comme dans DGPad) : tant
   que le panneau de propriétés montre son programme (texte ou blocs), elle
   est dessinée là où elle finit, tournée dans sa direction, et suit chaque
