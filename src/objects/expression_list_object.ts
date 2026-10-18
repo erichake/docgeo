@@ -59,6 +59,15 @@ const heading = (direction: readonly number[]) =>
 // shorter for the browser to read.
 const px = (v: number) => Math.round(v * 100) / 100;
 
+// An arrowhead at the end of the segment from `a` to `b`.
+function arrowHead(a: Vec2, b: Vec2, [length, width]: Vec2): string {
+    const d = Math.hypot(b[0] - a[0], b[1] - a[1]);
+    if (!d) return "";
+    const [ux, uy] = [(b[0] - a[0]) / d, (b[1] - a[1]) / d];
+    const [cx, cy] = [b[0] - ux * length, b[1] - uy * length];
+    return `M${px(b[0])} ${px(b[1])}L${px(cx - uy * width)} ${px(cy + ux * width)}L${px(cx + uy * width)} ${px(cy - ux * width)}Z`;
+}
+
 function entry(map: Map<string, string[]>, key: string): string[] {
     let list = map.get(key);
     if (!list) map.set(key, (list = []));
@@ -81,11 +90,14 @@ const IMAGE_SIZES = new Map<string, Vec2 | null>();
 export class expression_list_object extends list_object {
     source: expression_object;
     segmentsSize = -1;
+    // Its "ar" style (see listArrow).
+    arrow: Vec2 | null = null;
     // The points, without the breaks, that another turtle reads.
     points: ScriptValue[] = [];
     private styles: PointStyle[] = [];
     private fills!: DOMElement;
     private strokes!: DOMElement;
+    private heads!: DOMElement;
     private dots!: DOMElement;
     private labels!: DOMElement;
     private formulaLabels!: DOMElement;
@@ -221,6 +233,7 @@ export class expression_list_object extends list_object {
         const joined = this.segmentsSize > 0;
         const fills: [string, string][] = [];
         const strokes = new Map<string, string[]>();
+        const heads = new Map<string, string[]>();
         const dots = new Map<string, string[]>();
         const labels: [Vec2, PointStyle][] = [];
         const pieceFill = `${this.fill_color};fill-opacity:${this.opacity}`;
@@ -233,6 +246,7 @@ export class expression_list_object extends list_object {
         // changing seldom along a list.
         let last: PointStyle | null = null;
         let stroke: string[] = [];
+        let head: string[] = [];
         let dot: string[] = [];
         let circle = "";
         points.forEach((p, i) => {
@@ -244,7 +258,11 @@ export class expression_list_object extends list_object {
             }
             const style = this.styles[i];
             const at = `${px(p[0])} ${px(p[1])}`;
-            if (joined && points[i - 1]) stroke.push(`M${previous}L${at}`);
+            if (joined && points[i - 1]) {
+                stroke.push(`M${previous}L${at}`);
+                if (this.arrow)
+                    head.push(arrowHead(points[i - 1]!, p, this.arrow));
+            }
             previous = at;
             if (
                 style.rgb !== last?.rgb ||
@@ -253,6 +271,7 @@ export class expression_list_object extends list_object {
             ) {
                 last = style;
                 stroke = entry(strokes, `${style.rgb}|${style.width}`);
+                head = entry(heads, `rgb(${style.rgb})`);
                 dot = entry(dots, `rgb(${style.rgb})`);
                 const r = style.radius;
                 circle =
@@ -289,6 +308,10 @@ export class expression_list_object extends list_object {
                     `stroke:rgb(${rgb});stroke-width:${width}`,
                 );
             },
+        );
+        const arrows = [...heads].filter(([, d]) => d.length);
+        this.shapes(this.heads, "path", arrows.length).forEach((path, i) =>
+            path.att("d", arrows[i][1].join("")).stl(`fill:${arrows[i][0]}`),
         );
         // As DGPad's points: white, or filled with their color when opaque.
         const circles = [...dots].filter(([, d]) => d.length);
@@ -425,6 +448,7 @@ export class expression_list_object extends list_object {
         t.strokes = group(
             "fill:none;stroke-linecap:round;stroke-linejoin:round",
         );
+        t.heads = group("stroke:none");
         t.dots = group(`stroke-width:1`);
         t.labels = group("white-space:pre");
         t.formulaLabels = group("");
@@ -434,6 +458,7 @@ export class expression_list_object extends list_object {
             .add(
                 t.fills,
                 t.strokes,
+                t.heads,
                 t.dots,
                 t.labels,
                 t.formulaLabels,

@@ -37,7 +37,7 @@ import {
 } from "../objects/circle3pts_object";
 import { createCircle } from "../objects/circle_object";
 import { construction_object, isDash } from "../objects/construction_object";
-import { createCurve } from "../objects/curve_object";
+import { createCurve, type CurveBound } from "../objects/curve_object";
 import { createButton } from "../objects/button_object";
 import { createCylinderIntersection } from "../objects/cylinder_intersection_object";
 import { createCylinderSection } from "../objects/cylinder_section_object";
@@ -45,6 +45,7 @@ import { createDirectionPoint } from "../objects/direction_point_object";
 import {
     createExpression,
     expression_object,
+    listArrow,
     type ExpressionFormula,
     type SliderBounds,
     type ExpressionProgram,
@@ -143,6 +144,7 @@ import {
     type FormulaNode,
     type FormulaValue,
     type Program,
+    isFigureObject,
     withObjects,
 } from "./dgp_formula";
 import {
@@ -363,6 +365,26 @@ const READABLE: ReadonlySet<ObjectKind> = new Set([
 // A List's own names (see list_object).
 const LIST_NAMES = ["k", "count"];
 
+class UnknownReference extends Error {}
+
+// The points an Expression's turtles start from.
+function turtleStarts(call: DgpCall): string[] {
+    const source = call.arguments[4];
+    const program =
+        call.name === "Expression" && source?.type === "literal"
+            ? tryParseProgram(String(source.value))
+            : null;
+    return program
+        ? programNodes(program).flatMap((node) =>
+              node.kind === "turtle" &&
+              node.fn === "TURTLE_INIT" &&
+              node.args[1].kind === "identifier"
+                  ? [node.args[1].name]
+                  : [],
+          )
+        : [];
+}
+
 function validateReferences(
     names: Iterable<string>,
     variables: Map<string, ObjectKind>,
@@ -372,7 +394,9 @@ function validateReferences(
     for (const name of names) {
         const kind = variables.get(name);
         if (!free.includes(name) && !(kind && READABLE.has(kind)))
-            throw new Error(`Unknown DGP reference at line ${lineNumber}`);
+            throw new UnknownReference(
+                `Unknown DGP reference at line ${lineNumber}`,
+            );
     }
 }
 
@@ -395,9 +419,13 @@ function validateProgramReferences(
     lineNumber: number,
 ): void {
     validateReferences(programReferences(program), variables, lineNumber);
+    // One declared later reads it, as the List drawing it: DGPad styles it
+    // once it exists, as its style keeps.
     programTargets(program).forEach((name) => {
-        if (!variables.has(name))
-            throw new Error(`Unknown DGP reference at line ${lineNumber}`);
+        if (!variables.has(name) && !isFigureObject(name))
+            throw new UnknownReference(
+                `Unknown DGP reference at line ${lineNumber}`,
+            );
     });
 }
 
@@ -702,6 +730,10 @@ function validateNumber(
         throw new Error(`Invalid DGP style number at line ${lineNumber}`);
 }
 
+const NUMBER = STYLE_NUMBER.source.slice(1, -1);
+// DGPad's "ar" style of a List: "[8,3]".
+const STYLE_PAIR = new RegExp(`^\\[${NUMBER},${NUMBER}\\]$`);
+
 function validateObjectStyle(
     value: string,
     lineNumber: number,
@@ -806,6 +838,10 @@ function validateObjectStyle(
             case "sg":
             case "l":
                 validateNumber(propertyValue, lineNumber, -Infinity);
+                break;
+            case "ar":
+                if (!STYLE_PAIR.test(propertyValue))
+                    throw new Error(`Invalid DGP style at line ${lineNumber}`);
                 break;
             case "cPT": {
                 let decoded: string;
@@ -1028,6 +1064,12 @@ function applyObjectStyle(
                 if (target instanceof expression_list_object)
                     target.segmentsSize = Number(propertyValue);
                 break;
+            case "ar":
+                if (target instanceof expression_list_object)
+                    target.arrow = listArrow(
+                        propertyValue.slice(1, -1).split(",").map(Number),
+                    );
+                break;
             case "cV":
                 if (target instanceof expression_object)
                     target.vertical = propertyValue === "true";
@@ -1210,13 +1252,6 @@ function validateExpression(
         throw new Error(`Unsupported DGP expression at line ${lineNumber}`);
     }
     if (content.kind === "v") return;
-    // Only a button sets a number (see button_object.ts).
-    if (
-        programNodes(content.program).some(
-            (node) => node.kind === "method" && node.method === "setExpression",
-        )
-    )
-        throw new Error(`Unsupported DGP expression at line ${lineNumber}`);
     if (content.kind === "f")
         validateReferences(
             functionReferences(content.node, content.variables),
@@ -1255,10 +1290,10 @@ function executeExpression(
             program: parsed,
             refs: formulaRefs(programReferences(parsed), context.variables),
             targets: new Map(
-                [...programTargets(parsed)].map((name) => [
-                    name,
-                    context.variables.get(name)!,
-                ]),
+                [...programTargets(parsed)].flatMap((name) => {
+                    const target = context.variables.get(name);
+                    return target ? [[name, target]] : [];
+                }),
             ),
             vec3: context.is3D,
         };
@@ -2869,14 +2904,21 @@ const COMMANDS = new Map<string, CommandDefinition>([
             parameters: [string, string, string, string],
             result: "curve",
             validate: (args, lineNumber, variables) => {
-                const bound = (value: DgpValue): boolean => {
+                // A number, or a formula of other objects ("a*c/d").
+                [args[1], args[2]].forEach((value) => {
                     const source = literalString(value);
-                    return source === "" || STYLE_NUMBER.test(source);
-                };
-                if (!bound(args[1]) || !bound(args[2]))
-                    throw new Error(
-                        `Invalid DGP curve bound at line ${lineNumber}`,
+                    if (source === "" || STYLE_NUMBER.test(source)) return;
+                    const node = tryParseFormula(source);
+                    if (!node)
+                        throw new Error(
+                            `Invalid DGP curve bound at line ${lineNumber}`,
+                        );
+                    validateReferences(
+                        formulaIdentifiers(node),
+                        variables,
+                        lineNumber,
                     );
+                });
                 let formulaNode: FormulaNode;
                 try {
                     formulaNode = parseFormula(literalString(args[3]));
@@ -2906,12 +2948,27 @@ const COMMANDS = new Map<string, CommandDefinition>([
                     ),
                     vec3: context.is3D,
                 };
+                const bound = (source: string): CurveBound => {
+                    if (source === "") return null;
+                    if (STYLE_NUMBER.test(source)) return Number(source);
+                    const node = parseFormula(source);
+                    return {
+                        node,
+                        source,
+                        variables: [],
+                        refs: formulaRefs(
+                            formulaIdentifiers(node),
+                            context.variables,
+                        ),
+                        vec3: context.is3D,
+                    };
+                };
                 return createCurve(
                     context.construction,
                     args[0] as string,
                     formula,
-                    min === "" ? null : Number(min),
-                    max === "" ? null : Number(max),
+                    bound(min),
+                    bound(max),
                 );
             },
         },
@@ -3462,10 +3519,17 @@ function orderStyleTargets(calls: DgpCall[]): DgpCall[] {
             call.name.startsWith("Expression") && source?.type === "literal"
                 ? tryParseProgram(String(source.value))
                 : null;
+        // Not after an object that reads it.
         const last = Math.max(
-            ...[...(program ? programTargets(program) : [])].map(
-                (name) => declared.get(name) ?? -1,
-            ),
+            ...[...(program ? programTargets(program) : [])].map((name) => {
+                const at = declared.get(name) ?? -1;
+                return at >= 0 &&
+                    calls[at].arguments
+                        .flatMap(referencedNames)
+                        .includes(call.variable!)
+                    ? -1
+                    : at;
+            }),
             ...call.arguments
                 .flatMap(referencedNames)
                 .map((name) => movedTo.get(name) ?? -1),
@@ -3504,6 +3568,7 @@ function validateCalls(calls: DgpCall[]): {
     const variables = new Map<string, ObjectKind>();
     const skipped = new Set<string>();
     const unsupported: string[] = [];
+    const named = new Set(calls.flatMap((call) => call.variable ?? []));
     const valid = calls.filter((call) => {
         // The initial values of the Blockly programs' global variables,
         // which only the programs never run use: each is reported with its
@@ -3516,8 +3581,14 @@ function validateCalls(calls: DgpCall[]): {
         try {
             validateCall(call, variables);
             return true;
-        } catch {
+        } catch (error) {
+            // A turtle whose point DGPad deleted, keeping its program, draws
+            // nothing there.
+            const deleted =
+                error instanceof UnknownReference &&
+                turtleStarts(call).some((name) => !named.has(name));
             if (
+                !deleted &&
                 !call.arguments
                     .flatMap(referencedNames)
                     .some((name) => skipped.has(name))

@@ -7,6 +7,7 @@ import {
     usesCoords2D,
     usesView,
     type Program,
+    type ScriptValue,
 } from "../import/dgp_formula";
 import {
     dgoFormula,
@@ -66,6 +67,10 @@ export class formula_point_object extends point_object {
                     return ref instanceof point_object ? ref.coords2D() : null;
                 },
                 center: (n) => scriptCenter(this.refs.get(n)!, this.vec3),
+                // An expression_list_object's, which this file can't import.
+                turtlePoints: (n) =>
+                    (this.refs.get(n) as { points?: ScriptValue[] }).points ??
+                    null,
                 callFunction: (name, args, derivatives) =>
                     callFunction(
                         this.refs,

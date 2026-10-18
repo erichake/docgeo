@@ -158,7 +158,8 @@ export type ObjectMethod =
     | "setDash"
     | "noMouseInside"
     // A button's SET_EXP: the new value of a number (see button_object.ts).
-    | "setExpression";
+    | "setExpression"
+    | "setArrow";
 
 const READ_METHODS: ReadonlySet<ObjectMethod> = new Set([
     "coords2D",
@@ -204,6 +205,7 @@ export const METHOD_ARITY: Record<ObjectMethod, number> = {
     setIncrement: 1,
     setLayer: 1,
     setDash: 1,
+    setArrow: 1,
     noMouseInside: 0,
     setExpression: 1,
 };
@@ -278,6 +280,9 @@ export type FormulaNode =
     | { kind: "length"; target: FormulaNode }
     // "tab.join(sep)", as JavaScript's.
     | { kind: "join"; target: FormulaNode; separator: FormulaNode | null }
+    // "tab.slice(-1)", as JavaScript's: Blockly's last item is
+    // "tab.slice(-1)[0]".
+    | { kind: "slice"; target: FormulaNode; args: FormulaNode[] }
     | { kind: "turtle"; fn: TurtleFn; args: FormulaNode[] }
     // "P.coords2D()" (where point P is drawn, in the window's coordinate
     // system, which changes with the 3D view), "S1.setHidden(1)" or a
@@ -537,6 +542,9 @@ export class FormulaLexer {
 
 // The objects of the figure being read (see withObjects).
 let objects: ReadonlySet<string> = new Set();
+
+// Whether one of the objects of the figure being read has the name.
+export const isFigureObject = (name: string) => objects.has(name);
 
 // Reads a figure whose objects have these names: in its formulas, "xy" names
 // one of them rather than the product x*y.
@@ -856,7 +864,8 @@ class FormulaParser {
                     if (rest.length > 0)
                         throw new Error("Invalid DGP formula syntax");
                     base = { kind: "join", target: base, separator };
-                } else if (LIST_METHODS.has(name as ObjectMethod)) {
+                } else if (name === "slice") base = this.slice(base);
+                else if (LIST_METHODS.has(name as ObjectMethod)) {
                     const { name: list, indices } = listItem(base);
                     this.take("(");
                     base = methodNode(list, name, this.arguments(), indices);
@@ -903,6 +912,8 @@ class FormulaParser {
             if (name === "PI" || name === "π")
                 return { kind: "constant", name: "PI" };
             if (name === "NaN") return { kind: "number", value: NaN };
+            // Blockly's empty input, 0 in JavaScript's arithmetic.
+            if (name === "null") return { kind: "number", value: 0 };
             if (name === "true" || name === "false")
                 return { kind: "number", value: Number(name === "true") };
             // Unless a script names one of its variables "i", as a loop
@@ -986,6 +997,8 @@ class FormulaParser {
                 kind: "length",
                 target: { kind: "identifier", name: object },
             };
+        if (name === "slice")
+            return this.slice({ kind: "identifier", name: object });
         if (/^d[xyzt]$/.test(name)) {
             this.take("(");
             return {
@@ -997,6 +1010,13 @@ class FormulaParser {
         }
         this.take("(");
         return methodNode(object, name, this.arguments());
+    }
+
+    private slice(target: FormulaNode): FormulaNode {
+        this.take("(");
+        const args = this.arguments();
+        if (args.length > 2) throw new Error("Invalid DGP formula syntax");
+        return { kind: "slice", target, args };
     }
 
     private vector(): FormulaNode {
@@ -1198,6 +1218,8 @@ function children(node: FormulaNode): FormulaNode[] {
             return node.separator
                 ? [node.target, node.separator]
                 : [node.target];
+        case "slice":
+            return [node.target, ...node.args];
         case "turtle":
             return node.args;
         case "binary":
@@ -2234,6 +2256,22 @@ function compileNode(node: FormulaNode, scope: Scope): Code {
                 return Array.isArray(list) && sep !== null
                     ? list.join(String(sep))
                     : null;
+            };
+        }
+        case "slice": {
+            const target = compile(node.target);
+            const args = node.args.map(compile);
+            return (frame) => {
+                const list = target(frame);
+                const bounds = args.map((arg) => realPart(arg(frame)));
+                if (
+                    !(typeof list === "string" || Array.isArray(list)) ||
+                    bounds.includes(null)
+                )
+                    return null;
+                const part = list.slice(...(bounds as number[]));
+                if (Array.isArray(part)) (frame.owned ??= new Set()).add(part);
+                return part;
             };
         }
         case "turtle": {

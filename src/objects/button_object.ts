@@ -71,7 +71,8 @@ export class button_object extends construction_object {
             resolveIdentifier: (name) => refs.get(name)!.scriptValue(vec3),
             view: () => this.C.formulaView(),
             callMethod: (name, method, args) => {
-                const target = targets.get(name)!;
+                const target = targets.get(name);
+                if (!target) return;
                 if (method !== "setExpression")
                     styleObject(this.C, target, method, args);
                 else if (

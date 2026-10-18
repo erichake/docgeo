@@ -4,6 +4,7 @@ import { AWAKE } from "../../src/construction";
 import { importDgp, importDgpFromUrl } from "../../src/dgp_importer";
 import { t } from "../../src/i18n";
 import type { circle3pts_object } from "../../src/objects/circle3pts_object";
+import type { curve_object } from "../../src/objects/curve_object";
 import type { expression_list_object } from "../../src/objects/expression_list_object";
 import type { expression_object } from "../../src/objects/expression_object";
 import type { fixed_angle_object } from "../../src/objects/fixed_angle_object";
@@ -46,6 +47,38 @@ BLK_GLOB_SET({"T":0});`,
         ]);
         expect(unsupported[0]).toContain("…");
         expect(unsupported[1]).toContain("onchange");
+    });
+
+    it("runs DGPad's SET_EXP, styles a List declared later, and ignores a turtle whose point was deleted", () => {
+        const c = createConstruction();
+        const unsupported = importDgp(
+            c,
+            `A=Point("A",1,2);
+C=Point("C",0,0);
+cpt=Expression("cpt","","","","5","0","0");
+e=Expression("e","","","","var bl_a=function(){\\nBLK_STL(\\"l1\\",\\"setArrow\\",[[8,3]]);\\nSET_EXP(\\"C\\",[A[0]+1,A.slice(-1)[0]]);\\nSET_EXP(\\"cpt\\",0);\\nSET_EXP(\\"cpt\\",cpt+2);\\nreturn [[0,0],[1,cpt]]\\n};\\nbl_a()","0","0");
+l1=List("l1",e);
+STL(l1,"sg:1;ar:[8,3]");
+m=Expression("m","","","","3","0","0");
+f=Curvus("f","0","m*2","x^2");
+t=Expression("t","","","","TURTLE_INIT(\\"P9\\",P9);TURTLE_MV(1,false);return TURTLE_RESULT()","0","0");
+lt=List("lt",t);`,
+        );
+        c.OBJS.update();
+        expect(unsupported).toEqual([]);
+        expect(c.getObj("t")).toBeFalsy();
+        expect(c.getObj("lt")).toBeFalsy();
+        expect((c.getObj("C") as point_object).coords).toEqual([2, 2, 0]);
+        expect(value(c, "cpt")).toBe(2);
+        expect(value(c, "e")).toEqual([
+            [0, 0],
+            [1, 2],
+        ]);
+        // From its style, which DGPad keeps: the program runs before it.
+        expect((c.getObj("l1") as expression_list_object).arrow).toEqual([
+            8, 3,
+        ]);
+        expect((c.getObj("f") as curve_object).max).toBe(6);
     });
 
     it("makes an inert object, which the pointer passes through unless the body wakes it", () => {

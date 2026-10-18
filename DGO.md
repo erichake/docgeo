@@ -314,7 +314,7 @@ la figure, autour de la verticale de O dans l'espace, sa hauteur gardée),
 | `RegP` | polygone régulier de n côtés sur [AB]  | `[A, B, n]`, `[A, B, n, plan]` (18)             |
 | `Loc`  | lieu de P quand M parcourt son support | `[P, M]`                                        |
 | `Ex`   | expression                             | objet (6)                                       |
-| `Cur`  | courbe y = f(x)                        | `[formule, min ou null, max ou null]`           |
+| `Cur`  | courbe y = f(x)                        | `[formule, min, max]` (23)                      |
 | `Lst`  | liste de formules en k                 | `[nature, nombre, formule, formule?]` (7)       |
 | `Seq`  | suite (`Sequence` de GeoGebra)         | `[nature, [boucle, …], formule, …]` (22)        |
 | `ELst` | points d'une expression                | `[expression]` (12)                             |
@@ -367,7 +367,12 @@ la figure, autour de la verticale de O dans l'espace, sa hauteur gardée),
    toutes deux quand l'une lit d'autres objets) avec exactement l'un de `"v"`
    (valeur constante ou de curseur), `"f"` (formule de fonction en x, y, z, t)
    ou `"s"` (script) ; position `"xy": [x, y]` en pixels, ou attachée à un
-   point : `"on": point, "d": [dx, dy]`.
+   point : `"on": point, "d": [dx, dy]`. Un script peut, par
+   `SET_EXP("E", valeur)`, changer le nombre d'une `Ex` de valeur constante
+   ou placer un point libre (`[x, y]` ou `[x, y, z]`), recalculés après
+   lui, comme DGPad. Un objet qu'il met en forme sans que sa formule le
+   désigne (déclaré après lui, comme la liste qui le dessine) n'est pas mis
+   en forme : son style l'est déjà.
 7. Nature `point`, `segment`, `line`, `label`, `polygon` (région remplie
    bordée par les points, pris dans l'ordre), `polygons` (chaque suite de
    points définis borne une région, un point indéfini les séparant) ou
@@ -495,6 +500,8 @@ alignement]]` police, `[30, url, l, h, zoom, opacité, u]` image (largeur
     ou plus). Au plus 100 000 tours en tout. Lue par son nom, une suite de
     points vaut la liste de ses points, une liste par tour de chaque
     boucle extérieure (un point indéfini y vaut `NaN`).
+23. `min` et `max` : nombre, `null` (bord de la fenêtre) ou formule d'autres
+    objets, comme `a*c/d`.
 
 ### Styles `st`
 
@@ -543,6 +550,7 @@ postérieur.
 | `cr` | `Ex`         | rayon du bouton                          | 10                                |
 | `co` | `Ex`         | opacité du bouton                        | 0                                 |
 | `sg` | `ELst`       | épaisseur des segments                   | -1                                |
+| `sa` | `ELst`       | flèche des segments `[l, d]` (px)        | `null`                            |
 
 Nom `sn` : écrit, pour un objet autre qu'un point, à la place que lui donne
 GeoGebra (segment, droite, demi-droite, vecteur, cercle, arc, conique,

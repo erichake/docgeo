@@ -420,6 +420,11 @@ function g() { GLOBAL_SET("côté", GLOBAL_GET("côté") * 2); }
 f();
 GLOBAL_GET("côté")`),
         ).toBe(6);
+        expect(
+            run(
+                "function f(p) { return p.slice(-1)[0]; } [f([1,2,3]), [4,5,6].slice(1,-1), null + 1]",
+            ),
+        ).toEqual([3, [5], 1]);
     });
 
     it("computes on lists term by term, as DGPad's operators", () => {

@@ -234,6 +234,39 @@ export function evaluateFunction(
     });
 }
 
+// DGPad's SET_EXP in a program, as a manipulation: the number of a
+// constant expression, or where a free point is. Read later by the program,
+// or computed after it as its child.
+function setValue(target: construction_object, value: ScriptValue | null) {
+    if (
+        target instanceof expression_object &&
+        !target.formula &&
+        !target.program &&
+        typeof value === "number"
+    ) {
+        target.value = value;
+        target.C.invalidateRender(target);
+    } else if (
+        target.constructor === point_object &&
+        Array.isArray(value) &&
+        (value.length === 2 || value.length === 3) &&
+        value.every((c) => typeof c === "number")
+    ) {
+        const point = target as point_object;
+        point.coords = [value[0], value[1], (value[2] as number) ?? point.z];
+        if (point.pinned) point.pin();
+    }
+}
+
+// DGPad's arrows at the end of a List's segments, [length, half width] in
+// pixels: none unless both are given.
+export const listArrow = (value: unknown): Vec2 | null =>
+    Array.isArray(value) &&
+    value.length === 2 &&
+    value.every((v) => typeof v === "number" && v)
+        ? [value[0], value[1]]
+        : null;
+
 // Carries out a script's styling method on one of the figure's objects.
 export function styleObject(
     c: construction,
@@ -302,6 +335,11 @@ export function styleObject(
             target.stroke_color = color;
             break;
         }
+        // An expression_list_object's, which this file can't import.
+        case "setArrow":
+            if (!("arrow" in target)) return;
+            target.arrow = listArrow(args[0]);
+            break;
         default:
             return;
     }
@@ -413,7 +451,11 @@ export class expression_object extends construction_object {
         if (bounds) this.addParents(...bounds.refs.values());
         if (program) {
             this.addParents(...program.refs.values());
-            program.targets.forEach((target) => target.addParents(this));
+            // Not one it reads, which DGPad's SET_EXP may set.
+            const refs = [...program.refs.values()];
+            program.targets.forEach(
+                (target) => refs.includes(target) || target.addParents(this),
+            );
         }
     }
 
@@ -524,8 +566,13 @@ export class expression_object extends construction_object {
             // An expression_list_object's, which this file can't import.
             turtlePoints: (name) =>
                 (refs.get(name) as { points?: ScriptValue[] }).points ?? null,
-            callMethod: (name, method, args) =>
-                styleObject(this.C, targets.get(name)!, method, args),
+            callMethod: (name, method, args) => {
+                // None for an object declared after it (see DGO.md).
+                const target = targets.get(name);
+                if (!target) return;
+                if (method === "setExpression") setValue(target, args[0]);
+                else styleObject(this.C, target, method, args);
+            },
         });
         this.defined = this.value !== null;
     }

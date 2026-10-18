@@ -23,10 +23,16 @@ const JUMP_DEPTH = 20;
 // of the sampling — not just the screen conversion — has to happen in
 // project(), mirroring how primitive_line_object re-extends its screen-
 // filling line there instead of in computeGeometry().
+// A bound of x: a number, none, or a formula of other objects (DGPad's
+// "a*c/d").
+export type CurveBound = number | null | ExpressionFormula;
+
 export class curve_object extends construction_object {
     formula: ExpressionFormula;
+    // The bounds' values, computed with the geometry for formulas.
     min: number | null;
     max: number | null;
+    bounds: [CurveBound, CurveBound];
     screenPoints: (Vec2 | null)[] = [];
     // Whether the curve is continuous between screenPoints[i] and [i + 1].
     private links: boolean[] = [];
@@ -43,26 +49,43 @@ export class curve_object extends construction_object {
         c: construction,
         name: string | null | undefined,
         formula: ExpressionFormula,
-        min: number | null,
-        max: number | null,
+        min: CurveBound,
+        max: CurveBound,
     ) {
         super(c, name, "curve");
         this.familytype = "curve";
         this.formula = formula;
-        this.min = min;
-        this.max = max;
-        this.addParents(...formula.refs.values());
+        this.bounds = [min, max];
+        [this.min, this.max] = this.bounds.map((bound) =>
+            typeof bound === "object" && bound ? NaN : bound,
+        );
+        this.addParents(
+            ...[formula, min, max].flatMap((value) =>
+                typeof value === "object" && value
+                    ? [...value.refs.values()]
+                    : [],
+            ),
+        );
     }
 
     dgo(context: DgoContext): [string, unknown] {
         return [
             "Cur",
-            [
-                dgoFormula(this.formula.source, this.formula.refs, context),
-                this.min,
-                this.max,
-            ],
+            [this.formula, ...this.bounds].map((value) =>
+                typeof value === "object" && value
+                    ? dgoFormula(value.source, value.refs, context)
+                    : value,
+            ),
         ];
+    }
+
+    computeGeometry(): void {
+        const view = () => this.C.formulaView();
+        [this.min, this.max] = this.bounds.map((bound) =>
+            typeof bound === "object" && bound
+                ? (realPart(evaluateFunction(bound, [], view)) ?? NaN)
+                : bound,
+        );
     }
 
     // The x range currently sampled: Curvus's own explicit bounds, or
@@ -299,8 +322,8 @@ export function createCurve(
     c: construction,
     name: string | null | undefined,
     formula: ExpressionFormula,
-    min: number | null,
-    max: number | null,
+    min: CurveBound,
+    max: CurveBound,
 ): curve_object {
     return c.add(new curve_object(c, name, formula, min, max));
 }

@@ -505,6 +505,12 @@ const STYLE: Record<string, Property> = {
     cr: field(expression_object, "cursorRadius", 10, isNumber),
     co: field(expression_object, "cursorOpacity", 0, isNumber),
     sg: field(expression_list_object, "segmentsSize", -1, isNumber),
+    sa: field(
+        expression_list_object,
+        "arrow",
+        null,
+        (value) => value === null || isPair(value),
+    ),
 };
 
 // The view and the coordinate system, besides the origin and the unit.
@@ -1237,9 +1243,13 @@ function scriptProgram(reader: Reader, value: Json): ExpressionProgram {
     const references = programReferences(program);
     const targets = programTargets(program);
     checkNames(references, refs);
-    checkNames(targets, refs);
+    // An object declared after it, as the List drawing it, isn't styled.
     const named = (names: Set<string>) =>
-        new Map([...names].map((name) => [name, refs.get(name)!]));
+        new Map(
+            [...names].flatMap((name) =>
+                refs.has(name) ? [[name, refs.get(name)!]] : [],
+            ),
+        );
     return {
         program,
         refs: named(references),
@@ -1772,19 +1782,15 @@ const BUILDERS: Record<string, Builder> = {
     },
     Cur: (parameters, { c, name, formula, vec3 }) => {
         const [value, min, max] = list(parameters, 3);
-        check(
-            (min === null || isNumber(min)) && (max === null || isNumber(max)),
-        );
-        const { source, refs } = formula(value, construction_object);
-        const node = parseFormula(source);
-        checkNames(formulaIdentifiers(node), refs, ["x"]);
-        return createCurve(
-            c,
-            name,
-            { node, source, variables: ["x"], refs, vec3 },
-            min,
-            max,
-        );
+        const read = (value: Json, variables: string[]): ExpressionFormula => {
+            const { source, refs } = formula(value, construction_object);
+            const node = parseFormula(source);
+            checkNames(formulaIdentifiers(node), refs, variables);
+            return { node, source, variables, refs, vec3 };
+        };
+        const bound = (value: Json) =>
+            value === null || isNumber(value) ? value : read(value, []);
+        return createCurve(c, name, read(value, ["x"]), bound(min), bound(max));
     },
     Lst: (parameters, reader) => {
         check(Array.isArray(parameters));
