@@ -217,6 +217,78 @@
                 ><strong>按鈕</strong
                 >放在所選的位置；兩者都會立即以積木開啟其程式。在輸入列中鍵入<code>按鈕("執行")</code>會在視圖中心建立一個按鈕；在「作圖」面板中修改其列即可改變其標籤。
             </p>
+
+            <h2 id="evenements">事件程式</h2>
+            <p>
+                和 Scratch
+                一樣，程式可以回應事件：可拖曳的點被拖曳、按下或放開，運算式的值改變。程式可以設定物件的樣式，並透過<strong
+                    >將 … 設為</strong
+                >積木改變運算式的值或放置自由點。點在動畫中時，「拖曳」程式也會執行。
+            </p>
+            <p>
+                在工具選單的<strong>程式</strong>類中，<i
+                    data-t="When the object is dragged"
+                ></i
+                ><strong>當物件被拖曳</strong>、<i
+                    data-t="When the object is pressed"
+                ></i
+                ><strong>當物件被按下</strong>和<i
+                    data-t="When the object is released"
+                ></i
+                ><strong>當物件被放開</strong>選取一個可拖曳的點，<i
+                    data-t="When the value changes"
+                ></i
+                ><strong>當值改變</strong
+                >選取一個運算式。程式以積木形式在其起始積木下開啟，例如<strong
+                    >當 M 被拖曳</strong
+                >；如果已經存在，則直接顯示。
+            </p>
+            <figure>
+                <img
+                    src="img/evenements.webp"
+                    alt="點 M 屬性中的兩個程式：拖曳 M 為三角形著色，放開它使 n 增加"
+                    width="1200"
+                    height="720"
+                />
+            </figure>
+            <p>
+                這裡，拖曳 M 時三角形在 x 軸上方為紅色，下方為藍色；放開 M 使 n
+                增加 1。
+            </p>
+            <ul>
+                <li>
+                    點或運算式屬性中的<strong>程式</strong>部分顯示它的所有程式（包括海龜），每個都在其起始積木下，均可修改。<strong>文字</strong>顯示最後點選的那個程式。
+                </li>
+                <li>
+                    沒有程式時，<strong>新增程式</strong>會開啟<strong>事件</strong>類別：把一個起始積木拖曳到工作區即可建立程式。
+                </li>
+                <li>
+                    每個程式在「作圖」面板中都有自己的一列，例如<code
+                        >當 M 被拖曳</code
+                    >：點選該列即可開啟它。
+                </li>
+                <li>
+                    把一組積木拖曳到類別列表上，或刪除其起始積木，即可刪除該程式。
+                </li>
+                <li>
+                    在起始積木上按右鍵：<strong>摺疊積木組</strong>只保留這個積木，並以一個標記顯示積木數量；點選標記或選擇<strong>展開積木組</strong>即可重新展開。
+                </li>
+            </ul>
+            <p id="blocs-agrandis">
+                積木右上角的按鈕會把積木放大到圖形上方的半透明視窗中：面板淡出，圖形保持原位。拖曳標題列可移動視窗（按兩下使其回到預設位置），拖曳角落可調整大小；同一個按鈕把積木放回面板。
+            </p>
+            <figure>
+                <img
+                    src="img/blocs-agrandis.webp"
+                    alt="M 的程式在圖形上方的視窗中放大顯示"
+                    width="1200"
+                    height="720"
+                />
+            </figure>
+            <p>
+                DGPad
+                圖形中的事件程式（拖曳、按下和放開點，值的改變）也以同樣的方式開啟和修改。
+            </p>
         </main>
     </body>
 </html>

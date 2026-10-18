@@ -1160,12 +1160,16 @@ ses méthodes internes et figé dans sa version de 2016.
         - Sélectionner un programme (ligne « quand M est glissé » ou de la
           tortue, menu des objets, création) sélectionne son objet et en fait
           le programme courant (`programOwner`, `ownPrograms` de `figure.ts`).
-          Bouton « Programme » de la zone contextuelle d'un point déplaçable ou
-          d'une expression.
+          Pas de bouton « Programme » dans la zone contextuelle (retiré à la
+          demande de l'auteur le 2026-10-18) : les programmes d'événement se
+          créent par la famille « Programmes » du menu des outils.
         - Blocs « minimum / maximum de la liste » (`min(a, b)`), et
           `Coordinate("A", 1)` de DGPad lu `y(A)`.
-        - Le manuel n'est pas encore mis à jour (attente de la décision de
-          l'auteur).
+        - Manuel (2026-10-18, validé par l'auteur) : « Programmes
+          d'événements » de `expressions.html`, captures `evenements.webp`
+          et `blocs-agrandis.webp`. Le lâcher d'un point enregistre l'étape
+          et relit les lignes après son propre `pointerup` (celui de
+          l'éditeur capture), son programme « lâché » compris.
 - **La tortue dessinée** (demandé par l'auteur, comme dans DGPad) : tant
   que le panneau de propriétés montre son programme (texte ou blocs), elle
   est dessinée là où elle finit, tournée dans sa direction, et suit chaque

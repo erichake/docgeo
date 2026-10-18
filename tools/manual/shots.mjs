@@ -13,6 +13,52 @@ const TRIANGLE = [
     "a = Angle(B, A, C)",
 ];
 
+// A triangle whose colour follows M while it is dragged, and n counting the
+// times M is let go; all left of the properties panel.
+async function events({ page, type, point, button, t }) {
+    await type([
+        "A = (-10, -4)",
+        "B = (-4, -5)",
+        "C = (-8, 3)",
+        "p = Polygon(A, B, C)",
+        "M = (-4, 2)",
+        "n = 0",
+    ]);
+    const tab = async (key) =>
+        page.getByRole("tab", { name: await t(key), exact: true }).click();
+    const program = async (tool, lines) => {
+        await button("tools");
+        await page.hover(
+            `.dge-tools button:has-text("${await t("family_programs")}")`,
+        );
+        await page.click(`.dge-tools button:has-text("${await t(tool)}")`);
+        await page.mouse.click(...(await point("M")));
+        await page.waitForTimeout(1200);
+        await tab("program_text");
+        await page.fill("textarea.dge-program", lines.join("\n"));
+        await page
+            .getByRole("button", { name: await t("apply"), exact: true })
+            .click();
+        await page.waitForTimeout(300);
+        await tab("program_blocks");
+        await page.waitForTimeout(800);
+    };
+    await program("when_dragged", [
+        "if (y(M) > 0) {",
+        "    p.setRGBColor(220, 38, 38);",
+        "} else {",
+        "    p.setRGBColor(37, 99, 235);",
+        "}",
+    ]);
+    await program("when_released", ["n.setExpression(n + 1);"]);
+    const [x, y] = await point("M");
+    await page.mouse.move(x, y);
+    await page.mouse.down();
+    await page.mouse.move(x + 10, y + 20, { steps: 5 });
+    await page.mouse.up();
+    await page.waitForTimeout(800);
+}
+
 export const SHOTS = [
     {
         file: "interface.webp",
@@ -115,6 +161,35 @@ export const SHOTS = [
             await page.waitForTimeout(500);
             await tab("program_blocks");
             await page.waitForTimeout(1500);
+        },
+    },
+    {
+        file: "evenements.webp",
+        page: "editor.html",
+        run: events,
+    },
+    {
+        file: "blocs-agrandis.webp",
+        page: "editor.html",
+        run: async (helpers) => {
+            const { page } = helpers;
+            await events(helpers);
+            await page.click(".dge-blocks-size");
+            await page.waitForTimeout(800);
+            // Narrower, beside the figure.
+            const move = async (selector, dx, dy) => {
+                const box = await page.locator(selector).boundingBox();
+                const x = box.x + box.width / 2;
+                const y = box.y + box.height / 2;
+                await page.mouse.move(x, y);
+                await page.mouse.down();
+                await page.mouse.move(x + dx, y + dy, { steps: 8 });
+                await page.mouse.up();
+            };
+            await move(".dge-blocks-corner", -260, -140);
+            await move(".dge-blocks-bar", 640, 40);
+            await page.mouse.move(600, 650);
+            await page.waitForTimeout(500);
         },
     },
     {
