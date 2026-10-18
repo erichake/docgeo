@@ -53,7 +53,9 @@ Les développements doivent servir en priorité :
   même interpréteur. Les globales Blockly (`GLOBAL_GET`, `GLOBAL_SET`,
   `GLOBAL_INC`) sont des expressions cachées de la figure, partagées par ses
   programmes et ses boutons (voir `DGO.md`). Le programme « onchange » d'une expression,
-  lancé quand sa valeur change, a les mêmes droits que celui d'un bouton. Les
+  lancé quand sa valeur change, et le programme « ondrag » d'un point, lancé
+  quand on le glisse ou qu'il est animé, ont les mêmes droits que celui d'un
+  bouton, qui peut aussi déplacer un point libre. Les
   autres programmes Blockly (autres événements) restent
   ignorés et signalés. Exception : l'expression « restrictions » (programme
   Blockly recopié de figure en figure qui verrouille l'interface de DGPad : zoom,

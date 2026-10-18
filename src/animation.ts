@@ -107,7 +107,10 @@ export class animations {
     private tick = (time: number): void => {
         const seconds = this.time === null ? 0 : (time - this.time) / 1000;
         this.time = time;
-        this.objects.forEach((object) => object.animate(seconds));
+        this.objects.forEach((object) => {
+            object.animate(seconds);
+            this.c.dragged.add(object);
+        });
         this.c.flush();
         this.frame = requestAnimationFrame(this.tick);
     };

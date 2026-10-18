@@ -59,6 +59,9 @@ export class construction {
     // button or a finger no longer pans it.
     panLocked = false;
     animations: animations;
+    // Dragged or animated since the last update: DGPad then runs their
+    // "ondrag" program (see event_object.ts).
+    readonly dragged = new Set<construction_object>();
     private updateFrame: number | null = null;
     private batchedObjects: construction_object[] | null = null;
     // The object each view of a layer shows.
@@ -490,14 +493,19 @@ export class construction {
         if (this.updateFrame === null) return;
         cancelAnimationFrame(this.updateFrame);
         this.updateFrame = null;
-        this.OBJS.update();
+        this.update();
     }
 
     private scheduleUpdate(): void {
         if (this.updateFrame !== null) return;
         this.updateFrame = requestAnimationFrame(() => {
             this.updateFrame = null;
-            this.OBJS.update();
+            this.update();
         });
+    }
+
+    private update(): void {
+        this.OBJS.update();
+        this.dragged.clear();
     }
 }

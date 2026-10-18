@@ -996,6 +996,21 @@ class FormulaParser {
         const name = this.name();
         if (object === "Math") {
             if (name === "PI") return { kind: "constant", name: "PI" };
+            // Blockly's minimum or maximum of a list it builds:
+            // Math.min.apply(null, [a, b]).
+            if ((name === "min" || name === "max") && this.skip(".")) {
+                if (this.name() !== "apply")
+                    throw new Error("Invalid DGP formula syntax");
+                this.take("(");
+                const [, list, ...rest] = this.arguments();
+                if (
+                    list?.kind !== "vector" ||
+                    !list.items.length ||
+                    rest.length
+                )
+                    throw new Error("Invalid DGP formula syntax");
+                return { kind: "call", fn: name, args: list.items };
+            }
             return this.call(name);
         }
         if (name === "length")
@@ -1089,6 +1104,17 @@ class FormulaParser {
             if (args.length !== 2 || object.kind !== "string")
                 throw new Error("Invalid DGP formula syntax");
             return methodNode(object.value, "setExpression", [value]);
+        }
+        // Blockly's coordinate of an object: Coordinate("A",1), A[1].
+        if (name === "Coordinate") {
+            const [object, index] = args;
+            if (args.length !== 2 || object.kind !== "string")
+                throw new Error("Invalid DGP formula syntax");
+            return {
+                kind: "index",
+                target: { kind: "identifier", name: object.value },
+                index,
+            };
         }
         // Blockly's form of a styling method: BLK_STL("S1","setHidden",[1]),
         // or BLK_STL(TURTLE_TEXT('dgpad_object_S1'),…) in a turtle's program.

@@ -323,7 +323,7 @@ la figure, autour de la verticale de O dans l'espace, sa hauteur gardée),
 | `Img`  | image                                  | `[clé, largeur, hauteur, A, B?, C?]` (9)        |
 | `Html` | texte HTML dans un cadre de la fenêtre | `[[x, y, largeur, hauteur], rayon, texte]` (11) |
 | `Btn`  | bouton qui exécute un script           | objet (13)                                      |
-| `Evt`  | script lancé au changement d'une `Ex`  | `{"on": expression, "s": script}` (24)          |
+| `Evt`  | script lancé par une `Ex` ou un point  | `{"on": expression ou point, "s": script}` (24) |
 
 1. La formule peut être un script, dont la dernière instruction donne les
    coordonnées (`"var u=A[0]-B[0];[u,0]"`). `n1`, `n2` : les nombres
@@ -511,6 +511,10 @@ alignement]]` police, `[30, url, l, h, zoom, opacité, u]` image (largeur
     l'expression `on` change (curseur, animation, `SET_EXP`), le script
     s'exécute comme celui d'un bouton (13), une fois les objets qu'il lit et
     change calculés ; jamais à l'ouverture de la figure. Jamais dessiné.
+    Avec `"e": "drag"`, programme « ondrag » de DGPad : `on` est un point,
+    et le script s'exécute une fois par pas de son glisser ou de son
+    animation, pas quand un parent ou un autre programme le déplace. Le
+    script fixe aussi la place des points libres (`SET_EXP`).
 
 ### Styles `st`
 

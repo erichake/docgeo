@@ -156,6 +156,39 @@ BLK_GLOB_SET({"total":0});`,
         expect(value(c, "n")).toBe(1);
     });
 
+    it("runs a point's ondrag program when it is dragged, not when a program moves it", () => {
+        const c = createConstruction();
+        const unsupported = importDgp(
+            c,
+            `I=Point("I",0,0);
+M=Point("M",-2,1);
+N=Point("N",2,-1);
+yM=Point("yM","[0,M[1]]","0");
+L=Point("L",0,0);
+BLK(M,{"ondrag":{"xml":"<xml/>","sync":"var t = Math.minus(Math.times(2,(I)),(M)) ;\\nSET_EXP(\\"N\\",t);\\nvar u = [0,(Math.min.apply(null, [(Coordinate(\\"yM\\",1)), (Coordinate(\\"L\\",1))]))] ;\\nSET_EXP(\\"L\\",u);"},"current":"ondrag"});
+BLK(N,{"ondrag":{"xml":"<xml/>","sync":"SET_EXP(\\"M\\",Math.minus(Math.times(2,(I)),(N)));"},"current":"ondrag"});`,
+        );
+        expect(unsupported).toEqual([]);
+        const [M, N, L] = ["M", "N", "L"].map(
+            (name) => c.getObj(name) as point_object,
+        );
+        c.OBJS.update();
+        expect(N.coords).toEqual([2, -1, 0]);
+        M.coords = [-3, -2, 0];
+        c.dragged.add(M);
+        c.invalidateGeometry(M);
+        c.OBJS.update();
+        expect(N.coords).toEqual([3, 2, 0]);
+        expect(L.coords).toEqual([0, -2, 0]);
+        // Moved by a parent, or by another program: not dragged.
+        c.invalidateGeometry(M);
+        c.OBJS.update();
+        M.coords = [-1, 0, 0];
+        c.invalidateGeometry(M);
+        c.OBJS.update();
+        expect(N.coords).toEqual([3, 2, 0]);
+    });
+
     it("turns the view as a script restricting it is computed again", () => {
         const c = createConstruction();
         importDgp(

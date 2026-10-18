@@ -10,26 +10,31 @@ import {
     type expression_object,
     type ExpressionProgram,
 } from "./expression_object";
+import type { point_object } from "./point_object";
 
-// DGPad's Blockly "onchange" program of an expression: run as a button's
-// once its value has changed (slider, animation, SET_EXP), never as the
-// figure opens. Never drawn.
+// DGPad's Blockly "onchange" program of an expression, run as a button's
+// once its value has changed (slider, animation, SET_EXP), or "ondrag"
+// program of a point, once dragged or animated: never as the figure opens.
+// Never drawn.
 export class event_object extends construction_object {
-    owner: expression_object;
+    owner: expression_object | point_object;
     program: ExpressionProgram;
+    drag: boolean;
     // The value it last ran for.
     private seen: ScriptValue | null;
 
     constructor(
         c: construction,
         name: string | null | undefined,
-        owner: expression_object,
+        owner: expression_object | point_object,
         program: ExpressionProgram,
+        drag: boolean,
     ) {
         super(c, name, "expression");
         this.owner = owner;
         this.program = program;
-        this.seen = owner.value;
+        this.drag = drag;
+        this.seen = drag ? null : (owner as expression_object).value;
         this.hidden = 2;
         // The objects it reads and sets too, which come before it.
         this.addParents(
@@ -45,6 +50,7 @@ export class event_object extends construction_object {
             "Evt",
             {
                 on: context.index(this.owner),
+                ...(this.drag && { e: "drag" }),
                 s: dgoFormula(
                     formulaSource(program),
                     new Map([...refs, ...targets]),
@@ -55,8 +61,15 @@ export class event_object extends construction_object {
     }
 
     computeGeometry(): void {
-        if (this.owner.value === this.seen) return;
-        this.seen = this.owner.value;
+        if (this.drag) {
+            // Once: what it sets computes it again.
+            if (this.C.dragged.delete(this.owner))
+                runProgram(this.C, this.program);
+            return;
+        }
+        const { value } = this.owner as expression_object;
+        if (value === this.seen) return;
+        this.seen = value;
         runProgram(this.C, this.program);
     }
 }
@@ -64,8 +77,9 @@ export class event_object extends construction_object {
 export function createEvent(
     c: construction,
     name: string | null | undefined,
-    owner: expression_object,
+    owner: expression_object | point_object,
     program: ExpressionProgram,
+    drag = false,
 ): event_object {
-    return c.add(new event_object(c, name, owner, program));
+    return c.add(new event_object(c, name, owner, program, drag));
 }

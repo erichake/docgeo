@@ -3230,29 +3230,34 @@ const COMMANDS = new Map<string, CommandDefinition>([
             // "oncompute" program is also its formula, run as any script,
             // and a point's turtle ("onlogo") is compiled into the
             // Expression its List draws. An Expression's "onchange" runs
-            // when its value changes (see event_object.ts). The other
-            // programs never run.
+            // when its value changes, a point's "ondrag" when it is dragged
+            // (see event_object.ts). The other programs never run.
             parameters: [object, string],
             validate: (args, lineNumber, variables) => {
                 const modes = JSON.parse(literalString(args[1]));
                 const owner = args[0];
+                const kind =
+                    owner.type === "reference"
+                        ? variables.get(owner.name)
+                        : undefined;
                 if (
                     Object.keys(modes).some(
                         (mode) =>
                             mode !== "oncompute" &&
                             mode !== "onlogo" &&
                             mode !== "onchange" &&
+                            mode !== "ondrag" &&
                             mode !== "current",
                     ) ||
-                    (modes.onchange &&
-                        (owner.type !== "reference" ||
-                            variables.get(owner.name) !== "expression"))
+                    (modes.onchange && kind !== "expression") ||
+                    (modes.ondrag && kind !== "point" && kind !== "pointOn")
                 )
                     throw new Error(
                         `Unsupported Blockly program at line ${lineNumber}`,
                     );
-                if (!modes.onchange) return;
-                const program = tryParseProgram(String(modes.onchange.sync));
+                const event = modes.onchange ?? modes.ondrag;
+                if (!event) return;
+                const program = tryParseProgram(String(event.sync));
                 if (!program)
                     throw new Error(
                         `Unsupported Blockly program at line ${lineNumber}`,
@@ -3260,13 +3265,15 @@ const COMMANDS = new Map<string, CommandDefinition>([
                 validateProgramReferences(program, variables, lineNumber);
             },
             execute: (context, args) => {
-                const sync = JSON.parse(args[1] as string).onchange?.sync;
+                const modes = JSON.parse(args[1] as string);
+                const mode = modes.onchange ? "onchange" : "ondrag";
+                const sync = modes[mode]?.sync;
                 if (typeof sync !== "string") return;
-                const owner = args[0] as expression_object;
+                const owner = args[0] as expression_object | point_object;
                 const program = parseProgram(sync);
                 createEvent(
                     context.construction,
-                    `${owner.name}.onchange`,
+                    `${owner.name}.${mode}`,
                     owner,
                     {
                         program,
@@ -3282,6 +3289,7 @@ const COMMANDS = new Map<string, CommandDefinition>([
                         ),
                         vec3: context.is3D,
                     },
+                    mode === "ondrag",
                 );
             },
         },
