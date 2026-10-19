@@ -3,6 +3,7 @@ const translations = {
     ar: {
         open_figure: "فتح شكل هندسي",
         figure_formats: "DocGeo (.dgo)، DGPad (.dgp) أو GeoGebra (.ggb)",
+        drop_figure: "أفلت الملف لفتح الشكل",
         open_failed: "تعذّر فتح الشكل",
         unsupported_title: "استيراد غير مكتمل",
         unsupported_text:
@@ -15,6 +16,7 @@ const translations = {
     de: {
         open_figure: "Figur öffnen",
         figure_formats: "DocGeo (.dgo), DGPad (.dgp) oder GeoGebra (.ggb)",
+        drop_figure: "Zum Öffnen der Figur loslassen",
         open_failed: "Die Figur konnte nicht geöffnet werden",
         unsupported_title: "Unvollständiger Import",
         unsupported_text:
@@ -27,6 +29,7 @@ const translations = {
     el: {
         open_figure: "Άνοιγμα σχήματος",
         figure_formats: "DocGeo (.dgo), DGPad (.dgp) ή GeoGebra (.ggb)",
+        drop_figure: "Αφήστε το για να ανοίξει το σχήμα",
         open_failed: "Δεν ήταν δυνατό το άνοιγμα του σχήματος",
         unsupported_title: "Ελλιπής εισαγωγή",
         unsupported_text:
@@ -39,6 +42,7 @@ const translations = {
     en: {
         open_figure: "Open a figure",
         figure_formats: "DocGeo (.dgo), DGPad (.dgp) or GeoGebra (.ggb)",
+        drop_figure: "Drop to open the figure",
         open_failed: "The figure could not be opened",
         unsupported_title: "Incomplete import",
         unsupported_text:
@@ -51,6 +55,7 @@ const translations = {
     es: {
         open_figure: "Abrir una figura",
         figure_formats: "DocGeo (.dgo), DGPad (.dgp) o GeoGebra (.ggb)",
+        drop_figure: "Suelte para abrir la figura",
         open_failed: "No se pudo abrir la figura",
         unsupported_title: "Importación incompleta",
         unsupported_text:
@@ -63,6 +68,7 @@ const translations = {
     fr: {
         open_figure: "Ouvrir une figure",
         figure_formats: "DocGeo (.dgo), DGPad (.dgp) ou GeoGebra (.ggb)",
+        drop_figure: "Déposez pour ouvrir la figure",
         open_failed: "Impossible d'ouvrir la figure",
         unsupported_title: "Import incomplet",
         unsupported_text:
@@ -75,6 +81,7 @@ const translations = {
     hi: {
         open_figure: "आकृति खोलें",
         figure_formats: "DocGeo (.dgo), DGPad (.dgp) या GeoGebra (.ggb)",
+        drop_figure: "आकृति खोलने के लिए छोड़ें",
         open_failed: "आकृति नहीं खोली जा सकी",
         unsupported_title: "अधूरा आयात",
         unsupported_text:
@@ -87,6 +94,7 @@ const translations = {
     it: {
         open_figure: "Apri una figura",
         figure_formats: "DocGeo (.dgo), DGPad (.dgp) o GeoGebra (.ggb)",
+        drop_figure: "Rilascia per aprire la figura",
         open_failed: "Impossibile aprire la figura",
         unsupported_title: "Importazione incompleta",
         unsupported_text:
@@ -99,6 +107,7 @@ const translations = {
     nl: {
         open_figure: "Figuur openen",
         figure_formats: "DocGeo (.dgo), DGPad (.dgp) of GeoGebra (.ggb)",
+        drop_figure: "Loslaten om de figuur te openen",
         open_failed: "De figuur kon niet worden geopend",
         unsupported_title: "Onvolledige import",
         unsupported_text:
@@ -111,6 +120,7 @@ const translations = {
     pt: {
         open_figure: "Abrir uma figura",
         figure_formats: "DocGeo (.dgo), DGPad (.dgp) ou GeoGebra (.ggb)",
+        drop_figure: "Solte para abrir a figura",
         open_failed: "Não foi possível abrir a figura",
         unsupported_title: "Importação incompleta",
         unsupported_text:
@@ -123,6 +133,7 @@ const translations = {
     zh: {
         open_figure: "打开图形",
         figure_formats: "DocGeo (.dgo)、DGPad (.dgp) 或 GeoGebra (.ggb)",
+        drop_figure: "松开以打开图形",
         open_failed: "无法打开图形",
         unsupported_title: "导入不完整",
         unsupported_text:
@@ -135,6 +146,7 @@ const translations = {
     "zh-TW": {
         open_figure: "開啟圖形",
         figure_formats: "DocGeo (.dgo)、DGPad (.dgp) 或 GeoGebra (.ggb)",
+        drop_figure: "放開以開啟圖形",
         open_failed: "無法開啟圖形",
         unsupported_title: "匯入不完整",
         unsupported_text: "以下元素不受支援：它們以及依賴它們的元素已被忽略。",

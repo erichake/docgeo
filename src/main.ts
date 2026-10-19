@@ -2,6 +2,7 @@ import { construction } from "./construction";
 import { importDgoFromBlob, importDgoFromUrl, writeDgo } from "./dgo";
 import { importDgp, importDgpFromUrl } from "./dgp_importer";
 import { $, type DOMElement } from "./dom";
+import { dropFigures } from "./drop";
 import { embed } from "./embed";
 import { importGgbFromBlob, importGgbFromUrl } from "./ggb_importer";
 import { DIR, t } from "./i18n";
@@ -89,28 +90,9 @@ export const DOCGEO_READY = search.has("embed")
       : pickFigure();
 
 // Outside the embedded mode, a figure file dropped on the page opens in
-// place of the one shown. Other drops, of text into a field, are left alone.
-if (!search.has("embed")) {
-    $("body").on(
-        "dragover",
-        (event) => {
-            if (event.dataTransfer!.types.includes("Files"))
-                event.preventDefault();
-        },
-        false,
-    );
-    $("body").on(
-        "drop",
-        (event) => {
-            if (!event.dataTransfer!.types.includes("Files")) return;
-            event.preventDefault();
-            const file = event.dataTransfer!.files[0];
-            if (/\.(dgo|dgp|ggb)$/i.test(file.name))
-                void (picked ?? openFile)(file);
-        },
-        false,
-    );
-}
+// place of the one shown.
+if (!search.has("embed"))
+    dropFigures((file) => void (picked ?? openFile)(file));
 
 async function saveFigure(name: string): Promise<void> {
     const href = URL.createObjectURL(await writeDgo(DOCGEO.scene));

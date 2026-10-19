@@ -12,6 +12,7 @@ import {
 } from "../dgo";
 import { importDgp, importDgpFromUrl } from "../dgp_importer";
 import { $, type DOMElement } from "../dom";
+import { dropFigures } from "../drop";
 import { importGgbFromBlob, importGgbFromUrl } from "../ggb_importer";
 import { LANG } from "../i18n";
 import type { construction_object } from "../objects/construction_object";
@@ -4332,25 +4333,7 @@ fileInput.on(
     false,
 );
 
-// A figure file dropped on the page opens like a chosen one. Other drops,
-// of text into a field, are left alone.
-$("body").on(
-    "dragover",
-    (event) => {
-        if (event.dataTransfer!.types.includes("Files")) event.preventDefault();
-    },
-    false,
-);
-$("body").on(
-    "drop",
-    (event) => {
-        if (!event.dataTransfer!.types.includes("Files")) return;
-        event.preventDefault();
-        const file = event.dataTransfer!.files[0];
-        if (/\.(dgo|dgp|ggb)$/i.test(file.name)) void openFile(file);
-    },
-    false,
-);
+dropFigures((file) => void openFile(file));
 
 bindRow(input, null);
 $("body").observeResize(() => {
