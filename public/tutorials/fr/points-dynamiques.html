@@ -65,34 +65,37 @@
             <p>
                 <i data-i="spring"></i> <strong>Animer</strong> (point sur
                 droite, segment, demi-droite, cercle, arc, polygone, conique ou
-                lieu) sort sous le point un ressort terminé par une boule.
+                lieu, ou curseur) sort sous le point, ou sous la poignée du
+                curseur, un ressort terminé par une boule.
             </p>
             <ul>
                 <li>
-                    Tirer la boule puis la lâcher lance le point ; pendant la
-                    traction, un fantôme du point montre déjà le mouvement.
+                    Tirer la boule puis la lâcher lance l’objet ; pendant la
+                    traction, un fantôme du point ou de la poignée montre déjà
+                    le mouvement.
                 </li>
                 <li>
                     <strong>Longueur</strong> : vitesse, par crans affichés
                     (px/s sur une droite, un polygone ou une conique ; °/s sur
-                    un cercle ; % sur un lieu).
+                    un cercle ; % sur un lieu ou un curseur).
                 </li>
                 <li>
-                    <strong>Côté</strong> : sens ; le point part à l’opposé de
-                    la traction.
+                    <strong>Côté</strong> : sens ; l’objet part à l’opposé de la
+                    traction : un curseur tiré vers la gauche (vers le bas s’il
+                    est vertical) augmente.
                 </li>
                 <li>
-                    <strong>En travers</strong> d’une droite (plus de 45°) :
-                    aller-retour. Ailleurs, le point boucle.
+                    <strong>En travers</strong> d’une droite ou d’un curseur
+                    (plus de 45°) : aller-retour. Ailleurs, l’objet boucle.
                 </li>
                 <li>En deçà du premier cran : arrêt.</li>
             </ul>
             <p>
-                Sur un point déjà animé, le ressort sort tendu à la vitesse
+                Sur un objet déjà animé, le ressort sort tendu à la vitesse
                 actuelle. Second appui sur <i data-i="spring"></i> : le ressort
                 est rangé. Vitesse exacte, sens inverse, arrêt à l’extrémité :
                 section <a href="proprietes.html#animation">Animation</a> des
-                propriétés, qui anime aussi les curseurs.
+                propriétés.
             </p>
         </main>
     </body>

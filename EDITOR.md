@@ -627,10 +627,20 @@ de la fenêtre (il s'arrête s'il devait s'arrêter à l'extrémité), sans
 changer de branche. Les animations GeoGebra de points sur conique, dont la
 vitesse se rapporte au paramètre de GeoGebra, restent ignorées.
 
-Les curseurs, que DGPad anime aussi au ressort, n'en ont pas encore. Un
-toucher sur un curseur, comme sur un texte ou une expression, le
-sélectionne (zone contextuelle, sans anneau) au lieu de créer un point ;
-pendant une saisie, il écrit son nom ; sa poignée se glisse toujours.
+Un toucher sur un curseur ou sa poignée, comme sur un texte ou une
+expression, le sélectionne (zone contextuelle, sans anneau) au lieu de
+créer un point ; pendant une saisie, il écrit son nom ; sa poignée se
+glisse toujours. Depuis le 2026-10-19, un curseur (nombre constant entre
+deux bornes) a lui aussi son bouton « Animer » : le ressort est accroché à
+sa poignée, au repos sous elle (à sa droite sur un curseur vertical), et le
+fantôme est un clone pâle de la poignée qui parcourt la piste. Les crans
+sont ceux de DGPad (0 à 100 %, en cinquantièmes de l'étendue par seconde,
+un cran tous les 500/11 px). Le sens suit la règle commune : tiré à
+l'opposé du sens croissant (vers la gauche, ou vers le bas sur un curseur
+vertical), il monte ; tiré en travers, il fait l'aller-retour. DGPad
+mesure le sens horizontalement même sur un curseur vertical : on ne le
+reproduit pas. Les expressions numériques sans bornes, que DGPad anime
+aussi, n'ont pas de ressort.
 
 ## Noms des points
 
@@ -1904,8 +1914,7 @@ Reste à faire :
 - Outils du moteur sans commande dans l'éditeur, à ajouter au catalogue
   puis au menu : angle fixe, intersection droite-plan.
 
-- Expressions (section du même nom) : ressort des curseurs, listes en k
-  (`Lst`).
+- Expressions (section du même nom) : listes en k (`Lst`).
 - Points sur objet et intersections au geste sur les lieux et listes ;
   choix explicite de l'intersection quand le geste est ambigu.
 - 3D : points libres dans le plan de l'écran des figures DGPad (`f2`) et

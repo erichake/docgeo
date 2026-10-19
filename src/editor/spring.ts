@@ -1,11 +1,13 @@
 import type { Animation } from "../animation";
+import { $, type DOMElement } from "../dom";
 import type { construction_object } from "../objects/construction_object";
+import { expression_object } from "../objects/expression_object";
 import { point_on_object } from "../objects/point_on_object";
 import { polygon_object } from "../objects/polygon_object";
 import { primitive_circle_object } from "../objects/primitive_circle_object";
 import { primitive_line_object } from "../objects/primitive_line_object";
 import { primitive_quadric_object } from "../objects/primitive_quadric_object";
-import { vDot, vNorm, vScale, vSub, type Vec2 } from "../vec";
+import { vAdd, vDot, vNorm, vScale, vSub, type Vec2 } from "../vec";
 
 // DGPad's spring: see EDITOR.md.
 
@@ -59,11 +61,25 @@ const LOCUS: Scale = {
     bounces: false,
 };
 
+// A slider's, in fiftieths of its range per second; across it, back and
+// forth.
+const PERCENTS = [0, 1, 2, 3, 5, 10, 25, 50, 75, 90, 100];
+const SLIDER: Scale = {
+    stops: PERCENTS,
+    gap: 500 / PERCENTS.length,
+    per: 1,
+    shown: 1,
+    unit: "%",
+    bounces: true,
+};
+
 // Within the first stop, every stop being at least 30 px long (more than
 // DGPad's on circles and polygons): no speed, and the ball clear of the point.
 const REST = 28;
 
-function scaleOf({ support }: point_on_object): Scale {
+function scaleOf(object: springy_object): Scale {
+    if (object instanceof expression_object) return SLIDER;
+    const { support } = object;
     if (support instanceof primitive_line_object) return LINE;
     if (support instanceof primitive_circle_object) return CIRCLE;
     if (
@@ -74,39 +90,91 @@ function scaleOf({ support }: point_on_object): Scale {
     return LOCUS;
 }
 
-// The points the engine animates. Its sliders too, which the editor can't
-// select yet.
+export type springy_object = point_on_object | expression_object;
+
+// The points and sliders the engine animates.
 export const springy = (
     object: construction_object | null | undefined,
-): object is point_on_object =>
-    object instanceof point_on_object &&
-    (object.support instanceof primitive_line_object ||
-        object.support instanceof primitive_circle_object ||
-        object.support instanceof polygon_object ||
-        object.support instanceof primitive_quadric_object ||
-        object.support.familytype === "locus");
+): object is springy_object =>
+    (object instanceof point_on_object &&
+        (object.support instanceof primitive_line_object ||
+            object.support instanceof primitive_circle_object ||
+            object.support instanceof polygon_object ||
+            object.support instanceof primitive_quadric_object ||
+            object.support.familytype === "locus")) ||
+    (object instanceof expression_object &&
+        object.isCursor &&
+        !object.formula &&
+        !object.program);
 
-// The point's ghost, ahead of it on its path: its parameter, and its own
-// animation.
+// The slider's knob, the only circle it draws.
+const knobOf = (slider: expression_object) =>
+    slider.dom.dom().querySelector("circle")!;
+
+// Where the spring is tied: the point, or the slider's knob.
+export function anchorOf(object: springy_object): Vec2 {
+    if (object instanceof point_on_object) return [object.sx, object.sy];
+    const knob = knobOf(object).getBoundingClientRect();
+    const box = object.C.svg.dom().getBoundingClientRect();
+    return [
+        knob.left + knob.width / 2 - box.left,
+        knob.top + knob.height / 2 - box.top,
+    ];
+}
+
+// The object's ghost, ahead of it: the point's parameter or the slider's
+// value, and its own animation.
 export interface Ghost {
-    alpha: point_on_object["alpha"];
+    at: point_on_object["alpha"];
     animation: Animation;
 }
 
+export const ghostAt = (object: springy_object): Ghost["at"] =>
+    object instanceof point_on_object ? object.alpha : (object.value as number);
+
+// The ghost's drawing, a clone of the point's, or of the slider's knob
+// about its centre.
+export function ghostDrawing(object: springy_object): DOMElement {
+    if (object instanceof point_on_object)
+        return $(object.dom.dom().cloneNode(true) as Element);
+    return $(knobOf(object).cloneNode() as Element)
+        .att("cx", 0)
+        .att("cy", 0);
+}
+
 // Moves the ghost on for these seconds and gives its place on the screen,
-// the point lending itself to the engine's step.
+// the object lending itself to the engine's step.
 export function moveGhost(
-    point: point_on_object,
+    object: springy_object,
     ghost: Ghost,
     seconds: number,
 ): Vec2 {
+    if (object instanceof expression_object) {
+        const { value, animation, min, max, cursorLength } = object;
+        object.value = ghost.at as number;
+        object.animation = ghost.animation;
+        object.animate(seconds);
+        ghost.at = object.value as number;
+        object.value = value;
+        object.animation = animation;
+        const along = (value: number) =>
+            Math.min(Math.max((value - min!) / (max! - min!), 0), 1);
+        return vAdd(
+            anchorOf(object),
+            vScale(
+                forwardOf(object),
+                cursorLength * (along(ghost.at) - along(value as number)),
+            ),
+        );
+    }
+    const point = object;
     const { alpha, animation, C: c } = point;
-    point.alpha = ghost.alpha;
+    point.alpha = ghost.at;
     point.animation = ghost.animation;
     point.computeGeometry();
     point.animate(seconds);
     point.computeGeometry();
-    ghost.alpha = point.alpha;
+    ghost.at = point.alpha;
     const screen = c.pt3D(point.coords);
     point.alpha = alpha;
     point.animation = animation;
@@ -114,14 +182,16 @@ export function moveGhost(
     return screen;
 }
 
-// The way the point goes on the screen when animated forwards: the engine's
-// own step, as small as the screen still shows it.
-function forwardOf(point: point_on_object): Vec2 {
+// The way the object goes on the screen when animated forwards: a slider's
+// own, a point's the engine's step, as small as the screen still shows it.
+function forwardOf(point: springy_object): Vec2 {
+    if (point instanceof expression_object)
+        return point.vertical ? [0, -1] : [1, 0];
     const from = point.C.pt3D(point.coords);
     let way: Vec2 = [0, 0];
     for (let speed = 1e-4; speed < 10 && !(vNorm(way) > 1e-9); speed *= 10) {
         const ghost = {
-            alpha: point.alpha,
+            at: point.alpha,
             animation: { speed, direction: 1, ar: true },
         };
         // Bounced at an end, it went backwards.
@@ -142,7 +212,7 @@ export interface Spring {
     normal: Vec2;
 }
 
-export function springOf(object: point_on_object): Spring {
+export function springOf(object: springy_object): Spring {
     const forward = forwardOf(object);
     const [x, y] = forward;
     const normal: Vec2 = y > 0 || (y === 0 && x < 0) ? [y, -x] : [-y, x];
@@ -190,7 +260,7 @@ export function handleOf(
 
 // The engine keeps an animated object: a stopped one has no speed.
 export function setAnimation(
-    object: point_on_object,
+    object: springy_object,
     animation: Animation,
 ): void {
     if (object.animation) object.animation = animation;

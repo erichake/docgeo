@@ -17,7 +17,6 @@ import { importGgbFromBlob, importGgbFromUrl } from "../ggb_importer";
 import { LANG } from "../i18n";
 import type { construction_object } from "../objects/construction_object";
 import { point_object, type magnet_target } from "../objects/point_object";
-import type { point_on_object } from "../objects/point_on_object";
 import { button_object } from "../objects/button_object";
 import { event_object, type Trigger } from "../objects/event_object";
 import { expression_object } from "../objects/expression_object";
@@ -135,6 +134,9 @@ import {
 } from "./magnets";
 import { pinnable, togglePin } from "./pin";
 import {
+    anchorOf,
+    ghostAt,
+    ghostDrawing,
     handleOf,
     moveGhost,
     pull,
@@ -143,6 +145,7 @@ import {
     springy,
     type Ghost,
     type Spring,
+    type springy_object,
 } from "./spring";
 import { offPlane, PLANE, SPACE, turnView } from "./space";
 import { showStep as showStepOf, stepOf, steps, type Stepping } from "./steps";
@@ -963,13 +966,13 @@ let standardReach = 20;
 // The object whose spring is shown, and while it's pulled, where from on the
 // screen.
 let sprung: {
-    object: point_on_object;
+    object: springy_object;
     pulled: {
         anchor: Vec2;
         spring: Spring;
         vector: Vec2;
         // The animation the pull gives, none before the ball moves, and the
-        // one the point had, held still meanwhile.
+        // one the object had, held still meanwhile.
         animation: Animation | null;
         before: Animation | null;
         ghost: Ghost & { node: DOMElement };
@@ -2777,7 +2780,7 @@ function remove(): void {
 
 // ************************** SPRING ******************************
 
-function showSpring(object: point_on_object | null): void {
+function showSpring(object: springy_object | null): void {
     if (object === (sprung?.object ?? null)) return;
     const pulled = sprung?.pulled;
     if (pulled) {
@@ -2826,7 +2829,7 @@ function drawSpring(time: number): void {
             .att("transform", `translate(${gx} ${gy})`)
             .toggleClass("dge-still", !ghost.animation.speed);
     } else vector = handleOf(springOf(object), object.animation);
-    const [x, y] = pulled?.anchor ?? [object.sx, object.sy];
+    const [x, y] = pulled?.anchor ?? anchorOf(object);
     const [dx, dy] = vector;
     const length = Math.hypot(dx, dy) || 1;
     const [ux, uy] = [dx / length, dy / length];
@@ -2866,7 +2869,7 @@ function drawSpring(time: number): void {
         .show();
 }
 
-// Taken, the spring holds the point where it is, and a ghost of it goes
+// Taken, the spring holds the object where it is, and a ghost of it goes
 // ahead at the speed the pull gives.
 function takeSpring(event: PointerEvent): void {
     const { object } = sprung!;
@@ -2874,19 +2877,19 @@ function takeSpring(event: PointerEvent): void {
     const taken = springOf(object);
     const before = object.animation && { ...object.animation };
     if (object.animation) object.animation.speed = 0;
-    const node = $(object.dom.dom().cloneNode(true) as Element)
+    const node = ghostDrawing(object)
         .removeClass("dge-hover")
         .addClass("dge-spring-ghost")
         .addClass("dge-still");
     object.dom.dom().after(node.dom());
     sprung!.pulled = {
-        anchor: [object.sx, object.sy],
+        anchor: anchorOf(object),
         spring: taken,
         vector: handleOf(taken, before),
         animation: null,
         before,
         ghost: {
-            alpha: object.alpha,
+            at: ghostAt(object),
             animation: { speed: 0, direction: 1, ar: false },
             node,
         },
@@ -2914,7 +2917,7 @@ function pullSpring(event: PointerEvent): void {
     if (JSON.stringify(animation) === JSON.stringify(pulled.animation)) return;
     pulled.animation = animation;
     pulled.ghost.animation = { ...animation };
-    if (!animation.speed) pulled.ghost.alpha = sprung!.object.alpha;
+    if (!animation.speed) pulled.ghost.at = ghostAt(sprung!.object);
 }
 
 // Let go unmoved, the ball leaves the point as it was.

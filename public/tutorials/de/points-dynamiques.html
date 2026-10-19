@@ -66,37 +66,41 @@
             <p>
                 <i data-i="spring"></i> <strong>Animieren</strong> (Punkt auf
                 Gerade, Strecke, Strahl, Kreis, Bogen, Vieleck, Kegelschnitt
-                oder Ortslinie) lässt unter dem Punkt eine Feder mit einer Kugel
-                am Ende erscheinen.
+                oder Ortslinie, oder Schieberegler) lässt unter dem Punkt bzw.
+                unter dem Griff des Schiebereglers eine Feder mit einer Kugel am
+                Ende erscheinen.
             </p>
             <ul>
                 <li>
-                    Die Kugel ziehen und loslassen startet den Punkt; während
-                    des Ziehens zeigt ein Schatten des Punktes bereits die
-                    Bewegung.
+                    Die Kugel ziehen und loslassen startet das Objekt; während
+                    des Ziehens zeigt ein Schatten des Punktes bzw. des Griffs
+                    bereits die Bewegung.
                 </li>
                 <li>
                     <strong>Länge</strong>: Geschwindigkeit, in angezeigten
                     Stufen (px/s auf einer Geraden, einem Vieleck oder einem
-                    Kegelschnitt; °/s auf einem Kreis; % auf einer Ortslinie).
+                    Kegelschnitt; °/s auf einem Kreis; % auf einer Ortslinie
+                    oder einem Schieberegler).
                 </li>
                 <li>
-                    <strong>Seite</strong>: Richtung; der Punkt läuft entgegen
-                    der Zugrichtung.
+                    <strong>Seite</strong>: Richtung; das Objekt läuft entgegen
+                    der Zugrichtung: Ein nach links (wenn senkrecht, nach unten)
+                    gezogener Schieberegler nimmt zu.
                 </li>
                 <li>
-                    <strong>Quer</strong> zu einer Geraden (mehr als 45°): hin
-                    und her. Sonst läuft der Punkt im Kreis.
+                    <strong>Quer</strong> zu einer Geraden oder einem
+                    Schieberegler (mehr als 45°): hin und her. Sonst läuft das
+                    Objekt im Kreis.
                 </li>
                 <li>Unterhalb der ersten Stufe: Stopp.</li>
             </ul>
             <p>
-                Bei einem bereits animierten Punkt erscheint die Feder gespannt
+                Bei einem bereits animierten Objekt erscheint die Feder gespannt
                 auf die aktuelle Geschwindigkeit. Zweites Drücken auf
                 <i data-i="spring"></i>: Die Feder wird weggeräumt. Genaue
                 Geschwindigkeit, umgekehrte Richtung, Anhalten am Ende:
                 Abschnitt <a href="proprietes.html#animation">Animation</a> der
-                Eigenschaften, der auch Schieberegler animiert.
+                Eigenschaften.
             </p>
         </main>
     </body>

@@ -64,35 +64,38 @@
             <h2 id="ressort">Spring</h2>
             <p>
                 <i data-i="spring"></i> <strong>Animate</strong> (point on a
-                line, segment, ray, circle, arc, polygon, conic or locus) brings
-                out under the point a spring ending in a ball.
+                line, segment, ray, circle, arc, polygon, conic or locus, or
+                slider) brings out under the point, or under the slider’s knob,
+                a spring ending in a ball.
             </p>
             <ul>
                 <li>
-                    Pulling the ball and releasing it launches the point; while
-                    pulling, a ghost of the point already shows the motion.
+                    Pulling the ball and releasing it launches the object; while
+                    pulling, a ghost of the point or knob already shows the
+                    motion.
                 </li>
                 <li>
                     <strong>Length</strong>: speed, in displayed notches (px/s
                     on a line, a polygon or a conic; °/s on a circle; % on a
-                    locus).
+                    locus or a slider).
                 </li>
                 <li>
-                    <strong>Side</strong>: direction; the point goes opposite to
-                    the pull.
+                    <strong>Side</strong>: direction; the object goes opposite
+                    to the pull: a slider pulled to the left (down if vertical)
+                    increases.
                 </li>
                 <li>
-                    <strong>Across</strong> a line (more than 45°): back and
-                    forth. Otherwise, the point loops.
+                    <strong>Across</strong> a line or a slider (more than 45°):
+                    back and forth. Otherwise, the object loops.
                 </li>
                 <li>Below the first notch: stop.</li>
             </ul>
             <p>
-                On a point already animated, the spring comes out stretched to
+                On an object already animated, the spring comes out stretched to
                 the current speed. Pressing <i data-i="spring"></i> again puts
                 the spring away. Exact speed, reverse direction, stop at the
                 end: <a href="proprietes.html#animation">Animation</a> section
-                of the properties, which also animates sliders.
+                of the properties.
             </p>
         </main>
     </body>

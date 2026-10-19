@@ -64,7 +64,10 @@ import {
 } from "../../src/editor/tools";
 import { offPlane } from "../../src/editor/space";
 import {
+    anchorOf,
+    ghostAt,
     handleOf,
+    moveGhost,
     pull,
     setAnimation,
     springOf,
@@ -1929,6 +1932,38 @@ describe("Editor", () => {
         expect(
             (await describeDgo(c)).st?.find((style) => style.an)?.an,
         ).toEqual([0, 1, 0]);
+    });
+
+    it("animates a slider as DGPad's spring, from its knob", () => {
+        const { scene: c } = studio();
+        ["b = Slider(0, 10, 2)", "d = 2 * b"].forEach((line) => type(c, line));
+        c.flush();
+        const [b, d] = ["b", "d"].map(
+            (name) => c.getObj(name) as expression_object,
+        );
+        expect([b, d].map(springy)).toEqual([true, false]);
+        const spring = springOf(b);
+        expect(spring.forward).toEqual([1, 0]);
+        expect(spring.normal.map(Math.abs)).toEqual([0, 1]);
+        // Pulled to the left, it goes up.
+        const { animation, label } = pull(spring, [-200, 0]);
+        expect(animation).toEqual({ speed: 5, direction: 1, ar: false });
+        expect(label).toBe("5 %");
+        expect(pull(spring, [0, 200])).toEqual({
+            animation: { speed: 5, direction: 1, ar: true },
+            label: "5 % ⇄",
+        });
+        // The spring tied to the knob, the ghost along the track.
+        const [x] = anchorOf(b);
+        const ghost = { at: ghostAt(b), animation };
+        const [gx] = moveGhost(b, ghost, 1);
+        expect(ghost.at).toBeCloseTo(3);
+        expect(b.value).toBe(2);
+        expect(gx - x).toBeCloseTo(b.cursorLength / 10);
+        setAnimation(b, animation);
+        b.animate(1);
+        c.flush();
+        expect(d.value).toBeCloseTo(6);
     });
 
     it("animates a point on a conic, which DGPad doesn't", () => {
