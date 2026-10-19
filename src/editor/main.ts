@@ -4312,18 +4312,42 @@ async function open(
     );
 }
 
+// A chosen or dropped file.
+function openFile(file: File): Promise<void> {
+    return open(file.name, async (c) =>
+        /\.ggb$/i.test(file.name)
+            ? importGgbFromBlob(c, file)
+            : /\.dgo$/i.test(file.name)
+              ? importDgoFromBlob(c, file)
+              : importDgp(c, await file.text()),
+    );
+}
+
 fileInput.on(
     "change",
     () => {
-        const file = (fileInput.dom() as HTMLInputElement).files![0];
-        void open(file.name, async (c) =>
-            /\.ggb$/i.test(file.name)
-                ? importGgbFromBlob(c, file)
-                : /\.dgo$/i.test(file.name)
-                  ? importDgoFromBlob(c, file)
-                  : importDgp(c, await file.text()),
-        );
+        void openFile((fileInput.dom() as HTMLInputElement).files![0]);
         (fileInput.dom() as HTMLInputElement).value = "";
+    },
+    false,
+);
+
+// A figure file dropped on the page opens like a chosen one. Other drops,
+// of text into a field, are left alone.
+$("body").on(
+    "dragover",
+    (event) => {
+        if (event.dataTransfer!.types.includes("Files")) event.preventDefault();
+    },
+    false,
+);
+$("body").on(
+    "drop",
+    (event) => {
+        if (!event.dataTransfer!.types.includes("Files")) return;
+        event.preventDefault();
+        const file = event.dataTransfer!.files[0];
+        if (/\.(dgo|dgp|ggb)$/i.test(file.name)) void openFile(file);
     },
     false,
 );

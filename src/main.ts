@@ -54,6 +54,9 @@ $("head").append(`<style>
 // The open figure's name, which a save keeps.
 let figureName: string | null = null;
 
+// While the picker is shown, what a dropped file is handed to.
+let picked: ((file: File) => Promise<void>) | null = null;
+
 // Rather than the browser saving the page.
 $("body").on(
     "keydown",
@@ -84,6 +87,30 @@ export const DOCGEO_READY = search.has("embed")
                   : importDgpFromUrl(DOCGEO.scene, url),
         )
       : pickFigure();
+
+// Outside the embedded mode, a figure file dropped on the page opens in
+// place of the one shown. Other drops, of text into a field, are left alone.
+if (!search.has("embed")) {
+    $("body").on(
+        "dragover",
+        (event) => {
+            if (event.dataTransfer!.types.includes("Files"))
+                event.preventDefault();
+        },
+        false,
+    );
+    $("body").on(
+        "drop",
+        (event) => {
+            if (!event.dataTransfer!.types.includes("Files")) return;
+            event.preventDefault();
+            const file = event.dataTransfer!.files[0];
+            if (/\.(dgo|dgp|ggb)$/i.test(file.name))
+                void (picked ?? openFile)(file);
+        },
+        false,
+    );
+}
 
 async function saveFigure(name: string): Promise<void> {
     const href = URL.createObjectURL(await writeDgo(DOCGEO.scene));
@@ -128,6 +155,22 @@ async function openFigure(
     if (unsupported.length > 0) showUnsupported(unsupported);
 }
 
+// Opens a chosen or dropped file in place of the figure shown.
+function openFile(file: File): Promise<void> {
+    DOCGEO.scene.dispose();
+    DOCGEO.scene = construction.create(DOCGEO);
+    $("body")
+        .findAll(".docgeo-notice")
+        .forEach((notice) => notice.dispose());
+    return openFigure(file.name, async () =>
+        /\.ggb$/i.test(file.name)
+            ? importGgbFromBlob(DOCGEO.scene, file)
+            : /\.dgo$/i.test(file.name)
+              ? importDgoFromBlob(DOCGEO.scene, file)
+              : importDgp(DOCGEO.scene, await file.text()),
+    );
+}
+
 // Browsers only open a file picker in response to a user gesture.
 function pickFigure(error?: DOMElement): Promise<void> {
     return new Promise((resolve) => {
@@ -145,18 +188,15 @@ function pickFigure(error?: DOMElement): Promise<void> {
         if (error) overlay.add(error);
         overlay.add(button);
         button.on("click", () => (input.dom() as HTMLInputElement).click());
-        input.on("change", async () => {
-            const file = (input.dom() as HTMLInputElement).files![0];
+        picked = async (file) => {
+            picked = null;
             overlay.remove();
-            await openFigure(file.name, async () =>
-                /\.ggb$/i.test(file.name)
-                    ? importGgbFromBlob(DOCGEO.scene, file)
-                    : /\.dgo$/i.test(file.name)
-                      ? importDgoFromBlob(DOCGEO.scene, file)
-                      : importDgp(DOCGEO.scene, await file.text()),
-            );
+            await openFile(file);
             resolve();
-        });
+        };
+        input.on("change", () =>
+            picked!((input.dom() as HTMLInputElement).files![0]),
+        );
         $("body").add(overlay);
     });
 }
