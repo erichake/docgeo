@@ -262,6 +262,18 @@ const literal = (node: FormulaNode): number | string | null =>
             ? -node.operand.value
             : null;
 
+// Blockly's φ: (1 + Math.sqrt(5)) / 2.
+const goldenRatio = (node: FormulaNode): boolean =>
+    node.kind === "binary" &&
+    node.op === "/" &&
+    literal(node.right) === 2 &&
+    node.left.kind === "binary" &&
+    node.left.op === "+" &&
+    literal(node.left.left) === 1 &&
+    node.left.right.kind === "call" &&
+    node.left.right.fn === "sqrt" &&
+    literal(node.left.right.args[0]) === 5;
+
 // Whether the value is a whole number, as written.
 const whole = (node: FormulaNode): boolean =>
     node.kind === "number"
@@ -1005,7 +1017,10 @@ class Decompiler {
             case "string":
                 return text(node.value);
             case "constant":
-                return { type: "math_constant", fields: { CONSTANT: "PI" } };
+                return {
+                    type: "math_constant",
+                    fields: { CONSTANT: node.name },
+                };
             case "identifier":
                 if (globalOf(node.name) !== null)
                     return {
@@ -1032,7 +1047,12 @@ class Decompiler {
                           inputs: { NUM: value(this.value(node.operand)) },
                       };
             case "binary":
-                return this.binary(node);
+                return goldenRatio(node)
+                    ? {
+                          type: "math_constant",
+                          fields: { CONSTANT: "GOLDEN_RATIO" },
+                      }
+                    : this.binary(node);
             case "conditional":
                 return {
                     type: "logic_ternary",
@@ -1393,6 +1413,15 @@ const OR = 9;
 const CONDITIONAL = 10;
 
 type Code = [string, number];
+
+const CONSTANT_CODE: Record<string, Code> = {
+    PI: ["Math.PI", ATOM],
+    E: ["Math.E", ATOM],
+    GOLDEN_RATIO: ["(1 + sqrt(5)) / 2", PRODUCT],
+    SQRT2: ["Math.SQRT2", ATOM],
+    SQRT1_2: ["Math.SQRT1_2", ATOM],
+    INFINITY: ["Infinity", ATOM],
+};
 
 const OPERATORS: Record<string, [string, number]> = {
     ADD: ["+", SUM],
@@ -1862,7 +1891,7 @@ class Generator {
             case "logic_boolean":
                 return [fields.BOOL === "TRUE" ? "true" : "false", ATOM];
             case "math_constant":
-                return ["Math.PI", ATOM];
+                return CONSTANT_CODE[String(fields.CONSTANT)];
             case "variables_get":
                 return [this.variable(block), ATOM];
             case "dg_object":

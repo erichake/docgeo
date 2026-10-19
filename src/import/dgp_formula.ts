@@ -287,11 +287,20 @@ export function blocklySource(
 
 type BinaryOp = "+" | "-" | "*" | "/" | "%" | "^" | Comparison;
 
+// Blockly's constants, but φ, which it writes (1 + Math.sqrt(5)) / 2.
+const CONSTANTS = {
+    PI: Math.PI,
+    E: Math.E,
+    SQRT2: Math.SQRT2,
+    SQRT1_2: Math.SQRT1_2,
+    INFINITY: Infinity,
+};
+
 export type FormulaNode =
     | { kind: "number"; value: number }
     | { kind: "string"; value: string }
     | { kind: "imaginary" }
-    | { kind: "constant"; name: "PI" }
+    | { kind: "constant"; name: keyof typeof CONSTANTS }
     | { kind: "identifier"; name: string }
     | { kind: "call"; fn: FormulaFn; args: FormulaNode[] }
     // A call to a name that isn't one of the built-in FORMULA_ARITY
@@ -962,6 +971,8 @@ class FormulaParser {
             // "π" is DGPad's own notation for PI in slider bounds/formulas.
             if (name === "PI" || name === "π")
                 return { kind: "constant", name: "PI" };
+            if (name === "Infinity")
+                return { kind: "constant", name: "INFINITY" };
             if (name === "NaN") return { kind: "number", value: NaN };
             // Blockly's empty input, 0 in JavaScript's arithmetic.
             if (name === "null") return { kind: "number", value: 0 };
@@ -1046,7 +1057,13 @@ class FormulaParser {
     private member(object: string): FormulaNode {
         const name = this.name();
         if (object === "Math") {
-            if (name === "PI") return { kind: "constant", name: "PI" };
+            if (
+                name === "PI" ||
+                name === "E" ||
+                name === "SQRT2" ||
+                name === "SQRT1_2"
+            )
+                return { kind: "constant", name };
             // Blockly's minimum or maximum of a list it builds:
             // Math.min.apply(null, [a, b]).
             if ((name === "min" || name === "max") && this.skip(".")) {
@@ -2333,8 +2350,10 @@ function compileNode(node: FormulaNode, scope: Scope): Code {
         }
         case "imaginary":
             return () => [0, 1];
-        case "constant":
-            return () => Math.PI;
+        case "constant": {
+            const value = CONSTANTS[node.name];
+            return () => value;
+        }
         case "identifier": {
             const { name } = node;
             const slot = scope.slots.get(name);
@@ -3148,7 +3167,7 @@ function translateNode(
         case "imaginary":
             return "[0,1]";
         case "constant":
-            return t.number(Math.PI);
+            return t.number(CONSTANTS[node.name]);
         case "identifier": {
             const slot = scope.slots.get(node.name);
             return slot === undefined

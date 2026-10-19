@@ -340,6 +340,27 @@ return TURTLE_RESULT();`;
         roundTrip(turn.replace(/\((-?\d+)(,|\))/g, "($1°$2"), false);
     });
 
+    it("shows each of Blockly's constants", () => {
+        const source =
+            "return Math.PI + Math.E * ((1 + Math.sqrt(5)) / 2) - Math.SQRT2 / Math.SQRT1_2 + (a < Infinity ? 1 : 0);";
+        const constants = JSON.stringify(programBlocks(source, true)).matchAll(
+            /"CONSTANT":"(\w+)"/g,
+        );
+        expect(new Set([...constants].map((match) => match[1]))).toEqual(
+            new Set([
+                "PI",
+                "E",
+                "GOLDEN_RATIO",
+                "SQRT2",
+                "SQRT1_2",
+                "INFINITY",
+            ]),
+        );
+        expect(roundTrip(source)).toBe(
+            "return Math.PI + Math.E * ((1 + sqrt(5)) / 2) - Math.SQRT2 / Math.SQRT1_2 + (a < Infinity ? 1 : 0);",
+        );
+    });
+
     it("draws at random", () => {
         const program = blocksProgram(
             programBlocks("Math.floor(Math.random() * 6) + 1", true)!,

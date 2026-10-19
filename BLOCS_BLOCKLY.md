@@ -202,9 +202,15 @@ Remarqué en chemin, hors chantier :
   Dalhia_3tempo_Sesam, Dalhia_4tempo_Sesam, NewP4554Temps, PavPentaMR3 :
   globales `Rsuiv`, `ccar`…) échouaient déjà avant ce chantier (commit
   `588c95a`) ;
-- le bloc « constante » de Blockly (π, e,
-  φ, √2, √½, ∞) s'écrit toujours `Math.PI`, quelle que soit la constante
-  choisie ; la grammaire ne connaît que π (et `1 / 0` n'y vaut pas l'infini).
+- le bloc « constante » de Blockly (π, e, φ, √2, √½, ∞) s'écrivait
+  toujours `Math.PI`, et la grammaire ne connaissait que π : `Math.E`,
+  `Math.SQRT2`, `Math.SQRT1_2` rendaient le programme illisible et
+  `Infinity` y était lu comme un nom d'objet. Corrigé : les cinq constantes
+  sont lues, φ (que Blockly écrit `(1 + Math.sqrt(5)) / 2`) est reconnu en
+  blocs, et chaque constante s'écrit comme dans DGPad (moteur 362,53 Ko,
+  +0,18 Ko). `1 / 0` valait déjà l'infini dans un programme ; seule une
+  valeur finale non finie rend l'expression indéfinie. Le `i` de DGPad
+  (`[0,1]`) se montre en bloc point (0, 1), de même valeur.
 
 Manuels (au feu vert de l'auteur, 2026-10-19) : la section « Blocs et
 tortue » de `expressions.html`, dans les 12 langues, présente les blocs

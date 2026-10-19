@@ -192,6 +192,16 @@ describe("evaluateFormula", () => {
         expect(evaluateFormula(parseFormula("2^10"), noPoints)).toBe(1024);
     });
 
+    it("evaluates Blockly's constants", () => {
+        expect(
+            evaluateFormula(
+                parseFormula("Math.E + Math.SQRT2 * Math.SQRT1_2"),
+                noPoints,
+            ),
+        ).toBeCloseTo(Math.E + 1, 12);
+        expect(evaluateFormula(parseFormula("1 / Infinity"), noPoints)).toBe(0);
+    });
+
     it("evaluates complex arithmetic", () => {
         expect(evaluateFormula(parseFormula("2+3i"), noPoints)).toEqual([2, 3]);
         expect(evaluateFormula(parseFormula("(1+i)*(1-i)"), noPoints)).toEqual([
