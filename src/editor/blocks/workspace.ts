@@ -837,6 +837,16 @@ export async function blocksEditor(
     Blockly.dialog.setAlert((text, done) =>
         owner.dialog({ text, ok: ok() }, () => done?.()),
     );
+    // DGPad's operations, on points and complex numbers too: "P1 + [1, 0]".
+    const arithmetic = Blockly.Blocks.math_arithmetic;
+    const init = arithmetic.init!;
+    arithmetic.init = function (this: Blockly.Block) {
+        init.call(this);
+        const types = ["Number", "Array"];
+        this.setOutput(true, types);
+        this.getInput("A")!.setCheck(types);
+        this.getInput("B")!.setCheck(types);
+    };
     // Procedures without a value only: DGPad's turtles have no other.
     delete Blockly.Blocks.procedures_defreturn;
     delete Blockly.Blocks.procedures_ifreturn;

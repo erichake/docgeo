@@ -1205,7 +1205,10 @@ ses méthodes internes et figé dans sa version de 2016.
   taille des points, remplissage, écriture, police, image, se tourner vers
   un point, y aller, position, point n° et nombre de points d'une tortue,
   décimales écrites), ceux de Blockly (boucles, logique, maths, texte,
-  variables, fonctions sans valeur), une catégorie « Globales » (créer une
+  variables, fonctions sans valeur ; l'opération + − × ÷ de Blockly prend
+  aussi des points, comme le `Math.plus` de DGPad : `P1 + [1, 0]`, sinon
+  Blockly refuserait d'y brancher le bloc « point » et l'espace de travail
+  resterait vide), une catégorie « Globales » (créer une
   globale, la fixer, l'augmenter, la lire : les globales de DGPad, `Ex`
   cachées de la figure, créées à l'application du programme qui en nomme une
   nouvelle) et une catégorie « Figure » : objet de la figure (menu de ses

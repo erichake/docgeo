@@ -7,10 +7,17 @@ import {
     describeDgo,
     figureObjects,
     importDgoFromBlob,
+    importDgoFromUrl,
     readDgo,
     writeDgo,
 } from "../../src/dgo";
+import {
+    blocksProgram,
+    programBlocks,
+} from "../../src/editor/blocks/program_blocks";
+import { formatName } from "../../src/editor/text";
 import { importGgb, importGgbFromUrl } from "../../src/ggb_importer";
+import { parseProgram } from "../../src/import/dgp_formula";
 import { expression_object } from "../../src/objects/expression_object";
 import { point_on_object } from "../../src/objects/point_on_object";
 import { point_object } from "../../src/objects/point_object";
@@ -548,5 +555,26 @@ describe(".dgo reader", () => {
                 o: [["Pt", "A", [1, 2]], ["Seg", "s", [0, 0]], entry],
             }),
         ).toThrow("Invalid DGO file");
+    });
+});
+
+describe(".dgo figures", () => {
+    it("draws the long division with a turtle its blocks write", async () => {
+        const c = createConstruction();
+        await importDgoFromUrl(c, "/tests/dgo/division_posee.dgo");
+        const digits = [...c.svg.dom().querySelectorAll("text")]
+            .map((text) => text.textContent)
+            .join("");
+        expect(digits).toBe("78962278-90-9678-182156-262234-287810123");
+        const objects = (await describeDgo(c)).o as [
+            string,
+            string,
+            { s: [string] },
+        ][];
+        const [program] = objects.find(
+            ([, name]) => name === "blk_turtle_exp_P1",
+        )![2].s;
+        const blocks = programBlocks(parseProgram(program), true);
+        expect(blocksProgram(blocks!, formatName)).toBe(program);
     });
 });
