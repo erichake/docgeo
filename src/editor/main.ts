@@ -985,6 +985,12 @@ let springOut = false;
 
 const element = (node: EventTarget | null) =>
     node instanceof Element ? node : null;
+// Keys typed in a text field, even one outside the panels (Blockly's
+// dialogs and field editors live in the body), never act on the figure.
+const typed = (node: EventTarget | null) =>
+    node instanceof HTMLInputElement ||
+    node instanceof HTMLTextAreaElement ||
+    (node instanceof HTMLElement && node.isContentEditable);
 const inFigure = (event: Event): boolean =>
     scene().svg.dom().contains(element(event.target));
 const editing = (): HTMLInputElement | null => {
@@ -4202,6 +4208,7 @@ $("body").on(
             void save();
         } else if (
             editing() ||
+            typed(event.target) ||
             ([properties.panel, magnetCard].some((box) =>
                 box.dom().contains(element(event.target)),
             ) &&
