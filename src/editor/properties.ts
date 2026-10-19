@@ -1142,8 +1142,12 @@ export function propertiesPanel(options: {
         const box = section("programs");
         if (adding !== owner) {
             const open = $.create("button")
+                .cls("dge-add-program")
                 .att("type", "button")
-                .text(message("add_program"));
+                .append(
+                    '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>',
+                )
+                .add($.create("span").text(message("add_program")));
             open.on(
                 "click",
                 () => {
