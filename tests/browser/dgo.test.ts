@@ -658,14 +658,56 @@ describe(".dgo figures", () => {
         expectClose(curve[curve.length - 1], P4.coords.slice(0, 2));
         expect(P4.hidden).toBe(0);
     });
+
+    it("counts the bike's turns with the pedal's drag program, written by blocks", async () => {
+        const c = createConstruction();
+        await importDgoFromUrl(c, "/tests/dgo/VTT.dgo");
+        // The wheel's size in pixels, 2*C8*pixel(), has no block.
+        await expectBlocksPrograms(c, 8, ["taille"]);
+        const point = (name: string) => c.getObj(name) as point_object;
+        const [M, P1, P3] = [point("M"), point("P1"), point("P3")];
+        const r = c.getObj("C2")!.scriptValue(false) as number;
+        // Where the pedal is, turned clockwise by the angle (degrees).
+        const onCrank = (angle: number): Vec3 => {
+            const a = (angle * Math.PI) / 180;
+            return [P3.x + r * Math.cos(a), P3.y - r * Math.sin(a), 0];
+        };
+        // The pedal turned by 450°, 5° at a time.
+        for (let angle = 5; angle <= 450; angle += 5) {
+            M.coords = onCrank(angle);
+            c.invalidateGeometry(M);
+            c.gesture(M, "drag");
+            c.flush();
+        }
+        expect((c.getObj("c") as expression_object).value).toBeCloseTo(450);
+        await frame();
+        const texts = [...c.svg.dom().querySelectorAll("text")].map(
+            (text) => text.textContent,
+        );
+        expect(texts).toContain("1,25 tours");
+        expect(texts).toContain("2,19 tours");
+        // The bike moved: the pedal stays where it was on the crank.
+        P1.coords = [P1.x + 1, P1.y + 2, 0];
+        c.invalidateGeometry(P1);
+        c.gesture(P1, "drag");
+        c.flush();
+        expectClose(M.coords, onCrank(450));
+        (c.getObj("blk_btn") as button_object).run();
+        c.flush();
+        expect((c.getObj("c") as expression_object).value).toBe(0);
+        expectClose(M.coords, point("P5").coords);
+    });
 });
 
-// The figure's programs, each shown in blocks, which write it back as it is.
+// The figure's programs, each shown in blocks, which write it back as it is,
+// but the expressions named `formulas`, which have no blocks.
 async function expectBlocksPrograms(
     c: construction,
     count: number,
+    formulas: string[] = [],
 ): Promise<void> {
     const programs = ((await describeDgo(c)).o as [string, string, unknown][])
+        .filter(([, name]) => !formulas.includes(name))
         .map(([, , params]) => (params as { s?: [string] }).s?.[0])
         .filter((program) => program !== undefined);
     expect(programs.length).toBe(count);
