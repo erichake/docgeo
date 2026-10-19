@@ -211,6 +211,7 @@ const pt: Texts = {
         event_down: "quando % for pressionado",
         event_up: "quando % for solto",
         event_change: "quando % mudar",
+        event_init: "quando a figura abrir",
         when_dragged: "Quando o objeto for arrastado",
         when_pressed: "Quando o objeto for pressionado",
         when_released: "Quando o objeto for solto",

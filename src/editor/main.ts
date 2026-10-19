@@ -1,5 +1,5 @@
 // First, as in the player: the object classes import each other.
-import { AWAKE, construction, type Gesture } from "../construction";
+import { AWAKE, construction } from "../construction";
 import type { Animation } from "../animation";
 import {
     describeDgo,
@@ -18,7 +18,7 @@ import type { construction_object } from "../objects/construction_object";
 import { point_object, type magnet_target } from "../objects/point_object";
 import type { point_on_object } from "../objects/point_on_object";
 import { button_object } from "../objects/button_object";
-import { event_object } from "../objects/event_object";
+import { event_object, type Trigger } from "../objects/event_object";
 import { expression_object } from "../objects/expression_object";
 import { expression_list_object } from "../objects/expression_list_object";
 import { panel_object } from "../objects/panel_object";
@@ -702,8 +702,8 @@ const properties = propertiesPanel({
         kind === "turtle"
             ? editTurtle(object)
             : startEvent(
-                  object as point_object | expression_object,
-                  kind === "change" ? null : (kind as Gesture),
+                  object as point_object | expression_object | button_object,
+                  kind === "change" ? null : (kind as Trigger),
               ),
     remove: (program) => {
         scene().removeObject(program);
@@ -1066,6 +1066,7 @@ const EVENT_TEXTS: Record<string, MessageKey> = {
     down: "event_down",
     up: "event_up",
     change: "event_change",
+    init: "event_init",
 };
 
 function refreshRows(): void {
@@ -2696,11 +2697,11 @@ function editTurtle(turtle: construction_object): void {
     done(program);
 }
 
-// The program of the point's gesture, or of the change of the
-// expression's value, in blocks, made if it has none.
+// The program of the point's gesture, of the change of the expression's
+// value, or of the opening of the figure, in blocks, made if it has none.
 function startEvent(
-    owner: point_object | expression_object,
-    gesture: Gesture | null,
+    owner: point_object | expression_object | button_object,
+    gesture: Trigger | null,
 ): void {
     const c = scene();
     const existing = figureObjects(c).find(

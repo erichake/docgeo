@@ -124,8 +124,8 @@ import { createNet } from "./objects/net_object";
 import { createSymmetry } from "./objects/symmetry_object";
 import { createText } from "./objects/text_object";
 import { createPanel, panelNames, parsePanel } from "./objects/panel_object";
-import { createEvent } from "./objects/event_object";
-import { createButton } from "./objects/button_object";
+import { createEvent, runInits } from "./objects/event_object";
+import { button_object, createButton } from "./objects/button_object";
 import { createLine } from "./objects/two_points_line_object";
 import { createVector, vector_object } from "./objects/vector_object";
 import { createFreeVector } from "./objects/free_vector_object";
@@ -830,6 +830,7 @@ export async function importDgoFromBlob(
             ? file.stream().pipeThrough(new DecompressionStream("gzip"))
             : file.stream();
     readDgo(c, JSON.parse(await new Response(stream).text()), centered);
+    runInits(c);
     return [];
 }
 
@@ -1898,11 +1899,22 @@ const BUILDERS: Record<string, Builder> = {
     Evt: (parameters, reader) => {
         check(isRecord(parameters) && parameters.s !== undefined);
         const { e } = parameters;
-        check(e === undefined || e === "drag" || e === "down" || e === "up");
+        check(
+            e === undefined ||
+                e === "drag" ||
+                e === "down" ||
+                e === "up" ||
+                e === "init",
+        );
         return createEvent(
             reader.c,
             reader.name,
-            reader.at(parameters.on, e ? point_object : expression_object),
+            e === "init"
+                ? reader.at(parameters.on, expression_object, button_object)
+                : reader.at(
+                      parameters.on,
+                      e ? point_object : expression_object,
+                  ),
             scriptProgram(reader, parameters.s),
             e ?? null,
         );

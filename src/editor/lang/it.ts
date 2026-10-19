@@ -210,6 +210,7 @@ const it: Texts = {
         event_down: "quando % viene premuto",
         event_up: "quando % viene rilasciato",
         event_change: "quando % cambia",
+        event_init: "quando si apre la figura",
         when_dragged: "Quando l'oggetto viene trascinato",
         when_pressed: "Quando l'oggetto viene premuto",
         when_released: "Quando l'oggetto viene rilasciato",

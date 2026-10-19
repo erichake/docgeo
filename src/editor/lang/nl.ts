@@ -213,6 +213,7 @@ const nl: Texts = {
         event_down: "wanneer % wordt ingedrukt",
         event_up: "wanneer % wordt losgelaten",
         event_change: "wanneer % verandert",
+        event_init: "wanneer de figuur opent",
         when_dragged: "Wanneer het object wordt gesleept",
         when_pressed: "Wanneer het object wordt ingedrukt",
         when_released: "Wanneer het object wordt losgelaten",

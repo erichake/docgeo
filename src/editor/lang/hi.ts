@@ -212,6 +212,7 @@ const hi: Texts = {
         event_down: "जब % दबाया जाए",
         event_up: "जब % छोड़ा जाए",
         event_change: "जब % बदले",
+        event_init: "जब आकृति खुले",
         when_dragged: "जब वस्तु खींची जाए",
         when_pressed: "जब वस्तु दबाई जाए",
         when_released: "जब वस्तु छोड़ी जाए",

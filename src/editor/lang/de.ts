@@ -213,6 +213,7 @@ const de: Texts = {
         event_down: "wenn % gedrückt wird",
         event_up: "wenn % losgelassen wird",
         event_change: "wenn sich % ändert",
+        event_init: "wenn die Figur geöffnet wird",
         when_dragged: "Wenn das Objekt gezogen wird",
         when_pressed: "Wenn das Objekt gedrückt wird",
         when_released: "Wenn das Objekt losgelassen wird",

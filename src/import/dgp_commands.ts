@@ -38,8 +38,8 @@ import {
 import { createCircle } from "../objects/circle_object";
 import { construction_object, isDash } from "../objects/construction_object";
 import { createCurve, type CurveBound } from "../objects/curve_object";
-import { createButton } from "../objects/button_object";
-import { createEvent } from "../objects/event_object";
+import { createButton, type button_object } from "../objects/button_object";
+import { createEvent, runInits } from "../objects/event_object";
 import { createCylinderIntersection } from "../objects/cylinder_intersection_object";
 import { createCylinderSection } from "../objects/cylinder_section_object";
 import { createDirectionPoint } from "../objects/direction_point_object";
@@ -47,7 +47,6 @@ import {
     createExpression,
     expression_object,
     listArrow,
-    runProgram,
     type ExpressionFormula,
     type SliderBounds,
     type ExpressionProgram,
@@ -224,8 +223,6 @@ interface CommandContext {
     // (see SetCoords' execute) and can keep changing afterward (e.g. on
     // window resize).
     labelOrigin: Vec2;
-    // The "oninit" programs, run once the figure is read (see BLK).
-    inits: ExpressionProgram[];
 }
 
 interface CommandDefinition {
@@ -3297,7 +3294,8 @@ const COMMANDS = new Map<string, CommandDefinition>([
             },
             execute: (context, args) => {
                 const modes = JSON.parse(args[1] as string);
-                const owner = args[0] as expression_object | point_object;
+                const owner = args[0] as
+                    expression_object | point_object | button_object;
                 ["onchange", "oninit", ...Object.keys(GESTURES)].forEach(
                     (mode) => {
                         const sync = modes[mode]?.sync;
@@ -3315,15 +3313,15 @@ const COMMANDS = new Map<string, CommandDefinition>([
                             ),
                             vec3: context.is3D,
                         };
-                        if (mode === "oninit") context.inits.push(expression);
-                        else
-                            createEvent(
-                                context.construction,
-                                `${owner.name}.${mode}`,
-                                owner,
-                                expression,
-                                GESTURES[mode] ?? null,
-                            );
+                        createEvent(
+                            context.construction,
+                            `${owner.name}.${mode}`,
+                            owner,
+                            expression,
+                            mode === "oninit"
+                                ? "init"
+                                : (GESTURES[mode] ?? null),
+                        );
                     },
                 );
             },
@@ -3838,7 +3836,6 @@ function executeCalls(
         is3D,
         origin3DAssigned: is3D,
         labelOrigin: [0, 0],
-        inits: [],
     };
 
     c.beginBatch();
@@ -3879,7 +3876,7 @@ function executeCalls(
     }
     if (context.gridChanged) c.GRID.createSVG();
     c.endBatch();
-    context.inits.forEach((program) => runProgram(c, program));
+    runInits(c);
     if (context.projectionChanged) c.invalidateProjection();
     return { variables: context.variables, unsupported };
 }

@@ -207,6 +207,7 @@ export default {
     event_down: "when % is pressed",
     event_up: "when % is released",
     event_change: "when % changes",
+    event_init: "when the figure opens",
     when_dragged: "When the object is dragged",
     when_pressed: "When the object is pressed",
     when_released: "When the object is released",

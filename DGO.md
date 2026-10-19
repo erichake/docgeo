@@ -399,7 +399,10 @@ la figure, autour de la verticale de O dans l'espace, sa hauteur gardée),
     retire d'abord les attributs d'événement, `onclick`…, de ses éléments). Ses parties
     `%formule%` affichent leur valeur (`%%` est un `%`), ses parties `$TeX$`
     sont dessinées par KaTeX ; un champ `target="E"` change le nombre de
-    l'expression `E` (état élève de `E`). Position et taille intérieure en
+    l'expression `E` (état élève de `E`) ; un menu `populate="L"` prend ses
+    options dans la liste de l'expression `L`, chacune `[valeur, légende]` ou
+    une valeur qui est sa propre légende (une légende entre apostrophes
+    s'affiche sans elles). Position et taille intérieure en
     pixels ; couleur (`c`, `o`) du cadre et du fond, taille (`s`) du cadre,
     précision (`p`) des valeurs.
 12. Les points (2 ou 3 nombres, un point indéfini coupant le tracé) sont
@@ -424,7 +427,8 @@ alignement]]` police, `[30, url, l, h, zoom, opacité, u]` image (largeur
     mi-hauteur, en pixels. Un clic exécute le script, qui ne fait que mettre
     en forme des objets et, par `SET_EXP("E", valeur)` ou une globale (6),
     changer la valeur d'une `Ex` de valeur constante, comme une manipulation
-    (état élève de `E`). Sans `"s"`, il ne fait rien.
+    (état élève de `E`), et afficher un message (`ALERT(texte)`, dont seul
+    le texte est gardé, pas le HTML). Sans `"s"`, il ne fait rien.
 14. `g` et `d` : formules en x et y des deux membres de l'équation, de degré
     1 pour une droite, 2 au plus pour une conique, recalculés à chaque
     mouvement. Un cercle a le même coefficient en x² et en y², sans xy ; une
@@ -518,7 +522,12 @@ alignement]]` police, `[30, url, l, h, zoom, opacité, u]` image (largeur
     ou un autre programme le déplace ; `"down"` et `"up"` (« onmousedown »,
     « onmouseup »), quand on l'appuie et le relâche. Plusieurs programmes
     d'un même geste s'exécutent chacun, dans l'ordre de la figure. Le script
-    fixe aussi la place des points libres (`SET_EXP`).
+    fixe aussi la place des points libres (`SET_EXP`). Avec `"e": "init"`,
+    programme « oninit » de DGPad d'une expression ou d'un bouton `on`
+    (« quand la figure s'ouvre » de l'éditeur) : il s'exécute une fois,
+    quand la figure est ouverte (fichier `.dgo` ou import `.dgp`), avant ce
+    que la page hôte applique (état élève), et pas quand l'éditeur
+    reconstruit la figure.
 
 ### Styles `st`
 

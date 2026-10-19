@@ -197,6 +197,7 @@ const zh: Texts = {
         event_down: "当 % 被按下",
         event_up: "当 % 被松开",
         event_change: "当 % 改变",
+        event_init: "当图形打开时",
         when_dragged: "当对象被拖动",
         when_pressed: "当对象被按下",
         when_released: "当对象被松开",

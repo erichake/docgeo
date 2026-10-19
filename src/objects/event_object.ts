@@ -1,4 +1,5 @@
 import type { construction, Gesture } from "../construction";
+import type { button_object } from "./button_object";
 import { formulaSource, type ScriptValue } from "../import/dgp_formula";
 import {
     construction_object,
@@ -12,16 +13,20 @@ import {
 } from "./expression_object";
 import type { point_object } from "./point_object";
 
+// What runs an event's program but a change of value.
+export type Trigger = Gesture | "init";
+
 // DGPad's Blockly "onchange" program of an expression, run as a button's
 // once its value has changed (slider, animation, SET_EXP), or a point's
 // program for a gesture: "ondrag" once it is dragged or animated,
 // "onmousedown" and "onmouseup" once pressed and released. Never as the
-// figure opens. Never drawn.
+// figure opens, but "oninit", of an expression or a button, which runs only
+// then (see runInits). Never drawn.
 export class event_object extends construction_object {
-    owner: expression_object | point_object;
+    owner: expression_object | point_object | button_object;
     program: ExpressionProgram;
     // Null for a change of value.
-    gesture: Gesture | null;
+    gesture: Trigger | null;
     // The value it last ran for, or the update.
     private seen: ScriptValue | null;
     private pass = -1;
@@ -29,9 +34,9 @@ export class event_object extends construction_object {
     constructor(
         c: construction,
         name: string | null | undefined,
-        owner: expression_object | point_object,
+        owner: expression_object | point_object | button_object,
         program: ExpressionProgram,
-        gesture: Gesture | null,
+        gesture: Trigger | null,
     ) {
         super(c, name, "expression");
         this.owner = owner;
@@ -64,6 +69,7 @@ export class event_object extends construction_object {
     }
 
     computeGeometry(): void {
+        if (this.gesture === "init") return;
         if (this.gesture) {
             // Once: what it sets computes it again.
             const { pass } = this.C.OBJS;
@@ -86,9 +92,19 @@ export class event_object extends construction_object {
 export function createEvent(
     c: construction,
     name: string | null | undefined,
-    owner: expression_object | point_object,
+    owner: expression_object | point_object | button_object,
     program: ExpressionProgram,
-    gesture: Gesture | null = null,
+    gesture: Trigger | null = null,
 ): event_object {
     return c.add(new event_object(c, name, owner, program, gesture));
+}
+
+// The "oninit" programs, run once the figure has opened, before what the
+// host page may set (see EMBED.md), as DGPad runs them: not when the editor
+// builds the figure again.
+export function runInits(c: construction): void {
+    c.OBJS.V.forEach((object) => {
+        if (object instanceof event_object && object.gesture === "init")
+            runProgram(c, object.program);
+    });
 }

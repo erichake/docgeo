@@ -57,8 +57,8 @@ export type FormulaFn =
     | "°"
     | ListFn;
 
-// DGPad's own names for its operators, also applying to lists, and its
-// view restrictions (see restrictView).
+// DGPad's own names for its operators, also applying to lists, its view
+// restrictions (see restrictView) and Blockly's message (see alert).
 type ListFn =
     | "plus"
     | "minus"
@@ -67,7 +67,8 @@ type ListFn =
     | "power"
     | "pow"
     | "restrictTheta"
-    | "restrictPhi";
+    | "restrictPhi"
+    | "ALERT";
 
 // -1: one argument or more.
 const FORMULA_ARITY: Record<FormulaFn, number> = {
@@ -122,6 +123,7 @@ const FORMULA_ARITY: Record<FormulaFn, number> = {
     pow: 2,
     restrictTheta: 1,
     restrictPhi: 1,
+    ALERT: 1,
 };
 
 const LIST_OPERATORS: Record<ListFn, BinaryOp | null> = {
@@ -133,6 +135,7 @@ const LIST_OPERATORS: Record<ListFn, BinaryOp | null> = {
     pow: "^",
     restrictTheta: null,
     restrictPhi: null,
+    ALERT: null,
 };
 
 // The only methods a script may call: reading an object, changing one of
@@ -1614,6 +1617,8 @@ export interface FormulaEnv {
     // DGPad's restrictTheta and restrictPhi, which also turn the view as
     // they run, e.g. to make it spin with an animated number.
     restrictView?(angle: "THETA" | "PHI", range: ScriptValue | null): void;
+    // Blockly's message, shown by a program run as a manipulation.
+    alert?(message: ScriptValue | null): void;
     // Carries out a script's styling method on one of the figure's objects.
     callMethod?(
         object: string,
@@ -2475,10 +2480,12 @@ function compileNode(node: FormulaNode, scope: Scope): Code {
                     const values = evalCodes(args, frame);
                     if (values === null) return null;
                     if (op) return evalBinary(op, values[0], values[1]);
-                    frame.env.restrictView?.(
-                        fn === "restrictTheta" ? "THETA" : "PHI",
-                        values[0],
-                    );
+                    if (fn === "ALERT") frame.env.alert?.(values[0]);
+                    else
+                        frame.env.restrictView?.(
+                            fn === "restrictTheta" ? "THETA" : "PHI",
+                            values[0],
+                        );
                     return values[0];
                 };
             }

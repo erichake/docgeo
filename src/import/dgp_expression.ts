@@ -7,6 +7,7 @@ import {
     usesView,
     type FormulaNode,
     type Program,
+    type ScriptValue,
 } from "./dgp_formula";
 
 // What a DGPad Expression holds, shared by the import and the editor (see
@@ -66,13 +67,47 @@ function parseComplexLiteral(value: string): [number, number] | null {
     return [real, imaginary];
 }
 
-function parseExpressionValue(value: string): number | number[] | null {
+// A list written with numbers, texts and lists only, e.g. a menu's options
+// (see panel_object.ts): a value that a program changes, as in DGPad.
+function literal(node: FormulaNode): ScriptValue | null {
+    switch (node.kind) {
+        case "number":
+        case "string":
+            return node.value;
+        case "unary":
+            return node.op === "-" && node.operand.kind === "number"
+                ? -node.operand.value
+                : null;
+        case "vector": {
+            const items = node.items.map(literal);
+            return items.includes(null) ? null : (items as ScriptValue[]);
+        }
+        default:
+            return null;
+    }
+}
+
+function parseLiteralList(value: string): ScriptValue | null {
+    let node: FormulaNode;
+    try {
+        node = parseFormula(value);
+    } catch {
+        return null;
+    }
+    return node.kind === "vector" ? literal(node) : null;
+}
+
+function parseExpressionValue(value: string): ScriptValue | null {
     if (STYLE_NUMBER.test(value)) return Number(value);
     // A checkbox's value.
     if (value === "true" || value === "false") return Number(value === "true");
     // Animated, a clock: its dependents recomputed at each frame.
     if (value === "NaN") return NaN;
-    return parseVectorLiteral(value) ?? parseComplexLiteral(value);
+    return (
+        parseVectorLiteral(value) ??
+        parseComplexLiteral(value) ??
+        parseLiteralList(value)
+    );
 }
 
 export const FUNCTION_VARIABLES = ["x", "y", "z", "t"];
@@ -98,7 +133,7 @@ function functionFormula(
 // y, z, t ("f"), or a formula or script that reads the figure ("s"). Throws
 // on what the grammar doesn't read.
 export type ExpressionContent =
-    | { kind: "v"; value: number | number[] }
+    | { kind: "v"; value: ScriptValue }
     | { kind: "f"; program: Program; node: FormulaNode; variables: string[] }
     | { kind: "s"; program: Program };
 

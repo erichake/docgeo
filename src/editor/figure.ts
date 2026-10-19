@@ -1,4 +1,4 @@
-import { construction, type DgpadLike, type Gesture } from "../construction";
+import { construction, type DgpadLike } from "../construction";
 import {
     addDgoEntries,
     describeDgo,
@@ -40,7 +40,7 @@ import {
     expression_object,
     type ExpressionProgram,
 } from "../objects/expression_object";
-import { event_object } from "../objects/event_object";
+import { event_object, type Trigger } from "../objects/event_object";
 import { expression_list_object } from "../objects/expression_list_object";
 import { fixed_angle_object } from "../objects/fixed_angle_object";
 import type { formula_point_object } from "../objects/formula_point_object";
@@ -881,7 +881,7 @@ function eventProgram(
 
 const eventOverload = (
     owner: construction_object,
-    gesture: Gesture | null,
+    gesture: Trigger | null,
     script: (index: (object: construction_object) => number) => unknown,
 ): Overload => ({
     params: [],
@@ -893,12 +893,12 @@ const eventOverload = (
     }),
 });
 
-// An empty program for the gesture on the point, or the change of the
-// expression.
+// An empty program for the gesture on the point, the change of the
+// expression, or the opening of the figure.
 export function addEvent(
     c: construction,
-    owner: point_object | expression_object,
-    gesture: Gesture | null,
+    owner: point_object | expression_object | button_object,
+    gesture: Trigger | null,
 ): construction_object {
     const event = add(
         c,

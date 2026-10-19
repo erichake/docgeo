@@ -31,6 +31,13 @@ export function createConstruction(size?: [number, number]): construction {
     return c;
 }
 
+// The same random numbers from now on, e.g. those a figure draws as it
+// opens.
+export function seedRandom(): void {
+    let seed = 1;
+    Math.random = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+}
+
 export const frame = () =>
     new Promise((resolve) => requestAnimationFrame(resolve));
 

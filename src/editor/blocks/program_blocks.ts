@@ -51,6 +51,7 @@ export const EVENT_HATS: Record<string, string> = {
     down: "dg_when_pressed",
     up: "dg_when_released",
     change: "dg_when_changed",
+    init: "dg_when_opened",
 };
 
 // The first blocks of programs: a turtle's, an event's, another's.
@@ -632,6 +633,21 @@ class Decompiler {
                 },
             };
         }
+        // DGPad's "append to the end of the list", of a variable's.
+        if (node.kind === "method" && node.method === "push") {
+            if (node.args.length !== 1) unsupported();
+            const list = node.indices.reduce<FormulaNode>(
+                (target, index) => ({ kind: "index", target, index }),
+                { kind: "identifier", name: node.object },
+            );
+            return {
+                type: "dg_list_push",
+                inputs: {
+                    VALUE: value(this.value(node.args[0])),
+                    LIST: value(this.value(list)),
+                },
+            };
+        }
         if (node.kind === "method") {
             if (node.indices.length) unsupported();
             const global = globalOf(node.object);
@@ -687,6 +703,11 @@ class Decompiler {
                 ),
             };
         }
+        if (node.kind === "call" && node.fn === "ALERT")
+            return {
+                type: "dg_alert",
+                inputs: { TEXT: value(this.value(node.args[0])) },
+            };
         if (node.kind !== "turtle") return unsupported();
         const { fn, args } = node;
         const simple = TURTLE_SIMPLE[fn];
@@ -858,8 +879,19 @@ class Decompiler {
                         ELSE: value(this.value(node.otherwise)),
                     },
                 };
+            // Of 2 or 3 items, a point, unless one of them is a text or a
+            // list, as a menu's [value, caption].
             case "vector":
-                if (node.items.length !== 2 && node.items.length !== 3)
+                if (
+                    (node.items.length !== 2 && node.items.length !== 3) ||
+                    node.items.some(
+                        (item) =>
+                            item.kind === "string" ||
+                            item.kind === "vector" ||
+                            (item.kind === "turtle" &&
+                                item.fn === "TURTLE_TEXT"),
+                    )
+                )
                     return this.list(node.items);
                 return {
                     type: node.items.length === 2 ? "dg_point" : "dg_point3",
@@ -1210,6 +1242,10 @@ const assignable = (block: BlockState | undefined): boolean =>
     block?.type === "dg_global_get" ||
     (block?.type === "dg_list_get" && assignable(block.inputs?.LIST?.block));
 
+const pushable = (block: BlockState | undefined): boolean =>
+    block?.type === "variables_get" ||
+    (block?.type === "dg_list_get" && pushable(block.inputs?.LIST?.block));
+
 const paramsOf = (block: BlockState): string[] =>
     ((block.extraState?.params ?? []) as (string | { name: string })[]).map(
         (param) => (typeof param === "string" ? param : param.name),
@@ -1446,6 +1482,14 @@ class Generator {
                 return line(
                     `${this.item(block)} = ${this.arg(block, "VALUE")};`,
                 );
+            // Of a variable's list or of one of its items.
+            case "dg_list_push":
+                if (!pushable(block.inputs?.LIST?.block)) return [];
+                return line(
+                    `${this.operand(block, "LIST", ATOM, "[]")}.push(${this.arg(block, "VALUE")});`,
+                );
+            case "dg_alert":
+                return call("ALERT", this.arg(block, "TEXT", '""'));
             case "procedures_callnoreturn":
                 return call(
                     this.format(String(block.extraState!.name)),

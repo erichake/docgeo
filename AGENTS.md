@@ -53,8 +53,9 @@ Les développements doivent servir en priorité :
   (page hôte interdisant `new Function`, construction non traduite). La tortue
   Blockly (fonctions `TURTLE_…`, compilées dans l'expression que dessine sa
   liste) et les boutons Blockly (`BlocklyButton`,
-  dont le programme ne peut que mettre en forme des objets et changer la
-  valeur d'une expression constante, comme une manipulation) sont lus par le
+  dont le programme ne peut que mettre en forme des objets, changer la
+  valeur d'une expression constante, comme une manipulation, et afficher un
+  message `ALERT`, dont seul le texte est gardé) sont lus par le
   même interpréteur. Les globales Blockly (`GLOBAL_GET`, `GLOBAL_SET`,
   `GLOBAL_INC`) sont des expressions cachées de la figure, partagées par ses
   programmes et ses boutons (voir `DGO.md`). Le programme « onchange » d'une expression,
@@ -75,6 +76,17 @@ Les développements doivent servir en priorité :
 - la compatibilité géométrique et graphique avec DGPad et GeoGebra ;
 - la manipulation des objets existants ;
 - la robustesse numérique et les performances sur plusieurs milliers d'objets.
+
+### Quand une figure « passe »
+
+Une figure ne fonctionne pas seulement parce qu'elle s'ouvre et se manipule
+correctement dans le lecteur : il faut aussi que **chacun de ses programmes
+Blockly** (tortues, boutons, « oninit », « onchange », « ondrag »…,
+programmes des expressions) se montre dans l'éditeur en mode **Blocs**, et
+pas seulement en mode Texte. Toute extension de la grammaire des programmes
+(`src/import/dgp_formula.ts`) va donc avec ses blocs (`src/editor/blocks/`)
+et son aller-retour vérifié (`tests/unit/editor_blocks.test.ts`). Ne jamais
+déclarer réparée une figure Blockly sans l'avoir vérifié.
 
 ### Intégration dans DocTools
 

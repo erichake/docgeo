@@ -96,6 +96,7 @@ const EVENT_MESSAGES: Record<string, BlockMessage> = {
     down: "WHEN_PRESSED",
     up: "WHEN_RELEASED",
     change: "WHEN_CHANGED",
+    init: "WHEN_OPENED",
 };
 
 const statement = { previousStatement: null, nextStatement: null };
@@ -429,6 +430,25 @@ function defineBlocks(): void {
             style: "list_blocks",
         },
         {
+            type: "dg_list_push",
+            message0: msg("LIST_PUSH"),
+            args0: [
+                { type: "input_value", name: "VALUE" },
+                { type: "input_value", name: "LIST" },
+            ],
+            inputsInline: true,
+            ...statement,
+            style: "list_blocks",
+        },
+        {
+            type: "dg_alert",
+            message0: msg("ALERT"),
+            args0: [{ type: "input_value", name: "TEXT" }],
+            inputsInline: true,
+            ...statement,
+            style: "text_blocks",
+        },
+        {
             type: "dg_style_rgb",
             message0: msg("STYLE_RGB"),
             args0: [
@@ -660,7 +680,13 @@ function toolbox(kinds: string[], owner: string, starts: string[]) {
                 kind: "category",
                 name: text("CAT_TEXT"),
                 categorystyle: "text_category",
-                contents: [block("text"), block("text_join")],
+                contents: [
+                    block("text"),
+                    block("text_join"),
+                    block("dg_alert", {
+                        TEXT: shadow("text", { TEXT: "" }),
+                    }),
+                ],
             },
             {
                 kind: "category",
@@ -676,6 +702,7 @@ function toolbox(kinds: string[], owner: string, starts: string[]) {
                     block("lists_length"),
                     block("dg_list_get", { INDEX: num(1) }),
                     block("dg_list_set", { INDEX: num(1) }),
+                    block("dg_list_push"),
                 ],
             },
             {

@@ -61,6 +61,7 @@ const FIGURES = import.meta.glob<string>(
         "../dgp/Yves/Remplissage_P237_SurfaceKlein.dgp",
         "../dgp/Monique/Pythagore_en_liquide.dgp",
         "../dgp/Yves_07_Blockly/*.dgp",
+        "../dgp/Blockly/pirates.dgp",
     ],
     { query: "?raw", import: "default", eager: true },
 );
@@ -71,6 +72,12 @@ const BUTTONS = import.meta.glob<string>("../dgp/Blockly/urne_et_boules.dgp", {
     eager: true,
 })["../dgp/Blockly/urne_et_boules.dgp"];
 
+const PIRATES = import.meta.glob<string>("../dgp/Blockly/pirates.dgp", {
+    query: "?raw",
+    import: "default",
+    eager: true,
+})["../dgp/Blockly/pirates.dgp"];
+
 const EVENTS = import.meta.glob<string>("../dgp/Yves_10_Blockly/*.dgp", {
     query: "?raw",
     import: "default",
@@ -78,12 +85,13 @@ const EVENTS = import.meta.glob<string>("../dgp/Yves_10_Blockly/*.dgp", {
 });
 
 // DGPad's turtles in a figure, their programs compiled by its Blockly.
+// Their strings keep DGPad's escaped quotes, which JSON refuses.
 function turtles(path: string): string[] {
     return [
         ...FIGURES[path].matchAll(
             /Expression\("blk_turtle_exp_[^"]*","","","",("(?:[^"\\]|\\.)*")/g,
         ),
-    ].map((match) => JSON.parse(match[1]) as string);
+    ].map((match) => JSON.parse(match[1].replace(/\\'/g, "\\\\'")) as string);
 }
 
 describe("Program blocks", () => {
@@ -195,7 +203,6 @@ return TURTLE_RESULT();`;
         [
             "function f(x) { return x; } f(2)",
             "function f(x) { return; } f(2)",
-            "var t = []; t.push(1); t",
             "L.slice(-1)[0]",
         ].forEach((source) => expect(programBlocks(source, true)).toBeNull());
     });
@@ -232,6 +239,26 @@ return [t, [a]][2 - 1][1 - 1];`);
         ].map((match) => JSON.parse(match[1]).onprogram.sync as string);
         expect(buttons).toHaveLength(4);
         buttons.forEach((program) => roundTrip(program));
+        vi.restoreAllMocks();
+    });
+
+    it("appends to lists and shows messages, as the pirates' button", () => {
+        expect(
+            roundTrip(`var t = [];
+t.push([-1, TURTLE_TEXT('a')]);
+t[1 - 1].push(n);
+ALERT('<b>' + t.length + '</b>');
+return t;`),
+        ).toBe(`t = [];
+t.push([-1, "a"]);
+t[1 - 1].push(n);
+ALERT("<b>" + t.length + "</b>");
+return t;`);
+        vi.spyOn(Math, "random").mockReturnValue(0.3);
+        const { onprogram, oninit } = JSON.parse(
+            PIRATES.match(/^BLK\(blk_btn,(.*)\);$/m)![1],
+        );
+        [onprogram.sync, oninit.sync].forEach((program) => roundTrip(program));
         vi.restoreAllMocks();
     });
 

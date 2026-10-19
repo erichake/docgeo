@@ -1077,6 +1077,14 @@ ses méthodes internes et figé dans sa version de 2016.
   programmes affichés, même absents de la figure (DGPad n'en change
   rien) : sinon Blockly les remplace par le premier objet du menu, que le
   programme réécrit viserait.
+- **Messages, ajout à une liste, ouverture de la figure** (2026-10-19,
+  pour `pirates.dgp`) : bloc « afficher le message » (`ALERT`, catégorie
+  « Texte »), bloc « ajouter … à la fin de … » de DGPad (`dgpad_push`,
+  `L.push(v)`, sur une variable ou un de ses éléments, catégorie
+  « Listes »), bloc de départ « quand la figure s'ouvre » (« oninit » de
+  DGPad, d'une expression ou d'un bouton, montré avec le programme du
+  bouton). Une liste de 2 ou 3 éléments dont l'un est un texte ou une liste
+  (`[-1, "choisir..."]`) est un bloc « créer une liste avec », pas un point.
 - **Section « Définition »** d'un programme (ou d'un nouveau programme) :
   bascule **Texte** / **Blocs**. Une tortue s'ouvre en blocs, un autre
   programme en texte ; un choix vaut ensuite pour la session. Le programme

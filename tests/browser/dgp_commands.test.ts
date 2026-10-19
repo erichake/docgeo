@@ -32,10 +32,10 @@ describe("DGPad's commands", () => {
             c,
             `P1=Point("P1",1,2);
 btn=BlocklyButton("btn","reset","0","0");
-c=Expression("c","","","","var bl_a=function(){ALERT(\\"Ce programme montre un message\\");return 1};bl_a()","0","0");
+c=Expression("c","","","","var bl_a=function(){GetCanvas().setBackground(\\"le fond de la figure\\");return 1};bl_a()","0","0");
 d=Expression("d","","","","c+1","0","0");
 BLK(P1,{"onlogo":{"xml":"<xml/>","sync":"TURTLE_INIT(\\"P1\\",P1);"}});
-BLK(P1,{"onchange":{"xml":"<xml/>","sync":"ALERT(1);"}});`,
+BLK(P1,{"onchange":{"xml":"<xml/>","sync":"GetCanvas();"}});`,
         );
         expect(c.getObj("P1")).toBeTruthy();
         // A button without a program, which does nothing.
@@ -130,6 +130,48 @@ BLK_GLOB_SET({"n":3,"old":true});`,
         c.removeObject(c.getObj("w")!);
         expect(c.getObj("n")).toBe(n);
         expect(c.getObj("r")).toBeTruthy();
+    });
+
+    it("fills a menu with the list a button sets, and shows the button's message", async () => {
+        const c = createConstruction();
+        const unsupported = importDgp(
+            c,
+            `btn=BlocklyButton("btn","OK","0","0");
+E1=Expression("E1","","","","[[-1,'choisir...'],1,2]","0","0");
+choix=Expression("choix","","","","-1","0","0");
+BLK(btn,{"onprogram":{"xml":"<xml/>","sync":"ALERT('<b>'+TURTLE_TEXT('Bravo')+'</b>');\\nSET_EXP(\\"E1\\",[[-1,TURTLE_TEXT('\\\\'?\\\\'')],choix,1.5]);"}});
+Text("<select target=\\"choix\\" populate=\\"E1\\"><option value=\\"10\\"></option></select>",10,10,200,50);`,
+        );
+        c.OBJS.update();
+        await frame();
+        expect(unsupported).toEqual([]);
+        const select = c.svg.find("select")!.dom() as HTMLSelectElement;
+        const options = () =>
+            [...select.options].map((option) => [
+                option.value,
+                option.textContent,
+            ]);
+        expect(options()).toEqual([
+            ["-1", "choisir..."],
+            ["1", "1"],
+            ["2", "2"],
+        ]);
+        expect(select.value).toBe("-1");
+        select.value = "2";
+        select.dispatchEvent(new Event("change"));
+        (c.getObj("btn") as button_object).run();
+        c.OBJS.update();
+        await frame();
+        expect(options()).toEqual([
+            ["-1", "?"],
+            ["2", "2"],
+            ["1.5", "1,5"],
+        ]);
+        expect(select.value).toBe("2");
+        const message = document.body.lastElementChild!;
+        expect(message.textContent).toBe("BravoOK");
+        (message.querySelector("button") as HTMLButtonElement).click();
+        expect(message.isConnected).toBe(false);
     });
 
     it("runs an expression's onchange program when its value changes, not as the figure opens", () => {

@@ -289,6 +289,32 @@ export function runProgram(c: construction, expression: ExpressionProgram) {
                 styleObject(c, target, method, args);
             else if (setValue(target, args[0])) c.invalidateGeometry(target);
         },
+        alert: (message) => {
+            if (message === null) return;
+            // DGPad's message is HTML: only its text is shown.
+            const text = new DOMParser().parseFromString(
+                formatValue(message, 4),
+                "text/html",
+            ).body.textContent!;
+            const ok = $.create("button")
+                .text("OK")
+                .stl(
+                    "align-self:flex-end;padding:6px 22px;border:0;border-radius:5px;background:#8cd4f5;color:#fff;font:inherit;font-weight:500;cursor:pointer",
+                );
+            const screen = $.create("div")
+                .stl(
+                    "position:fixed;inset:0;z-index:10000;display:flex;justify-content:center;align-items:flex-start;padding:40px 16px;background:rgb(50 50 50 / 0.7)",
+                )
+                .add(
+                    $.create("div")
+                        .stl(
+                            "display:flex;flex-direction:column;gap:20px;max-width:350px;padding:24px;border-radius:5px;background:#fff;color:#555;font:16px system-ui,sans-serif;text-align:center;white-space:pre-wrap",
+                        )
+                        .add($.create("div").text(text), ok),
+                );
+            ok.on("click", () => screen.dispose());
+            $("body").add(screen);
+        },
     });
 }
 

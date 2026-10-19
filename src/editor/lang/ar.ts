@@ -203,6 +203,7 @@ const ar: Texts = {
         event_down: "عند الضغط على %",
         event_up: "عند إفلات %",
         event_change: "عند تغيّر %",
+        event_init: "عند فتح الشكل",
         when_dragged: "عند سحب الكائن",
         when_pressed: "عند الضغط على الكائن",
         when_released: "عند إفلات الكائن",

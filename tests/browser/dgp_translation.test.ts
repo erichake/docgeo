@@ -19,6 +19,7 @@ import {
     figure,
     frame,
     GGB,
+    seedRandom,
 } from "./figures";
 
 disposeFigures();
@@ -47,10 +48,22 @@ async function states(
     work: number,
 ): Promise<[string, string][]> {
     translateAfter(work);
+    // The same random numbers either way.
+    seedRandom();
     // So that the TeX it shows is drawn in time, either way.
     await loadKaTeX();
     const c = createConstruction();
     await open(c);
+    await frame();
+    // Its images drawn at their size, which the second run knows at once.
+    await Promise.all(
+        [...c.svg.dom().querySelectorAll("image")].map((image) => {
+            const loaded = new Image();
+            loaded.src = image.getAttribute("href")!;
+            return loaded.decode();
+        }),
+    );
+    await frame();
     await frame();
     const opened = state(c);
     const dependents = (object: point_object) => {

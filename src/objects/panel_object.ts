@@ -7,6 +7,7 @@ import {
     usesView,
     type FormulaEnv,
     type FormulaNode,
+    type ScriptValue,
 } from "../import/dgp_formula";
 import {
     construction_object,
@@ -43,7 +44,8 @@ const ATTRIBUTES: Record<string, string[]> = {
     a: ["href"],
     font: ["color", "size", "face"],
     input: ["type", "target", "min", "max", "step", "value", "size"],
-    select: ["target"],
+    // A menu's options: those of the list of the expression it populates.
+    select: ["target", "populate"],
     option: ["value", "selected"],
     table: ["border", "cellpadding", "cellspacing", "width"],
     td: ["colspan", "rowspan", "width", "valign"],
@@ -52,7 +54,7 @@ const ATTRIBUTES: Record<string, string[]> = {
 
 // Scripts, and DGPad's own behaviors of its fields, which aren't read: the
 // panel isn't imported.
-const REJECTED_ATTRIBUTE = /^(?:on|editable$|populate$|interactiveinput$)/i;
+const REJECTED_ATTRIBUTE = /^(?:on|editable$|interactiveinput$)/i;
 // "texte", a mistake of some figures, is a text field as in DGPad.
 const INPUT_TYPES = [
     "text",
@@ -149,7 +151,9 @@ export function panelTargets(nodes: PanelNode[]): string[] {
             ? []
             : [
                   ...node.attributes
-                      .filter(([name]) => name === "target")
+                      .filter(
+                          ([name]) => name === "target" || name === "populate",
+                      )
                       .map(([, value]) => value),
                   ...panelTargets(node.children),
               ],
@@ -204,6 +208,11 @@ export class panel_object extends construction_object {
         element: DOMElement;
         target: expression_object;
         type: string;
+    }[] = [];
+    private menus: {
+        element: DOMElement;
+        list: expression_object;
+        shown: string | null;
     }[] = [];
 
     constructor(
@@ -298,6 +307,30 @@ export class panel_object extends construction_object {
                     );
             });
         });
+        this.menus.forEach((menu) => {
+            const { value } = menu.list;
+            const shown = JSON.stringify(value);
+            if (shown === menu.shown) return;
+            menu.shown = shown;
+            // As DGPad: [value, caption] or a value that is its own caption,
+            // a caption between quotes being shown without them.
+            const caption = (item: ScriptValue) =>
+                typeof item === "string"
+                    ? item.replace(/^'(.*)'$/, "$1")
+                    : formatValue(item, this.precision);
+            menu.element.text("");
+            menu.element.add(
+                ...(Array.isArray(value) ? value : []).map((item) => {
+                    const [option, text] =
+                        Array.isArray(item) && item.length === 2
+                            ? item
+                            : [item, item];
+                    return $.create("option")
+                        .att("value", caption(option).replace(",", "."))
+                        .text(caption(text));
+                }),
+            );
+        });
         this.fields.forEach(({ element, target, type }) => {
             const field = element.dom() as HTMLInputElement | HTMLSelectElement;
             // Only a number that nothing defines changes.
@@ -359,6 +392,9 @@ export class panel_object extends construction_object {
                 false,
             );
             element.on("keydown", (event) => event.stopPropagation(), false);
+            const list = this.refs.get(element.getAtt("populate") ?? "");
+            if (node.tag === "select" && list instanceof expression_object)
+                this.menus.push({ element, list, shown: null });
             const target = this.refs.get(element.getAtt("target") ?? "");
             if (target instanceof expression_object) {
                 const type = element.getAtt("type")?.toLowerCase() ?? "";
@@ -384,6 +420,7 @@ export class panel_object extends construction_object {
         const t = _this as panel_object;
         t.texts = [];
         t.fields = [];
+        t.menus = [];
         const [x, y, width, height] = t.box;
         const color = `color-mix(in srgb, ${t.stroke_color} ${(t.opacity ?? 1) * 100}%, transparent)`;
         const text = $.create("div")

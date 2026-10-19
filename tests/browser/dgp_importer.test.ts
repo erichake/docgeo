@@ -1,6 +1,8 @@
 import { afterEach, describe, expect, it } from "vitest";
 import { construction } from "../../src/construction";
 import { importDgp, importDgpFromUrl } from "../../src/dgp_importer";
+import { importDgoFromBlob, writeDgo } from "../../src/dgo";
+import { event_object } from "../../src/objects/event_object";
 import { angle_bisector_object } from "../../src/objects/angle_bisector_object";
 import { angle_object } from "../../src/objects/angle_object";
 import { arc3pts_object } from "../../src/objects/arc3pts_object";
@@ -1467,6 +1469,25 @@ STL(L1,"c:#000000;s:0;sg:1");`,
         expect(global("RESULTATS")).toEqual([0, 0, 0]);
         expect(global("TIRAGES")).toBe(0);
         expect(global("DERNIER")).toBe(-1);
+        // Kept, it runs again only as the figure opens again.
+        const init = c.getObj("blk_btn.oninit") as event_object;
+        expect([init.gesture, init.owner.name]).toEqual(["init", "blk_btn"]);
+        const tirages = c.getObj("TIRAGES") as expression_object;
+        tirages.value = 7;
+        c.invalidateGeometry(tirages);
+        c.flush();
+        expect(global("TIRAGES")).toBe(7);
+        const saved = await writeDgo(c);
+        const d = createConstruction();
+        expect(await importDgoFromBlob(d, saved)).toEqual([]);
+        d.flush();
+        expect((d.getObj("TIRAGES") as expression_object).value).toBe(0);
+        expect(
+            d.OBJS.V.filter(
+                (object) =>
+                    object instanceof event_object && object.gesture === "init",
+            ),
+        ).toHaveLength(1);
     });
 
     it("draws a turtle setting the increment of a point declared after it", async () => {

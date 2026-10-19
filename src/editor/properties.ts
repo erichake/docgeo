@@ -1116,14 +1116,17 @@ export function propertiesPanel(options: {
     }
 
     // Those it can still have: a turtle from a point, a program for each
-    // gesture on one that is dragged, for the change of an expression.
+    // gesture on one that is dragged, for the change of an expression, and,
+    // as DGPad's "oninit", for the opening of the figure.
     function starts(owner: construction_object): string[] {
         const kinds =
             owner instanceof point_object
                 ? ["turtle", ...(owner.moveable ? ["drag", "down", "up"] : [])]
                 : owner instanceof expression_object
-                  ? ["change"]
-                  : [];
+                  ? ["change", "init"]
+                  : owner instanceof button_object
+                    ? ["init"]
+                    : [];
         const own = ownPrograms(options.scene(), owner).map(programHat);
         return kinds.filter((kind) => !own.some((hat) => hat.kind === kind));
     }

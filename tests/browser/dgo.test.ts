@@ -38,6 +38,7 @@ import {
     figure,
     frame,
     GGB,
+    seedRandom,
 } from "./figures";
 
 disposeFigures();
@@ -48,6 +49,8 @@ async function roundTrip(
     open: (c: construction) => Promise<unknown>,
     change?: (c: construction) => void,
 ): Promise<void> {
+    // The same random numbers either way, e.g. those of an "oninit".
+    seedRandom();
     const original = createConstruction();
     await open(original);
     await frame();
@@ -57,7 +60,9 @@ async function roundTrip(
     }
     const saved = await describeDgo(original);
     const reopened = createConstruction();
-    await importDgoFromBlob(reopened, await writeDgo(original));
+    const written = await writeDgo(original);
+    seedRandom();
+    await importDgoFromBlob(reopened, written);
     await frame();
     expectClose(await describeDgo(reopened), saved);
     const objects = saved.o.length;
@@ -567,7 +572,7 @@ describe(".dgo reader", () => {
 describe(".dgo figures", () => {
     it("draws the long division with a turtle its blocks write", async () => {
         const c = createConstruction();
-        await importDgoFromUrl(c, "/tests/dgo/division_posee.dgo");
+        await importDgoFromUrl(c, "/tests/dgo/Blockly/division_posee.dgo");
         const digits = [...c.svg.dom().querySelectorAll("text")]
             .map((text) => text.textContent)
             .join("");
@@ -586,7 +591,7 @@ describe(".dgo figures", () => {
 
     it("counts the gears' turns with M's drag program, written by blocks", async () => {
         const c = createConstruction();
-        await importDgoFromUrl(c, "/tests/dgo/engrenage.dgo");
+        await importDgoFromUrl(c, "/tests/dgo/Blockly/engrenage.dgo");
         await expectBlocksPrograms(c, 9);
         const point = (name: string) => c.getObj(name) as point_object;
         const [M, P1] = [point("M"), point("P1")];
@@ -620,7 +625,7 @@ describe(".dgo figures", () => {
     it("draws the spirograph's curve as its clock turns the wheel, written by blocks", async () => {
         const c = createConstruction();
         c.animations.paused = true;
-        await importDgoFromUrl(c, "/tests/dgo/spirographe.dgo");
+        await importDgoFromUrl(c, "/tests/dgo/Blockly/spirographe.dgo");
         await expectBlocksPrograms(c, 8);
         const value = (name: string) =>
             (c.getObj(name) as expression_object).value;
@@ -661,7 +666,7 @@ describe(".dgo figures", () => {
 
     it("counts the bike's turns with the pedal's drag program, written by blocks", async () => {
         const c = createConstruction();
-        await importDgoFromUrl(c, "/tests/dgo/VTT.dgo");
+        await importDgoFromUrl(c, "/tests/dgo/Blockly/VTT.dgo");
         // The wheel's size in pixels, 2*C8*pixel(), has no block.
         await expectBlocksPrograms(c, 8, ["taille"]);
         const point = (name: string) => c.getObj(name) as point_object;

@@ -210,6 +210,7 @@ const es: Texts = {
         event_down: "al presionar %",
         event_up: "al soltar %",
         event_change: "cuando % cambia",
+        event_init: "cuando se abre la figura",
         when_dragged: "Al arrastrar el objeto",
         when_pressed: "Al presionar el objeto",
         when_released: "Al soltar el objeto",

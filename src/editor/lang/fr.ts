@@ -209,6 +209,7 @@ const fr: Texts = {
         event_down: "quand % est appuyé",
         event_up: "quand % est lâché",
         event_change: "quand % change",
+        event_init: "quand la figure s'ouvre",
         when_dragged: "Quand l'objet est glissé",
         when_pressed: "Quand l'objet est appuyé",
         when_released: "Quand l'objet est lâché",
