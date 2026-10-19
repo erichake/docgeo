@@ -18,10 +18,16 @@ import {
 import { formatName } from "../../src/editor/text";
 import { importGgb, importGgbFromUrl } from "../../src/ggb_importer";
 import { parseProgram } from "../../src/import/dgp_formula";
-import { expression_object } from "../../src/objects/expression_object";
+import { button_object } from "../../src/objects/button_object";
+import { expression_list_object } from "../../src/objects/expression_list_object";
+import {
+    expression_object,
+    setValue,
+} from "../../src/objects/expression_object";
 import { point_on_object } from "../../src/objects/point_on_object";
 import { point_object } from "../../src/objects/point_object";
 import { polygon_object } from "../../src/objects/polygon_object";
+import type { Vec3 } from "../../src/vec";
 import {
     createConstruction,
     DGP,
@@ -577,4 +583,98 @@ describe(".dgo figures", () => {
         const blocks = programBlocks(parseProgram(program), true);
         expect(blocksProgram(blocks!, formatName)).toBe(program);
     });
+
+    it("counts the gears' turns with M's drag program, written by blocks", async () => {
+        const c = createConstruction();
+        await importDgoFromUrl(c, "/tests/dgo/engrenage.dgo");
+        await expectBlocksPrograms(c, 9);
+        const point = (name: string) => c.getObj(name) as point_object;
+        const [M, P1] = [point("M"), point("P1")];
+        // Where M is on the green wheel at the angle (degrees).
+        const onWheel = (angle: number): Vec3 => {
+            const r = c.getObj("C1")!.scriptValue(false) as number;
+            const a = (angle * Math.PI) / 180;
+            return [P1.x + r * Math.cos(a), P1.y + r * Math.sin(a), 0];
+        };
+        // M turned by 450°, 5° at a time.
+        for (let angle = 5; angle <= 450; angle += 5) {
+            M.coords = onWheel(angle);
+            c.invalidateGeometry(M);
+            c.gesture(M, "drag");
+            c.flush();
+        }
+        const turned = () => (c.getObj("c") as expression_object).value;
+        expect(turned()).toBeCloseTo(450);
+        // More teeth: a larger wheel, M kept on it.
+        const a = c.getObj("a")!;
+        setValue(a, 20);
+        c.invalidateGeometry(a);
+        c.flush();
+        expectClose(M.coords, onWheel(90));
+        (c.getObj("blk_btn") as button_object).run();
+        c.flush();
+        expect(turned()).toBe(0);
+        expectClose(M.coords, point("P4").coords);
+    });
+
+    it("draws the spirograph's curve as its clock turns the wheel, written by blocks", async () => {
+        const c = createConstruction();
+        c.animations.paused = true;
+        await importDgoFromUrl(c, "/tests/dgo/spirographe.dgo");
+        await expectBlocksPrograms(c, 8);
+        const value = (name: string) =>
+            (c.getObj(name) as expression_object).value;
+        const clock = c.getObj("horloge")!;
+        const button = (name: string) => {
+            (c.getObj(name) as button_object).run();
+            c.flush();
+        };
+        const tick = (from: number, to: number) => {
+            for (let seconds = from; seconds <= to; seconds += 0.5) {
+                setValue(clock, seconds);
+                c.invalidateGeometry(clock);
+                c.flush();
+            }
+        };
+        // 100° a second.
+        button("blk_btn0");
+        tick(0.5, 2);
+        expect(value("c")).toBe(200);
+        // P7 shown again, where it was, as c goes back to 0 before.
+        button("blk_btn");
+        expect([value("c"), value("anim")]).toEqual([0, 0]);
+        expectClose(
+            (c.getObj("P7") as point_object).coords.slice(0, 2),
+            [4.22514716685645, -3.2625],
+        );
+        // 3 turns: done in 10.8 s.
+        button("blk_btn0");
+        tick(2.5, 14);
+        expect([value("c"), value("anim")]).toEqual([1080, 0]);
+        const P4 = c.getObj("P4") as point_object;
+        const curve = (c.getObj("blk_turtle_list_P3") as expression_list_object)
+            .points;
+        expect(curve.length).toBeGreaterThan(1000);
+        expectClose(curve[curve.length - 1], P4.coords.slice(0, 2));
+        expect(P4.hidden).toBe(0);
+    });
 });
+
+// The figure's programs, each shown in blocks, which write it back as it is.
+async function expectBlocksPrograms(
+    c: construction,
+    count: number,
+): Promise<void> {
+    const programs = ((await describeDgo(c)).o as [string, string, unknown][])
+        .map(([, , params]) => (params as { s?: [string] }).s?.[0])
+        .filter((program) => program !== undefined);
+    expect(programs.length).toBe(count);
+    programs.forEach((program) =>
+        expect(
+            blocksProgram(
+                programBlocks(parseProgram(program), true)!,
+                formatName,
+            ),
+        ).toBe(program),
+    );
+}

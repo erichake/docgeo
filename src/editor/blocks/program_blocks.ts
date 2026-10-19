@@ -295,6 +295,18 @@ function functionLocals(statements: Statement[]): string[] {
     );
 }
 
+// The names the statements read or style, its variables' among them.
+function objectNames(value: unknown, names = new Set<string>()): Set<string> {
+    if (Array.isArray(value)) value.forEach((item) => objectNames(item, names));
+    else if (value && typeof value === "object") {
+        const node = value as { kind?: string; name?: string; object?: string };
+        if (node.kind === "identifier") names.add(node.name!);
+        if (node.kind === "method") names.add(node.object!);
+        Object.values(value).forEach((item) => objectNames(item, names));
+    }
+    return names;
+}
+
 // Blockly wrote "Carré" as "Carr_C3_A9" in its JavaScript.
 const blocklyName = (name: string): string =>
     name.replace(/(?:_[89A-F][0-9A-F])+/g, (run) => {
@@ -317,13 +329,15 @@ class Decompiler {
 
     constructor(private readonly degrees: boolean) {}
 
-    // DGPad's prefixes dropped, unless it would make two names one.
-    private name(locals: ReadonlySet<string>): void {
+    // DGPad's prefixes dropped, unless it would make two names one, or a
+    // variable one of the objects the program reads: "blockly_var_p1 = p1".
+    private name(locals: ReadonlySet<string>, objects: Set<string>): void {
         const plain = (name: string) =>
             blocklyName(
                 name.replace(/^(?:blockly_var_|blockly_local_)(?=.)/, ""),
             );
-        const shown = [...locals].map(plain);
+        locals.forEach((name) => objects.delete(name));
+        const shown = [...locals, ...objects].map(plain);
         locals.forEach((name) =>
             this.names.set(
                 name,
@@ -351,7 +365,10 @@ class Decompiler {
             call.node.args.length === 0
         )
             return this.workspace(fn.body, new Set([...locals, ...fn.locals]));
-        this.name(new Set([...locals, ...functionLocals(body)]));
+        this.name(
+            new Set([...locals, ...functionLocals(body)]),
+            objectNames(body),
+        );
         const [first] = body;
         const last = body[body.length - 1];
         let root: BlockState;

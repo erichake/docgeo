@@ -116,6 +116,18 @@ TURTLE_PRINT("$$a$$");
 return TURTLE_RESULT();`);
     });
 
+    it("keeps DGPad's prefix of a variable named as an object it reads", () => {
+        expect(
+            roundTrip(`blockly_var_k = (a);
+blockly_var_a = 2;
+blockly_var_b = 3;
+return blockly_var_k + blockly_var_a + blockly_var_b;`),
+        ).toBe(`k = a;
+blockly_var_a = 2;
+b = 3;
+return k + blockly_var_a + b;`);
+    });
+
     it.each([
         "(a + b) * c - -b",
         "a - (b - c)",

@@ -307,7 +307,12 @@ export function styleObject(
             const hidden = value === null ? 1 : Math.trunc(Math.abs(value)) % 3;
             if (hidden === target.hidden) return;
             target.hidden = hidden;
+            const dirty = target.geometryDirty;
             target.updateView();
+            // Shown after the script changed what it depends on ("c = 0",
+            // then "show P"): drawn now from parents not yet updated, it is
+            // computed again after them.
+            if (dirty) c.invalidateGeometry(target);
             // How the objects sharing its edges draw them depends on it
             // (see edgeStroke).
             c.invalidateProjection();
