@@ -1397,6 +1397,17 @@ STL(L1,"c:#000000;s:0;sg:1");`,
         ]);
     });
 
+    it("draws a turtle's long division, splitting and reversing texts", async () => {
+        const c = createConstruction();
+        expect(
+            await importDgpFromUrl(c, figure("division_posee_new.dgp")),
+        ).toEqual([]);
+        const digits = [...c.svg.dom().querySelectorAll("text")]
+            .map((text) => text.textContent)
+            .join("");
+        expect(digits).toBe("78962278-90-9678-182156-262234-287810123");
+    });
+
     it("draws at each frame of an animated NaN, adding to a global's list", async () => {
         const c = createConstruction();
         expect(await importDgpFromUrl(c, figure("urne_et_boules.dgp"))).toEqual(

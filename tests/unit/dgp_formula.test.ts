@@ -656,6 +656,22 @@ GLOBAL_GET("côté")`);
         ).toEqual([1, 2, "2x3"]);
     });
 
+    it("splits texts, reverses lists, reads integers and compares texts, as JavaScript", () => {
+        expect(
+            run(
+                'var n=(780).toString().split("").reverse();var m=n;n.reverse();[n,m.join(""),parseInt(n[1])+1,n[2]=="",n[2]!="",n[1]<"9"]',
+            ),
+        ).toEqual([["7", "8", "0"], "780", 9, 0, 1, 1]);
+    });
+
+    it("reads a regular expression only in a function never called", () => {
+        const format =
+            "function f(s){return s.toString().replace(/(\\d)(?=(\\d{3})+(?!\\d))/g,'$1 ')}";
+        expect(run(`${format};1`)).toBe(1);
+        expect(() => parseProgram(`${format};f(1)`)).toThrow();
+        expect(() => parseProgram("'1'.replace(/1/,'2')")).toThrow();
+    });
+
     it("tells an undefined value by its difference with itself, as JavaScript", () => {
         expect(run("var x=NaN;[x!=x,x==x,1!=1]")).toEqual([1, 0, 0]);
     });

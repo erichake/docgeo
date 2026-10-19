@@ -251,6 +251,8 @@ const TURTLE_ARITY = {
 
 type TurtleFn = keyof typeof TURTLE_ARITY;
 
+type NativeFn = "split" | "reverse" | "parseInt";
+
 // The name a program reads, with TURTLE_GET and TURTLE_LENGTH, the List
 // that draws another turtle by: that List's in DGPad, whatever its own in
 // DocGeo (see DGO.md).
@@ -295,6 +297,9 @@ export type FormulaNode =
     // "tab.slice(-1)", as JavaScript's: Blockly's last item is
     // "tab.slice(-1)[0]".
     | { kind: "slice"; target: FormulaNode; args: FormulaNode[] }
+    // "s.split(sep)", "tab.reverse()", "parseInt(s)", as JavaScript's: the
+    // text or list first.
+    | { kind: "native"; fn: NativeFn; args: FormulaNode[] }
     | { kind: "turtle"; fn: TurtleFn; args: FormulaNode[] }
     // "P.coords2D()" (where point P is drawn, in the window's coordinate
     // system, which changes with the 3D view), "S1.setHidden(1)" or a
@@ -459,6 +464,8 @@ const NUMBER = /(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][+-]?\d+)?/y;
 const OPERATOR = /^(?:[=!]==?|[<>]=?|[-+*/]=|\+\+|--|&&|\|\||[!=?:;{}])/;
 const STRING = /"(?:[^"\\]|\\.)*"|'(?:[^'\\]|\\.)*'/y;
 const SPACE = /(?:\s|\/\/.*|\/\*[^]*?\*\/)*/y;
+// After its "/": the rest of a regular expression, its flags included.
+const REGEX = /(?:[^\\/[\n]|\\.|\[(?:[^\\\]\n]|\\.)*\])+\/[a-z]*/y;
 
 // Also the editor's (see EDITOR.md), which reads where each token ends.
 export class FormulaLexer {
@@ -521,6 +528,13 @@ export class FormulaLexer {
         throw new Error("Invalid DGP formula syntax");
     }
 
+    skipRegex(): void {
+        REGEX.lastIndex = this.index;
+        if (!REGEX.exec(this.source))
+            throw new Error("Invalid DGP formula syntax");
+        this.index = REGEX.lastIndex;
+    }
+
     private consumeBareI(): boolean {
         if (this.source[this.index] !== "i") return false;
         if (IDENTIFIER_PART.test(this.source[this.index + 1] ?? ""))
@@ -580,6 +594,12 @@ class FormulaParser {
     // The functions built by Function(…) in the function or program being
     // parsed, declared at its start.
     private built: Statement[] = [];
+    // The function being parsed, the names the program calls, and its
+    // functions holding a regular expression, which none of them may be:
+    // as DGPad figures' format(), whose regular expression is never run.
+    private fn: string | null = null;
+    private readonly called = new Set<string>();
+    private readonly unread = new Set<string>();
 
     constructor(source: string, variables: Iterable<string> = []) {
         this.outer = [new Set(variables)];
@@ -597,6 +617,9 @@ class FormulaParser {
     parseProgram(): Program {
         const body: Statement[] = [];
         while (this.current.type !== "eof") body.push(...this.statement());
+        for (const name of this.unread)
+            if (this.called.has(name))
+                throw new Error("Invalid DGP formula syntax");
         return { body: [...this.built, ...body], locals: this.locals };
     }
 
@@ -669,12 +692,15 @@ class FormulaParser {
         this.locals = new Set(params);
         const built = this.built;
         this.built = [];
+        const fn = this.fn;
+        this.fn = name;
         if (this.current.type !== "{")
             throw new Error("Invalid DGP formula syntax");
         const body = [...this.built, ...this.statement()];
         const locals = this.locals;
         this.locals = this.outer.pop()!;
         this.built = built;
+        this.fn = fn;
         return { kind: "function", name, params, locals, body };
     }
 
@@ -869,9 +895,8 @@ class FormulaParser {
         while (this.current.type === "[" || this.current.type === ".") {
             if (this.skip(".")) {
                 const name = this.name();
-                if (name === "length") base = { kind: "length", target: base };
-                else if (name === "join") base = this.join(base);
-                else if (name === "slice") base = this.slice(base);
+                const property = this.property(base, name);
+                if (property) base = property;
                 else if (LIST_METHODS.has(name as ObjectMethod)) {
                     const { name: list, indices } = listItem(base);
                     this.take("(");
@@ -953,6 +978,12 @@ class FormulaParser {
             return node;
         }
         if (token.type === "[") return this.vector();
+        if (token.type === "/" && this.fn !== null) {
+            this.lexer.skipRegex();
+            this.advance();
+            this.unread.add(this.fn);
+            return { kind: "string", value: "" };
+        }
         throw new Error("Invalid DGP formula syntax");
     }
 
@@ -1014,15 +1045,11 @@ class FormulaParser {
             }
             return this.call(name);
         }
-        if (name === "length")
-            return {
-                kind: "length",
-                target: { kind: "identifier", name: object },
-            };
-        if (name === "join")
-            return this.join({ kind: "identifier", name: object });
-        if (name === "slice")
-            return this.slice({ kind: "identifier", name: object });
+        const property = this.property(
+            { kind: "identifier", name: object },
+            name,
+        );
+        if (property) return property;
         if (/^d[xyzt]$/.test(name)) {
             this.take("(");
             return {
@@ -1034,6 +1061,44 @@ class FormulaParser {
         }
         this.take("(");
         return methodNode(object, name, this.arguments());
+    }
+
+    // JavaScript's property or method of a text or list, if the name is one
+    // of those read here.
+    private property(target: FormulaNode, name: string): FormulaNode | null {
+        switch (name) {
+            case "length":
+                return { kind: "length", target };
+            case "join":
+                return this.join(target);
+            case "slice":
+                return this.slice(target);
+            case "toString":
+                this.take("(");
+                this.take(")");
+                return {
+                    kind: "binary",
+                    op: "+",
+                    left: { kind: "string", value: "" },
+                    right: target,
+                };
+            case "split":
+            case "reverse": {
+                this.take("(");
+                const args = [target, ...this.arguments()];
+                if (args.length !== (name === "split" ? 2 : 1))
+                    throw new Error("Invalid DGP formula syntax");
+                return { kind: "native", fn: name, args };
+            }
+            // Only with a regular expression (see unread).
+            case "replace":
+                this.take("(");
+                this.arguments();
+                if (this.fn === null || !this.unread.has(this.fn))
+                    throw new Error("Invalid DGP formula syntax");
+                return target;
+        }
+        return null;
     }
 
     private join(target: FormulaNode): FormulaNode {
@@ -1167,7 +1232,12 @@ class FormulaParser {
                 variables: [...primes[2]],
                 args,
             };
-        if (!(name in FORMULA_ARITY)) return { kind: "userCall", name, args };
+        if (name === "parseInt" && args.length === 1)
+            return { kind: "native", fn: name, args };
+        if (!(name in FORMULA_ARITY)) {
+            this.called.add(name);
+            return { kind: "userCall", name, args };
+        }
         const fn = name as FormulaFn;
         const arity = FORMULA_ARITY[fn];
         if (arity < 0 ? args.length === 0 : args.length !== arity)
@@ -1281,6 +1351,7 @@ function children(node: FormulaNode): FormulaNode[] {
                 : [node.target];
         case "slice":
             return [node.target, ...node.args];
+        case "native":
         case "turtle":
             return node.args;
         case "binary":
@@ -1637,6 +1708,11 @@ function evalBinary(
     r: ScriptValue,
 ): ScriptValue | null {
     if (isComparison(op)) {
+        // Two texts, as JavaScript compares them: "7" == "" is false.
+        if (typeof l === "string" && typeof r === "string")
+            return op === "&&" || op === "||"
+                ? COMPARISONS[op](Number(l !== ""), Number(r !== ""))
+                : COMPARISONS[op](Number(l > r) - Number(l < r), 0);
         const [a, b] = [realPart(l), realPart(r)];
         return a === null || b === null ? null : COMPARISONS[op](a, b);
     }
@@ -2356,6 +2432,14 @@ function compileNode(node: FormulaNode, scope: Scope): Code {
                 return part;
             };
         }
+        case "native": {
+            const { fn } = node;
+            const args = node.args.map(compile);
+            return (frame) => {
+                const values = evalCodes(args, frame);
+                return values && nativeCall(fn, values, frame);
+            };
+        }
         case "turtle": {
             const { fn } = node;
             const args = node.args.map(compile);
@@ -2421,6 +2505,21 @@ function compileNode(node: FormulaNode, scope: Scope): Code {
             };
         }
     }
+}
+
+// A list reversed in place if the script owns it, as JavaScript's.
+function nativeCall(
+    fn: NativeFn,
+    [target, separator]: ScriptValue[],
+    frame: Frame,
+): ScriptValue | null {
+    if (fn === "parseInt") return parseInt(String(target));
+    if (fn === "reverse")
+        return Array.isArray(target) ? own(target, frame).reverse() : null;
+    if (typeof target !== "string") return null;
+    const parts = target.split(String(separator));
+    (frame.owned ??= new Set()).add(parts);
+    return parts;
 }
 
 function slowBinary(
