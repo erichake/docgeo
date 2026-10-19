@@ -1059,9 +1059,9 @@ ses méthodes internes et figé dans sa version de 2016.
   mises en forme comprises, et les blocs de ce texte le réécrivent à
   l'identique ; sur les tortues des figures DGPad des tests et sur des
   programmes qui éprouvent les priorités des opérateurs.
-- **Une instruction sans bloc** (fonction qui renvoie une valeur, `push`,
-  `slice`…) laisse le programme en texte, avec un message ; on ne perd
-  rien.
+- **Une instruction sans bloc** (`L.slice(-2)`, une fonction qui renvoie une
+  valeur ailleurs qu'à sa fin…) laisse le programme en texte, avec un
+  message ; on ne perd rien.
 - **Listes** (2026-10-18, pour les boutons de `urne_et_boules.dgp`) :
   catégorie « Listes » avec les blocs de DGPad `L [ i ]` et `L [ i ] = v`
   (`dg_list_get`, `dg_list_set`, élément compté depuis 1, écrit
@@ -1085,6 +1085,41 @@ ses méthodes internes et figé dans sa version de 2016.
   DGPad, d'une expression ou d'un bouton, montré avec le programme du
   bouton). Une liste de 2 ou 3 éléments dont l'un est un texte ou une liste
   (`[-1, "choisir..."]`) est un bloc « créer une liste avec », pas un point.
+- **Programmes Blockly des figures DGPad** (2026-10-19, chantier
+  `BLOCS_BLOCKLY.md`) : chaque programme `BLK` des figures de `tests/dgp/`
+  fait l'aller-retour (`tests/unit/editor_blocks.test.ts`, qui tient la
+  liste de celles qui ne passent pas encore). Ajouts :
+    - fonctions avec résultat (`procedures_defreturn`, le résultat étant
+      celui de leur dernière instruction) ;
+    - **variables d'une procédure** : celles de Blockly sont celles du
+      programme (une procédure peut en calculer une pour le programme,
+      comme `compterChiffres` de `division_posee.dgo`), mais le Blockly de
+      DGPad déclare siennes celles qu'une procédure affecte (`var` devant
+      leur première affectation). Une telle procédure garde cette règle,
+      marquée par la `data` de son bloc (« own variables », que Blockly
+      conserve), et ses blocs l'écrivent de même (`var m;` en tête) : sinon
+      une procédure récursive (Gosper, Hilbert, Cesaro) dessinerait autre
+      chose. Les compteurs des boucles sont les siens dans les deux cas ;
+      une procédure qui a des deux sortes de variables reste en texte ;
+    - « flèches de [objet] : longueur … largeur … » (`setArrow`, Figure),
+      « angle [180°|360°] A B C » (`Angle180`, `Angle360`, Figure), le menu
+      des grandeurs de la vue de DGPad (largeur et hauteur de la fenêtre,
+      coordonnées de son centre, unité en pixels, angles phi et theta :
+      `windoww()`… `theta()`, Figure) ;
+    - « dernier élément de L » (`L.slice(-1)[0]` de Blockly) et « retirer
+      le [premier|dernier] élément de L » (`L.shift()`, `L.pop()`), Listes ;
+    - « liste avec l'élément … répété … fois » sous le nom `lists_repeat`
+      d'une autre version du Blockly de DGPad ; « répéter n fois » sous la
+      forme de Blockly (`var repeat_end = n; for (var count = 0; count <
+repeat_end; count++)`), seulement pour un n entier tel qu'écrit
+      (`round`, `floor`, `ceil`, longueur, entier) : il répète alors autant
+      de fois que celui de DocGeo, compté de 1 à n ;
+    - **bloc « expression »** (Figure), le `dgpad_expression_input` de
+      DGPad : un texte tapé, écrit tel quel dans le programme. Les blocs ne
+      s'en servent que pour ce qui n'a pas d'autre bloc et que les auteurs
+      tapaient ainsi : appel d'une fonction de la figure (`f(tLoc)`),
+      `NaN`, `L.join("\\times")`, `parseInt`, `split`, `reverse` ; son texte
+      est écrit par les blocs (noms de variables simplifiés).
 - **Section « Définition »** d'un programme (ou d'un nouveau programme) :
   bascule **Texte** / **Blocs**. Une tortue s'ouvre en blocs, un autre
   programme en texte ; un choix vaut ensuite pour la session. Le programme
@@ -1213,7 +1248,7 @@ ses méthodes internes et figé dans sa version de 2016.
   taille des points, remplissage, écriture, police, image, se tourner vers
   un point, y aller, position, point n° et nombre de points d'une tortue,
   décimales écrites), ceux de Blockly (boucles, logique, maths, texte,
-  variables, fonctions sans valeur ; l'opération + − × ÷ de Blockly prend
+  variables, fonctions avec ou sans résultat ; l'opération + − × ÷ de Blockly prend
   aussi des points, comme le `Math.plus` de DGPad : `P1 + [1, 0]`, sinon
   Blockly refuserait d'y brancher le bloc « point » et l'espace de travail
   resterait vide), une catégorie « Globales » (créer une
@@ -1221,8 +1256,9 @@ ses méthodes internes et figé dans sa version de 2016.
   cachées de la figure, créées à l'application du programme qui en nomme une
   nouvelle) et une catégorie « Figure » : objet de la figure (menu de ses
   noms), abscisse, ordonnée, distance, point, mise en forme d'un objet
-  (`setHidden`…, `setRGBColor`), « renvoyer ». Un bloc d'objet laissé seul
-  s'écrit `Z;`, comme DGPad. Textes dans les 12 langues
+  (`setHidden`…, `setRGBColor`), « renvoyer ». Un bloc valeur laissé seul
+  (objet, nombre…) s'écrit `Z;` ou `12;`, comme DGPad (décidé avec
+  l'auteur le 2026-10-19). Textes dans les 12 langues
   (`blocks/messages.ts`), ceux de Blockly par ses fichiers de langue.
 - **Poids** : Blockly (13.4, ses blocs et le rendu zelos) est un chunk à
   part, `workspace-*.js`, chargé à la première ouverture des blocs, comme

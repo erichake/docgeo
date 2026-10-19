@@ -585,7 +585,7 @@ describe(".dgo figures", () => {
         const [program] = objects.find(
             ([, name]) => name === "blk_turtle_exp_P1",
         )![2].s;
-        const blocks = programBlocks(parseProgram(program), true);
+        const blocks = programBlocks(parseProgram(program), true, formatName);
         expect(blocksProgram(blocks!, formatName)).toBe(program);
     });
 
@@ -719,7 +719,7 @@ async function expectBlocksPrograms(
     programs.forEach((program) =>
         expect(
             blocksProgram(
-                programBlocks(parseProgram(program), true)!,
+                programBlocks(parseProgram(program), true, formatName)!,
                 formatName,
             ),
         ).toBe(program),

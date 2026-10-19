@@ -345,6 +345,50 @@ function defineBlocks(): void {
             style: "figure_blocks",
         },
         {
+            type: "dg_angle",
+            message0: msg("ANGLE"),
+            args0: [
+                {
+                    type: "field_dropdown",
+                    name: "TYPE",
+                    options: [
+                        ["180°", "Angle180"],
+                        ["360°", "Angle360"],
+                    ],
+                },
+                { type: "input_value", name: "A" },
+                { type: "input_value", name: "B" },
+                { type: "input_value", name: "C" },
+            ],
+            inputsInline: true,
+            output: "Number",
+            style: "figure_blocks",
+        },
+        {
+            type: "dg_view",
+            message0: "%1",
+            args0: [
+                choice("NAME", [
+                    ["VIEW_WIDTH", "windoww"],
+                    ["VIEW_HEIGHT", "windowh"],
+                    ["VIEW_CX", "windowcx"],
+                    ["VIEW_CY", "windowcy"],
+                    ["VIEW_PIXEL", "pixel"],
+                    ["VIEW_PHI", "phi"],
+                    ["VIEW_THETA", "theta"],
+                ]),
+            ],
+            output: "Number",
+            style: "figure_blocks",
+        },
+        {
+            type: "dg_expression",
+            message0: msg("EXPRESSION"),
+            args0: [{ type: "field_input", name: "TEXT", text: "f(x)" }],
+            output: null,
+            style: "figure_blocks",
+        },
+        {
             type: "dg_degrees",
             message0: msg("DEGREES"),
             args0: [number("VALUE")],
@@ -418,6 +462,14 @@ function defineBlocks(): void {
             style: "list_blocks",
         },
         {
+            type: "dg_list_last",
+            message0: msg("LIST_LAST"),
+            args0: [{ type: "input_value", name: "LIST" }],
+            inputsInline: true,
+            output: null,
+            style: "list_blocks",
+        },
+        {
             type: "dg_list_set",
             message0: "%1 [ %2 ] = %3",
             args0: [
@@ -441,12 +493,39 @@ function defineBlocks(): void {
             style: "list_blocks",
         },
         {
+            type: "dg_list_remove",
+            message0: msg("LIST_REMOVE"),
+            args0: [
+                choice("WHERE", [
+                    ["ITEM_FIRST", "shift"],
+                    ["ITEM_LAST", "pop"],
+                ]),
+                { type: "input_value", name: "LIST" },
+            ],
+            inputsInline: true,
+            ...statement,
+            style: "list_blocks",
+        },
+        {
             type: "dg_alert",
             message0: msg("ALERT"),
             args0: [{ type: "input_value", name: "TEXT" }],
             inputsInline: true,
             ...statement,
             style: "text_blocks",
+        },
+        {
+            type: "dg_style_arrow",
+            message0: msg("STYLE_ARROW"),
+            args0: [
+                { type: "input_dummy", name: "OBJECT" },
+                number("W"),
+                number("H"),
+            ],
+            inputsInline: true,
+            ...statement,
+            style: "figure_blocks",
+            extensions: ["dg_style_object"],
         },
         {
             type: "dg_style_rgb",
@@ -701,8 +780,10 @@ function toolbox(kinds: string[], owner: string, starts: string[]) {
                     block("lists_repeat", { ITEM: num(0), NUM: num(5) }),
                     block("lists_length"),
                     block("dg_list_get", { INDEX: num(1) }),
+                    block("dg_list_last"),
                     block("dg_list_set", { INDEX: num(1) }),
                     block("dg_list_push"),
+                    block("dg_list_remove"),
                 ],
             },
             {
@@ -731,6 +812,9 @@ function toolbox(kinds: string[], owner: string, starts: string[]) {
                     block("dg_object"),
                     block("dg_coordinate"),
                     block("dg_distance"),
+                    block("dg_angle"),
+                    block("dg_view"),
+                    block("dg_expression"),
                     block("dg_point", { X: num(0), Y: num(0) }),
                     block("dg_point3", { X: num(0), Y: num(0), Z: num(0) }),
                     block("dg_set_value", { VALUE: num(0) }),
@@ -740,6 +824,7 @@ function toolbox(kinds: string[], owner: string, starts: string[]) {
                         G: num(0),
                         B: num(255),
                     }),
+                    block("dg_style_arrow", { W: num(16), H: num(5) }),
                     ...(kinds.includes("program")
                         ? [block("dg_return", { VALUE: num(0) })]
                         : []),
@@ -874,8 +959,7 @@ export async function blocksEditor(
         this.getInput("A")!.setCheck(types);
         this.getInput("B")!.setCheck(types);
     };
-    // Procedures without a value only: DGPad's turtles have no other.
-    delete Blockly.Blocks.procedures_defreturn;
+    // A procedure returns the value of its last statement only.
     delete Blockly.Blocks.procedures_ifreturn;
     const workspace = Blockly.inject(host, {
         renderer: "zelos",
@@ -1008,7 +1092,14 @@ export async function blocksEditor(
             workspace,
         ) as WorkspaceState;
         const tops = state.blocks?.blocks ?? [];
-        const alone = tops.filter((block) => block.type === "dg_object");
+        // The values' blocks left alone, which the program writes "Z;".
+        const values = new Set(
+            workspace
+                .getTopBlocks(false)
+                .filter((block) => block.outputConnection)
+                .map((block) => block.id),
+        );
+        const alone = tops.filter((block) => values.has(block.id!));
         return new Map(
             tops.flatMap((root) => {
                 if (root.id?.startsWith(FOLDED))
@@ -1086,7 +1177,8 @@ export async function blocksEditor(
             const blocks: BlockState[] = [];
             const variables = new Map<string, { name: string; id: string }>();
             const shown = programs.map(({ hat, program }) => {
-                const state = program && programBlocks(program, degrees);
+                const state =
+                    program && programBlocks(program, degrees, figure.format);
                 const [root, ...rest] = state?.blocks!.blocks ?? [
                     { ...hatBlock(hat), collapsed: true },
                 ];

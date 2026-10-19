@@ -163,9 +163,10 @@ const LISTS_REPEAT_FUNCTION = [
     "}",
 ];
 
+// Its name in the versions of DGPad's Blockly.
 const isListsRepeat = (statement: Statement): boolean =>
     statement.kind === "function" &&
-    statement.name === LISTS_REPEAT &&
+    (statement.name === LISTS_REPEAT || statement.name === "lists_repeat") &&
     statement.params.length === 2;
 
 // A node read through the shape it may have.
@@ -211,13 +212,18 @@ function unsupported(): never {
 
 // The blocks of the program, null when some part of it has none. Angles
 // written without degrees are degrees only in a figure in degrees. The
-// program comes parsed, Blockly's chunk not importing the engine's parser.
+// program comes parsed, Blockly's chunk not importing the engine's parser,
+// the objects' names written by `format` in the blocks' expressions.
 export function programBlocks(
     program: Program,
     degrees: boolean,
+    format: (name: string) => string,
 ): WorkspaceState | null {
     try {
-        return new Decompiler(degrees).workspace(program.body, program.locals);
+        return new Decompiler(degrees, format).workspace(
+            program.body,
+            program.locals,
+        );
     } catch (error) {
         if (error instanceof Unsupported) return null;
         throw error;
@@ -239,6 +245,12 @@ const text = (value: string): BlockState => ({
 const value = (block: BlockState): Input =>
     block.type === "math_number" ? { shadow: block } : { block };
 
+// DGPad's block of an expression typed in, for what has no other block.
+const expression = (code: string): BlockState => ({
+    type: "dg_expression",
+    fields: { TEXT: code },
+});
+
 const literal = (node: FormulaNode): number | string | null =>
     node.kind === "number"
         ? node.value
@@ -249,6 +261,16 @@ const literal = (node: FormulaNode): number | string | null =>
               node.operand.kind === "number"
             ? -node.operand.value
             : null;
+
+// Whether the value is a whole number, as written.
+const whole = (node: FormulaNode): boolean =>
+    node.kind === "number"
+        ? Number.isInteger(node.value)
+        : node.kind === "length" ||
+          (node.kind === "call" &&
+              (node.fn === "round" ||
+                  node.fn === "floor" ||
+                  node.fn === "ceil"));
 
 const stripped = (node: FormulaNode): FormulaNode | null =>
     node.kind === "unary" && node.op === "-" ? node.operand : null;
@@ -278,10 +300,13 @@ function added(node: FormulaNode, name: string): FormulaNode | null {
     return left?.kind === "identifier" && left.name === name ? right : null;
 }
 
-function readsName(statements: Statement[], name: string): boolean {
-    const text = JSON.stringify(statements);
-    return text.includes(`"name":"${name.replace(/["\\]/g, "\\$&")}"`);
-}
+// How many times the statements name the variable.
+const mentions = (statements: Statement[], name: string): number =>
+    JSON.stringify(statements).split(`"name":${JSON.stringify(name)}`).length -
+    1;
+
+const readsName = (statements: Statement[], name: string): boolean =>
+    mentions(statements, name) > 0;
 
 // The local variables of the statements' functions, at any depth.
 function functionLocals(statements: Statement[]): string[] {
@@ -294,6 +319,37 @@ function functionLocals(statements: Statement[]): string[] {
                 ? functionLocals(statement.body)
                 : [],
     );
+}
+
+// The variables the loops "for (var v = a; …)" count with.
+function counters(statements: Statement[], names = new Set<string>()) {
+    statements.forEach((statement, i) => {
+        const loop = statements[i + 1];
+        if (
+            statement.kind === "expression" &&
+            statement.node.kind === "assign" &&
+            loop?.kind === "loop" &&
+            loop.update
+        )
+            names.add(statement.node.name);
+        if (statement.kind === "if") {
+            counters(statement.then, names);
+            counters(statement.otherwise, names);
+        }
+        if (statement.kind === "loop") counters(statement.body, names);
+    });
+    return names;
+}
+
+// The variables the statements set.
+function assigned(value: unknown, names = new Set<string>()): Set<string> {
+    if (Array.isArray(value)) value.forEach((item) => assigned(item, names));
+    else if (value && typeof value === "object") {
+        const node = value as { kind?: string; name?: string };
+        if (node.kind === "assign") names.add(node.name!);
+        Object.values(value).forEach((item) => assigned(item, names));
+    }
+    return names;
 }
 
 // The names the statements read or style, its variables' among them.
@@ -326,9 +382,17 @@ class Decompiler {
     private readonly used = new Set<string>();
     // The program's procedures, by name: the names of their parameters.
     private readonly procedures = new Map<string, string[]>();
-    private repeats = false;
+    // Those of them that return a value.
+    private readonly returning = new Set<string>();
+    // All its statements.
+    private statements: Statement[] = [];
+    // The name of the function of "list with an item repeated".
+    private repeats: string | null = null;
 
-    constructor(private readonly degrees: boolean) {}
+    constructor(
+        private readonly degrees: boolean,
+        private readonly format: (name: string) => string,
+    ) {}
 
     // DGPad's prefixes dropped, unless it would make two names one, or a
     // variable one of the objects the program reads: "blockly_var_p1 = p1".
@@ -350,9 +414,11 @@ class Decompiler {
     }
 
     workspace(body: Statement[], locals: ReadonlySet<string>): WorkspaceState {
-        if (body.some(isListsRepeat)) {
-            this.repeats = true;
-            body = body.filter((statement) => !isListsRepeat(statement));
+        this.statements = body;
+        const repeat = body.find(isListsRepeat);
+        if (repeat) {
+            this.repeats = (repeat as { name: string }).name;
+            body = body.filter((statement) => statement !== repeat);
         }
         // Blockly's "var f = function(){…}; f()".
         const [fn, call] = body;
@@ -405,19 +471,24 @@ class Decompiler {
         const functions = body.filter(
             (statement) => statement.kind === "function",
         );
-        functions.forEach(({ name, params }) =>
+        functions.forEach(({ name, params, body }) => {
             this.procedures.set(
                 name,
                 params.map((param) => this.names.get(param)!),
-            ),
-        );
-        // An object's block left alone, which DGPad's Blockly wrote "Z;".
+            );
+            if (returned(body)) this.returning.add(name);
+        });
+        // A value's block left alone, which DGPad's Blockly wrote "Z;" or
+        // "12;".
         const alone = body.filter(
             (statement) =>
                 statement.kind === "expression" &&
-                statement.node.kind === "identifier" &&
-                !this.names.has(statement.node.name) &&
-                globalOf(statement.node.name) === null,
+                !isStatement(statement.node) &&
+                statement.node.kind !== "userCall" &&
+                !(
+                    statement.node.kind === "call" &&
+                    statement.node.fn === "ALERT"
+                ),
         );
         const chain = this.chain(
             body.filter(
@@ -442,24 +513,64 @@ class Decompiler {
         };
     }
 
+    // A procedure, which returns the value of its last statement, if any.
     private procedure(
         statement: Extract<Statement, { kind: "function" }>,
     ): BlockState {
-        // Blockly's procedures with a value have no block here.
-        if (JSON.stringify(statement.body).includes('"kind":"return"'))
+        const result = returned(statement.body);
+        const body = result ? statement.body.slice(0, -1) : statement.body;
+        if (JSON.stringify(body).includes('"kind":"return"')) unsupported();
+        // The variables it sets are the program's, as Blockly's, or all its
+        // own, as DGPad's Blockly declares them (see Generator.procedure),
+        // its loops' counters apart.
+        const apart = new Set([...statement.params, ...counters(body)]);
+        const own = [...statement.locals].filter((name) => !apart.has(name));
+        const set = [...assigned(body)].filter((name) => !apart.has(name));
+        if (
+            own.length &&
+            (own.length !== set.length ||
+                own.some((name) => !set.includes(name)))
+        )
             unsupported();
         const params = this.procedures.get(statement.name)!;
         params.forEach((param) => this.used.add(param));
-        const block = this.chain(statement.body);
+        const block = this.chain(body);
         return {
-            type: "procedures_defnoreturn",
+            type: result ? "procedures_defreturn" : "procedures_defnoreturn",
+            ...(own.length && { data: OWN_VARIABLES }),
             fields: { NAME: blocklyName(statement.name) },
             ...(params.length && {
                 extraState: {
                     params: params.map((name) => ({ name, id: name })),
                 },
             }),
-            ...(block && { inputs: { STACK: { block } } }),
+            inputs: {
+                ...(block && { STACK: { block } }),
+                ...(result && { RETURN: value(this.value(result)) }),
+            },
+        };
+    }
+
+    // The call of a procedure, as `type`.
+    private call(
+        node: Extract<FormulaNode, { kind: "userCall" }>,
+        type: string,
+    ): BlockState {
+        const params = this.procedures.get(node.name) ?? unsupported();
+        if (
+            node.args.length !== params.length ||
+            this.returning.has(node.name) !== (type === "procedures_callreturn")
+        )
+            unsupported();
+        return {
+            type,
+            extraState: {
+                name: blocklyName(node.name),
+                ...(params.length && { params }),
+            },
+            inputs: Object.fromEntries(
+                node.args.map((arg, i) => [`ARG${i}`, value(this.value(arg))]),
+            ),
         };
     }
 
@@ -475,6 +586,31 @@ class Decompiler {
         for (let i = 0; i < statements.length; i++) {
             const statement = statements[i];
             const loop = statements[i + 1];
+            // Blockly's "repeat n times", n computed: "var repeat_end = n;
+            // for (var count = 0; count < repeat_end; count++)".
+            const [end, init, after] = statements.slice(i, i + 3);
+            const bound =
+                after?.kind === "loop" &&
+                after.test?.kind === "binary" &&
+                after.test.op === "<"
+                    ? after.test.right
+                    : null;
+            if (
+                end.kind === "expression" &&
+                end.node.kind === "assign" &&
+                init?.kind === "expression" &&
+                init.node.kind === "assign" &&
+                literal(init.node.value) === 0 &&
+                after?.kind === "loop" &&
+                after.update &&
+                bound?.kind === "identifier" &&
+                bound.name === end.node.name &&
+                mentions(this.statements, end.node.name) === 2
+            ) {
+                blocks.push(this.forLoop(init.node, after, end.node.value));
+                i += 2;
+                continue;
+            }
             // "for (var v = a; v <= b; v = v + c)".
             if (
                 loop?.kind === "loop" &&
@@ -498,9 +634,11 @@ class Decompiler {
         return block ? { DO: { block } } : {};
     }
 
+    // Its count is `times` when Blockly computed it before.
     private forLoop(
         init: Extract<FormulaNode, { kind: "assign" }>,
         loop: Extract<Statement, { kind: "loop" }>,
+        times?: FormulaNode,
     ): BlockState {
         const { name } = init;
         const { test } = loop;
@@ -508,21 +646,30 @@ class Decompiler {
         if (
             !step ||
             test?.kind !== "binary" ||
-            test.op !== "<=" ||
             test.left.kind !== "identifier" ||
             test.left.name !== name
         )
             unsupported();
-        // DGPad's "repeat n times" counted from 1 by 1.
         const from = literal(init.value);
-        if (from === 1 && literal(step!) === 1 && !readsName(loop.body, name))
-            return {
-                type: "controls_repeat_ext",
-                inputs: {
-                    TIMES: value(this.value(test!.right)),
-                    ...this.body(loop.body),
-                },
-            };
+        const counted = literal(step!) === 1 && !readsName(loop.body, name);
+        const repeat = (count: FormulaNode): BlockState => ({
+            type: "controls_repeat_ext",
+            inputs: {
+                TIMES: value(this.value(count)),
+                ...this.body(loop.body),
+            },
+        });
+        // DGPad's "repeat n times" counted from 1 by 1, Blockly's from 0,
+        // which repeats as many times when n is whole.
+        if (
+            test!.op === "<" &&
+            from === 0 &&
+            counted &&
+            whole(times ?? test!.right)
+        )
+            return repeat(times ?? test!.right);
+        if (test!.op !== "<=" || times) unsupported();
+        if (from === 1 && counted) return repeat(test!.right);
         return {
             type: "controls_for",
             fields: { VAR: this.variable(name) },
@@ -633,19 +780,32 @@ class Decompiler {
                 },
             };
         }
-        // DGPad's "append to the end of the list", of a variable's.
-        if (node.kind === "method" && node.method === "push") {
-            if (node.args.length !== 1) unsupported();
-            const list = node.indices.reduce<FormulaNode>(
-                (target, index) => ({ kind: "index", target, index }),
-                { kind: "identifier", name: node.object },
+        // DGPad's "append to the end of the list", and Blockly's "remove
+        // the first item" or the last, of a variable's list.
+        if (
+            node.kind === "method" &&
+            (node.method === "push" ||
+                node.method === "shift" ||
+                node.method === "pop")
+        ) {
+            const list = value(
+                this.value(
+                    node.indices.reduce<FormulaNode>(
+                        (target, index) => ({ kind: "index", target, index }),
+                        { kind: "identifier", name: node.object },
+                    ),
+                ),
             );
+            if (node.method !== "push")
+                return {
+                    type: "dg_list_remove",
+                    fields: { WHERE: node.method },
+                    inputs: { LIST: list },
+                };
+            if (node.args.length !== 1) unsupported();
             return {
                 type: "dg_list_push",
-                inputs: {
-                    VALUE: value(this.value(node.args[0])),
-                    LIST: value(this.value(list)),
-                },
+                inputs: { VALUE: value(this.value(node.args[0])), LIST: list },
             };
         }
         if (node.kind === "method") {
@@ -679,6 +839,22 @@ class Decompiler {
                     inputs: { R: r, G: g, B: b },
                 };
             }
+            // DGPad's arrows at the ends of a List's segments, their length
+            // and half width in pixels.
+            const [arrow] = node.args;
+            if (
+                node.method === "setArrow" &&
+                arrow?.kind === "vector" &&
+                arrow.items.length === 2
+            )
+                return {
+                    type: "dg_style_arrow",
+                    fields: { OBJECT: node.object },
+                    inputs: {
+                        W: value(this.value(arrow.items[0])),
+                        H: value(this.value(arrow.items[1])),
+                    },
+                };
             if (!STYLE_METHODS.includes(node.method)) unsupported();
             return {
                 type: "dg_style",
@@ -686,23 +862,8 @@ class Decompiler {
                 inputs: { VALUE: value(this.value(node.args[0])) },
             };
         }
-        if (node.kind === "userCall") {
-            const params = this.procedures.get(node.name) ?? unsupported();
-            if (node.args.length !== params.length) unsupported();
-            return {
-                type: "procedures_callnoreturn",
-                extraState: {
-                    name: blocklyName(node.name),
-                    ...(params.length && { params }),
-                },
-                inputs: Object.fromEntries(
-                    node.args.map((arg, i) => [
-                        `ARG${i}`,
-                        value(this.value(arg)),
-                    ]),
-                ),
-            };
-        }
+        if (node.kind === "userCall")
+            return this.call(node, "procedures_callnoreturn");
         if (node.kind === "call" && node.fn === "ALERT")
             return {
                 type: "dg_alert",
@@ -838,7 +999,9 @@ class Decompiler {
     private value(node: FormulaNode): BlockState {
         switch (node.kind) {
             case "number":
-                return number(node.value);
+                return Number.isNaN(node.value)
+                    ? expression("NaN")
+                    : number(node.value);
             case "string":
                 return text(node.value);
             case "constant":
@@ -903,8 +1066,20 @@ class Decompiler {
                     ),
                 };
             case "call":
-                return this.call(node);
-            case "index":
+                return this.fn(node);
+            case "index": {
+                // Blockly's last item: "L.slice(-1)[0]".
+                const { target, index } = node;
+                if (
+                    target.kind === "slice" &&
+                    target.args.length === 1 &&
+                    literal(target.args[0]) === -1 &&
+                    literal(index) === 0
+                )
+                    return {
+                        type: "dg_list_last",
+                        inputs: { LIST: value(this.value(target.target)) },
+                    };
                 return {
                     type: "dg_list_get",
                     inputs: {
@@ -912,6 +1087,7 @@ class Decompiler {
                         INDEX: value(this.position(node.index)),
                     },
                 };
+            }
             case "length":
                 return {
                     type: "lists_length",
@@ -919,12 +1095,17 @@ class Decompiler {
                 };
             case "userCall": {
                 const [item, count] = node.args;
+                // A function of the figure: "f(t)".
                 if (
-                    node.name !== LISTS_REPEAT ||
-                    !this.repeats ||
-                    node.args.length !== 2
+                    !this.procedures.has(node.name) &&
+                    node.name !== this.repeats
                 )
-                    unsupported();
+                    return expression(
+                        `${this.format(node.name)}(${node.args.map((arg) => this.code(arg)[0]).join(", ")})`,
+                    );
+                if (node.name !== this.repeats)
+                    return this.call(node, "procedures_callreturn");
+                if (node.args.length !== 2) unsupported();
                 return {
                     type: "lists_repeat",
                     inputs: {
@@ -940,12 +1121,22 @@ class Decompiler {
                     node.separator?.kind !== "string" ||
                     node.separator.value !== ""
                 )
-                    unsupported();
+                    return expression(
+                        `${this.operand(node.target)}.join(${node.separator ? this.code(node.separator)[0] : ""})`,
+                    );
                 return this.join(
                     (node.target as { items: FormulaNode[] }).items.map(
                         (item) => this.value(item),
                     ),
                 );
+            case "native": {
+                const [target, arg] = node.args;
+                return expression(
+                    node.fn === "parseInt"
+                        ? `parseInt(${this.code(target)[0]})`
+                        : `${this.operand(target)}.${node.fn}(${arg ? this.code(arg)[0] : ""})`,
+                );
+            }
             case "turtle":
                 switch (node.fn) {
                     case "TURTLE_TEXT":
@@ -976,7 +1167,17 @@ class Decompiler {
         return unsupported();
     }
 
-    private call(node: Extract<FormulaNode, { kind: "call" }>): BlockState {
+    // The node as its blocks write it, in a block "expression".
+    private code(node: FormulaNode): Code {
+        return new Generator({}, this.format).code(this.value(node));
+    }
+
+    private operand(node: FormulaNode): string {
+        const [code, order] = this.code(node);
+        return order > POSTFIX ? `(${code})` : code;
+    }
+
+    private fn(node: Extract<FormulaNode, { kind: "call" }>): BlockState {
         const { fn, args } = node;
         const [a, b] = args;
         if (fn in ARITHMETIC) return this.arithmetic(ARITHMETIC[fn], a, b);
@@ -1026,6 +1227,28 @@ class Decompiler {
                 };
             case "random":
                 return { type: "math_random_float" };
+            // What DGPad's Blockly reads of the view.
+            case "windoww":
+            case "windowh":
+            case "windowcx":
+            case "windowcy":
+            case "pixel":
+            case "phi":
+            case "theta":
+                return { type: "dg_view", fields: { NAME: fn } };
+            // DGPad's angle ABC, within 0 and 180° or oriented.
+            case "Angle180":
+            case "Angle360":
+                return {
+                    type: "dg_angle",
+                    fields: { TYPE: fn },
+                    inputs: Object.fromEntries(
+                        args.map((arg, i) => [
+                            "ABC"[i],
+                            value(this.value(arg)),
+                        ]),
+                    ),
+                };
             // Blockly's minimum or maximum of the list it builds.
             case "min":
             case "max":
@@ -1142,6 +1365,12 @@ class Decompiler {
     }
 }
 
+// The value a procedure's last statement returns.
+function returned(body: Statement[]): FormulaNode | null {
+    const last = body[body.length - 1];
+    return last?.kind === "return" ? last.node : null;
+}
+
 const isStatement = (node: FormulaNode): boolean =>
     node.kind === "assign" ||
     node.kind === "assignItem" ||
@@ -1208,14 +1437,12 @@ export function stackState(
     state: WorkspaceState,
     root: BlockState,
 ): WorkspaceState {
-    const procedures = (state.blocks?.blocks ?? []).filter(
-        (block) => block.type === "procedures_defnoreturn",
-    );
+    const procedures = (state.blocks?.blocks ?? []).filter(isProcedure);
     const called: BlockState[] = [];
     const walk = (block: BlockState | undefined): void => {
         if (!block) return;
         const procedure =
-            block.type === "procedures_callnoreturn" &&
+            block.type.startsWith("procedures_call") &&
             procedures.find(
                 ({ fields }) => fields?.NAME === block.extraState?.name,
             );
@@ -1236,6 +1463,13 @@ export function stackState(
     };
 }
 
+// The mark of a procedure whose variables are its own (see procedure).
+const OWN_VARIABLES = "own variables";
+
+const isProcedure = (block: BlockState): boolean =>
+    block.type === "procedures_defnoreturn" ||
+    block.type === "procedures_defreturn";
+
 // A list a program can change an item of.
 const assignable = (block: BlockState | undefined): boolean =>
     block?.type === "variables_get" ||
@@ -1250,6 +1484,24 @@ const paramsOf = (block: BlockState): string[] =>
     ((block.extraState?.params ?? []) as (string | { name: string })[]).map(
         (param) => (typeof param === "string" ? param : param.name),
     );
+
+// Whether a text typed in an expression binds as a name: no operator out of
+// its brackets and texts.
+function atomic(code: string): boolean {
+    let depth = 0;
+    let quote = "";
+    for (let i = 0; i < code.length; i++) {
+        const c = code[i];
+        if (quote) {
+            if (c === "\\") i++;
+            else if (c === quote) quote = "";
+        } else if (c === '"' || c === "'") quote = c;
+        else if ("([{".includes(c)) depth++;
+        else if (")]}".includes(c)) depth--;
+        else if (!depth && !/[\p{L}\p{N}_$.]/u.test(c)) return false;
+    }
+    return true;
+}
 
 class Generator {
     private readonly names = new Map<string, string>();
@@ -1268,10 +1520,7 @@ class Generator {
         });
         const walk = (block: BlockState | undefined): void => {
             if (!block) return;
-            if (
-                block.type === "dg_object" ||
-                block.type === "procedures_defnoreturn"
-            )
+            if (block.type === "dg_object" || isProcedure(block))
                 this.taken.add(String(block.fields?.NAME));
             Object.values(block.inputs ?? {}).forEach((input) => {
                 walk(input.block);
@@ -1282,14 +1531,13 @@ class Generator {
         state.blocks?.blocks.forEach(walk);
     }
 
-    // Its procedures and the objects' blocks left alone, before its
+    // Its procedures and the values' blocks left alone, before its
     // statements.
     program(root: BlockState, blocks: BlockState[]): string {
-        const procedures = blocks.filter(
-            (block) => block.type === "procedures_defnoreturn",
-        );
+        const procedures = blocks.filter(isProcedure);
         const params = new Set(procedures.flatMap(paramsOf));
-        // Blockly's variables are the program's, whatever procedure sets them.
+        // Blockly's variables are the program's, whatever procedure sets
+        // them, but in DGPad's (see procedure).
         const variables = [...this.names.values()].filter(
             (name) => !params.has(name),
         );
@@ -1297,14 +1545,15 @@ class Generator {
             ...(procedures.length && variables.length
                 ? [`var ${variables.map(this.format).join(", ")};`]
                 : []),
-            ...procedures.flatMap((block) => [
-                `function ${this.format(String(block.fields!.NAME))}(${paramsOf(block).map(this.format).join(", ")}) {`,
-                ...this.nested(block, "STACK", ""),
-                "}",
-            ]),
+            ...procedures.flatMap((block) => this.procedure(block)),
             ...blocks
-                .filter((block) => block.type === "dg_object")
-                .map(({ fields }) => `${this.format(String(fields!.NAME))};`),
+                .filter(
+                    (block) =>
+                        !ROOTS.has(block.type) &&
+                        !isProcedure(block) &&
+                        !this.statement(block, "").length,
+                )
+                .map((block) => `${this.value(block)[0]};`),
             ...this.statements(root.next?.block, ""),
         ];
         if (this.repeats) body.unshift(...LISTS_REPEAT_FUNCTION);
@@ -1316,9 +1565,40 @@ class Generator {
         ].join("\n");
     }
 
+    // The variables it sets are the program's, but in a procedure of
+    // DGPad's Blockly, which declares them its own: they don't change
+    // those of the same name elsewhere, nor its own in the calls it makes of
+    // itself (Gosper's curve).
+    private procedure(block: BlockState): string[] {
+        const params = paramsOf(block).map(this.format);
+        const own = new Set<string>();
+        const walk = (child: BlockState | undefined): void => {
+            if (!child) return;
+            if (child.type === "variables_set" || child.type === "math_change")
+                own.add(this.variable(child));
+            Object.values(child.inputs ?? {}).forEach((input) =>
+                walk(input.block),
+            );
+            walk(child.next?.block);
+        };
+        if (block.data === OWN_VARIABLES) walk(block.inputs?.STACK?.block);
+        params.forEach((param) => own.delete(param));
+        return [
+            `function ${this.format(String(block.fields!.NAME))}(${params.join(", ")}) {`,
+            ...(own.size ? [`    var ${[...own].join(", ")};`] : []),
+            ...this.nested(block, "STACK", ""),
+            ...(block.inputs?.RETURN
+                ? [`    return ${this.arg(block, "RETURN")};`]
+                : []),
+            "}",
+        ];
+    }
+
     private variable(block: BlockState): string {
         const field = block.fields?.VAR as { id?: string; name?: string };
-        return this.format(this.names.get(field.id!) ?? field.name ?? "x");
+        return this.format(
+            this.names.get(field.id!) ?? field.name ?? field.id ?? "x",
+        );
     }
 
     private statements(
@@ -1388,6 +1668,10 @@ class Generator {
             case "dg_set_value":
                 return line(
                     `${this.format(String(fields.OBJECT))}.setExpression(${this.arg(block, "VALUE")});`,
+                );
+            case "dg_style_arrow":
+                return line(
+                    `${this.format(String(fields.OBJECT))}.setArrow([${this.arg(block, "W")}, ${this.arg(block, "H")}]);`,
                 );
             case "dg_style_rgb":
                 return line(
@@ -1488,15 +1772,15 @@ class Generator {
                 return line(
                     `${this.operand(block, "LIST", ATOM, "[]")}.push(${this.arg(block, "VALUE")});`,
                 );
+            case "dg_list_remove":
+                if (!pushable(block.inputs?.LIST?.block)) return [];
+                return line(
+                    `${this.operand(block, "LIST", ATOM, "[]")}.${fields.WHERE}();`,
+                );
             case "dg_alert":
                 return call("ALERT", this.arg(block, "TEXT", '""'));
             case "procedures_callnoreturn":
-                return call(
-                    this.format(String(block.extraState!.name)),
-                    ...paramsOf(block).map((_, i) =>
-                        this.arg(block, `ARG${i}`),
-                    ),
-                );
+                return line(`${this.value(block)[0]};`);
             case "turtle_pen":
                 return call("TURTLE_UP", String(fields.PEN === "up"));
             case "turtle_reset":
@@ -1559,11 +1843,20 @@ class Generator {
         }
     }
 
+    // What a value's blocks write.
+    code(block: BlockState): Code {
+        return this.value(block);
+    }
+
     private value(block: BlockState): Code {
         const fields = block.fields ?? {};
         switch (block.type) {
             case "math_number":
                 return numberCode(fields.NUM);
+            case "dg_expression": {
+                const code = String(fields.TEXT ?? "").trim() || "0";
+                return [code, atomic(code) ? ATOM : CONDITIONAL];
+            }
             case "text":
                 return [quoted(String(fields.TEXT ?? "")), ATOM];
             case "logic_boolean":
@@ -1631,6 +1924,11 @@ class Generator {
             // Its item binds as tightly as a name.
             case "dg_list_get":
                 return [this.item(block), ATOM];
+            case "dg_list_last":
+                return [
+                    `${this.operand(block, "LIST", ATOM, "[]")}.slice(-1)[0]`,
+                    ATOM,
+                ];
             case "lists_create_with":
                 return [
                     `[${Array.from(
@@ -1703,8 +2001,25 @@ class Generator {
                     `d(${this.arg(block, "A")}, ${this.arg(block, "B")})`,
                     ATOM,
                 ];
+            case "dg_view":
+                return [`${fields.NAME}()`, ATOM];
+            case "dg_angle":
+                return [
+                    `${fields.TYPE}(${["A", "B", "C"].map((c) => this.arg(block, c)).join(", ")})`,
+                    ATOM,
+                ];
             case "dg_degrees":
                 return [`${this.operand(block, "VALUE", POSTFIX)}°`, POSTFIX];
+            case "procedures_callnoreturn":
+            case "procedures_callreturn":
+                return [
+                    `${this.format(String(block.extraState!.name))}(${paramsOf(
+                        block,
+                    )
+                        .map((_, i) => this.arg(block, `ARG${i}`))
+                        .join(", ")})`,
+                    ATOM,
+                ];
             case "turtle_position":
                 return ["TURTLE_POS()", ATOM];
             case "turtle_get":

@@ -269,6 +269,22 @@ export const globalName = (name: string) => `GLOBAL ${name}`;
 export const globalOf = (name: string): string | null =>
     name.startsWith("GLOBAL ") ? name.slice(7) : null;
 
+// The program of a BLK's mode, a turtle ("onlogo") or an "oncompute"
+// compiled as DGPad compiles them.
+export function blocklySource(
+    modes: Record<string, { sync?: unknown }>,
+    mode: string,
+    name: string,
+): string | null {
+    const sync = modes[mode]?.sync;
+    if (typeof sync !== "string") return null;
+    if (mode !== "onlogo" && mode !== "oncompute") return sync;
+    const body = sync.replace(/^\s*var\s*\w+(\s*,\s*\w+)*;/gm, "");
+    return mode === "onlogo"
+        ? `var bl=function(){\nTURTLE_INIT("${name}",${name});\n${body}\nreturn TURTLE_RESULT()\n};\nbl()`
+        : `var bl=function(){\n${body}\n};\nbl()`;
+}
+
 type BinaryOp = "+" | "-" | "*" | "/" | "%" | "^" | Comparison;
 
 export type FormulaNode =

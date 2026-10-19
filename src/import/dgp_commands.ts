@@ -134,6 +134,7 @@ import {
 import { createVector } from "../objects/vector_object";
 import type { Vec2, Vec3 } from "../vec";
 import {
+    blocklySource,
     evaluateFormula,
     formulaIdentifiers,
     globalName,
@@ -3650,22 +3651,10 @@ function compileBlocklyPrograms(calls: DgpCall[]): DgpCall[] {
         )
             return;
         const modes = JSON.parse(String(source.value));
-        const sync = (mode: string) =>
-            typeof modes[mode]?.sync === "string"
-                ? modes[mode].sync.replace(/^\s*var\s*\w+(\s*,\s*\w+)*;/gm, "")
-                : null;
-        const logo = sync("onlogo");
-        if (logo !== null)
-            sources.set(
-                `blk_turtle_exp_${target.name}`,
-                `var bl=function(){\nTURTLE_INIT("${target.name}",${target.name});\n${logo}\nreturn TURTLE_RESULT()\n};\nbl()`,
-            );
-        const compute = sync("oncompute");
-        if (compute !== null)
-            sources.set(
-                target.name,
-                `var bl=function(){\n${compute}\n};\nbl()`,
-            );
+        const logo = blocklySource(modes, "onlogo", target.name);
+        if (logo !== null) sources.set(`blk_turtle_exp_${target.name}`, logo);
+        const compute = blocklySource(modes, "oncompute", target.name);
+        if (compute !== null) sources.set(target.name, compute);
     });
     return calls.map((call) => {
         const source =

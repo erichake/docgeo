@@ -27,8 +27,10 @@ Périmètre :
 
 ## État au 2026-10-19
 
-Sur les 61 figures de `tests/dgp/` qui contiennent du Blockly, 26 (hors
-`GetCanvas()`) ont au moins un programme qui ne s'ouvre pas en blocs. Pour
+Au début du chantier : sur les 61 figures de `tests/dgp/` qui contiennent du
+Blockly, 26 (hors `GetCanvas()`) avaient au moins un programme qui ne
+s'ouvrait pas en blocs. À la fin de la journée, toutes s'ouvrent en blocs
+(le test de mesure attend une liste vide). Pour
 chaque programme, la table donne **le premier** obstacle rencontré :
 d'autres peuvent apparaître une fois celui-ci levé.
 
@@ -151,20 +153,62 @@ ajouter. Les blocs propres à DGPad sont définis dans
 
 ## Avancement
 
-- [ ] Test de mesure sur toutes les figures Blockly (étape 1)
-- [ ] (A) Fonctions avec résultat
-- [ ] (D) `setArrow`
-- [ ] (J) `Angle180`
-- [ ] (F) `slice`
-- [ ] (B) Appel d'une expression-fonction de la figure
-- [ ] (E) `pixel()`
-- [ ] (C) `lists_repeat`
-- [ ] (G) Jointure avec séparateur
-- [ ] (H) Répéter n fois à nombre calculé
-- [ ] (I) Bloc valeur laissé seul (à décider avec l'auteur)
+- [x] Test de mesure sur toutes les figures Blockly (étape 1) :
+      « opens every Blockly program of the test figures in blocks », qui
+      attend la liste des figures qui ne passent pas (vide en fin de
+      chantier). Pour que l'aller-retour compare vraiment, les
+      noms des expressions de la figure et des globales y valent un nombre,
+      les autres un point propre à chaque nom, et les globales gardent la
+      valeur qu'on leur donne (sinon `while (I <= N)` tournait jusqu'à la
+      limite d'étapes).
+- [x] (A) Fonctions avec résultat — 3 Dalhia, puis avec les suivants les
+      RK4, CourbePolya, Fig35. Constat : le Blockly de DGPad rend locales à
+      une procédure les variables qu'elle affecte (`perso/js/core.js`,
+      `procedures_defreturn`) ; une telle procédure garde cette règle
+      (marque `data` de son bloc), sans quoi six figures récursives
+      (Cesaro ×3, Hilbert, Gosper, PavHbidir) ouvraient en blocs un
+      programme qui dessinait autre chose. Les autres gardent celle de
+      Blockly et de DocGeo (variables du programme), dont dépendent les
+      `.dgo` écrits avec les blocs (`division_posee.dgo`, `engrenage.dgo`,
+      `VTT.dgo`).
+- [x] (D) `setArrow` : bloc « flèches de … ».
+- [x] (J) `Angle180` : bloc « angle 180°|360° » (les 4 PavPenta, CourbePolya).
+- [x] (F) `slice` : c'était le « dernier élément » de Blockly
+      (`L.slice(-1)[0]`) : bloc « dernier élément de » (6 figures RK4 et
+      SystDyn).
+- [x] (B) Appel d'une expression-fonction de la figure : bloc
+      « expression » (le `dgpad_expression_input` de DGPad), qui sert aussi
+      à `NaN`, `join` avec séparateur, `parseInt`, `split`, `reverse` (les 4
+      Yves_02, `division_posee_new`, Fig35).
+- [x] (E) `pixel()` : c'est le bloc DGPad `dgpad_window_props`, repris
+      avec ses 7 grandeurs de la vue (urne_et_boules, Helice3D).
+- [x] (C) `lists_repeat` (lancer2desNew).
+- [x] (G) Jointure avec séparateur : c'était un bloc « expression » de
+      DGPad (voir (B)). `decomposition_facteurs_premiers` demandait aussi
+      « retirer le premier élément » (`L.shift()`) : bloc « retirer le
+      premier|dernier élément de ».
+- [x] (H) Répéter n fois à nombre calculé (lancer2desMax), pour un n
+      entier tel qu'écrit.
+- [x] (I) Bloc valeur laissé seul (`Les75Sol_du_Prelude1.dgp`) : décidé
+      avec l'auteur, il est montré seul et réécrit (`12;`), comme le bloc
+      d'objet laissé seul (`Z;`).
 
-À reprendre dans les manuels, au feu vert de l'auteur :
+Taille du chunk `engine-*.js` (référence 362,24 Ko) : 362,35 Ko après le
+chantier (+0,11 Ko, `blocklySource` partagé par l'importeur et le test).
 
-- Blocs ajoutés le 2026-10-19 pour `pirates.dgp` : « afficher le message »
-  (Texte), « ajouter … à la fin de … » (Listes), bloc de départ « quand la
-  figure s'ouvre » (Événements).
+Remarqué en chemin, hors chantier :
+
+- 5 tests `figure_state.test.ts` (état élève de DalhiaGene_Sesam,
+  Dalhia_3tempo_Sesam, Dalhia_4tempo_Sesam, NewP4554Temps, PavPentaMR3 :
+  globales `Rsuiv`, `ccar`…) échouaient déjà avant ce chantier (commit
+  `588c95a`) ;
+- le bloc « constante » de Blockly (π, e,
+  φ, √2, √½, ∞) s'écrit toujours `Math.PI`, quelle que soit la constante
+  choisie ; la grammaire ne connaît que π (et `1 / 0` n'y vaut pas l'infini).
+
+Manuels (au feu vert de l'auteur, 2026-10-19) : la section « Blocs et
+tortue » de `expressions.html`, dans les 12 langues, présente les blocs
+ajoutés pour `pirates.dgp` et par ce chantier (listes, fonctions avec
+résultat et variables des fonctions DGPad, angle, grandeurs de la vue,
+« expression », flèches, message, programme d'ouverture). Les captures
+n'ont pas changé ; `npm run manual -- check` ne signale rien.
