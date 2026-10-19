@@ -81,9 +81,11 @@ Les développements doivent servir en priorité :
 
 Une figure ne fonctionne pas seulement parce qu'elle s'ouvre et se manipule
 correctement dans le lecteur : il faut aussi que **chacun de ses programmes
-Blockly** (tortues, boutons, « oninit », « onchange », « ondrag »…,
-programmes des expressions) se montre dans l'éditeur en mode **Blocs**, et
-pas seulement en mode Texte. Toute extension de la grammaire des programmes
+issus de Blockly** (ceux d'une entrée `BLK` de DGPad : tortues « onlogo »,
+boutons « onprogram », « oninit », « onchange », « ondrag »…, « oncompute »)
+se montre dans l'éditeur en mode **Blocs**, et pas seulement en mode Texte.
+Cela ne concerne que le code produit par Blockly : un script écrit à la main
+dans une expression n'a pas à s'ouvrir en blocs. Toute extension de la grammaire des programmes
 (`src/import/dgp_formula.ts`) va donc avec ses blocs (`src/editor/blocks/`)
 et son aller-retour vérifié (`tests/unit/editor_blocks.test.ts`). Ne jamais
 déclarer réparée une figure Blockly sans l'avoir vérifié.
