@@ -1755,7 +1755,7 @@ function evalBinary(
         return a === null || b === null ? null : COMPARISONS[op](a, b);
     }
     if (typeof l === "string" || typeof r === "string")
-        return op === "+" ? String(l) + String(r) : null;
+        return op === "+" ? limited(String(l) + String(r)) : null;
     if (typeof l === "number" && typeof r === "number")
         return ARITHMETIC[op](l, r);
     const a = complex(l);
@@ -2045,8 +2045,34 @@ const MAX_STEPS = 50_000_000;
 // Beyond it, a script's function calls are taken as endless, before they
 // overflow the browser's stack.
 const MAX_DEPTH = 1000;
+// Beyond it, a list, a text or a turtle's drawing that a script builds is
+// taken as built by an endless loop: well before its steps run out, its
+// items would freeze the page, or exhaust its memory.
+const MAX_LENGTH = 1_000_000;
 
 class StepLimitExceeded extends Error {}
+
+function limited<T extends ScriptValue>(value: T): T {
+    if (
+        (typeof value === "string" || Array.isArray(value)) &&
+        value.length > MAX_LENGTH
+    )
+        throw new StepLimitExceeded();
+    return value;
+}
+
+// An item set as JavaScript sets it, but only in the list or right after
+// its last item: elsewhere, it would leave holes, undefined items.
+function setItem(
+    list: ScriptValue[],
+    i: number,
+    item: ScriptValue,
+): ScriptValue | null {
+    if (!Number.isInteger(i) || i < 0 || i > list.length) return null;
+    list[i] = item;
+    limited(list);
+    return item;
+}
 
 // One evaluation of a compiled formula or program.
 interface Frame {
@@ -2388,10 +2414,10 @@ function compileNode(node: FormulaNode, scope: Scope): Code {
                 const index = realPart(last(frame));
                 const item = value(frame);
                 if (!list || index === null || item === null) return null;
-                list[index] = item;
+                const set = setItem(list, index, item);
                 if (global)
                     frame.env.callMethod?.(name, "setExpression", [global]);
-                return item;
+                return set;
             };
         }
         case "conditional": {
@@ -2452,7 +2478,7 @@ function compileNode(node: FormulaNode, scope: Scope): Code {
                 const list = target(frame);
                 const sep = separator ? separator(frame) : ",";
                 return Array.isArray(list) && sep !== null
-                    ? list.join(String(sep))
+                    ? limited(list.join(String(sep)))
                     : null;
             };
         }
@@ -2485,7 +2511,9 @@ function compileNode(node: FormulaNode, scope: Scope): Code {
             const args = node.args.map(compile);
             return (frame) => {
                 const values = evalCodes(args, frame);
-                return values && turtleCall(fn, values, frame);
+                const value = values && turtleCall(fn, values, frame);
+                if (frame.turtle) limited(frame.turtle.tab);
+                return value;
             };
         }
         case "method":
@@ -2788,7 +2816,7 @@ function compileMethod(
                 const values = evalCodes(args, frame);
                 if (!Array.isArray(list) || values === null) return null;
                 // As JavaScript's, which spreads the lists it's given.
-                return list.concat(...values);
+                return limited(list.concat(...values));
             };
         case "getName":
             return () => object;
@@ -2828,7 +2856,7 @@ function listMethod(
 ): ScriptValue | null {
     if (method === "pop") return list.pop() ?? null;
     if (method === "shift") return list.shift() ?? null;
-    return list.push(...values);
+    return limited(list).push(...values);
 }
 
 function step(frame: Frame): void {
@@ -3014,6 +3042,7 @@ const HELPERS = {
               );
     },
     ownSlot,
+    setItem,
     // As an iteration of ownItem's loop.
     ownItemAt: (
         list: ScriptValue[],
@@ -3214,7 +3243,7 @@ function translateNode(
                 ...indices,
                 `${i}=realPart(${translate(node.indices[node.indices.length - 1])})`,
                 `${value}=${translate(node.value)}`,
-                `!${list}||${i}===null||${value}===null?null:(${list}[${i}]=${value})`,
+                `!${list}||${i}===null||${value}===null?null:setItem(${list},${i},${value})`,
             ].join(",")})`;
         }
         case "vector":
@@ -3381,7 +3410,16 @@ function evaluate(compiled: Compiled, env: FormulaEnv, program?: Program) {
         precision: 1e14,
         unit: 0,
     };
-    const value = compiled.code(frame);
+    let value: ScriptValue | null;
+    try {
+        value = compiled.code(frame);
+    } catch (error) {
+        // A RangeError: JavaScript's own limit on a text's length, which a
+        // script reaches before MAX_LENGTH by joining long texts.
+        if (error instanceof StepLimitExceeded || error instanceof RangeError)
+            return null;
+        throw error;
+    }
     compiled.work += 1 + frame.steps;
     if (program && frame.turtle) TURTLES.set(program, frame.turtle);
     return value;
@@ -3414,15 +3452,8 @@ export function evaluateProgram(
         };
         COMPILED.set(program, compiled);
     }
-    try {
-        const value = evaluate(compiled, env, program);
-        return typeof value === "number" && !Number.isFinite(value)
-            ? null
-            : value;
-    } catch (error) {
-        if (error instanceof StepLimitExceeded) return null;
-        throw error;
-    }
+    const value = evaluate(compiled, env, program);
+    return typeof value === "number" && !Number.isFinite(value) ? null : value;
 }
 
 // Never throws: any domain failure (an undefined referenced point, division

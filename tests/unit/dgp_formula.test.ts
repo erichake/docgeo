@@ -523,6 +523,31 @@ GLOBAL_GET("côté")`);
         expect(run("var k=0;while(1){k++};k")).toBeNull();
     });
 
+    it("gives up on a program whose lists, texts or turtle grow without end", () => {
+        const env: FormulaEnv = {
+            resolveIdentifier: (name) => (name === "A" ? [0, 0] : null),
+            view: () => NO_VIEW,
+        };
+        for (const source of [
+            "var t=[];while(1){t.push([1,2])};t",
+            "var t=[];var i=0;while(1){t[i]=i;i++};t",
+            "var t=[1];while(1){t=t.concat(t)};t",
+            'var s="ab";while(1){s=s+s};s',
+            'var s="ab";while(1){s=[s,s].join("")};s',
+            'var s="a";while(s.length<500000){s=s+s};var t=[];while(t.length<2000){t.push(s)};t.join("")',
+            'TURTLE_INIT("A",A);while(1){TURTLE_MV(1,false)};TURTLE_RESULT()',
+        ])
+            expect(run(source, env)).toBeNull();
+    });
+
+    it("sets an item only in the list or right after it", () => {
+        expect(
+            run("var t=[1,2];t[2]=3;t[0]=0;t[5]=4;t[-1]=4;t[0.5]=4;t"),
+        ).toEqual([0, 2, 3]);
+        expect(run("var t=[1,2];t[5]=4")).toBeNull();
+        expect(run("var t=[];t[3]=1;t+t")).toEqual([]);
+    });
+
     it("calls its own functions, which see its variables and can call themselves", () => {
         expect(
             run(
