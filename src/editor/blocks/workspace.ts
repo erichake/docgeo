@@ -1253,7 +1253,9 @@ export async function blocksEditor(
                     starts,
                 ),
             );
-            // Its first blocks offered, without a program yet.
+            // Its first blocks offered, without a program yet; the flyout
+            // left open would still show another object's, over its blocks.
+            workspace.getToolbox()?.clearSelection();
             if (!programs.length)
                 workspace.getToolbox()?.selectItemByPosition(0);
             // Its first block clear of the edge, its top rounded as a hat.

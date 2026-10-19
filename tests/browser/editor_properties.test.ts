@@ -663,4 +663,29 @@ describe("Figure settings", () => {
         expect(patches).toEqual([{ deg: 0 }, { sop: 1 }]);
         properties.panel.dispose();
     });
+
+    it("closes the first blocks offered to another object", async () => {
+        const { c, properties } = setup();
+        ["a = 5", 'b = Button("Go")'].forEach((line) =>
+            add(c, resolve(c, parseLine(line, isCommand))),
+        );
+        c.flush();
+        const flyout = () =>
+            document.querySelector(".blocklyFlyout") as SVGElement | null;
+        const program = () =>
+            [...document.querySelectorAll(".blocklyBlockCanvas")].some(
+                (canvas) => canvas.textContent === "program",
+            );
+        properties.select(c.getObj("a")!);
+        (
+            [...properties.panel.dom().querySelectorAll("button")].find(
+                (button) => button.textContent === message("add_program"),
+            ) as HTMLButtonElement
+        ).click();
+        await expect.poll(() => flyout()?.style.display).toBe("block");
+        properties.select(c.getObj("b")!);
+        await expect.poll(program).toBe(true);
+        expect(flyout()!.style.display).toBe("none");
+        properties.panel.dispose();
+    });
 });
