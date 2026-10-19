@@ -891,6 +891,32 @@ STL(M,"mg:[C1,20],[C2,20],[I,20]");`,
         expect(m.coords[1]).toBeCloseTo(i.coords[1], 9);
     });
 
+    it("magnetizes a point held by a line onto a point of it, however far the pointer", () => {
+        const c = createConstruction();
+        importDgp(
+            c,
+            `A=Point("A",0,0);
+B=Point("B",4,0);
+a=Line("a",A,B);
+M=Point("M",2,3);
+STL(M,"mg:[A,20],[B,20],[a,5000]");`,
+        );
+        c.OBJS.update();
+        const m = c.getObj("M") as point_object;
+
+        const [x, y] = c.pt3D([0, 0, 0]);
+        m.mousedrag(
+            new PointerEvent("pointermove", {
+                clientX: x + 5,
+                clientY: y - 150,
+            }),
+        );
+        c.OBJS.update();
+
+        expect(m.coords[0]).toBe(0);
+        expect(m.coords[1]).toBe(0);
+    });
+
     it("keeps a magnetized point glued to whichever segment it grabbed, only switching on a fresh grab", async () => {
         const c = createConstruction();
         await importDgpFromUrl(c, figure("trace.dgp"));

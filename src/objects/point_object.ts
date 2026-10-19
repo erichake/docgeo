@@ -263,12 +263,36 @@ export class point_object extends construction_object {
     }
 
     private snapToMagnets(coords: Vec3, screen: Vec2): Vec3 {
-        let closest: {
+        let magnet = this.nearestMagnet(coords, screen);
+        // As DGPad, which computes the magnets twice: once held by a line or
+        // a curve, the point is caught by a point magnet near its new
+        // position, however far the pointer is.
+        if (magnet && !(magnet.target instanceof point_object))
+            magnet = this.nearestMagnet(magnet.point, magnet.screen) ?? magnet;
+        if (!magnet) {
+            if (this.activeMagnet) this.breakTraces();
+            this.activeMagnet = null;
+            return coords;
+        }
+        // A magnet switch starts a new trace subpath for this point and its
+        // dependent points instead of drawing a line between both targets.
+        if (this.activeMagnet !== magnet.target) this.breakTraces();
+        this.activeMagnet = magnet.target;
+        return magnet.point;
+    }
+
+    private nearestMagnet(
+        coords: Vec3,
+        screen: Vec2,
+    ): { target: magnet_target; point: Vec3; screen: Vec2 } | null {
+        type candidate = {
             target: magnet_target;
             point: Vec3;
+            screen: Vec2;
             rank: number;
-        } | null = null;
-        let active: { point: Vec3; rank: number } | null = null;
+        };
+        let closest: candidate | null = null;
+        let active: candidate | null = null;
         for (const { target, radius } of this.magnets) {
             if (!target.defined) continue;
             const point = projectOntoMagnet(target, coords);
@@ -282,22 +306,13 @@ export class point_object extends construction_object {
                 target instanceof point_object
                     ? distance
                     : distance + LINE_MAGNET_RANK;
-            if (target === this.activeMagnet) active = { point, rank };
-            if (!closest || rank < closest.rank)
-                closest = { target, point, rank };
+            const candidate = { target, point, screen: candidateScreen, rank };
+            if (target === this.activeMagnet) active = candidate;
+            if (!closest || rank < closest.rank) closest = candidate;
         }
-        if (!closest) {
-            if (this.activeMagnet) this.breakTraces();
-            this.activeMagnet = null;
-            return coords;
-        }
-        if (active && active.rank <= closest.rank + MAGNET_HYSTERESIS)
-            return active.point;
-        // A magnet switch starts a new trace subpath for this point and its
-        // dependent points instead of drawing a line between both targets.
-        if (this.activeMagnet !== closest.target) this.breakTraces();
-        this.activeMagnet = closest.target;
-        return closest.point;
+        if (active && active.rank <= closest!.rank + MAGNET_HYSTERESIS)
+            return active;
+        return closest;
     }
 
     private breakTraces(): void {
