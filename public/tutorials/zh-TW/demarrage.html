@@ -47,6 +47,13 @@
                 DGPad 處理）；伺服器必須允許從其他網站讀取（CORS）。
             </p>
 
+            <p>
+                <strong>檔案</strong>選單也提供<strong>開啟…</strong>（<kbd
+                    >Ctrl</kbd
+                >
+                <kbd>O</kbd>）和<strong>新增圖形</strong>，後者從空白圖形開始。
+            </p>
+
             <h2>匯入不完整</h2>
             <p>
                 不支援的 DGPad 或 GeoGebra
@@ -56,12 +63,31 @@
                 >。
             </p>
 
-            <h2>儲存</h2>
+            <h2 id="enregistrer">儲存</h2>
             <p>
-                <i data-i="save"></i> 或 <kbd>Ctrl</kbd>
-                <kbd>S</kbd
-                >將圖形下載為<code>.dgo</code>，檔名與開啟的圖形相同（新圖形為<code>figure.dgo</code>）。檢視（縮放、3D
+                <i data-i="save"></i>、<strong>檔案 › 儲存</strong> 或
+                <kbd>Ctrl</kbd>
+                <kbd>S</kbd> 將圖形儲存為<code>.dgo</code>。檢視（縮放、3D
                 方向、座標系）也會儲存。
+            </p>
+            <p>
+                在 Chrome 和 Edge 中，DocGeo
+                像應用程式一樣儲存：第一次儲存時詢問檔案存放位置，之後直接取代該檔案，不再詢問。用<i
+                    data-i="open"
+                ></i
+                >開啟或拖放到頁面上的<code>.dgo</code>圖形會儲存回原檔案；瀏覽器會要求一次修改權限。DGPad
+                或 GeoGebra
+                圖形絕不會被覆寫：第一次儲存會建立新的<code>.dgo</code>檔案。<strong>另存新檔…</strong>（<kbd
+                    >Ctrl</kbd
+                >
+                <kbd>Shift</kbd> <kbd>S</kbd>）可選擇另一個檔案。
+            </p>
+            <p>
+                檔名顯示在選單列末端；紅點表示有未儲存的變更。儲存後，或復原到已儲存的狀態時，紅點消失。移動或縮放檢視不算變更。
+            </p>
+            <p>
+                在其他瀏覽器（Firefox、Safari）中，或 DocGeo
+                嵌入其他頁面時，儲存會下載圖形，檔名與開啟的圖形相同（新圖形為<code>figure.dgo</code>）。
             </p>
             <p>
                 <code>.dgo</code> 是唯一的儲存格式：開啟 DGPad 或 GeoGebra

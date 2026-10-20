@@ -57,6 +57,12 @@
                 einer anderen Website erlauben (CORS).
             </p>
 
+            <p>
+                Das Menü <strong>Datei</strong> bietet auch
+                <strong>Öffnen…</strong> (<kbd>Strg</kbd> <kbd>O</kbd>) und
+                <strong>Neue Figur</strong>, die mit einer leeren Figur beginnt.
+            </p>
+
             <h2>Unvollständiger Import</h2>
             <p>
                 Ein nicht unterstütztes Element aus DGPad oder GeoGebra wird
@@ -65,13 +71,39 @@
                 <a href="formats.html">Import aus DGPad und GeoGebra</a>.
             </p>
 
-            <h2>Speichern</h2>
+            <h2 id="enregistrer">Speichern</h2>
             <p>
-                <i data-i="save"></i> oder <kbd>Strg</kbd> <kbd>S</kbd> lädt die
-                Figur als <code>.dgo</code> herunter, unter dem Namen der
-                geöffneten Figur (<code>figure.dgo</code> bei einer neuen
-                Figur). Die Ansicht (Zoom, 3D-Ausrichtung, Koordinatensystem)
-                wird mitgespeichert.
+                <i data-i="save"></i>, <strong>Datei › Speichern</strong> oder
+                <kbd>Strg</kbd> <kbd>S</kbd> speichert die Figur als
+                <code>.dgo</code>. Die Ansicht (Zoom, 3D-Ausrichtung,
+                Koordinatensystem) wird mitgespeichert.
+            </p>
+            <p>
+                In Chrome und Edge speichert DocGeo wie eine Anwendung: Beim
+                ersten Speichern wird gefragt, wohin die Datei soll, danach wird
+                sie ohne Rückfrage ersetzt. Eine mit
+                <i data-i="open"></i> geöffnete oder auf die Seite gezogene
+                <code>.dgo</code>-Figur wird in ihre Datei zurückgeschrieben;
+                der Browser fragt einmal nach der Erlaubnis, sie zu ändern. Eine
+                DGPad- oder GeoGebra-Figur wird nie überschrieben: Beim ersten
+                Speichern entsteht eine <code>.dgo</code>-Datei.
+                <strong>Speichern unter…</strong> (<kbd>Strg</kbd>
+                <kbd>Umschalt</kbd> <kbd>S</kbd>) wählt eine andere Datei.
+            </p>
+            <p>
+                Der Dateiname steht am Ende der Menüleiste; ein roter Punkt
+                zeigt nicht gespeicherte Änderungen an. Er verschwindet beim
+                Speichern oder wenn man bis zum gespeicherten Stand rückgängig
+                macht. Verschieben oder Zoomen der Ansicht gilt nicht als
+                Änderung.
+            </p>
+            <p>
+                In anderen Browsern (Firefox, Safari) oder wenn DocGeo in eine
+                andere Seite eingebettet ist, lädt das Speichern die Figur
+                herunter, unter dem Namen der geöffneten Figur (<code
+                    >figure.dgo</code
+                >
+                bei einer neuen Figur).
             </p>
             <p>
                 <code>.dgo</code> ist das einzige Speicherformat: Eine Figur aus

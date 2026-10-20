@@ -15,9 +15,12 @@ $("head").append(`<style>
     @media (prefers-reduced-motion: reduce) { .docgeo-drop, .docgeo-drop div { transition: none; } .docgeo-drop g { animation: none; } }
 </style>`);
 
-// A figure file dropped on the page is handed to `open`, a veil showing
-// where it can be dropped. Other drops, of text into a field, are left alone.
-export function dropFigures(open: (file: File) => void): void {
+// A figure file dropped on the page is handed to `open`, with its handle
+// where the browser gives one, a veil showing where it can be dropped. Other
+// drops, of text into a field, are left alone.
+export function dropFigures(
+    open: (file: File, from?: Promise<FileSystemHandle | null>) => void,
+): void {
     const veil = $.create("div")
         .cls("docgeo-drop")
         .att("dir", DIR)
@@ -50,10 +53,11 @@ export function dropFigures(open: (file: File) => void): void {
             if (!hasFiles(event)) return;
             event.preventDefault();
             veil.removeClass("on");
-            const file = [...event.dataTransfer!.files].find((file) =>
-                /\.(dgo|dgp|ggb)$/i.test(file.name),
+            // The handle is only given during the event.
+            const item = [...event.dataTransfer!.items].find((item) =>
+                /\.(dgo|dgp|ggb)$/i.test(item.getAsFile()?.name ?? ""),
             );
-            if (file) open(file);
+            if (item) open(item.getAsFile()!, item.getAsFileSystemHandle?.());
         },
         false,
     );

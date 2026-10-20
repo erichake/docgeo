@@ -57,6 +57,12 @@
                 lectura desde otro sitio (CORS).
             </p>
 
+            <p>
+                El menú <strong>Archivo</strong> ofrece también
+                <strong>Abrir…</strong> (<kbd>Ctrl</kbd> <kbd>O</kbd>) y
+                <strong>Nueva figura</strong>, que parte de una figura vacía.
+            </p>
+
             <h2>Importación incompleta</h2>
             <p>
                 Un elemento de DGPad o GeoGebra no compatible se ignora junto
@@ -65,12 +71,35 @@
                 <a href="formats.html">Importación de DGPad y GeoGebra</a>.
             </p>
 
-            <h2>Guardar</h2>
+            <h2 id="enregistrer">Guardar</h2>
             <p>
-                <i data-i="save"></i> o <kbd>Ctrl</kbd> <kbd>S</kbd> descarga la
-                figura en <code>.dgo</code>, con el nombre de la figura abierta
-                (<code>figure.dgo</code> para una figura nueva). La vista (zoom,
-                orientación 3D, sistema de coordenadas) se guarda.
+                <i data-i="save"></i>, <strong>Archivo › Guardar</strong> o
+                <kbd>Ctrl</kbd> <kbd>S</kbd> guarda la figura en
+                <code>.dgo</code>. La vista (zoom, orientación 3D, sistema de
+                coordenadas) se guarda.
+            </p>
+            <p>
+                En Chrome y Edge, DocGeo guarda como una aplicación: la primera
+                vez pregunta dónde guardar el archivo, las siguientes lo
+                reemplazan sin preguntar. Una figura <code>.dgo</code> abierta
+                con <i data-i="open"></i> o soltada en la página se vuelve a
+                guardar en su archivo; el navegador pide una vez permiso para
+                modificarlo. Una figura DGPad o GeoGebra nunca se sobrescribe:
+                su primer guardado crea un archivo <code>.dgo</code>.
+                <strong>Guardar como…</strong> (<kbd>Ctrl</kbd> <kbd>Mayús</kbd>
+                <kbd>S</kbd>) elige otro archivo.
+            </p>
+            <p>
+                El nombre del archivo aparece al final de la barra de menús; un
+                punto rojo señala cambios sin guardar. Desaparece al guardar, o
+                al deshacer hasta el estado guardado. Mover o ampliar la vista
+                no cuenta como un cambio.
+            </p>
+            <p>
+                En otros navegadores (Firefox, Safari), o cuando DocGeo está
+                integrado en otra página, guardar descarga la figura con el
+                nombre de la figura abierta (<code>figure.dgo</code> para una
+                figura nueva).
             </p>
             <p>
                 <code>.dgo</code> es el único formato de guardado: abrir una

@@ -57,6 +57,12 @@
                 andere site toestaan (CORS).
             </p>
 
+            <p>
+                Het menu <strong>Bestand</strong> biedt ook
+                <strong>Openen…</strong> (<kbd>Ctrl</kbd> <kbd>O</kbd>) en
+                <strong>Nieuwe figuur</strong>, dat met een lege figuur begint.
+            </p>
+
             <h2>Onvolledige import</h2>
             <p>
                 Een niet-ondersteund element uit DGPad of GeoGebra wordt samen
@@ -65,12 +71,37 @@
                 <a href="formats.html">Import uit DGPad en GeoGebra</a>.
             </p>
 
-            <h2>Opslaan</h2>
+            <h2 id="enregistrer">Opslaan</h2>
             <p>
-                <i data-i="save"></i> of <kbd>Ctrl</kbd> <kbd>S</kbd> downloadt
-                de figuur als <code>.dgo</code>, onder de naam van de geopende
-                figuur (<code>figure.dgo</code> voor een nieuwe figuur). De
-                weergave (zoom, 3D-oriëntatie, assenstelsel) wordt opgeslagen.
+                <i data-i="save"></i>, <strong>Bestand › Opslaan</strong> of
+                <kbd>Ctrl</kbd> <kbd>S</kbd> slaat de figuur op als
+                <code>.dgo</code>. De weergave (zoom, 3D-oriëntatie,
+                assenstelsel) wordt opgeslagen.
+            </p>
+            <p>
+                In Chrome en Edge slaat DocGeo op zoals een toepassing: de
+                eerste keer wordt gevraagd waar het bestand moet komen, daarna
+                wordt het zonder vragen vervangen. Een <code>.dgo</code>-figuur
+                die met <i data-i="open"></i> is geopend of op de pagina is
+                neergezet, wordt in haar eigen bestand opgeslagen; de browser
+                vraagt één keer toestemming om het te wijzigen. Een DGPad- of
+                GeoGebra-figuur wordt nooit overschreven: bij de eerste keer
+                opslaan ontstaat een <code>.dgo</code>-bestand.
+                <strong>Opslaan als…</strong> (<kbd>Ctrl</kbd> <kbd>Shift</kbd>
+                <kbd>S</kbd>) kiest een ander bestand.
+            </p>
+            <p>
+                De bestandsnaam staat aan het eind van de menubalk; een rode
+                stip geeft niet-opgeslagen wijzigingen aan. Die verdwijnt bij
+                het opslaan, of door ongedaan te maken tot de opgeslagen
+                toestand. De weergave verschuiven of zoomen telt niet als
+                wijziging.
+            </p>
+            <p>
+                In andere browsers (Firefox, Safari), of wanneer DocGeo in een
+                andere pagina is ingebed, downloadt opslaan de figuur onder de
+                naam van de geopende figuur (<code>figure.dgo</code> voor een
+                nieuwe figuur).
             </p>
             <p>
                 <code>.dgo</code> is het enige opslagformaat: een figuur uit

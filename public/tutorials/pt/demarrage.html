@@ -57,6 +57,12 @@
                 leitura a partir de outro site (CORS).
             </p>
 
+            <p>
+                O menu <strong>Arquivo</strong> também oferece
+                <strong>Abrir…</strong> (<kbd>Ctrl</kbd> <kbd>O</kbd>) e
+                <strong>Nova figura</strong>, que começa com uma figura vazia.
+            </p>
+
             <h2>Importação incompleta</h2>
             <p>
                 Um elemento do DGPad ou do GeoGebra não suportado é ignorado
@@ -65,14 +71,36 @@
                 <a href="formats.html">Importação do DGPad e do GeoGebra</a>.
             </p>
 
-            <h2>Salvar</h2>
+            <h2 id="enregistrer">Salvar</h2>
             <p>
-                <i data-i="save"></i> ou <kbd>Ctrl</kbd> <kbd>S</kbd> baixa a
-                figura em <code>.dgo</code>, com o nome da figura aberta (<code
-                    >figure.dgo</code
-                >
-                para uma figura nova). A vista (zoom, orientação 3D, sistema de
+                <i data-i="save"></i>, <strong>Arquivo › Salvar</strong> ou
+                <kbd>Ctrl</kbd> <kbd>S</kbd> salva a figura em
+                <code>.dgo</code>. A vista (zoom, orientação 3D, sistema de
                 coordenadas) é salva.
+            </p>
+            <p>
+                No Chrome e no Edge, o DocGeo salva como um aplicativo: o
+                primeiro salvamento pergunta onde guardar o arquivo, os
+                seguintes o substituem sem perguntar. Uma figura
+                <code>.dgo</code> aberta com <i data-i="open"></i> ou solta na
+                página é salva de volta no seu arquivo; o navegador pede uma vez
+                permissão para modificá-lo. Uma figura DGPad ou GeoGebra nunca é
+                sobrescrita: seu primeiro salvamento cria um arquivo
+                <code>.dgo</code>. <strong>Salvar como…</strong> (<kbd
+                    >Ctrl</kbd
+                >
+                <kbd>Shift</kbd> <kbd>S</kbd>) escolhe outro arquivo.
+            </p>
+            <p>
+                O nome do arquivo aparece no fim da barra de menus; um ponto
+                vermelho indica alterações não salvas. Ele desaparece ao salvar,
+                ou ao desfazer até o estado salvo. Mover ou ampliar a vista não
+                conta como alteração.
+            </p>
+            <p>
+                Nos outros navegadores (Firefox, Safari), ou quando o DocGeo
+                está integrado em outra página, salvar baixa a figura com o nome
+                da figura aberta (<code>figure.dgo</code> para uma figura nova).
             </p>
             <p>
                 <code>.dgo</code> é o único formato de gravação: abrir uma

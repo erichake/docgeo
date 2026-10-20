@@ -78,6 +78,16 @@ import {
     type Studio,
 } from "./figure";
 import { conicStandIns } from "./conic_preview";
+import {
+    chooseFile,
+    fileLabel,
+    native,
+    opened,
+    saveFile,
+    showChanged,
+    standalone,
+} from "./file";
+import { DELETE_KEY, menuBar, shortcut, type Menu } from "./menus";
 import { hideGhosts, showGhosts, toggleGhost, withHidden } from "./eraser";
 import { message, type MessageKey } from "./messages";
 import { ACTION_ICONS } from "./icons";
@@ -203,7 +213,8 @@ $("body")
 $("head").append(`<style>
     /* Menlo and DejaVu Sans Mono draw Arabic letters unjoined: a font of the system draws them. */
     @font-face { font-family: dge-code; src: local("Menlo Regular"), local("Menlo-Regular"), local("Consolas"), local("DejaVu Sans Mono"); unicode-range: U+0-5FF, U+700-74F, U+780-89F, U+900-FB4F, U+FE00-FE6F, U+FF00-10FFFF; }
-    .dge-editor { --dge-code: ui-monospace, dge-code, "Geeza Pro", "Segoe UI", "Noto Sans Arabic", monospace; --dge-panel-size: min(var(--dge-panel-user, ${PANEL_WIDTH}px), calc(100vw - 56px)); --dge-panel-width: var(--dge-panel-size); --dge-bar-height: 60px; --dge-slide-duration: 0s; --dge-slide: var(--dge-slide-duration) cubic-bezier(0.22, 1, 0.36, 1); margin: 0; margin-inline-start: var(--dge-panel-width); margin-block-start: var(--dge-bar-height); width: calc(100% - var(--dge-panel-width)); height: calc(100% - var(--dge-bar-height)); transition: margin-inline-start var(--dge-slide), width var(--dge-slide); }
+    .dge-editor { --dge-code: ui-monospace, dge-code, "Geeza Pro", "Segoe UI", "Noto Sans Arabic", monospace; --dge-panel-size: min(var(--dge-panel-user, ${PANEL_WIDTH}px), calc(100vw - 56px)); --dge-panel-width: var(--dge-panel-size); --dge-menu-height: 0px; --dge-bar-height: calc(48px + var(--dge-menu-height)); --dge-slide-duration: 0s; --dge-slide: var(--dge-slide-duration) cubic-bezier(0.22, 1, 0.36, 1); margin: 0; margin-inline-start: var(--dge-panel-width); margin-block-start: var(--dge-bar-height); width: calc(100% - var(--dge-panel-width)); height: calc(100% - var(--dge-bar-height)); transition: margin-inline-start var(--dge-slide), width var(--dge-slide); }
+    .dge-editor.dge-menus { --dge-menu-height: 32px; }
     .dge-editor.dge-panel-animated { --dge-slide-duration: ${SLIDE}ms; }
     .dge-editor.dge-panel-closed { --dge-panel-width: 0px; }
     .dge-panel-closed .dge-panel { transform: translateX(-100%); visibility: hidden; transition-delay: 0s, var(--dge-slide-duration); }
@@ -277,10 +288,11 @@ $("head").append(`<style>
     .dge-input:focus { border-color: #2563eb; background: #fff; box-shadow: 0 0 0 3px rgb(37 99 235 / 0.15); }
     .dge-input.dge-error { border-color: #dc2626; background: #fef2f2; box-shadow: 0 0 0 3px rgb(220 38 38 / 0.12); }
     @keyframes dge-new { from { background: #bbf7d0; } }
-    .dge-bar { position: fixed; inset-block-start: 0; inset-inline: 0; height: var(--dge-bar-height); box-sizing: border-box; display: flex; align-items: center; gap: 8px; padding: 8px 12px; background: #f8fafc; border-block-end: 1px solid #e2e8f0; z-index: 11; }
+    .dge-bar { position: fixed; inset-block-start: var(--dge-menu-height); inset-inline: 0; height: calc(var(--dge-bar-height) - var(--dge-menu-height)); box-sizing: border-box; display: flex; align-items: center; gap: 8px; padding: 4px 12px; background: #f8fafc; border-block-end: 1px solid #e2e8f0; z-index: 11; }
     .dge-bar-group { display: flex; gap: 4px; }
     .dge-bar-group + .dge-bar-group { padding-inline-start: 8px; border-inline-start: 1px solid #dbe2ea; }
     .dge-action { display: grid; place-items: center; flex-shrink: 0; width: 40px; height: 40px; padding: 0; border: 1px solid transparent; border-radius: 10px; background: transparent; color: #536174; cursor: pointer; }
+    .dge-bar .dge-action { width: 36px; height: 36px; }
     .dge-help { margin-inline-start: 8px; text-decoration: none; }
     .dge-action svg { display: block; width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 1.65; stroke-linecap: round; stroke-linejoin: round; pointer-events: none; }
     .dge-action:hover:not(:disabled) { background: #e8eef7; color: #1d4ed8; }
@@ -290,10 +302,28 @@ $("head").append(`<style>
     .dge-action.dge-on:hover { background: #cfdefb; }
     .dge-bar-middle { flex: 1; display: flex; justify-content: center; min-width: 0; }
     .dge-bar .dge-bar-end { padding-inline-start: 0; border: 0; }
+    .dge-menubar { position: fixed; inset-block-start: 0; inset-inline: 0; height: var(--dge-menu-height); box-sizing: border-box; display: flex; align-items: stretch; padding: 3px 8px; background: #fff; border-block-end: 1px solid #e2e8f0; font: 13px/1 system-ui, -apple-system, "Segoe UI", sans-serif; color: #1f2937; z-index: 20; }
+    .dge-menubar > div { position: relative; display: flex; }
+    .dge-menubar > div > button { padding: 0 10px; border: 0; border-radius: 6px; background: none; font: inherit; color: inherit; }
+    .dge-menubar > div > button:hover, .dge-menubar > div > button.dge-open { background: #eef2f7; }
+    .dge-menubar > div > button:focus-visible { outline: 2px solid #2563eb; outline-offset: -2px; }
+    .dge-menu-popup { position: absolute; top: calc(100% + 4px); inset-inline-start: 0; flex-direction: column; min-width: 220px; padding: 4px; border: 1px solid #d1d5db; border-radius: 8px; background: #fff; box-shadow: 0 6px 20px rgb(0 0 0 / 0.14); outline: none; }
+    .dge-menu-popup button { display: flex; align-items: center; padding: 6px 10px 6px 4px; border: 0; border-radius: 5px; background: none; font: inherit; color: inherit; text-align: start; white-space: nowrap; }
+    .dge-menu-popup button::before { content: ""; width: 20px; flex: none; text-align: center; }
+    .dge-menu-popup button[aria-checked="true"]::before { content: "✓"; }
+    .dge-menu-popup button:not(:disabled):is(:hover, :focus-visible) { background: #2563eb; color: #fff; outline: none; }
+    .dge-menu-popup button:disabled { opacity: 0.4; }
+    .dge-menu-popup kbd { margin-inline-start: auto; padding-inline-start: 28px; font: inherit; opacity: 0.6; }
+    .dge-menu-popup hr { margin: 4px 8px; border: 0; border-block-start: 1px solid #e5e7eb; }
+    .dge-menu-veil { position: fixed; inset: 0; z-index: 19; }
+    .dge-file { display: flex; align-items: center; gap: 8px; min-width: 0; max-width: min(38vw, 420px); margin-inline-start: auto; padding-inline: 18px 6px; color: #64748b; }
+    .dge-file span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .dge-file.dge-dirty { color: #1f2937; font-weight: 500; }
+    .dge-file.dge-dirty::after { content: ""; flex: none; width: 8px; height: 8px; border-radius: 50%; background: #dc2626; }
     .dge-bar-object { align-items: center; min-width: 0; animation: dge-arrive 180ms ease-out; }
-    .dge-editor .dge-bar .dge-bar-object { gap: 4px; padding: 4px; border: 0; border-radius: 26px; background: rgb(219 225 232); }
-    .dge-editor .dge-bar .dge-bar-object .dge-action { width: 40px; height: 40px; border-color: hsl(215 14% 60%); border-radius: 50%; background: hsl(215 17.5% 96%); box-shadow: 0 1px 2px rgb(15 23 42 / 0.06), 0 3px 7px rgb(15 23 42 / 0.08); }
-    .dge-done { height: 40px; padding: 0 18px; border: 0; border-radius: 20px; background: #2563eb; color: #fff; font: inherit; font-weight: 600; cursor: pointer; }
+    .dge-editor .dge-bar .dge-bar-object { gap: 4px; padding: 2px; border: 0; border-radius: 20px; background: rgb(219 225 232); }
+    .dge-editor .dge-bar .dge-bar-object .dge-action { width: 36px; height: 36px; border-color: hsl(215 14% 60%); border-radius: 50%; background: hsl(215 17.5% 96%); box-shadow: 0 1px 2px rgb(15 23 42 / 0.06), 0 3px 7px rgb(15 23 42 / 0.08); }
+    .dge-done { height: 36px; padding: 0 16px; border: 0; border-radius: 18px; background: #2563eb; color: #fff; font: inherit; font-weight: 600; cursor: pointer; }
     .dge-done:hover { background: #1d4ed8; }
     .dge-done:focus-visible { outline: 2px solid #2563eb; outline-offset: 2px; }
     .dge-bar-object .dge-action:hover:not(:disabled) { background: #2563eb; border-color: #2563eb; color: #fff; }
@@ -306,7 +336,7 @@ $("head").append(`<style>
     @keyframes dge-arrive { from { opacity: 0; transform: translateY(-8px); } }
     @media (max-width: 680px) { .dge-editor .dge-bar .dge-bar-object { position: fixed; top: calc(var(--dge-bar-height) + 8px); inset-inline: 0; width: fit-content; margin-inline: auto; box-shadow: 0 4px 12px rgb(15 23 42 / 0.12); } }
     .dge-panel-header .dge-action { width: 32px; height: 32px; border-radius: 8px; }
-    @media (max-width: 400px) { .dge-bar { gap: 6px; padding-inline: 8px; } .dge-bar-group { gap: 2px; } .dge-bar-group + .dge-bar-group { padding-inline-start: 6px; } .dge-bar .dge-action { width: 36px; } }
+    @media (max-width: 400px) { .dge-bar { gap: 6px; padding-inline: 8px; } .dge-bar-group { gap: 2px; } .dge-bar-group + .dge-bar-group { padding-inline-start: 6px; } .dge-bar .dge-action { width: 32px; } }
     .dge-hint { position: fixed; bottom: 16px; left: calc(50% + var(--dge-panel-width) / 2); transform: translateX(-50%); max-width: calc(100% - var(--dge-panel-width) - 32px); padding: 7px 14px; border-radius: 9px; background: rgb(17 24 39 / 0.86); color: #f9fafb; font-family: var(--dge-code); font-size: 13.5px; white-space: pre-wrap; unicode-bidi: plaintext; z-index: 11; pointer-events: none; transition: left var(--dge-slide), max-width var(--dge-slide); }
     @media (prefers-reduced-motion: reduce) { .dge-editor.dge-panel-animated { --dge-slide-duration: 0s; } .dge-bar-object { animation: none; } }
     .dge-hint:empty { display: none; }
@@ -741,6 +771,95 @@ properties.panel.dom().toggleAttribute("inert", true);
 const fileInput = $.create("input")
     .att("type", "file")
     .att("accept", ".dgo,.dgp,.ggb");
+const chooseFigure = () =>
+    chooseFile(
+        fileInput.dom() as HTMLInputElement,
+        (file, from) => void openFile(file, from),
+    );
+const helpLink = $.create("a")
+    .cls("dge-action dge-help")
+    .att("href", `tutorials/index.html?lang=${LANG}`)
+    .att("target", "_blank")
+    .att("rel", "noopener")
+    .att("title", message("help"))
+    .att("aria-label", message("help"))
+    .append(
+        `<svg viewBox="0 0 24 24" aria-hidden="true">${ACTION_ICONS.help}</svg>`,
+    );
+// The menus of the editor out of a frame, which press the bar's buttons.
+const press = (element: DOMElement) => () =>
+    (element.dom() as HTMLElement).click();
+const toggle = (key: MessageKey, element: DOMElement) => ({
+    label: message(key),
+    run: press(element),
+    checked: () =>
+        element.getAtt("aria-pressed") === "true" ||
+        element.getAtt("aria-expanded") === "true",
+});
+const menus: Menu[] = [
+    {
+        label: message("menu_file"),
+        items: [
+            { label: message("new_figure"), run: () => void newFigure() },
+            {
+                label: `${message("open")}…`,
+                shortcut: shortcut("O"),
+                run: chooseFigure,
+            },
+            null,
+            {
+                label: message("save"),
+                shortcut: shortcut("S"),
+                run: () => void save(),
+            },
+            {
+                label: message("save_as"),
+                shortcut: shortcut("S", true),
+                run: () => void save(true),
+            },
+        ],
+    },
+    {
+        label: message("menu_edit"),
+        items: [
+            {
+                label: message("undo"),
+                shortcut: shortcut("Z"),
+                run: press(undoButton),
+                enabled: () => !undoButton.dom().hasAttribute("disabled"),
+            },
+            {
+                label: message("redo"),
+                shortcut: shortcut("Z", true),
+                run: press(redoButton),
+                enabled: () => !redoButton.dom().hasAttribute("disabled"),
+            },
+            null,
+            {
+                label: message("delete"),
+                shortcut: DELETE_KEY,
+                run: remove,
+                enabled: () => !!(target() || selection.length),
+            },
+            toggle("eraser", eraserButton),
+        ],
+    },
+    {
+        label: message("menu_view"),
+        items: [
+            toggle("axes", axesButton),
+            toggle("space", spaceButton),
+            null,
+            toggle("history", historyButton),
+            toggle("properties", propertiesButton),
+        ],
+    },
+    {
+        label: message("menu_help"),
+        items: [{ label: message("help"), run: press(helpLink) }],
+    },
+];
+if (standalone) $("body").addClass("dge-menus");
 $("body").add(
     panel.add(
         $.create("div")
@@ -774,10 +893,8 @@ $("body").add(
             $.create("div")
                 .cls("dge-bar-group")
                 .add(
-                    button("open", () =>
-                        (fileInput.dom() as HTMLInputElement).click(),
-                    ),
-                    button("save", save),
+                    button("open", chooseFigure),
+                    button("save", () => void save()),
                 ),
             $.create("div")
                 .cls("dge-bar-group")
@@ -791,21 +908,9 @@ $("body").add(
             $.create("div").cls("dge-bar-middle").add(actions),
             $.create("div")
                 .cls("dge-bar-group dge-bar-end")
-                .add(
-                    undoButton,
-                    redoButton,
-                    $.create("a")
-                        .cls("dge-action dge-help")
-                        .att("href", `tutorials/index.html?lang=${LANG}`)
-                        .att("target", "_blank")
-                        .att("rel", "noopener")
-                        .att("title", message("help"))
-                        .att("aria-label", message("help"))
-                        .append(
-                            `<svg viewBox="0 0 24 24" aria-hidden="true">${ACTION_ICONS.help}</svg>`,
-                        ),
-                ),
+                .add(undoButton, redoButton, helpLink),
         ),
+    ...(standalone ? menuBar(menus, ...(native ? [fileLabel] : [])) : []),
     properties.panel,
     resizeHandle(properties.panel, "right", () =>
         document.body.classList.contains("dge-properties-wide")
@@ -948,7 +1053,6 @@ let choosing: {
     object: construction_object | null;
     lit: Choice;
 } | null = null;
-let figureName = "figure";
 // While erasing: the objects hidden, shown pale.
 let ghosts: Set<construction_object> | null = null;
 let propertiesOpen = false;
@@ -4208,7 +4312,10 @@ $("body").on(
         const command = event.metaKey || event.ctrlKey;
         if (command && event.key.toLowerCase() === "s") {
             event.preventDefault();
-            void save();
+            void save(event.shiftKey);
+        } else if (command && event.key.toLowerCase() === "o") {
+            event.preventDefault();
+            chooseFigure();
         } else if (
             editing() ||
             typed(event.target) ||
@@ -4243,6 +4350,8 @@ $("body").on(
 let history: { figure: string; o: unknown; u: unknown }[] = [];
 let position = -1;
 let recording = Promise.resolve();
+// The step last saved, or opened.
+let saved = "";
 
 // A view's window and camera, or, if not `kept`, the rest.
 const camera = (view: DgoFigure["v"], kept: boolean): DgoFigure["v"] =>
@@ -4260,6 +4369,7 @@ function record(): Promise<void> {
         if (step === history[position]?.figure) return;
         history = [...history.slice(0, position + 1), { figure: step, o, u }];
         position = history.length - 1;
+        showChanged(step !== saved);
     });
     return recording;
 }
@@ -4270,6 +4380,7 @@ function travel(step: number): void {
         cancel(true);
         position += step;
         const target = history[position];
+        showChanged(target.figure !== saved);
         const space = JSON.parse(target.figure).v["3d"] === 1;
         if (space === scene().GRID.is2D)
             await (space ? toSpace(target) : toPlane(target));
@@ -4279,20 +4390,22 @@ function travel(step: number): void {
 
 // ************************** FILES *******************************
 
-async function save(): Promise<void> {
-    const href = URL.createObjectURL(await asSaved(() => writeDgo(scene())));
-    (
-        $.create("a")
-            .att("href", href)
-            .att("download", `${figureName}.dgo`)
-            .dom() as HTMLAnchorElement
-    ).click();
-    setTimeout(() => URL.revokeObjectURL(href));
+async function save(as = false): Promise<void> {
+    let step = "";
+    const written = await saveFile(async () => {
+        await recording;
+        step = history[position].figure;
+        return asSaved(() => writeDgo(scene()));
+    }, as);
+    if (written) saved = step;
 }
 
+// A figure opened from `name`, a file name or a URL, which a save writes back
+// to if `from` is its file.
 async function open(
     name: string,
     load: (c: construction) => Promise<string[]>,
+    from?: FileSystemHandle | null,
 ): Promise<void> {
     setEraser(false);
     cancel();
@@ -4306,14 +4419,11 @@ async function open(
     showSpace();
     planeAxes = null;
     planeFlaw = studio.scene.GRID.is2D && offPlane(studio.scene) !== undefined;
-    figureName = name
-        .split(/[/\\?#]/)
-        .filter(Boolean)
-        .pop()!
-        .replace(/\.[^.]*$/, "");
     history = [];
     position = -1;
     await record();
+    saved = history[0].figure;
+    opened(name, from);
     refreshRows();
     showHint(
         unsupported.length
@@ -4324,13 +4434,19 @@ async function open(
 }
 
 // A chosen or dropped file.
-function openFile(file: File): Promise<void> {
-    return open(file.name, async (c) =>
-        /\.ggb$/i.test(file.name)
-            ? importGgbFromBlob(c, file)
-            : /\.dgo$/i.test(file.name)
-              ? importDgoFromBlob(c, file)
-              : importDgp(c, await file.text()),
+async function openFile(
+    file: File,
+    from?: Promise<FileSystemHandle | null> | FileSystemHandle,
+): Promise<void> {
+    return open(
+        file.name,
+        async (c) =>
+            /\.ggb$/i.test(file.name)
+                ? importGgbFromBlob(c, file)
+                : /\.dgo$/i.test(file.name)
+                  ? importDgoFromBlob(c, file)
+                  : importDgp(c, await file.text()),
+        await from,
     );
 }
 
@@ -4343,7 +4459,7 @@ fileInput.on(
     false,
 );
 
-dropFigures((file) => void openFile(file));
+dropFigures((file, from) => void openFile(file, from));
 
 bindRow(input, null);
 $("body").observeResize(() => {
@@ -4365,19 +4481,23 @@ export const EDITOR_READY = url
                 ? importDgoFromUrl(c, url)
                 : importDgpFromUrl(c, url),
       )
-    : open("figure", async (c) => {
-          readDgo(c, {
-              dgo: 1,
-              v: {
-                  o: [c.width / 2, c.height / 2],
-                  u: 40,
-                  w: c.width,
-                  h: c.height,
-                  ax: 0,
-              },
-              o: [],
-          });
-          return [];
-      });
+    : newFigure();
+
+function newFigure(): Promise<void> {
+    return open("figure", async (c) => {
+        readDgo(c, {
+            dgo: 1,
+            v: {
+                o: [c.width / 2, c.height / 2],
+                u: 40,
+                w: c.width,
+                h: c.height,
+                ax: 0,
+            },
+            o: [],
+        });
+        return [];
+    });
+}
 
 export { studio };

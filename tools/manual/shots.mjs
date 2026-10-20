@@ -66,6 +66,17 @@ export const SHOTS = [
         run: ({ type }) => type(TRIANGLE),
     },
     {
+        file: "menus.webp",
+        page: "editor.html",
+        clip: { x: 0, y: 0, width: 1200, height: 220 },
+        run: async ({ page, type, t }) => {
+            await type(TRIANGLE);
+            await page.click(
+                `.dge-menubar > div > button:has-text("${await t("menu_file")}")`,
+            );
+        },
+    },
+    {
         file: "anneau.webp",
         page: "editor.html",
         clip: { x: 320, y: 0, width: 880, height: 720 },

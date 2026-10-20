@@ -55,6 +55,12 @@
                 reading from another site (CORS).
             </p>
 
+            <p>
+                The <strong>File</strong> menu also offers
+                <strong>Open…</strong> (<kbd>Ctrl</kbd> <kbd>O</kbd>) and
+                <strong>New figure</strong>, which starts from an empty figure.
+            </p>
+
             <h2>Incomplete import</h2>
             <p>
                 An unsupported DGPad or GeoGebra element is ignored along with
@@ -63,12 +69,34 @@
                 <a href="formats.html">DGPad and GeoGebra import</a>.
             </p>
 
-            <h2>Saving</h2>
+            <h2 id="enregistrer">Saving</h2>
             <p>
-                <i data-i="save"></i> or <kbd>Ctrl</kbd> <kbd>S</kbd> downloads
-                the figure as <code>.dgo</code>, under the name of the opened
-                figure (<code>figure.dgo</code> for a new figure). The view
-                (zoom, 3D orientation, coordinate system) is saved.
+                <i data-i="save"></i>, <strong>File › Save</strong> or
+                <kbd>Ctrl</kbd> <kbd>S</kbd> saves the figure as
+                <code>.dgo</code>. The view (zoom, 3D orientation, coordinate
+                system) is saved.
+            </p>
+            <p>
+                In Chrome and Edge, DocGeo saves like an application: the first
+                save asks where to put the file, the next ones replace it
+                without asking. A <code>.dgo</code> figure opened with
+                <i data-i="open"></i> or dropped on the page is saved back to
+                its file; the browser asks once for permission to modify it. A
+                DGPad or GeoGebra figure is never overwritten: its first save
+                creates a <code>.dgo</code> file.
+                <strong>Save as…</strong> (<kbd>Ctrl</kbd> <kbd>Shift</kbd>
+                <kbd>S</kbd>) chooses another file.
+            </p>
+            <p>
+                The file name shows at the end of the menu bar; a red dot
+                signals unsaved changes. It disappears on saving, or when
+                undoing back to the saved state. Moving or zooming the view does
+                not count as a change.
+            </p>
+            <p>
+                In other browsers (Firefox, Safari), or when DocGeo is embedded
+                in another page, saving downloads the figure under the name of
+                the opened figure (<code>figure.dgo</code> for a new figure).
             </p>
             <p>
                 <code>.dgo</code> is the only save format: opening a DGPad or

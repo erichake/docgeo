@@ -58,6 +58,12 @@
                 lecture depuis un autre site (CORS).
             </p>
 
+            <p>
+                Le menu <strong>Fichier</strong> propose aussi
+                <strong>Ouvrir…</strong> (<kbd>Ctrl</kbd> <kbd>O</kbd>) et
+                <strong>Nouvelle figure</strong>, qui part d’une figure vide.
+            </p>
+
             <h2>Import incomplet</h2>
             <p>
                 Un élément DGPad ou GeoGebra non pris en charge est ignoré avec
@@ -68,10 +74,37 @@
 
             <h2>Enregistrer</h2>
             <p>
-                <i data-i="save"></i> ou <kbd>Ctrl</kbd> <kbd>S</kbd> télécharge
-                la figure en <code>.dgo</code>, sous le nom de la figure ouverte
-                (<code>figure.dgo</code> pour une nouvelle figure). La vue
-                (zoom, orientation 3D, repère) est enregistrée.
+                <i data-i="save"></i>, <strong>Fichier › Enregistrer</strong> ou
+                <kbd>Ctrl</kbd> <kbd>S</kbd> enregistre la figure en
+                <code>.dgo</code>. La vue (zoom, orientation 3D, repère) est
+                enregistrée.
+            </p>
+            <p>
+                Dans Chrome et Edge, DocGeo enregistre comme une application :
+                le premier enregistrement demande où ranger le fichier, les
+                suivants le remplacent sans rien demander. Une figure
+                <code>.dgo</code> ouverte par <i data-i="open"></i> ou déposée
+                sur la page est réenregistrée dans son fichier ; le navigateur
+                demande une fois l’autorisation de le modifier. Une figure DGPad
+                ou GeoGebra n’est jamais écrasée : son premier enregistrement
+                crée un fichier <code>.dgo</code>.
+                <strong>Enregistrer sous…</strong> (<kbd>Ctrl</kbd>
+                <kbd>Maj</kbd> <kbd>S</kbd>) choisit un autre fichier.
+            </p>
+            <p>
+                Le nom du fichier s’affiche au bout de la barre de menus ; une
+                pastille rouge signale des modifications non enregistrées. Elle
+                disparaît à l’enregistrement, ou si l’on annule jusqu’à l’état
+                enregistré. Déplacer ou zoomer la vue ne compte pas comme une
+                modification.
+            </p>
+            <p>
+                Dans les autres navigateurs (Firefox, Safari), ou quand DocGeo
+                est intégré à une autre page, l’enregistrement télécharge la
+                figure, sous le nom de la figure ouverte (<code
+                    >figure.dgo</code
+                >
+                pour une nouvelle figure).
             </p>
             <p>
                 <code>.dgo</code> est le seul format d’enregistrement : ouvrir

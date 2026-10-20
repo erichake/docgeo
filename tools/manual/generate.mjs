@@ -6,6 +6,7 @@
 //   npm run manual -- check     what the pages name that the editor lacks, and
 //                               the reverse
 //   npm run manual -- shots de  the same, for the languages named only
+//   npm run manual -- shots 3d.webp   the screenshots named only
 //
 // The pages name the tools' icons by their English labels.
 //
@@ -29,7 +30,10 @@ const LANGS = readdirSync(MANUAL).filter((name) =>
     statSync(join(MANUAL, name)).isDirectory(),
 );
 const args = process.argv.slice(2);
-const tasks = args.filter((arg) => !LANGS.includes(arg));
+const files = args.filter((arg) => SHOTS.some(({ file }) => file === arg));
+const tasks = args.filter(
+    (arg) => !LANGS.includes(arg) && !files.includes(arg),
+);
 const langs = args.some((arg) => LANGS.includes(arg))
     ? LANGS.filter((lang) => args.includes(lang))
     : LANGS;
@@ -50,7 +54,9 @@ try {
     if (wanted("icons")) await writeIcons(data);
     for (const lang of langs) {
         if (wanted("shots"))
-            for (const shot of SHOTS) await capture(shot, lang);
+            for (const shot of SHOTS)
+                if (!files.length || files.includes(shot.file))
+                    await capture(shot, lang);
         if (wanted("check"))
             check(lang, data, (await editorData(lang)).commands);
     }

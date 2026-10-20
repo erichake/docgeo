@@ -189,7 +189,8 @@ l'afficherait comme une espace.
 
 Les icônes (`icons.js`) et les captures (`<langue>/img/`) sont générées
 depuis l'éditeur : `npm run manual` (ou `-- icons`, `-- shots`, `-- check`,
-suivis éventuellement de codes de langue, voir `tools/manual/generate.mjs`,
+suivis éventuellement de codes de langue ou de noms de captures, voir
+`tools/manual/generate.mjs`,
 captures décrites dans `tools/manual/shots.mjs`). Après un changement de
 l'interface, d'un outil ou d'une commande, relancer `npm run manual` : son
 contrôle signale, pour chaque langue, les pages manquantes, les outils et

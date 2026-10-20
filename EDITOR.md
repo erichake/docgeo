@@ -722,6 +722,32 @@ au bout de la barre, comme dans GeoGebra, annuler / refaire (décidé le
 les deux (section « Actions sur l'objet sélectionné »). Leur place reste la même quand le panneau est fermé. Chaque bouton a une
 infobulle et un nom accessible ; les bascules montrent leur état en bleu.
 
+Barre de menus (`src/editor/menus.ts`, décidé le 2026-10-19, sur le modèle
+de DocCells) : hors d'une iframe (DocTools, mode élève), dans tous les
+navigateurs, une barre de 32 px au-dessus de celle des icônes, ramenée de
+60 à 48 px (boutons de 36 px). Menus Fichier (Nouvelle figure, Ouvrir… ⌘O,
+Enregistrer ⌘S, Enregistrer sous… ⇧⌘S), Édition (Annuler, Refaire,
+Supprimer, Gomme), Affichage (Repère, Vue 3D, Historique, Propriétés,
+cochés selon leur état) et Aide (manuel). Les menus pressent les boutons de
+la barre d'icônes, qui restent (commodes au doigt). Un clic hors d'un menu
+ouvert le ferme sans rien faire d'autre ; flèches et Échap au clavier.
+`--dge-bar-height` est la hauteur des deux barres ensemble.
+
+Enregistrement (`src/editor/file.ts`, même date) : hors d'une iframe, dans
+un navigateur qui a l'API File System Access (Chromium), l'éditeur
+enregistre comme une application. Le premier Cmd-S ouvre la boîte
+d'enregistrement du système, les suivants réécrivent le même fichier ;
+Cmd-Maj-S enregistre sous un autre nom. Une figure `.dgo` ouverte par le
+sélecteur du système (bouton, menu, ⌘O) ou déposée garde son fichier ; une
+figure `.dgp`, `.ggb`, ou passée par `?url=`, n'en a pas encore. Le nom du
+fichier s'affiche au bout de la barre de menus (abrégé s'il est long) et
+dans le titre de la page, avec une pastille rouge (« ● » dans le titre)
+tant que l'étape courante de la pile d'annulation diffère de celle
+enregistrée : annuler jusqu'à l'état enregistré l'efface. Déplacer ou
+zoomer la vue, hors de la pile, ne compte pas comme une modification.
+Ailleurs (Firefox, Safari, iframe de DocTools), Cmd-S télécharge la
+figure, sans nom affiché.
+
 Le panneau « Construction » se ferme par la croix de son en-tête ou par
 le bouton historique de la barre, qui permet aussi de le rouvrir. La figure
 récupère sa largeur sans changer les objets ; les consignes se recentrent
