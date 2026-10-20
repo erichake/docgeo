@@ -177,6 +177,26 @@ body:not(.dge-adjusting) svg .dge-property-selected > foreignObject > div {
     background: #dbeafe;
     border-radius: 4px;
 }
+/* A frame of HTML selected moves by a drag, and is sized by its corner. */
+.dge-properties-open svg .dge-framed > foreignObject > div {
+    pointer-events: auto;
+    cursor: move;
+    user-select: none;
+}
+body:not(.dge-adjusting) svg .dge-framed > foreignObject > div {
+    outline: 2px solid #2563eb;
+    outline-offset: 2px;
+}
+.dge-properties-open svg .dge-framed > foreignObject > div::after {
+    content: "";
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    width: 14px;
+    height: 14px;
+    cursor: nwse-resize;
+    background: linear-gradient(135deg, transparent 50%, #2563eb 50%);
+}
 .dge-editor .dge-bar .dge-action.dge-on {
     --dge-icon-bg: #e0ebff;
 }

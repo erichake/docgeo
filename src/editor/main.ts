@@ -168,6 +168,10 @@ const PANEL_WIDTH = 320;
 const SLIDE = 240;
 const RING_BUTTON = 20;
 const RING_RADIUS = (RING_SLOTS * (2 * RING_BUTTON + 2)) / (2 * Math.PI);
+// The corner of an HTML frame that sizes it (that of properties.css), and
+// its least width and height, in pixels.
+const FRAME_GRIP = 14;
+const FRAME_MIN = 40;
 
 function mountButtonTools(object: construction_object): void {
     if (!(object instanceof button_object)) return;
@@ -1133,7 +1137,9 @@ const asSaved = <T>(write: () => Promise<T>): Promise<T> =>
 // The objects of the properties lit, in the figure and in the text, while
 // they are shown.
 const lit = (object: construction_object, on: boolean) => {
-    object.dom?.toggleClass("dge-property-selected", on);
+    object.dom
+        ?.toggleClass("dge-property-selected", on)
+        .toggleClass("dge-framed", on && object instanceof panel_object);
     items.get(object)?.toggleClass("dge-shown", on);
 };
 const shine = (on: boolean) =>
@@ -3839,6 +3845,14 @@ let moved: {
     expression: expression_object | button_object;
     grab: Vec2;
 } | null = null;
+// The HTML frame being moved, or sized by its corner, its box and the
+// pointer's position when taken.
+let framed: {
+    panel: panel_object;
+    size: boolean;
+    box: [number, number, number, number];
+    from: Vec2;
+} | null = null;
 
 const onButton = (event: PointerEvent): boolean =>
     !!aim?.button &&
@@ -4005,6 +4019,32 @@ $("body").on(
             c.svg.dom().setPointerCapture(event.pointerId);
             return;
         }
+        // A frame of the properties moves, or is sized by its corner; its
+        // fields and links keep their clicks.
+        const frame = inspecting() && propertyObject(event);
+        framed = null;
+        if (
+            frame instanceof panel_object &&
+            properties.selection.includes(frame) &&
+            !element(event.target)?.closest("input, select, a")
+        ) {
+            const div = frame.dom.find("foreignObject > div")!.dom();
+            const { left, top } = div.getBoundingClientRect();
+            framed = {
+                panel: frame,
+                size:
+                    event.clientX >=
+                        left + div.clientLeft + div.clientWidth - FRAME_GRIP &&
+                    event.clientY >=
+                        top + div.clientTop + div.clientHeight - FRAME_GRIP,
+                box: [...frame.box],
+                from: screen,
+            };
+            event.preventDefault();
+            event.stopPropagation();
+            c.svg.dom().setPointerCapture(event.pointerId);
+            return;
+        }
         if (inspecting()) {
             const object = propertyObject(event);
             // Its arrow and label run the program being edited, its tools
@@ -4135,6 +4175,23 @@ $("body").on(
                 );
             return scene().invalidateRender(expression);
         }
+        if (framed && event.isPrimary && event.buttons) {
+            const { panel, size, box, from } = framed;
+            const [dx, dy] = vSub(scene().pointerPosition(event), from).map(
+                Math.round,
+            );
+            const [x, y, width, height] = box;
+            panel.box = size
+                ? [
+                      x,
+                      y,
+                      Math.max(FRAME_MIN, width + dx),
+                      Math.max(FRAME_MIN, height + dy),
+                  ]
+                : [x + dx, y + dy, width, height];
+            panel.createSVG();
+            return lit(panel, true);
+        }
         if (!event.isPrimary || (!aim && !inFigure(event))) return;
         if (event.buttons && !aim) return dragged();
         follow(event);
@@ -4189,6 +4246,9 @@ $("body").on(
         const expression = moved?.expression;
         moved = null;
         if (expression && !tap) return void record();
+        const frame = framed;
+        framed = null;
+        if (frame && !tap) return void record();
         const line = editing();
         if (expression && line) return designateTyped(line, expression);
         if (!inFigure(event)) return;

@@ -167,6 +167,9 @@ de `src/import/dgp_commands.ts`.
   (``A1 = Texte("pt A", `aux 2`)``), sans changement du moteur. Le HTML
   s'édite aussi sur plusieurs lignes dans la section « Définition » du
   panneau de propriétés, comme un programme, sans « Mettre en forme ».
+  Panneau de propriétés ouvert, un cadre HTML sélectionné se déplace en
+  le glissant et se redimensionne par son coin inférieur droit (40 pixels
+  au moins), ses champs et ses liens gardant leurs clics (2026-10-20).
   Renommer un objet le renomme dans les formules des textes et du HTML et
   dans les cibles (`target`) de ses champs.
 - Réutilisation possible de `src/import/ggb_translate.ts` : une ligne tapée,
