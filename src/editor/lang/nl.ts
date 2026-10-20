@@ -46,6 +46,7 @@ const nl: Texts = {
         history: "Constructiegeschiedenis",
         close_history: "Geschiedenis sluiten",
         properties: "Eigenschappen",
+        fullscreen: "Volledig scherm",
         settings: "Instellingen",
         pin: "Vastzetten op het scherm",
         pin_hint:

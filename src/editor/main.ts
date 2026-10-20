@@ -852,6 +852,19 @@ const menus: Menu[] = [
             null,
             toggle("history", historyButton),
             toggle("properties", propertiesButton),
+            ...(document.fullscreenEnabled
+                ? [
+                      null,
+                      {
+                          label: message("fullscreen"),
+                          run: () =>
+                              void (document.fullscreenElement
+                                  ? document.exitFullscreen()
+                                  : document.documentElement.requestFullscreen()),
+                          checked: () => !!document.fullscreenElement,
+                      },
+                  ]
+                : []),
         ],
     },
     {

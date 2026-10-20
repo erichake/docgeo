@@ -46,6 +46,7 @@ const fr: Texts = {
         history: "Historique de la construction",
         close_history: "Fermer l’historique",
         properties: "Propriétés",
+        fullscreen: "Plein écran",
         settings: "Réglages",
         pin: "Épingler à l’écran",
         pin_hint:

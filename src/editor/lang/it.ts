@@ -46,6 +46,7 @@ const it: Texts = {
         history: "Cronologia della costruzione",
         close_history: "Chiudi la cronologia",
         properties: "Proprietà",
+        fullscreen: "Schermo intero",
         settings: "Impostazioni",
         pin: "Fissa sullo schermo",
         pin_hint:

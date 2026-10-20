@@ -45,6 +45,7 @@ const ar: Texts = {
         history: "سجل الإنشاء",
         close_history: "إغلاق السجل",
         properties: "الخصائص",
+        fullscreen: "ملء الشاشة",
         settings: "الإعدادات",
         pin: "تثبيت على الشاشة",
         pin_hint: "يحتفظ % بمكانه في النافذة عند تكبير العرض أو تحريكه",

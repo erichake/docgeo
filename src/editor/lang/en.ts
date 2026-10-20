@@ -45,6 +45,7 @@ export default {
     history: "Construction history",
     close_history: "Close history",
     properties: "Properties",
+    fullscreen: "Full screen",
     settings: "Settings",
     pin: "Pin to the screen",
     pin_hint:

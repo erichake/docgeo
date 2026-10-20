@@ -44,6 +44,7 @@ const zh_TW: Texts = {
         history: "作圖歷程",
         close_history: "關閉歷程",
         properties: "屬性",
+        fullscreen: "全螢幕",
         settings: "設定",
         pin: "固定在螢幕上",
         pin_hint: "縮放或移動視圖時，% 在視窗中的位置保持不變",

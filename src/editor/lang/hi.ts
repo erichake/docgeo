@@ -46,6 +46,7 @@ const hi: Texts = {
         history: "रचना का इतिहास",
         close_history: "इतिहास बंद करें",
         properties: "गुण",
+        fullscreen: "पूर्ण स्क्रीन",
         settings: "सेटिंग्स",
         pin: "स्क्रीन पर पिन करें",
         pin_hint:

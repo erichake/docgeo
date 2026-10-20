@@ -46,6 +46,7 @@ const de: Texts = {
         history: "Konstruktionsverlauf",
         close_history: "Verlauf schließen",
         properties: "Eigenschaften",
+        fullscreen: "Vollbild",
         settings: "Einstellungen",
         pin: "Am Bildschirm fixieren",
         pin_hint:

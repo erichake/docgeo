@@ -44,6 +44,7 @@ const zh: Texts = {
         history: "作图历史",
         close_history: "关闭历史",
         properties: "属性",
+        fullscreen: "全屏",
         settings: "设置",
         pin: "固定在屏幕上",
         pin_hint: "缩放或移动视图时，% 在窗口中的位置保持不变",

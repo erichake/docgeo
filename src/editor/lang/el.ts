@@ -46,6 +46,7 @@ const el: Texts = {
         history: "Ιστορικό της κατασκευής",
         close_history: "Κλείσιμο του ιστορικού",
         properties: "Ιδιότητες",
+        fullscreen: "Πλήρης οθόνη",
         settings: "Ρυθμίσεις",
         pin: "Καρφίτσωμα στην οθόνη",
         pin_hint:

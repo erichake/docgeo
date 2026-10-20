@@ -728,7 +728,10 @@ navigateurs, une barre de 32 px au-dessus de celle des icônes, ramenée de
 60 à 48 px (boutons de 36 px). Menus Fichier (Nouvelle figure, Ouvrir… ⌘O,
 Enregistrer ⌘S, Enregistrer sous… ⇧⌘S), Édition (Annuler, Refaire,
 Supprimer, Gomme), Affichage (Repère, Vue 3D, Historique, Propriétés,
-cochés selon leur état) et Aide (manuel). Les menus pressent les boutons de
+cochés selon leur état ; Plein écran, API Fullscreen sur toute la page,
+absent là où `document.fullscreenEnabled` est faux : iPhone, Safari
+iPadOS < 16.4 qui n'a que `webkit…`, pas de raccourci, ceux du système
+appartenant au navigateur, Échap en sort) et Aide (manuel). Les menus pressent les boutons de
 la barre d'icônes, qui restent (commodes au doigt). Un clic hors d'un menu
 ouvert le ferme sans rien faire d'autre ; flèches et Échap au clavier.
 `--dge-bar-height` est la hauteur des deux barres ensemble.
