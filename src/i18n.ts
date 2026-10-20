@@ -1,6 +1,7 @@
 // The languages of DocTools.
 const translations = {
     ar: {
+        splash_tagline: "بسيط - سريع",
         open_figure: "فتح شكل هندسي",
         figure_formats: "DocGeo (.dgo)، DGPad (.dgp) أو GeoGebra (.ggb)",
         drop_figure: "أفلت الملف لفتح الشكل",
@@ -14,6 +15,7 @@ const translations = {
         list_items: "عناصر",
     },
     de: {
+        splash_tagline: "Einfach - Schnell",
         open_figure: "Figur öffnen",
         figure_formats: "DocGeo (.dgo), DGPad (.dgp) oder GeoGebra (.ggb)",
         drop_figure: "Zum Öffnen der Figur loslassen",
@@ -27,6 +29,7 @@ const translations = {
         list_items: "Elemente",
     },
     el: {
+        splash_tagline: "Απλό - Γρήγορο",
         open_figure: "Άνοιγμα σχήματος",
         figure_formats: "DocGeo (.dgo), DGPad (.dgp) ή GeoGebra (.ggb)",
         drop_figure: "Αφήστε το για να ανοίξει το σχήμα",
@@ -40,6 +43,7 @@ const translations = {
         list_items: "στοιχεία",
     },
     en: {
+        splash_tagline: "Simple - Fast",
         open_figure: "Open a figure",
         figure_formats: "DocGeo (.dgo), DGPad (.dgp) or GeoGebra (.ggb)",
         drop_figure: "Drop to open the figure",
@@ -53,6 +57,7 @@ const translations = {
         list_items: "items",
     },
     es: {
+        splash_tagline: "Simple - Rápido",
         open_figure: "Abrir una figura",
         figure_formats: "DocGeo (.dgo), DGPad (.dgp) o GeoGebra (.ggb)",
         drop_figure: "Suelte para abrir la figura",
@@ -66,6 +71,7 @@ const translations = {
         list_items: "elementos",
     },
     fr: {
+        splash_tagline: "Simple - Rapide",
         open_figure: "Ouvrir une figure",
         figure_formats: "DocGeo (.dgo), DGPad (.dgp) ou GeoGebra (.ggb)",
         drop_figure: "Déposez pour ouvrir la figure",
@@ -79,6 +85,7 @@ const translations = {
         list_items: "éléments",
     },
     hi: {
+        splash_tagline: "सरल - तेज़",
         open_figure: "आकृति खोलें",
         figure_formats: "DocGeo (.dgo), DGPad (.dgp) या GeoGebra (.ggb)",
         drop_figure: "आकृति खोलने के लिए छोड़ें",
@@ -92,6 +99,7 @@ const translations = {
         list_items: "तत्व",
     },
     it: {
+        splash_tagline: "Semplice - Veloce",
         open_figure: "Apri una figura",
         figure_formats: "DocGeo (.dgo), DGPad (.dgp) o GeoGebra (.ggb)",
         drop_figure: "Rilascia per aprire la figura",
@@ -105,6 +113,7 @@ const translations = {
         list_items: "elementi",
     },
     nl: {
+        splash_tagline: "Eenvoudig - Snel",
         open_figure: "Figuur openen",
         figure_formats: "DocGeo (.dgo), DGPad (.dgp) of GeoGebra (.ggb)",
         drop_figure: "Loslaten om de figuur te openen",
@@ -118,6 +127,7 @@ const translations = {
         list_items: "elementen",
     },
     pt: {
+        splash_tagline: "Simples - Rápido",
         open_figure: "Abrir uma figura",
         figure_formats: "DocGeo (.dgo), DGPad (.dgp) ou GeoGebra (.ggb)",
         drop_figure: "Solte para abrir a figura",
@@ -131,6 +141,7 @@ const translations = {
         list_items: "elementos",
     },
     zh: {
+        splash_tagline: "简单 - 快速",
         open_figure: "打开图形",
         figure_formats: "DocGeo (.dgo)、DGPad (.dgp) 或 GeoGebra (.ggb)",
         drop_figure: "松开以打开图形",
@@ -144,6 +155,7 @@ const translations = {
         list_items: "个元素",
     },
     "zh-TW": {
+        splash_tagline: "簡單 - 快速",
         open_figure: "開啟圖形",
         figure_formats: "DocGeo (.dgo)、DGPad (.dgp) 或 GeoGebra (.ggb)",
         drop_figure: "放開以開啟圖形",

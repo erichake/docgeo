@@ -1,7 +1,18 @@
 import { defineConfig } from "vite";
+import { execFileSync } from "node:child_process";
+
+const version = execFileSync("git", ["log", "-1", "--format=%cs"], {
+    cwd: new URL(".", import.meta.url),
+    encoding: "utf8",
+})
+    .trim()
+    .replace(/-/g, "");
 
 export default defineConfig({
     base: "./",
+    define: {
+        __DOCGEO_VERSION__: JSON.stringify(`v${version}`),
+    },
     server: {
         host: "0.0.0.0",
         port: 5175,

@@ -26,6 +26,7 @@ import { polygon_object } from "../objects/polygon_object";
 import { sphere_object } from "../objects/sphere_object";
 import { solid_object } from "../objects/solid_object";
 import { preferences } from "../preferences";
+import { finishSplash } from "../splash";
 import {
     vAdd,
     vIsFinite,
@@ -4555,6 +4556,8 @@ export const EDITOR_READY = url
                 : importDgpFromUrl(c, url),
       )
     : newFigure();
+
+finishSplash(EDITOR_READY);
 
 function newFigure(): Promise<void> {
     return open("figure", async (c) => {
