@@ -4,6 +4,7 @@ export interface MenuItem {
     label: string;
     run: () => void;
     shortcut?: string;
+    icon?: () => DOMElement;
     enabled?: () => boolean;
     checked?: () => boolean;
 }
@@ -54,6 +55,10 @@ export function menuBar(menus: Menu[], ...end: DOMElement[]): DOMElement[] {
                 .att("type", "button")
                 .att("role", item.checked ? "menuitemcheckbox" : "menuitem")
                 .add($.create("span").text(item.label));
+            if (item.icon)
+                element
+                    .addClass("dge-menu-icon")
+                    .add(item.icon().att("aria-hidden", "true"));
             if (item.checked)
                 element.att("aria-checked", String(item.checked()));
             if (item.shortcut) element.add($.create("kbd").text(item.shortcut));
@@ -62,6 +67,7 @@ export function menuBar(menus: Menu[], ...end: DOMElement[]): DOMElement[] {
                 "click",
                 () => {
                     close();
+                    (roots[index].dom() as HTMLElement).focus();
                     item.run();
                 },
                 false,

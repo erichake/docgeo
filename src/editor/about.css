@@ -1,0 +1,72 @@
+.dge-menu-popup button.dge-menu-icon::before {
+    display: none;
+}
+.dge-menu-icon > :last-child {
+    order: -1;
+    width: 16px;
+    height: 16px;
+    margin-inline: 2px 8px;
+    flex: none;
+}
+.dge-menu-icon svg {
+    display: block;
+    width: 100%;
+    height: 100%;
+}
+.dge-about {
+    padding: 0;
+    border: 0;
+    background: transparent;
+    box-shadow: 0 10px 40px rgb(0 0 0 / 30%);
+    max-width: 90vw;
+    max-height: 90dvh;
+    border-radius: 8px;
+    color: #334155;
+    font-family: Inter, Roboto, Arial, Helvetica, sans-serif;
+}
+.dge-about::backdrop {
+    background: rgb(15 23 42 / 35%);
+}
+.dge-about .docgeo-splash-content {
+    max-width: 100%;
+}
+.dge-about-doctools {
+    padding: 18px 28px 16px;
+    text-align: center;
+    border-top: 1px solid #e5e7eb;
+}
+.dge-about-doctools > strong {
+    display: block;
+    color: #1e293b;
+    font-size: 16px;
+    line-height: 1.35;
+}
+.dge-about-doctools p {
+    max-width: 420px;
+    margin: 8px auto 12px;
+    font-size: 13px;
+    line-height: 1.5;
+}
+.dge-about-doctools a {
+    color: #2563eb;
+    font-size: 13px;
+    font-weight: 600;
+    text-decoration: none;
+}
+.dge-about-doctools a:is(:hover, :focus-visible) {
+    text-decoration: underline;
+}
+.dge-about-footer {
+    display: flex;
+    justify-content: flex-end;
+    padding: 8px 14px 10px;
+    border-top: 1px solid #f1f5f9;
+}
+.dge-about-footer a {
+    color: #94a3b8;
+    font-size: 11px;
+    text-decoration: underline;
+}
+.dge-about-footer a:is(:hover, :focus-visible) {
+    color: #60a5fa;
+}

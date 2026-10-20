@@ -89,6 +89,7 @@ import {
     standalone,
 } from "./file";
 import { DELETE_KEY, menuBar, shortcut, type Menu } from "./menus";
+import { toolsMenu as applicationToolsMenu } from "./about";
 import { hideGhosts, showGhosts, toggleGhost, withHidden } from "./eraser";
 import { message, type MessageKey } from "./messages";
 import { ACTION_ICONS } from "./icons";
@@ -872,10 +873,7 @@ const menus: Menu[] = [
                 : []),
         ],
     },
-    {
-        label: message("menu_help"),
-        items: [{ label: message("help"), run: press(helpLink) }],
-    },
+    applicationToolsMenu(press(helpLink)),
 ];
 if (standalone) $("body").addClass("dge-menus");
 $("body").add(
