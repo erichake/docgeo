@@ -922,9 +922,11 @@ export class expression_object extends construction_object {
         const fillOpacity = t.cursorOpacity || 1;
         t.knob = t.svg
             .shape("circle")
+            // DGPad's knob is independent of its inert expression.
+            .att("data-slider-knob", "")
             .att("r", t.cursorRadius)
             .stl(
-                `fill:${fill};fill-opacity:${fillOpacity};stroke:${t.cursorColor};stroke-width:${CURSOR_BORDER};cursor:pointer`,
+                `fill:${fill};fill-opacity:${fillOpacity};stroke:${t.cursorColor};stroke-width:${CURSOR_BORDER};cursor:pointer;pointer-events:auto`,
             )
             .drag((event) => t.mousedrag(event));
         t.cursor = t.svg.shape("g").add(t.track, t.progress, t.knob);

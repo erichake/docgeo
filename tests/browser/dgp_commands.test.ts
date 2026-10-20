@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { userEvent } from "vitest/browser";
 // First, as in main.ts: the object classes import each other.
 import { AWAKE } from "../../src/construction";
 import { importDgp, importDgpFromUrl } from "../../src/dgp_importer";
@@ -309,6 +310,30 @@ STL(P1,"nmi:true");`,
         document.body.classList.add(AWAKE);
         expect(inert.dom.dom().contains(under(inert))).toBe(true);
         document.body.classList.remove(AWAKE);
+    });
+
+    it("drags the independent knob of an inert DGPad expression", async () => {
+        const c = createConstruction([700, 500]);
+        expect(
+            await importDgpFromUrl(c, figure("polygone_reguliers.dgp")),
+        ).toEqual([]);
+        const n = c.getObj("n") as expression_object;
+        n.screen = [30, 70];
+        n.cursorLength = 500;
+        c.invalidateRender(n);
+        c.flush();
+        c.reveal();
+        expect(n.inert).toBe(true);
+        expect(n.value).toBe(3);
+        const polygon = c.getObj("blk_turtle_exp_P1") as expression_object;
+        const triangle = polygon.value;
+        const knob = n.dom.dom().querySelector("circle")!;
+        const track = n.dom.dom().querySelector("path")!;
+        await userEvent.dragAndDrop(knob, c.svg.dom());
+        c.flush();
+        expect(n.value).toBeGreaterThan(3);
+        expect(polygon.value).not.toEqual(triangle);
+        expect(getComputedStyle(track).pointerEvents).toBe("none");
     });
 
     it("reads the early SetCoords, without 3D flag nor window size", () => {

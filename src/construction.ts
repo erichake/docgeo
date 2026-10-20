@@ -22,7 +22,7 @@ const MAX_UNIT = 1e8;
 // pointer-events otherwise overridden.
 export const AWAKE = "docgeo-awake";
 $("head").append(
-    `<style>body:not(.${AWAKE}) [data-inert], body:not(.${AWAKE}) [data-inert] * { pointer-events: none !important; }</style>`,
+    `<style>body:not(.${AWAKE}) [data-inert], body:not(.${AWAKE}) [data-inert] *:not([data-slider-knob]) { pointer-events: none !important; }</style>`,
 );
 
 // What the pointer does to an object, which its programs answer (see
