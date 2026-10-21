@@ -1,9 +1,11 @@
 import { describe, expect, it } from "vitest";
 import {
     completionAt,
+    formatCall,
     formatName,
     formatNumber,
     formatProgram,
+    joinLines,
     parseLine,
     pointFormulaText,
     renameFormula,
@@ -280,5 +282,31 @@ describe("Editor text", () => {
         });
         for (const text of ["E = AI ", "E = S1.", 'E = "ab', "E = `A"])
             expect(completionAt(text), text).toBeNull();
+    });
+
+    it("lays a long command out, and reads it back on one line", () => {
+        const line =
+            "Séquence(Cercle((a*(m*c*sin(t)^2 + b2*cos(t))/(a^2 - c^2*cos(t)^2), b*sin(t)*(a^2 - m*c*cos(t))/(a^2 - c^2*cos(t)^2), 0), b*abs(c*cos(t) - m)/sqrt(a^2 - c^2*cos(t)^2), (a*sin(t), -b*cos(t), 0)), t, 0, 2*PI*(n - 1)/n, 2*PI/n)";
+        const laid = formatCall(line, 50);
+        expect(laid).toBe(
+            [
+                "Séquence(",
+                "    Cercle(",
+                "        (",
+                "            a*(m*c*sin(t)^2 + b2*cos(t))/(a^2 - c^2*cos(t)^2),",
+                "            b*sin(t)*(a^2 - m*c*cos(t))/(a^2 - c^2*cos(t)^2),",
+                "            0),",
+                "        b*abs(c*cos(t) - m)/sqrt(a^2 - c^2*cos(t)^2),",
+                "        (a*sin(t), -b*cos(t), 0)),",
+                "    t, 0, 2*PI*(n - 1)/n, 2*PI/n)",
+            ].join("\n"),
+        );
+        expect(joinLines(laid)).toBe(line);
+        expect(formatCall(joinLines(laid), 50)).toBe(laid);
+        expect(formatCall("Milieu(A, B)", 50)).toBe("Milieu(A, B)");
+        // A formula stays whole, and what doesn't read is left as is.
+        const formula = "a*(m*c*sin(t)^2 + b2*cos(t))/(a^2 - c^2*cos(t)^2)";
+        expect(formatCall(formula, 20)).toBe(formula);
+        expect(formatCall('Texte("ab', 2)).toBe('Texte("ab');
     });
 });

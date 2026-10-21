@@ -485,6 +485,9 @@ const CHOICES = {
     expression: button("as_expression", () => commitAs("expression")),
 };
 type Choice = keyof typeof CHOICES;
+// A field a line is typed in: a row, the line below them, or the
+// definition the properties show as a line.
+type LineField = HTMLInputElement | HTMLTextAreaElement;
 const choice = $.create("div")
     .cls("dge-choice")
     .add(...Object.values(CHOICES))
@@ -734,6 +737,38 @@ const properties = propertiesPanel({
         await redefine(studio, object, spec);
         properties.select(scene().getObj(spec.name)!);
         changed();
+    },
+    line: (object) => {
+        const c = scene();
+        const index = figureIndex(c);
+        return entryOf(object, index)[0] === "Pt"
+            ? null
+            : lineOf(object, index, figureObjects(c));
+    },
+    enter: async (object, line) => {
+        await enterLine(line, object);
+    },
+    bind: (editor, head, apply) => {
+        const area = editor.dom() as HTMLTextAreaElement;
+        definitionLine = { area, head, apply };
+        bindField(editor);
+        editor.on(
+            "focus",
+            () => {
+                stopMagnets();
+                if (armed) cancel();
+                updateCompletion(area);
+            },
+            false,
+        );
+        editor.on(
+            "keydown",
+            (event) => {
+                if (completions.length && navigate(event, area))
+                    event.stopPropagation();
+            },
+            false,
+        );
     },
     figure: (patch) => {
         recording = recording.then(() => reframe({}, undefined, patch));
@@ -1057,6 +1092,12 @@ let preview: {
 } | null = null;
 let hovered: construction_object[] = [];
 let accepted: construction_object[] = [];
+// The definition the properties show as a line, after its head.
+let definitionLine: {
+    area: HTMLTextAreaElement;
+    head: string;
+    apply: () => void;
+} | null = null;
 let completions: {
     label: string;
     insert: string;
@@ -1116,12 +1157,18 @@ const typed = (node: EventTarget | null) =>
     (node instanceof HTMLElement && node.isContentEditable);
 const inFigure = (event: Event): boolean =>
     scene().svg.dom().contains(element(event.target));
-const editing = (): HTMLInputElement | null => {
+const editing = (): LineField | null => {
     const active = document.activeElement;
-    return active instanceof HTMLInputElement && panel.dom().contains(active)
-        ? active
+    return (active instanceof HTMLInputElement &&
+        panel.dom().contains(active)) ||
+        active === definitionLine?.area
+        ? (active as LineField)
         : null;
 };
+// The line typed in a field, up to the caret.
+const typedBefore = (field: LineField): string =>
+    (field === definitionLine?.area ? definitionLine.head : "") +
+    field.value.slice(0, field.selectionStart!);
 const vec3 = () => !scene().GRID.is2D;
 const previewed = () => new Set(preview?.objects ?? []);
 const looksHidden = (object: construction_object) =>
@@ -1255,6 +1302,13 @@ function refreshRows(): void {
         const item = $.create("div")
             .cls("dge-item")
             .add(visibilityToggle(object), text);
+        if (line !== null && entryOf(object, index)[0] !== "Pt")
+            item.add(
+                button("edit_definition", () => {
+                    if (!propertiesOpen) setProperties(true);
+                    properties.edit(object);
+                }).addClass("dge-label"),
+            );
         if (hasName(object)) item.add(nameToggle(object));
         item.on("mouseenter", () => highlight(object), false);
         item.on("mouseleave", () => highlight(), false);
@@ -1481,6 +1535,29 @@ function bindRow(row: DOMElement, object: construction_object | null): void {
         },
         false,
     );
+    bindField(row);
+    row.on(
+        "keydown",
+        (event) => {
+            if (completions.length && navigate(event, field)) return;
+            if (event.key === "Enter") {
+                event.preventDefault();
+                if (field.value.trim() === original.trim() && object) return;
+                void commitText(field, object);
+            } else if (event.key === "Escape") {
+                field.value = object ? original : "";
+                row.removeClass("dge-error");
+                closeCompletion();
+                field.blur();
+            }
+        },
+        false,
+    );
+}
+
+// Completed as typed, lighting the objects an argument accepts.
+function bindField(row: DOMElement): void {
+    const field = row.dom() as LineField;
     row.on(
         "input",
         () => {
@@ -1507,37 +1584,37 @@ function bindRow(row: DOMElement, object: construction_object | null): void {
         },
         false,
     );
-    row.on(
-        "keydown",
-        (event) => {
-            if (completions.length && navigate(event, field)) return;
-            if (event.key === "Enter") {
-                event.preventDefault();
-                if (field.value.trim() === original.trim() && object) return;
-                void commitText(field, object);
-            } else if (event.key === "Escape") {
-                field.value = object ? original : "";
-                row.removeClass("dge-error");
-                closeCompletion();
-                field.blur();
-            }
-        },
-        false,
-    );
 }
 
 async function commitText(
-    field: HTMLInputElement,
+    field: LineField,
     object: construction_object | null,
     as: Choice = choosing?.field === field ? choosing.lit : "expression",
 ): Promise<void> {
+    try {
+        if ((await enterLine(field.value, object, as)) && field === input.dom())
+            field.value = "";
+    } catch (error) {
+        if (!(error instanceof TextError)) throw error;
+        $(field).addClass("dge-error");
+        showHint(message(error.key as MessageKey, error.detail), true);
+    }
+}
+
+// Whether the line adds an object. Throws a TextError where it's wrong, the
+// figure as it was.
+async function enterLine(
+    text: string,
+    object: construction_object | null,
+    as: Choice = "expression",
+): Promise<boolean> {
     const c = scene();
     closeCompletion();
     hideChoice();
     // The sliders of the names the line reads that no object has.
     const sliders: construction_object[] = [];
     try {
-        const line = parseLine(field.value, isCommand);
+        const line = parseLine(text, isCommand);
         const target =
             object ?? (line.name ? (c.getObj(line.name) ?? null) : null);
         // What the expression draws, the expression kept, hidden.
@@ -1557,7 +1634,8 @@ async function commitText(
         if (!line.definition) {
             if (!target) throw new TextError("unknown_object", line.name!);
             c.removeObject(target);
-            return done();
+            done();
+            return false;
         }
         if (target) {
             const spec = resolveWithSliders(c, line, target, sliders);
@@ -1572,26 +1650,30 @@ async function commitText(
                 if (point.pinned) point.pin();
                 c.invalidateGeometry(target);
                 if (await refusedOffPlane()) throw new TextError("off_plane");
-                return done(target);
+                done(target);
+                return false;
             }
             await redefine(studio, target, spec);
             const result = made(scene().getObj(spec.name));
             if (await refusedOffPlane()) throw new TextError("off_plane");
-            return done(result);
+            done(result);
+            return false;
         }
         const result = made(
             add(c, resolveWithSliders(c, line, undefined, sliders)),
         );
         if (await refusedOffPlane()) throw new TextError("off_plane");
-        if (field === input.dom()) field.value = "";
         if (result instanceof button_object) showProgram(result);
-        return done(result);
+        done(result);
+        return true;
     } catch (error) {
-        if (!(error instanceof TextError)) throw error;
-        if (sliders.length && error.key !== "off_plane")
+        if (
+            error instanceof TextError &&
+            sliders.length &&
+            error.key !== "off_plane"
+        )
             await reframe({}, history[position]);
-        $(field).addClass("dge-error");
-        showHint(message(error.key as MessageKey, error.detail), true);
+        throw error;
     }
 }
 
@@ -1603,9 +1685,9 @@ const calls = (commands: Command[]) =>
 
 // What the caret is in: the commands, the objects an argument accepts, or
 // in a formula, its functions and the objects it reads.
-function updateCompletion(field: HTMLInputElement): void {
+function updateCompletion(field: LineField): void {
     clearPreview();
-    const context = completionAt(field.value.slice(0, field.selectionStart!));
+    const context = completionAt(typedBefore(field));
     const call =
         context?.kind === "argument" ? findCommand(context.command) : undefined;
     const prefix = context?.prefix ?? "";
@@ -1663,8 +1745,9 @@ const drawnFrom = (
 // what it makes, tried on an expression added and removed at once; a point
 // by default for a capitalized name, as the editor names points, or a point
 // redefined, else an expression.
-function offerChoice(field: HTMLInputElement): void {
+function offerChoice(field: LineField): void {
     hideChoice();
+    if (!(field instanceof HTMLInputElement)) return;
     let line: Line;
     try {
         line = parseLine(field.value, isCommand);
@@ -1763,7 +1846,7 @@ for (const [key, action] of Object.entries(CHOICES) as [Choice, DOMElement][])
         false,
     );
 
-function showCompletion(field: HTMLInputElement): void {
+function showCompletion(field: LineField): void {
     complete.inner("");
     completions.forEach(({ label }, index) => {
         const item = $.create("div")
@@ -1774,7 +1857,43 @@ function showCompletion(field: HTMLInputElement): void {
         complete.add(item);
     });
     const box = field.getBoundingClientRect();
-    complete.stl("left", `${box.left + 14}px`).stl("top", `${box.bottom}px`);
+    if (field instanceof HTMLInputElement)
+        return void complete
+            .stl("left", `${box.left + 14}px`)
+            .stl("top", `${box.bottom}px`);
+    // Below the caret, found in a copy of the area's text up to it, laid
+    // out as the area lays it.
+    const style = getComputedStyle(field);
+    const caret = $.create("span").text("\u200b");
+    const copy = $.create("div")
+        .text(field.value.slice(0, field.selectionStart!))
+        .add(caret);
+    const mirror = copy.dom() as HTMLElement;
+    for (const property of [
+        "font",
+        "padding",
+        "border",
+        "boxSizing",
+        "whiteSpace",
+        "overflowWrap",
+        "tabSize",
+    ] as const)
+        mirror.style[property] = style[property];
+    copy.stl("position", "fixed")
+        .stl("left", `${box.left}px`)
+        .stl("top", `${box.top}px`)
+        .stl("width", `${field.clientWidth + 2 * field.clientLeft}px`)
+        .stl("visibility", "hidden");
+    $("body").add(copy);
+    const at = caret.dom().getBoundingClientRect();
+    copy.remove();
+    const width = (complete.dom() as HTMLElement).offsetWidth;
+    complete
+        .stl(
+            "left",
+            `${Math.max(Math.min(at.left - field.scrollLeft, window.innerWidth - width - 4), 0)}px`,
+        )
+        .stl("top", `${at.bottom - field.scrollTop}px`);
 }
 
 function closeCompletion(): void {
@@ -1783,7 +1902,7 @@ function closeCompletion(): void {
 }
 
 // Arrows choose a completion, Tab or Enter insert it.
-function navigate(event: KeyboardEvent, field: HTMLInputElement): boolean {
+function navigate(event: KeyboardEvent, field: LineField): boolean {
     if (event.key === "ArrowDown" || event.key === "ArrowUp") {
         const step = event.key === "ArrowDown" ? 1 : -1;
         selected = (selected + step + completions.length) % completions.length;
@@ -1796,7 +1915,7 @@ function navigate(event: KeyboardEvent, field: HTMLInputElement): boolean {
     return true;
 }
 
-function insertCompletion(field: HTMLInputElement, index: number): void {
+function insertCompletion(field: LineField, index: number): void {
     const { insert, object } = completions[index];
     if (object) return designateTyped(field, object, true);
     insertWord(field, insert);
@@ -1827,27 +1946,30 @@ function overloadsAt(context: ArgumentCompletion): Overload[] {
 // first vertex of a polygon again closes it. Chosen in the completions, it
 // replaces the word typed.
 function designateTyped(
-    field: HTMLInputElement,
+    field: LineField,
     object: construction_object,
     replace = false,
 ): void {
-    if (insertArgument(field, object, replace))
-        void commitText(
-            field,
-            [...rows].find(([, row]) => row.dom() === field)?.[0] ?? null,
-        );
+    if (insertArgument(field, object, replace)) {
+        if (field === definitionLine?.area) definitionLine.apply();
+        else
+            void commitText(
+                field,
+                [...rows].find(([, row]) => row.dom() === field)?.[0] ?? null,
+            );
+    }
     updateCompletion(field);
 }
 
 // Whether it closed the line.
 function insertArgument(
-    field: HTMLInputElement,
+    field: LineField,
     object: construction_object,
     replace: boolean,
 ): boolean {
     const caret = field.selectionStart!;
     const before = field.value.slice(0, caret);
-    const context = completionAt(before);
+    const context = completionAt(typedBefore(field));
     if (context?.kind !== "argument" || field.value.slice(caret).trim()) {
         insertWord(field, formatName(object.name), replace);
         return false;
@@ -1863,10 +1985,7 @@ function insertArgument(
             ({ params, variadic }) => variadic && position >= params.length,
         )
     ) {
-        const comma = before.lastIndexOf(",");
-        field.value = before.slice(0, comma) + ")";
-        field.setSelectionRange(comma + 1, comma + 1);
-        $(field).removeClass("dge-error");
+        replaceText(field, before.lastIndexOf(","), field.value.length, ")");
         return true;
     }
     const more = overloads.map(
@@ -1885,11 +2004,13 @@ function insertArgument(
 // The line typed, ending in an argument, as a tool waiting for it: the
 // arguments before it, and the overloads that take them.
 function typedCall(
-    field: HTMLInputElement,
+    field: LineField,
 ): { args: Arg[]; overloads: Overload[] } | null {
-    const caret = field.selectionStart!;
-    const context = completionAt(field.value.slice(0, caret));
-    if (context?.kind !== "argument" || field.value.slice(caret).trim())
+    const context = completionAt(typedBefore(field));
+    if (
+        context?.kind !== "argument" ||
+        field.value.slice(field.selectionStart!).trim()
+    )
         return null;
     const c = scene();
     const args = Array.from({ length: context.position }, (_, position) => {
@@ -1916,10 +2037,7 @@ const taking = (
 
 // Only the line typed below the others makes points where it designates:
 // the others' rows are rebuilt with the figure.
-const expectsPoint = (
-    field: HTMLInputElement,
-    call: ReturnType<typeof typedCall>,
-) =>
+const expectsPoint = (field: LineField, call: ReturnType<typeof typedCall>) =>
     field === input.dom() &&
     !!call?.overloads.some(
         (overload) => paramAt(overload, call.args.length) === "point",
@@ -1927,19 +2045,30 @@ const expectsPoint = (
 
 // In place of the word typed at the caret, unless, not to `replace` it, it
 // already names an object: the word only completes a name being typed.
-function insertWord(
-    field: HTMLInputElement,
-    word: string,
-    replace = true,
-): void {
+function insertWord(field: LineField, word: string, replace = true): void {
     const caret = field.selectionStart!;
     const before = field.value.slice(0, caret);
     const typed = /[\p{L}_$][\p{L}\p{M}\p{N}_$']*$/u.exec(before)?.[0] ?? "";
     const start =
         before.length - (replace || !scene().getObj(typed) ? typed.length : 0);
-    field.value = field.value.slice(0, start) + word + field.value.slice(caret);
-    field.setSelectionRange(start + word.length, start + word.length);
-    field.focus();
+    replaceText(field, start, field.selectionEnd!, word);
+}
+
+// The area's, as typed, to be undone so.
+function replaceText(
+    field: LineField,
+    start: number,
+    end: number,
+    text: string,
+): void {
+    if (field instanceof HTMLTextAreaElement) {
+        field.focus();
+        field.setSelectionRange(start, end);
+        document.execCommand("insertText", false, text);
+    } else {
+        field.setRangeText(text, start, end, "end");
+        field.focus();
+    }
     $(field).removeClass("dge-error");
 }
 
@@ -3365,7 +3494,7 @@ STAND_INS.C3s = STAND_INS.C3p;
 // The line typed as a tool waiting for its next argument, the object under
 // the pointer or a point there.
 function typedPending(
-    field: HTMLInputElement,
+    field: LineField,
     hits: Hit[],
 ): { overload: Overload; args: (Arg | undefined)[]; free: boolean } | null {
     const call = typedCall(field);
@@ -3828,7 +3957,7 @@ let down: { x: number; y: number; time: number } | null = null;
 // A right press passed on to the object under it as a left one.
 let relaying = false;
 // The line typed for which a tap in the void makes a point.
-let typing: HTMLInputElement | null = null;
+let typing: LineField | null = null;
 let dragFrame: number | null = null;
 // A pointer pressed while a tool waits: it aims and designates where it's
 // released, unless still on the button that chose the tool.

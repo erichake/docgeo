@@ -5,6 +5,7 @@ import { describeDgo, figureObjects, readDgo } from "../../src/dgo";
 import { $ } from "../../src/dom";
 import {
     add,
+    entryOf,
     figureIndex,
     lineOf,
     redefine,
@@ -54,6 +55,9 @@ function setup() {
         },
         rename: async () => {},
         define: async () => {},
+        line: () => null,
+        enter: async () => {},
+        bind: () => {},
         create: async () => {},
         shown: () => {},
         mark: () => {},
@@ -441,6 +445,22 @@ describe("Object properties", () => {
                 await redefine(studio, object, spec);
                 properties.select(studio.scene.getObj(spec.name)!);
             },
+            line: (object) => {
+                const index = figureIndex(studio.scene);
+                return entryOf(object, index)[0] === "Pt"
+                    ? null
+                    : lineOf(object, index, figureObjects(studio.scene));
+            },
+            enter: async (object, line) => {
+                const spec = resolve(
+                    studio.scene,
+                    parseLine(line, isCommand),
+                    object,
+                );
+                await redefine(studio, object, spec);
+                properties.select(studio.scene.getObj(spec.name)!);
+            },
+            bind: () => {},
             create: async (name, source) => {
                 const c = studio.scene;
                 properties.select(
@@ -544,6 +564,30 @@ describe("Object properties", () => {
             lineOf(q, figureIndex(studio.scene), figureObjects(studio.scene)),
         ).toBe("q = var t=[]; t.push([1,2]); t");
         expect((q as expression_object).value).toEqual([[1, 2]]);
+        // A command by its line, written on several; no definition for a
+        // free point.
+        properties.select(studio.scene.getObj("A")!);
+        expect(panel.find("textarea")).toBeNull();
+        properties.select(studio.scene.getObj("s")!);
+        expect(area().value).toBe("Segment(A, B)");
+        expect(document.body.classList).not.toContain("dge-properties-wide");
+        area().focus();
+        area().select();
+        document.execCommand("insertText", false, "Segment(\n    B,\n    A)");
+        button("format_program").click();
+        expect(area().value).toBe("Segment(B, A)");
+        area().select();
+        document.execCommand("insertText", false, "Segment(\n    B,\n    A)");
+        button("apply").click();
+        await expect
+            .poll(() =>
+                lineOf(
+                    studio.scene.getObj("s")!,
+                    figureIndex(studio.scene),
+                    figureObjects(studio.scene),
+                ),
+            )
+            .toBe("s = Segment(B, A)");
         panel.dispose();
     });
 });

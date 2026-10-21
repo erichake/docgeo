@@ -31,7 +31,14 @@ import {
 } from "./figure";
 import { message, type MessageKey } from "./messages";
 import { scrubNumber, type Scrub } from "./scrub";
-import { formatProgram, syntaxLine, TextError } from "./text";
+import {
+    formatCall,
+    formatName,
+    formatProgram,
+    joinLines,
+    syntaxLine,
+    TextError,
+} from "./text";
 import {
     hexColor,
     RESET_ICON,
@@ -77,6 +84,20 @@ const measured = (object: construction_object): boolean =>
     (object instanceof list_object &&
         !(object instanceof expression_list_object));
 
+// Whose definition is its value, formula, HTML or program rather than its
+// line: a slider's is its command.
+const defined = (object: construction_object): object is Defined =>
+    (object instanceof expression_object &&
+        !object.isCursor &&
+        !object.bounds) ||
+    object instanceof panel_object ||
+    object instanceof button_object;
+
+// A command's line longer than this widens the panel, which lays it out
+// within the next.
+const NARROW_LINE = 30;
+const LINE_WIDTH = 50;
+
 const PROGRAM_PLACEHOLDER =
     "var t = [];\nfor (var i = 0; i < 10; i++) {\n    t.push([i, 0]);\n}\nt";
 
@@ -86,6 +107,14 @@ export function propertiesPanel(options: {
     rename: (object: construction_object, name: string) => Promise<void>;
     // Throws a TextError where the text is wrong.
     define: (object: Defined, source: string) => Promise<void>;
+    // The line of an object its definition writes as a command, as the
+    // construction shows it: null for a free point, or none.
+    line: (object: construction_object) => string | null;
+    // The object redefined by a line, throwing a TextError where it's wrong.
+    enter: (object: construction_object, line: string) => Promise<void>;
+    // A definition typed as a line, the line being `head` and its text:
+    // completed, and given the names of the objects designated.
+    bind: (editor: DOMElement, head: string, apply: () => void) => void;
     // A program for the object, a turtle's or an event's ("drag", "down",
     // "up", "change"), the object's own shown if it has one.
     start: (kind: string, object: construction_object) => void;
@@ -262,6 +291,9 @@ export function propertiesPanel(options: {
             !objects[1] &&
                 ((object instanceof expression_object &&
                     !!(object.formula || object.program)) ||
+                    (!!object &&
+                        !defined(object) &&
+                        (options.line(object)?.length ?? 0) > NARROW_LINE) ||
                     (!!object &&
                         (adding === object ||
                             ownPrograms(options.scene(), object).length > 0))),
@@ -1100,14 +1132,9 @@ export function propertiesPanel(options: {
             () => (name.dom() as HTMLInputElement).setCustomValidity(""),
             false,
         );
-        if (
-            (object instanceof expression_object &&
-                !object.isCursor &&
-                !object.bounds) ||
-            object instanceof panel_object ||
-            object instanceof button_object
-        )
-            definition(object);
+        const line = options.line(object);
+        if (defined(object)) definition(object);
+        else if (line) definition(object, undefined, line);
         if (
             object instanceof point_object ||
             (object instanceof expression_object && !object.program)
@@ -1200,31 +1227,53 @@ export function propertiesPanel(options: {
         (content.find("textarea")!.dom() as HTMLTextAreaElement).focus();
     }
 
-    // An object's, or one of the programs of its object (see programs).
-    function definition(object: Defined | null, name?: () => string): void {
+    // An object's, or one of the programs of its object (see programs), or
+    // the command of its `line`, laid out.
+    function definition(
+        object: construction_object | null,
+        name?: () => string,
+        line?: string,
+    ): void {
         const owner = object && programOwner(object);
         const box = section(
             owner && owner !== object ? "programs" : "definition",
         );
-        const original = object ? definitionSource(object) : "";
+        const head = line?.slice(0, line.indexOf(" = ") + 3);
+        const original = line
+            ? formatCall(line.slice(head!.length), LINE_WIDTH)
+            : object
+              ? definitionSource(object as Defined)
+              : "";
         // HTML, its lines wrapped, isn't a program to lay out.
         const html = object instanceof panel_object;
         // A program, or one to be made, shows as text or as blocks.
         const program =
-            !object ||
-            object instanceof button_object ||
-            object instanceof event_object ||
-            !!(object as expression_object).program;
+            !line &&
+            (!object ||
+                object instanceof button_object ||
+                object instanceof event_object ||
+                !!(object as expression_object).program);
         if (program) shownProgram = object;
         const editor = $.create("textarea")
             .cls("dge-program")
             .att("dir", "ltr")
             .att("spellcheck", "false")
-            .att("wrap", html ? "soft" : "off")
+            .att("wrap", html || line ? "soft" : "off")
+            .toggleClass("dge-wrap", !!line)
             .att("aria-label", message("definition"))
             .att("placeholder", object ? "" : PROGRAM_PLACEHOLDER);
         const area = editor.dom() as HTMLTextAreaElement;
         area.value = original;
+        // Typed as a line, completed. Before the keys of the area: the
+        // completions take theirs first.
+        const typed =
+            !!line || (object instanceof expression_object && !program);
+        if (typed)
+            options.bind(
+                editor,
+                head ?? `${formatName(object!.name)} = `,
+                () => void submit(),
+            );
         const error = $.create("p")
             .cls("dge-program-error")
             .att("role", "alert");
@@ -1284,7 +1333,19 @@ export function propertiesPanel(options: {
                 ),
                 20,
             );
-            apply.dom().toggleAttribute("disabled", area.value === original);
+            // And its wrapped lines.
+            while (
+                line &&
+                area.scrollHeight > area.clientHeight &&
+                area.rows < 20
+            )
+                area.rows++;
+            apply
+                .dom()
+                .toggleAttribute(
+                    "disabled",
+                    area.value === original || (!!line && !area.value.trim()),
+                );
             editor.removeClass("dge-error");
             error.text("");
         };
@@ -1295,6 +1356,7 @@ export function propertiesPanel(options: {
         editor.on(
             "keydown",
             (event) => {
+                if (event.defaultPrevented) return;
                 const caret = area.selectionStart;
                 const line = area.value.slice(
                     area.value.lastIndexOf("\n", caret - 1) + 1,
@@ -1315,6 +1377,9 @@ export function propertiesPanel(options: {
                 } else if (event.key === "Escape" && area.value !== original) {
                     area.value = original;
                     update();
+                    event.stopPropagation();
+                } else if (event.key === "Escape" && typed) {
+                    area.blur();
                     event.stopPropagation();
                 } else return;
                 event.preventDefault();
@@ -1390,7 +1455,11 @@ export function propertiesPanel(options: {
             () => {
                 area.focus();
                 area.select();
-                insert(formatProgram(area.value));
+                insert(
+                    line
+                        ? formatCall(joinLines(area.value), LINE_WIDTH)
+                        : formatProgram(area.value),
+                );
             },
             false,
         );
@@ -1413,29 +1482,31 @@ export function propertiesPanel(options: {
 
         async function submit(text = area.value): Promise<void> {
             try {
-                await (object
-                    ? options.define(object, text)
-                    : options.create(name!(), text));
+                await (line
+                    ? options.enter(object!, head + joinLines(text))
+                    : object
+                      ? options.define(object as Defined, text)
+                      : options.create(name!(), text));
             } catch (failure) {
                 if (!(failure instanceof TextError)) throw failure;
                 const syntax = failure.key === "syntax";
-                const line = syntax ? syntaxLine(text) : null;
+                const at = syntax ? syntaxLine(text) : null;
                 editor.addClass("dge-error");
                 error.text(
-                    line
-                        ? message("syntax_line", String(line))
-                        : syntax
+                    at
+                        ? message("syntax_line", String(at))
+                        : syntax && !line
                           ? message("program_syntax")
                           : message(failure.key as MessageKey, failure.detail),
                 );
-                if (!line || editor.isHidden()) return;
+                if (!at || editor.isHidden()) return;
                 // The line selected.
                 const lines = area.value.split("\n");
                 const start = lines
-                    .slice(0, line - 1)
+                    .slice(0, at - 1)
                     .reduce((sum, text) => sum + text.length + 1, 0);
                 area.focus();
-                area.setSelectionRange(start, start + lines[line - 1].length);
+                area.setSelectionRange(start, start + lines[at - 1].length);
             }
         }
     }
@@ -1462,6 +1533,14 @@ export function propertiesPanel(options: {
     return {
         panel,
         select,
+        // Shown, its definition typed at its end.
+        edit: (object: construction_object) => {
+            select(object);
+            const area = content.find("textarea")?.dom() as
+                HTMLTextAreaElement | undefined;
+            area?.focus();
+            area?.setSelectionRange(area.value.length, area.value.length);
+        },
         create,
         toggle,
         refresh,

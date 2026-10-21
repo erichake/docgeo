@@ -486,6 +486,70 @@ export function formatProgram(source: string): string {
     return lines.join("\n");
 }
 
+// A command's line laid out within `width` characters: a call or a tuple
+// too long for it gives each argument a line, indented, the short ones
+// that follow each other sharing one; a formula stays whole.
+export function formatCall(source: string, width: number): string {
+    const { tokens, starts, ends, stop } = lex(source);
+    if (stop !== null) return source;
+    const flat = (from: number, to: number): string =>
+        tokens
+            .slice(from, to)
+            .map(
+                (_, index) =>
+                    (index && starts[from + index] > ends[from + index - 1]
+                        ? " "
+                        : "") +
+                    source.slice(starts[from + index], ends[from + index]),
+            )
+            .join("");
+    const lay = (from: number, to: number, indent: string): string => {
+        const text = flat(from, to);
+        if (indent.length + text.length <= width || to - from < 2) return text;
+        let open = to - 1;
+        for (let depth = 0; open >= from; open--) {
+            const { type } = tokens[open];
+            if (type === ")" || type === "]") depth++;
+            else if ((type === "(" || type === "[") && !--depth) break;
+        }
+        const found = open >= from ? group(tokens, open) : null;
+        if (
+            !found?.commas.length ||
+            open - from > 1 ||
+            (open > from && tokens[from].type !== "identifier")
+        )
+            return text;
+        const inner = indent + "    ";
+        const bounds = [open, ...found.commas, to - 1];
+        const lines: string[] = [];
+        let shared = false;
+        bounds.slice(1).forEach((end, index) => {
+            const arg = lay(bounds[index] + 1, end, inner);
+            const last = lines.length - 1;
+            const single = !arg.includes("\n");
+            if (
+                shared &&
+                single &&
+                lines[last].length + arg.length + 2 <= width
+            )
+                lines[last] += `, ${arg}`;
+            else lines.push(inner + arg);
+            shared = single;
+        });
+        return `${flat(from, open + 1)}\n${lines.join(",\n")}${flat(to - 1, to)}`;
+    };
+    return lay(0, tokens.length - 1, "");
+}
+
+// A line laid out on several, back on one: a line break and its
+// indentation read as a space, and as nothing inside a bracket.
+export const joinLines = (text: string): string =>
+    text
+        .replace(/([([{])\s*\n\s*/g, "$1")
+        .replace(/\s*\n\s*(?=[)\]}])/g, "")
+        .replace(/\s*\n\s*/g, " ")
+        .trim();
+
 // A method the grammar doesn't know, called on an object: `s.setColor(`.
 export function unknownMethod(source: string): string | null {
     const { tokens } = lex(source);

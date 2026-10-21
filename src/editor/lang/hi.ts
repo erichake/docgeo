@@ -168,6 +168,7 @@ const hi: Texts = {
         conditional_visibility:
             "दृश्यता आकृति की किसी शर्त पर भी निर्भर करती है।",
         show_name: "नाम दिखाएँ",
+        edit_definition: "परिभाषा संपादित करें",
         fixed_object: "स्थिर ऑब्जेक्ट",
         inert_object: "निष्क्रिय ऑब्जेक्ट",
         hide_name: "नाम छिपाएँ",

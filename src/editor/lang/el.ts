@@ -169,6 +169,7 @@ const el: Texts = {
         conditional_visibility:
             "Η ορατότητα εξαρτάται επίσης από μια συνθήκη του σχήματος.",
         show_name: "Εμφάνιση ονόματος",
+        edit_definition: "Επεξεργασία ορισμού",
         fixed_object: "Σταθερό αντικείμενο",
         inert_object: "Αδρανές αντικείμενο",
         hide_name: "Απόκρυψη ονόματος",

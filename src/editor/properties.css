@@ -248,6 +248,11 @@ body:not(.dge-adjusting) svg .dge-framed > foreignObject > div {
     resize: vertical;
     touch-action: auto;
 }
+/* A command's line: its formulas, which aren't laid out, wrap. */
+.dge-properties textarea.dge-program.dge-wrap {
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+}
 .dge-properties textarea.dge-program:focus-visible {
     outline: 2px solid #2563eb;
     outline-offset: 2px;

@@ -166,6 +166,7 @@ const fr: Texts = {
         conditional_visibility:
             "La visibilité dépend aussi d’une condition de la figure.",
         show_name: "Afficher le nom",
+        edit_definition: "Modifier la définition",
         fixed_object: "Objet fixe",
         inert_object: "Objet inerte",
         hide_name: "Masquer le nom",

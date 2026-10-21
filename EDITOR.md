@@ -859,6 +859,24 @@ et le défilement du panneau.
 Le renommage reconstruit la figure à partir de son `.dgo`, en conservant
 les références des dépendants, y compris les formules.
 
+**Définition d'une commande** (2026-10-21) : tout objet écrit par une
+commande, curseur compris (point libre excepté), a sa section
+« Définition », la zone multiligne des programmes, qui édite ce qui suit
+`nom = ` dans sa ligne. Une ligne de plus de 30 caractères élargit le
+panneau et s'y affiche mise en forme (`formatCall` de `text.ts`) : un appel
+ou un n-uplet trop long pour 50 colonnes donne une ligne indentée à chaque
+argument, les courts qui se suivent la partageant, une formule restant
+entière et repliée par la zone. Appliquer relit le texte sur une ligne
+(`joinLines`) et le valide comme la ligne de construction (`enterLine`).
+La zone partage avec les lignes la complétion, sous le curseur, la mise en
+évidence des objets acceptés et la désignation : focus dans la zone, un
+clic sur un objet de la figure insère son nom, ou remplace le texte
+sélectionné, et la parenthèse fermée ainsi applique la définition. Les
+formules et valeurs d'expressions en profitent aussi. Échap ferme la
+complétion, rétablit le texte, puis quitte la zone. Au survol, un bouton
+crayon d'une ligne de construction (`edit_definition`) ouvre les
+propriétés sur l'objet, le curseur au bout de sa définition.
+
 ### Onglet « Figure »
 
 Décidé le 2026-10-14. Le repère n'est pas un objet : il n'entre pas dans la
