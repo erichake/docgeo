@@ -6,9 +6,23 @@ import type { Vec2 } from "../vec";
 import type { expression_object } from "./expression_object";
 
 // What an object's .dgo description needs from the file being written.
+export type DgoRef = number | ["side" | "vertex", number, number];
+
+export const objectIndex = (
+    object: construction_object,
+    index: (object: construction_object) => number,
+): DgoRef =>
+    object.reference
+        ? [
+              object.reference.kind,
+              index(object.reference.owner),
+              object.reference.rank,
+          ]
+        : index(object);
+
 export interface DgoContext {
     // Another object's position in the file.
-    index(object: construction_object): number;
+    index(object: construction_object): DgoRef;
     // An image's key in the file's image table.
     image(url: string): string;
     // A window position, in the saved window, to the pixel.
@@ -21,7 +35,7 @@ export function dgoFormula(
     source: string,
     refs: ReadonlyMap<string, construction_object>,
     context: DgoContext,
-): string | [string, Record<string, number>] {
+): string | [string, Record<string, DgoRef>] {
     return refs.size
         ? [
               source,
@@ -71,6 +85,12 @@ export function writeName(
 }
 
 export class construction_object {
+    reference?: {
+        owner: construction_object;
+        kind: "side" | "vertex";
+        rank: number;
+    };
+    virtualParts?: Map<string, construction_object>;
     class: typeof construction_object;
     C: construction;
     prefs: Preferences;
@@ -177,6 +197,7 @@ export class construction_object {
 
     addParents(...parents: construction_object[]): void {
         parents.forEach((parent) => {
+            parent = parent.reference?.owner ?? parent;
             if (this.parents.includes(parent)) return;
             this.parents.push(parent);
             parent.children.push(this);
@@ -185,7 +206,9 @@ export class construction_object {
 
     refresh(): void {
         this.computeGeometry();
+        this.virtualParts?.forEach((part) => part.computeGeometry());
         this.project();
+        this.virtualParts?.forEach((part) => part.project());
         if (this.hasView) this.draw();
         this.geometryDirty = false;
         this.projectionDirty = false;
@@ -210,7 +233,9 @@ export class construction_object {
     // One of the 2D objects of a DGPad 3D figure (see GRID.FRAME2D): as in
     // DGPad, it is 3D as soon as one of its parents is.
     get flat(): boolean {
-        return (this.isFlat ??= this.parents.every((parent) => parent.flat));
+        return (this.isFlat ??= this.reference
+            ? this.reference.owner.flat
+            : this.parents.every((parent) => parent.flat));
     }
 
     // What a formula reads when it names the object, as in DGPad (a

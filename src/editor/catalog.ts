@@ -1,3 +1,4 @@
+import type { DgoRef } from "../objects/construction_object";
 import { angle_object } from "../objects/angle_object";
 import type { construction_object } from "../objects/construction_object";
 import { curve_object } from "../objects/curve_object";
@@ -105,7 +106,7 @@ export const argObjects = (args: Arg[]): construction_object[] =>
             ? []
             : arg instanceof FormulaArg || arg instanceof TextArg
               ? [...arg.refs.values()]
-              : [arg],
+              : [arg.reference?.owner ?? arg],
     );
 
 export interface Overload {
@@ -116,15 +117,16 @@ export interface Overload {
     // The .dgo parameters, objects being given by their index.
     encode(
         args: Arg[],
-        index: (object: construction_object) => number,
+        index: (object: construction_object) => DgoRef,
     ): unknown;
     // The arguments of an entry of its tag, null when this overload can't
     // write it.
-    decode?(parameters: unknown, at: (index: number) => Arg): Arg[] | null;
+    decode?(parameters: unknown, at: (index: DgoRef) => Arg): Arg[] | null;
 }
 
 export interface Command {
     name: string;
+    reference?: boolean;
     // A function of the formulas, whose overloads build nothing.
     formula?: boolean;
     // The arguments of one, ending with an object, never begin those of
@@ -230,8 +232,15 @@ export const readable = (object: construction_object): boolean =>
         kindOf(object),
     );
 
-const isIndex = (value: unknown): value is number =>
-    Number.isInteger(value) && (value as number) >= 0;
+const isIndex = (value: unknown): value is DgoRef =>
+    (Number.isInteger(value) && (value as number) >= 0) ||
+    (Array.isArray(value) &&
+        value.length === 3 &&
+        ["side", "vertex"].includes(value[0]) &&
+        Number.isInteger(value[1]) &&
+        value[1] >= 0 &&
+        Number.isSafeInteger(value[2]) &&
+        value[2] >= 1);
 
 // Objects only, the entry listing them in this order of the arguments.
 function objects(tag: string, params: Param[], order?: number[]): Overload {
@@ -263,16 +272,24 @@ function ofSegment(tag: string): Overload {
         params: ["segment"],
         tag,
         encode: ([segment], index) => {
-            const { P1, P2 } = segment as two_points_line_object;
-            return [index(P1), index(P2)];
+            const { P1, P2, reference } = segment as two_points_line_object;
+            return reference
+                ? [index(segment as construction_object)]
+                : [index(P1), index(P2)];
         },
+        decode: (parameters, at) =>
+            Array.isArray(parameters) &&
+            parameters.length === 1 &&
+            isIndex(parameters[0])
+                ? [at(parameters[0])]
+                : null,
     };
 }
 
 // An expression, a formula of its name alone.
 function realParameter(
     arg: Arg,
-    index: (object: construction_object) => number,
+    index: (object: construction_object) => DgoRef,
 ): unknown {
     if (typeof arg === "number") return arg;
     if (!(arg instanceof FormulaArg)) {
@@ -291,13 +308,13 @@ function realParameter(
 }
 
 // A number, also written as a formula, or an object read by name.
-function realArgument(parameter: unknown, at: (index: number) => Arg): Arg {
+function realArgument(parameter: unknown, at: (index: DgoRef) => Arg): Arg {
     if (typeof parameter === "number") return parameter;
     if (typeof parameter === "string")
         return STYLE_NUMBER.test(parameter)
             ? Number(parameter)
             : new FormulaArg(parameter, new Map());
-    const [source, refs] = parameter as [string, Record<string, number>];
+    const [source, refs] = parameter as [string, Record<string, DgoRef>];
     const [name, ...others] = Object.keys(refs);
     return !others.length && source === formatName(name)
         ? at(refs[name])
@@ -314,7 +331,7 @@ function realArgument(parameter: unknown, at: (index: number) => Arg): Arg {
 
 function textParameter(
     { text, refs }: TextArg,
-    index: (object: construction_object) => number,
+    index: (object: construction_object) => DgoRef,
 ): unknown {
     return refs.size
         ? [
@@ -328,13 +345,13 @@ function textParameter(
 
 function textArgument(
     parameter: unknown,
-    at: (index: number) => Arg,
+    at: (index: DgoRef) => Arg,
     html = false,
 ): TextArg {
     const [text, refs = {}] =
         typeof parameter === "string"
             ? [parameter]
-            : (parameter as [string, Record<string, number>]);
+            : (parameter as [string, Record<string, DgoRef>]);
     return new TextArg(
         text,
         new Map(
@@ -428,6 +445,13 @@ const center = (n: number): Overload => ({
 });
 
 export const COMMANDS: Command[] = [
+    {
+        name: "Side",
+        reference: true,
+        overloads: [
+            { params: ["polygon", "number"], tag: "", encode: () => null },
+        ],
+    },
     {
         name: "Point",
         overloads: [
@@ -1046,7 +1070,7 @@ export const overloadFor = (
 export function decodeEntry(
     tag: string,
     parameters: unknown,
-    at: (index: number) => Arg,
+    at: (index: DgoRef) => Arg,
 ): { command: Command; args: Arg[] } | null {
     for (const command of COMMANDS)
         for (const overload of command.overloads) {

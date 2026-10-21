@@ -29,7 +29,12 @@ import {
 } from "../import/dgp_formula";
 import { angle_object } from "../objects/angle_object";
 import { BUTTON_WIDTH, button_object } from "../objects/button_object";
-import { construction_object } from "../objects/construction_object";
+import {
+    construction_object,
+    objectIndex,
+    type DgoRef,
+} from "../objects/construction_object";
+import { polygonSide, polygonVertex } from "../objects/polygon_part";
 import type { curve_object } from "../objects/curve_object";
 import {
     equationCoeffs,
@@ -203,7 +208,7 @@ export const entryOf = (
     index: ReadonlyMap<construction_object, number>,
 ): [string, unknown] =>
     object.dgo({
-        index: (other) => index.get(other)!,
+        index: (other) => objectIndex(other, (owner) => index.get(owner)!),
         image: (url) => url,
         screen: (position) => position,
     });
@@ -215,7 +220,9 @@ export const formatArg = (arg: Arg): string =>
           ? oneLine(renamed(arg.source, arg.refs))
           : arg instanceof TextArg
             ? quoteText(renamedText(arg))
-            : formatName(arg.name);
+            : arg.reference
+              ? `${commandName(findCommand(arg.reference.kind === "side" ? "Side" : "Vertex")!)}(${formatName(arg.reference.owner.name)}, ${arg.reference.rank})`
+              : formatName(arg.name);
 
 const formatValue = (value: unknown): string =>
     typeof value === "number"
@@ -367,7 +374,14 @@ export function lineOf(
             : object) as unknown as { equation: Equation };
         return `${name} = ${equation.map((side) => oneLine(renamed(side.source, side.refs))).join(" = ")}`;
     }
-    const decoded = decodeEntry(tag, parameters, (at) => objects[at]);
+    const decoded = decodeEntry(tag, parameters, (at) =>
+        typeof at === "number"
+            ? objects[at]
+            : (at[0] === "side" ? polygonSide : polygonVertex)(
+                  objects[at[1]] as polygon_object,
+                  at[2],
+              ),
+    );
     if (decoded)
         return `${name} = ${commandName(decoded.command)}(${decoded.args.map(formatArg).join(", ")})`;
     const { mn, mx } = parameters as Record<string, unknown>;
@@ -382,7 +396,6 @@ export function resolve(
     { name, definition }: Line,
     target?: construction_object,
 ): Spec {
-    const own = new Set(figureObjects(c));
     let overload: Overload | undefined = FREE_POINT;
     let args: Arg[];
     if (definition!.kind === "point") {
@@ -413,19 +426,9 @@ export function resolve(
         const call = definition!;
         const command = findCommand(call.command);
         if (!command) throw new TextError("unknown_command", call.command);
-        args = call.args.map((arg) => {
-            if (arg.kind === "number") return arg.value;
-            // A button's caption reads no formula.
-            if (arg.kind === "string")
-                return command.name === "Button"
-                    ? new TextArg(arg.value, new Map())
-                    : textArg(c, arg.value, command.name === "Html");
-            if (arg.kind === "formula") return formulaArg(c, arg.source);
-            const object = c.getObj(arg.name);
-            if (!object || !own.has(object))
-                throw new TextError("unknown_object", arg.name);
-            return object;
-        });
+        if (command.reference)
+            throw new TextError("arguments", commandName(command));
+        args = call.args.map((arg) => resolveArgument(c, arg, command.name));
         overload = overloadFor(command, args, !c.GRID.is2D);
         if (!overload) {
             // A command split from another keeps its name in its own:
@@ -488,6 +491,49 @@ export function resolve(
     const named = c.getObj(chosen);
     if (named && named !== target) throw new TextError("name_taken", chosen);
     return { name: chosen, overload, args };
+}
+
+export function resolveArgument(
+    c: construction,
+    arg: ArgText,
+    command = "",
+): Arg {
+    if (arg.kind === "number") return arg.value;
+    if (arg.kind === "string")
+        return command === "Button"
+            ? new TextArg(arg.value, new Map())
+            : textArg(c, arg.value, command === "Html");
+    if (arg.kind === "formula") {
+        const line = parseLine(arg.source, isCommand);
+        const call = line.definition;
+        if (
+            call?.kind === "call" &&
+            ["Side", "Vertex"].includes(findCommand(call.command)?.name ?? "")
+        ) {
+            const [owner, rank] = call.args.map((arg) =>
+                resolveArgument(c, arg),
+            );
+            if (
+                call.args.length !== 2 ||
+                !(owner instanceof polygon_object) ||
+                owner.plane ||
+                typeof rank !== "number" ||
+                !Number.isSafeInteger(rank) ||
+                rank < 1
+            )
+                throw new TextError("arguments", call.command);
+            return (
+                findCommand(call.command)!.name === "Side"
+                    ? polygonSide
+                    : polygonVertex
+            )(owner, rank);
+        }
+        return formulaArg(c, arg.source);
+    }
+    const object = c.getObj(arg.name);
+    if (!object || !figureIndex(c).has(object))
+        throw new TextError("unknown_object", arg.name);
+    return object;
 }
 
 // Unsaid by its line, as null: a text's offset, a panel's frame, an image's
@@ -882,7 +928,7 @@ function eventProgram(
 const eventOverload = (
     owner: construction_object,
     gesture: Trigger | null,
-    script: (index: (object: construction_object) => number) => unknown,
+    script: (index: (object: construction_object) => DgoRef) => unknown,
 ): Overload => ({
     params: [],
     tag: "Evt",
@@ -956,7 +1002,7 @@ export const ownPrograms = (
 
 const buttonEntry = (
     button: button_object,
-    index: (object: construction_object) => number,
+    index: (object: construction_object) => DgoRef,
 ): object =>
     button.dgo({
         index,
@@ -987,7 +1033,7 @@ export function buttonOverload(
 const formulaParameter = (
     source: string,
     named: ReadonlyMap<string, construction_object>,
-    index: (object: construction_object) => number,
+    index: (object: construction_object) => DgoRef,
 ): unknown =>
     named.size
         ? [
@@ -1175,7 +1221,7 @@ function sequence(
         const formulas = items.map((item) => formulaArg(c, item, variables));
         const parameter = (
             { source, refs }: FormulaArg,
-            index: (object: construction_object) => number,
+            index: (object: construction_object) => DgoRef,
         ) => formulaParameter(source, refs, index);
         return {
             overload: {
@@ -1336,7 +1382,7 @@ function planeTag(formulas: Equation, c: construction): string {
 function expressionSpec(
     c: construction,
     target: construction_object | undefined,
-    own: (index: (object: construction_object) => number) => object,
+    own: (index: (object: construction_object) => DgoRef) => object,
     parents: construction_object[],
 ): { overload: Overload; args: Arg[] } {
     const kept = target instanceof expression_object ? target : null;
@@ -1413,7 +1459,9 @@ export function add(
             [
                 overload.tag,
                 name,
-                overload.encode(args, (object) => index.get(object)!),
+                overload.encode(args, (object) =>
+                    objectIndex(object, (owner) => index.get(owner)!),
+                ),
                 ...(style ? [0] : []),
             ],
         ],
@@ -1576,7 +1624,9 @@ export async function redefine(
         unknown,
         number?,
     ];
-    const parameters = overload.encode(args, (object) => order.indexOf(object));
+    const parameters = overload.encode(args, (object) =>
+        objectIndex(object, (owner) => order.indexOf(owner)),
+    );
     // An image's file, by its key.
     if (overload.tag === "Img")
         (parameters as unknown[])[0] = Object.keys(figure.img!).find(

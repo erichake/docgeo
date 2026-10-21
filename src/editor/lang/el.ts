@@ -311,6 +311,7 @@ const el: Texts = {
         unsupported: "Δεν εισήχθη: %",
     },
     commands: {
+        Side: "Πλευρά",
         Point: "Σημείο",
         FixedPoint: "ΣταθερόΣημείο",
         Midpoint: "Μέσο",

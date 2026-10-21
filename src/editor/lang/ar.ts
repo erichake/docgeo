@@ -299,6 +299,7 @@ const ar: Texts = {
         unsupported: "لم يُستورد: %",
     },
     commands: {
+        Side: "ضلع",
         Point: "نقطة",
         FixedPoint: "نقطةثابتة",
         Midpoint: "منتصف",

@@ -990,6 +990,17 @@
                 <code>sin</code>… compute without creating an object: see
                 <a href="formules.html#fonctions">Formulas and programs</a>.
             </p>
+            <h2 id="cotes">Polygon sides</h2>
+            <p>
+                <strong>Side</strong> · Click near a side to use segment tools;
+                click inside to select the polygon.
+            </p>
+            <p>
+                Within an argument, <code>Side(p, k)</code> refers to side k,
+                counted from 1 in vertex order, without adding a segment to the
+                construction. This also works for regular polygons.
+            </p>
+            <pre><code>M = Midpoint(Side(p, 2))</code></pre>
         </main>
     </body>
 </html>

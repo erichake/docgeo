@@ -134,6 +134,9 @@ export class objects_collector {
                 updated.add(object);
                 if (object.geometryDirty) {
                     object.computeGeometry();
+                    object.virtualParts?.forEach((part) =>
+                        part.computeGeometry(),
+                    );
                     object.geometryDirty = false;
                 }
             });
@@ -168,6 +171,8 @@ export class objects_collector {
             }
             if (object.projectionDirty && object instanceof polygon_object)
                 object.ownVertices.forEach((vertex) => vertex.project());
+            if (object.projectionDirty)
+                object.virtualParts?.forEach((part) => part.project());
         });
         let polygonsProjected = false;
         objects.forEach((object) => {

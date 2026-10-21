@@ -209,6 +209,20 @@ points libres y sont punaisés (`fl`), `Pt` donnant leurs coordonnées 2D. Sans
 Un indice désigne un objet antérieur du tableau `o`. Les noms sont uniques ;
 un fichier qui répète un nom est refusé.
 
+Depuis le 2026-10-21, une référence peut aussi être `["side", polygone, k]`
+ou `["vertex", polygone, k]` : le côté ou le sommet numéro k, à partir de 1,
+dans l'ordre des sommets du polygone (qui doit précéder l'objet et ne pas être
+un plan). Le dernier côté rejoint le premier sommet. Ces références ne créent
+aucune entrée dans `o` ; leurs utilisateurs dépendent directement du polygone.
+Un rang absent rend la référence indéfinie ; elle redevient définie si ce rang
+existe de nouveau. Une section numérote les sommets de son contour défini.
+Le rang est conservé quand le polygone est redéfini.
+
+`Mid` et `Med` acceptent aussi `[segment]`, notamment une référence de côté :
+le calcul suit les deux extrémités actuelles de ce segment, y compris lorsque
+le nombre de côtés du polygone change. Les anciennes formes `[A, B]` gardent
+leur sens.
+
 Une **formule** est son texte, ou `[texte, {nom: indice}]` quand elle lit
 d'autres objets : chaque nom qu'elle emploie y est associé à l'objet qu'il
 désigne. Ce nom est propre à la formule et peut différer du nom affiché de

@@ -1985,3 +1985,23 @@ Le bouton adopte un fond gris clair et un contour fin. Toute sa zone
 cercle ouvrent les outils contextuels ; glisser ce cercle déplace le bouton.
 Le lecteur affiche uniquement la zone d'exécution. La décoration des outils
 est ajoutée par l'éditeur au montage de la vue et reste hors du lecteur.
+
+### Côtés virtuels des polygones — 2026-10-21
+
+Un clic près d'un côté propose les outils des segments et surligne seulement
+ce côté ; l'intérieur continue à désigner le polygone. Les sommets gardent
+la priorité. L'éditeur transmet une référence `Côté(p, k)` (`Side` en anglais),
+numérotée à partir de 1 dans l'ordre des sommets. Cette écriture s'utilise en
+argument, par exemple `Milieu(Côté(p, 2))`, sans créer de ligne de construction.
+Les polygones réguliers et les contours des sections sont concernés, les plans
+ne le sont pas. Les réglages et la gomme continuent à désigner l'objet entier.
+Un côté n'a ni style, ni nom, ni suppression indépendants.
+
+Le moteur conserve seulement les références utilisées comme parties internes
+du polygone, hors du collecteur d'objets et sans vue SVG. Ses dépendants ont
+le polygone pour parent ; sa suppression les supprime et la redéfinition détecte
+les cycles. Le `.dgo` stocke ces références dans les arguments (voir `DGO.md`),
+sans ajouter d'objet. Un côté qui disparaît devient indéfini ; son numéro est
+conservé et peut redevenir défini. Le milieu et la médiatrice gardent le côté
+comme support, pour suivre aussi son extrémité de fermeture si le nombre de
+sommets change.

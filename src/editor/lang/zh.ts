@@ -292,6 +292,7 @@ const zh: Texts = {
         unsupported: "未导入：%",
     },
     commands: {
+        Side: "边",
         Point: "点",
         FixedPoint: "定点",
         Midpoint: "中点",

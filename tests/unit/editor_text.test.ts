@@ -242,7 +242,7 @@ describe("Editor text", () => {
             kind: "argument",
             command: "Milieu",
             position: 1,
-            args: [],
+            args: [{ kind: "formula", source: "Centre(c)" }],
             prefix: "",
         });
         expect(completionAt("c = Cercle(O, -2, ")).toEqual({

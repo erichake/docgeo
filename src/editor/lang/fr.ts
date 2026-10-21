@@ -306,6 +306,7 @@ const fr: Texts = {
         unsupported: "Non importé : %",
     },
     commands: {
+        Side: "Côté",
         Point: "Point",
         FixedPoint: "PointFixe",
         Midpoint: "Milieu",

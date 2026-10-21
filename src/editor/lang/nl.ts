@@ -310,6 +310,7 @@ const nl: Texts = {
         unsupported: "Niet geïmporteerd: %",
     },
     commands: {
+        Side: "Zijde",
         Point: "Punt",
         FixedPoint: "VastPunt",
         Midpoint: "Midden",

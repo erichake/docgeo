@@ -292,6 +292,7 @@ const zh_TW: Texts = {
         unsupported: "未匯入：%",
     },
     commands: {
+        Side: "邊",
         Point: "點",
         FixedPoint: "定點",
         Midpoint: "中點",

@@ -9,6 +9,7 @@ import { list_object } from "../objects/list_object";
 import { locus_object } from "../objects/locus_object";
 import { point_object } from "../objects/point_object";
 import { polygon_object } from "../objects/polygon_object";
+import { polygonSide } from "../objects/polygon_part";
 import { primitive_circle_object } from "../objects/primitive_circle_object";
 import { primitive_line_object } from "../objects/primitive_line_object";
 import { primitive_quadric_object } from "../objects/primitive_quadric_object";
@@ -248,9 +249,33 @@ export function pick(
     screen: Vec2,
     ignored: ReadonlySet<construction_object> = new Set(),
     radius = PICK_RADIUS,
+    sides = true,
 ): Hit[] {
     const hits: (Hit & { rank: number })[] = [];
-    figureObjects(c).forEach((object) => {
+    const objects = figureObjects(c);
+    const segments = new Map<point_object, Set<point_object>>();
+    if (sides)
+        objects.forEach((object) => {
+            if (
+                !(object instanceof segment_object) ||
+                object.type !== "segment" ||
+                !object.isVisible ||
+                !object.hasView ||
+                ignored.has(object) ||
+                asleep(object)
+            )
+                return;
+            const { P1, P2 } = object as segment_object;
+            for (const [a, b] of [
+                [P1, P2],
+                [P2, P1],
+            ]) {
+                const ends = segments.get(a) ?? new Set<point_object>();
+                ends.add(b);
+                segments.set(a, ends);
+            }
+        });
+    objects.forEach((object) => {
         if (
             !object.isVisible ||
             !object.hasView ||
@@ -258,6 +283,34 @@ export function pick(
             asleep(object)
         )
             return;
+        if (sides && object instanceof polygon_object && !object.plane) {
+            let best = radius;
+            let rank = 0;
+            object.points.forEach((point, index) => {
+                const distance = segmentDistance(
+                    screen,
+                    point.screen,
+                    object.points[(index + 1) % object.points.length].screen,
+                );
+                if (distance <= best) [best, rank] = [distance, index + 1];
+            });
+            if (
+                rank &&
+                !segments
+                    .get(object.points[rank - 1])
+                    ?.has(object.points[rank % object.points.length])
+            ) {
+                const side = polygonSide(object, rank);
+                const at = nearest(c, side, screen);
+                if (at && vIsFinite(at))
+                    hits.push({
+                        object: side,
+                        distance: best,
+                        at,
+                        rank: radius + 1 + best,
+                    });
+            }
+        }
         const at =
             object instanceof angle_object
                 ? object.O.coords
@@ -281,7 +334,12 @@ export function pick(
 // What a click on these hits may mean: the point under it, or else each of
 // them, for the user to choose.
 export const meant = (hits: Hit[]): Hit[] =>
-    hits[0]?.object instanceof point_object ? [hits[0]] : hits;
+    hits[0]?.object instanceof point_object
+        ? [hits[0]]
+        : hits.filter(
+              ({ object }) =>
+                  !hits.some((hit) => hit.object.reference?.owner === object),
+          );
 
 // The branches of the intersections of pairs of objects, kept until the
 // figure changes: the hover asks for them at each move.

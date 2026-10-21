@@ -23,6 +23,7 @@ import { expression_object } from "../objects/expression_object";
 import { expression_list_object } from "../objects/expression_list_object";
 import { panel_object } from "../objects/panel_object";
 import { polygon_object } from "../objects/polygon_object";
+import type { segment_object } from "../objects/segment_object";
 import { sphere_object } from "../objects/sphere_object";
 import { solid_object } from "../objects/solid_object";
 import { preferences } from "../preferences";
@@ -61,6 +62,7 @@ import {
     entryOf,
     figureIndex,
     formatArg,
+    resolveArgument,
     floorOf,
     FREE_POINT,
     addEvent,
@@ -103,7 +105,8 @@ import {
     meant,
     nearest,
     nearestBranch,
-    pick,
+    pick as pickObjects,
+    PICK_RADIUS,
     vertexOf,
     type Angle,
     type Crossing,
@@ -117,6 +120,7 @@ import {
     quoteText,
     TextError,
     type ArgumentCompletion,
+    type ArgText,
     type Line,
 } from "./text";
 import { labelAt, labelHold, nameElement, placeLabel } from "./labels";
@@ -238,6 +242,7 @@ $("head").append(`<style>
     .dge-count:empty { display: none; }
     .dge-item { display: flex; align-items: flex-start; padding-inline: 4px; border-block-end: 1px solid #f1f5f9; }
     .dge-item:hover { background: #f8fafc; }
+    .dge-side-marks path { fill: none; stroke-linecap: round; pointer-events: none; }
     .dge-item:has(> .dge-hover) { background: #fef3c7; }
     .dge-item:has(> .dge-new) { animation: dge-new 1.2s ease-out; }
     .dge-item:has(> .dge-row:focus) { background: #eff6ff; box-shadow: inset 3px 0 #2563eb; }
@@ -1170,6 +1175,19 @@ const typedBefore = (field: LineField): string =>
     (field === definitionLine?.area ? definitionLine.head : "") +
     field.value.slice(0, field.selectionStart!);
 const vec3 = () => !scene().GRID.is2D;
+const pick = (
+    c: construction,
+    screen: Vec2,
+    ignored?: ReadonlySet<construction_object>,
+): Hit[] =>
+    pickObjects(
+        c,
+        screen,
+        ignored,
+        PICK_RADIUS,
+        !inspecting() && !ghosts && !stepping,
+    );
+
 const previewed = () => new Set(preview?.objects ?? []);
 const looksHidden = (object: construction_object) =>
     (object.isHidden && !stepping?.later.has(object)) || !!ghosts?.has(object);
@@ -1720,7 +1738,38 @@ function updateCompletion(field: LineField): void {
             : [];
     if (prefix) {
         if (context!.kind === "command")
-            completions.push(...calls(commandsStarting(prefix)));
+            completions.push(
+                ...calls(
+                    commandsStarting(prefix).filter(
+                        (command) => !command.reference,
+                    ),
+                ),
+            );
+        if (
+            call &&
+            overloadsAt(context as ArgumentCompletion).some((overload) =>
+                [
+                    "segment",
+                    "line",
+                    "linear",
+                    "path",
+                    "support",
+                    "intersectable",
+                ].includes(
+                    paramAt(
+                        overload,
+                        (context as ArgumentCompletion).position,
+                    )!,
+                ),
+            )
+        )
+            completions.push(
+                ...calls(
+                    commandsStarting(prefix).filter(
+                        (command) => command.reference,
+                    ),
+                ),
+            );
         if (functions)
             completions.push(...calls(commandsStarting(prefix, FUNCTIONS)));
     }
@@ -1922,16 +1971,24 @@ function insertCompletion(field: LineField, index: number): void {
     updateCompletion(field);
 }
 
+function completedArgument(arg: ArgText | undefined): Arg | undefined {
+    if (!arg) return undefined;
+    try {
+        return resolveArgument(scene(), arg);
+    } catch (error) {
+        if (error instanceof TextError) return undefined;
+        throw error;
+    }
+}
+
 // The overloads of the command typed that take the arguments before the
 // caret and one more, an unknown name taking anything.
 function overloadsAt(context: ArgumentCompletion): Overload[] {
-    const c = scene();
     return (findCommand(context.command)?.overloads ?? []).filter(
         (overload) =>
             paramAt(overload, context.position) &&
             context.args.every((arg, position) => {
-                const value =
-                    arg?.kind === "name" ? c.getObj(arg.name) : arg?.value;
+                const value = completedArgument(arg);
                 return (
                     value === undefined ||
                     accepts(value, paramAt(overload, position)!)
@@ -1971,7 +2028,7 @@ function insertArgument(
     const before = field.value.slice(0, caret);
     const context = completionAt(typedBefore(field));
     if (context?.kind !== "argument" || field.value.slice(caret).trim()) {
-        insertWord(field, formatName(object.name), replace);
+        insertWord(field, formatArg(object), replace);
         return false;
     }
     const { position, args } = context;
@@ -1994,7 +2051,7 @@ function insertArgument(
     const closes = more.length > 0 && !more.some(Boolean);
     insertWord(
         field,
-        formatName(object.name) +
+        formatArg(object) +
             (more.length && more.every(Boolean) ? ", " : closes ? ")" : ""),
         replace,
     );
@@ -2012,10 +2069,9 @@ function typedCall(
         field.value.slice(field.selectionStart!).trim()
     )
         return null;
-    const c = scene();
     const args = Array.from({ length: context.position }, (_, position) => {
         const arg = context.args[position];
-        return arg?.kind === "name" ? c.getObj(arg.name) : arg?.value;
+        return completedArgument(arg);
     });
     if (args.includes(undefined)) return null;
     return {
@@ -2074,6 +2130,46 @@ function replaceText(
 
 // ************************** FIGURE ******************************
 
+let sideMarks: DOMElement | null = null;
+
+function markSides(): void {
+    const c = scene();
+    if (sideMarks?.dom().parentNode !== c.svg.dom()) {
+        sideMarks?.dispose();
+        sideMarks = c.svg
+            .shape("g")
+            .att("class", "dge-side-marks")
+            .stl("pointer-events:none");
+        c.svg.add(sideMarks);
+    }
+    sideMarks.inner("");
+    const sides = new Set([
+        ...hovered,
+        ...selection.map(({ object }) => object),
+    ]);
+    sides.forEach((object) => {
+        if (
+            object.reference?.kind !== "side" ||
+            !object.defined ||
+            !object.reference.owner.isVisible
+        )
+            return;
+        const side = object as segment_object;
+        const [a, b] = [side.P1.screen, side.P2.screen];
+        sideMarks!.add(
+            c.svg
+                .shape("path")
+                .att("d", `M${a[0]} ${a[1]}L${b[0]} ${b[1]}`)
+                .att(
+                    "class",
+                    hovered.includes(object) ? "dge-hover" : "dge-picked",
+                )
+                .att("stroke", object.reference.owner.stroke_color)
+                .att("stroke-width", Math.max(2, object.reference.owner.size)),
+        );
+    });
+}
+
 function highlight(...objects: construction_object[]): void {
     if (
         objects.length === hovered.length &&
@@ -2085,6 +2181,7 @@ function highlight(...objects: construction_object[]): void {
         rows.get(object)?.removeClass("dge-hover");
     });
     hovered = objects;
+    markSides();
     objects.forEach((object) => {
         if (object.hasView) object.dom.addClass("dge-hover");
         rows.get(object)?.addClass("dge-hover");
@@ -2453,7 +2550,7 @@ const chosen = (): Hit[] =>
     selection.length ? [...selection] : held ? [held.hit] : [];
 
 const selectedNames = (): string =>
-    selection.map(({ object }) => formatName(object.name)).join(", ");
+    selection.map(({ object }) => formatArg(object)).join(", ");
 
 // The form of the item that takes the objects chosen, any without them.
 function takes(item: Item): Tool | undefined {
@@ -2515,6 +2612,7 @@ function clearSelection(): void {
 // Each object selected lit, its rank beside it.
 function showSelection(): void {
     const c = scene();
+    markSides();
     c.svg
         .findAll(".dge-picked")
         .forEach((picked) => picked.removeClass("dge-picked"));
@@ -2759,7 +2857,11 @@ function closeRing(): void {
 
 // The object the actions act on, Delete included.
 const target = (): construction_object | null =>
-    propertiesOpen ? properties.selected : (held?.hit.object ?? null);
+    propertiesOpen
+        ? properties.selected
+        : held?.hit.object.reference
+          ? null
+          : (held?.hit.object ?? null);
 
 // Panel open, a click designates for it, unless a tool or the line being
 // typed takes it.
@@ -2805,7 +2907,11 @@ function showActions(): void {
         swatch.hide();
         objectName.text(label);
         OBJECT_ACTIONS.forEach((action) => action.hide());
-        [deleteButton, settingsButton].forEach((action) => action.show("grid"));
+        [deleteButton, settingsButton].forEach((action) =>
+            selection.some(({ object }) => object.reference)
+                ? action.hide()
+                : action.show("grid"),
+        );
         doneButton.hide();
         actions.att("aria-label", label).show("flex");
         return;
@@ -2817,12 +2923,12 @@ function showActions(): void {
         actions.hide();
         return;
     }
-    const name = formatName(object.name);
+    const name = formatArg(object);
     const label = magnetizing ? message("magnets_of", name) : name;
     swatch.stl("background", object.stroke_color);
     objectName.text(label);
     [deleteButton, settingsButton].forEach((action) =>
-        magnetizing ? action.hide() : action.show("grid"),
+        magnetizing || object.reference ? action.hide() : action.show("grid"),
     );
     if (!magnetizing && pinnable(object)) {
         const on = !!object.pinned;
@@ -3340,7 +3446,9 @@ function chooseHit(hits: Hit[], client: Vec2, then: (hit: Hit) => void): void {
         const item = $.create("div")
             .att("role", "menuitem")
             .text(
-                lineOf(hit.object, index, objects) ??
+                (hit.object.reference
+                    ? formatArg(hit.object)
+                    : lineOf(hit.object, index, objects)) ??
                     `${formatName(hit.object.name)} = …`,
             );
         item.on("pointerenter", () => highlight(hit.object), false);
@@ -4258,6 +4366,7 @@ function dragged(): void {
         scene().flush();
         updateRows(shown);
         moveRing();
+        markSides();
         placeBadges();
         showMagnets();
         if (renaming) placeName();

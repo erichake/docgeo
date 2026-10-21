@@ -1,0 +1,79 @@
+import type { construction_object } from "./construction_object";
+import { point_object } from "./point_object";
+import type { polygon_object } from "./polygon_object";
+import { segment_object } from "./segment_object";
+
+class polygon_vertex extends point_object {
+    constructor(
+        readonly polygon: polygon_object,
+        readonly rank: number,
+    ) {
+        super(polygon.C, null, [0, 0, 0]);
+        this.reference = { owner: polygon, kind: "vertex", rank };
+        this.moveable = false;
+    }
+
+    computeGeometry(): void {
+        const point = this.polygon.points[this.rank - 1];
+        this.defined = this.polygon.defined && !!point?.defined;
+        if (this.defined) this.coords = point.coords;
+    }
+}
+
+class polygon_side extends segment_object {
+    constructor(
+        readonly polygon: polygon_object,
+        readonly rank: number,
+    ) {
+        super(
+            polygon.C,
+            null,
+            polygonVertex(polygon, rank),
+            polygonVertex(polygon, 1),
+        );
+        this.parents.forEach((parent) => {
+            parent.children = parent.children.filter((child) => child !== this);
+        });
+        this.parents = [];
+        this.reference = { owner: polygon, kind: "side", rank };
+    }
+
+    computeGeometry(): void {
+        // The closing vertex follows the polygon when its number of sides changes.
+        this.P2 = polygonVertex(
+            this.polygon,
+            this.rank === this.polygon.points.length ? 1 : this.rank + 1,
+        );
+        super.computeGeometry();
+        this.defined &&= this.polygon.defined;
+    }
+}
+
+function part<T extends construction_object>(
+    polygon: polygon_object,
+    kind: "side" | "vertex",
+    rank: number,
+    create: () => T,
+): T {
+    const parts = (polygon.virtualParts ??= new Map());
+    const key = kind + rank;
+    const found = parts.get(key);
+    if (found) return found as T;
+    const made = create();
+    parts.set(key, made);
+    made.computeGeometry();
+    made.project();
+    return made;
+}
+
+export const polygonVertex = (
+    polygon: polygon_object,
+    rank: number,
+): point_object =>
+    part(polygon, "vertex", rank, () => new polygon_vertex(polygon, rank));
+
+export const polygonSide = (
+    polygon: polygon_object,
+    rank: number,
+): segment_object =>
+    part(polygon, "side", rank, () => new polygon_side(polygon, rank));

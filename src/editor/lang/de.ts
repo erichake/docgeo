@@ -311,6 +311,7 @@ const de: Texts = {
         unsupported: "Nicht importiert: %",
     },
     commands: {
+        Side: "Seite",
         Point: "Punkt",
         FixedPoint: "FesterPunkt",
         Midpoint: "Mittelpunkt",

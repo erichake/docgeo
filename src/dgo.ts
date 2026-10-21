@@ -33,8 +33,10 @@ import { createCircle } from "./objects/circle_object";
 import {
     construction_object,
     isDash,
+    objectIndex,
     type DgoContext,
 } from "./objects/construction_object";
+import { polygonSide, polygonVertex } from "./objects/polygon_part";
 import { createCurve, curve_object } from "./objects/curve_object";
 import { createCylinderIntersection } from "./objects/cylinder_intersection_object";
 import { createCylinderSection } from "./objects/cylinder_section_object";
@@ -748,7 +750,7 @@ export async function describeDgo(
             images[key] = object.url;
         }
     const context: DgoContext = {
-        index: (object) => indices.get(object)!,
+        index: (object) => objectIndex(object, (owner) => indices.get(owner)!),
         image: (url) => keys.get(url)!,
         screen: ([sx, sy]) => [Math.round(sx - x), Math.round(sy - y)],
     };
@@ -924,6 +926,23 @@ export function addDgoEntries(
         value: Json,
         ...classes: C
     ): Instance<C[number]> => {
+        if (Array.isArray(value)) {
+            const [kind, owner, rank] = list(value, 3);
+            check(
+                (kind === "side" || kind === "vertex") &&
+                    Number.isInteger(owner) &&
+                    Number.isSafeInteger(rank) &&
+                    (rank as number) >= 1,
+            );
+            const polygon = at(owner, polygon_object);
+            check(!polygon.plane);
+            const object = (kind === "side" ? polygonSide : polygonVertex)(
+                polygon,
+                rank as number,
+            );
+            check(classes.some((type) => object instanceof type));
+            return object as Instance<C[number]>;
+        }
         check(
             Number.isInteger(value) &&
                 (value as number) >= 0 &&
@@ -1196,6 +1215,25 @@ const focalConic1 =
         );
     };
 
+function ofSegment<T extends construction_object & { side?: segment_object }>(
+    create: (
+        c: construction,
+        name: string,
+        a: point_object,
+        b: point_object,
+    ) => T,
+): Builder {
+    return (parameters, reader) => {
+        if (Array.isArray(parameters) && parameters.length === 1) {
+            const side = reader.at(parameters[0], segment_object);
+            const made = create(reader.c, reader.name, side.P1, side.P2);
+            made.side = side;
+            return made;
+        }
+        return twoPoints(create)(parameters, reader);
+    };
+}
+
 // A line, then a point.
 function linePoint(
     create: (
@@ -1302,7 +1340,7 @@ const BUILDERS: Record<string, Builder> = {
         const [a, b] = list(alpha, 2).map(real);
         return createPointOn(c, name, support, [a, b]);
     },
-    Mid: twoPoints(createMidpoint),
+    Mid: ofSegment(createMidpoint),
     Sym: twoPoints(createSymmetry),
     Refl: linePoint(createReflection),
     Rot: (parameters, reader) => {
@@ -1394,7 +1432,7 @@ const BUILDERS: Record<string, Builder> = {
             parameters,
             reader,
         ),
-    Med: twoPoints(createPerpendicularBisector),
+    Med: ofSegment(createPerpendicularBisector),
     Bis: threePoints((c, name, a, vertex, b) =>
         createAngleBisector(c, name, vertex, a, b),
     ),

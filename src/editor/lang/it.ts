@@ -307,6 +307,7 @@ const it: Texts = {
         unsupported: "Non importato: %",
     },
     commands: {
+        Side: "Lato",
         Point: "Punto",
         FixedPoint: "PuntoFisso",
         Midpoint: "PuntoMedio",

@@ -308,6 +308,7 @@ const hi: Texts = {
         unsupported: "आयात नहीं हुआ: %",
     },
     commands: {
+        Side: "भुजा",
         Point: "बिन्दु",
         FixedPoint: "स्थिरबिन्दु",
         Midpoint: "मध्यबिन्दु",

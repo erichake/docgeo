@@ -604,7 +604,7 @@ export type ArgumentCompletion = {
     kind: "argument";
     command: string;
     position: number;
-    args: (Operand | undefined)[];
+    args: (Operand | { kind: "formula"; source: string } | undefined)[];
     prefix: string;
 };
 
@@ -627,7 +627,9 @@ const OPERANDS = new Set<Token["type"]>([
 
 export function completionAt(text: string): Completion | null {
     const prefix = /[\p{L}_$][\p{L}\p{M}\p{N}_$']*$/u.exec(text)?.[0] ?? "";
-    const { tokens } = lex(text.slice(0, text.length - prefix.length));
+    const { tokens, starts, ends } = lex(
+        text.slice(0, text.length - prefix.length),
+    );
     if (tokens.pop()?.type !== "eof") return null;
     type Call = Omit<ArgumentCompletion, "kind" | "prefix"> & {
         start: number;
@@ -660,6 +662,15 @@ export function completionAt(text: string): Completion | null {
                 };
             else if (value !== null)
                 call.args[call.position] = { kind: "number", value };
+            else if (
+                arg[0]?.type === "identifier" &&
+                arg[1]?.type === "(" &&
+                arg.at(-1)?.type === ")"
+            )
+                call.args[call.position] = {
+                    kind: "formula",
+                    source: text.slice(starts[call.start], ends[index - 1]),
+                };
             call.position++;
             call.start = index + 1;
         } else if (
