@@ -4,9 +4,9 @@ import "./splash.css";
 
 declare const __DOCGEO_VERSION__: string;
 
+const params = new URLSearchParams(window.location.search);
 const standalone =
-    window.self === window.top &&
-    !new URLSearchParams(window.location.search).has("embed");
+    window.self === window.top && !params.has("embed") && !params.has("url");
 export function splashContent() {
     const content = $.create("div").cls("docgeo-splash-content").append(`
                   <svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 200" font-family="Arial, Helvetica, sans-serif">

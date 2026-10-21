@@ -7,7 +7,6 @@ import { embed } from "./embed";
 import { importGgbFromBlob, importGgbFromUrl } from "./ggb_importer";
 import { DIR, t } from "./i18n";
 import { preferences } from "./preferences";
-import { finishSplash } from "./splash";
 
 class docgeo {
     prefs: preferences;
@@ -130,7 +129,6 @@ async function openFigure(
         );
     }
     DOCGEO.scene.reveal();
-    finishSplash();
     figureName = name
         .split(/[/\\?#]/)
         .filter(Boolean)
@@ -182,7 +180,6 @@ function pickFigure(error?: DOMElement): Promise<void> {
             picked!((input.dom() as HTMLInputElement).files![0]),
         );
         $("body").add(overlay);
-        finishSplash();
     });
 }
 
