@@ -34,6 +34,8 @@ window.DG_ICONS = {
             '<path d="M2.5 12S6 6 12 6s9.5 6 9.5 6-3.5 6-9.5 6-9.5-6-9.5-6Z"/><circle cx="12" cy="12" r="2.5"/><path d="M4 20 20 4"/>',
         show_name:
             '<path d="M3.5 17 8 5h1l4.5 12M5.2 12.8h6.6"/><circle cx="18" cy="16.5" r="2.3"/>',
+        edit_definition:
+            '<path d="M4 20h4L19.5 8.5a2.8 2.8 0 0 0-4-4L4 16Z"/><path d="m14 6 4 4"/>',
         steps: '<path d="M3 20h5v-5h5v-5h5V5h3"/>',
         show_values: '<path d="M3 9.5h7M3 14.5h7M14.5 7.5 17.5 5v14"/>',
         first_step: '<path d="M6.5 6v12M17 6l-7 6 7 6"/>',
