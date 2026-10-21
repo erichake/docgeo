@@ -19,15 +19,16 @@ export const SEQUENCE_VARIABLE = new RegExp(
 );
 
 // Whether a Sequence of this nature has as many formulas: a point's, a
-// segment's or a line's ends, a circle's center and radius, or a polygon's
-// vertices.
+// segment's or a line's ends, a circle's center, radius and maybe axis
+// direction, or a polygon's vertices.
 export const sequenceShape = (nature: unknown, count: number): boolean =>
     nature === "polygons"
         ? count >= 3
         : nature === "point"
           ? count === 1
-          : ["segment", "line", "circle"].includes(nature as string) &&
-            count === 2;
+          : nature === "circle"
+            ? count === 2 || count === 3
+            : ["segment", "line"].includes(nature as string) && count === 2;
 
 // Its variable goes from `from` to `to` by `step`, 1 when null.
 export interface SequenceLoop {

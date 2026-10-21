@@ -1118,8 +1118,9 @@ const ITEM_COMMANDS: Partial<Record<ListNature, string>> = {
 };
 
 // Sequence(f, k, a, b, s): f for k from a to b by s, f being a point or a
-// number, Segment(P, Q), Line(P, Q), Circle(O, r) or Polygon(A, B, C, …) of
-// formulas, or another Sequence, whose bounds read k (see
+// number, Segment(P, Q), Line(P, Q), Circle(O, r), Circle(O, r, u) of axis
+// direction u or Polygon(A, B, C, …) of formulas, or another Sequence, whose
+// bounds read k (see
 // sequence_object.ts).
 function sequence(
     c: construction,

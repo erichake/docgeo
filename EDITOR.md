@@ -987,7 +987,10 @@ chemin de création de l'éditeur.
   `L = Séquence(f, k, a, b)` ou `Séquence(f, k, a, b, s)` (`Sequence`,
   entrée `Seq`) prend f pour k de a à b par s (1 par défaut). f est une
   formule qui donne un point ou un nombre, `Segment(P, Q)`,
-  `Droite(P, Q)`, `Cercle(O, r)` ou `Polygone(A, B, C, …)` de formules,
+  `Droite(P, Q)`, `Cercle(O, r)`, `Cercle(O, r, u)` (dans le plan
+  orthogonal à la direction u, ajouté le 2026-10-21 pour les cercles de
+  l'espace d'une figure d'Yves, `Cyclide_de_Dupin_Sequence.dgo`) ou
+  `Polygone(A, B, C, …)` de formules,
   ou une autre `Séquence`, dont les bornes lisent k (suites
   triangulaires). La ligne se relit telle qu'écrite ; une variable déjà
   prise par une suite qui l'entoure, ou f d'une autre forme, est refusée.

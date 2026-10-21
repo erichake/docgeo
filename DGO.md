@@ -506,7 +506,8 @@ alignement]]` police, `[30, url, l, h, zoom, opacité, u]` image (largeur
     formules donnent un élément : un point ou un nombre (nature `point`,
     une formule), les extrémités d'un segment ou deux points d'une droite
     (`segment`, `line`), le centre et le rayon d'un cercle (`circle`, dans
-    le plan xOy), ou les sommets d'un polygone (`polygons`, trois formules
+    le plan xOy, ou orthogonal à la direction que donne une troisième
+    formule, ajoutée le 2026-10-21), ou les sommets d'un polygone (`polygons`, trois formules
     ou plus). Au plus 100 000 tours en tout. Lue par son nom, une suite de
     points vaut la liste de ses points, une liste par tour de chaque
     boucle extérieure (un point indéfini y vaut `NaN`).

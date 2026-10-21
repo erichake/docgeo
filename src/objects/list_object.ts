@@ -18,10 +18,21 @@ import {
 } from "./construction_object";
 import { callFunction, formatValue } from "./expression_object";
 import { MAX_SCREEN } from "./point_object";
-import { vAdd, vNorm, vNormalize, vSub, type Vec2, type Vec3 } from "../vec";
+import { axisBasis } from "./circle1_object";
+import {
+    vAdd,
+    vCross,
+    vNorm,
+    vNormalize,
+    vScale,
+    vSub,
+    type Vec2,
+    type Vec3,
+} from "../vec";
 
 // "polygon": the points, in turn, bound a filled region; "polygons": each
-// run of defined points bounds one; "circle": a center and a radius.
+// run of defined points bounds one; "circle": a center, a radius and, in a
+// Sequence, maybe an axis direction.
 export type ListNature =
     "point" | "segment" | "line" | "label" | "polygon" | "polygons" | "circle";
 
@@ -189,17 +200,26 @@ export class list_object extends construction_object {
         );
     }
 
-    // The circle's center on the screen, and its images of the x and y
-    // radii: conjugate half-diameters of the drawn ellipse.
+    // The circle's center on the screen, and its images of two orthogonal
+    // radii, x and y ones without an axis: conjugate half-diameters of the
+    // drawn ellipse.
     private circleScreen([
         center,
         radius,
+        axis,
     ]: (FormulaValue | null)[]): (Vec2 | null)[] {
         const r = radius === null ? null : realPart(radius);
         if (!center || typeof center === "number" || r === null || r < 0)
             return [null];
+        const normal =
+            axis && typeof axis !== "number"
+                ? vNormalize([axis[0], axis[1], axis[2] ?? 0] as Vec3)
+                : null;
+        if (axis !== undefined && !normal) return [null];
+        const x = normal ? axisBasis(normal) : ([1, 0, 0] as Vec3);
+        const y = normal ? vCross(normal, x) : ([0, 1, 0] as Vec3);
         const c: Vec3 = [center[0], center[1], center[2] ?? 0];
-        const screen = [c, vAdd(c, [r, 0, 0]), vAdd(c, [0, r, 0])].map(
+        const screen = [c, vAdd(c, vScale(x, r)), vAdd(c, vScale(y, r))].map(
             (point) => this.C.pt3D(point),
         );
         if (!screen.flat().every((v) => Math.abs(v) < MAX_SCREEN))

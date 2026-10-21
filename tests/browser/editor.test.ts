@@ -1118,6 +1118,7 @@ describe("Editor", () => {
             "q = Sequence(Sequence((i, j), j, 1, i), i, 1, 3)",
             "r = Sequence((2; 30°*k), k, 0, 1)",
             "t = Sequence(Segment(A, (1, 2)), k, 0, 1)",
+            "a = Sequence(Circle((k, 0), 1, (1, 0)), k, 0, 1)",
         ];
         text.forEach((line) => type(c, line));
         c.flush();
@@ -1173,6 +1174,14 @@ describe("Editor", () => {
             ],
         ]);
         expect(items("r")).toEqual(round([[[2, 0]], [[Math.sqrt(3), 1]]]));
+        expect(items("a")).toEqual([
+            [[0, 0], 1, [1, 0]],
+            [[1, 0], 1, [1, 0]],
+        ]);
+        // Orthogonal to the x axis, seen edge-on.
+        const [[, x, y]] = (c.getObj("a") as list_object).screenItems;
+        expect(round([x![0], y![0], y![1]])).toEqual([0, 0, 0]);
+        expect(Math.abs(x![1])).toBeGreaterThan(0);
         expect(entryOf(c.getObj("L")!, figureIndex(c))).toEqual([
             "Seq",
             [
