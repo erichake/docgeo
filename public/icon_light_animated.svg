@@ -1,0 +1,97 @@
+<svg viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc">
+  <title id="title">Icône animée de DocGeo — construction de Varignon</title>
+  <desc id="desc">Les sommets d’un quadrilatère irrégulier sont déplacés l’un après l’autre. Les milieux adjacents suivent et forment toujours un parallélogramme.</desc>
+
+  <rect x="16" y="16" width="480" height="480" rx="108" fill="#f8fafc" stroke="#dbeafe" stroke-width="8"/>
+
+  <!--
+    Chaque déplacement occupe 10 % de la boucle et est suivi d'une pause de 2,5 %.
+    Ordre : A, B, C, D, puis A, B, C, D pour revenir sans coupure au départ.
+  -->
+  <path d="M80 150 L430 75 L390 420 L105 345 Z"
+        fill="none" stroke="#173f8f" stroke-width="12" stroke-linejoin="round">
+    <animate attributeName="d" dur="12s" repeatCount="indefinite" calcMode="linear"
+      keyTimes="0;.1;.125;.225;.25;.35;.375;.475;.5;.6;.625;.725;.75;.85;.875;.975;1"
+      values="M80 150 L430 75 L390 420 L105 345 Z;
+              M155 70 L430 75 L390 420 L105 345 Z;
+              M155 70 L430 75 L390 420 L105 345 Z;
+              M155 70 L350 165 L390 420 L105 345 Z;
+              M155 70 L350 165 L390 420 L105 345 Z;
+              M155 70 L350 165 L465 300 L105 345 Z;
+              M155 70 L350 165 L465 300 L105 345 Z;
+              M155 70 L350 165 L465 300 L55 445 Z;
+              M155 70 L350 165 L465 300 L55 445 Z;
+              M80 150 L350 165 L465 300 L55 445 Z;
+              M80 150 L350 165 L465 300 L55 445 Z;
+              M80 150 L430 75 L465 300 L55 445 Z;
+              M80 150 L430 75 L465 300 L55 445 Z;
+              M80 150 L430 75 L390 420 L55 445 Z;
+              M80 150 L430 75 L390 420 L55 445 Z;
+              M80 150 L430 75 L390 420 L105 345 Z;
+              M80 150 L430 75 L390 420 L105 345 Z"/>
+  </path>
+
+  <!-- Parallélogramme de Varignon : ses sommets sont les milieux exacts des côtés. -->
+  <path d="M255 112.5 L410 247.5 L247.5 382.5 L92.5 247.5 Z"
+        fill="#dbeafe" stroke="#2563eb" stroke-width="25" stroke-linejoin="round">
+    <animate attributeName="d" dur="12s" repeatCount="indefinite" calcMode="linear"
+      keyTimes="0;.1;.125;.225;.25;.35;.375;.475;.5;.6;.625;.725;.75;.85;.875;.975;1"
+      values="M255 112.5 L410 247.5 L247.5 382.5 L92.5 247.5 Z;
+              M292.5 72.5 L410 247.5 L247.5 382.5 L130 207.5 Z;
+              M292.5 72.5 L410 247.5 L247.5 382.5 L130 207.5 Z;
+              M252.5 117.5 L370 292.5 L247.5 382.5 L130 207.5 Z;
+              M252.5 117.5 L370 292.5 L247.5 382.5 L130 207.5 Z;
+              M252.5 117.5 L407.5 232.5 L285 322.5 L130 207.5 Z;
+              M252.5 117.5 L407.5 232.5 L285 322.5 L130 207.5 Z;
+              M252.5 117.5 L407.5 232.5 L260 372.5 L105 257.5 Z;
+              M252.5 117.5 L407.5 232.5 L260 372.5 L105 257.5 Z;
+              M215 157.5 L407.5 232.5 L260 372.5 L67.5 297.5 Z;
+              M215 157.5 L407.5 232.5 L260 372.5 L67.5 297.5 Z;
+              M255 112.5 L447.5 187.5 L260 372.5 L67.5 297.5 Z;
+              M255 112.5 L447.5 187.5 L260 372.5 L67.5 297.5 Z;
+              M255 112.5 L410 247.5 L222.5 432.5 L67.5 297.5 Z;
+              M255 112.5 L410 247.5 L222.5 432.5 L67.5 297.5 Z;
+              M255 112.5 L410 247.5 L247.5 382.5 L92.5 247.5 Z;
+              M255 112.5 L410 247.5 L247.5 382.5 L92.5 247.5 Z"/>
+  </path>
+
+  <!-- Points milieux : seuls les deux voisins du sommet manipulé se déplacent. -->
+  <g fill="#fff" stroke="#2563eb" stroke-width="7">
+    <circle cx="255" cy="112.5" r="14">
+      <animate attributeName="cx" dur="12s" repeatCount="indefinite" calcMode="linear" keyTimes="0;.1;.125;.225;.25;.35;.375;.475;.5;.6;.625;.725;.75;.85;.875;.975;1" values="255;292.5;292.5;252.5;252.5;252.5;252.5;252.5;252.5;215;215;255;255;255;255;255;255"/>
+      <animate attributeName="cy" dur="12s" repeatCount="indefinite" calcMode="linear" keyTimes="0;.1;.125;.225;.25;.35;.375;.475;.5;.6;.625;.725;.75;.85;.875;.975;1" values="112.5;72.5;72.5;117.5;117.5;117.5;117.5;117.5;117.5;157.5;157.5;112.5;112.5;112.5;112.5;112.5;112.5"/>
+    </circle>
+    <circle cx="410" cy="247.5" r="14">
+      <animate attributeName="cx" dur="12s" repeatCount="indefinite" calcMode="linear" keyTimes="0;.1;.125;.225;.25;.35;.375;.475;.5;.6;.625;.725;.75;.85;.875;.975;1" values="410;410;410;370;370;407.5;407.5;407.5;407.5;407.5;407.5;447.5;447.5;410;410;410;410"/>
+      <animate attributeName="cy" dur="12s" repeatCount="indefinite" calcMode="linear" keyTimes="0;.1;.125;.225;.25;.35;.375;.475;.5;.6;.625;.725;.75;.85;.875;.975;1" values="247.5;247.5;247.5;292.5;292.5;232.5;232.5;232.5;232.5;232.5;232.5;187.5;187.5;247.5;247.5;247.5;247.5"/>
+    </circle>
+    <circle cx="247.5" cy="382.5" r="14">
+      <animate attributeName="cx" dur="12s" repeatCount="indefinite" calcMode="linear" keyTimes="0;.1;.125;.225;.25;.35;.375;.475;.5;.6;.625;.725;.75;.85;.875;.975;1" values="247.5;247.5;247.5;247.5;247.5;285;285;260;260;260;260;260;260;222.5;222.5;247.5;247.5"/>
+      <animate attributeName="cy" dur="12s" repeatCount="indefinite" calcMode="linear" keyTimes="0;.1;.125;.225;.25;.35;.375;.475;.5;.6;.625;.725;.75;.85;.875;.975;1" values="382.5;382.5;382.5;382.5;382.5;322.5;322.5;372.5;372.5;372.5;372.5;372.5;372.5;432.5;432.5;382.5;382.5"/>
+    </circle>
+    <circle cx="92.5" cy="247.5" r="14">
+      <animate attributeName="cx" dur="12s" repeatCount="indefinite" calcMode="linear" keyTimes="0;.1;.125;.225;.25;.35;.375;.475;.5;.6;.625;.725;.75;.85;.875;.975;1" values="92.5;130;130;130;130;130;130;105;105;67.5;67.5;67.5;67.5;67.5;67.5;92.5;92.5"/>
+      <animate attributeName="cy" dur="12s" repeatCount="indefinite" calcMode="linear" keyTimes="0;.1;.125;.225;.25;.35;.375;.475;.5;.6;.625;.725;.75;.85;.875;.975;1" values="247.5;207.5;207.5;207.5;207.5;207.5;207.5;257.5;257.5;297.5;297.5;297.5;297.5;297.5;297.5;247.5;247.5"/>
+    </circle>
+  </g>
+
+  <!-- Sommets manipulables, différenciés des milieux comme dans un logiciel de géométrie. -->
+  <g fill="#f59e0b" stroke="#fff" stroke-width="4">
+    <circle cx="80" cy="150" r="10">
+      <animate attributeName="cx" dur="12s" repeatCount="indefinite" calcMode="linear" keyTimes="0;.1;.125;.225;.25;.35;.375;.475;.5;.6;.625;.725;.75;.85;.875;.975;1" values="80;155;155;155;155;155;155;155;155;80;80;80;80;80;80;80;80"/>
+      <animate attributeName="cy" dur="12s" repeatCount="indefinite" calcMode="linear" keyTimes="0;.1;.125;.225;.25;.35;.375;.475;.5;.6;.625;.725;.75;.85;.875;.975;1" values="150;70;70;70;70;70;70;70;70;150;150;150;150;150;150;150;150"/>
+    </circle>
+    <circle cx="430" cy="75" r="10">
+      <animate attributeName="cx" dur="12s" repeatCount="indefinite" calcMode="linear" keyTimes="0;.1;.125;.225;.25;.35;.375;.475;.5;.6;.625;.725;.75;.85;.875;.975;1" values="430;430;430;350;350;350;350;350;350;350;350;430;430;430;430;430;430"/>
+      <animate attributeName="cy" dur="12s" repeatCount="indefinite" calcMode="linear" keyTimes="0;.1;.125;.225;.25;.35;.375;.475;.5;.6;.625;.725;.75;.85;.875;.975;1" values="75;75;75;165;165;165;165;165;165;165;165;75;75;75;75;75;75"/>
+    </circle>
+    <circle cx="390" cy="420" r="10">
+      <animate attributeName="cx" dur="12s" repeatCount="indefinite" calcMode="linear" keyTimes="0;.1;.125;.225;.25;.35;.375;.475;.5;.6;.625;.725;.75;.85;.875;.975;1" values="390;390;390;390;390;465;465;465;465;465;465;465;465;390;390;390;390"/>
+      <animate attributeName="cy" dur="12s" repeatCount="indefinite" calcMode="linear" keyTimes="0;.1;.125;.225;.25;.35;.375;.475;.5;.6;.625;.725;.75;.85;.875;.975;1" values="420;420;420;420;420;300;300;300;300;300;300;300;300;420;420;420;420"/>
+    </circle>
+    <circle cx="105" cy="345" r="10">
+      <animate attributeName="cx" dur="12s" repeatCount="indefinite" calcMode="linear" keyTimes="0;.1;.125;.225;.25;.35;.375;.475;.5;.6;.625;.725;.75;.85;.875;.975;1" values="105;105;105;105;105;105;105;55;55;55;55;55;55;55;55;105;105"/>
+      <animate attributeName="cy" dur="12s" repeatCount="indefinite" calcMode="linear" keyTimes="0;.1;.125;.225;.25;.35;.375;.475;.5;.6;.625;.725;.75;.85;.875;.975;1" values="345;345;345;345;345;345;345;445;445;445;445;445;445;445;445;345;345"/>
+    </circle>
+  </g>
+</svg>

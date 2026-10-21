@@ -20,11 +20,13 @@ const icon = (body: string) => () =>
     );
 
 function showAbout(): void {
+    const content = splashContent();
+    content.find("image")!.att("href", "icon_light_animated.svg");
     const dialog = $.create("dialog")
         .cls("dge-about")
         .att("aria-label", message("about"))
         .add(
-            splashContent().add(
+            content.add(
                 $.create("div")
                     .cls("dge-about-doctools")
                     .add(
