@@ -919,9 +919,11 @@ export function translateGgb(
         }),
     );
 
-    const is3D = [...elements.values()].some((element) =>
-        THREE_D_TYPES.test(element.getAttribute("type") ?? ""),
-    );
+    const is3D =
+        document.querySelector('gui view[id="512"][visible="true"]') !== null ||
+        [...elements.values()].some((element) =>
+            THREE_D_TYPES.test(element.getAttribute("type") ?? ""),
+        );
     // A constant point, as a DGP fixed-point vector literal and its
     // dimension flag.
     const vectorLiteral = ([x, y, z]: Vec3): DgpValue[] =>
@@ -987,7 +989,10 @@ export function translateGgb(
 
     // Vector(P, Q) as the formula Q-P. OrthogonalVector of a segment or
     // vector is GeoGebra's (-dy, dx), not normalized: the 2D vector times i.
-    const vectorFormula = (source: string): string | null => {
+    const vectorFormula = (
+        source: string,
+        locals: Map<string, string>,
+    ): string | null => {
         const match = COMMAND_EXPRESSION.exec(source);
         const args = match && splitArguments(match[2]);
         if (!args) return null;
@@ -998,8 +1003,11 @@ export function translateGgb(
                 args.length !== 1 || is3D
                     ? null
                     : ends
-                      ? vectorFormula(`Vector(${ends.join(",")})`)
-                      : vectorFormula(arg.replace(/^Segment\(/, "Vector("));
+                      ? vectorFormula(`Vector(${ends.join(",")})`, locals)
+                      : vectorFormula(
+                            arg.replace(/^Segment\(/, "Vector("),
+                            locals,
+                        );
             return vector && `(${vector}*1i)`;
         }
         // Of a segment, from its start to its end.
@@ -1009,17 +1017,17 @@ export function translateGgb(
             const ends = segments.get(arg);
             if (!ends && is(arg, ["line"])) return unitDirection(arg);
             const vector = ends
-                ? vectorFormula(`Vector(${ends.join(",")})`)
-                : formula(arg, VALUE_KINDS);
+                ? vectorFormula(`Vector(${ends.join(",")})`, locals)
+                : formula(arg, VALUE_KINDS, locals);
             return vector && `unitVector(${vector})`;
         }
         if (match[1] !== "Vector") return null;
         if (args.length === 1) {
-            const v = formula(args[0], VALUE_KINDS);
+            const v = formula(args[0], VALUE_KINDS, locals);
             return v && `(${v})`;
         }
         if (args.length !== 2) return null;
-        const [p, q] = args.map((arg) => formula(arg, POINT_KINDS));
+        const [p, q] = args.map((arg) => formula(arg, POINT_KINDS, locals));
         return p === null || q === null ? null : `(${q}-${p})`;
     };
 
@@ -1275,7 +1283,7 @@ export function translateGgb(
                     : null;
             }
             default:
-                return vectorFormula(source);
+                return vectorFormula(source, locals);
         }
     };
 
@@ -3040,7 +3048,8 @@ export function translateGgb(
                 call = commandCall(inner);
             }
             const nature =
-                call?.[0] === "Circle" && call[1].length === 2
+                call?.[0] === "Circle" &&
+                (call[1].length === 2 || call[1].length === 3)
                     ? "circle"
                     : call?.[0] === "Segment" && call[1].length === 2
                       ? "segment"

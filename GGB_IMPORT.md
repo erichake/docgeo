@@ -91,6 +91,7 @@ figure sont seulement comptés. L'API utilisée est
 | 2026-10-16 | —                  | 360,1 Ko | item 36 : cercle d'axe donné, de direction un plan (+1)            |
 | 2026-10-16 | —                  | 362,1 Ko | item 37 : translation des polygones, polygones fixés (+0)          |
 | 2026-10-17 | 245 / 438 (56 %)   | 365,9 Ko | item 38 : `Sequence` natifs, listes lues par leur nom (+0)         |
+| 2026-10-21 | 245 / 438 (56 %)   | 370,5 Ko | item 39 : suites de cercles orientés, détection 3D (+0)            |
 
 ## À faire, par rapport gain / coût
 
@@ -643,6 +644,22 @@ cause.
       relit ces lignes (`EDITOR.md`). Corpus : figures sans perte
       inchangées (245 sur 438), éléments non importés 2770 → 2765, figures
       où `Sequence` en perd 12 → 11. Moteur +3,0 Ko (+1,0 Ko en gzip).
+
+- [x] **39. Suites de cercles 3D orientés** :
+      `tests/ggb/3D/Cercles3D.ggb` ne contient qu'une liste,
+      `Sequence(Circle[(0, 0, k), 2, Vector[(0, 0, 1)]], k, 0, 5)` :
+      le troisième argument du cercle n'était pas traduit et, sans objet
+      isolé de type 3D, la figure était lue en 2D. Fait : la troisième
+      formule de `Seq` donne sa direction (déjà prise en charge par le
+      moteur), les formules de vecteurs lisent les variables de boucle,
+      et une vue 3D affichée (`gui`, vue 512) suffit à reconnaître une
+      figure 3D. Le seul indicateur `uses3D` ne suffit pas : il reste vrai
+      dans certaines figures planes (`mandel2.ggb`). Les six centres
+      `(0, 0, k)` et rayons 2 sont vérifiés face à GeoGebra, ainsi que le
+      rendu, la rotation et l'aller-retour `.dgo`. **+1 figure de test** ;
+      corpus inchangé (245 sur 438 sans perte, 0 plantage, mêmes éléments
+      non importés). Build (chunks `engine` et chargeur du lecteur) :
+      370 356 → 370 453 octets, **+97 octets**.
 
 À écarter, sauf changement de priorité : calcul formel, courbes implicites,
 statistiques et probabilités, tableur au-delà des cellules simples, matrices.

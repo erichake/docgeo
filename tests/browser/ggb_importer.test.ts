@@ -2524,6 +2524,58 @@ ${["90*°", "90°", "(540 / n)°", "180 / n * °"]
         ]);
     });
 
+    it("imports Cercles3D's Sequence of six directed circles", async () => {
+        const c = createConstruction();
+        const file = await (await fetch(figure("Cercles3D.ggb"))).blob();
+        expect(await importGgbFromBlob(c, file)).toEqual([]);
+        const circles = c.getObj("l1") as list_object;
+        expect(circles.nature).toBe("circle");
+        expect(circles.items).toEqual(
+            Array.from({ length: 6 }, (_, k) => [[0, 0, k], 2, [0, 0, 1]]),
+        );
+        expect(circles.screenItems.every((item) => item.every(Boolean))).toBe(
+            true,
+        );
+        await new Promise((resolve) => requestAnimationFrame(resolve));
+        expect(
+            circles.dom
+                .dom()
+                .querySelector("path")!
+                .getAttribute("d")!
+                .match(/M/g),
+        ).toHaveLength(6);
+        expect(c.GRID.THETA).toBeCloseTo((20 * Math.PI) / 180, 9);
+        expect(circles.stroke_color).toBe("#006400");
+    });
+
+    it("lets a circle's direction in a Sequence read the loop variable", async () => {
+        const c = createConstruction();
+        const xml = (await loadXml("Cercles3D")).replace(
+            "Vector[(0, 0, 1)]",
+            "Vector[(0, 0, k), (1, k, 2*k)]",
+        );
+        expect(importGgb(c, xml)).toEqual([]);
+        const circles = c.getObj("l1") as list_object;
+        expect(circles.items).toEqual(
+            Array.from({ length: 6 }, (_, k) => [[0, 0, k], 2, [1, k, k]]),
+        );
+        circles.screenItems.forEach(([center, u, v], k) => {
+            const normal = vNormalize([1, k, k])!;
+            const x = vNormalize(vCross(normal, [0, 0, 1]))!;
+            const y = vCross(normal, x);
+            const origin = c.pt3D([0, 0, k]);
+            expectClose(center, origin);
+            // The projected ellipse's area is independent of its basis.
+            const [a, b] = [x, y].map((direction) =>
+                vSub(c.pt3D(vAdd([0, 0, k], vScale(direction, 2))), origin),
+            );
+            expect(Math.abs(u![0] * v![1] - u![1] * v![0])).toBeCloseTo(
+                Math.abs(a[0] * b[1] - a[1] * b[0]),
+                8,
+            );
+        });
+    });
+
     it("draws Sequences of circles through a point", () => {
         const c = createConstruction();
         expect(
