@@ -8,7 +8,7 @@
 const MAX_SIZE = 20 << 20;
 const MAX_REDIRECTS = 3;
 
-function fail(int $status): never
+function fail(int $status): void
 {
     http_response_code($status);
     exit;
