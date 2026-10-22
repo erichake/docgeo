@@ -35,12 +35,19 @@ for ($redirects = 0; ; $redirects++) {
     if (!$ip || $redirects > MAX_REDIRECTS)
         fail(400);
     $data = '';
+    $name = null;
     $curl = curl_init($address);
     curl_setopt_array($curl, [
         CURLOPT_RESOLVE => ["{$url['host']}:" . ($url['scheme'] === 'https' ? 443 : 80) . ":$ip"],
         CURLOPT_IPRESOLVE => CURL_IPRESOLVE_V4,
         CURLOPT_PROTOCOLS => CURLPROTO_HTTP | CURLPROTO_HTTPS,
         CURLOPT_TIMEOUT => 15,
+        // The file's name, which the page can only read from the relay.
+        CURLOPT_HEADERFUNCTION => function ($curl, $line) use (&$name) {
+            if (stripos($line, 'content-disposition:') === 0)
+                $name = trim(substr($line, 20));
+            return strlen($line);
+        },
         CURLOPT_WRITEFUNCTION => function ($curl, $chunk) use (&$data) {
             $data .= $chunk;
             return strlen($data) > MAX_SIZE ? 0 : strlen($chunk);
@@ -63,4 +70,6 @@ if (preg_match('/^\s*</', $data))
     fail(415);
 header('Content-Type: application/octet-stream');
 header('X-Content-Type-Options: nosniff');
+if ($name)
+    header("Content-Disposition: $name");
 echo $data;

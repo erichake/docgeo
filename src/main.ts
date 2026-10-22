@@ -4,7 +4,7 @@ import { importDgp } from "./dgp_importer";
 import { $, type DOMElement } from "./dom";
 import { dropFigures } from "./drop";
 import { embed } from "./embed";
-import { importFigureFromUrl, urlName } from "./figure_url";
+import { FIGURE_URL, fetchFigure } from "./figure_url";
 import { importGgbFromBlob } from "./ggb_importer";
 import { DIR, t } from "./i18n";
 import { preferences } from "./preferences";
@@ -77,11 +77,12 @@ $("body").on(
 // In the embedded mode (see EMBED.md), the host page provides the figure,
 // shows what couldn't be imported and saves it.
 const search = new URLSearchParams(window.location.search);
-const url = search.get("url");
 export const DOCGEO_READY = search.has("embed")
     ? Promise.resolve(embed(DOCGEO))
-    : url
-      ? openFigure(urlName(url), () => importFigureFromUrl(DOCGEO.scene, url))
+    : FIGURE_URL
+      ? fetchFigure(FIGURE_URL).then(openFile, (error) =>
+            pickFigure(failure(FIGURE_URL!, error)),
+        )
       : pickFigure();
 
 // Outside the embedded mode, a figure file dropped on the page opens in
@@ -113,15 +114,7 @@ async function openFigure(
         // Discards what the failed import may have already built.
         DOCGEO.scene.dispose();
         DOCGEO.scene = construction.create(DOCGEO);
-        return pickFigure(
-            $.create("div")
-                .cls("docgeo-error")
-                .add(
-                    $.create("strong").text(t("open_failed")),
-                    $.create("div").text(name),
-                    $.create("code").text((error as Error).message),
-                ),
-        );
+        return pickFigure(failure(name, error));
     }
     DOCGEO.scene.reveal();
     figureName = name
@@ -130,6 +123,16 @@ async function openFigure(
         .pop()!
         .replace(/\.[^.]*$/, "");
     if (unsupported.length > 0) showUnsupported(unsupported);
+}
+
+function failure(name: string, error: unknown): DOMElement {
+    return $.create("div")
+        .cls("docgeo-error")
+        .add(
+            $.create("strong").text(t("open_failed")),
+            $.create("div").text(name),
+            $.create("code").text((error as Error).message),
+        );
 }
 
 // Opens a chosen or dropped file in place of the figure shown.

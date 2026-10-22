@@ -12,7 +12,7 @@ import {
 import { importDgp } from "../dgp_importer";
 import { $, type DOMElement } from "../dom";
 import { dropFigures } from "../drop";
-import { importFigureFromUrl, urlName } from "../figure_url";
+import { FIGURE_URL, fetchFigure } from "../figure_url";
 import { importGgbFromBlob } from "../ggb_importer";
 import { LANG } from "../i18n";
 import type { construction_object } from "../objects/construction_object";
@@ -4782,9 +4782,8 @@ $("body").observeResize(() => {
 });
 if (window.matchMedia("(max-width: 600px)").matches) setPanel(false, false);
 
-const url = new URLSearchParams(window.location.search).get("url");
-export const EDITOR_READY = url
-    ? open(urlName(url), (c) => importFigureFromUrl(c, url))
+export const EDITOR_READY = FIGURE_URL
+    ? fetchFigure(FIGURE_URL).then((file) => openFile(file))
     : newFigure();
 
 finishSplash(EDITOR_READY);

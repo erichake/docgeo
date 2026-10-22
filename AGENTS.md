@@ -102,13 +102,16 @@ relatifs, et ne contenir aucun matériel de test. Une diffusion de DocGeo comme
 application indépendante n'est pas exclue : ne pas lier le code à des
 hypothèses propres à DocTools qui l'empêcheraient.
 
-Une figure passée par `?url=` que le navigateur ne laisse pas lire (site
-sans en-tête CORS, lien de partage Google Drive, que Drive ne sert qu'à un
-serveur) passe par le relais `figure.php`, livré à côté des pages
-(`public/figure.php`, `src/figure_url.ts`). Il ne lit qu'une adresse web
-publique, jamais un fichier local ni une machine du réseau du serveur.
-Servi sans PHP, le build reste fonctionnel : seules ces figures-là ne
-s'ouvrent pas.
+`?url=` prend toute la fin de l'adresse de la page, pour qu'un lien collé
+tel quel garde ses propres paramètres. Un lien de partage Google Drive,
+Dropbox, OneDrive (`1drv.ms/u/c/…`) ou Nextcloud (`…/s/<jeton>`) est
+remplacé par l'adresse du fichier (`src/figure_url.ts`). Une figure que le
+navigateur ne laisse pas lire (site sans en-tête CORS, Drive et Nextcloud,
+qui ne la servent qu'à un serveur) passe par le relais `figure.php`, livré à
+côté des pages (`public/figure.php`, compatible PHP 7.4). Il ne lit qu'une
+adresse web publique, jamais un fichier local ni une machine du réseau du
+serveur. Servi sans PHP, le build reste fonctionnel : seules ces figures-là
+ne s'ouvrent pas.
 
 ### Mode intégré
 

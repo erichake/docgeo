@@ -1,52 +1,70 @@
-import type { construction } from "./construction";
-import { importDgoFromBlob } from "./dgo";
-import { importDgp } from "./dgp_importer";
-import { importGgbFromBlob } from "./ggb_importer";
+// The address of the figure to open, passed by `?url=`: the whole rest of
+// the page's query, so that a link pasted as it is keeps its own parameters
+// (Dropbox's `&`…).
+const raw = /[?&]url=(.*)/.exec(window.location.search)?.[1];
+export const FIGURE_URL =
+    raw === undefined
+        ? null
+        : raw.includes("://")
+          ? raw
+          : decodeURIComponent(raw);
 
-// A Google Drive sharing link leads to a page about the file, not the file,
-// which Drive only serves to a server.
-const DRIVE =
-    /^https:\/\/drive\.google\.com\/(?:file\/d\/|(?:open|uc)\?(?:.*&)?id=)([\w-]+)/;
+// A sharing link leads to a page showing the file: its file's address
+// instead. Drive and Nextcloud then only serve it through the relay.
+const SHARES: [RegExp, string][] = [
+    [
+        /^https:\/\/drive\.google\.com\/(?:file\/d\/|(?:open|uc)\?(?:.*&)?id=)([\w-]+).*/,
+        "https://drive.usercontent.google.com/download?id=$1&export=download",
+    ],
+    [/^https:\/\/www\.dropbox\.com\//, "https://dl.dropboxusercontent.com/"],
+    [
+        /^https:\/\/(?:1drv\.ms\/u\/c|onedrive\.live\.com\/:u:\/g\/personal)\/(\w+)\/([\w-]+).*/,
+        "https://my.microsoftpersonalcontent.com/personal/$1/_layouts/15/download.aspx?share=$2",
+    ],
+    [/^(https:\/\/[^?#]+\/s\/\w{15,})\/?(?:[?#].*)?$/, "$1/download"],
+];
 
-// The name of a figure opened from `url`: a Drive download doesn't tell its
-// file's to another site.
-export function urlName(url: string): string {
-    return DRIVE.test(url) ? "figure" : url;
-}
-
-// The format is told by the file's content, a Drive link having no extension.
-export async function importFigureFromUrl(
-    c: construction,
-    url: string,
-): Promise<string[]> {
-    const response = await fetchFigure(url);
+// The figure at `url`, named as its site names it, and with the extension
+// of its format, told by its content.
+export async function fetchFigure(url: string): Promise<File> {
+    const address = SHARES.reduce(
+        (address, [share, file]) => address.replace(share, file),
+        new URL(url, location.href).href,
+    );
+    const response = await fetchFile(address);
     if (!response.ok)
         throw new Error(`Unable to load figure: ${response.status}`);
-    const file = await response.blob();
+    const blob = await response.blob();
+    const header = response.headers.get("content-disposition") ?? "";
+    const encoded = /filename\*=utf-8''([^;]+)/i.exec(header)?.[1];
+    const name =
+        (encoded
+            ? decodeURIComponent(encoded)
+            : /filename="?([^";]+)/i.exec(header)?.[1]) ||
+        decodeURIComponent(new URL(address).pathname.split("/").pop()!) ||
+        "figure";
     const [first, second] = new Uint8Array(
-        await file.slice(0, 2).arrayBuffer(),
+        await blob.slice(0, 2).arrayBuffer(),
     );
-    return first === 0x50 && second === 0x4b
-        ? importGgbFromBlob(c, file)
-        : (first === 0x1f && second === 0x8b) || /\.dgo$/i.test(url)
-          ? importDgoFromBlob(c, file)
-          : importDgp(c, await file.text());
+    const extension =
+        first === 0x50 && second === 0x4b
+            ? "ggb"
+            : (first === 0x1f && second === 0x8b) || /\.dgo$/i.test(name)
+              ? "dgo"
+              : "dgp";
+    return new File(
+        [blob],
+        `${name.replace(/\.(dgo|dgp|ggb)$/i, "")}.${extension}`,
+    );
 }
 
 // The relay next to the page (public/figure.php) fetches what the browser
 // won't let it: another site's file that site doesn't allow it to read. Where
 // the page is served without PHP, such a file just fails to open.
-async function fetchFigure(url: string): Promise<Response> {
-    const relay = (address: string) =>
-        fetch(`figure.php?url=${encodeURIComponent(address)}`);
-    const id = DRIVE.exec(url)?.[1];
-    if (id)
-        return relay(
-            `https://drive.usercontent.google.com/download?id=${id}&export=download`,
-        );
+async function fetchFile(address: string): Promise<Response> {
     try {
-        return await fetch(url);
+        return await fetch(address);
     } catch {
-        return relay(new URL(url, location.href).href);
+        return fetch(`figure.php?url=${encodeURIComponent(address)}`);
     }
 }
