@@ -10,6 +10,7 @@ rounded to the minute and given in the server's time zone.
 
 import ftplib
 import json
+import socket
 import sys
 from datetime import datetime, timezone
 from pathlib import Path
@@ -55,8 +56,11 @@ def run(action: str, path: str, command=None) -> None:
 
 
 root = config["remotePath"].rstrip("/")
+port = config.get("port", 21)
+# Over IPv6 (NAT64 networks), ftplib sends EPSV, which the server rejects.
+ipv4 = socket.getaddrinfo(config["host"], port, socket.AF_INET, socket.SOCK_STREAM)[0][4][0]
 ftp = ftplib.FTP()
-ftp.connect(config["host"], config.get("port", 21))
+ftp.connect(ipv4, port)
 ftp.login(config["username"], config["password"])
 local = local_files()
 remote, remote_folders = remote_entries(ftp)
