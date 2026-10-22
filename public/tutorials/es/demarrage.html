@@ -50,11 +50,8 @@
                 historial de deshacer.
             </p>
             <p>
-                Una figura en línea se abre con la dirección de DocGeo:
-                <code>editor.html?url=https://ejemplo.es/tales.ggb</code>. El
-                formato se deduce de la extensión (<code>.ggb</code>,
-                <code>.dgo</code>; si no, DGPad); el servidor debe permitir la
-                lectura desde otro sitio (CORS).
+                Una figura en línea también se abre mediante un enlace (ver
+                <a href="#lien">Compartir una figura mediante un enlace</a>).
             </p>
 
             <p>
@@ -104,6 +101,69 @@
             <p>
                 <code>.dgo</code> es el único formato de guardado: abrir una
                 figura de DGPad o GeoGebra y guardarla la convierte.
+            </p>
+
+            <h2 id="lien">Compartir una figura mediante un enlace</h2>
+            <p>
+                Una figura subida a internet se abre mediante un enlace: la
+                dirección del editor, seguida de <code>?url=</code> y del enlace
+                del archivo, pegado tal cual.
+            </p>
+            <pre><code>https://doctools.org/apps/docgeo/editor.html?url=https://www.dropbox.com/scl/fi/…/thales.dgo?rlkey=…&amp;dl=0</code></pre>
+            <p>El enlace del archivo puede venir de:</p>
+            <div class="table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Servicio</th>
+                            <th>Enlace que copiar</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Google Drive</td>
+                            <td>
+                                enlace para compartir, acceso «Cualquier persona
+                                que tenga el enlace»
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Dropbox</td>
+                            <td>enlace para compartir</td>
+                        </tr>
+                        <tr>
+                            <td>OneDrive</td>
+                            <td>
+                                enlace para compartir de una cuenta personal
+                                (<code>https://1drv.ms/u/c/…</code>)
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Nextcloud</td>
+                            <td>
+                                enlace público para compartir, sin contraseña
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Sitio web</td>
+                            <td>
+                                dirección del archivo (<code>.dgo</code>,
+                                <code>.dgp</code> o <code>.ggb</code>)
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <p>
+                El formato se reconoce por el contenido del archivo, y su nombre
+                aparece al final de la barra de menús. El archivo en línea nunca
+                se modifica: al guardar se crea un archivo <code>.dgo</code> en
+                el ordenador.
+            </p>
+            <p>
+                <code>?url=</code> va al final de la dirección: todo lo que
+                sigue forma parte del enlace
+                (<code>editor.html?lang=en&amp;url=…</code>).
             </p>
 
             <h2>Idioma</h2>

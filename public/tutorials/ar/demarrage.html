@@ -45,11 +45,8 @@
             </p>
             <p>يحل الشكل المفتوح محل الشكل الحالي ويفرغ سجل التراجع.</p>
             <p>
-                يُفتح شكل منشور على الإنترنت عبر عنوان DocGeo:
-                <code>editor.html?url=https://example.com/thales.ggb</code>.
-                تُستنتج الصيغة من الامتداد (<code>.ggb</code>،
-                <code>.dgo</code>، وإلا فـ DGPad)؛ ويجب أن يسمح الخادم بالقراءة
-                من موقع آخر (CORS).
+                يُفتح الشكل المنشور على الإنترنت أيضًا برابط (انظر
+                <a href="#lien">مشاركة شكل برابط</a>).
             </p>
 
             <p>
@@ -97,6 +94,63 @@
             <p>
                 <code>.dgo</code> هي صيغة الحفظ الوحيدة: فتح شكل من DGPad أو
                 GeoGebra ثم حفظه يحوّله إليها.
+            </p>
+
+            <h2 id="lien">مشاركة شكل برابط</h2>
+            <p>
+                يُفتح الشكل المرفوع على الإنترنت برابط: عنوان المحرر، متبوعًا بـ
+                <code>?url=</code> ثم رابط الملف، ملصوقًا كما هو.
+            </p>
+            <pre><code>https://doctools.org/apps/docgeo/editor.html?url=https://www.dropbox.com/scl/fi/…/thales.dgo?rlkey=…&amp;dl=0</code></pre>
+            <p>يمكن أن يأتي رابط الملف من:</p>
+            <div class="table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>الخدمة</th>
+                            <th>الرابط المطلوب نسخه</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Google Drive</td>
+                            <td>
+                                رابط المشاركة، مع الوصول «أي شخص لديه الرابط»
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Dropbox</td>
+                            <td>رابط المشاركة</td>
+                        </tr>
+                        <tr>
+                            <td>OneDrive</td>
+                            <td>
+                                رابط المشاركة لحساب شخصي
+                                (<code>https://1drv.ms/u/c/…</code>)
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Nextcloud</td>
+                            <td>رابط مشاركة عام، بلا كلمة مرور</td>
+                        </tr>
+                        <tr>
+                            <td>موقع ويب</td>
+                            <td>
+                                عنوان الملف (<code>.dgo</code> أو
+                                <code>.dgp</code> أو <code>.ggb</code>)
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <p>
+                تُعرف الصيغة من محتوى الملف، ويظهر اسمه في طرف شريط القوائم. لا
+                يُعدَّل الملف المنشور أبدًا: يُنشئ الحفظ ملف
+                <code>.dgo</code> على الحاسوب.
+            </p>
+            <p>
+                يأتي <code>?url=</code> في آخر العنوان: كل ما يليه جزء من الرابط
+                (<code>editor.html?lang=en&amp;url=…</code>).
             </p>
 
             <h2>اللغة</h2>

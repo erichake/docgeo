@@ -50,11 +50,8 @@
                 Rückgängig-Verlauf.
             </p>
             <p>
-                Eine Online-Figur wird über die Adresse von DocGeo geöffnet:
-                <code>editor.html?url=https://beispiel.de/thales.ggb</code>. Das
-                Format ergibt sich aus der Endung (<code>.ggb</code>,
-                <code>.dgo</code>, sonst DGPad); der Server muss das Lesen von
-                einer anderen Website erlauben (CORS).
+                Eine Online-Figur öffnet sich auch über einen Link (siehe
+                <a href="#lien">Eine Figur per Link teilen</a>).
             </p>
 
             <p>
@@ -109,6 +106,65 @@
                 <code>.dgo</code> ist das einzige Speicherformat: Eine Figur aus
                 DGPad oder GeoGebra zu öffnen und dann zu speichern, wandelt sie
                 um.
+            </p>
+
+            <h2 id="lien">Eine Figur per Link teilen</h2>
+            <p>
+                Eine online abgelegte Figur öffnet sich über einen Link: die
+                Adresse des Editors, gefolgt von <code>?url=</code> und dem Link
+                der Datei, so eingefügt, wie er ist.
+            </p>
+            <pre><code>https://doctools.org/apps/docgeo/editor.html?url=https://www.dropbox.com/scl/fi/…/thales.dgo?rlkey=…&amp;dl=0</code></pre>
+            <p>Der Link der Datei kann stammen von:</p>
+            <div class="table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Dienst</th>
+                            <th>Zu kopierender Link</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Google Drive</td>
+                            <td>
+                                Freigabelink, Zugriff „Jeder, der über den Link
+                                verfügt“
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Dropbox</td>
+                            <td>Freigabelink</td>
+                        </tr>
+                        <tr>
+                            <td>OneDrive</td>
+                            <td>
+                                Freigabelink eines privaten Kontos
+                                (<code>https://1drv.ms/u/c/…</code>)
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Nextcloud</td>
+                            <td>öffentlicher Freigabelink, ohne Passwort</td>
+                        </tr>
+                        <tr>
+                            <td>Website</td>
+                            <td>
+                                Adresse der Datei (<code>.dgo</code>,
+                                <code>.dgp</code> oder <code>.ggb</code>)
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <p>
+                Das Format wird am Inhalt der Datei erkannt, und ihr Name steht
+                am Ende der Menüleiste. Die Online-Datei wird nie verändert:
+                Speichern erzeugt eine <code>.dgo</code>-Datei auf dem Computer.
+            </p>
+            <p>
+                <code>?url=</code> steht zuletzt in der Adresse: Alles danach
+                gehört zum Link (<code>editor.html?lang=en&amp;url=…</code>).
             </p>
 
             <h2>Sprache</h2>

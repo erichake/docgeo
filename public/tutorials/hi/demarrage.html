@@ -51,11 +51,8 @@
                 इतिहास खाली कर देती है।
             </p>
             <p>
-                ऑनलाइन आकृति DocGeo के पते से खुलती है:
-                <code>editor.html?url=https://example.com/thales.ggb</code>।
-                फ़ॉर्मेट एक्सटेंशन से तय होता है (<code>.ggb</code>,
-                <code>.dgo</code>, अन्यथा DGPad); सर्वर को किसी दूसरी साइट से
-                पढ़ने की अनुमति देनी चाहिए (CORS)।
+                ऑनलाइन आकृति लिंक से भी खुलती है (देखें
+                <a href="#lien">लिंक से आकृति साझा करना</a>)।
             </p>
 
             <p>
@@ -106,6 +103,65 @@
             <p>
                 <code>.dgo</code> ही एकमात्र सहेजने का फ़ॉर्मेट है: DGPad या
                 GeoGebra की आकृति खोलकर सहेजने से वह बदल जाती है।
+            </p>
+
+            <h2 id="lien">लिंक से आकृति साझा करना</h2>
+            <p>
+                ऑनलाइन रखी गई आकृति लिंक से खुलती है: संपादक का पता, उसके बाद
+                <code>?url=</code> और फ़ाइल का लिंक, जैसा है वैसा चिपकाया हुआ।
+            </p>
+            <pre><code>https://doctools.org/apps/docgeo/editor.html?url=https://www.dropbox.com/scl/fi/…/thales.dgo?rlkey=…&amp;dl=0</code></pre>
+            <p>फ़ाइल का लिंक यहाँ से आ सकता है:</p>
+            <div class="table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>सेवा</th>
+                            <th>कॉपी करने वाला लिंक</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Google Drive</td>
+                            <td>
+                                साझा करने का लिंक, पहुँच “लिंक वाला कोई भी
+                                व्यक्ति”
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Dropbox</td>
+                            <td>साझा करने का लिंक</td>
+                        </tr>
+                        <tr>
+                            <td>OneDrive</td>
+                            <td>
+                                निजी खाते का साझा करने का लिंक
+                                (<code>https://1drv.ms/u/c/…</code>)
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Nextcloud</td>
+                            <td>सार्वजनिक साझा लिंक, बिना पासवर्ड</td>
+                        </tr>
+                        <tr>
+                            <td>वेबसाइट</td>
+                            <td>
+                                फ़ाइल का पता (<code>.dgo</code>,
+                                <code>.dgp</code> या <code>.ggb</code>)
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <p>
+                फ़ॉर्मेट फ़ाइल की सामग्री से पहचाना जाता है, और उसका नाम मेनू
+                बार के छोर पर दिखता है। ऑनलाइन फ़ाइल कभी नहीं बदलती: सहेजने से
+                कंप्यूटर पर एक <code>.dgo</code> फ़ाइल बनती है।
+            </p>
+            <p>
+                पते में <code>?url=</code> सबसे अंत में आता है: उसके बाद का सब
+                कुछ लिंक का हिस्सा है
+                (<code>editor.html?lang=en&amp;url=…</code>)।
             </p>
 
             <h2>भाषा</h2>

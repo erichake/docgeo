@@ -48,11 +48,8 @@
                 history.
             </p>
             <p>
-                An online figure opens through DocGeo’s address:
-                <code>editor.html?url=https://example.com/thales.ggb</code>. The
-                format is deduced from the extension (<code>.ggb</code>,
-                <code>.dgo</code>, DGPad otherwise); the server must allow
-                reading from another site (CORS).
+                An online figure also opens from a link (see
+                <a href="#lien">Sharing a figure by link</a>).
             </p>
 
             <p>
@@ -101,6 +98,64 @@
             <p>
                 <code>.dgo</code> is the only save format: opening a DGPad or
                 GeoGebra figure and saving it converts it.
+            </p>
+
+            <h2 id="lien">Sharing a figure by link</h2>
+            <p>
+                A figure put online opens from a link: the editor’s address,
+                followed by <code>?url=</code> and the file’s link, pasted as it
+                is.
+            </p>
+            <pre><code>https://doctools.org/apps/docgeo/editor.html?url=https://www.dropbox.com/scl/fi/…/thales.dgo?rlkey=…&amp;dl=0</code></pre>
+            <p>The file’s link can come from:</p>
+            <div class="table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Service</th>
+                            <th>Link to copy</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Google Drive</td>
+                            <td>sharing link, access “Anyone with the link”</td>
+                        </tr>
+                        <tr>
+                            <td>Dropbox</td>
+                            <td>sharing link</td>
+                        </tr>
+                        <tr>
+                            <td>OneDrive</td>
+                            <td>
+                                sharing link of a personal account
+                                (<code>https://1drv.ms/u/c/…</code>)
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Nextcloud</td>
+                            <td>public sharing link, without a password</td>
+                        </tr>
+                        <tr>
+                            <td>Website</td>
+                            <td>
+                                file address (<code>.dgo</code>,
+                                <code>.dgp</code> or <code>.ggb</code>)
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <p>
+                The format is recognized from the file’s content, and its name
+                shows at the end of the menu bar. The online file is never
+                modified: saving creates a <code>.dgo</code> file on the
+                computer.
+            </p>
+            <p>
+                <code>?url=</code> comes last in the address: everything after
+                it is part of the link
+                (<code>editor.html?lang=fr&amp;url=…</code>).
             </p>
 
             <h2>Language</h2>

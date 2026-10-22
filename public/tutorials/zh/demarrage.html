@@ -42,9 +42,9 @@
             <p>也可以把文件图标拖到页面上，编辑器和阅读器中均可。</p>
             <p>打开的图形会替换当前图形，并清空撤销历史。</p>
             <p>
-                在线图形可通过 DocGeo
-                的网址打开：<code>editor.html?url=https://example.com/thales.ggb</code>。格式由扩展名判断（<code>.ggb</code>、<code>.dgo</code>，其他按
-                DGPad 处理）；服务器必须允许从其他网站读取（CORS）。
+                在线图形也可以通过链接打开（见<a href="#lien"
+                    >通过链接分享图形</a
+                >）。
             </p>
 
             <p>
@@ -92,6 +92,59 @@
             <p>
                 <code>.dgo</code> 是唯一的保存格式：打开 DGPad 或 GeoGebra
                 图形后保存，即完成转换。
+            </p>
+
+            <h2 id="lien">通过链接分享图形</h2>
+            <p>
+                放在网上的图形可以通过链接打开：编辑器的网址，后接
+                <code>?url=</code> 和文件的链接，原样粘贴。
+            </p>
+            <pre><code>https://doctools.org/apps/docgeo/editor.html?url=https://www.dropbox.com/scl/fi/…/thales.dgo?rlkey=…&amp;dl=0</code></pre>
+            <p>文件的链接可以来自：</p>
+            <div class="table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>服务</th>
+                            <th>要复制的链接</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Google Drive</td>
+                            <td>共享链接，访问权限为“知道链接的任何人”</td>
+                        </tr>
+                        <tr>
+                            <td>Dropbox</td>
+                            <td>共享链接</td>
+                        </tr>
+                        <tr>
+                            <td>OneDrive</td>
+                            <td>
+                                个人账户的共享链接（<code>https://1drv.ms/u/c/…</code>）
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Nextcloud</td>
+                            <td>公开共享链接，不设密码</td>
+                        </tr>
+                        <tr>
+                            <td>网站</td>
+                            <td>
+                                文件的网址（<code>.dgo</code>、<code>.dgp</code>
+                                或 <code>.ggb</code>）
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <p>
+                格式根据文件内容识别，文件名显示在菜单栏末端。在线文件不会被修改：保存时会在电脑上创建一个
+                <code>.dgo</code> 文件。
+            </p>
+            <p>
+                <code>?url=</code>
+                放在网址的最后：其后的所有内容都属于链接（<code>editor.html?lang=en&amp;url=…</code>）。
             </p>
 
             <h2>语言</h2>

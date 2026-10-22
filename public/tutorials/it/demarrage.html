@@ -48,11 +48,8 @@
                 cronologia degli annullamenti.
             </p>
             <p>
-                Una figura online si apre con l’indirizzo di DocGeo:
-                <code>editor.html?url=https://esempio.it/talete.ggb</code>. Il
-                formato si deduce dall’estensione (<code>.ggb</code>,
-                <code>.dgo</code>, altrimenti DGPad); il server deve consentire
-                la lettura da un altro sito (CORS).
+                Una figura online si apre anche tramite un link (vedi
+                <a href="#lien">Condividere una figura tramite un link</a>).
             </p>
 
             <p>
@@ -104,6 +101,69 @@
             <p>
                 <code>.dgo</code> è l’unico formato di salvataggio: aprire una
                 figura di DGPad o GeoGebra e salvarla la converte.
+            </p>
+
+            <h2 id="lien">Condividere una figura tramite un link</h2>
+            <p>
+                Una figura caricata online si apre tramite un link: l’indirizzo
+                dell’editor, seguito da <code>?url=</code> e dal link del file,
+                incollato così com’è.
+            </p>
+            <pre><code>https://doctools.org/apps/docgeo/editor.html?url=https://www.dropbox.com/scl/fi/…/thales.dgo?rlkey=…&amp;dl=0</code></pre>
+            <p>Il link del file può provenire da:</p>
+            <div class="table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Servizio</th>
+                            <th>Link da copiare</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Google Drive</td>
+                            <td>
+                                link di condivisione, accesso «Chiunque abbia il
+                                link»
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Dropbox</td>
+                            <td>link di condivisione</td>
+                        </tr>
+                        <tr>
+                            <td>OneDrive</td>
+                            <td>
+                                link di condivisione di un account personale
+                                (<code>https://1drv.ms/u/c/…</code>)
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Nextcloud</td>
+                            <td>
+                                link di condivisione pubblico, senza password
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Sito web</td>
+                            <td>
+                                indirizzo del file (<code>.dgo</code>,
+                                <code>.dgp</code> o <code>.ggb</code>)
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <p>
+                Il formato è riconosciuto dal contenuto del file, e il suo nome
+                appare alla fine della barra dei menu. Il file online non viene
+                mai modificato: il salvataggio crea un file
+                <code>.dgo</code> sul computer.
+            </p>
+            <p>
+                <code>?url=</code> va per ultimo nell’indirizzo: tutto ciò che
+                segue fa parte del link
+                (<code>editor.html?lang=en&amp;url=…</code>).
             </p>
 
             <h2>Lingua</h2>

@@ -42,9 +42,9 @@
             <p>也可以把檔案圖示拖曳到頁面上，編輯器和閱讀器中皆可。</p>
             <p>開啟的圖形會取代目前的圖形，並清除復原歷程。</p>
             <p>
-                線上圖形可透過 DocGeo
-                的網址開啟：<code>editor.html?url=https://example.com/thales.ggb</code>。格式由副檔名判斷（<code>.ggb</code>、<code>.dgo</code>，其他按
-                DGPad 處理）；伺服器必須允許從其他網站讀取（CORS）。
+                線上圖形也可以透過連結開啟（見<a href="#lien"
+                    >透過連結分享圖形</a
+                >）。
             </p>
 
             <p>
@@ -92,6 +92,59 @@
             <p>
                 <code>.dgo</code> 是唯一的儲存格式：開啟 DGPad 或 GeoGebra
                 圖形後儲存，即完成轉換。
+            </p>
+
+            <h2 id="lien">透過連結分享圖形</h2>
+            <p>
+                放在網路上的圖形可以透過連結開啟：編輯器的網址，後接
+                <code>?url=</code> 和檔案的連結，原樣貼上。
+            </p>
+            <pre><code>https://doctools.org/apps/docgeo/editor.html?url=https://www.dropbox.com/scl/fi/…/thales.dgo?rlkey=…&amp;dl=0</code></pre>
+            <p>檔案的連結可以來自：</p>
+            <div class="table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>服務</th>
+                            <th>要複製的連結</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Google Drive</td>
+                            <td>共用連結，存取權為「知道連結的任何人」</td>
+                        </tr>
+                        <tr>
+                            <td>Dropbox</td>
+                            <td>共用連結</td>
+                        </tr>
+                        <tr>
+                            <td>OneDrive</td>
+                            <td>
+                                個人帳戶的共用連結（<code>https://1drv.ms/u/c/…</code>）
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Nextcloud</td>
+                            <td>公開共用連結，不設密碼</td>
+                        </tr>
+                        <tr>
+                            <td>網站</td>
+                            <td>
+                                檔案的網址（<code>.dgo</code>、<code>.dgp</code>
+                                或 <code>.ggb</code>）
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <p>
+                格式依檔案內容辨識，檔名顯示在選單列末端。線上檔案不會被修改：儲存時會在電腦上建立一個
+                <code>.dgo</code> 檔案。
+            </p>
+            <p>
+                <code>?url=</code>
+                放在網址的最後：其後的所有內容都屬於連結（<code>editor.html?lang=en&amp;url=…</code>）。
             </p>
 
             <h2>語言</h2>
