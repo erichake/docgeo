@@ -5,15 +5,15 @@ import {
     describeDgo,
     figureObjects,
     importDgoFromBlob,
-    importDgoFromUrl,
     readDgo,
     writeDgo,
     type DgoFigure,
 } from "../dgo";
-import { importDgp, importDgpFromUrl } from "../dgp_importer";
+import { importDgp } from "../dgp_importer";
 import { $, type DOMElement } from "../dom";
 import { dropFigures } from "../drop";
-import { importGgbFromBlob, importGgbFromUrl } from "../ggb_importer";
+import { importFigureFromUrl, urlName } from "../figure_url";
+import { importGgbFromBlob } from "../ggb_importer";
 import { LANG } from "../i18n";
 import type { construction_object } from "../objects/construction_object";
 import { point_object, type magnet_target } from "../objects/point_object";
@@ -4784,13 +4784,7 @@ if (window.matchMedia("(max-width: 600px)").matches) setPanel(false, false);
 
 const url = new URLSearchParams(window.location.search).get("url");
 export const EDITOR_READY = url
-    ? open(url, (c) =>
-          /\.ggb$/i.test(url)
-              ? importGgbFromUrl(c, url)
-              : /\.dgo$/i.test(url)
-                ? importDgoFromUrl(c, url)
-                : importDgpFromUrl(c, url),
-      )
+    ? open(urlName(url), (c) => importFigureFromUrl(c, url))
     : newFigure();
 
 finishSplash(EDITOR_READY);

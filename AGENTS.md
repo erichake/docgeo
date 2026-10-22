@@ -102,6 +102,14 @@ relatifs, et ne contenir aucun matériel de test. Une diffusion de DocGeo comme
 application indépendante n'est pas exclue : ne pas lier le code à des
 hypothèses propres à DocTools qui l'empêcheraient.
 
+Une figure passée par `?url=` que le navigateur ne laisse pas lire (site
+sans en-tête CORS, lien de partage Google Drive, que Drive ne sert qu'à un
+serveur) passe par le relais `figure.php`, livré à côté des pages
+(`public/figure.php`, `src/figure_url.ts`). Il ne lit qu'une adresse web
+publique, jamais un fichier local ni une machine du réseau du serveur.
+Servi sans PHP, le build reste fonctionnel : seules ces figures-là ne
+s'ouvrent pas.
+
 ### Mode intégré
 
 Le mode intégré (`index.html?embed`), son protocole `postMessage`, le cadre
@@ -121,7 +129,7 @@ DocTools ni à une autre application hôte.
 
 Le code source de la version de DGPad actuellement en production se trouve dans :
 
-`/Volumes/SSD 2To/Google Drive/Sites/dgpad`
+`/Users/erichake/Mon Drive/Sites/dgpad`
 
 Le consulter lorsque l'import `.dgp`, la sémantique d'un objet ou un comportement
 de compatibilité ne peuvent pas être déterminés avec certitude depuis le nouveau

@@ -1,10 +1,11 @@
 import { construction } from "./construction";
-import { importDgoFromBlob, importDgoFromUrl, writeDgo } from "./dgo";
-import { importDgp, importDgpFromUrl } from "./dgp_importer";
+import { importDgoFromBlob, writeDgo } from "./dgo";
+import { importDgp } from "./dgp_importer";
 import { $, type DOMElement } from "./dom";
 import { dropFigures } from "./drop";
 import { embed } from "./embed";
-import { importGgbFromBlob, importGgbFromUrl } from "./ggb_importer";
+import { importFigureFromUrl, urlName } from "./figure_url";
+import { importGgbFromBlob } from "./ggb_importer";
 import { DIR, t } from "./i18n";
 import { preferences } from "./preferences";
 
@@ -80,13 +81,7 @@ const url = search.get("url");
 export const DOCGEO_READY = search.has("embed")
     ? Promise.resolve(embed(DOCGEO))
     : url
-      ? openFigure(url, () =>
-            /\.ggb$/i.test(url)
-                ? importGgbFromUrl(DOCGEO.scene, url)
-                : /\.dgo$/i.test(url)
-                  ? importDgoFromUrl(DOCGEO.scene, url)
-                  : importDgpFromUrl(DOCGEO.scene, url),
-        )
+      ? openFigure(urlName(url), () => importFigureFromUrl(DOCGEO.scene, url))
       : pickFigure();
 
 // Outside the embedded mode, a figure file dropped on the page opens in

@@ -68,7 +68,7 @@ d'autres peuvent apparaître une fois celui-ci levé.
 Le XML Blockly d'origine est dans chaque `BLK` (champ `"xml"`) : il dit
 exactement quels blocs l'auteur a posés. Le lire pour choisir le bloc à
 ajouter. Les blocs propres à DGPad sont définis dans
-`/Volumes/SSD 2To/Google Drive/Sites/dgpad/scripts/NotPacked/thirdParty/Blockly/perso/blocks/*.js`
+`/Users/erichake/Mon Drive/Sites/dgpad/scripts/NotPacked/thirdParty/Blockly/perso/blocks/*.js`
 (code généré : `…/perso/js/*.js`, libellés : `scripts/NotPacked/lang/LocalStrings*.js`).
 
 - **(A) Fonctions avec résultat** (`procedures_defreturn` et
