@@ -132,7 +132,7 @@ DocTools ni à une autre application hôte.
 
 Le code source de la version de DGPad actuellement en production se trouve dans :
 
-`/Users/erichake/Mon Drive/Sites/dgpad`
+`/Users/erichake/Desktop/BV/html/doctools_MAIN/public/apps/dgpad`
 
 Le consulter lorsque l'import `.dgp`, la sémantique d'un objet ou un comportement
 de compatibilité ne peuvent pas être déterminés avec certitude depuis le nouveau
