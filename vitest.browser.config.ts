@@ -45,6 +45,21 @@ const drag: BrowserCommand<
 };
 
 export default defineConfig({
+    plugins: [
+        {
+            // Vitest wraps the pages' dynamic imports (src/start.ts) in a
+            // call to its runner, which a page in a test's iframe lacks.
+            name: "iframe-pages-runner",
+            transformIndexHtml: () => [
+                {
+                    tag: "script",
+                    children:
+                        "globalThis.__vitest_browser_runner__ ??= { wrapDynamicImport: (load) => load() };",
+                    injectTo: "head-prepend",
+                },
+            ],
+        },
+    ],
     test: {
         include: ["tests/browser/**/*.test.ts"],
         browser: {
