@@ -1,0 +1,242 @@
+<!doctype html>
+<html lang="de">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <title>In eine Webseite einbetten — DocGeo-Handbuch</title>
+        <link rel="icon" type="image/svg+xml" href="../../favicon.svg" />
+        <link rel="stylesheet" href="../manual.css" />
+        <script src="../icons.js" defer></script>
+        <script src="../manual.js" defer></script>
+    </head>
+    <body>
+        <main>
+            <h1>In eine Webseite einbetten</h1>
+            <p>
+                Eine DocGeo-Figur kann in jeder Webseite erscheinen — Ihrer
+                Website, einem Moodle-Kurs, einem Blog — und dort wie in DocGeo
+                bedient werden. Sie fügen nur einen Code, den der Editor
+                vorbereitet, in den HTML-Code der Seite ein. Die Figur passt
+                sich der Breite der Seite an, auch auf einem Telefon.
+            </p>
+
+            <h2 id="principe">Das Prinzip</h2>
+            <p>
+                Die Seite enthält die Figur nicht: Bei jeder Anzeige liest sie
+                die Figur dort, wo Sie sie online veröffentlicht haben. Daher:
+            </p>
+            <ul>
+                <li>
+                    Die Figur muss zuerst online gestellt werden, wie um
+                    <a href="demarrage.html#lien">sie per Link zu teilen</a>;
+                </li>
+                <li>
+                    um die Seite zu aktualisieren, ersetzen Sie nur die
+                    veröffentlichte Datei: Alle Seiten, die sie einbetten,
+                    zeigen sofort die neue Version, ohne dass ihr Code geändert
+                    wird.
+                </li>
+            </ul>
+
+            <h2 id="etapes">Schritt für Schritt</h2>
+            <ol>
+                <li>
+                    Speichern Sie die Figur (<kbd>Ctrl</kbd> <kbd>S</kbd>) und
+                    stellen Sie die <code>.dgo</code>-Datei online: auf Ihre
+                    Website, in Google Drive, Dropbox, OneDrive oder Nextcloud.
+                    Kopieren Sie ihren Freigabelink.
+                </li>
+                <li>
+                    Wählen Sie
+                    <strong>Datei › In eine Webseite einbetten…</strong>. Wurde
+                    die Figur nicht über ihren Link geöffnet, fragt DocGeo
+                    danach: Fügen Sie ihn ein und klicken Sie auf
+                    <strong>Öffnen</strong>. Die veröffentlichte Figur ersetzt
+                    dann die Figur im Editor; so ist sicher, dass der Code
+                    funktioniert.
+                    <figure>
+                        <img
+                            src="img/integrer-lien.webp"
+                            alt="Das Fenster, das nach dem Link der veröffentlichten Figur fragt"
+                            width="900"
+                            height="420"
+                        />
+                    </figure>
+                </li>
+                <li>
+                    Ein Rahmen erscheint über der Figur: Die Seite zeigt genau,
+                    was er enthält. Seine Griffe (Ecken und Seitenmitten) ändern
+                    seine Größe, seine Ränder und seine Beschriftung verschieben
+                    ihn. Zum Ausrichten können Sie auch zoomen, die Ansicht
+                    verschieben oder eine 3D-Figur drehen; die Figur bleibt
+                    bedienbar.
+                </li>
+                <li>
+                    Stellen Sie bei Bedarf die Optionen ein, mit der
+                    Schaltfläche links von <strong>Code kopieren</strong>.
+                    <figure>
+                        <img
+                            src="img/integrer-cadre.webp"
+                            alt="Der Rahmen über der Figur, das Band der Leiste und seine Optionen"
+                            width="1200"
+                            height="720"
+                        />
+                    </figure>
+                </li>
+                <li>
+                    Klicken Sie auf <strong>Code kopieren</strong> und fügen Sie
+                    diesen Code in den HTML-Code Ihrer Seite ein.
+                </li>
+                <li>
+                    <strong>Fertig</strong> oder <kbd>Esc</kbd> entfernt den
+                    Rahmen.
+                </li>
+            </ol>
+
+            <h2 id="options">Die Optionen</h2>
+            <div class="table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Option</th>
+                            <th>Wirkung</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Figur zentrieren</td>
+                            <td>
+                                umgibt den Code mit <code>&lt;center&gt;</code>:
+                                Die Figur wird in der Seite zentriert.
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Rahmenlinie</td>
+                            <td>eine dünne graue Linie um die Figur.</td>
+                        </tr>
+                        <tr>
+                            <td>Schaltflächen über der Figur</td>
+                            <td>
+                                eine kleine Leiste oben rechts in der Figur,
+                                sichtbar, wenn die Maus darüber ist: die Figur
+                                zurücksetzen, im Vollbild zeigen.
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Schaltfläche „Figur bearbeiten“</td>
+                            <td>
+                                fügt dieser Leiste eine Schaltfläche hinzu, die
+                                die Figur im Editor öffnet, in einem neuen Tab.
+                                Abwählen, zum Beispiel, damit Schülerinnen und
+                                Schüler die Konstruktion nicht sehen.
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <p>
+                Alle Optionen sind anfangs ausgewählt; Ihre Wahl bleibt
+                erhalten, bis der Editor geschlossen wird.
+            </p>
+
+            <h2 id="code">Der einzufügende Code</h2>
+            <p>Der kopierte Code sieht so aus:</p>
+            <pre><code>&lt;center&gt;&lt;iframe
+    src="https://…/index.html?fit=704,512,…&amp;amp;url=https://…/triangle.dgo"
+    style="<strong>width:704px</strong>;max-width:100%;aspect-ratio:704/512;border:1px solid #ccc"
+    allow="fullscreen" loading="lazy"&gt;&lt;/iframe&gt;&lt;/center&gt;</code></pre>
+            <p>
+                Um die Größe der Figur in der Seite zu ändern, ändern Sie nur
+                <code>width</code>, in Pixeln: Die Höhe folgt, und die Figur
+                behält die Proportionen des Rahmens. Auf einem schmaleren
+                Bildschirm, etwa dem eines Telefons, wird sie von selbst kleiner
+                (<code>max-width:100%</code>). Ändern Sie
+                <code>aspect-ratio</code> nur, um dem Platz der Figur eine
+                andere Form zu geben; die Figur bleibt darin ganz und zentriert.
+                Die Zahlen nach <code>fit=</code> beschreiben, was die Figur
+                zeigt, nicht ihre Größe: Ändern Sie sie nicht.
+            </p>
+            <p>
+                Fügen Sie den Code dort ein, wo die Seite HTML annimmt: in die
+                <code>.html</code>-Datei selbst, in einen WordPress-Block
+                „Individuelles HTML“ oder in den HTML-Modus (Quellcode) des
+                Texteditors von Moodle.
+            </p>
+
+            <h2 id="page">In der Seite</h2>
+            <p>
+                Die Figur wird dort wie in DocGeo bedient: Punkte,
+                Schieberegler, Kontrollkästchen, Schaltflächen… Ziehen an einer
+                leeren Stelle verschiebt die Ansicht oder dreht sie in 3D. Das
+                Mausrad blättert die Seite, wie überall sonst; um die Figur zu
+                zoomen, verwenden Sie <kbd>Ctrl</kbd> + Mausrad oder ziehen Sie
+                auf dem Touchpad zwei Finger auseinander.
+            </p>
+            <p>
+                Die Schaltflächen oben rechts setzen die Figur zurück (so, wie
+                die Seite sie geöffnet hat), zeigen sie im Vollbild und öffnen
+                sie, wenn die Option ausgewählt ist, im Editor.
+            </p>
+            <figure>
+                <img
+                    src="img/integree.webp"
+                    alt="Die eingebettete Figur, die Maus darüber: ihre Schaltflächen oben rechts"
+                    width="704"
+                    height="512"
+                />
+            </figure>
+
+            <h2 id="maj">Eine eingebettete Figur aktualisieren</h2>
+            <p>
+                Öffnen Sie die Figur über ihren Link im Editor (zum Beispiel mit
+                der Schaltfläche „Figur bearbeiten“ der Seite), ändern und
+                speichern Sie sie und ersetzen Sie dann die veröffentlichte
+                Datei <strong>am selben Ort, mit demselben Link</strong>: in
+                Google Drive, indem Sie eine neue Version der Datei hochladen;
+                in Dropbox, OneDrive oder Nextcloud, indem Sie die neue Datei
+                unter demselben Namen in denselben Ordner legen. Alle Seiten,
+                die die Figur einbetten, zeigen dann die neue Version, ohne dass
+                ihr Code geändert wird.
+            </p>
+            <p>
+                Um nur den Ausschnitt zu ändern, wählen Sie erneut
+                <strong>Datei › In eine Webseite einbetten…</strong> und
+                kopieren Sie den neuen Code: Die veröffentlichte Datei muss sich
+                nicht ändern.
+            </p>
+            <p>
+                Wurde die Figur im Editor geändert, seit sie über ihren Link
+                geöffnet wurde, weist DocGeo darauf hin, bevor es den Rahmen
+                zeigt: Solange die veröffentlichte Datei nicht ersetzt ist,
+                zeigt die Seite die alte Version.
+            </p>
+
+            <h2 id="probleme">Wenn die Figur nicht erscheint</h2>
+            <ul>
+                <li>
+                    Der Link muss öffentlich sein: Zugriff „Jeder, der über den
+                    Link verfügt“ in Google Drive, ein Link ohne Passwort in
+                    Nextcloud.
+                </li>
+                <li>
+                    Manche Plattformen entfernen <code>&lt;iframe&gt;</code> aus
+                    eingefügtem HTML oder lassen sie nur für bestimmte Websites
+                    oder Benutzer zu: Prüfen Sie die Einstellungen Ihrer
+                    Plattform.
+                </li>
+                <li>
+                    Ein Code, der aus einem auf Ihrem Computer installierten
+                    DocGeo kopiert wurde (Adresse <code>localhost</code>),
+                    funktioniert nur auf diesem: Kopieren Sie den Code aus dem
+                    Online-Editor.
+                </li>
+                <li>
+                    Die Vollbild-Schaltfläche erscheint nur, wenn das
+                    <code>&lt;iframe&gt;</code> das Attribut
+                    <code>allow="fullscreen"</code> hat, das der kopierte Code
+                    enthält.
+                </li>
+            </ul>
+        </main>
+    </body>
+</html>

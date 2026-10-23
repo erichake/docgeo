@@ -59,6 +59,36 @@ async function events({ page, type, point, button, t }) {
     await page.waitForTimeout(800);
 }
 
+// The triangle, published at a made-up address the page's requests to it
+// are answered from, and its link given to File > Embed in a web page…:
+// left in the dialog, or opened.
+const PUBLISHED = "https://example.org/figures/triangle.dgo";
+async function embedding({ page, type, t }, open) {
+    await type(TRIANGLE);
+    const dgo = await page.evaluate(async () => {
+        const { studio } = await import("/src/editor/main.ts");
+        const { writeDgo } = await import("/src/dgo.ts");
+        const blob = await writeDgo(studio.scene);
+        return [...new Uint8Array(await blob.arrayBuffer())];
+    });
+    await page.context().route(PUBLISHED, (route) =>
+        route.fulfill({
+            body: Buffer.from(dgo),
+            headers: { "access-control-allow-origin": "*" },
+        }),
+    );
+    await page.click(
+        `.dge-menubar > div > button:has-text("${await t("menu_file")}")`,
+    );
+    await page.click(
+        `.dge-menu-popup button:has-text("${await t("embed_page")}")`,
+    );
+    await page.fill("dialog input", PUBLISHED);
+    if (!open) return;
+    await page.click("dialog .dge-done");
+    await page.waitForTimeout(1200);
+}
+
 export const SHOTS = [
     {
         file: "interface.webp",
@@ -220,6 +250,54 @@ export const SHOTS = [
                 "pl = z = 1.5",
                 "s = Section(py, pl)",
             ]);
+        },
+    },
+    {
+        file: "integrer-lien.webp",
+        page: "editor.html",
+        clip: { x: 300, y: 160, width: 900, height: 420 },
+        run: (helpers) => embedding(helpers, false),
+    },
+    {
+        file: "integrer-cadre.webp",
+        page: "editor.html",
+        run: async (helpers) => {
+            const { page, t } = helpers;
+            await embedding(helpers, true);
+            await page
+                .getByRole("button", { name: await t("embed_options") })
+                .click();
+        },
+    },
+    {
+        // The figure as the copied code shows it, its buttons shown.
+        file: "integree.webp",
+        page: "editor.html",
+        run: async (helpers) => {
+            const { page, t } = helpers;
+            await embedding(helpers, true);
+            await page.evaluate(() =>
+                Object.defineProperty(navigator, "clipboard", {
+                    value: { writeText: async (text) => (window.code = text) },
+                }),
+            );
+            await page
+                .getByRole("button", { name: await t("copy_code") })
+                .click();
+            const code = await page.evaluate(() => window.code);
+            const [, src, w, h] = code.match(
+                /src="([^"]*)".*width:(\d+)px.*aspect-ratio:\d+\/(\d+)/,
+            );
+            const lang = new URL(page.url()).searchParams.get("lang");
+            await page.setViewportSize({ width: +w, height: +h });
+            await page.goto(
+                src
+                    .replaceAll("&amp;", "&")
+                    .replace("?fit=", `?lang=${lang}&fit=`),
+            );
+            await page.waitForTimeout(1500);
+            await page.mouse.move(+w / 2, +h / 2);
+            await page.waitForTimeout(400);
         },
     },
 ];

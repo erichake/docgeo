@@ -1,0 +1,230 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <title>Embedding in a web page — DocGeo manual</title>
+        <link rel="icon" type="image/svg+xml" href="../../favicon.svg" />
+        <link rel="stylesheet" href="../manual.css" />
+        <script src="../icons.js" defer></script>
+        <script src="../manual.js" defer></script>
+    </head>
+    <body>
+        <main>
+            <h1>Embedding in a web page</h1>
+            <p>
+                A DocGeo figure can be shown in any web page — your website, a
+                Moodle course, a blog — and manipulated there as in DocGeo. You
+                only paste into the page’s HTML a code the editor prepares. The
+                figure adapts to the page’s width, phones included.
+            </p>
+
+            <h2 id="principe">How it works</h2>
+            <p>
+                The page doesn’t contain the figure: each time it is shown, it
+                reads the figure where you published it online. Therefore:
+            </p>
+            <ul>
+                <li>
+                    the figure must first be put online, as to
+                    <a href="demarrage.html#lien">share it by link</a>;
+                </li>
+                <li>
+                    to update the page, you only replace the published file:
+                    every page embedding it shows the new version at once,
+                    without touching its code.
+                </li>
+            </ul>
+
+            <h2 id="etapes">Step by step</h2>
+            <ol>
+                <li>
+                    Save the figure (<kbd>Ctrl</kbd> <kbd>S</kbd>), then put the
+                    <code>.dgo</code> file online: on your website, Google
+                    Drive, Dropbox, OneDrive or Nextcloud. Copy its sharing
+                    link.
+                </li>
+                <li>
+                    Choose <strong>File › Embed in a web page…</strong>. If the
+                    figure wasn’t opened from its link, DocGeo asks for it:
+                    paste it and click <strong>Open</strong>. The published
+                    figure then replaces the one in the editor, which ensures
+                    the code will work.
+                    <figure>
+                        <img
+                            src="img/integrer-lien.webp"
+                            alt="The dialog asking for the link of the published figure"
+                            width="900"
+                            height="420"
+                        />
+                    </figure>
+                </li>
+                <li>
+                    A frame appears over the figure: the page will show exactly
+                    what it contains. Its handles (corners and middles of the
+                    sides) resize it, its edges and its label move it. To frame,
+                    you can also zoom, move the view or turn a 3D figure; the
+                    figure can still be manipulated.
+                </li>
+                <li>
+                    Set the options if needed, with the button left of
+                    <strong>Copy the code</strong>.
+                    <figure>
+                        <img
+                            src="img/integrer-cadre.webp"
+                            alt="The frame over the figure, the bar’s banner and its options"
+                            width="1200"
+                            height="720"
+                        />
+                    </figure>
+                </li>
+                <li>
+                    Click <strong>Copy the code</strong>, then paste this code
+                    into your page’s HTML.
+                </li>
+                <li>
+                    <strong>Done</strong> or <kbd>Esc</kbd> removes the frame.
+                </li>
+            </ol>
+
+            <h2 id="options">The options</h2>
+            <div class="table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Option</th>
+                            <th>Effect</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Center the figure</td>
+                            <td>
+                                wraps the code in <code>&lt;center&gt;</code>:
+                                the figure is centered in the page.
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Border</td>
+                            <td>a thin gray line around the figure.</td>
+                        </tr>
+                        <tr>
+                            <td>Buttons over the figure</td>
+                            <td>
+                                a small bar at the figure’s top right, shown
+                                when the mouse is over it: reset the figure,
+                                show it full screen.
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>“Edit the figure” button</td>
+                            <td>
+                                adds to this bar a button opening the figure in
+                                the editor, in a new tab. Untick it, for
+                                instance, so that students don’t see the
+                                construction.
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <p>
+                All the options are ticked at first; your choices are kept until
+                the editor is closed.
+            </p>
+
+            <h2 id="code">The code to paste</h2>
+            <p>The copied code looks like this:</p>
+            <pre><code>&lt;center&gt;&lt;iframe
+    src="https://…/index.html?fit=704,512,…&amp;amp;url=https://…/triangle.dgo"
+    style="<strong>width:704px</strong>;max-width:100%;aspect-ratio:704/512;border:1px solid #ccc"
+    allow="fullscreen" loading="lazy"&gt;&lt;/iframe&gt;&lt;/center&gt;</code></pre>
+            <p>
+                To change the figure’s size in the page, only change
+                <code>width</code>, in pixels: the height follows, and the
+                figure keeps the frame’s proportions. On a narrower screen, such
+                as a phone’s, it shrinks by itself
+                (<code>max-width:100%</code>). Only change
+                <code>aspect-ratio</code> to give the figure’s space another
+                shape, the figure staying whole in it, centered. The numbers
+                after <code>fit=</code> describe what the figure shows, not its
+                size: don’t change them.
+            </p>
+            <p>
+                Paste the code where the page accepts HTML: in the
+                <code>.html</code> file itself, in a WordPress “Custom HTML”
+                block, or in the HTML (source code) mode of Moodle’s text
+                editor.
+            </p>
+
+            <h2 id="page">In the page</h2>
+            <p>
+                The figure is manipulated there as in DocGeo: points, sliders,
+                checkboxes, buttons… Dragging an empty spot moves the view, or
+                turns it in 3D. The wheel scrolls the page, as anywhere else; to
+                zoom the figure, use <kbd>Ctrl</kbd> + wheel, or pinch on the
+                touchpad.
+            </p>
+            <p>
+                The buttons at the top right reset the figure (as the page
+                opened it), show it full screen and, if the option is ticked,
+                open it in the editor.
+            </p>
+            <figure>
+                <img
+                    src="img/integree.webp"
+                    alt="The embedded figure, the mouse over it: its buttons at the top right"
+                    width="704"
+                    height="512"
+                />
+            </figure>
+
+            <h2 id="maj">Updating an embedded figure</h2>
+            <p>
+                Open the figure in the editor from its link (for instance with
+                the page’s “Edit the figure” button), change it and save it,
+                then replace the published file
+                <strong>in the same place, keeping its link</strong>: on Google
+                Drive, by uploading a new version of the file; on Dropbox,
+                OneDrive or Nextcloud, by putting the new file under the same
+                name, in the same folder. Every page embedding the figure then
+                shows the new version, without changing its code.
+            </p>
+            <p>
+                To change the framing only, choose
+                <strong>File › Embed in a web page…</strong> again and copy the
+                new code: the published file doesn’t have to change.
+            </p>
+            <p>
+                If the figure has changed in the editor since it was opened from
+                its link, DocGeo says so before showing the frame: as long as
+                the published file isn’t replaced, the page shows the former
+                version.
+            </p>
+
+            <h2 id="probleme">If the figure isn’t shown</h2>
+            <ul>
+                <li>
+                    The link must be public: access “Anyone with the link” on
+                    Google Drive, a link without password on Nextcloud.
+                </li>
+                <li>
+                    Some platforms remove the <code>&lt;iframe&gt;</code> from
+                    pasted HTML, or only accept them for some sites or some
+                    users: check your platform’s settings.
+                </li>
+                <li>
+                    A code copied from a DocGeo installed on your computer
+                    (<code>localhost</code> address) only works on it: copy the
+                    code from the online editor.
+                </li>
+                <li>
+                    The full screen button only appears if the
+                    <code>&lt;iframe&gt;</code> has the
+                    <code>allow="fullscreen"</code> attribute, which the copied
+                    code contains.
+                </li>
+            </ul>
+        </main>
+    </body>
+</html>

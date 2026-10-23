@@ -542,6 +542,13 @@ main pre code {
     overflow-wrap: normal;
 }
 
+/* Ce qu’un exemple de code invite à modifier. */
+main pre strong {
+    padding: 0 2px;
+    border-radius: 3px;
+    background: var(--mark);
+}
+
 kbd {
     display: inline-block;
     min-width: 1.6em;

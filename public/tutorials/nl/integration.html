@@ -1,0 +1,239 @@
+<!doctype html>
+<html lang="nl">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <title>In een webpagina insluiten — DocGeo-handleiding</title>
+        <link rel="icon" type="image/svg+xml" href="../../favicon.svg" />
+        <link rel="stylesheet" href="../manual.css" />
+        <script src="../icons.js" defer></script>
+        <script src="../manual.js" defer></script>
+    </head>
+    <body>
+        <main>
+            <h1>In een webpagina insluiten</h1>
+            <p>
+                Een DocGeo-figuur kan in elke webpagina verschijnen — je
+                website, een Moodle-cursus, een blog — en daar worden
+                gemanipuleerd zoals in DocGeo. Je plakt alleen een code die de
+                editor klaarmaakt in de HTML van de pagina. De figuur past zich
+                aan de breedte van de pagina aan, ook op een telefoon.
+            </p>
+
+            <h2 id="principe">Het principe</h2>
+            <p>
+                De pagina bevat de figuur niet: telkens wanneer ze wordt
+                getoond, leest ze de figuur op de plek waar je die online hebt
+                gepubliceerd. Daarom:
+            </p>
+            <ul>
+                <li>
+                    moet de figuur eerst online worden gezet, zoals om
+                    <a href="demarrage.html#lien">haar via een link te delen</a
+                    >;
+                </li>
+                <li>
+                    volstaat het om het gepubliceerde bestand te vervangen om de
+                    pagina bij te werken: alle pagina’s die de figuur insluiten,
+                    tonen meteen de nieuwe versie, zonder dat hun code
+                    verandert.
+                </li>
+            </ul>
+
+            <h2 id="etapes">Stap voor stap</h2>
+            <ol>
+                <li>
+                    Sla de figuur op (<kbd>Ctrl</kbd> <kbd>S</kbd>) en zet het
+                    <code>.dgo</code>-bestand online: op je website, Google
+                    Drive, Dropbox, OneDrive of Nextcloud. Kopieer de deellink.
+                </li>
+                <li>
+                    Kies <strong>Bestand › In een webpagina insluiten…</strong>.
+                    Werd de figuur niet via haar link geopend, dan vraagt DocGeo
+                    erom: plak hem en klik op <strong>Openen</strong>. De
+                    gepubliceerde figuur vervangt dan die in de editor; zo werkt
+                    de code zeker.
+                    <figure>
+                        <img
+                            src="img/integrer-lien.webp"
+                            alt="Het venster dat om de link van de gepubliceerde figuur vraagt"
+                            width="900"
+                            height="420"
+                        />
+                    </figure>
+                </li>
+                <li>
+                    Er verschijnt een kader over de figuur: de pagina toont
+                    precies wat erin staat. De grepen (hoeken en midden van de
+                    zijden) veranderen de grootte, de randen en het label
+                    verplaatsen het. Om in te kaderen kun je ook zoomen, de
+                    weergave verschuiven of een 3D-figuur draaien; de figuur
+                    blijft manipuleerbaar.
+                </li>
+                <li>
+                    Stel zo nodig de opties in, met de knop links van
+                    <strong>Code kopiëren</strong>.
+                    <figure>
+                        <img
+                            src="img/integrer-cadre.webp"
+                            alt="Het kader over de figuur, de strook van de balk en de opties"
+                            width="1200"
+                            height="720"
+                        />
+                    </figure>
+                </li>
+                <li>
+                    Klik op <strong>Code kopiëren</strong> en plak deze code in
+                    de HTML van je pagina.
+                </li>
+                <li>
+                    <strong>Klaar</strong> of <kbd>Esc</kbd> haalt het kader
+                    weg.
+                </li>
+            </ol>
+
+            <h2 id="options">De opties</h2>
+            <div class="table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Optie</th>
+                            <th>Effect</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Figuur centreren</td>
+                            <td>
+                                zet de code tussen <code>&lt;center&gt;</code>:
+                                de figuur staat gecentreerd in de pagina.
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Rand</td>
+                            <td>een dunne grijze lijn rond de figuur.</td>
+                        </tr>
+                        <tr>
+                            <td>Knoppen op de figuur</td>
+                            <td>
+                                een kleine balk rechtsboven in de figuur,
+                                zichtbaar wanneer de muis erboven is: de figuur
+                                herstellen, volledig scherm tonen.
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Knop ‘Figuur bewerken’</td>
+                            <td>
+                                voegt aan die balk een knop toe die de figuur in
+                                de editor opent, in een nieuw tabblad. Vink hem
+                                bijvoorbeeld uit, zodat leerlingen de
+                                constructie niet zien.
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <p>
+                Alle opties zijn eerst aangevinkt; je keuzes blijven bewaard tot
+                de editor wordt gesloten.
+            </p>
+
+            <h2 id="code">De code om te plakken</h2>
+            <p>De gekopieerde code ziet er zo uit:</p>
+            <pre><code>&lt;center&gt;&lt;iframe
+    src="https://…/index.html?fit=704,512,…&amp;amp;url=https://…/triangle.dgo"
+    style="<strong>width:704px</strong>;max-width:100%;aspect-ratio:704/512;border:1px solid #ccc"
+    allow="fullscreen" loading="lazy"&gt;&lt;/iframe&gt;&lt;/center&gt;</code></pre>
+            <p>
+                Om de grootte van de figuur in de pagina te veranderen, wijzig
+                je alleen <code>width</code>, in pixels: de hoogte volgt, en de
+                figuur behoudt de verhoudingen van het kader. Op een smaller
+                scherm, zoals dat van een telefoon, wordt ze vanzelf kleiner
+                (<code>max-width:100%</code>). Wijzig
+                <code>aspect-ratio</code> alleen om de plek van de figuur een
+                andere vorm te geven; de figuur blijft daarin heel en
+                gecentreerd. De getallen na <code>fit=</code> beschrijven wat de
+                figuur toont, niet haar grootte: wijzig ze niet.
+            </p>
+            <p>
+                Plak de code waar de pagina HTML aanvaardt: in het
+                <code>.html</code>-bestand zelf, in een WordPress-blok
+                ‘Aangepaste HTML’, of in de HTML-modus (broncode) van de
+                teksteditor van Moodle.
+            </p>
+
+            <h2 id="page">In de pagina</h2>
+            <p>
+                De figuur wordt er gemanipuleerd zoals in DocGeo: punten,
+                schuifregelaars, selectievakjes, knoppen… Slepen op een lege
+                plek verschuift de weergave, of draait ze in 3D. Het muiswiel
+                scrolt de pagina, zoals overal; om op de figuur te zoomen
+                gebruik je <kbd>Ctrl</kbd> + muiswiel, of knijp je op het
+                touchpad.
+            </p>
+            <p>
+                De knoppen rechtsboven herstellen de figuur (zoals de pagina
+                haar opende), tonen haar op volledig scherm en openen haar, als
+                de optie is aangevinkt, in de editor.
+            </p>
+            <figure>
+                <img
+                    src="img/integree.webp"
+                    alt="De ingesloten figuur, met de muis erboven: haar knoppen rechtsboven"
+                    width="704"
+                    height="512"
+                />
+            </figure>
+
+            <h2 id="maj">Een ingesloten figuur bijwerken</h2>
+            <p>
+                Open de figuur via haar link in de editor (bijvoorbeeld met de
+                knop ‘Figuur bewerken’ van de pagina), wijzig ze en sla ze op,
+                en vervang dan het gepubliceerde bestand
+                <strong>op dezelfde plek, met dezelfde link</strong>: op Google
+                Drive door een nieuwe versie van het bestand te uploaden; op
+                Dropbox, OneDrive of Nextcloud door het nieuwe bestand onder
+                dezelfde naam in dezelfde map te zetten. Alle pagina’s die de
+                figuur insluiten, tonen dan de nieuwe versie, zonder dat hun
+                code verandert.
+            </p>
+            <p>
+                Om alleen het kader te veranderen, kies je opnieuw
+                <strong>Bestand › In een webpagina insluiten…</strong> en
+                kopieer je de nieuwe code: het gepubliceerde bestand hoeft niet
+                te veranderen.
+            </p>
+            <p>
+                Is de figuur in de editor gewijzigd sinds ze via haar link werd
+                geopend, dan meldt DocGeo dat voordat het kader verschijnt:
+                zolang het gepubliceerde bestand niet is vervangen, toont de
+                pagina de vorige versie.
+            </p>
+
+            <h2 id="probleme">Als de figuur niet verschijnt</h2>
+            <ul>
+                <li>
+                    De link moet openbaar zijn: toegang ‘Iedereen met de link’
+                    op Google Drive, een link zonder wachtwoord op Nextcloud.
+                </li>
+                <li>
+                    Sommige platforms verwijderen
+                    <code>&lt;iframe&gt;</code> uit geplakte HTML, of aanvaarden
+                    ze alleen voor bepaalde sites of gebruikers: controleer de
+                    instellingen van het jouwe.
+                </li>
+                <li>
+                    Een code die is gekopieerd uit een DocGeo dat op je computer
+                    is geïnstalleerd (adres <code>localhost</code>), werkt
+                    alleen daarop: kopieer de code uit de online editor.
+                </li>
+                <li>
+                    De knop voor volledig scherm verschijnt alleen als het
+                    <code>&lt;iframe&gt;</code> het attribuut
+                    <code>allow="fullscreen"</code> heeft, dat de gekopieerde
+                    code bevat.
+                </li>
+            </ul>
+        </main>
+    </body>
+</html>

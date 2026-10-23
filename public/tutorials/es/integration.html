@@ -1,0 +1,237 @@
+<!doctype html>
+<html lang="es">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <title>Insertar en una página web — Manual de DocGeo</title>
+        <link rel="icon" type="image/svg+xml" href="../../favicon.svg" />
+        <link rel="stylesheet" href="../manual.css" />
+        <script src="../icons.js" defer></script>
+        <script src="../manual.js" defer></script>
+    </head>
+    <body>
+        <main>
+            <h1>Insertar en una página web</h1>
+            <p>
+                Una figura de DocGeo puede mostrarse en cualquier página web —
+                tu sitio, un curso de Moodle, un blog — y manipularse allí como
+                en DocGeo. Basta con pegar en el HTML de la página un código que
+                prepara el editor. La figura se adapta al ancho de la página,
+                también en un teléfono.
+            </p>
+
+            <h2 id="principe">El principio</h2>
+            <p>
+                La página no contiene la figura: cada vez que se muestra, la lee
+                allí donde la publicaste en línea. Por eso:
+            </p>
+            <ul>
+                <li>
+                    primero hay que publicar la figura en línea, como para
+                    <a href="demarrage.html#lien"
+                        >compartirla mediante un enlace</a
+                    >;
+                </li>
+                <li>
+                    para actualizar la página, basta con reemplazar el archivo
+                    publicado: todas las páginas que la insertan muestran
+                    enseguida la nueva versión, sin tocar su código.
+                </li>
+            </ul>
+
+            <h2 id="etapes">Paso a paso</h2>
+            <ol>
+                <li>
+                    Guarda la figura (<kbd>Ctrl</kbd> <kbd>S</kbd>) y publica el
+                    archivo <code>.dgo</code> en línea: en tu sitio, Google
+                    Drive, Dropbox, OneDrive o Nextcloud. Copia su enlace para
+                    compartir.
+                </li>
+                <li>
+                    Elige
+                    <strong>Archivo › Insertar en una página web…</strong>. Si
+                    la figura no se abrió con su enlace, DocGeo lo pide: pégalo
+                    y haz clic en <strong>Abrir</strong>. La figura publicada
+                    reemplaza entonces a la del editor, lo que garantiza que el
+                    código funcionará.
+                    <figure>
+                        <img
+                            src="img/integrer-lien.webp"
+                            alt="La ventana que pide el enlace de la figura publicada"
+                            width="900"
+                            height="420"
+                        />
+                    </figure>
+                </li>
+                <li>
+                    Aparece un marco sobre la figura: la página mostrará
+                    exactamente lo que contiene. Sus asas (esquinas y centros de
+                    los lados) lo redimensionan, sus bordes y su etiqueta lo
+                    desplazan. Para encuadrar, también puedes hacer zoom, mover
+                    la vista o girar una figura 3D; la figura sigue siendo
+                    manipulable.
+                </li>
+                <li>
+                    Ajusta las opciones si hace falta, con el botón a la
+                    izquierda de <strong>Copiar el código</strong>.
+                    <figure>
+                        <img
+                            src="img/integrer-cadre.webp"
+                            alt="El marco sobre la figura, la franja de la barra y sus opciones"
+                            width="1200"
+                            height="720"
+                        />
+                    </figure>
+                </li>
+                <li>
+                    Haz clic en <strong>Copiar el código</strong> y pega este
+                    código en el HTML de tu página.
+                </li>
+                <li><strong>Listo</strong> o <kbd>Esc</kbd> quita el marco.</li>
+            </ol>
+
+            <h2 id="options">Las opciones</h2>
+            <div class="table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Opción</th>
+                            <th>Efecto</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Centrar la figura</td>
+                            <td>
+                                rodea el código con <code>&lt;center&gt;</code>:
+                                la figura queda centrada en la página.
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Borde</td>
+                            <td>una línea gris fina alrededor de la figura.</td>
+                        </tr>
+                        <tr>
+                            <td>Botones sobre la figura</td>
+                            <td>
+                                una pequeña barra arriba a la derecha de la
+                                figura, visible cuando el ratón pasa por encima:
+                                restablecer la figura, mostrarla en pantalla
+                                completa.
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Botón «Editar la figura»</td>
+                            <td>
+                                añade a esa barra un botón que abre la figura en
+                                el editor, en una pestaña nueva. Desmárcalo, por
+                                ejemplo, para que los alumnos no vean la
+                                construcción.
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <p>
+                Todas las opciones están marcadas al principio; tus elecciones
+                se conservan hasta que se cierra el editor.
+            </p>
+
+            <h2 id="code">El código que hay que pegar</h2>
+            <p>El código copiado se parece a esto:</p>
+            <pre><code>&lt;center&gt;&lt;iframe
+    src="https://…/index.html?fit=704,512,…&amp;amp;url=https://…/triangle.dgo"
+    style="<strong>width:704px</strong>;max-width:100%;aspect-ratio:704/512;border:1px solid #ccc"
+    allow="fullscreen" loading="lazy"&gt;&lt;/iframe&gt;&lt;/center&gt;</code></pre>
+            <p>
+                Para cambiar el tamaño de la figura en la página, cambia solo
+                <code>width</code>, en píxeles: la altura acompaña y la figura
+                conserva las proporciones del marco. En una pantalla más
+                estrecha, como la de un teléfono, se reduce sola
+                (<code>max-width:100%</code>). Cambia
+                <code>aspect-ratio</code> solo para dar otra forma al espacio de
+                la figura, que sigue entera y centrada en él. Los números que
+                siguen a <code>fit=</code> describen lo que muestra la figura,
+                no su tamaño: no los cambies.
+            </p>
+            <p>
+                Pega el código donde la página acepta HTML: en el propio archivo
+                <code>.html</code>, en un bloque «HTML personalizado» de
+                WordPress o en el modo HTML (código fuente) del editor de texto
+                de Moodle.
+            </p>
+
+            <h2 id="page">En la página</h2>
+            <p>
+                La figura se manipula allí como en DocGeo: puntos, deslizadores,
+                casillas, botones… Arrastrar en una zona vacía mueve la vista, o
+                la gira en 3D. La rueda desplaza la página, como en cualquier
+                otro sitio; para hacer zoom en la figura, usa <kbd>Ctrl</kbd> +
+                rueda o pellizca en el panel táctil.
+            </p>
+            <p>
+                Los botones de arriba a la derecha restablecen la figura (tal
+                como la abrió la página), la muestran en pantalla completa y, si
+                la opción está marcada, la abren en el editor.
+            </p>
+            <figure>
+                <img
+                    src="img/integree.webp"
+                    alt="La figura insertada, con el ratón encima: sus botones arriba a la derecha"
+                    width="704"
+                    height="512"
+                />
+            </figure>
+
+            <h2 id="maj">Actualizar una figura insertada</h2>
+            <p>
+                Abre la figura en el editor con su enlace (por ejemplo con el
+                botón «Editar la figura» de la página), modifícala y guárdala, y
+                luego reemplaza el archivo publicado
+                <strong>en el mismo lugar, conservando su enlace</strong>: en
+                Google Drive, subiendo una nueva versión del archivo; en
+                Dropbox, OneDrive o Nextcloud, colocando el nuevo archivo con el
+                mismo nombre en la misma carpeta. Todas las páginas que insertan
+                la figura muestran entonces la nueva versión, sin cambiar su
+                código.
+            </p>
+            <p>
+                Para cambiar solo el encuadre, vuelve a elegir
+                <strong>Archivo › Insertar en una página web…</strong> y copia
+                el nuevo código: el archivo publicado no tiene que cambiar.
+            </p>
+            <p>
+                Si la figura ha cambiado en el editor desde que se abrió con su
+                enlace, DocGeo lo recuerda antes de mostrar el marco: mientras
+                no se reemplace el archivo publicado, la página muestra la
+                versión anterior.
+            </p>
+
+            <h2 id="probleme">Si la figura no se muestra</h2>
+            <ul>
+                <li>
+                    El enlace debe ser público: acceso «Cualquier persona que
+                    tenga el enlace» en Google Drive, enlace sin contraseña en
+                    Nextcloud.
+                </li>
+                <li>
+                    Algunas plataformas eliminan los
+                    <code>&lt;iframe&gt;</code> del HTML pegado, o solo los
+                    aceptan para ciertos sitios o ciertos usuarios: revisa la
+                    configuración de la tuya.
+                </li>
+                <li>
+                    Un código copiado desde un DocGeo instalado en tu ordenador
+                    (dirección <code>localhost</code>) solo funciona en él:
+                    copia el código desde el editor en línea.
+                </li>
+                <li>
+                    El botón de pantalla completa solo aparece si el
+                    <code>&lt;iframe&gt;</code> tiene el atributo
+                    <code>allow="fullscreen"</code>, que contiene el código
+                    copiado.
+                </li>
+            </ul>
+        </main>
+    </body>
+</html>

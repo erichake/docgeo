@@ -1,0 +1,196 @@
+<!doctype html>
+<html lang="zh">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <title>嵌入网页 — DocGeo 手册</title>
+        <link rel="icon" type="image/svg+xml" href="../../favicon.svg" />
+        <link rel="stylesheet" href="../manual.css" />
+        <script src="../icons.js" defer></script>
+        <script src="../manual.js" defer></script>
+    </head>
+    <body>
+        <main>
+            <h1>嵌入网页</h1>
+            <p>
+                DocGeo 图形可以显示在任何网页中——您的网站、Moodle
+                课程、博客——并在其中像在 DocGeo
+                中一样操作。只需把编辑器准备好的代码粘贴到网页的 HTML
+                中。图形会适应网页的宽度，在手机上也一样。
+            </p>
+
+            <h2 id="principe">原理</h2>
+            <p>
+                网页并不包含图形：每次显示时，它都会到您在网上发布图形的位置去读取。因此：
+            </p>
+            <ul>
+                <li>
+                    必须先把图形放到网上，就像<a href="demarrage.html#lien"
+                        >通过链接分享</a
+                    >一样；
+                </li>
+                <li>
+                    要更新网页，只需替换已发布的文件：所有嵌入该图形的网页都会立即显示新版本，无需修改它们的代码。
+                </li>
+            </ul>
+
+            <h2 id="etapes">分步操作</h2>
+            <ol>
+                <li>
+                    保存图形（<kbd>Ctrl</kbd> <kbd>S</kbd>），然后把
+                    <code>.dgo</code> 文件放到网上：您的网站、Google
+                    Drive、Dropbox、OneDrive 或 Nextcloud。复制其共享链接。
+                </li>
+                <li>
+                    选择<strong>文件 › 嵌入网页…</strong
+                    >。如果图形不是通过链接打开的，DocGeo
+                    会询问链接：粘贴后点击<strong>打开</strong>。已发布的图形随即替换编辑器中的图形，从而确保代码可以正常工作。
+                    <figure>
+                        <img
+                            src="img/integrer-lien.webp"
+                            alt="询问已发布图形链接的窗口"
+                            width="900"
+                            height="420"
+                        />
+                    </figure>
+                </li>
+                <li>
+                    图形上会出现一个框：网页将准确显示框内的内容。拖动其控制点（四角和各边中点）可调整大小，拖动其边缘或标签可移动它。取景时，您也可以缩放、移动视图或旋转三维图形；图形仍可操作。
+                </li>
+                <li>
+                    如有需要，用<strong>复制代码</strong>左侧的按钮设置选项。
+                    <figure>
+                        <img
+                            src="img/integrer-cadre.webp"
+                            alt="图形上的框、工具栏中的横条及其选项"
+                            width="1200"
+                            height="720"
+                        />
+                    </figure>
+                </li>
+                <li>
+                    点击<strong>复制代码</strong>，然后把代码粘贴到网页的 HTML
+                    中。
+                </li>
+                <li><strong>完成</strong>或 <kbd>Esc</kbd> 移除该框。</li>
+            </ol>
+
+            <h2 id="options">选项</h2>
+            <div class="table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>选项</th>
+                            <th>作用</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>图形居中</td>
+                            <td>
+                                用
+                                <code>&lt;center&gt;</code>
+                                包住代码：图形在网页中居中。
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>边框</td>
+                            <td>图形周围的一条灰色细线。</td>
+                        </tr>
+                        <tr>
+                            <td>图形上的按钮</td>
+                            <td>
+                                图形右上角的一个小工具条，鼠标移到图形上时显示：重置图形、全屏显示。
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>“编辑图形”按钮</td>
+                            <td>
+                                在该工具条上添加一个按钮，在新标签页中用编辑器打开图形。例如，不希望学生看到作图过程时，可取消勾选。
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <p>所有选项起初都已勾选；您的选择会保留到关闭编辑器为止。</p>
+
+            <h2 id="code">要粘贴的代码</h2>
+            <p>复制的代码类似这样：</p>
+            <pre><code>&lt;center&gt;&lt;iframe
+    src="https://…/index.html?fit=704,512,…&amp;amp;url=https://…/triangle.dgo"
+    style="<strong>width:704px</strong>;max-width:100%;aspect-ratio:704/512;border:1px solid #ccc"
+    allow="fullscreen" loading="lazy"&gt;&lt;/iframe&gt;&lt;/center&gt;</code></pre>
+            <p>
+                要改变图形在网页中的大小，只需修改
+                <code>width</code
+                >（单位为像素）：高度随之变化，图形保持框的比例。在较窄的屏幕上（例如手机），图形会自动缩小（<code>max-width:100%</code>）。只有想让图形所占区域换一种形状时才修改
+                <code>aspect-ratio</code>，图形在其中仍完整显示并居中。<code
+                    >fit=</code
+                >
+                后面的数字描述图形显示的内容，而不是它的大小：请不要修改。
+            </p>
+            <p>
+                把代码粘贴到网页接受 HTML 的地方：直接写进
+                <code>.html</code> 文件、WordPress 的“自定义 HTML”区块，或
+                Moodle 文本编辑器的 HTML（源代码）模式。
+            </p>
+
+            <h2 id="page">在网页中</h2>
+            <p>
+                在网页中，图形的操作方式与 DocGeo
+                相同：点、滑动条、复选框、按钮……在空白处拖动可移动视图，三维时则旋转视图。鼠标滚轮会像在其他地方一样滚动网页；要缩放图形，请使用
+                <kbd>Ctrl</kbd> + 滚轮，或在触控板上双指捏合。
+            </p>
+            <p>
+                右上角的按钮可以重置图形（恢复为网页打开时的样子）、全屏显示，在勾选了相应选项时，还可以在编辑器中打开图形。
+            </p>
+            <figure>
+                <img
+                    src="img/integree.webp"
+                    alt="嵌入的图形，鼠标位于其上：右上角是它的按钮"
+                    width="704"
+                    height="512"
+                />
+            </figure>
+
+            <h2 id="maj">更新嵌入的图形</h2>
+            <p>
+                通过链接在编辑器中打开图形（例如使用网页上的“编辑图形”按钮），修改并保存，然后<strong>在同一位置替换已发布的文件，保留其链接</strong>：在
+                Google Drive 上，上传文件的新版本；在 Dropbox、OneDrive 或
+                Nextcloud
+                上，把新文件以相同名称放进同一文件夹。所有嵌入该图形的网页随即显示新版本，无需修改其代码。
+            </p>
+            <p>
+                如果只想改变取景，请再次选择<strong>文件 › 嵌入网页…</strong
+                >并复制新代码：已发布的文件无需改动。
+            </p>
+            <p>
+                如果图形在通过链接打开后在编辑器中被修改过，DocGeo
+                会在显示框之前提醒：在替换已发布的文件之前，网页显示的仍是旧版本。
+            </p>
+
+            <h2 id="probleme">如果图形没有显示</h2>
+            <ul>
+                <li>
+                    链接必须是公开的：Google Drive
+                    上设为“知道链接的任何人”，Nextcloud 上使用不带密码的链接。
+                </li>
+                <li>
+                    有些平台会从粘贴的 HTML 中删除
+                    <code>&lt;iframe&gt;</code
+                    >，或只允许某些网站、某些用户使用：请检查您所用平台的设置。
+                </li>
+                <li>
+                    从安装在您电脑上的 DocGeo（地址为
+                    <code>localhost</code
+                    >）复制的代码只能在这台电脑上使用：请从在线编辑器复制代码。
+                </li>
+                <li>
+                    只有当 <code>&lt;iframe&gt;</code> 带有
+                    <code>allow="fullscreen"</code>
+                    属性时才会出现全屏按钮，复制的代码中已包含该属性。
+                </li>
+            </ul>
+        </main>
+    </body>
+</html>
