@@ -165,6 +165,7 @@ import {
 } from "./spring";
 import { offPlane, PLANE, SPACE, turnView } from "./space";
 import { showStep as showStepOf, stepOf, steps, type Stepping } from "./steps";
+import { askLink, confirmed, framingBar } from "./web_page";
 import "./properties.css";
 
 // The construction editor: see EDITOR.md.
@@ -582,6 +583,13 @@ const doneButton = $.create("button")
     .att("type", "button")
     .text(message("done"));
 doneButton.on("click", () => (armed ? cancel() : stopMagnets()));
+// The figure framed for a web page, from its published file.
+const framing = framingBar(
+    scene,
+    () => new URL(published!.url, location.href).href,
+    showHint,
+    () => framing.stop(),
+);
 const toolIcon = $.create("span").cls("dge-tool-icon").hide();
 const swatch = $.create("span").cls("dge-swatch");
 const objectName = $.create("span");
@@ -863,6 +871,11 @@ const menus: Menu[] = [
                 shortcut: shortcut("S", true),
                 run: () => void save(true),
             },
+            null,
+            {
+                label: `${message("embed_page")}…`,
+                run: () => void embedInPage(),
+            },
         ],
     },
     {
@@ -961,12 +974,15 @@ $("body").add(
                     propertiesButton,
                     historyButton,
                 ),
-            $.create("div").cls("dge-bar-middle").add(actions),
+            $.create("div")
+                .cls("dge-bar-middle")
+                .add(actions, framing.elements[0]),
             $.create("div")
                 .cls("dge-bar-group dge-bar-end")
                 .add(undoButton, redoButton, helpLink),
         ),
     ...(standalone ? menuBar(menus, ...(native ? [fileLabel] : [])) : []),
+    framing.elements[1],
     properties.panel,
     resizeHandle(properties.panel, "right", () =>
         document.body.classList.contains("dge-properties-wide")
@@ -3812,6 +3828,7 @@ function cancel(keepTool = false): void {
 function escape(): void {
     if (!menu.isHidden()) closeMenu();
     else if (!toolsMenu.isHidden()) closeTools();
+    else if (framing.shown) framing.stop();
     else if (propertiesOpen && !pending) setProperties(false);
     else if (ghosts) setEraser(false);
     else cancel();
@@ -4719,6 +4736,8 @@ async function open(
 ): Promise<void> {
     setEraser(false);
     cancel();
+    framing.stop();
+    published = null;
     properties.select(null);
     studio.scene.dispose();
     studio.scene = construction.create(studio);
@@ -4782,8 +4801,51 @@ $("body").observeResize(() => {
 });
 if (window.matchMedia("(max-width: 600px)").matches) setPanel(false, false);
 
+// The link the figure was opened from, and its step then: what a web page
+// embeds.
+let published: { url: string; step: string } | null = null;
+
+async function openPublished(url: string): Promise<void> {
+    const file = await fetchFigure(url);
+    // A page instead of the file (a private file's sign-in page…), refused
+    // before the figure shown is replaced.
+    if ((await file.slice(0, 200).text()).trimStart().startsWith("<"))
+        throw new Error("Not a figure file");
+    await openFile(file);
+    published = { url, step: history[position].figure };
+}
+
+// Framed from the published figure, once the user gave its link, or knows
+// the changes made since aren't published.
+async function embedInPage(): Promise<void> {
+    if (!published)
+        return askLink(
+            history[position].figure === saved
+                ? message("embed_replaced")
+                : `${message("embed_replaced")} ${message("embed_unsaved")}`,
+            async (url) => {
+                await openPublished(url);
+                // A reload, or the user's bookmark, opens it again.
+                const query = location.search.replace(/[?&]url=.*$/, "");
+                window.history.replaceState(
+                    null,
+                    "",
+                    `${query}${query ? "&" : "?"}url=${url}`,
+                );
+                framing.start();
+            },
+        );
+    if (
+        history[position].figure !== published.step &&
+        !(await confirmed(message("embed_modified")))
+    )
+        return;
+    cancel();
+    framing.start();
+}
+
 export const EDITOR_READY = FIGURE_URL
-    ? fetchFigure(FIGURE_URL).then((file) => openFile(file))
+    ? openPublished(FIGURE_URL)
     : newFigure();
 
 finishSplash(EDITOR_READY);

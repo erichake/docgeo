@@ -1,0 +1,132 @@
+<!doctype html>
+<!--
+    Page de test des figures intégrées (index.html?fit=…&url=…), servie par
+    `npm run dev` : http://localhost:5175/embed_test.html
+    Hors du build. Collez les codes copiés par l'éditeur (Fichier >
+    Intégrer dans une page web…) entre les deux repères plus bas, ou dans la
+    zone de saisie de la page.
+-->
+<html lang="fr">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <title>Test d'intégration DocGeo</title>
+        <style>
+            body {
+                margin: 0;
+                padding: 24px 16px 80px;
+                background: #f4f5f7;
+                color: #1f2937;
+                font:
+                    16px/1.6 system-ui,
+                    -apple-system,
+                    "Segoe UI",
+                    sans-serif;
+            }
+            main {
+                max-width: 760px;
+                margin: auto;
+                padding: 24px 28px;
+                border-radius: 12px;
+                background: #fff;
+                box-shadow: 0 1px 3px rgb(0 0 0 / 0.1);
+            }
+            h2 {
+                margin-top: 40px;
+                font-size: 18px;
+            }
+            code {
+                font-size: 13px;
+                overflow-wrap: anywhere;
+            }
+            textarea {
+                box-sizing: border-box;
+                width: 100%;
+                height: 90px;
+                font:
+                    13px/1.4 ui-monospace,
+                    Menlo,
+                    monospace;
+            }
+            #pasted > * {
+                margin-block: 16px;
+            }
+        </style>
+    </head>
+    <body>
+        <main>
+            <h1>Test d'intégration DocGeo</h1>
+            <p>
+                Une page web ordinaire, dont la colonne fait au plus 760 pixels
+                : réduisez la fenêtre pour voir les figures s'adapter à sa
+                largeur.
+            </p>
+
+            <!-- ===== Collez vos codes iframe ci-dessous ===== -->
+
+            <!-- ===== Fin des codes collés ===== -->
+
+            <h2>Essai rapide</h2>
+            <p>Collez un code copié par l'éditeur, puis « Insérer ».</p>
+            <textarea id="code" spellcheck="false"></textarea>
+            <p><button id="insert" type="button">Insérer</button></p>
+            <div id="pasted"></div>
+
+            <h2>Figure DGPad, sans cadrage</h2>
+            <p>
+                <code>?fit</code> sans valeur montre la fenêtre enregistrée par
+                DGPad (1000 × 650), comme l'ancien <code>responsive.php</code>.
+            </p>
+            <iframe
+                src="index.html?fit&url=tests/dgp/recip_thales.dgp"
+                style="
+                    display: block;
+                    width: 100%;
+                    max-width: 1000px;
+                    aspect-ratio: 1000/650;
+                    margin: auto;
+                    border: 1px solid #ccc;
+                "
+                allow="fullscreen"
+            ></iframe>
+
+            <h2>Iframe aux proportions différentes de la figure</h2>
+            <p>La figure garde ses proportions, centrée.</p>
+            <iframe
+                src="index.html?fit&url=tests/dgo/partage.dgo"
+                style="
+                    display: block;
+                    width: 100%;
+                    height: 260px;
+                    border: 1px solid #ccc;
+                "
+                allow="fullscreen"
+            ></iframe>
+
+            <h2>Sans barre de boutons</h2>
+            <iframe
+                src="index.html?fit&nobar&url=tests/dgp/3D/_Dodecaedre.dgp"
+                style="
+                    display: block;
+                    width: 100%;
+                    max-width: 500px;
+                    aspect-ratio: 1;
+                    margin: auto;
+                    border: 0;
+                "
+            ></iframe>
+
+            <p style="margin-top: 40px">
+                Fin de la page : la molette au-dessus d'une figure fait défiler
+                la page ; Ctrl + molette ou le pincement zooment la figure.
+            </p>
+        </main>
+        <script>
+            document.getElementById("insert").onclick = () => {
+                const pasted = document.createElement("div");
+                pasted.innerHTML = document.getElementById("code").value;
+                document.getElementById("pasted").prepend(pasted);
+            };
+        </script>
+    </body>
+</html>

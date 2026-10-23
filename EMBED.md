@@ -244,6 +244,59 @@ L'hôte peut réduire l'iframe par une transformation CSS
 (`transform: scale(…)`) en lui gardant sa taille logique `w` × `h` : la
 manipulation à la souris et au doigt reste exacte.
 
+## Page web (`?fit`)
+
+Sans protocole, `index.html?fit=…&url=…` montre la figure de `url` (voir
+`AGENTS.md`) dans l'iframe d'une page web ordinaire, comme le faisait
+`responsive.php` de DGPad. C'est ce code que copie la commande « Intégrer
+dans une page web… » de l'éditeur (`EDITOR.md`) :
+
+```html
+<iframe
+    src="https://…/index.html?fit=548,470,88,72,729.43,97.24,37.441122&amp;url=https://…/thales.dgo"
+    style="width:548px;max-width:100%;aspect-ratio:548/470;border:1px solid #ccc"
+    allow="fullscreen"
+    loading="lazy"
+></iframe>
+```
+
+- L'éditeur entoure ce code de `<center>`, sauf si l'option « Centrer la
+  figure » est décochée.
+- La taille dans la page ne dépend que de `width`, écrite en premier : la
+  hauteur suit par `aspect-ratio`, aux proportions du cadre, et
+  `max-width:100%` garde la figure dans une page étroite. Les nombres de
+  `fit` décrivent ce que montre la figure, pas sa taille : le lecteur met la
+  région à l'échelle de l'iframe, quelle qu'elle soit.
+- `fit=w,h,x,y,ox,oy,u` : la région `w` × `h` de la fenêtre de l'éditeur
+  dont le coin est en (`x`, `y`), la figure y ayant son origine en
+  (`ox`, `oy`) et `u` pixels par unité ; une figure 3D y ajoute les angles
+  θ et φ de la caméra. Le lecteur ouvre la figure comme l'éditeur, lui
+  donne cette vue, puis la reconstruit pour cette seule région (`describeDgo`
+  puis `readDgo` centré, comme `save` avec le cadre) : la page montre
+  exactement ce que contenait le cadre de l'éditeur, objets placés en pixels
+  compris. Le fichier publié n'a donc jamais à être réenregistré pour un
+  cadrage, et une même figure s'intègre avec des cadrages différents.
+- `fit` sans valeur (ou invalide) : la fenêtre enregistrée avec la figure
+  (`v.w` × `v.h` d'un `.dgo`, les deux derniers nombres de `SetCoords` d'un
+  `.dgp`), ce qui reproduit `responsive.php`.
+- La région garde sa taille logique (`construction.fixedSize`, que
+  `width` et `height` renvoient) : le `viewBox` du SVG la met à l'échelle de
+  la fenêtre, proportions gardées, centrée, sur le fond de la figure. Le
+  dessin reste net à toute taille, et les écarts d'un glisser (vue, vecteur
+  libre) sont mesurés dans les unités du SVG.
+- La molette fait défiler la page hôte ; Ctrl + molette et le pincement du
+  pavé tactile zooment la figure.
+- Une barre discrète, en haut à droite, visible au survol : réinitialiser
+  (la figure telle que la page l'a ouverte), plein écran (seulement si
+  l'iframe a `allow="fullscreen"`) et « Modifier la figure », qui ouvre
+  `editor.html` avec les mêmes paramètres dans un nouvel onglet. `nobar`
+  retire la barre, `noedit` ce dernier bouton ; ces paramètres viennent
+  avant `url=`.
+- Un fichier déposé sur l'iframe est ignoré.
+
+La page de test `embed_test.html`, à la racine du projet et hors du build,
+s'ouvre avec `npm run dev`.
+
 ## Exemple
 
 ```js

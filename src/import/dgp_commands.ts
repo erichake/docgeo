@@ -1466,6 +1466,11 @@ const COMMANDS = new Map<string, CommandDefinition>([
                     grid.ORG = context.labelOrigin;
                 }
                 grid.UNIT = [unit, unit, unit];
+                if (args[4] && args[5])
+                    context.construction.savedSize = [
+                        args[4] as number,
+                        args[5] as number,
+                    ];
                 context.projectionChanged = true;
             },
         },

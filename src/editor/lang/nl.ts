@@ -79,6 +79,25 @@ const nl: Texts = {
         spring_hint:
             "Trek aan de veer van %: lengte = snelheid, kant = richting, dwars = heen en weer",
         done: "Klaar",
+        embed_page: "In een webpagina insluiten",
+        embed_publish:
+            "Om in een webpagina te worden ingesloten, moet de figuur eerst online worden gepubliceerd: op je website, Google Drive, Dropbox, OneDrive of Nextcloud. Plak hier de deellink.",
+        embed_replaced: "De gepubliceerde figuur vervangt die in de editor.",
+        embed_unsaved:
+            "De niet-opgeslagen wijzigingen van de huidige figuur gaan verloren.",
+        embed_failed: "Deze link kon niet worden geopend: %",
+        embed_modified:
+            "Deze figuur is gewijzigd sinds ze via haar link werd geopend: sla ze op en publiceer ze opnieuw op dezelfde plek, anders toont de pagina de vorige versie.",
+        dismiss: "Annuleren",
+        go_on: "Doorgaan",
+        embed_hint: "Pas het kader aan: de webpagina toont wat erin staat",
+        copy_code: "Code kopiëren",
+        code_copied: "Code gekopieerd: plak hem in de HTML van je pagina",
+        embed_options: "Opties",
+        embed_center: "Figuur centreren",
+        embed_border: "Rand",
+        embed_bar: "Knoppen op de figuur (herstellen, volledig scherm…)",
+        embed_edit: "Knop ‘Figuur bewerken’",
         reach: "Aantrekking van %",
         no_reach: "Geen",
         full_reach: "Overal",

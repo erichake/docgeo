@@ -1,0 +1,116 @@
+.dge-dialog {
+    box-sizing: border-box;
+    width: min(500px, calc(100vw - 32px));
+    padding: 20px 22px;
+    border: 0;
+    border-radius: 12px;
+    box-shadow: 0 10px 40px rgb(0 0 0 / 30%);
+    color: #1f2937;
+    font:
+        14px/1.5 system-ui,
+        -apple-system,
+        "Segoe UI",
+        sans-serif;
+}
+.dge-dialog::backdrop {
+    background: rgb(15 23 42 / 35%);
+}
+.dge-dialog h2 {
+    margin: 0 0 10px;
+    font-size: 17px;
+}
+.dge-dialog p {
+    margin: 0 0 12px;
+}
+.dge-dialog input {
+    box-sizing: border-box;
+    width: 100%;
+    margin-block-end: 12px;
+    padding: 8px 10px;
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    font: inherit;
+}
+.dge-dialog input:focus-visible {
+    outline: 2px solid #2563eb;
+    outline-offset: -1px;
+}
+.dge-dialog-note {
+    color: #64748b;
+    font-size: 13px;
+}
+.dge-dialog-error {
+    color: #b91c1c;
+    overflow-wrap: anywhere;
+}
+.dge-dialog-buttons {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+}
+.dge-secondary {
+    height: 36px;
+    padding: 0 16px;
+    border: 1px solid #cbd5e1;
+    border-radius: 18px;
+    background: #fff;
+    color: #334155;
+    font: inherit;
+    font-weight: 500;
+    cursor: pointer;
+}
+.dge-secondary:hover {
+    background: #f1f5f9;
+}
+.dge-secondary:focus-visible {
+    outline: 2px solid #2563eb;
+    outline-offset: 2px;
+}
+.dge-dialog button:disabled {
+    opacity: 0.5;
+    cursor: default;
+}
+
+/* Framed for a web page: the banner alone in the bar's middle. */
+.dge-embedding .dge-bar-middle > :not(.dge-embed) {
+    display: none !important;
+}
+.dge-editor .dge-bar .dge-embed .dge-bar-name {
+    max-width: 260px;
+}
+.dge-embed .dge-bar-name svg {
+    flex: none;
+    width: 20px;
+    height: 20px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.8;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+.dge-embed-options {
+    position: fixed;
+    z-index: 12;
+    flex-direction: column;
+    gap: 8px;
+    padding: 12px 14px;
+    border: 1px solid #d1d5db;
+    border-radius: 10px;
+    background: #fff;
+    box-shadow: 0 6px 20px rgb(15 23 42 / 0.16);
+    color: #1f2937;
+    font:
+        14px/1.4 system-ui,
+        -apple-system,
+        "Segoe UI",
+        sans-serif;
+}
+.dge-embed-options label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+}
+.dge-embed-options input:disabled + span {
+    opacity: 0.5;
+}

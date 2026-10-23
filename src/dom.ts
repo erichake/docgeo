@@ -296,6 +296,11 @@ export class DOMElement {
         let pointerId: number | null = null;
         let oldX = 0;
         let oldY = 0;
+        // In the SVG's units, which its viewBox may scale (see fit.ts).
+        const position = (event: PointerEvent): PointerPosition =>
+            this.element instanceof SVGElement
+                ? this.svgPoint(event)
+                : [event.clientX, event.clientY];
 
         const finish = (event: PointerEvent, cancelled: boolean): void => {
             if (event.pointerId !== pointerId) return;
@@ -316,19 +321,16 @@ export class DOMElement {
                 return;
             if (before?.(event) === false) return;
             pointerId = event.pointerId;
-            oldX = event.clientX;
-            oldY = event.clientY;
+            [oldX, oldY] = position(event);
             event.stopPropagation();
             this.element.setPointerCapture(pointerId);
         });
         this.on("pointermove", (event) => {
             if (event.pointerId !== pointerId) return;
-            const delta: PointerDelta = [
-                event.clientX - oldX,
-                event.clientY - oldY,
-            ];
-            oldX = event.clientX;
-            oldY = event.clientY;
+            const [x, y] = position(event);
+            const delta: PointerDelta = [x - oldX, y - oldY];
+            oldX = x;
+            oldY = y;
             callback(event, delta);
         });
         this.on("pointerup", (event) => finish(event, false));

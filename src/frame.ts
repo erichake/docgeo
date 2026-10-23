@@ -92,12 +92,14 @@ function fitted({ x, y, w, h }: Region): Region {
     return { x: clamp(x, 0, width - w), y: clamp(y, 0, height - h), w, h };
 }
 
+// In the body's coordinates, where the editor's bars and panel leave it.
 function place(region: Region): void {
     const { element, size } = shown!;
+    const { left, top } = $("body").dom().getBoundingClientRect();
     shown!.region = region;
     element
-        .stl("left", `${region.x}px`)
-        .stl("top", `${region.y}px`)
+        .stl("left", `${left + region.x}px`)
+        .stl("top", `${top + region.y}px`)
         .stl("width", `${region.w}px`)
         .stl("height", `${region.h}px`);
     size.find("span")!.text(`${region.w} × ${region.h}`);
@@ -158,9 +160,9 @@ export function showFrame(
     );
     resized = () => {
         const region = fitted(shown!.region);
-        if (JSON.stringify(region) === JSON.stringify(shown!.region)) return;
+        const same = JSON.stringify(region) === JSON.stringify(shown!.region);
         place(region);
-        changed(region);
+        if (!same) changed(region);
     };
 }
 

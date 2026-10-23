@@ -62,6 +62,12 @@ export class construction {
     // Set by an embedded lock: dragging the 2D view with the left mouse
     // button or a finger no longer pans it.
     panLocked = false;
+    // The window size the figure was saved with (DGO's view, DGPad's
+    // SetCoords), when the file gives it.
+    savedSize: Vec2 | null = null;
+    // In a web page (index.html?fit, see fit.ts), the size of the region
+    // shown, which the SVG scales to its window. Null: the window's.
+    fixedSize: Vec2 | null = null;
     animations: animations;
     // The objects each gesture was made on since the last update, an
     // animation dragging them, as in DGPad.
@@ -376,10 +382,12 @@ export class construction {
     }
 
     get width(): number {
+        if (this.fixedSize) return this.fixedSize[0];
         return this.OBJS.updating ? this.passSize().width : this.svg.width();
     }
 
     get height(): number {
+        if (this.fixedSize) return this.fixedSize[1];
         return this.OBJS.updating ? this.passSize().height : this.svg.height();
     }
 
@@ -469,7 +477,9 @@ export class construction {
             .att("data-layer", "trace")
             .stl("pointer-events", "none");
         this.svg.add(this.traceLayer);
-        this.svg.observeResize((width, height) => this.resize(width, height));
+        this.svg.observeResize((width, height) => {
+            if (!this.fixedSize) this.resize(width, height);
+        });
     }
 
     reveal(): void {
@@ -497,7 +507,16 @@ export class construction {
                 2,
             )
             .tap((event) => this.mouseclick(event));
-        element.on("wheel", (event) => this.mousewheel(event));
+        element.on(
+            "wheel",
+            (event) => {
+                // In a web page, the wheel scrolls it: a pinch or Ctrl zooms.
+                if (this.fixedSize && !event.ctrlKey) return;
+                event.preventDefault();
+                this.mousewheel(event);
+            },
+            false,
+        );
         this.keydownListener = $("body").on(
             "keydown",
             (event) => this.keydown(event),

@@ -76,6 +76,25 @@ const fr: Texts = {
         spring_hint:
             "Tirez le ressort de % : longueur = vitesse, côté = sens, en travers = aller-retour",
         done: "Terminé",
+        embed_page: "Intégrer dans une page web",
+        embed_publish:
+            "Pour être intégrée dans une page web, la figure doit d'abord être publiée en ligne : sur votre site, Google Drive, Dropbox, OneDrive ou Nextcloud. Collez ici son lien de partage.",
+        embed_replaced: "La figure publiée remplacera celle de l'éditeur.",
+        embed_unsaved:
+            "Les modifications non enregistrées de la figure actuelle seront perdues.",
+        embed_failed: "Impossible d'ouvrir ce lien : %",
+        embed_modified:
+            "Cette figure a été modifiée depuis son ouverture par son lien : enregistrez-la, puis republiez-la au même endroit, sinon la page montrera l'ancienne version.",
+        dismiss: "Annuler",
+        go_on: "Continuer",
+        embed_hint: "Ajustez le cadre : la page web montrera ce qu'il contient",
+        copy_code: "Copier le code",
+        code_copied: "Code copié : collez-le dans le HTML de votre page",
+        embed_options: "Options",
+        embed_center: "Centrer la figure",
+        embed_border: "Bordure",
+        embed_bar: "Boutons sur la figure (réinitialiser, plein écran…)",
+        embed_edit: "Bouton « Modifier la figure »",
         reach: "Attraction de %",
         no_reach: "Aucune",
         full_reach: "Partout",

@@ -1335,7 +1335,46 @@ repeat_end; count++)`), seulement pour un n entier tel qu'écrit
 
 Un lien « modifier cette figure » pourrait ouvrir la figure du lecteur dans
 `editor.html` (par l'URL ou en passant son `.dgo`) : le lecteur reste le
-format de diffusion, l'éditeur l'atelier.
+format de diffusion, l'éditeur l'atelier. Une figure intégrée dans une page
+web (ci-dessous) a ce lien : le bouton « Modifier la figure » de sa barre.
+
+## Intégration dans une page web
+
+Décidé avec l'auteur le 2026-10-23 (`src/editor/web_page.ts`), en
+remplacement de `responsive.php` de DGPad : **Fichier › Intégrer dans une
+page web…**, rien d'autre (pas de bouton dans la barre), copie le code d'une
+iframe qui montre la figure dans le lecteur (`index.html?fit=…&url=…`, voir
+`EMBED.md`, « Page web »).
+
+- La page lit toujours une **figure publiée en ligne**, jamais une figure
+  embarquée dans le code (trop lourde avec des images, et qu'une
+  modification obligerait à recopier partout) : la republier au même endroit
+  met à jour toutes les pages. Une figure qui n'a pas été ouverte par son
+  lien (`?url=`, ou par cette commande) demande d'abord ce lien, dans une
+  fenêtre qui annonce son remplacement (et la perte des modifications non
+  enregistrées) ; la figure publiée y est ouverte à sa place et l'adresse
+  de la page reçoit `url=` (`history.replaceState`). Un lien qui échoue
+  laisse la fenêtre ouverte, avec l'erreur. Le code copié marche donc à
+  coup sûr : l'éditeur vient de charger la figure par le même chemin que le
+  lecteur (`figure_url.ts`).
+- Une figure modifiée depuis son ouverture par son lien (étape de
+  l'historique différente) fait d'abord confirmer qu'on sait que la page
+  montrera la version publiée.
+- Le cadre de `frame.ts` (celui du mode intégré, placé dans le `body`, donc
+  dans la figure entre la barre et le panneau) prend d'abord 80 % de la
+  figure, centré. La figure reste manipulable, la vue se zoome et se déplace :
+  le **cadrage est porté par le code**, pas par le fichier (région, origine,
+  unité, angles 3D), qui n'a jamais à être republié pour un cadrage.
+- La zone contextuelle de la barre devient un bandeau, seul au milieu de la
+  barre : icône et nom de la commande, Options (centrage, bordure, boutons sur la
+  figure, bouton « Modifier la figure », gardés pour la session), **Copier
+  le code** (presse-papiers, confirmé par la consigne) et Terminé, ou Échap.
+- L'iframe : `width` (en premier, le seul nombre à changer pour une autre
+  taille, décidé avec l'auteur le 2026-10-23), `max-width:100%` et
+  `aspect-ratio` aux proportions du cadre (pas de bandes vides, la hauteur
+  suit la largeur), entourée de `<center>` (option « Centrer la figure », cochée au départ), `allow="fullscreen"`, `loading="lazy"`. L'adresse du lecteur est celle de
+  l'éditeur (`index.html` à côté de `editor.html`) : un code copié depuis
+  `localhost` ne sert que localement, ce que permet `embed_test.html`.
 
 ## Mesure de l'éditabilité
 
@@ -1972,7 +2011,8 @@ Reste à faire :
   choix explicite de l'intersection quand le geste est ambigu.
 - 3D : points libres dans le plan de l'écran des figures DGPad (`f2`) et
   hors du plan z = 0 au geste.
-- Lien « modifier cette figure » depuis le lecteur.
+- Lien « modifier cette figure » depuis le lecteur, hors d'une page web
+  (`?fit` l'a déjà).
 - Réutilisation de `ggb_translate.ts` pour accepter davantage de commandes
   GeoGebra.
 - Mesures de fluidité sur des figures de plusieurs milliers d'objets (la vue

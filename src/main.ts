@@ -5,6 +5,7 @@ import { $, type DOMElement } from "./dom";
 import { dropFigures } from "./drop";
 import { embed } from "./embed";
 import { FIGURE_URL, fetchFigure } from "./figure_url";
+import { fitFigure } from "./fit";
 import { importGgbFromBlob } from "./ggb_importer";
 import { DIR, t } from "./i18n";
 import { preferences } from "./preferences";
@@ -75,19 +76,25 @@ $("body").on(
 );
 
 // In the embedded mode (see EMBED.md), the host page provides the figure,
-// shows what couldn't be imported and saves it.
+// shows what couldn't be imported and saves it. With ?fit, the figure of
+// ?url is shown in a web page's iframe (see fit.ts).
 const search = new URLSearchParams(window.location.search);
+const fit = FIGURE_URL ? search.get("fit") : null;
 export const DOCGEO_READY = search.has("embed")
     ? Promise.resolve(embed(DOCGEO))
     : FIGURE_URL
-      ? fetchFigure(FIGURE_URL).then(openFile, (error) =>
-            pickFigure(failure(FIGURE_URL!, error)),
+      ? fetchFigure(FIGURE_URL).then(
+            (file) =>
+                openFile(file).then(() => {
+                    if (fit !== null) return fitFigure(DOCGEO, fit);
+                }),
+            (error) => pickFigure(failure(FIGURE_URL!, error)),
         )
       : pickFigure();
 
-// Outside the embedded mode, a figure file dropped on the page opens in
-// place of the one shown.
-if (!search.has("embed"))
+// Outside the embedded mode and a web page, a figure file dropped on the
+// page opens in place of the one shown.
+if (!search.has("embed") && fit === null)
     dropFigures((file) => void (picked ?? openFile)(file));
 
 async function saveFigure(name: string): Promise<void> {

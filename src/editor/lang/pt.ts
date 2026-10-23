@@ -77,6 +77,25 @@ const pt: Texts = {
         spring_hint:
             "Puxe a mola de %: comprimento = velocidade, lado = sentido, de través = vaivém",
         done: "Concluído",
+        embed_page: "Incorporar em uma página web",
+        embed_publish:
+            "Para ser incorporada em uma página web, a figura precisa primeiro ser publicada on-line: no seu site, Google Drive, Dropbox, OneDrive ou Nextcloud. Cole aqui o link de compartilhamento.",
+        embed_replaced: "A figura publicada substituirá a do editor.",
+        embed_unsaved:
+            "As alterações não salvas da figura atual serão perdidas.",
+        embed_failed: "Não foi possível abrir este link: %",
+        embed_modified:
+            "Esta figura foi alterada desde que foi aberta pelo seu link: salve-a e publique-a novamente no mesmo lugar; caso contrário, a página mostrará a versão anterior.",
+        dismiss: "Cancelar",
+        go_on: "Continuar",
+        embed_hint: "Ajuste o quadro: a página web mostrará o que ele contém",
+        copy_code: "Copiar o código",
+        code_copied: "Código copiado: cole-o no HTML da sua página",
+        embed_options: "Opções",
+        embed_center: "Centralizar a figura",
+        embed_border: "Borda",
+        embed_bar: "Botões sobre a figura (redefinir, tela cheia…)",
+        embed_edit: "Botão “Editar a figura”",
         reach: "Atração de %",
         no_reach: "Nenhuma",
         full_reach: "Em toda parte",

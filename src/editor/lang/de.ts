@@ -79,6 +79,28 @@ const de: Texts = {
         spring_hint:
             "Ziehen Sie an der Feder von %: Länge = Geschwindigkeit, Seite = Richtung, quer = hin und her",
         done: "Fertig",
+        embed_page: "In eine Webseite einbetten",
+        embed_publish:
+            "Um in eine Webseite eingebettet zu werden, muss die Figur zuerst online veröffentlicht werden: auf Ihrer Website, in Google Drive, Dropbox, OneDrive oder Nextcloud. Fügen Sie hier ihren Freigabelink ein.",
+        embed_replaced:
+            "Die veröffentlichte Figur ersetzt die Figur im Editor.",
+        embed_unsaved:
+            "Die nicht gespeicherten Änderungen der aktuellen Figur gehen verloren.",
+        embed_failed: "Dieser Link konnte nicht geöffnet werden: %",
+        embed_modified:
+            "Diese Figur wurde geändert, seit sie über ihren Link geöffnet wurde: Speichern Sie sie und veröffentlichen Sie sie erneut am selben Ort, sonst zeigt die Seite die alte Version.",
+        dismiss: "Abbrechen",
+        go_on: "Fortfahren",
+        embed_hint:
+            "Passen Sie den Rahmen an: Die Webseite zeigt, was er enthält",
+        copy_code: "Code kopieren",
+        code_copied:
+            "Code kopiert: Fügen Sie ihn in den HTML-Code Ihrer Seite ein",
+        embed_options: "Optionen",
+        embed_center: "Figur zentrieren",
+        embed_border: "Rahmenlinie",
+        embed_bar: "Schaltflächen über der Figur (zurücksetzen, Vollbild…)",
+        embed_edit: "Schaltfläche „Figur bearbeiten“",
         reach: "Anziehung von %",
         no_reach: "Keine",
         full_reach: "Überall",

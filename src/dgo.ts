@@ -883,6 +883,7 @@ export function readDgo(c: construction, figure: Json, centered = false): void {
     const { o: origin, u: unit, w: width, h: height } = view;
     check(isPair(origin) && isNumber(unit) && unit > 0);
     check(isNumber(width) && isNumber(height));
+    c.savedSize = [width, height];
     const grid = c.GRID;
     apply(VIEW, grid, view);
     grid.UNIT = [unit, unit, unit];

@@ -77,6 +77,26 @@ const it: Texts = {
         spring_hint:
             "Tira la molla di %: lunghezza = velocità, lato = verso, di traverso = avanti e indietro",
         done: "Fatto",
+        embed_page: "Incorpora in una pagina web",
+        embed_publish:
+            "Per essere incorporata in una pagina web, la figura deve prima essere pubblicata online: sul tuo sito, su Google Drive, Dropbox, OneDrive o Nextcloud. Incolla qui il suo link di condivisione.",
+        embed_replaced: "La figura pubblicata sostituirà quella dell'editor.",
+        embed_unsaved:
+            "Le modifiche non salvate della figura attuale andranno perse.",
+        embed_failed: "Impossibile aprire questo link: %",
+        embed_modified:
+            "Questa figura è stata modificata da quando è stata aperta dal suo link: salvala e ripubblicala nello stesso posto, altrimenti la pagina mostrerà la versione precedente.",
+        dismiss: "Annulla",
+        go_on: "Continua",
+        embed_hint:
+            "Regola la cornice: la pagina web mostrerà ciò che contiene",
+        copy_code: "Copia il codice",
+        code_copied: "Codice copiato: incollalo nell'HTML della tua pagina",
+        embed_options: "Opzioni",
+        embed_center: "Centra la figura",
+        embed_border: "Bordo",
+        embed_bar: "Pulsanti sulla figura (ripristina, schermo intero…)",
+        embed_edit: "Pulsante «Modifica la figura»",
         reach: "Attrazione di %",
         no_reach: "Nessuna",
         full_reach: "Ovunque",

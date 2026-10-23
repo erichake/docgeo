@@ -13,6 +13,9 @@ const translations = {
         pause: "إيقاف مؤقت",
         play: "تشغيل",
         list_items: "عناصر",
+        reset: "إعادة التعيين",
+        fullscreen: "ملء الشاشة",
+        edit_figure: "تعديل الشكل",
     },
     de: {
         splash_tagline: "Einfach - Schnell",
@@ -27,6 +30,9 @@ const translations = {
         pause: "Pause",
         play: "Abspielen",
         list_items: "Elemente",
+        reset: "Zurücksetzen",
+        fullscreen: "Vollbild",
+        edit_figure: "Figur bearbeiten",
     },
     el: {
         splash_tagline: "Απλό - Γρήγορο",
@@ -41,6 +47,9 @@ const translations = {
         pause: "Παύση",
         play: "Αναπαραγωγή",
         list_items: "στοιχεία",
+        reset: "Επαναφορά",
+        fullscreen: "Πλήρης οθόνη",
+        edit_figure: "Επεξεργασία του σχήματος",
     },
     en: {
         splash_tagline: "Simple - Fast",
@@ -55,6 +64,9 @@ const translations = {
         pause: "Pause",
         play: "Play",
         list_items: "items",
+        reset: "Reset",
+        fullscreen: "Full screen",
+        edit_figure: "Edit the figure",
     },
     es: {
         splash_tagline: "Simple - Rápido",
@@ -69,6 +81,9 @@ const translations = {
         pause: "Pausa",
         play: "Reproducir",
         list_items: "elementos",
+        reset: "Restablecer",
+        fullscreen: "Pantalla completa",
+        edit_figure: "Editar la figura",
     },
     fr: {
         splash_tagline: "Simple - Rapide",
@@ -83,6 +98,9 @@ const translations = {
         pause: "Pause",
         play: "Lecture",
         list_items: "éléments",
+        reset: "Réinitialiser",
+        fullscreen: "Plein écran",
+        edit_figure: "Modifier la figure",
     },
     hi: {
         splash_tagline: "सरल - तेज़",
@@ -97,6 +115,9 @@ const translations = {
         pause: "रोकें",
         play: "चलाएँ",
         list_items: "तत्व",
+        reset: "रीसेट करें",
+        fullscreen: "पूर्ण स्क्रीन",
+        edit_figure: "आकृति संपादित करें",
     },
     it: {
         splash_tagline: "Semplice - Veloce",
@@ -111,6 +132,9 @@ const translations = {
         pause: "Pausa",
         play: "Riproduci",
         list_items: "elementi",
+        reset: "Ripristina",
+        fullscreen: "Schermo intero",
+        edit_figure: "Modifica la figura",
     },
     nl: {
         splash_tagline: "Eenvoudig - Snel",
@@ -125,6 +149,9 @@ const translations = {
         pause: "Pauzeren",
         play: "Afspelen",
         list_items: "elementen",
+        reset: "Herstellen",
+        fullscreen: "Volledig scherm",
+        edit_figure: "Figuur bewerken",
     },
     pt: {
         splash_tagline: "Simples - Rápido",
@@ -139,6 +166,9 @@ const translations = {
         pause: "Pausar",
         play: "Reproduzir",
         list_items: "elementos",
+        reset: "Redefinir",
+        fullscreen: "Tela cheia",
+        edit_figure: "Editar a figura",
     },
     zh: {
         splash_tagline: "简单 - 快速",
@@ -153,6 +183,9 @@ const translations = {
         pause: "暂停",
         play: "播放",
         list_items: "个元素",
+        reset: "重置",
+        fullscreen: "全屏",
+        edit_figure: "编辑图形",
     },
     "zh-TW": {
         splash_tagline: "簡單 - 快速",
@@ -166,6 +199,9 @@ const translations = {
         pause: "暫停",
         play: "播放",
         list_items: "個元素",
+        reset: "重設",
+        fullscreen: "全螢幕",
+        edit_figure: "編輯圖形",
     },
 };
 
