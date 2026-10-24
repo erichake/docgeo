@@ -17,6 +17,9 @@ export default defineConfig({
         host: "0.0.0.0",
         port: 5175,
         strictPort: true,
+        // The figure relay (public/figure.php), run by PHP's own server
+        // where PHP is installed (see scripts/dev.sh).
+        proxy: { "/figure.php": "http://127.0.0.1:5176" },
     },
     // The player and the editor (see EDITOR.md) in one build, so that
     // neither erases the other: they share the engine's chunk, the player

@@ -3,7 +3,8 @@
     "private": true,
     "type": "module",
     "scripts": {
-        "dev": "vite",
+        "dev": "bash scripts/dev.sh",
+        "dev:vite": "vite",
         "build": "tsc --noEmit && vite build",
         "preview": "vite preview",
         "test": "npm run test:unit && npm run test:browser",
