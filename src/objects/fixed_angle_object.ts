@@ -11,6 +11,7 @@ import {
 import {
     geometryTolerance,
     vAdd,
+    vDot,
     vNorm,
     vNormalize,
     vScale,
@@ -116,12 +117,24 @@ export class fixed_angle_object extends primitive_line_object {
                 ? value
                 : (value * 180) / Math.PI;
         }
-        const dx = this.A.x - this.P1.x;
-        const dy = this.A.y - this.P1.y;
+        const [dx, dy, dz] = vSub(this.A.coords, this.P1.coords);
         const theta =
             ((this.trigo ? 1 : -1) * this.valueDegrees * Math.PI) / 180;
         const cos = Math.cos(theta);
         const sin = Math.sin(theta);
+        // A DGPad 3D figure's 2D angle turns in the screen plane (see
+        // GRID.FRAME2D).
+        if (this.C.GRID.FRAME2D && this.flat) {
+            const [right, up] = this.C.screenPlaneBasis;
+            const u = vDot([dx, dy, dz], right);
+            const v = vDot([dx, dy, dz], up);
+            return vNormalize(
+                vAdd(
+                    vScale(right, u * cos - v * sin),
+                    vScale(up, u * sin + v * cos),
+                ),
+            );
+        }
         return vNormalize([dx * cos - dy * sin, dx * sin + dy * cos, 0]);
     }
 

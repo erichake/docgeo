@@ -38,6 +38,7 @@ function hiddenOf(segment: segment_object): [number, number][] {
 }
 import {
     vAdd,
+    vCross,
     vDot,
     vNormalize,
     vScale,
@@ -353,6 +354,21 @@ STL(P,"tk:1");`,
         const cosAngle = Math.min(1, Math.max(-1, vDot(fixedAngle.VEC, dirA)));
         expect((Math.acos(cosAngle) * 180) / Math.PI).toBeCloseTo(120.5);
         expect(fixedAngle.dom.dom().innerHTML).not.toMatch(/NaN|Infinity/);
+    });
+
+    it("turns a 3D figure's 2D fixed angle in the screen plane", async () => {
+        const c = createConstruction();
+        await importDgpFromUrl(c, figure("PSHPentaOrthoEtoile_R.dgp"));
+
+        const fixedAngle = c.getObj("A1") as fixed_angle_object;
+        const [right, up] = c.screenPlaneBasis;
+        expect(vDot(fixedAngle.VEC, vCross(right, up))).toBeCloseTo(0, 9);
+        expect(c.getObj("sk1")!.defined).toBe(true);
+        expect(
+            figureObjects(c).filter(
+                (object) => !object.hidden && !object.defined,
+            ),
+        ).toEqual([]);
     });
 
     it("imports and updates a point locus without moving its driver", async () => {
