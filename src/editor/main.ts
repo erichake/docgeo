@@ -91,6 +91,7 @@ import {
     standalone,
 } from "./file";
 import { DELETE_KEY, menuBar, shortcut, type Menu } from "./menus";
+import { embedded, embedEditor, requestSave } from "./embed";
 import { toolsMenu as applicationToolsMenu } from "./about";
 import { hideGhosts, showGhosts, toggleGhost, withHidden } from "./eraser";
 import { message, type MessageKey } from "./messages";
@@ -4718,6 +4719,7 @@ function travel(step: number): void {
 // ************************** FILES *******************************
 
 async function save(as = false): Promise<void> {
+    if (embedded && !as) return requestSave();
     let step = "";
     const written = await saveFile(async () => {
         await recording;
@@ -4727,13 +4729,18 @@ async function save(as = false): Promise<void> {
     if (written) saved = step;
 }
 
+async function saveFigure(): Promise<Blob> {
+    await recording;
+    return asSaved(() => writeDgo(scene()));
+}
+
 // A figure opened from `name`, a file name or a URL, which a save writes back
 // to if `from` is its file.
 async function open(
     name: string,
     load: (c: construction) => Promise<string[]>,
     from?: FileSystemHandle | null,
-): Promise<void> {
+): Promise<string[]> {
     setEraser(false);
     cancel();
     framing.stop();
@@ -4760,13 +4767,14 @@ async function open(
             : "",
         unsupported.length > 0,
     );
+    return unsupported;
 }
 
 // A chosen or dropped file.
 async function openFile(
     file: File,
     from?: Promise<FileSystemHandle | null> | FileSystemHandle,
-): Promise<void> {
+): Promise<string[]> {
     return open(
         file.name,
         async (c) =>
@@ -4844,14 +4852,26 @@ async function embedInPage(): Promise<void> {
     framing.start();
 }
 
-export const EDITOR_READY = FIGURE_URL
-    ? openPublished(FIGURE_URL)
-    : newFigure();
+export const EDITOR_READY =
+    !embedded && FIGURE_URL ? openPublished(FIGURE_URL) : newFigure();
+
+if (embedded)
+    void EDITOR_READY.then(() =>
+        embedEditor({
+            load: async (file, name) => {
+                await recording;
+                const unsupported = await openFile(file);
+                if (name) opened(name);
+                return unsupported;
+            },
+            save: saveFigure,
+        }),
+    );
 
 finishSplash(EDITOR_READY);
 
-function newFigure(): Promise<void> {
-    return open("figure", async (c) => {
+async function newFigure(): Promise<void> {
+    await open("figure", async (c) => {
         readDgo(c, {
             dgo: 1,
             v: {

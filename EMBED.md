@@ -297,6 +297,30 @@ dans une page web… » de l'éditeur (`EDITOR.md`) :
 La page de test `embed_test.html`, à la racine du projet et hors du build,
 s'ouvre avec `npm run dev`.
 
+## Éditeur intégré
+
+`editor.html?embed&lang=fr` ouvre l'éditeur complet dans une iframe, piloté
+par la page hôte. Ce mode s'active uniquement dans une iframe. Il reste
+indépendant du lecteur et n'ajoute aucun code à celui-ci.
+
+Il utilise les mêmes enveloppes `docgeo: 1`, vérification de la fenêtre
+parente, réponses par `id`, transferts et traitement séquentiel que le
+lecteur, avec deux requêtes :
+
+- `load { data: ArrayBuffer, format: "dgo" | "dgp" | "ggb" }` remplace la
+  figure et réinitialise l'historique et les panneaux. Il renvoie
+  `{ unsupported: string[] }` ; `name` peut préciser le nom du document.
+  Les éléments non importés sont aussi signalés dans l'éditeur.
+- `save` renvoie `{ data: ArrayBuffer }`, la figure complète en `.dgo`,
+  constructions nouvelles et objets cachés compris, après les opérations
+  d'historique en cours. Il ne télécharge aucun fichier.
+
+`ready` est émis après l'initialisation. Le bouton d'enregistrement et
+Cmd-S / Ctrl-S émettent `{ docgeo: 1, event: "save" }` : l'hôte demande
+alors `save`, puis enregistre le résultat dans son propre stockage.
+Cmd-Maj-S / Ctrl-Maj-S garde le téléchargement d'une copie locale.
+Le paramètre `url` n'est pas chargé dans ce mode : l'hôte fournit la figure.
+
 ## Exemple
 
 ```js

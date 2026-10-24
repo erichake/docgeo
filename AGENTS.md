@@ -128,6 +128,11 @@ change déjà (points libres et sur objet, curseurs, champs de saisie, cases à
 cocher). Le protocole reste générique et versionné, sans hypothèse propre à
 DocTools ni à une autre application hôte.
 
+L'éditeur dispose aussi de son mode intégré `editor.html?embed`, décrit
+dans `EMBED.md` et `EDITOR.md`, pour DocShare et toute page hôte conservant
+des figures complètes. Sa passerelle reste dans `src/editor/` et ne change
+pas les droits ni le poids du lecteur intégré.
+
 ### Code DGPad de référence
 
 Le code source de la version de DGPad actuellement en production se trouve dans :

@@ -2045,3 +2045,15 @@ sans ajouter d'objet. Un côté qui disparaît devient indéfini ; son numéro e
 conservé et peut redevenir défini. Le milieu et la médiatrice gardent le côté
 comme support, pour suivre aussi son extrémité de fermeture si le nombre de
 sommets change.
+
+### Intégration de l'éditeur dans DocShare — 2026-10-24
+
+`editor.html?embed` expose `load` et `save` par le protocole `docgeo: 1`
+(voir `EMBED.md`). La page hôte conserve les documents et les copies
+élèves en `.dgo` complet. L'ouverture réutilise le parcours de l'éditeur
+(panneaux et historique réinitialisés), et l'écriture son parcours
+`asSaved`, après les opérations d'historique en cours. Le bouton
+d'enregistrement et Cmd-S / Ctrl-S demandent à l'hôte d'enregistrer ;
+Cmd-Maj-S / Ctrl-Maj-S télécharge toujours une copie locale.
+La passerelle vit uniquement dans `src/editor/embed.ts` : le lecteur et
+son protocole existant restent indépendants.
