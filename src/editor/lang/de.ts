@@ -349,7 +349,9 @@ const de: Texts = {
         macro_help_placeholder:
             "Die Reihenfolge der Anfangsobjekte, und wann das Makro versagt",
         macro_icon: "Symbol",
-        macro_clear_icon: "Löschen",
+        macro_icon_letters: "Buchstaben",
+        macro_icon_image: "Bild wählen…",
+        macro_icon_drawn: "Automatisches Symbol",
         macro_remove: "Entfernen",
         macro_message: "Meldung, wenn es gewählt wird",
         macro_drag: "Ziehen, um die Reihenfolge zu ändern",

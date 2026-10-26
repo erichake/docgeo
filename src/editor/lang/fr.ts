@@ -340,7 +340,9 @@ const fr: Texts = {
         macro_help_placeholder:
             "L'ordre des initiaux, et quand la macro est en défaut",
         macro_icon: "Icône",
-        macro_clear_icon: "Effacer",
+        macro_icon_letters: "Lettres",
+        macro_icon_image: "Choisir une image…",
+        macro_icon_drawn: "Icône automatique",
         macro_remove: "Retirer",
         macro_message: "Message affiché quand on le désigne",
         macro_drag: "Glisser pour changer l'ordre",

@@ -4897,6 +4897,7 @@ function dragged(): void {
         placeBadges();
         showMagnets();
         if (renaming) placeName();
+        macros.follow();
     });
 }
 

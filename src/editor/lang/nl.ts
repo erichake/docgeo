@@ -344,7 +344,9 @@ const nl: Texts = {
         macro_help_placeholder:
             "De volgorde van de beginobjecten, en wanneer de macro faalt",
         macro_icon: "Pictogram",
-        macro_clear_icon: "Wissen",
+        macro_icon_letters: "Letters",
+        macro_icon_image: "Afbeelding kiezen…",
+        macro_icon_drawn: "Automatisch pictogram",
         macro_remove: "Verwijderen",
         macro_message: "Bericht als het geselecteerd wordt",
         macro_drag: "Sleep om de volgorde te wijzigen",

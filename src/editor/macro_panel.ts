@@ -14,8 +14,10 @@ import {
     savingOf,
 } from "./macro";
 import { isCommand } from "./catalog";
+import { macroLetters, macroThumbnail } from "./macro_icon";
 import { message, type MessageKey } from "./messages";
 import { formatName } from "./text";
+import { macroIcon, TOOL_FAMILIES } from "./tools";
 import "./macro.css";
 
 // The panel of a macro being defined, by direct manipulation of the
@@ -24,9 +26,6 @@ import "./macro.css";
 // How an object of the figure shows: an initial, a final chosen, an
 // object the initials determine, or one a final misses.
 export type MacroState = "initial" | "final" | "possible" | "missing";
-
-// The icon, in pixels.
-const ICON_SIZE = 16;
 
 // What the initials miss, named in a message: a hundred names would hide it.
 function names(objects: construction_object[]): string {
@@ -104,18 +103,68 @@ export function macroPanel(options: {
         .att("rows", "3")
         .att("placeholder", message("macro_help_placeholder"))
         .att("aria-label", message("macro_help"));
-    const canvas = $.create("canvas")
-        .cls("dge-macro-icon")
-        .att("width", ICON_SIZE)
-        .att("height", ICON_SIZE)
+    // Drawn from the figure, unless letters are typed or an image chosen,
+    // the last of them.
+    let image: string | null = null;
+    let icon: string | null = null;
+    const { hue, tone } = TOOL_FAMILIES.at(-1)!;
+    const preview = $.create("span")
+        .cls("dge-tool-icon")
+        .stl("--dge-hue", hue)
+        .stl("--dge-tone", tone)
+        .att("role", "img")
         .att("aria-label", message("macro_icon"));
-    const pen = (canvas.dom() as HTMLCanvasElement).getContext("2d", {
-        willReadFrequently: true,
-    })!;
-    const clear = $.create("button")
+    const letters = $.create("input")
+        .cls("dge-macro-letters")
+        .att("type", "text")
+        .att("maxlength", "2")
+        .att("spellcheck", "false")
+        .att("placeholder", message("macro_icon_letters"))
+        .att("aria-label", message("macro_icon_letters"));
+    letters.on(
+        "input",
+        () => {
+            image = null;
+            render();
+        },
+        false,
+    );
+    const typed = () => field(letters).value.trim();
+    const imageInput = $.create("input")
+        .att("type", "file")
+        .att("accept", ".png,.svg,image/png,image/svg+xml");
+    const chooseImage = $.create("button")
         .att("type", "button")
-        .text(message("macro_clear_icon"));
-    clear.on("click", () => pen.clearRect(0, 0, ICON_SIZE, ICON_SIZE));
+        .text(message("macro_icon_image"));
+    chooseImage.on("click", () =>
+        (imageInput.dom() as HTMLInputElement).click(),
+    );
+    const drawnIcon = $.create("button")
+        .att("type", "button")
+        .text(message("macro_icon_drawn"));
+    drawnIcon.on("click", () => {
+        image = null;
+        field(letters).value = "";
+        render();
+    });
+    imageInput.on(
+        "change",
+        () => {
+            const file = field(imageInput).files![0];
+            field(imageInput).value = "";
+            field(letters).value = "";
+            const type = /\.svg$/i.test(file.name)
+                ? "image/svg+xml"
+                : "image/png";
+            const reader = new FileReader();
+            reader.onload = () => {
+                image = `data:${type};base64,${(reader.result as string).split(",")[1]}`;
+                render();
+            };
+            reader.readAsDataURL(file);
+        },
+        false,
+    );
     const status = $.create("p").cls("dge-macro-status").att("role", "status");
     const saveButton = $.create("button")
         .cls("dge-macro-save")
@@ -149,7 +198,15 @@ export function macroPanel(options: {
             section("macro_help", help),
             section(
                 "macro_icon",
-                $.create("div").cls("dge-macro-drawing").add(canvas, clear),
+                $.create("div")
+                    .cls("dge-macro-drawing")
+                    .add(
+                        preview,
+                        letters,
+                        chooseImage,
+                        drawnIcon,
+                        imageInput.hide(),
+                    ),
             ),
             $.create("div")
                 .cls("dge-macro-footer")
@@ -186,32 +243,22 @@ export function macroPanel(options: {
         },
     );
 
-    // The icon drawn pixel by pixel, a stroke erasing if it starts on one.
-    let inking = true;
-    const pixel = (event: PointerEvent): [number, number] => {
-        const box = canvas.dom().getBoundingClientRect();
-        return [
-            Math.floor(((event.clientX - box.left) / box.width) * ICON_SIZE),
-            Math.floor(((event.clientY - box.top) / box.height) * ICON_SIZE),
-        ];
-    };
-    const ink = (event: PointerEvent) => {
-        const [x, y] = pixel(event);
-        if (inking) pen.fillRect(x, y, 1, 1);
-        else pen.clearRect(x, y, 1, 1);
-    };
-    pen.fillStyle = "#1f2937";
-    canvas.drag(ink, (event) => {
-        const [x, y] = pixel(event);
-        inking = pen.getImageData(x, y, 1, 1).data[3] === 0;
-        ink(event);
-    });
-    const icon = (): string | null =>
-        pen
-            .getImageData(0, 0, ICON_SIZE, ICON_SIZE)
-            .data.some((value, index) => index % 4 === 3 && value > 0)
-            ? (canvas.dom() as HTMLCanvasElement).toDataURL("image/png")
-            : null;
+    // The icon of these initials and finals, as the tools' menu shows it.
+    function showIcon(
+        given: construction_object[],
+        shown: construction_object[],
+    ): void {
+        const next =
+            image ??
+            (typed() ? macroLetters(typed()) : macroThumbnail(given, shown));
+        if (next === icon && preview.inner()) return;
+        icon = next;
+        preview.inner(
+            `<svg viewBox="0 0 24 24" aria-hidden="true">${macroIcon({ icon })}</svg>`,
+        );
+        if (image || typed()) drawnIcon.show("inline-block");
+        else drawnIcon.hide();
+    }
 
     const hint = (): string =>
         message(step === 1 ? "macro_step_initials" : "macro_step_finals");
@@ -322,6 +369,7 @@ export function macroPanel(options: {
         });
         if (chosen.length || !shown.length) implicit.hide();
         else implicit.show();
+        showIcon(given, shown);
 
         const name = field(nameInput).value.trim();
         saving = null;
@@ -377,7 +425,7 @@ export function macroPanel(options: {
                                 finalNames.get(object.name)?.trim() ||
                                 object.name,
                         ),
-                        icon(),
+                        icon,
                         methodOf(
                             c,
                             given,
@@ -440,7 +488,8 @@ export function macroPanel(options: {
             finalNames.clear();
             field(nameInput).value = macroName(c, "Macro");
             field(help).value = "";
-            pen.clearRect(0, 0, ICON_SIZE, ICON_SIZE);
+            image = null;
+            field(letters).value = "";
             panel.dom().toggleAttribute("inert", false);
             render();
             options.hint(hint());
@@ -497,5 +546,19 @@ export function macroPanel(options: {
         },
         // The figure changed, or was rebuilt.
         refresh: render,
+        // The figure moved: the icon drawn from it follows.
+        follow(): void {
+            if (!active || image || typed()) return;
+            const c = options.scene();
+            const given = initials.map((name) => c.getObj(name)!);
+            showIcon(
+                given,
+                finalsOf(
+                    c,
+                    analyse(c, given),
+                    finals.map((name) => c.getObj(name)!),
+                ),
+            );
+        },
     };
 }

@@ -20,6 +20,7 @@ import {
     save,
     savingOf,
 } from "../../src/editor/macro";
+import { macroThumbnail } from "../../src/editor/macro_icon";
 import { parseLine } from "../../src/editor/text";
 import type { construction_object } from "../../src/objects/construction_object";
 import type { point_object } from "../../src/objects/point_object";
@@ -302,5 +303,41 @@ describe("Defining a macro", () => {
         expectClose((first as point_object).coords, [1, 4, 0]);
         expectClose((second as point_object).coords, [1, 4, 0]);
         expect(first.stroke_color).toBe("#ff0000");
+    });
+
+    it("draws its icon from the figure, its initials grey, its finals red", () => {
+        const c = figure(...CIRCUMCENTER, "d = Line(A, B)");
+        const svg = atob(
+            macroThumbnail(all(c, "A", "B", "C"), all(c, "O", "c", "d"))!.split(
+                ",",
+            )[1],
+        );
+        const icon = new DOMParser().parseFromString(svg, "image/svg+xml");
+        const dots = [...icon.querySelectorAll("circle[fill]")];
+        expect(dots.map((dot) => dot.getAttribute("fill"))).toEqual([
+            "#536174",
+            "#536174",
+            "#536174",
+            "#d14343",
+        ]);
+        expect(
+            [...icon.querySelectorAll("[stroke]")].map((shape) => [
+                shape.tagName,
+                shape.getAttribute("stroke"),
+            ]),
+        ).toEqual([
+            ["circle", "#d14343"],
+            ["path", "#d14343"],
+        ]);
+        // Framed on the circle, the line crossing it: a square around its
+        // diameter, in pixels, within the margin of the tools' icons.
+        const [, , side] = icon
+            .querySelector("svg")!
+            .getAttribute("viewBox")!
+            .split(" ")
+            .map(Number);
+        expect(side).toBeCloseTo((2 * 40 * Math.hypot(2, 1) * 20) / 16, 1);
+        expect(macroThumbnail(all(c, "A"), [])).not.toBeNull();
+        expect(macroThumbnail([], [])).toBeNull();
     });
 });

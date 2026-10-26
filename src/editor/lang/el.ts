@@ -348,7 +348,9 @@ const el: Texts = {
         macro_help_placeholder:
             "Η σειρά των αρχικών, και πότε αποτυγχάνει η μακροεντολή",
         macro_icon: "Εικονίδιο",
-        macro_clear_icon: "Διαγραφή",
+        macro_icon_letters: "Γράμματα",
+        macro_icon_image: "Επιλογή εικόνας…",
+        macro_icon_drawn: "Αυτόματο εικονίδιο",
         macro_remove: "Αφαίρεση",
         macro_message: "Μήνυμα όταν επιλέγεται",
         macro_drag: "Σύρετε για να αλλάξετε τη σειρά",

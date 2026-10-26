@@ -175,8 +175,17 @@ des macros. Pour les figures importées, la référence est DGPad.
   l'ordre des initiaux, réordonnable par glisser-déposer (l'ordre des clics
   n'est qu'une valeur par défaut), et le message affiché à l'usage pour
   chaque initial (« Le cercle ? »). Il porte aussi le nom de la macro, le nom
-  de ses finaux, l'aide (ordre et domaine de validité) et l'icône dessinée
-  par l'auteur. Enregistrer ferme le panneau (demandé par l'auteur le
+  de ses finaux, l'aide (ordre et domaine de validité) et l'icône. Celle-ci
+  est dessinée d'après la figure (`src/editor/macro_icon.ts`), dans le style
+  des icônes d'outils : initiaux en gris, finaux en rouge, cadrés sur ce
+  qu'ils montrent (une droite traverse le cadre sans l'agrandir). Elle suit
+  la figure quand on la manipule, ce qui permet de choisir une configuration
+  parlante. L'auteur peut la remplacer par une ou deux lettres tapées
+  (« CC » pour un cercle circonscrit), en gris, ou par une image PNG ou SVG
+  de son disque, le dernier choix l'emportant (demandé par l'auteur le
+  2026-10-26, à la place d'un éditeur d'icône pixel par pixel que personne
+  n'aurait utilisé). Dans tous les cas, c'est une image de la table `img`
+  du `.dgo`. Enregistrer ferme le panneau (demandé par l'auteur le
   2026-10-26, à la place du mode laissé ouvert pour réordonner et
   enregistrer sous un autre nom) : VF-ET, VF-OU et VF-NON viennent
   toujours d'une seule figure, la sélection refaite à chaque macro.

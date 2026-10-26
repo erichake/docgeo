@@ -742,10 +742,10 @@ const FAMILIES: [
     ],
 ];
 
-// A macro's icon, drawn by its author, or a box.
-export const macroIcon = ({ icon }: Macro): string =>
+// A macro's icon, drawn from its figure or chosen by its author, or a box.
+export const macroIcon = ({ icon }: Pick<Macro, "icon">): string =>
     icon
-        ? `<image href="${icon}" x="2" y="2" width="20" height="20" style="image-rendering:pixelated"/>`
+        ? `<image href="${icon}" x="2" y="2" width="20" height="20"/>`
         : path("M4 6h16v12H4Z") + result(dot(9, 12) + dot(15, 12));
 
 // Between two families, in buttons.

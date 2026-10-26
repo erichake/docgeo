@@ -334,7 +334,9 @@ export default {
     macro_help_placeholder:
         "The order of the initials, and when the macro fails",
     macro_icon: "Icon",
-    macro_clear_icon: "Clear",
+    macro_icon_letters: "Letters",
+    macro_icon_image: "Choose an image…",
+    macro_icon_drawn: "Automatic icon",
     macro_remove: "Remove",
     macro_message: "Message shown when it is designated",
     macro_drag: "Drag to change the order",

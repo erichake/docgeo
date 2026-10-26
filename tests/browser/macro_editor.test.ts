@@ -107,6 +107,38 @@ describe("Defining a macro in the editor", () => {
             );
         expect(names(0)).toEqual(["A", "B", "C"]);
         expect(names(1)).toEqual(["O", "c"]);
+        // An image chosen for its icon, then the one drawn from the figure.
+        const icon = () =>
+            panel.querySelector(".dge-tool-icon image")?.getAttribute("href");
+        expect(icon()).toMatch(/^data:image\/svg\+xml;base64,/);
+        const files = new DataTransfer();
+        files.items.add(
+            new File([new Uint8Array([137, 80, 78, 71])], "icon.png", {
+                type: "image/png",
+            }),
+        );
+        const chooser = panel.querySelector(
+            'input[type="file"]',
+        ) as HTMLInputElement;
+        chooser.files = files.files;
+        chooser.dispatchEvent(new Event("change"));
+        await expect.poll(icon).toBe("data:image/png;base64,iVBORw==");
+        // Letters typed instead, encoded in UTF-8.
+        const letters = panel.querySelector(
+            ".dge-macro-letters",
+        ) as HTMLInputElement;
+        letters.value = "⊥C";
+        letters.dispatchEvent(new Event("input"));
+        const svg = new TextDecoder().decode(
+            Uint8Array.from(atob(icon()!.split(",")[1]), (char) =>
+                char.charCodeAt(0),
+            ),
+        );
+        expect(svg).toMatch(/<text [^>]*fill="#536174"[^>]*>⊥C<\/text>/);
+        button("Automatic icon").click();
+        expect(letters.value).toBe("");
+        expect(icon()).toMatch(/^data:image\/svg\+xml;base64,/);
+        expect(atob(icon()!.split(",")[1])).not.toContain("<text");
         const name = panel.querySelector(
             ".dge-macro-field input",
         ) as HTMLInputElement;
@@ -116,11 +148,14 @@ describe("Defining a macro in the editor", () => {
         // Saved, the mode is left.
         expect(open()).toBe(false);
         expect(page.querySelector("svg.dge-defining")).toBeNull();
-        const { mac } = await saved(request);
+        const { mac, img } = await saved(request);
+        // Its icon drawn from the figure.
+        expect(img[mac[0].ic]).toMatch(/^data:image\/svg\+xml;base64,/);
         expect(mac).toEqual([
             {
                 n: "Circumscribed",
                 f: ["O", "c"],
+                ic: mac[0].ic,
                 m: [
                     {
                         i: [["point"], ["point"], ["point"]],

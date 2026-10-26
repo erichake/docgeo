@@ -342,7 +342,9 @@ const es: Texts = {
         macro_help_placeholder:
             "El orden de los iniciales, y cuándo falla la macro",
         macro_icon: "Icono",
-        macro_clear_icon: "Borrar",
+        macro_icon_letters: "Letras",
+        macro_icon_image: "Elegir una imagen…",
+        macro_icon_drawn: "Icono automático",
         macro_remove: "Quitar",
         macro_message: "Mensaje mostrado al seleccionarlo",
         macro_drag: "Arrastra para cambiar el orden",

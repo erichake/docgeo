@@ -341,7 +341,9 @@ const it: Texts = {
         macro_help_placeholder:
             "L'ordine degli iniziali, e quando la macro non funziona",
         macro_icon: "Icona",
-        macro_clear_icon: "Cancella",
+        macro_icon_letters: "Lettere",
+        macro_icon_image: "Scegli un’immagine…",
+        macro_icon_drawn: "Icona automatica",
         macro_remove: "Rimuovi",
         macro_message: "Messaggio mostrato quando lo si seleziona",
         macro_drag: "Trascina per cambiare l'ordine",

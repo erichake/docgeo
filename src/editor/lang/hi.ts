@@ -340,7 +340,9 @@ const hi: Texts = {
         macro_help_placeholder:
             "प्रारंभिक वस्तुओं का क्रम, और मैक्रो कब विफल होता है",
         macro_icon: "आइकन",
-        macro_clear_icon: "मिटाएँ",
+        macro_icon_letters: "अक्षर",
+        macro_icon_image: "चित्र चुनें…",
+        macro_icon_drawn: "स्वचालित आइकन",
         macro_remove: "हटाएँ",
         macro_message: "चुने जाने पर दिखने वाला संदेश",
         macro_drag: "क्रम बदलने के लिए खींचें",
