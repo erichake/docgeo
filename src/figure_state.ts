@@ -7,11 +7,12 @@ import { free_vector_object } from "./objects/free_vector_object";
 import type { grid_object } from "./objects/grid_object";
 import { intersection_object } from "./objects/intersection_object";
 import { list_object } from "./objects/list_object";
+import { macro_object } from "./objects/macro_object";
 import { point_on_object } from "./objects/point_on_object";
 import { point_object } from "./objects/point_object";
 
 // See DGO.md, « État élève ».
-type Value = number | null | (number | null)[];
+type Value = number | null | Value[];
 export type FigureState = Record<string, Value>;
 
 export interface Target {
@@ -22,7 +23,11 @@ export interface Target {
 }
 
 type Stated =
-    point_object | expression_object | circle1_object | free_vector_object;
+    | point_object
+    | expression_object
+    | circle1_object
+    | free_vector_object
+    | macro_object;
 
 // The view a figure was built with, which pinned points' coordinates are
 // read in: a drag changes their window position, not the view, which isn't
@@ -57,22 +62,27 @@ const isReals = (value: unknown, min: number, max = min): boolean =>
 // and points defined by formulas change), the radii of circles that aren't
 // formulas and free vectors. Besides, the branch of an intersection whose solutions
 // are followed as the figure moves (see intersection_object.groupAssign):
-// the same objects' values reached otherwise could lead to another one.
+// the same objects' values reached otherwise could lead to another one;
+// those of a macro's application, by its branches. A macro's final is
+// never manipulated.
 function stated(c: construction): Stated[] {
     return figureObjects(c).filter(
         (object): object is Stated =>
-            object.constructor === point_object ||
-            object instanceof point_on_object ||
-            (object instanceof expression_object &&
-                !object.formula &&
-                !object.program &&
-                typeof object.value === "number") ||
-            (object instanceof intersection_object &&
-                !object.away &&
-                object.branch !== null) ||
-            (object instanceof circle1_object &&
-                typeof object.radius === "number") ||
-            object instanceof free_vector_object,
+            (object instanceof macro_object &&
+                object.branches.flat(Infinity).length > 0) ||
+            (!object.output &&
+                (object.constructor === point_object ||
+                    object instanceof point_on_object ||
+                    (object instanceof expression_object &&
+                        !object.formula &&
+                        !object.program &&
+                        typeof object.value === "number") ||
+                    (object instanceof intersection_object &&
+                        !object.away &&
+                        object.branch !== null) ||
+                    (object instanceof circle1_object &&
+                        typeof object.radius === "number") ||
+                    object instanceof free_vector_object)),
     );
 }
 
@@ -95,6 +105,7 @@ const movable = (c: construction): Stated[] =>
     stated(c).filter((object) => !(object instanceof intersection_object));
 
 function stateValue(object: Stated, vec3: boolean, view: BuiltView): Value {
+    if (object instanceof macro_object) return object.branches as Value;
     if (object instanceof intersection_object) return object.branch;
     if (object instanceof circle1_object) return json(object.radius as number);
     if (object instanceof free_vector_object)
@@ -163,7 +174,10 @@ export function stateFigure(
         const object = objects[index];
         const [tag, , parameters, ...style] = entries[index];
         let changed: unknown;
-        if (object instanceof intersection_object) {
+        if (object instanceof macro_object) {
+            check(Array.isArray(value));
+            changed = [...(parameters as unknown[]).slice(0, 3), value];
+        } else if (object instanceof intersection_object) {
             check(Number.isInteger(value) && value >= 0 && value <= 3);
             changed = [...(parameters as unknown[]).slice(0, 2), value];
         } else if (object instanceof circle1_object) {

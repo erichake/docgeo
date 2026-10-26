@@ -33,6 +33,7 @@ import { createCircle } from "./objects/circle_object";
 import {
     construction_object,
     isDash,
+    objectEntry,
     objectIndex,
     type DgoContext,
 } from "./objects/construction_object";
@@ -129,6 +130,14 @@ import { createPanel, panelNames, parsePanel } from "./objects/panel_object";
 import { createEvent, runInits } from "./objects/event_object";
 import { button_object, createButton } from "./objects/button_object";
 import { createLine } from "./objects/two_points_line_object";
+import {
+    initialSlots,
+    MACRO_TYPES,
+    macro_object,
+    SUB_OBJECTS,
+    type Macro,
+    type MacroMethod,
+} from "./objects/macro_object";
 import { createVector, vector_object } from "./objects/vector_object";
 import { createFreeVector } from "./objects/free_vector_object";
 import type { Vec2, Vec3 } from "./vec";
@@ -157,6 +166,8 @@ export interface DgoFigure {
     // Type, name, parameters and style of each object, in construction
     // order.
     o: Json[][];
+    // The macro-constructions, applied or not.
+    mac?: Settings[];
 }
 
 // ************************** DEFAULTS ****************************
@@ -267,6 +278,7 @@ export const LOOKS: Record<string, Look> = {
     Html: ["#000000", "#000000", 3],
     Btn: ["#000000", "#000000", 3, 0.1],
     Evt: ["#000000", "#000000", 1],
+    Mac: TEXT,
 };
 
 const BACKGROUND = "#FAFAFA";
@@ -396,7 +408,8 @@ const STYLE: Record<string, Property> = {
         (tag) => LOOKS[tag][3],
         (value) => value === undefined || isNumber(value),
     ),
-    h: field(object, "hidden", 0, isHidden),
+    // An application of a macro is never shown.
+    h: field(object, "hidden", (tag) => (tag === "Mac" ? 2 : 0), isHidden),
     sn: flag(object, "showName"),
     in: flag(object, "inert"),
     f: field(object, "fontSize", 16, isNumber),
@@ -684,6 +697,12 @@ function describe(
     return settings;
 }
 
+// What its style saves, for a body of its .dgo type.
+export const objectStyle = (
+    object: construction_object,
+    tag: string,
+): Settings => describe(STYLE, object, tag);
+
 function apply(
     table: Record<string, Property>,
     owner: construction_object,
@@ -743,11 +762,16 @@ export async function describeDgo(
     const indices = new Map(objects.map((object, index) => [object, index]));
     const images: Record<string, string> = {};
     const keys = new Map<string, string>();
-    for (const object of objects)
-        if (object instanceof image_object && !keys.has(object.url)) {
-            const key = await imageKey(object.url);
-            keys.set(object.url, key);
-            images[key] = object.url;
+    for (const url of [
+        ...objects.flatMap((object) =>
+            object instanceof image_object ? [object.url] : [],
+        ),
+        ...c.macros.flatMap(({ icon }) => (icon ? [icon] : [])),
+    ])
+        if (!keys.has(url)) {
+            const key = await imageKey(url);
+            keys.set(url, key);
+            images[key] = url;
         }
     const context: DgoContext = {
         index: (object) => objectIndex(object, (owner) => indices.get(owner)!),
@@ -756,6 +780,14 @@ export async function describeDgo(
     };
     const styles: Settings[] = [];
     const styleIndices = new Map<string, number>();
+    const styleIndex = (style: Settings): number => {
+        const json = JSON.stringify(style);
+        if (!styleIndices.has(json)) {
+            styleIndices.set(json, styles.length);
+            styles.push(style);
+        }
+        return styleIndices.get(json)!;
+    };
     const figure: DgoFigure = {
         dgo: VERSION,
         v: {
@@ -771,8 +803,9 @@ export async function describeDgo(
             bg: c.prefs.background.color,
         }),
         o: objects.map((object) => {
-            const [tag, parameters] = object.dgo(context);
-            const style = describe(STYLE, object, tag);
+            const { output } = object;
+            const [tag, parameters] = objectEntry(object, context);
+            const style = describe(STYLE, object, output?.tag ?? tag);
             if (object.condition) style.sc = context.index(object.condition);
             if (object instanceof point_object && object.magnets.length)
                 style.mg = object.magnets.map(({ target, radius }) => [
@@ -781,14 +814,32 @@ export async function describeDgo(
                 ]);
             const entry = [tag, object.name, parameters];
             if (Object.keys(style).length === 0) return entry;
-            const json = JSON.stringify(style);
-            if (!styleIndices.has(json)) {
-                styleIndices.set(json, styles.length);
-                styles.push(style);
-            }
-            return [...entry, styleIndices.get(json)];
+            return [...entry, styleIndex(style)];
         }),
     };
+    if (c.macros.length)
+        figure.mac = c.macros.map(({ name, finals, icon, methods }) => ({
+            n: name,
+            f: finals,
+            ...(icon && { ic: keys.get(icon) }),
+            m: methods.map(({ initials, help, body, finals }) => ({
+                i: initials.map(([type, message]) =>
+                    message ? [type, message] : [type],
+                ),
+                ...(help && { h: help }),
+                b: body.map(([tag, name, parameters, style]) =>
+                    style === undefined
+                        ? [tag, name, parameters]
+                        : [
+                              tag,
+                              name,
+                              parameters,
+                              styleIndex(style as Settings),
+                          ],
+                ),
+                f: finals,
+            })),
+        }));
     if (styles.length) figure.st = styles;
     if (keys.size) figure.img = images;
     return figure;
@@ -871,6 +922,7 @@ export function readDgo(c: construction, figure: Json, centered = false): void {
         st: styles = [],
         img: images = {},
         o: entries,
+        mac: macros = [],
     } = figure;
     check(isRecord(view) && isFlag(deg) && isFlag(sop) && isColor(bg));
     check(Array.isArray(styles) && styles.every(isRecord));
@@ -879,6 +931,7 @@ export function readDgo(c: construction, figure: Json, centered = false): void {
     c.segmentsOverPolygons = sop === 1;
     c.prefs.background.color = bg as string;
     c.svg.stl("background", bg as string);
+    c.macros = readMacros(macros, styles, images);
 
     const { o: origin, u: unit, w: width, h: height } = view;
     check(isPair(origin) && isNumber(unit) && unit > 0);
@@ -919,10 +972,49 @@ export function addDgoEntries(
     images: Record<string, Json> = {},
     offset: Vec2 = [0, 0],
 ): void {
-    const vec3 = !c.GRID.is2D;
     const objects = figureObjects(c);
-    const styled: [construction_object, Settings][] = [];
-    // An earlier object, of one of the given classes.
+    const at = objectAt(objects);
+    const styled = readEntries(
+        { c, root: c, macros: c.macros, images, offset },
+        objects,
+        entries,
+        (index) => {
+            if (index === undefined) return {};
+            const chosen = styles[index as number];
+            check(Number.isInteger(index) && isRecord(chosen));
+            return chosen;
+        },
+    );
+    // Conditions and magnets may name later objects.
+    styled.forEach(([object, { sc: condition, mg: magnets }]) => {
+        if (condition !== undefined) {
+            object.condition = at(condition, expression_object);
+            object.addParents(object.condition);
+        }
+        if (magnets !== undefined) {
+            check(object instanceof point_object && Array.isArray(magnets));
+            object.magnets = magnets.map((magnet) => {
+                const [target, radius] = list(magnet, 2);
+                check(isNumber(radius));
+                return {
+                    target: at(
+                        target,
+                        primitive_line_object,
+                        primitive_circle_object,
+                        primitive_quadric_object,
+                        list_object,
+                        curve_object,
+                        point_object,
+                    ),
+                    radius,
+                };
+            });
+        }
+    });
+}
+
+// An earlier object of `objects`, of one of the given classes.
+function objectAt(objects: construction_object[]) {
     const at = <C extends Classes>(
         value: Json,
         ...classes: C
@@ -953,6 +1045,33 @@ export function addDgoEntries(
         check(classes.some((type) => object instanceof type));
         return object as Instance<C[number]>;
     };
+    return at;
+}
+
+// Where entries are read: the figure, or the body of a macro's
+// application.
+interface Scope {
+    c: construction;
+    // The figure's.
+    root: construction;
+    // Those it may apply.
+    macros: Macro[];
+    images: Record<string, Json>;
+    offset: Vec2;
+}
+
+// Reads the entries after `objects`, which their indices go on from, each
+// with the style `style` finds for its fourth element.
+function readEntries(
+    scope: Scope,
+    objects: construction_object[],
+    entries: Json[],
+    style: (value: Json) => Settings,
+): [construction_object, Settings][] {
+    const { c } = scope;
+    const vec3 = !c.GRID.is2D;
+    const styled: [construction_object, Settings][] = [];
+    const at = objectAt(objects);
     const points = (values: Json, count: number): point_object[] =>
         list(values, count).map((value) => at(value, point_object));
     // A formula's text, and the objects of the given classes its names
@@ -985,60 +1104,27 @@ export function addDgoEntries(
     ];
     withObjects(new Set(names), () =>
         entries.forEach((entry) => {
-            const [tag, name, parameters, styleIndex] = list(entry, 3, 4);
+            const [tag, name, parameters, styleValue] = list(entry, 3, 4);
             check(typeof tag === "string" && own(BUILDERS, tag));
             check(typeof name === "string" && name !== "" && !c.getObj(name));
             const object = BUILDERS[tag](parameters, {
-                c,
+                ...scope,
                 name,
                 at,
                 points,
                 formula,
                 vec3,
-                images,
-                offset,
             });
-            let style: Settings = {};
-            if (styleIndex !== undefined) {
-                const chosen = styles[styleIndex as number];
-                check(Number.isInteger(styleIndex) && isRecord(chosen));
-                style = chosen;
-            }
-            apply(STYLE, object, style, tag);
-            styled.push([object, style]);
+            const settings = style(styleValue);
+            apply(STYLE, object, settings, object.output?.tag ?? tag);
+            styled.push([object, settings]);
             objects.push(object);
         }),
     );
-    // Conditions and magnets may name later objects.
-    styled.forEach(([object, { sc: condition, mg: magnets }]) => {
-        if (condition !== undefined) {
-            object.condition = at(condition, expression_object);
-            object.addParents(object.condition);
-        }
-        if (magnets !== undefined) {
-            check(object instanceof point_object && Array.isArray(magnets));
-            object.magnets = magnets.map((magnet) => {
-                const [target, radius] = list(magnet, 2);
-                check(isNumber(radius));
-                return {
-                    target: at(
-                        target,
-                        primitive_line_object,
-                        primitive_circle_object,
-                        primitive_quadric_object,
-                        list_object,
-                        curve_object,
-                        point_object,
-                    ),
-                    radius,
-                };
-            });
-        }
-    });
+    return styled;
 }
 
-interface Reader {
-    c: construction;
+interface Reader extends Scope {
     name: string;
     at<C extends Classes>(value: Json, ...classes: C): Instance<C[number]>;
     points(values: Json, count: number): point_object[];
@@ -1047,9 +1133,149 @@ interface Reader {
         ...classes: C
     ): { source: string; refs: Map<string, Instance<C[number]>> };
     vec3: boolean;
-    images: Record<string, Json>;
-    // Added to the window positions read.
-    offset: Vec2;
+}
+
+// What builds an application's body: its objects stay out of the figure.
+function privateConstruction(
+    c: construction,
+    objects: construction_object[],
+): construction {
+    const names = new Map<string, construction_object>();
+    return Object.assign(Object.create(c) as construction, {
+        add: <T extends construction_object>(object: T): T => {
+            objects.push(object);
+            names.set(object.name, object);
+            return object;
+        },
+        getObj: (name: string) => names.get(name),
+        // Where a locus finds the objects between its points.
+        OBJS: Object.assign(Object.create(c.OBJS), { V: objects }),
+    });
+}
+
+// Not in a body: free objects, which would be missing initials, what a
+// manipulation changes, what acts on the figure, and images, whose keys
+// are the figure's.
+const UNBUILT = ["Pt", "VecF", "Btn", "Evt", "Html", "Img"];
+
+// The figure's macros: what can be checked before reading their bodies,
+// read with each application.
+function readMacros(
+    value: Json,
+    styles: Json[],
+    images: Record<string, Json>,
+): Macro[] {
+    check(Array.isArray(value));
+    const macros = value.map((macro): Macro => {
+        check(isRecord(macro));
+        const { n: name, f: finals, ic: icon = null, m: methods } = macro;
+        check(typeof name === "string" && name !== "");
+        check(
+            Array.isArray(finals) &&
+                finals.length > 0 &&
+                finals.every((final) => typeof final === "string"),
+        );
+        const url =
+            icon === null
+                ? null
+                : typeof icon === "string" && own(images, icon)
+                  ? images[icon]
+                  : undefined;
+        check(url === null || (typeof url === "string" && IMAGE_URL.test(url)));
+        check(Array.isArray(methods) && methods.length > 0);
+        return {
+            name,
+            finals: finals as string[],
+            icon: url,
+            methods: methods.map((method) =>
+                readMethod(method, finals.length, styles),
+            ),
+        };
+    });
+    check(new Set(macros.map(({ name }) => name)).size === macros.length);
+    // No signature is another's, nor begins it.
+    macros.forEach(({ methods }) =>
+        methods.forEach(({ initials: shorter }, i) =>
+            methods.forEach(({ initials: longer }, j) =>
+                check(
+                    i === j ||
+                        shorter.length > longer.length ||
+                        shorter.some(([type], k) => type !== longer[k][0]),
+                ),
+            ),
+        ),
+    );
+    return macros;
+}
+
+function readMethod(method: Json, count: number, styles: Json[]): MacroMethod {
+    check(isRecord(method));
+    const { i: values, h: help = "", b: body, f: finals } = method;
+    check(Array.isArray(values) && values.length > 0);
+    check(typeof help === "string" && Array.isArray(body));
+    const initials = values.map((value): [string, string] => {
+        const [type, message = ""] = list(value, 1, 2);
+        check(typeof type === "string" && own(MACRO_TYPES, type));
+        check(typeof message === "string");
+        return [type, message];
+    });
+    const slots = initials.reduce(
+        (sum, [type]) => sum + (SUB_OBJECTS[type] ?? 0) + 1,
+        0,
+    );
+    check(
+        list(finals, count, count).every(
+            (index, rank) =>
+                Number.isInteger(index) &&
+                (index as number) >= slots &&
+                (index as number) < slots + body.length &&
+                (finals as Json[]).indexOf(index) === rank,
+        ),
+    );
+    return {
+        initials,
+        help,
+        body: body.map((entry, index) => {
+            const [tag, name, parameters, styleIndex] = list(entry, 3, 4);
+            check(typeof tag === "string" && !UNBUILT.includes(tag));
+            // A number nothing computes, that a manipulation changes.
+            check(
+                tag !== "Ex" ||
+                    (isRecord(parameters) &&
+                        !own(parameters, "v") &&
+                        !own(parameters, "g")),
+            );
+            check(
+                tag !== "C1" ||
+                    (Array.isArray(parameters) &&
+                        parameters[1] !== null &&
+                        typeof parameters[1] !== "number"),
+            );
+            if (styleIndex === undefined) return [tag, name, parameters];
+            check(
+                (finals as Json[]).includes(slots + index) &&
+                    Number.isInteger(styleIndex),
+            );
+            const style = styles[styleIndex as number];
+            check(isRecord(style) && !own(style, "sc") && !own(style, "mg"));
+            return [tag, name, parameters, style];
+        }),
+        finals: finals as number[],
+    };
+}
+
+function setBranches(node: macro_object, value: Json): void {
+    const { branched } = node;
+    list(value, branched.length, branched.length).forEach((branch, index) => {
+        const object = branched[index];
+        if (object instanceof macro_object) return setBranches(object, branch);
+        check(
+            Number.isInteger(branch) &&
+                (branch as number) >= 0 &&
+                (branch as number) <= 3,
+        );
+        object.order = branch as 0 | 1 | 2 | 3;
+    });
 }
 
 type Builder = (parameters: Json, reader: Reader) => construction_object;
@@ -2019,5 +2245,94 @@ const BUILDERS: Record<string, Builder> = {
             image.screen = [screen[0] + offset[0], screen[1] + offset[1]];
         }
         return image;
+    },
+    Mac: (parameters, reader) => {
+        const { c, root, name, at, macros, images } = reader;
+        const [index, rank, values, branches] = list(parameters, 3, 4);
+        check(Number.isInteger(index) && Number.isInteger(rank));
+        const macro = macros[index as number];
+        const method = macro?.methods[rank as number];
+        check(method !== undefined);
+        const initials = list(values, method.initials.length).map(
+            (value, i) => {
+                const [type] = method.initials[i];
+                if (type === "number" && typeof value === "string")
+                    return value;
+                const object = at(value, construction_object);
+                check(MACRO_TYPES[type](object));
+                return object;
+            },
+        );
+        const objects: construction_object[] = [];
+        const body = privateConstruction(c, objects);
+        const standIns = new Map<construction_object, construction_object>();
+        const local = initials.flatMap((initial, i) =>
+            typeof initial === "string"
+                ? [
+                      createExpression(
+                          body,
+                          null,
+                          "",
+                          null,
+                          null,
+                          null,
+                          [0, 0],
+                          null,
+                          scriptProgram(reader, initial),
+                      ),
+                  ]
+                : initialSlots(body, method.initials[i][0], initial, standIns),
+        );
+        const slots = local.length;
+        readEntries(
+            {
+                c: body,
+                root,
+                macros: macros.slice(0, index as number),
+                images,
+                offset: [0, 0],
+            },
+            local,
+            method.body,
+            (style) => (style ?? {}) as Settings,
+        );
+        objects.forEach((object) => (object.C = root));
+        const node = c.add(
+            new macro_object(
+                c,
+                name,
+                macro,
+                rank as number,
+                initials,
+                objects,
+                [...standIns.values()],
+                method.finals.map((final) => local[final]),
+                method.finals.map(
+                    (final) =>
+                        local[final].output?.tag ??
+                        (method.body[final - slots][0] as string),
+                ),
+            ),
+        );
+        if (branches !== undefined) setBranches(node, branches);
+        return node;
+    },
+    Out: (parameters, { c, name, at }) => {
+        const [index, rank] = list(parameters, 2);
+        const node = at(index, macro_object);
+        check(Number.isInteger(rank));
+        // Perhaps adopted in the body already, from an application there.
+        const final = node.finals[(rank as number) - 1];
+        check(final !== undefined && final.output?.node !== node);
+        final.output = {
+            node,
+            rank: rank as number,
+            tag: node.finalTags[(rank as number) - 1],
+        };
+        final.name = name;
+        final.parents = [];
+        final.addParents(node);
+        if (final instanceof point_object) final.moveable = false;
+        return c.add(final);
     },
 };

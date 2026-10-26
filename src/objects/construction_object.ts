@@ -29,6 +29,16 @@ export interface DgoContext {
     screen(position: Vec2): Vec2;
 }
 
+// Its .dgo type and parameters: a macro's final is the output of its
+// application.
+export const objectEntry = (
+    object: construction_object,
+    context: DgoContext,
+): [string, unknown] =>
+    object.output
+        ? ["Out", [context.index(object.output.node), object.output.rank]]
+        : object.dgo(context);
+
 // A formula's text and, when it reads other objects, what each of its names
 // stands for.
 export function dgoFormula(
@@ -91,6 +101,9 @@ export class construction_object {
         rank: number;
     };
     virtualParts?: Map<string, construction_object>;
+    // A final of a macro's application (see macro_object.ts): the
+    // application, its rank, and its .dgo type in the macro's body.
+    output?: { node: construction_object; rank: number; tag: string };
     class: typeof construction_object;
     C: construction;
     prefs: Preferences;

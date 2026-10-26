@@ -12,6 +12,8 @@ import {
     type Overload,
 } from "./catalog";
 import { ACTION_ICONS } from "./icons";
+import { initialType } from "./macro";
+import type { Macro } from "../objects/macro_object";
 import { message, type MessageKey } from "./messages";
 
 // The tools shown around a designated object: see EDITOR.md.
@@ -20,8 +22,17 @@ export interface Tool {
     // The command, whose arguments are designated one after the other; or a
     // point put on the object or an intersection, where it was designated;
     // or a program to write, of a turtle from a point, of a button put
-    // there, or answering the object designated.
-    mode: "command" | "point" | "intersection" | "turtle" | "button" | "event";
+    // there, or answering the object designated; or a macro to define, or
+    // on the ring, those of the figure that take the object.
+    mode:
+        | "command"
+        | "point"
+        | "intersection"
+        | "turtle"
+        | "button"
+        | "event"
+        | "macro"
+        | "macros";
     // The event's, null for the change of an expression's value.
     gesture?: Gesture | null;
     command: Command;
@@ -693,7 +704,49 @@ const FAMILIES: [
             ),
         ],
     ],
+    [
+        "family_macros",
+        0,
+        // The figure's macros that take the object (see showRingMacros in
+        // main.ts), only on the ring.
+        [
+            [
+                labelled(
+                    "family_macros",
+                    tool(
+                        "List",
+                        0,
+                        path("M4 6h16v12H4Z") +
+                            result(dot(9, 12) + dot(15, 12)),
+                        "macros",
+                    ),
+                ),
+            ],
+        ],
+        [
+            // Defined from the figure (see startMacro in main.ts).
+            labelled(
+                "new_macro",
+                tool(
+                    "List",
+                    0,
+                    path("M3 4h18v16H3Z", true) +
+                        result(path("M7 16 12 8l5 8Z")) +
+                        dot(7, 16) +
+                        dot(17, 16),
+                    "macro",
+                ),
+            ),
+        ],
+        0.8,
+    ],
 ];
+
+// A macro's icon, drawn by its author, or a box.
+export const macroIcon = ({ icon }: Macro): string =>
+    icon
+        ? `<image href="${icon}" x="2" y="2" width="20" height="20" style="image-rendering:pixelated"/>`
+        : path("M4 6h16v12H4Z") + result(dot(9, 12) + dot(15, 12));
 
 // Between two families, in buttons.
 const GAP = 0.45;
@@ -715,6 +768,7 @@ for (const [name, hue, slots, menuOnly = [], tone = 1] of FAMILIES) {
     for (const tools of slots) {
         for (const tool of tools) {
             TOOLS.push(Object.assign(tool, { slot, family }));
+            if (tool.mode === "macros") continue;
             const item = family.items.find(
                 ({ tools: [first] }) =>
                     first.slot === slot && first.command === tool.command,
@@ -778,6 +832,7 @@ export function toolsFor(
         // A point is put on the object, an intersection with another.
         if (mode === "point") return accepts(object, "support");
         if (mode === "turtle" || mode === "event") return answers(tool, object);
+        if (mode === "macros") return true;
         if (mode === "intersection") return accepts(object, "intersectable");
         // A radius is given by the tool, not designated.
         return overload.params.some(
@@ -831,6 +886,11 @@ export function assign(
             : null;
     // A button takes no object, the selection ignored.
     if (mode === "button") return [];
+    // The objects selected are the initials.
+    if (mode === "macro")
+        return objects.every((object) => initialType(object))
+            ? [...objects]
+            : null;
     if (mode === "intersection")
         return objects.length <= 2 &&
             objects.every((object) => accepts(object, "intersectable"))

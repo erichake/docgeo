@@ -1810,6 +1810,7 @@ describe("Editor", () => {
                 ["When the object is released", "ELst"],
                 ["When the value changes", "ELst"],
             ],
+            [["New macro", "ELst"]],
         ]);
         const sphere = TOOL_FAMILIES[3].items[3].tools[0];
         expect([false, true].map((space) => usable(sphere, space))).toEqual([

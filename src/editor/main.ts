@@ -68,6 +68,8 @@ import {
     addEvent,
     hasName,
     lineOf,
+    applyMacroLine,
+    resolveMacro,
     nextName,
     valueText,
     rebuild,
@@ -132,6 +134,7 @@ import {
     itemLabel,
     RING_SLOTS,
     TOOL_FAMILIES,
+    macroIcon,
     toolsFor,
     usable,
     type Family,
@@ -168,6 +171,19 @@ import { offPlane, PLANE, SPACE, turnView } from "./space";
 import { showStep as showStepOf, stepOf, steps, type Stepping } from "./steps";
 import { askLink, confirmed, framingBar } from "./web_page";
 import "./properties.css";
+import { macroPanel, type MacroState } from "./macro_panel";
+import { macro_object, type Macro } from "../objects/macro_object";
+import {
+    applyMacro,
+    completes,
+    macroIndex,
+    takesAt,
+    designation,
+    takesNext,
+    typedNumber,
+    type Designation,
+    type Picked,
+} from "./macro";
 
 // The construction editor: see EDITOR.md.
 
@@ -356,6 +372,8 @@ $("head").append(`<style>
     .dge-hint.dge-error { background: #b91c1c; }
     .dge-hint button { width: 30px; height: 30px; margin: -4px -8px -4px 10px; padding: 0; border: 0; border-radius: 50%; background: rgb(255 255 255 / 0.18); color: inherit; font-size: 15px; vertical-align: middle; cursor: pointer; pointer-events: auto; }
     .dge-hint button:hover { background: rgb(255 255 255 / 0.32); }
+    .dge-hint input { width: 7ch; margin: -3px 0 -3px 10px; padding: 2px 6px; border: 0; border-radius: 5px; font: inherit; pointer-events: auto; }
+    .dge-hint input.dge-error { outline: 2px solid #f87171; }
     .dge-ring { position: fixed; width: 0; height: 0; z-index: 12; }
     .dge-ring button { position: absolute; display: grid; place-items: center; width: ${2 * RING_BUTTON}px; height: ${2 * RING_BUTTON}px; margin: -${RING_BUTTON}px; padding: 7px; border: 1px solid hsl(var(--dge-hue) calc(55% * var(--dge-tone)) 60%); border-radius: 50%; background: var(--dge-icon-bg); --dge-icon-bg: hsl(var(--dge-hue) calc(70% * var(--dge-tone)) 96%); color: #536174; box-shadow: 0 1px 2px rgb(15 23 42 / 0.06), 0 3px 7px rgb(15 23 42 / 0.08); cursor: pointer; }
     .dge-ring button:hover { --dge-icon-bg: #2563eb; color: #fff; border-color: #2563eb; box-shadow: 0 2px 4px rgb(15 23 42 / 0.08), 0 4px 10px rgb(15 23 42 / 0.1); }
@@ -583,7 +601,9 @@ const doneButton = $.create("button")
     .cls("dge-done")
     .att("type", "button")
     .text(message("done"));
-doneButton.on("click", () => (armed ? cancel() : stopMagnets()));
+doneButton.on("click", () =>
+    armed ? cancel() : applying ? stopApply() : stopMagnets(),
+);
 // The figure framed for a web page, from its published file.
 const framing = framingBar(
     scene,
@@ -822,6 +842,15 @@ const properties = propertiesPanel({
         (propertiesButton.dom() as HTMLButtonElement).focus();
     },
 });
+// A macro being defined (see MACROS.md).
+const macros = macroPanel({
+    scene,
+    show: showMacro,
+    hint: (text) => showHint(text),
+    saved: () => changed(),
+    close: () => stopMacro(),
+});
+
 properties.panel.dom().toggleAttribute("inert", true);
 const fileInput = $.create("input")
     .att("type", "file")
@@ -985,6 +1014,7 @@ $("body").add(
     ...(standalone ? menuBar(menus, ...(native ? [fileLabel] : [])) : []),
     framing.elements[1],
     properties.panel,
+    macros.panel,
     resizeHandle(properties.panel, "right", () =>
         document.body.classList.contains("dge-properties-wide")
             ? "--dge-properties-wide-user"
@@ -1022,6 +1052,8 @@ function setPanel(on: boolean, animate = true): void {
 }
 function setProperties(on: boolean): void {
     if (on) {
+        stopMacro();
+        stopApply();
         const objects = selection.length
             ? selection.map(({ object }) => object)
             : target();
@@ -1270,6 +1302,14 @@ function propertyObject(event: PointerEvent): construction_object | null {
 function showHint(text: string, error = false): void {
     hint.text(text).toggleClass("dge-error", error);
     if (pending) hint.add(cancelButton);
+    if (
+        applying &&
+        text &&
+        designated().next.some(([type]) => type === "number")
+    ) {
+        (numberField.dom() as HTMLInputElement).value = "";
+        hint.add(numberField.removeClass("dge-error"));
+    }
 }
 
 // ************************** TEXT ********************************
@@ -1294,7 +1334,8 @@ function refreshRows(): void {
     const objects = figureObjects(c);
     const ignored = previewed();
     objects.forEach((object) => {
-        if (ignored.has(object)) return;
+        // An application of a macro shows as its finals.
+        if (ignored.has(object) || object instanceof macro_object) return;
         const line = lineOf(object, index, objects);
         const row = $.create("input")
             .cls("dge-row")
@@ -1317,6 +1358,15 @@ function refreshRows(): void {
         text.on(
             "pointerdown",
             (event) => {
+                if (macros.active) {
+                    event.preventDefault();
+                    return macros.tap(object);
+                }
+                if (applying) {
+                    event.preventDefault();
+                    if (takesNext(designated(), object)) pickInitial(object);
+                    return;
+                }
                 const program = object instanceof event_object;
                 if (!pending && !propertiesOpen && !program) return;
                 event.preventDefault();
@@ -1361,6 +1411,8 @@ function refreshRows(): void {
         rowsBox.add(item);
     });
     count.text(rows.size ? String(rows.size) : "");
+    macros.refresh();
+    if (applying) showApply();
     shine(propertiesOpen);
     markTaken();
     if (stepping) markSteps();
@@ -1649,9 +1701,22 @@ async function enterLine(
     // The sliders of the names the line reads that no object has.
     const sliders: construction_object[] = [];
     try {
-        const line = parseLine(text, isCommand);
+        const line = parseLine(text, isCall);
         const target =
             object ?? (line.name ? (c.getObj(line.name) ?? null) : null);
+        // A macro applied, or its application redefined.
+        const spec = resolveMacro(c, line);
+        if (spec) {
+            const node = (target?.output?.node ??
+                line.names
+                    ?.map((name) => c.getObj(name)?.output?.node)
+                    .find(Boolean)) as macro_object | undefined;
+            if (target && !node)
+                throw new TextError("macro_taken", formatName(target.name));
+            const made = await applyMacroLine(studio, spec, node);
+            done(made[0]);
+            return !node;
+        }
         // What the expression draws, the expression kept, hidden.
         const drawn = drawnFrom(line, target, as);
         if (as === "point" && !drawn && line.definition?.kind === "formula")
@@ -1712,6 +1777,10 @@ async function enterLine(
     }
 }
 
+// A command, or one of the figure's macros.
+const isCall = (name: string): boolean =>
+    isCommand(name) || macroIndex(scene(), name) >= 0;
+
 const calls = (commands: Command[]) =>
     commands.map((command) => ({
         label: `${commandName(command)}( )`,
@@ -1725,6 +1794,10 @@ function updateCompletion(field: LineField): void {
     const context = completionAt(typedBefore(field));
     const call =
         context?.kind === "argument" ? findCommand(context.command) : undefined;
+    const macro =
+        context?.kind === "argument"
+            ? scene().macros[macroIndex(scene(), context.command)]
+            : undefined;
     const prefix = context?.prefix ?? "";
     let candidates: construction_object[] = [];
     // A formula's functions, where it can be written.
@@ -1738,10 +1811,14 @@ function updateCompletion(field: LineField): void {
         candidates = figureObjects(scene()).filter((object) =>
             params.some((param) => accepts(object, param)),
         );
-    } else if (context && (context.kind !== "command" || context.formula))
+    } else if (macro)
+        candidates = figureObjects(scene()).filter((object) =>
+            takesAt(macro, (context as ArgumentCompletion).position, object),
+        );
+    else if (context && (context.kind !== "command" || context.formula))
         candidates = figureObjects(scene()).filter(readable);
     completions =
-        call || prefix
+        call || macro || prefix
             ? candidates
                   .filter(({ name }) =>
                       name.toLowerCase().startsWith(prefix.toLowerCase()),
@@ -1761,6 +1838,14 @@ function updateCompletion(field: LineField): void {
                         (command) => !command.reference,
                     ),
                 ),
+                ...scene()
+                    .macros.filter(({ name }) =>
+                        name.toLowerCase().startsWith(prefix.toLowerCase()),
+                    )
+                    .map(({ name }) => ({
+                        label: `${formatName(name)}( )`,
+                        insert: `${formatName(name)}(`,
+                    })),
             );
         if (
             call &&
@@ -1816,7 +1901,7 @@ function offerChoice(field: LineField): void {
     if (!(field instanceof HTMLInputElement)) return;
     let line: Line;
     try {
-        line = parseLine(field.value, isCommand);
+        line = parseLine(field.value, isCall);
     } catch (error) {
         if (error instanceof TextError) return;
         throw error;
@@ -1888,7 +1973,7 @@ for (const [key, action] of Object.entries(CHOICES) as [Choice, DOMElement][])
         "pointerenter",
         () => {
             const { field, object } = choosing!;
-            const line = parseLine(field.value, isCommand);
+            const line = parseLine(field.value, isCall);
             const { source } = line.definition as { source: string };
             const c = scene();
             const target =
@@ -2345,6 +2430,8 @@ function firstArgs(
 // The line the tool writes, its missing arguments elided, and what remains
 // to designate.
 function describe(tool: Tool, args: (Arg | undefined)[]): string {
+    if (tool.mode === "macro") return message("macro_step_initials");
+    if (tool.mode === "macros") return message("family_macros");
     if (tool.mode === "turtle")
         return `${message("turtle")}\n${message("designate_point")}`;
     if (tool.mode === "event")
@@ -2502,6 +2589,27 @@ function openFamily(row: DOMElement, family: Family, items: Item[]): void {
         });
         toolsSub.add(entry);
     });
+    // The figure's macros, after their family's own tool.
+    if (family.name === "family_macros")
+        scene().macros.forEach((macro, index) => {
+            const fits = beginsMacro(macro, objects);
+            const entry = toolEntry(macroIcon(macro), macro.name, family)
+                .toggleClass("dge-off", !fits)
+                .att("aria-disabled", String(!fits));
+            entry.on(
+                "pointerenter",
+                () => showHint(applyHint(macro, designation(macro, []))),
+                false,
+            );
+            entry.on("pointerleave", () => showHint(restingHint()), false);
+            entry.on("click", () => {
+                if (!fits) return;
+                closeTools();
+                cancel();
+                startApply(index, objects);
+            });
+            toolsSub.add(entry);
+        });
     toolsSub.show();
     const menuBox = toolsMenu.dom().getBoundingClientRect();
     const rowBox = row.dom().getBoundingClientRect();
@@ -2531,6 +2639,11 @@ function closeTools(): void {
 // a narrow window shows whole.
 function arm(item: Item): void {
     const picked = chosen();
+    if (item.tools[0].mode === "macro") {
+        closeTools();
+        cancel();
+        return startMacro(picked.map(({ object }) => object));
+    }
     closeTools();
     cancel();
     armed = item;
@@ -2779,7 +2892,9 @@ function openRing(hit: Hit, client: Vec2): void {
     held = { hit, client, screen: hold(c, hit, c.pt3D(hit.at)) };
     highlight(hit.object);
     showActions();
-    const tools = toolsFor(hit.object, vec3());
+    const tools = toolsFor(hit.object, vec3()).filter(
+        (tool) => tool.mode !== "macros" || ringMacros(hit.object).length > 0,
+    );
     if (!tools[0]) return;
     // Each family's sector, even its places without a tool for the object.
     const sectors = [...new Set(tools.map(({ family }) => family))]
@@ -2796,7 +2911,7 @@ function openRing(hit: Hit, client: Vec2): void {
     tools.forEach((tool) => {
         const [x, y] = onRing(tool.slot);
         const item = $.create("button")
-            .att("aria-label", commandName(tool.command))
+            .att("aria-label", itemLabel({ tools: [tool] }))
             .stl("left", `${x}px`)
             .stl("top", `${y}px`)
             .stl("--dge-hue", `${tool.family.hue}`)
@@ -2813,6 +2928,7 @@ function openRing(hit: Hit, client: Vec2): void {
         // Pressed, the tool waits for its arguments, and the same gesture
         // may go on to designate one.
         item.on("pointerdown", (event) => {
+            if (tool.mode === "macros") return showRingMacros(item, hit);
             const box = item.dom().getBoundingClientRect();
             item.dom().releasePointerCapture(event.pointerId);
             closeRing();
@@ -2826,6 +2942,47 @@ function openRing(hit: Hit, client: Vec2): void {
         ring.add(item);
     });
     ring.show();
+}
+
+// The figure's macros that may take the object first, by their index.
+const ringMacros = (object: construction_object): number[] =>
+    scene().macros.flatMap((macro, index) =>
+        takesNext(designation(macro, []), object) ? [index] : [],
+    );
+
+// Beside their place on the ring, the macros that take its object, the
+// one chosen starting from it.
+function showRingMacros(item: DOMElement, hit: Hit): void {
+    const macros = scene().macros;
+    const family = TOOL_FAMILIES.at(-1)!;
+    toolsSub.inner("");
+    ringMacros(hit.object).forEach((index) => {
+        const macro = macros[index];
+        const entry = toolEntry(macroIcon(macro), macro.name, family);
+        entry.on(
+            "pointerenter",
+            () => showHint(applyHint(macro, designation(macro, []))),
+            false,
+        );
+        entry.on("click", () => {
+            closeRing();
+            startApply(index, [hit.object]);
+        });
+        toolsSub.add(entry);
+    });
+    toolsSub.show();
+    const box = item.dom().getBoundingClientRect();
+    const { width, height } = toolsSub.dom().getBoundingClientRect();
+    const left =
+        box.right + 4 + width <= window.innerWidth - 8
+            ? box.right + 4
+            : box.left - width - 4;
+    toolsSub
+        .stl("left", `${Math.max(8, left)}px`)
+        .stl(
+            "top",
+            `${Math.max(8, Math.min(box.top, window.innerHeight - height - 8))}px`,
+        );
 }
 
 function placeRing(): void {
@@ -2866,6 +3023,7 @@ function moveRing(): void {
 
 function closeRing(): void {
     held = null;
+    if (toolsMenu.isHidden()) toolsSub.hide().inner("");
     ring.hide().inner("");
     highlight();
     showActions();
@@ -2899,7 +3057,22 @@ const OBJECT_ACTIONS = [
 // The bar's actions, shown with the ring, and gone once one is applied.
 function showActions(): void {
     const object = held?.hit.object ?? magnetizing?.point;
-    actions.toggleClass("dge-bar-tool", !!armed);
+    actions.toggleClass("dge-bar-tool", !!armed || !!applying);
+    if (applying) {
+        const macro = scene().macros[applying.index];
+        const family = TOOL_FAMILIES.at(-1)!;
+        toolIcon
+            .inner(toolSvg(macroIcon(macro)))
+            .stl("--dge-hue", `${family.hue}`)
+            .stl("--dge-tone", `${family.tone}`)
+            .show("grid");
+        swatch.hide();
+        objectName.text(macro.name);
+        OBJECT_ACTIONS.forEach((action) => action.hide());
+        doneButton.show();
+        actions.att("aria-label", macro.name).show("flex");
+        return;
+    }
     if (armed) {
         const { icon, family } = armed.tools[0];
         const label = itemLabel(armed);
@@ -3338,18 +3511,218 @@ function launch(): void {
     );
 });
 
+// ************************** MACROS ******************************
+
+// The figure behind a veil, but for the objects of the macro.
+function startMacro(objects: construction_object[]): void {
+    stopApply();
+    setEraser(false);
+    if (propertiesOpen) setProperties(false);
+    if (window.innerWidth <= 900) setPanel(false);
+    closeRing();
+    $("body").addClass("dge-panel-animated").addClass("dge-macro-open");
+    macros.start(objects);
+}
+
+function stopMacro(): void {
+    if (!macros.active) return;
+    macros.stop();
+    $("body").removeClass("dge-macro-open");
+    showHint("");
+}
+
+const MACRO_STATES: MacroState[] = ["initial", "final", "possible", "missing"];
+
+// Each object of the macro lit in the figure and in its row.
+function showMacro(states: Map<construction_object, MacroState>): void {
+    const c = scene();
+    c.svg.toggleClass("dge-defining", states.size > 0 || macros.active);
+    const classes = MACRO_STATES.map((state) => `dge-${state}`);
+    [
+        ...c.svg.findAll(classes.map((name) => `.${name}`).join()),
+        ...items.values(),
+    ].forEach((element) =>
+        classes.forEach((name) => element.removeClass(name)),
+    );
+    states.forEach((state, object) => {
+        if (object.hasView) object.dom.addClass(`dge-${state}`);
+        items.get(object)?.addClass(`dge-${state}`);
+    });
+}
+
+// A macro applied as a tool: its initials designated one after the
+// other, among its methods, until one is complete.
+let applying: { index: number; picked: Picked[] } | null = null;
+// A number typed as the next initial, when one is taken.
+const numberField = $.create("input")
+    .att("type", "text")
+    .att("inputmode", "decimal")
+    .att("aria-label", message("designate_number"));
+numberField.on(
+    "keydown",
+    (event) => {
+        if (event.key !== "Enter") return;
+        const number = typedNumber(
+            (numberField.dom() as HTMLInputElement).value,
+        );
+        numberField.toggleClass("dge-error", number === null);
+        if (number !== null) pickInitial(number);
+    },
+    false,
+);
+
+const designated = (): Designation =>
+    designation(scene().macros[applying!.index], applying!.picked);
+
+// Whether these objects, in this order, begin one of its methods.
+const beginsMacro = (macro: Macro, objects: construction_object[]): boolean =>
+    objects.every((object, rank) =>
+        takesNext(designation(macro, objects.slice(0, rank)), object),
+    );
+
+// Its help, and what it takes next, among how many.
+function applyHint(
+    macro: Macro,
+    { next }: Designation,
+    picked = applying?.picked.length ?? 0,
+): string {
+    const wanted = [
+        ...new Set(
+            next.map(
+                ([type, text]) =>
+                    text || message(`designate_${type}` as MessageKey),
+            ),
+        ),
+    ].join(" · ");
+    const total = Math.min(
+        ...macro.methods
+            .map(({ initials }) => initials.length)
+            .filter((length) => length > picked),
+    );
+    const help = macro.methods.find(({ help }) => help)?.help;
+    return `${help ? `${help}\n` : ""}${picked + 1}/${total} – ${wanted}`;
+}
+
+function startApply(index: number, objects: construction_object[]): void {
+    stopMacro();
+    applying = { index, picked: [] };
+    showApply();
+    objects.forEach((object) => {
+        if (applying && takesNext(designated(), object)) pickInitial(object);
+    });
+}
+
+function stopApply(): void {
+    if (!applying) return;
+    applying = null;
+    clearPreview();
+    showAccepted([]);
+    scene()
+        .svg.findAll(".dge-picked")
+        .forEach((picked) => picked.removeClass("dge-picked"));
+    showActions();
+    showHint("");
+}
+
+function pickInitial(initial: Picked): void {
+    const c = scene();
+    clearPreview();
+    applying!.picked.push(initial);
+    const { complete } = designated();
+    if (complete === null) return showApply();
+    applyMacro(c, applying!.index, complete, applying!.picked);
+    applying!.picked = [];
+    changed();
+}
+
+// The initials designated lit: the hint says what the next one may be.
+function showApply(): void {
+    const c = scene();
+    const { picked } = applying!;
+    c.svg
+        .findAll(".dge-picked")
+        .forEach((element) => element.removeClass("dge-picked"));
+    picked.forEach(
+        (object) =>
+            typeof object !== "string" &&
+            object.hasView &&
+            object.dom.addClass("dge-picked"),
+    );
+    showActions();
+    showHint(restingHint());
+}
+
+// What the last initial would build, its point following the pointer.
+function previewMacro(screen: Vec2, hits: Hit[]): void {
+    const next = designated();
+    const hit = hits.find(
+        ({ object }) =>
+            completes(next, object) && !applying!.picked.includes(object),
+    );
+    const coords = freeCoords(screen);
+    const candidate =
+        hit?.object ??
+        (next.last.includes("point") && coords ? ("pointer" as const) : null);
+    if (!candidate) return clearPreview();
+    const c = scene();
+    if (preview?.candidate !== candidate) {
+        clearPreview();
+        const objects: construction_object[] = [];
+        const argument =
+            candidate === "pointer"
+                ? add(c, { name: "‧p", overload: FREE_POINT, args: coords! })
+                : candidate;
+        if (candidate === "pointer") objects.push(argument);
+        const initials = [...applying!.picked, argument];
+        const count = figureObjects(c).length;
+        applyMacro(
+            c,
+            applying!.index,
+            designation(c.macros[applying!.index], initials).complete!,
+            initials,
+            { prefix: "‧" },
+        );
+        objects.push(...figureObjects(c).slice(count));
+        // Nameless, pale.
+        objects.forEach((object) => {
+            object.showName = false;
+            if (!object.hasView) return;
+            object.createSVG();
+            object.dom.addClass("dge-preview");
+        });
+        preview = {
+            candidate,
+            objects,
+            pointer:
+                candidate === "pointer"
+                    ? (argument as point_object)
+                    : undefined,
+            standIns: [],
+        };
+    }
+    if (preview.pointer && coords) {
+        const [x, y, z = 0] = coords;
+        preview.pointer.coords = [x, y, z];
+        c.invalidateGeometry(preview.pointer);
+    }
+}
+
 // ************************** MAGNETS *****************************
 
 const reachField = () => reachInput.dom() as HTMLInputElement;
 
 const restingHint = (): string =>
-    ghosts
-        ? message("erasing")
-        : magnetizing
-          ? message("magnet_hint", formatName(magnetizing.point.name))
-          : selection.length
-            ? `${selectedNames()}\n${message("selection_hint")}`
-            : "";
+    applying
+        ? applyHint(scene().macros[applying.index], designated())
+        : macros.active
+          ? macros.hint
+          : ghosts
+            ? message("erasing")
+            : magnetizing
+              ? message("magnet_hint", formatName(magnetizing.point.name))
+              : selection.length
+                ? `${selectedNames()}\n${message("selection_hint")}`
+                : "";
 
 // Its targets attract the point while it's dragged, as in DGPad: a tap on
 // an object makes it one, or chooses it to set its reach.
@@ -3774,6 +4147,10 @@ function updatePreview(screen: Vec2, hits: Hit[]): void {
 // A tap hides or shows the object under it, and nothing is built.
 function setEraser(on: boolean): void {
     if (on && propertiesOpen) setProperties(false);
+    if (on) {
+        stopMacro();
+        stopApply();
+    }
     if (on === !!ghosts) return;
     cancel();
     if (ghosts) hideGhosts(ghosts);
@@ -3816,6 +4193,8 @@ function showAxes(): void {
 function cancel(keepTool = false): void {
     setSteps(false);
     stopMagnets();
+    if (keepTool && applying) applying.picked = [];
+    else stopApply();
     if (!keepTool) armed = null;
     aim = null;
     clearPreview();
@@ -3829,6 +4208,8 @@ function cancel(keepTool = false): void {
 function escape(): void {
     if (!menu.isHidden()) closeMenu();
     else if (!toolsMenu.isHidden()) closeTools();
+    else if (macros.active) stopMacro();
+    else if (applying) stopApply();
     else if (framing.shown) framing.stop();
     else if (propertiesOpen && !pending) setProperties(false);
     else if (ghosts) setEraser(false);
@@ -4127,6 +4508,7 @@ function follow(event: PointerEvent): void {
     const screen = c.pointerPosition(event);
     const hits = button ? [] : pick(c, screen, previewed());
     if (pending || editing()) updatePreview(screen, hits);
+    else if (applying) previewMacro(screen, hits);
     // As when pressed, a point near its name is taken rather than the name.
     const named =
         !(hits[0]?.object instanceof point_object) &&
@@ -4513,6 +4895,7 @@ $("body").on(
             event.button !== 2 &&
             !ghosts &&
             !magnetizing &&
+            !macros.active &&
             !stepping &&
             (tap ? event.metaKey || event.ctrlKey || event.shiftKey : still);
         // Once the point has its pointerup too (this listener captures):
@@ -4563,6 +4946,32 @@ $("body").on(
         }
         if (adding) {
             if (hits[0]) chooseHit(hits, client, select);
+            return;
+        }
+        // The next initial, a point made there if one is taken.
+        if (applying) {
+            const next = designated();
+            const taken = hits.filter(
+                ({ object }) =>
+                    takesNext(next, object) &&
+                    !applying!.picked.includes(object),
+            );
+            if (taken[0])
+                return chooseHit(taken, client, ({ object }) =>
+                    pickInitial(object),
+                );
+            if (next.next.some(([type]) => type === "point")) {
+                clearPreview();
+                designatePoint(screen, hits, client, pickInitial);
+            }
+            return;
+        }
+        // A tap in the void keeps the definition.
+        if (macros.active) {
+            if (hits[0])
+                chooseHit(hits, client, ({ object }) =>
+                    macros.tap(object.reference?.owner ?? object),
+                );
             return;
         }
         if (magnetizing) {
@@ -4742,6 +5151,8 @@ async function open(
     from?: FileSystemHandle | null,
 ): Promise<string[]> {
     setEraser(false);
+    stopMacro();
+    stopApply();
     cancel();
     framing.stop();
     published = null;

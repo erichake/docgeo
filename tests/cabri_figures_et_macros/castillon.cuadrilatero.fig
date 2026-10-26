@@ -1,0 +1,182 @@
+Figure Cabri II Plus vers. MS-Windows 1.2.1
+
+Used macro
+
+inversion con signo, punto inverso con signo
+Help:
+"Seleccionados en este orden: un centro de inversion A, una circunferencia de base O y un punto a invertir P. Obtenemos P' inverso de P respecto a A  y con potencia de inversion la potencia de A respecto a O."
+Mth: 0
+CN:3, ON:9, FN:1, PO:8
+CT:
+point, CS 0, default settings, 
+circle, CS 1, default settings, 
+point, CS 0, default settings, 
+Const:
+Line, Mth:1, 0, CN:2, VN:4, Const: 2 1
+Int, Mth:0, 0, CN:2, VN:1, int ind:0x10000, Const: 5 3
+Int, Mth:0, 0, CN:2, VN:1, int ind:0, Const: 5 3
+Line, Mth:1, 0, CN:2, VN:4, Const: 4 6
+Biss, Mth:0, 0, CN:3, VN:4, Const: 2 1 4
+Refl, Mth:0, 0, CN:2, VN:1, Const: 7 9
+Par, Mth:0, 0, CN:2, VN:4, Const: 10 8
+Int, Mth:0, 0, CN:2, VN:1, int ind:0, Const: 5 11
+Refl, Mth:0, 1, CN:2, VN:1, Const: 12 9, default settings, 
+
+Figure description:
+
+Window center x: 5.24cm y: -5.32cm Window size x: 31.13cm y: 37.82cm
+Resolution: 38 ppc
+
+1: Pt, Val: 0 0
+invisible, 
+
+2: Axes, Const: 1, cart, Val: 1 0 0 1
+invisible, 
+
+3: Pt, Val: 0.236842105263158 -0.552631578947368
+
+4: Cir, Const: 3, Val: 6.33248888767011
+"C"
+TP:  -0.5,  5.73684210526316, TS:  0.657894736842105,  0.473684210526316
+p: 0, Arial, S: 12, C: 15, Fa: 0, p: 1, System, S: 10, C: 40, Fa: 1
+
+5: Pt, Val: -3.84210526315789 10.0526315789474
+color:dGr, 
+"a"
+TP:  -3.60526315789474,  10.5263157894737, TS:  0.5,  0.473684210526316
+p: 0, Arial, S: 12, C: 39, Fa: 0, p: 1, System, S: 10, C: 39, Fa: 1
+
+6: Pt, Val: 10.1052631578947 2.05263157894737
+color:dGr, 
+"b"
+TP:  10.0789473684211,  2.76315789473684, TS:  0.5,  0.473684210526316
+p: 0, Arial, S: 12, C: 39, Fa: 0, p: 1, System, S: 10, C: 39, Fa: 1
+
+7: Pt, Val: 0.657894736842105 -8.23684210526316
+color:dGr, 
+"c"
+TP:  1,  -7.97368421052632, TS:  0.447368421052632,  0.473684210526316
+p: 0, Arial, S: 12, C: 39, Fa: 0, p: 1, System, S: 10, C: 39, Fa: 1
+
+8: Pt, Val: -7.86842105263158 -4.81578947368421
+color:dGr, 
+"d"
+TP:  -8.73684210526316,  -4.73684210526316, TS:  0.5,  0.473684210526316
+p: 0, Arial, S: 12, C: 39, Fa: 0, p: 1, System, S: 10, C: 39, Fa: 1
+
+Ma: inversion con signo, Const: 6 i: 0 4 i: 0 5 i: 0
+19: Ma R, F No1, 
+color:skb, 
+"a1"
+TP:  6.55263157894737,  4.15789473684211, TS:  0.736842105263158,  0.473684210526316
+p: 0, Arial, S: 12, C: 5, Fa: 0, p: 2, System, S: 10, C: 5, Fa: 1
+
+Ma: inversion con signo, Const: 7 i: 0 4 i: 0 19 i: 0
+30: Ma R, F No1, 
+color:skb, 
+"a2"
+TP:  0.526315789473684,  -6.86842105263158, TS:  0.736842105263158,  0.473684210526316
+p: 0, Arial, S: 12, C: 5, Fa: 0, p: 2, System, S: 10, C: 5, Fa: 1
+
+Ma: inversion con signo, Const: 8 i: 0 4 i: 0 30 i: 0
+41: Ma R, F No1, 
+color:skb, 
+"a3"
+TP:  -4.39473684210526,  -6.05263157894737, TS:  0.736842105263158,  0.473684210526316
+p: 0, Arial, S: 12, C: 5, Fa: 0, p: 2, System, S: 10, C: 5, Fa: 1
+
+Ma: inversion con signo, Const: 7 i: 0 4 i: 0 8 i: 0
+52: Ma R, F No1, 
+color:skb, 
+"d1"
+TP:  -1.23684210526316,  -7.34210526315789, TS:  0.736842105263158,  0.473684210526316
+p: 0, Arial, S: 12, C: 7, Fa: 0, p: 2, System, S: 10, C: 40, Fa: 1
+
+Ma: inversion con signo, Const: 6 i: 0 4 i: 0 52 i: 0
+63: Ma R, F No1, 
+color:skb, 
+"d2"
+TP:  6.81578947368421,  -0.578947368421053, TS:  0.736842105263158,  0.473684210526316
+p: 0, Arial, S: 12, C: 5, Fa: 0, p: 2, System, S: 10, C: 5, Fa: 1
+
+Ma: inversion con signo, Const: 5 i: 0 4 i: 0 63 i: 0
+74: Ma R, F No1, 
+color:skb, 
+"d3"
+TP:  0.552631578947368,  6.26315789473684, TS:  0.736842105263158,  0.473684210526316
+p: 0, Arial, S: 12, C: 5, Fa: 0, p: 2, System, S: 10, C: 5, Fa: 1
+
+75: Line, Const: 41,  74, 
+color:R, DS:5 8, SL:1 1.376771220031 0.89044094834932, 
+
+77: Int, Const: 75,  4, int ind:0, 
+"A'"
+TP:  -3.63157894736842,  -5.10526315789474, TS:  0.473684210526316,  0.473684210526316
+p: 0, Arial, S: 12, C: 7, Fa: 0, p: 2, System, S: 10, C: 7, Fa: 1
+
+78: Int, Const: 75,  4, int ind:0x10000, 
+color:skb, 
+"A"
+TP:  -0.368421052631579,  5.84210526315789, TS:  0.605263157894737,  0.473684210526316
+p: 0, Arial, S: 12, C: 7, Fa: 0, p: 1, System, S: 10, C: 40, Fa: 1
+
+79: Line, Const: 78,  5, 
+color:skb, DS:5 8, SL:1 -2 0.602016201595068, 
+
+81: Int, Const: 79,  4, int ind:0, 
+"B"
+TP:  6.15789473684211,  -1.15789473684211, TS:  0.605263157894737,  0.473684210526316
+p: 0, Arial, S: 12, C: 7, Fa: 0, p: 1, System, S: 10, C: 40, Fa: 1
+
+82: Line, Const: 81,  6, 
+color:skb, DS:5 8, SL:1 0.2 0.32558296865143, 
+
+84: Int, Const: 82,  4, int ind:0, 
+"C"
+TP:  -0.947368421052632,  -6.65789473684211, TS:  0.657894736842105,  0.473684210526316
+p: 0, Arial, S: 12, C: 7, Fa: 0, p: 1, System, S: 10, C: 40, Fa: 1
+
+85: Line, Const: 84,  7, 
+color:skb, DS:5 8, SL:1 1.82554410435273 1.95430667227212, 
+
+87: Int, Const: 85,  4, int ind:0, 
+"D"
+TP:  -5.86842105263158,  -1.47368421052632, TS:  0.657894736842105,  0.473684210526316
+p: 0, Arial, S: 12, C: 7, Fa: 0, p: 1, System, S: 10, C: 40, Fa: 1
+
+88: Line, Const: 87,  8, 
+color:skb, DS:5 8, SL:1 0.985773519079888 1.20532460753267, 
+
+89: Pol, Const: 78,  81,  84,  87, 
+color:R, fill color:kki, 
+
+90: Line, Const: 77,  5, 
+color:skb, DS:5 8, SL:1 -8 0.668463032814318, 
+
+92: Int, Const: 90,  4, int ind:0x10000, 
+"B'"
+TP:  -3.55263157894737,  4.57894736842105, TS:  0.473684210526316,  0.473684210526316
+p: 0, Arial, S: 12, C: 7, Fa: 0, p: 2, System, S: 10, C: 40, Fa: 1
+
+93: Line, Const: 92,  6, 
+color:skb, DS:5 8, SL:1 -8 0.449534461309796, 
+
+95: Int, Const: 93,  4, int ind:0x10000, 
+"C'"
+TP:  5.65789473684211,  2.97368421052632, TS:  0.5,  0.473684210526316
+p: 0, Arial, S: 12, C: 7, Fa: 0, p: 2, System, S: 10, C: 40, Fa: 1
+
+96: Line, Const: 95,  7, 
+color:skb, DS:5 8, SL:1 0.199999999999999 0.633849221131144, 
+
+98: Int, Const: 96,  4, int ind:0x10000, 
+"D'"
+TP:  1.57894736842105,  -6.18421052631579, TS:  0.5,  0.473684210526316
+p: 0, Arial, S: 12, C: 7, Fa: 0, p: 2, System, S: 10, C: 40, Fa: 1
+
+99: Line, Const: 98,  8, 
+color:skb, DS:5 8, SL:1 0.199999999999998 0.568368990049318, 
+
+100: Pol, Const: 77,  92,  95,  98, 
+color:R, fill color:lGr, 
+

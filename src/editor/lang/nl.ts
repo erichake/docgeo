@@ -327,6 +327,52 @@ const nl: Texts = {
         designate_solid: "Selecteer een ruimtefiguur",
         designate_readable: "Selecteer een object",
         unsupported: "Niet geïmporteerd: %",
+        family_macros: "Macro's",
+        new_macro: "Nieuwe macro",
+        macro_name: "Naam",
+        macro_initials: "Beginobjecten",
+        macro_finals: "Eindobjecten",
+        macro_step_initials: "Stap 1/2: tik de beginobjecten aan, in volgorde",
+        macro_step_finals:
+            "Stap 2/2: tik de eindobjecten aan tussen de groene objecten",
+        macro_next: "Volgende: de eindobjecten",
+        macro_back: "Terug naar de beginobjecten",
+        macro_help: "Hulp",
+        macro_help_placeholder:
+            "De volgorde van de beginobjecten, en wanneer de macro faalt",
+        macro_icon: "Pictogram",
+        macro_clear_icon: "Wissen",
+        macro_remove: "Verwijderen",
+        macro_message: "Bericht als het geselecteerd wordt",
+        macro_drag: "Sleep om de volgorde te wijzigen",
+        macro_implicit:
+            "Geen eindobject gekozen: de zichtbare groene objecten zijn de eindobjecten",
+        macro_need_initial: "Tik de objecten aan waarvan de macro vertrekt",
+        macro_need_final: "De beginobjecten bepalen geen zichtbaar object",
+        macro_missing: "Niet bepaald door de beginobjecten: ontbreekt %?",
+        macro_not_initial: "% kan geen beginobject zijn",
+        macro_create: "Macro maken",
+        macro_add: "Een methode toevoegen aan %",
+        macro_replace: "De methode van % vervangen",
+        macro_other_finals: "% heeft andere eindobjecten: kies een andere naam",
+        macro_ambiguous:
+            "Zijn beginobjecten verlengen die van een andere methode van %, of omgekeerd",
+        macro_later: "% kan geen macro gebruiken die erna gemaakt is",
+        macro_saved: "Macro % opgeslagen",
+        designate_ray: "Selecteer een halfrechte",
+        designate_arc: "Selecteer een boog",
+        designate_conic: "Selecteer een kegelsnede",
+        designate_angle: "Selecteer een hoek",
+        macro_unknown:
+            "Meerdere namen voor = benoemen alleen de eindobjecten van een macro",
+        macro_names:
+            "Deze macro heeft % eindobjecten: benoem ze allemaal, _ om er een weg te laten",
+        macro_taken: "De naam % is al van een ander object",
+        macro_order:
+            "De beginobjecten van een macro moeten eraan voorafgaan in de constructie",
+        macro_bad_name:
+            "De naam van een macro is een woord: letters, cijfers en _",
+        macro_command_name: "% is de naam van een opdracht: kies een andere",
     },
     commands: {
         Side: "Zijde",

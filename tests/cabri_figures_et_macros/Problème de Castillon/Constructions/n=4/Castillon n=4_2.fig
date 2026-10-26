@@ -1,0 +1,55 @@
+Figure Cabri II Plus vers. MS-Windows 1.2.1
+
+Window center x: 5.37cm y: -4.11cm Window size x: 41.66cm y: 27.29cm
+Resolution: 38 ppc
+
+1: Pt, Val: 0 0
+invisible, 
+
+2: Axes, Const: 1, cart, Val: 1 0 0 1
+invisible, 
+
+3: Text, Val: -550 -347 0, nA, nP, 
+color:B, 
+"CONSTRUCTION: CastilIon n=4.fig	2"
+TP:  -14.4736842105263,  9.13157894736842, TS:  11.3157894736842,  0.473684210526316
+p: 0, Arial, S: 12, C: 40, Fa: 0, p: 33, System, S: 10, C: 40, Fa: 1
+
+4: Pt, Val: 1.05263157894737 1.68421052631579
+color:B, 
+"O"
+TP:  1.10526315789474,  2.15789473684211, TS:  0.657894736842105,  0.473684210526316
+p: 0, Arial, S: 12, C: 40, Fa: 0, p: 1, System, S: 10, C: 40, Fa: 1
+
+5: Cir, Const: 4, Val: 3.84867858749027
+color:B, 
+
+6: Pt, Val: 0.736842105263158 7.28947368421053
+color:B, 
+"a"
+TP:  0.315789473684211,  7.89473684210526, TS:  0.5,  0.473684210526316
+p: 0, Arial, S: 12, C: 40, Fa: 0, p: 1, System, S: 10, C: 40, Fa: 1
+
+7: Pt, Val: 6 4.02631578947368
+color:B, 
+"b"
+TP:  6.23684210526316,  4.47368421052632, TS:  0.5,  0.473684210526316
+p: 0, Arial, S: 12, C: 40, Fa: 0, p: 1, System, S: 10, C: 40, Fa: 1
+
+8: Pt, Val: 4.55263157894737 -2.26315789473684
+color:B, 
+"c"
+TP:  4.71052631578947,  -2.26315789473684, TS:  0.447368421052632,  0.473684210526316
+p: 0, Arial, S: 12, C: 40, Fa: 0, p: 1, System, S: 10, C: 40, Fa: 1
+
+9: Pt, Val: -3.18421052631579 -1.07894736842105
+color:B, 
+"d"
+TP:  -3.57894736842105,  -1.10526315789474, TS:  0.5,  0.473684210526316
+p: 0, Arial, S: 12, C: 40, Fa: 0, p: 1, System, S: 10, C: 40, Fa: 1
+
+10: Text, Val: -547 -184 0, nA, nP, 
+"On charge la macro CastillonInversion.mac."
+TP:  -14.3947368421053,  4.84210526315789, TS:  11.1315789473684,  0.473684210526316
+p: 0, Arial, S: 12, C: 40, Fa: 0, p: 42, System, S: 10, C: 40, Fa: 1
+

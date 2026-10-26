@@ -1,0 +1,195 @@
+Figure Cabri II Plus vers. MS-Windows 1.2.1
+
+Used macro
+
+inversion con signo, punto inverso con signo
+Help:
+"Seleccionados en este orden: un centro de inversion A, una circunferencia de base O y un punto a invertir P. Obtenemos P' inverso de P respecto a A  y con potencia de inversion la potencia de A respecto a O."
+Mth: 0
+CN:3, ON:9, FN:1, PO:8
+CT:
+point, CS 0, default settings, 
+circle, CS 1, default settings, 
+point, CS 0, default settings, 
+Const:
+Line, Mth:1, 0, CN:2, VN:4, Const: 2 1
+Int, Mth:0, 0, CN:2, VN:1, int ind:0x10000, Const: 5 3
+Int, Mth:0, 0, CN:2, VN:1, int ind:0, Const: 5 3
+Line, Mth:1, 0, CN:2, VN:4, Const: 4 6
+Biss, Mth:0, 0, CN:3, VN:4, Const: 2 1 4
+Refl, Mth:0, 0, CN:2, VN:1, Const: 7 9
+Par, Mth:0, 0, CN:2, VN:4, Const: 10 8
+Int, Mth:0, 0, CN:2, VN:1, int ind:0, Const: 5 11
+Refl, Mth:0, 1, CN:2, VN:1, Const: 12 9, default settings, 
+
+Figure description:
+
+Window center x: 12.03cm y: -10.58cm Window size x: 31.13cm y: 37.82cm
+Resolution: 38 ppc
+
+1: Pt, Val: 0 0
+invisible, 
+
+2: Axes, Const: 1, cart, Val: 1 0 0 1
+invisible, 
+
+3: Pt, Val: 5.07894736842105 -6.18421052631579
+color:B, 
+
+4: Cir, Const: 3, Val: 5.76369860477178
+color:B, 
+"C"
+TP:  8.6578947368421,  -0.921052631578947, TS:  0.657894736842105,  0.473684210526316
+p: 0, Arial, S: 12, C: 40, Fa: 0, p: 1, System, S: 10, C: 40, Fa: 1
+
+5: Pt, Val: 2.76315789473684 7.55263157894737
+color:B, 
+"a"
+TP:  2.89473684210526,  7.47368421052632, TS:  0.5,  0.473684210526316
+p: 0, Arial, S: 12, C: 40, Fa: 0, p: 1, System, S: 10, C: 40, Fa: 1
+
+6: Pt, Val: 15.6578947368421 -8.28947368421053
+color:B, 
+"b"
+TP:  15.7631578947368,  -8.31578947368421, TS:  0.5,  0.473684210526316
+p: 0, Arial, S: 12, C: 40, Fa: 0, p: 1, System, S: 10, C: 40, Fa: 1
+
+7: Pt, Val: -2.23684210526316 -11.3684210526316
+color:B, 
+"c"
+TP:  -2.10526315789474,  -11.3947368421053, TS:  0.447368421052632,  0.473684210526316
+p: 0, Arial, S: 12, C: 40, Fa: 0, p: 1, System, S: 10, C: 40, Fa: 1
+
+Ma: inversion con signo, Const: 6 i: 0 4 i: 0 5 i: 0
+18: Ma R, F No1, 
+color:skb, 
+"a1"
+TP:  13.1842105263158,  -4.68421052631579, TS:  0.736842105263158,  0.473684210526316
+p: 0, Arial, S: 12, C: 5, Fa: 0, p: 2, System, S: 10, C: 40, Fa: 1
+
+Ma: inversion con signo, Const: 7 i: 0 4 i: 0 18 i: 0
+29: Ma R, F No1, 
+color:skb, 
+"a2"
+TP:  -0.210526315789474,  -9.89473684210526, TS:  0.736842105263158,  0.473684210526316
+p: 0, Arial, S: 12, C: 5, Fa: 0, p: 2, System, S: 10, C: 40, Fa: 1
+
+Ma: inversion con signo, Const: 5 i: 0 4 i: 0 29 i: 0
+40: Ma R, F No1, 
+color:skb, 
+"a3"
+TP:  1.23684210526316,  -0.657894736842105, TS:  0.736842105263158,  0.473684210526316
+p: 0, Arial, S: 12, C: 5, Fa: 0, p: 2, System, S: 10, C: 40, Fa: 1
+
+Ma: inversion con signo, Const: 6 i: 0 4 i: 0 40 i: 0
+51: Ma R, F No1, 
+color:skb, 
+"a4"
+TP:  11.0263157894737,  -5.18421052631579, TS:  0.736842105263158,  0.473684210526316
+p: 0, Arial, S: 12, C: 5, Fa: 0, p: 2, System, S: 10, C: 40, Fa: 1
+
+Ma: inversion con signo, Const: 7 i: 0 4 i: 0 51 i: 0
+62: Ma R, F No1, 
+color:skb, 
+"a5"
+TP:  0.236842105263158,  -9.39473684210526, TS:  0.736842105263158,  0.473684210526316
+p: 0, Arial, S: 12, C: 5, Fa: 0, p: 2, System, S: 10, C: 40, Fa: 1
+
+Ma: inversion con signo, Const: 6 i: 0 4 i: 0 7 i: 0
+73: Ma R, F No1, 
+color:skb, 
+"c1"
+TP:  11.0526315789474,  -8.92105263157895, TS:  0.710526315789474,  0.473684210526316
+p: 0, Arial, S: 12, C: 5, Fa: 0, p: 2, System, S: 10, C: 40, Fa: 1
+
+Ma: inversion con signo, Const: 5 i: 0 4 i: 0 73 i: 0
+84: Ma R, F No1, 
+color:skb, 
+"c2"
+TP:  6.52631578947368,  0.421052631578947, TS:  0.710526315789474,  0.473684210526316
+p: 0, Arial, S: 12, C: 5, Fa: 0, p: 2, System, S: 10, C: 40, Fa: 1
+
+Ma: inversion con signo, Const: 7 i: 0 4 i: 0 84 i: 0
+95: Ma R, F No1, 
+color:skb, 
+"c3"
+TP:  -0.815789473684211,  -8.26315789473684, TS:  0.710526315789474,  0.473684210526316
+p: 0, Arial, S: 12, C: 5, Fa: 0, p: 2, System, S: 10, C: 40, Fa: 1
+
+Ma: inversion con signo, Const: 6 i: 0 4 i: 0 95 i: 0
+106: Ma R, F No1, 
+color:skb, 
+"c4"
+TP:  10.6578947368421,  -7.94736842105263, TS:  0.710526315789474,  0.473684210526316
+p: 0, Arial, S: 12, C: 5, Fa: 0, p: 2, System, S: 10, C: 40, Fa: 1
+
+Ma: inversion con signo, Const: 5 i: 0 4 i: 0 106 i: 0
+117: Ma R, F No1, 
+color:skb, 
+"c5"
+TP:  5.78947368421053,  -0.210526315789474, TS:  0.710526315789474,  0.473684210526316
+p: 0, Arial, S: 12, C: 5, Fa: 0, p: 2, System, S: 10, C: 40, Fa: 1
+
+118: Line, Const: 62,  117, 
+color:R, DS:5 8, SL:1 0.999999999999998 1, 
+
+120: Int, Const: 118,  4, int ind:0, 
+color:B, 
+"A'"
+TP:  1.02631578947368,  -10.0789473684211, TS:  0.473684210526316,  0.473684210526316
+p: 0, Arial, S: 12, C: 7, Fa: 0, p: 2, System, S: 10, C: 40, Fa: 1
+
+121: Int, Const: 118,  4, int ind:0x10000, 
+color:B, 
+"A"
+TP:  6.97368421052632,  -0.578947368421053, TS:  0.605263157894737,  0.473684210526316
+p: 0, Arial, S: 12, C: 7, Fa: 0, p: 1, System, S: 10, C: 40, Fa: 1
+
+122: Line, Const: 121,  5, 
+color:skb, DS:5 8, SL:1 0.999999999999999 0.999999999999999, 
+
+124: Int, Const: 122,  4, int ind:0, 
+color:B, 
+"B"
+TP:  10.2894736842105,  -8.81578947368421, TS:  0.605263157894737,  0.473684210526316
+p: 0, Arial, S: 12, C: 7, Fa: 0, p: 1, System, S: 10, C: 40, Fa: 1
+
+125: Line, Const: 124,  6, 
+color:skb, DS:5 8, SL:1 1 0.999999999999998, 
+
+127: Int, Const: 125,  4, int ind:0, 
+color:B, 
+"C"
+TP:  -0.210526315789474,  -9.07894736842105, TS:  0.657894736842105,  0.473684210526316
+p: 0, Arial, S: 12, C: 7, Fa: 0, p: 1, System, S: 10, C: 40, Fa: 1
+
+128: Line, Const: 127,  7, 
+color:skb, DS:5 8, SL:1 0.999999999999999 0.999999999999997, 
+
+129: Tr, Const: 121,  124,  127, 
+color:R, fill color:kki, 
+
+130: Line, Const: 120,  5, 
+color:skb, DS:5 8, SL:1 1 1, 
+
+132: Int, Const: 130,  4, int ind:0x10000, 
+color:B, 
+"B'"
+TP:  1.15789473684211,  -1.28947368421053, TS:  0.473684210526316,  0.473684210526316
+p: 0, Arial, S: 12, C: 7, Fa: 0, p: 2, System, S: 10, C: 40, Fa: 1
+
+133: Line, Const: 132,  6, 
+color:skb, DS:5 8, SL:1 1 0.999999999999998, 
+
+135: Int, Const: 133,  4, int ind:0x10000, 
+color:B, 
+"C'"
+TP:  10.8421052631579,  -6.02631578947368, TS:  0.5,  0.473684210526316
+p: 0, Arial, S: 12, C: 7, Fa: 0, p: 2, System, S: 10, C: 40, Fa: 1
+
+136: Line, Const: 135,  7, 
+color:skb, DS:5 8, SL:1 0.999999999999998 0.999999999999998, 
+
+137: Tr, Const: 120,  132,  135, 
+color:R, fill color:lGr, 
+

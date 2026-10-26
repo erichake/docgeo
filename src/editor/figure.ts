@@ -31,6 +31,7 @@ import { angle_object } from "../objects/angle_object";
 import { BUTTON_WIDTH, button_object } from "../objects/button_object";
 import {
     construction_object,
+    objectEntry,
     objectIndex,
     type DgoRef,
 } from "../objects/construction_object";
@@ -91,6 +92,14 @@ import {
     type Line,
 } from "./text";
 import type { ProgramHat } from "./blocks/view";
+import {
+    applyMacro,
+    designation,
+    macroIndex,
+    typedNumber,
+    type Picked,
+} from "./macro";
+import type { macro_object } from "../objects/macro_object";
 
 // The figure being edited, as .dgo entries: see EDITOR.md.
 
@@ -207,7 +216,7 @@ export const entryOf = (
     object: construction_object,
     index: ReadonlyMap<construction_object, number>,
 ): [string, unknown] =>
-    object.dgo({
+    objectEntry(object, {
         index: (other) => objectIndex(other, (owner) => index.get(owner)!),
         image: (url) => url,
         screen: (position) => position,
@@ -330,6 +339,8 @@ export function lineOf(
 ): string | null {
     const [tag, parameters] = entryOf(object, index);
     const name = formatName(object.name);
+    if (tag === "Out")
+        return applicationLine(object.output!.node as macro_object);
     if (tag === "Cur") {
         const { formula, min, max } = object as curve_object;
         return min === null && max === null
@@ -1655,4 +1666,128 @@ export function rebuild(studio: Studio, figure: DgoFigure): void {
     readDgo(studio.scene, figure);
     studio.scene.flush();
     studio.scene.reveal();
+}
+
+// The line of a macro's application, shared by its finals: their names, in
+// order, "_" for one deleted, then the call.
+function applicationLine({ macro, initials, children }: macro_object): string {
+    const names = macro.finals.map((_, rank) => {
+        const final = children.find(({ output }) => output!.rank === rank + 1);
+        return final ? formatName(final.name) : "_";
+    });
+    const args = initials.map((initial) =>
+        typeof initial === "string" ? initial : formatArg(initial),
+    );
+    return `${names.join(", ")} = ${formatName(macro.name)}(${args.join(", ")})`;
+}
+
+// What a line applying a macro gives: its method, the initials, and the
+// names of the finals, null for one not wanted, or all null if the line
+// names none. Null if it applies none.
+export interface MacroSpec {
+    index: number;
+    method: number;
+    initials: Picked[];
+    names: (string | null)[] | null;
+}
+
+export function resolveMacro(c: construction, line: Line): MacroSpec | null {
+    const call = line.definition;
+    const index = call?.kind === "call" ? macroIndex(c, call.command) : -1;
+    if (index < 0) {
+        if (line.names) throw new TextError("macro_unknown");
+        return null;
+    }
+    const macro = c.macros[index];
+    const named = formatName(macro.name);
+    const initials = (call as { args: ArgText[] }).args.map((arg): Picked => {
+        const value = resolveArgument(c, arg);
+        if (typeof value === "number") return String(value);
+        if (value instanceof construction_object) return value;
+        const typed =
+            value instanceof FormulaArg && !value.refs.size
+                ? typedNumber(value.source)
+                : null;
+        if (typed === null) throw new TextError("arguments", named);
+        return typed;
+    });
+    const method = designation(macro, initials).complete;
+    if (method === null) throw new TextError("arguments", named);
+    const given = line.names ?? (line.name ? [line.name] : null);
+    if (
+        given &&
+        (given.length !== macro.finals.length ||
+            given.every((name) => name === "_"))
+    )
+        throw new TextError("macro_names", String(macro.finals.length));
+    return {
+        index,
+        method,
+        initials,
+        names: given?.map((name) => (name === "_" ? null : name)) ?? null,
+    };
+}
+
+// Applies it, or redefines the application `node`: its names are then
+// those of its finals, or free.
+export async function applyMacroLine(
+    studio: Studio,
+    { index, method, initials, names }: MacroSpec,
+    node?: macro_object,
+): Promise<construction_object[]> {
+    const c = studio.scene;
+    const own = new Set<construction_object>(node?.children);
+    names?.forEach((name, rank) => {
+        if (name === null) return;
+        const existing = c.getObj(name);
+        if ((existing && !own.has(existing)) || names.indexOf(name) !== rank)
+            throw new TextError("macro_taken", formatName(name));
+    });
+    if (!node)
+        return applyMacro(c, index, method, initials, {
+            names: names ?? undefined,
+        });
+    const objects = figureObjects(c);
+    const at = objects.indexOf(node);
+    const refs = initials.map((initial) =>
+        typeof initial === "string"
+            ? initial
+            : objectIndex(initial, (owner) => objects.indexOf(owner)),
+    );
+    if (
+        refs.some(
+            (ref) =>
+                typeof ref !== "string" &&
+                (Array.isArray(ref) ? ref[1] : ref) >= at,
+        )
+    )
+        throw new TextError("macro_order");
+    const figure = await describeDgo(c);
+    const [, name, , style] = figure.o[at];
+    figure.o[at] = [
+        "Mac",
+        name,
+        [index, method, refs],
+        ...(style === undefined ? [] : [style]),
+    ];
+    // The finals not wanted, deleted once the others are there.
+    const unwanted: string[] = [];
+    node.children.forEach((final) => {
+        const rank = final.output!.rank;
+        const wanted = names ? names[rank - 1] : final.name;
+        if (wanted === null) unwanted.push(final.name);
+        else figure.o[objects.indexOf(final)][1] = wanted;
+    });
+    names?.forEach((wanted, rank) => {
+        if (
+            wanted !== null &&
+            !node.children.some(({ output }) => output!.rank === rank + 1)
+        )
+            figure.o.push(["Out", wanted, [at, rank + 1]]);
+    });
+    rebuild(studio, figure);
+    unwanted.forEach((gone) =>
+        studio.scene.removeObject(studio.scene.getObj(gone)!),
+    );
+    return [];
 }

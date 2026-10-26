@@ -325,6 +325,52 @@ const es: Texts = {
         designate_solid: "Selecciona un sólido",
         designate_readable: "Selecciona un objeto",
         unsupported: "No importado: %",
+        family_macros: "Macros",
+        new_macro: "Nueva macro",
+        macro_name: "Nombre",
+        macro_initials: "Iniciales",
+        macro_finals: "Finales",
+        macro_step_initials: "Paso 1/2: toca los iniciales, en orden",
+        macro_step_finals:
+            "Paso 2/2: toca los finales entre los objetos verdes",
+        macro_next: "Siguiente: los finales",
+        macro_back: "Volver a los iniciales",
+        macro_help: "Ayuda",
+        macro_help_placeholder:
+            "El orden de los iniciales, y cuándo falla la macro",
+        macro_icon: "Icono",
+        macro_clear_icon: "Borrar",
+        macro_remove: "Quitar",
+        macro_message: "Mensaje mostrado al seleccionarlo",
+        macro_drag: "Arrastra para cambiar el orden",
+        macro_implicit:
+            "Ningún final elegido: los objetos visibles en verde son los finales",
+        macro_need_initial: "Toca los objetos de los que parte la macro",
+        macro_need_final: "Los iniciales no determinan ningún objeto visible",
+        macro_missing: "No determinado por los iniciales: ¿falta %?",
+        macro_not_initial: "% no puede ser un inicial",
+        macro_create: "Crear la macro",
+        macro_add: "Añadir un método a %",
+        macro_replace: "Reemplazar el método de %",
+        macro_other_finals: "% tiene otros finales: elige otro nombre",
+        macro_ambiguous:
+            "Sus iniciales prolongan los de otro método de %, o al revés",
+        macro_later: "% no puede usar una macro creada después de ella",
+        macro_saved: "Macro % guardada",
+        designate_ray: "Selecciona una semirrecta",
+        designate_arc: "Selecciona un arco",
+        designate_conic: "Selecciona una cónica",
+        designate_angle: "Selecciona un ángulo",
+        macro_unknown:
+            "Varios nombres antes de = solo nombran los finales de una macro",
+        macro_names:
+            "Esta macro tiene % finales: nómbralos todos, _ para omitir uno",
+        macro_taken: "El nombre % lo usa otro objeto",
+        macro_order:
+            "Los iniciales de una macro deben precederla en la construcción",
+        macro_bad_name:
+            "El nombre de una macro es una palabra: letras, cifras y _",
+        macro_command_name: "% es el nombre de un comando: elige otro",
     },
     commands: {
         Side: "Lado",

@@ -103,6 +103,7 @@ d'objet se décrit lui-même par sa méthode `dgo()` (type et paramètres).
 | `st`  | styles, référencés par indice            | `[]`       |
 | `img` | images : clé → data URL                  | `{}`       |
 | `o`   | objets `[type, nom, paramètres, style?]` | (requis)   |
+| `mac` | macro-constructions (ci-après)           | `[]`       |
 
 Couleurs : `#rgb`, `#rrggbb` ou `rgb(r,g,b)`. Booléens : 0 ou 1. JSON n'ayant
 pas NaN, un nombre non fini s'écrit `null` là où il peut survenir :
@@ -338,6 +339,8 @@ la figure, autour de la verticale de O dans l'espace, sa hauteur gardée),
 | `Html` | texte HTML dans un cadre de la fenêtre | `[[x, y, largeur, hauteur], rayon, texte]` (11) |
 | `Btn`  | bouton qui exécute un script           | objet (13)                                      |
 | `Evt`  | script lancé par une `Ex` ou un point  | `{"on": expression ou point, "s": script}` (24) |
+| `Mac`  | application d'une macro-construction   | `[macro, méthode, initiaux, branches?]` (25)    |
+| `Out`  | final de rang k d'une application      | `[application, k]` (25)                         |
 
 1. La formule peut être un script, dont la dernière instruction donne les
    coordonnées (`"var u=A[0]-B[0];[u,0]"`). `n1`, `n2` : les nombres
@@ -543,6 +546,153 @@ alignement]]` police, `[30, url, l, h, zoom, opacité, u]` image (largeur
     quand la figure est ouverte (fichier `.dgo` ou import `.dgp`), avant ce
     que la page hôte applique (état élève), et pas quand l'éditeur
     reconstruit la figure.
+25. Voir « Macro-constructions » ci-après.
+
+### Macro-constructions
+
+Décidé avec l'auteur le 2026-10-26 (`MACROS.md`), implémenté dans
+`src/objects/macro_object.ts` et `src/dgo.ts`.
+
+Les définitions des macros de la figure, appliquées ou non, y sont
+recopiées (comme la section `Used macro` de Cabri) : la figure reste
+autonome. Une application est un nœud du graphe (`Mac`), qui calcule le
+corps d'une méthode dans une construction privée, absente de la figure ;
+chacun de ses finaux est une entrée `Out` de `o`.
+
+```json
+{
+    "dgo": 1,
+    "v": { "o": [550, 350], "u": 50, "w": 1100, "h": 700 },
+    "mac": [
+        {
+            "n": "Milieu",
+            "f": ["I"],
+            "m": [
+                {
+                    "i": [
+                        ["point", "Le premier point ?"],
+                        ["point", "Le second point ?"]
+                    ],
+                    "h": "Choisir les deux points.",
+                    "b": [["Mid", "I", [0, 1]]],
+                    "f": [2]
+                },
+                {
+                    "i": [["segment", "Le segment ?"]],
+                    "b": [["Mid", "I", [2]]],
+                    "f": [3]
+                }
+            ]
+        }
+    ],
+    "o": [
+        ["Pt", "A", [-2, 1]],
+        ["Pt", "B", [3, 0]],
+        ["Mac", "mac1", [0, 0, [0, 1]]],
+        ["Out", "I", [2, 1]],
+        ["Seg", "s", [0, 1]],
+        ["Mac", "mac2", [0, 1, [4]]],
+        ["Out", "J", [5, 1]]
+    ]
+}
+```
+
+Macro :
+
+| Clé  | Contenu                                                        | Défaut   |
+| ---- | -------------------------------------------------------------- | -------- |
+| `n`  | nom de la macro, unique dans `mac`                             | (requis) |
+| `f`  | noms de ses finaux, dans leur ordre (proposés à l'application) | (requis) |
+| `ic` | icône : clé de la table `img`                                  | `null`   |
+| `m`  | méthodes, une au moins                                         | (requis) |
+
+Méthode :
+
+| Clé | Contenu                                                                  | Défaut   |
+| --- | ------------------------------------------------------------------------ | -------- |
+| `i` | initiaux ordonnés `[type, message]`, un au moins                         | (requis) |
+| `h` | aide : ordre des initiaux, domaine de validité                           | `""`     |
+| `b` | corps : entrées `.dgo` (ci-après)                                        | (requis) |
+| `f` | indices locaux des finaux dans le corps, dans l'ordre de `f` de la macro | (requis) |
+
+Types des initiaux, exacts (une méthode qui attend une droite n'accepte
+qu'une droite), et leurs sous-objets, utilisables dans le corps :
+
+| Type      | Objets                                                                        | Sous-objets                                |
+| --------- | ----------------------------------------------------------------------------- | ------------------------------------------ |
+| `point`   | tout point                                                                    | —                                          |
+| `line`    | droite : `Line`, `Par`, `Perp`, `Med`, `EqL`, `Tan`, `PlPl`, `Nrm`            | —                                          |
+| `ray`     | demi-droite : `Ray`, `Bis`, `FA`                                              | son origine                                |
+| `segment` | segment, côté de polygone                                                     | ses deux extrémités                        |
+| `vector`  | `Vec`, `VecF`                                                                 | son origine, son extrémité                 |
+| `circle`  | cercle entier : `Cir`, `C1`, `CAx`, `C3`, `C3p`, `C3s`, `EqC`, `SphC`, `Disk` | son centre                                 |
+| `arc`     | `Arc`, `Sec`, `CArc`, `CSec`, `Semi`                                          | son centre, son début, sa fin              |
+| `conic`   | `Quad`, `Ell`, `Ell1`, `Hyp`, `Hyp1`, `Prb`, `EqQ`                            | —                                          |
+| `polygon` | `Poly`, `RegP`, `PlS`, pas un plan                                            | par `["vertex", i, k]` et `["side", i, k]` |
+| `plane`   | `Pl`, `PlP`, `PlL`, `PlO`, `PlE`                                              | —                                          |
+| `sphere`  | `Sph`, `Sph1`                                                                 | son centre                                 |
+| `angle`   | `Ang`, l'angle AOB                                                            | A, O, B                                    |
+| `number`  | `Ex` autre qu'une fonction, ou formule constante                              | —                                          |
+
+Le début d'un arc est le point d'où il part (A pour `Arc`, `CArc`, `Semi`),
+sa fin celui où il s'arrête. Un angle n'est pas un nombre : le corps lit sa
+mesure par son nom, dans une formule.
+
+Corps d'une méthode :
+
+- **Indices locaux** : les initiaux d'abord, dans leur ordre, chacun précédé
+  de ses sous-objets (comme dans Cabri), puis les entrées du corps. Dans la
+  seconde méthode de l'exemple, 0 et 1 sont les extrémités du segment, 2 le
+  segment, 3 le milieu. Le premier sommet d'un polygone initial d'indice
+  local 4 est `["vertex", 4, 1]` ; un rang absent rend la référence
+  indéfinie, comme dans la figure.
+- Ses entrées sont des entrées `.dgo` ordinaires, lues et validées comme
+  celles de `o`. Leurs références (indices, références de côté ou de
+  sommet, noms des formules) ne désignent que des initiaux, des sous-objets
+  et des entrées antérieures du corps, jamais un objet de la figure.
+- Leurs noms, uniques dans le corps, ne sont pas ceux de la figure (« Ouvrir
+  la boîte » les reprend, renommés au besoin).
+- Seuls les finaux ont un style (indice dans `st`) : leur style par défaut à
+  l'application. Ni `sc` ni `mg`.
+- Rien de ce qu'une manipulation change, qui serait un initial manquant :
+  ni objet libre (`Pt`, `VecF`), ni `Ex` de valeur `"v"` (curseur, nombre
+  réglable) ou globale (`"g"`), ni `C1` de rayon numérique ; un nombre
+  constant s'écrit dans une formule (`"2"`). Ni `Btn`, `Evt`, `Html`, ni
+  `Img`, dont la clé est celle de la table `img` de la figure. Le
+  paramètre d'un `On` (le point mobile d'un lieu final) n'y est qu'un
+  point de départ.
+- Il peut contenir des `Mac` et des `Out`, d'une macro d'indice inférieur
+  dans `mac` (pas de récursion).
+- La numérotation des branches d'intersection (note 3) y est la même.
+
+Le lecteur refuse une macro dont un final est un initial ou un sous-objet,
+dont deux finaux d'une méthode sont la même entrée, dont une méthode n'a
+pas autant de finaux que `f`, ou dont la signature (types des initiaux)
+d'une méthode est celle d'une autre ou la prolonge (règle de `EDITOR.md`,
+« Langage textuel »). Il lit le corps d'une méthode à chaque application.
+L'éditeur n'enregistre pas non plus de méthodes dont les finaux n'ont pas,
+rang par rang, le même type (celui des initiaux, ou à défaut le même type
+`.dgo`).
+
+Application (note 25 des objets) :
+
+- `Mac` : `macro` est un indice dans `mac`, `méthode` dans ses `m`. Un
+  initial par initial de la méthode, du type exact attendu : une référence
+  d'objet, ou, pour un `number`, une formule constante, qui ne nomme rien
+  (un nombre tapé s'écrit `"3"`). Le nœud dépend des initiaux. Il n'est ni
+  dessiné ni désignable ; son nom, requis comme pour toute entrée, sert à
+  l'état élève. `branches` : dans l'ordre du corps, la branche (note 3) de
+  chaque `Int` sans point P et, pour chaque `Mac` du corps, la liste de ses
+  propres branches ; absent, celles du corps. Écrit quand il en diffère,
+  pour que la figure enregistrée après manipulation (intersections suivies)
+  se rouvre à l'identique.
+- `Out` : le final de rang k, à partir de 1 dans l'ordre de `f`, d'une
+  application antérieure ; au plus un `Out` par rang. Le final d'une macro
+  peut être celui d'une application de son corps. C'est l'objet même que
+  calcule le corps, de la classe de son entrée, adopté dans la figure : nommé,
+  stylé (écart aux défauts du type de son entrée dans le corps, comme tout
+  objet), désignable, jamais déplaçable. Un initial ou un intermédiaire
+  indéfini rend indéfinis les finaux qui en dépendent.
 
 ### Styles `st`
 
@@ -557,7 +707,7 @@ postérieur.
 | `fc` | tous         | couleur de remplissage                   | `c` s'il est donné, sinon du type |
 | `s`  | tous         | taille                                   | du type                           |
 | `o`  | tous         | opacité                                  | du type                           |
-| `h`  | tous         | 0 visible, 1 caché, 2 super-caché        | 0                                 |
+| `h`  | tous         | 0 visible, 1 caché, 2 super-caché        | 0 (`Mac` : 2)                     |
 | `sn` | tous         | nom affiché                              | 0                                 |
 | `in` | tous         | inerte : ignore survol, clic et toucher  | 0                                 |
 | `no` | tous         | place du nom déplacé (hors points)       | `null` (place de GeoGebra)        |
@@ -695,6 +845,7 @@ objet manipulable y entre donc, par une nouvelle ligne du tableau ci-dessous.
 | `Int` sans point P dont les solutions sont suivies (2) | le numéro de branche de `.dgo` (note 3 des objets)                 |
 | `C1` à rayon numérique (non formule)                   | le rayon, qu'un glisser du cercle change                           |
 | `VecF` (vecteur libre)                                 | ses coordonnées, comme un point libre (1)                          |
+| `Mac` qui a des branches                               | `branches`, sous sa forme de `.dgo` (note 25 des objets)           |
 
 Comme dans `.dgo`, un nombre non fini s'écrit `null`.
 
@@ -722,6 +873,8 @@ Comme dans `.dgo`, un nombre non fini s'écrit `null`.
 - Les `Ex` de valeur constante couvrent les curseurs, les cases à cocher, les
   nombres que modifie un champ de saisie ou le glisser d'un point `Fp`.
 - La vue (zoom, déplacement, rotation 3D) et les traces n'en font pas partie.
+- Les finaux d'une macro (`Out`) non plus, même un point sur objet ou une
+  intersection : les branches sont celles de leur application.
 - Une animation (`an`) change la valeur de son objet comme une manipulation :
   elle entre dans l'état.
 - **Application** : la figure de base, où chaque objet de l'état reçoit sa

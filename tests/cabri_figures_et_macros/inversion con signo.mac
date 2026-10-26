@@ -1,0 +1,21 @@
+Macro Cabri II Plus vers. MS-Windows 1.2.1
+
+inversion con signo, punto inverso con signo
+Help:
+"Seleccionados en este orden: un centro de inversion A, una circunferencia de base O y un punto a invertir P. Obtenemos P' inverso de P respecto a A  y con potencia de inversion la potencia de A respecto a O."
+Mth: 0
+CN:3, ON:9, FN:1, PO:8
+CT:
+point, CS 0, default settings, 
+circle, CS 1, default settings, 
+point, CS 0, default settings, 
+Const:
+Line, Mth:1, 0, CN:2, VN:4, Const: 2 1
+Int, Mth:0, 0, CN:2, VN:1, int ind:0x10000, Const: 5 3
+Int, Mth:0, 0, CN:2, VN:1, int ind:0, Const: 5 3
+Line, Mth:1, 0, CN:2, VN:4, Const: 4 6
+Biss, Mth:0, 0, CN:3, VN:4, Const: 2 1 4
+Refl, Mth:0, 0, CN:2, VN:1, Const: 7 9
+Par, Mth:0, 0, CN:2, VN:4, Const: 10 8
+Int, Mth:0, 0, CN:2, VN:1, int ind:0, Const: 5 11
+Refl, Mth:0, 1, CN:2, VN:1, Const: 12 9, default settings, 

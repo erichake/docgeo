@@ -1,0 +1,261 @@
+/* A macro being defined: see MACROS.md. */
+.dge-editor.dge-macro-open {
+    --dge-properties-width: var(--dge-properties-size);
+}
+.dge-editor.dge-macro-open .dge-hint {
+    left: calc(
+        50% + (var(--dge-panel-width) - var(--dge-properties-width)) / 2
+    );
+    max-width: calc(
+        100% - var(--dge-panel-width) - var(--dge-properties-width) - 32px
+    );
+}
+/* Over the figure, as the properties. */
+@media (max-width: 600px) {
+    .dge-editor.dge-macro-open {
+        --dge-properties-width: 0px;
+    }
+}
+.dge-macro {
+    position: fixed;
+    inset-block: var(--dge-bar-height) 0;
+    right: 0;
+    width: var(--dge-properties-size);
+    box-sizing: border-box;
+    flex-direction: column;
+    overflow: auto;
+    background: #fff;
+    border-left: 1px solid #e5e7eb;
+    z-index: 10;
+    font:
+        14px/1.4 system-ui,
+        -apple-system,
+        "Segoe UI",
+        sans-serif;
+    color: #1f2937;
+    touch-action: pan-y;
+}
+.dge-macro input,
+.dge-macro textarea {
+    box-sizing: border-box;
+    min-width: 0;
+    padding: 5px 7px;
+    border: 1px solid #cbd5e1;
+    border-radius: 6px;
+    background: #fff;
+    color: inherit;
+    font: inherit;
+    touch-action: auto;
+}
+.dge-macro textarea {
+    width: 100%;
+    resize: vertical;
+}
+.dge-macro-field {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 16px 0;
+    font-size: 13px;
+}
+.dge-macro-field input {
+    flex: 1;
+}
+/* What the step asks for. */
+.dge-macro-step {
+    margin: 12px 16px 0;
+    padding: 8px 10px;
+    border-radius: 8px;
+    background: #eff6ff;
+    color: #1d4ed8;
+    font-size: 13px;
+    font-weight: 600;
+}
+.dge-macro-section {
+    padding: 12px 16px;
+    border-bottom: 1px solid #e5e7eb;
+}
+.dge-macro-section h3 {
+    margin: 0 0 8px;
+    font-size: 12px;
+    font-weight: 600;
+    color: #64748b;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+.dge-macro-list {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+.dge-macro-list li {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+}
+.dge-macro-list li.dge-dragging {
+    opacity: 0.6;
+}
+.dge-macro-list input {
+    flex: 1;
+    padding: 3px 6px;
+}
+.dge-macro-list small {
+    flex-basis: 100%;
+    color: #b91c1c;
+}
+.dge-macro-bad .dge-macro-object {
+    color: #b91c1c;
+}
+.dge-macro-object {
+    min-width: 2ch;
+    font-family: Verdana, sans-serif;
+}
+/* Its rank, which a drag moves. */
+.dge-macro-handle {
+    min-width: 18px;
+    height: 18px;
+    padding: 0 5px;
+    box-sizing: border-box;
+    border-radius: 9px;
+    background: #2563eb;
+    color: #fff;
+    font:
+        600 11px/18px system-ui,
+        -apple-system,
+        "Segoe UI",
+        sans-serif;
+    text-align: center;
+    cursor: grab;
+    touch-action: none;
+}
+.dge-macro-remove {
+    width: 22px;
+    height: 22px;
+    padding: 0;
+    border: 0;
+    border-radius: 6px;
+    background: none;
+    color: #64748b;
+    font-size: 16px;
+    cursor: pointer;
+}
+.dge-macro-remove:hover {
+    background: #fee2e2;
+    color: #b91c1c;
+}
+.dge-macro-note {
+    margin: 6px 0 0;
+    color: #64748b;
+    font-size: 12px;
+}
+.dge-macro-drawing {
+    display: flex;
+    align-items: end;
+    gap: 10px;
+}
+.dge-macro-icon {
+    width: 128px;
+    height: 128px;
+    border: 1px solid #cbd5e1;
+    border-radius: 4px;
+    background: repeating-conic-gradient(#f1f5f9 0 25%, #fff 0 50%) 0 0 / 16px
+        16px;
+    image-rendering: pixelated;
+    cursor: crosshair;
+    touch-action: none;
+}
+.dge-macro-footer {
+    position: sticky;
+    bottom: 0;
+    margin-top: auto;
+    padding: 12px 16px;
+    background: #fff;
+    border-top: 1px solid #e5e7eb;
+}
+.dge-macro-status {
+    margin: 0 0 8px;
+    font-size: 12px;
+    color: #15803d;
+}
+.dge-macro-status.dge-error {
+    color: #b91c1c;
+}
+.dge-macro-status:empty {
+    display: none;
+}
+.dge-macro-save {
+    width: 100%;
+    padding: 7px 12px;
+    border: 0;
+    border-radius: 8px;
+    background: #2563eb;
+    color: #fff;
+    font: inherit;
+    font-weight: 600;
+    cursor: pointer;
+}
+.dge-macro-back {
+    width: 100%;
+    margin-top: 6px;
+    padding: 5px 12px;
+    border: 0;
+    background: none;
+    color: #2563eb;
+    font: inherit;
+    font-size: 13px;
+    cursor: pointer;
+}
+.dge-macro-save:disabled {
+    background: #cbd5e1;
+    cursor: default;
+}
+
+/* In the figure: the initials in blue, the finals chosen in orange, what the
+   initials determine in green, what a final misses in red, the rest under a
+   veil. */
+svg.dge-defining
+    [data-layer]
+    > :not(.dge-initial, .dge-final, .dge-possible, .dge-missing, .dge-hover) {
+    opacity: 0.4;
+}
+svg .dge-initial {
+    filter: drop-shadow(0 0 2px #2563eb) drop-shadow(0 0 3px #2563eb);
+}
+svg .dge-final {
+    filter: drop-shadow(0 0 2px #ea580c) drop-shadow(0 0 3px #ea580c);
+}
+svg .dge-possible {
+    filter: drop-shadow(0 0 2px #16a34a) drop-shadow(0 0 2px #16a34a);
+}
+svg .dge-missing {
+    filter: drop-shadow(0 0 2px #dc2626) drop-shadow(0 0 2px #dc2626);
+    animation: dge-missing 0.8s ease-in-out infinite alternate;
+}
+@keyframes dge-missing {
+    to {
+        opacity: 0.35;
+    }
+}
+@media (prefers-reduced-motion: reduce) {
+    svg .dge-missing {
+        animation: none;
+    }
+}
+.dge-item.dge-initial .dge-row {
+    box-shadow: inset 3px 0 #2563eb;
+}
+.dge-item.dge-final .dge-row {
+    box-shadow: inset 3px 0 #ea580c;
+}
+.dge-item.dge-possible .dge-row {
+    box-shadow: inset 3px 0 #86efac;
+}
+.dge-item.dge-missing .dge-row {
+    box-shadow: inset 3px 0 #dc2626;
+}

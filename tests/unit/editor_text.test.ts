@@ -52,6 +52,26 @@ describe("Editor text", () => {
         expect(read("A =")).toEqual({ name: "A", definition: null });
     });
 
+    it("reads the names of a macro's finals before its call", () => {
+        expect(read("O, c = Cercle(A, B, C)")).toEqual({
+            name: null,
+            names: ["O", "c"],
+            definition: {
+                kind: "call",
+                command: "Cercle",
+                args: ["A", "B", "C"].map((name) => ({ kind: "name", name })),
+            },
+        });
+        expect(read("O, _, k = Cercle(A)").names).toEqual(["O", "_", "k"]);
+        expect(() => read("O, c = 3")).toThrow(TextError);
+        expect(() => read("O, c = x + 1")).toThrow(TextError);
+        // A pair of coordinates is no list of names.
+        expect(read("(1, 2)").definition).toEqual({
+            kind: "point",
+            coords: [1, 2],
+        });
+    });
+
     it("reads what isn't a point nor a command as a formula", () => {
         for (const [text, name, source] of [
             ["a = 3", "a", "3"],

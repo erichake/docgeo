@@ -27,6 +27,9 @@ export type Definition =
 
 export interface Line {
     name: string | null;
+    // `O, c = Circumscribed(A, B, C)`: a macro's finals, in order, "_" for
+    // one not wanted.
+    names?: string[];
     // Null for `name =`, which deletes the object.
     definition: Definition | null;
 }
@@ -113,6 +116,14 @@ export function parseLine(
     let position = 0;
     const peek = (offset = 0): Token | undefined => tokens[position + offset];
     let name: string | null = null;
+    const names = finals();
+    if (names) {
+        position = 2 * names.length;
+        const head = peek()!;
+        if (head.type !== "identifier" || peek(1)?.type !== "(")
+            throw new TextError("syntax", text.slice(starts[position]));
+        return { name: null, names, definition: call(head.value as string) };
+    }
     // `y = 2x + 1` is an equation, as in GeoGebra; `f(x) = x^2` a function
     // named with its variables, the curve of a function of x.
     const declared = declaration();
@@ -203,6 +214,20 @@ export function parseLine(
         };
     }
     return { name, definition: { kind: "formula", source } };
+
+    // `O, c =`: two names or more, separated by commas, before "=".
+    function finals(): string[] | null {
+        const found: string[] = [];
+        let at = 0;
+        while (tokens[at]?.type === "identifier") {
+            found.push(tokens[at].value as string);
+            if (tokens[at + 1]?.type === "=")
+                return found.length > 1 ? found : null;
+            if (tokens[at + 1]?.type !== ",") return null;
+            at += 2;
+        }
+        return null;
+    }
 
     // After the "=" of `f(x) =` or `f(x, y) =`, the variables being those
     // of functions; else 0.

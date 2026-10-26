@@ -1,0 +1,94 @@
+Figure Cabri II Plus vers. MS-Windows 1.2.1
+
+Window center x: 5.37cm y: -4.16cm Window size x: 41.66cm y: 27.29cm
+Resolution: 38 ppc
+
+1: Pt, Val: 0 0
+invisible, 
+
+2: Axes, Const: 1, cart, Val: 1 0 0 1
+invisible, 
+
+3: Text, Val: -550 -347 0, nA, nP, 
+color:B, 
+"MACRO: CastilIonInversion.mac	2"
+TP:  -14.4736842105263,  9.13157894736842, TS:  11.3157894736842,  0.473684210526316
+p: 0, Arial, S: 12, C: 40, Fa: 0, p: 31, System, S: 10, C: 40, Fa: 1
+
+4: Pt, Val: 1.02631578947368 -0.342105263157895
+color:B, 
+"O"
+TP:  1.36842105263158,  0.157894736842105, TS:  0.657894736842105,  0.473684210526316
+p: 0, Arial, S: 12, C: 40, Fa: 0, p: 1, System, S: 10, C: 40, Fa: 1
+
+5: Cir, Const: 4, Val: 3.84867858749027
+color:B, 
+
+6: Pt, Val: 5.92105263157895 -0.342105263157895
+color:B, 
+"a"
+TP:  6.28947368421053,  0.157894736842105, TS:  0.5,  0.473684210526316
+p: 0, Arial, S: 12, C: 40, Fa: 0, p: 1, System, S: 10, C: 40, Fa: 1
+
+7: Pt, Val: 5.55263157894737 1.81578947368421
+color:B, 
+"P"
+TP:  5.81578947368421,  2.28947368421053, TS:  0.605263157894737,  0.473684210526316
+p: 0, Arial, S: 12, C: 40, Fa: 0, p: 1, System, S: 10, C: 40, Fa: 1
+
+8: Line, Const: 4,  6, 
+color:rob, SL:1 0.940795096720253 1, 
+
+10: Int, Const: 8,  5, int ind:0, 
+color:rob, 
+"C"
+TP:  -2.63157894736842,  0.210526315789474, TS:  0.657894736842105,  0.473684210526316
+p: 0, Arial, S: 12, C: 30, Fa: 0, p: 1, System, S: 10, C: 40, Fa: 1
+
+11: Int, Const: 8,  5, int ind:0x10000, 
+color:rob, 
+"B"
+TP:  4.23684210526316,  0.236842105263158, TS:  0.605263157894737,  0.473684210526316
+p: 0, Arial, S: 12, C: 30, Fa: 0, p: 1, System, S: 10, C: 40, Fa: 1
+
+12: Perp, Const: 4,  8, 
+color:rob, DS:5 8, SL:1 -10.6052631578947 3.39393453145059, invisible, 
+
+13: PBiss, Const: 7,  11, 
+color:rob, DS:5 8, SL:1 -15.0278211074364 1.19472730662491, invisible, 
+
+15: Int, Const: 12,  13, int ind:0, 
+color:rob, invisible, 
+"O'"
+TP:  1.13157894736842,  2.60526315789474, TS:  0.5,  0.473684210526316
+p: 0, Arial, S: 12, C: 30, Fa: 0, p: 2, System, S: 10, C: 40, Fa: 1
+
+16: Cir, Const: 15,  7, 
+color:rob, 
+
+17: Line, Const: 6,  7, 
+color:rob, SL:1 0.999999999999996 1, 
+
+19: Int, Const: 17,  16, int ind:0x10000, 
+"Pa"
+TP:  5.55263157894737,  4.26315789473684, TS:  0.789473684210526,  0.473684210526316
+p: 0, Arial, S: 12, C: 7, Fa: 0, p: 2, System, S: 10, C: 40, Fa: 1
+
+20: Text, Val: -551 -290 0, nA, nP, 
+"noir, donné
+bleu, auxiliaire
+rouge, solution"
+TP:  -14.5,  7.63157894736842, TS:  3.21052631578947,  1.42105263157895
+p: 0, Arial, S: 12, C: 40, Fa: 0, p: 12, Arial, S: 12, C: 15, Fa: 0, p: 28, Arial, S: 12, C: 40, Fa: 0, p: 29, Arial, S: 12, C: 7, Fa: 0
+
+21: Text, Val: -555 -188 0, nA, nP, 
+"REMARQUE: Après des idées de Joel Moreau
+
+On peut écrire la rélation qu'exprime le problème initial comme:
+
+	aB·aC = aP· aPa	(C, B, P et Pa sont cocycliques)
+
+c'est à dire, le problème on peut écrire comme trouver l'intersection de la droite aP avec le cercle par P, C et B"
+TP:  -14.6052631578947,  4.94736842105263, TS:  11.1315789473684,  4.26315789473684
+p: 0, Arial, S: 12, C: 40, Fa: 0, p: 110, Arial, S: 12, C: 15, Fa: 0, p: 111, Arial, S: 12, C: 40, Fa: 0, p: 113, Arial, S: 12, C: 15, Fa: 0, p: 114, Arial, S: 12, C: 40, Fa: 0, p: 122, Arial, S: 12, C: 7, Fa: 0, p: 125, Arial, S: 12, C: 40, Fa: 0, p: 126, Arial, S: 12, C: 15, Fa: 0, p: 127, Arial, S: 12, C: 40, Fa: 0, p: 129, Arial, S: 12, C: 15, Fa: 0, p: 130, Arial, S: 12, C: 40, Fa: 0, p: 137, Arial, S: 12, C: 7, Fa: 0, p: 139, Arial, S: 12, C: 40, Fa: 0, p: 267, Arial, S: 12, C: 15, Fa: 0, p: 268, Arial, S: 12, C: 40, Fa: 0, p: 272, Arial, S: 12, C: 15, Fa: 0, p: 273, Arial, S: 12, C: 40, Fa: 0
+

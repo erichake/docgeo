@@ -323,6 +323,53 @@ const fr: Texts = {
         designate_solid: "Désignez un solide",
         designate_readable: "Désignez un objet",
         unsupported: "Non importé : %",
+        family_macros: "Macros",
+        new_macro: "Nouvelle macro",
+        macro_name: "Nom",
+        macro_initials: "Initiaux",
+        macro_finals: "Finaux",
+        macro_step_initials: "Étape 1/2 : touchez les initiaux, dans l'ordre",
+        macro_step_finals:
+            "Étape 2/2 : touchez les finaux parmi les objets verts",
+        macro_next: "Suivant : les finaux",
+        macro_back: "Retour aux initiaux",
+        macro_help: "Aide",
+        macro_help_placeholder:
+            "L'ordre des initiaux, et quand la macro est en défaut",
+        macro_icon: "Icône",
+        macro_clear_icon: "Effacer",
+        macro_remove: "Retirer",
+        macro_message: "Message affiché quand on le désigne",
+        macro_drag: "Glisser pour changer l'ordre",
+        macro_implicit:
+            "Aucun final choisi : les objets visibles en vert sont les finaux",
+        macro_need_initial: "Touchez les objets dont part la macro",
+        macro_need_final: "Les initiaux ne déterminent aucun objet visible",
+        macro_missing: "Pas déterminé par les initiaux : manque-t-il % ?",
+        macro_not_initial: "% ne peut pas être un initial",
+        macro_create: "Créer la macro",
+        macro_add: "Ajouter une méthode à %",
+        macro_replace: "Remplacer la méthode de %",
+        macro_other_finals: "% a d'autres finaux : choisissez un autre nom",
+        macro_ambiguous:
+            "Ses initiaux prolongent ceux d'une autre méthode de %, ou l'inverse",
+        macro_later: "% ne peut pas utiliser une macro créée après elle",
+        macro_saved: "Macro % enregistrée",
+        designate_ray: "Désignez une demi-droite",
+        designate_arc: "Désignez un arc",
+        designate_conic: "Désignez une conique",
+        designate_angle: "Désignez un angle",
+        macro_unknown:
+            "Plusieurs noms avant = ne nomment que les finaux d'une macro",
+        macro_names:
+            "Cette macro a % finaux : nommez-les tous, _ pour en omettre un",
+        macro_taken: "Le nom % est pris par un autre objet",
+        macro_order:
+            "Les initiaux d'une macro doivent la précéder dans la construction",
+        macro_bad_name:
+            "Le nom d'une macro est un mot : lettres, chiffres et _",
+        macro_command_name:
+            "% est le nom d'une commande : choisissez-en un autre",
     },
     commands: {
         Side: "Côté",

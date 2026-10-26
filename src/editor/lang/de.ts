@@ -331,6 +331,56 @@ const de: Texts = {
         designate_solid: "Wählen Sie einen Körper",
         designate_readable: "Wählen Sie ein Objekt",
         unsupported: "Nicht importiert: %",
+        family_macros: "Makros",
+        new_macro: "Neues Makro",
+        macro_name: "Name",
+        macro_initials: "Anfangsobjekte",
+        macro_finals: "Endobjekte",
+        macro_step_initials:
+            "Schritt 1/2: Tippen Sie die Anfangsobjekte der Reihe nach an",
+        macro_step_finals:
+            "Schritt 2/2: Tippen Sie die Endobjekte unter den grünen Objekten an",
+        macro_next: "Weiter: die Endobjekte",
+        macro_back: "Zurück zu den Anfangsobjekten",
+        macro_help: "Hilfe",
+        macro_help_placeholder:
+            "Die Reihenfolge der Anfangsobjekte, und wann das Makro versagt",
+        macro_icon: "Symbol",
+        macro_clear_icon: "Löschen",
+        macro_remove: "Entfernen",
+        macro_message: "Meldung, wenn es gewählt wird",
+        macro_drag: "Ziehen, um die Reihenfolge zu ändern",
+        macro_implicit:
+            "Kein Endobjekt gewählt: Die sichtbaren grünen Objekte sind die Endobjekte",
+        macro_need_initial:
+            "Tippen Sie die Objekte an, von denen das Makro ausgeht",
+        macro_need_final: "Die Anfangsobjekte bestimmen kein sichtbares Objekt",
+        macro_missing: "Nicht durch die Anfangsobjekte bestimmt: Fehlt %?",
+        macro_not_initial: "% kann kein Anfangsobjekt sein",
+        macro_create: "Makro erstellen",
+        macro_add: "Eine Methode zu % hinzufügen",
+        macro_replace: "Die Methode von % ersetzen",
+        macro_other_finals:
+            "% hat andere Endobjekte: Wählen Sie einen anderen Namen",
+        macro_ambiguous:
+            "Seine Anfangsobjekte verlängern die einer anderen Methode von %, oder umgekehrt",
+        macro_later: "% kann kein später erstelltes Makro verwenden",
+        macro_saved: "Makro % gespeichert",
+        designate_ray: "Wählen Sie eine Halbgerade",
+        designate_arc: "Wählen Sie einen Bogen",
+        designate_conic: "Wählen Sie einen Kegelschnitt",
+        designate_angle: "Wählen Sie einen Winkel",
+        macro_unknown:
+            "Mehrere Namen vor = benennen nur die Endobjekte eines Makros",
+        macro_names:
+            "Dieses Makro hat % Endobjekte: Benennen Sie alle, _ für ein ausgelassenes",
+        macro_taken: "Der Name % ist von einem anderen Objekt belegt",
+        macro_order:
+            "Die Anfangsobjekte eines Makros müssen ihm in der Konstruktion vorausgehen",
+        macro_bad_name:
+            "Der Name eines Makros ist ein Wort: Buchstaben, Ziffern und _",
+        macro_command_name:
+            "% ist der Name eines Befehls: Wählen Sie einen anderen",
     },
     commands: {
         Side: "Seite",

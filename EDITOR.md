@@ -1331,6 +1331,106 @@ repeat_end; count++)`), seulement pour un n entier tel qu'écrit
   en deux fichiers pour lui. Ni corbeille, ni boutons de zoom, ni sons :
   Blockly irait chercher ses images ailleurs (le build reste autonome).
 
+## Macro-constructions
+
+Chantier ouvert le 2026-10-26, décrit dans `MACROS.md` : définir une macro
+par manipulation directe dans la figure, l'appliquer comme un outil natif
+(catalogue, outils contextuels, langage textuel). La définition et
+l'application vivent dans `src/editor/`, le calcul dans le moteur (nœud
+d'application, format dans `DGO.md`).
+
+**Définir une macro** (2026-10-26, `macro.ts` pour la logique,
+`macro_panel.ts` et `macro.css` pour l'interface) :
+
+- **Entrée** : famille « Macros » du menu des outils, propre au menu comme
+  « Programmes », dont l'item « Nouvelle macro » ouvre le mode. Les objets
+  sélectionnés en deviennent les initiaux, dans leur ordre.
+- **Deux étapes** (décidé avec l'auteur le 2026-10-26, à la place d'une
+  règle automatique et d'une bascule « Initial / Final », trop confuses) :
+  le panneau les annonce dans un cadre bleu, la consigne les répète.
+  **Étape 1/2** : chaque toucher ajoute ou retire un initial, même un
+  objet déjà déterminé ; « Suivant : les finaux » (grisé sans initial)
+  passe à l'étape 2. **Étape 2/2** : chaque toucher sur un objet que les
+  initiaux déterminent (en vert) ajoute ou retire un final ; un objet non
+  déterminé est refusé, la consigne disant ce qui lui manque ; un initial
+  ne fait rien ; « Retour aux initiaux » revient à l'étape 1.
+- **Panneau** à droite, à la place des propriétés (fermées en entrant) :
+  nom, étape, initiaux (rang, message affiché à l'usage, celui du type par
+  défaut, ×), finaux à l'étape 2 seulement (nom donné à l'application, ×),
+  aide, icône (16 × 16 pixels dessinés à la main ; un trait qui part d'un
+  pixel noir efface). Le rang d'un initial se glisse pour changer l'ordre.
+  En pied, à l'étape 2, l'état et un bouton qui dit ce qu'il fera :
+  « Créer la macro », « Ajouter une méthode à M », « Remplacer la méthode
+  de M ». Ce qui l'empêche (final manquant ou non déterminé, autres finaux,
+  signature ambiguë, macro créée après) s'écrit en rouge, le bouton
+  grisé : aucune boîte de dialogue. Enregistrer est une étape
+  d'annulation et laisse le mode ouvert, pour réordonner et enregistrer
+  sous un autre nom.
+- **Figure** : le reste sous un voile (comme les aimants), les initiaux en
+  bleu, les finaux choisis en orange, ce que les initiaux déterminent en
+  vert (le bouquet), ce qui manque à un final en rouge clignotant (fixe si
+  les animations sont réduites). Les lignes du panneau « Construction »
+  portent la même couleur en bordure, et un toucher sur une ligne désigne
+  son objet, caché compris. Un toucher sur un côté de polygone désigne le
+  polygone. Un objet qu'aucun type d'initial n'accepte (courbe, liste,
+  texte…) est refusé, avec un message.
+- La figure reste manipulable. Un toucher dans le vide ne fait rien : on
+  sort par la croix, Échap, un outil, les propriétés, la gomme ou une autre
+  figure. Annuler et refaire gardent le mode (initiaux et finaux sont
+  retenus par leur nom).
+
+**Appliquer une macro** (2026-10-26) : les macros de la figure suivent
+« Nouvelle macro » dans la famille « Macros » du menu, chacune avec son
+icône (une boîte sans icône dessinée). Grisée si les objets sélectionnés
+ne commencent aucune de ses méthodes ; sinon ils en sont les premiers
+initiaux. Choisie, elle se comporte comme un outil du menu : bandeau
+(icône, nom, « Terminé »), consigne qui donne l'aide de la macro puis
+« 1/3 – » et le message de l'initial attendu (celui du type par défaut,
+plusieurs séparés par « · » quand des méthodes attendent des types
+différents), initiaux désignés en bleu ; les objets acceptés ne sont pas
+mis en vert, ce qui chargerait la figure (décidé avec l'auteur le
+2026-10-26) : la consigne suffit. Un
+toucher sur un objet accepté, dans la figure ou sur sa ligne, le prend ;
+si une méthode encore possible attend un point, un toucher ailleurs en
+crée un, libre, sur objet ou à une intersection (`designatePoint`).
+Quand un nombre est attendu, la consigne porte un champ où le taper
+(Entrée), à défaut d'une expression désignée : un nombre décimal, la
+virgule acceptée, écrit en formule constante dans l'entrée `Mac`. Avant le
+dernier initial, la macro s'applique en aperçu (pâle, sans noms) à l'objet
+survolé ou à un point qui suit le pointeur, pour voir par exemple de quel
+côté tombe un triangle équilatéral. **Dans l'anneau** (décidé avec
+l'auteur le 2026-10-26) : une seule place « Macros », la dernière, visible
+quand une macro de la figure accepte l'objet touché comme premier initial ;
+elle ouvre à côté d'elle la liste de ces macros, et celle qu'on choisit
+part de l'objet (`showRingMacros`). La
+macro s'applique dès qu'une méthode est complète (`applyMacro` : une
+entrée `Mac` et une `Out` par final, nommé comme le final de la macro,
+numéroté s'il est pris, avec son style de la définition), puis attend de
+nouveau son premier initial. On en sort comme d'un outil (Échap,
+« Terminé », un autre outil, les propriétés, la gomme). Le nœud est
+super-caché (`h` vaut 2 pour `Mac`) et n'a pas de ligne : l'application
+se lit dans celles de ses finaux.
+
+**Langage textuel** (2026-10-26, forme choisie avec l'auteur) : une macro
+de la figure est une commande, de son nom (complétée comme les autres,
+ses arguments proposés selon les types de ses méthodes). Une ligne
+l'applique et nomme ses finaux dans l'ordre : `O, c = Circonscrit(A, B,
+C)` ; `_` pour un final non voulu (`O, _ = …`) ; `I = Milieu(A, B)` pour
+une macro à un final ; `Circonscrit(A, B, C)` seul nomme les finaux
+d'après ceux de la macro. Il faut autant de noms que de finaux
+(`macro_names`), libres ou déjà ceux des finaux de l'application
+redéfinie (`macro_taken`). Un nombre s'y tape (`Homothétie(O, P, 3)`),
+écrit comme formule constante. Les arguments choisissent la méthode,
+comme les types choisissent la forme d'une commande. Chaque final a sa
+ligne, qui est celle de l'application ; la modifier redéfinit
+l'application (initiaux, méthode, noms) : un final passé à `_` est
+supprimé avec ce qui en dépend, un nom ajouté crée le final. Les
+initiaux doivent précéder l'application dans la construction
+(`macro_order`). `c =` supprime un final seul. Le panneau de définition
+refuse un nom de macro qui n'est pas un mot (`macro_bad_name`) ou qui
+est celui d'une commande (`macro_command_name`), de la langue courante ou
+de l'anglais. Le nœud d'application n'a pas de ligne.
+
 ## Lien avec le lecteur
 
 Un lien « modifier cette figure » pourrait ouvrir la figure du lecteur dans

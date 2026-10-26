@@ -1,6 +1,7 @@
 import { animations } from "./animation";
 import { $, type DOMElement, type PointerDelta } from "./dom";
 import type { FormulaView } from "./import/dgp_formula";
+import type { Macro } from "./objects/macro_object";
 import { construction_object } from "./objects/construction_object";
 import { createGrid, grid_object } from "./objects/grid_object";
 import { objects_collector } from "./objects_collector";
@@ -68,6 +69,8 @@ export class construction {
     // In a web page (index.html?fit, see fit.ts), the size of the region
     // shown, which the SVG scales to its window. Null: the window's.
     fixedSize: Vec2 | null = null;
+    // The figure's macro-constructions, applied or not (see DGO.md).
+    macros: Macro[] = [];
     animations: animations;
     // The objects each gesture was made on since the last update, an
     // animation dragging them, as in DGPad.
@@ -219,6 +222,12 @@ export class construction {
                 ),
             );
         }
+        // An application of a macro goes with its last final.
+        removed.forEach((object) => {
+            const node = object.output?.node;
+            if (node?.children.every((final) => removed.has(final)))
+                removed.add(node);
+        });
         // Links are symmetric: the objects left need their links to the
         // removed ones trimmed.
         removed.forEach((object) => {

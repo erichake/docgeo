@@ -1,0 +1,225 @@
+FIGURE CabriII vers. MS-Windows 1.0
+
+Window center x: -0.396875 y: 1.64041666666667 Window size x: 19.9495833333333 y: 12.3825
+
+1: Pt, 0, CN:0, VN:1
+R, W, t, DS:1 1, GT:1, I, nSt
+Val: 0 0
+
+2: Axes, 1, CN:1, VN:3
+Gr, W, t, DS:1 1, GT:0, I, nSt
+Const: 1, Val: 1 0, 0 1
+
+"O", NP: -86, -104, NS: 12, 18
+3: Pt, 0, CN:0, VN:1
+R, W, t, DS:1 1, GT:1, V, nSt
+Val: -1.77270833333333 2.301875
+p: 0, System, S: 0 C: 3 Fa: 0
+
+"axe de rotation", NP: -81, -159, NS: 51, 34
+4: Perp, 256, CN:2, VN:2
+R, W, t, DS:1 1, GT:0, V, nSt
+Const: 3 2
+p: 0, System, S: 0 C: 3 Fa: 0
+
+5: Perp, 0, CN:2, VN:2
+lGr, W, t, DS:1 1, GT:0, V, nSt
+Const: 3 4
+
+"A", NP: -5, -104, NS: 10, 18
+6: Pt/, 0, CN:1, VN:3
+R, W, t, DS:1 1, GT:1, V, nSt
+Const: 5, Val: -0.079375 2.301875
+p: 0, System, S: 0 C: 3 Fa: 0
+
+7: Cir, 0, CN:1, VN:2
+Bl, W, t, DS:1 1, GT:0, V, nSt
+Const: 6, Val: 4.75909343214038
+
+8: Pt, 0, CN:0, VN:1
+R, W, t, DS:1 1, GT:1, V, nSt
+Val: -8.28145833333333 6.0325
+
+9: Perp, 512, CN:2, VN:2
+V, W, t, DS:1 1, GT:0, I, nSt
+Const: 8 2
+
+"w", NP: -287, -230, NS: 12, 18
+10: Pt/, 0, CN:1, VN:3
+R, W, t, DS:1 1, GT:1, V, nSt
+Const: 9, Val: -7.62 6.0325
+p: 0, System, S: 0 C: 3 Fa: 0
+
+11: Seg, 0, CN:2, VN:0
+V, W, t, DS:1 1, GT:0, V, nSt
+Const: 8 10
+
+12: Lgth, 0, CN:1, VN:1
+B, W, NbD:2, FD, cm, GT:0, I, nSt
+Const: 11, Val: -312 -228 25, A, P
+p: 0, System, S: 0 C: 15 Fa: 0
+
+13: Text, 0, CN:2, VN:3
+B, W, BTh:2, DS:1 1, GT:0, I, nSt
+Const: 11 12, Val: -312 -228 0, nA, nP, TP: -8.255, 6.0325,TS: 1.53458333333333, -0.47625
+""#"
+p: 0, System, S: 0 C: 15 Fa: 0
+
+14: Pt, 0, CN:0, VN:1
+R, W, t, DS:1 1, GT:1, I, nSt
+Val: 6.95854166666667 0.846666666666667
+
+15: Pt, 0, CN:0, VN:1
+R, W, t, DS:1 1, GT:0, I, nSt
+Val: 6.95854166666667 -1.69333333333333
+
+16: Vec, 0, CN:2, VN:0
+R, W, t, DS:1 1, GT:0, V, nSt
+Const: 14 15
+
+"M", NP: 127, 2, NS: 14, 18
+17: Pt/, 0, CN:1, VN:3
+V, W, tT, DS:1 1, GT:0, V, nSt
+Const: 7, Val: 3.51019479855947 -0.822858421767597
+p: 0, System, S: 0 C: 5 Fa: 0
+
+18: Vec, 0, CN:2, VN:0
+P, W, t, DS:1 1, GT:0, I, nSt
+Const: 14 17
+
+19: Tran, 0, CN:2, VN:1
+R, W, t, DS:1 1, GT:1, I, nSt
+Const: 14 18
+
+"P", NP: 132, 128, NS: 11, 18
+20: Tran, 0, CN:2, VN:1
+R, W, t, DS:1 1, GT:0, V, nSt
+Const: 15 18
+p: 0, System, S: 0 C: 3 Fa: 0
+
+21: Vec, 0, CN:2, VN:0
+R, W, tT, DS:1 1, GT:0, V, nSt
+Const: 19 20
+
+22: Seg, 0, CN:2, VN:0
+V, W, t, DS:1 1, GT:0, V, nSt
+Const: 6 17
+
+23: Perp, 0, CN:2, VN:2
+V, W, t, DS:1 1, GT:0, I, nSt
+Const: 17 4
+
+24: Formula, 1, CN:1, VN:1
+B, W, NbD:2, nFD, WU, GT:0, V, nSt
+Const: 12, Val: -307 -213 0.661458, A, P, TP: -8.12270833333333, 5.635625,TS: 0.79375, -0.47625
+a / 1cm
+p: 0, System, S: 0 C: 15 Fa: 0
+
+25: Text, 0, CN:1, VN:1
+B, W, BTh:2, DS:1 1, GT:0, V, nSt
+Const: 24, Val: -325 -213 0, nA, nP, TP: -8.59895833333333, 5.635625,TS: 1.27, -0.47625
+"w="#"
+p: 0, System, S: 0 C: 15 Fa: 0
+
+26: Formula, 1, CN:1, VN:1
+B, W, NbD:2, nFD, WU, GT:0, V, nSt
+Const: 24, Val: -300 -195 1.43753, A, P, TP: -7.9375, 5.159375,TS: 0.79375, -0.47625
+a^2 + 1
+p: 0, System, S: 0 C: 15 Fa: 0
+
+27: Text, 0, CN:1, VN:1
+B, W, BTh:2, DS:1 1, GT:0, V, nSt
+Const: 26, Val: -338 -195 0, nA, nP, TP: -8.94291666666667, 5.159375,TS: 1.79916666666667, -0.47625
+"1+w²="#"
+p: 0, System, S: 0 C: 15 Fa: 0
+
+"H", NP: -86, 13, NS: 12, 18
+28: Int, 0, CN:2, VN:1
+R, W, t, DS:1 1, GT:1, V, nSt
+Const: 4 23
+p: 0, System, S: 0 C: 3 Fa: 0
+
+"Fc", NP: 221, 32, NS: 17, 18
+29: Dil, 0, CN:3, VN:1
+dG, W, t, DS:1 1, GT:0, V, nSt
+Const: 17 28 26
+p: 0, System, S: 0 C: 9 Fa: 0
+
+30: Vec, 0, CN:2, VN:0
+dG, W, tT, DS:1 1, GT:0, V, nSt
+Const: 17 29
+
+31: Seg, 0, CN:2, VN:0
+lGr, W, t, DS:5 8, GT:0, V, nSt
+Const: 28 17
+
+"P+Fc", NP: 206, 131, NS: 34, 18
+32: Tran, 0, CN:2, VN:1
+R, W, t, DS:1 1, GT:1, V, nSt
+Const: 20 30
+p: 0, System, S: 0 C: 3 Fa: 0
+
+"P=mg", NP: 264, 6, NS: 39, 18
+33: Mid, 0, CN:1, VN:1
+R, W, t, DS:1 1, GT:0, V, nSt
+Const: 16
+p: 0, System, S: 0 C: 3 Fa: 0
+
+34: Par, 0, CN:2, VN:2
+V, W, t, DS:1 1, GT:0, I, nSt
+Const: 6 4
+
+35: Int, 0, CN:2, VN:1
+R, W, t, DS:1 1, GT:1, V, nSt
+Const: 34 7
+
+36: Angle, 0, CN:3, VN:4
+B, W, t, DS:1 1, GT:16, V, nSt
+Const: 17 6 35, Val: -1, 1
+
+37: Seg, 0, CN:2, VN:0
+lGr, W, t, DS:5 8, GT:0, V, nSt
+Const: 6 35
+
+38: Ray, 0, CN:2, VN:2
+V, W, t, DS:1 1, GT:0, I, nSt
+Const: 6 17
+
+"I", NP: 2, 14, NS: 6, 18
+39: Int, 0, CN:2, VN:1
+R, W, t, DS:1 1, GT:1, V, nSt
+Const: 34 23
+p: 0, System, S: 0 C: 3 Fa: 0
+
+40: Seg, 0, CN:2, VN:0
+V, W, t, DS:1 1, GT:0, V, nSt
+Const: 17 32
+
+41: Angle, 0, CN:3, VN:4
+B, W, t, DS:1 1, GT:16, V, nSt
+Const: 32 17 20, Val: -1, 1
+
+42: Text, 0, CN:0, VN:1
+dG, W, BTh:2, DS:1 1, GT:0, V, nSt
+Val: -370 -68 0, nA, nP, TP: -9.78958333333333, 1.79916666666667,TS: 7.56708333333333, -1.74625
+"Le point M est soumis à son poids P(vecteurt), à la force centrifuge Fc(vecteur), proportionnelle à w².HM(longueur), et à la tension du fil."
+p: 0, System, S: 0 C: 9 Fa: 0
+
+43: Line, 0, CN:2, VN:2
+V, W, t, DS:1 1, GT:0, V, nSt
+Const: 17 32
+
+44: Text, 0, CN:0, VN:1
+Bl, W, BTh:2, DS:1 1, GT:0, V, nSt
+Val: -367 15 0, nA, nP, TP: -9.71020833333333, -0.396875,TS: 5.45041666666667, -1.32291666666667
+"Il y a équilibre lorsque la somme P(vecteur) +Fc(vecteur) passe par le point A."
+p: 0, System, S: 0 C: 6 Fa: 0
+
+45: Text, 0, CN:0, VN:1
+R, W, BTh:2, DS:1 1, GT:0, V, nSt
+Val: -368 73 0, nA, nP, TP: -9.73666666666667, -1.93145833333333,TS: 8.493125, -1.32291666666667
+"Cela se traduit par l'équation :
+tan IAM(chapeau)=a*sin IAM(chapeau)+b
+avec a=w².AM(longueur)/g et b= w².OA(longueur)/g"
+p: 0, System, S: 0 C: 3 Fa: 0
+

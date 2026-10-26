@@ -1,0 +1,26 @@
+Figure Cabri II Plus vers. MS-Windows 1.2.1
+
+Window center x: 5.37cm y: -4.11cm Window size x: 41.66cm y: 27.29cm
+Resolution: 38 ppc
+
+1: Pt, Val: 0 0
+invisible, 
+
+2: Axes, Const: 1, cart, Val: 1 0 0 1
+invisible, 
+
+3: Text, Val: -550 -347 0, nA, nP, 
+color:B, 
+"CONSTRUCTION: CastilIon n=4.fig	1"
+TP:  -14.4736842105263,  9.13157894736842, TS:  11.3157894736842,  0.473684210526316
+p: 0, Arial, S: 12, C: 40, Fa: 0, p: 33, System, S: 10, C: 40, Fa: 1
+
+4: Pt, Val: -14.8947368421053 -3.65789473684211
+invisible, 
+
+5: Pt, Val: 5.31578947368421 -3.65789473684211
+invisible, 
+
+6: Seg, Const: 4,  5, 
+Bitmap:200.gif, 
+

@@ -1,0 +1,40 @@
+Macro Cabri II Plus vers. MS-Windows 1.2.1
+
+CastillonInversion, Point Castillon
+Icon:
+16x16
+ 0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0 
+ 0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0 
+ 0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0 
+ 0  0  0 15 15 15 15 15  0  0  0  0  0  0  0  0 
+ 0  0 15  0  0  0  0  0 15  0  0  0  0  7  7  7 
+ 0 15  0  0  0  0  0  0  0 15  0  0  0  7  7  7 
+15  0  0  0  0  0  0  0  0  0 15  0  0  7  7  7 
+15  0  0  0  0  0  0  0  0  0 15  0  0  0  0  0 
+15  0  0  0  0  0  0  0  0  0 15  0  0  0  0  0 
+15  0  0  0  0  0  0  0  0  0 15  0  0  0  0  0 
+15  0  0  0  0  0  0  0  0  0 15  0  0  0  0  0 
+ 0 15  0  0  0  0  0  0  0 15  0  7  7  7  0  0 
+ 0  0 15  0  0  0  0  0 15  0  0  7  7  7  0  0 
+ 0  0  0 15 15 15 15 15  0  0  0  7  7  7  0  0 
+ 0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0 
+ 0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0 
+Help:
+"Cercle O, points a et P.Trouver Pa inverse de P par rapport à a; puissance d'inversion la puissance d'a par rapport au cercle.
+Choisir, suivant l'ordre, le cercle, le centre d'inversion a et le point P.
+La macro est en défaut si P, a et O sont alignés"
+Mth: 0
+CN:3, ON:8, FN:1, PO:7
+CT:
+circle, CS 1, color:B, 
+point, CS 0, color:B, 
+point, CS 0, color:B, 
+Const:
+Line, Mth:1, 0, CN:2, VN:4, Const: 1 3
+Int, Mth:0, 0, CN:2, VN:1, int ind:0x10000, Const: 5 2
+Perp, Mth:0, 0, CN:2, VN:4, Const: 1 5
+PBiss, Mth:0, 0, CN:2, VN:4, Const: 4 6
+Int, Mth:0, 0, CN:2, VN:1, int ind:0, Const: 7 8
+Cir, Mth:1, 0, CN:2, VN:2, Const: 9 4
+Line, Mth:1, 0, CN:2, VN:4, Const: 3 4
+Int, Mth:0, 1, CN:2, VN:1, int ind:0x10000, Const: 11 10, default settings, 

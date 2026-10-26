@@ -1,0 +1,560 @@
+Figure Cabri II Plus vers. MS-Windows 1.2.5
+
+Used macro
+
+Point3D, no name
+Icon:
+16x16
+ 0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0 
+ 0  0  0  0 39  0  0  0  0  0  0  0  0  0  0  0 
+ 0  0  0 39 39 39  0  0  0  0  7  7  0  0  0  0 
+ 0  0 39  0 39  0 39  0  0  0  7  7  0  0  0  0 
+ 0  0  0  0 39  0  0  0  0  0  0  0  0  0  0  0 
+ 0  0  0  0 39  0  0  0  0  0  0  0  0  0  0  0 
+ 0  0  0  0 39  0  0  0  0  0  0  0  0  0  0  0 
+ 0  0  0  0 39  0  0  0  0  0 39  0  0  0  0  0 
+ 0  0  0  0 39  0  0  0  0  0  0 39  0  0  0  0 
+ 0  0  0  0 39 39 39 39 39 39 39 39 39  0  0  0 
+ 0 39  0 39  0  0  0  0  0  0  0 39  0  0  0  0 
+ 0 39 39  0  0  0  0  0  0  0 39  0  0  0  0  0 
+ 0 39 39 39  0  0  0  0  0  0  0  0  0  0  0  0 
+ 0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0 
+ 0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0 
+ 0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0 
+Help:
+"Montrer les 3 vecteurs de base, puis les 3 coordonnées."
+Mth: 0
+CN:6, ON:9, FN:1, PO:8
+CT:
+vector, CS 2, color:P, 
+vector, CS 2, color:P, 
+vector, CS 2, color:P, 
+number, CS 0, NbD:2, nFD, WU, 
+number, CS 0, NbD:2, nFD, WU, 
+number, CS 0, NbD:2, nFD, WU, 
+Const:
+Dil, Mth:0, 0, CN:3, VN:1, Const: 2 7 10
+Dil, Mth:0, 0, CN:3, VN:1, Const: 7 7 11
+Dil, Mth:0, 0, CN:3, VN:1, Const: 5 7 11
+Vec, Mth:0, 0, CN:2, VN:2, Const: 14 15
+Dil, Mth:0, 0, CN:3, VN:1, Const: 7 7 12
+Dil, Mth:0, 0, CN:3, VN:1, Const: 8 7 12
+Vec, Mth:0, 0, CN:2, VN:2, Const: 17 18
+Tran, Mth:0, 0, CN:2, VN:1, Const: 13 16
+Tran, Mth:0, 1, CN:2, VN:1, Const: 20 19, 
+
+Point 2D, no name
+Icon:
+16x16
+ 0  0  0  0  0  0  7  0  0  0  0  0  0  0  0  0 
+ 0  0  0  0  0  7  7  7  0  0  0  0  0  0  0  0 
+ 0  0  0  0  7  0  7  0  7  0  0  0  0  0  0  0 
+ 0  0  0  0  0  0  7  0  0  0 15 15  0  0  0  0 
+ 0  0  0  0  0  0  7  0  0  0 15 15  0  0  0  0 
+ 0  0  0  0  0  0  7  0  0  0  0  0  0  0  0  0 
+ 0  0  0  0  0  0  7  0  0  0  0  0  0  0  0  0 
+ 0  0  0  0  0  0  7  0  0  0  0  0  0  0  0  0 
+ 0  0  0  0  0  0  7  0  0  0  0  0  0  7  0  0 
+ 0  0  0  0  0  0  7  0  0  0  0  0  0  0  7  0 
+ 7  7  7  7  7  7  7  7  7  7  7  7  7  7  7  7 
+ 0  0  0  0  0  0  7  0  0  0  0  0  0  0  7  0 
+ 0  0  0  0  0  0  7  0  0  0  0  0  0  7  0  0 
+ 0  0  0  0  0  0  7  0  0  0  0  0  0  0  0  0 
+ 0  0  0  0  0  0  7  0  0  0  0  0  0  0  0  0 
+ 0  0  0  0  0  0  7  0  0  0  0  0  0  0  0  0 
+Help:
+"Donner les 2 coordonnées et deux vecteurs"
+Mth: 0
+CN:4, ON:5, FN:1, PO:4
+CT:
+number, CS 0, NbD:2, nFD, WU, 
+number, CS 0, NbD:2, nFD, WU, 
+vector, CS 2, color:P, 
+vector, CS 2, color:P, 
+Const:
+Dil, Mth:0, 0, CN:3, VN:1, Const: 4 6 1
+Dil, Mth:0, 0, CN:3, VN:1, Const: 6 6 2
+Dil, Mth:0, 0, CN:3, VN:1, Const: 7 6 2
+Vec, Mth:0, 0, CN:2, VN:2, Const: 10 11
+Tran, Mth:0, 1, CN:2, VN:1, Const: 9 12, 
+
+face_visible_quadri, no name
+Icon:
+16x16
+ 0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0 
+ 0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0 
+ 0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0 
+ 0  0  0  0  0 25 25 25 25 25 25 25 25  0  0  0 
+ 0  0  0  0 25  0  0  0  0  0  0 25 25  0  0  0 
+ 0  0  0 25  0  0  0  0  0  0 25  0 25  0  0  0 
+ 0  0  7  7  7  7  7  7  7  7  0  0 25  0  0  0 
+ 0  0  7  0  0  0  0  0  0  7  0  0 25  0  0  0 
+ 0  0  7  0  0  0  0  0  0  7  0  0 25  0  0  0 
+ 0  0  7  0  0  0  0  0  0  7  0  0 25  0  0  0 
+ 0  0  7  0  0  0  0  0  0  7  0 25  0  0  0  0 
+ 0  0  7  0  0  0  0  0  0  7 25  0  0  0  0  0 
+ 0  0  7  7  7  7  7  7  7  7  0  0  0  0  0  0 
+ 0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0 
+ 0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0 
+ 0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0 
+Help:
+"Montrer les 4 sommets dans l'ordre et le nombre 90. On obtient un quadrilatère qui n'existe que si la séquence des 3 premiers points tourne dans le sens trigonométrique.
+Macro valable si le quadrilatère est convexe."
+Mth: 0
+CN:5, ON:10, FN:2, PO:9
+CT:
+point, CS 0, 
+point, CS 0, 
+point, CS 0, 
+point, CS 0, 
+number, CS 0, NbD:2, nFD, WU, 
+Const:
+Ray, Mth:1, 0, CN:2, VN:2, Const: 1 2
+Rot, Mth:0, 0, CN:3, VN:1, Const: 1 1 5
+Rot, Mth:0, 0, CN:3, VN:1, Const: 2 1 5
+Ray, Mth:1, 0, CN:2, VN:2, Const: 7 8
+Perp, Mth:0, 0, CN:2, VN:2, Const: 3 9
+Int, Mth:0, 0, CN:2, VN:1, int ind:0, Const: 10 9
+Perp, Mth:0, 0, CN:2, VN:2, Const: 11 6
+Line, Mth:1, 0, CN:2, VN:2, Const: 1 2
+Int, Mth:0, 1, CN:2, VN:1, int ind:0, Const: 13 12, 
+Pol, Mth:0, 1, CN:4, VN:5, Const: 14 2 3 4, color:V, 
+
+Figure description:
+
+Window center x: 2.82cm y: -0.82cm Window size x: 25.71cm y: 16.34cm
+Resolution: 38 ppc
+
+1: Pt, Val: 0 0
+invisible, 
+
+2: Axes, Const: 1, cart, Val: 1 0 0 1
+color:Gr, invisible, 
+
+3: Pt, Val: -6.42105263157895 2.5
+
+4: Perp, Const: 3,  2, axis:x, 
+color:V, invisible, 
+
+5: Perp, Const: 3,  4, 
+color:V, invisible, 
+
+6: Pt/, Const: 5, Val: -5.97126096491228 2.5
+invisible, 
+
+7: Cir, Const: 3,  6, 
+
+9: Int, Const: 4,  7, int ind:0x10000, 
+invisible, 
+
+10: Axes, Const: 3,  6,  9, pol deg, 
+color:Gr, invisible, 
+
+11: Pt/, Const: 10, axis:x, Val: -5.62730263157895 2.5
+invisible, 
+
+12: Cir, Const: 3,  11, 
+color:R, 
+
+13: Pt/, Const: 7, Val: -5.97934763945545 2.58490726315199
+color:Bl, thicker, 1x1, 
+
+14: Pt/, Const: 12, Val: -5.79803055792096 2.00818442660394
+thicker, 1x1, 
+
+15: Eq/Co, Const: 13,  10, X2A2PY2B2EG1, pol deg, Val: 0 0 0.18991, A, P, 
+invisible, NbD:2, FD, deg, 
+p: 0, System, S: 9 C: 15 Fa: 0
+
+16: Eq/Co, Const: 13,  10, X2PXYPY2EG0, pol deg, Val: 0 0 1, A, P, 
+invisible, NbD:2, FD, WU, 
+p: 0, System, S: 9 C: 15 Fa: 0
+
+17: Text, Const: 13, inc.elmts: 16,  15, Val: -223 -97 -4, nA, nP, 
+invisible, 
+"("#, "#)"
+TP:  -5.86842105263158,  2.55263157894737, TS:  2.34210526315789,  0.421052631578947
+p: 0, System, S: 9 C: 15 Fa: 0
+
+18: Eq/Co, Const: 14,  10, X2A2PY2B2EG1, pol deg, Val: 0 0 -0.668246, A, P, 
+invisible, NbD:2, FD, deg, 
+p: 0, System, S: 9 C: 7 Fa: 0
+
+19: Eq/Co, Const: 14,  10, X2PXYPY2EG0, pol deg, Val: 0 0 1.76471, A, P, 
+invisible, NbD:2, FD, WU, 
+p: 0, System, S: 9 C: 7 Fa: 0
+
+20: Text, Const: 14, inc.elmts: 19,  18, Val: -216 -74 -4, nA, nP, 
+invisible, 
+"("#, "#)"
+TP:  -5.68421052631579,  1.94736842105263, TS:  2.44736842105263,  0.421052631578947
+p: 0, System, S: 9 C: 7 Fa: 0
+
+21: Pt, Val: 4.048125 0.0264583333333333
+1x1, 
+
+22: Perp, Const: 21,  2, axis:x, 
+color:V, invisible, 
+
+23: Perp, Const: 21,  22, 
+color:V, invisible, 
+
+24: Pt/, Const: 23, Val: 9.86895833333333 0.0264583333333333
+1x1, invisible, 
+
+25: Cir, Const: 21,  24, 
+invisible, 
+
+26: Vec, Const: 21,  24, 
+color:P, invisible, 
+
+28: Int, Const: 22,  25, int ind:0x10000, 
+1x1, invisible, 
+
+29: Vec, Const: 21,  28, 
+color:P, invisible, 
+
+30: Formula, Const: 15, Val: 148 -168 0.982021, A, P, 
+invisible, NbD:2, nFD, WU, 
+cos(a)
+TP:  3.89473684210526,  4.42105263157895, TS:  0.736842105263158,  0.421052631578947
+p: 0, System, S: 9 C: 40 Fa: 0
+
+31: Text, inc.elmts: 30, Val: 84 -168 -4, nA, nP, 
+invisible, 
+"costheta="#"
+TP:  2.21052631578947,  4.42105263157895, TS:  3.47368421052632,  0.421052631578947
+p: 0, System, S: 9 C: 40 Fa: 0
+
+32: Formula, Const: 18, Val: 204 -211 0.78491, A, P, 
+invisible, NbD:2, nFD, WU, 
+cos(a)
+TP:  5.36842105263158,  5.55263157894737, TS:  0.736842105263158,  0.421052631578947
+p: 0, System, S: 9 C: 40 Fa: 0
+
+33: Text, inc.elmts: 32, Val: 153 -211 -4, nA, nP, 
+invisible, 
+"cosphi="#"
+TP:  4.02631578947368,  5.55263157894737, TS:  3.13157894736842,  0.421052631578947
+p: 0, System, S: 9 C: 40 Fa: 0
+
+34: Formula, Const: 18, Val: 57 -207 -0.61961, A, P, 
+invisible, NbD:2, nFD, WU, 
+sin(a)
+TP:  1.5,  5.44736842105263, TS:  0.842105263157895,  0.421052631578947
+p: 0, System, S: 9 C: 40 Fa: 0
+
+35: Text, inc.elmts: 34, Val: 9 -207 -4, nA, nP, 
+invisible, 
+"sinphi="#"
+TP:  0.236842105263158,  5.44736842105263, TS:  3.05263157894737,  0.421052631578947
+p: 0, System, S: 9 C: 40 Fa: 0
+
+36: Formula, Const: 18,  15, Val: 90 -189 -0.148168, A, P, 
+invisible, NbD:2, nFD, WU, 
+ - cos(a) * sin(b)
+TP:  2.36842105263158,  4.97368421052632, TS:  0.842105263157895,  0.421052631578947
+p: 0, System, S: 9 C: 40 Fa: 0
+
+37: Text, inc.elmts: 36, Val: -23 -189 -4, nA, nP, 
+invisible, 
+"-cosphi*sintheta="#"
+TP:  -0.605263157894737,  4.97368421052632, TS:  4.97368421052632,  0.421052631578947
+p: 0, System, S: 9 C: 40 Fa: 0
+
+38: Formula, Const: 18,  15, Val: 268 -190 -0.116964, A, P, 
+invisible, NbD:2, nFD, WU, 
+sin(a) * sin(b)
+TP:  7.05263157894737,  5, TS:  0.842105263157895,  0.421052631578947
+p: 0, System, S: 9 C: 40 Fa: 0
+
+39: Text, inc.elmts: 38, Val: 162 -190 -4, nA, nP, 
+invisible, 
+"sinphi*sintheta="#"
+TP:  4.26315789473684,  5, TS:  4.76315789473684,  0.421052631578947
+p: 0, System, S: 9 C: 40 Fa: 0
+
+Ma: Point 2D, Const: 34 i: 0 36 i: 0 26 i: 0 29 i: 0
+44: Ma R, F No1, 
+1x1, 
+
+45: Vec, Const: 21,  44, 
+color:P, invisible, 
+
+Ma: Point 2D, Const: 32 i: 0 38 i: 0 26 i: 0 29 i: 0
+50: Ma R, F No1, 
+1x1, invisible, 
+
+51: Vec, Const: 21,  50, 
+color:P, invisible, 
+
+52: Dil, Const: 21,  21,  30, 
+invisible, 
+
+53: Dil, Const: 28,  21,  30, 
+1x1, 
+
+54: Vec, Const: 52,  53, 
+color:P, invisible, 
+
+55: Seg, Const: 3,  11, 
+color:V, 
+
+Ma: Point3D, Const: 36 i: 0 38 i: 0 30 i: 0 45 i: 0 51 i: 0 54 i: 0
+64: Ma R, F No1, 
+invisible, 
+
+65: Pt, Val: -7.40833333333333 1.08479166666667
+
+66: Perp, Const: 65,  2, axis:y, 
+color:V, invisible, 
+
+67: Perp, Const: 65,  66, 
+color:V, invisible, 
+
+68: Cir, Const: 65, Val: 2.14883370336614
+invisible, 
+
+70: Int, Const: 66,  68, int ind:0, 
+invisible, 
+
+72: Int, Const: 67,  68, int ind:0, 
+invisible, 
+
+73: Axes, Const: 65,  70,  72, cart, 
+color:Gr, invisible, 
+
+74: PReg, Const: 65,  72, sides nb: 3, density:1, 
+invisible, 
+
+75: PReg, Const: 74, index:1, 
+invisible, 
+
+76: PolReg, Const: 72,  74,  75, 
+color:V, invisible, 
+
+77: Eq/Co, Const: 74,  73, X2A2PY2B2EG1, cart, Val: 0 0 -0.5, A, P, 
+invisible, NbD:2, FD, WU, 
+p: 0, System, S: 9 C: 40 Fa: 0
+
+78: Eq/Co, Const: 74,  73, X2PXYPY2EG0, cart, Val: 0 0 0.866025, A, P, 
+invisible, NbD:2, FD, WU, 
+p: 0, System, S: 9 C: 40 Fa: 0
+
+79: Text, Const: 74, inc.elmts: 78,  77, Val: -210 -1 -4, nA, nP, 
+invisible, 
+"("#, "#)"
+TP:  -5.52631578947368,  0.0263157894736842, TS:  2,  0.421052631578947
+p: 0, System, S: 9 C: 40 Fa: 0
+
+80: Eq/Co, Const: 75,  73, X2A2PY2B2EG1, cart, Val: 0 0 -0.5, A, P, 
+NbD:2, FD, WU, 
+p: 0, System, S: 9 C: 40 Fa: 0
+
+81: Eq/Co, Const: 75,  73, X2PXYPY2EG0, cart, Val: 0 0 -0.866025, A, P, 
+NbD:2, FD, WU, 
+p: 0, System, S: 9 C: 40 Fa: 0
+
+82: Text, Const: 75, inc.elmts: 81,  80, Val: -352 0 -4, nA, nP, 
+invisible, 
+"("#, "#)"
+TP:  -9.26315789473684,  0, TS:  2.10526315789474,  0.421052631578947
+p: 0, System, S: 9 C: 40 Fa: 0
+
+Ma: Point 2D, Const: 78 i: 0 77 i: 0 51 i: 0 54 i: 0
+87: Ma R, F No1, 
+1x1, 
+
+Ma: Point 2D, Const: 81 i: 0 80 i: 0 51 i: 0 54 i: 0
+92: Ma R, F No1, 
+1x1, 
+
+93: Tr, Const: 53,  92,  87, 
+color:V, 
+
+94: Num, Val: -316 -76 90, nA, nP, 
+invisible, NbD:2, nFD, WU, 
+90
+TP:  -8.31578947368421,  2, TS:  0.421052631578947,  0.421052631578947
+p: 0, System, S: 9 C: 40 Fa: 0
+
+95: Ray, Const: 65,  70, 
+color:V, invisible, 
+
+96: Pt/, Const: 95, Val: -6.55263157894737 1.08479166666667
+thicker, 1x1, 
+
+97: Eq/Co, Const: 96,  73, X2PXYPY2EG0, cart, Val: 0 0 0.398217, A, P, 
+invisible, NbD:2, FD, WU, 
+p: 0, System, S: 9 C: 40 Fa: 0
+
+98: Eq/Co, Const: 96,  73, X2A2PY2B2EG1, cart, Val: 0 0 0, A, P, 
+invisible, NbD:2, FD, WU, 
+p: 0, System, S: 9 C: 40 Fa: 0
+
+99: Text, Const: 96, inc.elmts: 97,  98, Val: -248 -41 -4, nA, nP, 
+invisible, 
+"("#, "#)"
+TP:  -6.52631578947368,  1.07894736842105, TS:  1.89473684210526,  0.421052631578947
+p: 0, System, S: 9 C: 40 Fa: 0
+
+100: Dil, Const: 44,  21,  97, 
+invisible, 
+
+101: Vec, Const: 21,  100, 
+color:Bl, invisible, 
+
+102: Tran, Const: 87,  101, 
+1x1, 
+
+103: Tran, Const: 92,  101, 
+1x1, 
+
+104: Tran, Const: 53,  101, 
+1x1, 
+
+105: Tr, Const: 104,  103,  102, 
+color:V, 
+
+106: Num, Val: -351 -48 0.0001, nA, nP, 
+invisible, NbD:2, nFD, WU, 
+0.0001
+TP:  -9.23684210526316,  1.26315789473684, TS:  1.15789473684211,  0.421052631578947
+p: 0, System, S: 9 C: 40 Fa: 0
+
+107: Dil, Const: 70,  65,  106, 
+invisible, 
+
+108: Seg, Const: 107,  70, 
+color:V, 
+
+109: Pt/, Const: 108, Val: -6 1.08479166666667
+thicker, 1x1, 
+
+110: Eq/Co, Const: 109,  73, X2A2PY2B2EG1, cart, Val: 0 0 0, A, P, 
+invisible, NbD:2, FD, WU, 
+p: 0, System, S: 9 C: 40 Fa: 0
+
+111: Eq/Co, Const: 109,  73, X2PXYPY2EG0, cart, Val: 0 0 0.655394, A, P, 
+invisible, NbD:2, FD, WU, 
+p: 0, System, S: 9 C: 40 Fa: 0
+
+112: Text, Const: 109, inc.elmts: 111,  110, Val: -226 -28 -4, nA, nP, 
+invisible, 
+"("#, "#)"
+TP:  -5.94736842105263,  0.736842105263158, TS:  1.89473684210526,  0.421052631578947
+p: 0, System, S: 9 C: 40 Fa: 0
+
+113: Dil, Const: 53,  21,  111, 
+1x1, 
+
+114: Tran, Const: 113,  101, 
+1x1, 
+
+115: Dil, Const: 92,  21,  111, 
+1x1, 
+
+116: Tran, Const: 115,  101, 
+1x1, 
+
+117: Dil, Const: 87,  21,  111, 
+1x1, 
+
+118: Tran, Const: 117,  101, 
+1x1, 
+
+119: Tr, Const: 114,  116,  118, 
+color:V, 
+
+120: Tr, Const: 113,  115,  117, 
+color:V, 
+
+Ma: face_visible_quadri, Const: 114 i: 0 116 i: 0 115 i: 0 113 i: 0 94 i: 0
+131: Ma R, F No1, int ind:0, 
+1x1, 
+
+132: Ma R, F No2, 
+color:V, fill color:lGr, opaque, 
+
+Ma: face_visible_quadri, Const: 115 i: 0 116 i: 0 118 i: 0 117 i: 0 94 i: 0
+143: Ma R, F No1, int ind:0, 
+1x1, 
+
+144: Ma R, F No2, 
+color:V, fill color:lGr, opaque, 
+
+Ma: face_visible_quadri, Const: 113 i: 0 117 i: 0 118 i: 0 114 i: 0 94 i: 0
+155: Ma R, F No1, int ind:0, 
+1x1, 
+
+156: Ma R, F No2, 
+color:V, fill color:lGr, opaque, 
+
+Ma: face_visible_quadri, Const: 104 i: 0 103 i: 0 116 i: 0 114 i: 0 94 i: 0
+167: Ma R, F No1, int ind:0, 
+1x1, 
+
+168: Ma R, F No2, 
+color:R, fill color:R, opaque, 
+
+Ma: face_visible_quadri, Const: 103 i: 0 102 i: 0 118 i: 0 116 i: 0 94 i: 0
+179: Ma R, F No1, int ind:0, 
+1x1, 
+
+180: Ma R, F No2, 
+color:R, fill color:R, opaque, 
+
+Ma: face_visible_quadri, Const: 118 i: 0 102 i: 0 104 i: 0 114 i: 0 94 i: 0
+191: Ma R, F No1, int ind:0, 
+1x1, 
+
+192: Ma R, F No2, 
+color:R, fill color:R, opaque, 
+
+Ma: face_visible_quadri, Const: 87 i: 0 92 i: 0 115 i: 0 117 i: 0 94 i: 0
+203: Ma R, F No1, int ind:0, 
+1x1, 
+
+204: Ma R, F No2, 
+color:dG, fill color:dG, opaque, 
+
+Ma: face_visible_quadri, Const: 92 i: 0 53 i: 0 113 i: 0 115 i: 0 94 i: 0
+215: Ma R, F No1, int ind:0, 
+1x1, 
+
+216: Ma R, F No2, 
+color:dG, fill color:dG, opaque, 
+
+Ma: face_visible_quadri, Const: 53 i: 0 87 i: 0 117 i: 0 113 i: 0 94 i: 0
+227: Ma R, F No1, int ind:0, 
+1x1, 
+
+228: Ma R, F No2, 
+color:dG, fill color:dG, opaque, 
+
+Ma: face_visible_quadri, Const: 104 i: 0 102 i: 0 87 i: 0 53 i: 0 94 i: 0
+239: Ma R, F No1, int ind:0, 
+1x1, 
+
+240: Ma R, F No2, 
+color:V, fill color:G, opaque, 
+
+Ma: face_visible_quadri, Const: 53 i: 0 92 i: 0 103 i: 0 104 i: 0 94 i: 0
+251: Ma R, F No1, int ind:0, 
+1x1, 
+
+252: Ma R, F No2, 
+color:V, fill color:G, opaque, 
+
+Ma: face_visible_quadri, Const: 92 i: 0 87 i: 0 102 i: 0 103 i: 0 94 i: 0
+263: Ma R, F No1, int ind:0, 
+1x1, 
+
+264: Ma R, F No2, 
+color:V, fill color:G, opaque, 
+
+265: Text, Val: -296 -30 -4, nA, nP, 
+"bouger les points"
+TP:  -7.78947368421053,  0.789473684210526, TS:  3.84210526315789,  0.447368421052632
+p: 0, Arial, S: 11 C: 15 Fa: 0
+

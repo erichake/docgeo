@@ -18,6 +18,13 @@ Le lire avant d'y toucher. Le lecteur n'importe jamais `src/editor/` et ne
 s'alourdit pas de plus de 2 Ko pour lui ; les classes d'objets ne reçoivent
 aucune méthode propre à l'éditeur.
 
+Exception : les macro-constructions décrites dans `MACROS.md` sont un
+chantier ouvert. Leur définition et leur application relèvent de l'éditeur
+(`src/editor/`, mêmes règles). Leur calcul (nœud d'application) va dans le
+moteur, puisque le lecteur doit ouvrir les `.dgo` qui en contiennent : il
+reste léger, et le poids du lecteur est mesuré à chaque étape. Lire ce mémo
+avant d'y toucher.
+
 ### Format natif `.dgo`
 
 `.dgo` est le format natif de DocGeo : le seul qu'il lit et écrit nativement
