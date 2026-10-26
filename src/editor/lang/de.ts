@@ -87,6 +87,7 @@ const de: Texts = {
         embed_unsaved:
             "Die nicht gespeicherten Änderungen der aktuellen Figur gehen verloren.",
         embed_failed: "Dieser Link konnte nicht geöffnet werden: %",
+        open_failed: "Diese Figur konnte nicht geöffnet werden: %",
         embed_modified:
             "Diese Figur wurde geändert, seit sie über ihren Link geöffnet wurde: Speichern Sie sie und veröffentlichen Sie sie erneut am selben Ort, sonst zeigt die Seite die alte Version.",
         dismiss: "Abbrechen",

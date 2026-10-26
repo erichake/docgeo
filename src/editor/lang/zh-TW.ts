@@ -75,6 +75,7 @@ const zh_TW: Texts = {
         embed_replaced: "發布的圖形將取代編輯器中的圖形。",
         embed_unsaved: "目前圖形未儲存的變更將會遺失。",
         embed_failed: "無法開啟此連結：%",
+        open_failed: "無法開啟此圖形：%",
         embed_modified:
             "此圖形自從透過連結開啟後已被修改：請儲存，然後重新發布到同一位置，否則網頁將顯示舊版本。",
         dismiss: "取消",

@@ -84,6 +84,7 @@ const pt: Texts = {
         embed_unsaved:
             "As alterações não salvas da figura atual serão perdidas.",
         embed_failed: "Não foi possível abrir este link: %",
+        open_failed: "Não foi possível abrir esta figura: %",
         embed_modified:
             "Esta figura foi alterada desde que foi aberta pelo seu link: salve-a e publique-a novamente no mesmo lugar; caso contrário, a página mostrará a versão anterior.",
         dismiss: "Cancelar",

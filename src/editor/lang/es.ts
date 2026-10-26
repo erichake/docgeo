@@ -84,6 +84,7 @@ const es: Texts = {
         embed_unsaved:
             "Se perderán los cambios no guardados de la figura actual.",
         embed_failed: "No se pudo abrir este enlace: %",
+        open_failed: "No se pudo abrir esta figura: %",
         embed_modified:
             "Esta figura ha cambiado desde que se abrió con su enlace: guárdala y vuelve a publicarla en el mismo lugar; si no, la página mostrará la versión anterior.",
         dismiss: "Cancelar",

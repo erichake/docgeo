@@ -872,10 +872,7 @@ const fileInput = $.create("input")
     .att("type", "file")
     .att("accept", ".dgo,.dgp,.ggb");
 const chooseFigure = () =>
-    chooseFile(
-        fileInput.dom() as HTMLInputElement,
-        (file, from) => void openFile(file, from),
-    );
+    chooseFile(fileInput.dom() as HTMLInputElement, openChosen);
 const helpLink = $.create("a")
     .cls("dge-action dge-help")
     .att("href", `tutorials/index.html?lang=${LANG}`)
@@ -5217,16 +5214,31 @@ async function open(
     load: (c: construction) => Promise<string[]>,
     from?: FileSystemHandle | null,
 ): Promise<string[]> {
+    // Shown again if the file is refused.
+    const shown = history.length
+        ? await asSaved(() => describeDgo(scene()))
+        : null;
     setEraser(false);
     stopMacro();
     stopApply();
     cancel();
     framing.stop();
-    published = null;
     properties.select(null);
     studio.scene.dispose();
     studio.scene = construction.create(studio);
-    const unsupported = await load(studio.scene);
+    let unsupported: string[];
+    try {
+        unsupported = await load(studio.scene);
+    } catch (error) {
+        if (shown) {
+            rebuild(studio, shown);
+            showAxes();
+            showSpace();
+            refreshRows();
+        }
+        throw error;
+    }
+    published = null;
     studio.scene.flush();
     studio.scene.reveal();
     showAxes();
@@ -5265,16 +5277,25 @@ async function openFile(
     );
 }
 
+// Opened by the user, who is told why it can't be.
+const openChosen = (
+    file: File,
+    from?: Promise<FileSystemHandle | null> | FileSystemHandle,
+): void =>
+    void openFile(file, from).catch((error: Error) =>
+        showHint(message("open_failed", error.message), true),
+    );
+
 fileInput.on(
     "change",
     () => {
-        void openFile((fileInput.dom() as HTMLInputElement).files![0]);
+        openChosen((fileInput.dom() as HTMLInputElement).files![0]);
         (fileInput.dom() as HTMLInputElement).value = "";
     },
     false,
 );
 
-dropFigures((file, from) => void openFile(file, from));
+dropFigures(openChosen);
 
 bindRow(input, null);
 $("body").observeResize(() => {
