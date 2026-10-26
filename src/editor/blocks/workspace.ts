@@ -708,6 +708,7 @@ function toolbox(kinds: string[], owner: string, starts: string[]) {
                         BY: num(1),
                     }),
                     block("controls_whileUntil"),
+                    block("controls_flow_statements"),
                 ],
             },
             {

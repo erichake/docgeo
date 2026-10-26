@@ -1964,6 +1964,24 @@ E1=Expression("E1","","","","5","-1","0");`,
         expect(name.nameText).toBeDefined();
     });
 
+    it("solves with a script that breaks out of loops and tests lists against null", async () => {
+        const c = createConstruction();
+        expect(
+            await importDgpFromUrl(
+                c,
+                figure("KH_Malfatti_horicycles_depuis_triangle.dgp"),
+            ),
+        ).toEqual([]);
+        // The values JavaScript gives the script.
+        const centre = c.getObj("Ocu") as point_object;
+        expectClose(centre.coords, [5.986804199072189, 5.513117926386146, 0]);
+        const region = c.getObj("Reg") as expression_object;
+        region.value = 0;
+        c.OBJS.markGeometryDirty(region);
+        c.OBJS.update();
+        expectClose(centre.coords, [0.7035489294338203, 2.427248876080155, 0]);
+    });
+
     it("dashes coincident segments in phase whatever their direction", () => {
         expect(intervalsToPath([10, 5], [0, 5], [[0, 0.5]])).toBe(
             intervalsToPath([0, 5], [10, 5], [[0.5, 1]]),

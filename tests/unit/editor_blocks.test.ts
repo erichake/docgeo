@@ -279,6 +279,37 @@ return s;`);
         roundTrip("var t = 0; for (var k = 1; k <= n; k++) { t = t + k; } t");
     });
 
+    it("leaves loops with break and continue, but outside of them", () => {
+        expect(
+            roundTrip(`var s = 0;
+for (var i = 1; i <= 10; i++) { if (i == 3) { continue; } if (i > 6) break; s += i; }
+while (s > 0) { s = s - 4; if (s < 10) { break; } }
+return s;`),
+        ).toBe(`s = 0;
+for (var i = 1; i <= 10; i = i + 1) {
+    if (i == 3) {
+        continue;
+    }
+    if (i > 6) {
+        break;
+    }
+    s = s + i;
+}
+while (s > 0) {
+    s = s - 4;
+    if (s < 10) {
+        break;
+    }
+}
+return s;`);
+        const state = programBlocks("while (a) { break; } 1", true)!;
+        const root = state.blocks!.blocks[0];
+        const loop = root.next!.block!;
+        expect(loop.type).toBe("controls_whileUntil");
+        root.next = { block: { ...loop.inputs!.DO.block!, next: loop.next } };
+        expect(blocksProgram(state)).toBe("return 1;");
+    });
+
     it("sets the value of expressions, as DGPad's buttons", () => {
         expect(
             roundTrip(`SET_EXP("de1", Math.floor(c * 6) + 1);

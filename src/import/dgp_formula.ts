@@ -388,7 +388,10 @@ export type Statement =
           locals: Set<string>;
           body: Statement[];
       }
-    | { kind: "return"; node: FormulaNode | null };
+    | { kind: "return"; node: FormulaNode | null }
+    // Only in a loop of the same function.
+    | { kind: "break" }
+    | { kind: "continue" };
 
 export interface Program {
     body: Statement[];
@@ -626,6 +629,8 @@ class FormulaParser {
     // functions holding a regular expression, which none of them may be:
     // as DGPad figures' format(), whose regular expression is never run.
     private fn: string | null = null;
+    // The loops holding the statement being parsed, in its function.
+    private loops = 0;
     private readonly called = new Set<string>();
     private readonly unread = new Set<string>();
 
@@ -672,7 +677,7 @@ class FormulaParser {
         if (this.skipKeyword("while")) {
             const test = this.condition();
             return [
-                { kind: "loop", test, body: this.statement(), update: null },
+                { kind: "loop", test, body: this.loopBody(), update: null },
             ];
         }
         if (this.skipKeyword("for")) {
@@ -689,9 +694,15 @@ class FormulaParser {
             this.take(")");
             return [
                 ...init,
-                { kind: "loop", test, body: this.statement(), update },
+                { kind: "loop", test, body: this.loopBody(), update },
             ];
         }
+        if (this.loops > 0)
+            for (const kind of ["break", "continue"] as const)
+                if (this.skipKeyword(kind)) {
+                    this.skip(";");
+                    return [{ kind }];
+                }
         if (this.skipKeyword("function")) return [this.function()];
         if (this.skipKeyword("return")) {
             const node =
@@ -704,6 +715,13 @@ class FormulaParser {
         const node = this.expression();
         this.skip(";");
         return [{ kind: "expression", node }];
+    }
+
+    private loopBody(): Statement[] {
+        this.loops++;
+        const body = this.statement();
+        this.loops--;
+        return body;
     }
 
     // "var f = function(…){…}" too, as Blockly wraps its programs.
@@ -722,6 +740,8 @@ class FormulaParser {
         this.built = [];
         const fn = this.fn;
         this.fn = name;
+        const loops = this.loops;
+        this.loops = 0;
         if (this.current.type !== "{")
             throw new Error("Invalid DGP formula syntax");
         const body = [...this.built, ...this.statement()];
@@ -729,6 +749,7 @@ class FormulaParser {
         this.locals = this.outer.pop()!;
         this.built = built;
         this.fn = fn;
+        this.loops = loops;
         return { kind: "function", name, params, locals, body };
     }
 
@@ -1433,6 +1454,9 @@ function statementNodes(statement: Statement): FormulaNode[] {
             return statement.body.flatMap(statementNodes);
         case "return":
             return statement.node ? [statement.node] : [];
+        case "break":
+        case "continue":
+            return [];
     }
 }
 
@@ -1752,6 +1776,15 @@ function evalBinary(
                 ? COMPARISONS[op](Number(l !== ""), Number(r !== ""))
                 : COMPARISONS[op](Number(l > r) - Number(l < r), 0);
         const [a, b] = [realPart(l), realPart(r)];
+        // A list, a real number's apart, never equals a number, as in
+        // JavaScript: "v !== null" holds for a list v, null being 0 here.
+        if (
+            (op === "==" || op === "!=") &&
+            (a === null) !== (b === null) &&
+            typeof l !== "string" &&
+            typeof r !== "string"
+        )
+            return Number(op === "!=");
         return a === null || b === null ? null : COMPARISONS[op](a, b);
     }
     if (typeof l === "string" || typeof r === "string")
@@ -2087,6 +2120,8 @@ interface Frame {
     // Whether a return statement is leaving the function, and its value.
     returning: boolean;
     result: ScriptValue | null;
+    // The break or continue statement leaving the loop's body.
+    jump: "break" | "continue" | null;
     turtle: Turtle | null;
     // The decimal places a turtle writes numbers with, as a power of 10.
     precision: number;
@@ -2936,6 +2971,7 @@ function compileBlock(statements: Statement[], scope: Scope): Code {
             step(frame);
             value = code(frame);
             if (frame.returning) return frame.result;
+            if (frame.jump) return null;
         }
         return value;
     };
@@ -2957,6 +2993,14 @@ function compileStatement(statement: Statement, scope: Scope): Code {
                 return frame.result;
             };
         }
+        case "break":
+        case "continue": {
+            const { kind } = statement;
+            return (frame) => {
+                frame.jump = kind;
+                return null;
+            };
+        }
         case "if": {
             const test = compileNode(statement.test, scope);
             const then = compileBlock(statement.then, scope);
@@ -2976,6 +3020,9 @@ function compileStatement(statement: Statement, scope: Scope): Code {
                     step(frame);
                     body(frame);
                     if (frame.returning) return null;
+                    const jump = frame.jump;
+                    frame.jump = null;
+                    if (jump === "break") return null;
                     update?.(frame);
                 }
                 return null;
@@ -3336,10 +3383,14 @@ function translateBlock(
                     return STEP + value("null");
                 case "return":
                     return `${STEP}f.result=${statement.node ? node(statement.node) : "null"};f.returning=true;return f.result;`;
+                case "break":
+                case "continue":
+                    return `${STEP}${statement.kind};`;
                 case "if":
                     return `${STEP}if(${translateTest(statement.test, scope, t)}){${block(statement.then)}}else{${block(statement.otherwise)}}${value("null")}`;
+                // A for loop, whose continue still runs the update.
                 case "loop":
-                    return `${STEP}while(${statement.test ? translateTest(statement.test, scope, t) : "true"}){${STEP}${block(statement.body)}${statement.update ? `${node(statement.update)};` : ""}}${value("null")}`;
+                    return `${STEP}for(;${statement.test ? translateTest(statement.test, scope, t) : ""};${statement.update ? node(statement.update) : ""}){${STEP}${block(statement.body)}}${value("null")}`;
             }
         })
         .join("");
@@ -3406,6 +3457,7 @@ function evaluate(compiled: Compiled, env: FormulaEnv, program?: Program) {
         owned: null,
         returning: false,
         result: null,
+        jump: null,
         turtle: null,
         precision: 1e14,
         unit: 0,

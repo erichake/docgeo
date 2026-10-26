@@ -754,6 +754,12 @@ class Decompiler {
                     },
                 };
             }
+            case "break":
+            case "continue":
+                return {
+                    type: "controls_flow_statements",
+                    fields: { FLOW: statement.kind.toUpperCase() },
+                };
             case "function":
                 return unsupported();
         }
@@ -1537,6 +1543,9 @@ class Generator {
     // The names the program uses, which a counter mustn't take.
     private readonly taken = new Set<string>();
     private depth = 0;
+    // The loops holding the block written, out of which break and continue
+    // write nothing, as Blockly disables them.
+    private loops = 0;
     private repeats = false;
 
     constructor(
@@ -1644,6 +1653,13 @@ class Generator {
         return this.statements(block.inputs?.[input]?.block, `${indent}    `);
     }
 
+    private loopBody(block: BlockState, indent: string): string[] {
+        this.loops++;
+        const body = this.nested(block, "DO", indent);
+        this.loops--;
+        return body;
+    }
+
     // The value plugged into the input, or `fallback`.
     private input(block: BlockState, name: string, fallback = "0"): Code {
         const input = block.inputs?.[name];
@@ -1726,7 +1742,7 @@ class Generator {
             case "controls_repeat_ext": {
                 const counter = this.counter();
                 this.depth++;
-                const body = this.nested(block, "DO", indent);
+                const body = this.loopBody(block, indent);
                 this.depth--;
                 return [
                     `${indent}for (var ${counter} = 1; ${counter} <= ${this.operand(block, "TIMES", SUM)}; ${counter} = ${counter} + 1) {`,
@@ -1738,7 +1754,7 @@ class Generator {
                 const name = this.variable(block);
                 return [
                     `${indent}for (var ${name} = ${this.arg(block, "FROM")}; ${name} <= ${this.operand(block, "TO", SUM)}; ${name} = ${name} + ${this.operand(block, "BY", PRODUCT, "1")}) {`,
-                    ...this.nested(block, "DO", indent),
+                    ...this.loopBody(block, indent),
                     `${indent}}`,
                 ];
             }
@@ -1749,10 +1765,14 @@ class Generator {
                         : this.arg(block, "BOOL", "false");
                 return [
                     `${indent}while (${test}) {`,
-                    ...this.nested(block, "DO", indent),
+                    ...this.loopBody(block, indent),
                     `${indent}}`,
                 ];
             }
+            case "controls_flow_statements":
+                return this.loops
+                    ? line(`${fields.FLOW === "BREAK" ? "break" : "continue"};`)
+                    : [];
             case "turtle_move": {
                 const back = fields.DIR === "backward";
                 const distance = back

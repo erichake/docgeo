@@ -360,7 +360,8 @@ describe("evaluateFormula", () => {
         expect(value("a!=0.3")).toBe(0);
         expect(value("1+1<=2 && 2>3 || a>=0.3")).toBe(1);
         expect(value("(a<0)*5+(a>0)*7")).toBe(7);
-        expect(value("[1,2]==1")).toBeNull();
+        expect(value("[1,2]==1")).toBe(0);
+        expect(value("[1,2]<1")).toBeNull();
     });
 
     it("evaluates logical negation", () => {
@@ -617,6 +618,9 @@ GLOBAL_GET("côté")`);
         "a.length=1",
         "[1][0]=2",
         "new Function('')",
+        "break",
+        "if(1){continue}",
+        "while(1){function f(){break};f()}",
     ])("rejects what isn't part of DGPad's script language: %s", (source) => {
         expect(() => parseProgram(source)).toThrow();
     });
@@ -640,6 +644,38 @@ GLOBAL_GET("côté")`);
             [1, 2],
         ]);
         expect(run("var k=3;var a=k--;[a,k]")).toEqual([3, 2]);
+    });
+
+    it("leaves a loop or its turn with break and continue", () => {
+        expect(
+            run(
+                "var t=[];for(var i=0;i<6;i++){if(i==1){continue;}if(i==4)break;t.push(i)};[t,i]",
+            ),
+        ).toEqual([[0, 2, 3], 4]);
+        expect(
+            run(
+                "var n=0,s=0;while(1){n++;if(n%2){continue}if(n>8){break}s+=n};s",
+            ),
+        ).toBe(20);
+        expect(
+            run(
+                "var s=0;for(var i=0;i<3;i++){for(var j=0;j<3;j++){if(j==i)break;s+=10*i+j}};s",
+            ),
+        ).toBe(51);
+        expect(
+            run("function f(k){for(var j=0;;j++){if(j==k){return j*2}}};f(3)"),
+        ).toBe(6);
+    });
+
+    it("never takes a list for the number it is compared with", () => {
+        expect(
+            run(
+                "var p=null;var t=[];for(var k=0;k<2;k++){t.push(p!==null);p=[k,1]};t",
+            ),
+        ).toEqual([0, 1]);
+        expect(run("[[1,2]==0,[1,2,3]!=0,[3,0]==3]")).toEqual([0, 1, 1]);
+        expect(run("[1,2]<0")).toBeNull();
+        expect(run("'5'!=5")).toBeNull();
     });
 
     it("changes the items of its own lists, never another object's value", () => {
