@@ -296,6 +296,12 @@ $("head").append(`<style>
     .dge-item.dge-chosen:hover { background: #dbeafe; }
     .dge-chosen::after { content: attr(data-places); align-self: center; min-width: 18px; height: 18px; padding: 0 5px; box-sizing: border-box; border-radius: 9px; background: #2563eb; color: #fff; font: 600 11px/18px system-ui, -apple-system, "Segoe UI", sans-serif; text-align: center; }
     .dge-item > .dge-label { order: 1; }
+    .dge-item > .dge-fold { order: -1; width: 22px; height: 30px; margin-block: 2px; margin-inline-end: -6px; padding: 0; border: 0; border-radius: 6px; background: none; color: #64748b; cursor: pointer; }
+    .dge-fold svg { width: 16px; height: 16px; }
+    .dge-fold:dir(rtl):not(.dge-on) svg { transform: scaleX(-1); }
+    .dge-fold:hover { background: rgb(15 23 42 / 0.06); color: #1d4ed8; }
+    .dge-item.dge-sub { padding-inline-start: 26px; }
+    .dge-sub .dge-row:not(.dge-hidden) { color: inherit; }
     .dge-takes .dge-text, .dge-takes .dge-row { cursor: pointer; }
     .dge-item.dge-current { background: #eff6ff; box-shadow: inset 3px 0 #2563eb; }
     .dge-stepping .dge-item, .dge-stepping .dge-row { cursor: pointer; }
@@ -1336,6 +1342,10 @@ const EVENT_TEXTS: Record<string, MessageKey> = {
     init: "event_init",
 };
 
+// The applications of macros whose finals have their own rows, by the name
+// of their node.
+const unfolded = new Set<string>();
+
 function refreshRows(): void {
     properties.refresh();
     rows.clear();
@@ -1347,81 +1357,38 @@ function refreshRows(): void {
     const objects = figureObjects(c);
     const ignored = previewed();
     objects.forEach((object) => {
-        // An application of a macro shows as its finals.
         if (ignored.has(object) || object instanceof macro_object) return;
-        const line = lineOf(object, index, objects);
-        const row = $.create("input")
-            .cls("dge-row")
-            .att("spellcheck", "false")
-            .toggleClass("dge-hidden", looksHidden(object));
-        (row.dom() as HTMLInputElement).value =
-            line ??
-            (object instanceof event_object
-                ? message(
-                      EVENT_TEXTS[object.gesture ?? "change"],
-                      formatName(object.owner.name),
-                  )
-                : `${formatName(object.name)} = …`);
-        if (line === null)
-            row.att("readonly", "").att("title", message("read_only"));
-        else bindRow(row, object);
-        const text = $.create("div").cls("dge-text").add(row);
-        // With a tool, the row designates its object instead of being
-        // edited.
-        text.on(
-            "pointerdown",
-            (event) => {
-                if (macros.active) {
-                    event.preventDefault();
-                    return macros.tap(object);
-                }
-                if (applying) {
-                    event.preventDefault();
-                    if (takesNext(designated(), object)) pickInitial(object);
-                    return;
-                }
-                const program = object instanceof event_object;
-                if (!pending && !propertiesOpen && !program) return;
-                event.preventDefault();
-                if (pending) {
-                    if (rowTakes(object)) designateRow(object);
-                } else if (program) showProgram(object);
-                else showProperties(event, object);
-            },
-            false,
-        );
-        if (valuesShown) {
-            const value = $.create("div")
-                .cls("dge-value")
-                .text(valueText(object, line, vec3()));
-            values.set(object, value);
-            text.add(value);
-        }
-        const item = $.create("div")
-            .cls("dge-item")
-            .add(visibilityToggle(object), text);
-        if (line !== null && entryOf(object, index)[0] !== "Pt")
+        const node = object.output?.node;
+        // An application of a macro with several finals shows as one row,
+        // which unfolds into theirs.
+        if (!node || node.children.length < 2)
+            return addRow(object, index, objects);
+        const finals = node.children;
+        const open = unfolded.has(node.name);
+        if (
+            object ===
+            finals.reduce((first, final) =>
+                index.get(final)! < index.get(first)! ? final : first,
+            )
+        ) {
+            const { row, item } = addRow(object, index, objects, finals);
             item.add(
-                button("edit_definition", () => {
-                    if (!propertiesOpen) setProperties(true);
-                    properties.edit(object);
-                }).addClass("dge-label"),
+                button(open ? "fold_finals" : "unfold_finals", () => {
+                    if (open) unfolded.delete(node.name);
+                    else unfolded.add(node.name);
+                    refreshRows();
+                })
+                    .addClass("dge-fold")
+                    .toggleClass("dge-on", open)
+                    .att("aria-expanded", String(open)),
             );
-        if (hasName(object)) item.add(nameToggle(object));
-        item.on("mouseenter", () => highlight(object), false);
-        item.on("mouseleave", () => highlight(), false);
-        item.on(
-            "pointerdown",
-            (event) => {
-                if (!stepping) return;
-                event.preventDefault();
-                go(stepOf(scene(), stepping, object));
-            },
-            false,
-        );
-        rows.set(object, row);
-        items.set(object, item);
-        rowsBox.add(item);
+            if (!open)
+                finals.forEach((final) => {
+                    rows.set(final, row);
+                    items.set(final, item);
+                });
+        }
+        if (open) addRow(object, index, objects, [], true);
     });
     count.text(rows.size ? String(rows.size) : "");
     macros.refresh();
@@ -1435,25 +1402,121 @@ function refreshRows(): void {
         .toggleAttribute("disabled", position >= history.length - 1);
 }
 
-// As in GeoGebra's algebra view, a dot of the object's colour, full when it
-// shows. Super-hidden objects, which nobody ever saw, stay so.
-function visibilityToggle(object: construction_object): DOMElement {
+// The object's row, or, given `finals`, that of their application, or, if
+// `final`, that of one of them, which only names it.
+function addRow(
+    object: construction_object,
+    index: ReadonlyMap<construction_object, number>,
+    objects: construction_object[],
+    finals: construction_object[] = [],
+    final = false,
+): { row: DOMElement; item: DOMElement } {
+    const line = final ? null : lineOf(object, index, objects);
+    const row = $.create("input")
+        .cls("dge-row")
+        .att("spellcheck", "false")
+        .toggleClass("dge-hidden", looksHidden(object));
+    (row.dom() as HTMLInputElement).value = final
+        ? formatName(object.name)
+        : (line ??
+          (object instanceof event_object
+              ? message(
+                    EVENT_TEXTS[object.gesture ?? "change"],
+                    formatName(object.owner.name),
+                )
+              : `${formatName(object.name)} = …`));
+    if (final) row.att("readonly", "");
+    else if (line === null)
+        row.att("readonly", "").att("title", message("read_only"));
+    else bindRow(row, object);
+    const text = $.create("div").cls("dge-text").add(row);
+    // With a tool, the row designates its object instead of being
+    // edited.
+    text.on(
+        "pointerdown",
+        (event) => {
+            if (macros.active) {
+                event.preventDefault();
+                return macros.tap(object);
+            }
+            if (applying) {
+                event.preventDefault();
+                if (takesNext(designated(), object)) pickInitial(object);
+                return;
+            }
+            const program = object instanceof event_object;
+            if (!pending && !propertiesOpen && !program) return;
+            event.preventDefault();
+            if (pending) {
+                if (rowTakes(object)) designateRow(object);
+            } else if (program) showProgram(object);
+            else showProperties(event, object);
+        },
+        false,
+    );
+    if (valuesShown && !finals.length) {
+        const value = $.create("div")
+            .cls("dge-value")
+            .text(valueText(object, line, vec3()));
+        values.set(object, value);
+        text.add(value);
+    }
+    const shown = finals.length ? finals : [object];
+    const item = $.create("div")
+        .cls("dge-item")
+        .toggleClass("dge-sub", final)
+        .add(visibilityToggle(shown), text);
+    if (line !== null && entryOf(object, index)[0] !== "Pt")
+        item.add(
+            button("edit_definition", () => {
+                if (!propertiesOpen) setProperties(true);
+                properties.edit(object);
+            }).addClass("dge-label"),
+        );
+    if (!finals.length && hasName(object)) item.add(nameToggle(object));
+    item.on("mouseenter", () => highlight(...shown), false);
+    item.on("mouseleave", () => highlight(), false);
+    item.on(
+        "pointerdown",
+        (event) => {
+            if (!stepping) return;
+            event.preventDefault();
+            go(stepOf(scene(), stepping, object));
+        },
+        false,
+    );
+    if (!finals.length) {
+        rows.set(object, row);
+        items.set(object, item);
+    }
+    rowsBox.add(item);
+    return { row, item };
+}
+
+// As in GeoGebra's algebra view, a dot of the objects' colour, full when
+// one shows, which shows or hides them all. Super-hidden objects, which
+// nobody ever saw, stay so.
+function visibilityToggle(objects: construction_object[]): DOMElement {
     const dot = $.create("button")
         .cls("dge-dot")
         .att("type", "button")
-        .stl("--dge-color", object.stroke_color);
-    if (object.hidden === 2) return dot.att("disabled", "");
-    const shown = !looksHidden(object);
+        .stl("--dge-color", objects[0].stroke_color);
+    const seen = objects.filter((object) => object.hidden !== 2);
+    if (!seen.length) return dot.att("disabled", "");
+    const shown = seen.some((object) => !looksHidden(object));
     dot.att("aria-pressed", String(shown))
         .att("aria-label", message("visible"))
         .att("title", message(shown ? "hide_object" : "show_object"))
         .on("click", () => {
-            if (ghosts) toggleGhost(ghosts, object);
-            else {
-                object.hidden = shown ? 1 : 0;
-                if (shown) object.updateView();
-                else object.createSVG();
-            }
+            seen.forEach((object) => {
+                if (looksHidden(object) === shown) return;
+                if (ghosts) toggleGhost(ghosts, object);
+                else {
+                    object.hidden = shown ? 1 : 0;
+                    if (shown) object.updateView();
+                    else object.createSVG();
+                }
+            });
             changed();
         });
     return dot;

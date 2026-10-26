@@ -187,6 +187,8 @@ const es: Texts = {
         conditional_visibility:
             "La visibilidad también depende de una condición de la figura.",
         show_name: "Mostrar el nombre",
+        unfold_finals: "Desplegar los finales",
+        fold_finals: "Plegar los finales",
         edit_definition: "Editar la definición",
         fixed_object: "Objeto fijo",
         inert_object: "Objeto inerte",

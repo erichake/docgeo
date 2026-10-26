@@ -1410,7 +1410,7 @@ numéroté s'il est pris, avec son style de la définition), puis attend de
 nouveau son premier initial. On en sort comme d'un outil (Échap,
 « Terminé », un autre outil, les propriétés, la gomme). Le nœud est
 super-caché (`h` vaut 2 pour `Mac`) et n'a pas de ligne : l'application
-se lit dans celles de ses finaux.
+se lit dans celle de ses finaux.
 
 **Langage textuel** (2026-10-26, forme choisie avec l'auteur) : une macro
 de la figure est une commande, de son nom (complétée comme les autres,
@@ -1422,9 +1422,14 @@ d'après ceux de la macro. Il faut autant de noms que de finaux
 (`macro_names`), libres ou déjà ceux des finaux de l'application
 redéfinie (`macro_taken`). Un nombre s'y tape (`Homothétie(O, P, 3)`),
 écrit comme formule constante. Les arguments choisissent la méthode,
-comme les types choisissent la forme d'une commande. Chaque final a sa
-ligne, qui est celle de l'application ; la modifier redéfinit
-l'application (initiaux, méthode, noms) : un final passé à `_` est
+comme les types choisissent la forme d'une commande. Une application à
+plusieurs finaux n'a qu'une ligne, à la place de son premier final
+(décidé avec l'auteur le 2026-10-26, à la place d'une ligne par final,
+illisible pour les 32 cercles d'Apollonius) : sa pastille montre ou cache
+tous ses finaux, et un chevron la déplie en une ligne par final (son nom,
+sa pastille, sa valeur), repliée par défaut. Modifier la ligne de
+l'application redéfinit l'application (initiaux, méthode, noms) : un
+final passé à `_` est
 supprimé avec ce qui en dépend, un nom ajouté crée le final. Les
 initiaux doivent précéder l'application dans la construction
 (`macro_order`). `c =` supprime un final seul. Le panneau de définition

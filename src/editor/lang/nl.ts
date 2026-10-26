@@ -189,6 +189,8 @@ const nl: Texts = {
         conditional_visibility:
             "De zichtbaarheid hangt ook af van een voorwaarde in de figuur.",
         show_name: "Naam tonen",
+        unfold_finals: "Eindobjecten uitklappen",
+        fold_finals: "Eindobjecten inklappen",
         edit_definition: "Definitie bewerken",
         fixed_object: "Object vast",
         inert_object: "Object inert",

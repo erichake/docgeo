@@ -45,6 +45,9 @@ export const ACTION_ICONS = {
     // A point and its name.
     show_name:
         '<path d="M3.5 17 8 5h1l4.5 12M5.2 12.8h6.6"/><circle cx="18" cy="16.5" r="2.3"/>',
+    // Chevrons: the finals of an application, folded or not.
+    unfold_finals: '<path d="m9 6 6 6-6 6"/>',
+    fold_finals: '<path d="m6 9 6 6 6-6"/>',
     // A pencil.
     edit_definition:
         '<path d="M4 20h4L19.5 8.5a2.8 2.8 0 0 0-4-4L4 16Z"/><path d="m14 6 4 4"/>',

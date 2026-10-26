@@ -192,6 +192,8 @@ const de: Texts = {
         conditional_visibility:
             "Die Sichtbarkeit hängt auch von einer Bedingung der Figur ab.",
         show_name: "Name anzeigen",
+        unfold_finals: "Endobjekte aufklappen",
+        fold_finals: "Endobjekte zuklappen",
         edit_definition: "Definition bearbeiten",
         fixed_object: "Objekt fixiert",
         inert_object: "Objekt inaktiv",

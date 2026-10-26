@@ -188,6 +188,8 @@ const it: Texts = {
         conditional_visibility:
             "La visibilità dipende anche da una condizione della figura.",
         show_name: "Mostra il nome",
+        unfold_finals: "Espandi i finali",
+        fold_finals: "Comprimi i finali",
         edit_definition: "Modifica la definizione",
         fixed_object: "Oggetto fisso",
         inert_object: "Oggetto inerte",

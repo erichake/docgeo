@@ -175,6 +175,8 @@ const zh_TW: Texts = {
         visible: "顯示物件",
         conditional_visibility: "可見性也取決於圖形中的一個條件。",
         show_name: "顯示名稱",
+        unfold_finals: "展開最終物件",
+        fold_finals: "摺疊最終物件",
         edit_definition: "編輯定義",
         fixed_object: "固定物件",
         inert_object: "惰性物件",

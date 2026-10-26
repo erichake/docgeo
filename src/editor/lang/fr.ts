@@ -186,6 +186,8 @@ const fr: Texts = {
         conditional_visibility:
             "La visibilité dépend aussi d’une condition de la figure.",
         show_name: "Afficher le nom",
+        unfold_finals: "Déplier les finaux",
+        fold_finals: "Replier les finaux",
         edit_definition: "Modifier la définition",
         fixed_object: "Objet fixe",
         inert_object: "Objet inerte",

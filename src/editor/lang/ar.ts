@@ -179,6 +179,8 @@ const ar: Texts = {
         visible: "عنصر ظاهر",
         conditional_visibility: "يعتمد الظهور أيضًا على شرط في الشكل.",
         show_name: "إظهار الاسم",
+        unfold_finals: "عرض النهائيات",
+        fold_finals: "طيّ النهائيات",
         edit_definition: "تعديل التعريف",
         fixed_object: "عنصر ثابت",
         inert_object: "عنصر خامل",

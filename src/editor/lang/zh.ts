@@ -175,6 +175,8 @@ const zh: Texts = {
         visible: "显示对象",
         conditional_visibility: "可见性还取决于图形中的一个条件。",
         show_name: "显示名称",
+        unfold_finals: "展开最终对象",
+        fold_finals: "折叠最终对象",
         edit_definition: "编辑定义",
         fixed_object: "固定对象",
         inert_object: "惰性对象",

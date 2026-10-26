@@ -183,6 +183,8 @@ export default {
     conditional_visibility:
         "Visibility also depends on a condition in the figure.",
     show_name: "Show name",
+    unfold_finals: "Show the finals",
+    fold_finals: "Hide the finals",
     edit_definition: "Edit the definition",
     fixed_object: "Fixed object",
     inert_object: "Inert object",

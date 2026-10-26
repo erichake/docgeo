@@ -198,15 +198,26 @@ describe("Defining a macro in the editor", () => {
         );
         expect(hint()).toBe("");
 
-        // In the text, one line for the application and its finals.
+        // In the text, one line for the application, which unfolds into
+        // its finals'.
         const lines = () =>
             [...page.querySelectorAll<HTMLInputElement>(".dge-row")].map(
                 (row) => row.value,
             );
         expect(lines().slice(-2)).toEqual([
-            "O1, c1 = Circumscribed(D, E, F)",
+            "F = (0, 4)",
             "O1, c1 = Circumscribed(D, E, F)",
         ]);
+        const fold = () =>
+            (page.querySelector(".dge-fold") as HTMLElement).click();
+        fold();
+        expect(lines().slice(-3)).toEqual([
+            "O1, c1 = Circumscribed(D, E, F)",
+            "O1",
+            "c1",
+        ]);
+        fold();
+        expect(lines().at(-1)).toBe("O1, c1 = Circumscribed(D, E, F)");
         const enter = (field: HTMLInputElement, text: string) => {
             field.value = text;
             field.dispatchEvent(new Event("input", { bubbles: true }));
@@ -215,18 +226,17 @@ describe("Defining a macro in the editor", () => {
             );
         };
         enter(input, "Q, k = Circumscribed(A, B, F)");
-        await expect.poll(() => lines().length).toBe(14);
-        expect(lines().slice(-2)).toEqual([
-            "Q, k = Circumscribed(A, B, F)",
-            "Q, k = Circumscribed(A, B, F)",
-        ]);
-        // Redefined from a final's row, one final left out.
+        await expect.poll(() => lines().length).toBe(12);
+        expect(lines().at(-1)).toBe("Q, k = Circumscribed(A, B, F)");
+        // Redefined from its row, one final left out.
         const row = [
             ...page.querySelectorAll<HTMLInputElement>(".dge-row"),
-        ].filter((field) => field.value.startsWith("Q, k"))[1];
+        ].find((field) => field.value.startsWith("Q, k"))!;
         enter(row, "Q, _ = Circumscribed(A, B, D)");
-        await expect.poll(() => lines().length).toBe(13);
-        expect(lines().at(-1)).toBe("Q, _ = Circumscribed(A, B, D)");
+        await expect
+            .poll(() => lines().at(-1))
+            .toBe("Q, _ = Circumscribed(A, B, D)");
+        expect(lines().length).toBe(12);
         const entries = (await saved(request)).o;
         expect(entries.slice(-2)).toEqual([
             ["Mac", "mac1", [0, 0, [0, 1, 7]]],
@@ -238,7 +248,7 @@ describe("Defining a macro in the editor", () => {
             .poll(() => page.querySelector(".dge-hint")!.textContent)
             .toContain("This macro has 2 finals");
         enter(input, "e1, e2 = Circumscribed(C, B, A)");
-        await expect.poll(() => lines().length).toBe(15);
+        await expect.poll(() => lines().length).toBe(13);
     });
 
     it("takes a number typed in the hint", async () => {
