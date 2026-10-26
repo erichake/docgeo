@@ -1,7 +1,12 @@
 import { describe, expect, it } from "vitest";
 import "../../src/construction";
 import type { construction } from "../../src/construction";
-import { describeDgo, figureObjects, readDgo } from "../../src/dgo";
+import {
+    describeDgo,
+    figureObjects,
+    importDgoFromUrl,
+    readDgo,
+} from "../../src/dgo";
 import { figureIndex, lineOf } from "../../src/editor/figure";
 import {
     builtView,
@@ -13,6 +18,7 @@ import type { construction_object } from "../../src/objects/construction_object"
 import type { locus_object } from "../../src/objects/locus_object";
 import { macro_object } from "../../src/objects/macro_object";
 import type { point_object } from "../../src/objects/point_object";
+import type { primitive_circle_object } from "../../src/objects/primitive_circle_object";
 import type { primitive_line_object } from "../../src/objects/primitive_line_object";
 import { vNorm, vSub, type Vec3 } from "../../src/vec";
 import { createConstruction, disposeFigures, expectClose } from "./figures";
@@ -514,5 +520,38 @@ describe("Macro-constructions", () => {
                 [CUT],
             ),
         ).toThrow();
+    });
+
+    it("draws Apollonius's circles, built with circles of constant radius", async () => {
+        const c = createConstruction();
+        await importDgoFromUrl(c, "/tests/dgo/Apollonius_macro.dgo");
+        const given = ["a", "b", "c"].map((name) =>
+            get<primitive_circle_object>(c, name),
+        );
+        const finals = figureObjects(c).filter(
+            (object) => object.output,
+        ) as primitive_circle_object[];
+        expect(finals).toHaveLength(32);
+        // Of the construction's candidates, the eight that exist each touch
+        // the three circles, inside or out, as they move.
+        const touching = () =>
+            finals.filter(({ defined }) => defined).length === 8 &&
+            finals.every(
+                ({ defined, CENTER, R }) =>
+                    !defined ||
+                    given.every((circle) => {
+                        const d = vNorm(vSub(CENTER, circle.CENTER));
+                        return (
+                            Math.min(
+                                Math.abs(d - R - circle.R),
+                                Math.abs(d - Math.abs(R - circle.R)),
+                            ) <
+                            1e-6 * (R + circle.R)
+                        );
+                    }),
+            );
+        expect(touching()).toBe(true);
+        move(c, "A", [-1000, 11000, 0]);
+        expect(touching()).toBe(true);
     });
 });
