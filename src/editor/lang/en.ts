@@ -348,7 +348,6 @@ export default {
     macro_ambiguous:
         "Its initials extend those of another method of %, or the reverse",
     macro_later: "% can't use a macro made after it",
-    macro_saved: "Macro % saved",
     designate_ray: "Designate a ray",
     designate_arc: "Designate an arc",
     designate_conic: "Designate a conic",
@@ -359,4 +358,8 @@ export default {
     macro_order: "A macro's initials must come before its application",
     macro_bad_name: "A macro's name is a word: letters, digits and _",
     macro_command_name: "% is the name of a command: choose another one",
+    open_box: "Open the box",
+    open_box_hint: "Replaces the application by its construction: % objects",
+    open_box_arc:
+        "The box can't be opened: the end of an initial arc isn't an object of the figure",
 };

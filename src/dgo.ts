@@ -802,20 +802,7 @@ export async function describeDgo(
         ...(c.prefs.background.color !== BACKGROUND && {
             bg: c.prefs.background.color,
         }),
-        o: objects.map((object) => {
-            const { output } = object;
-            const [tag, parameters] = objectEntry(object, context);
-            const style = describe(STYLE, object, output?.tag ?? tag);
-            if (object.condition) style.sc = context.index(object.condition);
-            if (object instanceof point_object && object.magnets.length)
-                style.mg = object.magnets.map(({ target, radius }) => [
-                    context.index(target),
-                    radius,
-                ]);
-            const entry = [tag, object.name, parameters];
-            if (Object.keys(style).length === 0) return entry;
-            return [...entry, styleIndex(style)];
-        }),
+        o: objects.map((object) => dgoEntry(object, context, styleIndex)),
     };
     if (c.macros.length)
         figure.mac = c.macros.map(({ name, finals, icon, methods }) => ({
@@ -843,6 +830,25 @@ export async function describeDgo(
     if (styles.length) figure.st = styles;
     if (keys.size) figure.img = images;
     return figure;
+}
+
+// Its entry in `o`, of this type and these parameters.
+export function dgoEntry(
+    object: construction_object,
+    context: DgoContext,
+    styleIndex: (style: Settings) => number,
+    [tag, parameters] = objectEntry(object, context),
+): unknown[] {
+    const style = describe(STYLE, object, object.output?.tag ?? tag);
+    if (object.condition) style.sc = context.index(object.condition);
+    if (object instanceof point_object && object.magnets.length)
+        style.mg = object.magnets.map(({ target, radius }) => [
+            context.index(target),
+            radius,
+        ]);
+    const entry = [tag, object.name, parameters];
+    if (Object.keys(style).length === 0) return entry;
+    return [...entry, styleIndex(style)];
 }
 
 // Content-addressed, so that the same image is stored once.
@@ -1235,7 +1241,7 @@ function readMethod(method: Json, count: number, styles: Json[]): MacroMethod {
     return {
         initials,
         help,
-        body: body.map((entry, index) => {
+        body: body.map((entry) => {
             const [tag, name, parameters, styleIndex] = list(entry, 3, 4);
             check(typeof tag === "string" && !UNBUILT.includes(tag));
             // A number nothing computes, that a manipulation changes.
@@ -1252,10 +1258,7 @@ function readMethod(method: Json, count: number, styles: Json[]): MacroMethod {
                         typeof parameters[1] !== "number"),
             );
             if (styleIndex === undefined) return [tag, name, parameters];
-            check(
-                (finals as Json[]).includes(slots + index) &&
-                    Number.isInteger(styleIndex),
-            );
+            check(Number.isInteger(styleIndex));
             const style = styles[styleIndex as number];
             check(isRecord(style) && !own(style, "sc") && !own(style, "mg"));
             return [tag, name, parameters, style];
@@ -2306,7 +2309,7 @@ const BUILDERS: Record<string, Builder> = {
                 initials,
                 objects,
                 [...standIns.values()],
-                method.finals.map((final) => local[final]),
+                local,
                 method.finals.map(
                     (final) =>
                         local[final].output?.tag ??

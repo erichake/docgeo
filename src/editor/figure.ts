@@ -2,6 +2,7 @@ import { construction, type DgpadLike } from "../construction";
 import {
     addDgoEntries,
     describeDgo,
+    dgoEntry,
     figureObjects,
     LOOKS,
     readDgo,
@@ -94,6 +95,7 @@ import {
 import type { ProgramHat } from "./blocks/view";
 import {
     applyMacro,
+    boxOf,
     designation,
     macroIndex,
     typedNumber,
@@ -1790,4 +1792,71 @@ export async function applyMacroLine(
         studio.scene.removeObject(studio.scene.getObj(gone)!),
     );
     return [];
+}
+
+// Opens the application's box: in its place, the objects of its body its
+// finals need, named, the finals keeping their names and styles, the
+// others the styles of their types: the figure, and their names, or null
+// if the box can't be opened.
+export async function openBox(
+    c: construction,
+    node: macro_object,
+): Promise<{ figure: DgoFigure; names: string[] } | null> {
+    const box = boxOf(c, node);
+    if (!box) return null;
+    const figure = await describeDgo(c);
+    const objects = figureObjects(c);
+    const at = objects.indexOf(node);
+    const finals = new Set(node.children);
+    const order = [
+        ...objects.slice(0, at),
+        ...box.objects,
+        ...objects.slice(at + 1).filter((object) => !finals.has(object)),
+    ];
+    const positions = new Map(order.map((object, index) => [object, index]));
+    const position = (object: construction_object) => positions.get(object)!;
+    const keys = new Map(
+        Object.entries(figure.img ?? {}).map(([key, url]) => [url, key]),
+    );
+    const context = {
+        index: (object: construction_object) => objectIndex(object, position),
+        image: (url: string) => keys.get(url)!,
+        screen: ([x, y]: Vec2): Vec2 => [Math.round(x), Math.round(y)],
+    };
+    const styles = (figure.st ??= []);
+    const known = new Map(
+        styles.map((style, index) => [JSON.stringify(style), index]),
+    );
+    const styleIndex = (style: object): number => {
+        const json = JSON.stringify(style);
+        if (!known.has(json)) known.set(json, styles.push(style as never) - 1);
+        return known.get(json)!;
+    };
+    const names: string[] = [];
+    // m1 taken, m2.
+    const free = (wanted: string): string => {
+        const [, base, number] = /^(.*?)(\d*)$/.exec(wanted)!;
+        let name = wanted;
+        for (let k = +number + 1; c.getObj(name) || names.includes(name); k++)
+            name = `${base}${k}`;
+        names.push(name);
+        return name;
+    };
+    const inside = new Set(box.objects);
+    figure.o = order.map((object) => {
+        if (!inside.has(object)) return dgoEntry(object, context, styleIndex);
+        const written = box.entry(object, position);
+        // A number typed, under the expressions shown.
+        if (written[0] === "Ex" && !box.names.has(object))
+            (written[1] as { xy: Vec2 }).xy = freeSpot(c);
+        // A point made, named as the editor names those it makes; the
+        // others styled as in the figure where the macro was defined.
+        if (!box.names.has(object) && object instanceof point_object)
+            object.showName = true;
+        const entry = dgoEntry(object, context, styleIndex, written);
+        if (finals.has(object)) names.push(object.name);
+        else entry[1] = free(box.names.get(object) ?? nextName(c, written[0]));
+        return entry;
+    });
+    return { figure, names };
 }

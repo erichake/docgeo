@@ -22,6 +22,7 @@ import {
     SUB_OBJECTS,
     type Macro,
     type MacroMethod,
+    type macro_object,
 } from "../objects/macro_object";
 import { panel_object } from "../objects/panel_object";
 import { point_on_object } from "../objects/point_on_object";
@@ -185,7 +186,7 @@ export function missing(
 }
 
 // A method computing the finals from the initials, in this order: the
-// objects of the figure between them, each style but the finals' dropped.
+// objects of the figure between them, with their styles.
 export function methodOf(
     c: construction,
     initials: construction_object[],
@@ -224,7 +225,6 @@ export function methodOf(
             const [tag, parameters] = objectEntry(object, context);
             const entry = [tag, object.name, parameters];
             local.set(object, count++);
-            if (!finals.includes(object)) return entry;
             const style = objectStyle(object, object.output?.tag ?? tag);
             return Object.keys(style).length ? [...entry, style] : entry;
         });
@@ -489,3 +489,106 @@ export const takesAt = (
     macro.methods.some(({ initials }) =>
         initials[position] ? fits(initials[position][0], object) : false,
     );
+
+// What opening an application brings into the figure, in order: what
+// stands for its initials' sub-objects the figure lacks (a circle's
+// center), a number typed as an expression, then the objects of its body that its finals
+// need, among which the finals themselves.
+export interface Box {
+    objects: construction_object[];
+    // The names of those of the body, in it.
+    names: Map<construction_object, string>;
+    // Its .dgo type and parameters, given the positions of the figure's
+    // objects and of the box's.
+    entry(
+        object: construction_object,
+        index: (object: construction_object) => number,
+    ): [string, unknown];
+}
+
+// Null if a final needs an end of an arc the figure doesn't have, which no
+// entry describes.
+export function boxOf(c: construction, node: macro_object): Box | null {
+    const { macro, method, initials, local } = node;
+    const { initials: types, body } = macro.methods[method];
+    const slots = local.length - body.length;
+    // The object of the figure each of the body's stands for.
+    const figure = new Map<construction_object, construction_object>(
+        node.standIns.map((standIn) => [
+            standIn,
+            Object.getPrototypeOf(standIn) as construction_object,
+        ]),
+    );
+    const typed = new Set<construction_object>();
+    let slot = 0;
+    initials.forEach((initial, rank) => {
+        if (typeof initial === "string") {
+            typed.add(local[slot++]);
+            return;
+        }
+        subObjects(c, types[rank][0], initial).forEach(([found]) => {
+            if (found) figure.set(local[slot], found);
+            slot++;
+        });
+        slot++;
+    });
+    const entry = (
+        object: construction_object,
+        index: (object: construction_object) => number,
+    ): [string, unknown] => {
+        const position = (other: construction_object) =>
+            index(figure.get(other) ?? other);
+        const context = {
+            index: (other: construction_object) =>
+                objectIndex(figure.get(other) ?? other, position),
+            image: (url: string) => url,
+            screen: ([x, y]: [number, number]): [number, number] => [
+                Math.round(x),
+                Math.round(y),
+            ],
+        };
+        const at = local.indexOf(object) - slots;
+        // A final of an application in the body, whose own may have been
+        // taken by this one.
+        if (at >= 0 && body[at][0] === "Out") {
+            const [inner, rank] = body[at][2] as number[];
+            return ["Out", [context.index(local[inner]), rank]];
+        }
+        return object.dgo(context);
+    };
+    // What the finals in the figure need, never an object of the figure.
+    const inFigure = new Set(figureObjects(c));
+    const needed = new Set<construction_object>();
+    const visit = (object: construction_object): void => {
+        if (needed.has(object) || inFigure.has(object)) return;
+        needed.add(object);
+        entry(object, (other) => {
+            visit(other);
+            return 0;
+        });
+    };
+    node.children.forEach((final) => {
+        needed.add(final);
+        entry(final, (other) => {
+            visit(other);
+            return 0;
+        });
+    });
+    const objects = local.filter((object) => needed.has(object));
+    if (
+        objects.some(
+            (object) =>
+                local.indexOf(object) < slots &&
+                !typed.has(object) &&
+                !(object instanceof center_object),
+        )
+    )
+        return null;
+    return {
+        objects,
+        names: new Map(
+            body.map(([, name], at) => [local[slots + at], name as string]),
+        ),
+        entry,
+    };
+}

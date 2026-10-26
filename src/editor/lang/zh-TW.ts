@@ -335,7 +335,6 @@ const zh_TW: Texts = {
         macro_other_finals: "%有其他最終物件：請換一個名稱",
         macro_ambiguous: "其初始物件延長了%的另一種方法的初始物件，或相反",
         macro_later: "%不能使用在它之後建立的巨集",
-        macro_saved: "巨集%已儲存",
         designate_ray: "選取一條射線",
         designate_arc: "選取一段弧",
         designate_conic: "選取一條二次曲線",
@@ -346,6 +345,9 @@ const zh_TW: Texts = {
         macro_order: "巨集的初始物件必須在建構中位於其套用之前",
         macro_bad_name: "巨集的名稱是一個詞：字母、數字和 _",
         macro_command_name: "%是一個指令的名稱：請換一個",
+        open_box: "打開盒子",
+        open_box_hint: "用其構造取代該應用：%個物件",
+        open_box_arc: "盒子無法打開：初始弧的終點不是圖形中的物件",
     },
     commands: {
         Side: "邊",

@@ -32,7 +32,7 @@ export function macroPanel(options: {
     scene: () => construction;
     show: (states: Map<construction_object, MacroState>) => void;
     hint: (text: string) => void;
-    // A macro saved: a step to undo.
+    // A macro saved, the panel closed: a step to undo.
     saved: () => void;
     close: () => void;
 }) {
@@ -47,8 +47,6 @@ export function macroPanel(options: {
     const finalNames = new Map<string, string>();
     // What the save button does, when it can.
     let saving: (() => void) | null = null;
-    // Said once saved, until the next change.
-    let notice = "";
 
     const field = (element: DOMElement) => element.dom() as HTMLInputElement;
     const section = (title: MessageKey, ...content: DOMElement[]) =>
@@ -64,7 +62,7 @@ export function macroPanel(options: {
             .text("×");
         button.on("click", () => {
             remove();
-            changed();
+            render();
         });
         return button;
     };
@@ -86,7 +84,7 @@ export function macroPanel(options: {
         .att("type", "text")
         .att("spellcheck", "false")
         .att("aria-label", message("macro_name"));
-    nameInput.on("input", () => changed(), false);
+    nameInput.on("input", () => render(), false);
     const stepText = $.create("p").cls("dge-macro-step");
     const initialsBox = $.create("ol").cls("dge-macro-list");
     const finalsBox = $.create("ol").cls("dge-macro-list");
@@ -150,7 +148,7 @@ export function macroPanel(options: {
                 .cls("dge-macro-footer")
                 .add(status, nextButton, saveButton, backButton),
         )
-        .hide();
+        .att("inert", "");
 
     // The initials reordered by their handles.
     let dragged: DOMElement | null = null;
@@ -177,7 +175,7 @@ export function macroPanel(options: {
                 row.getAttribute("data-name")!,
             );
             dragged = null;
-            changed();
+            render();
         },
     );
 
@@ -208,17 +206,12 @@ export function macroPanel(options: {
             ? (canvas.dom() as HTMLCanvasElement).toDataURL("image/png")
             : null;
 
-    function changed(): void {
-        notice = "";
-        render();
-    }
-
     const hint = (): string =>
         message(step === 1 ? "macro_step_initials" : "macro_step_finals");
 
     function goTo(next: 1 | 2): void {
         step = next;
-        changed();
+        render();
         options.hint(hint());
     }
 
@@ -382,14 +375,13 @@ export function macroPanel(options: {
                             field(help).value,
                         ),
                     );
+                    options.close();
                     options.saved();
-                    notice = message("macro_saved", named);
-                    render();
                 };
         }
         if (step === 1) saving = null;
         status
-            .text(step === 1 ? "" : problem || notice)
+            .text(step === 1 ? "" : problem)
             .toggleClass("dge-error", !!problem);
         stepText.text(hint());
         if (step === 1) finalsSection.hide();
@@ -433,11 +425,10 @@ export function macroPanel(options: {
             finals = [];
             messages.clear();
             finalNames.clear();
-            notice = "";
             field(nameInput).value = macroName(c, "Macro");
             field(help).value = "";
             pen.clearRect(0, 0, ICON_SIZE, ICON_SIZE);
-            panel.show("flex");
+            panel.dom().toggleAttribute("inert", false);
             render();
             options.hint(hint());
         },
@@ -448,7 +439,7 @@ export function macroPanel(options: {
         stop(): void {
             if (!active) return;
             active = false;
-            panel.hide();
+            panel.dom().toggleAttribute("inert", true);
             options.show(new Map());
         },
         // A tap on the object: an initial at the first step, a final among
@@ -468,7 +459,7 @@ export function macroPanel(options: {
                     finals = finals.filter((other) => other !== name);
                     initials.push(name);
                 }
-                return changed();
+                return render();
             }
             if (finals.includes(name))
                 finals = finals.filter((other) => other !== name);
@@ -489,7 +480,7 @@ export function macroPanel(options: {
                     );
                 finals.push(name);
             }
-            changed();
+            render();
         },
         // The figure changed, or was rebuilt.
         refresh: render,

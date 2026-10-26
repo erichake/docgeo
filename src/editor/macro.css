@@ -34,6 +34,18 @@
         sans-serif;
     color: #1f2937;
     touch-action: pan-y;
+    display: flex;
+    transform: translateX(100%);
+    visibility: hidden;
+    transition:
+        transform var(--dge-slide),
+        visibility 0s var(--dge-slide-duration);
+}
+/* It slides in and out as the properties. */
+.dge-macro-open .dge-macro {
+    transform: translateX(0);
+    visibility: visible;
+    transition-delay: 0s;
 }
 .dge-macro input,
 .dge-macro textarea {

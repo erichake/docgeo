@@ -354,7 +354,6 @@ const fr: Texts = {
         macro_ambiguous:
             "Ses initiaux prolongent ceux d'une autre méthode de %, ou l'inverse",
         macro_later: "% ne peut pas utiliser une macro créée après elle",
-        macro_saved: "Macro % enregistrée",
         designate_ray: "Désignez une demi-droite",
         designate_arc: "Désignez un arc",
         designate_conic: "Désignez une conique",
@@ -370,6 +369,10 @@ const fr: Texts = {
             "Le nom d'une macro est un mot : lettres, chiffres et _",
         macro_command_name:
             "% est le nom d'une commande : choisissez-en un autre",
+        open_box: "Ouvrir la boîte",
+        open_box_hint: "Remplace l'application par sa construction : % objets",
+        open_box_arc:
+            "La boîte ne s'ouvre pas : la fin d'un arc initial n'est pas un objet de la figure",
     },
     commands: {
         Side: "Côté",

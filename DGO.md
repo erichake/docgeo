@@ -652,8 +652,12 @@ Corps d'une méthode :
   et des entrées antérieures du corps, jamais un objet de la figure.
 - Leurs noms, uniques dans le corps, ne sont pas ceux de la figure (« Ouvrir
   la boîte » les reprend, renommés au besoin).
-- Seuls les finaux ont un style (indice dans `st`) : leur style par défaut à
-  l'application. Ni `sc` ni `mg`.
+- Chaque entrée peut avoir un style (indice dans `st`), celui de son objet
+  dans la figure où la macro a été définie : pour un final, son style par
+  défaut à l'application ; pour un intermédiaire, celui qu'il prend quand
+  on ouvre la boîte (caché s'il l'était), sans effet sur le calcul. Ni `sc`
+  ni `mg`. Décidé avec l'auteur le 2026-10-26, quand seuls les finaux en
+  avaient un.
 - Rien de ce qu'une manipulation change, qui serait un initial manquant :
   ni objet libre (`Pt`, `VecF`), ni `Ex` de valeur `"v"` (curseur, nombre
   réglable) ou globale (`"g"`), ni `C1` de rayon numérique ; un nombre

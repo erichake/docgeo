@@ -78,7 +78,8 @@ describe("Defining a macro in the editor", () => {
         click(".dge-tools .dge-family", "Macros");
         click(".dge-tools button", "New macro");
         const panel = page.querySelector(".dge-macro") as HTMLElement;
-        expect(panel.style.display).toBe("flex");
+        const open = () => page.body.classList.contains("dge-macro-open");
+        expect(open()).toBe(true);
         // A row designates its object.
         const tap = (name: string) =>
             [...page.querySelectorAll<HTMLInputElement>(".dge-row")]
@@ -111,9 +112,10 @@ describe("Defining a macro in the editor", () => {
         ) as HTMLInputElement;
         name.value = "Circumscribed";
         name.dispatchEvent(new Event("input"));
-        const save = button("Create the macro");
-        save.click();
-        expect(save.textContent).toBe("Replace the method of Circumscribed");
+        button("Create the macro").click();
+        // Saved, the mode is left.
+        expect(open()).toBe(false);
+        expect(page.querySelector("svg.dge-defining")).toBeNull();
         const { mac } = await saved(request);
         expect(mac).toEqual([
             {
@@ -135,10 +137,17 @@ describe("Defining a macro in the editor", () => {
         ]);
 
         // Without C, the finals miss it.
+        (page.querySelector(".dge-line button") as HTMLElement).click();
+        click(".dge-tools .dge-family", "Macros");
+        click(".dge-tools button", "New macro");
+        ["A", "B", "C"].forEach(tap);
+        button("Next: the finals").click();
+        ["O", "c"].forEach(tap);
         button("Back to the initials").click();
         tap("C");
         expect(names(0)).toEqual(["A", "B"]);
         button("Next: the finals").click();
+        const save = button("Create the macro");
         expect(panel.querySelector(".dge-macro-status")!.textContent).toContain(
             "C",
         );
@@ -151,7 +160,7 @@ describe("Defining a macro in the editor", () => {
         page.body.dispatchEvent(
             new KeyboardEvent("keydown", { key: "Escape", bubbles: true }),
         );
-        expect(panel.style.display).toBe("none");
+        expect(open()).toBe(false);
         expect(page.querySelector("svg.dge-defining")).toBeNull();
 
         // Applied from the menu, as a tool.
@@ -295,5 +304,85 @@ describe("Defining a macro in the editor", () => {
                 ["Mac", "mac", [0, 0, [0, 1, "-1.5"]]],
                 ["Out", "D", [2, 1]],
             ]);
+    });
+
+    it("opens the box of an application, a step to undo", async () => {
+        const { page, request } = await editor();
+        const figure = {
+            ...CIRCUMCENTER,
+            mac: [
+                {
+                    n: "Circumscribed",
+                    f: ["O", "c"],
+                    m: [
+                        {
+                            i: [["point"], ["point"], ["point"]],
+                            b: [
+                                ["Med", "m1", [0, 1]],
+                                ["Med", "m2", [1, 2]],
+                                ["Int", "O", [3, 4, 0]],
+                                ["Cir", "c", [5, 0]],
+                            ],
+                            f: [5, 6],
+                        },
+                    ],
+                },
+            ],
+            o: [
+                ...CIRCUMCENTER.o.slice(0, 3),
+                ["Mac", "mac", [0, 0, [0, 1, 2]]],
+                ["Out", "P", [3, 1]],
+                ["Out", "k", [3, 2]],
+            ],
+        };
+        await request("load", {
+            data: new TextEncoder().encode(JSON.stringify(figure)).buffer,
+            format: "dgo",
+        });
+        // P tapped in the figure, where its row lights it.
+        const item = [...page.querySelectorAll<HTMLElement>(".dge-item")].find(
+            (element) =>
+                element
+                    .querySelector<HTMLInputElement>(".dge-row")!
+                    .value.startsWith("P, k ="),
+        )!;
+        item.dispatchEvent(new MouseEvent("mouseenter"));
+        const box = page
+            .querySelector("svg .dge-hover")!
+            .getBoundingClientRect();
+        item.dispatchEvent(new MouseEvent("mouseleave"));
+        const at = {
+            clientX: box.x + box.width / 2,
+            clientY: box.y + box.height / 2,
+            bubbles: true,
+            isPrimary: true,
+            pointerId: 1,
+        };
+        const svg = page.elementFromPoint(at.clientX, at.clientY)!;
+        const Pointer = (page.defaultView as typeof window).PointerEvent;
+        svg.dispatchEvent(new Pointer("pointerdown", at));
+        svg.dispatchEvent(new Pointer("pointerup", at));
+        const open = page.querySelector(
+            '.dge-bar-object [aria-label="Open the box"]',
+        ) as HTMLElement;
+        await expect.poll(() => open.style.display).toBe("grid");
+        open.dispatchEvent(new PointerEvent("pointerenter"));
+        expect(page.querySelector(".dge-hint")!.textContent).toBe(
+            "P, k = Circumscribed(A, B, C)\nReplaces the application by its construction: 4 objects",
+        );
+        expect(page.querySelectorAll("svg .dge-preview").length).toBe(2);
+        open.click();
+        await expect
+            .poll(async () => (await saved(request)).o)
+            .toEqual([
+                ...CIRCUMCENTER.o.slice(0, 5),
+                ["Int", "P", [3, 4, 0]],
+                ["Cir", "k", [5, 0]],
+            ]);
+        expect(page.querySelectorAll("svg .dge-preview").length).toBe(0);
+        (page.querySelector('[aria-label="Undo"]') as HTMLElement).click();
+        await expect
+            .poll(async () => (await saved(request)).o)
+            .toEqual(figure.o);
     });
 });

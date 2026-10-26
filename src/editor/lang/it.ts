@@ -355,7 +355,6 @@ const it: Texts = {
         macro_ambiguous:
             "I suoi iniziali prolungano quelli di un altro metodo di %, o viceversa",
         macro_later: "% non può usare una macro creata dopo di essa",
-        macro_saved: "Macro % salvata",
         designate_ray: "Seleziona una semiretta",
         designate_arc: "Seleziona un arco",
         designate_conic: "Seleziona una conica",
@@ -369,6 +368,11 @@ const it: Texts = {
             "Gli iniziali di una macro devono precederla nella costruzione",
         macro_bad_name: "Il nome di una macro è una parola: lettere, cifre e _",
         macro_command_name: "% è il nome di un comando: scegline un altro",
+        open_box: "Apri la scatola",
+        open_box_hint:
+            "Sostituisce l'applicazione con la sua costruzione: % oggetti",
+        open_box_arc:
+            "La scatola non si apre: la fine di un arco iniziale non è un oggetto della figura",
     },
     commands: {
         Side: "Lato",

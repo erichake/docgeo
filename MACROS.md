@@ -176,9 +176,10 @@ des macros. Pour les figures importées, la référence est DGPad.
   n'est qu'une valeur par défaut), et le message affiché à l'usage pour
   chaque initial (« Le cercle ? »). Il porte aussi le nom de la macro, le nom
   de ses finaux, l'aide (ordre et domaine de validité) et l'icône dessinée
-  par l'auteur. On peut **réordonner et enregistrer une nouvelle macro sans
-  refaire la sélection** (VF-ET, VF-OU et VF-NON viennent d'une seule
-  figure).
+  par l'auteur. Enregistrer ferme le panneau (demandé par l'auteur le
+  2026-10-26, à la place du mode laissé ouvert pour réordonner et
+  enregistrer sous un autre nom) : VF-ET, VF-OU et VF-NON viennent
+  toujours d'une seule figure, la sélection refaite à chaque macro.
 - **Sous-objets** : chaque type d'initial expose une liste fixe et ordonnée
   de sous-objets (extrémités d'un segment, centre d'un cercle, points d'un
   vecteur, sommets d'un polygone), utilisables dans le corps (comme `CS` dans
@@ -480,17 +481,33 @@ Retenues par l'auteur le 2026-10-26, à placer dans les étapes (voir
   l'étape 1, un objet déjà déterminé (vert) peut être voulu comme initial
   (couper plus tôt), et seul le moment lève l'ambiguïté.
 
+- Étape 6, « Ouvrir la boîte », faite (2026-10-26) : action de la zone
+  contextuelle sur un final, consigne et aperçu au survol, une étape
+  d'annulation ; détails dans `EDITOR.md` (« Macro-constructions »).
+  Choix de l'auteur : intermédiaires visibles, fin d'un arc absente de la
+  figure refusée (pas de nouvelle entrée `.dgo`), une application à la
+  fois. Le nœud garde les objets de son corps par indice local (`local`),
+  et `describeDgo` expose l'écriture d'une entrée (`dgoEntry`). Tests
+  `tests/browser/macro_open.test.ts` et `macro_editor.test.ts`. Poids :
+  lecteur +79 octets (+39 en gzip), éditeur +3,0 Ko (+1,0 Ko en gzip).
+- Le corps d'une méthode garde le style de chaque objet, intermédiaires
+  compris (demandé par l'auteur le 2026-10-26) : en ouvrant la boîte, un
+  intermédiaire caché à la définition reste caché, et garde ses couleurs.
+  Le lecteur accepte désormais un style sur toute entrée du corps
+  (`DGO.md`, « Macro-constructions »).
+- Enregistrer une macro ferme le mode, panneau et consigne compris
+  (demandé par l'auteur le 2026-10-26) ; le message « Macro enregistrée »
+  disparaît avec lui.
+
 ## Reste à faire
 
 Dans l'ordre que choisira l'auteur :
 
-- **Étape 6, « Ouvrir la boîte »** : remplacer une application par ses
-  objets élémentaires, visibles et nommés.
 - **Idées de CaRMetal retenues** (section ci-dessus) : bibliothèque
   (étape 7), menu au clic droit, initiaux fixés, image d'un objet.
 - **Cas en 3D** : rien n'a été essayé (doublures des initiaux, `flat`,
   projection du corps).
 - **Étape 9, manuel** dans les 12 langues (`npm run manual`) : la famille
   « Macros », la définition en deux étapes, l'application (menu, anneau,
-  texte).
+  texte), « Ouvrir la boîte ».
 - Mesurer le poids du lecteur et de l'éditeur à chaque étape.

@@ -175,6 +175,7 @@ export class macro_object extends construction_object {
     // applications in the body, which have branches of their own; not the
     // finals of those, adopted in the body.
     readonly branched: (intersection_object | macro_object)[];
+    readonly finals: construction_object[];
 
     constructor(
         c: construction,
@@ -187,11 +188,13 @@ export class macro_object extends construction_object {
         // them.
         readonly objects: construction_object[],
         readonly standIns: construction_object[],
-        readonly finals: construction_object[],
-        // Their .dgo types in the body.
+        // The body's objects by their local indices.
+        readonly local: construction_object[],
+        // Its finals' .dgo types in the body.
         readonly finalTags: string[],
     ) {
         super(c, name, "expression");
+        this.finals = macro.methods[method].finals.map((final) => local[final]);
         this.branched = objects.filter(
             (object): object is intersection_object | macro_object =>
                 !object.output &&
@@ -199,7 +202,7 @@ export class macro_object extends construction_object {
                     object instanceof macro_object),
         );
         this.computed = objects.filter(
-            (object) => !finals.includes(object) || object.children.length,
+            (object) => !this.finals.includes(object) || object.children.length,
         );
         this.addParents(
             ...initials.filter(

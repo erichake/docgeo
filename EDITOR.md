@@ -1354,7 +1354,8 @@ d'application, format dans `DGO.md`).
   initiaux déterminent (en vert) ajoute ou retire un final ; un objet non
   déterminé est refusé, la consigne disant ce qui lui manque ; un initial
   ne fait rien ; « Retour aux initiaux » revient à l'étape 1.
-- **Panneau** à droite, à la place des propriétés (fermées en entrant) :
+- **Panneau** à droite, à la place des propriétés (fermées en entrant), qui
+  glisse comme elles en entrant et en sortant :
   nom, étape, initiaux (rang, message affiché à l'usage, celui du type par
   défaut, ×), finaux à l'étape 2 seulement (nom donné à l'application, ×),
   aide, icône (16 × 16 pixels dessinés à la main ; un trait qui part d'un
@@ -1364,8 +1365,8 @@ d'application, format dans `DGO.md`).
   de M ». Ce qui l'empêche (final manquant ou non déterminé, autres finaux,
   signature ambiguë, macro créée après) s'écrit en rouge, le bouton
   grisé : aucune boîte de dialogue. Enregistrer est une étape
-  d'annulation et laisse le mode ouvert, pour réordonner et enregistrer
-  sous un autre nom.
+  d'annulation et ferme le mode, panneau et consigne compris (demandé par
+  l'auteur le 2026-10-26).
 - **Figure** : le reste sous un voile (comme les aimants), les initiaux en
   bleu, les finaux choisis en orange, ce que les initiaux déterminent en
   vert (le bouquet), ce qui manque à un final en rouge clignotant (fixe si
@@ -1430,6 +1431,40 @@ initiaux doivent précéder l'application dans la construction
 refuse un nom de macro qui n'est pas un mot (`macro_bad_name`) ou qui
 est celui d'une commande (`macro_command_name`), de la langue courante ou
 de l'anglais. Le nœud d'application n'a pas de ligne.
+
+**Ouvrir la boîte** (2026-10-26, choix de l'auteur) : une action de la
+zone contextuelle, après « Réglages » (une boîte au couvercle ouvert),
+visible quand l'objet sélectionné est un final d'une application. Ni dans
+l'anneau, ni dans les propriétés, ni dans le texte, qui en montre le
+résultat. Survolée, elle écrit dans la consigne la ligne de l'application
+et le nombre d'objets de sa construction, et montre en aperçu (pâles, sans
+noms) ceux qui ne sont pas des finaux. Touchée, elle remplace
+l'application par sa construction (`boxOf` de `macro.ts`, `openBox` de
+`figure.ts`, qui réécrit le `.dgo`) :
+
+- à la place du nœud, les objets du corps dont les finaux ont besoin, dans
+  l'ordre du corps ; un final supprimé ne revient pas, ni ce dont lui seul
+  avait besoin ;
+- les finaux restent les mêmes objets (nom, style, état) et leurs
+  dépendants les suivent ;
+- les intermédiaires prennent le nom qu'ils ont dans le corps (`m1` pris
+  devient `m2`) et le style qu'ils avaient dans la figure où la macro a
+  été définie : cachés s'ils l'étaient (demandé par l'auteur le
+  2026-10-26) ;
+- les initiaux et leurs sous-objets sont les objets de la figure ; un
+  centre qu'elle n'a pas est créé (`Ctr`), avec son nom ; un nombre tapé
+  devient une expression constante sous celles qu'elle montre ; la fin
+  d'un arc qu'elle n'a pas, qu'aucune entrée ne décrit, refuse
+  l'ouverture (`open_box_arc`) ;
+- un seul niveau : les applications du corps restent des boîtes, qu'on
+  ouvre à leur tour ;
+- les branches d'intersection suivies sont celles du nœud : la figure ne
+  bouge pas ;
+- la définition reste dans la figure.
+
+Une étape d'annulation. Les objets sortis de la boîte ne sont pas mis en
+évidence (décidé avec l'auteur le 2026-10-26) ; l'aperçu au survol, qui
+cache ceux qui le seront, suffit.
 
 ## Lien avec le lecteur
 

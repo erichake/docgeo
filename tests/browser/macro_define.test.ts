@@ -119,6 +119,7 @@ describe("Defining a macro", () => {
             "F = (0, 5)",
         );
         get(c, "c").stroke_color = "#ff0000";
+        get(c, "m1").hidden = 1;
         const method = methodOf(
             c,
             all(c, "A", "B", "C"),
@@ -133,9 +134,11 @@ describe("Defining a macro", () => {
             "c",
         ]);
         expect(method.finals).toEqual([5, 6]);
-        // Only the finals keep their style.
+        // Each keeps its style: a final's at the application, an
+        // intermediate's when its box is opened.
         expect(method.body[3][3]).toEqual({ c: "#ff0000", fc: "#CC66CC" });
-        expect(method.body[0][3]).toBeUndefined();
+        expect(method.body[0][3]).toEqual({ h: 1 });
+        expect(method.body[1][3]).toBeUndefined();
         const saving = savingOf(c.macros, "Circonscrit", method);
         expect(saving).toEqual({ kind: "create" });
         save(c, saving, "Circonscrit", ["O", "c"], null, method);

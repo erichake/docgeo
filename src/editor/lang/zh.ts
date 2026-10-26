@@ -335,7 +335,6 @@ const zh: Texts = {
         macro_other_finals: "%有其他最终对象：请换一个名称",
         macro_ambiguous: "其初始对象延长了%的另一种方法的初始对象，或相反",
         macro_later: "%不能使用在它之后创建的宏",
-        macro_saved: "宏%已保存",
         designate_ray: "选择一条射线",
         designate_arc: "选择一段弧",
         designate_conic: "选择一条圆锥曲线",
@@ -346,6 +345,9 @@ const zh: Texts = {
         macro_order: "宏的初始对象必须在构造中位于其应用之前",
         macro_bad_name: "宏的名称是一个词：字母、数字和 _",
         macro_command_name: "%是一个命令的名称：请换一个",
+        open_box: "打开盒子",
+        open_box_hint: "用其构造替换该应用：%个对象",
+        open_box_arc: "盒子无法打开：初始弧的终点不是图形中的对象",
     },
     commands: {
         Side: "边",

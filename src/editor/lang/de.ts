@@ -365,7 +365,6 @@ const de: Texts = {
         macro_ambiguous:
             "Seine Anfangsobjekte verlängern die einer anderen Methode von %, oder umgekehrt",
         macro_later: "% kann kein später erstelltes Makro verwenden",
-        macro_saved: "Makro % gespeichert",
         designate_ray: "Wählen Sie eine Halbgerade",
         designate_arc: "Wählen Sie einen Bogen",
         designate_conic: "Wählen Sie einen Kegelschnitt",
@@ -381,6 +380,11 @@ const de: Texts = {
             "Der Name eines Makros ist ein Wort: Buchstaben, Ziffern und _",
         macro_command_name:
             "% ist der Name eines Befehls: Wählen Sie einen anderen",
+        open_box: "Box öffnen",
+        open_box_hint:
+            "Ersetzt die Anwendung durch ihre Konstruktion: % Objekte",
+        open_box_arc:
+            "Die Box lässt sich nicht öffnen: Das Ende eines Anfangsbogens ist kein Objekt der Figur",
     },
     commands: {
         Side: "Seite",

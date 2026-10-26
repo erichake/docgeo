@@ -356,7 +356,6 @@ const es: Texts = {
         macro_ambiguous:
             "Sus iniciales prolongan los de otro método de %, o al revés",
         macro_later: "% no puede usar una macro creada después de ella",
-        macro_saved: "Macro % guardada",
         designate_ray: "Selecciona una semirrecta",
         designate_arc: "Selecciona un arco",
         designate_conic: "Selecciona una cónica",
@@ -371,6 +370,10 @@ const es: Texts = {
         macro_bad_name:
             "El nombre de una macro es una palabra: letras, cifras y _",
         macro_command_name: "% es el nombre de un comando: elige otro",
+        open_box: "Abrir la caja",
+        open_box_hint: "Sustituye la aplicación por su construcción: % objetos",
+        open_box_arc:
+            "La caja no se puede abrir: el final de un arco inicial no es un objeto de la figura",
     },
     commands: {
         Side: "Lado",

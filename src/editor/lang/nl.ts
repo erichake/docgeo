@@ -358,7 +358,6 @@ const nl: Texts = {
         macro_ambiguous:
             "Zijn beginobjecten verlengen die van een andere methode van %, of omgekeerd",
         macro_later: "% kan geen macro gebruiken die erna gemaakt is",
-        macro_saved: "Macro % opgeslagen",
         designate_ray: "Selecteer een halfrechte",
         designate_arc: "Selecteer een boog",
         designate_conic: "Selecteer een kegelsnede",
@@ -373,6 +372,11 @@ const nl: Texts = {
         macro_bad_name:
             "De naam van een macro is een woord: letters, cijfers en _",
         macro_command_name: "% is de naam van een opdracht: kies een andere",
+        open_box: "Doos openen",
+        open_box_hint:
+            "Vervangt de toepassing door haar constructie: % objecten",
+        open_box_arc:
+            "De doos gaat niet open: het einde van een beginboog is geen object van de figuur",
     },
     commands: {
         Side: "Zijde",

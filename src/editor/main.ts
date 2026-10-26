@@ -2,6 +2,7 @@
 import { AWAKE, construction } from "../construction";
 import type { Animation } from "../animation";
 import {
+    addDgoEntries,
     describeDgo,
     figureObjects,
     importDgoFromBlob,
@@ -69,6 +70,7 @@ import {
     hasName,
     lineOf,
     applyMacroLine,
+    openBox,
     resolveMacro,
     nextName,
     valueText,
@@ -175,6 +177,7 @@ import { macroPanel, type MacroState } from "./macro_panel";
 import { macro_object, type Macro } from "../objects/macro_object";
 import {
     applyMacro,
+    boxOf,
     completes,
     macroIndex,
     takesAt,
@@ -595,6 +598,7 @@ const segmentsButton = button("segments_list", () => drawFrom("segments"));
 // The point an expression gives, as by DGPad's calculator.
 const pointButton = button("formula_point", () => drawFrom("point"));
 const turtleButton = button("turtle", openTurtle);
+const openBoxButton = button("open_box", () => void openApplication());
 // In place of the actions while the magnets are chosen, or a tool of the
 // menu is in use: the way out.
 const doneButton = $.create("button")
@@ -622,6 +626,7 @@ const actions = $.create("div")
         $.create("span").cls("dge-bar-name").add(toolIcon, swatch, objectName),
         deleteButton,
         settingsButton,
+        openBoxButton,
         springButton,
         pinButton,
         magnetButton,
@@ -714,6 +719,17 @@ explain(turtleButton, (name) => {
     return `${name}\n${message("turtle_hint", start ? (start.point?.name ?? start.name) : turtle.name)}`;
 });
 explain(springButton, (name) => `${name}\n${message("spring_hint", name)}`);
+explain(openBoxButton, () => {
+    const c = scene();
+    const final = target()!;
+    const box = boxOf(c, final.output!.node as macro_object);
+    const line = lineOf(final, figureIndex(c), figureObjects(c));
+    return box
+        ? `${line}\n${message("open_box_hint", String(box.objects.length))}`
+        : `${line}\n${message("open_box_arc")}`;
+});
+openBoxButton.on("pointerenter", previewBox, false);
+openBoxButton.on("pointerleave", clearPreview, false);
 [pointsButton, segmentsButton].forEach((action) =>
     explain(
         action,
@@ -3045,6 +3061,7 @@ const inspecting = (): boolean => propertiesOpen && !pending && !editing();
 const OBJECT_ACTIONS = [
     deleteButton,
     settingsButton,
+    openBoxButton,
     springButton,
     pinButton,
     magnetButton,
@@ -3142,6 +3159,8 @@ function showActions(): void {
     else pointButton.hide();
     if (!magnetizing && turtleOf(object)) turtleButton.show("grid");
     else turtleButton.hide();
+    if (!magnetizing && object.output) openBoxButton.show("grid");
+    else openBoxButton.hide();
     showSpring(springOut && !magnetizing && springy(object) ? object : null);
     if (magnetizing) doneButton.show();
     else doneButton.hide();
@@ -3322,6 +3341,54 @@ function remove(): void {
     objects.forEach((object) => {
         if (c.getObj(object.name) === object) c.removeObject(object);
     });
+    done();
+}
+
+// ************************** BOX *********************************
+
+// What opening the box of the selected final's application brings, its
+// finals apart, pale and nameless, hidden if they will be.
+function previewBox(): void {
+    clearPreview();
+    const c = scene();
+    const node = target()!.output!.node as macro_object;
+    const box = boxOf(c, node);
+    if (!box) return;
+    const objects = figureObjects(c);
+    const inner = box.objects.filter(
+        (object) => !node.children.includes(object),
+    );
+    const positions = new Map(
+        [...objects, ...inner].map((object, index) => [object, index]),
+    );
+    addDgoEntries(
+        c,
+        inner.map((object, rank) => {
+            const [tag, parameters] = box.entry(object, (other) =>
+                positions.get(other)!,
+            );
+            return [tag, `‧${rank}`, parameters];
+        }),
+    );
+    const added = figureObjects(c).slice(objects.length);
+    added.forEach((object, rank) => {
+        object.showName = false;
+        object.hidden = inner[rank].hidden;
+        if (!object.hasView) return;
+        object.createSVG();
+        object.dom.addClass("dge-preview");
+    });
+    preview = { candidate: node, objects: added, standIns: [] };
+}
+
+// The application of the selected final replaced by its construction.
+async function openApplication(): Promise<void> {
+    const node = target()!.output!.node as macro_object;
+    clearPreview();
+    const opened = await openBox(scene(), node);
+    if (!opened) return showHint(message("open_box_arc"), true);
+    closeRing();
+    rebuild(studio, opened.figure);
     done();
 }
 
@@ -3527,7 +3594,7 @@ function startMacro(objects: construction_object[]): void {
 function stopMacro(): void {
     if (!macros.active) return;
     macros.stop();
-    $("body").removeClass("dge-macro-open");
+    $("body").addClass("dge-panel-animated").removeClass("dge-macro-open");
     showHint("");
 }
 
