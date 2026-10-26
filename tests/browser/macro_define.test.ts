@@ -90,6 +90,26 @@ describe("Defining a macro", () => {
         expect(segment.given.has(get(c, "A"))).toBe(true);
     });
 
+    it("keeps a circle's numeric radius as a constant of the body", () => {
+        const c = figure(
+            "A = (0, 0)",
+            "B = (4, 0)",
+            "M = Midpoint(A, B)",
+            "k = Circle(M, 0.5)",
+            "l = Line(A, B)",
+            "P = Intersection(l, k, 1)",
+        );
+        const analysis = analyse(c, all(c, "A", "B"));
+        expect(analysis.determined(get(c, "k"))).toBe(true);
+        expect(analysis.determined(get(c, "P"))).toBe(true);
+        const method = methodOf(c, all(c, "A", "B"), all(c, "P"), [], "");
+        expect(method.body.find(([, name]) => name === "k")).toEqual([
+            "C1",
+            "k",
+            [2, 0.5],
+        ]);
+    });
+
     it("determines a locus from its point's support", () => {
         const c = figure(
             "O = (0, 0)",

@@ -1251,12 +1251,6 @@ function readMethod(method: Json, count: number, styles: Json[]): MacroMethod {
                         !own(parameters, "v") &&
                         !own(parameters, "g")),
             );
-            check(
-                tag !== "C1" ||
-                    (Array.isArray(parameters) &&
-                        parameters[1] !== null &&
-                        typeof parameters[1] !== "number"),
-            );
             if (styleIndex === undefined) return [tag, name, parameters];
             check(Number.isInteger(styleIndex));
             const style = styles[styleIndex as number];

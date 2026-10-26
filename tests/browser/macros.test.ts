@@ -480,7 +480,8 @@ describe("Macro-constructions", () => {
         expect(
             figure(method([["Ex", "X", { t: "", v: 1, xy: [0, 0] }]])),
         ).toThrow();
-        expect(figure(method([["C1", "X", [0, 2]]]))).toThrow();
+        // A constant of the body.
+        expect(figure(method([["C1", "X", [0, 2]]]))).not.toThrow();
         expect(figure(method([["Sym", "X", [0, 0]]], [0]))).toThrow();
         expect(figure(method([["Sym", "X", [0, 0]]], [2]))).toThrow();
         expect(figure({ n: "M", f: ["X"], m: [] })).toThrow();

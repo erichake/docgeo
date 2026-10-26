@@ -28,6 +28,13 @@ export type MacroState = "initial" | "final" | "possible" | "missing";
 // The icon, in pixels.
 const ICON_SIZE = 16;
 
+// What the initials miss, named in a message: a hundred names would hide it.
+function names(objects: construction_object[]): string {
+    const distinct = [...new Set(objects)];
+    const listed = distinct.slice(0, 5).map(({ name }) => formatName(name));
+    return listed.join(", ") + (distinct.length > 5 ? "…" : "");
+}
+
 export function macroPanel(options: {
     scene: () => construction;
     show: (states: Map<construction_object, MacroState>) => void;
@@ -321,13 +328,19 @@ export function macroPanel(options: {
         let problem = "";
         if (!given.length) problem = message("macro_need_initial");
         else if (step === 1) problem = "";
-        else if (!shown.length) problem = message("macro_need_final");
-        else if (shown.some((object) => !analysis.determined(object)))
+        else if (!shown.length) {
+            const lacks = figureObjects(c)
+                .filter(
+                    (object) => !object.isHidden && !analysis.given.has(object),
+                )
+                .flatMap((object) => missing(analysis, object));
+            problem = lacks.length
+                ? message("macro_missing", names(lacks))
+                : message("macro_need_final");
+        } else if (shown.some((object) => !analysis.determined(object)))
             problem = message(
                 "macro_missing",
-                [...new Set([...lacking.values()].flat())]
-                    .map(({ name }) => formatName(name))
-                    .join(", "),
+                names([...lacking.values()].flat()),
             );
         let label = message("macro_create");
         // Typed as a command.

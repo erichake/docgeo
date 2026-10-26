@@ -185,6 +185,14 @@ des macros. Pour les figures importées, la référence est DGPad.
   vecteur, sommets d'un polygone), utilisables dans le corps (comme `CS` dans
   Cabri et `DefinitionPoint` dans DGPad). L'ordre porte le sens : [AB] et
   [BA] ne donnent pas le même résultat.
+- **Le rayon numérique d'un cercle est une constante du corps** (décidé
+  avec l'auteur le 2026-10-26) : un cercle de centre déterminé et de rayon
+  donné par un nombre est déterminé, même visible et agrandi à la main dans
+  la figure, comme les nombres d'une construction dans Cabri et CaRMetal.
+  Les figures DGPad en usent comme astuce (96 cercles de rayon 0,01 dans
+  `tests/dgp/Apollonius/_Apollonius.dgo`, sans lesquels ses trois cercles
+  ne déterminaient rien). Un rayon donné par une expression suit, lui, les
+  objets dont elle dépend.
 - Un initial semi-libre n'est plus qu'un objet de son type à l'usage : sa
   contrainte disparaît, sauf si son support est aussi un initial. C'est une
   généralisation légitime, qu'on ne signale pas.

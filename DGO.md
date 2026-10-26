@@ -660,8 +660,10 @@ Corps d'une méthode :
   avaient un.
 - Rien de ce qu'une manipulation change, qui serait un initial manquant :
   ni objet libre (`Pt`, `VecF`), ni `Ex` de valeur `"v"` (curseur, nombre
-  réglable) ou globale (`"g"`), ni `C1` de rayon numérique ; un nombre
-  constant s'écrit dans une formule (`"2"`). Ni `Btn`, `Evt`, `Html`, ni
+  réglable) ou globale (`"g"`) ; un nombre constant s'écrit dans une
+  formule (`"2"`). Le rayon numérique d'un `C1` y est en revanche une
+  constante, qu'aucun glisser ne change, même sur un final (décidé avec
+  l'auteur le 2026-10-26, voir `MACROS.md`). Ni `Btn`, `Evt`, `Html`, ni
   `Img`, dont la clé est celle de la table `img` de la figure. Le
   paramètre d'un `On` (le point mobile d'un lieu final) n'y est qu'un
   point de départ.

@@ -89,6 +89,8 @@ function subObjects(
 
 // What a manipulation changes, which a macro can't compute, and what acts
 // on the figure or names its images, which a body can't hold (see DGO.md).
+// A circle's numeric radius, though a manipulation changes it, is a
+// constant of the body (see MACROS.md).
 const unbuilt = (object: construction_object): boolean =>
     object.constructor === point_object ||
     object instanceof free_vector_object ||
@@ -96,7 +98,6 @@ const unbuilt = (object: construction_object): boolean =>
     (object instanceof expression_object &&
         !object.formula &&
         !object.program) ||
-    (object instanceof circle1_object && typeof object.radius === "number") ||
     object instanceof button_object ||
     object instanceof event_object ||
     object instanceof panel_object ||
