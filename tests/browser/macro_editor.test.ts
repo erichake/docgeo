@@ -394,10 +394,12 @@ describe("Defining a macro in the editor", () => {
             [...page.querySelectorAll<HTMLElement>(selector)]
                 .find((element) => element.textContent === text)!
                 .click();
+        // Hovered, k is lit as the other objects; then tapped.
         const tapK = () => {
-            const box = [...page.querySelectorAll("svg text")]
-                .find((text) => text.textContent!.startsWith("k ="))!
-                .getBoundingClientRect();
+            const k = [...page.querySelectorAll("svg text")].find((text) =>
+                text.textContent!.startsWith("k ="),
+            )!;
+            const box = k.getBoundingClientRect();
             const at = {
                 clientX: box.x + box.width / 2,
                 clientY: box.y + box.height / 2,
@@ -407,6 +409,8 @@ describe("Defining a macro in the editor", () => {
             };
             const target = page.elementFromPoint(at.clientX, at.clientY)!;
             const Pointer = (page.defaultView as typeof window).PointerEvent;
+            target.dispatchEvent(new Pointer("pointermove", at));
+            expect(k.closest(".dge-hover")).not.toBeNull();
             target.dispatchEvent(new Pointer("pointerdown", at));
             target.dispatchEvent(new Pointer("pointerup", at));
         };

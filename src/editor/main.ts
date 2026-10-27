@@ -5149,6 +5149,12 @@ function follow(event: PointerEvent): void {
     if (held) return;
     if (named) return highlight(named);
     if (arc) return highlight(arc);
+    // As when tapped, a widget, which the figure doesn't pick.
+    const widget = (applying || macros.active) && propertyObject(event);
+    if (widget && !hits.some(({ object }) => object === widget))
+        return macros.active || takesNext(designated(), widget)
+            ? highlight(widget)
+            : highlight();
     // The two objects whose intersection a click would make.
     const cross = wantsPoint(hits) && crossing(c, screen, hits);
     const shown = magnetizing
