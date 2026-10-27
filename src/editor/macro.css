@@ -235,26 +235,34 @@
     cursor: default;
 }
 
-/* In the figure: the initials in blue, the finals chosen in orange, what the
-   initials determine in green, what a final misses in red, the rest under a
-   veil. */
+/* In the figure, each object of the macro painted of one colour, whatever
+   its own (see PAINTS in macro_panel.ts): the initials in blue, the finals
+   chosen in orange, what the initials determine in grey, what a final
+   misses in red, the rest under a veil. */
 svg.dge-defining
     [data-layer]
     > :not(.dge-initial, .dge-final, .dge-possible, .dge-missing, .dge-hover) {
     opacity: 0.4;
 }
 svg .dge-initial {
-    filter: drop-shadow(0 0 2px #2563eb) drop-shadow(0 0 3px #2563eb);
+    --dge-paint: url(#dge-paint-initial);
 }
 svg .dge-final {
-    filter: drop-shadow(0 0 2px #ea580c) drop-shadow(0 0 3px #ea580c);
+    --dge-paint: url(#dge-paint-final);
 }
 svg .dge-possible {
-    filter: drop-shadow(0 0 2px #16a34a) drop-shadow(0 0 2px #16a34a);
+    --dge-paint: url(#dge-paint-possible);
 }
 svg .dge-missing {
-    filter: drop-shadow(0 0 2px #dc2626) drop-shadow(0 0 2px #dc2626);
+    --dge-paint: url(#dge-paint-missing);
     animation: dge-missing 0.8s ease-in-out infinite alternate;
+}
+svg :is(.dge-initial, .dge-final, .dge-possible, .dge-missing) {
+    filter: var(--dge-paint);
+}
+svg :is(.dge-initial, .dge-final, .dge-possible, .dge-missing).dge-hover {
+    filter: var(--dge-paint) drop-shadow(0 0 2px #f59e0b)
+        drop-shadow(0 0 3px #f59e0b);
 }
 @keyframes dge-missing {
     to {
@@ -273,7 +281,7 @@ svg .dge-missing {
     box-shadow: inset 3px 0 #ea580c;
 }
 .dge-item.dge-possible .dge-row {
-    box-shadow: inset 3px 0 #86efac;
+    box-shadow: inset 3px 0 #94a3b8;
 }
 .dge-item.dge-missing .dge-row {
     box-shadow: inset 3px 0 #dc2626;

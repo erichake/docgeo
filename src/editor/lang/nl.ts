@@ -337,7 +337,7 @@ const nl: Texts = {
         macro_finals: "Eindobjecten",
         macro_step_initials: "Stap 1/2: tik de beginobjecten aan, in volgorde",
         macro_step_finals:
-            "Stap 2/2: tik de eindobjecten aan tussen de groene objecten",
+            "Stap 2/2: tik de eindobjecten aan tussen de grijze objecten",
         macro_next: "Volgende: de eindobjecten",
         macro_back: "Terug naar de beginobjecten",
         macro_help: "Hulp",
@@ -351,11 +351,13 @@ const nl: Texts = {
         macro_message: "Bericht als het geselecteerd wordt",
         macro_drag: "Sleep om de volgorde te wijzigen",
         macro_implicit:
-            "Geen eindobject gekozen: de zichtbare groene objecten zijn de eindobjecten",
+            "Geen eindobject gekozen: de zichtbare grijze objecten zijn de eindobjecten",
         macro_need_initial: "Tik de objecten aan waarvan de macro vertrekt",
         macro_need_final: "De beginobjecten bepalen geen zichtbaar object",
         macro_missing: "Niet bepaald door de beginobjecten: ontbreekt %?",
         macro_not_initial: "% kan geen beginobject zijn",
+        macro_is_initial:
+            "% hoort bij de beginobjecten: het kan geen eindobject zijn",
         macro_create: "Macro maken",
         macro_add: "Een methode toevoegen aan %",
         macro_replace: "De methode van % vervangen",

@@ -27,6 +27,17 @@ import "./macro.css";
 // object the initials determine, or one a final misses.
 export type MacroState = "initial" | "final" | "possible" | "missing";
 
+// The colour each state paints its objects with, by an SVG filter (see
+// macro.css): CSS can't paint an object of one colour whatever its own.
+// Its region in the object's own coordinates, a point's or an angle's
+// translated, takes in the whole window.
+const PAINTS: Record<MacroState, string> = {
+    initial: "#2563eb",
+    final: "#ea580c",
+    possible: "#475569",
+    missing: "#dc2626",
+};
+
 // What the initials miss, named in a message: a hundred names would hide it.
 function names(objects: construction_object[]): string {
     const distinct = [...new Set(objects)];
@@ -36,12 +47,28 @@ function names(objects: construction_object[]): string {
 
 export function macroPanel(options: {
     scene: () => construction;
-    show: (states: Map<construction_object, MacroState>) => void;
+    show: (
+        states: Map<construction_object, MacroState>,
+        initials: construction_object[],
+    ) => void;
     hint: (text: string) => void;
     // A macro saved, the panel closed: a step to undo.
     saved: () => void;
     close: () => void;
 }) {
+    $("body").add(
+        $.createSVG()
+            .stl("position:absolute;width:0;height:0")
+            .att("aria-hidden", "true")
+            .inner(
+                Object.entries(PAINTS)
+                    .map(
+                        ([state, color]) =>
+                            `<filter id="dge-paint-${state}" filterUnits="userSpaceOnUse" x="-200%" y="-200%" width="500%" height="500%" color-interpolation-filters="sRGB"><feFlood flood-color="${color}"/><feComposite in2="SourceAlpha" operator="in"/></filter>`,
+                    )
+                    .join(""),
+            ),
+    );
     let active = false;
     // The initials designated first, then the finals among what they
     // determine.
@@ -465,7 +492,7 @@ export function macroPanel(options: {
         );
         chosen.forEach((object) => states.set(object, "final"));
         given.forEach((object) => states.set(object, "initial"));
-        options.show(states);
+        options.show(states, given);
     }
 
     return {
@@ -498,7 +525,7 @@ export function macroPanel(options: {
             if (!active) return;
             active = false;
             panel.dom().toggleAttribute("inert", true);
-            options.show(new Map());
+            options.show(new Map(), []);
         },
         // A tap on the object: an initial at the first step, a final among
         // what they determine at the second, or neither again.
@@ -526,7 +553,10 @@ export function macroPanel(options: {
                     c,
                     initials.map((other) => c.getObj(other)!),
                 );
-                if (analysis.given.has(object)) return;
+                if (analysis.given.has(object))
+                    return options.hint(
+                        message("macro_is_initial", formatName(name)),
+                    );
                 if (!analysis.determined(object))
                     return options.hint(
                         message(

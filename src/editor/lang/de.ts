@@ -342,7 +342,7 @@ const de: Texts = {
         macro_step_initials:
             "Schritt 1/2: Tippen Sie die Anfangsobjekte der Reihe nach an",
         macro_step_finals:
-            "Schritt 2/2: Tippen Sie die Endobjekte unter den grünen Objekten an",
+            "Schritt 2/2: Tippen Sie die Endobjekte unter den grauen Objekten an",
         macro_next: "Weiter: die Endobjekte",
         macro_back: "Zurück zu den Anfangsobjekten",
         macro_help: "Hilfe",
@@ -356,12 +356,14 @@ const de: Texts = {
         macro_message: "Meldung, wenn es gewählt wird",
         macro_drag: "Ziehen, um die Reihenfolge zu ändern",
         macro_implicit:
-            "Kein Endobjekt gewählt: Die sichtbaren grünen Objekte sind die Endobjekte",
+            "Kein Endobjekt gewählt: Die sichtbaren grauen Objekte sind die Endobjekte",
         macro_need_initial:
             "Tippen Sie die Objekte an, von denen das Makro ausgeht",
         macro_need_final: "Die Anfangsobjekte bestimmen kein sichtbares Objekt",
         macro_missing: "Nicht durch die Anfangsobjekte bestimmt: Fehlt %?",
         macro_not_initial: "% kann kein Anfangsobjekt sein",
+        macro_is_initial:
+            "% gehört zu den Anfangsobjekten: es kann kein Endobjekt sein",
         macro_create: "Makro erstellen",
         macro_add: "Eine Methode zu % hinzufügen",
         macro_replace: "Die Methode von % ersetzen",

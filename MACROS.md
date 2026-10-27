@@ -188,7 +188,15 @@ des macros. Pour les figures importées, la référence est DGPad.
   visibles déterminés sont les finaux**. Les objets cachés déterminés
   restent des intermédiaires. Une fois un final cliqué, le reste du bouquet
   reste allumé. L'œil doit distinguer nettement trois états : initial, final
-  possible et final choisi.
+  possible et final choisi. Chaque objet de la macro est donc peint de la
+  couleur unie de son état, quelle que soit la sienne : initiaux en bleu,
+  leur rang dans une pastille à côté d'eux (comme dans le panneau), finaux
+  possibles en gris, finaux choisis en orange, ce qui manque en rouge
+  (décidé avec l'auteur le 2026-10-27, à la place d'un halo autour de la
+  couleur propre : un utilisateur avait pris un initial vert foncé, sous son
+  halo bleu, pour un final possible, sous halo vert). Pas de paire rouge et
+  vert, que confondent les daltoniens. Un clic sur un initial à l'étape 2
+  dit pourquoi il n'est pas pris.
 - **Un final qui n'est plus déterminé** (initial retiré en revenant à
   l'étape 1) est signalé, et ses ancêtres manquants sont **suggérés**,
   jamais choisis d'office.
@@ -624,7 +632,7 @@ magnétiques, grilles), interpolation par tangentes.
   (`designation`, `applyMacro` de `macro.ts`, `startApply` de `main.ts`).
   Le nœud est super-caché par défaut et sans ligne. Testé dans
   `macro_define.test.ts` et `macro_editor.test.ts`.
-    - Les objets acceptés comme initial suivant ne sont pas mis en vert
+    - Les objets acceptés comme initial suivant ne sont pas mis en valeur
       (décidé avec l'auteur) : la consigne suffit.
     - Faits ensuite : un nombre tapé dans la consigne, l'aperçu avant le
       dernier initial.
@@ -646,7 +654,7 @@ magnétiques, grilles), interpolation par tangentes.
   « Suivant : les finaux », puis finaux), à la place de la règle
   automatique et de la bascule « Initial / Final » (voir « Définir une
   macro »). Le bouton est gardé après discussion avec l'auteur : à
-  l'étape 1, un objet déjà déterminé (vert) peut être voulu comme initial
+  l'étape 1, un objet déjà déterminé (gris) peut être voulu comme initial
   (couper plus tôt), et seul le moment lève l'ambiguïté.
 
 - Étape 6, « Ouvrir la boîte », faite (2026-10-26) : action de la zone

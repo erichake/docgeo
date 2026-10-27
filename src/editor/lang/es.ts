@@ -335,7 +335,7 @@ const es: Texts = {
         macro_finals: "Finales",
         macro_step_initials: "Paso 1/2: toca los iniciales, en orden",
         macro_step_finals:
-            "Paso 2/2: toca los finales entre los objetos verdes",
+            "Paso 2/2: toca los finales entre los objetos grises",
         macro_next: "Siguiente: los finales",
         macro_back: "Volver a los iniciales",
         macro_help: "Ayuda",
@@ -349,11 +349,13 @@ const es: Texts = {
         macro_message: "Mensaje mostrado al seleccionarlo",
         macro_drag: "Arrastra para cambiar el orden",
         macro_implicit:
-            "Ningún final elegido: los objetos visibles en verde son los finales",
+            "Ningún final elegido: los objetos visibles en gris son los finales",
         macro_need_initial: "Toca los objetos de los que parte la macro",
         macro_need_final: "Los iniciales no determinan ningún objeto visible",
         macro_missing: "No determinado por los iniciales: ¿falta %?",
         macro_not_initial: "% no puede ser un inicial",
+        macro_is_initial:
+            "% forma parte de los iniciales: no puede ser un final",
         macro_create: "Crear la macro",
         macro_add: "Añadir un método a %",
         macro_replace: "Reemplazar el método de %",

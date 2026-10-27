@@ -534,6 +534,8 @@ const toolsMenu = $.create("div").cls("dge-tools").att("role", "menu").hide();
 const toolsSub = $.create("div").cls("dge-tools").att("role", "menu").hide();
 // The ranks of the objects selected.
 const badges = $.create("div").cls("dge-badges");
+// The ranks of a macro's initials.
+const ranks = $.create("div").cls("dge-badges");
 const hint = $.create("div").cls("dge-hint");
 const ring = $.create("div").cls("dge-ring").hide();
 // Escape, for the fingers.
@@ -1086,6 +1088,7 @@ $("body").add(
     toolsMenu,
     toolsSub,
     badges,
+    ranks,
     magnetCard,
     turtle.element,
     spring,
@@ -2796,7 +2799,7 @@ function arm(item: Item): void {
     if (item.tools[0].mode === "macro") {
         closeTools();
         cancel();
-        return startMacro(picked.map(({ object }) => object));
+        return startMacro(picked);
     }
     closeTools();
     cancel();
@@ -3719,14 +3722,16 @@ function launch(): void {
 // ************************** MACROS ******************************
 
 // The figure behind a veil, but for the objects of the macro.
-function startMacro(objects: construction_object[]): void {
+function startMacro(picked: Hit[]): void {
     stopApply();
     setEraser(false);
     if (propertiesOpen) setProperties(false);
     if (window.innerWidth <= 900) setPanel(false);
     closeRing();
     $("body").addClass("dge-panel-animated").addClass("dge-macro-open");
-    macros.start(objects);
+    spots.clear();
+    picked.forEach(({ object, at }) => spots.set(object.name, at));
+    macros.start(picked.map(({ object }) => object));
 }
 
 function stopMacro(): void {
@@ -3788,7 +3793,8 @@ function libraryItems(
 
 function macrosMenu(): MenuItems {
     const c = scene();
-    const objects = chosen().map(({ object }) => object);
+    const picked = chosen();
+    const objects = picked.map(({ object }) => object);
     const mine = myMacros();
     const shown = shownMacros(mine, supplied);
     // Not the copies of the library's.
@@ -3798,7 +3804,7 @@ function macrosMenu(): MenuItems {
             label: message("new_macro"),
             run: () => {
                 cancel();
-                startMacro(objects);
+                startMacro(picked);
             },
         },
         null,
@@ -4015,8 +4021,12 @@ const manageMine = (): void =>
 
 const MACRO_STATES: MacroState[] = ["initial", "final", "possible", "missing"];
 
-// Each object of the macro lit in the figure and in its row.
-function showMacro(states: Map<construction_object, MacroState>): void {
+// Each object of the macro painted in the figure and lit in its row, each
+// initial's rank beside it.
+function showMacro(
+    states: Map<construction_object, MacroState>,
+    initials: construction_object[],
+): void {
     const c = scene();
     c.svg.toggleClass("dge-defining", states.size > 0 || macros.active);
     const classes = MACRO_STATES.map((state) => `dge-${state}`);
@@ -4029,6 +4039,45 @@ function showMacro(states: Map<construction_object, MacroState>): void {
     states.forEach((state, object) => {
         if (object.hasView) object.dom.addClass(`dge-${state}`);
         items.get(object)?.addClass(`dge-${state}`);
+    });
+    ranked = initials;
+    ranks.inner("");
+    initials.forEach((_, index) =>
+        ranks.add($.create("span").text(String(index + 1))),
+    );
+    placeRanks();
+}
+
+// Where each initial was touched, by name, the figure being rebuilt by
+// undo and redo.
+const spots = new Map<string, Vec3>();
+let ranked: construction_object[] = [];
+
+// Each rank where its initial was touched, or, designated in its row, at
+// its point nearest to the middle of the figure.
+function placeRanks(): void {
+    if (!ranked[0]) return;
+    const c = scene();
+    c.flush();
+    const box = c.svg.dom().getBoundingClientRect();
+    const middle: Vec2 = [box.width / 2, box.height / 2];
+    ranked.forEach((object, index) => {
+        const rank = $(ranks.dom().children[index]);
+        if (object.isHidden || !object.hasView) return rank.hide();
+        const at = spots.get(object.name) ?? nearest(c, object, middle);
+        let x: number, y: number;
+        if (at) {
+            const hit = { object, distance: 0, at };
+            [x, y] = hold(c, hit, c.pt3D(at));
+            spots.set(object.name, hit.at);
+        } else {
+            // A number: by its view.
+            const view = object.dom.dom().getBoundingClientRect();
+            [x, y] = [view.left - box.left, view.top - box.top];
+        }
+        rank.show()
+            .stl("left", `${box.left + x}px`)
+            .stl("top", `${box.top + y}px`);
     });
 }
 
@@ -5265,6 +5314,7 @@ function dragged(): void {
         moveRing();
         markSides();
         placeBadges();
+        placeRanks();
         showMagnets();
         if (renaming) placeName();
         macros.follow();
@@ -5467,9 +5517,11 @@ $("body").on(
         // A tap in the void keeps the definition.
         if (macros.active) {
             if (hits[0])
-                chooseHit(hits, client, ({ object }) =>
-                    macros.tap(object.reference?.owner ?? object),
-                );
+                chooseHit(hits, client, ({ object, at }) => {
+                    const owner = object.reference?.owner ?? object;
+                    if (owner === object) spots.set(object.name, at);
+                    macros.tap(owner);
+                });
             return;
         }
         if (magnetizing) {

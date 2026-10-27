@@ -97,10 +97,20 @@ describe("Defining a macro in the editor", () => {
         // At the first step, each tap an initial, even O, which A, B and C
         // then determine: a second tap takes it away.
         ["A", "B", "C", "O", "O"].forEach(tap);
+        // Each initial's rank beside it in the figure.
+        expect(
+            [...page.querySelectorAll(".dge-badges span")].map(
+                (badge) => badge.textContent,
+            ),
+        ).toEqual(["1", "2", "3"]);
         button("Next: the finals").click();
-        expect(step()).toBe("Step 2/2: tap the finals among the green objects");
-        // A, an initial, is no final.
-        ["A", "O", "c"].forEach(tap);
+        expect(step()).toBe("Step 2/2: tap the finals among the gray objects");
+        // A, an initial, is no final: the hint tells why.
+        tap("A");
+        expect(page.querySelector(".dge-hint")!.textContent).toBe(
+            "A is part of the initials: it can't be a final",
+        );
+        ["O", "c"].forEach(tap);
         const names = (list: number) =>
             [...panel.querySelectorAll(".dge-macro-list")[list].children].map(
                 (row) => row.querySelector(".dge-macro-object")?.textContent,
