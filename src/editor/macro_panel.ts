@@ -9,11 +9,11 @@ import {
     initialType,
     macroName,
     methodOf,
+    nameProblem,
     missing,
     save,
     savingOf,
 } from "./macro";
-import { isCommand } from "./catalog";
 import { macroLetters, macroThumbnail } from "./macro_icon";
 import { message, type MessageKey } from "./messages";
 import { formatName } from "./text";
@@ -391,11 +391,7 @@ export function macroPanel(options: {
                 names([...lacking.values()].flat()),
             );
         let label = message("macro_create");
-        // Typed as a command.
-        if (!problem && !/^[\p{L}_][\p{L}\p{N}_]*$/u.test(name))
-            problem = message("macro_bad_name");
-        if (!problem && isCommand(name))
-            problem = message("macro_command_name", name);
+        problem ||= nameProblem(name) ?? "";
         if (!problem) {
             const method = methodOf(
                 c,

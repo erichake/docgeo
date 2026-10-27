@@ -1,8 +1,10 @@
 import { $, type DOMElement } from "../dom";
 
+// An item opens a submenu if it has `items`, rather than running.
 export interface MenuItem {
     label: string;
-    run: () => void;
+    run?: () => void;
+    items?: () => MenuItems;
     shortcut?: string;
     icon?: () => DOMElement;
     enabled?: () => boolean;
@@ -10,9 +12,12 @@ export interface MenuItem {
 }
 
 // A null item is a separator.
+export type MenuItems = (MenuItem | null)[];
+
+// Its items made when it opens, if a function.
 export interface Menu {
     label: string;
-    items: (MenuItem | null)[];
+    items: MenuItems | (() => MenuItems);
 }
 
 const MAC = /Mac|iPhone|iPad/.test(navigator.platform);
@@ -32,24 +37,44 @@ export function menuBar(menus: Menu[], ...end: DOMElement[]): DOMElement[] {
     const veil = $.create("div").cls("dge-menu-veil").hide();
     const roots: DOMElement[] = [];
     const popups: DOMElement[] = [];
+    // The submenus open, each beside its item in the one before.
+    const subs: { popup: DOMElement; item: DOMElement }[] = [];
     let open = -1;
 
+    const closeSubs = (level: number): void => {
+        subs.splice(level).forEach(({ popup, item }) => {
+            popup.dispose();
+            item.removeClass("dge-open").att("aria-expanded", "false");
+        });
+    };
     const close = (): void => {
         if (open < 0) return;
+        closeSubs(0);
         popups[open].hide();
         roots[open].removeClass("dge-open").att("aria-expanded", "false");
         veil.hide();
         open = -1;
     };
-    const items = (): HTMLButtonElement[] =>
-        [...popups[open].dom().querySelectorAll("button")].filter(
-            (item) => !item.disabled,
+    // Where the focus is: the menu, or a submenu.
+    const current = (): HTMLElement => {
+        const focused = document.activeElement;
+        return (
+            [...subs]
+                .reverse()
+                .map(({ popup }) => popup.dom() as HTMLElement)
+                .find((popup) => popup.contains(focused)) ??
+            (popups[open].dom() as HTMLElement)
         );
-    const show = (index: number, focusFirst: boolean): void => {
-        close();
-        open = index;
-        const popup = popups[index].inner("");
-        menus[index].items.forEach((item) => {
+    };
+    const items = (popup: HTMLElement): HTMLButtonElement[] =>
+        [
+            ...popup.querySelectorAll<HTMLButtonElement>(":scope > button"),
+        ].filter((item) => !item.disabled);
+    const level = (popup: HTMLElement): number =>
+        subs.findIndex((sub) => sub.popup.dom() === popup) + 1;
+
+    const fill = (popup: DOMElement, list: MenuItems, depth: number): void => {
+        list.forEach((item) => {
             if (!item) return void popup.add($.create("hr"));
             const element = $.create("button")
                 .att("type", "button")
@@ -63,21 +88,90 @@ export function menuBar(menus: Menu[], ...end: DOMElement[]): DOMElement[] {
                 element.att("aria-checked", String(item.checked()));
             if (item.shortcut) element.add($.create("kbd").text(item.shortcut));
             if (item.enabled && !item.enabled()) element.att("disabled", "");
-            element.on(
-                "click",
-                () => {
-                    close();
-                    (roots[index].dom() as HTMLElement).focus();
-                    item.run();
-                },
-                false,
-            );
+            if (item.items) {
+                const opens = item.items;
+                element
+                    .addClass("dge-menu-sub")
+                    .att("aria-haspopup", "menu")
+                    .att("aria-expanded", "false");
+                element.on(
+                    "pointerenter",
+                    (event) => {
+                        if (event.pointerType === "mouse")
+                            openSub(element, opens(), depth);
+                    },
+                    false,
+                );
+                element.on(
+                    "click",
+                    () => openSub(element, opens(), depth),
+                    false,
+                );
+            } else {
+                element.on("pointerenter", () => closeSubs(depth), false);
+                const index = open;
+                element.on(
+                    "click",
+                    () => {
+                        close();
+                        (roots[index].dom() as HTMLElement).focus();
+                        item.run!();
+                    },
+                    false,
+                );
+            }
             popup.add(element);
         });
-        popup.show("flex");
+    };
+
+    // Beside its item, or on the other side when the window is too narrow.
+    const openSub = (
+        item: DOMElement,
+        list: MenuItems,
+        depth: number,
+    ): void => {
+        if (subs[depth]?.item === item) return;
+        closeSubs(depth);
+        const popup = $.create("div")
+            .cls("dge-menu-popup dge-menu-subpopup")
+            .att("role", "menu")
+            .att("tabindex", "-1");
+        fill(popup, list, depth + 1);
+        bar.add(popup);
+        item.addClass("dge-open").att("aria-expanded", "true");
+        subs.push({ popup, item });
+        const box = item.dom().getBoundingClientRect();
+        const { width, height } = popup.dom().getBoundingClientRect();
+        const rtl = getComputedStyle(bar.dom()).direction === "rtl";
+        const sides = [box.right + 2, box.left - width - 2];
+        const left =
+            (rtl ? sides.reverse() : sides).find(
+                (side) => side >= 8 && side + width <= window.innerWidth - 8,
+            ) ?? Math.max(8, window.innerWidth - width - 8);
+        popup
+            .stl("left", `${left}px`)
+            .stl(
+                "top",
+                `${Math.max(8, Math.min(box.top - 5, window.innerHeight - height - 8))}px`,
+            );
+    };
+
+    const show = (index: number, focusFirst: boolean): void => {
+        close();
+        open = index;
+        const { items: list } = menus[index];
+        fill(
+            popups[index].inner(""),
+            typeof list === "function" ? list() : list,
+            0,
+        );
+        popups[index].show("flex");
         veil.show();
         roots[index].addClass("dge-open").att("aria-expanded", "true");
-        (focusFirst ? items()[0] : (popup.dom() as HTMLElement))?.focus();
+        (focusFirst
+            ? items(popups[index].dom() as HTMLElement)[0]
+            : (popups[index].dom() as HTMLElement)
+        )?.focus();
     };
 
     menus.forEach((menu, index) => {
@@ -119,10 +213,23 @@ export function menuBar(menus: Menu[], ...end: DOMElement[]): DOMElement[] {
             const rootIndex = roots.findIndex(
                 (root) => root.dom() === document.activeElement,
             );
+            const popup = open >= 0 ? current() : null;
+            const depth = popup ? level(popup) : 0;
+            const focused = document.activeElement as HTMLElement;
             if (key === "Escape" && open >= 0) {
                 const index = open;
                 close();
                 (roots[index].dom() as HTMLElement).focus();
+            } else if (
+                key === forward &&
+                focused.classList.contains("dge-menu-sub")
+            ) {
+                focused.click();
+                items(subs[depth].popup.dom() as HTMLElement)[0]?.focus();
+            } else if (key === backward && depth > 0) {
+                const { item } = subs[depth - 1];
+                closeSubs(depth - 1);
+                (item.dom() as HTMLElement).focus();
             } else if ((key === forward || key === backward) && open >= 0)
                 show(
                     (open + (key === forward ? 1 : menus.length - 1)) %
@@ -131,11 +238,9 @@ export function menuBar(menus: Menu[], ...end: DOMElement[]): DOMElement[] {
                 );
             else if (key === "ArrowDown" && open < 0 && rootIndex >= 0)
                 show(rootIndex, true);
-            else if ((key === "ArrowDown" || key === "ArrowUp") && open >= 0) {
-                const list = items();
-                const at = list.indexOf(
-                    document.activeElement as HTMLButtonElement,
-                );
+            else if ((key === "ArrowDown" || key === "ArrowUp") && popup) {
+                const list = items(popup);
+                const at = list.indexOf(focused as HTMLButtonElement);
                 const step = key === "ArrowDown" ? 1 : -1;
                 list[
                     at < 0

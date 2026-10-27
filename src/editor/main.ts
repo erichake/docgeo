@@ -4,7 +4,11 @@ import type { Animation } from "../animation";
 import {
     addDgoEntries,
     describeDgo,
+    describeMacros,
+    dgoJson,
     figureObjects,
+    gzipped,
+    imageKey,
     importDgoFromBlob,
     readDgo,
     writeDgo,
@@ -91,10 +95,18 @@ import {
     native,
     opened,
     saveFile,
+    saveOther,
     showChanged,
     standalone,
 } from "./file";
-import { DELETE_KEY, menuBar, shortcut, type Menu } from "./menus";
+import {
+    DELETE_KEY,
+    menuBar,
+    shortcut,
+    type Menu,
+    type MenuItem,
+    type MenuItems,
+} from "./menus";
 import { embedded, embedEditor, requestSave } from "./embed";
 import { toolsMenu as applicationToolsMenu } from "./about";
 import { hideGhosts, showGhosts, toggleGhost, withHidden } from "./eraser";
@@ -172,6 +184,19 @@ import {
 import { offPlane, PLANE, SPACE, turnView } from "./space";
 import { showStep as showStepOf, stepOf, steps, type Stepping } from "./steps";
 import { askLink, confirmed, framingBar } from "./web_page";
+import {
+    conflicts,
+    describeLibrary,
+    emptyLibrary,
+    keepMyMacros,
+    merge,
+    myMacros,
+    readLibrary,
+    shownMacros,
+    suppliedLibrary,
+    type Library,
+} from "./library";
+import { macroBadge, manageMyMacros } from "./my_macros";
 import "./properties.css";
 import { macroPanel, type MacroState } from "./macro_panel";
 import { macro_object, type Macro } from "../objects/macro_object";
@@ -346,13 +371,21 @@ $("head").append(`<style>
     .dge-menubar > div > button:hover, .dge-menubar > div > button.dge-open { background: #eef2f7; }
     .dge-menubar > div > button:focus-visible { outline: 2px solid #2563eb; outline-offset: -2px; }
     .dge-menu-popup { position: absolute; top: calc(100% + 4px); inset-inline-start: 0; flex-direction: column; min-width: 220px; padding: 4px; border: 1px solid #d1d5db; border-radius: 8px; background: #fff; box-shadow: 0 6px 20px rgb(0 0 0 / 0.14); outline: none; }
-    .dge-menu-popup button { display: flex; align-items: center; padding: 6px 10px 6px 4px; border: 0; border-radius: 5px; background: none; font: inherit; color: inherit; text-align: start; white-space: nowrap; }
+    .dge-menu-popup button { display: flex; align-items: center; min-height: 32px; padding: 6px 12px 6px 4px; border: 0; border-radius: 5px; background: none; font: inherit; color: inherit; text-align: start; white-space: nowrap; }
     .dge-menu-popup button::before { content: ""; width: 20px; flex: none; text-align: center; }
     .dge-menu-popup button[aria-checked="true"]::before { content: "✓"; }
     .dge-menu-popup button:not(:disabled):is(:hover, :focus-visible) { background: #2563eb; color: #fff; outline: none; }
     .dge-menu-popup button:disabled { opacity: 0.4; }
     .dge-menu-popup kbd { margin-inline-start: auto; padding-inline-start: 28px; font: inherit; opacity: 0.6; }
     .dge-menu-popup hr { margin: 4px 8px; border: 0; border-block-start: 1px solid #e5e7eb; }
+    .dge-menubar > .dge-menu-subpopup { position: fixed; inset-inline: auto; display: flex; max-height: calc(100dvh - 16px); overflow-y: auto; }
+    .dge-menu-sub::after { content: "›"; margin-inline-start: auto; padding-inline-start: 24px; font-size: 16px; line-height: 1; opacity: 0.6; }
+    .dge-menu-sub:dir(rtl)::after { content: "‹"; }
+    .dge-menu-subpopup > * { flex: none; }
+    .dge-menu-popup .dge-menu-icon > .dge-tool-icon:last-child { width: 28px; height: 28px; margin-inline: 2px 10px; }
+    .dge-menu-popup .dge-menu-icon > .dge-tool-icon svg { width: 20px; height: 20px; }
+    .dge-menu-popup button:not(:disabled):is(:hover, :focus-visible) .dge-tool-icon { border-color: #fff; }
+    .dge-menu-popup button.dge-menu-sub.dge-open:not(:hover, :focus-visible) { background: #eef2f7; }
     .dge-menu-veil { position: fixed; inset: 0; z-index: 19; }
     .dge-file { display: flex; align-items: center; gap: 8px; min-width: 0; max-width: min(38vw, 420px); margin-inline-start: auto; padding-inline: 18px 6px; color: #64748b; }
     .dge-file span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -864,6 +897,11 @@ const properties = propertiesPanel({
         (propertiesButton.dom() as HTMLButtonElement).focus();
     },
 });
+// The macros shipped with DocGeo, and the user's own, out of a frame only
+// (see MACROS.md, « Bibliothèque »).
+let supplied = emptyLibrary();
+if (standalone) void suppliedLibrary().then((library) => (supplied = library));
+
 // A macro being defined (see MACROS.md).
 const macros = macroPanel({
     scene,
@@ -975,6 +1013,7 @@ const menus: Menu[] = [
                 : []),
         ],
     },
+    { label: message("menu_macros"), items: macrosMenu },
     applicationToolsMenu(press(helpLink)),
 ];
 if (standalone) $("body").addClass("dge-menus");
@@ -1776,8 +1815,23 @@ async function enterLine(
     hideChoice();
     // The sliders of the names the line reads that no object has.
     const sliders: construction_object[] = [];
+    let borrowed = false;
     try {
         const line = parseLine(text, isCall);
+        // A library's macro, copied into the figure to be applied.
+        const call =
+            line.definition?.kind === "call"
+                ? libraryMacro(line.definition.command)
+                : null;
+        if (call) {
+            c.macros = merge(
+                figureLibrary(),
+                call.library,
+                [call.macro.name],
+                false,
+            ).library.macros;
+            borrowed = true;
+        }
         const target =
             object ?? (line.name ? (c.getObj(line.name) ?? null) : null);
         // A macro applied, or its application redefined.
@@ -1845,7 +1899,7 @@ async function enterLine(
     } catch (error) {
         if (
             error instanceof TextError &&
-            sliders.length &&
+            (sliders.length || borrowed) &&
             error.key !== "off_plane"
         )
             await reframe({}, history[position]);
@@ -1853,9 +1907,26 @@ async function enterLine(
     }
 }
 
-// A command, or one of the figure's macros.
+// A command, or one of the figure's macros, or of a library.
 const isCall = (name: string): boolean =>
-    isCommand(name) || macroIndex(scene(), name) >= 0;
+    isCommand(name) ||
+    macroIndex(scene(), name) >= 0 ||
+    libraryMacro(name) !== null;
+
+// The libraries a line may apply a macro of, out of a frame: the one
+// shipped, then mine.
+const libraries = (): Library[] => (standalone ? [supplied, myMacros()] : []);
+
+// The macro of a library of this name, unless a command or the figure's
+// has it.
+function libraryMacro(name: string): { library: Library; macro: Macro } | null {
+    if (isCommand(name) || macroIndex(scene(), name) >= 0) return null;
+    for (const library of libraries()) {
+        const macro = library.macros.find((other) => other.name === name);
+        if (macro) return { library, macro };
+    }
+    return null;
+}
 
 const calls = (commands: Command[]) =>
     commands.map((command) => ({
@@ -1872,7 +1943,8 @@ function updateCompletion(field: LineField): void {
         context?.kind === "argument" ? findCommand(context.command) : undefined;
     const macro =
         context?.kind === "argument"
-            ? scene().macros[macroIndex(scene(), context.command)]
+            ? (scene().macros[macroIndex(scene(), context.command)] ??
+              libraryMacro(context.command)?.macro)
             : undefined;
     const prefix = context?.prefix ?? "";
     let candidates: construction_object[] = [];
@@ -1914,11 +1986,17 @@ function updateCompletion(field: LineField): void {
                         (command) => !command.reference,
                     ),
                 ),
-                ...scene()
-                    .macros.filter(({ name }) =>
+                ...[
+                    ...new Set(
+                        [scene(), ...libraries()].flatMap(({ macros }) =>
+                            macros.map(({ name }) => name),
+                        ),
+                    ),
+                ]
+                    .filter((name) =>
                         name.toLowerCase().startsWith(prefix.toLowerCase()),
                     )
-                    .map(({ name }) => ({
+                    .map((name) => ({
                         label: `${formatName(name)}( )`,
                         insert: `${formatName(name)}(`,
                     })),
@@ -3658,6 +3736,283 @@ function stopMacro(): void {
     showHint("");
 }
 
+// ************************** LIBRARY *****************************
+
+const figureLibrary = (): Library => ({
+    macros: scene().macros,
+    folders: scene().macros.map(() => []),
+});
+
+const macroItem = (
+    macro: Macro,
+    run: () => void,
+    enabled?: () => boolean,
+): MenuItem => ({
+    label: macro.name,
+    run,
+    enabled,
+    icon: () => macroBadge(macro),
+});
+
+// Its folders, then its macros, in the order of the library.
+function libraryItems(
+    library: Library,
+    shown: number[],
+    path: string[] = [],
+): MenuItems {
+    const inside = shown.filter((index) =>
+        path.every((name, depth) => library.folders[index][depth] === name),
+    );
+    const folders = [
+        ...new Set(
+            inside.flatMap((index) =>
+                library.folders[index].slice(path.length, path.length + 1),
+            ),
+        ),
+    ];
+    return [
+        ...folders.map((name) => ({
+            label: name,
+            items: () => libraryItems(library, inside, [...path, name]),
+        })),
+        ...inside
+            .filter((index) => library.folders[index].length === path.length)
+            .map((index) =>
+                macroItem(
+                    library.macros[index],
+                    () => void applyFrom(library, library.macros[index].name),
+                ),
+            ),
+    ];
+}
+
+function macrosMenu(): MenuItems {
+    const c = scene();
+    const objects = chosen().map(({ object }) => object);
+    const mine = myMacros();
+    const shown = shownMacros(mine, supplied);
+    // Not the copies of the library's.
+    const own = shownMacros(figureLibrary(), supplied);
+    return [
+        {
+            label: message("new_macro"),
+            run: () => {
+                cancel();
+                startMacro(objects);
+            },
+        },
+        null,
+        // A figure may have many.
+        {
+            label: message("figure_macros"),
+            items: () =>
+                c.macros.map((macro, index) =>
+                    macroItem(
+                        macro,
+                        () => {
+                            cancel();
+                            startApply(index, objects);
+                        },
+                        () => beginsMacro(macro, objects),
+                    ),
+                ),
+            enabled: () => c.macros.length > 0,
+        },
+        {
+            label: message("macro_library"),
+            items: () =>
+                libraryItems(
+                    supplied,
+                    supplied.macros.map((_, index) => index),
+                ),
+            enabled: () => supplied.macros.length > 0,
+        },
+        {
+            label: message("my_macros"),
+            items: () => libraryItems(mine, shown),
+            enabled: () => shown.length > 0,
+        },
+        null,
+        {
+            label: message("add_to_my_macros"),
+            items: () =>
+                own.map((index) =>
+                    macroItem(
+                        c.macros[index],
+                        () =>
+                            void addToMine(figureLibrary(), [
+                                c.macros[index].name,
+                            ]),
+                    ),
+                ),
+            enabled: () => own.length > 0,
+        },
+        { label: `${message("manage_my_macros")}…`, run: manageMine },
+        { label: `${message("import_macros")}…`, run: chooseMacros },
+        {
+            label: `${message("export_my_macros")}…`,
+            run: () => void exportMine(),
+            enabled: () => shown.length > 0,
+        },
+    ];
+}
+
+// Copied into the figure with the macros it applies, and applied as a
+// tool. A version the figure has of one of them may be replaced, the
+// figure rebuilt; refused, the figure's are applied.
+async function applyFrom(library: Library, name: string): Promise<void> {
+    let objects = chosen().map(({ object }) => object);
+    cancel();
+    const taken = conflicts(figureLibrary(), library, [name]);
+    const replace =
+        taken.length > 0 &&
+        (await confirmed(
+            message("macros_taken_figure", taken.map(formatName).join(", ")),
+            message("menu_macros"),
+            "macros_replace",
+        ));
+    const before = scene().macros;
+    const {
+        library: merged,
+        indices,
+        rewritten,
+    } = merge(figureLibrary(), library, [name], replace);
+    if (rewritten) {
+        if (!(await rewriteMacros(merged.macros, indices))) return;
+        // Rebuilt.
+        objects = [];
+    } else scene().macros = merged.macros;
+    startApply(
+        macroIndex(scene(), name),
+        objects,
+        rewritten
+            ? []
+            : scene().macros.filter((macro) => !before.includes(macro)),
+    );
+}
+
+// The figure rebuilt with these macros, each of its applications following
+// its own where it moved. Kept as it was if they don't suit the new ones.
+async function rewriteMacros(
+    macros: Macro[],
+    indices: number[],
+): Promise<boolean> {
+    let rewritten = false;
+    recording = recording.then(async () => {
+        const figure = await asSaved(() => describeDgo(scene()));
+        const styles = [...(figure.st ?? [])];
+        const images = { ...figure.img };
+        for (const { icon } of macros)
+            if (icon) images[await imageKey(icon)] = icon;
+        const keys = new Map(
+            Object.entries(images).map(([key, url]) => [url, key]),
+        );
+        const mac = describeMacros(
+            macros,
+            (url) => keys.get(url)!,
+            (style) => styles.push(style) - 1,
+        );
+        const o = figure.o.map(([tag, name, parameters, ...style]) => {
+            if (tag !== "Mac") return [tag, name, parameters, ...style];
+            const [index, ...rest] = parameters as number[];
+            return [tag, name, [indices[index], ...rest], ...style];
+        });
+        try {
+            await reframe({}, undefined, { o, mac, st: styles, img: images });
+            rewritten = true;
+        } catch {
+            await reframe({}, history[position]);
+            showHint(message("macros_replace_failed"), true);
+        }
+    });
+    await recording;
+    if (rewritten) await record();
+    return rewritten;
+}
+
+// The macros named of `from` and those they apply, but for those of the
+// library, which can't be; mine of the same name may be replaced.
+async function addToMine(from: Library, names: string[]): Promise<void> {
+    const mine = myMacros();
+    const refused = names.filter(
+        (name) =>
+            conflicts(supplied, from, [name]).length > 0 ||
+            supplied.macros.some((macro) => macro.name === name),
+    );
+    const kept = names.filter((name) => !refused.includes(name));
+    const taken = conflicts(mine, from, kept);
+    const replace =
+        taken.length > 0 &&
+        (await confirmed(
+            message("macros_taken_mine", taken.map(formatName).join(", ")),
+            message("my_macros"),
+            "macros_replace",
+        ));
+    await keepMyMacros(merge(mine, from, kept, replace).library);
+    const added = kept.filter((name) => replace || !taken.includes(name));
+    showHint(
+        [
+            added.length &&
+                message("macros_added", added.map(formatName).join(", ")),
+            refused.length &&
+                message(
+                    "macros_supplied_name",
+                    refused.map(formatName).join(", "),
+                ),
+        ]
+            .filter(Boolean)
+            .join("\n"),
+        refused.length > 0,
+    );
+}
+
+const macrosInput = $.create("input").att("type", "file").att("accept", ".dgo");
+const chooseMacros = (): void =>
+    (macrosInput.dom() as HTMLInputElement).click();
+macrosInput.on(
+    "change",
+    async () => {
+        const field = macrosInput.dom() as HTMLInputElement;
+        const file = field.files![0];
+        field.value = "";
+        let library: Library;
+        try {
+            library = readLibrary(await dgoJson(file));
+        } catch (error) {
+            return showHint(
+                message("open_failed", (error as Error).message),
+                true,
+            );
+        }
+        if (!library.macros.length)
+            return showHint(message("macros_none"), true);
+        await addToMine(
+            library,
+            library.macros.flatMap((macro) =>
+                shownMacros(library, supplied).includes(
+                    library.macros.indexOf(macro),
+                )
+                    ? [macro.name]
+                    : [],
+            ),
+        );
+    },
+    false,
+);
+
+const exportMine = (): Promise<void> =>
+    saveOther(
+        async () => gzipped(await describeLibrary(myMacros())),
+        `${message("my_macros")}.dgo`,
+    );
+
+const manageMine = (): void =>
+    manageMyMacros({
+        supplied: () => supplied,
+        importMacros: chooseMacros,
+        exportMacros: () => void exportMine(),
+    });
+
 const MACRO_STATES: MacroState[] = ["initial", "final", "possible", "missing"];
 
 // Each object of the macro lit in the figure and in its row.
@@ -3678,8 +4033,14 @@ function showMacro(states: Map<construction_object, MacroState>): void {
 }
 
 // A macro applied as a tool: its initials designated one after the
-// other, among its methods, until one is complete.
-let applying: { index: number; picked: Picked[] } | null = null;
+// other, among its methods, until one is complete. Those copied into the
+// figure from a library to be applied are taken back if it isn't.
+let applying: {
+    index: number;
+    picked: Picked[];
+    copied: Macro[];
+    applied: boolean;
+} | null = null;
 // A number typed as the next initial, when one is taken.
 const numberField = $.create("input")
     .att("type", "text")
@@ -3730,9 +4091,13 @@ function applyHint(
     return `${help ? `${help}\n` : ""}${picked + 1}/${total} – ${wanted}`;
 }
 
-function startApply(index: number, objects: construction_object[]): void {
+function startApply(
+    index: number,
+    objects: construction_object[],
+    copied: Macro[] = [],
+): void {
     stopMacro();
-    applying = { index, picked: [] };
+    applying = { index, picked: [], copied, applied: false };
     showApply();
     objects.forEach((object) => {
         if (applying && takesNext(designated(), object)) pickInitial(object);
@@ -3741,6 +4106,10 @@ function startApply(index: number, objects: construction_object[]): void {
 
 function stopApply(): void {
     if (!applying) return;
+    const { copied, applied } = applying;
+    const c = scene();
+    if (!applied)
+        c.macros = c.macros.filter((macro) => !copied.includes(macro));
     applying = null;
     clearPreview();
     showAccepted([]);
@@ -3759,6 +4128,7 @@ function pickInitial(initial: Picked): void {
     if (complete === null) return showApply();
     applyMacro(c, applying!.index, complete, applying!.picked);
     applying!.picked = [];
+    applying!.applied = true;
     changed();
 }
 
@@ -5250,6 +5620,7 @@ function travel(step: number): void {
         if (space === scene().GRID.is2D)
             await (space ? toSpace(target) : toPlane(target));
         else await reframe({}, target);
+        if (applying && !scene().macros[applying.index]) stopApply();
     });
 }
 

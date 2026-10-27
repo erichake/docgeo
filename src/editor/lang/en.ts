@@ -367,4 +367,32 @@ export default {
     open_box_hint: "Replaces the application by its construction: % objects",
     open_box_arc:
         "The box can't be opened: the end of an initial arc isn't an object of the figure",
+    menu_macros: "Macros",
+    figure_macros: "Macros of the figure",
+    macro_library: "Library",
+    my_macros: "My macros",
+    add_to_my_macros: "Add to my macros",
+    manage_my_macros: "Manage my macros",
+    import_macros: "Import macros",
+    export_my_macros: "Export my macros",
+    close: "Close",
+    macro_folder: "Folder",
+    macro_folder_placeholder: "Folder / subfolder",
+    my_macros_note:
+        "Kept in this browser only: export them to find them in another one.",
+    my_macros_empty:
+        "No macro yet: add those of a figure from the Macros menu, or import some.",
+    macros_replace: "Replace",
+    macros_taken_mine:
+        "My macros already have %, with another definition. Replace them?",
+    macros_taken_figure:
+        "The figure already has %, with another definition. Replace with the library's?",
+    macros_replace_failed:
+        "Not replaced: the figure applies them in a way the new definitions don't allow",
+    macros_supplied_name:
+        "Already in the library, or named as one of its macros: %",
+    macros_added: "Added to my macros: %",
+    macros_none: "This file has no macro",
+    macro_name_taken: "Another macro is named %",
+    macro_used_by: "Applied by %: delete that one first",
 };

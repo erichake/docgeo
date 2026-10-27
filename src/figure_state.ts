@@ -64,15 +64,15 @@ const isReals = (value: unknown, min: number, max = min): boolean =>
 // are followed as the figure moves (see intersection_object.groupAssign):
 // the same objects' values reached otherwise could lead to another one;
 // those of a macro's application, by its branches. A macro's final is
-// never manipulated.
+// manipulated only along its support, as a point on object.
 function stated(c: construction): Stated[] {
     return figureObjects(c).filter(
         (object): object is Stated =>
             (object instanceof macro_object &&
                 object.branches.flat(Infinity).length > 0) ||
+            object instanceof point_on_object ||
             (!object.output &&
                 (object.constructor === point_object ||
-                    object instanceof point_on_object ||
                     (object instanceof expression_object &&
                         !object.formula &&
                         !object.program &&
@@ -192,7 +192,10 @@ export function stateFigure(
                     ? isReal(value)
                     : isReals(value, 2),
             );
-            changed = [(parameters as unknown[])[0], value];
+            // A macro's final: after its application and rank.
+            changed = object.output
+                ? [...(parameters as unknown[]).slice(0, 2), value]
+                : [(parameters as unknown[])[0], value];
         } else if (
             object instanceof point_object ||
             object instanceof free_vector_object

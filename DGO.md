@@ -664,8 +664,12 @@ Corps d'une méthode :
   formule (`"2"`). Le rayon numérique d'un `C1` y est en revanche une
   constante, qu'aucun glisser ne change, même sur un final (décidé avec
   l'auteur le 2026-10-26, voir `MACROS.md`). Ni `Btn`, `Evt`, `Html`, ni
-  `Img`, dont la clé est celle de la table `img` de la figure. Le
-  paramètre d'un `On` (le point mobile d'un lieu final) n'y est qu'un
+  `Img`, dont la clé est celle de la table `img` de la figure.
+- Un point sur objet (`On`) dont le support est calculé dans le corps y
+  est permis (décidé avec l'auteur le 2026-10-27, voir `MACROS.md`) : son
+  paramètre est une constante du corps pour un intermédiaire, et pour un
+  final la place où il est posé à l'application, qu'un glisser change
+  ensuite (ci-après, `Out`). Celui du point mobile d'un lieu n'est qu'un
   point de départ.
 - Il peut contenir des `Mac` et des `Out`, d'une macro d'indice inférieur
   dans `mac` (pas de récursion).
@@ -697,8 +701,36 @@ Application (note 25 des objets) :
   peut être celui d'une application de son corps. C'est l'objet même que
   calcule le corps, de la classe de son entrée, adopté dans la figure : nommé,
   stylé (écart aux défauts du type de son entrée dans le corps, comme tout
-  objet), désignable, jamais déplaçable. Un initial ou un intermédiaire
-  indéfini rend indéfinis les finaux qui en dépendent.
+  objet), désignable, jamais déplaçable, sauf un point sur objet, qui se
+  glisse le long de son support : son `Out` a alors un troisième
+  paramètre, `["Out", "C", [4, 1, 0.37]]`, sa place, de même forme que le
+  paramètre de l'entrée `On` (nombre ou couple) ; absent, celle du corps.
+  Un initial ou un intermédiaire indéfini rend indéfinis les finaux qui en
+  dépendent.
+
+### Bibliothèques de macros
+
+Décidé avec l'auteur le 2026-10-27 (`MACROS.md`, « Bibliothèque »),
+implémenté dans `src/editor/library.ts`.
+
+Une bibliothèque est un `.dgo` sans objets (`"o": []`), réduit à `mac`,
+`st` et `img` : la bibliothèque fournie (`public/macros/<langue>.dgo`,
+produite par `npm run macros`), « Mes macros » (stockage du navigateur, en
+JSON clair) et leur export. Ouverte dans l'éditeur, c'est une figure vide
+qui a ces macros. Toute figure sert aussi de bibliothèque à l'import : ses
+objets sont ignorés.
+
+Une macro de bibliothèque a une clé de plus, sans effet dans une figure :
+
+| Clé | Contenu                                          | Défaut |
+| --- | ------------------------------------------------ | ------ |
+| `d` | son dossier : noms des dossiers depuis la racine | `[]`   |
+
+Appliquer une macro de bibliothèque recopie dans le `mac` de la figure sa
+définition, sans `d`, et celles des macros que ses corps appliquent, avant
+elle, chaque `Mac` d'un corps réindexé. Une macro de même nom et de même
+définition (les macros appliquées désignées par leur nom) n'est pas
+recopiée. Les mêmes règles valent pour ajouter des macros à « Mes macros ».
 
 ### Styles `st`
 
@@ -846,7 +878,7 @@ objet manipulable y entre donc, par une nouvelle ligne du tableau ci-dessous.
 | Objet                                                  | Valeur                                                             |
 | ------------------------------------------------------ | ------------------------------------------------------------------ |
 | `Pt` (point libre), punaisé (`fl`) compris (3)         | `[x, y]` dans une figure plane, `[x, y, z]` dans une figure 3D (1) |
-| `On` (point sur objet)                                 | son paramètre, sous la forme de `.dgo` : nombre ou couple (4)      |
+| `On` (point sur objet), final de macro compris         | son paramètre, sous la forme de `.dgo` : nombre ou couple (4)      |
 | `Ex` de valeur constante numérique (`"v"`)             | le nombre                                                          |
 | `Int` sans point P dont les solutions sont suivies (2) | le numéro de branche de `.dgo` (note 3 des objets)                 |
 | `C1` à rayon numérique (non formule)                   | le rayon, qu'un glisser du cercle change                           |

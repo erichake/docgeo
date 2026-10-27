@@ -378,6 +378,34 @@ const it: Texts = {
             "Sostituisce l'applicazione con la sua costruzione: % oggetti",
         open_box_arc:
             "La scatola non si apre: la fine di un arco iniziale non è un oggetto della figura",
+        menu_macros: "Macro",
+        figure_macros: "Macro della figura",
+        macro_library: "Libreria",
+        my_macros: "Le mie macro",
+        add_to_my_macros: "Aggiungi alle mie macro",
+        manage_my_macros: "Gestisci le mie macro",
+        import_macros: "Importa macro",
+        export_my_macros: "Esporta le mie macro",
+        close: "Chiudi",
+        macro_folder: "Cartella",
+        macro_folder_placeholder: "Cartella / sottocartella",
+        my_macros_note:
+            "Salvate solo in questo browser: esportale per ritrovarle in un altro.",
+        my_macros_empty:
+            "Ancora nessuna macro: aggiungi quelle di una figura dal menu Macro, o importane alcune.",
+        macros_replace: "Sostituisci",
+        macros_taken_mine:
+            "Le mie macro hanno già %, con un'altra definizione. Sostituirle?",
+        macros_taken_figure:
+            "La figura ha già %, con un'altra definizione. Sostituire con quella della libreria?",
+        macros_replace_failed:
+            "Nulla è stato sostituito: la figura le applica in un modo che le nuove definizioni non consentono",
+        macros_supplied_name:
+            "Già nella libreria, o con il nome di una delle sue macro: %",
+        macros_added: "Aggiunte alle mie macro: %",
+        macros_none: "Questo file non contiene macro",
+        macro_name_taken: "Un'altra macro si chiama %",
+        macro_used_by: "Applicata da %: elimina prima quella",
     },
     commands: {
         Side: "Lato",

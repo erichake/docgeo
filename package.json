@@ -11,6 +11,7 @@
         "test:unit": "vitest run --config vitest.config.ts",
         "test:browser": "vitest run --config vitest.browser.config.ts",
         "manual": "node tools/manual/generate.mjs",
+        "macros": "node tools/macros/build.mjs",
         "format": "prettier --write .",
         "format:check": "prettier --check .",
         "check": "npm run format:check && npm run test && npm run build"

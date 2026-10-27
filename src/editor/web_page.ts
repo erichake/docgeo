@@ -18,10 +18,14 @@ const icon = (body: string) =>
 // Kept for the session.
 const options = { center: true, border: true, bar: true, edit: true };
 
-function modal(...children: DOMElement[]): HTMLDialogElement {
+// Also the editor's other dialogs.
+export function modal(
+    title: string,
+    ...children: DOMElement[]
+): HTMLDialogElement {
     const dialog = $.create("dialog")
         .cls("dge-dialog")
-        .add($.create("h2").text(message("embed_page")), ...children);
+        .add($.create("h2").text(title), ...children);
     const element = dialog.dom() as HTMLDialogElement;
     dialog.on("close", () => dialog.dispose(), false);
     dialog.on("keydown", (event) => event.stopPropagation(), false);
@@ -30,7 +34,7 @@ function modal(...children: DOMElement[]): HTMLDialogElement {
     return element;
 }
 
-const choice = (key: MessageKey, primary = false) =>
+export const choice = (key: MessageKey, primary = false) =>
     $.create("button")
         .cls(primary ? "dge-done" : "dge-secondary")
         .att("value", key)
@@ -54,7 +58,7 @@ export function askLink(note: string, open: (url: string) => Promise<void>) {
         error,
         $.create("div").cls("dge-dialog-buttons").add(cancel, submit),
     );
-    const element = modal(form);
+    const element = modal(message("embed_page"), form);
     cancel.on("click", () => element.close(), false);
     form.on("submit", async () => {
         const button = submit.dom() as HTMLButtonElement;
@@ -71,20 +75,25 @@ export function askLink(note: string, open: (url: string) => Promise<void>) {
     });
 }
 
-export function confirmed(text: string): Promise<boolean> {
+export function confirmed(
+    text: string,
+    title = message("embed_page"),
+    go: MessageKey = "go_on",
+): Promise<boolean> {
     return new Promise((resolve) => {
         const element = modal(
+            title,
             $.create("form")
                 .att("method", "dialog")
                 .add(
                     $.create("p").text(text),
                     $.create("div")
                         .cls("dge-dialog-buttons")
-                        .add(choice("dismiss"), choice("go_on", true)),
+                        .add(choice("dismiss"), choice(go, true)),
                 ),
         );
         element.addEventListener("close", () =>
-            resolve(element.returnValue === "go_on"),
+            resolve(element.returnValue === go),
         );
     });
 }

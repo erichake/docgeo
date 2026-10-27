@@ -95,6 +95,10 @@ export class point_on_object extends point_object {
         return ["On", [context.index(this.support), this.alpha]];
     }
 
+    outputState(): unknown[] {
+        return [this.alpha];
+    }
+
     computeGeometry(): void {
         if (!this.support.defined) {
             this.defined = false;

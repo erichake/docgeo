@@ -20,6 +20,7 @@ window.DG_ICONS = {
         magnet: '<g transform="rotate(45 12 12)"><path d="M6 4h4v8a2 2 0 0 0 4 0V4h4v8a6 6 0 0 1-12 0ZM6 8h4m4 0h4"/></g>',
         spring: '<path d="M2.5 21.5l2-2 3 1.2-2.5-5.9 6 2.4-2.5-5.9 6 2.4-2.5-5.9 3 1.2 1.2-1.2"/><circle cx="18.2" cy="5.8" r="2.6"/>',
         turtle: '<ellipse cx="11" cy="12" rx="6" ry="4.5"/><circle cx="19.5" cy="12" r="2"/><path d="M7.5 8.3 6 5.5M14.5 8.3 16 5.5M7.5 15.7 6 18.5M14.5 15.7 16 18.5M5 12H2.5M8 12h6"/>',
+        open_box: '<path d="M4 10h16v10H4ZM4 10 2.5 4h16L20 10"/>',
         new_program:
             '<path d="M9 4H8a2 2 0 0 0-2 2v4l-2 2 2 2v4a2 2 0 0 0 2 2h1M15 4h1a2 2 0 0 1 2 2v4l2 2-2 2v4a2 2 0 0 1-2 2h-1"/>',
         formula_point:
@@ -34,6 +35,8 @@ window.DG_ICONS = {
             '<path d="M2.5 12S6 6 12 6s9.5 6 9.5 6-3.5 6-9.5 6-9.5-6-9.5-6Z"/><circle cx="12" cy="12" r="2.5"/><path d="M4 20 20 4"/>',
         show_name:
             '<path d="M3.5 17 8 5h1l4.5 12M5.2 12.8h6.6"/><circle cx="18" cy="16.5" r="2.3"/>',
+        unfold_finals: '<path d="m9 6 6 6-6 6"/>',
+        fold_finals: '<path d="m6 9 6 6 6-6"/>',
         edit_definition:
             '<path d="M4 20h4L19.5 8.5a2.8 2.8 0 0 0-4-4L4 16Z"/><path d="m14 6 4 4"/>',
         steps: '<path d="M3 20h5v-5h5v-5h5V5h3"/>',
@@ -347,6 +350,11 @@ window.DG_ICONS = {
             95,
             1,
             '<g class="dge-result"><path d="M4 9h14l-3-3M20 15H6l3 3"/></g>',
+        ],
+        "New macro": [
+            0,
+            0.8,
+            '<path d="M3 4h18v16H3Z" class="dge-guide"/><g class="dge-result"><path d="M7 16 12 8l5 8Z"/></g><circle cx="7" cy="16" r="1.8" fill="currentColor" stroke="none"/><circle cx="17" cy="16" r="1.8" fill="currentColor" stroke="none"/>',
         ],
     },
 };

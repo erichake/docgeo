@@ -78,14 +78,7 @@ export async function saveFile(
     as: boolean,
 ): Promise<boolean> {
     if (!native) {
-        const href = URL.createObjectURL(await write());
-        (
-            $.create("a")
-                .att("href", href)
-                .att("download", `${name}.dgo`)
-                .dom() as HTMLAnchorElement
-        ).click();
-        setTimeout(() => URL.revokeObjectURL(href));
+        download(await write(), `${name}.dgo`);
         return true;
     }
     // Before the figure is written: a browser asks for permission or shows
@@ -107,4 +100,32 @@ export async function saveFile(
     await writable.close();
     opened(target.name, target);
     return true;
+}
+
+function download(blob: Blob, file: string): void {
+    const href = URL.createObjectURL(blob);
+    (
+        $.create("a")
+            .att("href", href)
+            .att("download", file)
+            .dom() as HTMLAnchorElement
+    ).click();
+    setTimeout(() => URL.revokeObjectURL(href));
+}
+
+// A .dgo file other than the figure's, whose own stays.
+export async function saveOther(
+    write: () => Promise<Blob>,
+    file: string,
+): Promise<void> {
+    if (!native) return download(await write(), file);
+    const target = await window.showSaveFilePicker!({
+        id: "docgeo",
+        suggestedName: file,
+        types: [{ description: "DocGeo (.dgo)", accept: { [DGO]: [".dgo"] } }],
+    }).catch(aborted);
+    if (!target) return;
+    const writable = await target.createWritable();
+    await writable.write(await write());
+    await writable.close();
 }

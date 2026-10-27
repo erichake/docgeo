@@ -382,6 +382,34 @@ const nl: Texts = {
             "Vervangt de toepassing door haar constructie: % objecten",
         open_box_arc:
             "De doos gaat niet open: het einde van een beginboog is geen object van de figuur",
+        menu_macros: "Macro's",
+        figure_macros: "Macro's van de figuur",
+        macro_library: "Bibliotheek",
+        my_macros: "Mijn macro's",
+        add_to_my_macros: "Toevoegen aan mijn macro's",
+        manage_my_macros: "Mijn macro's beheren",
+        import_macros: "Macro's importeren",
+        export_my_macros: "Mijn macro's exporteren",
+        close: "Sluiten",
+        macro_folder: "Map",
+        macro_folder_placeholder: "Map / submap",
+        my_macros_note:
+            "Alleen in deze browser bewaard: exporteer ze om ze in een andere terug te vinden.",
+        my_macros_empty:
+            "Nog geen macro's: voeg die van een figuur toe via het menu Macro's, of importeer er enkele.",
+        macros_replace: "Vervangen",
+        macros_taken_mine:
+            "Mijn macro's hebben al %, met een andere definitie. Vervangen?",
+        macros_taken_figure:
+            "De figuur heeft al %, met een andere definitie. Vervangen door die van de bibliotheek?",
+        macros_replace_failed:
+            "Niets vervangen: de figuur past ze toe op een manier die de nieuwe definities niet toelaten",
+        macros_supplied_name:
+            "Al in de bibliotheek, of genoemd zoals een van haar macro's: %",
+        macros_added: "Toegevoegd aan mijn macro's: %",
+        macros_none: "Dit bestand bevat geen macro",
+        macro_name_taken: "Een andere macro heet %",
+        macro_used_by: "Toegepast door %: verwijder die eerst",
     },
     commands: {
         Side: "Zijde",

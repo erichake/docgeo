@@ -376,6 +376,34 @@ const pt: Texts = {
         open_box_hint: "Substitui a aplicação pela sua construção: % objetos",
         open_box_arc:
             "A caixa não se abre: o fim de um arco inicial não é um objeto da figura",
+        menu_macros: "Macros",
+        figure_macros: "Macros da figura",
+        macro_library: "Biblioteca",
+        my_macros: "Minhas macros",
+        add_to_my_macros: "Adicionar às minhas macros",
+        manage_my_macros: "Gerenciar minhas macros",
+        import_macros: "Importar macros",
+        export_my_macros: "Exportar minhas macros",
+        close: "Fechar",
+        macro_folder: "Pasta",
+        macro_folder_placeholder: "Pasta / subpasta",
+        my_macros_note:
+            "Guardadas apenas neste navegador: exporte-as para encontrá-las em outro.",
+        my_macros_empty:
+            "Ainda não há macros: adicione as de uma figura pelo menu Macros, ou importe algumas.",
+        macros_replace: "Substituir",
+        macros_taken_mine:
+            "Minhas macros já têm %, com outra definição. Substituí-las?",
+        macros_taken_figure:
+            "A figura já tem %, com outra definição. Substituir pela da biblioteca?",
+        macros_replace_failed:
+            "Nada foi substituído: a figura as aplica de um modo que as novas definições não permitem",
+        macros_supplied_name:
+            "Já na biblioteca, ou com o nome de uma de suas macros: %",
+        macros_added: "Adicionadas às minhas macros: %",
+        macros_none: "Este arquivo não tem nenhuma macro",
+        macro_name_taken: "Outra macro se chama %",
+        macro_used_by: "Aplicada por %: apague primeiro essa",
     },
     commands: {
         Side: "Lado",

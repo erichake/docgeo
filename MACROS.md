@@ -37,10 +37,36 @@ boîtes de dialogue (le défaut de GeoGebra).
 - **GeoGebra** : un outil appliqué est un seul algorithme dont les sorties
   sont les finaux (encapsulation). L'import actuel développe ces outils en
   objets cachés (`expandMacros`, `src/import/ggb_translate.ts`).
-- **CaRMetal** (E. Hakenholz, 2006, Java), où les macros avaient beaucoup
-  compté. Les sources ne sont pas accessibles ; le chapitre « Macros » de
-  son manuel (2011) l'est : <http://carmetal2.free.fr/images/pdf/macros.pdf>.
-  Ce qu'on y trouve, au-delà de ce mémo :
+- **CaRMetal** (E. Hakenholz, 2006, Java, sur la base de C.a.R. de
+  R. Grothmann), où les macros avaient beaucoup compté. Les sources ne sont
+  pas accessibles, mais le paquet installé l'est
+  (`…/Lubuntu/carmetal/usr/share/carmetal/` du Drive de l'auteur) : le
+  `CaRMetal.jar` (classes seules, lues par leurs noms, chaînes et appels) et
+  les bibliothèques `fr_library.mcr` (140 macros), `library.mcr` (en, 87),
+  `es_library.mcr` (98), en XML lisible. Ce qu'on y voit :
+    - une macro est une construction ordinaire : initiaux
+      `mainparameter`, sous-objets `parameter`, finaux `target`,
+      intermédiaires super-cachés ; `<Parameter>` donne l'ordre et l'invite
+      de chaque initial, `<PromptFor>` les nombres demandés (« Ask ») ;
+    - un `.mcr` est une figure réduite à ses `<Macro>` : bibliothèque,
+      export et macros d'une figure ont le même format ;
+    - les dossiers sont le chemin écrit dans le nom
+      (`Polygones/Quadrilatères/Carré`) ;
+    - trois niveaux : `builtin.mcr` dans le jar (60 outils de CaRMetal
+      écrits en macros : 3D, disque de Poincaré, tests…), la bibliothèque de
+      la langue copiée dans le dossier personnel au premier lancement, les
+      macros de la figure ;
+    - bibliothèque ou figure tient à un booléen (`Protected`) : une figure
+      n'enregistre pas les macros de bibliothèque, ce que permet le
+      développement des macros ; à l'ouverture, un nom déjà pris est
+      ignoré ;
+    - « Cacher les doublons » : un final égal à un objet déjà présent est
+      caché ;
+    - un initial fixé est retrouvé par son nom dans la figure.
+
+    Le chapitre « Macros » de son manuel (2011) :
+    <http://carmetal2.free.fr/images/pdf/macros.pdf>. Ce qu'on y trouve,
+    au-delà de ce mémo :
     - une bibliothèque de macros fournies (codage des figures, polygones,
       quadrilatères, transformations, vecteurs, barycentres, fonctions,
       complexes, curseurs, grilles…), rangées en dossiers et sous-dossiers
@@ -61,6 +87,7 @@ boîtes de dialogue (le défaut de GeoGebra).
       repère des figures 3D) ;
     - le style des finaux (propriétés conditionnelles comprises) recopié
       comme défaut à l'application.
+
 - **Article « La nouvelle orientation d'Alice »**, E. Hakenholz,
   abraCAdaBRI n° 10, sept.-oct. 1995, p. 15-19 (PDF fourni dans la
   conversation). Il établit la « règle d'or » de l'orientation et construit
@@ -202,6 +229,20 @@ des macros. Pour les figures importées, la référence est DGPad.
   `tests/dgp/Apollonius/_Apollonius.dgo`, sans lesquels ses trois cercles
   ne déterminaient rien). Un rayon donné par une expression suit, lui, les
   objets dont elle dépend.
+- **Un point sur objet dont le support est déterminé est déterminé**
+  (décidé avec l'auteur le 2026-10-27, la lacune venant des triangles et
+  quadrilatères particuliers de CaRMetal, dont un sommet est libre sur une
+  droite ou un cercle). Final, il reste manipulable après l'application :
+  on le glisse le long de son support, chaque application gardant sa
+  place, enregistrée avec la figure et modifiable dans l'état élève ;
+  l'application le pose là où il était dans la figure de définition,
+  transposé sur le nouveau support. Intermédiaire, sa place est une
+  constante du corps, comme le rayon numérique d'un cercle (choix de
+  l'auteur, plutôt que de le refuser comme initial manquant). Un final sur
+  objet d'une application emboîtée est un intermédiaire de la macro qui
+  l'applique : sa place y est figée. Ouvrir la boîte en fait un point sur
+  objet ordinaire, à sa place. Un point libre reste interdit : il ne
+  dépendrait d'aucun initial.
 - Un initial semi-libre n'est plus qu'un objet de son type à l'usage : sa
   contrainte disparaît, sauf si son support est aussi un initial. C'est une
   généralisation légitime, qu'on ne signale pas.
@@ -287,7 +328,8 @@ des macros. Pour les figures importées, la référence est DGPad.
   final garde ses bornes, et les tests `instanceof` du moteur restent
   valables.
 - **Règles** :
-    - un final n'est jamais déplaçable ;
+    - un final n'est jamais déplaçable, sauf un point sur objet, qui se
+      glisse le long de son support (ci-après) ;
     - supprimer un final ne supprime que lui, et le nœud disparaît avec son
       dernier final ;
     - supprimer un initial supprime le nœud et ses finaux ;
@@ -325,7 +367,8 @@ d'évolution) :
   références `["side", polygone, k]` existantes.
 - Numérotation stable des branches d'intersection (règle 3 de `DGO.md`) :
   elle vaut aussi dans les corps.
-- État élève : les finaux ne sont pas modifiables ; leurs noms sont stables.
+- État élève : les finaux ne sont pas modifiables, sauf un point sur objet
+  (sa place) ; leurs noms sont stables.
 
 ### Imports
 
@@ -385,7 +428,7 @@ macro.
    textuelle d'une application à plusieurs finaux.
 6. **Ouvrir la boîte.**
 7. **Bibliothèque** : conserver et partager les macros hors d'une figure
-   (voir « Questions ouvertes »).
+   (voir « Bibliothèque »).
 8. Éventuellement, les outils GeoGebra en nœuds d'application.
 9. **Manuel** dans les 12 langues (`npm run manual`).
 
@@ -399,7 +442,7 @@ Retenues par l'auteur le 2026-10-26, à placer dans les étapes (voir
 
 - **Bibliothèque** (étape 7) : macros fournies, rangées en dossiers, et
   « ajouter à la bibliothèque » pour qu'une macro soit là à chaque
-  ouverture.
+  ouverture (section « Bibliothèque »).
 - **Menu au clic droit** : un clic droit dans le vide ouvre un menu
   flottant des macros, à l'endroit de la souris.
 - **Initiaux fixés** : un initial désigné une fois puis gardé d'une
@@ -408,11 +451,119 @@ Retenues par l'auteur le 2026-10-26, à placer dans les étapes (voir
   à une droite, un cercle, un polygone donne son image (lieu des images),
   avec aperçu au survol.
 
+## Bibliothèque
+
+Décidé avec l'auteur le 2026-10-27, après étude de CaRMetal (voir
+« Références étudiées »), dont on garde les idées sans le recopier.
+
+- **Deux sources.** La **bibliothèque fournie**, livrée avec le logiciel,
+  en lecture seule et chargée à la demande, hors du poids de l'éditeur.
+  **Mes macros**, qui la complètent, dans la seule version autonome (barre
+  de menus) : dans le stockage du navigateur (`localStorage`), propre au
+  site et effaçable, d'où « Exporter mes macros » et « Importer des
+  macros » pour les reprendre dans un autre navigateur. Ni bibliothèque
+  fournie ni « Mes macros » dans une iframe (DocTools) : seulement dans la
+  version autonome (décidé avec l'auteur le 2026-10-27).
+- **Un nom déjà pris** (décidé avec l'auteur le 2026-10-27) : importer ou
+  ajouter à mes macros une macro dont le nom est celui d'une de mes macros,
+  différente, ouvre une alerte qui propose de les remplacer, toutes à la
+  fois ; refusé, mes macros restent. De même quand on applique une macro de
+  bibliothèque dont la figure a une autre version. Une macro de mes macros
+  ne prend pas le nom d'une macro fournie, sauf à en être la copie exacte
+  (une dépendance) : elle n'est alors pas montrée dans « Mes macros ».
+- **Même format que les figures** : une bibliothèque est un `.dgo` sans
+  objets, réduit à sa table `mac` (comme le `.mcr` de CaRMetal). Importer
+  des macros, c'est aussi les reprendre d'une figure ou d'un enseignant.
+- **Dossiers et sous-dossiers**, hors du nom : le nom d'une macro est une
+  commande du langage textuel (`Circonscrit(A, B, C)`) et reste unique dans
+  la bibliothèque fournie et mes macros réunies. Le champ du dossier est à
+  ajouter dans `DGO.md` (règles d'évolution).
+- **Appliquer une macro de bibliothèque recopie sa définition dans la
+  figure**, qui reste autonome (contrairement à CaRMetal, qui pouvait ne
+  pas enregistrer ses macros de bibliothèque parce qu'il les développe). La
+  copie garde son origine et sa version, pour signaler plus tard une
+  version plus récente (voir « Questions ouvertes », modifier une
+  définition).
+- **Noms traduits** : la bibliothèque fournie donne, dans les 12 langues de
+  l'éditeur, le nom de chaque macro, de ses finaux, son aide et le message
+  de chaque initial ; le corps est commun.
+- **Menu « Macros »** dans la barre de menus, entre « Affichage » et
+  « Outils » (proposé par l'auteur) : « Nouvelle macro », « Macros de la
+  figure ▸ » (en sous-menu : une figure peut en avoir beaucoup),
+  « Bibliothèque ▸ » et « Mes macros ▸ » (dossiers en sous-menus),
+  « Ajouter à mes macros ▸ », « Gérer mes macros… », « Importer des
+  macros… », « Exporter mes macros… ». La famille « Macros » du menu des
+  outils et l'anneau restent, seuls accès dans une iframe.
+- **Gérer mes macros** : un dialogue plutôt qu'un panneau, la figure
+  n'ayant rien à y faire. Chaque macro, rangée sous son dossier, a son nom
+  et son dossier (« Coniques / Éléments », avec les dossiers existants
+  proposés) modifiables, et se supprime, sauf si une autre l'applique ; un
+  rappel dit d'exporter. Le dossier se tape plutôt qu'il ne se glisse :
+  plus simple, au doigt comme à la souris.
+- **Reconstruites avec l'éditeur**, jamais converties des `.mcr` : chaque
+  macro refaite est un test de recette de la définition, et son corps est
+  propre, sans les astuces de CaRMetal.
+- Un futur mode « kiosque » permettra à l'enseignant de retirer des outils
+  et des macros aux élèves (voir « Questions ouvertes », restriction des
+  outils).
+
+### Contenu de la bibliothèque fournie
+
+Tri des 140 macros de `fr_library.mcr` validé par l'auteur le 2026-10-27.
+
+**Écartées** (≈ 110), parce que DocGeo le fait autrement : codage des
+segments (propriété du segment) et de l'angle droit (marqué par l'angle),
+polygones réguliers et lignes polygonales (outils), rotation, homothétie,
+inversion et reports de mesure algébrique (outils), vecteurs, matrices,
+coordonnées polaires, complexes et barycentres (expressions : un point est
+un complexe), tangentes (outil Tangente), nombre dérivé (`f'(a)`), astuces
+d'interface (barre de progression, curseurs, objets flottants et
+magnétiques, grilles), interpolation par tangentes.
+
+**Reprises de CaRMetal** :
+
+- Triangles : isocèle, rectangle, isocèle rectangle, équilatéral.
+  Quadrilatères : trapèze, cerf-volant, parallélogramme, losange,
+  rectangle, carré (voulus par l'auteur, même si l'élève doit savoir les
+  construire : le mode kiosque les lui retirera).
+- Transformations : transformation affine (image de M par celle qui envoie
+  ABC sur A′B′C′, qui remplace aussi le report barycentrique), conjugué
+  harmonique, homologie harmonique.
+- Construction de coniques : par directrice, foyer et excentricité ; par
+  directrice, foyer et un point ; par cercle directeur et foyer (avec les
+  sommets) ; par 3 points et un contact avec sa tangente ; par un point et
+  deux contacts avec leurs tangentes ; les deux paraboles par 4 points ;
+  l'hyperbole équilatère par 4 points.
+- Éléments des coniques : centre, axes (le focal en premier ; orientation
+  à surveiller), foyers et directrices, asymptotes (chacun fusionne
+  plusieurs macros de CaRMetal), polaire d'un point.
+- Formes quadratiques : q(x), forme polaire f(x, y), q(x) généralisée.
+- Cercles : centres d'homothétie de deux cercles, tangentes communes, axe
+  radical, cercles tangents à un cercle par deux points, cercles tangents
+  à deux cercles par un point, centre d'Euler d'un quadrilatère.
+
+**Ajoutées** (absentes de CaRMetal) :
+
+- Classiques : cercle inscrit, cercles exinscrits, cercle et droite
+  d'Euler, point de Fermat, droite de Simson, cercle d'Apollonius
+  (MA/MB = k), cercles tangents à trois cercles, conjugué isogonal,
+  symédianes et point de Lemoine, partage d'un segment en n parts égales,
+  moyenne géométrique √(ab).
+- Niveau universitaire (proposées par Claude, l'auteur en voulant) :
+  birapport de quatre points alignés, homographie d'une droite par trois
+  couples, droite de Pascal, point de Brianchon, centre et axe de
+  perspective de deux triangles (Desargues), pôle d'une droite par rapport
+  à une conique, diamètres conjugués, cercle principal, cercle orthoptique
+  (de Monge), cercle orthogonal à deux cercles par un point, points limites
+  d'un faisceau de cercles, centre radical de trois cercles, centre de la
+  similitude directe qui envoie A, B sur A′, B′.
+
 ## Questions ouvertes
 
 - Initial inutilisé, ancêtre d'aucun final : l'avertir ou le refuser ?
-- Bibliothèque de macros : personnelle, fournie par l'enseignant, stockée
-  où (DocTools, fichier) ?
+- Macros sur une courbe de fonction (minimum, maximum, intégrale de
+  CaRMetal ; cercle osculateur, normale) : aucun type d'initial n'accepte
+  encore une courbe. Laissées de côté (décidé avec l'auteur le 2026-10-27).
 - Modifier la définition d'une macro : faut-il mettre à jour ses
   applications dans la figure, et comment versionner les copies des
   définitions ?
@@ -515,16 +666,73 @@ Retenues par l'auteur le 2026-10-26, à placer dans les étapes (voir
 - Enregistrer une macro ferme le mode, panneau et consigne compris
   (demandé par l'auteur le 2026-10-26) ; le message « Macro enregistrée »
   disparaît avec lui.
+- Étape 7, bibliothèque, faite (2026-10-27) :
+    - format : clé `d` (dossier) d'une macro de bibliothèque, dans `DGO.md`
+      (« Bibliothèques de macros ») ;
+    - `src/editor/library.ts` : lecture et écriture d'une bibliothèque,
+      fusion d'une macro et de celles qu'elle applique (`merge`, par leurs
+      noms, réindexées, une macro remplacée déplacée après celles qu'elle
+      applique), conflits (`conflicts`), « Mes macros » dans
+      `localStorage` ; `my_macros.ts` : le dialogue ; menu « Macros » et
+      sous-menus de la barre (`menus.ts`) ;
+    - appliquer une macro de bibliothèque la recopie dans la figure, qui la
+      retire si elle n'est pas appliquée ; remplacer une version de la
+      figure la reconstruit, ou la laisse telle quelle si ses applications
+      ne vont pas aux nouvelles définitions ;
+    - bibliothèque fournie : `npm run macros` (`tools/macros/build.mjs`)
+      construit chaque macro de `tools/macros/library.mjs` par le code de
+      l'éditeur (`methodOf`, icône `macroThumbnail`) à partir de sa figure
+      écrite dans le langage textuel, et écrit `public/macros/<langue>.dgo`
+      (chargé à la demande). Les sources sont rangées par dossier
+      (`triangles.mjs`, `quadrilaterals.mjs`, `circles.mjs`,
+      `transformations.mjs`, `conics.mjs`, `projective.mjs`,
+      `constructions.mjs`), chaque texte en 12 langues (`tr.mjs`). Le
+      générateur refuse un nom pris par une commande dans sa langue, ou
+      deux fois ;
+    - les 59 macros de « Contenu de la bibliothèque fournie », sauf
+      minimum, maximum et intégrale (courbes) ; à la place de leurs sommets
+      sur objet, les triangles et quadrilatères ont un sommet libre sur son
+      support (point sur objet final). Les éléments d'une conique, que les
+      formules ne lisent pas (sauf son centre, `q.center()`), viennent de
+      son équation, calculée dans un programme à partir de cinq points
+      d'elle figés dans le corps (`programs.mjs`) : sans angle, car
+      `atan2` rend des radians quelle que soit l'unité de la figure, comme
+      dans DGPad ;
+    - tests : `tests/browser/macro_library.test.ts` (aller-retour, fusion
+      avec dépendances, conflits et remplacement, stockage, même
+      bibliothèque dans les 12 langues, chaque macro fournie appliquée à
+      une autre figure que la sienne et vérifiée géométriquement : angles,
+      distances, tangences, birapports, équation des coniques) ;
+    - une macro de bibliothèque se tape aussi dans le langage textuel
+      (`a = AxeRadical(c, d)`) : complétée, recopiée dans la figure avec
+      celles qu'elle applique, retirée si la ligne est refusée ;
+    - un nom de macro admet les signes combinants (`\p{M}`) : les noms
+      hindis étaient refusés ;
+    - poids, étape 7 et finaux sur objet compris : lecteur (moteur)
+      +295 octets (+141 en gzip), éditeur +12,5 Ko (+4,0 Ko en gzip) ; la
+      bibliothèque d'une langue, chargée au démarrage de l'éditeur hors
+      d'une iframe, pèse environ 41 Ko (`.dgo` compressé, icônes
+      comprises) ;
+    - un point sur objet peut faire partie du corps (ci-dessus) : troisième
+      paramètre de `Out`, final déplaçable, état élève (`figure_state.ts`),
+      règle de l'éditeur (`unbuilt` de `macro.ts`) ; tests dans
+      `macros.test.ts`, `macro_define.test.ts` et `macro_open.test.ts` ;
+    - pas fait : l'origine et la version gardées dans la copie d'une macro
+      de bibliothèque. Comparer les définitions suffit à reconnaître une
+      autre version (alerte de remplacement) ; ce n'est à faire que si l'on
+      veut dire laquelle est la plus récente.
+- Étape 9, manuel, faite (2026-10-27) : page « Les macros »
+  (`public/tutorials/<langue>/macros.html`, dans les 12 langues : créer,
+  appliquer, au clavier, ouvrir la boîte, bibliothèque, mes macros), famille
+  « Macros » de la page du menu des outils, icône de « Nouvelle macro »
+  (`npm run manual -- icons`). Pas de capture d'écran pour l'instant.
 
 ## Reste à faire
 
 Dans l'ordre que choisira l'auteur :
 
-- **Idées de CaRMetal retenues** (section ci-dessus) : bibliothèque
-  (étape 7), menu au clic droit, initiaux fixés, image d'un objet.
+- **Idées de CaRMetal retenues** (section ci-dessus) : menu au clic droit,
+  initiaux fixés, image d'un objet.
 - **Cas en 3D** : rien n'a été essayé (doublures des initiaux, `flat`,
   projection du corps).
-- **Étape 9, manuel** dans les 12 langues (`npm run manual`) : la famille
-  « Macros », la définition en deux étapes, l'application (menu, anneau,
-  texte), « Ouvrir la boîte ».
 - Mesurer le poids du lecteur et de l'éditeur à chaque étape.

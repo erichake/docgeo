@@ -1,0 +1,154 @@
+<!doctype html>
+<html lang="it">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <title>Le macro — Manuale di DocGeo</title>
+        <link rel="icon" type="image/svg+xml" href="../../favicon.svg" />
+        <link rel="stylesheet" href="../manual.css" />
+        <script src="../icons.js" defer></script>
+        <script src="../manual.js" defer></script>
+    </head>
+    <body>
+        <main>
+            <h1>Le macro</h1>
+            <p>
+                Una macrocostruzione trasforma una costruzione in uno strumento:
+                a partire da oggetti <em>iniziali</em>, costruisce oggetti
+                <em>finali</em>.
+            </p>
+            <h2 id="creer">Creare una macro</h2>
+            <ul>
+                <li>
+                    <i data-t="New macro"></i> <strong>Nuova macro</strong>,
+                    nella famiglia <strong>Macro</strong> del menu degli
+                    strumenti o nel menu <strong>Macro</strong>, apre la
+                    definizione; gli oggetti selezionati ne diventano i primi
+                    iniziali.
+                </li>
+                <li>
+                    Passo 1: tocca gli iniziali, nell’ordine in cui verranno
+                    chiesti. Qualsiasi oggetto può esserlo, anche costruito. Ciò
+                    che determinano si illumina di verde.
+                </li>
+                <li>
+                    <strong>Avanti: i finali</strong>, poi tocca i finali tra
+                    gli oggetti verdi. Senza finale scelto, gli oggetti visibili
+                    in verde sono i finali. Un oggetto non determinato è
+                    rifiutato: ciò che gli manca lampeggia in rosso.
+                </li>
+                <li>
+                    Un punto su oggetto il cui supporto è determinato lo è
+                    anch’esso. Finale, resta mobile sul suo supporto dopo ogni
+                    applicazione; intermedio, la sua posizione è fissa.
+                </li>
+                <li>
+                    Il pannello dà il nome della macro, l’ordine degli iniziali
+                    (trascinarne il rango), il messaggio mostrato per ciascuno,
+                    l’aiuto e l’icona: disegnata dalla figura, una o due
+                    lettere, o un’immagine.
+                </li>
+                <li>
+                    <strong>Crea la macro</strong> la salva nella figura. Con un
+                    nome esistente e altri iniziali, diventa un nuovo
+                    <em>metodo</em> della stessa macro.
+                </li>
+            </ul>
+            <h2 id="appliquer">Applicare una macro</h2>
+            <ul>
+                <li>
+                    Le macro della figura seguono
+                    <strong>Nuova macro</strong> nel menu; nell’anello di un
+                    oggetto, il posto <strong>Macro</strong> dà quelle che lo
+                    accettano come primo iniziale.
+                </li>
+                <li>
+                    La consegna dà l’aiuto e l’iniziale atteso («1/3 – …»).
+                    Tocca gli iniziali; un clic nel vuoto o su una linea crea il
+                    punto atteso; un numero si digita nella consegna.
+                </li>
+                <li>
+                    Il risultato appare in anteprima prima dell’ultimo iniziale.
+                    La macro resta attiva: <strong>Fatto</strong> o
+                    <kbd>Esc</kbd> la lascia.
+                </li>
+                <li>
+                    I finali sono oggetti come gli altri (nome, stile), che non
+                    si spostano, salvo un punto su oggetto, lungo il suo
+                    supporto.
+                </li>
+            </ul>
+            <h2 id="au-clavier">Da tastiera</h2>
+            <ul>
+                <li>
+                    <code>C, t = TriangoloIsoscele(A, B)</code> applica la macro
+                    e nomina i finali in ordine; <code>_</code> ne omette uno:
+                    <code>_, t = TriangoloIsoscele(A, B)</code>.
+                </li>
+                <li>
+                    <code>a = AsseRadicale(c, d)</code> per una macro con un
+                    finale; <code>Parallelogramma(A, B, C)</code> da sola nomina
+                    i finali secondo la macro.
+                </li>
+                <li>
+                    Gli iniziali devono precedere l’applicazione nella
+                    costruzione.
+                </li>
+            </ul>
+            <h2 id="ouvrir-la-boite">Apri la scatola</h2>
+            <ul>
+                <li>
+                    Con un finale selezionato, l’azione
+                    <strong>Apri la scatola</strong> della barra sostituisce
+                    l’applicazione con la sua costruzione: compaiono gli
+                    intermedi, con il nome e lo stile che avevano nella figura
+                    della definizione; i finali restano gli stessi oggetti.
+                </li>
+                <li>
+                    Al passaggio del puntatore, mostra in anteprima ciò che
+                    uscirà dalla scatola.
+                </li>
+            </ul>
+            <h2 id="bibliotheque">Libreria</h2>
+            <ul>
+                <li>
+                    Il menu <strong>Macro</strong> della barra dei menu (fuori
+                    da DocTools) apre la <strong>Libreria</strong> fornita con
+                    DocGeo, in cartelle: triangoli, quadrilateri, circonferenze,
+                    trasformazioni, coniche, geometria proiettiva, costruzioni.
+                </li>
+                <li>
+                    Una macro scelta viene copiata nella figura, con quelle che
+                    usa, poi si applica come una macro della figura. Il suo nome
+                    si può anche digitare: <code>a = AsseRadicale(c, d)</code>.
+                </li>
+                <li>
+                    Se la figura ha già un’altra versione della macro, un avviso
+                    propone di sostituirla.
+                </li>
+            </ul>
+            <h2 id="mes-macros">Le mie macro</h2>
+            <ul>
+                <li>
+                    <strong>Aggiungi alle mie macro</strong> conserva una macro
+                    della figura per tutte le figure: compare in
+                    <strong>Le mie macro</strong>.
+                </li>
+                <li>
+                    <strong>Gestisci le mie macro…</strong> le rinomina, le
+                    ordina in cartelle (<code>Coniche / Elementi</code>) e le
+                    elimina.
+                </li>
+                <li>
+                    Sono conservate solo in questo browser:
+                    <strong>Esporta le mie macro…</strong> le salva in un file
+                    <code>.dgo</code>, che
+                    <strong>Importa macro…</strong> riprende in un altro
+                    browser. Importare legge anche le macro di una figura; una
+                    macro con lo stesso nome, definita diversamente, viene
+                    sostituita dopo conferma.
+                </li>
+            </ul>
+        </main>
+    </body>
+</html>

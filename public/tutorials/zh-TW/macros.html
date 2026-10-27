@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="zh-TW">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <title>巨集 — DocGeo 手冊</title>
+        <link rel="icon" type="image/svg+xml" href="../../favicon.svg" />
+        <link rel="stylesheet" href="../manual.css" />
+        <script src="../icons.js" defer></script>
+        <script src="../manual.js" defer></script>
+    </head>
+    <body>
+        <main>
+            <h1>巨集</h1>
+            <p>
+                巨集把一個作圖變成工具：從<em>初始</em>物件出發，作出<em>最終</em>物件。
+            </p>
+            <h2 id="creer">建立巨集</h2>
+            <ul>
+                <li>
+                    <i data-t="New macro"></i
+                    >工具選單<strong>巨集</strong>族中或<strong>巨集</strong>選單中的<strong>新增巨集</strong>開啟定義；所選物件成為它的前幾個初始物件。
+                </li>
+                <li>
+                    第 1
+                    步：按將來詢問的順序點按初始物件。任何物件都可以是初始物件，作出的物件也可以。它們所確定的物件以綠色點亮。
+                </li>
+                <li>
+                    <strong>下一步：最終物件</strong
+                    >，然後在綠色物件中點按最終物件。如果沒有選擇最終物件，可見的綠色物件就是最終物件。未確定的物件會被拒絕：它缺少的物件以紅色閃爍。
+                </li>
+                <li>
+                    支撐物件已確定的物件上的點也是確定的。作為最終物件，它在每次套用後仍可在其支撐上移動；作為中間物件，它的位置是固定的。
+                </li>
+                <li>
+                    面板給出巨集的名稱、初始物件的順序（拖曳其序號）、每個初始物件顯示的提示、說明和圖示：由圖形繪出、一兩個字母或一張圖片。
+                </li>
+                <li>
+                    <strong>建立巨集</strong
+                    >把它儲存在圖形中。使用已有名稱和其他初始物件時，它成為該巨集的一個新<em>方法</em>。
+                </li>
+            </ul>
+            <h2 id="appliquer">套用巨集</h2>
+            <ul>
+                <li>
+                    圖形中的巨集在選單裡排在<strong>新增巨集</strong>之後；在一個物件的環形選單中，<strong>巨集</strong>位置給出把它當作第一個初始物件的巨集。
+                </li>
+                <li>
+                    提示列給出說明和所需的初始物件（「1/3 –
+                    …」）。點按初始物件；在空白處或線上點擊會建立所需的點；數字在提示列中輸入。
+                </li>
+                <li>
+                    在最後一個初始物件之前，結果以預覽顯示。巨集保持在手中：<strong>完成</strong>或
+                    <kbd>Esc</kbd> 退出。
+                </li>
+                <li>
+                    最終物件與其他物件一樣（名稱、樣式），但不能移動，物件上的點除外，它可沿支撐移動。
+                </li>
+            </ul>
+            <h2 id="au-clavier">用鍵盤</h2>
+            <ul>
+                <li>
+                    <code>C, t = 等腰三角形(A, B)</code>
+                    套用巨集並按順序命名其最終物件；<code>_</code>
+                    省略一個：<code>_, t = 等腰三角形(A, B)</code>。
+                </li>
+                <li>
+                    只有一個最終物件的巨集：<code>a = 根軸(c, d)</code>；單獨寫
+                    <code>平行四邊形(A, B, C)</code>
+                    則按巨集的定義命名最終物件。
+                </li>
+                <li>在作圖中，初始物件必須位於套用之前。</li>
+            </ul>
+            <h2 id="ouvrir-la-boite">打開盒子</h2>
+            <ul>
+                <li>
+                    選取一個最終物件時，列中的<strong>打開盒子</strong>操作把套用替換為它的作圖：中間物件出現，名稱和樣式與定義圖形中相同；最終物件仍是原來的物件。
+                </li>
+                <li>滑鼠懸停時，它預覽將從盒子裡出來的物件。</li>
+            </ul>
+            <h2 id="bibliotheque">巨集庫</h2>
+            <ul>
+                <li>
+                    選單列中的<strong>巨集</strong>選單（DocTools 之外）開啟
+                    DocGeo
+                    內附的<strong>巨集庫</strong>，按資料夾排列：三角形、四邊形、圓、變換、圓錐曲線、射影幾何、作圖。
+                </li>
+                <li>
+                    選中的巨集連同它用到的巨集被複製到圖形中，然後像圖形中的巨集一樣套用。也可以直接輸入它的名稱：<code
+                        >a = 根軸(c, d)</code
+                    >。
+                </li>
+                <li>
+                    如果圖形中已有該巨集的另一個版本，會彈出提示詢問是否取代。
+                </li>
+            </ul>
+            <h2 id="mes-macros">我的巨集</h2>
+            <ul>
+                <li>
+                    <strong>新增到我的巨集</strong
+                    >把圖形中的一個巨集保留給所有圖形使用：它出現在<strong>我的巨集</strong>中。
+                </li>
+                <li>
+                    <strong>管理我的巨集…</strong
+                    >可以重新命名、分資料夾整理（<code>圓錐曲線 / 元素</code
+                    >）和刪除它們。
+                </li>
+                <li>
+                    它們只儲存在此瀏覽器中：<strong>匯出我的巨集…</strong>把它們儲存為
+                    <code>.dgo</code>
+                    檔案，<strong>匯入巨集…</strong>可在另一個瀏覽器中匯入。匯入也讀取圖形中的巨集；同名但定義不同的巨集在確認後被取代。
+                </li>
+            </ul>
+        </main>
+    </body>
+</html>

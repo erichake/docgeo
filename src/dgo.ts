@@ -80,7 +80,11 @@ import { createParallel } from "./objects/parallel_line_object";
 import { createPerpendicularBisector } from "./objects/perpendicular_bisector_object";
 import { createPlaneIntersection } from "./objects/plane_intersection_object";
 import { createPlumb } from "./objects/plumb_line_object";
-import { createPointOn, point_on_object } from "./objects/point_on_object";
+import {
+    createPointOn,
+    point_on_object,
+    type point_support_object,
+} from "./objects/point_on_object";
 import { createPoint, point_object } from "./objects/point_object";
 import { createPolygon, polygon_object } from "./objects/polygon_object";
 import { primitive_circle_object } from "./objects/primitive_circle_object";
@@ -746,11 +750,15 @@ export async function writeDgo(
     c: construction,
     region?: Region,
 ): Promise<Blob> {
-    const json = JSON.stringify(await describeDgo(c, region));
-    return new Response(
-        new Blob([json]).stream().pipeThrough(new CompressionStream("gzip")),
-    ).blob();
+    return gzipped(await describeDgo(c, region));
 }
+
+export const gzipped = (figure: unknown): Promise<Blob> =>
+    new Response(
+        new Blob([JSON.stringify(figure)])
+            .stream()
+            .pipeThrough(new CompressionStream("gzip")),
+    ).blob();
 
 // Saved as the given region of the window shows it.
 export async function describeDgo(
@@ -805,32 +813,40 @@ export async function describeDgo(
         o: objects.map((object) => dgoEntry(object, context, styleIndex)),
     };
     if (c.macros.length)
-        figure.mac = c.macros.map(({ name, finals, icon, methods }) => ({
-            n: name,
-            f: finals,
-            ...(icon && { ic: keys.get(icon) }),
-            m: methods.map(({ initials, help, body, finals }) => ({
-                i: initials.map(([type, message]) =>
-                    message ? [type, message] : [type],
-                ),
-                ...(help && { h: help }),
-                b: body.map(([tag, name, parameters, style]) =>
-                    style === undefined
-                        ? [tag, name, parameters]
-                        : [
-                              tag,
-                              name,
-                              parameters,
-                              styleIndex(style as Settings),
-                          ],
-                ),
-                f: finals,
-            })),
-        }));
+        figure.mac = describeMacros(
+            c.macros,
+            (url) => keys.get(url)!,
+            styleIndex,
+        );
     if (styles.length) figure.st = styles;
     if (keys.size) figure.img = images;
     return figure;
 }
+
+// Their `mac`, given the keys of their icons and the indices of their
+// styles.
+export const describeMacros = (
+    macros: Macro[],
+    image: (url: string) => string,
+    styleIndex: (style: Settings) => number,
+): Settings[] =>
+    macros.map(({ name, finals, icon, methods }) => ({
+        n: name,
+        f: finals,
+        ...(icon && { ic: image(icon) }),
+        m: methods.map(({ initials, help, body, finals }) => ({
+            i: initials.map(([type, message]) =>
+                message ? [type, message] : [type],
+            ),
+            ...(help && { h: help }),
+            b: body.map(([tag, name, parameters, style]) =>
+                style === undefined
+                    ? [tag, name, parameters]
+                    : [tag, name, parameters, styleIndex(style as Settings)],
+            ),
+            f: finals,
+        })),
+    }));
 
 // Its entry in `o`, of this type and these parameters.
 export function dgoEntry(
@@ -852,7 +868,7 @@ export function dgoEntry(
 }
 
 // Content-addressed, so that the same image is stored once.
-async function imageKey(url: string): Promise<string> {
+export async function imageKey(url: string): Promise<string> {
     const digest = await crypto.subtle.digest(
         "SHA-256",
         new TextEncoder().encode(url),
@@ -881,6 +897,13 @@ export async function importDgoFromBlob(
     file: Blob,
     centered = false,
 ): Promise<string[]> {
+    readDgo(c, await dgoJson(file), centered);
+    runInits(c);
+    return [];
+}
+
+// Gzipped or not.
+export async function dgoJson(file: Blob): Promise<Json> {
     const [first, second] = new Uint8Array(
         await file.slice(0, 2).arrayBuffer(),
     );
@@ -888,9 +911,7 @@ export async function importDgoFromBlob(
         first === 0x1f && second === 0x8b
             ? file.stream().pipeThrough(new DecompressionStream("gzip"))
             : file.stream();
-    readDgo(c, JSON.parse(await new Response(stream).text()), centered);
-    runInits(c);
-    return [];
+    return JSON.parse(await new Response(stream).text());
 }
 
 // The file comes from anywhere: whatever it holds, it is only data, and
@@ -1166,7 +1187,7 @@ const UNBUILT = ["Pt", "VecF", "Btn", "Evt", "Html", "Img"];
 
 // The figure's macros: what can be checked before reading their bodies,
 // read with each application.
-function readMacros(
+export function readMacros(
     value: Json,
     styles: Json[],
     images: Record<string, Json>,
@@ -1276,6 +1297,20 @@ function setBranches(node: macro_object, value: Json): void {
 }
 
 type Builder = (parameters: Json, reader: Reader) => construction_object;
+
+// A point on this object's parameter: a pair on a polygon or a conic.
+function onParameter(
+    support: point_support_object,
+    alpha: Json,
+): number | [number, number] {
+    if (
+        !(support instanceof polygon_object) &&
+        !(support instanceof primitive_quadric_object)
+    )
+        return real(alpha);
+    const [a, b] = list(alpha, 2).map(real);
+    return [a, b];
+}
 
 // JSON has no NaN: a number that isn't finite, where it can be, is null.
 function real(value: Json): number {
@@ -1556,13 +1591,7 @@ const BUILDERS: Record<string, Builder> = {
             list_object,
             curve_object,
         );
-        if (
-            !(support instanceof polygon_object) &&
-            !(support instanceof primitive_quadric_object)
-        )
-            return createPointOn(c, name, support, real(alpha));
-        const [a, b] = list(alpha, 2).map(real);
-        return createPointOn(c, name, support, [a, b]);
+        return createPointOn(c, name, support, onParameter(support, alpha));
     },
     Mid: ofSegment(createMidpoint),
     Sym: twoPoints(createSymmetry),
@@ -2315,7 +2344,7 @@ const BUILDERS: Record<string, Builder> = {
         return node;
     },
     Out: (parameters, { c, name, at }) => {
-        const [index, rank] = list(parameters, 2);
+        const [index, rank, alpha] = list(parameters, 2, 3);
         const node = at(index, macro_object);
         check(Number.isInteger(rank));
         // Perhaps adopted in the body already, from an application there.
@@ -2329,7 +2358,14 @@ const BUILDERS: Record<string, Builder> = {
         final.name = name;
         final.parents = [];
         final.addParents(node);
-        if (final instanceof point_object) final.moveable = false;
+        // But along its support, where it was moved to.
+        if (final instanceof point_on_object) {
+            if (alpha !== undefined)
+                final.alpha = onParameter(final.support, alpha);
+        } else {
+            check(alpha === undefined);
+            if (final instanceof point_object) final.moveable = false;
+        }
         return c.add(final);
     },
 };

@@ -1,0 +1,158 @@
+<!doctype html>
+<html lang="nl">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <title>Macro's — DocGeo-handleiding</title>
+        <link rel="icon" type="image/svg+xml" href="../../favicon.svg" />
+        <link rel="stylesheet" href="../manual.css" />
+        <script src="../icons.js" defer></script>
+        <script src="../manual.js" defer></script>
+    </head>
+    <body>
+        <main>
+            <h1>Macro's</h1>
+            <p>
+                Een macroconstructie maakt van een constructie een gereedschap:
+                uit <em>beginobjecten</em> construeert ze <em>eindobjecten</em>.
+            </p>
+            <h2 id="creer">Een macro maken</h2>
+            <ul>
+                <li>
+                    <i data-t="New macro"></i> <strong>Nieuwe macro</strong>, in
+                    de familie <strong>Macro's</strong> van het gereedschapsmenu
+                    of in het menu <strong>Macro's</strong>, opent de definitie;
+                    de geselecteerde objecten worden de eerste beginobjecten.
+                </li>
+                <li>
+                    Stap 1: tik de beginobjecten aan, in de volgorde waarin ze
+                    gevraagd zullen worden. Elk object kan er een zijn, ook een
+                    geconstrueerd. Wat ze bepalen, licht groen op.
+                </li>
+                <li>
+                    <strong>Volgende: de eindobjecten</strong>, tik dan de
+                    eindobjecten aan tussen de groene objecten. Zonder gekozen
+                    eindobject zijn de zichtbare groene objecten de
+                    eindobjecten. Een niet bepaald object wordt geweigerd: wat
+                    het mist, knippert rood.
+                </li>
+                <li>
+                    Een punt op een object waarvan de drager bepaald is, is ook
+                    bepaald. Als eindobject blijft het na elke toepassing
+                    beweegbaar op zijn drager; als tussenobject ligt zijn plaats
+                    vast.
+                </li>
+                <li>
+                    Het paneel geeft de naam van de macro, de volgorde van de
+                    beginobjecten (hun rang verslepen), de melding voor elk, de
+                    hulp en het pictogram: getekend uit de figuur, een of twee
+                    letters, of een afbeelding.
+                </li>
+                <li>
+                    <strong>Macro maken</strong> bewaart haar in de figuur.
+                    Onder een bestaande naam, met andere beginobjecten, wordt ze
+                    een nieuwe <em>methode</em> van die macro.
+                </li>
+            </ul>
+            <h2 id="appliquer">Een macro toepassen</h2>
+            <ul>
+                <li>
+                    De macro’s van de figuur volgen
+                    <strong>Nieuwe macro</strong> in het menu; in de ring van
+                    een object geeft de plaats <strong>Macro's</strong> die
+                    welke het als eerste beginobject aannemen.
+                </li>
+                <li>
+                    De aanwijzing geeft de hulp en het verwachte beginobject
+                    (“1/3 – …”). Tik de beginobjecten aan; een klik in het lege
+                    vlak of op een lijn maakt het verwachte punt; een getal typt
+                    u in de aanwijzing.
+                </li>
+                <li>
+                    Het resultaat verschijnt als voorbeeld vóór het laatste
+                    beginobject. De macro blijft actief:
+                    <strong>Klaar</strong> of <kbd>Esc</kbd> verlaat haar.
+                </li>
+                <li>
+                    De eindobjecten zijn objecten als alle andere (naam, stijl),
+                    die niet bewegen, behalve een punt op een object, langs zijn
+                    drager.
+                </li>
+            </ul>
+            <h2 id="au-clavier">Met het toetsenbord</h2>
+            <ul>
+                <li>
+                    <code>C, t = GelijkbenigeDriehoek(A, B)</code> past de macro
+                    toe en benoemt haar eindobjecten in volgorde;
+                    <code>_</code> laat er een weg:
+                    <code>_, t = GelijkbenigeDriehoek(A, B)</code>.
+                </li>
+                <li>
+                    <code>a = Machtlijn(c, d)</code> voor een macro met één
+                    eindobject; <code>Parallellogram(A, B, C)</code> alleen
+                    benoemt de eindobjecten naar de macro.
+                </li>
+                <li>
+                    De beginobjecten moeten in de constructie vóór de toepassing
+                    staan.
+                </li>
+            </ul>
+            <h2 id="ouvrir-la-boite">Doos openen</h2>
+            <ul>
+                <li>
+                    Met een eindobject geselecteerd vervangt de actie
+                    <strong>Doos openen</strong> van de balk de toepassing door
+                    haar constructie: de tussenobjecten verschijnen, met de naam
+                    en stijl die ze hadden in de figuur van de definitie; de
+                    eindobjecten blijven dezelfde objecten.
+                </li>
+                <li>
+                    Bij aanwijzen toont ze als voorbeeld wat er uit de doos
+                    komt.
+                </li>
+            </ul>
+            <h2 id="bibliotheque">Bibliotheek</h2>
+            <ul>
+                <li>
+                    Het menu <strong>Macro's</strong> van de menubalk (buiten
+                    DocTools) opent de <strong>Bibliotheek</strong> die met
+                    DocGeo meekomt, in mappen: driehoeken, vierhoeken, cirkels,
+                    transformaties, kegelsneden, projectieve meetkunde,
+                    constructies.
+                </li>
+                <li>
+                    Een gekozen macro wordt met de macro’s die ze gebruikt in de
+                    figuur gekopieerd en daarna toegepast als een macro van de
+                    figuur. Haar naam kunt u ook typen:
+                    <code>a = Machtlijn(c, d)</code>.
+                </li>
+                <li>
+                    Heeft de figuur al een andere versie van de macro, dan stelt
+                    een melding voor om ze te vervangen.
+                </li>
+            </ul>
+            <h2 id="mes-macros">Mijn macro's</h2>
+            <ul>
+                <li>
+                    <strong>Toevoegen aan mijn macro's</strong> bewaart een
+                    macro van de figuur voor alle figuren: ze verschijnt in
+                    <strong>Mijn macro's</strong>.
+                </li>
+                <li>
+                    <strong>Mijn macro's beheren…</strong> hernoemt ze, ordent
+                    ze in mappen (<code>Kegelsneden / Elementen</code>) en
+                    verwijdert ze.
+                </li>
+                <li>
+                    Ze worden alleen in deze browser bewaard:
+                    <strong>Mijn macro's exporteren…</strong> bewaart ze in een
+                    <code>.dgo</code>-bestand, dat
+                    <strong>Macro's importeren…</strong> in een andere browser
+                    overneemt. Importeren leest ook de macro’s van een figuur;
+                    een macro met dezelfde naam, anders gedefinieerd, wordt na
+                    bevestiging vervangen.
+                </li>
+            </ul>
+        </main>
+    </body>
+</html>

@@ -734,7 +734,9 @@ Supprimer, Gomme), Affichage (Repère, Vue 3D, Historique, Propriétés,
 cochés selon leur état ; Plein écran, API Fullscreen sur toute la page,
 absent là où `document.fullscreenEnabled` est faux : iPhone, Safari
 iPadOS < 16.4 qui n'a que `webkit…`, pas de raccourci, ceux du système
-appartenant au navigateur, Échap en sort) et Aide (manuel). Les menus pressent les boutons de
+appartenant au navigateur, Échap en sort), Macros (section
+« Macro-constructions », bibliothèques) et Outils (manuel, DocTools, à
+propos). Les menus pressent les boutons de
 la barre d'icônes, qui restent (commodes au doigt). Un clic hors d'un menu
 ouvert le ferme sans rien faire d'autre ; flèches et Échap au clavier.
 `--dge-bar-height` est la hauteur des deux barres ensemble.
@@ -1470,6 +1472,48 @@ l'application par sa construction (`boxOf` de `macro.ts`, `openBox` de
 Une étape d'annulation. Les objets sortis de la boîte ne sont pas mis en
 évidence (décidé avec l'auteur le 2026-10-26) ; l'aperçu au survol, qui
 cache ceux qui le seront, suffit.
+
+**Bibliothèques de macros** (2026-10-27, `library.ts`, `my_macros.ts`,
+voir `MACROS.md`, « Bibliothèque », et `DGO.md`) : hors d'une iframe
+seulement, un menu « Macros » de la barre de menus, entre « Affichage » et
+« Outils » :
+
+- « Nouvelle macro », qui ouvre la définition, puis « Macros de la
+  figure ▸ » (grisées comme dans le menu des outils ; en sous-menu, une
+  figure pouvant en avoir beaucoup, demandé par l'auteur le 2026-10-27),
+  qui les applique ;
+- « Bibliothèque ▸ » (`public/macros/<langue>.dgo`, chargée au démarrage)
+  et « Mes macros ▸ » (`localStorage`), leurs dossiers en sous-menus
+  (`items` d'un item de `menus.ts` : au survol ou au toucher, à côté de
+  l'item, flèches au clavier). Une macro choisie est recopiée dans la
+  figure avec celles qu'elle applique, puis appliquée comme une macro de
+  la figure ; la copie est retirée si on sort sans l'avoir appliquée. Si
+  la figure en a une autre version, une alerte propose de la remplacer :
+  la figure est reconstruite, ses applications suivant leur macro, ou
+  reste telle quelle si elles ne vont pas à la nouvelle définition
+  (`macros_replace_failed`) ; refusée, la figure garde la sienne ;
+- « Ajouter à mes macros ▸ » : les macros de la figure, moins les copies
+  de macros de la bibliothèque ;
+- « Gérer mes macros… » : un dialogue, chaque macro sous son dossier, son
+  nom et son dossier modifiables (règle des noms de `nameProblem`, unique
+  avec la bibliothèque), × pour la supprimer, refusé si une autre
+  l'applique ; « Importer des macros », « Exporter mes macros », un
+  rappel qu'elles ne sont gardées que dans ce navigateur ;
+- « Importer des macros… » : les macros d'un `.dgo`, figure ou
+  bibliothèque ; « Exporter mes macros… » : un `.dgo` sans objets
+  (`saveOther` de `file.ts`, qui laisse le fichier de la figure).
+
+Ajouter ou importer une macro qui a le nom d'une des miennes, autrement
+définie, ouvre une alerte qui propose de les remplacer toutes ; une macro
+au nom d'une macro de la bibliothèque est refusée, sauf à en être la copie
+exacte, qui n'est alors qu'une dépendance, pas montrée.
+
+Dans le langage textuel, hors d'une iframe, le nom d'une macro de la
+bibliothèque ou de mes macros que la figure n'a pas est une commande
+(`isCall`, complétion) : la ligne qui l'applique la recopie dans la
+figure, avec celles qu'elle applique (une de même nom dans la figure est
+gardée) ; refusée, la figure revient à son étape. La bibliothèque fournie
+est produite par `npm run macros` (`tools/macros/`, voir `MACROS.md`).
 
 ## Lien avec le lecteur
 

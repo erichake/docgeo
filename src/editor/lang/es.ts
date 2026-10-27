@@ -379,6 +379,34 @@ const es: Texts = {
         open_box_hint: "Sustituye la aplicación por su construcción: % objetos",
         open_box_arc:
             "La caja no se puede abrir: el final de un arco inicial no es un objeto de la figura",
+        menu_macros: "Macros",
+        figure_macros: "Macros de la figura",
+        macro_library: "Biblioteca",
+        my_macros: "Mis macros",
+        add_to_my_macros: "Añadir a mis macros",
+        manage_my_macros: "Gestionar mis macros",
+        import_macros: "Importar macros",
+        export_my_macros: "Exportar mis macros",
+        close: "Cerrar",
+        macro_folder: "Carpeta",
+        macro_folder_placeholder: "Carpeta / subcarpeta",
+        my_macros_note:
+            "Guardadas solo en este navegador: expórtelas para recuperarlas en otro.",
+        my_macros_empty:
+            "Aún no hay macros: añada las de una figura desde el menú Macros, o importe algunas.",
+        macros_replace: "Reemplazar",
+        macros_taken_mine:
+            "Mis macros ya tienen %, con otra definición. ¿Reemplazarlas?",
+        macros_taken_figure:
+            "La figura ya tiene %, con otra definición. ¿Reemplazar por la de la biblioteca?",
+        macros_replace_failed:
+            "Nada reemplazado: la figura las aplica de un modo que las nuevas definiciones no permiten",
+        macros_supplied_name:
+            "Ya en la biblioteca, o con el nombre de una de sus macros: %",
+        macros_added: "Añadidas a mis macros: %",
+        macros_none: "Este archivo no tiene ninguna macro",
+        macro_name_taken: "Otra macro se llama %",
+        macro_used_by: "Aplicada por %: borre primero esa",
     },
     commands: {
         Side: "Lado",

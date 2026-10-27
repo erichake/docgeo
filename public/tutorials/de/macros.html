@@ -1,0 +1,159 @@
+<!doctype html>
+<html lang="de">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <title>Makros — DocGeo-Handbuch</title>
+        <link rel="icon" type="image/svg+xml" href="../../favicon.svg" />
+        <link rel="stylesheet" href="../manual.css" />
+        <script src="../icons.js" defer></script>
+        <script src="../manual.js" defer></script>
+    </head>
+    <body>
+        <main>
+            <h1>Makros</h1>
+            <p>
+                Ein Makro macht aus einer Konstruktion ein Werkzeug: Aus
+                <em>Anfangsobjekten</em> konstruiert es <em>Endobjekte</em>.
+            </p>
+            <h2 id="creer">Ein Makro erstellen</h2>
+            <ul>
+                <li>
+                    <i data-t="New macro"></i> <strong>Neues Makro</strong>, in
+                    der Familie <strong>Makros</strong> des Werkzeugmenüs oder
+                    im Menü <strong>Makros</strong>, öffnet die Definition; die
+                    ausgewählten Objekte werden ihre ersten Anfangsobjekte.
+                </li>
+                <li>
+                    Schritt 1: Tippen Sie die Anfangsobjekte an, in der
+                    Reihenfolge, in der sie abgefragt werden. Jedes Objekt kann
+                    eines sein, auch ein konstruiertes. Was sie bestimmen,
+                    leuchtet grün.
+                </li>
+                <li>
+                    <strong>Weiter: die Endobjekte</strong>, dann tippen Sie die
+                    Endobjekte unter den grünen Objekten an. Ohne gewähltes
+                    Endobjekt sind die sichtbaren grünen Objekte die Endobjekte.
+                    Ein nicht bestimmtes Objekt wird abgelehnt: Was ihm fehlt,
+                    blinkt rot.
+                </li>
+                <li>
+                    Ein Punkt auf einem Objekt, dessen Träger bestimmt ist, ist
+                    ebenfalls bestimmt. Als Endobjekt bleibt er nach jeder
+                    Anwendung auf seinem Träger beweglich; als Zwischenobjekt
+                    ist seine Lage fest.
+                </li>
+                <li>
+                    Das Seitenfeld zeigt den Namen des Makros, die Reihenfolge
+                    der Anfangsobjekte (ihren Rang ziehen), die Meldung für
+                    jedes, die Hilfe und das Symbol: aus der Figur gezeichnet,
+                    ein oder zwei Buchstaben oder ein Bild.
+                </li>
+                <li>
+                    <strong>Makro erstellen</strong> speichert es in der Figur.
+                    Unter einem vorhandenen Namen, mit anderen Anfangsobjekten,
+                    wird es eine neue <em>Methode</em> desselben Makros.
+                </li>
+            </ul>
+            <h2 id="appliquer">Ein Makro anwenden</h2>
+            <ul>
+                <li>
+                    Die Makros der Figur folgen im Menü auf
+                    <strong>Neues Makro</strong>; im Ring eines Objekts zeigt
+                    der Platz <strong>Makros</strong> diejenigen, die es als
+                    erstes Anfangsobjekt annehmen.
+                </li>
+                <li>
+                    Der Hinweis zeigt die Hilfe und das erwartete Anfangsobjekt
+                    („1/3 – …“). Tippen Sie die Anfangsobjekte an; ein Klick ins
+                    Leere oder auf eine Linie erzeugt den erwarteten Punkt; eine
+                    Zahl wird im Hinweis eingetippt.
+                </li>
+                <li>
+                    Das Ergebnis erscheint vor dem letzten Anfangsobjekt als
+                    Vorschau. Das Makro bleibt aktiv:
+                    <strong>Fertig</strong> oder <kbd>Esc</kbd> beendet es.
+                </li>
+                <li>
+                    Die Endobjekte sind Objekte wie alle anderen (Name, Stil),
+                    die sich nicht verschieben lassen, außer einem Punkt auf
+                    einem Objekt, entlang seines Trägers.
+                </li>
+            </ul>
+            <h2 id="au-clavier">Mit der Tastatur</h2>
+            <ul>
+                <li>
+                    <code>C, t = GleichschenkligesDreieck(A, B)</code> wendet
+                    das Makro an und benennt seine Endobjekte der Reihe nach;
+                    <code>_</code> lässt eines weg:
+                    <code>_, t = GleichschenkligesDreieck(A, B)</code>.
+                </li>
+                <li>
+                    <code>a = Potenzgerade(c, d)</code> für ein Makro mit einem
+                    Endobjekt; <code>Parallelogramm(A, B, C)</code> allein
+                    benennt die Endobjekte nach dem Makro.
+                </li>
+                <li>
+                    Die Anfangsobjekte müssen in der Konstruktion vor der
+                    Anwendung stehen.
+                </li>
+            </ul>
+            <h2 id="ouvrir-la-boite">Box öffnen</h2>
+            <ul>
+                <li>
+                    Ist ein Endobjekt ausgewählt, ersetzt die Aktion
+                    <strong>Box öffnen</strong> der Leiste die Anwendung durch
+                    ihre Konstruktion: Die Zwischenobjekte erscheinen, benannt
+                    und gestaltet wie in der Figur der Definition; die
+                    Endobjekte bleiben dieselben Objekte.
+                </li>
+                <li>
+                    Beim Überfahren zeigt sie als Vorschau, was aus der Box
+                    herauskommt.
+                </li>
+            </ul>
+            <h2 id="bibliotheque">Bibliothek</h2>
+            <ul>
+                <li>
+                    Das Menü <strong>Makros</strong> der Menüleiste (außerhalb
+                    von DocTools) öffnet die mit DocGeo gelieferte
+                    <strong>Bibliothek</strong>, in Ordnern: Dreiecke, Vierecke,
+                    Kreise, Abbildungen, Kegelschnitte, projektive Geometrie,
+                    Konstruktionen.
+                </li>
+                <li>
+                    Ein gewähltes Makro wird mit den Makros, die es verwendet,
+                    in die Figur kopiert und dann wie ein Makro der Figur
+                    angewendet. Sein Name lässt sich auch eintippen:
+                    <code>a = Potenzgerade(c, d)</code>.
+                </li>
+                <li>
+                    Hat die Figur bereits eine andere Version des Makros, bietet
+                    eine Meldung an, sie zu ersetzen.
+                </li>
+            </ul>
+            <h2 id="mes-macros">Meine Makros</h2>
+            <ul>
+                <li>
+                    <strong>Zu meinen Makros hinzufügen</strong> behält ein
+                    Makro der Figur für alle Figuren: Es erscheint in
+                    <strong>Meine Makros</strong>.
+                </li>
+                <li>
+                    <strong>Meine Makros verwalten…</strong> benennt sie um,
+                    ordnet sie in Ordner (<code>Kegelschnitte / Elemente</code>)
+                    und löscht sie.
+                </li>
+                <li>
+                    Sie werden nur in diesem Browser gespeichert:
+                    <strong>Meine Makros exportieren…</strong> speichert sie in
+                    einer <code>.dgo</code>-Datei, die
+                    <strong>Makros importieren…</strong> in einen anderen
+                    Browser übernimmt. Importieren liest auch die Makros einer
+                    Figur; ein gleichnamiges, anders definiertes Makro wird nach
+                    Bestätigung ersetzt.
+                </li>
+            </ul>
+        </main>
+    </body>
+</html>

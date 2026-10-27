@@ -18,6 +18,7 @@ import type { construction_object } from "../../src/objects/construction_object"
 import type { locus_object } from "../../src/objects/locus_object";
 import { macro_object } from "../../src/objects/macro_object";
 import type { point_object } from "../../src/objects/point_object";
+import type { point_on_object } from "../../src/objects/point_on_object";
 import type { primitive_circle_object } from "../../src/objects/primitive_circle_object";
 import type { primitive_line_object } from "../../src/objects/primitive_line_object";
 import { vNorm, vSub, type Vec3 } from "../../src/vec";
@@ -470,6 +471,89 @@ describe("Macro-constructions", () => {
                 [...o.slice(0, 8), ["Mac", "mac1", [0, 0, [3, 7], [0, 1]]]],
                 [CROSS],
             ),
+        ).toThrow();
+    });
+
+    it("moves a final on an object along its support, saved and stated", async () => {
+        // On its base AB, the apex C of an isosceles triangle moves on the
+        // perpendicular bisector; P stays where it was in the body.
+        const ISOSCELES = {
+            n: "Isocèle",
+            f: ["C", "t", "R"],
+            m: [
+                {
+                    i: [["point"], ["point"]],
+                    b: [
+                        ["Med", "m", [0, 1]],
+                        ["On", "C", [2, 2]],
+                        ["Poly", "t", [0, 1, 3]],
+                        ["On", "P", [2, -1]],
+                        ["Mid", "R", [5, 0]],
+                    ],
+                    f: [3, 4, 6],
+                },
+            ],
+        };
+        const o = [
+            ["Pt", "A", [-2, 0]],
+            ["Pt", "B", [2, 0]],
+            ["Mac", "mac1", [0, 0, [0, 1]]],
+            ["Out", "C", [2, 1, 1.5]],
+            ["Out", "t", [2, 2]],
+            ["Out", "R", [2, 3]],
+        ];
+        const c = open(o, [ISOSCELES]);
+        const equidistant = (on: construction) =>
+            expect(
+                vNorm(vSub(get(on, "C").coords, get(on, "A").coords)),
+            ).toBeCloseTo(
+                vNorm(vSub(get(on, "C").coords, get(on, "B").coords)),
+            );
+        const apex = get<point_on_object>(c, "C");
+        expect(apex.alpha).toBe(1.5);
+        expect(apex.moveable).toBe(true);
+        expect(get(c, "R").moveable).toBe(false);
+        equidistant(c);
+        const before = get(c, "C").coords;
+        const middle = get(c, "R").coords;
+        apex.alpha = 3;
+        c.invalidateGeometry(apex);
+        c.flush();
+        expect(get(c, "C").coords).not.toEqual(before);
+        expectClose(get(c, "R").coords, middle);
+        move(c, "B", [4, 1, 0]);
+        equidistant(c);
+        expect(apex.alpha).toBe(3);
+
+        const saved = await describeDgo(c);
+        expect(saved.o.slice(3)).toEqual([
+            ["Out", "C", [2, 1, 3]],
+            ["Out", "t", [2, 2]],
+            ["Out", "R", [2, 3]],
+        ]);
+        const reopened = createConstruction([800, 600]);
+        readDgo(reopened, saved);
+        reopened.flush();
+        expectClose(get(reopened, "C").coords, get(c, "C").coords);
+
+        // Stated, as a point on an object.
+        const view = builtView(c);
+        const values = figureValues(c, view);
+        expect(values.has("C")).toBe(true);
+        expect(values.has("R")).toBe(false);
+        apex.alpha = -2;
+        c.invalidateGeometry(apex);
+        c.flush();
+        const state = figureState(c, values, view);
+        expect(Object.keys(state)).toEqual(["C"]);
+        const applied = createConstruction([800, 600]);
+        readDgo(applied, stateFigure(c, saved, state));
+        applied.flush();
+        expectClose(get(applied, "C").coords, get(c, "C").coords);
+
+        // Only a point on an object has a place.
+        expect(() =>
+            open([...o.slice(0, 4), ["Out", "t", [2, 2, 1]]], [ISOSCELES]),
         ).toThrow();
     });
 

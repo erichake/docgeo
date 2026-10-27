@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="zh">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <title>宏 — DocGeo 手册</title>
+        <link rel="icon" type="image/svg+xml" href="../../favicon.svg" />
+        <link rel="stylesheet" href="../manual.css" />
+        <script src="../icons.js" defer></script>
+        <script src="../manual.js" defer></script>
+    </head>
+    <body>
+        <main>
+            <h1>宏</h1>
+            <p>
+                宏把一个作图变成工具：从<em>初始</em>对象出发，作出<em>最终</em>对象。
+            </p>
+            <h2 id="creer">创建宏</h2>
+            <ul>
+                <li>
+                    <i data-t="New macro"></i
+                    >工具菜单<strong>宏</strong>族中或<strong>宏</strong>菜单中的<strong>新建宏</strong>打开定义；所选对象成为它的前几个初始对象。
+                </li>
+                <li>
+                    第 1
+                    步：按将来询问的顺序点按初始对象。任何对象都可以是初始对象，作出的对象也可以。它们所确定的对象以绿色点亮。
+                </li>
+                <li>
+                    <strong>下一步：最终对象</strong
+                    >，然后在绿色对象中点按最终对象。如果没有选择最终对象，可见的绿色对象就是最终对象。未确定的对象会被拒绝：它缺少的对象以红色闪烁。
+                </li>
+                <li>
+                    支撑对象已确定的对象上的点也是确定的。作为最终对象，它在每次应用后仍可在其支撑上移动；作为中间对象，它的位置是固定的。
+                </li>
+                <li>
+                    面板给出宏的名称、初始对象的顺序（拖动其序号）、每个初始对象显示的提示、帮助和图标：由图形绘出、一两个字母或一张图片。
+                </li>
+                <li>
+                    <strong>创建宏</strong
+                    >把它保存在图形中。使用已有名称和其他初始对象时，它成为该宏的一个新<em>方法</em>。
+                </li>
+            </ul>
+            <h2 id="appliquer">应用宏</h2>
+            <ul>
+                <li>
+                    图形中的宏在菜单里排在<strong>新建宏</strong>之后；在一个对象的环形菜单中，<strong>宏</strong>位置给出把它当作第一个初始对象的宏。
+                </li>
+                <li>
+                    提示栏给出帮助和所需的初始对象（「1/3 –
+                    …」）。点按初始对象；在空白处或线上点击会创建所需的点；数字在提示栏中输入。
+                </li>
+                <li>
+                    在最后一个初始对象之前，结果以预览显示。宏保持在手中：<strong>完成</strong>或
+                    <kbd>Esc</kbd> 退出。
+                </li>
+                <li>
+                    最终对象与其他对象一样（名称、样式），但不能移动，对象上的点除外，它可沿支撑移动。
+                </li>
+            </ul>
+            <h2 id="au-clavier">用键盘</h2>
+            <ul>
+                <li>
+                    <code>C, t = 等腰三角形(A, B)</code>
+                    应用宏并按顺序命名其最终对象；<code>_</code> 省略一个：<code
+                        >_, t = 等腰三角形(A, B)</code
+                    >。
+                </li>
+                <li>
+                    只有一个最终对象的宏：<code>a = 根轴(c, d)</code>；单独写
+                    <code>平行四边形(A, B, C)</code> 则按宏的定义命名最终对象。
+                </li>
+                <li>在作图中，初始对象必须位于应用之前。</li>
+            </ul>
+            <h2 id="ouvrir-la-boite">打开盒子</h2>
+            <ul>
+                <li>
+                    选中一个最终对象时，栏中的<strong>打开盒子</strong>操作把应用替换为它的作图：中间对象出现，名称和样式与定义图形中相同；最终对象仍是原来的对象。
+                </li>
+                <li>鼠标悬停时，它预览将从盒子里出来的对象。</li>
+            </ul>
+            <h2 id="bibliotheque">宏库</h2>
+            <ul>
+                <li>
+                    菜单栏中的<strong>宏</strong>菜单（DocTools 之外）打开
+                    DocGeo
+                    自带的<strong>宏库</strong>，按文件夹排列：三角形、四边形、圆、变换、圆锥曲线、射影几何、作图。
+                </li>
+                <li>
+                    选中的宏连同它用到的宏被复制到图形中，然后像图形中的宏一样应用。也可以直接输入它的名称：<code
+                        >a = 根轴(c, d)</code
+                    >。
+                </li>
+                <li>
+                    如果图形中已有该宏的另一个版本，会弹出提示询问是否替换。
+                </li>
+            </ul>
+            <h2 id="mes-macros">我的宏</h2>
+            <ul>
+                <li>
+                    <strong>添加到我的宏</strong
+                    >把图形中的一个宏保留给所有图形使用：它出现在<strong>我的宏</strong>中。
+                </li>
+                <li>
+                    <strong>管理我的宏…</strong>可以重命名、分文件夹整理（<code
+                        >圆锥曲线 / 元素</code
+                    >）和删除它们。
+                </li>
+                <li>
+                    它们只保存在此浏览器中：<strong>导出我的宏…</strong>把它们保存为
+                    <code>.dgo</code>
+                    文件，<strong>导入宏…</strong>可在另一个浏览器中导入。导入也读取图形中的宏；同名但定义不同的宏在确认后被替换。
+                </li>
+            </ul>
+        </main>
+    </body>
+</html>

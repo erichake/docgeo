@@ -24,6 +24,7 @@ import { macroThumbnail } from "../../src/editor/macro_icon";
 import { parseLine } from "../../src/editor/text";
 import type { construction_object } from "../../src/objects/construction_object";
 import type { point_object } from "../../src/objects/point_object";
+import type { point_on_object } from "../../src/objects/point_on_object";
 import { createConstruction, disposeFigures, expectClose } from "./figures";
 
 disposeFigures();
@@ -111,6 +112,58 @@ describe("Defining a macro", () => {
         ]);
     });
 
+    it("takes a point on an object the initials determine, final or not", () => {
+        const c = figure(
+            "A = (-2, 0)",
+            "B = (2, 0)",
+            "m = PerpendicularBisector(A, B)",
+            "C = Point(m, 1.5)",
+            "t = Polygon(A, B, C)",
+            "P = Point(m, -1)",
+            "R = Midpoint(P, A)",
+        );
+        const analysis = analyse(c, all(c, "A", "B"));
+        expect(analysis.determined(get(c, "C"))).toBe(true);
+        expect(analysis.determined(get(c, "R"))).toBe(true);
+        const method = methodOf(
+            c,
+            all(c, "A", "B"),
+            all(c, "C", "t", "R"),
+            [],
+            "",
+        );
+        expect(method.body.map(([tag, name]) => [tag, name])).toEqual([
+            ["Med", "m"],
+            ["On", "C"],
+            ["Poly", "t"],
+            ["On", "P"],
+            ["Mid", "R"],
+        ]);
+        save(
+            c,
+            savingOf(c.macros, "Isocèle", method),
+            "Isocèle",
+            ["C", "t", "R"],
+            null,
+            method,
+        );
+        // Applied elsewhere: its apex where it was on the bisector, which
+        // the application's own drag moves.
+        const other = figure("D = (0, 0)", "E = (0, 4)");
+        other.macros = c.macros;
+        const [apex] = applyMacro(other, 0, 0, all(other, "D", "E"));
+        const { alpha } = get<point_on_object>(c, "C");
+        expect((apex as point_on_object).alpha).toBe(alpha);
+        expect((apex as point_on_object).moveable).toBe(true);
+        expectClose(
+            Math.hypot(...(apex as point_object).coords.slice(0, 2)),
+            Math.hypot(
+                (apex as point_object).coords[0],
+                (apex as point_object).coords[1] - 4,
+            ),
+        );
+    });
+
     it("determines a locus from its point's support", () => {
         const c = figure(
             "O = (0, 0)",
@@ -122,8 +175,11 @@ describe("Defining a macro", () => {
             "L = Locus(X, M)",
         );
         const analysis = analyse(c, all(c, "c", "Q"));
-        expect(analysis.determined(get(c, "X"))).toBe(false);
+        // M's place on c, a constant of the body.
+        expect(analysis.determined(get(c, "X"))).toBe(true);
         expect(analysis.determined(get(c, "L"))).toBe(true);
+        // Not without c.
+        expect(analyse(c, all(c, "Q")).determined(get(c, "L"))).toBe(false);
         const method = methodOf(c, all(c, "c", "Q"), all(c, "L"), [], "");
         expect(method.body.map(([tag]) => tag)).toEqual(["On", "Mid", "Loc"]);
         expect(method.initials).toEqual([

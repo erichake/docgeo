@@ -1,5 +1,7 @@
 import type { construction } from "../construction";
 import { addDgoEntries, figureObjects, objectStyle } from "../dgo";
+import { isCommand } from "./catalog";
+import { message } from "./messages";
 import { button_object } from "../objects/button_object";
 import { center_object } from "../objects/center_object";
 import { arc3pts_object } from "../objects/arc3pts_object";
@@ -25,7 +27,6 @@ import {
     type macro_object,
 } from "../objects/macro_object";
 import { panel_object } from "../objects/panel_object";
-import { point_on_object } from "../objects/point_on_object";
 import { point_object } from "../objects/point_object";
 import { semicircle_object } from "../objects/semicircle_object";
 
@@ -90,11 +91,12 @@ function subObjects(
 // What a manipulation changes, which a macro can't compute, and what acts
 // on the figure or names its images, which a body can't hold (see DGO.md).
 // A circle's numeric radius, though a manipulation changes it, is a
-// constant of the body (see MACROS.md).
+// constant of the body, and so is the place of a point on an object, but
+// for a final, which the application's own manipulation moves (see
+// MACROS.md).
 const unbuilt = (object: construction_object): boolean =>
     object.constructor === point_object ||
     object instanceof free_vector_object ||
-    object instanceof point_on_object ||
     (object instanceof expression_object &&
         !object.formula &&
         !object.program) ||
@@ -354,6 +356,14 @@ export function save(
     else if (saving.kind === "replace")
         saving.macro.methods[saving.method] = method;
 }
+
+// Why it can't be a macro's name, typed as a command.
+export const nameProblem = (name: string): string | null =>
+    !/^[\p{L}_][\p{L}\p{M}\p{N}_]*$/u.test(name)
+        ? message("macro_bad_name")
+        : isCommand(name)
+          ? message("macro_command_name", name)
+          : null;
 
 // A name for a new macro.
 export function macroName(c: construction, base: string): string {

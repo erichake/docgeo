@@ -390,6 +390,34 @@ const de: Texts = {
             "Ersetzt die Anwendung durch ihre Konstruktion: % Objekte",
         open_box_arc:
             "Die Box lässt sich nicht öffnen: Das Ende eines Anfangsbogens ist kein Objekt der Figur",
+        menu_macros: "Makros",
+        figure_macros: "Makros der Figur",
+        macro_library: "Bibliothek",
+        my_macros: "Meine Makros",
+        add_to_my_macros: "Zu meinen Makros hinzufügen",
+        manage_my_macros: "Meine Makros verwalten",
+        import_macros: "Makros importieren",
+        export_my_macros: "Meine Makros exportieren",
+        close: "Schließen",
+        macro_folder: "Ordner",
+        macro_folder_placeholder: "Ordner / Unterordner",
+        my_macros_note:
+            "Nur in diesem Browser gespeichert: Exportieren Sie sie, um sie in einem anderen wiederzufinden.",
+        my_macros_empty:
+            "Noch keine Makros: Fügen Sie die einer Figur über das Menü Makros hinzu, oder importieren Sie welche.",
+        macros_replace: "Ersetzen",
+        macros_taken_mine:
+            "Meine Makros enthalten bereits %, mit einer anderen Definition. Ersetzen?",
+        macros_taken_figure:
+            "Die Figur enthält bereits %, mit einer anderen Definition. Durch die der Bibliothek ersetzen?",
+        macros_replace_failed:
+            "Nichts ersetzt: Die Figur wendet sie auf eine Weise an, die die neuen Definitionen nicht erlauben",
+        macros_supplied_name:
+            "Schon in der Bibliothek oder wie eines ihrer Makros benannt: %",
+        macros_added: "Zu meinen Makros hinzugefügt: %",
+        macros_none: "Diese Datei enthält kein Makro",
+        macro_name_taken: "Ein anderes Makro heißt %",
+        macro_used_by: "Von % angewendet: Löschen Sie zuerst dieses",
     },
     commands: {
         Side: "Seite",

@@ -269,6 +269,41 @@ describe("Opening a macro's box", () => {
         expect(await openBox(arc, get<macro_object>(arc, "mac1"))).toBeNull();
     });
 
+    it("lets out a final on an object where it was moved", async () => {
+        const ISOSCELES = {
+            n: "Isocèle",
+            f: ["C", "t"],
+            m: [
+                {
+                    i: [["point"], ["point"]],
+                    b: [
+                        ["Med", "m", [0, 1]],
+                        ["On", "C", [2, 2]],
+                        ["Poly", "t", [0, 1, 3]],
+                    ],
+                    f: [3, 4],
+                },
+            ],
+        };
+        const c = open(
+            [
+                ["Pt", "A", [-2, 0]],
+                ["Pt", "B", [2, 0]],
+                ["Mac", "mac1", [0, 0, [0, 1]]],
+                ["Out", "C", [2, 1, -3]],
+                ["Out", "t", [2, 2]],
+            ],
+            [ISOSCELES],
+        );
+        const box = await opened(c, "mac1");
+        expect(box.o.find(([, name]) => name === "C")).toEqual([
+            "On",
+            "C",
+            [box.o.findIndex(([, name]) => name === "m"), -3],
+        ]);
+        expectClose(get(box.c, "C").coords, get(c, "C").coords);
+    });
+
     it("writes a typed number as a constant expression", async () => {
         const DILATE = {
             n: "Homothétie",

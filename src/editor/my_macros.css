@@ -1,0 +1,53 @@
+.dge-dialog.dge-my-macros-dialog {
+    width: min(620px, calc(100vw - 32px));
+}
+.dge-my-macros {
+    max-height: min(420px, 60dvh);
+    margin-block-end: 12px;
+    overflow-y: auto;
+}
+.dge-my-macros h3 {
+    margin: 10px 0 4px;
+    color: #64748b;
+    font-size: 13px;
+    font-weight: 600;
+}
+.dge-my-macro {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 3px 0;
+}
+.dge-dialog .dge-my-macro input {
+    flex: 1;
+    min-width: 0;
+    margin: 0;
+    padding: 5px 8px;
+}
+.dge-my-macro input:first-of-type {
+    flex: 1.2;
+}
+.dge-my-macro-remove {
+    flex: none;
+    width: 28px;
+    height: 28px;
+    border: 0;
+    border-radius: 6px;
+    background: none;
+    color: #64748b;
+    font-size: 18px;
+    cursor: pointer;
+}
+.dge-my-macro-remove:is(:hover, :focus-visible) {
+    background: #fee2e2;
+    color: #b91c1c;
+    outline: none;
+}
+.dge-my-macro .dge-tool-icon {
+    width: 30px;
+    height: 30px;
+}
+.dge-my-macro .dge-tool-icon svg {
+    width: 22px;
+    height: 22px;
+}

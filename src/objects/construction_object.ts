@@ -30,13 +30,20 @@ export interface DgoContext {
 }
 
 // Its .dgo type and parameters: a macro's final is the output of its
-// application.
+// application, with what a manipulation changes of it.
 export const objectEntry = (
     object: construction_object,
     context: DgoContext,
 ): [string, unknown] =>
     object.output
-        ? ["Out", [context.index(object.output.node), object.output.rank]]
+        ? [
+              "Out",
+              [
+                  context.index(object.output.node),
+                  object.output.rank,
+                  ...object.outputState(),
+              ],
+          ]
         : object.dgo(context);
 
 // A formula's text and, when it reads other objects, what each of its names
@@ -261,6 +268,12 @@ export class construction_object {
     // Its .dgo type and parameters (see DGO.md).
     dgo(_context: DgoContext): [string, unknown] {
         throw new Error(`${this.name} can't be saved`);
+    }
+
+    // As a macro's final, what a manipulation changes of it, after its
+    // `Out` parameters.
+    outputState(): unknown[] {
+        return [];
     }
 
     project(): void {}

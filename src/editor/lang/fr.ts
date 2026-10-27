@@ -378,6 +378,34 @@ const fr: Texts = {
         open_box_hint: "Remplace l'application par sa construction : % objets",
         open_box_arc:
             "La boîte ne s'ouvre pas : la fin d'un arc initial n'est pas un objet de la figure",
+        menu_macros: "Macros",
+        figure_macros: "Macros de la figure",
+        macro_library: "Bibliothèque",
+        my_macros: "Mes macros",
+        add_to_my_macros: "Ajouter à mes macros",
+        manage_my_macros: "Gérer mes macros",
+        import_macros: "Importer des macros",
+        export_my_macros: "Exporter mes macros",
+        close: "Fermer",
+        macro_folder: "Dossier",
+        macro_folder_placeholder: "Dossier / sous-dossier",
+        my_macros_note:
+            "Gardées dans ce navigateur seulement : exportez-les pour les retrouver dans un autre.",
+        my_macros_empty:
+            "Aucune macro pour l'instant : ajoutez celles d'une figure depuis le menu Macros, ou importez-en.",
+        macros_replace: "Remplacer",
+        macros_taken_mine:
+            "Mes macros ont déjà %, avec une autre définition. Les remplacer ?",
+        macros_taken_figure:
+            "La figure a déjà %, avec une autre définition. Remplacer par celle de la bibliothèque ?",
+        macros_replace_failed:
+            "Rien n'est remplacé : la figure les applique d'une façon que les nouvelles définitions ne permettent pas",
+        macros_supplied_name:
+            "Déjà dans la bibliothèque, ou du nom d'une de ses macros : %",
+        macros_added: "Ajouté à mes macros : %",
+        macros_none: "Ce fichier n'a aucune macro",
+        macro_name_taken: "Une autre macro s'appelle %",
+        macro_used_by: "Appliquée par % : supprimez d'abord celle-ci",
     },
     commands: {
         Side: "Côté",
