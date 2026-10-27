@@ -835,8 +835,12 @@ export const describeMacros = (
         f: finals,
         ...(icon && { ic: image(icon) }),
         m: methods.map(({ initials, help, body, finals }) => ({
-            i: initials.map(([type, message]) =>
-                message ? [type, message] : [type],
+            i: initials.map(([type, message, fixed]) =>
+                fixed
+                    ? [type, message, fixed]
+                    : message
+                      ? [type, message]
+                      : [type],
             ),
             ...(help && { h: help }),
             b: body.map(([tag, name, parameters, style]) =>
@@ -1240,11 +1244,13 @@ function readMethod(method: Json, count: number, styles: Json[]): MacroMethod {
     const { i: values, h: help = "", b: body, f: finals } = method;
     check(Array.isArray(values) && values.length > 0);
     check(typeof help === "string" && Array.isArray(body));
-    const initials = values.map((value): [string, string] => {
-        const [type, message = ""] = list(value, 1, 2);
+    const initials = values.map((value): [string, string, string?] => {
+        const [type, message = "", fixed] = list(value, 1, 3);
         check(typeof type === "string" && own(MACRO_TYPES, type));
         check(typeof message === "string");
-        return [type, message];
+        if (fixed === undefined) return [type, message];
+        check(typeof fixed === "string" && fixed !== "");
+        return [type, message, fixed];
     });
     const slots = initials.reduce(
         (sum, [type]) => sum + (SUB_OBJECTS[type] ?? 0) + 1,

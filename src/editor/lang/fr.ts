@@ -346,6 +346,9 @@ const fr: Texts = {
         macro_remove: "Retirer",
         macro_message: "Message affiché quand on le désigne",
         macro_drag: "Glisser pour changer l'ordre",
+        macro_fixed:
+            "Fixé : désigné une fois, puis repris d'une application à l'autre",
+        macro_fixed_change: "Changer %",
         macro_implicit:
             "Aucun final choisi : les objets visibles en gris sont les finaux",
         macro_need_initial: "Touchez les objets dont part la macro",
@@ -378,8 +381,8 @@ const fr: Texts = {
             "% est le nom d'une commande : choisissez-en un autre",
         open_box: "Ouvrir la boîte",
         open_box_hint: "Remplace l'application par sa construction : % objets",
-        open_box_arc:
-            "La boîte ne s'ouvre pas : la fin d'un arc initial n'est pas un objet de la figure",
+        open_box_point:
+            "La boîte ne s'ouvre pas : un point d'un initial (fin d'un arc, extrémité d'un segment…) n'est pas un objet de la figure",
         menu_macros: "Macros",
         figure_macros: "Macros de la figure",
         macro_library: "Bibliothèque",

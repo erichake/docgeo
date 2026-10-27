@@ -267,6 +267,80 @@ describe("Opening a macro's box", () => {
             [END],
         );
         expect(await openBox(arc, get<macro_object>(arc, "mac1"))).toBeNull();
+
+        // The ends of a segment an application builds are the figure's
+        // points they stand for.
+        const MAKE = {
+            n: "Segment2",
+            f: ["s"],
+            m: [
+                {
+                    i: [["point"], ["point"]],
+                    b: [["Seg", "s", [0, 1]]],
+                    f: [2],
+                },
+            ],
+        };
+        const inner = open(
+            [
+                ["Pt", "A", [0, 0]],
+                ["Pt", "B", [2, 0]],
+                ["Mac", "mac", [0, 0, [0, 1]]],
+                ["Out", "s", [2, 1]],
+                ["Mac", "mac1", [1, 0, [3]]],
+                ["Out", "E", [4, 1]],
+            ],
+            [
+                MAKE,
+                {
+                    ...END,
+                    m: [
+                        { i: [["segment"]], b: [["Mid", "E", [0, 1]]], f: [3] },
+                    ],
+                },
+            ],
+        );
+        const result = await openBox(inner, get<macro_object>(inner, "mac1"));
+        expect(result!.figure.o.slice(4)).toEqual([["Mid", "E", [0, 1]]]);
+        // Not those it computes: no entry describes them.
+        const built = open(
+            [
+                ["Pt", "A", [0, 0]],
+                ["Pt", "B", [2, 0]],
+                ["Mac", "mac", [0, 0, [0, 1]]],
+                ["Out", "s", [2, 1]],
+                ["Mac", "mac1", [1, 0, [3]]],
+                ["Out", "E", [4, 1]],
+            ],
+            [
+                {
+                    ...MAKE,
+                    m: [
+                        {
+                            i: [["point"], ["point"]],
+                            b: [
+                                ["Mid", "M", [0, 1]],
+                                ["Seg", "s", [0, 2]],
+                            ],
+                            f: [3],
+                        },
+                    ],
+                },
+                {
+                    ...END,
+                    m: [
+                        {
+                            i: [["segment"]],
+                            b: [["Mid", "E", [0, 1]]],
+                            f: [3],
+                        },
+                    ],
+                },
+            ],
+        );
+        expect(
+            await openBox(built, get<macro_object>(built, "mac1")),
+        ).toBeNull();
     });
 
     it("lets out a final on an object where it was moved", async () => {

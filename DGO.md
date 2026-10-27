@@ -610,7 +610,7 @@ Méthode :
 
 | Clé | Contenu                                                                  | Défaut   |
 | --- | ------------------------------------------------------------------------ | -------- |
-| `i` | initiaux ordonnés `[type, message]`, un au moins                         | (requis) |
+| `i` | initiaux ordonnés `[type, message, nom?]`, un au moins                   | (requis) |
 | `h` | aide : ordre des initiaux, domaine de validité                           | `""`     |
 | `b` | corps : entrées `.dgo` (ci-après)                                        | (requis) |
 | `f` | indices locaux des finaux dans le corps, dans l'ordre de `f` de la macro | (requis) |
@@ -633,6 +633,15 @@ qu'une droite), et leurs sous-objets, utilisables dans le corps :
 | `sphere`  | `Sph`, `Sph1`                                                                 | son centre                                 |
 | `angle`   | `Ang`, l'angle AOB                                                            | A, O, B                                    |
 | `number`  | `Ex` autre qu'une fonction, ou formule constante                              | —                                          |
+
+Un initial qui a un `nom` (chaîne non vide) est **fixé** (demandé par
+l'auteur le 2026-10-27, voir `MACROS.md`) : l'éditeur le prend sans le
+demander, s'il trouve l'objet désigné la dernière fois pour ce nom, ou à
+défaut un objet de la figure qui porte ce nom. Ce nom est celui de l'objet
+désigné comme initial à la définition : les macros définies à partir du
+même objet partagent leur initial fixé (`["circle", "", "Hz"]`, le disque
+de Poincaré des macros hyperboliques). Sans effet sur le calcul ; le
+lecteur se contente de le garder.
 
 Le début d'un arc est le point d'où il part (A pour `Arc`, `CArc`, `Semi`),
 sa fin celui où il s'arrête. Un angle n'est pas un nombre : le corps lit sa

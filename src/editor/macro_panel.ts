@@ -77,6 +77,9 @@ export function macroPanel(options: {
     let initials: string[] = [];
     let finals: string[] = [];
     const messages = new Map<string, string>();
+    // The initials looked for by their name, taken without asking once
+    // designated (see MACROS.md).
+    const fixed = new Set<string>();
     const finalNames = new Map<string, string>();
     // What the save button does, when it can.
     let saving: (() => void) | null = null;
@@ -321,6 +324,22 @@ export function macroPanel(options: {
                 () => messages.set(object.name, field(input).value),
                 false,
             );
+            const on = fixed.has(object.name);
+            const lock = $.create("button")
+                .cls("dge-macro-fixed")
+                .toggleClass("dge-on", on)
+                .att("type", "button")
+                .att("aria-pressed", String(on))
+                .att("aria-label", message("macro_fixed"))
+                .att("title", message("macro_fixed"))
+                .append(
+                    '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>',
+                );
+            lock.on("click", () => {
+                if (on) fixed.delete(object.name);
+                else fixed.add(object.name);
+                render();
+            });
             initialsBox.add(
                 $.create("li")
                     .att("data-name", object.name)
@@ -334,6 +353,7 @@ export function macroPanel(options: {
                             .cls("dge-macro-object")
                             .text(formatName(object.name)),
                         input,
+                        lock,
                         removal(() => {
                             initials = initials.filter(
                                 (name) => name !== object.name,
@@ -420,12 +440,14 @@ export function macroPanel(options: {
         let label = message("macro_create");
         problem ||= nameProblem(name) ?? "";
         if (!problem) {
+            const locked = given.filter(({ name }) => fixed.has(name));
             const method = methodOf(
                 c,
                 given,
                 shown,
                 given.map((object) => messages.get(object.name) ?? ""),
                 field(help).value,
+                locked,
             );
             const plan = savingOf(c.macros, name, method);
             const named = formatName(name);
@@ -457,6 +479,7 @@ export function macroPanel(options: {
                                 (object) => messages.get(object.name) ?? "",
                             ),
                             field(help).value,
+                            locked,
                         ),
                     );
                     options.close();
@@ -508,6 +531,7 @@ export function macroPanel(options: {
             initials = objects.map(({ name }) => name);
             finals = [];
             messages.clear();
+            fixed.clear();
             finalNames.clear();
             field(nameInput).value = macroName(c, "Macro");
             field(help).value = "";

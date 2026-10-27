@@ -329,6 +329,8 @@ const zh: Texts = {
         macro_remove: "移除",
         macro_message: "选择它时显示的提示",
         macro_drag: "拖动以改变顺序",
+        macro_fixed: "固定：只需指定一次，之后每次应用都沿用",
+        macro_fixed_change: "更换 %",
         macro_implicit: "未选择最终对象：灰色的可见对象即为最终对象",
         macro_need_initial: "点击宏的出发对象",
         macro_need_final: "初始对象没有确定任何可见对象",
@@ -353,7 +355,8 @@ const zh: Texts = {
         macro_command_name: "%是一个命令的名称：请换一个",
         open_box: "打开盒子",
         open_box_hint: "用其构造替换该应用：%个对象",
-        open_box_arc: "盒子无法打开：初始弧的终点不是图形中的对象",
+        open_box_point:
+            "盒子无法打开：初始对象的某个点（弧或线段的端点……）不是图形中的对象",
         menu_macros: "宏",
         figure_macros: "图形中的宏",
         macro_library: "宏库",

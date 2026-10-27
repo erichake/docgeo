@@ -208,6 +208,9 @@ import {
     takesAt,
     designation,
     takesNext,
+    firstFixed,
+    rememberFixed,
+    withFixed,
     typedNumber,
     type Designation,
     type Picked,
@@ -414,6 +417,7 @@ $("head").append(`<style>
     .dge-hint.dge-error { background: #b91c1c; }
     .dge-hint button { width: 30px; height: 30px; margin: -4px -8px -4px 10px; padding: 0; border: 0; border-radius: 50%; background: rgb(255 255 255 / 0.18); color: inherit; font-size: 15px; vertical-align: middle; cursor: pointer; pointer-events: auto; }
     .dge-hint button:hover { background: rgb(255 255 255 / 0.32); }
+    .dge-hint button.dge-hint-text { width: auto; height: 26px; margin-inline-start: 10px; padding: 0 10px; border-radius: 6px; font: inherit; font-size: 12.5px; }
     .dge-hint input { width: 7ch; margin: -3px 0 -3px 10px; padding: 2px 6px; border: 0; border-radius: 5px; font: inherit; pointer-events: auto; }
     .dge-hint input.dge-error { outline: 2px solid #f87171; }
     .dge-ring { position: fixed; width: 0; height: 0; z-index: 12; }
@@ -767,7 +771,7 @@ explain(openBoxButton, () => {
     const line = lineOf(final, figureIndex(c), figureObjects(c));
     return box
         ? `${line}\n${message("open_box_hint", String(box.objects.length))}`
-        : `${line}\n${message("open_box_arc")}`;
+        : `${line}\n${message("open_box_point")}`;
 });
 openBoxButton.on("pointerenter", previewBox, false);
 openBoxButton.on("pointerleave", clearPreview, false);
@@ -1370,6 +1374,16 @@ function showHint(text: string, error = false): void {
     ) {
         (numberField.dom() as HTMLInputElement).value = "";
         hint.add(numberField.removeClass("dge-error"));
+    }
+    if (applying && text) {
+        const { index, picked } = applying;
+        const fixed = picked[firstFixed(scene().macros[index], picked)];
+        if (fixed && typeof fixed !== "string")
+            hint.add(
+                changeFixed.text(
+                    message("macro_fixed_change", formatName(fixed.name)),
+                ),
+            );
     }
 }
 
@@ -2753,11 +2767,7 @@ function openFamily(row: DOMElement, family: Family, items: Item[]): void {
             const entry = toolEntry(macroIcon(macro), macro.name, family)
                 .toggleClass("dge-off", !fits)
                 .att("aria-disabled", String(!fits));
-            entry.on(
-                "pointerenter",
-                () => showHint(applyHint(macro, designation(macro, []))),
-                false,
-            );
+            entry.on("pointerenter", () => showHint(startHint(macro)), false);
             entry.on("pointerleave", () => showHint(restingHint()), false);
             entry.on("click", () => {
                 if (!fits) return;
@@ -3104,7 +3114,9 @@ function openRing(hit: Hit, client: Vec2): void {
 // The figure's macros that may take the object first, by their index.
 const ringMacros = (object: construction_object): number[] =>
     scene().macros.flatMap((macro, index) =>
-        takesNext(designation(macro, []), object) ? [index] : [],
+        takesNext(designation(macro, withFixed(scene(), macro, [])), object)
+            ? [index]
+            : [],
     );
 
 // Beside their place on the ring, the macros that take its object, the
@@ -3116,11 +3128,7 @@ function showRingMacros(item: DOMElement, hit: Hit): void {
     ringMacros(hit.object).forEach((index) => {
         const macro = macros[index];
         const entry = toolEntry(macroIcon(macro), macro.name, family);
-        entry.on(
-            "pointerenter",
-            () => showHint(applyHint(macro, designation(macro, []))),
-            false,
-        );
+        entry.on("pointerenter", () => showHint(startHint(macro)), false);
         entry.on("click", () => {
             closeRing();
             startApply(index, [hit.object]);
@@ -3527,7 +3535,7 @@ async function openApplication(): Promise<void> {
     const node = target()!.output!.node as macro_object;
     clearPreview();
     const opened = await openBox(scene(), node);
-    if (!opened) return showHint(message("open_box_arc"), true);
+    if (!opened) return showHint(message("open_box_point"), true);
     closeRing();
     rebuild(studio, opened.figure);
     done();
@@ -4084,11 +4092,14 @@ function placeRanks(): void {
 // A macro applied as a tool: its initials designated one after the
 // other, among its methods, until one is complete. Those copied into the
 // figure from a library to be applied are taken back if it isn't.
+// The fixed initials are taken without asking, but when others are being
+// designated.
 let applying: {
     index: number;
     picked: Picked[];
     copied: Macro[];
     applied: boolean;
+    asking: boolean;
 } | null = null;
 // A number typed as the next initial, when one is taken.
 const numberField = $.create("input")
@@ -4111,11 +4122,45 @@ numberField.on(
 const designated = (): Designation =>
     designation(scene().macros[applying!.index], applying!.picked);
 
-// Whether these objects, in this order, begin one of its methods.
-const beginsMacro = (macro: Macro, objects: construction_object[]): boolean =>
-    objects.every((object, rank) =>
-        takesNext(designation(macro, objects.slice(0, rank)), object),
+// Whether these objects, in this order, begin one of its methods, after
+// the fixed initials the figure has.
+function beginsMacro(macro: Macro, objects: construction_object[]): boolean {
+    let picked = withFixed(scene(), macro, []);
+    for (const object of objects) {
+        if (!takesNext(designation(macro, picked), object)) return false;
+        picked = withFixed(scene(), macro, [...picked, object]);
+    }
+    return true;
+}
+
+// What applying it asks first.
+function startHint(macro: Macro): string {
+    const picked = withFixed(scene(), macro, []);
+    return applyHint(macro, designation(macro, picked), picked.length);
+}
+
+// The fixed initials the figure has, after those designated.
+function fillFixed(): void {
+    if (!applying!.asking)
+        applying!.picked = withFixed(
+            scene(),
+            scene().macros[applying!.index],
+            applying!.picked,
+        );
+}
+
+// Others designated in place of the fixed initials taken.
+const changeFixed = $.create("button").cls("dge-hint-text");
+changeFixed.on("click", () => {
+    const { index, picked } = applying!;
+    applying!.picked = picked.slice(
+        0,
+        firstFixed(scene().macros[index], picked),
     );
+    applying!.asking = true;
+    clearPreview();
+    showApply();
+});
 
 // Its help, and what it takes next, among how many.
 function applyHint(
@@ -4146,7 +4191,7 @@ function startApply(
     copied: Macro[] = [],
 ): void {
     stopMacro();
-    applying = { index, picked: [], copied, applied: false };
+    applying = { index, picked: [], copied, applied: false, asking: false };
     showApply();
     objects.forEach((object) => {
         if (applying && takesNext(designated(), object)) pickInitial(object);
@@ -4172,18 +4217,22 @@ function stopApply(): void {
 function pickInitial(initial: Picked): void {
     const c = scene();
     clearPreview();
+    if (rememberFixed(designated(), initial)) applying!.asking = false;
     applying!.picked.push(initial);
+    fillFixed();
     const { complete } = designated();
     if (complete === null) return showApply();
     applyMacro(c, applying!.index, complete, applying!.picked);
     applying!.picked = [];
     applying!.applied = true;
+    fillFixed();
     changed();
 }
 
 // The initials designated lit: the hint says what the next one may be.
 function showApply(): void {
     const c = scene();
+    fillFixed();
     const { picked } = applying!;
     c.svg
         .findAll(".dge-picked")

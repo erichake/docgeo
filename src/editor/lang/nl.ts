@@ -350,6 +350,9 @@ const nl: Texts = {
         macro_remove: "Verwijderen",
         macro_message: "Bericht als het geselecteerd wordt",
         macro_drag: "Sleep om de volgorde te wijzigen",
+        macro_fixed:
+            "Vast: één keer aangewezen en daarna bij elke toepassing behouden",
+        macro_fixed_change: "% wijzigen",
         macro_implicit:
             "Geen eindobject gekozen: de zichtbare grijze objecten zijn de eindobjecten",
         macro_need_initial: "Tik de objecten aan waarvan de macro vertrekt",
@@ -382,8 +385,8 @@ const nl: Texts = {
         open_box: "Doos openen",
         open_box_hint:
             "Vervangt de toepassing door haar constructie: % objecten",
-        open_box_arc:
-            "De doos gaat niet open: het einde van een beginboog is geen object van de figuur",
+        open_box_point:
+            "De doos gaat niet open: een punt van een beginobject (einde van een boog, van een lijnstuk…) is geen object van de figuur",
         menu_macros: "Macro's",
         figure_macros: "Macro's van de figuur",
         macro_library: "Bibliotheek",

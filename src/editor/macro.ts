@@ -36,6 +36,17 @@ import { semicircle_object } from "../objects/semicircle_object";
 export const initialType = (object: construction_object): string | null =>
     Object.keys(MACRO_TYPES).find((type) => MACRO_TYPES[type](object)) ?? null;
 
+// The object of the figure it is, or that it stands for in the body of an
+// application (see standIn in macro_object.ts), if any: not one of a
+// body's own.
+function figureObject(
+    object: construction_object,
+    figure: Set<construction_object>,
+): construction_object | undefined {
+    for (let found = object; found; found = Object.getPrototypeOf(found))
+        if (figure.has(found)) return found;
+}
+
 // The objects of the figure each sub-object of an initial stands for, in
 // the order of initialSlots.
 function subObjects(
@@ -44,6 +55,7 @@ function subObjects(
     initial: construction_object,
 ): construction_object[][] {
     const object = initial as unknown as Record<string, construction_object>;
+    const figure = new Set(figureObjects(c));
     const centers = () => [
         ...(initial instanceof circle_object ||
         initial instanceof circle1_object ||
@@ -52,40 +64,45 @@ function subObjects(
             : initial instanceof center_arc_object
               ? [object.M]
               : []),
-        ...figureObjects(c).filter(
+        ...[...figure].filter(
             (other) =>
                 other instanceof center_object && other.circle === initial,
         ),
     ];
-    switch (type) {
-        case "segment":
-        case "vector":
-            return [[object.P1], [object.P2]];
-        case "ray":
-        case "sphere":
-            return [[object.P1]];
-        case "circle":
-            return [centers()];
-        case "arc":
-            return [
-                centers(),
-                initial instanceof arc3pts_object
-                    ? [object.P1]
-                    : initial instanceof center_arc_object ||
-                        initial instanceof semicircle_object
-                      ? [object.A]
-                      : [],
-                initial instanceof arc3pts_object
-                    ? [object.P3]
-                    : initial instanceof semicircle_object
-                      ? [object.B]
-                      : [],
-            ];
-        case "angle":
-            return [[object.A], [object.O], [object.B]];
-        default:
-            return [];
-    }
+    const lists = (): construction_object[][] => {
+        switch (type) {
+            case "segment":
+            case "vector":
+                return [[object.P1], [object.P2]];
+            case "ray":
+            case "sphere":
+                return [[object.P1]];
+            case "circle":
+                return [centers()];
+            case "arc":
+                return [
+                    centers(),
+                    initial instanceof arc3pts_object
+                        ? [object.P1]
+                        : initial instanceof center_arc_object ||
+                            initial instanceof semicircle_object
+                          ? [object.A]
+                          : [],
+                    initial instanceof arc3pts_object
+                        ? [object.P3]
+                        : initial instanceof semicircle_object
+                          ? [object.B]
+                          : [],
+                ];
+            case "angle":
+                return [[object.A], [object.O], [object.B]];
+            default:
+                return [];
+        }
+    };
+    return lists().map((objects) =>
+        objects.flatMap((found) => figureObject(found, figure) ?? []),
+    );
 }
 
 // What a manipulation changes, which a macro can't compute, and what acts
@@ -189,13 +206,15 @@ export function missing(
 }
 
 // A method computing the finals from the initials, in this order: the
-// objects of the figure between them, with their styles.
+// objects of the figure between them, with their styles. A fixed initial
+// is looked for by its name (see MACROS.md).
 export function methodOf(
     c: construction,
     initials: construction_object[],
     finals: construction_object[],
     messages: string[],
     help: string,
+    fixed: construction_object[] = [],
 ): MacroMethod {
     const local = new Map<construction_object, number>();
     let count = 0;
@@ -232,10 +251,11 @@ export function methodOf(
             return Object.keys(style).length ? [...entry, style] : entry;
         });
     return {
-        initials: initials.map((initial, index) => [
-            initialType(initial)!,
-            messages[index] ?? "",
-        ]),
+        initials: initials.map((initial, index) =>
+            fixed.includes(initial)
+                ? [initialType(initial)!, messages[index] ?? "", initial.name]
+                : [initialType(initial)!, messages[index] ?? ""],
+        ),
         help,
         body,
         finals: finals.map((final) => local.get(final)!),
@@ -385,7 +405,7 @@ const fits = (type: string, initial: Picked): boolean =>
 // they begin takes next, and the types of those that one more completes.
 export interface Designation {
     complete: number | null;
-    next: [string, string][];
+    next: MacroMethod["initials"];
     last: string[];
 }
 
@@ -418,6 +438,56 @@ export const takesNext = ({ next }: Designation, initial: Picked): boolean =>
 // Whether this initial completes a method.
 export const completes = ({ last }: Designation, initial: Picked): boolean =>
     last.some((type) => fits(type, initial));
+
+// By the name a fixed initial is looked for by, the name of the object
+// last designated for it, in any figure: what the next application takes
+// without asking, as would one so named (see MACROS.md).
+const fixedObjects = new Map<string, string>();
+
+// The name a fixed initial is looked for by, if what comes next is one,
+// the same for every method begun.
+function fixedNext({ next }: Designation): string | null {
+    const [first] = next;
+    return first?.[2] && next.every(([, , fixed]) => fixed === first[2])
+        ? first[2]
+        : null;
+}
+
+// Whether what comes next is a fixed initial: this object is then the one
+// it takes.
+export function rememberFixed(next: Designation, initial: Picked): boolean {
+    const key = fixedNext(next);
+    if (key && typeof initial !== "string") fixedObjects.set(key, initial.name);
+    return !!key;
+}
+
+// The rank of the first fixed initial designated, or -1.
+export const firstFixed = (macro: Macro, picked: Picked[]): number =>
+    picked.findIndex(
+        (_, rank) => !!fixedNext(designation(macro, picked.slice(0, rank))),
+    );
+
+// The initials designated, and after them the fixed ones the figure has,
+// unless they would complete a method: an application isn't made without
+// a tap.
+export function withFixed(
+    c: construction,
+    macro: Macro,
+    picked: Picked[],
+): Picked[] {
+    const filled = [...picked];
+    for (;;) {
+        const next = designation(macro, filled);
+        const key = fixedNext(next);
+        if (!key) return filled;
+        const object = [fixedObjects.get(key), key]
+            .map((name) => name && c.getObj(name))
+            .find((found) => found && takesNext(next, found));
+        if (!object || completes(next, object) || filled.includes(object))
+            return filled;
+        filled.push(object);
+    }
+}
 
 // A number typed as an initial, as a .dgo formula: null if it isn't one.
 export function typedNumber(text: string): string | null {
@@ -524,11 +594,12 @@ export function boxOf(c: construction, node: macro_object): Box | null {
     const { initials: types, body } = macro.methods[method];
     const slots = local.length - body.length;
     // The object of the figure each of the body's stands for.
+    const inFigure = new Set(figureObjects(c));
     const figure = new Map<construction_object, construction_object>(
-        node.standIns.map((standIn) => [
-            standIn,
-            Object.getPrototypeOf(standIn) as construction_object,
-        ]),
+        node.standIns.flatMap((standIn) => {
+            const found = figureObject(standIn, inFigure);
+            return found ? [[standIn, found]] : [];
+        }),
     );
     const typed = new Set<construction_object>();
     let slot = 0;
@@ -568,7 +639,6 @@ export function boxOf(c: construction, node: macro_object): Box | null {
         return object.dgo(context);
     };
     // What the finals in the figure need, never an object of the figure.
-    const inFigure = new Set(figureObjects(c));
     const needed = new Set<construction_object>();
     const visit = (object: construction_object): void => {
         if (needed.has(object) || inFigure.has(object)) return;

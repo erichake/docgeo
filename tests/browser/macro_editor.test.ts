@@ -361,6 +361,118 @@ describe("Defining a macro in the editor", () => {
             ]);
     });
 
+    it("takes a fixed initial without asking, once designated", async () => {
+        const { page, request } = await editor();
+        await request("load", {
+            data: new TextEncoder().encode(
+                JSON.stringify({
+                    dgo: 1,
+                    v: { o: [400, 300], u: 40, w: 800, h: 600 },
+                    mac: [
+                        {
+                            n: "Half",
+                            f: ["M"],
+                            m: [
+                                {
+                                    i: [
+                                        ["circle", "The disk?", "disk"],
+                                        ["point"],
+                                    ],
+                                    b: [["Mid", "M", [0, 2]]],
+                                    f: [3],
+                                },
+                            ],
+                        },
+                    ],
+                    o: [
+                        ["Pt", "O", [0, 0]],
+                        ["Pt", "X", [3, 0]],
+                        ["Cir", "w", [0, 1]],
+                        ["Pt", "P", [1, 1]],
+                        ["Pt", "R", [2, -1]],
+                    ],
+                }),
+            ).buffer,
+            format: "dgo",
+        });
+        const click = (selector: string, text: string) =>
+            [...page.querySelectorAll<HTMLElement>(selector)]
+                .find((element) => element.textContent === text)!
+                .click();
+        const tap = (name: string) =>
+            [...page.querySelectorAll<HTMLInputElement>(".dge-row")]
+                .find((row) => row.value.startsWith(`${name} =`))!
+                .parentElement!.dispatchEvent(
+                    new PointerEvent("pointerdown", { bubbles: true }),
+                );
+        const hint = () => page.querySelector(".dge-hint")!.textContent;
+        const change = () =>
+            page.querySelector<HTMLButtonElement>(".dge-hint .dge-hint-text");
+        (page.querySelector(".dge-line button") as HTMLElement).click();
+        click(".dge-tools .dge-family", "Macros");
+        click(".dge-tools button", "Half");
+        // Asked the first time.
+        expect(hint()).toContain("1/2 – The disk?");
+        expect(change()).toBeNull();
+        tap("w");
+        tap("P");
+        await expect
+            .poll(async () => (await saved(request)).o.slice(5))
+            .toEqual([
+                ["Mac", "mac", [0, 0, [2, 3]]],
+                ["Out", "M", [5, 1]],
+            ]);
+        // Then taken: only the point is asked.
+        expect(hint()).toContain("2/2");
+        expect(change()!.textContent).toBe("Change w");
+        tap("R");
+        await expect
+            .poll(async () => (await saved(request)).o.slice(7))
+            .toEqual([
+                ["Mac", "mac1", [0, 0, [2, 4]]],
+                ["Out", "M1", [7, 1]],
+            ]);
+        // Another one designated.
+        change()!.click();
+        expect(hint()).toContain("1/2 – The disk?");
+        page.body.dispatchEvent(
+            new KeyboardEvent("keydown", { key: "Escape", bubbles: true }),
+        );
+        // Kept with the figure.
+        expect((await saved(request)).mac[0].m[0].i).toEqual([
+            ["circle", "The disk?", "disk"],
+            ["point"],
+        ]);
+
+        // A new macro's initial fixed in its panel, looked for by its
+        // name.
+        (page.querySelector(".dge-line button") as HTMLElement).click();
+        click(".dge-tools .dge-family", "Macros");
+        click(".dge-tools button", "New macro");
+        const panel = page.querySelector(".dge-macro") as HTMLElement;
+        ["w", "P"].forEach(tap);
+        const lock =
+            panel.querySelector<HTMLButtonElement>(".dge-macro-fixed")!;
+        lock.click();
+        expect(
+            panel
+                .querySelector(".dge-macro-fixed")!
+                .getAttribute("aria-pressed"),
+        ).toBe("true");
+        click(".dge-macro button", "Next: the finals");
+        tap("M");
+        const name = panel.querySelector(
+            ".dge-macro-field input",
+        ) as HTMLInputElement;
+        name.value = "Again";
+        name.dispatchEvent(new Event("input"));
+        click(".dge-macro button", "Create the macro");
+        expect((await saved(request)).mac[1].m[0].i).toEqual([
+            ["circle", "", "w"],
+            ["point"],
+        ]);
+    });
+
     it("opens the box of an application, a step to undo", async () => {
         const { page, request } = await editor();
         const figure = {

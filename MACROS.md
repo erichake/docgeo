@@ -298,6 +298,35 @@ des macros. Pour les figures importées, la référence est DGPad.
   voir, par exemple, de quel côté tombe un triangle équilatéral selon
   l'ordre des points.
 
+### Initiaux fixés
+
+Demandés par l'auteur le 2026-10-27, pour les macros du disque de
+Poincaré, qui prennent toutes le disque en premier initial :
+
+- **À la définition**, un cadenas sur la ligne d'un initial le fixe. Il
+  est alors cherché par **le nom de l'objet désigné** (`Hz`), comme les
+  `=Hz` de CaRMetal : les macros définies à partir du même objet partagent
+  leur initial fixé, sans réglage de plus.
+- **À l'application**, un initial fixé est pris sans le demander quand
+  l'éditeur trouve l'objet désigné la dernière fois pour ce nom (par
+  n'importe quelle macro, dans cette session), ou à défaut un objet de la
+  figure qui porte ce nom, du type attendu. Sinon, il est demandé comme
+  les autres, et l'objet désigné est retenu. Il est mis en bleu avec les
+  initiaux désignés, et la consigne compte son rang (« 2/3 – … »).
+- Il n'est pris d'office que si **toutes les méthodes encore possibles**
+  l'attendent à ce rang, sous le même nom, et jamais s'il compléterait
+  une méthode : une application ne se fait pas sans un toucher.
+- **Changer** : la consigne porte un bouton « Changer Hz », qui revient à
+  ce rang et le demande, l'objet désigné remplaçant le précédent.
+- Le menu, l'anneau et la sélection en tiennent compte : une macro dont
+  le disque est connu se propose pour un point, son initial suivant.
+- La mémoire est celle de l'éditeur ouvert, par le nom de l'objet : elle
+  survit à l'annulation, qui reconstruit la figure, mais pas au
+  rechargement de la page, où le nom retrouve l'objet. Rien n'est ajouté
+  aux objets de la figure.
+- Le langage textuel écrit tous les initiaux, fixés compris
+  (`l = DroiteH(Hz, A, B)`).
+
 ### Le calcul : un nœud d'application (moteur)
 
 - **Encapsuler, pas développer** (comme Cabri et GeoGebra, à l'inverse de
@@ -454,7 +483,8 @@ Retenues par l'auteur le 2026-10-26, à placer dans les étapes (voir
 - **Menu au clic droit** : un clic droit dans le vide ouvre un menu
   flottant des macros, à l'endroit de la souris.
 - **Initiaux fixés** : un initial désigné une fois puis gardé d'une
-  application à l'autre (centre, rapport, angle d'une similitude).
+  application à l'autre (centre, rapport, angle d'une similitude). Fait le
+  2026-10-27 (voir « Initiaux fixés »).
 - **Image d'un objet** : une macro de transformation ponctuelle appliquée
   à une droite, un cercle, un polygone donne son image (lieu des images),
   avec aperçu au survol.
@@ -565,6 +595,24 @@ magnétiques, grilles), interpolation par tangentes.
   (de Monge), cercle orthogonal à deux cercles par un point, points limites
   d'un faisceau de cercles, centre radical de trois cercles, centre de la
   similitude directe qui envoie A, B sur A′, B′.
+
+**Géométrie hyperbolique** (disque de Poincaré, demandée par l'auteur le
+2026-10-27, comme les macros `DP_…` de CaRMetal) : droite, segment,
+demi-droite, milieu, médiatrice, perpendiculaire (et son pied),
+bissectrice, symétrie axiale, cercle (par un point ou de rayon donné),
+cercle circonscrit (et son centre), distance, angle, horocycle,
+hypercycle, parallèles limites, perpendiculaire commune. Le disque est un
+initial fixé, de nom `Hz`, de centre et de rayon quelconques. Les
+formules (`tools/macros/hyperbolic.mjs`) passent par les transformations
+de Möbius du disque, robustes là où les constructions euclidiennes
+(inverse d'un point, cercle par trois points) ne le sont pas : le centre
+du disque n'a pas d'inverse. Une droite, un segment ou une demi-droite
+hyperbolique est un arc, et son centre et son rayon suffisent aux macros
+qui la prennent, quelle que soit sa nature : pas ses extrémités, qui,
+pour un final, sont dans le corps de son application, où la boîte ne les
+atteint pas. Un diamètre, arc par
+trois points alignés, serait indéfini : son point du milieu est écarté de
+la corde d'un dix-millième de sa longueur, invisible.
 
 ## Questions ouvertes
 
@@ -735,12 +783,42 @@ magnétiques, grilles), interpolation par tangentes.
   « Macros » de la page du menu des outils, icône de « Nouvelle macro »
   (`npm run manual -- icons`). Pas de capture d'écran pour l'instant.
 
+- Initiaux fixés et géométrie hyperbolique, faits (2026-10-27) :
+    - format : troisième élément d'un initial, le nom par lequel il est
+      cherché (`DGO.md`, « Macro-constructions ») ;
+    - éditeur : cadenas du panneau (`macro_panel.ts`), `withFixed`,
+      `rememberFixed` et `firstFixed` de `macro.ts`, bouton « Changer » de
+      la consigne (`main.ts`) ;
+    - bibliothèque : 16 macros du dossier « Géométrie hyperbolique »
+      (`tools/macros/hyperbolic.mjs`, option `fixed` d'une méthode) ;
+    - tests : `macro_define.test.ts` (nom, mémoire, jamais le dernier
+      initial), `macro_editor.test.ts` (demandé une fois, « Changer »,
+      cadenas enregistré), `macro_library.test.ts` (chaque macro vérifiée
+      dans un disque décentré : orthogonalité au bord, distances
+      hyperboliques, inversions ; diamètres ; perpendiculaire commune des
+      droites que trace `LineH`) ;
+    - poids : lecteur (moteur) +65 octets (+25 en gzip), éditeur
+      +1,7 Ko (+0,5 Ko en gzip) ; bibliothèque d'une langue 40,7 →
+      44,9 Ko.
+
+- Ouvrir la boîte, correction (2026-10-27, signalé par l'auteur) : la
+  boîte de `PerpendiculaireH` appliquée à une droite de `DroiteH` vidait
+  la figure. Les extrémités de cette droite, sous-objets de l'initial, sont
+  des objets du corps de `DroiteH`, absents de la figure : le `.dgo` réécrit
+  y renvoyait, et ne se lisait plus. Un sous-objet n'est plus qu'un objet
+  de la figure, ou celui dont il est la doublure (`figureObject` de
+  `macro.ts`) ; à défaut, la boîte refuse de s'ouvrir (`open_box_point`).
+  Les macros hyperboliques qui prennent une droite lisent désormais son
+  centre et son rayon, que la boîte sait écrire (`Ctr`), plutôt que ses
+  extrémités : leurs boîtes s'ouvrent. Tests dans `macro_open.test.ts` et
+  `macro_library.test.ts`.
+
 ## Reste à faire
 
 Dans l'ordre que choisira l'auteur :
 
 - **Idées de CaRMetal retenues** (section ci-dessus) : menu au clic droit,
-  initiaux fixés, image d'un objet.
+  image d'un objet.
 - **Cas en 3D** : rien n'a été essayé (doublures des initiaux, `flat`,
   projection du corps).
 - Mesurer le poids du lecteur et de l'éditeur à chaque étape.

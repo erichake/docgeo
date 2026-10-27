@@ -54,9 +54,10 @@ try {
                 methods: built[index].methods.map((method, rank) => ({
                     ...method,
                     help: methods[rank].help[lang],
-                    initials: method.initials.map(([type], at) => [
+                    initials: method.initials.map(([type, , fixed], at) => [
                         type,
                         methods[rank].messages?.[lang][at] ?? "",
+                        ...(fixed ? [fixed] : []),
                     ]),
                 })),
             })),
@@ -117,7 +118,7 @@ async function build(sources) {
         };
         hidden.forEach((object) => (get(object).hidden = 1));
         c.flush();
-        const defined = methods.map(({ initials, finals }) => {
+        const defined = methods.map(({ initials, finals, fixed = [] }) => {
             const given = initials.map(get);
             const analysis = analyse(c, given);
             const lacking = finals.filter(
@@ -125,7 +126,7 @@ async function build(sources) {
             );
             if (lacking.length)
                 throw new Error(`${name.en}: ${lacking} not determined`);
-            return methodOf(c, given, finals.map(get), [], "");
+            return methodOf(c, given, finals.map(get), [], "", fixed.map(get));
         });
         const [{ initials, finals }] = methods;
         const icon = macroThumbnail(initials.map(get), finals.map(get));

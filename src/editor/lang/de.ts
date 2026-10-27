@@ -355,6 +355,9 @@ const de: Texts = {
         macro_remove: "Entfernen",
         macro_message: "Meldung, wenn es gewählt wird",
         macro_drag: "Ziehen, um die Reihenfolge zu ändern",
+        macro_fixed:
+            "Fest: einmal gewählt, dann von Anwendung zu Anwendung beibehalten",
+        macro_fixed_change: "% ändern",
         macro_implicit:
             "Kein Endobjekt gewählt: Die sichtbaren grauen Objekte sind die Endobjekte",
         macro_need_initial:
@@ -390,8 +393,8 @@ const de: Texts = {
         open_box: "Box öffnen",
         open_box_hint:
             "Ersetzt die Anwendung durch ihre Konstruktion: % Objekte",
-        open_box_arc:
-            "Die Box lässt sich nicht öffnen: Das Ende eines Anfangsbogens ist kein Objekt der Figur",
+        open_box_point:
+            "Die Box lässt sich nicht öffnen: Ein Punkt eines Anfangsobjekts (Ende eines Bogens, einer Strecke …) ist kein Objekt der Figur",
         menu_macros: "Makros",
         figure_macros: "Makros der Figur",
         macro_library: "Bibliothek",

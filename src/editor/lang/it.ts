@@ -347,6 +347,9 @@ const it: Texts = {
         macro_remove: "Rimuovi",
         macro_message: "Messaggio mostrato quando lo si seleziona",
         macro_drag: "Trascina per cambiare l'ordine",
+        macro_fixed:
+            "Fisso: designato una volta, poi mantenuto da un'applicazione all'altra",
+        macro_fixed_change: "Cambia %",
         macro_implicit:
             "Nessun finale scelto: gli oggetti visibili in grigio sono i finali",
         macro_need_initial: "Tocca gli oggetti da cui parte la macro",
@@ -377,8 +380,8 @@ const it: Texts = {
         open_box: "Apri la scatola",
         open_box_hint:
             "Sostituisce l'applicazione con la sua costruzione: % oggetti",
-        open_box_arc:
-            "La scatola non si apre: la fine di un arco iniziale non è un oggetto della figura",
+        open_box_point:
+            "La scatola non si apre: un punto di un iniziale (fine di un arco, estremo di un segmento…) non è un oggetto della figura",
         menu_macros: "Macro",
         figure_macros: "Macro della figura",
         macro_library: "Libreria",

@@ -19,8 +19,9 @@ import { vector_object } from "./vector_object";
 
 // A macro-construction, as its .dgo definition gives it: see DGO.md.
 export interface MacroMethod {
-    // The type and message of each initial, in order.
-    initials: [string, string][];
+    // The type and message of each initial, in order, and for a fixed one
+    // the name it is looked for by (see MACROS.md).
+    initials: [string, string, string?][];
     help: string;
     // Its .dgo entries, each with its style itself rather than its index.
     body: unknown[][];

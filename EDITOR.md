@@ -1414,6 +1414,15 @@ nouveau son premier initial. On en sort comme d'un outil (Échap,
 super-caché (`h` vaut 2 pour `Mac`) et n'a pas de ligne : l'application
 se lit dans celle de ses finaux.
 
+**Initiaux fixés** (2026-10-27, voir `MACROS.md`) : dans le panneau de
+définition, un cadenas sur la ligne d'un initial (après son message) le
+fixe, cherché ensuite par le nom de l'objet désigné. À l'application, il
+est pris sans le demander quand l'éditeur connaît l'objet désigné la
+dernière fois pour ce nom, ou que la figure a un objet de ce nom
+(`withFixed`), sauf s'il compléterait une méthode ; la consigne porte
+alors un bouton « Changer Hz » (`dge-hint-text`), qui le redemande. Le
+menu, l'anneau et la sélection partent des initiaux fixés trouvés.
+
 **Langage textuel** (2026-10-26, forme choisie avec l'auteur) : une macro
 de la figure est une commande, de son nom (complétée comme les autres,
 ses arguments proposés selon les types de ses méthodes). Une ligne
@@ -1460,9 +1469,12 @@ l'application par sa construction (`boxOf` de `macro.ts`, `openBox` de
   2026-10-26) ;
 - les initiaux et leurs sous-objets sont les objets de la figure ; un
   centre qu'elle n'a pas est créé (`Ctr`), avec son nom ; un nombre tapé
-  devient une expression constante sous celles qu'elle montre ; la fin
-  d'un arc qu'elle n'a pas, qu'aucune entrée ne décrit, refuse
-  l'ouverture (`open_box_arc`) ;
+  devient une expression constante sous celles qu'elle montre ; un point
+  d'un initial qui n'est pas un objet de la figure (fin d'un arc, ou
+  extrémité d'un segment final d'une application, calculée dans son corps),
+  qu'aucune entrée ne décrit, refuse l'ouverture (`open_box_point`) ; une
+  doublure d'un objet de la figure (extrémité d'un segment final qui est
+  un initial de son application) est cet objet ;
 - un seul niveau : les applications du corps restent des boîtes, qu'on
   ouvre à leur tour ;
 - les branches d'intersection suivies sont celles du nœud : la figure ne

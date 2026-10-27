@@ -4,7 +4,7 @@ import "../../src/construction";
 import type { construction } from "../../src/construction";
 import { dgoJson, readDgo } from "../../src/dgo";
 import { isCommand } from "../../src/editor/catalog";
-import { add, resolve } from "../../src/editor/figure";
+import { add, openBox, resolve } from "../../src/editor/figure";
 import {
     conflicts,
     describeLibrary,
@@ -25,6 +25,7 @@ import {
 } from "../../src/editor/macro";
 import { parseLine } from "../../src/editor/text";
 import type { construction_object } from "../../src/objects/construction_object";
+import type { macro_object } from "../../src/objects/macro_object";
 import type { point_object } from "../../src/objects/point_object";
 import { createConstruction, disposeFigures, expectClose } from "./figures";
 
@@ -340,6 +341,48 @@ const CIRCLES = [
     "R = (4, 2)",
     "d = Circle(R, 3)",
 ];
+
+// The Poincaré disk of the hyperbolic macros, and geodesics g and h in
+// it, which don't meet.
+const DISK = ["O = (1, -0.5)", "Hz = Circle(O, 5)"];
+const HZ: Circle = { CENTER: [1, -0.5], R: 5 };
+const G = [
+    "G1 = (-4, -0.5)",
+    "G2 = (4, 3.5)",
+    "X = Point(O + 5 * (-1 + 2 * i) * (1 - 2 / sqrt(5)))",
+    "g = Arc(G1, X, G2)",
+];
+const G_CIRCLE: Circle = { CENTER: [-4, 9.5], R: 10 };
+const H = [
+    "H1 = (6, -0.5)",
+    "H2 = (4, -4.5)",
+    "Y = Point(O + 5 * (1 - 0.5 * i) * (1 - 0.5 / sqrt(1.25)))",
+    "h = Arc(H1, Y, H2)",
+];
+const H_CIRCLE: Circle = { CENTER: [6, -3], R: 2.5 };
+const on = ({ CENTER, R }: Circle, p: XY) =>
+    expect(dist(CENTER, p)).toBeCloseTo(R);
+const orthogonal = (k: Circle, l: Circle) =>
+    expect(dist(k.CENTER, l.CENTER) ** 2).toBeCloseTo(k.R ** 2 + l.R ** 2);
+const invert = ({ CENTER, R }: Circle, p: XY) => {
+    const d = dist(CENTER, p) ** 2;
+    return [
+        CENTER[0] + (R * R * (p[0] - CENTER[0])) / d,
+        CENTER[1] + (R * R * (p[1] - CENTER[1])) / d,
+    ];
+};
+// A hyperbolic line through these points: an arc orthogonal to the disk.
+const geodesic = (arc: construction_object, ...points: XY[]) => {
+    const k = arc as unknown as Circle;
+    orthogonal(k, HZ);
+    points.forEach((p) => on(k, p));
+};
+function hDist(p: XY, q: XY): number {
+    const a = [(p[0] - 1) / 5, (p[1] + 0.5) / 5];
+    const b = [(q[0] - 1) / 5, (q[1] + 0.5) / 5];
+    const t = dist(a, b) / Math.hypot(...sub([1, 0], times([a[0], -a[1]], b)));
+    return Math.log((1 + t) / (1 - t));
+}
 
 // By its English name, a figure each macro is applied to, its initials
 // there, and what its finals must be.
@@ -1161,6 +1204,167 @@ const USES: Record<
             expect(s.name).toBe("s");
         },
     ],
+    LineH: [
+        [...DISK, "A = (0, 1)", "B = (3, -2)"],
+        ["Hz", "A", "B"],
+        ([l], at) => {
+            geodesic(l, at("A"), at("B"));
+        },
+    ],
+    SegmentH: [
+        [...DISK, "A = (0, 1)", "B = (3, -2)"],
+        ["Hz", "A", "B"],
+        ([s], at) => {
+            geodesic(s, at("A"), at("B"));
+        },
+    ],
+    RayH: [
+        [...DISK, "A = (0, 1)", "B = (3, -2)"],
+        ["Hz", "A", "B"],
+        ([r], at) => {
+            geodesic(r, at("A"), at("B"));
+        },
+    ],
+    MidpointH: [
+        [...DISK, "A = (0, 1)", "B = (3, -2)"],
+        ["Hz", "A", "B"],
+        ([M], at) => {
+            const m = (M as point_object).coords;
+            expect(hDist(at("A"), m)).toBeCloseTo(hDist(at("A"), at("B")) / 2);
+            expect(hDist(at("B"), m)).toBeCloseTo(hDist(at("A"), at("B")) / 2);
+        },
+    ],
+    PerpendicularBisectorH: [
+        [...DISK, "A = (0, 1)", "B = (3, -2)"],
+        ["Hz", "A", "B"],
+        ([m], at) => {
+            const k = m as unknown as Circle;
+            orthogonal(k, HZ);
+            expectClose(invert(k, at("A")), at("B").slice(0, 2));
+        },
+    ],
+    PerpendicularH: [
+        [...DISK, ...G, "A = (2, -2)"],
+        ["Hz", "A", "g"],
+        ([l, H], at) => {
+            const k = l as unknown as Circle;
+            geodesic(l, at("A"));
+            orthogonal(k, G_CIRCLE);
+            on(k, (H as point_object).coords);
+            on(G_CIRCLE, (H as point_object).coords);
+        },
+    ],
+    AngleBisectorH: [
+        [...DISK, "A = (-2, 1)", "V = (1, -2)", "B = (3, 2)"],
+        ["Hz", "A", "V", "B"],
+        ([b], at) => {
+            const k = b as unknown as Circle;
+            geodesic(b, at("V"));
+            // Its reflection takes the line VA to VB.
+            const B = at("B");
+            const VB = circumcenter(at("V"), B, invert(HZ, B));
+            on({ CENTER: VB, R: dist(VB, B) }, invert(k, at("A")));
+        },
+    ],
+    ReflectH: [
+        [...DISK, ...G, "M = (2, -2)"],
+        ["Hz", "M", "g"],
+        ([M1], at) => {
+            expectClose(
+                (M1 as point_object).coords.slice(0, 2),
+                invert(G_CIRCLE, at("M")),
+            );
+        },
+    ],
+    CircleH: [
+        [...DISK, "C = (2, 1)", "A = (-1, -2)"],
+        ["Hz", "C", "A"],
+        ([k], at) => {
+            const { CENTER, R } = k as unknown as Circle;
+            for (const [x, y] of [
+                [R, 0],
+                [0, R],
+                [-R, 0],
+                [0, -R],
+            ])
+                expect(
+                    hDist(at("C"), [CENTER[0] + x, CENTER[1] + y]),
+                ).toBeCloseTo(hDist(at("C"), at("A")));
+        },
+    ],
+    CircumcircleH: [
+        [...DISK, "A = (-2, -1)", "B = (3, -2)", "C = (1, 2)"],
+        ["Hz", "A", "B", "C"],
+        ([Ω, c], at) => {
+            const o = (Ω as point_object).coords;
+            for (const P of ["A", "B", "C"]) {
+                expect(hDist(o, at(P))).toBeCloseTo(hDist(o, at("A")));
+                on(c as unknown as Circle, at(P));
+            }
+        },
+    ],
+    DistanceH: [
+        [...DISK, "A = (0, 1)", "B = (3, -2)"],
+        ["Hz", "A", "B"],
+        ([d], at) => {
+            expect((d as unknown as { value: number }).value).toBeCloseTo(
+                hDist(at("A"), at("B")),
+            );
+        },
+    ],
+    AngleH: [
+        [...DISK, "A = (-2, 1)", "V = (1, -2)", "B = (3, 2)"],
+        ["Hz", "A", "V", "B"],
+        ([α], at) => {
+            const V = at("V");
+            // The tangent at V to the line VP, toward P.
+            const tangent = (P: XY) => {
+                const center = circumcenter(V, P, invert(HZ, P));
+                const t = [center[1] - V[1], V[0] - center[0]];
+                return dot(t, sub(P, V)) > 0 ? t : [-t[0], -t[1]];
+            };
+            const [u, v] = [tangent(at("A")), tangent(at("B"))];
+            expect((α as unknown as { value: number }).value).toBeCloseTo(
+                Math.acos(dot(u, v) / Math.hypot(...u) / Math.hypot(...v)),
+            );
+        },
+    ],
+    Horocycle: [
+        [...DISK, "P = (4, 3.5)", "A = (-1, -2)"],
+        ["Hz", "P", "A"],
+        ([h], at) => {
+            const k = h as unknown as Circle;
+            on(k, at("A"));
+            on(k, at("P"));
+            expect(dist(k.CENTER, HZ.CENTER) + k.R).toBeCloseTo(HZ.R);
+        },
+    ],
+    Hypercycle: [
+        [...DISK, ...G, "A = (2, -2)"],
+        ["Hz", "g", "A"],
+        ([e], at) => {
+            for (const P of ["A", "G1", "G2"])
+                on(e as unknown as Circle, at(P));
+        },
+    ],
+    LimitingParallels: [
+        [...DISK, ...G, "A = (2, -2)"],
+        ["Hz", "A", "g"],
+        ([r1, r2], at) => {
+            geodesic(r1, at("A"), at("G1"));
+            geodesic(r2, at("A"), at("G2"));
+        },
+    ],
+    CommonPerpendicular: [
+        [...DISK, ...G, ...H],
+        ["Hz", "g", "h"],
+        ([c]) => {
+            const k = c as unknown as Circle;
+            orthogonal(k, HZ);
+            orthogonal(k, G_CIRCLE);
+            orthogonal(k, H_CIRCLE);
+        },
+    ],
 };
 
 describe("The library shipped with DocGeo", () => {
@@ -1210,5 +1414,126 @@ describe("The library shipped with DocGeo", () => {
             }
         }
         expect(failed).toEqual([]);
+    });
+
+    it("draws a hyperbolic line through the disk's center as a diameter", async () => {
+        const library = await supplied("en");
+        for (const [name, lines, through] of [
+            ["LineH", ["A = (1, -0.5)", "B = (3, 1)"], ["A", "B"]],
+            ["SegmentH", ["A = (-1, -2)", "B = (3, 1)"], ["A", "B"]],
+            ["RayH", ["A = (1, -0.5)", "B = (3, -0.5)"], ["A", "B"]],
+            [
+                "PerpendicularBisectorH",
+                ["A = (-1, -0.5)", "B = (3, -0.5)", "C = (1, 3)"],
+                ["O", "C"],
+            ],
+        ] as const) {
+            const c = figure(...DISK, ...lines);
+            c.macros = merge(
+                asLibrary(c),
+                library,
+                [name],
+                false,
+            ).library.macros;
+            const [arc] = applyMacro(
+                c,
+                macroIndex(c, name),
+                0,
+                all(c, "Hz", "A", "B"),
+            );
+            c.flush();
+            expect(arc.defined).toBe(true);
+            // A ten-thousandth of its chord off it, at most.
+            const { CENTER, R } = arc as unknown as Circle;
+            expect(R).toBeGreaterThan(1000);
+            for (const P of through)
+                expect(
+                    Math.abs(dist(CENTER, get(c, P).coords) - R),
+                ).toBeLessThan(2e-3);
+        }
+    });
+
+    it("find the common perpendicular of the lines they draw, a diameter", async () => {
+        const c = figure(
+            ...DISK,
+            "A1 = (-1, 1.5)",
+            "B1 = (3, 1.5)",
+            "A2 = (-1, -2.5)",
+            "B2 = (3, -2.5)",
+            "C = (1, 3)",
+        );
+        c.macros = merge(
+            asLibrary(c),
+            await supplied("en"),
+            ["LineH", "CommonPerpendicular"],
+            false,
+        ).library.macros;
+        const line = macroIndex(c, "LineH");
+        const [g] = applyMacro(c, line, 0, all(c, "Hz", "A1", "B1"));
+        const [h] = applyMacro(c, line, 0, all(c, "Hz", "A2", "B2"));
+        const [p] = applyMacro(c, macroIndex(c, "CommonPerpendicular"), 0, [
+            get(c, "Hz"),
+            g,
+            h,
+        ]);
+        c.flush();
+        const { CENTER, R } = p as unknown as Circle;
+        for (const P of ["O", "C"])
+            expect(Math.abs(dist(CENTER, get(c, P).coords) - R)).toBeLessThan(
+                2e-3,
+            );
+    });
+
+    it("open the box of a macro applied to the line another draws", async () => {
+        const c = figure(...DISK, "A = (0, 1)", "B = (3, -2)", "D = (2, 2)");
+        c.macros = merge(
+            asLibrary(c),
+            await supplied("en"),
+            ["LineH", "PerpendicularH"],
+            false,
+        ).library.macros;
+        const [l] = applyMacro(
+            c,
+            macroIndex(c, "LineH"),
+            0,
+            all(c, "Hz", "A", "B"),
+        );
+        const [, H] = applyMacro(c, macroIndex(c, "PerpendicularH"), 0, [
+            get(c, "Hz"),
+            get(c, "D"),
+            l,
+        ]);
+        c.flush();
+        const before = (H as point_object).coords;
+        const result = await openBox(c, H.parents[0] as macro_object);
+        const copy = figure();
+        readDgo(copy, result!.figure);
+        copy.flush();
+        expectClose(get(copy, H.name).coords, before);
+    });
+
+    it("draw a hyperbolic circle of a given radius", async () => {
+        const c = figure(...DISK, "C = (2, 1)");
+        c.macros = merge(
+            asLibrary(c),
+            await supplied("en"),
+            ["CircleH"],
+            false,
+        ).library.macros;
+        const [k] = applyMacro(c, macroIndex(c, "CircleH"), 1, [
+            get(c, "Hz"),
+            get(c, "C"),
+            "1.5",
+        ]);
+        c.flush();
+        const { CENTER, R } = k as unknown as Circle;
+        for (const [x, y] of [
+            [R, 0],
+            [0, R],
+            [-R, 0],
+        ])
+            expect(
+                hDist(get(c, "C").coords, [CENTER[0] + x, CENTER[1] + y]),
+            ).toBeCloseTo(1.5);
     });
 });

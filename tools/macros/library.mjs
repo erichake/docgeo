@@ -5,13 +5,15 @@
 // A macro: its folder, its name in each language, its figure, the objects
 // to hide in it (intermediates, shown when its box is opened), and its
 // methods: initials and finals named in the figure, help in each language,
-// and messages for the initials if their type's isn't enough. A point on
+// messages for the initials if their type's isn't enough, and the fixed
+// ones, looked for by their name (see MACROS.md). A point on
 // an object stays where the figure puts it: a final's place, which an
 // application then moves, or a constant of the body (see MACROS.md).
 
 import { CIRCLES } from "./circles.mjs";
 import { CONICS } from "./conics.mjs";
 import { CONSTRUCTIONS } from "./constructions.mjs";
+import { HYPERBOLIC } from "./hyperbolic.mjs";
 import { PROJECTIVE } from "./projective.mjs";
 import { QUADRILATERALS } from "./quadrilaterals.mjs";
 import { TRANSFORMATIONS } from "./transformations.mjs";
@@ -147,6 +149,20 @@ export const FOLDERS = {
         "射影几何",
         "射影幾何",
     ),
+    hyperbolic: tr(
+        "Géométrie hyperbolique",
+        "Hyperbolic geometry",
+        "Hyperbolische Geometrie",
+        "Geometría hiperbólica",
+        "Geometria iperbolica",
+        "Geometria hiperbólica",
+        "Hyperbolische meetkunde",
+        "Υπερβολική γεωμετρία",
+        "الهندسة الزائدية",
+        "अतिपरवलयिक ज्यामिति",
+        "双曲几何",
+        "雙曲幾何",
+    ),
     constructions: tr(
         "Constructions",
         "Constructions",
@@ -171,4 +187,5 @@ export const MACROS = [
     ...CONICS,
     ...PROJECTIVE,
     ...CONSTRUCTIONS,
+    ...HYPERBOLIC,
 ];

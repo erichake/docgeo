@@ -157,6 +157,33 @@
     font-size: 16px;
     cursor: pointer;
 }
+/* A fixed initial, taken without asking once designated. */
+.dge-macro-fixed {
+    display: grid;
+    place-items: center;
+    width: 22px;
+    height: 22px;
+    padding: 0;
+    border: 0;
+    border-radius: 6px;
+    background: none;
+    color: #94a3b8;
+    cursor: pointer;
+}
+.dge-macro-fixed svg {
+    width: 15px;
+    height: 15px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2;
+}
+.dge-macro-fixed:hover {
+    background: #f1f5f9;
+}
+.dge-macro-fixed.dge-on {
+    background: #dbeafe;
+    color: #1d4ed8;
+}
 .dge-macro-remove:hover {
     background: #fee2e2;
     color: #b91c1c;

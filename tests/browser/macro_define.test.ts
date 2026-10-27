@@ -15,6 +15,8 @@ import {
     designation,
     takesNext,
     finalsOf,
+    rememberFixed,
+    withFixed,
     methodOf,
     missing,
     save,
@@ -359,6 +361,51 @@ describe("Defining a macro", () => {
         expectClose((first as point_object).coords, [1, 4, 0]);
         expectClose((second as point_object).coords, [1, 4, 0]);
         expect(first.stroke_color).toBe("#ff0000");
+    });
+
+    it("takes a fixed initial by its name, or the object last designated for it", () => {
+        const c = figure(
+            "O = (0, 0)",
+            "Hz = Circle(O, 4)",
+            "k = Circle(O, 2)",
+            "A = (1, 1)",
+            "B = (2, 0)",
+            "M = Midpoint(O, A)",
+            "N = Midpoint(O, B)",
+        );
+        const method = methodOf(
+            c,
+            all(c, "Hz", "A"),
+            all(c, "M"),
+            [],
+            "",
+            all(c, "Hz"),
+        );
+        expect(method.initials).toEqual([
+            ["circle", "", "Hz"],
+            ["point", ""],
+        ]);
+        const half = {
+            name: "Half",
+            finals: ["M"],
+            icon: null,
+            methods: [method],
+        };
+        // Its name: the figure's Hz.
+        expect(withFixed(c, half, [])).toEqual(all(c, "Hz"));
+        // Then the object designated for it, by any macro looking for it.
+        rememberFixed(designation(half, []), get(c, "k"));
+        expect(withFixed(c, half, [])).toEqual(all(c, "k"));
+        // Never the last initial, which would apply the macro untouched.
+        const alone = methodOf(
+            c,
+            all(c, "Hz"),
+            all(c, "O"),
+            [],
+            "",
+            all(c, "Hz"),
+        );
+        expect(withFixed(c, { ...half, methods: [alone] }, [])).toEqual([]);
     });
 
     it("draws its icon from the figure, its initials grey, its finals red", () => {

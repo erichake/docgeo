@@ -340,6 +340,9 @@ export default {
     macro_remove: "Remove",
     macro_message: "Message shown when it is designated",
     macro_drag: "Drag to change the order",
+    macro_fixed:
+        "Fixed: designated once, then kept from one application to the next",
+    macro_fixed_change: "Change %",
     macro_implicit:
         "No final chosen: the visible objects in gray are the finals",
     macro_need_initial: "Tap the objects the macro starts from",
@@ -366,8 +369,8 @@ export default {
     macro_command_name: "% is the name of a command: choose another one",
     open_box: "Open the box",
     open_box_hint: "Replaces the application by its construction: % objects",
-    open_box_arc:
-        "The box can't be opened: the end of an initial arc isn't an object of the figure",
+    open_box_point:
+        "The box can't be opened: a point of an initial (end of an arc, of a segment…) isn't an object of the figure",
     menu_macros: "Macros",
     figure_macros: "Macros of the figure",
     macro_library: "Library",

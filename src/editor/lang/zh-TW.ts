@@ -329,6 +329,8 @@ const zh_TW: Texts = {
         macro_remove: "移除",
         macro_message: "選取它時顯示的提示",
         macro_drag: "拖曳以改變順序",
+        macro_fixed: "固定：只需指定一次，之後每次應用都沿用",
+        macro_fixed_change: "更換 %",
         macro_implicit: "未選擇最終物件：灰色的可見物件即為最終物件",
         macro_need_initial: "點擊巨集的出發物件",
         macro_need_final: "初始物件沒有確定任何可見物件",
@@ -353,7 +355,8 @@ const zh_TW: Texts = {
         macro_command_name: "%是一個指令的名稱：請換一個",
         open_box: "打開盒子",
         open_box_hint: "用其構造取代該應用：%個物件",
-        open_box_arc: "盒子無法打開：初始弧的終點不是圖形中的物件",
+        open_box_point:
+            "盒子無法打開：初始物件的某個點（弧或線段的端點……）不是圖形中的物件",
         menu_macros: "巨集",
         figure_macros: "圖形中的巨集",
         macro_library: "巨集庫",
