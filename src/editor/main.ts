@@ -5578,6 +5578,13 @@ $("body").on(
             if (hits[0]) chooseHit(hits, client, select);
             return;
         }
+        // A widget, which the figure doesn't pick: a number as an initial.
+        const shown = (applying || macros.active) && propertyObject(event);
+        if (shown && !hits.some(({ object }) => object === shown)) {
+            if (macros.active) return macros.tap(shown);
+            if (takesNext(designated(), shown)) pickInitial(shown);
+            return;
+        }
         // The next initial, a point made there if one is taken.
         if (applying) {
             const next = designated();

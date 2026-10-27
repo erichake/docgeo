@@ -361,6 +361,89 @@ describe("Defining a macro in the editor", () => {
             ]);
     });
 
+    it("takes a number tapped in the figure, to define and to apply", async () => {
+        const { page, request } = await editor();
+        await request("load", {
+            data: new TextEncoder().encode(
+                JSON.stringify({
+                    dgo: 1,
+                    v: { o: [400, 300], u: 40, w: 800, h: 600 },
+                    mac: [
+                        {
+                            n: "Dilate",
+                            f: ["D"],
+                            m: [
+                                {
+                                    i: [["point"], ["point"], ["number"]],
+                                    b: [["Dil", "D", [0, 1, 2]]],
+                                    f: [3],
+                                },
+                            ],
+                        },
+                    ],
+                    o: [
+                        ["Pt", "O", [0, 0]],
+                        ["Pt", "P", [1, 1]],
+                        ["Ex", "k", { t: "", v: 3, xy: [20, 40] }],
+                    ],
+                }),
+            ).buffer,
+            format: "dgo",
+        });
+        const click = (selector: string, text: string) =>
+            [...page.querySelectorAll<HTMLElement>(selector)]
+                .find((element) => element.textContent === text)!
+                .click();
+        const tapK = () => {
+            const box = [...page.querySelectorAll("svg text")]
+                .find((text) => text.textContent!.startsWith("k ="))!
+                .getBoundingClientRect();
+            const at = {
+                clientX: box.x + box.width / 2,
+                clientY: box.y + box.height / 2,
+                bubbles: true,
+                isPrimary: true,
+                pointerId: 1,
+            };
+            const target = page.elementFromPoint(at.clientX, at.clientY)!;
+            const Pointer = (page.defaultView as typeof window).PointerEvent;
+            target.dispatchEvent(new Pointer("pointerdown", at));
+            target.dispatchEvent(new Pointer("pointerup", at));
+        };
+        (page.querySelector(".dge-line button") as HTMLElement).click();
+        click(".dge-tools .dge-family", "Macros");
+        click(".dge-tools button", "New macro");
+        tapK();
+        expect(
+            [
+                ...page.querySelectorAll(
+                    ".dge-macro-list:first-of-type .dge-macro-object",
+                ),
+            ].map((name) => name.textContent),
+        ).toEqual(["k"]);
+        (
+            page.querySelector('.dge-macro [aria-label="Done"]') as HTMLElement
+        ).click();
+        (page.querySelector(".dge-line button") as HTMLElement).click();
+        click(".dge-tools .dge-family", "Macros");
+        click(".dge-tools button", "Dilate");
+        const tap = (name: string) =>
+            [...page.querySelectorAll<HTMLInputElement>(".dge-row")]
+                .find((row) => row.value.startsWith(`${name} =`))!
+                .parentElement!.dispatchEvent(
+                    new PointerEvent("pointerdown", { bubbles: true }),
+                );
+        tap("O");
+        tap("P");
+        tapK();
+        await expect
+            .poll(async () => (await saved(request)).o.slice(3))
+            .toEqual([
+                ["Mac", "mac", [0, 0, [0, 1, 2]]],
+                ["Out", "D", [3, 1]],
+            ]);
+    });
+
     it("takes a fixed initial without asking, once designated", async () => {
         const { page, request } = await editor();
         await request("load", {
