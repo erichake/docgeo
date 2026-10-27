@@ -21,6 +21,7 @@ import {
     programNodes,
     type Program,
     programReferences,
+    type Statement,
     globalName,
     globalOf,
     programTargets,
@@ -242,15 +243,50 @@ const formatValue = (value: unknown): string =>
           ? `[${value.map(formatValue).join(", ")}]`
           : JSON.stringify(value);
 
-// A formula written with the names of the objects it reads.
-const renamed = (
+// A formula written with the names of the objects it reads, and a
+// program's own variables, renamed if one of those would hide them: they
+// are named after the body of a macro whose box was opened, and the
+// objects after the figure's.
+function renamed(
     source: string,
     refs: ReadonlyMap<string, construction_object>,
-): string =>
-    renameFormula(source, (name) => {
-        const ref = refs.get(name);
-        return ref && formatName(ref.name);
+    own: Set<string> = new Set(),
+): string {
+    const names = new Set(
+        [...refs.values()].map(({ name }) => formatName(name)),
+    );
+    const taken = new Set([...names, ...own, ...refs.keys()]);
+    const fresh = new Map<string, string>();
+    own.forEach((local) => {
+        if (!names.has(local)) return;
+        let k = 1;
+        while (taken.has(`${local}${k}`)) k++;
+        taken.add(`${local}${k}`);
+        fresh.set(local, `${local}${k}`);
     });
+    return renameFormula(source, (name) => {
+        const ref = refs.get(name);
+        return ref ? formatName(ref.name) : fresh.get(name);
+    });
+}
+
+// A program's own variables, its functions' included.
+function ownNames({ body, locals }: Program): Set<string> {
+    const names = new Set(locals);
+    const visit = (statements: Statement[]): void =>
+        statements.forEach((statement) => {
+            if (statement.kind === "if") {
+                visit(statement.then);
+                visit(statement.otherwise);
+            } else if (statement.kind === "loop") visit(statement.body);
+            else if (statement.kind === "function") {
+                statement.locals.forEach((name) => names.add(name));
+                visit(statement.body);
+            }
+        });
+    visit(body);
+    return names;
+}
 
 // A text written with the names of the objects it reads: in its formulas
 // ("%…%"), outside the tags of a panel's HTML, and its fields' targets.
@@ -294,7 +330,11 @@ export function definitionSource(
 }
 
 const programSource = ({ program, refs, targets }: ExpressionProgram) =>
-    renamed(formulaSource(program), new Map([...refs, ...targets]));
+    renamed(
+        formulaSource(program),
+        new Map([...refs, ...targets]),
+        ownNames(program),
+    );
 
 // Its value, or its formula.
 export function expressionSource({
@@ -379,7 +419,7 @@ export function lineOf(
     }
     if (tag === "Fp") {
         const { formula, refs } = object as formula_point_object;
-        return `${name} = ${pointFormulaText(oneLine(renamed(formulaSource(formula), refs)))}`;
+        return `${name} = ${pointFormulaText(oneLine(renamed(formulaSource(formula), refs, ownNames(formula))))}`;
     }
     if (EQUATIONS.includes(tag)) {
         const { equation } = (object instanceof plane_object

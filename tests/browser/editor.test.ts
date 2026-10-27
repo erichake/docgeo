@@ -399,6 +399,35 @@ describe("Editor", () => {
             );
     });
 
+    it("renames a program's own variable that an object read would hide", () => {
+        // As a macro's box opened writes it: named after the body, read
+        // through the figure's own objects, one of which is named `a`.
+        const c = createConstruction([800, 600]);
+        readDgo(c, {
+            dgo: 1,
+            v: { o: [400, 300], u: 40, w: 800, h: 600 },
+            o: [
+                ["Pt", "a", [1, 1]],
+                ["Fp", "P", [["var a = 2; Hz * a", { Hz: 0 }]]],
+            ],
+        });
+        c.flush();
+        const [, line] = lines(c);
+        expect(line).toBe("P = Point(var a1 = 2; a * a1)");
+        // Read back, the same point.
+        const other = createConstruction([800, 600]);
+        readDgo(other, {
+            dgo: 1,
+            v: { o: [400, 300], u: 40, w: 800, h: 600 },
+            o: [["Pt", "a", [1, 1]]],
+        });
+        type(other, line);
+        other.flush();
+        expect((other.getObj("P") as point_object).coords).toEqual(
+            (c.getObj("P") as point_object).coords,
+        );
+    });
+
     it("writes and reads equations, a line, a circle or a conic", async () => {
         const { scene: c } = studio();
         const text = [

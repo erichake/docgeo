@@ -813,6 +813,22 @@ la corde d'un dix-millième de sa longueur, invisible.
   extrémités : leurs boîtes s'ouvrent. Tests dans `macro_open.test.ts` et
   `macro_library.test.ts`.
 
+- Annuler pendant l'application, correction (2026-10-27, signalé par
+  l'auteur) : une macro de la bibliothèque n'est recopiée dans la figure
+  qu'à sa première application ; annuler celle-ci rendait une figure sans
+  la macro, que l'outil, encore en main, cherchait par son rang : une
+  exception dans la reconstruction bloquait la chaîne des changements de
+  l'éditeur, panneau figé, enregistrement d'un fichier vide. L'outil
+  retient désormais sa macro et ses initiaux par leurs noms, et se ferme
+  si la figure n'a plus sa macro ; une étape qui échoue est dite et
+  n'arrête plus les suivantes (`EDITOR.md`). Test dans
+  `macro_editor.test.ts` (macro définie, appliquée, définition annulée).
+  Vu en ouvrant la boîte d'une macro hyperbolique sur un disque nommé
+  `a` : la ligne d'une formule du corps écrivait `var a = …` près du `a`
+  du disque, et la relire changeait la figure. Une variable propre qui
+  prendrait le nom d'un objet lu est renommée dans la ligne (`EDITOR.md`,
+  « Ouvrir la boîte » ; test dans `editor.test.ts`).
+
 ## Reste à faire
 
 Dans l'ordre que choisira l'auteur :

@@ -82,6 +82,7 @@ export default {
     embed_unsaved: "The unsaved changes of the current figure will be lost.",
     embed_failed: "This link could not be opened: %",
     open_failed: "This figure could not be opened: %",
+    failed: "Something went wrong: %",
     embed_modified:
         "This figure has changed since it was opened from its link: save it, then publish it again in the same place, or the page will show the former version.",
     dismiss: "Cancel",

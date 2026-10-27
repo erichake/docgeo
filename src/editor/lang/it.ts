@@ -85,6 +85,7 @@ const it: Texts = {
             "Le modifiche non salvate della figura attuale andranno perse.",
         embed_failed: "Impossibile aprire questo link: %",
         open_failed: "Impossibile aprire questa figura: %",
+        failed: "Si è verificato un errore: %",
         embed_modified:
             "Questa figura è stata modificata da quando è stata aperta dal suo link: salvala e ripubblicala nello stesso posto, altrimenti la pagina mostrerà la versione precedente.",
         dismiss: "Annulla",

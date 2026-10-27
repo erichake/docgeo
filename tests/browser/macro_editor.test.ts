@@ -471,6 +471,30 @@ describe("Defining a macro in the editor", () => {
             ["circle", "", "w"],
             ["point"],
         ]);
+
+        // Applied, then undone back before it: the tool is left, the
+        // figure still saved.
+        const errors: string[] = [];
+        page.defaultView!.addEventListener("unhandledrejection", (event) =>
+            errors.push(String(event.reason)),
+        );
+        (page.querySelector(".dge-line button") as HTMLElement).click();
+        click(".dge-tools .dge-family", "Macros");
+        click(".dge-tools button", "Again");
+        expect(hint()).toContain("2/2");
+        page.body.dispatchEvent(
+            new KeyboardEvent("keydown", {
+                key: "z",
+                ctrlKey: true,
+                metaKey: true,
+                bubbles: true,
+            }),
+        );
+        await expect
+            .poll(async () => (await saved(request)).mac.length)
+            .toBe(1);
+        expect(hint()).toBe("");
+        expect(errors).toEqual([]);
     });
 
     it("opens the box of an application, a step to undo", async () => {

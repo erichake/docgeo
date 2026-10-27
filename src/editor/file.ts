@@ -95,8 +95,11 @@ export async function saveFile(
         types: [{ description: "DocGeo (.dgo)", accept: { [DGO]: [".dgo"] } }],
     }).catch(aborted);
     if (!target) return false;
+    // Written before the file is opened, which would otherwise be left
+    // empty if the figure can't be.
+    const blob = await write();
     const writable = await target.createWritable();
-    await writable.write(await write());
+    await writable.write(blob);
     await writable.close();
     opened(target.name, target);
     return true;
@@ -125,7 +128,8 @@ export async function saveOther(
         types: [{ description: "DocGeo (.dgo)", accept: { [DGO]: [".dgo"] } }],
     }).catch(aborted);
     if (!target) return;
+    const blob = await write();
     const writable = await target.createWritable();
-    await writable.write(await write());
+    await writable.write(blob);
     await writable.close();
 }

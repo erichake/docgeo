@@ -87,6 +87,7 @@ const nl: Texts = {
             "De niet-opgeslagen wijzigingen van de huidige figuur gaan verloren.",
         embed_failed: "Deze link kon niet worden geopend: %",
         open_failed: "Deze figuur kon niet worden geopend: %",
+        failed: "Er ging iets mis: %",
         embed_modified:
             "Deze figuur is gewijzigd sinds ze via haar link werd geopend: sla ze op en publiceer ze opnieuw op dezelfde plek, anders toont de pagina de vorige versie.",
         dismiss: "Annuleren",

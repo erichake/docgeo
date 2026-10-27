@@ -756,6 +756,14 @@ zoomer la vue, hors de la pile, ne compte pas comme une modification.
 Ailleurs (Firefox, Safari, iframe de DocTools), Cmd-S télécharge la
 figure, sans nom affiché.
 
+Les changements de la figure (étapes d'annulation, annuler, refaire,
+reconstructions) s'enchaînent sur une seule promesse (`recording`), qu'un
+enregistrement attend. Une étape qui échoue est dite dans la consigne
+(`failed`) et n'arrête ni les suivantes ni l'enregistrement (2026-10-27 :
+une exception y bloquait tout, panneau et enregistrement, qui laissait un
+fichier vide). Le fichier n'est ouvert en écriture qu'une fois la figure
+écrite.
+
 Le panneau « Construction » se ferme par la croix de son en-tête ou par
 le bouton historique de la barre, qui permet aussi de le rouvrir. La figure
 récupère sa largeur sans changer les objets ; les consignes se recentrent
@@ -1410,7 +1418,11 @@ macro s'applique dès qu'une méthode est complète (`applyMacro` : une
 entrée `Mac` et une `Out` par final, nommé comme le final de la macro,
 numéroté s'il est pris, avec son style de la définition), puis attend de
 nouveau son premier initial. On en sort comme d'un outil (Échap,
-« Terminé », un autre outil, les propriétés, la gomme). Le nœud est
+« Terminé », un autre outil, les propriétés, la gomme). L'outil retient
+sa macro et ses initiaux désignés par leurs noms : annuler et refaire
+reconstruisent la figure, où il les retrouve ; il se ferme si elle n'a
+plus sa macro (une annulation avant sa définition, ou avant la copie
+d'une macro de bibliothèque). Le nœud est
 super-caché (`h` vaut 2 pour `Mac`) et n'a pas de ligne : l'application
 se lit dans celle de ses finaux.
 
@@ -1477,6 +1489,11 @@ l'application par sa construction (`boxOf` de `macro.ts`, `openBox` de
   un initial de son application) est cet objet ;
 - un seul niveau : les applications du corps restent des boîtes, qu'on
   ouvre à leur tour ;
+- les formules du corps gardent dans le `.dgo` les noms du corps, reliés
+  aux objets par leur table ; leur ligne les écrit avec ceux de la figure,
+  et une variable propre d'un programme (`var a`) qui prendrait le nom
+  d'un objet qu'il lit y est renommée (`a1`), sans quoi la ligne, relue,
+  changerait de sens (2026-10-27, `renamed` de `figure.ts`) ;
 - les branches d'intersection suivies sont celles du nœud : la figure ne
   bouge pas ;
 - la définition reste dans la figure.

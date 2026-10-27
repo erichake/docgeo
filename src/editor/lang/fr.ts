@@ -84,6 +84,7 @@ const fr: Texts = {
             "Les modifications non enregistrées de la figure actuelle seront perdues.",
         embed_failed: "Impossible d'ouvrir ce lien : %",
         open_failed: "Impossible d'ouvrir cette figure : %",
+        failed: "Une erreur est survenue : %",
         embed_modified:
             "Cette figure a été modifiée depuis son ouverture par son lien : enregistrez-la, puis republiez-la au même endroit, sinon la page montrera l'ancienne version.",
         dismiss: "Annuler",

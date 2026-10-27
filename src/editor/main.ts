@@ -866,7 +866,9 @@ const properties = propertiesPanel({
         );
     },
     figure: (patch) => {
-        recording = recording.then(() => reframe({}, undefined, patch));
+        recording = recording
+            .then(() => reframe({}, undefined, patch))
+            .catch(failed);
     },
     start: (kind, object) =>
         kind === "turtle"
@@ -1376,8 +1378,8 @@ function showHint(text: string, error = false): void {
         hint.add(numberField.removeClass("dge-error"));
     }
     if (applying && text) {
-        const { index, picked } = applying;
-        const fixed = picked[firstFixed(scene().macros[index], picked)];
+        const { picked } = applying;
+        const fixed = picked[firstFixed(appliedMacro(), picked)];
         if (fixed && typeof fixed !== "string")
             hint.add(
                 changeFixed.text(
@@ -3225,7 +3227,7 @@ function showActions(): void {
     const object = held?.hit.object ?? magnetizing?.point;
     actions.toggleClass("dge-bar-tool", !!armed || !!applying);
     if (applying) {
-        const macro = scene().macros[applying.index];
+        const macro = appliedMacro();
         const family = TOOL_FAMILIES.at(-1)!;
         toolIcon
             .inner(toolSvg(macroIcon(macro)))
@@ -3912,33 +3914,40 @@ async function rewriteMacros(
     indices: number[],
 ): Promise<boolean> {
     let rewritten = false;
-    recording = recording.then(async () => {
-        const figure = await asSaved(() => describeDgo(scene()));
-        const styles = [...(figure.st ?? [])];
-        const images = { ...figure.img };
-        for (const { icon } of macros)
-            if (icon) images[await imageKey(icon)] = icon;
-        const keys = new Map(
-            Object.entries(images).map(([key, url]) => [url, key]),
-        );
-        const mac = describeMacros(
-            macros,
-            (url) => keys.get(url)!,
-            (style) => styles.push(style) - 1,
-        );
-        const o = figure.o.map(([tag, name, parameters, ...style]) => {
-            if (tag !== "Mac") return [tag, name, parameters, ...style];
-            const [index, ...rest] = parameters as number[];
-            return [tag, name, [indices[index], ...rest], ...style];
-        });
-        try {
-            await reframe({}, undefined, { o, mac, st: styles, img: images });
-            rewritten = true;
-        } catch {
-            await reframe({}, history[position]);
-            showHint(message("macros_replace_failed"), true);
-        }
-    });
+    recording = recording
+        .then(async () => {
+            const figure = await asSaved(() => describeDgo(scene()));
+            const styles = [...(figure.st ?? [])];
+            const images = { ...figure.img };
+            for (const { icon } of macros)
+                if (icon) images[await imageKey(icon)] = icon;
+            const keys = new Map(
+                Object.entries(images).map(([key, url]) => [url, key]),
+            );
+            const mac = describeMacros(
+                macros,
+                (url) => keys.get(url)!,
+                (style) => styles.push(style) - 1,
+            );
+            const o = figure.o.map(([tag, name, parameters, ...style]) => {
+                if (tag !== "Mac") return [tag, name, parameters, ...style];
+                const [index, ...rest] = parameters as number[];
+                return [tag, name, [indices[index], ...rest], ...style];
+            });
+            try {
+                await reframe({}, undefined, {
+                    o,
+                    mac,
+                    st: styles,
+                    img: images,
+                });
+                rewritten = true;
+            } catch {
+                await reframe({}, history[position]);
+                showHint(message("macros_replace_failed"), true);
+            }
+        })
+        .catch(failed);
     await recording;
     if (rewritten) await record();
     return rewritten;
@@ -4093,14 +4102,17 @@ function placeRanks(): void {
 // other, among its methods, until one is complete. Those copied into the
 // figure from a library to be applied are taken back if it isn't.
 // The fixed initials are taken without asking, but when others are being
-// designated.
+// designated. The macros by their names: undo and redo rebuild the figure,
+// whose macros may then be others.
 let applying: {
-    index: number;
+    name: string;
     picked: Picked[];
-    copied: Macro[];
+    copied: string[];
     applied: boolean;
     asking: boolean;
 } | null = null;
+const appliedIndex = (): number => macroIndex(scene(), applying!.name);
+const appliedMacro = (): Macro => scene().macros[appliedIndex()];
 // A number typed as the next initial, when one is taken.
 const numberField = $.create("input")
     .att("type", "text")
@@ -4120,7 +4132,7 @@ numberField.on(
 );
 
 const designated = (): Designation =>
-    designation(scene().macros[applying!.index], applying!.picked);
+    designation(appliedMacro(), applying!.picked);
 
 // Whether these objects, in this order, begin one of its methods, after
 // the fixed initials the figure has.
@@ -4142,21 +4154,14 @@ function startHint(macro: Macro): string {
 // The fixed initials the figure has, after those designated.
 function fillFixed(): void {
     if (!applying!.asking)
-        applying!.picked = withFixed(
-            scene(),
-            scene().macros[applying!.index],
-            applying!.picked,
-        );
+        applying!.picked = withFixed(scene(), appliedMacro(), applying!.picked);
 }
 
 // Others designated in place of the fixed initials taken.
 const changeFixed = $.create("button").cls("dge-hint-text");
 changeFixed.on("click", () => {
-    const { index, picked } = applying!;
-    applying!.picked = picked.slice(
-        0,
-        firstFixed(scene().macros[index], picked),
-    );
+    const { picked } = applying!;
+    applying!.picked = picked.slice(0, firstFixed(appliedMacro(), picked));
     applying!.asking = true;
     clearPreview();
     showApply();
@@ -4191,7 +4196,13 @@ function startApply(
     copied: Macro[] = [],
 ): void {
     stopMacro();
-    applying = { index, picked: [], copied, applied: false, asking: false };
+    applying = {
+        name: scene().macros[index].name,
+        picked: [],
+        copied: copied.map(({ name }) => name),
+        applied: false,
+        asking: false,
+    };
     showApply();
     objects.forEach((object) => {
         if (applying && takesNext(designated(), object)) pickInitial(object);
@@ -4203,7 +4214,7 @@ function stopApply(): void {
     const { copied, applied } = applying;
     const c = scene();
     if (!applied)
-        c.macros = c.macros.filter((macro) => !copied.includes(macro));
+        c.macros = c.macros.filter(({ name }) => !copied.includes(name));
     applying = null;
     clearPreview();
     showAccepted([]);
@@ -4222,16 +4233,33 @@ function pickInitial(initial: Picked): void {
     fillFixed();
     const { complete } = designated();
     if (complete === null) return showApply();
-    applyMacro(c, applying!.index, complete, applying!.picked);
+    applyMacro(c, appliedIndex(), complete, applying!.picked);
     applying!.picked = [];
     applying!.applied = true;
     fillFixed();
     changed();
 }
 
-// The initials designated lit: the hint says what the next one may be.
+// The initials designated lit: the hint says what the next one may be. The
+// figure rebuilt, they are taken again by their names, or the tool left if
+// the figure has lost its macro (an undo before a library's was copied).
 function showApply(): void {
     const c = scene();
+    const macro = appliedMacro();
+    if (!macro) return stopApply();
+    const again = applying!.picked.map((initial) =>
+        typeof initial === "string" ? initial : c.getObj(initial.name),
+    );
+    applying!.picked = again.every(
+        (initial, rank) =>
+            initial !== undefined &&
+            takesNext(
+                designation(macro, again.slice(0, rank) as Picked[]),
+                initial,
+            ),
+    )
+        ? (again as Picked[])
+        : [];
     fillFixed();
     const { picked } = applying!;
     c.svg
@@ -4272,8 +4300,8 @@ function previewMacro(screen: Vec2, hits: Hit[]): void {
         const count = figureObjects(c).length;
         applyMacro(
             c,
-            applying!.index,
-            designation(c.macros[applying!.index], initials).complete!,
+            appliedIndex(),
+            designation(appliedMacro(), initials).complete!,
             initials,
             { prefix: "‧" },
         );
@@ -4308,7 +4336,7 @@ const reachField = () => reachInput.dom() as HTMLInputElement;
 
 const restingHint = (): string =>
     applying
-        ? applyHint(scene().macros[applying.index], designated())
+        ? applyHint(appliedMacro(), designated())
         : macros.active
           ? macros.hint
           : ghosts
@@ -4862,13 +4890,18 @@ function showSpace(): void {
 // Back to the plane only without objects off it.
 function toggleSpace(): void {
     cancel(true);
-    recording = recording.then(async () => {
-        const c = scene();
-        const off = !c.GRID.is2D && offPlane(c);
-        if (off)
-            return showHint(message("in_space", formatName(off.name)), true);
-        await (c.GRID.is2D ? toSpace() : toPlane());
-    });
+    recording = recording
+        .then(async () => {
+            const c = scene();
+            const off = !c.GRID.is2D && offPlane(c);
+            if (off)
+                return showHint(
+                    message("in_space", formatName(off.name)),
+                    true,
+                );
+            await (c.GRID.is2D ? toSpace() : toPlane());
+        })
+        .catch(failed);
     void record().then(refreshRows);
 }
 
@@ -5686,6 +5719,12 @@ $("body").on(
 let history: { figure: string; o: unknown; u: unknown }[] = [];
 let position = -1;
 let recording = Promise.resolve();
+// A change of the figure that fails is told, and doesn't stop the next
+// ones, which wait for it, nor saving.
+const failed = (error: unknown): void => {
+    console.error(error);
+    showHint(message("failed", String(error)), true);
+};
 // The step last saved, or opened.
 let saved = "";
 
@@ -5698,31 +5737,37 @@ const camera = (view: DgoFigure["v"], kept: boolean): DgoFigure["v"] =>
     );
 
 function record(): Promise<void> {
-    recording = recording.then(async () => {
-        const figure = await asSaved(() => describeDgo(scene()));
-        const { o, u, ...view } = figure.v;
-        const step = JSON.stringify({ ...figure, v: camera(view, false) });
-        if (step === history[position]?.figure) return;
-        history = [...history.slice(0, position + 1), { figure: step, o, u }];
-        position = history.length - 1;
-        showChanged(step !== saved);
-    });
+    recording = recording
+        .then(async () => {
+            const figure = await asSaved(() => describeDgo(scene()));
+            const { o, u, ...view } = figure.v;
+            const step = JSON.stringify({ ...figure, v: camera(view, false) });
+            if (step === history[position]?.figure) return;
+            history = [
+                ...history.slice(0, position + 1),
+                { figure: step, o, u },
+            ];
+            position = history.length - 1;
+            showChanged(step !== saved);
+        })
+        .catch(failed);
     return recording;
 }
 
 function travel(step: number): void {
-    recording = recording.then(async () => {
-        if (!history[position + step]) return;
-        cancel(true);
-        position += step;
-        const target = history[position];
-        showChanged(target.figure !== saved);
-        const space = JSON.parse(target.figure).v["3d"] === 1;
-        if (space === scene().GRID.is2D)
-            await (space ? toSpace(target) : toPlane(target));
-        else await reframe({}, target);
-        if (applying && !scene().macros[applying.index]) stopApply();
-    });
+    recording = recording
+        .then(async () => {
+            if (!history[position + step]) return;
+            cancel(true);
+            position += step;
+            const target = history[position];
+            showChanged(target.figure !== saved);
+            const space = JSON.parse(target.figure).v["3d"] === 1;
+            if (space === scene().GRID.is2D)
+                await (space ? toSpace(target) : toPlane(target));
+            else await reframe({}, target);
+        })
+        .catch(failed);
 }
 
 // ************************** FILES *******************************
