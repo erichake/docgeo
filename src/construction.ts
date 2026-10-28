@@ -201,6 +201,7 @@ export class construction {
     private initializeObject(object: construction_object): void {
         if (object.isHidden) object.refresh();
         else object.createSVG();
+        if (object.familytype === "sphere") this.invalidateRender(this.GRID);
     }
 
     removeObject(obj: construction_object): void {
@@ -250,6 +251,8 @@ export class construction {
             object.children = [];
             object.removeSVG();
         });
+        if ([...removed].some((object) => object.familytype === "sphere"))
+            this.invalidateRender(this.GRID);
     }
 
     dispose(): void {

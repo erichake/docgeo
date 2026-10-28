@@ -4729,7 +4729,7 @@ function updatePreview(screen: Vec2, hits: Hit[]): void {
                   : candidate;
         if (candidate === "pointer") {
             argument.showName = false;
-            argument.updateView();
+            argument.createSVG();
             objects.push(argument);
         }
         const full = [...args];
@@ -4761,8 +4761,16 @@ function updatePreview(screen: Vec2, hits: Hit[]): void {
                   args: full as Arg[],
               };
         if (form) {
-            const result = add(c, { name: "‧r", ...form }, false);
-            if (result.hasView) result.dom.addClass("dge-preview");
+            const result = add(c, { name: "‧r", ...form });
+            result.showName = false;
+            const sphere = result instanceof sphere_object;
+            // Its part behind the floor is drawn outside the preview group.
+            if (sphere) result.opacity! *= 0.55;
+            if (result.hasView) {
+                result.createSVG();
+                result.dom.addClass("dge-preview");
+                if (sphere) result.dom.stl("opacity", 1);
+            }
             objects.push(result);
         }
         preview = {

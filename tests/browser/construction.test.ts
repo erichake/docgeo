@@ -27,6 +27,31 @@ afterEach(() => {
 });
 
 describe("geometric construction", () => {
+    it.each([false, true])(
+        "updates the floor when a sphere is added or removed (perspective=%s)",
+        (perspective) => {
+            const c = createConstruction();
+            c.GRID.THETA = 0.3;
+            c.GRID.PERSPECTIVE = perspective;
+            c.invalidateProjection();
+            c.flush();
+            const floor = c.GRID.floorClipShape.getAtt("d");
+            const o = createPoint(c, "O", [0, 0, 4]);
+            const s = createPoint(c, "S", [0, 0, 0]);
+            const sphere = createSphere(c, "a", o, s);
+            c.flush();
+            const clipped = c.GRID.floorClipShape.getAtt("d");
+            expect(clipped).not.toBe(floor);
+            c.invalidateProjection();
+            c.flush();
+            expect(c.GRID.floorClipShape.getAtt("d")).toBe(clipped);
+
+            c.removeObject(sphere);
+            c.flush();
+            expect(c.GRID.floorClipShape.getAtt("d")).toBe(floor);
+        },
+    );
+
     it.each([
         [-0.3, false],
         [0.3, false],

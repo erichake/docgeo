@@ -15,7 +15,7 @@ import {
 import { construction_object, type DgoContext } from "./construction_object";
 import { dgoRadius, radiusValue, type circle1_radius } from "./circle1_object";
 import { point_object } from "./point_object";
-import { AMBIENT, LIGHT, pathData, shade } from "./polygon_object";
+import { LIGHT, pathData, shade } from "./polygon_object";
 
 const CIRCLE_POINTS = 96;
 let gradients = 0;
@@ -208,8 +208,8 @@ export class sphere_object extends construction_object {
             .att("cx", x)
             .att("cy", y)
             .att("r", r)
-            .att("fx", x + LIGHT[0] * r)
-            .att("fy", y + LIGHT[1] * r);
+            .att("fx", x + LIGHT[0] * r * 0.5)
+            .att("fy", y + LIGHT[1] * r * 0.5);
         this.path.att("d", pathData(this.nearPart));
     }
 
@@ -220,11 +220,16 @@ export class sphere_object extends construction_object {
             .att("id", t.fill.slice(5, -1))
             .att("gradientUnits", "userSpaceOnUse")
             .add(
-                ...[1, AMBIENT].map((factor, index) =>
+                ...[
+                    [0, "#fff"],
+                    [0.22, t.fill_color],
+                    [0.65, shade(t.fill_color, 0.8)],
+                    [1, shade(t.fill_color, 0.35)],
+                ].map(([offset, color]) =>
                     t.svg
                         .shape("stop")
-                        .att("offset", index)
-                        .stl("stop-color", shade(t.fill_color, factor)),
+                        .att("offset", offset)
+                        .stl("stop-color", color),
                 ),
             );
         t.path = t.svg

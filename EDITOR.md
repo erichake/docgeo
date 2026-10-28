@@ -2288,3 +2288,20 @@ d'enregistrement et Cmd-S / Ctrl-S demandent à l'hôte d'enregistrer ;
 Cmd-Maj-S / Ctrl-Maj-S télécharge toujours une copie locale.
 La passerelle vit uniquement dans `src/editor/embed.ts` : le lecteur et
 son protocole existant restent indépendants.
+
+### Aperçu et éclairage des sphères — 2026-10-28
+
+L'aperçu reprend le remplissage de l'objet construit, sans ses noms ; le
+point provisoire n'affiche plus son nom interne. La sphère atténue son
+remplissage plutôt que son groupe SVG, car sa partie derrière le sol est
+dessinée par celui-ci. Ajouter ou retirer une sphère rafraîchit le masque
+du sol dès la prochaine image : plus de trou laissé par l'aperçu ni de
+croissant blanc à la validation, sans attendre une rotation.
+
+Les nouvelles sphères sont remplies à 50 % ; le dégradé comporte un reflet
+blanc décentré et des bords plus sombres. Les opacités des figures déjà
+enregistrées sont conservées. Vérifié par les tests de création et retrait
+(projections parallèle et perspective), d'aperçu et d'annulation dans
+l'éditeur intégré, et par le geste de l'anneau suivi d'une rotation dans
+`editor.html`. Contrôle du manuel passé dans les 12 langues. Moteur et
+lecteur : +199 octets (+55 en gzip) ; éditeur : +119 octets (+51 en gzip).

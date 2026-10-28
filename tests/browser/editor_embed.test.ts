@@ -62,6 +62,57 @@ async function decoded(data: ArrayBuffer): Promise<Message> {
 }
 
 describe("embedded editor", () => {
+    it("shows a filled sphere preview and restores the floor when cancelled", async () => {
+        const { iframe, request } = await host();
+        await request("load", {
+            data: encoded({
+                dgo: 1,
+                v: { o: [450, 350], u: 40, w: 900, h: 600, "3d": 1 },
+                o: [
+                    ["Pt", "O", [0, 0, 4]],
+                    ["Pt", "S", [0, 0, 0]],
+                ],
+            }),
+            format: "dgo",
+        });
+        const page = iframe.contentDocument!;
+        const input = page.querySelector(
+            ".dge-entry .dge-input",
+        ) as HTMLInputElement;
+        const floor = page.querySelector<SVGPathElement>("clipPath path")!;
+        const svg = floor.ownerSVGElement!;
+        const original = floor.getAttribute("d");
+        input.focus();
+        input.value = "s = Sphere(O, ";
+        input.dispatchEvent(new Event("input", { bubbles: true }));
+        const Pointer = (page.defaultView as typeof window).PointerEvent;
+        svg.dispatchEvent(
+            new Pointer("pointermove", {
+                clientX: 650,
+                clientY: 400,
+                bubbles: true,
+                isPrimary: true,
+            }),
+        );
+        await expect
+            .poll(() => svg.querySelector(".dge-preview path"))
+            .not.toBeNull();
+        const path = svg.querySelector<SVGPathElement>(".dge-preview path")!;
+        expect(Number(path.style.fillOpacity)).toBeGreaterThan(0);
+        expect(path.style.fill).toMatch(/^url\(/);
+        expect(svg.textContent).not.toContain("‧");
+        await expect.poll(() => floor.getAttribute("d")).not.toBe(original);
+        for (let i = 0; i < 2; i++)
+            input.dispatchEvent(
+                new KeyboardEvent("keydown", {
+                    key: "Escape",
+                    bubbles: true,
+                }),
+            );
+        await expect.poll(() => svg.querySelector(".dge-preview")).toBeNull();
+        await expect.poll(() => floor.getAttribute("d")).toBe(original);
+    });
+
     it("saves complete constructions and clears history when switching copies", async () => {
         const { iframe, request } = await host();
         expect(
