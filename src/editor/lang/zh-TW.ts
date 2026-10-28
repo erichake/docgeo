@@ -358,6 +358,8 @@ const zh_TW: Texts = {
         open_box_hint: "用其構造取代該應用：%個物件",
         open_box_point:
             "盒子無法打開：初始物件的某個點（弧或線段的端點……）不是圖形中的物件",
+        macro_program: "檢視程式",
+        macro_method: "方法 %",
         menu_macros: "巨集",
         figure_macros: "圖形中的巨集",
         macro_library: "巨集庫",

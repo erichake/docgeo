@@ -396,6 +396,8 @@ const de: Texts = {
             "Ersetzt die Anwendung durch ihre Konstruktion: % Objekte",
         open_box_point:
             "Die Box lässt sich nicht öffnen: Ein Punkt eines Anfangsobjekts (Ende eines Bogens, einer Strecke …) ist kein Objekt der Figur",
+        macro_program: "Programm ansehen",
+        macro_method: "Methode %",
         menu_macros: "Makros",
         figure_macros: "Makros der Figur",
         macro_library: "Bibliothek",

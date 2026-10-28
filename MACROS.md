@@ -437,6 +437,32 @@ permettait pas et que DGPad imposait toujours. L'élève peut passer de la
 boîte noire à la boîte blanche, puis revenir à la boîte noire en recréant la
 macro.
 
+### Voir le programme
+
+Décidé avec l'auteur le 2026-10-28, plutôt qu'une boîte transparente (les
+intermédiaires en fantômes, illisibles par milliers, comme dans les 8
+cercles d'Apollonius) ou un second dépliage dans le panneau de construction,
+qui en a déjà un pour les finaux :
+
+- Un bouton `</>` (« Voir le programme ») dans le bandeau de l'application,
+  entre le nom de la macro et « Terminé », et dans les actions d'un final
+  sélectionné, après « Ouvrir la boîte ».
+- Il ouvre une fenêtre en lecture seule : pour chaque méthode, son aide, ses
+  initiaux (rang, nom, sous-objets entre parenthèses, message), puis le
+  corps dans le langage textuel, une ligne par objet, les finaux en gras.
+  Rien ne change dans la figure.
+- Les initiaux déjà désignés y portent leur nom dans la figure ; les autres
+  sont nommés comme l'éditeur nomme ce qu'il crée, sans prendre un nom de
+  la figure ni du corps. Une application d'une autre macro dans le corps
+  est une ligne, qui ouvre le programme de cette macro ; un fil d'Ariane
+  au titre ramène aux précédentes.
+- **Noms traduits** (demandé par l'auteur le 2026-10-28) : les noms des
+  intermédiaires d'une macro de la bibliothèque fournie, qui deviennent
+  visibles, se traduisent dans les 12 langues quand ce sont des mots
+  (variables des programmes, `milieu`…), pas les lettres. Pas encore fait.
+- Pas de copie du programme vers la Saisie (essayée puis écartée par
+  l'auteur le 2026-10-28) : « Ouvrir la boîte » sert à cela.
+
 ## Étapes
 
 0. **Ouvrir le chantier** : ajouter dans `AGENTS.md` l'exception des macros
@@ -850,3 +876,5 @@ Dans l'ordre que choisira l'auteur :
 - **Cas en 3D** : rien n'a été essayé (doublures des initiaux, `flat`,
   projection du corps).
 - Mesurer le poids du lecteur et de l'éditeur à chaque étape.
+- **Voir le programme** : traduire les noms des intermédiaires de la
+  bibliothèque fournie.

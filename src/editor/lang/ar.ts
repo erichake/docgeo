@@ -367,6 +367,8 @@ const ar: Texts = {
         open_box_hint: "يستبدل التطبيق ببنائه: % كائنات",
         open_box_point:
             "لا يمكن فتح الصندوق: نقطة من عنصر ابتدائي (نهاية قوس أو قطعة…) ليست كائنًا في الشكل",
+        macro_program: "عرض البرنامج",
+        macro_method: "الطريقة %",
         menu_macros: "وحدات ماكرو",
         figure_macros: "وحدات ماكرو الشكل",
         macro_library: "المكتبة",

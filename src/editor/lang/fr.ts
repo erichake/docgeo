@@ -384,6 +384,8 @@ const fr: Texts = {
         open_box_hint: "Remplace l'application par sa construction : % objets",
         open_box_point:
             "La boîte ne s'ouvre pas : un point d'un initial (fin d'un arc, extrémité d'un segment…) n'est pas un objet de la figure",
+        macro_program: "Voir le programme",
+        macro_method: "Méthode %",
         menu_macros: "Macros",
         figure_macros: "Macros de la figure",
         macro_library: "Bibliothèque",

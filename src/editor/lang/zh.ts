@@ -358,6 +358,8 @@ const zh: Texts = {
         open_box_hint: "用其构造替换该应用：%个对象",
         open_box_point:
             "盒子无法打开：初始对象的某个点（弧或线段的端点……）不是图形中的对象",
+        macro_program: "查看程序",
+        macro_method: "方法 %",
         menu_macros: "宏",
         figure_macros: "图形中的宏",
         macro_library: "宏库",

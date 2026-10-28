@@ -1081,7 +1081,7 @@ function objectAt(objects: construction_object[]) {
 
 // Where entries are read: the figure, or the body of a macro's
 // application.
-interface Scope {
+export interface Scope {
     c: construction;
     // The figure's.
     root: construction;
@@ -1093,7 +1093,7 @@ interface Scope {
 
 // Reads the entries after `objects`, which their indices go on from, each
 // with the style `style` finds for its fourth element.
-function readEntries(
+export function readEntries(
     scope: Scope,
     objects: construction_object[],
     entries: Json[],
@@ -1167,7 +1167,7 @@ interface Reader extends Scope {
 }
 
 // What builds an application's body: its objects stay out of the figure.
-function privateConstruction(
+export function privateConstruction(
     c: construction,
     objects: construction_object[],
 ): construction {

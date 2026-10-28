@@ -372,6 +372,8 @@ export default {
     open_box_hint: "Replaces the application by its construction: % objects",
     open_box_point:
         "The box can't be opened: a point of an initial (end of an arc, of a segment…) isn't an object of the figure",
+    macro_program: "See the program",
+    macro_method: "Method %",
     menu_macros: "Macros",
     figure_macros: "Macros of the figure",
     macro_library: "Library",

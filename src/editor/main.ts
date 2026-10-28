@@ -197,6 +197,7 @@ import {
     type Library,
 } from "./library";
 import { macroBadge, manageMyMacros } from "./my_macros";
+import { showMacroProgram } from "./macro_program";
 import "./properties.css";
 import { macroPanel, type MacroState } from "./macro_panel";
 import { macro_object, type Macro } from "../objects/macro_object";
@@ -645,6 +646,18 @@ const segmentsButton = button("segments_list", () => drawFrom("segments"));
 const pointButton = button("formula_point", () => drawFrom("point"));
 const turtleButton = button("turtle", openTurtle);
 const openBoxButton = button("open_box", () => void openApplication());
+// The program of the macro being applied, on the initials designated, or
+// of the application of the final selected, on its initials.
+const programButton = button("macro_program", () => {
+    if (applying)
+        return showMacroProgram(scene(), appliedIndex(), applying.picked);
+    const node = target()!.output!.node as macro_object;
+    showMacroProgram(
+        scene(),
+        scene().macros.indexOf(node.macro),
+        node.initials,
+    );
+});
 // In place of the actions while the magnets are chosen, or a tool of the
 // menu is in use: the way out.
 const doneButton = $.create("button")
@@ -673,6 +686,7 @@ const actions = $.create("div")
         deleteButton,
         settingsButton,
         openBoxButton,
+        programButton,
         springButton,
         pinButton,
         magnetButton,
@@ -3218,6 +3232,7 @@ const inspecting = (): boolean => propertiesOpen && !pending && !editing();
 
 const OBJECT_ACTIONS = [
     deleteButton,
+    programButton,
     settingsButton,
     openBoxButton,
     springButton,
@@ -3244,6 +3259,7 @@ function showActions(): void {
         swatch.hide();
         objectName.text(macro.name);
         OBJECT_ACTIONS.forEach((action) => action.hide());
+        programButton.show("grid");
         doneButton.show();
         actions.att("aria-label", macro.name).show("flex");
         return;
@@ -3317,8 +3333,9 @@ function showActions(): void {
     else pointButton.hide();
     if (!magnetizing && turtleOf(object)) turtleButton.show("grid");
     else turtleButton.hide();
-    if (!magnetizing && object.output) openBoxButton.show("grid");
-    else openBoxButton.hide();
+    [openBoxButton, programButton].forEach((action) =>
+        !magnetizing && object.output ? action.show("grid") : action.hide(),
+    );
     showSpring(springOut && !magnetizing && springy(object) ? object : null);
     if (magnetizing) doneButton.show();
     else doneButton.hide();

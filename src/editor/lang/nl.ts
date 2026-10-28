@@ -388,6 +388,8 @@ const nl: Texts = {
             "Vervangt de toepassing door haar constructie: % objecten",
         open_box_point:
             "De doos gaat niet open: een punt van een beginobject (einde van een boog, van een lijnstuk…) is geen object van de figuur",
+        macro_program: "Programma bekijken",
+        macro_method: "Methode %",
         menu_macros: "Macro's",
         figure_macros: "Macro's van de figuur",
         macro_library: "Bibliotheek",

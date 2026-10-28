@@ -383,6 +383,8 @@ const it: Texts = {
             "Sostituisce l'applicazione con la sua costruzione: % oggetti",
         open_box_point:
             "La scatola non si apre: un punto di un iniziale (fine di un arco, estremo di un segmento…) non è un oggetto della figura",
+        macro_program: "Vedi il programma",
+        macro_method: "Metodo %",
         menu_macros: "Macro",
         figure_macros: "Macro della figura",
         macro_library: "Libreria",

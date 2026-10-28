@@ -1509,6 +1509,14 @@ Une étape d'annulation. Les objets sortis de la boîte ne sont pas mis en
 évidence (décidé avec l'auteur le 2026-10-26) ; l'aperçu au survol, qui
 cache ceux qui le seront, suffit.
 
+**Voir le programme** (2026-10-28, voir `MACROS.md`) : le bouton `</>` du
+bandeau d'une macro appliquée, et des actions d'un final sélectionné,
+ouvre en lecture seule le programme de chaque méthode (`macro_program.ts`).
+Le corps est lu à part, dans une construction privée (`readEntries` et
+`privateConstruction` de `dgo.ts`), sur les initiaux désignés ou des objets
+qui en tiennent lieu, et chaque objet s'écrit par `lineOf`, comme dans le
+panneau de construction.
+
 **Bibliothèques de macros** (2026-10-27, `library.ts`, `my_macros.ts`,
 voir `MACROS.md`, « Bibliothèque », et `DGO.md`) : hors d'une iframe
 seulement, un menu « Macros » de la barre de menus, entre « Affichage » et
