@@ -6,6 +6,7 @@ import { createPlumb } from "../../src/objects/plumb_line_object";
 import { createPoint } from "../../src/objects/point_object";
 import { createRay } from "../../src/objects/ray_line_object";
 import { createSegment } from "../../src/objects/segment_object";
+import { createSphere } from "../../src/objects/sphere_object";
 import { createLine } from "../../src/objects/two_points_line_object";
 import { preferences } from "../../src/preferences";
 import { vDot } from "../../src/vec";
@@ -26,6 +27,54 @@ afterEach(() => {
 });
 
 describe("geometric construction", () => {
+    it.each([
+        [-0.3, false],
+        [0.3, false],
+        [-0.3, true],
+        [0.3, true],
+    ])(
+        "keeps the floor visible with a sphere behind it (theta=%s, perspective=%s)",
+        (theta, perspective) => {
+            const c = createConstruction();
+            c.GRID.THETA = theta;
+            c.GRID.PERSPECTIVE = perspective;
+            c.invalidateProjection();
+            c.OBJS.update();
+            const clip = c.GRID.floorClipShape.getAtt("d");
+            const height = theta < 0 ? 1 : -1;
+            const o = createPoint(c, "O", [0, 0, height]);
+            const s = createPoint(c, "S", [0, 0, 0]);
+            const sphere = createSphere(c, "a", o, s);
+            c.invalidateProjection();
+            c.OBJS.update();
+
+            expect(sphere.nearPart).toEqual([]);
+            expect(sphere.farPath).toMatch(/^M/);
+            expect(c.GRID.floorClipShape.getAtt("d")).toBe(clip);
+
+            o.coords = [0, 0, height * 2];
+            c.invalidateGeometry(o);
+            s.coords = [0, 0, height];
+            c.invalidateGeometry(s);
+            c.OBJS.update();
+            expect(sphere.nearPart).toEqual([]);
+            expect(c.GRID.floorClipShape.getAtt("d")).toBe(clip);
+
+            o.coords = [0, 0, 0];
+            c.invalidateGeometry(o);
+            c.OBJS.update();
+            expect(sphere.nearPart.length).toBeGreaterThan(3);
+            const path = new Path2D(c.GRID.floorClipShape.getAtt("d")!);
+            const context = new OffscreenCanvas(1, 1).getContext("2d")!;
+            expect(context.isPointInPath(path, ...c.pt3D([0, 0, 0]))).toBe(
+                false,
+            );
+            expect(context.isPointInPath(path, ...c.pt3D([4, 4, 0]))).toBe(
+                true,
+            );
+        },
+    );
+
     it("recovers a line after two defining points stop being coincident", () => {
         const c = createConstruction();
         const a = createPoint(c, "A", [0, 0, 0]);

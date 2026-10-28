@@ -70,6 +70,7 @@ function clipHalfPlane(subject: readonly Vec2[], a: Vec2, b: Vec2): Vec2[] {
 // Intersection of two convex polygons (Sutherland-Hodgman). Winding of both
 // inputs is normalized internally, so callers don't need to care about it.
 function convexClip(subject: readonly Vec2[], clip: readonly Vec2[]): Vec2[] {
+    if (clip.length < 3) return [];
     let output = ensureCCW(subject);
     const clipCCW = ensureCCW(clip);
     for (let i = 0; i < clipCCW.length && output.length > 0; i++) {
