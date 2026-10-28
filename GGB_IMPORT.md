@@ -92,6 +92,7 @@ figure sont seulement comptés. L'API utilisée est
 | 2026-10-16 | —                  | 362,1 Ko | item 37 : translation des polygones, polygones fixés (+0)          |
 | 2026-10-17 | 245 / 438 (56 %)   | 365,9 Ko | item 38 : `Sequence` natifs, listes lues par leur nom (+0)         |
 | 2026-10-21 | 245 / 438 (56 %)   | 370,5 Ko | item 39 : suites de cercles orientés, détection 3D (+0)            |
+| 2026-10-28 | —                  | 372,0 Ko | item 40 : points sur une sphère, un cylindre, un cône (+0)         |
 
 ## À faire, par rapport gain / coût
 
@@ -660,6 +661,16 @@ cause.
       corpus inchangé (245 sur 438 sans perte, 0 plantage, mêmes éléments
       non importés). Build (chunks `engine` et chargeur du lecteur) :
       370 356 → 370 453 octets, **+97 octets**.
+
+- [x] **40. Points sur une sphère, un cylindre ou un cône** :
+      `Point(s)` sur une sphère, ou sur un cylindre ou un cône (sur son
+      côté, jamais sur ses disques) devient un point sur objet de
+      paramètre triplet (voir `DGO.md`), recalé sur la position
+      enregistrée par GeoGebra. Glissé, il suit la surface sous le
+      pointeur, sur la face où il se trouve (cachée ou non), et se pose sur
+      le contour quand le pointeur en sort, sans animation. Aucune figure du
+      corpus n'en contient : **+0**. Moteur 370 312 → 372 001 octets
+      (+1,7 Ko, +0,5 Ko en gzip), chargeur du lecteur +13 octets.
 
 À écarter, sauf changement de priorité : calcul formel, courbes implicites,
 statistiques et probabilités, tableur au-delà des cellules simples, matrices.

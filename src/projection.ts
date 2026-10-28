@@ -3,7 +3,9 @@ import {
     vAdd,
     vCross,
     vDot,
+    vNormalize,
     vScale,
+    vSub,
     type Vec2,
     type Vec3,
 } from "./vec";
@@ -140,6 +142,32 @@ export function projectPointOnPlane(
     const a = (r0 * m11 - m01 * r1) / determinant;
     const b = (m00 * r1 - r0 * m10) / determinant;
     return vAdd(origin, vAdd(vScale(basis[0], a), vScale(basis[1], b)));
+}
+
+// The view ray through `screen`: its point in the plane through `through`
+// facing the camera, and its direction, away from the camera.
+export function viewRay(
+    screen: Vec2,
+    through: Vec3,
+    frame: ProjectionFrame,
+): [Vec3, Vec3] | null {
+    const dir = vNormalize(viewDirection(frame))!;
+    const across =
+        vNormalize(vCross(dir, [0, 0, 1])) ??
+        vNormalize(vCross(dir, [1, 0, 0]))!;
+    const origin = projectPointOnPlane(
+        screen,
+        through,
+        [across, vCross(dir, across)],
+        frame,
+    );
+    if (!origin) return null;
+    return [
+        origin,
+        frame.focal === undefined
+            ? dir
+            : vSub(origin, vScale(dir, -frame.focal)),
+    ];
 }
 
 // Finds the point of the line through `origin` with the given `direction`

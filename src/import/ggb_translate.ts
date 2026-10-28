@@ -1990,8 +1990,12 @@ export function translateGgb(
             "PointOn",
             [
                 ref(support),
-                pair
-                    ? { type: "array", items: [literal(0), literal(0)] }
+                // On a surface, a direction.
+                kind === "sphere" || pair
+                    ? {
+                          type: "array",
+                          items: (pair ? [0, 0] : [1, 0, 0]).map(literal),
+                      }
                     : literal(0),
             ],
             element &&
@@ -2248,6 +2252,7 @@ export function translateGgb(
                         "quadric",
                         "curve",
                         "locus",
+                        "sphere",
                     ]) &&
                     pointOn(
                         label,

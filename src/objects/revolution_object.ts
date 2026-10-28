@@ -1,7 +1,7 @@
 import type { construction } from "../construction";
 import type { DOMElement } from "../dom";
 import { usesView } from "../import/dgp_formula";
-import { projectPointOnPlane, viewDirection } from "../projection";
+import { viewDirection, viewRay } from "../projection";
 import {
     geometryTolerance,
     vAdd,
@@ -129,10 +129,10 @@ export class revolution_object extends solid_object {
         this.projectionDefined = true;
     }
 
-    // Where the line origin + l·ray meets its side, extended beyond its
-    // disks: its parameters l, increasing. Its radius at height s from A is
-    // R0 + g·s.
-    meet(origin: Vec3, ray: Vec3): number[] {
+    // Its side, extended beyond its disks, is where F = d² - r² vanishes, d
+    // being the distance to its axis and r its radius at that height from
+    // A, R0 + g·s: F(origin + l·ray) = qa·l² + qb·l + qc.
+    quadratic(origin: Vec3, ray: Vec3): [number, number, number] {
         const w = this.AXIS;
         const g = (this.R1 - this.R0) / this.HEIGHT;
         const m = vSub(origin, this.A.coords);
@@ -140,9 +140,53 @@ export class revolution_object extends solid_object {
         const mp = vSub(m, vScale(w, s0));
         const dp = vSub(ray, vScale(w, s1));
         const r0 = this.R0 + g * s0;
-        const qa = vDot(dp, dp) - g * g * s1 * s1;
-        const qb = 2 * (vDot(mp, dp) - g * s1 * r0);
-        const qc = vDot(mp, mp) - r0 * r0;
+        return [
+            vDot(dp, dp) - g * g * s1 * s1,
+            2 * (vDot(mp, dp) - g * s1 * r0),
+            vDot(mp, mp) - r0 * r0,
+        ];
+    }
+
+    // Half the gradient of F at `point`.
+    normal(point: Vec3): Vec3 {
+        const g = (this.R1 - this.R0) / this.HEIGHT;
+        const m = vSub(point, this.A.coords);
+        const s = vDot(m, this.AXIS);
+        return vSub(
+            vSub(m, vScale(this.AXIS, s)),
+            vScale(this.AXIS, g * (this.R0 + g * s)),
+        );
+    }
+
+    // The point of its side at [cos t, sin t] around its axis, from U
+    // towards V, at fraction h of its height from A.
+    pointAt([x, y, h]: Vec3): Vec3 | null {
+        const radial = vNormalize([x, y, 0] as Vec3);
+        if (!radial) return null;
+        return vAdd(
+            vAdd(this.A.coords, vScale(this.AXIS, h * this.HEIGHT)),
+            vScale(
+                vAdd(vScale(this.U, radial[0]), vScale(this.V, radial[1])),
+                this.R0 + (this.R1 - this.R0) * h,
+            ),
+        );
+    }
+
+    // That of the point of its side nearest `target`, across its axis.
+    alphaOf(target: Vec3): Vec3 {
+        const m = vSub(target, this.A.coords);
+        const h = Math.min(Math.max(vDot(m, this.AXIS) / this.HEIGHT, 0), 1);
+        const [x, y] = vNormalize([
+            vDot(m, this.U),
+            vDot(m, this.V),
+        ] as Vec2) ?? [1, 0];
+        return [x, y, h];
+    }
+
+    // Where the line origin + l·ray meets its side, extended beyond its
+    // disks: its parameters l, increasing.
+    meet(origin: Vec3, ray: Vec3): number[] {
+        const [qa, qb, qc] = this.quadratic(origin, ray);
         const disc = qb * qb - 4 * qa * qc;
         if (disc < -geometryTolerance(qb * qb, 4 * qa * qc)) return [];
         return [-1, 1]
@@ -159,18 +203,9 @@ export class revolution_object extends solid_object {
         const frame = this.C.projectionFrame;
         const dir = vNormalize(viewDirection(frame))!;
         const a = this.A.coords;
-        const across = vNormalize(vCross(dir, this.AXIS)) ?? this.U;
-        const origin = projectPointOnPlane(
-            screen,
-            a,
-            [across, vCross(dir, across)],
-            frame,
-        );
-        if (!origin) return null;
-        const ray =
-            frame.focal === undefined
-                ? dir
-                : vSub(origin, vScale(dir, -frame.focal));
+        const view = viewRay(screen, a, frame);
+        if (!view) return null;
+        const [origin, ray] = view;
         const w = this.AXIS;
         const h = this.HEIGHT;
         const m = vSub(origin, a);

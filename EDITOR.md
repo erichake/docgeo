@@ -1652,7 +1652,9 @@ Fait (2026-10-11) :
   la plus éloignée de P (l'ordre de l'entrée `.dgo`, qui ne sert que si P
   n'est pas défini, est remis à 0 par une redéfinition).
   Point sur objet : `Point(objet, t)`, ou `Point(objet, a, b)` sur un
-  polygone ou une conique. Cercle par trois points :
+  polygone ou une conique, `Point(objet, x, y, z)` sur une sphère, un
+  cylindre ou un cône (sur son côté), créé là où la surface est vue sous le
+  pointeur. Cercle par trois points :
   `CercleCirconscrit(A, B, C)`.
 - Vue texte : une ligne modifiable par objet ; Entrée valide, Échap annule ;
   un point libre modifié change en place, sinon redéfinition (réordonnement

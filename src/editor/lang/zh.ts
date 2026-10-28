@@ -309,6 +309,7 @@ const zh: Texts = {
         designate_sphere: "选择一个球",
         designate_polyhedron: "选择一个多面体",
         designate_revolution: "选择一个圆柱或圆锥",
+        designate_surface: "选择一个球、圆柱或圆锥",
         designate_solid: "选择一个立体图形",
         designate_readable: "选择一个对象",
         unsupported: "未导入：%",

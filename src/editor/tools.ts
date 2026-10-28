@@ -842,7 +842,8 @@ export function toolsFor(
 }
 
 // The point on an object that moves the point, the last built of its
-// ancestors, as in DGPad: its path gives the point's locus.
+// ancestors, as in DGPad: its path gives the point's locus. A surface isn't
+// a path.
 export function driverOf(object: construction_object): point_on_object | null {
     if (!(object instanceof point_object)) return null;
     let driver: point_on_object | null = null;
@@ -852,6 +853,7 @@ export function driverOf(object: construction_object): point_on_object | null {
         seen.add(parent);
         if (
             parent instanceof point_on_object &&
+            !accepts(parent.support, "surface") &&
             (!driver || parent.sequence > driver.sequence)
         )
             driver = parent;

@@ -166,7 +166,9 @@ export class locus_object extends construction_object {
                 : [];
         if (support.familytype === "curve")
             return this.curveSamples(support as curve_object, count);
-        return this.quadricAlphas(support as primitive_quadric_object, count);
+        // A surface isn't a path.
+        if (!(support instanceof primitive_quadric_object)) return [];
+        return this.quadricAlphas(support, count);
     }
 
     private curveSamples(support: curve_object, count: number): DriverSample[] {

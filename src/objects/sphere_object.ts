@@ -3,6 +3,7 @@ import type { DOMElement } from "../dom";
 import {
     vAdd,
     vCross,
+    vDot,
     vIsFinite,
     vNorm,
     vNormalize,
@@ -113,6 +114,27 @@ export class sphere_object extends construction_object {
         this.defined = P1.defined && radius !== null;
         this.CENTER = P1.coords;
         this.R = radius ?? 0;
+    }
+
+    // It is where F = CP² - R² vanishes: F(origin + l·ray) = qa·l² + qb·l + qc.
+    quadratic(origin: Vec3, ray: Vec3): [number, number, number] {
+        const m = vSub(origin, this.CENTER);
+        return [vDot(ray, ray), 2 * vDot(m, ray), vDot(m, m) - this.R ** 2];
+    }
+
+    // Half the gradient of F at `point`.
+    normal(point: Vec3): Vec3 {
+        return vSub(point, this.CENTER);
+    }
+
+    // Its point in direction `u` from its center.
+    pointAt(u: Vec3): Vec3 | null {
+        const unit = vNormalize(u);
+        return unit && vAdd(this.CENTER, vScale(unit, this.R));
+    }
+
+    alphaOf(target: Vec3): Vec3 {
+        return vNormalize(vSub(target, this.CENTER)) ?? [0, 0, 1];
     }
 
     // With the eye at E, the contour is the circle of the points P where

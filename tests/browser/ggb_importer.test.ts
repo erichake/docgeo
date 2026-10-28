@@ -982,6 +982,27 @@ ${[
         });
     });
 
+    it("puts points on a sphere and on a cylinder's side where GeoGebra saved them", () => {
+        const c = createConstruction();
+        const xml = `<geogebra><construction>
+<element type="point3d" label="A"><coords x="0" y="0" z="0" w="1"/></element>
+<element type="point3d" label="B"><coords x="0" y="0" z="2" w="1"/></element>
+<command name="Sphere"><input a0="A" a1="B"/><output a0="s"/></command>
+<element type="quadric" label="s"/>
+<command name="Point"><input a0="s"/><output a0="M"/></command>
+<element type="point3d" label="M"><coords x="1.2" y="0" z="1.6" w="1"/></element>
+<command name="Cylinder"><input a0="A" a1="B" a2="1"/><output a0="k" a1="e" a2="f" a3="g"/></command>
+<element type="quadric" label="k"/>
+<command name="Point"><input a0="g"/><output a0="N"/></command>
+<element type="point3d" label="N"><coords x="0.6" y="0.8" z="0.5" w="1"/></element>
+</construction></geogebra>`;
+        expect(importGgb(c, xml)).toEqual([]);
+        expectSavedPoints(c, xml);
+        ["M", "N"].forEach((name) =>
+            expect((c.getObj(name) as point_on_object).alpha).toHaveLength(3),
+        );
+    });
+
     it("intersects a line with a cylinder standing on a regular prism's floor", async () => {
         const c = createConstruction();
         const xml = await loadXml("3d_inter");

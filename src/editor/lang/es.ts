@@ -326,6 +326,7 @@ const es: Texts = {
         designate_sphere: "Selecciona una esfera",
         designate_polyhedron: "Selecciona un poliedro",
         designate_revolution: "Selecciona un cilindro o un cono",
+        designate_surface: "Selecciona una esfera, un cilindro o un cono",
         designate_solid: "Selecciona un sólido",
         designate_readable: "Selecciona un objeto",
         unsupported: "No importado: %",

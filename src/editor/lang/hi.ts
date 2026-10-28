@@ -325,6 +325,7 @@ const hi: Texts = {
         designate_sphere: "एक गोला चुनें",
         designate_polyhedron: "एक बहुफलक चुनें",
         designate_revolution: "एक बेलन या शंकु चुनें",
+        designate_surface: "एक गोला, बेलन या शंकु चुनें",
         designate_solid: "एक ठोस चुनें",
         designate_readable: "एक वस्तु चुनें",
         unsupported: "आयात नहीं हुआ: %",

@@ -1,9 +1,14 @@
 import { advance, type Animation } from "../animation";
 import type { construction } from "../construction";
-import { projectPointOnLine, projectPointOnPlane } from "../projection";
+import {
+    projectPointOnLine,
+    projectPointOnPlane,
+    viewRay,
+} from "../projection";
 import {
     vAdd,
     vDot,
+    vIsFinite,
     vNorm,
     vNormalize,
     vScale,
@@ -25,7 +30,9 @@ import { primitive_line_object } from "./primitive_line_object";
 import { point_object } from "./point_object";
 import { primitive_quadric_object } from "./primitive_quadric_object";
 import { ray_line_object } from "./ray_line_object";
+import { revolution_object } from "./revolution_object";
 import { segment_object } from "./segment_object";
+import { sphere_object } from "./sphere_object";
 import { two_points_line_object } from "./two_points_line_object";
 
 export type point_support_object =
@@ -35,9 +42,16 @@ export type point_support_object =
     | primitive_quadric_object
     | locus_object
     | list_object
-    | curve_object;
+    | curve_object
+    | surface_object;
 
-type Alpha = number | readonly [number, number];
+// A sphere, or the side of a cylinder or of a cone.
+export type surface_object = sphere_object | revolution_object;
+
+const isSurface = (object: point_support_object): object is surface_object =>
+    object instanceof sphere_object || object instanceof revolution_object;
+
+type Alpha = number | readonly [number, number] | Vec3;
 
 const TWO_PI = 2 * Math.PI;
 // The longest step along a conic, in screen pixels.
@@ -154,6 +168,13 @@ export class point_on_object extends point_object {
             this.coords = this.support.pointAt(
                 this.alpha as readonly [number, number],
             );
+        } else if (isSurface(this.support)) {
+            const coords = this.support.pointAt(this.alpha as Vec3);
+            if (!coords) {
+                this.defined = false;
+                return;
+            }
+            this.coords = coords;
         } else if (this.support instanceof two_points_line_object) {
             this.coords = vAdd(
                 this.support.P1.coords,
@@ -492,6 +513,8 @@ export class point_on_object extends point_object {
     }
 
     private dragTarget(screen: Vec2): Vec3 | null {
+        if (isSurface(this.support))
+            return this.surfaceTarget(this.support, screen);
         if (
             this.support instanceof polygon_object &&
             this.support.points.length >= 3
@@ -550,6 +573,23 @@ export class point_on_object extends point_object {
         return this.C.unprojectToZPlane(screen, this.z);
     }
 
+    // The point stays on the side of the surface it is on, which a point
+    // dragged onto its outline leaves for the near side.
+    private surfaceTarget(support: surface_object, screen: Vec2): Vec3 | null {
+        const own = viewRay(
+            this.C.pt3D(this.coords),
+            this.coords,
+            this.C.projectionFrame,
+        );
+        if (!own) return null;
+        const normal = support.normal(this.coords);
+        return surfacePoint(
+            support,
+            screen,
+            vDot(normal, own[1]) > 1e-9 * vNorm(normal) * vNorm(own[1]),
+        );
+    }
+
     alphaFor(target: Vec3): Alpha | null {
         if (this.support.familytype === "curve") return target[0];
         if (this.support instanceof primitive_circle_object) {
@@ -558,7 +598,10 @@ export class point_on_object extends point_object {
         if (this.support instanceof polygon_object) {
             return this.support.alphaOf(target, this.onBoundary);
         }
-        if (this.support instanceof primitive_quadric_object) {
+        if (
+            this.support instanceof primitive_quadric_object ||
+            isSurface(this.support)
+        ) {
             return this.support.alphaOf(target);
         }
         if (this.support instanceof two_points_line_object) {
@@ -579,6 +622,28 @@ export class point_on_object extends point_object {
         const support = this.support as primitive_line_object;
         return vDot(vSub(target, support.P1.coords), support.VEC);
     }
+}
+
+// Where the view ray through `screen` enters the surface, or leaves it if
+// `far`; where the ray passes nearest it when it misses it, on its outline.
+export function surfacePoint(
+    support: surface_object,
+    screen: Vec2,
+    far: boolean,
+): Vec3 | null {
+    const view = viewRay(
+        screen,
+        support instanceof sphere_object ? support.CENTER : support.A.coords,
+        support.C.projectionFrame,
+    );
+    if (!view) return null;
+    const [a, b, c] = support.quadratic(...view);
+    const root = Math.sqrt(Math.max(0, b * b - 4 * a * c));
+    const [near, back] = [(-b - root) / (2 * a), (-b + root) / (2 * a)]
+        // A cone's a may be negative.
+        .sort((l, k) => l - k);
+    const point = vAdd(view[0], vScale(view[1], far ? back : near));
+    return vIsFinite(point) ? point : null;
 }
 
 export function createPointOn(

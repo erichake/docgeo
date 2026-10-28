@@ -190,7 +190,7 @@ export function stateFigure(
             check(
                 typeof object.alpha === "number"
                     ? isReal(value)
-                    : isReals(value, 2),
+                    : isReals(value, object.alpha.length),
             );
             // A macro's final: after its application and rank.
             changed = object.output

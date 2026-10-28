@@ -349,12 +349,19 @@ la figure, autour de la verticale de O dans l'espace, sa hauteur gardée),
 2. Droite (AB), segment, demi-droite : `t` tel que M = A + t·AB. Autre
    droite, définie par un point P et une direction : distance signée à P, en
    unités, le long de son vecteur directeur. Cercle : angle. Polygone,
-   conique : couple. Lieu, liste, courbe : leur paramètre. Le couple d'une
-   conique : coordonnées, dans le repère affine de trois points, du point
-   ensuite projeté sur elle. Ces points sont ses trois premiers pour `Quad` ;
+   conique : couple. Sphère, cylindre, cône : triplet. Lieu, liste, courbe :
+   leur paramètre. Le couple d'une conique : coordonnées, dans le repère
+   affine de trois points, du point ensuite projeté sur elle. Ces points sont ses trois premiers pour `Quad` ;
    le centre et les extrémités des deux demi-axes pour une ellipse ou une
    hyperbole ; pour une parabole, le sommet et les points à la distance p du
-   foyer à la directrice, le long de celle-ci puis vers le foyer.
+   foyer à la directrice, le long de celle-ci puis vers le foyer. Le triplet
+   d'une sphère : la direction du point depuis son centre, un vecteur que la
+   lecture normalise. D'un cylindre ou d'un cône `[x, y, h]` : le point est sur
+   son côté (jamais sur ses disques), dans la direction (x, y), normalisée,
+   autour de son axe, dans le repère (U, V) de ses disques (U = (−sin θ,
+   cos θ, 0), θ = atan2(y, x) de AB, V = AB/|AB| ∧ U), à la fraction h ∈ [0, 1]
+   de sa hauteur depuis A. Un point sur une surface ne peut pas mener un lieu
+   (lieu vide).
 3. Deux solutions au plus (droite-cercle, cercle-cercle, droite-conique) :
    0 ou 1, droite-cercle dans l'ordre A + (t₀ + h)·u puis A + (t₀ − h)·u,
    droite-conique par paramètre croissant le long de la droite, cercle-cercle
@@ -723,7 +730,8 @@ Application (note 25 des objets) :
   objet), désignable, jamais déplaçable, sauf un point sur objet, qui se
   glisse le long de son support : son `Out` a alors un troisième
   paramètre, `["Out", "C", [4, 1, 0.37]]`, sa place, de même forme que le
-  paramètre de l'entrée `On` (nombre ou couple) ; absent, celle du corps.
+  paramètre de l'entrée `On` (nombre, couple ou triplet) ; absent, celle du
+  corps.
   Un initial ou un intermédiaire indéfini rend indéfinis les finaux qui en
   dépendent.
 
@@ -897,7 +905,7 @@ objet manipulable y entre donc, par une nouvelle ligne du tableau ci-dessous.
 | Objet                                                  | Valeur                                                             |
 | ------------------------------------------------------ | ------------------------------------------------------------------ |
 | `Pt` (point libre), punaisé (`fl`) compris (3)         | `[x, y]` dans une figure plane, `[x, y, z]` dans une figure 3D (1) |
-| `On` (point sur objet), final de macro compris         | son paramètre, sous la forme de `.dgo` : nombre ou couple (4)      |
+| `On` (point sur objet), final de macro compris         | son paramètre de `.dgo` : nombre, couple ou triplet (4)            |
 | `Ex` de valeur constante numérique (`"v"`)             | le nombre                                                          |
 | `Int` sans point P dont les solutions sont suivies (2) | le numéro de branche de `.dgo` (note 3 des objets)                 |
 | `C1` à rayon numérique (non formule)                   | le rayon, qu'un glisser du cercle change                           |
@@ -924,8 +932,9 @@ Comme dans `.dgo`, un nombre non fini s'écrit `null`.
    proche, comme par un glisser (sans le pas d'incrément), une fois la figure
    construite avec le reste de l'état. L'état relu donne son paramètre. Ainsi
    l'hôte peut appliquer la valeur (`value`) attendue d'un point sans
-   connaître son objet. Un point sur polygone ou sur conique, de paramètre
-   couple, n'en accepte pas : un couple y reste son paramètre.
+   connaître son objet. Un point sur polygone, sur conique ou sur une
+   surface, de paramètre couple ou triplet, n'en accepte pas : ce couple ou
+   ce triplet y reste son paramètre.
 
 - Les `Ex` de valeur constante couvrent les curseurs, les cases à cocher, les
   nombres que modifie un champ de saisie ou le glisser d'un point `Fp`.

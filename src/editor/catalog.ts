@@ -71,9 +71,11 @@ export type Param =
     // Intersectable, but not a line.
     | "curved"
     | "support"
-    // A support whose points take one number, or two.
+    // A support whose points take one number, two, or three.
     | "path"
     | "outline"
+    // A sphere, a cylinder or a cone.
+    | "surface"
     // What a formula reads.
     | "readable"
     // Written between quotes.
@@ -208,7 +210,8 @@ export function accepts(arg: Arg, param: Param): boolean {
                 kind === "conic" ||
                 kind === "polygon" ||
                 kind === "plane" ||
-                kind === "curve"
+                kind === "curve" ||
+                accepts(arg, "surface")
             );
         case "path":
             return kind === "line" || kind === "circle" || kind === "curve";
@@ -217,6 +220,8 @@ export function accepts(arg: Arg, param: Param): boolean {
                 arg instanceof polygon_object ||
                 arg instanceof primitive_quadric_object
             );
+        case "surface":
+            return kind === "sphere" || arg instanceof revolution_object;
         case "readable":
             return readable(arg);
         default:
@@ -478,8 +483,22 @@ export const COMMANDS: Command[] = [
                 ],
                 decode: (parameters, at) => {
                     const [support, t] = parameters as unknown[];
-                    return Array.isArray(t)
+                    return Array.isArray(t) && t.length === 2
                         ? [at(support as number), t[0], t[1]]
+                        : null;
+                },
+            },
+            {
+                params: ["surface", "number", "number", "number"],
+                tag: "On",
+                encode: ([support, x, y, z], index) => [
+                    index(support as construction_object),
+                    [x, y, z],
+                ],
+                decode: (parameters, at) => {
+                    const [support, t] = parameters as unknown[];
+                    return Array.isArray(t) && t.length === 3
+                        ? [at(support as number), t[0], t[1], t[2]]
                         : null;
                 },
             },

@@ -324,6 +324,7 @@ const fr: Texts = {
         designate_sphere: "Désignez une sphère",
         designate_polyhedron: "Désignez un polyèdre",
         designate_revolution: "Désignez un cylindre ou un cône",
+        designate_surface: "Désignez une sphère, un cylindre ou un cône",
         designate_solid: "Désignez un solide",
         designate_readable: "Désignez un objet",
         unsupported: "Non importé : %",

@@ -316,6 +316,7 @@ const ar: Texts = {
         designate_sphere: "حدّد كرة",
         designate_polyhedron: "حدّد متعدد سطوح",
         designate_revolution: "حدّد أسطوانة أو مخروطًا",
+        designate_surface: "حدّد كرة أو أسطوانة أو مخروطًا",
         designate_solid: "حدّد مجسمًا",
         designate_readable: "حدّد كائنًا",
         unsupported: "لم يُستورد: %",

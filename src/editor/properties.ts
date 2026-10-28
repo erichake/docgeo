@@ -19,6 +19,7 @@ import { point_on_object } from "../objects/point_on_object";
 import { polygon_object } from "../objects/polygon_object";
 import { segment_object } from "../objects/segment_object";
 import { blocksView, isTurtle, releaseBlocks } from "./blocks/view";
+import { accepts } from "./catalog";
 import {
     createdColors,
     definitionSource,
@@ -1032,7 +1033,9 @@ export function propertiesPanel(options: {
         }
         const animated = objects.filter(
             (object): object is point_on_object | expression_object =>
-                object instanceof point_on_object ||
+                // Not on a surface.
+                (object instanceof point_on_object &&
+                    !accepts(object.support, "surface")) ||
                 (object instanceof expression_object && object.isCursor),
         );
         if (common(animated)) {

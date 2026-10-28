@@ -332,6 +332,8 @@ const de: Texts = {
         designate_sphere: "Wählen Sie eine Kugel",
         designate_polyhedron: "Wählen Sie einen Polyeder",
         designate_revolution: "Wählen Sie einen Zylinder oder einen Kegel",
+        designate_surface:
+            "Wählen Sie eine Kugel, einen Zylinder oder einen Kegel",
         designate_solid: "Wählen Sie einen Körper",
         designate_readable: "Wählen Sie ein Objekt",
         unsupported: "Nicht importiert: %",

@@ -309,6 +309,7 @@ const zh_TW: Texts = {
         designate_sphere: "選取一個球",
         designate_polyhedron: "選取一個多面體",
         designate_revolution: "選取一個圓柱或圓錐",
+        designate_surface: "選取一個球、圓柱或圓錐",
         designate_solid: "選取一個立體圖形",
         designate_readable: "選取一個物件",
         unsupported: "未匯入：%",

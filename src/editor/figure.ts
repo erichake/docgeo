@@ -58,7 +58,6 @@ import { plane_object } from "../objects/plane_object";
 import { polygon_object } from "../objects/polygon_object";
 import { panelNames, parsePanel, panel_object } from "../objects/panel_object";
 import { normalOf } from "../objects/polyhedron_object";
-import { primitive_quadric_object } from "../objects/primitive_quadric_object";
 import { list_object, type ListNature } from "../objects/list_object";
 import {
     sequenceShape,
@@ -74,6 +73,7 @@ import {
     isCommand,
     TextArg,
     overloadFor,
+    accepts,
     argObjects,
     type Arg,
     type Overload,
@@ -1531,13 +1531,15 @@ export function addPointOn(
     support: construction_object,
     at: Vec3,
 ): point_on_object {
-    const pair =
-        support instanceof polygon_object ||
-        support instanceof primitive_quadric_object;
+    const values = accepts(support, "surface")
+        ? [1, 0, 0]
+        : accepts(support, "outline")
+          ? [0, 0]
+          : [0];
     const point = add(c, {
         name,
-        overload: findCommand("Point")!.overloads[pair ? 1 : 0],
-        args: pair ? [support, 0, 0] : [support, 0],
+        overload: findCommand("Point")!.overloads[values.length - 1],
+        args: [support, ...values],
     }) as point_on_object;
     const alpha = point.alphaFor(at);
     if (alpha !== null) point.alpha = alpha;

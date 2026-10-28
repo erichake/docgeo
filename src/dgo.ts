@@ -1314,7 +1314,14 @@ type Builder = (parameters: Json, reader: Reader) => construction_object;
 function onParameter(
     support: point_support_object,
     alpha: Json,
-): number | [number, number] {
+): number | [number, number] | Vec3 {
+    if (
+        support instanceof sphere_object ||
+        support instanceof revolution_object
+    ) {
+        const [x, y, z] = list(alpha, 3).map(real);
+        return [x, y, z];
+    }
     if (
         !(support instanceof polygon_object) &&
         !(support instanceof primitive_quadric_object)
@@ -1602,6 +1609,8 @@ const BUILDERS: Record<string, Builder> = {
             locus_object,
             list_object,
             curve_object,
+            sphere_object,
+            revolution_object,
         );
         return createPointOn(c, name, support, onParameter(support, alpha));
     },

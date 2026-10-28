@@ -188,8 +188,9 @@ type ParameterKind =
     | "intersectable"
     | "pointSupport"
     | "coordinate"
-    // PointOn's parameter: a plain number for a line/circle support, or a
-    // [number, number] pair for a polygon/quadric support.
+    // PointOn's parameter: a plain number for a line/circle support, a
+    // [number, number] pair for a polygon/quadric support, or three numbers
+    // for a sphere/cylinder/cone.
     | "numberOrPair"
     // A plain number literal, or a string holding a DGP formula.
     | "formula"
@@ -1589,11 +1590,17 @@ const COMMANDS = new Map<string, CommandDefinition>([
                     type: "reference";
                     name: string;
                 };
-                const pair = args[2].type === "array";
+                const length =
+                    args[2].type === "array" ? args[2].items.length : 1;
                 const kind = variables.get(support.name);
                 if (
                     kind !== "list" &&
-                    (kind === "polygon" || kind === "quadric") !== pair
+                    length !==
+                        (kind === "sphere"
+                            ? 3
+                            : kind === "polygon" || kind === "quadric"
+                              ? 2
+                              : 1)
                 )
                     throw new Error(
                         `Invalid PointOn parameter at line ${lineNumber}`,
@@ -1617,7 +1624,10 @@ const COMMANDS = new Map<string, CommandDefinition>([
                     !(support instanceof two_points_line_object)
                         ? (args[2] as number) /
                           context.construction.GRID.UNIT[0]
-                        : (args[2] as number | readonly [number, number]);
+                        : (args[2] as
+                              | number
+                              | readonly [number, number]
+                              | readonly [number, number, number]);
                 const point = createPointOn(
                     context.construction,
                     args[0] as string,
@@ -3373,7 +3383,8 @@ function accepts(actual: ObjectKind, expected: ParameterKind): boolean {
                 actual === "quadric" ||
                 actual === "locus" ||
                 actual === "list" ||
-                actual === "curve"))
+                actual === "curve" ||
+                actual === "sphere"))
     );
 }
 
@@ -3413,7 +3424,8 @@ function validateValue(
     if (value.type === "array") {
         if (
             parameter.kind !== "numberOrPair" ||
-            value.items.length !== 2 ||
+            value.items.length < 2 ||
+            value.items.length > 3 ||
             value.items.some(
                 (item) =>
                     item.type !== "literal" || typeof item.value !== "number",

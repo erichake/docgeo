@@ -8,6 +8,7 @@ import { fixed_angle_object } from "../objects/fixed_angle_object";
 import { list_object } from "../objects/list_object";
 import { locus_object } from "../objects/locus_object";
 import { point_object } from "../objects/point_object";
+import { surfacePoint } from "../objects/point_on_object";
 import { polygon_object } from "../objects/polygon_object";
 import { polygonSide } from "../objects/polygon_part";
 import { primitive_circle_object } from "../objects/primitive_circle_object";
@@ -112,17 +113,19 @@ export function nearest(
         const alpha = object.alphaAtScreen(screen);
         return alpha === null ? null : object.pointAt(alpha);
     }
+    // The point of its surface seen there.
     if (object instanceof sphere_object)
         return object.projectionDefined && inside(object.contour, screen)
-            ? object.CENTER
+            ? (surfacePoint(object, screen, false) ?? object.CENTER)
             : null;
-    // Its first point: the ring opens at the middle of its outline.
+    // A polyhedron's first point: the ring opens at the middle of its
+    // outline. The point of a cylinder's or a cone's side seen there.
     if (object instanceof solid_object)
         return object.projectionDefined && inside(object.outline, screen)
-            ? (object instanceof polyhedron_object
-                  ? object.vertices[0]
-                  : (object as revolution_object).A
-              ).coords
+            ? object instanceof polyhedron_object
+                ? object.vertices[0].coords
+                : (surfacePoint(object as revolution_object, screen, false) ??
+                  (object as revolution_object).A.coords)
             : null;
     if (object instanceof polygon_object && object.points.length >= 3) {
         const [p, q, r] = object.points.map(({ coords }) => coords);
