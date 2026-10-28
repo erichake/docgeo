@@ -557,6 +557,63 @@ describe("Macro-constructions", () => {
         ).toThrow();
     });
 
+    it.each([false, true])(
+        "updates private intermediates when a final moves (nested: %s)",
+        (nested) => {
+            const macro = {
+                n: "Mobile",
+                f: ["C", "D"],
+                m: [
+                    {
+                        i: [["point"], ["point"]],
+                        b: [
+                            ["Line", "l", [0, 1]],
+                            ["Perp", "q", [2, 0]],
+                            ["On", "D", [3, 2]],
+                            ["Mid", "I", [0, 4]],
+                            ["Mid", "C", [5, 1]],
+                        ],
+                        f: [6, 4],
+                    },
+                ],
+            };
+            const wrapper = {
+                n: "Wrapper",
+                f: ["C", "D"],
+                m: [
+                    {
+                        i: [["point"], ["point"]],
+                        b: [
+                            ["Mac", "inner", [0, 0, [0, 1]]],
+                            ["Out", "C", [2, 1]],
+                            ["Out", "D", [2, 2]],
+                        ],
+                        f: [3, 4],
+                    },
+                ],
+            };
+            const c = open(
+                [
+                    ["Pt", "A", [0, 0]],
+                    ["Pt", "B", [4, 0]],
+                    ["Mac", "mac1", [nested ? 1 : 0, 0, [0, 1]]],
+                    ["Out", "C", [2, 1]],
+                    ["Out", "D", [2, 2]],
+                    ["Mid", "M", [3, 4]],
+                ],
+                nested ? [macro, wrapper] : [macro],
+            );
+            const D = get<point_on_object>(c, "D");
+            for (const alpha of [-8, 7, -2, 5]) {
+                D.alpha = alpha;
+                c.invalidateGeometry(D);
+                c.flush();
+                expectClose(get(c, "C").coords, [2, D.y / 4, 0]);
+                expectClose(get(c, "M").coords, [1, (5 * D.y) / 8, 0]);
+            }
+        },
+    );
+
     it("refuses malformed macros", () => {
         const figure = (macro: Json) => () =>
             open([["Pt", "A", [0, 0]]], [macro]);

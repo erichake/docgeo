@@ -66,7 +66,9 @@ export class objects_collector {
     }
 
     markGeometryDirty(root: construction_object): void {
-        const descendants = [root];
+        // A moved macro final also feeds its private body, whose order can
+        // differ from the order of the finals adopted in the figure.
+        const descendants = [root.output?.node ?? root];
         let touchesPolygon = false;
         let touchesSphere = false;
         while (descendants.length) {

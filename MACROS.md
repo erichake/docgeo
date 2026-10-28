@@ -872,6 +872,16 @@ la corde d'un dix-millième de sa longueur, invisible.
   prendrait le nom d'un objet lu est renommée dans la ligne (`EDITOR.md`,
   « Ouvrir la boîte » ; test dans `editor.test.ts`).
 
+- Déplacement d'un final sur objet, correction (2026-10-28, signalé par
+  l'auteur sur `Rectangle`) : invalider le final seul laissait son corps
+  privé inchangé et recalculait ses dépendants selon l'ordre des finaux,
+  différent de celui du corps (C avant D). Le déplacement invalide
+  désormais le nœud d'application, qui recalcule le corps dans son ordre
+  avant les finaux. Tests : déplacements rapides de D dans la macro fournie,
+  intermédiaire privé, macro emboîtée et dépendant extérieur
+  (`macro_library.test.ts`, `macros.test.ts`). Moteur partagé : +16 octets
+  (+4 en gzip) ; code propre au lecteur et à l'éditeur inchangé.
+
 ## Reste à faire
 
 Dans l'ordre que choisira l'auteur :

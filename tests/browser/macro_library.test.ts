@@ -27,6 +27,7 @@ import { parseLine } from "../../src/editor/text";
 import type { construction_object } from "../../src/objects/construction_object";
 import type { macro_object } from "../../src/objects/macro_object";
 import type { point_object } from "../../src/objects/point_object";
+import type { point_on_object } from "../../src/objects/point_on_object";
 import { createConstruction, disposeFigures, expectClose } from "./figures";
 
 disposeFigures();
@@ -1414,6 +1415,35 @@ describe("The library shipped with DocGeo", () => {
             }
         }
         expect(failed).toEqual([]);
+    });
+
+    it("keeps the rectangle parallel at every frame while its final D moves", async () => {
+        const c = figure("A = (-3, -2)", "B = (5, -1)");
+        c.macros = merge(
+            asLibrary(c),
+            await supplied("en"),
+            ["Rectangle"],
+            false,
+        ).library.macros;
+        const [C, D] = applyMacro(
+            c,
+            macroIndex(c, "Rectangle"),
+            0,
+            all(c, "A", "B"),
+        ) as [point_object, point_on_object];
+        c.flush();
+        const direction = sub(get(c, "B").coords, get(c, "A").coords);
+        for (const y of [50, 550, 100, 500, 150]) {
+            D.mousedrag(
+                new PointerEvent("pointermove", {
+                    clientX: D.sx,
+                    clientY: y,
+                }),
+            );
+            c.flush();
+            expectClose(sub(C.coords, D.coords), direction);
+            expectClose(sub(C.screen, D.screen), [320, -40]);
+        }
     });
 
     it("draws a hyperbolic line through the disk's center as a diameter", async () => {
