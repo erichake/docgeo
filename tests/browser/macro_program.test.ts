@@ -77,6 +77,38 @@ describe("A macro's program", () => {
         ]);
     });
 
+    it("names them as the figure where it was defined did", () => {
+        const named = {
+            ...CIRCUMCENTER,
+            m: [{ ...CIRCUMCENTER.m[0], n: ["P", "Q", "R"] }],
+        };
+        const c = open(
+            [
+                ["Pt", "P", [0, 0]],
+                ["Pt", "O", [1, 0]],
+            ],
+            [named],
+        );
+        expect(lines(c, 0, 0)).toEqual([
+            "m1 = PerpendicularBisector(P, Q)",
+            "m2 = PerpendicularBisector(Q, R)",
+            "O = Intersection(m1, m2) !",
+            "c = Circle(O, P) !",
+        ]);
+        // O designated, which the body's O can't be.
+        const { initials, lines: written } = program(c, 0, 0, [c.getObj("O")!]);
+        expect(initials.map(({ name }) => name)).toEqual(["O", "Q", "R"]);
+        expect(written.map(({ text }) => text)).toEqual([
+            "m1 = PerpendicularBisector(O, Q)",
+            "m2 = PerpendicularBisector(Q, R)",
+            "O1 = Intersection(m1, m2)",
+            "c = Circle(O1, O)",
+        ]);
+        expect(() =>
+            open([], [{ ...named, m: [{ ...named.m[0], n: ["P", "Q"] }] }]),
+        ).toThrow();
+    });
+
     it("writes those designated by their names", () => {
         const c = open(
             [
@@ -162,11 +194,11 @@ describe("A macro's program", () => {
         const circle = program(c, 2, 0, [c.getObj("k")!]);
         expect(circle.initials.map(({ name, parts }) => [name, parts])).toEqual(
             [
-                ["k", ["D"]],
+                ["k", ["A"]],
                 ["C", []],
             ],
         );
-        expect(circle.lines[0].text).toBe("s = Segment(D, C)");
+        expect(circle.lines[0].text).toBe("s = Segment(A, C)");
         expect(program(c, 3, 0, ["3"]).initials[0].name).toBe("a = 3");
         expect(lines(c, 3, 0)).toEqual(["r = a*2 !"]);
     });

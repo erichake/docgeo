@@ -49,7 +49,7 @@ function figureObject(
 
 // The objects of the figure each sub-object of an initial stands for, in
 // the order of initialSlots.
-function subObjects(
+export function subObjects(
     c: construction,
     type: string,
     initial: construction_object,
@@ -231,13 +231,16 @@ export function methodOf(
     fixed: construction_object[] = [],
 ): MacroMethod {
     const local = new Map<construction_object, number>();
+    const names: string[] = [];
     let count = 0;
     initials.forEach((initial) => {
         subObjects(c, initialType(initial)!, initial).forEach((objects) => {
             objects.forEach((object) => local.set(object, count));
+            names.push(objects[0]?.name ?? "");
             count++;
         });
         local.set(initial, count++);
+        names.push(initial.name);
     });
     // Between the initials and the finals.
     const needed = new Set<construction_object>();
@@ -268,6 +271,7 @@ export function methodOf(
                 ? [initialType(initial)!, messages[index] ?? "", initial.name]
                 : [initialType(initial)!, messages[index] ?? ""],
         ),
+        names,
         help,
         body,
         finals: finals.map((final) => local.get(final)!),

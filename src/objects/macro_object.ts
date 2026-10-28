@@ -22,6 +22,9 @@ export interface MacroMethod {
     // The type and message of each initial, in order, and for a fixed one
     // the name it is looked for by (see MACROS.md).
     initials: [string, string, string?][];
+    // Those of the initials and their sub-objects, by their local indices,
+    // in the figure where it was defined, "" for one it didn't have.
+    names?: string[];
     help: string;
     // Its .dgo entries, each with its style itself rather than its index.
     body: unknown[][];

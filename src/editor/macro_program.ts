@@ -11,7 +11,7 @@ import {
     macro_object,
 } from "../objects/macro_object";
 import { lineOf, nextName } from "./figure";
-import type { Picked } from "./macro";
+import { subObjects, type Picked } from "./macro";
 import { message, type MessageKey } from "./messages";
 import { macroBadge } from "./my_macros";
 import { formatName } from "./text";
@@ -51,15 +51,22 @@ const KINDS: Record<string, true | string> = {
 };
 
 // The body of one of its methods, read apart from the figure, on the
-// initials designated, or on objects standing for them, named as the
-// editor names those it makes.
+// initials designated, or on objects standing for them. Those are named
+// as in the figure where it was defined, or else as the editor names the
+// objects it makes; the body's objects keep their names, but those of the
+// initials designated.
 export function methodProgram(
     c: construction,
     index: number,
     method: number,
     picked: Picked[],
 ): MethodProgram {
-    const { initials, body, finals } = c.macros[index].methods[method];
+    const {
+        initials,
+        names = [],
+        body,
+        finals,
+    } = c.macros[index].methods[method];
     const designated = picked.every(
         (initial, rank) =>
             rank < initials.length &&
@@ -69,11 +76,20 @@ export function methodProgram(
     )
         ? picked
         : [];
+    // By local index, the names of the initials and their sub-objects.
+    const owned = initials.flatMap(([type], rank) => {
+        const initial = designated[rank];
+        return typeof initial === "object"
+            ? [
+                  ...subObjects(c, type, initial).map(([found]) => found?.name),
+                  initial.name,
+              ]
+            : Array((SUB_OBJECTS[type] ?? 0) + 1).fill(undefined);
+    });
+    const figure = new Set(owned.filter(Boolean));
     const used = new Set([
+        ...figure,
         ...body.map(([, name]) => name as string),
-        ...designated.map((initial) =>
-            typeof initial === "string" ? "" : initial.name,
-        ),
     ]);
     const naming = Object.create(c, {
         getObj: { value: (name: string) => used.has(name) || c.getObj(name) },
@@ -83,41 +99,43 @@ export function methodProgram(
         used.add(name);
         return name;
     };
+    const slotNames = owned.map((name, at) => {
+        if (name) return name;
+        const kept = names[at];
+        if (!kept || used.has(kept)) return "";
+        used.add(kept);
+        return kept;
+    });
+    let slot = 0;
+    initials.forEach(([type]) => {
+        const count = SUB_OBJECTS[type] ?? 0;
+        for (let k = 0; k <= count; k++, slot++)
+            slotNames[slot] ||= fresh(k < count ? true : KINDS[type]);
+    });
     const objects = figureObjects(c);
     const entries: unknown[][] = [];
     // Its position among the objects read.
-    const entry = (tag: string, name: string, parameters: unknown): number =>
-        objects.length + entries.push([tag, name, parameters]) - 1;
-    let hidden = 0;
-    const point = (named: boolean): number => {
-        const angle = 2.4 * entries.length;
-        return entry("Pt", named ? fresh(true) : `‧${hidden++}`, [
-            3 * Math.cos(angle),
-            3 * Math.sin(angle),
-        ]);
-    };
-    const points = (count: number, named = false): number[] =>
-        Array.from({ length: count }, () => point(named));
+    const entry = (tag: string, parameters: unknown): number =>
+        objects.length +
+        entries.push([tag, `‧${entries.length}`, parameters]) -
+        1;
+    const points = (count: number): number[] =>
+        Array.from({ length: count }, () => {
+            const angle = 2.4 * entries.length;
+            return entry("Pt", [3 * Math.cos(angle), 3 * Math.sin(angle)]);
+        });
     const references = initials.map(([type], rank) => {
         const initial = designated[rank];
         if (typeof initial === "string") return initial;
         if (initial)
             return objectIndex(initial, (owner) => objects.indexOf(owner));
-        if (type === "point") return point(true);
-        if (type === "number")
-            return entry("Ex", fresh("Ex"), { t: "", v: 1, xy: [0, 0] });
-        const kind = KINDS[type] as string;
-        const parameters =
-            type === "segment" || type === "vector" || type === "angle"
-                ? points(type === "angle" ? 3 : 2, true)
-                : type === "ray" || type === "sphere"
-                  ? [point(true), point(false)]
-                  : points(
-                        { arc: 3, conic: 5, polygon: 3, plane: 3 }[type] ?? 2,
-                    );
-        return entry(kind, fresh(kind), parameters);
+        if (type === "point") return points(1)[0];
+        if (type === "number") return entry("Ex", { t: "", v: 1, xy: [0, 0] });
+        const count =
+            { angle: 3, arc: 3, conic: 5, polygon: 3, plane: 3 }[type] ?? 2;
+        return entry(KINDS[type] as string, points(count));
     });
-    entry("Mac", "‧mac", [index, method, references]);
+    entries.push(["Mac", "‧mac", [index, method, references]]);
     const read = [...objects];
     readEntries(
         {
@@ -132,23 +150,27 @@ export function methodProgram(
         () => ({}),
     );
     const { local } = read.at(-1) as macro_object;
-    let slot = 0;
+    slotNames.forEach((name, at) => (local[at].name = name));
+    // m1 the name of an initial designated, m2.
+    local.slice(slot).forEach((object) => {
+        if (object instanceof macro_object || !figure.has(object.name)) return;
+        const [, base, number] = /^(.*?)(\d*)$/.exec(object.name)!;
+        let k = +number + 1;
+        while (used.has(`${base}${k}`) || c.getObj(`${base}${k}`)) k++;
+        object.name = `${base}${k}`;
+        used.add(object.name);
+    });
+    slot = 0;
     const shown = initials.map(([type, text], rank) => {
         const count = SUB_OBJECTS[type] ?? 0;
-        const parts = local.slice(slot, slot + count);
-        // A circle's center, an arc's ends, made by the application.
-        if (type === "circle" || type === "arc")
-            parts.forEach((part) => (part.name = fresh(true)));
-        const initial = local[slot + count];
+        const parts = slotNames.slice(slot, slot + count).map(formatName);
+        const name = formatName(slotNames[slot + count]);
         slot += count + 1;
         // A number typed.
         const typed = designated[rank];
-        if (typeof typed === "string") initial.name = fresh("Ex");
         return {
-            name:
-                formatName(initial.name) +
-                (typeof typed === "string" ? ` = ${typed}` : ""),
-            parts: parts.map(({ name }) => formatName(name)),
+            name: typeof typed === "string" ? `${name} = ${typed}` : name,
+            parts,
             message: text || message(`designate_${type}` as MessageKey),
         };
     });

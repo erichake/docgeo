@@ -169,6 +169,7 @@ describe("Defining a macro in the editor", () => {
                 m: [
                     {
                         i: [["point"], ["point"], ["point"]],
+                        n: ["A", "B", "C"],
                         b: [
                             ["Med", "m1", [0, 1]],
                             ["Med", "m2", [1, 2]],

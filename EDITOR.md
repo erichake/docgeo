@@ -1514,8 +1514,9 @@ bandeau d'une macro appliquée, et des actions d'un final sélectionné,
 ouvre en lecture seule le programme de chaque méthode (`macro_program.ts`).
 Le corps est lu à part, dans une construction privée (`readEntries` et
 `privateConstruction` de `dgo.ts`), sur les initiaux désignés ou des objets
-qui en tiennent lieu, et chaque objet s'écrit par `lineOf`, comme dans le
-panneau de construction.
+qui en tiennent lieu, nommés comme dans la figure où la macro a été définie
+(clé `n` de `DGO.md`, que `methodOf` remplit), et chaque objet s'écrit par
+`lineOf`, comme dans le panneau de construction.
 
 **Bibliothèques de macros** (2026-10-27, `library.ts`, `my_macros.ts`,
 voir `MACROS.md`, « Bibliothèque », et `DGO.md`) : hors d'une iframe

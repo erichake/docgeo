@@ -451,9 +451,14 @@ qui en a déjà un pour les finaux :
   initiaux (rang, nom, sous-objets entre parenthèses, message), puis le
   corps dans le langage textuel, une ligne par objet, les finaux en gras.
   Rien ne change dans la figure.
-- Les initiaux déjà désignés y portent leur nom dans la figure ; les autres
-  sont nommés comme l'éditeur nomme ce qu'il crée, sans prendre un nom de
-  la figure ni du corps. Une application d'une autre macro dans le corps
+- Les initiaux déjà désignés y portent leur nom dans la figure, leurs
+  sous-objets aussi quand elle les a ; un objet du corps qui aurait le même
+  nom est renommé (`O` devient `O1`). Les autres prennent le nom qu'ils
+  avaient dans la figure où la macro a été définie (clé `n` des méthodes,
+  ajoutée le 2026-10-28 à la demande de l'auteur), celui dont parle l'aide
+  (« l'axe d, le centre O, puis un point M ») ; à défaut, ou si ce nom est
+  pris par un initial désigné, ils sont nommés comme l'éditeur nomme ce
+  qu'il crée. Une application d'une autre macro dans le corps
   est une ligne, qui ouvre le programme de cette macro ; un fil d'Ariane
   au titre ramène aux précédentes.
 - **Noms traduits** (demandé par l'auteur le 2026-10-28) : les noms des

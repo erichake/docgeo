@@ -834,7 +834,7 @@ export const describeMacros = (
         n: name,
         f: finals,
         ...(icon && { ic: image(icon) }),
-        m: methods.map(({ initials, help, body, finals }) => ({
+        m: methods.map(({ initials, names, help, body, finals }) => ({
             i: initials.map(([type, message, fixed]) =>
                 fixed
                     ? [type, message, fixed]
@@ -842,6 +842,7 @@ export const describeMacros = (
                       ? [type, message]
                       : [type],
             ),
+            ...(names && { n: names }),
             ...(help && { h: help }),
             b: body.map(([tag, name, parameters, style]) =>
                 style === undefined
@@ -1241,7 +1242,7 @@ export function readMacros(
 
 function readMethod(method: Json, count: number, styles: Json[]): MacroMethod {
     check(isRecord(method));
-    const { i: values, h: help = "", b: body, f: finals } = method;
+    const { i: values, n: names, h: help = "", b: body, f: finals } = method;
     check(Array.isArray(values) && values.length > 0);
     check(typeof help === "string" && Array.isArray(body));
     const initials = values.map((value): [string, string, string?] => {
@@ -1257,6 +1258,10 @@ function readMethod(method: Json, count: number, styles: Json[]): MacroMethod {
         0,
     );
     check(
+        names === undefined ||
+            list(names, slots).every((name) => typeof name === "string"),
+    );
+    check(
         list(finals, count, count).every(
             (index, rank) =>
                 Number.isInteger(index) &&
@@ -1267,6 +1272,7 @@ function readMethod(method: Json, count: number, styles: Json[]): MacroMethod {
     );
     return {
         initials,
+        ...(names !== undefined && { names: names as string[] }),
         help,
         body: body.map((entry) => {
             const [tag, name, parameters, styleIndex] = list(entry, 3, 4);

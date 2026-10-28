@@ -611,6 +611,7 @@ Méthode :
 | Clé | Contenu                                                                  | Défaut   |
 | --- | ------------------------------------------------------------------------ | -------- |
 | `i` | initiaux ordonnés `[type, message, nom?]`, un au moins                   | (requis) |
+| `n` | noms des initiaux et de leurs sous-objets, par indice local (ci-après)   | absent   |
 | `h` | aide : ordre des initiaux, domaine de validité                           | `""`     |
 | `b` | corps : entrées `.dgo` (ci-après)                                        | (requis) |
 | `f` | indices locaux des finaux dans le corps, dans l'ordre de `f` de la macro | (requis) |
@@ -642,6 +643,15 @@ désigné comme initial à la définition : les macros définies à partir du
 même objet partagent leur initial fixé (`["circle", "", "Hz"]`, le disque
 de Poincaré des macros hyperboliques). Sans effet sur le calcul ; le
 lecteur se contente de le garder.
+
+Les noms `n` (ajoutés le 2026-10-28, demandés par l'auteur) sont ceux
+qu'avaient, dans la figure où la méthode a été définie, ses initiaux et
+leurs sous-objets, un par indice local de l'initial (donc autant que
+d'indices locaux avant le corps), `""` pour un sous-objet que la figure
+n'avait pas (le centre d'un cercle par trois points) : `["d", "O", "M"]`.
+Sans effet sur le calcul ; l'éditeur les montre dans le programme d'une
+macro (`MACROS.md`, « Voir le programme »), pour qu'il parle des mêmes
+objets que l'aide.
 
 Le début d'un arc est le point d'où il part (A pour `Arc`, `CArc`, `Semi`),
 sa fin celui où il s'arrête. Un angle n'est pas un nombre : le corps lit sa
