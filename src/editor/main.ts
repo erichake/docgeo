@@ -1081,12 +1081,13 @@ $("body").add(
     ...(standalone ? menuBar(menus, ...(native ? [fileLabel] : [])) : []),
     framing.elements[1],
     properties.panel,
-    macros.panel,
     resizeHandle(properties.panel, "right", () =>
         document.body.classList.contains("dge-properties-wide")
             ? "--dge-properties-wide-user"
             : "--dge-properties-user",
     ),
+    macros.panel,
+    resizeHandle(macros.panel, "right", () => "--dge-properties-user"),
     hint,
     ring,
     complete,

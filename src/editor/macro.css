@@ -41,6 +41,12 @@
         transform var(--dge-slide),
         visibility 0s var(--dge-slide-duration);
 }
+.dge-macro + .dge-resize {
+    right: var(--dge-properties-size);
+}
+.dge-editor:not(.dge-macro-open) .dge-macro + .dge-resize {
+    display: none;
+}
 /* It slides in and out as the properties. */
 .dge-macro-open .dge-macro {
     transform: translateX(0);
