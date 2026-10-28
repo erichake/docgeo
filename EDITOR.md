@@ -886,6 +886,13 @@ formules et valeurs d'expressions en profitent aussi. Échap ferme la
 complétion, rétablit le texte, puis quitte la zone. Au survol, un bouton
 crayon d'une ligne de construction (`edit_definition`) ouvre les
 propriétés sur l'objet, le curseur au bout de sa définition.
+Une poubelle apparaît aussi sur chaque ligne, y compris celles en lecture
+seule et les points libres (2026-10-28). Elle supprime l'objet de la ligne
+avec ses dépendants, indépendamment de la sélection courante ; sur une
+application de macro repliée, elle supprime tous les finaux. La suppression
+reste annulable. Les deux boutons se montrent aussi au focus clavier et
+restent visibles au doigt.
+Éditeur : +142 octets (+29 en gzip) ; moteur et lecteur inchangés.
 
 ### Onglet « Figure »
 

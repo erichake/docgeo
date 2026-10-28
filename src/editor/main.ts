@@ -309,6 +309,7 @@ $("head").append(`<style>
     .dge-item .dge-label.dge-on { background: none; color: #475569; opacity: 1; }
     .dge-item:hover .dge-label, .dge-item:focus-within .dge-label { opacity: 1; }
     .dge-item .dge-label:hover { background: rgb(15 23 42 / 0.06); color: #1d4ed8; }
+    .dge-item .dge-delete:hover { background: #fef2f2; color: #dc2626; }
     @media (hover: none) { .dge-item .dge-label { opacity: 1; color: #cbd5e1; } }
     .dge-text { flex: 1; min-width: 0; display: flex; flex-direction: column; }
     .dge-value { margin-block-start: -5px; padding: 0 4px 7px; overflow: hidden; font: 12.5px/1.4 var(--dge-code); color: #64748b; white-space: nowrap; text-overflow: ellipsis; unicode-bidi: plaintext; }
@@ -1531,6 +1532,11 @@ function addRow(
                 properties.edit(object);
             }).addClass("dge-label"),
         );
+    item.add(
+        button("delete", () => remove(shown))
+            .addClass("dge-label")
+            .addClass("dge-delete"),
+    );
     if (!finals.length && hasName(object)) item.add(nameToggle(object));
     item.on("mouseenter", () => highlight(...shown), false);
     item.on("mouseleave", () => highlight(), false);
@@ -3478,12 +3484,13 @@ function drawFrom(as: Exclude<Choice, "expression">): void {
     );
 }
 
-function remove(): void {
-    const objects = selection.length
+function remove(
+    objects = selection.length
         ? selection.map(({ object }) => object)
         : propertiesOpen
           ? properties.selection
-          : [target()!];
+          : [target()!],
+): void {
     stopMagnets();
     closeRing();
     clearSelection();
