@@ -114,6 +114,35 @@ describe("Defining a macro", () => {
         ]);
     });
 
+    it("leaves out a script that styles what it builds", () => {
+        const c = figure(
+            "A = (0, 0)",
+            "B = (4, 0)",
+            "a = 1",
+            "M = Midpoint(A, B)",
+            'p = if(a==0){M.setHidden(1)};"Montrer"',
+            "N = Midpoint(M, B)",
+        );
+        const analysis = analyse(c, all(c, "A", "B"));
+        expect(analysis.determined(get(c, "N"))).toBe(true);
+        const method = methodOf(c, all(c, "A", "B"), all(c, "N"), [], "");
+        expect(method.body.map(([, name]) => name)).toEqual(["M", "N"]);
+    });
+
+    it("misses a fixed point, as what is built from nothing", () => {
+        const c = figure(
+            "A = (0, 0)",
+            "O = FixedPoint(1, 1)",
+            "k = Circle(O, 2)",
+            "s = Segment(A, O)",
+        );
+        const analysis = analyse(c, all(c, "A"));
+        expect(finalsOf(c, analysis, [])).toEqual([]);
+        expect(missing(analysis, get(c, "s")).map(({ name }) => name)).toEqual([
+            "O",
+        ]);
+    });
+
     it("takes a point on an object the initials determine, final or not", () => {
         const c = figure(
             "A = (-2, 0)",

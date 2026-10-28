@@ -122,19 +122,35 @@ const unbuilt = (object: construction_object): boolean =>
     object instanceof panel_object ||
     object instanceof image_object;
 
+// Its parents but the condition it is shown on and a script styling it,
+// made its parent only to be run first (see expression_object.ts), which
+// DGPad's macros ignore.
+const builtFrom = (object: construction_object): construction_object[] =>
+    object.parents.filter(
+        (parent) =>
+            parent !== object.condition &&
+            !(
+                parent instanceof expression_object &&
+                parent.program &&
+                [...parent.program.targets.values()].includes(object)
+            ),
+    );
+
 export interface Analysis {
     // The initials and the objects of the figure their sub-objects stand
     // for.
     given: Set<construction_object>;
     determined(object: construction_object): boolean;
     // What it is built from in the figure: not an object's own inner
-    // points, nor the condition it is shown on.
+    // points, the condition it is shown on, nor a script styling it.
     sources(object: construction_object): construction_object[];
 }
 
 // What the initials determine: they and their sub-objects, and what is
 // built from them only; a locus, when they determine its point's support
-// and what leads from that point to its own.
+// and what leads from that point to its own. What is built from nothing,
+// such as a fixed point, is an initial it misses, as in DGPad and
+// GeoGebra.
 export function analyse(
     c: construction,
     initials: construction_object[],
@@ -147,9 +163,7 @@ export function analyse(
     );
     const figure = new Set(figureObjects(c));
     const sources = (object: construction_object) =>
-        object.parents.filter(
-            (parent) => parent !== object.condition && figure.has(parent),
-        );
+        builtFrom(object).filter((parent) => figure.has(parent));
     const known = new Map<construction_object, boolean>();
     const determined = (
         object: construction_object,
@@ -157,14 +171,14 @@ export function analyse(
     ): boolean => {
         if (given.has(object) || object === assumed) return true;
         if (!assumed && known.has(object)) return known.get(object)!;
+        const parents = sources(object);
         const result =
             object instanceof locus_object
                 ? determined(object.driver.support, assumed) &&
                   determined(object.target, object.driver)
                 : !unbuilt(object) &&
-                  sources(object).every((parent) =>
-                      determined(parent, assumed),
-                  );
+                  parents.length > 0 &&
+                  parents.every((parent) => determined(parent, assumed));
         if (!assumed) known.set(object, result);
         return result;
     };
@@ -230,9 +244,7 @@ export function methodOf(
     const visit = (object: construction_object): void => {
         if (needed.has(object) || local.has(object)) return;
         needed.add(object);
-        object.parents.forEach(
-            (parent) => parent !== object.condition && visit(parent),
-        );
+        builtFrom(object).forEach(visit);
     };
     finals.forEach(visit);
     const context = {

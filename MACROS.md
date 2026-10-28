@@ -251,6 +251,18 @@ des macros. Pour les figures importées, la référence est DGPad.
   l'applique : sa place y est figée. Ouvrir la boîte en fait un point sur
   objet ordinaire, à sa place. Un point libre reste interdit : il ne
   dépendrait d'aucun initial.
+- **Un objet sans parent n'est déterminé que s'il est initial**
+  (2026-10-28), comme dans DGPad et GeoGebra : un point fixe ou à formule
+  constante est un initial manquant. Le test « tous ses parents sont
+  déterminés », vrai d'office pour un objet sans parent, l'acceptait par
+  effet de bord, et toute la figure qu'il porte (la sphère et ses repères
+  de `Horisphere_PourMacro.dgo`) s'allumait en finaux possibles.
+- **Un script qui met un objet en forme n'en est pas une source**
+  (2026-10-28) : le moteur fait d'une expression comme
+  `stA.setHidden(ChSt==0)` un parent de `stA` pour la calculer avant lui,
+  lien que DGPad n'a pas (l'expression y dépend de `stA`). La définition
+  l'ignore, comme la condition d'affichage : il n'entre pas dans le corps,
+  et ses cases à cocher ne sont pas des initiaux manquants.
 - Un initial semi-libre n'est plus qu'un objet de son type à l'usage : sa
   contrainte disparaît, sauf si son support est aussi un initial. C'est une
   généralisation légitime, qu'on ne signale pas.
