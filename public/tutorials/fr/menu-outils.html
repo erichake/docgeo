@@ -405,8 +405,13 @@
                             <strong>Arc</strong
                             ><span
                                 >Trois points : le début, un point de passage,
-                                la fin.</span
-                            ><span><code>Arc(A, B, C)</code></span>
+                                la fin (en 3D, dans leur plan). Ou un cercle ou
+                                une ellipse, puis le début et la fin (sens
+                                direct).</span
+                            ><span
+                                ><code>Arc(A, B, C)</code>,
+                                <code>Arc(c, P, Q)</code></span
+                            >
                         </div>
                     </li>
                     <li>
@@ -414,9 +419,13 @@
                         <div>
                             <strong>Secteur</strong
                             ><span
-                                >Trois points, comme l’arc : le secteur qu’il
+                                >Comme l’arc, trois points, ou un cercle ou une
+                                ellipse et deux points : le secteur qu’il
                                 délimite.</span
-                            ><span><code>Secteur(A, B, C)</code></span>
+                            ><span
+                                ><code>Secteur(A, B, C)</code>,
+                                <code>Secteur(c, P, Q)</code></span
+                            >
                         </div>
                     </li>
                     <li>
@@ -425,8 +434,8 @@
                             <strong>ArcCentre</strong
                             ><span
                                 >Le centre, le début, puis un point de la
-                                demi-droite où l’arc s’arrête (sens
-                                direct).</span
+                                demi-droite où l’arc s’arrête (sens direct). En
+                                3D, l’arc de l’angle AMB, dans son plan.</span
                             ><span><code>ArcCentre(M, A, B)</code></span>
                         </div>
                     </li>

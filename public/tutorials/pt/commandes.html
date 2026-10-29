@@ -62,8 +62,14 @@
                         <tr>
                             <td class="syntax"><code>Ponto(p, a, b)</code></td>
                             <td>
-                                ponto sobre um polígono ou uma cônica, com a
-                                posição dada por dois números
+                                ponto sobre um polígono ou uma cônica. a e b são
+                                as coordenadas de um ponto num referencial do
+                                objeto: seu primeiro vértice e os dois seguintes
+                                (polígono), seu centro e as extremidades de seus
+                                semieixos (elipse, hipérbole) ou seu vértice
+                                (parábola). Esse ponto é depois levado para o
+                                polígono ou para a cônica. O gesto escreve a e
+                                b.
                             </td>
                         </tr>
                         <tr>
@@ -481,20 +487,34 @@
                             <td>círculo de centro O e raio AB</td>
                         </tr>
                         <tr>
-                            <td rowspan="1">
+                            <td rowspan="2">
                                 <i data-t="Arc"></i> <strong>Arco</strong
                                 ><br /><small>Arc</small>
                             </td>
                             <td class="syntax"><code>Arco(A, B, C)</code></td>
-                            <td>arco de A a C passando por B</td>
+                            <td>
+                                arco de A a C passando por B (no plano deles em
+                                3D)
+                            </td>
                         </tr>
                         <tr>
-                            <td rowspan="1">
+                            <td class="syntax"><code>Arco(c, P, Q)</code></td>
+                            <td>
+                                arco do círculo ou da elipse c de P a Q, no
+                                sentido anti-horário, com P e Q levados para c
+                            </td>
+                        </tr>
+                        <tr>
+                            <td rowspan="2">
                                 <i data-t="Sector"></i> <strong>Setor</strong
                                 ><br /><small>Sector</small>
                             </td>
                             <td class="syntax"><code>Setor(A, B, C)</code></td>
                             <td>setor do arco de A a C passando por B</td>
+                        </tr>
+                        <tr>
+                            <td class="syntax"><code>Setor(c, P, Q)</code></td>
+                            <td>setor do arco de c de P a Q</td>
                         </tr>
                         <tr>
                             <td rowspan="1">
@@ -508,7 +528,9 @@
                             </td>
                             <td>
                                 arco de centro M, de A até a semirreta [MB), no
-                                sentido anti-horário
+                                sentido anti-horário;
+                                <span class="badge d3">3D</span> no plano MAB, o
+                                arco do ângulo AMB
                             </td>
                         </tr>
                         <tr>

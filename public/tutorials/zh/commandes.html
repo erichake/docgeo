@@ -57,7 +57,11 @@
                         </tr>
                         <tr>
                             <td class="syntax"><code>点(p, a, b)</code></td>
-                            <td>多边形或圆锥曲线上的点，位置由两个数给出</td>
+                            <td>
+                                多边形或圆锥曲线上的点。a、b
+                                是对象的一个坐标系中某点的坐标：多边形取第一个顶点及其后两个顶点，椭圆和双曲线取中心及两条半轴的端点，抛物线取顶点。该点随后被带回多边形内或圆锥曲线上。a、b
+                                由手势写出。
+                            </td>
                         </tr>
                         <tr>
                             <td class="syntax"><code>点(s, x, y, z)</code></td>
@@ -405,20 +409,34 @@
                             <td>以 O 为圆心、AB 为半径的圆</td>
                         </tr>
                         <tr>
-                            <td rowspan="1">
+                            <td rowspan="2">
                                 <i data-t="Arc"></i> <strong>圆弧</strong
                                 ><br /><small>Arc</small>
                             </td>
                             <td class="syntax"><code>圆弧(A, B, C)</code></td>
-                            <td>从 A 经过 B 到 C 的圆弧</td>
+                            <td>
+                                从 A 经过 B 到 C 的圆弧（3D
+                                中位于它们所在的平面内）
+                            </td>
                         </tr>
                         <tr>
-                            <td rowspan="1">
+                            <td class="syntax"><code>圆弧(c, P, Q)</code></td>
+                            <td>
+                                圆或椭圆 c 上从 P 到 Q 的弧，按逆时针方向，P、Q
+                                先被带到 c 上
+                            </td>
+                        </tr>
+                        <tr>
+                            <td rowspan="2">
                                 <i data-t="Sector"></i> <strong>扇形</strong
                                 ><br /><small>Sector</small>
                             </td>
                             <td class="syntax"><code>扇形(A, B, C)</code></td>
                             <td>从 A 经过 B 到 C 的圆弧所对的扇形</td>
+                        </tr>
+                        <tr>
+                            <td class="syntax"><code>扇形(c, P, Q)</code></td>
+                            <td>c 上从 P 到 Q 的弧所对的扇形</td>
                         </tr>
                         <tr>
                             <td rowspan="1">
@@ -430,7 +448,9 @@
                             <td class="syntax"><code>圆心弧(M, A, B)</code></td>
                             <td>
                                 以 M 为圆心、从 A 到射线 [MB)
-                                的圆弧，按逆时针方向
+                                的圆弧，按逆时针方向；<span class="badge d3"
+                                    >3D</span
+                                >在平面 MAB 内，为角 AMB 所对的弧
                             </td>
                         </tr>
                         <tr>

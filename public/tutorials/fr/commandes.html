@@ -61,8 +61,14 @@
                         <tr>
                             <td class="syntax"><code>Point(p, a, b)</code></td>
                             <td>
-                                point sur un polygone ou une conique, sa
-                                position donnée par deux nombres
+                                point sur un polygone ou une conique. a et b
+                                sont les coordonnées d’un point dans un repère
+                                de l’objet : son premier sommet et les deux
+                                suivants (polygone), son centre et les
+                                extrémités de ses demi-axes (ellipse, hyperbole)
+                                ou son sommet (parabole). Ce point est ensuite
+                                ramené dans le polygone ou sur la conique. Le
+                                geste écrit a et b.
                             </td>
                         </tr>
                         <tr>
@@ -475,14 +481,24 @@
                             <td>cercle de centre O et de rayon AB</td>
                         </tr>
                         <tr>
-                            <td rowspan="1">
+                            <td rowspan="2">
                                 <i data-t="Arc"></i> <strong>Arc</strong>
                             </td>
                             <td class="syntax"><code>Arc(A, B, C)</code></td>
-                            <td>arc de A à C passant par B</td>
+                            <td>
+                                arc de A à C passant par B (dans leur plan en
+                                3D)
+                            </td>
                         </tr>
                         <tr>
-                            <td rowspan="1">
+                            <td class="syntax"><code>Arc(c, P, Q)</code></td>
+                            <td>
+                                arc du cercle ou de l’ellipse c de P à Q, dans
+                                le sens direct, P et Q ramenés sur c
+                            </td>
+                        </tr>
+                        <tr>
+                            <td rowspan="2">
                                 <i data-t="Sector"></i> <strong>Secteur</strong
                                 ><br /><small>Sector</small>
                             </td>
@@ -490,6 +506,12 @@
                                 <code>Secteur(A, B, C)</code>
                             </td>
                             <td>secteur de l’arc de A à C passant par B</td>
+                        </tr>
+                        <tr>
+                            <td class="syntax">
+                                <code>Secteur(c, P, Q)</code>
+                            </td>
+                            <td>secteur de l’arc de c de P à Q</td>
                         </tr>
                         <tr>
                             <td rowspan="1">
@@ -503,7 +525,9 @@
                             </td>
                             <td>
                                 arc de centre M, de A jusqu’à la demi-droite
-                                [MB), dans le sens direct
+                                [MB), dans le sens direct ;
+                                <span class="badge d3">3D</span> dans le plan
+                                MAB, l’arc de l’angle AMB
                             </td>
                         </tr>
                         <tr>

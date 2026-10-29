@@ -63,8 +63,14 @@
                         <tr>
                             <td class="syntax"><code>Punt(p, a, b)</code></td>
                             <td>
-                                punt op een veelhoek of een kegelsnede, met de
-                                positie gegeven door twee getallen
+                                punt op een veelhoek of een kegelsnede. a en b
+                                zijn de coördinaten van een punt in een
+                                assenstelsel van het object: zijn eerste
+                                hoekpunt en de twee volgende (veelhoek), zijn
+                                middelpunt en de uiteinden van zijn halve assen
+                                (ellips, hyperbool) of zijn top (parabool). Dat
+                                punt wordt daarna in de veelhoek of op de
+                                kegelsnede gebracht. Het gebaar schrijft a en b.
                             </td>
                         </tr>
                         <tr>
@@ -483,19 +489,33 @@
                             <td>cirkel met middelpunt O en straal AB</td>
                         </tr>
                         <tr>
-                            <td rowspan="1">
+                            <td rowspan="2">
                                 <i data-t="Arc"></i> <strong>Boog</strong
                                 ><br /><small>Arc</small>
                             </td>
                             <td class="syntax"><code>Boog(A, B, C)</code></td>
-                            <td>boog van A naar C door B</td>
+                            <td>
+                                boog van A naar C door B (in hun vlak in 3D)
+                            </td>
                         </tr>
                         <tr>
-                            <td rowspan="1">
+                            <td class="syntax"><code>Boog(c, P, Q)</code></td>
+                            <td>
+                                boog van de cirkel of de ellips c van P naar Q,
+                                tegen de wijzers van de klok in, met P en Q op c
+                                gebracht
+                            </td>
+                        </tr>
+                        <tr>
+                            <td rowspan="2">
                                 <i data-t="Sector"></i> <strong>Sector</strong>
                             </td>
                             <td class="syntax"><code>Sector(A, B, C)</code></td>
                             <td>sector van de boog van A naar C door B</td>
+                        </tr>
+                        <tr>
+                            <td class="syntax"><code>Sector(c, P, Q)</code></td>
+                            <td>sector van de boog van c van P naar Q</td>
                         </tr>
                         <tr>
                             <td rowspan="1">
@@ -509,7 +529,9 @@
                             </td>
                             <td>
                                 boog met middelpunt M, van A tot de halfrechte
-                                [MB), tegen de wijzers van de klok in
+                                [MB), tegen de wijzers van de klok in;
+                                <span class="badge d3">3D</span> in het vlak
+                                MAB, de boog van de hoek AMB
                             </td>
                         </tr>
                         <tr>

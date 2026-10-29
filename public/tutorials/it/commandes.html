@@ -62,8 +62,14 @@
                         <tr>
                             <td class="syntax"><code>Punto(p, a, b)</code></td>
                             <td>
-                                punto su un poligono o una conica, con la
-                                posizione data da due numeri
+                                punto su un poligono o una conica. a e b sono le
+                                coordinate di un punto in un riferimento
+                                dell’oggetto: il suo primo vertice e i due
+                                successivi (poligono), il suo centro e gli
+                                estremi dei suoi semiassi (ellisse, iperbole) o
+                                il suo vertice (parabola). Questo punto è poi
+                                riportato nel poligono o sulla conica. Il gesto
+                                scrive a e b.
                             </td>
                         </tr>
                         <tr>
@@ -495,15 +501,25 @@
                             <td>circonferenza di centro O e raggio AB</td>
                         </tr>
                         <tr>
-                            <td rowspan="1">
+                            <td rowspan="2">
                                 <i data-t="Arc"></i> <strong>Arco</strong
                                 ><br /><small>Arc</small>
                             </td>
                             <td class="syntax"><code>Arco(A, B, C)</code></td>
-                            <td>arco da A a C passante per B</td>
+                            <td>
+                                arco da A a C passante per B (nel loro piano in
+                                3D)
+                            </td>
                         </tr>
                         <tr>
-                            <td rowspan="1">
+                            <td class="syntax"><code>Arco(c, P, Q)</code></td>
+                            <td>
+                                arco della circonferenza o dell’ellisse c da P a
+                                Q, in senso antiorario, con P e Q riportati su c
+                            </td>
+                        </tr>
+                        <tr>
+                            <td rowspan="2">
                                 <i data-t="Sector"></i> <strong>Settore</strong
                                 ><br /><small>Sector</small>
                             </td>
@@ -511,6 +527,12 @@
                                 <code>Settore(A, B, C)</code>
                             </td>
                             <td>settore dell’arco da A a C passante per B</td>
+                        </tr>
+                        <tr>
+                            <td class="syntax">
+                                <code>Settore(c, P, Q)</code>
+                            </td>
+                            <td>settore dell’arco di c da P a Q</td>
                         </tr>
                         <tr>
                             <td rowspan="1">
@@ -524,7 +546,9 @@
                             </td>
                             <td>
                                 arco di centro M, da A fino alla semiretta [MB),
-                                in senso antiorario
+                                in senso antiorario;
+                                <span class="badge d3">3D</span> nel piano MAB,
+                                l’arco dell’angolo AMB
                             </td>
                         </tr>
                         <tr>

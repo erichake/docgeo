@@ -354,16 +354,25 @@
                         <i data-t="Arc"></i>
                         <div>
                             <strong>圓弧</strong
-                            ><span>三個點：起點、經過的點、終點。</span
-                            ><span><code>圓弧(A, B, C)</code></span>
+                            ><span
+                                >三個點：起點、經過的點、終點（3D
+                                中位於它們所在的平面內）。或一個圓或橢圓，然後起點和終點（逆時針）。</span
+                            ><span
+                                ><code>圓弧(A, B, C)</code>,
+                                <code>圓弧(c, P, Q)</code></span
+                            >
                         </div>
                     </li>
                     <li>
                         <i data-t="Sector"></i>
                         <div>
                             <strong>扇形</strong
-                            ><span>三個點，同圓弧：它所圍成的扇形。</span
-                            ><span><code>扇形(A, B, C)</code></span>
+                            ><span
+                                >同圓弧，三個點，或一個圓或橢圓和兩個點：它所圍成的扇形。</span
+                            ><span
+                                ><code>扇形(A, B, C)</code>,
+                                <code>扇形(c, P, Q)</code></span
+                            >
                         </div>
                     </li>
                     <li>
@@ -371,7 +380,8 @@
                         <div>
                             <strong>圓心弧</strong
                             ><span
-                                >圓心、起點，然後圓弧終止處射線上的一點（逆時針）。</span
+                                >圓心、起點，然後圓弧終止處射線上的一點（逆時針）。3D
+                                中，為角 AMB 所對的弧，位於其平面內。</span
                             ><span><code>圓心弧(M, A, B)</code></span>
                         </div>
                     </li>

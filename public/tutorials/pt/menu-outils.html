@@ -396,8 +396,13 @@
                             <strong>Arco</strong
                             ><span
                                 >Três pontos: o início, um ponto de passagem, o
-                                fim.</span
-                            ><span><code>Arco(A, B, C)</code></span>
+                                fim (em 3D, no plano deles). Ou um círculo ou
+                                uma elipse e depois o início e o fim (sentido
+                                anti-horário).</span
+                            ><span
+                                ><code>Arco(A, B, C)</code>,
+                                <code>Arco(c, P, Q)</code></span
+                            >
                         </div>
                     </li>
                     <li>
@@ -405,9 +410,13 @@
                         <div>
                             <strong>Setor</strong
                             ><span
-                                >Três pontos, como o arco: o setor que ele
+                                >Como o arco, três pontos, ou um círculo ou uma
+                                elipse e dois pontos: o setor que ele
                                 delimita.</span
-                            ><span><code>Setor(A, B, C)</code></span>
+                            ><span
+                                ><code>Setor(A, B, C)</code>,
+                                <code>Setor(c, P, Q)</code></span
+                            >
                         </div>
                     </li>
                     <li>
@@ -417,7 +426,8 @@
                             ><span
                                 >O centro, o início e depois um ponto da
                                 semirreta onde o arco termina (sentido
-                                anti-horário).</span
+                                anti-horário). Em 3D, o arco do ângulo AMB, no
+                                seu plano.</span
                             ><span><code>ArcoCentro(M, A, B)</code></span>
                         </div>
                     </li>

@@ -395,8 +395,13 @@
                             <strong>Arc</strong
                             ><span
                                 >Three points: the start, a point it passes
-                                through, the end.</span
-                            ><span><code>Arc(A, B, C)</code></span>
+                                through, the end (in 3D, in their plane). Or a
+                                circle or an ellipse, then the start and the end
+                                (counterclockwise).</span
+                            ><span
+                                ><code>Arc(A, B, C)</code>,
+                                <code>Arc(c, P, Q)</code></span
+                            >
                         </div>
                     </li>
                     <li>
@@ -404,9 +409,13 @@
                         <div>
                             <strong>Sector</strong
                             ><span
-                                >Three points, as for the arc: the sector it
+                                >As for the arc, three points, or a circle or an
+                                ellipse and two points: the sector it
                                 bounds.</span
-                            ><span><code>Sector(A, B, C)</code></span>
+                            ><span
+                                ><code>Sector(A, B, C)</code>,
+                                <code>Sector(c, P, Q)</code></span
+                            >
                         </div>
                     </li>
                     <li>
@@ -415,7 +424,8 @@
                             <strong>CenterArc</strong
                             ><span
                                 >The center, the start, then a point of the ray
-                                where the arc stops (counterclockwise).</span
+                                where the arc stops (counterclockwise). In 3D,
+                                the arc of the angle AMB, in its plane.</span
                             ><span><code>CenterArc(M, A, B)</code></span>
                         </div>
                     </li>

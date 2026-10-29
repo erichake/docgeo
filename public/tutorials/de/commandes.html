@@ -63,8 +63,15 @@
                         <tr>
                             <td class="syntax"><code>Punkt(p, a, b)</code></td>
                             <td>
-                                Punkt auf einem Vieleck oder einem Kegelschnitt,
-                                seine Position durch zwei Zahlen gegeben
+                                Punkt auf einem Vieleck oder einem Kegelschnitt.
+                                a und b sind die Koordinaten eines Punktes in
+                                einem Koordinatensystem des Objekts: seine erste
+                                Ecke und die zwei folgenden (Vieleck), sein
+                                Mittelpunkt und die Enden seiner Halbachsen
+                                (Ellipse, Hyperbel) oder sein Scheitel
+                                (Parabel). Dieser Punkt wird dann in das Vieleck
+                                oder auf den Kegelschnitt gebracht. Die Geste
+                                schreibt a und b.
                             </td>
                         </tr>
                         <tr>
@@ -485,20 +492,35 @@
                             <td>Kreis mit Mittelpunkt O und Radius AB</td>
                         </tr>
                         <tr>
-                            <td rowspan="1">
+                            <td rowspan="2">
                                 <i data-t="Arc"></i> <strong>Bogen</strong
                                 ><br /><small>Arc</small>
                             </td>
                             <td class="syntax"><code>Bogen(A, B, C)</code></td>
-                            <td>Bogen von A nach C durch B</td>
+                            <td>
+                                Bogen von A nach C durch B (in 3D in ihrer
+                                Ebene)
+                            </td>
                         </tr>
                         <tr>
-                            <td rowspan="1">
+                            <td class="syntax"><code>Bogen(c, P, Q)</code></td>
+                            <td>
+                                Bogen des Kreises oder der Ellipse c von P nach
+                                Q, gegen den Uhrzeigersinn, P und Q auf c
+                                gebracht
+                            </td>
+                        </tr>
+                        <tr>
+                            <td rowspan="2">
                                 <i data-t="Sector"></i> <strong>Sektor</strong
                                 ><br /><small>Sector</small>
                             </td>
                             <td class="syntax"><code>Sektor(A, B, C)</code></td>
                             <td>Sektor des Bogens von A nach C durch B</td>
+                        </tr>
+                        <tr>
+                            <td class="syntax"><code>Sektor(c, P, Q)</code></td>
+                            <td>Sektor des Bogens von c von P nach Q</td>
                         </tr>
                         <tr>
                             <td rowspan="1">
@@ -512,7 +534,9 @@
                             </td>
                             <td>
                                 Bogen mit Mittelpunkt M, von A bis zum Strahl
-                                [MB), gegen den Uhrzeigersinn
+                                [MB), gegen den Uhrzeigersinn;
+                                <span class="badge d3">3D</span> in der Ebene
+                                MAB der Bogen des Winkels AMB
                             </td>
                         </tr>
                         <tr>

@@ -423,8 +423,13 @@
                             <strong>Bogen</strong
                             ><span
                                 >Drei Punkte: der Anfang, ein Punkt, durch den
-                                er geht, das Ende.</span
-                            ><span><code>Bogen(A, B, C)</code></span>
+                                er geht, das Ende (in 3D in ihrer Ebene). Oder
+                                ein Kreis oder eine Ellipse, dann der Anfang und
+                                das Ende (gegen den Uhrzeigersinn).</span
+                            ><span
+                                ><code>Bogen(A, B, C)</code>,
+                                <code>Bogen(c, P, Q)</code></span
+                            >
                         </div>
                     </li>
                     <li>
@@ -432,9 +437,13 @@
                         <div>
                             <strong>Sektor</strong
                             ><span
-                                >Drei Punkte, wie beim Bogen: der Sektor, den er
-                                begrenzt.</span
-                            ><span><code>Sektor(A, B, C)</code></span>
+                                >Wie beim Bogen, drei Punkte, oder ein Kreis
+                                oder eine Ellipse und zwei Punkte: der Sektor,
+                                den er begrenzt.</span
+                            ><span
+                                ><code>Sektor(A, B, C)</code>,
+                                <code>Sektor(c, P, Q)</code></span
+                            >
                         </div>
                     </li>
                     <li>
@@ -444,7 +453,8 @@
                             ><span
                                 >Der Mittelpunkt, der Anfang, dann ein Punkt des
                                 Strahls, an dem der Bogen endet (gegen den
-                                Uhrzeigersinn).</span
+                                Uhrzeigersinn). In 3D der Bogen des Winkels AMB
+                                in seiner Ebene.</span
                             ><span><code>BogenMittelpunkt(M, A, B)</code></span>
                         </div>
                     </li>

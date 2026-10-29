@@ -61,8 +61,13 @@
                         <tr>
                             <td class="syntax"><code>Point(p, a, b)</code></td>
                             <td>
-                                point on a polygon or a conic, its position
-                                given by two numbers
+                                point on a polygon or a conic. a and b are the
+                                coordinates of a point in a frame of the object:
+                                its first vertex and the next two (polygon), its
+                                center and the ends of its semi-axes (ellipse,
+                                hyperbola) or its vertex (parabola). That point
+                                is then brought into the polygon or onto the
+                                conic. The gesture writes a and b.
                             </td>
                         </tr>
                         <tr>
@@ -443,18 +448,31 @@
                             <td>circle with center O and radius AB</td>
                         </tr>
                         <tr>
-                            <td rowspan="1">
+                            <td rowspan="2">
                                 <i data-t="Arc"></i> <strong>Arc</strong>
                             </td>
                             <td class="syntax"><code>Arc(A, B, C)</code></td>
-                            <td>arc from A to C through B</td>
+                            <td>
+                                arc from A to C through B (in their plane in 3D)
+                            </td>
                         </tr>
                         <tr>
-                            <td rowspan="1">
+                            <td class="syntax"><code>Arc(c, P, Q)</code></td>
+                            <td>
+                                arc of the circle or ellipse c from P to Q,
+                                counterclockwise, P and Q brought onto c
+                            </td>
+                        </tr>
+                        <tr>
+                            <td rowspan="2">
                                 <i data-t="Sector"></i> <strong>Sector</strong>
                             </td>
                             <td class="syntax"><code>Sector(A, B, C)</code></td>
                             <td>sector of the arc from A to C through B</td>
+                        </tr>
+                        <tr>
+                            <td class="syntax"><code>Sector(c, P, Q)</code></td>
+                            <td>sector of the arc of c from P to Q</td>
                         </tr>
                         <tr>
                             <td rowspan="1">
@@ -466,7 +484,9 @@
                             </td>
                             <td>
                                 arc with center M, from A to the ray [MB),
-                                counterclockwise
+                                counterclockwise;
+                                <span class="badge d3">3D</span> in the plane
+                                MAB, the arc of the angle AMB
                             </td>
                         </tr>
                         <tr>
