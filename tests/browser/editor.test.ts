@@ -224,6 +224,9 @@ describe("Editor", () => {
             "o = Hyperbola(A, B, 1)",
             "z = Parabola(E, d)",
             "V = Point(k, 0.5, 0.5)",
+            "k2 = Arc(k, A, C)",
+            "k3 = Sector(k, C, A)",
+            "k4 = Arc(c, D, E)",
             "U = FixedPoint(1, 1)",
             "l = Locus(M, P)",
         ];
@@ -504,6 +507,51 @@ describe("Editor", () => {
         expect(cube.hides([1, 1, 5])).toBe(false);
         expect(cube.hides([1, 1, -5])).toBe(true);
         expect(cube.hides([1, 1, 1])).toBe(true);
+    });
+
+    // A spherical triangle's medians: arcs of great circles, in the plane
+    // of their points, that meet.
+    it("writes and reads arcs in space", async () => {
+        const { scene: c } = studio(true);
+        const text = [
+            "O = (0, 0, 0)",
+            "A = (2, 0, 0)",
+            "B = (0, 2, 0)",
+            "C = (0, 0, 2)",
+            "a = CenterArc(O, A, B)",
+            "b = CenterArc(O, B, C)",
+            "c = Arc(A, B, C)",
+            "d = CenterSector(O, C, A)",
+            "M = Point(a, 0.7854)",
+            "N = Point(b, 0.7854)",
+            "e = CenterArc(O, M, C)",
+            "f = CenterArc(O, N, A)",
+            "G = Intersection(e, f, 1)",
+        ];
+        text.forEach((line) => type(c, line));
+        c.flush();
+        expect(lines(c)).toEqual(text);
+        const other = createConstruction([800, 600]);
+        readDgo(other, await describeDgo(c));
+        expect(lines(other)).toEqual(text);
+        const index = figureIndex(c);
+        const tag = (name: string) => entryOf(c.getObj(name)!, index)[0];
+        expect(["a", "c", "d", "e"].map(tag)).toEqual([
+            "CArcs",
+            "Arcs",
+            "CSecs",
+            "CArcs",
+        ]);
+        // The middles of AB and BC, to the four decimals of π/4; the
+        // medians meet on the sphere, at the center of ABC seen from O.
+        const k = 2 / Math.sqrt(3);
+        for (const [name, expected] of [
+            ["M", [Math.SQRT2, Math.SQRT2, 0]],
+            ["G", [k, k, k]],
+        ] as const)
+            (c.getObj(name) as point_object).coords.forEach((x, axis) =>
+                expect(x, name).toBeCloseTo(expected[axis], 5),
+            );
     });
 
     it("builds a cube from two points that give its plane", async () => {
@@ -1843,10 +1891,10 @@ describe("Editor", () => {
                 ["Compass", "C3"],
                 ["Circle (centre, direction and radius)", "C1"],
                 ["Circle (axis and point)", "CAx"],
-                ["Arc", "Arc"],
-                ["Sector", "Sec"],
-                ["CenterArc", "CArc"],
-                ["CenterSector", "CSec"],
+                ["Arc", "Arc", "Arcs", "QArc"],
+                ["Sector", "Sec", "Secs", "QSec"],
+                ["CenterArc", "CArc", "CArcs"],
+                ["CenterSector", "CSec", "CSecs"],
                 ["Semicircle", "Semi"],
                 ["Conic", "Quad"],
                 ["Ellipse", "Ell"],

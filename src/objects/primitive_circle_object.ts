@@ -154,6 +154,29 @@ export class primitive_circle_object extends construction_object {
         );
     }
 
+    // The circle through three points, in their own plane.
+    protected setCircleInSpace(a: Vec3, b: Vec3, c: Vec3): void {
+        const u = vSub(b, a);
+        const v = vSub(c, a);
+        const normal = vCross(u, v);
+        const normal2 = vDot(normal, normal);
+        if (Math.sqrt(normal2) <= geometryTolerance(vNorm(u) * vNorm(v))) {
+            this.defined = false;
+            return;
+        }
+        const center = vAdd(
+            a,
+            vScale(
+                vAdd(
+                    vScale(vCross(v, normal), vDot(u, u)),
+                    vScale(vCross(normal, u), vDot(v, v)),
+                ),
+                1 / (2 * normal2),
+            ),
+        );
+        this.setCircle(center, vNorm(vSub(a, center)), u, vCross(normal, u));
+    }
+
     pointAt(alpha: number): Vec3 {
         return vAdd(
             this.CENTER,

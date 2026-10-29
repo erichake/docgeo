@@ -426,7 +426,8 @@ export class point_on_object extends point_object {
 
     // Along the conic by a few pixels at a time, each along its tangent and
     // back onto it. An ellipse goes round; a branch of a parabola or of a
-    // hyperbola turns back where it would leave the window.
+    // hyperbola turns back where it would leave the window, an arc at its
+    // ends.
     private glide(conic: primitive_quadric_object, step: number): Alpha | null {
         const c = this.C;
         const [a, b, cc, d, e] = conic.COEFFS!;
@@ -453,9 +454,10 @@ export class point_on_object extends point_object {
             );
             const to = c.pt3D(next);
             if (
-                conic.KIND !== "ellipse" &&
-                outside(to) &&
-                vNorm(vSub(to, center)) > vNorm(vSub(from, center))
+                (conic.KIND !== "ellipse" &&
+                    outside(to) &&
+                    vNorm(vSub(to, center)) > vNorm(vSub(from, center))) ||
+                !conic.insideBounds(next)
             ) {
                 if (animation.once) {
                     animation.speed = 0;

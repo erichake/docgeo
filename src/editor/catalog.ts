@@ -598,22 +598,38 @@ export const COMMANDS: Command[] = [
         name: "Compass",
         overloads: [objects("C3", ["point", "point", "point"])],
     },
+    // Of a circle or a conic, from P to Q counterclockwise.
     {
         name: "Arc",
-        overloads: [objects("Arc", ["point", "point", "point"])],
+        overloads: [
+            objects("Arc", ["point", "point", "point"]),
+            objects("Arcs", ["point", "point", "point"]),
+            objects("QArc", ["tangible", "point", "point"]),
+        ],
     },
     {
         name: "Sector",
-        overloads: [objects("Sec", ["point", "point", "point"])],
+        overloads: [
+            objects("Sec", ["point", "point", "point"]),
+            objects("Secs", ["point", "point", "point"]),
+            objects("QSec", ["tangible", "point", "point"]),
+        ],
     },
-    // Of center M, from A to the ray [MB), counterclockwise.
+    // Of center M, from A to the ray [MB), counterclockwise; in space, the
+    // arc of the angle AMB.
     {
         name: "CenterArc",
-        overloads: [objects("CArc", ["point", "point", "point"])],
+        overloads: [
+            objects("CArc", ["point", "point", "point"]),
+            objects("CArcs", ["point", "point", "point"]),
+        ],
     },
     {
         name: "CenterSector",
-        overloads: [objects("CSec", ["point", "point", "point"])],
+        overloads: [
+            objects("CSec", ["point", "point", "point"]),
+            objects("CSecs", ["point", "point", "point"]),
+        ],
     },
     // On the left of AB.
     { name: "Semicircle", overloads: [objects("Semi", ["point", "point"])] },
@@ -1096,6 +1112,20 @@ export function matches(overload: Overload, args: Arg[]): boolean {
     );
 }
 
+// The forms in the plane, and in space, in the plane of their points, of
+// the circle and the arcs through three points and of the arcs of a center.
+const SPACE_FORMS: Record<string, string> = {
+    C3p: "C3s",
+    Arc: "Arcs",
+    Sec: "Secs",
+    CArc: "CArcs",
+    CSec: "CSecs",
+};
+
+// A form of the other view: in space, one in the plane.
+export const otherView = (tag: string, vec3: boolean): boolean =>
+    vec3 ? tag in SPACE_FORMS : Object.values(SPACE_FORMS).includes(tag);
+
 // The overload that takes these arguments.
 export const overloadFor = (
     command: Command,
@@ -1103,10 +1133,7 @@ export const overloadFor = (
     vec3: boolean,
 ): Overload | undefined =>
     command.overloads.find(
-        (overload) =>
-            matches(overload, args) &&
-            // The circle through three points is in their plane in space.
-            overload.tag !== (vec3 ? "C3p" : "C3s"),
+        (overload) => matches(overload, args) && !otherView(overload.tag, vec3),
     );
 
 // The command, and its arguments, that writes this entry.

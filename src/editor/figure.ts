@@ -1473,7 +1473,20 @@ function createdStyle(tag: string): Record<string, unknown> | undefined {
             f: 26,
         };
     if (tag === "Sph" || tag === "Sph1") return { o: 0.5 };
-    if (["Poly", "Sec", "PlS", "Pl", "PlP", "PlL", "PlO", "PlE"].includes(tag))
+    if (
+        [
+            "Poly",
+            "Sec",
+            "Secs",
+            "QSec",
+            "PlS",
+            "Pl",
+            "PlP",
+            "PlL",
+            "PlO",
+            "PlE",
+        ].includes(tag)
+    )
         return { o: 0.2 };
     // Its value shown, as by DGPad's calculator.
     if (tag === "Ex") return { p: 2, f: 24 };

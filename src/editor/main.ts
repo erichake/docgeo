@@ -49,6 +49,7 @@ import {
     findCommand,
     FUNCTIONS,
     isCommand,
+    otherView,
     overloadFor,
     paramAt,
     readable,
@@ -2373,7 +2374,7 @@ function typedCall(
     return {
         args: args as Arg[],
         overloads: overloadsAt(context).filter(
-            ({ tag }) => tag !== (vec3() ? "C3p" : "C3s"),
+            ({ tag }) => !otherView(tag, vec3()),
         ),
     };
 }

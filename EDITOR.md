@@ -314,9 +314,10 @@ la GeoGebra, l'outil choisi avant les objets.
 - **Plus d'outils que l'anneau**, qui reste léger : à la fin de leur
   famille, `AutreIntersection` (points), `Compas`, en 3D « Cercle
   (centre, direction et rayon) » et « Cercle (axe et point) », `Arc`,
-  `Secteur`,
-  `ArcCentre`, `SecteurCentre` (le centre, le début, puis un point de la
-  demi-droite où il finit), `DemiCercle`, et les familles « Plans » et
+  `Secteur` (trois points, en 3D dans leur plan, ou un cercle ou une conique puis deux
+  points), `ArcCentre`, `SecteurCentre` (le centre, le début, puis un point
+  de la demi-droite où il finit ; en 3D, l'arc de l'angle AMB, dans son
+  plan), `DemiCercle`, et les familles « Plans » et
   « Solides » (3D),
   `Conique`, `Ellipse`, `Hyperbole` et `Parabole` (« Cercles, arcs,
   coniques »), ces trois-là comme dans GeoGebra : deux foyers puis un
@@ -1649,7 +1650,8 @@ Fait (2026-10-11) :
   (comparés sans casse ni accents), écriture et relecture des entrées `.dgo`
   de `Pt`, `Fix`, `On`, `Mid`, `Line`, `Seg`, `Ray`, `Vec`, `Par`, `Perp`,
   `Med`, `Bis`, `Cir`, `C1` (rayon numérique), `C3`, `C3p`, `C3s`, `Arc`,
-  `Sec`, `Ctr`, `Int`, `Poly`, `Ang`, `Sym`, `Refl`, `Quad`, `Sph`, `Loc`.
+  `Sec`, `Arcs`, `Secs`, `CArc`, `CSec`, `CArcs`, `CSecs`, `QArc`, `QSec`,
+  `Ctr`, `Int`, `Poly`, `Ang`, `Sym`, `Refl`, `Quad`, `Sph`, `Loc`.
   Les autres objets s'affichent en lecture seule (`nom = …`).
 - Langage (`text.ts`) : `nom = Commande(args)`, `A = (x, y)` ou `(x, y, z)`
   pour un point libre, `nom =` supprime ; noms non identifiants entre

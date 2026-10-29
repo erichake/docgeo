@@ -105,7 +105,7 @@ export class quadric5pts_object extends primitive_quadric_object {
     }
 
     // Its first 3 points, in plane coordinates.
-    protected frame(): Vec3[] {
+    frame(): Vec3[] {
         return [this.P1, this.P2, this.P3].map((point) =>
             this.toPlane(point.coords),
         );

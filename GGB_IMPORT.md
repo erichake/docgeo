@@ -93,6 +93,7 @@ figure sont seulement comptés. L'API utilisée est
 | 2026-10-17 | 245 / 438 (56 %)   | 365,9 Ko | item 38 : `Sequence` natifs, listes lues par leur nom (+0)         |
 | 2026-10-21 | 245 / 438 (56 %)   | 370,5 Ko | item 39 : suites de cercles orientés, détection 3D (+0)            |
 | 2026-10-28 | —                  | 372,0 Ko | item 40 : points sur une sphère, un cylindre, un cône (+0)         |
+| 2026-10-29 | 251 / 456 (55 %)   | 376,9 Ko | item 41 : arcs et secteurs d'un cercle ou d'une ellipse (+6)       |
 
 ## À faire, par rapport gain / coût
 
@@ -671,6 +672,23 @@ cause.
       le contour quand le pointeur en sort, sans animation. Aucune figure du
       corpus n'en contient : **+0**. Moteur 370 312 → 372 001 octets
       (+1,7 Ko, +0,5 Ko en gzip), chargeur du lecteur +13 octets.
+- [x] **41. Arcs et secteurs d'un cercle ou d'une ellipse** :
+      `Arc(c, P, Q)` et `Sector(c, P, Q)` deviennent les objets `QArc` et
+      `QSec` de `DGO.md` (commandes DGP propres à DocGeo `ArcOnCircle`,
+      `SectorOnCircle`, `ArcOnConic`, `SectorOnConic`), de P à Q dans le
+      sens direct, P et Q pris à leur angle sur un cercle (un point qui
+      n'est pas sur le cercle, comme dans « What is a Radian? », garde le
+      rayon du cercle), ramenés sur l'ellipse sinon. Le corpus n'en avait
+      aucune : 18 figures en contenant, trouvées par l'API avec les
+      recherches « arc ellipse », « kepler », « loi des aires », « arco de
+      elipse », « radian », « inscribed angle arc », « Kreisbogen », « arco
+      circunferencia »… et filtrées sur ces commandes, y ont été ajoutées
+      (corpus de 456 figures). **+6** (251 sans perte au lieu de 245),
+      toutes avec des arcs de cercle ; celles d'ellipses (dont « Deuxième
+      loi de Kepler ») ont d'autres manques. Non traduits : la forme à
+      paramètres `Arc(c, t1, t2)` (une figure, qui a 19 autres manques),
+      les arcs d'hyperbole et de parabole. Moteur 376,0 → 376,9 Ko
+      (+0,9 Ko).
 
 À écarter, sauf changement de priorité : calcul formel, courbes implicites,
 statistiques et probabilités, tableur au-delà des cellules simples, matrices.

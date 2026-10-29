@@ -1,14 +1,5 @@
 import type { construction } from "../construction";
-import {
-    geometryTolerance,
-    vAdd,
-    vCross,
-    vDot,
-    vNorm,
-    vScale,
-    vSub,
-    type Vec3,
-} from "../vec";
+import { vAdd, vCross, vDot, vScale, vSub, type Vec3 } from "../vec";
 import type { DgoContext } from "./construction_object";
 import type { point_object } from "./point_object";
 import { primitive_circle_object } from "./primitive_circle_object";
@@ -49,11 +40,11 @@ export class circle3pts_object extends primitive_circle_object {
             this.defined = false;
             return;
         }
-        if (this.space) {
-            this.computeInSpace();
-            return;
-        }
-        this.setCircleThrough(this.P1.coords, this.P2.coords, this.P3.coords);
+        const [a, b, c] = [this.P1, this.P2, this.P3].map(
+            (point) => point.coords,
+        );
+        if (this.space) this.setCircleInSpace(a, b, c);
+        else this.setCircleThrough(a, b, c);
     }
 
     // DGPad's Circle3pts3D point number `index`, its parameter: on the arcs
@@ -95,30 +86,6 @@ export class circle3pts_object extends primitive_circle_object {
         return [0, 1, 2].map(
             (offset) => [this.P1, this.P2, this.P3][(arc + offset) % 3].coords,
         );
-    }
-
-    private computeInSpace(): void {
-        const a = this.P1.coords;
-        const u = vSub(this.P2.coords, a);
-        const v = vSub(this.P3.coords, a);
-        const normal = vCross(u, v);
-        const normal2 = vDot(normal, normal);
-        const scale = vNorm(u) * vNorm(v);
-        if (Math.sqrt(normal2) <= geometryTolerance(scale)) {
-            this.defined = false;
-            return;
-        }
-        const center = vAdd(
-            a,
-            vScale(
-                vAdd(
-                    vScale(vCross(v, normal), vDot(u, u)),
-                    vScale(vCross(normal, u), vDot(v, v)),
-                ),
-                1 / (2 * normal2),
-            ),
-        );
-        this.setCircle(center, vNorm(vSub(a, center)), u, vCross(normal, u));
     }
 }
 

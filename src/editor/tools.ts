@@ -7,6 +7,7 @@ import {
     accepts,
     commandName,
     COMMANDS,
+    otherView,
     type Arg,
     type Command,
     type Overload,
@@ -82,6 +83,10 @@ function tool(
         icon,
     } as Tool;
 }
+
+// The tools of a command's first forms, together in one item.
+const forms = (name: string, count: number, icon: string): Tool[] =>
+    Array.from({ length: count }, (_, overload) => tool(name, overload, icon));
 
 // The tool of an item of its own among its command's.
 const labelled = (label: MessageKey, tool: Tool): Tool =>
@@ -351,17 +356,19 @@ const FAMILIES: [
                         dot(20.5, 13),
                 ),
             ),
-            tool(
+            // Three points, in the plane or in space, or a conic then two
+            // points.
+            forms(
                 "Arc",
-                0,
+                3,
                 result(path("M4 17A8 8 0 0 1 20 17")) +
                     dot(4, 17) +
                     dot(12, 9) +
                     dot(20, 17),
             ),
-            tool(
+            forms(
                 "Sector",
-                0,
+                3,
                 result(
                     `<path d="M6 18H18A12 12 0 0 0 6 6Z" fill="currentColor" fill-opacity=".1"/>`,
                 ) +
@@ -370,18 +377,18 @@ const FAMILIES: [
                     dot(6, 6),
             ),
             // The center, the start, then a point of the ray where it ends.
-            tool(
+            forms(
                 "CenterArc",
-                0,
+                2,
                 path("M6 18L14 4.1", true) +
                     result(path("M18 18A12 12 0 0 0 12 7.6")) +
                     dot(6, 18) +
                     dot(18, 18) +
                     dot(9.5, 11.9),
             ),
-            tool(
+            forms(
                 "CenterSector",
-                0,
+                2,
                 path("M12 7.6L14 4.1", true) +
                     result(
                         `<path d="M6 18H18A12 12 0 0 0 12 7.6Z" fill="currentColor" fill-opacity=".1"/>`,
@@ -791,14 +798,15 @@ for (const [name, hue, slots, menuOnly = [], tone = 1] of FAMILIES) {
 // The ring's circumference, in buttons.
 export const RING_SLOTS = slot - start;
 
-// The circle through three points is in their plane in space, the
-// perpendicular there to a line or a plane; the sphere, the circles around
-// an axis, the tools taking a plane, the planes and the solids only there.
+// The circle and the arcs through three points, the arcs of a center are
+// in their plane in space, the perpendicular there to a line or a plane;
+// the sphere, the circles around an axis, the tools taking a plane, the
+// planes and the solids only there.
 export const usable = (
     { command, overload: { tag, params }, family }: Tool,
     vec3: boolean,
 ): boolean =>
-    tag !== (vec3 ? "C3p" : "C3s") &&
+    !otherView(tag, vec3) &&
     (command.name !== "Perpendicular" || !tag === vec3) &&
     (vec3 ||
         (!["Sph", "CAx"].includes(tag) &&

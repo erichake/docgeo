@@ -261,8 +261,12 @@ export abstract class primitive_quadric_object extends construction_object {
     // towards the focus.
     protected axes: Vec3[] = [];
 
-    protected frame(): Vec3[] {
+    frame(): Vec3[] {
         return this.axes;
+    }
+
+    insideBounds(_point: Vec3): boolean {
+        return true;
     }
 
     // PointOn's parameter for a quadric: affine coordinates of a (generally

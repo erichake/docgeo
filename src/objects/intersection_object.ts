@@ -184,11 +184,13 @@ export class intersection_object extends point_object {
             `${this.O1.familytype}:${this.O2.familytype}`,
         )?.(this);
         // As in DGPad, an arc's intersections are those of its whole circle,
-        // undefined beyond the arc: a point keeps its order as it leaves it.
+        // or conic, undefined beyond the arc: a point keeps its order as it
+        // leaves it.
         if (
             [this.O1, this.O2].some(
                 (object) =>
-                    object instanceof primitive_circle_object &&
+                    (object instanceof primitive_circle_object ||
+                        object instanceof primitive_quadric_object) &&
                     !object.insideBounds(this.coords),
             )
         )
@@ -292,8 +294,11 @@ export class intersection_object extends point_object {
         const centers = vSub(second.CENTER, first.CENTER);
         const distance = vNorm(centers);
         const tolerance = geometryTolerance(distance, first.R, second.R);
+        if (vNorm(vCross(first.NORMAL, second.NORMAL)) > tolerance) {
+            this.computeCircleCircleInSpace(first, second, tolerance);
+            return;
+        }
         if (
-            vNorm(vCross(first.NORMAL, second.NORMAL)) > tolerance ||
             Math.abs(vDot(centers, first.NORMAL)) > tolerance ||
             distance <= tolerance ||
             distance > first.R + second.R + tolerance ||
@@ -318,6 +323,41 @@ export class intersection_object extends point_object {
             vNorm(side) <= tolerance
                 ? [base]
                 : [vAdd(base, side), vSub(base, side)];
+        this.coords = candidates[this.choose(candidates)];
+        super.computeGeometry();
+    }
+
+    // In two planes, as two circles of a sphere: the points of the first on
+    // the line common to both planes, if on the second.
+    private computeCircleCircleInSpace(
+        first: primitive_circle_object,
+        second: primitive_circle_object,
+        tolerance: number,
+    ): void {
+        const [n1, n2] = [first.NORMAL, second.NORMAL];
+        const direction = vCross(n1, n2);
+        const square = vDot(direction, direction);
+        const base = vScale(
+            vAdd(
+                vScale(vCross(n2, direction), vDot(n1, first.CENTER)),
+                vScale(vCross(direction, n1), vDot(n2, second.CENTER)),
+            ),
+            1 / square,
+        );
+        const u = vScale(direction, 1 / Math.sqrt(square));
+        const w = vSub(base, first.CENTER);
+        const b = vDot(w, u);
+        const discriminant = b * b - vDot(w, w) + first.R * first.R;
+        if (discriminant < -tolerance) return;
+        const root = Math.sqrt(Math.max(0, discriminant));
+        const candidates = (root <= tolerance ? [-b] : [-b + root, -b - root])
+            .map((t) => vAdd(base, vScale(u, t)))
+            .filter(
+                (point) =>
+                    Math.abs(vNorm(vSub(point, second.CENTER)) - second.R) <=
+                    tolerance,
+            );
+        if (!candidates.length) return;
         this.coords = candidates[this.choose(candidates)];
         super.computeGeometry();
     }

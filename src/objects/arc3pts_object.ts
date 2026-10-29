@@ -3,11 +3,13 @@ import type { DgoContext } from "./construction_object";
 import type { point_object } from "./point_object";
 import { normalizeAngle, primitive_arc_object } from "./primitive_arc_object";
 
-// The arc from P1 to P3 through P2.
+// The arc from P1 to P3 through P2: horizontal, or in their own plane
+// (`space`).
 export class arc3pts_object extends primitive_arc_object {
     P1: point_object;
     P2: point_object;
     P3: point_object;
+    space: boolean;
 
     constructor(
         c: construction,
@@ -16,17 +18,19 @@ export class arc3pts_object extends primitive_arc_object {
         p2: point_object,
         p3: point_object,
         sector: boolean,
+        space = false,
     ) {
         super(c, name, sector);
         this.P1 = p1;
         this.P2 = p2;
         this.P3 = p3;
+        this.space = space;
         this.addParents(p1, p2, p3);
     }
 
     dgo(context: DgoContext): [string, unknown] {
         return [
-            this.sector ? "Sec" : "Arc",
+            (this.sector ? "Sec" : "Arc") + (this.space ? "s" : ""),
             [this.P1, this.P2, this.P3].map(context.index),
         ];
     }
@@ -36,7 +40,11 @@ export class arc3pts_object extends primitive_arc_object {
             this.defined = false;
             return;
         }
-        this.setCircleThrough(this.P1.coords, this.P2.coords, this.P3.coords);
+        const [p, q, r] = [this.P1, this.P2, this.P3].map(
+            (point) => point.coords,
+        );
+        if (this.space) this.setCircleInSpace(p, q, r);
+        else this.setCircleThrough(p, q, r);
         if (!this.defined) return;
         const [a, b, c] = [this.P1, this.P2, this.P3].map((point) =>
             normalizeAngle(this.alphaOf(point.coords)),
@@ -56,6 +64,7 @@ export function createArc3pts(
     p2: point_object,
     p3: point_object,
     sector = false,
+    space = false,
 ): arc3pts_object {
-    return c.add(new arc3pts_object(c, name, p1, p2, p3, sector));
+    return c.add(new arc3pts_object(c, name, p1, p2, p3, sector, space));
 }

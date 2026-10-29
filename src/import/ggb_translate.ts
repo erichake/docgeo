@@ -2112,6 +2112,24 @@ export function translateGgb(
                 ]),
             );
 
+    // Arc(c, P, Q) of a circle or an ellipse: from P to Q counterclockwise,
+    // each taken where it projects onto c.
+    const arcOn =
+        (sector: boolean): Handler =>
+        ([support, p, q, extra], [label]) => {
+            if (extra !== undefined || !points(p, q)) return false;
+            const circle = is(support, ["circle"]);
+            return (
+                (circle || is(support, ["quadric"])) &&
+                define(
+                    label,
+                    circle ? "circle" : "quadric",
+                    `${sector ? "Sector" : "Arc"}On${circle ? "Circle" : "Conic"}`,
+                    [support, p, q].map(ref),
+                )
+            );
+        };
+
     // Ellipse(F, G, P) and Hyperbola(F, G, P) through P, or with semi-major
     // axis a.
     const focalConic =
@@ -2458,6 +2476,8 @@ export function translateGgb(
         CircumcircularArc: circumcircleArc(false),
         CircumcircleSector: circumcircleArc(true),
         CircumcircularSector: circumcircleArc(true),
+        Arc: arcOn(false),
+        Sector: arcOn(true),
         CircleArc: centerArc(false),
         CircularArc: centerArc(false),
         CircleSector: centerArc(true),

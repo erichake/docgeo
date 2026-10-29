@@ -19,6 +19,7 @@ import {
 } from "./objects/angle_object";
 import { createArc3pts } from "./objects/arc3pts_object";
 import { createCenterArc } from "./objects/center_arc_object";
+import { createConicArc } from "./objects/conic_arc_object";
 import { createSemicircle } from "./objects/semicircle_object";
 import { createTangent } from "./objects/tangent_object";
 import { createInversion } from "./objects/inversion_object";
@@ -238,10 +239,14 @@ export const LOOKS: Record<string, Look> = {
     C3s: CIRCLE,
     Arc: CIRCLE,
     Sec: CIRCLE,
+    Arcs: CIRCLE,
+    Secs: CIRCLE,
     CArc: CIRCLE,
+    CArcs: CIRCLE,
     SphC: CIRCLE,
     Disk: CIRCLE,
     CSec: CIRCLE,
+    CSecs: CIRCLE,
     Semi: CIRCLE,
     CyS: CIRCLE,
     EqC: CIRCLE,
@@ -252,6 +257,8 @@ export const LOOKS: Record<string, Look> = {
     Hyp1: CIRCLE,
     Prb: CIRCLE,
     EqQ: CIRCLE,
+    QArc: CIRCLE,
+    QSec: CIRCLE,
     Sph: POLYGON,
     Sph1: POLYGON,
     Cyl: SOLID,
@@ -1442,6 +1449,21 @@ const centerArc =
         );
     };
 
+// Of a circle or a conic, from P to Q counterclockwise.
+const conicArc =
+    (sector: boolean): Builder =>
+    (parameters, { c, name, at }) => {
+        const [conic, p, q] = list(parameters, 3);
+        return createConicArc(
+            c,
+            name,
+            at(conic, primitive_quadric_object, primitive_circle_object),
+            at(p, point_object),
+            at(q, point_object),
+            sector,
+        );
+    };
+
 // Of an equation, its two sides each a formula in x and y, or in x, y and
 // z for a plane.
 const equation =
@@ -1760,6 +1782,12 @@ const BUILDERS: Record<string, Builder> = {
     Sec: threePoints((c, name, p, q, r) =>
         createArc3pts(c, name, p, q, r, true),
     ),
+    Arcs: threePoints((c, name, p, q, r) =>
+        createArc3pts(c, name, p, q, r, false, true),
+    ),
+    Secs: threePoints((c, name, p, q, r) =>
+        createArc3pts(c, name, p, q, r, true, true),
+    ),
     Inv: (parameters, { c, name, at }) => {
         const [circle, point] = list(parameters, 2);
         return createInversion(
@@ -1822,6 +1850,14 @@ const BUILDERS: Record<string, Builder> = {
     },
     CArc: centerArc(false),
     CSec: centerArc(true),
+    CArcs: threePoints((c, name, m, a, b) =>
+        createCenterArc(c, name, m, a, b, false, false, true),
+    ),
+    CSecs: threePoints((c, name, m, a, b) =>
+        createCenterArc(c, name, m, a, b, true, false, true),
+    ),
+    QArc: conicArc(false),
+    QSec: conicArc(true),
     Semi: (parameters, { c, name, points }) => {
         const [a, b] = points(parameters, 2);
         return createSemicircle(c, name, a, b);

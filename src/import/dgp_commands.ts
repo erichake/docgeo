@@ -8,6 +8,7 @@ import {
 } from "../objects/angle_object";
 import { createArc3pts } from "../objects/arc3pts_object";
 import { createCenterArc } from "../objects/center_arc_object";
+import { createConicArc } from "../objects/conic_arc_object";
 import { createSemicircle } from "../objects/semicircle_object";
 import { createInversion } from "../objects/inversion_object";
 import { createRegularPolygon } from "../objects/regular_polygon_object";
@@ -106,6 +107,7 @@ import {
 } from "../objects/point_object";
 import { createPolygon, polygon_object } from "../objects/polygon_object";
 import { primitive_circle_object } from "../objects/primitive_circle_object";
+import type { primitive_quadric_object } from "../objects/primitive_quadric_object";
 import { primitive_line_object } from "../objects/primitive_line_object";
 import { createQuadric5pts } from "../objects/quadric5pts_object";
 import { createFocalConic } from "../objects/focal_conic_object";
@@ -185,6 +187,7 @@ type ParameterKind =
     | "pointOn"
     | "line"
     | "circle"
+    | "quadric"
     | "intersectable"
     | "pointSupport"
     | "coordinate"
@@ -249,6 +252,7 @@ const point: Parameter = { kind: "point" };
 const pointOn: Parameter = { kind: "pointOn" };
 const line: Parameter = { kind: "line" };
 const circle: Parameter = { kind: "circle" };
+const quadric: Parameter = { kind: "quadric" };
 const intersectable: Parameter = { kind: "intersectable" };
 const pointSupport: Parameter = { kind: "pointSupport" };
 const coordinate: Parameter = { kind: "coordinate" };
@@ -608,6 +612,21 @@ const centerArc = (sector: boolean): CommandDefinition => ({
             args[3] as point_object,
             sector,
             args[4] === true,
+        ),
+});
+
+// Of a circle or a conic, from P to Q counterclockwise.
+const arcOn = (support: Parameter, sector: boolean): CommandDefinition => ({
+    parameters: [string, support, point, point],
+    result: support === circle ? "circle" : "quadric",
+    execute: (context, args) =>
+        createConicArc(
+            context.construction,
+            args[0] as string,
+            args[1] as primitive_circle_object | primitive_quadric_object,
+            args[2] as point_object,
+            args[3] as point_object,
+            sector,
         ),
 });
 
@@ -2249,6 +2268,10 @@ const COMMANDS = new Map<string, CommandDefinition>([
     ],
     ["CenterArc", centerArc(false)],
     ["CenterSector", centerArc(true)],
+    ["ArcOnCircle", arcOn(circle, false)],
+    ["SectorOnCircle", arcOn(circle, true)],
+    ["ArcOnConic", arcOn(quadric, false)],
+    ["SectorOnConic", arcOn(quadric, true)],
     [
         "Semicircle",
         {

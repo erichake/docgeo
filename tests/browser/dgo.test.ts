@@ -18,7 +18,13 @@ import {
 import { formatName } from "../../src/editor/text";
 import { importGgb, importGgbFromUrl } from "../../src/ggb_importer";
 import { parseProgram } from "../../src/import/dgp_formula";
+import type { arc3pts_object } from "../../src/objects/arc3pts_object";
 import { button_object } from "../../src/objects/button_object";
+import type { center_arc_object } from "../../src/objects/center_arc_object";
+import type {
+    circle_arc_object,
+    conic_arc_object,
+} from "../../src/objects/conic_arc_object";
 import { expression_list_object } from "../../src/objects/expression_list_object";
 import {
     expression_object,
@@ -305,6 +311,40 @@ describe(".dgo writer", () => {
             },
         ));
 
+    // From P to Q counterclockwise, each at its angle: P inside the circle.
+    it("keeps arcs and sectors of circles and ellipses", async () => {
+        const open = async (c: construction) =>
+            importGgb(
+                c,
+                `<geogebra><construction>
+<element type="point" label="M"><coords x="0" y="0" z="1"/></element>
+<element type="point" label="A"><coords x="2" y="0" z="1"/></element>
+<element type="point" label="P"><coords x="0" y="1" z="1"/></element>
+<element type="point" label="Q"><coords x="2" y="0.5" z="1"/></element>
+<command name="Circle"><input a0="M" a1="A"/><output a0="c"/></command>
+<element type="conic" label="c"/>
+<command name="Arc"><input a0="c" a1="P" a2="Q"/><output a0="a"/></command>
+<element type="conicpart" label="a"/>
+<element type="point" label="F"><coords x="-1" y="0" z="1"/></element>
+<command name="Ellipse"><input a0="F" a1="A" a2="P"/><output a0="e"/></command>
+<element type="conic" label="e"/>
+<command name="Sector"><input a0="e" a1="Q" a2="P"/><output a0="s"/></command>
+<element type="conicpart" label="s"/>
+</construction></geogebra>`,
+            );
+        const c = createConstruction();
+        expect(await open(c)).toEqual([]);
+        c.flush();
+        const a = c.getObj("a") as circle_arc_object;
+        expect(a.R).toBeCloseTo(2);
+        // From the top of the circle, by the left, to Q's angle.
+        expectClose(a.pointAt(a.startAlpha), [0, 2, 0]);
+        expect(a.insideBounds([-2, 0, 0])).toBe(true);
+        expect(a.insideBounds([Math.SQRT2, Math.SQRT2, 0])).toBe(false);
+        expect((c.getObj("s") as conic_arc_object).defined).toBe(true);
+        await roundTrip(open);
+    });
+
     it("keeps tangents to circles, conics and functions' curves", () =>
         roundTrip(
             async (c) =>
@@ -532,6 +572,97 @@ describe(".dgo reader", () => {
         expect(value("s", "R")).toBe(2);
         expect(value("t", "content")).toBe("d = 4");
         expect(value("f", "valueDegrees")).toBe(40);
+    });
+
+    // The arcs of a sphere's great circles, in the plane of their points.
+    it("reads arcs in space, and writes them back", async () => {
+        const c = createConstruction();
+        readDgo(c, {
+            dgo: 1,
+            v: { o: [400, 300], u: 40, w: 800, h: 600, "3d": 1 },
+            o: [
+                ["Pt", "O", [0, 0, 0]],
+                ["Pt", "A", [1, 0, 0]],
+                ["Pt", "B", [0, 1, 0]],
+                ["Pt", "C", [0, 0, 1]],
+                ["CArcs", "g", [0, 1, 3]],
+                ["Arcs", "h", [1, 2, 3]],
+                ["CSecs", "s", [0, 3, 2]],
+                ["Int", "I", [4, 5, 0]],
+            ],
+        });
+        c.flush();
+        const [g, h, s] = ["g", "h", "s"].map(
+            (name) => c.getObj(name) as center_arc_object | arc3pts_object,
+        );
+        expect(g.defined && h.defined && s.defined).toBe(true);
+        expect(g.R).toBeCloseTo(1);
+        expectClose(g.pointAt(g.startAlpha + Math.PI / 4), [
+            Math.SQRT1_2,
+            0,
+            Math.SQRT1_2,
+        ]);
+        // The short way, from C to B.
+        expect(
+            s.insideBounds([0, Math.SQRT1_2, Math.SQRT1_2]) &&
+                !s.insideBounds([0, -Math.SQRT1_2, Math.SQRT1_2]),
+        ).toBe(true);
+        expectClose(h.CENTER, [1 / 3, 1 / 3, 1 / 3]);
+        expect(h.insideBounds([0, 1, 0])).toBe(true);
+        // Opposite B.
+        expect(h.insideBounds([2 / 3, -1 / 3, 2 / 3])).toBe(false);
+        // The two arcs meet at A and at C.
+        expect((c.getObj("I") as point_object).defined).toBe(true);
+        const saved = await describeDgo(c);
+        expect(saved.o.slice(4, 7).map(([tag]) => tag)).toEqual([
+            "CArcs",
+            "Arcs",
+            "CSecs",
+        ]);
+    });
+
+    it("reads arcs of an ellipse, bounded at their ends", () => {
+        const c = createConstruction();
+        readDgo(c, {
+            dgo: 1,
+            v: { o: [400, 300], u: 40, w: 800, h: 600 },
+            o: [
+                ["Pt", "F", [-1, 0]],
+                ["Pt", "G", [1, 0]],
+                ["Ell1", "e", [0, 1, 2]],
+                ["Pt", "P", [2, 0]],
+                ["Pt", "Q", [0, 3]],
+                ["QArc", "a", [2, 3, 4]],
+                ["QSec", "s", [2, 4, 3]],
+                ["Pt", "O", [0, 0]],
+                ["Pt", "X", [1, 1]],
+                ["Line", "d", [7, 8]],
+                ["Int", "I", [5, 9, 0]],
+                ["Int", "J", [5, 9, 1]],
+                ["On", "M", [5, [-1, -0.2]]],
+            ],
+        });
+        c.flush();
+        const [a, s] = ["a", "s"].map(
+            (name) => c.getObj(name) as conic_arc_object,
+        );
+        expect(a.defined && s.defined).toBe(true);
+        expect(a.span).toBeCloseTo(Math.PI / 2);
+        // From Q to P counterclockwise: three quarters of the ellipse.
+        expect(s.span).toBeCloseTo((3 * Math.PI) / 2);
+        expect(s.path.getAtt("d")).toMatch(/^M0 0 L.* Z$/);
+        // Of the line's two points on the ellipse, only that of the arc.
+        const [I, J] = ["I", "J"].map((name) => c.getObj(name) as point_object);
+        expect([I, J].filter((point) => point.defined)).toHaveLength(1);
+        const met = I.defined ? I : J;
+        expect(met.x).toBeGreaterThan(0);
+        expect(met.y).toBeCloseTo(met.x);
+        // Beyond the arc, at its nearest end.
+        expectClose((c.getObj("M") as point_object).coords, [
+            0,
+            Math.sqrt(3),
+            0,
+        ]);
     });
 
     it("reads plain JSON as well as gzip", async () => {
