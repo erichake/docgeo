@@ -5450,6 +5450,29 @@ $("body").on(
     { prevent: false, passive: true },
 );
 
+$("html").on(
+    "pointermove",
+    () => {
+        if (scene().svg.pinching) dragged();
+    },
+    { capture: true, prevent: false, passive: true },
+);
+
+$("body").on(
+    "pointercancel",
+    (event) => {
+        if (!event.isPrimary || !inFigure(event)) return;
+        down = label = sized = moved = framed = typing = aim = null;
+        clearPreview();
+        highlight();
+        window.setTimeout(() => {
+            scene().flush();
+            void record().then(() => updateRows());
+        });
+    },
+    { capture: true, prevent: false },
+);
+
 $("body").on(
     "pointermove",
     (event) => {

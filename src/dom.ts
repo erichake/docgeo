@@ -27,6 +27,7 @@ export class DOMElement {
     private readonly listeners: ListenerRegistration[] = [];
     private readonly cleanups = new Set<() => void>();
     private value: unknown;
+    pinching = false;
 
     constructor(element: Element) {
         this.element = element;
@@ -282,6 +283,102 @@ export class DOMElement {
         });
         this.cleanups.add(() => {
             pointerId = null;
+        });
+        return this;
+    }
+
+    pinch(
+        callback: (
+            scale: number,
+            from: PointerPosition,
+            to: PointerPosition,
+        ) => void,
+    ): this {
+        this.stl("touch-action", "none");
+        const root = $(this.element.ownerDocument.documentElement);
+        const pointers = new Map<number, PointerEvent>();
+        let cancelling = false;
+        const geometry = (): [PointerPosition, number] => {
+            const [a, b] = [...pointers.values()].map((event) =>
+                this.element instanceof SVGElement
+                    ? this.svgPoint(event)
+                    : [event.clientX, event.clientY],
+            );
+            return [
+                [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2],
+                Math.hypot(a[0] - b[0], a[1] - b[1]),
+            ];
+        };
+        const consume = (event: PointerEvent): void => {
+            event.preventDefault();
+            event.stopPropagation();
+        };
+        const options = { capture: true, prevent: false };
+        // Before the editor's body listeners and the objects' drag handlers.
+        const down = root.on(
+            "pointerdown",
+            (event) => {
+                if (
+                    event.pointerType !== "touch" ||
+                    !this.element.contains(event.target as Node)
+                )
+                    return;
+                pointers.set(event.pointerId, event);
+                if (pointers.size === 2 && !this.pinching) {
+                    const first = pointers.values().next().value!;
+                    cancelling = true;
+                    first.target!.dispatchEvent(
+                        new PointerEvent("pointercancel", first),
+                    );
+                    cancelling = false;
+                    this.pinching = true;
+                    this.element.setPointerCapture(first.pointerId);
+                }
+                if (this.pinching) {
+                    this.element.setPointerCapture(event.pointerId);
+                    consume(event);
+                }
+            },
+            options,
+        );
+        const move = root.on(
+            "pointermove",
+            (event) => {
+                if (!pointers.has(event.pointerId)) return;
+                const previous = pointers.size === 2 ? geometry() : null;
+                pointers.set(event.pointerId, event);
+                if (!this.pinching) return;
+                if (previous && previous[1] > 0) {
+                    const [center, distance] = geometry();
+                    if (distance > 0)
+                        callback(distance / previous[1], previous[0], center);
+                }
+                consume(event);
+            },
+            options,
+        );
+        const finish = (event: PointerEvent): void => {
+            if (cancelling || !pointers.delete(event.pointerId)) return;
+            if (!this.pinching) return;
+            consume(event);
+            if (this.element.hasPointerCapture(event.pointerId))
+                this.element.releasePointerCapture(event.pointerId);
+            // Consume the remaining finger too: lifting it must not click.
+            if (!pointers.size) this.pinching = false;
+        };
+        const up = root.on("pointerup", finish, options);
+        const cancel = root.on("pointercancel", finish, options);
+        this.cleanups.add(() => {
+            root.off("pointerdown", down, true);
+            root.off("pointermove", move, true);
+            root.off("pointerup", up, true);
+            root.off("pointercancel", cancel, true);
+            pointers.forEach((_, id) => {
+                if (this.element.hasPointerCapture(id))
+                    this.element.releasePointerCapture(id);
+            });
+            pointers.clear();
+            this.pinching = false;
         });
         return this;
     }

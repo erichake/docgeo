@@ -158,18 +158,24 @@ export class construction {
                 : event.deltaMode === WheelEvent.DOM_DELTA_PAGE
                   ? this.height
                   : 1);
+        // Trackpad pinches arrive as Ctrl-wheel with much smaller deltas.
+        this.zoom(
+            Math.exp(-delta / (event.ctrlKey ? 100 : 2000)),
+            this.svg.svgPoint(event),
+        );
+    }
+
+    private zoom(factor: number, from: Vec2, to = from): void {
         const [ux, uy, uz] = this.GRID.UNIT;
-        const scale =
-            Math.min(
-                Math.max(ux * Math.exp(-delta / 2000), MIN_UNIT),
-                MAX_UNIT,
-            ) / ux;
+        const scale = Math.min(Math.max(ux * factor, MIN_UNIT), MAX_UNIT) / ux;
         const [ox, oy] = this.GRID.ORG;
         const { centerZoom, lockOx, lockOy } = this.GRID;
-        const [px, py] = this.svg.svgPoint(event);
-        const x = centerZoom || lockOy ? ox : px;
-        const y = centerZoom || lockOx ? oy : py;
-        this.GRID.ORG = [x + (ox - x) * scale, y + (oy - y) * scale];
+        const x = centerZoom || lockOy ? ox : from[0];
+        const y = centerZoom || lockOx ? oy : from[1];
+        this.GRID.ORG = [
+            x + (ox - x) * scale + (centerZoom || lockOy ? 0 : to[0] - from[0]),
+            y + (oy - y) * scale + (centerZoom || lockOx ? 0 : to[1] - from[1]),
+        ];
         this.GRID.UNIT = [ux * scale, uy * scale, uz * scale];
         this.traceEpoch++;
         this.invalidateProjection();
@@ -500,6 +506,9 @@ export class construction {
 
     private bindSceneEvents(element: DOMElement): void {
         element
+            .pinch((scale, from, to) =>
+                this.zoom(scale, from, this.panLocked ? from : to),
+            )
             .drag(
                 (event, delta) => this.pan(event, delta),
                 (event) =>

@@ -44,6 +44,47 @@ const drag: BrowserCommand<
     }
 };
 
+const pinch: BrowserCommand<
+    [selector: string, from: [Position, Position], to: [Position, Position]]
+> = async ({ page, frame }, selector, from, to) => {
+    const iframe = (await frame()).locator(selector);
+    const box = (await iframe.boundingBox())!;
+    const scale =
+        box.width /
+        (await iframe.evaluate((el) => (el as HTMLElement).offsetWidth));
+    const cdp = await page.context().newCDPSession(page);
+    const points = (step: number) =>
+        from.map(([x, y], id) => ({
+            id,
+            x: box.x + (x + ((to[id][0] - x) * step) / 10) * scale,
+            y: box.y + (y + ((to[id][1] - y) * step) / 10) * scale,
+        }));
+    await cdp.send("Input.dispatchTouchEvent", {
+        type: "touchStart",
+        touchPoints: points(0),
+    });
+    for (let step = 1; step <= 10; step++)
+        await cdp.send("Input.dispatchTouchEvent", {
+            type: "touchMove",
+            touchPoints: points(step),
+        });
+    await cdp.send("Input.dispatchTouchEvent", {
+        type: "touchEnd",
+        touchPoints: points(10).slice(0, 1),
+    });
+    await cdp.send("Input.dispatchTouchEvent", {
+        type: "touchMove",
+        touchPoints: points(10)
+            .slice(0, 1)
+            .map((p) => ({ ...p, x: p.x + 20 })),
+    });
+    await cdp.send("Input.dispatchTouchEvent", {
+        type: "touchEnd",
+        touchPoints: [],
+    });
+    await cdp.detach();
+};
+
 export default defineConfig({
     plugins: [
         {
@@ -67,7 +108,7 @@ export default defineConfig({
             provider: playwright(),
             headless: true,
             instances: [{ browser: "chromium" }],
-            commands: { drag },
+            commands: { drag, pinch },
         },
     },
 });

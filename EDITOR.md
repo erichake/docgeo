@@ -2312,3 +2312,27 @@ enregistrées sont conservées. Vérifié par les tests de création et retrait
 l'éditeur intégré, et par le geste de l'anneau suivi d'une rotation dans
 `editor.html`. Contrôle du manuel passé dans les 12 langues. Moteur et
 lecteur : +199 octets (+55 en gzip) ; éditeur : +119 octets (+51 en gzip).
+
+### Zoom au pincement — 2026-10-28
+
+Le lecteur et l'éditeur distinguent le pincement du pavé tactile (événements
+Ctrl-molette) de la molette : sa sensibilité est multipliée par 20, celle de
+la molette reste inchangée. Sur écran tactile, écarter ou rapprocher deux
+doigts zoome selon le rapport de leurs distances ; les glisser ensemble
+déplace la vue, sans la faire tourner en 3D. Le milieu des doigts reste le
+centre du geste, dans les coordonnées du SVG, y compris en iframe réduite.
+Les limites de zoom et les réglages du repère restent appliqués ; le
+verrouillage intégré garde le zoom mais empêche le déplacement à deux doigts.
+
+Le deuxième doigt annule le glisser du premier ; les événements du pincement
+sont consommés jusqu'au retrait de tous les doigts, pour ne déplacer aucun
+objet ni créer de point au relâchement. Les indications de l'éditeur suivent
+la vue. Le manuel décrit les gestes dans les 12 langues.
+
+Vérifié par les tests du moteur (ancrage, sensibilité, objet sous le doigt,
+verrouillage et doigt restant), par des contacts tactiles envoyés au navigateur
+dans l'éditeur intégré (vide et point) et dans le lecteur réduit à moitié.
+Suites complètes : 274 tests unitaires et 1 269 tests navigateur passés ;
+contrôle du manuel passé dans les 12 langues. Pas d'essai sur appareil iOS
+physique. Moteur et lecteur : +1 549 octets (environ +510 en gzip) ; code
+propre à l'éditeur : +265 octets (+65 en gzip).

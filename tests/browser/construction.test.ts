@@ -432,6 +432,67 @@ describe("SVG scene", () => {
         expect(point.screen[1]).toBeCloseTo(anchor[1]);
     });
 
+    it("gives a trackpad pinch its own sensitivity and keeps its anchor", () => {
+        const c = createConstruction();
+        const point = createPoint(c, "A", [1, 0, 0]);
+        const anchor = [...point.screen];
+        const unit = c.GRID.UNIT[0];
+        c.svg.dom().dispatchEvent(
+            new WheelEvent("wheel", {
+                ctrlKey: true,
+                deltaY: -100 * Math.log(2),
+                clientX: anchor[0],
+                clientY: anchor[1],
+            }),
+        );
+        c.flush();
+        expect(c.GRID.UNIT[0]).toBeCloseTo(2 * unit);
+        expect(point.screen[0]).toBeCloseTo(anchor[0]);
+        expect(point.screen[1]).toBeCloseTo(anchor[1]);
+    });
+
+    it.each([false, true])(
+        "pinches about the two fingers in SVG coordinates (panLocked=%s)",
+        (locked) => {
+            const c = createConstruction();
+            c.panLocked = locked;
+            c.svg.stl("touch-action", "none");
+            const svg = c.svg.dom();
+            vi.spyOn(svg, "setPointerCapture").mockImplementation(() => {});
+            const point = createPoint(c, "A", [1, 0, 0]);
+            const coords = [...point.coords];
+            const unit = c.GRID.UNIT[0];
+            const [x, y] = point.screen;
+            const matrix = (svg as SVGSVGElement).getScreenCTM()!;
+            const send = (type: string, id: number, sx: number, target = svg) =>
+                target.dispatchEvent(
+                    new PointerEvent(type, {
+                        bubbles: true,
+                        cancelable: true,
+                        pointerType: "touch",
+                        pointerId: id,
+                        isPrimary: id === 1,
+                        clientX: matrix.a * sx + matrix.e,
+                        clientY: matrix.d * y + matrix.f,
+                    }),
+                );
+            send("pointerdown", 1, x, point.dom.dom());
+            send("pointerdown", 2, x + 100);
+            send("pointermove", 2, x + 200);
+            c.flush();
+            expect(c.GRID.UNIT[0]).toBeCloseTo(2 * unit);
+            expect(point.coords).toEqual(coords);
+            expect(point.screen[0]).toBeCloseTo(locked ? x - 50 : x);
+            send("pointerup", 2, x + 200);
+            const origin = [...c.GRID.ORG];
+            send("pointermove", 1, x - 20);
+            send("pointerup", 1, x - 20);
+            expect(c.GRID.ORG).toEqual(origin);
+            expect(point.coords).toEqual(coords);
+            expect(c.svg.pinching).toBe(false);
+        },
+    );
+
     it("owns the background and recenters itself after resizing", async () => {
         const c = createConstruction();
         const point = createPoint(c, "A", [0, 0, 0]);

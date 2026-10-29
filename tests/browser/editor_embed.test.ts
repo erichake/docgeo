@@ -1,8 +1,18 @@
 import { afterEach, describe, expect, it } from "vitest";
+import { commands } from "vitest/browser";
 import { $ } from "../../src/dom";
 import { expectClose, figure as fixture } from "./figures";
 
 type Message = Record<string, any>;
+declare module "vitest/browser" {
+    interface BrowserCommands {
+        pinch(
+            selector: string,
+            from: [[number, number], [number, number]],
+            to: [[number, number], [number, number]],
+        ): Promise<void>;
+    }
+}
 const cleanup: (() => void)[] = [];
 afterEach(() => cleanup.splice(0).forEach((dispose) => dispose()));
 
@@ -62,6 +72,52 @@ async function decoded(data: ArrayBuffer): Promise<Message> {
 }
 
 describe("embedded editor", () => {
+    it.each([false, true])(
+        "pinches without moving an object or creating a point (onObject=%s)",
+        async (onObject) => {
+            const { iframe, request } = await host();
+            iframe.style.transform = "scale(.4)";
+            iframe.style.transformOrigin = "0 0";
+            expect(
+                await request("load", {
+                    data: encoded({
+                        dgo: 1,
+                        v: { o: [450, 350], u: 40, w: 900, h: 600 },
+                        st: [{ sn: 1 }],
+                        o: [["Pt", "A", [0, 0], 0]],
+                    }),
+                    format: "dgo",
+                }),
+            ).toMatchObject({ ok: true });
+            const before = await decoded((await request("save")).result.data);
+            const page = iframe.contentDocument!;
+            const label = [...page.querySelectorAll("svg text")].find(
+                (el) => el.textContent === "A",
+            )!;
+            const group = label.parentElement as unknown as SVGGraphicsElement;
+            const { e: x, f: y } = group.getScreenCTM()!;
+            const left = onObject ? x : x - 100;
+            await commands.pinch(
+                "iframe",
+                [
+                    [left, y],
+                    [left + 100, y],
+                ],
+                [
+                    [left - 50, y],
+                    [left + 150, y],
+                ],
+            );
+            const after = await decoded((await request("save")).result.data);
+            expect(after.v.u).toBeCloseTo(2 * before.v.u);
+            expect(after.o).toEqual(before.o);
+            expect(
+                page.querySelector(".dge-ring:not([style*='display: none'])"),
+            ).toBeNull();
+            expect(page.defaultView!.visualViewport!.scale).toBe(1);
+        },
+    );
+
     it("shows a filled sphere preview and restores the floor when cancelled", async () => {
         const { iframe, request } = await host();
         await request("load", {

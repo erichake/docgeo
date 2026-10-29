@@ -68,6 +68,31 @@ function expectNear(actual: number[], expected: number[], tolerance = 0.5) {
 }
 
 describe("web page mode", () => {
+    it("pinches a figure scaled to half size around the fingers", async () => {
+        const iframe = page(
+            `/index.html?fit&url=${FIGURE}`,
+            "width: 500px; height: 325px",
+        );
+        const before = await pointAt(iframe, "A");
+        await commands.pinch(
+            "iframe",
+            [
+                [200, 150],
+                [300, 150],
+            ],
+            [
+                [150, 150],
+                [350, 150],
+            ],
+        );
+        const after = await pointAt(iframe, "A");
+        expectNear(after, [
+            500 + (before[0] - 500) * 2,
+            300 + (before[1] - 300) * 2,
+        ]);
+        expect(iframe.contentWindow!.visualViewport!.scale).toBe(1);
+    });
+
     it("shows the saved window, scaled to the iframe", async () => {
         const reference = await pointAt(
             page(`/index.html?url=${FIGURE}`, "width: 1000px; height: 650px"),
