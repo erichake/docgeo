@@ -12,6 +12,7 @@ import {
     resolve,
     type Studio,
 } from "../../src/editor/figure";
+import { applyMacro } from "../../src/editor/macro";
 import { message } from "../../src/editor/messages";
 import { pick } from "../../src/editor/pick";
 import { propertiesPanel } from "../../src/editor/properties";
@@ -35,12 +36,14 @@ function centerAt(panel: HTMLElement, input: HTMLElement, x: number): DOMRect {
     return input.getBoundingClientRect();
 }
 
-function setup() {
+// `macros`: the figure's macros and their styles.
+function setup(macros: object = {}) {
     const c = createConstruction([800, 600]);
     readDgo(c, {
         dgo: 1,
         v: { o: [400, 300], u: 40, w: 800, h: 600 },
         o: [],
+        ...macros,
     });
     ["A = (0, 0)", "B = (3, 1)", "s = Segment(A, B)", "d = Line(A, B)"].forEach(
         (line) => add(c, resolve(c, parseLine(line, isCommand))),
@@ -339,6 +342,38 @@ describe("Object properties", () => {
         expect(segment.decoration).toBe(3);
         expect(segment.dash).toEqual([6, 6]);
         expect(c.getObj("d")!.dash).toEqual([]);
+        properties.panel.dispose();
+    });
+
+    it("styles a macro's final, whose default color is the macro's", () => {
+        const { c, properties, field, change } = setup({
+            mac: [
+                {
+                    n: "Milieu",
+                    f: ["I"],
+                    m: [
+                        {
+                            i: [
+                                ["point", "?"],
+                                ["point", "?"],
+                            ],
+                            b: [["Mid", "I", [0, 1], 0]],
+                            f: [2],
+                        },
+                    ],
+                },
+            ],
+            st: [{ c: "#ff0000" }],
+        });
+        const [final] = applyMacro(c, 0, 0, [c.getObj("A")!, c.getObj("B")!]);
+        c.flush();
+        expect(final.stroke_color).toBe("#ff0000");
+        properties.select(final);
+        expect(field("color").value).toBe("#ff0000");
+        change("color", "#112233");
+        expect(final.stroke_color).toBe("#112233");
+        (properties.panel.find(".dge-reset")!.dom() as HTMLElement).click();
+        expect(final.stroke_color).toBe("#ff0000");
         properties.panel.dispose();
     });
 

@@ -526,7 +526,6 @@ export function applyMacro(
     }: { prefix?: string; names?: (string | null)[] } = {},
 ): construction_object[] {
     const macro = c.macros[index];
-    const { initials: types, body, finals } = macro.methods[method];
     const objects = figureObjects(c);
     const taken = new Set<string>();
     const free = (base: string): string => {
@@ -537,7 +536,6 @@ export function applyMacro(
         taken.add(name);
         return name;
     };
-    const slots = slotCount(types);
     const styles: unknown[] = [];
     addDgoEntries(
         c,
@@ -557,9 +555,9 @@ export function applyMacro(
                     ),
                 ],
             ],
-            ...finals.flatMap((local, rank) => {
+            ...macro.finals.flatMap((_, rank) => {
                 if (names?.[rank] === null) return [];
-                const style = body[local - slots][3];
+                const style = finalStyle(macro.methods[method], rank);
                 const entry = [
                     "Out",
                     names?.[rank] ?? free(macro.finals[rank]),
@@ -571,6 +569,15 @@ export function applyMacro(
         styles,
     );
     return figureObjects(c).slice(objects.length + 1);
+}
+
+// The style a final, from 0, is applied with: that in the body.
+export function finalStyle(
+    { initials, body, finals }: MacroMethod,
+    rank: number,
+): Record<string, unknown> | undefined {
+    return body[finals[rank] - slotCount(initials)][3] as
+        Record<string, unknown> | undefined;
 }
 
 // The figure's macro of this name, by its index, or -1.

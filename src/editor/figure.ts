@@ -98,6 +98,7 @@ import {
     applyMacro,
     boxOf,
     designation,
+    finalStyle,
     macroIndex,
     typedNumber,
     type Picked,
@@ -1480,9 +1481,15 @@ function createdStyle(tag: string): Record<string, unknown> | undefined {
 
 // The stroke and fill colors a tool gives a new object of its type.
 export function createdColors(object: construction_object): [string, string] {
-    const tag = entryOf(object, new Map())[0];
+    const { output } = object;
+    const tag = output?.tag ?? entryOf(object, new Map())[0];
     const [fill, stroke] = LOOKS[tag];
-    const style = createdStyle(tag) as Record<string, string> | undefined;
+    const node = output?.node as macro_object | undefined;
+    const style = (
+        node
+            ? finalStyle(node.macro.methods[node.method], output!.rank - 1)
+            : createdStyle(tag)
+    ) as Record<string, string> | undefined;
     return [style?.c ?? stroke, style?.fc ?? style?.c ?? fill];
 }
 
