@@ -732,7 +732,7 @@ export const HYPERBOLIC = [
     {
         folder: ["hyperbolic"],
         name: tr(
-            "Horocycle",
+            "Horicycle",
             "Horocycle",
             "Horozykel",
             "Horociclo",
@@ -760,7 +760,7 @@ export const HYPERBOLIC = [
                 finals: ["h"],
                 messages: messages(2),
                 help: help(
-                    "Choisir le disque (une seule fois), un point P du bord, puis un point A : l'horocycle de centre P passant par A, cercle tangent au bord en P.",
+                    "Choisir le disque (une seule fois), un point P du bord, puis un point A : l'horicycle (horocycle) de centre P passant par A, cercle tangent au bord en P.",
                     "Choose the disk (once only), a point P of the edge, then a point A: the horocycle of center P through A, a circle tangent to the edge at P.",
                     "Die Kreisscheibe (nur einmal), einen Randpunkt P, dann einen Punkt A wählen: der Horozykel mit Mittelpunkt P durch A, ein Kreis, der den Rand in P berührt.",
                     "Elegir el disco (una sola vez), un punto P del borde y luego un punto A: el horociclo de centro P que pasa por A, circunferencia tangente al borde en P.",
@@ -779,7 +779,7 @@ export const HYPERBOLIC = [
     {
         folder: ["hyperbolic"],
         name: tr(
-            "Hypercycle",
+            "Équidistante",
             "Hypercycle",
             "Hyperzykel",
             "Hiperciclo",
@@ -830,7 +830,7 @@ export const HYPERBOLIC = [
     {
         folder: ["hyperbolic"],
         name: tr(
-            "ParallèlesLimites",
+            "ParallèlesH",
             "LimitingParallels",
             "Grenzparallelen",
             "ParalelasLímite",
@@ -864,7 +864,7 @@ export const HYPERBOLIC = [
                 finals: ["r1", "r2"],
                 messages: messages(2),
                 help: help(
-                    "Choisir le disque (une seule fois), un point A, puis une droite, un segment ou une demi-droite hyperbolique g : les deux parallèles limites à g passant par A, demi-droites vers les extrémités de g sur le bord.",
+                    "Choisir le disque (une seule fois), un point A, puis une droite, un segment ou une demi-droite hyperbolique g : les deux parallèles (au sens de Lobatchevski, dites aussi parallèles limites) à g passant par A, demi-droites vers les extrémités de g sur le bord.",
                     "Choose the disk (once only), a point A, then a hyperbolic line, segment or ray g: the two limiting parallels to g through A, rays toward the ends of g on the edge.",
                     "Die Kreisscheibe (nur einmal), einen Punkt A, dann eine hyperbolische Gerade, Strecke oder Halbgerade g wählen: die beiden Grenzparallelen zu g durch A, Halbgeraden zu den Enden von g auf dem Rand.",
                     "Elegir el disco (una sola vez), un punto A y luego una recta, un segmento o una semirrecta hiperbólica g: las dos paralelas límite a g que pasan por A, semirrectas hacia los extremos de g en el borde.",
