@@ -563,9 +563,10 @@ export function resolveArgument(
             call?.kind === "call" &&
             ["Side", "Vertex"].includes(findCommand(call.command)?.name ?? "")
         ) {
-            const [owner, rank] = call.args.map((arg) =>
-                resolveArgument(c, arg),
-            );
+            const resolved = call.args.map((arg) => resolveArgument(c, arg));
+            // The rank also first, as GeoGebra's Vertex.
+            const [owner, rank] =
+                typeof resolved[0] === "number" ? resolved.reverse() : resolved;
             if (
                 call.args.length !== 2 ||
                 !(owner instanceof polygon_object) ||

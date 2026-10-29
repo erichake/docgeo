@@ -119,6 +119,13 @@ de `src/import/dgp_commands.ts`.
   formes qui finissent par un nombre, tapé au clavier
   (`PointFixe(x, y)` / `(x, y, z)`). Un test vérifie la règle sur tout le
   catalogue.
+- **Ordre des arguments** (2026-10-28) : là où GeoGebra prend ses
+  arguments dans les deux ordres, l'éditeur aussi (`Intersection(p, d)`
+  d'un plan et d'une droite, `Section(p, s)`, `Tangente(c, P, n)`,
+  `Sommet(3, p)`, aussi en argument d'une autre commande), la
+  ligne relue s'écrivant dans l'ordre habituel. Pas là où l'ordre change le
+  sens (`Symétrie`, `Translation`) ni là où GeoGebra l'impose
+  (`Perpendiculaire`, `Parabole`, `Plan`, `Prisme`…).
 - Noms de commandes localisés, les mots usuels de la géométrie dans chaque
   langue (section « Langues »), ramenés à une forme canonique.
 - **Équations** (décidé avec l'auteur le 2026-10-15) : `c = x^2 + y^2 = 4`,

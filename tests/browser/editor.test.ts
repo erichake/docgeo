@@ -689,6 +689,56 @@ describe("Editor", () => {
         );
     });
 
+    it("takes a plane, a curve or a solid in either order, as GeoGebra", () => {
+        const { scene: c } = studio(true);
+        [
+            "A = (0, 0, 0)",
+            "B = (2, 0, 0)",
+            "C = (2, 2, 0)",
+            "D = (0, 0, 3)",
+            "E = (1, 1, 1)",
+            "a = Cube(A, B, C)",
+            "p = x + y + z = 3",
+            "d = Line(A, D)",
+            "b = Sphere(E, 1)",
+            "e = Cone(A, D, 1)",
+        ].forEach((line) => type(c, line));
+        const reversed = [
+            ["F = Intersection(p, d)", "F = Intersection(d, p)"],
+            ["l = Section(p, b)", "l = Section(b, p)"],
+            ["m = Section(p, e)", "m = Section(e, p)"],
+            ["o = Section(p, a)", "o = Section(a, p)"],
+        ];
+        reversed.forEach(([line]) => type(c, line));
+        c.flush();
+        expect(lines(c).slice(-reversed.length)).toEqual(
+            reversed.map(([, line]) => line),
+        );
+        expectClose((c.getObj("F") as point_object).coords, [0, 0, 3]);
+        const { scene: plane } = studio();
+        [
+            "A = (0, 0)",
+            "P = (3, 0)",
+            "B = (0, 3)",
+            "c = Circle(A, 2)",
+            "q = Polygon(A, P, B)",
+        ].forEach((line) => type(plane, line));
+        const flat = [
+            ["t = Tangent(c, P, 2)", "t = Tangent(P, c, 2)"],
+            ["V = Vertex(2, q)", "V = Vertex(q, 2)"],
+            ["M = Midpoint(Vertex(3, q), A)", "M = Midpoint(Vertex(q, 3), A)"],
+        ];
+        flat.forEach(([line]) => type(plane, line));
+        plane.flush();
+        expect(lines(plane).slice(-flat.length)).toEqual(
+            flat.map(([, line]) => line),
+        );
+        expectClose(
+            (plane.getObj("V") as point_object).coords.slice(0, 2),
+            [3, 0],
+        );
+    });
+
     it("writes GeoGebra's equations, read back as the same objects", () => {
         const { scene: c } = studio();
         importGgb(

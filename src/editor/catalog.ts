@@ -638,6 +638,15 @@ export const COMMANDS: Command[] = [
                     return [at(polygon), rank + 1];
                 },
             },
+            // GeoGebra's other order, written as the first.
+            {
+                params: ["number", "faceted"],
+                tag: "Vtx",
+                encode: ([k, polygon], index) => [
+                    index(polygon as construction_object),
+                    (k as number) - 1,
+                ],
+            },
         ],
     },
     // Through P, the first or the second to a circle or a conic, or to a
@@ -661,6 +670,17 @@ export const COMMANDS: Command[] = [
                 },
             },
             objects("Tan", ["point", "graph"]),
+            // GeoGebra's other order, written as the first.
+            {
+                params: ["tangible", "point", "number"],
+                tag: "Tan",
+                encode: ([curve, point, n], index) => [
+                    index(point as construction_object),
+                    index(curve as construction_object),
+                    (n as number) - 1,
+                ],
+            },
+            objects("Tan", ["graph", "point"], [1, 0]),
         ],
     },
     {
@@ -688,6 +708,7 @@ export const COMMANDS: Command[] = [
             objects("PlI", ["line", "plane"]),
             objects("PlPl", ["plane", "plane"]),
             objects("SphC", ["sphere", "sphere"]),
+            objects("PlI", ["plane", "line"], [1, 0]),
         ],
     },
     {
@@ -838,6 +859,9 @@ export const COMMANDS: Command[] = [
             objects("CyS", ["revolution", "plane"]),
             objects("PlS", ["polyhedron", "plane"], [1, 0]),
             { params: ["solid", "plane"], tag: "", encode: () => null },
+            objects("SphC", ["plane", "sphere"], [1, 0]),
+            objects("CyS", ["plane", "revolution"], [1, 0]),
+            objects("PlS", ["plane", "polyhedron"]),
         ],
     },
     // Unfolded by f, from 0 (folded) to 1 (flat).
