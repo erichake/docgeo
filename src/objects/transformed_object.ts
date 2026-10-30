@@ -4,6 +4,7 @@ import {
     vAdd,
     vCross,
     vDot,
+    vIsFinite,
     vNorm,
     vNormalize,
     vScale,
@@ -146,12 +147,92 @@ export const imageLooks = (source: transformable): string[] => [
     "Loc",
 ];
 
-// The points of each side of a polygon whose images draw the arc it
-// becomes, as by an inversion.
 const SIDE_SAMPLES = 32;
 
+function curvedPolygon(
+    c: construction,
+    name: string | null | undefined,
+    source: polygon_object,
+    map: (point: point_object) => point_object,
+    privatePoints: point_object[],
+): polygon_object {
+    const driver = new point_object(c, null, [0, 0, 0]);
+    const image = map(driver);
+    privatePoints.push(image);
+    const vertices: point_object[] = [];
+    const pool: point_object[] = [];
+    const polygon = new polygon_object(c, name, vertices);
+    const sample = (): void => {
+        vertices.length = 0;
+        source.points.forEach((start, i, points) => {
+            const end = points[(i + 1) % points.length];
+            const direction = vSub(end.coords, start.coords);
+            const at = (t: number): Vec3 | null => {
+                driver.coords = vAdd(start.coords, vScale(direction, t));
+                driver.defined = source.defined;
+                // Macro intersections cache their solutions per frame.
+                c.OBJS.frame++;
+                image.computeGeometry();
+                return image.defined ? image.coords : null;
+            };
+            const append = (point: Vec3 | null): void => {
+                const index = vertices.length;
+                const vertex = (pool[index] ??= new point_object(
+                    c,
+                    null,
+                    [0, 0, 0],
+                ));
+                vertex.defined = point !== null;
+                if (point) vertex.coords = point;
+                vertices.push(vertex);
+            };
+            const subdivide = (
+                a: number,
+                p: Vec3 | null,
+                b: number,
+                q: Vec3 | null,
+                depth: number,
+            ): void => {
+                const t = (a + b) / 2;
+                const m = at(t);
+                if (p && q && m && depth > 0) {
+                    const [u, v, w] = [p, q, m].map((point) => c.pt3D(point));
+                    if (
+                        [u, v, w].every(vIsFinite) &&
+                        (Math.hypot(v[0] - u[0], v[1] - u[1]) > 10 ||
+                            Math.hypot(
+                                w[0] - (u[0] + v[0]) / 2,
+                                w[1] - (u[1] + v[1]) / 2,
+                            ) > 0.25)
+                    ) {
+                        subdivide(a, p, t, m, depth - 1);
+                        subdivide(t, m, b, q, depth - 1);
+                        return;
+                    }
+                }
+                append(p);
+                if (!m) append(null);
+            };
+            let p = at(0);
+            for (let k = 0; k < SIDE_SAMPLES; k++) {
+                const q = at((k + 1) / SIDE_SAMPLES);
+                subdivide(k / SIDE_SAMPLES, p, (k + 1) / SIDE_SAMPLES, q, 8);
+                p = q;
+            }
+        });
+        polygon_object.prototype.computeGeometry.call(polygon);
+    };
+    polygon.computeGeometry = sample;
+    polygon.project = () => {
+        // A zoom or a view rotation can require finer chords on its own.
+        sample();
+        polygon_object.prototype.project.call(polygon);
+    };
+    return polygon;
+}
+
 // Points of the object whose images build its image of this look, none
-// for a locus: its vertices or its ends, or points along its sides, points
+// for a locus or a curved polygon: its vertices or its ends, points
 // of a line, of a circle, of an arc or of a conic, away from the pole.
 function pointsOf(
     source: transformable,
@@ -168,23 +249,7 @@ function pointsOf(
         return [source.P1, () => vAdd(source.CENTER, [source.R, 0, 0])];
     if (source instanceof polyhedron_object) return source.vertices;
     if (source instanceof polygon_object)
-        return look === "Loc" || pole
-            ? source.vertices.flatMap((vertex, index, vertices) => {
-                  const next = vertices[(index + 1) % vertices.length];
-                  return Array.from({ length: SIDE_SAMPLES }, (_, k) =>
-                      k
-                          ? () =>
-                                vAdd(
-                                    vertex.coords,
-                                    vScale(
-                                        vSub(next.coords, vertex.coords),
-                                        k / SIDE_SAMPLES,
-                                    ),
-                                )
-                          : vertex,
-                  );
-              })
-            : source.vertices;
+        return look === "Loc" || pole ? [] : source.vertices;
     if (look === "Loc") return [];
     if (source instanceof segment_object)
         return look === "Arc"
@@ -297,8 +362,11 @@ export function createTransformed(
             faces: source.faces,
         });
     else if (source instanceof polygon_object) {
-        const polygon = new polygon_object(c, name, images);
-        polygon.ownVertices = images;
+        const polygon =
+            look === "Loc" || pole
+                ? curvedPolygon(c, name, source, map, points)
+                : new polygon_object(c, name, images);
+        polygon.ownVertices = polygon.vertices;
         polygon.section = source.section;
         object = polygon;
         look = "Poly";

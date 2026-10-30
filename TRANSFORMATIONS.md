@@ -110,9 +110,14 @@ deux suivent les mêmes règles et la même interface.
   par une inversion aussi demi-droites, vecteurs et coniques.
 - Polygone par une inversion (remarque de l'auteur, 2026-10-30 : au
   survol, l'outil proposait un point sur le polygone) : un polygone,
-  région remplie comme son objet, dont chaque côté est l'image de 32
-  points du côté (`SIDE_SAMPLES`), ses côtés devenus des arcs approchés
-  par des segments. Pas un lieu : un lieu sur un polygone n'en prend que
+  région remplie comme son objet, dont chaque côté est échantillonné
+  adaptativement : au moins 32 intervalles, subdivisés selon la longueur
+  des cordes (10 pixels) et l'écart de l'image du milieu au milieu de la
+  corde (0,25 pixel), jusqu'à huit subdivisions supplémentaires. Le
+  calcul reprend au zoom et à la rotation de la vue ; les macros dont
+  le verdict est « Loc » emploient le même tracé. Un point mobile et son
+  image sont réutilisés pour les évaluations, les sommets échantillonnés
+  restant privés. Pas un lieu : un lieu sur un polygone n'en prend que
   les sommets. Un polygone qui contient le centre a pour image
   l'extérieur de cette courbe, que ce polygone ne montre pas ; un sommet
   au centre la rend indéfinie.
@@ -281,11 +286,49 @@ Idées à garder, sans recopier le code :
   GeoGebra refusé ; `macros.html` : initiaux gardés et « Image d'un objet
   par une macro » (`#image-objet`) ; `selection.html`, `faq.html`,
   `gestes.html` (anneau), `raccourcis.html` (Maj-clic pendant un outil),
-  `3d.html` (plans, sphères, polyèdres). Contrôle `npm run manual --
-  check` passé ; ni icône ni capture à refaire.
+  `3d.html` (plans, sphères, polyèdres). Contrôle
+  `npm run manual -- check` passé ; ni icône ni capture à refaire.
 - 2026-10-30 : import GeoGebra de `Mirror(X, cercle)` pour un objet
   (`GGB_IMPORT.md`, item 42), remarque de l'auteur sur un polygone
   inversé. `createInversion` (`inversion_object.ts`) fait l'inverse d'un
   point ou l'image d'un objet, pour le nœud `Inv` comme pour la commande
   DGP `Inversion`. Test « builds images of objects by inversions »
   (`ggb_importer.test.ts`). Moteur 382,09 → 382,68 Ko (+0,59 Ko).
+- 2026-10-30 : contours courbes des polygones échantillonnés selon la vue,
+  après comparaison avec [CurveSegmentPlotter de GeoGebra](https://github.com/geogebra/geogebra/blob/main/source/shared/common/src/main/java/org/geogebra/common/euclidian/plot/CurveSegmentPlotter.java) (subdivisions
+  selon la distance et l'angle à l'écran). Figure de l'auteur conservée
+  dans `tests/ggb/polygone_inverse.ggb` : à 100 pixels par unité,
+  160 → 411 sommets, écart maximal à l'inversion exacte mesuré sur
+  5 005 points : 2,13 → 0,034 pixel. Test du contour à 50, 200 et
+  1 000 pixels par unité, puis déplacement d'un sommet ; aller-retour
+  `.dgo`, inversions et macros vérifiés. Remplissage conservé. Moteur
+  382 682 → 383 431 octets (+749 octets, environ +0,3 Ko en gzip).
+- 2026-10-30 : ralentissement au déplacement de G dans
+  `tests/dgo/image_poly.dgo`, signalé par l'auteur. Le profil désigne
+  `edgeStroke` : les sommets privés ont tous `sequence = 0`, donc leurs
+  quelque 1 000 cordes étaient prises pour un même côté partagé, comparées
+  entre elles à chaque corde. L'index des côtés utilise désormais l'identité
+  des points, dans les deux sens. Échantillonnage et rendu conservés.
+  Sur 30 petits déplacements identiques, médiane 94,4 → 5,2 ms ; glisser
+  réel : 61 mises à jour, médiane 6 ms, maximum 7,1 ms (Chromium local).
+  Test du travail proportionnel au nombre de cordes, sans seuil temporel,
+  et aller-retour du fichier dans `dgo.test.ts` ; 514 tests d'import,
+  côtés partagés, 3D et macros passés. Moteur 383 431 → 383 428 octets
+  (−3 octets).
+- 2026-10-30 : vidéo `bug.mov` de l'auteur : la mesure précédente,
+  limitée au voisinage de G, ne couvrait pas les passages d'un côté près
+  du centre d'inversion. Blocage reproduit : l'index spatial des polygones
+  remplissait le rectangle entier d'une image immense, jusqu'à des millions
+  de cases hors écran (2,7 s pour une mise à jour, puis interruption de la
+  suivante après 5 s). `polygonGrid` limite désormais chaque polygone à
+  256 cases ; au-delà, il le garde dans une liste de candidats testés
+  directement, y compris hors de la grille. Aucun changement du contour
+  ni du remplissage. Relevé de 34 positions de G dans la vidéo, parcours
+  interpolé en 264 positions, répété trois fois : 792 mises à jour,
+  médiane 6,5 ms, maximum 19,7 ms ; glisser réel sur les 264 positions :
+  médiane 8,1 ms, maximum 17,8 ms, sans blocage (Chromium local).
+  `hidden_line.test.ts` vérifie les approches et traversées du centre par
+  les côtés [FG] et [GH], avec un budget de cases qui interrompt le test
+  avant toute saturation mémoire en cas de régression, ainsi que les
+  occultations 3D par un grand polygone, dans et hors des cases indexées.
+  Moteur 383 428 → 383 556 octets (+128 octets).

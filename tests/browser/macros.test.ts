@@ -155,7 +155,9 @@ describe("Macro-constructions", () => {
             2 / (3 * Math.SQRT2),
         );
         expect(vNorm((straight as primitive_line_object).VEC)).toBeCloseTo(1);
-        expect((curved as polygon_object).points.length).toBe(96);
+        expect((curved as polygon_object).points.length).toBeGreaterThanOrEqual(
+            96,
+        );
         expect(arc.defined).toBe(true);
         const index = figureIndex(c);
         expect(lineOf(half, index, figureObjects(c))).toBe(

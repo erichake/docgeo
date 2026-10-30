@@ -21,6 +21,7 @@ import { parseProgram } from "../../src/import/dgp_formula";
 import type { arc3pts_object } from "../../src/objects/arc3pts_object";
 import type { circle3pts_object } from "../../src/objects/circle3pts_object";
 import type { locus_object } from "../../src/objects/locus_object";
+import { edgeStroke } from "../../src/objects/hidden_line";
 import type { quadric5pts_object } from "../../src/objects/quadric5pts_object";
 import { button_object } from "../../src/objects/button_object";
 import type { center_arc_object } from "../../src/objects/center_arc_object";
@@ -111,6 +112,8 @@ describe(".dgo round trip", () => {
     it.each(GGB)("%s", (name) =>
         roundTrip((c) => importGgbFromUrl(c, figure(name))),
     );
+    it("image_poly.dgo", () =>
+        roundTrip((c) => importDgoFromUrl(c, "/tests/dgo/image_poly.dgo")));
 });
 
 describe(".dgo writer", () => {
@@ -785,6 +788,36 @@ describe(".dgo reader", () => {
         await roundTrip(async (copy) => readDgo(copy, saved));
     });
 
+    it("does not compare unrelated private edges while moving an inverted polygon", async () => {
+        const c = createConstruction();
+        await importDgoFromUrl(c, "/tests/dgo/image_poly.dgo");
+        const g = c.getObj("G") as point_object;
+        const image = c.getObj("poly1'") as polygon_object;
+        const original = g.coords;
+        const size = image.size;
+        let sizeReads = 0;
+        Object.defineProperty(image, "size", {
+            get: () => {
+                sizeReads++;
+                return size;
+            },
+        });
+        for (const offset of [-0.1, 0, 0.1]) {
+            sizeReads = 0;
+            g.coords = [original[0] + offset, original[1] + offset, 0];
+            c.invalidateGeometry(g);
+            c.flush();
+            image.points.forEach((p, i, points) => {
+                expect(
+                    edgeStroke(c, image, p, points[(i + 1) % points.length]),
+                ).toEqual({ solid: true, dashed: true });
+            });
+            // Count work, not elapsed time, to avoid machine-dependent limits.
+            expect(sizeReads).toBeLessThan(20 * image.points.length);
+            expect(image.defined).toBe(true);
+        }
+    });
+
     // Each private point of the image is an application of the macro,
     // the look found when it was applied saved after the initials.
     it("reads images of objects by transformation macros", async () => {
@@ -852,7 +885,7 @@ describe(".dgo reader", () => {
         expect(d1.R).toBeCloseTo(2 / (3 * Math.SQRT2));
         expectClose(d1.CENTER, [1 / 3, 1 / 3, 0]);
         const p2 = get<polygon_object>("p2");
-        expect(p2.points.length).toBe(96);
+        expect(p2.points.length).toBeGreaterThanOrEqual(96);
         expectClose(p2.points[0].coords, [2, 0, 0]);
         expectClose(get<point_object>("I").coords, [1, 0, 0]);
         // Moved, the images follow.

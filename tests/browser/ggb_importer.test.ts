@@ -1645,6 +1645,81 @@ ${mirror("f", "f'", `<element type="curvecartesian" label="f'"/>`)}
         expect(c.getObj("f'")).toBeInstanceOf(locus_object);
     });
 
+    it("keeps inverted polygon contours smooth when zoomed and moved", async () => {
+        const c = createConstruction();
+        expect(importGgb(c, await loadXml("polygone_inverse"))).toEqual([]);
+        const source = c.getObj("poly1") as polygon_object;
+        const image = c.getObj("poly1'") as polygon_object;
+        const circle = c.getObj("c") as primitive_circle_object;
+        const error = () => {
+            const contour = image.screenPoints;
+            let maximum = 0;
+            source.points.forEach((start, i, points) => {
+                const end = points[(i + 1) % points.length];
+                for (let k = 0; k <= 1000; k++) {
+                    const offset = vSub(
+                        vAdd(
+                            start.coords,
+                            vScale(vSub(end.coords, start.coords), k / 1000),
+                        ),
+                        circle.CENTER,
+                    );
+                    const exact = c.pt3D(
+                        vAdd(
+                            circle.CENTER,
+                            vScale(
+                                offset,
+                                circle.R ** 2 / vDot(offset, offset),
+                            ),
+                        ),
+                    );
+                    let nearest = Infinity;
+                    contour.forEach((p, j) => {
+                        const q = contour[(j + 1) % contour.length];
+                        const dx = q[0] - p[0],
+                            dy = q[1] - p[1];
+                        const t = Math.max(
+                            0,
+                            Math.min(
+                                1,
+                                ((exact[0] - p[0]) * dx +
+                                    (exact[1] - p[1]) * dy) /
+                                    (dx * dx + dy * dy),
+                            ),
+                        );
+                        nearest = Math.min(
+                            nearest,
+                            Math.hypot(
+                                exact[0] - p[0] - t * dx,
+                                exact[1] - p[1] - t * dy,
+                            ),
+                        );
+                    });
+                    maximum = Math.max(maximum, nearest);
+                }
+            });
+            return maximum;
+        };
+        const counts: number[] = [];
+        for (const scale of [50, 200, 1000]) {
+            c.GRID.UNIT = [scale, scale, scale];
+            c.invalidateProjection();
+            c.flush();
+            expect(error()).toBeLessThan(0.25);
+            counts.push(image.points.length);
+        }
+        expect(counts[1]).toBeGreaterThan(counts[0]);
+        expect(counts[2]).toBeGreaterThan(counts[1]);
+        const vertex = c.getObj("F") as point_object;
+        vertex.coords = [4.5, -1, 0];
+        c.invalidateGeometry(vertex);
+        c.flush();
+        expect(error()).toBeLessThan(0.25);
+        expect(image.opacity).toBeCloseTo(0.1);
+        expect(image.defined).toBe(true);
+        expect(source.children).toEqual([image]);
+    });
+
     it("builds planes, their sections and solids' vertices as objects of their own", async () => {
         const open = async (name: string) => {
             const c = createConstruction();

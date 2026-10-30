@@ -1443,7 +1443,9 @@ describe("The library shipped with DocGeo", () => {
         expect(arc.look).toBe("Arc");
         orthogonal(arc as unknown as Circle, HZ);
         on(arc as unknown as Circle, invert(G_CIRCLE, get(c, "H1").coords));
-        expect((triangle as polygon_object).points.length).toBe(96);
+        expect(
+            (triangle as polygon_object).points.length,
+        ).toBeGreaterThanOrEqual(96);
         expectClose(
             (triangle as polygon_object).points[0].coords.slice(0, 2),
             invert(G_CIRCLE, get(c, "A").coords),

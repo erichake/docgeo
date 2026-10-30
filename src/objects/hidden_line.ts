@@ -45,32 +45,31 @@ const isOpaque = (polygon: polygon_object): boolean =>
 // opposite directions the two dash patterns fall out of phase and their
 // gaps fill each other in, making the shared edge look solid. Cached per
 // frame like the polygon grid below.
+type EdgeStrokes = Map<point_object, Map<point_object, construction_object[]>>;
 const edgeStrokeCache = new WeakMap<
     construction,
-    { frame: number; strokes: Map<string, construction_object[]> }
+    { frame: number; strokes: EdgeStrokes }
 >();
 
-function edgeKey(p1: point_object, p2: point_object): string {
-    return p1.sequence < p2.sequence
-        ? `${p1.sequence}:${p2.sequence}`
-        : `${p2.sequence}:${p1.sequence}`;
-}
-
 // The visible objects drawing each edge, in painting order.
-function edgeStrokes(c: construction): Map<string, construction_object[]> {
+function edgeStrokes(c: construction): EdgeStrokes {
     const cached = edgeStrokeCache.get(c);
     if (cached && cached.frame === c.OBJS.frame) return cached.strokes;
 
-    const strokes = new Map<string, construction_object[]>();
+    const strokes: EdgeStrokes = new Map();
     const add = (
         object: construction_object,
         p1: point_object,
         p2: point_object,
     ): void => {
-        const key = edgeKey(p1, p2);
-        const objects = strokes.get(key);
+        // Private vertices aren't registered and all have sequence 0.
+        const objects = strokes.get(p1)?.get(p2) ?? strokes.get(p2)?.get(p1);
         if (objects) objects.push(object);
-        else strokes.set(key, [object]);
+        else {
+            let neighbours = strokes.get(p1);
+            if (!neighbours) strokes.set(p1, (neighbours = new Map()));
+            neighbours.set(p2, [object]);
+        }
     };
     c.OBJS.V.forEach((object) => {
         if (!object.isVisible) return;
@@ -84,11 +83,13 @@ function edgeStrokes(c: construction): Map<string, construction_object[]> {
         }
     });
     if (c.segmentsOverPolygons)
-        strokes.forEach((objects) =>
-            objects.sort(
-                (a, b) =>
-                    Number(a instanceof segment_object) -
-                    Number(b instanceof segment_object),
+        strokes.forEach((neighbours) =>
+            neighbours.forEach((objects) =>
+                objects.sort(
+                    (a, b) =>
+                        Number(a instanceof segment_object) -
+                        Number(b instanceof segment_object),
+                ),
             ),
         );
     edgeStrokeCache.set(c, { frame: c.OBJS.frame, strokes });
@@ -102,7 +103,9 @@ export function edgeStroke(
     p1: point_object,
     p2: point_object,
 ): { solid: boolean; dashed: boolean } {
-    const objects = edgeStrokes(c).get(edgeKey(p1, p2)) ?? [object];
+    const strokes = edgeStrokes(c);
+    const objects = strokes.get(p1)?.get(p2) ??
+        strokes.get(p2)?.get(p1) ?? [object];
     const drawn = objects.filter((stroke, index) =>
         objects.slice(index + 1).every((later) => later.size < stroke.size),
     );
@@ -118,9 +121,11 @@ export function edgeStroke(
 // frame counter), then shared by every segment/edge that projects that
 // frame.
 const GRID_CELL_SIZE = 128;
+const MAX_POLYGON_CELLS = 256;
 type PolygonGrid = {
     frame: number;
     cells: Map<string, polygon_object[]>;
+    large: polygon_object[];
     // Cell range actually populated by a polygon, so a query bbox that is far
     // larger than the scene itself (e.g. a Line/Ray's synthetic far point
     // during a transient near-degenerate drag) can be clamped down instead of
@@ -154,6 +159,7 @@ function polygonGrid(c: construction): PolygonGrid {
     if (cached && cached.frame === c.OBJS.frame) return cached;
 
     const cells = new Map<string, polygon_object[]>();
+    const large: polygon_object[] = [];
     const bounds = {
         minCx: Infinity,
         maxCx: -Infinity,
@@ -169,6 +175,20 @@ function polygonGrid(c: construction): PolygonGrid {
         const maxX = Math.max(...xs);
         const minY = Math.min(...ys);
         const maxY = Math.max(...ys);
+        // An inverted side near its pole can span millions of screen pixels.
+        // Keep such polygons as candidates without filling their entire box.
+        const columns =
+            Math.floor(maxX / GRID_CELL_SIZE) -
+            Math.floor(minX / GRID_CELL_SIZE) +
+            1;
+        const rows =
+            Math.floor(maxY / GRID_CELL_SIZE) -
+            Math.floor(minY / GRID_CELL_SIZE) +
+            1;
+        if (columns * rows > MAX_POLYGON_CELLS) {
+            large.push(polygon);
+            return;
+        }
         bounds.minCx = Math.min(
             bounds.minCx,
             Math.floor(minX / GRID_CELL_SIZE),
@@ -194,6 +214,7 @@ function polygonGrid(c: construction): PolygonGrid {
     const grid: PolygonGrid = {
         frame: c.OBJS.frame,
         cells,
+        large,
         bounds: cells.size > 0 ? bounds : null,
     };
     polygonGridCache.set(c, grid);
@@ -207,8 +228,8 @@ function nearbyPolygons(
     minY: number,
     maxY: number,
 ): polygon_object[] {
-    const { cells, bounds } = polygonGrid(c);
-    if (!bounds) return [];
+    const { cells, bounds, large } = polygonGrid(c);
+    if (!bounds) return large;
 
     // Clamp the query to cells that actually hold a polygon: a Line/Ray's
     // screen segment is synthetically extended far past the viewport (see
@@ -220,9 +241,9 @@ function nearbyPolygons(
     const maxCx = Math.min(Math.floor(maxX / GRID_CELL_SIZE), bounds.maxCx);
     const minCy = Math.max(Math.floor(minY / GRID_CELL_SIZE), bounds.minCy);
     const maxCy = Math.min(Math.floor(maxY / GRID_CELL_SIZE), bounds.maxCy);
-    if (minCx > maxCx || minCy > maxCy) return [];
+    if (minCx > maxCx || minCy > maxCy) return large;
 
-    const found = new Set<polygon_object>();
+    const found = new Set<polygon_object>(large);
     for (let cx = minCx; cx <= maxCx; cx++)
         for (let cy = minCy; cy <= maxCy; cy++)
             cells.get(`${cx},${cy}`)?.forEach((polygon) => found.add(polygon));
