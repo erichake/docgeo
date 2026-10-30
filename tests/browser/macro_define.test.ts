@@ -111,6 +111,7 @@ describe("Defining a macro", () => {
             "C1",
             "k",
             [2, 0.5],
+            { c: "#396D26" },
         ]);
     });
 
@@ -244,9 +245,9 @@ describe("Defining a macro", () => {
         expect(method.finals).toEqual([5, 6]);
         // Each keeps its style: a final's at the application, an
         // intermediate's when its box is opened.
-        expect(method.body[3][3]).toEqual({ c: "#ff0000", fc: "#CC66CC" });
-        expect(method.body[0][3]).toEqual({ h: 1 });
-        expect(method.body[1][3]).toBeUndefined();
+        expect(method.body[3][3]).toEqual({ c: "#ff0000", fc: "#396D26" });
+        expect(method.body[0][3]).toEqual({ c: "#E377C2", h: 1 });
+        expect(method.body[1][3]).toEqual({ c: "#E377C2" });
         const saving = savingOf(c.macros, "Circonscrit", method);
         expect(saving).toEqual({ kind: "create" });
         save(c, saving, "Circonscrit", ["O", "c"], null, method);
@@ -289,7 +290,7 @@ describe("Defining a macro", () => {
         expectClose(get(copy, "O2").coords, get(c, "P").coords);
         expect(copy.macros[0].methods[0].body[3][3]).toEqual({
             c: "#ff0000",
-            fc: "#CC66CC",
+            fc: "#396D26",
         });
     });
 

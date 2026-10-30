@@ -6421,6 +6421,7 @@ async function newFigure(): Promise<void> {
                 h: c.height,
                 ax: 0,
             },
+            bg: "#FFFFFF",
             o: [],
         });
         return [];

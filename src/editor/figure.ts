@@ -1482,13 +1482,35 @@ function expressionSpec(
     };
 }
 
-// Points in DocGeo's own style, named, those built from others in DGPad's
-// grey; regions filled, expressions shown, as by DGPad's tools.
+// DocGeo's own colors, one per type, chosen by the author.
+const CREATED_COLORS: Record<string, Record<string, string>> = {};
+for (const [c, tags] of [
+    ["#D62728", ["Seg"]],
+    ["#8C564B", ["Vec", "VecF"]],
+    ["#1F77B4", ["Line", "EqL", "PlPl"]],
+    ["#17BECF", ["Ray"]],
+    ["#2CA02C", ["Par"]],
+    ["#9467BD", ["Perp", "Nrm"]],
+    ["#E377C2", ["Med"]],
+    ["#9C9D1C", ["Bis"]],
+    ["#7F7F7F", ["Tan"]],
+    ["#637939", ["Ang", "FA"]],
+    ["#396D26", ["Cir", "C1", "CAx", "C3", "C3p", "C3s", "EqC", "SphC"]],
+    ["#AD494A", ["Arc", "Arcs", "CArc", "CArcs", "QArc", "Semi"]],
+    ["#CE6DBD", ["Sec", "Secs", "CSec", "CSecs", "QSec"]],
+    ["#0E7C7B", ["Quad", "Ell", "Ell1", "Hyp", "Hyp1", "Prb", "EqQ", "CyS"]],
+] as const)
+    for (const tag of tags) CREATED_COLORS[tag] = { c };
+for (const tag of ["Poly", "RegP", "PlS", "Pl", "PlP", "PlL", "PlO", "PlE"])
+    CREATED_COLORS[tag] = { c: "#5254A3", fc: "#6B6ECF" };
+
+// Points named, those built from others in grey; regions filled,
+// expressions shown, as by DGPad's tools.
 function createdStyle(tag: string): Record<string, unknown> | undefined {
     if (isPointTag(tag))
         return {
-            c: "#604820",
-            fc: tag === "Pt" || tag === "On" ? "#e4ceb9" : "#cccccc",
+            c: "#1E293B",
+            fc: tag === "Pt" || tag === "On" ? "#F59E0B" : "#CBD5E1",
             o: 1,
             sn: 1,
             f: 26,
@@ -1508,9 +1530,10 @@ function createdStyle(tag: string): Record<string, unknown> | undefined {
             "PlE",
         ].includes(tag)
     )
-        return { o: 0.2 };
+        return { ...CREATED_COLORS[tag], o: 0.2 };
     // Its value shown, as by DGPad's calculator.
     if (tag === "Ex") return { p: 2, f: 24 };
+    return CREATED_COLORS[tag];
 }
 
 // The stroke and fill colors a tool gives a new object of its type.

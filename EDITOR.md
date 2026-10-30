@@ -1780,10 +1780,16 @@ Fait (2026-10-11) :
   dans DGPad, mais relâché sur l'icône l'outil reste simplement en attente
   (l'élève qui lâche trop tôt ne perd rien) ; relâché hors de la figure,
   rien n'est désigné. Un bouton ✕ dans la consigne abandonne l'outil
-  (Échap au clavier). Styles de création : points au style
-  propre à DocGeo, bruns à fond beige (`#604820`, `#e4ceb9`), opaques, nom
-  affiché en taille 26 ; comme dans DGPad, polygones, sphères et secteurs
-  remplis à 20 %.
+  (Échap au clavier). Styles de création (`createdStyle` de `figure.ts`),
+  propres à DocGeo et choisis par l'auteur (2026-10-30) : points opaques,
+  contour `#1E293B`, orange (`#F59E0B`) libres et sur objet, gris
+  (`#CBD5E1`) construits, nom affiché en taille 26 ; une couleur par type
+  d'objet (segment, vecteur, droite, demi-droite, parallèle,
+  perpendiculaire, médiatrice, bissectrice, tangente, angle, cercle, arc,
+  secteur, conique, polygone), sa famille pour les types voisins ; comme
+  dans DGPad, polygones, sphères et secteurs remplis à 20 %. Une nouvelle
+  figure a le fond blanc `#FFFFFF`. Les défauts du format (`LOOKS` de `dgo.ts`,
+  fond `#FAFAFA`) restent figés.
 - Une pile d'annulation (instantanés `.dgo` sans la vue), Cmd-Z,
   Cmd-Maj-Z, Cmd-Y ; ouverture `.dgo`, `.dgp`, `.ggb` (bouton ou `?url=`),
   Cmd-S.
