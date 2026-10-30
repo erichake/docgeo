@@ -448,6 +448,7 @@ return [t, [a]][2 - 1][1 - 1] + t.slice(-1)[0] + [t][1 - 1].slice(-1)[0];`);
             roundTrip(`var t = [];
 t.push([-1, TURTLE_TEXT('a')]);
 t[1 - 1].push(n);
+t.push([NaN,NaN,NaN]);
 t.shift();
 t[1 - 1].pop();
 ALERT('<b>' + t.length + '</b>');
@@ -455,10 +456,16 @@ return t;`),
         ).toBe(`t = [];
 t.push([-1, "a"]);
 t[1 - 1].push(n);
+t.push([NaN, NaN, NaN]);
 t.shift();
 t[1 - 1].pop();
 ALERT("<b>" + t.length + "</b>");
 return t;`);
+        expect(
+            JSON.stringify(
+                programBlocks("var t = [];\nt.push([NaN,NaN,NaN]);", true),
+            ),
+        ).toContain('"dg_list_break"');
         vi.spyOn(Math, "random").mockReturnValue(0.3);
         const { onprogram, oninit } = JSON.parse(
             PIRATES.match(/^BLK\(blk_btn,(.*)\);$/m)![1],

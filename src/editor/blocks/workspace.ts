@@ -493,6 +493,14 @@ function defineBlocks(): void {
             style: "list_blocks",
         },
         {
+            type: "dg_list_break",
+            message0: msg("LIST_BREAK"),
+            args0: [{ type: "input_value", name: "LIST" }],
+            inputsInline: true,
+            ...statement,
+            style: "list_blocks",
+        },
+        {
             type: "dg_list_remove",
             message0: msg("LIST_REMOVE"),
             args0: [
@@ -784,6 +792,7 @@ function toolbox(kinds: string[], owner: string, starts: string[]) {
                     block("dg_list_last"),
                     block("dg_list_set", { INDEX: num(1) }),
                     block("dg_list_push"),
+                    block("dg_list_break"),
                     block("dg_list_remove"),
                 ],
             },

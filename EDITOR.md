@@ -1290,7 +1290,10 @@ ses méthodes internes et figé dans sa version de 2016.
   pour `pirates.dgp`) : bloc « afficher le message » (`ALERT`, catégorie
   « Texte »), bloc « ajouter … à la fin de … » de DGPad (`dgpad_push`,
   `L.push(v)`, sur une variable ou un de ses éléments, catégorie
-  « Listes »), bloc de départ « quand la figure s'ouvre » (« oninit » de
+  « Listes » ; avec, depuis le 2026-10-30, « rompre la liste … »,
+  `dgpad_stop_list`, `L.push([NaN, NaN, NaN])` : un point non dessinable
+  qui interrompt la ligne tracée par la liste, comme le crayon levé de la
+  tortue), bloc de départ « quand la figure s'ouvre » (« oninit » de
   DGPad, d'une expression ou d'un bouton, montré avec le programme du
   bouton). Une liste de 2 ou 3 éléments dont l'un est un texte ou une liste
   (`[-1, "choisir..."]`) est un bloc « créer une liste avec », pas un point.

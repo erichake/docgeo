@@ -821,6 +821,8 @@ class Decompiler {
                     inputs: { LIST: list },
                 };
             if (node.args.length !== 1) unsupported();
+            if (isBreak(node.args[0]))
+                return { type: "dg_list_break", inputs: { LIST: list } };
             return {
                 type: "dg_list_push",
                 inputs: { VALUE: value(this.value(node.args[0])), LIST: list },
@@ -1515,6 +1517,15 @@ const pushable = (block: BlockState | undefined): boolean =>
     block?.type === "variables_get" ||
     (block?.type === "dg_list_get" && pushable(block.inputs?.LIST?.block));
 
+// DGPad's "break the list": a point that cannot be drawn, where the line
+// through the list's points stops.
+const isBreak = (node: FormulaNode): boolean =>
+    node.kind === "vector" &&
+    node.items.length === 3 &&
+    node.items.every(
+        (item) => item.kind === "number" && Number.isNaN(item.value),
+    );
+
 const paramsOf = (block: BlockState): string[] =>
     ((block.extraState?.params ?? []) as (string | { name: string })[]).map(
         (param) => (typeof param === "string" ? param : param.name),
@@ -1820,6 +1831,11 @@ class Generator {
                 if (!pushable(block.inputs?.LIST?.block)) return [];
                 return line(
                     `${this.operand(block, "LIST", ATOM, "[]")}.push(${this.arg(block, "VALUE")});`,
+                );
+            case "dg_list_break":
+                if (!pushable(block.inputs?.LIST?.block)) return [];
+                return line(
+                    `${this.operand(block, "LIST", ATOM, "[]")}.push([NaN, NaN, NaN]);`,
                 );
             case "dg_list_remove":
                 if (!pushable(block.inputs?.LIST?.block)) return [];
