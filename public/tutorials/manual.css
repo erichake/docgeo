@@ -759,6 +759,7 @@ main figcaption {
 }
 
 .ti {
+    --dge-icon-bg: hsl(var(--h) calc(70% * var(--t)) 96%);
     display: inline-grid;
     place-items: center;
     flex: none;
@@ -766,7 +767,7 @@ main figcaption {
     height: 34px;
     border: 1px solid hsl(var(--h) calc(55% * var(--t)) 60%);
     border-radius: 50%;
-    background: hsl(var(--h) calc(70% * var(--t)) 96%);
+    background: var(--dge-icon-bg);
     color: #536174;
     font-style: normal;
     vertical-align: middle;

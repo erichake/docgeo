@@ -2428,3 +2428,29 @@ du menu des outils (capture `palette.webp`, décrite dans
 Affichage), les gestes (clic sur un objet, palette ouverte), la sélection
 multiple (palette, fantôme), les propriétés et les raccourcis (Échap).
 Contrôle du manuel passé dans les 12 langues.
+
+### Pictogrammes de construction — 2026-10-29
+
+Les 54 outils géométriques utilisent les SVG de
+`src/editor/construction_icons.ts` : points bleus cerclés, contours sombres,
+résultat mis en rouge et surfaces colorées. Les dessins de 32 unités sont
+ramenés au cadre commun de 24 unités ; palette, menu et anneau partagent les
+mêmes icônes. Le survol adapte leurs couleurs au fond bleu.
+
+La sphère est classée en tête des solides dans le menu et la palette ; sa
+place et sa famille dans l'anneau restent celles des cercles. Le classement
+commun des items se fait dans `tools.ts`, sans déplacer les places de
+l'anneau.
+
+Par rapport au début de la refonte : éditeur +3 386 octets (+1 815 en gzip),
+CSS +107 octets (+16 en gzip) ; moteur et lecteur identiques. Vérifié par
+les 46 tests navigateur de l'éditeur et de la palette, par la correspondance
+des 54 dessins avec la planche validée, et par la création d'une sphère
+depuis la palette.
+
+Manuel : nouvelles icônes, captures de l'anneau, du menu et de la palette
+dans les 12 langues, sphère déplacée parmi les solides avec indication de
+sa place dans l'anneau. Le fond des icônes est aussi celui de leurs repères
+évidés, comme dans l'éditeur. Contrôle du manuel et de ses icônes passé dans
+les 12 langues ; aperçus français, arabe et chinois vérifiés en thèmes clair
+et sombre.
