@@ -311,6 +311,7 @@ const nl: Texts = {
         tool_circle_axis: "Cirkel (as en punt)",
         tool_central: "Puntspiegeling",
         tool_axial: "Lijnspiegeling",
+        tool_point_on: "Punt op object",
         designate_place:
             "Wijs een plek, een object of het snijpunt van twee objecten aan",
         selection_hint:

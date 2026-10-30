@@ -44,6 +44,15 @@ async function host() {
     });
     $("body").add($(iframe));
     await started;
+    // The files run together: another one's editor may have stored the
+    // palette open meanwhile, where a tap in the void makes no point.
+    const page = iframe.contentDocument!;
+    if (page.body.classList.contains("dge-palette-open"))
+        (
+            page.querySelector(
+                '.dge-bar [aria-controls="dge-palette"]',
+            ) as HTMLElement
+        ).click();
     return {
         iframe,
         events,

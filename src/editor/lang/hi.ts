@@ -309,6 +309,7 @@ const hi: Texts = {
         tool_circle_axis: "वृत्त (अक्ष और बिन्दु)",
         tool_central: "केन्द्रीय सममिति",
         tool_axial: "अक्षीय सममिति",
+        tool_point_on: "ऑब्जेक्ट पर बिन्दु",
         designate_place:
             "कोई स्थान, कोई ऑब्जेक्ट या दो ऑब्जेक्ट का कटान बिन्दु चुनें",
         selection_hint:

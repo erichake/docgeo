@@ -300,6 +300,7 @@ const ar: Texts = {
         tool_circle_axis: "دائرة (محور ونقطة)",
         tool_central: "تماثل مركزي",
         tool_axial: "تماثل محوري",
+        tool_point_on: "نقطة على عنصر",
         designate_place: "عيّن موضعًا أو عنصرًا أو تقاطع عنصرين",
         selection_hint:
             "⌘-نقر أو Ctrl-نقر أو ضغط مطوّل: إضافة عنصر · تأخذها قائمة الأدوات بهذا الترتيب",

@@ -308,6 +308,7 @@ const es: Texts = {
         tool_circle_axis: "Circunferencia (eje y punto)",
         tool_central: "Simetría central",
         tool_axial: "Simetría axial",
+        tool_point_on: "Punto en objeto",
         designate_place:
             "Designa un lugar, un objeto o el cruce de dos objetos",
         selection_hint:

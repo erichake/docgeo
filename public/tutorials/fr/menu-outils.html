@@ -82,6 +82,12 @@
                     grisés.
                 </li>
                 <li>
+                    Palette ouverte et sans outil, la figure se manipule : un
+                    clic dans le vide ou sur un croisement ne crée pas de point.
+                    Pour en créer, prendre l’outil <i data-t="Point"></i>
+                    <strong>Point</strong>, le premier de la palette.
+                </li>
+                <li>
                     Survoler un outil affiche sa ligne dans la consigne. Si les
                     objets sélectionnés lui suffisent, l’objet qu’il
                     construirait apparaît en pâle.
@@ -178,14 +184,24 @@
                     <li>
                         <i data-t="Point"></i>
                         <div>
-                            <strong
-                                >Point<span class="badge ring"
-                                    >anneau</span
-                                ></strong
+                            <strong>Point</strong
                             ><span
                                 >Le point que l’on touche : libre dans le vide,
                                 sur un objet, ou à l’intersection de deux
                                 objets.</span
+                            ><span><code>A = (x, y)</code></span>
+                        </div>
+                    </li>
+                    <li>
+                        <i data-t="Point on object"></i>
+                        <div>
+                            <strong
+                                >Point sur objet<span class="badge ring"
+                                    >anneau</span
+                                ></strong
+                            ><span
+                                >Un objet : le point sur cet objet, là où on le
+                                touche. Un clic dans le vide ne fait rien.</span
                             ><span><code>Point(c, t)</code></span>
                         </div>
                     </li>

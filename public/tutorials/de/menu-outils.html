@@ -87,6 +87,13 @@
                     annehmen, sind ausgegraut.
                 </li>
                 <li>
+                    Bei geöffneter Palette ohne Werkzeug wird die Figur nur
+                    bewegt: Ein Klick auf eine leere Stelle oder einen Schnitt
+                    erzeugt keinen Punkt. Um einen zu erzeugen, das Werkzeug
+                    <i data-t="Point"></i> <strong>Punkt</strong> nehmen, das
+                    erste der Palette.
+                </li>
+                <li>
                     Fährt man über ein Werkzeug, zeigt der Hinweis seine Zeile.
                     Reichen ihm die ausgewählten Objekte, erscheint das Objekt,
                     das es bauen würde, blass.
@@ -189,14 +196,25 @@
                     <li>
                         <i data-t="Point"></i>
                         <div>
-                            <strong
-                                >Punkt<span class="badge ring"
-                                    >Ring</span
-                                ></strong
+                            <strong>Punkt</strong
                             ><span
                                 >Der Punkt, den man antippt: frei an einer
                                 leeren Stelle, auf einem Objekt oder im Schnitt
                                 zweier Objekte.</span
+                            ><span><code>A = (x, y)</code></span>
+                        </div>
+                    </li>
+                    <li>
+                        <i data-t="Point on object"></i>
+                        <div>
+                            <strong
+                                >Punkt auf Objekt<span class="badge ring"
+                                    >Ring</span
+                                ></strong
+                            ><span
+                                >Ein Objekt: der Punkt auf diesem Objekt, dort,
+                                wo man es antippt. Ein Klick auf eine leere
+                                Stelle bewirkt nichts.</span
                             ><span><code>Punkt(c, t)</code></span>
                         </div>
                     </li>

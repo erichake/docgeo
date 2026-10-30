@@ -294,6 +294,7 @@ const zh_TW: Texts = {
         tool_circle_axis: "圓（軸和點）",
         tool_central: "中心對稱",
         tool_axial: "軸對稱",
+        tool_point_on: "物件上的點",
         designate_place: "選擇一個位置、一個物件或兩個物件的交點",
         selection_hint:
             "⌘-點按、Ctrl-點按或長按：加入物件 · 工具選單依此順序使用它們",

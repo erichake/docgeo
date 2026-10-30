@@ -72,6 +72,12 @@
                     >的工具會變灰。
                 </li>
                 <li>
+                    工具面板開啟且未選工具時，圖形只能被操作：點按空白處或交叉處不會建立點。要建立點，請選擇工具面板中的第一個工具<i
+                        data-t="Point"
+                    ></i
+                    ><strong>點</strong>。
+                </li>
+                <li>
                     指標停在工具上時，提示中顯示它的那一列。若所選物件已足夠，它將建立的物件會以淺色顯示。
                 </li>
                 <li>
@@ -139,12 +145,21 @@
                     <li>
                         <i data-t="Point"></i>
                         <div>
+                            <strong>點</strong
+                            ><span
+                                >點按的位置：空白處為自由點，在物件上為物件上的點，在兩個物件交叉處為交點。</span
+                            ><span><code>A = (x, y)</code></span>
+                        </div>
+                    </li>
+                    <li>
+                        <i data-t="Point on object"></i>
+                        <div>
                             <strong
-                                >點<span class="badge ring"
+                                >物件上的點<span class="badge ring"
                                     >工具環</span
                                 ></strong
                             ><span
-                                >點按的位置：空白處為自由點，在物件上為物件上的點，在兩個物件交叉處為交點。</span
+                                >一個物件：在點按處建立該物件上的點。點按空白處不起作用。</span
                             ><span><code>點(c, t)</code></span>
                         </div>
                     </li>

@@ -309,6 +309,7 @@ const pt: Texts = {
         tool_circle_axis: "Círculo (eixo e ponto)",
         tool_central: "Simetria central",
         tool_axial: "Simetria axial",
+        tool_point_on: "Ponto em objeto",
         designate_place:
             "Designe um lugar, um objeto ou o cruzamento de dois objetos",
         selection_hint:

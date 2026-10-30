@@ -84,6 +84,13 @@
                     disattivati.
                 </li>
                 <li>
+                    Con la tavolozza aperta e senza strumento, la figura si
+                    manipola soltanto: un clic su uno spazio vuoto o su un
+                    incrocio non crea alcun punto. Per crearne uno, prendere lo
+                    strumento <i data-t="Point"></i> <strong>Punto</strong>, il
+                    primo della tavolozza.
+                </li>
+                <li>
                     Passando su uno strumento, il suggerimento mostra la sua
                     riga. Se gli oggetti selezionati gli bastano, l’oggetto che
                     costruirebbe appare sbiadito.
@@ -185,14 +192,25 @@
                     <li>
                         <i data-t="Point"></i>
                         <div>
-                            <strong
-                                >Punto<span class="badge ring"
-                                    >anello</span
-                                ></strong
+                            <strong>Punto</strong
                             ><span
                                 >Il punto che si tocca: libero in uno spazio
                                 vuoto, su un oggetto o all’intersezione di due
                                 oggetti.</span
+                            ><span><code>A = (x, y)</code></span>
+                        </div>
+                    </li>
+                    <li>
+                        <i data-t="Point on object"></i>
+                        <div>
+                            <strong
+                                >Punto su oggetto<span class="badge ring"
+                                    >anello</span
+                                ></strong
+                            ><span
+                                >Un oggetto: il punto su quell’oggetto, dove lo
+                                si tocca. Un clic su uno spazio vuoto non fa
+                                nulla.</span
                             ><span><code>Punto(c, t)</code></span>
                         </div>
                     </li>

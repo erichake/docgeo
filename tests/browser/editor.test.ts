@@ -2001,6 +2001,7 @@ describe("Editor", () => {
         expect(items).toEqual([
             [
                 ["Point", "On"],
+                ["Point on object", "On"],
                 ["Intersection", "Int"],
                 ["Midpoint", "Mid", "Mid"],
                 ["Center", "Ctr"],

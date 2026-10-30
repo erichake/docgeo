@@ -357,10 +357,12 @@ la GeoGebra, l'outil choisi avant les objets.
   cours s'affiche dans la consigne. Le premier objet peut prendre
   n'importe quelle place que son type accepte (une droite d'abord pour
   `Perpendiculaire`) ; à défaut, un point est créé là, libre, sur objet ou
-  à une intersection. « Point » crée le point où l'on touche ;
-  « Intersection » prend un croisement d'un toucher ou deux objets l'un
-  après l'autre ; « Lieu » ne prend qu'un point dont dépend un point sur
-  objet, « AutreIntersection » qu'un point déjà là.
+  à une intersection. « Point » crée le point où l'on touche : libre
+  dans le vide, sur l'objet touché, ou au croisement de deux objets ;
+  « Point sur objet » ne le crée que sur un objet ; « Intersection »
+  prend un croisement d'un toucher ou deux objets l'un après l'autre ;
+  « Lieu » ne prend qu'un point dont dépend un point sur objet,
+  « AutreIntersection » qu'un point déjà là.
 - **Désignation dans le panneau « Construction »** (décidé avec l'auteur
   le 2026-10-17) : outil en main (menu ou anneau), un toucher sur une
   ligne désigne son objet au lieu d'éditer la ligne ; pour l'éditer, on
@@ -373,7 +375,7 @@ la GeoGebra, l'outil choisi avant les objets.
   figure, passent en bleu (fond et trait, comme la sélection multiple),
   une pastille bleue au bout disant leur place dans la commande : 2 pour
   la droite désignée d'abord de `Perpendiculaire(…, a)`. La liste n'a pas de position : un point ne s'y désigne que
-  s'il existe (ni point sur objet, ni outil « Point »), l'intersection de
+  s'il existe (ni point sur objet, ni outils « Point »), l'intersection de
   deux courbes y est la première (`rowTakes`, `designateRow`), le plancher
   3D n'y est pas.
 - **Cercle (centre et rayon)** : comme sur l'anneau, le centre désigné
@@ -473,8 +475,20 @@ l'anneau et du clavier : le menu des outils est retiré.
 - **Ouverture mémorisée** (2026-10-30) : visible au premier lancement, puis
   son état ouvert ou fermé est gardé dans le navigateur (`localStorage`,
   `docgeo-palette-open`) et restauré au lancement suivant.
-- **La figure reste en construction** : palette ouverte, un clic dans le
-  vide crée un point. Un clic sur un objet le choisit (il brille, la barre
+- **Points par les outils seuls** (décidé avec l'auteur le 2026-10-30) :
+  palette ouverte et sans outil, la figure se manipule, un clic dans le
+  vide ou au croisement de deux objets ne crée pas de point (la ligne de
+  saisie qui attend un point excepté). Le premier outil de la palette,
+  « Point » (un point et son nom, comme dans GeoGebra), propre à la
+  palette, crée un point libre, sur objet ou une intersection selon
+  l'endroit ; « Point sur objet », l'item de l'anneau (son icône, un
+  point sur une courbe), le suit et ne crée qu'un point sur l'objet
+  désigné, un clic dans le vide ne faisant rien (`anywhere` de `Tool`).
+  Aucun outil n'est pris d'office à l'ouverture : la figure s'ouvrirait
+  en création, un glisser au doigt ne la déplaçant plus. Sous 600 px,
+  choisir un outil refermant la palette, la figure n'est jamais visible
+  palette ouverte : son clic vide reste celui de l'anneau.
+- **Choix d'un objet** : un clic sur un objet le choisit (il brille, la barre
   montre ses actions) **sans ouvrir d'anneau** (décidé avec l'auteur le
   2026-10-29) : la palette montre ses outils. Un clic sur un autre objet le
   choisit à son tour, un clic dans le vide le lâche, comme il fermerait
@@ -2645,3 +2659,32 @@ et le bouton de l'en-tête (`interface.html`) ; la pastille des points, à
 leur forme et à leurs couleurs ; les couleurs de création et le fond blanc
 (`proprietes.html#couleurs-de-creation`). `generate.mjs` clique le bouton
 visible d'un libellé (celui de la palette existe deux fois).
+
+### Outils « Point » et « Point sur objet » — 2026-10-30
+
+Décidé avec l'auteur : palette ouverte, le clic vide créait un point,
+ce qui doublait son sens (lâcher l'objet choisi, sinon créer un point)
+et l'icône de l'outil « Point », un point sur une courbe, ne disait pas
+qu'il crée aussi des points libres. Section « Palette d'outils », puce
+« Points par les outils seuls ». Le « Point » de la palette est ajouté en
+tête de la zone après la construction des familles (`tools.ts`, comme la
+sphère), hors anneau ; celui de l'anneau prend le libellé `tool_point_on`
+(12 langues) et l'icône `PointOn`, sa consigne `designate_support`.
+
+Tests : `tool_palette.test.ts` (clics vides sans effet, « Point sur objet »
+puis « Point » : point sur objet, libre, intersection), item ajouté dans
+`editor.test.ts` ; `fit.test.ts` ne prend plus le « A » de l'icône pour
+l'étiquette du point A ; `editor_embed.test.ts` referme la palette qu'un
+autre fichier de tests, lancé en même temps, aurait mémorisée ouverte.
+Suites complètes : 274 tests unitaires et 1 300 tests navigateur passés
+(un test d'`editor_embed` reste instable sous la charge, son clic simulé
+pris pour un appui long, sans lien avec ce changement). Moteur et
+lecteur : mêmes octets ; éditeur : +363 octets (+116 en gzip).
+
+Manuel, dans les 12 langues : la palette (`menu-outils.html`) dit que,
+sans outil, le clic vide ne crée pas de point, et liste « Point » (sans
+badge anneau, `A = (x, y)`) puis « Point sur objet » ; les gestes
+(nouvelle ligne « le vide ou un croisement, palette ouverte », icône de
+la famille Points), la sélection, les raccourcis (« palette fermée »), la
+3D et une question de la FAQ. Icônes et capture `palette.webp`
+régénérées, contrôle passé.

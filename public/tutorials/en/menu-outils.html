@@ -79,6 +79,13 @@
                     out.
                 </li>
                 <li>
+                    With the palette open and no tool, the figure can only be
+                    manipulated: a click on an empty spot or on a crossing
+                    creates no point. To create one, take the
+                    <i data-t="Point"></i> <strong>Point</strong> tool, the
+                    first in the palette.
+                </li>
+                <li>
                     Hovering over a tool shows its line in the prompt. If the
                     selected objects are enough for it, the object it would
                     build appears pale.
@@ -174,14 +181,25 @@
                     <li>
                         <i data-t="Point"></i>
                         <div>
-                            <strong
-                                >Point<span class="badge ring"
-                                    >ring</span
-                                ></strong
+                            <strong>Point</strong
                             ><span
                                 >The point you touch: free on an empty spot, on
                                 an object, or at the intersection of two
                                 objects.</span
+                            ><span><code>A = (x, y)</code></span>
+                        </div>
+                    </li>
+                    <li>
+                        <i data-t="Point on object"></i>
+                        <div>
+                            <strong
+                                >Point on object<span class="badge ring"
+                                    >ring</span
+                                ></strong
+                            ><span
+                                >An object: the point on this object, where you
+                                touch it. A click on an empty spot does
+                                nothing.</span
                             ><span><code>Point(c, t)</code></span>
                         </div>
                     </li>

@@ -85,6 +85,13 @@
                     atenuadas.
                 </li>
                 <li>
+                    Con la paleta abierta y sin herramienta, la figura solo se
+                    manipula: un clic en un lugar vacío o en un cruce no crea
+                    ningún punto. Para crearlo, tomar la herramienta
+                    <i data-t="Point"></i> <strong>Punto</strong>, la primera de
+                    la paleta.
+                </li>
+                <li>
                     Al pasar sobre una herramienta, la indicación muestra su
                     línea. Si los objetos seleccionados le bastan, el objeto que
                     construiría aparece en tono pálido.
@@ -187,14 +194,25 @@
                     <li>
                         <i data-t="Point"></i>
                         <div>
-                            <strong
-                                >Punto<span class="badge ring"
-                                    >anillo</span
-                                ></strong
+                            <strong>Punto</strong
                             ><span
                                 >El punto que se toca: libre en un lugar vacío,
                                 sobre un objeto o en la intersección de dos
                                 objetos.</span
+                            ><span><code>A = (x, y)</code></span>
+                        </div>
+                    </li>
+                    <li>
+                        <i data-t="Point on object"></i>
+                        <div>
+                            <strong
+                                >Punto en objeto<span class="badge ring"
+                                    >anillo</span
+                                ></strong
+                            ><span
+                                >Un objeto: el punto sobre ese objeto, donde se
+                                toca. Un clic en un lugar vacío no hace
+                                nada.</span
                             ><span><code>Punto(c, t)</code></span>
                         </div>
                     </li>

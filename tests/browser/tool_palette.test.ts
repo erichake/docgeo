@@ -189,6 +189,64 @@ describe("The tool palette", () => {
         expect(body.contains("dge-palette-open")).toBe(false);
     });
 
+    // Open, it alone makes points: anywhere its first tool, on an object
+    // the ring's.
+    it("makes points with its tools only", async () => {
+        const { page, request } = await editor();
+        await request("load", {
+            data: new TextEncoder().encode(JSON.stringify(TRIANGLE)).buffer,
+            format: "dgo",
+        });
+        (
+            page.querySelector(
+                `.dge-bar [aria-controls="dge-palette"]`,
+            ) as HTMLElement
+        ).click();
+        const tool = (label: string) =>
+            page.querySelector(
+                `.dge-palette-grid button[aria-label="${label}"]`,
+            ) as HTMLElement;
+        expect(page.querySelector(".dge-palette-grid button")!.ariaLabel).toBe(
+            "Point",
+        );
+        const { v } = await saved(request);
+        const figure = page.querySelector("body > svg:has([data-layer])")!;
+        const box = figure.getBoundingClientRect();
+        const Pointer = (page.defaultView as typeof window).PointerEvent;
+        const tap = ([x, y]: number[]) => {
+            const at = {
+                clientX: box.left + v.o[0] + x * v.u,
+                clientY: box.top + v.o[1] - y * v.u,
+                bubbles: true,
+                isPrimary: true,
+                pointerType: "mouse",
+            };
+            figure.dispatchEvent(new Pointer("pointerdown", at));
+            figure.dispatchEvent(new Pointer("pointerup", at));
+        };
+        const types = async () =>
+            (await saved(request)).o.slice(5).map(([type]: string[]) => type);
+        const hint = () => page.querySelector(".dge-hint")!.textContent;
+        // Where the circle crosses the segment, and in the void.
+        const crossing = [-4 + (32 / 50) ** 0.5 * 7, -1 - (32 / 50) ** 0.5];
+        tap(crossing);
+        tap([8, 5]);
+        tap([8, 5]);
+        expect(await types()).toEqual([]);
+        tool("Point on object").click();
+        expect(hint()).toContain("Designate an object");
+        tap([8, 5]);
+        expect(await types()).toEqual([]);
+        tap([-0.5, -1.5]);
+        await expect.poll(types).toEqual(["On"]);
+        tool("Point").click();
+        expect(hint()).toContain("Designate a spot");
+        tap([8, 5]);
+        await expect.poll(types).toEqual(["On", "Pt"]);
+        tap(crossing);
+        await expect.poll(types).toEqual(["On", "Pt", "Int"]);
+    });
+
     // Its center designated with Shift, it takes point after point, or
     // object after object, each one's image shown first; otherwise, it asks
     // for its center again.

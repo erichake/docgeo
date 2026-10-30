@@ -47,6 +47,8 @@ export interface Tool {
     family: Family;
     // Its name, when its command has more than one item.
     label?: MessageKey;
+    // A point's, made also in the void or where two objects cross.
+    anywhere?: boolean;
 }
 
 export interface Family {
@@ -118,7 +120,12 @@ const FAMILIES: [
         "family_points",
         35,
         [
-            [tool("Point", 0, CONSTRUCTION_ICONS.Point, "point")],
+            [
+                labelled(
+                    "tool_point_on",
+                    tool("Point", 0, CONSTRUCTION_ICONS.PointOn, "point"),
+                ),
+            ],
             [
                 tool(
                     "Intersection",
@@ -450,6 +457,19 @@ const sphere = circles.items.findIndex(
 TOOL_FAMILIES.find(({ name }) => name === "family_solids")!.items.unshift(
     ...circles.items.splice(sphere, 1),
 );
+
+// Only in the menu, the point made anywhere leads the points: the ring's is
+// put on its object.
+const points = TOOL_FAMILIES[0];
+points.items.unshift({
+    tools: [
+        Object.assign(tool("Point", 0, CONSTRUCTION_ICONS.Point, "point"), {
+            slot: -1,
+            family: points,
+            anywhere: true,
+        }),
+    ],
+});
 
 // The circle and the arcs through three points, the arcs of a center are
 // in their plane in space, the perpendicular there to a line or a plane;

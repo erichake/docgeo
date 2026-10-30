@@ -87,7 +87,10 @@ const icon = (body: string) =>
     `<g class="dge-construction-icon" transform="scale(.75)">${body}</g>`;
 
 export const CONSTRUCTION_ICONS = {
-    Point: icon(p("M2.5 23Q14-3 29.5 20", ink, 1.3) + dot(15, 9.25, red, 2.7)),
+    Point: icon(dot(11, 21.5, red, 3) + letter(16, 16.5, "A", ink, 12)),
+    PointOn: icon(
+        p("M2.5 23Q14-3 29.5 20", ink, 1.3) + dot(15, 9.25, red, 2.7),
+    ),
     Intersection: icon(
         p("M3 25 28 6M4 5 27 27", ink, 1.3) +
             dot(15.2087133, 15.7218845, red, 2.7),

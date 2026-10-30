@@ -314,6 +314,7 @@ const de: Texts = {
         tool_circle_axis: "Kreis (Achse und Punkt)",
         tool_central: "Punktspiegelung",
         tool_axial: "Achsenspiegelung",
+        tool_point_on: "Punkt auf Objekt",
         designate_place:
             "Tippen Sie auf eine Stelle, ein Objekt oder den Schnitt zweier Objekte",
         selection_hint:

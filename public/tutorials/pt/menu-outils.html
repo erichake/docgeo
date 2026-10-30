@@ -83,6 +83,13 @@
                     desativadas.
                 </li>
                 <li>
+                    Com a paleta aberta e sem ferramenta, a figura apenas se
+                    manipula: um clique em um lugar vazio ou em um cruzamento
+                    não cria ponto. Para criar um, pegar a ferramenta
+                    <i data-t="Point"></i> <strong>Ponto</strong>, a primeira da
+                    paleta.
+                </li>
+                <li>
                     Ao passar sobre uma ferramenta, a indicação mostra sua
                     linha. Se os objetos selecionados lhe bastam, o objeto que
                     ela construiria aparece esmaecido.
@@ -181,14 +188,25 @@
                     <li>
                         <i data-t="Point"></i>
                         <div>
-                            <strong
-                                >Ponto<span class="badge ring"
-                                    >anel</span
-                                ></strong
+                            <strong>Ponto</strong
                             ><span
                                 >O ponto que se toca: livre num lugar vazio,
                                 sobre um objeto ou na interseção de dois
                                 objetos.</span
+                            ><span><code>A = (x, y)</code></span>
+                        </div>
+                    </li>
+                    <li>
+                        <i data-t="Point on object"></i>
+                        <div>
+                            <strong
+                                >Ponto em objeto<span class="badge ring"
+                                    >anel</span
+                                ></strong
+                            ><span
+                                >Um objeto: o ponto sobre esse objeto, onde ele
+                                é tocado. Um clique num lugar vazio não faz
+                                nada.</span
                             ><span><code>Ponto(c, t)</code></span>
                         </div>
                     </li>

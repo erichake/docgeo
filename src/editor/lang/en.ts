@@ -304,6 +304,7 @@ export default {
     tool_circle_axis: "Circle (axis and point)",
     tool_central: "Point reflection",
     tool_axial: "Line reflection",
+    tool_point_on: "Point on object",
     designate_place: "Designate a spot, an object or where two objects cross",
     selection_hint:
         "⌘-click, Ctrl-click or a long press adds an object · the tools menu takes them in this order",

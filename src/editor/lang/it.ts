@@ -309,6 +309,7 @@ const it: Texts = {
         tool_circle_axis: "Circonferenza (asse e punto)",
         tool_central: "Simmetria centrale",
         tool_axial: "Simmetria assiale",
+        tool_point_on: "Punto su oggetto",
         designate_place:
             "Indica un posto, un oggetto o l'incrocio di due oggetti",
         selection_hint:

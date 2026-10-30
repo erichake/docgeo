@@ -2683,7 +2683,11 @@ function wantsPoint(hits: Hit[]): boolean {
     if (pending) {
         const { mode, overload } = pending.tool;
         if (fresh())
-            return mode === "command" ? makesPoint(hits) : mode !== "button";
+            return mode === "command"
+                ? makesPoint(hits)
+                : mode === "point"
+                  ? !!pending.tool.anywhere
+                  : mode !== "button";
         return (
             mode === "command" &&
             makesPoints(overload) &&
@@ -2692,7 +2696,7 @@ function wantsPoint(hits: Hit[]): boolean {
     }
     const field = editing();
     if (!field)
-        return !propertiesOpen && !ghosts && !magnetizing;
+        return !propertiesOpen && !paletteOpen && !ghosts && !magnetizing;
     const call = typedCall(field);
     return (
         expectsPoint(field, call) &&
@@ -2823,7 +2827,9 @@ function describe(tool: Tool, args: (Arg | undefined)[]): string {
     if (tool.mode !== "command" || tool.overload.variadic) shown.push("…");
     const line = `${formatName(nextName(scene(), kind))} = ${commandName(tool.command)}(${shown.join(", ")})`;
     if (tool.mode === "point")
-        return args.length ? line : `${line}\n${message("designate_place")}`;
+        return args.length
+            ? line
+            : `${line}\n${message(tool.anywhere ? "designate_place" : "designate_support")}`;
     if (tool.mode === "intersection") {
         // A surface meets a line only.
         const first = args[0] as construction_object | undefined;
@@ -3208,6 +3214,14 @@ const makesPoints = ({ tag }: Overload): boolean =>
 function designateFirst(screen: Vec2, hits: Hit[], client: Vec2): void {
     const c = scene();
     const { mode } = pending!.tool;
+    if (mode === "point" && !pending!.tool.anywhere) {
+        const supports = hits.filter(({ object }) =>
+            accepts(object, "support"),
+        );
+        if (supports[0] && !(hits[0].object instanceof point_object))
+            chooseHit(supports, client, (hit) => choose(pending!.tool, hit));
+        return;
+    }
     if (mode === "point")
         return designatePoint(screen, hits, client, (point) => {
             if (point !== hits[0]?.object) done(point);
@@ -6057,7 +6071,8 @@ $("body").on(
         }
         if (stepping) return;
         if (named) return editName(named);
-        const cross = crossing(c, screen, hits);
+        // The palette open, its tool makes the points.
+        const cross = !paletteOpen && crossing(c, screen, hits);
         if (cross) return done(addCrossing(cross));
         if (hits[0])
             return chooseHit(hits, client, (hit) => openRing(hit, client));
@@ -6078,6 +6093,7 @@ $("body").on(
                 client,
             );
         const field = typing;
+        if (paletteOpen && !field) return;
         const point = addFreePoint(screen);
         if (!point) return;
         done(point);

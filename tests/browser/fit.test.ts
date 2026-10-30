@@ -49,6 +49,7 @@ const pointAt = (view: HTMLIFrameElement | Window, name: string) =>
         const label = [...(document?.querySelectorAll("svg text") ?? [])].find(
             (text) =>
                 text.textContent === name &&
+                !text.closest(".dge-construction-icon") &&
                 text.closest("svg")!.style.visibility !== "hidden",
         );
         const transform = label?.parentElement!.getAttribute("transform");

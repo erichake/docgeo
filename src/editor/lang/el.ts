@@ -315,6 +315,7 @@ const el: Texts = {
         tool_circle_axis: "Κύκλος (άξονας και σημείο)",
         tool_central: "Κεντρική συμμετρία",
         tool_axial: "Αξονική συμμετρία",
+        tool_point_on: "Σημείο σε αντικείμενο",
         designate_place:
             "Υποδείξτε μια θέση, ένα αντικείμενο ή τη διασταύρωση δύο αντικειμένων",
         selection_hint:

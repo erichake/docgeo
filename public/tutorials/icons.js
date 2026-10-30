@@ -57,6 +57,11 @@ window.DG_ICONS = {
         Point: [
             35,
             1,
+            '<g class="dge-construction-icon" transform="scale(.75)"><circle cx="11" cy="21.5" r="3" stroke="var(--dge-icon-ink, #202d40)" stroke-width="1.05" fill="var(--dge-icon-red, #e3473c)"/><text x="16" y="16.5" fill="var(--dge-icon-ink, #202d40)" stroke="none" font-family="Georgia,serif" font-size="12" font-style="italic">A</text></g>',
+        ],
+        "Point on object": [
+            35,
+            1,
             '<g class="dge-construction-icon" transform="scale(.75)"><path d="M2.5 23Q14-3 29.5 20" stroke="var(--dge-icon-ink, #202d40)" stroke-width="1.3" /><circle cx="15" cy="9.25" r="2.7" stroke="var(--dge-icon-ink, #202d40)" stroke-width="1.05" fill="var(--dge-icon-red, #e3473c)"/></g>',
         ],
         Intersection: [

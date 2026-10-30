@@ -294,6 +294,7 @@ const zh: Texts = {
         tool_circle_axis: "圆（轴和点）",
         tool_central: "中心对称",
         tool_axial: "轴对称",
+        tool_point_on: "对象上的点",
         designate_place: "选择一个位置、一个对象或两个对象的交点",
         selection_hint:
             "⌘-点击、Ctrl-点击或长按：添加对象 · 工具菜单按此顺序使用它们",

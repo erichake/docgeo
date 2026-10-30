@@ -307,6 +307,7 @@ const fr: Texts = {
         tool_circle_axis: "Cercle (axe et point)",
         tool_central: "Symétrie centrale",
         tool_axial: "Symétrie axiale",
+        tool_point_on: "Point sur objet",
         designate_place:
             "Désignez un endroit, un objet ou le croisement de deux objets",
         selection_hint:
