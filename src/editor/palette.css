@@ -23,7 +23,7 @@
         --dge-properties-width: 0px;
     }
 }
-/* The bar full, the menu's tools are enough. */
+/* The bar full, its button moves to the end of the line. */
 @media (max-width: 500px) {
     .dge-editor .dge-bar .dge-palette-button {
         display: none;

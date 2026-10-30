@@ -161,6 +161,7 @@ import {
     type Tool,
 } from "./tools";
 import { toolPalette, type Entry } from "./palette";
+import { listFilters } from "./filters";
 import { propertiesPanel } from "./properties";
 import { resizeHandle } from "./resize";
 import {
@@ -296,6 +297,10 @@ $("head").append(`<style>
     .dge-editor.dge-resizing { --dge-slide-duration: 0s; cursor: col-resize; user-select: none; }
     .dge-panel-header h2 .dge-count { margin-inline-start: 8px; padding: 1px 7px; border-radius: 9px; background: #f1f5f9; color: #64748b; font-size: 12px; font-weight: 500; font-variant-numeric: tabular-nums; vertical-align: 1px; }
     .dge-count:empty { display: none; }
+    /* The title shortened, rather than the number of objects. */
+    #dge-history h2 { display: flex; align-items: center; }
+    #dge-history h2 > span:first-child { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+    #dge-history .dge-count { flex: none; }
     .dge-item { display: flex; align-items: flex-start; padding-inline: 4px; border-block-end: 1px solid #f1f5f9; }
     .dge-item:hover { background: #f8fafc; }
     .dge-side-marks path { fill: none; stroke-linecap: round; pointer-events: none; }
@@ -356,7 +361,17 @@ $("head").append(`<style>
     .dge-line { display: flex; align-items: center; gap: 6px; }
     .dge-line .dge-input { flex: 1; min-width: 0; }
     .dge-line .dge-action { width: 38px; height: 38px; }
-    .dge-line .dge-action.dge-armed { background: hsl(var(--dge-hue) calc(70% * var(--dge-tone)) 92%); border-color: hsl(var(--dge-hue) calc(55% * var(--dge-tone)) 55%); color: #334155; box-shadow: inset 0 1px 3px rgb(15 23 42 / 0.18); }
+    .dge-line .dge-palette-button { display: none; }
+    @media (max-width: 500px) { .dge-line .dge-palette-button { display: grid; } }
+    .dge-item.dge-filtered { display: none; }
+    .dge-filters { display: flex; flex-wrap: wrap; gap: 6px; padding: 8px 12px 0; }
+    .dge-filters:empty { display: none; }
+    .dge-filters button { display: flex; align-items: center; gap: 6px; max-width: 100%; padding: 2px 6px 2px 10px; border: 1px solid #bfdbfe; border-radius: 12px; background: #eff6ff; font: 12px/18px system-ui, -apple-system, "Segoe UI", sans-serif; color: #1d4ed8; cursor: pointer; }
+    .dge-filters button span:first-child { overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+    .dge-filters button span:last-child { font-size: 15px; line-height: 1; }
+    .dge-filters button:hover { border-color: #2563eb; }
+    .dge-menu-popup.dge-filter-menu { position: fixed; inset: auto; max-height: calc(100dvh - 16px); overflow-y: auto; font: 13px/1 system-ui, -apple-system, "Segoe UI", sans-serif; color: #1f2937; z-index: 13; }
+    .dge-filter-menu small { margin-inline-start: auto; padding-inline-start: 28px; font: inherit; opacity: 0.6; font-variant-numeric: tabular-nums; }
     .dge-entry { container-type: inline-size; }
     @container (max-width: 270px) { .dge-steps .dge-end-step { display: none; } }
     .dge-entry { padding: 10px 12px; border-block-end: 1px solid #e5e7eb; }
@@ -450,13 +465,10 @@ $("head").append(`<style>
     .dge-complete:empty { display: none; }
     .dge-tools { position: fixed; max-height: calc(100vh - 16px); box-sizing: border-box; overflow: auto; padding: 4px; border: 1px solid #d1d5db; border-radius: 10px; background: #fff; box-shadow: 0 6px 20px rgb(0 0 0 / 0.14); z-index: 13; }
     .dge-tools button { display: flex; align-items: center; gap: 10px; width: 100%; padding: 3px 10px 3px 3px; border: 0; border-radius: 8px; background: none; font: inherit; color: inherit; text-align: start; white-space: nowrap; cursor: pointer; }
-    .dge-tools button:hover, .dge-tools button:focus-visible, .dge-tools button.dge-open { background: hsl(var(--dge-hue) calc(70% * var(--dge-tone)) 93%); outline: none; }
-    .dge-tools .dge-family::after { content: "›"; margin-inline-start: auto; padding-inline-start: 16px; font-size: 18px; line-height: 1; color: #94a3b8; }
+    .dge-tools button:hover, .dge-tools button:focus-visible { background: hsl(var(--dge-hue) calc(70% * var(--dge-tone)) 93%); outline: none; }
     .dge-tool-icon { display: grid; place-items: center; flex-shrink: 0; width: 34px; height: 34px; box-sizing: border-box; border: 1px solid hsl(var(--dge-hue) calc(55% * var(--dge-tone)) 60%); border-radius: 50%; --dge-icon-bg: hsl(var(--dge-hue) calc(70% * var(--dge-tone)) 96%); background: var(--dge-icon-bg); color: #536174; }
     .dge-tool-icon svg { display: block; width: 24px; height: 24px; fill: none; stroke: currentColor; stroke-width: 1.65; stroke-linecap: round; stroke-linejoin: round; }
     .dge-bar-object.dge-bar-tool .dge-bar-name { max-width: 240px; }
-    .dge-tools button.dge-off { opacity: 0.4; cursor: default; }
-    .dge-tools button.dge-off:not(.dge-family) { background: none; }
     svg .dge-picked { filter: drop-shadow(0 0 2px #2563eb) drop-shadow(0 0 3px #2563eb); }
     .dge-badges span { position: fixed; min-width: 18px; height: 18px; padding: 0 5px; box-sizing: border-box; border-radius: 9px; background: #2563eb; color: #fff; font: 600 11px/18px system-ui, -apple-system, "Segoe UI", sans-serif; text-align: center; transform: translate(7px, -25px); pointer-events: none; z-index: 11; }
     .dge-choice { position: fixed; display: flex; gap: 3px; transform: translateY(-50%); z-index: 13; }
@@ -516,6 +528,17 @@ const stepsButton = button("steps", () => setSteps(!stepping)).att(
     "aria-pressed",
     "false",
 );
+const filterButton = button("filter", () => filters.toggle());
+const filters = listFilters(filterButton, {
+    objects: () =>
+        figureObjects(scene()).filter(
+            (object) => !(object instanceof macro_object),
+        ),
+    chosen: () => chosen().map(({ object }) => object),
+    hidden: (object) => looksHidden(object),
+    name: (object) => formatName(object.name),
+    changed: () => refreshRows(),
+});
 const stepLabel = $.create("span").cls("dge-step").att("aria-live", "polite");
 const firstButton = button("first_step", () => go(1)).addClass("dge-end-step");
 const previousButton = button("previous_step", () => go(stepping!.at - 1));
@@ -538,18 +561,11 @@ const input = $.create("input")
     .cls("dge-input")
     .att("placeholder", message("input"))
     .att("spellcheck", "false");
-// The ring's tools, by family, each kept to build one object after another.
-// Pressed during a tool, it drops it and opens the menu at once.
-const toolsButton = button("tools", () => {
-    if (armed) cancel();
-    else if (!toolsMenu.isHidden()) return closeTools();
-    openTools();
-})
-    .att("aria-haspopup", "menu")
-    .att("aria-expanded", "false")
-    .att("aria-pressed", "false");
-const toolsMenu = $.create("div").cls("dge-tools").att("role", "menu").hide();
-const toolsSub = $.create("div").cls("dge-tools").att("role", "menu").hide();
+// The macros of the figure that take the object of the ring.
+const ringMacrosMenu = $.create("div")
+    .cls("dge-tools")
+    .att("role", "menu")
+    .hide();
 // The ranks of the objects selected.
 const badges = $.create("div").cls("dge-badges");
 // The ranks of a macro's initials.
@@ -637,6 +653,11 @@ const propertiesButton = button("properties", () =>
     .att("aria-controls", "dge-properties")
     .att("aria-expanded", "false");
 const paletteButton = button("palette", () => setPalette(!paletteOpen))
+    .addClass("dge-palette-button")
+    .att("aria-controls", "dge-palette")
+    .att("aria-expanded", "false");
+// In the bar's place when it is full.
+const linePaletteButton = button("palette", () => setPalette(!paletteOpen))
     .addClass("dge-palette-button")
     .att("aria-controls", "dge-palette")
     .att("aria-expanded", "false");
@@ -1095,22 +1116,27 @@ $("body").add(
         $.create("div")
             .cls("dge-panel-header")
             .add(
-                $.create("h2").text(message("construction")).add(count),
+                $.create("h2").add(
+                    $.create("span").text(message("construction")),
+                    count,
+                ),
                 valuesButton,
                 stepsButton,
                 button("new_program", () => {
                     setProperties(true);
                     properties.create(nextName(scene(), false));
                 }),
+                filterButton,
                 button("close_history", () => {
                     setPanel(false);
                     (historyButton.dom() as HTMLButtonElement).focus();
                 }),
             ),
+        filters.chips,
         $.create("div")
             .cls("dge-entry")
             .add(
-                $.create("div").cls("dge-line").add(input, toolsButton),
+                $.create("div").cls("dge-line").add(input, linePaletteButton),
                 stepsBar,
             ),
         rowsBox,
@@ -1160,8 +1186,8 @@ $("body").add(
     complete,
     choice,
     menu,
-    toolsMenu,
-    toolsSub,
+    ringMacrosMenu,
+    filters.menu,
     badges,
     ranks,
     magnetCard,
@@ -1227,14 +1253,16 @@ function setPalette(on: boolean): void {
         if (window.innerWidth <= 900) setPanel(false);
         // Its object stays chosen.
         ring.hide().inner("");
-        if (toolsMenu.isHidden()) toolsSub.hide().inner("");
+        ringMacrosMenu.hide().inner("");
     }
     paletteOpen = on;
     palette.panel.dom().toggleAttribute("inert", !on);
     $("body")
         .addClass("dge-panel-animated")
         .toggleClass("dge-palette-open", on);
-    paletteButton.toggleClass("dge-on", on).att("aria-expanded", String(on));
+    [paletteButton, linePaletteButton].forEach((button) =>
+        button.toggleClass("dge-on", on).att("aria-expanded", String(on)),
+    );
     if (on) palette.refresh();
     try {
         localStorage.setItem(PALETTE_STORAGE, String(on));
@@ -1535,6 +1563,7 @@ function refreshRows(): void {
     const index = figureIndex(c);
     const objects = figureObjects(c);
     const ignored = previewed();
+    filters.prepare(objects);
     objects.forEach((object) => {
         if (ignored.has(object) || object instanceof macro_object) return;
         const node = object.output?.node;
@@ -1569,7 +1598,13 @@ function refreshRows(): void {
         }
         if (open) addRow(object, index, objects, [], true);
     });
-    count.text(rows.size ? String(rows.size) : "");
+    count.text(
+        !rows.size
+            ? ""
+            : filters.active()
+              ? `${[...rows.keys()].filter((object) => filters.passes([object])).length} / ${rows.size}`
+              : String(rows.size),
+    );
     macros.refresh();
     if (paletteOpen) palette.refresh();
     if (applying) showApply();
@@ -1647,6 +1682,7 @@ function addRow(
     const item = $.create("div")
         .cls("dge-item")
         .toggleClass("dge-sub", final)
+        .toggleClass("dge-filtered", !filters.passes(shown))
         .add(visibilityToggle(shown), text);
     if (line !== null && entryOf(object, index)[0] !== "Pt")
         item.add(
@@ -2834,103 +2870,6 @@ function toolEntry(icon: string, label: string, family: Family): DOMElement {
         );
 }
 
-// The families of the ring, each opening its tools; those that don't take
-// the objects selected are greyed.
-function openTools(): void {
-    toolsMenu.inner("");
-    TOOL_FAMILIES.forEach((family) => {
-        const items = family.items.filter(({ tools }) =>
-            tools.some((tool) => usable(tool, vec3())),
-        );
-        if (!items[0]) return;
-        const row = toolEntry(
-            items[0].tools[0].icon,
-            message(family.name),
-            family,
-        )
-            .addClass("dge-family")
-            .toggleClass("dge-off", !items.some((item) => takes(item)))
-            .att("aria-haspopup", "menu");
-        row.on(
-            "pointerenter",
-            (event) => {
-                if (event.pointerType === "mouse")
-                    openFamily(row, family, items);
-            },
-            false,
-        );
-        row.on("click", () => openFamily(row, family, items));
-        toolsMenu.add(row);
-    });
-    const box = toolsButton.dom().getBoundingClientRect();
-    toolsMenu.show();
-    const { width } = toolsMenu.dom().getBoundingClientRect();
-    toolsMenu
-        .stl(
-            "left",
-            `${Math.max(8, Math.min(box.right - width, window.innerWidth - width - 8))}px`,
-        )
-        .stl("top", `${box.bottom + 6}px`);
-    toolsButton.att("aria-expanded", "true");
-}
-
-// Beside the menu, or over it when the window is too narrow.
-function openFamily(row: DOMElement, family: Family, items: Item[]): void {
-    toolsMenu
-        .findAll(".dge-open")
-        .forEach((open) => open.removeClass("dge-open"));
-    row.addClass("dge-open");
-    toolsSub.inner("");
-    const objects = chosen().map(({ object }) => object);
-    items.forEach((item) => {
-        const tool = takes(item);
-        const shown = tool || item.tools.find((tool) => usable(tool, vec3()))!;
-        const entry = toolEntry(shown.icon, itemLabel(item), family)
-            .toggleClass("dge-off", !tool)
-            .att("aria-disabled", String(!tool));
-        entry.on("pointerenter", () => hoverItem(item), false);
-        entry.on("pointerleave", () => hoverItem(null), false);
-        entry.on("click", () => {
-            if (tool) arm(item);
-        });
-        toolsSub.add(entry);
-    });
-    // The figure's macros, after their family's own tool.
-    if (family.name === "family_macros")
-        scene().macros.forEach((macro, index) => {
-            const fits = beginsMacro(macro, objects);
-            const entry = toolEntry(macroIcon(macro), macro.name, family)
-                .toggleClass("dge-off", !fits)
-                .att("aria-disabled", String(!fits));
-            entry.on("pointerenter", () => showHint(startHint(macro)), false);
-            entry.on("pointerleave", () => showHint(restingHint()), false);
-            entry.on("click", () => {
-                if (!fits) return;
-                closeTools();
-                cancel();
-                startApply(index, objects);
-            });
-            toolsSub.add(entry);
-        });
-    toolsSub.show();
-    const menuBox = toolsMenu.dom().getBoundingClientRect();
-    const rowBox = row.dom().getBoundingClientRect();
-    const { width, height } = toolsSub.dom().getBoundingClientRect();
-    const beside = [menuBox.right + 4, menuBox.left - width - 4].find(
-        (left) => left >= 8 && left + width <= window.innerWidth - 8,
-    );
-    const top = beside === undefined ? rowBox.bottom : rowBox.top - 5;
-    toolsSub
-        .stl(
-            "left",
-            `${beside ?? Math.max(8, Math.min(rowBox.left + 24, window.innerWidth - width - 8))}px`,
-        )
-        .stl(
-            "top",
-            `${Math.max(8, Math.min(top, window.innerHeight - height - 8))}px`,
-        );
-}
-
 // Hovered in the menu or the palette, the item's line and what it would
 // build; left, the hint again.
 function hoverItem(item: Item | null): void {
@@ -2956,23 +2895,12 @@ function itemHint(item: Item): string {
     );
 }
 
-function closeTools(): void {
-    toolsMenu.hide().inner("");
-    toolsSub.hide().inner("");
-    toolsButton.att("aria-expanded", "false");
-}
-
 // No keyboard comes up: the arguments are designated in the figure, which
 // a narrow window shows whole.
 function arm(item: Item): void {
     const picked = chosen();
-    if (item.tools[0].mode === "macro") {
-        closeTools();
-        cancel();
-        return startMacro(picked);
-    }
-    closeTools();
     cancel();
+    if (item.tools[0].mode === "macro") return startMacro(picked);
     armed = item;
     if (window.matchMedia("(max-width: 600px)").matches) {
         setPanel(false);
@@ -2990,15 +2918,6 @@ function rearm(): void {
     if (!tool) armed = null;
     pending = tool ? { tool, args: emptyArgs(tool) } : null;
     if (kept) retake(kept);
-    const shown = armed?.tools[0];
-    toolsButton
-        .inner(toolSvg(shown?.icon ?? ACTION_ICONS.tools))
-        .toggleClass("dge-armed", !!shown)
-        .att("aria-pressed", String(!!shown));
-    if (shown)
-        toolsButton
-            .stl("--dge-hue", `${shown.family.hue}`)
-            .stl("--dge-tone", `${shown.family.tone}`);
     showActions();
 }
 
@@ -3434,7 +3353,7 @@ const ringMacros = (object: construction_object): number[] =>
 function showRingMacros(item: DOMElement, hit: Hit): void {
     const macros = scene().macros;
     const family = TOOL_FAMILIES.at(-1)!;
-    toolsSub.inner("");
+    ringMacrosMenu.inner("");
     ringMacros(hit.object).forEach((index) => {
         const macro = macros[index];
         const entry = toolEntry(macroIcon(macro), macro.name, family);
@@ -3443,16 +3362,16 @@ function showRingMacros(item: DOMElement, hit: Hit): void {
             closeRing();
             startApply(index, [hit.object]);
         });
-        toolsSub.add(entry);
+        ringMacrosMenu.add(entry);
     });
-    toolsSub.show();
+    ringMacrosMenu.show();
     const box = item.dom().getBoundingClientRect();
-    const { width, height } = toolsSub.dom().getBoundingClientRect();
+    const { width, height } = ringMacrosMenu.dom().getBoundingClientRect();
     const left =
         box.right + 4 + width <= window.innerWidth - 8
             ? box.right + 4
             : box.left - width - 4;
-    toolsSub
+    ringMacrosMenu
         .stl("left", `${Math.max(8, left)}px`)
         .stl(
             "top",
@@ -3498,7 +3417,7 @@ function moveRing(): void {
 
 function closeRing(): void {
     held = null;
-    if (toolsMenu.isHidden()) toolsSub.hide().inner("");
+    ringMacrosMenu.hide().inner("");
     ring.hide().inner("");
     highlight();
     showActions();
@@ -5224,7 +5143,7 @@ function cancel(keepTool = false): void {
 
 function escape(): void {
     if (!menu.isHidden()) closeMenu();
-    else if (!toolsMenu.isHidden()) closeTools();
+    else if (!filters.menu.isHidden()) filters.close();
     else if (macros.active) stopMacro();
     else if (applying) stopApply();
     else if (framing.shown) framing.stop();
@@ -5582,12 +5501,12 @@ $("body").on(
         if (relaying) return;
         // Pressed elsewhere, the menus close, and the figure does nothing.
         if (
-            !toolsMenu.isHidden() &&
-            ![toolsMenu, toolsSub, toolsButton].some((box) =>
+            !filters.menu.isHidden() &&
+            ![filters.menu, filterButton].some((box) =>
                 box.dom().contains(element(event.target)),
             )
         ) {
-            closeTools();
+            filters.close();
             if (inFigure(event)) {
                 down = null;
                 event.stopPropagation();
@@ -6297,6 +6216,7 @@ async function open(
     await record();
     saved = history[0].figure;
     opened(name, from);
+    filters.reset();
     refreshRows();
     showHint(
         unsupported.length

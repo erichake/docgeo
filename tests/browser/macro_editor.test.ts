@@ -72,13 +72,16 @@ describe("Defining a macro in the editor", () => {
             data: new TextEncoder().encode(JSON.stringify(CIRCUMCENTER)).buffer,
             format: "dgo",
         });
-        const click = (selector: string, text: string) =>
-            [...page.querySelectorAll<HTMLElement>(selector)]
-                .find((element) => element.textContent === text)!
-                .click();
-        (page.querySelector(".dge-line button") as HTMLElement).click();
-        click(".dge-tools .dge-family", "Macros");
-        click(".dge-tools button", "New macro");
+        (
+            page.querySelector(
+                '.dge-bar [aria-controls="dge-palette"]',
+            ) as HTMLElement
+        ).click();
+        (
+            page.querySelector(
+                '.dge-palette-grid button[aria-label="New macro"]',
+            ) as HTMLElement
+        ).click();
         const panel = page.querySelector(".dge-macro") as HTMLElement;
         const open = () => page.body.classList.contains("dge-macro-open");
         expect(open()).toBe(true);
@@ -185,9 +188,16 @@ describe("Defining a macro in the editor", () => {
         ]);
 
         // Without C, the finals miss it.
-        (page.querySelector(".dge-line button") as HTMLElement).click();
-        click(".dge-tools .dge-family", "Macros");
-        click(".dge-tools button", "New macro");
+        (
+            page.querySelector(
+                '.dge-bar [aria-controls="dge-palette"]',
+            ) as HTMLElement
+        ).click();
+        (
+            page.querySelector(
+                '.dge-palette-grid button[aria-label="New macro"]',
+            ) as HTMLElement
+        ).click();
         ["A", "B", "C"].forEach(tap);
         button("Next: the finals").click();
         ["O", "c"].forEach(tap);
@@ -223,9 +233,16 @@ describe("Defining a macro in the editor", () => {
             await expect.poll(() => input.value).toBe("");
         }
         input.blur();
-        (page.querySelector(".dge-line button") as HTMLElement).click();
-        click(".dge-tools .dge-family", "Macros");
-        click(".dge-tools button", "Circumscribed");
+        (
+            page.querySelector(
+                '.dge-bar [aria-controls="dge-palette"]',
+            ) as HTMLElement
+        ).click();
+        (
+            page.querySelector(
+                '.dge-palette-grid button[aria-label="Circumscribed"]',
+            ) as HTMLElement
+        ).click();
         const hint = () => page.querySelector(".dge-hint")!.textContent;
         expect(hint()).toContain("1/3 – Designate a point");
         tap("D");
@@ -327,13 +344,16 @@ describe("Defining a macro in the editor", () => {
             ).buffer,
             format: "dgo",
         });
-        const click = (selector: string, text: string) =>
-            [...page.querySelectorAll<HTMLElement>(selector)]
-                .find((element) => element.textContent === text)!
-                .click();
-        (page.querySelector(".dge-line button") as HTMLElement).click();
-        click(".dge-tools .dge-family", "Macros");
-        click(".dge-tools button", "Dilate");
+        (
+            page.querySelector(
+                '.dge-bar [aria-controls="dge-palette"]',
+            ) as HTMLElement
+        ).click();
+        (
+            page.querySelector(
+                '.dge-palette-grid button[aria-label="Dilate"]',
+            ) as HTMLElement
+        ).click();
         const tap = (name: string) =>
             [...page.querySelectorAll<HTMLInputElement>(".dge-row")]
                 .find((row) => row.value.startsWith(`${name} =`))!
@@ -393,10 +413,6 @@ describe("Defining a macro in the editor", () => {
             ).buffer,
             format: "dgo",
         });
-        const click = (selector: string, text: string) =>
-            [...page.querySelectorAll<HTMLElement>(selector)]
-                .find((element) => element.textContent === text)!
-                .click();
         // Hovered, k is lit as the other objects; then tapped.
         const tapK = () => {
             const k = [...page.querySelectorAll("svg text")].find((text) =>
@@ -417,9 +433,16 @@ describe("Defining a macro in the editor", () => {
             target.dispatchEvent(new Pointer("pointerdown", at));
             target.dispatchEvent(new Pointer("pointerup", at));
         };
-        (page.querySelector(".dge-line button") as HTMLElement).click();
-        click(".dge-tools .dge-family", "Macros");
-        click(".dge-tools button", "New macro");
+        (
+            page.querySelector(
+                '.dge-bar [aria-controls="dge-palette"]',
+            ) as HTMLElement
+        ).click();
+        (
+            page.querySelector(
+                '.dge-palette-grid button[aria-label="New macro"]',
+            ) as HTMLElement
+        ).click();
         tapK();
         expect(
             [
@@ -431,9 +454,16 @@ describe("Defining a macro in the editor", () => {
         (
             page.querySelector('.dge-macro [aria-label="Done"]') as HTMLElement
         ).click();
-        (page.querySelector(".dge-line button") as HTMLElement).click();
-        click(".dge-tools .dge-family", "Macros");
-        click(".dge-tools button", "Dilate");
+        (
+            page.querySelector(
+                '.dge-bar [aria-controls="dge-palette"]',
+            ) as HTMLElement
+        ).click();
+        (
+            page.querySelector(
+                '.dge-palette-grid button[aria-label="Dilate"]',
+            ) as HTMLElement
+        ).click();
         const tap = (name: string) =>
             [...page.querySelectorAll<HTMLInputElement>(".dge-row")]
                 .find((row) => row.value.startsWith(`${name} =`))!
@@ -498,9 +528,16 @@ describe("Defining a macro in the editor", () => {
         const hint = () => page.querySelector(".dge-hint")!.textContent;
         const change = () =>
             page.querySelector<HTMLButtonElement>(".dge-hint .dge-hint-text");
-        (page.querySelector(".dge-line button") as HTMLElement).click();
-        click(".dge-tools .dge-family", "Macros");
-        click(".dge-tools button", "Half");
+        (
+            page.querySelector(
+                '.dge-bar [aria-controls="dge-palette"]',
+            ) as HTMLElement
+        ).click();
+        (
+            page.querySelector(
+                '.dge-palette-grid button[aria-label="Half"]',
+            ) as HTMLElement
+        ).click();
         // Asked the first time.
         expect(hint()).toContain("1/2 – The disk?");
         expect(change()).toBeNull();
@@ -536,9 +573,16 @@ describe("Defining a macro in the editor", () => {
 
         // A new macro's initial fixed in its panel, looked for by its
         // name.
-        (page.querySelector(".dge-line button") as HTMLElement).click();
-        click(".dge-tools .dge-family", "Macros");
-        click(".dge-tools button", "New macro");
+        (
+            page.querySelector(
+                '.dge-bar [aria-controls="dge-palette"]',
+            ) as HTMLElement
+        ).click();
+        (
+            page.querySelector(
+                '.dge-palette-grid button[aria-label="New macro"]',
+            ) as HTMLElement
+        ).click();
         const panel = page.querySelector(".dge-macro") as HTMLElement;
         ["w", "P"].forEach(tap);
         const lock =
@@ -568,9 +612,16 @@ describe("Defining a macro in the editor", () => {
         page.defaultView!.addEventListener("unhandledrejection", (event) =>
             errors.push(String(event.reason)),
         );
-        (page.querySelector(".dge-line button") as HTMLElement).click();
-        click(".dge-tools .dge-family", "Macros");
-        click(".dge-tools button", "Again");
+        (
+            page.querySelector(
+                '.dge-bar [aria-controls="dge-palette"]',
+            ) as HTMLElement
+        ).click();
+        (
+            page.querySelector(
+                '.dge-palette-grid button[aria-label="Again"]',
+            ) as HTMLElement
+        ).click();
         expect(hint()).toContain("2/2");
         page.body.dispatchEvent(
             new KeyboardEvent("keydown", {

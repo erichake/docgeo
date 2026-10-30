@@ -12,8 +12,8 @@ import {
 } from "./tools";
 import "./palette.css";
 
-// The geometric tools at hand, by family, in the properties' place: see
-// EDITOR.md, « Palette d'outils ».
+// The tools at hand, by family, in the properties' place: see EDITOR.md,
+// « Palette d'outils ».
 
 export type Entry = Item | Macro;
 
@@ -121,22 +121,25 @@ export function toolPalette(host: {
             buttons.clear();
             zones.inner("");
             TOOL_FAMILIES.forEach((family) => {
-                if (family.name === "family_programs") return;
-                const entries: [Entry, string, string][] =
-                    family.name === "family_macros"
-                        ? macros.map((macro) => [
-                              macro,
-                              macroIcon(macro),
-                              macro.name,
-                          ])
-                        : family.items.flatMap((item) => {
-                              const tool = item.tools.find((tool) =>
-                                  usable(tool, vec3),
-                              );
-                              return tool
-                                  ? [[item, tool.icon, itemLabel(item)]]
-                                  : [];
-                          });
+                const entries: [Entry, string, string][] = [
+                    ...family.items.flatMap(
+                        (item): [Entry, string, string][] => {
+                            const tool = item.tools.find((tool) =>
+                                usable(tool, vec3),
+                            );
+                            return tool
+                                ? [[item, tool.icon, itemLabel(item)]]
+                                : [];
+                        },
+                    ),
+                    ...(family.name === "family_macros" ? macros : []).map(
+                        (macro): [Entry, string, string] => [
+                            macro,
+                            macroIcon(macro),
+                            macro.name,
+                        ],
+                    ),
+                ];
                 if (entries[0]) zone(family, entries);
             });
         }

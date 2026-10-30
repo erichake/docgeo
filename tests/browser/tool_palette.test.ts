@@ -79,15 +79,25 @@ describe("The tool palette", () => {
             ).click();
         press("dge-palette");
         expect(body.contains("dge-palette-open")).toBe(true);
-        // The ring's families and the menu's tools, not the programs, nor
-        // the planes and solids in the plane, nor macros the figure lacks.
+        // The ring's families and the menu's tools, the programs and the
+        // new macro, not the planes and solids in the plane.
         const zones = [...page.querySelectorAll(".dge-palette-title")].map(
             (title) => title.textContent,
         );
         expect(zones[0]).toBe("Points");
-        expect(zones).not.toContain("Programs");
+        expect(zones.slice(-2)).toEqual(["Programs", "Macros"]);
         expect(zones).not.toContain("Planes");
-        expect(zones).not.toContain("Macros");
+        expect(
+            page.querySelector(
+                '.dge-palette-grid button[aria-label="New macro"]',
+            ),
+        ).not.toBe(null);
+        // Its button in the bar, none at the end of the line.
+        expect(
+            getComputedStyle(
+                page.querySelector(".dge-line .dge-palette-button")!,
+            ).display,
+        ).toBe("none");
         // One or the other, at the same place.
         press("dge-properties");
         expect(body.contains("dge-palette-open")).toBe(false);
@@ -456,5 +466,89 @@ describe("The tool palette", () => {
             ["Mac", [0, 0, [1, 2]]],
             ["Out", [8, 1]],
         ]);
+    });
+});
+
+describe("The construction list's filters", () => {
+    it("show the objects of some types, or those linked to the selection", async () => {
+        const { page, request } = await editor();
+        await request("load", {
+            data: new TextEncoder().encode(JSON.stringify(TRIANGLE)).buffer,
+            format: "dgo",
+        });
+        const filter = page.querySelector(
+            '.dge-panel-header [aria-label="Filter the list"]',
+        ) as HTMLElement;
+        const item = (text: string) =>
+            [
+                ...page.querySelectorAll<HTMLElement>(
+                    ".dge-filter-menu button",
+                ),
+            ].find(
+                (element) => element.firstElementChild!.textContent === text,
+            )!;
+        const shown = () =>
+            [
+                ...page.querySelectorAll<HTMLInputElement>(
+                    ".dge-item:not(.dge-filtered) .dge-row",
+                ),
+            ].map((row) => row.value.split(" ")[0]);
+        const count = () => page.querySelector(".dge-count")!.textContent;
+        const chips = () =>
+            [...page.querySelectorAll(".dge-filters button")].map(
+                (chip) => chip.firstElementChild!.textContent,
+            );
+        filter.click();
+        // Only the types the figure has, with their numbers.
+        expect(item("Points").lastElementChild!.textContent).toBe("3");
+        expect(item("Polygons")).toBe(undefined);
+        expect(item("Linked to the selection").hasAttribute("disabled")).toBe(
+            true,
+        );
+        item("Points").click();
+        expect(shown()).toEqual(["A", "B", "C"]);
+        expect(count()).toBe("3 / 5");
+        expect(chips()).toEqual(["Points"]);
+        expect(filter.classList.contains("dge-on")).toBe(true);
+        item("Lines, segments, vectors").click();
+        expect(shown()).toEqual(["A", "B", "C", "s"]);
+        // A chip takes its filter away; Escape closes the menu.
+        (page.querySelector(".dge-filters button") as HTMLElement).click();
+        expect(shown()).toEqual(["s"]);
+        page.body.dispatchEvent(
+            new KeyboardEvent("keydown", { key: "Escape", bubbles: true }),
+        );
+        expect(page.querySelector(".dge-filter-menu")!.checkVisibility()).toBe(
+            false,
+        );
+        (page.querySelector(".dge-filters button") as HTMLElement).click();
+        expect(count()).toBe("5");
+        expect(filter.classList.contains("dge-on")).toBe(false);
+        // B selected: B and the segment built from it.
+        const { v } = await saved(request);
+        const figure = page.querySelector("body > svg:has([data-layer])")!;
+        const box = figure.getBoundingClientRect();
+        const Pointer = (page.defaultView as typeof window).PointerEvent;
+        const at = {
+            clientX: box.left + v.o[0] + 3 * v.u,
+            clientY: box.top + v.o[1] + 2 * v.u,
+            shiftKey: true,
+            bubbles: true,
+            isPrimary: true,
+            pointerType: "mouse",
+        };
+        figure.dispatchEvent(new Pointer("pointerdown", at));
+        figure.dispatchEvent(new Pointer("pointerup", at));
+        filter.click();
+        item("Linked to the selection").click();
+        expect(shown()).toEqual(["B", "s"]);
+        expect(chips()).toEqual(["Linked to B"]);
+        // Another figure, no filter.
+        await request("load", {
+            data: new TextEncoder().encode(JSON.stringify(TRIANGLE)).buffer,
+            format: "dgo",
+        });
+        expect(chips()).toEqual([]);
+        expect(count()).toBe("5");
     });
 });

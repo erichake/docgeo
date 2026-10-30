@@ -306,15 +306,16 @@ niveaux (familles, puis outils) seulement si l'anneau reste trop dense.
 Décidé avec l'auteur le 2026-10-14 : une troisième façon de construire, à
 la GeoGebra, l'outil choisi avant les objets.
 
-- **Un bouton « Outils »** (une équerre et un crayon) à droite de la ligne de saisie ouvre
-  un menu des familles de l'anneau, mêmes couleurs, même ordre, l'icône de
-  leur premier outil ; chacune ouvre son sous-menu (survol à la souris,
-  toucher au doigt), à côté du menu, ou par-dessus quand la fenêtre est
-  trop étroite. L'élève n'apprend qu'un classement. Pas de recherche dans
-  le menu : la complétion de la ligne de saisie le fait déjà.
-- **Famille « Programmes »** (décidé avec l'auteur le 2026-10-18), la
-  seule propre au menu, en dernier (teinte 95) : l'anneau ne porte que de
-  la géométrie. « Tortue » prend un point (un toucher dans le vide en crée
+- **Plus de bouton ni de menu** (retirés le 2026-10-30, décidé avec
+  l'auteur) : le bouton « Outils » à droite de la ligne de saisie ouvrait
+  les familles de l'anneau et leurs sous-menus. La palette (section
+  « Palette d'outils »), aux mêmes familles, mêmes items et même grisage,
+  le remplace et prend son icône, une équerre et un crayon : ce qui suit
+  vaut pour ses outils. Pas de recherche parmi les outils : la complétion
+  de la ligne de saisie le fait déjà.
+- **Famille « Programmes »** (décidé avec l'auteur le 2026-10-18), avant
+  les macros (teinte 95), absente de l'anneau, qui ne porte que de la
+  géométrie. « Tortue » prend un point (un toucher dans le vide en crée
   un), « Bouton » l'endroit de sa flèche, « Quand l'objet est glissé »,
   « … appuyé », « … lâché » un point déplaçable, « Quand la valeur change »
   une expression ; chacun crée son objet ou son programme (ou montre celui
@@ -385,10 +386,9 @@ la GeoGebra, l'outil choisi avant les objets.
   ligne change ensuite.
 - **Outil persistant** : après chaque objet, il attend de nouveau son
   premier argument, sauf ceux gardés (ci-dessous), une transformation
-  comme les autres (`TRANSFORMATIONS.md`, décision 5). Le bouton prend l'icône de l'outil, enfoncé, aux
-  couleurs de sa famille, et la zone contextuelle de la barre devient un
-  bandeau (icône, nom, « Terminé »), comme pour les aimants. Ce bouton
-  pressé quitte l'outil et rouvre aussitôt le menu, d'un seul clic. On en
+  comme les autres (`TRANSFORMATIONS.md`, décision 5). La zone
+  contextuelle de la barre devient un bandeau (icône, nom, « Terminé »),
+  comme pour les aimants. On en
   sort aussi par « Terminé », Échap, la croix de la consigne, un autre outil,
   le focus dans la ligne de saisie (ou au clavier dans une ligne), la gomme, les propriétés ou le pas à
   pas ; annuler, refaire et la vue 3D le gardent, sans ses arguments
@@ -459,10 +459,12 @@ pour plusieurs objets.
 ## Palette d'outils
 
 Décidé avec l'auteur le 2026-10-29, d'après la palette de CaRMetal (tous
-les outils à plat, par zones repliables), mais limitée aux outils
-géométriques et adaptée à la sélection de DocGeo.
+les outils à plat, par zones repliables), adaptée à la sélection de
+DocGeo. Depuis le 2026-10-30, elle est le seul accès aux outils hors de
+l'anneau et du clavier : le menu des outils est retiré.
 
-- **Place** : un bouton « Palette d'outils » de la barre, à côté de
+- **Place** : un bouton « Palette d'outils » de la barre (une équerre et
+  un crayon), à côté de
   « Propriétés », et son entrée du menu Affichage, ouvrent à droite un
   panneau de la même place et de la même largeur réglable que les
   propriétés. Les deux s'ouvrent alternativement : ouvrir l'un ferme
@@ -478,13 +480,12 @@ géométriques et adaptée à la sélection de DocGeo.
   choisit à son tour, un clic dans le vide le lâche, comme il fermerait
   l'anneau. Ouvrir la palette masque l'anneau ouvert, son objet restant
   choisi.
-- **Zones** : une par famille du menu « Outils », même ordre, mêmes
-  teintes, mêmes items (`Item` de `tools.ts`), sauf « Programmes », qui
-  n'est pas de la géométrie et reste au menu. Les familles sans outil dans
-  la vue (plans et solides dans le plan) n'ont pas de zone. La dernière
-  zone porte les macros de la figure, comme des outils (« Nouvelle macro »
-  reste au menu) ; sans macro, pas de zone. Un clic sur le titre d'une zone
-  la replie ou la déplie, état gardé par le navigateur.
+- **Zones** : une par famille de `tools.ts`, même ordre, mêmes teintes,
+  mêmes items (`Item`), « Programmes » comprise (2026-10-30). Les familles
+  sans outil dans la vue (plans et solides dans le plan) n'ont pas de
+  zone. La dernière porte « Nouvelle macro » puis les macros de la figure,
+  comme des outils. Un clic sur le titre d'une zone la replie ou la
+  déplie, état gardé par le navigateur.
 - **Grisage vivant** : la règle du menu (`takes`), recalculée à chaque
   changement de sélection : les objets sélectionnés, sinon l'objet choisi
   d'un clic, celui dont le menu ouvrirait l'anneau (décidé le 2026-10-29,
@@ -499,8 +500,8 @@ géométriques et adaptée à la sélection de DocGeo.
   `CercleCirconscrit` sur trois points, `Milieu` d'un segment, un polygone
   dès trois sommets, une intersection de deux courbes) montre pâle et sans
   nom l'objet qu'il construirait (`previewItem`, `builtFrom`, le calcul de
-  `take`). Le menu « Outils » fait de même.
-- **Aspect** : pas les pastilles rondes de l'anneau et du menu (le rond
+  `take`).
+- **Aspect** : pas les pastilles rondes de l'anneau (le rond
   reste l'emblème de ce qui est contextuel), mais des boutons carrés à coins
   arrondis, en grille qui se réorganise selon la largeur du panneau ; la
   teinte de la famille est portée par la zone (titre et fond pâle).
@@ -509,7 +510,7 @@ géométriques et adaptée à la sélection de DocGeo.
 - **Petits écrans** : comme les propriétés, sous 900 px la palette alterne
   avec le panneau « Construction », sous 600 px elle recouvre la figure et
   choisir un outil la referme. Sous 500 px, la barre étant pleine, son
-  bouton disparaît : le menu « Outils » suffit.
+  bouton passe à droite de la ligne de saisie.
 
 Plus tard, la palette sera la vitrine des jeux d'outils choisis par
 l'enseignant (section « Anneau d'outils »), comme les sessions restreintes
@@ -903,6 +904,25 @@ dans la figure ne construit rien. Échap, le bouton, la fermeture du
 panneau, la gomme, les propriétés, un outil, annuler ou le focus dans une
 ligne en sortent, la figure entière revenant.
 
+**Filtres de la liste** (2026-10-30, décidé avec l'auteur ; `filters.ts`) :
+un bouton « entonnoir », le dernier de l'en-tête avant la croix, ouvre un menu à cocher : tous les objets, les visibles ou les
+cachés (au sens de la pastille, `looksHidden`) ; « Liés à la sélection »,
+les objets choisis, leurs parents et leurs descendants, figés au moment
+du choix (retrouvés par leur nom, qu'une annulation reconstruise ou non
+les objets ; le filtre tombe quand aucun ne reste) ; et les types que
+la figure contient, avec leur nombre (`kindOf` de `catalog.ts` :
+points, droites, segments et vecteurs, cercles, arcs et coniques,
+polygones, angles, courbes, lieux et listes, expressions, plans,
+solides, autres), plusieurs cochés s'additionnant. Le menu reste ouvert
+d'un choix à l'autre ; Échap ou un appui ailleurs le ferme. Chaque
+filtre actif est une pastille sous l'en-tête, qu'un clic retire ; le
+bouton est allumé et le compteur dit « 312 / 2569 ». Une ligne
+d'application de macro repliée se montre si l'un de ses finals passe.
+Le filtre ne touche que la liste, pas la figure, ni la figure
+enregistrée, ni l'annulation ; il n'est pas mémorisé et ouvrir une figure
+le retire. Écarté : les filtres à la place de la ligne de saisie, qui
+construit, quand eux ne font que lire.
+
 Les deux panneaux latéraux (construction et propriétés) se redimensionnent
 en tirant leur bord intérieur (`src/editor/resize.ts`), qui s'éclaire en
 bleu au survol ; un double-clic sur ce bord rend la largeur par défaut. La
@@ -925,10 +945,10 @@ classe `docgeo-awake` du `body` rend le pointeur aux objets inertes, que
 `pick`, les noms et les widgets ignorent sinon.
 
 Ce mode ne vaut que sans outil : le panneau ne bloque pas la construction
-(décidé le 2026-10-15). Un outil choisi dans le menu « Outils », ou la
+(décidé le 2026-10-15). Un outil choisi dans la palette, ou la
 ligne de saisie, prend les clics comme panneau fermé, et chaque objet
 construit s'affiche dans le panneau, prêt à être réglé. Ouvrir le panneau
-garde l'outil du menu ; Échap lâche l'outil, puis ferme le panneau. L'anneau
+garde l'outil de la palette ; Échap lâche l'outil, puis ferme le panneau. L'anneau
 ne s'ouvre pas tant que le panneau est ouvert. Écarté : un panneau qui
 suivrait la sélection, figure toujours en mode construction, qui aurait
 fait perdre la désignation des boutons et des cases sans les actionner, le
@@ -1398,7 +1418,7 @@ repeat_end; count++)`), seulement pour un n entier tel qu'écrit
           le programme courant (`programOwner`, `ownPrograms` de `figure.ts`).
           Pas de bouton « Programme » dans la zone contextuelle (retiré à la
           demande de l'auteur le 2026-10-18) : les programmes d'événement se
-          créent par la famille « Programmes » du menu des outils.
+          créent par la famille « Programmes » de la palette.
         - Blocs « minimum / maximum de la liste » (`min(a, b)`), et
           `Coordinate("A", 1)` de DGPad lu `y(A)`.
         - Manuel (2026-10-18, validé par l'auteur) : « Programmes
@@ -1454,8 +1474,8 @@ d'application, format dans `DGO.md`).
 **Définir une macro** (2026-10-26, `macro.ts` pour la logique,
 `macro_panel.ts` et `macro.css` pour l'interface) :
 
-- **Entrée** : famille « Macros » du menu des outils, propre au menu comme
-  « Programmes », dont l'item « Nouvelle macro » ouvre le mode. Les objets
+- **Entrée** : « Nouvelle macro », dans la zone « Macros » de la palette
+  (au menu Macros hors d'une iframe), ouvre le mode. Les objets
   sélectionnés en deviennent les initiaux, dans leur ordre.
 - **Deux étapes** (décidé avec l'auteur le 2026-10-26, à la place d'une
   règle automatique et d'une bascule « Initial / Final », trop confuses) :
@@ -1493,7 +1513,7 @@ d'application, format dans `DGO.md`).
   retenus par leur nom).
 
 **Appliquer une macro** (2026-10-26) : les macros de la figure suivent
-« Nouvelle macro » dans la famille « Macros » du menu, chacune avec son
+« Nouvelle macro » dans la zone « Macros » de la palette, chacune avec son
 icône (une boîte sans icône dessinée). Grisée si les objets sélectionnés
 ne commencent aucune de ses méthodes ; sinon ils en sont les premiers
 initiaux. Choisie, elle se comporte comme un outil du menu : bandeau
@@ -1619,7 +1639,7 @@ seulement, un menu « Macros » de la barre de menus, entre « Affichage » et
 « Outils » :
 
 - « Nouvelle macro », qui ouvre la définition, puis « Macros de la
-  figure ▸ » (grisées comme dans le menu des outils ; en sous-menu, une
+  figure ▸ » (grisées comme dans la palette ; en sous-menu, une
   figure pouvant en avoir beaucoup, demandé par l'auteur le 2026-10-27),
   qui les applique ;
 - « Bibliothèque ▸ » (`public/macros/<langue>.dgo`, chargée au démarrage)
@@ -2578,3 +2598,28 @@ Vérifié par 80 tests navigateur ciblés, dont souris et tactile en iframe
 réduite, rayon final, annulation et rétablissement. Build et contrôle du
 manuel dans les 12 langues passés. Moteur et lecteur : mêmes octets ;
 éditeur : +742 octets (+210 en gzip).
+
+### Palette seule, filtres de la liste — 2026-10-30
+
+Décidé avec l'auteur : le menu des outils (bouton à droite de la ligne de
+saisie) faisait double emploi avec la palette. Retiré (`openTools`,
+`openFamily`, `closeTools`), son conteneur restant celui des macros de
+l'anneau (`ringMacrosMenu`). La palette prend son icône (équerre et
+crayon ; le marteau et le tournevis disparaissent), la zone
+« Programmes » et « Nouvelle macro » en tête de la zone « Macros », qui
+existe donc toujours. Sous 500 px, le bouton de la palette passe à droite
+de la ligne de saisie. À sa place dans l'en-tête du panneau
+« Construction », les filtres (section « Filtres de la liste »).
+
+Tests : `tool_palette.test.ts` (zones, bouton de la ligne caché, filtres
+par type, pastilles, Échap, liés à la sélection, retrait à l'ouverture
+d'une figure), `macro_editor.test.ts` passé du menu à la palette. Suites
+complètes : 274 tests unitaires et 1 297 tests navigateur passés. Moteur et
+lecteur : mêmes octets ; éditeur : +2,4 Ko (+0,73 Ko en gzip). Dans
+l'en-tête, devenu plus chargé, le titre s'abrège avant le compteur.
+
+Manuel à reprendre dans les 12 langues, sur demande de l'auteur : page du
+menu des outils (`menu-outils.html`, qui décrit le menu et son bouton),
+palette (programmes, nouvelle macro, icône, petits écrans), panneau
+« Construction » (filtres), icône `tools` de `icons.js`, captures
+(`tools/manual/shots.mjs` appelle encore `button("tools")`).
