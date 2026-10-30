@@ -305,6 +305,7 @@ const hi: Texts = {
         designate_real: "एक संख्या चुनें",
         designate_expression: "एक व्यंजक चुनें",
         designate_point: "एक बिंदु चुनें",
+        designate_transformable: "एक बिंदु या एक ऑब्जेक्ट चुनें",
         designate_moveable: "एक खिसकाया जा सकने वाला बिंदु चुनें",
         designate_button: "बटन का स्थान चुनें",
         designate_pointOn: "किसी ऑब्जेक्ट पर एक बिंदु चुनें",

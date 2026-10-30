@@ -303,6 +303,7 @@ const fr: Texts = {
         designate_real: "Désignez un nombre",
         designate_expression: "Désignez une expression",
         designate_point: "Désignez un point",
+        designate_transformable: "Désignez un point ou un objet",
         designate_moveable: "Désignez un point déplaçable",
         designate_button: "Désignez l'endroit du bouton",
         designate_pointOn: "Désignez un point sur objet",

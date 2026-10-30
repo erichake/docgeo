@@ -63,6 +63,7 @@ import {
     add,
     addFloor,
     addPointOn,
+    builtTag,
     buttonOverload,
     cubeOn,
     entryOf,
@@ -2597,7 +2598,7 @@ function wantsPoint(hits: Hit[]): boolean {
         return (
             mode === "command" &&
             makesPoints(overload) &&
-            paramAt(overload, nextSlot()) === "point"
+            pointNext(paramAt(overload, nextSlot())!, hits)
         );
     }
     const field = editing();
@@ -2702,7 +2703,7 @@ function describe(tool: Tool, args: (Arg | undefined)[]): string {
         return `${message(tool.label!)}\n${message(tool.gesture ? "designate_moveable" : "designate_expression")}`;
     if (tool.mode === "button")
         return `${formatName(nextName(scene(), "Btn"))} = ${commandName(tool.command)}(${quoteText(message("button_caption"))})\n${message("designate_button")}`;
-    const kind = tool.mode !== "command" || tool.overload.tag;
+    const kind = tool.mode !== "command" || builtTag(tool.overload, args);
     const shown = args.map((arg) => (arg === undefined ? "…" : formatArg(arg)));
     if (tool.mode !== "command" || tool.overload.variadic) shown.push("…");
     const line = `${formatName(nextName(scene(), kind))} = ${commandName(tool.command)}(${shown.join(", ")})`;
@@ -4671,8 +4672,29 @@ const formOf = ({ command, overload }: Tool, args: Arg[]): Overload =>
 function build(overload: Overload, args: Arg[]): void {
     clearPreview();
     const c = scene();
-    done(add(c, { name: nextName(c, overload.tag), overload, args }));
+    const tool = pending?.tool;
+    done(
+        add(c, { name: nextName(c, builtTag(overload, args)), overload, args }),
+    );
+    // A transformation of the menu keeps what defines it, as in DGPad,
+    // and takes the next point or object.
+    const slot = overload.params.indexOf("transformable");
+    if (pending && slot >= 0 && pending.tool === tool) {
+        pending.args = args.map((arg, index) =>
+            index === slot ? undefined : arg,
+        );
+        prompt();
+    }
 }
+
+// Whether the argument is a point, made there if none is under the
+// pointer, rather than an object a transformation maps.
+const pointNext = (param: Param, hits: Hit[]): boolean =>
+    param === "point" ||
+    (param === "transformable" &&
+        (!hits[0] ||
+            hits[0].object instanceof point_object ||
+            !accepts(hits[0].object, param)));
 
 function designate(screen: Vec2, hits: Hit[], client: Vec2): void {
     if (fresh()) return designateFirst(screen, hits, client);
@@ -4695,7 +4717,7 @@ function designate(screen: Vec2, hits: Hit[], client: Vec2): void {
     }
     const overload = tool.overload;
     const param = paramAt(overload, nextSlot())!;
-    if (param === "point" && makesPoints(overload)) {
+    if (pointNext(param, hits) && makesPoints(overload)) {
         clearPreview();
         return designatePoint(screen, hits, client, (arg) => {
             if (arg !== hits[0]?.object) changed(arg);
@@ -4824,10 +4846,13 @@ function updatePreview(screen: Vec2, hits: Hit[]): void {
     const cube = !!pending && overload.tag === "Cube" && slot === 1;
     if (missing > 0 && !stand && !cube) return clearPreview();
     const param = paramAt(overload, slot)!;
-    const hit = hits.find(({ object }) => accepts(object, param));
+    const hit =
+        param === "transformable" && pointNext(param, hits)
+            ? hits.find(({ object }) => object instanceof point_object)
+            : hits.find(({ object }) => accepts(object, param));
     const candidate =
         hit?.object ??
-        (param === "point" && free
+        (pointNext(param, hits) && free
             ? ("pointer" as const)
             : pending && floorTakes(param, screen)
               ? ("floor" as const)

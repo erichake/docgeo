@@ -93,11 +93,14 @@ deux suivent les mêmes règles et la même interface.
    vecteurs, demi-droites, droites, polygones, cercles et arcs. **Fait.**
 2. Éditeur : l'outil garde la transformation (décision 5), aperçu au
    survol, commande tapée (`Symétrie(d, poly)`), ligne relue, style de
-   l'image repris de l'objet.
+   l'image repris de l'objet. **Fait** (`EDITOR.md`, « Image d'un objet
+   par une transformation »).
 3. Coniques (transformation affine : conique par cinq points), repli en
    lieu (courbes de fonctions, lieux…), inversion des droites et des
    cercles (objet « cercle ou droite »).
-4. Macros de transformation (entrée `Mac`, verdict enregistré).
+4. Macros de transformation (entrée `Mac`, verdict enregistré). Aussi :
+   le type d'un final de macro qui est l'image d'un objet (`finalTypes`
+   de `src/editor/macro.ts` lit le type de l'entrée, `Refl`… : un point).
 5. 3D (plans, polyèdres, sphères), point sur une image, puis le manuel
    après le feu vert de l'auteur.
 
@@ -165,3 +168,8 @@ Idées à garder, sans recopier le code :
   (`tests/browser/dgo.test.ts`), aller-retour compris. Moteur (et
   lecteur) 376,92 → 378,63 Ko (+1,7 Ko ; gzip +0,7 Ko, 120,28 Ko) ;
   éditeur −0,03 Ko.
+- 2026-10-30 : étape 2 (éditeur). Paramètre `transformable` du catalogue,
+  outil qui garde la transformation, aperçu, nom et style selon la nature
+  de l'image (`builtTag`, `imageLook`), style repris de l'objet. Le
+  moteur refuse un plan (`check`). Éditeur 256,14 → 256,95 Ko (+0,81
+  Ko) ; moteur 378,63 → 378,73 Ko (+0,10 Ko ; gzip 120,32 Ko).

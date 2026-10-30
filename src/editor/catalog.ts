@@ -59,6 +59,8 @@ export type Param =
     // A line or a plane.
     | "linear"
     | "sphere"
+    // What a transformation maps: a point, a line, a circle or a polygon.
+    | "transformable"
     | "polyhedron"
     // A cylinder or a cone.
     | "revolution"
@@ -222,6 +224,8 @@ export function accepts(arg: Arg, param: Param): boolean {
             );
         case "surface":
             return kind === "sphere" || arg instanceof revolution_object;
+        case "transformable":
+            return ["point", "line", "circle", "polygon"].includes(kind);
         case "readable":
             return readable(arg);
         default:
@@ -785,23 +789,23 @@ export const COMMANDS: Command[] = [
     {
         name: "Reflect",
         overloads: [
-            objects("Sym", ["point", "point"]),
-            objects("Refl", ["line", "point"]),
+            objects("Sym", ["point", "transformable"]),
+            objects("Refl", ["line", "transformable"]),
         ],
     },
-    // The transformation first, then the point P, as in DGPad: around O by
-    // an angle, of center O and ratio k, by u.
+    // The transformation first, then the point or the object it maps, as
+    // in DGPad: around O by an angle, of center O and ratio k, by u.
     {
         name: "Rotation",
-        overloads: [withReal("Rot", ["point", "point"])],
+        overloads: [withReal("Rot", ["point", "transformable"])],
     },
     {
         name: "Dilation",
-        overloads: [withReal("Dil", ["point", "point"])],
+        overloads: [withReal("Dil", ["point", "transformable"])],
     },
     {
         name: "Translation",
-        overloads: [objects("Tra", ["vector", "point"])],
+        overloads: [objects("Tra", ["vector", "transformable"])],
     },
     {
         name: "Inversion",

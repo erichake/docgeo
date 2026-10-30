@@ -383,7 +383,8 @@ la GeoGebra, l'outil choisi avant les objets.
   (90°, ou π/2 dans une figure en radians) ou un rapport de 2, que la
   ligne change ensuite.
 - **Outil persistant** : après chaque objet, il attend de nouveau son
-  premier argument. Le bouton prend l'icône de l'outil, enfoncé, aux
+  premier argument ; une transformation garde ce qui la définit et
+  attend le point ou l'objet suivant (`TRANSFORMATIONS.md`). Le bouton prend l'icône de l'outil, enfoncé, aux
   couleurs de sa famille, et la zone contextuelle de la barre devient un
   bandeau (icône, nom, « Terminé »), comme pour les aimants. Ce bouton
   pressé quitte l'outil et rouvre aussitôt le menu, d'un seul clic. On en
@@ -2481,3 +2482,32 @@ Suites unitaires et navigateur passées.
 
 Manuel à mettre à jour (12 langues) : `commandes.html` (syntaxe des six
 commandes), `menu-outils.html` et `selection.html` (ordre de désignation).
+
+### Image d'un objet par une transformation — 2026-10-30
+
+Étape 2 de `TRANSFORMATIONS.md` (le moteur à l'étape 1). Le dernier
+paramètre de `Symétrie` (centrale et axiale), `Rotation`, `Homothétie` et
+`Translation` est `transformable` : un point, une droite (segment,
+demi-droite, vecteur), un cercle (arc) ou un polygone, pas un plan.
+`Inversion` garde un point (étape 3). Au clavier, `v1 = Symétrie(d, v)` ;
+la ligne relue est la même. L'outil du menu ou de la palette, une fois
+désignés le centre, l'axe ou le vecteur, les garde et prend un point ou
+un objet après l'autre, comme DGPad : un point sous le pointeur, sinon
+l'objet transformable sous lui, sinon un point créé là (libre, sur objet
+ou à un croisement), image comprise ; l'aperçu au survol montre l'image
+de l'objet. L'anneau d'un polygone, d'un cercle… propose les symétries,
+l'objet à la place du point. L'image est nommée (`nextName`) et stylée
+(`createdStyle`) selon sa nature (`builtTag` de `figure.ts`, d'après
+`imageLook` du moteur), et reprend la couleur, le remplissage, la taille,
+l'opacité, le pointillé et la décoration de son objet ; pas son nom
+affiché, sa visibilité ni ses autres réglages. Message
+`designate_transformable` dans les 12 langues. Tests : « maps objects by
+transformations, as their objects » (`editor.test.ts`), lignes relues
+dans « writes back the line of each command », et « keeps a
+transformation, which maps points and objects » (`tool_palette.test.ts`,
+l'éditeur intégré piloté au pointeur). Éditeur +0,81 Ko (+0,26 Ko en
+gzip) ; moteur +0,10 Ko.
+
+Manuel à mettre à jour (12 langues), avec l'ordre des transformations
+ci-dessus : `commandes.html` (un objet à la place du point),
+`menu-outils.html` (l'outil garde la transformation), `selection.html`.

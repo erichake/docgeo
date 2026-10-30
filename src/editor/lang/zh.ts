@@ -289,6 +289,7 @@ const zh: Texts = {
         designate_real: "选择一个数",
         designate_expression: "选择一个表达式",
         designate_point: "选择一个点",
+        designate_transformable: "选择一个点或一个对象",
         designate_moveable: "选择一个可拖动的点",
         designate_button: "选择按钮的位置",
         designate_pointOn: "选择对象上的一个点",

@@ -311,6 +311,7 @@ const el: Texts = {
         designate_real: "Επιλέξτε έναν αριθμό",
         designate_expression: "Επιλέξτε μια έκφραση",
         designate_point: "Επιλέξτε ένα σημείο",
+        designate_transformable: "Επιλέξτε ένα σημείο ή ένα αντικείμενο",
         designate_moveable: "Επιλέξτε ένα σημείο που μετακινείται",
         designate_button: "Επιλέξτε τη θέση του κουμπιού",
         designate_pointOn: "Επιλέξτε ένα σημείο σε αντικείμενο",

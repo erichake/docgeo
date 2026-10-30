@@ -310,6 +310,7 @@ const de: Texts = {
         designate_real: "Wählen Sie eine Zahl",
         designate_expression: "Wählen Sie einen Ausdruck",
         designate_point: "Wählen Sie einen Punkt",
+        designate_transformable: "Wählen Sie einen Punkt oder ein Objekt",
         designate_moveable: "Wählen Sie einen verschiebbaren Punkt",
         designate_button: "Wählen Sie die Stelle der Schaltfläche",
         designate_pointOn: "Wählen Sie einen Punkt auf einem Objekt",

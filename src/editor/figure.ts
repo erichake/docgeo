@@ -6,6 +6,7 @@ import {
     figureObjects,
     lookTag,
     LOOKS,
+    objectStyle,
     readDgo,
     type DgoFigure,
 } from "../dgo";
@@ -55,6 +56,7 @@ import { fixed_angle_object } from "../objects/fixed_angle_object";
 import type { formula_point_object } from "../objects/formula_point_object";
 import { point_on_object } from "../objects/point_on_object";
 import { point_object } from "../objects/point_object";
+import { imageLook, type transformable } from "../objects/transformed_object";
 import { plane_object } from "../objects/plane_object";
 import { polygon_object } from "../objects/polygon_object";
 import { panelNames, parsePanel, panel_object } from "../objects/panel_object";
@@ -542,7 +544,8 @@ export function resolve(
             ));
         }
     }
-    const chosen = name ?? target?.name ?? nextName(c, overload.tag);
+    const chosen =
+        name ?? target?.name ?? nextName(c, builtTag(overload, args));
     const named = c.getObj(chosen);
     if (named && named !== target) throw new TextError("name_taken", chosen);
     return { name: chosen, overload, args };
@@ -1507,14 +1510,54 @@ export function createdColors(object: construction_object): [string, string] {
     return [style?.c ?? stroke, style?.fc ?? style?.c ?? fill];
 }
 
-// Adds the object after the others, `styled` as by DGPad's tools.
+// The object a transformation maps, other than a point.
+function mapped(
+    { params }: Overload,
+    args: (Arg | undefined)[],
+): transformable | null {
+    const source = args[params.indexOf("transformable")];
+    return source instanceof construction_object &&
+        !(source instanceof point_object)
+        ? (source as transformable)
+        : null;
+}
+
+// The type of what the entry builds: an image by a transformation has its
+// object's (see transformed_object.ts).
+export function builtTag(
+    overload: Overload,
+    args: (Arg | undefined)[],
+): string {
+    const source = mapped(overload, args);
+    return source ? imageLook(source) : overload.tag;
+}
+
+// What an image by a transformation keeps of its object's style.
+const KEPT_STYLE = ["c", "fc", "s", "o", "dh", "dc"];
+
+// Adds the object after the others, `styled` as by DGPad's tools, an
+// image by a transformation as its object.
 export function add(
     c: construction,
     { name, overload, args }: Spec,
     styled = true,
 ): construction_object {
     const index = figureIndex(c);
-    const style = styled ? createdStyle(overload.tag) : undefined;
+    const source = mapped(overload, args);
+    const kept =
+        source &&
+        objectStyle(source, lookTag(source, entryOf(source, index)[0]));
+    const style = styled
+        ? {
+              ...createdStyle(builtTag(overload, args)),
+              ...(kept &&
+                  Object.fromEntries(
+                      KEPT_STYLE.flatMap((key) =>
+                          key in kept ? [[key, kept[key]]] : [],
+                      ),
+                  )),
+          }
+        : undefined;
     c.beginBatch();
     addDgoEntries(
         c,

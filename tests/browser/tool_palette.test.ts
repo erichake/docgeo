@@ -176,4 +176,72 @@ describe("The tool palette", () => {
         escape();
         expect(body.contains("dge-palette-open")).toBe(false);
     });
+
+    // As in DGPad: once given its center, it takes point after point, or
+    // object after object, each one's image shown first.
+    it("keeps a transformation, which maps points and objects", async () => {
+        const { page, request } = await editor();
+        await request("load", {
+            data: new TextEncoder().encode(
+                JSON.stringify({
+                    dgo: 1,
+                    v: { o: [400, 300], u: 40, w: 800, h: 600 },
+                    o: [
+                        ["Pt", "A", [-4, -1]],
+                        ["Pt", "B", [3, -2]],
+                        ["Pt", "C", [0, 3]],
+                        ["Pt", "O", [5, 2]],
+                        ["Poly", "p", [0, 1, 2]],
+                    ],
+                }),
+            ).buffer,
+            format: "dgo",
+        });
+        (
+            page.querySelector(
+                `.dge-bar [aria-controls="dge-palette"]`,
+            ) as HTMLElement
+        ).click();
+        const tool = page.querySelector(
+            `.dge-palette-grid button[aria-label="Point reflection"]`,
+        ) as HTMLElement;
+        tool.click();
+        const { v } = await saved(request);
+        const figure = page.querySelector("body > svg:has([data-layer])")!;
+        const box = figure.getBoundingClientRect();
+        const Pointer = (page.defaultView as typeof window).PointerEvent;
+        const pointer = (kind: string, [x, y]: number[]) =>
+            figure.dispatchEvent(
+                new Pointer(kind, {
+                    clientX: box.left + v.o[0] + x * v.u,
+                    clientY: box.top + v.o[1] - y * v.u,
+                    bubbles: true,
+                    isPrimary: true,
+                    pointerType: "mouse",
+                }),
+            );
+        const tap = async (at: number[], count: number) => {
+            pointer("pointerdown", at);
+            pointer("pointerup", at);
+            await expect
+                .poll(async () => (await saved(request)).o.length)
+                .toBe(count);
+        };
+        await tap([5, 2], 5);
+        const hint = () => page.querySelector(".dge-hint")!.textContent;
+        expect(hint()).toContain("Designate a point or an object");
+        pointer("pointermove", [-0.3, 0]);
+        expect(figure.querySelectorAll(".dge-preview").length).toBe(1);
+        await tap([-0.3, 0], 6);
+        await tap([-4, -1], 7);
+        // In the void, a point and its image.
+        await tap([7, -3], 9);
+        expect((await saved(request)).o.slice(5)).toEqual([
+            ["Sym", "a", [3, 4], expect.anything()],
+            ["Sym", "D", [3, 0], expect.anything()],
+            ["Pt", "E", expect.any(Array), expect.anything()],
+            ["Sym", "F", [3, 7], expect.anything()],
+        ]);
+        expect(tool.getAttribute("aria-pressed")).toBe("true");
+    });
 });

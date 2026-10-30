@@ -304,6 +304,7 @@ const es: Texts = {
         designate_real: "Selecciona un número",
         designate_expression: "Selecciona una expresión",
         designate_point: "Selecciona un punto",
+        designate_transformable: "Selecciona un punto o un objeto",
         designate_moveable: "Selecciona un punto que se pueda arrastrar",
         designate_button: "Selecciona dónde va el botón",
         designate_pointOn: "Selecciona un punto sobre un objeto",

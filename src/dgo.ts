@@ -1556,6 +1556,7 @@ function transformation(
         const values = list(parameters, min, max);
         const image = map(values, reader);
         const source = reader.at(values[1], point_object, ...TRANSFORMABLE);
+        check(!(source instanceof plane_object));
         return source instanceof point_object
             ? reader.c.add(image(reader.name, source))
             : createTransformed(reader.c, reader.name, source, (point) =>

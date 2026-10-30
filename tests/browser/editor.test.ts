@@ -217,6 +217,11 @@ describe("Editor", () => {
             "K = Rotation(A, D, 30)",
             "L = Dilation(A, D, 2)",
             "N = Translation(u, D)",
+            "v1 = Reflect(d, v)",
+            "s1 = Rotation(A, s, 30)",
+            "c1 = Dilation(E, c, -0.5)",
+            "u1 = Translation(u, u)",
+            "q3 = Reflect(D, q2)",
             "a = Conic(A, B, C, D, E)",
             "k = Ellipse(A, B, C)",
             "t = Ellipse(A, B, 4)",
@@ -269,6 +274,38 @@ describe("Editor", () => {
             expect(() => resolve(c, parseLine(text, isCommand)), text).toThrow(
                 expect.objectContaining({ key: "instead", detail }),
             );
+    });
+
+    // The same kind of object, named and styled as its object.
+    it("maps objects by transformations, as their objects", () => {
+        const { scene: c } = studio();
+        [
+            "A = (0, 0)",
+            "B = (2, 0)",
+            "C = (1, 2)",
+            "O = (1, -1)",
+            "p = Polygon(A, B, C)",
+            "c = Circle(A, B)",
+        ].forEach((line) => type(c, line));
+        const p = c.getObj("p")!;
+        p.fill_color = "#ff0000";
+        p.opacity = 0.5;
+        const image = type(c, "Reflect(O, p)") as polygon_object;
+        expect(image.name).toBe("a");
+        expect(image.fill_color).toBe("#ff0000");
+        expect(image.opacity).toBe(0.5);
+        expect(image.showName).toBe(false);
+        expectClose(image.points[1].coords, [0, -2, 0]);
+        expect(type(c, "Rotation(O, c, 90)").name).toBe("b");
+        expect(type(c, "Reflect(O, A)").name).toBe("D");
+        // The ring of a polygon has the transformations, the polygon taking
+        // the place of the point.
+        expect(toolsFor(p, false).map(({ overload: { tag } }) => tag)).toEqual(
+            expect.arrayContaining(["Sym", "Refl"]),
+        );
+        expect(() => type(c, "Inversion(c, p)")).toThrow(
+            expect.objectContaining({ key: "arguments" }),
+        );
     });
 
     it("tells from the arguments designated whether the line goes on", () => {

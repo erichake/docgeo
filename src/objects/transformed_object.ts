@@ -43,6 +43,22 @@ function middle(arc: primitive_arc_object): Vec3 {
     return arc.pointAt(from + normalizeAngle(to - from) / 2);
 }
 
+// The .dgo type whose look the object's image has.
+export const imageLook = (source: transformable): string =>
+    source instanceof polygon_object
+        ? "Poly"
+        : source instanceof vector_object
+          ? "Vec"
+          : source instanceof segment_object
+            ? "Seg"
+            : source instanceof primitive_line_object
+              ? isRay(source)
+                  ? "Ray"
+                  : "Line"
+              : source instanceof primitive_arc_object
+                ? "Arc"
+                : "Cir";
+
 // The image of an object by a transformation, `map` making the image of a
 // point by it: the same kind of object on the images of points of it,
 // which it computes itself, outside the figure, before its own geometry.
@@ -67,13 +83,11 @@ export function createTransformed(
     };
     const space = !c.GRID.is2D;
     let object: construction_object;
-    let look: string;
     if (source instanceof polygon_object) {
         const polygon = new polygon_object(c, name, source.vertices.map(image));
         polygon.ownVertices = polygon.vertices;
         polygon.section = source.section;
         object = polygon;
-        look = "Poly";
     } else if (source instanceof segment_object) {
         const ends = [source.P1, source.P2].map(image) as [
             point_object,
@@ -85,7 +99,6 @@ export function createTransformed(
             name,
             ...ends,
         );
-        look = vector ? "Vec" : "Seg";
     } else if (source instanceof primitive_line_object) {
         const ray = isRay(source);
         object = new (ray ? ray_line_object : two_points_line_object)(
@@ -94,7 +107,6 @@ export function createTransformed(
             image(source.P1),
             imageAt(() => vAdd(source.P1.coords, source.VEC)),
         );
-        look = ray ? "Ray" : "Line";
     } else if (source instanceof primitive_arc_object) {
         object = new arc3pts_object(
             c,
@@ -105,13 +117,11 @@ export function createTransformed(
             source.sector,
             space,
         );
-        look = "Arc";
     } else {
         const [p, q, r] = [0, 1, 2].map((k) =>
             imageAt(() => source.pointAt((k * 2 * Math.PI) / 3)),
         );
         object = new circle3pts_object(c, name, p, q, r, space);
-        look = "Cir";
     }
     const template = map(source as never);
     // The figure's objects don't know the private ones.
@@ -126,7 +136,7 @@ export function createTransformed(
     object.parents = [];
     object.addParents(...template.parents);
     object.readsView = template.readsView;
-    object.look = look;
+    object.look = imageLook(source);
     const { computeGeometry, project } = object;
     Object.assign(object, {
         computeGeometry() {
