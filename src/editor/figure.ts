@@ -4,6 +4,7 @@ import {
     describeDgo,
     dgoEntry,
     figureObjects,
+    lookTag,
     LOOKS,
     readDgo,
     type DgoFigure,
@@ -1495,7 +1496,7 @@ function createdStyle(tag: string): Record<string, unknown> | undefined {
 // The stroke and fill colors a tool gives a new object of its type.
 export function createdColors(object: construction_object): [string, string] {
     const { output } = object;
-    const tag = output?.tag ?? entryOf(object, new Map())[0];
+    const tag = lookTag(object, entryOf(object, new Map())[0]);
     const [fill, stroke] = LOOKS[tag];
     const node = output?.node as macro_object | undefined;
     const style = (

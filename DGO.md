@@ -256,11 +256,11 @@ la figure, autour de la verticale de O dans l'espace, sa hauteur gardée),
 | `Fp`    | point défini par une formule           | `[formule]`, `[formule, n1, n2]` (1)            |
 | `On`    | point sur objet                        | `[support, paramètre]` (2)                      |
 | `Mid`   | milieu                                 | `[A, B]`                                        |
-| `Sym`   | symétrique de P par rapport à O        | `[O, P]`                                        |
-| `Refl`  | symétrique de P par rapport à d        | `[d, P]`                                        |
-| `Rot`   | P tourné autour de O                   | `[O, P, a]`, `[O, P, a, d]` (15)                |
-| `Dil`   | image de P par l'homothétie (O, k)     | `[O, P, k]` (15)                                |
-| `Tra`   | P translaté du vecteur u               | `[u, P]` (15)                                   |
+| `Sym`   | symétrique de P par rapport à O        | `[O, P]` (28)                                   |
+| `Refl`  | symétrique de P par rapport à d        | `[d, P]` (28)                                   |
+| `Rot`   | P tourné autour de O                   | `[O, P, a]`, `[O, P, a, d]` (15, 28)            |
+| `Dil`   | image de P par l'homothétie (O, k)     | `[O, P, k]` (15, 28)                            |
+| `Tra`   | P translaté du vecteur u               | `[u, P]` (15, 28)                               |
 | `Inv`   | inverse de P dans le cercle c          | `[c, P]`                                        |
 | `TC`    | centre du triangle ABC                 | `[A, B, C, n]` (18)                             |
 | `Vtx`   | sommet k d'un polygone ou polyèdre     | `[polygone ou polyèdre, k]` (18)                |
@@ -577,6 +577,16 @@ alignement]]` police, `[30, url, l, h, zoom, opacité, u]` image (largeur
     sont ceux de c, indéfinis ou ramenés à l'extrémité la plus proche
     au-delà de l'arc, comme sur un arc de cercle. Le paramètre d'un point sur
     l'arc d'ellipse est celui de c.
+28. À la place du point P, un objet (ajouté le 2026-10-30, voir
+    `TRANSFORMATIONS.md`) : son image, de même nature, construite sur les
+    images de ses points (non enregistrées). Segment, vecteur, demi-droite
+    et polygone : les images de ses extrémités ou de ses sommets ; droite :
+    celles de son point et de ce point plus son vecteur directeur ; cercle :
+    le cercle passant par les images de trois de ses points ; arc ou
+    secteur : celui qui passe par les images de ses extrémités et de son
+    milieu, parcouru dans le sens qu'elles donnent. Son style par défaut
+    est celui de sa nature (`Seg`, `Vec`, `Ray`, `Line`, `Poly`, `Cir`,
+    `Arc`).
 
 ### Macro-constructions
 

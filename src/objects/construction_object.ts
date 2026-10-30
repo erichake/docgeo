@@ -111,6 +111,9 @@ export class construction_object {
     // A final of a macro's application (see macro_object.ts): the
     // application, its rank, and its .dgo type in the macro's body.
     output?: { node: construction_object; rank: number; tag: string };
+    // The .dgo type whose default style it has, when not its entry's: an
+    // image by a transformation has its object's (see transformed_object.ts).
+    look?: string;
     class: typeof construction_object;
     C: construction;
     prefs: Preferences;

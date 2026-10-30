@@ -1,5 +1,5 @@
 import type { construction } from "../construction";
-import { addDgoEntries, figureObjects, objectStyle } from "../dgo";
+import { addDgoEntries, figureObjects, lookTag, objectStyle } from "../dgo";
 import { isCommand } from "./catalog";
 import { message } from "./messages";
 import { button_object } from "../objects/button_object";
@@ -262,7 +262,7 @@ export function methodOf(
             const [tag, parameters] = objectEntry(object, context);
             const entry = [tag, object.name, parameters];
             local.set(object, count++);
-            const style = objectStyle(object, object.output?.tag ?? tag);
+            const style = objectStyle(object, lookTag(object, tag));
             return Object.keys(style).length ? [...entry, style] : entry;
         });
     return {

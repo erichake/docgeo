@@ -100,14 +100,15 @@ import {
     type Equation,
 } from "./objects/equation_conic_object";
 import { createEquationLine } from "./objects/equation_line_object";
-import { createDilation } from "./objects/dilation_object";
-import { createRotation } from "./objects/rotation_object";
+import { dilation_object } from "./objects/dilation_object";
+import { rotation_object } from "./objects/rotation_object";
 import {
-    createTranslation,
+    translation_object,
     type translation_vector,
 } from "./objects/translation_object";
+import { createTransformed } from "./objects/transformed_object";
 import { createRay } from "./objects/ray_line_object";
-import { createReflection } from "./objects/reflection_object";
+import { reflection_object } from "./objects/reflection_object";
 import { createSegment, segment_object } from "./objects/segment_object";
 import { createSphere, sphere_object } from "./objects/sphere_object";
 import { createPlane, plane_object } from "./objects/plane_object";
@@ -129,7 +130,7 @@ import {
 } from "./objects/polyhedron_object";
 import { createNetVertex, type net_turn } from "./objects/net_vertex_object";
 import { createNet } from "./objects/net_object";
-import { createSymmetry } from "./objects/symmetry_object";
+import { symmetry_object } from "./objects/symmetry_object";
 import { createText } from "./objects/text_object";
 import { createPanel, panelNames, parsePanel } from "./objects/panel_object";
 import { createEvent, runInits } from "./objects/event_object";
@@ -401,6 +402,12 @@ function range(key: "RESTRICT_THETA" | "RESTRICT_PHI", initial: Json[]) {
 const object = construction_object;
 const isHidden = (value: Json): boolean =>
     value === 0 || value === 1 || value === 2;
+
+// The type whose default style an object of this entry type has: a
+// macro's final has its own in the body, an image by a transformation its
+// object's.
+export const lookTag = (object: construction_object, tag: string): string =>
+    object.look ?? object.output?.tag ?? tag;
 
 // An object's style: only what differs from its default is saved.
 const STYLE: Record<string, Property> = {
@@ -867,7 +874,7 @@ export function dgoEntry(
     styleIndex: (style: Settings) => number,
     [tag, parameters] = objectEntry(object, context),
 ): unknown[] {
-    const style = describe(STYLE, object, object.output?.tag ?? tag);
+    const style = describe(STYLE, object, lookTag(object, tag));
     if (object.condition) style.sc = context.index(object.condition);
     if (object instanceof point_object && object.magnets.length)
         style.mg = object.magnets.map(({ target, radius }) => [
@@ -1155,7 +1162,7 @@ export function readEntries(
                 vec3,
             });
             const settings = style(styleValue);
-            apply(STYLE, object, settings, object.output?.tag ?? tag);
+            apply(STYLE, object, settings, lookTag(object, tag));
             styled.push([object, settings]);
             objects.push(object);
         }),
@@ -1534,6 +1541,29 @@ function ofSegment<T extends construction_object & { side?: segment_object }>(
     };
 }
 
+// A transformation's entry, of `min` to `max` parameters: the image of the
+// second one, a point or an object (see transformed_object.ts), `map`
+// reading the others and making the image of a point.
+function transformation(
+    min: number,
+    max: number,
+    map: (
+        parameters: Json[],
+        reader: Reader,
+    ) => (name: string | null, point: point_object) => point_object,
+): Builder {
+    return (parameters, reader) => {
+        const values = list(parameters, min, max);
+        const image = map(values, reader);
+        const source = reader.at(values[1], point_object, ...TRANSFORMABLE);
+        return source instanceof point_object
+            ? reader.c.add(image(reader.name, source))
+            : createTransformed(reader.c, reader.name, source, (point) =>
+                  image(null, point),
+              );
+    };
+}
+
 // A line, then a point.
 function linePoint(
     create: (
@@ -1559,6 +1589,13 @@ const INTERSECTABLE = [
     primitive_circle_object,
     primitive_quadric_object,
     curve_object,
+];
+
+// What a transformation maps, besides points.
+const TRANSFORMABLE = [
+    primitive_line_object,
+    primitive_circle_object,
+    polygon_object,
 ];
 
 // A List's or a text's formula, "k" and "count" being a List's own, or a
@@ -1637,44 +1674,43 @@ const BUILDERS: Record<string, Builder> = {
         return createPointOn(c, name, support, onParameter(support, alpha));
     },
     Mid: ofSegment(createMidpoint),
-    Sym: twoPoints(createSymmetry),
-    Refl: linePoint(createReflection),
-    Rot: (parameters, reader) => {
-        const [center, point, angle, axis] = list(parameters, 3, 4);
-        return createRotation(
-            reader.c,
-            reader.name,
-            center === null ? null : reader.at(center, point_object),
-            reader.at(point, point_object),
-            radius(angle, reader),
+    Sym: transformation(2, 2, ([center], { c, at }) => {
+        const o = at(center, point_object);
+        return (name, point) => new symmetry_object(c, name, o, point);
+    }),
+    Refl: transformation(2, 2, ([line], { c, at }) => {
+        const d = at(line, primitive_line_object);
+        return (name, point) => new reflection_object(c, name, d, point);
+    }),
+    Rot: transformation(3, 4, ([center, , angle, axis], reader) => {
+        const o = center === null ? null : reader.at(center, point_object);
+        const a = radius(angle, reader);
+        const d =
             axis === undefined
                 ? undefined
-                : reader.at(axis, primitive_line_object),
-        );
-    },
-    Dil: (parameters, reader) => {
-        const [center, point, ratio] = list(parameters, 3);
-        return createDilation(
-            reader.c,
-            reader.name,
-            center === null ? null : reader.at(center, point_object),
-            reader.at(point, point_object),
-            radius(ratio, reader),
-        );
-    },
-    Tra: (parameters, reader) => {
-        const [vector, point] = list(parameters, 2);
+                : reader.at(axis, primitive_line_object);
+        return (name, point) =>
+            new rotation_object(reader.c, name, o, point, a, d);
+    }),
+    Dil: transformation(3, 3, ([center, , ratio], reader) => {
+        const o = center === null ? null : reader.at(center, point_object);
+        const k = radius(ratio, reader);
+        return (name, point) =>
+            new dilation_object(reader.c, name, o, point, k);
+    }),
+    Tra: transformation(2, 2, ([vector], reader) => {
         const u = isNumber(vector)
             ? reader.at(vector, vector_object, point_object)
             : radius(vector, reader);
         check(typeof u !== "number");
-        return createTranslation(
-            reader.c,
-            reader.name,
-            u as translation_vector,
-            reader.at(point, point_object),
-        );
-    },
+        return (name, point) =>
+            new translation_object(
+                reader.c,
+                name,
+                u as translation_vector,
+                point,
+            );
+    }),
     Ctr: (parameters, { c, name, at }) => {
         const [circle] = list(parameters, 1);
         return createCenter(c, name, at(circle, primitive_circle_object));
@@ -2390,10 +2426,11 @@ const BUILDERS: Record<string, Builder> = {
                 objects,
                 [...standIns.values()],
                 local,
-                method.finals.map(
-                    (final) =>
-                        local[final].output?.tag ??
-                        (method.body[final - slots][0] as string),
+                method.finals.map((final) =>
+                    lookTag(
+                        local[final],
+                        method.body[final - slots][0] as string,
+                    ),
                 ),
             ),
         );

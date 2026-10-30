@@ -40,7 +40,7 @@ export interface Macro {
     methods: MacroMethod[];
 }
 
-const isRay = (object: construction_object): boolean =>
+export const isRay = (object: construction_object): boolean =>
     object instanceof ray_line_object ||
     object instanceof angle_bisector_object ||
     object instanceof fixed_angle_object;

@@ -19,6 +19,7 @@ import { formatName } from "../../src/editor/text";
 import { importGgb, importGgbFromUrl } from "../../src/ggb_importer";
 import { parseProgram } from "../../src/import/dgp_formula";
 import type { arc3pts_object } from "../../src/objects/arc3pts_object";
+import type { circle3pts_object } from "../../src/objects/circle3pts_object";
 import { button_object } from "../../src/objects/button_object";
 import type { center_arc_object } from "../../src/objects/center_arc_object";
 import type {
@@ -33,6 +34,10 @@ import {
 import { point_on_object } from "../../src/objects/point_on_object";
 import { point_object } from "../../src/objects/point_object";
 import { polygon_object } from "../../src/objects/polygon_object";
+import { ray_line_object } from "../../src/objects/ray_line_object";
+import type { segment_object } from "../../src/objects/segment_object";
+import type { two_points_line_object } from "../../src/objects/two_points_line_object";
+import { vector_object } from "../../src/objects/vector_object";
 import type { Vec3 } from "../../src/vec";
 import {
     createConstruction,
@@ -619,6 +624,91 @@ describe(".dgo reader", () => {
             "Arcs",
             "CSecs",
         ]);
+    });
+
+    // The same kind of object on the images of its points, saved as the
+    // image of a point, the object in its place.
+    it("reads images of objects by transformations, and writes them back", async () => {
+        const figure = {
+            dgo: 1,
+            v: { o: [400, 300], u: 40, w: 800, h: 600 },
+            o: [
+                ["Pt", "A", [0, 0]],
+                ["Pt", "B", [2, 0]],
+                ["Pt", "C", [1, 2]],
+                ["Pt", "D", [-1, 0]],
+                ["Pt", "E", [-1, 1]],
+                ["Pt", "O", [1, -1]],
+                ["Line", "d", [3, 4]],
+                ["Poly", "p", [0, 1, 2]],
+                ["Seg", "s", [0, 1]],
+                ["Vec", "v", [0, 2]],
+                ["Ray", "r", [0, 1]],
+                ["Line", "l", [1, 2]],
+                ["Cir", "c", [0, 1]],
+                ["Arc", "a", [1, 2, 0]],
+                ["Refl", "p1", [6, 7]],
+                ["Sym", "s1", [5, 8]],
+                ["Tra", "v1", [9, 9]],
+                ["Rot", "r1", [5, 10, 90]],
+                ["Dil", "l1", [5, 11, ["x(P)", { P: 0 }]]],
+                ["Rot", "c1", [5, 12, 90]],
+                ["Refl", "a1", [6, 13]],
+                ["Int", "I", [19, 17, 0]],
+            ],
+        };
+        const c = createConstruction();
+        readDgo(c, figure);
+        c.flush();
+        const get = <T>(name: string) => c.getObj(name) as T;
+        const coords = (points: point_object[]) => points.map((p) => p.coords);
+        expectClose(coords(get<polygon_object>("p1").points), [
+            [-2, 0, 0],
+            [-4, 0, 0],
+            [-3, 2, 0],
+        ]);
+        const s1 = get<segment_object>("s1");
+        expectClose(coords([s1.P1, s1.P2]), [
+            [2, -2, 0],
+            [0, -2, 0],
+        ]);
+        expect(get<object>("v1")).toBeInstanceOf(vector_object);
+        const v1 = get<vector_object>("v1");
+        expectClose(coords([v1.P1, v1.P2]), [
+            [1, 2, 0],
+            [2, 4, 0],
+        ]);
+        const r1 = get<ray_line_object>("r1");
+        expect(r1).toBeInstanceOf(ray_line_object);
+        expectClose(r1.P1.coords, [0, -2, 0]);
+        expectClose(r1.VEC, [0, 1, 0]);
+        // By the dilation of ratio A's abscissa: O itself.
+        const l1 = get<two_points_line_object>("l1");
+        expect(l1.defined).toBe(false);
+        const a = get<point_object>("A");
+        a.coords = [2, 1, 0];
+        c.invalidateGeometry(a);
+        c.flush();
+        expect(l1.defined).toBe(true);
+        expectClose(l1.P1.coords, [3, 1, 0]);
+        a.coords = [0, 0, 0];
+        c.invalidateGeometry(a);
+        c.flush();
+        const c1 = get<circle3pts_object>("c1");
+        expectClose(c1.CENTER, [0, -2, 0]);
+        expect(c1.R).toBeCloseTo(2);
+        const a1 = get<arc3pts_object>("a1");
+        expectClose(a1.CENTER, [-3, 0.75, 0]);
+        expect(a1.insideBounds([-3, 2, 0])).toBe(true);
+        expect(a1.insideBounds([-3, -0.5, 0])).toBe(false);
+        expect(get<point_object>("I").defined).toBe(true);
+        // The image of the triangle has a polygon's look.
+        expect(get<polygon_object>("p1").fill_color).toBe("rgb(35,141,227)");
+        const saved = await describeDgo(c);
+        expect(saved.o.slice(14)).toEqual(
+            figure.o.slice(14).map((entry) => entry.slice(0, 3)),
+        );
+        await roundTrip(async (copy) => readDgo(copy, saved));
     });
 
     it("reads arcs of an ellipse, bounded at their ends", () => {

@@ -48,6 +48,59 @@ deux suivent les mêmes règles et la même interface.
 6. Aperçu au survol de l'objet de l'image qu'il donnerait, comme pour un
    point aujourd'hui (et comme CaRMetal, en jaune).
 
+7. **Représentation** (décidé le 2026-10-30) : un nœud, porté par les
+   entrées existantes, et pas une décomposition en images de points
+   (comme l'import GeoGebra) : `["Refl", [d, X]]`, X étant un point ou un
+   objet (`DGO.md`, note 28). Une ligne unique, relue `Symétrie(d, X)`.
+   L'image est un objet de même nature que X, utilisable comme tout autre
+   (intersections, points sur objet…). Elle est construite dans le moteur
+   sur les images de points de X, privées (hors de la figure), lues sur
+   la géométrie de X : elle couvre donc aussi un cercle de rayon donné,
+   une droite par équation, un objet sans points de définition. Repli :
+   un lieu. Pour une macro, même entrée `Mac`, l'objet à la place du
+   dernier initial ; le verdict du test numérique « droite / cercle
+   conservé », fait une fois à l'application, sera enregistré dans
+   l'entrée, pour qu'une figure rouverte dans une autre position ne change
+   pas de nature.
+
+## Mise en œuvre
+
+- `src/objects/transformed_object.ts` : `createTransformed`, dont
+  l'argument `map` fait l'image d'un point par la transformation (une
+  instance des classes de points existantes : `reflection_object`…).
+  L'image est une instance ordinaire (`segment_object`,
+  `polygon_object`…) construite sur des points privés : images de points
+  de X (extrémités, sommets) ou de points lus sur sa géométrie
+  (`source_point` : point + vecteur directeur d'une droite, trois points
+  d'un cercle, extrémités et milieu d'un arc). Elle les calcule et les
+  projette elle-même avant sa propre géométrie (méthodes remplacées sur
+  l'instance) ; ses parents dans la figure, son entrée `.dgo` et
+  `readsView` sont ceux d'un « gabarit », l'image d'un point construite
+  avec X à la place du point et jamais calculée. Les objets de la figure
+  ne connaissent pas les objets privés (liens retirés).
+- Style par défaut : celui de sa nature, par `look` (`construction_object`)
+  et `lookTag` (`src/dgo.ts`), qui servent aussi aux finals de macros.
+- Natures traitées : segment, vecteur, demi-droite (`Ray`, `Bis`, `FA`),
+  droite, polygone (y compris section et polygone régulier), cercle, arc
+  et secteur. Le cercle et l'arc images passent par trois points
+  (`C3p`/`Arc`, `C3s`/`Arcs` en 3D) : l'orientation d'un arc suit celle
+  de la transformation sans rien à décider.
+- `Inv` reste limité aux points (l'inversion change la nature : étape 3).
+
+## Étapes
+
+1. Moteur : images par `Sym`, `Refl`, `Rot`, `Dil`, `Tra` des segments,
+   vecteurs, demi-droites, droites, polygones, cercles et arcs. **Fait.**
+2. Éditeur : l'outil garde la transformation (décision 5), aperçu au
+   survol, commande tapée (`Symétrie(d, poly)`), ligne relue, style de
+   l'image repris de l'objet.
+3. Coniques (transformation affine : conique par cinq points), repli en
+   lieu (courbes de fonctions, lieux…), inversion des droites et des
+   cercles (objet « cercle ou droite »).
+4. Macros de transformation (entrée `Mac`, verdict enregistré).
+5. 3D (plans, polyèdres, sphères), point sur une image, puis le manuel
+   après le feu vert de l'auteur.
+
 ## Référence : CaRMetal
 
 `…/netbeans/CaRMetal/src/rene/zirkel/macro/MacroRunner.java` (chemin
@@ -70,8 +123,9 @@ Idées à garder, sans recopier le code :
 
 ## Existant dans DocGeo
 
-- Moteur : `Sym`, `Refl`, `Rot`, `Dil`, `Tra`, `Inv` sont des images de
-  **points** seulement (`DGO.md`, tableau des points ; note 15).
+- Moteur : `Sym`, `Refl`, `Rot`, `Dil`, `Tra`, `Inv` étaient des images
+  de **points** seulement (`DGO.md`, tableau des points ; note 15) ;
+  depuis l'étape 1, voir « Mise en œuvre ».
   L'image d'un arc par une symétrie axiale existe déjà (arc parcouru dans
   le sens indirect, note 16).
 - Import GeoGebra : `transform` (`src/import/ggb_translate.ts`) traduit
@@ -85,15 +139,6 @@ Idées à garder, sans recopier le code :
 
 ## Questions ouvertes (à trancher avec l'auteur)
 
-- **Représentation dans le `.dgo`** : décomposition (images des points de
-  définition, puis l'objet reconstruit, comme l'import GeoGebra) ou nœud
-  « image de l'objet X par la transformation T » ? La décomposition ne
-  demande presque rien au moteur mais ne couvre que les objets définis par
-  des points (pas une conique par équation, une fonction, un lieu, un
-  objet libre comme un cercle de rayon donné) et multiplie les lignes de
-  la construction relue ; un nœud donne une ligne unique
-  (`Symétrie(d, poly)`), le type de l'image étant celui de l'objet. Le
-  format est additif une fois diffusé (`DGO.md`).
 - **Nature conservée par une macro** : inconnue d'avance. Test numérique
   à l'application (les images de plusieurs points d'une droite restent
   alignées, d'un cercle cocycliques), puis droite / cercle reconstruits,
@@ -115,3 +160,8 @@ Idées à garder, sans recopier le code :
 
 - 2026-10-30 : ordre des arguments des transformations (décision 4),
   commit `7aff39c`.
+- 2026-10-30 : étape 1 (moteur), représentation par nœud (décision 7).
+  Test `.dgo reader` « reads images of objects by transformations »
+  (`tests/browser/dgo.test.ts`), aller-retour compris. Moteur (et
+  lecteur) 376,92 → 378,63 Ko (+1,7 Ko ; gzip +0,7 Ko, 120,28 Ko) ;
+  éditeur −0,03 Ko.
