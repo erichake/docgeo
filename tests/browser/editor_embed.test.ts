@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it } from "vitest";
 import { commands } from "vitest/browser";
-import { $ } from "../../src/dom";
+import { $, DOMElement } from "../../src/dom";
 import { expectClose, figure as fixture } from "./figures";
 
 type Message = Record<string, any>;
@@ -72,6 +72,122 @@ async function decoded(data: ArrayBuffer): Promise<Message> {
 }
 
 describe("embedded editor", () => {
+    it.each([false, true])(
+        "sets the ring circle's radius on release (touch=%s)",
+        async (touch) => {
+            const { iframe, request } = await host();
+            iframe.style.transform = "scale(.4)";
+            iframe.style.transformOrigin = "0 0";
+            await request("load", {
+                data: encoded({
+                    dgo: 1,
+                    v: { o: [450, 300], u: 40, w: 900, h: 600 },
+                    o: [["Pt", "A", [0, 0]]],
+                }),
+                format: "dgo",
+            });
+            const page = iframe.contentDocument!;
+            let svg = page.querySelector("body > svg:has([data-layer])")!;
+            const view = (await decoded((await request("save")).result.data)).v;
+            const box = svg.getBoundingClientRect();
+            const center: [number, number] = [
+                box.x + view.o[0],
+                box.y + view.o[1],
+            ];
+            await commands.drag("iframe", center, center, touch);
+            const tool = page.querySelector(
+                '.dge-ring button[aria-label="Circle (centre and radius)"]',
+            )!;
+            const button = tool.getBoundingClientRect();
+            const hints: string[] = [];
+            new DOMElement(page.body).on(
+                "pointermove",
+                () => {
+                    if (svg.querySelector(".dge-preview"))
+                        hints.push(
+                            page.querySelector(".dge-hint")!.textContent!,
+                        );
+                },
+                false,
+            );
+            const to: [number, number] = [center[0] + 120, center[1] + 160];
+            await commands.drag(
+                "iframe",
+                [button.x + button.width / 2, button.y + button.height / 2],
+                to,
+                touch,
+            );
+            const saved = () =>
+                request("save").then((r) => decoded(r.result.data));
+            const result = await saved();
+            expect(result.o).toHaveLength(2);
+            expect(result.o[1].slice(0, 2)).toEqual(["C1", "a"]);
+            expect(result.o[1][2][0]).toBe(0);
+            expect(result.o[1][2][1]).toBeCloseTo(5, 1);
+            expect(new Set(hints).size).toBeGreaterThan(1);
+            expect(svg.querySelector(".dge-preview")).toBeNull();
+            svg.dispatchEvent(
+                new (page.defaultView as typeof window).PointerEvent(
+                    "pointermove",
+                    {
+                        clientX: center[0],
+                        clientY: center[1],
+                        bubbles: true,
+                        isPrimary: true,
+                    },
+                ),
+            );
+            expect((await saved()).o).toEqual(result.o);
+            const key = (shiftKey: boolean) =>
+                page.body.dispatchEvent(
+                    new KeyboardEvent("keydown", {
+                        key: "z",
+                        ctrlKey: true,
+                        shiftKey,
+                        bubbles: true,
+                    }),
+                );
+            key(false);
+            await expect.poll(async () => (await saved()).o.length).toBe(1);
+            key(true);
+            await expect.poll(async () => (await saved()).o).toEqual(result.o);
+            svg = page.querySelector("body > svg:has([data-layer])")!;
+            await commands.drag("iframe", center, center, touch);
+            const next = page
+                .querySelector(
+                    '.dge-ring button[aria-label="Circle (centre and radius)"]',
+                )!
+                .getBoundingClientRect();
+            new DOMElement(page.body).on(
+                "pointermove",
+                (event) => {
+                    if (!svg.querySelector(".dge-preview")) return;
+                    if (touch) {
+                        const Pointer = (page.defaultView as typeof window)
+                            .PointerEvent;
+                        svg.dispatchEvent(new Pointer("pointercancel", event));
+                    } else {
+                        page.body.dispatchEvent(
+                            new KeyboardEvent("keydown", {
+                                key: "Escape",
+                                bubbles: true,
+                            }),
+                        );
+                    }
+                },
+                false,
+            );
+            await commands.drag(
+                "iframe",
+                [next.x + next.width / 2, next.y + next.height / 2],
+                to,
+                touch,
+            );
+            expect((await saved()).o).toEqual(result.o);
+            expect(svg.querySelector(".dge-preview")).toBeNull();
+        },
+    );
+
     it.each([false, true])(
         "pinches without moving an object or creating a point (onObject=%s)",
         async (onObject) => {

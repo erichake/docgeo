@@ -23,6 +23,7 @@ import { LANG } from "../i18n";
 import type { construction_object } from "../objects/construction_object";
 import { point_object, type magnet_target } from "../objects/point_object";
 import { button_object } from "../objects/button_object";
+import type { circle1_object } from "../objects/circle1_object";
 import { event_object, type Trigger } from "../objects/event_object";
 import { expression_object } from "../objects/expression_object";
 import { expression_list_object } from "../objects/expression_list_object";
@@ -428,7 +429,7 @@ $("head").append(`<style>
     .dge-hint input { width: 7ch; margin: -3px 0 -3px 10px; padding: 2px 6px; border: 0; border-radius: 5px; font: inherit; pointer-events: auto; }
     .dge-hint input.dge-error { outline: 2px solid #f87171; }
     .dge-ring { position: fixed; width: 0; height: 0; z-index: 12; }
-    .dge-ring button { position: absolute; display: grid; place-items: center; width: ${2 * RING_BUTTON}px; height: ${2 * RING_BUTTON}px; margin: -${RING_BUTTON}px; padding: 7px; border: 1px solid hsl(var(--dge-hue) calc(55% * var(--dge-tone)) 60%); border-radius: 50%; background: var(--dge-icon-bg); --dge-icon-bg: hsl(var(--dge-hue) calc(70% * var(--dge-tone)) 96%); color: #536174; box-shadow: 0 1px 2px rgb(15 23 42 / 0.06), 0 3px 7px rgb(15 23 42 / 0.08); cursor: pointer; }
+    .dge-ring button { position: absolute; display: grid; place-items: center; width: ${2 * RING_BUTTON}px; height: ${2 * RING_BUTTON}px; margin: -${RING_BUTTON}px; padding: 7px; border: 1px solid hsl(var(--dge-hue) calc(55% * var(--dge-tone)) 60%); border-radius: 50%; background: var(--dge-icon-bg); --dge-icon-bg: hsl(var(--dge-hue) calc(70% * var(--dge-tone)) 96%); color: #536174; box-shadow: 0 1px 2px rgb(15 23 42 / 0.06), 0 3px 7px rgb(15 23 42 / 0.08); cursor: pointer; touch-action: none; }
     .dge-ring button:hover { --dge-icon-bg: #2563eb; color: #fff; border-color: #2563eb; box-shadow: 0 2px 4px rgb(15 23 42 / 0.08), 0 4px 10px rgb(15 23 42 / 0.1); }
     .dge-ring button:focus-visible { outline: 2px solid hsl(var(--dge-hue) calc(60% * var(--dge-tone)) 45%); outline-offset: 3px; }
     .dge-ring .dge-sectors { position: absolute; overflow: visible; fill: none; stroke-width: ${2 * RING_BUTTON + 12}px; stroke-linecap: round; pointer-events: none; }
@@ -3363,10 +3364,28 @@ function openRing(hit: Hit, client: Vec2): void {
         // Pressed, the tool waits for its arguments, and the same gesture
         // may go on to designate one.
         item.on("pointerdown", (event) => {
+            if (!event.isPrimary || event.button !== 0) return;
             if (tool.mode === "macros") return showRingMacros(item, hit);
             const box = item.dom().getBoundingClientRect();
             item.dom().releasePointerCapture(event.pointerId);
             closeRing();
+            if (tool.overload.tag === "C1") {
+                begin(tool, hit.object);
+                const circle = add(scene(), {
+                    name: "‧r",
+                    overload: tool.overload,
+                    args: pending!.args as Arg[],
+                }) as circle1_object;
+                ghostResult(circle);
+                preview = {
+                    candidate: "tool",
+                    objects: [circle],
+                    standIns: [],
+                };
+                drawnCircle = { circle, pointerId: event.pointerId };
+                scene().svg.dom().setPointerCapture(event.pointerId);
+                return followRadius(event);
+            }
             choose(tool, hit);
             if (!pending) return;
             aim = {
@@ -4923,6 +4942,13 @@ function designateRow(object: construction_object): void {
 }
 
 function clearPreview(): void {
+    if (drawnCircle) {
+        const { pointerId } = drawnCircle;
+        drawnCircle = null;
+        const svg = scene().svg.dom();
+        if (svg.hasPointerCapture(pointerId))
+            svg.releasePointerCapture(pointerId);
+    }
     if (!preview) return;
     const c = scene();
     preview.objects.forEach((object) => {
@@ -5457,6 +5483,14 @@ let label: { object: construction_object; grab: Vec2 } | null = null;
 // The angle whose mark is being dragged, its radius and the pointer's
 // distance to its vertex when taken.
 let sized: { angle: Angle; radius: number; from: number } | null = null;
+let drawnCircle: { circle: circle1_object; pointerId: number } | null = null;
+
+function followRadius(event: PointerEvent): void {
+    const { circle } = drawnCircle!;
+    circle.mousedrag(event);
+    pending!.args[1] = circle.radius as number;
+    showHint(describe(pending!.tool, pending!.args));
+}
 // The expression or button being dragged, and where it was taken from its
 // position.
 let moved: {
@@ -5783,6 +5817,7 @@ $("html").on(
 $("body").on(
     "pointercancel",
     (event) => {
+        if (drawnCircle?.pointerId === event.pointerId) return cancel();
         if (!event.isPrimary || !inFigure(event)) return;
         down = label = sized = moved = framed = typing = aim = null;
         clearPreview();
@@ -5796,8 +5831,18 @@ $("body").on(
 );
 
 $("body").on(
+    "lostpointercapture",
+    (event) => {
+        if (drawnCircle?.pointerId === event.pointerId) cancel();
+    },
+    false,
+);
+
+$("body").on(
     "pointermove",
     (event) => {
+        if (drawnCircle?.pointerId === event.pointerId)
+            return followRadius(event);
         if (label && event.isPrimary && event.buttons)
             return placeLabel(
                 label.object,
@@ -5853,6 +5898,10 @@ $("body").on(
 $("body").on(
     "pointerup",
     (event) => {
+        if (drawnCircle?.pointerId === event.pointerId) {
+            followRadius(event);
+            return build(pending!.tool.overload, pending!.args as Arg[]);
+        }
         if (!event.isPrimary) return;
         // The figure may have changed since the hover.
         forgetBranches();

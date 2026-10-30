@@ -276,10 +276,11 @@ icônes :
   l'anneau est donc fixe (152 px). Comme dans DGPad, « lieu » n'apparaît
   que sur un point dont dépend un point sur objet, et se crée d'un clic :
   le lieu du point quand se déplace le dernier construit de ces points sur
-  objet. Le cercle centre et rayon se crée
-  d'un clic, sans autre désignation : un rayon numérique d'environ 150 px
-  à l'échelle courante, arrondi à deux chiffres significatifs, qu'un
-  glisser du cercle change ensuite. Un objet sans outil géométrique (texte,
+  objet. Le cercle centre et rayon se règle en maintenant son icône appuyée :
+  son rayon suit la souris ou le doigt jusqu’au relâchement, qui crée le
+  cercle (2026-10-30). Un glisser du cercle change ensuite ce rayon. Depuis
+  le menu ou la palette, le rayon initial reste d’environ 150 px à l’échelle
+  courante, arrondi à deux chiffres significatifs. Un objet sans outil géométrique (texte,
   expression, curseur…) n'ouvre pas d'anneau : le clic le sélectionne
   seulement. Près d'un bord de la figure, l'anneau
   se décale vers l'intérieur juste assez pour y tenir entier, plutôt que de
@@ -2550,3 +2551,15 @@ transformations, l'image d'un objet (`menu-outils.html#transformer-un-objet`,
 gardés (`menu-outils.html#arguments-gardes`, `raccourcis.html`), avec
 `selection.html`, `faq.html` et `gestes.html` (`TRANSFORMATIONS.md`,
 « Avancement »).
+
+### Rayon d’un cercle depuis l’anneau — 2026-10-30
+
+Maintenir l’icône « Cercle (centre et rayon) » appuyée montre un aperçu dont
+le rayon suit la souris ou le doigt ; le relâchement crée le cercle en une
+seule action annulable. Échap ou l’annulation du pointeur retire l’aperçu.
+Le menu et la palette gardent leur rayon initial prédéfini.
+
+Vérifié par 80 tests navigateur ciblés, dont souris et tactile en iframe
+réduite, rayon final, annulation et rétablissement. Build et contrôle du
+manuel dans les 12 langues passés. Moteur et lecteur : mêmes octets ;
+éditeur : +742 octets (+210 en gzip).
