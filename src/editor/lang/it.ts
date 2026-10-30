@@ -103,6 +103,8 @@ const it: Texts = {
         no_reach: "Nessuna",
         full_reach: "Ovunque",
         close_properties: "Chiudi le proprietà",
+        palette: "Tavolozza degli strumenti",
+        close_palette: "Chiudi la tavolozza degli strumenti",
         properties_hint:
             "Seleziona un oggetto nella figura o sceglilo dall'elenco; ⌘-clic, Ctrl-clic o una pressione prolungata ne aggiungono altri. Assi e griglia si regolano nella scheda Figura.",
         several_objects:

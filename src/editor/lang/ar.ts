@@ -96,6 +96,8 @@ const ar: Texts = {
         no_reach: "لا شيء",
         full_reach: "في كل مكان",
         close_properties: "إغلاق الخصائص",
+        palette: "لوحة الأدوات",
+        close_palette: "إغلاق لوحة الأدوات",
         properties_hint:
             "حدّد عنصرًا في الشكل، أو اختره من القائمة؛ ⌘-نقر أو Ctrl-نقر أو ضغط مطوّل يضيف عناصر أخرى. تُضبط المحاور والشبكة في تبويب الشكل.",
         several_objects:

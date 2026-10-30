@@ -1,0 +1,173 @@
+/* The tool palette, in the properties' place and of their width: see
+   EDITOR.md, « Palette d'outils ». */
+.dge-editor {
+    --dge-palette-size: min(
+        var(--dge-properties-user, 300px),
+        calc(100vw - 80px)
+    );
+}
+.dge-editor.dge-palette-open {
+    --dge-properties-width: var(--dge-palette-size);
+}
+.dge-editor.dge-palette-open .dge-hint {
+    left: calc(
+        50% + (var(--dge-panel-width) - var(--dge-properties-width)) / 2
+    );
+    max-width: calc(
+        100% - var(--dge-panel-width) - var(--dge-properties-width) - 32px
+    );
+}
+/* Over the figure, as the properties. */
+@media (max-width: 600px) {
+    .dge-editor.dge-palette-open {
+        --dge-properties-width: 0px;
+    }
+}
+/* The bar full, the menu's tools are enough. */
+@media (max-width: 500px) {
+    .dge-editor .dge-bar .dge-palette-button {
+        display: none;
+    }
+}
+.dge-palette {
+    position: fixed;
+    inset-block: var(--dge-bar-height) 0;
+    right: 0;
+    width: var(--dge-palette-size);
+    box-sizing: border-box;
+    overflow: auto;
+    background: #fff;
+    border-left: 1px solid #e5e7eb;
+    z-index: 10;
+    font:
+        14px/1.4 system-ui,
+        -apple-system,
+        "Segoe UI",
+        sans-serif;
+    color: #1f2937;
+    touch-action: pan-y;
+    transform: translateX(100%);
+    visibility: hidden;
+    transition:
+        transform var(--dge-slide),
+        visibility 0s var(--dge-slide-duration);
+}
+.dge-palette-open .dge-palette {
+    transform: translateX(0);
+    visibility: visible;
+    transition-delay: 0s;
+}
+.dge-palette + .dge-resize {
+    right: var(--dge-palette-size);
+}
+.dge-editor:not(.dge-palette-open) .dge-palette + .dge-resize {
+    display: none;
+}
+.dge-palette-zone {
+    border-bottom: 1px solid #e5e7eb;
+}
+.dge-palette-title {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    width: 100%;
+    padding: 7px 12px;
+    border: 0;
+    background: hsl(var(--dge-hue) calc(70% * var(--dge-tone)) 95%);
+    box-shadow: inset 3px 0 hsl(var(--dge-hue) calc(55% * var(--dge-tone)) 60%);
+    font: inherit;
+    font-size: 12px;
+    font-weight: 600;
+    color: #475569;
+    text-align: start;
+    text-transform: uppercase;
+    cursor: pointer;
+}
+.dge-palette-title:dir(rtl) {
+    box-shadow: inset -3px 0 hsl(var(--dge-hue) calc(55% * var(--dge-tone)) 60%);
+}
+.dge-palette-title:hover {
+    background: hsl(var(--dge-hue) calc(70% * var(--dge-tone)) 91%);
+}
+.dge-palette-title:focus-visible {
+    outline: 2px solid #2563eb;
+    outline-offset: -2px;
+}
+.dge-palette-title svg {
+    flex: none;
+    width: 14px;
+    height: 14px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    transition: transform 0.15s;
+}
+.dge-palette-title[aria-expanded="false"] svg {
+    transform: rotate(-90deg);
+}
+.dge-palette-title[aria-expanded="false"]:dir(rtl) svg {
+    transform: rotate(90deg);
+}
+.dge-palette-title[aria-expanded="false"] + .dge-palette-grid {
+    display: none;
+}
+/* Square, to be told from the ring's round buttons. */
+.dge-palette-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, 40px);
+    gap: 6px;
+    padding: 10px 12px 12px;
+    background: hsl(var(--dge-hue) calc(70% * var(--dge-tone)) 98.5%);
+}
+.dge-palette-grid button {
+    display: grid;
+    place-items: center;
+    width: 40px;
+    height: 40px;
+    padding: 0;
+    box-sizing: border-box;
+    border: 1px solid hsl(var(--dge-hue) calc(55% * var(--dge-tone)) 78%);
+    border-radius: 9px;
+    background: #fff;
+    color: #536174;
+    cursor: pointer;
+    transition:
+        opacity 0.25s,
+        background 0.15s,
+        border-color 0.15s;
+}
+.dge-palette-grid svg {
+    display: block;
+    width: 26px;
+    height: 26px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.65;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    pointer-events: none;
+}
+.dge-palette-grid button:not(.dge-off):hover {
+    background: #2563eb;
+    border-color: #2563eb;
+    color: #fff;
+}
+.dge-palette-grid button:not(.dge-off):hover .dge-result {
+    color: inherit;
+}
+.dge-palette-grid button:focus-visible {
+    outline: 2px solid #2563eb;
+    outline-offset: 2px;
+}
+.dge-palette-grid button.dge-armed {
+    background: hsl(var(--dge-hue) calc(70% * var(--dge-tone)) 88%);
+    border-color: hsl(var(--dge-hue) calc(55% * var(--dge-tone)) 50%);
+    box-shadow: inset 0 1px 3px rgb(15 23 42 / 0.18);
+    color: #334155;
+}
+.dge-palette-grid button.dge-off {
+    opacity: 0.35;
+    cursor: default;
+}

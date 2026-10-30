@@ -10,6 +10,9 @@ export const ACTION_ICONS = {
     space: '<path d="M12 3 4 7.5v9l8 4.5 8-4.5v-9ZM4 7.5l8 4.5 8-4.5M12 12v9"/>',
     properties:
         '<path d="M4 7h16M4 17h16"/><circle cx="9" cy="7" r="3" fill="var(--dge-icon-bg, #f8fafc)"/><circle cx="15" cy="17" r="3" fill="var(--dge-icon-bg, #f8fafc)"/>',
+    // A hammer and a screwdriver, crossed.
+    palette:
+        '<g transform="rotate(45 12 12)"><rect x="6.5" y="1.5" width="11" height="5" rx="1.2"/><path d="M12 6.5v16"/></g><g transform="rotate(-45 12 12)"><rect x="9.5" y="15" width="5" height="7.5" rx="2.2"/><path d="M12 15V2.5"/></g>',
     history:
         '<rect x="3" y="3" width="18" height="18" rx="3"/><path d="M9 3v18m4-13h4m-4 4h4m-4 4h4"/>',
     close_history: '<path d="m6 6 12 12M6 18 18 6"/>',

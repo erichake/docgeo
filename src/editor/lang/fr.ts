@@ -101,6 +101,8 @@ const fr: Texts = {
         no_reach: "Aucune",
         full_reach: "Partout",
         close_properties: "Fermer les propriétés",
+        palette: "Palette d'outils",
+        close_palette: "Fermer la palette d'outils",
         properties_hint:
             "Désignez un objet dans la figure, ou choisissez-le dans la liste ; ⌘-clic, Ctrl-clic ou appui long en ajoutent d'autres. Les axes et la grille se règlent dans l'onglet Figure.",
         several_objects:

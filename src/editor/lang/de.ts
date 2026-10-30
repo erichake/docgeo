@@ -107,6 +107,8 @@ const de: Texts = {
         no_reach: "Keine",
         full_reach: "Überall",
         close_properties: "Eigenschaften schließen",
+        palette: "Werkzeugpalette",
+        close_palette: "Werkzeugpalette schließen",
         properties_hint:
             "Wählen Sie ein Objekt in der Figur oder in der Liste aus; ⌘-Klick, Strg-Klick oder langes Drücken fügt weitere hinzu. Achsen und Gitter werden im Tab „Figur“ eingestellt.",
         several_objects:

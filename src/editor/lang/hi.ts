@@ -102,6 +102,8 @@ const hi: Texts = {
         no_reach: "कोई नहीं",
         full_reach: "हर जगह",
         close_properties: "गुण बंद करें",
+        palette: "टूल पैलेट",
+        close_palette: "टूल पैलेट बंद करें",
         properties_hint:
             "आकृति में कोई ऑब्जेक्ट चुनें, या उसे सूची से चुनें; ⌘-क्लिक, Ctrl-क्लिक या देर तक दबाने से और जुड़ते हैं। अक्ष और ग्रिड ‘आकृति’ टैब में सेट किए जाते हैं।",
         several_objects:

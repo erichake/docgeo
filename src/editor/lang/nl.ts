@@ -104,6 +104,8 @@ const nl: Texts = {
         no_reach: "Geen",
         full_reach: "Overal",
         close_properties: "Eigenschappen sluiten",
+        palette: "Gereedschapspalet",
+        close_palette: "Gereedschapspalet sluiten",
         properties_hint:
             "Selecteer een object in de figuur of kies het uit de lijst; ⌘-klik, Ctrl-klik of lang drukken voegt er meer toe. De assen en het rooster stel je in op het tabblad Figuur.",
         several_objects:

@@ -428,6 +428,62 @@ pour plusieurs objets.
   une autre. « Même type » s'étend aux objets des types sélectionnés.
   Annuler garde les objets du panneau, Suppr les supprime tous.
 
+## Palette d'outils
+
+Décidé avec l'auteur le 2026-10-29, d'après la palette de CaRMetal (tous
+les outils à plat, par zones repliables), mais limitée aux outils
+géométriques et adaptée à la sélection de DocGeo.
+
+- **Place** : un bouton « Palette d'outils » de la barre, à côté de
+  « Propriétés », et son entrée du menu Affichage, ouvrent à droite un
+  panneau de la même place et de la même largeur réglable que les
+  propriétés. Les deux s'ouvrent alternativement : ouvrir l'un ferme
+  l'autre (et le panneau de définition d'une macro). Passer de l'un à
+  l'autre ne lâche pas l'outil en main. À droite, on construit ou on règle.
+- **La figure reste en construction** : palette ouverte, un clic dans le
+  vide crée un point. Un clic sur un objet le choisit (il brille, la barre
+  montre ses actions) **sans ouvrir d'anneau** (décidé avec l'auteur le
+  2026-10-29) : la palette montre ses outils. Un clic sur un autre objet le
+  choisit à son tour, un clic dans le vide le lâche, comme il fermerait
+  l'anneau. Ouvrir la palette masque l'anneau ouvert, son objet restant
+  choisi.
+- **Zones** : une par famille du menu « Outils », même ordre, mêmes
+  teintes, mêmes items (`Item` de `tools.ts`), sauf « Programmes », qui
+  n'est pas de la géométrie et reste au menu. Les familles sans outil dans
+  la vue (plans et solides dans le plan) n'ont pas de zone. La dernière
+  zone porte les macros de la figure, comme des outils (« Nouvelle macro »
+  reste au menu) ; sans macro, pas de zone. Un clic sur le titre d'une zone
+  la replie ou la déplie, état gardé par le navigateur.
+- **Grisage vivant** : la règle du menu (`takes`), recalculée à chaque
+  changement de sélection : les objets sélectionnés, sinon l'objet choisi
+  d'un clic, celui dont le menu ouvrirait l'anneau (décidé le 2026-10-29,
+  par cohérence avec le menu). Un outil pris
+  part de ces objets, comme au menu. Les outils grisés gardent leur place.
+  Le changement se fait en fondu.
+- **Outil en main** : son bouton reste enfoncé, aux couleurs de sa famille ;
+  un clic dessus le lâche. Survoler un outil affiche sa ligne dans la
+  consigne, comme au menu. Une macro de la zone commence son application.
+- **Fantôme** (décidé avec l'auteur le 2026-10-29) : survoler un outil que
+  les objets choisis complètent (ceux qu'un clic construirait aussitôt :
+  `CercleCirconscrit` sur trois points, `Milieu` d'un segment, un polygone
+  dès trois sommets, une intersection de deux courbes) montre pâle et sans
+  nom l'objet qu'il construirait (`previewItem`, `builtFrom`, le calcul de
+  `take`). Le menu « Outils » fait de même.
+- **Aspect** : pas les pastilles rondes de l'anneau et du menu (le rond
+  reste l'emblème de ce qui est contextuel), mais des boutons carrés à coins
+  arrondis, en grille qui se réorganise selon la largeur du panneau ; la
+  teinte de la famille est portée par la zone (titre et fond pâle).
+- **Échap** lâche l'outil, ferme l'anneau ou vide la sélection, puis ferme
+  la palette.
+- **Petits écrans** : comme les propriétés, sous 900 px la palette alterne
+  avec le panneau « Construction », sous 600 px elle recouvre la figure et
+  choisir un outil la referme. Sous 500 px, la barre étant pleine, son
+  bouton disparaît : le menu « Outils » suffit.
+
+Plus tard, la palette sera la vitrine des jeux d'outils choisis par
+l'enseignant (section « Anneau d'outils »), comme les sessions restreintes
+de CaRMetal, enregistrés dans la figure (voir `DGO.md`).
+
 ## Actions sur l'objet sélectionné
 
 Décidé le 2026-10-12. Les utilitaires de DGPad (sa rangée grise : nom,
@@ -2338,3 +2394,30 @@ Suites complètes : 274 tests unitaires et 1 269 tests navigateur passés ;
 contrôle du manuel passé dans les 12 langues. Pas d'essai sur appareil iOS
 physique. Moteur et lecteur : +1 549 octets (environ +510 en gzip) ; code
 propre à l'éditeur : +265 octets (+65 en gzip).
+
+### Palette d'outils — 2026-10-29
+
+Section « Palette d'outils » : `src/editor/palette.ts` et `palette.css`,
+câblés dans `main.ts` (`setPalette`, exclusive des propriétés et du panneau
+de définition d'une macro). La ligne de survol d'un item est commune au
+menu et à la palette (`itemHint`). Zones repliées gardées dans
+`localStorage` (`docgeo-palette-folded`). Bouton et entrée du menu
+Affichage, textes dans les 12 langues.
+
+Vérifié dans `editor.html` (Playwright) : grisage selon l'anneau ouvert et
+selon une sélection multiple, construction préremplie, outil gardé en
+passant par les propriétés, Échap, zones 3D et macros, arabe, largeurs de
+320 à 1 280 px (barre sans débordement mesurée de 360 à 680 px ; à
+320 px, elle débordait déjà de 31 px avant ce changement). Test navigateur
+`tests/browser/tool_palette.test.ts`. Suites complètes : 274 tests
+unitaires et 1 275 tests navigateur passés. Moteur et lecteur inchangés ;
+éditeur : +3 653 octets (+980 en gzip) de code, +3 765 octets de CSS.
+Manuel non mis à jour.
+
+Ensuite, même jour : le fantôme de l'outil survolé, et palette ouverte, un
+clic sur un objet le choisit sans anneau. Corrigé au passage dans `take` :
+la forme d'un item se choisissait sur la sélection déjà vidée, si bien
+qu'un segment sélectionné puis « Milieu » (menu ou palette) levait une
+exception ; elle se choisit sur les objets pris. Test navigateur étendu
+(fantôme, milieu d'un segment, clic sans anneau) ; suites complètes passées.
+Éditeur : +524 octets (+141 en gzip) de plus.

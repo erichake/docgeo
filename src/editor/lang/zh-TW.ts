@@ -93,6 +93,8 @@ const zh_TW: Texts = {
         no_reach: "無",
         full_reach: "任意位置",
         close_properties: "關閉屬性",
+        palette: "工具面板",
+        close_palette: "關閉工具面板",
         properties_hint:
             "在圖形中選取一個物件，或從清單中選擇；⌘-點按、Ctrl-點按或長按可加入其他物件。座標軸與格線在「圖形」分頁中設定。",
         several_objects: "已選取 % 個物件：僅顯示它們的共同設定。",

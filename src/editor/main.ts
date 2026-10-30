@@ -156,6 +156,7 @@ import {
     type Item,
     type Tool,
 } from "./tools";
+import { toolPalette, type Entry } from "./palette";
 import { propertiesPanel } from "./properties";
 import { resizeHandle } from "./resize";
 import {
@@ -625,6 +626,10 @@ const propertiesButton = button("properties", () =>
 )
     .att("aria-controls", "dge-properties")
     .att("aria-expanded", "false");
+const paletteButton = button("palette", () => setPalette(!paletteOpen))
+    .addClass("dge-palette-button")
+    .att("aria-controls", "dge-palette")
+    .att("aria-expanded", "false");
 const deleteButton = button("delete", () => remove()).addClass("dge-delete");
 const settingsButton = button("settings", () => setProperties(true));
 const pinButton = button("pin", () => {
@@ -921,6 +926,38 @@ const properties = propertiesPanel({
         (propertiesButton.dom() as HTMLButtonElement).focus();
     },
 });
+// The tool of the menu, or the macro being applied.
+const inHand = (entry: Entry): boolean =>
+    "tools" in entry ? armed === entry : applying?.name === entry.name;
+const palette = toolPalette({
+    vec3: () => vec3(),
+    macros: () => scene().macros,
+    takes: (entry) =>
+        "tools" in entry
+            ? !!takes(entry)
+            : beginsMacro(
+                  entry,
+                  chosen().map(({ object }) => object),
+              ),
+    inHand,
+    choose: (entry) => {
+        if (inHand(entry)) return cancel();
+        if ("tools" in entry) return arm(entry);
+        const objects = chosen().map(({ object }) => object);
+        cancel();
+        if (window.matchMedia("(max-width: 600px)").matches) setPalette(false);
+        startApply(scene().macros.indexOf(entry), objects);
+    },
+    hover: (entry) => {
+        if (!entry || "tools" in entry) return hoverItem(entry);
+        clearPreview();
+        showHint(startHint(entry));
+    },
+    close: () => {
+        setPalette(false);
+        (paletteButton.dom() as HTMLButtonElement).focus();
+    },
+});
 // The macros shipped with DocGeo, and the user's own, out of a frame only
 // (see MACROS.md, « Bibliothèque »).
 let supplied = emptyLibrary();
@@ -936,6 +973,7 @@ const macros = macroPanel({
 });
 
 properties.panel.dom().toggleAttribute("inert", true);
+palette.panel.dom().toggleAttribute("inert", true);
 const fileInput = $.create("input")
     .att("type", "file")
     .att("accept", ".dgo,.dgp,.ggb");
@@ -1021,6 +1059,7 @@ const menus: Menu[] = [
             toggle("space", spaceButton),
             null,
             toggle("history", historyButton),
+            toggle("palette", paletteButton),
             toggle("properties", propertiesButton),
             ...(document.fullscreenEnabled
                 ? [
@@ -1083,6 +1122,7 @@ $("body").add(
                     eraserButton,
                     axesButton,
                     spaceButton,
+                    paletteButton,
                     propertiesButton,
                     historyButton,
                 ),
@@ -1103,6 +1143,8 @@ $("body").add(
     ),
     macros.panel,
     resizeHandle(macros.panel, "right", () => "--dge-properties-user"),
+    palette.panel,
+    resizeHandle(palette.panel, "right", () => "--dge-properties-user"),
     hint,
     ring,
     complete,
@@ -1118,7 +1160,10 @@ $("body").add(
     nameBox,
 );
 function setPanel(on: boolean, animate = true): void {
-    if (on && propertiesOpen && window.innerWidth <= 900) setProperties(false);
+    if (on && window.innerWidth <= 900) {
+        if (propertiesOpen) setProperties(false);
+        if (paletteOpen) setPalette(false);
+    }
     if (!on) {
         setSteps(false);
         editing()?.blur();
@@ -1136,6 +1181,7 @@ function setPanel(on: boolean, animate = true): void {
 }
 function setProperties(on: boolean): void {
     if (on) {
+        if (paletteOpen) setPalette(false);
         stopMacro();
         stopApply();
         const objects = selection.length
@@ -1161,6 +1207,25 @@ function setProperties(on: boolean): void {
     propertiesButton.toggleClass("dge-on", on).att("aria-expanded", String(on));
     shine(on);
     if (!pending) showHint("");
+}
+// In the properties' place, the figure kept for building, the tool in
+// hand too.
+function setPalette(on: boolean): void {
+    if (on) {
+        if (propertiesOpen) setProperties(false);
+        stopMacro();
+        if (window.innerWidth <= 900) setPanel(false);
+        // Its object stays chosen.
+        ring.hide().inner("");
+        if (toolsMenu.isHidden()) toolsSub.hide().inner("");
+    }
+    paletteOpen = on;
+    palette.panel.dom().toggleAttribute("inert", !on);
+    $("body")
+        .addClass("dge-panel-animated")
+        .toggleClass("dge-palette-open", on);
+    paletteButton.toggleClass("dge-on", on).att("aria-expanded", String(on));
+    if (on) palette.refresh();
 }
 // Preserve the figure's screen coordinates while the panels fade over it.
 let narrowing = 0;
@@ -1223,7 +1288,8 @@ let pending: {
 } | null = null;
 // What the next argument would build, followed by the pointer.
 let preview: {
-    candidate: construction_object | "pointer" | "floor";
+    // A tool hovered in the menu or the palette, built from the selection.
+    candidate: construction_object | "pointer" | "floor" | "tool";
     objects: construction_object[];
     pointer?: point_object;
     standIns: point_object[];
@@ -1251,6 +1317,7 @@ let choosing: {
 // While erasing: the objects hidden, shown pale.
 let ghosts: Set<construction_object> | null = null;
 let propertiesOpen = false;
+let paletteOpen = false;
 // The point whose magnets are being chosen, and the one whose reach is set.
 let magnetizing: {
     point: point_object;
@@ -1467,6 +1534,7 @@ function refreshRows(): void {
     });
     count.text(rows.size ? String(rows.size) : "");
     macros.refresh();
+    if (paletteOpen) palette.refresh();
     if (applying) showApply();
     shine(propertiesOpen);
     markTaken();
@@ -2757,28 +2825,8 @@ function openFamily(row: DOMElement, family: Family, items: Item[]): void {
         const entry = toolEntry(shown.icon, itemLabel(item), family)
             .toggleClass("dge-off", !tool)
             .att("aria-disabled", String(!tool));
-        entry.on(
-            "pointerenter",
-            () =>
-                showHint(
-                    describe(
-                        shown,
-                        tool && objects[0]
-                            ? assign(
-                                  tool,
-                                  objects,
-                                  defaultReal(tool.overload.tag),
-                              )!
-                            : emptyArgs(shown),
-                    ),
-                ),
-            false,
-        );
-        entry.on(
-            "pointerleave",
-            () => (pending ? prompt() : showHint(restingHint())),
-            false,
-        );
+        entry.on("pointerenter", () => hoverItem(item), false);
+        entry.on("pointerleave", () => hoverItem(null), false);
         entry.on("click", () => {
             if (tool) arm(item);
         });
@@ -2820,6 +2868,31 @@ function openFamily(row: DOMElement, family: Family, items: Item[]): void {
         );
 }
 
+// Hovered in the menu or the palette, the item's line and what it would
+// build; left, the hint again.
+function hoverItem(item: Item | null): void {
+    if (item) {
+        showHint(itemHint(item));
+        return previewItem(item);
+    }
+    clearPreview();
+    if (pending) prompt();
+    else showHint(restingHint());
+}
+
+// The line the item writes, from the objects chosen if it takes them.
+function itemHint(item: Item): string {
+    const objects = chosen().map(({ object }) => object);
+    const tool = takes(item);
+    const shown = tool || item.tools.find((tool) => usable(tool, vec3()))!;
+    return describe(
+        shown,
+        tool && objects[0]
+            ? assign(tool, objects, defaultReal(tool.overload.tag))!
+            : emptyArgs(shown),
+    );
+}
+
 function closeTools(): void {
     toolsMenu.hide().inner("");
     toolsSub.hide().inner("");
@@ -2841,6 +2914,7 @@ function arm(item: Item): void {
     if (window.matchMedia("(max-width: 600px)").matches) {
         setPanel(false);
         if (propertiesOpen) setProperties(false);
+        if (paletteOpen) setPalette(false);
     }
     rearm();
     if (picked[0]) take(picked);
@@ -2874,8 +2948,10 @@ const selectedNames = (): string =>
     selection.map(({ object }) => formatArg(object)).join(", ");
 
 // The form of the item that takes the objects chosen, any without them.
-function takes(item: Item): Tool | undefined {
-    const objects = chosen().map(({ object }) => object);
+function takes(
+    item: Item,
+    objects = chosen().map(({ object }) => object),
+): Tool | undefined {
     return item.tools.find(
         (tool) =>
             usable(tool, vec3()) &&
@@ -2889,27 +2965,77 @@ function takes(item: Item): Tool | undefined {
 function take(picked: Hit[]): void {
     const c = scene();
     const objects = picked.map(({ object }) => object);
-    const tool = takes(armed!)!;
-    const args = assign(tool, objects, defaultReal(tool.overload.tag))!;
+    // The selection is gone: the form is that of the objects picked.
+    const tool = takes(armed!, objects)!;
     if (tool.mode === "point")
         return done(addPointOn(c, nextName(c, true), objects[0], picked[0].at));
     if (tool.mode === "turtle") return startTurtle(objects[0]);
     if (tool.mode === "event") return answer(tool, objects[0]);
     if (tool.mode === "button") return prompt();
-    pending = { tool, args };
+    pending = {
+        tool,
+        args: assign(tool, objects, defaultReal(tool.overload.tag))!,
+    };
+    const built = builtFrom(tool, picked);
+    if (built) build(built.overload, built.args);
+    else prompt();
+}
+
+// What the tool builds at once from the objects picked, when they are all
+// its arguments: an intersection where the second was picked, a polygon
+// closed from three vertices, a cube from two points.
+function builtFrom(
+    tool: Tool,
+    picked: Hit[],
+): { overload: Overload; args: Arg[] } | null {
+    const c = scene();
+    const objects = picked.map(({ object }) => object);
     if (tool.mode === "intersection") {
-        if (!args[1]) return prompt();
+        if (!objects[1]) return null;
         const [a, b] = objects;
-        const found = intersection(
+        return intersection(
             a,
             b,
             nearestBranch(c, a, b, c.pt3D(picked[1].at))?.order ?? 0,
         );
-        return build(found.overload, found.args);
     }
-    if (tool.overload.variadic && args.length >= 3)
-        return build(tool.overload, args as Arg[]);
-    proceed();
+    if (tool.mode !== "command") return null;
+    const args = assign(tool, objects, defaultReal(tool.overload.tag))!;
+    if (tool.overload.variadic)
+        return args.length >= 3
+            ? { overload: tool.overload, args: args as Arg[] }
+            : null;
+    return (
+        cubeOn(c, tool.overload, args) ??
+        (args.includes(undefined)
+            ? null
+            : { overload: formOf(tool, args as Arg[]), args: args as Arg[] })
+    );
+}
+
+// Hovered, the item shows pale and nameless what it would build at once
+// from the objects chosen.
+function previewItem(item: Item): void {
+    clearPreview();
+    const picked = chosen();
+    const tool = takes(item);
+    const built = tool && picked[0] && builtFrom(tool, picked);
+    if (!built) return;
+    const result = add(scene(), { name: "‧r", ...built });
+    ghostResult(result);
+    preview = { candidate: "tool", objects: [result], standIns: [] };
+}
+
+// Pale and nameless, a sphere's part behind the floor drawn outside the
+// preview group.
+function ghostResult(result: construction_object): void {
+    result.showName = false;
+    const sphere = result instanceof sphere_object;
+    if (sphere) result.opacity! *= 0.55;
+    if (!result.hasView) return;
+    result.createSVG();
+    result.dom.addClass("dge-preview");
+    if (sphere) result.dom.stl("opacity", 1);
 }
 
 // Added, or removed if it was, after the object whose ring is open.
@@ -3077,12 +3203,14 @@ function hold(c: construction, hit: Hit, previous: Vec2): Vec2 {
     return c.pt3D(at);
 }
 
-// Selects the object, and opens the ring of its tools if it has some.
+// Selects the object, and opens the ring of its tools if it has some, but
+// not with the palette, which then shows them.
 function openRing(hit: Hit, client: Vec2): void {
     const c = scene();
     held = { hit, client, screen: hold(c, hit, c.pt3D(hit.at)) };
     highlight(hit.object);
     showActions();
+    if (paletteOpen) return;
     const tools = toolsFor(hit.object, vec3()).filter(
         (tool) => tool.mode !== "macros" || ringMacros(hit.object).length > 0,
     );
@@ -3247,6 +3375,7 @@ const OBJECT_ACTIONS = [
 
 // The bar's actions, shown with the ring, and gone once one is applied.
 function showActions(): void {
+    if (paletteOpen) palette.refresh();
     const object = held?.hit.object ?? magnetizing?.point;
     actions.toggleClass("dge-bar-tool", !!armed || !!applying);
     if (applying) {
@@ -3762,6 +3891,7 @@ function startMacro(picked: Hit[]): void {
     stopApply();
     setEraser(false);
     if (propertiesOpen) setProperties(false);
+    if (paletteOpen) setPalette(false);
     if (window.innerWidth <= 900) setPanel(false);
     closeRing();
     $("body").addClass("dge-panel-animated").addClass("dge-macro-open");
@@ -4763,15 +4893,7 @@ function updatePreview(screen: Vec2, hits: Hit[]): void {
               };
         if (form) {
             const result = add(c, { name: "‧r", ...form });
-            result.showName = false;
-            const sphere = result instanceof sphere_object;
-            // Its part behind the floor is drawn outside the preview group.
-            if (sphere) result.opacity! *= 0.55;
-            if (result.hasView) {
-                result.createSVG();
-                result.dom.addClass("dge-preview");
-                if (sphere) result.dom.stl("opacity", 1);
-            }
+            ghostResult(result);
             objects.push(result);
         }
         preview = {
@@ -4869,6 +4991,8 @@ function escape(): void {
     else if (applying) stopApply();
     else if (framing.shown) framing.stop();
     else if (propertiesOpen && !pending) setProperties(false);
+    else if (paletteOpen && !pending && !held && !selection[0])
+        setPalette(false);
     else if (ghosts) setEraser(false);
     else cancel();
 }
@@ -5599,7 +5723,6 @@ $("body").on(
                 void record().then(() => updateRows());
             });
         if (!adding && (!tap || event.button === 2)) return;
-        if (!adding && held) return closeRing();
         if (!adding && selection[0]) return clearSelection();
         const c = scene();
         const screen = c.pointerPosition(event);
@@ -5629,6 +5752,8 @@ $("body").on(
             named instanceof point_object
                 ? [box.left + named.sx, box.top + named.sy]
                 : [event.clientX, event.clientY];
+        // The palette open, no ring shows: another object is chosen at once.
+        if (!adding && held && !(paletteOpen && hits[0])) return closeRing();
         if (adding && inspecting()) {
             const object = propertyObject(event);
             if (!hits.some((hit) => hit.object === object) && object)

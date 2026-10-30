@@ -99,6 +99,8 @@ export default {
     no_reach: "None",
     full_reach: "Everywhere",
     close_properties: "Close properties",
+    palette: "Tool palette",
+    close_palette: "Close tool palette",
     properties_hint:
         "Select an object in the figure, or choose it from the list; ⌘-click, Ctrl-click or a long press adds others. The axes and the grid are set in the Figure tab.",
     several_objects:

@@ -102,6 +102,8 @@ const es: Texts = {
         no_reach: "Ninguna",
         full_reach: "En todas partes",
         close_properties: "Cerrar las propiedades",
+        palette: "Paleta de herramientas",
+        close_palette: "Cerrar la paleta de herramientas",
         properties_hint:
             "Selecciona un objeto en la figura o elígelo en la lista; ⌘-clic, Ctrl-clic o una pulsación larga añaden otros. Los ejes y la cuadrícula se ajustan en la pestaña Figura.",
         several_objects:
