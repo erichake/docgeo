@@ -359,6 +359,8 @@ const nl: Texts = {
         macro_fixed:
             "Vast: één keer aangewezen en daarna bij elke toepassing behouden",
         macro_fixed_change: "% wijzigen",
+        keep_arg: "% behouden",
+        keep_shift: "Shift-klik op een object behoudt het ook",
         macro_implicit:
             "Geen eindobject gekozen: de zichtbare grijze objecten zijn de eindobjecten",
         macro_need_initial: "Tik de objecten aan waarvan de macro vertrekt",

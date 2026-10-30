@@ -357,6 +357,8 @@ const es: Texts = {
         macro_fixed:
             "Fijo: se designa una vez y se conserva de una aplicación a otra",
         macro_fixed_change: "Cambiar %",
+        keep_arg: "Conservar %",
+        keep_shift: "Mayús-clic en un objeto también lo conserva",
         macro_implicit:
             "Ningún final elegido: los objetos visibles en gris son los finales",
         macro_need_initial: "Toca los objetos de los que parte la macro",

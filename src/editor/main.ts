@@ -47,6 +47,7 @@ import {
     commandName,
     commandsStarting,
     findCommand,
+    FormulaArg,
     FUNCTIONS,
     isCommand,
     mappedSlot,
@@ -210,7 +211,6 @@ import {
     boxOf,
     completes,
     macroIndex,
-    mapsPoints,
     takesAt,
     designation,
     takesNext,
@@ -1285,11 +1285,20 @@ let armed: Item | null = null;
 // The objects selected one after the other, the tools' arguments in this
 // order.
 let selection: Hit[] = [];
-// A tool waiting for its arguments.
+// A tool waiting for its arguments, and the objects selected before it,
+// which aren't kept.
 let pending: {
     tool: Tool;
     args: (Arg | undefined)[];
+    prefixed?: construction_object[];
 } | null = null;
+// The arguments of the tool of the menu designated with Shift, or kept from
+// the hint, by their places: it takes them again after each object, until
+// it is left.
+let kept: { tool: Tool; objects: Map<number, construction_object> } | null =
+    null;
+// Whether the figure's designation is made with Shift.
+let keeping = false;
 // What the next argument would build, followed by the pointer.
 let preview: {
     // A tool hovered in the menu or the palette, built from the selection.
@@ -1454,8 +1463,14 @@ function propertyObject(event: PointerEvent): construction_object | null {
     return widget ?? null;
 }
 
-function showHint(text: string, error = false): void {
-    hint.text(text).toggleClass("dge-error", error);
+function showHint(
+    text: string,
+    error = false,
+    buttons: DOMElement[] = [],
+): void {
+    hint.text(text)
+        .toggleClass("dge-error", error)
+        .add(...buttons);
     if (pending) hint.add(cancelButton);
     if (
         applying &&
@@ -1466,13 +1481,18 @@ function showHint(text: string, error = false): void {
         hint.add(numberField.removeClass("dge-error"));
     }
     if (applying && text) {
-        const { picked } = applying;
-        const fixed =
-            picked[firstFixed(appliedMacro(), picked, scene().macros)];
-        if (fixed && typeof fixed !== "string")
+        const { picked, reached, kept } = applying;
+        if (reached > kept)
+            hint.add(
+                keepInitial.text(
+                    message("keep_arg", initialName(picked[reached - 1])),
+                ),
+            );
+        const fixed = picked[changedRank()];
+        if (fixed !== undefined)
             hint.add(
                 changeFixed.text(
-                    message("macro_fixed_change", formatName(fixed.name)),
+                    message("macro_fixed_change", initialName(fixed)),
                 ),
             );
     }
@@ -1589,12 +1609,14 @@ function addRow(
             }
             if (applying) {
                 event.preventDefault();
-                if (takesNext(designated(), object)) pickInitial(object);
+                if (takesNext(designated(), object))
+                    pickInitial(object, event.shiftKey);
                 return;
             }
             const program = object instanceof event_object;
             if (!pending && !propertiesOpen && !program) return;
             event.preventDefault();
+            keeping = event.shiftKey;
             if (pending) {
                 if (rowTakes(object)) designateRow(object);
             } else if (program) showProgram(object);
@@ -2688,15 +2710,21 @@ function firstArgs(
 ): (Arg | undefined)[] {
     if (tool.mode !== "command") return [object];
     if (tool.overload.tag === "Loc") return [object, driverOf(object)!];
-    const { params, variadic, tag } = tool.overload;
-    const args: (Arg | undefined)[] = variadic
-        ? []
-        : Array(params.length).fill(undefined);
-    args[params.findIndex((param) => accepts(object, param))] = object;
-    const given = params.findIndex(
+    const args = emptyArgs(tool);
+    args[tool.overload.params.findIndex((param) => accepts(object, param))] =
+        object;
+    return giveNumber(tool, args);
+}
+
+// The number the tool gives, in its place.
+function giveNumber(
+    { overload }: Tool,
+    args: (Arg | undefined)[],
+): (Arg | undefined)[] {
+    const given = overload.params.findIndex(
         (param) => param === "real" || param === "number",
     );
-    if (given >= 0) args[given] = defaultReal(tag);
+    if (given >= 0) args[given] = defaultReal(overload.tag);
     return args;
 }
 
@@ -2731,7 +2759,11 @@ function describe(tool: Tool, args: (Arg | undefined)[]): string {
 }
 
 function prompt(): void {
-    showHint(pending ? describe(pending.tool, pending.args) : "");
+    showHint(
+        pending ? describe(pending.tool, pending.args) : "",
+        false,
+        pending ? keepButtons() : [],
+    );
     markTaken();
 }
 
@@ -2936,6 +2968,7 @@ function rearm(): void {
     const tool = armed?.tools.find((tool) => usable(tool, vec3()));
     if (!tool) armed = null;
     pending = tool ? { tool, args: emptyArgs(tool) } : null;
+    if (kept) retake(kept);
     const shown = armed?.tools[0];
     toolsButton
         .inner(toolSvg(shown?.icon ?? ACTION_ICONS.tools))
@@ -2946,6 +2979,78 @@ function rearm(): void {
             .stl("--dge-hue", `${shown.family.hue}`)
             .stl("--dge-tone", `${shown.family.tone}`);
     showActions();
+}
+
+// The tool takes again the arguments kept that the figure still has: by
+// their names in the figure an undo rebuilds, a polygon's side or vertex
+// while its polygon is the same.
+function retake({ tool, objects }: NonNullable<typeof kept>): void {
+    const c = scene();
+    const args = emptyArgs(tool);
+    objects.forEach((object, slot) => {
+        const owner = object.reference?.owner;
+        const found = owner
+            ? c.getObj(owner.name) === owner && object
+            : c.getObj(object.name);
+        if (found) args[slot] = found;
+        else objects.delete(slot);
+    });
+    if (!objects.size || !armed?.tools.includes(tool) || !usable(tool, vec3()))
+        return void (kept = null);
+    pending = { tool, args: giveNumber(tool, args) };
+}
+
+// Whether the argument designated at this place is kept: only by the tool
+// of the menu, the ring's building a single object, and never one that
+// would complete the object, which is built at once.
+function keep(slot: number): void {
+    const { tool, args } = pending!;
+    if (
+        !armed ||
+        tool.mode !== "command" ||
+        tool.overload.variadic ||
+        !args.includes(undefined)
+    )
+        return;
+    if (kept?.tool !== tool) kept = { tool, objects: new Map() };
+    kept.objects.set(slot, args[slot] as construction_object);
+}
+
+function unkeep(slot: number): void {
+    kept!.objects.delete(slot);
+    pending!.args[slot] = undefined;
+    prompt();
+}
+
+// The arguments designated, each to keep or kept, to change, in the hint.
+function keepButtons(): DOMElement[] {
+    const { tool, args, prefixed } = pending!;
+    if (!armed || tool.mode !== "command" || tool.overload.variadic) return [];
+    return args.flatMap((arg, slot) => {
+        if (
+            typeof arg !== "object" ||
+            prefixed?.includes(arg as construction_object) ||
+            arg instanceof FormulaArg ||
+            arg instanceof TextArg
+        )
+            return [];
+        const on = kept?.tool === tool && kept.objects.has(slot);
+        const button = $.create("button")
+            .cls("dge-hint-text")
+            .text(
+                message(
+                    on ? "macro_fixed_change" : "keep_arg",
+                    formatName(arg.name),
+                ),
+            );
+        if (!on) button.att("title", message("keep_shift"));
+        button.on("click", () => {
+            if (on) return unkeep(slot);
+            keep(slot);
+            prompt();
+        });
+        return [button];
+    });
 }
 
 // ************************** SELECTION ***************************
@@ -2985,6 +3090,7 @@ function take(picked: Hit[]): void {
     pending = {
         tool,
         args: assign(tool, objects, defaultReal(tool.overload.tag))!,
+        prefixed: objects,
     };
     const built = builtFrom(tool, picked);
     if (built) build(built.overload, built.args);
@@ -4272,13 +4378,18 @@ function placeRanks(): void {
 // figure from a library to be applied are taken back if it isn't.
 // The fixed initials are taken without asking, but when others are being
 // designated. The macros by their names: undo and redo rebuild the figure,
-// whose macros may then be others.
+// whose macros may then be others. After the initial last designated
+// (`reached`), the fixed ones; those `kept` at the head, up to one
+// designated with Shift or kept from the hint, taken again by the next
+// application.
 let applying: {
     name: string;
     picked: Picked[];
     copied: string[];
     applied: boolean;
     asking: boolean;
+    reached: number;
+    kept: number;
 } | null = null;
 const appliedIndex = (): number => macroIndex(scene(), applying!.name);
 const appliedMacro = (): Macro => scene().macros[appliedIndex()];
@@ -4331,18 +4442,31 @@ function fillFixed(): void {
         applying!.picked = withFixed(scene(), appliedMacro(), applying!.picked);
 }
 
-// Others designated in place of the fixed initials taken.
+// Others designated in place of the initials kept, or of the fixed ones
+// taken.
 const changeFixed = $.create("button").cls("dge-hint-text");
 changeFixed.on("click", () => {
-    const { picked } = applying!;
-    applying!.picked = picked.slice(
-        0,
-        firstFixed(appliedMacro(), picked, scene().macros),
-    );
+    const rank = changedRank();
+    applying!.picked = applying!.picked.slice(0, rank);
+    applying!.reached = Math.min(applying!.reached, rank);
+    applying!.kept = 0;
     applying!.asking = true;
     clearPreview();
     showApply();
 });
+const changedRank = (): number =>
+    applying!.kept
+        ? 0
+        : firstFixed(appliedMacro(), applying!.picked, scene().macros);
+const keepInitial = $.create("button")
+    .cls("dge-hint-text")
+    .att("title", message("keep_shift"));
+keepInitial.on("click", () => {
+    applying!.kept = applying!.reached;
+    showApply();
+});
+const initialName = (initial: Picked): string =>
+    typeof initial === "string" ? initial : formatName(initial.name);
 
 // Its help, and what it takes next, among how many.
 function applyHint(
@@ -4379,11 +4503,18 @@ function startApply(
         copied: copied.map(({ name }) => name),
         applied: false,
         asking: false,
+        reached: 0,
+        kept: 0,
     };
     showApply();
     objects.forEach((object) => {
         if (applying && takesNext(designated(), object)) pickInitial(object);
     });
+    // Those designated before it aren't kept from the hint.
+    if (objects[0] && applying) {
+        applying.reached = 0;
+        showApply();
+    }
 }
 
 function stopApply(): void {
@@ -4402,20 +4533,23 @@ function stopApply(): void {
     showHint("");
 }
 
-function pickInitial(initial: Picked): void {
+function pickInitial(initial: Picked, keep = false): void {
     const c = scene();
     clearPreview();
     if (rememberFixed(designated(), initial)) applying!.asking = false;
     applying!.picked.push(initial);
+    applying!.reached = applying!.picked.length;
+    if (keep) applying!.kept = applying!.reached;
     fillFixed();
     const { complete } = designated();
     if (complete === null) return showApply();
     applyMacro(c, appliedIndex(), complete, applying!.picked);
-    // One that maps points keeps what defines the transformation, as the
-    // tools do, and takes the next point or object.
-    applying!.picked = mapsPoints(c.macros, appliedMacro().methods[complete])
-        ? applying!.picked.slice(0, -1)
-        : [];
+    // Not the initial that completed it.
+    applying!.kept = applying!.reached = Math.min(
+        applying!.kept,
+        applying!.reached - 1,
+    );
+    applying!.picked = applying!.picked.slice(0, applying!.kept);
     applying!.applied = true;
     fillFixed();
     changed();
@@ -4441,6 +4575,8 @@ function showApply(): void {
     )
         ? (again as Picked[])
         : [];
+    applying!.kept = Math.min(applying!.kept, applying!.picked.length);
+    applying!.reached = Math.min(applying!.reached, applying!.picked.length);
     fillFixed();
     const { picked } = applying!;
     c.svg
@@ -4678,10 +4814,15 @@ function choose(tool: Tool, { object, at }: Hit): void {
     if (tool.mode === "point")
         return done(addPointOn(c, nextName(c, true), object, at));
     if (tool.mode === "event") return answer(tool, object);
-    pending = { tool, args: firstArgs(tool, object) };
+    begin(tool, object);
     // An intersection waits for its second object.
     if (tool.mode === "intersection") return prompt();
     proceed();
+}
+
+function begin(tool: Tool, object: construction_object): void {
+    pending = { tool, args: firstArgs(tool, object) };
+    if (keeping) keep(pending.args.indexOf(object));
 }
 
 // Builds the object once all its arguments are designated, or a cube
@@ -4701,19 +4842,9 @@ const formOf = ({ command, overload }: Tool, args: Arg[]): Overload =>
 function build(overload: Overload, args: Arg[]): void {
     clearPreview();
     const c = scene();
-    const tool = pending?.tool;
     done(
         add(c, { name: nextName(c, builtTag(overload, args)), overload, args }),
     );
-    // A transformation of the menu keeps what defines it, as in DGPad,
-    // and takes the next point or object.
-    const slot = mappedSlot(overload.params);
-    if (pending && slot >= 0 && pending.tool === tool) {
-        pending.args = args.map((arg, index) =>
-            index === slot ? undefined : arg,
-        );
-        prompt();
-    }
 }
 
 // Whether the argument is a point, made there if none is under the
@@ -4766,7 +4897,11 @@ function designateNext(arg: construction_object): void {
     if (overload.variadic && args.length >= 3 && arg === args[0])
         return build(overload, args as Arg[]);
     if (overload.variadic) args.push(arg);
-    else args[nextSlot()] = arg;
+    else {
+        const slot = nextSlot();
+        args[slot] = arg;
+        if (keeping) keep(slot);
+    }
     proceed();
 }
 
@@ -4778,7 +4913,7 @@ function designateRow(object: construction_object): void {
         const tool = fitting(object)!;
         if (tool.mode === "turtle") return startTurtle(object);
         if (tool.mode === "event") return answer(tool, object);
-        pending = { tool, args: firstArgs(tool, object) };
+        begin(tool, object);
         return tool.mode === "intersection" ? prompt() : proceed();
     }
     const { tool, args } = pending!;
@@ -5027,9 +5162,11 @@ function showAxes(): void {
 function cancel(keepTool = false): void {
     setSteps(false);
     stopMagnets();
-    if (keepTool && applying) applying.picked = [];
-    else stopApply();
-    if (!keepTool) armed = null;
+    if (keepTool && applying) {
+        applying.picked = applying.picked.slice(0, applying.kept);
+        applying.reached = applying.kept;
+    } else stopApply();
+    if (!keepTool) armed = kept = null;
     aim = null;
     clearPreview();
     closeMenu();
@@ -5184,6 +5321,11 @@ async function reframe(
     if (ghosts) ghosts = showGhosts(c);
     showAxes();
     showSpace();
+    // The arguments kept, taken again in the figure rebuilt.
+    if (kept) {
+        rearm();
+        prompt();
+    }
     refreshRows();
 }
 
@@ -5716,6 +5858,7 @@ $("body").on(
         forgetBranches();
         if (aim) {
             const designates = aiming(event);
+            keeping = event.shiftKey;
             aim = null;
             if (designates) {
                 const c = scene();
@@ -5768,6 +5911,7 @@ $("body").on(
             !ghosts &&
             !magnetizing &&
             !macros.active &&
+            !applying &&
             !stepping &&
             (tap ? event.metaKey || event.ctrlKey || event.shiftKey : still);
         // Once the point has its pointerup too (this listener captures):
@@ -5825,7 +5969,8 @@ $("body").on(
         const shown = (applying || macros.active) && propertyObject(event);
         if (shown && !hits.some(({ object }) => object === shown)) {
             if (macros.active) return macros.tap(shown);
-            if (takesNext(designated(), shown)) pickInitial(shown);
+            if (takesNext(designated(), shown))
+                pickInitial(shown, event.shiftKey);
             return;
         }
         // The next initial, a point made there if one is taken.
@@ -5838,11 +5983,13 @@ $("body").on(
             );
             if (taken[0])
                 return chooseHit(taken, client, ({ object }) =>
-                    pickInitial(object),
+                    pickInitial(object, event.shiftKey),
                 );
             if (next.next.some(([type]) => POINTS.includes(type))) {
                 clearPreview();
-                designatePoint(screen, hits, client, pickInitial);
+                designatePoint(screen, hits, client, (point) =>
+                    pickInitial(point, event.shiftKey),
+                );
             }
             return;
         }

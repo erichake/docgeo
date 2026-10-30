@@ -356,6 +356,8 @@ const it: Texts = {
         macro_fixed:
             "Fisso: designato una volta, poi mantenuto da un'applicazione all'altra",
         macro_fixed_change: "Cambia %",
+        keep_arg: "Tieni %",
+        keep_shift: "Maiusc-clic su un oggetto lo tiene anche",
         macro_implicit:
             "Nessun finale scelto: gli oggetti visibili in grigio sono i finali",
         macro_need_initial: "Tocca gli oggetti da cui parte la macro",

@@ -338,6 +338,13 @@ Poincaré, qui prennent toutes le disque en premier initial :
   aux objets de la figure.
 - Le langage textuel écrit tous les initiaux, fixés compris
   (`l = DroiteH(Hz, A, B)`).
+- **Gardés le temps de l'outil** (2026-10-30) : sans cadenas, un initial
+  désigné avec Maj, ou gardé par le bouton « Garder » de la consigne, est
+  repris avec ceux qui le précèdent d'une application à l'autre, jusqu'à
+  la sortie de l'outil, comme les arguments gardés des outils
+  (`EDITOR.md`). « Changer » redemande alors tout depuis le premier. Les
+  objets donnés avant la macro (anneau, sélection) n'ont pas de bouton
+  « Garder ».
 
 ### Le calcul : un nœud d'application (moteur)
 

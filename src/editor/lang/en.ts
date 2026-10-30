@@ -349,6 +349,8 @@ export default {
     macro_fixed:
         "Fixed: designated once, then kept from one application to the next",
     macro_fixed_change: "Change %",
+    keep_arg: "Keep %",
+    keep_shift: "Shift-click an object to keep it too",
     macro_implicit:
         "No final chosen: the visible objects in gray are the finals",
     macro_need_initial: "Tap the objects the macro starts from",

@@ -365,6 +365,8 @@ const de: Texts = {
         macro_fixed:
             "Fest: einmal gewählt, dann von Anwendung zu Anwendung beibehalten",
         macro_fixed_change: "% ändern",
+        keep_arg: "% behalten",
+        keep_shift: "Umschalt-Klick auf ein Objekt behält es ebenfalls",
         macro_implicit:
             "Kein Endobjekt gewählt: Die sichtbaren grauen Objekte sind die Endobjekte",
         macro_need_initial:

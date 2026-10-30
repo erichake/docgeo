@@ -356,6 +356,8 @@ const pt: Texts = {
         macro_fixed:
             "Fixo: designado uma vez e mantido de uma aplicação para a outra",
         macro_fixed_change: "Mudar %",
+        keep_arg: "Manter %",
+        keep_shift: "Shift-clique num objeto também o mantém",
         macro_implicit:
             "Nenhum final escolhido: os objetos visíveis a cinzento são os finais",
         macro_need_initial: "Toque nos objetos de onde parte a macro",

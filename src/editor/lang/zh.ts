@@ -337,6 +337,8 @@ const zh: Texts = {
         macro_drag: "拖动以改变顺序",
         macro_fixed: "固定：只需指定一次，之后每次应用都沿用",
         macro_fixed_change: "更换 %",
+        keep_arg: "保留 %",
+        keep_shift: "按住 Shift 单击对象也可保留它",
         macro_implicit: "未选择最终对象：灰色的可见对象即为最终对象",
         macro_need_initial: "点击宏的出发对象",
         macro_need_final: "初始对象没有确定任何可见对象",

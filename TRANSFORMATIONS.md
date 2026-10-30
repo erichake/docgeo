@@ -39,12 +39,14 @@ deux suivent les mêmes règles et la même interface.
    **dernier initial** (`SymétrieH` : le disque, la droite g, puis M).
    L'ordre de GeoGebra (l'objet d'abord) n'est pas accepté au clavier :
    entre deux points, il donnerait sans erreur une autre figure.
-5. **L'outil garde la transformation** : une fois désignés ce qui la
-   définit (centre, droite, vecteur, cercle, angle ou rapport ; initiaux
-   d'une macro), l'outil, persistant, ne demande plus que l'objet suivant,
-   comme dans DGPad. Aujourd'hui, il redemande son premier argument après
-   chaque objet (`EDITOR.md`, « Outil persistant ») : c'est la raison du
-   changement d'ordre ci-dessus.
+5. **Ce qui définit la transformation est redemandé** (révisé avec
+   l'auteur le 2026-10-30) : comme tout outil, après chaque image,
+   l'outil attend de nouveau son premier argument, ce qu'attend un
+   utilisateur. Garder la transformation d'une image à l'autre, comme
+   DGPad, est un choix : un argument désigné avec **Maj**, ou gardé par
+   le bouton « Garder d » de la consigne, est repris jusqu'à la sortie de
+   l'outil (`EDITOR.md`, « Arguments gardés »), pour tous les outils et
+   les macros. L'ordre ci-dessus reste celui de DGPad et du clavier.
 6. Aperçu au survol de l'objet de l'image qu'il donnerait, comme pour un
    point aujourd'hui (et comme CaRMetal, en jaune).
 
@@ -125,8 +127,8 @@ deux suivent les mêmes règles et la même interface.
   point et son seul final un point (`finalTypes`, qui lit aussi les images
   par transformation des corps). Son dernier initial prend alors un objet
   (`transformable`, `takenInitials`), à l'outil, au clavier et dans
-  l'aperçu ; l'outil garde les autres initiaux après chaque application,
-  comme les outils de transformation. L'entrée `Mac` porte l'objet et le
+  l'aperçu ; comme pour les outils, ses autres initiaux sont redemandés
+  après chaque application, sauf ceux gardés (décision 5). L'entrée `Mac` porte l'objet et le
   verdict (`DGO.md`, « Image d'un objet »). Le moteur fait de chaque point
   privé de l'image une application privée de la méthode (`application` de
   `src/dgo.ts`, `applied_point` de `macro_object.ts`), détachée de la
@@ -155,7 +157,7 @@ deux suivent les mêmes règles et la même interface.
 
 1. Moteur : images par `Sym`, `Refl`, `Rot`, `Dil`, `Tra` des segments,
    vecteurs, demi-droites, droites, polygones, cercles et arcs. **Fait.**
-2. Éditeur : l'outil garde la transformation (décision 5), aperçu au
+2. Éditeur : outil persistant (décision 5), aperçu au
    survol, commande tapée (`Symétrie(d, poly)`), ligne relue, style de
    l'image repris de l'objet. **Fait** (`EDITOR.md`, « Image d'un objet
    par une transformation »).
@@ -266,3 +268,12 @@ Idées à garder, sans recopier le code :
   spheres and solids in space, and puts points on images »
   (`editor.test.ts`). Moteur 381,54 → 382,09 Ko (+0,55 Ko ; gzip 121,40
   Ko) ; éditeur 260,01 → 260,15 Ko.
+- 2026-10-30 : décision 5 révisée avec l'auteur. Les outils et les macros
+  ne gardent plus d'eux-mêmes ce qui définit la transformation : Maj-clic
+  ou bouton « Garder » de la consigne, pour tout argument (`EDITOR.md`,
+  « Arguments gardés »). Tests « keeps a transformation designated with
+  Shift… » et « keeps the initials of a macro designated with Shift »
+  (`tool_palette.test.ts`). Moteur inchangé (382,09 Ko) ; éditeur
+  260,15 → 261,78 Ko (+1,63 Ko). Réservé ensuite aux désignations
+  postfixées (ni anneau, ni sélection préalable), test « keeps no
+  argument designated before the tool ».

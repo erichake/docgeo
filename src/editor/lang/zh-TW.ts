@@ -337,6 +337,8 @@ const zh_TW: Texts = {
         macro_drag: "拖曳以改變順序",
         macro_fixed: "固定：只需指定一次，之後每次應用都沿用",
         macro_fixed_change: "更換 %",
+        keep_arg: "保留 %",
+        keep_shift: "按住 Shift 點選物件也可保留它",
         macro_implicit: "未選擇最終物件：灰色的可見物件即為最終物件",
         macro_need_initial: "點擊巨集的出發物件",
         macro_need_final: "初始物件沒有確定任何可見物件",

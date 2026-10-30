@@ -383,20 +383,37 @@ la GeoGebra, l'outil choisi avant les objets.
   (90°, ou π/2 dans une figure en radians) ou un rapport de 2, que la
   ligne change ensuite.
 - **Outil persistant** : après chaque objet, il attend de nouveau son
-  premier argument ; une transformation garde ce qui la définit et
-  attend le point ou l'objet suivant (`TRANSFORMATIONS.md`). Le bouton prend l'icône de l'outil, enfoncé, aux
+  premier argument, sauf ceux gardés (ci-dessous), une transformation
+  comme les autres (`TRANSFORMATIONS.md`, décision 5). Le bouton prend l'icône de l'outil, enfoncé, aux
   couleurs de sa famille, et la zone contextuelle de la barre devient un
   bandeau (icône, nom, « Terminé »), comme pour les aimants. Ce bouton
   pressé quitte l'outil et rouvre aussitôt le menu, d'un seul clic. On en
   sort aussi par « Terminé », Échap, la croix de la consigne, un autre outil,
   le focus dans la ligne de saisie (ou au clavier dans une ligne), la gomme, les propriétés ou le pas à
-  pas ; annuler, refaire et la vue 3D le gardent, sans ses arguments. Un
+  pas ; annuler, refaire et la vue 3D le gardent, sans ses arguments
+  autres que gardés. Un
   toucher dans le vide crée un point : il ne peut pas faire sortir de
   l'outil. Pendant l'outil, un glisser vise (comme après un outil de
   l'anneau) ; le bouton droit, lui, glisse les objets et la vue, outil en
   cours ou non : sur un objet, l'éditeur lui passe l'appui comme un appui
   gauche, ailleurs la figure déplace la vue (la tourne en 3D). Au doigt,
   rien encore : il faut sortir de l'outil pour déplacer.
+- **Arguments gardés** (décidé avec l'auteur le 2026-10-30) : un argument
+  désigné avec **Maj** (dans la figure ou une ligne du texte) après avoir
+  choisi l'outil au menu ou à la palette est repris après chaque objet,
+  jusqu'à la sortie de l'outil : la droite
+  d'une symétrie, le centre de cercles concentriques, la droite de
+  plusieurs parallèles. La consigne porte, pour chaque argument désigné,
+  un bouton « Garder A » (la voie du doigt, avec pour bulle le rappel
+  du Maj-clic), et pour chaque argument gardé « Changer A », qui le
+  redemande. Seulement en désignation postfixée : ni l'outil de l'anneau,
+  qui ne construit qu'un objet, ni les objets sélectionnés avant l'outil.
+  Jamais un argument qui compléterait l'objet, construit aussitôt, ni
+  ceux d'un polygone ou d'une intersection. L'annulation
+  les retrouve par leur nom (un côté ou un sommet de polygone tant que
+  son polygone est le même). Pour une macro, l'initial désigné avec Maj
+  est gardé avec ceux qui le précèdent (désignation dans l'ordre) ; son
+  « Changer » revient au premier (`MACROS.md`, « Initiaux fixés »).
 - **Petit écran** (600 px ou moins) : choisir un outil referme le panneau
   « Construction » et celui des propriétés, pour que la figure se voie
   entière.
