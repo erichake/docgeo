@@ -11,6 +11,7 @@ import { createCenterArc } from "../objects/center_arc_object";
 import { createConicArc } from "../objects/conic_arc_object";
 import { createSemicircle } from "../objects/semicircle_object";
 import { createInversion } from "../objects/inversion_object";
+import type { transformable } from "../objects/transformed_object";
 import { createRegularPolygon } from "../objects/regular_polygon_object";
 import { createTriangleCenter } from "../objects/triangle_center_object";
 import { createVertex } from "../objects/vertex_object";
@@ -232,7 +233,12 @@ interface CommandContext {
 
 interface CommandDefinition {
     parameters: Parameter[];
-    result?: ObjectKind;
+    result?:
+        | ObjectKind
+        | ((
+              args: DgpValue[],
+              variables: Map<string, ObjectKind>,
+          ) => ObjectKind);
     validate?: (
         args: DgpValue[],
         line: number,
@@ -2238,17 +2244,33 @@ const COMMANDS = new Map<string, CommandDefinition>([
                 ),
         },
     ],
+    // Of a point or an object, `straight` when a line or a circle through
+    // the center is mapped to a line.
     [
         "Inversion",
         {
-            parameters: [string, circle, point],
-            result: "point",
+            parameters: [
+                string,
+                circle,
+                object,
+                { ...boolean, optional: true },
+            ],
+            result: ([, , source, straight], variables) => {
+                const kind = variables.get((source as { name: string }).name);
+                if (kind === "point" || kind === "pointOn") return "point";
+                if (kind === "polygon") return "polygon";
+                if (kind !== "line" && kind !== "circle") return "locus";
+                return straight?.type === "literal" && straight.value
+                    ? "line"
+                    : "circle";
+            },
             execute: (context, args) =>
                 createInversion(
                     context.construction,
                     args[0] as string,
                     args[1] as primitive_circle_object,
-                    args[2] as point_object,
+                    args[2] as point_object | transformable,
+                    args[3] === true,
                 ),
         },
     ],
@@ -3493,7 +3515,13 @@ function validateCall(call: DgpCall, variables: Map<string, ObjectKind>): void {
     if (call.variable) {
         if (variables.has(call.variable))
             throw new Error(`Duplicate DGP variable at line ${call.line}`);
-        variables.set(call.variable, definition.result!);
+        const { result } = definition;
+        variables.set(
+            call.variable,
+            typeof result === "function"
+                ? result(call.arguments, variables)
+                : result!,
+        );
     }
 }
 

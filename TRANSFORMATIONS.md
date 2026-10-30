@@ -283,3 +283,9 @@ Idées à garder, sans recopier le code :
   `gestes.html` (anneau), `raccourcis.html` (Maj-clic pendant un outil),
   `3d.html` (plans, sphères, polyèdres). Contrôle `npm run manual --
   check` passé ; ni icône ni capture à refaire.
+- 2026-10-30 : import GeoGebra de `Mirror(X, cercle)` pour un objet
+  (`GGB_IMPORT.md`, item 42), remarque de l'auteur sur un polygone
+  inversé. `createInversion` (`inversion_object.ts`) fait l'inverse d'un
+  point ou l'image d'un objet, pour le nœud `Inv` comme pour la commande
+  DGP `Inversion`. Test « builds images of objects by inversions »
+  (`ggb_importer.test.ts`). Moteur 382,09 → 382,68 Ko (+0,59 Ko).

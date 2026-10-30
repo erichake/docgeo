@@ -2182,17 +2182,46 @@ export function translateGgb(
                 : null,
         false,
     );
+    // By a circle, the inverse of a point or the image of an object, of the
+    // kind the Inversion command gives: a line when GeoGebra's is a
+    // degenerate conic, from a line or a circle through the center.
+    const inversion: Handler = ([source, circle], [label]) => {
+        const type = elements.get(source)?.getAttribute("type");
+        const element = elements.get(label);
+        const matrix = element && child(element, "matrix");
+        const straight =
+            !!matrix &&
+            ["A0", "A1"].every(
+                (name) => Number(matrix.getAttribute(name)) === 0,
+            );
+        const kind: Kind | null = points(source)
+            ? "point"
+            : is(source, ["polygon"])
+              ? "polygon"
+              : is(source, ["circle"]) ||
+                  (is(source, ["line"]) &&
+                      (type === "line" || type === "segment"))
+                ? straight
+                    ? "line"
+                    : "circle"
+                : is(source, ["quadric", "curve", "locus"])
+                  ? "locus"
+                  : null;
+        return (
+            kind !== null &&
+            define(label, kind, "Inversion", [
+                ref(circle),
+                ref(source),
+                ...(straight ? [literal(true)] : []),
+            ])
+        );
+    };
     const mirror: Handler = (inputs, outputs) =>
-        is(inputs[1], ["circle"])
-            ? points(inputs[0]) &&
-              define(outputs[0], "point", "Inversion", [
-                  ref(inputs[1]),
-                  ref(inputs[0]),
-              ])
-            : (points(inputs[1]) ? pointReflection : lineReflection)(
-                  inputs,
-                  outputs,
-              );
+        (is(inputs[1], ["circle"])
+            ? inversion
+            : points(inputs[1])
+              ? pointReflection
+              : lineReflection)(inputs, outputs);
 
     let auxiliaries = 0;
     const auxiliary = (): string => `aux ${++auxiliaries}`;

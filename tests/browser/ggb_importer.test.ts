@@ -5,6 +5,7 @@ import { importGgb, importGgbFromBlob } from "../../src/ggb_importer";
 import { readZipEntry } from "../../src/import/ggb_zip";
 import { angle_object } from "../../src/objects/angle_object";
 import { arc3pts_object } from "../../src/objects/arc3pts_object";
+import { circle3pts_object } from "../../src/objects/circle3pts_object";
 import { center_arc_object } from "../../src/objects/center_arc_object";
 import { semicircle_object } from "../../src/objects/semicircle_object";
 import type { primitive_arc_object } from "../../src/objects/primitive_arc_object";
@@ -1575,6 +1576,73 @@ ${[1, 2, 3, 4, 5]
             image.points.map((point) => point.coords[1]).sort((u, v) => u - v),
             [-4, -4, 0, 0],
         );
+    });
+
+    it("builds images of objects by inversions", () => {
+        const c = createConstruction();
+        // As GeoGebra saves them: a straight image, a degenerate conic.
+        const conic = (label: string, type: string, a: string) =>
+            `<element type="${type}" label="${label}"><matrix A0="${a}" A1="${a}" A2="0" A3="0" A4="0" A5="0"/></element>`;
+        const mirror = (source: string, label: string, image: string) =>
+            `<command name="Mirror"><input a0="${source}" a1="c"/><output a0="${label}"/></command>${image}`;
+        expect(
+            importGgb(
+                c,
+                `<geogebra><construction>
+<element type="point" label="O"><coords x="0" y="0" z="1"/></element>
+<command name="Circle"><input a0="O" a1="2"/><output a0="c"/></command>
+<element type="conic" label="c"/>
+${[
+    ["A", 1, 1],
+    ["B", 3, 1],
+    ["C", 2, 3],
+    ["D", 4, 0],
+]
+    .map(
+        ([label, x, y]) =>
+            `<element type="point" label="${label}"><coords x="${x}" y="${y}" z="1"/></element>`,
+    )
+    .join("")}
+<command name="Polygon"><input a0="A" a1="B" a2="C"/><output a0="t" a1="a" a2="b" a3="d"/></command>
+<element type="polygon" label="t"/>
+<command name="Line"><input a0="A" a1="B"/><output a0="l"/></command>
+<element type="line" label="l"/>
+<command name="Line"><input a0="O" a1="A"/><output a0="lo"/></command>
+<element type="line" label="lo"/>
+<command name="Segment"><input a0="B" a1="C"/><output a0="s"/></command>
+<element type="segment" label="s"/>
+<command name="Circle"><input a0="D" a1="1"/><output a0="k"/></command>
+<element type="conic" label="k"/>
+<command name="Circle"><input a0="A" a1="O"/><output a0="ko"/></command>
+<element type="conic" label="ko"/>
+<expression label="f" exp="f(x) = x^(2) + 3"/>
+<element type="function" label="f"/>
+${mirror("t", "t'", `<element type="curvecartesian" label="t'"/>`)}
+${mirror("l", "l'", conic("l'", "conic", "1"))}
+${mirror("lo", "lo'", conic("lo'", "conic", "0"))}
+${mirror("s", "s'", conic("s'", "conicpart", "1"))}
+${mirror("k", "k'", conic("k'", "conic", "1"))}
+${mirror("ko", "ko'", conic("ko'", "conic", "0"))}
+${mirror("f", "f'", `<element type="curvecartesian" label="f'"/>`)}
+</construction></geogebra>`,
+            ),
+        ).toEqual([]);
+        const image = c.getObj("t'") as polygon_object;
+        expect(image).toBeInstanceOf(polygon_object);
+        expect(image.parents).toEqual(["c", "t"].map((n) => c.getObj(n)));
+        // A's inverse, at 4/2 times its distance from O.
+        expect(
+            image.points.some((p) => vNorm(vSub(p.coords, [2, 2, 0])) < 1e-9),
+        ).toBe(true);
+        expect(c.getObj("l'")).toBeInstanceOf(circle3pts_object);
+        expect(c.getObj("lo'")).toBeInstanceOf(two_points_line_object);
+        expect(c.getObj("s'")).toBeInstanceOf(arc3pts_object);
+        expect(c.getObj("ko'")).toBeInstanceOf(two_points_line_object);
+        const circle = c.getObj("k'") as primitive_circle_object;
+        // Through the inverses of (3, 0) and (5, 0).
+        expectClose(circle.CENTER, [16 / 15, 0, 0]);
+        expect(circle.R).toBeCloseTo(4 / 15, 9);
+        expect(c.getObj("f'")).toBeInstanceOf(locus_object);
     });
 
     it("builds planes, their sections and solids' vertices as objects of their own", async () => {

@@ -22,7 +22,7 @@ import { createCenterArc } from "./objects/center_arc_object";
 import { createConicArc } from "./objects/conic_arc_object";
 import { createSemicircle } from "./objects/semicircle_object";
 import { createTangent } from "./objects/tangent_object";
-import { createInversion, inversion_object } from "./objects/inversion_object";
+import { createInversion } from "./objects/inversion_object";
 import { createRegularPolygon } from "./objects/regular_polygon_object";
 import { createTriangleCenter } from "./objects/triangle_center_object";
 import { createVertex } from "./objects/vertex_object";
@@ -108,7 +108,6 @@ import {
 } from "./objects/translation_object";
 import {
     createTransformed,
-    imageLook,
     imageLooks,
     type transformable,
 } from "./objects/transformed_object";
@@ -1907,22 +1906,18 @@ const BUILDERS: Record<string, Builder> = {
         const [index, object, straight] = list(parameters, 2, 3);
         const circle = at(index, primitive_circle_object);
         const source = at(object, point_object, ...TRANSFORMABLE);
-        if (source instanceof point_object) {
-            check(straight === undefined);
-            return createInversion(c, name, circle, source);
-        }
-        check(invertible(source));
-        check(straight === undefined || straight === 1);
-        return createTransformed(
+        check(
+            source instanceof point_object
+                ? straight === undefined
+                : invertible(source) &&
+                      (straight === undefined || straight === 1),
+        );
+        return createInversion(
             c,
             name,
-            source,
-            (point) => new inversion_object(c, null, circle, point),
-            {
-                look: imageLook(source, straight === 1),
-                pole: () => circle.CENTER,
-                mark: straight,
-            },
+            circle,
+            source as point_object | transformable,
+            straight === 1,
         );
     },
     TC: (parameters, { c, name, points }) => {

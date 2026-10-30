@@ -94,6 +94,7 @@ figure sont seulement comptés. L'API utilisée est
 | 2026-10-21 | 245 / 438 (56 %)   | 370,5 Ko | item 39 : suites de cercles orientés, détection 3D (+0)            |
 | 2026-10-28 | —                  | 372,0 Ko | item 40 : points sur une sphère, un cylindre, un cône (+0)         |
 | 2026-10-29 | 251 / 456 (55 %)   | 376,9 Ko | item 41 : arcs et secteurs d'un cercle ou d'une ellipse (+6)       |
+| 2026-10-30 | 251 / 456 (55 %)   | 382,7 Ko | item 42 : inversion des objets (+0)                                |
 
 ## À faire, par rapport gain / coût
 
@@ -689,6 +690,21 @@ cause.
       paramètres `Arc(c, t1, t2)` (une figure, qui a 19 autres manques),
       les arcs d'hyperbole et de parabole. Moteur 376,0 → 376,9 Ko
       (+0,9 Ko).
+- [x] **42. Inversion des objets** : `Mirror(X, cercle)` ne traduisait
+      que l'inverse d'un point. Il prend désormais, comme l'éditeur
+      (`TRANSFORMATIONS.md`), un polygone (image dont les côtés sont des
+      arcs, là où GeoGebra fait une courbe paramétrée), une droite, un
+      segment, un cercle, un arc, et en lieu une conique, une courbe de
+      fonction ou un lieu : objet `Inv` de `DGO.md`, la commande DGP
+      `Inversion` acceptant un objet. GeoGebra enregistre l'image d'une
+      droite ou d'un cercle passant par le centre comme une conique
+      dégénérée (`A0 = A1 = 0` dans sa `matrix`) : c'est le verdict
+      « droit » de l'entrée. Ni demi-droite ni vecteur, que GeoGebra
+      n'inverse pas vraiment. Signalé par l'auteur sur une figure
+      exportée de GeoGebra (polygone inversé). Corpus inchangé (251 / 456,
+      aucun élément gagné : ses `Mirror` par un cercle restants portent
+      sur des points déjà perdus). Moteur 382,09 → 382,68 Ko (+0,59 Ko ;
+      gzip 121,59 Ko).
 
 À écarter, sauf changement de priorité : calcul formel, courbes implicites,
 statistiques et probabilités, tableur au-delà des cellules simples, matrices.
