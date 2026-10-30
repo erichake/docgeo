@@ -334,6 +334,42 @@ describe("Editor", () => {
         expect(type(c, "Inversion(c, m)")).toBeInstanceOf(circle3pts_object);
     });
 
+    it("maps planes, spheres and solids in space, and puts points on images", () => {
+        const { scene: c } = studio(true);
+        [
+            "A = (0, 0, 0)",
+            "B = (2, 0, 0)",
+            "C = (0, 2, 0)",
+            "O = (0, 0, 5)",
+            "p = Plane(A, B, C)",
+            "s = Sphere(A, B)",
+            "k = Cube(A, B, C)",
+            "c = Circle(O, A)",
+        ].forEach((line) => type(c, line));
+        const images = ["p", "s", "k"].map((name) =>
+            type(c, `Reflect(O, ${name})`),
+        );
+        expect(images.map((image) => image.constructor.name)).toEqual([
+            "plane_object",
+            "sphere_object",
+            "polyhedron_object",
+        ]);
+        expect(lines(c).slice(-3)).toEqual(
+            images.map(
+                (image, index) => `${image.name} = Reflect(O, ${"psk"[index]})`,
+            ),
+        );
+        // Not by an inversion.
+        expect(() => type(c, "Inversion(c, s)")).toThrow(
+            expect.objectContaining({ key: "arguments" }),
+        );
+        const point = type(c, `M = Point(${images[1].name}, 1, 0, 0)`);
+        expect(point.defined).toBe(true);
+        expect(
+            vNorm(vSub((point as point_object).coords, [0, 0, 10])),
+        ).toBeCloseTo(2);
+    });
+
     it("tells from the arguments designated whether the line goes on", () => {
         const { scene: c } = studio();
         [

@@ -49,6 +49,7 @@ import {
     findCommand,
     FUNCTIONS,
     isCommand,
+    mappedSlot,
     otherView,
     overloadFor,
     paramAt,
@@ -4457,7 +4458,7 @@ function showApply(): void {
 
 // The types of the initials a point made where the pointer is can be: a
 // point, or one that a macro mapping points maps.
-const POINTS = ["point", "transformable"];
+const POINTS = ["point", "invertible"];
 
 // What the last initial would build, its point following the pointer.
 function previewMacro(screen: Vec2, hits: Hit[]): void {
@@ -4706,7 +4707,7 @@ function build(overload: Overload, args: Arg[]): void {
     );
     // A transformation of the menu keeps what defines it, as in DGPad,
     // and takes the next point or object.
-    const slot = overload.params.indexOf("transformable");
+    const slot = mappedSlot(overload.params);
     if (pending && slot >= 0 && pending.tool === tool) {
         pending.args = args.map((arg, index) =>
             index === slot ? undefined : arg,
@@ -4719,7 +4720,7 @@ function build(overload: Overload, args: Arg[]): void {
 // pointer, rather than an object a transformation maps.
 const pointNext = (param: Param, hits: Hit[]): boolean =>
     param === "point" ||
-    (param === "transformable" &&
+    (mappedSlot([param]) === 0 &&
         (!hits[0] ||
             hits[0].object instanceof point_object ||
             !accepts(hits[0].object, param)));
@@ -4875,7 +4876,7 @@ function updatePreview(screen: Vec2, hits: Hit[]): void {
     if (missing > 0 && !stand && !cube) return clearPreview();
     const param = paramAt(overload, slot)!;
     const hit =
-        param === "transformable" && pointNext(param, hits)
+        mappedSlot([param]) === 0 && pointNext(param, hits)
             ? hits.find(({ object }) => object instanceof point_object)
             : hits.find(({ object }) => accepts(object, param));
     const candidate =

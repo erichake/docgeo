@@ -308,6 +308,7 @@ const nl: Texts = {
         designate_expression: "Selecteer een uitdrukking",
         designate_point: "Selecteer een punt",
         designate_transformable: "Selecteer een punt of een object",
+        designate_invertible: "Selecteer een punt of een object",
         designate_moveable: "Selecteer een punt dat versleept kan worden",
         designate_button: "Selecteer waar de knop komt",
         designate_pointOn: "Selecteer een punt op een object",

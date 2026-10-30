@@ -60,9 +60,11 @@ export type Param =
     // A line or a plane.
     | "linear"
     | "sphere"
-    // What a transformation maps: a point, a line, a circle, a polygon
-    // (not a plane), a conic or a curve.
+    // What a transformation maps: a point, a line, a circle, a polygon, a
+    // conic, a curve, a plane, a sphere or a polyhedron; by an inversion or
+    // a macro, none of the last three.
     | "transformable"
+    | "invertible"
     | "polyhedron"
     // A cylinder or a cone.
     | "revolution"
@@ -227,6 +229,12 @@ export function accepts(arg: Arg, param: Param): boolean {
         case "surface":
             return kind === "sphere" || arg instanceof revolution_object;
         case "transformable":
+            return (
+                accepts(arg, "invertible") ||
+                ["plane", "sphere"].includes(kind) ||
+                arg instanceof polyhedron_object
+            );
+        case "invertible":
             return (
                 ["point", "line", "circle", "polygon", "conic"].includes(
                     kind,
@@ -820,7 +828,7 @@ export const COMMANDS: Command[] = [
         name: "Inversion",
         overloads: [
             {
-                params: ["circle", "transformable"],
+                params: ["circle", "invertible"],
                 tag: "Inv",
                 encode: ([circle, object], index) => [
                     index(circle as construction_object),
@@ -1126,6 +1134,13 @@ export const commandsStarting = (
             commands.findIndex(
                 (other) => commandName(other) === commandName(command),
             ) === index,
+    );
+
+// Where a transformation takes the point or the object it maps, -1 for
+// another command.
+export const mappedSlot = (params: Param[]): number =>
+    params.findIndex(
+        (param) => param === "transformable" || param === "invertible",
     );
 
 export function paramAt(overload: Overload, position: number): Param | null {

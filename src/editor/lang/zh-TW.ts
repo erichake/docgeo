@@ -290,6 +290,7 @@ const zh_TW: Texts = {
         designate_expression: "選取一個運算式",
         designate_point: "選取一個點",
         designate_transformable: "選取一個點或一個物件",
+        designate_invertible: "選取一個點或一個物件",
         designate_moveable: "選取一個可拖曳的點",
         designate_button: "選取按鈕的位置",
         designate_pointOn: "選取物件上的一個點",

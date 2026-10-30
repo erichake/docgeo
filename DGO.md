@@ -580,22 +580,30 @@ alignement]]` police, `[30, url, l, h, zoom, opacité, u]` image (largeur
 28. À la place du point P, un objet (ajouté le 2026-10-30, voir
     `TRANSFORMATIONS.md`) : son image, construite sur les images de ses
     points (non enregistrées). Par `Sym`, `Refl`, `Rot`, `Dil` et `Tra`,
-    de même nature : segment, vecteur, demi-droite et polygone (pas un
-    plan), sur les images de ses extrémités ou de ses sommets ; droite,
+    de même nature : segment, vecteur, demi-droite et polygone, sur les
+    images de ses extrémités ou de ses sommets ; droite,
     de son point et de ce point plus son vecteur directeur ; cercle, le
     cercle passant par les images de trois de ses points ; arc ou secteur,
     celui qui passe par les images de ses extrémités et de son milieu,
     parcouru dans le sens qu'elles donnent ; conique (pas un arc de
-    conique), la conique passant par les images de cinq de ses points. Par
+    conique), la conique passant par les images de cinq de ses points ;
+    dans l'espace, plan, le plan passant par les images de trois de ses
+    points ; sphère, celle de centre l'image du sien passant par l'image
+    d'un de ses points ; polyèdre, celui de mêmes faces sur les images de
+    ses sommets (pas un cylindre ni un cône). Par
     `Inv` (`[c, X]`, `[c, X, 1]`) : une droite, un cercle, un segment ou
     un arc donnent un cercle, un cercle, un arc ou un arc ; avec `1`
     (droite ou cercle passant par le centre de c quand l'objet a été
     construit), une droite, une droite, un segment ou un segment ; un
     polygone, le polygone des images de 32 points de chacun de ses côtés,
-    à partir de son sommet (ses côtés deviennent des arcs). Sinon (courbe de fonction, lieu, arc de conique, et par
+    à partir de son sommet (ses côtés deviennent des arcs) ; pas un plan,
+    une sphère ni un polyèdre. Sinon (courbe de fonction, lieu, arc de
+    conique, et par
     `Inv` demi-droite, vecteur ou conique), le lieu de l'image d'un point
     qui parcourt l'objet. Son style par défaut est celui de sa nature
-    (`Seg`, `Vec`, `Ray`, `Line`, `Poly`, `Cir`, `Arc`, `Quad`, `Loc`).
+    (`Seg`, `Vec`, `Ray`, `Line`, `Poly`, `Cir`, `Arc`, `Quad`, `Loc`,
+    `Pl`, `Sph`, `Cube`). Un point se pose sur une image comme sur tout
+    objet (`On`) ; une image ne se glisse pas.
 
 ### Macro-constructions
 
@@ -779,8 +787,8 @@ Application (note 25 des objets) :
 - **Image d'un objet** (ajoutée le 2026-10-30, voir
   `TRANSFORMATIONS.md`) : une méthode qui envoie un point sur un point
   (son dernier initial est un point, son seul final un point) prend à la
-  place de ce point un objet qu'une transformation prend (note 28 : pas
-  un plan). L'entrée `Mac` est alors l'image elle-même, sans `Out`, par
+  place de ce point un objet qu'une inversion prend (note 28 : ni plan,
+  ni sphère, ni polyèdre). L'entrée `Mac` est alors l'image elle-même, sans `Out`, par
   exemple `["Mac", "a", [1, 0, [5, 4], "Poly"]]` ; son quatrième
   paramètre, à la place de `branches`, est la nature
   trouvée par l'éditeur à l'application (droite, cercle, conique ou lieu),

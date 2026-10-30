@@ -141,6 +141,15 @@ deux suivent les mêmes règles et la même interface.
 - Sans pôle connu (macro), les points d'une droite sont pris de part et
   d'autre de son point P1, pas en P1, souvent un centre (celui d'une
   inversion par exemple).
+- Espace (étape 5) : plan (`plane_object`, « Pl » sur les images de son
+  centre, de son centre plus U et plus N × U), sphère (`sphere_object` de
+  centre l'image de son point P1, passant par l'image de CENTER + R·x),
+  polyèdre (`polyhedron_object`, définition `Map` : les images de ses
+  sommets et ses faces). Seulement par les similitudes : ni l'inversion ni
+  les macros ne les prennent (`invertible` de `src/dgo.ts` et du
+  catalogue).
+- Glisser : une image ne se glisse pas (ses points sont privés) ; un point
+  se pose dessus comme sur tout objet et s'y glisse.
 
 ## Étapes
 
@@ -154,8 +163,8 @@ deux suivent les mêmes règles et la même interface.
    lieu (courbes de fonctions, lieux…), inversion des droites et des
    cercles. **Fait** (décision 8).
 4. Macros de transformation (entrée `Mac`, verdict enregistré). **Fait.**
-5. 3D (plans, polyèdres, sphères), point sur une image, puis le manuel
-   après le feu vert de l'auteur.
+5. 3D (plans, polyèdres, sphères), point sur une image. **Fait**, sauf
+   le manuel, après le feu vert de l'auteur.
 
 ## Référence : CaRMetal
 
@@ -204,9 +213,10 @@ Idées à garder, sans recopier le code :
   transformation affine, une conique reste une conique (équation
   transformée) ; une courbe de fonction n'est en général plus une courbe
   de fonction (lieu ou courbe paramétrée).
-- **3D** : rotation autour d'un axe, symétries d'objets de l'espace,
-  polyèdres (déjà dans l'import GeoGebra).
-- **Glisser** : une image n'est pas mobile ; un point sur l'image ?
+- **3D**, reste : cylindres et cônes (leur rayon, nombre ou formule,
+  n'est pas l'image d'un point), coniques hors d'un plan horizontal
+  (`Quad` y est limité), rotation autour d'un axe à l'outil et au clavier
+  (le moteur la connaît : `Rot` à quatre paramètres).
 - **Manuel** : à mettre à jour dans les 12 langues à la fin, après le feu
   vert de l'auteur (y compris l'ordre des arguments du 2026-10-30, pas
   encore reporté : `commandes.html`, `menu-outils.html`,
@@ -249,3 +259,10 @@ Idées à garder, sans recopier le code :
   un changement de son opacité. `applyMacro` ajoutait ses entrées hors
   d'un lot (`beginBatch`), l'objet étant dessiné avant d'être stylé ; il
   les ajoute désormais en lot, finaux ordinaires compris.
+- 2026-10-30 : étape 5 (sauf le manuel). Paramètre `invertible` rétabli
+  (inversion, macros) à côté de `transformable` (similitudes, objets de
+  l'espace compris). Tests « reads images of planes, spheres and
+  polyhedra, and points on images » (`dgo.test.ts`) et « maps planes,
+  spheres and solids in space, and puts points on images »
+  (`editor.test.ts`). Moteur 381,54 → 382,09 Ko (+0,55 Ko ; gzip 121,40
+  Ko) ; éditeur 260,01 → 260,15 Ko.

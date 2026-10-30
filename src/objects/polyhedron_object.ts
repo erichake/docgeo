@@ -38,7 +38,10 @@ export type polyhedron_definition =
           side: number;
       }
     | { tag: "CubZ"; points: [point_object, point_object]; side: number }
-    | { tag: "Prsm" | "Pyr"; base: polygon_object; point: point_object };
+    | { tag: "Prsm" | "Pyr"; base: polygon_object; point: point_object }
+    // An image by a transformation: these vertices, on these faces (see
+    // transformed_object.ts).
+    | { tag: "Map"; vertices: point_object[]; faces: number[][] };
 
 // The cube's faces, by its vertices A..H = 0..7, as GeoGebra's.
 const CUBE_FACES = [
@@ -103,7 +106,10 @@ export class polyhedron_object extends solid_object {
                 { length: count },
                 () => new point_object(c, null, [0, 0, 0]),
             ));
-        if ("points" in definition) {
+        if (definition.tag === "Map") {
+            this.vertices = definition.vertices;
+            this.faces = definition.faces;
+        } else if ("points" in definition) {
             const [a, b] = definition.points;
             this.vertices = [a, b, ...own(6)];
             this.faces = CUBE_FACES;
@@ -132,7 +138,10 @@ export class polyhedron_object extends solid_object {
     }
 
     dgo(context: DgoContext): [string, unknown] {
-        const d = this.definition;
+        const d = this.definition as Exclude<
+            polyhedron_definition,
+            { tag: "Map" }
+        >;
         if (!("points" in d))
             return [d.tag, [d.base, d.point].map(context.index)];
         const points = d.points.map(context.index);
@@ -148,7 +157,9 @@ export class polyhedron_object extends solid_object {
 
     computeGeometry(): void {
         const d = this.definition;
-        this.defined = this.parents.every((parent) => parent.defined);
+        this.defined = [...this.parents, ...this.vertices].every(
+            (parent) => parent.defined,
+        );
         if (!this.defined) return;
         const coords = this.vertices.map((vertex) => vertex.coords);
         if ("points" in d) {

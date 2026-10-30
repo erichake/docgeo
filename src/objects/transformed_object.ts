@@ -19,7 +19,9 @@ import { locus_object } from "./locus_object";
 import { isRay } from "./macro_object";
 import { point_on_object } from "./point_on_object";
 import { point_object } from "./point_object";
+import { plane_object } from "./plane_object";
 import { polygon_object } from "./polygon_object";
+import { polyhedron_object } from "./polyhedron_object";
 import { normalizeAngle, primitive_arc_object } from "./primitive_arc_object";
 import { primitive_circle_object } from "./primitive_circle_object";
 import { primitive_line_object } from "./primitive_line_object";
@@ -27,6 +29,7 @@ import { primitive_quadric_object } from "./primitive_quadric_object";
 import { quadric5pts_object } from "./quadric5pts_object";
 import { ray_line_object } from "./ray_line_object";
 import { segment_object } from "./segment_object";
+import { sphere_object } from "./sphere_object";
 import { two_points_line_object } from "./two_points_line_object";
 import { vector_object } from "./vector_object";
 
@@ -36,7 +39,9 @@ export type transformable =
     | polygon_object
     | primitive_quadric_object
     | curve_object
-    | locus_object;
+    | locus_object
+    | sphere_object
+    | polyhedron_object;
 
 // How an image is built, when not by a similarity (see createTransformed).
 export interface ImageOptions {
@@ -122,7 +127,10 @@ export function imageLook(source: transformable, straight?: boolean): string {
     if (source instanceof primitive_arc_object) return straight ? "Seg" : "Arc";
     if (source instanceof primitive_circle_object)
         return straight ? "Line" : "Cir";
+    if (source instanceof plane_object) return "Pl";
     if (source instanceof polygon_object) return "Poly";
+    if (source instanceof sphere_object) return "Sph";
+    if (source instanceof polyhedron_object) return "Cube";
     return source instanceof primitive_quadric_object &&
         !(source instanceof conic_arc_object) &&
         !bends
@@ -150,6 +158,15 @@ function pointsOf(
     look: string,
     pole?: () => Vec3,
 ): (point_object | (() => Vec3))[] {
+    if (source instanceof plane_object)
+        return [
+            () => source.CENTER,
+            () => vAdd(source.CENTER, source.U),
+            () => vAdd(source.CENTER, vCross(source.NORMAL, source.U)),
+        ];
+    if (source instanceof sphere_object)
+        return [source.P1, () => vAdd(source.CENTER, [source.R, 0, 0])];
+    if (source instanceof polyhedron_object) return source.vertices;
     if (source instanceof polygon_object)
         return look === "Loc" || pole
             ? source.vertices.flatMap((vertex, index, vertices) => {
@@ -269,7 +286,17 @@ export function createTransformed(
     const [p, q, r] = images;
     const space = !c.GRID.is2D;
     let object: construction_object;
-    if (source instanceof polygon_object) {
+    if (source instanceof plane_object)
+        object = new plane_object(c, name, { tag: "Pl", points: [p, q, r] });
+    else if (source instanceof sphere_object)
+        object = new sphere_object(c, name, p, q);
+    else if (source instanceof polyhedron_object)
+        object = new polyhedron_object(c, name, {
+            tag: "Map",
+            vertices: images,
+            faces: source.faces,
+        });
+    else if (source instanceof polygon_object) {
         const polygon = new polygon_object(c, name, images);
         polygon.ownVertices = images;
         polygon.section = source.section;

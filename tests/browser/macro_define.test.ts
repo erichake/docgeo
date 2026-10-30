@@ -375,8 +375,8 @@ describe("Defining a macro", () => {
         const one = designation(macro, all(c, "C"), c.macros);
         expect(one).toEqual({
             complete: null,
-            next: [["transformable", ""]],
-            last: ["transformable"],
+            next: [["invertible", ""]],
+            last: ["invertible"],
         });
         expect(takesNext(one, get(c, "t"))).toBe(true);
         expect(designation(macro, all(c, "t"), c.macros)).toEqual({

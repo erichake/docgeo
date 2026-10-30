@@ -296,6 +296,7 @@ const ar: Texts = {
         designate_expression: "حدّد تعبيرًا",
         designate_point: "حدّد نقطة",
         designate_transformable: "حدّد نقطة أو عنصرًا",
+        designate_invertible: "حدّد نقطة أو عنصرًا",
         designate_moveable: "حدّد نقطة قابلة للسحب",
         designate_button: "حدّد موضع الزر",
         designate_pointOn: "حدّد نقطة على عنصر",

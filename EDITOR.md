@@ -2523,6 +2523,11 @@ trouvée à l'application (`imageVerdict`) et enregistrée.
 `designation`, `firstFixed` prennent les macros de la figure (pour
 `finalTypes`).
 
+Étape 5 (même jour) : `transformable` prend aussi, en 3D, les plans, les
+sphères et les polyèdres ; `invertible` (inversion, dernier initial d'une
+macro qui envoie des points) ne les prend pas (`mappedSlot` désigne la
+place de l'objet transformé).
+
 Manuel à mettre à jour (12 langues), avec l'ordre des transformations
 ci-dessus : `commandes.html` (un objet à la place du point),
 `menu-outils.html` (l'outil garde la transformation), `selection.html`,

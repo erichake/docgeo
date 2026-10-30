@@ -35,7 +35,10 @@ import {
 } from "../../src/objects/expression_object";
 import { point_on_object } from "../../src/objects/point_on_object";
 import { point_object } from "../../src/objects/point_object";
+import type { plane_object } from "../../src/objects/plane_object";
 import { polygon_object } from "../../src/objects/polygon_object";
+import type { polyhedron_object } from "../../src/objects/polyhedron_object";
+import type { sphere_object } from "../../src/objects/sphere_object";
 import { ray_line_object } from "../../src/objects/ray_line_object";
 import type { segment_object } from "../../src/objects/segment_object";
 import type { two_points_line_object } from "../../src/objects/two_points_line_object";
@@ -861,6 +864,66 @@ describe(".dgo reader", () => {
         const saved = await describeDgo(c);
         expect(saved.o.slice(7, 11)).toEqual(
             figure.o.slice(7, 11).map((entry) => entry.slice(0, 3)),
+        );
+        await roundTrip(async (copy) => readDgo(copy, saved));
+    });
+
+    // In space, of the same kind: a plane, a sphere, a polyhedron on the
+    // images of its vertices, its faces kept. A point is put on an image
+    // as on any object.
+    it("reads images of planes, spheres and polyhedra, and points on images", async () => {
+        const figure = {
+            dgo: 1,
+            v: { o: [400, 300], u: 40, w: 800, h: 600, "3d": 1 },
+            o: [
+                ["Pt", "A", [0, 0, 0]],
+                ["Pt", "B", [2, 0, 0]],
+                ["Pt", "C", [0, 2, 0]],
+                ["Pt", "D", [0, 0, 2]],
+                ["Pt", "O", [0, 0, 5]],
+                ["Pl", "p", [0, 1, 2]],
+                ["Sph", "s", [0, 1]],
+                ["Cube", "k", [0, 1, 2]],
+                ["Poly", "t", [0, 1, 2]],
+                ["Prsm", "q", [8, 3]],
+                ["Sym", "p1", [4, 5]],
+                ["Sym", "s1", [4, 6]],
+                ["Sym", "k1", [4, 7]],
+                ["Tra", "q1", [1, 9]],
+                ["On", "M", [8, [0.25, 0.25]]],
+                ["Sym", "t1", [4, 8]],
+                ["On", "N", [15, [0.25, 0.25]]],
+                ["On", "P", [11, [0.5, 0.5, 0.5]]],
+            ],
+        };
+        const c = createConstruction();
+        readDgo(c, figure);
+        c.flush();
+        const get = <T>(name: string) => c.getObj(name) as T;
+        const p1 = get<plane_object>("p1");
+        expect(p1.defined).toBe(true);
+        expect(Math.abs(p1.NORMAL[2])).toBeCloseTo(1);
+        expectClose(p1.CENTER.slice(2), [10]);
+        const s1 = get<sphere_object>("s1");
+        expectClose(s1.CENTER, [0, 0, 10]);
+        expect(s1.R).toBeCloseTo(2);
+        const k1 = get<polyhedron_object>("k1");
+        expect(k1.defined).toBe(true);
+        expect(k1.faces).toEqual(get<polyhedron_object>("k").faces);
+        expectClose(
+            k1.vertices.map((vertex) => vertex.coords),
+            get<polyhedron_object>("k").vertices.map(
+                ({ coords: [x, y, z] }) => [-x, -y, 10 - z],
+            ),
+        );
+        expectClose(get<polyhedron_object>("q1").vertices[3].coords, [2, 0, 2]);
+        // The image of M on t is N on t's image.
+        const [x, y, z] = get<point_object>("M").coords;
+        expectClose(get<point_object>("N").coords, [-x, -y, 10 - z]);
+        expect(get<point_object>("P").defined).toBe(true);
+        const saved = await describeDgo(c);
+        expect(saved.o.slice(10, 14).map((entry) => entry.slice(0, 3))).toEqual(
+            figure.o.slice(10, 14),
         );
         await roundTrip(async (copy) => readDgo(copy, saved));
     });

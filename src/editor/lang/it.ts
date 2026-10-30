@@ -306,6 +306,7 @@ const it: Texts = {
         designate_expression: "Seleziona un'espressione",
         designate_point: "Seleziona un punto",
         designate_transformable: "Seleziona un punto o un oggetto",
+        designate_invertible: "Seleziona un punto o un oggetto",
         designate_moveable: "Seleziona un punto trascinabile",
         designate_button: "Seleziona dove mettere il pulsante",
         designate_pointOn: "Seleziona un punto su un oggetto",

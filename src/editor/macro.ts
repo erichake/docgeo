@@ -437,7 +437,7 @@ export type Picked = construction_object | string;
 const fits = (type: string, initial: Picked): boolean =>
     typeof initial === "string"
         ? type === "number"
-        : type === "transformable"
+        : type === "invertible"
           ? accepts(initial, type)
           : MACRO_TYPES[type](initial);
 
@@ -458,7 +458,7 @@ const takenInitials = (
     mapsPoints(macros, method)
         ? [
               ...method.initials.slice(0, -1),
-              ["transformable", ...method.initials.at(-1)!.slice(1)] as [
+              ["invertible", ...method.initials.at(-1)!.slice(1)] as [
                   string,
                   string,
                   string?,

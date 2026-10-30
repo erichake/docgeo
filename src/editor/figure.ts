@@ -79,6 +79,7 @@ import {
     findCommand,
     FormulaArg,
     isCommand,
+    mappedSlot,
     TextArg,
     overloadFor,
     accepts,
@@ -1531,7 +1532,7 @@ function mapped(
     { params }: Overload,
     args: (Arg | undefined)[],
 ): transformable | null {
-    const source = args[params.indexOf("transformable")];
+    const source = args[mappedSlot(params)];
     return source instanceof construction_object &&
         !(source instanceof point_object)
         ? (source as transformable)

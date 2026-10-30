@@ -1562,7 +1562,6 @@ function transformation(
         const values = list(parameters, min, max);
         const image = map(values, reader);
         const source = reader.at(values[1], point_object, ...TRANSFORMABLE);
-        check(!(source instanceof plane_object));
         return source instanceof point_object
             ? reader.c.add(image(reader.name, source))
             : createTransformed(reader.c, reader.name, source, (point) =>
@@ -1598,7 +1597,7 @@ const INTERSECTABLE = [
     curve_object,
 ];
 
-// What a transformation maps, besides points: not a plane.
+// What a transformation maps, besides points.
 const TRANSFORMABLE = [
     primitive_line_object,
     primitive_circle_object,
@@ -1606,7 +1605,17 @@ const TRANSFORMABLE = [
     primitive_quadric_object,
     curve_object,
     locus_object,
+    sphere_object,
+    polyhedron_object,
 ];
+
+// What an inversion or a macro maps: not a plane, a sphere nor a
+// polyhedron.
+const invertible = (object: construction_object): boolean =>
+    TRANSFORMABLE.some((type) => object instanceof type) &&
+    !(object instanceof plane_object) &&
+    !(object instanceof sphere_object) &&
+    !(object instanceof polyhedron_object);
 
 // A List's or a text's formula, "k" and "count" being a List's own, or a
 // Sequence's, which reads its variables.
@@ -1902,7 +1911,7 @@ const BUILDERS: Record<string, Builder> = {
             check(straight === undefined);
             return createInversion(c, name, circle, source);
         }
-        check(!(source instanceof plane_object));
+        check(invertible(source));
         check(straight === undefined || straight === 1);
         return createTransformed(
             c,
@@ -2478,8 +2487,7 @@ const BUILDERS: Record<string, Builder> = {
             !(source instanceof point_object)
         ) {
             check(
-                TRANSFORMABLE.some((type) => source instanceof type) &&
-                    !(source instanceof plane_object) &&
+                invertible(source) &&
                     imageLooks(source as transformable).includes(
                         extra as string,
                     ),

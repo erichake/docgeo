@@ -300,6 +300,7 @@ export default {
     designate_expression: "Designate an expression",
     designate_point: "Designate a point",
     designate_transformable: "Designate a point or an object",
+    designate_invertible: "Designate a point or an object",
     designate_moveable: "Designate a point that can be dragged",
     designate_button: "Designate where the button goes",
     designate_pointOn: "Designate a point on an object",
