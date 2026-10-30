@@ -2618,8 +2618,13 @@ complètes : 274 tests unitaires et 1 297 tests navigateur passés. Moteur et
 lecteur : mêmes octets ; éditeur : +2,4 Ko (+0,73 Ko en gzip). Dans
 l'en-tête, devenu plus chargé, le titre s'abrège avant le compteur.
 
-Manuel à reprendre dans les 12 langues, sur demande de l'auteur : page du
-menu des outils (`menu-outils.html`, qui décrit le menu et son bouton),
-palette (programmes, nouvelle macro, icône, petits écrans), panneau
-« Construction » (filtres), icône `tools` de `icons.js`, captures
-(`tools/manual/shots.mjs` appelle encore `button("tools")`).
+Manuel, dans les 12 langues (même jour) : la page du menu des outils
+devient « La palette d'outils » (`menu-outils.html`, nom et ancres
+gardés : « Ouvrir la palette » `#palette`, « Construire avec un outil »
+`#construire`), capture `menu-outils.webp` retirée ; le menu remplacé par
+la palette ailleurs (sélection, accueil, macros, programmes, 3D, FAQ,
+commandes, propriétés) ; « Filtrer la liste » (`objets.html#filtrer-la-liste`)
+et le bouton de l'en-tête (`interface.html`) ; la pastille des points, à
+leur forme et à leurs couleurs ; les couleurs de création et le fond blanc
+(`proprietes.html#couleurs-de-creation`). `generate.mjs` clique le bouton
+visible d'un libellé (celui de la palette existe deux fois).

@@ -167,7 +167,7 @@ function helpers(page) {
         }, name);
     const button = async (key) =>
         page
-            .locator(`button[aria-label="${await t(key)}"]`)
+            .locator(`button[aria-label="${await t(key)}"]:visible`)
             .first()
             .click();
     const type = async (lines) => {

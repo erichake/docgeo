@@ -3,7 +3,7 @@
     <head>
         <meta charset="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <title>O menu de ferramentas — Manual do DocGeo</title>
+        <title>A paleta de ferramentas — Manual do DocGeo</title>
         <link rel="icon" type="image/svg+xml" href="../../favicon.svg" />
         <link rel="stylesheet" href="../manual.css" />
         <script src="../icons.js" defer></script>
@@ -11,34 +11,81 @@
     </head>
     <body>
         <main>
-            <h1>O menu de ferramentas</h1>
+            <h1>A paleta de ferramentas</h1>
             <figure>
                 <img
-                    src="img/menu-outils.webp"
-                    alt="Menu de ferramentas aberto em Círculos, arcos, cônicas"
-                    width="620"
+                    src="img/palette.webp"
+                    alt="Paleta de ferramentas aberta, A e C selecionados, Mediatriz sob o ponteiro"
+                    width="1200"
                     height="720"
                 />
+                <figcaption>
+                    A e C selecionados: as ferramentas que não os aceitam ficam
+                    desativadas, e a mediatriz sob o ponteiro aparece esmaecida.
+                </figcaption>
             </figure>
-
-            <h2>Uso</h2>
+            <h2 id="palette">Abrir a paleta</h2>
             <ul>
                 <li>
-                    <i data-i="tools"></i>, à direita da linha de entrada, abre
-                    o menu: as famílias do anel, mesmas cores, mesma ordem,
-                    depois suas ferramentas ao passar o ponteiro ou ao tocar.
+                    <i data-i="palette"></i> da barra, ou Exibir › Paleta de
+                    ferramentas, abre à direita todas as ferramentas, à vista,
+                    por famílias com as cores do anel, e por último as macros da
+                    figura.
                 </li>
                 <li>
-                    O menu contém todas as ferramentas do anel e outras (selo
+                    A paleta fica visível na primeira abertura. Depois, este
+                    navegador lembra se ela está aberta ou fechada nas próximas
+                    aberturas.
+                </li>
+                <li>
+                    Ela ocupa o lugar do painel de
+                    <a href="proprietes.html">propriedades</a>: abrir um fecha o
+                    outro, sem largar a ferramenta em uso.
+                </li>
+                <li>
+                    Um clique no título de uma família a recolhe ou a expande; o
+                    DocGeo se lembra disso.
+                </li>
+                <li>
+                    <kbd>Esc</kbd> larga a ferramenta ou a seleção, depois fecha
+                    a paleta.
+                </li>
+                <li>
+                    Em uma tela pequena, a paleta cobre a figura e se fecha
+                    assim que uma ferramenta é escolhida. Abaixo de 500 px de
+                    largura, seu botão passa da barra para a direita da linha de
+                    entrada.
+                </li>
+            </ul>
+            <h2 id="construire">Construir com uma ferramenta</h2>
+            <ul>
+                <li>
+                    Um clique em uma ferramenta a pega; uma vez pressionada, um
+                    novo clique a larga.
+                </li>
+                <li>
+                    A paleta contém todas as ferramentas do anel e outras (selo
                     <span class="badge ring">anel</span> abaixo). As famílias
                     Planos e Sólidos e as ferramentas marcadas
                     <span class="badge d3">3D</span> só aparecem na visualização
                     3D.
                 </li>
                 <li>
-                    A família <strong>Programas</strong>, própria do menu, cria
-                    tartarugas e botões (ver
+                    A família <strong>Programas</strong>, ausente do anel, cria
+                    tartarugas, botões e programas de eventos (ver
                     <a href="expressions.html#blocs">Blocos e tartaruga</a>).
+                </li>
+                <li>
+                    Com a paleta aberta, um clique em um objeto o seleciona sem
+                    abrir o anel, e um clique em um lugar vazio o desseleciona.
+                    As ferramentas que não aceitam o objeto, ou a
+                    <a href="selection.html">seleção múltipla</a>, ficam
+                    desativadas.
+                </li>
+                <li>
+                    Ao passar sobre uma ferramenta, a indicação mostra sua
+                    linha. Se os objetos selecionados lhe bastam, o objeto que
+                    ela construiria aparece esmaecido.
                 </li>
                 <li>
                     O primeiro objeto selecionado ocupa qualquer lugar que seu
@@ -57,8 +104,8 @@
                 </li>
                 <li>
                     A ferramenta é <strong>persistente</strong>: depois de cada
-                    objeto, ela espera de novo seu primeiro argumento. O botão
-                    do menu assume seu ícone e a barra mostra uma faixa com
+                    objeto, ela espera de novo seu primeiro argumento. Seu botão
+                    fica pressionado e a barra mostra uma faixa com
                     <strong>Concluído</strong>.
                 </li>
                 <li id="arguments-gardes">
@@ -74,13 +121,12 @@
                 </li>
                 <li>
                     Saída: <strong>Concluído</strong>, <kbd>Esc</kbd>, o
-                    <strong>✕</strong> da indicação, o botão do menu (que reabre
-                    o menu), a borracha, o passo a passo ou um clique na linha
-                    de entrada. Desfazer, refazer, as propriedades e a
+                    <strong>✕</strong> da indicação, um novo clique na
+                    ferramenta, a borracha, o passo a passo ou um clique na
+                    linha de entrada. Desfazer, refazer, as propriedades e a
                     visualização 3D mantêm a ferramenta.
                 </li>
             </ul>
-
             <h2 id="avec-une-selection">Com uma seleção</h2>
             <p>
                 Os objetos selecionados antes tornam-se os argumentos da
@@ -124,67 +170,6 @@
                     eixo com <kbd>Shift</kbd> (<a href="#arguments-gardes"
                         >argumento mantido</a
                     >).
-                </li>
-            </ul>
-
-            <h2 id="palette">A paleta de ferramentas</h2>
-            <figure>
-                <img
-                    src="img/palette.webp"
-                    alt="Paleta de ferramentas aberta, A e C selecionados, Mediatriz sob o ponteiro"
-                    width="1200"
-                    height="720"
-                />
-                <figcaption>
-                    A e C selecionados: as ferramentas que não os aceitam ficam
-                    desativadas, e a mediatriz sob o ponteiro aparece esmaecida.
-                </figcaption>
-            </figure>
-            <ul>
-                <li>
-                    <i data-i="palette"></i> da barra, ou Exibir › Paleta de
-                    ferramentas, abre à direita todas as ferramentas geométricas
-                    do menu, à vista, por famílias com as mesmas cores (sem
-                    Programas), e depois as macros da figura.
-                </li>
-                <li>
-                    A paleta fica visível na primeira abertura. Depois, este
-                    navegador lembra se ela está aberta ou fechada nas próximas
-                    aberturas.
-                </li>
-                <li>
-                    Ela ocupa o lugar do painel de
-                    <a href="proprietes.html">propriedades</a>: abrir um fecha o
-                    outro, sem largar a ferramenta em uso.
-                </li>
-                <li>
-                    Um clique no título de uma família a recolhe ou a expande; o
-                    DocGeo se lembra disso.
-                </li>
-                <li>
-                    Um clique em uma ferramenta a pega, como no menu; uma vez
-                    pressionada, um novo clique a larga.
-                </li>
-                <li>
-                    Com a paleta aberta, um clique em um objeto o seleciona sem
-                    abrir o anel, e um clique em um lugar vazio o desseleciona.
-                    As ferramentas que não aceitam o objeto, ou a
-                    <a href="selection.html">seleção múltipla</a>, ficam
-                    desativadas.
-                </li>
-                <li>
-                    Ao passar sobre uma ferramenta, a indicação mostra sua
-                    linha. Se os objetos selecionados lhe bastam, o objeto que
-                    ela construiria aparece esmaecido.
-                </li>
-                <li>
-                    <kbd>Esc</kbd> larga a ferramenta ou a seleção, depois fecha
-                    a paleta.
-                </li>
-                <li>
-                    Em uma tela pequena, a paleta cobre a figura e se fecha
-                    assim que uma ferramenta é escolhida. Abaixo de 500 px de
-                    largura, seu botão desaparece: o menu continua disponível.
                 </li>
             </ul>
 

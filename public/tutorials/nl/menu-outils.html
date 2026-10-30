@@ -3,7 +3,7 @@
     <head>
         <meta charset="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <title>Het gereedschapsmenu — DocGeo-handleiding</title>
+        <title>Het gereedschapspalet — DocGeo-handleiding</title>
         <link rel="icon" type="image/svg+xml" href="../../favicon.svg" />
         <link rel="stylesheet" href="../manual.css" />
         <script src="../icons.js" defer></script>
@@ -11,35 +11,82 @@
     </head>
     <body>
         <main>
-            <h1>Het gereedschapsmenu</h1>
+            <h1>Het gereedschapspalet</h1>
             <figure>
                 <img
-                    src="img/menu-outils.webp"
-                    alt="Gereedschapsmenu geopend bij Cirkels, bogen, kegelsneden"
-                    width="620"
+                    src="img/palette.webp"
+                    alt="Gereedschapspalet open, A en C geselecteerd, Middelloodlijn aangewezen"
+                    width="1200"
                     height="720"
                 />
+                <figcaption>
+                    A en C geselecteerd: de gereedschappen die ze niet
+                    aanvaarden zijn grijs, en de aangewezen middelloodlijn
+                    verschijnt bleek.
+                </figcaption>
             </figure>
-
-            <h2>Gebruik</h2>
+            <h2 id="palette">Het palet openen</h2>
             <ul>
                 <li>
-                    <i data-i="tools"></i>, rechts van de invoerregel, opent het
-                    menu: de families van de ring, dezelfde kleuren, dezelfde
-                    volgorde, en dan hun gereedschappen bij het aanwijzen of
-                    aantikken.
+                    <i data-i="palette"></i> in de balk, of Beeld ›
+                    Gereedschapspalet, opent rechts alle gereedschappen, in één
+                    oogopslag, per familie in de kleuren van de ring, en als
+                    laatste de macro’s van de figuur.
                 </li>
                 <li>
-                    Het menu bevat alle gereedschappen van de ring en meer
+                    Bij de eerste start is het palet zichtbaar. Daarna onthoudt
+                    deze browser voor volgende keren of het open of gesloten is.
+                </li>
+                <li>
+                    Het neemt de plaats in van het paneel
+                    <a href="proprietes.html">eigenschappen</a>: het ene openen
+                    sluit het andere, zonder het actieve gereedschap los te
+                    laten.
+                </li>
+                <li>
+                    Een klik op de titel van een familie klapt die in of uit;
+                    DocGeo onthoudt dat.
+                </li>
+                <li>
+                    <kbd>Esc</kbd> laat het gereedschap of de selectie los en
+                    sluit daarna het palet.
+                </li>
+                <li>
+                    Op een klein scherm bedekt het palet de figuur en sluit het
+                    zodra een gereedschap is gekozen. Onder 500 px breedte
+                    verhuist de knop van de balk naar rechts van de invoerregel.
+                </li>
+            </ul>
+            <h2 id="construire">Construeren met een gereedschap</h2>
+            <ul>
+                <li>
+                    Een klik op een gereedschap neemt het; is het ingedrukt, dan
+                    laat een nieuwe klik het los.
+                </li>
+                <li>
+                    Het palet bevat alle gereedschappen van de ring en meer
                     (kenmerk <span class="badge ring">ring</span> hieronder). De
                     families Vlakken en Ruimtefiguren en de gereedschappen met
                     <span class="badge d3">3D</span> verschijnen alleen in de
                     3D-weergave.
                 </li>
                 <li>
-                    De familie <strong>Programma's</strong>, die alleen het menu
-                    heeft, maakt schildpadden en knoppen (zie
+                    De familie <strong>Programma's</strong>, die niet op de ring
+                    staat, maakt schildpadden, knoppen en gebeurtenisprogramma's
+                    (zie
                     <a href="expressions.html#blocs">Blokken en schildpad</a>).
+                </li>
+                <li>
+                    Met het palet open selecteert een klik op een object het
+                    zonder een ring te openen, en een klik op een lege plek heft
+                    de selectie op. De gereedschappen die het object, of de
+                    <a href="selection.html">meervoudige selectie</a>, niet
+                    aanvaarden, zijn grijs.
+                </li>
+                <li>
+                    Bij het aanwijzen van een gereedschap toont de aanwijzing
+                    zijn regel. Volstaan de geselecteerde objecten, dan
+                    verschijnt het object dat het zou bouwen bleek.
                 </li>
                 <li>
                     Het eerst geselecteerde object neemt elke plaats in die zijn
@@ -59,9 +106,9 @@
                 </li>
                 <li>
                     Het gereedschap blijft <strong>actief</strong>: na elk
-                    object wacht het opnieuw op zijn eerste argument. De
-                    menuknop neemt zijn pictogram over en de balk toont een
-                    strook met <strong>Klaar</strong>.
+                    object wacht het opnieuw op zijn eerste argument. Zijn knop
+                    blijft ingedrukt en de balk toont een strook met
+                    <strong>Klaar</strong>.
                 </li>
                 <li id="arguments-gardes">
                     Een argument dat met <kbd>Shift</kbd> is geselecteerd, wordt
@@ -77,13 +124,12 @@
                 </li>
                 <li>
                     Stoppen: <strong>Klaar</strong>, <kbd>Esc</kbd>, het
-                    <strong>✕</strong> van de aanwijzing, de menuknop (die het
-                    menu opnieuw opent), de gum, stap voor stap of een klik in
-                    de invoerregel. Ongedaan maken, opnieuw, de eigenschappen en
-                    de 3D-weergave behouden het gereedschap.
+                    <strong>✕</strong> van de aanwijzing, een nieuwe klik op het
+                    gereedschap, de gum, stap voor stap of een klik in de
+                    invoerregel. Ongedaan maken, opnieuw, de eigenschappen en de
+                    3D-weergave behouden het gereedschap.
                 </li>
             </ul>
-
             <h2 id="avec-une-selection">Met een selectie</h2>
             <p>
                 Eerst geselecteerde objecten worden de argumenten van het
@@ -129,69 +175,6 @@
                         href="#arguments-gardes"
                         >behouden argument</a
                     >).
-                </li>
-            </ul>
-
-            <h2 id="palette">Het gereedschapspalet</h2>
-            <figure>
-                <img
-                    src="img/palette.webp"
-                    alt="Gereedschapspalet open, A en C geselecteerd, Middelloodlijn aangewezen"
-                    width="1200"
-                    height="720"
-                />
-                <figcaption>
-                    A en C geselecteerd: de gereedschappen die ze niet
-                    aanvaarden zijn grijs, en de aangewezen middelloodlijn
-                    verschijnt bleek.
-                </figcaption>
-            </figure>
-            <ul>
-                <li>
-                    <i data-i="palette"></i> in de balk, of Beeld ›
-                    Gereedschapspalet, opent rechts alle meetkundige
-                    gereedschappen van het menu, in één oogopslag, per familie
-                    in dezelfde kleuren (zonder Programma’s), en daarna de
-                    macro’s van de figuur.
-                </li>
-                <li>
-                    Bij de eerste start is het palet zichtbaar. Daarna onthoudt
-                    deze browser voor volgende keren of het open of gesloten is.
-                </li>
-                <li>
-                    Het neemt de plaats in van het paneel
-                    <a href="proprietes.html">eigenschappen</a>: het ene openen
-                    sluit het andere, zonder het actieve gereedschap los te
-                    laten.
-                </li>
-                <li>
-                    Een klik op de titel van een familie klapt die in of uit;
-                    DocGeo onthoudt dat.
-                </li>
-                <li>
-                    Een klik op een gereedschap neemt het, zoals in het menu; is
-                    het ingedrukt, dan laat een nieuwe klik het los.
-                </li>
-                <li>
-                    Met het palet open selecteert een klik op een object het
-                    zonder een ring te openen, en een klik op een lege plek heft
-                    de selectie op. De gereedschappen die het object, of de
-                    <a href="selection.html">meervoudige selectie</a>, niet
-                    aanvaarden, zijn grijs.
-                </li>
-                <li>
-                    Bij het aanwijzen van een gereedschap toont de aanwijzing
-                    zijn regel. Volstaan de geselecteerde objecten, dan
-                    verschijnt het object dat het zou bouwen bleek.
-                </li>
-                <li>
-                    <kbd>Esc</kbd> laat het gereedschap of de selectie los en
-                    sluit daarna het palet.
-                </li>
-                <li>
-                    Op een klein scherm bedekt het palet de figuur en sluit het
-                    zodra een gereedschap is gekozen. Onder 500 px breedte
-                    verdwijnt de knop: het menu blijft.
                 </li>
             </ul>
 

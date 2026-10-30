@@ -3,7 +3,7 @@
     <head>
         <meta charset="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <title>Il menu degli strumenti — Manuale di DocGeo</title>
+        <title>La tavolozza degli strumenti — Manuale di DocGeo</title>
         <link rel="icon" type="image/svg+xml" href="../../favicon.svg" />
         <link rel="stylesheet" href="../manual.css" />
         <script src="../icons.js" defer></script>
@@ -11,36 +11,82 @@
     </head>
     <body>
         <main>
-            <h1>Il menu degli strumenti</h1>
+            <h1>La tavolozza degli strumenti</h1>
             <figure>
                 <img
-                    src="img/menu-outils.webp"
-                    alt="Menu degli strumenti aperto su Circonferenze, archi, coniche"
-                    width="620"
+                    src="img/palette.webp"
+                    alt="Tavolozza degli strumenti aperta, A e C selezionati, AsseSegmento sotto il puntatore"
+                    width="1200"
                     height="720"
                 />
+                <figcaption>
+                    A e C selezionati: gli strumenti che non li accettano sono
+                    disattivati, e l’asse del segmento sotto il puntatore appare
+                    sbiadito.
+                </figcaption>
             </figure>
-
-            <h2>Uso</h2>
+            <h2 id="palette">Aprire la tavolozza</h2>
             <ul>
                 <li>
-                    <i data-i="tools"></i>, a destra della riga di inserimento,
-                    apre il menu: le famiglie dell’anello, stessi colori, stesso
-                    ordine, poi i loro strumenti al passaggio del puntatore o al
-                    tocco.
+                    <i data-i="palette"></i> della barra, o Visualizza ›
+                    Tavolozza degli strumenti, apre a destra tutti gli
+                    strumenti, in vista, per famiglie con i colori dell’anello,
+                    e per ultime le macro della figura.
                 </li>
                 <li>
-                    Il menu contiene tutti gli strumenti dell’anello e altri
-                    ancora (contrassegno
+                    La tavolozza è visibile al primo avvio. Questo browser
+                    ricorda poi se è aperta o chiusa per gli avvii successivi.
+                </li>
+                <li>
+                    Occupa il posto del pannello delle
+                    <a href="proprietes.html">proprietà</a>: aprire l’uno chiude
+                    l’altro, senza lasciare lo strumento in uso.
+                </li>
+                <li>
+                    Un clic sul titolo di una famiglia la chiude o la apre;
+                    DocGeo se ne ricorda.
+                </li>
+                <li>
+                    <kbd>Esc</kbd> lascia lo strumento o la selezione, poi
+                    chiude la tavolozza.
+                </li>
+                <li>
+                    Su uno schermo piccolo, la tavolozza copre la figura e si
+                    chiude appena si sceglie uno strumento. Sotto i 500 px di
+                    larghezza, il suo pulsante passa dalla barra alla destra
+                    della riga di inserimento.
+                </li>
+            </ul>
+            <h2 id="construire">Costruire con uno strumento</h2>
+            <ul>
+                <li>
+                    Un clic su uno strumento lo prende; una volta premuto, un
+                    nuovo clic lo lascia.
+                </li>
+                <li>
+                    La tavolozza contiene tutti gli strumenti dell’anello e
+                    altri ancora (contrassegno
                     <span class="badge ring">anello</span> qui sotto). Le
                     famiglie Piani e Solidi e gli strumenti marcati
                     <span class="badge d3">3D</span> compaiono solo nella vista
                     3D.
                 </li>
                 <li>
-                    La famiglia <strong>Programmi</strong>, propria del menu,
-                    crea tartarughe e pulsanti (vedi
+                    La famiglia <strong>Programmi</strong>, assente dall’anello,
+                    crea tartarughe, pulsanti e programmi di eventi (vedi
                     <a href="expressions.html#blocs">Blocchi e tartaruga</a>).
+                </li>
+                <li>
+                    Con la tavolozza aperta, un clic su un oggetto lo seleziona
+                    senza aprire l’anello, e un clic su uno spazio vuoto lo
+                    deseleziona. Gli strumenti che non accettano l’oggetto, o la
+                    <a href="selection.html">selezione multipla</a>, sono
+                    disattivati.
+                </li>
+                <li>
+                    Passando su uno strumento, il suggerimento mostra la sua
+                    riga. Se gli oggetti selezionati gli bastano, l’oggetto che
+                    costruirebbe appare sbiadito.
                 </li>
                 <li>
                     Il primo oggetto selezionato occupa qualsiasi posto che il
@@ -59,9 +105,9 @@
                 </li>
                 <li>
                     Lo strumento è <strong>persistente</strong>: dopo ogni
-                    oggetto, attende di nuovo il suo primo argomento. Il
-                    pulsante del menu prende la sua icona e la barra mostra una
-                    fascia con <strong>Fatto</strong>.
+                    oggetto, attende di nuovo il suo primo argomento. Il suo
+                    pulsante resta premuto e la barra mostra una fascia con
+                    <strong>Fatto</strong>.
                 </li>
                 <li id="arguments-gardes">
                     Un argomento selezionato con <kbd>Maiusc</kbd> viene
@@ -77,13 +123,12 @@
                 </li>
                 <li>
                     Uscita: <strong>Fatto</strong>, <kbd>Esc</kbd>, la
-                    <strong>✕</strong> del suggerimento, il pulsante del menu
-                    (che riapre il menu), la gomma, il passo dopo passo o un
-                    clic nella riga di inserimento. Annulla, ripristina, le
-                    proprietà e la vista 3D mantengono lo strumento.
+                    <strong>✕</strong> del suggerimento, un nuovo clic sullo
+                    strumento, la gomma, il passo dopo passo o un clic nella
+                    riga di inserimento. Annulla, ripristina, le proprietà e la
+                    vista 3D mantengono lo strumento.
                 </li>
             </ul>
-
             <h2 id="avec-une-selection">Con una selezione</h2>
             <p>
                 Gli oggetti selezionati prima diventano gli argomenti dello
@@ -127,67 +172,6 @@
                     con <kbd>Maiusc</kbd> (<a href="#arguments-gardes"
                         >argomento tenuto</a
                     >).
-                </li>
-            </ul>
-
-            <h2 id="palette">La tavolozza degli strumenti</h2>
-            <figure>
-                <img
-                    src="img/palette.webp"
-                    alt="Tavolozza degli strumenti aperta, A e C selezionati, AsseSegmento sotto il puntatore"
-                    width="1200"
-                    height="720"
-                />
-                <figcaption>
-                    A e C selezionati: gli strumenti che non li accettano sono
-                    disattivati, e l’asse del segmento sotto il puntatore appare
-                    sbiadito.
-                </figcaption>
-            </figure>
-            <ul>
-                <li>
-                    <i data-i="palette"></i> della barra, o Visualizza ›
-                    Tavolozza degli strumenti, apre a destra tutti gli strumenti
-                    geometrici del menu, in vista, per famiglie con gli stessi
-                    colori (senza Programmi), poi le macro della figura.
-                </li>
-                <li>
-                    La tavolozza è visibile al primo avvio. Questo browser
-                    ricorda poi se è aperta o chiusa per gli avvii successivi.
-                </li>
-                <li>
-                    Occupa il posto del pannello delle
-                    <a href="proprietes.html">proprietà</a>: aprire l’uno chiude
-                    l’altro, senza lasciare lo strumento in uso.
-                </li>
-                <li>
-                    Un clic sul titolo di una famiglia la chiude o la apre;
-                    DocGeo se ne ricorda.
-                </li>
-                <li>
-                    Un clic su uno strumento lo prende, come nel menu; una volta
-                    premuto, un nuovo clic lo lascia.
-                </li>
-                <li>
-                    Con la tavolozza aperta, un clic su un oggetto lo seleziona
-                    senza aprire l’anello, e un clic su uno spazio vuoto lo
-                    deseleziona. Gli strumenti che non accettano l’oggetto, o la
-                    <a href="selection.html">selezione multipla</a>, sono
-                    disattivati.
-                </li>
-                <li>
-                    Passando su uno strumento, il suggerimento mostra la sua
-                    riga. Se gli oggetti selezionati gli bastano, l’oggetto che
-                    costruirebbe appare sbiadito.
-                </li>
-                <li>
-                    <kbd>Esc</kbd> lascia lo strumento o la selezione, poi
-                    chiude la tavolozza.
-                </li>
-                <li>
-                    Su uno schermo piccolo, la tavolozza copre la figura e si
-                    chiude appena si sceglie uno strumento. Sotto i 500 px di
-                    larghezza, il suo pulsante scompare: resta il menu.
                 </li>
             </ul>
 

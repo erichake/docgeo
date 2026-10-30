@@ -3,7 +3,7 @@
     <head>
         <meta charset="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <title>Das Werkzeugmenü — DocGeo-Handbuch</title>
+        <title>Die Werkzeugpalette — DocGeo-Handbuch</title>
         <link rel="icon" type="image/svg+xml" href="../../favicon.svg" />
         <link rel="stylesheet" href="../manual.css" />
         <script src="../icons.js" defer></script>
@@ -11,36 +11,85 @@
     </head>
     <body>
         <main>
-            <h1>Das Werkzeugmenü</h1>
+            <h1>Die Werkzeugpalette</h1>
             <figure>
                 <img
-                    src="img/menu-outils.webp"
-                    alt="Werkzeugmenü, geöffnet bei Kreise, Bögen, Kegelschnitte"
-                    width="620"
+                    src="img/palette.webp"
+                    alt="Werkzeugpalette geöffnet, A und C ausgewählt, Mittelsenkrechte überfahren"
+                    width="1200"
                     height="720"
                 />
+                <figcaption>
+                    A und C ausgewählt: Die Werkzeuge, die sie nicht annehmen,
+                    sind ausgegraut, und die überfahrene Mittelsenkrechte
+                    erscheint blass.
+                </figcaption>
             </figure>
-
-            <h2>Verwendung</h2>
+            <h2 id="palette">Die Palette öffnen</h2>
             <ul>
                 <li>
-                    <i data-i="tools"></i> rechts neben der Eingabezeile öffnet
-                    das Menü: die Familien des Rings, gleiche Farben, gleiche
-                    Reihenfolge, dann ihre Werkzeuge beim Überfahren oder
-                    Antippen.
+                    <i data-i="palette"></i> in der Leiste oder Ansicht ›
+                    Werkzeugpalette öffnet rechts alle Werkzeuge auf einen
+                    Blick, nach Familien in den Farben des Rings, zuletzt die
+                    Makros der Figur.
                 </li>
                 <li>
-                    Das Menü enthält alle Werkzeuge des Rings und weitere
+                    Beim ersten Start ist die Palette sichtbar. Danach merkt
+                    sich dieser Browser für die nächsten Starts, ob sie geöffnet
+                    oder geschlossen ist.
+                </li>
+                <li>
+                    Sie nimmt den Platz des Felds
+                    <a href="proprietes.html">Eigenschaften</a> ein: Öffnet man
+                    das eine, schließt sich das andere, ohne dass das aktive
+                    Werkzeug abgelegt wird.
+                </li>
+                <li>
+                    Ein Klick auf den Titel einer Familie klappt sie ein oder
+                    aus; DocGeo merkt sich das.
+                </li>
+                <li>
+                    <kbd>Esc</kbd> legt das Werkzeug ab oder leert die Auswahl
+                    und schließt dann die Palette.
+                </li>
+                <li>
+                    Auf einem kleinen Bildschirm überdeckt die Palette die Figur
+                    und schließt sich, sobald ein Werkzeug gewählt ist. Unter
+                    500 px Breite wandert ihre Schaltfläche aus der Leiste
+                    rechts neben die Eingabezeile.
+                </li>
+            </ul>
+            <h2 id="construire">Mit einem Werkzeug konstruieren</h2>
+            <ul>
+                <li>
+                    Ein Klick auf ein Werkzeug nimmt es; ist es gedrückt, legt
+                    ein weiterer Klick es ab.
+                </li>
+                <li>
+                    Die Palette enthält alle Werkzeuge des Rings und weitere
                     (Kennzeichen <span class="badge ring">Ring</span> unten).
                     Die Familien Ebenen und Körper sowie die mit
                     <span class="badge d3">3D</span> markierten Werkzeuge
                     erscheinen nur in der 3D-Ansicht.
                 </li>
                 <li>
-                    Die Familie <strong>Programme</strong>, die nur das Menü
-                    hat, erstellt Schildkröten und Schaltflächen (siehe
+                    Die Familie <strong>Programme</strong>, die der Ring nicht
+                    hat, erstellt Schildkröten, Schaltflächen und
+                    Ereignisprogramme (siehe
                     <a href="expressions.html#blocs">Blöcke und Schildkröte</a
                     >).
+                </li>
+                <li>
+                    Bei geöffneter Palette wählt ein Klick auf ein Objekt es
+                    aus, ohne einen Ring zu öffnen, und ein Klick auf eine leere
+                    Stelle hebt die Auswahl auf. Die Werkzeuge, die das Objekt
+                    oder die <a href="selection.html">Mehrfachauswahl</a> nicht
+                    annehmen, sind ausgegraut.
+                </li>
+                <li>
+                    Fährt man über ein Werkzeug, zeigt der Hinweis seine Zeile.
+                    Reichen ihm die ausgewählten Objekte, erscheint das Objekt,
+                    das es bauen würde, blass.
                 </li>
                 <li>
                     Das zuerst gewählte Objekt nimmt jeden Platz ein, den sein
@@ -60,9 +109,9 @@
                 </li>
                 <li>
                     Das Werkzeug bleibt <strong>aktiv</strong>: Nach jedem
-                    Objekt wartet es erneut auf sein erstes Argument. Die
-                    Menüschaltfläche übernimmt sein Symbol, und die Leiste zeigt
-                    ein Band mit <strong>Fertig</strong>.
+                    Objekt wartet es erneut auf sein erstes Argument. Seine
+                    Schaltfläche bleibt gedrückt, und die Leiste zeigt ein Band
+                    mit <strong>Fertig</strong>.
                 </li>
                 <li id="arguments-gardes">
                     Ein mit <kbd>Umschalt</kbd> gewähltes Argument wird
@@ -78,14 +127,12 @@
                 </li>
                 <li>
                     Beenden: <strong>Fertig</strong>, <kbd>Esc</kbd>,
-                    <strong>✕</strong> des Hinweises, die Menüschaltfläche (die
-                    das Menü wieder öffnet), der Radierer, Schritt für Schritt
-                    oder ein Klick in die Eingabezeile. Rückgängig,
-                    Wiederherstellen, die Eigenschaften und die 3D-Ansicht
-                    behalten das Werkzeug.
+                    <strong>✕</strong> des Hinweises, ein weiterer Klick auf das
+                    Werkzeug, der Radierer, Schritt für Schritt oder ein Klick
+                    in die Eingabezeile. Rückgängig, Wiederherstellen, die
+                    Eigenschaften und die 3D-Ansicht behalten das Werkzeug.
                 </li>
             </ul>
-
             <h2 id="avec-une-selection">Mit einer Auswahl</h2>
             <p>
                 Zuerst ausgewählte Objekte werden zu den Argumenten des
@@ -129,70 +176,6 @@
                     mit <kbd>Umschalt</kbd> wählen (<a href="#arguments-gardes"
                         >behaltenes Argument</a
                     >).
-                </li>
-            </ul>
-
-            <h2 id="palette">Die Werkzeugpalette</h2>
-            <figure>
-                <img
-                    src="img/palette.webp"
-                    alt="Werkzeugpalette geöffnet, A und C ausgewählt, Mittelsenkrechte überfahren"
-                    width="1200"
-                    height="720"
-                />
-                <figcaption>
-                    A und C ausgewählt: Die Werkzeuge, die sie nicht annehmen,
-                    sind ausgegraut, und die überfahrene Mittelsenkrechte
-                    erscheint blass.
-                </figcaption>
-            </figure>
-            <ul>
-                <li>
-                    <i data-i="palette"></i> in der Leiste oder Ansicht ›
-                    Werkzeugpalette öffnet rechts alle geometrischen Werkzeuge
-                    des Menüs, auf einen Blick, nach Familien in denselben
-                    Farben (ohne Programme), danach die Makros der Figur.
-                </li>
-                <li>
-                    Beim ersten Start ist die Palette sichtbar. Danach merkt
-                    sich dieser Browser für die nächsten Starts, ob sie geöffnet
-                    oder geschlossen ist.
-                </li>
-                <li>
-                    Sie nimmt den Platz des Felds
-                    <a href="proprietes.html">Eigenschaften</a> ein: Öffnet man
-                    das eine, schließt sich das andere, ohne dass das aktive
-                    Werkzeug abgelegt wird.
-                </li>
-                <li>
-                    Ein Klick auf den Titel einer Familie klappt sie ein oder
-                    aus; DocGeo merkt sich das.
-                </li>
-                <li>
-                    Ein Klick auf ein Werkzeug nimmt es, wie im Menü; ist es
-                    gedrückt, legt ein weiterer Klick es ab.
-                </li>
-                <li>
-                    Bei geöffneter Palette wählt ein Klick auf ein Objekt es
-                    aus, ohne einen Ring zu öffnen, und ein Klick auf eine leere
-                    Stelle hebt die Auswahl auf. Die Werkzeuge, die das Objekt
-                    oder die <a href="selection.html">Mehrfachauswahl</a> nicht
-                    annehmen, sind ausgegraut.
-                </li>
-                <li>
-                    Fährt man über ein Werkzeug, zeigt der Hinweis seine Zeile.
-                    Reichen ihm die ausgewählten Objekte, erscheint das Objekt,
-                    das es bauen würde, blass.
-                </li>
-                <li>
-                    <kbd>Esc</kbd> legt das Werkzeug ab oder leert die Auswahl
-                    und schließt dann die Palette.
-                </li>
-                <li>
-                    Auf einem kleinen Bildschirm überdeckt die Palette die Figur
-                    und schließt sich, sobald ein Werkzeug gewählt ist. Unter
-                    500 px Breite verschwindet ihre Schaltfläche: Das Menü
-                    bleibt.
                 </li>
             </ul>
 

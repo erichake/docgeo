@@ -27,11 +27,10 @@ async function events({ page, type, point, button, t }) {
     const tab = async (key) =>
         page.getByRole("tab", { name: await t(key), exact: true }).click();
     const program = async (tool, lines) => {
-        await button("tools");
-        await page.hover(
-            `.dge-tools button:has-text("${await t("family_programs")}")`,
+        await button("palette");
+        await page.click(
+            `.dge-palette-grid button[aria-label="${await t(tool)}"]`,
         );
-        await page.click(`.dge-tools button:has-text("${await t(tool)}")`);
         await page.mouse.click(...(await point("M")));
         await page.waitForTimeout(1200);
         await tab("program_text");
@@ -116,18 +115,6 @@ export const SHOTS = [
             await page.waitForTimeout(700);
             await page.hover(
                 `.dge-ring button[aria-label="${await command("Segment")}"]`,
-            );
-        },
-    },
-    {
-        file: "menu-outils.webp",
-        page: "editor.html",
-        clip: { x: 0, y: 0, width: 620, height: 720 },
-        run: async ({ page, type, button, t }) => {
-            await type(TRIANGLE);
-            await button("tools");
-            await page.hover(
-                `.dge-tools button:has-text("${await t("family_circles")}")`,
             );
         },
     },

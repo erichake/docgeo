@@ -12,7 +12,7 @@ window.DG_ICONS = {
         properties:
             '<path d="M4 7h16M4 17h16"/><circle cx="9" cy="7" r="3" fill="var(--dge-icon-bg, #f8fafc)"/><circle cx="15" cy="17" r="3" fill="var(--dge-icon-bg, #f8fafc)"/>',
         palette:
-            '<g transform="rotate(45 12 12)"><rect x="6.5" y="1.5" width="11" height="5" rx="1.2"/><path d="M12 6.5v16"/></g><g transform="rotate(-45 12 12)"><rect x="9.5" y="15" width="5" height="7.5" rx="2.2"/><path d="M12 15V2.5"/></g>',
+            '<path d="M3 3v18h18ZM7 12.5V17h4.5Z"/><path d="m12.5 9.5 6-6a1.4 1.4 0 0 1 2 2l-6 6-3 1ZM17 5l2 2" fill="var(--dge-icon-bg, #f8fafc)"/>',
         history:
             '<rect x="3" y="3" width="18" height="18" rx="3"/><path d="M9 3v18m4-13h4m-4 4h4m-4 4h4"/>',
         close_history: '<path d="m6 6 12 12M6 18 18 6"/>',
@@ -43,6 +43,7 @@ window.DG_ICONS = {
         edit_definition:
             '<path d="M4 20h4L19.5 8.5a2.8 2.8 0 0 0-4-4L4 16Z"/><path d="m14 6 4 4"/>',
         steps: '<path d="M3 20h5v-5h5v-5h5V5h3"/>',
+        filter: '<path d="M3.5 4.5h17l-6.5 8v6l-4 2v-8Z"/>',
         show_values: '<path d="M3 9.5h7M3 14.5h7M14.5 7.5 17.5 5v14"/>',
         first_step: '<path d="M6.5 6v12M17 6l-7 6 7 6"/>',
         previous_step: '<path d="m15 6-6 6 6 6"/>',
@@ -51,7 +52,6 @@ window.DG_ICONS = {
         play_steps: '<path d="M8 5.5v13l10-6.5Z" fill="currentColor"/>',
         pause_steps: '<path d="M9 6v12M15 6v12" stroke-width="2.6"/>',
         pin: '<g transform="rotate(45 12 12)"><path d="M8 2.5h8M9.5 2.5v6L6 12.5h12l-3.5-4v-6M12 12.5v9"/></g>',
-        tools: '<path d="M3 3v18h18ZM7 12.5V17h4.5Z"/><path d="m12.5 9.5 6-6a1.4 1.4 0 0 1 2 2l-6 6-3 1ZM17 5l2 2" fill="var(--dge-icon-bg, #f8fafc)"/>',
     },
     tools: {
         Point: [

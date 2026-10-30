@@ -3,7 +3,7 @@
     <head>
         <meta charset="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <title>El menú de herramientas — Manual de DocGeo</title>
+        <title>La paleta de herramientas — Manual de DocGeo</title>
         <link rel="icon" type="image/svg+xml" href="../../favicon.svg" />
         <link rel="stylesheet" href="../manual.css" />
         <script src="../icons.js" defer></script>
@@ -11,26 +11,61 @@
     </head>
     <body>
         <main>
-            <h1>El menú de herramientas</h1>
+            <h1>La paleta de herramientas</h1>
             <figure>
                 <img
-                    src="img/menu-outils.webp"
-                    alt="Menú de herramientas abierto en Circunferencias, arcos, cónicas"
-                    width="620"
+                    src="img/palette.webp"
+                    alt="Paleta de herramientas abierta, A y C seleccionados, Mediatriz bajo el puntero"
+                    width="1200"
                     height="720"
                 />
+                <figcaption>
+                    A y C seleccionados: las herramientas que no los aceptan
+                    aparecen atenuadas, y la mediatriz bajo el puntero se dibuja
+                    en tono pálido.
+                </figcaption>
             </figure>
-
-            <h2>Uso</h2>
+            <h2 id="palette">Abrir la paleta</h2>
             <ul>
                 <li>
-                    <i data-i="tools"></i>, a la derecha de la línea de entrada,
-                    abre el menú: las familias del anillo, mismos colores, mismo
-                    orden, y luego sus herramientas al pasar el puntero o al
-                    tocar.
+                    <i data-i="palette"></i> de la barra, o Ver › Paleta de
+                    herramientas, abre a la derecha todas las herramientas, a la
+                    vista, por familias con los colores del anillo, y al final
+                    las macros de la figura.
                 </li>
                 <li>
-                    El menú contiene todas las herramientas del anillo y otras
+                    La paleta está visible en el primer inicio. Después, este
+                    navegador recuerda si está abierta o cerrada para los
+                    próximos inicios.
+                </li>
+                <li>
+                    Ocupa el lugar del panel de
+                    <a href="proprietes.html">propiedades</a>: abrir uno cierra
+                    el otro, sin soltar la herramienta en uso.
+                </li>
+                <li>
+                    Un clic en el título de una familia la pliega o la
+                    despliega; DocGeo lo recuerda.
+                </li>
+                <li>
+                    <kbd>Esc</kbd> suelta la herramienta o la selección, y luego
+                    cierra la paleta.
+                </li>
+                <li>
+                    En una pantalla pequeña, la paleta cubre la figura y se
+                    cierra en cuanto se elige una herramienta. Por debajo de 500
+                    px de ancho, su botón pasa de la barra a la derecha de la
+                    línea de entrada.
+                </li>
+            </ul>
+            <h2 id="construire">Construir con una herramienta</h2>
+            <ul>
+                <li>
+                    Un clic en una herramienta la toma; una vez pulsada, un
+                    nuevo clic la suelta.
+                </li>
+                <li>
+                    La paleta contiene todas las herramientas del anillo y otras
                     más (distintivo
                     <span class="badge ring">anillo</span> abajo). Las familias
                     Planos y Sólidos y las herramientas marcadas
@@ -38,9 +73,21 @@
                     3D.
                 </li>
                 <li>
-                    La familia <strong>Programas</strong>, propia del menú, crea
-                    tortugas y botones (ver
+                    La familia <strong>Programas</strong>, ausente del anillo,
+                    crea tortugas, botones y programas de eventos (ver
                     <a href="expressions.html#blocs">Bloques y tortuga</a>).
+                </li>
+                <li>
+                    Con la paleta abierta, un clic en un objeto lo selecciona
+                    sin abrir el anillo, y un clic en un lugar vacío lo
+                    deselecciona. Las herramientas que no aceptan el objeto, o
+                    la <a href="selection.html">selección múltiple</a>, aparecen
+                    atenuadas.
+                </li>
+                <li>
+                    Al pasar sobre una herramienta, la indicación muestra su
+                    línea. Si los objetos seleccionados le bastan, el objeto que
+                    construiría aparece en tono pálido.
                 </li>
                 <li>
                     El primer objeto seleccionado ocupa cualquier lugar que su
@@ -60,8 +107,8 @@
                 </li>
                 <li>
                     La herramienta es <strong>persistente</strong>: tras cada
-                    objeto, espera de nuevo su primer argumento. El botón del
-                    menú toma su icono y la barra muestra una franja con
+                    objeto, espera de nuevo su primer argumento. Su botón queda
+                    pulsado y la barra muestra una franja con
                     <strong>Listo</strong>.
                 </li>
                 <li id="arguments-gardes">
@@ -78,13 +125,12 @@
                 </li>
                 <li>
                     Salir: <strong>Listo</strong>, <kbd>Esc</kbd>, la
-                    <strong>✕</strong> de la indicación, el botón del menú (que
-                    vuelve a abrir el menú), la goma, el paso a paso o un clic
-                    en la línea de entrada. Deshacer, rehacer, las propiedades y
-                    la vista 3D conservan la herramienta.
+                    <strong>✕</strong> de la indicación, un nuevo clic en la
+                    herramienta, la goma, el paso a paso o un clic en la línea
+                    de entrada. Deshacer, rehacer, las propiedades y la vista 3D
+                    conservan la herramienta.
                 </li>
             </ul>
-
             <h2 id="avec-une-selection">Con una selección</h2>
             <p>
                 Los objetos seleccionados antes se convierten en los argumentos
@@ -128,69 +174,6 @@
                     eje con <kbd>Mayús</kbd> (<a href="#arguments-gardes"
                         >argumento conservado</a
                     >).
-                </li>
-            </ul>
-
-            <h2 id="palette">La paleta de herramientas</h2>
-            <figure>
-                <img
-                    src="img/palette.webp"
-                    alt="Paleta de herramientas abierta, A y C seleccionados, Mediatriz bajo el puntero"
-                    width="1200"
-                    height="720"
-                />
-                <figcaption>
-                    A y C seleccionados: las herramientas que no los aceptan
-                    aparecen atenuadas, y la mediatriz bajo el puntero se dibuja
-                    en tono pálido.
-                </figcaption>
-            </figure>
-            <ul>
-                <li>
-                    <i data-i="palette"></i> de la barra, o Ver › Paleta de
-                    herramientas, abre a la derecha todas las herramientas
-                    geométricas del menú, a la vista, por familias con los
-                    mismos colores (sin Programas), y luego las macros de la
-                    figura.
-                </li>
-                <li>
-                    La paleta está visible en el primer inicio. Después, este
-                    navegador recuerda si está abierta o cerrada para los
-                    próximos inicios.
-                </li>
-                <li>
-                    Ocupa el lugar del panel de
-                    <a href="proprietes.html">propiedades</a>: abrir uno cierra
-                    el otro, sin soltar la herramienta en uso.
-                </li>
-                <li>
-                    Un clic en el título de una familia la pliega o la
-                    despliega; DocGeo lo recuerda.
-                </li>
-                <li>
-                    Un clic en una herramienta la toma, como en el menú; una vez
-                    pulsada, un nuevo clic la suelta.
-                </li>
-                <li>
-                    Con la paleta abierta, un clic en un objeto lo selecciona
-                    sin abrir el anillo, y un clic en un lugar vacío lo
-                    deselecciona. Las herramientas que no aceptan el objeto, o
-                    la <a href="selection.html">selección múltiple</a>, aparecen
-                    atenuadas.
-                </li>
-                <li>
-                    Al pasar sobre una herramienta, la indicación muestra su
-                    línea. Si los objetos seleccionados le bastan, el objeto que
-                    construiría aparece en tono pálido.
-                </li>
-                <li>
-                    <kbd>Esc</kbd> suelta la herramienta o la selección, y luego
-                    cierra la paleta.
-                </li>
-                <li>
-                    En una pantalla pequeña, la paleta cubre la figura y se
-                    cierra en cuanto se elige una herramienta. Por debajo de 500
-                    px de ancho, su botón desaparece: queda el menú.
                 </li>
             </ul>
 

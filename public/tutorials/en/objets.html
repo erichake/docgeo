@@ -88,7 +88,7 @@
                 The bar then offers Delete and Settings (<a
                     href="proprietes.html#regler-plusieurs-objets"
                     >shared settings</a
-                >), and the tools menu
+                >), and the palette
                 <a href="selection.html">takes the selection as arguments</a>. A
                 simple touch, <kbd>Esc</kbd>, a tool, the eraser, undo or redo
                 clear it.
@@ -106,7 +106,8 @@
                 <li>
                     The dot of a line of the “Construction” panel is filled if
                     the object is visible, empty if it is hidden; touching it
-                    toggles.
+                    toggles. A point’s dot, with its shape and colors, fades
+                    instead of emptying.
                 </li>
                 <li id="la-gomme">
                     <i data-i="eraser"></i> <strong>Eraser</strong>: each touch
@@ -149,6 +150,28 @@
             <p>
                 The arc of an angle, or its right angle mark, can be dragged to
                 change its radius (5 to 200 px).
+            </p>
+
+            <h2 id="filtrer-la-liste">Filtering the list</h2>
+            <p>
+                <i data-i="filter"></i>, in the header of the “Construction”
+                panel, opens a menu that shows only some of the lines:
+            </p>
+            <ul>
+                <li>all objects, visible objects or hidden objects;</li>
+                <li>
+                    <strong>Linked to the selection</strong>: the selected
+                    objects, what they depend on and what depends on them;
+                </li>
+                <li>
+                    one or more types of objects present in the figure (points,
+                    lines, circles…), with their number.
+                </li>
+            </ul>
+            <p>
+                Each active filter shows as a tag below the header; clicking it
+                removes the filter. The number of objects becomes “38 / 2569”.
+                Filters only change the list, not the figure, and are not saved.
             </p>
 
             <h2 id="les-valeurs">Values</h2>

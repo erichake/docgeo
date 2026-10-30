@@ -3,7 +3,7 @@
     <head>
         <meta charset="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <title>The tools menu — DocGeo manual</title>
+        <title>The tool palette — DocGeo manual</title>
         <link rel="icon" type="image/svg+xml" href="../../favicon.svg" />
         <link rel="stylesheet" href="../manual.css" />
         <script src="../icons.js" defer></script>
@@ -11,33 +11,77 @@
     </head>
     <body>
         <main>
-            <h1>The tools menu</h1>
+            <h1>The tool palette</h1>
             <figure>
                 <img
-                    src="img/menu-outils.webp"
-                    alt="Tools menu open on Circles, arcs, conics"
-                    width="620"
+                    src="img/palette.webp"
+                    alt="Tool palette open, A and C selected, PerpendicularBisector hovered"
+                    width="1200"
                     height="720"
                 />
+                <figcaption>
+                    A and C selected: the tools that do not take them are grayed
+                    out, and the perpendicular bisector hovered is drawn pale.
+                </figcaption>
             </figure>
-
-            <h2>Usage</h2>
+            <h2 id="palette">Opening the palette</h2>
             <ul>
                 <li>
-                    <i data-i="tools"></i>, to the right of the input line,
-                    opens the menu: the families of the ring, same colors, same
-                    order, then their tools on hover or touch.
+                    <i data-i="palette"></i> in the bar, or View › Tool palette,
+                    opens on the right all the tools, laid out flat, by families
+                    in the ring’s colors, and last the figure’s macros.
                 </li>
                 <li>
-                    The menu holds all the tools of the ring and more (badge
+                    The palette is visible on first launch. This browser then
+                    remembers whether it is open or closed for future launches.
+                </li>
+                <li>
+                    It takes the place of the
+                    <a href="proprietes.html">properties</a> panel: opening one
+                    closes the other, without dropping the tool in hand.
+                </li>
+                <li>
+                    Clicking a family’s title folds or unfolds it; DocGeo
+                    remembers it.
+                </li>
+                <li>
+                    <kbd>Esc</kbd> drops the tool or the selection, then closes
+                    the palette.
+                </li>
+                <li>
+                    On a small screen, the palette covers the figure and closes
+                    as soon as a tool is chosen. Below 500 px wide, its button
+                    moves from the bar to the right of the input line.
+                </li>
+            </ul>
+            <h2 id="construire">Building with a tool</h2>
+            <ul>
+                <li>
+                    Clicking a tool takes it; once pressed, a second click drops
+                    it.
+                </li>
+                <li>
+                    The palette holds all the tools of the ring and more (badge
                     <span class="badge ring">ring</span> below). The Planes and
                     Solids families and the tools marked
                     <span class="badge d3">3D</span> only appear in 3D view.
                 </li>
                 <li>
-                    The <strong>Programs</strong> family, the menu’s own,
-                    creates turtles and buttons (see
+                    The <strong>Programs</strong> family, not on the ring,
+                    creates turtles, buttons and event programs (see
                     <a href="expressions.html#blocs">Blocks and turtle</a>).
+                </li>
+                <li>
+                    With the palette open, clicking an object selects it without
+                    opening a ring, and clicking an empty spot deselects it. The
+                    tools that do not take the object, or the
+                    <a href="selection.html">multiple selection</a>, are grayed
+                    out.
+                </li>
+                <li>
+                    Hovering over a tool shows its line in the prompt. If the
+                    selected objects are enough for it, the object it would
+                    build appears pale.
                 </li>
                 <li>
                     The first designated object takes any place its type
@@ -56,8 +100,8 @@
                 </li>
                 <li>
                     The tool is <strong>persistent</strong>: after each object,
-                    it waits for its first argument again. The menu button takes
-                    its icon and the bar shows a banner with
+                    it waits for its first argument again. Its button stays
+                    pressed and the bar shows a banner with
                     <strong>Done</strong>.
                 </li>
                 <li id="arguments-gardes">
@@ -73,13 +117,12 @@
                 </li>
                 <li>
                     Exit: <strong>Done</strong>, <kbd>Esc</kbd>,
-                    <strong>✕</strong> of the prompt, the menu button (which
-                    reopens the menu), the eraser, step by step, or a click in
-                    the input line. Undo, redo, the properties and the 3D view
-                    keep the tool.
+                    <strong>✕</strong> of the prompt, a second click on the
+                    tool, the eraser, step by step, or a click in the input
+                    line. Undo, redo, the properties and the 3D view keep the
+                    tool.
                 </li>
             </ul>
-
             <h2 id="avec-une-selection">With a selection</h2>
             <p>
                 Objects selected first become the arguments of the chosen tool:
@@ -120,66 +163,6 @@
                     axis with <kbd>Shift</kbd> (<a href="#arguments-gardes"
                         >kept argument</a
                     >).
-                </li>
-            </ul>
-
-            <h2 id="palette">The tool palette</h2>
-            <figure>
-                <img
-                    src="img/palette.webp"
-                    alt="Tool palette open, A and C selected, PerpendicularBisector hovered"
-                    width="1200"
-                    height="720"
-                />
-                <figcaption>
-                    A and C selected: the tools that do not take them are grayed
-                    out, and the perpendicular bisector hovered is drawn pale.
-                </figcaption>
-            </figure>
-            <ul>
-                <li>
-                    <i data-i="palette"></i> in the bar, or View › Tool palette,
-                    opens on the right all the geometric tools of the menu, laid
-                    out flat, by families in the same colors (without Programs),
-                    then the figure’s macros.
-                </li>
-                <li>
-                    The palette is visible on first launch. This browser then
-                    remembers whether it is open or closed for future launches.
-                </li>
-                <li>
-                    It takes the place of the
-                    <a href="proprietes.html">properties</a> panel: opening one
-                    closes the other, without dropping the tool in hand.
-                </li>
-                <li>
-                    Clicking a family’s title folds or unfolds it; DocGeo
-                    remembers it.
-                </li>
-                <li>
-                    Clicking a tool takes it, as in the menu; once pressed, a
-                    second click drops it.
-                </li>
-                <li>
-                    With the palette open, clicking an object selects it without
-                    opening a ring, and clicking an empty spot deselects it. The
-                    tools that do not take the object, or the
-                    <a href="selection.html">multiple selection</a>, are grayed
-                    out.
-                </li>
-                <li>
-                    Hovering over a tool shows its line in the prompt. If the
-                    selected objects are enough for it, the object it would
-                    build appears pale.
-                </li>
-                <li>
-                    <kbd>Esc</kbd> drops the tool or the selection, then closes
-                    the palette.
-                </li>
-                <li>
-                    On a small screen, the palette covers the figure and closes
-                    as soon as a tool is chosen. Below 500 px wide, its button
-                    disappears: the menu remains.
                 </li>
             </ul>
 

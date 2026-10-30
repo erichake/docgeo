@@ -3,7 +3,7 @@
     <head>
         <meta charset="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <title>Le menu des outils — Manuel DocGeo</title>
+        <title>La palette d’outils — Manuel DocGeo</title>
         <link rel="icon" type="image/svg+xml" href="../../favicon.svg" />
         <link rel="stylesheet" href="../manual.css" />
         <script src="../icons.js" defer></script>
@@ -11,35 +11,80 @@
     </head>
     <body>
         <main>
-            <h1>Le menu des outils</h1>
-
+            <h1>La palette d’outils</h1>
             <figure>
                 <img
-                    src="img/menu-outils.webp"
-                    alt="Menu des outils ouvert sur Cercles, arcs, coniques"
-                    width="620"
+                    src="img/palette.webp"
+                    alt="Palette d’outils ouverte, A et C sélectionnés, Médiatrice survolée"
+                    width="1200"
                     height="720"
                 />
+                <figcaption>
+                    A et C sélectionnés : les outils qui ne les prennent pas
+                    sont grisés, et la médiatrice survolée se dessine en pâle.
+                </figcaption>
             </figure>
-
-            <h2>Utilisation</h2>
+            <h2 id="palette">Ouvrir la palette</h2>
             <ul>
                 <li>
-                    <i data-i="tools"></i>, à droite de la ligne de saisie,
-                    ouvre le menu : les familles de l’anneau, mêmes couleurs,
-                    même ordre, puis leurs outils au survol ou au toucher.
+                    <i data-i="palette"></i> de la barre, ou Affichage › Palette
+                    d’outils, ouvre à droite tous les outils, à plat, par
+                    familles aux couleurs de l’anneau, et en dernier les macros
+                    de la figure.
                 </li>
                 <li>
-                    Le menu contient tous les outils de l’anneau et d’autres
+                    La palette est visible au premier lancement. Son état ouvert
+                    ou fermé est ensuite mémorisé dans ce navigateur pour les
+                    prochains lancements.
+                </li>
+                <li>
+                    Elle prend la place du panneau de
+                    <a href="proprietes.html">propriétés</a> : ouvrir l’un ferme
+                    l’autre, sans lâcher l’outil en main.
+                </li>
+                <li>
+                    Un clic sur le titre d’une famille la replie ou la déplie ;
+                    DocGeo s’en souvient.
+                </li>
+                <li>
+                    <kbd>Échap</kbd> lâche l’outil ou la sélection, puis ferme
+                    la palette.
+                </li>
+                <li>
+                    Sur un petit écran, la palette recouvre la figure et se
+                    ferme dès qu’on choisit un outil. Sous 500 px de large, son
+                    bouton passe de la barre à la droite de la ligne de saisie.
+                </li>
+            </ul>
+            <h2 id="construire">Construire avec un outil</h2>
+            <ul>
+                <li>
+                    Un clic sur un outil le prend ; enfoncé, un nouveau clic le
+                    lâche.
+                </li>
+                <li>
+                    La palette contient tous les outils de l’anneau et d’autres
                     (badge <span class="badge ring">anneau</span> ci-dessous).
                     Les familles Plans et Solides et les outils marqués
                     <span class="badge d3">3D</span> n’apparaissent qu’en vue
                     3D.
                 </li>
                 <li>
-                    La famille <strong>Programmes</strong>, propre au menu, crée
-                    des tortues et des boutons (voir
-                    <a href="expressions.html#blocs">Blocs et tortue</a>).
+                    La famille <strong>Programmes</strong>, absente de l’anneau,
+                    crée des tortues, des boutons et des programmes d’événements
+                    (voir <a href="expressions.html#blocs">Blocs et tortue</a>).
+                </li>
+                <li>
+                    Palette ouverte, un clic sur un objet le sélectionne sans
+                    ouvrir d’anneau, et un clic dans le vide le désélectionne.
+                    Les outils qui ne prennent pas l’objet, ou la
+                    <a href="selection.html">sélection multiple</a>, sont
+                    grisés.
+                </li>
+                <li>
+                    Survoler un outil affiche sa ligne dans la consigne. Si les
+                    objets sélectionnés lui suffisent, l’objet qu’il
+                    construirait apparaît en pâle.
                 </li>
                 <li>
                     Le premier objet désigné prend n’importe quelle place que
@@ -58,8 +103,8 @@
                 </li>
                 <li>
                     L’outil est <strong>persistant</strong> : après chaque
-                    objet, il attend de nouveau son premier argument. Le bouton
-                    du menu prend son icône et la barre affiche un bandeau avec
+                    objet, il attend de nouveau son premier argument. Son bouton
+                    reste enfoncé et la barre affiche un bandeau avec
                     <strong>Terminé</strong>.
                 </li>
                 <li id="arguments-gardes">
@@ -75,13 +120,12 @@
                 </li>
                 <li>
                     Sortie : <strong>Terminé</strong>, <kbd>Échap</kbd>,
-                    <strong>✕</strong> de la consigne, le bouton du menu (qui
-                    rouvre le menu), la gomme, le pas à pas, ou un clic dans la
-                    ligne de saisie. Annuler, refaire, les propriétés et la vue
-                    3D gardent l’outil.
+                    <strong>✕</strong> de la consigne, un nouveau clic sur
+                    l’outil, la gomme, le pas à pas, ou un clic dans la ligne de
+                    saisie. Annuler, refaire, les propriétés et la vue 3D
+                    gardent l’outil.
                 </li>
             </ul>
-
             <h2 id="avec-une-selection">Avec une sélection</h2>
             <p>
                 Des objets sélectionnés d’abord deviennent les arguments de
@@ -123,67 +167,6 @@
                     l’axe avec <kbd>Maj</kbd> (<a href="#arguments-gardes"
                         >argument gardé</a
                     >).
-                </li>
-            </ul>
-
-            <h2 id="palette">La palette d’outils</h2>
-            <figure>
-                <img
-                    src="img/palette.webp"
-                    alt="Palette d’outils ouverte, A et C sélectionnés, Médiatrice survolée"
-                    width="1200"
-                    height="720"
-                />
-                <figcaption>
-                    A et C sélectionnés : les outils qui ne les prennent pas
-                    sont grisés, et la médiatrice survolée se dessine en pâle.
-                </figcaption>
-            </figure>
-            <ul>
-                <li>
-                    <i data-i="palette"></i> de la barre, ou Affichage › Palette
-                    d’outils, ouvre à droite tous les outils géométriques du
-                    menu, à plat, par familles aux mêmes couleurs (sans
-                    Programmes), puis les macros de la figure.
-                </li>
-                <li>
-                    La palette est visible au premier lancement. Son état ouvert
-                    ou fermé est ensuite mémorisé dans ce navigateur pour les
-                    prochains lancements.
-                </li>
-                <li>
-                    Elle prend la place du panneau de
-                    <a href="proprietes.html">propriétés</a> : ouvrir l’un ferme
-                    l’autre, sans lâcher l’outil en main.
-                </li>
-                <li>
-                    Un clic sur le titre d’une famille la replie ou la déplie ;
-                    DocGeo s’en souvient.
-                </li>
-                <li>
-                    Un clic sur un outil le prend, comme dans le menu ; enfoncé,
-                    un nouveau clic le lâche.
-                </li>
-                <li>
-                    Palette ouverte, un clic sur un objet le sélectionne sans
-                    ouvrir d’anneau, et un clic dans le vide le désélectionne.
-                    Les outils qui ne prennent pas l’objet, ou la
-                    <a href="selection.html">sélection multiple</a>, sont
-                    grisés.
-                </li>
-                <li>
-                    Survoler un outil affiche sa ligne dans la consigne. Si les
-                    objets sélectionnés lui suffisent, l’objet qu’il
-                    construirait apparaît en pâle.
-                </li>
-                <li>
-                    <kbd>Échap</kbd> lâche l’outil ou la sélection, puis ferme
-                    la palette.
-                </li>
-                <li>
-                    Sur un petit écran, la palette recouvre la figure et se
-                    ferme dès qu’on choisit un outil. Sous 500 px de large, son
-                    bouton disparaît : le menu reste.
                 </li>
             </ul>
 
