@@ -8,6 +8,7 @@ import {
     readDgo,
 } from "../../src/dgo";
 import { figureIndex, lineOf } from "../../src/editor/figure";
+import { applyMacro, designation, takesNext } from "../../src/editor/macro";
 import {
     builtView,
     figureState,
@@ -19,6 +20,7 @@ import type { locus_object } from "../../src/objects/locus_object";
 import { macro_object } from "../../src/objects/macro_object";
 import type { point_object } from "../../src/objects/point_object";
 import type { point_on_object } from "../../src/objects/point_on_object";
+import type { polygon_object } from "../../src/objects/polygon_object";
 import type { primitive_circle_object } from "../../src/objects/primitive_circle_object";
 import type { primitive_line_object } from "../../src/objects/primitive_line_object";
 import { vNorm, vSub, type Vec3 } from "../../src/vec";
@@ -89,6 +91,89 @@ const CUT = {
 };
 
 describe("Macro-constructions", () => {
+    // As CaRMetal does, but the look of the image is found, not asked: a
+    // polygon's by a dilation, a line's by an inversion (see
+    // TRANSFORMATIONS.md).
+    it("maps objects by a macro that maps points, as found when applied", async () => {
+        const invert = {
+            n: "Inverse",
+            f: ["Q"],
+            m: [
+                {
+                    i: [["circle"], ["point"]],
+                    b: [["Inv", "Q", [1, 2]]],
+                    f: [3],
+                },
+            ],
+        };
+        const c = open(
+            [
+                ["Pt", "O", [0, 0]],
+                ["Pt", "A", [2, 0]],
+                ["Pt", "B", [4, 2]],
+                ["Pt", "C", [2, 4]],
+                ["Poly", "p", [1, 2, 3]],
+                ["Cir", "c", [0, 1]],
+                ["Line", "d", [2, 3]],
+                ["Line", "l", [0, 2]],
+                ["Seg", "s", [1, 2]],
+            ],
+            [MIDPOINT, invert],
+        );
+        const at = (...named: string[]) =>
+            named.map((name) => get<construction_object>(c, name));
+        expect(
+            takesNext(designation(c.macros[0], at("O"), c.macros), get(c, "p")),
+        ).toBe(true);
+        const images = [
+            applyMacro(c, 0, 0, at("O", "p")),
+            applyMacro(c, 1, 0, at("c", "d")),
+            applyMacro(c, 1, 0, at("c", "l")),
+            applyMacro(c, 1, 0, at("c", "p")),
+            applyMacro(c, 1, 0, at("c", "s")),
+        ].map(([image]) => image);
+        c.flush();
+        const figure = await describeDgo(c);
+        expect(
+            (figure.o as unknown[][][])
+                .slice(9)
+                .map(([, , [, , , look]]) => look),
+        ).toEqual(["Poly", "Cir", "Line", "Loc", "Arc"]);
+        const [half, round, straight, curved, arc] = images;
+        // Drawn once styled: filled.
+        const fill = (half as polygon_object).path.dom() as SVGElement;
+        expect(fill.style.fillOpacity).toBe("0.2");
+        expectClose(
+            (half as polygon_object).points.map((point) => point.coords),
+            [
+                [1, 0, 0],
+                [2, 1, 0],
+                [1, 2, 0],
+            ],
+        );
+        expect((round as primitive_circle_object).R).toBeCloseTo(
+            2 / (3 * Math.SQRT2),
+        );
+        expect(vNorm((straight as primitive_line_object).VEC)).toBeCloseTo(1);
+        expect((curved as polygon_object).points.length).toBe(96);
+        expect(arc.defined).toBe(true);
+        const index = figureIndex(c);
+        expect(lineOf(half, index, figureObjects(c))).toBe(
+            `${half.name} = Milieu(O, p)`,
+        );
+        // Read back, the same.
+        const copy = open(
+            figure.o as Json[][],
+            figure.mac as Json[],
+            figure.st as Json[],
+        );
+        expect(names(copy)).toEqual(names(c));
+        expectClose(
+            get<polygon_object>(copy, half.name).points[1].coords,
+            [2, 1, 0],
+        );
+    });
+
     it("applies each method, and writes the figure back as it was read", async () => {
         const o = [
             ["Pt", "A", [-2, 1]],

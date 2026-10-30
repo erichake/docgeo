@@ -38,11 +38,20 @@ export type transformable =
     | curve_object
     | locus_object;
 
-// The circle of an inversion, and whether the image of a line or a circle
-// through its center, a line, is wanted (see DGO.md).
-export interface Inversion {
-    circle: primitive_circle_object;
-    straight: boolean;
+// How an image is built, when not by a similarity (see createTransformed).
+export interface ImageOptions {
+    // Its look (see imageLook), a polygon's "Loc" being the polygon of the
+    // images of points along its sides.
+    look?: string;
+    // The point the map sends away, an inversion's center: a line's points
+    // are then taken around its point nearest to it, a circle's away from
+    // it, a polygon's along its sides.
+    pole?: () => Vec3;
+    // Added to its entry's parameters: a straight image by an inversion.
+    mark?: number;
+    // What gives its entry and its parents, by default the image of the
+    // object as a point's.
+    template?: construction_object;
 }
 
 // A point of an object, read from its geometry.
@@ -94,23 +103,20 @@ export function straightImage(
 }
 
 // The .dgo type whose look the object's image has: of the same kind by a
-// similarity, a conic's by an affine map; by an inversion, a line or a
-// circle, a segment or an arc, a polygon whose sides are arcs. Otherwise,
-// a locus.
-export function imageLook(
-    source: transformable,
-    inversion?: Inversion,
-): string {
-    const straight = inversion?.straight;
-    if (source instanceof vector_object) return inversion ? "Loc" : "Vec";
+// similarity, a conic's by an affine map. By a map that bends lines, as an
+// inversion, a line or a circle, a segment or an arc, `straight` or not, a
+// polygon whose sides are arcs. Otherwise, a locus.
+export function imageLook(source: transformable, straight?: boolean): string {
+    const bends = straight !== undefined;
+    if (source instanceof vector_object) return bends ? "Loc" : "Vec";
     if (source instanceof segment_object)
-        return !inversion || straight ? "Seg" : "Arc";
+        return !bends || straight ? "Seg" : "Arc";
     if (source instanceof primitive_line_object)
         return isRay(source)
-            ? inversion
+            ? bends
                 ? "Loc"
                 : "Ray"
-            : !inversion || straight
+            : !bends || straight
               ? "Line"
               : "Cir";
     if (source instanceof primitive_arc_object) return straight ? "Seg" : "Arc";
@@ -119,27 +125,33 @@ export function imageLook(
     if (source instanceof polygon_object) return "Poly";
     return source instanceof primitive_quadric_object &&
         !(source instanceof conic_arc_object) &&
-        !inversion
+        !bends
         ? "Quad"
         : "Loc";
 }
 
-// The points of each side of a polygon whose images, by an inversion, draw
-// the arc it becomes.
+// The looks its image may have, as a map bends lines or not, or a locus.
+export const imageLooks = (source: transformable): string[] => [
+    imageLook(source),
+    imageLook(source, true),
+    imageLook(source, false),
+    "Loc",
+];
+
+// The points of each side of a polygon whose images draw the arc it
+// becomes, as by an inversion.
 const SIDE_SAMPLES = 32;
 
 // Points of the object whose images build its image of this look, none
-// for a locus: its
-// vertices or its ends, points of a line from its point nearest the center
-// of an inversion, of a circle away from it, of an arc or of a conic.
+// for a locus: its vertices or its ends, or points along its sides, points
+// of a line, of a circle, of an arc or of a conic, away from the pole.
 function pointsOf(
     source: transformable,
     look: string,
-    inversion?: Inversion,
+    pole?: () => Vec3,
 ): (point_object | (() => Vec3))[] {
-    if (look === "Loc") return [];
     if (source instanceof polygon_object)
-        return inversion
+        return look === "Loc" || pole
             ? source.vertices.flatMap((vertex, index, vertices) => {
                   const next = vertices[(index + 1) % vertices.length];
                   return Array.from({ length: SIDE_SAMPLES }, (_, k) =>
@@ -156,6 +168,7 @@ function pointsOf(
                   );
               })
             : source.vertices;
+    if (look === "Loc") return [];
     if (source instanceof segment_object)
         return look === "Arc"
             ? [
@@ -165,9 +178,17 @@ function pointsOf(
               ]
             : [source.P1, source.P2];
     if (source instanceof primitive_line_object) {
-        if (!inversion)
-            return [source.P1, () => vAdd(source.P1.coords, source.VEC)];
-        const base = () => foot(source, inversion.circle.CENTER);
+        // Its point, often a center, and the pole, kept away from, but for
+        // a ray's origin.
+        const at = (k: number) => () =>
+            vAdd(source.P1.coords, vScale(source.VEC, k));
+        if (!pole)
+            return look === "Ray"
+                ? [source.P1, at(1)]
+                : look === "Line"
+                  ? [at(1), at(-1)]
+                  : [at(-1), at(1), at(2)];
+        const base = () => foot(source, pole());
         const side = (k: number) => () => vAdd(base(), vScale(source.VEC, k));
         return look === "Line"
             ? [side(1), side(-1)]
@@ -184,7 +205,7 @@ function pointsOf(
         if (look === "Line") {
             const away = (quarter: boolean) => () => {
                 const u =
-                    vNormalize(vSub(source.CENTER, inversion!.circle.CENTER)) ??
+                    (pole && vNormalize(vSub(source.CENTER, pole()))) ??
                     source.U;
                 return vAdd(
                     source.CENTER,
@@ -217,22 +238,26 @@ function pointsOf(
 }
 
 // The image of an object by a transformation, `map` making the image of a
-// point by it: an object of the look imageLook gives, on the images of
-// points of it, which it computes itself, outside the figure, before its
-// own geometry; otherwise, the locus of the image of a point on it. Its
-// entry, its parents and its look are those of the image of a point, the
-// object in the point's place, a straight image of an inversion marked
-// (see DGO.md).
+// point by it: an object of the look imageLook gives by a similarity, or
+// of the look given, on the images of points of it, which it computes
+// itself, outside the figure, before its own geometry; otherwise, the
+// locus of the image of a point on it. Its entry, its parents and its
+// look are those of the image of a point, the object in the point's place,
+// unless a template is given (see DGO.md).
 export function createTransformed(
     c: construction,
     name: string | null | undefined,
     source: transformable,
     map: (point: point_object) => point_object,
-    inversion?: Inversion,
+    {
+        look = imageLook(source),
+        pole,
+        mark,
+        template = map(source as never),
+    }: ImageOptions = {},
 ): construction_object {
-    const look = imageLook(source, inversion);
     const points: point_object[] = [];
-    const images = pointsOf(source, look, inversion).map((point) => {
+    const images = pointsOf(source, look, pole).map((point) => {
         if (!(point instanceof point_object)) {
             point = new source_point(c, source, point);
             points.push(point);
@@ -244,7 +269,13 @@ export function createTransformed(
     const [p, q, r] = images;
     const space = !c.GRID.is2D;
     let object: construction_object;
-    if (look === "Loc") {
+    if (source instanceof polygon_object) {
+        const polygon = new polygon_object(c, name, images);
+        polygon.ownVertices = images;
+        polygon.section = source.section;
+        object = polygon;
+        look = "Poly";
+    } else if (look === "Loc") {
         const driver = new point_on_object(
             c,
             null,
@@ -261,11 +292,6 @@ export function createTransformed(
         });
         object = new locus_object(body, name, target, driver);
         object.C = c;
-    } else if (look === "Poly") {
-        const polygon = new polygon_object(c, name, images);
-        polygon.ownVertices = images;
-        polygon.section = (source as polygon_object).section;
-        object = polygon;
     } else if (look === "Vec") object = new vector_object(c, name, p, q);
     else if (look === "Seg") object = new segment_object(c, name, p, q);
     else if (look === "Ray") object = new ray_line_object(c, name, p, q);
@@ -285,7 +311,6 @@ export function createTransformed(
         object = new circle3pts_object(c, name, p, q, r, space);
     else
         object = new quadric5pts_object(c, name, p, q, r, images[3], images[4]);
-    const template = map(source as never);
     // The figure's objects don't know the private ones.
     [template, ...points].forEach((own) =>
         own.parents.forEach(
@@ -313,9 +338,9 @@ export function createTransformed(
             const [tag, parameters] = template.dgo(context);
             return [
                 tag,
-                inversion?.straight
-                    ? [...(parameters as unknown[]), 1]
-                    : parameters,
+                mark === undefined
+                    ? parameters
+                    : [...(parameters as unknown[]), mark],
             ];
         },
     });

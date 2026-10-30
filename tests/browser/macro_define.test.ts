@@ -359,7 +359,7 @@ describe("Defining a macro", () => {
             segment,
         );
         const [macro] = c.macros;
-        const none = designation(macro, []);
+        const none = designation(macro, [], c.macros);
         expect(none).toEqual({
             complete: null,
             next: [
@@ -370,14 +370,16 @@ describe("Defining a macro", () => {
         });
         expect(takesNext(none, get(c, "t"))).toBe(true);
         expect(takesNext(none, get(c, "M"))).toBe(true);
-        const one = designation(macro, all(c, "C"));
+        // Mapping a point to a point, its last takes an object too, whose
+        // image it gives (see TRANSFORMATIONS.md).
+        const one = designation(macro, all(c, "C"), c.macros);
         expect(one).toEqual({
             complete: null,
-            next: [["point", ""]],
-            last: ["point"],
+            next: [["transformable", ""]],
+            last: ["transformable"],
         });
-        expect(takesNext(one, get(c, "t"))).toBe(false);
-        expect(designation(macro, all(c, "t"))).toEqual({
+        expect(takesNext(one, get(c, "t"))).toBe(true);
+        expect(designation(macro, all(c, "t"), c.macros)).toEqual({
             complete: 1,
             next: [],
             last: [],
@@ -423,7 +425,7 @@ describe("Defining a macro", () => {
         // Its name: the figure's Hz.
         expect(withFixed(c, half, [])).toEqual(all(c, "Hz"));
         // Then the object designated for it, by any macro looking for it.
-        rememberFixed(designation(half, []), get(c, "k"));
+        rememberFixed(designation(half, [], c.macros), get(c, "k"));
         expect(withFixed(c, half, [])).toEqual(all(c, "k"));
         // Never the last initial, which would apply the macro untouched.
         const alone = methodOf(

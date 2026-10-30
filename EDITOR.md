@@ -2514,6 +2514,16 @@ prend aussi, son entrée marquée quand l'objet passe par le centre
 (`straightImage`), la ligne relue sans la marque. `builtTag` en tient
 compte (droite ou cercle).
 
+Étape 4 (même jour) : une macro qui envoie un point sur un point
+(`mapsPoints`) prend un objet à la place de son dernier point, à l'outil
+(aperçu, toucher dans le vide qui crée un point), au clavier
+(`a = Milieu(O, p)`, ligne relue, redéfinition) ; l'outil garde ses
+autres initiaux après chaque application. La nature de l'image est
+trouvée à l'application (`imageVerdict`) et enregistrée.
+`designation`, `firstFixed` prennent les macros de la figure (pour
+`finalTypes`).
+
 Manuel à mettre à jour (12 langues), avec l'ordre des transformations
 ci-dessus : `commandes.html` (un objet à la place du point),
-`menu-outils.html` (l'outil garde la transformation), `selection.html`.
+`menu-outils.html` (l'outil garde la transformation), `selection.html`,
+et les pages des macros (image d'un objet par une macro).

@@ -28,6 +28,7 @@ import type { construction_object } from "../../src/objects/construction_object"
 import type { macro_object } from "../../src/objects/macro_object";
 import type { point_object } from "../../src/objects/point_object";
 import type { point_on_object } from "../../src/objects/point_on_object";
+import type { polygon_object } from "../../src/objects/polygon_object";
 import { createConstruction, disposeFigures, expectClose } from "./figures";
 
 disposeFigures();
@@ -1415,6 +1416,38 @@ describe("The library shipped with DocGeo", () => {
             }
         }
         expect(failed).toEqual([]);
+    });
+
+    // An inversion: a hyperbolic line's image is one, an arc orthogonal to
+    // the disk, a triangle's curved (see TRANSFORMATIONS.md).
+    it("maps objects by a reflection in a hyperbolic line", async () => {
+        const c = figure(
+            ...DISK,
+            ...G,
+            ...H,
+            "A = (1, 1)",
+            "B = (2, -1)",
+            "C = (0, -2)",
+            "p = Polygon(A, B, C)",
+        );
+        c.macros = merge(
+            asLibrary(c),
+            await supplied("en"),
+            ["ReflectH"],
+            false,
+        ).library.macros;
+        const index = macroIndex(c, "ReflectH");
+        const [arc] = applyMacro(c, index, 0, all(c, "Hz", "g", "h"));
+        const [triangle] = applyMacro(c, index, 0, all(c, "Hz", "g", "p"));
+        c.flush();
+        expect(arc.look).toBe("Arc");
+        orthogonal(arc as unknown as Circle, HZ);
+        on(arc as unknown as Circle, invert(G_CIRCLE, get(c, "H1").coords));
+        expect((triangle as polygon_object).points.length).toBe(96);
+        expectClose(
+            (triangle as polygon_object).points[0].coords.slice(0, 2),
+            invert(G_CIRCLE, get(c, "A").coords),
+        );
     });
 
     it("keeps the rectangle parallel at every frame while its final D moves", async () => {

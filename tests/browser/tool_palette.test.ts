@@ -244,4 +244,86 @@ describe("The tool palette", () => {
         ]);
         expect(tool.getAttribute("aria-pressed")).toBe("true");
     });
+
+    // So does a macro that maps points, as CaRMetal's (see
+    // TRANSFORMATIONS.md).
+    it("keeps the initials of a macro that maps points", async () => {
+        const { page, request } = await editor();
+        await request("load", {
+            data: new TextEncoder().encode(
+                JSON.stringify({
+                    dgo: 1,
+                    v: { o: [400, 300], u: 40, w: 800, h: 600 },
+                    mac: [
+                        {
+                            n: "Half",
+                            f: ["M"],
+                            m: [
+                                {
+                                    i: [["point"], ["point"]],
+                                    b: [["Mid", "M", [0, 1]]],
+                                    f: [2],
+                                },
+                            ],
+                        },
+                    ],
+                    o: [
+                        ["Pt", "A", [-4, -1]],
+                        ["Pt", "B", [3, -2]],
+                        ["Pt", "C", [0, 3]],
+                        ["Pt", "O", [5, 2]],
+                        ["Poly", "p", [0, 1, 2]],
+                    ],
+                }),
+            ).buffer,
+            format: "dgo",
+        });
+        (
+            page.querySelector(
+                `.dge-bar [aria-controls="dge-palette"]`,
+            ) as HTMLElement
+        ).click();
+        (
+            page.querySelector(
+                `.dge-palette-grid button[aria-label="Half"]`,
+            ) as HTMLElement
+        ).click();
+        const { v } = await saved(request);
+        const figure = page.querySelector("body > svg:has([data-layer])")!;
+        const box = figure.getBoundingClientRect();
+        const Pointer = (page.defaultView as typeof window).PointerEvent;
+        const pointer = (kind: string, [x, y]: number[]) =>
+            figure.dispatchEvent(
+                new Pointer(kind, {
+                    clientX: box.left + v.o[0] + x * v.u,
+                    clientY: box.top + v.o[1] - y * v.u,
+                    bubbles: true,
+                    isPrimary: true,
+                    pointerType: "mouse",
+                }),
+            );
+        const tap = async (at: number[], count: number) => {
+            pointer("pointerdown", at);
+            pointer("pointerup", at);
+            await expect
+                .poll(async () => (await saved(request)).o.length)
+                .toBe(count);
+        };
+        pointer("pointerdown", [5, 2]);
+        pointer("pointerup", [5, 2]);
+        pointer("pointermove", [-0.3, 0]);
+        expect(figure.querySelectorAll(".dge-preview").length).toBe(1);
+        await tap([-0.3, 0], 6);
+        await tap([-4, -1], 8);
+        const { o } = await saved(request);
+        expect(
+            o
+                .slice(5)
+                .map(([tag, , parameters]: unknown[]) => [tag, parameters]),
+        ).toEqual([
+            ["Mac", [0, 0, [3, 4], "Poly"]],
+            ["Mac", [0, 0, [3, 0]]],
+            ["Out", [6, 1]],
+        ]);
+    });
 });

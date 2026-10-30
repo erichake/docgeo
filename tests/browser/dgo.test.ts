@@ -692,7 +692,10 @@ describe(".dgo reader", () => {
         c.invalidateGeometry(a);
         c.flush();
         expect(l1.defined).toBe(true);
-        expectClose(l1.P1.coords, [3, 1, 0]);
+        // Through B's image, (3, 1), parallel to BC.
+        const [x, y] = vSub(l1.P1.coords, [3, 1, 0]);
+        expect(x * l1.VEC[1] - y * l1.VEC[0]).toBeCloseTo(0);
+        expect(Math.abs(vDot(l1.VEC, [-1, 2, 0]))).toBeCloseTo(Math.sqrt(5));
         a.coords = [0, 0, 0];
         c.invalidateGeometry(a);
         c.flush();
@@ -775,6 +778,89 @@ describe(".dgo reader", () => {
         const saved = await describeDgo(c);
         expect(saved.o.slice(12)).toEqual(
             figure.o.slice(12).map((entry) => entry.slice(0, 3)),
+        );
+        await roundTrip(async (copy) => readDgo(copy, saved));
+    });
+
+    // Each private point of the image is an application of the macro,
+    // the look found when it was applied saved after the initials.
+    it("reads images of objects by transformation macros", async () => {
+        const figure = {
+            dgo: 1,
+            v: { o: [400, 300], u: 40, w: 800, h: 600 },
+            mac: [
+                {
+                    n: "Half",
+                    f: ["M"],
+                    m: [
+                        {
+                            i: [["point"], ["point"]],
+                            b: [["Mid", "M", [0, 1]]],
+                            f: [2],
+                        },
+                    ],
+                },
+                {
+                    n: "Invert",
+                    f: ["Q"],
+                    m: [
+                        {
+                            i: [["circle"], ["point"]],
+                            b: [["Inv", "Q", [1, 2]]],
+                            f: [3],
+                        },
+                    ],
+                },
+            ],
+            o: [
+                ["Pt", "O", [0, 0]],
+                ["Pt", "A", [2, 0]],
+                ["Pt", "B", [4, 2]],
+                ["Pt", "C", [2, 4]],
+                ["Poly", "p", [1, 2, 3]],
+                ["Cir", "c", [0, 1]],
+                ["Line", "d", [2, 3]],
+                ["Mac", "p1", [0, 0, [0, 4], "Poly"]],
+                ["Mac", "c1", [0, 0, [0, 5], "Cir"]],
+                ["Mac", "d1", [1, 0, [5, 6], "Cir"]],
+                ["Mac", "p2", [1, 0, [5, 4], "Loc"]],
+                ["Mac", "M", [0, 0, [0, 1]]],
+                ["Out", "I", [11, 1]],
+            ],
+        };
+        const c = createConstruction();
+        readDgo(c, figure);
+        c.flush();
+        const get = <T>(name: string) => c.getObj(name) as T;
+        const p1 = get<polygon_object>("p1");
+        expectClose(
+            p1.points.map((point) => point.coords),
+            [
+                [1, 0, 0],
+                [2, 1, 0],
+                [1, 2, 0],
+            ],
+        );
+        const c1 = get<circle3pts_object>("c1");
+        expectClose(c1.CENTER, [0, 0, 0]);
+        expect(c1.R).toBeCloseTo(1);
+        // x + y = 6, at 3√2 from O: a circle through O, of diameter 4/(3√2).
+        const d1 = get<circle3pts_object>("d1");
+        expect(d1.R).toBeCloseTo(2 / (3 * Math.SQRT2));
+        expectClose(d1.CENTER, [1 / 3, 1 / 3, 0]);
+        const p2 = get<polygon_object>("p2");
+        expect(p2.points.length).toBe(96);
+        expectClose(p2.points[0].coords, [2, 0, 0]);
+        expectClose(get<point_object>("I").coords, [1, 0, 0]);
+        // Moved, the images follow.
+        const b = get<point_object>("B");
+        b.coords = [4, 0, 0];
+        c.invalidateGeometry(b);
+        c.flush();
+        expectClose(p1.points[1].coords, [2, 0, 0]);
+        const saved = await describeDgo(c);
+        expect(saved.o.slice(7, 11)).toEqual(
+            figure.o.slice(7, 11).map((entry) => entry.slice(0, 3)),
         );
         await roundTrip(async (copy) => readDgo(copy, saved));
     });

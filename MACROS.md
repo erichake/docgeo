@@ -530,7 +530,9 @@ Retenues par l'auteur le 2026-10-26, à placer dans les étapes (voir
   2026-10-27 (voir « Initiaux fixés »).
 - **Image d'un objet** : une macro de transformation ponctuelle appliquée
   à une droite, un cercle, un polygone donne son image (lieu des images),
-  avec aperçu au survol.
+  avec aperçu au survol. Fait le 2026-10-30, en mieux : l'image est de la
+  nature trouvée à l'application (droite, cercle, conique, sinon lieu),
+  voir `TRANSFORMATIONS.md`.
 
 ## Bibliothèque
 

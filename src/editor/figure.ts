@@ -107,6 +107,7 @@ import {
     boxOf,
     designation,
     finalStyle,
+    imageVerdict,
     macroIndex,
     typedNumber,
     type Picked,
@@ -392,6 +393,23 @@ export function lineOf(
     const name = formatName(object.name);
     if (tag === "Out")
         return applicationLine(object.output!.node as macro_object);
+    const at = (ref: DgoRef) =>
+        typeof ref === "number"
+            ? objects[ref]
+            : (ref[0] === "side" ? polygonSide : polygonVertex)(
+                  objects[ref[1]] as polygon_object,
+                  ref[2],
+              );
+    // An image by a macro that maps points.
+    if (tag === "Mac" && typeof (parameters as unknown[])[3] === "string") {
+        const [macro, , initials] = parameters as [number, number, unknown[]];
+        const args = initials.map((initial) =>
+            typeof initial === "string"
+                ? initial
+                : formatArg(at(initial as DgoRef)),
+        );
+        return `${name} = ${formatName(object.C.macros[macro].name)}(${args.join(", ")})`;
+    }
     if (tag === "Cur") {
         const { formula, min, max } = object as curve_object;
         return min === null && max === null
@@ -436,14 +454,7 @@ export function lineOf(
             : object) as unknown as { equation: Equation };
         return `${name} = ${equation.map((side) => oneLine(renamed(side.source, side.refs))).join(" = ")}`;
     }
-    const decoded = decodeEntry(tag, parameters, (at) =>
-        typeof at === "number"
-            ? objects[at]
-            : (at[0] === "side" ? polygonSide : polygonVertex)(
-                  objects[at[1]] as polygon_object,
-                  at[2],
-              ),
-    );
+    const decoded = decodeEntry(tag, parameters, at);
     if (decoded)
         return `${name} = ${commandName(decoded.command)}(${decoded.args.map(formatArg).join(", ")})`;
     const { mn, mx } = parameters as Record<string, unknown>;
@@ -1536,17 +1547,37 @@ export function builtTag(
 ): string {
     const source = mapped(overload, args);
     if (!source) return overload.tag;
-    const circle = args[0] as primitive_circle_object;
     return imageLook(
         source,
         overload.tag === "Inv"
-            ? { circle, straight: straightImage(circle, source) }
+            ? straightImage(args[0] as primitive_circle_object, source)
             : undefined,
     );
 }
 
 // What an image by a transformation keeps of its object's style.
 const KEPT_STYLE = ["c", "fc", "s", "o", "dh", "dc"];
+
+// The style of an image by a transformation, of this type: as a tool
+// gives it, with its object's colors, size, opacity and dashes.
+export function imageStyle(
+    source: construction_object,
+    tag: string,
+    index: ReadonlyMap<construction_object, number>,
+): Record<string, unknown> {
+    const kept = objectStyle(
+        source,
+        lookTag(source, entryOf(source, index)[0]),
+    );
+    return {
+        ...createdStyle(tag),
+        ...Object.fromEntries(
+            KEPT_STYLE.flatMap((key) =>
+                key in kept ? [[key, kept[key]]] : [],
+            ),
+        ),
+    };
+}
 
 // Adds the object after the others, `styled` as by DGPad's tools, an
 // image by a transformation as its object.
@@ -1557,20 +1588,11 @@ export function add(
 ): construction_object {
     const index = figureIndex(c);
     const source = mapped(overload, args);
-    const kept =
-        source &&
-        objectStyle(source, lookTag(source, entryOf(source, index)[0]));
-    const style = styled
-        ? {
-              ...createdStyle(builtTag(overload, args)),
-              ...(kept &&
-                  Object.fromEntries(
-                      KEPT_STYLE.flatMap((key) =>
-                          key in kept ? [[key, kept[key]]] : [],
-                      ),
-                  )),
-          }
-        : undefined;
+    const style = !styled
+        ? undefined
+        : source
+          ? imageStyle(source, builtTag(overload, args), index)
+          : createdStyle(overload.tag);
     c.beginBatch();
     addDgoEntries(
         c,
@@ -1821,7 +1843,7 @@ export function resolveMacro(c: construction, line: Line): MacroSpec | null {
         if (typed === null) throw new TextError("arguments", named);
         return typed;
     });
-    const method = designation(macro, initials).complete;
+    const method = designation(macro, initials, c.macros).complete;
     if (method === null) throw new TextError("arguments", named);
     const given = line.names ?? (line.name ? [line.name] : null);
     if (
@@ -1839,13 +1861,47 @@ export function resolveMacro(c: construction, line: Line): MacroSpec | null {
 }
 
 // Applies it, or redefines the application `node`: its names are then
-// those of its finals, or free.
+// those of its finals, or free; or redefines the image of an object by a
+// macro that maps points.
 export async function applyMacroLine(
     studio: Studio,
     { index, method, initials, names }: MacroSpec,
     node?: macro_object,
+    image?: construction_object,
 ): Promise<construction_object[]> {
     const c = studio.scene;
+    if (image) {
+        const source = initials.at(-1)!;
+        if (typeof source === "string" || source instanceof point_object)
+            throw new TextError("macro_taken", formatName(image.name));
+        const objects = figureObjects(c);
+        const at = objects.indexOf(image);
+        const refs = initials.map((initial) =>
+            typeof initial === "string"
+                ? initial
+                : objectIndex(initial, (owner) => objects.indexOf(owner)),
+        );
+        if (
+            refs.some(
+                (ref) =>
+                    typeof ref !== "string" &&
+                    (Array.isArray(ref) ? ref[1] : ref) >= at,
+            )
+        )
+            throw new TextError("macro_order");
+        const call = [index, method, refs];
+        const look = imageVerdict(c, call, source);
+        const figure = await describeDgo(c);
+        const [, name, , style] = figure.o[at];
+        figure.o[at] = [
+            "Mac",
+            names?.[0] ?? name,
+            [...call, look],
+            ...(style === undefined ? [] : [style]),
+        ];
+        rebuild(studio, figure);
+        return [];
+    }
     const own = new Set<construction_object>(node?.children);
     names?.forEach((name, rank) => {
         if (name === null) return;

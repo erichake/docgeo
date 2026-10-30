@@ -106,7 +106,12 @@ import {
     translation_object,
     type translation_vector,
 } from "./objects/translation_object";
-import { createTransformed } from "./objects/transformed_object";
+import {
+    createTransformed,
+    imageLook,
+    imageLooks,
+    type transformable,
+} from "./objects/transformed_object";
 import { createRay } from "./objects/ray_line_object";
 import { reflection_object } from "./objects/reflection_object";
 import { createSegment, segment_object } from "./objects/segment_object";
@@ -137,6 +142,7 @@ import { createEvent, runInits } from "./objects/event_object";
 import { button_object, createButton } from "./objects/button_object";
 import { createLine } from "./objects/two_points_line_object";
 import {
+    applied_point,
     initialSlots,
     MACRO_TYPES,
     macro_object,
@@ -1640,6 +1646,66 @@ function scriptProgram(reader: Reader, value: Json): ExpressionProgram {
     };
 }
 
+// An application of a macro's method to the initials, outside the figure.
+function application(
+    reader: Reader,
+    name: string | null,
+    index: number,
+    rank: number,
+    initials: (construction_object | string)[],
+): macro_object {
+    const { c, root, macros, images } = reader;
+    const macro = macros[index];
+    const method = macro.methods[rank];
+    const objects: construction_object[] = [];
+    const body = privateConstruction(c, objects);
+    const standIns = new Map<construction_object, construction_object>();
+    const local = initials.flatMap((initial, i) =>
+        typeof initial === "string"
+            ? [
+                  createExpression(
+                      body,
+                      null,
+                      "",
+                      null,
+                      null,
+                      null,
+                      [0, 0],
+                      null,
+                      scriptProgram(reader, initial),
+                  ),
+              ]
+            : initialSlots(body, method.initials[i][0], initial, standIns),
+    );
+    const slots = local.length;
+    readEntries(
+        {
+            c: body,
+            root,
+            macros: macros.slice(0, index),
+            images,
+            offset: [0, 0],
+        },
+        local,
+        method.body,
+        (style) => (style ?? {}) as Settings,
+    );
+    objects.forEach((object) => (object.C = root));
+    return new macro_object(
+        c,
+        name,
+        macro,
+        rank,
+        initials,
+        objects,
+        [...standIns.values()],
+        local,
+        method.finals.map((final) =>
+            lookTag(local[final], method.body[final - slots][0] as string),
+        ),
+    );
+}
+
 const BUILDERS: Record<string, Builder> = {
     Pt: (parameters, { c, name }) =>
         createPoint(c, name, coordinates(parameters)),
@@ -1843,7 +1909,11 @@ const BUILDERS: Record<string, Builder> = {
             name,
             source,
             (point) => new inversion_object(c, null, circle, point),
-            { circle, straight: straight === 1 },
+            {
+                look: imageLook(source, straight === 1),
+                pole: () => circle.CENTER,
+                mark: straight,
+            },
         );
     },
     TC: (parameters, { c, name, points }) => {
@@ -2379,75 +2449,100 @@ const BUILDERS: Record<string, Builder> = {
         return image;
     },
     Mac: (parameters, reader) => {
-        const { c, root, name, at, macros, images } = reader;
-        const [index, rank, values, branches] = list(parameters, 3, 4);
+        const { c, name, at, macros } = reader;
+        const [index, rank, values, extra] = list(parameters, 3, 4);
         check(Number.isInteger(index) && Number.isInteger(rank));
-        const macro = macros[index as number];
-        const method = macro?.methods[rank as number];
+        const method = macros[index as number]?.methods[rank as number];
         check(method !== undefined);
-        const initials = list(values, method.initials.length).map(
-            (value, i) => {
-                const [type] = method.initials[i];
-                if (type === "number" && typeof value === "string")
-                    return value;
-                const object = at(value, construction_object);
-                check(MACRO_TYPES[type](object));
-                return object;
-            },
+        const types = method.initials.map(([type]) => type);
+        const initials = list(values, types.length).map((value, i) =>
+            types[i] === "number" && typeof value === "string"
+                ? value
+                : at(value, construction_object),
         );
-        const objects: construction_object[] = [];
-        const body = privateConstruction(c, objects);
-        const standIns = new Map<construction_object, construction_object>();
-        const local = initials.flatMap((initial, i) =>
-            typeof initial === "string"
-                ? [
-                      createExpression(
-                          body,
-                          null,
-                          "",
-                          null,
-                          null,
-                          null,
-                          [0, 0],
-                          null,
-                          scriptProgram(reader, initial),
-                      ),
-                  ]
-                : initialSlots(body, method.initials[i][0], initial, standIns),
-        );
-        const slots = local.length;
-        readEntries(
-            {
-                c: body,
-                root,
-                macros: macros.slice(0, index as number),
-                images,
-                offset: [0, 0],
-            },
-            local,
-            method.body,
-            (style) => (style ?? {}) as Settings,
-        );
-        objects.forEach((object) => (object.C = root));
-        const node = c.add(
-            new macro_object(
+        const source = initials.at(-1)!;
+        initials
+            .slice(0, -1)
+            .forEach((initial, i) =>
+                check(
+                    typeof initial === "string" ||
+                        MACRO_TYPES[types[i]](initial),
+                ),
+            );
+        // A transformation macro's image of an object, of the look found
+        // when it was applied (see TRANSFORMATIONS.md).
+        if (
+            types.at(-1) === "point" &&
+            method.finals.length === 1 &&
+            typeof source !== "string" &&
+            !(source instanceof point_object)
+        ) {
+            check(
+                TRANSFORMABLE.some((type) => source instanceof type) &&
+                    !(source instanceof plane_object) &&
+                    imageLooks(source as transformable).includes(
+                        extra as string,
+                    ),
+            );
+            const template = new construction_object(c, null, "expression");
+            template.addParents(
+                ...initials.filter(
+                    (initial): initial is construction_object =>
+                        typeof initial !== "string",
+                ),
+            );
+            template.dgo = (context) => [
+                "Mac",
+                [
+                    index,
+                    rank,
+                    initials.map((initial) =>
+                        typeof initial === "string"
+                            ? initial
+                            : context.index(initial),
+                    ),
+                    extra,
+                ],
+            ];
+            return createTransformed(
                 c,
                 name,
-                macro,
+                source as transformable,
+                (point) => {
+                    const node = application(
+                        reader,
+                        null,
+                        index as number,
+                        rank as number,
+                        [...initials.slice(0, -1), point],
+                    );
+                    node.parents.forEach(
+                        (parent) =>
+                            (parent.children = parent.children.filter(
+                                (child) => child !== node,
+                            )),
+                    );
+                    check(node.finals[0] instanceof point_object);
+                    return new applied_point(c, node, point);
+                },
+                { look: extra as string, template },
+            );
+        }
+        check(
+            typeof source === "string"
+                ? types.at(-1) === "number"
+                : MACRO_TYPES[types.at(-1)!](source),
+        );
+        const node = c.add(
+            application(
+                reader,
+                name,
+                index as number,
                 rank as number,
                 initials,
-                objects,
-                [...standIns.values()],
-                local,
-                method.finals.map((final) =>
-                    lookTag(
-                        local[final],
-                        method.body[final - slots][0] as string,
-                    ),
-                ),
             ),
         );
-        if (branches !== undefined) setBranches(node, branches);
+        if (extra !== undefined) setBranches(node, extra);
         return node;
     },
     Out: (parameters, { c, name, at }) => {

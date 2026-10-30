@@ -1,6 +1,6 @@
 import type { construction } from "../construction";
 import { addDgoEntries, figureObjects, lookTag, objectStyle } from "../dgo";
-import { isCommand } from "./catalog";
+import { accepts, isCommand } from "./catalog";
 import { message } from "./messages";
 import { button_object } from "../objects/button_object";
 import { center_object } from "../objects/center_object";
@@ -28,6 +28,11 @@ import {
 } from "../objects/macro_object";
 import { panel_object } from "../objects/panel_object";
 import { point_object } from "../objects/point_object";
+import { polygon_object } from "../objects/polygon_object";
+import type { primitive_quadric_object } from "../objects/primitive_quadric_object";
+import { imageLook, type transformable } from "../objects/transformed_object";
+import { vAdd, vDot, vNorm, vNormalize, vScale, vSub, type Vec3 } from "../vec";
+import { figureIndex, imageStyle, nextName } from "./figure";
 import { semicircle_object } from "../objects/semicircle_object";
 
 // Defining a macro-construction from the figure: see MACROS.md.
@@ -302,14 +307,32 @@ const TAG_TYPES: Record<string, string> = Object.fromEntries(
 );
 
 // A final applied from a macro in the body is of the type of that macro's
-// own final.
+// own final, an image by a transformation of its object's, or of the look
+// saved (see TRANSFORMATIONS.md).
 function finalTypes(
     macros: Macro[],
     { body, finals, initials }: MacroMethod,
 ): string[] {
     const slots = slotCount(initials);
+    const slotTypes = initials.flatMap(([type]) => [
+        ...Array<string>(SUB_OBJECTS[type] ?? 0).fill("point"),
+        type,
+    ]);
+    const typeOf = (ref: unknown): string =>
+        Array.isArray(ref)
+            ? ref[0] === "side"
+                ? "segment"
+                : "point"
+            : typeAt(ref as number);
     const typeAt = (index: number): string => {
+        if (index < slots) return slotTypes[index];
         const [tag, , parameters] = body[index - slots];
+        const values = parameters as unknown[];
+        if (["Sym", "Refl", "Rot", "Dil", "Tra"].includes(tag as string))
+            return typeOf(values[1]);
+        if (tag === "Inv" && typeOf(values[1]) !== "point") return "Inv";
+        if (tag === "Mac" && typeof values[3] === "string")
+            return TAG_TYPES[values[3]] ?? values[3];
         if (tag !== "Out") return TAG_TYPES[tag as string] ?? (tag as string);
         const [node, rank] = parameters as number[];
         const [macro, method] = body[node - slots][2] as number[];
@@ -414,7 +437,34 @@ export type Picked = construction_object | string;
 const fits = (type: string, initial: Picked): boolean =>
     typeof initial === "string"
         ? type === "number"
-        : MACRO_TYPES[type](initial);
+        : type === "transformable"
+          ? accepts(initial, type)
+          : MACRO_TYPES[type](initial);
+
+// Whether the method maps a point, its last initial, to a point, its only
+// final: it then takes an object instead, whose image it gives (see
+// TRANSFORMATIONS.md).
+export const mapsPoints = (macros: Macro[], method: MacroMethod): boolean =>
+    method.initials.at(-1)![0] === "point" &&
+    method.finals.length === 1 &&
+    finalTypes(macros, method)[0] === "point";
+
+// Its initials, the last one of a method that maps points taking a point
+// or an object.
+const takenInitials = (
+    macros: Macro[],
+    method: MacroMethod,
+): MacroMethod["initials"] =>
+    mapsPoints(macros, method)
+        ? [
+              ...method.initials.slice(0, -1),
+              ["transformable", ...method.initials.at(-1)!.slice(1)] as [
+                  string,
+                  string,
+                  string?,
+              ],
+          ]
+        : method.initials;
 
 // Applying a macro, its initials designated one after the other: the
 // method they complete, if any, the type and message of what each method
@@ -425,11 +475,18 @@ export interface Designation {
     last: string[];
 }
 
-export function designation(macro: Macro, picked: Picked[]): Designation {
+export function designation(
+    macro: Macro,
+    picked: Picked[],
+    macros: Macro[],
+): Designation {
     const begun = macro.methods
-        .map((method, index) => ({ method, index }))
+        .map((method, index) => ({
+            initials: takenInitials(macros, method),
+            index,
+        }))
         .filter(
-            ({ method: { initials } }) =>
+            ({ initials }) =>
                 initials.length >= picked.length &&
                 picked.every((initial, rank) =>
                     fits(initials[rank][0], initial),
@@ -437,14 +494,14 @@ export function designation(macro: Macro, picked: Picked[]): Designation {
         );
     const after = (more: number) =>
         begun.filter(
-            ({ method }) => method.initials.length === picked.length + more,
+            ({ initials }) => initials.length === picked.length + more,
         );
     return {
         complete: after(0)[0]?.index ?? null,
-        next: begun.flatMap(({ method: { initials } }) =>
+        next: begun.flatMap(({ initials }) =>
             initials.length > picked.length ? [initials[picked.length]] : [],
         ),
-        last: after(1).map(({ method }) => method.initials[picked.length][0]),
+        last: after(1).map(({ initials }) => initials[picked.length][0]),
     };
 }
 
@@ -478,9 +535,14 @@ export function rememberFixed(next: Designation, initial: Picked): boolean {
 }
 
 // The rank of the first fixed initial designated, or -1.
-export const firstFixed = (macro: Macro, picked: Picked[]): number =>
+export const firstFixed = (
+    macro: Macro,
+    picked: Picked[],
+    macros: Macro[],
+): number =>
     picked.findIndex(
-        (_, rank) => !!fixedNext(designation(macro, picked.slice(0, rank))),
+        (_, rank) =>
+            !!fixedNext(designation(macro, picked.slice(0, rank), macros)),
     );
 
 // The initials designated, and after them the fixed ones the figure has,
@@ -493,7 +555,7 @@ export function withFixed(
 ): Picked[] {
     const filled = [...picked];
     for (;;) {
-        const next = designation(macro, filled);
+        const next = designation(macro, filled, c.macros);
         const key = fixedNext(next);
         if (!key) return filled;
         const object = [fixedObjects.get(key), key]
@@ -536,25 +598,35 @@ export function applyMacro(
         taken.add(name);
         return name;
     };
+    const refs = initials.map((initial) =>
+        typeof initial === "string"
+            ? initial
+            : objectIndex(initial, (owner) => objects.indexOf(owner)),
+    );
+    const source = initials.at(-1)!;
+    if (
+        typeof source !== "string" &&
+        !(source instanceof point_object) &&
+        mapsPoints(c.macros, macro.methods[method])
+    ) {
+        const look = imageVerdict(c, [index, method, refs], source);
+        const name = names?.[0] ?? prefix + nextName(c, look);
+        c.beginBatch();
+        addDgoEntries(
+            c,
+            [["Mac", name, [index, method, refs, look], 0]],
+            [imageStyle(source, look, figureIndex(c))],
+        );
+        c.endBatch();
+        return [c.getObj(name)!];
+    }
     const styles: unknown[] = [];
+    // Drawn once styled.
+    c.beginBatch();
     addDgoEntries(
         c,
         [
-            [
-                "Mac",
-                free("mac"),
-                [
-                    index,
-                    method,
-                    initials.map((initial) =>
-                        typeof initial === "string"
-                            ? initial
-                            : objectIndex(initial, (owner) =>
-                                  objects.indexOf(owner),
-                              ),
-                    ),
-                ],
-            ],
+            ["Mac", free("mac"), [index, method, refs]],
             ...macro.finals.flatMap((_, rank) => {
                 if (names?.[rank] === null) return [];
                 const style = finalStyle(macro.methods[method], rank);
@@ -568,7 +640,118 @@ export function applyMacro(
         ],
         styles,
     );
+    c.endBatch();
     return figureObjects(c).slice(objects.length + 1);
+}
+
+// The look of the image of the object by a macro that maps points, found
+// from the images of points of it, each the application of the method
+// `call`, saved with it (see TRANSFORMATIONS.md): straight, round, a
+// conic, or else the locus of the image of a point, for a polygon the
+// polygon of the images of points along its sides.
+export function imageVerdict(
+    c: construction,
+    call: unknown[],
+    source: construction_object,
+): string {
+    const trial = <T extends construction_object>(look: string): T => {
+        c.beginBatch();
+        addDgoEntries(
+            c,
+            [["Mac", "‧t", [...call, look], 0]],
+            [{ h: 1, p: 100 }],
+        );
+        c.endBatch();
+        const object = c.getObj("‧t") as T;
+        c.removeObject(object);
+        return object;
+    };
+    const images = (object: polygon_object | locus_object): Vec3[] =>
+        (object instanceof polygon_object
+            ? object.points.map((point) => point.defined && point.coords)
+            : object.points
+        ).filter((point): point is Vec3 => !!point);
+    const kind = source as transformable;
+    if (kind instanceof polygon_object) {
+        const sampled = trial<polygon_object>("Loc");
+        return sampled.defined &&
+            kind.vertices.every((_, side) =>
+                straight(images(sampled).slice(32 * side, 32 * side + 33)),
+            )
+            ? "Poly"
+            : "Loc";
+    }
+    if (imageLook(kind) === "Loc") return "Loc";
+    const points = images(trial<locus_object>("Loc"));
+    if (imageLook(kind) === "Quad") {
+        const conic = trial<primitive_quadric_object>("Quad");
+        return conic.defined &&
+            points.every((point) =>
+                near(point, conic.projectPoint(point), point),
+            )
+            ? "Quad"
+            : "Loc";
+    }
+    if (straight(points)) {
+        const look = imageLook(kind, true);
+        return look === "Loc" ? imageLook(kind) : look;
+    }
+    return round(points) ? imageLook(kind, false) : "Loc";
+}
+
+// Equal, up to rounding errors, at the scale of `at`.
+const near = (p: Vec3, q: Vec3, at: Vec3): boolean =>
+    vNorm(vSub(p, q)) <= 1e-6 * (1 + vNorm(at));
+
+// Whether the points are on a line.
+function straight(points: Vec3[]): boolean {
+    const [a] = points;
+    const far = points.reduce((best, point) =>
+        vNorm(vSub(point, a)) > vNorm(vSub(best, a)) ? point : best,
+    );
+    const u = vNormalize(vSub(far, a));
+    return (
+        points.length > 2 &&
+        !!u &&
+        points.every((point) =>
+            near(
+                point,
+                vAdd(a, vScale(u, vDot(vSub(point, a), u))),
+                vSub(point, a),
+            ),
+        )
+    );
+}
+
+// Whether the points are on a circle of the plane.
+function round(points: Vec3[]): boolean {
+    const n = points.length;
+    if (n < 4) return false;
+    const [[ax, ay], [bx, by], [cx, cy]] = [0, 1, 2].map(
+        (k) => points[Math.floor((k * n) / 3)],
+    );
+    const d = 2 * (ax * (by - cy) + bx * (cy - ay) + cx * (ay - by));
+    const square = (x: number, y: number) => x * x + y * y;
+    const center: Vec3 = [
+        (square(ax, ay) * (by - cy) +
+            square(bx, by) * (cy - ay) +
+            square(cx, cy) * (ay - by)) /
+            d,
+        (square(ax, ay) * (cx - bx) +
+            square(bx, by) * (ax - cx) +
+            square(cx, cy) * (bx - ax)) /
+            d,
+        0,
+    ];
+    const radius = Math.hypot(ax - center[0], ay - center[1]);
+    return (
+        Number.isFinite(radius) &&
+        points.every(
+            ([x, y, z]) =>
+                Math.abs(Math.hypot(x - center[0], y - center[1]) - radius) <=
+                    1e-6 * (1 + radius) && Math.abs(z - points[0][2]) <= 1e-9,
+        )
+    );
 }
 
 // The style a final, from 0, is applied with: that in the body.

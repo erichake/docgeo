@@ -257,3 +257,28 @@ export class macro_object extends construction_object {
         });
     }
 }
+
+// The final point of an application outside the figure, computed with it:
+// the image of a point by a transformation macro (see
+// transformed_object.ts).
+export class applied_point extends point_object {
+    moveable = false;
+
+    // Its parent is the point it maps, as the locus of its image needs.
+    constructor(
+        c: construction,
+        readonly node: macro_object,
+        point: point_object,
+    ) {
+        super(c, null, [0, 0, 0], "intersection");
+        this.addParents(point);
+    }
+
+    computeGeometry(): void {
+        this.node.computeGeometry();
+        const final = this.node.finals[0] as point_object;
+        final.computeGeometry();
+        this.defined = final.defined;
+        if (this.defined) this.coords = final.coords;
+    }
+}

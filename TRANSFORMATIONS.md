@@ -120,6 +120,28 @@ deux suivent les mêmes règles et la même interface.
   n'y sont jamais (à l'opposé de O, et à un quart de tour). Le verdict
   « droit » est enregistré (`[c, X, 1]`, décision 8).
 
+- Macros (étape 4) : une méthode « envoie des points »
+  (`mapsPoints`, `src/editor/macro.ts`) quand son dernier initial est un
+  point et son seul final un point (`finalTypes`, qui lit aussi les images
+  par transformation des corps). Son dernier initial prend alors un objet
+  (`transformable`, `takenInitials`), à l'outil, au clavier et dans
+  l'aperçu ; l'outil garde les autres initiaux après chaque application,
+  comme les outils de transformation. L'entrée `Mac` porte l'objet et le
+  verdict (`DGO.md`, « Image d'un objet »). Le moteur fait de chaque point
+  privé de l'image une application privée de la méthode (`application` de
+  `src/dgo.ts`, `applied_point` de `macro_object.ts`), détachée de la
+  figure, le gabarit de `createTransformed` donnant l'entrée.
+- Verdict (`imageVerdict`, éditeur), décision 7 : l'image d'essai en lieu
+  (100 points ; pour un polygone, celui des images de points de ses côtés)
+  dit si les images sont alignées (droite, segment, demi-droite, vecteur,
+  polygone à côtés droits), cocycliques (cercle, arc) ou, pour une conique,
+  sur la conique par cinq de leurs points ; sinon un lieu. Tolérance
+  relative 10⁻⁶. Une courbe de fonction, un lieu ou un arc de conique
+  donnent toujours un lieu.
+- Sans pôle connu (macro), les points d'une droite sont pris de part et
+  d'autre de son point P1, pas en P1, souvent un centre (celui d'une
+  inversion par exemple).
+
 ## Étapes
 
 1. Moteur : images par `Sym`, `Refl`, `Rot`, `Dil`, `Tra` des segments,
@@ -131,9 +153,7 @@ deux suivent les mêmes règles et la même interface.
 3. Coniques (transformation affine : conique par cinq points), repli en
    lieu (courbes de fonctions, lieux…), inversion des droites et des
    cercles. **Fait** (décision 8).
-4. Macros de transformation (entrée `Mac`, verdict enregistré). Aussi :
-   le type d'un final de macro qui est l'image d'un objet (`finalTypes`
-   de `src/editor/macro.ts` lit le type de l'entrée, `Refl`… : un point).
+4. Macros de transformation (entrée `Mac`, verdict enregistré). **Fait.**
 5. 3D (plans, polyèdres, sphères), point sur une image, puis le manuel
    après le feu vert de l'auteur.
 
@@ -215,3 +235,17 @@ Idées à garder, sans recopier le code :
   257,26 Ko (+0,31 Ko). Retiré à la demande de l'auteur le test instable
   « drags the independent knob of an inert DGPad expression »
   (`dgp_commands.test.ts`, glisser réel du navigateur).
+- 2026-10-30 : étape 4 (macros de transformation). Tests « reads images
+  of objects by transformation macros » (`dgo.test.ts`), « maps objects
+  by a macro that maps points, as found when applied » (`macros.test.ts`),
+  « keeps the initials of a macro that maps points »
+  (`tool_palette.test.ts`) et « maps objects by a reflection in a
+  hyperbolic line » (`macro_library.test.ts`, `SymétrieH` : arc
+  orthogonal au disque, triangle aux côtés courbes) ; la macro « Milieu » de `macro_define.test.ts`
+  prend désormais un segment en second initial. Moteur 380,44 → 381,54 Ko
+  (+1,10 Ko ; gzip 121,33 Ko) ; éditeur 257,26 → 260,01 Ko (+2,75 Ko).
+  Remarque de l'auteur (figure `SymDeSym.dgo`, macro « rond », composée
+  de deux symétries axiales) : le polygone image n'était pas rempli avant
+  un changement de son opacité. `applyMacro` ajoutait ses entrées hors
+  d'un lot (`beginBatch`), l'objet étant dessiné avant d'être stylé ; il
+  les ajoute désormais en lot, finaux ordinaires compris.

@@ -209,6 +209,7 @@ import {
     boxOf,
     completes,
     macroIndex,
+    mapsPoints,
     takesAt,
     designation,
     takesNext,
@@ -1465,7 +1466,8 @@ function showHint(text: string, error = false): void {
     }
     if (applying && text) {
         const { picked } = applying;
-        const fixed = picked[firstFixed(appliedMacro(), picked)];
+        const fixed =
+            picked[firstFixed(appliedMacro(), picked, scene().macros)];
         if (fixed && typeof fixed !== "string")
             hint.add(
                 changeFixed.text(
@@ -1952,11 +1954,16 @@ async function enterLine(
                 line.names
                     ?.map((name) => c.getObj(name)?.output?.node)
                     .find(Boolean)) as macro_object | undefined;
-            if (target && !node)
+            // The image of an object by a macro that maps points.
+            const image =
+                target && !node && entryOf(target, figureIndex(c))[0] === "Mac"
+                    ? target
+                    : undefined;
+            if (target && !node && !image)
                 throw new TextError("macro_taken", formatName(target.name));
-            const made = await applyMacroLine(studio, spec, node);
+            const made = await applyMacroLine(studio, spec, node, image);
             done(made[0]);
-            return !node;
+            return !node && !image;
         }
         // What the expression draws, the expression kept, hidden.
         const drawn = drawnFrom(line, target, as);
@@ -3268,7 +3275,10 @@ function openRing(hit: Hit, client: Vec2): void {
 // The figure's macros that may take the object first, by their index.
 const ringMacros = (object: construction_object): number[] =>
     scene().macros.flatMap((macro, index) =>
-        takesNext(designation(macro, withFixed(scene(), macro, [])), object)
+        takesNext(
+            designation(macro, withFixed(scene(), macro, []), scene().macros),
+            object,
+        )
             ? [index]
             : [],
     );
@@ -4290,14 +4300,15 @@ numberField.on(
 );
 
 const designated = (): Designation =>
-    designation(appliedMacro(), applying!.picked);
+    designation(appliedMacro(), applying!.picked, scene().macros);
 
 // Whether these objects, in this order, begin one of its methods, after
 // the fixed initials the figure has.
 function beginsMacro(macro: Macro, objects: construction_object[]): boolean {
     let picked = withFixed(scene(), macro, []);
     for (const object of objects) {
-        if (!takesNext(designation(macro, picked), object)) return false;
+        if (!takesNext(designation(macro, picked, scene().macros), object))
+            return false;
         picked = withFixed(scene(), macro, [...picked, object]);
     }
     return true;
@@ -4306,7 +4317,11 @@ function beginsMacro(macro: Macro, objects: construction_object[]): boolean {
 // What applying it asks first.
 function startHint(macro: Macro): string {
     const picked = withFixed(scene(), macro, []);
-    return applyHint(macro, designation(macro, picked), picked.length);
+    return applyHint(
+        macro,
+        designation(macro, picked, scene().macros),
+        picked.length,
+    );
 }
 
 // The fixed initials the figure has, after those designated.
@@ -4319,7 +4334,10 @@ function fillFixed(): void {
 const changeFixed = $.create("button").cls("dge-hint-text");
 changeFixed.on("click", () => {
     const { picked } = applying!;
-    applying!.picked = picked.slice(0, firstFixed(appliedMacro(), picked));
+    applying!.picked = picked.slice(
+        0,
+        firstFixed(appliedMacro(), picked, scene().macros),
+    );
     applying!.asking = true;
     clearPreview();
     showApply();
@@ -4392,7 +4410,11 @@ function pickInitial(initial: Picked): void {
     const { complete } = designated();
     if (complete === null) return showApply();
     applyMacro(c, appliedIndex(), complete, applying!.picked);
-    applying!.picked = [];
+    // One that maps points keeps what defines the transformation, as the
+    // tools do, and takes the next point or object.
+    applying!.picked = mapsPoints(c.macros, appliedMacro().methods[complete])
+        ? applying!.picked.slice(0, -1)
+        : [];
     applying!.applied = true;
     fillFixed();
     changed();
@@ -4412,7 +4434,7 @@ function showApply(): void {
         (initial, rank) =>
             initial !== undefined &&
             takesNext(
-                designation(macro, again.slice(0, rank) as Picked[]),
+                designation(macro, again.slice(0, rank) as Picked[], c.macros),
                 initial,
             ),
     )
@@ -4433,6 +4455,10 @@ function showApply(): void {
     showHint(restingHint());
 }
 
+// The types of the initials a point made where the pointer is can be: a
+// point, or one that a macro mapping points maps.
+const POINTS = ["point", "transformable"];
+
 // What the last initial would build, its point following the pointer.
 function previewMacro(screen: Vec2, hits: Hit[]): void {
     const next = designated();
@@ -4443,7 +4469,9 @@ function previewMacro(screen: Vec2, hits: Hit[]): void {
     const coords = freeCoords(screen);
     const candidate =
         hit?.object ??
-        (next.last.includes("point") && coords ? ("pointer" as const) : null);
+        (next.last.some((type) => POINTS.includes(type)) && coords
+            ? ("pointer" as const)
+            : null);
     if (!candidate) return clearPreview();
     const c = scene();
     if (preview?.candidate !== candidate) {
@@ -4459,7 +4487,7 @@ function previewMacro(screen: Vec2, hits: Hit[]): void {
         applyMacro(
             c,
             appliedIndex(),
-            designation(appliedMacro(), initials).complete!,
+            designation(appliedMacro(), initials, c.macros).complete!,
             initials,
             { prefix: "‧" },
         );
@@ -5811,7 +5839,7 @@ $("body").on(
                 return chooseHit(taken, client, ({ object }) =>
                     pickInitial(object),
                 );
-            if (next.next.some(([type]) => type === "point")) {
+            if (next.next.some(([type]) => POINTS.includes(type))) {
                 clearPreview();
                 designatePoint(screen, hits, client, pickInitial);
             }

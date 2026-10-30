@@ -776,6 +776,21 @@ Application (note 25 des objets) :
   corps.
   Un initial ou un intermédiaire indéfini rend indéfinis les finaux qui en
   dépendent.
+- **Image d'un objet** (ajoutée le 2026-10-30, voir
+  `TRANSFORMATIONS.md`) : une méthode qui envoie un point sur un point
+  (son dernier initial est un point, son seul final un point) prend à la
+  place de ce point un objet qu'une transformation prend (note 28 : pas
+  un plan). L'entrée `Mac` est alors l'image elle-même, sans `Out`, par
+  exemple `["Mac", "a", [1, 0, [5, 4], "Poly"]]` ; son quatrième
+  paramètre, à la place de `branches`, est la nature
+  trouvée par l'éditeur à l'application (droite, cercle, conique ou lieu),
+  enregistrée pour qu'une figure rouverte ailleurs garde la sienne : `Line`,
+  `Ray`, `Seg`, `Vec`, `Cir`, `Arc`, `Poly`, `Quad` ou `Loc`, parmi celles
+  que peut avoir l'image de cet objet (note 28) ; pour un polygone, `Poly`
+  (côtés droits, sur les images de ses sommets) ou `Loc` (le polygone des
+  images de 32 points de chacun de ses côtés). Chacun des points privés de
+  l'image est une application de la méthode, l'objet remplacé par ce point.
+  Son style par défaut est celui de cette nature.
 
 ### Bibliothèques de macros
 
