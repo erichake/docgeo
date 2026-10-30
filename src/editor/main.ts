@@ -1231,6 +1231,11 @@ function setPalette(on: boolean): void {
         .toggleClass("dge-palette-open", on);
     paletteButton.toggleClass("dge-on", on).att("aria-expanded", String(on));
     if (on) palette.refresh();
+    try {
+        localStorage.setItem(PALETTE_STORAGE, String(on));
+    } catch {
+        // Storage refused: keep the state for this page.
+    }
 }
 // Preserve the figure's screen coordinates while the panels fade over it.
 let narrowing = 0;
@@ -1332,6 +1337,7 @@ let choosing: {
 let ghosts: Set<construction_object> | null = null;
 let propertiesOpen = false;
 let paletteOpen = false;
+const PALETTE_STORAGE = "docgeo-palette-open";
 // The point whose magnets are being chosen, and the one whose reach is set.
 let magnetizing: {
     point: point_object;
@@ -6377,6 +6383,14 @@ async function embedInPage(): Promise<void> {
     cancel();
     framing.start();
 }
+
+let showPalette = true;
+try {
+    showPalette = localStorage.getItem(PALETTE_STORAGE) !== "false";
+} catch {
+    // Storage refused: use the initial default.
+}
+if (showPalette) setPalette(true);
 
 export const EDITOR_READY =
     !embedded && FIGURE_URL ? openPublished(FIGURE_URL) : newFigure();

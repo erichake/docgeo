@@ -68,6 +68,9 @@ process.exitCode = failed ? 1 : 0;
 
 async function open(path, lang) {
     const page = await browser.newPage({ viewport: VIEWPORT });
+    await page.addInitScript(() =>
+        localStorage.setItem("docgeo-palette-open", "false"),
+    );
     const separator = path.includes("?") ? "&" : "?";
     await page.goto(`${base}${path}${separator}lang=${lang}`);
     await page.waitForLoadState("networkidle");

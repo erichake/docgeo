@@ -468,6 +468,9 @@ géométriques et adaptée à la sélection de DocGeo.
   propriétés. Les deux s'ouvrent alternativement : ouvrir l'un ferme
   l'autre (et le panneau de définition d'une macro). Passer de l'un à
   l'autre ne lâche pas l'outil en main. À droite, on construit ou on règle.
+- **Ouverture mémorisée** (2026-10-30) : visible au premier lancement, puis
+  son état ouvert ou fermé est gardé dans le navigateur (`localStorage`,
+  `docgeo-palette-open`) et restauré au lancement suivant.
 - **La figure reste en construction** : palette ouverte, un clic dans le
   vide crée un point. Un clic sur un objet le choisit (il brille, la barre
   montre ses actions) **sans ouvrir d'anneau** (décidé avec l'auteur le
@@ -2456,6 +2459,12 @@ du menu des outils (capture `palette.webp`, décrite dans
 Affichage), les gestes (clic sur un objet, palette ouverte), la sélection
 multiple (palette, fantôme), les propriétés et les raccourcis (Échap).
 Contrôle du manuel passé dans les 12 langues.
+
+2026-10-30 : palette visible au premier lancement, puis ouverture mémorisée
+dans `localStorage` (`docgeo-palette-open`). Vérifié dans Chromium après
+rechargement et réouverture de la page, stockage autorisé ou refusé ;
+24 tests navigateur ciblés et contrôle du manuel dans les 12 langues passés.
+Éditeur : +142 octets (+94 en gzip) ; moteur et lecteur identiques.
 
 ### Pictogrammes de construction — 2026-10-29
 

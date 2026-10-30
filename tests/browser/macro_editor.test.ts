@@ -7,6 +7,8 @@ afterEach(() => cleanup.splice(0).forEach((dispose) => dispose()));
 
 // The editor in a frame, which loads and saves figures.
 async function editor() {
+    localStorage.setItem("docgeo-palette-open", "false");
+    cleanup.push(() => localStorage.removeItem("docgeo-palette-open"));
     const iframe = $.create("iframe")
         .att("src", "/editor.html?embed&lang=en")
         .stl("width:1100px;height:700px;border:0")

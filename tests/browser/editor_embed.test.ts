@@ -17,6 +17,8 @@ const cleanup: (() => void)[] = [];
 afterEach(() => cleanup.splice(0).forEach((dispose) => dispose()));
 
 async function host() {
+    localStorage.setItem("docgeo-palette-open", "false");
+    cleanup.push(() => localStorage.removeItem("docgeo-palette-open"));
     const iframe = $.create("iframe")
         .att("src", "/editor.html?embed&lang=en")
         .stl("width:900px;height:600px;border:0")
