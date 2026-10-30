@@ -73,7 +73,8 @@
             <ul>
                 <li>
                     Um clique num lugar vazio cria um ponto sobre o piso; pelo
-                    teclado, <code>S = (0, 0, 4)</code>.
+                    teclado,
+                    <code>S = (0, 0, 4)</code>.
                 </li>
                 <li>
                     A paleta ganha as famílias <strong>Planos</strong> e
@@ -165,7 +166,9 @@
                                 <code>Interseção(d, p)</code> ponto,
                                 <code>Interseção(p, q)</code> reta,
                                 <code>Interseção(s, t)</code> círculo de duas
-                                esferas
+                                esferas, <code>Interseção(d, s, n)</code> ponto
+                                (n = 1 ou 2) de uma reta e uma esfera, um
+                                cilindro ou um cone
                             </td>
                         </tr>
                         <tr>
@@ -194,6 +197,12 @@
                 <li>
                     A ferramenta <strong>Seção</strong> aceita o sólido e o
                     plano em qualquer ordem.
+                </li>
+                <li>
+                    A ferramenta <strong>Interseção</strong> aceita uma reta e
+                    uma esfera, um cilindro ou um cone, em qualquer ordem: cria
+                    os dois pontos em que a reta atravessa a superfície. Um
+                    clique perto de um deles cria só esse.
                 </li>
                 <li>
                     Um controle deslizante como segundo argumento de

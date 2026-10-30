@@ -249,6 +249,17 @@ export function accepts(arg: Arg, param: Param): boolean {
     }
 }
 
+// What the intersection tool takes: a curve, or a surface a line meets.
+export const crossable = (object: construction_object): boolean =>
+    accepts(object, "intersectable") || accepts(object, "surface");
+
+// Whether the editor makes the points where they meet: two curves, or a
+// line and a sphere, a cylinder or a cone.
+export const meet = (a: construction_object, b: construction_object) =>
+    (accepts(a, "intersectable") && accepts(b, "intersectable")) ||
+    (accepts(a, "line") && accepts(b, "surface")) ||
+    (accepts(a, "surface") && accepts(b, "line"));
+
 // What a formula reads by name (see READABLE in dgp_commands.ts).
 export const readable = (object: construction_object): boolean =>
     object instanceof curve_object ||
@@ -738,6 +749,29 @@ export const COMMANDS: Command[] = [
             },
             numbered(["curved", "intersectable", "number"]),
             numbered(["line", "curved", "number"]),
+            // Of a line and a sphere, a cylinder or a cone, of rank n from 1.
+            {
+                params: ["line", "surface", "number"],
+                tag: "CyI",
+                encode: ([line, surface, n], index) => [
+                    index(line as construction_object),
+                    index(surface as construction_object),
+                    (n as number) - 1,
+                ],
+                decode: (parameters, at) => {
+                    const [line, surface, order] = parameters as number[];
+                    return [at(line), at(surface), order + 1];
+                },
+            },
+            {
+                params: ["surface", "line", "number"],
+                tag: "CyI",
+                encode: ([surface, line, n], index) => [
+                    index(line as construction_object),
+                    index(surface as construction_object),
+                    (n as number) - 1,
+                ],
+            },
             objects("PlI", ["line", "plane"]),
             objects("PlPl", ["plane", "plane"]),
             objects("SphC", ["sphere", "sphere"]),

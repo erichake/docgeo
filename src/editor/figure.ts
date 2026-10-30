@@ -181,6 +181,8 @@ const POINT_TAGS = new Set([
     "Vtx",
     "Inv",
     "Int",
+    "PlI",
+    "CyI",
 ]);
 export const isPointTag = (tag: string): boolean => POINT_TAGS.has(tag);
 
@@ -527,6 +529,8 @@ export function resolve(
             if (!Number.isInteger(branch) || branch < 1 || branch > 4)
                 throw new TextError("branch");
         }
+        if (overload.tag === "CyI" && args[2] !== 1 && args[2] !== 2)
+            throw new TextError("surface_branch");
         if (
             overload.tag === "Tan" &&
             overload.params[2] === "number" &&

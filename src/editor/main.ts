@@ -47,11 +47,13 @@ import {
     accepts,
     commandName,
     commandsStarting,
+    crossable,
     findCommand,
     FormulaArg,
     FUNCTIONS,
     isCommand,
     mappedSlot,
+    meet,
     otherView,
     overloadFor,
     paramAt,
@@ -126,7 +128,7 @@ import {
     forgetBranches,
     meant,
     nearest,
-    nearestBranch,
+    meetings,
     pick as pickObjects,
     PICK_RADIUS,
     vertexOf,
@@ -2689,7 +2691,8 @@ function wantsPoint(hits: Hit[]): boolean {
         );
     }
     const field = editing();
-    if (!field) return !propertiesOpen && !ghosts && !magnetizing;
+    if (!field)
+        return !propertiesOpen && !ghosts && !magnetizing;
     const call = typedCall(field);
     return (
         expectsPoint(field, call) &&
@@ -2697,12 +2700,14 @@ function wantsPoint(hits: Hit[]): boolean {
     );
 }
 
+type Built = { overload: Overload; args: Arg[] };
+
 // Numbered, unless of two lines.
 function intersection(
     a: construction_object,
     b: construction_object,
     order: number,
-): { overload: Overload; args: Arg[] } {
+): Built {
     const args = [a, b, order + 1].slice(
         0,
         accepts(a, "line") && accepts(b, "line") ? 2 : 3,
@@ -2711,6 +2716,23 @@ function intersection(
         overload: overloadFor(findCommand("Intersection")!, args, vec3())!,
         args,
     };
+}
+
+// All their points, as GeoGebra's tool makes them: one of two lines, two of
+// a line or a circle and a line, a circle, a conic or a surface, those
+// found now, up to four, of conics or curves.
+function intersections(a: construction_object, b: construction_object) {
+    const both = [a, b];
+    const count = both.every((object) => accepts(object, "line"))
+        ? 1
+        : !both.some((object) => accepts(object, "graph")) &&
+            (both.some((object) => accepts(object, "line")) ||
+                both.every((object) => accepts(object, "circle")))
+          ? 2
+          : Math.max(1, meetings(scene(), a, b));
+    return Array.from({ length: count }, (_, order) =>
+        intersection(a, b, order),
+    );
 }
 
 // The point a designation there gives: the point under it, or a new one,
@@ -2802,8 +2824,17 @@ function describe(tool: Tool, args: (Arg | undefined)[]): string {
     const line = `${formatName(nextName(scene(), kind))} = ${commandName(tool.command)}(${shown.join(", ")})`;
     if (tool.mode === "point")
         return args.length ? line : `${line}\n${message("designate_place")}`;
-    if (tool.mode === "intersection")
-        return `${line}\n${message("designate_intersectable")}`;
+    if (tool.mode === "intersection") {
+        // A surface meets a line only.
+        const first = args[0] as construction_object | undefined;
+        const key =
+            first && accepts(first, "surface")
+                ? "designate_line"
+                : vec3() && (!first || accepts(first, "line"))
+                  ? "designate_crossable"
+                  : "designate_intersectable";
+        return `${line}\n${message(key)}`;
+    }
     if (tool.overload.variadic && args.length >= 3)
         return `${line}\n${message("polygon_end")}`;
     if (!tool.overload.variadic && !args.includes(undefined)) return line;
@@ -2833,7 +2864,9 @@ function rowTakes(object: construction_object): boolean {
     }
     const { tool, args } = pending!;
     if (tool.mode === "intersection")
-        return object !== args[0] && accepts(object, "intersectable");
+        return (
+            object !== args[0] && meet(args[0] as construction_object, object)
+        );
     return accepts(object, paramAt(tool.overload, nextSlot())!);
 }
 
@@ -3033,40 +3066,29 @@ function take(picked: Hit[]): void {
         prefixed: objects,
     };
     const built = builtFrom(tool, picked);
-    if (built) build(built.overload, built.args);
+    if (built) buildAll(built);
     else prompt();
 }
 
 // What the tool builds at once from the objects picked, when they are all
-// its arguments: an intersection where the second was picked, a polygon
-// closed from three vertices, a cube from two points.
-function builtFrom(
-    tool: Tool,
-    picked: Hit[],
-): { overload: Overload; args: Arg[] } | null {
-    const c = scene();
+// its arguments: the intersections of two objects, a polygon closed from
+// three vertices, a cube from two points.
+function builtFrom(tool: Tool, picked: Hit[]): Built[] | null {
     const objects = picked.map(({ object }) => object);
-    if (tool.mode === "intersection") {
-        if (!objects[1]) return null;
-        const [a, b] = objects;
-        return intersection(
-            a,
-            b,
-            nearestBranch(c, a, b, c.pt3D(picked[1].at))?.order ?? 0,
-        );
-    }
+    if (tool.mode === "intersection")
+        return objects[1] ? intersections(objects[0], objects[1]) : null;
     if (tool.mode !== "command") return null;
     const args = assign(tool, objects, defaultReal(tool.overload.tag))!;
     if (tool.overload.variadic)
         return args.length >= 3
-            ? { overload: tool.overload, args: args as Arg[] }
+            ? [{ overload: tool.overload, args: args as Arg[] }]
             : null;
-    return (
-        cubeOn(c, tool.overload, args) ??
+    const built =
+        cubeOn(scene(), tool.overload, args) ??
         (args.includes(undefined)
             ? null
-            : { overload: formOf(tool, args as Arg[]), args: args as Arg[] })
-    );
+            : { overload: formOf(tool, args as Arg[]), args: args as Arg[] });
+    return built && [built];
 }
 
 // Hovered, the item shows pale and nameless what it would build at once
@@ -3077,9 +3099,11 @@ function previewItem(item: Item): void {
     const tool = takes(item);
     const built = tool && picked[0] && builtFrom(tool, picked);
     if (!built) return;
-    const result = add(scene(), { name: "‧r", ...built });
-    ghostResult(result);
-    preview = { candidate: "tool", objects: [result], standIns: [] };
+    const results = built.map((spec, k) =>
+        add(scene(), { name: `‧r${k}`, ...spec }),
+    );
+    results.forEach(ghostResult);
+    preview = { candidate: "tool", objects: results, standIns: [] };
 }
 
 // Pale and nameless, a sphere's part behind the floor drawn outside the
@@ -3194,9 +3218,7 @@ function designateFirst(screen: Vec2, hits: Hit[], client: Vec2): void {
     if (mode === "intersection") {
         const cross = crossing(c, screen, hits);
         if (cross) return done(addCrossing(cross));
-        const curves = hits.filter(({ object }) =>
-            accepts(object, "intersectable"),
-        );
+        const curves = hits.filter(({ object }) => crossable(object));
         if (curves[0])
             chooseHit(curves, client, ({ object }) => {
                 pending!.args = [object];
@@ -4798,10 +4820,22 @@ const formOf = ({ command, overload }: Tool, args: Arg[]): Overload =>
     overload.tag ? overload : overloadFor(command, args, vec3())!;
 
 function build(overload: Overload, args: Arg[]): void {
+    buildAll([{ overload, args }]);
+}
+
+function buildAll(built: Built[]): void {
     clearPreview();
     const c = scene();
     done(
-        add(c, { name: nextName(c, builtTag(overload, args)), overload, args }),
+        built
+            .map(({ overload, args }) =>
+                add(c, {
+                    name: nextName(c, builtTag(overload, args)),
+                    overload,
+                    args,
+                }),
+            )
+            .at(-1),
     );
 }
 
@@ -4820,18 +4854,12 @@ function designate(screen: Vec2, hits: Hit[], client: Vec2): void {
     if (tool.mode === "intersection") {
         const first = args[0] as construction_object;
         const curves = hits.filter(
-            ({ object }) =>
-                object !== first && accepts(object, "intersectable"),
+            ({ object }) => object !== first && meet(first, object),
         );
         if (!curves[0]) return;
-        return chooseHit(curves, client, ({ object }) => {
-            const { overload, args: found } = intersection(
-                first,
-                object,
-                nearestBranch(scene(), first, object, screen)?.order ?? 0,
-            );
-            build(overload, found);
-        });
+        return chooseHit(curves, client, ({ object }) =>
+            buildAll(intersections(first, object)),
+        );
     }
     const overload = tool.overload;
     const param = paramAt(overload, nextSlot())!;
@@ -4863,8 +4891,7 @@ function designateNext(arg: construction_object): void {
     proceed();
 }
 
-// Designated in its row, the object takes no place: an intersection of two
-// curves is their first.
+// Designated in its row, the object takes no place.
 function designateRow(object: construction_object): void {
     clearPreview();
     if (fresh()) {
@@ -4876,8 +4903,7 @@ function designateRow(object: construction_object): void {
     }
     const { tool, args } = pending!;
     if (tool.mode !== "intersection") return designateNext(object);
-    const found = intersection(args[0] as construction_object, object, 0);
-    build(found.overload, found.args);
+    buildAll(intersections(args[0] as construction_object, object));
 }
 
 function clearPreview(): void {

@@ -1764,7 +1764,9 @@ Fait (2026-10-11) :
   pour un point libre, `nom =` supprime ; noms non identifiants entre
   accents graves ; nombres arrondis à 4 décimales à l'affichage.
   Intersection : `Intersection(a, b)` pour deux droites, sinon
-  `Intersection(a, b, n)` (n de 1 à 4) ; `AutreIntersection(a, b, P)`,
+  `Intersection(a, b, n)` (n de 1 à 4, de 1 à 2 pour une droite et une
+  sphère, un cylindre ou un cône, dans les deux ordres, entrée `CyI`) ;
+  `AutreIntersection(a, b, P)`,
   la plus éloignée de P (l'ordre de l'entrée `.dgo`, qui ne sert que si P
   n'est pas défini, est remis à 0 par une redéfinition).
   Point sur objet : `Point(objet, t)`, ou `Point(objet, a, b)` sur un
@@ -1884,6 +1886,21 @@ Fait (2026-10-11) :
   crée alors l'intersection sans ouvrir d'anneau. Les intersections des
   paires survolées sont gardées tant que la figure ne change pas.
   Éditeur : 60,5 Ko, CSS inclus (22,1 Ko en gzip) ; lecteur inchangé.
+
+- Droite et sphère, cylindre ou cône (2026-10-30) : `Intersection(d, s, n)`
+  (n = 1 ou 2, dans les deux ordres, entrée `CyI`), au clavier comme au
+  geste : l'outil « Intersection », le survol et le croisement d'un clic
+  prennent une droite et une surface (`crossable`, `meet` du catalogue).
+  Deux surfaces, une surface et une courbe ne se croisent pas en points.
+  Comme dans GeoGebra (décidé avec l'auteur le même jour), deux objets
+  désignés l'un après l'autre (figure, panneau ou sélection) donnent
+  tous leurs points d'un coup (`intersections`) : un de deux droites,
+  deux d'une droite ou d'un cercle avec une droite, un cercle, une
+  conique ou une surface, même non définis ; de coniques ou de courbes,
+  ceux trouvés à la création (au moins un, au plus quatre). Un clic sur
+  un croisement n'en crée qu'un. La consigne de l'outil, en 3D, nomme
+  les surfaces, puis demande une droite après une surface.
+  Éditeur +1 Ko (+0,26 Ko en gzip) ; moteur et lecteur inchangés.
 
 - Actions sur l'objet sélectionné (2026-10-12, section du même nom) :
   corbeille et « Réglages » quittent l'anneau pour une zone contextuelle

@@ -7,6 +7,8 @@ import {
     accepts,
     commandName,
     COMMANDS,
+    crossable,
+    meet,
     otherView,
     type Arg,
     type Command,
@@ -492,7 +494,7 @@ export function toolsFor(
         if (mode === "point") return accepts(object, "support");
         if (mode === "turtle" || mode === "event") return answers(tool, object);
         if (mode === "macros") return true;
-        if (mode === "intersection") return accepts(object, "intersectable");
+        if (mode === "intersection") return crossable(object);
         // A radius is given by the tool, not designated.
         return overload.params.some(
             (param) => param !== "real" && accepts(object, param),
@@ -554,7 +556,8 @@ export function assign(
             : null;
     if (mode === "intersection")
         return objects.length <= 2 &&
-            objects.every((object) => accepts(object, "intersectable"))
+            objects.every(crossable) &&
+            (!objects[1] || meet(objects[0], objects[1]))
             ? [...objects]
             : null;
     if (overload.tag === "Loc") {

@@ -72,7 +72,8 @@
             <ul>
                 <li>
                     A click on an empty spot creates a point on the floor; with
-                    the keyboard, <code>S = (0, 0, 4)</code>.
+                    the keyboard,
+                    <code>S = (0, 0, 4)</code>.
                 </li>
                 <li>
                     The palette gains the <strong>Planes</strong> and
@@ -164,7 +165,10 @@
                                 <code>Intersection(d, p)</code> point,
                                 <code>Intersection(p, q)</code> line,
                                 <code>Intersection(s, t)</code> circle of two
-                                spheres
+                                spheres,
+                                <code>Intersection(d, s, n)</code> point (n = 1
+                                or 2) of a line and a sphere, a cylinder or a
+                                cone
                             </td>
                         </tr>
                         <tr>
@@ -193,6 +197,12 @@
                 <li>
                     The <strong>Section</strong> tool takes the solid and the
                     plane in any order.
+                </li>
+                <li>
+                    The <strong>Intersection</strong> tool takes a line and a
+                    sphere, a cylinder or a cone, in any order: it creates the
+                    two points where the line pierces the surface. A click near
+                    one of them creates only that one.
                 </li>
                 <li>
                     A slider as the second argument of <code>Net</code> animates

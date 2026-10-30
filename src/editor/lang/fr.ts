@@ -15,6 +15,7 @@ const fr: Texts = {
         instead: "Avec ces arguments : %",
         branch: "Le numéro d'intersection va de 1 à 4",
         tangent_branch: "Le numéro de tangente vaut 1 ou 2",
+        surface_branch: "Le numéro d'intersection vaut 1 ou 2",
         name_taken: "Le nom % est déjà pris",
         cycle: "Un objet ne peut dépendre de lui-même",
         read_only: "Cet objet ne s'écrit pas encore en texte",
@@ -328,6 +329,8 @@ const fr: Texts = {
         designate_tangible: "Désignez un cercle ou une conique",
         designate_graph: "Désignez la courbe d'une fonction",
         designate_circle: "Désignez un cercle",
+        designate_crossable:
+            "Désignez une droite, un cercle, une conique, une courbe, une sphère, un cylindre ou un cône",
         designate_intersectable:
             "Désignez une droite, un cercle, une conique ou une courbe",
         designate_curved: "Désignez un cercle, une conique ou une courbe",

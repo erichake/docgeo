@@ -96,10 +96,10 @@
                     Construction » : les lignes des objets que l’outil accepte y
                     sont surlignées en vert, les autres pâlies. Un objet caché
                     s’y désigne aussi. Un point ne s’y désigne que s’il existe
-                    déjà, et l’intersection de deux courbes y est la première.
-                    Tant que l’outil est en main, un clic sur une ligne ne la
-                    modifie pas. Une ligne déjà désignée passe en bleu, avec sa
-                    place dans la commande (1, 2…).
+                    déjà, et deux objets y donnent tous leurs points
+                    d’intersection. Tant que l’outil est en main, un clic sur
+                    une ligne ne la modifie pas. Une ligne déjà désignée passe
+                    en bleu, avec sa place dans la commande (1, 2…).
                 </li>
                 <li>
                     L’outil est <strong>persistant</strong> : après chaque
@@ -197,8 +197,11 @@
                                     >anneau</span
                                 ></strong
                             ><span
-                                >Un croisement d’un seul toucher, ou les deux
-                                objets l’un après l’autre.</span
+                                >Un croisement d’un seul toucher : ce point ; ou
+                                les deux objets l’un après l’autre : tous leurs
+                                points d’intersection, comme dans GeoGebra (deux
+                                d’une droite et d’un cercle, même s’ils ne se
+                                coupent pas encore).</span
                             ><span><code>Intersection(a, b)</code></span>
                         </div>
                     </li>

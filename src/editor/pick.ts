@@ -2,6 +2,7 @@ import { AWAKE, type construction } from "../construction";
 import { figureObjects } from "../dgo";
 import { angle_object, RIGHT_ANGLE_TOLERANCE } from "../objects/angle_object";
 import type { construction_object } from "../objects/construction_object";
+import { cylinder_intersection_object } from "../objects/cylinder_intersection_object";
 import { intersection_object } from "../objects/intersection_object";
 import { curve_object } from "../objects/curve_object";
 import { fixed_angle_object } from "../objects/fixed_angle_object";
@@ -22,7 +23,7 @@ import { polyhedron_object } from "../objects/polyhedron_object";
 import type { revolution_object } from "../objects/revolution_object";
 import { two_points_line_object } from "../objects/two_points_line_object";
 import { projectPointOnLine, projectPointOnPlane } from "../projection";
-import { accepts } from "./catalog";
+import { accepts, crossable, meet } from "./catalog";
 import {
     vAdd,
     vDot,
@@ -363,25 +364,45 @@ function branches(
 ): (Vec3 | null)[] {
     const known = branchMemo.find((memo) => memo.a === a && memo.b === b);
     if (known) return known.points;
-    const points = ([0, 1, 2, 3] as const).map((order) => {
-        const point = new intersection_object(
-            c,
-            "‧i",
-            a as never,
-            b as never,
-            order,
-        );
-        // Without a view to make and unmake, as hundreds may be per move.
-        point.hidden = 1;
-        c.add(point);
-        const coords =
-            point.defined && point.projectionDefined ? point.coords : null;
-        c.removeObject(point);
-        return coords;
-    });
+    // A line meets a surface twice.
+    const [line, surface] = accepts(a, "surface") ? [b, a] : [a, b];
+    const solid = accepts(surface, "surface");
+    const points = ([0, 1, 2, 3] as const)
+        .slice(0, solid ? 2 : 4)
+        .map((order) => {
+            const point = solid
+                ? new cylinder_intersection_object(
+                      c,
+                      "‧i",
+                      line as never,
+                      surface as never,
+                      order as 0 | 1,
+                  )
+                : new intersection_object(
+                      c,
+                      "‧i",
+                      a as never,
+                      b as never,
+                      order,
+                  );
+            // Without a view to make and unmake, as hundreds may be per move.
+            point.hidden = 1;
+            c.add(point);
+            const coords =
+                point.defined && point.projectionDefined ? point.coords : null;
+            c.removeObject(point);
+            return coords;
+        });
     branchMemo.push({ a, b, points });
     return points;
 }
+
+// How many points they meet at now.
+export const meetings = (
+    c: construction,
+    a: construction_object,
+    b: construction_object,
+): number => branches(c, a, b).filter(Boolean).length;
 
 // The branch of their intersection nearest to `screen`, if near enough.
 export function nearestBranch(
@@ -415,12 +436,11 @@ export function crossing(
     hits: Hit[],
 ): Crossing | null {
     if (hits[0]?.object instanceof point_object) return null;
-    const curves = hits
-        .map(({ object }) => object)
-        .filter((object) => accepts(object, "intersectable"));
+    const curves = hits.map(({ object }) => object).filter(crossable);
     let best: Crossing | null = null;
     curves.forEach((a, index) =>
         curves.slice(index + 1).forEach((b) => {
+            if (!meet(a, b)) return;
             const branch = nearestBranch(c, a, b, screen);
             if (branch && (!best || branch.distance < best.distance))
                 best = { a, b, ...branch };

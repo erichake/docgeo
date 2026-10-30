@@ -15,6 +15,7 @@ const de: Texts = {
         instead: "Mit diesen Argumenten: %",
         branch: "Die Nummer des Schnittpunkts geht von 1 bis 4",
         tangent_branch: "Die Nummer der Tangente ist 1 oder 2",
+        surface_branch: "Die Nummer des Schnittpunkts ist 1 oder 2",
         name_taken: "Der Name % ist bereits vergeben",
         cycle: "Ein Objekt kann nicht von sich selbst abhängen",
         read_only: "Dieses Objekt lässt sich noch nicht als Text schreiben",
@@ -335,6 +336,8 @@ const de: Texts = {
         designate_tangible: "Wählen Sie einen Kreis oder einen Kegelschnitt",
         designate_graph: "Wählen Sie den Graphen einer Funktion",
         designate_circle: "Wählen Sie einen Kreis",
+        designate_crossable:
+            "Wählen Sie eine Gerade, einen Kreis, einen Kegelschnitt, eine Kurve, eine Kugel, einen Zylinder oder einen Kegel",
         designate_intersectable:
             "Wählen Sie eine Gerade, einen Kreis, einen Kegelschnitt oder eine Kurve",
         designate_curved:

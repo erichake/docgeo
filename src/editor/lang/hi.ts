@@ -15,6 +15,7 @@ const hi: Texts = {
         instead: "इन आर्गुमेंट के साथ: %",
         branch: "प्रतिच्छेद संख्या 1 से 4 तक होती है",
         tangent_branch: "स्पर्शरेखा की संख्या 1 या 2 है",
+        surface_branch: "प्रतिच्छेदन की संख्या 1 या 2 है",
         name_taken: "नाम % पहले से उपयोग में है",
         cycle: "कोई ऑब्जेक्ट स्वयं पर निर्भर नहीं हो सकता",
         read_only: "इस ऑब्जेक्ट को अभी पाठ के रूप में नहीं लिखा जा सकता",
@@ -330,6 +331,8 @@ const hi: Texts = {
         designate_tangible: "एक वृत्त या शांकव चुनें",
         designate_graph: "किसी फलन का वक्र चुनें",
         designate_circle: "एक वृत्त चुनें",
+        designate_crossable:
+            "एक रेखा, वृत्त, शांकव, वक्र, गोला, बेलन या शंकु चुनें",
         designate_intersectable: "एक रेखा, वृत्त, शांकव या वक्र चुनें",
         designate_curved: "एक वृत्त, शांकव या वक्र चुनें",
         designate_support: "एक ऑब्जेक्ट चुनें",

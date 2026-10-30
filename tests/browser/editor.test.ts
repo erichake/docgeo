@@ -729,6 +729,9 @@ describe("Editor", () => {
             "b = Sphere(E, 1)",
             "S = Sphere(A, B)",
             "k = Intersection(b, S)",
+            "G = Intersection(d, S, 1)",
+            "H = Intersection(d, S, 2)",
+            "I = Intersection(d, p)",
             "l = Section(b, t)",
             "c = Cylinder(A, D, 1)",
             "m = Section(c, t)",
@@ -747,6 +750,16 @@ describe("Editor", () => {
         readDgo(other, await describeDgo(c));
         expect(lines(other)).toEqual(text);
         expectClose((c.getObj("F") as point_object).coords, [0, 0, 3]);
+        expectClose(
+            ["G", "H"]
+                .map((name) => (c.getObj(name) as point_object).coords[2])
+                .sort(),
+            [-2, 2],
+        );
+        // A line meets a sphere at its first or second point only.
+        expect(() =>
+            resolve(c, parseLine("J = Intersection(d, S, 3)", isCommand)),
+        ).toThrow(expect.objectContaining({ key: "surface_branch" }));
         // Around a line, orthogonal to a plane, of axis d through E.
         const circle = (name: string) => {
             const { CENTER, R, NORMAL } = c.getObj(name) as circle1_object;
@@ -852,6 +865,7 @@ describe("Editor", () => {
         ].forEach((line) => type(c, line));
         const reversed = [
             ["F = Intersection(p, d)", "F = Intersection(d, p)"],
+            ["G = Intersection(e, d, 1)", "G = Intersection(d, e, 1)"],
             ["l = Section(p, b)", "l = Section(b, p)"],
             ["m = Section(p, e)", "m = Section(e, p)"],
             ["o = Section(p, a)", "o = Section(a, p)"],
@@ -1713,6 +1727,33 @@ describe("Editor", () => {
         // Near (-4, 0), on a and d.
         expect(crossed([243, 304])).toEqual(["a", "d"]);
         expect(crossed([300, 380])).toBeNull();
+    });
+
+    it("finds where a line meets a sphere, a click near it making the point", () => {
+        const { scene: c } = studio(true);
+        [
+            "A = (0, 0, 0)",
+            "C = (-3, 0, 1)",
+            "D = (3, 0, 1)",
+            "s = Sphere(A, 2)",
+            "d = Line(C, D)",
+        ].forEach((line) => type(c, line));
+        c.flush();
+        const top: Vec3 = [Math.sqrt(3), 0, 1];
+        const screen = c.pt3D(top) as [number, number];
+        const found = crossing(c, screen, pick(c, screen))!;
+        expect([found.a.name, found.b.name].sort()).toEqual(["d", "s"]);
+        const args = [found.a, found.b, found.order + 1];
+        const point = add(c, {
+            name: "E",
+            overload: overloadFor(findCommand("Intersection")!, args, true)!,
+            args,
+        }) as point_object;
+        c.flush();
+        expectClose(point.coords, top);
+        expect(lines(c).at(-1)).toMatch(
+            /^E = Intersection\((d, s|s, d), [12]\)$/,
+        );
     });
 
     it("erases as DGPad, its hidden objects shown pale", async () => {

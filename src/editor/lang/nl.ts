@@ -15,6 +15,7 @@ const nl: Texts = {
         instead: "Met deze argumenten: %",
         branch: "Het nummer van het snijpunt gaat van 1 tot 4",
         tangent_branch: "Het nummer van de raaklijn is 1 of 2",
+        surface_branch: "Het nummer van het snijpunt is 1 of 2",
         name_taken: "De naam % is al in gebruik",
         cycle: "Een object kan niet van zichzelf afhangen",
         read_only: "Dit object kan nog niet als tekst worden geschreven",
@@ -332,6 +333,8 @@ const nl: Texts = {
         designate_tangible: "Selecteer een cirkel of een kegelsnede",
         designate_graph: "Selecteer de grafiek van een functie",
         designate_circle: "Selecteer een cirkel",
+        designate_crossable:
+            "Selecteer een rechte, een cirkel, een kegelsnede, een kromme, een bol, een cilinder of een kegel",
         designate_intersectable:
             "Selecteer een rechte, een cirkel, een kegelsnede of een kromme",
         designate_curved: "Selecteer een cirkel, een kegelsnede of een kromme",

@@ -15,6 +15,7 @@ const es: Texts = {
         instead: "Con estos argumentos: %",
         branch: "El número de intersección va de 1 a 4",
         tangent_branch: "El número de la tangente es 1 o 2",
+        surface_branch: "El número de la intersección es 1 o 2",
         name_taken: "El nombre % ya está en uso",
         cycle: "Un objeto no puede depender de sí mismo",
         read_only: "Este objeto aún no se puede escribir como texto",
@@ -329,6 +330,8 @@ const es: Texts = {
         designate_tangible: "Selecciona una circunferencia o una cónica",
         designate_graph: "Selecciona la gráfica de una función",
         designate_circle: "Selecciona una circunferencia",
+        designate_crossable:
+            "Selecciona una recta, una circunferencia, una cónica, una curva, una esfera, un cilindro o un cono",
         designate_intersectable:
             "Selecciona una recta, una circunferencia, una cónica o una curva",
         designate_curved:

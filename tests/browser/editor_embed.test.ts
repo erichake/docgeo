@@ -287,6 +287,54 @@ describe("embedded editor", () => {
         await expect.poll(() => floor.getAttribute("d")).toBe(original);
     });
 
+    it("makes all the intersections of two objects designated with the tool, as GeoGebra", async () => {
+        const { iframe, request } = await host();
+        iframe.style.transform = "scale(.4)";
+        iframe.style.transformOrigin = "0 0";
+        await request("load", {
+            data: encoded({
+                dgo: 1,
+                v: { o: [450, 300], u: 40, w: 900, h: 600 },
+                o: [
+                    ["Pt", "A", [-6, 0]],
+                    ["Pt", "B", [-5, 0]],
+                    ["Pt", "D", [0, 3]],
+                    ["Pt", "E", [0, -2]],
+                    ["Line", "a", [0, 1]],
+                    ["Cir", "c", [2, 3]],
+                ],
+            }),
+            format: "dgo",
+        });
+        const page = iframe.contentDocument!;
+        const box = page
+            .querySelector("body > svg:has([data-layer])")!
+            .getBoundingClientRect();
+        const { o, u } = (await decoded((await request("save")).result.data)).v;
+        const at = (x: number, y: number): [number, number] => [
+            box.x + o[0] + u * x,
+            box.y + o[1] - u * y,
+        ];
+        await commands.drag("iframe", at(1, 0), at(1, 0), false);
+        const tool = page
+            .querySelector('.dge-ring button[aria-label="Intersection"]')!
+            .getBoundingClientRect();
+        const center: [number, number] = [
+            tool.x + tool.width / 2,
+            tool.y + tool.height / 2,
+        ];
+        await commands.drag("iframe", center, center, false);
+        await commands.drag("iframe", at(-5, 3), at(-5, 3), false);
+        await expect
+            .poll(async () =>
+                (await decoded((await request("save")).result.data)).o.slice(6),
+            )
+            .toEqual([
+                ["Int", "C", [4, 5, 0], 0],
+                ["Int", "F", [4, 5, 1], 0],
+            ]);
+    });
+
     it("saves complete constructions and clears history when switching copies", async () => {
         const { iframe, request } = await host();
         expect(

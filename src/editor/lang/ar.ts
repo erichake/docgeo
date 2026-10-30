@@ -15,6 +15,7 @@ const ar: Texts = {
         instead: "بهذه الوسائط: %",
         branch: "رقم التقاطع من 1 إلى 4",
         tangent_branch: "رقم المماس 1 أو 2",
+        surface_branch: "رقم التقاطع 1 أو 2",
         name_taken: "الاسم % مستخدم بالفعل",
         cycle: "لا يمكن لعنصر أن يعتمد على نفسه",
         read_only: "لا يمكن كتابة هذا العنصر نصًا بعد",
@@ -320,6 +321,8 @@ const ar: Texts = {
         designate_tangible: "حدّد دائرة أو قطعًا مخروطيًا",
         designate_graph: "حدّد منحنى دالة",
         designate_circle: "حدّد دائرة",
+        designate_crossable:
+            "حدّد مستقيمًا أو دائرة أو قطعًا مخروطيًا أو منحنى أو كرة أو أسطوانة أو مخروطًا",
         designate_intersectable:
             "حدّد مستقيمًا أو دائرة أو قطعًا مخروطيًا أو منحنى",
         designate_curved: "حدّد دائرة أو قطعًا مخروطيًا أو منحنى",

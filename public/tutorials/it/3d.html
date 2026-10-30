@@ -74,7 +74,8 @@
             <ul>
                 <li>
                     Un clic in uno spazio vuoto crea un punto sul pavimento; da
-                    tastiera, <code>S = (0, 0, 4)</code>.
+                    tastiera,
+                    <code>S = (0, 0, 4)</code>.
                 </li>
                 <li>
                     La tavolozza acquisisce le famiglie <strong>Piani</strong> e
@@ -166,7 +167,10 @@
                                 <code>Intersezione(d, p)</code> punto,
                                 <code>Intersezione(p, q)</code> retta,
                                 <code>Intersezione(s, t)</code> circonferenza di
-                                due sfere
+                                due sfere,
+                                <code>Intersezione(d, s, n)</code> punto (n = 1
+                                o 2) di una retta e una sfera, un cilindro o un
+                                cono
                             </td>
                         </tr>
                         <tr>
@@ -198,6 +202,12 @@
                 <li>
                     Lo strumento <strong>Sezione</strong> prende il solido e il
                     piano in qualsiasi ordine.
+                </li>
+                <li>
+                    Lo strumento <strong>Intersezione</strong> prende una retta
+                    e una sfera, un cilindro o un cono, in qualsiasi ordine:
+                    crea i due punti in cui la retta attraversa la superficie.
+                    Un clic vicino a uno di essi crea solo quello.
                 </li>
                 <li>
                     Uno slider come secondo argomento di

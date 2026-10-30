@@ -14,6 +14,7 @@ export default {
     instead: "With these arguments: %",
     branch: "The intersection number goes from 1 to 4",
     tangent_branch: "The tangent's number is 1 or 2",
+    surface_branch: "The intersection number is 1 or 2",
     name_taken: "The name % is taken",
     cycle: "An object can't depend on itself",
     read_only: "This object has no text form yet",
@@ -324,6 +325,8 @@ export default {
     designate_tangible: "Designate a circle or a conic",
     designate_graph: "Designate a function's curve",
     designate_circle: "Designate a circle",
+    designate_crossable:
+        "Designate a line, a circle, a conic, a curve, a sphere, a cylinder or a cone",
     designate_intersectable: "Designate a line, a circle, a conic or a curve",
     designate_curved: "Designate a circle, a conic or a curve",
     designate_support: "Designate an object",
