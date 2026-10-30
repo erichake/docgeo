@@ -261,7 +261,7 @@ la figure, autour de la verticale de O dans l'espace, sa hauteur gardée),
 | `Rot`   | P tourné autour de O                   | `[O, P, a]`, `[O, P, a, d]` (15, 28)            |
 | `Dil`   | image de P par l'homothétie (O, k)     | `[O, P, k]` (15, 28)                            |
 | `Tra`   | P translaté du vecteur u               | `[u, P]` (15, 28)                               |
-| `Inv`   | inverse de P dans le cercle c          | `[c, P]`                                        |
+| `Inv`   | inverse de P dans le cercle c          | `[c, P]` (28)                                   |
 | `TC`    | centre du triangle ABC                 | `[A, B, C, n]` (18)                             |
 | `Vtx`   | sommet k d'un polygone ou polyèdre     | `[polygone ou polyèdre, k]` (18)                |
 | `Ctr`   | centre d'un cercle                     | `[cercle]`                                      |
@@ -578,15 +578,24 @@ alignement]]` police, `[30, url, l, h, zoom, opacité, u]` image (largeur
     au-delà de l'arc, comme sur un arc de cercle. Le paramètre d'un point sur
     l'arc d'ellipse est celui de c.
 28. À la place du point P, un objet (ajouté le 2026-10-30, voir
-    `TRANSFORMATIONS.md`) : son image, de même nature, construite sur les
-    images de ses points (non enregistrées). Segment, vecteur, demi-droite
-    et polygone : les images de ses extrémités ou de ses sommets ; droite :
-    celles de son point et de ce point plus son vecteur directeur ; cercle :
-    le cercle passant par les images de trois de ses points ; arc ou
-    secteur : celui qui passe par les images de ses extrémités et de son
-    milieu, parcouru dans le sens qu'elles donnent. Son style par défaut
-    est celui de sa nature (`Seg`, `Vec`, `Ray`, `Line`, `Poly`, `Cir`,
-    `Arc`).
+    `TRANSFORMATIONS.md`) : son image, construite sur les images de ses
+    points (non enregistrées). Par `Sym`, `Refl`, `Rot`, `Dil` et `Tra`,
+    de même nature : segment, vecteur, demi-droite et polygone (pas un
+    plan), sur les images de ses extrémités ou de ses sommets ; droite,
+    de son point et de ce point plus son vecteur directeur ; cercle, le
+    cercle passant par les images de trois de ses points ; arc ou secteur,
+    celui qui passe par les images de ses extrémités et de son milieu,
+    parcouru dans le sens qu'elles donnent ; conique (pas un arc de
+    conique), la conique passant par les images de cinq de ses points. Par
+    `Inv` (`[c, X]`, `[c, X, 1]`) : une droite, un cercle, un segment ou
+    un arc donnent un cercle, un cercle, un arc ou un arc ; avec `1`
+    (droite ou cercle passant par le centre de c quand l'objet a été
+    construit), une droite, une droite, un segment ou un segment ; un
+    polygone, le polygone des images de 32 points de chacun de ses côtés,
+    à partir de son sommet (ses côtés deviennent des arcs). Sinon (courbe de fonction, lieu, arc de conique, et par
+    `Inv` demi-droite, vecteur ou conique), le lieu de l'image d'un point
+    qui parcourt l'objet. Son style par défaut est celui de sa nature
+    (`Seg`, `Vec`, `Ray`, `Line`, `Poly`, `Cir`, `Arc`, `Quad`, `Loc`).
 
 ### Macro-constructions
 

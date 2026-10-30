@@ -56,7 +56,12 @@ import { fixed_angle_object } from "../objects/fixed_angle_object";
 import type { formula_point_object } from "../objects/formula_point_object";
 import { point_on_object } from "../objects/point_on_object";
 import { point_object } from "../objects/point_object";
-import { imageLook, type transformable } from "../objects/transformed_object";
+import {
+    imageLook,
+    straightImage,
+    type transformable,
+} from "../objects/transformed_object";
+import type { primitive_circle_object } from "../objects/primitive_circle_object";
 import { plane_object } from "../objects/plane_object";
 import { polygon_object } from "../objects/polygon_object";
 import { panelNames, parsePanel, panel_object } from "../objects/panel_object";
@@ -1523,13 +1528,21 @@ function mapped(
 }
 
 // The type of what the entry builds: an image by a transformation has its
-// object's (see transformed_object.ts).
+// object's, or a line's or a circle's by an inversion (see
+// transformed_object.ts).
 export function builtTag(
     overload: Overload,
     args: (Arg | undefined)[],
 ): string {
     const source = mapped(overload, args);
-    return source ? imageLook(source) : overload.tag;
+    if (!source) return overload.tag;
+    const circle = args[0] as primitive_circle_object;
+    return imageLook(
+        source,
+        overload.tag === "Inv"
+            ? { circle, straight: straightImage(circle, source) }
+            : undefined,
+    );
 }
 
 // What an image by a transformation keeps of its object's style.

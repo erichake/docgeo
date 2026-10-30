@@ -96,6 +96,8 @@ import type { sphere_object } from "../../src/objects/sphere_object";
 import type { net_object } from "../../src/objects/net_object";
 import type { cylinder_section_object } from "../../src/objects/cylinder_section_object";
 import type { polygon_object } from "../../src/objects/polygon_object";
+import { circle3pts_object } from "../../src/objects/circle3pts_object";
+import { two_points_line_object } from "../../src/objects/two_points_line_object";
 import type { expression_object } from "../../src/objects/expression_object";
 import type { construction_object } from "../../src/objects/construction_object";
 import type { free_vector_object } from "../../src/objects/free_vector_object";
@@ -234,6 +236,10 @@ describe("Editor", () => {
             "k4 = Arc(c, D, E)",
             "U = FixedPoint(1, 1)",
             "l = Locus(M, P)",
+            "a1 = Reflect(d, a)",
+            "k5 = Inversion(c, k)",
+            "d1 = Inversion(c, d)",
+            "l1 = Translation(u, l)",
         ];
         text.forEach((line) => type(c, line));
         c.flush();
@@ -303,9 +309,29 @@ describe("Editor", () => {
         expect(toolsFor(p, false).map(({ overload: { tag } }) => tag)).toEqual(
             expect.arrayContaining(["Sym", "Refl"]),
         );
-        expect(() => type(c, "Inversion(c, p)")).toThrow(
-            expect.objectContaining({ key: "arguments" }),
+        // Its sides become arcs, drawn by points along them: A and B on
+        // the circle stay, the middle of AB goes to (1, 1).
+        type(c, "h = Circle(O, A)");
+        const inverse = type(c, "Inversion(h, p)") as polygon_object;
+        expect(inverse.defined).toBe(true);
+        expect(inverse.points.length).toBe(96);
+        expectClose(
+            [0, 16, 32].map((k) => inverse.points[k].coords),
+            [
+                [0, 0, 0],
+                [1, 1, 0],
+                [2, 0, 0],
+            ],
         );
+        // Through the center, a line, marked.
+        type(c, "f = Line(A, C)");
+        const line = type(c, "Inversion(c, f)");
+        expect(line.name).toBe("g");
+        expect(line).toBeInstanceOf(two_points_line_object);
+        expect(entryOf(line, figureIndex(c))[1]).toEqual([5, 11, 1]);
+        expect(lines(c).at(-1)).toBe("g = Inversion(c, f)");
+        type(c, "m = Line(B, C)");
+        expect(type(c, "Inversion(c, m)")).toBeInstanceOf(circle3pts_object);
     });
 
     it("tells from the arguments designated whether the line goes on", () => {

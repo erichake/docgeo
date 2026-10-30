@@ -18,6 +18,7 @@ import { vector_object } from "../objects/vector_object";
 import { polyhedron_object } from "../objects/polyhedron_object";
 import { plane_object } from "../objects/plane_object";
 import { revolution_object } from "../objects/revolution_object";
+import { straightImage } from "../objects/transformed_object";
 import { STYLE_NUMBER } from "../import/dgp_expression";
 import { TEXTS } from "./messages";
 import { formatName } from "./text";
@@ -59,7 +60,8 @@ export type Param =
     // A line or a plane.
     | "linear"
     | "sphere"
-    // What a transformation maps: a point, a line, a circle or a polygon.
+    // What a transformation maps: a point, a line, a circle, a polygon
+    // (not a plane), a conic or a curve.
     | "transformable"
     | "polyhedron"
     // A cylinder or a cone.
@@ -225,7 +227,13 @@ export function accepts(arg: Arg, param: Param): boolean {
         case "surface":
             return kind === "sphere" || arg instanceof revolution_object;
         case "transformable":
-            return ["point", "line", "circle", "polygon"].includes(kind);
+            return (
+                ["point", "line", "circle", "polygon", "conic"].includes(
+                    kind,
+                ) ||
+                arg instanceof curve_object ||
+                arg instanceof locus_object
+            );
         case "readable":
             return readable(arg);
         default:
@@ -807,9 +815,33 @@ export const COMMANDS: Command[] = [
         name: "Translation",
         overloads: [objects("Tra", ["vector", "transformable"])],
     },
+    // A line or a circle through the center, mapped to a line, is marked.
     {
         name: "Inversion",
-        overloads: [objects("Inv", ["circle", "point"])],
+        overloads: [
+            {
+                params: ["circle", "transformable"],
+                tag: "Inv",
+                encode: ([circle, object], index) => [
+                    index(circle as construction_object),
+                    index(object as construction_object),
+                    ...(object instanceof point_object ||
+                    !straightImage(
+                        circle as primitive_circle_object,
+                        object as construction_object,
+                    )
+                        ? []
+                        : [1]),
+                ],
+                decode: (parameters, at) =>
+                    Array.isArray(parameters) &&
+                    [2, 3].includes(parameters.length) &&
+                    isIndex(parameters[0]) &&
+                    isIndex(parameters[1])
+                        ? [at(parameters[0]), at(parameters[1])]
+                        : null,
+            },
+        ],
     },
     {
         name: "Conic",

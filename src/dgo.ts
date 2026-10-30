@@ -22,7 +22,7 @@ import { createCenterArc } from "./objects/center_arc_object";
 import { createConicArc } from "./objects/conic_arc_object";
 import { createSemicircle } from "./objects/semicircle_object";
 import { createTangent } from "./objects/tangent_object";
-import { createInversion } from "./objects/inversion_object";
+import { createInversion, inversion_object } from "./objects/inversion_object";
 import { createRegularPolygon } from "./objects/regular_polygon_object";
 import { createTriangleCenter } from "./objects/triangle_center_object";
 import { createVertex } from "./objects/vertex_object";
@@ -1592,11 +1592,14 @@ const INTERSECTABLE = [
     curve_object,
 ];
 
-// What a transformation maps, besides points.
+// What a transformation maps, besides points: not a plane.
 const TRANSFORMABLE = [
     primitive_line_object,
     primitive_circle_object,
     polygon_object,
+    primitive_quadric_object,
+    curve_object,
+    locus_object,
 ];
 
 // A List's or a text's formula, "k" and "count" being a List's own, or a
@@ -1826,12 +1829,21 @@ const BUILDERS: Record<string, Builder> = {
         createArc3pts(c, name, p, q, r, true, true),
     ),
     Inv: (parameters, { c, name, at }) => {
-        const [circle, point] = list(parameters, 2);
-        return createInversion(
+        const [index, object, straight] = list(parameters, 2, 3);
+        const circle = at(index, primitive_circle_object);
+        const source = at(object, point_object, ...TRANSFORMABLE);
+        if (source instanceof point_object) {
+            check(straight === undefined);
+            return createInversion(c, name, circle, source);
+        }
+        check(!(source instanceof plane_object));
+        check(straight === undefined || straight === 1);
+        return createTransformed(
             c,
             name,
-            at(circle, primitive_circle_object),
-            at(point, point_object),
+            source,
+            (point) => new inversion_object(c, null, circle, point),
+            { circle, straight: straight === 1 },
         );
     },
     TC: (parameters, { c, name, points }) => {

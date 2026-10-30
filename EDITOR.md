@@ -2508,6 +2508,12 @@ transformation, which maps points and objects » (`tool_palette.test.ts`,
 l'éditeur intégré piloté au pointeur). Éditeur +0,81 Ko (+0,26 Ko en
 gzip) ; moteur +0,10 Ko.
 
+Étape 3 (même jour) : `transformable` prend aussi les coniques, les
+courbes de fonctions et les lieux (pas les listes), et `Inversion` le
+prend aussi, son entrée marquée quand l'objet passe par le centre
+(`straightImage`), la ligne relue sans la marque. `builtTag` en tient
+compte (droite ou cercle).
+
 Manuel à mettre à jour (12 langues), avec l'ordre des transformations
 ci-dessus : `commandes.html` (un objet à la place du point),
 `menu-outils.html` (l'outil garde la transformation), `selection.html`.

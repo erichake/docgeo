@@ -63,6 +63,17 @@ deux suivent les mêmes règles et la même interface.
    l'entrée, pour qu'une figure rouverte dans une autre position ne change
    pas de nature.
 
+8. **Inversion d'une droite ou d'un cercle passant par le centre**
+   (validé par l'auteur le 2026-10-30 ; comme le verdict d'une macro,
+   décision 7) :
+   l'image est une droite, nature décidée à la construction et
+   enregistrée dans l'entrée (`["Inv", [c, X, 1]]`), l'éditeur la
+   calculant (`straightImage`) quand il écrit l'entrée. Une figure
+   rouverte ailleurs ne change donc pas de nature ; si l'objet quitte
+   le centre, l'image reste la droite par les images de deux de ses
+   points, et une image « cercle » dont l'objet vient passer par le
+   centre est indéfinie à cet instant.
+
 ## Mise en œuvre
 
 - `src/objects/transformed_object.ts` : `createTransformed`, dont
@@ -85,7 +96,29 @@ deux suivent les mêmes règles et la même interface.
   et secteur. Le cercle et l'arc images passent par trois points
   (`C3p`/`Arc`, `C3s`/`Arcs` en 3D) : l'orientation d'un arc suit celle
   de la transformation sans rien à décider.
-- `Inv` reste limité aux points (l'inversion change la nature : étape 3).
+- Coniques (étape 3) : `quadric5pts_object` sur les images de cinq points
+  (ellipse : à 2π/5 l'un de l'autre ; hyperbole : trois sur une branche,
+  deux sur l'autre ; parabole : de part et d'autre du sommet), la nature
+  (ellipse, hyperbole, parabole) relue à chaque calcul. Seulement dans un
+  plan horizontal, comme `Quad`.
+- Repli en lieu (étape 3) : un `point_on_object` privé sur l'objet, son
+  image, et un `locus_object` construit dans une construction privée dont
+  `OBJS.V` ne contient qu'eux (là où le lieu cherche ce qui les relie),
+  puis rendu à la figure. Courbes de fonctions, lieux, arcs de conique ;
+  par une inversion aussi demi-droites, vecteurs et coniques.
+- Polygone par une inversion (remarque de l'auteur, 2026-10-30 : au
+  survol, l'outil proposait un point sur le polygone) : un polygone,
+  région remplie comme son objet, dont chaque côté est l'image de 32
+  points du côté (`SIDE_SAMPLES`), ses côtés devenus des arcs approchés
+  par des segments. Pas un lieu : un lieu sur un polygone n'en prend que
+  les sommets. Un polygone qui contient le centre a pour image
+  l'extérieur de cette courbe, que ce polygone ne montre pas ; un sommet
+  au centre la rend indéfinie.
+- Inversion (étape 3) : droite, cercle, segment, arc → cercle, cercle,
+  arc, arc par trois points. La droite est prise autour de son point le
+  plus proche du centre O ; un cercle passant par O, en deux points qui
+  n'y sont jamais (à l'opposé de O, et à un quart de tour). Le verdict
+  « droit » est enregistré (`[c, X, 1]`, décision 8).
 
 ## Étapes
 
@@ -97,7 +130,7 @@ deux suivent les mêmes règles et la même interface.
    par une transformation »).
 3. Coniques (transformation affine : conique par cinq points), repli en
    lieu (courbes de fonctions, lieux…), inversion des droites et des
-   cercles (objet « cercle ou droite »).
+   cercles. **Fait** (décision 8).
 4. Macros de transformation (entrée `Mac`, verdict enregistré). Aussi :
    le type d'un final de macro qui est l'image d'un objet (`finalTypes`
    de `src/editor/macro.ts` lit le type de l'entrée, `Refl`… : un point).
@@ -173,3 +206,12 @@ Idées à garder, sans recopier le code :
   de l'image (`builtTag`, `imageLook`), style repris de l'objet. Le
   moteur refuse un plan (`check`). Éditeur 256,14 → 256,95 Ko (+0,81
   Ko) ; moteur 378,63 → 378,73 Ko (+0,10 Ko ; gzip 120,32 Ko).
+- 2026-10-30 : étape 3. Coniques, repli en lieu, inversion (décision 8).
+  Test `.dgo reader` « reads images of conics, curves, and by
+  inversions », lignes relues dans l'éditeur. Puis l'inversion d'un
+  polygone (même paramètre `transformable` pour toutes les
+  transformations). Moteur
+  378,73 → 380,44 Ko (+1,71 Ko ; gzip 120,92 Ko) ; éditeur 256,95 →
+  257,26 Ko (+0,31 Ko). Retiré à la demande de l'auteur le test instable
+  « drags the independent knob of an inert DGPad expression »
+  (`dgp_commands.test.ts`, glisser réel du navigateur).

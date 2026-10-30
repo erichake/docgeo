@@ -20,6 +20,8 @@ import { importGgb, importGgbFromUrl } from "../../src/ggb_importer";
 import { parseProgram } from "../../src/import/dgp_formula";
 import type { arc3pts_object } from "../../src/objects/arc3pts_object";
 import type { circle3pts_object } from "../../src/objects/circle3pts_object";
+import type { locus_object } from "../../src/objects/locus_object";
+import type { quadric5pts_object } from "../../src/objects/quadric5pts_object";
 import { button_object } from "../../src/objects/button_object";
 import type { center_arc_object } from "../../src/objects/center_arc_object";
 import type {
@@ -38,7 +40,7 @@ import { ray_line_object } from "../../src/objects/ray_line_object";
 import type { segment_object } from "../../src/objects/segment_object";
 import type { two_points_line_object } from "../../src/objects/two_points_line_object";
 import { vector_object } from "../../src/objects/vector_object";
-import type { Vec3 } from "../../src/vec";
+import { vDot, vNorm, vSub, type Vec3 } from "../../src/vec";
 import {
     createConstruction,
     DGP,
@@ -707,6 +709,72 @@ describe(".dgo reader", () => {
         const saved = await describeDgo(c);
         expect(saved.o.slice(14)).toEqual(
             figure.o.slice(14).map((entry) => entry.slice(0, 3)),
+        );
+        await roundTrip(async (copy) => readDgo(copy, saved));
+    });
+
+    // A conic's image by an affine map is a conic, by an inversion a line
+    // or a circle's a circle, or a line through its center (1); otherwise,
+    // the locus of the image of a point.
+    it("reads images of conics, curves, and by inversions", async () => {
+        const figure = {
+            dgo: 1,
+            v: { o: [400, 300], u: 40, w: 800, h: 600 },
+            o: [
+                ["Pt", "A", [0, 0]],
+                ["Pt", "B", [2, 0]],
+                ["Pt", "C", [1, 2]],
+                ["Pt", "D", [-1, 0]],
+                ["Pt", "E", [-1, 1]],
+                ["Line", "d", [3, 4]],
+                ["Cir", "c", [0, 1]],
+                ["Ell", "k", [0, 1, 2]],
+                ["Cur", "f", ["x*x", -1, 1]],
+                ["Line", "l", [0, 2]],
+                ["Cir", "g", [1, 0]],
+                ["Seg", "s", [3, 4]],
+                ["Refl", "k1", [5, 7]],
+                ["Tra", "f1", [1, 8]],
+                ["Inv", "d1", [6, 5]],
+                ["Inv", "l1", [6, 9, 1]],
+                ["Inv", "g2", [6, 10, 1]],
+                ["Inv", "s1", [6, 11]],
+                ["Inv", "k2", [6, 7]],
+            ],
+        };
+        const c = createConstruction();
+        readDgo(c, figure);
+        c.flush();
+        const get = <T>(name: string) => c.getObj(name) as T;
+        const k1 = get<quadric5pts_object>("k1");
+        expect(k1.KIND).toBe("ellipse");
+        expectClose(k1.CENTER, [-3, 0, 0]);
+        const f1 = get<locus_object>("f1");
+        expect(f1.defined).toBe(true);
+        expect(
+            f1.points.some(
+                (point) => point && vNorm(vSub(point, [3, 1, 0])) < 1e-9,
+            ),
+        ).toBe(true);
+        const d1 = get<circle3pts_object>("d1");
+        expectClose(d1.CENTER, [-2, 0, 0]);
+        expect(d1.R).toBeCloseTo(2);
+        const l1 = get<two_points_line_object>("l1");
+        expect(Math.abs(vDot(l1.VEC, [2, -1, 0]))).toBeCloseTo(0);
+        expect(
+            Math.abs(vDot(vSub(l1.P1.coords, [0, 0, 0]), [2, -1, 0])),
+        ).toBeCloseTo(0);
+        const g1 = get<two_points_line_object>("g2");
+        expect(g1.P1.coords[0]).toBeCloseTo(1);
+        expect(g1.VEC[0]).toBeCloseTo(0);
+        const s1 = get<arc3pts_object>("s1");
+        expectClose(s1.CENTER, [-2, 0, 0]);
+        expect(s1.insideBounds([-3.2, 1.6, 0])).toBe(true);
+        expect(s1.insideBounds([-2, -2, 0])).toBe(false);
+        expect(get<locus_object>("k2").defined).toBe(true);
+        const saved = await describeDgo(c);
+        expect(saved.o.slice(12)).toEqual(
+            figure.o.slice(12).map((entry) => entry.slice(0, 3)),
         );
         await roundTrip(async (copy) => readDgo(copy, saved));
     });
