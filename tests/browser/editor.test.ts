@@ -1887,7 +1887,6 @@ describe("Editor", () => {
                 ["Circle (centre and point)", "Cir"],
                 ["Circle (centre and radius)", "C1"],
                 ["Circumcircle", "C3p", "C3s"],
-                ["Sphere", "Sph"],
                 ["Compass", "C3"],
                 ["Circle (centre, direction and radius)", "C1"],
                 ["Circle (axis and point)", "CAx"],
@@ -1921,6 +1920,7 @@ describe("Editor", () => {
                 ["OrthogonalPlane", "PlO"],
             ],
             [
+                ["Sphere", "Sph"],
                 ["Cylinder", "Cyl"],
                 ["Cone", "Cone"],
                 ["Cube", "Cube"],
@@ -1939,7 +1939,7 @@ describe("Editor", () => {
             ],
             [["New macro", "ELst"]],
         ]);
-        const sphere = TOOL_FAMILIES[3].items[3].tools[0];
+        const sphere = TOOL_FAMILIES[7].items[0].tools[0];
         expect([false, true].map((space) => usable(sphere, space))).toEqual([
             false,
             true,

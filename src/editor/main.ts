@@ -434,6 +434,7 @@ $("head").append(`<style>
     .dge-guide { opacity: 0.65; }
     .dge-result { color: #d14343; }
     .dge-ring button:hover .dge-result { color: inherit; }
+    .dge-ring button:hover .dge-construction-icon, .dge-palette-grid button:not(.dge-off):hover .dge-construction-icon { --dge-icon-ink: #fff; --dge-icon-blue: #93c5fd; --dge-icon-red: #fca5a5; --dge-icon-guide: #bfdbfe; --dge-icon-polygon: #fed7aa; }
     .dge-complete, .dge-menu { position: fixed; min-width: 160px; max-height: 240px; overflow: auto; padding: 4px 0; border: 1px solid #d1d5db; border-radius: 8px; background: #fff; box-shadow: 0 6px 20px rgb(0 0 0 / 0.14); z-index: 13; }
     .dge-complete div, .dge-menu div { padding: 3px 12px; font-family: var(--dge-code); font-size: 13px; cursor: pointer; }
     .dge-complete div.dge-selected, .dge-complete div:hover, .dge-menu div:hover { background: #2563eb; color: #fff; }
@@ -442,7 +443,7 @@ $("head").append(`<style>
     .dge-tools button { display: flex; align-items: center; gap: 10px; width: 100%; padding: 3px 10px 3px 3px; border: 0; border-radius: 8px; background: none; font: inherit; color: inherit; text-align: start; white-space: nowrap; cursor: pointer; }
     .dge-tools button:hover, .dge-tools button:focus-visible, .dge-tools button.dge-open { background: hsl(var(--dge-hue) calc(70% * var(--dge-tone)) 93%); outline: none; }
     .dge-tools .dge-family::after { content: "›"; margin-inline-start: auto; padding-inline-start: 16px; font-size: 18px; line-height: 1; color: #94a3b8; }
-    .dge-tool-icon { display: grid; place-items: center; flex-shrink: 0; width: 34px; height: 34px; box-sizing: border-box; border: 1px solid hsl(var(--dge-hue) calc(55% * var(--dge-tone)) 60%); border-radius: 50%; background: hsl(var(--dge-hue) calc(70% * var(--dge-tone)) 96%); color: #536174; }
+    .dge-tool-icon { display: grid; place-items: center; flex-shrink: 0; width: 34px; height: 34px; box-sizing: border-box; border: 1px solid hsl(var(--dge-hue) calc(55% * var(--dge-tone)) 60%); border-radius: 50%; --dge-icon-bg: hsl(var(--dge-hue) calc(70% * var(--dge-tone)) 96%); background: var(--dge-icon-bg); color: #536174; }
     .dge-tool-icon svg { display: block; width: 24px; height: 24px; fill: none; stroke: currentColor; stroke-width: 1.65; stroke-linecap: round; stroke-linejoin: round; }
     .dge-bar-object.dge-bar-tool .dge-bar-name { max-width: 240px; }
     .dge-tools button.dge-off { opacity: 0.4; cursor: default; }

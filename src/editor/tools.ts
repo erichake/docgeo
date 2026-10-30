@@ -13,6 +13,7 @@ import {
     type Overload,
 } from "./catalog";
 import { ACTION_ICONS } from "./icons";
+import { CONSTRUCTION_ICONS } from "./construction_icons";
 import { initialType } from "./macro";
 import type { Macro } from "../objects/macro_object";
 import { message, type MessageKey } from "./messages";
@@ -99,24 +100,6 @@ const event = (label: MessageKey, gesture: Gesture | null, icon: string) =>
         gesture,
     });
 
-const SEGMENT = result(path("M6 18L18 6")) + dot(6, 18) + dot(18, 6);
-const TRIANGLE =
-    path("M4 19L20 19L9 5Z") + dot(4, 19) + dot(20, 19) + dot(9, 5);
-const BISECTOR =
-    path("M4 12h16M8 10.5v3M16 10.5v3", true) + result(path("M12 4v16"));
-const CIRCLE = `<circle cx="12" cy="12" r="7.5"/>`;
-const RADIUS = (x: number, y: number) =>
-    `<text x="${x}" y="${y}" font-size="12" font-family="Georgia, serif" font-style="italic" fill="currentColor" stroke="none">r</text>`;
-const CIRCLE3 = result(CIRCLE) + dot(4.5, 12) + dot(16.5, 18) + dot(16.5, 6);
-const MIDPOINT = path("M5 12h14", true) + result(dot(12, 12));
-const PLANE =
-    result(
-        `<path d="m2.5 17 5-9.5h14l-5 9.5Z" fill="currentColor" fill-opacity=".14"/>`,
-    ) +
-    dot(7.5, 14.5) +
-    dot(12, 10) +
-    dot(16.5, 14);
-
 // The families of tools, clockwise from the first one, centred on the top,
 // each tool keeping its place whatever the object, so that the hand learns
 // it; the tools of a slot never show together. Others are only in the menu,
@@ -133,94 +116,38 @@ const FAMILIES: [
         "family_points",
         35,
         [
-            [
-                tool(
-                    "Point",
-                    0,
-                    path("M3 16Q12 2 21 16", true) + result(dot(12, 9)),
-                    "point",
-                ),
-            ],
+            [tool("Point", 0, CONSTRUCTION_ICONS.Point, "point")],
             [
                 tool(
                     "Intersection",
                     1,
-                    path("M4 20L20 4M4 4L20 20", true) + result(dot(12, 12)),
+                    CONSTRUCTION_ICONS.Intersection,
                     "intersection",
                 ),
             ],
             [
-                tool("Midpoint", 0, MIDPOINT + dot(5, 12) + dot(19, 12)),
-                tool("Midpoint", 1, MIDPOINT),
-                tool("Center", 0, CIRCLE + result(dot(12, 12))),
+                tool("Midpoint", 0, CONSTRUCTION_ICONS.Midpoint),
+                tool("Midpoint", 1, CONSTRUCTION_ICONS.Midpoint),
+                tool("Center", 0, CONSTRUCTION_ICONS.Center),
             ],
         ],
         [
-            tool(
-                "OtherIntersection",
-                0,
-                path("M2 12h20", true) +
-                    `<circle class="dge-guide" cx="12" cy="12" r="7"/>` +
-                    dot(5, 12) +
-                    result(dot(19, 12)),
-            ),
+            tool("OtherIntersection", 0, CONSTRUCTION_ICONS.OtherIntersection),
             // The centers of a triangle, of its three vertices.
-            tool(
-                "Incenter",
-                0,
-                TRIANGLE +
-                    `<circle class="dge-guide" cx="10.5" cy="14.4" r="4.6"/>` +
-                    result(dot(10.5, 14.4)),
-            ),
-            tool(
-                "Centroid",
-                0,
-                TRIANGLE +
-                    path("M4 19L14.5 12M20 19L6.5 12M9 5L12 19", true) +
-                    result(dot(11, 14.3)),
-            ),
-            tool(
-                "Circumcenter",
-                0,
-                TRIANGLE +
-                    `<circle class="dge-guide" cx="12" cy="14" r="9.4"/>` +
-                    result(dot(12, 14)),
-            ),
-            tool(
-                "Orthocenter",
-                0,
-                TRIANGLE +
-                    path("M9 5V19M4 19L14.5 10.8", true) +
-                    result(dot(9, 15.1)),
-            ),
+            tool("Incenter", 0, CONSTRUCTION_ICONS.Incenter),
+            tool("Centroid", 0, CONSTRUCTION_ICONS.Centroid),
+            tool("Circumcenter", 0, CONSTRUCTION_ICONS.Circumcenter),
+            tool("Orthocenter", 0, CONSTRUCTION_ICONS.Orthocenter),
         ],
     ],
     [
         "family_lines",
         215,
         [
-            [tool("Segment", 0, SEGMENT)],
-            [
-                tool(
-                    "Line",
-                    0,
-                    result(path("M3 21L21 3")) + dot(7, 17) + dot(17, 7),
-                ),
-            ],
-            [
-                tool(
-                    "Ray",
-                    0,
-                    result(path("M6 18L21 3")) + dot(6, 18) + dot(14, 10),
-                ),
-            ],
-            [
-                tool(
-                    "Vector",
-                    0,
-                    result(path("M6 18L19 5M13.5 5H19v5.5")) + dot(6, 18),
-                ),
-            ],
+            [tool("Segment", 0, CONSTRUCTION_ICONS.Segment)],
+            [tool("Line", 0, CONSTRUCTION_ICONS.Line)],
+            [tool("Ray", 0, CONSTRUCTION_ICONS.Ray)],
+            [tool("Vector", 0, CONSTRUCTION_ICONS.Vector)],
         ],
     ],
     [
@@ -231,49 +158,29 @@ const FAMILIES: [
                 tool(
                     "Perpendicular",
                     overload,
-                    path("M3 18h18M12 14h4v4", true) +
-                        result(path("M12 4v16")) +
-                        dot(12, 7),
+                    CONSTRUCTION_ICONS.Perpendicular,
                 ),
             ),
-            [
-                tool(
-                    "Parallel",
-                    0,
-                    path("M4 16L16 4", true) +
-                        result(path("M8 20L20 8")) +
-                        dot(14, 14),
-                ),
-            ],
+            [tool("Parallel", 0, CONSTRUCTION_ICONS.Parallel)],
             [
                 tool(
                     "PerpendicularBisector",
                     0,
-                    BISECTOR + dot(4, 12) + dot(20, 12),
+                    CONSTRUCTION_ICONS.PerpendicularBisector,
                 ),
-                tool("PerpendicularBisector", 1, BISECTOR),
-            ],
-            [
                 tool(
-                    "AngleBisector",
-                    0,
-                    path("M4 19h16M4 19L13 4", true) +
-                        result(path("M4 19L20 10")) +
-                        path("M10 19a6 6 0 0 0-3-5.2", true),
+                    "PerpendicularBisector",
+                    1,
+                    CONSTRUCTION_ICONS.PerpendicularBisector,
                 ),
             ],
+            [tool("AngleBisector", 0, CONSTRUCTION_ICONS.AngleBisector)],
         ],
         [
             // The point, then a circle or a conic (the first tangent, which
             // the line changes), or a function's curve.
             [0, 1].map((overload) =>
-                tool(
-                    "Tangent",
-                    overload,
-                    `<circle cx="11" cy="15" r="6"/>` +
-                        result(path("M2 9H22")) +
-                        dot(19, 9),
-                ),
+                tool("Tangent", overload, CONSTRUCTION_ICONS.Tangent),
             ),
         ],
     ],
@@ -284,218 +191,61 @@ const FAMILIES: [
             [
                 labelled(
                     "tool_circle_point",
-                    tool(
-                        "Circle",
-                        0,
-                        result(CIRCLE) +
-                            path("M12 12L18 7.5", true) +
-                            dot(12, 12) +
-                            dot(18, 7.5),
-                    ),
+                    tool("Circle", 0, CONSTRUCTION_ICONS.CirclePoint),
                 ),
             ],
             [
                 labelled(
                     "tool_circle_radius",
-                    tool(
-                        "Circle",
-                        1,
-                        result(`<circle cx="9.5" cy="14.5" r="7"/>`) +
-                            path("M9.5 14.5h7", true) +
-                            dot(9.5, 14.5) +
-                            RADIUS(15.5, 9),
-                    ),
+                    tool("Circle", 1, CONSTRUCTION_ICONS.CircleRadius),
                 ),
             ],
             [
-                tool("Circumcircle", 0, CIRCLE3),
-                tool("Circumcircle", 1, CIRCLE3),
+                tool("Circumcircle", 0, CONSTRUCTION_ICONS.Circumcircle),
+                tool("Circumcircle", 1, CONSTRUCTION_ICONS.Circumcircle),
             ],
-            [
-                tool(
-                    "Sphere",
-                    0,
-                    result(
-                        CIRCLE +
-                            `<ellipse class="dge-guide" cx="12" cy="12" rx="7.5" ry="3"/>`,
-                    ) + dot(12, 12),
-                ),
-            ],
+            [tool("Sphere", 0, CONSTRUCTION_ICONS.Sphere)],
         ],
         [
             // The radius of the first two points, the centre the third.
-            tool(
-                "Compass",
-                0,
-                path("M3 20h7", true) +
-                    dot(3, 20) +
-                    dot(10, 20) +
-                    result(`<circle cx="15" cy="10" r="6"/>`) +
-                    dot(15, 10),
-            ),
+            tool("Compass", 0, CONSTRUCTION_ICONS.Compass),
             // In space: the center, then a line or a plane, the radius
             // given; the axis, then a point.
             labelled(
                 "tool_circle_direction",
-                tool(
-                    "Circle",
-                    2,
-                    path("M10 16V3M7.5 5.5 10 3l2.5 2.5") +
-                        result(`<ellipse cx="10" cy="16" rx="8" ry="3.5"/>`) +
-                        dot(10, 16) +
-                        RADIUS(15.5, 11),
-                ),
+                tool("Circle", 2, CONSTRUCTION_ICONS.CircleDirection),
             ),
             labelled(
                 "tool_circle_axis",
-                tool(
-                    "Circle",
-                    3,
-                    path("M12 2v20") +
-                        result(`<ellipse cx="12" cy="13" rx="8.5" ry="3.5"/>`) +
-                        dot(20.5, 13),
-                ),
+                tool("Circle", 3, CONSTRUCTION_ICONS.CircleAxis),
             ),
             // Three points, in the plane or in space, or a conic then two
             // points.
-            forms(
-                "Arc",
-                3,
-                result(path("M4 17A8 8 0 0 1 20 17")) +
-                    dot(4, 17) +
-                    dot(12, 9) +
-                    dot(20, 17),
-            ),
-            forms(
-                "Sector",
-                3,
-                result(
-                    `<path d="M6 18H18A12 12 0 0 0 6 6Z" fill="currentColor" fill-opacity=".1"/>`,
-                ) +
-                    dot(18, 18) +
-                    dot(14.5, 9.5) +
-                    dot(6, 6),
-            ),
+            forms("Arc", 3, CONSTRUCTION_ICONS.Arc),
+            forms("Sector", 3, CONSTRUCTION_ICONS.Sector),
             // The center, the start, then a point of the ray where it ends.
-            forms(
-                "CenterArc",
-                2,
-                path("M6 18L14 4.1", true) +
-                    result(path("M18 18A12 12 0 0 0 12 7.6")) +
-                    dot(6, 18) +
-                    dot(18, 18) +
-                    dot(9.5, 11.9),
-            ),
-            forms(
-                "CenterSector",
-                2,
-                path("M12 7.6L14 4.1", true) +
-                    result(
-                        `<path d="M6 18H18A12 12 0 0 0 12 7.6Z" fill="currentColor" fill-opacity=".1"/>`,
-                    ) +
-                    dot(6, 18) +
-                    dot(18, 18) +
-                    dot(9.5, 11.9),
-            ),
-            tool(
-                "Semicircle",
-                0,
-                path("M4 16H20", true) +
-                    result(path("M4 16A8 8 0 0 1 20 16")) +
-                    dot(4, 16) +
-                    dot(20, 16),
-            ),
-            tool(
-                "Conic",
-                0,
-                result(`<ellipse cx="12" cy="12" rx="9" ry="6"/>`) +
-                    dot(3, 12) +
-                    dot(7.5, 6.8) +
-                    dot(16.5, 6.8) +
-                    dot(21, 12) +
-                    dot(12, 18),
-            ),
+            forms("CenterArc", 2, CONSTRUCTION_ICONS.CenterArc),
+            forms("CenterSector", 2, CONSTRUCTION_ICONS.CenterSector),
+            tool("Semicircle", 0, CONSTRUCTION_ICONS.Semicircle),
+            tool("Conic", 0, CONSTRUCTION_ICONS.Conic),
             // Its foci, then a point.
-            tool(
-                "Ellipse",
-                0,
-                result(`<ellipse cx="12" cy="12" rx="9" ry="6"/>`) +
-                    path("M5.3 12L16.5 6.8L18.7 12", true) +
-                    dot(5.3, 12) +
-                    dot(18.7, 12) +
-                    dot(16.5, 6.8),
-            ),
-            tool(
-                "Hyperbola",
-                0,
-                result(
-                    path(
-                        "M2.6 3.5Q10.3 12 2.6 20.5M21.4 3.5Q13.7 12 21.4 20.5",
-                    ),
-                ) +
-                    dot(4.5, 12) +
-                    dot(19.5, 12) +
-                    dot(19.4, 6.1),
-            ),
+            tool("Ellipse", 0, CONSTRUCTION_ICONS.Ellipse),
+            tool("Hyperbola", 0, CONSTRUCTION_ICONS.Hyperbola),
             // Its focus, then its directrix.
-            tool(
-                "Parabola",
-                0,
-                path("M3 5h18") +
-                    result(path("M2 16.3Q12 -0.3 22 16.3")) +
-                    dot(12, 11),
-            ),
+            tool("Parabola", 0, CONSTRUCTION_ICONS.Parabola),
         ],
     ],
     [
         "family_shapes",
         185,
         [
-            [
-                tool(
-                    "Polygon",
-                    0,
-                    result(
-                        `<path d="M5 18L9 5L20 9L17 19Z" fill="currentColor" fill-opacity=".1"/>`,
-                    ) +
-                        dot(5, 18) +
-                        dot(9, 5) +
-                        dot(20, 9) +
-                        dot(17, 19),
-                ),
-            ],
-            [
-                tool(
-                    "Angle",
-                    0,
-                    result(
-                        `<path d="M4 19h7a7 7 0 0 0-3.4-6Z" fill="currentColor" fill-opacity=".12" stroke="none"/>` +
-                            path("M11 19a7 7 0 0 0-3.4-6"),
-                    ) + path("M4 19h16M4 19L13 4"),
-                ),
-            ],
-            [
-                tool(
-                    "Locus",
-                    0,
-                    result(path("M3 16Q12 0 21 16")) +
-                        path("M3 20h18M14.7 20V8.7", true) +
-                        dot(14.7, 20) +
-                        dot(14.7, 8.7),
-                ),
-            ],
+            [tool("Polygon", 0, CONSTRUCTION_ICONS.Polygon)],
+            [tool("Angle", 0, CONSTRUCTION_ICONS.Angle)],
+            [tool("Locus", 0, CONSTRUCTION_ICONS.Locus)],
         ],
         [
             // Two vertices: a square, which the line changes.
-            tool(
-                "RegularPolygon",
-                0,
-                result(
-                    `<path d="M7 19H17L20 9.5L12 3.7L4 9.5Z" fill="currentColor" fill-opacity=".1"/>`,
-                ) +
-                    dot(7, 19) +
-                    dot(17, 19),
-            ),
+            tool("RegularPolygon", 0, CONSTRUCTION_ICONS.RegularPolygon),
         ],
     ],
     [
@@ -505,68 +255,26 @@ const FAMILIES: [
             [
                 labelled(
                     "tool_central",
-                    tool(
-                        "Reflect",
-                        0,
-                        path("M5 18L19 6", true) +
-                            dot(5, 18) +
-                            dot(12, 12) +
-                            result(dot(19, 6)),
-                    ),
+                    tool("Reflect", 0, CONSTRUCTION_ICONS.ReflectPoint),
                 ),
             ],
             [
                 labelled(
                     "tool_axial",
-                    tool(
-                        "Reflect",
-                        1,
-                        path("M12 3v18") +
-                            `<path class="dge-guide" d="M5 10h14" stroke-dasharray="2 3"/>` +
-                            dot(5, 10) +
-                            result(dot(19, 10)),
-                    ),
+                    tool("Reflect", 1, CONSTRUCTION_ICONS.ReflectLine),
                 ),
             ],
         ],
         [
             // The point, then the center: a quarter turn, which the line
             // changes.
-            tool(
-                "Rotation",
-                0,
-                path("M19 15A12.2 12.2 0 0 0 11.3 5.6", true) +
-                    dot(7, 17) +
-                    dot(19, 15) +
-                    result(dot(11.3, 5.6)),
-            ),
+            tool("Rotation", 0, CONSTRUCTION_ICONS.Rotation),
             // The point, then the vector.
-            tool(
-                "Translation",
-                0,
-                path("M4 9L15 4M11.2 3.2L15 4L12.6 6.9") +
-                    `<path class="dge-guide" d="M6 19L17 14" stroke-dasharray="2 3"/>` +
-                    dot(6, 19) +
-                    result(dot(17, 14)),
-            ),
+            tool("Translation", 0, CONSTRUCTION_ICONS.Translation),
             // The point, then the center: a ratio of 2.
-            tool(
-                "Dilation",
-                0,
-                path("M4 20L20 12M4 20L12 4", true) +
-                    path("M8 16L12 16L8 12Z") +
-                    result(path("M12 12L20 12L12 4Z")) +
-                    dot(4, 20),
-            ),
+            tool("Dilation", 0, CONSTRUCTION_ICONS.Dilation),
             // The point, then the circle.
-            tool(
-                "Inversion",
-                0,
-                `<circle cx="9" cy="12" r="6"/>` +
-                    path("M9 12H22", true) +
-                    dot(12, 12) +
-                    result(dot(21, 12)),
-            ),
+            tool("Inversion", 0, CONSTRUCTION_ICONS.Inversion),
         ],
     ],
     [
@@ -575,25 +283,12 @@ const FAMILIES: [
         [],
         [
             // Three points, or a line designated first and a point.
-            [tool("Plane", 0, PLANE), tool("Plane", 1, PLANE)],
-            tool(
-                "ParallelPlane",
-                0,
-                path("m2.5 21 4-6h15l-4 6Z", true) +
-                    result(
-                        `<path d="m2.5 10 4-6h15l-4 6Z" fill="currentColor" fill-opacity=".14"/>`,
-                    ) +
-                    dot(12, 7),
-            ),
-            tool(
-                "OrthogonalPlane",
-                0,
-                path("M12 2v20", true) +
-                    result(
-                        `<path d="m2.5 17 4-6h15l-4 6Z" fill="currentColor" fill-opacity=".14"/>`,
-                    ) +
-                    dot(12, 14),
-            ),
+            [
+                tool("Plane", 0, CONSTRUCTION_ICONS.Plane),
+                tool("Plane", 1, CONSTRUCTION_ICONS.Plane),
+            ],
+            tool("ParallelPlane", 0, CONSTRUCTION_ICONS.ParallelPlane),
+            tool("OrthogonalPlane", 0, CONSTRUCTION_ICONS.OrthogonalPlane),
         ],
     ],
     [
@@ -602,69 +297,16 @@ const FAMILIES: [
         [],
         [
             // Two points of the axis, then a radius the line changes.
-            tool(
-                "Cylinder",
-                0,
-                result(
-                    `<path d="M5 6.5V17.5a7 3 0 0 0 14 0V6.5" fill="currentColor" fill-opacity=".09"/><ellipse cx="12" cy="6.5" rx="7" ry="3" fill="currentColor" fill-opacity=".16"/><path d="M5 17.5a7 3 0 0 1 14 0" stroke-dasharray="1.5 2" stroke-width="1.1"/>`,
-                ) +
-                    dot(12, 6.5) +
-                    dot(12, 17.5),
-            ),
-            tool(
-                "Cone",
-                0,
-                result(
-                    `<path d="M4.5 17.5 12 3.5l7.5 14a7.5 3 0 0 1-15 0Z" fill="currentColor" fill-opacity=".1"/><path d="M4.5 17.5a7.5 3 0 0 1 15 0" stroke-dasharray="1.5 2" stroke-width="1.1"/>`,
-                ) +
-                    dot(12, 17.5) +
-                    dot(12, 3.5),
-            ),
-            tool(
-                "Cube",
-                0,
-                result(
-                    `<path d="m4 7.5 8 4.5 8-4.5-8-4.5Z" fill="currentColor" fill-opacity=".08"/><path d="M4 7.5v9l8 4.5v-9Z" fill="currentColor" fill-opacity=".14"/><path d="M12 12v9l8-4.5v-9Z" fill="currentColor" fill-opacity=".23"/>`,
-                ) +
-                    dot(4, 16.5) +
-                    dot(12, 21) +
-                    dot(20, 16.5),
-            ),
+            tool("Cylinder", 0, CONSTRUCTION_ICONS.Cylinder),
+            tool("Cone", 0, CONSTRUCTION_ICONS.Cone),
+            tool("Cube", 0, CONSTRUCTION_ICONS.Cube),
             // The base, then the first top vertex or the apex.
-            tool(
-                "Prism",
-                0,
-                result(
-                    `<path d="m4 7 7-3 9 4-7 3Z" fill="currentColor" fill-opacity=".08"/><path d="M4 7v10l9 4V11Z" fill="currentColor" fill-opacity=".14"/><path d="M13 11v10l7-3V8Z" fill="currentColor" fill-opacity=".23"/><path d="M4 17l7-3 9 4M11 14V4" stroke-dasharray="1.5 2" stroke-width="1.1" opacity=".65"/>`,
-                ) + dot(4, 7),
-            ),
-            tool(
-                "Pyramid",
-                0,
-                result(
-                    `<path d="m12 3-8 14 8 4Z" fill="currentColor" fill-opacity=".12"/><path d="M12 3v18l8-4Z" fill="currentColor" fill-opacity=".23"/><path d="m4 17 8-4 8 4M12 13V3" stroke-dasharray="1.5 2" stroke-width="1.1" opacity=".65"/>`,
-                ) + dot(12, 3),
-            ),
+            tool("Prism", 0, CONSTRUCTION_ICONS.Prism),
+            tool("Pyramid", 0, CONSTRUCTION_ICONS.Pyramid),
             // The solid, whichever it is, and the plane.
-            tool(
-                "Section",
-                3,
-                path(
-                    "M4 7.5v9l8 4.5 8-4.5v-9L12 3ZM4 7.5l8 4.5 8-4.5M12 12v9",
-                    true,
-                ) +
-                    result(
-                        `<path d="m4 12 8 4.5 8-4.5-8-4.5Z" fill="currentColor" fill-opacity=".3"/>`,
-                    ),
-            ),
+            tool("Section", 3, CONSTRUCTION_ICONS.Section),
             // Flat, the number then unfolding it.
-            tool(
-                "Net",
-                0,
-                result(
-                    `<path d="M9.5 2h5v20h-5ZM4.5 7h15v5h-15Z" fill="currentColor" fill-opacity=".14"/><path d="M9.5 7v5m5-5v5m-5 5h5"/>`,
-                ),
-            ),
+            tool("Net", 0, CONSTRUCTION_ICONS.Net),
         ],
     ],
     [
@@ -797,6 +439,15 @@ for (const [name, hue, slots, menuOnly = [], tone = 1] of FAMILIES) {
 }
 // The ring's circumference, in buttons.
 export const RING_SLOTS = slot - start;
+
+// The sphere keeps its ring slot among circles, but is listed with solids.
+const circles = TOOL_FAMILIES.find(({ name }) => name === "family_circles")!;
+const sphere = circles.items.findIndex(
+    ({ tools: [tool] }) => tool.command.name === "Sphere",
+);
+TOOL_FAMILIES.find(({ name }) => name === "family_solids")!.items.unshift(
+    ...circles.items.splice(sphere, 1),
+);
 
 // The circle and the arcs through three points, the arcs of a center are
 // in their plane in space, the perpendicular there to a line or a plane;
