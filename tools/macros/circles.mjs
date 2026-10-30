@@ -436,7 +436,7 @@ export const CIRCLES = [
             ...[1, 2].flatMap((k) =>
                 [0, 2, 4].flatMap((alpha, n) => [
                     `V${k}${n} = Point(d${k}, ${alpha})`,
-                    `W${k}${n} = Inversion(V${k}${n}, j)`,
+                    `W${k}${n} = Inversion(j, V${k}${n})`,
                 ]),
             ),
             "c1 = Circumcircle(W10, W11, W12)",
@@ -448,8 +448,8 @@ export const CIRCLES = [
             ...touches("T3", "U3", true, 1),
             ...touches("T4", "U4", true, -1),
             ...[1, 2, 3, 4].flatMap((k) => [
-                `X${k} = Inversion(T${k}, j)`,
-                `Y${k} = Inversion(U${k}, j)`,
+                `X${k} = Inversion(j, T${k})`,
+                `Y${k} = Inversion(j, U${k})`,
                 `s${k} = Circumcircle(P, X${k}, Y${k})`,
             ]),
         ],

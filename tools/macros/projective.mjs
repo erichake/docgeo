@@ -40,7 +40,7 @@ export const PROJECTIVE = [
             "C = (0, 0)",
             "M = Midpoint(A, B)",
             "k = Circle(M, A)",
-            "D = Inversion(C, k)",
+            "D = Inversion(k, C)",
         ],
         hidden: ["M", "k"],
         methods: [
@@ -90,7 +90,7 @@ export const PROJECTIVE = [
             "I = Intersection(l, d)",
             "N = Midpoint(O, I)",
             "k = Circle(N, O)",
-            "M1 = Inversion(M, k)",
+            "M1 = Inversion(k, M)",
         ],
         hidden: ["l", "I", "N", "k"],
         methods: [

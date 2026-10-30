@@ -390,17 +390,15 @@ const numbered = (params: Param[]): Overload => ({
     },
 });
 
-// Objects, then a number, the entry listing the objects in this order of
-// the arguments.
-function withReal(tag: string, params: Param[], order?: number[]): Overload {
-    const positions = order ?? params.map((_, index) => index);
+// Objects, then a number.
+function withReal(tag: string, params: Param[]): Overload {
     return {
         params: [...params, "real"],
         tag,
         encode: (args, index) => [
-            ...positions.map((position) =>
-                index(args[position] as construction_object),
-            ),
+            ...args
+                .slice(0, -1)
+                .map((arg) => index(arg as construction_object)),
             realParameter(args[params.length], index),
         ],
         decode: (parameters, at) => {
@@ -411,11 +409,10 @@ function withReal(tag: string, params: Param[], order?: number[]): Overload {
                 return null;
             const objects = parameters.slice(0, -1);
             if (!objects.every(isIndex)) return null;
-            const args: Arg[] = [];
-            positions.forEach(
-                (position, k) => (args[position] = at(objects[k])),
-            );
-            return [...args, realArgument(parameters[params.length], at)];
+            return [
+                ...objects.map(at),
+                realArgument(parameters[params.length], at),
+            ];
         },
     };
 }
@@ -788,26 +785,27 @@ export const COMMANDS: Command[] = [
     {
         name: "Reflect",
         overloads: [
-            objects("Sym", ["point", "point"], [1, 0]),
-            objects("Refl", ["point", "line"], [1, 0]),
+            objects("Sym", ["point", "point"]),
+            objects("Refl", ["line", "point"]),
         ],
     },
-    // Of a point P: around O by an angle, of center O and ratio k, by u.
+    // The transformation first, then the point P, as in DGPad: around O by
+    // an angle, of center O and ratio k, by u.
     {
         name: "Rotation",
-        overloads: [withReal("Rot", ["point", "point"], [1, 0])],
+        overloads: [withReal("Rot", ["point", "point"])],
     },
     {
         name: "Dilation",
-        overloads: [withReal("Dil", ["point", "point"], [1, 0])],
+        overloads: [withReal("Dil", ["point", "point"])],
     },
     {
         name: "Translation",
-        overloads: [objects("Tra", ["point", "vector"], [1, 0])],
+        overloads: [objects("Tra", ["vector", "point"])],
     },
     {
         name: "Inversion",
-        overloads: [objects("Inv", ["point", "circle"], [1, 0])],
+        overloads: [objects("Inv", ["circle", "point"])],
     },
     {
         name: "Conic",

@@ -1269,7 +1269,7 @@ const USES: Record<
     ],
     ReflectH: [
         [...DISK, ...G, "M = (2, -2)"],
-        ["Hz", "M", "g"],
+        ["Hz", "g", "M"],
         ([M1], at) => {
             expectClose(
                 (M1 as point_object).coords.slice(0, 2),

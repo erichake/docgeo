@@ -126,6 +126,15 @@ de `src/import/dgp_commands.ts`.
   ligne relue s'écrivant dans l'ordre habituel. Pas là où l'ordre change le
   sens (`Symétrie`, `Translation`) ni là où GeoGebra l'impose
   (`Perpendiculaire`, `Parabole`, `Plan`, `Prisme`…).
+- **Transformations** (décidé avec l'auteur le 2026-10-30) : comme dans
+  DGPad et CaRMetal, ce qui définit la transformation d'abord, puis le
+  point, à l'outil comme au clavier et dans l'ordre des entrées du `.dgo` :
+  `Symétrie(O, P)`, `Symétrie(d, P)`, `Rotation(O, P, a)`,
+  `Homothétie(O, P, k)`, `Translation(u, P)`, `Inversion(c, P)`. La ligne
+  relue suit ainsi le geste de l'outil. L'ordre de GeoGebra (l'objet
+  d'abord) n'est pas accepté : entre deux points, il donnerait sans erreur
+  une autre figure. Les fonctions de formule `rotate(P, O, a)` et
+  `dilate(P, O, k)`, enregistrées en texte, gardent leur ordre.
 - Noms de commandes localisés, les mots usuels de la géométrie dans chaque
   langue (section « Langues »), ramenés à une forme canonique.
 - **Équations** (décidé avec l'auteur le 2026-10-15) : `c = x^2 + y^2 = 4`,
@@ -370,7 +379,7 @@ la GeoGebra, l'outil choisi avant les objets.
   cercle ; rien à taper (décidé avec l'auteur le 2026-10-14, qui avait
   d'abord retenu un rayon tapé).
 - **Rotation et homothétie** (décidé avec l'auteur le 2026-10-15) : le
-  point puis le centre désignés suffisent, l'outil donne un quart de tour
+  centre puis le point désignés suffisent, l'outil donne un quart de tour
   (90°, ou π/2 dans une figure en radians) ou un rapport de 2, que la
   ligne change ensuite.
 - **Outil persistant** : après chaque objet, il attend de nouveau son
@@ -1125,7 +1134,7 @@ n)` dans `CerclesDeCercles.ggb`. Nommées comme les commandes, ces
   lu par la ligne qu'aucun objet ne porte, commençant par une minuscule
   (`(a, 4)`, `y = m x + p`, `Cercle(O, r)`), devient un curseur ajouté
   avant elle, dans la même étape d'annulation : de −5 à 5 au pas de 0,1,
-  valeur 1 ; d'une lettre grecque (`Rotation(A, O, α)`), un angle de 0 à
+  valeur 1 ; d'une lettre grecque (`Rotation(O, A, α)`), un angle de 0 à
   360 au pas de 1, valeur 45 (en radians, de 0 à 2π, valeur π/4, pas de
   1°). Pas pour les noms propres aux formules (x, y, z, t, e, i, π) ni
   pour le nom de la ligne. Une ligne refusée ensuite ramène la figure à sa
@@ -2454,3 +2463,21 @@ sa place dans l'anneau. Le fond des icônes est aussi celui de leurs repères
 évidés, comme dans l'éditeur. Contrôle du manuel et de ses icônes passé dans
 les 12 langues ; aperçus français, arabe et chinois vérifiés en thèmes clair
 et sombre.
+
+### Ordre des transformations — 2026-10-30
+
+Les transformations prennent d'abord ce qui les définit (centre, droite,
+vecteur, cercle), puis le point, comme DGPad et CaRMetal : à l'outil, au
+clavier et dans la ligne relue, qui suivent désormais l'ordre des entrées
+`Sym`, `Refl`, `Rot`, `Dil`, `Tra`, `Inv` du `.dgo`, inchangé. Les figures
+enregistrées ne changent donc pas : seul le catalogue perd sa permutation
+(`withReal` aussi). Préalable à l'image d'un objet par une transformation
+(un outil qui garde la transformation et prend ensuite des objets). Tests
+et sources des bibliothèques de macros réécrits ; bibliothèques
+régénérées, identiques. Même règle pour les macros de transformation de la
+bibliothèque, l'objet transformé en dernier initial (comme dans CaRMetal) :
+`SymétrieH` prend désormais la droite g, puis le point M (seule à changer).
+Suites unitaires et navigateur passées.
+
+Manuel à mettre à jour (12 langues) : `commandes.html` (syntaxe des six
+commandes), `menu-outils.html` et `selection.html` (ordre de désignation).

@@ -115,7 +115,7 @@ export const QUADRILATERALS = [
             "B = (0, -2)",
             "C = (4, 0)",
             "l = Line(A, C)",
-            "D = Reflect(B, l)",
+            "D = Reflect(l, B)",
             "p = Polygon(A, B, C, D)",
         ],
         hidden: ["l"],

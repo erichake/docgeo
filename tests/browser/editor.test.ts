@@ -198,7 +198,7 @@ describe("Editor", () => {
             "W3 = Incenter(A, B, C)",
             "W4 = Centroid(A, B, C)",
             "W5 = Circumcenter(A, B, C)",
-            "W6 = Inversion(D, c)",
+            "W6 = Inversion(c, D)",
             "p3 = RegularPolygon(A, B, 5)",
             "W7 = Vertex(p3, 3)",
             "q2 = CenterSector(A, C, D)",
@@ -212,11 +212,11 @@ describe("Editor", () => {
             "v = Polygon(A, B, C, D)",
             "R = Point(v, 0.5, 0.5)",
             "w = Angle(A, B, C)",
-            "S = Reflect(D, A)",
-            "T = Reflect(D, d)",
-            "K = Rotation(D, A, 30)",
-            "L = Dilation(D, A, 2)",
-            "N = Translation(D, u)",
+            "S = Reflect(A, D)",
+            "T = Reflect(d, D)",
+            "K = Rotation(A, D, 30)",
+            "L = Dilation(A, D, 2)",
+            "N = Translation(u, D)",
             "a = Conic(A, B, C, D, E)",
             "k = Ellipse(A, B, C)",
             "t = Ellipse(A, B, 4)",
@@ -246,7 +246,7 @@ describe("Editor", () => {
         expect(type(c, "Segment(A, B)").name).toBe("a");
         expect(type(c, "Midpoint(A, B)").name).toBe("C");
         expect(type(c, "Circle(A, B)").name).toBe("b");
-        expect(type(c, "Rotation(A, B, 90)").name).toBe("D");
+        expect(type(c, "Rotation(B, A, 90)").name).toBe("D");
         for (const [text, key] of [
             ["Segment(A, Z)", "unknown_object"],
             ["Unknown(A, B)", "unknown_command"],
@@ -839,7 +839,7 @@ describe("Editor", () => {
             "O = (0, 0)",
             "c = Circle(O, r)",
             "d = y = m x + p",
-            "B = Rotation(A, O, α)",
+            "B = Rotation(O, A, α)",
             "f(x) = x^2 + 3x",
             "g = f'(2)",
             "h(x) = f'(x)",
@@ -860,7 +860,7 @@ describe("Editor", () => {
             "p = Slider(-5, 5, 1)",
             "d = y = m x + p",
             "α = Slider(0, 360, 45)",
-            "B = Rotation(A, O, α)",
+            "B = Rotation(O, A, α)",
             "f(x) = x^2 + 3x",
             "g = f'(2)",
             "h(x) = f'(x)",
@@ -893,7 +893,7 @@ describe("Editor", () => {
             );
         // In radians.
         c.degrees = false;
-        typed("C = Rotation(A, O, θ)");
+        typed("C = Rotation(O, A, θ)");
         expect(lines(c).slice(-2, -1)).toEqual(["θ = Slider(0, 2π, 0.7854)"]);
     });
 
@@ -927,14 +927,14 @@ describe("Editor", () => {
         [
             "u = (1, 2)",
             "A = (3, 0)",
-            "B = Translation(A, u)",
+            "B = Translation(u, A)",
             "p = (1, 1)",
         ].forEach((line) => type(c, line));
         c.flush();
         expect(lines(c)).toEqual([
             "u = (1, 2)",
             "A = (3, 0)",
-            "B = Translation(A, u)",
+            "B = Translation(u, A)",
             "p = (1, 1)",
         ]);
         const u = c.getObj("u") as free_vector_object;
@@ -1067,7 +1067,7 @@ describe("Editor", () => {
             "a = 2",
             "b = Cylinder(A, C, d(A, B))",
             "c = Sphere(B, a/2 + 1)",
-            "D = Dilation(B, A, -a)",
+            "D = Dilation(A, B, -a)",
             "e = Slider(0, 2*a, 1)",
             "f = Sphere(C, d(A, C)/4)",
             "g = Slider(0, d(A, C), 1)",

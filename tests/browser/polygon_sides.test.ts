@@ -129,7 +129,7 @@ describe("Virtual polygon sides", () => {
             "m = PerpendicularBisector(Side(p, 1))",
             "d = Parallel(O, Side(p, 1))",
             "e = Perpendicular(O, Side(p, 1))",
-            "R = Reflect(O, Side(p, 1))",
+            "R = Reflect(Side(p, 1), O)",
             "P = Point(Side(p, 1), 0.25)",
             "I = Intersection(Side(p, 1), q)",
         ];

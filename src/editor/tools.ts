@@ -266,14 +266,14 @@ const FAMILIES: [
             ],
         ],
         [
-            // The point, then the center: a quarter turn, which the line
+            // The center, then the point: a quarter turn, which the line
             // changes.
             tool("Rotation", 0, CONSTRUCTION_ICONS.Rotation),
-            // The point, then the vector.
+            // The vector, then the point.
             tool("Translation", 0, CONSTRUCTION_ICONS.Translation),
-            // The point, then the center: a ratio of 2.
+            // The center, then the point: a ratio of 2.
             tool("Dilation", 0, CONSTRUCTION_ICONS.Dilation),
-            // The point, then the circle.
+            // The circle, then the point.
             tool("Inversion", 0, CONSTRUCTION_ICONS.Inversion),
         ],
     ],
