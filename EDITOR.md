@@ -2421,3 +2421,10 @@ qu'un segment sélectionné puis « Milieu » (menu ou palette) levait une
 exception ; elle se choisit sur les objets pris. Test navigateur étendu
 (fantôme, milieu d'un segment, clic sans anneau) ; suites complètes passées.
 Éditeur : +524 octets (+141 en gzip) de plus.
+
+Manuel, dans les 12 langues : section « La palette d'outils » de la page
+du menu des outils (capture `palette.webp`, décrite dans
+`tools/manual/shots.mjs`), et compléments dans l'interface (bouton, menu
+Affichage), les gestes (clic sur un objet, palette ouverte), la sélection
+multiple (palette, fantôme), les propriétés et les raccourcis (Échap).
+Contrôle du manuel passé dans les 12 langues.

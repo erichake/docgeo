@@ -11,6 +11,8 @@ window.DG_ICONS = {
         space: '<path d="M12 3 4 7.5v9l8 4.5 8-4.5v-9ZM4 7.5l8 4.5 8-4.5M12 12v9"/>',
         properties:
             '<path d="M4 7h16M4 17h16"/><circle cx="9" cy="7" r="3" fill="var(--dge-icon-bg, #f8fafc)"/><circle cx="15" cy="17" r="3" fill="var(--dge-icon-bg, #f8fafc)"/>',
+        palette:
+            '<g transform="rotate(45 12 12)"><rect x="6.5" y="1.5" width="11" height="5" rx="1.2"/><path d="M12 6.5v16"/></g><g transform="rotate(-45 12 12)"><rect x="9.5" y="15" width="5" height="7.5" rx="2.2"/><path d="M12 15V2.5"/></g>',
         history:
             '<rect x="3" y="3" width="18" height="18" rx="3"/><path d="M9 3v18m4-13h4m-4 4h4m-4 4h4"/>',
         close_history: '<path d="m6 6 12 12M6 18 18 6"/>',
@@ -20,6 +22,7 @@ window.DG_ICONS = {
         magnet: '<g transform="rotate(45 12 12)"><path d="M6 4h4v8a2 2 0 0 0 4 0V4h4v8a6 6 0 0 1-12 0ZM6 8h4m4 0h4"/></g>',
         spring: '<path d="M2.5 21.5l2-2 3 1.2-2.5-5.9 6 2.4-2.5-5.9 6 2.4-2.5-5.9 3 1.2 1.2-1.2"/><circle cx="18.2" cy="5.8" r="2.6"/>',
         turtle: '<ellipse cx="11" cy="12" rx="6" ry="4.5"/><circle cx="19.5" cy="12" r="2"/><path d="M7.5 8.3 6 5.5M14.5 8.3 16 5.5M7.5 15.7 6 18.5M14.5 15.7 16 18.5M5 12H2.5M8 12h6"/>',
+        macro_program: '<path d="m8 7-5 5 5 5M16 7l5 5-5 5M14 4l-4 16"/>',
         open_box: '<path d="M4 10h16v10H4ZM4 10 2.5 4h16L20 10"/>',
         new_program:
             '<path d="M9 4H8a2 2 0 0 0-2 2v4l-2 2 2 2v4a2 2 0 0 0 2 2h1M15 4h1a2 2 0 0 1 2 2v4l2 2-2 2v4a2 2 0 0 1-2 2h-1"/>',

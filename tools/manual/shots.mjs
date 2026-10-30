@@ -132,6 +132,24 @@ export const SHOTS = [
         },
     },
     {
+        // A and C selected (B is under the palette): the palette greyed,
+        // the bisector hovered drawn pale.
+        file: "palette.webp",
+        page: "editor.html",
+        run: async ({ page, type, point, button, command }) => {
+            await type(TRIANGLE);
+            await button("palette");
+            await page.waitForTimeout(400);
+            await page.keyboard.down("Shift");
+            for (const name of ["A", "C"])
+                await page.mouse.click(...(await point(name)));
+            await page.keyboard.up("Shift");
+            await page.hover(
+                `.dge-palette-grid button[aria-label="${await command("PerpendicularBisector")}"]`,
+            );
+        },
+    },
+    {
         file: "proprietes.webp",
         page: "editor.html",
         run: async ({ page, type, point, button }) => {
