@@ -584,6 +584,16 @@
             </div>
 
             <h2>變換</h2>
+            <p>
+                先給出確定變換的物件，再給出
+                P，即點或物件：線段、直線、多邊形、圓、圓錐曲線、曲線……；在 3D
+                中還可以是平面、球、多面體（<code>反演</code>
+                除外）。物件的像是同類物件，否則是軌跡（見<a
+                    href="menu-outils.html#transformer-un-objet"
+                    >變換物件</a
+                >）：<code>t2 = 對稱(d, t)</code>。不接受 GeoGebra 的順序（P
+                在前）。
+            </p>
             <div class="table">
                 <table>
                     <thead>
@@ -601,22 +611,22 @@
                                     >Reflect</small
                                 >
                             </td>
-                            <td class="syntax"><code>對稱(P, O)</code></td>
-                            <td>點 P 關於點 O 的對稱點</td>
+                            <td class="syntax"><code>對稱(O, P)</code></td>
+                            <td>P 關於點 O 的對稱圖形</td>
                         </tr>
                         <tr>
-                            <td class="syntax"><code>對稱(P, d)</code></td>
-                            <td>點 P 關於直線 d 的對稱點</td>
+                            <td class="syntax"><code>對稱(d, P)</code></td>
+                            <td>P 關於直線 d 的對稱圖形</td>
                         </tr>
                         <tr>
                             <td rowspan="1">
                                 <i data-t="Rotation"></i> <strong>旋轉</strong
                                 ><br /><small>Rotation</small>
                             </td>
-                            <td class="syntax"><code>旋轉(P, O, a)</code></td>
+                            <td class="syntax"><code>旋轉(O, P, a)</code></td>
                             <td>
-                                點 P 在以 O 為中心、角為
-                                a（依圖形設定為度或弧度）的旋轉下的像
+                                P 在以 O 為中心、角為
+                                a（按圖形設定為度或弧度）的旋轉下的像
                             </td>
                         </tr>
                         <tr>
@@ -626,24 +636,24 @@
                                     >Translation</small
                                 >
                             </td>
-                            <td class="syntax"><code>平移(P, u)</code></td>
-                            <td>點 P 在向量 u 的平移下的像</td>
+                            <td class="syntax"><code>平移(u, P)</code></td>
+                            <td>P 在向量 u 的平移下的像</td>
                         </tr>
                         <tr>
                             <td rowspan="1">
                                 <i data-t="Dilation"></i> <strong>位似</strong
                                 ><br /><small>Dilation</small>
                             </td>
-                            <td class="syntax"><code>位似(P, O, k)</code></td>
-                            <td>點 P 在以 O 為中心、比為 k 的位似下的像</td>
+                            <td class="syntax"><code>位似(O, P, k)</code></td>
+                            <td>P 在以 O 為中心、比為 k 的位似下的像</td>
                         </tr>
                         <tr>
                             <td rowspan="1">
                                 <i data-t="Inversion"></i> <strong>反演</strong
                                 ><br /><small>Inversion</small>
                             </td>
-                            <td class="syntax"><code>反演(P, c)</code></td>
-                            <td>點 P 關於圓 c 的反演像</td>
+                            <td class="syntax"><code>反演(c, P)</code></td>
+                            <td>P 關於圓 c 的反演像</td>
                         </tr>
                     </tbody>
                 </table>

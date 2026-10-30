@@ -2497,8 +2497,7 @@ bibliothèque, l'objet transformé en dernier initial (comme dans CaRMetal) :
 `SymétrieH` prend désormais la droite g, puis le point M (seule à changer).
 Suites unitaires et navigateur passées.
 
-Manuel à mettre à jour (12 langues) : `commandes.html` (syntaxe des six
-commandes), `menu-outils.html` et `selection.html` (ordre de désignation).
+Manuel mis à jour le même jour, avec l'image d'un objet (ci-dessous).
 
 ### Image d'un objet par une transformation — 2026-10-30
 
@@ -2545,7 +2544,9 @@ sphères et les polyèdres ; `invertible` (inversion, dernier initial d'une
 macro qui envoie des points) ne les prend pas (`mappedSlot` désigne la
 place de l'objet transformé).
 
-Manuel à mettre à jour (12 langues), avec l'ordre des transformations
-ci-dessus : `commandes.html` (un objet à la place du point),
-`menu-outils.html` (l'outil garde la transformation), `selection.html`,
-et les pages des macros (image d'un objet par une macro).
+Manuel mis à jour dans les 12 langues (même jour) : l'ordre des
+transformations, l'image d'un objet (`menu-outils.html#transformer-un-objet`,
+`commandes.html`, `3d.html`, `macros.html#image-objet`), les arguments
+gardés (`menu-outils.html#arguments-gardes`, `raccourcis.html`), avec
+`selection.html`, `faq.html` et `gestes.html` (`TRANSFORMATIONS.md`,
+« Avancement »).

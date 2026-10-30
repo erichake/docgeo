@@ -632,6 +632,17 @@
             </div>
 
             <h2>Transformations</h2>
+            <p>
+                What defines the transformation first, then P, a point or an
+                object: segment, line, polygon, circle, conic, curve…; in 3D
+                also a plane, a sphere, a polyhedron (except
+                <code>Inversion</code>). The image of an object is an object of
+                the same kind, otherwise a locus (see
+                <a href="menu-outils.html#transformer-un-objet"
+                    >Transforming an object</a
+                >): <code>t2 = Reflect(d, t)</code>. GeoGebra’s order (P first)
+                is not accepted.
+            </p>
             <div class="table">
                 <table>
                     <thead>
@@ -647,12 +658,12 @@
                                 <i data-t="Point reflection"></i>
                                 <strong>Reflect</strong>
                             </td>
-                            <td class="syntax"><code>Reflect(P, O)</code></td>
-                            <td>reflection of the point P in the point O</td>
+                            <td class="syntax"><code>Reflect(O, P)</code></td>
+                            <td>reflection of P in the point O</td>
                         </tr>
                         <tr>
-                            <td class="syntax"><code>Reflect(P, d)</code></td>
-                            <td>reflection of the point P in the line d</td>
+                            <td class="syntax"><code>Reflect(d, P)</code></td>
+                            <td>reflection of P in the line d</td>
                         </tr>
                         <tr>
                             <td rowspan="1">
@@ -660,12 +671,12 @@
                                 <strong>Rotation</strong>
                             </td>
                             <td class="syntax">
-                                <code>Rotation(P, O, a)</code>
+                                <code>Rotation(O, P, a)</code>
                             </td>
                             <td>
-                                image of the point P by the rotation with center
-                                O and angle a (in degrees or radians, depending
-                                on the figure)
+                                image of P by the rotation with center O and
+                                angle a (in degrees or radians, depending on the
+                                figure)
                             </td>
                         </tr>
                         <tr>
@@ -674,11 +685,10 @@
                                 <strong>Translation</strong>
                             </td>
                             <td class="syntax">
-                                <code>Translation(P, u)</code>
+                                <code>Translation(u, P)</code>
                             </td>
                             <td>
-                                image of the point P by the translation by the
-                                vector u
+                                image of P by the translation by the vector u
                             </td>
                         </tr>
                         <tr>
@@ -687,11 +697,11 @@
                                 <strong>Dilation</strong>
                             </td>
                             <td class="syntax">
-                                <code>Dilation(P, O, k)</code>
+                                <code>Dilation(O, P, k)</code>
                             </td>
                             <td>
-                                image of the point P by the dilation with center
-                                O and ratio k
+                                image of P by the dilation with center O and
+                                ratio k
                             </td>
                         </tr>
                         <tr>
@@ -699,11 +709,8 @@
                                 <i data-t="Inversion"></i>
                                 <strong>Inversion</strong>
                             </td>
-                            <td class="syntax"><code>Inversion(P, c)</code></td>
-                            <td>
-                                image of the point P by the inversion in the
-                                circle c
-                            </td>
+                            <td class="syntax"><code>Inversion(c, P)</code></td>
+                            <td>image of P by the inversion in the circle c</td>
                         </tr>
                     </tbody>
                 </table>

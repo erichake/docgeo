@@ -82,6 +82,13 @@
                     <kbd>Esc</kbd> la lascia.
                 </li>
                 <li>
+                    Un iniziale selezionato con <kbd>Maiusc</kbd>, o tenuto con
+                    il pulsante <strong>Tieni</strong> della consegna, viene
+                    ripreso con quelli che lo precedono da un’applicazione
+                    all’altra, fino all’uscita dalla macro;
+                    <strong>Cambia</strong> richiede tutto dal primo.
+                </li>
+                <li>
                     I finali sono oggetti come gli altri (nome, stile), che non
                     si spostano, salvo un punto su oggetto, lungo il suo
                     supporto.
@@ -90,6 +97,31 @@
                     Un iniziale fisso già designato, o un oggetto che porta il
                     suo nome, è preso subito; <strong>Cambia Hz</strong> nella
                     consegna ne designa un altro.
+                </li>
+            </ul>
+            <h2 id="image-objet">Immagine di un oggetto tramite una macro</h2>
+            <ul>
+                <li>
+                    Una macro il cui ultimo iniziale e unico finale sono punti è
+                    una trasformazione: al posto di quel punto, prende anche una
+                    retta, una circonferenza, un poligono, una conica, una
+                    curva…, con l’immagine in anteprima al passaggio del
+                    puntatore.
+                </li>
+                <li>
+                    L’immagine è una retta, una circonferenza o una conica se le
+                    immagini dei punti dell’oggetto vi restano; altrimenti un
+                    luogo o, per un poligono, un poligono dai lati curvi. Questa
+                    natura è determinata all’applicazione e non cambia più.
+                </li>
+                <li>
+                    Esempio: la simmetria iperbolica della libreria prende il
+                    disco, la retta, poi un triangolo, la cui immagine ha per
+                    lati archi di circonferenza.
+                </li>
+                <li>
+                    Da tastiera, l’oggetto al posto del punto:
+                    <code>t2 = MiaMacro(A, t)</code>.
                 </li>
             </ul>
             <h2 id="au-clavier">Da tastiera</h2>

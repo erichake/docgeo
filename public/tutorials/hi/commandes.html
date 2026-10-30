@@ -695,6 +695,17 @@
             </div>
 
             <h2>रूपांतरण</h2>
+            <p>
+                पहले वह जो रूपांतरण को परिभाषित करता है, फिर P, कोई बिन्दु या
+                वस्तु: रेखाखण्ड, रेखा, बहुभुज, वृत्त, शांकव, वक्र…; 3D में समतल,
+                गोला और बहुफलक भी (<code>व्युत्क्रमण</code> को छोड़कर)। किसी
+                वस्तु का प्रतिबिम्ब उसी प्रकार की वस्तु होता है, अन्यथा बिन्दुपथ
+                (देखें
+                <a href="menu-outils.html#transformer-un-objet"
+                    >किसी वस्तु का रूपांतरण</a
+                >): <code>t2 = परावर्तन(d, t)</code>। GeoGebra का क्रम (पहले P)
+                स्वीकार नहीं किया जाता।
+            </p>
             <div class="table">
                 <table>
                     <thead>
@@ -712,23 +723,22 @@
                                     >Reflect</small
                                 >
                             </td>
-                            <td class="syntax"><code>परावर्तन(P, O)</code></td>
-                            <td>बिन्दु O के सापेक्ष बिन्दु P का प्रतिबिम्ब</td>
+                            <td class="syntax"><code>परावर्तन(O, P)</code></td>
+                            <td>बिन्दु O के सापेक्ष P का प्रतिबिम्ब</td>
                         </tr>
                         <tr>
-                            <td class="syntax"><code>परावर्तन(P, d)</code></td>
-                            <td>रेखा d के सापेक्ष बिन्दु P का प्रतिबिम्ब</td>
+                            <td class="syntax"><code>परावर्तन(d, P)</code></td>
+                            <td>रेखा d के सापेक्ष P का प्रतिबिम्ब</td>
                         </tr>
                         <tr>
                             <td rowspan="1">
                                 <i data-t="Rotation"></i> <strong>घूर्णन</strong
                                 ><br /><small>Rotation</small>
                             </td>
-                            <td class="syntax"><code>घूर्णन(P, O, a)</code></td>
+                            <td class="syntax"><code>घूर्णन(O, P, a)</code></td>
                             <td>
                                 केन्द्र O और कोण a (आकृति के अनुसार डिग्री या
-                                रेडियन में) वाले घूर्णन से बिन्दु P का
-                                प्रतिबिम्ब
+                                रेडियन में) वाले घूर्णन से P का प्रतिबिम्ब
                             </td>
                         </tr>
                         <tr>
@@ -739,20 +749,18 @@
                                 >
                             </td>
                             <td class="syntax">
-                                <code>स्थानांतरण(P, u)</code>
+                                <code>स्थानांतरण(u, P)</code>
                             </td>
-                            <td>
-                                सदिश u वाले स्थानांतरण से बिन्दु P का प्रतिबिम्ब
-                            </td>
+                            <td>सदिश u वाले स्थानांतरण से P का प्रतिबिम्ब</td>
                         </tr>
                         <tr>
                             <td rowspan="1">
                                 <i data-t="Dilation"></i> <strong>आवर्धन</strong
                                 ><br /><small>Dilation</small>
                             </td>
-                            <td class="syntax"><code>आवर्धन(P, O, k)</code></td>
+                            <td class="syntax"><code>आवर्धन(O, P, k)</code></td>
                             <td>
-                                केन्द्र O और अनुपात k वाले आवर्धन से बिन्दु P का
+                                केन्द्र O और अनुपात k वाले आवर्धन से P का
                                 प्रतिबिम्ब
                             </td>
                         </tr>
@@ -764,10 +772,10 @@
                                 >
                             </td>
                             <td class="syntax">
-                                <code>व्युत्क्रमण(P, c)</code>
+                                <code>व्युत्क्रमण(c, P)</code>
                             </td>
                             <td>
-                                वृत्त c के सापेक्ष व्युत्क्रमण से बिन्दु P का
+                                वृत्त c के सापेक्ष व्युत्क्रमण से P का
                                 प्रतिबिम्ब
                             </td>
                         </tr>

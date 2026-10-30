@@ -165,8 +165,8 @@ deux suivent les mêmes règles et la même interface.
    lieu (courbes de fonctions, lieux…), inversion des droites et des
    cercles. **Fait** (décision 8).
 4. Macros de transformation (entrée `Mac`, verdict enregistré). **Fait.**
-5. 3D (plans, polyèdres, sphères), point sur une image. **Fait**, sauf
-   le manuel, après le feu vert de l'auteur.
+5. 3D (plans, polyèdres, sphères), point sur une image. **Fait.**
+6. Manuel, dans les 12 langues. **Fait.**
 
 ## Référence : CaRMetal
 
@@ -219,10 +219,6 @@ Idées à garder, sans recopier le code :
   n'est pas l'image d'un point), coniques hors d'un plan horizontal
   (`Quad` y est limité), rotation autour d'un axe à l'outil et au clavier
   (le moteur la connaît : `Rot` à quatre paramètres).
-- **Manuel** : à mettre à jour dans les 12 langues à la fin, après le feu
-  vert de l'auteur (y compris l'ordre des arguments du 2026-10-30, pas
-  encore reporté : `commandes.html`, `menu-outils.html`,
-  `selection.html`).
 
 ## Avancement
 
@@ -277,3 +273,13 @@ Idées à garder, sans recopier le code :
   260,15 → 261,78 Ko (+1,63 Ko). Réservé ensuite aux désignations
   postfixées (ni anneau, ni sélection préalable), test « keeps no
   argument designated before the tool ».
+- 2026-10-30 : manuel, dans les 12 langues. `menu-outils.html` : ordre
+  des arguments des six transformations, rubrique « Transformer un
+  objet » (`#transformer-un-objet`) et arguments gardés
+  (`#arguments-gardes`, Maj, « Garder » / « Changer ») ;
+  `commandes.html` : nouvel ordre, un objet à la place de P, l'ordre de
+  GeoGebra refusé ; `macros.html` : initiaux gardés et « Image d'un objet
+  par une macro » (`#image-objet`) ; `selection.html`, `faq.html`,
+  `gestes.html` (anneau), `raccourcis.html` (Maj-clic pendant un outil),
+  `3d.html` (plans, sphères, polyèdres). Contrôle `npm run manual --
+  check` passé ; ni icône ni capture à refaire.

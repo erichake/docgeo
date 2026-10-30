@@ -64,6 +64,18 @@
                     menú toma su icono y la barra muestra una franja con
                     <strong>Listo</strong>.
                 </li>
+                <li id="arguments-gardes">
+                    Un argumento seleccionado con <kbd>Mayús</kbd> se
+                    <strong>conserva</strong>: la herramienta lo vuelve a tomar
+                    después de cada objeto, hasta que se sale de ella.
+                    <kbd>Mayús</kbd>-clic en el eje de una simetría y luego un
+                    clic en cada objeto que se transforma; lo mismo con el
+                    centro de circunferencias concéntricas. El botón
+                    <strong>Conservar d</strong> de la consigna hace lo mismo
+                    (con el dedo, por ejemplo); <strong>Cambiar d</strong> lo
+                    vuelve a pedir. Ni para la herramienta del anillo ni para
+                    los objetos seleccionados antes de la herramienta.
+                </li>
                 <li>
                     Salir: <strong>Listo</strong>, <kbd>Esc</kbd>, la
                     <strong>✕</strong> de la indicación, el botón del menú (que
@@ -79,6 +91,45 @@
                 de la herramienta elegida: ver
                 <a href="selection.html">Construir por selección múltiple</a>.
             </p>
+
+            <h2 id="transformer-un-objet">Transformar un objeto</h2>
+            <ul>
+                <li>
+                    Una transformación toma primero lo que la define (centro,
+                    eje, vector, circunferencia) y luego el punto o el objeto
+                    que se transforma: segmento, recta, semirrecta, vector,
+                    polígono, circunferencia, arco, cónica, gráfica de función,
+                    lugar geométrico; en 3D también un plano, una esfera, un
+                    poliedro (salvo por una inversión).
+                </li>
+                <li>
+                    Bajo el puntero, un punto tiene prioridad, luego el objeto;
+                    en el vacío, se crea un punto. Al pasar por encima, la
+                    imagen aparece en pálido.
+                </li>
+                <li>
+                    La imagen es de la misma naturaleza que el objeto: un
+                    polígono para un polígono, una circunferencia para una
+                    circunferencia… Una gráfica de función, un lugar geométrico
+                    o un arco de cónica tienen por imagen un lugar geométrico.
+                </li>
+                <li>
+                    Por una inversión, una recta o una circunferencia tiene por
+                    imagen una circunferencia, o una recta si pasa por el
+                    centro; un polígono, un polígono de lados curvos.
+                </li>
+                <li>
+                    La imagen toma el color, el relleno, el tamaño, la opacidad
+                    y el trazo discontinuo de su objeto. No se arrastra, pero se
+                    puede colocar un punto sobre ella.
+                </li>
+                <li>
+                    Para transformar varios objetos, seleccionar el centro o el
+                    eje con <kbd>Mayús</kbd> (<a href="#arguments-gardes"
+                        >argumento conservado</a
+                    >).
+                </li>
+            </ul>
 
             <h2 id="palette">La paleta de herramientas</h2>
             <figure>
@@ -619,9 +670,9 @@
                                     >anillo</span
                                 ></strong
                             ><span
-                                >El punto que se transforma y luego el
-                                centro.</span
-                            ><span><code>Simetría(P, O)</code></span>
+                                >El centro y luego el punto o el objeto que se
+                                transforma.</span
+                            ><span><code>Simetría(O, P)</code></span>
                         </div>
                     </li>
                     <li>
@@ -632,9 +683,9 @@
                                     >anillo</span
                                 ></strong
                             ><span
-                                >El punto que se transforma y el eje, en el
-                                orden que se quiera.</span
-                            ><span><code>Simetría(P, d)</code></span>
+                                >El eje y luego el punto o el objeto que se
+                                transforma.</span
+                            ><span><code>Simetría(d, P)</code></span>
                         </div>
                     </li>
                     <li>
@@ -642,17 +693,18 @@
                         <div>
                             <strong>Rotación</strong
                             ><span
-                                >El punto y luego el centro: un cuarto de
-                                vuelta, que se cambia en su línea.</span
-                            ><span><code>Rotación(P, O, 90)</code></span>
+                                >El centro y luego el punto o el objeto: un
+                                cuarto de vuelta, que se cambia en su
+                                línea.</span
+                            ><span><code>Rotación(O, P, 90)</code></span>
                         </div>
                     </li>
                     <li>
                         <i data-t="Translation"></i>
                         <div>
                             <strong>Traslación</strong
-                            ><span>El punto y luego el vector.</span
-                            ><span><code>Traslación(P, u)</code></span>
+                            ><span>El vector y luego el punto o el objeto.</span
+                            ><span><code>Traslación(u, P)</code></span>
                         </div>
                     </li>
                     <li>
@@ -660,9 +712,9 @@
                         <div>
                             <strong>Homotecia</strong
                             ><span
-                                >El punto y luego el centro: una razón de 2, que
-                                se cambia en su línea.</span
-                            ><span><code>Homotecia(P, O, 2)</code></span>
+                                >El centro y luego el punto o el objeto: una
+                                razón de 2, que se cambia en su línea.</span
+                            ><span><code>Homotecia(O, P, 2)</code></span>
                         </div>
                     </li>
                     <li>
@@ -670,9 +722,9 @@
                         <div>
                             <strong>Inversión</strong
                             ><span
-                                >El punto y luego la circunferencia de
-                                inversión.</span
-                            ><span><code>Inversión(P, c)</code></span>
+                                >La circunferencia de inversión y luego el punto
+                                o el objeto.</span
+                            ><span><code>Inversión(c, P)</code></span>
                         </div>
                     </li>
                 </ul>
@@ -905,9 +957,10 @@
             </div>
 
             <p>
-                Las transformaciones construyen la imagen de un
-                <strong>punto</strong>. Solo con el teclado:
-                <code>PuntoFijo</code>, <code>Vértice</code>,
+                Las transformaciones construyen la imagen de un punto o de un
+                objeto (ver
+                <a href="#transformer-un-objet">Transformar un objeto</a>). Solo
+                con el teclado: <code>PuntoFijo</code>, <code>Vértice</code>,
                 <code>Deslizador</code>, <code>Lista</code>, las intersecciones
                 en el espacio, <code>Elipse(F, G, a)</code> e
                 <code>Hipérbola(F, G, a)</code> (ver

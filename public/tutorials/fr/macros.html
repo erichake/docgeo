@@ -81,6 +81,13 @@
                     <kbd>Échap</kbd> la quitte.
                 </li>
                 <li>
+                    Un initial désigné avec <kbd>Maj</kbd>, ou gardé par le
+                    bouton <strong>Garder</strong> de la consigne, est repris
+                    avec ceux qui le précèdent d’une application à l’autre,
+                    jusqu’à la sortie de la macro ; <strong>Changer</strong>
+                    redemande tout depuis le premier.
+                </li>
+                <li>
                     Les finaux sont des objets comme les autres (nom, style),
                     qui ne se déplacent pas, sauf un point sur objet, le long de
                     son support.
@@ -89,6 +96,30 @@
                     Un initial fixé déjà désigné, ou un objet qui porte son nom,
                     est pris d’office ; <strong>Changer Hz</strong> dans la
                     consigne en désigne un autre.
+                </li>
+            </ul>
+            <h2 id="image-objet">Image d’un objet par une macro</h2>
+            <ul>
+                <li>
+                    Une macro dont le dernier initial et le seul final sont des
+                    points est une transformation : à la place de ce point, elle
+                    prend aussi une droite, un cercle, un polygone, une conique,
+                    une courbe…, avec l’image en aperçu au survol.
+                </li>
+                <li>
+                    L’image est une droite, un cercle ou une conique si les
+                    images des points de l’objet le restent ; sinon un lieu, ou,
+                    pour un polygone, un polygone aux côtés courbes. Cette
+                    nature est trouvée à l’application et ne change plus.
+                </li>
+                <li>
+                    Exemple : la symétrie hyperbolique de la bibliothèque prend
+                    le disque, la droite, puis un triangle, dont l’image a des
+                    côtés en arcs de cercle.
+                </li>
+                <li>
+                    Au clavier, l’objet à la place du point :
+                    <code>t2 = MaMacro(A, t)</code>.
                 </li>
             </ul>
             <h2 id="au-clavier">Au clavier</h2>

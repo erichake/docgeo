@@ -63,6 +63,18 @@
                     pulsante del menu prende la sua icona e la barra mostra una
                     fascia con <strong>Fatto</strong>.
                 </li>
+                <li id="arguments-gardes">
+                    Un argomento selezionato con <kbd>Maiusc</kbd> viene
+                    <strong>tenuto</strong>: lo strumento lo riprende dopo ogni
+                    oggetto, finché non lo si lascia. <kbd>Maiusc</kbd>-clic
+                    sull’asse di una simmetria, poi un clic su ogni oggetto da
+                    trasformare; lo stesso per il centro di circonferenze
+                    concentriche. Il pulsante <strong>Tieni d</strong> della
+                    consegna fa lo stesso (col dito, per esempio);
+                    <strong>Cambia d</strong> lo richiede. Né per lo strumento
+                    dell’anello, né per gli oggetti selezionati prima dello
+                    strumento.
+                </li>
                 <li>
                     Uscita: <strong>Fatto</strong>, <kbd>Esc</kbd>, la
                     <strong>✕</strong> del suggerimento, il pulsante del menu
@@ -78,6 +90,45 @@
                 strumento scelto: vedi
                 <a href="selection.html">Costruire per selezione multipla</a>.
             </p>
+
+            <h2 id="transformer-un-objet">Trasformare un oggetto</h2>
+            <ul>
+                <li>
+                    Una trasformazione prende prima ciò che la definisce
+                    (centro, asse, vettore, circonferenza), poi il punto o
+                    l’oggetto da trasformare: segmento, retta, semiretta,
+                    vettore, poligono, circonferenza, arco, conica, grafico di
+                    funzione, luogo; in 3D anche un piano, una sfera, un
+                    poliedro (salvo per un’inversione).
+                </li>
+                <li>
+                    Sotto il puntatore, un punto ha la precedenza, poi
+                    l’oggetto; nel vuoto viene creato un punto. Al passaggio del
+                    puntatore l’immagine appare sbiadita.
+                </li>
+                <li>
+                    L’immagine è della stessa natura dell’oggetto: un poligono
+                    per un poligono, una circonferenza per una circonferenza… Un
+                    grafico di funzione, un luogo o un arco di conica hanno per
+                    immagine un luogo.
+                </li>
+                <li>
+                    In un’inversione, una retta o una circonferenza ha per
+                    immagine una circonferenza, o una retta se passa per il
+                    centro; un poligono, un poligono dai lati curvi.
+                </li>
+                <li>
+                    L’immagine riprende il colore, il riempimento, la
+                    dimensione, l’opacità e il tratteggio del suo oggetto. Non
+                    si trascina, ma vi si può porre un punto.
+                </li>
+                <li>
+                    Per trasformare più oggetti, selezionare il centro o l’asse
+                    con <kbd>Maiusc</kbd> (<a href="#arguments-gardes"
+                        >argomento tenuto</a
+                    >).
+                </li>
+            </ul>
 
             <h2 id="palette">La tavolozza degli strumenti</h2>
             <figure>
@@ -613,8 +664,10 @@
                                 >Simmetria centrale<span class="badge ring"
                                     >anello</span
                                 ></strong
-                            ><span>Il punto da trasformare, poi il centro.</span
-                            ><span><code>Simmetrico(P, O)</code></span>
+                            ><span
+                                >Il centro, poi il punto o l’oggetto da
+                                trasformare.</span
+                            ><span><code>Simmetrico(O, P)</code></span>
                         </div>
                     </li>
                     <li>
@@ -625,9 +678,9 @@
                                     >anello</span
                                 ></strong
                             ><span
-                                >Il punto da trasformare e l’asse, nell’ordine
-                                che si preferisce.</span
-                            ><span><code>Simmetrico(P, d)</code></span>
+                                >L’asse, poi il punto o l’oggetto da
+                                trasformare.</span
+                            ><span><code>Simmetrico(d, P)</code></span>
                         </div>
                     </li>
                     <li>
@@ -635,17 +688,17 @@
                         <div>
                             <strong>Rotazione</strong
                             ><span
-                                >Il punto, poi il centro: un quarto di giro, che
-                                si cambia nella sua riga.</span
-                            ><span><code>Rotazione(P, O, 90)</code></span>
+                                >Il centro, poi il punto o l’oggetto: un quarto
+                                di giro, che si cambia nella sua riga.</span
+                            ><span><code>Rotazione(O, P, 90)</code></span>
                         </div>
                     </li>
                     <li>
                         <i data-t="Translation"></i>
                         <div>
                             <strong>Traslazione</strong
-                            ><span>Il punto, poi il vettore.</span
-                            ><span><code>Traslazione(P, u)</code></span>
+                            ><span>Il vettore, poi il punto o l’oggetto.</span
+                            ><span><code>Traslazione(u, P)</code></span>
                         </div>
                     </li>
                     <li>
@@ -653,9 +706,10 @@
                         <div>
                             <strong>Omotetia</strong
                             ><span
-                                >Il punto, poi il centro: un rapporto di 2, che
-                                si cambia nella sua riga.</span
-                            ><span><code>Omotetia(P, O, 2)</code></span>
+                                >Il centro, poi il punto o l’oggetto: un
+                                rapporto di 2, che si cambia nella sua
+                                riga.</span
+                            ><span><code>Omotetia(O, P, 2)</code></span>
                         </div>
                     </li>
                     <li>
@@ -663,9 +717,9 @@
                         <div>
                             <strong>Inversione</strong
                             ><span
-                                >Il punto, poi la circonferenza
-                                d’inversione.</span
-                            ><span><code>Inversione(P, c)</code></span>
+                                >La circonferenza d’inversione, poi il punto o
+                                l’oggetto.</span
+                            ><span><code>Inversione(c, P)</code></span>
                         </div>
                     </li>
                 </ul>
@@ -892,9 +946,10 @@
             </div>
 
             <p>
-                Le trasformazioni costruiscono l’immagine di un
-                <strong>punto</strong>. Solo da tastiera:
-                <code>PuntoFisso</code>, <code>Vertice</code>,
+                Le trasformazioni costruiscono l’immagine di un punto o di un
+                oggetto (vedi
+                <a href="#transformer-un-objet">Trasformare un oggetto</a>).
+                Solo da tastiera: <code>PuntoFisso</code>, <code>Vertice</code>,
                 <code>Cursore</code>, <code>Lista</code>, le intersezioni nello
                 spazio, <code>Ellisse(F, G, a)</code> e
                 <code>Iperbole(F, G, a)</code> (vedi

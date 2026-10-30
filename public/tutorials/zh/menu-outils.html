@@ -51,6 +51,16 @@
                 <li>
                     工具是<strong>持续</strong>的：每完成一个对象，它都会重新等待第一个参数。菜单按钮换成该工具的图标，工具栏显示一条带有<strong>完成</strong>的横幅。
                 </li>
+                <li id="arguments-gardes">
+                    按住
+                    <kbd>Shift</kbd>
+                    选择的参数会被<strong>保留</strong>：每完成一个对象，工具都会再次采用它，直到退出工具。按住
+                    <kbd>Shift</kbd>
+                    单击对称轴，再逐个单击要变换的对象；同心圆的圆心也是如此。提示栏中的<strong
+                        >保留 d</strong
+                    >按钮作用相同（例如用手指时）；<strong>更换 d</strong
+                    >会重新要求选择它。工具环中的工具以及在选工具之前已选中的对象不适用。
+                </li>
                 <li>
                     退出：<strong>完成</strong>、<kbd>Esc</kbd>、提示中的<strong>✕</strong>、菜单按钮（会重新打开菜单）、橡皮擦、逐步构造，或在输入行中点击。撤销、重做、属性和
                     3D 视图会保留当前工具。
@@ -63,6 +73,32 @@
                     >用多选作图</a
                 >。
             </p>
+
+            <h2 id="transformer-un-objet">变换对象</h2>
+            <ul>
+                <li>
+                    变换先选取确定它的对象（中心、对称轴、向量、圆），再选取要变换的点或对象：线段、直线、射线、向量、多边形、圆、圆弧、圆锥曲线、函数图像、轨迹；在
+                    3D 中还可以是平面、球、多面体（反演除外）。
+                </li>
+                <li>
+                    指针下优先选点，其次是对象；在空白处则创建一个点。悬停时，像以浅色显示。
+                </li>
+                <li>
+                    像与对象属于同一类：多边形的像是多边形，圆的像是圆……函数图像、轨迹或圆锥曲线的弧的像是轨迹。
+                </li>
+                <li>
+                    在反演下，直线或圆的像是圆，若经过反演中心则是直线；多边形的像是边为曲线的多边形。
+                </li>
+                <li>
+                    像沿用其对象的颜色、填充、大小、不透明度和虚线。像不能拖动，但可以在上面放置点。
+                </li>
+                <li>
+                    要变换多个对象，按住 <kbd>Shift</kbd> 选择中心或对称轴（<a
+                        href="#arguments-gardes"
+                        >保留的参数</a
+                    >）。
+                </li>
+            </ul>
 
             <h2 id="palette">工具面板</h2>
             <figure>
@@ -528,8 +564,8 @@
                                 >中心对称<span class="badge ring"
                                     >工具环</span
                                 ></strong
-                            ><span>要变换的点，然后中心。</span
-                            ><span><code>对称(P, O)</code></span>
+                            ><span>中心，然后要变换的点或对象。</span
+                            ><span><code>对称(O, P)</code></span>
                         </div>
                     </li>
                     <li>
@@ -539,8 +575,8 @@
                                 >轴对称<span class="badge ring"
                                     >工具环</span
                                 ></strong
-                            ><span>要变换的点和对称轴，顺序任意。</span
-                            ><span><code>对称(P, d)</code></span>
+                            ><span>对称轴，然后要变换的点或对象。</span
+                            ><span><code>对称(d, P)</code></span>
                         </div>
                     </li>
                     <li>
@@ -548,30 +584,34 @@
                         <div>
                             <strong>旋转</strong
                             ><span
-                                >点，然后中心：旋转四分之一圈，可在其行中修改。</span
-                            ><span><code>旋转(P, O, 90)</code></span>
+                                >中心，然后点或对象：旋转四分之一圈，可在其行中修改。</span
+                            ><span><code>旋转(O, P, 90)</code></span>
                         </div>
                     </li>
                     <li>
                         <i data-t="Translation"></i>
                         <div>
-                            <strong>平移</strong><span>点，然后向量。</span
-                            ><span><code>平移(P, u)</code></span>
+                            <strong>平移</strong
+                            ><span>向量，然后点或对象。</span
+                            ><span><code>平移(u, P)</code></span>
                         </div>
                     </li>
                     <li>
                         <i data-t="Dilation"></i>
                         <div>
                             <strong>位似</strong
-                            ><span>点，然后中心：比为 2，可在其行中修改。</span
-                            ><span><code>位似(P, O, 2)</code></span>
+                            ><span
+                                >中心，然后点或对象：比为
+                                2，可在其行中修改。</span
+                            ><span><code>位似(O, P, 2)</code></span>
                         </div>
                     </li>
                     <li>
                         <i data-t="Inversion"></i>
                         <div>
-                            <strong>反演</strong><span>点，然后反演圆。</span
-                            ><span><code>反演(P, c)</code></span>
+                            <strong>反演</strong
+                            ><span>反演圆，然后点或对象。</span
+                            ><span><code>反演(c, P)</code></span>
                         </div>
                     </li>
                 </ul>
@@ -767,7 +807,9 @@
             </div>
 
             <p>
-                变换作出的是<strong>点</strong>的像。只能用键盘输入的：<code>定点</code>、<code>顶点</code>、<code>滑动条</code>、<code>列表</code>、空间中的交点、<code
+                变换作出点或对象的像（见<a href="#transformer-un-objet"
+                    >变换对象</a
+                >）。只能用键盘输入的：<code>定点</code>、<code>顶点</code>、<code>滑动条</code>、<code>列表</code>、空间中的交点、<code
                     >椭圆(F, G, a)</code
                 >和 <code>双曲线(F, G, a)</code>（见<a href="commandes.html"
                     >命令</a

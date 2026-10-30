@@ -698,6 +698,17 @@
             </div>
 
             <h2>Transformaties</h2>
+            <p>
+                Eerst wat de transformatie bepaalt, dan P, een punt of een
+                object: lijnstuk, rechte, veelhoek, cirkel, kegelsnede, kromme…;
+                in 3D ook een vlak, een bol, een veelvlak (behalve
+                <code>Inversie</code>). Het beeld van een object is een object
+                van dezelfde soort, anders een meetkundige plaats (zie
+                <a href="menu-outils.html#transformer-un-objet"
+                    >Een object transformeren</a
+                >): <code>t2 = Spiegeling(d, t)</code>. De volgorde van GeoGebra
+                (P eerst) wordt niet aanvaard.
+            </p>
             <div class="table">
                 <table>
                     <thead>
@@ -716,20 +727,18 @@
                                 >
                             </td>
                             <td class="syntax">
-                                <code>Spiegeling(P, O)</code>
+                                <code>Spiegeling(O, P)</code>
                             </td>
                             <td>
-                                spiegelbeeld van het punt P ten opzichte van het
-                                punt O
+                                spiegelbeeld van P ten opzichte van het punt O
                             </td>
                         </tr>
                         <tr>
                             <td class="syntax">
-                                <code>Spiegeling(P, d)</code>
+                                <code>Spiegeling(d, P)</code>
                             </td>
                             <td>
-                                spiegelbeeld van het punt P ten opzichte van de
-                                rechte d
+                                spiegelbeeld van P ten opzichte van de rechte d
                             </td>
                         </tr>
                         <tr>
@@ -740,12 +749,12 @@
                                 >
                             </td>
                             <td class="syntax">
-                                <code>Draaiing(P, O, a)</code>
+                                <code>Draaiing(O, P, a)</code>
                             </td>
                             <td>
-                                beeld van het punt P door de draaiing met
-                                centrum O en hoek a (in graden of radialen,
-                                afhankelijk van de figuur)
+                                beeld van P door de draaiing met centrum O en
+                                hoek a (in graden of radialen, naargelang de
+                                figuur)
                             </td>
                         </tr>
                         <tr>
@@ -756,11 +765,11 @@
                                 >
                             </td>
                             <td class="syntax">
-                                <code>Verschuiving(P, u)</code>
+                                <code>Verschuiving(u, P)</code>
                             </td>
                             <td>
-                                beeld van het punt P door de verschuiving over
-                                de vector u
+                                beeld van P door de verschuiving over de vector
+                                u
                             </td>
                         </tr>
                         <tr>
@@ -771,11 +780,11 @@
                                 >
                             </td>
                             <td class="syntax">
-                                <code>Vermenigvuldiging(P, O, k)</code>
+                                <code>Vermenigvuldiging(O, P, k)</code>
                             </td>
                             <td>
-                                beeld van het punt P door de vermenigvuldiging
-                                met centrum O en factor k
+                                beeld van P door de vermenigvuldiging met
+                                centrum O en factor k
                             </td>
                         </tr>
                         <tr>
@@ -785,10 +794,10 @@
                                     >Inversion</small
                                 >
                             </td>
-                            <td class="syntax"><code>Inversie(P, c)</code></td>
+                            <td class="syntax"><code>Inversie(c, P)</code></td>
                             <td>
-                                beeld van het punt P door de inversie ten
-                                opzichte van de cirkel c
+                                beeld van P door de inversie ten opzichte van de
+                                cirkel c
                             </td>
                         </tr>
                     </tbody>

@@ -62,6 +62,17 @@
                     du menu prend son icône et la barre affiche un bandeau avec
                     <strong>Terminé</strong>.
                 </li>
+                <li id="arguments-gardes">
+                    Un argument désigné avec <kbd>Maj</kbd> est
+                    <strong>gardé</strong> : l’outil le reprend après chaque
+                    objet, jusqu’à ce qu’on le quitte. <kbd>Maj</kbd>-clic sur
+                    l’axe d’une symétrie, puis un clic sur chaque objet à
+                    transformer ; de même le centre de cercles concentriques. Le
+                    bouton <strong>Garder d</strong> de la consigne fait de même
+                    (au doigt notamment) ; <strong>Changer d</strong> le
+                    redemande. Ni pour l’outil de l’anneau, ni pour les objets
+                    sélectionnés avant l’outil.
+                </li>
                 <li>
                     Sortie : <strong>Terminé</strong>, <kbd>Échap</kbd>,
                     <strong>✕</strong> de la consigne, le bouton du menu (qui
@@ -77,6 +88,43 @@
                 l’outil choisi : voir
                 <a href="selection.html">Construire par sélection multiple</a>.
             </p>
+
+            <h2 id="transformer-un-objet">Transformer un objet</h2>
+            <ul>
+                <li>
+                    Une transformation prend d’abord ce qui la définit (centre,
+                    axe, vecteur, cercle), puis le point ou l’objet à
+                    transformer : segment, droite, demi-droite, vecteur,
+                    polygone, cercle, arc, conique, courbe de fonction, lieu ;
+                    en 3D aussi un plan, une sphère, un polyèdre (sauf par une
+                    inversion).
+                </li>
+                <li>
+                    Sous le pointeur, un point l’emporte, puis l’objet ; dans le
+                    vide, un point est créé. Le survol montre l’image en pâle.
+                </li>
+                <li>
+                    L’image est de même nature que l’objet : un polygone pour un
+                    polygone, un cercle pour un cercle… Une courbe de fonction,
+                    un lieu ou un arc de conique ont pour image un lieu.
+                </li>
+                <li>
+                    Par une inversion, une droite ou un cercle a pour image un
+                    cercle, ou une droite s’il passe par le centre ; un
+                    polygone, un polygone aux côtés courbes.
+                </li>
+                <li>
+                    L’image reprend la couleur, le remplissage, la taille,
+                    l’opacité et le pointillé de son objet. Elle ne se glisse
+                    pas, mais un point peut s’y poser.
+                </li>
+                <li>
+                    Pour transformer plusieurs objets, désigner le centre ou
+                    l’axe avec <kbd>Maj</kbd> (<a href="#arguments-gardes"
+                        >argument gardé</a
+                    >).
+                </li>
+            </ul>
 
             <h2 id="palette">La palette d’outils</h2>
             <figure>
@@ -609,8 +657,10 @@
                                 >Symétrie centrale<span class="badge ring"
                                     >anneau</span
                                 ></strong
-                            ><span>Le point à transformer, puis le centre.</span
-                            ><span><code>Symétrie(P, O)</code></span>
+                            ><span
+                                >Le centre, puis le point ou l’objet à
+                                transformer.</span
+                            ><span><code>Symétrie(O, P)</code></span>
                         </div>
                     </li>
                     <li>
@@ -621,9 +671,9 @@
                                     >anneau</span
                                 ></strong
                             ><span
-                                >Le point à transformer et l’axe, dans l’ordre
-                                que l’on veut.</span
-                            ><span><code>Symétrie(P, d)</code></span>
+                                >L’axe, puis le point ou l’objet à
+                                transformer.</span
+                            ><span><code>Symétrie(d, P)</code></span>
                         </div>
                     </li>
                     <li>
@@ -631,17 +681,17 @@
                         <div>
                             <strong>Rotation</strong
                             ><span
-                                >Le point, puis le centre : un quart de tour,
-                                que l’on change dans sa ligne.</span
-                            ><span><code>Rotation(P, O, 90)</code></span>
+                                >Le centre, puis le point ou l’objet : un quart
+                                de tour, que l’on change dans sa ligne.</span
+                            ><span><code>Rotation(O, P, 90)</code></span>
                         </div>
                     </li>
                     <li>
                         <i data-t="Translation"></i>
                         <div>
                             <strong>Translation</strong
-                            ><span>Le point, puis le vecteur.</span
-                            ><span><code>Translation(P, u)</code></span>
+                            ><span>Le vecteur, puis le point ou l’objet.</span
+                            ><span><code>Translation(u, P)</code></span>
                         </div>
                     </li>
                     <li>
@@ -649,17 +699,20 @@
                         <div>
                             <strong>Homothétie</strong
                             ><span
-                                >Le point, puis le centre : un rapport de 2, que
-                                l’on change dans sa ligne.</span
-                            ><span><code>Homothétie(P, O, 2)</code></span>
+                                >Le centre, puis le point ou l’objet : un
+                                rapport de 2, que l’on change dans sa
+                                ligne.</span
+                            ><span><code>Homothétie(O, P, 2)</code></span>
                         </div>
                     </li>
                     <li>
                         <i data-t="Inversion"></i>
                         <div>
                             <strong>Inversion</strong
-                            ><span>Le point, puis le cercle d’inversion.</span
-                            ><span><code>Inversion(P, c)</code></span>
+                            ><span
+                                >Le cercle d’inversion, puis le point ou
+                                l’objet.</span
+                            ><span><code>Inversion(c, P)</code></span>
                         </div>
                     </li>
                 </ul>
@@ -884,9 +937,10 @@
             </div>
 
             <p>
-                Les transformations construisent l’image d’un
-                <strong>point</strong>. Au clavier seulement :
-                <code>PointFixe</code>, <code>Sommet</code>,
+                Les transformations construisent l’image d’un point ou d’un
+                objet (voir
+                <a href="#transformer-un-objet">Transformer un objet</a>). Au
+                clavier seulement : <code>PointFixe</code>, <code>Sommet</code>,
                 <code>Curseur</code>, <code>Liste</code>, les intersections de
                 l’espace, <code>Ellipse(F, G, a)</code> et
                 <code>Hyperbole(F, G, a)</code> (voir

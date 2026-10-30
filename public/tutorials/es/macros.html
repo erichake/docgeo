@@ -81,6 +81,13 @@
                     <kbd>Esc</kbd> la deja.
                 </li>
                 <li>
+                    Un inicial seleccionado con <kbd>Mayús</kbd>, o conservado
+                    con el botón <strong>Conservar</strong> de la consigna, se
+                    vuelve a tomar con los anteriores de una aplicación a otra,
+                    hasta salir de la macro; <strong>Cambiar</strong> vuelve a
+                    pedirlo todo desde el primero.
+                </li>
+                <li>
                     Los finales son objetos como los demás (nombre, estilo), que
                     no se mueven, salvo un punto sobre un objeto, a lo largo de
                     su soporte.
@@ -89,6 +96,31 @@
                     Un inicial fijo ya designado, o un objeto que lleva su
                     nombre, se toma directamente; <strong>Cambiar Hz</strong> en
                     la consigna designa otro.
+                </li>
+            </ul>
+            <h2 id="image-objet">Imagen de un objeto por una macro</h2>
+            <ul>
+                <li>
+                    Una macro cuyo último inicial y único final son puntos es
+                    una transformación: en lugar de ese punto, toma también una
+                    recta, una circunferencia, un polígono, una cónica, una
+                    curva…, con la imagen en vista previa al pasar por encima.
+                </li>
+                <li>
+                    La imagen es una recta, una circunferencia o una cónica si
+                    las imágenes de los puntos del objeto siguen sobre ella; si
+                    no, un lugar geométrico o, para un polígono, un polígono de
+                    lados curvos. Esta naturaleza se determina al aplicar la
+                    macro y ya no cambia.
+                </li>
+                <li>
+                    Ejemplo: la simetría hiperbólica de la biblioteca toma el
+                    disco, la recta y luego un triángulo, cuya imagen tiene por
+                    lados arcos de circunferencia.
+                </li>
+                <li>
+                    Con el teclado, el objeto en lugar del punto:
+                    <code>t2 = MiMacro(A, t)</code>.
                 </li>
             </ul>
             <h2 id="au-clavier">Con el teclado</h2>

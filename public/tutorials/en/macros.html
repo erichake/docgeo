@@ -77,6 +77,13 @@
                     <kbd>Esc</kbd> leaves it.
                 </li>
                 <li>
+                    An initial designated with <kbd>Shift</kbd>, or kept with
+                    the <strong>Keep</strong> button in the hint, is taken again
+                    with those before it from one application to the next, until
+                    you leave the macro; <strong>Change</strong> asks for
+                    everything again from the first.
+                </li>
+                <li>
                     The finals are objects like any other (name, style), which
                     don’t move, except a point on an object, along its support.
                 </li>
@@ -84,6 +91,30 @@
                     A fixed initial already designated, or an object bearing its
                     name, is taken at once; <strong>Change Hz</strong> in the
                     hint designates another.
+                </li>
+            </ul>
+            <h2 id="image-objet">Image of an object by a macro</h2>
+            <ul>
+                <li>
+                    A macro whose last initial and only final are points is a
+                    transformation: in place of that point, it also takes a
+                    line, a circle, a polygon, a conic, a curve…, with the image
+                    previewed on hover.
+                </li>
+                <li>
+                    The image is a line, a circle or a conic if the images of
+                    the object’s points stay on one; otherwise a locus, or, for
+                    a polygon, a polygon with curved sides. This kind is found
+                    when the macro is applied and no longer changes.
+                </li>
+                <li>
+                    Example: the library’s hyperbolic reflection takes the disk,
+                    the line, then a triangle, whose image has arcs of circles
+                    as sides.
+                </li>
+                <li>
+                    With the keyboard, the object in place of the point:
+                    <code>t2 = MyMacro(A, t)</code>.
                 </li>
             </ul>
             <h2 id="au-clavier">With the keyboard</h2>

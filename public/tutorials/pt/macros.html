@@ -79,6 +79,13 @@
                     <strong>Concluído</strong> ou <kbd>Esc</kbd> a deixa.
                 </li>
                 <li>
+                    Um inicial selecionado com <kbd>Shift</kbd>, ou mantido pelo
+                    botão <strong>Manter</strong> da instrução, é retomado com
+                    os que o precedem de uma aplicação à outra, até sair da
+                    macro; <strong>Mudar</strong> pede tudo de novo a partir do
+                    primeiro.
+                </li>
+                <li>
                     Os finais são objetos como os outros (nome, estilo), que não
                     se movem, salvo um ponto sobre um objeto, ao longo do seu
                     suporte.
@@ -87,6 +94,31 @@
                     Um inicial fixo já designado, ou um objeto com o seu nome, é
                     tomado de imediato; <strong>Mudar Hz</strong> na instrução
                     designa outro.
+                </li>
+            </ul>
+            <h2 id="image-objet">Imagem de um objeto por uma macro</h2>
+            <ul>
+                <li>
+                    Uma macro cujo último inicial e único final são pontos é uma
+                    transformação: no lugar desse ponto, ela aceita também uma
+                    reta, um círculo, um polígono, uma cônica, uma curva…, com a
+                    imagem em pré-visualização ao passar por cima.
+                </li>
+                <li>
+                    A imagem é uma reta, um círculo ou uma cônica se as imagens
+                    dos pontos do objeto continuam sobre ela; senão um lugar
+                    geométrico ou, para um polígono, um polígono de lados
+                    curvos. Essa natureza é determinada na aplicação e não muda
+                    mais.
+                </li>
+                <li>
+                    Exemplo: a simetria hiperbólica da biblioteca toma o disco,
+                    a reta e depois um triângulo, cuja imagem tem arcos de
+                    círculo como lados.
+                </li>
+                <li>
+                    Pelo teclado, o objeto no lugar do ponto:
+                    <code>t2 = MinhaMacro(A, t)</code>.
                 </li>
             </ul>
             <h2 id="au-clavier">Pelo teclado</h2>

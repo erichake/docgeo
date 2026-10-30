@@ -704,6 +704,17 @@
             </div>
 
             <h2>Abbildungen</h2>
+            <p>
+                Zuerst, was die Abbildung festlegt, dann P, ein Punkt oder ein
+                Objekt: Strecke, Gerade, Vieleck, Kreis, Kegelschnitt, Kurve…;
+                in 3D auch eine Ebene, eine Kugel, ein Polyeder (außer
+                <code>Inversion</code>). Das Bild eines Objekts ist ein Objekt
+                derselben Art, sonst eine Ortslinie (siehe
+                <a href="menu-outils.html#transformer-un-objet"
+                    >Ein Objekt abbilden</a
+                >): <code>t2 = Spiegelung(d, t)</code>. Die Reihenfolge von
+                GeoGebra (P zuerst) wird nicht angenommen.
+            </p>
             <div class="table">
                 <table>
                     <thead>
@@ -722,15 +733,15 @@
                                 >
                             </td>
                             <td class="syntax">
-                                <code>Spiegelung(P, O)</code>
+                                <code>Spiegelung(O, P)</code>
                             </td>
-                            <td>Spiegelpunkt von P am Punkt O</td>
+                            <td>Spiegelbild von P am Punkt O</td>
                         </tr>
                         <tr>
                             <td class="syntax">
-                                <code>Spiegelung(P, d)</code>
+                                <code>Spiegelung(d, P)</code>
                             </td>
-                            <td>Spiegelpunkt von P an der Geraden d</td>
+                            <td>Spiegelbild von P an der Geraden d</td>
                         </tr>
                         <tr>
                             <td rowspan="1">
@@ -740,12 +751,11 @@
                                 >
                             </td>
                             <td class="syntax">
-                                <code>Drehung(P, O, a)</code>
+                                <code>Drehung(O, P, a)</code>
                             </td>
                             <td>
-                                Bild des Punktes P bei der Drehung mit Zentrum O
-                                und Winkel a (in Grad oder Bogenmaß, je nach
-                                Figur)
+                                Bild von P bei der Drehung mit Zentrum O und
+                                Winkel a (in Grad oder Bogenmaß, je nach Figur)
                             </td>
                         </tr>
                         <tr>
@@ -756,11 +766,10 @@
                                 >
                             </td>
                             <td class="syntax">
-                                <code>Verschiebung(P, u)</code>
+                                <code>Verschiebung(u, P)</code>
                             </td>
                             <td>
-                                Bild des Punktes P bei der Verschiebung um den
-                                Vektor u
+                                Bild von P bei der Verschiebung um den Vektor u
                             </td>
                         </tr>
                         <tr>
@@ -771,11 +780,11 @@
                                 >
                             </td>
                             <td class="syntax">
-                                <code>Streckung(P, O, k)</code>
+                                <code>Streckung(O, P, k)</code>
                             </td>
                             <td>
-                                Bild des Punktes P bei der zentrischen Streckung
-                                mit Zentrum O und Faktor k
+                                Bild von P bei der zentrischen Streckung mit
+                                Zentrum O und Faktor k
                             </td>
                         </tr>
                         <tr>
@@ -783,10 +792,8 @@
                                 <i data-t="Inversion"></i>
                                 <strong>Inversion</strong>
                             </td>
-                            <td class="syntax"><code>Inversion(P, c)</code></td>
-                            <td>
-                                Bild des Punktes P bei der Inversion am Kreis c
-                            </td>
+                            <td class="syntax"><code>Inversion(c, P)</code></td>
+                            <td>Bild von P bei der Inversion am Kreis c</td>
                         </tr>
                     </tbody>
                 </table>

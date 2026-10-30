@@ -61,6 +61,17 @@
                     do menu assume seu ícone e a barra mostra uma faixa com
                     <strong>Concluído</strong>.
                 </li>
+                <li id="arguments-gardes">
+                    Um argumento selecionado com <kbd>Shift</kbd> é
+                    <strong>mantido</strong>: a ferramenta o retoma depois de
+                    cada objeto, até que se saia dela. <kbd>Shift</kbd>-clique
+                    no eixo de uma simetria e depois um clique em cada objeto a
+                    transformar; o mesmo para o centro de círculos concêntricos.
+                    O botão <strong>Manter d</strong> da instrução faz o mesmo
+                    (com o dedo, por exemplo); <strong>Mudar d</strong> o pede
+                    de novo. Nem para a ferramenta do anel, nem para os objetos
+                    selecionados antes da ferramenta.
+                </li>
                 <li>
                     Saída: <strong>Concluído</strong>, <kbd>Esc</kbd>, o
                     <strong>✕</strong> da indicação, o botão do menu (que reabre
@@ -76,6 +87,45 @@
                 ferramenta escolhida: ver
                 <a href="selection.html">Construir por seleção múltipla</a>.
             </p>
+
+            <h2 id="transformer-un-objet">Transformar um objeto</h2>
+            <ul>
+                <li>
+                    Uma transformação toma primeiro o que a define (centro,
+                    eixo, vetor, círculo) e depois o ponto ou o objeto a
+                    transformar: segmento, reta, semirreta, vetor, polígono,
+                    círculo, arco, cônica, gráfico de função, lugar geométrico;
+                    em 3D também um plano, uma esfera, um poliedro (exceto por
+                    uma inversão).
+                </li>
+                <li>
+                    Sob o ponteiro, um ponto tem prioridade, depois o objeto; no
+                    vazio, um ponto é criado. Ao passar por cima, a imagem
+                    aparece em tom claro.
+                </li>
+                <li>
+                    A imagem é da mesma natureza que o objeto: um polígono para
+                    um polígono, um círculo para um círculo… Um gráfico de
+                    função, um lugar geométrico ou um arco de cônica têm como
+                    imagem um lugar geométrico.
+                </li>
+                <li>
+                    Por uma inversão, uma reta ou um círculo tem como imagem um
+                    círculo, ou uma reta se passa pelo centro; um polígono, um
+                    polígono de lados curvos.
+                </li>
+                <li>
+                    A imagem retoma a cor, o preenchimento, o tamanho, a
+                    opacidade e o tracejado do seu objeto. Ela não se arrasta,
+                    mas um ponto pode ser colocado sobre ela.
+                </li>
+                <li>
+                    Para transformar vários objetos, selecionar o centro ou o
+                    eixo com <kbd>Shift</kbd> (<a href="#arguments-gardes"
+                        >argumento mantido</a
+                    >).
+                </li>
+            </ul>
 
             <h2 id="palette">A paleta de ferramentas</h2>
             <figure>
@@ -603,8 +653,9 @@
                                     >anel</span
                                 ></strong
                             ><span
-                                >O ponto a transformar e depois o centro.</span
-                            ><span><code>Reflexão(P, O)</code></span>
+                                >O centro e depois o ponto ou o objeto a
+                                transformar.</span
+                            ><span><code>Reflexão(O, P)</code></span>
                         </div>
                     </li>
                     <li>
@@ -615,9 +666,9 @@
                                     >anel</span
                                 ></strong
                             ><span
-                                >O ponto a transformar e o eixo, na ordem que se
-                                quiser.</span
-                            ><span><code>Reflexão(P, d)</code></span>
+                                >O eixo e depois o ponto ou o objeto a
+                                transformar.</span
+                            ><span><code>Reflexão(d, P)</code></span>
                         </div>
                     </li>
                     <li>
@@ -625,17 +676,17 @@
                         <div>
                             <strong>Rotação</strong
                             ><span
-                                >O ponto e depois o centro: um quarto de volta,
-                                que se altera na linha.</span
-                            ><span><code>Rotação(P, O, 90)</code></span>
+                                >O centro e depois o ponto ou o objeto: um
+                                quarto de volta, que se altera na linha.</span
+                            ><span><code>Rotação(O, P, 90)</code></span>
                         </div>
                     </li>
                     <li>
                         <i data-t="Translation"></i>
                         <div>
                             <strong>Translação</strong
-                            ><span>O ponto e depois o vetor.</span
-                            ><span><code>Translação(P, u)</code></span>
+                            ><span>O vetor e depois o ponto ou o objeto.</span
+                            ><span><code>Translação(u, P)</code></span>
                         </div>
                     </li>
                     <li>
@@ -643,17 +694,19 @@
                         <div>
                             <strong>Homotetia</strong
                             ><span
-                                >O ponto e depois o centro: uma razão de 2, que
-                                se altera na linha.</span
-                            ><span><code>Homotetia(P, O, 2)</code></span>
+                                >O centro e depois o ponto ou o objeto: uma
+                                razão de 2, que se altera na linha.</span
+                            ><span><code>Homotetia(O, P, 2)</code></span>
                         </div>
                     </li>
                     <li>
                         <i data-t="Inversion"></i>
                         <div>
                             <strong>Inversão</strong
-                            ><span>O ponto e depois o círculo de inversão.</span
-                            ><span><code>Inversão(P, c)</code></span>
+                            ><span
+                                >O círculo de inversão e depois o ponto ou o
+                                objeto.</span
+                            ><span><code>Inversão(c, P)</code></span>
                         </div>
                     </li>
                 </ul>
@@ -884,11 +937,12 @@
             </div>
 
             <p>
-                As transformações constroem a imagem de um
-                <strong>ponto</strong>. Só pelo teclado: <code>PontoFixo</code>,
-                <code>Vértice</code>, <code>ControleDeslizante</code>,
-                <code>Lista</code>, as interseções no espaço,
-                <code>Elipse(F, G, a)</code> e
+                As transformações constroem a imagem de um ponto ou de um objeto
+                (veja
+                <a href="#transformer-un-objet">Transformar um objeto</a>). Só
+                pelo teclado: <code>PontoFixo</code>, <code>Vértice</code>,
+                <code>ControleDeslizante</code>, <code>Lista</code>, as
+                interseções no espaço, <code>Elipse(F, G, a)</code> e
                 <code>Hipérbole(F, G, a)</code> (veja
                 <a href="commandes.html">Os comandos</a>).
             </p>

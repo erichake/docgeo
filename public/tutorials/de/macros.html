@@ -82,6 +82,14 @@
                     <strong>Fertig</strong> oder <kbd>Esc</kbd> beendet es.
                 </li>
                 <li>
+                    Ein mit <kbd>Umschalt</kbd> gewähltes oder mit der
+                    Schaltfläche <strong>behalten</strong> des Hinweises
+                    behaltenes Anfangsobjekt wird mit den vorangehenden von
+                    einer Anwendung zur nächsten wieder genommen, bis man das
+                    Makro verlässt; <strong>ändern</strong> fragt alles ab dem
+                    ersten erneut ab.
+                </li>
+                <li>
                     Die Endobjekte sind Objekte wie alle anderen (Name, Stil),
                     die sich nicht verschieben lassen, außer einem Punkt auf
                     einem Objekt, entlang seines Trägers.
@@ -90,6 +98,32 @@
                     Ein bereits gewähltes fixiertes Anfangsobjekt oder ein
                     Objekt mit seinem Namen wird sofort genommen;
                     <strong>Hz ändern</strong> im Hinweis wählt ein anderes.
+                </li>
+            </ul>
+            <h2 id="image-objet">Bild eines Objekts durch ein Makro</h2>
+            <ul>
+                <li>
+                    Ein Makro, dessen letztes Anfangsobjekt und einziges
+                    Endobjekt Punkte sind, ist eine Abbildung: Anstelle dieses
+                    Punktes nimmt es auch eine Gerade, einen Kreis, ein Vieleck,
+                    einen Kegelschnitt, eine Kurve…, mit dem Bild als Vorschau
+                    beim Überfahren.
+                </li>
+                <li>
+                    Das Bild ist eine Gerade, ein Kreis oder ein Kegelschnitt,
+                    wenn die Bilder der Punkte des Objekts darauf bleiben; sonst
+                    eine Ortslinie oder, bei einem Vieleck, ein Vieleck mit
+                    gekrümmten Seiten. Diese Art wird bei der Anwendung bestimmt
+                    und ändert sich danach nicht mehr.
+                </li>
+                <li>
+                    Beispiel: Die hyperbolische Spiegelung der Bibliothek nimmt
+                    die Kreisscheibe, die Gerade, dann ein Dreieck, dessen Bild
+                    Kreisbögen als Seiten hat.
+                </li>
+                <li>
+                    Mit der Tastatur steht das Objekt anstelle des Punktes:
+                    <code>t2 = MeinMakro(A, t)</code>.
                 </li>
             </ul>
             <h2 id="au-clavier">Mit der Tastatur</h2>

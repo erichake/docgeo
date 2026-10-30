@@ -63,6 +63,18 @@
                     menuknop neemt zijn pictogram over en de balk toont een
                     strook met <strong>Klaar</strong>.
                 </li>
+                <li id="arguments-gardes">
+                    Een argument dat met <kbd>Shift</kbd> is geselecteerd, wordt
+                    <strong>behouden</strong>: het gereedschap neemt het na elk
+                    object opnieuw, tot u het verlaat. <kbd>Shift</kbd>-klik op
+                    de as van een spiegeling, en dan een klik op elk te
+                    spiegelen object; zo ook het centrum van concentrische
+                    cirkels. De knop <strong>d behouden</strong> in de
+                    aanwijzing doet hetzelfde (bijvoorbeeld met de vinger);
+                    <strong>d wijzigen</strong> vraagt er opnieuw om. Niet voor
+                    het gereedschap van de ring, noch voor objecten die vóór het
+                    gereedschap zijn geselecteerd.
+                </li>
                 <li>
                     Stoppen: <strong>Klaar</strong>, <kbd>Esc</kbd>, het
                     <strong>✕</strong> van de aanwijzing, de menuknop (die het
@@ -79,6 +91,46 @@
                 <a href="selection.html">Construeren via meervoudige selectie</a
                 >.
             </p>
+
+            <h2 id="transformer-un-objet">Een object transformeren</h2>
+            <ul>
+                <li>
+                    Een transformatie neemt eerst wat haar bepaalt (centrum, as,
+                    vector, cirkel), en dan het te transformeren punt of object:
+                    lijnstuk, rechte, halfrechte, vector, veelhoek, cirkel,
+                    boog, kegelsnede, functiegrafiek, meetkundige plaats; in 3D
+                    ook een vlak, een bol, een veelvlak (behalve bij een
+                    inversie).
+                </li>
+                <li>
+                    Onder de aanwijzer gaat een punt voor, dan het object; in
+                    het lege vlak wordt een punt gemaakt. Bij het aanwijzen
+                    verschijnt het beeld bleek.
+                </li>
+                <li>
+                    Het beeld is van dezelfde soort als het object: een veelhoek
+                    voor een veelhoek, een cirkel voor een cirkel… Een
+                    functiegrafiek, een meetkundige plaats of een boog van een
+                    kegelsnede heeft een meetkundige plaats als beeld.
+                </li>
+                <li>
+                    Bij een inversie heeft een rechte of een cirkel een cirkel
+                    als beeld, of een rechte als die door het centrum gaat; een
+                    veelhoek een veelhoek met gebogen zijden.
+                </li>
+                <li>
+                    Het beeld neemt de kleur, de vulling, de grootte, de dekking
+                    en de streepjes van zijn object over. Het laat zich niet
+                    slepen, maar er kan een punt op worden geplaatst.
+                </li>
+                <li>
+                    Om meerdere objecten te transformeren, selecteert u het
+                    centrum of de as met <kbd>Shift</kbd> (<a
+                        href="#arguments-gardes"
+                        >behouden argument</a
+                    >).
+                </li>
+            </ul>
 
             <h2 id="palette">Het gereedschapspalet</h2>
             <figure>
@@ -634,9 +686,9 @@
                                     >ring</span
                                 ></strong
                             ><span
-                                >Het te transformeren punt, en dan het
-                                centrum.</span
-                            ><span><code>Spiegeling(P, O)</code></span>
+                                >Het centrum, en dan het te transformeren punt
+                                of object.</span
+                            ><span><code>Spiegeling(O, P)</code></span>
                         </div>
                     </li>
                     <li>
@@ -647,9 +699,9 @@
                                     >ring</span
                                 ></strong
                             ><span
-                                >Het te transformeren punt en de as, in
-                                willekeurige volgorde.</span
-                            ><span><code>Spiegeling(P, d)</code></span>
+                                >De as, en dan het te transformeren punt of
+                                object.</span
+                            ><span><code>Spiegeling(d, P)</code></span>
                         </div>
                     </li>
                     <li>
@@ -657,17 +709,17 @@
                         <div>
                             <strong>Draaiing</strong
                             ><span
-                                >Het punt, en dan het centrum: een kwartslag,
-                                die je in de regel verandert.</span
-                            ><span><code>Draaiing(P, O, 90)</code></span>
+                                >Het centrum, en dan het punt of object: een
+                                kwartslag, die je in de regel verandert.</span
+                            ><span><code>Draaiing(O, P, 90)</code></span>
                         </div>
                     </li>
                     <li>
                         <i data-t="Translation"></i>
                         <div>
                             <strong>Verschuiving</strong
-                            ><span>Het punt, en dan de vector.</span
-                            ><span><code>Verschuiving(P, u)</code></span>
+                            ><span>De vector, en dan het punt of object.</span
+                            ><span><code>Verschuiving(u, P)</code></span>
                         </div>
                     </li>
                     <li>
@@ -675,10 +727,10 @@
                         <div>
                             <strong>Vermenigvuldiging</strong
                             ><span
-                                >Het punt, en dan het centrum: een factor 2, die
-                                je in de regel verandert.</span
+                                >Het centrum, en dan het punt of object: een
+                                factor 2, die je in de regel verandert.</span
                             ><span
-                                ><code>Vermenigvuldiging(P, O, 2)</code></span
+                                ><code>Vermenigvuldiging(O, P, 2)</code></span
                             >
                         </div>
                     </li>
@@ -686,8 +738,10 @@
                         <i data-t="Inversion"></i>
                         <div>
                             <strong>Inversie</strong
-                            ><span>Het punt, en dan de inversiecirkel.</span
-                            ><span><code>Inversie(P, c)</code></span>
+                            ><span
+                                >De inversiecirkel, en dan het punt of
+                                object.</span
+                            ><span><code>Inversie(c, P)</code></span>
                         </div>
                     </li>
                 </ul>
@@ -925,7 +979,9 @@
             </div>
 
             <p>
-                De transformaties maken het beeld van een <strong>punt</strong>.
+                De transformaties maken het beeld van een punt of een object
+                (zie
+                <a href="#transformer-un-objet">Een object transformeren</a>).
                 Alleen via het toetsenbord: <code>VastPunt</code>,
                 <code>Hoekpunt</code>, <code>Schuifknop</code>,
                 <code>Lijst</code>, de snijpunten in de ruimte,

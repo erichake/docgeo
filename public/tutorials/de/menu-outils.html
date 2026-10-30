@@ -64,6 +64,18 @@
                     Menüschaltfläche übernimmt sein Symbol, und die Leiste zeigt
                     ein Band mit <strong>Fertig</strong>.
                 </li>
+                <li id="arguments-gardes">
+                    Ein mit <kbd>Umschalt</kbd> gewähltes Argument wird
+                    <strong>behalten</strong>: Das Werkzeug nimmt es nach jedem
+                    Objekt wieder, bis man es verlässt.
+                    <kbd>Umschalt</kbd>-Klick auf die Achse einer Spiegelung,
+                    dann ein Klick auf jedes abzubildende Objekt; ebenso das
+                    Zentrum konzentrischer Kreise. Die Schaltfläche
+                    <strong>d behalten</strong> im Hinweis tut dasselbe (etwa
+                    mit dem Finger); <strong>d ändern</strong> fragt erneut
+                    danach. Weder beim Werkzeug des Rings noch bei Objekten, die
+                    vor dem Werkzeug ausgewählt wurden.
+                </li>
                 <li>
                     Beenden: <strong>Fertig</strong>, <kbd>Esc</kbd>,
                     <strong>✕</strong> des Hinweises, die Menüschaltfläche (die
@@ -80,6 +92,45 @@
                 gewählten Werkzeugs: siehe
                 <a href="selection.html">Per Mehrfachauswahl konstruieren</a>.
             </p>
+
+            <h2 id="transformer-un-objet">Ein Objekt abbilden</h2>
+            <ul>
+                <li>
+                    Eine Abbildung nimmt zuerst, was sie festlegt (Zentrum,
+                    Achse, Vektor, Kreis), dann den Punkt oder das abzubildende
+                    Objekt: Strecke, Gerade, Strahl, Vektor, Vieleck, Kreis,
+                    Bogen, Kegelschnitt, Funktionsgraph, Ortslinie; in 3D auch
+                    eine Ebene, eine Kugel, ein Polyeder (außer bei einer
+                    Inversion).
+                </li>
+                <li>
+                    Unter dem Zeiger hat ein Punkt Vorrang, dann das Objekt; an
+                    einer leeren Stelle wird ein Punkt erzeugt. Beim Überfahren
+                    erscheint das Bild blass.
+                </li>
+                <li>
+                    Das Bild ist von derselben Art wie das Objekt: ein Vieleck
+                    für ein Vieleck, ein Kreis für einen Kreis… Ein
+                    Funktionsgraph, eine Ortslinie oder ein Kegelschnittbogen
+                    haben eine Ortslinie als Bild.
+                </li>
+                <li>
+                    Bei einer Inversion hat eine Gerade oder ein Kreis einen
+                    Kreis als Bild, oder eine Gerade, wenn er durch das Zentrum
+                    geht; ein Vieleck ein Vieleck mit gekrümmten Seiten.
+                </li>
+                <li>
+                    Das Bild übernimmt Farbe, Füllung, Größe, Deckkraft und
+                    Strichelung seines Objekts. Es lässt sich nicht ziehen, aber
+                    ein Punkt kann darauf gesetzt werden.
+                </li>
+                <li>
+                    Um mehrere Objekte abzubilden, das Zentrum oder die Achse
+                    mit <kbd>Umschalt</kbd> wählen (<a href="#arguments-gardes"
+                        >behaltenes Argument</a
+                    >).
+                </li>
+            </ul>
 
             <h2 id="palette">Die Werkzeugpalette</h2>
             <figure>
@@ -640,8 +691,9 @@
                                     >Ring</span
                                 ></strong
                             ><span
-                                >Der abzubildende Punkt, dann das Zentrum.</span
-                            ><span><code>Spiegelung(P, O)</code></span>
+                                >Das Zentrum, dann der Punkt oder das
+                                abzubildende Objekt.</span
+                            ><span><code>Spiegelung(O, P)</code></span>
                         </div>
                     </li>
                     <li>
@@ -652,9 +704,9 @@
                                     >Ring</span
                                 ></strong
                             ><span
-                                >Der abzubildende Punkt und die Achse, in
-                                beliebiger Reihenfolge.</span
-                            ><span><code>Spiegelung(P, d)</code></span>
+                                >Die Achse, dann der Punkt oder das abzubildende
+                                Objekt.</span
+                            ><span><code>Spiegelung(d, P)</code></span>
                         </div>
                     </li>
                     <li>
@@ -662,18 +714,20 @@
                         <div>
                             <strong>Drehung</strong
                             ><span
-                                >Der Punkt, dann das Zentrum: eine
-                                Vierteldrehung, die man in ihrer Zeile
+                                >Das Zentrum, dann der Punkt oder das Objekt:
+                                eine Vierteldrehung, die man in ihrer Zeile
                                 ändert.</span
-                            ><span><code>Drehung(P, O, 90)</code></span>
+                            ><span><code>Drehung(O, P, 90)</code></span>
                         </div>
                     </li>
                     <li>
                         <i data-t="Translation"></i>
                         <div>
                             <strong>Verschiebung</strong
-                            ><span>Der Punkt, dann der Vektor.</span
-                            ><span><code>Verschiebung(P, u)</code></span>
+                            ><span
+                                >Der Vektor, dann der Punkt oder das
+                                Objekt.</span
+                            ><span><code>Verschiebung(u, P)</code></span>
                         </div>
                     </li>
                     <li>
@@ -681,17 +735,20 @@
                         <div>
                             <strong>Streckung</strong
                             ><span
-                                >Der Punkt, dann das Zentrum: ein Faktor 2, den
-                                man in ihrer Zeile ändert.</span
-                            ><span><code>Streckung(P, O, 2)</code></span>
+                                >Das Zentrum, dann der Punkt oder das Objekt:
+                                ein Faktor 2, den man in ihrer Zeile
+                                ändert.</span
+                            ><span><code>Streckung(O, P, 2)</code></span>
                         </div>
                     </li>
                     <li>
                         <i data-t="Inversion"></i>
                         <div>
                             <strong>Inversion</strong
-                            ><span>Der Punkt, dann der Inversionskreis.</span
-                            ><span><code>Inversion(P, c)</code></span>
+                            ><span
+                                >Der Inversionskreis, dann der Punkt oder das
+                                Objekt.</span
+                            ><span><code>Inversion(c, P)</code></span>
                         </div>
                     </li>
                 </ul>
@@ -928,9 +985,10 @@
             </div>
 
             <p>
-                Die Abbildungen erzeugen das Bild eines
-                <strong>Punktes</strong>. Nur über die Tastatur:
-                <code>FesterPunkt</code>, <code>Ecke</code>,
+                Die Abbildungen erzeugen das Bild eines Punktes oder eines
+                Objekts (siehe
+                <a href="#transformer-un-objet">Ein Objekt abbilden</a>). Nur
+                über die Tastatur: <code>FesterPunkt</code>, <code>Ecke</code>,
                 <code>Schieberegler</code>, <code>Liste</code>, die Schnitte im
                 Raum, <code>Ellipse(F, G, a)</code> und
                 <code>Hyperbel(F, G, a)</code> (siehe

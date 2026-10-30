@@ -60,6 +60,17 @@
                     its icon and the bar shows a banner with
                     <strong>Done</strong>.
                 </li>
+                <li id="arguments-gardes">
+                    An argument designated with <kbd>Shift</kbd> is
+                    <strong>kept</strong>: the tool takes it again after each
+                    object, until you leave it. <kbd>Shift</kbd>-click the axis
+                    of a reflection, then click each object to reflect; likewise
+                    the center of concentric circles. The
+                    <strong>Keep d</strong> button in the hint does the same
+                    (with a finger, for instance);
+                    <strong>Change d</strong> asks for it again. Neither for the
+                    ring’s tool nor for objects selected before the tool.
+                </li>
                 <li>
                     Exit: <strong>Done</strong>, <kbd>Esc</kbd>,
                     <strong>✕</strong> of the prompt, the menu button (which
@@ -74,6 +85,43 @@
                 Objects selected first become the arguments of the chosen tool:
                 see <a href="selection.html">Building by multiple selection</a>.
             </p>
+
+            <h2 id="transformer-un-objet">Transforming an object</h2>
+            <ul>
+                <li>
+                    A transformation first takes what defines it (center, axis,
+                    vector, circle), then the point or object to transform:
+                    segment, line, ray, vector, polygon, circle, arc, conic,
+                    function graph, locus; in 3D also a plane, a sphere, a
+                    polyhedron (except by an inversion).
+                </li>
+                <li>
+                    Under the pointer, a point comes first, then the object; in
+                    empty space, a point is created. Hovering shows the image,
+                    pale.
+                </li>
+                <li>
+                    The image is of the same kind as the object: a polygon for a
+                    polygon, a circle for a circle… A function graph, a locus or
+                    an arc of a conic has a locus as its image.
+                </li>
+                <li>
+                    By an inversion, a line or a circle has a circle as its
+                    image, or a line if it passes through the center; a polygon,
+                    a polygon with curved sides.
+                </li>
+                <li>
+                    The image takes its object’s color, fill, size, opacity and
+                    dashes. It can’t be dragged, but a point can be placed on
+                    it.
+                </li>
+                <li>
+                    To transform several objects, designate the center or the
+                    axis with <kbd>Shift</kbd> (<a href="#arguments-gardes"
+                        >kept argument</a
+                    >).
+                </li>
+            </ul>
 
             <h2 id="palette">The tool palette</h2>
             <figure>
@@ -600,8 +648,9 @@
                                     >ring</span
                                 ></strong
                             ><span
-                                >The point to transform, then the center.</span
-                            ><span><code>Reflect(P, O)</code></span>
+                                >The center, then the point or object to
+                                transform.</span
+                            ><span><code>Reflect(O, P)</code></span>
                         </div>
                     </li>
                     <li>
@@ -612,9 +661,9 @@
                                     >ring</span
                                 ></strong
                             ><span
-                                >The point to transform and the axis, in any
-                                order.</span
-                            ><span><code>Reflect(P, d)</code></span>
+                                >The axis, then the point or object to
+                                transform.</span
+                            ><span><code>Reflect(d, P)</code></span>
                         </div>
                     </li>
                     <li>
@@ -622,17 +671,17 @@
                         <div>
                             <strong>Rotation</strong
                             ><span
-                                >The point, then the center: a quarter turn,
-                                which you change in its line.</span
-                            ><span><code>Rotation(P, O, 90)</code></span>
+                                >The center, then the point or object: a quarter
+                                turn, which you change in its line.</span
+                            ><span><code>Rotation(O, P, 90)</code></span>
                         </div>
                     </li>
                     <li>
                         <i data-t="Translation"></i>
                         <div>
                             <strong>Translation</strong
-                            ><span>The point, then the vector.</span
-                            ><span><code>Translation(P, u)</code></span>
+                            ><span>The vector, then the point or object.</span
+                            ><span><code>Translation(u, P)</code></span>
                         </div>
                     </li>
                     <li>
@@ -640,9 +689,9 @@
                         <div>
                             <strong>Dilation</strong
                             ><span
-                                >The point, then the center: a ratio of 2, which
-                                you change in its line.</span
-                            ><span><code>Dilation(P, O, 2)</code></span>
+                                >The center, then the point or object: a ratio
+                                of 2, which you change in its line.</span
+                            ><span><code>Dilation(O, P, 2)</code></span>
                         </div>
                     </li>
                     <li>
@@ -650,8 +699,9 @@
                         <div>
                             <strong>Inversion</strong
                             ><span
-                                >The point, then the circle of inversion.</span
-                            ><span><code>Inversion(P, c)</code></span>
+                                >The circle of inversion, then the point or
+                                object.</span
+                            ><span><code>Inversion(c, P)</code></span>
                         </div>
                     </li>
                 </ul>
@@ -872,7 +922,8 @@
             </div>
 
             <p>
-                Transformations build the image of a <strong>point</strong>.
+                Transformations build the image of a point or an object (see
+                <a href="#transformer-un-objet">Transforming an object</a>).
                 Keyboard only: <code>FixedPoint</code>, <code>Vertex</code>,
                 <code>Slider</code>, <code>List</code>, the intersections in
                 space, <code>Ellipse(F, G, a)</code> and
