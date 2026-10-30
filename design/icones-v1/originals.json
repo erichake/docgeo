@@ -1,0 +1,272 @@
+{
+    "Point": [
+        35,
+        1,
+        "<path d=\"M3 16Q12 2 21 16\" class=\"dge-guide\"/><g class=\"dge-result\"><circle cx=\"12\" cy=\"9\" r=\"1.8\" fill=\"currentColor\" stroke=\"none\"/></g>"
+    ],
+    "Intersection": [
+        35,
+        1,
+        "<path d=\"M4 20L20 4M4 4L20 20\" class=\"dge-guide\"/><g class=\"dge-result\"><circle cx=\"12\" cy=\"12\" r=\"1.8\" fill=\"currentColor\" stroke=\"none\"/></g>"
+    ],
+    "Midpoint": [
+        35,
+        1,
+        "<path d=\"M5 12h14\" class=\"dge-guide\"/><g class=\"dge-result\"><circle cx=\"12\" cy=\"12\" r=\"1.8\" fill=\"currentColor\" stroke=\"none\"/></g><circle cx=\"5\" cy=\"12\" r=\"1.8\" fill=\"currentColor\" stroke=\"none\"/><circle cx=\"19\" cy=\"12\" r=\"1.8\" fill=\"currentColor\" stroke=\"none\"/>"
+    ],
+    "Center": [
+        35,
+        1,
+        "<circle cx=\"12\" cy=\"12\" r=\"7.5\"/><g class=\"dge-result\"><circle cx=\"12\" cy=\"12\" r=\"1.8\" fill=\"currentColor\" stroke=\"none\"/></g>"
+    ],
+    "OtherIntersection": [
+        35,
+        1,
+        "<path d=\"M2 12h20\" class=\"dge-guide\"/><circle class=\"dge-guide\" cx=\"12\" cy=\"12\" r=\"7\"/><circle cx=\"5\" cy=\"12\" r=\"1.8\" fill=\"currentColor\" stroke=\"none\"/><g class=\"dge-result\"><circle cx=\"19\" cy=\"12\" r=\"1.8\" fill=\"currentColor\" stroke=\"none\"/></g>"
+    ],
+    "Incenter": [
+        35,
+        1,
+        "<path d=\"M4 19L20 19L9 5Z\"/><circle cx=\"4\" cy=\"19\" r=\"1.8\" fill=\"currentColor\" stroke=\"none\"/><circle cx=\"20\" cy=\"19\" r=\"1.8\" fill=\"currentColor\" stroke=\"none\"/><circle cx=\"9\" cy=\"5\" r=\"1.8\" fill=\"currentColor\" stroke=\"none\"/><circle class=\"dge-guide\" cx=\"10.5\" cy=\"14.4\" r=\"4.6\"/><g class=\"dge-result\"><circle cx=\"10.5\" cy=\"14.4\" r=\"1.8\" fill=\"currentColor\" stroke=\"none\"/></g>"
+    ],
+    "Centroid": [
+        35,
+        1,
+        "<path d=\"M4 19L20 19L9 5Z\"/><circle cx=\"4\" cy=\"19\" r=\"1.8\" fill=\"currentColor\" stroke=\"none\"/><circle cx=\"20\" cy=\"19\" r=\"1.8\" fill=\"currentColor\" stroke=\"none\"/><circle cx=\"9\" cy=\"5\" r=\"1.8\" fill=\"currentColor\" stroke=\"none\"/><path d=\"M4 19L14.5 12M20 19L6.5 12M9 5L12 19\" class=\"dge-guide\"/><g class=\"dge-result\"><circle cx=\"11\" cy=\"14.3\" r=\"1.8\" fill=\"currentColor\" stroke=\"none\"/></g>"
+    ],
+    "Circumcenter": [
+        35,
+        1,
+        "<path d=\"M4 19L20 19L9 5Z\"/><circle cx=\"4\" cy=\"19\" r=\"1.8\" fill=\"currentColor\" stroke=\"none\"/><circle cx=\"20\" cy=\"19\" r=\"1.8\" fill=\"currentColor\" stroke=\"none\"/><circle cx=\"9\" cy=\"5\" r=\"1.8\" fill=\"currentColor\" stroke=\"none\"/><circle class=\"dge-guide\" cx=\"12\" cy=\"14\" r=\"9.4\"/><g class=\"dge-result\"><circle cx=\"12\" cy=\"14\" r=\"1.8\" fill=\"currentColor\" stroke=\"none\"/></g>"
+    ],
+    "Orthocenter": [
+        35,
+        1,
+        "<path d=\"M4 19L20 19L9 5Z\"/><circle cx=\"4\" cy=\"19\" r=\"1.8\" fill=\"currentColor\" stroke=\"none\"/><circle cx=\"20\" cy=\"19\" r=\"1.8\" fill=\"currentColor\" stroke=\"none\"/><circle cx=\"9\" cy=\"5\" r=\"1.8\" fill=\"currentColor\" stroke=\"none\"/><path d=\"M9 5V19M4 19L14.5 10.8\" class=\"dge-guide\"/><g class=\"dge-result\"><circle cx=\"9\" cy=\"15.1\" r=\"1.8\" fill=\"currentColor\" stroke=\"none\"/></g>"
+    ],
+    "Segment": [
+        215,
+        1,
+        "<g class=\"dge-result\"><path d=\"M6 18L18 6\"/></g><circle cx=\"6\" cy=\"18\" r=\"1.8\" fill=\"currentColor\" stroke=\"none\"/><circle cx=\"18\" cy=\"6\" r=\"1.8\" fill=\"currentColor\" stroke=\"none\"/>"
+    ],
+    "Line": [
+        215,
+        1,
+        "<g class=\"dge-result\"><path d=\"M3 21L21 3\"/></g><circle cx=\"7\" cy=\"17\" r=\"1.8\" fill=\"currentColor\" stroke=\"none\"/><circle cx=\"17\" cy=\"7\" r=\"1.8\" fill=\"currentColor\" stroke=\"none\"/>"
+    ],
+    "Ray": [
+        215,
+        1,
+        "<g class=\"dge-result\"><path d=\"M6 18L21 3\"/></g><circle cx=\"6\" cy=\"18\" r=\"1.8\" fill=\"currentColor\" stroke=\"none\"/><circle cx=\"14\" cy=\"10\" r=\"1.8\" fill=\"currentColor\" stroke=\"none\"/>"
+    ],
+    "Vector": [
+        215,
+        1,
+        "<g class=\"dge-result\"><path d=\"M6 18L19 5M13.5 5H19v5.5\"/></g><circle cx=\"6\" cy=\"18\" r=\"1.8\" fill=\"currentColor\" stroke=\"none\"/>"
+    ],
+    "Perpendicular": [
+        265,
+        1,
+        "<path d=\"M3 18h18M12 14h4v4\" class=\"dge-guide\"/><g class=\"dge-result\"><path d=\"M12 4v16\"/></g><circle cx=\"12\" cy=\"7\" r=\"1.8\" fill=\"currentColor\" stroke=\"none\"/>"
+    ],
+    "Parallel": [
+        265,
+        1,
+        "<path d=\"M4 16L16 4\" class=\"dge-guide\"/><g class=\"dge-result\"><path d=\"M8 20L20 8\"/></g><circle cx=\"14\" cy=\"14\" r=\"1.8\" fill=\"currentColor\" stroke=\"none\"/>"
+    ],
+    "PerpendicularBisector": [
+        265,
+        1,
+        "<path d=\"M4 12h16M8 10.5v3M16 10.5v3\" class=\"dge-guide\"/><g class=\"dge-result\"><path d=\"M12 4v16\"/></g><circle cx=\"4\" cy=\"12\" r=\"1.8\" fill=\"currentColor\" stroke=\"none\"/><circle cx=\"20\" cy=\"12\" r=\"1.8\" fill=\"currentColor\" stroke=\"none\"/>"
+    ],
+    "AngleBisector": [
+        265,
+        1,
+        "<path d=\"M4 19h16M4 19L13 4\" class=\"dge-guide\"/><g class=\"dge-result\"><path d=\"M4 19L20 10\"/></g><path d=\"M10 19a6 6 0 0 0-3-5.2\" class=\"dge-guide\"/>"
+    ],
+    "Tangent": [
+        265,
+        1,
+        "<circle cx=\"11\" cy=\"15\" r=\"6\"/><g class=\"dge-result\"><path d=\"M2 9H22\"/></g><circle cx=\"19\" cy=\"9\" r=\"1.8\" fill=\"currentColor\" stroke=\"none\"/>"
+    ],
+    "Circle (centre and point)": [
+        145,
+        1,
+        "<g class=\"dge-result\"><circle cx=\"12\" cy=\"12\" r=\"7.5\"/></g><path d=\"M12 12L18 7.5\" class=\"dge-guide\"/><circle cx=\"12\" cy=\"12\" r=\"1.8\" fill=\"currentColor\" stroke=\"none\"/><circle cx=\"18\" cy=\"7.5\" r=\"1.8\" fill=\"currentColor\" stroke=\"none\"/>"
+    ],
+    "Circle (centre and radius)": [
+        145,
+        1,
+        "<g class=\"dge-result\"><circle cx=\"9.5\" cy=\"14.5\" r=\"7\"/></g><path d=\"M9.5 14.5h7\" class=\"dge-guide\"/><circle cx=\"9.5\" cy=\"14.5\" r=\"1.8\" fill=\"currentColor\" stroke=\"none\"/><text x=\"15.5\" y=\"9\" font-size=\"12\" font-family=\"Georgia, serif\" font-style=\"italic\" fill=\"currentColor\" stroke=\"none\">r</text>"
+    ],
+    "Circumcircle": [
+        145,
+        1,
+        "<g class=\"dge-result\"><circle cx=\"12\" cy=\"12\" r=\"7.5\"/></g><circle cx=\"4.5\" cy=\"12\" r=\"1.8\" fill=\"currentColor\" stroke=\"none\"/><circle cx=\"16.5\" cy=\"18\" r=\"1.8\" fill=\"currentColor\" stroke=\"none\"/><circle cx=\"16.5\" cy=\"6\" r=\"1.8\" fill=\"currentColor\" stroke=\"none\"/>"
+    ],
+    "Compass": [
+        145,
+        1,
+        "<path d=\"M3 20h7\" class=\"dge-guide\"/><circle cx=\"3\" cy=\"20\" r=\"1.8\" fill=\"currentColor\" stroke=\"none\"/><circle cx=\"10\" cy=\"20\" r=\"1.8\" fill=\"currentColor\" stroke=\"none\"/><g class=\"dge-result\"><circle cx=\"15\" cy=\"10\" r=\"6\"/></g><circle cx=\"15\" cy=\"10\" r=\"1.8\" fill=\"currentColor\" stroke=\"none\"/>"
+    ],
+    "Arc": [
+        145,
+        1,
+        "<g class=\"dge-result\"><path d=\"M4 17A8 8 0 0 1 20 17\"/></g><circle cx=\"4\" cy=\"17\" r=\"1.8\" fill=\"currentColor\" stroke=\"none\"/><circle cx=\"12\" cy=\"9\" r=\"1.8\" fill=\"currentColor\" stroke=\"none\"/><circle cx=\"20\" cy=\"17\" r=\"1.8\" fill=\"currentColor\" stroke=\"none\"/>"
+    ],
+    "Sector": [
+        145,
+        1,
+        "<g class=\"dge-result\"><path d=\"M6 18H18A12 12 0 0 0 6 6Z\" fill=\"currentColor\" fill-opacity=\".1\"/></g><circle cx=\"18\" cy=\"18\" r=\"1.8\" fill=\"currentColor\" stroke=\"none\"/><circle cx=\"14.5\" cy=\"9.5\" r=\"1.8\" fill=\"currentColor\" stroke=\"none\"/><circle cx=\"6\" cy=\"6\" r=\"1.8\" fill=\"currentColor\" stroke=\"none\"/>"
+    ],
+    "CenterArc": [
+        145,
+        1,
+        "<path d=\"M6 18L14 4.1\" class=\"dge-guide\"/><g class=\"dge-result\"><path d=\"M18 18A12 12 0 0 0 12 7.6\"/></g><circle cx=\"6\" cy=\"18\" r=\"1.8\" fill=\"currentColor\" stroke=\"none\"/><circle cx=\"18\" cy=\"18\" r=\"1.8\" fill=\"currentColor\" stroke=\"none\"/><circle cx=\"9.5\" cy=\"11.9\" r=\"1.8\" fill=\"currentColor\" stroke=\"none\"/>"
+    ],
+    "CenterSector": [
+        145,
+        1,
+        "<path d=\"M12 7.6L14 4.1\" class=\"dge-guide\"/><g class=\"dge-result\"><path d=\"M6 18H18A12 12 0 0 0 12 7.6Z\" fill=\"currentColor\" fill-opacity=\".1\"/></g><circle cx=\"6\" cy=\"18\" r=\"1.8\" fill=\"currentColor\" stroke=\"none\"/><circle cx=\"18\" cy=\"18\" r=\"1.8\" fill=\"currentColor\" stroke=\"none\"/><circle cx=\"9.5\" cy=\"11.9\" r=\"1.8\" fill=\"currentColor\" stroke=\"none\"/>"
+    ],
+    "Semicircle": [
+        145,
+        1,
+        "<path d=\"M4 16H20\" class=\"dge-guide\"/><g class=\"dge-result\"><path d=\"M4 16A8 8 0 0 1 20 16\"/></g><circle cx=\"4\" cy=\"16\" r=\"1.8\" fill=\"currentColor\" stroke=\"none\"/><circle cx=\"20\" cy=\"16\" r=\"1.8\" fill=\"currentColor\" stroke=\"none\"/>"
+    ],
+    "Conic": [
+        145,
+        1,
+        "<g class=\"dge-result\"><ellipse cx=\"12\" cy=\"12\" rx=\"9\" ry=\"6\"/></g><circle cx=\"3\" cy=\"12\" r=\"1.8\" fill=\"currentColor\" stroke=\"none\"/><circle cx=\"7.5\" cy=\"6.8\" r=\"1.8\" fill=\"currentColor\" stroke=\"none\"/><circle cx=\"16.5\" cy=\"6.8\" r=\"1.8\" fill=\"currentColor\" stroke=\"none\"/><circle cx=\"21\" cy=\"12\" r=\"1.8\" fill=\"currentColor\" stroke=\"none\"/><circle cx=\"12\" cy=\"18\" r=\"1.8\" fill=\"currentColor\" stroke=\"none\"/>"
+    ],
+    "Ellipse": [
+        145,
+        1,
+        "<g class=\"dge-result\"><ellipse cx=\"12\" cy=\"12\" rx=\"9\" ry=\"6\"/></g><path d=\"M5.3 12L16.5 6.8L18.7 12\" class=\"dge-guide\"/><circle cx=\"5.3\" cy=\"12\" r=\"1.8\" fill=\"currentColor\" stroke=\"none\"/><circle cx=\"18.7\" cy=\"12\" r=\"1.8\" fill=\"currentColor\" stroke=\"none\"/><circle cx=\"16.5\" cy=\"6.8\" r=\"1.8\" fill=\"currentColor\" stroke=\"none\"/>"
+    ],
+    "Hyperbola": [
+        145,
+        1,
+        "<g class=\"dge-result\"><path d=\"M2.6 3.5Q10.3 12 2.6 20.5M21.4 3.5Q13.7 12 21.4 20.5\"/></g><circle cx=\"4.5\" cy=\"12\" r=\"1.8\" fill=\"currentColor\" stroke=\"none\"/><circle cx=\"19.5\" cy=\"12\" r=\"1.8\" fill=\"currentColor\" stroke=\"none\"/><circle cx=\"19.4\" cy=\"6.1\" r=\"1.8\" fill=\"currentColor\" stroke=\"none\"/>"
+    ],
+    "Parabola": [
+        145,
+        1,
+        "<path d=\"M3 5h18\"/><g class=\"dge-result\"><path d=\"M2 16.3Q12 -0.3 22 16.3\"/></g><circle cx=\"12\" cy=\"11\" r=\"1.8\" fill=\"currentColor\" stroke=\"none\"/>"
+    ],
+    "Sphere": [
+        145,
+        1,
+        "<g class=\"dge-result\"><circle cx=\"12\" cy=\"12\" r=\"7.5\"/><ellipse class=\"dge-guide\" cx=\"12\" cy=\"12\" rx=\"7.5\" ry=\"3\"/></g><circle cx=\"12\" cy=\"12\" r=\"1.8\" fill=\"currentColor\" stroke=\"none\"/>"
+    ],
+    "Circle (centre, direction and radius)": [
+        145,
+        1,
+        "<path d=\"M10 16V3M7.5 5.5 10 3l2.5 2.5\"/><g class=\"dge-result\"><ellipse cx=\"10\" cy=\"16\" rx=\"8\" ry=\"3.5\"/></g><circle cx=\"10\" cy=\"16\" r=\"1.8\" fill=\"currentColor\" stroke=\"none\"/><text x=\"15.5\" y=\"11\" font-size=\"12\" font-family=\"Georgia, serif\" font-style=\"italic\" fill=\"currentColor\" stroke=\"none\">r</text>"
+    ],
+    "Circle (axis and point)": [
+        145,
+        1,
+        "<path d=\"M12 2v20\"/><g class=\"dge-result\"><ellipse cx=\"12\" cy=\"13\" rx=\"8.5\" ry=\"3.5\"/></g><circle cx=\"20.5\" cy=\"13\" r=\"1.8\" fill=\"currentColor\" stroke=\"none\"/>"
+    ],
+    "Polygon": [
+        185,
+        1,
+        "<g class=\"dge-result\"><path d=\"M5 18L9 5L20 9L17 19Z\" fill=\"currentColor\" fill-opacity=\".1\"/></g><circle cx=\"5\" cy=\"18\" r=\"1.8\" fill=\"currentColor\" stroke=\"none\"/><circle cx=\"9\" cy=\"5\" r=\"1.8\" fill=\"currentColor\" stroke=\"none\"/><circle cx=\"20\" cy=\"9\" r=\"1.8\" fill=\"currentColor\" stroke=\"none\"/><circle cx=\"17\" cy=\"19\" r=\"1.8\" fill=\"currentColor\" stroke=\"none\"/>"
+    ],
+    "Angle": [
+        185,
+        1,
+        "<g class=\"dge-result\"><path d=\"M4 19h7a7 7 0 0 0-3.4-6Z\" fill=\"currentColor\" fill-opacity=\".12\" stroke=\"none\"/><path d=\"M11 19a7 7 0 0 0-3.4-6\"/></g><path d=\"M4 19h16M4 19L13 4\"/>"
+    ],
+    "Locus": [
+        185,
+        1,
+        "<g class=\"dge-result\"><path d=\"M3 16Q12 0 21 16\"/></g><path d=\"M3 20h18M14.7 20V8.7\" class=\"dge-guide\"/><circle cx=\"14.7\" cy=\"20\" r=\"1.8\" fill=\"currentColor\" stroke=\"none\"/><circle cx=\"14.7\" cy=\"8.7\" r=\"1.8\" fill=\"currentColor\" stroke=\"none\"/>"
+    ],
+    "RegularPolygon": [
+        185,
+        1,
+        "<g class=\"dge-result\"><path d=\"M7 19H17L20 9.5L12 3.7L4 9.5Z\" fill=\"currentColor\" fill-opacity=\".1\"/></g><circle cx=\"7\" cy=\"19\" r=\"1.8\" fill=\"currentColor\" stroke=\"none\"/><circle cx=\"17\" cy=\"19\" r=\"1.8\" fill=\"currentColor\" stroke=\"none\"/>"
+    ],
+    "Point reflection": [
+        320,
+        1,
+        "<path d=\"M5 18L19 6\" class=\"dge-guide\"/><circle cx=\"5\" cy=\"18\" r=\"1.8\" fill=\"currentColor\" stroke=\"none\"/><circle cx=\"12\" cy=\"12\" r=\"1.8\" fill=\"currentColor\" stroke=\"none\"/><g class=\"dge-result\"><circle cx=\"19\" cy=\"6\" r=\"1.8\" fill=\"currentColor\" stroke=\"none\"/></g>"
+    ],
+    "Line reflection": [
+        320,
+        1,
+        "<path d=\"M12 3v18\"/><path class=\"dge-guide\" d=\"M5 10h14\" stroke-dasharray=\"2 3\"/><circle cx=\"5\" cy=\"10\" r=\"1.8\" fill=\"currentColor\" stroke=\"none\"/><g class=\"dge-result\"><circle cx=\"19\" cy=\"10\" r=\"1.8\" fill=\"currentColor\" stroke=\"none\"/></g>"
+    ],
+    "Rotation": [
+        320,
+        1,
+        "<path d=\"M19 15A12.2 12.2 0 0 0 11.3 5.6\" class=\"dge-guide\"/><circle cx=\"7\" cy=\"17\" r=\"1.8\" fill=\"currentColor\" stroke=\"none\"/><circle cx=\"19\" cy=\"15\" r=\"1.8\" fill=\"currentColor\" stroke=\"none\"/><g class=\"dge-result\"><circle cx=\"11.3\" cy=\"5.6\" r=\"1.8\" fill=\"currentColor\" stroke=\"none\"/></g>"
+    ],
+    "Translation": [
+        320,
+        1,
+        "<path d=\"M4 9L15 4M11.2 3.2L15 4L12.6 6.9\"/><path class=\"dge-guide\" d=\"M6 19L17 14\" stroke-dasharray=\"2 3\"/><circle cx=\"6\" cy=\"19\" r=\"1.8\" fill=\"currentColor\" stroke=\"none\"/><g class=\"dge-result\"><circle cx=\"17\" cy=\"14\" r=\"1.8\" fill=\"currentColor\" stroke=\"none\"/></g>"
+    ],
+    "Dilation": [
+        320,
+        1,
+        "<path d=\"M4 20L20 12M4 20L12 4\" class=\"dge-guide\"/><path d=\"M8 16L12 16L8 12Z\"/><g class=\"dge-result\"><path d=\"M12 12L20 12L12 4Z\"/></g><circle cx=\"4\" cy=\"20\" r=\"1.8\" fill=\"currentColor\" stroke=\"none\"/>"
+    ],
+    "Inversion": [
+        320,
+        1,
+        "<circle cx=\"9\" cy=\"12\" r=\"6\"/><path d=\"M9 12H22\" class=\"dge-guide\"/><circle cx=\"12\" cy=\"12\" r=\"1.8\" fill=\"currentColor\" stroke=\"none\"/><g class=\"dge-result\"><circle cx=\"21\" cy=\"12\" r=\"1.8\" fill=\"currentColor\" stroke=\"none\"/></g>"
+    ],
+    "Plane": [
+        240,
+        1,
+        "<g class=\"dge-result\"><path d=\"m2.5 17 5-9.5h14l-5 9.5Z\" fill=\"currentColor\" fill-opacity=\".14\"/></g><circle cx=\"7.5\" cy=\"14.5\" r=\"1.8\" fill=\"currentColor\" stroke=\"none\"/><circle cx=\"12\" cy=\"10\" r=\"1.8\" fill=\"currentColor\" stroke=\"none\"/><circle cx=\"16.5\" cy=\"14\" r=\"1.8\" fill=\"currentColor\" stroke=\"none\"/>"
+    ],
+    "ParallelPlane": [
+        240,
+        1,
+        "<path d=\"m2.5 21 4-6h15l-4 6Z\" class=\"dge-guide\"/><g class=\"dge-result\"><path d=\"m2.5 10 4-6h15l-4 6Z\" fill=\"currentColor\" fill-opacity=\".14\"/></g><circle cx=\"12\" cy=\"7\" r=\"1.8\" fill=\"currentColor\" stroke=\"none\"/>"
+    ],
+    "OrthogonalPlane": [
+        240,
+        1,
+        "<path d=\"M12 2v20\" class=\"dge-guide\"/><g class=\"dge-result\"><path d=\"m2.5 17 4-6h15l-4 6Z\" fill=\"currentColor\" fill-opacity=\".14\"/></g><circle cx=\"12\" cy=\"14\" r=\"1.8\" fill=\"currentColor\" stroke=\"none\"/>"
+    ],
+    "Cylinder": [
+        265,
+        1,
+        "<g class=\"dge-result\"><path d=\"M5 6.5V17.5a7 3 0 0 0 14 0V6.5\" fill=\"currentColor\" fill-opacity=\".09\"/><ellipse cx=\"12\" cy=\"6.5\" rx=\"7\" ry=\"3\" fill=\"currentColor\" fill-opacity=\".16\"/><path d=\"M5 17.5a7 3 0 0 1 14 0\" stroke-dasharray=\"1.5 2\" stroke-width=\"1.1\"/></g><circle cx=\"12\" cy=\"6.5\" r=\"1.8\" fill=\"currentColor\" stroke=\"none\"/><circle cx=\"12\" cy=\"17.5\" r=\"1.8\" fill=\"currentColor\" stroke=\"none\"/>"
+    ],
+    "Cone": [
+        265,
+        1,
+        "<g class=\"dge-result\"><path d=\"M4.5 17.5 12 3.5l7.5 14a7.5 3 0 0 1-15 0Z\" fill=\"currentColor\" fill-opacity=\".1\"/><path d=\"M4.5 17.5a7.5 3 0 0 1 15 0\" stroke-dasharray=\"1.5 2\" stroke-width=\"1.1\"/></g><circle cx=\"12\" cy=\"17.5\" r=\"1.8\" fill=\"currentColor\" stroke=\"none\"/><circle cx=\"12\" cy=\"3.5\" r=\"1.8\" fill=\"currentColor\" stroke=\"none\"/>"
+    ],
+    "Cube": [
+        265,
+        1,
+        "<g class=\"dge-result\"><path d=\"m4 7.5 8 4.5 8-4.5-8-4.5Z\" fill=\"currentColor\" fill-opacity=\".08\"/><path d=\"M4 7.5v9l8 4.5v-9Z\" fill=\"currentColor\" fill-opacity=\".14\"/><path d=\"M12 12v9l8-4.5v-9Z\" fill=\"currentColor\" fill-opacity=\".23\"/></g><circle cx=\"4\" cy=\"16.5\" r=\"1.8\" fill=\"currentColor\" stroke=\"none\"/><circle cx=\"12\" cy=\"21\" r=\"1.8\" fill=\"currentColor\" stroke=\"none\"/><circle cx=\"20\" cy=\"16.5\" r=\"1.8\" fill=\"currentColor\" stroke=\"none\"/>"
+    ],
+    "Prism": [
+        265,
+        1,
+        "<g class=\"dge-result\"><path d=\"m4 7 7-3 9 4-7 3Z\" fill=\"currentColor\" fill-opacity=\".08\"/><path d=\"M4 7v10l9 4V11Z\" fill=\"currentColor\" fill-opacity=\".14\"/><path d=\"M13 11v10l7-3V8Z\" fill=\"currentColor\" fill-opacity=\".23\"/><path d=\"M4 17l7-3 9 4M11 14V4\" stroke-dasharray=\"1.5 2\" stroke-width=\"1.1\" opacity=\".65\"/></g><circle cx=\"4\" cy=\"7\" r=\"1.8\" fill=\"currentColor\" stroke=\"none\"/>"
+    ],
+    "Pyramid": [
+        265,
+        1,
+        "<g class=\"dge-result\"><path d=\"m12 3-8 14 8 4Z\" fill=\"currentColor\" fill-opacity=\".12\"/><path d=\"M12 3v18l8-4Z\" fill=\"currentColor\" fill-opacity=\".23\"/><path d=\"m4 17 8-4 8 4M12 13V3\" stroke-dasharray=\"1.5 2\" stroke-width=\"1.1\" opacity=\".65\"/></g><circle cx=\"12\" cy=\"3\" r=\"1.8\" fill=\"currentColor\" stroke=\"none\"/>"
+    ],
+    "Section": [
+        265,
+        1,
+        "<path d=\"M4 7.5v9l8 4.5 8-4.5v-9L12 3ZM4 7.5l8 4.5 8-4.5M12 12v9\" class=\"dge-guide\"/><g class=\"dge-result\"><path d=\"m4 12 8 4.5 8-4.5-8-4.5Z\" fill=\"currentColor\" fill-opacity=\".3\"/></g>"
+    ],
+    "Net": [
+        265,
+        1,
+        "<g class=\"dge-result\"><path d=\"M9.5 2h5v20h-5ZM4.5 7h15v5h-15Z\" fill=\"currentColor\" fill-opacity=\".14\"/><path d=\"M9.5 7v5m5-5v5m-5 5h5\"/></g>"
+    ]
+}

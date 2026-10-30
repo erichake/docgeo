@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" class="new"><title>Plan parallèle</title><style>
+text { font-family: -apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif; }
+.ink { stroke: #3d5067; } .red { stroke: #cb4254; } .guide { stroke: #a5afbd; }
+.new { fill:none; stroke:#3d5067; stroke-width:1.35; stroke-linecap:round; stroke-linejoin:round; }
+.old { fill:none; stroke:currentColor; stroke-width:1.65; stroke-linecap:round; stroke-linejoin:round; color:#536174; }
+.old .dge-guide { opacity:.65; } .old .dge-result { color:#d14343; }
+.title { font-size:34px; font-weight:650; fill:#26374c; letter-spacing:-1px; }
+.caption { font-size:13px; fill:#778497; } .label { font-size:12px; fill:#526176; }
+.family { font-size:18px; font-weight:600; fill:#26374c; }
+</style><path class="guide" d="m3 21 4-6h14l-4 6Z" fill="#a5afbd" fill-opacity=".06"/><path class="red" d="m3 10 4-6h14l-4 6Z" fill="#cb4254" fill-opacity="0.08"/><circle cx="12" cy="7" r="1.45" fill="#3d5067" stroke="#fff" stroke-width=".55"/></svg>
