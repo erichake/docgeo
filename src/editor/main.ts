@@ -308,6 +308,11 @@ $("head").append(`<style>
     .dge-dot { flex-shrink: 0; display: grid; place-items: center; width: 30px; height: 30px; margin-block: 2px; padding: 0; border: 0; border-radius: 50%; background: none; cursor: pointer; }
     .dge-dot::before { content: ""; box-sizing: border-box; width: 13px; height: 13px; border: 2px solid var(--dge-color); border-radius: 50%; background: var(--dge-color); box-shadow: 0 0 0 1px rgb(15 23 42 / 0.1); transition: background 0.15s; }
     .dge-dot[aria-pressed="false"]::before { background: #fff; opacity: 0.7; }
+    .dge-dot[data-shape]::before { border-width: 1.5px; background: var(--dge-fill); box-shadow: none; }
+    .dge-dot[data-shape][aria-pressed="false"]::before { opacity: 0.3; }
+    .dge-dot[data-shape="rect"]::before, .dge-dot[data-shape="diamond"]::before { width: 11px; height: 11px; border-radius: 1px; }
+    .dge-dot[data-shape="diamond"]::before { transform: rotate(45deg); }
+    .dge-dot[data-shape="cross"]::before { width: 11px; height: 11px; border: 0; border-radius: 0; background: linear-gradient(45deg, transparent calc(50% - 1px), var(--dge-color) 0 calc(50% + 1px), transparent 0), linear-gradient(-45deg, transparent calc(50% - 1px), var(--dge-color) 0 calc(50% + 1px), transparent 0); }
     .dge-dot:hover { background: rgb(15 23 42 / 0.06); }
     .dge-dot:focus-visible, .dge-item .dge-label:focus-visible { outline: 2px solid #2563eb; outline-offset: -2px; }
     .dge-dot:disabled { visibility: hidden; }
@@ -1677,12 +1682,21 @@ function addRow(
 
 // As in GeoGebra's algebra view, a dot of the objects' colour, full when
 // one shows, which shows or hides them all. Super-hidden objects, which
-// nobody ever saw, stay so.
+// nobody ever saw, stay so. A point's dot has its shape and colours, faded
+// when hidden, since a cross or a white point can't be emptied.
 function visibilityToggle(objects: construction_object[]): DOMElement {
+    const [first] = objects;
     const dot = $.create("button")
         .cls("dge-dot")
         .att("type", "button")
-        .stl("--dge-color", objects[0].stroke_color);
+        .stl("--dge-color", first.stroke_color);
+    if (first instanceof point_object)
+        dot.att("data-shape", first.shape).stl(
+            "--dge-fill",
+            first.opacity
+                ? `color-mix(in srgb, ${first.fill_color} ${first.opacity * 100}%, transparent)`
+                : first.auto_fill_color,
+        );
     const seen = objects.filter((object) => object.hidden !== 2);
     if (!seen.length) return dot.att("disabled", "");
     const shown = seen.some((object) => !looksHidden(object));
