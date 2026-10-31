@@ -43,6 +43,7 @@ export async function fetchFigure(url: string): Promise<File> {
             : /filename="?([^";]+)/i.exec(header)?.[1]) ||
         decodeURIComponent(new URL(address).pathname.split("/").pop()!) ||
         "figure";
+    if (/\.zir[sz]?$/i.test(name)) return new File([blob], name);
     const [first, second] = new Uint8Array(
         await blob.slice(0, 2).arrayBuffer(),
     );

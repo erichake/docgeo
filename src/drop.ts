@@ -55,7 +55,7 @@ export function dropFigures(
             veil.removeClass("on");
             // The handle is only given during the event.
             const item = [...event.dataTransfer!.items].find((item) =>
-                /\.(dgo|dgp|ggb)$/i.test(item.getAsFile()?.name ?? ""),
+                /\.(dgo|dgp|ggb|zir[sz]?)$/i.test(item.getAsFile()?.name ?? ""),
             );
             if (item) open(item.getAsFile()!, item.getAsFileSystemHandle?.());
         },

@@ -1,5 +1,5 @@
 import { construction } from "./construction";
-import { importDgoFromBlob, writeDgo } from "./dgo";
+import { describeDgo, importDgo, type Workbook, writeDgo } from "./dgo";
 import { $, type DOMElement } from "./dom";
 import { dropFigures } from "./drop";
 import { embed } from "./embed";
@@ -7,6 +7,7 @@ import { FIGURE_URL, fetchFigure } from "./figure_url";
 import { fitFigure } from "./fit";
 import { DIR, t } from "./i18n";
 import { preferences } from "./preferences";
+import { openFigureFile, showTabs, writeWorkbook } from "./workbook";
 
 class docgeo {
     prefs: preferences;
@@ -20,9 +21,10 @@ class docgeo {
 
     document(): void {
         $("html").stl("width:100%;height:100%");
+        // Above a workbook's tabs (see workbook.ts).
         $("body")
             .stl(
-                "width:100%;height:100%;margin:0;overflow:hidden;touch-action:none",
+                "position:relative;width:100%;height:calc(100% - var(--docgeo-tabs, 0px));margin:0;overflow:hidden;touch-action:none",
             )
             .att("oncontextmenu", "return false;");
     }
@@ -54,6 +56,9 @@ $("head").append(`<style>
 
 // The open figure's name, which a save keeps.
 let figureName: string | null = null;
+
+// The workbook of which the figure is the page shown, if it is one.
+let book: Workbook | null = null;
 
 // While the picker is shown, what a dropped file is handed to.
 let picked: ((file: File) => Promise<void>) | null = null;
@@ -96,7 +101,11 @@ if (!search.has("embed") && fit === null)
     dropFigures((file) => void (picked ?? openFile)(file));
 
 async function saveFigure(name: string): Promise<void> {
-    const href = URL.createObjectURL(await writeDgo(DOCGEO.scene));
+    const href = URL.createObjectURL(
+        await (book
+            ? writeWorkbook(book, DOCGEO.scene)
+            : writeDgo(DOCGEO.scene)),
+    );
     (
         $.create("a")
             .att("href", href)
@@ -119,6 +128,8 @@ async function openFigure(
         // Discards what the failed import may have already built.
         DOCGEO.scene.dispose();
         DOCGEO.scene = construction.create(DOCGEO);
+        book = null;
+        showTabs(null, showPage);
         return pickFigure(failure(name, error));
     }
     DOCGEO.scene.reveal();
@@ -142,24 +153,33 @@ function failure(name: string, error: unknown): DOMElement {
 
 // Opens a chosen or dropped file in place of the figure shown.
 function openFile(file: File): Promise<void> {
+    renew();
+    return openFigure(file.name, async () => {
+        const opened = await openFigureFile(DOCGEO.scene, file);
+        book = opened.book;
+        showTabs(book, showPage);
+        return opened.unsupported;
+    });
+}
+
+// The workbook's page of this index, in place of the one shown.
+async function showPage(index: number): Promise<void> {
+    const shown = book!.pages[book!.current];
+    shown.figure = await describeDgo(DOCGEO.scene);
+    book!.current = index;
+    renew();
+    await openFigure(figureName!, async () => {
+        importDgo(DOCGEO.scene, book!.pages[index].figure);
+        return [];
+    });
+}
+
+function renew(): void {
     DOCGEO.scene.dispose();
     DOCGEO.scene = construction.create(DOCGEO);
     $("body")
         .findAll(".docgeo-notice")
         .forEach((notice) => notice.dispose());
-    return openFigure(file.name, async () =>
-        /\.ggb$/i.test(file.name)
-            ? (await import("./ggb_importer")).importGgbFromBlob(
-                  DOCGEO.scene,
-                  file,
-              )
-            : /\.dgo$/i.test(file.name)
-              ? importDgoFromBlob(DOCGEO.scene, file)
-              : (await import("./dgp_importer")).importDgp(
-                    DOCGEO.scene,
-                    await file.text(),
-                ),
-    );
 }
 
 // Browsers only open a file picker in response to a user gesture.
@@ -167,7 +187,7 @@ function pickFigure(error?: DOMElement): Promise<void> {
     return new Promise((resolve) => {
         const input = $.create("input")
             .att("type", "file")
-            .att("accept", ".dgo,.dgp,.ggb");
+            .att("accept", ".dgo,.dgp,.ggb,.zir,.zirs,.zirz");
         const button = $.create("button")
             .cls("docgeo-open")
             .append(

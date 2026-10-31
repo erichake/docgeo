@@ -1181,7 +1181,9 @@ n)` dans `CerclesDeCercles.ggb`. Nommées comme les commandes, ces
   comme dans GeoGebra, la courbe de la fonction (`Cur`, sans bornes),
   qu'une formule appelle comme une expression (`f(2)`, `f'(2)`) et que la
   ligne relit `f(x) = …` ; `f(x, y) = …` (variables parmi x, y, z, t) est
-  l'expression `f = …`.
+  l'expression `f = …`. Sur un intervalle (2026-10-31), elle s'écrit
+  comme dans GeoGebra `f(x) = …, (a ≤ x ≤ b)` (`<=` accepté, une borne
+  pouvant manquer, bornes nombres ou formules).
 - **Produits à la GeoGebra** (2026-10-17) : dans une ligne tapée, un nom
   fait de lettres qu'aucun objet ne porte et qui finit par x, y, z ou t
   est le produit de ses lettres, écrites séparées (`ax^2 + bx` devient
@@ -2707,3 +2709,18 @@ badge anneau, `A = (x, y)`) puis « Point sur objet » ; les gestes
 la famille Points), la sélection, les raccourcis (« palette fermée »), la
 3D et une question de la FAQ. Icônes et capture `palette.webp`
 régénérées, contrôle passé.
+
+### Classeurs — 2026-10-31
+
+Un classeur (`.zirs` de CaRMetal à plusieurs figures, `.dgo` à pages, voir
+`DGO.md` « Classeur ») montre ses pages par des onglets sous la figure
+(`src/workbook.ts`, partagé avec le lecteur), dont le nom de chaque `.zir`.
+Chaque `.zir` est importé une seule fois, à l'ouverture, en figure `.dgo` ;
+ce qui n'a pas pu l'être est signalé, préfixé du nom de sa page. Changer
+d'onglet garde la page quittée telle quelle, avec son historique
+d'annulation, retrouvé au retour ; le point qui signale une modification
+devant le nom de fichier vaut pour tout le classeur, et l'enregistrement
+l'écrit en entier. Lecteur : +0,7 Ko (non compressé).
+Étape 1 seulement : pas encore d'ajout, de suppression, de renommage ni de
+réordonnancement des pages, et le mode intégré du lecteur ne montre que la
+page `p`.

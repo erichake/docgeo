@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<CaR>
+<Construction>
+<Window x="0.0" y="0.0" w="8.0"/>
+<Windowdim w="1280" h="800"/>
+<Preferences minfontsize="12" minpointsize="3" minlinesize="1" arrowsize="10" selectionsize="8" monkeyspeed="20" gridopacity="20" digits.lengths="2" digits.edit="4" digits.angles="2" colorbackground="245,245,245" colorbackgroundx="139" colorbackgroundy="9" colorbackgroundPal="4" fig3D="false" figDP="false"/>
+<Objects>
+<Point name="P1" n="0" color="2" x="-1.9836512261580381" y="2.7029972752043596" shape="circle">Point</Point>
+<Point name="P2" n="3" color="2" x="-3.5967302452316074" y="-1.0027247956403271" shape="circle">Point</Point>
+<Midpoint name="P3" n="4" color="2" first="P1" second="P2" shape="circle">Milieu de P1 et P2</Midpoint>
+<Point name="P4" n="7" color="2" x="2.114441416893733" y="-1.7002724795640325" shape="circle">Point</Point>
+<Midpoint name="P5" n="8" color="2" first="P2" second="P4" shape="circle">Milieu de P2 et P4</Midpoint>
+<Point name="P6" n="11" color="2" x="1.809264305177111" y="2.2815622161671207" shape="circle">Point</Point>
+<Midpoint name="P7" n="12" color="2" first="P4" second="P6" shape="circle">Milieu de P4 et P6</Midpoint>
+<Midpoint name="P8" n="15" color="2" first="P6" second="P1" shape="circle">Milieu de P6 et P1</Midpoint>
+<Polygon name="poly2" n="16" color="3" type="thin" background="true" solid="true" point1="P8" point2="P3" point3="P5" point4="P7">Polygone</Polygon>
+<Polygon name="poly3" n="17" color="1" scolor="255,,199,,224" type="thin" background="true" point1="P6" point2="P1" point3="P2" point4="P4">Polygone</Polygon>
+<Segment name="s1" n="20" color="1" from="P6" to="P4">Segment de P6 à P4</Segment>
+<Segment name="s2" n="23" color="1" from="P4" to="P2">Segment de P4 à P2</Segment>
+<Segment name="s3" n="26" color="1" from="P2" to="P1">Segment de P2 à P1</Segment>
+<Segment name="s4" n="29" color="1" from="P1" to="P6">Segment de P1 à P6</Segment>
+</Objects>
+</Construction>
+</CaR>

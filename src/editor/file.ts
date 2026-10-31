@@ -65,7 +65,7 @@ export function chooseFile(
         types: [
             {
                 description: t("figure_formats"),
-                accept: { [DGO]: [".dgo", ".dgp", ".ggb"] },
+                accept: { [DGO]: [".dgo", ".dgp", ".ggb", ".zir", ".zirs", ".zirz"] },
             },
         ],
     }).then(async ([from]) => open(await from.getFile(), from), aborted);

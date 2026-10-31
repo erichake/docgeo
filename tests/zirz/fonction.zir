@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<CaR>
+<Construction>
+<Window x="0.47956403269754766" y="1.7438692098092643" w="8.0" showgrid="true"/>
+<Windowdim w="1280" h="800"/>
+<Preferences minfontsize="16" minpointsize="3" minlinesize="1" arrowsize="15" selectionsize="5" monkeyspeed="10" gridopacity="13" digits.lengths="5" digits.edit="5" digits.angles="0" colorbackground="245,245,245" colorbackgroundx="139" colorbackgroundy="9" colorbackgroundPal="4" fig3D="false" figDP="false"/>
+<Grid color="0" thickness="0"/>
+<Objects>
+<Line name="yAxis" n="1" yaxis="true">Y axis</Line>
+<Line name="xAxis" n="0" xaxis="true">X axis</Line>
+<Expression name="min" n="1125" color="1" type="thick" showname="true" showvalue="true" x="-6.372388737511353" y="4.504995458673932" value="-1.8333333333333353" prompt="min" slider="true" min="-5" max="0">Expression &quot;-1.8333333333333353&quot; à -6.37239, 4.505</Expression>
+<Expression name="max" n="1126" color="1" type="thick" showname="true" showvalue="true" x="-6.357856494096277" y="3.8510445049954587" value="2.874999999999999" prompt="max" slider="true" min="0" max="5">Expression &quot;2.874999999999999&quot; à -6.35786, 3.85104</Expression>
+<Function name="f1" n="2" color="1" x="x" y="x^2-3" var="x" min="min" max="max" d="0" shape="cross" color="1" minbound="1" maxbound="0">Fonction (  ,  )</Function>
+<Expression name="int" n="1124" color="1" type="thick" showname="true" showvalue="true" x="-6.430517711171662" y="5.798365122615805" value="integrate(f1,-2,1)" prompt="$\int_{-2}^{1}f_1(x).dx$">Expression &quot;integrate(f1,-2,1)&quot; à -6.82289, 5.53678</Expression>
+<Expression name="zero" n="1128" color="1" type="thick" showname="true" showvalue="true" x="-6.343324250681198" y="3.138964577656677" value="zero(f1,-2,0)" prompt="zero1">Expression &quot;zero(f1,-2,0)&quot; à -6.34332, 3.13896</Expression>
+<Expression name="minf" n="1129" color="1" type="thick" showname="true" showvalue="true" x="-6.227066303360582" y="2.3978201634877383" value="f1(min(f1,-5,5))" prompt="min">Expression &quot;f1(min(f1,-5,5))&quot; à -6.22707, 2.39782</Expression>
+<Expression name="maxf" n="1130" color="1" type="thick" showname="true" showvalue="true" x="-6.081743869209809" y="1.6566757493188016" value="f1(max(f1,-5,5))" prompt="max">Expression &quot;f1(max(f1,-5,5))&quot; à -6.08174, 1.65668</Expression>
+<Expression name="diff" n="1132" color="1" type="thick" showname="true" showvalue="true" x="-6.212534059945504" y="0.8864668483197091" value="diff(f1,1)" prompt="diff">Expression &quot;diff(f1,1)&quot; à -6.21253, 0.88647</Expression>
+</Objects>
+</Construction>
+</CaR>

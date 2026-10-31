@@ -105,6 +105,27 @@ d'objet se décrit lui-même par sa méthode `dgo()` (type et paramètres).
 | `o`   | objets `[type, nom, paramètres, style?]` | (requis)   |
 | `mac` | macro-constructions (ci-après)           | `[]`       |
 
+### Classeur
+
+Un classeur (fonctionnalité de CaRMetal, fichiers `.zirs`) est une suite de
+figures **indépendantes**, montrées une à la fois par des onglets. Sa racine
+n'a que trois clés :
+
+| Clé   | Contenu                                 | Défaut   |
+| ----- | --------------------------------------- | -------- |
+| `dgo` | version du format                       | (requis) |
+| `pg`  | pages : `{"n": nom, …}` (au moins une)  | (requis) |
+| `p`   | indice de la page montrée à l'ouverture | 0        |
+
+Une page est une figure (toutes les clés de la racine ci-dessus, sauf `dgo`),
+plus son nom `n`. Rien n'est partagé entre les pages : ni objets, ni styles,
+ni images, ni macros, et leurs noms d'objets sont indépendants.
+L'enregistrement garde chaque page dans l'état où on l'a laissée, et `p` est
+la page montrée.
+
+Pour l'instant, le mode intégré du lecteur montre la page `p` d'un classeur,
+seule, sans onglets : l'état élève est celui de cette page.
+
 Couleurs : `#rgb`, `#rrggbb` ou `rgb(r,g,b)`. Booléens : 0 ou 1. JSON n'ayant
 pas NaN, un nombre non fini s'écrit `null` là où il peut survenir :
 coordonnées d'un point libre, paramètre d'un point sur objet, valeur d'une

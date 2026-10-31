@@ -915,16 +915,67 @@ export async function importDgoFromUrl(
 }
 
 // A plain JSON file is read too, for readable test figures. Nothing is
-// ever unsupported. `centered`: see readDgo.
+// ever unsupported. `centered`: see readDgo. Of a workbook, its page shown.
 export async function importDgoFromBlob(
     c: construction,
     file: Blob,
     centered = false,
 ): Promise<string[]> {
-    readDgo(c, await dgoJson(file), centered);
-    runInits(c);
+    await importDgoBook(c, file, centered);
     return [];
 }
+
+// The workbook the file is, if it is one, whose page shown is imported.
+export async function importDgoBook(
+    c: construction,
+    file: Blob,
+    centered = false,
+): Promise<Workbook | null> {
+    const json = await dgoJson(file);
+    const book = dgoWorkbook(json);
+    importDgo(c, book ? book.pages[book.current].figure : json, centered);
+    return book;
+}
+
+export function importDgo(c: construction, figure: Json, centered = false) {
+    readDgo(c, figure, centered);
+    runInits(c);
+}
+
+// Figures shown one at a time, as in CaRMetal, each with its name, and the
+// one shown.
+export interface Workbook {
+    pages: { name: string; figure: DgoFigure }[];
+    current: number;
+}
+
+function dgoWorkbook(json: Json): Workbook | null {
+    if (!isRecord(json) || json.pg === undefined) return null;
+    const { dgo, pg: pages, p: current = 0 } = json;
+    check(Array.isArray(pages) && pages.length > 0);
+    check(typeof current === "number" && Number.isInteger(current));
+    check(current >= 0 && current < pages.length);
+    return {
+        pages: pages.map((page) => {
+            check(isRecord(page) && typeof page.n === "string");
+            const { n, ...figure } = page;
+            return {
+                name: n as string,
+                figure: { ...figure, dgo } as DgoFigure,
+            };
+        }),
+        current,
+    };
+}
+
+export const describeWorkbook = ({ pages, current }: Workbook) => ({
+    dgo: VERSION,
+    pg: pages.map(({ name, figure: { dgo, ...figure } }) => ({
+        n: name,
+        ...figure,
+    })),
+    ...(current > 0 && { p: current }),
+});
 
 // Gzipped or not.
 export async function dgoJson(file: Blob): Promise<Json> {
