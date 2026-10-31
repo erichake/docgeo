@@ -267,13 +267,15 @@ export function propertiesPanel(options: {
     }
 
     // Kept while the figure tab shows, which an empty click doesn't leave.
-    // A program, a turtle's or an event's, shows with its object.
+    // A program, a turtle's or an event's, shows with its object, a
+    // polygon's side or vertex with its polygon.
     function select(
         chosen: construction_object | construction_object[] | null,
     ): void {
         const objects = [
             ...new Set(
-                [chosen ?? []].flat().map((object) => {
+                [chosen ?? []].flat().map((part) => {
+                    const object = part.reference?.owner ?? part;
                     const owner = programOwner(object);
                     if (owner === object) return object;
                     expanded = object.name;
