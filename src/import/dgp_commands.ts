@@ -1,3 +1,5 @@
+// First, as in the player: the object classes import each other.
+import "../construction";
 import type { construction, Gesture } from "../construction";
 import { createAngleBisector } from "../objects/angle_bisector_object";
 import {

@@ -1,4 +1,3 @@
-import { IDENTIFIER_PART, IDENTIFIER_START } from "./dgp_parser";
 import {
     vAdd,
     vCross,
@@ -9,6 +8,9 @@ import {
     type Vec2,
     type Vec3,
 } from "../vec";
+
+export const IDENTIFIER_START = /[$_\p{ID_Start}]/u;
+export const IDENTIFIER_PART = /[$_\u200c\u200d\p{ID_Continue}]/u;
 
 export type FormulaFn =
     | "sqrt"

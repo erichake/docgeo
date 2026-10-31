@@ -14,11 +14,9 @@ import {
     writeDgo,
     type DgoFigure,
 } from "../dgo";
-import { importDgp } from "../dgp_importer";
 import { $, type DOMElement } from "../dom";
 import { dropFigures } from "../drop";
 import { FIGURE_URL, fetchFigure } from "../figure_url";
-import { importGgbFromBlob } from "../ggb_importer";
 import { LANG } from "../i18n";
 import type { construction_object } from "../objects/construction_object";
 import { point_object, type magnet_target } from "../objects/point_object";
@@ -6278,10 +6276,13 @@ async function openFile(
         file.name,
         async (c) =>
             /\.ggb$/i.test(file.name)
-                ? importGgbFromBlob(c, file)
+                ? (await import("../ggb_importer")).importGgbFromBlob(c, file)
                 : /\.dgo$/i.test(file.name)
                   ? importDgoFromBlob(c, file)
-                  : importDgp(c, await file.text()),
+                  : (await import("../dgp_importer")).importDgp(
+                        c,
+                        await file.text(),
+                    ),
         await from,
     );
 }

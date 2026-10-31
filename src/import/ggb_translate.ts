@@ -4,17 +4,14 @@ import { vAdd, vSub, type Vec2, type Vec3 } from "../vec";
 import {
     evaluateFormula,
     formulaIdentifiers,
+    IDENTIFIER_PART,
+    IDENTIFIER_START,
     NO_VIEW,
     parseFormula,
     realPart,
     usesView,
 } from "./dgp_formula";
-import {
-    IDENTIFIER_PART,
-    IDENTIFIER_START,
-    type DgpCall,
-    type DgpValue,
-} from "./dgp_parser";
+import type { DgpCall, DgpValue } from "./dgp_parser";
 
 // A GeoGebra figure is translated into the same command list a .dgp file
 // parses to, so it goes through the exact same validation and object

@@ -6,7 +6,6 @@ import {
     writeDgo,
     type DgoFigure,
 } from "./dgo";
-import { importDgp } from "./dgp_importer";
 import { $ } from "./dom";
 import {
     builtView,
@@ -21,7 +20,6 @@ import {
     stateFigure,
 } from "./figure_state";
 import { frameRegion, hideFrame, showFrame } from "./frame";
-import { importGgbFromBlob } from "./ggb_importer";
 
 // The embedded mode's postMessage protocol: see EMBED.md.
 const PROTOCOL = 1;
@@ -102,8 +100,13 @@ export function embed(app: Embedder): void {
                 format === "dgo"
                     ? await importDgoFromBlob(app.scene, blob, true)
                     : format === "ggb"
-                      ? await importGgbFromBlob(app.scene, blob)
-                      : importDgp(app.scene, await blob.text());
+                      ? await (
+                            await import("./ggb_importer")
+                        ).importGgbFromBlob(app.scene, blob)
+                      : (await import("./dgp_importer")).importDgp(
+                            app.scene,
+                            await blob.text(),
+                        );
         } catch (error) {
             // Discards what the failed import may have already built.
             renew();

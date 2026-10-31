@@ -1,12 +1,10 @@
 import { construction } from "./construction";
 import { importDgoFromBlob, writeDgo } from "./dgo";
-import { importDgp } from "./dgp_importer";
 import { $, type DOMElement } from "./dom";
 import { dropFigures } from "./drop";
 import { embed } from "./embed";
 import { FIGURE_URL, fetchFigure } from "./figure_url";
 import { fitFigure } from "./fit";
-import { importGgbFromBlob } from "./ggb_importer";
 import { DIR, t } from "./i18n";
 import { preferences } from "./preferences";
 
@@ -151,10 +149,16 @@ function openFile(file: File): Promise<void> {
         .forEach((notice) => notice.dispose());
     return openFigure(file.name, async () =>
         /\.ggb$/i.test(file.name)
-            ? importGgbFromBlob(DOCGEO.scene, file)
+            ? (await import("./ggb_importer")).importGgbFromBlob(
+                  DOCGEO.scene,
+                  file,
+              )
             : /\.dgo$/i.test(file.name)
               ? importDgoFromBlob(DOCGEO.scene, file)
-              : importDgp(DOCGEO.scene, await file.text()),
+              : (await import("./dgp_importer")).importDgp(
+                    DOCGEO.scene,
+                    await file.text(),
+                ),
     );
 }
 

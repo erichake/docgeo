@@ -30,11 +30,15 @@ export default defineConfig({
         rollupOptions: {
             input: ["index.html", "editor.html"],
             output: {
-                // Rather than named after one of its modules.
-                chunkFileNames: ({ facadeModuleId }) =>
+                // Rather than named after one of its modules. What the
+                // importers share, loaded with the first .dgp or .ggb
+                // opened, isn't the engine.
+                chunkFileNames: ({ facadeModuleId, moduleIds }) =>
                     facadeModuleId
                         ? "assets/[name]-[hash].js"
-                        : "assets/engine-[hash].js",
+                        : moduleIds.every((id) => id.includes("/src/import/"))
+                          ? "assets/import-[hash].js"
+                          : "assets/engine-[hash].js",
             },
         },
     },

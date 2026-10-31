@@ -1,3 +1,5 @@
+import { IDENTIFIER_PART, IDENTIFIER_START } from "./dgp_formula";
+
 export type DgpValue =
     | { type: "literal"; value: string | number | boolean | null }
     | { type: "reference"; name: string }
@@ -31,8 +33,6 @@ interface Token {
 }
 
 const NUMBER = /[+-]?(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][+-]?\d+)?/y;
-export const IDENTIFIER_START = /[$_\p{ID_Start}]/u;
-export const IDENTIFIER_PART = /[$_\u200c\u200d\p{ID_Continue}]/u;
 const IDENTIFIER_ESCAPE = /\\u(?:([0-9a-fA-F]{4})|\{(0*[0-9a-fA-F]{1,6})\})/y;
 
 class Lexer {

@@ -1,6 +1,8 @@
 import type { construction } from "../construction";
 import {
     evaluateFormula,
+    IDENTIFIER_PART,
+    IDENTIFIER_START,
     parseFormula,
     realPart,
     usesView,
@@ -9,7 +11,6 @@ import {
     type FormulaValue,
     type ScriptValue,
 } from "../import/dgp_formula";
-import { IDENTIFIER_PART, IDENTIFIER_START } from "../import/dgp_parser";
 import type { construction_object, DgoContext } from "./construction_object";
 import { list_object, MAX_LIST_COUNT, type ListNature } from "./list_object";
 

@@ -87,7 +87,10 @@ import type { fixed_angle_object } from "../../src/objects/fixed_angle_object";
 import { parseLine, TextError } from "../../src/editor/text";
 import en from "../../src/editor/lang/en";
 import type { MessageKey, Texts } from "../../src/editor/messages";
-import { IDENTIFIER_PART, IDENTIFIER_START } from "../../src/import/dgp_parser";
+import {
+    IDENTIFIER_PART,
+    IDENTIFIER_START,
+} from "../../src/import/dgp_formula";
 import type { point_object } from "../../src/objects/point_object";
 import type { circle1_object } from "../../src/objects/circle1_object";
 import type { equation_circle_object } from "../../src/objects/equation_circle_object";
