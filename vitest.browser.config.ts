@@ -17,6 +17,9 @@ const drag: BrowserCommand<
             (element) => (element as HTMLElement).offsetWidth,
         ));
     const STEPS = 10;
+    // From and to the same place, a tap: moves in between would only
+    // lengthen it, beyond the click delay when the files run together.
+    const moves = from[0] === to[0] && from[1] === to[1] ? 0 : STEPS;
     const at = (step: number) => ({
         x: box.x + (from[0] + ((to[0] - from[0]) * step) / STEPS) * scale,
         y: box.y + (from[1] + ((to[1] - from[1]) * step) / STEPS) * scale,
@@ -32,13 +35,13 @@ const drag: BrowserCommand<
                 touchPoints: step === undefined ? [] : [at(step)],
             });
         await send("touchStart", 0);
-        for (let step = 1; step <= STEPS; step++) await send("touchMove", step);
+        for (let step = 1; step <= moves; step++) await send("touchMove", step);
         await send("touchEnd");
         await cdp.detach();
     } else {
         await page.mouse.move(at(0).x, at(0).y);
         await page.mouse.down();
-        for (let step = 1; step <= STEPS; step++)
+        for (let step = 1; step <= moves; step++)
             await page.mouse.move(at(step).x, at(step).y);
         await page.mouse.up();
     }
