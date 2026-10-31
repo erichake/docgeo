@@ -28,21 +28,39 @@ const SHAPES: Record<string, number> = {
     diamond: 2,
     square: 3,
 };
+// A name between quotes is an object's that isn't an identifier ("A'").
 const TOKEN =
-    /\s*(\d+\.?\d*(?:[eE][-+]?\d+)?|\.\d+|[A-Za-z_]\w*|&&|\|\||<=|>=|==|~=|!=|\S)/gy;
+    /\s*(\d+\.?\d*(?:[eE][-+]?\d+)?|\.\d+|[A-Za-z_]\w*|"[^"]*"|&&|\|\||<=|>=|==|~=|!=|\S)/gy;
 const OPERATORS: Record<string, string> = {
-    "~=": "==",
     "=": "==",
     "&": "&&",
     "|": "||",
 };
+const LOGIC = new Set(["&&", "||", "&", "|"]);
+const COMPARISONS = new Set(["<", "<=", ">", ">=", "==", "=", "~=", "!="]);
+const STOPS = new Set([",", ")", "!"]);
 const SAME = new Set(
     "sin cos tan sqrt exp log round floor ceil abs min max atan2 d x y".split(
         " ",
     ),
 );
-const WINDOW = new Set(["windoww", "windowh", "windowcx", "windowcy", "pixel"]);
+// CaRMetal's window: its center, its half width and height, and the pixels
+// of a unit.
+const WINDOW = new Map([
+    ["windowcx", "windowcx()"],
+    ["windowcy", "windowcy()"],
+    ["windoww", "(windoww()/2)"],
+    ["windowh", "(windowh()/2)"],
+    ["pixel", "pixel()"],
+]);
 
+// The DGP commands of what a point can be attracted to.
+const MAGNETS = new Set(
+    "Point PointOn MidPoint OrderedIntersection Line Ray Segment Vector Parallel Perpendicular Circle Circle1 Circle3 Quadric Curvus".split(
+        " ",
+    ),
+);
+const POINTS = new Set(["Point", "PointOn", "MidPoint", "OrderedIntersection"]);
 // DGP's function names, which a variable can't take.
 const RESERVED = new Set(
     "i k count x y e pi PI sqrt d sin cos tan asin acos atan atan2 abs floor ceil round exp log min max mod gcd random arg perp cross dot distance conj isNaN pixel windoww windowh windowcx windowcy theta phi rotate dilate".split(
@@ -68,7 +86,12 @@ interface Scope {
 
 // CaRMetal's expression, in degrees as a DGPad figure, with its objects'
 // variables, or null if it uses what DGP can't compute.
-function formula(source: string, scope: Scope, variable = ""): string | null {
+function formula(
+    source: string,
+    scope: Scope,
+    variable = "",
+    as = "x",
+): string | null {
     const tokens = [...source.matchAll(TOKEN)].map((match) => match[1]);
     let i = 0;
     const call = (name: string, args: string[]): string => {
@@ -116,9 +139,41 @@ function formula(source: string, scope: Scope, variable = ""): string | null {
         }
         throw new Unsupported(name);
     };
+    const objectRef = (name: string): string => {
+        const ref = scope.refs(name);
+        if (!ref) throw new Unsupported(name);
+        return ref;
+    };
+    // As CaRMetal's precedence: "!" applies to a comparison, which applies
+    // to sums, and "~=" is equal within 1e-10.
     const sequence = (): string => {
+        let out = negation();
+        while (LOGIC.has(tokens[i]))
+            out += (OPERATORS[tokens[i++]] ?? tokens[i - 1]) + negation();
+        return out;
+    };
+    const negation = (): string => {
+        if (tokens[i] !== "!") return comparison();
+        i++;
+        return `!(${negation()})`;
+    };
+    const comparison = (): string => {
+        const left = sum();
+        if (!COMPARISONS.has(tokens[i])) return left;
+        const operator = tokens[i++];
+        const right = sum();
+        return operator === "~="
+            ? `(abs((${left})-(${right}))<1e-10)`
+            : `((${left})${OPERATORS[operator] ?? operator}(${right}))`;
+    };
+    const sum = (): string => {
         let out = "";
-        while (i < tokens.length && tokens[i] !== "," && tokens[i] !== ")") {
+        while (
+            i < tokens.length &&
+            !STOPS.has(tokens[i]) &&
+            !LOGIC.has(tokens[i]) &&
+            !COMPARISONS.has(tokens[i])
+        ) {
             const token = tokens[i++];
             if (token === "(") {
                 out += `(${sequence()})`;
@@ -136,15 +191,13 @@ function formula(source: string, scope: Scope, variable = ""): string | null {
                     if (token === "d" && args.length === 1)
                         throw new Unsupported(token);
                     out += call(token, args);
-                } else if (token === variable) out += "x";
+                } else if (token === variable) out += as;
                 else if (token === "pi") out += "PI";
-                else if (WINDOW.has(token)) out += token;
-                else {
-                    const ref = scope.refs(token);
-                    if (!ref) throw new Unsupported(token);
-                    out += ref;
-                }
-            } else out += OPERATORS[token] ?? token;
+                else if (WINDOW.has(token)) out += WINDOW.get(token);
+                else out += objectRef(token);
+            } else if (token.startsWith('"'))
+                out += objectRef(token.slice(1, -1));
+            else out += OPERATORS[token] ?? token;
         }
         return out;
     };
@@ -161,6 +214,11 @@ const literal = (value: string | number | boolean): DgpValue => ({
     type: "literal",
     value,
 });
+// An offset of none.
+const origin: DgpValue = {
+    type: "array",
+    items: [literal(0), literal(0)],
+};
 const ref = (name: string): DgpValue => ({ type: "reference", name });
 
 const escape = (text: string) =>
@@ -199,6 +257,8 @@ export function translateZir(
     const intersections: string[] = [];
     const unsupported = new Set<string>();
     const variables = new Map<string, string>();
+    // The DGP command of each object, by name.
+    const commands = new Map<string, string>();
     // Where each point is, for the texts placed at one.
     const places = new Map<string, [number, number]>();
     const panels: DgpCall[] = [];
@@ -232,12 +292,19 @@ export function translateZir(
     const preferences = doc.querySelector("Construction > Preferences");
     const digits = (kind: string) =>
         preferences?.getAttribute(`digits.${kind}`) ?? "2";
+    const fontSize = Number(preferences?.getAttribute("minfontsize") ?? 12);
+    const pointSize = Number(preferences?.getAttribute("minpointsize") ?? 3);
     const background = preferences?.getAttribute("colorbackground");
     if (background)
         push(null, "SetGeneralStyle", [
             literal(`background-color:${hex(background)}`),
         ]);
 
+    const names = new Set(
+        [...doc.querySelectorAll("Objects > [name]")].map((element) =>
+            attr(element, "name")!,
+        ),
+    );
     const define = (
         element: Element,
         command: string,
@@ -250,11 +317,126 @@ export function translateZir(
                 ? name
                 : `$${calls.length}`;
         variables.set(name, variable);
-        push(variable, command, [literal(name), ...args]);
-        const full = styleOf(element, command) + style;
+        commands.set(name, command);
+        // Shown by its alias, if no other object has that name.
+        const alias = attr(element, "alias");
+        const shown =
+            alias && /^[A-Za-z_]\w*'*$/.test(alias) && !names.has(alias)
+                ? alias
+                : name;
+        names.add(shown);
+        push(variable, command, [literal(shown), ...args]);
+        const labelled =
+            alias !== null &&
+            shown !== alias &&
+            attr(element, "showname") === "true";
+        const full =
+            styleOf(element, command) + style + (labelled ? ";lb:false" : "");
         if (full)
             push(null, "STL", [ref(variable), literal(full.replace(/^;/, ""))]);
+        const label =
+            labelled && attr(element, "hidden") === null
+                ? aliasLabel(element, variable, command, alias)
+                : undefined;
+        // Hidden while a condition holds, with its label: shown while 1.
+        const tag = [...element.attributes].find(
+            ({ name, value }) =>
+                /^ctag\d+$/.test(name) &&
+                (value === "hidden" || value === "superhidden"),
+        );
+        const hidden =
+            tag && formula(attr(element, `cexpr${tag.name.slice(4)}`)!, scope);
+        if (hidden) {
+            const shown = scope.script(`(${hidden})?0:1`);
+            [variable, label].forEach(
+                (object) =>
+                    object &&
+                    push(null, "STL", [ref(object), literal(`sc:${shown}`)]),
+            );
+        }
         return variable;
+    };
+    // Without a prompt, CaRMetal shows only its value: as a string's, if
+    // no other object computes with it.
+    const referenced = (name: string): boolean =>
+        [...doc.querySelectorAll("Objects > *")].some(
+            (element) =>
+                attr(element, "name") !== name &&
+                [...element.attributes].some(({ value }) =>
+                    new RegExp(
+                        `(^|\\W)${name.replace(/\W/g, "\\$&")}($|\\W)`,
+                    ).test(value),
+                ),
+        );
+    // A hidden point at these coordinates, a DGP formula.
+    const hiddenPoint = (coords: string): string => {
+        const point = `$${calls.length}`;
+        push(point, "Point", [literal(""), literal(coords), literal("0")]);
+        push(null, "STL", [ref(point), literal("h:2")]);
+        return point;
+    };
+    // An alias another object's name takes, or that isn't a name, as a
+    // text at the place of the object's label: by a point, or by the middle
+    // of a segment.
+    const aliasLabel = (
+        element: Element,
+        variable: string,
+        command: string,
+        alias: string,
+    ): string | undefined => {
+        let anchor = variable;
+        if (!POINTS.has(command)) {
+            const ends = objects(element, "from", "to");
+            if (!ends) return;
+            anchor = `$${calls.length}`;
+            push(anchor, "MidPoint", [literal(""), ...ends]);
+            push(null, "STL", [ref(anchor), literal("h:2")]);
+        }
+        // As CaRMetal: kept close, at a fixed distance in the offset's
+        // direction; otherwise at the offset, below right.
+        const [xc, yc] = [num(element, "xcoffset"), num(element, "ycoffset")];
+        const d = Math.hypot(xc, yc);
+        const reach = 3 * pointSize + fontSize / 2;
+        const [dx, dy] =
+            attr(element, "keepclose") === "true" && d > 1e-10
+                ? [
+                      (xc / d) * reach - alias.length * fontSize * 0.3,
+                      (-yc / d) * reach + fontSize * 0.35,
+                  ]
+                : [
+                      xc * unit + 2 * pointSize,
+                      -yc * unit + 2 * pointSize + fontSize * 0.8,
+                  ];
+        const text = `$${calls.length}`;
+        // In LaTeX after a "$".
+        const tex = alias.trimStart().startsWith("$");
+        push(
+            text,
+            tex ? "ExpressionOn" : "AnchoredText",
+            tex
+                ? [
+                      ...["", "", "", ""].map(literal),
+                      literal(
+                          `"${alias.replace(/\$/g, "").replace(/[\\"]/g, "\\$&")}"`,
+                      ),
+                      ref(anchor),
+                      { type: "array", items: [literal(dx), literal(dy)] },
+                  ]
+                : [
+                      literal(""),
+                      ref(anchor),
+                      literal(dx),
+                      literal(dy),
+                      literal(alias.replace(/%/g, "%%")),
+                  ],
+        );
+        push(null, "STL", [
+            ref(text),
+            literal(
+                `c:${color(element)};f:${fontSize}${tex ? ";tx:true" : ""}`,
+            ),
+        ]);
+        return text;
     };
     const scope: Scope = {
         refs: (name) => variables.get(name),
@@ -382,6 +564,31 @@ export function translateZir(
                     ]);
                     return;
                 }
+                // One of its coordinates its own, as "x(A)": it moves along the
+                // line the other one gives.
+                const own = ["x", "y"].map(
+                    (axis) =>
+                        attr(element, axis)!.replace(/\s/g, "") ===
+                        `${axis}(${name})`,
+                );
+                const other = own[0] ? fy : fx;
+                if (own[0] !== own[1] && other !== null) {
+                    const ends = [0, 1].map((k) =>
+                        ref(
+                            hiddenPoint(
+                                own[0] ? `[${k},${other}]` : `[${other},${k}]`,
+                            ),
+                        ),
+                    );
+                    const line = `$${calls.length}`;
+                    push(line, "Line", [literal(""), ...ends]);
+                    push(null, "STL", [ref(line), literal("h:2")]);
+                    targets.set(
+                        define(element, "PointOn", [ref(line), literal(0)]),
+                        [ax, ay, 0],
+                    );
+                    return;
+                }
                 // Its own coordinates: a point kept in place on the screen.
                 if (!new RegExp(`\\b${name}\\b`).test(attr(element, "x")!))
                     unsupported.add(`CaRMetal: ${name}`);
@@ -393,22 +600,44 @@ export function translateZir(
                 );
                 return;
             }
-            case "PointOn":
+            case "PointOn": {
                 if (!(args = objects(element, "on"))) break;
-                targets.set(define(element, "PointOn", [...args, literal(0)]), [
-                    num(element, "x"),
-                    num(element, "y"),
-                    0,
-                ]);
+                // On a polygon, CaRMetal's are on its sides.
+                const polygon =
+                    commands.get(attr(element, "on")!) === "Polygon";
+                const point = define(
+                    element,
+                    "PointOn",
+                    [...args, polygon ? origin : literal(0)],
+                    polygon ? ";sb:true" : "",
+                );
+                targets.set(point, [num(element, "x"), num(element, "y"), 0]);
                 places.set(name, [num(element, "x"), num(element, "y")]);
                 return;
+            }
             case "Midpoint":
                 if (!(args = objects(element, "first", "second"))) break;
                 define(element, "MidPoint", args);
                 return;
             case "Intersection":
-            case "OtherIntersection":
+            case "OtherIntersection": {
                 if (!(args = objects(element, "first", "second"))) break;
+                // CaRMetal projects it on each object in turn, from where it
+                // was: with a polygon, on the side the other object follows,
+                // where it can be dragged.
+                const polygon = ["first", "second"].findIndex(
+                    (key) => commands.get(attr(element, key)!) === "Polygon",
+                );
+                if (polygon !== -1) {
+                    targets.set(
+                        define(element, "PointOn", [
+                            args[1 - polygon],
+                            literal(0),
+                        ]),
+                        [num(element, "x"), num(element, "y"), 0],
+                    );
+                    return;
+                }
                 intersections.push(
                     define(element, "OrderedIntersection", [
                         ...args,
@@ -416,6 +645,7 @@ export function translateZir(
                     ]),
                 );
                 return;
+            }
             case "Line":
             case "Ray":
             case "Segment":
@@ -533,6 +763,25 @@ export function translateZir(
                     label(element, element.textContent!, x, y);
                     return;
                 }
+                // Only its points, every d, each drawn as a point.
+                if (attr(element, "special") === "true") {
+                    const [fx, fy, min, max, step] = [
+                        "x",
+                        "y",
+                        "min",
+                        "max",
+                        "d",
+                    ].map((a) =>
+                        formula(attr(element, a) ?? "", scope, variable, "$t"),
+                    );
+                    if ([fx, fy, min, max, step].includes(null)) break;
+                    define(element, "Sequence", [
+                        literal("point"),
+                        literal(JSON.stringify([["$t", min, max, step]])),
+                        literal(JSON.stringify([`[${fx},${fy}]`])),
+                    ]);
+                    return;
+                }
                 const [fx, fy, min, max] = ["x", "y", "min", "max"].map((a) =>
                     translate(attr(element, a) ?? "", variable),
                 );
@@ -546,14 +795,64 @@ export function translateZir(
                 );
                 return;
             }
-            case "Text":
-                label(
+            // At its top left corner in the figure, with the values of the
+            // formulas between "%", in LaTeX between "$".
+            case "Text": {
+                const text = element.textContent!;
+                const parts = text.split("%");
+                const values = parts.map((part, index) =>
+                    index % 2 ? translate(part) : part,
+                );
+                if (parts.length % 2 === 0 || values.includes(null)) {
+                    values.length = 1;
+                    values[0] = text;
+                }
+                const anchor = ref(
+                    hiddenPoint(`[${num(element, "x")},${num(element, "y")}]`),
+                );
+                if (/^\s*\$[^]*\$\s*$/.test(text)) {
+                    define(
+                        element,
+                        "ExpressionOn",
+                        [
+                            ...["", "", ""].map(literal),
+                            literal(
+                                `""${values
+                                    .map((value, index) =>
+                                        index % 2
+                                            ? `+(${value})`
+                                            : `+"${value!.replace(/\$/g, "").replace(/[\\"]/g, "\\$&")}"`,
+                                    )
+                                    .join("")}`,
+                            ),
+                            anchor,
+                            origin,
+                        ],
+                        `;f:${fontSize};tx:true`,
+                    );
+                    return;
+                }
+                define(
                     element,
-                    element.textContent!,
-                    num(element, "x"),
-                    num(element, "y"),
+                    "AnchoredText",
+                    [
+                        anchor,
+                        literal(0),
+                        literal(fontSize),
+                        literal(
+                            values
+                                .map((value, index) =>
+                                    index % 2
+                                        ? value
+                                        : value!.replace(/%/g, "%%"),
+                                )
+                                .join("%"),
+                        ),
+                    ],
+                    `;f:${fontSize}`,
                 );
                 return;
+            }
             case "Expression": {
                 const value = translate(attr(element, "value") ?? "0");
                 if (value === null) break;
@@ -592,18 +891,31 @@ export function translateZir(
                 const prompt = attr(element, "prompt") ?? "";
                 // Its LaTeX caption, which only a text shows.
                 const tex = prompt.includes("$");
+                // At a place a formula gives, as by a point.
+                const [x, y] = ["x", "y"].map((a) => attr(element, a) ?? "0");
+                const at = [x, y].some((c) => !isFinite(Number(c)))
+                    ? [x, y].map((c) => translate(c))
+                    : null;
+                if (at?.includes(null)) break;
                 const variable = define(
                     element,
-                    "Expression",
+                    at ? "ExpressionOn" : "Expression",
                     [
-                        tex ? "" : prompt && `${prompt} = `,
-                        min,
-                        max,
-                        control ? (attr(control, "V") ?? value) : value,
-                        attr(element, "x") ?? "0",
-                        attr(element, "y") ?? "0",
-                    ].map(literal),
-                    tex ? ";h:2" : "",
+                        ...[
+                            tex ? "" : prompt && `${prompt} = `,
+                            min,
+                            max,
+                            control
+                                ? (attr(control, "V") ?? value)
+                                : prompt === "" && !referenced(name)
+                                  ? `""+(${value})`
+                                  : value,
+                        ].map(literal),
+                        ...(at
+                            ? [ref(hiddenPoint(`[${at}]`)), origin]
+                            : [literal(x), literal(y)]),
+                    ],
+                    tex ? ";h:2" : `;f:${fontSize}`,
                 );
                 if (control) controlPanel(control, variable);
                 if (tex && attr(element, "hidden") === null) {
@@ -700,30 +1012,82 @@ export function translateZir(
             style.push(
                 `p:${digits(command.endsWith("Angle") ? "angles" : "lengths")}`,
             );
-        if (
-            command === "Point" ||
-            command === "PointOn" ||
-            command === "MidPoint" ||
-            command === "OrderedIntersection"
-        ) {
+        if (POINTS.has(command)) {
             const shape = attr(element, "shape") ?? "square";
-            style.push(shape === "invisible" ? "s:0" : `s:${thick ? 5 : 4}`);
+            style.push(
+                shape === "invisible"
+                    ? "s:0"
+                    : `s:${shape === "dot" ? 1.5 : thick ? 5 : 4}`,
+            );
+            const increment = Number(attr(element, "increment"));
+            if (increment > 0) style.push(`i:${increment}`);
+            // Filled with its color, rather than white.
+            if (thick) style.push("o:1");
             if (shape in SHAPES) style.push(`sp:${SHAPES[shape]}`);
             if (attr(element, "showname") === "true") style.push("sn:true");
+        } else if (command === "Sequence") {
+            const shape = attr(element, "shape") ?? "square";
+            style.push(`s:${thick ? 4 : 3}`, `sp:${SHAPES[shape] ?? 3}`);
         } else if (command === "Polygon") {
+            // CaRMetal fills it with its color if thick, otherwise with its
+            // light color (40 % of it) half transparent, unless solid, and
+            // outlines it only if neither thick nor thin.
+            // and outlines it only if neither thick nor thin, or not filled.
+            const type = attr(element, "type");
             style.push(
-                `o:${attr(element, "solid") === "true" ? 0.5 : 0.2}`,
-                "s:0",
+                attr(element, "filled") === "false"
+                    ? `o:0;s:${thick ? 2.5 : 1}`
+                    : `o:${thick ? 1 : attr(element, "solid") === "true" ? 0.4 : 0.2};s:${type === null ? 1 : 0}`,
             );
         } else if (command === "Angle" || command === "FixedAngle") {
             style.push(`o:${attr(element, "filled") === "true" ? 0.2 : 0}`);
-        } else if (command !== "Expression" && command !== "Image") {
+        } else if (
+            command !== "Expression" &&
+            command !== "ExpressionOn" &&
+            command !== "Image" &&
+            command !== "AnchoredText" &&
+            command !== "Sequence"
+        ) {
             style.push(`s:${thick ? 2.5 : 1}`);
             if (attr(element, "showname") === "true") style.push("lb:true");
         }
         return style.join(";");
     }
 
+    // A point animated along its segment, 2 pixels every `delay` ms, back
+    // and forth.
+    doc.querySelectorAll("Construction > Animate").forEach((element) => {
+        const name = attr(element, "animate")!;
+        const point = [...doc.querySelectorAll("Objects > PointOn")].find(
+            (point) => attr(point, "name") === name,
+        );
+        if (
+            attr(element, "stopped") !== "true" &&
+            point &&
+            commands.get(attr(point, "on")!) === "Segment" &&
+            variables.has(name)
+        )
+            push(null, "STL", [
+                ref(variables.get(name)!),
+                literal(`an:[${2000 / num(element, "delay", 50)},1,true]`),
+            ]);
+    });
+    // Once the objects they attract to are all defined.
+    doc.querySelectorAll("Objects > [magnetobjs]").forEach((element) => {
+        const point = variables.get(attr(element, "name")!);
+        const radius = Number(attr(element, "magnetd") ?? 20);
+        const magnets = attr(element, "magnetobjs")!
+            .split(",")
+            .flatMap((item) => {
+                const [name, ray = radius] = item.split(":");
+                const pixels = Math.abs(Number(ray));
+                return pixels > 0 && MAGNETS.has(commands.get(name)!)
+                    ? [`[${variables.get(name)},${pixels}]`]
+                    : [];
+            });
+        if (point && magnets.length)
+            push(null, "STL", [ref(point), literal(`mg:${magnets.join(",")}`)]);
+    });
     calls.push(
         ...panels.map((call, index) => ({
             ...call,

@@ -13,10 +13,11 @@ const file = async (path: string) =>
 describe("workbooks", () => {
     it("opens each figure of a .zirs, and saves them as .dgo pages", async () => {
         const c = createConstruction();
-        const { book } = await openFigureFile(
+        const { book, unsupported } = await openFigureFile(
             c,
             await file("/tests/zirz/eric/Pythagore_EricHakenholz.zirs"),
         );
+        expect(unsupported).toEqual([]);
         expect(book!.pages.map(({ name }) => name)).toEqual([
             "Pythagore puzzle",
             "Pythagore démonstration",
@@ -30,6 +31,20 @@ describe("workbooks", () => {
         expect(reopened.current).toBe(1);
         expect(reopened.pages).toEqual(book!.pages);
         expect(await describeDgo(other)).toEqual(book!.pages[1].figure);
+    });
+
+    it("imports all of Eric's CaRMetal figures", async () => {
+        for (const name of [
+            "Droite Graduee Eric.zir",
+            "IllustreSymCollege.zirs",
+            "Pythagore_EricHakenholz.zirs",
+        ]) {
+            const { unsupported } = await openFigureFile(
+                createConstruction(),
+                await file(`/tests/zirz/eric/${name}`),
+            );
+            expect(unsupported).toEqual([]);
+        }
     });
 
     it("opens a .zirs of a single figure as a figure", async () => {

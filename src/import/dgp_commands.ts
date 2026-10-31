@@ -1107,7 +1107,10 @@ function applyObjectStyle(
                     target.namePosition = Number(propertyValue);
                 break;
             case "sp":
-                if (target instanceof point_object)
+                if (
+                    target instanceof point_object ||
+                    target instanceof list_object
+                )
                     target.shape = POINT_SHAPES[Number(propertyValue)];
                 break;
             case "p":

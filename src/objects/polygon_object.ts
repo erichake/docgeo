@@ -298,7 +298,9 @@ export class polygon_object extends construction_object {
         this.shadedFill = shade(this.fill_color, this.lighting());
     }
 
+    // A plane figure's polygons are flat, as in DGPad and GeoGebra.
     private lighting(): number {
+        if (this.C.GRID.is2D) return 1;
         const [a, b, c] = this.points.map((p) => p.coords);
         const normal = vNormalize(vCross(vSub(b, a), vSub(c, a)));
         return normal ? lighting(this.C, normal) : 1;

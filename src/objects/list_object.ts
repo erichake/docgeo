@@ -58,6 +58,8 @@ export class list_object extends construction_object {
     // True in a 3D figure: a point then reads its 3D coordinates.
     protected vec3: boolean;
     count = 0;
+    // Its points', as a point's (see POINT_SHAPES).
+    shape = "circle";
     items: (FormulaValue | null)[][] = [];
     screenItems: (Vec2 | null)[][] = [];
     private path!: DOMElement;
@@ -319,7 +321,16 @@ export class list_object extends construction_object {
                 if (this.nature === "point") {
                     const p = points[0];
                     if (!p) return "";
-                    return `M${p[0] - r} ${p[1]} a${r},${r} 0 1,0 ${2 * r},0 a${r},${r} 0 1,0 ${-2 * r},0`;
+                    const [x, y] = p;
+                    switch (this.shape) {
+                        case "cross":
+                            return `M${x - r} ${y - r}L${x + r} ${y + r}M${x - r} ${y + r}L${x + r} ${y - r}`;
+                        case "diamond":
+                            return `M${x} ${y - r}L${x + r} ${y}L${x} ${y + r}L${x - r} ${y}Z`;
+                        case "rect":
+                            return `M${x - r} ${y - r}h${2 * r}v${2 * r}h${-2 * r}Z`;
+                    }
+                    return `M${x - r} ${y} a${r},${r} 0 1,0 ${2 * r},0 a${r},${r} 0 1,0 ${-2 * r},0`;
                 }
                 if (this.nature === "circle") return ellipsePath(points);
                 const [p1, p2] = points;
@@ -388,7 +399,7 @@ export class list_object extends construction_object {
             .stl("pointer-events", "none")
             .stl(
                 t.nature === "point"
-                    ? `fill:${t.fill_color};stroke:none`
+                    ? `fill:${t.fill_color};stroke:${t.shape === "cross" ? t.stroke_color : "none"};stroke-width:2`
                     : `fill:${t.nature === "segment" || t.nature === "line" ? "none" : t.fill_color};fill-opacity:${t.opacity ?? 0};stroke:${t.stroke_color};stroke-width:${t.size}`,
             );
         return dom.add(t.path);

@@ -444,8 +444,11 @@ const STYLE: Record<string, Property> = {
         isNumber,
     ),
     l: field(object, "level", 0, Number.isInteger),
-    sp: field(point_object, "shape", "circle", (value) =>
-        POINT_SHAPES.includes(value as string),
+    sp: field<point_object | list_object>(
+        [point_object, list_object],
+        "shape",
+        "circle",
+        (value) => POINT_SHAPES.includes(value as string),
     ),
     pb: field(point_object, "border", 1, isNumber),
     np: field(point_object, "namePosition", 0, isNumber),
