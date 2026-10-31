@@ -1132,10 +1132,10 @@ chemin de création de l'éditeur.
   accolade qui ne correspond pas, et la sélectionne ; une méthode inconnue
   est nommée (`s.setColor(` : les méthodes sont celles de DGPad,
   `setRGBColor`…).
-- **Nouveau programme** (2026-10-12) : un bouton `{ }` dans l'en-tête du
-  panneau « Construction », près de la ligne de saisie (la barre d'actions
-  est pleine à 320 px), ouvre le panneau de propriétés sur un programme à
-  écrire : son nom (le prochain libre, modifiable) et la même zone
+- **Nouveau programme** (2026-10-12, déplacé le 2026-10-31) : un bouton `{ }`
+  en tête de la famille « Programmes » de la palette ouvre le panneau de
+  propriétés sur un programme à écrire : son nom (le prochain libre,
+  modifiable) et la même zone
   multiligne, vide, avec un exemple en filigrane. L'expression n'est créée
   qu'au clic sur « Créer » (ou ⌘-Entrée), sans objet provisoire ; la ligne
   de saisie ne s'agrandit pas (pas de Maj-Entrée, décidé avec l'auteur).

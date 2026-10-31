@@ -963,6 +963,10 @@ const inHand = (entry: Entry): boolean =>
 const palette = toolPalette({
     vec3: () => vec3(),
     macros: () => scene().macros,
+    newProgram: button("new_program", () => {
+        setProperties(true);
+        properties.create(nextName(scene(), false));
+    }).removeClass("dge-action"),
     takes: (entry) =>
         "tools" in entry
             ? !!takes(entry)
@@ -1122,10 +1126,6 @@ $("body").add(
                 ),
                 valuesButton,
                 stepsButton,
-                button("new_program", () => {
-                    setProperties(true);
-                    properties.create(nextName(scene(), false));
-                }),
                 filterButton,
                 button("close_history", () => {
                     setPanel(false);

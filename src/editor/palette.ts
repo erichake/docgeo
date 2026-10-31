@@ -31,6 +31,7 @@ export function toolPalette(host: {
     choose: (entry: Entry) => void;
     // Hovered, or left.
     hover: (entry: Entry | null) => void;
+    newProgram: DOMElement;
     close: () => void;
 }) {
     const panel = $.create("aside")
@@ -87,6 +88,7 @@ export function toolPalette(host: {
             .cls("dge-palette-grid")
             .att("role", "group")
             .att("aria-label", name);
+        if (family.name === "family_programs") grid.add(host.newProgram);
         entries.forEach(([entry, icon, label]) => {
             const button = $.create("button")
                 .att("type", "button")
