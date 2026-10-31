@@ -6,7 +6,8 @@
 // Each macro is defined by the editor's own code from its figure, written
 // in the text language, as a user would define it (see MACROS.md,
 // « Bibliothèque »). DocGeo is served by Vite and driven by Playwright,
-// the modules of the editor being read in the page itself.
+// the modules of the editor being read in the page itself. Its dedicated
+// icon comes from icons.mjs, independently of the figure's layout.
 
 import { writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
@@ -15,12 +16,14 @@ import { gzipSync } from "node:zlib";
 import { chromium } from "playwright";
 import { createServer } from "vite";
 import { FOLDERS, LANGS, MACROS } from "./library.mjs";
+import { LIBRARY_ICONS } from "./icons.mjs";
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "../..");
 const OUT = join(ROOT, "public/macros");
 
 // Every text in every language.
 for (const { name, folder, methods } of MACROS) {
+    if (!LIBRARY_ICONS[name.en]) throw new Error(`${name.en}: no icon`);
     const texts = [
         name,
         ...folder.map((key) => FOLDERS[key]),
@@ -51,6 +54,7 @@ try {
             macros: MACROS.map(({ name, methods }, index) => ({
                 ...built[index],
                 name: name[lang],
+                icon: LIBRARY_ICONS[name.en],
                 methods: built[index].methods.map((method, rank) => ({
                     ...method,
                     help: methods[rank].help[lang],
@@ -88,7 +92,7 @@ async function inPage(lang, task, data) {
     return result;
 }
 
-// Run in the page: each macro's methods and icon, from its figure.
+// Run in the page: each macro's methods, from its figure.
 async function build(sources) {
     const { construction } = await import("/src/construction.ts");
     const { preferences } = await import("/src/preferences.ts");
@@ -97,7 +101,6 @@ async function build(sources) {
     const { parseLine } = await import("/src/editor/text.ts");
     const { isCommand } = await import("/src/editor/catalog.ts");
     const { analyse, methodOf } = await import("/src/editor/macro.ts");
-    const { macroThumbnail } = await import("/src/editor/macro_icon.ts");
     document.body.style.cssText =
         "margin: 0; position: relative; width: 800px; height: 600px";
     return sources.map(({ name, figure, hidden = [], methods }) => {
@@ -128,10 +131,9 @@ async function build(sources) {
                 throw new Error(`${name.en}: ${lacking} not determined`);
             return methodOf(c, given, finals.map(get), [], "", fixed.map(get));
         });
-        const [{ initials, finals }] = methods;
-        const icon = macroThumbnail(initials.map(get), finals.map(get));
+        const [{ finals }] = methods;
         c.dispose();
-        return { finals, icon, methods: defined };
+        return { finals, methods: defined };
     });
 }
 

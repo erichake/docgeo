@@ -597,6 +597,27 @@ Décidé avec l'auteur le 2026-10-27, après étude de CaRMetal (voir
   et des macros aux élèves (voir « Questions ouvertes », restriction des
   outils).
 
+### Icônes de la bibliothèque fournie
+
+Depuis le 2026-10-31, chacune des 75 macros fournies a un dessin SVG dédié
+dans `tools/macros/icons.mjs`, indexé par son nom anglais. Même style que
+les outils géométriques : cadre de 32 unités, points bleus cerclés,
+contours sombres, résultat rouge et surfaces légèrement colorées. Les
+compositions privilégient la lisibilité en petit ; les constructions
+complexes montrent leurs éléments caractéristiques. Les droites et
+segments du disque de Poincaré restent orthogonaux au bord.
+
+`npm run macros` intègre ces dessins à la table d'images des bibliothèques
+dans les 12 langues et refuse une macro sans dessin. Aucun code de dessin
+n'entre dans le build du moteur, du lecteur ou de l'éditeur. Les macros
+personnelles gardent leur miniature automatique, leurs lettres ou l'image
+choisie par l'auteur.
+
+La bibliothèque française passe de 45 106 à 22 709 octets ; les douze
+bibliothèques, de 543 722 à 274 902 octets. Seules leurs images et les
+références d'icônes changent : corps, styles, aides et signatures conservés.
+Les fichiers JS et CSS du build restent identiques octet pour octet.
+
 ### Contenu de la bibliothèque fournie
 
 Tri des 140 macros de `fr_library.mcr` validé par l'auteur le 2026-10-27.
@@ -789,9 +810,11 @@ la corde d'un dix-millième de sa longueur, invisible.
       ne vont pas aux nouvelles définitions ;
     - bibliothèque fournie : `npm run macros` (`tools/macros/build.mjs`)
       construit chaque macro de `tools/macros/library.mjs` par le code de
-      l'éditeur (`methodOf`, icône `macroThumbnail`) à partir de sa figure
+      l'éditeur (`methodOf`) à partir de sa figure
       écrite dans le langage textuel, et écrit `public/macros/<langue>.dgo`
-      (chargé à la demande). Les sources sont rangées par dossier
+      (chargé à la demande). Les icônes viennent de `icons.mjs` (depuis le
+      2026-10-31, à la place de `macroThumbnail`). Les sources sont rangées
+      par dossier
       (`triangles.mjs`, `quadrilaterals.mjs`, `circles.mjs`,
       `transformations.mjs`, `conics.mjs`, `projective.mjs`,
       `constructions.mjs`), chaque texte en 12 langues (`tr.mjs`). Le

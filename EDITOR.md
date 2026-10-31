@@ -2552,6 +2552,22 @@ sa place dans l'anneau. Le fond des icônes est aussi celui de leurs repères
 les 12 langues ; aperçus français, arabe et chinois vérifiés en thèmes clair
 et sombre.
 
+### Icônes des macros fournies — 2026-10-31
+
+Les 75 macros de la bibliothèque ont leurs dessins SVG dédiés dans
+`tools/macros/icons.mjs`, dans le style des outils : points bleus cerclés,
+contours sombres, résultats rouges et remplissages légers. Le générateur
+les intègre aux bibliothèques des 12 langues, sans code supplémentaire
+dans le lecteur ou l'éditeur. Les macros personnelles gardent leur
+miniature, leurs lettres ou leur image. Voir `MACROS.md`.
+
+Bibliothèque française : 45 106 → 22 709 octets. JS et CSS du build
+identiques ; constructions et styles des macros conservés. Vérifié par
+les 111 tests navigateur des macros, de l'éditeur et de la palette, par la
+planche des 75 dessins et par leur affichage dans le menu de bibliothèque
+puis dans le bandeau de la macro choisie. Icônes, captures et contrôle du
+manuel régénérés dans les 12 langues ; aucun contenu du manuel à modifier.
+
 ### Ordre des transformations — 2026-10-30
 
 Les transformations prennent d'abord ce qui les définit (centre, droite,
