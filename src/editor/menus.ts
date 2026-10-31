@@ -249,7 +249,8 @@ export function menuBar(menus: Menu[], ...end: DOMElement[]): DOMElement[] {
                             : list.length - 1
                         : (at + step + list.length) % list.length
                 ]?.focus();
-            } else if (event.metaKey || event.ctrlKey) return;
+            } else if (event.metaKey || event.ctrlKey || key === "Escape")
+                return;
             else return void event.stopPropagation();
             event.preventDefault();
             event.stopPropagation();
