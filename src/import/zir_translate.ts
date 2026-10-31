@@ -10,7 +10,8 @@ export interface ZirImage {
     height: number;
 }
 
-// CaRMetal's palette (ZirkelFrame.DefaultColors).
+// CaRMetal's palette (ZirkelFrame.DefaultColors), and its names.
+const COLOR_NAMES = ["black", "green", "blue", "brown", "cyan", "red"];
 const COLORS = [
     "#000000",
     "#007c00",
@@ -92,7 +93,10 @@ function formula(
     variable = "",
     as = "x",
 ): string | null {
-    const tokens = [...source.matchAll(TOKEN)].map((match) => match[1]);
+    // "@A", an object's name, as "A".
+    const tokens = [...source.replace(/@/g, "").matchAll(TOKEN)].map(
+        (match) => match[1],
+    );
     let i = 0;
     const call = (name: string, args: string[]): string => {
         const [a, b, c] = args.map((arg) => `(${arg})`);
@@ -295,11 +299,20 @@ export function translateZir(
     const fontSize = Number(preferences?.getAttribute("minfontsize") ?? 12);
     const pointSize = Number(preferences?.getAttribute("minpointsize") ?? 3);
     const background = preferences?.getAttribute("colorbackground");
+    const backdrop = (background ?? "255,255,255")
+        .split(",")
+        .filter(Boolean)
+        .map(Number);
     if (background)
         push(null, "SetGeneralStyle", [
             literal(`background-color:${hex(background)}`),
         ]);
 
+    // Its ctag and cexpr attributes, CaRMetal's conditional styles.
+    const conditional = (element: Element): Attr[] =>
+        [...element.attributes].filter(({ name }) =>
+            /^c(tag|expr)\d+$/.test(name),
+        );
     const names = new Set(
         [...doc.querySelectorAll("Objects > [name]")].map((element) =>
             attr(element, "name")!,
@@ -509,7 +522,7 @@ export function translateZir(
         fixedSegments.set(attr(segment, "to")!, segment),
     );
 
-    doc.querySelectorAll("Objects > *").forEach((element) => {
+    const translateObject = (element: Element): void => {
         const tag = element.tagName;
         const name = attr(element, "name")!;
         const translate = (source: string, variable?: string) =>
@@ -636,6 +649,16 @@ export function translateZir(
                         ]),
                         [num(element, "x"), num(element, "y"), 0],
                     );
+                    return;
+                }
+                // The one farther from that point.
+                const away = objects(element, "awayfrom");
+                if (away) {
+                    define(element, "OrderedIntersection", [
+                        ...args,
+                        literal(0),
+                        ...away,
+                    ]);
                     return;
                 }
                 intersections.push(
@@ -966,7 +989,86 @@ export function translateZir(
             }
         }
         unsupported.add(`CaRMetal: ${tag} ${name}`);
+    };
+
+    // A partial line, as CaRMetal draws it around its two points and beyond
+    // them by a 20th of the window's width: its line hidden, and the
+    // segment returned to be shown in its place.
+    const partialLine = (element: Element): Element | null => {
+        const ends = objects(element, "from", "to");
+        if (element.tagName !== "Line" || !attr(element, "partial") || !ends)
+            return null;
+        const line = element.cloneNode(true) as Element;
+        conditional(line).forEach(({ name }) => line.removeAttribute(name));
+        line.setAttribute("hidden", "super");
+        translateObject(line);
+        const name = attr(element, "name")!;
+        const [p, q] = ends.map((end) => (end as { name: string }).name);
+        const segment = doc.createElementNS(null, "Segment");
+        [...element.attributes].forEach(({ name, value }) =>
+            segment.setAttribute(name, value),
+        );
+        [
+            [p, q],
+            [q, p],
+        ].forEach(([a, b], index) => {
+            const end = `${name}#${index}`;
+            variables.set(
+                end,
+                hiddenPoint(
+                    `[x(${a})+(x(${a})-x(${b}))/d(${a},${b})*windoww()/20,y(${a})+(y(${a})-y(${b}))/d(${a},${b})*windoww()/20]`,
+                ),
+            );
+            segment.setAttribute(index ? "to" : "from", end);
+        });
+        segment.setAttribute("name", `${name}#`);
+        return segment;
+    };
+
+    // CaRMetal's style while a condition holds ("green", "thick"…): a copy
+    // of the object with that style, shown only then.
+    const styleVariants = (element: Element): Element[] => {
+        const changes = new Map<string, [string, string][]>();
+        conditional(element).forEach(({ name, value }) => {
+            const color = COLOR_NAMES.indexOf(value);
+            const change: [string, string] | null =
+                color >= 0
+                    ? ["color", String(color)]
+                    : ["thick", "thin", "normal"].includes(value)
+                      ? ["type", value]
+                      : null;
+            const condition = attr(element, `cexpr${name.slice(4)}`)!;
+            if (change)
+                changes.set(condition, [
+                    ...(changes.get(condition) ?? []),
+                    change,
+                ]);
+        });
+        return [...changes].map(([condition, styles], index) => {
+            const copy = element.cloneNode(true) as Element;
+            conditional(copy).forEach(({ name }) => copy.removeAttribute(name));
+            ["alias", "showname"].forEach((name) => copy.removeAttribute(name));
+            styles.forEach(([key, value]) => {
+                if (key === "color") copy.removeAttribute("scolor");
+                if (value === "normal") copy.removeAttribute(key);
+                else copy.setAttribute(key, value);
+            });
+            copy.setAttribute("name", `${attr(element, "name")}#${index}`);
+            copy.setAttribute("ctag0", "hidden");
+            copy.setAttribute("cexpr0", `!(${condition})`);
+            return copy;
+        });
+    };
+
+    // The variants last: with "@", a condition names an object defined
+    // later.
+    const variants: Element[] = [];
+    doc.querySelectorAll("Objects > *").forEach((element) => {
+        const shown = partialLine(element) ?? element;
+        translateObject(shown);
+        variants.push(...styleVariants(shown));
     });
+    variants.forEach(translateObject);
 
     function controlPanel(control: Element, target: string): void {
         const caption =
@@ -1002,8 +1104,29 @@ export function translateZir(
             : (COLORS[num(element, "color")] ?? COLORS[0]);
     }
 
+    // CaRMetal's light color: 40 % of its own, with the background's for
+    // its palette, with white for a custom one.
+    function lightColor(element: Element): string {
+        const custom = attr(element, "scolor");
+        const base = custom ? [255, 255, 255] : backdrop;
+        return `#${(custom
+            ? hex(custom)
+            : (COLORS[num(element, "color")] ?? COLORS[0])
+        )
+            .slice(1)
+            .match(/../g)!
+            .map((c, i) =>
+                Math.round(0.6 * base[i] + 0.4 * parseInt(c, 16))
+                    .toString(16)
+                    .padStart(2, "0"),
+            )
+            .join("")}`;
+    }
+
     function styleOf(element: Element, command: string): string {
-        const style = [`c:${color(element)}`];
+        // Thin, in its light color.
+        const thin = attr(element, "type") === "thin";
+        const style = [`c:${thin ? lightColor(element) : color(element)}`];
         const hidden = attr(element, "hidden");
         if (hidden === "super") style.push("h:2");
         else if (hidden === "true") style.push("h:1");
@@ -1041,6 +1164,12 @@ export function translateZir(
             );
         } else if (command === "Angle" || command === "FixedAngle") {
             style.push(`o:${attr(element, "filled") === "true" ? 0.2 : 0}`);
+            // CaRMetal's radius, but the one up to its first point.
+            const display = attr(element, "display");
+            if (display !== "large")
+                style.push(
+                    `arc:${12 * pointSize * (display === "small" || display === "rectangle" ? 0.5 : display === "larger" ? 2 : 1)}`,
+                );
         } else if (
             command !== "Expression" &&
             command !== "ExpressionOn" &&
@@ -1049,6 +1178,10 @@ export function translateZir(
             command !== "Sequence"
         ) {
             style.push(`s:${thick ? 2.5 : 1}`);
+            if (thin) style.push("ld:5,5");
+            // Its marks, as GeoGebra's ticks.
+            const code = Number(attr(element, "code_symbol"));
+            if (code >= 1 && code <= 3) style.push(`dc:${code}`);
             if (attr(element, "showname") === "true") style.push("lb:true");
         }
         return style.join(";");
