@@ -48,6 +48,9 @@ let tabs: DOMElement | null = null;
 // Below the figure, those of the workbook's pages, if it has several:
 // `show` shows the page of the tab chosen in place of the one shown, whose
 // figure it keeps as it is.
+// The height of the tabs below a workbook's figure.
+export const TABS_HEIGHT = 32;
+
 export function showTabs(
     book: Workbook | null,
     show: (index: number) => Promise<void>,
@@ -55,7 +58,7 @@ export function showTabs(
     tabs?.dispose();
     tabs = null;
     const paged = !!book && book.pages.length > 1;
-    $("html").stl("--docgeo-tabs", paged ? "32px" : "");
+    $("html").stl("--docgeo-tabs", paged ? `${TABS_HEIGHT}px` : "");
     if (!paged) return;
     let showing = false;
     const buttons = book.pages.map(({ name }, index) => {

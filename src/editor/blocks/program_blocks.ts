@@ -312,6 +312,15 @@ function added(node: FormulaNode, name: string): FormulaNode | null {
     return left?.kind === "identifier" && left.name === name ? right : null;
 }
 
+// Whether a "continue" of their own loop is among the statements.
+const continues = (statements: Statement[]): boolean =>
+    statements.some(
+        (statement) =>
+            statement.kind === "continue" ||
+            (statement.kind === "if" &&
+                continues([...statement.then, ...statement.otherwise])),
+    );
+
 // How many times the statements name the variable.
 const mentions = (statements: Statement[], name: string): number =>
     JSON.stringify(statements).split(`"name":${JSON.stringify(name)}`).length -
@@ -473,8 +482,19 @@ class Decompiler {
             body = body.slice(1, -1);
         } else {
             root = { type: "dg_program" };
-            // The value of the last expression, as the one it returns.
-            if (last?.kind === "expression" && !isStatement(last.node))
+            // The value of the last expression, as the one it returns,
+            // unless it calls a procedure that returns none.
+            if (
+                last?.kind === "expression" &&
+                !isStatement(last.node) &&
+                !body.some(
+                    (statement) =>
+                        statement.kind === "function" &&
+                        last.node.kind === "userCall" &&
+                        statement.name === last.node.name &&
+                        !returned(statement.body),
+                )
+            )
                 body = [
                     ...body.slice(0, -1),
                     { kind: "return", node: last.node },
@@ -496,11 +516,7 @@ class Decompiler {
             (statement) =>
                 statement.kind === "expression" &&
                 !isStatement(statement.node) &&
-                statement.node.kind !== "userCall" &&
-                !(
-                    statement.node.kind === "call" &&
-                    statement.node.fn === "ALERT"
-                ),
+                statement.node.kind !== "userCall",
         );
         const chain = this.chain(
             body.filter(
@@ -619,18 +635,19 @@ class Decompiler {
                 bound.name === end.node.name &&
                 mentions(this.statements, end.node.name) === 2
             ) {
-                blocks.push(this.forLoop(init.node, after, end.node.value));
+                blocks.push(this.forLoop(init.node, after, end.node.value)!);
                 i += 2;
                 continue;
             }
             // "for (var v = a; v <= b; v = v + c)".
-            if (
+            const counted =
                 loop?.kind === "loop" &&
                 statement.kind === "expression" &&
                 statement.node.kind === "assign" &&
-                loop.update
-            ) {
-                blocks.push(this.forLoop(statement.node, loop));
+                loop.update &&
+                this.forLoop(statement.node, loop);
+            if (counted) {
+                blocks.push(counted);
                 i++;
             } else blocks.push(this.statement(statement));
         }
@@ -646,12 +663,13 @@ class Decompiler {
         return block ? { DO: { block } } : {};
     }
 
-    // Its count is `times` when Blockly computed it before.
+    // Its count is `times` when Blockly computed it before. Null when it
+    // isn't one of Blockly's loops.
     private forLoop(
         init: Extract<FormulaNode, { kind: "assign" }>,
         loop: Extract<Statement, { kind: "loop" }>,
         times?: FormulaNode,
-    ): BlockState {
+    ): BlockState | null {
         const { name } = init;
         const { test } = loop;
         const step = increment(loop.update!, name);
@@ -661,7 +679,7 @@ class Decompiler {
             test.left.kind !== "identifier" ||
             test.left.name !== name
         )
-            unsupported();
+            return null;
         const from = literal(init.value);
         const counted = literal(step!) === 1 && !readsName(loop.body, name);
         const repeat = (count: FormulaNode): BlockState => ({
@@ -680,7 +698,8 @@ class Decompiler {
             whole(times ?? test!.right)
         )
             return repeat(times ?? test!.right);
-        if (test!.op !== "<=" || times) unsupported();
+        if (times) unsupported();
+        if (test!.op !== "<=") return null;
         if (from === 1 && counted) return repeat(test!.right);
         return {
             type: "controls_for",
@@ -736,7 +755,13 @@ class Decompiler {
                 }
             }
             case "loop": {
-                if (statement.update || !statement.test) unsupported();
+                // Any other "for", as a "while" ending with its update.
+                const { update } = statement;
+                if (!statement.test || (update && continues(statement.body)))
+                    unsupported();
+                const body: Statement[] = update
+                    ? [...statement.body, { kind: "expression", node: update }]
+                    : statement.body;
                 const test = statement.test!;
                 const until = test.kind === "unary" && test.op === "!";
                 return {
@@ -750,7 +775,7 @@ class Decompiler {
                                     : test,
                             ),
                         ),
-                        ...this.body(statement.body),
+                        ...this.body(body),
                     },
                 };
             }
@@ -767,6 +792,15 @@ class Decompiler {
 
     // A statement that only does something.
     private instruction(node: FormulaNode): BlockState {
+        // "v++" or "v--", (v = v ± 1) ∓ 1, its value unread.
+        if (
+            node.kind === "binary" &&
+            node.left.kind === "assign" &&
+            node.right.kind === "number" &&
+            node.right.value === 1 &&
+            increment(node, node.left.name)
+        )
+            node = node.left;
         if (node.kind === "assign") {
             const delta = increment(node, node.name);
             return delta
@@ -888,6 +922,11 @@ class Decompiler {
             return {
                 type: "dg_alert",
                 inputs: { TEXT: value(this.value(node.args[0])) },
+            };
+        if (node.kind === "call" && node.fn === "WAIT")
+            return {
+                type: "dg_wait",
+                inputs: { MS: value(this.value(node.args[0])) },
             };
         if (node.kind !== "turtle") return unsupported();
         const { fn, args } = node;
@@ -1403,6 +1442,7 @@ const isStatement = (node: FormulaNode): boolean =>
     node.kind === "assign" ||
     node.kind === "assignItem" ||
     node.kind === "turtle" ||
+    (node.kind === "call" && (node.fn === "ALERT" || node.fn === "WAIT")) ||
     (node.kind === "method" && node.method !== "concat");
 
 // ************************* BLOCKS → PROGRAM *************************
@@ -1844,6 +1884,8 @@ class Generator {
                 );
             case "dg_alert":
                 return call("ALERT", this.arg(block, "TEXT", '""'));
+            case "dg_wait":
+                return call("WAIT", this.arg(block, "MS"));
             case "procedures_callnoreturn":
                 return line(`${this.value(block)[0]};`);
             case "turtle_pen":

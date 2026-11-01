@@ -1,0 +1,814 @@
+<?xml version="1.0" encoding="utf-8"?>
+<CaR>
+<Script Name="Construction du Snub Cube" onload="false">
+x0=0.543689012692;
+x1=x0*x0;
+a=Math.sqrt((x0*x0+x1*x1)/2);
+if(getC().is3D()){
+
+	// points du polyèdre
+	Point(&quot;p000&quot;,&quot;x(Z)+(x(X)-x(O))*_x0+(x(Y)-x(O))*(-_x1)+(x(Z)-x(O))*(-1)&quot;,&quot;y(Z)+(y(X)-y(O))*_x0+(y(Y)-y(O))*(-_x1)+(y(Z)-y(O))*(-1)&quot;);
+	Point(&quot;p001&quot;,&quot;x(Z)+(x(X)-x(O))*_x1+(x(Y)-x(O))*_x0+(x(Z)-x(O))*(-1)&quot;,&quot;y(Z)+(y(X)-y(O))*_x1+(y(Y)-y(O))*_x0+(y(Z)-y(O))*(-1)&quot;);
+	Point(&quot;p002&quot;,&quot;x(Z)+(x(X)-x(O))*(-_x0)+(x(Y)-x(O))*_x1+(x(Z)-x(O))*(-1)&quot;,&quot;y(Z)+(y(X)-y(O))*(-_x0)+(y(Y)-y(O))*_x1+(y(Z)-y(O))*(-1)&quot;);
+	Point(&quot;p003&quot;,&quot;x(Z)+(x(X)-x(O))*(-_x1)+(x(Y)-x(O))*(-_x0)+(x(Z)-x(O))*(-1)&quot;,&quot;y(Z)+(y(X)-y(O))*(-_x1)+(y(Y)-y(O))*(-_x0)+(y(Z)-y(O))*(-1)&quot;);
+	Point(&quot;p010&quot;,&quot;x(Z)+(x(X)-x(O))*1+(x(Y)-x(O))*_x1+(x(Z)-x(O))*(-_x0)&quot;,&quot;y(Z)+(y(X)-y(O))*1+(y(Y)-y(O))*_x1+(y(Z)-y(O))*(-_x0)&quot;);
+	Point(&quot;p011&quot;,&quot;x(Z)+(x(X)-x(O))*(-_x1)+(x(Y)-x(O))*1+(x(Z)-x(O))*(-_x0)&quot;,&quot;y(Z)+(y(X)-y(O))*(-_x1)+(y(Y)-y(O))*1+(y(Z)-y(O))*(-_x0)&quot;);
+	Point(&quot;p012&quot;,&quot;x(Z)+(x(X)-x(O))*(-1)+(x(Y)-x(O))*(-_x1)+(x(Z)-x(O))*(-_x0)&quot;,&quot;y(Z)+(y(X)-y(O))*(-1)+(y(Y)-y(O))*(-_x1)+(y(Z)-y(O))*(-_x0)&quot;);
+	Point(&quot;p013&quot;,&quot;x(Z)+(x(X)-x(O))*_x1+(x(Y)-x(O))*(-1)+(x(Z)-x(O))*(-_x0)&quot;,&quot;y(Z)+(y(X)-y(O))*_x1+(y(Y)-y(O))*(-1)+(y(Z)-y(O))*(-_x0)&quot;);	
+	Point(&quot;p020&quot;,&quot;x(Z)+(x(X)-x(O))*_x0+(x(Y)-x(O))*1+(x(Z)-x(O))*(-_x1)&quot;,&quot;y(Z)+(y(X)-y(O))*_x0+(y(Y)-y(O))*1+(y(Z)-y(O))*(-_x1)&quot;);
+	Point(&quot;p021&quot;,&quot;x(Z)+(x(X)-x(O))*(-1)+(x(Y)-x(O))*_x0+(x(Z)-x(O))*(-_x1)&quot;,&quot;y(Z)+(y(X)-y(O))*(-1)+(y(Y)-y(O))*_x0+(y(Z)-y(O))*(-_x1)&quot;);	
+	Point(&quot;p022&quot;,&quot;x(Z)+(x(X)-x(O))*(-_x0)+(x(Y)-x(O))*(-1)+(x(Z)-x(O))*(-_x1)&quot;,&quot;y(Z)+(y(X)-y(O))*(-_x0)+(y(Y)-y(O))*(-1)+(y(Z)-y(O))*(-_x1)&quot;);		
+	Point(&quot;p023&quot;,&quot;x(Z)+(x(X)-x(O))*1+(x(Y)-x(O))*(-_x0)+(x(Z)-x(O))*(-_x1)&quot;,&quot;y(Z)+(y(X)-y(O))*1+(y(Y)-y(O))*(-_x0)+(y(Z)-y(O))*(-_x1)&quot;);		
+	Point(&quot;p030&quot;,&quot;x(Z)+(x(X)-x(O))*(-_x0)+(x(Y)-x(O))*1+(x(Z)-x(O))*_x1&quot;,&quot;y(Z)+(y(X)-y(O))*(-_x0)+(y(Y)-y(O))*1+(y(Z)-y(O))*_x1&quot;);
+	Point(&quot;p031&quot;,&quot;x(Z)+(x(X)-x(O))*(-1)+(x(Y)-x(O))*(-_x0)+(x(Z)-x(O))*_x1&quot;,&quot;y(Z)+(y(X)-y(O))*(-1)+(y(Y)-y(O))*(-_x0)+(y(Z)-y(O))*_x1&quot;);	
+	Point(&quot;p032&quot;,&quot;x(Z)+(x(X)-x(O))*_x0+(x(Y)-x(O))*(-1)+(x(Z)-x(O))*_x1&quot;,&quot;y(Z)+(y(X)-y(O))*_x0+(y(Y)-y(O))*(-1)+(y(Z)-y(O))*_x1&quot;);
+	Point(&quot;p033&quot;,&quot;x(Z)+(x(X)-x(O))*1+(x(Y)-x(O))*_x0+(x(Z)-x(O))*_x1&quot;,&quot;y(Z)+(y(X)-y(O))*1+(y(Y)-y(O))*_x0+(y(Z)-y(O))*_x1&quot;);	
+	Point(&quot;p040&quot;,&quot;x(Z)+(x(X)-x(O))*_x1+(x(Y)-x(O))*1+(x(Z)-x(O))*_x0&quot;,&quot;y(Z)+(y(X)-y(O))*_x1+(y(Y)-y(O))*1+(y(Z)-y(O))*_x0&quot;);
+	Point(&quot;p041&quot;,&quot;x(Z)+(x(X)-x(O))*(-1)+(x(Y)-x(O))*_x1+(x(Z)-x(O))*_x0&quot;,&quot;y(Z)+(y(X)-y(O))*(-1)+(y(Y)-y(O))*_x1+(y(Z)-y(O))*_x0&quot;);
+	Point(&quot;p042&quot;,&quot;x(Z)+(x(X)-x(O))*(-_x1)+(x(Y)-x(O))*(-1)+(x(Z)-x(O))*_x0&quot;,&quot;y(Z)+(y(X)-y(O))*(-_x1)+(y(Y)-y(O))*(-1)+(y(Z)-y(O))*_x0&quot;);	
+	Point(&quot;p043&quot;,&quot;x(Z)+(x(X)-x(O))*1+(x(Y)-x(O))*(-_x1)+(x(Z)-x(O))*_x0&quot;,&quot;y(Z)+(y(X)-y(O))*1+(y(Y)-y(O))*(-_x1)+(y(Z)-y(O))*_x0&quot;);	
+	Point(&quot;p050&quot;,&quot;x(Z)+(x(X)-x(O))*(-_x1)+(x(Y)-x(O))*_x0+(x(Z)-x(O))*1&quot;,&quot;y(Z)+(y(X)-y(O))*(-_x1)+(y(Y)-y(O))*_x0+(y(Z)-y(O))*1&quot;);	
+	Point(&quot;p051&quot;,&quot;x(Z)+(x(X)-x(O))*(-_x0)+(x(Y)-x(O))*(-_x1)+(x(Z)-x(O))*1&quot;,&quot;y(Z)+(y(X)-y(O))*(-_x0)+(y(Y)-y(O))*(-_x1)+(y(Z)-y(O))*1&quot;);	
+	Point(&quot;p052&quot;,&quot;x(Z)+(x(X)-x(O))*_x1+(x(Y)-x(O))*(-_x0)+(x(Z)-x(O))*1&quot;,&quot;y(Z)+(y(X)-y(O))*_x1+(y(Y)-y(O))*(-_x0)+(y(Z)-y(O))*1&quot;);	
+	Point(&quot;p053&quot;,&quot;x(Z)+(x(X)-x(O))*_x0+(x(Y)-x(O))*_x1+(x(Z)-x(O))*1&quot;,&quot;y(Z)+(y(X)-y(O))*_x0+(y(Y)-y(O))*_x1+(y(Z)-y(O))*1&quot;);
+
+	//cacher les points	
+	for(i=0; i&lt;7; i++){
+		for(j=0; j&lt;=9; j++){
+			SetHide(&quot;p0&quot;+i+j,true);			
+		}
+	}	
+
+	MidPoint(&quot;qm&quot;,&quot;p000&quot;,&quot;p001&quot;); SetHide(&quot;qm&quot;, true);	
+	
+	//segments
+	Segment(&quot;a000&quot;,&quot;p000&quot;,&quot;p001&quot;);Conditional(&quot;a000&quot;,&quot;thin&quot;,&quot;((a(p010,p001,p000)&gt;180)&amp;&amp;(a(p000,p001,p003)&gt;180))&quot;);
+	Segment(&quot;a001&quot;,&quot;p001&quot;,&quot;p002&quot;);Conditional(&quot;a001&quot;,&quot;thin&quot;,&quot;((a(p011,p002,p001)&gt;180)&amp;&amp;(a(p001,p002,p000)&gt;180))&quot;);
+	Segment(&quot;a002&quot;,&quot;p002&quot;,&quot;p003&quot;);Conditional(&quot;a002&quot;,&quot;thin&quot;,&quot;((a(p012,p003,p002)&gt;180)&amp;&amp;(a(p002,p003,p001)&gt;180))&quot;);
+	Segment(&quot;a003&quot;,&quot;p003&quot;,&quot;p000&quot;);Conditional(&quot;a003&quot;,&quot;thin&quot;,&quot;((a(p013,p000,p003)&gt;180)&amp;&amp;(a(p003,p000,p002)&gt;180))&quot;);
+	Segment(&quot;a100&quot;,&quot;p000&quot;,&quot;p010&quot;);Conditional(&quot;a100&quot;,&quot;thin&quot;,&quot;((a(p023,p010,p000)&gt;180)&amp;&amp;(a(p000,p010,p001)&gt;180))&quot;);
+	Segment(&quot;a101&quot;,&quot;p010&quot;,&quot;p001&quot;);Conditional(&quot;a101&quot;,&quot;thin&quot;,&quot;((a(p020,p001,p010)&gt;180)&amp;&amp;(a(p010,p001,p000)&gt;180))&quot;);
+	Segment(&quot;a102&quot;,&quot;p001&quot;,&quot;p020&quot;);Conditional(&quot;a102&quot;,&quot;thin&quot;,&quot;((a(p010,p020,p001)&gt;180)&amp;&amp;(a(p001,p020,p011)&gt;180))&quot;);
+	Segment(&quot;a103&quot;,&quot;p001&quot;,&quot;p011&quot;);Conditional(&quot;a103&quot;,&quot;thin&quot;,&quot;((a(p020,p011,p001)&gt;180)&amp;&amp;(a(p001,p011,p002)&gt;180))&quot;);
+	Segment(&quot;a104&quot;,&quot;p011&quot;,&quot;p002&quot;);Conditional(&quot;a104&quot;,&quot;thin&quot;,&quot;((a(p021,p002,p011)&gt;180)&amp;&amp;(a(p011,p002,p001)&gt;180))&quot;);
+	Segment(&quot;a105&quot;,&quot;p002&quot;,&quot;p021&quot;);Conditional(&quot;a105&quot;,&quot;thin&quot;,&quot;((a(p011,p021,p002)&gt;180)&amp;&amp;(a(p002,p021,p012)&gt;180))&quot;);
+	Segment(&quot;a106&quot;,&quot;p002&quot;,&quot;p012&quot;);Conditional(&quot;a106&quot;,&quot;thin&quot;,&quot;((a(p021,p012,p002)&gt;180)&amp;&amp;(a(p002,p012,p003)&gt;180))&quot;);
+	Segment(&quot;a107&quot;,&quot;p012&quot;,&quot;p003&quot;);Conditional(&quot;a107&quot;,&quot;thin&quot;,&quot;((a(p022,p003,p012)&gt;180)&amp;&amp;(a(p012,p003,p002)&gt;180))&quot;);
+	Segment(&quot;a108&quot;,&quot;p003&quot;,&quot;p022&quot;);Conditional(&quot;a108&quot;,&quot;thin&quot;,&quot;((a(p012,p022,p003)&gt;180)&amp;&amp;(a(p003,p022,p013)&gt;180))&quot;);
+	Segment(&quot;a109&quot;,&quot;p003&quot;,&quot;p013&quot;);Conditional(&quot;a109&quot;,&quot;thin&quot;,&quot;((a(p022,p013,p003)&gt;180)&amp;&amp;(a(p003,p013,p000)&gt;180))&quot;);
+	Segment(&quot;a110&quot;,&quot;p013&quot;,&quot;p000&quot;);Conditional(&quot;a110&quot;,&quot;thin&quot;,&quot;((a(p023,p000,p013)&gt;180)&amp;&amp;(a(p013,p000,p003)&gt;180))&quot;);
+	Segment(&quot;a111&quot;,&quot;p000&quot;,&quot;p023&quot;);Conditional(&quot;a111&quot;,&quot;thin&quot;,&quot;((a(p010,p000,p023)&gt;180)&amp;&amp;(a(p023,p000,p013)&gt;180))&quot;);
+	Segment(&quot;a200&quot;,&quot;p010&quot;,&quot;p020&quot;);Conditional(&quot;a200&quot;,&quot;thin&quot;,&quot;((a(p033,p020,p010)&gt;180)&amp;&amp;(a(p010,p020,p001)&gt;180))&quot;);
+	Segment(&quot;a201&quot;,&quot;p020&quot;,&quot;p011&quot;);Conditional(&quot;a201&quot;,&quot;thin&quot;,&quot;((a(p030,p011,p020)&gt;180)&amp;&amp;(a(p020,p011,p001)&gt;180))&quot;);
+	Segment(&quot;a202&quot;,&quot;p011&quot;,&quot;p021&quot;);Conditional(&quot;a202&quot;,&quot;thin&quot;,&quot;((a(p030,p021,p011)&gt;180)&amp;&amp;(a(p011,p021,p002)&gt;180))&quot;);
+	Segment(&quot;a203&quot;,&quot;p021&quot;,&quot;p012&quot;);Conditional(&quot;a203&quot;,&quot;thin&quot;,&quot;((a(p031,p012,p021)&gt;180)&amp;&amp;(a(p021,p012,p002)&gt;180))&quot;);
+	Segment(&quot;a204&quot;,&quot;p012&quot;,&quot;p022&quot;);Conditional(&quot;a204&quot;,&quot;thin&quot;,&quot;((a(p031,p022,p012)&gt;180)&amp;&amp;(a(p012,p022,p003)&gt;180))&quot;);
+	Segment(&quot;a205&quot;,&quot;p022&quot;,&quot;p013&quot;);Conditional(&quot;a205&quot;,&quot;thin&quot;,&quot;((a(p032,p013,p022)&gt;180)&amp;&amp;(a(p022,p013,p003)&gt;180))&quot;);
+	Segment(&quot;a206&quot;,&quot;p013&quot;,&quot;p023&quot;);Conditional(&quot;a206&quot;,&quot;thin&quot;,&quot;((a(p032,p023,p013)&gt;180)&amp;&amp;(a(p013,p023,p000)&gt;180))&quot;);
+	Segment(&quot;a207&quot;,&quot;p023&quot;,&quot;p010&quot;);Conditional(&quot;a207&quot;,&quot;thin&quot;,&quot;((a(p033,p010,p023)&gt;180)&amp;&amp;(a(p023,p010,p000)&gt;180))&quot;);
+	Segment(&quot;a300&quot;,&quot;p010&quot;,&quot;p033&quot;);Conditional(&quot;a300&quot;,&quot;thin&quot;,&quot;((a(p043,p033,p010)&gt;180)&amp;&amp;(a(p010,p033,p020)&gt;180))&quot;);
+	Segment(&quot;a301&quot;,&quot;p033&quot;,&quot;p020&quot;);Conditional(&quot;a301&quot;,&quot;thin&quot;,&quot;((a(p040,p020,p033)&gt;180)&amp;&amp;(a(p033,p020,p010)&gt;180))&quot;);
+	Segment(&quot;a302&quot;,&quot;p020&quot;,&quot;p040&quot;);Conditional(&quot;a302&quot;,&quot;thin&quot;,&quot;((a(p033,p040,p020)&gt;180)&amp;&amp;(a(p020,p040,p030)&gt;180))&quot;);
+	Segment(&quot;a303&quot;,&quot;p011&quot;,&quot;p030&quot;);Conditional(&quot;a303&quot;,&quot;thin&quot;,&quot;((a(p040,p030,p011)&gt;180)&amp;&amp;(a(p011,p030,p021)&gt;180))&quot;);
+	Segment(&quot;a304&quot;,&quot;p030&quot;,&quot;p021&quot;);Conditional(&quot;a304&quot;,&quot;thin&quot;,&quot;((a(p041,p021,p030)&gt;180)&amp;&amp;(a(p030,p021,p011)&gt;180))&quot;);
+	Segment(&quot;a305&quot;,&quot;p021&quot;,&quot;p041&quot;);Conditional(&quot;a305&quot;,&quot;thin&quot;,&quot;((a(p030,p041,p021)&gt;180)&amp;&amp;(a(p021,p041,p012)&gt;180))&quot;);
+	Segment(&quot;a306&quot;,&quot;p012&quot;,&quot;p031&quot;);Conditional(&quot;a306&quot;,&quot;thin&quot;,&quot;((a(p041,p031,p012)&gt;180)&amp;&amp;(a(p012,p031,p022)&gt;180))&quot;);
+	Segment(&quot;a307&quot;,&quot;p031&quot;,&quot;p022&quot;);Conditional(&quot;a307&quot;,&quot;thin&quot;,&quot;((a(p042,p022,p031)&gt;180)&amp;&amp;(a(p031,p022,p012)&gt;180))&quot;);
+	Segment(&quot;a308&quot;,&quot;p022&quot;,&quot;p042&quot;);Conditional(&quot;a308&quot;,&quot;thin&quot;,&quot;((a(p031,p042,p022)&gt;180)&amp;&amp;(a(p022,p042,p032)&gt;180))&quot;);
+	Segment(&quot;a309&quot;,&quot;p013&quot;,&quot;p032&quot;);Conditional(&quot;a309&quot;,&quot;thin&quot;,&quot;((a(p042,p032,p013)&gt;180)&amp;&amp;(a(p013,p032,p023)&gt;180))&quot;);
+	Segment(&quot;a310&quot;,&quot;p032&quot;,&quot;p023&quot;);Conditional(&quot;a310&quot;,&quot;thin&quot;,&quot;((a(p043,p023,p032)&gt;180)&amp;&amp;(a(p032,p023,p013)&gt;180))&quot;);
+	Segment(&quot;a311&quot;,&quot;p023&quot;,&quot;p043&quot;);Conditional(&quot;a311&quot;,&quot;thin&quot;,&quot;((a(p032,p043,p023)&gt;180)&amp;&amp;(a(p023,p043,p033)&gt;180))&quot;);
+	Segment(&quot;a400&quot;,&quot;p030&quot;,&quot;p041&quot;);Conditional(&quot;a400&quot;,&quot;thin&quot;,&quot;((a(p050,p041,p030)&gt;180)&amp;&amp;(a(p030,p041,p021)&gt;180))&quot;);
+	Segment(&quot;a401&quot;,&quot;p041&quot;,&quot;p031&quot;);Conditional(&quot;a401&quot;,&quot;thin&quot;,&quot;((a(p051,p031,p041)&gt;180)&amp;&amp;(a(p041,p031,p012)&gt;180))&quot;);
+	Segment(&quot;a402&quot;,&quot;p031&quot;,&quot;p042&quot;);Conditional(&quot;a402&quot;,&quot;thin&quot;,&quot;((a(p051,p042,p031)&gt;180)&amp;&amp;(a(p031,p042,p022)&gt;180))&quot;);	
+	Segment(&quot;a403&quot;,&quot;p042&quot;,&quot;p032&quot;); Conditional(&quot;a403&quot;,&quot;thin&quot;,&quot;((a(p042,p032,p013)&gt;180)&amp;&amp;(a(p032,p042,p052)&gt;180))&quot;);	
+	Segment(&quot;a404&quot;,&quot;p032&quot;,&quot;p043&quot;); Conditional(&quot;a404&quot;,&quot;thin&quot;,&quot;((a(p043,p032,p052)&gt;180)&amp;&amp;(a(p032,p043,p023)&gt;180))&quot;);	
+	Segment(&quot;a405&quot;,&quot;p043&quot;,&quot;p033&quot;); Conditional(&quot;a405&quot;,&quot;thin&quot;,&quot;((a(p033,p043,p053)&gt;180)&amp;&amp;(a(p043,p033,p010)&gt;180))&quot;);	
+	Segment(&quot;a406&quot;,&quot;p033&quot;,&quot;p040&quot;); Conditional(&quot;a406&quot;,&quot;thin&quot;,&quot;((a(p040,p033,p053)&gt;180)&amp;&amp;(a(p033,p040,p020)&gt;180))&quot;);	
+	Segment(&quot;a407&quot;,&quot;p040&quot;,&quot;p030&quot;); Conditional(&quot;a407&quot;,&quot;thin&quot;,&quot;((a(p030,p040,p050)&gt;180)&amp;&amp;(a(p040,p030,p011)&gt;180))&quot;);
+	Segment(&quot;a500&quot;,&quot;p030&quot;,&quot;p050&quot;);	Conditional(&quot;a500&quot;,&quot;thin&quot;,&quot;((a(p030,p050,p041)&gt;180)&amp;&amp;(a(p050,p030,p040)&gt;180))&quot;);	
+	Segment(&quot;a501&quot;,&quot;p050&quot;,&quot;p041&quot;); Conditional(&quot;a501&quot;,&quot;thin&quot;,&quot;((a(p041,p050,p051)&gt;180)&amp;&amp;(a(p050,p041,p030)&gt;180))&quot;);	
+	Segment(&quot;a502&quot;,&quot;p041&quot;,&quot;p051&quot;); Conditional(&quot;a502&quot;,&quot;thin&quot;,&quot;((a(p041,p051,p031)&gt;180)&amp;&amp;(a(p051,p041,p050)&gt;180))&quot;);	
+	Segment(&quot;a503&quot;,&quot;p051&quot;,&quot;p031&quot;); Conditional(&quot;a503&quot;,&quot;thin&quot;,&quot;((a(p031,p051,p042)&gt;180)&amp;&amp;(a(p051,p031,p041)&gt;180))&quot;);	
+	Segment(&quot;a504&quot;,&quot;p051&quot;,&quot;p042&quot;); Conditional(&quot;a504&quot;,&quot;thin&quot;,&quot;((a(p042,p051,p052)&gt;180)&amp;&amp;(a(p051,p042,p031)&gt;180))&quot;);	
+	Segment(&quot;a505&quot;,&quot;p042&quot;,&quot;p052&quot;); Conditional(&quot;a505&quot;,&quot;thin&quot;,&quot;((a(p042,p052,p032)&gt;180)&amp;&amp;(a(p052,p042,p051)&gt;180))&quot;);	
+	Segment(&quot;a506&quot;,&quot;p052&quot;,&quot;p032&quot;); Conditional(&quot;a506&quot;,&quot;thin&quot;,&quot;((a(p032,p052,p043)&gt;180)&amp;&amp;(a(p052,p032,p042)&gt;180))&quot;);	
+	Segment(&quot;a507&quot;,&quot;p052&quot;,&quot;p043&quot;); Conditional(&quot;a507&quot;,&quot;thin&quot;,&quot;((a(p043,p052,p053)&gt;180)&amp;&amp;(a(p052,p043,p032)&gt;180))&quot;);	
+	Segment(&quot;a508&quot;,&quot;p043&quot;,&quot;p053&quot;); Conditional(&quot;a508&quot;,&quot;thin&quot;,&quot;((a(p043,p053,p033)&gt;180)&amp;&amp;(a(p053,p043,p052)&gt;180))&quot;);	
+	Segment(&quot;a509&quot;,&quot;p053&quot;,&quot;p033&quot;); Conditional(&quot;a509&quot;,&quot;thin&quot;,&quot;((a(p033,p053,p040)&gt;180)&amp;&amp;(a(p053,p033,p043)&gt;180))&quot;);	
+	Segment(&quot;a510&quot;,&quot;p053&quot;,&quot;p040&quot;); Conditional(&quot;a510&quot;,&quot;thin&quot;,&quot;((a(p040,p053,p050)&gt;180)&amp;&amp;(a(p053,p040,p033)&gt;180))&quot;);	
+	Segment(&quot;a511&quot;,&quot;p040&quot;,&quot;p050&quot;); Conditional(&quot;a511&quot;,&quot;thin&quot;,&quot;((a(p040,p050,p030)&gt;180)&amp;&amp;(a(p050,p040,p053)&gt;180))&quot;);	
+	Segment(&quot;a600&quot;,&quot;p050&quot;,&quot;p051&quot;);	Conditional(&quot;a600&quot;,&quot;thin&quot;,&quot;((a(p050,p051,p041)&gt;180)&amp;&amp;(a(p051,p050,p053)&gt;180))&quot;);	
+	Segment(&quot;a601&quot;,&quot;p051&quot;,&quot;p052&quot;); Conditional(&quot;a601&quot;,&quot;thin&quot;,&quot;((a(p051,p052,p042)&gt;180)&amp;&amp;(a(p052,p051,p050)&gt;180))&quot;);	
+	Segment(&quot;a602&quot;,&quot;p052&quot;,&quot;p053&quot;); Conditional(&quot;a602&quot;,&quot;thin&quot;,&quot;((a(p052,p053,p043)&gt;180)&amp;&amp;(a(p053,p052,p051)&gt;180))&quot;);	
+	Segment(&quot;a603&quot;,&quot;p053&quot;,&quot;p050&quot;); Conditional(&quot;a603&quot;,&quot;thin&quot;,&quot;((a(p053,p050,p040)&gt;180)&amp;&amp;(a(p050,p053,p052)&gt;180))&quot;);
+	
+	//segments noirs
+	for(k=0; k&lt;=9; k++){
+		for(j=0; j&lt;=1; j++){
+			for(i=0; i&lt;=6; i++){
+				SetColor(&quot;a&quot;+i+j+k, &quot;black&quot;);
+			}
+		}
+	}
+   
+	//texte explicatif
+	Text(&quot;Consigne&quot;,&quot;Lancer l&apos;algorithme depuis l&apos;icone de script (en haut à gauche) puis suivez les instructions en bas de l&apos;écran.&quot;,&quot;windowcx-windoww+5/pixel&quot;,&quot;windowcy+windowh/2-60/pixel&quot;);
+	SetColor(&quot;Consigne&quot;, &quot;red&quot;);
+	
+	Text(&quot;reste&quot;,&quot;Nombre de face(s) du patron à construire :&quot;,&quot;windowcx-windoww+5/pixel&quot;,&quot;windowcy+windowh/2-80/pixel&quot;);
+	Expression(&quot;rest&quot;,&quot;38&quot;,&quot;windowcx-windoww+275/pixel&quot;,&quot;windowcy+windowh/2-94/pixel&quot;);
+
+	SetColor(&quot;reste,rest&quot;, &quot;blue&quot;);
+	Text(&quot;Tnftt&quot;,&quot;**Cette arête n&apos;est plus utilisable&quot;,&quot;windowcx-windoww+3/pixel&quot;,&quot;windowcy+windowh/2-100/pixel&quot;);
+	Text(&quot;Tnfntt&quot;,&quot;**Cette arête n&apos;est pas encore utilisable&quot;,&quot;windowcx-windoww+3/pixel&quot;,&quot;windowcy+windowh/2-100/pixel&quot;);
+	SetHide(&quot;Tnftt,Tnfntt&quot;,true);
+	SetColor(&quot;Tnftt,Tnfntt&quot;, &quot;black&quot;);
+	SetHide(Expression(&quot;t&quot;,0,0,0), true);
+	t = getC().find(&quot;t&quot;);
+	t = getZC().JCM.addSlider(t,250,20,300,29);
+	t.setShowUnit(false);
+	t.setMin(0.0);
+	t.setMax(1.0);
+	t.setVal(0.0);
+	t.setSnap(false);
+	t.setComment(&quot;Déplier / Plier&quot;);
+	t.setShowVal(false);
+	t.setShowTicks(false);
+
+	Intersection(&quot;u&quot;,&quot;a000&quot;,&quot;s7&quot;);
+	
+	Expression(&quot;p&quot;,&quot;0.96*d(O,u)/d(O,X)&quot;,0,0);
+	Expression(&quot;c&quot;,&quot;2*p&quot;,0,0);
+	Expression(&quot;h&quot;,&quot;p*tan(30)&quot;,0,0);
+	Expression(&quot;ang1&quot;,&quot;t*37.0108&quot;,0,0);
+	Expression(&quot;ang2&quot;,&quot;t*26.7656&quot;,0,0);
+	SetHide(&quot;p,c,h,ang1,ang2&quot;, true);		
+	SetHide(&quot;u&quot;,true);
+
+} else {
+	Println(&quot;Vous n&apos;êtes pas en mode 3D&quot;);
+}
+
+</Script>
+<Script Name="Construction manuelle du patron " onload="false">
+//Objet carré
+Carre = function(art0, art1, art2, art3){
+	this.point = new Array(4);
+	var o,z;//centre et extrémité du vect orthogonal
+	this.arete = new Array(art0, art1, art2, art3);
+	this.segment = new Array(4);
+	this.etat = 0; //non traitee = 0 ; traitee = 1
+}
+//objet triangle
+Triangle = function(art0, art1, art2){
+	this.point = new Array(3);
+	var o,z;//
+	this.arete = new Array(art0, art1, art2);
+	this.segment = new Array(3);
+	this.etat = 0;
+}
+
+
+//Fonction nouveau triangle
+NouveauTriangle = function(face, ancf, nvlf, dira, dirn){
+	//dira = direction dans laquelle on quite l&apos;ancf (ancienne face)
+	//dirn = direction depuis laquelle on arrive sur la nvlf
+	var l, o, z, qm, q0, q1, q2, q3, poly, i, R, G, B, p;
+
+	o = face[ancf].o;
+	z = face[ancf].z;
+
+	l = face[ancf].arete.length;//vient-on d&apos;un Carre (l=4) ou d&apos;un Triangle (l=3) ?
+	q0 = face[nvlf].point[dirn] = face[ancf].point[(1+dira)%l];
+	q1 = face[nvlf].point[(1+dirn)%3] = face[ancf].point[dira];
+	qm = MidPoint(q0, q1);
+	if(l==4){
+		
+		q3 = face[nvlf].o = Point(&quot;x(&quot;+qm+&quot;)+h/p*cos(ang1)*(x(&quot;+qm+&quot;)-x(&quot;+o+&quot;))+h*sin(ang1)*(x(&quot;+z+&quot;)-x(&quot;+o+&quot;))&quot;,&quot;y(&quot;+qm+&quot;)+h/p*cos(ang1)*(y(&quot;+qm+&quot;)-y(&quot;+o+&quot;))+h*sin(ang1)*(y(&quot;+z+&quot;)-y(&quot;+o+&quot;))&quot;);
+	} else {
+		q3 = face[nvlf].o = Point(&quot;x(&quot;+qm+&quot;)+cos(ang2)*(x(&quot;+qm+&quot;)-x(&quot;+o+&quot;))+h*sin(ang2)*(x(&quot;+z+&quot;)-x(&quot;+o+&quot;))&quot;,&quot;y(&quot;+qm+&quot;)+cos(ang2)*(y(&quot;+qm+&quot;)-y(&quot;+o+&quot;))+h*sin(ang2)*(y(&quot;+z+&quot;)-y(&quot;+o+&quot;))&quot;);
+	}
+	q2=face[nvlf].point[(2+dirn)%3] = Point(&quot;3*x(&quot;+q3+&quot;)-2*x(&quot;+qm+&quot;)&quot;,&quot;3*y(&quot;+q3+&quot;)-2*y(&quot;+qm+&quot;)&quot;);
+
+	if(l==4){
+		face[nvlf].z = Point(&quot;x(&quot;+q3+&quot;)-sin(ang1)/p*(x(&quot;+qm+&quot;)-x(&quot;+o+&quot;))+cos(ang1)*(x(&quot;+z+&quot;)-x(&quot;+o+&quot;))&quot;,&quot;y(&quot;+q3+&quot;)-sin(ang1)/p*(y(&quot;+qm+&quot;)-y(&quot;+o+&quot;))+cos(ang1)*(y(&quot;+z+&quot;)-y(&quot;+o+&quot;))&quot;);
+	} else {
+		face[nvlf].z = Point(&quot;x(&quot;+q3+&quot;)-sin(ang2)/h*(x(&quot;+qm+&quot;)-x(&quot;+o+&quot;))+cos(ang2)*(x(&quot;+z+&quot;)-x(&quot;+o+&quot;))&quot;,&quot;y(&quot;+q3+&quot;)-sin(ang2)/h*(y(&quot;+qm+&quot;)-y(&quot;+o+&quot;))+cos(ang2)*(y(&quot;+z+&quot;)-y(&quot;+o+&quot;))&quot;);
+	}
+	
+	//représentation de cette nouvelle face
+	poly = face[nvlf].point[0];
+	for(i=1; i&lt;3; i++){
+		poly += &quot;,&quot;+face[nvlf].point[i];
+	}
+	R = Math.floor( 255*Math.random() + 1 );
+	G = Math.floor( 255*Math.random() + 1 );
+	B = Math.floor( 255*Math.random() + 1 );
+	SetRGBColor(p=Polygon(poly), R, G, B);
+	SetHide(poly, true); SetFilled(p,true); SetThickness(p,&quot;thin&quot;);
+	SetHide(face[nvlf].o+&quot;,&quot;+face[nvlf].z+&quot;,&quot;+qm, true);
+
+	face[nvlf].etat = 1;
+}
+
+// fonction nouveau carré
+NouveauCarre = function(face, ancf, nvlf, dira, dirn){
+	var o, z, i, p0, p1, pm, p4, poly, i, p;
+
+	o = face[ancf].o;
+	z = face[ancf].z;
+
+	p0 = face[nvlf].point[dirn] = face[ancf].point[(1+dira)%3];
+	p1 = face[nvlf].point[(1+dirn)%4] = face[ancf].point[dira];
+	pm = MidPoint(p0, p1);
+	p4 = face[nvlf].o = Point(&quot;x(&quot;+pm+&quot;)+p/h*cos(ang1)*(x(&quot;+pm+&quot;)-x(&quot;+o+&quot;))+sin(ang1)*p*(x(&quot;+z+&quot;)-x(&quot;+o+&quot;))&quot;, &quot;y(&quot;+pm+&quot;)+p/h*cos(ang1)*(y(&quot;+pm+&quot;)-y(&quot;+o+&quot;))+sin(ang1)*p*(y(&quot;+z+&quot;)-y(&quot;+o+&quot;))&quot;);	
+	face[nvlf].point[(2+dirn)%4] = Point(&quot;x(&quot;+p4+&quot;)+(x(&quot;+p4+&quot;)-x(&quot;+p0+&quot;))&quot;, &quot;y(&quot;+p4+&quot;)+(y(&quot;+p4+&quot;)-y(&quot;+p0+&quot;))&quot;);
+	face[nvlf].point[(3+dirn)%4] = Point(&quot;x(&quot;+p4+&quot;)+(x(&quot;+p4+&quot;)-x(&quot;+p1+&quot;))&quot;, 
+	&quot;y(&quot;+p4+&quot;)+(y(&quot;+p4+&quot;)-y(&quot;+p1+&quot;))&quot;);
+	face[nvlf].z = Point(&quot;x(&quot;+p4+&quot;)-sin(ang1)/h*(x(&quot;+pm+&quot;)-x(&quot;+o+&quot;))+cos(ang1)*(x(&quot;+z+&quot;)-x(&quot;+o+&quot;))&quot;, &quot;y(&quot;+p4+&quot;)-sin(ang1)/h*(y(&quot;+pm+&quot;)-y(&quot;+o+&quot;))+cos(ang1)*(y(&quot;+z+&quot;)-y(&quot;+o+&quot;))&quot;);
+	
+	//représentation de cette nouvelle face
+	poly = face[nvlf].point[0];
+	for(i=1; i&lt;4; i++){
+		poly += &quot;,&quot;+face[nvlf].point[i];
+	}
+	SetColor(p=Polygon(poly), &quot;black&quot;); //toujours en noir
+	SetHide(poly, true); SetFilled(p,true); SetThickness(p,&quot;thin&quot;);
+	SetHide(face[nvlf].o+&quot;,&quot;+face[nvlf].z+&quot;,&quot;+pm, true);
+
+	face[nvlf].etat = 1;
+}
+
+//gère la création ou supression des segments proposés sur les faces du patron
+GeranceSegments = function(face, liste_faces_creees, nb_faces_creees, nvlf){
+	var i, j, l, f, l_nf, k, occ;
+
+	l = face[nvlf].arete.length;
+	//on passe en revue toutes les arêtes de la face nvlf
+	for(i=0; i&lt;l; i++){
+		occ = 0;
+		art = face[nvlf].arete[i];
+		//on cherche si cette arête appartient à une (autre) face déjà créée
+		//on peut s&apos;arrêter dès qu&apos;on a trouvé une occurrence
+		for(j=0; (occ==0)&amp;&amp;(j&lt;nb_faces_creees); j++){
+			f = liste_faces_creees[j];
+			l_f = face[f].arete.length;
+			for(k=0; (k&lt;l_f)&amp;&amp;(face[f].arete[k]!=art); k++){} //on cherche le rang de l&apos;arête
+			occ += face[f].arete[k]==art; //incrémentation si on a trouvé une occurence de cette arête
+		}
+		//si on a trouvé une face f, il faut supprimer le segment proposé sur cette face
+		if(occ!=0){
+			Delete(face[f].segment[k]); //on le détruit (DELETE... DELETE... DELETE...)
+			face[f].segment[k] = &quot;deleted&quot;; // on efface son occurence dans la face concernée
+			SetColor(face[f].arete[k], &quot;black&quot;);
+		} else { //sinon on le créé sur la nouvelle face
+			face[nvlf].segment[i] = Segment(face[nvlf].point[i], face[nvlf].point[(i+1)%l]);
+			SetColor(face[nvlf].segment[i], &quot;blue&quot;);
+			SetHide(face[nvlf].segment[i], false);
+			SetThickness(face[nvlf].segment[i], &quot;normal&quot;);
+			SetColor(face[nvlf].arete[i], &quot;green&quot;);
+		}
+	}
+}
+
+// Construction du patron
+ConstructionPatron = function(){
+	var face, liste_faces_creees, liste_faces_afaire, nb_faces_creees, nftt, nfntt, ancf, nvlf, l, s, err, occ, dira, dirn, p;
+
+	//Initialisation des 38 faces
+	face = new Array(38);
+	//carré au sol, avec en plus les points qui existent déjà
+	face[0] = new Carre(&quot;a000&quot;, &quot;a001&quot;, &quot;a002&quot;, &quot;a003&quot;);
+	face[0].point = [&quot;p000&quot;, &quot;p001&quot;, &quot;p002&quot;, &quot;p003&quot;];
+	face[0].o = &quot;O&quot;; face[0].z = &quot;Z&quot;;
+	//1er étage
+	face[1] = new Triangle(&quot;a000&quot;, &quot;a100&quot;, &quot;a101&quot;);
+	face[2] = new Triangle(&quot;a001&quot;, &quot;a103&quot;, &quot;a104&quot;);
+	face[3] = new Triangle(&quot;a002&quot;, &quot;a106&quot;, &quot;a107&quot;);
+	face[4] = new Triangle(&quot;a003&quot;, &quot;a109&quot;, &quot;a110&quot;);
+	//2è etage
+	face[5] = new Triangle(&quot;a102&quot;, &quot;a101&quot;, &quot;a200&quot;);
+	face[6] = new Triangle(&quot;a103&quot;, &quot;a102&quot;, &quot;a201&quot;);
+	face[7] = new Triangle(&quot;a105&quot;, &quot;a104&quot;, &quot;a202&quot;);
+	face[8] = new Triangle(&quot;a106&quot;, &quot;a105&quot;, &quot;a203&quot;);
+	face[9] = new Triangle(&quot;a108&quot;, &quot;a107&quot;, &quot;a204&quot;);
+	face[10] = new Triangle(&quot;a109&quot;, &quot;a108&quot;, &quot;a205&quot;);
+	face[11] = new Triangle(&quot;a111&quot;, &quot;a110&quot;, &quot;a206&quot;);
+	face[12] = new Triangle(&quot;a100&quot;, &quot;a111&quot;, &quot;a207&quot;);
+	//3è étage
+
+	face[13] = new Triangle(&quot;a200&quot;, &quot;a300&quot;, &quot;a301&quot;);
+	face[14] = new Carre(&quot;a201&quot;, &quot;a302&quot;, &quot;a407&quot;, &quot;a303&quot;);
+	face[15] = new Triangle(&quot;a202&quot;, &quot;a303&quot;, &quot;a304&quot;);
+	face[16] = new Carre(&quot;a203&quot;, &quot;a305&quot;, &quot;a401&quot;, &quot;a306&quot;);
+	face[17] = new Triangle(&quot;a204&quot;, &quot;a306&quot;, &quot;a307&quot;);
+	face[18] = new Carre(&quot;a205&quot;, &quot;a308&quot;, &quot;a403&quot;, &quot;a309&quot;);
+	face[19] = new Triangle(&quot;a206&quot;, &quot;a309&quot;, &quot;a310&quot;);
+	face[20] = new Carre(&quot;a207&quot;, &quot;a311&quot;, &quot;a405&quot;, &quot;a300&quot;);
+	//4è étage
+	face[21] = new Triangle(&quot;a302&quot;, &quot;a301&quot;, &quot;a406&quot;);
+	face[22] = new Triangle(&quot;a305&quot;, &quot;a304&quot;, &quot;a400&quot;);
+	face[23] = new Triangle(&quot;a308&quot;, &quot;a307&quot;, &quot;a402&quot;);
+	face[24] = new Triangle(&quot;a311&quot;, &quot;a310&quot;, &quot;a404&quot;);
+	//5è étage
+	face[25] = new Triangle(&quot;a501&quot;, &quot;a400&quot;, &quot;a500&quot;);
+	face[26] = new Triangle(&quot;a503&quot;, &quot;a401&quot;, &quot;a502&quot;);
+	face[27] = new Triangle(&quot;a504&quot;, &quot;a402&quot;, &quot;a503&quot;);
+	face[28] = new Triangle(&quot;a506&quot;, &quot;a403&quot;, &quot;a505&quot;);
+	face[29] = new Triangle(&quot;a507&quot;, &quot;a404&quot;, &quot;a506&quot;);
+	face[30] = new Triangle(&quot;a509&quot;, &quot;a405&quot;, &quot;a508&quot;);
+	face[31] = new Triangle(&quot;a510&quot;, &quot;a406&quot;, &quot;a509&quot;);
+	face[32] = new Triangle(&quot;a500&quot;, &quot;a407&quot;, &quot;a511&quot;);
+	//6è étage
+	face[33] = new Triangle(&quot;a502&quot;, &quot;a501&quot;, &quot;a600&quot;);
+	face[34] = new Triangle(&quot;a505&quot;, &quot;a504&quot;, &quot;a601&quot;);
+	face[35] = new Triangle(&quot;a508&quot;, &quot;a507&quot;, &quot;a602&quot;);
+	face[36] = new Triangle(&quot;a511&quot;, &quot;a510&quot;, &quot;a603&quot;);
+	//7è étage
+	face[37] = new Carre(&quot;a600&quot;, &quot;a603&quot;, &quot;a602&quot;, &quot;a601&quot;);
+
+	liste_faces_creees = new Array();
+	liste_faces_afaire = new Array(38);
+	for(i=0; i&lt;38; i++){
+		liste_faces_afaire[i] = i;
+	}
+
+	//construction de la face au sol
+	p=Polygon(&quot;p000,p001,p002,p003&quot;); SetFilled(p,true); SetThickness(p,&quot;thin&quot;);
+	for(i=0; i&lt;4; i++){
+		face[0].segment[i] = Segment(face[0].point[i], face[0].point[(i+1)%4]);
+		SetHide(face[0].segment[i], true);
+		SetColor(face[0].arete[i], &quot;green&quot;);
+	}
+	face[0].etat = 1;
+	liste_faces_creees[0] = 0;
+	liste_faces_afaire.splice(0,1);	
+	SetExpressionValue(&quot;rest&quot;, 37);
+
+	//construction des autres faces
+	for(nb_faces_creees=1; nb_faces_creees&lt;38; nb_faces_creees++){
+		nftt = nfntt = 0; //Nombre de Faces (Non) Traitée(s) Trouvée(s)
+		while(nftt*nfntt==0){
+			while(true){
+				try{
+					s = InteractiveInput(&quot;Cliquez sur un segment bleu ou une arête verte&quot;,&quot;Segment&quot;);
+					break;
+				}
+				catch(err){}
+			}
+			//identification des faces auxquelles appartient le segment sélectionné
+			if(s.substring(0,1)==&quot;s&quot;){ //si on a cliqué sur un segment
+				//identification de l&apos;ancienne face
+				occ = 0;
+				for(i=1; (occ==0)&amp;&amp;(i&lt;nb_faces_creees); i++){ //attention début à 1
+					nf = liste_faces_creees[i];
+					l = face[nf].arete.length;
+					for(j=0; (j&lt;l)&amp;&amp;(face[nf].segment[j]!=s); j++){}
+					if(face[nf].segment[j]==s){
+						occ = 1;
+						nftt++;
+						ancf = nf;
+						s = face[ancf].arete[j];
+						dira = j; //direction absolue dans laquelle on va construire la nvlf
+					}
+				}
+				occ = 0;
+				for(i=0; (occ==0)&amp;&amp;(i&lt;38-nb_faces_creees); i++){
+					nf = liste_faces_afaire[i];
+					l = face[nf].arete.length;
+					for(j=0; (j&lt;l)&amp;&amp;(face[nf].arete[j]!=s); j++){}
+					if(face[nf].arete[j]==s){
+						occ = 1;
+						nvlf = nf;
+						nfntt++;
+						dirn = j; //direction absolue depuis laquelle on vient de ancf
+					}
+				}
+			} else { //si on a cliqué sur une arête
+				nftt = nfntt = 0;
+				for(i=0; (i&lt;38)&amp;&amp;(nftt+nfntt!=2); i++){
+					l = face[i].arete.length;
+					for(j=0; (j&lt;l)&amp;&amp;(face[i].arete[j]!=s); j++){}
+					if(j!=l){
+						if(face[i].etat==1){
+							ancf = i;
+							nftt++;
+							dira = j;
+						} else {
+							nvlf = i;
+							nfntt++;
+							dirn = j;
+						}
+					}
+				}
+				//si on a cliqué sur une arête dont les deux
+				//faces ont déjà été créées
+				if(nftt==2){
+					SetHide(&quot;Tnftt&quot;, false);
+					Pause(500);
+					SetHide(&quot;Tnftt&quot;, true);
+				}
+				//si on a cliqué sur une arête dont les deux
+				//faces n&apos;ont pas été créées
+				if(nfntt==2){
+					SetHide(&quot;Tnfntt&quot;, false);
+					Pause(500);
+					SetHide(&quot;Tnfntt&quot;, true);
+				}
+			}
+		}
+
+		if(face[nvlf].arete.length==4){
+			NouveauCarre(face, ancf, nvlf, dira, dirn);
+		} else {
+			NouveauTriangle(face, ancf, nvlf, dira, dirn);
+		}
+		GeranceSegments(face, liste_faces_creees, nb_faces_creees, nvlf);
+		liste_faces_creees.push(nvlf);
+		//on supprime la face nvlf de la liste des faces à faire
+		for(i=0; liste_faces_afaire[i]!=nvlf; i++){}
+		liste_faces_afaire.splice(i, 1);
+		SetExpressionValue(&quot;rest&quot;, 37-nb_faces_creees);
+	}
+}
+ConstructionPatron();
+</Script>
+<Script Name="Construction aléatoire du patron" onload="false">
+Carre = function(art0, art1, art2, art3){
+	this.point = new Array(4);
+	var o,z;
+	this.arete = new Array(art0, art1, art2, art3);
+	this.segment = new Array(4);
+	this.etat = 0;
+}
+	Triangle = function(art0, art1, art2){
+		this.point = new Array(3);
+		var o,z;//
+		this.arete = new Array(art0, art1, art2);
+		this.segment = new Array(3);
+		this.etat = 0;
+	}
+
+	NouveauTriangle = function(face, ancf, nvlf, dira, dirn){
+		var l, o, z, qm, q0, q1, q2, q3, poly, i, R, G, B, p;
+
+		o = face[ancf].o;
+		z = face[ancf].z;
+
+		l = face[ancf].arete.length
+		q0 = face[nvlf].point[dirn] = face[ancf].point[(1+dira)%l];
+		q1 = face[nvlf].point[(1+dirn)%3] = face[ancf].point[dira];
+		qm = MidPoint(q0, q1);
+		if(l==4){	
+			q3 = face[nvlf].o = Point(&quot;x(&quot;+qm+&quot;)+h/p*cos(ang1)*(x(&quot;+qm+&quot;)-x(&quot;+o+&quot;))+h*sin(ang1)*(x(&quot;+z+&quot;)-x(&quot;+o+&quot;))&quot;,&quot;y(&quot;+qm+&quot;)+h/p*cos(ang1)*(y(&quot;+qm+&quot;)-y(&quot;+o+&quot;))+h*sin(ang1)*(y(&quot;+z+&quot;)-y(&quot;+o+&quot;))&quot;);
+		} else {
+			q3 = face[nvlf].o = Point(&quot;x(&quot;+qm+&quot;)+cos(ang2)*(x(&quot;+qm+&quot;)-x(&quot;+o+&quot;))+h*sin(ang2)*(x(&quot;+z+&quot;)-x(&quot;+o+&quot;))&quot;,&quot;y(&quot;+qm+&quot;)+cos(ang2)*(y(&quot;+qm+&quot;)-y(&quot;+o+&quot;))+h*sin(ang2)*(y(&quot;+z+&quot;)-y(&quot;+o+&quot;))&quot;);
+		}
+		q2=face[nvlf].point[(2+dirn)%3] = Point(&quot;3*x(&quot;+q3+&quot;)-2*x(&quot;+qm+&quot;)&quot;,&quot;3*y(&quot;+q3+&quot;)-2*y(&quot;+qm+&quot;)&quot;);
+		if(l==4){
+			face[nvlf].z = Point(&quot;x(&quot;+q3+&quot;)-sin(ang1)/p*(x(&quot;+qm+&quot;)-x(&quot;+o+&quot;))+cos(ang1)*(x(&quot;+z+&quot;)-x(&quot;+o+&quot;))&quot;,&quot;y(&quot;+q3+&quot;)-sin(ang1)/p*(y(&quot;+qm+&quot;)-y(&quot;+o+&quot;))+cos(ang1)*(y(&quot;+z+&quot;)-y(&quot;+o+&quot;))&quot;);
+		} else {
+			face[nvlf].z = Point(&quot;x(&quot;+q3+&quot;)-sin(ang2)/h*(x(&quot;+qm+&quot;)-x(&quot;+o+&quot;))+cos(ang2)*(x(&quot;+z+&quot;)-x(&quot;+o+&quot;))&quot;,&quot;y(&quot;+q3+&quot;)-sin(ang2)/h*(y(&quot;+qm+&quot;)-y(&quot;+o+&quot;))+cos(ang2)*(y(&quot;+z+&quot;)-y(&quot;+o+&quot;))&quot;);
+		}
+	
+		poly = face[nvlf].point[0];
+		for(i=1; i&lt;3; i++){
+			poly += &quot;,&quot;+face[nvlf].point[i];
+		}
+		R = Math.floor( 255*Math.random() + 1 );
+		G = Math.floor( 255*Math.random() + 1 );
+		B = Math.floor( 255*Math.random() + 1 );
+		SetRGBColor(p=Polygon(poly), R, G, B);
+		SetHide(poly, true); SetFilled(p,true); SetThickness(p,&quot;thin&quot;);
+		SetHide(face[nvlf].o+&quot;,&quot;+face[nvlf].z+&quot;,&quot;+qm, true);
+	}
+
+	NouveauCarre = function(face, ancf, nvlf, dira, dirn){
+		var o, z, i, p0, p1, pm, p4, poly, i, p;
+
+		o = face[ancf].o;
+		z = face[ancf].z;
+
+		p0 = face[nvlf].point[dirn] = face[ancf].point[(1+dira)%3];
+		p1 = face[nvlf].point[(1+dirn)%4] = face[ancf].point[dira];
+		pm = MidPoint(p0, p1);
+		p4 = face[nvlf].o = Point(&quot;x(&quot;+pm+&quot;)+p/h*cos(ang1)*(x(&quot;+pm+&quot;)-x(&quot;+o+&quot;))+sin(ang1)*p*(x(&quot;+z+&quot;)-x(&quot;+o+&quot;))&quot;, &quot;y(&quot;+pm+&quot;)+p/h*cos(ang1)*(y(&quot;+pm+&quot;)-y(&quot;+o+&quot;))+sin(ang1)*p*(y(&quot;+z+&quot;)-y(&quot;+o+&quot;))&quot;);	
+		face[nvlf].point[(2+dirn)%4] = Point(&quot;x(&quot;+p4+&quot;)+(x(&quot;+p4+&quot;)-x(&quot;+p0+&quot;))&quot;, &quot;y(&quot;+p4+&quot;)+(y(&quot;+p4+&quot;)-y(&quot;+p0+&quot;))&quot;);
+		face[nvlf].point[(3+dirn)%4] = Point(&quot;x(&quot;+p4+&quot;)+(x(&quot;+p4+&quot;)-x(&quot;+p1+&quot;))&quot;, 
+		&quot;y(&quot;+p4+&quot;)+(y(&quot;+p4+&quot;)-y(&quot;+p1+&quot;))&quot;);
+		face[nvlf].z = Point(&quot;x(&quot;+p4+&quot;)-sin(ang1)/h*(x(&quot;+pm+&quot;)-x(&quot;+o+&quot;))+cos(ang1)*(x(&quot;+z+&quot;)-x(&quot;+o+&quot;))&quot;, &quot;y(&quot;+p4+&quot;)-sin(ang1)/h*(y(&quot;+pm+&quot;)-y(&quot;+o+&quot;))+cos(ang1)*(y(&quot;+z+&quot;)-y(&quot;+o+&quot;))&quot;);
+	
+		poly = face[nvlf].point[0];
+		for(i=1; i&lt;4; i++){
+			poly += &quot;,&quot;+face[nvlf].point[i];
+		}
+		SetColor(p=Polygon(poly), &quot;black&quot;);
+		SetHide(poly, true); SetFilled(p,true); SetThickness(p,&quot;thin&quot;);
+		SetHide(face[nvlf].o+&quot;,&quot;+face[nvlf].z+&quot;,&quot;+pm, true);
+	}
+
+	GestionListeAretes = function(face, liste_faces_creees, nb_faces_creees, nvlf, liste_aretes_cliquables){
+		var i, j, l, f, l_f, k, occ;
+
+		l = face[nvlf].arete.length;
+		for(i=0; i&lt;l; i++){
+			occ = 0;
+			art = face[nvlf].arete[i];
+			for(j=0; (occ==0)&amp;&amp;(j&lt;nb_faces_creees); j++){
+				f = liste_faces_creees[j];
+				l_f = face[f].arete.length;
+				for(k=0;(k&lt;l_f)&amp;&amp;(face[f].arete[k]!=art); k++){}
+				if(face[f].arete[k]==art){
+					occ++;
+				} 
+			}
+			if(occ!=0){
+				for(j=0; liste_aretes_cliquables[j]!=face[f].arete[k]; j++){}
+				liste_aretes_cliquables.splice(j, 1);
+			}
+			else {
+				liste_aretes_cliquables.push(face[nvlf].arete[i]);
+			}
+		}
+	}
+
+	ConstructionPatron = function(){
+		var face, liste_faces_creees, liste_faces_afaire, nb_faces_creees, ancf, nvlf, l, s, err, occ, dira, dirn, p;
+		var liste_aretes_cliquables = new Array();
+
+		face = new Array(38);
+		face[0] = new Carre(&quot;a000&quot;, &quot;a001&quot;, &quot;a002&quot;, &quot;a003&quot;);
+		face[0].point = [&quot;p000&quot;, &quot;p001&quot;, &quot;p002&quot;, &quot;p003&quot;];
+		face[0].o = &quot;O&quot;; face[0].z = &quot;Z&quot;;
+		face[1] = new Triangle(&quot;a000&quot;, &quot;a100&quot;, &quot;a101&quot;);
+		face[2] = new Triangle(&quot;a001&quot;, &quot;a103&quot;, &quot;a104&quot;);
+		face[3] = new Triangle(&quot;a002&quot;, &quot;a106&quot;, &quot;a107&quot;);
+		face[4] = new Triangle(&quot;a003&quot;, &quot;a109&quot;, &quot;a110&quot;);
+		face[5] = new Triangle(&quot;a102&quot;, &quot;a101&quot;, &quot;a200&quot;);
+		face[6] = new Triangle(&quot;a103&quot;, &quot;a102&quot;, &quot;a201&quot;);
+		face[7] = new Triangle(&quot;a105&quot;, &quot;a104&quot;, &quot;a202&quot;);
+		face[8] = new Triangle(&quot;a106&quot;, &quot;a105&quot;, &quot;a203&quot;);
+		face[9] = new Triangle(&quot;a108&quot;, &quot;a107&quot;, &quot;a204&quot;);
+		face[10] = new Triangle(&quot;a109&quot;, &quot;a108&quot;, &quot;a205&quot;);
+		face[11] = new Triangle(&quot;a111&quot;, &quot;a110&quot;, &quot;a206&quot;);
+		face[12] = new Triangle(&quot;a100&quot;, &quot;a111&quot;, &quot;a207&quot;);
+		face[13] = new Triangle(&quot;a200&quot;, &quot;a300&quot;, &quot;a301&quot;);
+		face[14] = new Carre(&quot;a201&quot;, &quot;a302&quot;, &quot;a407&quot;, &quot;a303&quot;);
+		face[15] = new Triangle(&quot;a202&quot;, &quot;a303&quot;, &quot;a304&quot;);
+		face[16] = new Carre(&quot;a203&quot;, &quot;a305&quot;, &quot;a401&quot;, &quot;a306&quot;);
+		face[17] = new Triangle(&quot;a204&quot;, &quot;a306&quot;, &quot;a307&quot;);
+		face[18] = new Carre(&quot;a205&quot;, &quot;a308&quot;, &quot;a403&quot;, &quot;a309&quot;);
+		face[19] = new Triangle(&quot;a206&quot;, &quot;a309&quot;, &quot;a310&quot;);
+		face[20] = new Carre(&quot;a207&quot;, &quot;a311&quot;, &quot;a405&quot;, &quot;a300&quot;);
+		face[21] = new Triangle(&quot;a302&quot;, &quot;a301&quot;, &quot;a406&quot;);
+		face[22] = new Triangle(&quot;a305&quot;, &quot;a304&quot;, &quot;a400&quot;);
+		face[23] = new Triangle(&quot;a308&quot;, &quot;a307&quot;, &quot;a402&quot;);
+		face[24] = new Triangle(&quot;a311&quot;, &quot;a310&quot;, &quot;a404&quot;);
+		face[25] = new Triangle(&quot;a501&quot;, &quot;a400&quot;, &quot;a500&quot;);
+		face[26] = new Triangle(&quot;a503&quot;, &quot;a401&quot;, &quot;a502&quot;);
+		face[27] = new Triangle(&quot;a504&quot;, &quot;a402&quot;, &quot;a503&quot;);
+		face[28] = new Triangle(&quot;a506&quot;, &quot;a403&quot;, &quot;a505&quot;);
+		face[29] = new Triangle(&quot;a507&quot;, &quot;a404&quot;, &quot;a506&quot;);
+		face[30] = new Triangle(&quot;a509&quot;, &quot;a405&quot;, &quot;a508&quot;);
+		face[31] = new Triangle(&quot;a510&quot;, &quot;a406&quot;, &quot;a509&quot;);
+		face[32] = new Triangle(&quot;a500&quot;, &quot;a407&quot;, &quot;a511&quot;);
+		face[33] = new Triangle(&quot;a502&quot;, &quot;a501&quot;, &quot;a600&quot;);
+		face[34] = new Triangle(&quot;a505&quot;, &quot;a504&quot;, &quot;a601&quot;);
+		face[35] = new Triangle(&quot;a508&quot;, &quot;a507&quot;, &quot;a602&quot;);
+		face[36] = new Triangle(&quot;a511&quot;, &quot;a510&quot;, &quot;a603&quot;);
+		face[37] = new Carre(&quot;a600&quot;, &quot;a603&quot;, &quot;a602&quot;, &quot;a601&quot;);
+
+		liste_faces_creees = new Array();
+		liste_faces_afaire = new Array(38);
+		for(i=0; i&lt;38; i++){
+			liste_faces_afaire[i] = i;
+		}
+
+		p=Polygon(&quot;p000,p001,p002,p003&quot;); SetFilled(p,true); SetThickness(p,&quot;thin&quot;);
+		for(i=0; i&lt;4; i++){
+			liste_aretes_cliquables.push(face[0].arete[i]);
+		}
+		face[0].etat = 1;
+		liste_faces_creees[0] = 0;
+		liste_faces_afaire.splice(0,1);	
+		SetExpressionValue(&quot;rest&quot;, 37);
+
+		for(nb_faces_creees=1; nb_faces_creees&lt;38; nb_faces_creees++){
+			l = liste_aretes_cliquables.length;
+			i = Math.floor( l*Math.random() );
+			a = liste_aretes_cliquables[i];
+
+			occ = 0;
+			for(i=0; (occ==0)&amp;&amp;(i&lt;nb_faces_creees); i++){
+				f = liste_faces_creees[i];
+				l = face[f].arete.length;
+				for(j=0; (j&lt;l)&amp;&amp;(face[f].arete[j]!=a); j++){}
+				if(face[f].arete[j]==a){
+					occ = 1;
+					ancf = f;
+					dira = j;
+				}
+			}
+			occ = 0;
+			for(i=0; (occ==0)&amp;&amp;(i&lt;38-nb_faces_creees); i++){
+				f = liste_faces_afaire[i];
+				l = face[f].arete.length;
+				for(j=0; (j&lt;l)&amp;&amp;(face[f].arete[j]!=a); j++){}
+				if(face[f].arete[j]==a){
+					occ = 1;
+					nvlf = f;
+					dirn = j;
+				}
+			}
+
+			if(face[nvlf].arete.length==4){
+				NouveauCarre(face, ancf, nvlf, dira, dirn);
+			} else {
+				NouveauTriangle(face, ancf, nvlf, dira, dirn);
+			}
+			GestionListeAretes(face, liste_faces_creees, nb_faces_creees, nvlf, liste_aretes_cliquables);
+			
+			liste_faces_creees.push(nvlf);
+			for(i=0; liste_faces_afaire[i]!=nvlf; i++){}
+			liste_faces_afaire.splice(i, 1);
+			SetExpressionValue(&quot;rest&quot;, 37-nb_faces_creees);
+		}
+	}
+	ConstructionPatron();
+</Script>
+<Construction>
+<Window x="0.42325882781637736" y="0.2640459857446189" w="4.489848193237493"/>
+<Windowdim w="1280" h="800"/>
+<Preferences minfontsize="13" minpointsize="3" minlinesize="1" arrowsize="15" selectionsize="7" monkeyspeed="9" gridopacity="13" digits.lengths="5" digits.edit="5" digits.angles="0" colorbackground="245,245,245" colorbackgroundx="139" colorbackgroundy="9" colorbackgroundPal="4" fig3D="true" figDP="false"/>
+<CTRLcheckbox Ename="a" x="79" y="0" w="30" h="22" showC="true" showU="false" showV="false" hidden="false" C="Floor" U="°" V="0"/>
+<CTRLcheckbox Ename="b" x="79" y="25" w="30" h="22" showC="true" showU="false" showV="false" hidden="false" C="Coordinates system" U="°" V="1"/>
+<CTRLslider Ename="t" x="250" y="20" w="300" h="29" showC="true" showU="false" showV="false" hidden="false" C="Déplier / Plier" U="°" V="0.1471" min="0.0" max="1.0" T="1.0" fixT="false" showT="false"/>
+<Objects>
+<Text name="Text2" n="209" type="thin" x="windowcx-windoww+3/pixel" y="windowcy-windowh/2+25/pixel" fixed="true">Use right-clic-drag to rotate the coordinate system</Text>
+<Expression name="E10" n="60" color="1" type="thick" hidden="true" showname="true" showvalue="true" x="windowcx-windoww+3/pixel" y="windowcy+windowh/2-60/pixel" value="-100*windowcx" prompt="Phi" fixed="true">Expression &quot;-100*windowcx&quot; à -4.02299, 4.3912</Expression>
+<Expression name="E11" n="61" color="1" type="thick" hidden="true" showname="true" showvalue="true" x="windowcx-windoww+3/pixel" y="windowcy+windowh/2-90/pixel" value="100*windowcy" prompt="Theta" fixed="true">Expression &quot;100*windowcy&quot; à -4.02299, 3.95524</Expression>
+<Expression name="a" n="210" color="1" type="thick" hidden="super" showname="true" showvalue="true" x="0.21596738144686745" y="0.1250337471534495" value="0" prompt="Valeur">Expression &quot;0&quot; à 0.21597, 0.12503</Expression>
+<Expression name="E9" n="59" color="1" type="thin" showname="true" showvalue="true" ctag0="superhidden" cexpr0="a==0" x="-3.339120291073775" y="3.0432051838371934" value="3" prompt="grid">Expression &quot;3&quot; à -3.33912, 3.04321</Expression>
+<Expression name="b" n="211" color="1" type="thick" hidden="super" showname="true" showvalue="true" x="-0.011366704286676745" y="0.06820022572006312" value="1" prompt="Valeur">Expression &quot;1&quot; à -0.01137, 0.0682</Expression>
+<Text name="Consigne" n="297" color="5" showvalue="true" x="windowcx-windoww+5/pixel" y="windowcy+windowh/2-60/pixel" fixed="true">Lancer l&apos;algorithme depuis l&apos;icone de script (en haut à gauche) puis suivez les instructions en bas de l&apos;écran.</Text>
+<Text name="reste" n="298" color="2" showvalue="true" x="windowcx-windoww+5/pixel" y="windowcy+windowh/2-80/pixel" fixed="true">Nombre de face(s) du patron à construire :</Text>
+<Expression name="rest" n="299" color="2" type="thick" showname="true" showvalue="true" x="windowcx-windoww+275/pixel" y="windowcy+windowh/2-94/pixel" value="38" prompt="Valeur" fixed="true">Expression &quot;38&quot; à -0.07022, 3.89711</Expression>
+<Text name="Tnftt" n="300" hidden="true" showvalue="true" x="windowcx-windoww+3/pixel" y="windowcy+windowh/2-100/pixel" fixed="true">**Cette arête n&apos;est plus utilisable</Text>
+<Text name="Tnfntt" n="301" hidden="true" showvalue="true" x="windowcx-windoww+3/pixel" y="windowcy+windowh/2-100/pixel" fixed="true">**Cette arête n&apos;est pas encore utilisable</Text>
+<Expression name="t" n="302" color="1" type="thick" hidden="true" showname="true" showvalue="true" x="0.0" y="0.0" value="0.1471" prompt="Valeur">Expression &quot;0.1471&quot; à 0.0, 0.0</Expression>
+<Point name="P66" n="172" color="2" hidden="true" x="windowcx-windoww-20/pixel" actx="-4.229708282523296" y="(windoww/(windoww-d(windoww)))*(y(P66)-windowcy)+windowcy+d(windowcy)" acty="3.060354948199551" shape="circle" fixed="true">Point</Point>
+<Point name="O" n="57" type="thick" ctag0="z" cexpr0="7" ctag1="hidden" cexpr1="@b==0" x="(windoww/(windoww-d(windoww)))*(x(O)-windowcx)+windowcx+d(windowcx)" actx="0.5659878802807841" y="(windoww/(windoww-d(windoww)))*(y(O)-windowcy)+windowcy+d(windowcy)" acty="-0.8614745422604204" shape="circle" fixed="true">Point</Point>
+<Expression name="ang1" n="307" color="1" type="thick" hidden="true" showname="true" showvalue="true" x="-3.5713209435481095" y="1.6116091166107709" value="t*37.0108" prompt="ang1=">Expression &quot;t*37.0108&quot; à -3.57132, 1.61161</Expression>
+<Expression name="ang2" n="308" color="1" type="thick" hidden="true" showname="true" showvalue="true" x="-3.5579787188288963" y="1.270944092005903" value="t*26.7656" prompt="ang2">Expression &quot;t*26.7656&quot; à -3.55798, 1.27094</Expression>
+<Point name="P45" n="62" color="2" hidden="super" bold="true" large="true" x="x(O)+1" actx="1.565987880280784" y="y(O)" acty="-0.8614745422604204" fixed="true">Point à &quot;x(P2)+1&quot;, &quot;y(P2)&quot; </Point>
+<Angle name="a9" n="63" color="1" hidden="super" unit="∞" large="true" first="O" root="O" fixed="90" inverse="true">Angle O - O de mesure 90</Angle>
+<Point name="P46" n="65" color="2" type="thick" hidden="super" bold="true" large="true" ctag0="z" cexpr0="7" x="x(O)+1" actx="1.565987880280784" y="y(O)" acty="-0.8614745422604204" shape="circle" fixed="true">Point sur r1 </Point>
+<Expression name="E12" n="174" color="3" type="thick" hidden="true" showname="true" showvalue="true" bold="true" large="true" x="x(P66)" y="y(P66)+windoww/24" value="2" prompt="Nombre de divisions" fixed="true">Expression &quot;2&quot; à -4.29713, 3.24743</Expression>
+<Point name="P68" n="175" color="5" hidden="super" showname="true" large="true" x="x(P66)+windoww/8" actx="-3.6684772583686094" y="y(P66)-windoww/12" acty="2.6862009320964266" shape="circle" fixed="true">Point</Point>
+<Ray name="r3" n="64" color="2" hidden="super" bold="true" large="true" from="O" to="P45">Demi-droite d&apos;origine P44 vers P45</Ray>
+<Point name="P47" n="66" color="2" hidden="super" showname="true" xcoffset="-0.05429864253393646" ycoffset="-6.742081447796977E-6" keepclose="true" bold="true" large="true" x="x(O)" actx="0.5659878802807841" y="y(O)+d(O,P46)" acty="0.13852545773957958" shape="dot" fixed="true">Point à &quot;x(P2)&quot;, &quot;y(P2)+d(P2,po8)&quot; </Point>
+<Segment name="s15" n="67" color="2" hidden="super" bold="true" large="true" ctag0="z" cexpr0="7" from="O" to="P46" arrow="true">Segment de P44 à P46</Segment>
+<Point name="P69" n="176" color="5" hidden="super" large="true" x="x(P68)+3*windoww" actx="9.80106732134387" y="y(P68)" acty="2.6862009320964266" shape="circle" fixed="true">Point</Point>
+<Point name="P70" n="177" color="5" hidden="super" showname="true" large="true" x="x(P68)" actx="-3.6684772583686094" y="y(P66)" acty="3.060354948199551" shape="circle" fixed="true">Point</Point>
+<Segment name="s16" n="68" color="2" hidden="super" bold="true" large="true" ctag0="z" cexpr0="7" from="O" to="P47" arrow="true">Segment de P44 à P47</Segment>
+<Segment name="s24" n="178" color="5" hidden="super" large="true" from="P68" to="P69">Segment de P68 à P69</Segment>
+<Point name="X" alias="X" n="69" color="3" type="thin" showname="true" xcoffset="-0.23757732805165954" ycoffset="-0.07533417064110326" keepclose="true" bold="true" large="true" ctag0="z" cexpr0="7" ctag1="hidden" cexpr1="b==0" x="x(O)+s15*sin(E10)" actx="-0.107358685319903" y="y(O)-s16*cos(E10)*sin(E11)" acty="-1.1902584814794435" shape="dot" fixed="true">Point à &quot;x(P2)+s5*sin(a1)&quot;, &quot;y(P2)-s6*cos(a1)*sin(a2)&quot; </Point>
+<Point name="Y" alias="Y" n="70" color="5" type="thin" showname="true" xcoffset="0.05190351386152203" ycoffset="-0.01168034001854501" keepclose="true" bold="true" large="true" ctag0="z" cexpr0="7" ctag1="hidden" cexpr1="b==0" x="x(O)+s15*cos(E10)" actx="1.3053148732911568" y="y(O)+s16*sin(E10)*sin(E11)" acty="-1.1609165190728215" shape="dot" fixed="true">Point à &quot;x(P2)+s5*cos(a1)&quot;, &quot;y(P2)+s6*sin(a1)*sin(a2)&quot; </Point>
+<Point name="Z" alias="Z" n="71" color="2" type="thin" showname="true" xcoffset="-0.01669997779258381" ycoffset="0.3527600362915684" keepclose="true" bold="true" large="true" ctag0="z" cexpr0="7" ctag1="hidden" cexpr1="b==0" x="x(O)" actx="0.5659878802807841" y="y(O)+s16*cos(E11)" acty="0.034201528556648486" shape="dot" fixed="true">Point à &quot;x(P2)&quot;, &quot;y(P2)+s6*cos(a2)&quot; </Point>
+<Point name="P51" n="75" color="2" hidden="super" showname="true" bold="true" x="x(X)+x(O)-x(O)" actx="-0.107358685319903" y="y(X)+y(O)-y(O)" acty="-1.1902584814794435" shape="circle" fixed="true">Point à &quot;x(C)+x(B)-x(A)&quot;, &quot;y(C)+y(B)-y(A)&quot; </Point>
+<Angle name="a10" n="76" color="3" hidden="super" unit="∞" large="true" first="X" root="O" fixed="90" acute="true">Angle X - O de mesure 90</Angle>
+<Point name="P52" n="77" color="2" hidden="super" showname="true" bold="true" x="x(Y)+x(X)-x(O)" actx="0.6319683076904696" y="y(Y)+y(X)-y(O)" acty="-1.4897004582918445" shape="circle" fixed="true">Point à &quot;x(C)+x(B)-x(A)&quot;, &quot;y(C)+y(B)-y(A)&quot; </Point>
+<Angle name="a11" n="78" color="1" hidden="super" unit="∞" large="true" first="X" root="O" fixed="90" inverse="true">Angle X - O de mesure 90</Angle>
+<Angle name="a12" n="79" color="3" hidden="super" unit="∞" large="true" first="Y" root="O" fixed="90" acute="true">Angle Y - O de mesure 90</Angle>
+<Segment name="s6" n="189" color="2" ctag0="z" cexpr0="7" ctag1="hidden" cexpr1="b==0" from="O" to="Z" arrow="true">Segment de O à Z</Segment>
+<Segment name="s7" n="192" color="3" ctag0="z" cexpr0="7" ctag1="hidden" cexpr1="b==0" from="O" to="X" arrow="true">Segment de O à X</Segment>
+<Segment name="s8" n="195" color="5" ctag0="z" cexpr0="7" ctag1="hidden" cexpr1="b==0" from="O" to="Y" arrow="true">Segment de O à Y</Segment>
+<Point name="P61" n="105" color="1" type="thick" hidden="super" large="true" x="x(O)+E9*(x(X)+x(Y)-2*x(O))" actx="0.7639291625098408" y="y(O)+E9*(y(X)+y(Y)-2*y(O))" acty="-2.7461522903546927" shape="circle" fixed="true">Point</Point>
+<Point name="P62" n="106" color="1" type="thick" hidden="super" large="true" x="x(O)-E9*(x(X)+x(Y)-2*x(O))" actx="0.36804659805172735" y="y(O)-E9*(y(X)+y(Y)-2*y(O))" acty="1.0232032058338518" shape="circle" fixed="true">Point</Point>
+<Point name="P63" n="107" color="1" type="thick" hidden="super" large="true" x="x(O)+E9*(x(X)-x(Y))" actx="-3.672032795552396" y="y(O)+E9*(y(X)-y(Y))" acty="-0.9495004294802865" shape="circle" fixed="true">Point</Point>
+<Point name="P64" n="108" color="1" type="thick" hidden="super" large="true" x="x(O)+E9*(x(Y)-x(X))" actx="4.804008556113964" y="y(O)+E9*(y(Y)-y(X))" acty="-0.7734486550405544" shape="circle" fixed="true">Point</Point>
+<Point name="p000" n="212" color="5" hidden="true" x="x(Z)+(x(X)-x(O))*0.543689012692+(x(Y)-x(O))*(-0.2955977425220017)+(x(Z)-x(O))*(-1)" actx="-0.01864663928964841" y="y(Z)+(y(X)-y(O))*0.543689012692+(y(Y)-y(O))*(-0.2955977425220017)+(y(Z)-y(O))*(-1)" acty="-0.9517163852013263" shape="circle" fixed="true">Point</Point>
+<Point name="p001" n="213" color="5" hidden="true" x="x(Z)+(x(X)-x(O))*0.2955977425220017+(x(Y)-x(O))*0.543689012692+(x(Z)-x(O))*(-1)" actx="0.7689121184406328" y="y(Z)+(y(X)-y(O))*0.2955977425220017+(y(Y)-y(O))*0.543689012692+(y(Z)-y(O))*(-1)" acty="-1.1214656452027296" shape="circle" fixed="true">Point</Point>
+<Point name="p002" n="214" color="5" hidden="true" x="x(Z)+(x(X)-x(O))*(-0.543689012692)+(x(Y)-x(O))*0.2955977425220017+(x(Z)-x(O))*(-1)" actx="1.1506223998512166" y="y(Z)+(y(X)-y(O))*(-0.543689012692)+(y(Y)-y(O))*0.2955977425220017+(y(Z)-y(O))*(-1)" acty="-0.7712326993195145" shape="circle" fixed="true">Point</Point>
+<Point name="p003" n="215" color="5" hidden="true" x="x(Z)+(x(X)-x(O))*(-0.2955977425220017)+(x(Y)-x(O))*(-0.543689012692)+(x(Z)-x(O))*(-1)" actx="0.36306364212093534" y="y(Z)+(y(X)-y(O))*(-0.2955977425220017)+(y(Y)-y(O))*(-0.543689012692)+(y(Z)-y(O))*(-1)" acty="-0.6014834393181111" shape="circle" fixed="true">Point</Point>
+<Point name="p010" n="216" color="5" hidden="true" x="x(Z)+(x(X)-x(O))*1+(x(Y)-x(O))*0.2955977425220017+(x(Z)-x(O))*(-0.543689012692)" actx="0.11118470479954293" y="y(Z)+(y(X)-y(O))*1+(y(Y)-y(O))*0.2955977425220017+(y(Z)-y(O))*(-0.543689012692)" acty="-0.870066021658828" shape="circle" fixed="true">Point</Point>
+<Point name="p011" n="217" color="5" hidden="true" x="x(Z)+(x(X)-x(O))*(-0.2955977425220017)+(x(Y)-x(O))*1+(x(Z)-x(O))*(-0.543689012692)" actx="1.5043545980176627" y="y(Z)+(y(X)-y(O))*(-0.2955977425220017)+(y(Y)-y(O))*1+(y(Z)-y(O))*(-0.543689012692)" acty="-0.6550218966795004" shape="circle" fixed="true">Point</Point>
+<Point name="p012" n="218" color="5" hidden="true" x="x(Z)+(x(X)-x(O))*(-1)+(x(Y)-x(O))*(-0.2955977425220017)+(x(Z)-x(O))*(-0.543689012692)" actx="1.0207910557620252" y="y(Z)+(y(X)-y(O))*(-1)+(y(Y)-y(O))*(-0.2955977425220017)+(y(Z)-y(O))*(-0.543689012692)" acty="-0.035469398496639215" shape="circle" fixed="true">Point</Point>
+<Point name="p013" n="219" color="5" hidden="true" x="x(Z)+(x(X)-x(O))*0.2955977425220017+(x(Y)-x(O))*(-1)+(x(Z)-x(O))*(-0.543689012692)" actx="-0.3723788374560947" y="y(Z)+(y(X)-y(O))*0.2955977425220017+(y(Y)-y(O))*(-1)+(y(Z)-y(O))*(-0.543689012692)" acty="-0.2505135234759668" shape="circle" fixed="true">Point</Point>
+<Point name="p020" n="220" color="5" hidden="true" x="x(Z)+(x(X)-x(O))*0.543689012692+(x(Y)-x(O))*1+(x(Z)-x(O))*(-0.2955977425220017)" actx="0.9392237438401703" y="y(Z)+(y(X)-y(O))*0.543689012692+(y(Y)-y(O))*1+(y(Z)-y(O))*(-0.2955977425220017)" acty="-0.7087564881232318" shape="circle" fixed="true">Point</Point>
+<Point name="p021" n="221" color="5" hidden="true" x="x(Z)+(x(X)-x(O))*(-1)+(x(Y)-x(O))*0.543689012692+(x(Z)-x(O))*(-0.2955977425220017)" actx="1.641298408767826" y="y(Z)+(y(X)-y(O))*(-1)+(y(Y)-y(O))*0.543689012692+(y(Z)-y(O))*(-0.2955977425220017)" acty="-0.06457766952050562" shape="circle" fixed="true">Point</Point>
+<Point name="p022" n="222" color="5" hidden="true" x="x(Z)+(x(X)-x(O))*(-0.543689012692)+(x(Y)-x(O))*(-1)+(x(Z)-x(O))*(-0.2955977425220017)" actx="0.19275201672139786" y="y(Z)+(y(X)-y(O))*(-0.543689012692)+(y(Y)-y(O))*(-1)+(y(Z)-y(O))*(-0.2955977425220017)" acty="0.24763989610752457" shape="circle" fixed="true">Point</Point>
+<Point name="p023" n="223" color="5" hidden="true" x="x(Z)+(x(X)-x(O))*1+(x(Y)-x(O))*(-0.543689012692)+(x(Z)-x(O))*(-0.2955977425220017)" actx="-0.5093226482062577" y="y(Z)+(y(X)-y(O))*1+(y(Y)-y(O))*(-0.543689012692)+(y(Z)-y(O))*(-0.2955977425220017)" acty="-0.3965389224952016" shape="circle" fixed="true">Point</Point>
+<Point name="p030" n="224" color="5" hidden="true" x="x(Z)+(x(X)-x(O))*(-0.543689012692)+(x(Y)-x(O))*1+(x(Z)-x(O))*0.2955977425220017" actx="1.6714060027421433" y="y(Z)+(y(X)-y(O))*(-0.543689012692)+(y(Y)-y(O))*1+(y(Z)-y(O))*0.2955977425220017" acty="0.1782755916117267" shape="circle" fixed="true">Point</Point>
+<Point name="p031" n="225" color="5" hidden="true" x="x(Z)+(x(X)-x(O))*(-1)+(x(Y)-x(O))*(-0.543689012692)+(x(Z)-x(O))*0.2955977425220017" actx="0.8373704829951165" y="y(Z)+(y(X)-y(O))*(-1)+(y(Y)-y(O))*(-0.543689012692)+(y(Z)-y(O))*0.2955977425220017" acty="0.7905486050718487" shape="circle" fixed="true">Point</Point>
+<Point name="p032" n="226" color="5" hidden="true" x="x(Z)+(x(X)-x(O))*0.543689012692+(x(Y)-x(O))*(-1)+(x(Z)-x(O))*0.2955977425220017" actx="-0.5394302421805752" y="y(Z)+(y(X)-y(O))*0.543689012692+(y(Y)-y(O))*(-1)+(y(Z)-y(O))*0.2955977425220017" acty="0.41964711463057447" shape="circle" fixed="true">Point</Point>
+<Point name="p033" n="227" color="5" hidden="true" x="x(Z)+(x(X)-x(O))*1+(x(Y)-x(O))*0.543689012692+(x(Z)-x(O))*0.2955977425220017" actx="0.2946052775664517" y="y(Z)+(y(X)-y(O))*1+(y(Y)-y(O))*0.543689012692+(y(Z)-y(O))*0.2955977425220017" acty="-0.1926258988295475" shape="circle" fixed="true">Point</Point>
+<Point name="p040" n="228" color="5" hidden="true" x="x(Z)+(x(X)-x(O))*0.2955977425220017+(x(Y)-x(O))*1+(x(Z)-x(O))*0.543689012692" actx="1.106275148564651" y="y(Z)+(y(X)-y(O))*0.2955977425220017+(y(Y)-y(O))*1+(y(Z)-y(O))*0.543689012692" acty="0.1245410001679953" shape="circle" fixed="true">Point</Point>
+<Point name="p041" n="229" color="5" hidden="true" x="x(Z)+(x(X)-x(O))*(-1)+(x(Y)-x(O))*0.2955977425220017+(x(Z)-x(O))*0.543689012692" actx="1.4578778360009172" y="y(Z)+(y(X)-y(O))*(-1)+(y(Y)-y(O))*0.2955977425220017+(y(Z)-y(O))*0.543689012692" acty="0.7614403340479823" shape="circle" fixed="true">Point</Point>
+<Point name="p042" n="230" color="5" hidden="true" x="x(Z)+(x(X)-x(O))*(-0.2955977425220017)+(x(Y)-x(O))*(-1)+(x(Z)-x(O))*0.543689012692" actx="0.02570061199691731" y="y(Z)+(y(X)-y(O))*(-0.2955977425220017)+(y(Y)-y(O))*(-1)+(y(Z)-y(O))*0.543689012692" acty="0.9178005342140658" shape="circle" fixed="true">Point</Point>
+<Point name="p043" n="231" color="5" hidden="true" x="x(Z)+(x(X)-x(O))*1+(x(Y)-x(O))*(-0.2955977425220017)+(x(Z)-x(O))*0.543689012692" actx="-0.3259020754393489" y="y(Z)+(y(X)-y(O))*1+(y(Y)-y(O))*(-0.2955977425220017)+(y(Z)-y(O))*0.543689012692" acty="0.28090120033407884" shape="circle" fixed="true">Point</Point>
+<Point name="p050" n="232" color="5" hidden="true" x="x(Z)+(x(X)-x(O))*(-0.2955977425220017)+(x(Y)-x(O))*0.543689012692+(x(Z)-x(O))*1" actx="1.1669915678936449" y="y(Z)+(y(X)-y(O))*(-0.2955977425220017)+(y(Y)-y(O))*0.543689012692+(y(Z)-y(O))*1" acty="0.8642620768526765" shape="circle" fixed="true">Point</Point>
+<Point name="p051" n="233" color="5" hidden="true" x="x(Z)+(x(X)-x(O))*(-0.543689012692)+(x(Y)-x(O))*(-0.2955977425220017)+(x(Z)-x(O))*1" actx="0.7135356196123247" y="y(Z)+(y(X)-y(O))*(-0.543689012692)+(y(Y)-y(O))*(-0.2955977425220017)+(y(Z)-y(O))*1" acty="1.197148187038766" shape="circle" fixed="true">Point</Point>
+<Point name="p052" n="234" color="5" hidden="true" x="x(Z)+(x(X)-x(O))*0.2955977425220017+(x(Y)-x(O))*(-0.543689012692)+(x(Z)-x(O))*1" actx="-0.035015807332076654" y="y(Z)+(y(X)-y(O))*0.2955977425220017+(y(Y)-y(O))*(-0.543689012692)+(y(Z)-y(O))*1" acty="0.9954931218947582" shape="circle" fixed="true">Point</Point>
+<Point name="p053" n="235" color="5" hidden="true" x="x(Z)+(x(X)-x(O))*0.543689012692+(x(Y)-x(O))*0.2955977425220017+(x(Z)-x(O))*1" actx="0.4184401409492434" y="y(Z)+(y(X)-y(O))*0.543689012692+(y(Y)-y(O))*0.2955977425220017+(y(Z)-y(O))*1" acty="0.6626070117086689" shape="circle" fixed="true">Point</Point>
+<Line name="l16" n="80" color="2" hidden="super" large="true" from="O" to="P51">Droite passant par P44 et P51</Line>
+<Circle name="c4" n="24" color="2" large="true" fixed="(1+floor(4*windoww/d(P52,O)))*d(P52,O)" midpoint="O" acute="true">Cercle de centre P44 de rayon (1+floor(4*windoww/d(P52,P44)))*d(P52,P44)</Circle>
+<Line name="l17" n="81" color="2" hidden="super" large="true" from="O" to="P52">Droite passant par P44 et P52</Line>
+<Circle name="c5" n="26" color="1" hidden="super" large="true" fixed="E9*d(O,P52)" midpoint="O" acute="true">Cercle de centre P44 de rayon E9*d(P44,P52)</Circle>
+<Polygon name="poly26" n="109" color="4" background="true" large="true" ctag0="brown" cexpr0="poly26&lt;0" ctag1="solid" cexpr1="poly26&lt;0" ctag2="z" cexpr2="if(poly26&lt;0,5,10)" ctag3="superhidden" cexpr3="a==0" point1="P62" point2="P64" point3="P61" point4="P63">Polygone P62, P64, P61, P63</Polygon>
+<Segment name="s23" n="113" color="2" large="true" ctag0="superhidden" cexpr0="a==0" from="P64" to="P62">Segment de P64 à P62</Segment>
+<Segment name="s20" n="110" color="2" large="true" ctag0="superhidden" cexpr0="a==0" from="P62" to="P63">Segment de P62 à P63</Segment>
+<Segment name="s21" n="111" color="2" large="true" ctag0="superhidden" cexpr0="a==0" from="P63" to="P61">Segment de P63 à P61</Segment>
+<Segment name="s22" n="112" color="2" large="true" ctag0="superhidden" cexpr0="a==0" from="P61" to="P64">Segment de P61 à P64</Segment>
+<Midpoint name="qm" n="236" color="5" type="thick" hidden="true" showname="true" first="p000" second="p001" shape="circle">Milieu de p000 et p001</Midpoint>
+<Segment name="a000" n="237" ctag0="thin" cexpr0="((a(p010,p001,p000)&gt;180)&amp;&amp;(a(p000,p001,p003)&gt;180))" from="p000" to="p001">Segment de p000 à p001</Segment>
+<Segment name="a001" n="238" ctag0="thin" cexpr0="((a(p011,p002,p001)&gt;180)&amp;&amp;(a(p001,p002,p000)&gt;180))" from="p001" to="p002">Segment de p001 à p002</Segment>
+<Segment name="a002" n="239" ctag0="thin" cexpr0="((a(p012,p003,p002)&gt;180)&amp;&amp;(a(p002,p003,p001)&gt;180))" from="p002" to="p003">Segment de p002 à p003</Segment>
+<Segment name="a003" n="240" ctag0="thin" cexpr0="((a(p013,p000,p003)&gt;180)&amp;&amp;(a(p003,p000,p002)&gt;180))" from="p003" to="p000">Segment de p003 à p000</Segment>
+<Segment name="a100" n="241" ctag0="thin" cexpr0="((a(p023,p010,p000)&gt;180)&amp;&amp;(a(p000,p010,p001)&gt;180))" from="p000" to="p010">Segment de p000 à p010</Segment>
+<Segment name="a101" n="242" ctag0="thin" cexpr0="((a(p020,p001,p010)&gt;180)&amp;&amp;(a(p010,p001,p000)&gt;180))" from="p010" to="p001">Segment de p010 à p001</Segment>
+<Segment name="a102" n="243" ctag0="thin" cexpr0="((a(p010,p020,p001)&gt;180)&amp;&amp;(a(p001,p020,p011)&gt;180))" from="p001" to="p020">Segment de p001 à p020</Segment>
+<Segment name="a103" n="244" ctag0="thin" cexpr0="((a(p020,p011,p001)&gt;180)&amp;&amp;(a(p001,p011,p002)&gt;180))" from="p001" to="p011">Segment de p001 à p011</Segment>
+<Segment name="a104" n="245" ctag0="thin" cexpr0="((a(p021,p002,p011)&gt;180)&amp;&amp;(a(p011,p002,p001)&gt;180))" from="p011" to="p002">Segment de p011 à p002</Segment>
+<Segment name="a105" n="246" ctag0="thin" cexpr0="((a(p011,p021,p002)&gt;180)&amp;&amp;(a(p002,p021,p012)&gt;180))" from="p002" to="p021">Segment de p002 à p021</Segment>
+<Segment name="a106" n="247" ctag0="thin" cexpr0="((a(p021,p012,p002)&gt;180)&amp;&amp;(a(p002,p012,p003)&gt;180))" from="p002" to="p012">Segment de p002 à p012</Segment>
+<Segment name="a107" n="248" ctag0="thin" cexpr0="((a(p022,p003,p012)&gt;180)&amp;&amp;(a(p012,p003,p002)&gt;180))" from="p012" to="p003">Segment de p012 à p003</Segment>
+<Segment name="a108" n="249" ctag0="thin" cexpr0="((a(p012,p022,p003)&gt;180)&amp;&amp;(a(p003,p022,p013)&gt;180))" from="p003" to="p022">Segment de p003 à p022</Segment>
+<Segment name="a109" n="250" ctag0="thin" cexpr0="((a(p022,p013,p003)&gt;180)&amp;&amp;(a(p003,p013,p000)&gt;180))" from="p003" to="p013">Segment de p003 à p013</Segment>
+<Segment name="a110" n="251" ctag0="thin" cexpr0="((a(p023,p000,p013)&gt;180)&amp;&amp;(a(p013,p000,p003)&gt;180))" from="p013" to="p000">Segment de p013 à p000</Segment>
+<Segment name="a111" n="252" ctag0="thin" cexpr0="((a(p010,p000,p023)&gt;180)&amp;&amp;(a(p023,p000,p013)&gt;180))" from="p000" to="p023">Segment de p000 à p023</Segment>
+<Segment name="a200" n="253" ctag0="thin" cexpr0="((a(p033,p020,p010)&gt;180)&amp;&amp;(a(p010,p020,p001)&gt;180))" from="p010" to="p020">Segment de p010 à p020</Segment>
+<Segment name="a201" n="254" ctag0="thin" cexpr0="((a(p030,p011,p020)&gt;180)&amp;&amp;(a(p020,p011,p001)&gt;180))" from="p020" to="p011">Segment de p020 à p011</Segment>
+<Segment name="a202" n="255" ctag0="thin" cexpr0="((a(p030,p021,p011)&gt;180)&amp;&amp;(a(p011,p021,p002)&gt;180))" from="p011" to="p021">Segment de p011 à p021</Segment>
+<Segment name="a203" n="256" ctag0="thin" cexpr0="((a(p031,p012,p021)&gt;180)&amp;&amp;(a(p021,p012,p002)&gt;180))" from="p021" to="p012">Segment de p021 à p012</Segment>
+<Segment name="a204" n="257" ctag0="thin" cexpr0="((a(p031,p022,p012)&gt;180)&amp;&amp;(a(p012,p022,p003)&gt;180))" from="p012" to="p022">Segment de p012 à p022</Segment>
+<Segment name="a205" n="258" ctag0="thin" cexpr0="((a(p032,p013,p022)&gt;180)&amp;&amp;(a(p022,p013,p003)&gt;180))" from="p022" to="p013">Segment de p022 à p013</Segment>
+<Segment name="a206" n="259" ctag0="thin" cexpr0="((a(p032,p023,p013)&gt;180)&amp;&amp;(a(p013,p023,p000)&gt;180))" from="p013" to="p023">Segment de p013 à p023</Segment>
+<Segment name="a207" n="260" ctag0="thin" cexpr0="((a(p033,p010,p023)&gt;180)&amp;&amp;(a(p023,p010,p000)&gt;180))" from="p023" to="p010">Segment de p023 à p010</Segment>
+<Segment name="a300" n="261" ctag0="thin" cexpr0="((a(p043,p033,p010)&gt;180)&amp;&amp;(a(p010,p033,p020)&gt;180))" from="p010" to="p033">Segment de p010 à p033</Segment>
+<Segment name="a301" n="262" ctag0="thin" cexpr0="((a(p040,p020,p033)&gt;180)&amp;&amp;(a(p033,p020,p010)&gt;180))" from="p033" to="p020">Segment de p033 à p020</Segment>
+<Segment name="a302" n="263" ctag0="thin" cexpr0="((a(p033,p040,p020)&gt;180)&amp;&amp;(a(p020,p040,p030)&gt;180))" from="p020" to="p040">Segment de p020 à p040</Segment>
+<Segment name="a303" n="264" ctag0="thin" cexpr0="((a(p040,p030,p011)&gt;180)&amp;&amp;(a(p011,p030,p021)&gt;180))" from="p011" to="p030">Segment de p011 à p030</Segment>
+<Segment name="a304" n="265" ctag0="thin" cexpr0="((a(p041,p021,p030)&gt;180)&amp;&amp;(a(p030,p021,p011)&gt;180))" from="p030" to="p021">Segment de p030 à p021</Segment>
+<Segment name="a305" n="266" ctag0="thin" cexpr0="((a(p030,p041,p021)&gt;180)&amp;&amp;(a(p021,p041,p012)&gt;180))" from="p021" to="p041">Segment de p021 à p041</Segment>
+<Segment name="a306" n="267" ctag0="thin" cexpr0="((a(p041,p031,p012)&gt;180)&amp;&amp;(a(p012,p031,p022)&gt;180))" from="p012" to="p031">Segment de p012 à p031</Segment>
+<Segment name="a307" n="268" ctag0="thin" cexpr0="((a(p042,p022,p031)&gt;180)&amp;&amp;(a(p031,p022,p012)&gt;180))" from="p031" to="p022">Segment de p031 à p022</Segment>
+<Segment name="a308" n="269" ctag0="thin" cexpr0="((a(p031,p042,p022)&gt;180)&amp;&amp;(a(p022,p042,p032)&gt;180))" from="p022" to="p042">Segment de p022 à p042</Segment>
+<Segment name="a309" n="270" ctag0="thin" cexpr0="((a(p042,p032,p013)&gt;180)&amp;&amp;(a(p013,p032,p023)&gt;180))" from="p013" to="p032">Segment de p013 à p032</Segment>
+<Segment name="a310" n="271" ctag0="thin" cexpr0="((a(p043,p023,p032)&gt;180)&amp;&amp;(a(p032,p023,p013)&gt;180))" from="p032" to="p023">Segment de p032 à p023</Segment>
+<Segment name="a311" n="272" ctag0="thin" cexpr0="((a(p032,p043,p023)&gt;180)&amp;&amp;(a(p023,p043,p033)&gt;180))" from="p023" to="p043">Segment de p023 à p043</Segment>
+<Segment name="a400" n="273" ctag0="thin" cexpr0="((a(p050,p041,p030)&gt;180)&amp;&amp;(a(p030,p041,p021)&gt;180))" from="p030" to="p041">Segment de p030 à p041</Segment>
+<Segment name="a401" n="274" ctag0="thin" cexpr0="((a(p051,p031,p041)&gt;180)&amp;&amp;(a(p041,p031,p012)&gt;180))" from="p041" to="p031">Segment de p041 à p031</Segment>
+<Segment name="a402" n="275" ctag0="thin" cexpr0="((a(p051,p042,p031)&gt;180)&amp;&amp;(a(p031,p042,p022)&gt;180))" from="p031" to="p042">Segment de p031 à p042</Segment>
+<Segment name="a403" n="276" ctag0="thin" cexpr0="((a(p042,p032,p013)&gt;180)&amp;&amp;(a(p032,p042,p052)&gt;180))" from="p042" to="p032">Segment de p042 à p032</Segment>
+<Segment name="a404" n="277" ctag0="thin" cexpr0="((a(p043,p032,p052)&gt;180)&amp;&amp;(a(p032,p043,p023)&gt;180))" from="p032" to="p043">Segment de p032 à p043</Segment>
+<Segment name="a405" n="278" ctag0="thin" cexpr0="((a(p033,p043,p053)&gt;180)&amp;&amp;(a(p043,p033,p010)&gt;180))" from="p043" to="p033">Segment de p043 à p033</Segment>
+<Segment name="a406" n="279" ctag0="thin" cexpr0="((a(p040,p033,p053)&gt;180)&amp;&amp;(a(p033,p040,p020)&gt;180))" from="p033" to="p040">Segment de p033 à p040</Segment>
+<Segment name="a407" n="280" ctag0="thin" cexpr0="((a(p030,p040,p050)&gt;180)&amp;&amp;(a(p040,p030,p011)&gt;180))" from="p040" to="p030">Segment de p040 à p030</Segment>
+<Segment name="a500" n="281" ctag0="thin" cexpr0="((a(p030,p050,p041)&gt;180)&amp;&amp;(a(p050,p030,p040)&gt;180))" from="p030" to="p050">Segment de p030 à p050</Segment>
+<Segment name="a501" n="282" ctag0="thin" cexpr0="((a(p041,p050,p051)&gt;180)&amp;&amp;(a(p050,p041,p030)&gt;180))" from="p050" to="p041">Segment de p050 à p041</Segment>
+<Segment name="a502" n="283" ctag0="thin" cexpr0="((a(p041,p051,p031)&gt;180)&amp;&amp;(a(p051,p041,p050)&gt;180))" from="p041" to="p051">Segment de p041 à p051</Segment>
+<Segment name="a503" n="284" ctag0="thin" cexpr0="((a(p031,p051,p042)&gt;180)&amp;&amp;(a(p051,p031,p041)&gt;180))" from="p051" to="p031">Segment de p051 à p031</Segment>
+<Segment name="a504" n="285" ctag0="thin" cexpr0="((a(p042,p051,p052)&gt;180)&amp;&amp;(a(p051,p042,p031)&gt;180))" from="p051" to="p042">Segment de p051 à p042</Segment>
+<Segment name="a505" n="286" ctag0="thin" cexpr0="((a(p042,p052,p032)&gt;180)&amp;&amp;(a(p052,p042,p051)&gt;180))" from="p042" to="p052">Segment de p042 à p052</Segment>
+<Segment name="a506" n="287" ctag0="thin" cexpr0="((a(p032,p052,p043)&gt;180)&amp;&amp;(a(p052,p032,p042)&gt;180))" from="p052" to="p032">Segment de p052 à p032</Segment>
+<Segment name="a507" n="288" ctag0="thin" cexpr0="((a(p043,p052,p053)&gt;180)&amp;&amp;(a(p052,p043,p032)&gt;180))" from="p052" to="p043">Segment de p052 à p043</Segment>
+<Segment name="a508" n="289" ctag0="thin" cexpr0="((a(p043,p053,p033)&gt;180)&amp;&amp;(a(p053,p043,p052)&gt;180))" from="p043" to="p053">Segment de p043 à p053</Segment>
+<Segment name="a509" n="290" ctag0="thin" cexpr0="((a(p033,p053,p040)&gt;180)&amp;&amp;(a(p053,p033,p043)&gt;180))" from="p053" to="p033">Segment de p053 à p033</Segment>
+<Segment name="a510" n="291" ctag0="thin" cexpr0="((a(p040,p053,p050)&gt;180)&amp;&amp;(a(p053,p040,p033)&gt;180))" from="p053" to="p040">Segment de p053 à p040</Segment>
+<Segment name="a511" n="292" ctag0="thin" cexpr0="((a(p040,p050,p030)&gt;180)&amp;&amp;(a(p050,p040,p053)&gt;180))" from="p040" to="p050">Segment de p040 à p050</Segment>
+<Segment name="a600" n="293" ctag0="thin" cexpr0="((a(p050,p051,p041)&gt;180)&amp;&amp;(a(p051,p050,p053)&gt;180))" from="p050" to="p051">Segment de p050 à p051</Segment>
+<Segment name="a601" n="294" ctag0="thin" cexpr0="((a(p051,p052,p042)&gt;180)&amp;&amp;(a(p052,p051,p050)&gt;180))" from="p051" to="p052">Segment de p051 à p052</Segment>
+<Segment name="a602" n="295" ctag0="thin" cexpr0="((a(p052,p053,p043)&gt;180)&amp;&amp;(a(p053,p052,p051)&gt;180))" from="p052" to="p053">Segment de p052 à p053</Segment>
+<Segment name="a603" n="296" ctag0="thin" cexpr0="((a(p053,p050,p040)&gt;180)&amp;&amp;(a(p050,p053,p052)&gt;180))" from="p053" to="p050">Segment de p053 à p050</Segment>
+<Intersection name="I14" n="82" color="1" hidden="super" large="true" first="a11" second="c4" shape="circle" which="first">Intersection entre a11 et c4</Intersection>
+<Intersection name="I15" n="83" color="3" hidden="super" large="true" first="a12" second="c4" shape="circle" which="first">Intersection entre a12 et c4</Intersection>
+<Intersection name="I16" n="84" color="2" type="thick" hidden="super" showname="true" large="true" first="l17" second="c5" shape="circle" which="second">Intersection entre l17 et c5</Intersection>
+<Intersection name="u" n="303" color="5" type="thick" hidden="true" showname="true" first="a000" second="s7" shape="circle">Intersection entre a000 et s7</Intersection>
+<Point name="P53" n="85" color="1" hidden="super" bold="true" x="x(I14)+x(X)-x(O)" actx="-8.145096645216988" y="y(I14)+y(X)-y(O)" acty="15.270956939659452" shape="circle" fixed="true">Point à &quot;x(C)+x(B)-x(A)&quot;, &quot;y(C)+y(B)-y(A)&quot; </Point>
+<Point name="P54" n="86" color="3" hidden="super" bold="true" x="x(I15)+x(Y)-x(O)" actx="8.18214006814376" y="y(I15)+y(Y)-y(O)" acty="15.818074024906878" shape="circle" fixed="true">Point à &quot;x(C)+x(B)-x(A)&quot;, &quot;y(C)+y(B)-y(A)&quot; </Point>
+<Point name="P55" n="87" color="1" hidden="super" showname="true" bold="true" x="x(I16)+x(X)-x(O)" actx="-0.3052999675489597" y="y(I16)+y(X)-y(O)" acty="0.6944192666148288" shape="circle" fixed="true">Point à &quot;x(C)+x(B)-x(A)&quot;, &quot;y(C)+y(B)-y(A)&quot; </Point>
+<Point name="P56" n="88" color="1" hidden="super" showname="true" bold="true" x="x(I16)+x(Y)-x(O)" actx="1.1073735910621" y="y(I16)+y(Y)-y(O)" acty="0.7237612290214508" shape="circle" fixed="true">Point à &quot;x(C)+x(B)-x(A)&quot;, &quot;y(C)+y(B)-y(A)&quot; </Point>
+<Point name="P57" n="89" color="2" type="thick" hidden="super" x="2*x(O)-x(I16)" actx="0.7639291625098408" y="2*y(O)-y(I16)" acty="-2.7461522903546927" shape="circle" fixed="true">Point</Point>
+<Expression name="p" n="304" color="1" type="thick" hidden="true" showname="true" showvalue="true" x="0.0" y="0.0" value="0.96*d(O,u)/d(O,X)" prompt="Valeur">Expression &quot;0.96*d(O,u)/d(O,X)&quot; à 0.0, 0.0</Expression>
+<Line name="l18" n="90" color="1" hidden="super" large="true" from="I14" to="P53">Droite passant par I14 et P53</Line>
+<Line name="l19" n="91" color="3" hidden="super" large="true" from="P54" to="I15">Droite passant par P54 et I15</Line>
+<Point name="P58" n="92" color="2" type="thick" hidden="super" bold="true" x="x(P57)+x(I16)-x(P55)" actx="1.437275728110528" y="y(P57)+y(I16)-y(P55)" acty="-2.4173683511356696" shape="circle" fixed="true">Point à &quot;x(C)+x(B)-x(A)&quot;, &quot;y(C)+y(B)-y(A)&quot; </Point>
+<Point name="P59" n="93" color="2" type="thick" hidden="super" bold="true" x="x(P57)+x(I16)-x(P56)" actx="0.02460216949946803" y="y(P57)+y(I16)-y(P56)" acty="-2.4467103135422916" shape="circle" fixed="true">Point à &quot;x(C)+x(B)-x(A)&quot;, &quot;y(C)+y(B)-y(A)&quot; </Point>
+<Line name="l20" n="94" color="1" hidden="super" large="true" from="I16" to="P55">Droite passant par I16 et P55</Line>
+<Line name="l21" n="95" color="1" hidden="super" large="true" from="I16" to="P56">Droite passant par I16 et P56</Line>
+<Expression name="c" n="305" color="1" type="thick" hidden="true" showname="true" showvalue="true" x="0.0" y="0.0" value="2*p" prompt="Valeur">Expression &quot;2*p&quot; à 0.0, 0.0</Expression>
+<Expression name="h" n="306" color="1" type="thick" hidden="true" showname="true" showvalue="true" x="0.0" y="0.0" value="p*tan(30)" prompt="Valeur">Expression &quot;p*tan(30)&quot; à 0.0, 0.0</Expression>
+<Intersection name="I17" n="96" color="1" hidden="super" showname="true" large="true" first="l17" second="l18" shape="circle">Intersection entre l17 et l18</Intersection>
+<Intersection name="I18" n="97" color="3" hidden="super" showname="true" large="true" first="l17" second="l19" shape="circle">Intersection entre l17 et l19</Intersection>
+<Line name="l22" n="98" color="1" hidden="super" large="true" from="P57" to="P58">Droite passant par P57 et P58</Line>
+<Line name="l23" n="99" color="1" hidden="super" large="true" from="P57" to="P59">Droite passant par P57 et P59</Line>
+<Point name="P60" n="100" color="5" type="thick" hidden="super" showname="true" large="true" x="if(d(O,I17)&gt;d(O,I18),x(I17),x(I18))" actx="-1.6020046177282206" y="if(d(O,I17)&gt;d(O,I18),y(I17),y(I18))" acty="19.780845104353897" shape="circle" fixed="true">Point</Point>
+<Intersection name="I19" n="101" color="1" hidden="super" showname="true" large="true" first="l23" second="l20" shape="circle">Intersection entre l23 et l20</Intersection>
+<Intersection name="I20" n="102" color="1" hidden="super" showname="true" large="true" first="l22" second="l21" shape="circle">Intersection entre l22 et l21</Intersection>
+<Function name="f24" n="103" color="1" type="thin" showname="true" large="true" ctag0="z" cexpr0="9" ctag1="superhidden" cexpr1="a==0" x="if(floor(t/2)==(t/2),if(floor(t/4)==(t/4),x(I16)+(t/2)*(x(P56)-x(I16)),x(I19)+(t/2)*(x(P56)-x(I16))),if(floor((t-1)/4)==(t-1)/4,x(I16)+((t+1)/2)*(x(P56)-x(I16)),x(I19)+((t+1)/2)*(x(P56)-x(I16))))" y="if(floor(t/2)==(t/2),if(floor(t/4)==(t/4),y(I16)+(t/2)*(y(P56)-y(I16)),y(I19)+(t/2)*(y(P56)-y(I16))),if(floor((t-1)/4)==(t-1)/4,y(I16)+((t+1)/2)*(y(P56)-y(I16)),y(I19)+((t+1)/2)*(y(P56)-y(I16))))" var="t" min="0" max="floor(((y(I20)-y(I16))/(y(P56)-y(I16)))*2)-1" d="1" shape="cross" color="1">Fonction ( if(floor(t/2)==(t/2),if(floor(t/4)==(t/4),x(I16)+(t/2)*(x(P56)-x(I16)),x(I19)+(t/2)*(x(P56)-x(I16))),if(floor((t-1)/4)==(t-1)/4,x(I16)+((t+1)/2)*(x(P56)-x(I16)),x(I19)+((t+1)/2)*(x(P56)-x(I16)))) , if(floor(t/2)==(t/2),if(floor(t/4)==(t/4),y(I16)+(t/2)*(y(P56)-y(I16)),y(I19)+(t/2)*(y(P56)-y(I16))),if(floor((t-1)/4)==(t-1)/4,y(I16)+((t+1)/2)*(y(P56)-y(I16)),y(I19)+((t+1)/2)*(y(P56)-y(I16)))) )</Function>
+<Function name="f25" n="104" color="1" type="thin" showname="true" large="true" ctag0="z" cexpr0="9" ctag1="superhidden" cexpr1="a==0" x="if(floor(t/2)==(t/2),if(floor(t/4)==(t/4),x(I16)+(t/2)*(x(P55)-x(I16)),x(I20)+(t/2)*(x(P55)-x(I16))),if(floor((t-1)/4)==(t-1)/4,x(I16)+((t+1)/2)*(x(P55)-x(I16)),x(I20)+((t+1)/2)*(x(P55)-x(I16))))" y="if(floor(t/2)==(t/2),if(floor(t/4)==(t/4),y(I16)+(t/2)*(y(P55)-y(I16)),y(I20)+(t/2)*(y(P55)-y(I16))),if(floor((t-1)/4)==(t-1)/4,y(I16)+((t+1)/2)*(y(P55)-y(I16)),y(I20)+((t+1)/2)*(y(P55)-y(I16))))" var="t" min="0" max="floor(((x(I19)-x(I16))/(x(P55)-x(I16)))*2)-1" d="1" shape="cross" color="1">Fonction ( if(floor(t/2)==(t/2),if(floor(t/4)==(t/4),x(I16)+(t/2)*(x(P55)-x(I16)),x(I20)+(t/2)*(x(P55)-x(I16))),if(floor((t-1)/4)==(t-1)/4,x(I16)+((t+1)/2)*(x(P55)-x(I16)),x(I20)+((t+1)/2)*(x(P55)-x(I16)))) , if(floor(t/2)==(t/2),if(floor(t/4)==(t/4),y(I16)+(t/2)*(y(P55)-y(I16)),y(I20)+(t/2)*(y(P55)-y(I16))),if(floor((t-1)/4)==(t-1)/4,y(I16)+((t+1)/2)*(y(P55)-y(I16)),y(I20)+((t+1)/2)*(y(P55)-y(I16)))) )</Function>
+</Objects>
+</Construction>
+</CaR>

@@ -60,7 +60,8 @@ export type FormulaFn =
     | ListFn;
 
 // DGPad's own names for its operators, also applying to lists, its view
-// restrictions (see restrictView) and Blockly's message (see alert).
+// restrictions (see restrictView), Blockly's message (see alert) and a
+// button's wait (see programSteps).
 type ListFn =
     | "plus"
     | "minus"
@@ -70,7 +71,8 @@ type ListFn =
     | "pow"
     | "restrictTheta"
     | "restrictPhi"
-    | "ALERT";
+    | "ALERT"
+    | "WAIT";
 
 // -1: one argument or more.
 const FORMULA_ARITY: Record<FormulaFn, number> = {
@@ -126,6 +128,7 @@ const FORMULA_ARITY: Record<FormulaFn, number> = {
     restrictTheta: 1,
     restrictPhi: 1,
     ALERT: 1,
+    WAIT: 1,
 };
 
 const LIST_OPERATORS: Record<ListFn, BinaryOp | null> = {
@@ -138,6 +141,7 @@ const LIST_OPERATORS: Record<ListFn, BinaryOp | null> = {
     restrictTheta: null,
     restrictPhi: null,
     ALERT: null,
+    WAIT: null,
 };
 
 // The only methods a script may call: reading an object, changing one of
@@ -2154,6 +2158,8 @@ interface ScriptFunction {
     params: number[];
     slots: number[];
     body: Code;
+    // Its body run step by step, in a program that waits.
+    steps?: Steps;
 }
 
 // What a program is compiled in: the slots of the variables it sees and its
@@ -2581,7 +2587,7 @@ function compileNode(node: FormulaNode, scope: Scope): Code {
                     if (values === null) return null;
                     if (op) return evalBinary(op, values[0], values[1]);
                     if (fn === "ALERT") frame.env.alert?.(values[0]);
-                    else
+                    else if (fn !== "WAIT")
                         frame.env.restrictView?.(
                             fn === "restrictTheta" ? "THETA" : "PHI",
                             values[0],
@@ -2914,11 +2920,38 @@ function callScript(
     values: ScriptValue[],
     frame: Frame,
 ): ScriptValue | null {
+    const saved = enter(fn, values, frame);
+    fn.body(frame);
+    return leave(fn, saved, frame);
+}
+
+function* callSteps(
+    fn: ScriptFunction,
+    values: ScriptValue[],
+    frame: Frame,
+): Generator<number, ScriptValue | null, void> {
+    const saved = enter(fn, values, frame);
+    yield* fn.steps!(frame);
+    return leave(fn, saved, frame);
+}
+
+function enter(
+    fn: ScriptFunction,
+    values: ScriptValue[],
+    frame: Frame,
+): (ScriptValue | null)[] {
     if (++frame.depth > MAX_DEPTH) throw new StepLimitExceeded();
     const saved = fn.slots.map((slot) => frame.slots[slot]);
     fn.slots.forEach((slot) => (frame.slots[slot] = null));
     fn.params.forEach((slot, i) => (frame.slots[slot] = values[i] ?? null));
-    fn.body(frame);
+    return saved;
+}
+
+function leave(
+    fn: ScriptFunction,
+    saved: (ScriptValue | null)[],
+    frame: Frame,
+): ScriptValue | null {
     const value = frame.returning ? frame.result : null;
     frame.returning = false;
     fn.slots.forEach((slot, i) => (frame.slots[slot] = saved[i]));
@@ -2932,7 +2965,7 @@ function callScript(
 function declareFunctions(
     statements: Statement[],
     scope: Scope,
-    compile: (body: Statement[], scope: Scope) => Code,
+    compile: (body: Statement[], scope: Scope, fn: ScriptFunction) => Code,
 ): Scope {
     const declared = statements.filter(
         (statement) => statement.kind === "function",
@@ -2949,11 +2982,11 @@ function declareFunctions(
         };
         functions.set(statement.name, fn);
         return () => {
-            fn.body = compile(statement.body, {
-                slots,
-                functions,
-                size: scope.size,
-            });
+            fn.body = compile(
+                statement.body,
+                { slots, functions, size: scope.size },
+                fn,
+            );
         };
     });
     bodies.forEach((compileBody) => compileBody());
@@ -3031,6 +3064,78 @@ function compileStatement(statement: Statement, scope: Scope): Code {
             };
         }
     }
+}
+
+// A program that waits, run step by step: generators walk its statements,
+// stopping at each WAIT(ms) and in each function it calls as a statement;
+// its expressions are the closures of the others (a WAIT in an expression
+// doesn't wait).
+type Steps = (frame: Frame) => Generator<number, void, void>;
+
+function compileSteps(statements: Statement[], scope: Scope): Steps {
+    scope = declareFunctions(statements, scope, (body, inner, fn) => {
+        fn.steps = compileSteps(body, inner);
+        return compileBlock(body, inner);
+    });
+    const steps = statements.map((statement) =>
+        statementSteps(statement, scope),
+    );
+    return function* (frame) {
+        for (const code of steps) {
+            step(frame);
+            yield* code(frame);
+            if (frame.returning || frame.jump) return;
+        }
+    };
+}
+
+function statementSteps(statement: Statement, scope: Scope): Steps {
+    if (statement.kind === "if") {
+        const test = compileNode(statement.test, scope);
+        const then = compileSteps(statement.then, scope);
+        const otherwise = compileSteps(statement.otherwise, scope);
+        return (frame) => (truthy(test(frame)) ? then : otherwise)(frame);
+    }
+    if (statement.kind === "loop") {
+        const test = statement.test && compileNode(statement.test, scope);
+        const update = statement.update && compileNode(statement.update, scope);
+        const body = compileSteps(statement.body, scope);
+        return function* (frame) {
+            while (!test || truthy(test(frame))) {
+                step(frame);
+                yield* body(frame);
+                if (frame.returning) return;
+                const jump = frame.jump;
+                frame.jump = null;
+                if (jump === "break") return;
+                update?.(frame);
+            }
+        };
+    }
+    const node = statement.kind === "expression" ? statement.node : null;
+    if (node?.kind === "call" && node.fn === "WAIT") {
+        const ms = compileNode(node.args[0], scope);
+        return function* (frame) {
+            const value = realPart(ms(frame));
+            if (value !== null) yield value;
+        };
+    }
+    const called = node?.kind === "assign" ? node.value : node;
+    const fn = called?.kind === "userCall" && scope.functions.get(called.name);
+    if (fn) {
+        const args = called.args.map((arg) => compileNode(arg, scope));
+        const slot =
+            node!.kind === "assign" ? scope.slots.get(node.name) : undefined;
+        return function* (frame) {
+            const values = evalCodes(args, frame);
+            const value = values && (yield* callSteps(fn, values, frame));
+            if (slot !== undefined) frame.slots[slot] = value;
+        };
+    }
+    const code = compileStatement(statement, scope);
+    return function* (frame) {
+        code(frame);
+    };
 }
 
 // *************************************************
@@ -3451,9 +3556,23 @@ function evaluate(compiled: Compiled, env: FormulaEnv, program?: Program) {
         compiled.code = compiled.translate();
         compiled.translate = null;
     }
-    const frame: Frame = {
+    const frame = newFrame(env, compiled.size);
+    let value: ScriptValue | null;
+    try {
+        value = compiled.code(frame);
+    } catch (error) {
+        if (tooLong(error)) return null;
+        throw error;
+    }
+    compiled.work += 1 + frame.steps;
+    if (program && frame.turtle) TURTLES.set(program, frame.turtle);
+    return value;
+}
+
+function newFrame(env: FormulaEnv, size: number): Frame {
+    return {
         env,
-        slots: new Array<ScriptValue | null>(compiled.size).fill(null),
+        slots: new Array<ScriptValue | null>(size).fill(null),
         steps: 0,
         depth: 0,
         owned: null,
@@ -3464,20 +3583,12 @@ function evaluate(compiled: Compiled, env: FormulaEnv, program?: Program) {
         precision: 1e14,
         unit: 0,
     };
-    let value: ScriptValue | null;
-    try {
-        value = compiled.code(frame);
-    } catch (error) {
-        // A RangeError: JavaScript's own limit on a text's length, which a
-        // script reaches before MAX_LENGTH by joining long texts.
-        if (error instanceof StepLimitExceeded || error instanceof RangeError)
-            return null;
-        throw error;
-    }
-    compiled.work += 1 + frame.steps;
-    if (program && frame.turtle) TURTLES.set(program, frame.turtle);
-    return value;
 }
+
+// A RangeError: JavaScript's own limit on a text's length, which a script
+// reaches before MAX_LENGTH by joining long texts.
+const tooLong = (error: unknown) =>
+    error instanceof StepLimitExceeded || error instanceof RangeError;
 
 function programScope(program: Program): Scope {
     return {
@@ -3508,6 +3619,30 @@ export function evaluateProgram(
     }
     const value = evaluate(compiled, env, program);
     return typeof value === "number" && !Number.isFinite(value) ? null : value;
+}
+
+// The run of a program that waits, each step yielding the milliseconds of
+// its wait, or null for a program that doesn't (see evaluateProgram).
+export function programSteps(
+    program: Program,
+    env: FormulaEnv,
+): Iterator<number> | null {
+    if (
+        !programNodes(program).some(
+            (node) => node.kind === "call" && node.fn === "WAIT",
+        )
+    )
+        return null;
+    const scope = programScope(program);
+    const steps = compileSteps(program.body, scope);
+    const frame = newFrame(env, scope.size.value);
+    return (function* () {
+        try {
+            yield* steps(frame);
+        } catch (error) {
+            if (!tooLong(error)) throw error;
+        }
+    })();
 }
 
 // Never throws: any domain failure (an undefined referenced point, division

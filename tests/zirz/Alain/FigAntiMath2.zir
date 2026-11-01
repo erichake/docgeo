@@ -1,0 +1,651 @@
+<?xml version="1.0" encoding="utf-8"?>
+<CaR>
+<Macro Name="PourAntiMath" showduplicates="true">
+<Parameter name="f2">f2</Parameter>
+<Parameter name="M">M</Parameter>
+<Objects>
+<Point name="M" n="0" mainparameter="true" x="1.5471510076819879" y="1.8126384587043405">Point</Point>
+<Function name="f2" n="1" color="4" showname="true" showvalue="true" mainparameter="true" f="0" x="0.0" y="0.0" var="x">f2(x)=0</Function>
+<Point name="P5" n="2" color="5" hidden="super" x="x(M)+1" actx="2.547151007681988" y="y(M)+f2(x(M),y(M))" acty="1.8126384587043405" shape="circle" fixed="true">Point</Point>
+<Ray name="r1" n="3" color="4" hidden="super" from="M" to="P5">Demi-droite d&apos;origine M vers P5</Ray>
+<Circle name="c1" n="4" scolor="153,218,255" hidden="super" fixed="0.61664" midpoint="M" acute="true">Cercle de centre M de rayon 0.61664</Circle>
+<Intersection name="P1" n="5" color="5" hidden="super" first="r1" second="c1" shape="circle" which="first">Intersection entre r1 et c1</Intersection>
+<Segment name="s1" n="6" color="3" target="true" from="M" to="P1" arrow="true">Segment de M à P1</Segment>
+</Objects>
+</Macro>
+<Script Name="PourAntiMath">
+for (i=0; i&lt;10; i=i+1){
+	for (j=0; j&lt;10; j=j+1){
+		k=10*i+j
+		a=Point(&quot;A&quot;+k,-5+i,-5+j);
+		ExecuteMacro(&quot;PourAntiMath&quot;,&quot;f2,A&quot;+k);
+	}
+}
+
+
+
+
+
+</Script>
+<Construction>
+<Window x="0.0" y="0.0" w="10.678718833360263" showgrid="true"/>
+<Windowdim w="1351" h="864"/>
+<Preferences minfontsize="13" minpointsize="3" minlinesize="1" arrowsize="15" digits.lengths="5" digits.edit="5" digits.angles="0" colorbackground="255,255,255" colorbackgroundx="7" colorbackgroundy="6" colorbackgroundPal="4" fig3D="false"/>
+<CTRLslider Ename="a" x="655" y="58" w="200" h="29" showC="true" showU="false" showV="true" hidden="false" C="a=" U="°" V="0.8" min="-2.0" max="2.0" T="0.1" fixT="true" showT="true"/>
+<Grid axesonly="true" color="1" thickness="0"/>
+<Objects>
+<Point name="A64" n="952" color="5" x="1.0" y="-1.0" shape="circle">Point</Point>
+<Point name="A66" n="964" color="5" x="1.0" y="1.0" shape="circle">Point</Point>
+<Point name="A65" n="958" color="5" x="1.0" y="0.0" shape="circle">Point</Point>
+<Point name="A78" n="1036" color="5" x="2.0" y="3.0" shape="circle">Point</Point>
+<Point name="A63" n="946" color="5" x="1.0" y="-2.0" shape="circle">Point</Point>
+<Point name="A62" n="940" color="5" x="1.0" y="-3.0" shape="circle">Point</Point>
+<Point name="A58" n="916" color="5" x="0.0" y="3.0" shape="circle">Point</Point>
+<Point name="A60" n="928" color="5" x="1.0" y="-5.0" shape="circle">Point</Point>
+<Point name="A67" n="970" color="5" x="1.0" y="2.0" shape="circle">Point</Point>
+<Point name="A74" n="1012" color="5" x="2.0" y="-1.0" shape="circle">Point</Point>
+<Point name="A57" n="910" color="5" x="0.0" y="2.0" shape="circle">Point</Point>
+<Point name="A59" n="922" color="5" x="0.0" y="4.0" shape="circle">Point</Point>
+<Point name="A61" n="934" color="5" x="1.0" y="-4.0" shape="circle">Point</Point>
+<Point name="A96" n="1144" color="5" x="4.0" y="1.0" shape="circle">Point</Point>
+<Point name="A95" n="1138" color="5" x="4.0" y="0.0" shape="circle">Point</Point>
+<Point name="A97" n="1150" color="5" x="4.0" y="2.0" shape="circle">Point</Point>
+<Point name="A83" n="1066" color="5" x="3.0" y="-2.0" shape="circle">Point</Point>
+<Point name="A82" n="1060" color="5" x="3.0" y="-3.0" shape="circle">Point</Point>
+<Point name="A89" n="1102" color="5" x="3.0" y="4.0" shape="circle">Point</Point>
+<Point name="A99" n="1162" color="5" x="4.0" y="4.0" shape="circle">Point</Point>
+<Point name="A92" n="1120" color="5" x="4.0" y="-3.0" shape="circle">Point</Point>
+<Point name="A94" n="1132" color="5" x="4.0" y="-1.0" shape="circle">Point</Point>
+<Point name="A93" n="1126" color="5" x="4.0" y="-2.0" shape="circle">Point</Point>
+<Point name="A98" n="1156" color="5" x="4.0" y="3.0" shape="circle">Point</Point>
+<Point name="A91" n="1114" color="5" x="4.0" y="-4.0" shape="circle">Point</Point>
+<Point name="A90" n="1108" color="5" x="4.0" y="-5.0" shape="circle">Point</Point>
+<Point name="A7" n="610" color="5" x="-5.0" y="2.0" shape="circle">Point</Point>
+<Point name="A8" n="616" color="5" x="-5.0" y="3.0" shape="circle">Point</Point>
+<Point name="A6" n="604" color="5" x="-5.0" y="1.0" shape="circle">Point</Point>
+<Point name="A12" n="640" color="5" x="-4.0" y="-3.0" shape="circle">Point</Point>
+<Point name="A0" n="568" color="5" x="-5.0" y="-5.0" shape="circle">Point</Point>
+<Point name="A9" n="622" color="5" x="-5.0" y="4.0" shape="circle">Point</Point>
+<Point name="A10" n="626" color="5" x="-4.0" y="-5.0" shape="circle">Point</Point>
+<Line name="xAxis" n="1" xaxis="true">X axis</Line>
+<Line name="yAxis" n="0" yaxis="true">Y axis</Line>
+<Expression name="a" n="1160" color="4" hidden="super" showname="true" showvalue="true" x="0.0" y="0.0" value="0.8" prompt="Valeur">Expression &quot;0.8&quot; à 0.0, 0.0</Expression>
+<Point name="A4" n="588" color="5" x="-5.0" y="-1.0" shape="circle">Point</Point>
+<Point name="A5" n="594" color="5" x="-5.0" y="0.0" shape="circle">Point</Point>
+<Point name="M" n="8" color="2" type="thick" showname="true" xcoffset="0.5527174088094675" ycoffset="0.06811325345757124" keepclose="true" x="1.4897913345859912" y="1.7515114339051525" shape="circle">Point</Point>
+<Point name="A76" n="1020" color="5" x="2.0" y="1.0" shape="circle">Point</Point>
+<Point name="A69" n="978" color="5" x="1.0" y="4.0" shape="circle">Point</Point>
+<Point name="A68" n="972" color="5" x="1.0" y="3.0" shape="circle">Point</Point>
+<Point name="A73" n="1002" color="5" x="2.0" y="-2.0" shape="circle">Point</Point>
+<Point name="A75" n="1014" color="5" x="2.0" y="0.0" shape="circle">Point</Point>
+<Point name="A77" n="1026" color="5" x="2.0" y="2.0" shape="circle">Point</Point>
+<Point name="A70" n="984" color="5" x="2.0" y="-5.0" shape="circle">Point</Point>
+<Point name="A2" n="576" color="5" x="-5.0" y="-3.0" shape="circle">Point</Point>
+<Point name="A3" n="582" color="5" x="-5.0" y="-2.0" shape="circle">Point</Point>
+<Point name="A1" n="570" color="5" x="-5.0" y="-4.0" shape="circle">Point</Point>
+<Point name="A72" n="996" color="5" x="2.0" y="-3.0" shape="circle">Point</Point>
+<Point name="A71" n="990" color="5" x="2.0" y="-4.0" shape="circle">Point</Point>
+<Point name="A11" n="630" color="5" x="-4.0" y="-4.0" shape="circle">Point</Point>
+<Point name="A47" n="846" color="5" x="-1.0" y="2.0" shape="circle">Point</Point>
+<Point name="A46" n="840" color="5" x="-1.0" y="1.0" shape="circle">Point</Point>
+<Point name="A48" n="852" color="5" x="-1.0" y="3.0" shape="circle">Point</Point>
+<Point name="A53" n="882" color="5" x="0.0" y="-2.0" shape="circle">Point</Point>
+<Point name="A55" n="894" color="5" x="0.0" y="0.0" shape="circle">Point</Point>
+<Point name="A54" n="888" color="5" x="0.0" y="-1.0" shape="circle">Point</Point>
+<Point name="A50" n="864" color="5" x="0.0" y="-5.0" shape="circle">Point</Point>
+<Point name="A18" n="672" color="5" x="-4.0" y="3.0" shape="circle">Point</Point>
+<Point name="A20" n="684" color="5" x="-3.0" y="-5.0" shape="circle">Point</Point>
+<Point name="A22" n="696" color="5" x="-3.0" y="-3.0" shape="circle">Point</Point>
+<Point name="A49" n="858" color="5" x="-1.0" y="4.0" shape="circle">Point</Point>
+<Point name="A34" n="768" color="5" x="-2.0" y="-1.0" shape="circle">Point</Point>
+<Point name="A19" n="678" color="5" x="-4.0" y="4.0" shape="circle">Point</Point>
+<Point name="A44" n="828" color="5" x="-1.0" y="-1.0" shape="circle">Point</Point>
+<Point name="A43" n="822" color="5" x="-1.0" y="-2.0" shape="circle">Point</Point>
+<Point name="A36" n="780" color="5" x="-2.0" y="1.0" shape="circle">Point</Point>
+<Point name="A41" n="810" color="5" x="-1.0" y="-4.0" shape="circle">Point</Point>
+<Point name="A40" n="804" color="5" x="-1.0" y="-5.0" shape="circle">Point</Point>
+<Point name="A42" n="816" color="5" x="-1.0" y="-3.0" shape="circle">Point</Point>
+<Point name="A35" n="774" color="5" x="-2.0" y="0.0" shape="circle">Point</Point>
+<Point name="A45" n="834" color="5" x="-1.0" y="0.0" shape="circle">Point</Point>
+<Point name="A52" n="876" color="5" x="0.0" y="-3.0" shape="circle">Point</Point>
+<Point name="A51" n="870" color="5" x="0.0" y="-4.0" shape="circle">Point</Point>
+<Point name="A37" n="786" color="5" x="-2.0" y="2.0" shape="circle">Point</Point>
+<Point name="A39" n="798" color="5" x="-2.0" y="4.0" shape="circle">Point</Point>
+<Point name="A38" n="792" color="5" x="-2.0" y="3.0" shape="circle">Point</Point>
+<Point name="A27" n="726" color="5" x="-3.0" y="2.0" shape="circle">Point</Point>
+<Point name="A56" n="900" color="5" x="0.0" y="1.0" shape="circle">Point</Point>
+<Point name="A85" n="1074" color="5" x="3.0" y="0.0" shape="circle">Point</Point>
+<Point name="A24" n="708" color="5" x="-3.0" y="-1.0" shape="circle">Point</Point>
+<Point name="A26" n="720" color="5" x="-3.0" y="1.0" shape="circle">Point</Point>
+<Point name="A28" n="732" color="5" x="-3.0" y="3.0" shape="circle">Point</Point>
+<Point name="A84" n="1068" color="5" x="3.0" y="-1.0" shape="circle">Point</Point>
+<Point name="A80" n="1044" color="5" x="3.0" y="-5.0" shape="circle">Point</Point>
+<Point name="A79" n="1038" color="5" x="2.0" y="4.0" shape="circle">Point</Point>
+<Point name="A81" n="1050" color="5" x="3.0" y="-4.0" shape="circle">Point</Point>
+<Point name="A86" n="1080" color="5" x="3.0" y="1.0" shape="circle">Point</Point>
+<Point name="A88" n="1092" color="5" x="3.0" y="3.0" shape="circle">Point</Point>
+<Point name="A87" n="1086" color="5" x="3.0" y="2.0" shape="circle">Point</Point>
+<Point name="A17" n="666" color="5" x="-4.0" y="2.0" shape="circle">Point</Point>
+<Point name="A16" n="660" color="5" x="-4.0" y="1.0" shape="circle">Point</Point>
+<Point name="A23" n="702" color="5" x="-3.0" y="-2.0" shape="circle">Point</Point>
+<Point name="A15" n="654" color="5" x="-4.0" y="0.0" shape="circle">Point</Point>
+<Point name="A21" n="690" color="5" x="-3.0" y="-4.0" shape="circle">Point</Point>
+<Point name="A14" n="648" color="5" x="-4.0" y="-1.0" shape="circle">Point</Point>
+<Point name="A13" n="642" color="5" x="-4.0" y="-2.0" shape="circle">Point</Point>
+<Point name="A33" n="762" color="5" x="-2.0" y="-2.0" shape="circle">Point</Point>
+<Point name="A32" n="756" color="5" x="-2.0" y="-3.0" shape="circle">Point</Point>
+<Point name="A25" n="714" color="5" x="-3.0" y="0.0" shape="circle">Point</Point>
+<Point name="A30" n="744" color="5" x="-2.0" y="-5.0" shape="circle">Point</Point>
+<Point name="A29" n="738" color="5" x="-3.0" y="4.0" shape="circle">Point</Point>
+<Point name="A31" n="750" color="5" x="-2.0" y="-4.0" shape="circle">Point</Point>
+<Circle name="c2" n="563" scolor="153,218,255" hidden="super" fixed="0.61664" midpoint="A0" acute="true">Cercle de centre A0 de rayon 0.61664</Circle>
+<Circle name="c85" n="1061" scolor="153,218,255" hidden="super" fixed="0.61664" midpoint="A83" acute="true">Cercle de centre A83 de rayon 0.61664</Circle>
+<Circle name="c12" n="623" scolor="153,218,255" hidden="super" fixed="0.61664" midpoint="A10" acute="true">Cercle de centre A10 de rayon 0.61664</Circle>
+<Circle name="c86" n="1067" scolor="153,218,255" hidden="super" fixed="0.61664" midpoint="A84" acute="true">Cercle de centre A84 de rayon 0.61664</Circle>
+<Circle name="c89" n="1085" scolor="153,218,255" hidden="super" fixed="0.61664" midpoint="A87" acute="true">Cercle de centre A87 de rayon 0.61664</Circle>
+<Circle name="c84" n="1055" scolor="153,218,255" hidden="super" fixed="0.61664" midpoint="A82" acute="true">Cercle de centre A82 de rayon 0.61664</Circle>
+<Circle name="c83" n="1049" scolor="153,218,255" hidden="super" fixed="0.61664" midpoint="A81" acute="true">Cercle de centre A81 de rayon 0.61664</Circle>
+<Circle name="c95" n="1121" scolor="153,218,255" hidden="super" fixed="0.61664" midpoint="A93" acute="true">Cercle de centre A93 de rayon 0.61664</Circle>
+<Circle name="c96" n="1127" scolor="153,218,255" hidden="super" fixed="0.61664" midpoint="A94" acute="true">Cercle de centre A94 de rayon 0.61664</Circle>
+<Point name="P2" n="113" color="5" hidden="true" x="(windoww/(windoww-d(windoww)))*(x(P2)-windowcx)+windowcx+d(windowcx)" actx="-4.684669569948238" y="(windoww/(windoww-d(windoww)))*(y(P2)-windowcy)+windowcy+d(windowcy)" acty="3.4625818560486965" shape="circle" fixed="true">Point</Point>
+<Circle name="c97" n="1133" scolor="153,218,255" hidden="super" fixed="0.61664" midpoint="A95" acute="true">Cercle de centre A95 de rayon 0.61664</Circle>
+<Circle name="c35" n="761" scolor="153,218,255" hidden="super" fixed="0.61664" midpoint="A33" acute="true">Cercle de centre A33 de rayon 0.61664</Circle>
+<Circle name="c26" n="707" scolor="153,218,255" hidden="super" fixed="0.61664" midpoint="A24" acute="true">Cercle de centre A24 de rayon 0.61664</Circle>
+<Circle name="c94" n="1115" scolor="153,218,255" hidden="super" fixed="0.61664" midpoint="A92" acute="true">Cercle de centre A92 de rayon 0.61664</Circle>
+<Circle name="c25" n="701" scolor="153,218,255" hidden="super" fixed="0.61664" midpoint="A23" acute="true">Cercle de centre A23 de rayon 0.61664</Circle>
+<Circle name="c27" n="713" scolor="153,218,255" hidden="super" fixed="0.61664" midpoint="A25" acute="true">Cercle de centre A25 de rayon 0.61664</Circle>
+<Circle name="c51" n="857" scolor="153,218,255" hidden="super" fixed="0.61664" midpoint="A49" acute="true">Cercle de centre A49 de rayon 0.61664</Circle>
+<Circle name="c50" n="851" scolor="153,218,255" hidden="super" fixed="0.61664" midpoint="A48" acute="true">Cercle de centre A48 de rayon 0.61664</Circle>
+<Circle name="c48" n="839" scolor="153,218,255" hidden="super" fixed="0.61664" midpoint="A46" acute="true">Cercle de centre A46 de rayon 0.61664</Circle>
+<Circle name="c100" n="1151" scolor="153,218,255" hidden="super" fixed="0.61664" midpoint="A98" acute="true">Cercle de centre A98 de rayon 0.61664</Circle>
+<Circle name="c34" n="755" scolor="153,218,255" hidden="super" fixed="0.61664" midpoint="A32" acute="true">Cercle de centre A32 de rayon 0.61664</Circle>
+<Circle name="c49" n="845" scolor="153,218,255" hidden="super" fixed="0.61664" midpoint="A47" acute="true">Cercle de centre A47 de rayon 0.61664</Circle>
+<Circle name="c87" n="1073" scolor="153,218,255" hidden="super" fixed="0.61664" midpoint="A85" acute="true">Cercle de centre A85 de rayon 0.61664</Circle>
+<Circle name="c24" n="695" scolor="153,218,255" hidden="super" fixed="0.61664" midpoint="A22" acute="true">Cercle de centre A22 de rayon 0.61664</Circle>
+<Point name="P1" n="65" color="5" hidden="true" x="(windoww/(windoww-d(windoww)))*(x(P1)-windowcx)+windowcx+d(windowcx)" actx="-5.014439270524301" y="(windoww/(windoww-d(windoww)))*(y(P1)-windowcy)+windowcy+d(windowcy)" acty="5.276315209217061" shape="circle" fixed="true">Point</Point>
+<Circle name="c23" n="689" scolor="153,218,255" hidden="super" fixed="0.61664" midpoint="A21" acute="true">Cercle de centre A21 de rayon 0.61664</Circle>
+<Circle name="c8" n="599" scolor="153,218,255" hidden="super" fixed="0.61664" midpoint="A6" acute="true">Cercle de centre A6 de rayon 0.61664</Circle>
+<Circle name="c36" n="767" scolor="153,218,255" hidden="super" fixed="0.61664" midpoint="A34" acute="true">Cercle de centre A34 de rayon 0.61664</Circle>
+<Circle name="c88" n="1079" scolor="153,218,255" hidden="super" fixed="0.61664" midpoint="A86" acute="true">Cercle de centre A86 de rayon 0.61664</Circle>
+<Circle name="c1" n="201" scolor="153,218,255" hidden="true" fixed="0.61664" midpoint="M" acute="true">Cercle de centre M de rayon 0.6166405193488119</Circle>
+<Circle name="c98" n="1139" scolor="153,218,255" hidden="super" fixed="0.61664" midpoint="A96" acute="true">Cercle de centre A96 de rayon 0.61664</Circle>
+<Circle name="c80" n="1031" scolor="153,218,255" hidden="super" fixed="0.61664" midpoint="A78" acute="true">Cercle de centre A78 de rayon 0.61664</Circle>
+<Circle name="c3" n="569" scolor="153,218,255" hidden="super" fixed="0.61664" midpoint="A1" acute="true">Cercle de centre A1 de rayon 0.61664</Circle>
+<Circle name="c71" n="977" scolor="153,218,255" hidden="super" fixed="0.61664" midpoint="A69" acute="true">Cercle de centre A69 de rayon 0.61664</Circle>
+<Circle name="c22" n="683" scolor="153,218,255" hidden="super" fixed="0.61664" midpoint="A20" acute="true">Cercle de centre A20 de rayon 0.61664</Circle>
+<Circle name="c37" n="773" scolor="153,218,255" hidden="super" fixed="0.61664" midpoint="A35" acute="true">Cercle de centre A35 de rayon 0.61664</Circle>
+<Circle name="c21" n="677" scolor="153,218,255" hidden="super" fixed="0.61664" midpoint="A19" acute="true">Cercle de centre A19 de rayon 0.61664</Circle>
+<Circle name="c77" n="1013" scolor="153,218,255" hidden="super" fixed="0.61664" midpoint="A75" acute="true">Cercle de centre A75 de rayon 0.61664</Circle>
+<Circle name="c76" n="1007" scolor="153,218,255" hidden="super" fixed="0.61664" midpoint="A74" acute="true">Cercle de centre A74 de rayon 0.61664</Circle>
+<Circle name="c79" n="1025" scolor="153,218,255" hidden="super" fixed="0.61664" midpoint="A77" acute="true">Cercle de centre A77 de rayon 0.61664</Circle>
+<Circle name="c82" n="1043" scolor="153,218,255" hidden="super" fixed="0.61664" midpoint="A80" acute="true">Cercle de centre A80 de rayon 0.61664</Circle>
+<Circle name="c81" n="1037" scolor="153,218,255" hidden="super" fixed="0.61664" midpoint="A79" acute="true">Cercle de centre A79 de rayon 0.61664</Circle>
+<Circle name="c28" n="719" scolor="153,218,255" hidden="super" fixed="0.61664" midpoint="A26" acute="true">Cercle de centre A26 de rayon 0.61664</Circle>
+<Circle name="c78" n="1019" scolor="153,218,255" hidden="super" fixed="0.61664" midpoint="A76" acute="true">Cercle de centre A76 de rayon 0.61664</Circle>
+<Circle name="c69" n="965" scolor="153,218,255" hidden="super" fixed="0.61664" midpoint="A67" acute="true">Cercle de centre A67 de rayon 0.61664</Circle>
+<Circle name="c13" n="629" scolor="153,218,255" hidden="super" fixed="0.61664" midpoint="A11" acute="true">Cercle de centre A11 de rayon 0.61664</Circle>
+<Circle name="c93" n="1109" scolor="153,218,255" hidden="super" fixed="0.61664" midpoint="A91" acute="true">Cercle de centre A91 de rayon 0.61664</Circle>
+<Circle name="c73" n="989" scolor="153,218,255" hidden="super" fixed="0.61664" midpoint="A71" acute="true">Cercle de centre A71 de rayon 0.61664</Circle>
+<Circle name="c92" n="1103" scolor="153,218,255" hidden="super" fixed="0.61664" midpoint="A90" acute="true">Cercle de centre A90 de rayon 0.61664</Circle>
+<Circle name="c91" n="1097" scolor="153,218,255" hidden="super" fixed="0.61664" midpoint="A89" acute="true">Cercle de centre A89 de rayon 0.61664</Circle>
+<Circle name="c20" n="671" scolor="153,218,255" hidden="super" fixed="0.61664" midpoint="A18" acute="true">Cercle de centre A18 de rayon 0.61664</Circle>
+<Circle name="c90" n="1091" scolor="153,218,255" hidden="super" fixed="0.61664" midpoint="A88" acute="true">Cercle de centre A88 de rayon 0.61664</Circle>
+<Circle name="c33" n="749" scolor="153,218,255" hidden="super" fixed="0.61664" midpoint="A31" acute="true">Cercle de centre A31 de rayon 0.61664</Circle>
+<Circle name="c4" n="575" scolor="153,218,255" hidden="super" fixed="0.61664" midpoint="A2" acute="true">Cercle de centre A2 de rayon 0.61664</Circle>
+<Circle name="c70" n="971" scolor="153,218,255" hidden="super" fixed="0.61664" midpoint="A68" acute="true">Cercle de centre A68 de rayon 0.61664</Circle>
+<Circle name="c75" n="1001" scolor="153,218,255" hidden="super" fixed="0.61664" midpoint="A73" acute="true">Cercle de centre A73 de rayon 0.61664</Circle>
+<Circle name="c38" n="779" scolor="153,218,255" hidden="super" fixed="0.61664" midpoint="A36" acute="true">Cercle de centre A36 de rayon 0.61664</Circle>
+<Circle name="c72" n="983" scolor="153,218,255" hidden="super" fixed="0.61664" midpoint="A70" acute="true">Cercle de centre A70 de rayon 0.61664</Circle>
+<Circle name="c74" n="995" scolor="153,218,255" hidden="super" fixed="0.61664" midpoint="A72" acute="true">Cercle de centre A72 de rayon 0.61664</Circle>
+<Circle name="c5" n="581" scolor="153,218,255" hidden="super" fixed="0.61664" midpoint="A3" acute="true">Cercle de centre A3 de rayon 0.61664</Circle>
+<Circle name="c67" n="953" scolor="153,218,255" hidden="super" fixed="0.61664" midpoint="A65" acute="true">Cercle de centre A65 de rayon 0.61664</Circle>
+<Circle name="c11" n="617" scolor="153,218,255" hidden="super" fixed="0.61664" midpoint="A9" acute="true">Cercle de centre A9 de rayon 0.61664</Circle>
+<Circle name="c68" n="959" scolor="153,218,255" hidden="super" fixed="0.61664" midpoint="A66" acute="true">Cercle de centre A66 de rayon 0.61664</Circle>
+<Circle name="c99" n="1145" scolor="153,218,255" hidden="super" fixed="0.61664" midpoint="A97" acute="true">Cercle de centre A97 de rayon 0.61664</Circle>
+<Circle name="c65" n="941" scolor="153,218,255" hidden="super" fixed="0.61664" midpoint="A63" acute="true">Cercle de centre A63 de rayon 0.61664</Circle>
+<Circle name="c29" n="725" scolor="153,218,255" hidden="super" fixed="0.61664" midpoint="A27" acute="true">Cercle de centre A27 de rayon 0.61664</Circle>
+<Circle name="c45" n="821" scolor="153,218,255" hidden="super" fixed="0.61664" midpoint="A43" acute="true">Cercle de centre A43 de rayon 0.61664</Circle>
+<Circle name="c9" n="605" scolor="153,218,255" hidden="super" fixed="0.61664" midpoint="A7" acute="true">Cercle de centre A7 de rayon 0.61664</Circle>
+<Circle name="c16" n="647" scolor="153,218,255" hidden="super" fixed="0.61664" midpoint="A14" acute="true">Cercle de centre A14 de rayon 0.61664</Circle>
+<Circle name="c64" n="935" scolor="153,218,255" hidden="super" fixed="0.61664" midpoint="A62" acute="true">Cercle de centre A62 de rayon 0.61664</Circle>
+<Circle name="c6" n="587" scolor="153,218,255" hidden="super" fixed="0.61664" midpoint="A4" acute="true">Cercle de centre A4 de rayon 0.61664</Circle>
+<Circle name="c62" n="923" scolor="153,218,255" hidden="super" fixed="0.61664" midpoint="A60" acute="true">Cercle de centre A60 de rayon 0.61664</Circle>
+<Circle name="c63" n="929" scolor="153,218,255" hidden="super" fixed="0.61664" midpoint="A61" acute="true">Cercle de centre A61 de rayon 0.61664</Circle>
+<Circle name="c61" n="917" scolor="153,218,255" hidden="super" fixed="0.61664" midpoint="A59" acute="true">Cercle de centre A59 de rayon 0.61664</Circle>
+<Circle name="c60" n="911" scolor="153,218,255" hidden="super" fixed="0.61664" midpoint="A58" acute="true">Cercle de centre A58 de rayon 0.61664</Circle>
+<Circle name="c56" n="887" scolor="153,218,255" hidden="super" fixed="0.61664" midpoint="A54" acute="true">Cercle de centre A54 de rayon 0.61664</Circle>
+<Circle name="c19" n="665" scolor="153,218,255" hidden="super" fixed="0.61664" midpoint="A17" acute="true">Cercle de centre A17 de rayon 0.61664</Circle>
+<Function name="f2" n="120" color="4" showname="true" showvalue="true" ctag0="showname" cexpr0="1" ctag1="showvalue" cexpr1="1" f="x^2/4-a*y" x="-3.750765063171226" y="5.312852857853828" var="x y">f2(x,y)=-y^2</Function>
+<Circle name="c59" n="905" scolor="153,218,255" hidden="super" fixed="0.61664" midpoint="A57" acute="true">Cercle de centre A57 de rayon 0.61664</Circle>
+<Circle name="c14" n="635" scolor="153,218,255" hidden="super" fixed="0.61664" midpoint="A12" acute="true">Cercle de centre A12 de rayon 0.61664</Circle>
+<Circle name="c10" n="611" scolor="153,218,255" hidden="super" fixed="0.61664" midpoint="A8" acute="true">Cercle de centre A8 de rayon 0.61664</Circle>
+<Circle name="c57" n="893" scolor="153,218,255" hidden="super" fixed="0.61664" midpoint="A55" acute="true">Cercle de centre A55 de rayon 0.61664</Circle>
+<Circle name="c66" n="947" scolor="153,218,255" hidden="super" fixed="0.61664" midpoint="A64" acute="true">Cercle de centre A64 de rayon 0.61664</Circle>
+<Circle name="c58" n="899" scolor="153,218,255" hidden="super" fixed="0.61664" midpoint="A56" acute="true">Cercle de centre A56 de rayon 0.61664</Circle>
+<Circle name="c7" n="593" scolor="153,218,255" hidden="super" fixed="0.61664" midpoint="A5" acute="true">Cercle de centre A5 de rayon 0.61664</Circle>
+<Circle name="c55" n="881" scolor="153,218,255" hidden="super" fixed="0.61664" midpoint="A53" acute="true">Cercle de centre A53 de rayon 0.61664</Circle>
+<Circle name="c18" n="659" scolor="153,218,255" hidden="super" fixed="0.61664" midpoint="A16" acute="true">Cercle de centre A16 de rayon 0.61664</Circle>
+<Circle name="c39" n="785" scolor="153,218,255" hidden="super" fixed="0.61664" midpoint="A37" acute="true">Cercle de centre A37 de rayon 0.61664</Circle>
+<Circle name="c44" n="815" scolor="153,218,255" hidden="super" fixed="0.61664" midpoint="A42" acute="true">Cercle de centre A42 de rayon 0.61664</Circle>
+<Circle name="c40" n="791" scolor="153,218,255" hidden="super" fixed="0.61664" midpoint="A38" acute="true">Cercle de centre A38 de rayon 0.61664</Circle>
+<Circle name="c42" n="803" scolor="153,218,255" hidden="super" fixed="0.61664" midpoint="A40" acute="true">Cercle de centre A40 de rayon 0.61664</Circle>
+<Circle name="c101" n="1157" scolor="153,218,255" hidden="super" fixed="0.61664" midpoint="A99" acute="true">Cercle de centre A99 de rayon 0.61664</Circle>
+<Circle name="c31" n="737" scolor="153,218,255" hidden="super" fixed="0.61664" midpoint="A29" acute="true">Cercle de centre A29 de rayon 0.61664</Circle>
+<Circle name="c41" n="797" scolor="153,218,255" hidden="super" fixed="0.61664" midpoint="A39" acute="true">Cercle de centre A39 de rayon 0.61664</Circle>
+<Circle name="c52" n="863" scolor="153,218,255" hidden="super" fixed="0.61664" midpoint="A50" acute="true">Cercle de centre A50 de rayon 0.61664</Circle>
+<Circle name="c53" n="869" scolor="153,218,255" hidden="super" fixed="0.61664" midpoint="A51" acute="true">Cercle de centre A51 de rayon 0.61664</Circle>
+<Circle name="c54" n="875" scolor="153,218,255" hidden="super" fixed="0.61664" midpoint="A52" acute="true">Cercle de centre A52 de rayon 0.61664</Circle>
+<Circle name="c17" n="653" scolor="153,218,255" hidden="super" fixed="0.61664" midpoint="A15" acute="true">Cercle de centre A15 de rayon 0.61664</Circle>
+<Circle name="c43" n="809" scolor="153,218,255" hidden="super" fixed="0.61664" midpoint="A41" acute="true">Cercle de centre A41 de rayon 0.61664</Circle>
+<Circle name="c30" n="731" scolor="153,218,255" hidden="super" fixed="0.61664" midpoint="A28" acute="true">Cercle de centre A28 de rayon 0.61664</Circle>
+<Circle name="c15" n="641" scolor="153,218,255" hidden="super" fixed="0.61664" midpoint="A13" acute="true">Cercle de centre A13 de rayon 0.61664</Circle>
+<Circle name="c47" n="833" scolor="153,218,255" hidden="super" fixed="0.61664" midpoint="A45" acute="true">Cercle de centre A45 de rayon 0.61664</Circle>
+<Circle name="c32" n="743" scolor="153,218,255" hidden="super" fixed="0.61664" midpoint="A30" acute="true">Cercle de centre A30 de rayon 0.61664</Circle>
+<Circle name="c46" n="827" scolor="153,218,255" hidden="super" fixed="0.61664" midpoint="A44" acute="true">Cercle de centre A44 de rayon 0.61664</Circle>
+<Point name="P57" n="717" color="5" hidden="super" x="x(A26)+1" actx="-2.0" y="y(A26)+f2(x(A26),y(A26))" acty="2.45" shape="circle" fixed="true">Point</Point>
+<Point name="P81" n="789" color="5" hidden="super" x="x(A38)+1" actx="-1.0" y="y(A38)+f2(x(A38),y(A38))" acty="1.5999999999999996" shape="circle" fixed="true">Point</Point>
+<Point name="P63" n="735" color="5" hidden="super" x="x(A29)+1" actx="-2.0" y="y(A29)+f2(x(A29),y(A29))" acty="3.05" shape="circle" fixed="true">Point</Point>
+<Point name="P47" n="687" color="5" hidden="super" x="x(A21)+1" actx="-2.0" y="y(A21)+f2(x(A21),y(A21))" acty="1.4500000000000002" shape="circle" fixed="true">Point</Point>
+<Point name="P29" n="633" color="5" hidden="super" x="x(A12)+1" actx="-3.0" y="y(A12)+f2(x(A12),y(A12))" acty="3.4000000000000004" shape="circle" fixed="true">Point</Point>
+<Point name="P21" n="609" color="5" hidden="super" x="x(A8)+1" actx="-4.0" y="y(A8)+f2(x(A8),y(A8))" acty="6.85" shape="circle" fixed="true">Point</Point>
+<Point name="P51" n="699" color="5" hidden="super" x="x(A23)+1" actx="-2.0" y="y(A23)+f2(x(A23),y(A23))" acty="1.85" shape="circle" fixed="true">Point</Point>
+<Point name="P161" n="1029" color="5" hidden="super" x="x(A78)+1" actx="3.0" y="y(A78)+f2(x(A78),y(A78))" acty="1.5999999999999996" shape="circle" fixed="true">Point</Point>
+<Point name="P55" n="711" color="5" hidden="super" x="x(A25)+1" actx="-2.0" y="y(A25)+f2(x(A25),y(A25))" acty="2.25" shape="circle" fixed="true">Point</Point>
+<Point name="P49" n="693" color="5" hidden="super" x="x(A22)+1" actx="-2.0" y="y(A22)+f2(x(A22),y(A22))" acty="1.6500000000000004" shape="circle" fixed="true">Point</Point>
+<Point name="P73" n="765" color="5" hidden="super" x="x(A34)+1" actx="-1.0" y="y(A34)+f2(x(A34),y(A34))" acty="0.8" shape="circle" fixed="true">Point</Point>
+<Point name="P35" n="651" color="5" hidden="super" x="x(A15)+1" actx="-3.0" y="y(A15)+f2(x(A15),y(A15))" acty="4.0" shape="circle" fixed="true">Point</Point>
+<Point name="P31" n="639" color="5" hidden="super" x="x(A13)+1" actx="-3.0" y="y(A13)+f2(x(A13),y(A13))" acty="3.5999999999999996" shape="circle" fixed="true">Point</Point>
+<Point name="P159" n="1023" color="5" hidden="super" x="x(A77)+1" actx="3.0" y="y(A77)+f2(x(A77),y(A77))" acty="1.4" shape="circle" fixed="true">Point</Point>
+<Point name="P79" n="783" color="5" hidden="super" x="x(A37)+1" actx="-1.0" y="y(A37)+f2(x(A37),y(A37))" acty="1.4" shape="circle" fixed="true">Point</Point>
+<Point name="P69" n="753" color="5" hidden="super" x="x(A32)+1" actx="-1.0" y="y(A32)+f2(x(A32),y(A32))" acty="0.40000000000000036" shape="circle" fixed="true">Point</Point>
+<Point name="P37" n="657" color="5" hidden="super" x="x(A16)+1" actx="-3.0" y="y(A16)+f2(x(A16),y(A16))" acty="4.2" shape="circle" fixed="true">Point</Point>
+<Point name="P77" n="777" color="5" hidden="super" x="x(A36)+1" actx="-1.0" y="y(A36)+f2(x(A36),y(A36))" acty="1.2" shape="circle" fixed="true">Point</Point>
+<Point name="P65" n="741" color="5" hidden="super" x="x(A30)+1" actx="-1.0" y="y(A30)+f2(x(A30),y(A30))" acty="0.0" shape="circle" fixed="true">Point</Point>
+<Point name="P71" n="759" color="5" hidden="super" x="x(A33)+1" actx="-1.0" y="y(A33)+f2(x(A33),y(A33))" acty="0.6000000000000001" shape="circle" fixed="true">Point</Point>
+<Point name="P23" n="615" color="5" hidden="super" x="x(A9)+1" actx="-4.0" y="y(A9)+f2(x(A9),y(A9))" acty="7.05" shape="circle" fixed="true">Point</Point>
+<Point name="P33" n="645" color="5" hidden="super" x="x(A14)+1" actx="-3.0" y="y(A14)+f2(x(A14),y(A14))" acty="3.8" shape="circle" fixed="true">Point</Point>
+<Point name="P41" n="669" color="5" hidden="super" x="x(A18)+1" actx="-3.0" y="y(A18)+f2(x(A18),y(A18))" acty="4.6" shape="circle" fixed="true">Point</Point>
+<Point name="P25" n="621" color="5" hidden="super" x="x(A10)+1" actx="-3.0" y="y(A10)+f2(x(A10),y(A10))" acty="3.0" shape="circle" fixed="true">Point</Point>
+<Point name="P59" n="723" color="5" hidden="super" x="x(A27)+1" actx="-2.0" y="y(A27)+f2(x(A27),y(A27))" acty="2.65" shape="circle" fixed="true">Point</Point>
+<Point name="P53" n="705" color="5" hidden="super" x="x(A24)+1" actx="-2.0" y="y(A24)+f2(x(A24),y(A24))" acty="2.05" shape="circle" fixed="true">Point</Point>
+<Point name="P75" n="771" color="5" hidden="super" x="x(A35)+1" actx="-1.0" y="y(A35)+f2(x(A35),y(A35))" acty="1.0" shape="circle" fixed="true">Point</Point>
+<Point name="P61" n="729" color="5" hidden="super" x="x(A28)+1" actx="-2.0" y="y(A28)+f2(x(A28),y(A28))" acty="2.8499999999999996" shape="circle" fixed="true">Point</Point>
+<Point name="P45" n="681" color="5" hidden="super" x="x(A20)+1" actx="-2.0" y="y(A20)+f2(x(A20),y(A20))" acty="1.25" shape="circle" fixed="true">Point</Point>
+<Point name="P67" n="747" color="5" hidden="super" x="x(A31)+1" actx="-1.0" y="y(A31)+f2(x(A31),y(A31))" acty="0.20000000000000018" shape="circle" fixed="true">Point</Point>
+<Point name="P39" n="663" color="5" hidden="super" x="x(A17)+1" actx="-3.0" y="y(A17)+f2(x(A17),y(A17))" acty="4.4" shape="circle" fixed="true">Point</Point>
+<Point name="P43" n="675" color="5" hidden="super" x="x(A19)+1" actx="-3.0" y="y(A19)+f2(x(A19),y(A19))" acty="4.8" shape="circle" fixed="true">Point</Point>
+<Point name="P27" n="627" color="5" hidden="super" x="x(A11)+1" actx="-3.0" y="y(A11)+f2(x(A11),y(A11))" acty="3.2" shape="circle" fixed="true">Point</Point>
+<Point name="P157" n="1017" color="5" hidden="super" x="x(A76)+1" actx="3.0" y="y(A76)+f2(x(A76),y(A76))" acty="1.2" shape="circle" fixed="true">Point</Point>
+<Point name="P83" n="795" color="5" hidden="super" x="x(A39)+1" actx="-1.0" y="y(A39)+f2(x(A39),y(A39))" acty="1.7999999999999998" shape="circle" fixed="true">Point</Point>
+<Point name="P85" n="801" color="5" hidden="super" x="x(A40)+1" actx="0.0" y="y(A40)+f2(x(A40),y(A40))" acty="-0.75" shape="circle" fixed="true">Point</Point>
+<Point name="P87" n="807" color="5" hidden="super" x="x(A41)+1" actx="0.0" y="y(A41)+f2(x(A41),y(A41))" acty="-0.5499999999999998" shape="circle" fixed="true">Point</Point>
+<Point name="P89" n="813" color="5" hidden="super" x="x(A42)+1" actx="0.0" y="y(A42)+f2(x(A42),y(A42))" acty="-0.34999999999999964" shape="circle" fixed="true">Point</Point>
+<Point name="P203" n="1155" color="5" hidden="super" x="x(A99)+1" actx="5.0" y="y(A99)+f2(x(A99),y(A99))" acty="4.8" shape="circle" fixed="true">Point</Point>
+<Point name="P91" n="819" color="5" hidden="super" x="x(A43)+1" actx="0.0" y="y(A43)+f2(x(A43),y(A43))" acty="-0.1499999999999999" shape="circle" fixed="true">Point</Point>
+<Point name="P95" n="831" color="5" hidden="super" x="x(A45)+1" actx="0.0" y="y(A45)+f2(x(A45),y(A45))" acty="0.25" shape="circle" fixed="true">Point</Point>
+<Point name="P19" n="603" color="5" hidden="super" x="x(A7)+1" actx="-4.0" y="y(A7)+f2(x(A7),y(A7))" acty="6.65" shape="circle" fixed="true">Point</Point>
+<Point name="P99" n="843" color="5" hidden="super" x="x(A47)+1" actx="0.0" y="y(A47)+f2(x(A47),y(A47))" acty="0.6499999999999999" shape="circle" fixed="true">Point</Point>
+<Point name="P109" n="873" color="5" hidden="super" x="x(A52)+1" actx="1.0" y="y(A52)+f2(x(A52),y(A52))" acty="-0.5999999999999996" shape="circle" fixed="true">Point</Point>
+<Point name="P101" n="849" color="5" hidden="super" x="x(A48)+1" actx="0.0" y="y(A48)+f2(x(A48),y(A48))" acty="0.8499999999999996" shape="circle" fixed="true">Point</Point>
+<Point name="P97" n="837" color="5" hidden="super" x="x(A46)+1" actx="0.0" y="y(A46)+f2(x(A46),y(A46))" acty="0.44999999999999996" shape="circle" fixed="true">Point</Point>
+<Point name="P107" n="867" color="5" hidden="super" x="x(A51)+1" actx="1.0" y="y(A51)+f2(x(A51),y(A51))" acty="-0.7999999999999998" shape="circle" fixed="true">Point</Point>
+<Point name="P17" n="597" color="5" hidden="super" x="x(A6)+1" actx="-4.0" y="y(A6)+f2(x(A6),y(A6))" acty="6.45" shape="circle" fixed="true">Point</Point>
+<Point name="P111" n="879" color="5" hidden="super" x="x(A53)+1" actx="1.0" y="y(A53)+f2(x(A53),y(A53))" acty="-0.3999999999999999" shape="circle" fixed="true">Point</Point>
+<Point name="P105" n="861" color="5" hidden="super" x="x(A50)+1" actx="1.0" y="y(A50)+f2(x(A50),y(A50))" acty="-1.0" shape="circle" fixed="true">Point</Point>
+<Point name="P93" n="825" color="5" hidden="super" x="x(A44)+1" actx="0.0" y="y(A44)+f2(x(A44),y(A44))" acty="0.050000000000000044" shape="circle" fixed="true">Point</Point>
+<Point name="P113" n="885" color="5" hidden="super" x="x(A54)+1" actx="1.0" y="y(A54)+f2(x(A54),y(A54))" acty="-0.19999999999999996" shape="circle" fixed="true">Point</Point>
+<Point name="P15" n="591" color="5" hidden="super" x="x(A5)+1" actx="-4.0" y="y(A5)+f2(x(A5),y(A5))" acty="6.25" shape="circle" fixed="true">Point</Point>
+<Point name="P115" n="891" color="5" hidden="super" x="x(A55)+1" actx="1.0" y="y(A55)+f2(x(A55),y(A55))" acty="0.0" shape="circle" fixed="true">Point</Point>
+<Point name="P117" n="897" color="5" hidden="super" x="x(A56)+1" actx="1.0" y="y(A56)+f2(x(A56),y(A56))" acty="0.19999999999999996" shape="circle" fixed="true">Point</Point>
+<Point name="P201" n="1149" color="5" hidden="super" x="x(A98)+1" actx="5.0" y="y(A98)+f2(x(A98),y(A98))" acty="4.6" shape="circle" fixed="true">Point</Point>
+<Point name="P119" n="903" color="5" hidden="super" x="x(A57)+1" actx="1.0" y="y(A57)+f2(x(A57),y(A57))" acty="0.3999999999999999" shape="circle" fixed="true">Point</Point>
+<Point name="P121" n="909" color="5" hidden="super" x="x(A58)+1" actx="1.0" y="y(A58)+f2(x(A58),y(A58))" acty="0.5999999999999996" shape="circle" fixed="true">Point</Point>
+<Point name="P123" n="915" color="5" hidden="super" x="x(A59)+1" actx="1.0" y="y(A59)+f2(x(A59),y(A59))" acty="0.7999999999999998" shape="circle" fixed="true">Point</Point>
+<Point name="P13" n="585" color="5" hidden="super" x="x(A4)+1" actx="-4.0" y="y(A4)+f2(x(A4),y(A4))" acty="6.05" shape="circle" fixed="true">Point</Point>
+<Point name="P125" n="921" color="5" hidden="super" x="x(A60)+1" actx="2.0" y="y(A60)+f2(x(A60),y(A60))" acty="-0.75" shape="circle" fixed="true">Point</Point>
+<Point name="P129" n="933" color="5" hidden="super" x="x(A62)+1" actx="2.0" y="y(A62)+f2(x(A62),y(A62))" acty="-0.34999999999999964" shape="circle" fixed="true">Point</Point>
+<Point name="P131" n="939" color="5" hidden="super" x="x(A63)+1" actx="2.0" y="y(A63)+f2(x(A63),y(A63))" acty="-0.1499999999999999" shape="circle" fixed="true">Point</Point>
+<Point name="P135" n="951" color="5" hidden="super" x="x(A65)+1" actx="2.0" y="y(A65)+f2(x(A65),y(A65))" acty="0.25" shape="circle" fixed="true">Point</Point>
+<Point name="P133" n="945" color="5" hidden="super" x="x(A64)+1" actx="2.0" y="y(A64)+f2(x(A64),y(A64))" acty="0.050000000000000044" shape="circle" fixed="true">Point</Point>
+<Point name="P127" n="927" color="5" hidden="super" x="x(A61)+1" actx="2.0" y="y(A61)+f2(x(A61),y(A61))" acty="-0.5499999999999998" shape="circle" fixed="true">Point</Point>
+<Point name="P137" n="957" color="5" hidden="super" x="x(A66)+1" actx="2.0" y="y(A66)+f2(x(A66),y(A66))" acty="0.44999999999999996" shape="circle" fixed="true">Point</Point>
+<Point name="P103" n="855" color="5" hidden="super" x="x(A49)+1" actx="0.0" y="y(A49)+f2(x(A49),y(A49))" acty="1.0499999999999998" shape="circle" fixed="true">Point</Point>
+<Point name="P139" n="963" color="5" hidden="super" x="x(A67)+1" actx="2.0" y="y(A67)+f2(x(A67),y(A67))" acty="0.6499999999999999" shape="circle" fixed="true">Point</Point>
+<Point name="P141" n="969" color="5" hidden="super" x="x(A68)+1" actx="2.0" y="y(A68)+f2(x(A68),y(A68))" acty="0.8499999999999996" shape="circle" fixed="true">Point</Point>
+<Point name="P199" n="1143" color="5" hidden="super" x="x(A97)+1" actx="5.0" y="y(A97)+f2(x(A97),y(A97))" acty="4.4" shape="circle" fixed="true">Point</Point>
+<Point name="P11" n="579" color="5" hidden="super" x="x(A3)+1" actx="-4.0" y="y(A3)+f2(x(A3),y(A3))" acty="5.85" shape="circle" fixed="true">Point</Point>
+<Point name="P147" n="987" color="5" hidden="super" x="x(A71)+1" actx="3.0" y="y(A71)+f2(x(A71),y(A71))" acty="0.20000000000000018" shape="circle" fixed="true">Point</Point>
+<Point name="P149" n="993" color="5" hidden="super" x="x(A72)+1" actx="3.0" y="y(A72)+f2(x(A72),y(A72))" acty="0.40000000000000036" shape="circle" fixed="true">Point</Point>
+<Point name="P151" n="999" color="5" hidden="super" x="x(A73)+1" actx="3.0" y="y(A73)+f2(x(A73),y(A73))" acty="0.6000000000000001" shape="circle" fixed="true">Point</Point>
+<Point name="P153" n="1005" color="5" hidden="super" x="x(A74)+1" actx="3.0" y="y(A74)+f2(x(A74),y(A74))" acty="0.8" shape="circle" fixed="true">Point</Point>
+<Point name="P165" n="1041" color="5" hidden="super" x="x(A80)+1" actx="4.0" y="y(A80)+f2(x(A80),y(A80))" acty="1.25" shape="circle" fixed="true">Point</Point>
+<Point name="P167" n="1047" color="5" hidden="super" x="x(A81)+1" actx="4.0" y="y(A81)+f2(x(A81),y(A81))" acty="1.4500000000000002" shape="circle" fixed="true">Point</Point>
+<Point name="P9" n="573" color="5" hidden="super" x="x(A2)+1" actx="-4.0" y="y(A2)+f2(x(A2),y(A2))" acty="5.65" shape="circle" fixed="true">Point</Point>
+<Point name="P155" n="1011" color="5" hidden="super" x="x(A75)+1" actx="3.0" y="y(A75)+f2(x(A75),y(A75))" acty="1.0" shape="circle" fixed="true">Point</Point>
+<Point name="P143" n="975" color="5" hidden="super" x="x(A69)+1" actx="2.0" y="y(A69)+f2(x(A69),y(A69))" acty="1.0499999999999998" shape="circle" fixed="true">Point</Point>
+<Point name="P145" n="981" color="5" hidden="super" x="x(A70)+1" actx="3.0" y="y(A70)+f2(x(A70),y(A70))" acty="0.0" shape="circle" fixed="true">Point</Point>
+<Point name="P7" n="567" color="5" hidden="super" x="x(A1)+1" actx="-4.0" y="y(A1)+f2(x(A1),y(A1))" acty="5.449999999999999" shape="circle" fixed="true">Point</Point>
+<Point name="P163" n="1035" color="5" hidden="super" x="x(A79)+1" actx="3.0" y="y(A79)+f2(x(A79),y(A79))" acty="1.7999999999999998" shape="circle" fixed="true">Point</Point>
+<Point name="P187" n="1107" color="5" hidden="super" x="x(A91)+1" actx="5.0" y="y(A91)+f2(x(A91),y(A91))" acty="3.2" shape="circle" fixed="true">Point</Point>
+<Point name="P169" n="1053" color="5" hidden="super" x="x(A82)+1" actx="4.0" y="y(A82)+f2(x(A82),y(A82))" acty="1.6500000000000004" shape="circle" fixed="true">Point</Point>
+<Point name="P179" n="1083" color="5" hidden="super" x="x(A87)+1" actx="4.0" y="y(A87)+f2(x(A87),y(A87))" acty="2.65" shape="circle" fixed="true">Point</Point>
+<Point name="P171" n="1059" color="5" hidden="super" x="x(A83)+1" actx="4.0" y="y(A83)+f2(x(A83),y(A83))" acty="1.85" shape="circle" fixed="true">Point</Point>
+<Point name="P197" n="1137" color="5" hidden="super" x="x(A96)+1" actx="5.0" y="y(A96)+f2(x(A96),y(A96))" acty="4.2" shape="circle" fixed="true">Point</Point>
+<Point name="P175" n="1071" color="5" hidden="super" x="x(A85)+1" actx="4.0" y="y(A85)+f2(x(A85),y(A85))" acty="2.25" shape="circle" fixed="true">Point</Point>
+<Point name="P177" n="1077" color="5" hidden="super" x="x(A86)+1" actx="4.0" y="y(A86)+f2(x(A86),y(A86))" acty="2.45" shape="circle" fixed="true">Point</Point>
+<Point name="P181" n="1089" color="5" hidden="super" x="x(A88)+1" actx="4.0" y="y(A88)+f2(x(A88),y(A88))" acty="2.8499999999999996" shape="circle" fixed="true">Point</Point>
+<Point name="P5" n="561" color="5" hidden="super" x="x(A0)+1" actx="-4.0" y="y(A0)+f2(x(A0),y(A0))" acty="5.25" shape="circle" fixed="true">Point</Point>
+<Point name="P183" n="1095" color="5" hidden="super" x="x(A89)+1" actx="4.0" y="y(A89)+f2(x(A89),y(A89))" acty="3.05" shape="circle" fixed="true">Point</Point>
+<Point name="P185" n="1101" color="5" hidden="super" x="x(A90)+1" actx="5.0" y="y(A90)+f2(x(A90),y(A90))" acty="3.0" shape="circle" fixed="true">Point</Point>
+<Point name="P189" n="1113" color="5" hidden="super" x="x(A92)+1" actx="5.0" y="y(A92)+f2(x(A92),y(A92))" acty="3.4000000000000004" shape="circle" fixed="true">Point</Point>
+<Point name="P3" n="195" color="5" hidden="true" x="x(M)+1" actx="2.4897913345859912" y="y(M)+f2(x(M),y(M))" acty="0.9051718419329076" shape="circle" fixed="true">Point</Point>
+<Point name="P195" n="1131" color="5" hidden="super" x="x(A95)+1" actx="5.0" y="y(A95)+f2(x(A95),y(A95))" acty="4.0" shape="circle" fixed="true">Point</Point>
+<Point name="P173" n="1065" color="5" hidden="super" x="x(A84)+1" actx="4.0" y="y(A84)+f2(x(A84),y(A84))" acty="2.05" shape="circle" fixed="true">Point</Point>
+<Point name="P193" n="1125" color="5" hidden="super" x="x(A94)+1" actx="5.0" y="y(A94)+f2(x(A94),y(A94))" acty="3.8" shape="circle" fixed="true">Point</Point>
+<Point name="P191" n="1119" color="5" hidden="super" x="x(A93)+1" actx="5.0" y="y(A93)+f2(x(A93),y(A93))" acty="3.5999999999999996" shape="circle" fixed="true">Point</Point>
+<Ray name="r58" n="898" color="4" hidden="super" from="A56" to="P117">Demi-droite d&apos;origine A56 vers P117</Ray>
+<Ray name="r51" n="856" color="4" hidden="super" from="A49" to="P103">Demi-droite d&apos;origine A49 vers P103</Ray>
+<Ray name="r11" n="616" color="4" hidden="super" from="A9" to="P23">Demi-droite d&apos;origine A9 vers P23</Ray>
+<Ray name="r22" n="682" color="4" hidden="super" from="A20" to="P45">Demi-droite d&apos;origine A20 vers P45</Ray>
+<Ray name="r62" n="922" color="4" hidden="super" from="A60" to="P125">Demi-droite d&apos;origine A60 vers P125</Ray>
+<Ray name="r8" n="598" color="4" hidden="super" from="A6" to="P17">Demi-droite d&apos;origine A6 vers P17</Ray>
+<Ray name="r50" n="850" color="4" hidden="super" from="A48" to="P101">Demi-droite d&apos;origine A48 vers P101</Ray>
+<Ray name="r40" n="790" color="4" hidden="super" from="A38" to="P81">Demi-droite d&apos;origine A38 vers P81</Ray>
+<Ray name="r37" n="772" color="4" hidden="super" from="A35" to="P75">Demi-droite d&apos;origine A35 vers P75</Ray>
+<Ray name="r43" n="808" color="4" hidden="super" from="A41" to="P87">Demi-droite d&apos;origine A41 vers P87</Ray>
+<Ray name="r7" n="592" color="4" hidden="super" from="A5" to="P15">Demi-droite d&apos;origine A5 vers P15</Ray>
+<Ray name="r9" n="604" color="4" hidden="super" from="A7" to="P19">Demi-droite d&apos;origine A7 vers P19</Ray>
+<Ray name="r85" n="1060" color="4" hidden="super" from="A83" to="P171">Demi-droite d&apos;origine A83 vers P171</Ray>
+<Ray name="r82" n="1042" color="4" hidden="super" from="A80" to="P165">Demi-droite d&apos;origine A80 vers P165</Ray>
+<Ray name="r86" n="1066" color="4" hidden="super" from="A84" to="P173">Demi-droite d&apos;origine A84 vers P173</Ray>
+<Ray name="r13" n="628" color="4" hidden="super" from="A11" to="P27">Demi-droite d&apos;origine A11 vers P27</Ray>
+<Ray name="r77" n="1012" color="4" hidden="super" from="A75" to="P155">Demi-droite d&apos;origine A75 vers P155</Ray>
+<Ray name="r78" n="1018" color="4" hidden="super" from="A76" to="P157">Demi-droite d&apos;origine A76 vers P157</Ray>
+<Ray name="r25" n="700" color="4" hidden="super" from="A23" to="P51">Demi-droite d&apos;origine A23 vers P51</Ray>
+<Ray name="r83" n="1048" color="4" hidden="super" from="A81" to="P167">Demi-droite d&apos;origine A81 vers P167</Ray>
+<Ray name="r23" n="688" color="4" hidden="super" from="A21" to="P47">Demi-droite d&apos;origine A21 vers P47</Ray>
+<Ray name="r84" n="1054" color="4" hidden="super" from="A82" to="P169">Demi-droite d&apos;origine A82 vers P169</Ray>
+<Ray name="r21" n="676" color="4" hidden="super" from="A19" to="P43">Demi-droite d&apos;origine A19 vers P43</Ray>
+<Ray name="r2" n="562" color="4" hidden="super" from="A0" to="P5">Demi-droite d&apos;origine A0 vers P5</Ray>
+<Ray name="r87" n="1072" color="4" hidden="super" from="A85" to="P175">Demi-droite d&apos;origine A85 vers P175</Ray>
+<Ray name="r42" n="802" color="4" hidden="super" from="A40" to="P85">Demi-droite d&apos;origine A40 vers P85</Ray>
+<Ray name="r61" n="916" color="4" hidden="super" from="A59" to="P123">Demi-droite d&apos;origine A59 vers P123</Ray>
+<Ray name="r48" n="838" color="4" hidden="super" from="A46" to="P97">Demi-droite d&apos;origine A46 vers P97</Ray>
+<Ray name="r45" n="820" color="4" hidden="super" from="A43" to="P91">Demi-droite d&apos;origine A43 vers P91</Ray>
+<Ray name="r34" n="754" color="4" hidden="super" from="A32" to="P69">Demi-droite d&apos;origine A32 vers P69</Ray>
+<Ray name="r36" n="766" color="4" hidden="super" from="A34" to="P73">Demi-droite d&apos;origine A34 vers P73</Ray>
+<Ray name="r47" n="832" color="4" hidden="super" from="A45" to="P95">Demi-droite d&apos;origine A45 vers P95</Ray>
+<Ray name="r41" n="796" color="4" hidden="super" from="A39" to="P83">Demi-droite d&apos;origine A39 vers P83</Ray>
+<Ray name="r60" n="910" color="4" hidden="super" from="A58" to="P121">Demi-droite d&apos;origine A58 vers P121</Ray>
+<Ray name="r49" n="844" color="4" hidden="super" from="A47" to="P99">Demi-droite d&apos;origine A47 vers P99</Ray>
+<Ray name="r32" n="742" color="4" hidden="super" from="A30" to="P65">Demi-droite d&apos;origine A30 vers P65</Ray>
+<Ray name="r38" n="778" color="4" hidden="super" from="A36" to="P77">Demi-droite d&apos;origine A36 vers P77</Ray>
+<Ray name="r57" n="892" color="4" hidden="super" from="A55" to="P115">Demi-droite d&apos;origine A55 vers P115</Ray>
+<Ray name="r35" n="760" color="4" hidden="super" from="A33" to="P71">Demi-droite d&apos;origine A33 vers P71</Ray>
+<Ray name="r53" n="868" color="4" hidden="super" from="A51" to="P107">Demi-droite d&apos;origine A51 vers P107</Ray>
+<Ray name="r39" n="784" color="4" hidden="super" from="A37" to="P79">Demi-droite d&apos;origine A37 vers P79</Ray>
+<Ray name="r46" n="826" color="4" hidden="super" from="A44" to="P93">Demi-droite d&apos;origine A44 vers P93</Ray>
+<Ray name="r33" n="748" color="4" hidden="super" from="A31" to="P67">Demi-droite d&apos;origine A31 vers P67</Ray>
+<Ray name="r59" n="904" color="4" hidden="super" from="A57" to="P119">Demi-droite d&apos;origine A57 vers P119</Ray>
+<Ray name="r56" n="886" color="4" hidden="super" from="A54" to="P113">Demi-droite d&apos;origine A54 vers P113</Ray>
+<Ray name="r10" n="610" color="4" hidden="super" from="A8" to="P21">Demi-droite d&apos;origine A8 vers P21</Ray>
+<Ray name="r52" n="862" color="4" hidden="super" from="A50" to="P105">Demi-droite d&apos;origine A50 vers P105</Ray>
+<Ray name="r44" n="814" color="4" hidden="super" from="A42" to="P89">Demi-droite d&apos;origine A42 vers P89</Ray>
+<Ray name="r54" n="874" color="4" hidden="super" from="A52" to="P109">Demi-droite d&apos;origine A52 vers P109</Ray>
+<Ray name="r55" n="880" color="4" hidden="super" from="A53" to="P111">Demi-droite d&apos;origine A53 vers P111</Ray>
+<Ray name="r27" n="712" color="4" hidden="super" from="A25" to="P55">Demi-droite d&apos;origine A25 vers P55</Ray>
+<Ray name="r64" n="934" color="4" hidden="super" from="A62" to="P129">Demi-droite d&apos;origine A62 vers P129</Ray>
+<Ray name="r65" n="940" color="4" hidden="super" from="A63" to="P131">Demi-droite d&apos;origine A63 vers P131</Ray>
+<Ray name="r67" n="952" color="4" hidden="super" from="A65" to="P135">Demi-droite d&apos;origine A65 vers P135</Ray>
+<Ray name="r28" n="718" color="4" hidden="super" from="A26" to="P57">Demi-droite d&apos;origine A26 vers P57</Ray>
+<Ray name="r72" n="982" color="4" hidden="super" from="A70" to="P145">Demi-droite d&apos;origine A70 vers P145</Ray>
+<Ray name="r1" n="198" color="4" hidden="true" from="M" to="P3">Demi-droite d&apos;origine M vers P3</Ray>
+<Ray name="r92" n="1102" color="4" hidden="super" from="A90" to="P185">Demi-droite d&apos;origine A90 vers P185</Ray>
+<Ray name="r93" n="1108" color="4" hidden="super" from="A91" to="P187">Demi-droite d&apos;origine A91 vers P187</Ray>
+<Ray name="r30" n="730" color="4" hidden="super" from="A28" to="P61">Demi-droite d&apos;origine A28 vers P61</Ray>
+<Ray name="r71" n="976" color="4" hidden="super" from="A69" to="P143">Demi-droite d&apos;origine A69 vers P143</Ray>
+<Ray name="r12" n="622" color="4" hidden="super" from="A10" to="P25">Demi-droite d&apos;origine A10 vers P25</Ray>
+<Ray name="r29" n="724" color="4" hidden="super" from="A27" to="P59">Demi-droite d&apos;origine A27 vers P59</Ray>
+<Ray name="r63" n="928" color="4" hidden="super" from="A61" to="P127">Demi-droite d&apos;origine A61 vers P127</Ray>
+<Ray name="r31" n="736" color="4" hidden="super" from="A29" to="P63">Demi-droite d&apos;origine A29 vers P63</Ray>
+<Ray name="r6" n="586" color="4" hidden="super" from="A4" to="P13">Demi-droite d&apos;origine A4 vers P13</Ray>
+<Ray name="r73" n="988" color="4" hidden="super" from="A71" to="P147">Demi-droite d&apos;origine A71 vers P147</Ray>
+<Ray name="r74" n="994" color="4" hidden="super" from="A72" to="P149">Demi-droite d&apos;origine A72 vers P149</Ray>
+<Ray name="r75" n="1000" color="4" hidden="super" from="A73" to="P151">Demi-droite d&apos;origine A73 vers P151</Ray>
+<Ray name="r66" n="946" color="4" hidden="super" from="A64" to="P133">Demi-droite d&apos;origine A64 vers P133</Ray>
+<Ray name="r69" n="964" color="4" hidden="super" from="A67" to="P139">Demi-droite d&apos;origine A67 vers P139</Ray>
+<Ray name="r68" n="958" color="4" hidden="super" from="A66" to="P137">Demi-droite d&apos;origine A66 vers P137</Ray>
+<Ray name="r26" n="706" color="4" hidden="super" from="A24" to="P53">Demi-droite d&apos;origine A24 vers P53</Ray>
+<Ray name="r5" n="580" color="4" hidden="super" from="A3" to="P11">Demi-droite d&apos;origine A3 vers P11</Ray>
+<Ray name="r70" n="970" color="4" hidden="super" from="A68" to="P141">Demi-droite d&apos;origine A68 vers P141</Ray>
+<Ray name="r18" n="658" color="4" hidden="super" from="A16" to="P37">Demi-droite d&apos;origine A16 vers P37</Ray>
+<Ray name="r16" n="646" color="4" hidden="super" from="A14" to="P33">Demi-droite d&apos;origine A14 vers P33</Ray>
+<Ray name="r88" n="1078" color="4" hidden="super" from="A86" to="P177">Demi-droite d&apos;origine A86 vers P177</Ray>
+<Ray name="r80" n="1030" color="4" hidden="super" from="A78" to="P161">Demi-droite d&apos;origine A78 vers P161</Ray>
+<Ray name="r17" n="652" color="4" hidden="super" from="A15" to="P35">Demi-droite d&apos;origine A15 vers P35</Ray>
+<Ray name="r97" n="1132" color="4" hidden="super" from="A95" to="P195">Demi-droite d&apos;origine A95 vers P195</Ray>
+<Ray name="r98" n="1138" color="4" hidden="super" from="A96" to="P197">Demi-droite d&apos;origine A96 vers P197</Ray>
+<Ray name="r81" n="1036" color="4" hidden="super" from="A79" to="P163">Demi-droite d&apos;origine A79 vers P163</Ray>
+<Ray name="r76" n="1006" color="4" hidden="super" from="A74" to="P153">Demi-droite d&apos;origine A74 vers P153</Ray>
+<Ray name="r4" n="574" color="4" hidden="super" from="A2" to="P9">Demi-droite d&apos;origine A2 vers P9</Ray>
+<Ray name="r79" n="1024" color="4" hidden="super" from="A77" to="P159">Demi-droite d&apos;origine A77 vers P159</Ray>
+<Ray name="r24" n="694" color="4" hidden="super" from="A22" to="P49">Demi-droite d&apos;origine A22 vers P49</Ray>
+<Ray name="r3" n="568" color="4" hidden="super" from="A1" to="P7">Demi-droite d&apos;origine A1 vers P7</Ray>
+<Ray name="r96" n="1126" color="4" hidden="super" from="A94" to="P193">Demi-droite d&apos;origine A94 vers P193</Ray>
+<Ray name="r90" n="1090" color="4" hidden="super" from="A88" to="P181">Demi-droite d&apos;origine A88 vers P181</Ray>
+<Ray name="r19" n="664" color="4" hidden="super" from="A17" to="P39">Demi-droite d&apos;origine A17 vers P39</Ray>
+<Ray name="r91" n="1096" color="4" hidden="super" from="A89" to="P183">Demi-droite d&apos;origine A89 vers P183</Ray>
+<Ray name="r94" n="1114" color="4" hidden="super" from="A92" to="P189">Demi-droite d&apos;origine A92 vers P189</Ray>
+<Ray name="r20" n="670" color="4" hidden="super" from="A18" to="P41">Demi-droite d&apos;origine A18 vers P41</Ray>
+<Ray name="r89" n="1084" color="4" hidden="super" from="A87" to="P179">Demi-droite d&apos;origine A87 vers P179</Ray>
+<Ray name="r15" n="640" color="4" hidden="super" from="A13" to="P31">Demi-droite d&apos;origine A13 vers P31</Ray>
+<Ray name="r101" n="1156" color="4" hidden="super" from="A99" to="P203">Demi-droite d&apos;origine A99 vers P203</Ray>
+<Ray name="r100" n="1150" color="4" hidden="super" from="A98" to="P201">Demi-droite d&apos;origine A98 vers P201</Ray>
+<Ray name="r95" n="1120" color="4" hidden="super" from="A93" to="P191">Demi-droite d&apos;origine A93 vers P191</Ray>
+<Ray name="r99" n="1144" color="4" hidden="super" from="A97" to="P199">Demi-droite d&apos;origine A97 vers P199</Ray>
+<Ray name="r14" n="634" color="4" hidden="super" from="A12" to="P29">Demi-droite d&apos;origine A12 vers P29</Ray>
+<Intersection name="P30" n="636" color="5" hidden="super" first="r14" second="c14" shape="circle" which="first">Intersection entre r14 et c14</Intersection>
+<Intersection name="P128" n="930" color="5" hidden="super" first="r63" second="c63" shape="circle" which="first">Intersection entre r63 et c63</Intersection>
+<Intersection name="P64" n="738" color="5" hidden="super" first="r31" second="c31" shape="circle" which="first">Intersection entre r31 et c31</Intersection>
+<Intersection name="P68" n="750" color="5" hidden="super" first="r33" second="c33" shape="circle" which="first">Intersection entre r33 et c33</Intersection>
+<Intersection name="P82" n="792" color="5" hidden="super" first="r40" second="c40" shape="circle" which="first">Intersection entre r40 et c40</Intersection>
+<Intersection name="P14" n="588" color="5" hidden="super" first="r6" second="c6" shape="circle" which="first">Intersection entre r6 et c6</Intersection>
+<Intersection name="P124" n="918" color="5" hidden="super" first="r61" second="c61" shape="circle" which="first">Intersection entre r61 et c61</Intersection>
+<Intersection name="P132" n="942" color="5" hidden="super" first="r65" second="c65" shape="circle" which="first">Intersection entre r65 et c65</Intersection>
+<Intersection name="P122" n="912" color="5" hidden="super" first="r60" second="c60" shape="circle" which="first">Intersection entre r60 et c60</Intersection>
+<Intersection name="P24" n="618" color="5" hidden="super" first="r11" second="c11" shape="circle" which="first">Intersection entre r11 et c11</Intersection>
+<Intersection name="P126" n="924" color="5" hidden="super" first="r62" second="c62" shape="circle" which="first">Intersection entre r62 et c62</Intersection>
+<Intersection name="P204" n="1158" color="5" hidden="super" first="r101" second="c101" shape="circle" which="first">Intersection entre r101 et c101</Intersection>
+<Intersection name="P118" n="900" color="5" hidden="super" first="r58" second="c58" shape="circle" which="first">Intersection entre r58 et c58</Intersection>
+<Intersection name="P134" n="948" color="5" hidden="super" first="r66" second="c66" shape="circle" which="first">Intersection entre r66 et c66</Intersection>
+<Intersection name="P200" n="1146" color="5" hidden="super" first="r99" second="c99" shape="circle" which="first">Intersection entre r99 et c99</Intersection>
+<Intersection name="P32" n="642" color="5" hidden="super" first="r15" second="c15" shape="circle" which="first">Intersection entre r15 et c15</Intersection>
+<Intersection name="P12" n="582" color="5" hidden="super" first="r5" second="c5" shape="circle" which="first">Intersection entre r5 et c5</Intersection>
+<Intersection name="P120" n="906" color="5" hidden="super" first="r59" second="c59" shape="circle" which="first">Intersection entre r59 et c59</Intersection>
+<Intersection name="P60" n="726" color="5" hidden="super" first="r29" second="c29" shape="circle" which="first">Intersection entre r29 et c29</Intersection>
+<Intersection name="P142" n="972" color="5" hidden="super" first="r70" second="c70" shape="circle" which="first">Intersection entre r70 et c70</Intersection>
+<Intersection name="P140" n="966" color="5" hidden="super" first="r69" second="c69" shape="circle" which="first">Intersection entre r69 et c69</Intersection>
+<Intersection name="P86" n="804" color="5" hidden="super" first="r42" second="c42" shape="circle" which="first">Intersection entre r42 et c42</Intersection>
+<Intersection name="P138" n="960" color="5" hidden="super" first="r68" second="c68" shape="circle" which="first">Intersection entre r68 et c68</Intersection>
+<Intersection name="P198" n="1140" color="5" hidden="super" first="r98" second="c98" shape="circle" which="first">Intersection entre r98 et c98</Intersection>
+<Intersection name="P58" n="720" color="5" hidden="super" first="r28" second="c28" shape="circle" which="first">Intersection entre r28 et c28</Intersection>
+<Intersection name="P194" n="1128" color="5" hidden="super" first="r96" second="c96" shape="circle" which="first">Intersection entre r96 et c96</Intersection>
+<Intersection name="P80" n="786" color="5" hidden="super" first="r39" second="c39" shape="circle" which="first">Intersection entre r39 et c39</Intersection>
+<Intersection name="P110" n="876" color="5" hidden="super" first="r54" second="c54" shape="circle" which="first">Intersection entre r54 et c54</Intersection>
+<Intersection name="P150" n="996" color="5" hidden="super" first="r74" second="c74" shape="circle" which="first">Intersection entre r74 et c74</Intersection>
+<Intersection name="P70" n="756" color="5" hidden="super" first="r34" second="c34" shape="circle" which="first">Intersection entre r34 et c34</Intersection>
+<Intersection name="P148" n="990" color="5" hidden="super" first="r73" second="c73" shape="circle" which="first">Intersection entre r73 et c73</Intersection>
+<Intersection name="P112" n="882" color="5" hidden="super" first="r55" second="c55" shape="circle" which="first">Intersection entre r55 et c55</Intersection>
+<Intersection name="P56" n="714" color="5" hidden="super" first="r27" second="c27" shape="circle" which="first">Intersection entre r27 et c27</Intersection>
+<Intersection name="P20" n="606" color="5" hidden="super" first="r9" second="c9" shape="circle" which="first">Intersection entre r9 et c9</Intersection>
+<Intersection name="P116" n="894" color="5" hidden="super" first="r57" second="c57" shape="circle" which="first">Intersection entre r57 et c57</Intersection>
+<Intersection name="P144" n="978" color="5" hidden="super" first="r71" second="c71" shape="circle" which="first">Intersection entre r71 et c71</Intersection>
+<Intersection name="P152" n="1002" color="5" hidden="super" first="r75" second="c75" shape="circle" which="first">Intersection entre r75 et c75</Intersection>
+<Intersection name="P16" n="594" color="5" hidden="super" first="r7" second="c7" shape="circle" which="first">Intersection entre r7 et c7</Intersection>
+<Intersection name="P202" n="1152" color="5" hidden="super" first="r100" second="c100" shape="circle" which="first">Intersection entre r100 et c100</Intersection>
+<Intersection name="P84" n="798" color="5" hidden="super" first="r41" second="c41" shape="circle" which="first">Intersection entre r41 et c41</Intersection>
+<Intersection name="P34" n="648" color="5" hidden="super" first="r16" second="c16" shape="circle" which="first">Intersection entre r16 et c16</Intersection>
+<Intersection name="P66" n="744" color="5" hidden="super" first="r32" second="c32" shape="circle" which="first">Intersection entre r32 et c32</Intersection>
+<Intersection name="P62" n="732" color="5" hidden="super" first="r30" second="c30" shape="circle" which="first">Intersection entre r30 et c30</Intersection>
+<Intersection name="P130" n="936" color="5" hidden="super" first="r64" second="c64" shape="circle" which="first">Intersection entre r64 et c64</Intersection>
+<Intersection name="P54" n="708" color="5" hidden="super" first="r26" second="c26" shape="circle" which="first">Intersection entre r26 et c26</Intersection>
+<Intersection name="P146" n="984" color="5" hidden="super" first="r72" second="c72" shape="circle" which="first">Intersection entre r72 et c72</Intersection>
+<Intersection name="P10" n="576" color="5" hidden="super" first="r4" second="c4" shape="circle" which="first">Intersection entre r4 et c4</Intersection>
+<Intersection name="P88" n="810" color="5" hidden="super" first="r43" second="c43" shape="circle" which="first">Intersection entre r43 et c43</Intersection>
+<Intersection name="P114" n="888" color="5" hidden="super" first="r56" second="c56" shape="circle" which="first">Intersection entre r56 et c56</Intersection>
+<Intersection name="P196" n="1134" color="5" hidden="super" first="r97" second="c97" shape="circle" which="first">Intersection entre r97 et c97</Intersection>
+<Intersection name="P192" n="1122" color="5" hidden="super" first="r95" second="c95" shape="circle" which="first">Intersection entre r95 et c95</Intersection>
+<Intersection name="P4" n="204" color="5" hidden="true" first="r1" second="c1" shape="circle" which="first">Intersection entre r1 et c1</Intersection>
+<Intersection name="P90" n="816" color="5" hidden="super" first="r44" second="c44" shape="circle" which="first">Intersection entre r44 et c44</Intersection>
+<Intersection name="P28" n="630" color="5" hidden="super" first="r13" second="c13" shape="circle" which="first">Intersection entre r13 et c13</Intersection>
+<Intersection name="P180" n="1086" color="5" hidden="super" first="r89" second="c89" shape="circle" which="first">Intersection entre r89 et c89</Intersection>
+<Intersection name="P154" n="1008" color="5" hidden="super" first="r76" second="c76" shape="circle" which="first">Intersection entre r76 et c76</Intersection>
+<Intersection name="P156" n="1014" color="5" hidden="super" first="r77" second="c77" shape="circle" which="first">Intersection entre r77 et c77</Intersection>
+<Intersection name="P36" n="654" color="5" hidden="super" first="r17" second="c17" shape="circle" which="first">Intersection entre r17 et c17</Intersection>
+<Intersection name="P172" n="1062" color="5" hidden="super" first="r85" second="c85" shape="circle" which="first">Intersection entre r85 et c85</Intersection>
+<Intersection name="P108" n="870" color="5" hidden="super" first="r53" second="c53" shape="circle" which="first">Intersection entre r53 et c53</Intersection>
+<Intersection name="P72" n="762" color="5" hidden="super" first="r35" second="c35" shape="circle" which="first">Intersection entre r35 et c35</Intersection>
+<Intersection name="P96" n="834" color="5" hidden="super" first="r47" second="c47" shape="circle" which="first">Intersection entre r47 et c47</Intersection>
+<Intersection name="P52" n="702" color="5" hidden="super" first="r25" second="c25" shape="circle" which="first">Intersection entre r25 et c25</Intersection>
+<Intersection name="P190" n="1116" color="5" hidden="super" first="r94" second="c94" shape="circle" which="first">Intersection entre r94 et c94</Intersection>
+<Intersection name="P18" n="600" color="5" hidden="super" first="r8" second="c8" shape="circle" which="first">Intersection entre r8 et c8</Intersection>
+<Intersection name="P22" n="612" color="5" hidden="super" first="r10" second="c10" shape="circle" which="first">Intersection entre r10 et c10</Intersection>
+<Intersection name="P50" n="696" color="5" hidden="super" first="r24" second="c24" shape="circle" which="first">Intersection entre r24 et c24</Intersection>
+<Intersection name="P160" n="1026" color="5" hidden="super" first="r79" second="c79" shape="circle" which="first">Intersection entre r79 et c79</Intersection>
+<Intersection name="P158" n="1020" color="5" hidden="super" first="r78" second="c78" shape="circle" which="first">Intersection entre r78 et c78</Intersection>
+<Intersection name="P42" n="672" color="5" hidden="super" first="r20" second="c20" shape="circle" which="first">Intersection entre r20 et c20</Intersection>
+<Intersection name="P8" n="570" color="5" hidden="super" first="r3" second="c3" shape="circle" which="first">Intersection entre r3 et c3</Intersection>
+<Intersection name="P178" n="1080" color="5" hidden="super" first="r88" second="c88" shape="circle" which="first">Intersection entre r88 et c88</Intersection>
+<Intersection name="P92" n="822" color="5" hidden="super" first="r45" second="c45" shape="circle" which="first">Intersection entre r45 et c45</Intersection>
+<Intersection name="P106" n="864" color="5" hidden="super" first="r52" second="c52" shape="circle" which="first">Intersection entre r52 et c52</Intersection>
+<Intersection name="P162" n="1032" color="5" hidden="super" first="r80" second="c80" shape="circle" which="first">Intersection entre r80 et c80</Intersection>
+<Intersection name="P166" n="1044" color="5" hidden="super" first="r82" second="c82" shape="circle" which="first">Intersection entre r82 et c82</Intersection>
+<Intersection name="P94" n="828" color="5" hidden="super" first="r46" second="c46" shape="circle" which="first">Intersection entre r46 et c46</Intersection>
+<Intersection name="P188" n="1110" color="5" hidden="super" first="r93" second="c93" shape="circle" which="first">Intersection entre r93 et c93</Intersection>
+<Intersection name="P40" n="666" color="5" hidden="super" first="r19" second="c19" shape="circle" which="first">Intersection entre r19 et c19</Intersection>
+<Intersection name="P98" n="840" color="5" hidden="super" first="r48" second="c48" shape="circle" which="first">Intersection entre r48 et c48</Intersection>
+<Intersection name="P38" n="660" color="5" hidden="super" first="r18" second="c18" shape="circle" which="first">Intersection entre r18 et c18</Intersection>
+<Intersection name="P182" n="1092" color="5" hidden="super" first="r90" second="c90" shape="circle" which="first">Intersection entre r90 et c90</Intersection>
+<Intersection name="P164" n="1038" color="5" hidden="super" first="r81" second="c81" shape="circle" which="first">Intersection entre r81 et c81</Intersection>
+<Intersection name="P26" n="624" color="5" hidden="super" first="r12" second="c12" shape="circle" which="first">Intersection entre r12 et c12</Intersection>
+<Intersection name="P136" n="954" color="5" hidden="super" first="r67" second="c67" shape="circle" which="first">Intersection entre r67 et c67</Intersection>
+<Intersection name="P78" n="780" color="5" hidden="super" first="r38" second="c38" shape="circle" which="first">Intersection entre r38 et c38</Intersection>
+<Intersection name="P48" n="690" color="5" hidden="super" first="r23" second="c23" shape="circle" which="first">Intersection entre r23 et c23</Intersection>
+<Intersection name="P176" n="1074" color="5" hidden="super" first="r87" second="c87" shape="circle" which="first">Intersection entre r87 et c87</Intersection>
+<Intersection name="P6" n="564" color="5" hidden="super" first="r2" second="c2" shape="circle" which="first">Intersection entre r2 et c2</Intersection>
+<Intersection name="P76" n="774" color="5" hidden="super" first="r37" second="c37" shape="circle" which="first">Intersection entre r37 et c37</Intersection>
+<Intersection name="P74" n="768" color="5" hidden="super" first="r36" second="c36" shape="circle" which="first">Intersection entre r36 et c36</Intersection>
+<Intersection name="P100" n="846" color="5" hidden="super" first="r49" second="c49" shape="circle" which="first">Intersection entre r49 et c49</Intersection>
+<Intersection name="P174" n="1068" color="5" hidden="super" first="r86" second="c86" shape="circle" which="first">Intersection entre r86 et c86</Intersection>
+<Intersection name="P168" n="1050" color="5" hidden="super" first="r83" second="c83" shape="circle" which="first">Intersection entre r83 et c83</Intersection>
+<Intersection name="P104" n="858" color="5" hidden="super" first="r51" second="c51" shape="circle" which="first">Intersection entre r51 et c51</Intersection>
+<Intersection name="P46" n="684" color="5" hidden="super" first="r22" second="c22" shape="circle" which="first">Intersection entre r22 et c22</Intersection>
+<Intersection name="P44" n="678" color="5" hidden="super" first="r21" second="c21" shape="circle" which="first">Intersection entre r21 et c21</Intersection>
+<Intersection name="P170" n="1056" color="5" hidden="super" first="r84" second="c84" shape="circle" which="first">Intersection entre r84 et c84</Intersection>
+<Intersection name="P184" n="1098" color="5" hidden="super" first="r91" second="c91" shape="circle" which="first">Intersection entre r91 et c91</Intersection>
+<Intersection name="P102" n="852" color="5" hidden="super" first="r50" second="c50" shape="circle" which="first">Intersection entre r50 et c50</Intersection>
+<Intersection name="P186" n="1104" color="5" hidden="super" first="r92" second="c92" shape="circle" which="first">Intersection entre r92 et c92</Intersection>
+<Segment name="s2" n="565" color="3" from="A0" to="P6" arrow="true">Segment de A0 à P6</Segment>
+<Segment name="s21" n="679" color="3" from="A19" to="P44" arrow="true">Segment de A19 à P44</Segment>
+<Segment name="s85" n="1063" color="3" from="A83" to="P172" arrow="true">Segment de A83 à P172</Segment>
+<Segment name="s66" n="949" color="3" from="A64" to="P134" arrow="true">Segment de A64 à P134</Segment>
+<Segment name="s54" n="877" color="3" from="A52" to="P110" arrow="true">Segment de A52 à P110</Segment>
+<Segment name="s49" n="847" color="3" from="A47" to="P100" arrow="true">Segment de A47 à P100</Segment>
+<Segment name="s50" n="853" color="3" from="A48" to="P102" arrow="true">Segment de A48 à P102</Segment>
+<Segment name="s86" n="1069" color="3" from="A84" to="P174" arrow="true">Segment de A84 à P174</Segment>
+<Segment name="s88" n="1081" color="3" from="A86" to="P178" arrow="true">Segment de A86 à P178</Segment>
+<Segment name="s83" n="1051" color="3" from="A81" to="P168" arrow="true">Segment de A81 à P168</Segment>
+<Segment name="s22" n="685" color="3" from="A20" to="P46" arrow="true">Segment de A20 à P46</Segment>
+<Segment name="s84" n="1057" color="3" from="A82" to="P170" arrow="true">Segment de A82 à P170</Segment>
+<Segment name="s5" n="583" color="3" from="A3" to="P12" arrow="true">Segment de A3 à P12</Segment>
+<Segment name="s63" n="931" color="3" from="A61" to="P128" arrow="true">Segment de A61 à P128</Segment>
+<Segment name="s61" n="919" color="3" from="A59" to="P124" arrow="true">Segment de A59 à P124</Segment>
+<Segment name="s60" n="913" color="3" from="A58" to="P122" arrow="true">Segment de A58 à P122</Segment>
+<Segment name="s11" n="619" color="3" from="A9" to="P24" arrow="true">Segment de A9 à P24</Segment>
+<Segment name="s31" n="739" color="3" from="A29" to="P64" arrow="true">Segment de A29 à P64</Segment>
+<Segment name="s62" n="925" color="3" from="A60" to="P126" arrow="true">Segment de A60 à P126</Segment>
+<Segment name="s67" n="955" color="3" from="A65" to="P136" arrow="true">Segment de A65 à P136</Segment>
+<Segment name="s32" n="745" color="3" from="A30" to="P66" arrow="true">Segment de A30 à P66</Segment>
+<Segment name="s65" n="943" color="3" from="A63" to="P132" arrow="true">Segment de A63 à P132</Segment>
+<Segment name="s59" n="907" color="3" from="A57" to="P120" arrow="true">Segment de A57 à P120</Segment>
+<Segment name="s29" n="727" color="3" from="A27" to="P60" arrow="true">Segment de A27 à P60</Segment>
+<Segment name="s68" n="961" color="3" from="A66" to="P138" arrow="true">Segment de A66 à P138</Segment>
+<Segment name="s79" n="1027" color="3" from="A77" to="P160" arrow="true">Segment de A77 à P160</Segment>
+<Segment name="s51" n="859" color="3" from="A49" to="P104" arrow="true">Segment de A49 à P104</Segment>
+<Segment name="s81" n="1039" color="3" from="A79" to="P164" arrow="true">Segment de A79 à P164</Segment>
+<Segment name="s76" n="1009" color="3" from="A74" to="P154" arrow="true">Segment de A74 à P154</Segment>
+<Segment name="s53" n="871" color="3" from="A51" to="P108" arrow="true">Segment de A51 à P108</Segment>
+<Segment name="s77" n="1015" color="3" from="A75" to="P156" arrow="true">Segment de A75 à P156</Segment>
+<Segment name="s35" n="763" color="3" from="A33" to="P72" arrow="true">Segment de A33 à P72</Segment>
+<Segment name="s23" n="691" color="3" from="A21" to="P48" arrow="true">Segment de A21 à P48</Segment>
+<Segment name="s80" n="1033" color="3" from="A78" to="P162" arrow="true">Segment de A78 à P162</Segment>
+<Segment name="s36" n="769" color="3" from="A34" to="P74" arrow="true">Segment de A34 à P74</Segment>
+<Segment name="s82" n="1045" color="3" from="A80" to="P166" arrow="true">Segment de A80 à P166</Segment>
+<Segment name="s52" n="865" color="3" from="A50" to="P106" arrow="true">Segment de A50 à P106</Segment>
+<Segment name="s25" n="703" color="3" from="A23" to="P52" arrow="true">Segment de A23 à P52</Segment>
+<Segment name="s48" n="841" color="3" from="A46" to="P98" arrow="true">Segment de A46 à P98</Segment>
+<Segment name="s8" n="601" color="3" from="A6" to="P18" arrow="true">Segment de A6 à P18</Segment>
+<Segment name="s37" n="775" color="3" from="A35" to="P76" arrow="true">Segment de A35 à P76</Segment>
+<Segment name="s20" n="673" color="3" from="A18" to="P42" arrow="true">Segment de A18 à P42</Segment>
+<Segment name="s89" n="1087" color="3" from="A87" to="P180" arrow="true">Segment de A87 à P180</Segment>
+<Segment name="s47" n="835" color="3" from="A45" to="P96" arrow="true">Segment de A45 à P96</Segment>
+<Segment name="s12" n="625" color="3" from="A10" to="P26" arrow="true">Segment de A10 à P26</Segment>
+<Segment name="s24" n="697" color="3" from="A22" to="P50" arrow="true">Segment de A22 à P50</Segment>
+<Segment name="s3" n="571" color="3" from="A1" to="P8" arrow="true">Segment de A1 à P8</Segment>
+<Segment name="s87" n="1075" color="3" from="A85" to="P176" arrow="true">Segment de A85 à P176</Segment>
+<Segment name="s10" n="613" color="3" from="A8" to="P22" arrow="true">Segment de A8 à P22</Segment>
+<Segment name="s78" n="1021" color="3" from="A76" to="P158" arrow="true">Segment de A76 à P158</Segment>
+<Segment name="s42" n="805" color="3" from="A40" to="P86" arrow="true">Segment de A40 à P86</Segment>
+<Segment name="s9" n="607" color="3" from="A7" to="P20" arrow="true">Segment de A7 à P20</Segment>
+<Segment name="s93" n="1111" color="3" from="A91" to="P188" arrow="true">Segment de A91 à P188</Segment>
+<Segment name="s92" n="1105" color="3" from="A90" to="P186" arrow="true">Segment de A90 à P186</Segment>
+<Segment name="s97" n="1135" color="3" from="A95" to="P196" arrow="true">Segment de A95 à P196</Segment>
+<Segment name="s45" n="823" color="3" from="A43" to="P92" arrow="true">Segment de A43 à P92</Segment>
+<Segment name="s44" n="817" color="3" from="A42" to="P90" arrow="true">Segment de A42 à P90</Segment>
+<Segment name="s46" n="829" color="3" from="A44" to="P94" arrow="true">Segment de A44 à P94</Segment>
+<Segment name="s43" n="811" color="3" from="A41" to="P88" arrow="true">Segment de A41 à P88</Segment>
+<Segment name="s18" n="661" color="3" from="A16" to="P38" arrow="true">Segment de A16 à P38</Segment>
+<Segment name="s15" n="643" color="3" from="A13" to="P32" arrow="true">Segment de A13 à P32</Segment>
+<Segment name="s41" n="799" color="3" from="A39" to="P84" arrow="true">Segment de A39 à P84</Segment>
+<Segment name="s98" n="1141" color="3" from="A96" to="P198" arrow="true">Segment de A96 à P198</Segment>
+<Segment name="s17" n="655" color="3" from="A15" to="P36" arrow="true">Segment de A15 à P36</Segment>
+<Segment name="s100" n="1153" color="3" from="A98" to="P202" arrow="true">Segment de A98 à P202</Segment>
+<Segment name="s14" n="637" color="3" from="A12" to="P30" arrow="true">Segment de A12 à P30</Segment>
+<Segment name="s40" n="793" color="3" from="A38" to="P82" arrow="true">Segment de A38 à P82</Segment>
+<Segment name="s95" n="1123" color="3" from="A93" to="P192" arrow="true">Segment de A93 à P192</Segment>
+<Segment name="s96" n="1129" color="3" from="A94" to="P194" arrow="true">Segment de A94 à P194</Segment>
+<Segment name="s101" n="1159" color="3" from="A99" to="P204" arrow="true">Segment de A99 à P204</Segment>
+<Segment name="s90" n="1093" color="3" from="A88" to="P182" arrow="true">Segment de A88 à P182</Segment>
+<Segment name="s13" n="631" color="3" from="A11" to="P28" arrow="true">Segment de A11 à P28</Segment>
+<Segment name="s39" n="787" color="3" from="A37" to="P80" arrow="true">Segment de A37 à P80</Segment>
+<Segment name="s19" n="667" color="3" from="A17" to="P40" arrow="true">Segment de A17 à P40</Segment>
+<Segment name="s1" n="205" color="3" scolor="66,159,255" from="M" to="P4" arrow="true">Segment de M à P4</Segment>
+<Segment name="s94" n="1117" color="3" from="A92" to="P190" arrow="true">Segment de A92 à P190</Segment>
+<Segment name="s75" n="1003" color="3" from="A73" to="P152" arrow="true">Segment de A73 à P152</Segment>
+<Segment name="s73" n="991" color="3" from="A71" to="P148" arrow="true">Segment de A71 à P148</Segment>
+<Segment name="s4" n="577" color="3" from="A2" to="P10" arrow="true">Segment de A2 à P10</Segment>
+<Segment name="s34" n="757" color="3" from="A32" to="P70" arrow="true">Segment de A32 à P70</Segment>
+<Segment name="s74" n="997" color="3" from="A72" to="P150" arrow="true">Segment de A72 à P150</Segment>
+<Segment name="s7" n="595" color="3" from="A5" to="P16" arrow="true">Segment de A5 à P16</Segment>
+<Segment name="s64" n="937" color="3" from="A62" to="P130" arrow="true">Segment de A62 à P130</Segment>
+<Segment name="s6" n="589" color="3" from="A4" to="P14" arrow="true">Segment de A4 à P14</Segment>
+<Segment name="s30" n="733" color="3" from="A28" to="P62" arrow="true">Segment de A28 à P62</Segment>
+<Segment name="s26" n="709" color="3" from="A24" to="P54" arrow="true">Segment de A24 à P54</Segment>
+<Segment name="s55" n="883" color="3" from="A53" to="P112" arrow="true">Segment de A53 à P112</Segment>
+<Segment name="s58" n="901" color="3" from="A56" to="P118" arrow="true">Segment de A56 à P118</Segment>
+<Segment name="s72" n="985" color="3" from="A70" to="P146" arrow="true">Segment de A70 à P146</Segment>
+<Segment name="s99" n="1147" color="3" from="A97" to="P200" arrow="true">Segment de A97 à P200</Segment>
+<Segment name="s71" n="979" color="3" from="A69" to="P144" arrow="true">Segment de A69 à P144</Segment>
+<Segment name="s57" n="895" color="3" from="A55" to="P116" arrow="true">Segment de A55 à P116</Segment>
+<Segment name="s16" n="649" color="3" from="A14" to="P34" arrow="true">Segment de A14 à P34</Segment>
+<Segment name="s38" n="781" color="3" from="A36" to="P78" arrow="true">Segment de A36 à P78</Segment>
+<Segment name="s91" n="1099" color="3" from="A89" to="P184" arrow="true">Segment de A89 à P184</Segment>
+<Segment name="s28" n="721" color="3" from="A26" to="P58" arrow="true">Segment de A26 à P58</Segment>
+<Segment name="s70" n="973" color="3" from="A68" to="P142" arrow="true">Segment de A68 à P142</Segment>
+<Segment name="s33" n="751" color="3" from="A31" to="P68" arrow="true">Segment de A31 à P68</Segment>
+<Segment name="s56" n="889" color="3" from="A54" to="P114" arrow="true">Segment de A54 à P114</Segment>
+<Segment name="s27" n="715" color="3" from="A25" to="P56" arrow="true">Segment de A25 à P56</Segment>
+<Segment name="s69" n="967" color="3" from="A67" to="P140" arrow="true">Segment de A67 à P140</Segment>
+</Objects>
+</Construction>
+</CaR>

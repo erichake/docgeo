@@ -6,6 +6,7 @@ import { derivative } from "../import/dgp_derivative";
 import {
     evaluateFormula,
     evaluateProgram,
+    programSteps,
     formulaIdentifiers,
     formulaSource,
     programNodes,
@@ -277,11 +278,19 @@ export const listArrow = (value: unknown): Vec2 | null =>
 // A button's program, an expression's when its value changes or a point's
 // when it is dragged (see event_object.ts): it styles objects and sets the
 // value of expressions or where free points are, as a manipulation does.
+// The runs of the programs that wait, by program: run again, a program
+// stops its previous run.
+const RUNS = new WeakMap<ExpressionProgram, number>();
+
+// A program that waits (WAIT(ms)) runs on, the figure drawn during its waits.
 export function runProgram(c: construction, expression: ExpressionProgram) {
     const { program, refs, targets, vec3 } = expression;
-    evaluateProgram(program, {
+    const view = () => c.formulaView();
+    const env: FormulaEnv = {
         resolveIdentifier: (name) => refs.get(name)!.scriptValue(vec3),
-        view: () => c.formulaView(),
+        view,
+        callFunction: (name, args, derivatives) =>
+            callFunction(refs, name, args, view, derivatives),
         callMethod: (name, method, args) => {
             const target = targets.get(name);
             if (!target) return;
@@ -315,7 +324,15 @@ export function runProgram(c: construction, expression: ExpressionProgram) {
             ok.on("click", () => screen.dispose());
             $("body").add(screen);
         },
-    });
+    };
+    const steps = programSteps(program, env);
+    if (!steps) return void evaluateProgram(program, env);
+    clearTimeout(RUNS.get(expression));
+    const next = () => {
+        const { done, value } = steps.next();
+        if (!done) RUNS.set(expression, window.setTimeout(next, value));
+    };
+    next();
 }
 
 // Carries out a script's styling method on one of the figure's objects.

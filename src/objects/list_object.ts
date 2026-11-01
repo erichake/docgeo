@@ -248,8 +248,13 @@ export class list_object extends construction_object {
     // counterpart of alphaAtScreen, used while dragging a free point instead
     // of a point already constrained to this List.
     nearestPoint(target: Vec3): Vec3 | null {
+        const index = this.nearestIndex(target);
+        return index === null ? null : this.itemPoint(index);
+    }
+
+    nearestIndex(target: Vec3): number | null {
         if (this.nature !== "point") return null;
-        let best: Vec3 | null = null;
+        let best: number | null = null;
         let bestDistance = Infinity;
         for (let index = 0; index < this.count; index++) {
             const point = this.itemPoint(index);
@@ -257,7 +262,7 @@ export class list_object extends construction_object {
             const distance = vNorm(vSub(point, target));
             if (distance >= bestDistance) continue;
             bestDistance = distance;
-            best = point;
+            best = index;
         }
         return best;
     }

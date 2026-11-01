@@ -1,6 +1,7 @@
 #!/bin/bash
 # A CaRMetal figure as CaRMetal draws it, to compare with DocGeo's import:
-#   tools/carmetal/render.sh figure.zir out.png [--page n] [point=x,y …]
+#   tools/carmetal/render.sh figure.zir out.png [--page n] [--script name]
+#     [point=x,y …]
 # e.g. tools/carmetal/render.sh tests/zirz/eric/IllustreSymCollege.zirs \
 #   losange.png --page 1 m=1,0.12
 # Needs Java 8 and CaRMetal.jar (see zz_CaRMetal.command). CaRMetal's window

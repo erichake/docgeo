@@ -1372,12 +1372,8 @@ function setBranches(node: macro_object, value: Json): void {
     list(value, branched.length, branched.length).forEach((branch, index) => {
         const object = branched[index];
         if (object instanceof macro_object) return setBranches(object, branch);
-        check(
-            Number.isInteger(branch) &&
-                (branch as number) >= 0 &&
-                (branch as number) <= 3,
-        );
-        object.order = branch as 0 | 1 | 2 | 3;
+        check(Number.isInteger(branch) && (branch as number) >= 0);
+        object.order = branch as number;
     });
 }
 
@@ -1648,6 +1644,7 @@ const INTERSECTABLE = [
     primitive_circle_object,
     primitive_quadric_object,
     curve_object,
+    locus_object,
 ];
 
 // What a transformation maps, besides points.
@@ -1859,13 +1856,13 @@ const BUILDERS: Record<string, Builder> = {
     },
     Int: (parameters, { c, name, at }) => {
         const [o1, o2, order, away] = list(parameters, 3, 4);
-        check(order === 0 || order === 1 || order === 2 || order === 3);
+        check(Number.isInteger(order) && (order as number) >= 0);
         return createOrderedIntersection(
             c,
             name,
             at(o1, ...INTERSECTABLE),
             at(o2, ...INTERSECTABLE),
-            order,
+            order as number,
             away === undefined ? undefined : at(away, point_object),
         );
     },

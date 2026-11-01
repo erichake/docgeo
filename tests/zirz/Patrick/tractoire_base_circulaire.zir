@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<CaR>
+<Macro Name="Trct_1_etape" showduplicates="true">
+<Parameter name="A0">A0</Parameter>
+<Parameter name="B0">B0</Parameter>
+<Parameter name="A">A</Parameter>
+<Objects>
+<Point name="A0" n="0" mainparameter="true" x="0.16712079927338763" y="-0.9591280653950953">Point</Point>
+<Point name="B0" n="1" mainparameter="true" x="-1.5476839237057218" y="2.0490463215258847">Point</Point>
+<Ray name="r1" n="2" color="5" hidden="super" from="A0" to="B0">Demi-droite d&apos;origine A vers B</Ray>
+<Point name="A" n="3" mainparameter="true" x="1.290432295592014" y="-0.9591280653950953">Point</Point>
+<Circle3 name="c1" n="4" color="2" hidden="super" from="A0" to="B0" midpoint="A">Arc de cercle de centre A0 de rayon allant de A à B</Circle3>
+<Intersection name="P3" n="5" color="1" showname="true" xcoffset="0.6207617079976671" ycoffset="0.4285306781925382" keepclose="true" target="true" first="r1" second="c1" shape="dcross" which="first">Intersection entre r1 et c1</Intersection>
+<Ray name="r2" n="6" color="1" target="true" from="A" to="P3">Demi-droite d&apos;origine A0 vers P3</Ray>
+</Objects>
+</Macro>
+<Script Name="Tractrice n étapes" onload="false">
+n = Math.pow(2,6);
+a0 = InteractiveInput(&quot;Extrémité 1 du segment&quot;,&quot;Point&quot;);
+b0 = InteractiveInput(&quot;Extrémité 2 du segment&quot;,&quot;Point&quot;);
+a = InteractiveInput(&quot;Point sur le cercle&quot;,&quot;Point&quot;);
+
+q = a0;
+t = [b0,&quot;&quot;];
+a = Angle(a,&quot;O&quot;,a0); SetHide(a,true); ReflexAngle(a,true);
+for(i=1; i&lt;=n; i++){
+	r = q;
+	l = FixedAngle(r,&quot;O&quot;,&quot;-_a/_n&quot;); SetHide(l,true);
+	q = Intersections(l,&quot;C&quot;).split(&quot;,&quot;)[0];
+	t = ExecuteMacro(&quot;Trct_1_etape&quot;,&quot;_r,&quot;+t[0]+&quot;,_q&quot;);
+	SetPointType(&quot;_q,&quot;+t[0],&quot;point&quot;);
+	SetHide(t[1]+&quot;,_q&quot;,true);
+}
+SetPointType(t[0],&quot;circle&quot;);
+</Script>
+<Construction>
+<Window x="3.143142785205762" y="3.98521475508231" w="13.45434264405943"/>
+<Windowdim w="1280" h="800"/>
+<Preferences minfontsize="20" minpointsize="3" minlinesize="1" arrowsize="15" selectionsize="7" monkeyspeed="22" gridopacity="13" digits.lengths="5" digits.edit="5" digits.angles="0" colorbackground="245,245,245" colorbackgroundx="139" colorbackgroundy="9" colorbackgroundPal="4" fig3D="false" figDP="false"/>
+<Objects>
+<Point name="B0" n="10" color="2" type="thick" showname="true" xcoffset="-0.4888044557333133" ycoffset="-0.6110055696666405" keepclose="true" x="-3.2164639094819423" y="3.6540523873199917" shape="circle">Point</Point>
+<Point name="O" n="19" color="2" showname="true" xcoffset="0.12220111393332722" ycoffset="-0.7576469063866336" keepclose="true" x="4.352933813145711" y="3.6186114132823253" shape="dcross">Point</Point>
+<Text name="Text1" n="24" showname="true" showvalue="true" x="-6.620726218067158" y="11.561683818948657">Appliquer le script à $A_0, B_0, A_1$
+puis encore une fois à $A_1,..., A_2$</Text>
+<Circle name="C" n="22" color="2" fixed="3.78564" midpoint="O" acute="true">Cercle de centre O de rayon 3.78564</Circle>
+<PointOn name="A1" n="17" color="1" type="thick" showname="true" xcoffset="0.10663020459887473" ycoffset="-1.3086253797887393" keepclose="true" on="C" alpha="-1.493655022908011" x="4.644673471327183" y="-0.1557704144404819" shape="circle">Point sur C</PointOn>
+<PointOn name="A0" n="7" color="2" type="thick" showname="true" xcoffset="0.651175845071819" ycoffset="-0.3617362190968634" keepclose="true" on="C" x="0.5686213509939222" y="3.7188581010214468" shape="circle">Point sur C</PointOn>
+<PointOn name="A2" n="23" color="5" type="thick" showname="true" xcoffset="1.422300611029332" ycoffset="0.030492222159453686" keepclose="true" on="C" alpha="-0.033885329904117446" x="8.136400655676155" y="3.4903582999762093" shape="circle">Point sur C</PointOn>
+<Segment name="s1" n="11" from="A0" to="B0" fixed="C">Segment de A0 à B0 de longueur &quot;C&quot;</Segment>
+</Objects>
+</Construction>
+</CaR>

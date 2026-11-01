@@ -1,0 +1,157 @@
+<?xml version="1.0" encoding="utf-8"?>
+<CaR>
+<Script Name="jeter le contenu du verre A" mousedrag="e1" onload="false">
+SetExpressionValue(&quot;cont1&quot;,0);
+jcompteur=GetExpressionValue(&quot;compteur&quot;)+1;
+SetExpressionValue(&quot;compteur&quot;,jcompteur);
+jtextA=GetText(&quot;affichage_historique_A&quot;);
+jtextA = jtextA + &quot;,&quot; + 0;
+SetText(&quot;affichage_historique_A&quot;, jtextA);
+</Script>
+<Script Name="jeter le contenu du verre B" mousedrag="e2" onload="false">
+SetExpressionValue(&quot;cont2&quot;,0);
+jcompteur=GetExpressionValue(&quot;compteur&quot;)+1;
+SetExpressionValue(&quot;compteur&quot;,jcompteur);
+jtextB=GetText(&quot;affichage_historique_B&quot;);
+jtextB = jtextB + &quot;,&quot; + 0;
+SetText(&quot;affichage_historique_B&quot;, jtextB);
+</Script>
+<Script Name="robinet: remplir à raz-bord le verre A" mousedrag="r1" onload="false">
+jV1=GetExpressionValue(&quot;V1&quot;);
+SetExpressionValue(&quot;cont1&quot;,jV1);
+jcompteur=GetExpressionValue(&quot;compteur&quot;)+1;
+SetExpressionValue(&quot;compteur&quot;,jcompteur);
+jtextA=GetText(&quot;affichage_historique_A&quot;);
+jtextA = jtextA + &quot;,&quot; + &quot;_jV1&quot;;
+SetText(&quot;affichage_historique_A&quot;, jtextA);
+</Script>
+<Script Name="robinet: remplir à raz-bord le verre B" mousedrag="r2" onload="false">
+jV2=GetExpressionValue(&quot;V2&quot;);
+SetExpressionValue(&quot;cont2&quot;,jV2);
+jcompteur=GetExpressionValue(&quot;compteur&quot;)+1;
+SetExpressionValue(&quot;compteur&quot;,jcompteur);
+jtextB=GetText(&quot;affichage_historique_B&quot;);
+jtextB = jtextB + &quot;,&quot; + &quot;_jV2&quot;;
+SetText(&quot;affichage_historique_B&quot;, jtextB);</Script>
+<Script Name="verser autant que possible (sans débordement) le contenu du verre A dans le verre B" mousedrag="v12" onload="false">
+jV1=GetExpressionValue(&quot;V1&quot;);
+jV2=GetExpressionValue(&quot;V2&quot;);
+jk1=GetExpressionValue(&quot;k1&quot;);
+jk2=GetExpressionValue(&quot;k2&quot;);
+total=jk1+jk2;
+if (total&lt;=jV2){
+	SetExpressionValue(&quot;cont1&quot;,0);
+	SetExpressionValue(&quot;cont2&quot;,total);
+	jtextA=GetText(&quot;affichage_historique_A&quot;);
+	jtextA = jtextA + &quot;,&quot; + 0;
+	SetText(&quot;affichage_historique_A&quot;, jtextA);
+	jtextB=GetText(&quot;affichage_historique_B&quot;);
+	jtextB = jtextB + &quot;,&quot; + total;
+	SetText(&quot;affichage_historique_B&quot;, jtextB);
+
+} else {
+	reste_dans_A=total-jV2;
+	SetExpressionValue(&quot;cont1&quot;,reste_dans_A);
+	SetExpressionValue(&quot;cont2&quot;,jV2)
+	jtextA=GetText(&quot;affichage_historique_A&quot;);
+	jtextA = jtextA + &quot;,&quot; + reste_dans_A;
+	SetText(&quot;affichage_historique_A&quot;, jtextA);
+	jtextB=GetText(&quot;affichage_historique_B&quot;);
+	jtextB = jtextB + &quot;,&quot; + jV2;
+	SetText(&quot;affichage_historique_B&quot;, jtextB);
+}
+jcompteur=GetExpressionValue(&quot;compteur&quot;)+1;
+SetExpressionValue(&quot;compteur&quot;,jcompteur);</Script>
+<Script Name="verser autant que possible (sans débordement) le contenur du verre B dans le verre A" mousedrag="v21" onload="false">
+jV1=GetExpressionValue(&quot;V1&quot;);
+jV2=GetExpressionValue(&quot;V2&quot;);
+jk1=GetExpressionValue(&quot;k1&quot;);
+jk2=GetExpressionValue(&quot;k2&quot;);
+total=jk1+jk2;
+if (total&lt;=jV1){
+	SetExpressionValue(&quot;cont2&quot;,0);
+	SetExpressionValue(&quot;cont1&quot;,total);
+	jtextA=GetText(&quot;affichage_historique_A&quot;);
+	jtextA = jtextA + &quot;,&quot; + total;
+	SetText(&quot;affichage_historique_A&quot;, jtextA);
+	jtextB=GetText(&quot;affichage_historique_B&quot;);
+	jtextB = jtextB + &quot;,&quot; + 0;
+	SetText(&quot;affichage_historique_B&quot;, jtextB);
+
+} else {
+	reste_dans_B=total-jV1;
+	SetExpressionValue(&quot;cont2&quot;,reste_dans_B);
+	SetExpressionValue(&quot;cont1&quot;,jV1)
+	jtextA=GetText(&quot;affichage_historique_A&quot;);
+	jtextA = jtextA + &quot;,&quot; + jV1;
+	SetText(&quot;affichage_historique_A&quot;, jtextA);
+	jtextB=GetText(&quot;affichage_historique_B&quot;);
+	jtextB = jtextB + &quot;,&quot; + reste_dans_B;
+	SetText(&quot;affichage_historique_B&quot;, jtextB);
+}
+jcompteur=GetExpressionValue(&quot;compteur&quot;)+1;
+SetExpressionValue(&quot;compteur&quot;,jcompteur);</Script>
+<Script Name="remise à zéro du compteur des actions élémentaires" mousedrag="zero" onload="false">
+SetExpressionValue(&quot;compteur&quot;,0)
+jk1=GetExpressionValue(&quot;k1&quot;)
+jk2=GetExpressionValue(&quot;k2&quot;)
+SetText(&quot;affichage_historique_A&quot;,&quot;Historique des doses de A: \n _jk1&quot;);
+SetText(&quot;affichage_historique_B&quot;,&quot;Historique des doses de B: \n _jk2&quot;);
+</Script>
+<Construction>
+<Window x="-0.33490104983138735" y="0.35472511362577563" w="13.45434264405943"/>
+<Windowdim w="1366" h="728"/>
+<Preferences minfontsize="14" minpointsize="3" minlinesize="1" arrowsize="15" selectionsize="15" monkeyspeed="20" gridopacity="13" digits.lengths="5" digits.edit="0" digits.angles="0" colorbackground="245,245,245" colorbackgroundx="139" colorbackgroundy="9" colorbackgroundPal="4" fig3D="false" figDP="false"/>
+<CTRLbutton Ename="e1" x="17" y="497" w="247" h="22" showC="false" showU="false" showV="false" hidden="false" C="Jeter le contenu du verre A" U="°" V="1"/>
+<CTRLbutton Ename="e2" x="16" y="526" w="248" h="22" showC="false" showU="false" showV="false" hidden="false" C="Jeter le contenu du verre B" U="°" V="0"/>
+<CTRLbutton Ename="r1" x="303" y="497" w="257" h="22" showC="false" showU="false" showV="false" hidden="false" C="Robinet : remplir à raz-bord le verre A" U="°" V="1"/>
+<CTRLbutton Ename="r2" x="303" y="526" w="257" h="22" showC="false" showU="false" showV="false" hidden="false" C="Robinet : remplir à raz-bord le  verre B" U="°" V="1"/>
+<CTRLbutton Ename="v12" x="595" y="497" w="467" h="22" showC="false" showU="false" showV="false" hidden="false" C="Verser autant que possible le contenu du verre A dans le verre B" U="°" V="1"/>
+<CTRLbutton Ename="v21" x="595" y="526" w="467" h="22" showC="false" showU="false" showV="false" hidden="false" C="Verser autant que possible le contenu du verre B dans le verre A" U="°" V="1"/>
+<CTRLbutton Ename="zero" x="16" y="457" w="480" h="22" showC="false" showU="false" showV="false" hidden="false" C="Remettre à zéro le compteur d&apos;actions élémentaires et l&apos;historique des doses" U="°" V="0"/>
+<Objects>
+<Expression name="v1" n="1" color="1" type="thick" showname="true" showvalue="true" x="-12.102868321610892" y="6.000416577345538" value="14" prompt="$\mbox{Capacité du verre A}" slider="true" min="1" max="14">Expression &quot;14&quot; à -12.10287, 6.00042</Expression>
+<Expression name="v2" n="2" color="1" type="thick" showname="true" showvalue="true" x="1.1681726515485458" y="6.049297022918865" value="64" prompt="$\mbox{Capacité du verre B}" slider="true" min="1" max="64">Expression &quot;64&quot; à 1.16817, 6.0493</Expression>
+<Expression name="e1" n="3" color="1" type="thick" hidden="super" showname="true" showvalue="true" ctag0="hidden" cexpr0="@cont1==0" x="-0.33490104983138735" y="0.35472511362577563" value="1" prompt="Valeur">Expression &quot;1&quot; à -0.3349, 0.35473</Expression>
+<Expression name="e2" n="4" color="1" type="thick" hidden="super" showname="true" showvalue="true" ctag0="hidden" cexpr0="@cont2==0" x="-0.33490104983138735" y="0.35472511362577563" value="0" prompt="Valeur">Expression &quot;0&quot; à -0.3349, 0.35473</Expression>
+<Expression name="r1" n="5" color="1" type="thick" hidden="super" showname="true" showvalue="true" ctag0="hidden" cexpr0="@cont1==v1" x="-0.33490104983138735" y="0.35472511362577563" value="1" prompt="Valeur">Expression &quot;1&quot; à -0.3349, 0.35473</Expression>
+<Expression name="r2" n="6" color="1" type="thick" hidden="super" showname="true" showvalue="true" ctag0="hidden" cexpr0="@cont2==v2" x="-0.33490104983138735" y="0.35472511362577563" value="1" prompt="Valeur">Expression &quot;1&quot; à -0.3349, 0.35473</Expression>
+<Expression name="v12" n="7" color="1" type="thick" hidden="super" showname="true" showvalue="true" ctag0="hidden" cexpr0="(@cont2==v2||@cont1==0)" x="-0.33490104983138735" y="0.35472511362577563" value="1" prompt="Valeur">Expression &quot;1&quot; à -0.3349, 0.35473</Expression>
+<Expression name="v21" n="8" color="1" type="thick" hidden="super" showname="true" showvalue="true" ctag0="hidden" cexpr0="(@cont1==v1||@cont2==0)" x="-0.33490104983138735" y="0.35472511362577563" value="1" prompt="Valeur">Expression &quot;1&quot; à -0.3349, 0.35473</Expression>
+<Expression name="cont1" n="9" color="2" type="thick" showname="true" showvalue="true" x="-13.373759906517504" y="4.680644546865592" value="0" prompt="$\mbox{Contenance actuelle du verre A}">Expression &quot;0&quot; à -13.37376, 4.68064</Expression>
+<Expression name="cont2" n="10" color="2" type="thick" showname="true" showvalue="true" x="2.0724608946551797" y="5.04724788866558" value="0" prompt="$\mbox{Contenance actuelle du verre B}">Expression &quot;0&quot; à 2.07246, 5.04725</Expression>
+<Expression name="compteur" n="16" color="1" type="thick" showname="true" showvalue="true" x="-11.84617391766703" y="-2.180654594277885" value="0" prompt="$\mbox{Nombre d&apos;actions élémentaires">Expression &quot;0&quot; à -11.84617, -2.18065</Expression>
+<Expression name="zero" n="17" color="1" type="thick" hidden="super" showname="true" showvalue="true" x="-0.33490104983138735" y="0.35472511362577563" value="0" prompt="Valeur">Expression &quot;0&quot; à -0.3349, 0.35473</Expression>
+<Point name="P1" n="18" color="2" type="thick" x="-12.5916727773442" y="0.8924100149324206" shape="circle">Point</Point>
+<Point name="P5" n="32" color="2" type="thick" x="-0.20047982450472546" y="-1.5516122637341443" shape="circle">Point</Point>
+<Point name="P6" n="34" color="2" x="x(P5)" actx="-0.20047982450472546" y="y(P5)+v2/10" acty="4.848387736265856" shape="dot" fixed="true">Point</Point>
+<Point name="P7" n="35" color="2" x="x(P5)+10" actx="9.799520175495275" y="y(P5)+v2/10" acty="4.848387736265856" shape="dot" fixed="true">Point</Point>
+<Point name="P8" n="36" color="2" type="thick" x="x(P5)+10" actx="9.799520175495275" y="y(P5)" acty="-1.5516122637341443" shape="dot" fixed="true">Point</Point>
+<Point name="P4" n="22" color="2" x="x(P1)+4" actx="-8.5916727773442" y="y(P1)" acty="0.8924100149324206" shape="dot" fixed="true">Point</Point>
+<Expression name="V1" n="47" color="1" type="thick" hidden="true" showname="true" showvalue="true" x="-5.7728506198644896" y="6.709183038158839" value="(cont1-floor(v1)&gt;0.5)+floor(v1)" prompt="$V_1">Expression &quot;(cont1-floor(v1)&gt;0.5)+floor(v1)&quot; à -5.77285, 6.70918</Expression>
+<Expression name="V2" n="49" color="1" type="thick" hidden="true" showname="true" showvalue="true" x="-2.5711814348112956" y="6.880264597665496" value="floor(v2)+(v2-floor(v2)&gt;0.5)" prompt="$V_2">Expression &quot;floor(v2)+(v2-floor(v2)&gt;0.5)&quot; à -2.57118, 6.88026</Expression>
+<Expression name="k2" n="54" color="1" type="thick" hidden="true" showname="true" showvalue="true" x="-2.571181434811294" y="6.024856800132202" value="floor(cont2)+(cont2-floor(cont2)&gt;0.5)" prompt="$k_2">Expression &quot;floor(cont2)+(cont2-floor(cont2)&gt;0.5)&quot; à -2.57118, 6.02486</Expression>
+<Expression name="k1" n="55" color="1" type="thick" hidden="true" showname="true" showvalue="true" x="-5.846171288224486" y="6.049297022918868" value="floor(cont1)+(cont1-floor(cont1)&gt;0.5)" prompt="$k_1">Expression &quot;floor(cont1)+(cont1-floor(cont1)&gt;0.5)&quot; à -5.84617, 6.0493</Expression>
+<Text name="affichage_historique_B" n="66" scolor="199,,90,,0" type="thick" showname="true" showvalue="true" x="2.2435424541618367" y="-2.2603787245474476">Historique des doses de B: 
+ 0</Text>
+<Text name="affichage_historique_A" n="15" color="5" scolor="199,,90,,0" type="thick" showname="true" showvalue="true" x="-12.76275433685086" y="-0.354041347187527">Historique des doses de A: 
+ 0</Text>
+<Point name="P2" n="20" color="2" x="x(P1)" actx="-12.5916727773442" y="y(P1)+V1/4" acty="4.392410014932421" shape="dot" fixed="true">Point</Point>
+<Point name="P3" n="21" color="2" x="x(P1)+4" actx="-8.5916727773442" y="y(P1)+V1/4" acty="4.392410014932421" shape="dot" fixed="true">Point</Point>
+<Polygon name="poly2" n="33" color="1" type="thin" background="true" point1="P5" point2="P6" point3="P7" point4="P8">Polygone</Polygon>
+<Segment name="s4" n="40" color="1" type="thick" from="P5" to="P6">Segment de P5 à P6</Segment>
+<Segment name="s6" n="46" color="1" type="thick" from="P7" to="P8">Segment de P7 à P8</Segment>
+<Segment name="s7" n="53" color="1" type="thick" from="P1" to="P4">Segment de P1 à P4</Segment>
+<Point name="P9" n="56" color="2" x="x(P1)" actx="-12.5916727773442" y="y(P1)+k1/4" acty="0.8924100149324206" shape="dot" fixed="true">Point</Point>
+<Point name="P10" n="57" color="2" x="x(P1)+4" actx="-8.5916727773442" y="y(P1)+k1/4" acty="0.8924100149324206" shape="dot" fixed="true">Point</Point>
+<Segment name="s8" n="61" color="1" type="thick" from="P5" to="P8">Segment de P5 à P8</Segment>
+<Point name="P11" n="62" color="2" x="x(P5)" actx="-0.20047982450472546" y="y(P5)+k2/10" acty="-1.5516122637341443" shape="dot" fixed="true">Point</Point>
+<Point name="P12" n="63" color="2" x="x(P5)+10" actx="9.799520175495275" y="y(P5)+k2/10" acty="-1.5516122637341443" shape="dot" fixed="true">Point</Point>
+<Segment name="s1" n="25" color="1" type="thick" from="P1" to="P2">Segment de P1 à P2</Segment>
+<Polygon name="poly1" n="19" color="1" type="thin" background="true" point1="P1" point2="P2" point3="P3" point4="P4">Polygone</Polygon>
+<Segment name="s3" n="31" color="1" type="thick" from="P3" to="P4">Segment de P3 à P4</Segment>
+<Polygon name="poly4" n="58" color="2" type="thin" background="true" point1="P1" point2="P4" point3="P10" point4="P9">Polygone</Polygon>
+<Polygon name="poly6" n="65" color="2" type="thin" background="true" point1="P5" point2="P8" point3="P12" point4="P11">Polygone</Polygon>
+</Objects>
+</Construction>
+</CaR>

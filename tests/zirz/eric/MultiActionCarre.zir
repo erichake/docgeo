@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="utf-8"?>
+<CaR>
+<Script Name="pointA" mousedrag="A" onload="false">
+xC=2*X(&quot;O&quot;)-X(&quot;A&quot;);
+yC=2*Y(&quot;O&quot;)-Y(&quot;A&quot;);
+Move(&quot;C&quot;,xC,yC);
+
+xB=X(&quot;O&quot;)+Y(&quot;O&quot;)-Y(&quot;A&quot;);
+yB=Y(&quot;O&quot;)+X(&quot;A&quot;)-X(&quot;O&quot;);
+Move(&quot;B&quot;,xB,yB);
+
+xD=X(&quot;C&quot;)+X(&quot;A&quot;)-X(&quot;B&quot;);
+yD=Y(&quot;C&quot;)+Y(&quot;A&quot;)-Y(&quot;B&quot;);
+Move(&quot;D&quot;,xD,yD);
+</Script>
+<Script Name="pointB" mousedrag="B" onload="false">
+xD=2*X(&quot;O&quot;)-X(&quot;B&quot;);
+yD=2*Y(&quot;O&quot;)-Y(&quot;B&quot;);
+Move(&quot;D&quot;,xD,yD);
+
+xC=X(&quot;O&quot;)+Y(&quot;O&quot;)-Y(&quot;B&quot;);
+yC=Y(&quot;O&quot;)+X(&quot;B&quot;)-X(&quot;O&quot;);
+Move(&quot;C&quot;,xC,yC);
+
+xA=X(&quot;D&quot;)+X(&quot;B&quot;)-X(&quot;C&quot;);
+yA=Y(&quot;D&quot;)+Y(&quot;B&quot;)-Y(&quot;C&quot;);
+Move(&quot;A&quot;,xA,yA);
+</Script>
+<Script Name="pointC" mousedrag="C" onload="false">
+xA=2*X(&quot;O&quot;)-X(&quot;C&quot;);
+yA=2*Y(&quot;O&quot;)-Y(&quot;C&quot;);
+Move(&quot;A&quot;,xA,yA);
+
+xD=X(&quot;O&quot;)+Y(&quot;O&quot;)-Y(&quot;C&quot;);
+yD=Y(&quot;O&quot;)+X(&quot;C&quot;)-X(&quot;O&quot;);
+Move(&quot;D&quot;,xD,yD);
+
+xB=X(&quot;A&quot;)+X(&quot;C&quot;)-X(&quot;D&quot;);
+yB=Y(&quot;A&quot;)+Y(&quot;C&quot;)-Y(&quot;D&quot;);
+Move(&quot;B&quot;,xB,yB);
+</Script>
+<Script Name="pointD" mousedrag="D" onload="false">
+xB=2*X(&quot;O&quot;)-X(&quot;D&quot;);
+yB=2*Y(&quot;O&quot;)-Y(&quot;D&quot;);
+Move(&quot;B&quot;,xB,yB);
+
+xA=X(&quot;O&quot;)+Y(&quot;O&quot;)-Y(&quot;D&quot;);
+yA=Y(&quot;O&quot;)+X(&quot;D&quot;)-X(&quot;O&quot;);
+Move(&quot;A&quot;,xA,yA);
+
+xC=X(&quot;B&quot;)+X(&quot;D&quot;)-X(&quot;A&quot;);
+yC=Y(&quot;B&quot;)+Y(&quot;D&quot;)-Y(&quot;A&quot;);
+Move(&quot;C&quot;,xC,yC);
+</Script>
+<Script Name="pointO" mousedrag="O" onload="false">
+xAC=X(&quot;C&quot;)-X(&quot;A&quot;);
+yAC=Y(&quot;C&quot;)-Y(&quot;A&quot;);
+
+Move(&quot;C&quot;,X(&quot;O&quot;)+xAC/2,Y(&quot;O&quot;)+yAC/2);
+Move(&quot;A&quot;,X(&quot;O&quot;)-xAC/2,Y(&quot;O&quot;)-yAC/2);
+
+//xBD=X(&quot;D&quot;)-X(&quot;B&quot;);
+//yBD=Y(&quot;D&quot;)-Y(&quot;B&quot;);
+//
+//Move(&quot;D&quot;,X(&quot;O&quot;)+xBD/2,Y(&quot;O&quot;)+yBD/2);
+//Move(&quot;B&quot;,X(&quot;O&quot;)-xBD/2,Y(&quot;O&quot;)-yBD/2);
+
+xB=X(&quot;O&quot;)+Y(&quot;O&quot;)-Y(&quot;A&quot;);
+yB=Y(&quot;O&quot;)+X(&quot;A&quot;)-X(&quot;O&quot;);
+Move(&quot;B&quot;,xB,yB);
+
+xD=X(&quot;C&quot;)+X(&quot;A&quot;)-X(&quot;B&quot;);
+yD=Y(&quot;C&quot;)+Y(&quot;A&quot;)-Y(&quot;B&quot;);
+Move(&quot;D&quot;,xD,yD);
+</Script>
+<Construction>
+<Window x="-0.3804195804195798" y="-0.4475524475524475" w="11.986456615013454"/>
+<Windowdim w="1278" h="786"/>
+<Preferences minfontsize="16" minpointsize="3" minlinesize="1" arrowsize="15" selectionsize="7" monkeyspeed="20" gridopacity="13" digits.lengths="5" digits.edit="5" digits.angles="0" colorbackground="255,255,255" colorbackgroundx="5" colorbackgroundy="9" colorbackgroundPal="4" fig3D="false" figDP="false"/>
+<Assignment>
+<P>&lt;center&gt;&lt;h2&gt;Points de bases ou points construits
+?&lt;br&gt;&lt;i&gt;&lt;span style=&quot;color: #682117;&quot;&gt;déplacer l&apos;un des
+cinq points construits/libres...&lt;/span&gt;&lt;/i&gt;&lt;/h2&gt;&lt;/center&gt;</P>
+</Assignment>
+<Objects>
+<Point name="A" n="1" color="2" showname="true" xcoffset="-0.2237762237762233" ycoffset="-0.5370629370629367" keepclose="true" x="-0.7621538675219" y="-7.0351955735471" shape="circle">Point</Point>
+<Point name="B" n="2" color="2" showname="true" x="4.276738722229" y="-1.6909155541144" shape="circle">Point</Point>
+<Point name="C" n="3" color="2" showname="true" xcoffset="0.604195804195804" ycoffset="0.20139860139860133" keepclose="true" x="-1.0675412972038" y="3.3479770356365" shape="circle">Point</Point>
+<Point name="D" n="4" color="2" showname="true" xcoffset="-0.3580419580419578" ycoffset="0.33566433566433407" keepclose="true" x="-6.106433886954669" y="-1.996302983796224" shape="circle">Point</Point>
+<Point name="O" n="6" color="2" showname="true" x="-0.9148475823628548" y="-1.843609268955288" shape="circle">Point</Point>
+<Text name="Text4" n="25" color="2" showname="true" showvalue="true" x="-8.480005797943234" y="5.836609272940044">***Script action (proposé par Eric Hakenholz) : 
+il n&apos;y a pas à lancer de script
+ils se lancent quand les points sont déplacés
+Déplacer les 5 points ...</Text>
+<Polygon name="poly2" n="22" color="1" scolor="255,,107,,218" background="true" filled="false" point1="D" point2="C" point3="B" point4="A">Polygone D, C, B, A</Polygon>
+<Polygon name="poly3" n="24" scolor="179,,225,,255" type="thin" background="true" point1="A" point2="B" point3="C" point4="D">Polygone A, B, C, D</Polygon>
+</Objects>
+</Construction>
+</CaR>

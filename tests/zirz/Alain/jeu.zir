@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<CaR>
+<Construction>
+<Window x="0.0" y="0.0" w="8.0"/>
+<Windowdim w="949" h="478"/>
+<Preferences minfontsize="13" minpointsize="3" minlinesize="1" arrowsize="15" selectionsize="6" monkeyspeed="22" gridopacity="20" digits.lengths="5" digits.edit="5" digits.angles="0" colorbackground="245,245,245" colorbackgroundx="139" colorbackgroundy="9" colorbackgroundPal="4" fig3D="false" figDP="false"/>
+<Objects>
+<Point name="P1" n="0" color="1" hidden="true" x="-3.2831168831168833" y="2.0363636363636357" shape="circle">Point</Point>
+<Point name="P2" n="2" color="1" hidden="true" x="-5.6103896103896105" y="0.3948051948051945" shape="circle">Point</Point>
+<Point name="P3" n="3" color="1" hidden="true" x="-3.9688311688311693" y="-0.581818181818182" shape="circle">Point</Point>
+<Point name="P4" n="4" color="1" hidden="true" x="-4.820779220779221" y="-2.451948051948052" shape="circle">Point</Point>
+<Point name="P5" n="5" color="1" hidden="true" x="-2.7012987012987013" y="-3.116883116883117" shape="circle">Point</Point>
+<Point name="P6" n="6" color="1" hidden="true" x="-0.976623376623377" y="-1.3714285714285714" shape="circle">Point</Point>
+<Point name="P7" n="7" color="1" hidden="true" x="-3.0753246753246755" y="0.1454545454545455" shape="circle">Point</Point>
+<Point name="P8" n="8" color="1" hidden="true" x="-1.267532467532468" y="1.8701298701298694" shape="circle">Point</Point>
+<Point name="P9" n="9" color="1" hidden="true" x="4.7376623376623375" y="2.098701298701298" shape="circle">Point</Point>
+<Point name="P10" n="11" color="1" hidden="true" x="2.5766233766233775" y="-0.39480519480519494" shape="circle">Point</Point>
+<Point name="P11" n="12" color="1" hidden="true" x="4.238961038961039" y="0.3740259740259746" shape="circle">Point</Point>
+<Point name="P12" n="13" color="1" hidden="true" x="4.550649350649351" y="-0.9558441558441557" shape="circle">Point</Point>
+<Point name="P13" n="14" color="1" hidden="true" x="2.7844155844155836" y="-0.7688311688311691" shape="circle">Point</Point>
+<Point name="P14" n="15" color="1" hidden="true" x="3.116883116883116" y="-2.909090909090909" shape="circle">Point</Point>
+<Point name="P15" n="16" color="1" hidden="true" x="6.0051948051948045" y="-2.161038961038961" shape="circle">Point</Point>
+<Point name="P16" n="17" color="1" hidden="true" x="6.088311688311688" y="0.3948051948051945" shape="circle">Point</Point>
+<Polygon name="poly1" n="1" color="3" background="true" point1="P1" point2="P2" point3="P3" point4="P4" point5="P5" point6="P6" point7="P7" point8="P8">Polygone</Polygon>
+<Polygon name="poly2" n="10" color="1" background="true" point1="P9" point2="P10" point3="P11" point4="P12" point5="P13" point6="P14" point7="P15" point8="P16">Polygone</Polygon>
+<PointOn name="P17" alias="joueur A" n="18" color="2" showname="true" on="poly1" inside="true" x="-3.3662337662337665" y="1.1636363636363636" shape="circle">Point sur poly1</PointOn>
+<PointOn name="P18" alias="joueur B" n="19" color="5" showname="true" on="poly2" inside="true" x="3.885714285714286" y="-1.6207792207792209" shape="circle">Point sur poly2</PointOn>
+<Segment name="s1" n="22" color="4" showvalue="true" from="P17" to="P18">Segment de P17 à P18</Segment>
+<Text name="Text1" n="23" color="5" showname="true" showvalue="true" x="-7.48051948051948" y="3.4493506493506483">***Règle du jeu:
+*Le joueur A est chargé de maximiser la longueur du segment
+*Le joueur B est chargé de minimiser la longueur du segment</Text>
+</Objects>
+</Construction>
+</CaR>

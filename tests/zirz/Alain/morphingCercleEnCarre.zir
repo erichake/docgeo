@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<CaR>
+<Construction>
+<Window x="0.0" y="0.0" w="8.0"/>
+<Windowdim w="1280" h="800"/>
+<Preferences minfontsize="17" minpointsize="3" minlinesize="1" arrowsize="10" selectionsize="8" monkeyspeed="22" gridopacity="20" digits.lengths="2" digits.edit="4" digits.angles="2" colorbackground="245,245,245" colorbackgroundx="139" colorbackgroundy="9" colorbackgroundPal="4" fig3D="false" figDP="false"/>
+<Animate animate="M" negative="false" delay="40.666666666666714" stopped="true"/>
+<Animate animate="P4" negative="false" delay="40.666666666666714" stopped="true"/>
+<Objects>
+<Point name="P1" n="0" color="2" x="-4.308810172570391" y="0.029064486830153946" shape="circle">Point</Point>
+<Point name="P2" n="3" color="2" hidden="true" x="-2.9718437783832883" y="1.8891916439600367" shape="circle">Point</Point>
+<Point name="P3" n="7" color="2" x="1.5912806539509532" y="1.3950953678474116" shape="circle">Point</Point>
+<Point name="A" n="924" showname="true" x="-7.01180744777475" y="3.342415985467757" shape="circle">Point</Point>
+<Point name="B" n="927" showname="true" x="-3.0154405086285196" y="3.3278837420526797" shape="circle">Point</Point>
+<Text name="Text1" n="1390" color="1" type="thick" showname="true" showvalue="true" x="0.821071752951859" y="-2.2524977293369686">Faire le lieu de N quand C décrit le cercle</Text>
+<Text name="Text2" n="1391" color="1" scolor="255,,26,,211" type="thick" showname="true" showvalue="true" x="-6.982742960944595" y="4.069028156221617">N partage [CD] comme M partage [AB]</Text>
+<Circle name="c1" n="4" color="4" through="P2" midpoint="P1" acute="true">Cercle de centre P1 passant par P2</Circle>
+<Expression name="E1" n="9" color="4" type="thick" hidden="true" showname="true" showvalue="true" x="x(P3)+windoww/32" y="y(P3)-windoww/16" value="4" prompt="Nombre de côtés" fixed="true">Expression &quot;4&quot; à 1.84, 0.9</Expression>
+<Segment name="s1" n="928" from="A" to="B">Segment de P13 à P14</Segment>
+<Circle name="c3" n="1395" color="2" fixed="1.63" midpoint="P3" acute="true">Cercle de centre P3 de rayon 1.6302042404946964</Circle>
+<PointOn name="P4" n="8" color="2" on="c3" alpha="-2.6649272771548866" x="0.14297700157140425" y="0.6472206921803862" shape="circle">Point sur un objet</PointOn>
+<PointOn name="C" n="19" color="2" scolor="255,,26,,211" type="thick" showname="true" on="c1" alpha="-0.6811746769810892" x="-2.5292758916823983" y="-1.4134367863139004" shape="circle">Point sur un objet</PointOn>
+<PointOn name="M" n="929" color="2" type="thick" showname="true" on="s1" alpha="0.7345405980947446" x="-4.0763136860882145" y="3.3317414626979875" shape="circle">Point sur un objet</PointOn>
+<Point name="P7" n="314" color="2" hidden="true" x="x(P4)+x(P1)-x(P3)" actx="-5.75711382494994" y="y(P4)+y(P1)-y(P3)" acty="-0.7188101888368714" shape="circle" fixed="true">Point à &quot;x(C)+x(B)-x(A)&quot;, &quot;y(C)+y(B)-y(A)&quot; </Point>
+<Function name="f2" n="10" color="4" type="thick" showname="true" x="x(P3)+d(P3,P4)*sin(t-a(P3,P3,P4))" y="y(P3)+d(P3,P4)*cos(t-a(P3,P3,P4))" var="t" min="0" max="360" d="360/E1" shape="cross" color="4">Fonction ( x(P3)+d(P3,P4)*sin(t-a(P3,P3,P4)) , y(P3)+d(P3,P4)*cos(t-a(P3,P3,P4)) )</Function>
+<Point name="P5" n="11" hidden="super" showname="true" large="true" x="x(P3)+d(P3,P4)*sin(360/E1-a(P3,P3,P4))" actx="0.8434059782839274" y="y(P3)+d(P3,P4)*cos(360/E1-a(P3,P3,P4))" acty="2.8433990202269603" shape="circle" fixed="true">Point</Point>
+<Ray name="r2" n="22" color="3" from="P1" to="C">Demi-droite d&apos;origine P1 vers P6</Ray>
+<Point name="P16" n="1030" color="2" x="x(C)+x(B)-x(A)" actx="1.467091047463832" y="y(C)+y(B)-y(A)" acty="-1.4279690297289778" shape="circle" fixed="true">Point à &quot;x(C)+x(B)-x(A)&quot;, &quot;y(C)+y(B)-y(A)&quot; </Point>
+<Point name="P17" n="1257" color="2" x="x(C)+x(M)-x(A)" actx="0.406217870004137" y="y(C)+y(M)-y(A)" acty="-1.42411130908367" shape="circle" fixed="true">Point à &quot;x(C)+x(B)-x(A)&quot;, &quot;y(C)+y(B)-y(A)&quot; </Point>
+<Point name="P8" n="787" color="2" hidden="true" x="2*x(P1)-x(P7)" actx="-2.8605065201908424" y="2*y(P1)-y(P7)" acty="0.7769391624971793" shape="circle" fixed="true">Point</Point>
+<Circle name="c2" n="796" color="4" hidden="true" through="P7" midpoint="P1" acute="true">Cercle de centre P1 passant par P7</Circle>
+<Polygon name="poly5" n="797" color="1" background="true" point1="P7">Polygone</Polygon>
+<Polygon name="poly3" n="12" hidden="super" background="true" large="true" point1="P5" point2="P3" point3="P4">Polygone P5, P3, P4</Polygon>
+<Expression name="E2" n="13" color="3" type="thick" hidden="true" showname="true" showvalue="true" x="x(P3)+windoww/32" y="y(P3)-windoww/8" value="d(P4,P5)*E1" prompt="Périmètre" fixed="true">Expression &quot;d(P4,P5)*E1&quot; à 1.84, 0.4</Expression>
+<Segment name="s4" n="1270" from="C" to="P16">Segment de P6 à P16</Segment>
+<Line name="l4" n="790" color="3" hidden="true" from="P7" to="P8">Droite passant par P7 et P8</Line>
+<Expression name="E3" n="14" color="3" type="thick" hidden="true" showname="true" showvalue="true" x="x(P3)+windoww/32" y="y(P3)-3*windoww/16" value="poly3*E1" prompt="Aire" fixed="true">Expression &quot;poly3*E1&quot; à 1.84, -0.1</Expression>
+<Intersection name="P11" n="801" color="2" first="poly5" second="r2" x="-3.7451828467107933" y="-0.923910662814034" shape="circle">Intersection entre poly5 et r2</Intersection>
+<Plumb name="perp1" n="793" color="3" hidden="true" point="P1" line="l4" valid="true">Perpendiculaire passant par P1 à l4</Plumb>
+<Point name="P12" n="921" color="2" scolor="255,,26,,211" type="thick" x="x(P11)+x(P3)-x(P1)" actx="2.154907979810551" y="y(P11)+y(P3)-y(P1)" acty="0.44212021820322367" shape="circle" fixed="true">Point à &quot;x(C)+x(B)-x(A)&quot;, &quot;y(C)+y(B)-y(A)&quot; </Point>
+<Intersection name="P9" n="798" color="2" hidden="true" first="perp1" second="c2" shape="circle" which="second">Intersection entre perp1 et c2</Intersection>
+<Intersection name="P10" n="799" color="2" hidden="true" first="perp1" second="c2" shape="circle" which="first">Intersection entre perp1 et c2</Intersection>
+<Segment name="s2" n="1260" color="1" from="P16" to="P12">Segment de P16 à P12</Segment>
+<Segment name="s3" n="1266" color="1" scolor="255,,26,,211" from="C" to="P12">Segment de P6 à P12</Segment>
+<Polygon name="poly1" n="1271" color="1" background="true" point1="P7" point2="P9" point3="P8" point4="P10">Polygone</Polygon>
+<Parallel name="par1" n="1263" color="3" point="P17" line="s2">Parallèle passant par P17 à s2</Parallel>
+<Intersection name="A1" n="1272" color="2" showname="true" first="poly1" second="r2" x="-3.3475410793931792" y="-0.7501460659725858" shape="circle">Intersection entre poly1 et r2</Intersection>
+<Intersection name="P18" n="1267" color="2" scolor="255,,26,,211" type="thick" first="s3" second="par1" shape="circle">Intersection entre s3 et par1</Intersection>
+<Point name="D" n="1379" color="2" scolor="255,,26,,211" type="thick" showname="true" x="x(A1)+x(P3)-x(P1)" actx="2.552549747128165" y="y(A1)+y(P3)-y(P1)" acty="0.6158848150446719" shape="circle" fixed="true">Point à &quot;x(C)+x(B)-x(A)&quot;, &quot;y(C)+y(B)-y(A)&quot; </Point>
+<Segment name="s5" n="1382" color="1" scolor="255,,26,,211" from="C" to="D">Segment de P6 à P19</Segment>
+<Segment name="s6" n="1385" color="1" from="P16" to="D">Segment de P16 à P19</Segment>
+<Parallel name="par2" n="1388" color="3" point="P17" line="s6">Parallèle passant par P17 à s6</Parallel>
+<Intersection name="N" n="1389" color="2" scolor="255,,26,,211" type="thick" showname="true" first="par2" second="s5" shape="circle">Intersection entre par2 et s5</Intersection>
+<Track name="Tr1" n="1392" color="3" point="C" on="c1" track="N" dmin="0.0050">Trace de N quand C se déplace sur c1</Track>
+</Objects>
+</Construction>
+</CaR>

@@ -9,6 +9,8 @@ zz_sauvegarde.command
 tools/ggb_corpus/corpus
 tools/ggb_corpus/results.jsonl
 tools/ggb_corpus/roots.json
+tools/zir_corpus/results.jsonl
+tools/zir_corpus/unblocked.txt
 
 # Editability of the test and corpus figures (see EDITOR.md)
 tools/editability/results.jsonl

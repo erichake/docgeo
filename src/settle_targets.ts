@@ -17,17 +17,14 @@ export function settleTargets(
     // intersection_object.groupAssign), so seeding it with the saved one
     // selects the right root.
     targets.forEach((coords, object) => {
-        if (object instanceof intersection_object) object.coords = coords;
+        if (object instanceof intersection_object) object.seed(coords);
     });
     c.OBJS.frame++;
     c.OBJS.V.forEach((object) => {
         object.computeGeometry();
         const coords = targets.get(object);
         if (!coords) return;
-        if (
-            object instanceof point_on_object &&
-            object.support.familytype !== "locus"
-        ) {
+        if (object instanceof point_on_object) {
             const alpha = object.alphaFor(coords);
             if (alpha === null) return;
             object.alpha = alpha;

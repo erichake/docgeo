@@ -1,0 +1,101 @@
+Alain/Bayes_ParALAIN.zirs | Bayes5 | nuage | script: Conditional(
+Alain/FigAntiMath2.zir | PourAntiMath | script: ExecuteMacro(
+Alain/Lsystems1.zirs | Koch1 | koch1 | script: .replace
+Alain/Lsystems1.zirs | Koch2 | koch2 | script: .replace
+Alain/Lsystems1.zirs | Sierp1 | sierp1 | script: .replace
+Alain/Lsystems1.zirs | Sierp2 | sierp2 | script: .replace
+Alain/Lsystems1.zirs | exemple 1 | exple | script: .replace
+Alain/Lsystems1.zirs | exemple 2 | exple | script: .replace
+Alain/algebr1.zir | algebrique | script: includes(
+Alain/courbes.zirs | monomes2 | nuage | script: SetFixed(
+Alain/courbes.zirs | conique2 | conique | script: includes(
+Alain/exo2.zirs | Figure 1 | exo | translated
+Alain/julia.zirs | 01_mandel | nuage | script: formula text
+Alain/montecarlo_AlainJuin13.zir | Monte-Carlo | script: "B"
+Alain/plusloinV2_AlainJuin13.zirs | tore | Anosov | script: formula text
+Alain/plusloinV2_AlainJuin13.zirs | Anosov | Anosov | script: formula text
+Alain/quintique20pts.zir | algebrique | script: includes(
+Alain/robot_circ.zirs | énoncé | jeu | script: switch(
+Alain/robot_circ.zirs | rapidos | repetita | script: switch(
+Alain/robot_circ.zirs | js 1 | js 1 | script: switch(
+Alain/robot_circ.zirs | js 2 | tableau | script: Array(
+Eric/Métamorphoses à l'équerre.zirs | TriFinal | Métamorphose | script: Array(
+Eric/Métamorphoses à l'équerre.zirs | quadriFinal | méta | script: Array(
+Eric/Métamorphoses à l'équerre.zirs | Polygones | Métamorphoses | script: Array(
+Eric/diagrammeBatons.zir | points | script: formula text
+Heine Ken (by Monique).zirs | ken | un essai | script: "Text1"
+Heine Ken (by Monique).zirs | ken2 | Plusieurs essais | script: Input(
+Patrick/Lorenz_PM_Juin13.zirs | Fixe | Euler | script: SetPointType(
+Patrick/Lorenz_PM_Juin13.zirs | Fixe | RK4 | script: SetPointType(
+Patrick/Tractoires.zirs | 2. Script | Tractrice n étapes | script: ExecuteMacro(
+Patrick/Tractoires.zirs | 3. Chainette | Tractrice + développée | script: ExecuteMacro(
+Patrick/Tractoires.zirs | 3. ln | Tractrice + (ln>0) | script: ExecuteMacro(
+Patrick/Tractoires.zirs | 3. ln | Tractrice + (ln<0) | script: ExecuteMacro(
+Patrick/Tractoires.zirs | 4. Base circulaire | Tractrice n étapes | script: InteractiveInput(
+Patrick/tractoire_base_circulaire.zir | Tractrice n étapes | script: InteractiveInput(
+Yves/CavalierIREM2.zirs | Cube01 Faces cach | Grille Condit | script: TracePt3D(
+Yves/CavalierIREM2.zirs | Cube01 Faces cach | Parcours cavalier fermé | script: TracePt3D(
+Yves/CavalierIREM2.zirs | Cube02 Grille de base | Grille Condit | script: TracePt3D(
+Yves/CavalierIREM2.zirs | Cube02 Grille de base | Parcours Cavalier fermé | script: TracePt3D(
+Yves/CavalierIREM2.zirs | Cube02 Grille de base | Parcours nommé non magn | script: TracePt3D(
+Yves/CavalierIREM2.zirs | GrilleCorrigéesurF4 | Grille Condit | script: TracePt3D(
+Yves/CavalierIREM2.zirs | GrilleCorrigéesurF4 | Parcours nommé non magn | script: TracePt3D(
+Yves/CavalierIREM2.zirs | GrilleCorrigéesurF4 | MagnetismeLes6Faces1 | script: PenCours
+Yves/Complements_StatEspace.zirs | Doc Acc Lancer dés | Lancers de dés et gain (1) | script: Input(
+Yves/Complements_StatEspace.zirs | Doc Acc Lancer dés | Rejour jusqu'à un gain min 5 euros | translated
+Yves/Complements_StatEspace.zirs | Doc Acc Lancer dés | Nb moyen de lancers pour 5 euros | script: eval(
+Yves/Complements_StatEspace.zirs | AireTriangle | HistogrammeAireTriangles | script: Array(
+Yves/Complements_StatEspace.zirs | Aire Rectangles | Histo Aire Rectangles | script: Array(
+Yves/Complements_StatEspace.zirs | Icosaedre | Icosaedre | script: TracePoint(
+Yves/Complements_StatEspace.zirs | Robot | Robot (1) | translated
+Yves/Complements_StatEspace.zirs | Robot | Robot (2) | script: NombreDeCoups(
+Yves/Complements_StatEspace.zirs | Sphère param | Sphere pas variable | script: Array(
+Yves/Complements_StatEspace.zirs | Villarceau | Villarceau Mobile | script: Angle(
+Yves/Complements_StatEspace.zirs | Villarceau | Tore par cercles de Villarceau | script: Quadric(
+Yves/Rotations_SnubeCube.zir | Points | script: TracePoint(
+Yves/Rotations_SnubeCube.zir | Rotation | script: RotatePoint(
+Yves_Capes_Agreg/06_Bonus angles diedres.zirs | PrépareIcosaedre | icosaèdre | script: TracePoint(
+Yves_Capes_Agreg/CIRM4_Script1.zirs | Sierpinsky Géom | Sierpinsky PtsGeom | script: true
+Yves_Capes_Agreg/CIRM4_Script1.zirs | Sierpinsky Géom | Sierpinsky TR | script: Sierp(
+Yves_Capes_Agreg/CIRM4_Script1.zirs | SphèreAlain | SphereAlain | script: names joined
+Yves_Capes_Agreg/CIRM4_Script1.zirs | GéomRepéréeDyn | Carré A1. | script: "thick"
+Yves_Capes_Agreg/CIRM4_Script1.zirs | GéomRepéréeDyn | Carré A2. | script: "thick"
+Yves_Capes_Agreg/CIRM4_Script1.zirs | GéomRepéréeDyn | Carré Algébrique | script: "thick"
+Yves_Capes_Agreg/CIRM4_Script1.zirs | GéomRepéréeDyn | Carré Version Géom | script: "thick"
+Yves_Capes_Agreg/CIRM4_Script1.zirs | GéomRepéréeDyn | Carré Itération des quarts | script: SetPointType(
+Yves_Capes_Agreg/CIRM4_Script1.zirs | VarJSdansCaRMetal | TableauFils Dyn1. | script: Input(
+Yves_Capes_Agreg/CIRM4_Script1.zirs | VarJSdansCaRMetal | TableauFils plus complet | script: Input(
+Yves_Capes_Agreg/CIRM4_Script1.zirs | VarJSdansCaRMetal | NephroideStatDyn | script: "thick"
+Yves_Capes_Agreg/CIRM4_Script1.zirs | Tournesol | Tournesol | translated
+Yves_Capes_Agreg/CIRM4_Script1.zirs | Euler | Euler Générique | script: Input(
+Yves_Capes_Agreg/CIRM4_Script1.zirs | Toile 1 | Toile Générique | translated
+Yves_Capes_Agreg/CIRM4_Script1.zirs | Toile 2 Homographie | Toile Gene Conditionnel | script: Conditional(
+Yves_Capes_Agreg/CIRM5_StatEspace.zirs | Doc Acc Lancer dés | Lancers de dés et gain (1) | script: Input(
+Yves_Capes_Agreg/CIRM5_StatEspace.zirs | Doc Acc Lancer dés | Rejour jusqu'à un gain min 5 euros | translated
+Yves_Capes_Agreg/CIRM5_StatEspace.zirs | Doc Acc Lancer dés | Nb moyen de lancers pour 5 euros | script: eval(
+Yves_Capes_Agreg/CIRM5_StatEspace.zirs | AireTriangle | HistogrammeAireTriangles | script: Array(
+Yves_Capes_Agreg/CIRM5_StatEspace.zirs | Aire Rectangles | Histo Aire Rectangles | script: Array(
+Yves_Capes_Agreg/CIRM5_StatEspace.zirs | Icosaedre | Icosaedre | script: TracePoint(
+Yves_Capes_Agreg/CIRM5_StatEspace.zirs | Robot | Robot (1) | translated
+Yves_Capes_Agreg/CIRM5_StatEspace.zirs | Robot | Robot (2) | script: NombreDeCoups(
+Yves_Capes_Agreg/CIRM5_StatEspace.zirs | Sphère param | Sphere pas variable | script: Array(
+Yves_Capes_Agreg/CIRM5_StatEspace.zirs | Villarceau | Villarceau Mobile | script: Angle(
+Yves_Capes_Agreg/CIRM5_StatEspace.zirs | Villarceau | Tore par cercles de Villarceau | script: Quadric(
+Yves_Capes_Agreg/CIRM6_ScriptsDynAvances.zirs | AnnivFluctuation | Anniv_Fluctuations | script: Array(
+Yves_Capes_Agreg/CIRM6_ScriptsDynAvances.zirs | AnnivConverge | AnnivConverge | script: Array(
+Yves_Capes_Agreg/CIRM6_ScriptsDynAvances.zirs | Cesaro 2Seg | Cesaro Dynamique | script: Cesaro(
+Yves_Capes_Agreg/CIRM6_ScriptsDynAvances.zirs | Cesaro 9Qd | Cesaro 9 Qd | script: Cesaro(
+Yves_Capes_Agreg/CIRM6_ScriptsDynAvances.zirs | Pavage Macro interne | Pavage macro interne | script: ExecuteMacro(
+Yves_Capes_Agreg/CIRM7_ScriptGalerie.zirs | Cardio Tempo | CardioTempetVar | script: Conditional(
+Yves_Capes_Agreg/Colloque_SnubeCube.zir | Points | script: TracePoint(
+Yves_Capes_Agreg/Colloque_SnubeCube.zir | Rotation | script: RotatePoint(
+Yves_Capes_Agreg/IREM30MarsClasseur1 Coniques.zirs | Fig_Nathalie | CodeHexaDecimalDesCouleurs | script: Array(
+Yves_Capes_Agreg/IREM_Avril12_6ScriptAction.zirs | IntroScriptAction | milieuXY | translated
+Yves_Capes_Agreg/Patron_Interactif_Snubcube_oct2012.zir | Construction du Snub Cube | script: getC(
+Yves_Capes_Agreg/Patron_Interactif_Snubcube_oct2012.zir | Construction manuelle du patron  | script: function(
+Yves_Capes_Agreg/Patron_Interactif_Snubcube_oct2012.zir | Construction aléatoire du patron | script: function(
+Yves_Capes_Agreg/PatronsIcosaedres.zirs | Construction patron | manual construction | script: function(
+Yves_Capes_Agreg/PatronsIcosaedres.zirs | Exemple 6 | manual construction | script: function(
+fougèrecourte.zirs | Figure 1 | fougère | script: point_image(
+fougèrecourte.zirs | Figure 1 | versioncourte | script: point_image(
+8/100 translated

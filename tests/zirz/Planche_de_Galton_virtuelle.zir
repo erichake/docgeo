@@ -1,0 +1,271 @@
+<?xml version="1.0" encoding="utf-8"?>
+<CaR>
+<Script Name="1000 billes" mousedrag="a" onload="false">
+function UnePartieAdixRebonds(){
+	for (i=1; i&lt;=10; i=i+1){
+		h=Math.ceil(Math.random()*2);
+		if (h==1){
+			Move(p,X(p)-1,Y(p)-1);
+			
+		} else {
+			Move(p,X(p)+1,Y(p)-1);
+			
+		}
+		Pause(rythme);
+	}
+	issue=X(p)/2;
+	//	issue correspond à la moitié de la différence algébrique entre le nombre de fois 
+	//	où la balle P aura rebondi vers la droite et le nombre de fois où  elle aura rebondi vers la gauche.
+	//	Cette moitié de différence peut prendre toutes les valeurs entières comprises entre -5 et 5 si l&apos;on a pris soin d&apos;initialiser x(P) à 0.
+	return issue
+	
+}
+p=&quot;P&quot;;
+Move(p,0,25);
+var tableau=new Array();
+for (i=0; i&lt;11; i=i+1){
+	tableau[i]=0;
+	PenDown(&quot;R&quot;+i,false);
+	Move(&quot;R&quot;+i,2*i-10,0);
+	SetAlias(&quot;T&quot;+i,0);
+}
+
+SetHide(&quot;affichageBille&quot;,true);
+nb=1000;
+somme=0;
+karsomme=0;
+var moyenne=0;
+var ecarttype=0;
+for (j=1; j&lt;=nb; j=j+1){
+	rythme=GetExpressionValue(&quot;w&quot;);
+	SetExpressionValue(&quot;j&quot;,j);
+	SetHide(&quot;affichageBille&quot;,false);
+	SetText(&quot;affichageBille&quot;,&quot;$\\mbox{Nombre total de bille(s) tombée(s): _j.$\n$\\mbox{Détails de la répartition au bas des 11 colonnes. &quot;);
+	UnePartieAdixRebonds();
+	somme=somme+issue;
+	karsomme=karsomme+Math.pow(issue,2);
+	moyenne=somme/j;
+	EXdeux=karsomme/j;
+	ecarttype=Math.sqrt(EXdeux-Math.pow(moyenne,2));
+	SetText(&quot;texte_moyenne_et_ecarttype&quot;,&quot;$\\mbox{ Moyenne expérimentale: _moyenne ;} $\n $\\mbox{écart-type expérimental:_ecarttype}&quot;);
+	SetExpressionValue(&quot;ecarttype&quot;,ecarttype);
+	SetExpressionValue(&quot;moyenne&quot;,moyenne);
+	rangR=issue+5;
+	SetHide(&quot;T&quot;+rangR,false);
+	tableau[rangR]=tableau[rangR]+1;
+	SetAlias(&quot;T&quot;+rangR,tableau[rangR]);	
+	Pause(rythme);
+	PenDown(&quot;R&quot;+rangR,true);
+	SetHide(&quot;R&quot;+rangR,false);
+	rang=rangR+1;
+	SetFilled(&quot;poly&quot;+rang,true);
+	Move(&quot;R&quot;+rangR,2*issue,tableau[rangR]/20);
+	Pause(5*rythme);
+	SetFilled(&quot;poly&quot;+rang,false);
+	Move(p,0,25);
+}
+for (i=0; i&lt;11; i=i+1){
+	PenDown(&quot;R&quot;+i,false);
+}
+</Script>
+<Construction>
+<Window x="-22.8648068133837" y="9.061307056953124" w="35.91878554589935"/>
+<Windowdim w="1366" h="728"/>
+<Preferences minfontsize="18" minpointsize="4" minlinesize="2" arrowsize="15" selectionsize="7" monkeyspeed="9" gridopacity="13" digits.lengths="5" digits.edit="12" digits.angles="0" colorbackground="245,245,245" colorbackgroundx="139" colorbackgroundy="9" colorbackgroundPal="4" fig3D="false" figDP="false"/>
+<CTRLslider Ename="w" x="91" y="12" w="563" h="29" showC="true" showU="false" showV="true" hidden="false" C="indice freinage de la chute=" U="°" V="0" min="0.0" max="400.0" T="1.0" fixT="true" showT="true"/>
+<CTRLbutton Ename="a" x="626" y="61" w="211" h="22" showC="false" showU="false" showV="false" hidden="false" C="Lancer 1000 billes" U="°" V="0"/>
+<Objects>
+<Point name="O" n="30" color="5" x="0" actx="0.0" y="25" acty="25.0" shape="circle" fixed="true">Point</Point>
+<Point name="P11" n="1458" type="thick" x="-1" actx="-1.0" y="24" acty="24.0" shape="dot" fixed="true" increment="0.5">Point</Point>
+<Point name="P12" n="1459" type="thick" x="1" actx="1.0" y="24" acty="24.0" shape="dot" fixed="true" increment="0.5">Point</Point>
+<Point name="P13" n="1460" type="thick" x="-2" actx="-2.0" y="23" acty="23.0" shape="dot" fixed="true" increment="0.5">Point</Point>
+<Point name="P14" n="1461" type="thick" x="0" actx="0.0" y="23" acty="23.0" shape="dot" fixed="true" increment="0.5">Point</Point>
+<Point name="P15" n="1462" type="thick" x="2" actx="2.0" y="23" acty="23.0" shape="dot" fixed="true" increment="0.5">Point</Point>
+<Point name="P16" n="1463" type="thick" x="-3" actx="-3.0" y="22" acty="22.0" shape="dot" fixed="true" increment="0.5">Point</Point>
+<Point name="P17" n="1464" type="thick" x="-1" actx="-1.0" y="22" acty="22.0" shape="dot" fixed="true" increment="0.5">Point</Point>
+<Point name="P18" n="1465" type="thick" x="1" actx="1.0" y="22" acty="22.0" shape="dot" fixed="true" increment="0.5">Point</Point>
+<Point name="P19" n="1466" type="thick" x="3" actx="3.0" y="22" acty="22.0" shape="dot" fixed="true" increment="0.5">Point</Point>
+<Point name="P20" n="1467" type="thick" x="-4" actx="-4.0" y="21" acty="21.0" shape="dot" fixed="true" increment="0.5">Point</Point>
+<Point name="P21" n="1468" type="thick" x="-2" actx="-2.0" y="21" acty="21.0" shape="dot" fixed="true" increment="0.5">Point</Point>
+<Point name="P22" n="1469" type="thick" x="0" actx="0.0" y="21" acty="21.0" shape="dot" fixed="true" increment="0.5">Point</Point>
+<Point name="P23" n="1470" type="thick" x="2" actx="2.0" y="21" acty="21.0" shape="dot" fixed="true" increment="0.5">Point</Point>
+<Point name="P24" n="1471" type="thick" x="4" actx="4.0" y="21" acty="21.0" shape="dot" fixed="true" increment="0.5">Point</Point>
+<Point name="P25" n="1472" type="thick" x="-5" actx="-5.0" y="20" acty="20.0" shape="dot" fixed="true" increment="0.5">Point</Point>
+<Point name="P26" n="1473" type="thick" x="-3" actx="-3.0" y="20" acty="20.0" shape="dot" fixed="true" increment="0.5">Point</Point>
+<Point name="P27" n="1474" type="thick" x="-1" actx="-1.0" y="20" acty="20.0" shape="dot" fixed="true" increment="0.5">Point</Point>
+<Point name="P28" n="1475" type="thick" x="1" actx="1.0" y="20" acty="20.0" shape="dot" fixed="true" increment="0.5">Point</Point>
+<Point name="P29" n="1476" type="thick" x="3" actx="3.0" y="20" acty="20.0" shape="dot" fixed="true" increment="0.5">Point</Point>
+<Point name="P30" n="1477" type="thick" x="5" actx="5.0" y="20" acty="20.0" shape="dot" fixed="true" increment="0.5">Point</Point>
+<Point name="P31" n="1478" type="thick" x="-6" actx="-6.0" y="19" acty="19.0" shape="dot" fixed="true" increment="0.5">Point</Point>
+<Point name="P32" n="1479" type="thick" x="-4" actx="-4.0" y="19" acty="19.0" shape="dot" fixed="true" increment="0.5">Point</Point>
+<Point name="P33" n="1480" type="thick" x="-2" actx="-2.0" y="19" acty="19.0" shape="dot" fixed="true" increment="0.5">Point</Point>
+<Point name="P34" n="1481" type="thick" x="0" actx="0.0" y="19" acty="19.0" shape="dot" fixed="true" increment="0.5">Point</Point>
+<Point name="P35" n="1482" type="thick" x="2" actx="2.0" y="19" acty="19.0" shape="dot" fixed="true" increment="0.5">Point</Point>
+<Point name="P36" n="1483" type="thick" x="4" actx="4.0" y="19" acty="19.0" shape="dot" fixed="true" increment="0.5">Point</Point>
+<Point name="P37" n="1484" type="thick" x="6" actx="6.0" y="19" acty="19.0" shape="dot" fixed="true" increment="0.5">Point</Point>
+<Point name="P38" n="1485" type="thick" x="-7" actx="-7.0" y="18" acty="18.0" shape="dot" fixed="true" increment="0.5">Point</Point>
+<Point name="P39" n="1486" type="thick" x="-5" actx="-5.0" y="18" acty="18.0" shape="dot" fixed="true" increment="0.5">Point</Point>
+<Point name="P40" n="1487" type="thick" x="-3" actx="-3.0" y="18" acty="18.0" shape="dot" fixed="true" increment="0.5">Point</Point>
+<Point name="P41" n="1488" type="thick" x="-1" actx="-1.0" y="18" acty="18.0" shape="dot" fixed="true" increment="0.5">Point</Point>
+<Point name="P42" n="1489" type="thick" x="1" actx="1.0" y="18" acty="18.0" shape="dot" fixed="true" increment="0.5">Point</Point>
+<Point name="P43" n="1490" type="thick" x="3" actx="3.0" y="18" acty="18.0" shape="dot" fixed="true" increment="0.5">Point</Point>
+<Point name="P44" n="1491" type="thick" x="5" actx="5.0" y="18" acty="18.0" shape="dot" fixed="true" increment="0.5">Point</Point>
+<Point name="P45" n="1492" type="thick" x="7" actx="7.0" y="18" acty="18.0" shape="dot" fixed="true" increment="0.5">Point</Point>
+<Point name="P46" n="1493" type="thick" x="-8" actx="-8.0" y="17" acty="17.0" shape="dot" fixed="true" increment="0.5">Point</Point>
+<Point name="P47" n="1494" type="thick" x="-6" actx="-6.0" y="17" acty="17.0" shape="dot" fixed="true" increment="0.5">Point</Point>
+<Point name="P48" n="1497" type="thick" x="-4" actx="-4.0" y="17" acty="17.0" shape="dot" fixed="true" increment="0.5">Point</Point>
+<Point name="P49" n="1498" type="thick" x="-2" actx="-2.0" y="17" acty="17.0" shape="dot" fixed="true" increment="0.5">Point</Point>
+<Point name="P50" n="1499" type="thick" x="0" actx="0.0" y="17" acty="17.0" shape="dot" fixed="true" increment="0.5">Point</Point>
+<Point name="P51" n="1500" type="thick" x="2" actx="2.0" y="17" acty="17.0" shape="dot" fixed="true" increment="0.5">Point</Point>
+<Point name="P52" n="1501" type="thick" x="4" actx="4.0" y="17" acty="17.0" shape="dot" fixed="true" increment="0.5">Point</Point>
+<Point name="P53" n="1502" type="thick" x="6" actx="6.0" y="17" acty="17.0" shape="dot" fixed="true" increment="0.5">Point</Point>
+<Point name="P54" n="1503" type="thick" x="8" actx="8.0" y="17" acty="17.0" shape="dot" fixed="true" increment="0.5">Point</Point>
+<Point name="P55" n="1504" type="thick" x="-9" actx="-9.0" y="16" acty="16.0" shape="dot" fixed="true" increment="0.5">Point</Point>
+<Point name="P56" n="1505" type="thick" x="-7" actx="-7.0" y="16" acty="16.0" shape="dot" fixed="true" increment="0.5">Point</Point>
+<Point name="P57" n="1506" type="thick" x="-5" actx="-5.0" y="16" acty="16.0" shape="dot" fixed="true" increment="0.5">Point</Point>
+<Point name="P58" n="1507" type="thick" x="-3" actx="-3.0" y="16" acty="16.0" shape="dot" fixed="true" increment="0.5">Point</Point>
+<Point name="P59" n="1508" type="thick" x="-1" actx="-1.0" y="16" acty="16.0" shape="dot" fixed="true" increment="0.5">Point</Point>
+<Point name="P60" n="1509" type="thick" x="1" actx="1.0" y="16" acty="16.0" shape="dot" fixed="true" increment="0.5">Point</Point>
+<Point name="P61" n="1510" type="thick" x="3" actx="3.0" y="16" acty="16.0" shape="dot" fixed="true" increment="0.5">Point</Point>
+<Point name="P62" n="1511" type="thick" x="5" actx="5.0" y="16" acty="16.0" shape="dot" fixed="true" increment="0.5">Point</Point>
+<Point name="P63" n="1512" type="thick" x="7" actx="7.0" y="16" acty="16.0" shape="dot" fixed="true" increment="0.5">Point</Point>
+<Point name="P64" n="1513" type="thick" x="9" actx="9.0" y="16" acty="16.0" shape="dot" fixed="true" increment="0.5">Point</Point>
+<Point name="P0" n="1514" type="thick" hidden="true" showname="true" x="-10" actx="-10.0" y="15" acty="15.0" shape="dot" fixed="true">Point</Point>
+<Point name="P1" n="1515" type="thick" hidden="true" showname="true" x="-8" actx="-8.0" y="15" acty="15.0" shape="dot" fixed="true">Point</Point>
+<Point name="P2" n="1516" type="thick" hidden="true" showname="true" x="-6" actx="-6.0" y="15" acty="15.0" shape="dot" fixed="true">Point</Point>
+<Point name="P3" n="1517" type="thick" hidden="true" showname="true" x="-4" actx="-4.0" y="15" acty="15.0" shape="dot" fixed="true">Point</Point>
+<Point name="P4" n="1518" type="thick" hidden="true" showname="true" x="-2" actx="-2.0" y="15" acty="15.0" shape="dot" fixed="true">Point</Point>
+<Point name="P5" n="1519" type="thick" hidden="true" showname="true" x="0" actx="0.0" y="15" acty="15.0" shape="dot" fixed="true">Point</Point>
+<Point name="P6" n="1520" type="thick" hidden="true" showname="true" x="2" actx="2.0" y="15" acty="15.0" shape="dot" fixed="true">Point</Point>
+<Point name="P7" n="1521" type="thick" hidden="true" showname="true" x="4" actx="4.0" y="15" acty="15.0" shape="dot" fixed="true">Point</Point>
+<Point name="P8" n="1522" type="thick" hidden="true" showname="true" x="6" actx="6.0" y="15" acty="15.0" shape="dot" fixed="true">Point</Point>
+<Point name="P9" n="1523" type="thick" hidden="true" showname="true" x="8" actx="8.0" y="15" acty="15.0" shape="dot" fixed="true">Point</Point>
+<Point name="P10" n="1524" type="thick" hidden="true" showname="true" x="10" actx="10.0" y="15" acty="15.0" shape="dot" fixed="true">Point</Point>
+<Point name="P" n="1525" color="2" type="thick" xcoffset="0.129875273094326" ycoffset="0.8920166600873234" keepclose="true" x="0.0" y="25.0" shape="circle">Point</Point>
+<Point name="R0" n="1586" color="5" x="-10.0" y="0.0" shape="circle">Point</Point>
+<Point name="R1" n="1753" color="5" x="-8.0" y="0.2" shape="circle">Point à &quot;x(C)+x(B)-x(A)&quot;, &quot;y(C)+y(B)-y(A)&quot; </Point>
+<Point name="R2" n="2134" color="5" x="-6.0" y="2.55" shape="circle">Point à &quot;x(C)+x(B)-x(A)&quot;, &quot;y(C)+y(B)-y(A)&quot; </Point>
+<Point name="R3" n="2281" color="5" x="-4.0" y="5.4" shape="circle">Point à &quot;x(C)+x(B)-x(A)&quot;, &quot;y(C)+y(B)-y(A)&quot; </Point>
+<Point name="R4" n="2474" color="5" x="-2.0" y="10.05" shape="circle">Point à &quot;x(C)+x(B)-x(A)&quot;, &quot;y(C)+y(B)-y(A)&quot; </Point>
+<Point name="R5" n="2733" color="5" x="0.0" y="13.2" shape="circle">Point à &quot;x(C)+x(B)-x(A)&quot;, &quot;y(C)+y(B)-y(A)&quot; </Point>
+<Point name="R6" n="3152" color="5" x="2.0" y="10.65" shape="circle">Point à &quot;x(C)+x(B)-x(A)&quot;, &quot;y(C)+y(B)-y(A)&quot; </Point>
+<Point name="R7" n="3713" color="5" x="4.0" y="5.25" shape="circle">Point à &quot;x(C)+x(B)-x(A)&quot;, &quot;y(C)+y(B)-y(A)&quot; </Point>
+<Point name="R8" n="4197" color="5" x="6.0" y="2.15" shape="circle">Point à &quot;x(C)+x(B)-x(A)&quot;, &quot;y(C)+y(B)-y(A)&quot; </Point>
+<Point name="R9" n="4446" color="5" x="8.0" y="0.45" shape="circle">Point à &quot;x(C)+x(B)-x(A)&quot;, &quot;y(C)+y(B)-y(A)&quot; </Point>
+<Point name="R10" n="4448" color="5" x="10.0" y="0.1" shape="circle">Point</Point>
+<Point name="T0" alias="0" n="4449" color="1" showname="true" xcoffset="0.025947710844491212" ycoffset="-1.1333627071896295" keepclose="true" x="-10" actx="-10.0" y="0" acty="0.0" shape="dot" fixed="true">Point</Point>
+<Point name="T1" alias="4" n="4450" color="1" showname="true" xcoffset="0.04558413423527874" ycoffset="-1.192763778465828" keepclose="true" x="-8" actx="-8.0" y="0" acty="0.0" shape="dot" fixed="true">Point</Point>
+<Point name="T2" alias="51" n="4451" color="1" showname="true" xcoffset="0.12462162890226658" ycoffset="-2.0243787763326253" keepclose="true" x="-6" actx="-6.0" y="0" acty="0.0" shape="dot" fixed="true">Point</Point>
+<Point name="T3" alias="108" n="4452" color="1" showname="true" xcoffset="0.20365912356925797" ycoffset="-1.4303680635706293" keepclose="true" x="-4" actx="-4.0" y="0" acty="0.0" shape="dot" fixed="true">Point</Point>
+<Point name="T4" alias="201" n="4453" color="1" showname="true" xcoffset="0.045092333131448115" ycoffset="-1.073961635913431" keepclose="true" x="-2" actx="-2.0" y="0" acty="0.0" shape="dot" fixed="true">Point</Point>
+<Point name="T5" alias="264" n="4454" color="1" showname="true" xcoffset="0.12412982779843595" ycoffset="-1.1333627071896295" keepclose="true" x="0" actx="0.0" y="0" acty="0.0" shape="dot" fixed="true">Point</Point>
+<Point name="T6" alias="213" n="4455" color="1" showname="true" xcoffset="-0.0344369626393739" ycoffset="-1.192763778465828" keepclose="true" x="2" actx="2.0" y="0" acty="0.0" shape="dot" fixed="true">Point</Point>
+<Point name="T7" alias="105" n="4456" color="1" showname="true" xcoffset="0.04460053202761749" ycoffset="-1.3115659210182287" keepclose="true" x="4" actx="4.0" y="0" acty="0.0" shape="dot" fixed="true">Point</Point>
+<Point name="T8" alias="43" n="4457" color="1" showname="true" xcoffset="0.1236380266946071" ycoffset="-1.192763778465828" keepclose="true" x="6" actx="6.0" y="0" acty="0.0" shape="dot" fixed="true">Point</Point>
+<Point name="T9" alias="9" n="4458" color="1" showname="true" xcoffset="0.14327445008539286" ycoffset="-1.3115659210182287" keepclose="true" x="8" actx="8.0" y="0" acty="0.0" shape="dot" fixed="true">Point</Point>
+<Point name="T10" alias="2" n="4459" color="1" showname="true" xcoffset="0.2817130160285828" ycoffset="-1.0145605646372289" keepclose="true" x="10" actx="10.0" y="0" acty="0.0" shape="dot" fixed="true">Point</Point>
+<Expression name="w" n="6539" color="1" type="thick" hidden="super" showname="true" showvalue="true" x="-36.42750546900431" y="12.97170052494574" value="0" prompt="Valeur">Expression &quot;0&quot; à -36.42751, 12.9717</Expression>
+<Expression name="a" n="6543" color="1" type="thick" hidden="super" showname="true" showvalue="true" x="-36.34259108237098" y="14.500159484345742" value="0" prompt="Valeur">Expression &quot;0&quot; à -36.34259, 14.50016</Expression>
+<Expression name="ecarttype" n="6546" color="1" type="thick" hidden="true" showname="true" showvalue="true" x="3.368155724713702" y="13.513594180625853" value="1.5394336620978508" prompt="$σ">Expression &quot;1.5394336620978508&quot; à 3.36816, 13.51359</Expression>
+<Expression name="moyenne" n="6547" color="1" type="thick" hidden="true" showname="true" showvalue="true" x="3.3681557247136844" y="14.765826792270746" value="0.012" prompt="$μ">Expression &quot;0.012&quot; à 3.36816, 14.76583</Expression>
+<Text name="affichageBille" n="6563" color="1" type="thick" showname="true" showvalue="true" x="-47.84976241611662" y="1.1806356588456328">$\mbox{Nombre total de bille(s) tombée(s): 1000.$
+$\mbox{Détails de la répartition au bas des 11 colonnes. </Text>
+<Text name="texte_moyenne_et_ecarttype" n="6566" color="1" type="thick" showname="true" showvalue="true" x="-19.165145460210667" y="-5.316138043845119">$\mbox{ Moyenne expérimentale: 0.012 ;} $
+ $\mbox{écart-type expérimental:1.5394336620978508}</Text>
+<Expression name="j" n="6567" color="1" type="thick" hidden="true" showname="true" showvalue="true" x="-4.254821041919417" y="24.493978184508876" value="1000" prompt="$j">Expression &quot;1000&quot; à -4.25482, 24.49398</Expression>
+<Text name="Text1" n="6568" color="2" type="thick" showname="true" showvalue="true" x="-57.7510162670335" y="24.101608539283788">$\mbox{Cette figure réalise une simulation d&apos;une planche de Galton. Ce dispositif}
+$\mbox{permet de visualiser le fait qu&apos;une expérience aléatoire obéissant à une loi}
+$\mbox{binomiale (donc discrète) se laisse approcher par une loi normale (continue).} 
+$\mbox{Les caractéristiques physiques de la planche et de la bille doivent être telles}
+$\mbox{qu&apos;à chaque rangée horizontale de clous noirs, la bille bleue ait à peu près }
+$\mbox{autant de chance de rebondir à gauche qu&apos;à droite.}
+
+$\underline{Remarque}$   $\mbox{ Cette hypothèse d&apos;équiprobabilité rend l&apos;expérience}
+$\mbox{sur planche de Galton virtuelle plus fiable que l&apos;expérience}
+$\mbox{sur une vraie planche de Galton...}
+
+$\mbox{La différence algébrique entre le nombre de bifurcations à droite et le}
+$\mbox{nombre de bifurcations à gauche est liée linéairement à l&apos;abscisse de la}
+$\mbox{bille au bas de la planche de Galton.Soit la  la variable aléatoire }  X_{10}
+$\mbox{dont l&apos;univers est } Ω=\{-5,-4,...-1,0,1,2,...4,5\}; $   $   Card(Ω)=11.</Text>
+<Text name="Text2" n="6569" color="1" type="thick" showname="true" showvalue="true" x="-57.74035166943978" y="-4.718265185371783">$\mbox{ Moyenne théorique: E(X)=0;} $
+ $\mbox{écart-type théorique:}$ $σ(X)=\frac{\sqrt{10}}{2}\approx%sqrt(10)/2%</Text>
+<Segment name="s25" n="1526" scolor="211,,211,,211" from="O" to="P0">Segment de O à P0</Segment>
+<Segment name="s26" n="1529" scolor="211,,211,,211" from="O" to="P10">Segment de O à P10</Segment>
+<Segment name="s27" n="1532" scolor="211,,211,,211" from="P11" to="P9">Segment de P11 à P9</Segment>
+<Segment name="s28" n="1535" scolor="211,,211,,211" from="P13" to="P8">Segment de P13 à P8</Segment>
+<Segment name="s29" n="1538" scolor="211,,211,,211" from="P16" to="P7">Segment de P16 à P7</Segment>
+<Segment name="s30" n="1541" scolor="211,,211,,211" from="P20" to="P6">Segment de P20 à P6</Segment>
+<Segment name="s31" n="1544" scolor="211,,211,,211" from="P25" to="P5">Segment de P25 à P5</Segment>
+<Segment name="s32" n="1547" scolor="211,,211,,211" from="P31" to="P4">Segment de P31 à P4</Segment>
+<Segment name="s33" n="1550" scolor="211,,211,,211" from="P38" to="P3">Segment de P38 à P3</Segment>
+<Segment name="s34" n="1553" scolor="211,,211,,211" from="P46" to="P2">Segment de P46 à P2</Segment>
+<Segment name="s35" n="1556" scolor="211,,211,,211" from="P55" to="P1">Segment de P55 à P1</Segment>
+<Segment name="s36" n="1559" scolor="211,,211,,211" from="P12" to="P1">Segment de P12 à P1</Segment>
+<Segment name="s37" n="1562" scolor="211,,211,,211" from="P15" to="P2">Segment de P15 à P2</Segment>
+<Segment name="s38" n="1565" scolor="211,,211,,211" from="P19" to="P3">Segment de P19 à P3</Segment>
+<Segment name="s39" n="1568" scolor="211,,211,,211" from="P24" to="P4">Segment de P24 à P4</Segment>
+<Segment name="s40" n="1571" scolor="211,,211,,211" from="P30" to="P5">Segment de P30 à P5</Segment>
+<Segment name="s41" n="1574" scolor="211,,211,,211" from="P37" to="P6">Segment de P37 à P6</Segment>
+<Segment name="s42" n="1577" scolor="211,,211,,211" from="P45" to="P7">Segment de P45 à P7</Segment>
+<Segment name="s43" n="1580" scolor="211,,211,,211" from="P54" to="P8">Segment de P54 à P8</Segment>
+<Segment name="s44" n="1583" scolor="211,,211,,211" from="P64" to="P9">Segment de P64 à P9</Segment>
+<Point name="P65" n="4462" color="1" x="x(P0)-windoww/100" actx="-10.359187855458993" y="y(P0)" acty="15.0" shape="dot" fixed="true">Point</Point>
+<Function name="Normale" n="6565" color="2" showname="true" ctag0="hidden" cexpr0="(j&lt;50)" x="x" y="(j/20)*exp(-((x/2-moyenne)/(ecarttype))^2/2)/(ecarttype*sqrt(2*pi))" var="x" min="-10" max="10" d="0" shape="cross" filled="true" color="2">Fonction ( x , (j/20)*exp(-((x/2-moyenne)/(ecarttype))^2/2)/(ecarttype*sqrt(2*pi)) )</Function>
+<Point name="P66" n="4826" color="1" hidden="super" x="2*x(P0)-x(P65)" actx="-9.640812144541007" y="2*y(P0)-y(P65)" acty="15.0" shape="circle" fixed="true">Point</Point>
+<Point name="P67" n="4935" color="1" hidden="super" x="x(P65)+x(T0)-x(P0)" actx="-10.359187855458991" y="y(P65)+y(T0)-y(P0)" acty="0.0" shape="circle" fixed="true">Point à &quot;x(C)+x(B)-x(A)&quot;, &quot;y(C)+y(B)-y(A)&quot; </Point>
+<Point name="P69" n="5264" color="1" hidden="super" x="x(P65)+x(P1)-x(P0)" actx="-8.359187855458991" y="y(P65)+y(P1)-y(P0)" acty="15.0" shape="circle" fixed="true">Point à &quot;x(C)+x(B)-x(A)&quot;, &quot;y(C)+y(B)-y(A)&quot; </Point>
+<Point name="P68" n="5008" color="1" hidden="super" x="x(P66)+x(T0)-x(P0)" actx="-9.640812144541009" y="y(P66)+y(T0)-y(P0)" acty="0.0" shape="circle" fixed="true">Point à &quot;x(C)+x(B)-x(A)&quot;, &quot;y(C)+y(B)-y(A)&quot; </Point>
+<Point name="P70" n="5265" color="1" hidden="super" x="x(P66)+x(P1)-x(P0)" actx="-7.640812144541009" y="y(P66)+y(P1)-y(P0)" acty="15.0" shape="circle" fixed="true">Point à &quot;x(C)+x(B)-x(A)&quot;, &quot;y(C)+y(B)-y(A)&quot; </Point>
+<Point name="P72" n="5267" color="1" hidden="super" x="x(P67)+x(P1)-x(P0)" actx="-8.359187855458991" y="y(P67)+y(P1)-y(P0)" acty="0.0" shape="circle" fixed="true">Point à &quot;x(C)+x(B)-x(A)&quot;, &quot;y(C)+y(B)-y(A)&quot; </Point>
+<Point name="P73" n="5326" color="1" hidden="super" x="x(P69)+x(P1)-x(P0)" actx="-6.359187855458991" y="y(P69)+y(P1)-y(P0)" acty="15.0" shape="circle" fixed="true">Point à &quot;x(C)+x(B)-x(A)&quot;, &quot;y(C)+y(B)-y(A)&quot; </Point>
+<Polygon name="poly1" n="5009" scolor="169,,169,,169" background="true" filled="false" point1="P65" point2="P66" point3="P68" point4="P67">Polygone</Polygon>
+<Point name="P71" n="5266" color="1" hidden="super" x="x(P68)+x(P1)-x(P0)" actx="-7.640812144541009" y="y(P68)+y(P1)-y(P0)" acty="0.0" shape="circle" fixed="true">Point à &quot;x(C)+x(B)-x(A)&quot;, &quot;y(C)+y(B)-y(A)&quot; </Point>
+<Point name="P74" n="5327" color="1" hidden="super" x="x(P70)+x(P1)-x(P0)" actx="-5.640812144541009" y="y(P70)+y(P1)-y(P0)" acty="15.0" shape="circle" fixed="true">Point à &quot;x(C)+x(B)-x(A)&quot;, &quot;y(C)+y(B)-y(A)&quot; </Point>
+<Point name="P76" n="5329" color="1" hidden="super" x="x(P72)+x(P1)-x(P0)" actx="-6.359187855458991" y="y(P72)+y(P1)-y(P0)" acty="0.0" shape="circle" fixed="true">Point à &quot;x(C)+x(B)-x(A)&quot;, &quot;y(C)+y(B)-y(A)&quot; </Point>
+<Point name="P77" n="5434" color="1" hidden="super" x="x(P73)+x(P3)-x(P2)" actx="-4.359187855458991" y="y(P73)+y(P3)-y(P2)" acty="15.0" shape="circle" fixed="true">Point à &quot;x(C)+x(B)-x(A)&quot;, &quot;y(C)+y(B)-y(A)&quot; </Point>
+<Polygon name="poly2" n="5268" scolor="169,,169,,169" background="true" filled="false" point1="P69" point2="P70" point3="P71" point4="P72">Polygone</Polygon>
+<Point name="P75" n="5328" color="1" hidden="super" x="x(P71)+x(P1)-x(P0)" actx="-5.640812144541009" y="y(P71)+y(P1)-y(P0)" acty="0.0" shape="circle" fixed="true">Point à &quot;x(C)+x(B)-x(A)&quot;, &quot;y(C)+y(B)-y(A)&quot; </Point>
+<Point name="P78" n="5435" color="1" hidden="super" x="x(P74)+x(P3)-x(P2)" actx="-3.640812144541009" y="y(P74)+y(P3)-y(P2)" acty="15.0" shape="circle" fixed="true">Point à &quot;x(C)+x(B)-x(A)&quot;, &quot;y(C)+y(B)-y(A)&quot; </Point>
+<Point name="P80" n="5437" color="1" hidden="super" x="x(P76)+x(P3)-x(P2)" actx="-4.359187855458991" y="y(P76)+y(P3)-y(P2)" acty="0.0" shape="circle" fixed="true">Point à &quot;x(C)+x(B)-x(A)&quot;, &quot;y(C)+y(B)-y(A)&quot; </Point>
+<Point name="P81" n="5579" color="1" hidden="super" x="x(P77)+x(P4)-x(P3)" actx="-2.359187855458991" y="y(P77)+y(P4)-y(P3)" acty="15.0" shape="circle" fixed="true">Point à &quot;x(C)+x(B)-x(A)&quot;, &quot;y(C)+y(B)-y(A)&quot; </Point>
+<Polygon name="poly3" n="5330" scolor="169,,169,,169" background="true" filled="false" point1="P73" point2="P74" point3="P75" point4="P76">Polygone</Polygon>
+<Point name="P79" n="5436" color="1" hidden="super" x="x(P75)+x(P3)-x(P2)" actx="-3.640812144541009" y="y(P75)+y(P3)-y(P2)" acty="0.0" shape="circle" fixed="true">Point à &quot;x(C)+x(B)-x(A)&quot;, &quot;y(C)+y(B)-y(A)&quot; </Point>
+<Point name="P82" n="5580" color="1" hidden="super" x="x(P78)+x(P4)-x(P3)" actx="-1.6408121445410089" y="y(P78)+y(P4)-y(P3)" acty="15.0" shape="circle" fixed="true">Point à &quot;x(C)+x(B)-x(A)&quot;, &quot;y(C)+y(B)-y(A)&quot; </Point>
+<Point name="P84" n="5582" color="1" hidden="super" x="x(P80)+x(P4)-x(P3)" actx="-2.359187855458991" y="y(P80)+y(P4)-y(P3)" acty="0.0" shape="circle" fixed="true">Point à &quot;x(C)+x(B)-x(A)&quot;, &quot;y(C)+y(B)-y(A)&quot; </Point>
+<Point name="P85" n="5756" color="1" hidden="super" x="x(P81)+x(P5)-x(P4)" actx="-0.3591878554589911" y="y(P81)+y(P5)-y(P4)" acty="15.0" shape="circle" fixed="true">Point à &quot;x(C)+x(B)-x(A)&quot;, &quot;y(C)+y(B)-y(A)&quot; </Point>
+<Polygon name="poly4" n="5438" scolor="169,,169,,169" background="true" filled="false" point1="P77" point2="P78" point3="P79" point4="P80">Polygone</Polygon>
+<Point name="P83" n="5581" color="1" hidden="super" x="x(P79)+x(P4)-x(P3)" actx="-1.6408121445410089" y="y(P79)+y(P4)-y(P3)" acty="0.0" shape="circle" fixed="true">Point à &quot;x(C)+x(B)-x(A)&quot;, &quot;y(C)+y(B)-y(A)&quot; </Point>
+<Point name="P86" n="5757" color="1" hidden="super" x="x(P82)+x(P5)-x(P4)" actx="0.3591878554589911" y="y(P82)+y(P5)-y(P4)" acty="15.0" shape="circle" fixed="true">Point à &quot;x(C)+x(B)-x(A)&quot;, &quot;y(C)+y(B)-y(A)&quot; </Point>
+<Point name="P88" n="5759" color="1" hidden="super" x="x(P84)+x(P5)-x(P4)" actx="-0.3591878554589911" y="y(P84)+y(P5)-y(P4)" acty="0.0" shape="circle" fixed="true">Point à &quot;x(C)+x(B)-x(A)&quot;, &quot;y(C)+y(B)-y(A)&quot; </Point>
+<Point name="P89" n="5901" color="1" hidden="super" x="x(P85)+x(P6)-x(P5)" actx="1.6408121445410089" y="y(P85)+y(P6)-y(P5)" acty="15.0" shape="circle" fixed="true">Point à &quot;x(C)+x(B)-x(A)&quot;, &quot;y(C)+y(B)-y(A)&quot; </Point>
+<Polygon name="poly5" n="5583" scolor="169,,169,,169" background="true" filled="false" point1="P81" point2="P82" point3="P83" point4="P84">Polygone</Polygon>
+<Point name="P87" n="5758" color="1" hidden="super" x="x(P83)+x(P5)-x(P4)" actx="0.3591878554589911" y="y(P83)+y(P5)-y(P4)" acty="0.0" shape="circle" fixed="true">Point à &quot;x(C)+x(B)-x(A)&quot;, &quot;y(C)+y(B)-y(A)&quot; </Point>
+<Point name="P90" n="5902" color="1" hidden="super" x="x(P86)+x(P6)-x(P5)" actx="2.359187855458991" y="y(P86)+y(P6)-y(P5)" acty="15.0" shape="circle" fixed="true">Point à &quot;x(C)+x(B)-x(A)&quot;, &quot;y(C)+y(B)-y(A)&quot; </Point>
+<Point name="P92" n="5904" color="1" hidden="super" x="x(P88)+x(P6)-x(P5)" actx="1.6408121445410089" y="y(P88)+y(P6)-y(P5)" acty="0.0" shape="circle" fixed="true">Point à &quot;x(C)+x(B)-x(A)&quot;, &quot;y(C)+y(B)-y(A)&quot; </Point>
+<Point name="P93" n="6040" color="1" hidden="super" x="x(P89)+x(P7)-x(P6)" actx="3.640812144541009" y="y(P89)+y(P7)-y(P6)" acty="15.0" shape="circle" fixed="true">Point à &quot;x(C)+x(B)-x(A)&quot;, &quot;y(C)+y(B)-y(A)&quot; </Point>
+<Polygon name="poly6" n="5760" scolor="169,,169,,169" background="true" filled="false" point1="P85" point2="P86" point3="P87" point4="P88">Polygone</Polygon>
+<Point name="P91" n="5903" color="1" hidden="super" x="x(P87)+x(P6)-x(P5)" actx="2.359187855458991" y="y(P87)+y(P6)-y(P5)" acty="0.0" shape="circle" fixed="true">Point à &quot;x(C)+x(B)-x(A)&quot;, &quot;y(C)+y(B)-y(A)&quot; </Point>
+<Point name="P94" n="6041" color="1" hidden="super" x="x(P90)+x(P7)-x(P6)" actx="4.359187855458991" y="y(P90)+y(P7)-y(P6)" acty="15.0" shape="circle" fixed="true">Point à &quot;x(C)+x(B)-x(A)&quot;, &quot;y(C)+y(B)-y(A)&quot; </Point>
+<Point name="P96" n="6043" color="1" hidden="super" x="x(P92)+x(P7)-x(P6)" actx="3.640812144541009" y="y(P92)+y(P7)-y(P6)" acty="0.0" shape="circle" fixed="true">Point à &quot;x(C)+x(B)-x(A)&quot;, &quot;y(C)+y(B)-y(A)&quot; </Point>
+<Point name="P97" n="6221" color="1" hidden="super" x="x(P93)+x(P8)-x(P7)" actx="5.640812144541009" y="y(P93)+y(P8)-y(P7)" acty="15.0" shape="circle" fixed="true">Point à &quot;x(C)+x(B)-x(A)&quot;, &quot;y(C)+y(B)-y(A)&quot; </Point>
+<Polygon name="poly7" n="5905" scolor="169,,169,,169" background="true" filled="false" point1="P89" point2="P90" point3="P91" point4="P92">Polygone</Polygon>
+<Point name="P95" n="6042" color="1" hidden="super" x="x(P91)+x(P7)-x(P6)" actx="4.359187855458991" y="y(P91)+y(P7)-y(P6)" acty="0.0" shape="circle" fixed="true">Point à &quot;x(C)+x(B)-x(A)&quot;, &quot;y(C)+y(B)-y(A)&quot; </Point>
+<Point name="P98" n="6222" color="1" hidden="super" x="x(P94)+x(P8)-x(P7)" actx="6.359187855458991" y="y(P94)+y(P8)-y(P7)" acty="15.0" shape="circle" fixed="true">Point à &quot;x(C)+x(B)-x(A)&quot;, &quot;y(C)+y(B)-y(A)&quot; </Point>
+<Point name="P100" n="6224" color="1" hidden="super" x="x(P96)+x(P8)-x(P7)" actx="5.640812144541009" y="y(P96)+y(P8)-y(P7)" acty="0.0" shape="circle" fixed="true">Point à &quot;x(C)+x(B)-x(A)&quot;, &quot;y(C)+y(B)-y(A)&quot; </Point>
+<Point name="P101" n="6322" color="1" hidden="super" x="x(P97)+x(P9)-x(P8)" actx="7.640812144541009" y="y(P97)+y(P9)-y(P8)" acty="15.0" shape="circle" fixed="true">Point à &quot;x(C)+x(B)-x(A)&quot;, &quot;y(C)+y(B)-y(A)&quot; </Point>
+<Polygon name="poly8" n="6044" scolor="169,,169,,169" background="true" filled="false" point1="P93" point2="P94" point3="P95" point4="P96">Polygone</Polygon>
+<Point name="P99" n="6223" color="1" hidden="super" x="x(P95)+x(P8)-x(P7)" actx="6.359187855458991" y="y(P95)+y(P8)-y(P7)" acty="0.0" shape="circle" fixed="true">Point à &quot;x(C)+x(B)-x(A)&quot;, &quot;y(C)+y(B)-y(A)&quot; </Point>
+<Point name="P102" n="6323" color="1" hidden="super" x="x(P98)+x(P9)-x(P8)" actx="8.359187855458991" y="y(P98)+y(P9)-y(P8)" acty="15.0" shape="circle" fixed="true">Point à &quot;x(C)+x(B)-x(A)&quot;, &quot;y(C)+y(B)-y(A)&quot; </Point>
+<Point name="P104" n="6325" color="1" hidden="super" x="x(P100)+x(P9)-x(P8)" actx="7.640812144541009" y="y(P100)+y(P9)-y(P8)" acty="0.0" shape="circle" fixed="true">Point à &quot;x(C)+x(B)-x(A)&quot;, &quot;y(C)+y(B)-y(A)&quot; </Point>
+<Point name="P105" n="6527" color="1" hidden="super" x="x(P101)+x(P10)-x(P9)" actx="9.640812144541009" y="y(P101)+y(P10)-y(P9)" acty="15.0" shape="circle" fixed="true">Point à &quot;x(C)+x(B)-x(A)&quot;, &quot;y(C)+y(B)-y(A)&quot; </Point>
+<Polygon name="poly9" n="6225" scolor="169,,169,,169" background="true" filled="false" point1="P97" point2="P98" point3="P99" point4="P100">Polygone</Polygon>
+<Point name="P103" n="6324" color="1" hidden="super" x="x(P99)+x(P9)-x(P8)" actx="8.359187855458991" y="y(P99)+y(P9)-y(P8)" acty="0.0" shape="circle" fixed="true">Point à &quot;x(C)+x(B)-x(A)&quot;, &quot;y(C)+y(B)-y(A)&quot; </Point>
+<Point name="P106" n="6528" color="1" hidden="super" x="x(P102)+x(P10)-x(P9)" actx="10.359187855458991" y="y(P102)+y(P10)-y(P9)" acty="15.0" shape="circle" fixed="true">Point à &quot;x(C)+x(B)-x(A)&quot;, &quot;y(C)+y(B)-y(A)&quot; </Point>
+<Point name="P108" n="6530" color="1" hidden="super" x="x(P104)+x(P10)-x(P9)" actx="9.640812144541009" y="y(P104)+y(P10)-y(P9)" acty="0.0" shape="circle" fixed="true">Point à &quot;x(C)+x(B)-x(A)&quot;, &quot;y(C)+y(B)-y(A)&quot; </Point>
+<Polygon name="poly10" n="6326" scolor="169,,169,,169" background="true" filled="false" point1="P101" point2="P102" point3="P103" point4="P104">Polygone</Polygon>
+<Point name="P107" n="6529" color="1" hidden="super" x="x(P103)+x(P10)-x(P9)" actx="10.359187855458991" y="y(P103)+y(P10)-y(P9)" acty="0.0" shape="circle" fixed="true">Point à &quot;x(C)+x(B)-x(A)&quot;, &quot;y(C)+y(B)-y(A)&quot; </Point>
+<Polygon name="poly11" n="6531" scolor="169,,169,,169" background="true" filled="false" point1="P105" point2="P106" point3="P107" point4="P108">Polygone</Polygon>
+</Objects>
+</Construction>
+</CaR>

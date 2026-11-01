@@ -2849,7 +2849,7 @@ const COMMANDS = new Map<string, CommandDefinition>([
                     args[0] as string,
                     args[1] as intersectable_object,
                     args[2] as intersectable_object,
-                    args[3] as 0 | 1 | 2 | 3,
+                    args[3] as number,
                     args[4] as point_object | undefined,
                 ),
         },
@@ -3425,7 +3425,8 @@ function accepts(actual: ObjectKind, expected: ParameterKind): boolean {
             (actual === "line" ||
                 actual === "circle" ||
                 actual === "quadric" ||
-                actual === "curve")) ||
+                actual === "curve" ||
+                actual === "locus")) ||
         (expected === "pointSupport" &&
             (actual === "line" ||
                 actual === "circle" ||

@@ -479,7 +479,11 @@ alignement]]` police, `[30, url, l, h, zoom, opacité, u]` image (largeur
     en forme des objets et, par `SET_EXP("E", valeur)` ou une globale (6),
     changer la valeur d'une `Ex` de valeur constante, comme une manipulation
     (état élève de `E`), et afficher un message (`ALERT(texte)`, dont seul
-    le texte est gardé, pas le HTML). Sans `"s"`, il ne fait rien.
+    le texte est gardé, pas le HTML). `WAIT(ms)`, instruction du programme
+    ou d'une fonction qu'il appelle comme instruction, l'interrompt ms
+    millisecondes, la figure redessinée, puis il reprend (ailleurs, dans
+    une expression ou un programme d'un autre objet, il n'attend pas) ; un
+    nouveau clic arrête le lancement en cours. Sans `"s"`, il ne fait rien.
 14. `g` et `d` : formules en x et y des deux membres de l'équation, de degré
     1 pour une droite, 2 au plus pour une conique, recalculés à chaque
     mouvement. Un cercle a le même coefficient en x² et en y², sans xy ; une

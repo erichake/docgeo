@@ -1,0 +1,398 @@
+<?xml version="1.0" encoding="utf-8"?>
+<CaR>
+<Script Name="Points" mousedrag="" onload="false">
+// la solution réelle de x3+x2+x-1=0
+
+x0=0.543689012692;
+x1=x0*x0;
+
+function TracePoint(nom,ux,uy,uz){
+	vx=ux;
+	vy=uy;
+	vz=uz;	up=Point(nom,&quot;x(O)+(x(X)-x(O))*_vx+(x(Y)-x(O))*_vy+(x(Z)-x(O))*_vz&quot;,&quot;y(O)+(y(X)-y(O))*_vx+(y(Y)-y(O))*_vy+(y(Z)-y(O))*_vz&quot;);
+}
+
+Shownames();
+TracePoint(&quot;A1&quot;,1,x0,x1);
+TracePoint(&quot;A2&quot;,1,x1,-x0);
+TracePoint(&quot;A3&quot;,1,-x0,-x1);
+TracePoint(&quot;A4&quot;,1,-x1,x0);
+TracePoint(&quot;A5&quot;,-1,x1,x0);
+TracePoint(&quot;A6&quot;,-1,x0,-x1);
+TracePoint(&quot;A7&quot;,-1,-x1,-x0);
+TracePoint(&quot;A8&quot;,-1,-x0,x1);
+TracePoint(&quot;B1&quot;,x1,1,x0);
+TracePoint(&quot;B2&quot;,x0,1,-x1);
+TracePoint(&quot;B3&quot;,-x1,1,-x0);
+TracePoint(&quot;B4&quot;,-x0,1,x1);
+TracePoint(&quot;B5&quot;,x0,-1,x1);
+TracePoint(&quot;B6&quot;,x1,-1,-x0);
+TracePoint(&quot;B7&quot;,-x0,-1,-x1);
+TracePoint(&quot;B8&quot;,-x1,-1,x0);
+TracePoint(&quot;C1&quot;,x0,x1,1);
+TracePoint(&quot;C2&quot;,x1,-x0,1);
+TracePoint(&quot;C3&quot;,-x0,-x1,1);
+TracePoint(&quot;C4&quot;,-x1,x0,1);
+TracePoint(&quot;C5&quot;,x1,x0,-1);
+TracePoint(&quot;C6&quot;,x0,-x1,-1);
+TracePoint(&quot;C7&quot;,-x1,-x0,-1);
+TracePoint(&quot;C8&quot;,-x0,x1,-1);
+SetShowName(&quot;A1,A2,A3,A4,A5,A6,A7,A8&quot;,true);
+SetShowName(&quot;B1,B2,B3,B4,B5,B6,B7,B8&quot;,true);
+SetShowName(&quot;C1,C2,C3,C4,C5,C6,C7,C8&quot;,true);
+</Script>
+<Script Name="Rotation" mousedrag="" onload="false">
+x0=0.543689012692;
+x1=x0*x0;
+
+nouvx=&quot;(m11*_vx+m12*_vy+m13*_vz)&quot;;
+nouvy=&quot;(m21*_vx+m22*_vy+m23*_vz)&quot;;
+nouvz=&quot;(m31*_vx+m32*_vy+m33*_vz)&quot;;
+
+function RotatePoint(nom,ux,uy,uz){
+	vx=ux;
+	vy=uy;
+	vz=uz;	up=Point(nom,&quot;x(O)+(x(X)-x(O))*&quot;+nouvx+&quot;+(x(Y)-x(O))*&quot;+nouvy+&quot;+(x(Z)-x(O))*&quot;+nouvz,&quot;y(O)+(y(X)-y(O))*&quot;+nouvx+&quot;+(y(Y)-y(O))*&quot;+nouvy+&quot;+(y(Z)-y(O))*&quot;+nouvz);
+}
+
+Shownames();
+RotatePoint(&quot;nA1&quot;,1,x0,x1);
+RotatePoint(&quot;nA2&quot;,1,x1,-x0);
+RotatePoint(&quot;nA3&quot;,1,-x0,-x1);
+RotatePoint(&quot;nA4&quot;,1,-x1,x0);
+RotatePoint(&quot;nA5&quot;,-1,x1,x0);
+RotatePoint(&quot;nA6&quot;,-1,x0,-x1);
+RotatePoint(&quot;nA7&quot;,-1,-x1,-x0);
+RotatePoint(&quot;nA8&quot;,-1,-x0,x1);
+RotatePoint(&quot;nB1&quot;,x1,1,x0);
+RotatePoint(&quot;nB2&quot;,x0,1,-x1);
+RotatePoint(&quot;nB3&quot;,-x1,1,-x0);
+RotatePoint(&quot;nB4&quot;,-x0,1,x1);
+RotatePoint(&quot;nB5&quot;,x0,-1,x1);
+RotatePoint(&quot;nB6&quot;,x1,-1,-x0);
+RotatePoint(&quot;nB7&quot;,-x0,-1,-x1);
+RotatePoint(&quot;nB8&quot;,-x1,-1,x0);
+RotatePoint(&quot;nC1&quot;,x0,x1,1);
+RotatePoint(&quot;nC2&quot;,x1,-x0,1);
+RotatePoint(&quot;nC3&quot;,-x0,-x1,1);
+RotatePoint(&quot;nC4&quot;,-x1,x0,1);
+RotatePoint(&quot;nC5&quot;,x1,x0,-1);
+RotatePoint(&quot;nC6&quot;,x0,-x1,-1);
+RotatePoint(&quot;nC7&quot;,-x1,-x0,-1);
+RotatePoint(&quot;nC8&quot;,-x0,x1,-1);
+SetShowName(&quot;nA1,nA2,nA3,nA4,nA5,nA6,nA7,nA8&quot;,true);
+SetShowName(&quot;nB1,nB2,nB3,nB4,nB5,nB6,nB7,nB8&quot;,true);
+SetShowName(&quot;nC1,nC2,nC3,nC4,nC5,nC6,nC7,nC8&quot;,true);
+</Script>
+<Construction>
+<Window x="25.2047602602341" y="-3.412095059745018" w="2.7725447842778888"/>
+<Windowdim w="1280" h="800"/>
+<Preferences minfontsize="13" minpointsize="3" minlinesize="1" arrowsize="15" selectionsize="8" monkeyspeed="20" gridopacity="20" digits.lengths="5" digits.edit="5" digits.angles="0" colorbackground="255,255,255" colorbackgroundx="4" colorbackgroundy="3" colorbackgroundPal="4" fig3D="true" figDP="false"/>
+<CTRLcheckbox Ename="a" x="79" y="0" w="30" h="22" showC="true" showU="false" showV="false" hidden="false" C="Sol" U="°" V="0"/>
+<CTRLcheckbox Ename="b" x="79" y="25" w="30" h="22" showC="true" showU="false" showV="false" hidden="false" C="Repère" U="°" V="1"/>
+<CTRLcheckbox Ename="a" x="79" y="0" w="30" h="22" showC="true" showU="false" showV="false" hidden="false" C="Sol" U="°" V="0"/>
+<CTRLcheckbox Ename="b" x="79" y="25" w="30" h="22" showC="true" showU="false" showV="false" hidden="false" C="Repère" U="°" V="1"/>
+<CTRLpopup Ename="rot" x="640" y="25" w="176" h="22" showC="true" showU="false" showV="false" hidden="false" C="Rotation :   " U="°" V="3" Items="d&apos;ordre 4 - (Ox)@@@d&apos;ordre 3 - diag@@@d&apos;ordre 2 - (xOy)"/>
+<CTRLcheckbox Ename="cc" x="79" y="51" w="30" h="22" showC="true" showU="false" showV="false" hidden="false" C="Cacher le cube" U="°" V="1"/>
+<Objects>
+<Text name="Text2" n="209" type="thin" x="windowcx-windoww+3/pixel" y="windowcy-windowh/2+25/pixel" fixed="true">Utiliser le clic-droit glisser pour faire pivoter</Text>
+<Expression name="E10" n="60" color="1" type="thick" hidden="true" showname="true" showvalue="true" x="windowcx-windoww+3/pixel" y="windowcy+windowh/2-60/pixel" value="-100*windowcx" prompt="Phi" fixed="true">Expression &quot;-100*windowcx&quot; à 22.45063, 0.64959</Expression>
+<Expression name="E11" n="61" color="1" type="thick" hidden="true" showname="true" showvalue="true" x="windowcx-windoww+3/pixel" y="windowcy+windowh/2-90/pixel" value="100*windowcy" prompt="Theta" fixed="true">Expression &quot;100*windowcy&quot; à 22.45063, 0.21362</Expression>
+<Expression name="a" n="210" color="1" type="thick" hidden="super" showname="true" showvalue="true" x="25.07675485922236" y="-3.497937083900143" value="0" prompt="Valeur">Expression &quot;0&quot; à 25.05157, -3.56341</Expression>
+<Expression name="E9" n="59" color="1" type="thin" showname="true" showvalue="true" ctag0="superhidden" cexpr0="a==0" x="22.881437922016424" y="-1.6959249337806044" value="3" prompt="grid">Expression &quot;3&quot; à 22.85626, -1.7614</Expression>
+<Expression name="b" n="211" color="1" type="thick" hidden="super" showname="true" showvalue="true" x="24.93637284482854" y="-3.5330325874985986" value="1" prompt="Valeur">Expression &quot;1&quot; à 24.91119, -3.59851</Expression>
+<Expression name="rot" n="2509" color="1" type="thick" hidden="super" showname="true" showvalue="true" x="-9.965873693009275" y="0.7784881143028817" value="3" prompt="Valeur">Expression &quot;3&quot; à -9.94069, 0.75331</Expression>
+<Expression name="ang" n="2510" color="1" type="thick" showname="true" showvalue="true" x="24.807276626922743" y="-2.0469059453345086" value="27.00000000000053" prompt="Angle" slider="true" min="0" max="180">Expression &quot;27.00000000000053&quot; à 25.0591, -2.06705</Expression>
+<Expression name="cc" n="4090" color="1" type="thick" hidden="super" showname="true" showvalue="true" x="5.3017622184618105" y="-0.6883718611038554" value="1" prompt="Valeur">Expression &quot;1&quot; à 5.27658, -0.75385</Expression>
+<Point name="P66" n="172" color="2" hidden="true" x="windowcx-windoww-20/pixel" actx="22.33148723674539" y="(windoww/(windoww-d(windoww)))*(y(P66)-windowcy)+windowcy+d(windowcy)" acty="-1.6853347116421145" shape="circle" fixed="true">Point</Point>
+<Point name="O" n="57" type="thick" ctag0="z" cexpr0="7" ctag1="hidden" cexpr1="@b==0" x="(windoww/(windoww-d(windoww)))*(x(O)-windowcx)+windowcx+d(windowcx)" actx="25.88215766892688" y="(windoww/(windoww-d(windoww)))*(y(O)-windowcy)+windowcy+d(windowcy)" acty="-3.3768401760212305" shape="circle" fixed="true">Point</Point>
+<Expression name="ux" n="2511" color="1" type="thick" hidden="true" showname="true" showvalue="true" x="22.611257812670463" y="-2.6845478468494024" value="(rot==1)*1+(rot==2)*sqrt(3)/3+(rot==3)*sqrt(2)/2" prompt="ux">Expression &quot;(rot==1)*1+(rot==2)*sqrt(3)/3+(rot==3)*sqrt(2)/2&quot; à 22.58608, -2.75002</Expression>
+<Expression name="uy" n="2512" color="1" type="thick" hidden="true" showname="true" showvalue="true" x="22.61125781267047" y="-2.8287463935494337" value="(rot==2)*sqrt(3)/3+(rot==3)*sqrt(2)/2" prompt="uy">Expression &quot;(rot==2)*sqrt(3)/3+(rot==3)*sqrt(2)/2&quot; à 22.58608, -2.89422</Expression>
+<Expression name="uz" n="2513" color="1" type="thick" hidden="true" showname="true" showvalue="true" x="22.611257812670463" y="-2.9729449402494663" value="(rot==2)*sqrt(3)/3" prompt="uz">Expression &quot;(rot==2)*sqrt(3)/3&quot; à 22.58608, -3.03842</Expression>
+<Expression name="c" n="2515" color="1" type="thick" hidden="true" showname="true" showvalue="true" x="22.60773946814484" y="-3.2304280043918054" value="cos(ang)" prompt="c">Expression &quot;cos(ang)&quot; à 22.58256, -3.2959</Expression>
+<Expression name="s" n="2516" color="1" type="thick" hidden="true" showname="true" showvalue="true" x="22.604999246565995" y="-3.3588158717020447" value="sin(ang)" prompt="s">Expression &quot;sin(ang)&quot; à 22.57982, -3.42429</Expression>
+<Point name="P45" n="62" color="2" hidden="super" bold="true" large="true" x="x(O)+1" actx="26.88215766892688" y="y(O)" acty="-3.3768401760212305" fixed="true">Point à &quot;x(P2)+1&quot;, &quot;y(P2)&quot; </Point>
+<Angle name="a9" n="63" color="1" hidden="super" unit="∞" large="true" first="O" root="O" fixed="90" inverse="true">Angle O - O de mesure 90</Angle>
+<Point name="P46" n="65" color="2" type="thick" hidden="super" bold="true" large="true" ctag0="z" cexpr0="7" x="x(O)+1" actx="26.88215766892688" y="y(O)" acty="-3.3768401760212305" shape="circle" fixed="true">Point sur r1 </Point>
+<Expression name="E12" n="174" color="3" type="thick" hidden="true" showname="true" showvalue="true" bold="true" large="true" x="x(P66)" y="y(P66)+windoww/24" value="2" prompt="Nombre de divisions" fixed="true">Expression &quot;2&quot; à 22.30631, -1.63529</Expression>
+<Point name="P68" n="175" color="5" hidden="super" showname="true" large="true" x="x(P66)+windoww/8" actx="22.678055334780126" y="y(P66)-windoww/12" acty="-1.9163801103319384" shape="circle" fixed="true">Point</Point>
+<Expression name="E1" n="1488" color="2" type="thick" hidden="true" showname="true" showvalue="true" x="x(O)" y="y(O)+15/pixel" value="1" prompt="k" fixed="true">Expression &quot;1&quot; à 25.85698, -3.22433</Expression>
+<Expression name="m11" n="2514" color="1" type="thick" hidden="true" showname="true" showvalue="true" x="22.463469805498576" y="-3.6748393331926628" value="(ux*ux)+(1-(ux*ux))*c" prompt="m11">Expression &quot;(ux*ux)+(1-(ux*ux))*c&quot; à 22.43829, -3.74031</Expression>
+<Expression name="m22" n="2517" color="1" type="thick" hidden="true" showname="true" showvalue="true" x="23.048714695351073" y="-3.8993959964378853" value="(uy*uy)+(1-(uy*uy))*c" prompt="m22">Expression &quot;(uy*uy)+(1-(uy*uy))*c&quot; à 23.02353, -3.96487</Expression>
+<Expression name="m33" n="2518" color="1" type="thick" hidden="true" showname="true" showvalue="true" x="23.6761741560187" y="-4.135510613551539" value="(uz*uz)+(1-(uz*uz))*c" prompt="m33">Expression &quot;(uz*uz)+(1-(uz*uz))*c&quot; à 23.65099, -4.20098</Expression>
+<Expression name="m21" n="2519" color="1" type="thick" hidden="true" showname="true" showvalue="true" x="22.459211516484828" y="-3.898469755584953" value="((ux*uy)*(1-c))+(uz*s)" prompt="m21">Expression &quot;((ux*uy)*(1-c))+(uz*s)&quot; à 22.43403, -3.96394</Expression>
+<Expression name="m23" n="2520" color="1" type="thick" hidden="true" showname="true" showvalue="true" x="23.674842707469885" y="-3.8913234496075146" value="((uy*uz)*(1-c))-(ux*s)" prompt="m23">Expression &quot;((uy*uz)*(1-c))-(ux*s)&quot; à 23.64966, -3.9568</Expression>
+<Expression name="m31" n="2521" color="1" type="thick" hidden="true" showname="true" showvalue="true" x="22.464878256007303" y="-4.149545490674089" value="((ux*uz)*(1-c))-(uy*s)" prompt="m31">Expression &quot;((ux*uz)*(1-c))-(uy*s)&quot; à 22.4397, -4.21502</Expression>
+<Expression name="m12" n="2522" color="1" type="thick" hidden="true" showname="true" showvalue="true" x="23.04452784480485" y="-3.6765055185337214" value="((ux*uy)*(1-c))-(uz*s)" prompt="m12">Expression &quot;((ux*uy)*(1-c))-(uz*s)&quot; à 23.01935, -3.74198</Expression>
+<Expression name="m32" n="2523" color="1" type="thick" hidden="true" showname="true" showvalue="true" x="23.06719448037348" y="-4.14295283281997" value="((uy*uz)*(1-c))+(ux*s)" prompt="m32">Expression &quot;((uy*uz)*(1-c))+(ux*s)&quot; à 23.04201, -4.20843</Expression>
+<Expression name="m13" n="2525" color="1" type="thick" hidden="true" showname="true" showvalue="true" x="23.677725805983776" y="-3.6565076660764038" value="((ux*uz)*(1-c))+(uy*s)" prompt="m13">Expression &quot;((ux*uz)*(1-c))+(uy*s)&quot; à 23.65254, -3.72198</Expression>
+<Ray name="r3" n="64" color="2" hidden="super" bold="true" large="true" from="O" to="P45">Demi-droite d&apos;origine P44 vers P45</Ray>
+<Point name="P47" n="66" color="2" hidden="super" showname="true" xcoffset="-0.05429864253393646" ycoffset="-6.742081447796977E-6" keepclose="true" bold="true" large="true" x="x(O)" actx="25.88215766892688" y="y(O)+d(O,P46)" acty="-2.3768401760212305" shape="dot" fixed="true">Point à &quot;x(P2)&quot;, &quot;y(P2)+d(P2,po8)&quot; </Point>
+<Segment name="s15" n="67" color="2" hidden="super" bold="true" large="true" ctag0="z" cexpr0="7" from="O" to="P46" arrow="true">Segment de P44 à P46</Segment>
+<Point name="P69" n="176" color="5" hidden="super" large="true" x="x(P68)+3*windoww" actx="30.99568968761379" y="y(P68)" acty="-1.9163801103319384" shape="circle" fixed="true">Point</Point>
+<Point name="P70" n="177" color="5" hidden="super" showname="true" large="true" x="x(P68)" actx="22.678055334780126" y="y(P66)" acty="-1.6853347116421145" shape="circle" fixed="true">Point</Point>
+<Segment name="s16" n="68" color="2" hidden="super" bold="true" large="true" ctag0="z" cexpr0="7" from="O" to="P47" arrow="true">Segment de P44 à P47</Segment>
+<Segment name="s24" n="178" color="5" hidden="super" large="true" from="P68" to="P69">Segment de P68 à P69</Segment>
+<Point name="X" alias="X" n="69" color="3" type="thin" showname="true" xcoffset="-0.042503975917774994" ycoffset="0.027504873716277967" keepclose="true" bold="true" large="true" ctag0="z" cexpr0="7" ctag1="hidden" cexpr1="b==0" x="x(O)+s15*sin(E10)" actx="25.873849543074172" y="y(O)-s16*cos(E10)*sin(E11)" acty="-3.6989376907554203" shape="dot" fixed="true">Point à &quot;x(P2)+s5*sin(a1)&quot;, &quot;y(P2)-s6*cos(a1)*sin(a2)&quot; </Point>
+<Point name="Y" alias="Y" n="70" color="5" type="thin" showname="true" xcoffset="0.014051062627231659" ycoffset="0.07163773910730864" keepclose="true" bold="true" large="true" ctag0="z" cexpr0="7" ctag1="hidden" cexpr1="b==0" x="x(O)+s15*cos(E10)" actx="26.882123155853712" y="y(O)+s16*sin(E10)*sin(E11)" acty="-3.379516295071579" shape="dot" fixed="true">Point à &quot;x(P2)+s5*cos(a1)&quot;, &quot;y(P2)+s6*sin(a1)*sin(a2)&quot; </Point>
+<Point name="Z" alias="Z" n="71" color="2" type="thin" showname="true" xcoffset="0.1057646511713628" ycoffset="0.037686761497599086" keepclose="true" bold="true" large="true" ctag0="z" cexpr0="7" ctag1="hidden" cexpr1="b==0" x="x(O)" actx="25.88215766892688" y="y(O)+s16*cos(E11)" acty="-2.430137461654737" shape="dot" fixed="true">Point à &quot;x(P2)&quot;, &quot;y(P2)+s6*cos(a2)&quot; </Point>
+<Point name="P51" n="75" color="2" hidden="super" showname="true" bold="true" x="x(X)+x(O)-x(O)" actx="25.873849543074172" y="y(X)+y(O)-y(O)" acty="-3.6989376907554203" shape="circle" fixed="true">Point à &quot;x(C)+x(B)-x(A)&quot;, &quot;y(C)+y(B)-y(A)&quot; </Point>
+<Angle name="a10" n="76" color="3" hidden="super" unit="∞" large="true" first="X" root="O" fixed="90" acute="true">Angle X - O de mesure 90</Angle>
+<Point name="P52" n="77" color="2" hidden="super" showname="true" bold="true" x="x(Y)+x(X)-x(O)" actx="26.873815030001005" y="y(Y)+y(X)-y(O)" acty="-3.7016138098057687" shape="circle" fixed="true">Point à &quot;x(C)+x(B)-x(A)&quot;, &quot;y(C)+y(B)-y(A)&quot; </Point>
+<Angle name="a11" n="78" color="1" hidden="super" unit="∞" large="true" first="X" root="O" fixed="90" inverse="true">Angle X - O de mesure 90</Angle>
+<Angle name="a12" n="79" color="3" hidden="super" unit="∞" large="true" first="Y" root="O" fixed="90" acute="true">Angle Y - O de mesure 90</Angle>
+<Segment name="s6" n="189" color="2" ctag0="z" cexpr0="7" ctag1="hidden" cexpr1="b==0" from="O" to="Z" arrow="true">Segment de O à Z</Segment>
+<Segment name="s7" n="192" color="3" ctag0="z" cexpr0="7" ctag1="hidden" cexpr1="b==0" from="O" to="X" arrow="true">Segment de O à X</Segment>
+<Segment name="s8" n="195" color="5" ctag0="z" cexpr0="7" ctag1="hidden" cexpr1="b==0" from="O" to="Y" arrow="true">Segment de O à Y</Segment>
+<Point name="P61" n="105" color="1" type="thick" hidden="super" large="true" x="x(O)+E9*(x(X)+x(Y)-2*x(O))" actx="28.857129752149255" y="y(O)+E9*(y(X)+y(Y)-2*y(O))" acty="-4.3511610773748455" shape="circle" fixed="true">Point</Point>
+<Point name="P62" n="106" color="1" type="thick" hidden="super" large="true" x="x(O)-E9*(x(X)+x(Y)-2*x(O))" actx="22.907185585704504" y="y(O)-E9*(y(X)+y(Y)-2*y(O))" acty="-2.402519274667616" shape="circle" fixed="true">Point</Point>
+<Point name="P63" n="107" color="1" type="thick" hidden="super" large="true" x="x(O)+E9*(x(X)-x(Y))" actx="22.85733683058826" y="y(O)+E9*(y(X)-y(Y))" acty="-4.335104363072755" shape="circle" fixed="true">Point</Point>
+<Point name="P64" n="108" color="1" type="thick" hidden="super" large="true" x="x(O)+E9*(x(Y)-x(X))" actx="28.9069785072655" y="y(O)+E9*(y(Y)-y(X))" acty="-2.4185759889697063" shape="circle" fixed="true">Point</Point>
+<Point name="P1" n="1489" color="2" hidden="true" x="x(O)+E1*(-x(X)+x(Y)-x(Z)+x(O))" actx="26.89043128170642" y="y(O)+E1*(-y(X)+y(Y)-y(Z)+y(O))" acty="-4.004121494703883" shape="circle" fixed="true">Point</Point>
+<Point name="P2" n="1490" color="2" hidden="true" x="x(O)+E1*(-x(X)+x(Y)+x(Z)-x(O))" actx="26.89043128170642" y="y(O)+E1*(-y(X)+y(Y)+y(Z)-y(O))" acty="-2.1107160659708954" shape="circle" fixed="true">Point</Point>
+<Point name="P3" n="1491" color="2" hidden="true" x="x(O)+E1*(x(X)+x(Y)-x(Z)-x(O))" actx="26.873815030001005" y="y(O)+E1*(y(X)+y(Y)-y(Z)-y(O))" acty="-4.648316524172262" shape="circle" fixed="true">Point</Point>
+<Point name="P4" n="1492" color="2" hidden="true" x="x(O)+E1*(x(X)+x(Y)+x(Z)-3*x(O))" actx="26.873815030000998" y="y(O)+E1*(y(X)+y(Y)+y(Z)-3*y(O))" acty="-2.7549110954392755" shape="circle" fixed="true">Point</Point>
+<Point name="A1" n="4091" scolor="0,,87,,143" x="x(O)+(x(X)-x(O))*1+(x(Y)-x(O))*0.543689012692+(x(Z)-x(O))*0.2955977425220017" actx="26.417519791387498" y="y(O)+(y(X)-y(O))*1+(y(Y)-y(O))*0.543689012692+(y(Z)-y(O))*0.2955977425220017" acty="-3.4205494820735636" shape="circle" fixed="true">Point</Point>
+<Point name="A2" n="4092" scolor="0,,87,,143" x="x(O)+(x(X)-x(O))*1+(x(Y)-x(O))*0.2955977425220017+(x(Z)-x(O))*-0.543689012692" actx="26.169437083609658" y="y(O)+(y(X)-y(O))*1+(y(Y)-y(O))*0.2955977425220017+(y(Z)-y(O))*-0.543689012692" acty="-4.214440609592179" shape="circle" fixed="true">Point</Point>
+<Point name="A3" n="4093" scolor="0,,87,,143" x="x(O)+(x(X)-x(O))*1+(x(Y)-x(O))*-0.543689012692+(x(Z)-x(O))*-0.2955977425220017" actx="25.330179294760846" y="y(O)+(y(X)-y(O))*1+(y(Y)-y(O))*-0.543689012692+(y(Z)-y(O))*-0.2955977425220017" acty="-3.977325899437277" shape="circle" fixed="true">Point</Point>
+<Point name="A4" n="4094" scolor="0,,87,,143" x="x(O)+(x(X)-x(O))*1+(x(Y)-x(O))*-0.2955977425220017+(x(Z)-x(O))*0.543689012692" actx="25.578262002538686" y="y(O)+(y(X)-y(O))*1+(y(Y)-y(O))*-0.2955977425220017+(y(Z)-y(O))*0.543689012692" acty="-3.1834347719186615" shape="circle" fixed="true">Point</Point>
+<Point name="A5" n="4095" scolor="0,,87,,143" x="x(O)+(x(X)-x(O))*-1+(x(Y)-x(O))*0.2955977425220017+(x(Z)-x(O))*0.543689012692" actx="26.186053335315073" y="y(O)+(y(X)-y(O))*-1+(y(Y)-y(O))*0.2955977425220017+(y(Z)-y(O))*0.543689012692" acty="-2.5408218519502883" shape="circle" fixed="true">Point</Point>
+<Point name="A6" n="4096" scolor="0,,87,,143" x="x(O)+(x(X)-x(O))*-1+(x(Y)-x(O))*0.543689012692+(x(Z)-x(O))*-0.2955977425220017" actx="26.434136043092913" y="y(O)+(y(X)-y(O))*-1+(y(Y)-y(O))*0.543689012692+(y(Z)-y(O))*-0.2955977425220017" acty="-3.3360408230175578" shape="circle" fixed="true">Point</Point>
+<Point name="A7" n="4097" scolor="0,,87,,143" x="x(O)+(x(X)-x(O))*-1+(x(Y)-x(O))*-0.2955977425220017+(x(Z)-x(O))*-0.543689012692" actx="25.5948782542441" y="y(O)+(y(X)-y(O))*-1+(y(Y)-y(O))*-0.2955977425220017+(y(Z)-y(O))*-0.543689012692" acty="-3.568663470623793" shape="circle" fixed="true">Point</Point>
+<Point name="A8" n="4098" scolor="0,,87,,143" x="x(O)+(x(X)-x(O))*-1+(x(Y)-x(O))*-0.543689012692+(x(Z)-x(O))*0.2955977425220017" actx="25.34679554646626" y="y(O)+(y(X)-y(O))*-1+(y(Y)-y(O))*-0.543689012692+(y(Z)-y(O))*0.2955977425220017" acty="-2.7734444995565237" shape="circle" fixed="true">Point</Point>
+<Point name="B1" n="4099" scolor="0,,87,,143" x="x(O)+(x(X)-x(O))*0.2955977425220017+(x(Y)-x(O))*1+(x(Z)-x(O))*0.543689012692" actx="26.879667292607063" y="y(O)+(y(X)-y(O))*0.2955977425220017+(y(Y)-y(O))*1+(y(Z)-y(O))*0.543689012692" acty="-2.9600157292121976" shape="circle" fixed="true">Point</Point>
+<Point name="B2" n="4100" scolor="0,,87,,143" x="x(O)+(x(X)-x(O))*0.543689012692+(x(Y)-x(O))*1+(x(Z)-x(O))*-0.2955977425220017" actx="26.877606119111533" y="y(O)+(y(X)-y(O))*0.543689012692+(y(Y)-y(O))*1+(y(Z)-y(O))*-0.2955977425220017" acty="-3.8344803600541444" shape="circle" fixed="true">Point</Point>
+<Point name="B3" n="4101" scolor="0,,87,,143" x="x(O)+(x(X)-x(O))*-0.2955977425220017+(x(Y)-x(O))*1+(x(Z)-x(O))*-0.543689012692" actx="26.88457901910036" y="y(O)+(y(X)-y(O))*-0.2955977425220017+(y(Y)-y(O))*1+(y(Z)-y(O))*-0.543689012692" acty="-3.7990168609309602" shape="circle" fixed="true">Point</Point>
+<Point name="B4" n="4102" scolor="0,,87,,143" x="x(O)+(x(X)-x(O))*-0.543689012692+(x(Y)-x(O))*1+(x(Z)-x(O))*0.2955977425220017" actx="26.88664019259589" y="y(O)+(y(X)-y(O))*-0.543689012692+(y(Y)-y(O))*1+(y(Z)-y(O))*0.2955977425220017" acty="-2.9245522300890134" shape="circle" fixed="true">Point</Point>
+<Point name="B5" n="4103" scolor="0,,87,,143" x="x(O)+(x(X)-x(O))*0.543689012692+(x(Y)-x(O))*-1+(x(Z)-x(O))*0.2955977425220017" actx="24.877675145257868" y="y(O)+(y(X)-y(O))*0.543689012692+(y(Y)-y(O))*-1+(y(Z)-y(O))*0.2955977425220017" acty="-3.269441751541074" shape="circle" fixed="true">Point</Point>
+<Point name="B6" n="4104" scolor="0,,87,,143" x="x(O)+(x(X)-x(O))*0.2955977425220017+(x(Y)-x(O))*-1+(x(Z)-x(O))*-0.543689012692" actx="24.879736318753398" y="y(O)+(y(X)-y(O))*0.2955977425220017+(y(Y)-y(O))*-1+(y(Z)-y(O))*-0.543689012692" acty="-3.984087219285011" shape="circle" fixed="true">Point</Point>
+<Point name="B7" n="4105" scolor="0,,87,,143" x="x(O)+(x(X)-x(O))*-0.543689012692+(x(Y)-x(O))*-1+(x(Z)-x(O))*-0.2955977425220017" actx="24.886709218742226" y="y(O)+(y(X)-y(O))*-0.543689012692+(y(Y)-y(O))*-1+(y(Z)-y(O))*-0.2955977425220017" acty="-3.4788863624006905" shape="circle" fixed="true">Point</Point>
+<Point name="B8" n="4106" scolor="0,,87,,143" x="x(O)+(x(X)-x(O))*-0.2955977425220017+(x(Y)-x(O))*-1+(x(Z)-x(O))*0.543689012692" actx="24.884648045246696" y="y(O)+(y(X)-y(O))*-0.2955977425220017+(y(Y)-y(O))*-1+(y(Z)-y(O))*0.543689012692" acty="-2.764240894656753" shape="circle" fixed="true">Point</Point>
+<Point name="C1" n="4107" scolor="0,,87,,143" x="x(O)+(x(X)-x(O))*0.543689012692+(x(Y)-x(O))*0.2955977425220017+(x(Z)-x(O))*1" actx="26.173228172720187" y="y(O)+(y(X)-y(O))*0.543689012692+(y(Y)-y(O))*0.2955977425220017+(y(Z)-y(O))*1" acty="-2.6060493961811186" shape="circle" fixed="true">Point</Point>
+<Point name="C2" n="4108" scolor="0,,87,,143" x="x(O)+(x(X)-x(O))*0.2955977425220017+(x(Y)-x(O))*-0.543689012692+(x(Z)-x(O))*1" actx="25.336031557366905" y="y(O)+(y(X)-y(O))*0.2955977425220017+(y(Y)-y(O))*-0.543689012692+(y(Z)-y(O))*1" acty="-2.5238937833577806" shape="circle" fixed="true">Point</Point>
+<Point name="C3" n="4109" scolor="0,,87,,143" x="x(O)+(x(X)-x(O))*-0.543689012692+(x(Y)-x(O))*-0.2955977425220017+(x(Z)-x(O))*1" actx="25.591087165133573" y="y(O)+(y(X)-y(O))*-0.543689012692+(y(Y)-y(O))*-0.2955977425220017+(y(Z)-y(O))*1" acty="-2.254225527128355" shape="circle" fixed="true">Point</Point>
+<Point name="C4" n="4110" scolor="0,,87,,143" x="x(O)+(x(X)-x(O))*-0.2955977425220017+(x(Y)-x(O))*0.543689012692+(x(Z)-x(O))*1" actx="26.428283780486854" y="y(O)+(y(X)-y(O))*-0.2955977425220017+(y(Y)-y(O))*0.543689012692+(y(Z)-y(O))*1" acty="-2.336381139951693" shape="circle" fixed="true">Point</Point>
+<Point name="C5" n="4111" scolor="0,,87,,143" x="x(O)+(x(X)-x(O))*0.2955977425220017+(x(Y)-x(O))*0.543689012692+(x(Z)-x(O))*-1" actx="26.423372053993557" y="y(O)+(y(X)-y(O))*0.2955977425220017+(y(Y)-y(O))*0.543689012692+(y(Z)-y(O))*-1" acty="-4.420209165139428" shape="circle" fixed="true">Point</Point>
+<Point name="C6" n="4112" scolor="0,,87,,143" x="x(O)+(x(X)-x(O))*0.543689012692+(x(Y)-x(O))*-0.2955977425220017+(x(Z)-x(O))*-1" actx="25.582053091649215" y="y(O)+(y(X)-y(O))*0.543689012692+(y(Y)-y(O))*-0.2955977425220017+(y(Z)-y(O))*-1" acty="-4.4978727154141" shape="circle" fixed="true">Point</Point>
+<Point name="C7" n="4113" scolor="0,,87,,143" x="x(O)+(x(X)-x(O))*-0.2955977425220017+(x(Y)-x(O))*-0.543689012692+(x(Z)-x(O))*-1" actx="25.340943283860202" y="y(O)+(y(X)-y(O))*-0.2955977425220017+(y(Y)-y(O))*-0.543689012692+(y(Z)-y(O))*-1" acty="-4.22687661563602" shape="circle" fixed="true">Point</Point>
+<Point name="C8" n="4114" scolor="0,,87,,143" x="x(O)+(x(X)-x(O))*-0.543689012692+(x(Y)-x(O))*0.2955977425220017+(x(Z)-x(O))*-1" actx="26.182262246204544" y="y(O)+(y(X)-y(O))*-0.543689012692+(y(Y)-y(O))*0.2955977425220017+(y(Z)-y(O))*-1" acty="-4.149213065361349" shape="circle" fixed="true">Point</Point>
+<Point name="nA1" n="5640" scolor="235,,0,,176" x="x(O)+(x(X)-x(O))*(m11*1+m12*0.543689012692+m13*0.2955977425220017)+(x(Y)-x(O))*(m21*1+m22*0.543689012692+m23*0.2955977425220017)+(x(Z)-x(O))*(m31*1+m32*0.543689012692+m33*0.2955977425220017)" actx="26.346915173165648" y="y(O)+(y(X)-y(O))*(m11*1+m12*0.543689012692+m13*0.2955977425220017)+(y(Y)-y(O))*(m21*1+m22*0.543689012692+m23*0.2955977425220017)+(y(Z)-y(O))*(m31*1+m32*0.543689012692+m33*0.2955977425220017)" acty="-3.612095728126653" shape="circle" fixed="true">Point</Point>
+<Point name="nA2" n="5641" scolor="235,,0,,176" x="x(O)+(x(X)-x(O))*(m11*1+m12*0.2955977425220017+m13*-0.543689012692)+(x(Y)-x(O))*(m21*1+m22*0.2955977425220017+m23*-0.543689012692)+(x(Z)-x(O))*(m31*1+m32*0.2955977425220017+m33*-0.543689012692)" actx="26.384121264372073" y="y(O)+(y(X)-y(O))*(m11*1+m12*0.2955977425220017+m13*-0.543689012692)+(y(Y)-y(O))*(m21*1+m22*0.2955977425220017+m23*-0.543689012692)+(y(Z)-y(O))*(m31*1+m32*0.2955977425220017+m33*-0.543689012692)" acty="-4.304403445559692" shape="circle" fixed="true">Point</Point>
+<Point name="nA3" n="5642" scolor="235,,0,,176" x="x(O)+(x(X)-x(O))*(m11*1+m12*-0.543689012692+m13*-0.2955977425220017)+(x(Y)-x(O))*(m21*1+m22*-0.543689012692+m23*-0.2955977425220017)+(x(Z)-x(O))*(m31*1+m32*-0.543689012692+m33*-0.2955977425220017)" actx="25.510679158608696" y="y(O)+(y(X)-y(O))*(m11*1+m12*-0.543689012692+m13*-0.2955977425220017)+(y(Y)-y(O))*(m21*1+m22*-0.543689012692+m23*-0.2955977425220017)+(y(Z)-y(O))*(m31*1+m32*-0.543689012692+m33*-0.2955977425220017)" acty="-4.358785363352438" shape="circle" fixed="true">Point</Point>
+<Point name="nA4" n="5643" scolor="235,,0,,176" x="x(O)+(x(X)-x(O))*(m11*1+m12*-0.2955977425220017+m13*0.543689012692)+(x(Y)-x(O))*(m21*1+m22*-0.2955977425220017+m23*0.543689012692)+(x(Z)-x(O))*(m31*1+m32*-0.2955977425220017+m33*0.543689012692)" actx="25.47347306740227" y="y(O)+(y(X)-y(O))*(m11*1+m12*-0.2955977425220017+m13*0.543689012692)+(y(Y)-y(O))*(m21*1+m22*-0.2955977425220017+m23*0.543689012692)+(y(Z)-y(O))*(m31*1+m32*-0.2955977425220017+m33*0.543689012692)" acty="-3.6664776459193984" shape="circle" fixed="true">Point</Point>
+<Point name="nA5" n="5644" scolor="235,,0,,176" x="x(O)+(x(X)-x(O))*(m11*-1+m12*0.2955977425220017+m13*0.543689012692)+(x(Y)-x(O))*(m21*-1+m22*0.2955977425220017+m23*0.543689012692)+(x(Z)-x(O))*(m31*-1+m32*0.2955977425220017+m33*0.543689012692)" actx="25.93888436803171" y="y(O)+(y(X)-y(O))*(m11*-1+m12*0.2955977425220017+m13*0.543689012692)+(y(Y)-y(O))*(m21*-1+m22*0.2955977425220017+m23*0.543689012692)+(y(Z)-y(O))*(m31*-1+m32*0.2955977425220017+m33*0.543689012692)" acty="-2.2814798216639436" shape="circle" fixed="true">Point</Point>
+<Point name="nA6" n="5645" scolor="235,,0,,176" x="x(O)+(x(X)-x(O))*(m11*-1+m12*0.543689012692+m13*-0.2955977425220017)+(x(Y)-x(O))*(m21*-1+m22*0.543689012692+m23*-0.2955977425220017)+(x(Z)-x(O))*(m31*-1+m32*0.543689012692+m33*-0.2955977425220017)" actx="26.44499182372082" y="y(O)+(y(X)-y(O))*(m11*-1+m12*0.543689012692+m13*-0.2955977425220017)+(y(Y)-y(O))*(m21*-1+m22*0.543689012692+m23*-0.2955977425220017)+(y(Z)-y(O))*(m31*-1+m32*0.543689012692+m33*-0.2955977425220017)" acty="-2.8329576682449518" shape="circle" fixed="true">Point</Point>
+<Point name="nA7" n="5646" scolor="235,,0,,176" x="x(O)+(x(X)-x(O))*(m11*-1+m12*-0.2955977425220017+m13*-0.543689012692)+(x(Y)-x(O))*(m21*-1+m22*-0.2955977425220017+m23*-0.543689012692)+(x(Z)-x(O))*(m31*-1+m32*-0.2955977425220017+m33*-0.543689012692)" actx="25.732151975901463" y="y(O)+(y(X)-y(O))*(m11*-1+m12*-0.2955977425220017+m13*-0.543689012692)+(y(Y)-y(O))*(m21*-1+m22*-0.2955977425220017+m23*-0.543689012692)+(y(Z)-y(O))*(m31*-1+m32*-0.2955977425220017+m33*-0.543689012692)" acty="-3.2549997909418877" shape="circle" fixed="true">Point</Point>
+<Point name="nA8" n="5647" scolor="235,,0,,176" x="x(O)+(x(X)-x(O))*(m11*-1+m12*-0.543689012692+m13*0.2955977425220017)+(x(Y)-x(O))*(m21*-1+m22*-0.543689012692+m23*0.2955977425220017)+(x(Z)-x(O))*(m31*-1+m32*-0.543689012692+m33*0.2955977425220017)" actx="25.226044520212355" y="y(O)+(y(X)-y(O))*(m11*-1+m12*-0.543689012692+m13*0.2955977425220017)+(y(Y)-y(O))*(m21*-1+m22*-0.543689012692+m23*0.2955977425220017)+(y(Z)-y(O))*(m31*-1+m32*-0.543689012692+m33*0.2955977425220017)" acty="-2.703521944360879" shape="circle" fixed="true">Point</Point>
+<Point name="nB1" n="5648" scolor="235,,0,,176" x="x(O)+(x(X)-x(O))*(m11*0.2955977425220017+m12*1+m13*0.543689012692)+(x(Y)-x(O))*(m21*0.2955977425220017+m22*1+m23*0.543689012692)+(x(Z)-x(O))*(m31*0.2955977425220017+m32*1+m33*0.543689012692)" actx="26.66498311184465" y="y(O)+(y(X)-y(O))*(m11*0.2955977425220017+m12*1+m13*0.543689012692)+(y(Y)-y(O))*(m21*0.2955977425220017+m22*1+m23*0.543689012692)+(y(Z)-y(O))*(m31*0.2955977425220017+m32*1+m33*0.543689012692)" acty="-2.8700528932446834" shape="circle" fixed="true">Point</Point>
+<Point name="nB2" n="5649" scolor="235,,0,,176" x="x(O)+(x(X)-x(O))*(m11*0.543689012692+m12*1+m13*-0.2955977425220017)+(x(Y)-x(O))*(m21*0.543689012692+m22*1+m23*-0.2955977425220017)+(x(Z)-x(O))*(m31*0.543689012692+m32*1+m33*-0.2955977425220017)" actx="26.948210737333383" y="y(O)+(y(X)-y(O))*(m11*0.543689012692+m12*1+m13*-0.2955977425220017)+(y(Y)-y(O))*(m21*0.543689012692+m22*1+m23*-0.2955977425220017)+(y(Z)-y(O))*(m31*0.543689012692+m32*1+m33*-0.2955977425220017)" acty="-3.642934114001055" shape="circle" fixed="true">Point</Point>
+<Point name="nB3" n="5650" scolor="235,,0,,176" x="x(O)+(x(X)-x(O))*(m11*-0.2955977425220017+m12*1+m13*-0.543689012692)+(x(Y)-x(O))*(m21*-0.2955977425220017+m22*1+m23*-0.543689012692)+(x(Z)-x(O))*(m31*-0.2955977425220017+m32*1+m33*-0.543689012692)" actx="26.989367954236776" y="y(O)+(y(X)-y(O))*(m11*-0.2955977425220017+m12*1+m13*-0.543689012692)+(y(Y)-y(O))*(m21*-0.2955977425220017+m22*1+m23*-0.543689012692)+(y(Z)-y(O))*(m31*-0.2955977425220017+m32*1+m33*-0.543689012692)" acty="-3.315973986930224" shape="circle" fixed="true">Point</Point>
+<Point name="nB4" n="5651" scolor="235,,0,,176" x="x(O)+(x(X)-x(O))*(m11*-0.543689012692+m12*1+m13*0.2955977425220017)+(x(Y)-x(O))*(m21*-0.543689012692+m22*1+m23*0.2955977425220017)+(x(Z)-x(O))*(m31*-0.543689012692+m32*1+m33*0.2955977425220017)" actx="26.706140328748045" y="y(O)+(y(X)-y(O))*(m11*-0.543689012692+m12*1+m13*0.2955977425220017)+(y(Y)-y(O))*(m21*-0.543689012692+m22*1+m23*0.2955977425220017)+(y(Z)-y(O))*(m31*-0.543689012692+m32*1+m33*0.2955977425220017)" acty="-2.5430927661738525" shape="circle" fixed="true">Point</Point>
+<Point name="nB5" n="5652" scolor="235,,0,,176" x="x(O)+(x(X)-x(O))*(m11*0.543689012692+m12*-1+m13*0.2955977425220017)+(x(Y)-x(O))*(m21*0.543689012692+m22*-1+m23*0.2955977425220017)+(x(Z)-x(O))*(m31*0.543689012692+m32*-1+m33*0.2955977425220017)" actx="24.86681936462996" y="y(O)+(y(X)-y(O))*(m11*0.543689012692+m12*-1+m13*0.2955977425220017)+(y(Y)-y(O))*(m21*0.543689012692+m22*-1+m23*0.2955977425220017)+(y(Z)-y(O))*(m31*0.543689012692+m32*-1+m33*0.2955977425220017)" acty="-3.77252490631368" shape="circle" fixed="true">Point</Point>
+<Point name="nB6" n="5653" scolor="235,,0,,176" x="x(O)+(x(X)-x(O))*(m11*0.2955977425220017+m12*-1+m13*-0.543689012692)+(x(Y)-x(O))*(m21*0.2955977425220017+m22*-1+m23*-0.543689012692)+(x(Z)-x(O))*(m31*0.2955977425220017+m32*-1+m33*-0.543689012692)" actx="25.12690528603676" y="y(O)+(y(X)-y(O))*(m11*0.2955977425220017+m12*-1+m13*-0.543689012692)+(y(Y)-y(O))*(m21*0.2955977425220017+m22*-1+m23*-0.543689012692)+(y(Z)-y(O))*(m31*0.2955977425220017+m32*-1+m33*-0.543689012692)" acty="-4.243429249571356" shape="circle" fixed="true">Point</Point>
+<Point name="nB7" n="5654" scolor="235,,0,,176" x="x(O)+(x(X)-x(O))*(m11*-0.543689012692+m12*-1+m13*-0.2955977425220017)+(x(Y)-x(O))*(m21*-0.543689012692+m22*-1+m23*-0.2955977425220017)+(x(Z)-x(O))*(m31*-0.543689012692+m32*-1+m33*-0.2955977425220017)" actx="25.007460244996132" y="y(O)+(y(X)-y(O))*(m11*-0.543689012692+m12*-1+m13*-0.2955977425220017)+(y(Y)-y(O))*(m21*-0.543689012692+m22*-1+m23*-0.2955977425220017)+(y(Z)-y(O))*(m31*-0.543689012692+m32*-1+m33*-0.2955977425220017)" acty="-3.548808917596335" shape="circle" fixed="true">Point</Point>
+<Point name="nB8" n="5655" scolor="235,,0,,176" x="x(O)+(x(X)-x(O))*(m11*-0.2955977425220017+m12*-1+m13*0.543689012692)+(x(Y)-x(O))*(m21*-0.2955977425220017+m22*-1+m23*0.543689012692)+(x(Z)-x(O))*(m31*-0.2955977425220017+m32*-1+m33*0.543689012692)" actx="24.747374323589334" y="y(O)+(y(X)-y(O))*(m11*-0.2955977425220017+m12*-1+m13*0.543689012692)+(y(Y)-y(O))*(m21*-0.2955977425220017+m22*-1+m23*0.543689012692)+(y(Z)-y(O))*(m31*-0.2955977425220017+m32*-1+m33*0.543689012692)" acty="-3.0779045743386586" shape="circle" fixed="true">Point</Point>
+<Point name="nC1" n="5656" scolor="235,,0,,176" x="x(O)+(x(X)-x(O))*(m11*0.543689012692+m12*0.2955977425220017+m13*1)+(x(Y)-x(O))*(m21*0.543689012692+m22*0.2955977425220017+m23*1)+(x(Z)-x(O))*(m31*0.543689012692+m32*0.2955977425220017+m33*1)" actx="25.86318444409981" y="y(O)+(y(X)-y(O))*(m11*0.543689012692+m12*0.2955977425220017+m13*1)+(y(Y)-y(O))*(m21*0.543689012692+m22*0.2955977425220017+m23*1)+(y(Z)-y(O))*(m31*0.543689012692+m32*0.2955977425220017+m33*1)" acty="-2.882853252868547" shape="circle" fixed="true">Point</Point>
+<Point name="nC2" n="5657" scolor="235,,0,,176" x="x(O)+(x(X)-x(O))*(m11*0.2955977425220017+m12*-0.543689012692+m13*1)+(x(Y)-x(O))*(m21*0.2955977425220017+m22*-0.543689012692+m23*1)+(x(Z)-x(O))*(m31*0.2955977425220017+m32*-0.543689012692+m33*1)" actx="25.058472615267476" y="y(O)+(y(X)-y(O))*(m11*0.2955977425220017+m12*-0.543689012692+m13*1)+(y(Y)-y(O))*(m21*0.2955977425220017+m22*-0.543689012692+m23*1)+(y(Z)-y(O))*(m31*0.2955977425220017+m32*-0.543689012692+m33*1)" acty="-2.9700768343640407" shape="circle" fixed="true">Point</Point>
+<Point name="nC3" n="5658" scolor="235,,0,,176" x="x(O)+(x(X)-x(O))*(m11*-0.543689012692+m12*-0.2955977425220017+m13*1)+(x(Y)-x(O))*(m21*-0.543689012692+m22*-0.2955977425220017+m23*1)+(x(Z)-x(O))*(m31*-0.543689012692+m32*-0.2955977425220017+m33*1)" actx="25.253779385440204" y="y(O)+(y(X)-y(O))*(m11*-0.543689012692+m12*-0.2955977425220017+m13*1)+(y(Y)-y(O))*(m21*-0.543689012692+m22*-0.2955977425220017+m23*1)+(y(Z)-y(O))*(m31*-0.543689012692+m32*-0.2955977425220017+m33*1)" acty="-2.388871669415099" shape="circle" fixed="true">Point</Point>
+<Point name="nC4" n="5659" scolor="235,,0,,176" x="x(O)+(x(X)-x(O))*(m11*-0.2955977425220017+m12*0.543689012692+m13*1)+(x(Y)-x(O))*(m21*-0.2955977425220017+m22*0.543689012692+m23*1)+(x(Z)-x(O))*(m31*-0.2955977425220017+m32*0.543689012692+m33*1)" actx="26.058491214272536" y="y(O)+(y(X)-y(O))*(m11*-0.2955977425220017+m12*0.543689012692+m13*1)+(y(Y)-y(O))*(m21*-0.2955977425220017+m22*0.543689012692+m23*1)+(y(Z)-y(O))*(m31*-0.2955977425220017+m32*0.543689012692+m33*1)" acty="-2.301648087919605" shape="circle" fixed="true">Point</Point>
+<Point name="nC5" n="5660" scolor="235,,0,,176" x="x(O)+(x(X)-x(O))*(m11*0.2955977425220017+m12*0.543689012692+m13*-1)+(x(Y)-x(O))*(m21*0.2955977425220017+m22*0.543689012692+m23*-1)+(x(Z)-x(O))*(m31*0.2955977425220017+m32*0.543689012692+m33*-1)" actx="26.733415782613932" y="y(O)+(y(X)-y(O))*(m11*0.2955977425220017+m12*0.543689012692+m13*-1)+(y(Y)-y(O))*(m21*0.2955977425220017+m22*0.543689012692+m23*-1)+(y(Z)-y(O))*(m31*0.2955977425220017+m32*0.543689012692+m33*-1)" acty="-4.1434053084519995" shape="circle" fixed="true">Point</Point>
+<Point name="nC6" n="5661" scolor="235,,0,,176" x="x(O)+(x(X)-x(O))*(m11*0.543689012692+m12*-0.2955977425220017+m13*-1)+(x(Y)-x(O))*(m21*0.543689012692+m22*-0.2955977425220017+m23*-1)+(x(Z)-x(O))*(m31*0.543689012692+m32*-0.2955977425220017+m33*-1)" actx="25.95184565786353" y="y(O)+(y(X)-y(O))*(m11*0.543689012692+m12*-0.2955977425220017+m13*-1)+(y(Y)-y(O))*(m21*0.543689012692+m22*-0.2955977425220017+m23*-1)+(y(Z)-y(O))*(m31*0.543689012692+m32*-0.2955977425220017+m33*-1)" acty="-4.532605767446188" shape="circle" fixed="true">Point</Point>
+<Point name="nC7" n="5662" scolor="235,,0,,176" x="x(O)+(x(X)-x(O))*(m11*-0.2955977425220017+m12*-0.543689012692+m13*-1)+(x(Y)-x(O))*(m21*-0.2955977425220017+m22*-0.543689012692+m23*-1)+(x(Z)-x(O))*(m31*-0.2955977425220017+m32*-0.543689012692+m33*-1)" actx="25.678251063553578" y="y(O)+(y(X)-y(O))*(m11*-0.2955977425220017+m12*-0.543689012692+m13*-1)+(y(Y)-y(O))*(m21*-0.2955977425220017+m22*-0.543689012692+m23*-1)+(y(Z)-y(O))*(m31*-0.2955977425220017+m32*-0.543689012692+m33*-1)" acty="-4.092230473349277" shape="circle" fixed="true">Point</Point>
+<Point name="nC8" n="5663" scolor="235,,0,,176" x="x(O)+(x(X)-x(O))*(m11*-0.543689012692+m12*0.2955977425220017+m13*-1)+(x(Y)-x(O))*(m21*-0.543689012692+m22*0.2955977425220017+m23*-1)+(x(Z)-x(O))*(m31*-0.543689012692+m32*0.2955977425220017+m33*-1)" actx="26.459821188303973" y="y(O)+(y(X)-y(O))*(m11*-0.543689012692+m12*0.2955977425220017+m13*-1)+(y(Y)-y(O))*(m21*-0.543689012692+m22*0.2955977425220017+m23*-1)+(y(Z)-y(O))*(m31*-0.543689012692+m32*0.2955977425220017+m33*-1)" acty="-3.7030300143550887" shape="circle" fixed="true">Point</Point>
+<Line name="l16" n="80" color="2" hidden="super" large="true" from="O" to="P51">Droite passant par P44 et P51</Line>
+<Circle name="c4" n="24" color="2" large="true" fixed="(1+floor(4*windoww/d(P52,O)))*d(P52,O)" midpoint="O" acute="true">Cercle de centre P44 de rayon (1+floor(4*windoww/d(P52,P44)))*d(P52,P44)</Circle>
+<Line name="l17" n="81" color="2" hidden="super" large="true" from="O" to="P52">Droite passant par P44 et P52</Line>
+<Circle name="c5" n="26" color="1" hidden="super" large="true" fixed="E9*d(O,P52)" midpoint="O" acute="true">Cercle de centre P44 de rayon E9*d(P44,P52)</Circle>
+<Polygon name="poly26" n="109" color="4" background="true" large="true" ctag0="brown" cexpr0="poly26&lt;0" ctag1="solid" cexpr1="poly26&lt;0" ctag2="z" cexpr2="if(poly26&lt;0,5,10)" ctag3="superhidden" cexpr3="a==0" point1="P62" point2="P64" point3="P61" point4="P63">Polygone P62, P64, P61, P63</Polygon>
+<Segment name="s23" n="113" color="2" large="true" ctag0="superhidden" cexpr0="a==0" from="P64" to="P62">Segment de P64 à P62</Segment>
+<Segment name="s20" n="110" color="2" large="true" ctag0="superhidden" cexpr0="a==0" from="P62" to="P63">Segment de P62 à P63</Segment>
+<Segment name="s21" n="111" color="2" large="true" ctag0="superhidden" cexpr0="a==0" from="P63" to="P61">Segment de P63 à P61</Segment>
+<Segment name="s22" n="112" color="2" large="true" ctag0="superhidden" cexpr0="a==0" from="P61" to="P64">Segment de P61 à P64</Segment>
+<Point name="P5" n="1493" color="2" hidden="true" x="2*x(O)-x(P4)" actx="24.89050030785276" y="2*y(O)-y(P4)" acty="-3.9987692566031856" shape="circle" fixed="true">Point</Point>
+<Point name="P6" n="1494" color="2" hidden="true" x="2*x(O)-x(P3)" actx="24.890500307852754" y="2*y(O)-y(P3)" acty="-2.1053638278701987" shape="circle" fixed="true">Point</Point>
+<Point name="P7" n="1495" color="2" hidden="true" x="2*x(O)-x(P2)" actx="24.87388405614734" y="2*y(O)-y(P2)" acty="-4.642964286071566" shape="circle" fixed="true">Point</Point>
+<Point name="P8" n="1496" color="2" hidden="true" x="2*x(O)-x(P1)" actx="24.87388405614734" y="2*y(O)-y(P1)" acty="-2.7495588573385783" shape="circle" fixed="true">Point</Point>
+<PointOn name="P9" n="2528" scolor="174,,0,,189" hidden="true" on="s7" alpha="0.6661393572083557" x="25.876623299311753" y="-3.5914020074446724" shape="circle">Point sur s7</PointOn>
+<Segment name="s19" n="2532" color="5" type="thick" from="O" to="P4">Segment de O à P4</Segment>
+<Midpoint name="P10" n="2535" scolor="174,,0,,189" hidden="true" first="P4" second="P3" shape="circle">Milieu de P4 et P3</Midpoint>
+<Segment name="s26" n="5579" color="4" ctag0="thin" cexpr0="((a(A3,A4,A1)&gt;180)&amp;&amp;(a(A1,A4,C2)&gt;180))" from="A4" to="A1">Segment de A4 à A1</Segment>
+<Segment name="s27" n="5580" color="4" ctag0="thin" cexpr0="((a(A4,A1,A2)&gt;180)&amp;&amp;(a(A2,A1,B2)&gt;180))" from="A1" to="A2">Segment de A1 à A2</Segment>
+<Segment name="s28" n="5581" color="4" ctag0="thin" cexpr0="((a(A1,A2,A3)&gt;180)&amp;&amp;(a(A3,A2,C6)&gt;180))" from="A2" to="A3">Segment de A2 à A3</Segment>
+<Segment name="s29" n="5582" color="4" ctag0="thin" cexpr0="((a(A2,A3,A4)&gt;180)&amp;&amp;(a(A4,A3,B5)&gt;180))" from="A3" to="A4">Segment de A3 à A4</Segment>
+<Segment name="s30" n="5583" color="4" ctag0="thin" cexpr0="((a(B2,B1,B4)&gt;180)&amp;&amp;(a(B4,B1,C4)&gt;180))" from="B1" to="B4">Segment de B1 à B4</Segment>
+<Segment name="s31" n="5584" color="4" ctag0="thin" cexpr0="((a(B1,B4,B3)&gt;180)&amp;&amp;(a(B3,B4,A6)&gt;180))" from="B4" to="B3">Segment de B4 à B3</Segment>
+<Segment name="s32" n="5585" color="4" ctag0="thin" cexpr0="((a(B4,B3,B2)&gt;180)&amp;&amp;(a(B2,B3,C5)&gt;180))" from="B3" to="B2">Segment de B3 à B2</Segment>
+<Segment name="s33" n="5586" color="4" ctag0="thin" cexpr0="((a(B3,B2,B1)&gt;180)&amp;&amp;(a(B1,B2,A1)&gt;180))" from="B2" to="B1">Segment de B2 à B1</Segment>
+<Segment name="s34" n="5587" color="4" ctag0="thin" cexpr0="((a(A6,A5,A8)&gt;180)&amp;&amp;(a(A8,A5,C3)&gt;180))" from="A5" to="A8">Segment de A5 à A8</Segment>
+<Segment name="s35" n="5588" color="4" ctag0="thin" cexpr0="((a(A5,A8,A7)&gt;180)&amp;&amp;(a(A7,A8,B7)&gt;180))" from="A8" to="A7">Segment de A8 à A7</Segment>
+<Segment name="s36" n="5589" color="4" ctag0="thin" cexpr0="((a(A8,A7,A6)&gt;180)&amp;&amp;(a(A6,A7,C8)&gt;180))" from="A7" to="A6">Segment de A7 à A6</Segment>
+<Segment name="s37" n="5590" color="4" ctag0="thin" cexpr0="((a(A7,A6,A5)&gt;180)&amp;&amp;(a(A5,A6,B4)&gt;180))" from="A6" to="A5">Segment de A6 à A5</Segment>
+<Segment name="s38" n="5591" color="4" ctag0="thin" cexpr0="((a(B7,B8,B5)&gt;180)&amp;&amp;(a(B5,B8,C2)&gt;180))" from="B8" to="B5">Segment de B8 à B5</Segment>
+<Segment name="s39" n="5592" color="4" ctag0="thin" cexpr0="((a(B8,B5,B6)&gt;180)&amp;&amp;(a(B6,B5,A3)&gt;180))" from="B5" to="B6">Segment de B5 à B6</Segment>
+<Segment name="s40" n="5593" color="4" ctag0="thin" cexpr0="((a(B5,B6,B7)&gt;180)&amp;&amp;(a(B7,B6,C7)&gt;180))" from="B6" to="B7">Segment de B6 à B7</Segment>
+<Segment name="s41" n="5594" color="4" ctag0="thin" cexpr0="((a(B6,B7,B8)&gt;180)&amp;&amp;(a(B8,B7,A8)&gt;180))" from="B7" to="B8">Segment de B7 à B8</Segment>
+<Segment name="s42" n="5595" color="4" ctag0="thin" cexpr0="((a(C2,C3,C4)&gt;180)&amp;&amp;(a(C4,C3,A5)&gt;180))" from="C3" to="C4">Segment de C3 à C4</Segment>
+<Segment name="s43" n="5596" color="4" ctag0="thin" cexpr0="((a(C3,C4,C1)&gt;180)&amp;&amp;(a(C1,C4,B1)&gt;180))" from="C4" to="C1">Segment de C4 à C1</Segment>
+<Segment name="s44" n="5597" color="4" ctag0="thin" cexpr0="((a(C4,C1,C2)&gt;180)&amp;&amp;(a(C2,C1,A4)&gt;180))" from="C1" to="C2">Segment de C1 à C2</Segment>
+<Segment name="s45" n="5598" color="4" ctag0="thin" cexpr0="((a(C1,C2,C3)&gt;180)&amp;&amp;(a(C3,C2,B8)&gt;180))" from="C2" to="C3">Segment de C2 à C3</Segment>
+<Segment name="s46" n="5599" color="4" ctag0="thin" cexpr0="((a(C7,C6,C5)&gt;180)&amp;&amp;(a(C5,C6,A2)&gt;180))" from="C6" to="C5">Segment de C6 à C5</Segment>
+<Segment name="s47" n="5600" color="4" ctag0="thin" cexpr0="((a(C6,C5,C8)&gt;180)&amp;&amp;(a(C8,C5,B3)&gt;180))" from="C5" to="C8">Segment de C5 à C8</Segment>
+<Segment name="s48" n="5601" color="4" ctag0="thin" cexpr0="((a(C5,C8,C7)&gt;180)&amp;&amp;(a(C7,C8,A7)&gt;180))" from="C8" to="C7">Segment de C8 à C7</Segment>
+<Segment name="s49" n="5602" color="4" ctag0="thin" cexpr0="((a(C8,C7,C6)&gt;180)&amp;&amp;(a(C6,C7,B6)&gt;180))" from="C7" to="C6">Segment de C7 à C6</Segment>
+<Segment name="s50" n="5603" color="4" ctag0="thin" cexpr0="((a(B8,C2,B5)&gt;180)&amp;&amp;(a(B5,C2,A4)&gt;180))" from="C2" to="B5">Segment de C2 à B5</Segment>
+<Segment name="s51" n="5604" color="4" ctag0="thin" cexpr0="((a(B5,C2,A4)&gt;180)&amp;&amp;(a(A4,C2,C1)&gt;180))" from="C2" to="A4">Segment de C2 à A4</Segment>
+<Segment name="s52" n="5605" color="4" ctag0="thin" cexpr0="((a(C2,C1,A4)&gt;180)&amp;&amp;(a(A4,C1,A1)&gt;180))" from="C1" to="A4">Segment de C1 à A4</Segment>
+<Segment name="s53" n="5606" color="4" ctag0="thin" cexpr0="((a(A4,C1,A1)&gt;180)&amp;&amp;(a(A1,C1,B1)&gt;180))" from="C1" to="A1">Segment de C1 à A1</Segment>
+<Segment name="s54" n="5607" color="4" ctag0="thin" cexpr0="((a(A1,C1,B1)&gt;180)&amp;&amp;(a(B1,C1,C4)&gt;180))" from="C1" to="B1">Segment de C1 à B1</Segment>
+<Segment name="s55" n="5608" color="4" ctag0="thin" cexpr0="((a(C1,C4,B1)&gt;180)&amp;&amp;(a(B1,C4,B4)&gt;180))" from="C4" to="B1">Segment de C4 à B1</Segment>
+<Segment name="s56" n="5609" color="4" ctag0="thin" cexpr0="((a(B1,C4,B4)&gt;180)&amp;&amp;(a(B4,C4,A5)&gt;180))" from="C4" to="B4">Segment de C4 à B4</Segment>
+<Segment name="s57" n="5610" color="4" ctag0="thin" cexpr0="((a(B4,C4,A5)&gt;180)&amp;&amp;(a(A5,C4,C3)&gt;180))" from="C4" to="A5">Segment de C4 à A5</Segment>
+<Segment name="s58" n="5611" color="4" ctag0="thin" cexpr0="((a(C4,C3,A5)&gt;180)&amp;&amp;(a(A5,C3,A8)&gt;180))" from="C3" to="A5">Segment de C3 à A5</Segment>
+<Segment name="s59" n="5612" color="4" ctag0="thin" cexpr0="((a(A5,C3,A8)&gt;180)&amp;&amp;(a(A8,C3,B8)&gt;180))" from="C3" to="A8">Segment de C3 à A8</Segment>
+<Segment name="s60" n="5613" color="4" ctag0="thin" cexpr0="((a(A8,C3,B8)&gt;180)&amp;&amp;(a(B8,C3,C2)&gt;180))" from="C3" to="B8">Segment de C3 à B8</Segment>
+<Segment name="s61" n="5614" color="4" ctag0="thin" cexpr0="((a(C3,C2,B8)&gt;180)&amp;&amp;(a(B8,C2,B5)&gt;180))" from="C2" to="B8">Segment de C2 à B8</Segment>
+<Segment name="s62" n="5615" color="4" ctag0="thin" cexpr0="((a(C4,A5,B4)&gt;180)&amp;&amp;(a(B4,A5,A6)&gt;180))" from="A5" to="B4">Segment de A5 à B4</Segment>
+<Segment name="s63" n="5616" color="4" ctag0="thin" cexpr0="((a(B3,B4,A6)&gt;180)&amp;&amp;(a(A6,B4,A5)&gt;180))" from="B4" to="A6">Segment de B4 à A6</Segment>
+<Segment name="s64" n="5617" color="4" ctag0="thin" cexpr0="((a(C3,B8,A8)&gt;180)&amp;&amp;(a(A8,B8,B7)&gt;180))" from="B8" to="A8">Segment de B8 à A8</Segment>
+<Segment name="s65" n="5618" color="4" ctag0="thin" cexpr0="((a(A7,A8,B7)&gt;180)&amp;&amp;(a(B7,A8,B8)&gt;180))" from="A8" to="B7">Segment de A8 à B7</Segment>
+<Segment name="s66" n="5619" color="4" ctag0="thin" cexpr0="((a(C2,A4,B5)&gt;180)&amp;&amp;(a(B5,A4,A3)&gt;180))" from="A4" to="B5">Segment de A4 à B5</Segment>
+<Segment name="s67" n="5620" color="4" ctag0="thin" cexpr0="((a(B6,B5,A3)&gt;180)&amp;&amp;(a(A3,B5,A4)&gt;180))" from="B5" to="A3">Segment de B5 à A3</Segment>
+<Segment name="s68" n="5621" color="4" ctag0="thin" cexpr0="((a(C1,B1,A1)&gt;180)&amp;&amp;(a(A1,B1,B2)&gt;180))" from="B1" to="A1">Segment de B1 à A1</Segment>
+<Segment name="s69" n="5622" color="4" ctag0="thin" cexpr0="((a(A2,A1,B2)&gt;180)&amp;&amp;(a(B2,A1,B1)&gt;180))" from="A1" to="B2">Segment de A1 à B2</Segment>
+<Segment name="s70" n="5623" color="4" ctag0="thin" cexpr0="((a(C8,B3,A6)&gt;180)&amp;&amp;(a(A6,B3,B4)&gt;180))" from="B3" to="A6">Segment de B3 à A6</Segment>
+<Segment name="s71" n="5624" color="4" ctag0="thin" cexpr0="((a(C7,A7,B7)&gt;180)&amp;&amp;(a(B7,A7,A8)&gt;180))" from="A7" to="B7">Segment de A7 à B7</Segment>
+<Segment name="s72" n="5625" color="4" ctag0="thin" cexpr0="((a(C6,B6,A3)&gt;180)&amp;&amp;(a(A3,B6,B5)&gt;180))" from="B6" to="A3">Segment de B6 à A3</Segment>
+<Segment name="s73" n="5626" color="4" ctag0="thin" cexpr0="((a(C5,A2,B2)&gt;180)&amp;&amp;(a(B2,A2,A1)&gt;180))" from="A2" to="B2">Segment de A2 à B2</Segment>
+<Segment name="s74" n="5627" color="4" ctag0="thin" cexpr0="((a(B6,C7,B7)&gt;180)&amp;&amp;(a(B7,C7,A7)&gt;180))" from="C7" to="B7">Segment de C7 à B7</Segment>
+<Segment name="s75" n="5628" color="4" ctag0="thin" cexpr0="((a(C6,C7,B6)&gt;180)&amp;&amp;(a(B6,C7,B7)&gt;180))" from="C7" to="B6">Segment de C7 à B6</Segment>
+<Segment name="s76" n="5629" color="4" ctag0="thin" cexpr0="((a(B7,C7,A7)&gt;180)&amp;&amp;(a(A7,C7,C8)&gt;180))" from="C7" to="A7">Segment de C7 à A7</Segment>
+<Segment name="s77" n="5630" color="4" ctag0="thin" cexpr0="((a(C7,C8,A7)&gt;180)&amp;&amp;(a(A7,C8,A6)&gt;180))" from="C8" to="A7">Segment de C8 à A7</Segment>
+<Segment name="s78" n="5631" color="4" ctag0="thin" cexpr0="((a(A7,C8,A6)&gt;180)&amp;&amp;(a(A6,C8,B3)&gt;180))" from="C8" to="A6">Segment de C8 à A6</Segment>
+<Segment name="s79" n="5632" color="4" ctag0="thin" cexpr0="((a(A6,C8,B3)&gt;180)&amp;&amp;(a(B3,C8,C5)&gt;180))" from="C8" to="B3">Segment de C8 à B3</Segment>
+<Segment name="s80" n="5633" color="4" ctag0="thin" cexpr0="((a(C8,C5,B3)&gt;180)&amp;&amp;(a(B3,C5,B2)&gt;180))" from="C5" to="B3">Segment de C5 à B3</Segment>
+<Segment name="s81" n="5634" color="4" ctag0="thin" cexpr0="((a(B3,C5,B2)&gt;180)&amp;&amp;(a(B2,C5,A2)&gt;180))" from="C5" to="B2">Segment de C5 à B2</Segment>
+<Segment name="s82" n="5635" color="4" ctag0="thin" cexpr0="((a(B2,C5,A2)&gt;180)&amp;&amp;(a(A2,C5,C6)&gt;180))" from="C5" to="A2">Segment de C5 à A2</Segment>
+<Segment name="s83" n="5636" color="4" ctag0="thin" cexpr0="((a(C5,C6,A2)&gt;180)&amp;&amp;(a(A2,C6,A3)&gt;180))" from="C6" to="A2">Segment de C6 à A2</Segment>
+<Segment name="s84" n="5637" color="4" ctag0="thin" cexpr0="((a(A2,C6,A3)&gt;180)&amp;&amp;(a(A3,C6,B6)&gt;180))" from="C6" to="A3">Segment de C6 à A3</Segment>
+<Segment name="s85" n="5638" color="4" ctag0="thin" cexpr0="((a(A3,C6,B6)&gt;180)&amp;&amp;(a(B6,C6,C7)&gt;180))" from="C6" to="B6">Segment de C6 à B6</Segment>
+<Segment name="s86" n="7067" color="5" scolor="230,,0,,145" ctag0="thin" cexpr0="((a(nA3,nA4,nA1)&gt;180)&amp;&amp;(a(nA1,nA4,nC2)&gt;180))" from="nA4" to="nA1">Segment de nA4 à nA1</Segment>
+<Segment name="s87" n="7068" color="5" scolor="230,,0,,145" ctag0="thin" cexpr0="((a(nA4,nA1,nA2)&gt;180)&amp;&amp;(a(nA2,nA1,nB2)&gt;180))" from="nA1" to="nA2">Segment de nA1 à nA2</Segment>
+<Segment name="s88" n="7069" color="5" scolor="230,,0,,145" ctag0="thin" cexpr0="((a(nA1,nA2,nA3)&gt;180)&amp;&amp;(a(nA3,nA2,nC6)&gt;180))" from="nA2" to="nA3">Segment de nA2 à nA3</Segment>
+<Segment name="s89" n="7070" color="5" scolor="230,,0,,145" ctag0="thin" cexpr0="((a(nA2,nA3,nA4)&gt;180)&amp;&amp;(a(nA4,nA3,nB5)&gt;180))" from="nA3" to="nA4">Segment de nA3 à nA4</Segment>
+<Segment name="s90" n="7071" color="5" scolor="230,,0,,145" ctag0="thin" cexpr0="((a(nB2,nB1,nB4)&gt;180)&amp;&amp;(a(nB4,nB1,nC4)&gt;180))" from="nB1" to="nB4">Segment de nB1 à nB4</Segment>
+<Segment name="s91" n="7072" color="5" scolor="230,,0,,145" ctag0="thin" cexpr0="((a(nB1,nB4,nB3)&gt;180)&amp;&amp;(a(nB3,nB4,nA6)&gt;180))" from="nB4" to="nB3">Segment de nB4 à nB3</Segment>
+<Segment name="s92" n="7073" color="5" scolor="230,,0,,145" ctag0="thin" cexpr0="((a(nB4,nB3,nB2)&gt;180)&amp;&amp;(a(nB2,nB3,nC5)&gt;180))" from="nB3" to="nB2">Segment de nB3 à nB2</Segment>
+<Segment name="s93" n="7074" color="5" scolor="230,,0,,145" ctag0="thin" cexpr0="((a(nB3,nB2,nB1)&gt;180)&amp;&amp;(a(nB1,nB2,nA1)&gt;180))" from="nB2" to="nB1">Segment de nB2 à nB1</Segment>
+<Segment name="s94" n="7075" color="5" scolor="230,,0,,145" ctag0="thin" cexpr0="((a(nA6,nA5,nA8)&gt;180)&amp;&amp;(a(nA8,nA5,nC3)&gt;180))" from="nA5" to="nA8">Segment de nA5 à nA8</Segment>
+<Segment name="s95" n="7076" color="5" scolor="230,,0,,145" ctag0="thin" cexpr0="((a(nA5,nA8,nA7)&gt;180)&amp;&amp;(a(nA7,nA8,nB7)&gt;180))" from="nA8" to="nA7">Segment de nA8 à nA7</Segment>
+<Segment name="s96" n="7077" color="5" scolor="230,,0,,145" ctag0="thin" cexpr0="((a(nA8,nA7,nA6)&gt;180)&amp;&amp;(a(nA6,nA7,nC8)&gt;180))" from="nA7" to="nA6">Segment de nA7 à nA6</Segment>
+<Segment name="s97" n="7078" color="5" scolor="230,,0,,145" ctag0="thin" cexpr0="((a(nA7,nA6,nA5)&gt;180)&amp;&amp;(a(nA5,nA6,nB4)&gt;180))" from="nA6" to="nA5">Segment de nA6 à nA5</Segment>
+<Segment name="s98" n="7079" color="5" scolor="230,,0,,145" ctag0="thin" cexpr0="((a(nB7,nB8,nB5)&gt;180)&amp;&amp;(a(nB5,nB8,nC2)&gt;180))" from="nB8" to="nB5">Segment de nB8 à nB5</Segment>
+<Segment name="s99" n="7080" color="5" scolor="230,,0,,145" ctag0="thin" cexpr0="((a(nB8,nB5,nB6)&gt;180)&amp;&amp;(a(nB6,nB5,nA3)&gt;180))" from="nB5" to="nB6">Segment de nB5 à nB6</Segment>
+<Segment name="s100" n="7081" color="5" scolor="230,,0,,145" ctag0="thin" cexpr0="((a(nB5,nB6,nB7)&gt;180)&amp;&amp;(a(nB7,nB6,nC7)&gt;180))" from="nB6" to="nB7">Segment de nB6 à nB7</Segment>
+<Segment name="s101" n="7082" color="5" scolor="230,,0,,145" ctag0="thin" cexpr0="((a(nB6,nB7,nB8)&gt;180)&amp;&amp;(a(nB8,nB7,nA8)&gt;180))" from="nB7" to="nB8">Segment de nB7 à nB8</Segment>
+<Segment name="s102" n="7083" color="5" scolor="230,,0,,145" ctag0="thin" cexpr0="((a(nC2,nC3,nC4)&gt;180)&amp;&amp;(a(nC4,nC3,nA5)&gt;180))" from="nC3" to="nC4">Segment de nC3 à nC4</Segment>
+<Segment name="s103" n="7084" color="5" scolor="230,,0,,145" ctag0="thin" cexpr0="((a(nC3,nC4,nC1)&gt;180)&amp;&amp;(a(nC1,nC4,nB1)&gt;180))" from="nC4" to="nC1">Segment de nC4 à nC1</Segment>
+<Segment name="s104" n="7085" color="5" scolor="230,,0,,145" ctag0="thin" cexpr0="((a(nC4,nC1,nC2)&gt;180)&amp;&amp;(a(nC2,nC1,nA4)&gt;180))" from="nC1" to="nC2">Segment de nC1 à nC2</Segment>
+<Segment name="s105" n="7086" color="5" scolor="230,,0,,145" ctag0="thin" cexpr0="((a(nC1,nC2,nC3)&gt;180)&amp;&amp;(a(nC3,nC2,nB8)&gt;180))" from="nC2" to="nC3">Segment de nC2 à nC3</Segment>
+<Segment name="s106" n="7087" color="5" scolor="230,,0,,145" ctag0="thin" cexpr0="((a(nC7,nC6,nC5)&gt;180)&amp;&amp;(a(nC5,nC6,nA2)&gt;180))" from="nC6" to="nC5">Segment de nC6 à nC5</Segment>
+<Segment name="s107" n="7088" color="5" scolor="230,,0,,145" ctag0="thin" cexpr0="((a(nC6,nC5,nC8)&gt;180)&amp;&amp;(a(nC8,nC5,nB3)&gt;180))" from="nC5" to="nC8">Segment de nC5 à nC8</Segment>
+<Segment name="s108" n="7089" color="5" scolor="230,,0,,145" ctag0="thin" cexpr0="((a(nC5,nC8,nC7)&gt;180)&amp;&amp;(a(nC7,nC8,nA7)&gt;180))" from="nC8" to="nC7">Segment de nC8 à nC7</Segment>
+<Segment name="s109" n="7090" color="5" scolor="230,,0,,145" ctag0="thin" cexpr0="((a(nC8,nC7,nC6)&gt;180)&amp;&amp;(a(nC6,nC7,nB6)&gt;180))" from="nC7" to="nC6">Segment de nC7 à nC6</Segment>
+<Segment name="s110" n="7091" color="5" scolor="230,,0,,145" ctag0="thin" cexpr0="((a(nB8,nC2,nB5)&gt;180)&amp;&amp;(a(nB5,nC2,nA4)&gt;180))" from="nC2" to="nB5">Segment de nC2 à nB5</Segment>
+<Segment name="s111" n="7092" color="5" scolor="230,,0,,145" ctag0="thin" cexpr0="((a(nB5,nC2,nA4)&gt;180)&amp;&amp;(a(nA4,nC2,nC1)&gt;180))" from="nC2" to="nA4">Segment de nC2 à nA4</Segment>
+<Segment name="s112" n="7093" color="5" scolor="230,,0,,145" ctag0="thin" cexpr0="((a(nC2,nC1,nA4)&gt;180)&amp;&amp;(a(nA4,nC1,nA1)&gt;180))" from="nC1" to="nA4">Segment de nC1 à nA4</Segment>
+<Segment name="s113" n="7094" color="5" scolor="230,,0,,145" ctag0="thin" cexpr0="((a(nA4,nC1,nA1)&gt;180)&amp;&amp;(a(nA1,nC1,nB1)&gt;180))" from="nC1" to="nA1">Segment de nC1 à nA1</Segment>
+<Segment name="s114" n="7095" color="5" scolor="230,,0,,145" ctag0="thin" cexpr0="((a(nA1,nC1,nB1)&gt;180)&amp;&amp;(a(nB1,nC1,nC4)&gt;180))" from="nC1" to="nB1">Segment de nC1 à nB1</Segment>
+<Segment name="s115" n="7096" color="5" scolor="230,,0,,145" ctag0="thin" cexpr0="((a(nC1,nC4,nB1)&gt;180)&amp;&amp;(a(nB1,nC4,nB4)&gt;180))" from="nC4" to="nB1">Segment de nC4 à nB1</Segment>
+<Segment name="s116" n="7097" color="5" scolor="230,,0,,145" ctag0="thin" cexpr0="((a(nB1,nC4,nB4)&gt;180)&amp;&amp;(a(nB4,nC4,nA5)&gt;180))" from="nC4" to="nB4">Segment de nC4 à nB4</Segment>
+<Segment name="s117" n="7098" color="5" scolor="230,,0,,145" ctag0="thin" cexpr0="((a(nB4,nC4,nA5)&gt;180)&amp;&amp;(a(nA5,nC4,nC3)&gt;180))" from="nC4" to="nA5">Segment de nC4 à nA5</Segment>
+<Segment name="s118" n="7099" color="5" scolor="230,,0,,145" ctag0="thin" cexpr0="((a(nC4,nC3,nA5)&gt;180)&amp;&amp;(a(nA5,nC3,nA8)&gt;180))" from="nC3" to="nA5">Segment de nC3 à nA5</Segment>
+<Segment name="s119" n="7100" color="5" scolor="230,,0,,145" ctag0="thin" cexpr0="((a(nA5,nC3,nA8)&gt;180)&amp;&amp;(a(nA8,nC3,nB8)&gt;180))" from="nC3" to="nA8">Segment de nC3 à nA8</Segment>
+<Segment name="s120" n="7101" color="5" scolor="230,,0,,145" ctag0="thin" cexpr0="((a(nA8,nC3,nB8)&gt;180)&amp;&amp;(a(nB8,nC3,nC2)&gt;180))" from="nC3" to="nB8">Segment de nC3 à nB8</Segment>
+<Segment name="s121" n="7102" color="5" scolor="230,,0,,145" ctag0="thin" cexpr0="((a(nC3,nC2,nB8)&gt;180)&amp;&amp;(a(nB8,nC2,nB5)&gt;180))" from="nC2" to="nB8">Segment de nC2 à nB8</Segment>
+<Segment name="s122" n="7103" color="5" scolor="230,,0,,145" ctag0="thin" cexpr0="((a(nC4,nA5,nB4)&gt;180)&amp;&amp;(a(nB4,nA5,nA6)&gt;180))" from="nA5" to="nB4">Segment de nA5 à nB4</Segment>
+<Segment name="s123" n="7104" color="5" scolor="230,,0,,145" ctag0="thin" cexpr0="((a(nB3,nB4,nA6)&gt;180)&amp;&amp;(a(nA6,nB4,nA5)&gt;180))" from="nB4" to="nA6">Segment de nB4 à nA6</Segment>
+<Segment name="s124" n="7105" color="5" scolor="230,,0,,145" ctag0="thin" cexpr0="((a(nC3,nB8,nA8)&gt;180)&amp;&amp;(a(nA8,nB8,nB7)&gt;180))" from="nB8" to="nA8">Segment de nB8 à nA8</Segment>
+<Segment name="s125" n="7106" color="5" scolor="230,,0,,145" ctag0="thin" cexpr0="((a(nA7,nA8,nB7)&gt;180)&amp;&amp;(a(nB7,nA8,nB8)&gt;180))" from="nA8" to="nB7">Segment de nA8 à nB7</Segment>
+<Segment name="s126" n="7107" color="5" scolor="230,,0,,145" ctag0="thin" cexpr0="((a(nC2,nA4,nB5)&gt;180)&amp;&amp;(a(nB5,nA4,nA3)&gt;180))" from="nA4" to="nB5">Segment de nA4 à nB5</Segment>
+<Segment name="s127" n="7108" color="5" scolor="230,,0,,145" ctag0="thin" cexpr0="((a(nB6,nB5,nA3)&gt;180)&amp;&amp;(a(nA3,nB5,nA4)&gt;180))" from="nB5" to="nA3">Segment de nB5 à nA3</Segment>
+<Segment name="s128" n="7109" color="5" scolor="230,,0,,145" ctag0="thin" cexpr0="((a(nC1,nB1,nA1)&gt;180)&amp;&amp;(a(nA1,nB1,nB2)&gt;180))" from="nB1" to="nA1">Segment de nB1 à nA1</Segment>
+<Segment name="s129" n="7110" color="5" scolor="230,,0,,145" ctag0="thin" cexpr0="((a(nA2,nA1,nB2)&gt;180)&amp;&amp;(a(nB2,nA1,nB1)&gt;180))" from="nA1" to="nB2">Segment de nA1 à nB2</Segment>
+<Segment name="s130" n="7111" color="5" scolor="230,,0,,145" ctag0="thin" cexpr0="((a(nC8,nB3,nA6)&gt;180)&amp;&amp;(a(nA6,nB3,nB4)&gt;180))" from="nB3" to="nA6">Segment de nB3 à nA6</Segment>
+<Segment name="s131" n="7112" color="5" scolor="230,,0,,145" ctag0="thin" cexpr0="((a(nC7,nA7,nB7)&gt;180)&amp;&amp;(a(nB7,nA7,nA8)&gt;180))" from="nA7" to="nB7">Segment de nA7 à nB7</Segment>
+<Segment name="s132" n="7113" color="5" scolor="230,,0,,145" ctag0="thin" cexpr0="((a(nC6,nB6,nA3)&gt;180)&amp;&amp;(a(nA3,nB6,nB5)&gt;180))" from="nB6" to="nA3">Segment de nB6 à nA3</Segment>
+<Segment name="s133" n="7114" color="5" scolor="230,,0,,145" ctag0="thin" cexpr0="((a(nC5,nA2,nB2)&gt;180)&amp;&amp;(a(nB2,nA2,nA1)&gt;180))" from="nA2" to="nB2">Segment de nA2 à nB2</Segment>
+<Segment name="s134" n="7115" color="5" scolor="230,,0,,145" ctag0="thin" cexpr0="((a(nB6,nC7,nB7)&gt;180)&amp;&amp;(a(nB7,nC7,nA7)&gt;180))" from="nC7" to="nB7">Segment de nC7 à nB7</Segment>
+<Segment name="s135" n="7116" color="5" scolor="230,,0,,145" ctag0="thin" cexpr0="((a(nC6,nC7,nB6)&gt;180)&amp;&amp;(a(nB6,nC7,nB7)&gt;180))" from="nC7" to="nB6">Segment de nC7 à nB6</Segment>
+<Segment name="s136" n="7117" color="5" scolor="230,,0,,145" ctag0="thin" cexpr0="((a(nB7,nC7,nA7)&gt;180)&amp;&amp;(a(nA7,nC7,nC8)&gt;180))" from="nC7" to="nA7">Segment de nC7 à nA7</Segment>
+<Segment name="s137" n="7118" color="5" scolor="230,,0,,145" ctag0="thin" cexpr0="((a(nC7,nC8,nA7)&gt;180)&amp;&amp;(a(nA7,nC8,nA6)&gt;180))" from="nC8" to="nA7">Segment de nC8 à nA7</Segment>
+<Segment name="s138" n="7119" color="5" scolor="230,,0,,145" ctag0="thin" cexpr0="((a(nA7,nC8,nA6)&gt;180)&amp;&amp;(a(nA6,nC8,nB3)&gt;180))" from="nC8" to="nA6">Segment de nC8 à nA6</Segment>
+<Segment name="s139" n="7120" color="5" scolor="230,,0,,145" ctag0="thin" cexpr0="((a(nA6,nC8,nB3)&gt;180)&amp;&amp;(a(nB3,nC8,nC5)&gt;180))" from="nC8" to="nB3">Segment de nC8 à nB3</Segment>
+<Segment name="s140" n="7121" color="5" scolor="230,,0,,145" ctag0="thin" cexpr0="((a(nC8,nC5,nB3)&gt;180)&amp;&amp;(a(nB3,nC5,nB2)&gt;180))" from="nC5" to="nB3">Segment de nC5 à nB3</Segment>
+<Segment name="s141" n="7122" color="5" scolor="230,,0,,145" ctag0="thin" cexpr0="((a(nB3,nC5,nB2)&gt;180)&amp;&amp;(a(nB2,nC5,nA2)&gt;180))" from="nC5" to="nB2">Segment de nC5 à nB2</Segment>
+<Segment name="s142" n="7123" color="5" scolor="230,,0,,145" ctag0="thin" cexpr0="((a(nB2,nC5,nA2)&gt;180)&amp;&amp;(a(nA2,nC5,nC6)&gt;180))" from="nC5" to="nA2">Segment de nC5 à nA2</Segment>
+<Segment name="s143" n="7124" color="5" scolor="230,,0,,145" ctag0="thin" cexpr0="((a(nC5,nC6,nA2)&gt;180)&amp;&amp;(a(nA2,nC6,nA3)&gt;180))" from="nC6" to="nA2">Segment de nC6 à nA2</Segment>
+<Segment name="s144" n="7125" color="5" scolor="230,,0,,145" ctag0="thin" cexpr0="((a(nA2,nC6,nA3)&gt;180)&amp;&amp;(a(nA3,nC6,nB6)&gt;180))" from="nC6" to="nA3">Segment de nC6 à nA3</Segment>
+<Segment name="s145" n="7126" color="5" scolor="230,,0,,145" ctag0="thin" cexpr0="((a(nA3,nC6,nB6)&gt;180)&amp;&amp;(a(nB6,nC6,nC7)&gt;180))" from="nC6" to="nB6">Segment de nC6 à nB6</Segment>
+<Intersection name="I14" n="82" color="1" hidden="super" large="true" first="a11" second="c4" shape="circle" which="first">Intersection entre a11 et c4</Intersection>
+<Intersection name="I15" n="83" color="3" hidden="super" large="true" first="a12" second="c4" shape="circle" which="first">Intersection entre a12 et c4</Intersection>
+<Intersection name="I16" n="84" color="2" type="thick" hidden="super" showname="true" large="true" first="l17" second="c5" shape="circle" which="second">Intersection entre l17 et c5</Intersection>
+<Segment name="" n="1499" showname="true" ctag0="thin" cexpr0="((a(P6,P8,P7)&gt;180)&amp;&amp;(a(P7,P8,P4)&gt;180))" ctag1="hidden" cexpr1="cc==1" from="P8" to="P7">Segment de P8 à P7</Segment>
+<Segment name="s4" n="1500" ctag0="thin" cexpr0="((a(P8,P4,P3)&gt;180)&amp;&amp;(a(P3,P4,P2)&gt;180))" ctag1="hidden" cexpr1="cc==1" from="P4" to="P3">Segment de P4 à P3</Segment>
+<Segment name="s5" n="1501" ctag0="thin" cexpr0="((a(P5,P6,P8)&gt;180)&amp;&amp;(a(P8,P6,P2)&gt;180))" ctag1="hidden" cexpr1="cc==1" from="P6" to="P8">Segment de P6 à P8</Segment>
+<Segment name="s9" n="1502" ctag0="thin" cexpr0="((a(P6,P2,P4)&gt;180)&amp;&amp;(a(P4,P2,P1)&gt;180))" ctag1="hidden" cexpr1="cc==1" from="P2" to="P4">Segment de P2 à P4</Segment>
+<Segment name="s10" n="1503" ctag0="thin" cexpr0="((a(P7,P8,P4)&gt;180)&amp;&amp;(a(P4,P8,P6)&gt;180))" ctag1="hidden" cexpr1="cc==1" from="P8" to="P4">Segment de P8 à P4</Segment>
+<Segment name="s11" n="1504" ctag0="thin" cexpr0="((a(P8,P6,P2)&gt;180)&amp;&amp;(a(P2,P6,P5)&gt;180))" ctag1="hidden" cexpr1="cc==1" from="P6" to="P2">Segment de P6 à P2</Segment>
+<Segment name="s12" n="1505" ctag0="thin" cexpr0="((a(P4,P3,P7)&gt;180)&amp;&amp;(a(P7,P3,P1)&gt;180))" ctag1="hidden" cexpr1="cc==1" from="P3" to="P7">Segment de P3 à P7</Segment>
+<Segment name="s13" n="1506" ctag0="thin" cexpr0="((a(P2,P1,P3)&gt;180)&amp;&amp;(a(P3,P1,P5)&gt;180))" ctag1="hidden" cexpr1="cc==1" from="P1" to="P3">Segment de P1 à P3</Segment>
+<Segment name="s14" n="1507" ctag0="thin" cexpr0="((a(P6,P5,P1)&gt;180)&amp;&amp;(a(P1,P5,P7)&gt;180))" ctag1="hidden" cexpr1="cc==1" from="P5" to="P1">Segment de P5 à P1</Segment>
+<Segment name="s17" n="1508" ctag0="thin" cexpr0="((a(P8,P7,P5)&gt;180)&amp;&amp;(a(P5,P7,P3)&gt;180))" ctag1="hidden" cexpr1="cc==1" from="P7" to="P5">Segment de P7 à P5</Segment>
+<Segment name="s18" n="2529" color="5" type="thick" from="O" to="P9">Segment de O à P9</Segment>
+<Segment name="s25" n="2538" color="5" type="thick" from="O" to="P10">Segment de O à P10</Segment>
+<Segment name="s2" n="1498" ctag0="thin" cexpr0="((a(P2,P6,P5)&gt;180)&amp;&amp;(a(P5,P6,P8)&gt;180))" ctag1="hidden" cexpr1="cc==1" from="P6" to="P5">Segment de P6 à P5</Segment>
+<Segment name="s1" n="1497" ctag0="thin" cexpr0="((a(P4,P2,P1)&gt;180)&amp;&amp;(a(P1,P2,P6)&gt;180))" ctag1="hidden" cexpr1="cc==1" from="P2" to="P1">Segment de P2 à P1</Segment>
+<Point name="P53" n="85" color="1" hidden="super" bold="true" x="x(I14)+x(X)-x(O)" actx="14.399324233055786" y="y(I14)+y(X)-y(O)" acty="-3.402965831256964" shape="circle" fixed="true">Point à &quot;x(C)+x(B)-x(A)&quot;, &quot;y(C)+y(B)-y(A)&quot; </Point>
+<Point name="P54" n="86" color="3" hidden="super" bold="true" x="x(I15)+x(Y)-x(O)" actx="26.91284151519065" y="y(I15)+y(Y)-y(O)" acty="8.098784398596761" shape="circle" fixed="true">Point à &quot;x(C)+x(B)-x(A)&quot;, &quot;y(C)+y(B)-y(A)&quot; </Point>
+<Point name="P55" n="87" color="1" hidden="super" showname="true" bold="true" x="x(I16)+x(X)-x(O)" actx="22.898877459851796" y="y(I16)+y(X)-y(O)" acty="-2.724616789401806" shape="circle" fixed="true">Point à &quot;x(C)+x(B)-x(A)&quot;, &quot;y(C)+y(B)-y(A)&quot; </Point>
+<Point name="P56" n="88" color="1" hidden="super" showname="true" bold="true" x="x(I16)+x(Y)-x(O)" actx="23.907151072631336" y="y(I16)+y(Y)-y(O)" acty="-2.4051953937179644" shape="circle" fixed="true">Point à &quot;x(C)+x(B)-x(A)&quot;, &quot;y(C)+y(B)-y(A)&quot; </Point>
+<Point name="P57" n="89" color="2" type="thick" hidden="super" x="2*x(O)-x(I16)" actx="28.857129752149255" y="2*y(O)-y(I16)" acty="-4.3511610773748455" shape="circle" fixed="true">Point</Point>
+<Line name="l18" n="90" color="1" hidden="super" large="true" from="I14" to="P53">Droite passant par I14 et P53</Line>
+<Line name="l19" n="91" color="3" hidden="super" large="true" from="P54" to="I15">Droite passant par P54 et I15</Line>
+<Point name="P58" n="92" color="2" type="thick" hidden="super" bold="true" x="x(P57)+x(I16)-x(P55)" actx="28.865437878001963" y="y(P57)+y(I16)-y(P55)" acty="-4.029063562640657" shape="circle" fixed="true">Point à &quot;x(C)+x(B)-x(A)&quot;, &quot;y(C)+y(B)-y(A)&quot; </Point>
+<Point name="P59" n="93" color="2" type="thick" hidden="super" bold="true" x="x(P57)+x(I16)-x(P56)" actx="27.857164265222423" y="y(P57)+y(I16)-y(P56)" acty="-4.348484958324498" shape="circle" fixed="true">Point à &quot;x(C)+x(B)-x(A)&quot;, &quot;y(C)+y(B)-y(A)&quot; </Point>
+<Line name="l20" n="94" color="1" hidden="super" large="true" from="I16" to="P55">Droite passant par I16 et P55</Line>
+<Line name="l21" n="95" color="1" hidden="super" large="true" from="I16" to="P56">Droite passant par I16 et P56</Line>
+<Intersection name="I17" n="96" color="1" hidden="super" showname="true" large="true" first="l17" second="l18" shape="circle">Intersection entre l17 et l18</Intersection>
+<Intersection name="I18" n="97" color="3" hidden="super" showname="true" large="true" first="l17" second="l19" shape="circle">Intersection entre l17 et l19</Intersection>
+<Line name="l22" n="98" color="1" hidden="super" large="true" from="P57" to="P58">Droite passant par P57 et P58</Line>
+<Line name="l23" n="99" color="1" hidden="super" large="true" from="P57" to="P59">Droite passant par P57 et P59</Line>
+<Point name="P60" n="100" color="5" type="thick" hidden="super" showname="true" large="true" x="if(d(O,I17)&gt;d(O,I18),x(I17),x(I18))" actx="-9.454461500088321" y="if(d(O,I17)&gt;d(O,I18),y(I17),y(I18))" acty="8.19611099004548" shape="circle" fixed="true">Point</Point>
+<Intersection name="I19" n="101" color="1" hidden="super" showname="true" large="true" first="l23" second="l20" shape="circle">Intersection entre l23 et l20</Intersection>
+<Intersection name="I20" n="102" color="1" hidden="super" showname="true" large="true" first="l22" second="l21" shape="circle">Intersection entre l22 et l21</Intersection>
+<Function name="f24" n="103" color="1" type="thin" showname="true" large="true" ctag0="z" cexpr0="9" ctag1="superhidden" cexpr1="a==0" x="if(floor(t/2)==(t/2),if(floor(t/4)==(t/4),x(I16)+(t/2)*(x(P56)-x(I16)),x(I19)+(t/2)*(x(P56)-x(I16))),if(floor((t-1)/4)==(t-1)/4,x(I16)+((t+1)/2)*(x(P56)-x(I16)),x(I19)+((t+1)/2)*(x(P56)-x(I16))))" y="if(floor(t/2)==(t/2),if(floor(t/4)==(t/4),y(I16)+(t/2)*(y(P56)-y(I16)),y(I19)+(t/2)*(y(P56)-y(I16))),if(floor((t-1)/4)==(t-1)/4,y(I16)+((t+1)/2)*(y(P56)-y(I16)),y(I19)+((t+1)/2)*(y(P56)-y(I16))))" var="t" min="0" max="floor(((y(I20)-y(I16))/(y(P56)-y(I16)))*2)-1" d="1" shape="cross" color="1">Fonction ( if(floor(t/2)==(t/2),if(floor(t/4)==(t/4),x(I16)+(t/2)*(x(P56)-x(I16)),x(I19)+(t/2)*(x(P56)-x(I16))),if(floor((t-1)/4)==(t-1)/4,x(I16)+((t+1)/2)*(x(P56)-x(I16)),x(I19)+((t+1)/2)*(x(P56)-x(I16)))) , if(floor(t/2)==(t/2),if(floor(t/4)==(t/4),y(I16)+(t/2)*(y(P56)-y(I16)),y(I19)+(t/2)*(y(P56)-y(I16))),if(floor((t-1)/4)==(t-1)/4,y(I16)+((t+1)/2)*(y(P56)-y(I16)),y(I19)+((t+1)/2)*(y(P56)-y(I16)))) )</Function>
+<Function name="f25" n="104" color="1" type="thin" showname="true" large="true" ctag0="z" cexpr0="9" ctag1="superhidden" cexpr1="a==0" x="if(floor(t/2)==(t/2),if(floor(t/4)==(t/4),x(I16)+(t/2)*(x(P55)-x(I16)),x(I20)+(t/2)*(x(P55)-x(I16))),if(floor((t-1)/4)==(t-1)/4,x(I16)+((t+1)/2)*(x(P55)-x(I16)),x(I20)+((t+1)/2)*(x(P55)-x(I16))))" y="if(floor(t/2)==(t/2),if(floor(t/4)==(t/4),y(I16)+(t/2)*(y(P55)-y(I16)),y(I20)+(t/2)*(y(P55)-y(I16))),if(floor((t-1)/4)==(t-1)/4,y(I16)+((t+1)/2)*(y(P55)-y(I16)),y(I20)+((t+1)/2)*(y(P55)-y(I16))))" var="t" min="0" max="floor(((x(I19)-x(I16))/(x(P55)-x(I16)))*2)-1" d="1" shape="cross" color="1">Fonction ( if(floor(t/2)==(t/2),if(floor(t/4)==(t/4),x(I16)+(t/2)*(x(P55)-x(I16)),x(I20)+(t/2)*(x(P55)-x(I16))),if(floor((t-1)/4)==(t-1)/4,x(I16)+((t+1)/2)*(x(P55)-x(I16)),x(I20)+((t+1)/2)*(x(P55)-x(I16)))) , if(floor(t/2)==(t/2),if(floor(t/4)==(t/4),y(I16)+(t/2)*(y(P55)-y(I16)),y(I20)+(t/2)*(y(P55)-y(I16))),if(floor((t-1)/4)==(t-1)/4,y(I16)+((t+1)/2)*(y(P55)-y(I16)),y(I20)+((t+1)/2)*(y(P55)-y(I16)))) )</Function>
+<Text name="Text1" n="7127" color="2" showname="true" showvalue="true" x="22.789800725154628" y="-2.374594195873547">***Les trois types de rotation du snubecube
+*Réalisation par deux étudiantes de Master
+*(M2 Maths enseignement)
+
+1. Construction des sommets du snubecube
+intial par script, du snube cube dans la figure.
+2. Transformation en macro-construction
+3. Gestion des 3 rotations (dont le calcul
+de la matrice) dans la figure
+4. Construction des sommets images
+par script (récupération des éléments
+calculés pour une utilisation dynamique)
+5 application de la macro pour finaliser
+la figure</Text>
+<Text name="Text5" n="7130" color="1" showname="true" showvalue="true" x="22.804909961036252" y="-3.7898259567856023">*Utilisation
+   • changer le type de rotation
+   • modifier l&apos;angle
+   • le clic droit glisser pour agir sur le repère
+doit se faire en dehors de la figure, et
+c&apos;est un Cmd-glisser sur les portables Mac</Text>
+</Objects>
+</Construction>
+</CaR>

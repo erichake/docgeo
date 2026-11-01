@@ -523,6 +523,14 @@ function defineBlocks(): void {
             style: "text_blocks",
         },
         {
+            type: "dg_wait",
+            message0: msg("WAIT"),
+            args0: [{ type: "input_value", name: "MS", check: "Number" }],
+            inputsInline: true,
+            ...statement,
+            style: "loop_blocks",
+        },
+        {
             type: "dg_style_arrow",
             message0: msg("STYLE_ARROW"),
             args0: [
@@ -717,6 +725,7 @@ function toolbox(kinds: string[], owner: string, starts: string[]) {
                     }),
                     block("controls_whileUntil"),
                     block("controls_flow_statements"),
+                    block("dg_wait", { MS: num(500) }),
                 ],
             },
             {

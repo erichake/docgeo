@@ -20,6 +20,7 @@ import {
 } from "./conic_algebra";
 import type { construction_object, DgoContext } from "./construction_object";
 import type { curve_object } from "./curve_object";
+import type { locus_object } from "./locus_object";
 import { point_object } from "./point_object";
 import { primitive_circle_object } from "./primitive_circle_object";
 import { primitive_line_object } from "./primitive_line_object";
@@ -29,7 +30,8 @@ export type intersectable_object =
     | primitive_line_object
     | primitive_circle_object
     | primitive_quadric_object
-    | curve_object;
+    | curve_object
+    | locus_object;
 
 const CURVE_ROOT_SAMPLES = 3000;
 
@@ -101,6 +103,26 @@ function curveRoots(
     return roots.map((root) => curve.pointAt(root)!);
 }
 
+// Where distance(point) changes sign along the locus' polyline, linearly
+// interpolated between its consecutive points.
+function locusRoots(
+    locus: locus_object,
+    distance: (point: Vec3) => number,
+): Vec3[] {
+    const roots: Vec3[] = [];
+    locus.points.forEach((point, index) => {
+        if (!point) return;
+        const h0 = distance(point);
+        if (h0 === 0) roots.push(point);
+        const next = locus.points[index + 1];
+        if (!next) return;
+        const h1 = distance(next);
+        if (h0 * h1 < 0)
+            roots.push(vAdd(point, vScale(vSub(next, point), h0 / (h0 - h1))));
+    });
+    return roots;
+}
+
 // Coordinates conic×conic candidate selection across every
 // OrderedIntersection sharing the same (O1, O2) pair: each one choosing
 // independently (see groupAssign) can otherwise both claim the same
@@ -137,7 +159,7 @@ export class intersection_object extends point_object {
     moveable = false;
     O1: intersectable_object;
     O2: intersectable_object;
-    order: 0 | 1 | 2 | 3;
+    order: number;
     away?: point_object;
     // This object's own defined-state from the previous recompute, captured
     // before computeGeometry() resets it — the anchor continuity tracking
@@ -155,7 +177,7 @@ export class intersection_object extends point_object {
         name: string | null | undefined,
         o1: intersectable_object,
         o2: intersectable_object,
-        order: 0 | 1 | 2 | 3 = 0,
+        order: number = 0,
         away?: point_object,
     ) {
         super(c, name, [0, 0, 0], "intersection");
@@ -504,6 +526,73 @@ export class intersection_object extends point_object {
         );
     }
 
+    computeLineLocus(line: primitive_line_object, locus: locus_object): void {
+        if (!line.defined) return;
+        const [vx, vy] = line.VEC;
+        const P1 = line.P1.coords;
+        this.assignCurvePoints(() =>
+            locusRoots(
+                locus,
+                ([x, y]) => (x - P1[0]) * vy - (y - P1[1]) * vx,
+            ).filter((point) =>
+                line.insideBounds(vDot(vSub(point, P1), line.VEC)),
+            ),
+        );
+    }
+
+    computeCircleLocus(
+        circle: primitive_circle_object,
+        locus: locus_object,
+    ): void {
+        if (!circle.defined) return;
+        const [cx, cy] = circle.CENTER;
+        this.assignCurvePoints(() =>
+            locusRoots(
+                locus,
+                ([x, y]) => Math.hypot(x - cx, y - cy) - circle.R,
+            ),
+        );
+    }
+
+    // Where their difference changes sign, on the x both are drawn at.
+    computeCurveCurve(first: curve_object, second: curve_object): void {
+        const [[lo1, hi1], [lo2, hi2]] = [first, second].map((curve) => {
+            const [lo, hi] = curve.domain();
+            return [curve.min ?? 2 * lo - hi, curve.max ?? 2 * hi - lo];
+        });
+        this.assignCurvePoints(() =>
+            curveRoots(
+                first,
+                Math.max(lo1, lo2),
+                Math.min(hi1, hi2),
+                1,
+                (x, y) => y - (second.pointAt(x)?.[1] ?? NaN),
+            ),
+        );
+    }
+
+    computeCurveLocus(curve: curve_object, locus: locus_object): void {
+        this.assignCurvePoints(() =>
+            locusRoots(locus, ([x, y]) => y - (curve.pointAt(x)?.[1] ?? NaN)),
+        );
+    }
+
+    // Where their polylines cross.
+    computeLocusLocus(first: locus_object, second: locus_object): void {
+        this.assignCurvePoints(() =>
+            first.points.flatMap((a, index) => {
+                const b = first.points[index + 1];
+                if (!a || !b) return [];
+                const side = ([x, y]: Vec3) =>
+                    (x - a[0]) * (b[1] - a[1]) - (y - a[1]) * (b[0] - a[0]);
+                return locusRoots(second, side).filter((point) => {
+                    const along = vDot(vSub(point, a), vSub(b, a));
+                    return along >= 0 && along < vDot(vSub(b, a), vSub(b, a));
+                });
+            }),
+        );
+    }
+
     // Like conic×conic, the root count drifts as the figure is dragged, so
     // siblings share the candidates through groupAssign.
     private assignCurvePoints(candidates: () => Vec3[]): void {
@@ -672,6 +761,12 @@ export class intersection_object extends point_object {
         return assignments.get(this);
     }
 
+    // Followed from there, as if it had just been there: a saved position.
+    seed(coords: Vec3): void {
+        this.coords = coords;
+        this.hasComputedBefore = this.defined = true;
+    }
+
     mousedrag(_ev: PointerEvent): void {}
 }
 
@@ -768,6 +863,70 @@ const INTERSECTION_COMPUTERS = new Map<string, IntersectionComputer>([
             ),
     ],
     [
+        "line:locus",
+        (object) =>
+            object.computeLineLocus(
+                object.O1 as primitive_line_object,
+                object.O2 as locus_object,
+            ),
+    ],
+    [
+        "locus:line",
+        (object) =>
+            object.computeLineLocus(
+                object.O2 as primitive_line_object,
+                object.O1 as locus_object,
+            ),
+    ],
+    [
+        "circle:locus",
+        (object) =>
+            object.computeCircleLocus(
+                object.O1 as primitive_circle_object,
+                object.O2 as locus_object,
+            ),
+    ],
+    [
+        "locus:circle",
+        (object) =>
+            object.computeCircleLocus(
+                object.O2 as primitive_circle_object,
+                object.O1 as locus_object,
+            ),
+    ],
+    [
+        "curve:curve",
+        (object) =>
+            object.computeCurveCurve(
+                object.O1 as curve_object,
+                object.O2 as curve_object,
+            ),
+    ],
+    [
+        "curve:locus",
+        (object) =>
+            object.computeCurveLocus(
+                object.O1 as curve_object,
+                object.O2 as locus_object,
+            ),
+    ],
+    [
+        "locus:curve",
+        (object) =>
+            object.computeCurveLocus(
+                object.O2 as curve_object,
+                object.O1 as locus_object,
+            ),
+    ],
+    [
+        "locus:locus",
+        (object) =>
+            object.computeLocusLocus(
+                object.O1 as locus_object,
+                object.O2 as locus_object,
+            ),
+    ],
+    [
         "circle:quadric",
         (object) =>
             object.computeCircleQuadric(
@@ -807,7 +966,7 @@ export function createOrderedIntersection(
     name: string | null | undefined,
     o1: intersectable_object,
     o2: intersectable_object,
-    order: 0 | 1 | 2 | 3,
+    order: number,
     away?: point_object,
 ): intersection_object {
     return c.add(new intersection_object(c, name, o1, o2, order, away));

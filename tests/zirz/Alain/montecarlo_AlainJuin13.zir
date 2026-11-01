@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<CaR>
+<Script Name="Monte-Carlo" onload="false">
+for(n=0;n&lt;=100;n++){
+	a=Point(&quot;A&quot;+n,n,0);
+	SetHide(a,true);
+	b=Point(&quot;B&quot;+n,n,0);
+	SetHide(b,true);
+	s=Segment(&quot;s&quot;+n,a,b);
+}
+
+//le script ci-dessus peut être fait
+//avant pour préparer la figure
+for(n=1;n&lt;=400;n++){
+	NbSi=0;
+	for(k=1;k&lt;=100;k++){
+		x=Math.random();
+		y=Math.random();
+		if (x*x+y*y&lt;1){
+			NbSi++;
+		}
+	}
+	Move(&quot;B&quot;+NbSi,NbSi,Y(&quot;B&quot;+NbSi)+1);
+}
+</Script>
+<Construction>
+<Window x="48.45854723370307" y="35.88652202934903" w="60.385684315898274" showgrid="true"/>
+<Windowdim w="1014" h="648"/>
+<Preferences minfontsize="13" minpointsize="3" minlinesize="1" arrowsize="15" selectionsize="6" monkeyspeed="22" gridopacity="20" digits.lengths="5" digits.edit="5" digits.angles="0" colorbackground="245,245,245" colorbackgroundx="139" colorbackgroundy="9" colorbackgroundPal="4" fig3D="false" figDP="false"/>
+<Grid color="3" thickness="0"/>
+<Objects>
+<Line name="yAxis" n="1" yaxis="true">Y axis</Line>
+<Line name="xAxis" n="0" xaxis="true">X axis</Line>
+<Text name="Text1" n="2" color="5" showname="true" showvalue="true" x="20.471409712442437" y="71.7563416948407">Calcul de $\frac{\pi}{4}$ par la méthode de Monte-Carlo</Text>
+</Objects>
+</Construction>
+</CaR>

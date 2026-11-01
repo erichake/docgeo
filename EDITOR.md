@@ -1288,6 +1288,18 @@ ses méthodes internes et figé dans sa version de 2016.
   programmes affichés, même absents de la figure (DGPad n'en change
   rien) : sinon Blockly les remplace par le premier objet du menu, que le
   programme réécrit viserait.
+- **Attente** (2026-11-01, pour les scripts de menu de CaRMetal, voir
+  `CARMETAL.md`) : bloc « attendre … ms » (`dg_wait`, `WAIT(ms)`,
+  catégorie « Boucles »), qui n'attend que dans le programme d'un bouton.
+  Un `ALERT` ou un `WAIT` en dernière instruction reste une instruction
+  (et non la valeur rendue par le programme), comme l'appel d'une
+  procédure qui ne rend rien.
+- **Boucles des scripts** (2026-11-01, pour les scripts de menu de
+  CaRMetal, sans nouveau bloc) : `v++` seul devient « ajouter 1 à v » ;
+  une boucle `for` qui n'est pas celle de Blockly (`i < n`, pas
+  quelconque) devient son initialisation suivie d'un « tant que » dont le
+  corps finit par la mise à jour, sauf si ce corps contient un
+  `continue` (qui sauterait la mise à jour).
 - **Messages, ajout à une liste, ouverture de la figure** (2026-10-19,
   pour `pirates.dgp`) : bloc « afficher le message » (`ALERT`, catégorie
   « Texte »), bloc « ajouter … à la fin de … » de DGPad (`dgpad_push`,

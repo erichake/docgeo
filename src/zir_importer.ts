@@ -3,20 +3,21 @@ import { describeDgo, importDgo, type Workbook } from "./dgo";
 import { executeDgpCommands } from "./import/dgp_commands";
 import { readZipBlob, readZipEntry, zipEntries } from "./import/ggb_zip";
 import { parseZir, translateZir, type ZirImage } from "./import/zir_translate";
-import { intersection_object } from "./objects/intersection_object";
 import { settleTargets } from "./settle_targets";
+import { TABS_HEIGHT } from "./workbook";
 
 // Returns what the figure uses that couldn't be imported.
 export function importZir(
     c: construction,
     doc: Document,
     images = new Map<string, ZirImage>(),
+    height = c.height,
 ): string[] {
-    const { calls, targets, intersections, unsupported } = translateZir(
+    const { calls, targets, unsupported } = translateZir(
         doc,
         images,
         c.width,
-        c.height,
+        height,
     );
     c.segmentsOverPolygons = true;
     const executed = executeDgpCommands(c, calls);
@@ -30,21 +31,8 @@ export function importZir(
             ]),
         ),
     );
-    // CaRMetal's first or second intersection isn't DGP's: one that doesn't
-    // exist, as on the wrong side of a ray, is the other one.
     c.OBJS.frame++;
-    const ordered = new Set(intersections.map((name) => variables.get(name)));
-    c.OBJS.V.forEach((object) => {
-        object.computeGeometry();
-        if (
-            !(object instanceof intersection_object) ||
-            object.defined ||
-            !ordered.has(object)
-        )
-            return;
-        object.order = object.order === 0 ? 1 : 0;
-        object.computeGeometry();
-    });
+    c.OBJS.V.forEach((object) => object.computeGeometry());
     c.flush();
     c.invalidateProjection();
     return [...unsupported, ...executed.unsupported];
@@ -88,7 +76,8 @@ export async function importZirBook(
                 ...(await zipFigure(data, await readZipEntry(data, /\.zir$/i))),
             ),
         };
-    // Each page is imported once, as a .dgo figure.
+    // Each page is imported once, as a .dgo figure, as high as it is
+    // shown, above the tabs: CaRMetal's formulas may read its center.
     const pages: Workbook["pages"] = [];
     const unsupported: string[] = [];
     for (const file of figures) {
@@ -98,6 +87,7 @@ export async function importZirBook(
             importZir(
                 page,
                 ...(await zipFigure(data, await entries.get(file)!().text())),
+                page.height - TABS_HEIGHT,
             ).forEach((item) => unsupported.push(`${name}: ${item}`));
             pages.push({ name, figure: await describeDgo(page) });
         } finally {

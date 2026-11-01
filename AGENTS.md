@@ -66,8 +66,12 @@ Les développements doivent servir en priorité :
   Blockly (fonctions `TURTLE_…`, compilées dans l'expression que dessine sa
   liste) et les boutons Blockly (`BlocklyButton`,
   dont le programme ne peut que mettre en forme des objets, changer la
-  valeur d'une expression constante, comme une manipulation, et afficher un
-  message `ALERT`, dont seul le texte est gardé) sont lus par le
+  valeur d'une expression constante, comme une manipulation, afficher un
+  message `ALERT`, dont seul le texte est gardé, attendre (`WAIT(ms)`, la
+  figure redessinée pendant l'attente), et, accordés le 2026-11-01 pour
+  les scripts de menu de CaRMetal (`CARMETAL.md`), demander une valeur et
+  dessiner des points, segments et polygones sans créer d'objet, dessin
+  refait à chaque lancement) sont lus par le
   même interpréteur. Les globales Blockly (`GLOBAL_GET`, `GLOBAL_SET`,
   `GLOBAL_INC`) sont des expressions cachées de la figure, partagées par ses
   programmes et ses boutons (voir `DGO.md`). Le programme « onchange » d'une expression,
