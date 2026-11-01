@@ -61,6 +61,14 @@ function part<T extends construction_object>(
     if (found) return found as T;
     const made = create();
     parts.set(key, made);
+    // Parts are updated in this order: a side reads its vertices, which a
+    // side may create after itself.
+    if (kind === "vertex")
+        [...parts].forEach(([name, side]) => {
+            if (!name.startsWith("side")) return;
+            parts.delete(name);
+            parts.set(name, side);
+        });
     made.computeGeometry();
     made.project();
     return made;

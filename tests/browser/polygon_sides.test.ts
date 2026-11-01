@@ -166,6 +166,19 @@ describe("Virtual polygon sides", () => {
         ]);
     });
 
+    it("follows a vertex created after the side that ends on it", () => {
+        const { scene: c } = figure();
+        const polygon = c.getObj("p") as polygon_object;
+        type(c, "e = Perpendicular(A, Side(p, 2))");
+        point(c, "C").coords = [4, 5, 0];
+        c.invalidateGeometry(point(c, "C"));
+        c.flush();
+        expectClose(
+            polygonSide(polygon, 2).VEC,
+            vScale([2, 5, 0], 1 / Math.sqrt(29)),
+        );
+    });
+
     it("keeps a side's rank through regular-polygon redefinition and recovers missing sides", async () => {
         const studied = figure(true);
         [
