@@ -945,9 +945,10 @@ export function importDgo(c: construction, figure: Json, centered = false) {
     runInits(c);
 }
 
-// Figures shown one at a time, each with its name, and the one shown.
+// Figures shown one at a time, each with its name and the color of its tab,
+// and the one shown.
 export interface Workbook {
-    pages: { name: string; figure: DgoFigure }[];
+    pages: { name: string; color?: string; figure: DgoFigure }[];
     current: number;
 }
 
@@ -960,9 +961,11 @@ function dgoWorkbook(json: Json): Workbook | null {
     return {
         pages: pages.map((page) => {
             check(isRecord(page) && typeof page.n === "string");
-            const { n, ...figure } = page;
+            const { n, c, ...figure } = page;
+            check(c === undefined || isColor(c));
             return {
                 name: n as string,
+                ...(c !== undefined && { color: c as string }),
                 figure: { ...figure, dgo } as DgoFigure,
             };
         }),
@@ -972,8 +975,9 @@ function dgoWorkbook(json: Json): Workbook | null {
 
 export const describeWorkbook = ({ pages, current }: Workbook) => ({
     dgo: VERSION,
-    pg: pages.map(({ name, figure: { dgo, ...figure } }) => ({
+    pg: pages.map(({ name, color, figure: { dgo, ...figure } }) => ({
         n: name,
+        ...(color && { c: color }),
         ...figure,
     })),
     ...(current > 0 && { p: current }),

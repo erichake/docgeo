@@ -18,7 +18,7 @@ import {
 import { $, type DOMElement } from "../dom";
 import { dropFigures } from "../drop";
 import { FIGURE_URL, fetchFigure } from "../figure_url";
-import { LANG } from "../i18n";
+import { DIR, LANG } from "../i18n";
 import { openFigureFile, showTabs, writeWorkbook } from "../workbook";
 import type { construction_object } from "../objects/construction_object";
 import { point_object, type magnet_target } from "../objects/point_object";
@@ -108,6 +108,7 @@ import {
 } from "./file";
 import {
     DELETE_KEY,
+    contextMenu,
     menuBar,
     shortcut,
     type Menu,
@@ -284,7 +285,12 @@ $("head").append(`<style>
     @font-face { font-family: dge-code; src: local("Menlo Regular"), local("Menlo-Regular"), local("Consolas"), local("DejaVu Sans Mono"); unicode-range: U+0-5FF, U+700-74F, U+780-89F, U+900-FB4F, U+FE00-FE6F, U+FF00-10FFFF; }
     .dge-editor { --dge-code: ui-monospace, dge-code, "Geeza Pro", "Segoe UI", "Noto Sans Arabic", monospace; --dge-panel-size: min(var(--dge-panel-user, ${PANEL_WIDTH}px), calc(100vw - 56px)); --dge-panel-width: var(--dge-panel-size); --dge-menu-height: 0px; --dge-bar-height: calc(48px + var(--dge-menu-height)); --dge-slide-duration: 0s; --dge-slide: var(--dge-slide-duration) cubic-bezier(0.22, 1, 0.36, 1); margin: 0; margin-inline-start: var(--dge-panel-width); margin-block-start: var(--dge-bar-height); width: calc(100% - var(--dge-panel-width)); height: calc(100% - var(--dge-bar-height) - var(--docgeo-tabs, 0px)); transition: margin-inline-start var(--dge-slide), width var(--dge-slide); }
     .dge-editor.dge-menus { --dge-menu-height: 32px; }
-    .docgeo-tabs input { width: 180px; padding: 0 14px; border: 0; border-radius: 0 0 8px 8px; outline: 2px solid #2563eb; outline-offset: -2px; font: inherit; }
+    .dge-editor .docgeo-tabs > button { transition: transform 0.15s; }
+    .docgeo-tabs > button.dge-dragged { z-index: 1; transition: none; box-shadow: 0 2px 8px rgb(0 0 0 / 0.18); }
+    .docgeo-tabs > .dge-tabs-button { width: 34px; padding: 0; justify-content: center; border: 0; margin: 0; color: #444; }
+    .dge-tab-more { display: flex; margin-inline: 8px -6px; padding: 4px 2px; color: #a1a1a1; }
+    .dge-tab-more:hover { color: #2a2a2a; }
+    .docgeo-tabs input { width: 160px; padding: 0 10px; border: 0; outline: 2px solid #2563eb; outline-offset: -2px; color: #222; font: inherit; }
     .dge-editor.dge-panel-animated { --dge-slide-duration: ${SLIDE}ms; }
     .dge-editor.dge-panel-closed { --dge-panel-width: 0px; }
     .dge-panel-closed .dge-panel { transform: translateX(-100%); visibility: hidden; transition-delay: 0s, var(--dge-slide-duration); }
@@ -421,6 +427,15 @@ $("head").append(`<style>
     .dge-menu-popup button:not(:disabled):is(:hover, :focus-visible) .dge-tool-icon { border-color: #fff; }
     .dge-menu-popup button.dge-menu-sub.dge-open:not(:hover, :focus-visible) { background: #eef2f7; }
     .dge-menu-veil { position: fixed; inset: 0; z-index: 19; }
+    .dge-menu-popup.dge-context-menu { position: fixed; inset: auto; display: flex; font: 13px/1 system-ui, -apple-system, "Segoe UI", sans-serif; color: #1f2937; z-index: 20; }
+    .dge-menu-popup.dge-context-menu button.dge-menu-icon::before { display: block; }
+    .dge-context-menu .dge-page-swatch { order: 0; width: 12px; height: 12px; margin-inline: auto 0; border-radius: 3px; }
+    .dge-context-menu .dge-menu-icon > span:first-child { padding-inline-end: 24px; }
+    .dge-page-colors { display: flex; flex-wrap: wrap; gap: 6px; padding: 6px 12px 6px 24px; }
+    .dge-page-colors small { width: 100%; font: inherit; opacity: 0.6; }
+    .dge-menu-popup .dge-page-colors button, .dge-menu-popup .dge-page-colors button:not(:disabled):is(:hover, :focus-visible) { width: 20px; min-height: 0; height: 20px; padding: 0; border: 1px solid rgb(0 0 0 / 0.15); border-radius: 4px; background: var(--dge-swatch, linear-gradient(to top right, transparent 45%, #ef4444 45% 55%, transparent 55%) #fff); }
+    .dge-menu-popup .dge-page-colors button::before { content: none; }
+    .dge-menu-popup .dge-page-colors button:is(:hover, :focus-visible, .on) { outline: 2px solid #2563eb; outline-offset: 1px; }
     .dge-file { display: flex; align-items: center; gap: 8px; min-width: 0; max-width: min(38vw, 420px); margin-inline-start: auto; padding-inline: 18px 6px; color: #64748b; }
     .dge-file span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     .dge-file.dge-dirty { color: #1f2937; font-weight: 500; }
@@ -6332,9 +6347,217 @@ function setBook(shown: Workbook | null): void {
 // The page being shown.
 let paging = Promise.resolve();
 
+// The tabs of the pages: a right click on one, or its arrow, opens the menu
+// of its page, once shown.
+let pageTabs: DOMElement[] = [];
+
+const PAGE_COLORS = [
+    "#ef4444",
+    "#f97316",
+    "#eab308",
+    "#22c55e",
+    "#06b6d4",
+    "#3b82f6",
+    "#8b5cf6",
+    "#ec4899",
+];
+
 function tabs(): void {
-    showTabs(book, (index) => (paging = showPage(index)), renamable);
+    pageTabs = [];
+    showTabs(book, (index) => (paging = showPage(index)), pageTab, [
+        tabsButton(
+            "new_page",
+            '<path d="M12 5v14M5 12h14"/>',
+            () => void addPage(),
+        ),
+        tabsButton(
+            "page_list",
+            '<rect x="4" y="4" width="6.5" height="6.5" rx="2"/><rect x="13.5" y="4" width="6.5" height="6.5" rx="2"/><rect x="4" y="13.5" width="6.5" height="6.5" rx="2"/><rect x="13.5" y="13.5" width="6.5" height="6.5" rx="2"/>',
+            (box) =>
+                contextMenu(
+                    book!.pages.map(({ name, color }, index) => ({
+                        label: name,
+                        checked: () => index === book!.current,
+                        icon: color
+                            ? () =>
+                                  $.create("span")
+                                      .cls("dge-page-swatch")
+                                      .stl("background", color)
+                            : undefined,
+                        run: () =>
+                            (pageTabs[index].dom() as HTMLElement).click(),
+                    })),
+                    box.left,
+                    box.top,
+                ),
+        ),
+    ]);
 }
+
+function tabsButton(
+    title: MessageKey,
+    icon: string,
+    run: (box: DOMRect) => void,
+): DOMElement {
+    const button = $.create("button")
+        .cls("dge-tabs-button")
+        .att("title", message(title))
+        .append(
+            `<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round">${icon}</svg>`,
+        );
+    button.on("click", () => run(button.dom().getBoundingClientRect()));
+    return button;
+}
+
+function pageTab(tab: DOMElement, index: number): void {
+    pageTabs[index] = tab;
+    const more = $.create("span")
+        .cls("dge-tab-more")
+        .att("title", message("page_menu"))
+        .append(
+            '<svg viewBox="0 0 10 6" width="9" height="6"><path d="M0 0h10L5 6z" fill="currentColor"/></svg>',
+        );
+    tab.add(more);
+    const menu = (x: number, y: number): void =>
+        void paging.then(() => {
+            let close = (): void => {};
+            close = contextMenu(
+                pageMenu(() => close()),
+                x,
+                y,
+            );
+        });
+    tab.on(
+        "click",
+        (event) => {
+            if (!more.dom().contains(event.target as Node)) return;
+            const box = more.dom().getBoundingClientRect();
+            menu(box.left, box.top);
+        },
+        false,
+    );
+    tab.on("contextmenu", (event) => {
+        if (index !== book!.current) (tab.dom() as HTMLElement).click();
+        menu(event.clientX, event.clientY);
+    });
+    tab.on("dblclick", (event) => {
+        if (!more.dom().contains(event.target as Node))
+            void paging.then(() => renamePage(index));
+    });
+    draggable(tab, index, more);
+}
+
+// Dragged, a tab takes the place where it's dropped, the others making way
+// for it.
+function draggable(tab: DOMElement, index: number, more: DOMElement): void {
+    let shift = 0;
+    let moving = false;
+    let place = index;
+    let boxes: DOMRect[] = [];
+    tab.drag(
+        (_, [dx]) => {
+            shift += dx;
+            if (!moving && Math.abs(shift) < 6) return;
+            moving = true;
+            tab.addClass("dge-dragged").stl(
+                "transform",
+                `translateX(${shift}px)`,
+            );
+            const rtl = DIR === "rtl";
+            const { left, width } = boxes[index];
+            const center = left + width / 2 + shift;
+            place = boxes.filter(
+                (box, other) =>
+                    other !== index &&
+                    box.left + box.width / 2 < center !== rtl,
+            ).length;
+            pageTabs.forEach((other, at) => {
+                if (at === index) return;
+                const step =
+                    at > index && at <= place
+                        ? -1
+                        : at < index && at >= place
+                          ? 1
+                          : 0;
+                other.stl(
+                    "transform",
+                    step
+                        ? `translateX(${step * (rtl ? -1 : 1) * (width - 1)}px)`
+                        : "",
+                );
+            });
+        },
+        (event) => {
+            if (more.dom().contains(event.target as Node)) return false;
+            shift = 0;
+            moving = false;
+            place = index;
+            boxes = pageTabs.map((other) =>
+                other.dom().getBoundingClientRect(),
+            );
+        },
+        (_, cancelled) => {
+            if (!moving) return;
+            if (cancelled || place === index) tabs();
+            else movePage(index, place);
+        },
+    );
+}
+
+// The menu of the page shown, which its colors close.
+function pageMenu(close: () => void): (MenuItem | DOMElement | null)[] {
+    const at = book!.current;
+    const page = book!.pages[at];
+    const swatch = (color?: string): DOMElement => {
+        const button = $.create("button")
+            .att("type", "button")
+            .att("title", color ?? message("page_no_color"))
+            .toggleClass("on", color === page.color)
+            .stl("--dge-swatch", color ?? "");
+        button.on(
+            "click",
+            () => {
+                close();
+                if (color === page.color) return;
+                if (color) page.color = color;
+                else delete page.color;
+                reshape();
+            },
+            false,
+        );
+        return button;
+    };
+    return [
+        { label: message("rename_page"), run: () => renamePage(at) },
+        { label: message("duplicate_page"), run: () => void duplicatePage() },
+        { label: message("delete_page"), run: () => void deletePage() },
+        null,
+        {
+            label: message("move_page_before"),
+            run: () => movePage(at, at - 1),
+            enabled: () => at > 0,
+        },
+        {
+            label: message("move_page_after"),
+            run: () => movePage(at, at + 1),
+            enabled: () => at < book!.pages.length - 1,
+        },
+        null,
+        $.create("div")
+            .cls("dge-page-colors")
+            .add(
+                $.create("small").text(message("page_color")),
+                swatch(),
+                ...PAGE_COLORS.map(swatch),
+            ),
+    ];
+}
+
+const reshape = (): void => {
+    reshaped = true;
+    showChanged(true);
+    tabs();
+};
 
 // A new page, empty, after the others, shown: the figure is the first page
 // of a workbook if it wasn't one.
@@ -6344,13 +6567,51 @@ async function addPage(): Promise<void> {
         pages: [{ name: message("page_name", "1"), figure: blank(scene()) }],
         current: 0,
     };
-    book.pages.push({
+    await insertPage(book.pages.length, {
         name: message("page_name", String(book.pages.length + 1)),
         figure: blank(scene()),
     });
+}
+
+// A copy of the page shown, after it, shown.
+async function duplicatePage(): Promise<void> {
+    await recording;
+    const at = book!.current;
+    const { name, color } = book!.pages[at];
+    await insertPage(at + 1, {
+        name: message("page_copy", name),
+        ...(color && { color }),
+        figure: await asSaved(() => describeDgo(scene())),
+    });
+}
+
+// Inserted after the page shown, and shown.
+async function insertPage(
+    at: number,
+    page: Workbook["pages"][number],
+): Promise<void> {
+    book!.pages.splice(at, 0, page);
+    away = new Map(
+        [...away].map(([index, steps]) => [
+            index + (index >= at ? 1 : 0),
+            steps,
+        ]),
+    );
     reshaped = true;
-    await showPage(book.pages.length - 1);
+    await showPage(at);
     tabs();
+}
+
+// The page at `from` moved to `to`.
+function movePage(from: number, to: number): void {
+    const order = book!.pages.map((_, index) => index);
+    order.splice(to, 0, ...order.splice(from, 1));
+    book!.pages = order.map((index) => book!.pages[index]);
+    away = new Map(
+        [...away].map(([index, steps]) => [order.indexOf(index), steps]),
+    );
+    book!.current = order.indexOf(book!.current);
+    reshape();
 }
 
 // The page shown, once confirmed, in place of which its neighbour is shown:
@@ -6379,46 +6640,40 @@ async function deletePage(): Promise<void> {
             .map(([index, page]) => [index - (index > deleted ? 1 : 0), page]),
     );
     if (book!.pages.length === 1) book = null;
-    reshaped = true;
-    showChanged(true);
-    tabs();
+    reshape();
 }
 
-// A double click on its tab edits a page's name, once the page is shown.
-function renamable(tab: DOMElement, index: number): void {
-    tab.on("dblclick", () =>
-        paging.then(() => {
-            const field = $.create("input")
-                .att("dir", "auto")
-                .att("value", book!.pages[index].name);
-            const input = field.dom() as HTMLInputElement;
-            let done = false;
-            const finish = (keep: boolean) => {
-                if (done) return;
-                done = true;
-                const name = input.value.trim();
-                if (keep && name && name !== book!.pages[index].name) {
-                    book!.pages[index].name = name;
-                    reshaped = true;
-                    showChanged(true);
-                }
-                tabs();
-            };
-            field.on(
-                "keydown",
-                (event) => {
-                    event.stopPropagation();
-                    if (event.key === "Enter" || event.key === "Escape")
-                        finish(event.key === "Enter");
-                },
-                false,
-            );
-            field.on("blur", () => finish(true), false);
-            tab.dom().replaceWith(input);
-            input.focus();
-            input.select();
-        }),
+// The name of the page shown, edited in its tab.
+function renamePage(index: number): void {
+    const field = $.create("input")
+        .att("dir", "auto")
+        .att("value", book!.pages[index].name);
+    const input = field.dom() as HTMLInputElement;
+    let done = false;
+    const finish = (keep: boolean) => {
+        if (done) return;
+        done = true;
+        const name = input.value.trim();
+        if (keep && name && name !== book!.pages[index].name) {
+            book!.pages[index].name = name;
+            reshaped = true;
+            showChanged(true);
+        }
+        tabs();
+    };
+    field.on(
+        "keydown",
+        (event) => {
+            event.stopPropagation();
+            if (event.key === "Enter" || event.key === "Escape")
+                finish(event.key === "Enter");
+        },
+        false,
     );
+    field.on("blur", () => finish(true), false);
+    pageTabs[index].dom().replaceWith(input);
+    input.focus();
+    input.select();
 }
 
 // The workbook's page of this index, in place of the one shown.

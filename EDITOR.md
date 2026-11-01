@@ -2731,9 +2731,19 @@ autres et la montre (la figure devient la page 1 d'un classeur si elle n'en
 était pas un) ; « Supprimer la page », après confirmation, supprime la page
 montrée et montre sa voisine (une seule page restante redevient une
 figure). Un double clic sur un onglet modifie le nom de sa page (Entrée
-valide, Échap annule). Changer d'onglet garde la page quittée telle
+valide, Échap annule). Une fois le classeur créé, sa barre d'onglets
+reprend celle de DocCells (FortuneSheet) : un bouton « + » ajoute une page
+après les autres, un bouton liste toutes les pages (page montrée cochée,
+couleur de son onglet) pour en montrer une, et chaque onglet a sa flèche
+▾. Un clic droit sur un onglet ou sa flèche (qui montrent d'abord sa page)
+ouvre le menu de la page (`contextMenu` de `src/editor/menus.ts`) :
+Renommer, Dupliquer (copie insérée après elle et montrée, nommée
+« … (copie) »), Supprimer la page, Déplacer vers la gauche ou la droite,
+et la couleur de l'onglet (8 couleurs ou aucune, clé `c` de la page, voir
+`DGO.md`), que le lecteur montre aussi. Un onglet se déplace aussi par
+glisser-déposer, les autres s'écartant pour lui faire place. Pas de
+masquage de page (décision de l'auteur). Changer d'onglet garde la page quittée telle
 quelle, avec son historique d'annulation, retrouvé au retour ; le point
 qui signale une modification devant le nom de fichier vaut pour tout le
 classeur (pages ajoutées, supprimées ou renommées comprises), et
-l'enregistrement l'écrit en entier. Pas encore de réordonnancement des
-pages ; le mode intégré du lecteur ne montre que la page `p`.
+l'enregistrement l'écrit en entier. Le mode intégré du lecteur ne montre que la page `p`.

@@ -1,4 +1,4 @@
-import { $, type DOMElement } from "../dom";
+import { $, DOMElement } from "../dom";
 
 // An item opens a submenu if it has `items`, rather than running.
 export interface MenuItem {
@@ -258,4 +258,88 @@ export function menuBar(menus: Menu[], ...end: DOMElement[]): DOMElement[] {
         false,
     );
     return [bar.add(...end), veil];
+}
+
+// The menu of `list`, or elements of their own, at the point (x, y), above
+// it if it doesn't fit below, closed when one of its items runs, by Escape
+// or by a press outside it: closed by the function returned.
+export function contextMenu(
+    list: (MenuItem | DOMElement | null)[],
+    x: number,
+    y: number,
+): () => void {
+    const veil = $.create("div").cls("dge-menu-veil");
+    const popup = $.create("div")
+        .cls("dge-menu-popup dge-context-menu")
+        .att("role", "menu")
+        .att("tabindex", "-1");
+    const close = (): void => {
+        veil.dispose();
+        popup.dispose();
+    };
+    list.forEach((item) => {
+        if (!item) return void popup.add($.create("hr"));
+        if (item instanceof DOMElement) return void popup.add(item);
+        const element = $.create("button")
+            .att("type", "button")
+            .att("role", item.checked ? "menuitemcheckbox" : "menuitem")
+            .add($.create("span").text(item.label));
+        if (item.icon)
+            element
+                .addClass("dge-menu-icon")
+                .add(item.icon().att("aria-hidden", "true"));
+        if (item.checked) element.att("aria-checked", String(item.checked()));
+        if (item.enabled && !item.enabled()) element.att("disabled", "");
+        element.on(
+            "click",
+            () => {
+                close();
+                item.run!();
+            },
+            false,
+        );
+        popup.add(element);
+    });
+    veil.on("pointerdown", close);
+    popup.on(
+        "keydown",
+        (event) => {
+            event.stopPropagation();
+            if (event.key === "Escape") return close();
+            if (event.key !== "ArrowDown" && event.key !== "ArrowUp") return;
+            event.preventDefault();
+            const items = [
+                ...popup
+                    .dom()
+                    .querySelectorAll<HTMLButtonElement>(
+                        "button:not(:disabled)",
+                    ),
+            ];
+            const at = items.indexOf(
+                document.activeElement as HTMLButtonElement,
+            );
+            const step = event.key === "ArrowDown" ? 1 : -1;
+            items[
+                at < 0
+                    ? step > 0
+                        ? 0
+                        : items.length - 1
+                    : (at + step + items.length) % items.length
+            ]?.focus();
+        },
+        false,
+    );
+    $("body").add(veil, popup);
+    const { width, height } = popup.dom().getBoundingClientRect();
+    popup
+        .stl(
+            "left",
+            `${Math.max(8, Math.min(x, window.innerWidth - width - 8))}px`,
+        )
+        .stl(
+            "top",
+            `${y + height <= window.innerHeight - 8 ? y : Math.max(8, y - height)}px`,
+        );
+    (popup.dom() as HTMLElement).focus();
+    return close;
 }

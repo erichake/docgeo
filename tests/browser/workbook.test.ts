@@ -21,7 +21,10 @@ const page = (name: string, x: number) => ({
 
 describe("workbooks", () => {
     it("opens the page shown of a .dgo of several, and saves them all", async () => {
-        const book = { pages: [page("un", 1), page("deux", 2)], current: 1 };
+        const book = {
+            pages: [{ ...page("un", 1), color: "#ec4899" }, page("deux", 2)],
+            current: 1,
+        };
         const file = new File(
             [await gzipped(describeWorkbook(book))],
             "classeur.dgo",
@@ -40,6 +43,10 @@ describe("workbooks", () => {
             )
         ).book!;
         expect(reopened.current).toBe(0);
+        expect(reopened.pages.map(({ color }) => color)).toEqual([
+            "#ec4899",
+            undefined,
+        ]);
         expect(reopened.pages[0].figure).toEqual(await describeDgo(c));
     });
 

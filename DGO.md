@@ -118,7 +118,7 @@ n'a que trois clés :
 | `p`   | indice de la page montrée à l'ouverture | 0        |
 
 Une page est une figure (toutes les clés de la racine ci-dessus, sauf `dgo`),
-plus son nom `n`. Rien n'est partagé entre les pages : ni objets, ni styles,
+plus son nom `n` et, si elle en a une, la couleur `c` de son onglet. Rien n'est partagé entre les pages : ni objets, ni styles,
 ni images, ni macros, et leurs noms d'objets sont indépendants.
 L'enregistrement garde chaque page dans l'état où on l'a laissée, et `p` est
 la page montrée.
