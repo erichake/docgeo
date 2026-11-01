@@ -208,12 +208,12 @@
                 A program can also be written in blocks: the
                 <strong>Definition</strong> section switches from
                 <strong>Text</strong> to <strong>Blocks</strong>. Blocks are
-                dragged from the categories (Loops, Logic, Maths, Text, Lists,
-                Variables, Globals, Functions, Figure) and snapped under the
-                <strong>program</strong> block; a <strong>return</strong> block
-                gives the value. Each change applies at once and is undone like
-                the others. Text and blocks show the same program: the choice is
-                kept for the next ones.
+                dragged from the categories (Loops, Logic, Maths, Text, Sensing,
+                Lists, Variables, Globals, Functions, Figure) and snapped under
+                the <strong>program</strong> block; a
+                <strong>return</strong> block gives the value. Each change
+                applies at once and is undone like the others. Text and blocks
+                show the same program: the choice is kept for the next ones.
             </p>
             <p>
                 Globals, shared by all the programs of the figure, are created
@@ -243,6 +243,14 @@
                 <strong>wait … ms</strong> block pauses a button’s program, the
                 figure being redrawn meanwhile: enough to animate step by step.
                 Touching the button again stops the running program.
+            </p>
+            <p>
+                In the <strong>Sensing</strong> category, the
+                <strong>ask … and wait</strong> block asks a question and pauses
+                the program until the answer, typed in a field and confirmed
+                with OK or Enter; the <strong>answer</strong> block then reads
+                it, as a number if it is one (<code>12.5</code>), otherwise as a
+                text. Each run of the program has its own answer.
             </p>
             <p>
                 In the <strong>Functions</strong> category, a function can also

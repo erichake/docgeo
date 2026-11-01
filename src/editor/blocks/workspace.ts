@@ -59,6 +59,7 @@ const PROGRAM = ["#2563eb", "#1f55cf", "#1a46ab"];
 const GLOBAL = ["#4f7fa0", "#456f8c", "#3a5e77"];
 // Where a program starts: Scratch's "when the green flag is clicked".
 const START = ["#ffbf00", "#e6ac00", "#cc9900"];
+const SENSING = ["#5cb1d6", "#47a8d1", "#2e8eb8"];
 
 let figure: BlocksFigure;
 // The globals created in the blocks, the figure's once a program sets them.
@@ -523,6 +524,20 @@ function defineBlocks(): void {
             style: "text_blocks",
         },
         {
+            type: "dg_ask",
+            message0: msg("ASK"),
+            args0: [{ type: "input_value", name: "TEXT" }],
+            inputsInline: true,
+            ...statement,
+            style: "sensing_blocks",
+        },
+        {
+            type: "dg_answer",
+            message0: msg("ANSWER"),
+            output: null,
+            style: "sensing_blocks",
+        },
+        {
             type: "dg_wait",
             message0: msg("WAIT"),
             args0: [{ type: "input_value", name: "MS", check: "Number" }],
@@ -787,6 +802,17 @@ function toolbox(kinds: string[], owner: string, starts: string[]) {
             },
             {
                 kind: "category",
+                name: text("CAT_SENSING"),
+                categorystyle: "sensing_category",
+                contents: [
+                    block("dg_ask", {
+                        TEXT: shadow("text", { TEXT: "" }),
+                    }),
+                    block("dg_answer"),
+                ],
+            },
+            {
+                kind: "category",
                 name: text("CAT_LISTS"),
                 categorystyle: "list_category",
                 contents: [
@@ -870,12 +896,14 @@ function theme(): Blockly.Theme {
             program_blocks: style(PROGRAM),
             start_blocks: style(START),
             global_blocks: style(GLOBAL),
+            sensing_blocks: style(SENSING),
         },
         categoryStyles: {
             turtle_category: { colour: TURTLE[0] },
             figure_category: { colour: FIGURE[0] },
             global_category: { colour: GLOBAL[0] },
             event_category: { colour: START[0] },
+            sensing_category: { colour: SENSING[0] },
         },
         componentStyles: {
             // Enlarged, the blocks let the figure show through.

@@ -298,41 +298,80 @@ export function runProgram(c: construction, expression: ExpressionProgram) {
                 styleObject(c, target, method, args);
             else if (setValue(target, args[0])) c.invalidateGeometry(target);
         },
-        alert: (message) => {
-            if (message === null) return;
-            // DGPad's message is HTML: only its text is shown.
-            const text = new DOMParser().parseFromString(
-                formatValue(message, 4),
-                "text/html",
-            ).body.textContent!;
-            const ok = $.create("button")
-                .text("OK")
-                .stl(
-                    "align-self:flex-end;padding:6px 22px;border:0;border-radius:5px;background:#8cd4f5;color:#fff;font:inherit;font-weight:500;cursor:pointer",
-                );
-            const screen = $.create("div")
-                .stl(
-                    "position:fixed;inset:0;z-index:10000;display:flex;justify-content:center;align-items:flex-start;padding:40px 16px;background:rgb(50 50 50 / 0.7)",
-                )
-                .add(
-                    $.create("div")
-                        .stl(
-                            "display:flex;flex-direction:column;gap:20px;max-width:350px;padding:24px;border-radius:5px;background:#fff;color:#555;font:16px system-ui,sans-serif;text-align:center;white-space:pre-wrap",
-                        )
-                        .add($.create("div").text(text), ok),
-                );
-            ok.on("click", () => screen.dispose());
-            $("body").add(screen);
-        },
+        alert: (message) => message !== null && dialog(message),
     };
     const steps = programSteps(program, env);
     if (!steps) return void evaluateProgram(program, env);
     clearTimeout(RUNS.get(expression));
-    const next = () => {
-        const { done, value } = steps.next();
-        if (!done) RUNS.set(expression, window.setTimeout(next, value));
+    const next = (answer: ScriptValue = "") => {
+        const { done, value } = steps.next(answer);
+        if (done) return;
+        if (typeof value === "number")
+            RUNS.set(
+                expression,
+                window.setTimeout(() => next(), value),
+            );
+        else dialog(value.ask, next);
     };
     next();
+}
+
+// Blockly's message, or its question when `answer` takes what was typed: a
+// number if it reads as one, as Scratch's answer.
+function dialog(
+    message: ScriptValue | null,
+    answer?: (value: ScriptValue) => void,
+) {
+    // DGPad's message is HTML: only its text is shown.
+    const text =
+        message === null
+            ? ""
+            : new DOMParser().parseFromString(
+                  formatValue(message, 4),
+                  "text/html",
+              ).body.textContent!;
+    const ok = $.create("button")
+        .text("OK")
+        .stl(
+            "align-self:flex-end;padding:6px 22px;border:0;border-radius:5px;background:#8cd4f5;color:#fff;font:inherit;font-weight:500;cursor:pointer",
+        );
+    const field =
+        answer &&
+        $.create("input")
+            .att("type", "text")
+            .stl(
+                "padding:6px 8px;border:1px solid #dcdcdc;border-radius:5px;font:inherit;color:#333",
+            );
+    const screen = $.create("div")
+        .stl(
+            "position:fixed;inset:0;z-index:10000;display:flex;justify-content:center;align-items:flex-start;padding:40px 16px;background:rgb(50 50 50 / 0.7)",
+        )
+        .add(
+            $.create("div")
+                .stl(
+                    "display:flex;flex-direction:column;gap:20px;max-width:350px;padding:24px;border-radius:5px;background:#fff;color:#555;font:16px system-ui,sans-serif;text-align:center;white-space:pre-wrap",
+                )
+                .add($.create("div").text(text), ...(field ? [field] : []), ok),
+        );
+    const close = () => {
+        screen.dispose();
+        if (!field) return;
+        const typed = (field.dom() as HTMLInputElement).value.trim();
+        const number = Number(typed.replace(",", "."));
+        answer!(typed && Number.isFinite(number) ? number : typed);
+    };
+    ok.on("click", close);
+    // Not the figure's keyboard shortcuts.
+    field?.on(
+        "keydown",
+        (event) => {
+            event.stopPropagation();
+            if (event.key === "Enter") close();
+        },
+        false,
+    );
+    $("body").add(screen);
+    (field?.dom() as HTMLInputElement | undefined)?.focus();
 }
 
 // Carries out a script's styling method on one of the figure's objects.

@@ -61,7 +61,7 @@ export type FormulaFn =
 
 // DGPad's own names for its operators, also applying to lists, its view
 // restrictions (see restrictView), Blockly's message (see alert) and a
-// button's wait (see programSteps).
+// button's wait, question and its answer (see programSteps).
 type ListFn =
     | "plus"
     | "minus"
@@ -72,7 +72,9 @@ type ListFn =
     | "restrictTheta"
     | "restrictPhi"
     | "ALERT"
-    | "WAIT";
+    | "WAIT"
+    | "ASK"
+    | "ANSWER";
 
 // -1: one argument or more.
 const FORMULA_ARITY: Record<FormulaFn, number> = {
@@ -129,6 +131,8 @@ const FORMULA_ARITY: Record<FormulaFn, number> = {
     restrictPhi: 1,
     ALERT: 1,
     WAIT: 1,
+    ASK: 1,
+    ANSWER: 0,
 };
 
 const LIST_OPERATORS: Record<ListFn, BinaryOp | null> = {
@@ -142,6 +146,8 @@ const LIST_OPERATORS: Record<ListFn, BinaryOp | null> = {
     restrictPhi: null,
     ALERT: null,
     WAIT: null,
+    ASK: null,
+    ANSWER: null,
 };
 
 // The only methods a script may call: reading an object, changing one of
@@ -2166,6 +2172,8 @@ interface Frame {
     // The break or continue statement leaving the loop's body.
     jump: "break" | "continue" | null;
     turtle: Turtle | null;
+    // The answer to the program's last question.
+    answer: ScriptValue;
     // The decimal places a turtle writes numbers with, as a power of 10.
     precision: number;
     // The angle unit, read from the view at its first use (0 before).
@@ -2621,6 +2629,7 @@ function compileNode(node: FormulaNode, scope: Scope): Code {
                     const value = args[0](frame);
                     return Number(value === null || Number.isNaN(value));
                 };
+            if (fn === "ANSWER") return (frame) => frame.answer;
             if (fn in LIST_OPERATORS) {
                 const op = LIST_OPERATORS[fn as ListFn];
                 return (frame) => {
@@ -2628,7 +2637,7 @@ function compileNode(node: FormulaNode, scope: Scope): Code {
                     if (values === null) return null;
                     if (op) return evalBinary(op, values[0], values[1]);
                     if (fn === "ALERT") frame.env.alert?.(values[0]);
-                    else if (fn !== "WAIT")
+                    else if (fn !== "WAIT" && fn !== "ASK")
                         frame.env.restrictView?.(
                             fn === "restrictTheta" ? "THETA" : "PHI",
                             values[0],
@@ -2970,7 +2979,7 @@ function* callSteps(
     fn: ScriptFunction,
     values: ScriptValue[],
     frame: Frame,
-): Generator<number, ScriptValue | null, void> {
+): Generator<number | Question, ScriptValue | null, ScriptValue> {
     const saved = enter(fn, values, frame);
     yield* fn.steps!(frame);
     return leave(fn, saved, frame);
@@ -3108,10 +3117,14 @@ function compileStatement(statement: Statement, scope: Scope): Code {
 }
 
 // A program that waits, run step by step: generators walk its statements,
-// stopping at each WAIT(ms) and in each function it calls as a statement;
-// its expressions are the closures of the others (a WAIT in an expression
-// doesn't wait).
-type Steps = (frame: Frame) => Generator<number, void, void>;
+// stopping at each WAIT(ms) and ASK(question), resumed with the answer, and
+// in each function it calls as a statement; its expressions are the
+// closures of the others (a WAIT or an ASK in an expression doesn't wait).
+type Steps = (frame: Frame) => Generator<number | Question, void, ScriptValue>;
+
+export interface Question {
+    ask: ScriptValue | null;
+}
 
 function compileSteps(statements: Statement[], scope: Scope): Steps {
     scope = declareFunctions(statements, scope, (body, inner, fn) => {
@@ -3159,6 +3172,12 @@ function statementSteps(statement: Statement, scope: Scope): Steps {
         return function* (frame) {
             const value = realPart(ms(frame));
             if (value !== null) yield value;
+        };
+    }
+    if (node?.kind === "call" && node.fn === "ASK") {
+        const question = compileNode(node.args[0], scope);
+        return function* (frame) {
+            frame.answer = yield { ask: question(frame) };
         };
     }
     const called = node?.kind === "assign" ? node.value : node;
@@ -3621,6 +3640,7 @@ function newFrame(env: FormulaEnv, size: number): Frame {
         result: null,
         jump: null,
         turtle: null,
+        answer: "",
         precision: 1e14,
         unit: 0,
     };
@@ -3663,14 +3683,17 @@ export function evaluateProgram(
 }
 
 // The run of a program that waits, each step yielding the milliseconds of
-// its wait, or null for a program that doesn't (see evaluateProgram).
+// its wait or its question, to resume with the answer, or null for a
+// program that doesn't (see evaluateProgram).
 export function programSteps(
     program: Program,
     env: FormulaEnv,
-): Iterator<number> | null {
+): Iterator<number | Question, void, ScriptValue> | null {
     if (
         !programNodes(program).some(
-            (node) => node.kind === "call" && node.fn === "WAIT",
+            (node) =>
+                node.kind === "call" &&
+                (node.fn === "WAIT" || node.fn === "ASK"),
         )
     )
         return null;

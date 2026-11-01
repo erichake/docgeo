@@ -923,6 +923,11 @@ class Decompiler {
                 type: "dg_alert",
                 inputs: { TEXT: value(this.value(node.args[0])) },
             };
+        if (node.kind === "call" && node.fn === "ASK")
+            return {
+                type: "dg_ask",
+                inputs: { TEXT: value(this.value(node.args[0])) },
+            };
         if (node.kind === "call" && node.fn === "WAIT")
             return {
                 type: "dg_wait",
@@ -1294,6 +1299,8 @@ class Decompiler {
                 };
             case "random":
                 return { type: "math_random_float" };
+            case "ANSWER":
+                return { type: "dg_answer" };
             // What DGPad's Blockly reads of the view.
             case "windoww":
             case "windowh":
@@ -1442,7 +1449,8 @@ const isStatement = (node: FormulaNode): boolean =>
     node.kind === "assign" ||
     node.kind === "assignItem" ||
     node.kind === "turtle" ||
-    (node.kind === "call" && (node.fn === "ALERT" || node.fn === "WAIT")) ||
+    (node.kind === "call" &&
+        (node.fn === "ALERT" || node.fn === "WAIT" || node.fn === "ASK")) ||
     (node.kind === "method" && node.method !== "concat");
 
 // ************************* BLOCKS → PROGRAM *************************
@@ -1886,6 +1894,8 @@ class Generator {
                 return call("ALERT", this.arg(block, "TEXT", '""'));
             case "dg_wait":
                 return call("WAIT", this.arg(block, "MS"));
+            case "dg_ask":
+                return call("ASK", this.arg(block, "TEXT", '""'));
             case "procedures_callnoreturn":
                 return line(`${this.value(block)[0]};`);
             case "turtle_pen":
@@ -2110,6 +2120,8 @@ class Generator {
                 ];
             case "dg_view":
                 return [`${fields.NAME}()`, ATOM];
+            case "dg_answer":
+                return ["ANSWER()", ATOM];
             case "dg_angle":
                 return [
                     `${fields.TYPE}(${["A", "B", "C"].map((c) => this.arg(block, c)).join(", ")})`,

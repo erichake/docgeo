@@ -5,6 +5,7 @@ import {
     evaluateProgram,
     NO_VIEW,
     parseProgram,
+    programSteps,
     type FormulaEnv,
     type ScriptValue,
 } from "../../src/import/dgp_formula";
@@ -449,6 +450,24 @@ return [t, [a]][2 - 1][1 - 1] + t.slice(-1)[0] + [t][1 - 1].slice(-1)[0];`);
             '"dg_wait"',
         );
         expect(roundTrip(robot)).toContain("WAIT(200);");
+    });
+
+    it("asks and waits for the answer, as Scratch's sensing blocks", () => {
+        const source = `ASK("Quel est ton nom ?");
+ALERT("Bonjour " + ANSWER());`;
+        expect(JSON.stringify(programBlocks(source, true))).toContain(
+            '"dg_answer"',
+        );
+        expect(roundTrip(source)).toBe(source);
+        const said: unknown[] = [];
+        const steps = programSteps(parseProgram(source), {
+            resolveIdentifier: () => null,
+            view: () => NO_VIEW,
+            alert: (message) => said.push(message),
+        })!;
+        expect(steps.next().value).toEqual({ ask: "Quel est ton nom ?" });
+        expect(steps.next("Léa").done).toBe(true);
+        expect(said).toEqual(["Bonjour Léa"]);
     });
 
     it("turns other for loops and v++ into blocks, as a program drawing by steps", () => {

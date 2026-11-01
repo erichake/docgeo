@@ -1294,6 +1294,12 @@ ses méthodes internes et figé dans sa version de 2016.
   arrête le lancement en cours. Un `ALERT` ou un `WAIT` en dernière
   instruction reste une instruction (et non la valeur rendue par le
   programme), comme l'appel d'une procédure qui ne rend rien.
+- **Capteurs** (2026-11-01, comme Scratch) : catégorie « Capteurs » avec
+  « demander … et attendre » (`dg_ask`, `ASK(question)`) et « réponse »
+  (`dg_answer`, `ANSWER()`). La question s'affiche dans la boîte du
+  message, avec un champ ; le programme reprend à la validation (OK ou
+  Entrée), comme après un `WAIT`. Hors du programme d'un bouton ou d'un
+  événement, `ASK` ne demande rien.
 - **Boucles écrites à la main** (2026-11-01, sans nouveau bloc) : `v++`
   seul devient « ajouter 1 à v » ; une boucle `for` qui n'est pas celle de
   Blockly (`i < n`, pas quelconque) devient son initialisation suivie d'un
