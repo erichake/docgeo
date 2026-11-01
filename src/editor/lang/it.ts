@@ -56,6 +56,8 @@ const it: Texts = {
         page_color: "Colore della scheda",
         page_no_color: "Nessun colore",
         save_as: "Salva con nome…",
+        save_page_as: "Salva la pagina con nome…",
+        open_in_tab: "Apri in una nuova scheda",
         delete: "Elimina",
         eraser: "Gomma",
         axes: "Assi",

@@ -56,6 +56,8 @@ const el: Texts = {
         page_color: "Χρώμα καρτέλας",
         page_no_color: "Χωρίς χρώμα",
         save_as: "Αποθήκευση ως…",
+        save_page_as: "Αποθήκευση σελίδας ως…",
+        open_in_tab: "Άνοιγμα σε νέα καρτέλα",
         delete: "Διαγραφή",
         eraser: "Γόμα",
         axes: "Σύστημα αξόνων",

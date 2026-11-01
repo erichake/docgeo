@@ -216,13 +216,17 @@ export async function openFigureFile(
     if (/\.dgo$/i.test(file.name))
         return { book: await importDgoBook(c, file), unsupported: [] };
     useWorkbook(null);
-    return {
-        book: null,
-        unsupported: /\.ggb$/i.test(file.name)
-            ? await (await import("./ggb_importer")).importGgbFromBlob(c, file)
-            : (await import("./dgp_importer")).importDgp(c, await file.text()),
-    };
+    return { book: null, unsupported: await importForeign(c, file) };
 }
+
+// What a DGPad or GeoGebra figure, opened in `c`, has that isn't supported.
+export const importForeign = async (
+    c: construction,
+    file: File,
+): Promise<string[]> =>
+    /\.ggb$/i.test(file.name)
+        ? (await import("./ggb_importer")).importGgbFromBlob(c, file)
+        : (await import("./dgp_importer")).importDgp(c, await file.text());
 
 // With its page shown as it is in `c`.
 export async function writeWorkbook(

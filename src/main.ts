@@ -98,7 +98,7 @@ export const DOCGEO_READY = search.has("embed")
 // Outside the embedded mode and a web page, a figure file dropped on the
 // page opens in place of the one shown.
 if (!search.has("embed") && fit === null)
-    dropFigures((file) => void (picked ?? openFile)(file));
+    dropFigures((files) => void (picked ?? openFile)(files[0]));
 
 async function saveFigure(name: string): Promise<void> {
     const href = URL.createObjectURL(

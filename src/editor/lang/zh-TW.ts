@@ -55,6 +55,8 @@ const zh_TW: Texts = {
         page_color: "標籤顏色",
         page_no_color: "無顏色",
         save_as: "另存新檔…",
+        save_page_as: "頁面另存新檔…",
+        open_in_tab: "在新分頁開啟",
         delete: "刪除",
         eraser: "橡皮擦",
         axes: "座標系",

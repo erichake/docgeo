@@ -1,4 +1,4 @@
-import { $ } from "./dom";
+import { $, type DOMElement } from "./dom";
 import { DIR, t } from "./i18n";
 
 $("head").append(`<style>
@@ -15,12 +15,34 @@ $("head").append(`<style>
     @media (prefers-reduced-motion: reduce) { .docgeo-drop, .docgeo-drop div { transition: none; } .docgeo-drop g { animation: none; } }
 </style>`);
 
-// A figure file dropped on the page is handed to `open`, with its handle
-// where the browser gives one, a veil showing where it can be dropped. Other
-// drops, of text into a field, are left alone.
+export const hasFiles = (event: DragEvent): boolean =>
+    event.dataTransfer!.types.includes("Files");
+
+// The figure files dropped, with the first one's handle where the browser
+// gives one, which it only gives during the event.
+export function droppedFigures(event: DragEvent): {
+    files: File[];
+    from?: Promise<FileSystemHandle | null>;
+} {
+    const items = [...event.dataTransfer!.items].filter((item) =>
+        /\.(dgo|dgp|ggb)$/i.test(item.getAsFile()?.name ?? ""),
+    );
+    return {
+        files: items.map((item) => item.getAsFile()!),
+        from: items[0]?.getAsFileSystemHandle?.(),
+    };
+}
+
+// The figure files dropped on the page are handed to `open`, a veil, which
+// it returns, showing where they can be dropped. Other drops, of text into a
+// field, are left alone.
 export function dropFigures(
-    open: (file: File, from?: Promise<FileSystemHandle | null>) => void,
-): void {
+    open: (
+        files: File[],
+        from: Promise<FileSystemHandle | null> | undefined,
+        event: DragEvent,
+    ) => void,
+): DOMElement {
     const veil = $.create("div")
         .cls("docgeo-drop")
         .att("dir", DIR)
@@ -28,8 +50,6 @@ export function dropFigures(
             `<div><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 15v3a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-3"/><g><path d="M12 3v12M7 10l5 5 5-5"/></g></svg>
             <strong>${t("drop_figure")}</strong><small>${t("figure_formats")}</small></div>`,
         );
-    const hasFiles = (event: DragEvent) =>
-        event.dataTransfer!.types.includes("Files");
     $("body").add(veil);
     $("body").on(
         "dragenter",
@@ -53,12 +73,10 @@ export function dropFigures(
             if (!hasFiles(event)) return;
             event.preventDefault();
             veil.removeClass("on");
-            // The handle is only given during the event.
-            const item = [...event.dataTransfer!.items].find((item) =>
-                /\.(dgo|dgp|ggb)$/i.test(item.getAsFile()?.name ?? ""),
-            );
-            if (item) open(item.getAsFile()!, item.getAsFileSystemHandle?.());
+            const { files, from } = droppedFigures(event);
+            if (files.length) open(files, from, event);
         },
         false,
     );
+    return veil;
 }

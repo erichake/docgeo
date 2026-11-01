@@ -2,6 +2,7 @@
 
 interface FilePickerOptions {
     id?: string;
+    multiple?: boolean;
     suggestedName?: string;
     types?: { description: string; accept: Record<string, string[]> }[];
 }

@@ -53,22 +53,30 @@ export function showChanged(dirty: boolean): void {
         );
 }
 
-// Lets the user choose a figure file: one a save can write back to, where
-// the browser allows it.
+// Lets the user choose figure files, several if the input allows it: the
+// first one a save can write back to, where the browser allows it.
 export function chooseFile(
     input: HTMLInputElement,
-    open: (file: File, from?: FileSystemFileHandle) => void,
+    open: (files: File[], from?: FileSystemFileHandle) => void,
 ): void {
     if (!native) return input.click();
     void window.showOpenFilePicker!({
         id: "docgeo",
+        multiple: input.multiple,
         types: [
             {
                 description: t("figure_formats"),
                 accept: { [DGO]: [".dgo", ".dgp", ".ggb"] },
             },
         ],
-    }).then(async ([from]) => open(await from.getFile(), from), aborted);
+    }).then(
+        async (handles) =>
+            open(
+                await Promise.all(handles.map((from) => from.getFile())),
+                handles[0],
+            ),
+        aborted,
+    );
 }
 
 // Whether the figure `write` makes was saved, in its file or, if `as` or

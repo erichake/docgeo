@@ -2769,3 +2769,39 @@ autres pages, descriptions et historiques d'annulation compris
 (`renameReferences`, `renameExternals` de `src/editor/text.ts`). Supprimer
 une page montre sa voisine sans elle : ses références à la page supprimée
 deviennent indéfinies.
+
+#### Ouvrir dans un nouvel onglet — 2026-11-01
+
+Menu Fichier, « Ouvrir dans un nouvel onglet… » (`openInTabs` de
+`src/editor/main.ts`) : un ou plusieurs fichiers (`.dgo`, `.dgp`, `.ggb`)
+deviennent des pages insérées après la page montrée, chaque fichier montré
+à son tour, le dernier le restant (un `.dgp` ou un `.ggb` n'a de
+description qu'une fois ouvert). Une figure devient une page nommée d'après
+son fichier (sans extension), un classeur y met toutes ses pages, sous leurs
+noms, sa page montrée l'étant ; un nom déjà pris est numéroté, et les
+références entre pages insérées suivent ce renommage (`renamedJson`). Une
+figure seule devient d'abord la page 1 d'un classeur, comme pour « Nouvelle
+page ». Le classeur garde son fichier d'enregistrement : le handle du
+fichier ouvert n'est pas repris. Les globales Blockly suivent la règle du
+classeur : la page quittée donne ses valeurs aux autres. Un fichier
+illisible arrête l'insertion, ses pages retirées (« Impossible d'ouvrir
+cette figure »).
+
+« Enregistrer la page sous… » (classeur seulement) écrit la page montrée
+seule dans un `.dgo` (`saveOther`), sans changer le fichier du classeur.
+
+Glisser-déposer (`dropFigures` de `src/drop.ts`, qui donne tous les
+fichiers de figure déposés et rend son voile) : l'endroit du dépôt décide.
+Sur la figure, les fichiers la remplacent, plusieurs formant un classeur de
+leurs pages, qu'un enregistrement n'écrit dans aucun d'eux. Le voile de
+l'éditeur s'arrête au-dessus des onglets et porte en bas un bandeau
+« Ouvrir dans un nouvel onglet » (pages insérées après la page montrée).
+Déposés sur les onglets, les fichiers sont ouverts dans de nouveaux
+onglets à l'endroit du dépôt, les onglets suivants s'écartant pour leur
+faire place (`dropOnTabs`). Le lecteur ne garde que le remplacement par le
+premier fichier. Une figure déposée n'est jamais fusionnée dans la page
+montrée (objets homonymes, repères, 2D/3D, styles, macros : les pages
+restent des figures indépendantes, voir `DGO.md`).
+
+Remplacer une figure modifiée et non enregistrée (« Nouvelle figure »,
+« Ouvrir… », dépôt sur la figure) demande confirmation (`discarded`).

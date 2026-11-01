@@ -11,16 +11,18 @@ import {
     imageKey,
     importDgo,
     readDgo,
+    readDgoFile,
     writeDgo,
     type DgoFigure,
     type Workbook,
 } from "../dgo";
 import { $, type DOMElement } from "../dom";
-import { dropFigures } from "../drop";
+import { droppedFigures, dropFigures, hasFiles } from "../drop";
 import { FIGURE_URL, fetchFigure } from "../figure_url";
 import { DIR, LANG } from "../i18n";
 import {
     forgetValues,
+    importForeign,
     leavePage,
     openFigureFile,
     showTabs,
@@ -296,6 +298,9 @@ $("head").append(`<style>
     .dge-editor .docgeo-tabs > button { transition: transform 0.15s; }
     .docgeo-tabs > button.dge-dragged { z-index: 1; transition: none; box-shadow: 0 2px 8px rgb(0 0 0 / 0.18); }
     .docgeo-tabs > .dge-tabs-button { width: 34px; padding: 0; justify-content: center; border: 0; margin: 0; color: #444; }
+    body > .docgeo-drop { bottom: var(--docgeo-tabs, 0px); }
+    .dge-drop-tab { position: absolute; inset: auto 28px 28px; margin: 0; pointer-events: none; padding: 20px 16px; border: 2px dashed #93b4f5; border-radius: 12px; background: rgb(255 255 255 / 0.85); color: #2563eb; font-size: 15px; font-weight: 600; text-align: center; transition: background 0.15s, color 0.15s; }
+    .dge-drop-tab.on { border-color: #2563eb; background: #2563eb; color: #fff; }
     .dge-tab-more { display: flex; margin-inline: 8px -6px; padding: 4px 2px; color: #a1a1a1; }
     .dge-tab-more:hover { color: #2a2a2a; }
     .docgeo-tabs input { width: 160px; padding: 0 10px; border: 0; outline: 2px solid #2563eb; outline-offset: -2px; color: #222; font: inherit; }
@@ -1038,6 +1043,10 @@ palette.panel.dom().toggleAttribute("inert", true);
 const fileInput = $.create("input")
     .att("type", "file")
     .att("accept", ".dgo,.dgp,.ggb");
+const pageInput = $.create("input")
+    .att("type", "file")
+    .att("accept", ".dgo,.dgp,.ggb")
+    .att("multiple", "");
 const chooseFigure = () =>
     chooseFile(fileInput.dom() as HTMLInputElement, openChosen);
 const helpLink = $.create("a")
@@ -1064,7 +1073,12 @@ const menus: Menu[] = [
     {
         label: message("menu_file"),
         items: [
-            { label: message("new_figure"), run: () => void newFigure() },
+            {
+                label: message("new_figure"),
+                run: async () => {
+                    if (await discarded()) await newFigure();
+                },
+            },
             { label: message("new_page"), run: () => void addPage() },
             {
                 label: message("delete_page"),
@@ -1076,6 +1090,14 @@ const menus: Menu[] = [
                 shortcut: shortcut("O"),
                 run: chooseFigure,
             },
+            {
+                label: `${message("open_in_tab")}…`,
+                run: () =>
+                    chooseFile(
+                        pageInput.dom() as HTMLInputElement,
+                        (files) => void openInTabs(files),
+                    ),
+            },
             null,
             {
                 label: message("save"),
@@ -1086,6 +1108,11 @@ const menus: Menu[] = [
                 label: message("save_as"),
                 shortcut: shortcut("S", true),
                 run: () => void save(true),
+            },
+            {
+                label: message("save_page_as"),
+                run: () => void savePage(),
+                enabled: () => !!book,
             },
             null,
             {
@@ -6265,6 +6292,13 @@ async function save(as = false): Promise<void> {
     away.forEach((page) => (page.saved = page.history[page.position].figure));
 }
 
+// The page shown alone, in a file of its own.
+async function savePage(): Promise<void> {
+    await recording;
+    const { name } = book!.pages[book!.current];
+    await saveOther(() => asSaved(() => writeDgo(scene())), `${name}.dgo`);
+}
+
 async function saveFigure(): Promise<Blob> {
     await recording;
     return asSaved(write);
@@ -6352,6 +6386,28 @@ async function openFile(
     return unsupported;
 }
 
+// Opened in place of the figure shown, several files making a workbook of
+// their pages, which a save doesn't write back to any of them.
+async function openFiles(
+    files: File[],
+    from?: Promise<FileSystemHandle | null> | FileSystemHandle,
+): Promise<void> {
+    if (files.length === 1) return void (await openFile(files[0], from));
+    await openFile(files[0]);
+    book ??= {
+        pages: [{ name: fileTitle(files[0]), figure: blank(scene()) }],
+        current: 0,
+    };
+    await openInTabs(files.slice(1), book.pages.length);
+}
+
+const fileTitle = (file: File): string => file.name.replace(/\.[^.]*$/, "");
+
+// Whether the figure shown can be replaced: the user doesn't mind losing
+// its changes, if it has any.
+const discarded = async (): Promise<boolean> =>
+    !unsaved() || confirmed(message("embed_unsaved"), message("open"));
+
 function setBook(shown: Workbook | null): void {
     book = shown;
     useWorkbook(book);
@@ -6361,7 +6417,7 @@ function setBook(shown: Workbook | null): void {
 }
 
 // The page being shown.
-let paging = Promise.resolve();
+let paging: Promise<unknown> = Promise.resolve();
 
 // The tabs of the pages: a right click on one, or its arrow, opens the menu
 // of its page, once shown.
@@ -6380,34 +6436,102 @@ const PAGE_COLORS = [
 
 function tabs(): void {
     pageTabs = [];
-    showTabs(book, (index) => (paging = showPage(index)), pageTab, [
-        tabsButton(
-            "new_page",
-            '<path d="M12 5v14M5 12h14"/>',
-            () => void addPage(),
-        ),
-        tabsButton(
-            "page_list",
-            '<rect x="4" y="4" width="6.5" height="6.5" rx="2"/><rect x="13.5" y="4" width="6.5" height="6.5" rx="2"/><rect x="4" y="13.5" width="6.5" height="6.5" rx="2"/><rect x="13.5" y="13.5" width="6.5" height="6.5" rx="2"/>',
-            (box) =>
-                contextMenu(
-                    book!.pages.map(({ name, color }, index) => ({
-                        label: name,
-                        checked: () => index === book!.current,
-                        icon: color
-                            ? () =>
-                                  $.create("span")
-                                      .cls("dge-page-swatch")
-                                      .stl("background", color)
-                            : undefined,
-                        run: () =>
-                            (pageTabs[index].dom() as HTMLElement).click(),
-                    })),
-                    box.left,
-                    box.top,
-                ),
-        ),
-    ]);
+    showTabs(
+        book,
+        (index) => (paging = showPage(index).catch(failed)),
+        pageTab,
+        [
+            tabsButton(
+                "new_page",
+                '<path d="M12 5v14M5 12h14"/>',
+                () => void addPage(),
+            ),
+            tabsButton(
+                "page_list",
+                '<rect x="4" y="4" width="6.5" height="6.5" rx="2"/><rect x="13.5" y="4" width="6.5" height="6.5" rx="2"/><rect x="4" y="13.5" width="6.5" height="6.5" rx="2"/><rect x="13.5" y="13.5" width="6.5" height="6.5" rx="2"/>',
+                (box) =>
+                    contextMenu(
+                        book!.pages.map(({ name, color }, index) => ({
+                            label: name,
+                            checked: () => index === book!.current,
+                            icon: color
+                                ? () =>
+                                      $.create("span")
+                                          .cls("dge-page-swatch")
+                                          .stl("background", color)
+                                : undefined,
+                            run: () =>
+                                (pageTabs[index].dom() as HTMLElement).click(),
+                        })),
+                        box.left,
+                        box.top,
+                    ),
+            ),
+        ],
+    );
+    if (pageTabs.length) dropOnTabs($(pageTabs[0].dom().parentElement!));
+}
+
+// Figure files dropped on the tabs open in new pages where they're dropped,
+// the tabs after making way for them.
+function dropOnTabs(bar: DOMElement): void {
+    let boxes: DOMRect[] | null = null;
+    let place = 0;
+    const makeWay = (way: boolean): void =>
+        pageTabs.forEach((tab, at) =>
+            tab.stl(
+                "transform",
+                way && at >= place
+                    ? `translateX(${DIR === "rtl" ? -48 : 48}px)`
+                    : "",
+            ),
+        );
+    const leave = (): void => {
+        boxes = null;
+        makeWay(false);
+    };
+    // Not shown over the tabs, the veil is only shown again over the figure.
+    bar.on(
+        "dragenter",
+        (event) => {
+            if (hasFiles(event)) event.stopPropagation();
+        },
+        false,
+    );
+    bar.on(
+        "dragover",
+        (event) => {
+            if (!hasFiles(event)) return;
+            event.preventDefault();
+            boxes ??= pageTabs.map((tab) => tab.dom().getBoundingClientRect());
+            place = boxes.filter(
+                (box) =>
+                    box.left + box.width / 2 < event.clientX !==
+                    (DIR === "rtl"),
+            ).length;
+            makeWay(true);
+        },
+        false,
+    );
+    bar.on(
+        "dragleave",
+        (event) => {
+            if (!bar.dom().contains(event.relatedTarget as Node)) leave();
+        },
+        false,
+    );
+    bar.on(
+        "drop",
+        (event) => {
+            if (!hasFiles(event)) return;
+            event.preventDefault();
+            event.stopPropagation();
+            leave();
+            const { files } = droppedFigures(event);
+            if (files.length) void openInTabs(files, place);
+        },
+        false,
+    );
 }
 
 function tabsButton(
@@ -6617,16 +6741,96 @@ async function insertPage(
     page: Workbook["pages"][number],
 ): Promise<void> {
     book!.pages.splice(at, 0, page);
-    away = new Map(
-        [...away].map(([index, steps]) => [
-            index + (index >= at ? 1 : 0),
-            steps,
-        ]),
-    );
+    shiftAway(at, 1);
     reshaped = true;
-    await showPage(at);
+    await showPage(at).catch(failed);
     tabs();
 }
+
+// Opened in new pages from `at`, each file's shown in turn, the user told
+// why one can't be: a figure is named after its file, a workbook gives its
+// pages, whose references to each other follow their names, made unique.
+async function openInTabs(
+    files: File[],
+    at = book ? book.current + 1 : 1,
+): Promise<void> {
+    await recording;
+    const was = reshaped;
+    book ??= {
+        pages: [{ name: message("page_name", "1"), figure: blank(scene()) }],
+        current: 0,
+    };
+    useWorkbook(book);
+    for (const file of files) {
+        let pages: Workbook["pages"];
+        let shown = 0;
+        let load: ((c: construction) => Promise<string[]>) | undefined;
+        try {
+            if (/\.dgo$/i.test(file.name)) {
+                const read = await readDgoFile(file);
+                pages = read.book?.pages ?? [
+                    { name: fileTitle(file), figure: read.figure as DgoFigure },
+                ];
+                shown = read.book?.current ?? 0;
+            } else {
+                pages = [{ name: fileTitle(file), figure: blank(scene()) }];
+                load = (c) => importForeign(c, file);
+            }
+        } catch (error) {
+            showHint(message("open_failed", (error as Error).message), true);
+            break;
+        }
+        const names = new Map<string, string>();
+        for (const page of pages) {
+            let name = page.name;
+            for (
+                let n = 2;
+                pageNamed(name) || [...names.values()].includes(name);
+                n++
+            )
+                name = `${page.name} ${n}`;
+            names.set(page.name, name);
+        }
+        for (const page of pages) {
+            page.name = names.get(page.name)!;
+            page.figure = renamedJson(page.figure, (other, object) =>
+                names.has(other) ? [names.get(other)!, object] : undefined,
+            ) as DgoFigure;
+        }
+        book.pages.splice(at, 0, ...pages);
+        shiftAway(at, pages.length);
+        if (book.current >= at) book.current += pages.length;
+        reshaped = true;
+        forgetValues();
+        try {
+            await showPage(at + shown, load);
+        } catch (error) {
+            book.pages.splice(at, pages.length);
+            shiftAway(at + pages.length, -pages.length);
+            if (book.current >= at) book.current -= pages.length;
+            forgetValues();
+            showHint(message("open_failed", (error as Error).message), true);
+            break;
+        }
+        at += pages.length;
+    }
+    if (book.pages.length === 1) {
+        book = null;
+        useWorkbook(null);
+        reshaped = was;
+    }
+    showChanged(unsaved());
+    tabs();
+}
+
+// The steps of the pages from `at` once `count` pages are inserted there.
+const shiftAway = (at: number, count: number): void =>
+    void (away = new Map(
+        [...away].map(([index, steps]) => [
+            index + (index >= at ? count : 0),
+            steps,
+        ]),
+    ));
 
 // The page at `from` moved to `to`.
 function movePage(from: number, to: number): void {
@@ -6722,33 +6926,36 @@ function renamePage(index: number): void {
     input.select();
 }
 
+type Rename = (page: string, name: string) => [string, string] | undefined;
+
+// A description whose formulas' references to objects of other pages are
+// written anew.
+const renamedJson = (json: unknown, rename: Rename): unknown =>
+    typeof json === "string"
+        ? json.includes("!")
+            ? renameExternals(json, rename)
+            : json
+        : Array.isArray(json)
+          ? json.map((item) => renamedJson(item, rename))
+          : json && typeof json === "object"
+            ? Object.fromEntries(
+                  Object.entries(json).map(([key, value]) => [
+                      key,
+                      renamedJson(value, rename),
+                  ]),
+              )
+            : json;
+
 // The formulas of the other pages, their steps included, whose references
 // to objects of the page shown are written anew (see DGO.md).
-function renameReferences(
-    rename: (page: string, name: string) => [string, string] | undefined,
-): void {
-    const anew = (json: unknown): unknown =>
-        typeof json === "string"
-            ? json.includes("!")
-                ? renameExternals(json, rename)
-                : json
-            : Array.isArray(json)
-              ? json.map(anew)
-              : json && typeof json === "object"
-                ? Object.fromEntries(
-                      Object.entries(json).map(([key, value]) => [
-                          key,
-                          anew(value),
-                      ]),
-                  )
-                : json;
+function renameReferences(rename: Rename): void {
     const text = (figure: string): string =>
         figure.includes("!")
-            ? JSON.stringify(anew(JSON.parse(figure)))
+            ? JSON.stringify(renamedJson(JSON.parse(figure), rename))
             : figure;
     book!.pages.forEach((page, index) => {
         if (index !== book!.current)
-            page.figure = anew(page.figure) as DgoFigure;
+            page.figure = renamedJson(page.figure, rename) as DgoFigure;
     });
     away.forEach((steps) => {
         steps.history = steps.history.map((step) => ({
@@ -6759,8 +6966,15 @@ function renameReferences(
     });
 }
 
-// The workbook's page of this index, in place of the one shown.
-async function showPage(index: number): Promise<void> {
+// The workbook's page of this index, in place of the one shown, opened by
+// `load` if its description isn't known yet.
+async function showPage(
+    index: number,
+    load = async (c: construction): Promise<string[]> => {
+        importDgo(c, book!.pages[index].figure);
+        return [];
+    },
+): Promise<void> {
     await recording;
     const left = book!.current;
     book!.pages[left].figure = await asSaved(() => describeDgo(scene()));
@@ -6770,44 +6984,56 @@ async function showPage(index: number): Promise<void> {
     const steps = away.get(index);
     away.delete(index);
     try {
-        await open(
-            null,
-            async (c) => {
-                importDgo(c, book!.pages[index].figure);
-                return [];
-            },
-            null,
-            steps,
-        );
+        await open(null, load, null, steps);
     } catch (error) {
         // A malformed page: the one left is shown again.
         away.delete(left);
         if (steps) away.set(index, steps);
         book!.current = left;
         tabs();
-        failed(error);
+        throw error;
     }
 }
 
-// Opened by the user, who is told why it can't be.
-const openChosen = (
-    file: File,
+// Opened by the user, once sure to replace the figure shown, who is told
+// why it can't be.
+const openChosen = async (
+    files: File[],
     from?: Promise<FileSystemHandle | null> | FileSystemHandle,
-): void =>
-    void openFile(file, from).catch((error: Error) =>
-        showHint(message("open_failed", error.message), true),
+): Promise<void> => {
+    if (await discarded())
+        await openFiles(files, from).catch((error: Error) =>
+            showHint(message("open_failed", error.message), true),
+        );
+};
+
+for (const [element, run] of [
+    [fileInput, openChosen],
+    [pageInput, openInTabs],
+] as const)
+    element.on(
+        "change",
+        () => {
+            const input = element.dom() as HTMLInputElement;
+            void run([...input.files!]);
+            input.value = "";
+        },
+        false,
     );
 
-fileInput.on(
-    "change",
-    () => {
-        openChosen((fileInput.dom() as HTMLInputElement).files![0]);
-        (fileInput.dom() as HTMLInputElement).value = "";
-    },
+// Dropped on the band at the bottom of the veil, figure files open in new
+// pages after the page shown.
+const dropBand = $.create("p").cls("dge-drop-tab").text(message("open_in_tab"));
+const inBand = (event: DragEvent): boolean =>
+    event.clientY >= dropBand.dom().getBoundingClientRect().top;
+dropFigures((files, from, event) =>
+    inBand(event) ? void openInTabs(files) : void openChosen(files, from),
+).add(dropBand);
+$("body").on(
+    "dragover",
+    (event) => dropBand.toggleClass("on", inBand(event)),
     false,
 );
-
-dropFigures(openChosen);
 
 bindRow(input, null);
 $("body").observeResize(() => {

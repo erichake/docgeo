@@ -56,6 +56,8 @@ const pt: Texts = {
         page_color: "Cor da aba",
         page_no_color: "Sem cor",
         save_as: "Salvar como…",
+        save_page_as: "Salvar a página como…",
+        open_in_tab: "Abrir em uma nova aba",
         delete: "Excluir",
         eraser: "Borracha",
         axes: "Eixos",

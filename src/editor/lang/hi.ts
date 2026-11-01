@@ -56,6 +56,8 @@ const hi: Texts = {
         page_color: "टैब का रंग",
         page_no_color: "कोई रंग नहीं",
         save_as: "इस रूप में सहेजें…",
+        save_page_as: "पृष्ठ को इस रूप में सहेजें…",
+        open_in_tab: "नए टैब में खोलें",
         delete: "हटाएँ",
         eraser: "रबड़",
         axes: "अक्ष",

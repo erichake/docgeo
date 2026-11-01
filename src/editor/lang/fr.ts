@@ -56,6 +56,8 @@ const fr: Texts = {
         page_color: "Couleur de l'onglet",
         page_no_color: "Sans couleur",
         save_as: "Enregistrer sous…",
+        save_page_as: "Enregistrer la page sous…",
+        open_in_tab: "Ouvrir dans un nouvel onglet",
         delete: "Supprimer",
         eraser: "Gomme",
         axes: "Repère",

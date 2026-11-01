@@ -56,6 +56,8 @@ const es: Texts = {
         page_color: "Color de la pestaña",
         page_no_color: "Sin color",
         save_as: "Guardar como…",
+        save_page_as: "Guardar la página como…",
+        open_in_tab: "Abrir en una pestaña nueva",
         delete: "Eliminar",
         eraser: "Goma de borrar",
         axes: "Ejes",

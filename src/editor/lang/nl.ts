@@ -56,6 +56,8 @@ const nl: Texts = {
         page_color: "Tabkleur",
         page_no_color: "Geen kleur",
         save_as: "Opslaan als…",
+        save_page_as: "Pagina opslaan als…",
+        open_in_tab: "Openen in nieuw tabblad",
         delete: "Verwijderen",
         eraser: "Gum",
         axes: "Assenstelsel",

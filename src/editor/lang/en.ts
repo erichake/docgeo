@@ -55,6 +55,8 @@ export default {
     page_color: "Tab color",
     page_no_color: "No color",
     save_as: "Save as…",
+    save_page_as: "Save page as…",
+    open_in_tab: "Open in new tab",
     delete: "Delete",
     eraser: "Eraser",
     axes: "Axes",

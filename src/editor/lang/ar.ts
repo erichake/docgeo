@@ -55,6 +55,8 @@ const ar: Texts = {
         page_color: "لون علامة التبويب",
         page_no_color: "بلا لون",
         save_as: "حفظ باسم…",
+        save_page_as: "حفظ الصفحة باسم…",
+        open_in_tab: "فتح في علامة تبويب جديدة",
         delete: "حذف",
         eraser: "ممحاة",
         axes: "المحاور",

@@ -56,6 +56,8 @@ const de: Texts = {
         page_color: "Registerfarbe",
         page_no_color: "Keine Farbe",
         save_as: "Speichern unter…",
+        save_page_as: "Seite speichern unter…",
+        open_in_tab: "In neuem Tab öffnen",
         delete: "Löschen",
         eraser: "Radierer",
         axes: "Koordinatensystem",
