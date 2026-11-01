@@ -1013,6 +1013,48 @@ describe("Editor", () => {
         expect(lines(c).slice(-2, -1)).toEqual(["θ = Slider(0, 2π, 0.7854)"]);
     });
 
+    it("intersects curves and loci, as many times as they meet", () => {
+        const { scene: c } = studio();
+        const text = [
+            "O = (0, 0)",
+            "A = (2, 0)",
+            "c = Circle(O, A)",
+            "P = Point(c, 0.25)",
+            "M = Midpoint(O, P)",
+            "l = Locus(M, P)",
+            "d = Line(O, A)",
+            "I = Intersection(d, l, 1)",
+            "J = Intersection(d, l, 2)",
+            "f(x) = x^2, (-2 ≤ x ≤ 2)",
+            "g(x) = 2 - x^2, (x <= 3)",
+            "K = Intersection(f, g, 1)",
+            "L = Intersection(l, f, 1)",
+            "h(x) = sin(x)",
+            "N = Intersection(d, h, 6)",
+        ];
+        text.forEach((line) => type(c, line));
+        c.flush();
+        expect(lines(c)).toEqual([
+            ...text.slice(0, 10),
+            "g(x) = 2 - x^2, (x ≤ 3)",
+            ...text.slice(11),
+        ]);
+        const at = (name: string) => (c.getObj(name) as point_object).coords;
+        const near = (value: number, expected: number) =>
+            expect(Math.abs(value - expected)).toBeLessThan(1e-3);
+        const [i, j] = ["I", "J"].map((name) => at(name)[0]).sort();
+        near(i, -1);
+        near(j, 1);
+        near(Math.abs(at("K")[0]), 1);
+        near(at("K")[1], 1);
+        const [x, y] = at("L");
+        near(Math.hypot(x, y), 1);
+        near(y, x * x);
+        near(Math.sin(at("N")[0]), 0);
+        near(Math.abs(at("N")[0]) % Math.PI, 0);
+        expect(() => type(c, "Intersection(d, c, 5)")).toThrow();
+    });
+
     it("plots f(x) = ax^2 + bx + c, its sliders made", () => {
         const { scene: c } = studio();
         add(

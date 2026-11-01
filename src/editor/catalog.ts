@@ -205,7 +205,8 @@ export function accepts(arg: Arg, param: Param): boolean {
                 kind === "line" ||
                 kind === "circle" ||
                 kind === "conic" ||
-                arg instanceof curve_object
+                arg instanceof curve_object ||
+                arg instanceof locus_object
             );
         case "curved":
             return accepts(arg, "intersectable") && kind !== "line";

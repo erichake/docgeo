@@ -443,6 +443,30 @@ return [t, [a]][2 - 1][1 - 1] + t.slice(-1)[0] + [t][1 - 1].slice(-1)[0];`);
         vi.restoreAllMocks();
     });
 
+    it("waits in a button's program, as a robot moved step by step", () => {
+        const robot = `t = (a) ; $v1 = "M" ; N = 0 ; while ( ( x(M) < t ) && ( x(M) > - t ) && ( y(M) < t ) && ( y(M) > - t ) ) { b = Math.ceil ( 4 * Math.random ( ) ) ; if ( b == 1 ) { SET_EXP("M",[x(M) + 1,y(M)]) ; } else { SET_EXP("M",[x(M),y(M) - 1]) ; } WAIT(200) ; N = N + 1 ; } p = $v1 ; M.setSize(5);M.setOpacity(1) ; M.setRGBColor(0,0,178) ; SET_EXP("M",[0,0]) ; ALERT("Gagné en " + N + " coups ! ") ;`;
+        expect(JSON.stringify(programBlocks(robot, true))).toContain(
+            '"dg_wait"',
+        );
+        expect(roundTrip(robot)).toContain("WAIT(200);");
+    });
+
+    it("turns other for loops and v++ into blocks, as a program drawing by steps", () => {
+        const toile = `$o = [];
+function $point(a, b) { $o.push([a, b, 0, 0, 0, 0, 178, 3, []]); return $o.length - 1; }
+function $line(k, p) { $o.push([x(p[0]), y(p[0]), k, 0, 0, 0, 178, 1, p]); return $o.length - 1; }
+function $show() { var d = [], k, r, j; for (k = 0; k < $o.length; k++) { r = $o[k]; if (!r[3]) { d.push([1, r[4], r[5], r[6]]); d.push([10, 0, 0, r[2] ? r[7] : 0]); d.push([12, 0, 0, r[2] ? 0 : r[7]]); d.push([r[0], r[1]]); for (j = 1; j < r[8].length; j++) { d.push([x(r[8][j]), y(r[8][j])]); } if (r[2] == 2) { d.push([r[0], r[1]]); d.push([4, 0, 0, 30]); } d.push([NaN, NaN]); } } SET_EXP("D", d); }
+u = "u0" ; $v1 = $point(x(A),y(A) * 2) ; $o[$v1][3]=(true)?1:0 ; s1 = $line(1,[A,[$o[$v1][0],$o[$v1][1]]]) ; for ( i = 0 ; i < 4 ; i++ ) { c = $point($o[$v1][1],$o[$v1][0]) ; $o[c][4]=0;$o[c][5]=124;$o[c][6]=0 ; v = $line(1,[[$o[$v1][0],$o[$v1][1]],[$o[c][0],$o[c][1]]]) ; $v1 = c ; compteur ++ ; $show();WAIT(10) ; }
+$show();`;
+        const written = roundTrip(toile);
+        expect(written).toContain("WAIT(10);");
+        expect(run(toile).styles).toContainEqual([
+            "D",
+            "setExpression",
+            expect.anything(),
+        ]);
+    });
+
     it("appends to lists and shows messages, as the pirates' button", () => {
         expect(
             roundTrip(`var t = [];

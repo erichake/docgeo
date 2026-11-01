@@ -67,8 +67,9 @@ function parseComplexLiteral(value: string): [number, number] | null {
     return [real, imaginary];
 }
 
-// A list written with numbers, texts and lists only, e.g. a menu's options
-// (see panel_object.ts): a value that a program changes, as in DGPad.
+// A text, or a list written with numbers, texts and lists only, e.g. a
+// menu's options (see panel_object.ts): a value that a program changes, as
+// in DGPad.
 function literal(node: FormulaNode): ScriptValue | null {
     switch (node.kind) {
         case "number":
@@ -94,7 +95,9 @@ function parseLiteralList(value: string): ScriptValue | null {
     } catch {
         return null;
     }
-    return node.kind === "vector" ? literal(node) : null;
+    return node.kind === "vector" || node.kind === "string"
+        ? literal(node)
+        : null;
 }
 
 function parseExpressionValue(value: string): ScriptValue | null {

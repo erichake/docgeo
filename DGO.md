@@ -105,6 +105,27 @@ d'objet se décrit lui-même par sa méthode `dgo()` (type et paramètres).
 | `o`   | objets `[type, nom, paramètres, style?]` | (requis)   |
 | `mac` | macro-constructions (ci-après)           | `[]`       |
 
+### Classeur
+
+Un classeur est une suite de figures **indépendantes**, montrées une à la
+fois par des onglets. Sa racine
+n'a que trois clés :
+
+| Clé   | Contenu                                 | Défaut   |
+| ----- | --------------------------------------- | -------- |
+| `dgo` | version du format                       | (requis) |
+| `pg`  | pages : `{"n": nom, …}` (au moins une)  | (requis) |
+| `p`   | indice de la page montrée à l'ouverture | 0        |
+
+Une page est une figure (toutes les clés de la racine ci-dessus, sauf `dgo`),
+plus son nom `n`. Rien n'est partagé entre les pages : ni objets, ni styles,
+ni images, ni macros, et leurs noms d'objets sont indépendants.
+L'enregistrement garde chaque page dans l'état où on l'a laissée, et `p` est
+la page montrée.
+
+Pour l'instant, le mode intégré du lecteur montre la page `p` d'un classeur,
+seule, sans onglets : l'état élève est celui de cette page.
+
 Couleurs : `#rgb`, `#rrggbb` ou `rgb(r,g,b)`. Booléens : 0 ou 1. JSON n'ayant
 pas NaN, un nombre non fini s'écrit `null` là où il peut survenir :
 coordonnées d'un point libre, paramètre d'un point sur objet, valeur d'une
@@ -374,9 +395,12 @@ la figure, autour de la verticale de O dans l'espace, sa hauteur gardée),
    la solution à gauche puis à droite de O₁O₂ vue de la normale du premier.
    Le vecteur directeur d'une perpendiculaire (`Perp`) est, comme dans
    DGPad, celui de d tourné d'un quart de tour direct dans leur plan.
-   Davantage (cercle-conique, conique-conique, avec une courbe) : rang de la
-   solution par angle croissant autour du centre de gravité de toutes les
-   solutions. Avec un point P : rang par distance décroissante à P.
+   Davantage (cercle-conique, conique-conique, avec une courbe ou un lieu) :
+   rang de la solution par angle croissant autour du centre de gravité de
+   toutes les solutions. Avec un point P : rang par distance décroissante à
+   P. Une courbe (`Cur`) ou un lieu (`Loc`) coupe une droite, un cercle, une
+   courbe ou un lieu ; le lieu par sa ligne brisée. Le rang n'est alors pas
+   limité à 3.
 4. Solide : cylindre, cône ou sphère ; l'intersection avec une droite
    prolonge la paroi du cylindre ou du cône au-delà de ses disques, comme
    GeoGebra, ses solutions triées le long de la droite. Un cylindre ou un
@@ -458,7 +482,11 @@ alignement]]` police, `[30, url, l, h, zoom, opacité, u]` image (largeur
     en forme des objets et, par `SET_EXP("E", valeur)` ou une globale (6),
     changer la valeur d'une `Ex` de valeur constante, comme une manipulation
     (état élève de `E`), et afficher un message (`ALERT(texte)`, dont seul
-    le texte est gardé, pas le HTML). Sans `"s"`, il ne fait rien.
+    le texte est gardé, pas le HTML). `WAIT(ms)`, instruction du programme
+    ou d'une fonction qu'il appelle comme instruction, l'interrompt ms
+    millisecondes, la figure redessinée, puis il reprend (ailleurs, dans
+    une expression ou un programme d'un autre objet, il n'attend pas) ; un
+    nouveau clic arrête le lancement en cours. Sans `"s"`, il ne fait rien.
 14. `g` et `d` : formules en x et y des deux membres de l'équation, de degré
     1 pour une droite, 2 au plus pour une conique, recalculés à chaque
     mouvement. Un cercle a le même coefficient en x² et en y², sans xy ; une
@@ -831,47 +859,47 @@ S'y ajoutent `sc` (condition d'affichage : indice d'une expression) et `mg`
 (aimants : `[[indice, rayon en pixels], …]`), qui peuvent désigner un objet
 postérieur.
 
-| Clé  | Objets       | Contenu                                  | Défaut                            |
-| ---- | ------------ | ---------------------------------------- | --------------------------------- |
-| `c`  | tous         | couleur du trait                         | du type                           |
-| `fc` | tous         | couleur de remplissage                   | `c` s'il est donné, sinon du type |
-| `s`  | tous         | taille                                   | du type                           |
-| `o`  | tous         | opacité                                  | du type                           |
-| `h`  | tous         | 0 visible, 1 caché, 2 super-caché        | 0 (`Mac` : 2)                     |
-| `sn` | tous         | nom affiché                              | 0                                 |
-| `in` | tous         | inerte : ignore survol, clic et toucher  | 0                                 |
-| `no` | tous         | place du nom déplacé (hors points)       | `null` (place de GeoGebra)        |
-| `f`  | tous         | taille de police                         | 16                                |
-| `p`  | tous         | précision (lieu : nombre d'échantillons) | -1 (`Loc` : 1000, `Html` : 4)     |
-| `l`  | tous         | calque (entier, sous les `Html`)         | 0                                 |
-| `sp` | points       | `circle`, `cross`, `diamond`, `rect`     | `circle`                          |
-| `pb` | points       | épaisseur du contour                     | 1                                 |
-| `np` | points       | direction du nom (radians)               | 0                                 |
-| `nd` | points       | distance du nom (pixels)                 | `null` (deux fois la taille)      |
-| `tk` | points       | trace                                    | 0                                 |
-| `i`  | points       | pas de déplacement `[dx, dy]`            | [0, 0]                            |
-| `fl` | points       | punaisé à sa place dans la fenêtre       | 0                                 |
-| `sb` | `On`         | sur le bord du polygone                  | 0                                 |
-| `an` | `On`, `Ex`   | animation (ci-dessous)                   | `null`                            |
-| `pl` | `Poly`       | plan                                     | 0                                 |
-| `su` | `Poly`       | section (garde ses sommets définis)      | 0, 1 pour `PlS`                   |
-| `fx` | `Poly`       | fixé : ne se déplace pas par translation | 0                                 |
-| `ar` | `Ang`, `FA`  | rayon de l'arc                           | 30                                |
-| `ra` | `Ang`        | marque d'angle droit                     | `dgpad`                           |
-| `dc` | `Seg`, `Vec` | décoration (0 à 6), `VecF` compris       | 0                                 |
-| `dh` | tous         | motif de pointillés, en pixels           | `[]` (trait plein)                |
-| `lo` | tous         | opacité du trait (GeoGebra)              | 1                                 |
-| `is` | `Ex`         | pas du curseur                           | 0                                 |
-| `cL` | `Ex`         | longueur du curseur                      | 200                               |
-| `cV` | `Ex`         | curseur vertical                         | 0                                 |
-| `cB` | `Ex`         | case à cocher                            | 0                                 |
-| `iB` | `Ex`         | champ de saisie (largeur)                | 0                                 |
-| `tx` | `Ex`         | LaTeX                                    | 0                                 |
-| `cc` | `Ex`         | couleur du bouton du curseur             | `#780013`                         |
-| `cr` | `Ex`         | rayon du bouton                          | 10                                |
-| `co` | `Ex`         | opacité du bouton                        | 0                                 |
-| `sg` | `ELst`       | épaisseur des segments                   | -1                                |
-| `sa` | `ELst`       | flèche des segments `[l, d]` (px)        | `null`                            |
+| Clé  | Objets                   | Contenu                                  | Défaut                            |
+| ---- | ------------------------ | ---------------------------------------- | --------------------------------- |
+| `c`  | tous                     | couleur du trait                         | du type                           |
+| `fc` | tous                     | couleur de remplissage                   | `c` s'il est donné, sinon du type |
+| `s`  | tous                     | taille                                   | du type                           |
+| `o`  | tous                     | opacité                                  | du type                           |
+| `h`  | tous                     | 0 visible, 1 caché, 2 super-caché        | 0 (`Mac` : 2)                     |
+| `sn` | tous                     | nom affiché                              | 0                                 |
+| `in` | tous                     | inerte : ignore survol, clic et toucher  | 0                                 |
+| `no` | tous                     | place du nom déplacé (hors points)       | `null` (place de GeoGebra)        |
+| `f`  | tous                     | taille de police                         | 16                                |
+| `p`  | tous                     | précision (lieu : nombre d'échantillons) | -1 (`Loc` : 1000, `Html` : 4)     |
+| `l`  | tous                     | calque (entier, sous les `Html`)         | 0                                 |
+| `sp` | points, listes de points | `circle`, `cross`, `diamond`, `rect`     | `circle`                          |
+| `pb` | points                   | épaisseur du contour                     | 1                                 |
+| `np` | points                   | direction du nom (radians)               | 0                                 |
+| `nd` | points                   | distance du nom (pixels)                 | `null` (deux fois la taille)      |
+| `tk` | points                   | trace                                    | 0                                 |
+| `i`  | points                   | pas de déplacement `[dx, dy]`            | [0, 0]                            |
+| `fl` | points                   | punaisé à sa place dans la fenêtre       | 0                                 |
+| `sb` | `On`                     | sur le bord du polygone                  | 0                                 |
+| `an` | `On`, `Ex`               | animation (ci-dessous)                   | `null`                            |
+| `pl` | `Poly`                   | plan                                     | 0                                 |
+| `su` | `Poly`                   | section (garde ses sommets définis)      | 0, 1 pour `PlS`                   |
+| `fx` | `Poly`                   | fixé : ne se déplace pas par translation | 0                                 |
+| `ar` | `Ang`, `FA`              | rayon de l'arc                           | 30                                |
+| `ra` | `Ang`                    | marque d'angle droit                     | `dgpad`                           |
+| `dc` | `Seg`, `Vec`             | décoration (0 à 6), `VecF` compris       | 0                                 |
+| `dh` | tous                     | motif de pointillés, en pixels           | `[]` (trait plein)                |
+| `lo` | tous                     | opacité du trait (GeoGebra)              | 1                                 |
+| `is` | `Ex`                     | pas du curseur                           | 0                                 |
+| `cL` | `Ex`                     | longueur du curseur                      | 200                               |
+| `cV` | `Ex`                     | curseur vertical                         | 0                                 |
+| `cB` | `Ex`                     | case à cocher                            | 0                                 |
+| `iB` | `Ex`                     | champ de saisie (largeur)                | 0                                 |
+| `tx` | `Ex`                     | LaTeX                                    | 0                                 |
+| `cc` | `Ex`                     | couleur du bouton du curseur             | `#780013`                         |
+| `cr` | `Ex`                     | rayon du bouton                          | 10                                |
+| `co` | `Ex`                     | opacité du bouton                        | 0                                 |
+| `sg` | `ELst`                   | épaisseur des segments                   | -1                                |
+| `sa` | `ELst`                   | flèche des segments `[l, d]` (px)        | `null`                            |
 
 Nom `sn` : écrit, pour un objet autre qu'un point, à la place que lui donne
 GeoGebra (segment, droite, demi-droite, vecteur, cercle, arc, conique,

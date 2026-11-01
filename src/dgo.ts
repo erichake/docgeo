@@ -444,8 +444,11 @@ const STYLE: Record<string, Property> = {
         isNumber,
     ),
     l: field(object, "level", 0, Number.isInteger),
-    sp: field(point_object, "shape", "circle", (value) =>
-        POINT_SHAPES.includes(value as string),
+    sp: field<point_object | list_object>(
+        [point_object, list_object],
+        "shape",
+        "circle",
+        (value) => POINT_SHAPES.includes(value as string),
     ),
     pb: field(point_object, "border", 1, isNumber),
     np: field(point_object, "namePosition", 0, isNumber),
@@ -915,16 +918,66 @@ export async function importDgoFromUrl(
 }
 
 // A plain JSON file is read too, for readable test figures. Nothing is
-// ever unsupported. `centered`: see readDgo.
+// ever unsupported. `centered`: see readDgo. Of a workbook, its page shown.
 export async function importDgoFromBlob(
     c: construction,
     file: Blob,
     centered = false,
 ): Promise<string[]> {
-    readDgo(c, await dgoJson(file), centered);
-    runInits(c);
+    await importDgoBook(c, file, centered);
     return [];
 }
+
+// The workbook the file is, if it is one, whose page shown is imported.
+export async function importDgoBook(
+    c: construction,
+    file: Blob,
+    centered = false,
+): Promise<Workbook | null> {
+    const json = await dgoJson(file);
+    const book = dgoWorkbook(json);
+    importDgo(c, book ? book.pages[book.current].figure : json, centered);
+    return book;
+}
+
+export function importDgo(c: construction, figure: Json, centered = false) {
+    readDgo(c, figure, centered);
+    runInits(c);
+}
+
+// Figures shown one at a time, each with its name, and the one shown.
+export interface Workbook {
+    pages: { name: string; figure: DgoFigure }[];
+    current: number;
+}
+
+function dgoWorkbook(json: Json): Workbook | null {
+    if (!isRecord(json) || json.pg === undefined) return null;
+    const { dgo, pg: pages, p: current = 0 } = json;
+    check(Array.isArray(pages) && pages.length > 0);
+    check(typeof current === "number" && Number.isInteger(current));
+    check(current >= 0 && current < pages.length);
+    return {
+        pages: pages.map((page) => {
+            check(isRecord(page) && typeof page.n === "string");
+            const { n, ...figure } = page;
+            return {
+                name: n as string,
+                figure: { ...figure, dgo } as DgoFigure,
+            };
+        }),
+        current,
+    };
+}
+
+export const describeWorkbook = ({ pages, current }: Workbook) => ({
+    dgo: VERSION,
+    pg: pages.map(({ name, figure: { dgo, ...figure } }) => ({
+        n: name,
+        ...figure,
+    })),
+    ...(current > 0 && { p: current }),
+});
 
 // Gzipped or not.
 export async function dgoJson(file: Blob): Promise<Json> {
@@ -1318,12 +1371,8 @@ function setBranches(node: macro_object, value: Json): void {
     list(value, branched.length, branched.length).forEach((branch, index) => {
         const object = branched[index];
         if (object instanceof macro_object) return setBranches(object, branch);
-        check(
-            Number.isInteger(branch) &&
-                (branch as number) >= 0 &&
-                (branch as number) <= 3,
-        );
-        object.order = branch as 0 | 1 | 2 | 3;
+        check(Number.isInteger(branch) && (branch as number) >= 0);
+        object.order = branch as number;
     });
 }
 
@@ -1594,6 +1643,7 @@ const INTERSECTABLE = [
     primitive_circle_object,
     primitive_quadric_object,
     curve_object,
+    locus_object,
 ];
 
 // What a transformation maps, besides points.
@@ -1805,13 +1855,13 @@ const BUILDERS: Record<string, Builder> = {
     },
     Int: (parameters, { c, name, at }) => {
         const [o1, o2, order, away] = list(parameters, 3, 4);
-        check(order === 0 || order === 1 || order === 2 || order === 3);
+        check(Number.isInteger(order) && (order as number) >= 0);
         return createOrderedIntersection(
             c,
             name,
             at(o1, ...INTERSECTABLE),
             at(o2, ...INTERSECTABLE),
-            order,
+            order as number,
             away === undefined ? undefined : at(away, point_object),
         );
     },

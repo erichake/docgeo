@@ -414,10 +414,17 @@ export function lineOf(
         return `${name} = ${formatName(object.C.macros[macro].name)}(${args.join(", ")})`;
     }
     if (tag === "Cur") {
-        const { formula, min, max } = object as curve_object;
+        const { formula, bounds } = object as curve_object;
+        const [min, max] = bounds.map((bound) =>
+            typeof bound === "object" && bound
+                ? oneLine(renamed(bound.source, bound.refs))
+                : bound,
+        );
+        const body = `${name}(x) = ${oneLine(renamed(formula.source, formula.refs))}`;
+        // As GeoGebra writes a function on an interval.
         return min === null && max === null
-            ? `${name}(x) = ${oneLine(renamed(formula.source, formula.refs))}`
-            : null;
+            ? body
+            : `${body}, (${min === null ? "" : `${min} ≤ `}x${max === null ? "" : ` ≤ ${max}`})`;
     }
     if (tag === "Seq") {
         const { nature, loops, formulas, refs } = object as sequence_object;
@@ -525,8 +532,18 @@ export function resolve(
             throw new TextError("arguments", commandName(command));
         }
         if (overload.tag === "Int" && overload.params[2] === "number") {
+            // A curve or a locus may be cut more than four times.
             const branch = args[2] as number;
-            if (!Number.isInteger(branch) || branch < 1 || branch > 4)
+            const many = args.some((arg) =>
+                ["curve", "locus"].includes(
+                    (arg as construction_object).familytype,
+                ),
+            );
+            if (
+                !Number.isInteger(branch) ||
+                branch < 1 ||
+                (branch > 4 && !many)
+            )
                 throw new TextError("branch");
         }
         if (overload.tag === "CyI" && args[2] !== 1 && args[2] !== 2)
@@ -1324,25 +1341,43 @@ function sequence(
     }
 }
 
-// `f(x) = …`, the curve of a function of x, which formulas call as one.
+// `f(x) = …`, the curve of a function of x, which formulas call as one,
+// or `f(x) = …, (a ≤ x ≤ b)` on an interval, as in GeoGebra.
 function curve(
     c: construction,
-    source: string,
+    text: string,
 ): { overload: Overload; args: Arg[] } {
-    const { refs } = formulaArg(c, source, ["x"]);
+    const [, source, min, max] = INTERVAL.exec(text) ?? [, text];
+    const parts = [source!, min, max].map((part, index) =>
+        part === undefined
+            ? null
+            : index && /^[-+]?(\d+\.?\d*|\.\d+)(e[-+]?\d+)?$/i.test(part)
+              ? Number(part)
+              : formulaArg(c, part, index ? [] : ["x"]),
+    );
     return {
         overload: {
             params: [],
             tag: "Cur",
-            encode: (_, index) => [
-                formulaParameter(source, refs, index),
-                null,
-                null,
-            ],
+            encode: (_, index) =>
+                parts.map((part) =>
+                    part instanceof FormulaArg
+                        ? formulaParameter(part.source, part.refs, index)
+                        : part,
+                ),
         },
-        args: [...refs.values()],
+        args: [
+            ...new Set(
+                parts.flatMap((part) =>
+                    part instanceof FormulaArg ? [...part.refs.values()] : [],
+                ),
+            ),
+        ],
     };
 }
+
+const INTERVAL =
+    /^(.*),\s*\(\s*(?:(.+?)\s*(?:≤|<=)\s*)?x\s*(?:(?:≤|<=)\s*(.+?)\s*)?\)$/;
 
 const EQUATIONS = ["EqL", "EqC", "EqQ", "PlE"];
 

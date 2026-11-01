@@ -1181,7 +1181,9 @@ n)` dans `CerclesDeCercles.ggb`. Nommées comme les commandes, ces
   comme dans GeoGebra, la courbe de la fonction (`Cur`, sans bornes),
   qu'une formule appelle comme une expression (`f(2)`, `f'(2)`) et que la
   ligne relit `f(x) = …` ; `f(x, y) = …` (variables parmi x, y, z, t) est
-  l'expression `f = …`.
+  l'expression `f = …`. Sur un intervalle (2026-11-01), elle s'écrit
+  comme dans GeoGebra `f(x) = …, (a ≤ x ≤ b)` (`<=` accepté, une borne
+  pouvant manquer, bornes nombres ou formules).
 - **Produits à la GeoGebra** (2026-10-17) : dans une ligne tapée, un nom
   fait de lettres qu'aucun objet ne porte et qui finit par x, y, z ou t
   est le produit de ses lettres, écrites séparées (`ax^2 + bx` devient
@@ -1286,6 +1288,17 @@ ses méthodes internes et figé dans sa version de 2016.
   programmes affichés, même absents de la figure (DGPad n'en change
   rien) : sinon Blockly les remplace par le premier objet du menu, que le
   programme réécrit viserait.
+- **Attente** (2026-11-01) : bloc « attendre … ms » (`dg_wait`,
+  `WAIT(ms)`, catégorie « Boucles »), qui n'attend que dans le programme
+  d'un bouton, la figure redessinée pendant l'attente ; un nouveau clic
+  arrête le lancement en cours. Un `ALERT` ou un `WAIT` en dernière
+  instruction reste une instruction (et non la valeur rendue par le
+  programme), comme l'appel d'une procédure qui ne rend rien.
+- **Boucles écrites à la main** (2026-11-01, sans nouveau bloc) : `v++`
+  seul devient « ajouter 1 à v » ; une boucle `for` qui n'est pas celle de
+  Blockly (`i < n`, pas quelconque) devient son initialisation suivie d'un
+  « tant que » dont le corps finit par la mise à jour, sauf si ce corps
+  contient un `continue` (qui sauterait la mise à jour).
 - **Messages, ajout à une liste, ouverture de la figure** (2026-10-19,
   pour `pirates.dgp`) : bloc « afficher le message » (`ALERT`, catégorie
   « Texte »), bloc « ajouter … à la fin de … » de DGPad (`dgpad_push`,
@@ -1781,7 +1794,8 @@ Fait (2026-10-11) :
   pour un point libre, `nom =` supprime ; noms non identifiants entre
   accents graves ; nombres arrondis à 4 décimales à l'affichage.
   Intersection : `Intersection(a, b)` pour deux droites, sinon
-  `Intersection(a, b, n)` (n de 1 à 4, de 1 à 2 pour une droite et une
+  `Intersection(a, b, n)` (n de 1 à 4, sans limite avec une courbe ou un
+  lieu, de 1 à 2 pour une droite et une
   sphère, un cylindre ou un cône, dans les deux ordres, entrée `CyI`) ;
   `AutreIntersection(a, b, P)`,
   la plus éloignée de P (l'ordre de l'entrée `.dgo`, qui ne sert que si P
@@ -2707,3 +2721,19 @@ badge anneau, `A = (x, y)`) puis « Point sur objet » ; les gestes
 la famille Points), la sélection, les raccourcis (« palette fermée »), la
 3D et une question de la FAQ. Icônes et capture `palette.webp`
 régénérées, contrôle passé.
+
+### Classeurs — 2026-11-01
+
+Un classeur (`.dgo` à pages, voir `DGO.md` « Classeur ») montre ses pages
+par des onglets sous la figure (`src/workbook.ts`, partagé avec le
+lecteur). Menu Fichier : « Nouvelle page » ajoute une page vide après les
+autres et la montre (la figure devient la page 1 d'un classeur si elle n'en
+était pas un) ; « Supprimer la page », après confirmation, supprime la page
+montrée et montre sa voisine (une seule page restante redevient une
+figure). Un double clic sur un onglet modifie le nom de sa page (Entrée
+valide, Échap annule). Changer d'onglet garde la page quittée telle
+quelle, avec son historique d'annulation, retrouvé au retour ; le point
+qui signale une modification devant le nom de fichier vaut pour tout le
+classeur (pages ajoutées, supprimées ou renommées comprises), et
+l'enregistrement l'écrit en entier. Pas encore de réordonnancement des
+pages ; le mode intégré du lecteur ne montre que la page `p`.

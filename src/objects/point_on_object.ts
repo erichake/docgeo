@@ -594,6 +594,10 @@ export class point_on_object extends point_object {
 
     alphaFor(target: Vec3): Alpha | null {
         if (this.support.familytype === "curve") return target[0];
+        if (this.support.familytype === "locus")
+            return (this.support as locus_object).alphaOf(target);
+        if (this.support instanceof list_object)
+            return this.support.nearestIndex(target);
         if (this.support instanceof primitive_circle_object) {
             return this.support.alphaOf(target);
         }

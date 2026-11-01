@@ -4,6 +4,7 @@ import { projectPointOnLine } from "../projection";
 import {
     GEOMETRY_EPSILON,
     vAdd,
+    vDot,
     vIsFinite,
     vNorm,
     vScale,
@@ -289,6 +290,36 @@ export class locus_object extends construction_object {
         const next = this.points[index + 1];
         if (!next || !this.isConnected(index)) return null;
         return vAdd(point, vScale(vSub(next, point), fraction));
+    }
+
+    // The parameter of the locus' point nearest to `target`.
+    alphaOf(target: Vec3): number | null {
+        let best: number | null = null;
+        let bestDistance = Infinity;
+        this.points.forEach((start, index) => {
+            if (!start) return;
+            const next = this.points[index + 1];
+            const direction: Vec3 = next ? vSub(next, start) : [0, 0, 0];
+            const lengthSquared = vDot(direction, direction);
+            const fraction =
+                lengthSquared > 0
+                    ? Math.max(
+                          0,
+                          Math.min(
+                              1,
+                              vDot(vSub(target, start), direction) /
+                                  lengthSquared,
+                          ),
+                      )
+                    : 0;
+            const distance = vNorm(
+                vSub(target, vAdd(start, vScale(direction, fraction))),
+            );
+            if (distance >= bestDistance) return;
+            bestDistance = distance;
+            best = index + fraction;
+        });
+        return best;
     }
 
     alphaAtScreen(target: Vec2): number | null {

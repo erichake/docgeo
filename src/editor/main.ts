@@ -9,15 +9,17 @@ import {
     figureObjects,
     gzipped,
     imageKey,
-    importDgoFromBlob,
+    importDgo,
     readDgo,
     writeDgo,
     type DgoFigure,
+    type Workbook,
 } from "../dgo";
 import { $, type DOMElement } from "../dom";
 import { dropFigures } from "../drop";
 import { FIGURE_URL, fetchFigure } from "../figure_url";
 import { LANG } from "../i18n";
+import { openFigureFile, showTabs, writeWorkbook } from "../workbook";
 import type { construction_object } from "../objects/construction_object";
 import { point_object, type magnet_target } from "../objects/point_object";
 import { button_object } from "../objects/button_object";
@@ -280,8 +282,9 @@ $("body")
 $("head").append(`<style>
     /* Menlo and DejaVu Sans Mono draw Arabic letters unjoined: a font of the system draws them. */
     @font-face { font-family: dge-code; src: local("Menlo Regular"), local("Menlo-Regular"), local("Consolas"), local("DejaVu Sans Mono"); unicode-range: U+0-5FF, U+700-74F, U+780-89F, U+900-FB4F, U+FE00-FE6F, U+FF00-10FFFF; }
-    .dge-editor { --dge-code: ui-monospace, dge-code, "Geeza Pro", "Segoe UI", "Noto Sans Arabic", monospace; --dge-panel-size: min(var(--dge-panel-user, ${PANEL_WIDTH}px), calc(100vw - 56px)); --dge-panel-width: var(--dge-panel-size); --dge-menu-height: 0px; --dge-bar-height: calc(48px + var(--dge-menu-height)); --dge-slide-duration: 0s; --dge-slide: var(--dge-slide-duration) cubic-bezier(0.22, 1, 0.36, 1); margin: 0; margin-inline-start: var(--dge-panel-width); margin-block-start: var(--dge-bar-height); width: calc(100% - var(--dge-panel-width)); height: calc(100% - var(--dge-bar-height)); transition: margin-inline-start var(--dge-slide), width var(--dge-slide); }
+    .dge-editor { --dge-code: ui-monospace, dge-code, "Geeza Pro", "Segoe UI", "Noto Sans Arabic", monospace; --dge-panel-size: min(var(--dge-panel-user, ${PANEL_WIDTH}px), calc(100vw - 56px)); --dge-panel-width: var(--dge-panel-size); --dge-menu-height: 0px; --dge-bar-height: calc(48px + var(--dge-menu-height)); --dge-slide-duration: 0s; --dge-slide: var(--dge-slide-duration) cubic-bezier(0.22, 1, 0.36, 1); margin: 0; margin-inline-start: var(--dge-panel-width); margin-block-start: var(--dge-bar-height); width: calc(100% - var(--dge-panel-width)); height: calc(100% - var(--dge-bar-height) - var(--docgeo-tabs, 0px)); transition: margin-inline-start var(--dge-slide), width var(--dge-slide); }
     .dge-editor.dge-menus { --dge-menu-height: 32px; }
+    .docgeo-tabs input { width: 180px; padding: 0 14px; border: 0; border-radius: 0 0 8px 8px; outline: 2px solid #2563eb; outline-offset: -2px; font: inherit; }
     .dge-editor.dge-panel-animated { --dge-slide-duration: ${SLIDE}ms; }
     .dge-editor.dge-panel-closed { --dge-panel-width: 0px; }
     .dge-panel-closed .dge-panel { transform: translateX(-100%); visibility: hidden; transition-delay: 0s, var(--dge-slide-duration); }
@@ -439,7 +442,7 @@ $("head").append(`<style>
     @media (max-width: 680px) { .dge-editor .dge-bar .dge-bar-object { position: fixed; top: calc(var(--dge-bar-height) + 8px); inset-inline: 0; width: fit-content; margin-inline: auto; box-shadow: 0 4px 12px rgb(15 23 42 / 0.12); } }
     .dge-panel-header .dge-action { width: 32px; height: 32px; border-radius: 8px; }
     @media (max-width: 400px) { .dge-bar { gap: 6px; padding-inline: 8px; } .dge-bar-group { gap: 2px; } .dge-bar-group + .dge-bar-group { padding-inline-start: 6px; } .dge-bar .dge-action { width: 32px; } }
-    .dge-hint { position: fixed; bottom: 16px; left: calc(50% + var(--dge-panel-width) / 2); transform: translateX(-50%); max-width: calc(100% - var(--dge-panel-width) - 32px); padding: 7px 14px; border-radius: 9px; background: rgb(17 24 39 / 0.86); color: #f9fafb; font-family: var(--dge-code); font-size: 13.5px; white-space: pre-wrap; unicode-bidi: plaintext; z-index: 11; pointer-events: none; transition: left var(--dge-slide), max-width var(--dge-slide); }
+    .dge-hint { position: fixed; bottom: calc(16px + var(--docgeo-tabs, 0px)); left: calc(50% + var(--dge-panel-width) / 2); transform: translateX(-50%); max-width: calc(100% - var(--dge-panel-width) - 32px); padding: 7px 14px; border-radius: 9px; background: rgb(17 24 39 / 0.86); color: #f9fafb; font-family: var(--dge-code); font-size: 13.5px; white-space: pre-wrap; unicode-bidi: plaintext; z-index: 11; pointer-events: none; transition: left var(--dge-slide), max-width var(--dge-slide); }
     @media (prefers-reduced-motion: reduce) { .dge-editor.dge-panel-animated { --dge-slide-duration: 0s; } .dge-bar-object { animation: none; } }
     .dge-hint:empty { display: none; }
     .dge-hint.dge-error { background: #b91c1c; }
@@ -1039,6 +1042,12 @@ const menus: Menu[] = [
         label: message("menu_file"),
         items: [
             { label: message("new_figure"), run: () => void newFigure() },
+            { label: message("new_page"), run: () => void addPage() },
+            {
+                label: message("delete_page"),
+                run: () => void deletePage(),
+                enabled: () => !!book,
+            },
             {
                 label: `${message("open")}…`,
                 shortcut: shortcut("O"),
@@ -6153,6 +6162,21 @@ const failed = (error: unknown): void => {
 // The step last saved, or opened.
 let saved = "";
 
+type Steps = { history: typeof history; position: number; saved: string };
+
+// The workbook of which the figure is the page shown, if it is one, the
+// steps of each other page shown since it was opened, and whether pages
+// were added, deleted or renamed since it was saved.
+let book: Workbook | null = null;
+let away = new Map<number, Steps>();
+let reshaped = false;
+
+const unsaved = (): boolean =>
+    reshaped ||
+    [{ history, position, saved }, ...away.values()].some(
+        ({ history, position, saved }) => history[position].figure !== saved,
+    );
+
 // A view's window and camera, or, if not `kept`, the rest.
 const camera = (view: DgoFigure["v"], kept: boolean): DgoFigure["v"] =>
     Object.fromEntries(
@@ -6173,7 +6197,7 @@ function record(): Promise<void> {
                 { figure: step, o, u },
             ];
             position = history.length - 1;
-            showChanged(step !== saved);
+            showChanged(unsaved());
         })
         .catch(failed);
     return recording;
@@ -6186,7 +6210,7 @@ function travel(step: number): void {
             cancel(true);
             position += step;
             const target = history[position];
-            showChanged(target.figure !== saved);
+            showChanged(unsaved());
             const space = JSON.parse(target.figure).v["3d"] === 1;
             if (space === scene().GRID.is2D)
                 await (space ? toSpace(target) : toPlane(target));
@@ -6203,22 +6227,30 @@ async function save(as = false): Promise<void> {
     const written = await saveFile(async () => {
         await recording;
         step = history[position].figure;
-        return asSaved(() => writeDgo(scene()));
+        return asSaved(write);
     }, as);
-    if (written) saved = step;
+    if (!written) return;
+    saved = step;
+    reshaped = false;
+    away.forEach((page) => (page.saved = page.history[page.position].figure));
 }
 
 async function saveFigure(): Promise<Blob> {
     await recording;
-    return asSaved(() => writeDgo(scene()));
+    return asSaved(write);
 }
 
+const write = (): Promise<Blob> =>
+    book ? writeWorkbook(book, scene()) : writeDgo(scene());
+
 // A figure opened from `name`, a file name or a URL, which a save writes back
-// to if `from` is its file.
+// to if `from` is its file, or, if `name` is null, a page of the workbook,
+// with its `steps` if it was shown before.
 async function open(
-    name: string,
+    name: string | null,
     load: (c: construction) => Promise<string[]>,
     from?: FileSystemHandle | null,
+    steps?: Steps,
 ): Promise<string[]> {
     // Shown again if the file is refused.
     const shown = history.length
@@ -6244,18 +6276,22 @@ async function open(
         }
         throw error;
     }
-    published = null;
+    if (name !== null) published = null;
     studio.scene.flush();
     studio.scene.reveal();
     showAxes();
     showSpace();
     planeAxes = null;
     planeFlaw = studio.scene.GRID.is2D && offPlane(studio.scene) !== undefined;
-    history = [];
-    position = -1;
-    await record();
-    saved = history[0].figure;
-    opened(name, from);
+    if (steps) ({ history, position, saved } = steps);
+    else {
+        history = [];
+        position = -1;
+        await record();
+        saved = history[0].figure;
+    }
+    if (name !== null) opened(name, from);
+    else showChanged(unsaved());
     filters.reset();
     refreshRows();
     showHint(
@@ -6272,19 +6308,146 @@ async function openFile(
     file: File,
     from?: Promise<FileSystemHandle | null> | FileSystemHandle,
 ): Promise<string[]> {
-    return open(
+    let found: Workbook | null = null;
+    const unsupported = await open(
         file.name,
-        async (c) =>
-            /\.ggb$/i.test(file.name)
-                ? (await import("../ggb_importer")).importGgbFromBlob(c, file)
-                : /\.dgo$/i.test(file.name)
-                  ? importDgoFromBlob(c, file)
-                  : (await import("../dgp_importer")).importDgp(
-                        c,
-                        await file.text(),
-                    ),
+        async (c) => {
+            const figure = await openFigureFile(c, file);
+            found = figure.book;
+            return figure.unsupported;
+        },
         await from,
     );
+    setBook(found);
+    return unsupported;
+}
+
+function setBook(shown: Workbook | null): void {
+    book = shown;
+    away.clear();
+    reshaped = false;
+    tabs();
+}
+
+// The page being shown.
+let paging = Promise.resolve();
+
+function tabs(): void {
+    showTabs(book, (index) => (paging = showPage(index)), renamable);
+}
+
+// A new page, empty, after the others, shown: the figure is the first page
+// of a workbook if it wasn't one.
+async function addPage(): Promise<void> {
+    await recording;
+    book ??= {
+        pages: [{ name: message("page_name", "1"), figure: blank(scene()) }],
+        current: 0,
+    };
+    book.pages.push({
+        name: message("page_name", String(book.pages.length + 1)),
+        figure: blank(scene()),
+    });
+    reshaped = true;
+    await showPage(book.pages.length - 1);
+    tabs();
+}
+
+// The page shown, once confirmed, in place of which its neighbour is shown:
+// a single page left is a figure again.
+async function deletePage(): Promise<void> {
+    const deleted = book!.current;
+    if (!confirm(message("delete_page_confirm", book!.pages[deleted].name)))
+        return;
+    await recording;
+    const shown = deleted ? deleted - 1 : 1;
+    const steps = away.get(shown);
+    await open(
+        null,
+        async (c) => {
+            importDgo(c, book!.pages[shown].figure);
+            return [];
+        },
+        null,
+        steps,
+    );
+    book!.pages.splice(deleted, 1);
+    book!.current = shown - (shown > deleted ? 1 : 0);
+    away = new Map(
+        [...away]
+            .filter(([index]) => index !== shown)
+            .map(([index, page]) => [index - (index > deleted ? 1 : 0), page]),
+    );
+    if (book!.pages.length === 1) book = null;
+    reshaped = true;
+    showChanged(true);
+    tabs();
+}
+
+// A double click on its tab edits a page's name, once the page is shown.
+function renamable(tab: DOMElement, index: number): void {
+    tab.on("dblclick", () =>
+        paging.then(() => {
+            const field = $.create("input")
+                .att("dir", "auto")
+                .att("value", book!.pages[index].name);
+            const input = field.dom() as HTMLInputElement;
+            let done = false;
+            const finish = (keep: boolean) => {
+                if (done) return;
+                done = true;
+                const name = input.value.trim();
+                if (keep && name && name !== book!.pages[index].name) {
+                    book!.pages[index].name = name;
+                    reshaped = true;
+                    showChanged(true);
+                }
+                tabs();
+            };
+            field.on(
+                "keydown",
+                (event) => {
+                    event.stopPropagation();
+                    if (event.key === "Enter" || event.key === "Escape")
+                        finish(event.key === "Enter");
+                },
+                false,
+            );
+            field.on("blur", () => finish(true), false);
+            tab.dom().replaceWith(input);
+            input.focus();
+            input.select();
+        }),
+    );
+}
+
+// The workbook's page of this index, in place of the one shown.
+async function showPage(index: number): Promise<void> {
+    await recording;
+    const left = book!.current;
+    book!.pages[left].figure = await asSaved(() => describeDgo(scene()));
+    away.set(left, { history, position, saved });
+    book!.current = index;
+    const steps = away.get(index);
+    away.delete(index);
+    try {
+        await open(
+            null,
+            async (c) => {
+                importDgo(c, book!.pages[index].figure);
+                return [];
+            },
+            null,
+            steps,
+        );
+    } catch (error) {
+        // A malformed page: the one left is shown again.
+        away.delete(left);
+        if (steps) away.set(index, steps);
+        book!.current = left;
+        tabs();
+        failed(error);
+    }
 }
 
 // Opened by the user, who is told why it can't be.
@@ -6388,21 +6551,26 @@ if (embedded)
 finishSplash(EDITOR_READY);
 
 async function newFigure(): Promise<void> {
+    setBook(null);
     await open("figure", async (c) => {
-        readDgo(c, {
-            dgo: 1,
-            v: {
-                o: [c.width / 2, c.height / 2],
-                u: 40,
-                w: c.width,
-                h: c.height,
-                ax: 0,
-            },
-            bg: "#FFFFFF",
-            o: [],
-        });
+        readDgo(c, blank(c));
         return [];
     });
+}
+
+function blank(c: construction): DgoFigure {
+    return {
+        dgo: 1,
+        v: {
+            o: [c.width / 2, c.height / 2],
+            u: 40,
+            w: c.width,
+            h: c.height,
+            ax: 0,
+        },
+        bg: "#FFFFFF",
+        o: [],
+    };
 }
 
 export { studio };
