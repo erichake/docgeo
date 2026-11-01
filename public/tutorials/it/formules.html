@@ -85,6 +85,43 @@
                 simmetrico di A rispetto a B.
             </p>
 
+            <h2 id="autres-pages">Leggere un’altra pagina</h2>
+            <p>
+                In una <a href="demarrage.html#classeur">cartella di lavoro</a>,
+                una formula legge il valore di un oggetto di un’altra pagina,
+                come in un foglio di calcolo: il nome della pagina tra apici, un
+                punto esclamativo, il nome dell’oggetto.
+            </p>
+            <pre><code>m = 'Pagina 1'!c
+area = Dati!p * 2</code></pre>
+            <ul>
+                <li>
+                    Gli apici non servono se il nome della pagina non ha spazi
+                    né segni (<code>Dati!p</code>); un apostrofo del nome si
+                    scrive <code>\'</code> (<code>'L\'area'!c</code>).
+                </li>
+                <li>
+                    Il valore è quello che leggerebbe una formula di quella
+                    pagina: coordinate di un punto, lunghezza di un segmento…
+                    Una funzione non si può leggere.
+                </li>
+                <li>
+                    Sola lettura: niente in una pagina modifica un’altra pagina.
+                    Il valore viene riletto quando si torna alla pagina che lo
+                    legge.
+                </li>
+                <li>
+                    Una pagina non può leggere se stessa, né una pagina che la
+                    legge («Riferimento circolare»). Una pagina o un oggetto
+                    sconosciuto viene rifiutato all’inserimento.
+                </li>
+                <li>
+                    Rinominare una pagina, o un oggetto della pagina mostrata,
+                    aggiorna le formule delle altre pagine. Dopo l’eliminazione
+                    di una pagina, le formule che la leggevano sono indefinite.
+                </li>
+            </ul>
+
             <h2>Operatori</h2>
             <div class="table">
                 <table>
@@ -312,6 +349,13 @@
                                 <code>GLOBAL_SET("n", 5)</code>,
                                 <code>GLOBAL_INC("n", 1)</code>,
                                 <code>GLOBAL_GET("n")</code>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>pausa</td>
+                            <td>
+                                <code>WAIT(500)</code>: 500 ms, nel programma di
+                                un pulsante
                             </td>
                         </tr>
                     </tbody>

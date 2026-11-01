@@ -86,6 +86,43 @@
                 symétrique de A par rapport à B.
             </p>
 
+            <h2 id="autres-pages">Lire une autre page</h2>
+            <p>
+                Dans un <a href="demarrage.html#classeur">classeur</a>, une
+                formule lit la valeur d’un objet d’une autre page, comme dans un
+                tableur : le nom de la page entre apostrophes, un point
+                d’exclamation, le nom de l’objet.
+            </p>
+            <pre><code>m = 'Page 1'!c
+aire = Calculs!p * 2</code></pre>
+            <ul>
+                <li>
+                    Les apostrophes sont inutiles si le nom de la page n’a ni
+                    espace ni signe (<code>Calculs!p</code>) ; une apostrophe du
+                    nom s’écrit <code>\'</code> (<code>'L\'aire'!c</code>).
+                </li>
+                <li>
+                    La valeur est celle que lirait une formule de cette page :
+                    coordonnées d’un point, longueur d’un segment… Une fonction
+                    ne se lit pas.
+                </li>
+                <li>
+                    Lecture seule : rien dans une page ne modifie une autre
+                    page. La valeur est relue quand on revient sur la page qui
+                    la lit.
+                </li>
+                <li>
+                    Une page ne peut pas se lire elle-même, ni lire une page qui
+                    la lit (« Référence circulaire »). Une page ou un objet
+                    inconnu est refusé à la saisie.
+                </li>
+                <li>
+                    Renommer une page, ou un objet de la page montrée, met à
+                    jour les formules des autres pages. Après la suppression
+                    d’une page, les formules qui la lisaient sont indéfinies.
+                </li>
+            </ul>
+
             <h2>Opérateurs</h2>
             <div class="table">
                 <table>
@@ -313,6 +350,13 @@
                                 <code>GLOBAL_SET("n", 5)</code>,
                                 <code>GLOBAL_INC("n", 1)</code>,
                                 <code>GLOBAL_GET("n")</code>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>pause</td>
+                            <td>
+                                <code>WAIT(500)</code> : 500 ms, dans le
+                                programme d’un bouton
                             </td>
                         </tr>
                     </tbody>

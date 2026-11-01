@@ -137,6 +137,31 @@ export const SHOTS = [
         },
     },
     {
+        // A workbook of three pages, the second's menu opened from its tab.
+        file: "classeur.webp",
+        page: "editor.html",
+        clip: { x: 320, y: 300, width: 720, height: 420 },
+        run: async ({ page, type, t }) => {
+            await type(TRIANGLE);
+            for (const lines of [["O = (0, 2)", "c = Circle(O, 3)"], []]) {
+                await page.click(
+                    `.dge-menubar > div > button:has-text("${await t("menu_file")}")`,
+                );
+                await page.click(
+                    `.dge-menu-popup button:has-text("${await t("new_page")}")`,
+                );
+                await page.waitForTimeout(300);
+                if (lines.length) await type(lines);
+            }
+            await page.click(".docgeo-tabs button:nth-of-type(4)");
+            await page.waitForTimeout(400);
+            await page.click(".docgeo-tabs button:nth-of-type(4)", {
+                button: "right",
+            });
+            await page.waitForTimeout(300);
+        },
+    },
+    {
         file: "proprietes.webp",
         page: "editor.html",
         run: async ({ page, type, point, button }) => {

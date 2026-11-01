@@ -108,6 +108,65 @@
                 um.
             </p>
 
+            <h2 id="classeur">Arbeitsmappen: mehrere Seiten</h2>
+            <p>
+                Eine Arbeitsmappe fasst mehrere Figuren, ihre Seiten, in einer
+                einzigen <code>.dgo</code>-Datei zusammen. Ihre Register unter
+                der Figur zeigen jeweils eine Seite.
+            </p>
+            <figure>
+                <img
+                    src="img/classeur.webp"
+                    alt="Register von drei Seiten; Menü von Seite 2 geöffnet"
+                    width="720"
+                    height="420"
+                />
+            </figure>
+            <ul>
+                <li>
+                    <strong>Datei › Neue Seite</strong> fügt nach den anderen
+                    eine leere Seite hinzu: Die aktuelle Figur wird Seite 1.
+                    Danach tut die Schaltfläche <strong>+</strong> am Anfang der
+                    Register dasselbe, und die Schaltfläche daneben listet alle
+                    Seiten auf.
+                </li>
+                <li>
+                    Ein Rechtsklick auf ein Register oder auf seinen Pfeil ▾
+                    öffnet das Menü der Seite: <strong>Umbenennen</strong>,
+                    <strong>Duplizieren</strong>,
+                    <strong>Seite löschen</strong>,
+                    <strong>Nach links verschieben</strong> oder
+                    <strong>Nach rechts verschieben</strong> und die
+                    <strong>Registerfarbe</strong>.
+                </li>
+                <li>
+                    Ein Doppelklick auf ein Register benennt seine Seite um
+                    (<kbd>Eingabe</kbd> bestätigt, <kbd>Esc</kbd> bricht ab);
+                    zwei Seiten können nicht gleich heißen. Ein gezogenes
+                    Register wechselt seinen Platz.
+                </li>
+                <li>
+                    Die Seiten sind unabhängig: Jede hat ihre Objekte, ihr
+                    Koordinatensystem, ihre Makros und ihren Rückgängig-Verlauf,
+                    den man beim Zurückkehren wiederfindet. Eine Formel kann
+                    jedoch einen Wert einer anderen Seite lesen (<a
+                        href="formules.html#autres-pages"
+                        >Eine andere Seite lesen</a
+                    >).
+                </li>
+                <li>
+                    Beim Speichern wird die ganze Arbeitsmappe geschrieben, jede
+                    Seite so, wie man sie verlassen hat; die angezeigte Seite
+                    ist die, die sich öffnen wird. Eine Arbeitsmappe mit nur
+                    noch einer Seite wird wieder eine einfache Figur.
+                </li>
+            </ul>
+            <p>
+                Der Player zeigt die Register ebenfalls. Eine in eine Webseite
+                eingebettete Figur zeigt nur die Seite, die beim Speichern
+                angezeigt war.
+            </p>
+
             <h2 id="lien">Eine Figur per Link teilen</h2>
             <p>
                 Eine online abgelegte Figur öffnet sich über einen Link: die

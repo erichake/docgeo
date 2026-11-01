@@ -85,6 +85,44 @@
                 el simétrico de A respecto de B.
             </p>
 
+            <h2 id="autres-pages">Leer otra página</h2>
+            <p>
+                En un <a href="demarrage.html#classeur">libro</a>, una fórmula
+                lee el valor de un objeto de otra página, como en una hoja de
+                cálculo: el nombre de la página entre comillas simples, un signo
+                de exclamación, el nombre del objeto.
+            </p>
+            <pre><code>m = 'Página 1'!c
+area = Datos!p * 2</code></pre>
+            <ul>
+                <li>
+                    Las comillas no son necesarias si el nombre de la página no
+                    tiene espacios ni signos (<code>Datos!p</code>); un
+                    apóstrofo del nombre se escribe
+                    <code>\'</code> (<code>'O\'Neill'!c</code>).
+                </li>
+                <li>
+                    El valor es el que leería una fórmula de esa página:
+                    coordenadas de un punto, longitud de un segmento… Una
+                    función no se puede leer.
+                </li>
+                <li>
+                    Solo lectura: nada en una página modifica otra página. El
+                    valor se vuelve a leer al volver a la página que lo lee.
+                </li>
+                <li>
+                    Una página no puede leerse a sí misma ni leer una página que
+                    la lee («Referencia circular»). Una página o un objeto
+                    desconocido se rechaza al escribirlo.
+                </li>
+                <li>
+                    Cambiar el nombre de una página, o de un objeto de la página
+                    mostrada, actualiza las fórmulas de las demás páginas. Tras
+                    eliminar una página, las fórmulas que la leían quedan
+                    indefinidas.
+                </li>
+            </ul>
+
             <h2>Operadores</h2>
             <div class="table">
                 <table>
@@ -311,6 +349,13 @@
                                 <code>GLOBAL_SET("n", 5)</code>,
                                 <code>GLOBAL_INC("n", 1)</code>,
                                 <code>GLOBAL_GET("n")</code>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>pausa</td>
+                            <td>
+                                <code>WAIT(500)</code>: 500 ms, en el programa
+                                de un botón
                             </td>
                         </tr>
                     </tbody>

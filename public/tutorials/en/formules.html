@@ -84,6 +84,42 @@
                 reflection of A in B.
             </p>
 
+            <h2 id="autres-pages">Reading another page</h2>
+            <p>
+                In a <a href="demarrage.html#classeur">workbook</a>, a formula
+                reads the value of an object of another page, as in a
+                spreadsheet: the page name in single quotes, an exclamation
+                mark, the object name.
+            </p>
+            <pre><code>m = 'Page 1'!c
+area = Data!p * 2</code></pre>
+            <ul>
+                <li>
+                    The quotes are not needed if the page name has no space or
+                    sign (<code>Data!p</code>); an apostrophe in the name is
+                    written <code>\'</code> (<code>'Tom\'s'!c</code>).
+                </li>
+                <li>
+                    The value is the one a formula of that page would read:
+                    coordinates of a point, length of a segment… A function
+                    cannot be read.
+                </li>
+                <li>
+                    Read only: nothing in a page changes another page. The value
+                    is read again when you come back to the page that reads it.
+                </li>
+                <li>
+                    A page cannot read itself, nor a page that reads it
+                    (“Circular reference”). An unknown page or object is refused
+                    when typed.
+                </li>
+                <li>
+                    Renaming a page, or an object of the page shown, updates the
+                    formulas of the other pages. After a page is deleted, the
+                    formulas that read it are undefined.
+                </li>
+            </ul>
+
             <h2>Operators</h2>
             <div class="table">
                 <table>
@@ -311,6 +347,13 @@
                                 <code>GLOBAL_SET("n", 5)</code>,
                                 <code>GLOBAL_INC("n", 1)</code>,
                                 <code>GLOBAL_GET("n")</code>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>pause</td>
+                            <td>
+                                <code>WAIT(500)</code>: 500 ms, in a button’s
+                                program
                             </td>
                         </tr>
                     </tbody>

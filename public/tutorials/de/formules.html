@@ -85,6 +85,46 @@
                 der Spiegelpunkt von A an B.
             </p>
 
+            <h2 id="autres-pages">Eine andere Seite lesen</h2>
+            <p>
+                In einer
+                <a href="demarrage.html#classeur">Arbeitsmappe</a> liest eine
+                Formel den Wert eines Objekts einer anderen Seite, wie in einer
+                Tabellenkalkulation: der Name der Seite in Apostrophen, ein
+                Ausrufezeichen, der Name des Objekts.
+            </p>
+            <pre><code>m = 'Seite 1'!c
+fläche = Daten!p * 2</code></pre>
+            <ul>
+                <li>
+                    Die Apostrophe sind unnötig, wenn der Seitenname weder
+                    Leerzeichen noch Zeichen enthält (<code>Daten!p</code>); ein
+                    Apostroph im Namen wird <code>\'</code> geschrieben
+                    (<code>'Tom\'s'!c</code>).
+                </li>
+                <li>
+                    Der Wert ist der, den eine Formel dieser Seite lesen würde:
+                    Koordinaten eines Punktes, Länge einer Strecke… Eine
+                    Funktion kann nicht gelesen werden.
+                </li>
+                <li>
+                    Nur lesend: Nichts auf einer Seite ändert eine andere Seite.
+                    Der Wert wird neu gelesen, wenn man zu der Seite
+                    zurückkehrt, die ihn liest.
+                </li>
+                <li>
+                    Eine Seite kann weder sich selbst lesen noch eine Seite, die
+                    sie liest („Zirkelbezug“). Eine unbekannte Seite oder ein
+                    unbekanntes Objekt wird bei der Eingabe abgelehnt.
+                </li>
+                <li>
+                    Das Umbenennen einer Seite oder eines Objekts der
+                    angezeigten Seite passt die Formeln der anderen Seiten an.
+                    Nach dem Löschen einer Seite sind die Formeln, die sie
+                    lasen, undefiniert.
+                </li>
+            </ul>
+
             <h2>Operatoren</h2>
             <div class="table">
                 <table>
@@ -313,6 +353,13 @@
                                 <code>GLOBAL_SET("n", 5)</code>,
                                 <code>GLOBAL_INC("n", 1)</code>,
                                 <code>GLOBAL_GET("n")</code>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Pause</td>
+                            <td>
+                                <code>WAIT(500)</code>: 500 ms, im Programm
+                                einer Schaltfläche
                             </td>
                         </tr>
                     </tbody>

@@ -100,6 +100,58 @@
                 GeoGebra figure and saving it converts it.
             </p>
 
+            <h2 id="classeur">Workbooks: several pages</h2>
+            <p>
+                A workbook gathers several figures, its pages, in a single
+                <code>.dgo</code> file. Its tabs, below the figure, show one
+                page at a time.
+            </p>
+            <figure>
+                <img
+                    src="img/classeur.webp"
+                    alt="Tabs of three pages; the menu of page 2 open"
+                    width="720"
+                    height="420"
+                />
+            </figure>
+            <ul>
+                <li>
+                    <strong>File › New page</strong> adds an empty page after
+                    the others: the current figure becomes page 1. Then the
+                    <strong>+</strong> button at the start of the tabs does the
+                    same, and the button next to it lists all the pages.
+                </li>
+                <li>
+                    A right click on a tab, or on its ▾ arrow, opens the page’s
+                    menu: <strong>Rename</strong>, <strong>Duplicate</strong>,
+                    <strong>Delete the page</strong>,
+                    <strong>Move left</strong> or <strong>Move right</strong>,
+                    and the <strong>Tab color</strong>.
+                </li>
+                <li>
+                    A double click on a tab renames its page (<kbd>Enter</kbd>
+                    confirms, <kbd>Esc</kbd> cancels); two pages cannot have the
+                    same name. A dragged tab changes place.
+                </li>
+                <li>
+                    Pages are independent: each has its objects, its axes, its
+                    macros and its undo history, found again when you come back
+                    to it. A formula can however read a value from another page
+                    (<a href="formules.html#autres-pages"
+                        >Reading another page</a
+                    >).
+                </li>
+                <li>
+                    Saving writes the whole workbook, each page as it was left;
+                    the page shown is the one that will open. A workbook reduced
+                    to one page becomes a plain figure again.
+                </li>
+            </ul>
+            <p>
+                The player shows the tabs too. A figure embedded in a web page
+                shows only the page that was displayed when it was saved.
+            </p>
+
             <h2 id="lien">Sharing a figure by link</h2>
             <p>
                 A figure put online opens from a link: the editor’s address,
