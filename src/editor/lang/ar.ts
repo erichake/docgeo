@@ -8,6 +8,7 @@ const ar: Texts = {
         coordinates: "للنقطة إحداثيان أو ثلاثة إحداثيات",
         unknown_command: "أمر غير معروف: %",
         unknown_object: "عنصر غير معروف: %",
+        circular_reference: "مرجع دائري: %",
         unknown_method:
             "طريقة غير معروفة: % (setHidden, setRGBColor, setOpacity, setSize…)",
         arguments: "وسائط غير صحيحة للأمر %",
@@ -48,6 +49,7 @@ const ar: Texts = {
         move_page_before: "نقل إلى اليمين",
         move_page_after: "نقل إلى اليسار",
         page_copy: "% (نسخة)",
+        page_name_taken: "توجد صفحة أخرى باسم «%»",
         page_menu: "خيارات الصفحة",
         page_list: "كل الصفحات",
         page_color: "لون علامة التبويب",

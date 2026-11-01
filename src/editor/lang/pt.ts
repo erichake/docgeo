@@ -8,6 +8,7 @@ const pt: Texts = {
         coordinates: "Um ponto tem duas ou três coordenadas",
         unknown_command: "Comando desconhecido: %",
         unknown_object: "Objeto desconhecido: %",
+        circular_reference: "Referência circular: %",
         unknown_method:
             "Método desconhecido: % (setHidden, setRGBColor, setOpacity, setSize…)",
         arguments: "Argumentos incorretos para %",
@@ -49,6 +50,7 @@ const pt: Texts = {
         move_page_before: "Mover para a esquerda",
         move_page_after: "Mover para a direita",
         page_copy: "% (cópia)",
+        page_name_taken: "Outra página já se chama «%»",
         page_menu: "Opções da página",
         page_list: "Todas as páginas",
         page_color: "Cor da aba",

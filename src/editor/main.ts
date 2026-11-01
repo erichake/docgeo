@@ -19,7 +19,14 @@ import { $, type DOMElement } from "../dom";
 import { dropFigures } from "../drop";
 import { FIGURE_URL, fetchFigure } from "../figure_url";
 import { DIR, LANG } from "../i18n";
-import { openFigureFile, showTabs, writeWorkbook } from "../workbook";
+import {
+    forgetValues,
+    leavePage,
+    openFigureFile,
+    showTabs,
+    useWorkbook,
+    writeWorkbook,
+} from "../workbook";
 import type { construction_object } from "../objects/construction_object";
 import { point_object, type magnet_target } from "../objects/point_object";
 import { button_object } from "../objects/button_object";
@@ -143,6 +150,7 @@ import {
     parseLine,
     pointFormulaText,
     quoteText,
+    renameExternals,
     TextError,
     type ArgumentCompletion,
     type ArgText,
@@ -5374,6 +5382,13 @@ let renaming: construction_object | null = null;
 const nameInput = () => nameField.dom() as HTMLInputElement;
 
 async function rename(object: construction_object, name: string) {
+    if (book) {
+        const page = book.pages[book.current].name;
+        const old = object.name;
+        renameReferences((other, target) =>
+            other === page && target === old ? [page, name] : undefined,
+        );
+    }
     const figure = await describeDgo(scene());
     const index = figureObjects(scene()).indexOf(object);
     (figure.o[index] as unknown[])[1] = name;
@@ -6339,6 +6354,7 @@ async function openFile(
 
 function setBook(shown: Workbook | null): void {
     book = shown;
+    useWorkbook(book);
     away.clear();
     reshaped = false;
     tabs();
@@ -6567,19 +6583,29 @@ async function addPage(): Promise<void> {
         pages: [{ name: message("page_name", "1"), figure: blank(scene()) }],
         current: 0,
     };
+    useWorkbook(book);
+    let n = book.pages.length + 1;
+    while (pageNamed(message("page_name", String(n)))) n++;
     await insertPage(book.pages.length, {
-        name: message("page_name", String(book.pages.length + 1)),
+        name: message("page_name", String(n)),
         figure: blank(scene()),
     });
 }
+
+// Formulas read other pages by their names, which are unique.
+const pageNamed = (name: string): boolean =>
+    book!.pages.some((page) => page.name === name);
 
 // A copy of the page shown, after it, shown.
 async function duplicatePage(): Promise<void> {
     await recording;
     const at = book!.current;
     const { name, color } = book!.pages[at];
+    let copy = message("page_copy", name);
+    for (let n = 2; pageNamed(copy); n++)
+        copy = `${message("page_copy", name)} ${n}`;
     await insertPage(at + 1, {
-        name: message("page_copy", name),
+        name: copy,
         ...(color && { color }),
         figure: await asSaved(() => describeDgo(scene())),
     });
@@ -6623,23 +6649,34 @@ async function deletePage(): Promise<void> {
     await recording;
     const shown = deleted ? deleted - 1 : 1;
     const steps = away.get(shown);
-    await open(
-        null,
-        async (c) => {
-            importDgo(c, book!.pages[shown].figure);
-            return [];
-        },
-        null,
-        steps,
-    );
-    book!.pages.splice(deleted, 1);
+    // Shown without it, its formulas reading it no longer.
+    const [page] = book!.pages.splice(deleted, 1);
     book!.current = shown - (shown > deleted ? 1 : 0);
+    forgetValues();
+    try {
+        await open(
+            null,
+            async (c) => {
+                importDgo(c, book!.pages[book!.current].figure);
+                return [];
+            },
+            null,
+            steps,
+        );
+    } catch (error) {
+        book!.pages.splice(deleted, 0, page);
+        book!.current = deleted;
+        throw error;
+    }
     away = new Map(
         [...away]
             .filter(([index]) => index !== shown)
             .map(([index, page]) => [index - (index > deleted ? 1 : 0), page]),
     );
-    if (book!.pages.length === 1) book = null;
+    if (book!.pages.length === 1) {
+        book = null;
+        useWorkbook(null);
+    }
     reshape();
 }
 
@@ -6654,10 +6691,19 @@ function renamePage(index: number): void {
         if (done) return;
         done = true;
         const name = input.value.trim();
-        if (keep && name && name !== book!.pages[index].name) {
-            book!.pages[index].name = name;
-            reshaped = true;
-            showChanged(true);
+        const page = book!.pages[index];
+        if (keep && name && name !== page.name) {
+            if (pageNamed(name))
+                showHint(message("page_name_taken", name), true);
+            else {
+                const old = page.name;
+                page.name = name;
+                renameReferences((other, target) =>
+                    other === old ? [name, target] : undefined,
+                );
+                reshaped = true;
+                showChanged(true);
+            }
         }
         tabs();
     };
@@ -6676,11 +6722,49 @@ function renamePage(index: number): void {
     input.select();
 }
 
+// The formulas of the other pages, their steps included, whose references
+// to objects of the page shown are written anew (see DGO.md).
+function renameReferences(
+    rename: (page: string, name: string) => [string, string] | undefined,
+): void {
+    const anew = (json: unknown): unknown =>
+        typeof json === "string"
+            ? json.includes("!")
+                ? renameExternals(json, rename)
+                : json
+            : Array.isArray(json)
+              ? json.map(anew)
+              : json && typeof json === "object"
+                ? Object.fromEntries(
+                      Object.entries(json).map(([key, value]) => [
+                          key,
+                          anew(value),
+                      ]),
+                  )
+                : json;
+    const text = (figure: string): string =>
+        figure.includes("!")
+            ? JSON.stringify(anew(JSON.parse(figure)))
+            : figure;
+    book!.pages.forEach((page, index) => {
+        if (index !== book!.current)
+            page.figure = anew(page.figure) as DgoFigure;
+    });
+    away.forEach((steps) => {
+        steps.history = steps.history.map((step) => ({
+            ...step,
+            figure: text(step.figure),
+        }));
+        steps.saved = text(steps.saved);
+    });
+}
+
 // The workbook's page of this index, in place of the one shown.
 async function showPage(index: number): Promise<void> {
     await recording;
     const left = book!.current;
     book!.pages[left].figure = await asSaved(() => describeDgo(scene()));
+    leavePage(scene());
     away.set(left, { history, position, saved });
     book!.current = index;
     const steps = away.get(index);

@@ -7,7 +7,7 @@ import { FIGURE_URL, fetchFigure } from "./figure_url";
 import { fitFigure } from "./fit";
 import { DIR, t } from "./i18n";
 import { preferences } from "./preferences";
-import { openFigureFile, showTabs, writeWorkbook } from "./workbook";
+import { leavePage, openFigureFile, showTabs, writeWorkbook } from "./workbook";
 
 class docgeo {
     prefs: preferences;
@@ -166,6 +166,7 @@ function openFile(file: File): Promise<void> {
 async function showPage(index: number): Promise<void> {
     const shown = book!.pages[book!.current];
     shown.figure = await describeDgo(DOCGEO.scene);
+    leavePage(DOCGEO.scene);
     book!.current = index;
     renew();
     await openFigure(figureName!, async () => {

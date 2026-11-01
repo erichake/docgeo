@@ -358,6 +358,10 @@ const PLAIN = /^[\p{L}_][\p{L}\p{N}_']*$/u;
 export const formatName = (name: string): string =>
     PLAIN.test(name) ? name : `\`${name}\``;
 
+// "'Page 1'!c", as a formula reads an object of another page.
+export const externalSource = (page: string, name: string): string =>
+    `${/^[\p{L}_][\p{L}\p{N}_]*$/u.test(page) ? page : `'${page.replace(/[\\']/g, "\\$&")}'`}!${formatName(name)}`;
+
 // A formula point's definition: its coordinates between brackets, unless
 // they are numbers only, which a free point's are.
 export const pointFormulaText = (source: string): string =>
@@ -423,6 +427,24 @@ export function renameFormula(
                     rename(name.slice(0, -primes.length))?.concat(primes)));
         if (!renamed) return;
         text += source.slice(end, starts[index]) + renamed;
+        end = ends[index];
+    });
+    return text + source.slice(end);
+}
+
+// The source whose references to objects of other pages are written anew,
+// if `rename` gives the page's and the object's new names.
+export function renameExternals(
+    source: string,
+    rename: (page: string, name: string) => [string, string] | undefined,
+): string {
+    const { tokens, starts, ends } = lex(source);
+    let text = "";
+    let end = 0;
+    tokens.forEach(({ type, page, value }, index) => {
+        const renamed = type === "external" && rename(page!, value as string);
+        if (!renamed) return;
+        text += source.slice(end, starts[index]) + externalSource(...renamed);
         end = ends[index];
     });
     return text + source.slice(end);

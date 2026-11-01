@@ -8,6 +8,7 @@ const fr: Texts = {
         coordinates: "Un point a deux ou trois coordonnées",
         unknown_command: "Commande inconnue : %",
         unknown_object: "Objet inconnu : %",
+        circular_reference: "Référence circulaire : %",
         unknown_method:
             "Méthode inconnue : % (setHidden, setRGBColor, setOpacity, setSize…)",
         arguments: "Arguments incorrects pour %",
@@ -49,6 +50,7 @@ const fr: Texts = {
         move_page_before: "Déplacer vers la gauche",
         move_page_after: "Déplacer vers la droite",
         page_copy: "% (copie)",
+        page_name_taken: "Une autre page s’appelle déjà « % »",
         page_menu: "Options de la page",
         page_list: "Toutes les pages",
         page_color: "Couleur de l'onglet",

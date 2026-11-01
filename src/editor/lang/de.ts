@@ -8,6 +8,7 @@ const de: Texts = {
         coordinates: "Ein Punkt hat zwei oder drei Koordinaten",
         unknown_command: "Unbekannter Befehl: %",
         unknown_object: "Unbekanntes Objekt: %",
+        circular_reference: "Zirkelbezug: %",
         unknown_method:
             "Unbekannte Methode: % (setHidden, setRGBColor, setOpacity, setSize…)",
         arguments: "Ungültige Argumente für %",
@@ -49,6 +50,7 @@ const de: Texts = {
         move_page_before: "Nach links verschieben",
         move_page_after: "Nach rechts verschieben",
         page_copy: "% (Kopie)",
+        page_name_taken: "Eine andere Seite heißt bereits „%“",
         page_menu: "Seitenoptionen",
         page_list: "Alle Seiten",
         page_color: "Registerfarbe",

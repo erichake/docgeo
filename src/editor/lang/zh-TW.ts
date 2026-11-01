@@ -8,6 +8,7 @@ const zh_TW: Texts = {
         coordinates: "點有兩個或三個座標",
         unknown_command: "未知指令：%",
         unknown_object: "未知物件：%",
+        circular_reference: "循環參照：%",
         unknown_method:
             "未知方法：%（setHidden、setRGBColor、setOpacity、setSize…）",
         arguments: "% 的參數不正確",
@@ -48,6 +49,7 @@ const zh_TW: Texts = {
         move_page_before: "左移",
         move_page_after: "右移",
         page_copy: "%（副本）",
+        page_name_taken: "已有另一頁名為「%」",
         page_menu: "頁面選項",
         page_list: "所有頁面",
         page_color: "標籤顏色",

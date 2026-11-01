@@ -7,6 +7,7 @@ export default {
     coordinates: "A point has two or three coordinates",
     unknown_command: "Unknown command: %",
     unknown_object: "Unknown object: %",
+    circular_reference: "Circular reference: %",
     unknown_method:
         "Unknown method: % (setHidden, setRGBColor, setOpacity, setSize…)",
     arguments: "Wrong arguments for %",
@@ -48,6 +49,7 @@ export default {
     move_page_before: "Move left",
     move_page_after: "Move right",
     page_copy: "% (copy)",
+    page_name_taken: "Another page is named “%”",
     page_menu: "Page options",
     page_list: "All pages",
     page_color: "Tab color",

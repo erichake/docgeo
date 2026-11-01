@@ -1,13 +1,18 @@
-import type { construction } from "./construction";
+import { construction } from "./construction";
 import {
     describeDgo,
     describeWorkbook,
+    figureObjects,
     gzipped,
-    importDgoBook,
+    importDgo,
+    readDgoFile,
     type Workbook,
 } from "./dgo";
 import { $, type DOMElement } from "./dom";
 import { DIR } from "./i18n";
+import { readExternals, type ScriptValue } from "./import/dgp_formula";
+import { expression_object } from "./objects/expression_object";
+import { preferences } from "./preferences";
 
 $("head").append(`<style>
     .docgeo-tabs { position: fixed; bottom: 0; inset-inline: var(--dge-panel-width, 0px) 0; height: var(--docgeo-tabs); display: flex; padding-inline: 8px; overflow-x: auto; background: #fafafc; box-shadow: inset 0 1px #e0e0e0; color: #676464; font: 13px system-ui, -apple-system, "Segoe UI", sans-serif; user-select: none; -webkit-user-select: none; transition: inset-inline-start var(--dge-slide, 0s); }
@@ -18,6 +23,145 @@ $("head").append(`<style>
     .docgeo-tabs > button > span { overflow: hidden; text-overflow: ellipsis; }
 </style>`);
 
+type Page = Workbook["pages"][number];
+
+// The workbook of the page shown, whose formulas read the expressions of
+// its other pages (see DGO.md): the values computed of each, which hold as
+// long as the pages it read don't change, and the pages being computed,
+// the page shown first, each with those it reads.
+let book: Workbook | null = null;
+const computed = new Map<
+    Page,
+    { values: Map<string, ScriptValue | null>; reads: Set<Page> }
+>();
+let reading: { page: Page; reads: Set<Page> }[] = [];
+
+export function useWorkbook(shown: Workbook | null): void {
+    if (shown === book) return;
+    book = shown;
+    forgetValues();
+}
+
+// After a page is deleted.
+export function forgetValues(): void {
+    computed.clear();
+    reading = [];
+}
+
+const pageNamed = (name: string): Page | undefined =>
+    book?.pages.find((page) => page.name === name);
+
+// The page reading: the page shown, unless another is being computed.
+function reader(): { page: Page; reads: Set<Page> } {
+    const page = book!.pages[book!.current];
+    if (reading[0]?.page !== page) reading = [{ page, reads: new Set() }];
+    return reading[reading.length - 1];
+}
+
+// Undefined if it would close a cycle: the pages being computed, the page
+// shown first, can't be read.
+readExternals((name, object) => {
+    const page = pageNamed(name);
+    if (!page) return null;
+    reader().reads.add(page);
+    return reading.some((other) => other.page === page)
+        ? null
+        : (pageValues(page).get(object) ?? null);
+});
+
+// As last computed, or computed in a figure that is never shown.
+function pageValues(page: Page): Map<string, ScriptValue | null> {
+    let done = computed.get(page);
+    if (!done) {
+        const entry = { page, reads: new Set<Page>() };
+        reading.push(entry);
+        const c = construction.create({ prefs: new preferences() });
+        let values = new Map<string, ScriptValue | null>();
+        try {
+            importDgo(c, page.figure);
+            values = expressionValues(c);
+        } catch {
+            // A malformed page, which shows why when it's shown.
+        } finally {
+            c.dispose();
+            reading.pop();
+        }
+        done = { values, reads: entry.reads };
+        computed.set(page, done);
+    }
+    return done.values;
+}
+
+// What a formula of the page reads when it names them (a point's
+// coordinates, a segment's length…), functions aside.
+const expressionValues = (c: construction) =>
+    new Map(
+        figureObjects(c).flatMap((object) =>
+            object instanceof expression_object &&
+            object.formula?.variables.length
+                ? []
+                : [[object.name, object.scriptValue(!c.GRID.is2D)] as const],
+        ),
+    );
+
+// The values the page shown is left with: those that read it are computed
+// again if they changed.
+export function leavePage(c: construction): void {
+    if (!book) return;
+    const { page, reads } = reader();
+    const values = expressionValues(c);
+    const before = computed.get(page);
+    computed.set(page, { values, reads });
+    if (
+        !before ||
+        JSON.stringify([...before.values]) !== JSON.stringify([...values])
+    )
+        forget(page);
+}
+
+// The values of the pages that read it, directly or not.
+function forget(page: Page): void {
+    computed.forEach(({ reads }, other) => {
+        if (other !== page && reads.has(page) && computed.delete(other))
+            forget(other);
+    });
+}
+
+// Why the page shown can't read the object of this page, if it can't: it
+// reads the page shown, directly or not, or has no such expression.
+export function unreadable(
+    name: string,
+    object: string,
+): "unknown_object" | "circular_reference" | null {
+    const page = pageNamed(name);
+    if (!page) return "unknown_object";
+    const shown = reader().page;
+    if (page === shown) return "circular_reference";
+    const values = pageValues(page);
+    const seen = new Set<Page>();
+    const reads = (from: Page): boolean =>
+        [...(computed.get(from)?.reads ?? [])].some(
+            (read) =>
+                read === shown ||
+                (!seen.has(read) && seen.add(read) && reads(read)),
+        );
+    if (reads(page)) return "circular_reference";
+    return values.has(object) ? null : "unknown_object";
+}
+
+// Its page shown, and its workbook, if it is one, whose other pages its
+// formulas read.
+export async function importDgoBook(
+    c: construction,
+    file: Blob,
+    centered = false,
+): Promise<Workbook | null> {
+    const { book, figure } = await readDgoFile(file);
+    useWorkbook(book);
+    importDgo(c, figure, centered);
+    return book;
+}
+
 // The figure of the file, opened in `c`, and the workbook of which it is the
 // page shown, if the file is one.
 export async function openFigureFile(
@@ -26,6 +170,7 @@ export async function openFigureFile(
 ): Promise<{ book: Workbook | null; unsupported: string[] }> {
     if (/\.dgo$/i.test(file.name))
         return { book: await importDgoBook(c, file), unsupported: [] };
+    useWorkbook(null);
     return {
         book: null,
         unsupported: /\.ggb$/i.test(file.name)

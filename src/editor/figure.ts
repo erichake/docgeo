@@ -72,6 +72,7 @@ import {
     type sequence_object,
 } from "../objects/sequence_object";
 import { vDot, vScale, vSub, type Vec2, type Vec3 } from "../vec";
+import { unreadable } from "../workbook";
 import {
     commandName,
     COMMANDS,
@@ -88,6 +89,7 @@ import {
     type Overload,
 } from "./catalog";
 import {
+    externalSource,
     formatName,
     coordinatesText,
     formatNumber,
@@ -903,6 +905,7 @@ function expression(
             method ?? source,
         );
     }
+    if (content.kind !== "v") checkExternals(programNodes(content.program));
     // A constant written otherwise than its value (`3i-9`, not `[-9, 3]`)
     // keeps its text, as a formula.
     if (
@@ -979,6 +982,7 @@ function programObjects(
             method ?? source,
         );
     }
+    checkExternals(programNodes(program));
     return namedObjects(
         own,
         [...programReferences(program), ...programTargets(program)],
@@ -1182,16 +1186,16 @@ function formulaArg(
     const own = new Map(
         figureObjects(c).map((object) => [object.name, object]),
     );
-    let names: Set<string>;
+    let node: FormulaNode;
     try {
-        names = formulaIdentifiers(
-            withObjects(new Set(own.keys()), () =>
-                parseFormula(source, variables),
-            ),
+        node = withObjects(new Set(own.keys()), () =>
+            parseFormula(source, variables),
         );
     } catch {
         throw new TextError("syntax", source);
     }
+    checkExternals(formulaNodes(node));
+    const names = formulaIdentifiers(node);
     return new FormulaArg(
         source,
         new Map(
@@ -1206,6 +1210,20 @@ function formulaArg(
     );
 }
 
+const formulaNodes = (node: FormulaNode): FormulaNode[] =>
+    programNodes({ body: [{ kind: "expression", node }], locals: new Set() });
+
+// Refused if it reads an object of another page that the page shown can't
+// read (see workbook.ts).
+function checkExternals(nodes: FormulaNode[]): void {
+    for (const node of nodes) {
+        if (node.kind !== "external") continue;
+        const error = unreadable(node.page, node.name);
+        if (error)
+            throw new TextError(error, externalSource(node.page, node.name));
+    }
+}
+
 // A text, the objects its formulas name, or a panel's HTML, those of its
 // formulas and fields: both read as the figure reads them.
 function textArg(c: construction, text: string, html: boolean): TextArg {
@@ -1213,22 +1231,24 @@ function textArg(c: construction, text: string, html: boolean): TextArg {
         figureObjects(c).map((object) => [object.name, object]),
     );
     let names: Set<string>;
+    const formulas: FormulaNode[] = [];
     try {
         names = withObjects(new Set(own.keys()), () => {
             if (html) return panelNames(parsePanel(text));
             const parts = text.split("%");
             if (parts.length % 2 === 0) throw new Error();
+            parts.forEach(
+                (part, index) =>
+                    index % 2 && part && formulas.push(parseFormula(part)),
+            );
             return new Set(
-                parts.flatMap((part, index) =>
-                    index % 2 && part
-                        ? [...formulaIdentifiers(parseFormula(part))]
-                        : [],
-                ),
+                formulas.flatMap((node) => [...formulaIdentifiers(node)]),
             );
         });
     } catch {
         throw new TextError(html ? "html" : "syntax", html ? "" : text);
     }
+    checkExternals(formulas.flatMap(formulaNodes));
     return new TextArg(
         text,
         new Map(

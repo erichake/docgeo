@@ -8,6 +8,7 @@ const hi: Texts = {
         coordinates: "एक बिंदु के दो या तीन निर्देशांक होते हैं",
         unknown_command: "अज्ञात कमांड: %",
         unknown_object: "अज्ञात ऑब्जेक्ट: %",
+        circular_reference: "चक्रीय संदर्भ: %",
         unknown_method:
             "अज्ञात मेथड: % (setHidden, setRGBColor, setOpacity, setSize…)",
         arguments: "% के लिए गलत आर्गुमेंट",
@@ -49,6 +50,7 @@ const hi: Texts = {
         move_page_before: "बाएँ ले जाएँ",
         move_page_after: "दाएँ ले जाएँ",
         page_copy: "% (प्रतिलिपि)",
+        page_name_taken: "एक अन्य पृष्ठ का नाम पहले से “%” है",
         page_menu: "पृष्ठ विकल्प",
         page_list: "सभी पृष्ठ",
         page_color: "टैब का रंग",

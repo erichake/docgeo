@@ -8,6 +8,7 @@ const zh: Texts = {
         coordinates: "点有两个或三个坐标",
         unknown_command: "未知命令：%",
         unknown_object: "未知对象：%",
+        circular_reference: "循环引用：%",
         unknown_method:
             "未知方法：%（setHidden、setRGBColor、setOpacity、setSize…）",
         arguments: "% 的参数不正确",
@@ -48,6 +49,7 @@ const zh: Texts = {
         move_page_before: "左移",
         move_page_after: "右移",
         page_copy: "%（副本）",
+        page_name_taken: "已有另一页名为“%”",
         page_menu: "页面选项",
         page_list: "所有页面",
         page_color: "标签颜色",

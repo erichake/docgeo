@@ -118,13 +118,59 @@ n'a que trois clés :
 | `p`   | indice de la page montrée à l'ouverture | 0        |
 
 Une page est une figure (toutes les clés de la racine ci-dessus, sauf `dgo`),
-plus son nom `n` et, si elle en a une, la couleur `c` de son onglet. Rien n'est partagé entre les pages : ni objets, ni styles,
-ni images, ni macros, et leurs noms d'objets sont indépendants.
+plus son nom `n` (unique dans le classeur) et, si elle en a une, la couleur
+`c` de son onglet. Rien n'est partagé entre les pages : ni objets, ni styles,
+ni images, ni macros, et leurs noms d'objets sont indépendants, mais une
+formule peut lire une expression d'une autre page (ci-après).
 L'enregistrement garde chaque page dans l'état où on l'a laissée, et `p` est
 la page montrée.
 
 Pour l'instant, le mode intégré du lecteur montre la page `p` d'un classeur,
 seule, sans onglets : l'état élève est celui de cette page.
+
+#### Références entre pages
+
+Seule exception à l'indépendance des pages : une formule peut lire la
+valeur d'une expression d'une autre page, avec la syntaxe des tableurs :
+`m = 'Page 1'!c`. Le nom de la page s'écrit comme une chaîne (`\'` pour une
+apostrophe : `'L\'aire'!c`), ou tel quel s'il est un identifiant
+(`Page2!c`) ; celui de l'objet comme dans toute formule. Une chaîne ou un
+nom suivi immédiatement de `!` puis d'un nom est une référence ; `'a'!=c`
+reste une comparaison (`src/import/dgp_formula.ts`, nœud `external`).
+
+- **Lecture seule** : rien dans une page ne change une autre page (ni
+  `SET_EXP`, ni globale, ni programme). Tout objet autre qu'une fonction
+  peut être lu, avec la valeur qu'une formule de sa page lit en le nommant
+  (coordonnées d'un point, longueur d'un segment…), indéfinie s'il n'en a
+  pas.
+- **Par le nom**, comme les objets dans les formules : le texte enregistré
+  est celui qu'on lit. Les noms de pages sont donc uniques dans un classeur ;
+  l'éditeur réécrit les références des autres pages quand il renomme la page
+  montrée ou l'un de ses objets. Une référence à une page ou un objet absent
+  est indéfinie, et l'expression est gardée (pas de suppression en cascade).
+- **Graphe des pages acyclique** : si une page en lit une autre, celle-ci ne
+  la lit pas, même indirectement. Chaque page se calcule ainsi d'un bloc.
+  L'éditeur refuse une référence qui fermerait un cycle ; dans un fichier
+  qui en contient un, la référence qui le fermerait, lue pendant que la page
+  qu'elle vise est montrée ou en calcul, est indéfinie.
+- **Dans le moteur**, la valeur d'une référence est fournie par le classeur
+  (`src/workbook.ts`) et ne change pas tant que la page est montrée : le
+  graphe interne de la page ne change pas.
+- **Calcul paresseux** : une seule page étant montrée, rien n'est propagé
+  pendant une manipulation. Le classeur garde, pour chaque page calculée,
+  les valeurs de ses expressions et les pages qu'elle a lues. Quitter une
+  page relève ses valeurs ; si elles ont changé, celles des pages qui la
+  lisent, directement ou non, sont oubliées. Une référence à une page sans
+  valeurs la calcule d'abord sans la montrer (construction créée depuis la
+  description, valeurs relevées, construction détruite), ainsi que les
+  pages qu'elle lit à leur tour. Supprimer une page oublie toutes les
+  valeurs. Les descriptions ne changent pas, et ce cache n'est pas
+  enregistré.
+- **Mode intégré** : il calcule de même, sans les montrer, les pages que lit
+  la page `p` ; l'état élève reste celui de la page `p`.
+
+Format : aucune clé nouvelle, la référence n'étant que du texte de formule
+(un ajout à la grammaire, conforme aux règles d'évolution).
 
 Couleurs : `#rgb`, `#rrggbb` ou `rgb(r,g,b)`. Booléens : 0 ou 1. JSON n'ayant
 pas NaN, un nombre non fini s'écrit `null` là où il peut survenir :

@@ -2747,3 +2747,19 @@ quelle, avec son historique d'annulation, retrouvé au retour ; le point
 qui signale une modification devant le nom de fichier vaut pour tout le
 classeur (pages ajoutées, supprimées ou renommées comprises), et
 l'enregistrement l'écrit en entier. Le mode intégré du lecteur ne montre que la page `p`.
+
+#### Références entre pages — 2026-11-01
+
+Une formule lit une expression d'une autre page par `'Page 1'!c` (voir
+`DGO.md`, « Références entre pages »). À la saisie (`checkExternals` de
+`src/editor/figure.ts`, pour les expressions, formules, programmes et
+textes), une page ou un objet inconnu est refusé (« Objet inconnu »),
+comme une référence à la page montrée ou à une page qui la lit, directement
+ou non (« Référence circulaire », `unreadable` de `src/workbook.ts`). Les
+noms de pages restent uniques : une nouvelle page ou une copie est numérotée
+au besoin, et renommer une page avec le nom d'une autre est refusé.
+Renommer la page montrée ou l'un de ses objets réécrit les références des
+autres pages, descriptions et historiques d'annulation compris
+(`renameReferences`, `renameExternals` de `src/editor/text.ts`). Supprimer
+une page montre sa voisine sans elle : ses références à la page supprimée
+deviennent indéfinies.

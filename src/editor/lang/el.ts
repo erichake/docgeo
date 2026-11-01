@@ -8,6 +8,7 @@ const el: Texts = {
         coordinates: "Ένα σημείο έχει δύο ή τρεις συντεταγμένες",
         unknown_command: "Άγνωστη εντολή: %",
         unknown_object: "Άγνωστο αντικείμενο: %",
+        circular_reference: "Κυκλική αναφορά: %",
         unknown_method:
             "Άγνωστη μέθοδος: % (setHidden, setRGBColor, setOpacity, setSize…)",
         arguments: "Λανθασμένα ορίσματα για %",
@@ -49,6 +50,7 @@ const el: Texts = {
         move_page_before: "Μετακίνηση αριστερά",
         move_page_after: "Μετακίνηση δεξιά",
         page_copy: "% (αντίγραφο)",
+        page_name_taken: "Μια άλλη σελίδα ονομάζεται ήδη «%»",
         page_menu: "Επιλογές σελίδας",
         page_list: "Όλες οι σελίδες",
         page_color: "Χρώμα καρτέλας",

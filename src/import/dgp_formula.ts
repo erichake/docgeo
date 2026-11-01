@@ -308,6 +308,9 @@ export type FormulaNode =
     | { kind: "imaginary" }
     | { kind: "constant"; name: keyof typeof CONSTANTS }
     | { kind: "identifier"; name: string }
+    // "'Page 1'!c": an expression of another page of the workbook (see
+    // DGO.md).
+    | { kind: "external"; page: string; name: string }
     | { kind: "call"; fn: FormulaFn; args: FormulaNode[] }
     // A call to a name that isn't one of the built-in FORMULA_ARITY
     // functions, e.g. "E1(x)" referencing another named Expression: resolved
@@ -454,6 +457,7 @@ export type TokenType =
     | "number"
     | "string"
     | "identifier"
+    | "external"
     | "imaginary"
     | "+"
     | "-"
@@ -487,6 +491,8 @@ export type TokenType =
 export interface Token {
     type: TokenType;
     value: string | number;
+    // An external one's.
+    page?: string;
 }
 
 // JavaScript's reserved words: a script uses only the statements parsed
@@ -527,26 +533,18 @@ export class FormulaLexer {
             return { type: "number", value: coefficient };
         }
 
-        if (IDENTIFIER_START.test(character)) return this.identifier();
-
-        // A name that isn't an identifier, as the editor writes it.
-        if (character === "`") {
-            const end = this.source.indexOf("`", this.index + 1);
-            if (end < this.index + 2)
-                throw new Error("Invalid DGP formula syntax");
-            const value = this.source.slice(this.index + 1, end);
-            this.index = end + 1;
-            return { type: "identifier", value };
-        }
+        if (IDENTIFIER_START.test(character))
+            return this.external(this.identifier());
+        if (character === "`") return this.external(this.quoted());
 
         STRING.lastIndex = this.index;
         const string = STRING.exec(this.source);
         if (string) {
             this.index = STRING.lastIndex;
-            return {
+            return this.external({
                 type: "string",
                 value: string[0].slice(1, -1).replace(/\\(.)/g, "$1"),
-            };
+            });
         }
 
         const operator = OPERATOR.exec(this.source.slice(this.index));
@@ -570,6 +568,29 @@ export class FormulaLexer {
         if (!REGEX.exec(this.source))
             throw new Error("Invalid DGP formula syntax");
         this.index = REGEX.lastIndex;
+    }
+
+    // A name that isn't an identifier, as the editor writes it.
+    private quoted(): Token {
+        const end = this.source.indexOf("`", this.index + 1);
+        if (end < this.index + 2) throw new Error("Invalid DGP formula syntax");
+        const value = this.source.slice(this.index + 1, end);
+        this.index = end + 1;
+        return { type: "identifier", value };
+    }
+
+    // The page's name followed at once by "!" and the object's: "a!=b"
+    // remains a comparison.
+    private external(page: Token): Token {
+        const next = this.source[this.index + 1] ?? "";
+        if (
+            this.source[this.index] !== "!" ||
+            !(next === "`" || IDENTIFIER_START.test(next))
+        )
+            return page;
+        this.index++;
+        const { value } = next === "`" ? this.quoted() : this.identifier();
+        return { type: "external", value, page: page.value as string };
     }
 
     private consumeBareI(): boolean {
@@ -601,6 +622,14 @@ export class FormulaLexer {
             value: this.source.slice(start, this.index),
         };
     }
+}
+
+// The value of an expression of another page of the workbook (see
+// workbook.ts).
+let external = (_page: string, _name: string): ScriptValue | null => null;
+
+export function readExternals(read: typeof external): void {
+    external = read;
 }
 
 // The objects of the figure being read (see withObjects).
@@ -984,6 +1013,14 @@ class FormulaParser {
         if (token.type === "imaginary") {
             this.advance();
             return this.imaginary(token.value as number);
+        }
+        if (token.type === "external") {
+            this.advance();
+            return {
+                kind: "external",
+                page: token.page!,
+                name: token.value as string,
+            };
         }
         if (token.type === "identifier") {
             const name = token.value as string;
@@ -2429,6 +2466,10 @@ function compileNode(node: FormulaNode, scope: Scope): Code {
             return slot === undefined
                 ? (frame) => frame.env.resolveIdentifier(name)
                 : (frame) => frame.slots[slot];
+        }
+        case "external": {
+            const { page, name } = node;
+            return () => external(page, name);
         }
         case "assign": {
             const slot = scope.slots.get(node.name);

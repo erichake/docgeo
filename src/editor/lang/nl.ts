@@ -8,6 +8,7 @@ const nl: Texts = {
         coordinates: "Een punt heeft twee of drie coördinaten",
         unknown_command: "Onbekende opdracht: %",
         unknown_object: "Onbekend object: %",
+        circular_reference: "Kringverwijzing: %",
         unknown_method:
             "Onbekende methode: % (setHidden, setRGBColor, setOpacity, setSize…)",
         arguments: "Ongeldige argumenten voor %",
@@ -49,6 +50,7 @@ const nl: Texts = {
         move_page_before: "Naar links verplaatsen",
         move_page_after: "Naar rechts verplaatsen",
         page_copy: "% (kopie)",
+        page_name_taken: "Een andere pagina heet al ‘%’",
         page_menu: "Pagina-opties",
         page_list: "Alle pagina's",
         page_color: "Tabkleur",

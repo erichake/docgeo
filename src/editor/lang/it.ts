@@ -8,6 +8,7 @@ const it: Texts = {
         coordinates: "Un punto ha due o tre coordinate",
         unknown_command: "Comando sconosciuto: %",
         unknown_object: "Oggetto sconosciuto: %",
+        circular_reference: "Riferimento circolare: %",
         unknown_method:
             "Metodo sconosciuto: % (setHidden, setRGBColor, setOpacity, setSize…)",
         arguments: "Argomenti non validi per %",
@@ -49,6 +50,7 @@ const it: Texts = {
         move_page_before: "Sposta a sinistra",
         move_page_after: "Sposta a destra",
         page_copy: "% (copia)",
+        page_name_taken: "Un’altra pagina si chiama già «%»",
         page_menu: "Opzioni della pagina",
         page_list: "Tutte le pagine",
         page_color: "Colore della scheda",

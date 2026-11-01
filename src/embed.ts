@@ -1,11 +1,5 @@
 import { construction, type DgpadLike } from "./construction";
-import {
-    describeDgo,
-    importDgoFromBlob,
-    readDgo,
-    writeDgo,
-    type DgoFigure,
-} from "./dgo";
+import { describeDgo, readDgo, writeDgo, type DgoFigure } from "./dgo";
 import { $ } from "./dom";
 import {
     builtView,
@@ -20,6 +14,7 @@ import {
     stateFigure,
 } from "./figure_state";
 import { frameRegion, hideFrame, showFrame } from "./frame";
+import { importDgoBook, useWorkbook } from "./workbook";
 
 // The embedded mode's postMessage protocol: see EMBED.md.
 const PROTOCOL = 1;
@@ -95,10 +90,11 @@ export function embed(app: Embedder): void {
                 ? null
                 : { blob, format };
         let unsupported: string[];
+        useWorkbook(null);
         try {
             unsupported =
                 format === "dgo"
-                    ? await importDgoFromBlob(app.scene, blob, true)
+                    ? (await importDgoBook(app.scene, blob, true), [])
                     : format === "ggb"
                       ? await (
                             await import("./ggb_importer")

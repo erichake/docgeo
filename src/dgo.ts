@@ -924,20 +924,17 @@ export async function importDgoFromBlob(
     file: Blob,
     centered = false,
 ): Promise<string[]> {
-    await importDgoBook(c, file, centered);
+    importDgo(c, (await readDgoFile(file)).figure, centered);
     return [];
 }
 
-// The workbook the file is, if it is one, whose page shown is imported.
-export async function importDgoBook(
-    c: construction,
+// The workbook the file is, if it is one, and the figure of its page shown.
+export async function readDgoFile(
     file: Blob,
-    centered = false,
-): Promise<Workbook | null> {
+): Promise<{ book: Workbook | null; figure: Json }> {
     const json = await dgoJson(file);
     const book = dgoWorkbook(json);
-    importDgo(c, book ? book.pages[book.current].figure : json, centered);
-    return book;
+    return { book, figure: book ? book.pages[book.current].figure : json };
 }
 
 export function importDgo(c: construction, figure: Json, centered = false) {
