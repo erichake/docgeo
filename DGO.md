@@ -121,7 +121,8 @@ Une page est une figure (toutes les clés de la racine ci-dessus, sauf `dgo`),
 plus son nom `n` (unique dans le classeur) et, si elle en a une, la couleur
 `c` de son onglet. Rien n'est partagé entre les pages : ni objets, ni styles,
 ni images, ni macros, et leurs noms d'objets sont indépendants, mais une
-formule peut lire une expression d'une autre page (ci-après).
+formule peut lire une expression d'une autre page, et les globales Blockly
+sont celles du classeur (ci-après).
 L'enregistrement garde chaque page dans l'état où on l'a laissée, et `p` est
 la page montrée.
 
@@ -139,7 +140,7 @@ nom suivi immédiatement de `!` puis d'un nom est une référence ; `'a'!=c`
 reste une comparaison (`src/import/dgp_formula.ts`, nœud `external`).
 
 - **Lecture seule** : rien dans une page ne change une autre page (ni
-  `SET_EXP`, ni globale, ni programme). Tout objet autre qu'une fonction
+  `SET_EXP`, ni programme), sauf ses globales (ci-après). Tout objet autre qu'une fonction
   peut être lu, avec la valeur qu'une formule de sa page lit en le nommant
   (coordonnées d'un point, longueur d'un segment…), indéfinie s'il n'en a
   pas.
@@ -171,6 +172,27 @@ reste une comparaison (`src/import/dgp_formula.ts`, nœud `external`).
 
 Format : aucune clé nouvelle, la référence n'étant que du texte de formule
 (un ajout à la grammaire, conforme aux règles d'évolution).
+
+#### Globales du classeur
+
+Une globale Blockly (6) est celle du classeur : toutes les pages qui ont une
+globale de ce nom (leur `Ex` de `"g"` égal) lui donnent la même valeur.
+Seuls des événements la changent (bouton, programme « onchange »,
+« ondrag »…), jamais un calcul : comme un point libre, elle ne crée pas de
+cycle entre les pages. Chaque page la garde comme son `Ex`, et le classeur
+(`src/workbook.ts`) synchronise leurs descriptions :
+
+- **À l'ouverture**, chaque globale prend la valeur qu'elle a dans la page
+  montrée, ou, si elle n'y en a pas (`"v"` absent ou `null`), la première
+  qu'elle a dans les pages, dans l'ordre : une globale jamais fixée n'efface
+  pas celle d'une autre page.
+- **En quittant une page et à l'enregistrement**, ses globales sont données
+  aux autres pages, dont les valeurs calculées sont oubliées si l'une
+  d'elles change. Le fichier enregistré donne donc la même valeur à une
+  globale dans toutes ses pages.
+- Comme une référence entre pages, la valeur d'une autre page qui dépend
+  d'une globale ne change pas tant que la page est montrée : elle suit le
+  changement de la globale au prochain affichage.
 
 Couleurs : `#rgb`, `#rrggbb` ou `rgb(r,g,b)`. Booléens : 0 ou 1. JSON n'ayant
 pas NaN, un nombre non fini s'écrit `null` là où il peut survenir :

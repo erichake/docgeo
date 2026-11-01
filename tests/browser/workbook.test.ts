@@ -15,6 +15,7 @@ import { add, resolve } from "../../src/editor/figure";
 import { isCommand } from "../../src/editor/catalog";
 import { parseLine, renameExternals } from "../../src/editor/text";
 import { parseFormula } from "../../src/import/dgp_formula";
+import { setValue } from "../../src/objects/expression_object";
 import type { list_object } from "../../src/objects/list_object";
 import type { point_on_object } from "../../src/objects/point_on_object";
 import { leavePage, openFigureFile, writeWorkbook } from "../../src/workbook";
@@ -89,6 +90,44 @@ describe("workbooks", () => {
             5;
         const first = show(opened, c, 0);
         expect(value(show(opened, first, 2), "n")).toBe(11);
+    });
+
+    it("shares the Blockly globals between pages", async () => {
+        const global = (v: unknown) => ex("G", { v, g: "G" });
+        const book = {
+            pages: [
+                sheet("un", [global(5)]),
+                sheet("deux", [
+                    global(null),
+                    ex("k", { s: ['GLOBAL_GET("G")*2', { "GLOBAL G": 0 }] }),
+                ]),
+                sheet("trois", [ex("m", { s: "deux!k" })]),
+            ],
+            current: 1,
+        };
+        const c = createConstruction();
+        const opened = (
+            await openFigureFile(
+                c,
+                new File(
+                    [await gzipped(describeWorkbook(book))],
+                    "classeur.dgo",
+                ),
+            )
+        ).book!;
+        expect(value(c, "k")).toBe(10);
+        const third = show(opened, c, 2);
+        expect(value(third, "m")).toBe(10);
+        const second = show(opened, third, 1);
+        const G = second.getObj("G")!;
+        setValue(G, 7);
+        second.invalidateGeometry(G);
+        second.flush();
+        expect(value(second, "k")).toBe(14);
+        opened.pages[1].figure = await describeDgo(second);
+        const first = show(opened, second, 0);
+        expect(value(first, "G")).toBe(7);
+        expect(value(show(opened, first, 2), "m")).toBe(14);
     });
 
     it("refuses a reference that would read the page shown", async () => {

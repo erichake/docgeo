@@ -40,6 +40,50 @@ export function useWorkbook(shown: Workbook | null): void {
     if (shown === book) return;
     book = shown;
     forgetValues();
+    if (!book) return;
+    // Those of the page shown first, a global never set changing none.
+    const { pages, current } = book;
+    const values = new Map<string, unknown>();
+    for (const page of [pages[current], ...pages])
+        for (const { g, v } of globals(page))
+            if (v != null && !values.has(g)) values.set(g, v);
+    shareGlobals(pages, values);
+}
+
+type Global = { g: string; v?: unknown };
+
+// The parameters of the expressions holding Blockly globals in the page's
+// description.
+const globals = ({ figure: { o } }: Page): Global[] =>
+    (Array.isArray(o) ? o : []).flatMap((object: unknown) =>
+        Array.isArray(object) &&
+        object[0] === "Ex" &&
+        typeof (object[2] as Global | null)?.g === "string"
+            ? [object[2] as Global]
+            : [],
+    );
+
+const pageGlobals = (page: Page) =>
+    new Map(globals(page).map(({ g, v }) => [g, v ?? null]));
+
+// The Blockly globals are the workbook's, not a page's (see DGO.md): the
+// pages that hold one are given its value, and computed again.
+function shareGlobals(pages: Page[], values: Map<string, unknown>): void {
+    for (const page of pages) {
+        let changed = false;
+        for (const global of globals(page))
+            if (
+                values.has(global.g) &&
+                JSON.stringify(values.get(global.g)) !==
+                    JSON.stringify(global.v ?? null)
+            ) {
+                global.v = values.get(global.g);
+                changed = true;
+            }
+        if (!changed) continue;
+        computed.delete(page);
+        forget(page);
+    }
 }
 
 // After a page is deleted.
@@ -104,11 +148,12 @@ const expressionValues = (c: construction) =>
         ),
     );
 
-// The values the page shown is left with: those that read it are computed
-// again if they changed.
+// The values the page shown is left with, as described: those that read it
+// are computed again if they changed, and its globals given to the others.
 export function leavePage(c: construction): void {
     if (!book) return;
     const { page, reads } = reader();
+    shareGlobals(book.pages, pageGlobals(page));
     const values = expressionValues(c);
     const before = computed.get(page);
     computed.set(page, { values, reads });
@@ -184,7 +229,9 @@ export async function writeWorkbook(
     book: Workbook,
     c: construction,
 ): Promise<Blob> {
-    book.pages[book.current].figure = await describeDgo(c);
+    const page = book.pages[book.current];
+    page.figure = await describeDgo(c);
+    shareGlobals(book.pages, pageGlobals(page));
     return gzipped(describeWorkbook(book));
 }
 
