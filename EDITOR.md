@@ -41,7 +41,10 @@ l'**ouverture des `.dgo`, `.dgp` et `.ggb` par double-clic**.
 - `public/editor.webmanifest` (lié par `editor.html`), en chemins relatifs :
   portée `editor` (préfixe d'adresse, pas un dossier), icônes PNG tirées de
   `icon_blue.svg` (dont une variante « maskable », fond plein, motif à
-  80 %), `file_handlers` des trois formats vers `editor.html`.
+  80 %), `file_handlers` des trois formats vers `editor.html`, chacun avec
+  son icône de document (`file_dgo.png`, `file_dgp.png`, `file_ggb.png` :
+  page cornée, motif, extension), que Chrome n'utilise encore que derrière
+  `chrome://flags/#file-handling-icons`.
 - Les fichiers reçus du système arrivent par `window.launchQueue`
   (`src/editor/main.ts`), ouverts comme un fichier choisi ; le handle d'un
   `.dgo` reste celui où l'enregistrement écrit.

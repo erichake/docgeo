@@ -19,11 +19,36 @@
     "file_handlers": [
         {
             "action": "editor.html",
-            "accept": {
-                "application/x-docgeo": [".dgo"],
-                "application/x-dgpad": [".dgp"],
-                "application/vnd.geogebra.file": [".ggb"]
-            }
+            "accept": { "application/x-docgeo": [".dgo"] },
+            "icons": [
+                {
+                    "src": "file_dgo.png",
+                    "sizes": "512x512",
+                    "type": "image/png"
+                }
+            ]
+        },
+        {
+            "action": "editor.html",
+            "accept": { "application/x-dgpad": [".dgp"] },
+            "icons": [
+                {
+                    "src": "file_dgp.png",
+                    "sizes": "512x512",
+                    "type": "image/png"
+                }
+            ]
+        },
+        {
+            "action": "editor.html",
+            "accept": { "application/vnd.geogebra.file": [".ggb"] },
+            "icons": [
+                {
+                    "src": "file_ggb.png",
+                    "sizes": "512x512",
+                    "type": "image/png"
+                }
+            ]
         }
     ]
 }
