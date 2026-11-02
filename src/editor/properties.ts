@@ -59,6 +59,7 @@ const SCRUB = {
     thickness: { pixel: 0.05 },
     stroke_opacity: { pixel: 0.5 },
     fill_opacity: { pixel: 0.5 },
+    opacity: { pixel: 0.5 },
     level: { pixel: 0.1 },
     font_size: { pixel: 0.1 },
     name_position: { pixel: 1.8 },
@@ -680,10 +681,30 @@ export function propertiesPanel(options: {
                 object.border = value;
             },
         );
+        // A panel has one color, its frame's and its background's, its
+        // opacity being the whole panel's.
+        const panels = objects.filter(
+            (object) => object instanceof panel_object,
+        );
+        const unpaneled = objects.filter(
+            (object) => !(object instanceof panel_object),
+        );
+        number(
+            appearance,
+            "opacity",
+            panels,
+            (object) => (object.opacity ?? 1) * 100,
+            0,
+            100,
+            1,
+            (object, value) => {
+                object.opacity = value / 100;
+            },
+        );
         number(
             appearance,
             "stroke_opacity",
-            objects,
+            unpaneled,
             (object) => object.strokeOpacity * 100,
             0,
             100,
@@ -693,7 +714,7 @@ export function propertiesPanel(options: {
             },
         );
         // A locus has no default opacity in .dgo, yet is filled like DGPad's.
-        const filled = objects.filter(
+        const filled = unpaneled.filter(
             (object) =>
                 object.opacity !== undefined || object instanceof locus_object,
         );
@@ -722,7 +743,7 @@ export function propertiesPanel(options: {
         check(
             appearance,
             "dashed",
-            objects.filter(
+            unpaneled.filter(
                 (object) =>
                     !(
                         object instanceof point_object ||

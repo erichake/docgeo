@@ -150,6 +150,27 @@ describe("Object properties", () => {
         properties.panel.dispose();
     });
 
+    it("gives a panel its own opacity, without fill nor dashes", () => {
+        const { c, properties, field, change } = setup({
+            o: [["Html", "T", [[0, 0, 100, 50], 15, "x"], 0]],
+            st: [{ c: "#67ae37", fc: "#3d2f83", o: 0.18 }],
+        });
+        properties.select(c.getObj("T")!);
+        for (const key of [
+            "fill_color",
+            "fill_opacity",
+            "stroke_opacity",
+            "dashed",
+        ] as const)
+            expect(
+                properties.panel.find(`[aria-label="${message(key)}"]`),
+            ).toBeNull();
+        expect(field("opacity").value).toBe("18");
+        change("opacity", "60");
+        expect(c.getObj("T")!.opacity).toBe(0.6);
+        properties.panel.dispose();
+    });
+
     it("spans an opacity in about 200 pixels", async () => {
         const { c, properties, field, change } = setup();
         properties.select(c.getObj("A")!);
