@@ -681,8 +681,7 @@ export function propertiesPanel(options: {
                 object.border = value;
             },
         );
-        // A panel has one color, its frame's and its background's, its
-        // opacity being the whole panel's.
+        // A panel's opacity is its frame's and its background's.
         const panels = objects.filter(
             (object) => object instanceof panel_object,
         );
@@ -721,7 +720,7 @@ export function propertiesPanel(options: {
         color(
             appearance,
             "fill_color",
-            filled,
+            [...panels, ...filled],
             (object) => object.fill_color,
             (object) => createdColors(object)[1],
             (object, value) => {

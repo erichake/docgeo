@@ -188,8 +188,8 @@ export function panelNames(nodes: PanelNode[]): Set<string> {
 }
 
 // DGPad's Text: HTML in a frame at a fixed place of the window, `box` giving
-// its position and its inner size in pixels, its color being its frame's and
-// its background's, its size its frame's width. A field of it that targets
+// its position and its inner size in pixels, its colors its frame's and its
+// background's, its opacity the whole panel's, its size its frame's width. A field of it that targets
 // an Expression changes that Expression's number, as a slider does.
 export class panel_object extends construction_object {
     box: [number, number, number, number];
@@ -422,7 +422,9 @@ export class panel_object extends construction_object {
         t.fields = [];
         t.menus = [];
         const [x, y, width, height] = t.box;
-        const color = `color-mix(in srgb, ${t.stroke_color} ${(t.opacity ?? 1) * 100}%, transparent)`;
+        const opacity = (t.opacity ?? 1) * 100;
+        const mix = (color: string) =>
+            `color-mix(in srgb, ${color} ${opacity}%, transparent)`;
         const text = $.create("div")
             .stl(PANEL_TEXT)
             .stl("position", "absolute")
@@ -436,9 +438,9 @@ export class panel_object extends construction_object {
             .stl("box-sizing", "content-box")
             .stl("width", `${width}px`)
             .stl("height", `${height}px`)
-            .stl("border", `${t.size}px solid ${color}`)
+            .stl("border", `${t.size}px solid ${mix(t.stroke_color)}`)
             .stl("border-radius", `${t.radius}px`)
-            .stl("background", color)
+            .stl("background", mix(t.fill_color))
             .add(text);
         const panel = t.svg
             .shape("foreignObject")

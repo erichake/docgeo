@@ -525,7 +525,8 @@ la figure, autour de la verticale de O dans l'espace, sa hauteur gardée),
     options dans la liste de l'expression `L`, chacune `[valeur, légende]` ou
     une valeur qui est sa propre légende (une légende entre apostrophes
     s'affiche sans elles). Position et taille intérieure en
-    pixels ; couleur (`c`, `o`) du cadre et du fond, taille (`s`) du cadre,
+    pixels ; couleur (`c`) du cadre, couleur (`fc`) du fond, opacité (`o`) des
+    deux, taille (`s`) du cadre,
     précision (`p`) des valeurs.
 12. Les points (2 ou 3 nombres, un point indéfini coupant le tracé) sont
     entrecoupés d'instructions de dessin de 4 nombres ou plus, celles de la

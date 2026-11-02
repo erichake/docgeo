@@ -1564,7 +1564,7 @@ for (const tag of ["Poly", "RegP", "PlS", "Pl", "PlP", "PlL", "PlO", "PlE"])
     CREATED_COLORS[tag] = { c: "#5254A3", fc: "#6B6ECF" };
 
 // Points named, those built from others in grey; regions filled,
-// expressions shown, as by DGPad's tools.
+// expressions shown, as by DGPad's tools, panels light.
 function createdStyle(tag: string): Record<string, unknown> | undefined {
     if (isPointTag(tag))
         return {
@@ -1592,6 +1592,7 @@ function createdStyle(tag: string): Record<string, unknown> | undefined {
         return { ...CREATED_COLORS[tag], o: 0.2 };
     // Its value shown, as by DGPad's calculator.
     if (tag === "Ex") return { p: 2, f: 24 };
+    if (tag === "Html") return { c: "#94A3B8", fc: "#F1F5F9", o: 0.8 };
     return CREATED_COLORS[tag];
 }
 

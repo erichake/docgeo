@@ -150,14 +150,14 @@ describe("Object properties", () => {
         properties.panel.dispose();
     });
 
-    it("gives a panel its own opacity, without fill nor dashes", () => {
+    it("gives a panel a fill color and its own opacity, without dashes", () => {
         const { c, properties, field, change } = setup({
             o: [["Html", "T", [[0, 0, 100, 50], 15, "x"], 0]],
             st: [{ c: "#67ae37", fc: "#3d2f83", o: 0.18 }],
         });
         properties.select(c.getObj("T")!);
+        expect(field("fill_color").value).toBe("#3d2f83");
         for (const key of [
-            "fill_color",
             "fill_opacity",
             "stroke_opacity",
             "dashed",
