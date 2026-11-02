@@ -21,6 +21,7 @@ export class button_object extends construction_object {
     program: ExpressionProgram | null;
     private caption!: DOMElement;
     private background!: DOMElement;
+    private tint!: DOMElement;
     private hit!: DOMElement;
     accessory!: DOMElement;
     frame!: DOMElement;
@@ -33,6 +34,8 @@ export class button_object extends construction_object {
         program: ExpressionProgram | null,
     ) {
         super(c, name, "expression");
+        // Its edge, the color of its caption, stays light.
+        this.strokeOpacity = 0.25;
         this.label = label;
         this.screen = screen;
         this.program = program;
@@ -75,6 +78,7 @@ export class button_object extends construction_object {
             `translate(${x - width - tools} ${y - height / 2})`,
         );
         this.background.att("width", width + tools).att("height", height);
+        this.tint.att("width", width + tools).att("height", height);
         this.hit.att("width", width).att("height", height);
         this.caption.att("x", 36).att("y", height / 2);
         this.frame
@@ -94,11 +98,16 @@ export class button_object extends construction_object {
                 `fill:${t.stroke_color};font-family:system-ui,sans-serif;font-size:${t.fontSize}px;font-weight:500;pointer-events:none`,
             )
             .text(t.label);
+        // An opaque ground, tinted by its fill and edged by its color.
         t.background = t.svg
             .shape("rect")
             .att("rx", 7)
+            .stl("fill:#fff;pointer-events:none");
+        t.tint = t.svg
+            .shape("rect")
+            .att("rx", 7)
             .stl(
-                "fill:#f1f2f4;stroke:#b7bdc6;stroke-width:1;pointer-events:none",
+                `fill:${t.fill_color};fill-opacity:${t.opacity};stroke:${t.stroke_color};stroke-width:${t.size};pointer-events:none`,
             );
         t.hit = t.svg.shape("rect").att("rx", 7).stl("fill:transparent");
         t.frame = t.svg
@@ -115,9 +124,11 @@ export class button_object extends construction_object {
             .tap(() => t.run());
         t.frame.on("pointerdown", (event) => event.stopPropagation());
         t.accessory = t.svg.shape("g");
-        const button = t.svg.shape("g").add(t.background, t.frame, t.accessory);
-        button.on("pointerenter", () => t.background.stl("fill", "#e9eaec"));
-        button.on("pointerleave", () => t.background.stl("fill", "#f1f2f4"));
+        const button = t.svg
+            .shape("g")
+            .add(t.background, t.tint, t.frame, t.accessory);
+        button.on("pointerenter", () => t.background.stl("fill", "#f4f4f4"));
+        button.on("pointerleave", () => t.background.stl("fill", "#fff"));
         return button;
     }
 }

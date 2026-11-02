@@ -263,7 +263,7 @@ function mountButtonTools(object: construction_object): void {
     const circle = tools
         .shape("circle")
         .att("r", 14)
-        .stl("fill:#f8f9fa;stroke:#b7bdc6;stroke-width:1");
+        .stl("fill:#f8f9fa;stroke:#b7bdc6;stroke-width:1;stroke-opacity:1");
     tools.add(hit, circle);
     [-5, 0, 5].forEach((y) =>
         tools.add(

@@ -293,7 +293,7 @@ export const LOOKS: Record<string, Look> = {
     Txt: TEXT,
     Img: TEXT,
     Html: ["#000000", "#000000", 3],
-    Btn: ["#000000", "#000000", 3, 0.1],
+    Btn: ["#000000", "#000000", 1, 0.05],
     Evt: ["#000000", "#000000", 1],
     Mac: TEXT,
 };
@@ -535,7 +535,7 @@ const STYLE: Record<string, Property> = {
     lo: field(
         construction_object,
         "strokeOpacity",
-        1,
+        (tag) => (tag === "Btn" ? 0.25 : 1),
         (value) => isNumber(value) && value >= 0 && value <= 1,
     ),
     is: field(expression_object, "increment", 0, isNumber),

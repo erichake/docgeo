@@ -726,7 +726,8 @@ export function propertiesPanel(options: {
                 (object) =>
                     !(
                         object instanceof point_object ||
-                        object instanceof expression_object
+                        object instanceof expression_object ||
+                        object instanceof button_object
                     ),
             ),
             (object) => object.dash.length > 0,

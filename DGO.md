@@ -960,7 +960,7 @@ postérieur.
 | `ra` | `Ang`                    | marque d'angle droit                     | `dgpad`                           |
 | `dc` | `Seg`, `Vec`             | décoration (0 à 6), `VecF` compris       | 0                                 |
 | `dh` | tous                     | motif de pointillés, en pixels           | `[]` (trait plein)                |
-| `lo` | tous                     | opacité du trait (GeoGebra)              | 1                                 |
+| `lo` | tous                     | opacité du trait (GeoGebra)              | 1 (`Btn` : 0,25)                  |
 | `is` | `Ex`                     | pas du curseur                           | 0                                 |
 | `cL` | `Ex`                     | longueur du curseur                      | 200                               |
 | `cV` | `Ex`                     | curseur vertical                         | 0                                 |
@@ -1051,6 +1051,7 @@ non définie).
 | `Ex`                                                                      | `rgb(0,0,178)`, `rgb(0,0,178)`, 7, 0      |
 | `Txt`, `Img`                                                              | `#000000`, `#000000`, 1                   |
 | `Html`                                                                    | `#000000`, `#000000`, 3                   |
+| `Btn` (bord : `c` à `lo`, épaisseur `s` ; fond : `fc` à `o`)              | `#000000`, `#000000`, 1, 0,05             |
 
 ## État élève
 
