@@ -86,6 +86,33 @@
                 bestand, <strong>Openen met</strong>.
             </p>
 
+            <h2 id="icones-mac">Pictogrammen van figuren op een Mac</h2>
+            <p>
+                Op een Mac heeft een figuur als pictogram dat van DocGeo op een
+                blad, met de extensie in grijs. Om elk formaat een eigen
+                pictogram te geven, open je Terminal (⌘ Spatie, typ dan
+                Terminal), plak je deze regel en druk je op Return:
+            </p>
+            <pre><code>curl -fsSL https://doctools.org/apps/docgeo/macos-icons.sh | sh</code></pre>
+            <p>
+                Deze pictogrammen blijven na updates van de browser. Het
+                commando vraagt geen wachtwoord: het maakt een kleine app,
+                DocGeo Types, die alleen de pictogrammen opgeeft en nooit wordt
+                geopend. Een formaat dat een ander programma opent (DGPad…),
+                houdt het pictogram van dat programma.
+            </p>
+            <p>
+                Veranderen de pictogrammen niet, dan heeft macOS de oude
+                onthouden. Plak deze regel en typ je wachtwoord (het wordt niet
+                getoond): de computer start opnieuw op.
+            </p>
+            <pre><code>sudo rm -rf /Library/Caches/com.apple.iconservices.store &amp;&amp; sudo reboot</code></pre>
+            <p>
+                Om terug te gaan naar de oorspronkelijke pictogrammen, plak je
+                deze regel en daarna de vorige:
+            </p>
+            <pre><code>curl -fsSL https://doctools.org/apps/docgeo/macos-icons.sh | sh -s uninstall</code></pre>
+
             <h2 id="mises-a-jour">Updates</h2>
             <p>
                 DocGeo werkt zichzelf bij. Een nieuwe versie wordt gedownload

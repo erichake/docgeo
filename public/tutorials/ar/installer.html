@@ -79,6 +79,29 @@
                 الأيمن على الملف، ثم <strong>فتح باستخدام</strong>.
             </p>
 
+            <h2 id="icones-mac">أيقونات الأشكال على Mac</h2>
+            <p>
+                على Mac، تكون أيقونة الشكل أيقونةَ DocGeo على صفحة، مع الامتداد
+                بالرمادي. لكي يكون لكل صيغة أيقونتها الخاصة، افتح الطرفية (⌘
+                مسافة، ثم اكتب Terminal)، والصق هذا السطر، ثم اضغط Return:
+            </p>
+            <pre><code>curl -fsSL https://doctools.org/apps/docgeo/macos-icons.sh | sh</code></pre>
+            <p>
+                تبقى هذه الأيقونات بعد تحديثات المتصفح. لا يطلب الأمر أي كلمة
+                سر: إنه ينشئ تطبيقًا صغيرًا، DocGeo Types، يقتصر على تعريف
+                الأيقونات ولا يُفتح أبدًا. والصيغة التي يفتحها برنامج آخر
+                (DGPad…) تحتفظ بأيقونة ذلك البرنامج.
+            </p>
+            <p>
+                إن لم تتغير الأيقونات، فقد احتفظ macOS بالقديمة في ذاكرته. الصق
+                هذا السطر واكتب كلمة السر (لا تظهر): يُعاد تشغيل الحاسوب.
+            </p>
+            <pre><code>sudo rm -rf /Library/Caches/com.apple.iconservices.store &amp;&amp; sudo reboot</code></pre>
+            <p>
+                للعودة إلى الأيقونات الأصلية، الصق هذا السطر، ثم السطر السابق:
+            </p>
+            <pre><code>curl -fsSL https://doctools.org/apps/docgeo/macos-icons.sh | sh -s uninstall</code></pre>
+
             <h2 id="mises-a-jour">التحديثات</h2>
             <p>
                 يحدّث DocGeo نفسه. تُنزَّل النسخة الجديدة عند فتح DocGeo،

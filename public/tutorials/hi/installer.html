@@ -83,6 +83,32 @@
                 करें, <strong>इसके साथ खोलें</strong>।
             </p>
 
+            <h2 id="icones-mac">Mac पर आकृतियों के आइकन</h2>
+            <p>
+                Mac पर किसी आकृति का आइकन एक पन्ने पर DocGeo का आइकन होता है,
+                जिसमें एक्सटेंशन धूसर रंग में होता है। हर फ़ॉर्मैट को उसका अपना
+                आइकन देने के लिए Terminal खोलें (⌘ स्पेस, फिर Terminal टाइप
+                करें), यह पंक्ति पेस्ट करें और Return दबाएँ:
+            </p>
+            <pre><code>curl -fsSL https://doctools.org/apps/docgeo/macos-icons.sh | sh</code></pre>
+            <p>
+                ब्राउज़र के अपडेट के बाद भी ये आइकन बने रहते हैं। यह कमांड कोई
+                पासवर्ड नहीं माँगती: यह एक छोटा ऐप, DocGeo Types, बनाती है, जो
+                केवल आइकन घोषित करता है और कभी नहीं खुलता। जिस फ़ॉर्मैट को कोई
+                दूसरा सॉफ़्टवेयर (DGPad…) खोलता है, उसका आइकन उसी सॉफ़्टवेयर का
+                रहता है।
+            </p>
+            <p>
+                अगर आइकन नहीं बदलते, तो macOS ने पुराने आइकन याद रखे हैं। यह
+                पंक्ति पेस्ट करें और अपना पासवर्ड टाइप करें (वह दिखता नहीं):
+                कंप्यूटर फिर से चालू होता है।
+            </p>
+            <pre><code>sudo rm -rf /Library/Caches/com.apple.iconservices.store &amp;&amp; sudo reboot</code></pre>
+            <p>
+                मूल आइकन वापस पाने के लिए यह पंक्ति पेस्ट करें, फिर पिछली वाली:
+            </p>
+            <pre><code>curl -fsSL https://doctools.org/apps/docgeo/macos-icons.sh | sh -s uninstall</code></pre>
+
             <h2 id="mises-a-jour">अपडेट</h2>
             <p>
                 DocGeo अपने आप अपडेट होता है। DocGeo खुलने पर नया संस्करण

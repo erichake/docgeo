@@ -84,6 +84,33 @@
                 file, <strong>Apri con</strong>.
             </p>
 
+            <h2 id="icones-mac">Icone delle figure su Mac</h2>
+            <p>
+                Su Mac, una figura ha come icona quella di DocGeo su una pagina,
+                con l’estensione in grigio. Perché ogni formato abbia la propria
+                icona, apri il Terminale (⌘ Spazio, poi digita Terminale),
+                incolla questa riga e premi Invio:
+            </p>
+            <pre><code>curl -fsSL https://doctools.org/apps/docgeo/macos-icons.sh | sh</code></pre>
+            <p>
+                Queste icone restano dopo gli aggiornamenti del browser. Il
+                comando non chiede alcuna password: crea una piccola
+                applicazione, DocGeo Types, che dichiara soltanto le icone e non
+                si apre mai. Un formato aperto da un altro programma (DGPad…)
+                mantiene l’icona di quel programma.
+            </p>
+            <p>
+                Se le icone non cambiano, macOS ha conservato in memoria quelle
+                vecchie. Incolla questa riga e digita la tua password (non viene
+                mostrata): il computer si riavvia.
+            </p>
+            <pre><code>sudo rm -rf /Library/Caches/com.apple.iconservices.store &amp;&amp; sudo reboot</code></pre>
+            <p>
+                Per tornare alle icone originali, incolla questa riga, poi la
+                precedente:
+            </p>
+            <pre><code>curl -fsSL https://doctools.org/apps/docgeo/macos-icons.sh | sh -s uninstall</code></pre>
+
             <h2 id="mises-a-jour">Aggiornamenti</h2>
             <p>
                 DocGeo si aggiorna da solo. Una nuova versione viene scaricata

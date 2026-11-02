@@ -73,6 +73,26 @@
                 中，右键点击文件，选择<strong>打开方式</strong>。
             </p>
 
+            <h2 id="icones-mac">Mac 上的图形图标</h2>
+            <p>
+                在 Mac 上，图形的图标是一页纸上的 DocGeo
+                图标，扩展名以灰色显示。要让每种格式拥有自己的图标，请打开“终端”（按
+                ⌘ 空格，然后输入“终端”），粘贴下面这行命令并按回车键：
+            </p>
+            <pre><code>curl -fsSL https://doctools.org/apps/docgeo/macos-icons.sh | sh</code></pre>
+            <p>
+                浏览器更新后，这些图标仍会保留。该命令不需要密码：它会创建一个小应用
+                DocGeo
+                Types，它只声明图标，从不打开。由其他软件（DGPad…）打开的格式保留该软件的图标。
+            </p>
+            <p>
+                如果图标没有变化，说明 macOS
+                在内存中保留了旧图标。粘贴下面这行命令并输入密码（输入时不显示）：电脑将重新启动。
+            </p>
+            <pre><code>sudo rm -rf /Library/Caches/com.apple.iconservices.store &amp;&amp; sudo reboot</code></pre>
+            <p>要恢复原来的图标，请先粘贴下面这行命令，再粘贴上一条命令：</p>
+            <pre><code>curl -fsSL https://doctools.org/apps/docgeo/macos-icons.sh | sh -s uninstall</code></pre>
+
             <h2 id="mises-a-jour">更新</h2>
             <p>
                 DocGeo 会自动更新。新版本在 DocGeo

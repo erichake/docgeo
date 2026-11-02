@@ -46,13 +46,20 @@ l'**ouverture des `.dgo`, `.dgp` et `.ggb` par double-clic**.
   page cornée, motif, extension), que Chrome ignore (essayé avec Chrome 156
   sur macOS, où son application ne déclare qu'un type de document sans
   icône, sur Windows, même après redémarrage, et sur Debian).
-- Icônes des fichiers sur Mac, essayé et abandonné le 2026-11-02 : une
-  petite application sans code, glissée dans Applications depuis un `.dmg`,
-  qui déclare les types `.dgo`, `.dgp` et `.ggb` avec leurs icônes. Elle
-  marche si elle est construite sur le Mac même, mais, téléchargée et non
-  signée, macOS ignore ses déclarations, même enregistrée de force
-  (`lsregister -f`) : vérifié sur un Mac propre. Sans compte développeur
-  Apple (signature et notarisation), pas d'icônes de fichiers sur Mac.
+- Icônes des fichiers sur Mac (2026-11-02) : `public/macos-icons.sh`, que
+  l'utilisateur lance depuis le Terminal (`curl … | sh`, manuel
+  `installer.html#icones-mac`). Il construit sur place
+  `~/Applications/DocGeo Types.app`, jamais lancée, qui déclare les types
+  `org.doctools.docgeo.dgo/.dgp/.ggb` (`UTExportedTypeDeclarations`, avec
+  `UTTypeIconFile`) : le Finder prend ces icônes alors que l'application de
+  Chrome ouvre les fichiers, et les mises à jour de Chrome n'y touchent pas.
+  Construite sur place, elle échappe à la quarantaine ; la même application
+  téléchargée (`.dmg`, non signée) voit ses déclarations ignorées. Le cache
+  d'icônes de macOS garde l'icône d'un type d'un essai à l'autre, même après
+  redémarrage : `sudo rm -rf /Library/Caches/com.apple.iconservices.store`
+  puis redémarrer (nécessaire aussi pour désinstaller). Sans le script,
+  macOS 27 compose déjà une icône correcte (icône de l'application sur une
+  page, extension en gris).
 - Icônes des fichiers sur Windows, essayé et abandonné le 2026-11-02 :
   Chrome crée un ProgID par extension (`Chrome.<nombre>`) à l'icône vide.
   Un ProgID propre (`DocGeo.dgo`, icône `.ico`, commande de Chrome

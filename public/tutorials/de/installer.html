@@ -89,6 +89,35 @@
                 Datei, <strong>Öffnen mit</strong>.
             </p>
 
+            <h2 id="icones-mac">Symbole der Figuren auf dem Mac</h2>
+            <p>
+                Auf dem Mac zeigt eine Figur das DocGeo-Symbol auf einem Blatt,
+                mit der Endung in Grau. Damit jedes Format sein eigenes Symbol
+                erhält, öffnen Sie das Terminal (⌘ Leertaste, dann Terminal
+                eingeben), fügen Sie diese Zeile ein und drücken Sie die
+                Eingabetaste:
+            </p>
+            <pre><code>curl -fsSL https://doctools.org/apps/docgeo/macos-icons.sh | sh</code></pre>
+            <p>
+                Diese Symbole bleiben nach Browser-Aktualisierungen erhalten.
+                Der Befehl verlangt kein Passwort: Er erstellt ein kleines
+                Programm, DocGeo Types, das nur die Symbole festlegt und nie
+                geöffnet wird. Ein Format, das ein anderes Programm öffnet
+                (DGPad…), behält dessen Symbol.
+            </p>
+            <p>
+                Ändern sich die Symbole nicht, hat macOS die alten
+                zwischengespeichert. Fügen Sie diese Zeile ein und geben Sie Ihr
+                Passwort ein (es wird nicht angezeigt): Der Computer startet
+                neu.
+            </p>
+            <pre><code>sudo rm -rf /Library/Caches/com.apple.iconservices.store &amp;&amp; sudo reboot</code></pre>
+            <p>
+                Um zu den ursprünglichen Symbolen zurückzukehren, fügen Sie
+                diese Zeile ein, dann die vorige:
+            </p>
+            <pre><code>curl -fsSL https://doctools.org/apps/docgeo/macos-icons.sh | sh -s uninstall</code></pre>
+
             <h2 id="mises-a-jour">Aktualisierungen</h2>
             <p>
                 DocGeo aktualisiert sich selbst. Eine neue Version wird beim
