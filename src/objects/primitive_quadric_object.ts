@@ -76,11 +76,15 @@ export abstract class primitive_quadric_object extends construction_object {
     screenU: Vec2 = [0, 0];
     screenV: Vec2 = [0, 0];
     branchScreenPoints: Vec2[][] = [];
+    // Per branch, how far its ends are pushed into its interior to close
+    // its fill outside the viewport rather than along their chord.
+    branchFillOffsets: Vec2[] = [];
 
     ellipseHitArea!: DOMElement;
     ellipsePath!: DOMElement;
     curveHitArea!: DOMElement;
     curvePath!: DOMElement;
+    curveFill!: DOMElement;
 
     constructor(c: construction, name: string | null | undefined) {
         super(c, name, "quadric");
@@ -359,6 +363,7 @@ export abstract class primitive_quadric_object extends construction_object {
             Math.abs(anchor[0]) +
             Math.abs(anchor[1]);
         const branchPoints: Vec2[][] = [];
+        const fillOffsets: Vec2[] = [];
         for (const branch of this.BRANCHES) {
             const projectAt = (t: number): Vec2 | null => {
                 const p = this.C.pt3D(branch(t));
@@ -405,10 +410,24 @@ export abstract class primitive_quadric_object extends construction_object {
                 samples.push(p);
                 previous = [t, p];
             }
-            if (samples.length > 1) branchPoints.push(samples);
+            if (samples.length < 2) continue;
+            branchPoints.push(samples);
+            // Its axis, towards its interior: the parametrizations are
+            // symmetric about it.
+            const axis = vSub(
+                this.C.pt3D(vScale(vAdd(branch(1), branch(-1)), 0.5)),
+                this.C.pt3D(branch(0)),
+            );
+            const length = Math.hypot(axis[0], axis[1]);
+            fillOffsets.push(
+                length > 0
+                    ? [(axis[0] * margin) / length, (axis[1] * margin) / length]
+                    : [0, 0],
+            );
         }
         if (branchPoints.length === 0) return;
         this.branchScreenPoints = branchPoints;
+        this.branchFillOffsets = fillOffsets;
         this.projectionDefined = true;
     }
 
@@ -442,6 +461,7 @@ export abstract class primitive_quadric_object extends construction_object {
         this.ellipsePath.stl("display", isEllipse ? "block" : "none");
         this.curveHitArea.stl("display", isEllipse ? "none" : "block");
         this.curvePath.stl("display", isEllipse ? "none" : "block");
+        this.curveFill.stl("display", isEllipse ? "none" : "block");
         this.ellipsePath.stl(
             "fill-opacity",
             isEllipse ? (this.opacity ?? 0) : 0,
@@ -462,6 +482,21 @@ export abstract class primitive_quadric_object extends construction_object {
                 .join(" ");
             this.curveHitArea.att("d", d);
             this.curvePath.att("d", d);
+            this.curveFill
+                .stl("fill-opacity", this.opacity ?? 0)
+                .att(
+                    "d",
+                    this.opacity
+                        ? this.branchScreenPoints
+                              .map((points, i) => {
+                                  const [ox, oy] = this.branchFillOffsets[i];
+                                  const [ax, ay] = points[0];
+                                  const [bx, by] = points[points.length - 1];
+                                  return `M${points.join("L")}L${bx + ox} ${by + oy}L${ax + ox} ${ay + oy}Z`;
+                              })
+                              .join("")
+                        : "",
+                );
         }
     }
 
@@ -494,6 +529,11 @@ export abstract class primitive_quadric_object extends construction_object {
                 "fill:none;stroke:transparent;pointer-events:stroke;cursor:pointer",
             )
             .stl("stroke-width", t.prefs.quadric.touchsize);
+        t.curveFill = t.svg
+            .shape("path")
+            .stl("fill", t.fill_color)
+            .stl("stroke", "none")
+            .stl("pointer-events", "none");
         t.curvePath = t.svg
             .shape("path")
             .stl("fill", "none")
@@ -505,6 +545,7 @@ export abstract class primitive_quadric_object extends construction_object {
             t.ellipseHitArea,
             t.ellipsePath,
             t.curveHitArea,
+            t.curveFill,
             t.curvePath,
         );
     }
