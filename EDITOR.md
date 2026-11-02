@@ -43,9 +43,9 @@ l'**ouverture des `.dgo`, `.dgp` et `.ggb` par double-clic**.
   `icon_blue.svg` (dont une variante « maskable », fond plein, motif à
   80 %), `file_handlers` des trois formats vers `editor.html`, chacun avec
   son icône de document (`file_dgo.png`, `file_dgp.png`, `file_ggb.png` :
-  page cornée, motif, extension), que Chrome ignore (essayé sur macOS
-  avec Chrome 156 : son application ne déclare qu'un type de document,
-  sans icône).
+  page cornée, motif, extension), que Chrome ignore (essayé avec Chrome 156
+  sur macOS, où son application ne déclare qu'un type de document sans
+  icône, sur Windows, même après redémarrage, et sur Debian).
 - Icônes des fichiers sur Mac, essayé et abandonné le 2026-11-02 : une
   petite application sans code, glissée dans Applications depuis un `.dmg`,
   qui déclare les types `.dgo`, `.dgp` et `.ggb` avec leurs icônes. Elle
@@ -53,6 +53,12 @@ l'**ouverture des `.dgo`, `.dgp` et `.ggb` par double-clic**.
   signée, macOS ignore ses déclarations, même enregistrée de force
   (`lsregister -f`) : vérifié sur un Mac propre. Sans compte développeur
   Apple (signature et notarisation), pas d'icônes de fichiers sur Mac.
+- Icônes des fichiers sur Windows, essayé et abandonné le 2026-11-02 :
+  Chrome crée un ProgID par extension (`Chrome.<nombre>`) à l'icône vide.
+  Un ProgID propre (`DocGeo.dgo`, icône `.ico`, commande de Chrome
+  recopiée), désigné par la clé de l'extension, sans `UserChoice` : icône
+  toujours blanche après redémarrage, et le double-clic n'ouvre plus
+  DocGeo. Abandonné, comme le script équivalent pour Debian, non essayé.
 - Menu Fichier (`src/editor/install.ts`) : « Installer DocGeo sur cet
   ordinateur… », seulement quand le navigateur le propose
   (`beforeinstallprompt` : Chrome et Edge, pas l'application installée, ni
