@@ -1601,7 +1601,6 @@ class Generator {
     private readonly names = new Map<string, string>();
     // The names the program uses, which a counter mustn't take.
     private readonly taken = new Set<string>();
-    private depth = 0;
     // The loops holding the block written, out of which break and continue
     // write nothing, as Blockly disables them.
     private loops = 0;
@@ -1800,9 +1799,9 @@ class Generator {
             }
             case "controls_repeat_ext": {
                 const counter = this.counter();
-                this.depth++;
+                this.taken.add(counter);
                 const body = this.loopBody(block, indent);
-                this.depth--;
+                this.taken.delete(counter);
                 return [
                     `${indent}for (var ${counter} = 1; ${counter} <= ${this.operand(block, "TIMES", SUM)}; ${counter} = ${counter} + 1) {`,
                     ...body,
@@ -1954,7 +1953,7 @@ class Generator {
 
     // A counter of its own for each loop it is nested in.
     private counter(): string {
-        for (let n = this.depth; ; n++) {
+        for (let n = 0; ; n++) {
             const name = n ? `k${n}` : "k";
             if (!this.taken.has(name)) return name;
         }

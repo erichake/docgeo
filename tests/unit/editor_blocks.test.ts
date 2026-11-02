@@ -231,6 +231,17 @@ TURTLE_PRINT("$$a$$");
 return TURTLE_RESULT();`);
     });
 
+    it("gives nested repeats counters of their own past a taken name", () => {
+        const source = `k = 0;
+for (var k1 = 1; k1 <= 4; k1 = k1 + 1) {
+    for (var k2 = 1; k2 <= 3; k2 = k2 + 1) {
+        k = k + 1;
+    }
+}
+return k;`;
+        expect(roundTrip(source)).toBe(source);
+    });
+
     it("keeps DGPad's prefix of a variable named as an object it reads", () => {
         expect(
             roundTrip(`blockly_var_k = (a);
