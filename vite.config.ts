@@ -108,7 +108,10 @@ function editorServiceWorker(): Plugin {
 
 // Only the cached files are answered by the worker, from the cache whatever
 // their query (`editor.html?url=…`), the others left to the network. A
-// cache of another application of the same site is left alone.
+// cache of another application of the same site is left alone. The page
+// itself is asked to the network first, so that a launch online opens the
+// published version (with its own hashed files) and not the cached one,
+// which a new worker only replaces at the next launch.
 const serviceWorker = (cache: string, files: string[]): string => `
 const CACHE = ${JSON.stringify(cache)};
 const FILES = ${JSON.stringify(files)};
@@ -138,10 +141,16 @@ self.addEventListener("fetch", (event) => {
     const url = new URL(event.request.url);
     if (event.request.method !== "GET" || url.origin !== location.origin || !PATHS.has(url.pathname))
         return;
-    event.respondWith(
+    const cached = () =>
         caches
             .match(event.request, { cacheName: CACHE, ignoreSearch: true })
-            .then((hit) => hit ?? fetch(event.request)),
+            .then((hit) => hit ?? fetch(event.request));
+    event.respondWith(
+        event.request.mode === "navigate"
+            ? fetch(url, { cache: "no-cache", signal: AbortSignal.timeout(3000) })
+                  .then((response) => (response.ok ? response : cached()))
+                  .catch(cached)
+            : cached(),
     );
 });
 `;
