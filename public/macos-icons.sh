@@ -13,21 +13,35 @@ remove() {
   if [ -d "$APP" ]; then "$LSREGISTER" -u "$APP" || true; rm -rf "$APP"; fi
 }
 
-# macOS keeps a type's icon in its icon cache, even across restarts.
+case $(defaults read -g AppleLanguages 2>/dev/null | sed -n 2p | tr -d ' ",') in
+  fr*) I="Icônes DocGeo"; R="Retrait des icônes DocGeo"; P=" : tapez votre mot de passe (il ne s’affiche pas), puis l’ordinateur redémarrera : " ;;
+  de*) I="DocGeo-Symbole"; R="Entfernen der DocGeo-Symbole"; P=": Passwort eingeben (wird nicht angezeigt), danach startet der Computer neu: " ;;
+  es*) I="Iconos de DocGeo"; R="Retirada de los iconos de DocGeo"; P=": escribe tu contraseña (no se muestra); después el ordenador se reiniciará: " ;;
+  it*) I="Icone di DocGeo"; R="Rimozione delle icone di DocGeo"; P=": digita la tua password (non viene mostrata); poi il computer si riavvierà: " ;;
+  nl*) I="DocGeo-pictogrammen"; R="DocGeo-pictogrammen verwijderen"; P=": typ je wachtwoord (het wordt niet getoond); daarna start de computer opnieuw op: " ;;
+  pt*) I="Ícones do DocGeo"; R="Remoção dos ícones do DocGeo"; P=": digite sua senha (ela não aparece); depois o computador vai reiniciar: " ;;
+  el*) I="Εικονίδια DocGeo"; R="Αφαίρεση εικονιδίων DocGeo"; P=": πληκτρολογήστε τον κωδικό σας (δεν εμφανίζεται)· μετά ο υπολογιστής θα επανεκκινηθεί: " ;;
+  zh-Hant*) I="DocGeo 圖示"; R="移除 DocGeo 圖示"; P="：請輸入密碼（輸入時不會顯示），隨後電腦將重新啟動：" ;;
+  zh*) I="DocGeo 图标"; R="移除 DocGeo 图标"; P="：请输入密码（输入时不显示），随后电脑将重新启动：" ;;
+  ar*) I="أيقونات DocGeo"; R="إزالة أيقونات DocGeo"; P=": اكتب كلمة السر (لا تظهر)، ثم سيُعاد تشغيل الحاسوب: " ;;
+  hi*) I="DocGeo आइकन"; R="DocGeo आइकन हटाना"; P=": अपना पासवर्ड टाइप करें (वह दिखता नहीं), फिर कंप्यूटर फिर से चालू होगा: " ;;
+  *) I="DocGeo icons"; R="Removing DocGeo icons"; P=": type your password (it is not shown), then the computer will restart: " ;;
+esac
+
+# The password is asked first, so that nothing else is asked afterwards. macOS keeps
+# a type's icon in its icon cache, even across restarts: it must be cleared.
 restart() {
-  echo "$1 macOS must now clear its icon cache and restart."
-  echo "Save your work and quit your apps, then press Return (Ctrl-C to cancel)."
-  read _ </dev/tty
-  echo "Type your password (it is not shown):"
   sudo sh -c 'rm -rf /Library/Caches/com.apple.iconservices.store && reboot'
 }
 
 if [ "$1" = uninstall ]; then
+  sudo -v -p "$R$P"
   remove
-  restart "DocGeo file icons removed."
+  restart
   exit
 fi
 
+sudo -v -p "$I$P"
 T=$(mktemp -d)
 trap 'rm -rf "$T"' EXIT
 B="$T/DocGeo Types.app"
@@ -64,4 +78,4 @@ remove
 mkdir -p "$HOME/Applications"
 mv "$B" "$APP"
 "$LSREGISTER" -f "$APP"
-restart "DocGeo file icons installed."
+restart

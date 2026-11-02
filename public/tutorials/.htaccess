@@ -1,0 +1,7 @@
+# The manual's scripts and styles keep their names from one version to the next:
+# revalidate them, unlike the hashed build assets that the parent folders cache forever.
+<IfModule mod_headers.c>
+  <FilesMatch "\.(js|css)$">
+    Header set Cache-Control "no-cache"
+  </FilesMatch>
+</IfModule>

@@ -89,15 +89,15 @@
                 On a Mac, a figure’s icon is the DocGeo icon on a page, with the
                 extension in grey. To give each format its own icon, open
                 Terminal (⌘ Space, then type Terminal), paste this line and
-                press Return:
+                press Return.
+            </p>
+            <p>
+                <strong>Warning:</strong> the command only asks for your
+                password (it is not shown), then restarts the computer right
+                away, because macOS must clear its icon cache. Save your work
+                and quit your apps before pasting it.
             </p>
             <pre><code>curl -fsSL https://doctools.org/apps/docgeo/macos-icons.sh | sh</code></pre>
-            <p>
-                <strong>Warning:</strong> the command restarts the computer,
-                because macOS must clear its icon cache. Save your work and quit
-                your apps before pressing Return when it asks, then type your
-                password (it is not shown).
-            </p>
             <p>
                 These icons stay after browser updates. The command creates a
                 small app, DocGeo Types, which only declares the icons and never
