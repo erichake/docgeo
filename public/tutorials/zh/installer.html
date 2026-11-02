@@ -81,16 +81,14 @@
             </p>
             <pre><code>curl -fsSL https://doctools.org/apps/docgeo/macos-icons.sh | sh</code></pre>
             <p>
-                浏览器更新后，这些图标仍会保留。该命令不需要密码：它会创建一个小应用
-                DocGeo
-                Types，它只声明图标，从不打开。由其他软件（DGPad…）打开的格式保留该软件的图标。
+                <strong>注意：</strong>该命令会重新启动电脑，因为 macOS
+                必须清空图标缓存。在命令提示按回车键之前，请先保存工作并退出各个应用，然后输入密码（输入时不显示）。
             </p>
             <p>
-                如果图标没有变化，说明 macOS
-                在内存中保留了旧图标。粘贴下面这行命令并输入密码（输入时不显示）：电脑将重新启动。
+                浏览器更新后，这些图标仍会保留。该命令会创建一个小应用 DocGeo
+                Types，它只声明图标，从不打开。由其他软件（DGPad…）打开的格式保留该软件的图标。
             </p>
-            <pre><code>sudo rm -rf /Library/Caches/com.apple.iconservices.store &amp;&amp; sudo reboot</code></pre>
-            <p>要恢复原来的图标，请先粘贴下面这行命令，再粘贴上一条命令：</p>
+            <p>要恢复原来的图标，请粘贴下面这行命令，它同样会重新启动电脑：</p>
             <pre><code>curl -fsSL https://doctools.org/apps/docgeo/macos-icons.sh | sh -s uninstall</code></pre>
 
             <h2 id="mises-a-jour">更新</h2>

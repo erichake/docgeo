@@ -76,6 +76,7 @@ const LANGS = {
             empty: "Keine Ergebnisse für „%“.",
             server: "Die Volltextsuche setzt voraus, dass das Handbuch über einen Webserver geöffnet wird.",
             zoom: "Vergrößerter Screenshot",
+            copy: "Kopieren",
         },
     },
     en: {
@@ -120,6 +121,7 @@ const LANGS = {
             empty: "No results for “%”.",
             server: "Searching the text requires the manual to be opened from a web server.",
             zoom: "Enlarged screenshot",
+            copy: "Copy",
         },
     },
     es: {
@@ -164,6 +166,7 @@ const LANGS = {
             empty: "Ningún resultado para «%».",
             server: "La búsqueda en el texto requiere abrir el manual desde un servidor web.",
             zoom: "Captura ampliada",
+            copy: "Copiar",
         },
     },
     fr: {
@@ -208,6 +211,7 @@ const LANGS = {
             empty: "Aucun résultat pour « % ».",
             server: "La recherche dans le texte demande que le manuel soit ouvert depuis un serveur web.",
             zoom: "Capture agrandie",
+            copy: "Copier",
         },
     },
     el: {
@@ -252,6 +256,7 @@ const LANGS = {
             empty: "Κανένα αποτέλεσμα για «%».",
             server: "Η αναζήτηση στο κείμενο απαιτεί να ανοίξει το εγχειρίδιο από διακομιστή ιστού.",
             zoom: "Μεγεθυμένο στιγμιότυπο",
+            copy: "Αντιγραφή",
         },
     },
     it: {
@@ -296,6 +301,7 @@ const LANGS = {
             empty: "Nessun risultato per «%».",
             server: "La ricerca nel testo richiede che il manuale sia aperto da un server web.",
             zoom: "Schermata ingrandita",
+            copy: "Copia",
         },
     },
     nl: {
@@ -340,6 +346,7 @@ const LANGS = {
             empty: "Geen resultaten voor ‘%’.",
             server: "Zoeken in de tekst vereist dat de handleiding via een webserver wordt geopend.",
             zoom: "Vergrote schermafbeelding",
+            copy: "Kopiëren",
         },
     },
     pt: {
@@ -384,6 +391,7 @@ const LANGS = {
             empty: "Nenhum resultado para “%”.",
             server: "A pesquisa no texto exige que o manual seja aberto a partir de um servidor web.",
             zoom: "Captura ampliada",
+            copy: "Copiar",
         },
     },
     ar: {
@@ -428,6 +436,7 @@ const LANGS = {
             empty: "لا نتائج لـ «%».",
             server: "يتطلب البحث في النص فتح الدليل من خادم ويب.",
             zoom: "لقطة شاشة مكبّرة",
+            copy: "نسخ",
         },
     },
     hi: {
@@ -472,6 +481,7 @@ const LANGS = {
             empty: "“%” के लिए कोई परिणाम नहीं।",
             server: "पाठ में खोज के लिए पुस्तिका को किसी वेब सर्वर से खोलना आवश्यक है।",
             zoom: "बड़ा किया गया स्क्रीनशॉट",
+            copy: "कॉपी करें",
         },
     },
     zh: {
@@ -516,6 +526,7 @@ const LANGS = {
             empty: "没有找到“%”的结果。",
             server: "全文搜索需要通过网页服务器打开手册。",
             zoom: "放大的截图",
+            copy: "复制",
         },
     },
     "zh-TW": {
@@ -560,6 +571,7 @@ const LANGS = {
             empty: "找不到「%」的結果。",
             server: "全文搜尋需要透過網頁伺服器開啟手冊。",
             zoom: "放大的截圖",
+            copy: "複製",
         },
     },
 };
@@ -644,6 +656,8 @@ function icons() {
 // ---------------------------------------------------------- squelette
 
 const SEARCH_ICON = `<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>`;
+const COPY_ICON = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15H4a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v1"/></svg>`;
+const COPIED_ICON = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 5 5 9-10"/></svg>`;
 const isMac = /Mac|iPhone|iPad/.test(navigator.platform);
 
 function frame() {
@@ -1144,8 +1158,25 @@ function zoomImages() {
     });
 }
 
+function copyButtons() {
+    for (const pre of main.querySelectorAll("pre")) {
+        const box = element(
+            `<div class="m-code"><button class="m-copy" type="button" title="${ui.copy}" aria-label="${ui.copy}">${COPY_ICON}</button></div>`,
+        );
+        pre.before(box);
+        box.prepend(pre);
+        const button = box.querySelector("button");
+        button.addEventListener("click", async () => {
+            await navigator.clipboard.writeText(pre.textContent);
+            button.innerHTML = COPIED_ICON;
+            setTimeout(() => (button.innerHTML = COPY_ICON), 1500);
+        });
+    }
+}
+
 icons();
 frame();
+copyButtons();
 markQuery();
 zoomImages();
 addEventListener("hashchange", flashTarget);

@@ -99,22 +99,21 @@
             </p>
             <pre><code>curl -fsSL https://doctools.org/apps/docgeo/macos-icons.sh | sh</code></pre>
             <p>
-                Diese Symbole bleiben nach Browser-Aktualisierungen erhalten.
-                Der Befehl verlangt kein Passwort: Er erstellt ein kleines
-                Programm, DocGeo Types, das nur die Symbole festlegt und nie
-                geöffnet wird. Ein Format, das ein anderes Programm öffnet
-                (DGPad…), behält dessen Symbol.
+                <strong>Achtung:</strong> Der Befehl startet den Computer neu,
+                weil macOS seinen Symbol-Zwischenspeicher leeren muss. Sichern
+                Sie Ihre Arbeit und beenden Sie Ihre Programme, bevor Sie auf
+                Aufforderung die Eingabetaste drücken; geben Sie dann Ihr
+                Passwort ein (es wird nicht angezeigt).
             </p>
             <p>
-                Ändern sich die Symbole nicht, hat macOS die alten
-                zwischengespeichert. Fügen Sie diese Zeile ein und geben Sie Ihr
-                Passwort ein (es wird nicht angezeigt): Der Computer startet
-                neu.
+                Diese Symbole bleiben nach Browser-Aktualisierungen erhalten.
+                Der Befehl erstellt ein kleines Programm, DocGeo Types, das nur
+                die Symbole festlegt und nie geöffnet wird. Ein Format, das ein
+                anderes Programm öffnet (DGPad…), behält dessen Symbol.
             </p>
-            <pre><code>sudo rm -rf /Library/Caches/com.apple.iconservices.store &amp;&amp; sudo reboot</code></pre>
             <p>
                 Um zu den ursprünglichen Symbolen zurückzukehren, fügen Sie
-                diese Zeile ein, dann die vorige:
+                diese Zeile ein; auch sie startet den Computer neu:
             </p>
             <pre><code>curl -fsSL https://doctools.org/apps/docgeo/macos-icons.sh | sh -s uninstall</code></pre>
 

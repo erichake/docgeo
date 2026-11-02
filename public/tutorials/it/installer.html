@@ -93,21 +93,22 @@
             </p>
             <pre><code>curl -fsSL https://doctools.org/apps/docgeo/macos-icons.sh | sh</code></pre>
             <p>
+                <strong>Attenzione:</strong> il comando riavvia il computer,
+                perché macOS deve svuotare la memoria delle sue icone. Salva il
+                tuo lavoro e chiudi le applicazioni prima di premere Invio
+                quando lo chiede, poi digita la tua password (non viene
+                mostrata).
+            </p>
+            <p>
                 Queste icone restano dopo gli aggiornamenti del browser. Il
-                comando non chiede alcuna password: crea una piccola
-                applicazione, DocGeo Types, che dichiara soltanto le icone e non
-                si apre mai. Un formato aperto da un altro programma (DGPad…)
-                mantiene l’icona di quel programma.
+                comando crea una piccola applicazione, DocGeo Types, che
+                dichiara soltanto le icone e non si apre mai. Un formato aperto
+                da un altro programma (DGPad…) mantiene l’icona di quel
+                programma.
             </p>
             <p>
-                Se le icone non cambiano, macOS ha conservato in memoria quelle
-                vecchie. Incolla questa riga e digita la tua password (non viene
-                mostrata): il computer si riavvia.
-            </p>
-            <pre><code>sudo rm -rf /Library/Caches/com.apple.iconservices.store &amp;&amp; sudo reboot</code></pre>
-            <p>
-                Per tornare alle icone originali, incolla questa riga, poi la
-                precedente:
+                Per tornare alle icone originali, incolla questa riga, che
+                riavvia anch’essa il computer:
             </p>
             <pre><code>curl -fsSL https://doctools.org/apps/docgeo/macos-icons.sh | sh -s uninstall</code></pre>
 

@@ -95,21 +95,21 @@
             </p>
             <pre><code>curl -fsSL https://doctools.org/apps/docgeo/macos-icons.sh | sh</code></pre>
             <p>
+                <strong>Attention :</strong> la commande redémarre l’ordinateur,
+                car macOS doit vider la mémoire de ses icônes. Enregistrez votre
+                travail et fermez vos applications avant d’appuyer sur Entrée
+                quand elle le demande, puis tapez votre mot de passe (il ne
+                s’affiche pas).
+            </p>
+            <p>
                 Ces icônes restent après les mises à jour du navigateur. La
-                commande ne demande aucun mot de passe : elle crée une petite
-                application, DocGeo Types, qui ne fait que déclarer les icônes
-                et ne s’ouvre jamais. Un format ouvert par un autre logiciel
-                (DGPad…) garde l’icône de ce logiciel.
+                commande crée une petite application, DocGeo Types, qui ne fait
+                que déclarer les icônes et ne s’ouvre jamais. Un format ouvert
+                par un autre logiciel (DGPad…) garde l’icône de ce logiciel.
             </p>
             <p>
-                Si les icônes ne changent pas, macOS a gardé les anciennes en
-                mémoire. Collez cette ligne et tapez votre mot de passe (il ne
-                s’affiche pas) : l’ordinateur redémarre.
-            </p>
-            <pre><code>sudo rm -rf /Library/Caches/com.apple.iconservices.store &amp;&amp; sudo reboot</code></pre>
-            <p>
-                Pour revenir aux icônes d’origine, collez cette ligne, puis la
-                précédente :
+                Pour revenir aux icônes d’origine, collez cette ligne, qui
+                redémarre elle aussi l’ordinateur :
             </p>
             <pre><code>curl -fsSL https://doctools.org/apps/docgeo/macos-icons.sh | sh -s uninstall</code></pre>
 

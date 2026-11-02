@@ -8,16 +8,23 @@ set -e
 URL=https://doctools.org/apps/docgeo
 APP="$HOME/Applications/DocGeo Types.app"
 LSREGISTER=/System/Library/Frameworks/CoreServices.framework/Frameworks/LaunchServices.framework/Support/lsregister
-FLUSH="sudo rm -rf /Library/Caches/com.apple.iconservices.store && sudo reboot"
 
 remove() {
   if [ -d "$APP" ]; then "$LSREGISTER" -u "$APP" || true; rm -rf "$APP"; fi
 }
 
+# macOS keeps a type's icon in its icon cache, even across restarts.
+restart() {
+  echo "$1 macOS must now clear its icon cache and restart."
+  echo "Save your work and quit your apps, then press Return (Ctrl-C to cancel)."
+  read _ </dev/tty
+  echo "Type your password (it is not shown):"
+  sudo sh -c 'rm -rf /Library/Caches/com.apple.iconservices.store && reboot'
+}
+
 if [ "$1" = uninstall ]; then
   remove
-  echo "DocGeo file icons removed. To see the default icons again, run:"
-  echo "  $FLUSH"
+  restart "DocGeo file icons removed."
   exit
 fi
 
@@ -57,6 +64,4 @@ remove
 mkdir -p "$HOME/Applications"
 mv "$B" "$APP"
 "$LSREGISTER" -f "$APP"
-killall Finder
-echo "DocGeo file icons installed. If the icons do not change, run:"
-echo "  $FLUSH"
+restart "DocGeo file icons installed."

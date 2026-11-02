@@ -56,8 +56,8 @@ l'**ouverture des `.dgo`, `.dgp` et `.ggb` par double-clic**.
   Construite sur place, elle échappe à la quarantaine ; la même application
   téléchargée (`.dmg`, non signée) voit ses déclarations ignorées. Le cache
   d'icônes de macOS garde l'icône d'un type d'un essai à l'autre, même après
-  redémarrage : `sudo rm -rf /Library/Caches/com.apple.iconservices.store`
-  puis redémarrer (nécessaire aussi pour désinstaller). Sans le script,
+  redémarrage : le script le vide (`sudo`) et redémarre, à l'installation
+  comme à la désinstallation, après confirmation. Sans le script,
   macOS 27 compose déjà une icône correcte (icône de l'application sur une
   page, extension en gris).
 - Icônes des fichiers sur Windows, essayé et abandonné le 2026-11-02 :

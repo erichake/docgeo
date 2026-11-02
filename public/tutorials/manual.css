@@ -542,6 +542,49 @@ main pre code {
     overflow-wrap: normal;
 }
 
+.m-code {
+    position: relative;
+}
+
+main .m-code pre {
+    padding-right: 46px;
+}
+
+/* Hors du <pre>, que son défilement horizontal n’emporte pas le bouton ;
+   à droite dans toutes les langues, comme le code se lit de gauche à droite. */
+.m-copy {
+    position: absolute;
+    top: 6px;
+    right: 6px;
+    display: grid;
+    place-items: center;
+    width: 30px;
+    height: 30px;
+    padding: 0;
+    border: 1px solid var(--line-strong);
+    border-radius: 7px;
+    background: var(--bg);
+    color: var(--text-soft);
+    cursor: pointer;
+    opacity: 0;
+    transition: opacity 0.15s;
+}
+
+.m-code:hover .m-copy,
+.m-copy:focus-visible {
+    opacity: 1;
+}
+
+.m-copy:hover {
+    color: var(--accent-text);
+}
+
+@media (hover: none) {
+    .m-copy {
+        opacity: 1;
+    }
+}
+
 /* Ce qu’un exemple de code invite à modifier. */
 main pre strong {
     padding: 0 2px;
