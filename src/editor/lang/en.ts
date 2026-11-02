@@ -105,6 +105,7 @@ export default {
         "This figure has changed since it was opened from its link: save it, then publish it again in the same place, or the page will show the former version.",
     dismiss: "Cancel",
     go_on: "Continue",
+    install_app: "Install DocGeo on this computer",
     embed_hint: "Adjust the frame: the web page will show what it contains",
     copy_code: "Copy the code",
     code_copied: "Code copied: paste it into your page's HTML",

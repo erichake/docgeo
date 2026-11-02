@@ -108,6 +108,7 @@ const pt: Texts = {
             "Esta figura foi alterada desde que foi aberta pelo seu link: salve-a e publique-a novamente no mesmo lugar; caso contrário, a página mostrará a versão anterior.",
         dismiss: "Cancelar",
         go_on: "Continuar",
+        install_app: "Instalar o DocGeo neste computador",
         embed_hint: "Ajuste o quadro: a página web mostrará o que ele contém",
         copy_code: "Copiar o código",
         code_copied: "Código copiado: cole-o no HTML da sua página",

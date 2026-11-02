@@ -108,6 +108,7 @@ const it: Texts = {
             "Questa figura è stata modificata da quando è stata aperta dal suo link: salvala e ripubblicala nello stesso posto, altrimenti la pagina mostrerà la versione precedente.",
         dismiss: "Annulla",
         go_on: "Continua",
+        install_app: "Installa DocGeo su questo computer",
         embed_hint:
             "Regola la cornice: la pagina web mostrerà ciò che contiene",
         copy_code: "Copia il codice",

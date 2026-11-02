@@ -111,6 +111,7 @@ const de: Texts = {
             "Diese Figur wurde geändert, seit sie über ihren Link geöffnet wurde: Speichern Sie sie und veröffentlichen Sie sie erneut am selben Ort, sonst zeigt die Seite die alte Version.",
         dismiss: "Abbrechen",
         go_on: "Fortfahren",
+        install_app: "DocGeo auf diesem Computer installieren",
         embed_hint:
             "Passen Sie den Rahmen an: Die Webseite zeigt, was er enthält",
         copy_code: "Code kopieren",

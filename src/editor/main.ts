@@ -115,6 +115,7 @@ import {
     showChanged,
     standalone,
 } from "./file";
+import { installItems } from "./install";
 import {
     DELETE_KEY,
     contextMenu,
@@ -1072,7 +1073,7 @@ const toggle = (key: MessageKey, element: DOMElement) => ({
 const menus: Menu[] = [
     {
         label: message("menu_file"),
-        items: [
+        items: () => [
             {
                 label: message("new_figure"),
                 run: async () => {
@@ -1119,6 +1120,7 @@ const menus: Menu[] = [
                 label: `${message("embed_page")}…`,
                 run: () => void embedInPage(),
             },
+            ...installItems(),
         ],
     },
     {

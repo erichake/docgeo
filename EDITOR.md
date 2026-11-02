@@ -43,8 +43,20 @@ l'**ouverture des `.dgo`, `.dgp` et `.ggb` par double-clic**.
   `icon_blue.svg` (dont une variante « maskable », fond plein, motif à
   80 %), `file_handlers` des trois formats vers `editor.html`, chacun avec
   son icône de document (`file_dgo.png`, `file_dgp.png`, `file_ggb.png` :
-  page cornée, motif, extension), que Chrome n'utilise encore que derrière
-  `chrome://flags/#file-handling-icons`.
+  page cornée, motif, extension), que Chrome ignore (essayé sur macOS
+  avec Chrome 156 : son application ne déclare qu'un type de document,
+  sans icône).
+- Icônes des fichiers sur Mac, essayé et abandonné le 2026-11-02 : une
+  petite application sans code, glissée dans Applications depuis un `.dmg`,
+  qui déclare les types `.dgo`, `.dgp` et `.ggb` avec leurs icônes. Elle
+  marche si elle est construite sur le Mac même, mais, téléchargée et non
+  signée, macOS ignore ses déclarations, même enregistrée de force
+  (`lsregister -f`) : vérifié sur un Mac propre. Sans compte développeur
+  Apple (signature et notarisation), pas d'icônes de fichiers sur Mac.
+- Menu Fichier (`src/editor/install.ts`) : « Installer DocGeo sur cet
+  ordinateur… », seulement quand le navigateur le propose
+  (`beforeinstallprompt` : Chrome et Edge, pas l'application installée, ni
+  Firefox, ni Safari).
 - Les fichiers reçus du système arrivent par `window.launchQueue`
   (`src/editor/main.ts`), ouverts comme un fichier choisi ; le handle d'un
   `.dgo` reste celui où l'enregistrement écrit.

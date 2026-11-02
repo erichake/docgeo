@@ -110,6 +110,7 @@ const nl: Texts = {
             "Deze figuur is gewijzigd sinds ze via haar link werd geopend: sla ze op en publiceer ze opnieuw op dezelfde plek, anders toont de pagina de vorige versie.",
         dismiss: "Annuleren",
         go_on: "Doorgaan",
+        install_app: "DocGeo op deze computer installeren",
         embed_hint: "Pas het kader aan: de webpagina toont wat erin staat",
         copy_code: "Code kopiëren",
         code_copied: "Code gekopieerd: plak hem in de HTML van je pagina",

@@ -107,6 +107,7 @@ const fr: Texts = {
             "Cette figure a été modifiée depuis son ouverture par son lien : enregistrez-la, puis republiez-la au même endroit, sinon la page montrera l'ancienne version.",
         dismiss: "Annuler",
         go_on: "Continuer",
+        install_app: "Installer DocGeo sur cet ordinateur",
         embed_hint: "Ajustez le cadre : la page web montrera ce qu'il contient",
         copy_code: "Copier le code",
         code_copied: "Code copié : collez-le dans le HTML de votre page",

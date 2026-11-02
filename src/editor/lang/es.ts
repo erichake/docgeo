@@ -108,6 +108,7 @@ const es: Texts = {
             "Esta figura ha cambiado desde que se abrió con su enlace: guárdala y vuelve a publicarla en el mismo lugar; si no, la página mostrará la versión anterior.",
         dismiss: "Cancelar",
         go_on: "Continuar",
+        install_app: "Instalar DocGeo en este ordenador",
         embed_hint: "Ajusta el marco: la página web mostrará lo que contiene",
         copy_code: "Copiar el código",
         code_copied: "Código copiado: pégalo en el HTML de tu página",

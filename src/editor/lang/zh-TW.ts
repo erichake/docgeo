@@ -99,6 +99,7 @@ const zh_TW: Texts = {
             "此圖形自從透過連結開啟後已被修改：請儲存，然後重新發布到同一位置，否則網頁將顯示舊版本。",
         dismiss: "取消",
         go_on: "繼續",
+        install_app: "在此電腦上安裝 DocGeo",
         embed_hint: "調整框架：網頁將顯示框內的內容",
         copy_code: "複製程式碼",
         code_copied: "程式碼已複製：請貼到網頁的 HTML 中",
