@@ -29,6 +29,38 @@ son avancement est à la fin de ce mémo.
 - On ne construit donc pas l'un sans l'autre : une modification de l'éditeur
   change aussi les fichiers publiés avec le lecteur.
 
+## Application installable
+
+Décidé avec l'auteur le 2026-11-02 : l'éditeur seul (pas le lecteur) est
+une application web installable depuis Chrome ou Edge (macOS, Windows,
+Linux), sans droits d'administrateur, depuis
+`https://doctools.org/apps/docgeo/editor.html`. Ce que l'installation
+qu'offre déjà Chrome pour toute page n'a pas : l'**usage hors ligne** et
+l'**ouverture des `.dgo`, `.dgp` et `.ggb` par double-clic**.
+
+- `public/editor.webmanifest` (lié par `editor.html`), en chemins relatifs :
+  portée `editor` (préfixe d'adresse, pas un dossier), icônes PNG tirées de
+  `icon_blue.svg` (dont une variante « maskable », fond plein, motif à
+  80 %), `file_handlers` des trois formats vers `editor.html`.
+- Les fichiers reçus du système arrivent par `window.launchQueue`
+  (`src/editor/main.ts`), ouverts comme un fichier choisi ; le handle d'un
+  `.dgo` reste celui où l'enregistrement écrit.
+- Service worker `editor_sw.js`, écrit au build par le plugin
+  `editorServiceWorker` de `vite.config.ts` : tous les fichiers du build sauf
+  `index.html`, `figure.php` et le manuel, mis en cache à l'installation et
+  servis depuis ce cache quelle que soit leur requête (`?url=`, `?embed`).
+  Son nom de cache (`docgeo-editor-<empreinte>`) vient du contenu de ces
+  fichiers : tout build qui change un fichier change le worker. Enregistré
+  par `src/editor/start.ts` (build seulement), de portée `editor` : le
+  lecteur, intégré par d'autres pages, reste servi par le réseau.
+- Mises à jour, choix de l'auteur : le cycle par défaut, rien de plus. La
+  nouvelle version, téléchargée à l'ouverture qui suit sa publication, sert
+  au lancement suivant (toutes les fenêtres de l'éditeur fermées) ; hors
+  ligne, l'ancienne continue. Pas de bandeau « nouvelle version », pas de
+  vérification périodique, pas de rechargement forcé. Cela vaut aussi pour
+  l'éditeur ouvert dans un onglet ou intégré (`?embed`) : la portée couvre
+  la page, installée ou non.
+
 ## Coût pour le lecteur : 0 à 2 Ko
 
 Le lecteur pesait 302 Ko (97 Ko en gzip) le 2026-10-11. L'éditeur ne doit pas

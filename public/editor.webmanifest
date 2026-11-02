@@ -1,0 +1,29 @@
+{
+    "id": "editor.html",
+    "name": "DocGeo",
+    "start_url": "editor.html",
+    "scope": "editor",
+    "display": "standalone",
+    "background_color": "#ffffff",
+    "theme_color": "#ffffff",
+    "icons": [
+        { "src": "icon_192.png", "sizes": "192x192", "type": "image/png" },
+        { "src": "icon_512.png", "sizes": "512x512", "type": "image/png" },
+        {
+            "src": "icon_maskable_512.png",
+            "sizes": "512x512",
+            "type": "image/png",
+            "purpose": "maskable"
+        }
+    ],
+    "file_handlers": [
+        {
+            "action": "editor.html",
+            "accept": {
+                "application/x-docgeo": [".dgo"],
+                "application/x-dgpad": [".dgp"],
+                "application/vnd.geogebra.file": [".ggb"]
+            }
+        }
+    ]
+}

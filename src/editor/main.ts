@@ -7115,6 +7115,18 @@ if (embedded)
 
 finishSplash(EDITOR_READY);
 
+// Figure files opened from the system with the installed application (see
+// public/editor.webmanifest), in a window of their own.
+window.launchQueue?.setConsumer(({ files }) => {
+    if (files.length)
+        void EDITOR_READY.then(async () =>
+            openChosen(
+                await Promise.all(files.map((from) => from.getFile())),
+                files[0],
+            ),
+        );
+});
+
 async function newFigure(): Promise<void> {
     setBook(null);
     await open("figure", async (c) => {
