@@ -1,15 +1,13 @@
 import { defineConfig, type Plugin } from "vite";
-import { execFileSync } from "node:child_process";
 import { createHash } from "node:crypto";
 import { readdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join, relative, resolve } from "node:path";
 
-const version = execFileSync("git", ["log", "-1", "--format=%cs"], {
-    cwd: new URL(".", import.meta.url),
-    encoding: "utf8",
-})
-    .trim()
-    .replace(/-/g, "");
+const now = new Date();
+const pad = (n: number) => String(n).padStart(2, "0");
+const version =
+    `${now.getFullYear()}${pad(now.getMonth() + 1)}${pad(now.getDate())}` +
+    `.${pad(now.getHours())}${pad(now.getMinutes())}`;
 
 export default defineConfig({
     base: "./",
