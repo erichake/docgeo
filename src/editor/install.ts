@@ -1,6 +1,3 @@
-import type { MenuItems } from "./menus";
-import { message } from "./messages";
-
 // The editor as an application installed from Chrome or Edge: see
 // EDITOR.md, « Application installable ».
 
@@ -9,7 +6,8 @@ interface InstallPrompt extends Event {
 }
 
 // Given by the browser while the editor can be installed: never in the
-// installed application, nor in Firefox or Safari.
+// installed application, nor in Firefox or Safari. Listened to from the
+// start (start.ts): it may come before the editor is loaded.
 let offer: InstallPrompt | null = null;
 window.addEventListener("beforeinstallprompt", (event) => {
     event.preventDefault();
@@ -17,17 +15,9 @@ window.addEventListener("beforeinstallprompt", (event) => {
 });
 window.addEventListener("appinstalled", () => (offer = null));
 
-// The File menu's last item, after a separator, while there is an offer.
-export const installItems = (): MenuItems =>
-    offer
-        ? [
-              null,
-              {
-                  label: `${message("install_app")}…`,
-                  run: () => {
-                      void offer!.prompt();
-                      offer = null;
-                  },
-              },
-          ]
-        : [];
+export const canInstall = (): boolean => offer !== null;
+
+export function install(): void {
+    void offer!.prompt();
+    offer = null;
+}

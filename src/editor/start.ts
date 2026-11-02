@@ -1,4 +1,5 @@
 import "../splash";
+import "./install";
 
 // The installed application's offline copy (see editor_sw.js in
 // vite.config.ts), limited to the editor's page: the player embedded by

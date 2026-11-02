@@ -115,7 +115,7 @@ import {
     showChanged,
     standalone,
 } from "./file";
-import { installItems } from "./install";
+import { canInstall, install } from "./install";
 import {
     DELETE_KEY,
     contextMenu,
@@ -1120,7 +1120,9 @@ const menus: Menu[] = [
                 label: `${message("embed_page")}…`,
                 run: () => void embedInPage(),
             },
-            ...installItems(),
+            ...(canInstall()
+                ? [null, { label: `${message("install_app")}…`, run: install }]
+                : []),
         ],
     },
     {
