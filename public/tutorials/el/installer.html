@@ -116,6 +116,28 @@
             </p>
             <pre><code>curl -fsSL https://doctools.org/apps/docgeo/macos-icons.sh | sh -s uninstall</code></pre>
 
+            <h2 id="icones-windows">Εικονίδια σχημάτων στα Windows</h2>
+            <p>
+                Στα Windows, ένα σχήμα που ανοίγει το DocGeo έχει λευκό
+                εικονίδιο. Για να έχει κάθε μορφή το δικό της εικονίδιο, ανοίξτε
+                το PowerShell (μενού Έναρξη, μετά πληκτρολογήστε PowerShell),
+                επικολλήστε αυτή τη γραμμή και πατήστε Enter. Η εντολή δεν ζητά
+                τίποτα και δεν επανεκκινεί τον υπολογιστή.
+            </p>
+            <pre><code>irm https://doctools.org/apps/docgeo/windows-icons.ps1 | iex</code></pre>
+            <p>
+                Εκτελέστε την αφού εγκαταστήσετε το DocGeo, και ξανά αν τα
+                εικονίδια χαθούν μετά από ενημέρωση του προγράμματος περιήγησης.
+                Αν μια μορφή δεν ανοίγει ακόμη με το DocGeo (DGPad…), η εντολή
+                το επισημαίνει: επιλέξτε το DocGeo για αυτή τη μορφή (<a
+                href="#double-clic">Άνοιγμα σχήματος με διπλό κλικ</a>).
+            </p>
+            <p>
+                Για να επιστρέψετε στα αρχικά εικονίδια, επικολλήστε αυτή τη
+                γραμμή:
+            </p>
+            <pre><code>&amp; ([scriptblock]::Create((irm https://doctools.org/apps/docgeo/windows-icons.ps1))) uninstall</code></pre>
+
             <h2 id="mises-a-jour">Ενημερώσεις</h2>
             <p>
                 Το DocGeo ενημερώνεται μόνο του. Μια νέα έκδοση λαμβάνεται όταν

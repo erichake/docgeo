@@ -117,6 +117,28 @@
             </p>
             <pre><code>curl -fsSL https://doctools.org/apps/docgeo/macos-icons.sh | sh -s uninstall</code></pre>
 
+            <h2 id="icones-windows">Symbole der Figuren unter Windows</h2>
+            <p>
+                Unter Windows hat eine von DocGeo geöffnete Figur ein leeres
+                Symbol. Damit jedes Format sein eigenes Symbol erhält, öffnen
+                Sie PowerShell (Startmenü, dann PowerShell eingeben), fügen Sie
+                diese Zeile ein und drücken Sie die Eingabetaste. Der Befehl
+                fragt nichts und startet den Computer nicht neu.
+            </p>
+            <pre><code>irm https://doctools.org/apps/docgeo/windows-icons.ps1 | iex</code></pre>
+            <p>
+                Führen Sie ihn nach der Installation von DocGeo aus und erneut,
+                wenn die Symbole nach einer Browser-Aktualisierung verschwinden.
+                Öffnet sich ein Format noch nicht mit DocGeo (DGPad…), meldet er
+                es: Wählen Sie DocGeo für dieses Format (<a
+                href="#double-clic">Eine Figur per Doppelklick öffnen</a>).
+            </p>
+            <p>
+                Um zu den ursprünglichen Symbolen zurückzukehren, fügen Sie
+                diese Zeile ein:
+            </p>
+            <pre><code>&amp; ([scriptblock]::Create((irm https://doctools.org/apps/docgeo/windows-icons.ps1))) uninstall</code></pre>
+
             <h2 id="mises-a-jour">Aktualisierungen</h2>
             <p>
                 DocGeo aktualisiert sich selbst. Eine neue Version wird beim

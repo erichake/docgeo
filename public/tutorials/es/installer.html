@@ -111,6 +111,24 @@
             </p>
             <pre><code>curl -fsSL https://doctools.org/apps/docgeo/macos-icons.sh | sh -s uninstall</code></pre>
 
+            <h2 id="icones-windows">Iconos de las figuras en Windows</h2>
+            <p>
+                En Windows, una figura abierta por DocGeo tiene un icono en
+                blanco. Para que cada formato tenga su propio icono, abre
+                PowerShell (menú Inicio y escribe PowerShell), pega esta línea y
+                pulsa Intro. El comando no pide nada y no reinicia el ordenador.
+            </p>
+            <pre><code>irm https://doctools.org/apps/docgeo/windows-icons.ps1 | iex</code></pre>
+            <p>
+                Ejecútalo después de instalar DocGeo, y de nuevo si los iconos
+                desaparecen tras una actualización del navegador. Si un formato
+                todavía no se abre con DocGeo (DGPad…), lo indica: elige DocGeo
+                para ese formato (<a href="#double-clic">Abrir una figura con un
+                doble clic</a>).
+            </p>
+            <p>Para volver a los iconos originales, pega esta línea:</p>
+            <pre><code>&amp; ([scriptblock]::Create((irm https://doctools.org/apps/docgeo/windows-icons.ps1))) uninstall</code></pre>
+
             <h2 id="mises-a-jour">Actualizaciones</h2>
             <p>
                 DocGeo se actualiza solo. Una nueva versión se descarga cuando

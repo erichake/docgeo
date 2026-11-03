@@ -103,6 +103,23 @@
             </p>
             <pre><code>curl -fsSL https://doctools.org/apps/docgeo/macos-icons.sh | sh -s uninstall</code></pre>
 
+            <h2 id="icones-windows">أيقونات الأشكال على Windows</h2>
+            <p>
+                على Windows، تظهر للشكل الذي يفتحه DocGeo أيقونة بيضاء فارغة.
+                لكي يكون لكل صيغة أيقونتها الخاصة، افتح PowerShell (قائمة ابدأ،
+                ثم اكتب PowerShell)، والصق هذا السطر، ثم اضغط Enter. لا يطلب
+                الأمر شيئًا ولا يعيد تشغيل الحاسوب.
+            </p>
+            <pre><code>irm https://doctools.org/apps/docgeo/windows-icons.ps1 | iex</code></pre>
+            <p>
+                شغّله بعد تثبيت DocGeo، ثم مرة أخرى إن اختفت الأيقونات بعد تحديث
+                للمتصفح. وإن كانت صيغةٌ ما لا تُفتح بعدُ باستخدام DocGeo
+                (DGPad…)، فإنه ينبّه إلى ذلك: اختر DocGeo لهذه الصيغة (<a
+                href="#double-clic">فتح شكل بنقر مزدوج</a>).
+            </p>
+            <p>للعودة إلى الأيقونات الأصلية، الصق هذا السطر:</p>
+            <pre><code>&amp; ([scriptblock]::Create((irm https://doctools.org/apps/docgeo/windows-icons.ps1))) uninstall</code></pre>
+
             <h2 id="mises-a-jour">التحديثات</h2>
             <p>
                 يحدّث DocGeo نفسه. تُنزَّل النسخة الجديدة عند فتح DocGeo،

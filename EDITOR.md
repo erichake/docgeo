@@ -61,12 +61,28 @@ l'**ouverture des `.dgo`, `.dgp` et `.ggb` par double-clic**.
   langue du Mac, pour que l'utilisateur n'ait rien d'autre à faire. Sans le script,
   macOS 27 compose déjà une icône correcte (icône de l'application sur une
   page, extension en gris).
-- Icônes des fichiers sur Windows, essayé et abandonné le 2026-11-02 :
-  Chrome crée un ProgID par extension (`Chrome.<nombre>`) à l'icône vide.
-  Un ProgID propre (`DocGeo.dgo`, icône `.ico`, commande de Chrome
-  recopiée), désigné par la clé de l'extension, sans `UserChoice` : icône
-  toujours blanche après redémarrage, et le double-clic n'ouvre plus
-  DocGeo. Abandonné, comme le script équivalent pour Debian, non essayé.
+- Icônes des fichiers sur Windows (2026-11-03, essayé sur Windows 11) :
+  `public/windows-icons.ps1`, que l'utilisateur lance depuis PowerShell
+  (`irm … | iex`, manuel `installer.html#icones-windows`). Chrome (ou
+  Edge) crée un ProgID par extension (`Chrome.<nombre>`), désigné par la
+  valeur par défaut de `HKCU\Software\Classes\.dgo` (pas de `UserChoice`),
+  dont le `DefaultIcon` vaut `,0` : chemin vide, d'où l'icône blanche. Le
+  ProgID de l'application (`Application\ApplicationName` = `DocGeo`) les
+  liste dans `FileHandlerProgIds`. Le script ne remplit que ce
+  `DefaultIcon`, vers des `.ico` construites depuis `file_*.png`
+  (System.Drawing, entrées PNG 16 à 256 px) dans
+  `%LOCALAPPDATA%\DocGeo\icons\`, puis `SHChangeNotify` : sans droits
+  administrateur ni redémarrage, la commande d'ouverture reste celle du
+  navigateur. Tient après redémarrage de Chrome, de Windows et un
+  redéploiement de DocGeo ; une mise à jour de Chrome n'a pas été vérifiée
+  (relancer le script suffit). Messages dans la langue de Windows,
+  redécodés quand Windows PowerShell 5.1 lit le script en ISO-8859-1
+  (doctools.org le sert sans `charset`) ; `Invoke-WebRequest` plutôt que
+  `Net.WebClient`, que le serveur refuse (429, pas de User-Agent). Une
+  extension ouverte par un autre logiciel (DGPad) garde son icône : le
+  script le signale. Un premier essai (2026-11-02), un ProgID propre
+  `DocGeo.dgo`, avait cassé le double-clic. Pas de script pour Debian
+  (non essayé).
 - Menu Fichier (`src/editor/install.ts`) : « Installer DocGeo sur cet
   ordinateur… », seulement quand le navigateur le propose
   (`beforeinstallprompt` : Chrome et Edge, pas l'application installée, ni

@@ -109,6 +109,25 @@
             </p>
             <pre><code>curl -fsSL https://doctools.org/apps/docgeo/macos-icons.sh | sh -s uninstall</code></pre>
 
+            <h2 id="icones-windows">Windows पर आकृतियों के आइकन</h2>
+            <p>
+                Windows पर DocGeo से खुलने वाली आकृति का आइकन खाली सफ़ेद होता
+                है। हर फ़ॉर्मैट को उसका अपना आइकन देने के लिए PowerShell खोलें
+                (Start मेन्यू, फिर PowerShell टाइप करें), यह पंक्ति पेस्ट करें
+                और Enter दबाएँ। यह कमांड कुछ नहीं माँगती और कंप्यूटर को फिर से
+                चालू नहीं करती।
+            </p>
+            <pre><code>irm https://doctools.org/apps/docgeo/windows-icons.ps1 | iex</code></pre>
+            <p>
+                इसे DocGeo इंस्टॉल करने के बाद चलाएँ, और अगर ब्राउज़र के अपडेट
+                के बाद आइकन गायब हो जाएँ तो फिर से चलाएँ। अगर कोई फ़ॉर्मैट अभी
+                DocGeo से नहीं खुलता (DGPad…), तो यह कमांड बता देती है: उस
+                फ़ॉर्मैट के लिए DocGeo चुनें (<a href="#double-clic">डबल-क्लिक
+                से आकृति खोलना</a>)।
+            </p>
+            <p>मूल आइकन वापस पाने के लिए यह पंक्ति पेस्ट करें:</p>
+            <pre><code>&amp; ([scriptblock]::Create((irm https://doctools.org/apps/docgeo/windows-icons.ps1))) uninstall</code></pre>
+
             <h2 id="mises-a-jour">अपडेट</h2>
             <p>
                 DocGeo अपने आप अपडेट होता है। DocGeo खुलने पर नया संस्करण

@@ -95,6 +95,21 @@
             <p>要恢復原來的圖示，請貼上下面這行指令，它同樣會重新啟動電腦：</p>
             <pre><code>curl -fsSL https://doctools.org/apps/docgeo/macos-icons.sh | sh -s uninstall</code></pre>
 
+            <h2 id="icones-windows">Windows 上的圖形圖示</h2>
+            <p>
+                在 Windows 上，由 DocGeo 開啟的圖形顯示為空白圖示。要讓每種格式擁有自己的圖示，請開啟
+                PowerShell（在「開始」功能表中輸入 PowerShell），貼上下面這行指令並按 Enter
+                鍵。此指令不會要求輸入任何內容，也不會重新啟動電腦。
+            </p>
+            <pre><code>irm https://doctools.org/apps/docgeo/windows-icons.ps1 | iex</code></pre>
+            <p>
+                請在安裝 DocGeo 之後執行它；如果瀏覽器更新後圖示消失，請再次執行。如果某種格式還不是用 DocGeo
+                開啟（DGPad…），指令會提示：請為該格式選擇 DocGeo（<a
+                href="#double-clic">按兩下開啟圖形</a>）。
+            </p>
+            <p>要恢復原來的圖示，請貼上下面這行指令：</p>
+            <pre><code>&amp; ([scriptblock]::Create((irm https://doctools.org/apps/docgeo/windows-icons.ps1))) uninstall</code></pre>
+
             <h2 id="mises-a-jour">更新</h2>
             <p>
                 DocGeo 會自動更新。新版本在 DocGeo

@@ -114,6 +114,28 @@
             </p>
             <pre><code>curl -fsSL https://doctools.org/apps/docgeo/macos-icons.sh | sh -s uninstall</code></pre>
 
+            <h2 id="icones-windows">Pictogrammen van figuren in Windows</h2>
+            <p>
+                In Windows heeft een figuur die DocGeo opent een blanco
+                pictogram. Om elk formaat een eigen pictogram te geven, open je
+                PowerShell (menu Start, typ dan PowerShell), plak je deze regel
+                en druk je op Enter. Het commando vraagt niets en start de
+                computer niet opnieuw op.
+            </p>
+            <pre><code>irm https://doctools.org/apps/docgeo/windows-icons.ps1 | iex</code></pre>
+            <p>
+                Voer het uit nadat je DocGeo hebt geïnstalleerd, en opnieuw als
+                de pictogrammen na een update van de browser verdwijnen. Opent
+                een formaat nog niet met DocGeo (DGPad…), dan meldt het commando
+                dat: kies DocGeo voor dat formaat (<a href="#double-clic">Een
+                figuur openen met een dubbelklik</a>).
+            </p>
+            <p>
+                Om terug te gaan naar de oorspronkelijke pictogrammen, plak je
+                deze regel:
+            </p>
+            <pre><code>&amp; ([scriptblock]::Create((irm https://doctools.org/apps/docgeo/windows-icons.ps1))) uninstall</code></pre>
+
             <h2 id="mises-a-jour">Updates</h2>
             <p>
                 DocGeo werkt zichzelf bij. Een nieuwe versie wordt gedownload
