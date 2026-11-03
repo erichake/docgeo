@@ -1911,7 +1911,8 @@ describe("Editor", () => {
         const [A, B, C, a, k, M, P] = ["A", "B", "C", "a", "c", "M", "P"].map(
             (name) => c.getObj(name)!,
         );
-        expect([A, M, P].map(magnetizable)).toEqual([true, false, false]);
+        expect([A, M, P].map(magnetizable)).toEqual([true, false, true]);
+        expect(pinnable(P)).toBe(false);
         const point = B as point_object;
         expect([A, C, k].map((o) => attracts(point, o))).toEqual([
             true,

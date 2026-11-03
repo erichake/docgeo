@@ -1,6 +1,6 @@
 import type { construction_object } from "../objects/construction_object";
 import type { point_object } from "../objects/point_object";
-import { magnetizable } from "./magnets";
+import { isFreePoint } from "./magnets";
 
 // DGPad's pushpin: see EDITOR.md.
 
@@ -8,7 +8,7 @@ import { magnetizable } from "./magnets";
 // already pinned to the screen plane.
 export const pinnable = (
     object: construction_object | null | undefined,
-): object is point_object => magnetizable(object) && object.C.GRID.is2D;
+): object is point_object => isFreePoint(object) && object.C.GRID.is2D;
 
 export function togglePin(point: point_object): void {
     if (point.pinned) {

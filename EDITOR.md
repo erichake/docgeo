@@ -698,8 +698,9 @@ sans la décaler.
 ## Aimants
 
 Décidé le 2026-10-12, l'idée de DGPad (son outil aimant, `MagnetManager`)
-avec une interface plus parlante. Un point libre (le seul que le moteur
-aimante quand on le glisse) a dans la zone contextuelle un bouton
+avec une interface plus parlante. Un point libre ou sur objet (ceux que le
+moteur aimante quand on les glisse, le second restant sur son support) a
+dans la zone contextuelle un bouton
 « Aimants », le dernier, comme dans la rangée grise de DGPad. Il ouvre un
 mode, qu'on doit voir et savoir quitter sans rien deviner :
 

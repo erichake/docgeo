@@ -1,0 +1,20 @@
+// Coordinates System :
+SetCoords(480,342.5,40,false,960,686);
+
+
+// Geometry :
+A=Point("A",-5.875,-0.6875);
+B=Point("B",3.675,-0.6625);
+S1=Segment("S1",A,B);
+m=MidPoint("m",A,B);
+P=PointOn("P",S1,0.2140483124892922);
+
+
+// Styles :
+STL(A,"c:#0000b2;s:6;sn:true;f:30");
+STL(B,"c:#0000b2;s:6;sn:true;f:30");
+STL(S1,"c:#006633;s:1;f:24");
+STL(m,"c:#0000b2;s:6;sn:true;f:30");
+STL(P,"c:#0000b2;s:6;sn:true;f:30;mg:[m,15]");
+SetCoordsStyle("isAxis:false;isGrid:true;isOx:true;isOy:true;isLockOx:false;isLockOy:false;centerZoom:false;onlyPositive:false;color:#111111;fontSize:18;axisWidth:1;gridWidth:0.1");
+SetGeneralStyle("background-color:#F8F8F8;degree:true;dragmoveable:true");

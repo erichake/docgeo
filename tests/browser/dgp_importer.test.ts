@@ -20,7 +20,7 @@ import { fixed_point_object } from "../../src/objects/fixed_point_object";
 import { formula_point_object } from "../../src/objects/formula_point_object";
 import { locus_object } from "../../src/objects/locus_object";
 import { point_on_object } from "../../src/objects/point_on_object";
-import { point_object } from "../../src/objects/point_object";
+import { createPoint, point_object } from "../../src/objects/point_object";
 import { polygon_object } from "../../src/objects/polygon_object";
 import type { primitive_line_object } from "../../src/objects/primitive_line_object";
 import type { quadric5pts_object } from "../../src/objects/quadric5pts_object";
@@ -933,6 +933,48 @@ STL(M,"mg:[A,20],[B,20],[a,5000]");`,
 
         expect(m.coords[0]).toBe(0);
         expect(m.coords[1]).toBe(0);
+    });
+
+    it("snaps a point on an object onto its magnets, from where it lands on its support", async () => {
+        const c = createConstruction();
+        await importDgpFromUrl(c, figure("aimantation.dgp"));
+        c.OBJS.update();
+        const [p, m, a, b] = ["P", "m", "A", "B"].map(
+            (name) => c.getObj(name) as point_object,
+        );
+        const { left, top } = c.svg.dom().getBoundingClientRect();
+        const dragTo = (x: number, y: number): void => {
+            p.mousedrag(
+                new PointerEvent("pointermove", {
+                    clientX: left + x,
+                    clientY: top + y,
+                }),
+            );
+            c.OBJS.update();
+        };
+
+        dragTo(m.sx + 10, m.sy);
+        expect(p.coords[0]).toBeCloseTo(m.coords[0], 9);
+        expect(p.coords[1]).toBeCloseTo(m.coords[1], 9);
+
+        // Far from the magnet as the pointer is, the point on the segment
+        // stands right by it.
+        dragTo(m.sx + 10, m.sy - 200);
+        expect(p.coords[0]).toBeCloseTo(m.coords[0], 9);
+
+        dragTo(m.sx + 40, m.sy);
+        expect(p.sx).toBeCloseTo(m.sx + 40, 0);
+
+        // A magnet off the support holds the point at its projection.
+        const off = createPoint(c, "off", [0, 3, 0]);
+        p.magnets = [{ target: off, radius: 200 }];
+        const below = c.pt3D([0, 0, 0]);
+        dragTo(below[0], below[1]);
+        const direction = vSub(b.coords, a.coords);
+        const alpha =
+            vDot(vSub(off.coords, a.coords), direction) /
+            vDot(direction, direction);
+        expect((p as point_on_object).alpha).toBeCloseTo(alpha, 9);
     });
 
     it("keeps a magnetized point glued to whichever segment it grabbed, only switching on a fresh grab", async () => {

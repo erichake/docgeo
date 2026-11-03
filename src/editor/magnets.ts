@@ -5,6 +5,7 @@ import type { construction_object } from "../objects/construction_object";
 import { curve_object } from "../objects/curve_object";
 import { list_object } from "../objects/list_object";
 import { point_object, type magnet_target } from "../objects/point_object";
+import { point_on_object } from "../objects/point_on_object";
 import { primitive_circle_object } from "../objects/primitive_circle_object";
 import { primitive_line_object } from "../objects/primitive_line_object";
 import { primitive_quadric_object } from "../objects/primitive_quadric_object";
@@ -18,12 +19,17 @@ export const REACHES = [
     0, 1, 2, 5, 10, 15, 20, 30, 50, 100, 200, 500, 1000, 5000,
 ];
 
-// The points the engine's drag snaps onto their magnets: free points.
-export const magnetizable = (
+export const isFreePoint = (
     object: construction_object | null | undefined,
 ): object is point_object =>
     object instanceof point_object &&
     object.mousedrag === point_object.prototype.mousedrag;
+
+// The points the engine's drag snaps onto their magnets.
+export const magnetizable = (
+    object: construction_object | null | undefined,
+): object is point_object =>
+    isFreePoint(object) || object instanceof point_on_object;
 
 // An object depending on the point would move with it.
 export const attracts = (

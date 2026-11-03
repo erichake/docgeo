@@ -196,34 +196,34 @@ export class point_on_object extends point_object {
     }
 
     mousedrag(ev: PointerEvent): void {
-        const screen = this.C.pointerPosition(ev);
-        if (this.support.familytype === "locus") {
-            const alpha = (this.support as locus_object).alphaAtScreen(screen);
-            if (alpha === null) return;
-            this.alpha = alpha;
-            this.C.invalidateGeometry(this);
-            return;
-        }
-        if (this.support instanceof list_object) {
-            const alpha = this.support.alphaAtScreen(screen);
-            if (alpha === null) return;
-            this.alpha = alpha;
-            this.C.invalidateGeometry(this);
-            return;
-        }
-        if (this.support.familytype === "curve") {
-            const alpha = (this.support as curve_object).alphaAtScreen(screen);
-            if (alpha === null) return;
-            this.alpha = alpha;
-            this.C.invalidateGeometry(this);
-            return;
-        }
-        const target = this.dragTarget(screen);
-        if (!target) return;
-        const alpha = this.alphaFor(this.snapToIncrement(target));
+        const alpha = this.draggedAlpha(this.C.pointerPosition(ev));
         if (alpha === null) return;
         this.alpha = alpha;
+        if (this.magnets.length) this.snapAlphaToMagnets();
         this.C.invalidateGeometry(this);
+    }
+
+    private draggedAlpha(screen: Vec2): Alpha | null {
+        if (this.support.familytype === "locus")
+            return (this.support as locus_object).alphaAtScreen(screen);
+        if (this.support instanceof list_object)
+            return this.support.alphaAtScreen(screen);
+        if (this.support.familytype === "curve")
+            return (this.support as curve_object).alphaAtScreen(screen);
+        const target = this.dragTarget(screen);
+        return target && this.alphaFor(this.snapToIncrement(target));
+    }
+
+    // As DGPad: the reach counts from where the point lands on its support,
+    // however far the pointer is, and a magnet off the support holds the
+    // point at its projection.
+    private snapAlphaToMagnets(): void {
+        this.computeGeometry();
+        const { coords } = this;
+        const screen = this.C.pt3D(coords);
+        if (!this.defined || !vIsFinite(screen)) return;
+        const snapped = this.snapToMagnets(coords, screen);
+        if (snapped !== coords) this.alpha = this.alphaFor(snapped) ?? this.alpha;
     }
 
     // As in DGPad: along a line or a polygon's edges, `speed` pixels per

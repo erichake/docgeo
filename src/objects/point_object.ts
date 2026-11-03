@@ -261,7 +261,7 @@ export class point_object extends construction_object {
         ];
     }
 
-    private snapToMagnets(coords: Vec3, screen: Vec2): Vec3 {
+    protected snapToMagnets(coords: Vec3, screen: Vec2): Vec3 {
         let magnet = this.nearestMagnet(coords, screen);
         // As DGPad, which computes the magnets twice: once held by a line or
         // a curve, the point is caught by a point magnet near its new
