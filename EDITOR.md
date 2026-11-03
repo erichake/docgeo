@@ -55,10 +55,13 @@ l'**ouverture des `.dgo`, `.dgp` et `.ggb` par double-clic**.
   Chrome ouvre les fichiers, et les mises à jour de Chrome n'y touchent pas.
   Construite sur place, elle échappe à la quarantaine ; la même application
   téléchargée (`.dmg`, non signée) voit ses déclarations ignorées. Le
-  Finder garde les icônes qu'il a dessinées : le script le relance, à
-  l'installation comme à la désinstallation, sans mot de passe ni
-  redémarrage (essayé le 2026-11-03, installation, désinstallation et
-  réinstallation). Le vidage du cache d'icônes système (`sudo`) et le
+  Finder garde les icônes qu'il a dessinées, et le cache d'icônes de
+  l'utilisateur (`$(getconf DARWIN_USER_CACHE_DIR)/com.apple.iconservices`),
+  qu'un redémarrage ne vide pas, celles de déclarations disparues : à
+  l'installation comme à la désinstallation, le script efface ce cache,
+  relance `iconservicesagent` et le Finder, sans mot de passe ni
+  redémarrage (essayé le 2026-11-03 sur deux Mac : sur le second, seul
+  l'effacement de ce cache a rendu les icônes génériques). Le vidage du cache d'icônes système (`sudo`) et le
   redémarrage d'abord employés ne servaient à rien : l'icône qui semblait
   y survivre venait d'applications d'essai restées enregistrées
   (`lsregister -dump | grep org.doctools.docgeo` les montre ; `lsregister

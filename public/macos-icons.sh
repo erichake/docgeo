@@ -28,10 +28,17 @@ case $(defaults read -g AppleLanguages 2>/dev/null | sed -n 2p | tr -d ' ",') in
   *) I="DocGeo icons installed."; R="DocGeo icons removed." ;;
 esac
 
-# The Finder keeps the icons it has drawn until it restarts.
+# The Finder keeps the icons it has drawn until it restarts, and the user's icon cache,
+# which a restart leaves, keeps those of former declarations.
+refresh() {
+  rm -rf "$(getconf DARWIN_USER_CACHE_DIR)/com.apple.iconservices"
+  killall iconservicesagent
+  killall Finder
+}
+
 if [ "$1" = uninstall ]; then
   remove
-  killall Finder
+  refresh
   echo "$R"
   exit
 fi
@@ -72,5 +79,5 @@ remove
 mkdir -p "$HOME/Applications"
 mv "$B" "$APP"
 "$LSREGISTER" -f "$APP"
-killall Finder
+refresh
 echo "$I"
