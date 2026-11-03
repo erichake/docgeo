@@ -139,6 +139,27 @@
             </p>
             <pre><code>&amp; ([scriptblock]::Create((irm https://doctools.org/apps/docgeo/windows-icons.ps1))) uninstall</code></pre>
 
+            <h2 id="icones-linux">Symbole der Figuren unter Linux</h2>
+            <p>
+                Unter Linux hat eine von DocGeo geöffnete Figur ein allgemeines
+                Symbol. Damit jedes Format sein eigenes Symbol erhält, öffnen
+                Sie ein Terminal, fügen Sie diese Zeile ein und drücken Sie die
+                Eingabetaste. Der Befehl fragt nichts und startet den Computer
+                nicht neu.
+            </p>
+            <pre><code>curl -fsSL https://doctools.org/apps/docgeo/linux-icons.sh | sh</code></pre>
+            <p>
+                Führen Sie ihn aus, nachdem Sie DocGeo über Chrome installiert
+                haben. Schließen Sie die Dateiverwaltung und öffnen Sie sie
+                erneut, um die Symbole zu sehen. Auf dem Schreibtisch erscheinen
+                sie eventuell erst bei der nächsten Anmeldung.
+            </p>
+            <p>
+                Um zu den ursprünglichen Symbolen zurückzukehren, fügen Sie
+                diese Zeile ein:
+            </p>
+            <pre><code>curl -fsSL https://doctools.org/apps/docgeo/linux-icons.sh | sh -s uninstall</code></pre>
+
             <h2 id="mises-a-jour">Aktualisierungen</h2>
             <p>
                 DocGeo aktualisiert sich selbst. Eine neue Version wird beim

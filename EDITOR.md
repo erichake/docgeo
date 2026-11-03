@@ -81,8 +81,22 @@ l'**ouverture des `.dgo`, `.dgp` et `.ggb` par double-clic**.
   `Net.WebClient`, que le serveur refuse (429, pas de User-Agent). Une
   extension ouverte par un autre logiciel (DGPad) garde son icône : le
   script le signale. Un premier essai (2026-11-02), un ProgID propre
-  `DocGeo.dgo`, avait cassé le double-clic. Pas de script pour Debian
-  (non essayé).
+  `DocGeo.dgo`, avait cassé le double-clic.
+- Icônes des fichiers sur Linux (2026-11-03, essayé sur Debian 12, GNOME,
+  Nautilus 43) : `public/linux-icons.sh` (`curl … | sh`, manuel
+  `installer.html#icones-linux`). Chrome enregistre les types MIME de ses
+  gestionnaires de fichiers
+  (`~/.local/share/mime/packages/chrome-<id>-<profil>.xml` :
+  `application/x-docgeo`, `application/x-dgpad`,
+  `application/vnd.geogebra.file`), sans icône. Le script installe
+  `file_*.png` comme icônes `hicolor` de ces types (`xdg-icon-resource`,
+  contexte `mimetypes`, 512 px), pour l'utilisateur seul : ni `sudo`, ni
+  redémarrage, commande d'ouverture inchangée. Il refuse si Chrome n'a pas
+  enregistré `application/x-docgeo`. Nautilus montre les icônes une fois
+  rouvert ; le bureau GNOME (Desktop Icons NG) seulement à sa prochaine
+  modification ou à la prochaine connexion. Prérequis : `curl` et
+  `xdg-utils`, présents par défaut sous GNOME. Si GeoGebra est installé,
+  l'icône DocGeo remplace la sienne pour `.ggb`.
 - Menu Fichier (`src/editor/install.ts`) : « Installer DocGeo sur cet
   ordinateur… », seulement quand le navigateur le propose
   (`beforeinstallprompt` : Chrome et Edge, pas l'application installée, ni

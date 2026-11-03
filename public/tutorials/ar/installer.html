@@ -120,6 +120,21 @@
             <p>للعودة إلى الأيقونات الأصلية، الصق هذا السطر:</p>
             <pre><code>&amp; ([scriptblock]::Create((irm https://doctools.org/apps/docgeo/windows-icons.ps1))) uninstall</code></pre>
 
+            <h2 id="icones-linux">أيقونات الأشكال على Linux</h2>
+            <p>
+                على Linux، تظهر للشكل الذي يفتحه DocGeo أيقونة عامة. لكي يكون
+                لكل صيغة أيقونتها الخاصة، افتح طرفية، والصق هذا السطر، ثم اضغط
+                Enter. لا يطلب الأمر شيئًا ولا يعيد تشغيل الحاسوب.
+            </p>
+            <pre><code>curl -fsSL https://doctools.org/apps/docgeo/linux-icons.sh | sh</code></pre>
+            <p>
+                شغّله بعد تثبيت DocGeo من Chrome. أغلق مدير الملفات ثم أعد فتحه
+                لترى الأيقونات. أما على سطح المكتب، فقد لا تظهر إلا عند تسجيل
+                الدخول التالي.
+            </p>
+            <p>للعودة إلى الأيقونات الأصلية، الصق هذا السطر:</p>
+            <pre><code>curl -fsSL https://doctools.org/apps/docgeo/linux-icons.sh | sh -s uninstall</code></pre>
+
             <h2 id="mises-a-jour">التحديثات</h2>
             <p>
                 يحدّث DocGeo نفسه. تُنزَّل النسخة الجديدة عند فتح DocGeo،

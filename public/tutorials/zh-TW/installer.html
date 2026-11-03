@@ -110,6 +110,19 @@
             <p>要恢復原來的圖示，請貼上下面這行指令：</p>
             <pre><code>&amp; ([scriptblock]::Create((irm https://doctools.org/apps/docgeo/windows-icons.ps1))) uninstall</code></pre>
 
+            <h2 id="icones-linux">Linux 上的圖形圖示</h2>
+            <p>
+                在 Linux 上，由 DocGeo 開啟的圖形顯示為通用圖示。要讓每種格式擁有自己的圖示，請開啟終端機，貼上下面這行指令並按
+                Enter 鍵。此指令不會要求輸入任何內容，也不會重新啟動電腦。
+            </p>
+            <pre><code>curl -fsSL https://doctools.org/apps/docgeo/linux-icons.sh | sh</code></pre>
+            <p>
+                請在透過 Chrome 安裝 DocGeo
+                之後執行它。關閉並重新開啟檔案管理員即可看到圖示。桌面上的圖示可能要到下次登入時才會出現。
+            </p>
+            <p>要恢復原來的圖示，請貼上下面這行指令：</p>
+            <pre><code>curl -fsSL https://doctools.org/apps/docgeo/linux-icons.sh | sh -s uninstall</code></pre>
+
             <h2 id="mises-a-jour">更新</h2>
             <p>
                 DocGeo 會自動更新。新版本在 DocGeo

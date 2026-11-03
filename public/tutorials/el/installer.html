@@ -138,6 +138,26 @@
             </p>
             <pre><code>&amp; ([scriptblock]::Create((irm https://doctools.org/apps/docgeo/windows-icons.ps1))) uninstall</code></pre>
 
+            <h2 id="icones-linux">Εικονίδια σχημάτων στο Linux</h2>
+            <p>
+                Στο Linux, ένα σχήμα που ανοίγει το DocGeo έχει γενικό
+                εικονίδιο. Για να έχει κάθε μορφή το δικό της εικονίδιο, ανοίξτε
+                ένα τερματικό, επικολλήστε αυτή τη γραμμή και πατήστε Enter. Η
+                εντολή δεν ζητά τίποτα και δεν επανεκκινεί τον υπολογιστή.
+            </p>
+            <pre><code>curl -fsSL https://doctools.org/apps/docgeo/linux-icons.sh | sh</code></pre>
+            <p>
+                Εκτελέστε την αφού εγκαταστήσετε το DocGeo από το Chrome.
+                Κλείστε και ανοίξτε ξανά τη διαχείριση αρχείων για να δείτε τα
+                εικονίδια. Στην επιφάνεια εργασίας, μπορεί να εμφανιστούν μόνο
+                στην επόμενη σύνδεση.
+            </p>
+            <p>
+                Για να επιστρέψετε στα αρχικά εικονίδια, επικολλήστε αυτή τη
+                γραμμή:
+            </p>
+            <pre><code>curl -fsSL https://doctools.org/apps/docgeo/linux-icons.sh | sh -s uninstall</code></pre>
+
             <h2 id="mises-a-jour">Ενημερώσεις</h2>
             <p>
                 Το DocGeo ενημερώνεται μόνο του. Μια νέα έκδοση λαμβάνεται όταν

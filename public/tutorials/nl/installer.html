@@ -136,6 +136,26 @@
             </p>
             <pre><code>&amp; ([scriptblock]::Create((irm https://doctools.org/apps/docgeo/windows-icons.ps1))) uninstall</code></pre>
 
+            <h2 id="icones-linux">Pictogrammen van figuren in Linux</h2>
+            <p>
+                In Linux heeft een figuur die DocGeo opent een algemeen
+                pictogram. Om elk formaat een eigen pictogram te geven, open je
+                een terminal, plak je deze regel en druk je op Enter. Het
+                commando vraagt niets en start de computer niet opnieuw op.
+            </p>
+            <pre><code>curl -fsSL https://doctools.org/apps/docgeo/linux-icons.sh | sh</code></pre>
+            <p>
+                Voer het uit nadat je DocGeo vanuit Chrome hebt geïnstalleerd.
+                Sluit het bestandsbeheer en open het opnieuw om de pictogrammen
+                te zien. Op het bureaublad verschijnen ze misschien pas bij de
+                volgende keer aanmelden.
+            </p>
+            <p>
+                Om terug te gaan naar de oorspronkelijke pictogrammen, plak je
+                deze regel:
+            </p>
+            <pre><code>curl -fsSL https://doctools.org/apps/docgeo/linux-icons.sh | sh -s uninstall</code></pre>
+
             <h2 id="mises-a-jour">Updates</h2>
             <p>
                 DocGeo werkt zichzelf bij. Een nieuwe versie wordt gedownload

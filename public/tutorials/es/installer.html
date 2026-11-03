@@ -129,6 +129,23 @@
             <p>Para volver a los iconos originales, pega esta línea:</p>
             <pre><code>&amp; ([scriptblock]::Create((irm https://doctools.org/apps/docgeo/windows-icons.ps1))) uninstall</code></pre>
 
+            <h2 id="icones-linux">Iconos de las figuras en Linux</h2>
+            <p>
+                En Linux, una figura abierta por DocGeo tiene un icono genérico.
+                Para que cada formato tenga su propio icono, abre un terminal,
+                pega esta línea y pulsa Intro. El comando no pide nada y no
+                reinicia el ordenador.
+            </p>
+            <pre><code>curl -fsSL https://doctools.org/apps/docgeo/linux-icons.sh | sh</code></pre>
+            <p>
+                Ejecútalo después de instalar DocGeo desde Chrome. Cierra y
+                vuelve a abrir el gestor de archivos para ver los iconos. En el
+                escritorio, puede que solo aparezcan en el próximo inicio de
+                sesión.
+            </p>
+            <p>Para volver a los iconos originales, pega esta línea:</p>
+            <pre><code>curl -fsSL https://doctools.org/apps/docgeo/linux-icons.sh | sh -s uninstall</code></pre>
+
             <h2 id="mises-a-jour">Actualizaciones</h2>
             <p>
                 DocGeo se actualiza solo. Una nueva versión se descarga cuando

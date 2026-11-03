@@ -132,6 +132,22 @@
             <p>Pour revenir aux icônes d’origine, collez cette ligne :</p>
             <pre><code>&amp; ([scriptblock]::Create((irm https://doctools.org/apps/docgeo/windows-icons.ps1))) uninstall</code></pre>
 
+            <h2 id="icones-linux">Icônes des figures sous Linux</h2>
+            <p>
+                Sous Linux, une figure ouverte par DocGeo a une icône générique.
+                Pour que chaque format ait sa propre icône, ouvrez un terminal,
+                collez cette ligne et appuyez sur Entrée. La commande ne demande
+                rien et ne redémarre pas l’ordinateur.
+            </p>
+            <pre><code>curl -fsSL https://doctools.org/apps/docgeo/linux-icons.sh | sh</code></pre>
+            <p>
+                Lancez-la après avoir installé DocGeo depuis Chrome. Fermez puis
+                rouvrez le gestionnaire de fichiers pour voir les icônes. Sur le
+                bureau, elles peuvent n’apparaître qu’à la prochaine connexion.
+            </p>
+            <p>Pour revenir aux icônes d’origine, collez cette ligne :</p>
+            <pre><code>curl -fsSL https://doctools.org/apps/docgeo/linux-icons.sh | sh -s uninstall</code></pre>
+
             <h2 id="mises-a-jour">Mises à jour</h2>
             <p>
                 DocGeo se met à jour tout seul. Une nouvelle version est

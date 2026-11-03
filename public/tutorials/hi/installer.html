@@ -128,6 +128,22 @@
             <p>मूल आइकन वापस पाने के लिए यह पंक्ति पेस्ट करें:</p>
             <pre><code>&amp; ([scriptblock]::Create((irm https://doctools.org/apps/docgeo/windows-icons.ps1))) uninstall</code></pre>
 
+            <h2 id="icones-linux">Linux पर आकृतियों के आइकन</h2>
+            <p>
+                Linux पर DocGeo से खुलने वाली आकृति का आइकन सामान्य होता है। हर
+                फ़ॉर्मैट को उसका अपना आइकन देने के लिए टर्मिनल खोलें, यह पंक्ति
+                पेस्ट करें और Enter दबाएँ। यह कमांड कुछ नहीं माँगती और कंप्यूटर
+                को फिर से चालू नहीं करती।
+            </p>
+            <pre><code>curl -fsSL https://doctools.org/apps/docgeo/linux-icons.sh | sh</code></pre>
+            <p>
+                इसे Chrome से DocGeo इंस्टॉल करने के बाद चलाएँ। आइकन देखने के
+                लिए फ़ाइल मैनेजर बंद करके फिर से खोलें। डेस्कटॉप पर वे शायद अगली
+                बार लॉग इन करने पर ही दिखें।
+            </p>
+            <p>मूल आइकन वापस पाने के लिए यह पंक्ति पेस्ट करें:</p>
+            <pre><code>curl -fsSL https://doctools.org/apps/docgeo/linux-icons.sh | sh -s uninstall</code></pre>
+
             <h2 id="mises-a-jour">अपडेट</h2>
             <p>
                 DocGeo अपने आप अपडेट होता है। DocGeo खुलने पर नया संस्करण
