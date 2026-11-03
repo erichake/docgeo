@@ -63,8 +63,6 @@ const SCRUB = {
     level: { pixel: 0.1 },
     font_size: { pixel: 0.1 },
     name_position: { pixel: 1.8 },
-    step_x: { pixel: 0.005, relative: true },
-    step_y: { pixel: 0.005, relative: true },
     arc_radius: { pixel: 0.5 },
     samples: { pixel: 1, relative: true },
     segments_size: { pixel: 0.05 },
@@ -890,28 +888,32 @@ export function propertiesPanel(options: {
                 },
             );
             const moveable = points.filter(({ moveable }) => moveable);
-            number(
+            const steps = [0.001, 0.01, 0.1, 0.5, 1, 2, 5, 10, 100, 1000];
+            const step = moveable[0]?.increment[0];
+            if (step && !steps.includes(step)) {
+                steps.push(step);
+                steps.sort((a, b) => a - b);
+            }
+            choice(
                 point,
-                "step_x",
+                "point_step",
                 moveable,
-                (object) => object.increment[0],
-                0,
-                1000,
-                0.01,
+                (object) => String(object.increment[0]),
+                [
+                    ["0", message("step_free")],
+                    ...steps.map((step): [string, string] => [
+                        String(step),
+                        String(step),
+                    ]),
+                ],
                 (object, value) => {
-                    object.increment[0] = value;
-                },
-            );
-            number(
-                point,
-                "step_y",
-                moveable,
-                (object) => object.increment[1],
-                0,
-                1000,
-                0.01,
-                (object, value) => {
-                    object.increment[1] = value;
+                    const step = Number(value);
+                    object.increment = [step, step];
+                    // As DGPad, a free point goes at once to the grid.
+                    if (object.constructor === point_object) {
+                        object.coords = object.snapToIncrement(object.coords);
+                        object.C.invalidateGeometry(object);
+                    }
                 },
             );
         }

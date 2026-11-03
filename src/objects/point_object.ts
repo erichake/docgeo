@@ -254,10 +254,9 @@ export class point_object extends construction_object {
 
     snapToIncrement(coords: Vec3): Vec3 {
         const [dx, dy] = this.increment;
-        if (!dx) return coords;
         return [
-            dx * Math.round(coords[0] / dx),
-            dy * Math.round(coords[1] / dy),
+            dx ? dx * Math.round(coords[0] / dx) : coords[0],
+            dy ? dy * Math.round(coords[1] / dy) : coords[1],
             coords[2],
         ];
     }
