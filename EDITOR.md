@@ -54,11 +54,16 @@ l'**ouverture des `.dgo`, `.dgp` et `.ggb` par double-clic**.
   `UTTypeIconFile`) : le Finder prend ces icônes alors que l'application de
   Chrome ouvre les fichiers, et les mises à jour de Chrome n'y touchent pas.
   Construite sur place, elle échappe à la quarantaine ; la même application
-  téléchargée (`.dmg`, non signée) voit ses déclarations ignorées. Le cache
-  d'icônes de macOS garde l'icône d'un type d'un essai à l'autre, même après
-  redémarrage : le script le vide (`sudo`) et redémarre, à l'installation
-  comme à la désinstallation. Il demande le mot de passe d'emblée, dans la
-  langue du Mac, pour que l'utilisateur n'ait rien d'autre à faire. Sans le script,
+  téléchargée (`.dmg`, non signée) voit ses déclarations ignorées. Le
+  Finder garde les icônes qu'il a dessinées : le script le relance, à
+  l'installation comme à la désinstallation, sans mot de passe ni
+  redémarrage (essayé le 2026-11-03, installation, désinstallation et
+  réinstallation). Le vidage du cache d'icônes système (`sudo`) et le
+  redémarrage d'abord employés ne servaient à rien : l'icône qui semblait
+  y survivre venait d'applications d'essai restées enregistrées
+  (`lsregister -dump | grep org.doctools.docgeo` les montre ; `lsregister
+  -u` puis `-gc` les retire, même disparues). Le type gardé par Spotlight
+  (`kMDItemContentType`) n'y est pour rien : le Finder l'ignore. Sans le script,
   macOS 27 compose déjà une icône correcte (icône de l'application sur une
   page, extension en gris).
 - Icônes des fichiers sur Windows (2026-11-03, essayé sur Windows 11) :

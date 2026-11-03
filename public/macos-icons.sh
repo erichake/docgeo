@@ -14,34 +14,28 @@ remove() {
 }
 
 case $(defaults read -g AppleLanguages 2>/dev/null | sed -n 2p | tr -d ' ",') in
-  fr*) I="Icônes DocGeo"; R="Retrait des icônes DocGeo"; P=" : tapez votre mot de passe (il ne s’affiche pas), puis l’ordinateur redémarrera : " ;;
-  de*) I="DocGeo-Symbole"; R="Entfernen der DocGeo-Symbole"; P=": Passwort eingeben (wird nicht angezeigt), danach startet der Computer neu: " ;;
-  es*) I="Iconos de DocGeo"; R="Retirada de los iconos de DocGeo"; P=": escribe tu contraseña (no se muestra); después el ordenador se reiniciará: " ;;
-  it*) I="Icone di DocGeo"; R="Rimozione delle icone di DocGeo"; P=": digita la tua password (non viene mostrata); poi il computer si riavvierà: " ;;
-  nl*) I="DocGeo-pictogrammen"; R="DocGeo-pictogrammen verwijderen"; P=": typ je wachtwoord (het wordt niet getoond); daarna start de computer opnieuw op: " ;;
-  pt*) I="Ícones do DocGeo"; R="Remoção dos ícones do DocGeo"; P=": digite sua senha (ela não aparece); depois o computador vai reiniciar: " ;;
-  el*) I="Εικονίδια DocGeo"; R="Αφαίρεση εικονιδίων DocGeo"; P=": πληκτρολογήστε τον κωδικό σας (δεν εμφανίζεται)· μετά ο υπολογιστής θα επανεκκινηθεί: " ;;
-  zh-Hant*) I="DocGeo 圖示"; R="移除 DocGeo 圖示"; P="：請輸入密碼（輸入時不會顯示），隨後電腦將重新啟動：" ;;
-  zh*) I="DocGeo 图标"; R="移除 DocGeo 图标"; P="：请输入密码（输入时不显示），随后电脑将重新启动：" ;;
-  ar*) I="أيقونات DocGeo"; R="إزالة أيقونات DocGeo"; P=": اكتب كلمة السر (لا تظهر)، ثم سيُعاد تشغيل الحاسوب: " ;;
-  hi*) I="DocGeo आइकन"; R="DocGeo आइकन हटाना"; P=": अपना पासवर्ड टाइप करें (वह दिखता नहीं), फिर कंप्यूटर फिर से चालू होगा: " ;;
-  *) I="DocGeo icons"; R="Removing DocGeo icons"; P=": type your password (it is not shown), then the computer will restart: " ;;
+  fr*) I="Icônes DocGeo installées."; R="Icônes DocGeo retirées." ;;
+  de*) I="DocGeo-Symbole installiert."; R="DocGeo-Symbole entfernt." ;;
+  es*) I="Iconos de DocGeo instalados."; R="Iconos de DocGeo retirados." ;;
+  it*) I="Icone di DocGeo installate."; R="Icone di DocGeo rimosse." ;;
+  nl*) I="DocGeo-pictogrammen geïnstalleerd."; R="DocGeo-pictogrammen verwijderd." ;;
+  pt*) I="Ícones do DocGeo instalados."; R="Ícones do DocGeo removidos." ;;
+  el*) I="Τα εικονίδια DocGeo εγκαταστάθηκαν."; R="Τα εικονίδια DocGeo αφαιρέθηκαν." ;;
+  zh-Hant*) I="已安裝 DocGeo 圖示。"; R="已移除 DocGeo 圖示。" ;;
+  zh*) I="已安装 DocGeo 图标。"; R="已移除 DocGeo 图标。" ;;
+  ar*) I="تم تثبيت أيقونات DocGeo."; R="تمت إزالة أيقونات DocGeo." ;;
+  hi*) I="DocGeo आइकन इंस्टॉल हो गए।"; R="DocGeo आइकन हटा दिए गए।" ;;
+  *) I="DocGeo icons installed."; R="DocGeo icons removed." ;;
 esac
 
-# The password is asked first, so that nothing else is asked afterwards. macOS keeps
-# a type's icon in its icon cache, even across restarts: it must be cleared.
-restart() {
-  sudo sh -c 'rm -rf /Library/Caches/com.apple.iconservices.store && reboot'
-}
-
+# The Finder keeps the icons it has drawn until it restarts.
 if [ "$1" = uninstall ]; then
-  sudo -v -p "$R$P"
   remove
-  restart
+  killall Finder
+  echo "$R"
   exit
 fi
 
-sudo -v -p "$I$P"
 T=$(mktemp -d)
 trap 'rm -rf "$T"' EXIT
 B="$T/DocGeo Types.app"
@@ -78,4 +72,5 @@ remove
 mkdir -p "$HOME/Applications"
 mv "$B" "$APP"
 "$LSREGISTER" -f "$APP"
-restart
+killall Finder
+echo "$I"

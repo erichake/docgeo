@@ -79,18 +79,13 @@
                 图标，扩展名以灰色显示。要让每种格式拥有自己的图标，请打开“终端”（按
                 ⌘ 空格，然后输入“终端”），粘贴下面这行命令并按回车键。
             </p>
-            <p>
-                <strong>注意：</strong
-                >该命令只要求输入密码（输入时不显示），随后立即重新启动电脑，因为
-                macOS
-                必须清空图标缓存。粘贴命令之前，请先保存工作并退出各个应用。
-            </p>
+            <p>随后该命令会重新启动“访达”以显示新图标：它打开的窗口会关闭。</p>
             <pre><code>curl -fsSL https://doctools.org/apps/docgeo/macos-icons.sh | sh</code></pre>
             <p>
                 浏览器更新后，这些图标仍会保留。该命令会创建一个小应用 DocGeo
                 Types，它只声明图标，从不打开。由其他软件（DGPad…）打开的格式保留该软件的图标。
             </p>
-            <p>要恢复原来的图标，请粘贴下面这行命令，它同样会重新启动电脑：</p>
+            <p>要恢复原来的图标，请粘贴下面这行命令：</p>
             <pre><code>curl -fsSL https://doctools.org/apps/docgeo/macos-icons.sh | sh -s uninstall</code></pre>
 
             <h2 id="icones-windows">Windows 上的图形图标</h2>
