@@ -11,6 +11,8 @@ DATA=${XDG_DATA_HOME:-$HOME/.local/share}
 OWN=$DATA/mime/packages/docgeo.xml
 SITE=$URL/editor.html
 TYPES="dgo:application/x-docgeo dgp:application/x-dgpad ggb:application/vnd.geogebra.file"
+# One icon per size: a file manager scaling the 512 px one down to 48 px draws jagged edges.
+SIZES="16 24 32 48 64 128 256 512"
 
 case ${LC_ALL:-${LC_MESSAGES:-$LANG}} in
   fr*) I="Icônes DocGeo installées."; R="Icônes DocGeo retirées."; N="DocGeo n’est pas installé depuis Chrome : installez-le depuis $SITE, puis relancez cette commande." ;;
@@ -39,7 +41,9 @@ refresh() {
 
 if [ "$1" = uninstall ]; then
   for t in $TYPES; do
-    xdg-icon-resource uninstall --noupdate --context mimetypes --size 512 "$(echo "${t#*:}" | tr / -)"
+    for s in $SIZES; do
+      xdg-icon-resource uninstall --noupdate --context mimetypes --size $s "$(echo "${t#*:}" | tr / -)"
+    done
   done
   if [ -f "$OWN" ]; then
     rm "$OWN"
@@ -76,8 +80,12 @@ fi
 T=$(mktemp -d)
 trap 'rm -rf "$T"' EXIT
 for t in $TYPES; do
-  curl -fsSL "$URL/file_${t%%:*}.png" > "$T/i.png"
-  xdg-icon-resource install --noupdate --context mimetypes --size 512 "$T/i.png" "$(echo "${t#*:}" | tr / -)"
+  for s in $SIZES; do
+    f=file_${t%%:*}
+    [ $s = 512 ] || f=${f}_$s
+    curl -fsSL "$URL/$f.png" > "$T/i.png"
+    xdg-icon-resource install --noupdate --context mimetypes --size $s "$T/i.png" "$(echo "${t#*:}" | tr / -)"
+  done
 done
 refresh
 echo "$I"

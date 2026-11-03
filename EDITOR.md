@@ -90,7 +90,13 @@ l'**ouverture des `.dgo`, `.dgp` et `.ggb` par double-clic**.
   `application/x-docgeo`, `application/x-dgpad`,
   `application/vnd.geogebra.file`), sans icône. Le script installe
   `file_*.png` comme icônes `hicolor` de ces types (`xdg-icon-resource`,
-  contexte `mimetypes`, 512 px), pour l'utilisateur seul : ni `sudo`, ni
+  contexte `mimetypes`), en 512 px et dessinées à chaque taille de 16 à
+  256 px (`file_*_<taille>.png`) : Nautilus, qui réduisait seul l'icône de
+  512 px, en crénelait les bords et le texte. Toutes sont produites par
+  `node tools/file_icons.mjs` ; sous 48 px, où l'extension ne se lit plus,
+  un dessin simplifié calé sur les pixels distingue les formats par la
+  couleur du bandeau (DGO bleu, DGP orange, GGB vert, à toutes les tailles,
+  donc aussi sur Mac et Windows). Pour l'utilisateur seul : ni `sudo`, ni
   redémarrage, commande d'ouverture inchangée. Chromium en snap (Ubuntu,
   essayé sur Ubuntu ARM, Chromium 156) n'enregistre ni ces types ni le
   fichier à ouvrir (raccourci sans `MimeType=` ni `%U`) : faute du XML de
