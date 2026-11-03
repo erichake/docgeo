@@ -27,13 +27,14 @@ case ${LC_ALL:-${LC_MESSAGES:-$LANG}} in
   *) I="DocGeo icons installed."; R="DocGeo icons removed."; N="DocGeo is not installed from Chrome: install it from $SITE, then run this command again." ;;
 esac
 
-# GNOME's desktop icons extension only notices a new icon theme when it redraws: restart it.
+# GNOME's desktop icons extensions (Debian's, Ubuntu's) only notice a new icon theme when
+# they redraw: restart them.
 refresh() {
   xdg-icon-resource forceupdate
-  if gnome-extensions list --enabled 2>/dev/null | grep -qx ding@rastersoft.com; then
-    gnome-extensions disable ding@rastersoft.com
-    gnome-extensions enable ding@rastersoft.com
-  fi
+  for e in $(gnome-extensions list --enabled 2>/dev/null | grep -x -e ding@rastersoft.com -e desktop-icons@csoriano); do
+    gnome-extensions disable "$e"
+    gnome-extensions enable "$e"
+  done
 }
 
 if [ "$1" = uninstall ]; then
