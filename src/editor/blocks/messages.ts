@@ -102,6 +102,9 @@ const en = {
     FOLD_STACK: "Fold the stack",
     UNFOLD_STACK: "Unfold the stack",
     FOLDED_BLOCKS: "%1 blocks",
+    COPY_ALL: "Copy all blocks",
+    COPY_SELECTED: "Copy selected blocks",
+    PASTE_BLOCKS: "Paste blocks",
 };
 
 export type BlockMessage = keyof typeof en;
@@ -209,6 +212,9 @@ export const BLOCK_MESSAGES: Record<string, Record<BlockMessage, string>> = {
         FOLD_STACK: "Réduire la pile",
         UNFOLD_STACK: "Développer la pile",
         FOLDED_BLOCKS: "%1 blocs",
+        COPY_ALL: "Copier tous les blocs",
+        COPY_SELECTED: "Copier les blocs sélectionnés",
+        PASTE_BLOCKS: "Coller les blocs",
     },
     de: {
         TURTLE: "Schildkröte ab %1",
@@ -311,6 +317,9 @@ export const BLOCK_MESSAGES: Record<string, Record<BlockMessage, string>> = {
         FOLD_STACK: "Stapel einklappen",
         UNFOLD_STACK: "Stapel ausklappen",
         FOLDED_BLOCKS: "%1 Blöcke",
+        COPY_ALL: "Alle Blöcke kopieren",
+        COPY_SELECTED: "Ausgewählte Blöcke kopieren",
+        PASTE_BLOCKS: "Blöcke einfügen",
     },
     es: {
         TURTLE: "tortuga desde %1",
@@ -413,6 +422,9 @@ export const BLOCK_MESSAGES: Record<string, Record<BlockMessage, string>> = {
         FOLD_STACK: "Contraer la pila",
         UNFOLD_STACK: "Expandir la pila",
         FOLDED_BLOCKS: "%1 bloques",
+        COPY_ALL: "Copiar todos los bloques",
+        COPY_SELECTED: "Copiar los bloques seleccionados",
+        PASTE_BLOCKS: "Pegar los bloques",
     },
     it: {
         TURTLE: "tartaruga che parte da %1",
@@ -515,6 +527,9 @@ export const BLOCK_MESSAGES: Record<string, Record<BlockMessage, string>> = {
         FOLD_STACK: "Comprimi la pila",
         UNFOLD_STACK: "Espandi la pila",
         FOLDED_BLOCKS: "%1 blocchi",
+        COPY_ALL: "Copia tutti i blocchi",
+        COPY_SELECTED: "Copia i blocchi selezionati",
+        PASTE_BLOCKS: "Incolla i blocchi",
     },
     pt: {
         TURTLE: "tartaruga a partir de %1",
@@ -617,6 +632,9 @@ export const BLOCK_MESSAGES: Record<string, Record<BlockMessage, string>> = {
         FOLD_STACK: "Recolher a pilha",
         UNFOLD_STACK: "Expandir a pilha",
         FOLDED_BLOCKS: "%1 blocos",
+        COPY_ALL: "Copiar todos os blocos",
+        COPY_SELECTED: "Copiar os blocos selecionados",
+        PASTE_BLOCKS: "Colar os blocos",
     },
     nl: {
         TURTLE: "schildpad vanaf %1",
@@ -719,6 +737,9 @@ export const BLOCK_MESSAGES: Record<string, Record<BlockMessage, string>> = {
         FOLD_STACK: "Stapel inklappen",
         UNFOLD_STACK: "Stapel uitklappen",
         FOLDED_BLOCKS: "%1 blokken",
+        COPY_ALL: "Alle blokken kopiëren",
+        COPY_SELECTED: "Geselecteerde blokken kopiëren",
+        PASTE_BLOCKS: "Blokken plakken",
     },
     el: {
         TURTLE: "χελώνα από το %1",
@@ -821,6 +842,9 @@ export const BLOCK_MESSAGES: Record<string, Record<BlockMessage, string>> = {
         FOLD_STACK: "Σύμπτυξη στοίβας",
         UNFOLD_STACK: "Ανάπτυξη στοίβας",
         FOLDED_BLOCKS: "%1 πλακίδια",
+        COPY_ALL: "Αντιγραφή όλων των πλακιδίων",
+        COPY_SELECTED: "Αντιγραφή των επιλεγμένων πλακιδίων",
+        PASTE_BLOCKS: "Επικόλληση των πλακιδίων",
     },
     ar: {
         TURTLE: "سلحفاة تنطلق من %1",
@@ -923,6 +947,9 @@ export const BLOCK_MESSAGES: Record<string, Record<BlockMessage, string>> = {
         FOLD_STACK: "طيّ الكومة",
         UNFOLD_STACK: "توسيع الكومة",
         FOLDED_BLOCKS: "%1 كتلة",
+        COPY_ALL: "نسخ كل الكتل",
+        COPY_SELECTED: "نسخ الكتل المحددة",
+        PASTE_BLOCKS: "لصق الكتل",
     },
     hi: {
         TURTLE: "%1 से शुरू होने वाला कछुआ",
@@ -1025,6 +1052,9 @@ export const BLOCK_MESSAGES: Record<string, Record<BlockMessage, string>> = {
         FOLD_STACK: "ढेर समेटें",
         UNFOLD_STACK: "ढेर फैलाएँ",
         FOLDED_BLOCKS: "%1 ब्लॉक",
+        COPY_ALL: "सभी ब्लॉक कॉपी करें",
+        COPY_SELECTED: "चुने गए ब्लॉक कॉपी करें",
+        PASTE_BLOCKS: "ब्लॉक पेस्ट करें",
     },
     zh: {
         TURTLE: "从 %1 出发的海龟",
@@ -1127,6 +1157,9 @@ export const BLOCK_MESSAGES: Record<string, Record<BlockMessage, string>> = {
         FOLD_STACK: "折叠积木组",
         UNFOLD_STACK: "展开积木组",
         FOLDED_BLOCKS: "%1 个积木",
+        COPY_ALL: "复制所有积木",
+        COPY_SELECTED: "复制所选积木",
+        PASTE_BLOCKS: "粘贴积木",
     },
     "zh-TW": {
         TURTLE: "從 %1 出發的海龜",
@@ -1229,5 +1262,8 @@ export const BLOCK_MESSAGES: Record<string, Record<BlockMessage, string>> = {
         FOLD_STACK: "摺疊積木組",
         UNFOLD_STACK: "展開積木組",
         FOLDED_BLOCKS: "%1 個積木",
+        COPY_ALL: "複製所有積木",
+        COPY_SELECTED: "複製所選積木",
+        PASTE_BLOCKS: "貼上積木",
     },
 };

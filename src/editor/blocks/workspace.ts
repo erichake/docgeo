@@ -7,6 +7,7 @@ import {
     EVENT_HATS,
     FONT_ALIGNS,
     FONT_STYLES,
+    isProcedure,
     programBlocks,
     stackState,
     STYLE_METHODS,
@@ -656,6 +657,19 @@ const STARTS: Record<string, string> = {
     ),
 };
 
+// The blocks copied, kept in the browser as in DGPad, for another object or
+// another figure, or for this page where storage is refused.
+const CLIPBOARD = "docgeo-blocks-clipboard";
+let clipboard: string | null = null;
+
+function storedClipboard(): string | null {
+    try {
+        return localStorage.getItem(CLIPBOARD) ?? clipboard;
+    } catch {
+        return clipboard;
+    }
+}
+
 const shadow = (type: string, fields: Record<string, unknown>) => ({
     shadow: { type, fields },
 });
@@ -1051,6 +1065,10 @@ export async function blocksEditor(
     let current = "";
     // The stacks the user folded, by key, and their blocks meanwhile.
     const folds = new Map<string, BlockState>();
+    const saved = (block: Blockly.BlockSvg) =>
+        block.id.startsWith(FOLDED)
+            ? folds.get(block.id.slice(FOLDED.length))!
+            : (Blockly.serialization.blocks.save(block) as BlockState);
     // A folded stack: its first block alone, which takes no block under
     // it, the number of blocks it holds in a pill unfolding it.
     const fold = (
@@ -1090,9 +1108,7 @@ export async function blocksEditor(
         const folded = block.id.startsWith(FOLDED);
         const key = block.id.slice(folded ? FOLDED.length : ROOT.length);
         Blockly.Events.disable();
-        const state = folded
-            ? folds.get(key)!
-            : (Blockly.serialization.blocks.save(block) as BlockState);
+        const state = saved(block);
         block.dispose(false);
         if (folded) {
             folds.delete(key);
@@ -1131,6 +1147,221 @@ export async function blocksEditor(
         },
         callback: (scope) => toggle(scope.block as Blockly.BlockSvg),
     });
+    const remember = (blocks: BlockState[]) => {
+        // Variables by name: their ids are this workspace's.
+        clipboard = JSON.stringify(blocks, (key, value) =>
+            key === "VAR" && value.id
+                ? {
+                      name:
+                          value.name ??
+                          workspace
+                              .getVariableMap()
+                              .getVariableById(value.id)!
+                              .getName(),
+                  }
+                : value,
+        );
+        try {
+            localStorage.setItem(CLIPBOARD, clipboard);
+        } catch {
+            // Storage refused: kept for this page.
+        }
+    };
+    const copyAll = () => remember(workspace.getTopBlocks(true).map(saved));
+    // With the procedures it calls, which another object may not have.
+    const copyStack = (state: BlockState) =>
+        remember(
+            stackState(
+                {
+                    blocks: {
+                        languageVersion: 0,
+                        blocks: workspace.getTopBlocks(true).map(saved),
+                    },
+                },
+                state,
+            ).blocks!.blocks,
+        );
+    // The blocks under a first block go under the same first block here if
+    // it has none, the others at `at`; a procedure the object has stays its
+    // own.
+    const place = (blocks: BlockState[], start: Blockly.utils.Coordinate) => {
+        const at = start.clone();
+        const tops = () => workspace.getTopBlocks(false);
+        Blockly.Events.setGroup(true);
+        blocks.forEach((state) => {
+            if (
+                isProcedure(state) &&
+                tops().some(
+                    (block) =>
+                        block.type.startsWith("procedures_def") &&
+                        block.getFieldValue("NAME") === state.fields?.NAME,
+                )
+            )
+                return;
+            const hat = state.type in STARTS || state.type === "dg_program";
+            const body = hat ? state.next?.block : state;
+            if (!body) return;
+            nameObjects(body);
+            const under =
+                hat &&
+                tops().find(
+                    (block) =>
+                        first(block) &&
+                        block.type === state.type &&
+                        !block.isCollapsed() &&
+                        block.nextConnection?.targetBlock() === null,
+                );
+            const block = Blockly.serialization.blocks.append(body, workspace, {
+                recordUndo: true,
+            }) as Blockly.BlockSvg;
+            if (under) {
+                under.nextConnection!.connect(block.previousConnection!);
+                return;
+            }
+            // Pasted twice at the same place, the blocks would hide each other.
+            while (
+                tops().some(
+                    (other) =>
+                        other !== block &&
+                        Blockly.utils.Coordinate.distance(
+                            other.getRelativeToSurfaceXY(),
+                            at,
+                        ) < 1,
+                )
+            )
+                at.translate(24, 24);
+            block.moveTo(at);
+            at.translate(0, block.getHeightWidth().height + 24);
+        });
+        Blockly.Events.setGroup(false);
+    };
+    // The kinds of program the object can still start, and the blocks being
+    // pasted while it starts those they belong to, each one loading the
+    // workspace again.
+    let startable: string[] = [];
+    let pasting: { blocks: BlockState[]; at: Blockly.utils.Coordinate } | null =
+        null;
+    const pursuePaste = () => {
+        if (!pasting) return;
+        const missing = pasting.blocks.find(
+            ({ type, next }) => next && startable.includes(STARTS[type]),
+        );
+        if (missing) return actions.start(STARTS[missing.type]);
+        place(pasting.blocks, pasting.at);
+        pasting = null;
+    };
+    const paste = (at: Blockly.utils.Coordinate) => {
+        pasting = { blocks: JSON.parse(storedClipboard()!), at };
+        pursuePaste();
+    };
+    const { BLOCK, WORKSPACE } = Blockly.ContextMenuRegistry.ScopeType;
+    const here = ({
+        block,
+        workspace: shown,
+    }: Blockly.ContextMenuRegistry.Scope) =>
+        (block?.workspace ?? shown) === workspace;
+    const menu = Blockly.ContextMenuRegistry.registry;
+    menu.register({
+        id: "dg_copy_all",
+        scopeType: WORKSPACE,
+        weight: -2,
+        displayText: () => Blockly.Msg.DG_COPY_ALL,
+        preconditionFn: (scope) =>
+            !here(scope)
+                ? "hidden"
+                : workspace.getTopBlocks(false).length
+                  ? "enabled"
+                  : "disabled",
+        callback: copyAll,
+    });
+    menu.register({
+        id: "dg_copy_selected",
+        scopeType: BLOCK,
+        weight: -2,
+        displayText: () => Blockly.Msg.DG_COPY_SELECTED,
+        preconditionFn: (scope) => (here(scope) ? "enabled" : "hidden"),
+        callback: (scope) => copyStack(saved(scope.block!)),
+    });
+    [BLOCK, WORKSPACE].forEach((scopeType) =>
+        menu.register({
+            id: `dg_paste_${scopeType}`,
+            scopeType,
+            weight: -1,
+            displayText: () => Blockly.Msg.DG_PASTE_BLOCKS,
+            preconditionFn: (scope) =>
+                !here(scope)
+                    ? "hidden"
+                    : storedClipboard()
+                      ? "enabled"
+                      : "disabled",
+            callback: (_scope, _open, _select, location) =>
+                paste(
+                    Blockly.utils.svgMath.screenToWsCoordinates(
+                        workspace,
+                        location,
+                    ),
+                ),
+        }),
+    );
+    // The keyboard's copy and paste are those of the menus, and only with the
+    // focus in the blocks: Blockly listens to the whole page.
+    const shortcuts = Blockly.ShortcutRegistry.registry;
+    const { COPY, CUT, PASTE } = Blockly.ShortcutItems.names;
+    const inBlocks = () => host.contains(document.activeElement);
+    const replaceShortcut = (
+        name: string,
+        change: (
+            shortcut: Blockly.ShortcutRegistry.KeyboardShortcut,
+        ) => Partial<Blockly.ShortcutRegistry.KeyboardShortcut>,
+    ) => {
+        const shortcut = shortcuts.getRegistry()[name];
+        const keyCodes = shortcuts.getKeyCodesByShortcutName(name);
+        shortcuts.unregister(name);
+        shortcuts.register({ ...shortcut, keyCodes, ...change(shortcut) });
+    };
+    replaceShortcut(COPY, ({ preconditionFn }) => ({
+        preconditionFn: (shown, scope) =>
+            inBlocks() && preconditionFn!(shown, scope),
+        callback: (_shown, event, _shortcut, { focusedNode }) => {
+            if (!(focusedNode instanceof Blockly.BlockSvg)) return false;
+            event.preventDefault();
+            copyStack(saved(focusedNode));
+            return true;
+        },
+    }));
+    // Blockly's cut takes the block alone, the blocks under it staying.
+    replaceShortcut(CUT, ({ callback }) => ({
+        callback: (shown, event, shortcut, scope) => {
+            const { focusedNode } = scope;
+            if (focusedNode instanceof Blockly.BlockSvg)
+                copyStack(
+                    Blockly.serialization.blocks.save(focusedNode, {
+                        addNextBlocks: false,
+                    }) as BlockState,
+                );
+            return callback!(shown, event, shortcut, scope);
+        },
+    }));
+    replaceShortcut(PASTE, () => ({
+        preconditionFn: (shown) =>
+            inBlocks() &&
+            !shown.isDragging() &&
+            !Blockly.getFocusManager().ephemeralFocusTaken() &&
+            !!storedClipboard(),
+        callback: (_shown, event) => {
+            event.preventDefault();
+            const { left, top, width, height } = workspace
+                .getMetricsManager()
+                .getViewMetrics(true);
+            paste(
+                new Blockly.utils.Coordinate(
+                    left + width / 2,
+                    top + height / 3,
+                ),
+            );
+            return true;
+        },
+    }));
     // The programs the blocks write, by key, null for one that shows as
     // text. An object's block left alone (DGPad's "Z;") belongs to the
     // program being edited.
@@ -1257,8 +1488,10 @@ export async function blocksEditor(
             if (
                 !shown.find(({ hat }) => hat.key === key)?.state &&
                 programs.length
-            )
+            ) {
+                pasting = null;
                 return false;
+            }
             // In the figure's order, procedures under them.
             const state: WorkspaceState = {
                 blocks: {
@@ -1307,6 +1540,8 @@ export async function blocksEditor(
                 workspace.getToolbox()?.selectItemByPosition(0);
             // Its first block clear of the edge, its top rounded as a hat.
             workspace.scroll(workspace.scrollX + 12, workspace.scrollY + 16);
+            startable = starts;
+            pursuePaste();
             return true;
         },
         get written() {

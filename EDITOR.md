@@ -1407,6 +1407,17 @@ ses méthodes internes et figé dans sa version de 2016.
   programmes affichés, même absents de la figure (DGPad n'en change
   rien) : sinon Blockly les remplace par le premier objet du menu, que le
   programme réécrit viserait.
+- **Copier-coller** (2026-11-03, comme DGPad) : « Copier tous les blocs »
+  au menu du fond, « Copier les blocs sélectionnés » (le bloc et ceux qui le
+  suivent) à celui d'un bloc, « Coller les blocs » aux deux, et ⌘/Ctrl-C, X
+  et V quand le focus est dans les blocs (X ne prend que le bloc, comme il
+  n'enlève que lui). Le presse-papiers est dans le navigateur
+  (`docgeo-blocks-clipboard`), donc valable d'un objet, d'une figure ou d'un
+  onglet à l'autre ; il emporte les procédures appelées, et les variables
+  par leur nom. Un bloc de tête n'est jamais collé : ses blocs vont sous le
+  même bloc de tête de l'objet s'il est vide, le programme étant d'abord créé
+  si l'objet peut l'avoir, sinon ils restent à côté, à brancher. Une procédure
+  du même nom que celle de l'objet n'est pas collée.
 - **Attente** (2026-11-01) : bloc « attendre … ms » (`dg_wait`,
   `WAIT(ms)`, catégorie « Boucles »), qui n'attend que dans le programme
   d'un bouton, la figure redessinée pendant l'attente ; un nouveau clic

@@ -1551,7 +1551,7 @@ export function stackState(
 // The mark of a procedure whose variables are its own (see procedure).
 const OWN_VARIABLES = "own variables";
 
-const isProcedure = (block: BlockState): boolean =>
+export const isProcedure = (block: BlockState): boolean =>
     block.type === "procedures_defnoreturn" ||
     block.type === "procedures_defreturn";
 
