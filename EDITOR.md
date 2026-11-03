@@ -93,8 +93,10 @@ l'**ouverture des `.dgo`, `.dgp` et `.ggb` par double-clic**.
   contexte `mimetypes`, 512 px), pour l'utilisateur seul : ni `sudo`, ni
   redémarrage, commande d'ouverture inchangée. Il refuse si Chrome n'a pas
   enregistré `application/x-docgeo`. Nautilus montre les icônes une fois
-  rouvert ; le bureau GNOME (Desktop Icons NG) seulement à sa prochaine
-  modification ou à la prochaine connexion. Prérequis : `curl` et
+  rouvert. Le bureau GNOME (Desktop Icons NG) ne voit le nouveau thème
+  d'icônes GTK qu'en se redessinant : le script désactive puis réactive
+  l'extension `ding@rastersoft.com` quand elle est active
+  (`gnome-extensions`), à l'installation comme à la désinstallation. Prérequis : `curl` et
   `xdg-utils`, présents par défaut sous GNOME. Si GeoGebra est installé,
   l'icône DocGeo remplace la sienne pour `.ggb`.
 - Menu Fichier (`src/editor/install.ts`) : « Installer DocGeo sur cet
