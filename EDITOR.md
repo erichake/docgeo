@@ -91,8 +91,18 @@ l'**ouverture des `.dgo`, `.dgp` et `.ggb` par double-clic**.
   `application/vnd.geogebra.file`), sans icône. Le script installe
   `file_*.png` comme icônes `hicolor` de ces types (`xdg-icon-resource`,
   contexte `mimetypes`, 512 px), pour l'utilisateur seul : ni `sudo`, ni
-  redémarrage, commande d'ouverture inchangée. Il refuse si Chrome n'a pas
-  enregistré `application/x-docgeo`. Nautilus montre les icônes une fois
+  redémarrage, commande d'ouverture inchangée. Chromium en snap (Ubuntu,
+  essayé sur Ubuntu ARM, Chromium 156) n'enregistre ni ces types ni le
+  fichier à ouvrir (raccourci sans `MimeType=` ni `%U`) : faute du XML de
+  Chrome, le script déclare les trois types
+  (`~/.local/share/mime/packages/docgeo.xml`), complète le raccourci
+  `chrome-*.desktop` nommé `DocGeo` et en fait l'application par défaut des
+  `.dgo` et `.dgp` ; la figure s'ouvre alors dans l'appli. Chromium peut
+  réécrire ce raccourci (réinstallation) : relancer le script. La
+  désinstallation défait tout cela si `docgeo.xml` existe. Les icônes sont
+  écrites par le shell, pas par `curl -o` : le `curl` en snap a son propre
+  `/tmp`. Le script refuse si Chrome n'a pas enregistré
+  `application/x-docgeo` et qu'aucun raccourci DocGeo n'existe. Nautilus montre les icônes une fois
   rouvert. Le bureau GNOME (Desktop Icons NG) ne voit le nouveau thème
   d'icônes GTK qu'en se redessinant : le script désactive puis réactive
   l'extension `ding@rastersoft.com` quand elle est active

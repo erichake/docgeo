@@ -4,8 +4,11 @@
 # Uninstall: curl -fsSL https://doctools.org/apps/docgeo/linux-icons.sh | sh -s uninstall
 # Chrome registers the MIME types of the file handlers without icons: a file manager
 # shows the hicolor icon named after the type, installed here for the user only.
+# Chromium as a snap registers neither the types nor the file argument: declared here.
 set -e
 URL=https://doctools.org/apps/docgeo
+DATA=${XDG_DATA_HOME:-$HOME/.local/share}
+OWN=$DATA/mime/packages/docgeo.xml
 SITE=$URL/editor.html
 TYPES="dgo:application/x-docgeo dgp:application/x-dgpad ggb:application/vnd.geogebra.file"
 
@@ -37,19 +40,42 @@ if [ "$1" = uninstall ]; then
   for t in $TYPES; do
     xdg-icon-resource uninstall --noupdate --context mimetypes --size 512 "$(echo "${t#*:}" | tr / -)"
   done
+  if [ -f "$OWN" ]; then
+    rm "$OWN"
+    update-mime-database "$DATA/mime"
+    for d in $(grep -l '^MimeType=application/x-docgeo;application/x-dgpad;application/vnd.geogebra.file;$' "$DATA"/applications/chrome-*.desktop 2>/dev/null); do
+      sed -i -e '/^MimeType=/d' -e '/^Exec=/s/ %U$//' "$d"
+    done
+    update-desktop-database "$DATA/applications"
+  fi
   refresh
   echo "$R"
   exit
 fi
 
-if ! grep -qs application/x-docgeo "${XDG_DATA_HOME:-$HOME/.local/share}"/mime/packages/*.xml; then
-  echo "$N"
-  exit 1
+if ! grep -qs application/x-docgeo "$DATA"/mime/packages/chrome-*.xml; then
+  D=$(grep -lx Name=DocGeo "$DATA"/applications/chrome-*.desktop 2>/dev/null | head -1)
+  if [ -z "$D" ]; then
+    echo "$N"
+    exit 1
+  fi
+  cat > "$OWN" <<'EOF'
+<?xml version="1.0" encoding="UTF-8"?>
+<mime-info xmlns="http://www.freedesktop.org/standards/shared-mime-info">
+  <mime-type type="application/x-docgeo"><comment>DocGeo</comment><glob pattern="*.dgo"/></mime-type>
+  <mime-type type="application/x-dgpad"><comment>DGPad</comment><glob pattern="*.dgp"/></mime-type>
+  <mime-type type="application/vnd.geogebra.file"><comment>GeoGebra</comment><glob pattern="*.ggb"/></mime-type>
+</mime-info>
+EOF
+  update-mime-database "$DATA/mime"
+  grep -q ^MimeType= "$D" || sed -i -e '/^Exec=/s/$/ %U/' -e '$a MimeType=application/x-docgeo;application/x-dgpad;application/vnd.geogebra.file;' "$D"
+  update-desktop-database "$DATA/applications"
+  xdg-mime default "$(basename "$D")" application/x-docgeo application/x-dgpad
 fi
 T=$(mktemp -d)
 trap 'rm -rf "$T"' EXIT
 for t in $TYPES; do
-  curl -fsSL "$URL/file_${t%%:*}.png" -o "$T/i.png"
+  curl -fsSL "$URL/file_${t%%:*}.png" > "$T/i.png"
   xdg-icon-resource install --noupdate --context mimetypes --size 512 "$T/i.png" "$(echo "${t#*:}" | tr / -)"
 done
 refresh
