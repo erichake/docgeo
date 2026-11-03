@@ -729,6 +729,13 @@ function toolbox(kinds: string[], owner: string, starts: string[]) {
                                   TEXT: shadow("text", { TEXT: "" }),
                               }),
                               block("turtle_font"),
+                              block("turtle_image", {
+                                  URL: shadow("text", { TEXT: "" }),
+                                  W: num(-1),
+                                  H: num(-1),
+                                  Z: num(1),
+                                  O: num(1),
+                              }),
                               block("turtle_turn_pt"),
                               block("turtle_join_pt"),
                               block("turtle_reset"),

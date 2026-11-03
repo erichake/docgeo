@@ -231,6 +231,22 @@ TURTLE_PRINT("$$a$$");
 return TURTLE_RESULT();`);
     });
 
+    it("shows a turtle's image", () => {
+        expect(
+            roundTrip(`var bl_x=function(){
+TURTLE_INIT("P1",P1);
+TURTLE_MV(200,true);
+
+TURTLE_PRINT_IMG(TURTLE_TEXT('data:image/png;base64,AAAA'),-1,-1,0.4,1);
+return TURTLE_RESULT()
+};
+bl_x()`),
+        ).toBe(`TURTLE_INIT("P1", P1);
+TURTLE_MV(200, true);
+TURTLE_PRINT_IMG("data:image/png;base64,AAAA", -1, -1, 0.4, 1);
+return TURTLE_RESULT();`);
+    });
+
     it("gives nested repeats counters of their own past a taken name", () => {
         const source = `k = 0;
 for (var k1 = 1; k1 <= 4; k1 = k1 + 1) {
