@@ -317,6 +317,22 @@ describe("geometric construction", () => {
         expect(order()).toEqual(points);
     });
 
+    it("remounts a view under a mark of the editor's in its layer", () => {
+        const c = createConstruction();
+        const [first, second] = ["A", "B"].map((name) =>
+            createPoint(c, name, [0, 0, 0]),
+        );
+        const mark = second.dom.dom().cloneNode(true) as Element;
+        second.dom.dom().before(mark);
+        const old = first.dom.dom();
+
+        first.createSVG();
+
+        expect(old.isConnected).toBe(false);
+        expect(first.dom.dom().nextElementSibling).toBe(mark);
+        expect(mark.nextElementSibling).toBe(second.dom.dom());
+    });
+
     it("contains no non-finite SVG coordinate after a degeneration", () => {
         const c = createConstruction();
         const point = createPoint(c, "A", [0, 0, 0]);

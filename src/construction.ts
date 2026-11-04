@@ -428,7 +428,11 @@ export class construction {
         const view = obj.dom.dom();
         const layer = this.layer(obj.level, obj.layer).dom();
         let before = layer.lastElementChild;
-        while (before && this.viewObjects.get(before)!.sequence > obj.sequence)
+        // The editor's marks, not objects, lie among the views.
+        while (
+            before &&
+            (this.viewObjects.get(before)?.sequence ?? Infinity) > obj.sequence
+        )
             before = before.previousElementSibling;
         if (before) before.after(view);
         else layer.prepend(view);
