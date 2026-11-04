@@ -46,6 +46,8 @@
         sans-serif;
     color: #1f2937;
     touch-action: pan-y;
+    -webkit-user-select: none;
+    user-select: none;
     transform: translateX(100%);
     visibility: hidden;
     transition:
