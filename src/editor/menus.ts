@@ -87,7 +87,8 @@ export function menuBar(menus: Menu[], ...end: DOMElement[]): DOMElement[] {
             if (item.checked)
                 element.att("aria-checked", String(item.checked()));
             if (item.shortcut) element.add($.create("kbd").text(item.shortcut));
-            if (item.enabled && !item.enabled()) element.att("disabled", "");
+            const enabled = !item.enabled || item.enabled();
+            if (!enabled) element.att("disabled", "");
             if (item.items) {
                 const opens = item.items;
                 element
@@ -97,7 +98,8 @@ export function menuBar(menus: Menu[], ...end: DOMElement[]): DOMElement[] {
                 element.on(
                     "pointerenter",
                     (event) => {
-                        if (event.pointerType === "mouse")
+                        if (!enabled) closeSubs(depth);
+                        else if (event.pointerType === "mouse")
                             openSub(element, opens(), depth);
                     },
                     false,
