@@ -517,7 +517,8 @@ la GeoGebra, l'outil choisi avant les objets.
   l'outil. Pendant l'outil, un glisser vise (comme après un outil de
   l'anneau) ; le bouton droit, lui, glisse les objets et la vue, outil en
   cours ou non : sur un objet, l'éditeur lui passe l'appui comme un appui
-  gauche, ailleurs la figure déplace la vue (la tourne en 3D). Au doigt,
+  gauche, ailleurs la figure déplace la vue (la tourne en 3D). Sans
+  mouvement, c'est un clic droit (section « Clic droit »). Au doigt,
   rien encore : il faut sortir de l'outil pour déplacer.
 - **Arguments gardés** (décidé avec l'auteur le 2026-10-30) : un argument
   désigné avec **Maj** (dans la figure ou une ligne du texte) après avoir
@@ -575,6 +576,28 @@ pour plusieurs objets.
   (le nuancier en pointillé, la case indéterminée) si les autres en ont
   une autre. « Même type » s'étend aux objets des types sélectionnés.
   Annuler garde les objets du panneau, Suppr les supprime tous.
+
+## Clic droit
+
+Décidé avec l'auteur le 2026-11-04 : un clic droit (bouton droit relâché sans
+mouvement) ouvre directement le panneau de propriétés sur ce qu'il vise, à
+tout moment. Pas de popup : avec un seul item il imposerait un clic de plus,
+avec plusieurs il doublerait la barre, et il n'existerait pas au doigt, où
+« Réglages » reste le chemin.
+
+- Sur un objet, son nom, un widget ou une ligne du panneau « Construction » :
+  ses propriétés. Sur un objet de la sélection multiple : toute la sélection.
+  Plusieurs objets superposés passent par le choix habituel. Dans le vide ou
+  sur un axe : l'onglet « Figure ».
+- L'outil en main garde ses arguments, comme une macro en cours d'application
+  ses initiaux : le clic droit n'en est pas un, et le clic gauche reste à
+  l'outil (`inspecting`). La gomme, le pas à pas et les aimants se ferment.
+- Seule exception : pendant la définition d'une macro, dont le panneau a la
+  même place et serait perdu, le clic droit ne fait rien.
+- Si le panneau a pris la place de la palette, le refermer de quelque façon
+  que ce soit la ramène, et `docgeo-palette-open` ne change pas. Échap le
+  referme d'abord, avant de lâcher l'outil.
+- Ctrl-clic, clic droit du Mac ailleurs, reste l'ajout à la sélection.
 
 ## Palette d'outils
 

@@ -527,6 +527,140 @@ describe("The tool palette", () => {
     });
 });
 
+describe("A right click", () => {
+    it("shows the properties of what it points at, the palette and the tool kept", async () => {
+        const { page, request } = await editor();
+        await request("load", {
+            data: new TextEncoder().encode(JSON.stringify(TRIANGLE)).buffer,
+            format: "dgo",
+        });
+        const { v } = await saved(request);
+        const figure = page.querySelector("body > svg:has([data-layer])")!;
+        const box = figure.getBoundingClientRect();
+        const Pointer = (page.defaultView as typeof window).PointerEvent;
+        const click = ([x, y]: number[], button = 0, moved = 0) => {
+            const at = {
+                clientX: box.left + v.o[0] + x * v.u,
+                clientY: box.top + v.o[1] - y * v.u,
+                button,
+                buttons: button === 2 ? 2 : 1,
+                bubbles: true,
+                isPrimary: true,
+                pointerType: "mouse",
+            };
+            figure.dispatchEvent(new Pointer("pointerdown", at));
+            figure.dispatchEvent(
+                new Pointer("pointerup", {
+                    ...at,
+                    clientX: at.clientX + moved,
+                }),
+            );
+        };
+        const body = page.body.classList;
+        const shown = () =>
+            (page.querySelector("#dge-properties input") as HTMLInputElement)
+                ?.value;
+        const figureTab = () =>
+            page
+                .querySelectorAll('#dge-properties [role="tab"]')[1]
+                .getAttribute("aria-selected");
+        const objects = async () => (await saved(request)).o.length;
+        const escape = () =>
+            page.body.dispatchEvent(
+                new (page.defaultView as typeof window).KeyboardEvent(
+                    "keydown",
+                    { key: "Escape", bubbles: true },
+                ),
+            );
+        (
+            page.querySelector(
+                '.dge-bar [aria-controls="dge-palette"]',
+            ) as HTMLElement
+        ).click();
+        (
+            page.querySelector(
+                '.dge-palette-grid button[aria-label="Segment"]',
+            ) as HTMLElement
+        ).click();
+        const count = await objects();
+        const empty = [7, 6];
+        // A segment begun at A.
+        click([-4, -1]);
+        // A drag still only moves.
+        click([3, -2], 2, 40);
+        expect(body.contains("dge-properties-open")).toBe(false);
+        click([3, -2], 2);
+        expect(body.contains("dge-properties-open")).toBe(true);
+        expect(body.contains("dge-palette-open")).toBe(false);
+        expect(shown()).toBe("B");
+        expect(localStorage.getItem("docgeo-palette-open")).toBe("true");
+        click(empty, 2);
+        expect(figureTab()).toBe("true");
+        click([0, 3], 2);
+        expect(figureTab()).toBe("false");
+        expect(shown()).toBe("C");
+        // Escape gives the palette back, not the tool up.
+        escape();
+        expect(body.contains("dge-properties-open")).toBe(false);
+        expect(body.contains("dge-palette-open")).toBe(true);
+        expect(
+            page
+                .querySelector(
+                    '.dge-palette-grid button[aria-label="Segment"]',
+                )!
+                .getAttribute("aria-pressed"),
+        ).toBe("true");
+        // The segment ends from A, the right clicks not being arguments.
+        expect(await objects()).toBe(count);
+        click([0, 3]);
+        const { o } = await saved(request);
+        expect(o.length).toBe(count + 1);
+        const [A, C] = ["A", "C"].map((name) =>
+            o.findIndex((entry: any[]) => entry[1] === name),
+        );
+        expect(o.at(-1)[0]).toBe("Seg");
+        expect(o.at(-1)[2]).toEqual([A, C]);
+    });
+
+    it("shows the whole selection when it points at one of its objects", async () => {
+        const { page, request } = await editor();
+        await request("load", {
+            data: new TextEncoder().encode(JSON.stringify(TRIANGLE)).buffer,
+            format: "dgo",
+        });
+        const { v } = await saved(request);
+        const figure = page.querySelector("body > svg:has([data-layer])")!;
+        const box = figure.getBoundingClientRect();
+        const Pointer = (page.defaultView as typeof window).PointerEvent;
+        const click = ([x, y]: number[], button = 0, shiftKey = false) => {
+            const at = {
+                clientX: box.left + v.o[0] + x * v.u,
+                clientY: box.top + v.o[1] - y * v.u,
+                button,
+                shiftKey,
+                bubbles: true,
+                isPrimary: true,
+                pointerType: "mouse",
+            };
+            figure.dispatchEvent(new Pointer("pointerdown", at));
+            figure.dispatchEvent(new Pointer("pointerup", at));
+        };
+        click([-4, -1], 0, true);
+        click([3, -2], 0, true);
+        click([3, -2], 2);
+        // No name field: the settings common to several objects.
+        expect(
+            (page.querySelector("#dge-properties input") as HTMLInputElement)
+                .type,
+        ).toBe("checkbox");
+        click([0, 3], 2);
+        expect(
+            (page.querySelector("#dge-properties input") as HTMLInputElement)
+                .value,
+        ).toBe("C");
+    });
+});
+
 describe("The construction list's filters", () => {
     it("show the objects of some types, or those linked to the selection", async () => {
         const { page, request } = await editor();

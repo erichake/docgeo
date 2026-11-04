@@ -1296,6 +1296,13 @@ function setProperties(on: boolean): void {
         properties.refresh();
         properties.select(objects ?? properties.selection);
     }
+    showPropertiesPanel(on);
+    if (!on && overPalette) {
+        overPalette = false;
+        setPalette(true);
+    }
+}
+function showPropertiesPanel(on: boolean): void {
     if (!on) shrinkBlocks();
     propertiesOpen = on;
     properties.panel.dom().toggleAttribute("inert", !on);
@@ -1307,10 +1314,37 @@ function setProperties(on: boolean): void {
     shine(on);
     if (!pending) showHint("");
 }
+// A right click shows what it points at, the figure's settings elsewhere, at
+// any time: a tool in hand keeps its arguments. Only a macro's definition,
+// which has the panel's place and would be lost, keeps it.
+function inspect(object: construction_object | null): void {
+    if (macros.active) return;
+    const group = propertiesOpen
+        ? properties.selection
+        : selection.map(({ object }) => object);
+    const objects = object && group.includes(object) ? group : object;
+    setEraser(false);
+    setSteps(false);
+    stopMagnets();
+    closeRing();
+    clearSelection();
+    if (!propertiesOpen) {
+        editing()?.blur();
+        closeCompletion();
+        if (window.innerWidth <= 900) setPanel(false);
+        overPalette = paletteOpen;
+        if (paletteOpen) setPalette(false, false);
+        properties.refresh();
+    }
+    if (objects) properties.select(objects);
+    else properties.figure();
+    showPropertiesPanel(true);
+}
 // In the properties' place, the figure kept for building, the tool in
 // hand too.
-function setPalette(on: boolean): void {
+function setPalette(on: boolean, remember = true): void {
     if (on) {
+        overPalette = false;
         if (propertiesOpen) setProperties(false);
         stopMacro();
         if (window.innerWidth <= 900) setPanel(false);
@@ -1327,6 +1361,7 @@ function setPalette(on: boolean): void {
         button.toggleClass("dge-on", on).att("aria-expanded", String(on)),
     );
     if (on) palette.refresh();
+    if (!remember) return;
     try {
         localStorage.setItem(PALETTE_STORAGE, String(on));
     } catch {
@@ -1433,6 +1468,9 @@ let choosing: {
 let ghosts: Set<construction_object> | null = null;
 let propertiesOpen = false;
 let paletteOpen = false;
+// The panel a right click put in the palette's place, which closing it gives
+// back.
+let overPalette = false;
 const PALETTE_STORAGE = "docgeo-palette-open";
 // The point whose magnets are being chosen, and the one whose reach is set.
 let magnetizing: {
@@ -1713,6 +1751,12 @@ function addRow(
     text.on(
         "pointerdown",
         (event) => {
+            if (event.button === 2) {
+                event.preventDefault();
+                if (object instanceof event_object && !macros.active)
+                    properties.showBlocks();
+                return inspect(object);
+            }
             if (macros.active) {
                 event.preventDefault();
                 return macros.tap(object);
@@ -5242,10 +5286,27 @@ function cancel(keepTool = false): void {
     prompt();
 }
 
+function rightClick(event: PointerEvent): void {
+    const c = scene();
+    const screen = c.pointerPosition(event);
+    const hits = pick(c, screen, previewed());
+    const client: Vec2 = [event.clientX, event.clientY];
+    const named = labelAt(c, client);
+    if (named && !(hits[0]?.object instanceof point_object))
+        return inspect(named);
+    const widget = propertyObject(event);
+    if (widget && !hits.some(({ object }) => object === widget))
+        return inspect(widget);
+    if (hits[0])
+        return chooseHit(hits, client, ({ object }) => inspect(object));
+    inspect(null);
+}
+
 function escape(): void {
     if (!menu.isHidden()) closeMenu();
     else if (!filters.menu.isHidden()) filters.close();
     else if (macros.active) stopMacro();
+    else if (overPalette) setProperties(false);
     else if (applying) stopApply();
     else if (framing.shown) framing.stop();
     else if (propertiesOpen && !pending) setProperties(false);
@@ -6017,7 +6078,8 @@ $("body").on(
                 scene().flush();
                 void record().then(() => updateRows());
             });
-        if (!adding && (!tap || event.button === 2)) return;
+        if (event.button === 2) return void (still && rightClick(event));
+        if (!adding && !tap) return;
         if (!adding && selection[0]) return clearSelection();
         const c = scene();
         const screen = c.pointerPosition(event);
