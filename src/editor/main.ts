@@ -453,7 +453,7 @@ $("head").append(`<style>
     .dge-menu-popup .dge-page-colors button::before { content: none; }
     .dge-menu-popup .dge-page-colors button:is(:hover, :focus-visible, .on) { outline: 2px solid #2563eb; outline-offset: 1px; }
     .dge-file { display: flex; align-items: center; gap: 8px; min-width: 0; max-width: min(38vw, 420px); margin-inline-start: auto; padding-inline: 18px 6px; color: #64748b; }
-    .dge-file span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .dge-file span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; line-height: normal; }
     .dge-file.dge-dirty { color: #1f2937; font-weight: 500; }
     .dge-file.dge-dirty::after { content: ""; flex: none; width: 8px; height: 8px; border-radius: 50%; background: #dc2626; }
     .dge-bar-object { align-items: center; min-width: 0; animation: dge-arrive 180ms ease-out; }
