@@ -187,6 +187,7 @@ import {
     setReach,
     showZone,
 } from "./magnets";
+import { MARK_WIDER, watchMarks } from "./marks";
 import { pinnable, togglePin } from "./pin";
 import {
     anchorOf,
@@ -283,6 +284,7 @@ const studio = {
 } as Studio;
 studio.scene = construction.create(studio);
 const scene = () => studio.scene;
+watchMarks();
 
 $("html").att("lang", LANG).stl("width:100%;height:100%");
 document.title = message("title");
@@ -501,7 +503,13 @@ $("head").append(`<style>
     .dge-tool-icon { display: grid; place-items: center; flex-shrink: 0; width: 34px; height: 34px; box-sizing: border-box; border: 1px solid hsl(var(--dge-hue) calc(55% * var(--dge-tone)) 60%); border-radius: 50%; --dge-icon-bg: hsl(var(--dge-hue) calc(70% * var(--dge-tone)) 96%); background: var(--dge-icon-bg); color: #536174; }
     .dge-tool-icon svg { display: block; width: 24px; height: 24px; fill: none; stroke: currentColor; stroke-width: 1.65; stroke-linecap: round; stroke-linejoin: round; }
     .dge-bar-object.dge-bar-tool .dge-bar-name { max-width: 240px; }
-    svg .dge-picked { filter: drop-shadow(0 0 2px #2563eb) drop-shadow(0 0 3px #2563eb); }
+    svg .dge-mark { opacity: 0.3 !important; pointer-events: none; stroke-linecap: round; stroke-linejoin: round; }
+    svg .dge-mark-strong { opacity: 0.5 !important; }
+    svg .dge-mark * { fill: none !important; stroke-opacity: 1 !important; stroke-dasharray: none !important; stroke-linecap: round !important; pointer-events: none !important; }
+    svg .dge-mark :is(text, image, foreignObject, [style*="transparent"]) { display: none; }
+    svg :is(.dge-hover, .dge-picked) > text { stroke: #bfdbfe; stroke-opacity: 1; stroke-width: 6px; stroke-linejoin: round; paint-order: stroke; }
+    svg :is(.dge-hover, .dge-picked) > foreignObject > div { background: #dbeafe; border-radius: 4px; }
+    svg :is(.dge-hover, .dge-picked) > image { filter: drop-shadow(0 0 3px #475569); }
     .dge-badges span { position: fixed; min-width: 18px; height: 18px; padding: 0 5px; box-sizing: border-box; border-radius: 9px; background: #2563eb; color: #fff; font: 600 11px/18px system-ui, -apple-system, "Segoe UI", sans-serif; text-align: center; transform: translate(7px, -25px); pointer-events: none; z-index: 11; }
     .dge-choice { position: fixed; display: flex; gap: 3px; transform: translateY(-50%); z-index: 13; }
     .dge-choice .dge-action, .dge-name .dge-action { width: 28px; height: 28px; border-color: #d1d5db; border-radius: 7px; background: #fff; }
@@ -514,13 +522,12 @@ $("head").append(`<style>
     .dge-magnet output { width: 80px; white-space: nowrap; font-weight: 600; font-variant-numeric: tabular-nums; color: #b91c1c; }
     svg .dge-target { filter: drop-shadow(0 0 2px #dc2626) drop-shadow(0 0 2px #dc2626); }
     svg .dge-source { filter: drop-shadow(0 0 2px #2563eb) drop-shadow(0 0 3px #2563eb); }
-    svg.dge-magnetizing [data-layer] > :not(.dge-source, .dge-target, .dge-zone, .dge-hover) { opacity: 0.4; }
+    svg.dge-magnetizing [data-layer] > :not(.dge-source, .dge-target, .dge-zone, .dge-hover, .dge-side-marks) { opacity: 0.4; }
     svg .dge-zone { opacity: 0.07; pointer-events: none; }
     svg .dge-zone.dge-chosen { opacity: 0.16; }
     svg .dge-zone * { fill: none !important; stroke: #dc2626 !important; stroke-width: var(--dge-reach) !important; stroke-opacity: 1 !important; stroke-dasharray: none !important; stroke-linecap: round; stroke-linejoin: round; pointer-events: none !important; }
     svg .dge-zone text { display: none; }
-    svg .dge-hover { filter: drop-shadow(0 0 2px #f59e0b) drop-shadow(0 0 3px #f59e0b); }
-    svg .dge-ok { filter: drop-shadow(0 0 2px #16a34a) drop-shadow(0 0 2px #16a34a); }
+    svg .dge-refused { opacity: 0.4; }
     svg .dge-preview { opacity: 0.55; }
     /* Neither on the group, nor on the transparent hit areas, nor on a shape both filled and stroked whose fill is opaque or empty: each would be painted offscreen, frame after frame, too slow for thousands of ghosts. */
     svg .dge-ghost > :not([style*="transparent"]) { opacity: 0.3 !important; }
@@ -1268,7 +1275,7 @@ function setPanel(on: boolean, animate = true): void {
         editing()?.blur();
         closeCompletion();
         clearPreview();
-        showAccepted([]);
+        showRefused([]);
         highlight();
     }
     closeRing();
@@ -1290,7 +1297,7 @@ function setProperties(on: boolean): void {
         cancel(true);
         editing()?.blur();
         closeCompletion();
-        showAccepted([]);
+        showRefused([]);
         highlight();
         if (window.innerWidth <= 900) setPanel(false);
         properties.refresh();
@@ -1445,7 +1452,7 @@ let preview: {
     standIns: point_object[];
 } | null = null;
 let hovered: construction_object[] = [];
-let accepted: construction_object[] = [];
+let refused: construction_object[] = [];
 // The definition the properties show as a line, after its head.
 let definitionLine: {
     area: HTMLTextAreaElement;
@@ -2082,7 +2089,7 @@ function bindField(row: DOMElement): void {
             hideChoice();
             closeMenu();
             clearPreview();
-            showAccepted([]);
+            showRefused([]);
         },
         false,
     );
@@ -2334,7 +2341,13 @@ function updateCompletion(field: LineField): void {
         if (functions)
             completions.push(...calls(commandsStarting(prefix, FUNCTIONS)));
     }
-    showAccepted(candidates);
+    // A slot that takes a number takes a formula: nothing to point at.
+    const accepted = new Set(candidates);
+    showRefused(
+        macro || (call && !functions)
+            ? figureObjects(scene()).filter((object) => !accepted.has(object))
+            : [],
+    );
     selected = -1;
     showCompletion(field);
     offerChoice(field);
@@ -2695,7 +2708,7 @@ let sideMarks: DOMElement | null = null;
 
 function markSides(): void {
     const c = scene();
-    if (sideMarks?.dom().parentNode !== c.svg.dom()) {
+    if (!c.svg.dom().contains(sideMarks?.dom() ?? null)) {
         sideMarks?.dispose();
         sideMarks = c.svg
             .shape("g")
@@ -2703,7 +2716,7 @@ function markSides(): void {
             .stl("pointer-events:none");
         c.svg.add(sideMarks);
     }
-    sideMarks.inner("");
+    sideMarks!.inner("");
     const sides = new Set([
         ...hovered,
         ...selection.map(({ object }) => object),
@@ -2717,16 +2730,20 @@ function markSides(): void {
             return;
         const side = object as segment_object;
         const [a, b] = [side.P1.screen, side.P2.screen];
+        const strong = selection.some((picked) => picked.object === object);
+        // Under its polygon and so under its ends, which it would tint.
+        object.reference.owner.dom.dom().before(sideMarks!.dom());
         sideMarks!.add(
             c.svg
                 .shape("path")
                 .att("d", `M${a[0]} ${a[1]}L${b[0]} ${b[1]}`)
-                .att(
-                    "class",
-                    hovered.includes(object) ? "dge-hover" : "dge-picked",
-                )
+                .att("class", strong ? "dge-mark dge-mark-strong" : "dge-mark")
                 .att("stroke", object.reference.owner.stroke_color)
-                .att("stroke-width", Math.max(2, object.reference.owner.size)),
+                .att(
+                    "stroke-width",
+                    Math.max(2, object.reference.owner.size) +
+                        (strong ? MARK_WIDER.selected : MARK_WIDER.hovered),
+                ),
         );
     });
 }
@@ -2749,13 +2766,13 @@ function highlight(...objects: construction_object[]): void {
     });
 }
 
-function showAccepted(objects: construction_object[]): void {
-    accepted.forEach((object) => {
-        if (object.hasView) object.dom.removeClass("dge-ok");
+function showRefused(objects: construction_object[]): void {
+    refused.forEach((object) => {
+        if (object.hasView) object.dom.removeClass("dge-refused");
     });
-    accepted = objects;
+    refused = objects;
     objects.forEach((object) => {
-        if (object.hasView) object.dom.addClass("dge-ok");
+        if (object.hasView) object.dom.addClass("dge-refused");
     });
 }
 
@@ -4624,7 +4641,7 @@ function stopApply(): void {
         c.macros = c.macros.filter(({ name }) => !copied.includes(name));
     applying = null;
     clearPreview();
-    showAccepted([]);
+    showRefused([]);
     scene()
         .svg.findAll(".dge-picked")
         .forEach((picked) => picked.removeClass("dge-picked"));
@@ -5321,7 +5338,7 @@ function done(object?: construction_object): void {
     rearm();
     clearPreview();
     highlight();
-    showAccepted([]);
+    showRefused([]);
     changed(object);
 }
 

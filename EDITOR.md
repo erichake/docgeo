@@ -65,7 +65,7 @@ l'**ouverture des `.dgo`, `.dgp` et `.ggb` par double-clic**.
   redémarrage d'abord employés ne servaient à rien : l'icône qui semblait
   y survivre venait d'applications d'essai restées enregistrées
   (`lsregister -dump | grep org.doctools.docgeo` les montre ; `lsregister
-  -u` puis `-gc` les retire, même disparues). Le type gardé par Spotlight
+-u` puis `-gc` les retire, même disparues). Le type gardé par Spotlight
   (`kMDItemContentType`) n'y est pour rien : le Finder l'ignore. Sans le script,
   macOS 27 compose déjà une icône correcte (icône de l'application sur une
   page, extension en gris).
@@ -186,9 +186,19 @@ Les deux modes produisent la même chose : un appel de commande typé
 
 - une construction au geste affiche la ligne qu'elle produit : l'élève
   apprend le langage en manipulant ;
-- pendant la saisie, un clic sur un objet de la figure insère son nom, et les
-  objets acceptables pour l'argument en cours sont mis en évidence ;
-- survoler une ligne fait briller son objet, et inversement ;
+- pendant la saisie, un clic sur un objet de la figure insère son nom ; pour
+  un argument d'un type précis, les objets refusés passent sous un voile, et
+  rien ne change sur la figure là où l'on peut écrire une formule, tout y
+  étant acceptable (décidé avec l'auteur le 2026-11-04, à la place d'un halo
+  vert qui allumait toute la figure pendant la frappe) ;
+- survoler une ligne marque son objet, et inversement : un surtrait net et
+  pâle, de ses propres couleurs, sous sa forme (`src/editor/marks.ts`), plus
+  large et plus dense pour un objet sélectionné à l'outil (pas dans les
+  propriétés, où il cacherait la couleur et l'épaisseur que l'on règle), et
+  un seul par objet. Il remplace le halo flou
+  colorié selon l'état, qui salissait le tracé et faussait la couleur de
+  l'objet (même raison que dans `MACROS.md`). Un texte reçoit un contour
+  clair ;
 - une seule pile d'annulation.
 
 ## La construction est la source, le texte une projection

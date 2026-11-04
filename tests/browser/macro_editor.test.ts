@@ -718,3 +718,24 @@ describe("Defining a macro in the editor", () => {
             .toEqual(figure.o);
     });
 });
+
+describe("Typing a line in the editor", () => {
+    it("veils what an argument refuses, and nothing in a formula", async () => {
+        const { page, request } = await editor();
+        await request("load", {
+            data: new TextEncoder().encode(JSON.stringify(CIRCUMCENTER)).buffer,
+            format: "dgo",
+        });
+        const input = page.querySelector<HTMLInputElement>(".dge-input")!;
+        const typed = (text: string) => {
+            input.focus();
+            input.value = text;
+            input.dispatchEvent(new Event("input", { bubbles: true }));
+            return page.querySelectorAll("svg .dge-refused").length;
+        };
+        expect(typed("(A+B")).toBe(0);
+        expect(typed("Midpoint(")).toBeGreaterThan(0);
+        expect(typed("Circle(A, ")).toBe(0);
+        expect(typed("")).toBe(0);
+    });
+});

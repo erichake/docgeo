@@ -274,7 +274,14 @@
    misses in red, the rest under a veil. */
 svg.dge-defining
     [data-layer]
-    > :not(.dge-initial, .dge-final, .dge-possible, .dge-missing, .dge-hover) {
+    > :not(
+        .dge-initial,
+        .dge-final,
+        .dge-possible,
+        .dge-missing,
+        .dge-hover,
+        .dge-side-marks
+    ) {
     opacity: 0.4;
 }
 svg .dge-initial {
