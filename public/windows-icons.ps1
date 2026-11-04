@@ -1,8 +1,11 @@
 # DocGeo file icons (.dgo, .dgp, .ggb) on Windows, for the editor installed as a Chrome or Edge app.
 # Install:   irm https://doctools.org/apps/docgeo/windows-icons.ps1 | iex
 # Uninstall: & ([scriptblock]::Create((irm https://doctools.org/apps/docgeo/windows-icons.ps1))) uninstall
-# The browser registers one ProgID per extension with an empty DefaultIcon (",0"):
-# only that value is filled, the open command stays the browser's.
+# Chrome registers one ProgID per extension with an empty DefaultIcon (",0"): only that value is filled.
+# Edge installs an MSIX package with one AppX ProgID for all extensions, showing the app logo: without
+# its DefaultIcon, Windows takes the one of SystemFileAssociations\<extension>. A ProgID of our own would
+# break double-click: with two handlers and no UserChoice, Windows resolves the extension to "Unknown".
+# The open command always stays the browser's.
 # Wrapped in a script block so that iex leaves the caller's session untouched.
 & {
 $ErrorActionPreference = 'Stop'
@@ -32,23 +35,31 @@ Add-Type -Namespace DocGeo -Name Shell -MemberDefinition @'
 [DllImport("shlwapi.dll", CharSet = CharSet.Unicode)] public static extern int AssocQueryString(int f, int s, string a, string x, System.Text.StringBuilder o, ref uint n);
 '@
 
-# One app ProgID per browser and profile where DocGeo is installed, listing its file ProgIDs.
+# One app ProgID per browser and profile where DocGeo is installed: Chrome's lists its file ProgIDs,
+# Edge's (AppX) is itself the file ProgID.
 $classes = 'HKCU:\Software\Classes'
-$progIds = Get-ChildItem $classes |
-  Where-Object { $_.GetValue('FileHandlerProgIds') -and (Get-ItemProperty "$($_.PSPath)\Application" -ErrorAction SilentlyContinue).ApplicationName -eq 'DocGeo' } |
-  ForEach-Object { $_.GetValue('FileHandlerProgIds') -split ';' }
+$exts = 'dgo', 'dgp', 'ggb'
+$apps = Get-ChildItem $classes |
+  Where-Object { ($_.PSChildName -like 'AppX*' -or $_.GetValue('FileHandlerProgIds')) -and (Get-ItemProperty "$($_.PSPath)\Application" -ErrorAction SilentlyContinue).ApplicationName -eq 'DocGeo' }
+$progIds = $apps | Where-Object { $_.GetValue('FileHandlerProgIds') } | ForEach-Object { $_.GetValue('FileHandlerProgIds') -split ';' }
+$appx = $apps | Where-Object { -not $_.GetValue('FileHandlerProgIds') } | ForEach-Object PSChildName
 
 if ($args[0] -eq 'uninstall') {
   foreach ($p in $progIds) { Set-ItemProperty "$classes\$p\DefaultIcon" -Name '(default)' -Value ',0' }
+  foreach ($p in $appx) {
+    New-Item "$classes\$p\DefaultIcon" -Force | Out-Null
+    Set-ItemProperty "$classes\$p\DefaultIcon" -Name '(default)' -Value (Get-ItemProperty "$classes\$p\Application").ApplicationIcon
+  }
+  foreach ($e in $exts) { Remove-Item "$classes\SystemFileAssociations\.$e" -Recurse -Force -ErrorAction SilentlyContinue }
   Remove-Item $dir -Recurse -Force -ErrorAction SilentlyContinue
   [DocGeo.Shell]::SHChangeNotify(0x08000000, 0, [IntPtr]::Zero, [IntPtr]::Zero)
   Write-Host $msg[1]
-} elseif (-not $progIds) {
+} elseif (-not $apps) {
   Write-Host $msg[2]
 } else {
   Add-Type -AssemblyName System.Drawing
   $icons = @{}
-  foreach ($e in 'dgo', 'dgp', 'ggb') {
+  foreach ($e in $exts) {
     # The server refuses requests without a User-Agent, as sent by Net.WebClient.
     $png = (Invoke-WebRequest "$url/file_$e.png" -UseBasicParsing).Content
     $src = [Drawing.Image]::FromStream((New-Object IO.MemoryStream (, $png)))
@@ -79,15 +90,23 @@ if ($args[0] -eq 'uninstall') {
     $icons[$e] = $out.ToArray()
   }
   New-Item -ItemType Directory -Force $dir | Out-Null
-  foreach ($e in $icons.Keys) { [IO.File]::WriteAllBytes("$dir\$e.ico", $icons[$e]) }
-  $missing = @()
+  foreach ($e in $exts) { [IO.File]::WriteAllBytes("$dir\$e.ico", $icons[$e]) }
   foreach ($p in $progIds) {
     $e = ((Get-ItemProperty "$classes\$p").FileExtensions -split ';')[0]
     Set-ItemProperty "$classes\$p\DefaultIcon" -Name '(default)' -Value "$dir\$($e.TrimStart('.')).ico,0"
+  }
+  foreach ($p in $appx) {
+    Remove-Item "$classes\$p\DefaultIcon" -Recurse -Force -ErrorAction SilentlyContinue
+    foreach ($e in $exts) {
+      New-Item "$classes\SystemFileAssociations\.$e\DefaultIcon" -Force | Out-Null
+      Set-ItemProperty "$classes\SystemFileAssociations\.$e\DefaultIcon" -Name '(default)' -Value "$dir\$e.ico,0"
+    }
+  }
+  $missing = foreach ($e in $exts) {
     $sb = New-Object Text.StringBuilder 256
     [uint32]$n = 256
-    [void][DocGeo.Shell]::AssocQueryString(0, 20, $e, $null, $sb, [ref]$n)
-    if ($progIds -notcontains $sb.ToString()) { $missing += $e }
+    [void][DocGeo.Shell]::AssocQueryString(0, 20, ".$e", $null, $sb, [ref]$n)
+    if (@($progIds) + @($appx) -notcontains $sb.ToString()) { ".$e" }
   }
   [DocGeo.Shell]::SHChangeNotify(0x08000000, 0, [IntPtr]::Zero, [IntPtr]::Zero)
   Write-Host $msg[0]

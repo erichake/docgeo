@@ -89,7 +89,17 @@ l'**ouverture des `.dgo`, `.dgp` et `.ggb` par double-clic**.
   `Net.WebClient`, que le serveur refuse (429, pas de User-Agent). Une
   extension ouverte par un autre logiciel (DGPad) garde son icône : le
   script le signale. Un premier essai (2026-11-02), un ProgID propre
-  `DocGeo.dgo`, avait cassé le double-clic.
+  `DocGeo.dgo`, avait cassé le double-clic : dès que `OpenWithProgids` liste
+  deux applications sans `UserChoice`, Windows résout l'extension en
+  `Unknown` et ouvre « Ouvrir avec » (reproduit le 2026-11-04).
+  Edge (2026-11-04, essayé sur Windows 11) installe un paquet MSIX
+  (`Get-AppxPackage doctools.org*`) : un seul ProgID `AppX<hash>` pour les
+  trois extensions, sans `FileHandlerProgIds`, dont le `DefaultIcon` est le
+  logo de l'application. Le script retire ce `DefaultIcon` : Windows prend
+  alors celui de `HKCU\Software\Classes\SystemFileAssociations\.dgo`, propre à
+  chaque extension, et l'ouverture reste celle d'Edge. La désinstallation le
+  rétablit depuis `Application\ApplicationIcon`. Une nouvelle version du
+  paquet le recréerait probablement (non vérifié) : relancer le script.
 - Icônes des fichiers sur Linux (2026-11-03, essayé sur Debian 12, GNOME,
   Nautilus 43) : `public/linux-icons.sh` (`curl … | sh`, manuel
   `installer.html#icones-linux`). Chrome enregistre les types MIME de ses
