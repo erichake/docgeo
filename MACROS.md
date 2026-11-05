@@ -616,7 +616,10 @@ les outils géométriques : cadre de 32 unités, points bleus cerclés,
 contours sombres, résultat rouge et surfaces légèrement colorées. Les
 compositions privilégient la lisibilité en petit ; les constructions
 complexes montrent leurs éléments caractéristiques. Les droites et
-segments du disque de Poincaré restent orthogonaux au bord.
+segments du disque de Poincaré restent orthogonaux au bord. Depuis le
+2026-11-05, les seize icônes hyperboliques omettent le cercle horizon et
+recadrent chacune leur construction pour l'agrandir dans le menu et la
+palette. Le segment et la demi-droite ne montrent que leur portion utile.
 
 `npm run macros` intègre ces dessins à la table d'images des bibliothèques
 dans les 12 langues et refuse une macro sans dessin. Aucun code de dessin

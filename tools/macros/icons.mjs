@@ -110,15 +110,8 @@ const hyperbola = (color = ink, b = 6) =>
             ),
         )
         .join("");
-const disk = circle(
-    16,
-    16,
-    13,
-    guide,
-    0.95,
-    `fill="${blue}" fill-opacity=".04"`,
-);
-const hIcon = (drawing) => disk + drawing;
+const hIcon = (drawing, y = 16, side = 28) =>
+    `<g transform="translate(16 16) scale(${n(28 / side)}) translate(-16 ${-y})">${drawing}</g>`;
 // Geodesics meet the boundary orthogonally. The minor arc joins two points
 // of the closed disk; a diameter is the limiting straight line.
 const geodesic = (a, b, color = red, width = 1.5) => {
@@ -693,10 +686,14 @@ const drawings = {
         line([12, 24], [12, 24 - Math.sqrt(153)], red, 1.7) +
         p("M12 20h4v4", guide, 0.8) +
         dots([3, 24], [12, 24], [29, 24]),
-    LineH: hIcon(hbase(red) + dots(ha, hb)),
-    SegmentH: hIcon(hbase(guide) + geodesic(ha, hb) + dots(ha, hb)),
-    RayH: hIcon(hbase(guide) + geodesic(ha, hright) + dots(ha, hb)),
-    MidpointH: hIcon(hbase(ink) + dots(ha, hb) + dot(hm, red, 2.2)),
+    LineH: hIcon(hbase(red) + dots(ha, hb), 23, 22),
+    SegmentH: hIcon(geodesic(ha, hb) + dots(ha, hb), 22, 16),
+    RayH: hIcon(geodesic(ha, hright) + dots(ha, hb), 23, 20),
+    MidpointH: hIcon(
+        geodesic(ha, hb, ink) + dots(ha, hb) + dot(hm, red, 2.2),
+        22,
+        16,
+    ),
     PerpendicularBisectorH: hIcon(
         hbase(ink) + line([16, 3], [16, 29], red, 1.5) + dots(ha, hb),
     ),
@@ -712,6 +709,7 @@ const drawings = {
             geodesic([16, 23], [26.9, 9], ink) +
             line([16, 23], [16, 3], red, 1.5) +
             dots([16, 23], [5.1, 9], [26.9, 9]),
+        14,
     ),
     ReflectH: hIcon(
         line([16, 3], [16, 29]) +
@@ -723,14 +721,20 @@ const drawings = {
         circle(16, 19.5, 6.5, red, 1.5) +
             dot(hCenter(19.5, 6.5)) +
             dot([22.5, 19.5]),
+        19.5,
+        18,
     ),
     CircumcircleH: hIcon(
         circle(16, 17, 8.5, red, 1.5) +
             dots([7.5, 17], [20.25, 9.639], [20.25, 24.361]) +
             dot(hCenter(17, 8.5), red, 1.6),
+        17,
+        22,
     ),
     DistanceH: hIcon(
-        geodesic(ha, hb, guide) + dots(ha, hb) + text(12, 15, "d", 13),
+        hbase(guide) + dots(hleft, hright) + text(12, 17, "d", 15),
+        16,
+        26,
     ),
     AngleH: hIcon(
         geodesic([16, 23], [5.1, 9], ink) +
@@ -738,8 +742,13 @@ const drawings = {
             p("M11.3 18.6a6.4 6.4 0 0 1 9.4 0", red, 1.4) +
             dot([16, 23]) +
             text(12, 14, "α", 10),
+        15,
     ),
-    Horocycle: hIcon(circle(16, 11, 8, red, 1.5) + dots([16, 3], [22.928, 15])),
+    Horocycle: hIcon(
+        circle(16, 11, 8, red, 1.5) + dots([16, 3], [22.928, 15]),
+        10,
+        23,
+    ),
     Hypercycle: (() => {
         const r = Math.hypot(hx, 50 - hy);
         return hIcon(
@@ -750,6 +759,8 @@ const drawings = {
                     1.5,
                 ) +
                 dot([16, 50 - r]),
+            24,
+            22,
         );
     })(),
     LimitingParallels: hIcon(
@@ -757,6 +768,8 @@ const drawings = {
             geodesic([16, 11], hleft) +
             geodesic([16, 11], hright) +
             dot([16, 11]),
+        18,
+        23,
     ),
     CommonPerpendicular: hIcon(
         hbase() +
