@@ -243,3 +243,4 @@ Pour toute manipulation du DOM ou gestion d'événements, utiliser **en priorit�
 
 - Les messages de commit doivent obligatoirement être en anglais.
 - Ne jamais committer sans demande explicite de l'utilisateur.
+- Committer sur `master`, sauf demande contraire : ne jamais créer de branche de sa propre initiative. Si la branche courante n'est pas `master`, le signaler avant de committer.
