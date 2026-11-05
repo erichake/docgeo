@@ -201,6 +201,7 @@ const nl: Texts = {
         point_border: "Contourdikte",
         scrub_hint:
             "Sleep om aan te passen · Klik om te typen · Shift: fijne afstelling",
+        image_frame: "Kader",
         thickness: "Lijndikte",
         stroke_opacity: "Dekking van de lijn",
         fill_opacity: "Dekking van de vulling",
@@ -208,8 +209,6 @@ const nl: Texts = {
         level: "Laag",
         display: "Weergave",
         visible: "Object zichtbaar",
-        conditional_visibility:
-            "De zichtbaarheid hangt ook af van een voorwaarde in de figuur.",
         show_name: "Naam tonen",
         unfold_finals: "Eindobjecten uitklappen",
         fold_finals: "Eindobjecten inklappen",
@@ -342,6 +341,17 @@ const nl: Texts = {
         designate_transformable: "Selecteer een punt of een object",
         designate_invertible: "Selecteer een punt of een object",
         designate_moveable: "Selecteer een punt dat versleept kan worden",
+        family_controls: "Bedieningselementen",
+        checkbox_caption: "Tonen",
+        menu_choice: "Keuze %",
+        designate_control: "Kies de plaats",
+        designate_checkbox:
+            "Kies wat het toont, indien nodig, en dan de plaats",
+        visible_if: "Zichtbaar als",
+        visible_if_hint: "een naam of een formule",
+        condition_reads: "De voorwaarde mag niet afhangen van %",
+        input_width: "Breedte",
+        image_unreadable: "Dit bestand is geen leesbare afbeelding",
         designate_button: "Selecteer waar de knop komt",
         designate_pointOn: "Selecteer een punt op een object",
         designate_line: "Selecteer een rechte",
@@ -521,6 +531,9 @@ const nl: Texts = {
         Html: "Html",
         Image: "Afbeelding",
         Button: "Knop",
+        Checkbox: "Selectievakje",
+        InputField: "Invoerveld",
+        Menu: "Menu",
     },
 };
 

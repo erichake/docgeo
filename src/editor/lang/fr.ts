@@ -198,6 +198,7 @@ const fr: Texts = {
         point_border: "Épaisseur du contour",
         scrub_hint:
             "Glisser pour ajuster · Cliquer pour saisir · Maj : réglage fin",
+        image_frame: "Cadre",
         thickness: "Épaisseur",
         stroke_opacity: "Opacité du trait",
         fill_opacity: "Opacité du remplissage",
@@ -205,8 +206,6 @@ const fr: Texts = {
         level: "Calque",
         display: "Affichage",
         visible: "Objet visible",
-        conditional_visibility:
-            "La visibilité dépend aussi d’une condition de la figure.",
         show_name: "Afficher le nom",
         unfold_finals: "Déplier les finaux",
         fold_finals: "Replier les finaux",
@@ -338,6 +337,17 @@ const fr: Texts = {
         designate_transformable: "Désignez un point ou un objet",
         designate_invertible: "Désignez un point ou un objet",
         designate_moveable: "Désignez un point déplaçable",
+        family_controls: "Contrôles",
+        checkbox_caption: "Afficher",
+        menu_choice: "Choix %",
+        designate_control: "Désignez l'endroit",
+        designate_checkbox:
+            "Désignez ce qu'elle affiche, s'il y a lieu, puis son endroit",
+        visible_if: "Visible si",
+        visible_if_hint: "un nom ou une formule",
+        condition_reads: "La condition ne peut pas dépendre de %",
+        input_width: "Largeur",
+        image_unreadable: "Ce fichier n'est pas une image lisible",
         designate_button: "Désignez l'endroit du bouton",
         designate_pointOn: "Désignez un point sur objet",
         designate_line: "Désignez une droite",
@@ -517,6 +527,9 @@ const fr: Texts = {
         Html: "Html",
         Image: "Image",
         Button: "Bouton",
+        Checkbox: "Case",
+        InputField: "ChampDeSaisie",
+        Menu: "Menu",
     },
 };
 

@@ -200,6 +200,7 @@ const it: Texts = {
         point_border: "Spessore del contorno",
         scrub_hint:
             "Trascina per regolare · Fai clic per digitare · Maiusc: regolazione fine",
+        image_frame: "Cornice",
         thickness: "Spessore",
         stroke_opacity: "Opacità del tratto",
         fill_opacity: "Opacità del riempimento",
@@ -207,8 +208,6 @@ const it: Texts = {
         level: "Livello",
         display: "Visualizzazione",
         visible: "Oggetto visibile",
-        conditional_visibility:
-            "La visibilità dipende anche da una condizione della figura.",
         show_name: "Mostra il nome",
         unfold_finals: "Espandi i finali",
         fold_finals: "Comprimi i finali",
@@ -340,6 +339,16 @@ const it: Texts = {
         designate_transformable: "Seleziona un punto o un oggetto",
         designate_invertible: "Seleziona un punto o un oggetto",
         designate_moveable: "Seleziona un punto trascinabile",
+        family_controls: "Controlli",
+        checkbox_caption: "Mostra",
+        menu_choice: "Scelta %",
+        designate_control: "Seleziona il punto",
+        designate_checkbox: "Seleziona ciò che mostra, se serve, poi il punto",
+        visible_if: "Visibile se",
+        visible_if_hint: "un nome o una formula",
+        condition_reads: "La condizione non può dipendere da %",
+        input_width: "Larghezza",
+        image_unreadable: "Questo file non è un'immagine leggibile",
         designate_button: "Seleziona dove mettere il pulsante",
         designate_pointOn: "Seleziona un punto su un oggetto",
         designate_line: "Seleziona una retta",
@@ -516,6 +525,9 @@ const it: Texts = {
         Html: "Html",
         Image: "Immagine",
         Button: "Pulsante",
+        Checkbox: "CasellaDiControllo",
+        InputField: "CampoDiInput",
+        Menu: "Menu",
     },
 };
 

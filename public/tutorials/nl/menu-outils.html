@@ -76,6 +76,11 @@
                     3D-weergave.
                 </li>
                 <li>
+                    De familie <strong>Bedieningselementen</strong>, niet op de
+                    ring, plaatst schuifknoppen, selectievakjes, menu’s,
+                    invoervelden, teksten en afbeeldingen.
+                </li>
+                <li>
                     De familie <strong>Programma's</strong>, die niet op de ring
                     staat, maakt schildpadden, knoppen en gebeurtenisprogramma's
                     (zie
@@ -906,6 +911,106 @@
                     </li>
                 </ul>
             </div>
+            <h3 id="famille-controls">Bedieningselementen</h3>
+            <figure>
+                <img
+                    src="img/controles.webp"
+                    alt="De familie Bedieningselementen: een selectievakje, een menu, een invoerveld en een schuifknop."
+                    width="1200"
+                    height="720"
+                />
+                <figcaption>
+                    De familie Bedieningselementen: een selectievakje, een menu,
+                    een invoerveld en een schuifknop.
+                </figcaption>
+            </figure>
+            <div class="family" style="--h: 65">
+                <ul>
+                    <li>
+                        <i data-t="Slider"></i>
+                        <div>
+                            <strong>Schuifknop</strong
+                            ><span
+                                >De plaats van de schuifknop, van −5 tot 5 in
+                                stappen van 0,1.</span
+                            ><span><code>Schuifknop(-5, 5, 1)</code></span>
+                        </div>
+                    </li>
+                    <li>
+                        <i data-t="Checkbox"></i>
+                        <div>
+                            <strong>Selectievakje</strong
+                            ><span
+                                >De objecten die het toont, indien gewenst (nog
+                                een klik haalt er een weg), en dan een lege
+                                plaats: het selectievakje, aangevinkt.</span
+                            ><span
+                                ><code>Selectievakje("Tonen", a, c)</code></span
+                            >
+                        </div>
+                    </li>
+                    <li>
+                        <i data-t="Menu"></i>
+                        <div>
+                            <strong>Menu</strong
+                            ><span
+                                >De plaats van het menu, met drie keuzes die je
+                                in zijn regel herschrijft. Zijn waarde is het
+                                nummer van de keuze.</span
+                            ><span
+                                ><code
+                                    >Menu("Keuze 1", "Keuze 2", "Keuze 3")</code
+                                ></span
+                            >
+                        </div>
+                    </li>
+                    <li>
+                        <i data-t="InputField"></i>
+                        <div>
+                            <strong>Invoerveld</strong
+                            ><span
+                                >De plaats van het veld. Het bevat een getal,
+                                dat formules via zijn naam lezen.</span
+                            ><span><code>Invoerveld(1)</code></span>
+                        </div>
+                    </li>
+                    <li>
+                        <i data-t="Text"></i>
+                        <div>
+                            <strong>Tekst</strong
+                            ><span
+                                >De plaats van de tekst, die je in zijn
+                                definitie herschrijft.</span
+                            ><span><code>"Tekst"</code></span>
+                        </div>
+                    </li>
+                    <li>
+                        <i data-t="Image"></i>
+                        <div>
+                            <strong>Afbeelding</strong
+                            ><span
+                                >Een punt of een lege plaats, dan het bestand:
+                                de afbeelding tussen dit punt en een tweede,
+                                rechts ervan gemaakt. In 3D blijft ze vast in
+                                het venster, zonder deze punten.</span
+                            ><span><code>Afbeelding(A, B)</code></span>
+                        </div>
+                    </li>
+                </ul>
+            </div>
+            <p>
+                Een geplaatst bedieningselement opent zijn eigenschappen;
+                sluiten brengt het palet terug. De rechtermuisknop verplaatst
+                het zonder het te bedienen; met de vinger verplaatst indrukken
+                en slepen het zolang zijn eigenschappen open zijn. De twee
+                punten van een afbeelding bepalen haar grootte en verbinden haar
+                met de constructie; slepen verplaatst ze samen als ze vrij zijn.
+            </p>
+            <p>
+                Een selectievakje of een menu werkt via de weergavevoorwaarde
+                van objecten: zie
+                <a href="proprietes.html#visible-si">Zichtbaar als</a>.
+            </p>
             <h3 id="famille-programs">Programma's</h3>
             <div class="family" style="--h: 95">
                 <ul>

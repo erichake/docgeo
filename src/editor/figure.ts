@@ -128,6 +128,8 @@ export interface Spec {
     name: string;
     overload: Overload;
     args: Arg[];
+    // What a checkbox shows, once it is built (see showOnly).
+    shown?: construction_object[];
 }
 
 export const FREE_POINT: Overload = {
@@ -466,7 +468,23 @@ export function lineOf(
             : object) as unknown as { equation: Equation };
         return `${name} = ${equation.map((side) => oneLine(renamed(side.source, side.refs))).join(" = ")}`;
     }
-    const decoded = decodeEntry(tag, parameters, at);
+    const decoded = decodeEntry(
+        tag,
+        object instanceof expression_object
+            ? {
+                  ...(parameters as object),
+                  cB: object.checkbox,
+                  iB: object.inputLength,
+                  shown: object.children
+                      .filter(
+                          (child) =>
+                              child.condition === object && index.has(child),
+                      )
+                      .sort((a, b) => index.get(a)! - index.get(b)!),
+              }
+            : parameters,
+        at,
+    );
     if (decoded)
         return `${name} = ${commandName(decoded.command)}(${decoded.args.map(formatArg).join(", ")})`;
     const { mn, mx } = parameters as Record<string, unknown>;
@@ -483,6 +501,7 @@ export function resolve(
 ): Spec {
     let overload: Overload | undefined = FREE_POINT;
     let args: Arg[];
+    let shown: construction_object[] | undefined;
     if (definition!.kind === "point") {
         args = definition!.coords;
         // A free point stays one.
@@ -574,13 +593,35 @@ export function resolve(
         if (overload.tag === "Btn") overload = buttonOverload(c, target);
         // A slider.
         if (overload.tag === "Ex") {
-            const { encode } = overload;
+            const { encode, kept, style } = overload;
             const values = args;
+            if (style?.cB) {
+                shown = (values.slice(1) as construction_object[]).map(
+                    (object) => object.reference?.owner ?? object,
+                );
+                const refused = shown.find(
+                    (object) => target && descendants(object).has(target),
+                );
+                if (refused)
+                    throw new TextError(
+                        "condition_reads",
+                        formatName(refused.name),
+                    );
+            }
+            const value =
+                target instanceof expression_object ? target.value : null;
             ({ overload, args } = expressionSpec(
                 c,
                 target,
-                (index) => encode(values, index) as object,
-                argObjects(values),
+                (index) => ({
+                    ...(encode(values, index) as object),
+                    ...(kept &&
+                        typeof value === "number" && {
+                            v: kept(value, values),
+                        }),
+                }),
+                argObjects(shown ? values.slice(0, 1) : values),
+                style,
             ));
         }
     }
@@ -588,7 +629,7 @@ export function resolve(
         name ?? target?.name ?? nextName(c, builtTag(overload, args));
     const named = c.getObj(chosen);
     if (named && named !== target) throw new TextError("name_taken", chosen);
-    return { name: chosen, overload, args };
+    return { name: chosen, overload, args, ...(shown && { shown }) };
 }
 
 export function resolveArgument(
@@ -598,7 +639,7 @@ export function resolveArgument(
 ): Arg {
     if (arg.kind === "number") return arg.value;
     if (arg.kind === "string")
-        return command === "Button"
+        return ["Button", "Checkbox", "Menu"].includes(command)
             ? new TextArg(arg.value, new Map())
             : textArg(c, arg.value, command === "Html");
     if (arg.kind === "formula") {
@@ -775,6 +816,121 @@ function addSlider(c: construction, name: string): expression_object {
     return slider;
 }
 
+// A control, where the palette's tool puts it (see placeControl in main.ts).
+export function addControl(
+    c: construction,
+    definition: Line["definition"] | null,
+    at: Vec2,
+): expression_object {
+    const name = nextName(c, "Ex");
+    const control = definition
+        ? (add(c, resolve(c, { name, definition })) as expression_object)
+        : addSlider(c, name);
+    control.screen = at;
+    c.invalidateRender(control);
+    return control;
+}
+
+// An image of the figure, on these two points, or at a place of the window.
+export function addImage(
+    c: construction,
+    url: string,
+    key: string,
+    size: Vec2,
+    place: Vec2 | construction_object[],
+): construction_object {
+    const name = nextName(c, "Img");
+    const index = figureIndex(c);
+    const where = (place as unknown[]).every(
+        (corner) => corner instanceof construction_object,
+    )
+        ? (place as construction_object[]).map((corner) =>
+              objectIndex(corner, (owner) => index.get(owner)!),
+          )
+        : [place as Vec2];
+    c.beginBatch();
+    addDgoEntries(c, [["Img", name, [key, ...size, ...where]]], [], {
+        [key]: url,
+    });
+    c.endBatch();
+    return c.getObj(name)!;
+}
+
+// What decides whether it shows, as its field in the properties writes it:
+// the name of an expression shown, or the formula of a hidden one.
+export const conditionText = ({ condition }: construction_object): string =>
+    !condition
+        ? ""
+        : condition.hidden === 2
+          ? expressionSource(condition)
+          : formatName(condition.name);
+
+// Shown only while it is true, or always; the hidden expression that
+// computed its condition goes with it. A condition mustn't be built from
+// the object: nothing could show it again once it hides.
+export function showWhile(
+    object: construction_object,
+    condition: expression_object | null,
+): void {
+    const old = object.condition;
+    if (old) {
+        object.parents = object.parents.filter((parent) => parent !== old);
+        old.children = old.children.filter((child) => child !== object);
+    }
+    object.condition = condition;
+    if (condition) object.addParents(condition);
+    object.C.invalidateGeometry(object);
+    if (old?.hidden === 2 && !old.children[0]) object.C.removeObject(old);
+}
+
+// The checkbox shows these objects, and no longer the others it showed.
+export function showOnly(
+    checkbox: expression_object,
+    shown: construction_object[],
+): void {
+    checkbox.children
+        .filter(
+            (child) => child.condition === checkbox && !shown.includes(child),
+        )
+        .forEach((child) => showWhile(child, null));
+    shown
+        .filter((object) => object.condition !== checkbox)
+        .forEach((object) => showWhile(object, checkbox));
+}
+
+// The condition typed for these objects: an expression's name, a formula, or
+// nothing.
+export function setConditions(
+    c: construction,
+    objects: construction_object[],
+    source: string,
+): void {
+    const text = source.trim();
+    const named = c.getObj(text.replace(/^"|"$/g, ""));
+    const spec =
+        !text || named instanceof expression_object
+            ? null
+            : { name: nextName(c, "Ex"), ...expression(c, text) };
+    const reads: construction_object[] = spec
+        ? (spec.args as construction_object[])
+        : text
+          ? [named!]
+          : [];
+    const refused = objects.find((object) => {
+        const built = descendants(object);
+        return reads.some((read) => built.has(read));
+    });
+    if (refused)
+        throw new TextError("condition_reads", formatName(refused.name));
+    let condition: expression_object | null = null;
+    if (spec) {
+        condition = add(c, spec) as expression_object;
+        condition.hidden = 2;
+        condition.updateView();
+    } else if (text) condition = named as expression_object;
+    objects.forEach((object) => showWhile(object, condition));
+}
+
 // Under the expressions the window shows, as DGPad's calculator stacks them.
 function freeSpot(c: construction): Vec2 {
     const shown = figureObjects(c).filter(
@@ -783,9 +939,12 @@ function freeSpot(c: construction): Vec2 {
             !object.anchor &&
             !object.hidden,
     );
-    // A slider's track is under its value.
+    // A slider's track is under its value; a menu or a field goes down from
+    // its place, a checkbox's box a little.
     const bottoms = shown.map(
-        ({ screen, isCursor }) => screen[1] + (isCursor ? 30 : 0),
+        ({ screen, isCursor, menu, inputLength, checkbox }) =>
+            screen[1] +
+            (menu || inputLength ? 36 : checkbox ? 10 : isCursor ? 30 : 0),
     );
     return [20, Math.max(10, ...bottoms) + 30];
 }
@@ -1519,6 +1678,7 @@ function expressionSpec(
     target: construction_object | undefined,
     own: (index: (object: construction_object) => DgoRef) => object,
     parents: construction_object[],
+    style?: Overload["style"],
 ): { overload: Overload; args: Arg[] } {
     const kept = target instanceof expression_object ? target : null;
     const spot = freeSpot(c);
@@ -1526,8 +1686,9 @@ function expressionSpec(
         overload: {
             params: [],
             tag: "Ex",
+            style,
             encode: (_, index) => {
-                const { v, f, s, mn, mx, ...rest } = kept
+                const { v, f, s, mn, mx, mu, ...rest } = kept
                     ? (kept.dgo({
                           index,
                           image: (url) => url,
@@ -1591,7 +1752,7 @@ function createdStyle(tag: string): Record<string, unknown> | undefined {
     )
         return { ...CREATED_COLORS[tag], o: 0.2 };
     // Its value shown, as by DGPad's calculator.
-    if (tag === "Ex") return { p: 2, f: 24 };
+    if (tag === "Ex") return { p: 2, f: 18 };
     if (tag === "Html") return { c: "#94A3B8", fc: "#F1F5F9", o: 0.8 };
     return CREATED_COLORS[tag];
 }
@@ -1676,7 +1837,9 @@ export function add(
         ? undefined
         : source
           ? imageStyle(source, builtTag(overload, args), index)
-          : createdStyle(overload.tag);
+          : overload.style
+            ? { ...createdStyle(overload.tag), ...overload.style }
+            : createdStyle(overload.tag);
     c.beginBatch();
     addDgoEntries(
         c,
@@ -1860,17 +2023,22 @@ export async function redefine(
             (key) => figure.img![key] === (parameters as unknown[])[0],
         );
     const entry: unknown[] = [overload.tag, name, parameters];
-    if (style !== undefined) {
-        const kept =
+    if (style !== undefined || overload.style) {
+        const before = style === undefined ? {} : figure.st![style];
+        const kept: Record<string, unknown> =
             tag === overload.tag
-                ? figure.st![style]
+                ? { ...before }
                 : Object.fromEntries(
-                      Object.entries(figure.st![style]).filter(([key]) =>
+                      Object.entries(before).filter(([key]) =>
                           COMMON_STYLE.includes(key),
                       ),
                   );
-        figure.st!.push(kept);
-        entry.push(figure.st!.length - 1);
+        Object.entries(overload.style ?? {}).forEach(([key, value]) => {
+            kept[key] = (value && kept[key]) || value;
+        });
+        figure.st ??= [];
+        figure.st.push(kept as (typeof figure.st)[number]);
+        entry.push(figure.st.length - 1);
     }
     figure.o[position] = entry;
     rebuild(studio, figure);

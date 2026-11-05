@@ -35,6 +35,7 @@ import { button_object } from "../objects/button_object";
 import type { circle1_object } from "../objects/circle1_object";
 import { event_object, type Trigger } from "../objects/event_object";
 import { expression_object } from "../objects/expression_object";
+import { image_object } from "../objects/image_object";
 import { expression_list_object } from "../objects/expression_list_object";
 import { panel_object } from "../objects/panel_object";
 import { polygon_object } from "../objects/polygon_object";
@@ -76,9 +77,14 @@ import {
 import {
     add,
     addFloor,
+    addControl,
+    addImage,
     addPointOn,
     builtTag,
     buttonOverload,
+    setConditions,
+    showOnly,
+    showWhile,
     cubeOn,
     entryOf,
     figureIndex,
@@ -186,6 +192,7 @@ import {
     reachOf,
     setReach,
     showZone,
+    isFreePoint,
 } from "./magnets";
 import { MARK_WIDER, watchMarks } from "./marks";
 import { pinnable, togglePin } from "./pin";
@@ -934,6 +941,10 @@ const properties = propertiesPanel({
     enter: async (object, line) => {
         await enterLine(line, object);
     },
+    condition: (objects, source) => {
+        setConditions(scene(), objects, source);
+        changed();
+    },
     bind: (editor, head, apply) => {
         const area = editor.dom() as HTMLTextAreaElement;
         definitionLine = { area, head, apply };
@@ -1579,7 +1590,9 @@ const showProperties = (
         ? properties.toggle(object)
         : properties.select(object);
 
-function propertyObject(event: PointerEvent): construction_object | null {
+function propertyObject(
+    event: Pick<PointerEvent, "target" | "clientX" | "clientY">,
+): construction_object | null {
     const target = element(event.target);
     const ignored = previewed();
     const objects = figureObjects(scene()).filter(
@@ -2197,13 +2210,19 @@ async function enterLine(
             }
             await redefine(studio, target, spec);
             const result = made(scene().getObj(spec.name));
+            // The figure was built again.
+            if (spec.shown)
+                showOnly(
+                    result as expression_object,
+                    spec.shown.map(({ name }) => scene().getObj(name)!),
+                );
             if (await refusedOffPlane()) throw new TextError("off_plane");
             done(result);
             return false;
         }
-        const result = made(
-            add(c, resolveWithSliders(c, line, undefined, sliders)),
-        );
+        const built = resolveWithSliders(c, line, undefined, sliders);
+        const result = made(add(c, built));
+        if (built.shown) showOnly(result as expression_object, built.shown);
         if (await refusedOffPlane()) throw new TextError("off_plane");
         if (result instanceof button_object) showProgram(result);
         done(result);
@@ -2809,7 +2828,7 @@ function wantsPoint(hits: Hit[]): boolean {
                 ? makesPoint(hits)
                 : mode === "point"
                   ? !!pending.tool.anywhere
-                  : mode !== "button";
+                  : mode !== "button" && mode !== "control";
         return (
             mode === "command" &&
             makesPoints(overload) &&
@@ -2942,6 +2961,8 @@ function describe(tool: Tool, args: (Arg | undefined)[]): string {
         return `${message("turtle")}\n${message("designate_point")}`;
     if (tool.mode === "event")
         return `${message(tool.label!)}\n${message(tool.gesture ? "designate_moveable" : "designate_expression")}`;
+    if (tool.mode === "control")
+        return `${commandName(tool.command)}\n${message(tool.command.name === "Checkbox" ? "designate_checkbox" : "designate_control")}`;
     if (tool.mode === "button")
         return `${formatName(nextName(scene(), "Btn"))} = ${commandName(tool.command)}(${quoteText(message("button_caption"))})\n${message("designate_button")}`;
     const kind = tool.mode !== "command" || builtTag(tool.overload, args);
@@ -2969,7 +2990,7 @@ function describe(tool: Tool, args: (Arg | undefined)[]): string {
     // No tool takes a text.
     const param = paramAt(tool.overload, nextSlot({ tool, args })) as Exclude<
         Param,
-        "text"
+        "text" | "any"
     >;
     return `${line}\n${message(`designate_${param}`)}`;
 }
@@ -3187,7 +3208,9 @@ function take(picked: Hit[]): void {
         return done(addPointOn(c, nextName(c, true), objects[0], picked[0].at));
     if (tool.mode === "turtle") return startTurtle(objects[0]);
     if (tool.mode === "event") return answer(tool, objects[0]);
-    if (tool.mode === "button") return prompt();
+    if (tool.mode === "control" && tool.command.name === "Checkbox")
+        objects.forEach(toggleRevealed);
+    if (tool.mode === "button" || tool.mode === "control") return prompt();
     pending = {
         tool,
         args: assign(tool, objects, defaultReal(tool.overload.tag))!,
@@ -3351,6 +3374,7 @@ function designateFirst(screen: Vec2, hits: Hit[], client: Vec2): void {
     if (mode === "turtle")
         return designatePoint(screen, hits, client, startTurtle);
     if (mode === "button") return placeButton(screen);
+    if (mode === "control") return designateControl(screen, hits, client);
     if (mode === "intersection") {
         const cross = crossing(c, screen, hits);
         if (cross) return done(addCrossing(cross));
@@ -3788,7 +3812,7 @@ function editTurtle(turtle: construction_object): void {
                   (object) => turtleStart(object)?.point === turtle,
               )
             : turtle;
-    if (!propertiesOpen) setProperties(true);
+    overPaletteProperties();
     if (existing) return properties.select(existing);
     const { name } = turtle;
     const program = add(
@@ -3828,7 +3852,7 @@ function startEvent(
     );
     if (existing) return showProgram(existing);
     properties.showBlocks();
-    if (!propertiesOpen) setProperties(true);
+    overPaletteProperties();
     done(addEvent(c, owner, gesture));
 }
 
@@ -3838,10 +3862,20 @@ function answer(tool: Tool, owner: construction_object): void {
     startEvent(owner as point_object | expression_object, tool.gesture ?? null);
 }
 
+// The properties of a tool's program, which give back the palette they take
+// the place of when they close.
+function overPaletteProperties(): void {
+    if (propertiesOpen) return;
+    const back = paletteOpen;
+    if (back) setPalette(false, false);
+    setProperties(true);
+    overPalette = back;
+}
+
 // A program, in blocks.
 function showProgram(button: construction_object): void {
     properties.showBlocks();
-    if (!propertiesOpen) setProperties(true);
+    overPaletteProperties();
     properties.select(button);
 }
 
@@ -3857,6 +3891,145 @@ function placeButton(at: Vec2): void {
     showProgram(button);
     done(button);
 }
+
+// What the checkbox being put shows, lit until it is put.
+let revealed: construction_object[] = [];
+
+function toggleRevealed(object: construction_object): void {
+    const owner = object.reference?.owner ?? object;
+    const on = !revealed.includes(owner);
+    revealed = on
+        ? [...revealed, owner]
+        : revealed.filter((other) => other !== owner);
+    if (owner.hasView) owner.dom.toggleClass("dge-picked", on);
+}
+
+function forgetRevealed(): void {
+    revealed.forEach((object) => {
+        if (object.hasView) object.dom.removeClass("dge-picked");
+    });
+    revealed = [];
+}
+
+// An object designated for the checkbox, or a widget, which the figure doesn't
+// pick; elsewhere, the place of the control.
+function designateControl(screen: Vec2, hits: Hit[], client: Vec2): void {
+    const { tool } = pending!;
+    // An image's first anchor.
+    imageCorner =
+        tool.command.name === "Image" && hits[0]?.object instanceof point_object
+            ? hits[0].object
+            : null;
+    if (tool.command.name === "Checkbox") {
+        if (hits[0])
+            return chooseHit(hits, client, ({ object }) =>
+                toggleRevealed(object),
+            );
+        const [clientX, clientY] = client;
+        const widget = propertyObject({
+            target: document.elementFromPoint(clientX, clientY),
+            clientX,
+            clientY,
+        });
+        if (widget) return toggleRevealed(widget);
+    }
+    placeControl(tool, screen);
+}
+
+const CONTROLS: Record<string, () => Line["definition"] | null> = {
+    Slider: () => null,
+    Checkbox: () => ({
+        kind: "call",
+        command: "Checkbox",
+        args: [{ kind: "string", value: message("checkbox_caption") }],
+    }),
+    Menu: () => ({
+        kind: "call",
+        command: "Menu",
+        args: [1, 2, 3].map((rank) => ({
+            kind: "string",
+            value: message("menu_choice", String(rank)),
+        })),
+    }),
+    InputField: () => ({
+        kind: "call",
+        command: "InputField",
+        args: [{ kind: "number", value: 1 }],
+    }),
+    Text: () => ({
+        kind: "formula",
+        source: quoteText(commandName(findCommand("Text")!)),
+    }),
+};
+
+// There, by the palette's tool, which is put down; its properties show.
+function placeControl({ command: { name } }: Tool, at: Vec2): void {
+    if (name === "Image") {
+        imageSpot = at;
+        cancel();
+        return (imageInput.dom() as HTMLInputElement).click();
+    }
+    const c = scene();
+    const shown = revealed.filter((object) => c.getObj(object.name) === object);
+    cancel();
+    const control = addControl(c, CONTROLS[name](), at);
+    shown.forEach((object) => showWhile(object, control));
+    showPlaced(control);
+}
+
+// Closing the properties brings the palette back, as after a right click.
+function showPlaced(object: construction_object): void {
+    inspect(object);
+    done(object);
+}
+
+// Where the image being chosen goes: from a point of the figure, or a place,
+// to the right of it, as GeoGebra's between two anchors that size it and tie
+// it to the construction. Fixed in the window in space, where they would
+// turn it.
+let imageSpot: Vec2 = [0, 0];
+let imageCorner: point_object | null = null;
+const IMAGE_SIZE = 400;
+const imageInput = $.create("input")
+    .att("type", "file")
+    .att("accept", "image/png,image/jpeg,image/gif,image/webp,image/svg+xml");
+imageInput.on(
+    "change",
+    async () => {
+        const field = imageInput.dom() as HTMLInputElement;
+        const file = field.files![0];
+        field.value = "";
+        const url = await new Promise<string>((resolve) => {
+            const reader = new FileReader();
+            reader.onload = () => resolve(reader.result as string);
+            reader.readAsDataURL(file);
+        });
+        const image = new Image();
+        image.src = url;
+        // Any file can still be chosen.
+        const read = await image.decode().then(
+            () =>
+                /^data:image\/(?:png|jpeg|gif|webp|svg\+xml);base64,/.test(url),
+            () => false,
+        );
+        if (!read) return showHint(message("image_unreadable"), true);
+        const [width, height] = [
+            image.naturalWidth || IMAGE_SIZE,
+            image.naturalHeight || IMAGE_SIZE,
+        ];
+        const scale = Math.min(1, IMAGE_SIZE / Math.max(width, height));
+        const size: Vec2 = [width * scale, height * scale];
+        const key = await imageKey(url);
+        if (vec3())
+            return showPlaced(addImage(scene(), url, key, size, imageSpot));
+        const first = imageCorner ?? addFreePoint(imageSpot)!;
+        const second = addFreePoint(
+            vAdd((first as point_object).screen, [size[0], 0]),
+        )!;
+        showPlaced(addImage(scene(), url, key, size, [first, second]));
+    },
+    false,
+);
 
 function drawFrom(as: Exclude<Choice, "expression">): void {
     const source = target() as expression_object;
@@ -5034,6 +5207,7 @@ function designateRow(object: construction_object): void {
         const tool = fitting(object)!;
         if (tool.mode === "turtle") return startTurtle(object);
         if (tool.mode === "event") return answer(tool, object);
+        if (tool.mode === "control") return toggleRevealed(object);
         begin(tool, object);
         return tool.mode === "intersection" ? prompt() : proceed();
     }
@@ -5099,8 +5273,8 @@ function typedPending(
                 (overload) => paramAt(overload, call.args.length) === "point",
             )
           : undefined;
-    // A formula's function builds nothing to show.
-    if (!overload?.tag) return null;
+    // A formula's function builds nothing to show, nor what a checkbox shows.
+    if (!overload?.tag || overload.style) return null;
     const { args } = call;
     return {
         overload,
@@ -5287,6 +5461,7 @@ function showAxes(): void {
 // Drops the tool waiting, or with `keepTool`, takes the tool of the menu
 // again from its first argument.
 function cancel(keepTool = false): void {
+    forgetRevealed();
     setSteps(false);
     stopMagnets();
     if (keepTool && applying) {
@@ -5619,9 +5794,42 @@ function followRadius(event: PointerEvent): void {
 // The expression or button being dragged, and where it was taken from its
 // position.
 let moved: {
-    expression: expression_object | button_object;
+    expression: expression_object | button_object | image_object;
     grab: Vec2;
+    // Where an image's anchors were, which move with it.
+    anchors?: Vec2[];
 } | null = null;
+
+// What the bare drag of a control, which works it, doesn't move: the right
+// button, and a press with its properties shown, the way of the finger.
+function moveWidget(
+    widget: expression_object | button_object | image_object,
+    event: PointerEvent,
+): void {
+    const at = scene().pointerPosition(event);
+    moved =
+        widget instanceof image_object && !widget.screen
+            ? {
+                  expression: widget,
+                  grab: at,
+                  anchors: widget.corners.map(({ screen }) => screen),
+              }
+            : { expression: widget, grab: vSub(at, widget.screen!) };
+    event.preventDefault();
+    event.stopPropagation();
+    scene().svg.dom().setPointerCapture(event.pointerId);
+}
+
+const movesAlone = (
+    object: construction_object | null,
+): object is expression_object | button_object | image_object =>
+    object instanceof expression_object ||
+    object instanceof button_object ||
+    (object instanceof image_object &&
+        (!!object.screen ||
+            object.corners.every(
+                (corner) => isFreePoint(corner) && !corner.pinned,
+            )));
 // The HTML frame being moved, or sized by its corner, its box and the
 // pointer's position when taken.
 let framed: {
@@ -5726,6 +5934,9 @@ $("body").on(
                 y: event.clientY,
                 time: performance.now(),
             };
+            moved = null;
+            const widget = propertyObject(event);
+            if (movesAlone(widget)) return moveWidget(widget, event);
             const target = element(event.target);
             const ignored = previewed();
             const object = figureObjects(scene()).find(
@@ -5787,22 +5998,17 @@ $("body").on(
             return;
         }
         // The tools circle also drags a button; a tap still opens its tools.
-        const widget = !pending && propertyObject(event);
+        const widget = pending ? null : propertyObject(event);
         moved = null;
         if (
-            (widget instanceof expression_object ||
-                widget instanceof button_object) &&
+            movesAlone(widget) &&
             (widget instanceof button_object
                 ? widget.accessory.dom().contains(element(event.target))
-                : !widget.dom.dom().contains(element(event.target))) &&
+                : widget instanceof image_object ||
+                  !widget.dom.dom().contains(element(event.target))) &&
             !pick(c, screen)[0]
-        ) {
-            moved = { expression: widget, grab: vSub(screen, widget.screen) };
-            event.preventDefault();
-            event.stopPropagation();
-            c.svg.dom().setPointerCapture(event.pointerId);
-            return;
-        }
+        )
+            return moveWidget(widget, event);
         // A frame of the properties moves, or is sized by its corner; its
         // fields and links keep their clicks.
         const frame = inspecting() && propertyObject(event);
@@ -5837,12 +6043,13 @@ $("body").on(
                 (object instanceof button_object &&
                     !object.frame.dom().contains(element(event.target))) ||
                 (object instanceof expression_object &&
-                    (object.checkbox || object.inputLength > 0))
+                    (object.checkbox || object.inputLength > 0 || object.menu))
             ) {
-                down = null;
                 event.preventDefault();
                 event.stopPropagation();
                 showProperties(event, object);
+                if (object instanceof button_object) down = null;
+                else moveWidget(object, event);
             }
             return;
         }
@@ -5987,13 +6194,27 @@ $("body").on(
             return scene().invalidateRender(angle);
         }
         if (moved && event.isPrimary && event.buttons) {
-            const { expression, grab } = moved;
+            const { expression, grab, anchors } = moved;
+            if (anchors) {
+                const c = scene();
+                const shift = vSub(c.pointerPosition(event), grab);
+                (expression as image_object).corners.forEach((corner, at) => {
+                    const coords = c.unprojectToZPlane(
+                        vAdd(anchors[at], shift),
+                        corner.z,
+                    );
+                    if (coords) corner.coords = coords;
+                    c.invalidateGeometry(corner);
+                });
+                return;
+            }
             expression.screen = vSub(scene().pointerPosition(event), grab);
             if (expression instanceof expression_object && expression.anchor)
                 expression.alpha = vSub(
-                    expression.screen,
+                    expression.screen!,
                     expression.anchor.screen,
                 );
+            if (expression instanceof image_object) expression.project();
             return scene().invalidateRender(expression);
         }
         if (framed && event.isPrimary && event.buttons) {
@@ -6071,7 +6292,16 @@ $("body").on(
         }
         const expression = moved?.expression;
         moved = null;
-        if (expression && !tap) return void record();
+        if (expression && !tap) {
+            // An image's line says its place.
+            if (expression instanceof image_object) {
+                if (properties.selection.includes(expression))
+                    properties.select(properties.selection);
+                void record().then(() => updateRows());
+                return;
+            }
+            return void record();
+        }
         const frame = framed;
         framed = null;
         if (frame && !tap) return void record();
@@ -6230,6 +6460,15 @@ $("body").on(
             widget.frame.dom().contains(element(event.target))
         )
             return dragged();
+        // Ticked once it has its pointerup too.
+        if (
+            widget instanceof expression_object &&
+            widget.checkbox &&
+            widget.dom.dom().contains(element(event.target))
+        ) {
+            window.setTimeout(() => void record());
+            return dragged();
+        }
         if (widget)
             return openRing(
                 {
@@ -6247,6 +6486,17 @@ $("body").on(
         if (field) designateTyped(field, point);
     },
     { capture: true, prevent: false },
+);
+
+// A field of the figure changed: a step to undo.
+$("body").on(
+    "change",
+    ({ target }) => {
+        if (!scene().svg.dom().contains(element(target))) return;
+        scene().flush();
+        void record().then(() => updateRows());
+    },
+    false,
 );
 
 $("body").on(

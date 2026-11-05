@@ -118,7 +118,9 @@
                             <td>
                                 oggetto visibile, mostra il nome, oggetto fisso
                                 (poligono), oggetto inerte, dimensione del
-                                testo, decimali del valore (o non mostrarlo)
+                                testo, decimali del valore (o non mostrarlo),
+                                <a href="#visible-si">visibile se</a>, larghezza
+                                del campo di input
                             </td>
                         </tr>
                         <tr>
@@ -152,6 +154,14 @@
                             </td>
                         </tr>
                         <tr>
+                            <td>Cornice</td>
+                            <td>
+                                di un’immagine: colore, spessore (0: nessuna
+                                cornice), opacità del tratto, tratteggio; la sua
+                                opacità e il suo livello restano in Aspetto
+                            </td>
+                        </tr>
+                        <tr>
                             <td id="animation">Animazione</td>
                             <td>
                                 velocità (0: arresto), verso inverso,
@@ -163,6 +173,18 @@
                 </table>
             </div>
 
+            <h3 id="visible-si">Visibile se</h3>
+            <p>
+                Nella sezione Visualizzazione: il nome di un’espressione, una
+                formula (<code>m == 2</code>) o niente. L’oggetto è visibile
+                solo se è vera, e non può dipendere dall’oggetto stesso.
+            </p>
+            <p>
+                La riga di una casella nomina gli oggetti di cui è la
+                condizione: aggiungere un nome lega l’oggetto alla casella,
+                toglierlo lo rende sempre visibile. Eliminare la casella
+                conserva questi oggetti, sempre visibili.
+            </p>
             <h3 id="couleurs-de-creation">Colori alla creazione</h3>
             <p>
                 Un oggetto creato prende il colore del suo tipo: punti liberi o

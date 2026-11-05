@@ -329,6 +329,36 @@ window.DG_ICONS = {
             1,
             '<g class="dge-construction-icon" transform="scale(.75)"><path d="M12 2h7v28h-7ZM5 9h21v7H5Z" stroke="var(--dge-icon-blue, #3574e8)" stroke-width="1.2" fill="var(--dge-icon-blue, #3574e8)" fill-opacity="0.18"/><path d="M12 9h7m-7 7h7m-7 7h7M12 9v7m7-7v7" stroke="var(--dge-icon-ink, #202d40)" stroke-width="0.85" stroke-dasharray="1.5 1.5"/></g>',
         ],
+        Slider: [
+            65,
+            1,
+            '<path d="M3 12h18" class="dge-guide"/><g class="dge-result"><circle cx="15" cy="12" r="3.5"/></g>',
+        ],
+        Checkbox: [
+            65,
+            1,
+            '<g class="dge-result"><rect x="4" y="4" width="16" height="16" rx="3"/><path d="m8 12 3 3 5-6"/></g>',
+        ],
+        Menu: [
+            65,
+            1,
+            '<path d="M6 18h12" class="dge-guide"/><g class="dge-result"><rect x="3" y="5" width="18" height="8" rx="2"/><path d="m14 8 2 2 2-2"/></g>',
+        ],
+        InputField: [
+            65,
+            1,
+            '<g class="dge-result"><rect x="3" y="7" width="18" height="10" rx="2"/><path d="M8 10v4"/></g>',
+        ],
+        Text: [
+            65,
+            1,
+            '<g class="dge-result"><path d="M5 6h14M12 6v13M9 19h6"/></g>',
+        ],
+        Image: [
+            65,
+            1,
+            '<g class="dge-result"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m5 17 5-6 4 4 2-2 3 4"/></g><circle cx="16" cy="9" r="1.8" fill="currentColor" stroke="none"/>',
+        ],
         Turtle: [
             95,
             1,

@@ -84,6 +84,8 @@ export type Param =
     | "surface"
     // What a formula reads.
     | "readable"
+    // Any object: what a checkbox shows.
+    | "any"
     // Written between quotes.
     | "text";
 
@@ -130,6 +132,11 @@ export interface Overload {
     // The arguments of an entry of its tag, null when this overload can't
     // write it.
     decode?(parameters: unknown, at: (index: DgoRef) => Arg): Arg[] | null;
+    // The style it gives: 0 takes off, another value is given unless the
+    // object it redefines has its own.
+    style?: Record<string, number>;
+    // The value of an expression it redefines, instead of its own.
+    kept?(value: number, args: Arg[]): number;
 }
 
 export interface Command {
@@ -171,6 +178,8 @@ export function accepts(arg: Arg, param: Param): boolean {
         case "number":
         case "text":
             return false;
+        case "any":
+            return true;
         case "real":
         case "expression":
             return kind === "number";
@@ -1068,6 +1077,7 @@ export const COMMANDS: Command[] = [
                 // The expression's own keys, the others written by the
                 // editor (see expressionOverload in figure.ts).
                 tag: "Ex",
+                style: { cB: 0, iB: 0 },
                 encode: ([min, max, value], index) => ({
                     v: value,
                     mn: realParameter(min, index),
@@ -1082,6 +1092,75 @@ export const COMMANDS: Command[] = [
                     )
                         return null;
                     return [realArgument(mn, at), realArgument(mx, at), v];
+                },
+            },
+        ],
+    },
+    // Worth 1 or 0, the object it redefines keeping its value. The objects it
+    // shows are those whose condition it is, not its parents: `cB`, `iB` and
+    // `shown` are given to `decode` by lineOf in figure.ts.
+    {
+        name: "Checkbox",
+        overloads: [["text"], ["text", "any"]].map((params) => ({
+            params: params as Param[],
+            variadic: params.length > 1,
+            tag: "Ex",
+            style: { cB: 1, iB: 0 },
+            kept: (value: number) => (value ? 1 : 0),
+            encode: ([caption]: Arg[]) => ({
+                t: (caption as TextArg).text,
+                v: 1,
+            }),
+            decode: (parameters: unknown) => {
+                const { cB, t, v, shown } = parameters as {
+                    cB?: boolean;
+                    t: string;
+                    v: unknown;
+                    shown?: construction_object[];
+                };
+                return cB && typeof v === "number"
+                    ? [new TextArg(t, new Map()), ...shown!]
+                    : null;
+            },
+        })),
+    },
+    {
+        name: "InputField",
+        overloads: [
+            {
+                params: ["number"],
+                tag: "Ex",
+                style: { cB: 0, iB: 8 },
+                encode: ([value]) => ({ t: "", v: value }),
+                decode: (parameters) => {
+                    const { iB, v } = parameters as Record<string, unknown>;
+                    return iB && typeof v === "number" ? [v] : null;
+                },
+            },
+        ],
+    },
+    // The number of the choice, which the object it redefines keeps.
+    {
+        name: "Menu",
+        overloads: [
+            {
+                params: ["text"],
+                variadic: true,
+                tag: "Ex",
+                style: { cB: 0, iB: 0 },
+                kept: (value, choices) =>
+                    Math.min(Math.max(Math.round(value), 1), choices.length),
+                encode: (choices) => ({
+                    t: "",
+                    v: 1,
+                    mu: choices.map((choice) => (choice as TextArg).text),
+                }),
+                decode: (parameters) => {
+                    const { mu } = parameters as { mu?: string[] };
+                    return (
+                        mu?.map((choice) => new TextArg(choice, new Map())) ??
+                        null
+                    );
                 },
             },
         ],

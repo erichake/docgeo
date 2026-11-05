@@ -204,6 +204,7 @@ const el: Texts = {
         point_border: "Πάχος περιγράμματος",
         scrub_hint:
             "Σύρετε για ρύθμιση · Κάντε κλικ για πληκτρολόγηση · Shift: λεπτή ρύθμιση",
+        image_frame: "Πλαίσιο",
         thickness: "Πάχος",
         stroke_opacity: "Αδιαφάνεια γραμμής",
         fill_opacity: "Αδιαφάνεια γεμίσματος",
@@ -211,8 +212,6 @@ const el: Texts = {
         level: "Στρώση",
         display: "Προβολή",
         visible: "Ορατό αντικείμενο",
-        conditional_visibility:
-            "Η ορατότητα εξαρτάται επίσης από μια συνθήκη του σχήματος.",
         show_name: "Εμφάνιση ονόματος",
         unfold_finals: "Ανάπτυξη των τελικών",
         fold_finals: "Σύμπτυξη των τελικών",
@@ -346,6 +345,17 @@ const el: Texts = {
         designate_transformable: "Επιλέξτε ένα σημείο ή ένα αντικείμενο",
         designate_invertible: "Επιλέξτε ένα σημείο ή ένα αντικείμενο",
         designate_moveable: "Επιλέξτε ένα σημείο που μετακινείται",
+        family_controls: "Στοιχεία ελέγχου",
+        checkbox_caption: "Εμφάνιση",
+        menu_choice: "Επιλογή %",
+        designate_control: "Επιλέξτε τη θέση",
+        designate_checkbox:
+            "Επιλέξτε τι εμφανίζει, αν χρειάζεται, και μετά τη θέση",
+        visible_if: "Ορατό αν",
+        visible_if_hint: "ένα όνομα ή ένας τύπος",
+        condition_reads: "Η συνθήκη δεν μπορεί να εξαρτάται από το %",
+        input_width: "Πλάτος",
+        image_unreadable: "Αυτό το αρχείο δεν είναι αναγνώσιμη εικόνα",
         designate_button: "Επιλέξτε τη θέση του κουμπιού",
         designate_pointOn: "Επιλέξτε ένα σημείο σε αντικείμενο",
         designate_line: "Επιλέξτε μια ευθεία",
@@ -526,6 +536,9 @@ const el: Texts = {
         Html: "Html",
         Image: "Εικόνα",
         Button: "Κουμπί",
+        Checkbox: "ΠλαίσιοΕπιλογής",
+        InputField: "ΠεδίοΕισαγωγής",
+        Menu: "Μενού",
     },
 };
 

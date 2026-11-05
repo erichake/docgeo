@@ -1589,7 +1589,9 @@ export function translateGgb(
                 parts.push("tk:true");
         } else {
             const thickness = attribute(element, "lineStyle", "thickness");
-            if (thickness) parts.push(`s:${Number(thickness) / 2}`);
+            // A frame, which GeoGebra's image doesn't have.
+            if (thickness && kind !== "image")
+                parts.push(`s:${Number(thickness) / 2}`);
             const dash =
                 GGB_DASHES[attribute(element, "lineStyle", "type") ?? ""];
             if (dash)

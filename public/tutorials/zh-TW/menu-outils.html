@@ -63,6 +63,10 @@
                     >的工具只在 3D 檢視中出現。
                 </li>
                 <li>
+                    <strong>控制項</strong
+                    >族不在環上，用於放置滑桿、核取方塊、選單、輸入框、文字和圖像。
+                </li>
+                <li>
                     <strong>程式</strong
                     >類不在工具環中，用於建立海龜、按鈕和事件程式（見<a
                         href="expressions.html#blocs"
@@ -740,6 +744,87 @@
                     </li>
                 </ul>
             </div>
+            <h3 id="famille-controls">控制項</h3>
+            <figure>
+                <img
+                    src="img/controles.webp"
+                    alt="控制項族：一個核取方塊、一個選單、一個輸入框和一個滑桿。"
+                    width="1200"
+                    height="720"
+                />
+                <figcaption>
+                    控制項族：一個核取方塊、一個選單、一個輸入框和一個滑桿。
+                </figcaption>
+            </figure>
+            <div class="family" style="--h: 65">
+                <ul>
+                    <li>
+                        <i data-t="Slider"></i>
+                        <div>
+                            <strong>滑桿</strong
+                            ><span>滑桿的位置，從 −5 到 5，步長 0.1。</span
+                            ><span><code>滑桿(-5, 5, 1)</code></span>
+                        </div>
+                    </li>
+                    <li>
+                        <i data-t="Checkbox"></i>
+                        <div>
+                            <strong>核取方塊</strong
+                            ><span
+                                >它顯示的物件（如有，再次點擊可移除），然後點擊一個空白處：核取方塊，已勾選。</span
+                            ><span><code>核取方塊("顯示", a, c)</code></span>
+                        </div>
+                    </li>
+                    <li>
+                        <i data-t="Menu"></i>
+                        <div>
+                            <strong>選單</strong
+                            ><span
+                                >選單的位置，帶三個選項，可在其行中改寫。它的值是選項的編號。</span
+                            ><span
+                                ><code
+                                    >選單("選項 1", "選項 2", "選項 3")</code
+                                ></span
+                            >
+                        </div>
+                    </li>
+                    <li>
+                        <i data-t="InputField"></i>
+                        <div>
+                            <strong>輸入框</strong
+                            ><span
+                                >輸入框的位置。它保存一個數，公式透過其名稱讀取。</span
+                            ><span><code>輸入框(1)</code></span>
+                        </div>
+                    </li>
+                    <li>
+                        <i data-t="Text"></i>
+                        <div>
+                            <strong>文字</strong
+                            ><span>文字的位置，可在其定義中改寫。</span
+                            ><span><code>"文字"</code></span>
+                        </div>
+                    </li>
+                    <li>
+                        <i data-t="Image"></i>
+                        <div>
+                            <strong>圖像</strong
+                            ><span
+                                >一個點或一個空白處，然後選擇檔案：圖像位於該點與其右側新建的第二個點之間。在
+                                3D 中，它固定在視窗中，沒有這兩個點。</span
+                            ><span><code>圖像(A, B)</code></span>
+                        </div>
+                    </li>
+                </ul>
+            </div>
+            <p>
+                放置控制項後會開啟其屬性；關閉屬性後調色盤會回來。右鍵移動控制項而不操作它；用手指時，在其屬性開啟期間按住並拖曳即可移動。
+                圖像的兩個點決定其大小，並把它與構造相連；如果它們是自由點，拖曳圖像會同時移動它們。
+            </p>
+            <p>
+                核取方塊或選單透過物件的顯示條件起作用：參見
+                <a href="proprietes.html#visible-si">可見條件</a>.
+            </p>
             <h3 id="famille-programs">程式</h3>
             <div class="family" style="--h: 95">
                 <ul>

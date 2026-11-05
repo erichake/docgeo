@@ -114,7 +114,9 @@
                             <td>
                                 objeto visible, mostrar el nombre, objeto fijo
                                 (polígono), objeto inerte, tamaño del texto,
-                                decimales del valor (o no mostrarlo)
+                                decimales del valor (o no mostrarlo),
+                                <a href="#visible-si">visible si</a>, anchura
+                                del campo de entrada
                             </td>
                         </tr>
                         <tr>
@@ -148,6 +150,14 @@
                             </td>
                         </tr>
                         <tr>
+                            <td>Marco</td>
+                            <td>
+                                de una imagen: color, grosor (0: sin marco),
+                                opacidad del trazo, discontinuo; su opacidad y
+                                su capa siguen en Apariencia
+                            </td>
+                        </tr>
+                        <tr>
                             <td id="animation">Animación</td>
                             <td>
                                 velocidad (0: parada), sentido inverso, en el
@@ -159,6 +169,18 @@
                 </table>
             </div>
 
+            <h3 id="visible-si">Visible si</h3>
+            <p>
+                En la sección Visualización: el nombre de una expresión, una
+                fórmula (<code>m == 2</code>) o nada. El objeto solo se ve si es
+                verdadera, y no puede depender del propio objeto.
+            </p>
+            <p>
+                La línea de una casilla nombra los objetos de los que es
+                condición: añadir un nombre une ese objeto a la casilla,
+                quitarlo lo deja siempre visible. Borrar la casilla conserva
+                esos objetos, siempre visibles.
+            </p>
             <h3 id="couleurs-de-creation">Colores al crear</h3>
             <p>
                 Un objeto creado toma el color de su tipo: puntos libres o sobre

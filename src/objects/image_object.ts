@@ -7,7 +7,8 @@ import type { point_object } from "./point_object";
 // GeoGebra's image: its bottom left and bottom right corners, and its top
 // left one, or else its height keeps its proportions. With its bottom left
 // corner only, or fixed at a window position of its top left corner
-// without any, it keeps its size in pixels.
+// without any, it keeps its size in pixels. Its line, if it has a width, is a
+// frame around it.
 export class image_object extends construction_object {
     url: string;
     width: number;
@@ -16,6 +17,7 @@ export class image_object extends construction_object {
     screen: Vec2 | null = null;
     private transform: string | null = null;
     private image!: DOMElement;
+    private frame?: DOMElement;
 
     constructor(
         c: construction,
@@ -30,6 +32,7 @@ export class image_object extends construction_object {
         this.width = width;
         this.height = height;
         this.corners = corners;
+        this.size = 0;
         this.addParents(...corners);
     }
 
@@ -76,7 +79,9 @@ export class image_object extends construction_object {
     render(): void {
         const shown = this.isVisible && this.transform !== null;
         this.dom.stl("display", shown ? "block" : "none");
-        if (shown) this.image.att("transform", this.transform!);
+        if (!shown) return;
+        this.image.att("transform", this.transform!);
+        this.frame?.att("transform", this.transform!);
     }
 
     static createSVG(_this: construction_object): DOMElement {
@@ -89,7 +94,20 @@ export class image_object extends construction_object {
             .att("preserveAspectRatio", "none")
             .stl("pointer-events", "none")
             .stl("opacity", t.opacity ?? 1);
-        return t.svg.shape("g").add(t.image);
+        const dom = t.svg.shape("g").add(t.image);
+        t.frame = undefined;
+        if (t.size > 0) {
+            // Its corners may stretch it: not its line.
+            t.frame = t.svg
+                .shape("rect")
+                .att("width", t.width)
+                .att("height", t.height)
+                .stl(
+                    `fill:none;stroke:${t.stroke_color};stroke-width:${t.size};stroke-opacity:${t.strokeOpacity};stroke-dasharray:${t.strokeDashArray};vector-effect:non-scaling-stroke;pointer-events:none`,
+                );
+            dom.add(t.frame);
+        }
+        return dom;
     }
 }
 

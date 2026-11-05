@@ -291,7 +291,7 @@ export const LOOKS: Record<string, Look> = {
     Itr: LIST,
     Ex: ["rgb(0,0,178)", "rgb(0,0,178)", 7, 0],
     Txt: TEXT,
-    Img: TEXT,
+    Img: ["#000000", "#000000", 0],
     Html: ["#000000", "#000000", 3],
     Btn: ["#000000", "#000000", 1, 0.05],
     Evt: ["#000000", "#000000", 1],
@@ -2251,9 +2251,24 @@ const BUILDERS: Record<string, Builder> = {
     Ex: (parameters, reader) => {
         const { c, name, at, formula: read, vec3, offset } = reader;
         check(isRecord(parameters));
-        const { t: text, v: value, f, s, g, mn = null, mx = null } = parameters;
+        const {
+            t: text,
+            v: value,
+            f,
+            s,
+            g,
+            mu,
+            mn = null,
+            mx = null,
+        } = parameters;
         check(typeof text === "string");
         check(g === undefined || typeof g === "string");
+        check(
+            mu === undefined ||
+                (Array.isArray(mu) &&
+                    mu.length > 0 &&
+                    mu.every((choice) => typeof choice === "string")),
+        );
         check([value, f, s].filter((item) => item !== undefined).length === 1);
         // Bounds that read other objects are formulas.
         const numeric = (bound: Json) => bound === null || isNumber(bound);
@@ -2300,6 +2315,7 @@ const BUILDERS: Record<string, Builder> = {
             bounds,
         );
         expression.global = (g as string | undefined) ?? null;
+        expression.menu = (mu as string[] | undefined) ?? null;
         if (anchored) {
             expression.anchor = at(parameters.on, point_object);
             expression.alpha = screen;

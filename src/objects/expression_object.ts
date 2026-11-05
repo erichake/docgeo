@@ -505,8 +505,10 @@ export class expression_object extends construction_object {
     // A string value is LaTeX, drawn by KaTeX from its top left corner.
     latex = false;
     // GeoGebra's input box, as many characters wide, from its top left
-    // corner: it shows the number its formula reads and changes it.
+    // corner: it shows the number its formula reads, or its own, and changes it.
     inputLength = 0;
+    // A dropdown menu of these choices, its number the one chosen, from 1.
+    menu: string[] | null = null;
     screen: Vec2;
     // ExpressionOn: `screen` follows this point, `alpha` pixels away.
     anchor: point_object | null = null;
@@ -604,6 +606,7 @@ export class expression_object extends construction_object {
                 t: this.text,
                 ...content,
                 ...(this.global !== null && { g: this.global }),
+                ...(this.menu && { mu: this.menu }),
                 ...(this.bounds
                     ? {
                           mn: this.dgoBound(this.bounds.min, context),
@@ -782,9 +785,12 @@ export class expression_object extends construction_object {
 
         if (this.field) {
             this.field.att("x", x).att("y", y);
-            const input = this.field.find("input")!.dom() as HTMLInputElement;
-            if (document.activeElement !== input)
-                input.value =
+            const control = this.field.find("input, select")!.dom();
+            if (this.menu)
+                (control as HTMLSelectElement).selectedIndex =
+                    (this.value as number) - 1;
+            else if (document.activeElement !== control)
+                (control as HTMLInputElement).value =
                     typeof this.value === "number"
                         ? formatNumber(this.value, Math.max(this.precision, 0))
                         : "";
@@ -858,11 +864,12 @@ export class expression_object extends construction_object {
         this.knob.att("cx", this.knobX).att("cy", trackY);
     }
 
-    // The typed number, with a decimal point or comma, becomes the value of
-    // the number the formula reads, within its slider's bounds.
+    // The typed number, with a decimal point or comma, becomes its value, or
+    // that of the number its formula reads, within its slider's bounds.
     private submit(typed: string): void {
-        const [target] =
-            this.program!.refs.values() as Iterable<expression_object>;
+        const target = this.program
+            ? ([...this.program.refs.values()][0] as expression_object)
+            : this;
         const value = Number(typed.trim().replace(",", "."));
         if (typed.trim() !== "" && Number.isFinite(value)) {
             target.value = target.isCursor
@@ -901,26 +908,45 @@ export class expression_object extends construction_object {
             return dom.add(t.tex);
         }
 
-        if (t.inputLength) {
-            const input = $.create("input")
-                .att("type", "text")
-                .stl(
-                    `width:${0.75 * t.inputLength}em;padding:5px 4px;border:1px solid #dcdcdc;border-radius:5px;font-family:Verdana;font-size:${t.fontSize}px;color:${t.stroke_color}`,
+        if (t.inputLength || t.menu) {
+            const control = $.create(t.menu ? "select" : "input").stl(
+                `padding:5px 4px;border:1px solid #dcdcdc;border-radius:5px;font-family:Verdana;font-size:${t.fontSize}px;color:${t.stroke_color}`,
+            );
+            const { menu } = t;
+            if (menu)
+                control.add(
+                    ...menu.map((choice) => $.create("option").text(choice)),
                 );
+            else
+                control
+                    .att("type", "text")
+                    .stl("width", `${0.75 * t.inputLength}em`);
             // Neither a pan of the figure nor its keyboard shortcuts.
-            input.on("pointerdown", (event) => event.stopPropagation(), false);
-            input.on(
+            control.on(
+                "pointerdown",
+                (event) => event.stopPropagation(),
+                false,
+            );
+            control.on(
                 "keydown",
                 (event) => {
                     event.stopPropagation();
                     if (event.key === "Enter")
-                        (input.dom() as HTMLInputElement).blur();
+                        (control.dom() as HTMLInputElement).blur();
                 },
                 false,
             );
-            input.on(
+            control.on(
                 "change",
-                () => t.submit((input.dom() as HTMLInputElement).value),
+                () => {
+                    if (!menu)
+                        return t.submit(
+                            (control.dom() as HTMLInputElement).value,
+                        );
+                    t.value =
+                        (control.dom() as HTMLSelectElement).selectedIndex + 1;
+                    t.C.invalidateGeometry(t);
+                },
                 false,
             );
             t.field = t.svg
@@ -928,7 +954,7 @@ export class expression_object extends construction_object {
                 .att("width", 1)
                 .att("height", 1)
                 .stl("overflow:visible")
-                .add(input);
+                .add(control);
             return dom.add(t.field);
         }
 

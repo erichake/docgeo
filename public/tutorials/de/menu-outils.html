@@ -78,6 +78,11 @@
                     erscheinen nur in der 3D-Ansicht.
                 </li>
                 <li>
+                    Die Familie <strong>Steuerelemente</strong>, nicht im Ring,
+                    setzt Schieberegler, Kontrollkästchen, Menüs, Eingabefelder,
+                    Texte und Bilder.
+                </li>
+                <li>
                     Die Familie <strong>Programme</strong>, die der Ring nicht
                     hat, erstellt Schildkröten, Schaltflächen und
                     Ereignisprogramme (siehe
@@ -915,6 +920,111 @@
                     </li>
                 </ul>
             </div>
+            <h3 id="famille-controls">Steuerelemente</h3>
+            <figure>
+                <img
+                    src="img/controles.webp"
+                    alt="Die Familie Steuerelemente: ein Kontrollkästchen, ein Menü, ein Eingabefeld und ein Schieberegler."
+                    width="1200"
+                    height="720"
+                />
+                <figcaption>
+                    Die Familie Steuerelemente: ein Kontrollkästchen, ein Menü,
+                    ein Eingabefeld und ein Schieberegler.
+                </figcaption>
+            </figure>
+            <div class="family" style="--h: 65">
+                <ul>
+                    <li>
+                        <i data-t="Slider"></i>
+                        <div>
+                            <strong>Schieberegler</strong
+                            ><span
+                                >Die Stelle des Schiebereglers, von −5 bis 5 in
+                                Schritten von 0,1.</span
+                            ><span><code>Schieberegler(-5, 5, 1)</code></span>
+                        </div>
+                    </li>
+                    <li>
+                        <i data-t="Checkbox"></i>
+                        <div>
+                            <strong>Kontrollkästchen</strong
+                            ><span
+                                >Die Objekte, die es anzeigt, falls gewünscht
+                                (ein weiterer Klick nimmt eines heraus), dann
+                                eine leere Stelle: das Kontrollkästchen,
+                                angekreuzt.</span
+                            ><span
+                                ><code
+                                    >Kontrollkästchen("Anzeigen", a, c)</code
+                                ></span
+                            >
+                        </div>
+                    </li>
+                    <li>
+                        <i data-t="Menu"></i>
+                        <div>
+                            <strong>Menü</strong
+                            ><span
+                                >Die Stelle des Menüs, mit drei Einträgen, die
+                                man in seiner Zeile umschreibt. Sein Wert ist
+                                die Nummer der Auswahl.</span
+                            ><span
+                                ><code
+                                    >Menü("Auswahl 1", "Auswahl 2", "Auswahl
+                                    3")</code
+                                ></span
+                            >
+                        </div>
+                    </li>
+                    <li>
+                        <i data-t="InputField"></i>
+                        <div>
+                            <strong>Eingabefeld</strong
+                            ><span
+                                >Die Stelle des Felds. Es enthält eine Zahl, die
+                                Formeln über seinen Namen lesen.</span
+                            ><span><code>Eingabefeld(1)</code></span>
+                        </div>
+                    </li>
+                    <li>
+                        <i data-t="Text"></i>
+                        <div>
+                            <strong>Text</strong
+                            ><span
+                                >Die Stelle des Texts, den man in seiner
+                                Definition umschreibt.</span
+                            ><span><code>"Text"</code></span>
+                        </div>
+                    </li>
+                    <li>
+                        <i data-t="Image"></i>
+                        <div>
+                            <strong>Bild</strong
+                            ><span
+                                >Ein Punkt oder eine leere Stelle, dann die
+                                Datei: das Bild zwischen diesem Punkt und einem
+                                zweiten, rechts davon erzeugten. In 3D bleibt es
+                                ohne diese Punkte im Fenster fixiert.</span
+                            ><span><code>Bild(A, B)</code></span>
+                        </div>
+                    </li>
+                </ul>
+            </div>
+            <p>
+                Ein gesetztes Steuerelement öffnet seine Eigenschaften; beim
+                Schließen kommt die Palette zurück. Die rechte Maustaste
+                verschiebt es, ohne es zu bedienen; mit dem Finger verschiebt es
+                Drücken und Ziehen, solange seine Eigenschaften offen sind. Die
+                beiden Punkte eines Bilds bestimmen seine Größe und verbinden es
+                mit der Konstruktion; Ziehen des Bilds verschiebt sie gemeinsam,
+                wenn sie frei sind.
+            </p>
+            <p>
+                Ein Kontrollkästchen oder ein Menü wirkt über die
+                Anzeigebedingung der Objekte: siehe
+                <a href="proprietes.html#visible-si">Sichtbar wenn</a>.
+            </p>
             <h3 id="famille-programs">Programme</h3>
             <div class="family" style="--h: 95">
                 <ul>

@@ -10,6 +10,7 @@ import { expression_object } from "../objects/expression_object";
 import { expression_list_object } from "../objects/expression_list_object";
 import { fixed_angle_object } from "../objects/fixed_angle_object";
 import { list_object } from "../objects/list_object";
+import { image_object } from "../objects/image_object";
 import { locus_object } from "../objects/locus_object";
 import { panel_object } from "../objects/panel_object";
 import { button_object } from "../objects/button_object";
@@ -27,6 +28,7 @@ import {
     figureTurtles,
     hasName,
     ownPrograms,
+    conditionText,
     programHat,
     programOwner,
 } from "./figure";
@@ -68,6 +70,7 @@ const SCRUB = {
     segments_size: { pixel: 0.05 },
     increment: { pixel: 0.005, relative: true },
     slider_length: { pixel: 2 },
+    input_width: { pixel: 2 },
     knob_size: { pixel: 0.1 },
     animation_speed: { pixel: 0.02, relative: true },
 } satisfies Partial<Record<MessageKey, Scrub>>;
@@ -89,7 +92,12 @@ const measured = (object: construction_object): boolean =>
 const defined = (object: construction_object): object is Defined =>
     (object instanceof expression_object &&
         !object.isCursor &&
-        !object.bounds) ||
+        !object.bounds &&
+        !(
+            !object.program &&
+            !object.formula &&
+            (object.checkbox || object.inputLength > 0 || object.menu)
+        )) ||
     object instanceof panel_object ||
     object instanceof button_object;
 
@@ -112,6 +120,9 @@ export function propertiesPanel(options: {
     line: (object: construction_object) => string | null;
     // The object redefined by a line, throwing a TextError where it's wrong.
     enter: (object: construction_object, line: string) => Promise<void>;
+    // What decides whether the objects show, throwing a TextError where it's
+    // wrong.
+    condition: (objects: construction_object[], source: string) => void;
     // A definition typed as a line, the line being `head` and its text:
     // completed, and given the names of the objects designated.
     bind: (editor: DOMElement, head: string, apply: () => void) => void;
@@ -630,8 +641,12 @@ export function propertiesPanel(options: {
             },
             false,
         );
+        // Of an image, its line is a frame.
+        const lines = objects.every((object) => object instanceof image_object)
+            ? section("image_frame")
+            : appearance;
         color(
-            appearance,
+            lines,
             "color",
             objects,
             (object) => object.stroke_color,
@@ -656,7 +671,7 @@ export function propertiesPanel(options: {
             },
         );
         number(
-            appearance,
+            lines,
             "thickness",
             objects.filter((object) => !(object instanceof point_object)),
             (object) => object.size,
@@ -679,7 +694,8 @@ export function propertiesPanel(options: {
                 object.border = value;
             },
         );
-        // A panel's opacity is its frame's and its background's.
+        // A panel's opacity is its frame's and its background's, an image's
+        // its own.
         const panels = objects.filter(
             (object) => object instanceof panel_object,
         );
@@ -689,7 +705,11 @@ export function propertiesPanel(options: {
         number(
             appearance,
             "opacity",
-            panels,
+            objects.filter(
+                (object) =>
+                    object instanceof panel_object ||
+                    object instanceof image_object,
+            ),
             (object) => (object.opacity ?? 1) * 100,
             0,
             100,
@@ -699,7 +719,7 @@ export function propertiesPanel(options: {
             },
         );
         number(
-            appearance,
+            lines,
             "stroke_opacity",
             unpaneled,
             (object) => object.strokeOpacity * 100,
@@ -713,7 +733,9 @@ export function propertiesPanel(options: {
         // A locus has no default opacity in .dgo, yet is filled like DGPad's.
         const filled = unpaneled.filter(
             (object) =>
-                object.opacity !== undefined || object instanceof locus_object,
+                !(object instanceof image_object) &&
+                (object.opacity !== undefined ||
+                    object instanceof locus_object),
         );
         color(
             appearance,
@@ -738,7 +760,7 @@ export function propertiesPanel(options: {
             },
         );
         check(
-            appearance,
+            lines,
             "dashed",
             unpaneled.filter(
                 (object) =>
@@ -776,12 +798,33 @@ export function propertiesPanel(options: {
                 object.hidden = value ? 0 : 1;
             },
         );
-        if (objects.some(({ condition }) => condition))
-            display.add(
-                $.create("p")
-                    .cls("dge-property-help")
-                    .text(message("conditional_visibility")),
-            );
+        const condition = $.create("input")
+            .att("type", "text")
+            .att("dir", "ltr");
+        const conditionField = condition.dom() as HTMLInputElement;
+        conditionField.value = first(condition, objects, conditionText);
+        conditionField.placeholder = message("visible_if_hint");
+        row(display, "visible_if", condition);
+        const conditionError = $.create("p").cls("dge-program-error");
+        display.add(conditionError);
+        condition.on(
+            "change",
+            () => {
+                condition.removeClass("dge-mixed");
+                try {
+                    options.condition(objects, conditionField.value);
+                    condition.removeClass("dge-error");
+                    conditionError.text("");
+                } catch (failure) {
+                    if (!(failure instanceof TextError)) throw failure;
+                    condition.addClass("dge-error");
+                    conditionError.text(
+                        message(failure.key as MessageKey, failure.detail),
+                    );
+                }
+            },
+            false,
+        );
         check(
             display,
             "show_name",
@@ -1056,6 +1099,22 @@ export function propertiesPanel(options: {
                 },
             );
         }
+        number(
+            display,
+            "input_width",
+            objects.filter(
+                (object): object is expression_object =>
+                    object instanceof expression_object &&
+                    object.inputLength > 0,
+            ),
+            (object) => object.inputLength,
+            1,
+            100,
+            1,
+            (object, value) => {
+                object.inputLength = value;
+            },
+        );
         const animated = objects.filter(
             (object): object is point_on_object | expression_object =>
                 // Not on a surface.

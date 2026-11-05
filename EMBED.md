@@ -105,7 +105,7 @@ cette taille montre exactement ce qu'il y avait dans le cadre, en 2D comme en
 compris, dans l'ordre de construction. `hidden` vaut `true` pour un objet
 caché ou super-caché. `movable` vaut `true` quand une manipulation peut
 changer la valeur de l'objet : point libre (punaisé compris), point sur objet,
-expression de valeur constante (curseur, case à cocher, nombre que modifie un
+expression de valeur constante (curseur, case à cocher, menu déroulant, nombre que modifie un
 champ de saisie ou le glisser d'un point `Fp`). Ce sont les objets de l'état
 (`DGO.md`, « État élève »), hors numéros de branche des intersections, qui ne
 se manipulent pas directement, et hors rayons des cercles `C1` et vecteurs

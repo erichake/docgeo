@@ -253,6 +253,7 @@ body:not(.dge-adjusting) svg .dge-framed > foreignObject > div {
     outline: 2px solid #2563eb;
     outline-offset: 2px;
 }
+.dge-properties input.dge-error,
 .dge-properties textarea.dge-program.dge-error {
     border-color: #dc2626;
     background: #fef2f2;

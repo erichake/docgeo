@@ -204,6 +204,7 @@ const de: Texts = {
         point_border: "Konturstärke",
         scrub_hint:
             "Ziehen zum Anpassen · Klicken zum Eingeben · Umschalt: Feineinstellung",
+        image_frame: "Rahmen",
         thickness: "Linienstärke",
         stroke_opacity: "Deckkraft der Linie",
         fill_opacity: "Deckkraft der Füllung",
@@ -211,8 +212,6 @@ const de: Texts = {
         level: "Ebene",
         display: "Anzeige",
         visible: "Objekt sichtbar",
-        conditional_visibility:
-            "Die Sichtbarkeit hängt auch von einer Bedingung der Figur ab.",
         show_name: "Name anzeigen",
         unfold_finals: "Endobjekte aufklappen",
         fold_finals: "Endobjekte zuklappen",
@@ -345,6 +344,17 @@ const de: Texts = {
         designate_transformable: "Wählen Sie einen Punkt oder ein Objekt",
         designate_invertible: "Wählen Sie einen Punkt oder ein Objekt",
         designate_moveable: "Wählen Sie einen verschiebbaren Punkt",
+        family_controls: "Steuerelemente",
+        checkbox_caption: "Anzeigen",
+        menu_choice: "Auswahl %",
+        designate_control: "Wählen Sie die Stelle",
+        designate_checkbox:
+            "Wählen Sie, was es anzeigt, falls gewünscht, dann die Stelle",
+        visible_if: "Sichtbar wenn",
+        visible_if_hint: "ein Name oder eine Formel",
+        condition_reads: "Die Bedingung darf nicht von % abhängen",
+        input_width: "Breite",
+        image_unreadable: "Diese Datei ist kein lesbares Bild",
         designate_button: "Wählen Sie die Stelle der Schaltfläche",
         designate_pointOn: "Wählen Sie einen Punkt auf einem Objekt",
         designate_line: "Wählen Sie eine Gerade",
@@ -530,6 +540,9 @@ const de: Texts = {
         Html: "Html",
         Image: "Bild",
         Button: "Schaltfläche",
+        Checkbox: "Kontrollkästchen",
+        InputField: "Eingabefeld",
+        Menu: "Menü",
     },
 };
 

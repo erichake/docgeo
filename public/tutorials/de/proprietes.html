@@ -118,7 +118,9 @@
                             <td>
                                 Objekt sichtbar, Name anzeigen, Objekt fixiert
                                 (Vieleck), Objekt inaktiv, Textgröße,
-                                Dezimalstellen des Werts (oder nicht anzeigen)
+                                Dezimalstellen des Werts (oder nicht anzeigen),
+                                <a href="#visible-si">sichtbar wenn</a>, Breite
+                                des Eingabefelds
                             </td>
                         </tr>
                         <tr>
@@ -155,6 +157,14 @@
                             </td>
                         </tr>
                         <tr>
+                            <td>Rahmen</td>
+                            <td>
+                                eines Bilds: Farbe, Dicke (0: kein Rahmen),
+                                Linienopazität, gestrichelt; seine Opazität und
+                                seine Ebene bleiben unter Darstellung
+                            </td>
+                        </tr>
+                        <tr>
                             <td id="animation">Animation</td>
                             <td>
                                 Geschwindigkeit (0: Stopp), umgekehrte Richtung,
@@ -165,6 +175,20 @@
                 </table>
             </div>
 
+            <h3 id="visible-si">Sichtbar wenn</h3>
+            <p>
+                Im Abschnitt Anzeige: der Name eines Ausdrucks, eine Formel
+                (<code>m == 2</code>) oder nichts. Das Objekt ist nur sichtbar,
+                solange sie wahr ist, und sie darf nicht vom Objekt selbst
+                abhängen.
+            </p>
+            <p>
+                Die Zeile eines Kontrollkästchens nennt die Objekte, deren
+                Bedingung es ist: Einen Namen hinzufügen verbindet das Objekt
+                mit dem Kästchen, einen entfernen macht es immer sichtbar. Beim
+                Löschen des Kästchens bleiben diese Objekte erhalten und immer
+                sichtbar.
+            </p>
             <h3 id="couleurs-de-creation">Farben beim Erstellen</h3>
             <p>
                 Ein neues Objekt erhält die Farbe seines Typs: freie Punkte und

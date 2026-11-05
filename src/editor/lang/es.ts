@@ -199,6 +199,7 @@ const es: Texts = {
         point_border: "Grosor del contorno",
         scrub_hint:
             "Arrastra para ajustar · Haz clic para escribir · Mayús: ajuste fino",
+        image_frame: "Marco",
         thickness: "Grosor",
         stroke_opacity: "Opacidad del trazo",
         fill_opacity: "Opacidad del relleno",
@@ -206,8 +207,6 @@ const es: Texts = {
         level: "Capa",
         display: "Visualización",
         visible: "Objeto visible",
-        conditional_visibility:
-            "La visibilidad también depende de una condición de la figura.",
         show_name: "Mostrar el nombre",
         unfold_finals: "Desplegar los finales",
         fold_finals: "Plegar los finales",
@@ -339,6 +338,17 @@ const es: Texts = {
         designate_transformable: "Selecciona un punto o un objeto",
         designate_invertible: "Selecciona un punto o un objeto",
         designate_moveable: "Selecciona un punto que se pueda arrastrar",
+        family_controls: "Controles",
+        checkbox_caption: "Mostrar",
+        menu_choice: "Opción %",
+        designate_control: "Selecciona el lugar",
+        designate_checkbox:
+            "Selecciona lo que muestra, si procede, y luego el lugar",
+        visible_if: "Visible si",
+        visible_if_hint: "un nombre o una fórmula",
+        condition_reads: "La condición no puede depender de %",
+        input_width: "Anchura",
+        image_unreadable: "Este archivo no es una imagen legible",
         designate_button: "Selecciona dónde va el botón",
         designate_pointOn: "Selecciona un punto sobre un objeto",
         designate_line: "Selecciona una recta",
@@ -518,6 +528,9 @@ const es: Texts = {
         Html: "Html",
         Image: "Imagen",
         Button: "Botón",
+        Checkbox: "Casilla",
+        InputField: "CampoDeEntrada",
+        Menu: "Menú",
     },
 };
 

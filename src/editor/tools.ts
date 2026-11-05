@@ -26,14 +26,16 @@ export interface Tool {
     // The command, whose arguments are designated one after the other; or a
     // point put on the object or an intersection, where it was designated;
     // or a program to write, of a turtle from a point, of a button put
-    // there, or answering the object designated; or a macro to define, or
-    // on the ring, those of the figure that take the object.
+    // there, or answering the object designated; or a control put there, a
+    // checkbox after the objects it shows; or a macro to define, or on the
+    // ring, those of the figure that take the object.
     mode:
         | "command"
         | "point"
         | "intersection"
         | "turtle"
         | "button"
+        | "control"
         | "event"
         | "macro"
         | "macros";
@@ -319,6 +321,54 @@ const FAMILIES: [
         ],
     ],
     [
+        "family_controls",
+        65,
+        [],
+        [
+            tool(
+                "Slider",
+                0,
+                path("M3 12h18", true) +
+                    result(`<circle cx="15" cy="12" r="3.5"/>`),
+                "control",
+            ),
+            tool(
+                "Checkbox",
+                0,
+                result(
+                    `<rect x="4" y="4" width="16" height="16" rx="3"/><path d="m8 12 3 3 5-6"/>`,
+                ),
+                "control",
+            ),
+            tool(
+                "Menu",
+                0,
+                path("M6 18h12", true) +
+                    result(
+                        `<rect x="3" y="5" width="18" height="8" rx="2"/><path d="m14 8 2 2 2-2"/>`,
+                    ),
+                "control",
+            ),
+            tool(
+                "InputField",
+                0,
+                result(
+                    `<rect x="3" y="7" width="18" height="10" rx="2"/><path d="M8 10v4"/>`,
+                ),
+                "control",
+            ),
+            tool("Text", 0, result(path("M5 6h14M12 6v13M9 19h6")), "control"),
+            tool(
+                "Image",
+                1,
+                result(
+                    `<rect x="3" y="5" width="18" height="14" rx="2"/><path d="m5 17 5-6 4 4 2-2 3 4"/>`,
+                ) + dot(16, 9),
+                "control",
+            ),
+        ],
+    ],
+    [
         "family_programs",
         95,
         [],
@@ -513,6 +563,7 @@ export function toolsFor(
         // A point is put on the object, an intersection with another.
         if (mode === "point") return accepts(object, "support");
         if (mode === "turtle" || mode === "event") return answers(tool, object);
+        if (mode === "control") return tool.command.name === "Checkbox";
         if (mode === "macros") return true;
         if (mode === "intersection") return crossable(object);
         // A radius is given by the tool, not designated.
@@ -567,8 +618,9 @@ export function assign(
         return objects.length === 1 && answers(tool, objects[0])
             ? [...objects]
             : null;
-    // A button takes no object, the selection ignored.
-    if (mode === "button") return [];
+    // A button or a control takes no object, the selection ignored or what
+    // the checkbox shows (see take in main.ts).
+    if (mode === "button" || mode === "control") return [];
     // The objects selected are the initials.
     if (mode === "macro")
         return objects.every((object) => initialType(object))

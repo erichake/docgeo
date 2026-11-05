@@ -500,6 +500,10 @@ la figure, autour de la verticale de O dans l'espace, sa hauteur gardée),
    les scripts : `GLOBAL_GET("nom")` la lit, `GLOBAL_SET("nom", valeur)` et
    `GLOBAL_INC("nom", pas)` la changent comme `SET_EXP` ; la formule associe
    la globale au nom `GLOBAL nom`.
+   `"mu": [choix…]` (liste non vide de textes) fait de l'`Ex` de valeur
+   constante un menu déroulant de ces choix, sa valeur étant le numéro du
+   choix, à partir de 1 ; le style `iB`, sur une `Ex` sans formule, en fait un
+   champ de saisie de sa propre valeur.
 7. Nature `point`, `segment`, `line`, `label`, `polygon` (région remplie
    bordée par les points, pris dans l'ordre), `polygons` (chaque suite de
    points définis borne une région, un point indéfini les séparant) ou
@@ -1050,7 +1054,8 @@ non définie).
 | `Loc`, `Cur`                                                              | `#0b5b94`, `#0b5b94`, 2                   |
 | `Lst`, `ELst`, `Itr`                                                      | `#656148`, `#656148`, 2                   |
 | `Ex`                                                                      | `rgb(0,0,178)`, `rgb(0,0,178)`, 7, 0      |
-| `Txt`, `Img`                                                              | `#000000`, `#000000`, 1                   |
+| `Txt`                                                                     | `#000000`, `#000000`, 1                   |
+| `Img` (une épaisseur non nulle dessine son cadre)                         | `#000000`, `#000000`, 0                   |
 | `Html`                                                                    | `#000000`, `#000000`, 3                   |
 | `Btn` (bord : `c` à `lo`, épaisseur `s` ; fond : `fc` à `o`)              | `#000000`, `#000000`, 1, 0,05             |
 

@@ -137,6 +137,32 @@ export const SHOTS = [
         },
     },
     {
+        // A checkbox showing the circle, a menu, a field and a slider, beside
+        // their family in the palette.
+        file: "controles.webp",
+        page: "editor.html",
+        run: async ({ page, type, button, t }) => {
+            const choice = (await t("menu_choice")).trim();
+            const choices = [1, 2, 3].map((n) => `"${choice} ${n}"`);
+            await type([
+                "A = (-5, -3)",
+                "B = (-1, -3)",
+                "c = Circle(A, B)",
+                `k = Checkbox("${await t("checkbox_caption")}", c)`,
+                `m = Menu(${choices.join(", ")})`,
+                "n = InputField(3)",
+                "r = Slider(0, 10, 4)",
+            ]);
+            await button("palette");
+            await page.waitForTimeout(400);
+            const title = page.locator(".dge-palette-title", {
+                hasText: await t("family_controls"),
+            });
+            await title.evaluate((zone) => zone.scrollIntoView());
+            await page.waitForTimeout(300);
+        },
+    },
+    {
         // A workbook of three pages, the second's menu opened from its tab.
         file: "classeur.webp",
         page: "editor.html",

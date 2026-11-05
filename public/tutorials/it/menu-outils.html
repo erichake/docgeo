@@ -77,6 +77,11 @@
                     3D.
                 </li>
                 <li>
+                    La famiglia <strong>Controlli</strong>, assente dall’anello,
+                    posa cursori, caselle di controllo, menu, campi di input,
+                    testi e immagini.
+                </li>
+                <li>
                     La famiglia <strong>Programmi</strong>, assente dall’anello,
                     crea tartarughe, pulsanti e programmi di eventi (vedi
                     <a href="expressions.html#blocs">Blocchi e tartaruga</a>).
@@ -879,6 +884,109 @@
                     </li>
                 </ul>
             </div>
+            <h3 id="famille-controls">Controlli</h3>
+            <figure>
+                <img
+                    src="img/controles.webp"
+                    alt="La famiglia Controlli: una casella, un menu, un campo di input e un cursore."
+                    width="1200"
+                    height="720"
+                />
+                <figcaption>
+                    La famiglia Controlli: una casella, un menu, un campo di
+                    input e un cursore.
+                </figcaption>
+            </figure>
+            <div class="family" style="--h: 65">
+                <ul>
+                    <li>
+                        <i data-t="Slider"></i>
+                        <div>
+                            <strong>Cursore</strong
+                            ><span
+                                >Il punto del cursore, da −5 a 5 con passo
+                                0,1.</span
+                            ><span><code>Cursore(-5, 5, 1)</code></span>
+                        </div>
+                    </li>
+                    <li>
+                        <i data-t="Checkbox"></i>
+                        <div>
+                            <strong>CasellaDiControllo</strong
+                            ><span
+                                >Gli oggetti che mostra, se ce ne sono (un altro
+                                clic ne toglie uno), poi un punto vuoto: la
+                                casella, spuntata.</span
+                            ><span
+                                ><code
+                                    >CasellaDiControllo("Mostra", a, c)</code
+                                ></span
+                            >
+                        </div>
+                    </li>
+                    <li>
+                        <i data-t="Menu"></i>
+                        <div>
+                            <strong>Menu</strong
+                            ><span
+                                >Il punto del menu, con tre scelte da riscrivere
+                                nella sua riga. Il suo valore è il numero della
+                                scelta.</span
+                            ><span
+                                ><code
+                                    >Menu("Scelta 1", "Scelta 2", "Scelta
+                                    3")</code
+                                ></span
+                            >
+                        </div>
+                    </li>
+                    <li>
+                        <i data-t="InputField"></i>
+                        <div>
+                            <strong>CampoDiInput</strong
+                            ><span
+                                >Il punto del campo. Contiene un numero, che le
+                                formule leggono con il suo nome.</span
+                            ><span><code>CampoDiInput(1)</code></span>
+                        </div>
+                    </li>
+                    <li>
+                        <i data-t="Text"></i>
+                        <div>
+                            <strong>Testo</strong
+                            ><span
+                                >Il punto del testo, da riscrivere nella sua
+                                definizione.</span
+                            ><span><code>"Testo"</code></span>
+                        </div>
+                    </li>
+                    <li>
+                        <i data-t="Image"></i>
+                        <div>
+                            <strong>Immagine</strong
+                            ><span
+                                >Un punto o un luogo vuoto, poi il file:
+                                l’immagine tra questo punto e un secondo, creato
+                                alla sua destra. In 3D resta fissa nella
+                                finestra, senza questi punti.</span
+                            ><span><code>Immagine(A, B)</code></span>
+                        </div>
+                    </li>
+                </ul>
+            </div>
+            <p>
+                Un controllo posato apre le sue proprietà; chiudendole torna la
+                tavolozza. Il tasto destro lo sposta senza azionarlo; con il
+                dito, premere e trascinare lo sposta mentre le sue proprietà
+                sono aperte. I due punti di un’immagine ne danno la dimensione e
+                la legano alla costruzione; trascinarla li sposta insieme se
+                sono liberi.
+            </p>
+            <p>
+                Una casella o un menu agisce tramite la condizione di
+                visualizzazione degli oggetti: vedi
+                <a href="proprietes.html#visible-si">Visibile se</a>.
+            </p>
             <h3 id="famille-programs">Programmi</h3>
             <div class="family" style="--h: 95">
                 <ul>

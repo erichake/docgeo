@@ -460,6 +460,52 @@ la GeoGebra, l'outil choisi avant les objets.
   qui existe), l'ouvre en blocs dans les propriétés et repose l'outil, qui
   ne reste pas en main comme les autres (modes `turtle`, `button` et
   `event` de `tools.ts`). Une sélection est ignorée par « Bouton ».
+- **Famille « Contrôles »** (décidé avec l'auteur le 2026-11-05, d'après la
+  zone de CaRMetal et le menu de GeoGebra), avant « Programmes », absente de
+  l'anneau : `Curseur`, `Case`, `Menu`, `ChampDeSaisie`, « Texte » et
+  « Image » (mode `control` de `tools.ts`). Un clic pose le contrôle à cet
+  endroit de la fenêtre, avec ses valeurs par défaut, repose l'outil et ouvre
+  ses propriétés (`placeControl` dans `main.ts`), que leur fermeture
+  remplace par la palette, comme après un clic droit. Leurs textes sont en corps 18. Le bouton reste dans
+  « Programmes ». Ce sont des expressions, comme à l'import :
+    - la case à cocher désigne d'abord ce qu'elle affiche (sélection préalable,
+      objets, widgets ou lignes du texte, un second clic retire), puis un clic
+      dans le vide la pose, cochée pour que rien ne disparaisse ;
+    - le menu est un vrai mode de l'expression (`mu`, voir `DGO.md`), pas un
+      `<select>` de panneau : sa valeur est le numéro du choix ;
+    - le champ de saisie, de nombres seulement, porte son propre nombre, sans
+      expression séparée (l'import GeoGebra lit toujours celui de sa formule) ;
+    - leur ligne écrit leur commande, qui les redéfinit : une case garde son
+      état, un menu son choix dans la limite des siens ;
+    - la ligne d'une case nomme ce qu'elle affiche : `b = Case("Afficher", a, c)` (décidé avec l'auteur le 2026-11-05, qui a écarté le nom
+      « Afficher » : une case peut aussi n'être qu'un 0 ou 1 lu par une formule).
+      Ce n'est que l'écriture des conditions des objets : le format ne change
+      pas, et une figure importée montre aussitôt les siens. Ajouter un nom le
+      relie à la case, en retirer un le rend toujours visible. Un objet dont la
+      condition est une formule qui lit la case n'y figure pas ; l'ajouter
+      remplace sa formule ;
+    - le texte est une expression de valeur texte ;
+    - l'image, après le choix de son fichier, a sa taille (au plus 400 px) entre
+      deux points d'ancrage, comme dans GeoGebra (décidé avec l'auteur le
+      2026-11-05) : son coin inférieur gauche, le point désigné ou le point libre
+      créé là où on clique, et son coin inférieur droit. Ils la dimensionnent et
+      la relient à la construction ; on la glisse aussi, ses deux ancrages libres
+      suivant. En 3D, où ils la feraient tourner, elle reste fixée dans la
+      fenêtre. Dans ses propriétés, sa couleur, son épaisseur, l'opacité de son
+      trait et ses pointillés sont ceux d'un cadre (section « Cadre », décidé avec
+      l'auteur le 2026-11-05), absent à l'épaisseur 0, sa valeur par défaut :
+      « Apparence » ne garde que son opacité et son calque.
+- **« Visible si »** (propriétés, section « Affichage ») : le nom d'une
+  expression, une formule (`m == 2`), gardée dans une expression cachée qui
+  part quand on la remplace, ou rien. Refusé si la condition lit l'objet ou ce
+  qui en est construit : rien ne pourrait plus le montrer. Supprimer une
+  condition ne supprime pas ce qu'elle montrait, qui reste affiché
+  (`removeObject`).
+- **Déplacer un contrôle** : le clic gauche le manipule. Le bouton droit le
+  déplace, sans le manipuler. Au doigt, ses propriétés ouvertes, un appui le
+  déplace (`moveWidget`) : préféré à l'appui long d'abord envisagé, que Safari
+  réserve dans un champ à sa loupe et à la sélection du texte. Le libellé d'une
+  case, la piste d'un curseur et une image se déplacent aussi au clic gauche.
 - **Plus d'outils que l'anneau**, qui reste léger : à la fin de leur
   famille, `AutreIntersection` (points), `Compas`, en 3D « Cercle
   (centre, direction et rayon) » et « Cercle (axe et point) », `Arc`,
@@ -474,8 +520,8 @@ la GeoGebra, l'outil choisi avant les objets.
   `Hyperbole(F, G, a)` prennent aussi le demi-axe a). Toute commande du catalogue qui
   se construit par désignation y a sa place (`Rotation`, `Translation`
   et `Homothétie` à la fin des transformations ; tangentes… à mesure
-  qu'elles s'ajoutent) ; `PointFixe`, `Curseur` et
-  `Liste` restent au clavier ou dans la barre.
+  qu'elles s'ajoutent) ; `PointFixe` et `Liste` restent au clavier ou dans
+  la barre.
 - **Un item par commande d'une place de l'anneau** (`Item` de `tools.ts`) :
   les formes d'une commande à la même place n'en font qu'un, le premier
   objet désigné choisit la forme comme il choisit les outils de l'anneau

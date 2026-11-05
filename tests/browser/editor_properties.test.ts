@@ -60,6 +60,7 @@ function setup(macros: object = {}) {
         define: async () => {},
         line: () => null,
         enter: async () => {},
+        condition: () => {},
         bind: () => {},
         create: async () => {},
         shown: () => {},
@@ -507,6 +508,7 @@ describe("Object properties", () => {
                     ? null
                     : lineOf(object, index, figureObjects(studio.scene));
             },
+            condition: () => {},
             enter: async (object, line) => {
                 const spec = resolve(
                     studio.scene,

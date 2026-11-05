@@ -114,7 +114,9 @@
                             <td>
                                 objeto visível, exibir o nome, objeto fixo
                                 (polígono), objeto inerte, tamanho do texto,
-                                casas decimais do valor (ou não exibi-lo)
+                                casas decimais do valor (ou não exibi-lo),
+                                <a href="#visible-si">visível se</a>, largura do
+                                campo de entrada
                             </td>
                         </tr>
                         <tr>
@@ -148,6 +150,14 @@
                             </td>
                         </tr>
                         <tr>
+                            <td>Moldura</td>
+                            <td>
+                                de uma imagem: cor, espessura (0: sem moldura),
+                                opacidade do traço, tracejado; sua opacidade e
+                                sua camada ficam em Aparência
+                            </td>
+                        </tr>
+                        <tr>
                             <td id="animation">Animação</td>
                             <td>
                                 velocidade (0: parada), sentido inverso, na
@@ -158,6 +168,19 @@
                 </table>
             </div>
 
+            <h3 id="visible-si">Visível se</h3>
+            <p>
+                Na seção Exibição: o nome de uma expressão, uma fórmula (<code
+                    >m == 2</code
+                >) ou nada. O objeto só é visível se ela for verdadeira, e ela
+                não pode depender do próprio objeto.
+            </p>
+            <p>
+                A linha de uma caixa nomeia os objetos dos quais ela é a
+                condição: acrescentar um nome liga o objeto à caixa, retirá-lo o
+                torna sempre visível. Excluir a caixa mantém esses objetos,
+                sempre visíveis.
+            </p>
             <h3 id="couleurs-de-creation">Cores na criação</h3>
             <p>
                 Um objeto criado recebe a cor do seu tipo: pontos livres ou

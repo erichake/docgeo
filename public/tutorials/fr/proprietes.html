@@ -115,7 +115,9 @@
                             <td>
                                 objet visible, afficher le nom, objet fixe
                                 (polygone), objet inerte, taille du texte,
-                                décimales de la valeur (ou ne pas l’afficher)
+                                décimales de la valeur (ou ne pas l’afficher),
+                                <a href="#visible-si">visible si</a>, largeur du
+                                champ de saisie
                             </td>
                         </tr>
                         <tr>
@@ -149,6 +151,14 @@
                             </td>
                         </tr>
                         <tr>
+                            <td>Cadre</td>
+                            <td>
+                                d’une image : couleur, épaisseur (0 : pas de
+                                cadre), opacité du trait, pointillés ; son
+                                opacité et son calque restent dans Apparence
+                            </td>
+                        </tr>
+                        <tr>
                             <td id="animation">Animation</td>
                             <td>
                                 vitesse (0 : arrêt), sens inverse, à l’extrémité
@@ -159,6 +169,18 @@
                 </table>
             </div>
 
+            <h3 id="visible-si">Visible si</h3>
+            <p>
+                Dans la section Affichage : le nom d’une expression, une formule
+                (<code>m == 2</code>) ou rien. L’objet n’est visible que si elle
+                est vraie, et elle ne peut pas dépendre de l’objet lui-même.
+            </p>
+            <p>
+                La ligne d’une case nomme les objets dont elle est la condition
+                : y ajouter un nom le relie à la case, en retirer un le rend
+                toujours visible. Supprimer la case garde ces objets, toujours
+                visibles.
+            </p>
             <h3 id="couleurs-de-creation">Couleurs à la création</h3>
             <p>
                 Un objet créé prend la couleur de son type : points libres ou

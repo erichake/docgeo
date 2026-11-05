@@ -79,6 +79,11 @@
                     3D.
                 </li>
                 <li>
+                    La familia <strong>Controles</strong>, ausente del anillo,
+                    coloca deslizadores, casillas, menús, campos de entrada,
+                    textos e imágenes.
+                </li>
+                <li>
                     La familia <strong>Programas</strong>, ausente del anillo,
                     crea tortugas, botones y programas de eventos (ver
                     <a href="expressions.html#blocs">Bloques y tortuga</a>).
@@ -887,6 +892,104 @@
                     </li>
                 </ul>
             </div>
+            <h3 id="famille-controls">Controles</h3>
+            <figure>
+                <img
+                    src="img/controles.webp"
+                    alt="La familia Controles: una casilla, un menú, un campo de entrada y un deslizador."
+                    width="1200"
+                    height="720"
+                />
+                <figcaption>
+                    La familia Controles: una casilla, un menú, un campo de
+                    entrada y un deslizador.
+                </figcaption>
+            </figure>
+            <div class="family" style="--h: 65">
+                <ul>
+                    <li>
+                        <i data-t="Slider"></i>
+                        <div>
+                            <strong>Deslizador</strong
+                            ><span
+                                >El lugar del deslizador, de −5 a 5 con paso
+                                0,1.</span
+                            ><span><code>Deslizador(-5, 5, 1)</code></span>
+                        </div>
+                    </li>
+                    <li>
+                        <i data-t="Checkbox"></i>
+                        <div>
+                            <strong>Casilla</strong
+                            ><span
+                                >Los objetos que muestra, si los hay (otro clic
+                                quita uno), y luego un lugar vacío: la casilla,
+                                marcada.</span
+                            ><span><code>Casilla("Mostrar", a, c)</code></span>
+                        </div>
+                    </li>
+                    <li>
+                        <i data-t="Menu"></i>
+                        <div>
+                            <strong>Menú</strong
+                            ><span
+                                >El lugar del menú, con tres opciones que se
+                                reescriben en su línea. Su valor es el número de
+                                la opción.</span
+                            ><span
+                                ><code
+                                    >Menú("Opción 1", "Opción 2", "Opción
+                                    3")</code
+                                ></span
+                            >
+                        </div>
+                    </li>
+                    <li>
+                        <i data-t="InputField"></i>
+                        <div>
+                            <strong>CampoDeEntrada</strong
+                            ><span
+                                >El lugar del campo. Contiene un número, que las
+                                fórmulas leen por su nombre.</span
+                            ><span><code>CampoDeEntrada(1)</code></span>
+                        </div>
+                    </li>
+                    <li>
+                        <i data-t="Text"></i>
+                        <div>
+                            <strong>Texto</strong
+                            ><span
+                                >El lugar del texto, que se reescribe en su
+                                definición.</span
+                            ><span><code>"Texto"</code></span>
+                        </div>
+                    </li>
+                    <li>
+                        <i data-t="Image"></i>
+                        <div>
+                            <strong>Imagen</strong
+                            ><span
+                                >Un punto o un lugar vacío, y luego el archivo:
+                                la imagen entre ese punto y otro, creado a su
+                                derecha. En 3D queda fija en la ventana, sin
+                                esos puntos.</span
+                            ><span><code>Imagen(A, B)</code></span>
+                        </div>
+                    </li>
+                </ul>
+            </div>
+            <p>
+                Un control colocado abre sus propiedades; al cerrarlas vuelve la
+                paleta. El botón derecho lo mueve sin accionarlo; con el dedo,
+                pulsar y arrastrar lo mueve mientras sus propiedades están
+                abiertas. Los dos puntos de una imagen fijan su tamaño y la unen
+                a la construcción; arrastrarla los mueve juntos si son libres.
+            </p>
+            <p>
+                Una casilla o un menú actúa mediante la condición de
+                visualización de los objetos: véase
+                <a href="proprietes.html#visible-si">Visible si</a>.
+            </p>
             <h3 id="famille-programs">Programas</h3>
             <div class="family" style="--h: 95">
                 <ul>

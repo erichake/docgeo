@@ -2117,6 +2117,14 @@ describe("Editor", () => {
                 ["Net", "Net"],
             ],
             [
+                ["Slider", "Ex"],
+                ["Checkbox", "Ex"],
+                ["Menu", "Ex"],
+                ["InputField", "Ex"],
+                ["Text", "Txt"],
+                ["Image", "Img"],
+            ],
+            [
                 ["Turtle", "ELst"],
                 ["Button", "Btn"],
                 ["When the object is dragged", "ELst"],

@@ -112,7 +112,9 @@
                             <td>
                                 visible object, show name, fixed object
                                 (polygon), inert object, text size, value
-                                decimal places (or do not display it)
+                                decimal places (or do not display it),
+                                <a href="#visible-si">visible if</a>, input
+                                field width
                             </td>
                         </tr>
                         <tr>
@@ -143,6 +145,14 @@
                             <td>step, length, vertical, knob color and size</td>
                         </tr>
                         <tr>
+                            <td>Frame</td>
+                            <td>
+                                of an image: color, thickness (0: no frame),
+                                stroke opacity, dashes; its opacity and its
+                                layer stay in Appearance
+                            </td>
+                        </tr>
+                        <tr>
                             <td id="animation">Animation</td>
                             <td>
                                 speed (0: stop), reverse direction, at the end:
@@ -153,6 +163,18 @@
                 </table>
             </div>
 
+            <h3 id="visible-si">Visible if</h3>
+            <p>
+                In the Display section: the name of an expression, a formula
+                (<code>m == 2</code>) or nothing. The object shows only while it
+                is true, and it can’t depend on the object itself.
+            </p>
+            <p>
+                A checkbox’s line names the objects whose condition it is:
+                adding a name ties that object to the checkbox, removing one
+                makes it always visible. Deleting the checkbox keeps these
+                objects, always visible.
+            </p>
             <h3 id="couleurs-de-creation">Colors at creation</h3>
             <p>
                 A created object takes the color of its type: free points and

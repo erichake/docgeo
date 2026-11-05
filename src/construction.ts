@@ -223,9 +223,12 @@ export class construction {
                 program?: { targets: Map<string, construction_object> } | null;
             };
             const targets = [...(program?.targets.values() ?? [])];
+            // Nor what it shows, which stays, shown from then on.
             descendants.push(
                 ...descendant.children.filter(
-                    (child) => !targets.includes(child),
+                    (child) =>
+                        !targets.includes(child) &&
+                        child.condition !== descendant,
                 ),
             );
         }
@@ -245,10 +248,12 @@ export class construction {
                     );
             });
             object.children.forEach((child) => {
-                if (!removed.has(child))
+                if (!removed.has(child)) {
                     child.parents = child.parents.filter(
                         (parent) => !removed.has(parent),
                     );
+                    if (child.condition === object) child.condition = null;
+                }
             });
         });
         this.OBJS.remove(removed);

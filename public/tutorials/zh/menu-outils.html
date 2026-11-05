@@ -62,6 +62,10 @@
                     >的工具只在 3D 视图中出现。
                 </li>
                 <li>
+                    <strong>控件</strong
+                    >族不在环上，用于放置滑动条、复选框、菜单、输入框、文本和图像。
+                </li>
+                <li>
                     <strong>程序</strong
                     >类不在工具环中，用于创建海龟、按钮和事件程序（见<a
                         href="expressions.html#blocs"
@@ -739,6 +743,87 @@
                     </li>
                 </ul>
             </div>
+            <h3 id="famille-controls">控件</h3>
+            <figure>
+                <img
+                    src="img/controles.webp"
+                    alt="控件族：一个复选框、一个菜单、一个输入框和一个滑动条。"
+                    width="1200"
+                    height="720"
+                />
+                <figcaption>
+                    控件族：一个复选框、一个菜单、一个输入框和一个滑动条。
+                </figcaption>
+            </figure>
+            <div class="family" style="--h: 65">
+                <ul>
+                    <li>
+                        <i data-t="Slider"></i>
+                        <div>
+                            <strong>滑动条</strong
+                            ><span>滑动条的位置，从 −5 到 5，步长 0.1。</span
+                            ><span><code>滑动条(-5, 5, 1)</code></span>
+                        </div>
+                    </li>
+                    <li>
+                        <i data-t="Checkbox"></i>
+                        <div>
+                            <strong>复选框</strong
+                            ><span
+                                >它显示的对象（如有，再次点击可移除），然后点击一个空白处：复选框，已勾选。</span
+                            ><span><code>复选框("显示", a, c)</code></span>
+                        </div>
+                    </li>
+                    <li>
+                        <i data-t="Menu"></i>
+                        <div>
+                            <strong>菜单</strong
+                            ><span
+                                >菜单的位置，带三个选项，可在其行中改写。它的值是选项的编号。</span
+                            ><span
+                                ><code
+                                    >菜单("选项 1", "选项 2", "选项 3")</code
+                                ></span
+                            >
+                        </div>
+                    </li>
+                    <li>
+                        <i data-t="InputField"></i>
+                        <div>
+                            <strong>输入框</strong
+                            ><span
+                                >输入框的位置。它保存一个数，公式通过其名称读取。</span
+                            ><span><code>输入框(1)</code></span>
+                        </div>
+                    </li>
+                    <li>
+                        <i data-t="Text"></i>
+                        <div>
+                            <strong>文本</strong
+                            ><span>文本的位置，可在其定义中改写。</span
+                            ><span><code>"文本"</code></span>
+                        </div>
+                    </li>
+                    <li>
+                        <i data-t="Image"></i>
+                        <div>
+                            <strong>图像</strong
+                            ><span
+                                >一个点或一个空白处，然后选择文件：图像位于该点与其右侧新建的第二个点之间。在
+                                3D 中，它固定在窗口中，没有这两个点。</span
+                            ><span><code>图像(A, B)</code></span>
+                        </div>
+                    </li>
+                </ul>
+            </div>
+            <p>
+                放置控件后会打开其属性；关闭属性后调色板会回来。右键移动控件而不操作它；用手指时，在其属性打开期间按住并拖动即可移动。
+                图像的两个点决定其大小，并把它与构造相连；如果它们是自由点，拖动图像会同时移动它们。
+            </p>
+            <p>
+                复选框或菜单通过对象的显示条件起作用：参见
+                <a href="proprietes.html#visible-si">可见条件</a>.
+            </p>
             <h3 id="famille-programs">程序</h3>
             <div class="family" style="--h: 95">
                 <ul>

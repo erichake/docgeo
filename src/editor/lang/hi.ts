@@ -199,6 +199,7 @@ const hi: Texts = {
         point_border: "रूपरेखा की मोटाई",
         scrub_hint:
             "समायोजित करने के लिए खींचें · लिखने के लिए क्लिक करें · Shift: सूक्ष्म समायोजन",
+        image_frame: "फ़्रेम",
         thickness: "मोटाई",
         stroke_opacity: "रेखा की अपारदर्शिता",
         fill_opacity: "भराव की अपारदर्शिता",
@@ -206,8 +207,6 @@ const hi: Texts = {
         level: "परत",
         display: "प्रदर्शन",
         visible: "दृश्यमान ऑब्जेक्ट",
-        conditional_visibility:
-            "दृश्यता आकृति की किसी शर्त पर भी निर्भर करती है।",
         show_name: "नाम दिखाएँ",
         unfold_finals: "अंतिम वस्तुएँ दिखाएँ",
         fold_finals: "अंतिम वस्तुएँ समेटें",
@@ -340,6 +339,17 @@ const hi: Texts = {
         designate_transformable: "एक बिंदु या एक ऑब्जेक्ट चुनें",
         designate_invertible: "एक बिंदु या एक ऑब्जेक्ट चुनें",
         designate_moveable: "एक खिसकाया जा सकने वाला बिंदु चुनें",
+        family_controls: "नियंत्रण",
+        checkbox_caption: "दिखाएँ",
+        menu_choice: "विकल्प %",
+        designate_control: "स्थान चुनें",
+        designate_checkbox:
+            "यह जो दिखाता है वह चुनें, यदि आवश्यक हो, फिर स्थान",
+        visible_if: "दृश्य यदि",
+        visible_if_hint: "एक नाम या सूत्र",
+        condition_reads: "शर्त % पर निर्भर नहीं हो सकती",
+        input_width: "चौड़ाई",
+        image_unreadable: "यह फ़ाइल पठनीय छवि नहीं है",
         designate_button: "बटन का स्थान चुनें",
         designate_pointOn: "किसी ऑब्जेक्ट पर एक बिंदु चुनें",
         designate_line: "एक रेखा चुनें",
@@ -516,6 +526,9 @@ const hi: Texts = {
         Html: "Html",
         Image: "चित्र",
         Button: "बटन",
+        Checkbox: "चेकबॉक्स",
+        InputField: "इनपुटफ़ील्ड",
+        Menu: "मेनू",
     },
 };
 
