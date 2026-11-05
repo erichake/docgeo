@@ -3985,8 +3985,8 @@ function showPlaced(object: construction_object): void {
 
 // Where the image being chosen goes: from a point of the figure, or a place,
 // to the right of it, as GeoGebra's between two anchors that size it and tie
-// it to the construction. Fixed in the window in space, where they would
-// turn it.
+// it to the construction. In space, a third anchor keeps it in its plane,
+// horizontal at first, which turns with the figure.
 let imageSpot: Vec2 = [0, 0];
 let imageCorner: point_object | null = null;
 const IMAGE_SIZE = 400;
@@ -4020,13 +4020,25 @@ imageInput.on(
         const scale = Math.min(1, IMAGE_SIZE / Math.max(width, height));
         const size: Vec2 = [width * scale, height * scale];
         const key = await imageKey(url);
-        if (vec3())
-            return showPlaced(addImage(scene(), url, key, size, imageSpot));
-        const first = imageCorner ?? addFreePoint(imageSpot)!;
-        const second = addFreePoint(
-            vAdd((first as point_object).screen, [size[0], 0]),
-        )!;
-        showPlaced(addImage(scene(), url, key, size, [first, second]));
+        const c = scene();
+        const first = (imageCorner ?? addFreePoint(imageSpot)) as point_object;
+        // Seen along the ground, where no point can be made.
+        if (!first) return showPlaced(addImage(c, url, key, size, imageSpot));
+        const anchor = (dx: number, dy: number) =>
+            add(c, {
+                name: nextName(c, true),
+                overload: FREE_POINT,
+                args: [
+                    first.coords[0] + dx,
+                    first.coords[1] + dy,
+                    first.coords[2],
+                ],
+            });
+        const wide = size[0] / c.GRID.UNIT[0];
+        const corners = vec3()
+            ? [first, anchor(wide, 0), anchor(0, (wide * size[1]) / size[0])]
+            : [first, addFreePoint(vAdd(first.screen, [size[0], 0]))!];
+        showPlaced(addImage(c, url, key, size, corners));
     },
     false,
 );

@@ -489,9 +489,12 @@ la GeoGebra, l'outil choisi avant les objets.
       deux points d'ancrage, comme dans GeoGebra (décidé avec l'auteur le
       2026-11-05) : son coin inférieur gauche, le point désigné ou le point libre
       créé là où on clique, et son coin inférieur droit. Ils la dimensionnent et
-      la relient à la construction ; on la glisse aussi, ses deux ancrages libres
-      suivant. En 3D, où ils la feraient tourner, elle reste fixée dans la
-      fenêtre. Dans ses propriétés, sa couleur, son épaisseur, l'opacité de son
+      la relient à la construction ; on la glisse aussi, ses ancrages libres
+      suivant. En 3D (décidé le 2026-11-05), un troisième ancrage, son coin supérieur
+      gauche, la garde dans son plan, horizontal au départ et de ses proportions
+      exactes, qui tourne avec la figure : affine, elle reste un parallélogramme
+      en perspective, son calque et non sa profondeur la range parmi les objets,
+      et de dos on la voit en miroir. Dans ses propriétés, sa couleur, son épaisseur, l'opacité de son
       trait et ses pointillés sont ceux d'un cadre (section « Cadre », décidé avec
       l'auteur le 2026-11-05), absent à l'épaisseur 0, sa valeur par défaut :
       « Apparence » ne garde que son opacité et son calque.

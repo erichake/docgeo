@@ -582,4 +582,76 @@ describe("The controls of the palette", () => {
             (await place("n")) + 34 + 18,
         );
     });
+
+    it("anchor an image on three points in space, in a horizontal plane", async () => {
+        const { page, tap, tool, figureNow } = await editor({
+            dgo: 1,
+            v: { o: [400, 300], u: 40, w: 800, h: 600, "3d": 1 },
+            o: [["Pt", "A", [1, 2, 3]]],
+        });
+        const view = page.defaultView as typeof window;
+        const clicked: HTMLInputElement[] = [];
+        const click = view.HTMLInputElement.prototype.click;
+        view.HTMLInputElement.prototype.click = function () {
+            clicked.push(this);
+        };
+        cleanup.push(() => {
+            view.HTMLInputElement.prototype.click = click;
+        });
+        const canvas = page.createElement("canvas");
+        canvas.width = 200;
+        canvas.height = 100;
+        const bytes = Uint8Array.from(
+            atob(canvas.toDataURL("image/png").split(",")[1]),
+            (c) => c.charCodeAt(0),
+        );
+        const place = async (at: number[], count: number) => {
+            const files = new view.DataTransfer();
+            files.items.add(
+                new view.File([bytes], "x.png", { type: "image/png" }),
+            );
+            tool("Image").click();
+            tap(at);
+            clicked.at(-1)!.files = files.files;
+            clicked.at(-1)!.dispatchEvent(new view.Event("change"));
+            await expect
+                .poll(async () => (await figureNow()).o.length)
+                .toBe(count);
+            return figureNow();
+        };
+        // A, the only object yet.
+        const shape = [
+            ...page.querySelectorAll("body > svg [data-layer] circle"),
+        ].find((circle) => !circle.closest(".dge-mark"))!;
+        const box = shape.getBoundingClientRect();
+        const frame = page
+            .querySelector("body > svg:has([data-layer])")!
+            .getBoundingClientRect();
+        const [sx, sy] = [
+            box.left + box.width / 2 - frame.left,
+            box.top + box.height / 2 - frame.top,
+        ];
+        // On a point: from it, at its height.
+        let figure = await place([sx, sy], 4);
+        const { u } = figure.v;
+        const [second, third, on] = figure.o.slice(-3);
+        expect(on[2].slice(3)).toEqual([0, 1, 2]);
+        expect(second[2]).toEqual([1 + 200 / u, 2, 3]);
+        expect(third[2]).toEqual([1, 2 + 100 / u, 3]);
+        // In the void: three new points on the ground.
+        (
+            page.querySelector(
+                '.dge-bar [aria-controls="dge-palette"]',
+            ) as HTMLElement
+        ).click();
+        figure = await place([150, 450], 8);
+        const [a, b, c, image] = figure.o.slice(-4);
+        expect(image[2].slice(1)).toEqual([200, 100, 4, 5, 6]);
+        expect(a[2][2] ?? 0).toBeCloseTo(0);
+        expect(b[2][0] - a[2][0]).toBeCloseTo(200 / u);
+        expect(b[2][1]).toBeCloseTo(a[2][1]);
+        expect(c[2][0]).toBeCloseTo(a[2][0]);
+        expect(c[2][1] - a[2][1]).toBeCloseTo(100 / u);
+        expect(c[2][2] ?? 0).toBeCloseTo(a[2][2] ?? 0);
+    });
 });
