@@ -500,7 +500,7 @@ $("head").append(`<style>
     .dge-ring button svg { display: block; width: 24px; height: 24px; fill: none; stroke: currentColor; stroke-width: 1.65; stroke-linecap: round; stroke-linejoin: round; }
     .dge-guide { opacity: 0.65; }
     .dge-result { color: #d14343; }
-    .dge-accent { color: #5a82a5; }
+    .dge-accent { color: #1683e8; }
     .dge-ring button:hover .dge-result { color: inherit; }
     .dge-ring button:hover .dge-construction-icon, .dge-palette-grid button:not(.dge-off):hover .dge-construction-icon { --dge-icon-ink: #fff; --dge-icon-blue: #93c5fd; --dge-icon-red: #fca5a5; --dge-icon-guide: #bfdbfe; --dge-icon-polygon: #fed7aa; }
     .dge-complete, .dge-menu { position: fixed; min-width: 160px; max-height: 240px; overflow: auto; padding: 4px 0; border: 1px solid #d1d5db; border-radius: 8px; background: #fff; box-shadow: 0 6px 20px rgb(0 0 0 / 0.14); z-index: 13; }
