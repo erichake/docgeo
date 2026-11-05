@@ -21,7 +21,7 @@ window.DG_ICONS = {
             '<circle cx="12" cy="12" r="8" stroke-width="3" stroke-dasharray="3 3.283" stroke-linecap="butt"/><circle cx="12" cy="12" r="6.5"/><circle cx="12" cy="12" r="2.5"/>',
         magnet: '<g transform="rotate(45 12 12)"><path d="M6 4h4v8a2 2 0 0 0 4 0V4h4v8a6 6 0 0 1-12 0ZM6 8h4m4 0h4"/></g>',
         spring: '<path d="M2.5 21.5l2-2 3 1.2-2.5-5.9 6 2.4-2.5-5.9 6 2.4-2.5-5.9 3 1.2 1.2-1.2"/><circle cx="18.2" cy="5.8" r="2.6"/>',
-        turtle: '<ellipse cx="11" cy="12" rx="6" ry="4.5"/><circle cx="19.5" cy="12" r="2"/><path d="M7.5 8.3 6 5.5M14.5 8.3 16 5.5M7.5 15.7 6 18.5M14.5 15.7 16 18.5M5 12H2.5M8 12h6"/>',
+        turtle: '<ellipse cx="11" cy="12" rx="6" ry="4.5"/><path d="M7.5 8.3 6 5.5M14.5 8.3 16 5.5M7.5 15.7 6 18.5M14.5 15.7 16 18.5M5 12H2.5"/><g class="dge-accent"><circle cx="19.5" cy="12" r="2"/><path d="M8 12h6"/></g>',
         macro_program: '<path d="m8 7-5 5 5 5M16 7l5 5-5 5M14 4l-4 16"/>',
         open_box: '<path d="M4 10h16v10H4ZM4 10 2.5 4h16L20 10"/>',
         new_program:
@@ -332,62 +332,58 @@ window.DG_ICONS = {
         Slider: [
             65,
             1,
-            '<path d="M3 12h18" class="dge-guide"/><g class="dge-result"><circle cx="15" cy="12" r="3.5"/></g>',
+            '<path d="M3 12h18"/><g class="dge-accent"><circle cx="15" cy="12" r="3.5"/></g>',
         ],
         Checkbox: [
             65,
             1,
-            '<g class="dge-result"><rect x="4" y="4" width="16" height="16" rx="3"/><path d="m8 12 3 3 5-6"/></g>',
+            '<rect x="4" y="4" width="16" height="16" rx="3"/><g class="dge-accent"><path d="m8 12 3 3 5-6"/></g>',
         ],
         Menu: [
             65,
             1,
-            '<path d="M6 18h12" class="dge-guide"/><g class="dge-result"><rect x="3" y="5" width="18" height="8" rx="2"/><path d="m14 8 2 2 2-2"/></g>',
+            '<path d="M6 18h12"/><rect x="3" y="5" width="18" height="8" rx="2"/><g class="dge-accent"><path d="m14 8 2 2 2-2"/></g>',
         ],
         InputField: [
             65,
             1,
-            '<g class="dge-result"><rect x="3" y="7" width="18" height="10" rx="2"/><path d="M8 10v4"/></g>',
+            '<rect x="3" y="7" width="18" height="10" rx="2"/><g class="dge-accent"><path d="M8 10v4"/></g>',
         ],
-        Text: [
-            65,
-            1,
-            '<g class="dge-result"><path d="M5 6h14M12 6v13M9 19h6"/></g>',
-        ],
+        Text: [65, 1, '<path d="M5 6h14M12 6v14"/>'],
         Image: [
             65,
             1,
-            '<g class="dge-result"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m5 17 5-6 4 4 2-2 3 4"/></g><circle cx="16" cy="9" r="1.8" fill="currentColor" stroke="none"/>',
+            '<rect x="3" y="5" width="18" height="14" rx="2"/><g class="dge-accent"><path d="m5 17 5-6 4 4 2-2 3 4"/></g><circle cx="16" cy="9" r="1.8" fill="currentColor" stroke="none"/>',
         ],
         Turtle: [
             95,
             1,
-            '<g class="dge-result"><ellipse cx="11" cy="12" rx="6" ry="4.5"/><circle cx="19.5" cy="12" r="2"/><path d="M7.5 8.3 6 5.5M14.5 8.3 16 5.5M7.5 15.7 6 18.5M14.5 15.7 16 18.5M5 12H2.5M8 12h6"/></g>',
+            '<ellipse cx="11" cy="12" rx="6" ry="4.5"/><path d="M7.5 8.3 6 5.5M14.5 8.3 16 5.5M7.5 15.7 6 18.5M14.5 15.7 16 18.5M5 12H2.5"/><g class="dge-accent"><circle cx="19.5" cy="12" r="2"/><path d="M8 12h6"/></g>',
         ],
         Button: [
             95,
             1,
-            '<path d="M2 12h6" class="dge-guide"/><g class="dge-result"><rect x="11" y="7" width="11" height="10" rx="3"/><path d="M15 9.8v4.4l3.4-2.2Z" fill="currentColor"/></g>',
+            '<path d="M2 12h6"/><rect x="11" y="7" width="11" height="10" rx="3"/><g class="dge-accent"><path d="M15 9.8v4.4l3.4-2.2Z" fill="currentColor"/></g>',
         ],
         "When the object is dragged": [
             95,
             1,
-            '<path d="M4 20l9-9" class="dge-guide"/><g class="dge-result"><circle cx="16" cy="8" r="3"/></g>',
+            '<path d="M4 20l7-7M6 13h5v5"/><g class="dge-accent"><circle cx="16" cy="8" r="3"/></g>',
         ],
         "When the object is pressed": [
             95,
             1,
-            '<path d="M12 2v8m-3-3 3 3 3-3" class="dge-guide"/><g class="dge-result"><circle cx="12" cy="17" r="3"/></g>',
+            '<path d="M12 2v9m-3-3 3 3 3-3"/><g class="dge-accent"><circle cx="12" cy="17" r="3"/></g>',
         ],
         "When the object is released": [
             95,
             1,
-            '<path d="M12 10V2M9 5l3-3 3 3" class="dge-guide"/><g class="dge-result"><circle cx="12" cy="17" r="3"/></g>',
+            '<path d="M12 11V2M9 5l3-3 3 3"/><g class="dge-accent"><circle cx="12" cy="17" r="3"/></g>',
         ],
         "When the value changes": [
             95,
             1,
-            '<g class="dge-result"><path d="M4 9h14l-3-3M20 15H6l3 3"/></g>',
+            '<path d="M4 9h14l-3-3"/><g class="dge-accent"><path d="M20 15H6l3 3"/></g>',
         ],
         "New macro": [
             0,

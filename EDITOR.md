@@ -739,6 +739,9 @@ l'anneau et du clavier : le menu des outils est retiré.
   reste l'emblème de ce qui est contextuel), mais des boutons carrés à coins
   arrondis, en grille qui se réorganise selon la largeur du panneau ; la
   teinte de la famille est portée par la zone (titre et fond pâle).
+  Les icônes « Contrôles » et « Programmes » ont des contours ardoise et
+  des accents bleu doux (2026-11-05), pour ne pas évoquer une erreur par
+  leur rouge. Le texte est un « T », le glissement une flèche vers un point.
 - **Échap** lâche l'outil, ferme l'anneau ou vide la sélection, puis ferme
   la palette.
 - **Petits écrans** : comme les propriétés, sous 900 px la palette alterne

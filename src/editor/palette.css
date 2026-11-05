@@ -188,7 +188,7 @@
     border-color: #2563eb;
     color: #fff;
 }
-.dge-palette-grid button:not(.dge-off):hover .dge-result {
+.dge-palette-grid button:not(.dge-off):hover :is(.dge-result, .dge-accent) {
     color: inherit;
 }
 .dge-palette-grid button:focus-visible {

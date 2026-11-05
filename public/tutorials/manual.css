@@ -850,6 +850,11 @@ td .ti svg {
     color: #d14343;
 }
 
+.ai .dge-accent,
+.ti .dge-accent {
+    color: #5a82a5;
+}
+
 /* Familles d'outils. */
 .family {
     margin: 0 0 18px;

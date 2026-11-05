@@ -75,6 +75,7 @@ const dot = (x: number, y: number) =>
 const path = (d: string, guide = false) =>
     `<path d="${d}"${guide ? ' class="dge-guide"' : ""}/>`;
 const result = (icon: string) => `<g class="dge-result">${icon}</g>`;
+const accent = (icon: string) => `<g class="dge-accent">${icon}</g>`;
 
 function tool(
     name: string,
@@ -328,42 +329,38 @@ const FAMILIES: [
             tool(
                 "Slider",
                 0,
-                path("M3 12h18", true) +
-                    result(`<circle cx="15" cy="12" r="3.5"/>`),
+                path("M3 12h18") + accent(`<circle cx="15" cy="12" r="3.5"/>`),
                 "control",
             ),
             tool(
                 "Checkbox",
                 0,
-                result(
-                    `<rect x="4" y="4" width="16" height="16" rx="3"/><path d="m8 12 3 3 5-6"/>`,
-                ),
+                `<rect x="4" y="4" width="16" height="16" rx="3"/>` +
+                    accent(path("m8 12 3 3 5-6")),
                 "control",
             ),
             tool(
                 "Menu",
                 0,
-                path("M6 18h12", true) +
-                    result(
-                        `<rect x="3" y="5" width="18" height="8" rx="2"/><path d="m14 8 2 2 2-2"/>`,
-                    ),
+                path("M6 18h12") +
+                    `<rect x="3" y="5" width="18" height="8" rx="2"/>` +
+                    accent(path("m14 8 2 2 2-2")),
                 "control",
             ),
             tool(
                 "InputField",
                 0,
-                result(
-                    `<rect x="3" y="7" width="18" height="10" rx="2"/><path d="M8 10v4"/>`,
-                ),
+                `<rect x="3" y="7" width="18" height="10" rx="2"/>` +
+                    accent(path("M8 10v4")),
                 "control",
             ),
-            tool("Text", 0, result(path("M5 6h14M12 6v13M9 19h6")), "control"),
+            tool("Text", 0, path("M5 6h14M12 6v14"), "control"),
             tool(
                 "Image",
                 1,
-                result(
-                    `<rect x="3" y="5" width="18" height="14" rx="2"/><path d="m5 17 5-6 4 4 2-2 3 4"/>`,
-                ) + dot(16, 9),
+                `<rect x="3" y="5" width="18" height="14" rx="2"/>` +
+                    accent(path("m5 17 5-6 4 4 2-2 3 4")) +
+                    dot(16, 9),
                 "control",
             ),
         ],
@@ -374,41 +371,39 @@ const FAMILIES: [
         [],
         [
             // The list it draws (see openTurtle in main.ts).
-            labelled(
-                "turtle",
-                tool("List", 0, result(ACTION_ICONS.turtle), "turtle"),
-            ),
+            labelled("turtle", tool("List", 0, ACTION_ICONS.turtle, "turtle")),
             tool(
                 "Button",
                 0,
-                path("M2 12h6", true) +
-                    result(
-                        `<rect x="11" y="7" width="11" height="10" rx="3"/><path d="M15 9.8v4.4l3.4-2.2Z" fill="currentColor"/>`,
+                path("M2 12h6") +
+                    `<rect x="11" y="7" width="11" height="10" rx="3"/>` +
+                    accent(
+                        `<path d="M15 9.8v4.4l3.4-2.2Z" fill="currentColor"/>`,
                     ),
                 "button",
             ),
             event(
                 "when_dragged",
                 "drag",
-                path("M4 20l9-9", true) +
-                    result(`<circle cx="16" cy="8" r="3"/>`),
+                path("M4 20l7-7M6 13h5v5") +
+                    accent(`<circle cx="16" cy="8" r="3"/>`),
             ),
             event(
                 "when_pressed",
                 "down",
-                path("M12 2v8m-3-3 3 3 3-3", true) +
-                    result(`<circle cx="12" cy="17" r="3"/>`),
+                path("M12 2v9m-3-3 3 3 3-3") +
+                    accent(`<circle cx="12" cy="17" r="3"/>`),
             ),
             event(
                 "when_released",
                 "up",
-                path("M12 10V2M9 5l3-3 3 3", true) +
-                    result(`<circle cx="12" cy="17" r="3"/>`),
+                path("M12 11V2M9 5l3-3 3 3") +
+                    accent(`<circle cx="12" cy="17" r="3"/>`),
             ),
             event(
                 "when_changed",
                 null,
-                result(path("M4 9h14l-3-3M20 15H6l3 3")),
+                path("M4 9h14l-3-3") + accent(path("M20 15H6l3 3")),
             ),
         ],
     ],

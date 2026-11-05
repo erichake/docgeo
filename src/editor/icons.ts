@@ -25,7 +25,7 @@ export const ACTION_ICONS = {
     // A spring pulled towards the top right by its ball.
     spring: '<path d="M2.5 21.5l2-2 3 1.2-2.5-5.9 6 2.4-2.5-5.9 6 2.4-2.5-5.9 3 1.2 1.2-1.2"/><circle cx="18.2" cy="5.8" r="2.6"/>',
     // A turtle seen from above, heading right.
-    turtle: '<ellipse cx="11" cy="12" rx="6" ry="4.5"/><circle cx="19.5" cy="12" r="2"/><path d="M7.5 8.3 6 5.5M14.5 8.3 16 5.5M7.5 15.7 6 18.5M14.5 15.7 16 18.5M5 12H2.5M8 12h6"/>',
+    turtle: '<ellipse cx="11" cy="12" rx="6" ry="4.5"/><path d="M7.5 8.3 6 5.5M14.5 8.3 16 5.5M7.5 15.7 6 18.5M14.5 15.7 16 18.5M5 12H2.5"/><g class="dge-accent"><circle cx="19.5" cy="12" r="2"/><path d="M8 12h6"/></g>',
     // Angle brackets and a slash: code.
     macro_program: '<path d="m8 7-5 5 5 5M16 7l5 5-5 5M14 4l-4 16"/>',
     // A box, its lid open.
