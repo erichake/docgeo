@@ -48,6 +48,11 @@
                         >双击打开图形</a
                     >）。
                 </li>
+                <li>
+                    <kbd>Ctrl</kbd> <kbd>N</kbd> 新建图形，<kbd>Ctrl</kbd>
+                    <kbd>T</kbd>
+                    新建页面；在浏览器标签页中，这些快捷键由浏览器保留。
+                </li>
             </ul>
 
             <h2 id="hors-ligne">离线使用</h2>
@@ -90,15 +95,19 @@
 
             <h2 id="icones-windows">Windows 上的图形图标</h2>
             <p>
-                在 Windows 上，由 DocGeo 打开的图形显示为空白图标。要让每种格式拥有自己的图标，请打开
+                在 Windows 上，由 DocGeo
+                打开的图形显示为空白图标。要让每种格式拥有自己的图标，请打开
                 PowerShell（在“开始”菜单中输入
                 PowerShell），粘贴下面这行命令并按回车键。该命令不要求输入任何内容，也不会重新启动电脑。
             </p>
             <pre><code>irm https://doctools.org/apps/docgeo/windows-icons.ps1 | iex</code></pre>
             <p>
-                请在安装 DocGeo 之后运行它；如果浏览器更新后图标消失，请再次运行。如果某种格式还不是用 DocGeo
-                打开（DGPad…），命令会提示：请为该格式选择 DocGeo（<a
-                href="#double-clic">双击打开图形</a>）。
+                请在安装 DocGeo
+                之后运行它；如果浏览器更新后图标消失，请再次运行。如果某种格式还不是用
+                DocGeo 打开（DGPad…），命令会提示：请为该格式选择 DocGeo（<a
+                    href="#double-clic"
+                    >双击打开图形</a
+                >）。
             </p>
             <p>要恢复原来的图标，请粘贴下面这行命令：</p>
             <pre><code>&amp; ([scriptblock]::Create((irm https://doctools.org/apps/docgeo/windows-icons.ps1))) uninstall</code></pre>

@@ -49,6 +49,11 @@
                         >按兩下開啟圖形</a
                     >）。
                 </li>
+                <li>
+                    <kbd>Ctrl</kbd> <kbd>N</kbd> 新增圖形，<kbd>Ctrl</kbd>
+                    <kbd>T</kbd>
+                    新增頁面；在瀏覽器分頁中，這些快速鍵由瀏覽器保留。
+                </li>
             </ul>
 
             <h2 id="hors-ligne">離線使用</h2>
@@ -81,7 +86,9 @@
                 圖示，副檔名以灰色顯示。要讓每種格式擁有自己的圖示，請打開「終端機」（按
                 ⌘ 空白鍵，然後輸入「終端機」），貼上下面這行指令並按 Return 鍵。
             </p>
-            <p>隨後此指令會重新啟動 Finder 以顯示新圖示：它開啟的視窗會關閉。</p>
+            <p>
+                隨後此指令會重新啟動 Finder 以顯示新圖示：它開啟的視窗會關閉。
+            </p>
             <pre><code>curl -fsSL https://doctools.org/apps/docgeo/macos-icons.sh | sh</code></pre>
             <p>
                 瀏覽器更新後，這些圖示仍會保留。此指令會建立一個小 App「DocGeo
@@ -92,22 +99,28 @@
 
             <h2 id="icones-windows">Windows 上的圖形圖示</h2>
             <p>
-                在 Windows 上，由 DocGeo 開啟的圖形顯示為空白圖示。要讓每種格式擁有自己的圖示，請開啟
-                PowerShell（在「開始」功能表中輸入 PowerShell），貼上下面這行指令並按 Enter
+                在 Windows 上，由 DocGeo
+                開啟的圖形顯示為空白圖示。要讓每種格式擁有自己的圖示，請開啟
+                PowerShell（在「開始」功能表中輸入
+                PowerShell），貼上下面這行指令並按 Enter
                 鍵。此指令不會要求輸入任何內容，也不會重新啟動電腦。
             </p>
             <pre><code>irm https://doctools.org/apps/docgeo/windows-icons.ps1 | iex</code></pre>
             <p>
-                請在安裝 DocGeo 之後執行它；如果瀏覽器更新後圖示消失，請再次執行。如果某種格式還不是用 DocGeo
-                開啟（DGPad…），指令會提示：請為該格式選擇 DocGeo（<a
-                href="#double-clic">按兩下開啟圖形</a>）。
+                請在安裝 DocGeo
+                之後執行它；如果瀏覽器更新後圖示消失，請再次執行。如果某種格式還不是用
+                DocGeo 開啟（DGPad…），指令會提示：請為該格式選擇 DocGeo（<a
+                    href="#double-clic"
+                    >按兩下開啟圖形</a
+                >）。
             </p>
             <p>要恢復原來的圖示，請貼上下面這行指令：</p>
             <pre><code>&amp; ([scriptblock]::Create((irm https://doctools.org/apps/docgeo/windows-icons.ps1))) uninstall</code></pre>
 
             <h2 id="icones-linux">Linux 上的圖形圖示</h2>
             <p>
-                在 Linux 上，由 DocGeo 開啟的圖形顯示為通用圖示。要讓每種格式擁有自己的圖示，請開啟終端機，貼上下面這行指令並按
+                在 Linux 上，由 DocGeo
+                開啟的圖形顯示為通用圖示。要讓每種格式擁有自己的圖示，請開啟終端機，貼上下面這行指令並按
                 Enter 鍵。此指令不會要求輸入任何內容，也不會重新啟動電腦。
             </p>
             <pre><code>curl -fsSL https://doctools.org/apps/docgeo/linux-icons.sh | sh</code></pre>

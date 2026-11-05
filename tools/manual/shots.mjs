@@ -137,6 +137,20 @@ export const SHOTS = [
         },
     },
     {
+        // The library's sections in their colours.
+        file: "palette-macros.webp",
+        page: "editor.html",
+        run: async ({ page, type, button, t }) => {
+            await type(TRIANGLE);
+            await button("palette");
+            await page.waitForTimeout(400);
+            await page
+                .getByRole("tab", { name: await t("menu_macros"), exact: true })
+                .click();
+            await page.waitForTimeout(800);
+        },
+    },
+    {
         // A checkbox showing the circle, a menu, a field and a slider, beside
         // their family in the palette.
         file: "controles.webp",
