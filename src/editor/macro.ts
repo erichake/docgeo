@@ -552,10 +552,12 @@ export function withFixed(
     c: construction,
     macro: Macro,
     picked: Picked[],
+    // Those its applications refer to, for a macro of a library.
+    macros = c.macros,
 ): Picked[] {
     const filled = [...picked];
     for (;;) {
-        const next = designation(macro, filled, c.macros);
+        const next = designation(macro, filled, macros);
         const key = fixedNext(next);
         if (!key) return filled;
         const object = [fixedObjects.get(key), key]

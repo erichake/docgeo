@@ -707,9 +707,19 @@ l'anneau et du clavier : le menu des outils est retiré.
 - **Zones** : une par famille de `tools.ts`, même ordre, mêmes teintes,
   mêmes items (`Item`), « Programmes » comprise (2026-10-30). Les familles
   sans outil dans la vue (plans et solides dans le plan) n'ont pas de
-  zone. La dernière porte « Nouvelle macro » puis les macros de la figure,
-  comme des outils. Un clic sur le titre d'une zone la replie ou la
-  déplie, état gardé par le navigateur.
+  zone. La dernière, « Macros de la figure », porte « Nouvelle macro » puis
+  les macros de la figure, comme des outils. Un clic sur le titre d'une zone
+  la replie ou la déplie, état gardé par le navigateur.
+- **Onglets Outils et Macros** (décidé avec l'auteur le 2026-11-05) : les
+  macros de la bibliothèque, trop nombreuses pour s'ajouter aux outils, ont
+  leur onglet, à la place du titre du panneau. Il montre « Mes macros » puis
+  la bibliothèque fournie, une zone par dossier (« Coniques / Éléments »),
+  avec le grisage et la consigne des autres outils. Choisir une macro la
+  recopie dans la figure, comme au menu : elle rejoint alors « Macros de la
+  figure ». L'onglet choisi est gardé par le navigateur
+  (`docgeo-palette-tab`). Pas d'onglets dans une iframe, où il n'y a pas de
+  bibliothèque. Le menu Macros reste. Couleurs : voir `MACROS.md`,
+  « Bibliothèque ».
 - **Grisage vivant** : la règle du menu (`takes`), recalculée à chaque
   changement de sélection : les objets sélectionnés, sinon l'objet choisi
   d'un clic, celui dont le menu ouvrirait l'anneau (décidé le 2026-10-29,

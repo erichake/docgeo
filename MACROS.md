@@ -584,6 +584,17 @@ Décidé avec l'auteur le 2026-10-27, après étude de CaRMetal (voir
   « Ajouter à mes macros ▸ », « Gérer mes macros… », « Importer des
   macros… », « Exporter mes macros… ». La famille « Macros » du menu des
   outils et l'anneau restent, seuls accès dans une iframe.
+- **Onglet « Macros » de la palette** (décidé avec l'auteur le 2026-11-05,
+  voir `EDITOR.md`, « Palette d'outils ») : « Mes macros » et la bibliothèque
+  fournie, par dossiers. Chaque section de la bibliothèque a sa teinte, dans
+  l'onglet comme sur les icônes du menu (`SECTION_HUES` de `library.ts`,
+  dans l'ordre de ses sections, qu'un test vérifie dans les 12 langues : une
+  section ajoutée demande sa teinte). Une section au même thème qu'une
+  famille d'outils en reprend la teinte : Cercles (145), Quadrilatères et
+  formes (185), Constructions (265), Transformations (320). Les autres :
+  Triangles (215), Coniques (35), Géométrie projective (65), Géométrie
+  hyperbolique (95). « Mes macros » et les macros de la figure gardent le
+  rouge de la famille (0).
 - **Gérer mes macros** : un dialogue plutôt qu'un panneau, la figure
   n'ayant rien à y faire. Chaque macro, rangée sous son dossier, a son nom
   et son dossier (« Coniques / Éléments », avec les dossiers existants

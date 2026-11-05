@@ -100,6 +100,15 @@ export async function keepMyMacros(library: Library): Promise<void> {
     }
 }
 
+// The hue of each section of the supplied library, in its order, that of the
+// tools on the same theme where there are some.
+export const SECTION_HUES = [215, 185, 145, 320, 35, 65, 265, 95];
+
+export const sectionHue = ({ folders }: Library, folder: string[]): number =>
+    SECTION_HUES[
+        [...new Set(folders.map(([section]) => section))].indexOf(folder[0])
+    ];
+
 // Mine, but for the copies of macros of the library, which serve others.
 export const shownMacros = (mine: Library, supplied: Library): number[] =>
     mine.macros.flatMap((macro, index) => {

@@ -17,14 +17,17 @@ import "./my_macros.css";
 // The user's macros managed: renamed, put in folders, deleted (see
 // MACROS.md, « Bibliothèque »).
 
-const FOLDER = " / ";
+export const FOLDER = " / ";
 
 // As in the tools menu.
-export function macroBadge(macro: Macro): DOMElement {
+export function macroBadge(
+    macro: Macro,
+    hue = TOOL_FAMILIES.at(-1)!.hue,
+): DOMElement {
     const family = TOOL_FAMILIES.at(-1)!;
     return $.create("span")
         .cls("dge-tool-icon")
-        .stl("--dge-hue", `${family.hue}`)
+        .stl("--dge-hue", `${hue}`)
         .stl("--dge-tone", `${family.tone}`)
         .append(
             `<svg viewBox="0 0 24 24" aria-hidden="true">${macroIcon(macro)}</svg>`,
@@ -35,6 +38,7 @@ export function manageMyMacros(options: {
     supplied: () => Library;
     importMacros: () => void;
     exportMacros: () => void;
+    changed: () => void;
 }): void {
     let library = myMacros();
     const list = $.create("div").cls("dge-my-macros");
@@ -44,7 +48,7 @@ export function manageMyMacros(options: {
 
     const change = (next: Library): void => {
         library = next;
-        void keepMyMacros(library);
+        void keepMyMacros(library).then(options.changed);
         show();
     };
     const refuse = (text: string): void => void problem.text(text).show();

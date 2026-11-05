@@ -65,6 +65,36 @@
 .dge-editor:not(.dge-palette-open) .dge-palette + .dge-resize {
     display: none;
 }
+.dge-palette-tabs {
+    display: flex;
+    gap: 2px;
+    padding: 2px;
+    border-radius: 8px;
+    background: #f1f5f9;
+}
+.dge-palette-tabs button {
+    padding: 4px 12px;
+    border: 0;
+    border-radius: 6px;
+    background: none;
+    font: inherit;
+    font-size: 13px;
+    font-weight: 600;
+    color: #64748b;
+    cursor: pointer;
+}
+.dge-palette-tabs button:hover {
+    color: #1f2937;
+}
+.dge-palette-tabs button:focus-visible {
+    outline: 2px solid #2563eb;
+    outline-offset: 1px;
+}
+.dge-palette-tabs button[aria-selected="true"] {
+    background: #fff;
+    box-shadow: 0 1px 2px rgb(15 23 42 / 0.18);
+    color: #1f2937;
+}
 .dge-palette-zone {
     border-bottom: 1px solid #e5e7eb;
 }

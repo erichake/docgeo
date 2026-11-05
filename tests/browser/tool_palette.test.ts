@@ -1,5 +1,7 @@
 import { afterEach, describe, expect, it } from "vitest";
 import { $ } from "../../src/dom";
+import "../../src/construction";
+import { SECTION_HUES, readLibrary } from "../../src/editor/library";
 
 type Message = Record<string, any>;
 const cleanup: (() => void)[] = [];
@@ -85,7 +87,7 @@ describe("The tool palette", () => {
             (title) => title.textContent,
         );
         expect(zones[0]).toBe("Points");
-        expect(zones.slice(-2)).toEqual(["Programs", "Macros"]);
+        expect(zones.slice(-2)).toEqual(["Programs", "Macros of the figure"]);
         expect(zones).not.toContain("Planes");
         expect(
             page.querySelector(
@@ -524,6 +526,34 @@ describe("The tool palette", () => {
             ["Mac", [0, 0, [1, 2]]],
             ["Out", [8, 1]],
         ]);
+    });
+});
+
+describe("The supplied library", () => {
+    it("has a hue for each of its sections, in every language", async () => {
+        for (const lang of [
+            "ar",
+            "de",
+            "el",
+            "en",
+            "es",
+            "fr",
+            "hi",
+            "it",
+            "nl",
+            "pt",
+            "zh",
+            "zh-TW",
+        ]) {
+            const data = await fetch(`/macros/${lang}.dgo`);
+            const json = await new Response(
+                data.body!.pipeThrough(new DecompressionStream("gzip")),
+            ).json();
+            const { folders } = readLibrary(json);
+            expect(new Set(folders.map(([section]) => section)).size).toBe(
+                SECTION_HUES.length,
+            );
+        }
     });
 });
 

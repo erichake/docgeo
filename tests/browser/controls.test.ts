@@ -135,7 +135,11 @@ describe("The controls of the palette", () => {
         const zones = [...page.querySelectorAll(".dge-palette-title")].map(
             (title) => title.textContent,
         );
-        expect(zones.slice(-3)).toEqual(["Controls", "Programs", "Macros"]);
+        expect(zones.slice(-3)).toEqual([
+            "Controls",
+            "Programs",
+            "Macros of the figure",
+        ]);
 
         tool("Slider").click();
         expect(page.querySelector(".dge-hint")!.textContent).toContain(

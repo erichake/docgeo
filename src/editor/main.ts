@@ -221,6 +221,7 @@ import {
     merge,
     myMacros,
     readLibrary,
+    sectionHue,
     shownMacros,
     suppliedLibrary,
     type Library,
@@ -1013,30 +1014,38 @@ const inHand = (entry: Entry): boolean =>
 const palette = toolPalette({
     vec3: () => vec3(),
     macros: () => scene().macros,
+    supplied: standalone ? () => supplied : null,
     newProgram: button("new_program", () => {
         setProperties(true);
         properties.create(nextName(scene(), false));
     }).removeClass("dge-action"),
-    takes: (entry) =>
+    takes: (entry, library) =>
         "tools" in entry
             ? !!takes(entry)
             : beginsMacro(
                   entry,
                   chosen().map(({ object }) => object),
+                  library?.macros,
               ),
     inHand,
     choose: (entry) => {
         if (inHand(entry)) return cancel();
         if ("tools" in entry) return arm(entry);
         const objects = chosen().map(({ object }) => object);
-        cancel();
+        const library = scene().macros.includes(entry)
+            ? null
+            : libraries().find(({ macros }) =>
+                  macros.some(({ name }) => name === entry.name),
+              )!;
+        if (library) void applyFrom(library, entry.name);
+        else cancel();
         if (window.matchMedia("(max-width: 600px)").matches) setPalette(false);
-        startApply(scene().macros.indexOf(entry), objects);
+        if (!library) startApply(scene().macros.indexOf(entry), objects);
     },
-    hover: (entry) => {
+    hover: (entry, library) => {
         if (!entry || "tools" in entry) return hoverItem(entry);
         clearPreview();
-        showHint(startHint(entry));
+        showHint(startHint(entry, library?.macros));
     },
     close: () => {
         setPalette(false);
@@ -1046,7 +1055,11 @@ const palette = toolPalette({
 // The macros shipped with DocGeo, and the user's own, out of a frame only
 // (see MACROS.md, « Bibliothèque »).
 let supplied = emptyLibrary();
-if (standalone) void suppliedLibrary().then((library) => (supplied = library));
+if (standalone)
+    void suppliedLibrary().then((library) => {
+        supplied = library;
+        if (paletteOpen) palette.refresh();
+    });
 
 // A macro being defined (see MACROS.md).
 const macros = macroPanel({
@@ -4338,11 +4351,12 @@ const macroItem = (
     macro: Macro,
     run: () => void,
     enabled?: () => boolean,
+    hue?: number,
 ): MenuItem => ({
     label: macro.name,
     run,
     enabled,
-    icon: () => macroBadge(macro),
+    icon: () => macroBadge(macro, hue),
 });
 
 // Its folders, then its macros, in the order of the library.
@@ -4372,6 +4386,10 @@ function libraryItems(
                 macroItem(
                     library.macros[index],
                     () => void applyFrom(library, library.macros[index].name),
+                    undefined,
+                    library === supplied
+                        ? sectionHue(library, library.folders[index])
+                        : undefined,
                 ),
             ),
     ];
@@ -4548,6 +4566,7 @@ async function addToMine(from: Library, names: string[]): Promise<void> {
             "macros_replace",
         ));
     await keepMyMacros(merge(mine, from, kept, replace).library);
+    if (paletteOpen) palette.refresh();
     const added = kept.filter((name) => replace || !taken.includes(name));
     showHint(
         [
@@ -4610,6 +4629,9 @@ const manageMine = (): void =>
         supplied: () => supplied,
         importMacros: chooseMacros,
         exportMacros: () => void exportMine(),
+        changed: () => {
+            if (paletteOpen) palette.refresh();
+        },
     });
 
 const MACRO_STATES: MacroState[] = ["initial", "final", "possible", "missing"];
@@ -4717,24 +4739,24 @@ const designated = (): Designation =>
 
 // Whether these objects, in this order, begin one of its methods, after
 // the fixed initials the figure has.
-function beginsMacro(macro: Macro, objects: construction_object[]): boolean {
-    let picked = withFixed(scene(), macro, []);
+function beginsMacro(
+    macro: Macro,
+    objects: construction_object[],
+    macros = scene().macros,
+): boolean {
+    let picked = withFixed(scene(), macro, [], macros);
     for (const object of objects) {
-        if (!takesNext(designation(macro, picked, scene().macros), object))
+        if (!takesNext(designation(macro, picked, macros), object))
             return false;
-        picked = withFixed(scene(), macro, [...picked, object]);
+        picked = withFixed(scene(), macro, [...picked, object], macros);
     }
     return true;
 }
 
 // What applying it asks first.
-function startHint(macro: Macro): string {
-    const picked = withFixed(scene(), macro, []);
-    return applyHint(
-        macro,
-        designation(macro, picked, scene().macros),
-        picked.length,
-    );
+function startHint(macro: Macro, macros = scene().macros): string {
+    const picked = withFixed(scene(), macro, [], macros);
+    return applyHint(macro, designation(macro, picked, macros), picked.length);
 }
 
 // The fixed initials the figure has, after those designated.
