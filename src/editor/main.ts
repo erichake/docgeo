@@ -115,6 +115,7 @@ import {
     chooseFile,
     fileLabel,
     native,
+    installed,
     opened,
     saveFile,
     saveOther,
@@ -1107,11 +1108,14 @@ const menus: Menu[] = [
         items: () => [
             {
                 label: message("new_figure"),
-                run: async () => {
-                    if (await discarded()) await newFigure();
-                },
+                shortcut: installed ? shortcut("N") : undefined,
+                run: askNewFigure,
             },
-            { label: message("new_page"), run: () => void addPage() },
+            {
+                label: message("new_page"),
+                shortcut: installed ? shortcut("T") : undefined,
+                run: () => void addPage(),
+            },
             {
                 label: message("delete_page"),
                 run: () => void deletePage(),
@@ -6544,6 +6548,22 @@ $("body").on(
             event.preventDefault();
             chooseFigure();
         } else if (
+            installed &&
+            command &&
+            !event.shiftKey &&
+            event.key.toLowerCase() === "n"
+        ) {
+            event.preventDefault();
+            void askNewFigure();
+        } else if (
+            installed &&
+            command &&
+            !event.shiftKey &&
+            event.key.toLowerCase() === "t"
+        ) {
+            event.preventDefault();
+            void addPage();
+        } else if (
             editing() ||
             typed(event.target) ||
             ([properties.panel, magnetCard].some((box) =>
@@ -7493,6 +7513,10 @@ window.launchQueue?.setConsumer(({ files }) => {
             ),
         );
 });
+
+async function askNewFigure(): Promise<void> {
+    if (await discarded()) await newFigure();
+}
 
 async function newFigure(): Promise<void> {
     setBook(null);

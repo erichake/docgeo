@@ -9,6 +9,9 @@ import { message } from "./messages";
 // downloads the figure.
 export const standalone = window.self === window.top;
 export const native = standalone && !!window.showSaveFilePicker;
+// The only place where the browser leaves ⌘N and ⌘T to the page.
+export const installed =
+    standalone && matchMedia("(display-mode: standalone)").matches;
 
 const DGO = "application/x-docgeo";
 
