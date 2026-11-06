@@ -359,17 +359,17 @@ const fr: Texts = {
         designate_graph: "Désignez la courbe d'une fonction",
         designate_circle: "Désignez un cercle",
         designate_crossable:
-            "Désignez une droite, un cercle, une conique, une courbe, une sphère, un cylindre ou un cône",
+            "Désignez une droite, un cercle, une conique, une courbe, une sphère, un cylindre, un cône, un plan ou un polygone",
         designate_intersectable:
             "Désignez une droite, un cercle, une conique ou une courbe",
         designate_curved: "Désignez un cercle, une conique ou une courbe",
         designate_support: "Désignez un objet",
         designate_path: "Désignez une droite, un cercle ou une courbe",
         designate_outline: "Désignez un polygone ou une conique",
-        designate_plane: "Désignez un plan",
+        designate_plane: "Désignez un plan ou un polygone",
         designate_planar: "Désignez un plan ou un polygone",
         designate_traced: "Désignez un point ou une droite",
-        designate_linear: "Désignez une droite ou un plan",
+        designate_linear: "Désignez une droite, un plan ou un polygone",
         designate_sphere: "Désignez une sphère",
         designate_polyhedron: "Désignez un polyèdre",
         designate_revolution: "Désignez un cylindre ou un cône",
@@ -469,6 +469,7 @@ const fr: Texts = {
     },
     commands: {
         Side: "Côté",
+        Face: "Face",
         Point: "Point",
         FixedPoint: "PointFixe",
         Midpoint: "Milieu",

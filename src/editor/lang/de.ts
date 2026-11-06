@@ -366,7 +366,7 @@ const de: Texts = {
         designate_graph: "Wählen Sie den Graphen einer Funktion",
         designate_circle: "Wählen Sie einen Kreis",
         designate_crossable:
-            "Wählen Sie eine Gerade, einen Kreis, einen Kegelschnitt, eine Kurve, eine Kugel, einen Zylinder oder einen Kegel",
+            "Wählen Sie eine Gerade, einen Kreis, einen Kegelschnitt, eine Kurve, eine Kugel, einen Zylinder, einen Kegel, eine Ebene oder ein Vieleck",
         designate_intersectable:
             "Wählen Sie eine Gerade, einen Kreis, einen Kegelschnitt oder eine Kurve",
         designate_curved:
@@ -374,10 +374,10 @@ const de: Texts = {
         designate_support: "Wählen Sie ein Objekt",
         designate_path: "Wählen Sie eine Gerade, einen Kreis oder eine Kurve",
         designate_outline: "Wählen Sie ein Vieleck oder einen Kegelschnitt",
-        designate_plane: "Wählen Sie eine Ebene",
+        designate_plane: "Wählen Sie eine Ebene oder ein Vieleck",
         designate_planar: "Wählen Sie eine Ebene oder ein Vieleck",
         designate_traced: "Wählen Sie einen Punkt oder eine Gerade",
-        designate_linear: "Wählen Sie eine Gerade oder eine Ebene",
+        designate_linear: "Wählen Sie eine Gerade, eine Ebene oder ein Vieleck",
         designate_sphere: "Wählen Sie eine Kugel",
         designate_polyhedron: "Wählen Sie einen Polyeder",
         designate_revolution: "Wählen Sie einen Zylinder oder einen Kegel",
@@ -482,6 +482,7 @@ const de: Texts = {
     },
     commands: {
         Side: "Seite",
+        Face: "Seitenfläche",
         Point: "Punkt",
         FixedPoint: "FesterPunkt",
         Midpoint: "Mittelpunkt",

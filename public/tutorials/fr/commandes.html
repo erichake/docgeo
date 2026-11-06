@@ -1183,6 +1183,21 @@
                 polygones réguliers.
             </p>
             <pre><code>M = Milieu(Côté(p, 2))</code></pre>
+            <h2 id="faces">Faces des polyèdres</h2>
+            <p>
+                <strong>Face</strong> · Un outil qui attend un plan ou un
+                polygone, ou qui pose un point, prend la face visible sous le
+                pointeur ; sans outil, un clic sélectionne le polyèdre.
+            </p>
+            <p>
+                Dans un argument, <code>Face(k, n)</code> désigne la face numéro
+                n, à partir de 1, sans ajouter d’objet à la construction. La
+                base d’un prisme ou d’une pyramide est la face 1. Une face se
+                comporte comme un polygone : on y pose un point, et elle sert de
+                plan aux outils de l’espace. Une droite ne la coupe qu’à
+                l’intérieur de la face. En 3D, tout polygone sert ainsi de plan.
+            </p>
+            <pre><code>d = Perpendiculaire(O, Face(k, 1))</code></pre>
         </main>
     </body>
 </html>

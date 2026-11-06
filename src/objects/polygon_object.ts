@@ -3,10 +3,12 @@ import type { DOMElement } from "../dom";
 import type { ScriptValue } from "../import/dgp_formula";
 import {
     GEOMETRY_EPSILON,
+    geometryTolerance,
     pointInPolygon,
     vAdd,
     vCross,
     vDot,
+    vIsFinite,
     vNorm,
     vNormalize,
     vScale,
@@ -109,6 +111,11 @@ export class polygon_object extends construction_object {
     hiddenOutline!: DOMElement;
     measureText?: DOMElement;
     area = 0;
+    // Its plane, what takes it as one reads: a point, the unit normal, not
+    // finite when it has no area, and a size to draw from.
+    CENTER: Vec3 = [0, 0, 0];
+    NORMAL: Vec3 = [0, 0, 1];
+    HALF = 5;
     private isPlane = false;
     // What SVG order can't express: a face's part behind a plane is drawn
     // by that plane, beneath its own fill (see renderUnderlay), keyed by
@@ -173,21 +180,41 @@ export class polygon_object extends construction_object {
             this.defined = this.points.length >= 3;
         } else this.defined = this.points.every((p) => p.defined);
         if (!this.defined) return;
-        this.area =
-            vNorm(
-                this.points.reduce<Vec3>(
-                    (sum, p, i) =>
-                        vAdd(
-                            sum,
-                            vCross(
-                                p.coords,
-                                this.points[(i + 1) % this.points.length]
-                                    .coords,
-                            ),
-                        ),
-                    [0, 0, 0],
+        const normal = this.points.reduce<Vec3>(
+            (sum, p, i) =>
+                vAdd(
+                    sum,
+                    vCross(
+                        p.coords,
+                        this.points[(i + 1) % this.points.length].coords,
+                    ),
                 ),
-            ) / 2;
+            [0, 0, 0],
+        );
+        this.area = vNorm(normal) / 2;
+        this.NORMAL = vNormalize(normal) ?? [NaN, NaN, NaN];
+        this.CENTER = vScale(
+            this.points.reduce<Vec3>(
+                (sum, p) => vAdd(sum, p.coords),
+                [0, 0, 0],
+            ),
+            1 / this.points.length,
+        );
+        this.HALF = Math.sqrt(25 + this.area);
+    }
+
+    // Whether it gives a plane.
+    get spans(): boolean {
+        return this.defined && vIsFinite(this.NORMAL);
+    }
+
+    // Whether a point of its plane is on it.
+    contains(target: Vec3): boolean {
+        const closest = this.constrain(target, false);
+        return (
+            !!closest &&
+            vNorm(vSub(closest, target)) <= geometryTolerance(...target)
+        );
     }
 
     pointAt(

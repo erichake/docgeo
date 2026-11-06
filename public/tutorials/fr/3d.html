@@ -176,12 +176,23 @@
                             <td>Sommets</td>
                             <td><code>Sommet(c, k)</code>, k à partir de 1</td>
                         </tr>
+                        <tr>
+                            <td>Faces</td>
+                            <td><code>Face(k, n)</code>, n à partir de 1</td>
+                        </tr>
                     </tbody>
                 </table>
             </div>
 
             <h2>Solides</h2>
             <ul>
+                <li>
+                    <strong>Faces</strong> : un outil qui attend un plan ou un
+                    polygone, ou qui pose un point, prend la face visible sous
+                    le pointeur (<a href="commandes.html#faces">commandes</a>).
+                    L’outil <strong>Intersection</strong> prend aussi une droite
+                    et un plan ou un polygone.
+                </li>
                 <li>
                     Un solide est un seul objet : il dessine faces, arêtes
                     (pointillées derrière) et cache ce qui est derrière lui. Il

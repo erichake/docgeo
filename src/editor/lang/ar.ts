@@ -351,17 +351,17 @@ const ar: Texts = {
         designate_graph: "حدّد منحنى دالة",
         designate_circle: "حدّد دائرة",
         designate_crossable:
-            "حدّد مستقيمًا أو دائرة أو قطعًا مخروطيًا أو منحنى أو كرة أو أسطوانة أو مخروطًا",
+            "حدّد مستقيمًا أو دائرة أو قطعًا مخروطيًا أو منحنى أو كرة أو أسطوانة أو مخروطًا أو مستوى أو مضلعًا",
         designate_intersectable:
             "حدّد مستقيمًا أو دائرة أو قطعًا مخروطيًا أو منحنى",
         designate_curved: "حدّد دائرة أو قطعًا مخروطيًا أو منحنى",
         designate_support: "حدّد عنصرًا",
         designate_path: "حدّد مستقيمًا أو دائرة أو منحنى",
         designate_outline: "حدّد مضلعًا أو قطعًا مخروطيًا",
-        designate_plane: "حدّد مستوى",
+        designate_plane: "حدّد مستوى أو مضلعًا",
         designate_planar: "حدّد مستوى أو مضلعًا",
         designate_traced: "حدّد نقطة أو مستقيمًا",
-        designate_linear: "حدّد مستقيمًا أو مستوى",
+        designate_linear: "حدّد مستقيمًا أو مستوى أو مضلعًا",
         designate_sphere: "حدّد كرة",
         designate_polyhedron: "حدّد متعدد سطوح",
         designate_revolution: "حدّد أسطوانة أو مخروطًا",
@@ -451,6 +451,7 @@ const ar: Texts = {
     },
     commands: {
         Side: "ضلع",
+        Face: "وجه",
         Point: "نقطة",
         FixedPoint: "نقطةثابتة",
         Midpoint: "منتصف",

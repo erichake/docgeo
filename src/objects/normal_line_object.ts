@@ -1,18 +1,18 @@
 import type { construction } from "../construction";
 import { vAdd, vDot, vScale, vSub, type Vec3 } from "../vec";
 import type { DgoContext } from "./construction_object";
-import type { plane_object } from "./plane_object";
+import type { polygon_object } from "./polygon_object";
 import type { point_object } from "./point_object";
 import { primitive_line_object } from "./primitive_line_object";
 
 // The line through P orthogonal to a plane.
 export class normal_line_object extends primitive_line_object {
-    PLANE: plane_object;
+    PLANE: polygon_object;
 
     constructor(
         c: construction,
         name: string | null | undefined,
-        plane: plane_object,
+        plane: polygon_object,
         point: point_object,
     ) {
         super(c, name, point);
@@ -25,7 +25,7 @@ export class normal_line_object extends primitive_line_object {
     }
 
     computeVEC(): Vec3 | null {
-        return this.PLANE.defined ? this.PLANE.NORMAL : null;
+        return this.PLANE.spans ? this.PLANE.NORMAL : null;
     }
 
     // From P to its foot on the plane, so that it visibly crosses it; when
@@ -44,7 +44,7 @@ export class normal_line_object extends primitive_line_object {
 export function createNormalLine(
     c: construction,
     name: string | null | undefined,
-    plane: plane_object,
+    plane: polygon_object,
     point: point_object,
 ): normal_line_object {
     return c.add(new normal_line_object(c, name, plane, point));

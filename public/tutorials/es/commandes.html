@@ -1216,6 +1216,22 @@
                 regulares.
             </p>
             <pre><code>M = PuntoMedio(Lado(p, 2))</code></pre>
+            <h2 id="faces">Caras de los poliedros</h2>
+            <p>
+                <strong>Cara</strong> · Una herramienta que espera un plano o un
+                polígono, o que coloca un punto, toma la cara visible bajo el
+                puntero; sin herramienta, un clic selecciona el poliedro.
+            </p>
+            <p>
+                En un argumento, <code>Cara(k, n)</code> designa la cara n,
+                contada desde 1, sin añadir ningún objeto a la construcción. La
+                base de un prisma o de una pirámide es la cara 1. Una cara se
+                comporta como un polígono: se puede colocar un punto en ella y
+                sirve de plano para las herramientas del espacio. Una recta solo
+                la corta dentro de la cara. En 3D, cualquier polígono sirve de
+                plano del mismo modo.
+            </p>
+            <pre><code>d = Perpendicular(O, Cara(k, 1))</code></pre>
         </main>
     </body>
 </html>

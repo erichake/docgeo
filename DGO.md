@@ -308,6 +308,12 @@ Un rang absent rend la référence indéfinie ; elle redevient définie si ce ra
 existe de nouveau. Une section numérote les sommets de son contour défini.
 Le rang est conservé quand le polygone est redéfini.
 
+Depuis le 2026-11-06, une référence peut aussi être `["face", polyèdre, k]` :
+la face numéro k, à partir de 1, dans l'ordre des faces du polyèdre (note 21),
+aux mêmes règles. Elle est un polygone sur les sommets de cette face. Une
+référence n'a pas elle-même de parties : ni `["side", ["face", …], k]`, ni
+`["vertex", ["face", …], k]`.
+
 `Mid` et `Med` acceptent aussi `[segment]`, notamment une référence de côté :
 le calcul suit les deux extrémités actuelles de ce segment, y compris lorsque
 le nombre de côtés du polygone change. Les anciennes formes `[A, B]` gardent
@@ -355,7 +361,7 @@ la figure, autour de la verticale de O dans l'espace, sa hauteur gardée),
 | `Vtx`   | sommet k d'un polygone ou polyèdre                                          | `[polygone ou polyèdre, k]` (18)                |
 | `Ctr`   | centre d'un cercle                                                          | `[cercle]`                                      |
 | `DirP`  | P + vecteur directeur unitaire de d                                         | `[d, P]`                                        |
-| `PlI`   | intersection droite-plan                                                    | `[d, plan]`                                     |
+| `PlI`   | intersection droite-plan ou polygone                                        | `[d, plan]` (19)                                |
 | `Int`   | intersection                                                                | `[o1, o2, branche]`, `[o1, o2, rang, P]` (3)    |
 | `CyI`   | intersection droite-solide                                                  | `[d, solide, 0 ou 1]` (4)                       |
 | `Line`  | droite (AB)                                                                 | `[A, B]`                                        |
@@ -594,7 +600,14 @@ alignement]]` police, `[30, url, l, h, zoom, opacité, u]` image (largeur
     sommets lui étant propres ; `k` d'un sommet compte depuis 0, dans
     l'ordre des sommets du polygone. Dans un plan, il tourne autour de la
     normale de ce plan.
-19. Un plan est dessiné comme celui de GeoGebra, un carré de demi-côté h
+19. Depuis le 2026-11-06, un polygone ou une référence de face vaut un plan
+    partout où une entrée prend un plan (`PlI`, `PlP`, `PlPl`, `Nrm`, `SphC`,
+    `CyS`, `PlS`, `RegP`, `C1`, `CubV`) : son plan passe par la moyenne de ses
+    sommets, de normale celle de son aire orientée, indéfini s'il n'a pas
+    d'aire. Avec un polygone, `PlI` est indéfini hors de lui, bord compris à
+    la tolérance près ; avec tout plan, quand la droite lui est parallèle (à
+    10⁻¹⁰ près, relativement).
+    Un plan est dessiné comme celui de GeoGebra, un carré de demi-côté h
     autour de son centre, ses coins lui étant propres. Par trois points :
     centré en leur centre de gravité, le long de AB, h² = 25 + somme des
     carrés des distances du centre aux points. Autrement : centré au pied

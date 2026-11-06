@@ -3,6 +3,7 @@ import { figureObjects } from "../dgo";
 import { angle_object, RIGHT_ANGLE_TOLERANCE } from "../objects/angle_object";
 import type { construction_object } from "../objects/construction_object";
 import { cylinder_intersection_object } from "../objects/cylinder_intersection_object";
+import { plane_intersection_object } from "../objects/plane_intersection_object";
 import { intersection_object } from "../objects/intersection_object";
 import { curve_object } from "../objects/curve_object";
 import { fixed_angle_object } from "../objects/fixed_angle_object";
@@ -11,7 +12,7 @@ import { locus_object } from "../objects/locus_object";
 import { point_object } from "../objects/point_object";
 import { surfacePoint } from "../objects/point_on_object";
 import { polygon_object } from "../objects/polygon_object";
-import { polygonSide } from "../objects/polygon_part";
+import { polygonSide, polyhedronFace } from "../objects/polygon_part";
 import { primitive_circle_object } from "../objects/primitive_circle_object";
 import { primitive_line_object } from "../objects/primitive_line_object";
 import { primitive_quadric_object } from "../objects/primitive_quadric_object";
@@ -22,7 +23,11 @@ import { solid_object } from "../objects/solid_object";
 import { polyhedron_object } from "../objects/polyhedron_object";
 import type { revolution_object } from "../objects/revolution_object";
 import { two_points_line_object } from "../objects/two_points_line_object";
-import { projectPointOnLine, projectPointOnPlane } from "../projection";
+import {
+    projectPointOnLine,
+    projectPointOnPlane,
+    viewDirection,
+} from "../projection";
 import { accepts, crossable, meet } from "./catalog";
 import {
     vAdd,
@@ -246,8 +251,41 @@ export function arcAt(
         : best;
 }
 
+// The rank of the face of a polyhedron seen there, from 1, 0 if none.
+function frontFace(
+    c: construction,
+    solid: polyhedron_object,
+    screen: Vec2,
+): number {
+    const frame = c.projectionFrame;
+    const toward = viewDirection(frame);
+    let front = Infinity;
+    let rank = 0;
+    solid.faces.forEach((face, index) => {
+        const points = face.map((i) => solid.vertices[i]);
+        if (
+            !inside(
+                points.map((point) => point.screen),
+                screen,
+            )
+        )
+            return;
+        const [p, q, r] = points.map((point) => point.coords);
+        const at = projectPointOnPlane(
+            screen,
+            p,
+            [vSub(q, p), vSub(r, p)],
+            frame,
+        );
+        const depth = at ? vDot(at, toward) : Infinity;
+        if (depth < front) [front, rank] = [depth, index + 1];
+    });
+    return rank;
+}
+
 // Within `radius` pixels, points first, then the nearest first. A polygon
-// or a solid is under the pointer inside it, an angle near its mark.
+// or a solid is under the pointer inside it, an angle near its mark, a face
+// inside its polyhedron.
 export function pick(
     c: construction,
     screen: Vec2,
@@ -315,6 +353,23 @@ export function pick(
                     });
             }
         }
+        if (
+            sides &&
+            object instanceof polyhedron_object &&
+            object.projectionDefined
+        ) {
+            const rank = frontFace(c, object, screen);
+            const face = rank ? polyhedronFace(object, rank) : null;
+            const at = face && nearest(c, face, screen);
+            if (at && vIsFinite(at))
+                hits.push({
+                    object: face!,
+                    distance: radius,
+                    at,
+                    // After its polyhedron, which it gives way to (see meant).
+                    rank: 2 * radius + 2,
+                });
+        }
         const at =
             object instanceof angle_object
                 ? object.O.coords
@@ -336,13 +391,19 @@ export function pick(
 }
 
 // What a click on these hits may mean: the point under it, or else each of
-// them, for the user to choose.
+// them, for the user to choose. A side stands for its polygon; a face, which
+// fills its polyhedron, only when what is designated doesn't take that.
 export const meant = (hits: Hit[]): Hit[] =>
     hits[0]?.object instanceof point_object
         ? [hits[0]]
-        : hits.filter(
-              ({ object }) =>
-                  !hits.some((hit) => hit.object.reference?.owner === object),
+        : hits.filter(({ object }) =>
+              object.reference?.kind === "face"
+                  ? !hits.some((hit) => hit.object === object.reference!.owner)
+                  : !hits.some(
+                        (hit) =>
+                            hit.object.reference?.owner === object &&
+                            hit.object.reference.kind !== "face",
+                    ),
           );
 
 // The branches of the intersections of pairs of objects, kept until the
@@ -364,27 +425,36 @@ function branches(
 ): (Vec3 | null)[] {
     const known = branchMemo.find((memo) => memo.a === a && memo.b === b);
     if (known) return known.points;
-    // A line meets a surface twice.
-    const [line, surface] = accepts(a, "surface") ? [b, a] : [a, b];
+    // A line meets a surface twice, a plane once.
+    const [line, surface] =
+        accepts(a, "surface") || accepts(a, "plane") ? [b, a] : [a, b];
     const solid = accepts(surface, "surface");
+    const plane = accepts(surface, "plane");
     const points = ([0, 1, 2, 3] as const)
-        .slice(0, solid ? 2 : 4)
+        .slice(0, plane ? 1 : solid ? 2 : 4)
         .map((order) => {
-            const point = solid
-                ? new cylinder_intersection_object(
+            const point = plane
+                ? new plane_intersection_object(
                       c,
                       "‧i",
                       line as never,
                       surface as never,
-                      order as 0 | 1,
                   )
-                : new intersection_object(
-                      c,
-                      "‧i",
-                      a as never,
-                      b as never,
-                      order,
-                  );
+                : solid
+                  ? new cylinder_intersection_object(
+                        c,
+                        "‧i",
+                        line as never,
+                        surface as never,
+                        order as 0 | 1,
+                    )
+                  : new intersection_object(
+                        c,
+                        "‧i",
+                        a as never,
+                        b as never,
+                        order,
+                    );
             // Without a view to make and unmake, as hundreds may be per move.
             point.hidden = 1;
             c.add(point);

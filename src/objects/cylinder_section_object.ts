@@ -12,7 +12,7 @@ import {
     type Vec3,
 } from "../vec";
 import { construction_object, type DgoContext } from "./construction_object";
-import type { plane_object } from "./plane_object";
+import type { polygon_object } from "./polygon_object";
 import type { revolution_object } from "./revolution_object";
 
 // Points per turn.
@@ -25,7 +25,7 @@ const SAMPLES = 96;
 // for a cylinder, of a conic for a cone.
 export class cylinder_section_object extends construction_object {
     SOLID: revolution_object;
-    PLANE: plane_object;
+    PLANE: polygon_object;
     // Each kept arc, sampled.
     arcs: Vec3[][] = [];
     projectionDefined = true;
@@ -36,7 +36,7 @@ export class cylinder_section_object extends construction_object {
         c: construction,
         name: string | null | undefined,
         solid: revolution_object,
-        plane: plane_object,
+        plane: polygon_object,
     ) {
         super(c, name, "circle");
         this.SOLID = solid;
@@ -51,7 +51,7 @@ export class cylinder_section_object extends construction_object {
     computeGeometry(): void {
         this.defined = false;
         const { SOLID: solid, PLANE: plane } = this;
-        if (!solid.defined || !plane.defined) return;
+        if (!solid.defined || !plane.spans) return;
         const { A, B, U: u, V: v, R0, R1 } = solid;
         const { CENTER: p, NORMAL: normal } = plane;
         // s = (e0 - R0·rho·x) / (d0 - (R0 - R1)·rho·x), x = cos(t - phi):
@@ -146,7 +146,7 @@ export function createCylinderSection(
     c: construction,
     name: string | null | undefined,
     solid: revolution_object,
-    plane: plane_object,
+    plane: polygon_object,
 ): cylinder_section_object {
     return c.add(new cylinder_section_object(c, name, solid, plane));
 }

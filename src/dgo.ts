@@ -38,7 +38,7 @@ import {
     objectIndex,
     type DgoContext,
 } from "./objects/construction_object";
-import { polygonSide, polygonVertex } from "./objects/polygon_part";
+import { partOf } from "./objects/polygon_part";
 import { createCurve, curve_object } from "./objects/curve_object";
 import { createCylinderIntersection } from "./objects/cylinder_intersection_object";
 import { createCylinderSection } from "./objects/cylinder_section_object";
@@ -1127,17 +1127,17 @@ function objectAt(objects: construction_object[]) {
         if (Array.isArray(value)) {
             const [kind, owner, rank] = list(value, 3);
             check(
-                (kind === "side" || kind === "vertex") &&
+                (kind === "side" || kind === "vertex" || kind === "face") &&
                     Number.isInteger(owner) &&
                     Number.isSafeInteger(rank) &&
                     (rank as number) >= 1,
             );
-            const polygon = at(owner, polygon_object);
-            check(!polygon.plane);
-            const object = (kind === "side" ? polygonSide : polygonVertex)(
-                polygon,
-                rank as number,
-            );
+            const whole =
+                kind === "face"
+                    ? at(owner, polyhedron_object)
+                    : at(owner, polygon_object);
+            check(whole instanceof polyhedron_object || !whole.plane);
+            const object = partOf(kind, whole, rank as number);
             check(classes.some((type) => object instanceof type));
             return object as Instance<C[number]>;
         }
@@ -1851,7 +1851,7 @@ const BUILDERS: Record<string, Builder> = {
             c,
             name,
             at(line, primitive_line_object),
-            at(plane, plane_object),
+            at(plane, polygon_object),
         );
     },
     Int: (parameters, { c, name, at }) => {
@@ -1926,7 +1926,7 @@ const BUILDERS: Record<string, Builder> = {
             radius(value, reader),
             axis === undefined
                 ? undefined
-                : reader.at(axis, primitive_line_object, plane_object),
+                : reader.at(axis, primitive_line_object, polygon_object),
         );
     },
     CAx: (parameters, { c, name, at }) => {
@@ -1991,7 +1991,7 @@ const BUILDERS: Record<string, Builder> = {
             at(a, point_object),
             at(b, point_object),
             sides as number,
-            plane === undefined ? undefined : at(plane, plane_object),
+            plane === undefined ? undefined : at(plane, polygon_object),
         );
     },
     Vtx: (parameters, { c, name, at }) => {
@@ -2063,7 +2063,7 @@ const BUILDERS: Record<string, Builder> = {
             c,
             name,
             at(solid, revolution_object),
-            at(plane, plane_object),
+            at(plane, polygon_object),
         );
     },
     Cube: (parameters, { c, name, points }) =>
@@ -2135,7 +2135,7 @@ const BUILDERS: Record<string, Builder> = {
         return createPlane(c, name, {
             tag: "PlP",
             point: at(point, point_object),
-            plane: at(plane, plane_object),
+            plane: at(plane, polygon_object),
         });
     },
     PlL: throughLine("PlL"),
@@ -2181,15 +2181,15 @@ const BUILDERS: Record<string, Builder> = {
             name,
             at(a, point_object),
             at(b, point_object),
-            at(third, point_object, plane_object),
+            at(third, point_object, polygon_object),
             rank as number,
         );
     },
     PlPl: (parameters, { c, name, at }) => {
         const [p, q] = list(parameters, 2);
         return createPlaneLine(c, name, [
-            at(p, plane_object),
-            at(q, plane_object),
+            at(p, polygon_object),
+            at(q, polygon_object),
         ]);
     },
     Nrm: (parameters, { c, name, at }) => {
@@ -2197,7 +2197,7 @@ const BUILDERS: Record<string, Builder> = {
         return createNormalLine(
             c,
             name,
-            at(plane, plane_object),
+            at(plane, polygon_object),
             at(point, point_object),
         );
     },
@@ -2207,7 +2207,7 @@ const BUILDERS: Record<string, Builder> = {
             c,
             name,
             at(sphere, sphere_object),
-            at(other, plane_object, sphere_object),
+            at(other, polygon_object, sphere_object),
         );
     },
     PlS: (parameters, { c, name, at, points }) => {
@@ -2221,14 +2221,14 @@ const BUILDERS: Record<string, Builder> = {
             return createPlaneSection(
                 c,
                 name,
-                at(plane, plane_object),
+                at(plane, polygon_object),
                 at(ends[0], polyhedron_object),
             );
         const vertices = points(ends, ends.length);
         return createPlaneSection(
             c,
             name,
-            at(plane, plane_object),
+            at(plane, polygon_object),
             vertices.flatMap((end, index) =>
                 index % 2 ? [] : [[end, vertices[index + 1]]],
             ) as [point_object, point_object][],

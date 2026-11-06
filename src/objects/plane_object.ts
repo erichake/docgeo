@@ -26,7 +26,7 @@ import type { primitive_line_object } from "./primitive_line_object";
 // an equation in x, y and z (PlE).
 export type plane_definition =
     | { tag: "Pl"; points: [point_object, point_object, point_object] }
-    | { tag: "PlP"; point: point_object; plane: plane_object }
+    | { tag: "PlP"; point: point_object; plane: polygon_object }
     | { tag: "PlL" | "PlO"; point: point_object; line: primitive_line_object }
     | { tag: "PlE"; equation: Equation };
 
@@ -34,9 +34,6 @@ export type plane_definition =
 // around CENTER, along U, its corners its own.
 export class plane_object extends polygon_object {
     definition: plane_definition;
-    CENTER: Vec3 = [0, 0, 0];
-    NORMAL: Vec3 = [0, 0, 1];
-    HALF = 5;
     U: Vec3 = [1, 0, 0];
 
     constructor(
@@ -89,12 +86,6 @@ export class plane_object extends polygon_object {
             return;
         }
         const [center, , half, u] = frame;
-        [this.CENTER, this.NORMAL, this.HALF, this.U] = [
-            center,
-            normal,
-            half,
-            u,
-        ];
         const v = vCross(normal, u);
         [
             [-1, -1],
@@ -110,6 +101,12 @@ export class plane_object extends polygon_object {
             corner.computeGeometry();
         });
         super.computeGeometry();
+        [this.CENTER, this.NORMAL, this.HALF, this.U] = [
+            center,
+            normal,
+            half,
+            u,
+        ];
     }
 
     // Its center, normal, half side and the direction of its sides.

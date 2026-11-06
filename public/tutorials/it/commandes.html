@@ -1238,6 +1238,23 @@
                 regolari.
             </p>
             <pre><code>M = PuntoMedio(Lato(p, 2))</code></pre>
+            <h2 id="faces">Facce dei poliedri</h2>
+            <p>
+                <strong>Faccia</strong> · Uno strumento che attende un piano o
+                un poligono, o che colloca un punto, prende la faccia visibile
+                sotto il puntatore; senza strumento, un clic seleziona il
+                poliedro.
+            </p>
+            <p>
+                In un argomento, <code>Faccia(k, n)</code> indica la faccia n, a
+                partire da 1, senza aggiungere oggetti alla costruzione. La base
+                di un prisma o di una piramide è la faccia 1. Una faccia si
+                comporta come un poligono: vi si può mettere un punto e serve da
+                piano per gli strumenti dello spazio. Una retta la interseca
+                solo all’interno della faccia. In 3D, ogni poligono serve allo
+                stesso modo da piano.
+            </p>
+            <pre><code>d = Perpendicolare(O, Faccia(k, 1))</code></pre>
         </main>
     </body>
 </html>

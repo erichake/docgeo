@@ -1,7 +1,6 @@
 import type { construction } from "../construction";
 import { vAdd, vCross, vScale, vSub, type Vec3 } from "../vec";
 import type { DgoContext } from "./construction_object";
-import type { plane_object } from "./plane_object";
 import { point_object } from "./point_object";
 import { polygon_object } from "./polygon_object";
 
@@ -9,7 +8,7 @@ import { polygon_object } from "./polygon_object";
 // normal of a plane: its other vertices are its own.
 export class regular_polygon_object extends polygon_object {
     sides: number;
-    support?: plane_object;
+    support?: polygon_object;
 
     constructor(
         c: construction,
@@ -17,7 +16,7 @@ export class regular_polygon_object extends polygon_object {
         a: point_object,
         b: point_object,
         sides: number,
-        plane?: plane_object,
+        plane?: polygon_object,
     ) {
         super(c, name, [
             a,
@@ -77,7 +76,7 @@ export function createRegularPolygon(
     a: point_object,
     b: point_object,
     sides: number,
-    plane?: plane_object,
+    plane?: polygon_object,
 ): regular_polygon_object {
     return c.add(new regular_polygon_object(c, name, a, b, sides, plane));
 }

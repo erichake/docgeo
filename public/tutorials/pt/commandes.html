@@ -1200,6 +1200,21 @@
                 segmento à construção. Também funciona com polígonos regulares.
             </p>
             <pre><code>M = PontoMédio(Lado(p, 2))</code></pre>
+            <h2 id="faces">Faces dos poliedros</h2>
+            <p>
+                <strong>Face</strong> · Uma ferramenta que espera um plano ou um
+                polígono, ou que coloca um ponto, toma a face visível sob o
+                ponteiro; sem ferramenta, um clique seleciona o poliedro.
+            </p>
+            <p>
+                Num argumento, <code>Face(k, n)</code> designa a face n, contada
+                a partir de 1, sem acrescentar um objeto à construção. A base de
+                um prisma ou de uma pirâmide é a face 1. Uma face comporta-se
+                como um polígono: pode colocar-se nela um ponto e serve de plano
+                às ferramentas do espaço. Uma reta só a interseta no interior da
+                face. Em 3D, qualquer polígono serve igualmente de plano.
+            </p>
+            <pre><code>d = Perpendicular(O, Face(k, 1))</code></pre>
         </main>
     </body>
 </html>

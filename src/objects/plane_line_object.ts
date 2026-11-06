@@ -9,20 +9,20 @@ import {
     type Vec3,
 } from "../vec";
 import type { DgoContext } from "./construction_object";
-import type { plane_object } from "./plane_object";
+import type { polygon_object } from "./polygon_object";
 import { point_object } from "./point_object";
 import { primitive_line_object } from "./primitive_line_object";
 
 // Where two planes meet, from the foot of their centers' midpoint, drawn as
 // far as the planes are wide, so its tips frame them.
 export class plane_line_object extends primitive_line_object {
-    planes: [plane_object, plane_object];
+    planes: [polygon_object, polygon_object];
     private reach: Vec3 = [0, 0, 0];
 
     constructor(
         c: construction,
         name: string | null | undefined,
-        planes: [plane_object, plane_object],
+        planes: [polygon_object, polygon_object],
     ) {
         super(c, name, new point_object(c, null, [0, 0, 0]));
         this.planes = planes;
@@ -73,7 +73,7 @@ export class plane_line_object extends primitive_line_object {
 export function createPlaneLine(
     c: construction,
     name: string | null | undefined,
-    planes: [plane_object, plane_object],
+    planes: [polygon_object, polygon_object],
 ): plane_line_object {
     return c.add(new plane_line_object(c, name, planes));
 }

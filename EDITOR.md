@@ -2689,6 +2689,40 @@ conservé et peut redevenir défini. Le milieu et la médiatrice gardent le côt
 comme support, pour suivre aussi son extrémité de fermeture si le nombre de
 sommets change.
 
+### Faces des polyèdres — 2026-11-06
+
+`Face(k, n)` (`Face` en anglais et en français) désigne en argument la face
+numéro n d'un polyèdre, comme `Côté(p, k)` un côté : une partie virtuelle
+(`polygon_part.ts`), hors du collecteur d'objets, sans vue ni style, dont les
+dépendants ont le polyèdre pour parent. C'est un polygone sur les sommets de
+la face, donc un support de point et un `planar` sans rien de plus. Décidé
+avec l'auteur : une face cachée se désigne en tournant la vue ou au clavier,
+et les arêtes viendront dans un second temps, le format n'admettant pas encore
+de référence dans une référence (`Côté(Face(k, n), j)` est refusé).
+
+Une face remplit son polyèdre, à la différence d'un côté, qui borde son
+polygone : `pick` donne la face vue sous le pointeur (`frontFace`) après le
+polyèdre, et `meant` l'écarte quand le polyèdre est lui aussi pris. Sans outil,
+un clic sélectionne donc toujours le polyèdre, comme avant ; `Section`, `Patron`
+ou une transformation le prennent aussi. Un outil qui attend un plan ou un
+polygone, ou qui fait un point là, prend la face, qu'il surligne au survol
+(`aimed`, `markSides`).
+
+Tout polygone de l'espace vaut désormais un plan (`accepts(…, "plane")`, jamais
+en 2D, où `Perpendiculaire(A, p)` reste refusé) : `polygon_object` calcule
+`CENTER`, `NORMAL` et `HALF`, que lisent les objets qui prennent un plan, et
+`spans` dit s'il en donne un (`NORMAL` n'est pas fini sans aire). L'outil
+« Intersection » prend une droite et un plan ou un polygone, jusque-là au
+clavier seulement, et le croisement d'un clic aussi. Cette intersection s'arrête
+au bord d'un polygone, comme dans GeoGebra (`contains`), et n'existe pas pour
+une droite parallèle au plan à 10⁻¹⁰ près, sans quoi un côté rencontrerait son
+polygone en un point arbitraire au gré des arrondis. Deux plans ne se croisent
+toujours qu'au clavier.
+
+Vérifié dans `editor.html` : perpendiculaire à une face, point sur une face,
+intersection, surlignage, clic sans outil. `tests/browser/polyhedron_faces.test.ts`.
+Moteur +417 octets (+76 en gzip) ; éditeur +1,6 Ko (+0,5 Ko en gzip).
+
 ### Intégration de l'éditeur dans DocShare — 2026-10-24
 
 `editor.html?embed` expose `load` et `save` par le protocole `docgeo: 1`

@@ -363,17 +363,17 @@ const nl: Texts = {
         designate_graph: "Selecteer de grafiek van een functie",
         designate_circle: "Selecteer een cirkel",
         designate_crossable:
-            "Selecteer een rechte, een cirkel, een kegelsnede, een kromme, een bol, een cilinder of een kegel",
+            "Selecteer een rechte, een cirkel, een kegelsnede, een kromme, een bol, een cilinder, een kegel, een vlak of een veelhoek",
         designate_intersectable:
             "Selecteer een rechte, een cirkel, een kegelsnede of een kromme",
         designate_curved: "Selecteer een cirkel, een kegelsnede of een kromme",
         designate_support: "Selecteer een object",
         designate_path: "Selecteer een rechte, een cirkel of een kromme",
         designate_outline: "Selecteer een veelhoek of een kegelsnede",
-        designate_plane: "Selecteer een vlak",
+        designate_plane: "Selecteer een vlak of een veelhoek",
         designate_planar: "Selecteer een vlak of een veelhoek",
         designate_traced: "Selecteer een punt of een rechte",
-        designate_linear: "Selecteer een rechte of een vlak",
+        designate_linear: "Selecteer een rechte, een vlak of een veelhoek",
         designate_sphere: "Selecteer een bol",
         designate_polyhedron: "Selecteer een veelvlak",
         designate_revolution: "Selecteer een cilinder of een kegel",
@@ -473,6 +473,7 @@ const nl: Texts = {
     },
     commands: {
         Side: "Zijde",
+        Face: "Zijvlak",
         Point: "Punt",
         FixedPoint: "VastPunt",
         Midpoint: "Midden",

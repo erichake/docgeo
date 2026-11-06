@@ -6,7 +6,8 @@ import type { Vec2 } from "../vec";
 import type { expression_object } from "./expression_object";
 
 // What an object's .dgo description needs from the file being written.
-export type DgoRef = number | ["side" | "vertex", number, number];
+export type PartKind = "side" | "vertex" | "face";
+export type DgoRef = number | [PartKind, number, number];
 
 export const objectIndex = (
     object: construction_object,
@@ -104,7 +105,7 @@ export function writeName(
 export class construction_object {
     reference?: {
         owner: construction_object;
-        kind: "side" | "vertex";
+        kind: PartKind;
         rank: number;
     };
     virtualParts?: Map<string, construction_object>;

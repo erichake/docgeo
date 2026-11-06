@@ -38,7 +38,7 @@ import { expression_object } from "../objects/expression_object";
 import { image_object } from "../objects/image_object";
 import { expression_list_object } from "../objects/expression_list_object";
 import { panel_object } from "../objects/panel_object";
-import { polygon_object } from "../objects/polygon_object";
+import { pathData, polygon_object } from "../objects/polygon_object";
 import type { segment_object } from "../objects/segment_object";
 import { sphere_object } from "../objects/sphere_object";
 import { solid_object } from "../objects/solid_object";
@@ -2357,8 +2357,11 @@ function updateCompletion(field: LineField): void {
                     "segment",
                     "line",
                     "linear",
+                    "plane",
+                    "planar",
                     "path",
                     "support",
+                    "outline",
                     "intersectable",
                 ].includes(
                     paramAt(
@@ -2760,14 +2763,36 @@ function markSides(): void {
     ]);
     sides.forEach((object) => {
         if (
-            object.reference?.kind !== "side" ||
+            !object.reference ||
+            object.reference.kind === "vertex" ||
             !object.defined ||
             !object.reference.owner.isVisible
         )
             return;
+        const strong = selection.some((picked) => picked.object === object);
+        if (object.reference.kind === "face") {
+            object.reference.owner.dom.dom().after(sideMarks!.dom());
+            sideMarks!.add(
+                c.svg
+                    .shape("path")
+                    .att(
+                        "d",
+                        pathData(
+                            (object as polygon_object).points.map(
+                                ({ screen }) => screen,
+                            ),
+                        ),
+                    )
+                    .att(
+                        "class",
+                        strong ? "dge-mark dge-mark-strong" : "dge-mark",
+                    )
+                    .stl("fill", object.reference.owner.stroke_color),
+            );
+            return;
+        }
         const side = object as segment_object;
         const [a, b] = [side.P1.screen, side.P2.screen];
-        const strong = selection.some((picked) => picked.object === object);
         // Under its polygon and so under its ends, which it would tint.
         object.reference.owner.dom.dom().before(sideMarks!.dom());
         sideMarks!.add(
@@ -2871,22 +2896,25 @@ function intersection(
     b: construction_object,
     order: number,
 ): Built {
-    const args = [a, b, order + 1].slice(
-        0,
-        accepts(a, "line") && accepts(b, "line") ? 2 : 3,
-    );
+    const once =
+        (accepts(a, "line") && accepts(b, "line")) ||
+        accepts(a, "plane") ||
+        accepts(b, "plane");
+    const args = [a, b, order + 1].slice(0, once ? 2 : 3);
     return {
         overload: overloadFor(findCommand("Intersection")!, args, vec3())!,
         args,
     };
 }
 
-// All their points, as GeoGebra's tool makes them: one of two lines, two of
-// a line or a circle and a line, a circle, a conic or a surface, those
-// found now, up to four, of conics or curves.
+// All their points, as GeoGebra's tool makes them: one of two lines or a
+// line and a plane, two of a line or a circle and a line, a circle, a conic
+// or a surface, those found now, up to four, of conics or curves.
 function intersections(a: construction_object, b: construction_object) {
     const both = [a, b];
-    const count = both.every((object) => accepts(object, "line"))
+    const count = both.every(
+        (object) => accepts(object, "line") || accepts(object, "plane"),
+    )
         ? 1
         : !both.some((object) => accepts(object, "graph")) &&
             (both.some((object) => accepts(object, "line")) ||
@@ -2992,10 +3020,10 @@ function describe(tool: Tool, args: (Arg | undefined)[]): string {
             ? line
             : `${line}\n${message(tool.anywhere ? "designate_place" : "designate_support")}`;
     if (tool.mode === "intersection") {
-        // A surface meets a line only.
+        // A surface or a plane meets a line only.
         const first = args[0] as construction_object | undefined;
         const key =
-            first && accepts(first, "surface")
+            first && (accepts(first, "surface") || accepts(first, "plane"))
                 ? "designate_line"
                 : vec3() && (!first || accepts(first, "line"))
                   ? "designate_crossable"
@@ -3178,10 +3206,7 @@ function keepButtons(): DOMElement[] {
         const button = $.create("button")
             .cls("dge-hint-text")
             .text(
-                message(
-                    on ? "macro_fixed_change" : "keep_arg",
-                    formatName(arg.name),
-                ),
+                message(on ? "macro_fixed_change" : "keep_arg", formatArg(arg)),
             );
         if (!on) button.att("title", message("keep_shift"));
         button.on("click", () => {
@@ -5196,6 +5221,28 @@ const pointNext = (param: Param, hits: Hit[]): boolean =>
             hits[0].object instanceof point_object ||
             !accepts(hits[0].object, param)));
 
+// Whether the tool or the line being typed takes the object next.
+function takesNow(object: construction_object): boolean {
+    if (pending) return fresh() ? !!fitting(object) : rowTakes(object);
+    const field = editing();
+    if (field) {
+        const call = typedCall(field);
+        return !!call && !!taking(call, object);
+    }
+    return !!applying && takesNext(designated(), object);
+}
+
+// A polyhedron's face first where a click takes it rather than the polyhedron.
+function aimed(hits: Hit[]): Hit[] {
+    const face = hits.find(({ object }) => object.reference?.kind === "face");
+    return face &&
+        (pending || editing() || applying) &&
+        !takesNow(face.object.reference!.owner) &&
+        (takesNow(face.object) || wantsPoint(hits))
+        ? [face]
+        : hits;
+}
+
 function designate(screen: Vec2, hits: Hit[], client: Vec2): void {
     if (fresh()) return designateFirst(screen, hits, client);
     const { tool, args } = pending!;
@@ -5920,7 +5967,7 @@ function follow(event: PointerEvent): void {
     const cross = wantsPoint(hits) && crossing(c, screen, hits);
     const shown = magnetizing
         ? hits.filter(({ object }) => attracts(magnetizing!.point, object))
-        : hits;
+        : aimed(hits);
     highlight(
         ...(cross
             ? [cross.a, cross.b]

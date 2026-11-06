@@ -10,7 +10,7 @@ import {
     type Vec3,
 } from "../vec";
 import type { DgoContext } from "./construction_object";
-import { plane_object } from "./plane_object";
+import { polygon_object } from "./polygon_object";
 import { primitive_circle_object } from "./primitive_circle_object";
 import type { sphere_object } from "./sphere_object";
 
@@ -19,13 +19,13 @@ import type { sphere_object } from "./sphere_object";
 // respect to both are equal.
 export class sphere_section_object extends primitive_circle_object {
     sphere: sphere_object;
-    other: plane_object | sphere_object;
+    other: polygon_object | sphere_object;
 
     constructor(
         c: construction,
         name: string | null | undefined,
         sphere: sphere_object,
-        other: plane_object | sphere_object,
+        other: polygon_object | sphere_object,
     ) {
         super(c, name);
         this.sphere = sphere;
@@ -42,7 +42,7 @@ export class sphere_section_object extends primitive_circle_object {
         const o = sphere.CENTER;
         let normal: Vec3 | null;
         let center: Vec3;
-        if (other instanceof plane_object) {
+        if (other instanceof polygon_object) {
             normal = other.NORMAL;
             center = vAdd(
                 o,
@@ -77,7 +77,7 @@ export function createSphereSection(
     c: construction,
     name: string | null | undefined,
     sphere: sphere_object,
-    other: plane_object | sphere_object,
+    other: polygon_object | sphere_object,
 ): sphere_section_object {
     return c.add(new sphere_section_object(c, name, sphere, other));
 }

@@ -1232,6 +1232,23 @@
                 veelhoeken.
             </p>
             <pre><code>M = Midden(Zijde(p, 2))</code></pre>
+            <h2 id="faces">Zijvlakken van veelvlakken</h2>
+            <p>
+                <strong>Zijvlak</strong> · Een gereedschap dat een vlak of een
+                veelhoek verwacht, of dat een punt plaatst, neemt het zijvlak
+                dat onder de aanwijzer zichtbaar is; zonder gereedschap
+                selecteert een klik het veelvlak.
+            </p>
+            <p>
+                In een argument verwijst <code>Zijvlak(k, n)</code> naar zijvlak
+                n, vanaf 1, zonder een object aan de constructie toe te voegen.
+                Het grondvlak van een prisma of piramide is zijvlak 1. Een
+                zijvlak gedraagt zich als een veelhoek: je kunt er een punt op
+                zetten en het dient als vlak voor de gereedschappen van de
+                ruimte. Een rechte snijdt het alleen binnen het zijvlak. In 3D
+                dient elke veelhoek op dezelfde manier als vlak.
+            </p>
+            <pre><code>d = Loodlijn(O, Zijvlak(k, 1))</code></pre>
         </main>
     </body>
 </html>

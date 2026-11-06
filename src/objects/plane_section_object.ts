@@ -11,7 +11,6 @@ import {
     type Vec3,
 } from "../vec";
 import type { DgoContext } from "./construction_object";
-import type { plane_object } from "./plane_object";
 import { point_object } from "./point_object";
 import { polygon_object } from "./polygon_object";
 import type { polyhedron_object } from "./polyhedron_object";
@@ -22,14 +21,14 @@ import type { polyhedron_object } from "./polyhedron_object";
 // their edges; those of a polyhedron of DocGeo, convex, around their
 // center.
 export class plane_section_object extends polygon_object {
-    PLANE: plane_object;
+    PLANE: polygon_object;
     SOLID: polyhedron_object | null;
     edges: [point_object, point_object][];
 
     constructor(
         c: construction,
         name: string | null | undefined,
-        plane: plane_object,
+        plane: polygon_object,
         source: [point_object, point_object][] | polyhedron_object,
     ) {
         const solid = Array.isArray(source) ? null : source;
@@ -65,7 +64,7 @@ export class plane_section_object extends polygon_object {
             const t =
                 vDot(normal, vSub(center, a.coords)) /
                 vDot(normal, vSub(b.coords, a.coords));
-            return this.PLANE.defined &&
+            return this.PLANE.spans &&
                 a.defined &&
                 b.defined &&
                 t >= 0 &&
@@ -73,7 +72,7 @@ export class plane_section_object extends polygon_object {
                 ? vAdd(a.coords, vScale(vSub(b.coords, a.coords), t))
                 : null;
         });
-        if (this.SOLID) {
+        if (this.SOLID && this.PLANE.spans) {
             // Once each, a vertex in the plane being on several edges.
             const points = cuts.filter(
                 (p, k): p is Vec3 =>
@@ -129,7 +128,7 @@ function polyhedronEdges(
 export function createPlaneSection(
     c: construction,
     name: string | null | undefined,
-    plane: plane_object,
+    plane: polygon_object,
     source: [point_object, point_object][] | polyhedron_object,
 ): plane_section_object {
     return c.add(new plane_section_object(c, name, plane, source));

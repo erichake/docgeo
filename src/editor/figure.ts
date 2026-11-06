@@ -38,8 +38,9 @@ import {
     objectEntry,
     objectIndex,
     type DgoRef,
+    type PartKind,
 } from "../objects/construction_object";
-import { polygonSide, polygonVertex } from "../objects/polygon_part";
+import { partOf } from "../objects/polygon_part";
 import type { curve_object } from "../objects/curve_object";
 import {
     equationCoeffs,
@@ -65,7 +66,7 @@ import type { primitive_circle_object } from "../objects/primitive_circle_object
 import { plane_object } from "../objects/plane_object";
 import { polygon_object } from "../objects/polygon_object";
 import { panelNames, parsePanel, panel_object } from "../objects/panel_object";
-import { normalOf } from "../objects/polyhedron_object";
+import { normalOf, polyhedron_object } from "../objects/polyhedron_object";
 import { list_object, type ListNature } from "../objects/list_object";
 import {
     sequenceShape,
@@ -242,6 +243,12 @@ export const entryOf = (
         screen: (position) => position,
     });
 
+const PART_COMMANDS: Record<PartKind, string> = {
+    side: "Side",
+    vertex: "Vertex",
+    face: "Face",
+};
+
 export const formatArg = (arg: Arg): string =>
     typeof arg === "number"
         ? formatNumber(arg)
@@ -250,7 +257,7 @@ export const formatArg = (arg: Arg): string =>
           : arg instanceof TextArg
             ? quoteText(renamedText(arg))
             : arg.reference
-              ? `${commandName(findCommand(arg.reference.kind === "side" ? "Side" : "Vertex")!)}(${formatName(arg.reference.owner.name)}, ${arg.reference.rank})`
+              ? `${commandName(findCommand(PART_COMMANDS[arg.reference.kind])!)}(${formatName(arg.reference.owner.name)}, ${arg.reference.rank})`
               : formatName(arg.name);
 
 const formatValue = (value: unknown): string =>
@@ -403,10 +410,7 @@ export function lineOf(
     const at = (ref: DgoRef) =>
         typeof ref === "number"
             ? objects[ref]
-            : (ref[0] === "side" ? polygonSide : polygonVertex)(
-                  objects[ref[1]] as polygon_object,
-                  ref[2],
-              );
+            : partOf(ref[0], objects[ref[1]], ref[2]);
     // An image by a macro that maps points.
     if (tag === "Mac" && typeof (parameters as unknown[])[3] === "string") {
         const [macro, , initials] = parameters as [number, number, unknown[]];
@@ -647,26 +651,36 @@ export function resolveArgument(
         const call = line.definition;
         if (
             call?.kind === "call" &&
-            ["Side", "Vertex"].includes(findCommand(call.command)?.name ?? "")
+            Object.values(PART_COMMANDS).includes(
+                findCommand(call.command)?.name ?? "",
+            )
         ) {
             const resolved = call.args.map((arg) => resolveArgument(c, arg));
             // The rank also first, as GeoGebra's Vertex.
             const [owner, rank] =
                 typeof resolved[0] === "number" ? resolved.reverse() : resolved;
+            const face = findCommand(call.command)!.name === "Face";
             if (
                 call.args.length !== 2 ||
-                !(owner instanceof polygon_object) ||
-                owner.plane ||
+                !(face
+                    ? owner instanceof polyhedron_object
+                    : owner instanceof polygon_object &&
+                      !owner.plane &&
+                      !owner.reference) ||
                 typeof rank !== "number" ||
                 !Number.isSafeInteger(rank) ||
                 rank < 1
             )
                 throw new TextError("arguments", call.command);
-            return (
-                findCommand(call.command)!.name === "Side"
-                    ? polygonSide
-                    : polygonVertex
-            )(owner, rank);
+            return partOf(
+                face
+                    ? "face"
+                    : findCommand(call.command)!.name === "Side"
+                      ? "side"
+                      : "vertex",
+                owner as construction_object,
+                rank,
+            );
         }
         return formulaArg(c, arg.source);
     }

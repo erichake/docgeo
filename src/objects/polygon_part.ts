@@ -1,6 +1,7 @@
-import type { construction_object } from "./construction_object";
+import type { construction_object, PartKind } from "./construction_object";
 import { point_object } from "./point_object";
-import type { polygon_object } from "./polygon_object";
+import { polygon_object } from "./polygon_object";
+import type { polyhedron_object } from "./polyhedron_object";
 import { segment_object } from "./segment_object";
 
 class polygon_vertex extends point_object {
@@ -49,13 +50,39 @@ class polygon_side extends segment_object {
     }
 }
 
+class polyhedron_face extends polygon_object {
+    constructor(
+        readonly solid: polyhedron_object,
+        readonly rank: number,
+    ) {
+        super(
+            solid.C,
+            null,
+            (solid.faces[rank - 1] ?? []).map((i) => solid.vertices[i]),
+        );
+        this.parents.forEach((parent) => {
+            parent.children = parent.children.filter((child) => child !== this);
+        });
+        this.parents = [];
+        this.reference = { owner: solid, kind: "face", rank };
+    }
+
+    computeGeometry(): void {
+        this.defined = this.solid.defined && this.points.length > 0;
+        if (this.defined) super.computeGeometry();
+    }
+
+    // Its vertices are projected by its polyhedron.
+    project(): void {}
+}
+
 function part<T extends construction_object>(
-    polygon: polygon_object,
-    kind: "side" | "vertex",
+    owner: construction_object,
+    kind: PartKind,
     rank: number,
     create: () => T,
 ): T {
-    const parts = (polygon.virtualParts ??= new Map());
+    const parts = (owner.virtualParts ??= new Map());
     const key = kind + rank;
     const found = parts.get(key);
     if (found) return found as T;
@@ -85,3 +112,21 @@ export const polygonSide = (
     rank: number,
 ): segment_object =>
     part(polygon, "side", rank, () => new polygon_side(polygon, rank));
+
+export const polyhedronFace = (
+    solid: polyhedron_object,
+    rank: number,
+): polygon_object =>
+    part(solid, "face", rank, () => new polyhedron_face(solid, rank));
+
+export const partOf = (
+    kind: PartKind,
+    owner: construction_object,
+    rank: number,
+): construction_object =>
+    kind === "face"
+        ? polyhedronFace(owner as polyhedron_object, rank)
+        : (kind === "side" ? polygonSide : polygonVertex)(
+              owner as polygon_object,
+              rank,
+          );

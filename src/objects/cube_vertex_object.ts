@@ -1,7 +1,7 @@
 import type { construction } from "../construction";
 import { vCross, vNormalize, vSub } from "../vec";
 import type { DgoContext } from "./construction_object";
-import { plane_object } from "./plane_object";
+import { polygon_object } from "./polygon_object";
 import { point_object } from "./point_object";
 import { cubeVertices, normalOf } from "./polyhedron_object";
 
@@ -14,7 +14,7 @@ export class cube_vertex_object extends point_object {
     moveable = false;
     A: point_object;
     B: point_object;
-    third: point_object | plane_object;
+    third: point_object | polygon_object;
     rank: number;
 
     constructor(
@@ -22,7 +22,7 @@ export class cube_vertex_object extends point_object {
         name: string | null | undefined,
         a: point_object,
         b: point_object,
-        third: point_object | plane_object,
+        third: point_object | polygon_object,
         rank: number,
     ) {
         super(c, name, [0, 0, 0], "intersection");
@@ -50,7 +50,7 @@ export class cube_vertex_object extends point_object {
             cubeVertices(
                 a,
                 b,
-                third instanceof plane_object
+                third instanceof polygon_object
                     ? normalOf(third)
                     : vNormalize(vCross(vSub(b, a), vSub(third.coords, b))),
             );
@@ -70,7 +70,7 @@ export function createCubeVertex(
     name: string | null | undefined,
     a: point_object,
     b: point_object,
-    third: point_object | plane_object,
+    third: point_object | polygon_object,
     rank: number,
 ): cube_vertex_object {
     return c.add(new cube_vertex_object(c, name, a, b, third, rank));

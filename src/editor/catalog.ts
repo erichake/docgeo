@@ -201,8 +201,11 @@ export function accepts(arg: Arg, param: Param): boolean {
             return kind === "polygon" || arg instanceof polyhedron_object;
         case "planar":
             return arg instanceof polygon_object;
+        // In space, a polygon's plane too.
+        case "plane":
+            return kind === "plane" || (kind === "polygon" && !arg.C.GRID.is2D);
         case "linear":
-            return kind === "line" || kind === "plane";
+            return kind === "line" || accepts(arg, "plane");
         case "polyhedron":
             return arg instanceof polyhedron_object;
         case "revolution":
@@ -263,16 +266,19 @@ export function accepts(arg: Arg, param: Param): boolean {
     }
 }
 
-// What the intersection tool takes: a curve, or a surface a line meets.
+// What the intersection tool takes: a curve, or a surface or a plane a line
+// meets.
 export const crossable = (object: construction_object): boolean =>
-    accepts(object, "intersectable") || accepts(object, "surface");
+    accepts(object, "intersectable") ||
+    accepts(object, "surface") ||
+    accepts(object, "plane");
 
 // Whether the editor makes the points where they meet: two curves, or a
-// line and a sphere, a cylinder or a cone.
+// line and a sphere, a cylinder, a cone or a plane.
 export const meet = (a: construction_object, b: construction_object) =>
     (accepts(a, "intersectable") && accepts(b, "intersectable")) ||
-    (accepts(a, "line") && accepts(b, "surface")) ||
-    (accepts(a, "surface") && accepts(b, "line"));
+    (accepts(a, "line") && (accepts(b, "surface") || accepts(b, "plane"))) ||
+    ((accepts(a, "surface") || accepts(a, "plane")) && accepts(b, "line"));
 
 // What a formula reads by name (see READABLE in dgp_commands.ts).
 export const readable = (object: construction_object): boolean =>
@@ -286,7 +292,7 @@ const isIndex = (value: unknown): value is DgoRef =>
     (Number.isInteger(value) && (value as number) >= 0) ||
     (Array.isArray(value) &&
         value.length === 3 &&
-        ["side", "vertex"].includes(value[0]) &&
+        ["side", "vertex", "face"].includes(value[0]) &&
         Number.isInteger(value[1]) &&
         value[1] >= 0 &&
         Number.isSafeInteger(value[2]) &&
@@ -497,6 +503,13 @@ export const COMMANDS: Command[] = [
         reference: true,
         overloads: [
             { params: ["polygon", "number"], tag: "", encode: () => null },
+        ],
+    },
+    {
+        name: "Face",
+        reference: true,
+        overloads: [
+            { params: ["polyhedron", "number"], tag: "", encode: () => null },
         ],
     },
     {

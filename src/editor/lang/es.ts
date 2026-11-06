@@ -360,7 +360,7 @@ const es: Texts = {
         designate_graph: "Selecciona la gráfica de una función",
         designate_circle: "Selecciona una circunferencia",
         designate_crossable:
-            "Selecciona una recta, una circunferencia, una cónica, una curva, una esfera, un cilindro o un cono",
+            "Selecciona una recta, una circunferencia, una cónica, una curva, una esfera, un cilindro, un cono, un plano o un polígono",
         designate_intersectable:
             "Selecciona una recta, una circunferencia, una cónica o una curva",
         designate_curved:
@@ -368,10 +368,10 @@ const es: Texts = {
         designate_support: "Selecciona un objeto",
         designate_path: "Selecciona una recta, una circunferencia o una curva",
         designate_outline: "Selecciona un polígono o una cónica",
-        designate_plane: "Selecciona un plano",
+        designate_plane: "Selecciona un plano o un polígono",
         designate_planar: "Selecciona un plano o un polígono",
         designate_traced: "Selecciona un punto o una recta",
-        designate_linear: "Selecciona una recta o un plano",
+        designate_linear: "Selecciona una recta, un plano o un polígono",
         designate_sphere: "Selecciona una esfera",
         designate_polyhedron: "Selecciona un poliedro",
         designate_revolution: "Selecciona un cilindro o un cono",
@@ -470,6 +470,7 @@ const es: Texts = {
     },
     commands: {
         Side: "Lado",
+        Face: "Cara",
         Point: "Punto",
         FixedPoint: "PuntoFijo",
         Midpoint: "PuntoMedio",

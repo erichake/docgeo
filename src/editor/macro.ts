@@ -322,7 +322,9 @@ function finalTypes(
         Array.isArray(ref)
             ? ref[0] === "side"
                 ? "segment"
-                : "point"
+                : ref[0] === "face"
+                  ? "polygon"
+                  : "point"
             : typeAt(ref as number);
     const typeAt = (index: number): string => {
         if (index < slots) return slotTypes[index];

@@ -1094,6 +1094,21 @@
                 construction. This also works for regular polygons.
             </p>
             <pre><code>M = Midpoint(Side(p, 2))</code></pre>
+            <h2 id="faces">Polyhedron faces</h2>
+            <p>
+                <strong>Face</strong> · A tool that expects a plane or a
+                polygon, or that places a point, takes the face seen under the
+                pointer; without a tool, a click selects the polyhedron.
+            </p>
+            <p>
+                Within an argument, <code>Face(k, n)</code> refers to face n,
+                counted from 1, without adding an object to the construction.
+                The base of a prism or a pyramid is face 1. A face behaves like
+                a polygon: you can put a point on it, and it serves as a plane
+                for the tools of space. A line only meets it inside the face. In
+                3D, any polygon serves as a plane in the same way.
+            </p>
+            <pre><code>d = Perpendicular(O, Face(k, 1))</code></pre>
         </main>
     </body>
 </html>

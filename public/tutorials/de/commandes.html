@@ -1226,6 +1226,24 @@
                 Vielecke.
             </p>
             <pre><code>M = Mittelpunkt(Seite(p, 2))</code></pre>
+            <h2 id="faces">Seitenflächen von Polyedern</h2>
+            <p>
+                <strong>Seitenfläche</strong> · Ein Werkzeug, das eine Ebene
+                oder ein Vieleck erwartet oder einen Punkt setzt, nimmt die
+                unter dem Zeiger sichtbare Seitenfläche; ohne Werkzeug wählt ein
+                Klick das Polyeder aus.
+            </p>
+            <p>
+                In einem Argument bezeichnet <code>Seitenfläche(k, n)</code> die
+                n-te Seitenfläche, ab 1, ohne ein Objekt zur Konstruktion
+                hinzuzufügen. Die Grundfläche eines Prismas oder einer Pyramide
+                ist die Seitenfläche 1. Eine Seitenfläche verhält sich wie ein
+                Vieleck: Man kann einen Punkt darauf setzen, und sie dient den
+                Raumwerkzeugen als Ebene. Eine Gerade schneidet sie nur
+                innerhalb der Fläche. In 3D dient ebenso jedes Vieleck als
+                Ebene.
+            </p>
+            <pre><code>d = Senkrechte(O, Seitenfläche(k, 1))</code></pre>
         </main>
     </body>
 </html>
