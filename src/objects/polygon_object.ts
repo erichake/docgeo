@@ -361,17 +361,20 @@ export class polygon_object extends construction_object {
         this.nearPart = near.map((p) => this.C.pt3D(p));
     }
 
-    // Positive on the side of this plane away from the camera.
+    // Positive beyond this plane, seen from the camera. What lies in it, like
+    // a section of a solid by it, is in front of it whatever its rounding.
     private behind(): (point: Vec3) => number {
         const [a, b, c] = this.points.map((p) => p.coords);
-        const normal = vCross(vSub(b, a), vSub(c, a));
+        const normal = vNormalize(vCross(vSub(b, a), vSub(c, a))) ?? [0, 0, 0];
         const { dir, focal } = this.C.projectionFrame;
         const cameraSide =
             focal === undefined
                 ? -vDot(normal, dir!)
                 : vDot(normal, vSub(vScale(dir!, -focal), a));
         const sign = cameraSide > 0 ? -1 : 1;
-        return (point) => sign * vDot(normal, vSub(point, a));
+        return (point) =>
+            sign * vDot(normal, vSub(point, a)) -
+            geometryTolerance(...a, ...point);
     }
 
     // As in GeoGebra, dragged by translating its vertices when they are all

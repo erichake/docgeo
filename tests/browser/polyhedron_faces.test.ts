@@ -259,4 +259,62 @@ describe("Faces of polyhedra", () => {
             ).toThrow();
         }
     });
+    it("draws a section of a cube whole in its plane, as its points move", () => {
+        const c = createConstruction([862, 840]);
+        readDgo(c, {
+            dgo: 1,
+            v: {
+                o: [332.31640625, 478.21484375],
+                u: 37.951103552340456,
+                w: 862,
+                h: 840,
+                "3d": 1,
+                th: 0.26150641904915123,
+                ph: 7.0831299572457675,
+            },
+            o: [
+                ["Pt", "A", [-3.1108688147190495, 0.5474839740886327]],
+                ["Pt", "B", [1.0365012114279901, -3.285046500696241]],
+                ["CubZ", "a", [0, 1, 1]],
+                [
+                    "On",
+                    "C",
+                    [
+                        ["face", 2, 3],
+                        [0.49977760399055055, 0.28204854008652364],
+                    ],
+                ],
+                [
+                    "On",
+                    "D",
+                    [
+                        ["face", 2, 6],
+                        [0.3293513130142708, 0.5141336490013568],
+                    ],
+                ],
+                [
+                    "On",
+                    "E",
+                    [
+                        ["face", 2, 4],
+                        [-0.020522969286410377, 0.35640271115498257],
+                    ],
+                ],
+                ["Pl", "b", [4, 3, 5]],
+                ["PlS", "c", [6, 2]],
+            ],
+        });
+        c.flush();
+        const section = c.getObj("c") as polygon_object;
+        const d = point(c, "D") as point_on_object;
+        const [u, v] = d.alpha as [number, number];
+        let split = 0;
+        for (let k = 0; k < 200; k++) {
+            d.alpha = [u + k * 1e-4, v - k * 1e-4];
+            c.invalidateGeometry(d);
+            c.flush();
+            if (section.farParts.size) split++;
+        }
+        expect(split).toBe(0);
+    });
 });
