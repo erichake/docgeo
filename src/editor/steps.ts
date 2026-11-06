@@ -31,8 +31,7 @@ export function showStep(
         const value = hidden.has(object) ? 1 : 0;
         if (object.hidden === value) return;
         object.hidden = value;
-        if (value) object.updateView();
-        else object.createSVG();
+        object.updateView();
     });
     c.flush();
     return { at, later: hidden };

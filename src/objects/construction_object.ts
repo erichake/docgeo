@@ -244,10 +244,10 @@ export class construction_object {
     // creation is deferred to the end of the batch in that case.
     updateView(): void {
         if (this.C.isBatching) return;
-        if (this.isHidden) {
+        if (this.isHidden === this.hasView) {
             if (this.hasView) this.removeSVG();
-        } else if (!this.hasView) {
-            this.createSVG();
+            else this.createSVG();
+            this.C.invalidateOthers([this]);
         }
     }
 

@@ -1890,8 +1890,7 @@ function visibilityToggle(objects: construction_object[]): DOMElement {
                 if (ghosts) toggleGhost(ghosts, object);
                 else {
                     object.hidden = shown ? 1 : 0;
-                    if (shown) object.updateView();
-                    else object.createSVG();
+                    object.updateView();
                 }
             });
             changed();

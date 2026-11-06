@@ -188,7 +188,10 @@ export class construction {
     add<T extends construction_object>(obj: T): T {
         const added = this.OBJS.add(obj);
         if (this.batchedObjects) this.batchedObjects.push(added);
-        else this.initializeObject(added);
+        else {
+            this.initializeObject(added);
+            this.invalidateOthers([added]);
+        }
         return added;
     }
 
@@ -200,6 +203,7 @@ export class construction {
         const objects = this.batchedObjects!;
         this.batchedObjects = null;
         objects.forEach((object) => this.initializeObject(object));
+        this.invalidateOthers(objects);
     }
 
     // Objects without a view still need their geometry and projection
@@ -207,7 +211,18 @@ export class construction {
     private initializeObject(object: construction_object): void {
         if (object.isHidden) object.refresh();
         else object.createSVG();
-        if (object.familytype === "sphere") this.invalidateRender(this.GRID);
+    }
+
+    // Added, removed, shown or hidden: what depends on them without being built from them.
+    // A polygon or a solid hides segments, a plane cuts faces and, as a
+    // sphere, is drawn in part by the floor.
+    invalidateOthers(objects: Iterable<construction_object>): void {
+        const families = new Set(
+            Array.from(objects, ({ familytype }) => familytype),
+        );
+        if (families.has("polygon") || families.has("solid"))
+            this.invalidateProjection();
+        else if (families.has("sphere")) this.invalidateRender(this.GRID);
     }
 
     removeObject(obj: construction_object): void {
@@ -262,8 +277,7 @@ export class construction {
             object.children = [];
             object.removeSVG();
         });
-        if ([...removed].some((object) => object.familytype === "sphere"))
-            this.invalidateRender(this.GRID);
+        this.invalidateOthers(removed);
     }
 
     dispose(): void {
