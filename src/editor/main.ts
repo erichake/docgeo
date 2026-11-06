@@ -1257,9 +1257,9 @@ $("body").add(
                     eraserButton,
                     axesButton,
                     spaceButton,
+                    historyButton,
                     paletteButton,
                     propertiesButton,
-                    historyButton,
                 ),
             $.create("div")
                 .cls("dge-bar-middle")
