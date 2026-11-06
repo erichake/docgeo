@@ -352,6 +352,7 @@ const zh_TW: Texts = {
         designate_outline: "選取多邊形或二次曲線",
         designate_plane: "選取一個平面",
         designate_planar: "選取一個平面或一個多邊形",
+        designate_traced: "選取一個點或一條直線",
         designate_linear: "選取一條直線或一個平面",
         designate_sphere: "選取一個球",
         designate_polyhedron: "選取一個多面體",

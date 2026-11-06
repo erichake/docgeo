@@ -369,6 +369,7 @@ const it: Texts = {
         designate_outline: "Seleziona un poligono o una conica",
         designate_plane: "Seleziona un piano",
         designate_planar: "Seleziona un piano o un poligono",
+        designate_traced: "Seleziona un punto o una retta",
         designate_linear: "Seleziona una retta o un piano",
         designate_sphere: "Seleziona una sfera",
         designate_polyhedron: "Seleziona un poliedro",

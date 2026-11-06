@@ -3,10 +3,13 @@ import type { DOMElement } from "../dom";
 import { projectPointOnLine } from "../projection";
 import {
     GEOMETRY_EPSILON,
+    geometryTolerance,
     vAdd,
+    vCross,
     vDot,
     vIsFinite,
     vNorm,
+    vNormalize,
     vScale,
     vSub,
     type Vec2,
@@ -26,13 +29,16 @@ import { two_points_line_object } from "./two_points_line_object";
 
 type Alpha = number | readonly [number, number];
 type DriverSample = Alpha | { coords: Vec3 } | null;
+// A point of a line and its unit direction.
+type Line = readonly [Vec3, Vec3];
 
 const DEFAULT_SAMPLES = 1000;
 const MAX_SAMPLES = 5000;
 const QUADRIC_BOUND_STEPS = 20;
 
 export class locus_object extends construction_object {
-    target: point_object;
+    // A line's locus is its envelope, the curve tangent to all its positions.
+    target: point_object | primitive_line_object;
     driver: point_on_object;
     points: (Vec3 | null)[] = [];
     screenPoints: (Vec2 | null)[] = [];
@@ -44,7 +50,7 @@ export class locus_object extends construction_object {
     constructor(
         c: construction,
         name: string | null | undefined,
-        target: point_object,
+        target: point_object | primitive_line_object,
         driver: point_on_object,
     ) {
         super(c, name, "locus");
@@ -88,6 +94,7 @@ export class locus_object extends construction_object {
     }
 
     computeGeometry(): void {
+        const { target } = this;
         const samples = this.driverSamples();
         const savedAlpha = this.driver.alpha;
         const savedPoints = new Map(
@@ -105,23 +112,42 @@ export class locus_object extends construction_object {
                 ),
         );
 
-        this.points = samples.map((sample) => {
-            if (sample === null) return null;
-            // Intersection candidate assignments are cached per frame; each
-            // trial position must therefore use its own cache generation.
-            this.C.OBJS.frame++;
-            if (isDirectSample(sample)) {
-                this.driver.coords = sample.coords;
-                this.driver.defined = true;
-            } else {
-                this.driver.alpha = sample;
-                this.driver.computeGeometry();
-            }
-            this.dependencyChain.forEach((object) => object.computeGeometry());
-            if (!this.target.defined || !vIsFinite(this.target.coords))
-                return null;
-            return [...this.target.coords] as Vec3;
-        });
+        const sweep = <T>(read: () => T | null): (T | null)[] =>
+            samples.map((sample) => {
+                if (sample === null) return null;
+                // Intersection candidate assignments are cached per frame;
+                // each trial position must therefore use its own cache
+                // generation.
+                this.C.OBJS.frame++;
+                if (isDirectSample(sample)) {
+                    this.driver.coords = sample.coords;
+                    this.driver.defined = true;
+                } else {
+                    this.driver.alpha = sample;
+                    this.driver.computeGeometry();
+                }
+                this.dependencyChain.forEach((object) =>
+                    object.computeGeometry(),
+                );
+                return target.defined ? read() : null;
+            });
+        this.points =
+            target instanceof point_object
+                ? sweep(() =>
+                      vIsFinite(target.coords)
+                          ? ([...target.coords] as Vec3)
+                          : null,
+                  )
+                : envelope(
+                      sweep(() => {
+                          const direction = vNormalize(target.VEC);
+                          return direction &&
+                              vIsFinite(target.P1.coords) &&
+                              vIsFinite(direction)
+                              ? ([[...target.P1.coords], direction] as Line)
+                              : null;
+                      }),
+                  );
 
         this.C.OBJS.frame++;
         savedPoints.forEach((state, point) => {
@@ -151,7 +177,7 @@ export class locus_object extends construction_object {
         if (support instanceof primitive_line_object)
             return this.lineAlphas(support, count);
         if (support instanceof polygon_object)
-            return this.polygonSamples(support);
+            return this.polygonSamples(support, count);
         if (support instanceof locus_object)
             return support.points.map((point) =>
                 point ? { coords: point } : null,
@@ -206,11 +232,35 @@ export class locus_object extends construction_object {
         );
     }
 
-    private polygonSamples(support: polygon_object): { coords: Vec3 }[] {
-        if (support.points.length < 3) return [];
-        return [...support.points, support.points[0]].map((point) => ({
-            coords: point.coords,
+    private polygonSamples(
+        support: polygon_object,
+        count: number,
+    ): { coords: Vec3 }[] {
+        const { points } = support;
+        if (points.length < 3) return [];
+        const corners = [...points, points[0]].map(({ coords }) => ({
+            coords,
         }));
+        if (this.target instanceof point_object) return corners;
+        // A line's positions at the corners alone have no envelope.
+        const steps = Math.max(1, Math.floor(count / points.length));
+        return [
+            ...points.flatMap(({ coords }, side) =>
+                Array.from({ length: steps }, (_, step) => ({
+                    coords: vAdd(
+                        coords,
+                        vScale(
+                            vSub(
+                                points[(side + 1) % points.length].coords,
+                                coords,
+                            ),
+                            step / steps,
+                        ),
+                    ),
+                })),
+            ),
+            corners[0],
+        ];
     }
 
     private quadricAlphas(
@@ -452,6 +502,45 @@ function range(start: number, end: number, count: number): number[] {
     return Array.from({ length: count }, (_, index) => start + index * step);
 }
 
+// Under this sine, two directions are the same.
+const PARALLEL_SQUARED = GEOMETRY_EPSILON * GEOMETRY_EPSILON;
+
+// The envelope's point between two neighbouring positions of a line, where
+// they cross or, in space, come closest. The sine by a cross product, as
+// neighbours are nearly parallel.
+function tangency([p, u]: Line, [q, v]: Line): Vec3 | null {
+    const normal = vCross(u, v);
+    const squared = vDot(normal, normal);
+    if (squared <= PARALLEL_SQUARED) return null;
+    const between = vSub(q, p);
+    const onFirst = vDot(vCross(between, v), normal) / squared;
+    const onSecond = vDot(vCross(between, u), normal) / squared;
+    return vScale(
+        vAdd(vAdd(p, vScale(u, onFirst)), vAdd(q, vScale(v, onSecond))),
+        0.5,
+    );
+}
+
+function envelope(lines: (Line | null)[]): (Vec3 | null)[] {
+    const points = lines.slice(1).map((line, index) => {
+        const previous = lines[index];
+        return line && previous && tangency(previous, line);
+    });
+    // Back on its first position, the path closes the curve, one point short.
+    const first = lines[0];
+    const last = lines[lines.length - 1];
+    if (
+        first &&
+        last &&
+        vDot(vCross(first[1], last[1]), vCross(first[1], last[1])) <=
+            PARALLEL_SQUARED &&
+        vNorm(vCross(vSub(last[0], first[0]), first[1])) <=
+            geometryTolerance(vNorm(first[0]), vNorm(last[0]))
+    )
+        points.push(points[0]);
+    return points;
+}
+
 function isDirectSample(
     sample: Exclude<DriverSample, null>,
 ): sample is { coords: Vec3 } {
@@ -461,7 +550,7 @@ function isDirectSample(
 export function createLocus(
     c: construction,
     name: string | null | undefined,
-    target: point_object,
+    target: point_object | primitive_line_object,
     driver: point_on_object,
 ): locus_object {
     return c.add(new locus_object(c, name, target, driver));

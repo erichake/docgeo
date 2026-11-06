@@ -47,6 +47,8 @@ export type Param =
     | "expression"
     | "point"
     | "pointOn"
+    // What a locus follows: a point, or a line for its envelope.
+    | "traced"
     | "line"
     | "segment"
     | "vector"
@@ -185,6 +187,8 @@ export function accepts(arg: Arg, param: Param): boolean {
             return kind === "number";
         case "pointOn":
             return arg instanceof point_on_object;
+        case "traced":
+            return kind === "point" || kind === "line";
         case "segment":
             return arg instanceof segment_object;
         case "vector":
@@ -970,7 +974,7 @@ export const COMMANDS: Command[] = [
     { name: "Net", overloads: [withReal("Net", ["polyhedron"])] },
     {
         name: "Locus",
-        overloads: [objects("Loc", ["point", "pointOn"])],
+        overloads: [objects("Loc", ["traced", "pointOn"])],
     },
     // The points of an expression's value (see expression_list_object.ts).
     { name: "List", overloads: [objects("ELst", ["expression"])] },

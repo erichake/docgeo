@@ -91,6 +91,7 @@ import {
     IDENTIFIER_PART,
     IDENTIFIER_START,
 } from "../../src/import/dgp_formula";
+import type { locus_object } from "../../src/objects/locus_object";
 import type { point_object } from "../../src/objects/point_object";
 import type { circle1_object } from "../../src/objects/circle1_object";
 import type { equation_circle_object } from "../../src/objects/equation_circle_object";
@@ -2029,12 +2030,122 @@ describe("Editor", () => {
             toolsFor(object, false).some(
                 ({ overload }) => overload.tag === "Loc",
             );
-        expect(objects.map(locus)).toEqual([false, false, true, true, false]);
+        // A line moved by it has an envelope.
+        expect(objects.map(locus)).toEqual([false, false, true, true, true]);
         // The last built moves it.
         expect([objects[2], objects[3]].map(driverOf)).toEqual([
             c.getObj("P"),
             c.getObj("Q"),
         ]);
+    });
+
+    it("traces the envelope of a line, tangent to its positions", async () => {
+        const { scene: c } = studio();
+        const text = [
+            "O = (0, 0)",
+            "F = (1, 0)",
+            "G = (3, 0)",
+            "k = Circle(O, G)",
+            "M = Point(k, 0.25)",
+            "d = PerpendicularBisector(F, M)",
+            "e = Locus(d, M)",
+            "s = Line(O, F)",
+            "r = Reflect(s, e)",
+            "N = Point(e, 10)",
+            "I = Intersection(s, e, 1)",
+        ];
+        text.forEach((line) => type(c, line));
+        c.flush();
+        const d = c.getObj("d")!;
+        const M = c.getObj("M") as point_object;
+        expect(driverOf(d)).toBe(M);
+        const before = [...M.coords];
+        const e = c.getObj("e") as locus_object;
+        // The ellipse of foci O and F that GeoGebra's Envelope finds.
+        const ellipse = ([x, y]: readonly number[]): number =>
+            8 * x * x - 8 * x + 9 * y * y - 16;
+        const shown = (locus: locus_object) =>
+            locus.points.filter((point) => point !== null);
+        expect(e.defined).toBe(true);
+        expect(shown(e).length).toBe(1000);
+        shown(e).forEach((point) =>
+            expect(Math.abs(ellipse(point))).toBeLessThan(1e-3),
+        );
+        expect(e.points[999]).toEqual(e.points[0]);
+        expect(M.coords).toEqual(before);
+        // It is a locus for what uses one.
+        shown(c.getObj("r") as locus_object).forEach((point) =>
+            expect(Math.abs(ellipse(point))).toBeLessThan(1e-3),
+        );
+        expect((c.getObj("N") as point_object).defined).toBe(true);
+        const I = (c.getObj("I") as point_object).coords;
+        expect(I[1]).toBeCloseTo(0, 3);
+        expect(Math.abs(ellipse(I))).toBeLessThan(1e-2);
+        // Saved and read, the same curve.
+        expect(lines(c)).toEqual(text);
+        const other = createConstruction([800, 600]);
+        readDgo(other, await describeDgo(c));
+        expect(lines(other)).toEqual(text);
+        expect((other.getObj("e") as locus_object).points).toEqual(e.points);
+    });
+
+    it("traces an envelope on any path, or none without one", () => {
+        const { scene: c } = studio();
+        const points = (name: string) =>
+            (c.getObj(name) as locus_object).points.filter(
+                (point) => point !== null,
+            );
+        [
+            "F = (0, 2)",
+            "A = (-2, 0)",
+            "B = (2, 0)",
+            "s = Segment(A, B)",
+            "M = Point(s, 0.5)",
+            "d = PerpendicularBisector(F, M)",
+            "e = Locus(d, M)",
+            "a = Line(A, B)",
+            "N = Point(a, 0.5)",
+            "g = PerpendicularBisector(F, N)",
+            "h = Locus(g, N)",
+            "f = Line(F, A)",
+            "u = Parallel(M, f)",
+            "v = Locus(u, M)",
+            "w = Line(F, M)",
+            "b = Locus(w, M)",
+            "C = (-3, -3)",
+            "D = (3, -3)",
+            "E = (3, 3)",
+            "H = (-3, 3)",
+            "p = Polygon(C, D, E, H)",
+            "Q = Point(p, 0.5, 0.5)",
+            "I = (1, 1)",
+            "z = PerpendicularBisector(I, Q)",
+            "m = Locus(z, Q)",
+        ].forEach((line) => type(c, line));
+        c.flush();
+        // On a segment, the arc of the parabola that it sweeps.
+        const parabola = ([x, y]: readonly number[]) => y - (x * x + 4) / 4;
+        expect(points("e").length).toBeGreaterThan(900);
+        points("e").forEach((point) => {
+            expect(Math.abs(parabola(point))).toBeLessThan(1e-3);
+            expect(Math.abs(point[0])).toBeLessThanOrEqual(2);
+        });
+        // On a line, further, its positions further apart: within a pixel.
+        expect(points("h").length).toBeGreaterThan(900);
+        points("h").forEach((point) =>
+            expect(Math.abs(parabola(point))).toBeLessThan(0.025),
+        );
+        expect(Math.max(...points("h").map(([x]) => x))).toBeGreaterThan(2);
+        // Parallel lines have no envelope; lines through a point, this point.
+        expect(c.getObj("v")!.defined).toBe(false);
+        points("b").forEach((point) => {
+            expect(point[0]).toBeCloseTo(0, 6);
+            expect(point[1]).toBeCloseTo(2, 6);
+        });
+        // On a polygon, an arc by side, and closed.
+        const m = c.getObj("m") as locus_object;
+        expect(points("m").length).toBeGreaterThan(900);
+        expect(m.points[m.points.length - 1]).toEqual(m.points[0]);
     });
 
     it("offers the ring's tools in a menu, by family, one item per command of a place, and others", () => {

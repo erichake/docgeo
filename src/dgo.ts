@@ -2243,7 +2243,7 @@ const BUILDERS: Record<string, Builder> = {
         return createLocus(
             c,
             name,
-            at(target, point_object),
+            at(target, point_object, primitive_line_object),
             at(driver, point_on_object),
         );
     },

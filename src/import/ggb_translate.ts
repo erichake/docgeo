@@ -3409,6 +3409,13 @@ export function translateGgb(
             points(p) &&
             is(q, ["pointOn"]) &&
             define(label, "locus", "Locus", [ref(p), ref(q)]),
+        // On its swept part only, as for a locus, where GeoGebra draws the
+        // whole algebraic curve.
+        Envelope: ([d, q, extra], [label]) =>
+            extra === undefined &&
+            is(d, ["line"]) &&
+            is(q, ["pointOn"]) &&
+            define(label, "locus", "Envelope", [ref(d), ref(q)]),
     };
 
     const expressionStyle = (element: Element, slider: boolean): string => {

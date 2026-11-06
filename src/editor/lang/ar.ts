@@ -360,6 +360,7 @@ const ar: Texts = {
         designate_outline: "حدّد مضلعًا أو قطعًا مخروطيًا",
         designate_plane: "حدّد مستوى",
         designate_planar: "حدّد مستوى أو مضلعًا",
+        designate_traced: "حدّد نقطة أو مستقيمًا",
         designate_linear: "حدّد مستقيمًا أو مستوى",
         designate_sphere: "حدّد كرة",
         designate_polyhedron: "حدّد متعدد سطوح",

@@ -376,6 +376,7 @@ const el: Texts = {
         designate_outline: "Επιλέξτε ένα πολύγωνο ή μια κωνική τομή",
         designate_plane: "Επιλέξτε ένα επίπεδο",
         designate_planar: "Επιλέξτε ένα επίπεδο ή ένα πολύγωνο",
+        designate_traced: "Επιλέξτε ένα σημείο ή μια ευθεία",
         designate_linear: "Επιλέξτε μια ευθεία ή ένα επίπεδο",
         designate_sphere: "Επιλέξτε μια σφαίρα",
         designate_polyhedron: "Επιλέξτε ένα πολύεδρο",

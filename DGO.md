@@ -338,104 +338,104 @@ point P par la rotation de centre O et d'angle a (dans l'unité d'angle de
 la figure, autour de la verticale de O dans l'espace, sa hauteur gardée),
 `dilate(P, O, k)` son image par l'homothétie de centre O et de rapport k.
 
-| Type    | Objet                                  | Paramètres                                      |
-| ------- | -------------------------------------- | ----------------------------------------------- |
-| `Pt`    | point libre                            | `[x, y]` ou `[x, y, z]`                         |
-| `Fix`   | point fixe                             | idem                                            |
-| `Fp`    | point défini par une formule           | `[formule]`, `[formule, n1, n2]` (1)            |
-| `On`    | point sur objet                        | `[support, paramètre]` (2)                      |
-| `Mid`   | milieu                                 | `[A, B]`                                        |
-| `Sym`   | symétrique de P par rapport à O        | `[O, P]` (28)                                   |
-| `Refl`  | symétrique de P par rapport à d        | `[d, P]` (28)                                   |
-| `Rot`   | P tourné autour de O                   | `[O, P, a]`, `[O, P, a, d]` (15, 28)            |
-| `Dil`   | image de P par l'homothétie (O, k)     | `[O, P, k]` (15, 28)                            |
-| `Tra`   | P translaté du vecteur u               | `[u, P]` (15, 28)                               |
-| `Inv`   | inverse de P dans le cercle c          | `[c, P]` (28)                                   |
-| `TC`    | centre du triangle ABC                 | `[A, B, C, n]` (18)                             |
-| `Vtx`   | sommet k d'un polygone ou polyèdre     | `[polygone ou polyèdre, k]` (18)                |
-| `Ctr`   | centre d'un cercle                     | `[cercle]`                                      |
-| `DirP`  | P + vecteur directeur unitaire de d    | `[d, P]`                                        |
-| `PlI`   | intersection droite-plan               | `[d, plan]`                                     |
-| `Int`   | intersection                           | `[o1, o2, branche]`, `[o1, o2, rang, P]` (3)    |
-| `CyI`   | intersection droite-solide             | `[d, solide, 0 ou 1]` (4)                       |
-| `Line`  | droite (AB)                            | `[A, B]`                                        |
-| `Ray`   | demi-droite [AB)                       | `[A, B]`                                        |
-| `Seg`   | segment                                | `[A, B]`                                        |
-| `Vec`   | vecteur                                | `[A, B]`                                        |
-| `VecF`  | vecteur libre, tracé depuis l'origine  | `[x, y]` ou `[x, y, z]`                         |
-| `Par`   | parallèle à d par P                    | `[d, P]`                                        |
-| `Perp`  | perpendiculaire à d par P              | `[d, P]`                                        |
-| `Med`   | médiatrice                             | `[A, B]`                                        |
-| `EqL`   | droite d'équation g = d                | `[g, d]` (14)                                   |
-| `Tan`   | tangente par P                         | `[P, conique, n]`, `[P, courbe]` (17)           |
-| `Bis`   | bissectrice de l'angle AOB             | `[A, O, B]`                                     |
-| `FA`    | angle fixe : demi-droite [OA) tournée  | `[A, O, degrés ou formule, sens trigo]` (10)    |
-| `Ang`   | angle AOB                              | `[A, O, B]`                                     |
-| `Cir`   | cercle de centre O passant par A       | `[O, A]`                                        |
-| `C1`    | cercle de centre O et de rayon r       | `[O, r]`, `[O, r, axe]` (5)                     |
-| `CAx`   | cercle d'axe d passant par P           | `[d, P]`                                        |
-| `C3`    | cercle de centre O et de rayon AB      | `[A, B, O]`                                     |
-| `C3p`   | cercle passant par trois points        | `[A, B, C]`                                     |
-| `C3s`   | idem, dans leur plan de l'espace       | `[A, B, C]`                                     |
-| `Arc`   | arc de A à C passant par B             | `[A, B, C]`                                     |
-| `Sec`   | secteur de A à C passant par B         | `[A, B, C]`                                     |
-| `Arcs`  | arc de A à C par B, dans leur plan     | `[A, B, C]` (26)                                |
-| `Secs`  | secteur, idem                          | `[A, B, C]` (26)                                |
-| `CArc`  | arc de centre M, de A à [MB)           | `[M, A, B]`, `[M, A, B, 1]` (16)                |
-| `CSec`  | secteur de centre M, de A à [MB)       | idem                                            |
-| `CArcs` | arc de centre M, de A à [MB), espace   | `[M, A, B]` (26)                                |
-| `CSecs` | secteur, idem                          | `[M, A, B]` (26)                                |
-| `Semi`  | demi-cercle de diamètre [AB]           | `[A, B]` (16)                                   |
-| `EqC`   | cercle d'équation g = d                | `[g, d]` (14)                                   |
-| `Quad`  | conique passant par cinq points        | `[A, B, C, D, E]`                               |
-| `Ell`   | ellipse de foyers F, G passant par P   | `[F, G, P]`                                     |
-| `Ell1`  | ellipse de foyers F, G et demi-axe a   | `[F, G, a]` (5)                                 |
-| `Hyp`   | hyperbole de foyers F, G passant par P | `[F, G, P]`                                     |
-| `Hyp1`  | hyperbole de foyers F, G et demi-axe a | `[F, G, a]` (5)                                 |
-| `Prb`   | parabole de foyer F, de directrice d   | `[F, d]`                                        |
-| `EqQ`   | conique d'équation g = d               | `[g, d]` (14)                                   |
-| `QArc`  | arc du cercle ou de l'ellipse c, P à Q | `[c, P, Q]` (27)                                |
-| `QSec`  | secteur, idem                          | `[c, P, Q]` (27)                                |
-| `Sph`   | sphère de centre O passant par A       | `[O, A]`                                        |
-| `Sph1`  | sphère de centre O et de rayon r       | `[O, r]` (5)                                    |
-| `Cyl`   | cylindre d'axe AB et de rayon r        | `[A, B, r]` (4, 5)                              |
-| `Cone`  | cône de base de centre A, de sommet B  | `[A, B, r]` (4, 5)                              |
-| `Disk`  | disque d'un cylindre ou d'un cône      | `[solide, 0 ou 1]` (4)                          |
-| `Cube`  | cube sur le carré ABCD du plan ABC     | `[A, B, C]` (21)                                |
-| `CubP`  | cube sur AB parallèle à un plan        | `[A, B, plan ou polygone, ±1]` (20, 21)         |
-| `CubZ`  | cube sur AB, carré ABCD horizontal     | `[A, B, ±1]` (20, 21)                           |
-| `Prsm`  | prisme sur un polygone, jusqu'à P      | `[polygone, P]` (21)                            |
-| `Pyr`   | pyramide sur un polygone, de sommet S  | `[polygone, S]` (21)                            |
-| `Pl`    | plan passant par A, B et C             | `[A, B, C]` (19)                                |
-| `PlP`   | plan par A parallèle à un plan         | `[A, plan]` (19)                                |
-| `PlL`   | plan par A contenant d                 | `[A, d]` (19)                                   |
-| `PlO`   | plan par A orthogonal à d              | `[A, d]` (19)                                   |
-| `PlE`   | plan d'équation g = d                  | `[g, d]` (14, 19)                               |
-| `PlPl`  | intersection de deux plans             | `[plan, plan]` (19)                             |
-| `Nrm`   | droite par P orthogonale à un plan     | `[plan, P]`                                     |
-| `SphC`  | section d'une sphère                   | `[sphère, plan ou sphère]` (19)                 |
-| `PlS`   | section d'un polyèdre par un plan      | `[plan, A1, B1, …]`, `[plan, polyèdre]` (19)    |
-| `CubV`  | sommet de cube                         | `[A, B, C ou plan, k]` (20)                     |
-| `Abv`   | point au-dessus d'un polygone          | `[polygone, h, k]` (20)                         |
-| `NetV`  | sommet du patron d'un polyèdre         | `[P, f, O1, E1, C1, Q1, …]` (20)                |
-| `Net`   | patron d'un polyèdre, déplié de f      | `[polyèdre, f]` (5, 21)                         |
-| `CyS`   | section d'un cylindre ou d'un cône     | `[solide, plan]` (4)                            |
-| `Poly`  | polygone                               | `[A, B, C, …]`                                  |
-| `RegP`  | polygone régulier de n côtés sur [AB]  | `[A, B, n]`, `[A, B, n, plan]` (18)             |
-| `Loc`   | lieu de P quand M parcourt son support | `[P, M]`                                        |
-| `Ex`    | expression                             | objet (6)                                       |
-| `Cur`   | courbe y = f(x)                        | `[formule, min, max]` (23)                      |
-| `Lst`   | liste de formules en k                 | `[nature, nombre, formule, formule?]` (7)       |
-| `Seq`   | suite (`Sequence` de GeoGebra)         | `[nature, [boucle, …], formule, …]` (22)        |
-| `ELst`  | points d'une expression                | `[expression]` (12)                             |
-| `Itr`   | itération de segments                  | `[[P1, Q1, …], niveaux, [[ax,ay,bx,by], …]]`    |
-| `Txt`   | texte attaché à un point               | `[point, [dx, dy], texte]` (8)                  |
-| `Img`   | image                                  | `[clé, largeur, hauteur, A, B?, C?]` (9)        |
-| `Html`  | texte HTML dans un cadre de la fenêtre | `[[x, y, largeur, hauteur], rayon, texte]` (11) |
-| `Btn`   | bouton qui exécute un script           | objet (13)                                      |
-| `Evt`   | script lancé par une `Ex` ou un point  | `{"on": expression ou point, "s": script}` (24) |
-| `Mac`   | application d'une macro-construction   | `[macro, méthode, initiaux, branches?]` (25)    |
-| `Out`   | final de rang k d'une application      | `[application, k]` (25)                         |
+| Type    | Objet                                                                       | Paramètres                                      |
+| ------- | --------------------------------------------------------------------------- | ----------------------------------------------- |
+| `Pt`    | point libre                                                                 | `[x, y]` ou `[x, y, z]`                         |
+| `Fix`   | point fixe                                                                  | idem                                            |
+| `Fp`    | point défini par une formule                                                | `[formule]`, `[formule, n1, n2]` (1)            |
+| `On`    | point sur objet                                                             | `[support, paramètre]` (2)                      |
+| `Mid`   | milieu                                                                      | `[A, B]`                                        |
+| `Sym`   | symétrique de P par rapport à O                                             | `[O, P]` (28)                                   |
+| `Refl`  | symétrique de P par rapport à d                                             | `[d, P]` (28)                                   |
+| `Rot`   | P tourné autour de O                                                        | `[O, P, a]`, `[O, P, a, d]` (15, 28)            |
+| `Dil`   | image de P par l'homothétie (O, k)                                          | `[O, P, k]` (15, 28)                            |
+| `Tra`   | P translaté du vecteur u                                                    | `[u, P]` (15, 28)                               |
+| `Inv`   | inverse de P dans le cercle c                                               | `[c, P]` (28)                                   |
+| `TC`    | centre du triangle ABC                                                      | `[A, B, C, n]` (18)                             |
+| `Vtx`   | sommet k d'un polygone ou polyèdre                                          | `[polygone ou polyèdre, k]` (18)                |
+| `Ctr`   | centre d'un cercle                                                          | `[cercle]`                                      |
+| `DirP`  | P + vecteur directeur unitaire de d                                         | `[d, P]`                                        |
+| `PlI`   | intersection droite-plan                                                    | `[d, plan]`                                     |
+| `Int`   | intersection                                                                | `[o1, o2, branche]`, `[o1, o2, rang, P]` (3)    |
+| `CyI`   | intersection droite-solide                                                  | `[d, solide, 0 ou 1]` (4)                       |
+| `Line`  | droite (AB)                                                                 | `[A, B]`                                        |
+| `Ray`   | demi-droite [AB)                                                            | `[A, B]`                                        |
+| `Seg`   | segment                                                                     | `[A, B]`                                        |
+| `Vec`   | vecteur                                                                     | `[A, B]`                                        |
+| `VecF`  | vecteur libre, tracé depuis l'origine                                       | `[x, y]` ou `[x, y, z]`                         |
+| `Par`   | parallèle à d par P                                                         | `[d, P]`                                        |
+| `Perp`  | perpendiculaire à d par P                                                   | `[d, P]`                                        |
+| `Med`   | médiatrice                                                                  | `[A, B]`                                        |
+| `EqL`   | droite d'équation g = d                                                     | `[g, d]` (14)                                   |
+| `Tan`   | tangente par P                                                              | `[P, conique, n]`, `[P, courbe]` (17)           |
+| `Bis`   | bissectrice de l'angle AOB                                                  | `[A, O, B]`                                     |
+| `FA`    | angle fixe : demi-droite [OA) tournée                                       | `[A, O, degrés ou formule, sens trigo]` (10)    |
+| `Ang`   | angle AOB                                                                   | `[A, O, B]`                                     |
+| `Cir`   | cercle de centre O passant par A                                            | `[O, A]`                                        |
+| `C1`    | cercle de centre O et de rayon r                                            | `[O, r]`, `[O, r, axe]` (5)                     |
+| `CAx`   | cercle d'axe d passant par P                                                | `[d, P]`                                        |
+| `C3`    | cercle de centre O et de rayon AB                                           | `[A, B, O]`                                     |
+| `C3p`   | cercle passant par trois points                                             | `[A, B, C]`                                     |
+| `C3s`   | idem, dans leur plan de l'espace                                            | `[A, B, C]`                                     |
+| `Arc`   | arc de A à C passant par B                                                  | `[A, B, C]`                                     |
+| `Sec`   | secteur de A à C passant par B                                              | `[A, B, C]`                                     |
+| `Arcs`  | arc de A à C par B, dans leur plan                                          | `[A, B, C]` (26)                                |
+| `Secs`  | secteur, idem                                                               | `[A, B, C]` (26)                                |
+| `CArc`  | arc de centre M, de A à [MB)                                                | `[M, A, B]`, `[M, A, B, 1]` (16)                |
+| `CSec`  | secteur de centre M, de A à [MB)                                            | idem                                            |
+| `CArcs` | arc de centre M, de A à [MB), espace                                        | `[M, A, B]` (26)                                |
+| `CSecs` | secteur, idem                                                               | `[M, A, B]` (26)                                |
+| `Semi`  | demi-cercle de diamètre [AB]                                                | `[A, B]` (16)                                   |
+| `EqC`   | cercle d'équation g = d                                                     | `[g, d]` (14)                                   |
+| `Quad`  | conique passant par cinq points                                             | `[A, B, C, D, E]`                               |
+| `Ell`   | ellipse de foyers F, G passant par P                                        | `[F, G, P]`                                     |
+| `Ell1`  | ellipse de foyers F, G et demi-axe a                                        | `[F, G, a]` (5)                                 |
+| `Hyp`   | hyperbole de foyers F, G passant par P                                      | `[F, G, P]`                                     |
+| `Hyp1`  | hyperbole de foyers F, G et demi-axe a                                      | `[F, G, a]` (5)                                 |
+| `Prb`   | parabole de foyer F, de directrice d                                        | `[F, d]`                                        |
+| `EqQ`   | conique d'équation g = d                                                    | `[g, d]` (14)                                   |
+| `QArc`  | arc du cercle ou de l'ellipse c, P à Q                                      | `[c, P, Q]` (27)                                |
+| `QSec`  | secteur, idem                                                               | `[c, P, Q]` (27)                                |
+| `Sph`   | sphère de centre O passant par A                                            | `[O, A]`                                        |
+| `Sph1`  | sphère de centre O et de rayon r                                            | `[O, r]` (5)                                    |
+| `Cyl`   | cylindre d'axe AB et de rayon r                                             | `[A, B, r]` (4, 5)                              |
+| `Cone`  | cône de base de centre A, de sommet B                                       | `[A, B, r]` (4, 5)                              |
+| `Disk`  | disque d'un cylindre ou d'un cône                                           | `[solide, 0 ou 1]` (4)                          |
+| `Cube`  | cube sur le carré ABCD du plan ABC                                          | `[A, B, C]` (21)                                |
+| `CubP`  | cube sur AB parallèle à un plan                                             | `[A, B, plan ou polygone, ±1]` (20, 21)         |
+| `CubZ`  | cube sur AB, carré ABCD horizontal                                          | `[A, B, ±1]` (20, 21)                           |
+| `Prsm`  | prisme sur un polygone, jusqu'à P                                           | `[polygone, P]` (21)                            |
+| `Pyr`   | pyramide sur un polygone, de sommet S                                       | `[polygone, S]` (21)                            |
+| `Pl`    | plan passant par A, B et C                                                  | `[A, B, C]` (19)                                |
+| `PlP`   | plan par A parallèle à un plan                                              | `[A, plan]` (19)                                |
+| `PlL`   | plan par A contenant d                                                      | `[A, d]` (19)                                   |
+| `PlO`   | plan par A orthogonal à d                                                   | `[A, d]` (19)                                   |
+| `PlE`   | plan d'équation g = d                                                       | `[g, d]` (14, 19)                               |
+| `PlPl`  | intersection de deux plans                                                  | `[plan, plan]` (19)                             |
+| `Nrm`   | droite par P orthogonale à un plan                                          | `[plan, P]`                                     |
+| `SphC`  | section d'une sphère                                                        | `[sphère, plan ou sphère]` (19)                 |
+| `PlS`   | section d'un polyèdre par un plan                                           | `[plan, A1, B1, …]`, `[plan, polyèdre]` (19)    |
+| `CubV`  | sommet de cube                                                              | `[A, B, C ou plan, k]` (20)                     |
+| `Abv`   | point au-dessus d'un polygone                                               | `[polygone, h, k]` (20)                         |
+| `NetV`  | sommet du patron d'un polyèdre                                              | `[P, f, O1, E1, C1, Q1, …]` (20)                |
+| `Net`   | patron d'un polyèdre, déplié de f                                           | `[polyèdre, f]` (5, 21)                         |
+| `CyS`   | section d'un cylindre ou d'un cône                                          | `[solide, plan]` (4)                            |
+| `Poly`  | polygone                                                                    | `[A, B, C, …]`                                  |
+| `RegP`  | polygone régulier de n côtés sur [AB]                                       | `[A, B, n]`, `[A, B, n, plan]` (18)             |
+| `Loc`   | lieu de P quand M parcourt son support ; si P est une droite, son enveloppe | `[P, M]`                                        |
+| `Ex`    | expression                                                                  | objet (6)                                       |
+| `Cur`   | courbe y = f(x)                                                             | `[formule, min, max]` (23)                      |
+| `Lst`   | liste de formules en k                                                      | `[nature, nombre, formule, formule?]` (7)       |
+| `Seq`   | suite (`Sequence` de GeoGebra)                                              | `[nature, [boucle, …], formule, …]` (22)        |
+| `ELst`  | points d'une expression                                                     | `[expression]` (12)                             |
+| `Itr`   | itération de segments                                                       | `[[P1, Q1, …], niveaux, [[ax,ay,bx,by], …]]`    |
+| `Txt`   | texte attaché à un point                                                    | `[point, [dx, dy], texte]` (8)                  |
+| `Img`   | image                                                                       | `[clé, largeur, hauteur, A, B?, C?]` (9)        |
+| `Html`  | texte HTML dans un cadre de la fenêtre                                      | `[[x, y, largeur, hauteur], rayon, texte]` (11) |
+| `Btn`   | bouton qui exécute un script                                                | objet (13)                                      |
+| `Evt`   | script lancé par une `Ex` ou un point                                       | `{"on": expression ou point, "s": script}` (24) |
+| `Mac`   | application d'une macro-construction                                        | `[macro, méthode, initiaux, branches?]` (25)    |
+| `Out`   | final de rang k d'une application                                           | `[application, k]` (25)                         |
 
 1. La formule peut être un script, dont la dernière instruction donne les
    coordonnées (`"var u=A[0]-B[0];[u,0]"`). `n1`, `n2` : les nombres

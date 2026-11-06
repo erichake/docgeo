@@ -161,6 +161,23 @@ describe("GGB importer", () => {
         expectSavedPoints(c, xml);
     });
 
+    it("traces GeoGebra's envelope of a line", async () => {
+        const c = createConstruction();
+
+        expect(importGgb(c, await loadXml("enveloppe"))).toEqual([]);
+        const envelope = c.getObj("e") as locus_object;
+        expect(envelope).toBeInstanceOf(locus_object);
+        expect(envelope.target).toBe(c.getObj("d"));
+        // The equation GeoGebra saved for it: 8x² - 8x + 9y² = 16.
+        const points = envelope.points.filter((point) => point !== null);
+        expect(points.length).toBeGreaterThan(900);
+        points.forEach(([x, y]) =>
+            expect(Math.abs(8 * x * x - 8 * x + 9 * y * y - 16)).toBeLessThan(
+                1e-3,
+            ),
+        );
+    });
+
     it("imports _3carres, labels placed below their points included", async () => {
         const c = createConstruction();
         const xml = await loadXml("_3carres");

@@ -372,6 +372,7 @@ const nl: Texts = {
         designate_outline: "Selecteer een veelhoek of een kegelsnede",
         designate_plane: "Selecteer een vlak",
         designate_planar: "Selecteer een vlak of een veelhoek",
+        designate_traced: "Selecteer een punt of een rechte",
         designate_linear: "Selecteer een rechte of een vlak",
         designate_sphere: "Selecteer een bol",
         designate_polyhedron: "Selecteer een veelvlak",

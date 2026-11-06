@@ -705,6 +705,15 @@ cause.
       aucun élément gagné : ses `Mirror` par un cercle restants portent
       sur des points déjà perdus). Moteur 382,09 → 382,68 Ko (+0,59 Ko ;
       gzip 121,59 Ko).
+- [x] **43. Enveloppe d'une droite** : `Envelope(d, M)` donne le lieu de la
+      droite `d` quand `M` parcourt son support (`Loc` de `DGO.md`, la
+      commande DGP `Envelope`), calculé par intersection de ses positions
+      voisines. GeoGebra enregistre une équation (`implicitpoly`) et trace
+      toute la courbe algébrique : ici, seule sa partie balayée. Le chemin
+      autre qu'une droite reste ignoré et signalé. Corpus inchangé (aucune
+      figure n'utilise `Envelope`) ; vérifié sur `tests/ggb/enveloppe.ggb`,
+      dont les points suivent l'équation enregistrée. Moteur +0,7 Ko, import
+      +0,2 Ko.
 
 À écarter, sauf changement de priorité : calcul formel, courbes implicites,
 statistiques et probabilités, tableur au-delà des cellules simples, matrices.

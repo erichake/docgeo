@@ -568,11 +568,10 @@ export function toolsFor(
     });
 }
 
-// The point on an object that moves the point, the last built of its
-// ancestors, as in DGPad: its path gives the point's locus. A surface isn't
-// a path.
+// The point on an object that moves the point or the line, the last built of
+// its ancestors, as in DGPad: its path gives the locus. A surface isn't a path.
 export function driverOf(object: construction_object): point_on_object | null {
-    if (!(object instanceof point_object)) return null;
+    if (!accepts(object, "traced")) return null;
     let driver: point_on_object | null = null;
     const seen = new Set<construction_object>();
     const visit = (parent: construction_object): void => {

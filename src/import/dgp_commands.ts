@@ -1684,6 +1684,20 @@ const COMMANDS = new Map<string, CommandDefinition>([
                 ),
         },
     ],
+    [
+        "Envelope",
+        {
+            parameters: [string, line, pointOn],
+            result: "locus",
+            execute: (context, args) =>
+                createLocus(
+                    context.construction,
+                    args[0] as string,
+                    args[1] as primitive_line_object,
+                    args[2] as point_on_object,
+                ),
+        },
+    ],
     ["X_axis", axis([1, 0, 0])],
     ["Y_axis", axis([0, 1, 0])],
     [
