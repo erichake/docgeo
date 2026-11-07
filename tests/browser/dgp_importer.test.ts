@@ -735,6 +735,7 @@ P=PointOn("P",poly,0.5);`,
         expect(e3.increment).toBe(1);
         expect(e3.dom.dom().textContent).toBe("E3 = 4");
         expect(e3.cursorOpacity).toBe(0);
+        expect(e3.cursorColor).toBe("#780013");
 
         expect(e4.value).toEqual([1, -5, 8]);
         expect(e4.isCursor).toBe(false);

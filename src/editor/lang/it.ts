@@ -302,6 +302,8 @@ const it: Texts = {
         vertical: "Verticale",
         knob_color: "Colore della manopola",
         knob_size: "Dimensione della manopola",
+        knob_fill: "Riempimento della manopola",
+        knob_fill_opacity: "Opacità del riempimento della manopola",
         animation_settings: "Animazione",
         animation_speed: "Velocità (0: arresto)",
         reverse: "Verso inverso",

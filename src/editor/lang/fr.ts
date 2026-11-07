@@ -300,6 +300,8 @@ const fr: Texts = {
         vertical: "Vertical",
         knob_color: "Couleur de la poignée",
         knob_size: "Taille de la poignée",
+        knob_fill: "Remplissage de la poignée",
+        knob_fill_opacity: "Opacité du remplissage de la poignée",
         animation_settings: "Animation",
         animation_speed: "Vitesse (0 : arrêt)",
         reverse: "Sens inverse",

@@ -288,6 +288,8 @@ const zh: Texts = {
         vertical: "垂直",
         knob_color: "滑块颜色",
         knob_size: "滑块大小",
+        knob_fill: "滑块填充",
+        knob_fill_opacity: "滑块填充不透明度",
         animation_settings: "动画",
         animation_speed: "速度（0：停止）",
         reverse: "反向",

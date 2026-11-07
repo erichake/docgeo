@@ -988,7 +988,8 @@ postérieur.
 | `cB` | `Ex`                     | case à cocher                            | 0                                 |
 | `iB` | `Ex`                     | champ de saisie (largeur)                | 0                                 |
 | `tx` | `Ex`                     | LaTeX                                    | 0                                 |
-| `cc` | `Ex`                     | couleur du bouton du curseur             | `#780013`                         |
+| `cc` | `Ex`                     | couleur du bouton du curseur             | `null` (celle du curseur)         |
+| `cf` | `Ex`                     | remplissage du bouton, si `co` > 0       | `null` (celle du bouton)          |
 | `cr` | `Ex`                     | rayon du bouton                          | 10                                |
 | `co` | `Ex`                     | opacité du bouton                        | 0                                 |
 | `sg` | `ELst`                   | épaisseur des segments                   | -1                                |

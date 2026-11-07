@@ -294,6 +294,8 @@ const ar: Texts = {
         vertical: "عمودي",
         knob_color: "لون المقبض",
         knob_size: "حجم المقبض",
+        knob_fill: "تعبئة المقبض",
+        knob_fill_opacity: "عتامة تعبئة المقبض",
         animation_settings: "التحريك",
         animation_speed: "السرعة (0: توقف)",
         reverse: "الاتجاه المعاكس",

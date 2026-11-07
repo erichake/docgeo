@@ -302,6 +302,8 @@ const hi: Texts = {
         vertical: "ऊर्ध्वाधर",
         knob_color: "हैंडल का रंग",
         knob_size: "हैंडल का आकार",
+        knob_fill: "हैंडल का भराव",
+        knob_fill_opacity: "हैंडल के भराव की अपारदर्शिता",
         animation_settings: "एनीमेशन",
         animation_speed: "गति (0: रुकें)",
         reverse: "उल्टी दिशा",

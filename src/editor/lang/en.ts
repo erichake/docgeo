@@ -297,6 +297,8 @@ export default {
     vertical: "Vertical",
     knob_color: "Knob color",
     knob_size: "Knob size",
+    knob_fill: "Knob fill",
+    knob_fill_opacity: "Knob fill opacity",
     animation_settings: "Animation",
     animation_speed: "Speed (0: stop)",
     reverse: "Reverse direction",

@@ -153,6 +153,51 @@ describe("The controls of the palette", () => {
         expect(page.body.classList).toContain("dge-properties-open");
     });
 
+    it("give a new slider its look, the knob following its color", async () => {
+        const { page, tap, tool, entry } = await editor();
+        tool("Slider").click();
+        tap([100, 50]);
+        const label = (name: string) =>
+            page.querySelector<HTMLInputElement>(
+                `.dge-properties input[aria-label="${name}"]`,
+            );
+        await expect.poll(() => !!label("Knob fill")).toBe(true);
+        const knob = () =>
+            [
+                ...page.querySelectorAll<SVGElement>(
+                    "svg [data-slider-knob]",
+                ),
+            ].find((element) => !element.closest(".dge-mark"))!.style;
+        const write = (name: string, value: string) => {
+            label(name)!.value = value;
+            label(name)!.dispatchEvent(new Event("input", { bubbles: true }));
+            label(name)!.dispatchEvent(new Event("change", { bubbles: true }));
+        };
+        // The figure's generic fill does nothing to a slider.
+        expect(label("Fill color")).toBeNull();
+        expect(label("Fill opacity")).toBeNull();
+        expect(knob().stroke).toBe("rgb(24, 98, 145)");
+        expect(knob().fill).toBe("rgb(142, 181, 204)");
+        expect(knob().fillOpacity).toBe("1");
+        expect((await entry("a")).style).toMatchObject({
+            c: "#186291",
+            cf: "#8EB5CC",
+            co: 1,
+        });
+        write("Color", "#112233");
+        await expect.poll(() => knob().stroke).toBe("rgb(17, 34, 51)");
+        expect((await entry("a")).style.cc).toBeUndefined();
+
+        write("Knob fill opacity", "40");
+        await expect.poll(() => knob().fillOpacity).toBe("0.4");
+        write("Knob fill", "#445566");
+        await expect.poll(() => knob().fill).toBe("rgb(68, 85, 102)");
+        expect((await entry("a")).style).toMatchObject({
+            cf: "#445566",
+            co: 0.4,
+        });
+    });
+
     it("put an input field, whose own number the typed one becomes", async () => {
         const { page, tap, tool, entry } = await editor();
         tool("InputField").click();

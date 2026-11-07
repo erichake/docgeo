@@ -304,6 +304,8 @@ const nl: Texts = {
         vertical: "Verticaal",
         knob_color: "Kleur van de knop",
         knob_size: "Grootte van de knop",
+        knob_fill: "Vulling van de knop",
+        knob_fill_opacity: "Dekking van de vulling van de knop",
         animation_settings: "Animatie",
         animation_speed: "Snelheid (0: stop)",
         reverse: "Omgekeerde richting",

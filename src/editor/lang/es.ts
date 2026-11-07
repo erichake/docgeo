@@ -301,6 +301,8 @@ const es: Texts = {
         vertical: "Vertical",
         knob_color: "Color del tirador",
         knob_size: "Tamaño del tirador",
+        knob_fill: "Relleno del tirador",
+        knob_fill_opacity: "Opacidad del relleno del tirador",
         animation_settings: "Animación",
         animation_speed: "Velocidad (0: parada)",
         reverse: "Sentido inverso",

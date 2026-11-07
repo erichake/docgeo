@@ -302,6 +302,8 @@ const pt: Texts = {
         vertical: "Vertical",
         knob_color: "Cor da alça",
         knob_size: "Tamanho da alça",
+        knob_fill: "Preenchimento da alça",
+        knob_fill_opacity: "Opacidade do preenchimento da alça",
         animation_settings: "Animação",
         animation_speed: "Velocidade (0: parada)",
         reverse: "Sentido inverso",

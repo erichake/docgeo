@@ -288,6 +288,8 @@ const zh_TW: Texts = {
         vertical: "垂直",
         knob_color: "滑鈕顏色",
         knob_size: "滑鈕大小",
+        knob_fill: "滑鈕填色",
+        knob_fill_opacity: "滑鈕填色不透明度",
         animation_settings: "動畫",
         animation_speed: "速度（0：停止）",
         reverse: "反向",

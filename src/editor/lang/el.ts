@@ -308,6 +308,8 @@ const el: Texts = {
         vertical: "Κατακόρυφος",
         knob_color: "Χρώμα λαβής",
         knob_size: "Μέγεθος λαβής",
+        knob_fill: "Γέμισμα λαβής",
+        knob_fill_opacity: "Αδιαφάνεια γεμίσματος λαβής",
         animation_settings: "Κίνηση",
         animation_speed: "Ταχύτητα (0: διακοπή)",
         reverse: "Αντίστροφη φορά",

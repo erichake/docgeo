@@ -31,6 +31,7 @@ import {
     conditionText,
     programHat,
     programOwner,
+    SLIDER_LOOK,
 } from "./figure";
 import { message, type MessageKey } from "./messages";
 import { scrubNumber, type Scrub } from "./scrub";
@@ -72,11 +73,9 @@ const SCRUB = {
     slider_length: { pixel: 2 },
     input_width: { pixel: 2 },
     knob_size: { pixel: 0.1 },
+    knob_fill_opacity: { pixel: 0.5 },
     animation_speed: { pixel: 0.02, relative: true },
 } satisfies Partial<Record<MessageKey, Scrub>>;
-
-// DGPad's, that of a new slider.
-const KNOB_COLOR = "#780013";
 
 // Whose value the figure writes beside it.
 const measured = (object: construction_object): boolean =>
@@ -371,7 +370,9 @@ export function propertiesPanel(options: {
                 .add(
                     $.create("span").text(
                         message(key) +
-                            (key === "stroke_opacity" || key === "fill_opacity"
+                            (key === "stroke_opacity" ||
+                            key === "fill_opacity" ||
+                            key === "knob_fill_opacity"
                                 ? " (%)"
                                 : ""),
                     ),
@@ -734,6 +735,7 @@ export function propertiesPanel(options: {
         const filled = unpaneled.filter(
             (object) =>
                 !(object instanceof image_object) &&
+                !(object instanceof expression_object) &&
                 (object.opacity !== undefined ||
                     object instanceof locus_object),
         );
@@ -1043,6 +1045,8 @@ export function propertiesPanel(options: {
         );
         if (common(sliders)) {
             const slider = section("slider_settings");
+            const knobColor = (object: expression_object) =>
+                object.cursorColor ?? object.stroke_color;
             number(
                 slider,
                 "increment",
@@ -1080,10 +1084,13 @@ export function propertiesPanel(options: {
                 slider,
                 "knob_color",
                 sliders,
-                (object) => object.cursorColor,
-                () => KNOB_COLOR,
+                knobColor,
+                (object) => object.stroke_color,
                 (object, value) => {
-                    object.cursorColor = value;
+                    object.cursorColor =
+                        hexColor(value) === hexColor(object.stroke_color)
+                            ? null
+                            : value;
                 },
             );
             number(
@@ -1096,6 +1103,31 @@ export function propertiesPanel(options: {
                 0.5,
                 (object, value) => {
                     object.cursorRadius = value;
+                },
+            );
+            color(
+                slider,
+                "knob_fill",
+                sliders,
+                (object) => object.cursorFill ?? knobColor(object),
+                () => SLIDER_LOOK.cf,
+                (object, value) => {
+                    object.cursorFill =
+                        hexColor(value) === hexColor(knobColor(object))
+                            ? null
+                            : value;
+                },
+            );
+            number(
+                slider,
+                "knob_fill_opacity",
+                sliders,
+                (object) => object.cursorOpacity * 100,
+                0,
+                100,
+                1,
+                (object, value) => {
+                    object.cursorOpacity = value / 100;
                 },
             );
         }

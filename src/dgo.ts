@@ -320,6 +320,8 @@ const isNumber = (value: Json): value is number =>
 const isFlag = (value: Json): boolean => value === 0 || value === 1;
 const isColor = (value: Json): boolean =>
     typeof value === "string" && COLOR.test(value);
+const isOptionalColor = (value: Json): boolean =>
+    value === null || isColor(value);
 const isTexts = (value: Json): boolean =>
     Array.isArray(value) &&
     value.length === 2 &&
@@ -545,7 +547,8 @@ const STYLE: Record<string, Property> = {
     cB: flag(expression_object, "checkbox"),
     iB: field(expression_object, "inputLength", 0, isNumber),
     tx: flag(expression_object, "latex"),
-    cc: field(expression_object, "cursorColor", "#780013", isColor),
+    cc: field(expression_object, "cursorColor", null, isOptionalColor),
+    cf: field(expression_object, "cursorFill", null, isOptionalColor),
     cr: field(expression_object, "cursorRadius", 10, isNumber),
     co: field(expression_object, "cursorOpacity", 0, isNumber),
     sg: field(expression_list_object, "segmentsSize", -1, isNumber),

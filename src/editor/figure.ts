@@ -1738,6 +1738,10 @@ for (const [c, tags] of [
 for (const tag of ["Poly", "RegP", "PlS", "Pl", "PlP", "PlL", "PlO", "PlE"])
     CREATED_COLORS[tag] = { c: "#5254A3", fc: "#6B6ECF" };
 
+// What a new slider looks like. Not a style of the Slider command, which
+// would also apply to the slider it redefines.
+export const SLIDER_LOOK = { c: "#186291", cf: "#8EB5CC", co: 1 };
+
 // Points named, those built from others in grey; regions filled,
 // expressions shown, as by DGPad's tools, panels light.
 function createdStyle(tag: string): Record<string, unknown> | undefined {
@@ -1780,7 +1784,9 @@ export function createdColors(object: construction_object): [string, string] {
     const style = (
         node
             ? finalStyle(node.macro.methods[node.method], output!.rank - 1)
-            : createdStyle(tag)
+            : object instanceof expression_object && object.isCursor
+              ? SLIDER_LOOK
+              : createdStyle(tag)
     ) as Record<string, string> | undefined;
     return [style?.c ?? stroke, style?.fc ?? style?.c ?? fill];
 }
@@ -1847,12 +1853,21 @@ export function add(
 ): construction_object {
     const index = figureIndex(c);
     const source = mapped(overload, args);
+    const parameters = overload.encode(args, (object) =>
+        objectIndex(object, (owner) => index.get(owner)!),
+    );
+    const slider =
+        overload.tag === "Ex" && (parameters as { mn?: unknown }).mn != null;
     const style = !styled
         ? undefined
         : source
           ? imageStyle(source, builtTag(overload, args), index)
           : overload.style
-            ? { ...createdStyle(overload.tag), ...overload.style }
+            ? {
+                  ...createdStyle(overload.tag),
+                  ...overload.style,
+                  ...(slider && SLIDER_LOOK),
+              }
             : createdStyle(overload.tag);
     c.beginBatch();
     addDgoEntries(
@@ -1861,9 +1876,7 @@ export function add(
             [
                 overload.tag,
                 name,
-                overload.encode(args, (object) =>
-                    objectIndex(object, (owner) => index.get(owner)!),
-                ),
+                parameters,
                 ...(style ? [0] : []),
             ],
         ],

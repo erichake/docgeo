@@ -42,7 +42,6 @@ export const loadKaTeX = () =>
     ]).then(([module]) => module.default));
 
 const DEFAULT_CURSOR_LENGTH = 200;
-const DEFAULT_CURSOR_COLOR = "#780013";
 const DEFAULT_CURSOR_RADIUS = 10;
 const CURSOR_BORDER = 2;
 const CURSOR_OFFSET_Y = 20;
@@ -491,11 +490,14 @@ export class expression_object extends construction_object {
     // A vertical slider rises from its screen position, its value written
     // beside its knob.
     vertical: boolean;
-    cursorColor: string;
+    // Null: the slider's own color.
+    cursorColor: string | null = null;
     cursorRadius: number;
+    // Null: the color of the knob's border.
+    cursorFill: string | null = null;
     // Matches point_object's own opacity convention: 0 (the default) draws a
-    // white knob with a colored border, a nonzero value fills it solid with
-    // cursorColor at that opacity instead.
+    // white knob with a colored border, a nonzero value fills it with
+    // cursorFill at that opacity instead.
     cursorOpacity: number;
     // GeoGebra's checkbox, captioned by `text`, worth 1 or 0.
     checkbox = false;
@@ -562,7 +564,6 @@ export class expression_object extends construction_object {
         this.increment = 0;
         this.cursorLength = DEFAULT_CURSOR_LENGTH;
         this.vertical = false;
-        this.cursorColor = DEFAULT_CURSOR_COLOR;
         this.cursorRadius = DEFAULT_CURSOR_RADIUS;
         this.cursorOpacity = 0;
         this.screen = screen;
@@ -1000,7 +1001,8 @@ export class expression_object extends construction_object {
         t.progress = t.svg
             .shape("path")
             .stl(`fill:${t.stroke_color};stroke:none`);
-        const fill = t.cursorOpacity ? t.cursorColor : "white";
+        const knobColor = t.cursorColor ?? t.stroke_color;
+        const fill = t.cursorOpacity ? (t.cursorFill ?? knobColor) : "white";
         const fillOpacity = t.cursorOpacity || 1;
         t.knob = t.svg
             .shape("circle")
@@ -1008,7 +1010,7 @@ export class expression_object extends construction_object {
             .att("data-slider-knob", "")
             .att("r", t.cursorRadius)
             .stl(
-                `fill:${fill};fill-opacity:${fillOpacity};stroke:${t.cursorColor};stroke-width:${CURSOR_BORDER};cursor:pointer;pointer-events:auto`,
+                `fill:${fill};fill-opacity:${fillOpacity};stroke:${knobColor};stroke-width:${CURSOR_BORDER};cursor:pointer;pointer-events:auto`,
             )
             .drag((event) => t.mousedrag(event));
         t.cursor = t.svg.shape("g").add(t.track, t.progress, t.knob);

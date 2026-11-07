@@ -307,6 +307,8 @@ const de: Texts = {
         vertical: "Vertikal",
         knob_color: "Farbe des Griffs",
         knob_size: "Größe des Griffs",
+        knob_fill: "Füllung des Griffs",
+        knob_fill_opacity: "Deckkraft der Griff-Füllung",
         animation_settings: "Animation",
         animation_speed: "Geschwindigkeit (0: Stopp)",
         reverse: "Umgekehrte Richtung",

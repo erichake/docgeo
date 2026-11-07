@@ -970,6 +970,8 @@ function validateObjectStyle(
     });
 }
 
+const DGPAD_KNOB_COLOR = "#780013";
+
 // The Expression command's slider knob (cPT) stores its own small style
 // string, base64-encoded inside the expression's "cPT" style property.
 // Only color, size and opacity are meaningful for it: it's a plain dot, not
@@ -1402,7 +1404,7 @@ function executeExpression(
             ),
         };
     }
-    return createExpression(
+    const expression = createExpression(
         context.construction,
         args[0] as string,
         args[1] as string,
@@ -1414,6 +1416,8 @@ function executeExpression(
         program,
         bounds,
     );
+    expression.cursorColor = DGPAD_KNOB_COLOR;
+    return expression;
 }
 
 // DGPad's axes, lines through the origin that a figure builds on but that
