@@ -292,7 +292,7 @@ const TAG_TYPES: Record<string, string> = Object.fromEntries(
                 "point",
                 "Pt Fix Fp On Mid Sym Refl Rot Dil Tra Inv TC Vtx Ctr DirP PlI Int CyI CubV Abv NetV",
             ],
-            ["line", "Line Par Perp Med EqL Tan PlPl Nrm"],
+            ["line", "Line Par Perp Med EqL Tan TanX PlPl Nrm"],
             ["ray", "Ray Bis FA"],
             ["segment", "Seg"],
             ["vector", "Vec VecF"],

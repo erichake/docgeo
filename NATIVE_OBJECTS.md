@@ -108,7 +108,8 @@ gardée (`orientedShape`, à réutiliser pour tout objet orienté). Éditeur :
 ### 4. Tangentes — fait
 
 Objet `Tan` (item 29 de `GGB_IMPORT.md`) : à un cercle ou une conique
-depuis un point (deux solutions), à la courbe d'une fonction. Éditeur :
+depuis un point (deux solutions), à la courbe d'une fonction, aussi à une
+abscisse (`TanX`, item 44). Éditeur :
 `Tangente`, au clavier et au menu. Reste, si des figures le demandent :
 les tangentes parallèles à une droite et communes à deux cercles.
 

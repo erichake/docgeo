@@ -738,7 +738,7 @@ export const COMMANDS: Command[] = [
         ],
     },
     // Through P, the first or the second to a circle or a conic, or to a
-    // function's curve.
+    // function's curve, also at an abscissa.
     {
         name: "Tangent",
         overloads: [
@@ -758,6 +758,18 @@ export const COMMANDS: Command[] = [
                 },
             },
             objects("Tan", ["point", "graph"]),
+            {
+                params: ["real", "graph"],
+                tag: "TanX",
+                encode: ([x, curve], index) => [
+                    realParameter(x, index),
+                    index(curve as construction_object),
+                ],
+                decode: (parameters, at) => {
+                    const [x, curve] = parameters as unknown[];
+                    return [realArgument(x, at), at(curve as DgoRef)];
+                },
+            },
             // GeoGebra's other order, written as the first.
             {
                 params: ["tangible", "point", "number"],

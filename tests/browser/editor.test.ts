@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 // First, as in main.ts: the object classes import each other.
 import "../../src/construction";
+import type { tangent_object } from "../../src/objects/tangent_object";
 import type { construction } from "../../src/construction";
 import { describeDgo, figureObjects, readDgo } from "../../src/dgo";
 import {
@@ -102,7 +103,10 @@ import type { cylinder_section_object } from "../../src/objects/cylinder_section
 import type { polygon_object } from "../../src/objects/polygon_object";
 import { circle3pts_object } from "../../src/objects/circle3pts_object";
 import { two_points_line_object } from "../../src/objects/two_points_line_object";
-import type { expression_object } from "../../src/objects/expression_object";
+import {
+    setValue,
+    type expression_object,
+} from "../../src/objects/expression_object";
 import type { construction_object } from "../../src/objects/construction_object";
 import type { free_vector_object } from "../../src/objects/free_vector_object";
 import type { expression_list_object } from "../../src/objects/expression_list_object";
@@ -1078,6 +1082,45 @@ describe("Editor", () => {
         ]);
         expect(entryOf(c.getObj("f")!, figureIndex(c))[0]).toBe("Cur");
         expect(c.getObj("v")!.scriptValue(false)).toBe(7);
+    });
+
+    it("draws a function's tangent at an abscissa, kept in the file", async () => {
+        const { scene: c } = studio();
+        const written = [
+            "a = Slider(-5, 5, 1)",
+            "f(x) = x^2",
+            "s = Tangent(2, f)",
+            "t = Tangent(a, f)",
+            "u = Tangent(a + 2, f)",
+        ];
+        written.forEach((line) => type(c, line));
+        c.flush();
+        expect(lines(c)).toEqual(written);
+        expect(entryOf(c.getObj("s")!, figureIndex(c))).toEqual([
+            "TanX",
+            [2, 1],
+        ]);
+        const slope = (figure: construction, name: string) => {
+            const { VEC } = figure.getObj(name) as tangent_object;
+            return VEC[1] / VEC[0];
+        };
+        expect(slope(c, "s")).toBeCloseTo(4, 6);
+        expect(slope(c, "t")).toBeCloseTo(2, 6);
+        expect(slope(c, "u")).toBeCloseTo(6, 6);
+        // It follows what its formula reads.
+        const a = c.getObj("a") as expression_object;
+        setValue(a, 2);
+        c.invalidateGeometry(a);
+        c.flush();
+        expect(slope(c, "t")).toBeCloseTo(4, 6);
+        const other = createConstruction([800, 600]);
+        readDgo(other, await describeDgo(c));
+        other.flush();
+        expect(lines(other).slice(1)).toEqual(written.slice(1));
+        expect(slope(other, "u")).toBeCloseTo(8, 6);
+        // An abscissa only for a function's curve.
+        ["O = (0, 0)", "k = Circle(O, 1)"].forEach((line) => type(c, line));
+        expect(() => type(c, "w = Tangent(2, k)")).toThrow();
     });
 
     it("reads a small letter's coordinates as a free vector", async () => {

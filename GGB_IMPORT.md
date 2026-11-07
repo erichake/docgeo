@@ -714,6 +714,12 @@ cause.
       figure n'utilise `Envelope`) ; vérifié sur `tests/ggb/enveloppe.ggb`,
       dont les points suivent l'équation enregistrée. Moteur +0,7 Ko, import
       +0,2 Ko.
+- [x] **44. Tangente à une abscisse** : `Tangent(2, f)` et `Tangent(a + 1, f)`
+      étaient ignorés et signalés : `Tangent` n'acceptait qu'un point. Traduit
+      en `Tangent(P, f)`, P étant un point auxiliaire masqué de cette abscisse,
+      sans objet nouveau, et le triangle de pente suit. Corpus inchangé (272 /
+      488 : aucune figure n'emploie cette forme) ; vérifié dans
+      `tests/browser/ggb_importer.test.ts`. Import +0,10 Ko (+0,04 Ko en gzip).
 
 À écarter, sauf changement de priorité : calcul formel, courbes implicites,
 statistiques et probabilités, tableur au-delà des cellules simples, matrices.

@@ -1727,7 +1727,7 @@ for (const [c, tags] of [
     ["#9467BD", ["Perp", "Nrm"]],
     ["#E377C2", ["Med"]],
     ["#9C9D1C", ["Bis"]],
-    ["#7F7F7F", ["Tan"]],
+    ["#7F7F7F", ["Tan", "TanX"]],
     ["#637939", ["Ang", "FA"]],
     ["#396D26", ["Cir", "C1", "CAx", "C3", "C3p", "C3s", "EqC", "SphC"]],
     ["#AD494A", ["Arc", "Arcs", "CArc", "CArcs", "QArc", "Semi"]],

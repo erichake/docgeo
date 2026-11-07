@@ -1506,6 +1506,10 @@ ${lines.map((line, index) => command("Plane", ["C", line], `p${index}`)).join("\
 <element type="line" label="tf"/>
 <command name="Slope"><input a0="tf"/><output a0="m"/></command>
 <element type="numeric" label="m"/>
+<command name="Tangent"><input a0="3" a1="f"/><output a0="tx"/></command>
+<element type="line" label="tx"/>
+<command name="Slope"><input a0="tx"/><output a0="mx"/></command>
+<element type="numeric" label="mx"/>
 </construction></geogebra>`,
             ),
         ).toEqual([]);
@@ -1530,6 +1534,8 @@ ${lines.map((line, index) => command("Plane", ["C", line], `p${index}`)).join("\
         expectClose(line("tf").P1.coords, [1, 1, 0]);
         expect(line("tf").VEC[1] / line("tf").VEC[0]).toBeCloseTo(2, 9);
         expect((c.getObj("m") as expression_object).value).toBeCloseTo(2, 9);
+        expectClose(line("tx").P1.coords, [3, 9, 0]);
+        expect((c.getObj("mx") as expression_object).value).toBeCloseTo(6, 6);
     });
 
     it("builds inversions, triangle centers and regular polygons", async () => {

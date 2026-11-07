@@ -1,5 +1,5 @@
 import type { construction } from "../construction";
-import { realPart } from "../import/dgp_formula";
+import { realPart, usesView } from "../import/dgp_formula";
 import {
     vAdd,
     vDot,
@@ -9,6 +9,7 @@ import {
     geometryTolerance,
     type Vec3,
 } from "../vec";
+import { dgoRadius, radiusValue, type circle1_radius } from "./circle1_object";
 import type { DgoContext } from "./construction_object";
 import { curve_object } from "./curve_object";
 import { callFunction, evaluateFunction } from "./expression_object";
@@ -22,16 +23,17 @@ export type tangent_support =
 
 // The tangent through P to a circle or a conic, one of two, their touching
 // points ordered along the polar of P; or to the curve of a function at
-// x(P). Its point is the touching point.
+// x(P), or at an abscissa, a number or a formula. Its point is the touching
+// point.
 export class tangent_object extends primitive_line_object {
-    point: point_object;
+    point: point_object | circle1_radius;
     support: tangent_support;
     branch: number;
 
     constructor(
         c: construction,
         name: string | null | undefined,
-        point: point_object,
+        point: point_object | circle1_radius,
         support: tangent_support,
         branch: number,
     ) {
@@ -39,10 +41,24 @@ export class tangent_object extends primitive_line_object {
         this.point = point;
         this.support = support;
         this.branch = branch;
-        this.addParents(point, support);
+        const formula =
+            point instanceof point_object || typeof point === "number"
+                ? null
+                : point;
+        this.readsView = !!formula && usesView(formula.formula);
+        this.addParents(
+            ...(point instanceof point_object ? [point] : []),
+            ...(formula ? formula.refs.values() : []),
+            support,
+        );
     }
 
     dgo(context: DgoContext): [string, unknown] {
+        if (!(this.point instanceof point_object))
+            return [
+                "TanX",
+                [dgoRadius(this.point, context), context.index(this.support)],
+            ];
         return [
             "Tan",
             [
@@ -54,7 +70,11 @@ export class tangent_object extends primitive_line_object {
     }
 
     computeVEC(): Vec3 | null {
-        if (!this.point.defined || !this.support.defined) return null;
+        if (
+            (this.point instanceof point_object && !this.point.defined) ||
+            !this.support.defined
+        )
+            return null;
         const line =
             this.support instanceof curve_object
                 ? this.curveTangent(this.support)
@@ -72,7 +92,11 @@ export class tangent_object extends primitive_line_object {
 
     // Its touching point and its direction.
     private curveTangent(curve: curve_object): [Vec3, Vec3] | null {
-        const x = this.point.x;
+        const x =
+            this.point instanceof point_object
+                ? this.point.x
+                : radiusValue(this.point, this.C);
+        if (x === null) return null;
         const view = () => this.C.formulaView();
         const value = (at: number) =>
             realPart(evaluateFunction(curve.formula, [at], view));
@@ -110,7 +134,8 @@ export class tangent_object extends primitive_line_object {
                 : [support.ORIGIN, ...support.PLANE, support.COEFFS];
         if (!coeffs) return null;
         const [a, b, c, d, e, f] = coeffs;
-        const relative = vSub(this.point.coords, origin);
+        const point = this.point as point_object;
+        const relative = vSub(point.coords, origin);
         const [x0, y0] = [vDot(relative, u), vDot(relative, v)];
         // The polar of P, L1·x + L2·y + L3 = 0, along w from q.
         const l1 = a * x0 + (b * y0 + d) / 2;
@@ -139,7 +164,7 @@ export class tangent_object extends primitive_line_object {
             Math.abs(l1 * x0 + l2 * y0 + l3) / (2 * Math.sqrt(norm)) <=
             geometryTolerance(x0, y0);
         if (onConic)
-            return [this.point.coords, vAdd(vScale(u, w[0]), vScale(v, w[1]))];
+            return [point.coords, vAdd(vScale(u, w[0]), vScale(v, w[1]))];
         const disc = Math.sqrt(B * B - 4 * A * C);
         const t = [(-B - disc) / (2 * A), (-B + disc) / (2 * A)].sort(
             (s, t) => s - t,
@@ -149,7 +174,7 @@ export class tangent_object extends primitive_line_object {
             vAdd(vScale(u, q[0] + t * w[0]), vScale(v, q[1] + t * w[1])),
         );
         return touch.every(Number.isFinite)
-            ? [touch, vSub(touch, this.point.coords)]
+            ? [touch, vSub(touch, point.coords)]
             : null;
     }
 }
@@ -157,7 +182,7 @@ export class tangent_object extends primitive_line_object {
 export function createTangent(
     c: construction,
     name: string | null | undefined,
-    point: point_object,
+    point: point_object | circle1_radius,
     support: tangent_support,
     branch = 0,
 ): tangent_object {

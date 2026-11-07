@@ -2442,7 +2442,14 @@ Fait (2026-10-11) :
   famille « Constructions », un seul outil pour les deux formes (le point,
   puis le cercle, la conique ou la courbe), qui donne la tangente 1, que
   la ligne change ; les formes d'un item du menu hors de l'anneau peuvent
-  désormais être plusieurs. Éditeur +0,7 Ko (+0,2 Ko en gzip).
+  désormais être plusieurs. Éditeur +0,7 Ko (+0,2 Ko en gzip). Le
+  2026-11-06, l'outil n'a plus qu'une forme, hors des commandes
+  (`TANGENT_TOOL`, de paramètres le point, puis un cercle, une conique ou
+  une courbe) : désigner le point d'abord choisissait la forme du cercle,
+  qui refusait ensuite la courbe. Au clavier, `Tangente(x, f)` donne la
+  tangente à l'abscisse x, un nombre ou une formule (entrée `TanX`), comme
+  dans GeoGebra. Moteur +0,35 Ko (+0,09 Ko en gzip), éditeur +0,35 Ko
+  (+0,12 Ko en gzip).
 
 - Centres, polygone régulier, sommet, inversion (2026-10-15) : un nom
   d'école par centre plutôt que le numéro de Kimberling de GeoGebra,

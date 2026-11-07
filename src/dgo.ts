@@ -228,6 +228,7 @@ export const LOOKS: Record<string, Look> = {
     Med: LINE,
     EqL: LINE,
     Tan: LINE,
+    TanX: LINE,
     PlPl: LINE,
     Nrm: LINE,
     Ray: RAY,
@@ -2020,6 +2021,15 @@ const BUILDERS: Record<string, Builder> = {
                       primitive_quadric_object,
                   ),
             curve ? 0 : (branch as number),
+        );
+    },
+    TanX: (parameters, reader) => {
+        const [abscissa, curve] = list(parameters, 2);
+        return createTangent(
+            reader.c,
+            reader.name,
+            radius(abscissa, reader),
+            reader.at(curve, curve_object),
         );
     },
     CArc: centerArc(false),

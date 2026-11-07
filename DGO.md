@@ -374,6 +374,7 @@ la figure, autour de la verticale de O dans l'espace, sa hauteur gardée),
 | `Med`   | médiatrice                                                                  | `[A, B]`                                        |
 | `EqL`   | droite d'équation g = d                                                     | `[g, d]` (14)                                   |
 | `Tan`   | tangente par P                                                              | `[P, conique, n]`, `[P, courbe]` (17)           |
+| `TanX`  | tangente à la courbe d'une fonction, à une abscisse                         | `[x ou formule, courbe]` (17)                   |
 | `Bis`   | bissectrice de l'angle AOB                                                  | `[A, O, B]`                                     |
 | `FA`    | angle fixe : demi-droite [OA) tournée                                       | `[A, O, degrés ou formule, sens trigo]` (10)    |
 | `Ang`   | angle AOB                                                                   | `[A, O, B]`                                     |
@@ -592,7 +593,9 @@ alignement]]` police, `[30, url, l, h, zoom, opacité, u]` image (largeur
     passent par P, leurs points de contact (sur la polaire de P) rangés
     par paramètre croissant le long de la polaire, dirigée par (b, −a) pour
     ax + by + c = 0 ; P sur la conique, la tangente en P. À la courbe
-    d'une fonction (`Cur`), la tangente au point d'abscisse celle de P. Son
+    d'une fonction (`Cur`), la tangente au point d'abscisse celle de P.
+    `TanX` donne cette abscisse par un nombre ou une formule : une entrée à
+    part, car un nombre se lirait dans `Tan` comme l'indice d'un point. Son
     point (2) est le point de contact.
 18. `n` du centre : 1 cercle inscrit, 2 gravité, 3 cercle circonscrit,
     4 orthocentre, 5 cercle d'Euler (premiers centres de Kimberling). Le

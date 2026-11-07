@@ -3284,18 +3284,22 @@ export function translateGgb(
         // At x(A) on a function's graph; at A on a circle through it; from
         // A, touching the circle where the circle of diameter A and its
         // center cuts it.
-        // Through a point, to a function's curve, or to a circle or a
-        // conic: two tangents.
+        // Through a point, to a function's curve, also at an abscissa, or
+        // to a circle or a conic: two tangents.
         Tangent: ([p, curve, extra], outputs) => {
-            if (extra !== undefined || !points(p)) return false;
+            if (extra !== undefined) return false;
             if (functions.has(curve)) {
-                curveTangents.set(outputs[0], [curve, p]);
+                const abscissa = points(p) ? null : formula(p, VALUE_KINDS);
+                if (!points(p) && abscissa === null) return false;
+                const at =
+                    abscissa === null ? p : formulaPoint(planar(abscissa, "0"));
+                curveTangents.set(outputs[0], [curve, at]);
                 return define(outputs[0], "line", "Tangent", [
-                    ref(p),
+                    ref(at),
                     ref(curve),
                 ]);
             }
-            if (!is(curve, ["circle", "quadric"])) return false;
+            if (!points(p) || !is(curve, ["circle", "quadric"])) return false;
             outputs.forEach(
                 (output, index) =>
                     output &&
