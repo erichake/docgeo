@@ -361,6 +361,8 @@ const nl: Texts = {
         designate_faceted: "Selecteer een veelhoek of een veelvlak",
         designate_tangible: "Selecteer een cirkel of een kegelsnede",
         designate_graph: "Selecteer de grafiek van een functie",
+        designate_touchable:
+            "Selecteer een cirkel, een kegelsnede of de grafiek van een functie",
         designate_circle: "Selecteer een cirkel",
         designate_crossable:
             "Selecteer een rechte, een cirkel, een kegelsnede, een kromme, een bol, een cilinder, een kegel, een vlak of een veelhoek",

@@ -359,6 +359,7 @@ const hi: Texts = {
         designate_faceted: "एक बहुभुज या बहुफलक चुनें",
         designate_tangible: "एक वृत्त या शांकव चुनें",
         designate_graph: "किसी फलन का वक्र चुनें",
+        designate_touchable: "एक वृत्त, शांकव या किसी फलन का वक्र चुनें",
         designate_circle: "एक वृत्त चुनें",
         designate_crossable:
             "एक रेखा, वृत्त, शांकव, वक्र, गोला, बेलन, शंकु, समतल या बहुभुज चुनें",

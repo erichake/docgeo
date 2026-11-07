@@ -357,6 +357,8 @@ const fr: Texts = {
         designate_faceted: "Désignez un polygone ou un polyèdre",
         designate_tangible: "Désignez un cercle ou une conique",
         designate_graph: "Désignez la courbe d'une fonction",
+        designate_touchable:
+            "Désignez un cercle, une conique ou la courbe d'une fonction",
         designate_circle: "Désignez un cercle",
         designate_crossable:
             "Désignez une droite, un cercle, une conique, une courbe, une sphère, un cylindre, un cône, un plan ou un polygone",

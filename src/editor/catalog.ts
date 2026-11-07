@@ -75,6 +75,8 @@ export type Param =
     // A circle or a conic, and a function's curve.
     | "tangible"
     | "graph"
+    // Either: what the tangent tool takes.
+    | "touchable"
     | "intersectable"
     // Intersectable, but not a line.
     | "curved"
@@ -197,6 +199,8 @@ export function accepts(arg: Arg, param: Param): boolean {
             return kind === "circle" || kind === "conic";
         case "graph":
             return arg instanceof curve_object;
+        case "touchable":
+            return accepts(arg, "tangible") || accepts(arg, "graph");
         case "faceted":
             return kind === "polygon" || arg instanceof polyhedron_object;
         case "planar":
@@ -496,6 +500,19 @@ const center = (n: number): Overload => ({
         return kind === n ? [at(a), at(b), at(c)] : null;
     },
 });
+
+// The tangent tool's only form, kept out of the commands: `Tangent(P, c)`
+// would begin `Tangent(P, c, n)`. A circle or a conic gets its first tangent,
+// which the line changes.
+export const TANGENT_TOOL: Overload = {
+    params: ["point", "touchable"],
+    tag: "Tan",
+    encode: ([point, support], index) => [
+        index(point as construction_object),
+        index(support as construction_object),
+        ...(support instanceof curve_object ? [] : [0]),
+    ],
+};
 
 export const COMMANDS: Command[] = [
     {

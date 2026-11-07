@@ -343,6 +343,7 @@ const zh_TW: Texts = {
         designate_faceted: "選取一個多邊形或多面體",
         designate_tangible: "選取一個圓或二次曲線",
         designate_graph: "選取一個函數的圖形",
+        designate_touchable: "選取圓、二次曲線或函數的圖形",
         designate_circle: "選取一個圓",
         designate_crossable:
             "選取直線、圓、二次曲線、曲線、球、圓柱、圓錐、平面或多邊形",

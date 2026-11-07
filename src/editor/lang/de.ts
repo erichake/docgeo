@@ -364,6 +364,8 @@ const de: Texts = {
         designate_faceted: "Wählen Sie ein Vieleck oder einen Polyeder",
         designate_tangible: "Wählen Sie einen Kreis oder einen Kegelschnitt",
         designate_graph: "Wählen Sie den Graphen einer Funktion",
+        designate_touchable:
+            "Wählen Sie einen Kreis, einen Kegelschnitt oder den Graphen einer Funktion",
         designate_circle: "Wählen Sie einen Kreis",
         designate_crossable:
             "Wählen Sie eine Gerade, einen Kreis, einen Kegelschnitt, eine Kurve, eine Kugel, einen Zylinder, einen Kegel, eine Ebene oder ein Vieleck",

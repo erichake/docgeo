@@ -739,3 +739,81 @@ describe("Typing a line in the editor", () => {
         expect(typed("")).toBe(0);
     });
 });
+
+describe("The tangent tool", () => {
+    const FIGURE = {
+        dgo: 1,
+        v: { o: [400, 300], u: 40, w: 800, h: 600 },
+        o: [
+            ["Pt", "P", [1, -3]],
+            ["Pt", "A", [0, 0]],
+            ["Pt", "B", [2, 0]],
+            ["Cir", "c", [1, 2]],
+            ["Cur", "f", ["x^2", null, null]],
+        ],
+    };
+
+    // The last entry after its arguments are designated, in their rows or,
+    // for the curve, where it is drawn.
+    async function tangent(names: string[]) {
+        const { page, request } = await editor();
+        await request("load", {
+            data: new TextEncoder().encode(JSON.stringify(FIGURE)).buffer,
+            format: "dgo",
+        });
+        (
+            page.querySelector(
+                '.dge-bar [aria-controls="dge-palette"]',
+            ) as HTMLElement
+        ).click();
+        (
+            page.querySelector(
+                '.dge-palette-grid button[aria-label="Tangent"]',
+            ) as HTMLElement
+        ).click();
+        names.forEach((name) => {
+            if (name === "drawn f") return tapCurve(page);
+            [...page.querySelectorAll<HTMLInputElement>(".dge-row")]
+                .find((row) => /^\w+/.exec(row.value)![0] === name)!
+                .parentElement!.dispatchEvent(
+                    new PointerEvent("pointerdown", { bubbles: true }),
+                );
+        });
+        const [tag, , parameters] = (await saved(request)).o.at(-1);
+        return [tag, parameters];
+    }
+
+    function tapCurve(page: Document): void {
+        const curve = page.querySelector<SVGPathElement>(
+            'svg path[style*="pointer-events: stroke"]',
+        )!;
+        // A place of the curve in view, where nothing else is.
+        const { x, y } = Array.from({ length: 100 }, (_, k) =>
+            curve
+                .getPointAtLength((curve.getTotalLength() * k) / 100)
+                .matrixTransform(curve.getScreenCTM()!),
+        ).find(({ x, y }) => page.elementFromPoint(x, y) === curve)!;
+        const at = {
+            clientX: x,
+            clientY: y,
+            bubbles: true,
+            isPrimary: true,
+            pointerId: 1,
+        };
+        const target = page.elementFromPoint(x, y)!;
+        const Pointer = (page.defaultView as typeof window).PointerEvent;
+        target.dispatchEvent(new Pointer("pointermove", at));
+        target.dispatchEvent(new Pointer("pointerdown", at));
+        target.dispatchEvent(new Pointer("pointerup", at));
+    }
+
+    it("takes a function's curve after the point or before it", async () => {
+        expect(await tangent(["P", "f"])).toEqual(["Tan", [0, 4]]);
+        expect(await tangent(["f", "P"])).toEqual(["Tan", [0, 4]]);
+        expect(await tangent(["P", "drawn f"])).toEqual(["Tan", [0, 4]]);
+    });
+
+    it("gives the first tangent to a circle", async () => {
+        expect(await tangent(["P", "c"])).toEqual(["Tan", [0, 3, 0]]);
+    });
+});

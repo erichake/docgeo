@@ -353,6 +353,7 @@ export default {
     designate_faceted: "Designate a polygon or a polyhedron",
     designate_tangible: "Designate a circle or a conic",
     designate_graph: "Designate a function's curve",
+    designate_touchable: "Designate a circle, a conic or a function's curve",
     designate_circle: "Designate a circle",
     designate_crossable:
         "Designate a line, a circle, a conic, a curve, a sphere, a cylinder, a cone, a plane or a polygon",

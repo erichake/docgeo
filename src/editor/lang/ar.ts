@@ -349,6 +349,7 @@ const ar: Texts = {
         designate_faceted: "حدّد مضلعًا أو متعدد سطوح",
         designate_tangible: "حدّد دائرة أو قطعًا مخروطيًا",
         designate_graph: "حدّد منحنى دالة",
+        designate_touchable: "حدّد دائرة أو قطعًا مخروطيًا أو منحنى دالة",
         designate_circle: "حدّد دائرة",
         designate_crossable:
             "حدّد مستقيمًا أو دائرة أو قطعًا مخروطيًا أو منحنى أو كرة أو أسطوانة أو مخروطًا أو مستوى أو مضلعًا",

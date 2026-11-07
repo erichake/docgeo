@@ -359,6 +359,8 @@ const pt: Texts = {
         designate_faceted: "Selecione um polígono ou um poliedro",
         designate_tangible: "Selecione um círculo ou uma cônica",
         designate_graph: "Selecione o gráfico de uma função",
+        designate_touchable:
+            "Selecione um círculo, uma cônica ou o gráfico de uma função",
         designate_circle: "Selecione um círculo",
         designate_crossable:
             "Selecione uma reta, um círculo, uma cônica, uma curva, uma esfera, um cilindro, um cone, um plano ou um polígono",

@@ -358,6 +358,8 @@ const it: Texts = {
         designate_faceted: "Seleziona un poligono o un poliedro",
         designate_tangible: "Seleziona una circonferenza o una conica",
         designate_graph: "Seleziona il grafico di una funzione",
+        designate_touchable:
+            "Seleziona una circonferenza, una conica o il grafico di una funzione",
         designate_circle: "Seleziona una circonferenza",
         designate_crossable:
             "Seleziona una retta, una circonferenza, una conica, una curva, una sfera, un cilindro, un cono, un piano o un poligono",

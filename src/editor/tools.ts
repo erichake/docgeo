@@ -10,6 +10,7 @@ import {
     crossable,
     meet,
     otherView,
+    TANGENT_TOOL,
     type Arg,
     type Command,
     type Overload,
@@ -189,11 +190,9 @@ const FAMILIES: [
             [tool("AngleBisector", 0, CONSTRUCTION_ICONS.AngleBisector)],
         ],
         [
-            // The point, then a circle or a conic (the first tangent, which
-            // the line changes), or a function's curve.
-            [0, 1].map((overload) =>
-                tool("Tangent", overload, CONSTRUCTION_ICONS.Tangent),
-            ),
+            Object.assign(tool("Tangent", 0, CONSTRUCTION_ICONS.Tangent), {
+                overload: TANGENT_TOOL,
+            }),
         ],
     ],
     [

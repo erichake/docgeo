@@ -343,6 +343,7 @@ const zh: Texts = {
         designate_faceted: "选择一个多边形或多面体",
         designate_tangible: "选择一个圆或圆锥曲线",
         designate_graph: "选择一个函数的图像",
+        designate_touchable: "选择圆、圆锥曲线或函数的图像",
         designate_circle: "选择一个圆",
         designate_crossable:
             "选择直线、圆、圆锥曲线、曲线、球、圆柱、圆锥、平面或多边形",

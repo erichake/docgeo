@@ -2179,7 +2179,7 @@ describe("Editor", () => {
                 ["Parallel", "Par"],
                 ["PerpendicularBisector", "Med", "Med"],
                 ["AngleBisector", "Bis"],
-                ["Tangent", "Tan", "Tan"],
+                ["Tangent", "Tan"],
             ],
             [
                 ["Circle (centre and point)", "Cir"],
@@ -2283,7 +2283,8 @@ describe("Editor", () => {
         expect(given("Circle (centre and radius)", [A])).toEqual([[A, 3.8]]);
         expect(given("Rotation", [B, A])).toEqual([[B, A, 3.8]]);
         expect(given("Dilation", [B])).toEqual([[B, undefined, 3.8]]);
-        expect(given("Tangent", [D, k])).toEqual([[D, k, 3.8], null]);
+        expect(given("Tangent", [D, k])).toEqual([[D, k]]);
+        expect(given("Tangent", [k, D])).toEqual([[D, k]]);
         expect(given("Polygon", [A, B, D, C])).toEqual([[A, B, D, C]]);
         expect(given("Point", [k])).toEqual([[k]]);
         expect(given("Intersection", [d, k])).toEqual([[d, k]]);
