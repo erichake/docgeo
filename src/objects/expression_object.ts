@@ -44,7 +44,7 @@ export const loadKaTeX = () =>
 const DEFAULT_CURSOR_LENGTH = 200;
 const DEFAULT_CURSOR_RADIUS = 10;
 const CURSOR_BORDER = 2;
-const CURSOR_OFFSET_Y = 20;
+export const CURSOR_OFFSET_Y = 20;
 // GeoGebra's checkbox, from its screen position: its box's offset and
 // side, and its caption's gap.
 const CHECKBOX_OFFSET: Vec2 = [5, 7];
@@ -997,10 +997,12 @@ export class expression_object extends construction_object {
 
         t.track = t.svg
             .shape("path")
-            .stl(`fill:none;stroke:${t.stroke_color};stroke-width:1`);
+            .stl(
+                `fill:none;stroke:${t.stroke_color};stroke-width:1;pointer-events:none`,
+            );
         t.progress = t.svg
             .shape("path")
-            .stl(`fill:${t.stroke_color};stroke:none`);
+            .stl(`fill:${t.stroke_color};stroke:none;pointer-events:none`);
         const knobColor = t.cursorColor ?? t.stroke_color;
         const fill = t.cursorOpacity ? (t.cursorFill ?? knobColor) : "white";
         const fillOpacity = t.cursorOpacity || 1;

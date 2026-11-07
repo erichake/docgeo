@@ -140,7 +140,9 @@ import { ACTION_ICONS } from "./icons";
 import { turtleLayer } from "./turtle";
 import { onEnlarge, shrinkBlocks } from "./blocks/view";
 import {
+    alongSlider,
     arcAt,
+    sliderEndAt,
     asleep,
     crossing,
     forgetBranches,
@@ -527,6 +529,8 @@ $("head").append(`<style>
     .dge-name { position: fixed; display: flex; align-items: center; gap: 6px; transform: translateY(-50%); z-index: 13; }
     .dge-name input { min-width: 2ch; margin: 0 0 0 -5px; padding: 1px 4px; border: 1px solid #2563eb; border-radius: 4px; outline: 3px solid rgb(37 99 235 / 0.2); background: #fff; font-family: Verdana, sans-serif; }
     svg.dge-grip { cursor: pointer; }
+    svg.dge-stretch { cursor: ew-resize; }
+    svg.dge-stretch-up { cursor: ns-resize; }
     .dge-magnet { position: fixed; display: flex; align-items: center; gap: 10px; padding: 6px 12px 6px 6px; border: 1px solid #fecaca; border-radius: 22px; background: #fff; box-shadow: 0 6px 20px rgb(15 23 42 / 0.16); z-index: 12; }
     .dge-magnet input { width: 150px; margin: 0; accent-color: #dc2626; }
     .dge-magnet output { width: 80px; white-space: nowrap; font-weight: 600; font-variant-numeric: tabular-nums; color: #b91c1c; }
@@ -5874,14 +5878,36 @@ function followRadius(event: PointerEvent): void {
     pending!.args[1] = circle.radius as number;
     showHint(describe(pending!.tool, pending!.args));
 }
-// The expression or button being dragged, and where it was taken from its
-// position.
+// The slider whose track is being lengthened by its end, how long it was,
+// and how far the pointer was taken from that end.
+let stretched: {
+    slider: expression_object;
+    length: number;
+    grab: number;
+} | null = null;
+// The expression or button being dragged, where it was, and where it was
+// taken from its position.
 let moved: {
     expression: expression_object | button_object | image_object;
     grab: Vec2;
+    from?: Vec2;
     // Where an image's anchors were, which move with it.
     anchors?: Vec2[];
 } | null = null;
+
+// As in DGPad, what is placed by steps of 10 px is aligned easily, and a
+// track's length goes by 20 px, from 30 px. Within a tap's trembling, nothing
+// moves.
+const WIDGET_STEP = 10;
+const SLIDER_STEP = 20;
+const SLIDER_MIN = 30;
+const widgetStep = ([x, y]: Vec2): Vec2 => [
+    WIDGET_STEP * Math.round(x / WIDGET_STEP),
+    WIDGET_STEP * Math.round(y / WIDGET_STEP),
+];
+const trembling = (event: PointerEvent): boolean =>
+    Math.hypot(event.clientX - down!.x, event.clientY - down!.y) <=
+    $.clickRadius;
 
 // What the bare drag of a control, which works it, doesn't move: the right
 // button, and a press with its properties shown, the way of the finger.
@@ -5897,7 +5923,11 @@ function moveWidget(
                   grab: at,
                   anchors: widget.corners.map(({ screen }) => screen),
               }
-            : { expression: widget, grab: vSub(at, widget.screen!) };
+            : {
+                  expression: widget,
+                  grab: vSub(at, widget.screen!),
+                  from: widget.screen!,
+              };
     event.preventDefault();
     event.stopPropagation();
     scene().svg.dom().setPointerCapture(event.pointerId);
@@ -5929,6 +5959,17 @@ const onButton = (event: PointerEvent): boolean =>
 const aiming = (event: PointerEvent): boolean =>
     inFigure(event) && !onButton(event);
 
+// The slider a drag from there would lengthen: its knob keeps its own drag.
+const stretchable = (
+    event: PointerEvent,
+    screen: Vec2,
+): expression_object | null =>
+    !pending &&
+    !editing() &&
+    !element(event.target)?.closest("[data-slider-knob]")
+        ? sliderEndAt(scene(), screen)
+        : null;
+
 // What the pointer designates there. Still on the button, it designates
 // nothing, but what it would build already follows it.
 function follow(event: PointerEvent): void {
@@ -5951,9 +5992,14 @@ function follow(event: PointerEvent): void {
     // As when pressed, an angle's mark rather than what is farther.
     const arc = !named && !pending && !editing() && arcAt(c, screen, hits);
     c.svg.toggleClass("dge-grip", !!named || !!arc);
+    const end = !named && !arc && !hits.length && stretchable(event, screen);
+    c.svg
+        .toggleClass("dge-stretch", !!end && !end.vertical)
+        .toggleClass("dge-stretch-up", !!end && end.vertical);
     if (held) return;
     if (named) return highlight(named);
     if (arc) return highlight(arc);
+    if (end) return highlight(end);
     // As when tapped, a widget, which the figure doesn't pick.
     const widget = (applying || macros.active) && propertyObject(event);
     if (widget && !hits.some(({ object }) => object === widget))
@@ -6074,6 +6120,21 @@ $("body").on(
                 angle,
                 radius: angle.arcRadius,
                 from: vNorm(vSub(screen, vertexOf(angle).screen)),
+            };
+            event.preventDefault();
+            event.stopPropagation();
+            c.svg.dom().setPointerCapture(event.pointerId);
+            return;
+        }
+        stretched = null;
+        const slider = pick(c, screen).length
+            ? null
+            : stretchable(event, screen);
+        if (slider) {
+            stretched = {
+                slider,
+                length: slider.cursorLength,
+                grab: slider.cursorLength - alongSlider(slider, screen),
             };
             event.preventDefault();
             event.stopPropagation();
@@ -6234,7 +6295,7 @@ $("body").on(
     (event) => {
         if (drawnCircle?.pointerId === event.pointerId) return cancel();
         if (!event.isPrimary || !inFigure(event)) return;
-        down = label = sized = moved = framed = typing = aim = null;
+        down = label = sized = stretched = moved = framed = typing = aim = null;
         clearPreview();
         highlight();
         window.setTimeout(() => {
@@ -6276,8 +6337,26 @@ $("body").on(
             angle.project();
             return scene().invalidateRender(angle);
         }
+        if (stretched && event.isPrimary && event.buttons) {
+            const { slider, length, grab } = stretched;
+            slider.cursorLength = trembling(event)
+                ? length
+                : Math.max(
+                      SLIDER_MIN,
+                      SLIDER_STEP *
+                          Math.round(
+                              (alongSlider(
+                                  slider,
+                                  scene().pointerPosition(event),
+                              ) +
+                                  grab) /
+                                  SLIDER_STEP,
+                          ),
+                  );
+            return scene().invalidateRender(slider);
+        }
         if (moved && event.isPrimary && event.buttons) {
-            const { expression, grab, anchors } = moved;
+            const { expression, grab, from, anchors } = moved;
             if (anchors) {
                 const c = scene();
                 const shift = vSub(c.pointerPosition(event), grab);
@@ -6291,12 +6370,19 @@ $("body").on(
                 });
                 return;
             }
-            expression.screen = vSub(scene().pointerPosition(event), grab);
-            if (expression instanceof expression_object && expression.anchor)
-                expression.alpha = vSub(
-                    expression.screen!,
-                    expression.anchor.screen,
-                );
+            // An anchored expression's distance to its point goes by steps.
+            const anchor =
+                expression instanceof expression_object
+                    ? expression.anchor?.screen
+                    : undefined;
+            const origin: Vec2 = anchor ?? [0, 0];
+            const place = trembling(event)
+                ? vSub(from!, origin)
+                : widgetStep(
+                      vSub(vSub(scene().pointerPosition(event), grab), origin),
+                  );
+            expression.screen = vAdd(place, origin);
+            if (anchor) (expression as expression_object).alpha = place;
             if (expression instanceof image_object) expression.project();
             return scene().invalidateRender(expression);
         }
@@ -6370,6 +6456,13 @@ $("body").on(
         sized = null;
         if (resized && !tap) {
             if (properties.selection.includes(resized))
+                properties.select(properties.selection);
+            return void record();
+        }
+        const lengthened = stretched?.slider;
+        stretched = null;
+        if (lengthened && !tap) {
+            if (properties.selection.includes(lengthened))
                 properties.select(properties.selection);
             return void record();
         }

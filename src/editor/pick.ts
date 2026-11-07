@@ -3,6 +3,10 @@ import { figureObjects } from "../dgo";
 import { angle_object, RIGHT_ANGLE_TOLERANCE } from "../objects/angle_object";
 import type { construction_object } from "../objects/construction_object";
 import { cylinder_intersection_object } from "../objects/cylinder_intersection_object";
+import {
+    CURSOR_OFFSET_Y,
+    expression_object,
+} from "../objects/expression_object";
 import { plane_intersection_object } from "../objects/plane_intersection_object";
 import { intersection_object } from "../objects/intersection_object";
 import { curve_object } from "../objects/curve_object";
@@ -223,6 +227,38 @@ export function arcDistance(
 
 // The angle whose mark is under the pointer, unless a point or a nearer
 // object of `hits` is.
+// How far from its start the pointer is along a slider's track.
+export const alongSlider = (
+    { screen, vertical }: expression_object,
+    [x, y]: Vec2,
+): number => (vertical ? screen[1] - y : x - screen[0]);
+
+// As in DGPad, the slider whose track's end is there, which lengthens it.
+export const sliderEndAt = (
+    c: construction,
+    at: Vec2,
+): expression_object | null =>
+    (figureObjects(c).find((object) => {
+        if (
+            !(object instanceof expression_object) ||
+            !object.isCursor ||
+            object.checkbox ||
+            object.inputLength > 0 ||
+            object.menu ||
+            !object.isVisible ||
+            !object.hasView ||
+            asleep(object)
+        )
+            return false;
+        const across = object.vertical
+            ? at[0] - object.screen[0]
+            : at[1] - object.screen[1] - CURSOR_OFFSET_Y;
+        return (
+            Math.abs(alongSlider(object, at) - object.cursorLength) < 20 &&
+            Math.abs(across) < object.size / 2 + 5
+        );
+    }) as expression_object | undefined) ?? null;
+
 export function arcAt(
     c: construction,
     screen: Vec2,

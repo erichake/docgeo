@@ -1402,6 +1402,17 @@ n)` dans `CerclesDeCercles.ggb`. Nommées comme les commandes, ces
   toucher la sélectionne toujours, ou écrit son nom dans la ligne en cours
   de saisie, désignation désormais faite au relâcher pour qu'un glisser
   reste possible pendant une saisie.
+  Depuis le 2026-11-06, expressions, boutons et images posés à l'écran se
+  placent par pas de 10 px, comme dans DGPad, et l'écart d'une expression
+  ancrée à son point aussi. Le pas se compte depuis l'origine de la fenêtre
+  (de ce point pour une ancrée), et non depuis la position de départ comme
+  dans DGPad : des contrôles venus d'ailleurs s'alignent aussi. Un
+  tremblement du toucher ne déplace rien.
+- **Longueur d'un curseur à la souris** (2026-11-06) : comme dans DGPad, la
+  piste se glisse par son extrémité, à 20 px de part et d'autre (5 px en
+  travers), par pas de 20 px à partir de 30 px. Le pointeur y prend la forme
+  d'une double flèche, et la poignée et les objets géométriques passent
+  avant. La longueur est celle des propriétés (`cL`).
 - **Nature déduite** (2026-10-17) : comme dans DGPad. `f(x) = …` est,
   comme dans GeoGebra, la courbe de la fonction (`Cur`, sans bornes),
   qu'une formule appelle comme une expression (`f(2)`, `f'(2)`) et que la

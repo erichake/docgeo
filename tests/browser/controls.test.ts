@@ -66,6 +66,7 @@ async function editor(figure: object = FIGURE) {
         [x, y]: number[],
         button: number,
         target: Element = svg,
+        buttons = type === "pointerup" ? 0 : button === 2 ? 2 : 1,
     ) => {
         // The panels shift it.
         const box = svg.getBoundingClientRect();
@@ -74,7 +75,7 @@ async function editor(figure: object = FIGURE) {
                 clientX: box.left + x,
                 clientY: box.top + y,
                 button,
-                buttons: type === "pointerup" ? 0 : button === 2 ? 2 : 1,
+                buttons,
                 bubbles: true,
                 isPrimary: true,
                 pointerId: 1,
@@ -164,9 +165,7 @@ describe("The controls of the palette", () => {
         await expect.poll(() => !!label("Knob fill")).toBe(true);
         const knob = () =>
             [
-                ...page.querySelectorAll<SVGElement>(
-                    "svg [data-slider-knob]",
-                ),
+                ...page.querySelectorAll<SVGElement>("svg [data-slider-knob]"),
             ].find((element) => !element.closest(".dge-mark"))!.style;
         const write = (name: string, value: string) => {
             label(name)!.value = value;
@@ -362,6 +361,82 @@ describe("The controls of the palette", () => {
             .poll(async () => (await entry("a")).parameters.xy)
             .toEqual([300, 150]);
         expect((await entry("a")).parameters.v).toBe(1);
+    });
+
+    it("move by steps of 10 px, not while a tap trembles", async () => {
+        const { event, entry, svg } = await editor({
+            ...FIGURE,
+            o: [["Ex", "a", { t: "", v: 1, mn: 0, mx: 5, xy: [103, 101] }]],
+        });
+        svg.setPointerCapture = () => {};
+        const start = [103, 121];
+        event("pointerdown", [108, 121], 0);
+        event("pointermove", [110, 122], 0);
+        event("pointerup", [110, 122], 0);
+        expect((await entry("a")).parameters.xy).toEqual([103, 101]);
+        event("pointerdown", [108, 121], 0);
+        event("pointermove", [start[0] + 41, start[1] + 28], 0);
+        event("pointerup", [start[0] + 41, start[1] + 28], 0);
+        await expect
+            .poll(async () => (await entry("a")).parameters.xy)
+            .toEqual([140, 130]);
+    });
+
+    it("keep an anchored expression's distance by steps of 10 px", async () => {
+        const { event, entry, svg } = await editor({
+            ...FIGURE,
+            o: [
+                ["Pt", "A", [0, 0]],
+                ["Ex", "a", { t: "", v: 1, on: 0, d: [33, -14] }],
+            ],
+        });
+        svg.setPointerCapture = () => {};
+        event("pointerdown", [438, 283], 0);
+        event("pointermove", [458, 303], 0);
+        event("pointerup", [458, 303], 0);
+        await expect
+            .poll(async () => (await entry("a")).parameters.d)
+            .toEqual([50, 10]);
+    });
+
+    it("lengthen a slider's track by its end, as DGPad", async () => {
+        const { event, entry, svg } = await editor({
+            ...FIGURE,
+            o: [["Ex", "a", { t: "", v: 1, mn: 0, mx: 5, xy: [100, 100] }]],
+        });
+        svg.setPointerCapture = () => {};
+        event("pointermove", [295, 120], 0, svg, 0);
+        expect(svg.classList).toContain("dge-stretch");
+        event("pointerdown", [295, 120], 0);
+        event("pointermove", [347, 125], 0);
+        event("pointerup", [347, 125], 0);
+        await expect.poll(async () => (await entry("a")).style.cL).toBe(260);
+        expect((await entry("a")).parameters.xy).toEqual([100, 100]);
+        expect((await entry("a")).parameters.v).toBe(1);
+        event("pointerdown", [360, 120], 0);
+        event("pointermove", [0, 120], 0);
+        event("pointerup", [0, 120], 0);
+        await expect.poll(async () => (await entry("a")).style.cL).toBe(30);
+    });
+
+    it("lengthen a vertical slider upwards, its knob keeping its drag", async () => {
+        const { event, entry, svg } = await editor({
+            ...FIGURE,
+            st: [{ cV: 1 }],
+            o: [["Ex", "a", { t: "", v: 5, mn: 0, mx: 5, xy: [100, 300] }, 0]],
+        });
+        svg.setPointerCapture = () => {};
+        const knob = svg.querySelector("[data-slider-knob]")!;
+        event("pointerdown", [100, 100], 0, knob);
+        event("pointermove", [100, 200], 0, knob);
+        event("pointerup", [100, 200], 0, knob);
+        expect((await entry("a")).style.cL).toBeUndefined();
+        event("pointermove", [100, 88], 0, svg, 0);
+        expect(svg.classList).toContain("dge-stretch-up");
+        event("pointerdown", [100, 88], 0);
+        event("pointermove", [100, 48], 0);
+        event("pointerup", [100, 48], 0);
+        await expect.poll(async () => (await entry("a")).style.cL).toBe(240);
     });
 
     it("are moved by the finger, their properties shown", async () => {
