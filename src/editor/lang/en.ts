@@ -337,7 +337,9 @@ export default {
     designate_moveable: "Designate a point that can be dragged",
     family_controls: "Controls",
     checkbox_caption: "Show",
+    menu_caption: "Choose",
     menu_choice: "Choice %",
+    input_caption: "Value",
     designate_control: "Designate where it goes",
     designate_checkbox:
         "Designate what it shows, if anything, then where it goes",

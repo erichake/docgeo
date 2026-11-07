@@ -3990,15 +3990,21 @@ const CONTROLS: Record<string, () => Line["definition"] | null> = {
     Menu: () => ({
         kind: "call",
         command: "Menu",
-        args: [1, 2, 3].map((rank) => ({
-            kind: "string",
-            value: message("menu_choice", String(rank)),
-        })),
+        args: [
+            { kind: "string", value: message("menu_caption") },
+            ...[1, 2, 3].map((rank) => ({
+                kind: "string" as const,
+                value: message("menu_choice", String(rank)),
+            })),
+        ],
     }),
     InputField: () => ({
         kind: "call",
         command: "InputField",
-        args: [{ kind: "number", value: 1 }],
+        args: [
+            { kind: "string", value: message("input_caption") },
+            { kind: "number", value: 1 },
+        ],
     }),
     Text: () => ({
         kind: "formula",
@@ -6141,7 +6147,8 @@ $("body").on(
             c.svg.dom().setPointerCapture(event.pointerId);
             return;
         }
-        // The tools circle also drags a button; a tap still opens its tools.
+        // The tools circle also drags a button, and its label a menu or an
+        // input field; a tap still opens its tools.
         const widget = pending ? null : propertyObject(event);
         moved = null;
         if (
@@ -6149,7 +6156,8 @@ $("body").on(
             (widget instanceof button_object
                 ? widget.accessory.dom().contains(element(event.target))
                 : widget instanceof image_object ||
-                  !widget.dom.dom().contains(element(event.target))) &&
+                  !widget.dom.dom().contains(element(event.target)) ||
+                  element(event.target)?.tagName === "SPAN") &&
             !pick(c, screen)[0]
         )
             return moveWidget(widget, event);

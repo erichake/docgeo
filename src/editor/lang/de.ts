@@ -348,7 +348,9 @@ const de: Texts = {
         designate_moveable: "Wählen Sie einen verschiebbaren Punkt",
         family_controls: "Steuerelemente",
         checkbox_caption: "Anzeigen",
+        menu_caption: "Auswählen",
         menu_choice: "Auswahl %",
+        input_caption: "Wert",
         designate_control: "Wählen Sie die Stelle",
         designate_checkbox:
             "Wählen Sie, was es anzeigt, falls gewünscht, dann die Stelle",

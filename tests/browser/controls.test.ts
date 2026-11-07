@@ -204,7 +204,7 @@ describe("The controls of the palette", () => {
         await expect.poll(async () => (await entry("a")).count).toBe(4);
         const { style, parameters } = await entry("a");
         expect(style.iB).toBe(8);
-        expect(parameters.v).toBe(1);
+        expect(parameters).toMatchObject({ t: "Value", v: 1 });
         const input = own<HTMLInputElement>(page, "input");
         await expect.poll(() => input.value).toBe("1");
         input.value = "2,5";
@@ -249,10 +249,12 @@ describe("The controls of the palette", () => {
                 ".dge-properties textarea",
             ) as HTMLTextAreaElement;
         await expect.poll(() => line()?.value).toContain("Menu(");
-        expect(line().value).toContain('"Choice 1", "Choice 2", "Choice 3"');
+        expect(line().value).toContain(
+            '"Choose", "Choice 1", "Choice 2", "Choice 3"',
+        );
         // Fewer choices: the number it had, within them, and its place.
         const { xy } = (await entry("a")).parameters;
-        line().value = 'Menu("One", "Two")';
+        line().value = 'Menu("Pick", "One", "Two")';
         line().dispatchEvent(new Event("input", { bubbles: true }));
         (
             page.querySelector(
@@ -262,7 +264,36 @@ describe("The controls of the palette", () => {
         await expect
             .poll(async () => (await entry("a")).parameters.mu)
             .toEqual(["One", "Two"]);
-        expect((await entry("a")).parameters).toMatchObject({ v: 2, xy });
+        expect((await entry("a")).parameters).toMatchObject({
+            t: "Pick",
+            v: 2,
+            xy,
+        });
+    });
+
+    it.each([
+        ["input", { t: "Value", v: 1, xy: [120, 60] }],
+        ["select", { t: "Pick", v: 1, mu: ["One", "Two"], xy: [120, 60] }],
+    ])("move a %s by its label, placed before it", async (tag, parameters) => {
+        const { page, entry } = await editor({
+            ...FIGURE,
+            st: [{ iB: tag === "input" ? 8 : 0 }],
+            o: [["Ex", "a", parameters, 0]],
+        });
+        await new Promise((resolve) => setTimeout(resolve, 400));
+        const control = own<HTMLElement>(page, tag);
+        const box = (control.previousElementSibling as HTMLElement)
+            .getBoundingClientRect();
+        expect(box.right).toBeLessThanOrEqual(
+            control.getBoundingClientRect().left,
+        );
+        expect(box.width).toBeGreaterThan(0);
+        expect(page.body.classList).not.toContain("dge-properties-open");
+        const [x, y] = [box.left + box.width / 2, box.top + box.height / 2];
+        await commands.drag("iframe", [x, y], [x + 100, y + 50], false);
+        await expect
+            .poll(async () => (await entry("a")).parameters.xy)
+            .toEqual([220, 110]);
     });
 
     it("show what a checkbox designated, kept when it is deleted", async () => {
@@ -679,8 +710,8 @@ describe("The controls of the palette", () => {
         ) as HTMLInputElement;
         const lines = [
             'k = Checkbox("Show")',
-            'm = Menu("One", "Two")',
-            "n = InputField(3)",
+            'm = Menu("Pick", "One", "Two")',
+            'n = InputField("Value", 3)',
             "r = Slider(0, 10, 4)",
         ];
         for (const line of lines) {

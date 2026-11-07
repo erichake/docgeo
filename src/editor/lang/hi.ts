@@ -343,7 +343,9 @@ const hi: Texts = {
         designate_moveable: "एक खिसकाया जा सकने वाला बिंदु चुनें",
         family_controls: "नियंत्रण",
         checkbox_caption: "दिखाएँ",
+        menu_caption: "चुनें",
         menu_choice: "विकल्प %",
+        input_caption: "मान",
         designate_control: "स्थान चुनें",
         designate_checkbox:
             "यह जो दिखाता है वह चुनें, यदि आवश्यक हो, फिर स्थान",

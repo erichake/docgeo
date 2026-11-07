@@ -341,7 +341,9 @@ const fr: Texts = {
         designate_moveable: "Désignez un point déplaçable",
         family_controls: "Contrôles",
         checkbox_caption: "Afficher",
+        menu_caption: "Choisir",
         menu_choice: "Choix %",
+        input_caption: "Valeur",
         designate_control: "Désignez l'endroit",
         designate_checkbox:
             "Désignez ce qu'elle affiche, s'il y a lieu, puis son endroit",

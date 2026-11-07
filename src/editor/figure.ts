@@ -643,7 +643,7 @@ export function resolveArgument(
 ): Arg {
     if (arg.kind === "number") return arg.value;
     if (arg.kind === "string")
-        return ["Button", "Checkbox", "Menu"].includes(command)
+        return ["Button", "Checkbox", "Menu", "InputField"].includes(command)
             ? new TextArg(arg.value, new Map())
             : textArg(c, arg.value, command === "Html");
     if (arg.kind === "formula") {

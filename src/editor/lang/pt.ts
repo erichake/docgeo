@@ -343,7 +343,9 @@ const pt: Texts = {
         designate_moveable: "Selecione um ponto que possa ser arrastado",
         family_controls: "Controles",
         checkbox_caption: "Mostrar",
+        menu_caption: "Escolher",
         menu_choice: "Opção %",
+        input_caption: "Valor",
         designate_control: "Selecione o lugar",
         designate_checkbox:
             "Selecione o que ela mostra, se for o caso, depois o lugar",

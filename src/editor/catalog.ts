@@ -1174,13 +1174,22 @@ export const COMMANDS: Command[] = [
         name: "InputField",
         overloads: [
             {
-                params: ["number"],
+                params: ["text", "number"],
                 tag: "Ex",
                 style: { cB: 0, iB: 8 },
-                encode: ([value]) => ({ t: "", v: value }),
+                encode: ([label, value]) => ({
+                    t: (label as TextArg).text,
+                    v: value,
+                }),
                 decode: (parameters) => {
-                    const { iB, v } = parameters as Record<string, unknown>;
-                    return iB && typeof v === "number" ? [v] : null;
+                    const { iB, t, v } = parameters as {
+                        iB?: number;
+                        t: string;
+                        v: unknown;
+                    };
+                    return iB && typeof v === "number"
+                        ? [new TextArg(t, new Map()), v]
+                        : null;
                 },
             },
         ],
@@ -1190,23 +1199,25 @@ export const COMMANDS: Command[] = [
         name: "Menu",
         overloads: [
             {
-                params: ["text"],
+                params: ["text", "text"],
                 variadic: true,
                 tag: "Ex",
                 style: { cB: 0, iB: 0 },
-                kept: (value, choices) =>
+                kept: (value, [, ...choices]) =>
                     Math.min(Math.max(Math.round(value), 1), choices.length),
-                encode: (choices) => ({
-                    t: "",
+                encode: ([label, ...choices]) => ({
+                    t: (label as TextArg).text,
                     v: 1,
                     mu: choices.map((choice) => (choice as TextArg).text),
                 }),
                 decode: (parameters) => {
-                    const { mu } = parameters as { mu?: string[] };
-                    return (
-                        mu?.map((choice) => new TextArg(choice, new Map())) ??
-                        null
-                    );
+                    const { t, mu } = parameters as {
+                        t: string;
+                        mu?: string[];
+                    };
+                    return mu
+                        ? [t, ...mu].map((text) => new TextArg(text, new Map()))
+                        : null;
                 },
             },
         ],

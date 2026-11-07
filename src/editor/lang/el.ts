@@ -349,7 +349,9 @@ const el: Texts = {
         designate_moveable: "Επιλέξτε ένα σημείο που μετακινείται",
         family_controls: "Στοιχεία ελέγχου",
         checkbox_caption: "Εμφάνιση",
+        menu_caption: "Επιλέξτε",
         menu_choice: "Επιλογή %",
+        input_caption: "Τιμή",
         designate_control: "Επιλέξτε τη θέση",
         designate_checkbox:
             "Επιλέξτε τι εμφανίζει, αν χρειάζεται, και μετά τη θέση",

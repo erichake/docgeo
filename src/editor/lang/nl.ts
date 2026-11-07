@@ -345,7 +345,9 @@ const nl: Texts = {
         designate_moveable: "Selecteer een punt dat versleept kan worden",
         family_controls: "Bedieningselementen",
         checkbox_caption: "Tonen",
+        menu_caption: "Kiezen",
         menu_choice: "Keuze %",
+        input_caption: "Waarde",
         designate_control: "Kies de plaats",
         designate_checkbox:
             "Kies wat het toont, indien nodig, en dan de plaats",

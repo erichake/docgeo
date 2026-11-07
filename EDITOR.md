@@ -477,6 +477,13 @@ la GeoGebra, l'outil choisi avant les objets.
       expression séparée (l'import GeoGebra lit toujours celui de sa formule) ;
     - leur ligne écrit leur commande, qui les redéfinit : une case garde son
       état, un menu son choix dans la limite des siens ;
+    - leur label est le premier argument de la commande, toujours présent :
+      `Case("Afficher")`, `Menu("Choisir", "Choix 1", "Choix 2")`,
+      `ChampDeSaisie("Valeur", 3)` (décidé avec l'auteur le 2026-11-07). Placé
+      après la case, il est placé avant le menu et le champ, dont on glisse ainsi
+      l'ensemble à la souris sans en passer par le clic droit : leur élément actif
+      garde ses clics. Un label vide (`""`) les laisse seuls, sans cette prise.
+      L'import GeoGebra donne au champ le sien (`GGB_IMPORT.md`, item 45) ;
     - la ligne d'une case nomme ce qu'elle affiche : `b = Case("Afficher", a, c)` (décidé avec l'auteur le 2026-11-05, qui a écarté le nom
       « Afficher » : une case peut aussi n'être qu'un 0 ou 1 lu par une formule).
       Ce n'est que l'écriture des conditions des objets : le format ne change

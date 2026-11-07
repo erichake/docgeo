@@ -510,7 +510,9 @@ la figure, autour de la verticale de O dans l'espace, sa hauteur gardée),
    `"mu": [choix…]` (liste non vide de textes) fait de l'`Ex` de valeur
    constante un menu déroulant de ces choix, sa valeur étant le numéro du
    choix, à partir de 1 ; le style `iB`, sur une `Ex` sans formule, en fait un
-   champ de saisie de sa propre valeur.
+   champ de saisie de sa propre valeur. Le texte `"t"` de l'un et de l'autre,
+   s'il n'est pas vide, est un label placé avant eux, comme celui, placé après,
+   d'une case à cocher : `"xy"` est alors le coin supérieur gauche de ce label.
 7. Nature `point`, `segment`, `line`, `label`, `polygon` (région remplie
    bordée par les points, pris dans l'ordre), `polygons` (chaque suite de
    points définis borne une région, un point indéfini les séparant) ou

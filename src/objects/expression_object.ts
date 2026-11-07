@@ -507,9 +507,11 @@ export class expression_object extends construction_object {
     // A string value is LaTeX, drawn by KaTeX from its top left corner.
     latex = false;
     // GeoGebra's input box, as many characters wide, from its top left
-    // corner: it shows the number its formula reads, or its own, and changes it.
+    // corner, after `text`: it shows the number its formula reads, or its own,
+    // and changes it.
     inputLength = 0;
-    // A dropdown menu of these choices, its number the one chosen, from 1.
+    // A dropdown menu of these choices, after `text`, its number the one
+    // chosen, from 1.
     menu: string[] | null = null;
     screen: Vec2;
     // ExpressionOn: `screen` follows this point, `alpha` pixels away.
@@ -911,7 +913,7 @@ export class expression_object extends construction_object {
 
         if (t.inputLength || t.menu) {
             const control = $.create(t.menu ? "select" : "input").stl(
-                `padding:5px 4px;border:1px solid #dcdcdc;border-radius:5px;font-family:Verdana;font-size:${t.fontSize}px;color:${t.stroke_color}`,
+                "padding:5px 4px;border:1px solid #dcdcdc;border-radius:5px;font:inherit;color:inherit",
             );
             const { menu } = t;
             if (menu)
@@ -955,7 +957,16 @@ export class expression_object extends construction_object {
                 .att("width", 1)
                 .att("height", 1)
                 .stl("overflow:visible")
-                .add(control);
+                .add(
+                    $.create("div")
+                        .stl(
+                            `display:flex;align-items:center;gap:8px;width:max-content;user-select:none;font-family:Verdana;font-size:${t.fontSize}px;color:${t.stroke_color}`,
+                        )
+                        .add(
+                            ...(t.text ? [$.create("span").text(t.text)] : []),
+                            control,
+                        ),
+                );
             return dom.add(t.field);
         }
 

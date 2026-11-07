@@ -163,8 +163,8 @@ export const SHOTS = [
                 "B = (-1, -3)",
                 "c = Circle(A, B)",
                 `k = Checkbox("${await t("checkbox_caption")}", c)`,
-                `m = Menu(${choices.join(", ")})`,
-                "n = InputField(3)",
+                `m = Menu("${await t("menu_caption")}", ${choices.join(", ")})`,
+                `n = InputField("${await t("input_caption")}", 3)`,
                 "r = Slider(0, 10, 4)",
             ]);
             await button("palette");
