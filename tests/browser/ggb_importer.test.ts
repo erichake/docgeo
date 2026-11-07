@@ -2015,6 +2015,31 @@ ${mirror("f", "f'", `<element type="curvecartesian" label="f'"/>`)}
         expectOrbit(20);
     });
 
+    it("labels an input box by its caption or name, if its label shows, and a checkbox", () => {
+        const c = createConstruction();
+        const box = (name: string, label: boolean, caption?: string) =>
+            `<command name="Textfield"><input a0="a"/><output a0="${name}"/></command>
+<element type="textfield" label="${name}"><show object="true" label="${label}"/>${caption ? `<caption val="${caption}"/>` : ""}</element>`;
+        expect(
+            importGgb(
+                c,
+                `<geogebra><construction>
+<element type="numeric" label="a"><value val="3"/></element>
+${box("t1", true, "Rayon r =")}
+${box("t2", false, "Cachée")}
+${box("t3", true)}
+${box("t4", true, "$\\text{\\sf{r =}}$")}
+<element type="boolean" label="b"><value val="false"/><caption val="$\\bold{A\\;B}$"/></element>
+</construction></geogebra>`,
+            ),
+        ).toEqual([]);
+        expect(
+            ["t1", "t2", "t3", "t4", "b"].map(
+                (name) => (c.getObj(name) as expression_object).text,
+            ),
+        ).toEqual(["Rayon r =", "", "t3", "r =", "A B"]);
+    });
+
     it("draws the image between its corners while its checkbox is checked", async () => {
         const c = createConstruction();
         const response = await fetch(figure("mandel.ggb"));

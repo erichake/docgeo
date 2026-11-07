@@ -720,6 +720,16 @@ cause.
       sans objet nouveau, et le triangle de pente suit. Corpus inchangé (272 /
       488 : aucune figure n'emploie cette forme) ; vérifié dans
       `tests/browser/ggb_importer.test.ts`. Import +0,10 Ko (+0,04 Ko en gzip).
+- [x] **45. Label des champs de saisie** : un `Textfield` perdait son label.
+      Il le montre avant le champ, si « afficher le label » est actif : sa
+      légende (`caption`), ou à défaut son nom, comme le rendu de référence de
+      GeoGebra, où sa position est celle du label (25 labels visibles sur les
+      53 champs du corpus). Une légende LaTeX qui n'enveloppe que du texte
+      (`$\text{Réponse}$`, 3 de ces labels) est écrite comme ce texte, de même
+      pour une case à cocher (`$\bold{StartAnimation}$`). Les indices restent
+      écrits tels quels (`x_0=`) et une autre commande LaTeX reste brute. Corpus
+      inchangé (272 / 488 : aucune figure ne change de statut) ; vérifié dans
+      `tests/browser/ggb_importer.test.ts`. Import +0,19 Ko (+0,09 Ko en gzip).
 
 À écarter, sauf changement de priorité : calcul formel, courbes implicites,
 statistiques et probabilités, tableur au-delà des cellules simples, matrices.

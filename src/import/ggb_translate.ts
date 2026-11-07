@@ -259,6 +259,18 @@ const literal = (value: string | number | boolean): DgpValue => ({
     value,
 });
 
+// A control's caption, or its name. Its LaTeX is only text in real figures:
+// `$\text{Réponse}$`, `$\bold{A\;B}$`.
+const caption = (element: Element, label: string): string => {
+    const text = attribute(element, "caption", "val") ?? label;
+    return /^\$.*\$$/.test(text)
+        ? text
+              .slice(1, -1)
+              .replace(/\\[;,: \\]/g, " ")
+              .replace(/\\(?:text|sf|bold|mathbf|mathrm|rm)\b|[{}]/g, "")
+        : text;
+};
+
 function child(element: Element, tag: string): Element | undefined {
     return [...element.children].find((item) => item.tagName === tag);
 }
@@ -3221,7 +3233,9 @@ export function translateGgb(
                 "expression",
                 "Expression",
                 [
-                    "",
+                    attribute(element, "show", "label") === "true"
+                        ? caption(element, label)
+                        : "",
                     "",
                     "",
                     objects.get(linked)!.variable,
@@ -3892,7 +3906,7 @@ export function translateGgb(
                 "expression",
                 "Expression",
                 [
-                    attribute(element, "caption", "val") ?? label,
+                    caption(element, label),
                     "",
                     "",
                     value && !isConstant(value)
