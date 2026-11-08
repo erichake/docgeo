@@ -968,6 +968,10 @@ export interface BlocksEditor {
     // The field being typed in, its editor closed by the panel built again,
     // edited again as it was.
     resume(): void;
+    // As in DGPad, an object clicked in the figure names the selected block's
+    // object, or that of the one block of the figure plugged into it: false
+    // when it has none, the click then left to the figure.
+    take(name: string): boolean;
 }
 
 // What the workspace tells: the programs its blocks write after each change,
@@ -1437,18 +1441,34 @@ export async function blocksEditor(
     // again, takes the workspace out of the page, which closes its editor.
     let edited: Blockly.Field | null = null;
     let typing: { field: Blockly.Field; input: HTMLInputElement } | null = null;
+    // The block selected, still once Blockly has unselected it as the focus
+    // left the blocks for the figure, which names its object (see take): it
+    // shows so until another is, or the workspace's void clicked.
+    let chosen: Blockly.BlockSvg | null = null;
     workspace.addChangeListener((event) => {
         // The program of the block clicked becomes the one edited.
         if (event.type === Blockly.Events.SELECTED) {
-            const id = workspace
-                .getBlockById(
-                    (event as Blockly.Events.Selected).newElementId ?? "",
-                )
-                ?.getRootBlock().id;
+            const selected = workspace.getBlockById(
+                (event as Blockly.Events.Selected).newElementId ?? "",
+            );
+            if (!selected) chosen?.addSelect();
+            else if (selected !== chosen) {
+                chosen?.removeSelect();
+                chosen = selected;
+            }
+            const id = selected?.getRootBlock().id;
             if (id?.startsWith(ROOT) && id.slice(ROOT.length) !== current) {
                 current = id.slice(ROOT.length);
                 actions.open(current);
             }
+        }
+        // Its void clicked, none is.
+        if (
+            event.type === Blockly.Events.CLICK &&
+            (event as Blockly.Events.Click).targetType === "workspace"
+        ) {
+            chosen?.removeSelect();
+            chosen = null;
         }
         if (event.type === Blockly.Events.BLOCK_FIELD_INTERMEDIATE_CHANGE) {
             const { blockId, name } =
@@ -1563,5 +1583,25 @@ export async function blocksEditor(
                 .querySelector("input")!
                 .setSelectionRange(input.selectionStart, input.selectionEnd);
         },
+        take(name) {
+            const block = chosen?.isDisposed() ? null : chosen;
+            if (!block) return false;
+            const plugged = block.inputList
+                .map((input) => input.connection?.targetBlock())
+                .filter((target) => target?.type === "dg_object");
+            const field =
+                namingField(block) ??
+                (plugged.length === 1 ? namingField(plugged[0]!) : null);
+            // A turtle's menu refuses an object without one.
+            field?.setValue(name);
+            return field !== null;
+        },
     };
 }
+
+// The menu of the figure's objects or turtles of a block.
+const namingField = (block: Blockly.Block): Blockly.Field | null =>
+    block.getField("OBJECT") ??
+    (["dg_object", "turtle_get", "turtle_length"].includes(block.type)
+        ? block.getField("NAME")
+        : null);

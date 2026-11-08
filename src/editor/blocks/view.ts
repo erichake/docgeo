@@ -253,6 +253,7 @@ function dialog(
 }
 
 let editor: Promise<BlocksEditor> | null = null;
+let loaded: BlocksEditor | null = null;
 let current: BlocksView;
 // The programs whose blocks show, and those they can still have.
 let shown = "";
@@ -289,6 +290,7 @@ export function blocksView(view: BlocksView) {
         ),
     );
     void editor.then((blocks) => {
+        loaded = blocks;
         if (current !== view) return;
         const programs = JSON.stringify([
             view.programs.map(({ key, kind, object }) => [key, kind, object]),
@@ -333,5 +335,9 @@ function parsed(source: string): Program | null {
         return null;
     }
 }
+
+// The blocks shown take the name of an object clicked in the figure.
+export const blocksTake = (name: string): boolean =>
+    frame.dom().isConnected && !!loaded?.take(name);
 
 export const isTurtle = (source: string) => /\bTURTLE_INIT\s*\(/.test(source);

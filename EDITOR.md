@@ -1732,6 +1732,19 @@ repeat_end; count++)`), seulement pour un n entier tel qu'écrit
       transparence, sans flouter la figure.
       Fermer le panneau de propriétés, ou montrer un objet sans blocs, ramène
       les blocs ; le bouton du panneau de construction aussi, et l'ouvre.
+    - Désignation dans la figure (demandé par l'auteur le 2026-11-08,
+      comme `tryEdit` de DGPad) : un bloc sélectionné qui nomme un objet
+      (`dg_object`, menu `OBJECT` des styles et de « définir la valeur »,
+      `turtle_get` et `turtle_length`, qui refusent un objet sans tortue),
+      ou dont une seule entrée porte un bloc `dg_object` (« s'orienter
+      vers », « définir n à a »…), prend le nom de l'objet cliqué dans la
+      figure (clic sans glisser), au lieu que le panneau passe à cet objet.
+      Blockly 13 désélectionne un bloc quand le focus quitte l'espace de
+      travail : `take` de `workspace.ts` garde le bloc choisi, montré
+      sélectionné, jusqu'à ce qu'un autre le soit ou qu'un clic tombe dans
+      le vide de l'espace de travail. Sans lui, un clic sur un objet montre
+      ses propriétés, comme avant. Manuel : « Programmes d'événements » de
+      `expressions.html`, dans les 12 langues.
     - Dialogues de Blockly (nom d'une variable ou d'une globale,
       confirmation) dans le style de l'éditeur (`dialog` de `view.ts`), ses
       textes « OK » et « Annuler » étant ceux de Blockly.

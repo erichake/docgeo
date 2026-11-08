@@ -148,7 +148,7 @@ import { hideGhosts, showGhosts, toggleGhost, withHidden } from "./eraser";
 import { message, type MessageKey } from "./messages";
 import { ACTION_ICONS } from "./icons";
 import { turtleLayer } from "./turtle";
-import { onEnlarge, shrinkBlocks } from "./blocks/view";
+import { blocksTake, onEnlarge, shrinkBlocks } from "./blocks/view";
 import {
     alongSlider,
     arcAt,
@@ -1644,6 +1644,12 @@ const showProperties = (
     event.metaKey || event.ctrlKey || event.shiftKey
         ? properties.toggle(object)
         : properties.select(object);
+
+// Clicked in the figure, it names the object of the selected block, or shows
+// its properties.
+const chooseObject = (object: construction_object): void => {
+    if (!blocksTake(object.name)) properties.select(object);
+};
 
 function propertyObject(
     event: Pick<PointerEvent, "target" | "clientX" | "clientY">,
@@ -6246,7 +6252,7 @@ $("body").on(
             ) {
                 event.preventDefault();
                 event.stopPropagation();
-                showProperties(event, object);
+                if (!blocksTake(object.name)) showProperties(event, object);
                 if (object instanceof button_object) down = null;
                 else moveWidget(object, event);
             }
@@ -6660,14 +6666,12 @@ $("body").on(
             )
                 return dragged();
             if (!hits.some((hit) => hit.object === object) && object)
-                return properties.select(object);
+                return chooseObject(object);
             if (!hits[0])
                 return onAxis(screen)
                     ? properties.figure()
                     : properties.select(null);
-            return chooseHit(hits, client, (hit) =>
-                properties.select(hit.object),
-            );
+            return chooseHit(hits, client, (hit) => chooseObject(hit.object));
         }
         if (ghosts) {
             if (!hits[0]) return;
