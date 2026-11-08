@@ -19,6 +19,7 @@ import { point_object } from "../objects/point_object";
 import { point_on_object } from "../objects/point_on_object";
 import { polygon_object } from "../objects/polygon_object";
 import { segment_object } from "../objects/segment_object";
+import { text_object } from "../objects/text_object";
 import { blocksView, isTurtle, releaseBlocks } from "./blocks/view";
 import { accepts } from "./catalog";
 import {
@@ -891,6 +892,24 @@ export function propertiesPanel(options: {
                     String(i),
                 ]),
             ],
+            (object, value) => {
+                object.precision = Number(value);
+            },
+        );
+        choice(
+            display,
+            "precision",
+            objects.filter(
+                (object) =>
+                    object instanceof panel_object ||
+                    object instanceof text_object,
+            ),
+            // A text's -1, the default, shows no decimal.
+            (object) => String(Math.max(0, object.precision)),
+            Array.from({ length: 11 }, (_, i): [string, string] => [
+                String(i),
+                String(i),
+            ]),
             (object, value) => {
                 object.precision = Number(value);
             },
