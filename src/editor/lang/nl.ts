@@ -58,6 +58,14 @@ const nl: Texts = {
         save_as: "Opslaan als…",
         save_page_as: "Pagina opslaan als…",
         open_in_tab: "Openen in nieuw tabblad",
+        open_recent: "Recent document openen",
+        clear_recent: "Lijst wissen",
+        recent_missing:
+            "Het bestand ‘%’ is niet gevonden: het is misschien verplaatst, hernoemd of verwijderd.",
+        recover_title: "Figuur herstellen",
+        recover_text:
+            "De figuur ‘%’ was niet opgeslagen toen DocGeo werd gesloten. Herstellen? Anders gaan de wijzigingen verloren.",
+        recover: "Herstellen",
         delete: "Verwijderen",
         eraser: "Gum",
         axes: "Assenstelsel",

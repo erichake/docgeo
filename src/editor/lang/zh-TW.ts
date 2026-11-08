@@ -57,6 +57,13 @@ const zh_TW: Texts = {
         save_as: "另存新檔…",
         save_page_as: "頁面另存新檔…",
         open_in_tab: "在新分頁開啟",
+        open_recent: "開啟最近的文件",
+        clear_recent: "清除清單",
+        recent_missing: "找不到檔案「%」：它可能已被移動、重新命名或刪除。",
+        recover_title: "復原圖形",
+        recover_text:
+            "關閉 DocGeo 時圖形「%」尚未儲存。是否復原？否則其變更將會遺失。",
+        recover: "復原",
         delete: "刪除",
         eraser: "橡皮擦",
         axes: "座標系",

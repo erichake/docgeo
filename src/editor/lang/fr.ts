@@ -58,6 +58,14 @@ const fr: Texts = {
         save_as: "Enregistrer sous…",
         save_page_as: "Enregistrer la page sous…",
         open_in_tab: "Ouvrir dans un nouvel onglet",
+        open_recent: "Ouvrir un document récent",
+        clear_recent: "Effacer la liste",
+        recent_missing:
+            "Le fichier « % » est introuvable : il a peut-être été déplacé, renommé ou supprimé.",
+        recover_title: "Récupérer la figure",
+        recover_text:
+            "La figure « % » n'était pas enregistrée quand DocGeo a été fermé. La récupérer ? Sinon, ses modifications seront perdues.",
+        recover: "Récupérer",
         delete: "Supprimer",
         eraser: "Gomme",
         axes: "Repère",

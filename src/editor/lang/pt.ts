@@ -58,6 +58,14 @@ const pt: Texts = {
         save_as: "Salvar como…",
         save_page_as: "Salvar a página como…",
         open_in_tab: "Abrir em uma nova aba",
+        open_recent: "Abrir um documento recente",
+        clear_recent: "Limpar a lista",
+        recent_missing:
+            "O arquivo “%” não foi encontrado: talvez tenha sido movido, renomeado ou excluído.",
+        recover_title: "Recuperar a figura",
+        recover_text:
+            "A figura “%” não estava salva quando o DocGeo foi fechado. Recuperá-la? Caso contrário, suas alterações serão perdidas.",
+        recover: "Recuperar",
         delete: "Excluir",
         eraser: "Borracha",
         axes: "Eixos",

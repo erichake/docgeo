@@ -58,6 +58,14 @@ const de: Texts = {
         save_as: "Speichern unter…",
         save_page_as: "Seite speichern unter…",
         open_in_tab: "In neuem Tab öffnen",
+        open_recent: "Zuletzt geöffnete Dokumente",
+        clear_recent: "Liste leeren",
+        recent_missing:
+            "Die Datei „%“ wurde nicht gefunden: Sie wurde vielleicht verschoben, umbenannt oder gelöscht.",
+        recover_title: "Figur wiederherstellen",
+        recover_text:
+            "Die Figur „%“ war nicht gespeichert, als DocGeo geschlossen wurde. Wiederherstellen? Andernfalls gehen ihre Änderungen verloren.",
+        recover: "Wiederherstellen",
         delete: "Löschen",
         eraser: "Radierer",
         axes: "Koordinatensystem",

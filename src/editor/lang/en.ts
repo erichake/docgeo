@@ -57,6 +57,14 @@ export default {
     save_as: "Save as…",
     save_page_as: "Save page as…",
     open_in_tab: "Open in new tab",
+    open_recent: "Open recent",
+    clear_recent: "Clear list",
+    recent_missing:
+        "The file “%” can no longer be found: it may have been moved, renamed or deleted.",
+    recover_title: "Recover figure",
+    recover_text:
+        "The figure “%” had not been saved when DocGeo was closed. Recover it? Otherwise, its changes will be lost.",
+    recover: "Recover",
     delete: "Delete",
     eraser: "Eraser",
     axes: "Axes",

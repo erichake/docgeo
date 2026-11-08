@@ -157,6 +157,39 @@ l'**ouverture des `.dgo`, `.dgp` et `.ggb` par double-clic**.
   l'éditeur ouvert dans un onglet ou intégré (`?embed`) : la portée couvre
   la page, installée ou non.
 
+### Documents récents et récupération
+
+Ajoutés le 2026-11-08 (`src/editor/recent.ts`, base IndexedDB
+`docgeo-editor`), hors d'une iframe seulement, installé ou non :
+
+- Fichier ▸ « Ouvrir un document récent » : les 10 dernières figures
+  ouvertes ou enregistrées, la plus récente en tête, puis « Effacer la
+  liste ». Une figure ouverte par le système de fichiers (sélecteur, dépôt,
+  `launchQueue`) y entre par son `FileSystemFileHandle` (Chromium seul) ;
+  une figure ouverte par lien (`?url=`, intégration) par son adresse, dans
+  tous les navigateurs. Ailleurs que dans Chromium, le sous-menu n'apparaît
+  qu'une fois une telle figure ouverte. Rouvrir un fichier redemande au
+  besoin le droit de lecture (`requestPermission`, au clic dans le menu) ;
+  un fichier disparu est signalé et retiré de la liste. Le handle ne donne
+  que le nom : deux fichiers homonymes de dossiers différents se
+  ressemblent dans la liste. Les changements de la liste s'enchaînent, en
+  partant chaque fois de la liste stockée : plusieurs fenêtres la partagent,
+  relue quand une fenêtre revient au premier plan.
+- Récupération : tant que la figure d'une fenêtre diffère de son état
+  enregistré (pastille de `showChanged`), une copie `.dgo` (classeur
+  compris) en est écrite 1,5 s après le dernier changement, avec son nom et
+  le handle de son fichier ; elle est effacée dès que la figure est
+  enregistrée ou revenue à cet état. Chaque fenêtre tient un verrou
+  (`navigator.locks`, contexte sécurisé) à son nom : une copie dont le
+  verrou n'est plus tenu est celle d'une fenêtre fermée, que la fenêtre
+  ouverte ensuite propose de récupérer (« Annuler » l'efface). Pas de
+  proposition à une fenêtre ouverte avec une figure (`?url=`,
+  `launchQueue`) : la copie attend le lancement suivant. Récupérée, la
+  figure reste « non enregistrée », rattachée à son fichier, et la fenêtre
+  reprend la copie à son compte.
+
+Coût : +2,8 Ko pour l'éditeur (1,1 Ko en gzip), rien pour le lecteur.
+
 ## Coût pour le lecteur : 0 à 2 Ko
 
 Le lecteur pesait 302 Ko (97 Ko en gzip) le 2026-10-11. L'éditeur ne doit pas

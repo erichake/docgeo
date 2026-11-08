@@ -124,6 +124,16 @@ import {
 } from "./file";
 import { canInstall, install } from "./install";
 import {
+    adopt,
+    clearRecent,
+    dropDraft,
+    forget,
+    keepFiles,
+    recent,
+    remember,
+    type Recent,
+} from "./recent";
+import {
     DELETE_KEY,
     contextMenu,
     menuBar,
@@ -1131,6 +1141,27 @@ const menus: Menu[] = [
                 shortcut: shortcut("O"),
                 run: chooseFigure,
             },
+            ...(standalone && (native || recent.length)
+                ? [
+                      {
+                          label: message("open_recent"),
+                          enabled: () => recent.length > 0,
+                          items: () => [
+                              ...recent.map((entry) => ({
+                                  label: entry.url
+                                      ? `${entry.name} — ${new URL(entry.url).host}`
+                                      : entry.name,
+                                  run: () => void openRecent(entry),
+                              })),
+                              null,
+                              {
+                                  label: message("clear_recent"),
+                                  run: () => void clearRecent(),
+                              },
+                          ],
+                      },
+                  ]
+                : []),
             {
                 label: `${message("open_in_tab")}…`,
                 run: () =>
@@ -7550,11 +7581,27 @@ const openChosen = async (
     files: File[],
     from?: Promise<FileSystemHandle | null> | FileSystemHandle,
 ): Promise<void> => {
-    if (await discarded())
-        await openFiles(files, from).catch((error: Error) =>
-            showHint(message("open_failed", error.message), true),
-        );
+    if (await discarded()) await openFiles(files, from).catch(openFailed);
 };
+
+const openFailed = (error: Error): void =>
+    showHint(message("open_failed", error.message), true);
+
+// A recent figure, once the browser lets its file be read again: one gone
+// since is taken off the list.
+async function openRecent(entry: Recent): Promise<void> {
+    const { handle, url } = entry;
+    if (url) {
+        if (await discarded()) await openPublished(url).catch(openFailed);
+        return;
+    }
+    if ((await handle!.requestPermission({ mode: "read" })) !== "granted")
+        return;
+    const file = await handle!.getFile().catch(() => null);
+    if (file) return openChosen([file], handle);
+    showHint(message("recent_missing", entry.name), true);
+    void forget(entry);
+}
 
 for (const [element, run] of [
     [fileInput, openChosen],
@@ -7607,6 +7654,8 @@ async function openPublished(url: string): Promise<void> {
         throw new Error("Not a figure file");
     await openFile(file);
     published = { url, step: history[position].figure };
+    if (standalone)
+        void remember({ name: file.name, url }).catch(console.error);
 }
 
 // Framed from the published figure, once the user gave its link, or knows
@@ -7664,9 +7713,32 @@ if (embedded)
 
 finishSplash(EDITOR_READY);
 
+// Opened with a figure, the window leaves the one of a window closed
+// unsaved to the next one.
+let launched = !!FIGURE_URL;
+if (standalone)
+    void EDITOR_READY.then(async () => {
+        const draft = await keepFiles(saveFigure);
+        if (!draft || launched) return;
+        if (
+            !(await confirmed(
+                message("recover_text", draft.name),
+                message("recover_title"),
+                "recover",
+            ))
+        )
+            return void dropDraft(draft);
+        await openFile(new File([draft.blob], "draft.dgo"));
+        opened(draft.name, draft.handle);
+        adopt(draft);
+        saved = "";
+        showChanged(true);
+    }).catch(console.error);
+
 // Figure files opened from the system with the installed application (see
 // public/editor.webmanifest), in a window of their own.
 window.launchQueue?.setConsumer(({ files }) => {
+    launched ||= files.length > 0;
     if (files.length)
         void EDITOR_READY.then(async () =>
             openChosen(

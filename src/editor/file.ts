@@ -1,6 +1,7 @@
 import { $ } from "../dom";
 import { t } from "../i18n";
 import { message } from "./messages";
+import { keepDraft, remember } from "./recent";
 
 // Outside a frame, in a browser with the File System Access API (Chromium),
 // the figure is saved as by an application: the first save asks where, the
@@ -41,10 +42,16 @@ export function opened(source: string, from?: FileSystemHandle | null): void {
         from?.kind === "file" && /\.dgo$/i.test(from.name)
             ? (from as FileSystemFileHandle)
             : null;
+    if (native && from?.kind === "file")
+        void remember({
+            name: from.name,
+            handle: from as FileSystemFileHandle,
+        }).catch(console.error);
     showChanged(false);
 }
 
 export function showChanged(dirty: boolean): void {
+    keepDraft(dirty, shown, handle);
     if (!native) return;
     document.title = `${dirty ? "● " : ""}${shown} — ${message("title")}`;
     fileName.text(shown);
