@@ -310,27 +310,39 @@ export abstract class primitive_quadric_object extends construction_object {
     // real normal foot from there (degenerate/undefined case).
     projectPoint(target: Vec3): Vec3 {
         if (!this.COEFFS) return target;
-        const [a, b, c, d, e] = this.COEFFS;
+        const [a, b, c, d, e, f] = this.COEFFS;
         const [p, q] = this.toPlane(target);
-        const normalConic: ConicCoeffs = [
-            b,
-            2 * (c - a),
-            -b,
-            e + 2 * a * q - p * b,
-            b * q - 2 * p * c - d,
-            d * q - p * e,
-        ];
-        const candidates = conicConicIntersectionsXY(this.COEFFS, normalConic);
+        // Solved around the target, in units of the conic's size: far from
+        // the origin, its quadratic terms would otherwise vanish within the
+        // tolerances, and no foot be found.
+        const D = 2 * a * p + b * q + d;
+        const E = b * p + 2 * c * q + e;
+        const F = (a * p + b * q + d) * p + (c * q + e) * q + f;
+        const quadratic = Math.hypot(a, b, c);
+        const s = Math.max(
+            Math.hypot(D, E) / quadratic,
+            Math.sqrt(Math.abs(F) / quadratic),
+        );
+        if (!(s > 0 && s < Infinity)) return target;
+        const local = [a * s * s, b * s * s, c * s * s, D * s, E * s, F];
+        const norm = Math.hypot(...local);
+        const [A, B, C, DD, EE, FF] = local.map((v) => v / norm);
+        const candidates = conicConicIntersectionsXY(
+            [A, B, C, DD, EE, FF],
+            [B, 2 * (C - A), -B, EE, -DD, 0],
+        );
         let best: Vec2 | null = null;
         let bestDistance = Infinity;
         for (const candidate of candidates) {
-            const distance = Math.hypot(candidate[0] - p, candidate[1] - q);
+            const distance = Math.hypot(...candidate);
             if (distance < bestDistance) {
                 best = candidate;
                 bestDistance = distance;
             }
         }
-        return best ? this.fromPlane(best) : target;
+        return best
+            ? this.fromPlane([p + s * best[0], q + s * best[1]])
+            : target;
     }
 
     project(): void {
@@ -482,21 +494,19 @@ export abstract class primitive_quadric_object extends construction_object {
                 .join(" ");
             this.curveHitArea.att("d", d);
             this.curvePath.att("d", d);
-            this.curveFill
-                .stl("fill-opacity", this.opacity ?? 0)
-                .att(
-                    "d",
-                    this.opacity
-                        ? this.branchScreenPoints
-                              .map((points, i) => {
-                                  const [ox, oy] = this.branchFillOffsets[i];
-                                  const [ax, ay] = points[0];
-                                  const [bx, by] = points[points.length - 1];
-                                  return `M${points.join("L")}L${bx + ox} ${by + oy}L${ax + ox} ${ay + oy}Z`;
-                              })
-                              .join("")
-                        : "",
-                );
+            this.curveFill.stl("fill-opacity", this.opacity ?? 0).att(
+                "d",
+                this.opacity
+                    ? this.branchScreenPoints
+                          .map((points, i) => {
+                              const [ox, oy] = this.branchFillOffsets[i];
+                              const [ax, ay] = points[0];
+                              const [bx, by] = points[points.length - 1];
+                              return `M${points.join("L")}L${bx + ox} ${by + oy}L${ax + ox} ${ay + oy}Z`;
+                          })
+                          .join("")
+                    : "",
+            );
         }
     }
 
