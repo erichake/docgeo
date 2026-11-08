@@ -1,7 +1,7 @@
 import type { construction } from "../construction";
 import { $, type DOMElement } from "../dom";
 import {
-    evaluateFormula,
+    evaluateValue,
     formulaIdentifiers,
     parseFormula,
     usesView,
@@ -266,7 +266,7 @@ export class panel_object extends construction_object {
                 .map((part, index) => {
                     if (index % 2 === 0) return part;
                     if (part === "") return "%";
-                    const value = evaluateFormula(
+                    const value = evaluateValue(
                         this.formulas.get(part)!,
                         this.env(),
                     );

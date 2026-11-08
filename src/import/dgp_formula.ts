@@ -3716,6 +3716,14 @@ export function evaluateFormula(
     node: FormulaNode,
     env: FormulaEnv,
 ): FormulaValue | null {
+    return formulaValue(evaluateValue(node, env));
+}
+
+// Any value, a list or a text too, as a text's formulas show.
+export function evaluateValue(
+    node: FormulaNode,
+    env: FormulaEnv,
+): ScriptValue | null {
     let compiled = COMPILED.get(node);
     if (!compiled) {
         const scope = {
@@ -3734,5 +3742,6 @@ export function evaluateFormula(
         };
         COMPILED.set(node, compiled);
     }
-    return formulaValue(evaluate(compiled, env));
+    const value = evaluate(compiled, env);
+    return typeof value === "number" && !Number.isFinite(value) ? null : value;
 }
