@@ -58,6 +58,16 @@
                 <strong>New figure</strong>, which starts from an empty figure.
             </p>
 
+            <h2 id="recents">Recent documents</h2>
+            <p>
+                <strong>File › Open recent</strong> lists the last ten figures
+                opened or saved, the most recent first: in Chrome and Edge,
+                files on the computer; in every browser, figures opened by a
+                link. The browser may ask again for permission to read the file.
+                A file moved, renamed or deleted since is reported and removed
+                from the list. <strong>Clear list</strong> empties it.
+            </p>
+
             <h2>Incomplete import</h2>
             <p>
                 An unsupported DGPad or GeoGebra element is ignored along with
@@ -98,6 +108,22 @@
             <p>
                 <code>.dgo</code> is the only save format: opening a DGPad or
                 GeoGebra figure and saving it converts it.
+            </p>
+
+            <h2 id="recuperer">Recovering an unsaved figure</h2>
+            <p>
+                As long as a figure has unsaved changes, DocGeo keeps a copy of
+                it in the browser. If the editor closes before it is saved
+                (window closed by mistake, crash), the next time it opens it
+                offers to <strong>Recover</strong> it: the figure comes back,
+                still marked as unsaved. <strong>Cancel</strong> deletes the
+                copy. If the editor opens directly on a figure (double click,
+                link), the offer waits for the next opening.
+            </p>
+            <p>
+                This copy stays in the browser of this computer: it does not
+                replace saving. Nothing is kept when DocGeo is embedded in
+                another page.
             </p>
 
             <h2 id="classeur">Workbooks: several pages</h2>
