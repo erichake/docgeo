@@ -1459,6 +1459,8 @@ let stepping: Stepping | null = null;
 let playing: number | null = null;
 // The tool chosen in the menu, kept to build one object after another.
 let armed: Item | null = null;
+// Taken with objects selected before it, the tool is left once it has built.
+let once = false;
 // The objects selected one after the other, the tools' arguments in this
 // order.
 let selection: Hit[] = [];
@@ -1664,8 +1666,8 @@ function showHint(
         hint.add(numberField.removeClass("dge-error"));
     }
     if (applying && text) {
-        const { picked, reached, kept } = applying;
-        if (reached > kept)
+        const { picked, reached, kept, once } = applying;
+        if (reached > kept && !once)
             hint.add(
                 keepInitial.text(
                     message("keep_arg", initialName(picked[reached - 1])),
@@ -3131,6 +3133,7 @@ function arm(item: Item): void {
     cancel();
     if (item.tools[0].mode === "macro") return startMacro(picked);
     armed = item;
+    once = !!picked[0];
     if (window.matchMedia("(max-width: 600px)").matches) {
         setPanel(false);
         if (propertiesOpen) setProperties(false);
@@ -3176,6 +3179,7 @@ function keep(slot: number): void {
     const { tool, args } = pending!;
     if (
         !armed ||
+        once ||
         tool.mode !== "command" ||
         tool.overload.variadic ||
         !args.includes(undefined)
@@ -3194,7 +3198,8 @@ function unkeep(slot: number): void {
 // The arguments designated, each to keep or kept, to change, in the hint.
 function keepButtons(): DOMElement[] {
     const { tool, args, prefixed } = pending!;
-    if (!armed || tool.mode !== "command" || tool.overload.variadic) return [];
+    if (!armed || once || tool.mode !== "command" || tool.overload.variadic)
+        return [];
     return args.flatMap((arg, slot) => {
         if (
             typeof arg !== "object" ||
@@ -4750,6 +4755,8 @@ let applying: {
     asking: boolean;
     reached: number;
     kept: number;
+    // Started from objects selected: left once applied.
+    once: boolean;
 } | null = null;
 const appliedIndex = (): number => macroIndex(scene(), applying!.name);
 const appliedMacro = (): Macro => scene().macros[appliedIndex()];
@@ -4865,6 +4872,7 @@ function startApply(
         asking: false,
         reached: 0,
         kept: 0,
+        once: objects.length > 0,
     };
     showApply();
     objects.forEach((object) => {
@@ -4913,6 +4921,7 @@ function pickInitial(initial: Picked, keep = false): void {
     applying!.applied = true;
     fillFixed();
     changed();
+    if (applying!.once) stopApply();
 }
 
 // The initials designated lit: the hint says what the next one may be. The
@@ -5561,7 +5570,10 @@ function cancel(keepTool = false): void {
         applying.picked = applying.picked.slice(0, applying.kept);
         applying.reached = applying.kept;
     } else stopApply();
-    if (!keepTool) armed = kept = null;
+    if (!keepTool) {
+        armed = kept = null;
+        once = false;
+    }
     aim = null;
     clearPreview();
     closeMenu();
@@ -5603,6 +5615,10 @@ function escape(): void {
 
 function done(object?: construction_object): void {
     if (object && propertiesOpen) properties.select(object);
+    if (once) {
+        armed = kept = null;
+        once = false;
+    }
     rearm();
     clearPreview();
     highlight();

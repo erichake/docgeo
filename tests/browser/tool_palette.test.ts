@@ -154,11 +154,9 @@ describe("The tool palette", () => {
             new Pointer("pointerleave", { pointerType: "mouse" }),
         );
         expect(ghosts()).toBe(0);
-        // Chosen, it builds from them, and stays in hand till chosen again.
+        // Chosen, it builds from them, and is left at once.
         tool("Circumcircle").click();
         await expect.poll(async () => (await saved(request)).o.length).toBe(6);
-        expect(tool("Circumcircle").getAttribute("aria-pressed")).toBe("true");
-        tool("Circumcircle").click();
         expect(tool("Circumcircle").getAttribute("aria-pressed")).toBe("false");
         // A segment selected gives its form to the midpoint, which needs
         // nothing more.
@@ -169,14 +167,12 @@ describe("The tool palette", () => {
         expect(ghosts()).toBe(1);
         tool("Midpoint").click();
         await expect.poll(async () => (await saved(request)).o.length).toBe(7);
-        // Escape drops the tool, then closes the palette.
+        expect(tool("Midpoint").getAttribute("aria-pressed")).toBe("false");
+        // Escape drops the selection, then closes the palette.
         const escape = () =>
             page.body.dispatchEvent(
                 new KeyboardEvent("keydown", { key: "Escape", bubbles: true }),
             );
-        escape();
-        expect(tool("Midpoint").getAttribute("aria-pressed")).toBe("false");
-        expect(body.contains("dge-palette-open")).toBe(true);
         // A tap chooses the object without its ring, the palette showing
         // its tools.
         tap([3, -2], false);
@@ -433,8 +429,14 @@ describe("The tool palette", () => {
         expect(buttons()).toEqual([]);
         tap([-4, -1]);
         await expect.poll(async () => (await saved(request)).o.length).toBe(4);
-        tap([3, -2]);
-        expect(buttons()).toEqual(["Keep B"]);
+        // Taken with a selection, the tool is left once it has built.
+        expect(
+            page
+                .querySelector(
+                    `.dge-palette-grid button[aria-label="Point reflection"]`,
+                )!
+                .getAttribute("aria-pressed"),
+        ).toBe("false");
     });
 
     // So does a macro that maps points (see TRANSFORMATIONS.md).
@@ -526,6 +528,19 @@ describe("The tool palette", () => {
             ["Mac", [0, 0, [1, 2]]],
             ["Out", [8, 1]],
         ]);
+        // Applied from a selection, completed in the figure, it is left.
+        page.body.dispatchEvent(
+            new KeyboardEvent("keydown", { key: "Escape", bubbles: true }),
+        );
+        const half = page.querySelector(
+            `.dge-palette-grid button[aria-label="Half"]`,
+        ) as HTMLElement;
+        expect(half.getAttribute("aria-pressed")).toBe("false");
+        await tap([-4, -1], 10);
+        half.click();
+        expect(half.getAttribute("aria-pressed")).toBe("true");
+        await tap([0, 3], 12);
+        expect(half.getAttribute("aria-pressed")).toBe("false");
     });
 });
 

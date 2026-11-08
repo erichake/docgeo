@@ -638,6 +638,12 @@ pour plusieurs objets.
   trois sommets (A, B, C puis « CercleCirconscrit » écrit
   `CercleCirconscrit(A, B, C)`). Sans sélection, l'objet dont l'anneau est
   ouvert sert de premier argument.
+- **Outil pris sur une sélection** (décidé avec l'auteur le 2026-11-07) :
+  un outil ou une macro pris (menu ou palette) avec des objets choisis
+  ne construit qu'une fois, puis est lâché, même quand ses autres
+  arguments sont désignés ensuite dans la figure (`once` dans `main.ts`,
+  `applying.once` pour une macro). Sans boutons « Garder », ni Maj-clic.
+  Pris sans sélection, il reste en main jusqu'à Échap ou « Terminé ».
 - **Propriétés de plusieurs objets** (2026-10-14) : « Réglages », ou le
   bouton « Propriétés » de la barre, ouvre le panneau sur la sélection.
   Panneau ouvert, le même geste (⌘-clic, Ctrl-clic, Maj-clic, appui long,
