@@ -53,6 +53,7 @@ const CHECKBOX_GAP = 11;
 const CHECKBOX_COLOR = "#6557d2";
 
 export function formatNumber(value: number, precision: number): string {
+    if (isNaN(value)) return "???";
     const factor = 10 ** precision;
     return (Math.round(value * factor) / factor).toString().replace(".", ",");
 }
