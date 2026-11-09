@@ -62,10 +62,7 @@ const fr: Texts = {
         clear_recent: "Effacer la liste",
         recent_missing:
             "Le fichier « % » est introuvable : il a peut-être été déplacé, renommé ou supprimé.",
-        recover_title: "Récupérer la figure",
-        recover_text:
-            "La figure « % » n'était pas enregistrée quand DocGeo a été fermé. La récupérer ? Sinon, ses modifications seront perdues.",
-        recover: "Récupérer",
+        unsaved_figures: "Figures non enregistrées",
         delete: "Supprimer",
         eraser: "Gomme",
         axes: "Repère",

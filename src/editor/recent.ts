@@ -1,8 +1,8 @@
 // What the editor keeps in the browser out of a frame (see EDITOR.md
 // « Documents récents et récupération »): the last figures opened or saved,
 // by their file where the browser gives one, or by their link, and a copy of
-// the figure of each window while it has unsaved changes, which a window
-// opened later offers to recover once the first one is closed.
+// the figure of each window while it has unsaved changes, listed with them
+// once the window is closed, for a while.
 
 export interface Recent {
     name: string;
@@ -15,12 +15,15 @@ export interface Draft {
     name: string;
     handle: FileSystemFileHandle | null;
     blob: Blob;
+    time: number;
 }
 
 const RECENT = 10;
 // Long enough not to write the figure at each of a series of changes.
 const DELAY = 1500;
 const LOCK = "docgeo-draft-";
+const DRAFTS = 10;
+const AGE = 14 * 24 * 3600 * 1000;
 
 let base: Promise<IDBDatabase> | null = null;
 
@@ -76,7 +79,29 @@ const change = (
                 );
         }));
 
-const read = (): Promise<unknown> => change((list) => list);
+// The figures of windows closed unsaved, the most recent first, the others
+// forgotten.
+export let drafts: Draft[] = [];
+
+async function readDrafts(): Promise<void> {
+    const held = new Set(
+        (await navigator.locks.query()).held!.map(({ name }) => name),
+    );
+    const closed = (await store<Draft[]>("drafts", (s) => s.getAll()))
+        .filter((draft) => !held.has(LOCK + draft.id))
+        .sort((a, b) => b.time - a.time);
+    drafts = closed.filter(
+        (draft, index) => index < DRAFTS && Date.now() - draft.time < AGE,
+    );
+    for (const draft of closed)
+        if (!drafts.includes(draft)) void dropDraft(draft);
+}
+
+const read = (): Promise<unknown> =>
+    Promise.all([
+        change((list) => list),
+        window.isSecureContext && readDrafts(),
+    ]);
 
 const same = (entry: Recent, other: Recent): Promise<boolean> =>
     entry.handle
@@ -94,7 +119,8 @@ export const remember = (entry: Recent): Promise<unknown> =>
 export const forget = (entry: Recent): Promise<unknown> =>
     change((list) => without(entry, list));
 
-export const clearRecent = (): Promise<unknown> => change(() => []);
+export const clearRecent = (): Promise<unknown> =>
+    Promise.all([change(() => []), ...drafts.splice(0).map(dropDraft)]);
 
 let id = "";
 let write: (() => Promise<Blob>) | null = null;
@@ -105,23 +131,15 @@ const hold = (key: string): void =>
     void navigator.locks.request(LOCK + key, () => new Promise(() => {}));
 
 // The recent figures read, and the window's figure, written by `figure`,
-// kept while it isn't saved; the drafts, which need the locks of a secure
-// context, then the unsaved figure of a window closed, if there is one.
-export async function keepFiles(
-    figure: () => Promise<Blob>,
-): Promise<Draft | undefined> {
+// kept while it isn't saved: the drafts need the locks of a secure context.
+export async function keepFiles(figure: () => Promise<Blob>): Promise<void> {
+    if (window.isSecureContext) {
+        id = crypto.randomUUID();
+        hold(id);
+        write = figure;
+    }
     await read();
     window.addEventListener("focus", () => void read());
-    if (!window.isSecureContext) return;
-    id = crypto.randomUUID();
-    hold(id);
-    write = figure;
-    const held = new Set(
-        (await navigator.locks.query()).held!.map(({ name }) => name),
-    );
-    return (await store<Draft[]>("drafts", (s) => s.getAll())).find(
-        (draft) => !held.has(LOCK + draft.id),
-    );
 }
 
 // Kept while `dirty`, forgotten otherwise, the figure with the file it was
@@ -148,7 +166,14 @@ export function keepDraft(
                     const blob = await figure();
                     return store(
                         "drafts",
-                        (s) => s.put({ id: key, name, handle, blob }),
+                        (s) =>
+                            s.put({
+                                id: key,
+                                name,
+                                handle,
+                                blob,
+                                time: Date.now(),
+                            }),
                         "readwrite",
                     );
                 })
@@ -161,6 +186,7 @@ export function keepDraft(
 export function adopt(draft: Draft): void {
     id = draft.id;
     hold(id);
+    drafts = drafts.filter((other) => other !== draft);
 }
 
 export const dropDraft = (draft: Draft): Promise<unknown> =>

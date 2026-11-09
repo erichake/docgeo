@@ -181,12 +181,14 @@ Ajoutés le 2026-11-08 (`src/editor/recent.ts`, base IndexedDB
   le handle de son fichier ; elle est effacée dès que la figure est
   enregistrée ou revenue à cet état. Chaque fenêtre tient un verrou
   (`navigator.locks`, contexte sécurisé) à son nom : une copie dont le
-  verrou n'est plus tenu est celle d'une fenêtre fermée, que la fenêtre
-  ouverte ensuite propose de récupérer (« Annuler » l'efface). Pas de
-  proposition à une fenêtre ouverte avec une figure (`?url=`,
-  `launchQueue`) : la copie attend le lancement suivant. Récupérée, la
-  figure reste « non enregistrée », rattachée à son fichier, et la fenêtre
-  reprend la copie à son compte.
+  verrou n'est plus tenu est celle d'une fenêtre fermée. Aucune question au
+  démarrage (une boîte modale à l'ouverture gênait plus qu'elle ne
+  servait, et son « Annuler » effaçait la copie) : les copies des fenêtres
+  fermées, datées, forment la section « Figures non enregistrées » en tête
+  du sous-menu des documents récents, la plus récente d'abord, 10 au plus
+  et 14 jours au plus, les autres effacées ; « Effacer la liste » les
+  efface aussi. Rouverte, la figure reste « non enregistrée », rattachée à
+  son fichier, et la fenêtre reprend la copie à son compte.
 
 Coût : +2,8 Ko pour l'éditeur (1,1 Ko en gzip), rien pour le lecteur.
 

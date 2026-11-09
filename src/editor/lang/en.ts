@@ -61,10 +61,7 @@ export default {
     clear_recent: "Clear list",
     recent_missing:
         "The file “%” can no longer be found: it may have been moved, renamed or deleted.",
-    recover_title: "Recover figure",
-    recover_text:
-        "The figure “%” had not been saved when DocGeo was closed. Recover it? Otherwise, its changes will be lost.",
-    recover: "Recover",
+    unsaved_figures: "Unsaved figures",
     delete: "Delete",
     eraser: "Eraser",
     axes: "Axes",

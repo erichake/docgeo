@@ -62,10 +62,7 @@ const pt: Texts = {
         clear_recent: "Limpar a lista",
         recent_missing:
             "O arquivo “%” não foi encontrado: talvez tenha sido movido, renomeado ou excluído.",
-        recover_title: "Recuperar a figura",
-        recover_text:
-            "A figura “%” não estava salva quando o DocGeo foi fechado. Recuperá-la? Caso contrário, suas alterações serão perdidas.",
-        recover: "Recuperar",
+        unsaved_figures: "Figuras não guardadas",
         delete: "Excluir",
         eraser: "Borracha",
         axes: "Eixos",

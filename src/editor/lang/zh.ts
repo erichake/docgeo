@@ -60,10 +60,7 @@ const zh: Texts = {
         open_recent: "打开最近的文档",
         clear_recent: "清除列表",
         recent_missing: "找不到文件“%”：它可能已被移动、重命名或删除。",
-        recover_title: "恢复图形",
-        recover_text:
-            "关闭 DocGeo 时图形“%”尚未保存。是否恢复？否则其更改将丢失。",
-        recover: "恢复",
+        unsaved_figures: "未保存的图形",
         delete: "删除",
         eraser: "橡皮擦",
         axes: "坐标系",

@@ -62,10 +62,7 @@ const de: Texts = {
         clear_recent: "Liste leeren",
         recent_missing:
             "Die Datei „%“ wurde nicht gefunden: Sie wurde vielleicht verschoben, umbenannt oder gelöscht.",
-        recover_title: "Figur wiederherstellen",
-        recover_text:
-            "Die Figur „%“ war nicht gespeichert, als DocGeo geschlossen wurde. Wiederherstellen? Andernfalls gehen ihre Änderungen verloren.",
-        recover: "Wiederherstellen",
+        unsaved_figures: "Nicht gespeicherte Figuren",
         delete: "Löschen",
         eraser: "Radierer",
         axes: "Koordinatensystem",

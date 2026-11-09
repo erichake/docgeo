@@ -126,11 +126,12 @@ import { canInstall, install } from "./install";
 import {
     adopt,
     clearRecent,
-    dropDraft,
+    drafts,
     forget,
     keepFiles,
     recent,
     remember,
+    type Draft,
     type Recent,
 } from "./recent";
 import {
@@ -1141,12 +1142,25 @@ const menus: Menu[] = [
                 shortcut: shortcut("O"),
                 run: chooseFigure,
             },
-            ...(standalone && (native || recent.length)
+            ...(standalone && (native || recent.length || drafts.length)
                 ? [
                       {
                           label: message("open_recent"),
-                          enabled: () => recent.length > 0,
+                          enabled: () => recent.length + drafts.length > 0,
                           items: () => [
+                              ...(drafts.length
+                                  ? [
+                                        {
+                                            label: message("unsaved_figures"),
+                                            enabled: () => false,
+                                        },
+                                        ...drafts.map((draft) => ({
+                                            label: `${draft.name} — ${new Date(draft.time).toLocaleString(LANG, { dateStyle: "short", timeStyle: "short" })}`,
+                                            run: () => void openDraft(draft),
+                                        })),
+                                        null,
+                                    ]
+                                  : []),
                               ...recent.map((entry) => ({
                                   label: entry.url
                                       ? `${entry.name} — ${new URL(entry.url).host}`
@@ -7607,6 +7621,17 @@ async function openRecent(entry: Recent): Promise<void> {
     void forget(entry);
 }
 
+// The figure of a window closed unsaved, which stays unsaved, with the file
+// it was opened from, and is kept as this window's own.
+async function openDraft(draft: Draft): Promise<void> {
+    if (!(await discarded())) return;
+    await openFile(new File([draft.blob], "draft.dgo"));
+    opened(draft.name, draft.handle);
+    adopt(draft);
+    saved = "";
+    showChanged(true);
+}
+
 for (const [element, run] of [
     [fileInput, openChosen],
     [pageInput, openInTabs],
@@ -7717,32 +7742,12 @@ if (embedded)
 
 finishSplash(EDITOR_READY);
 
-// Opened with a figure, the window leaves the one of a window closed
-// unsaved to the next one.
-let launched = !!FIGURE_URL;
 if (standalone)
-    void EDITOR_READY.then(async () => {
-        const draft = await keepFiles(saveFigure);
-        if (!draft || launched) return;
-        if (
-            !(await confirmed(
-                message("recover_text", draft.name),
-                message("recover_title"),
-                "recover",
-            ))
-        )
-            return void dropDraft(draft);
-        await openFile(new File([draft.blob], "draft.dgo"));
-        opened(draft.name, draft.handle);
-        adopt(draft);
-        saved = "";
-        showChanged(true);
-    }).catch(console.error);
+    void EDITOR_READY.then(() => keepFiles(saveFigure)).catch(console.error);
 
 // Figure files opened from the system with the installed application (see
 // public/editor.webmanifest), in a window of their own.
 window.launchQueue?.setConsumer(({ files }) => {
-    launched ||= files.length > 0;
     if (files.length)
         void EDITOR_READY.then(async () =>
             openChosen(

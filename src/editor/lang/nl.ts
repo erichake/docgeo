@@ -62,10 +62,7 @@ const nl: Texts = {
         clear_recent: "Lijst wissen",
         recent_missing:
             "Het bestand ‘%’ is niet gevonden: het is misschien verplaatst, hernoemd of verwijderd.",
-        recover_title: "Figuur herstellen",
-        recover_text:
-            "De figuur ‘%’ was niet opgeslagen toen DocGeo werd gesloten. Herstellen? Anders gaan de wijzigingen verloren.",
-        recover: "Herstellen",
+        unsaved_figures: "Niet-opgeslagen figuren",
         delete: "Verwijderen",
         eraser: "Gum",
         axes: "Assenstelsel",
