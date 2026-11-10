@@ -611,6 +611,24 @@ const lastButton = button("last_step", () => go(Infinity)).addClass(
     "dge-end-step",
 );
 const playButton = button("play_steps", play);
+// Its menu of speeds, by a right click or a long press.
+let speedPress = 0;
+let speedPressed = false;
+playButton.on("pointerdown", (event) => {
+    speedPressed = false;
+    if (event.pointerType !== "mouse")
+        speedPress = window.setTimeout(() => {
+            speedPressed = true;
+            speedMenu();
+        }, 500);
+});
+(["pointerup", "pointerleave", "pointercancel"] as const).forEach((type) =>
+    playButton.on(type, () => clearTimeout(speedPress)),
+);
+playButton.on("contextmenu", () => {
+    clearTimeout(speedPress);
+    if (!speedPressed) speedMenu();
+});
 const stepsBar = $.create("div")
     .cls("dge-steps")
     .add(
@@ -1502,6 +1520,9 @@ let valuesShown = false;
 // hidden meanwhile.
 let stepping: Stepping | null = null;
 let playing: number | null = null;
+// Steps a second, not kept.
+const SPEEDS = [0.5, 1, 2, 4];
+let speed = 1;
 // The tool chosen in the menu, kept to build one object after another.
 let armed: Item | null = null;
 // Taken with objects selected before it, the tool is left once it has built.
@@ -2034,11 +2055,35 @@ function go(at: number): void {
 function play(): void {
     if (playing !== null) return pause();
     if (stepping!.at >= allSteps().length) showStep(1);
+    run();
+    showPlaying();
+}
+
+function run(): void {
     playing = window.setInterval(() => {
         if (stepping!.at >= allSteps().length) pause();
         else showStep(stepping!.at + 1);
-    }, 1000);
-    showPlaying();
+    }, 1000 / speed);
+}
+
+function setSpeed(value: number): void {
+    speed = value;
+    if (playing === null) return;
+    clearInterval(playing);
+    run();
+}
+
+function speedMenu(): void {
+    const { left, bottom } = playButton.dom().getBoundingClientRect();
+    contextMenu(
+        SPEEDS.map((value) => ({
+            label: `×${value.toLocaleString(LANG, { numberingSystem: "latn" })}`,
+            run: () => setSpeed(value),
+            checked: () => value === speed,
+        })),
+        left,
+        bottom,
+    );
 }
 
 function pause(): void {
@@ -2058,7 +2103,8 @@ function showPlaying(): void {
         .att("aria-label", message(key));
 }
 
-// The keys of the steps: arrows, Home and End, and Escape out.
+// The keys of the steps: arrows, Home and End, + and - for the speed, and
+// Escape out.
 function stepKey(event: KeyboardEvent): boolean {
     if (!stepping) return false;
     const at: Record<string, number> = {
@@ -2067,8 +2113,18 @@ function stepKey(event: KeyboardEvent): boolean {
         Home: 1,
         End: Infinity,
     };
+    const faster: Record<string, number> = { "+": 1, "=": 1, "-": -1 };
     if (event.key === "Escape") setSteps(false);
     else if (event.key in at) go(at[event.key]);
+    else if (event.key in faster)
+        setSpeed(
+            SPEEDS[
+                Math.min(
+                    Math.max(SPEEDS.indexOf(speed) + faster[event.key], 0),
+                    SPEEDS.length - 1,
+                )
+            ],
+        );
     else return false;
     event.preventDefault();
     return true;
