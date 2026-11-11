@@ -17,6 +17,7 @@ import {
 } from "../vec";
 import { construction_object } from "./construction_object";
 import { polylineSplit } from "./hidden_line";
+import { pointsDrag } from "./drag_points";
 
 // GeoGebra's DrawConic: up left of an ellipse's center, by its frame, for
 // the ellipse center + cos·u + sin·v on the screen.
@@ -309,7 +310,7 @@ export class primitive_circle_object extends construction_object {
 
     static createSVG(_this: construction_object): DOMElement {
         const t = _this as primitive_circle_object;
-        const dom = t.svg.shape("g");
+        const dom = t.svg.shape("g").drag(...pointsDrag(t));
         t.hitArea = t.svg
             .shape("circle")
             .att("cx", 0)

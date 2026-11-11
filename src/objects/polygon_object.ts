@@ -24,6 +24,7 @@ import {
     edgeStroke,
     type Interval,
 } from "./hidden_line";
+import { pointsDrag } from "./drag_points";
 import { point_object } from "./point_object";
 
 // The part of the convex polygon `vertices` where `side` is non-negative.
@@ -134,11 +135,6 @@ export class polygon_object extends construction_object {
     // points[i] to points[(i + 1) % points.length]).
     private edgeHidden: Interval[][] = [];
     private edgeVisible: Interval[][] = [];
-    private grabbed: {
-        from: Vec3;
-        moved: point_object[];
-        coords: Vec3[];
-    } | null = null;
 
     constructor(
         c: construction,
@@ -377,50 +373,6 @@ export class polygon_object extends construction_object {
             geometryTolerance(...a, ...point);
     }
 
-    // As in GeoGebra, dragged by translating its vertices when they are all
-    // free points.
-    private grab(event: PointerEvent): boolean {
-        const moved = this.vertices.filter(
-            (vertex) => !this.ownVertices.includes(vertex),
-        );
-        if (
-            this.fixed ||
-            !moved.length ||
-            moved.some(
-                (vertex) =>
-                    vertex.constructor !== point_object ||
-                    vertex.locked ||
-                    vertex.pinned,
-            )
-        )
-            return false;
-        const from = this.C.unprojectToZPlane(
-            this.C.pointerPosition(event),
-            moved[0].z,
-        );
-        if (!from) return false;
-        this.grabbed = { from, moved, coords: moved.map((p) => p.coords) };
-        return true;
-    }
-
-    mousedrag(event: PointerEvent): void {
-        const { from, moved, coords } = this.grabbed!;
-        const to = this.C.unprojectToZPlane(
-            this.C.pointerPosition(event),
-            from[2],
-        );
-        if (!to) return;
-        // The first vertex snaps onto the grid, as a point dragged alone.
-        const shift = vSub(
-            moved[0].snapToIncrement(vAdd(coords[0], vSub(to, from))),
-            coords[0],
-        );
-        moved.forEach((vertex, index) => {
-            vertex.coords = vAdd(coords[index], shift);
-            this.C.invalidateGeometry(vertex);
-        });
-    }
-
     // GeoGebra's DrawPolygon: at its vertices' mean.
     nameAt(): Vec2 {
         return vScale(
@@ -487,15 +439,13 @@ export class polygon_object extends construction_object {
     static createSVG(_this: construction_object): DOMElement {
         const t = _this as polygon_object;
         const dom = t.svg.shape("g");
+        const [drag, grab] = pointsDrag(t);
         t.hitArea = t.svg
             .shape("path")
             .stl(
                 "fill:transparent;stroke:transparent;pointer-events:fill;cursor:pointer",
             )
-            .drag(
-                (event) => t.mousedrag(event),
-                (event) => t.grab(event),
-            );
+            .drag(drag, (event) => !t.fixed && grab(event));
         t.path = t.svg
             .shape("path")
             .stl("fill", t.fill_color)

@@ -20,6 +20,7 @@ import {
     ellipseName,
     ellipseNameAt,
 } from "./primitive_circle_object";
+import { pointsDrag } from "./drag_points";
 
 export type QuadricKind = "ellipse" | "hyperbola" | "parabola";
 
@@ -512,7 +513,7 @@ export abstract class primitive_quadric_object extends construction_object {
 
     static createSVG(_this: construction_object): DOMElement {
         const t = _this as primitive_quadric_object;
-        const dom = t.svg.shape("g");
+        const dom = t.svg.shape("g").drag(...pointsDrag(t));
         t.ellipseHitArea = t.svg
             .shape("circle")
             .att("cx", 0)

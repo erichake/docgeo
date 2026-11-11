@@ -22,6 +22,7 @@ import {
 } from "./hidden_line";
 import type { point_object } from "./point_object";
 import type { polygon_object } from "./polygon_object";
+import { pointsDrag } from "./drag_points";
 
 // In 3D, an infinite line isn't run to the edge of the canvas, which has
 // no relation to the scene: it is drawn Cabri-style, as long as the
@@ -534,7 +535,7 @@ export class primitive_line_object extends construction_object {
 
     static createSVG(_this: construction_object): DOMElement {
         const t = _this as primitive_line_object;
-        const dom = t.svg.shape("g");
+        const dom = t.svg.shape("g").drag(...pointsDrag(t));
         t.hitArea = t.svg
             .shape("path")
             .stl(

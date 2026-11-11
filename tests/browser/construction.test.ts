@@ -409,6 +409,55 @@ describe("SVG scene", () => {
         expect(c.GRID.ORG).toEqual(origin);
     });
 
+    it("drags an object built from free points alone by translating them", () => {
+        const c = createConstruction();
+        const a = createPoint(c, "A", [0, 0, 0]);
+        const b = createPoint(c, "B", [2, 0, 0]);
+        const p = createPoint(c, "P", [1, 1, 0]);
+        const segment = createSegment(c, "s", a, b);
+        const plumb = createPlumb(c, "d", p, segment);
+        const m = createMidpoint(c, "M", a, b);
+        const line = createLine(c, "e", m, p);
+        c.OBJS.update();
+        const [dx, dy] = [c.GRID.UNIT[0], -c.GRID.UNIT[1]];
+        const pointer = (
+            type: "pointerdown" | "pointermove" | "pointerup",
+            clientX: number,
+            clientY: number,
+        ) =>
+            new PointerEvent(type, {
+                bubbles: true,
+                button: 0,
+                clientX,
+                clientY,
+                isPrimary: true,
+                pointerId: 1,
+                pointerType: "mouse",
+            });
+        const drag = (element: Element, [x, y]: readonly number[]) => {
+            element.dispatchEvent(pointer("pointerdown", x, y));
+            element.dispatchEvent(pointer("pointermove", x + dx, y + dy));
+            element.dispatchEvent(pointer("pointerup", x + dx, y + dy));
+            c.OBJS.update();
+        };
+        const at = (...points: [number, number][]) =>
+            [a, b, p].forEach(({ coords: [x, y] }, i) => {
+                expect(x).toBeCloseTo(points[i][0], 9);
+                expect(y).toBeCloseTo(points[i][1], 9);
+            });
+
+        drag(segment.dom.dom().firstElementChild!, c.pt3D([1, 0, 0]));
+        at([1, 1], [3, 1], [1, 1]);
+
+        drag(plumb.dom.dom().firstElementChild!, c.pt3D([1, 1, 0]));
+        at([2, 2], [4, 2], [2, 2]);
+
+        const origin = [...c.GRID.ORG];
+        drag(line.dom.dom().firstElementChild!, c.pt3D(p.coords));
+        at([2, 2], [4, 2], [2, 2]);
+        expect(c.GRID.ORG).toEqual(origin);
+    });
+
     it("zooms around the mouse wheel position", () => {
         const c = createConstruction();
         const point = createPoint(c, "A", [1, 0, 0]);

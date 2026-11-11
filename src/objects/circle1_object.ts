@@ -146,7 +146,9 @@ export class circle1_object extends primitive_circle_object {
         const dom = primitive_circle_object.createSVG(t);
         // A macro's final: its radius is a constant of the body.
         if (typeof t.radius !== "number" || t.output) return dom;
-        return dom.drag((event) => t.mousedrag(event));
+        // On its stroke, before the group's drag of its center.
+        t.hitArea.drag((event) => t.mousedrag(event));
+        return dom;
     }
 }
 

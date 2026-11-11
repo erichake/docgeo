@@ -2,6 +2,7 @@ import type { construction } from "../construction";
 import { geometryTolerance, vAdd, vScale, type Vec2, type Vec3 } from "../vec";
 import type { construction_object } from "./construction_object";
 import { primitive_circle_object } from "./primitive_circle_object";
+import { pointsDrag } from "./drag_points";
 
 const TWO_PI = 2 * Math.PI;
 
@@ -92,7 +93,7 @@ export abstract class primitive_arc_object extends primitive_circle_object {
 
     static createSVG(_this: construction_object) {
         const t = _this as primitive_arc_object;
-        const dom = t.svg.shape("g");
+        const dom = t.svg.shape("g").drag(...pointsDrag(t));
         t.hitArea = t.svg
             .shape("path")
             .stl(
