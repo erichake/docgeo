@@ -50,6 +50,8 @@ export function opened(source: string, from?: FileSystemHandle | null): void {
     showChanged(false);
 }
 
+export const figureName = (): string => name;
+
 export function showChanged(dirty: boolean): void {
     keepDraft(dirty, shown, handle);
     if (!native) return;

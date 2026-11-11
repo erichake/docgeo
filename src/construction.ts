@@ -150,7 +150,7 @@ export class construction {
         this.invalidateProjection();
     }
 
-    mousewheel(event: WheelEvent): void {
+    mousewheel(event: WheelEvent, from = this.svg.svgPoint(event)): void {
         const delta =
             event.deltaY *
             (event.deltaMode === WheelEvent.DOM_DELTA_LINE
@@ -159,10 +159,7 @@ export class construction {
                   ? this.height
                   : 1);
         // Trackpad pinches arrive as Ctrl-wheel with much smaller deltas.
-        this.zoom(
-            Math.exp(-delta / (event.ctrlKey ? 100 : 2000)),
-            this.svg.svgPoint(event),
-        );
+        this.zoom(Math.exp(-delta / (event.ctrlKey ? 100 : 2000)), from);
     }
 
     private zoom(factor: number, from: Vec2, to = from): void {

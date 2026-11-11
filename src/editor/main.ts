@@ -14,6 +14,7 @@ import {
     readDgoFile,
     writeDgo,
     type DgoFigure,
+    type Region,
     type Workbook,
 } from "../dgo";
 import { $, type DOMElement } from "../dom";
@@ -113,6 +114,7 @@ import {
 import { conicStandIns } from "./conic_preview";
 import {
     chooseFile,
+    figureName,
     fileLabel,
     native,
     installed,
@@ -123,6 +125,7 @@ import {
     standalone,
 } from "./file";
 import { canInstall, install } from "./install";
+import { showPrint } from "./print";
 import {
     adopt,
     clearRecent,
@@ -1217,6 +1220,12 @@ const menus: Menu[] = [
                 label: message("save_page_as"),
                 run: () => void savePage(),
                 enabled: () => !!book,
+            },
+            null,
+            {
+                label: `${message("print")}…`,
+                shortcut: shortcut("P"),
+                run: print,
             },
             null,
             {
@@ -6814,6 +6823,9 @@ $("body").on(
         } else if (command && event.key.toLowerCase() === "o") {
             event.preventDefault();
             chooseFigure();
+        } else if (standalone && command && event.key.toLowerCase() === "p") {
+            event.preventDefault();
+            print();
         } else if (
             installed &&
             command &&
@@ -6951,6 +6963,44 @@ async function savePage(): Promise<void> {
     await recording;
     const { name } = book!.pages[book!.current];
     await saveOther(() => asSaved(() => writeDgo(scene())), `${name}.dgo`);
+}
+
+// The region of the figure that the palette or the properties, over it,
+// leave visible.
+function uncovered(): Region {
+    const svg = scene().svg.dom().getBoundingClientRect();
+    let [left, right] = [svg.left, svg.right];
+    (
+        [
+            [paletteOpen, palette.panel],
+            [propertiesOpen, properties.panel],
+        ] as const
+    ).forEach(([open, panel]) => {
+        if (!open) return;
+        const box = panel.dom().getBoundingClientRect();
+        if (box.left > (svg.left + svg.right) / 2)
+            right = Math.min(right, box.left);
+        else left = Math.max(left, box.right);
+    });
+    return { x: left - svg.left, y: 0, w: right - left, h: svg.height };
+}
+
+// The page shown, as the region of the window no panel covers, or each page
+// of the workbook.
+function print(): void {
+    cancel();
+    showPrint(!!book && book.pages.length > 1, async (all) => {
+        await paging;
+        await recording;
+        const figure = await asSaved(() => describeDgo(scene(), uncovered()));
+        if (!book) return [{ name: figureName(), figure }];
+        const shown = { name: book.pages[book.current].name, figure };
+        return all
+            ? book.pages.map((page, index) =>
+                  index === book!.current ? shown : page,
+              )
+            : [shown];
+    });
 }
 
 async function saveFigure(): Promise<Blob> {

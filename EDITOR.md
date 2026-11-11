@@ -2064,6 +2064,49 @@ iframe qui montre la figure dans le lecteur (`index.html?fit=…&url=…`, voir
   l'éditeur (`index.html` à côté de `editor.html`) : un code copié depuis
   `localhost` ne sert que localement, ce que permet `embed_test.html`.
 
+## Impression
+
+Décidée avec l'auteur le 2026-11-11 (`src/editor/print.ts`), sur le modèle
+de celle de DocCells : **Fichier › Imprimer…** (Cmd-P / Ctrl-P, hors
+iframe) ouvre, par-dessus l'éditeur, des réglages et l'aperçu des
+feuilles ; « Imprimer » passe par `window.print()` (et donc aussi par
+l'enregistrement en PDF du système), une règle `@page` donnant le papier
+et l'orientation, tout le reste du `body` masqué à l'impression. Éditeur
+seulement : le lecteur n'en sait rien.
+
+- Une feuille par page, **remplie par la figure** jusqu'aux marges,
+  sans bande blanche là où la fenêtre de l'éditeur s'arrêtait (décidé
+  avec l'auteur le 2026-11-11) : la page, décrite (`describeDgo`) comme
+  la région de la fenêtre que la palette ou les propriétés ne recouvrent
+  pas, est reconstruite dans une figure à part, à la taille de la feuille
+  (`fixedSize`, `readDgo` centré, comme `fit.ts`), droites, lieux et
+  grille dessinés jusqu'au bord. La feuille en reçoit la copie
+  vectorielle, contrôles masqués s'il le faut, valeurs des champs et des
+  menus recopiées. « Toutes les pages » (classeur) prend la description
+  des autres pages : l'éditeur ne change pas de page.
+- Zone : la vue affichée, ou la figure seule (la région de la vue qui
+  montre quelque chose, mesurée sur une première construction de la
+  page), centrée dans la feuille ; la figure dessinée continue autour.
+- Échelle : jamais agrandie (1 pixel de l'écran au plus pour 1 pixel CSS
+  du papier), pour garder traits et étiquettes à leur taille ; une zone
+  plus grande que la feuille est dessinée plus grande puis réduite. Pas
+  d'échelle « 1 unité = 1 cm » : il faudrait redessiner la figure à
+  cette échelle et la paginer (écarté le 2026-11-11).
+- Dans l'aperçu, les feuilles tiennent dans la hauteur de la fenêtre.
+  Glisser sur la figure d'une feuille la déplace, la molette (ou le
+  pincement du pavé tactile) la zoome, autour du pointeur : ces gestes
+  changent la vue de la figure de la feuille (`pan`, `mousewheel`), pas
+  celle de l'éditeur. Un changement de zone, de papier, d'orientation,
+  de marges ou du titre reconstruit les feuilles, et oublie ces gestes.
+  La molette hors des figures fait défiler les feuilles.
+- Le clavier, quel que soit le focus, ne va pas à l'éditeur tant que
+  l'aperçu est ouvert (Échap le ferme), sauf Cmd-P / Ctrl-P du
+  navigateur, qui imprime les feuilles.
+- Réglages gardés pour la session : papier (A4, A3, A5, Letter),
+  orientation (automatique, d'après la zone de la première feuille),
+  marges, nom en titre, couleur de fond (non imprimée au départ), niveaux
+  de gris, contrôles masqués (curseurs, cases, champs, menus, boutons).
+
 ## Mesure de l'éditabilité
 
 Une figure importée n'est modifiable dans le panneau Construction que si

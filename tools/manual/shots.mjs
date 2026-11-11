@@ -202,6 +202,20 @@ export const SHOTS = [
         },
     },
     {
+        file: "imprimer.webp",
+        page: "editor.html",
+        run: async ({ page, type, t }) => {
+            await type(TRIANGLE);
+            await page.click(
+                `.dge-menubar > div > button:has-text("${await t("menu_file")}")`,
+            );
+            await page.click(
+                `.dge-menu-popup button:has-text("${await t("print")}")`,
+            );
+            await page.waitForTimeout(800);
+        },
+    },
+    {
         file: "proprietes.webp",
         page: "editor.html",
         run: async ({ page, type, point, button }) => {

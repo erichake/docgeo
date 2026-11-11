@@ -1,0 +1,176 @@
+.dge-print {
+    position: fixed;
+    inset: 0;
+    z-index: 1000;
+    display: flex;
+    background: #e5e7eb;
+    color: #1f2937;
+    font:
+        14px/1.5 system-ui,
+        -apple-system,
+        "Segoe UI",
+        sans-serif;
+    outline: none;
+}
+.dge-print-controls {
+    display: flex;
+    flex-direction: column;
+    flex: none;
+    width: 280px;
+    box-sizing: border-box;
+    padding: 20px;
+    background: #fff;
+    box-shadow: 0 0 12px rgb(0 0 0 / 15%);
+    overflow-y: auto;
+}
+.dge-print h2 {
+    margin: 0 0 16px;
+    font-size: 17px;
+}
+.dge-print-settings {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    flex: 1;
+}
+.dge-print-field {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    color: #475569;
+    font-size: 13px;
+}
+.dge-print-field select {
+    height: 34px;
+    padding: 0 8px;
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    background: #fff;
+    color: #1f2937;
+    font: inherit;
+    font-size: 14px;
+}
+.dge-print-check {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+}
+.dge-print-check input {
+    margin: 0;
+    accent-color: #2563eb;
+}
+.dge-print-actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 8px;
+    margin-block-start: 20px;
+}
+.dge-print-actions > span {
+    flex: 1 1 100%;
+    color: #64748b;
+    font-size: 13px;
+}
+.dge-print button:disabled {
+    opacity: 0.5;
+    cursor: default;
+}
+.dge-print-preview {
+    flex: 1;
+    overflow: auto;
+    padding: 24px;
+}
+.dge-print-sheets {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 24px;
+}
+.dge-print-sheet {
+    display: flex;
+    flex-direction: column;
+    flex: none;
+    box-sizing: border-box;
+    overflow: hidden;
+    background: #fff;
+    box-shadow: 0 2px 10px rgb(0 0 0 / 18%);
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+}
+.dge-print-title {
+    height: 10mm;
+    font:
+        600 14pt/1.2 system-ui,
+        -apple-system,
+        "Segoe UI",
+        sans-serif;
+    text-align: center;
+}
+.dge-print-figure {
+    position: relative;
+    flex: 1;
+    min-height: 0;
+    overflow: hidden;
+    cursor: grab;
+    touch-action: none;
+}
+.dge-print-figure:active {
+    cursor: grabbing;
+}
+.dge-print-figure svg {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+}
+.dge-print-measure {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 0;
+    height: 0;
+    overflow: hidden;
+    visibility: hidden;
+}
+@media (max-width: 700px) {
+    .dge-print {
+        flex-direction: column;
+    }
+    .dge-print-controls {
+        width: auto;
+        max-height: 50%;
+    }
+}
+@media print {
+    html,
+    body.dge-printing {
+        width: auto !important;
+        height: auto !important;
+        margin: 0 !important;
+        overflow: visible !important;
+    }
+    body.dge-printing > :not(.dge-print),
+    .dge-print-controls {
+        display: none !important;
+    }
+    .dge-print,
+    .dge-print-preview {
+        position: static;
+        display: block;
+        padding: 0;
+        overflow: visible;
+        background: none;
+    }
+    .dge-print-sheets {
+        display: block;
+        zoom: 1 !important;
+    }
+    .dge-print-sheet {
+        box-shadow: none;
+        break-after: page;
+    }
+    .dge-print-sheet:last-child {
+        break-after: auto;
+    }
+}
