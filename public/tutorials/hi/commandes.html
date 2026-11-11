@@ -26,6 +26,13 @@
                     सदिश।
                 </li>
                 <li>
+                    <code>L</code>: बिन्दुओं की सूची (देखें
+                    <a href="expressions.html#listes">बिन्दुओं की सूचियाँ</a>);
+                    बिन्दु को आर्गुमेंट में भी लिखा जा सकता है:
+                    <code>(2, 3)</code>, <code>बिन्दु(A + [1, 0])</code>,
+                    <code>L(2)</code>।
+                </li>
+                <li>
                     <code>r</code>, <code>a</code>, <code>k</code>,
                     <code>f</code>: संख्या, व्यंजक, स्लाइडर या सूत्र (<code
                         >वृत्त(O, 2*r)</code
@@ -670,7 +677,7 @@
                     </thead>
                     <tbody>
                         <tr>
-                            <td rowspan="1">
+                            <td rowspan="2">
                                 <i data-t="Polygon"></i> <strong>बहुभुज</strong
                                 ><br /><small>Polygon</small>
                             </td>
@@ -678,6 +685,13 @@
                                 <code>बहुभुज(A, B, C, …)</code>
                             </td>
                             <td>तीन या अधिक शीर्षों वाला बहुभुज</td>
+                        </tr>
+                        <tr>
+                            <td class="syntax"><code>बहुभुज(L)</code></td>
+                            <td>
+                                सूची L के बिन्दुओं पर बना बहुभुज, जिसमें उतने ही
+                                शीर्ष हैं जितने सूची में बिन्दु
+                            </td>
                         </tr>
                         <tr>
                             <td rowspan="1">
@@ -1079,6 +1093,35 @@
                                 की सूची: बिंदु, संख्याएँ, रेखाखण्ड, रेखाएँ,
                                 वृत्त या बहुभुज (देखें
                                 <a href="expressions.html#suites">अनुक्रम</a>)
+                            </td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1">
+                                <strong>तत्व</strong><br /><small
+                                    >Element</small
+                                >
+                            </td>
+                            <td class="syntax">
+                                <code>तत्व(L, n)</code>, <code>L(n)</code>
+                            </td>
+                            <td>
+                                सूची L का n-वाँ बिन्दु, 1 से गिनती; आर्गुमेंट
+                                में <code>L(n)</code> को
+                                <code>तत्व(L, n)</code> के रूप में फिर से लिखा
+                                जाता है
+                            </td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1"><strong>सूची</strong></td>
+                            <td class="syntax">
+                                <code>L = {A, (1, 2), …}</code>
+                            </td>
+                            <td>
+                                नाम, निर्देशांक या किसी सूत्र से दिए गए बिन्दुओं
+                                की सूची (देखें
+                                <a href="expressions.html#listes"
+                                    >बिन्दुओं की सूचियाँ</a
+                                >)
                             </td>
                         </tr>
                         <tr>

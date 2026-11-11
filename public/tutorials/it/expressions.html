@@ -153,7 +153,7 @@
                 che verrebbe letto come un punto dello spazio.
             </p>
 
-            <h2>Liste di punti</h2>
+            <h2 id="listes">Liste di punti</h2>
             <p>
                 <code>q = Lista(pts)</code> disegna i punti dell’espressione
                 <code>pts</code>; un punto non definito interrompe il tracciato.
@@ -162,6 +162,21 @@
                 <i data-i="segments_list"></i> nella zona contestuale (e
                 <i data-i="formula_point"></i> per un valore punto): la riga
                 viene scritta e l’espressione nascosta.
+            </p>
+
+            <p>
+                <code>L = {A, (1, 2), Punto(A + [1, 0])}</code>: lista di punti
+                scritta tra parentesi graffe, ciascuno dato dal suo nome, dalle
+                sue coordinate o da una formula. <code>Poligono(L)</code> è il
+                poligono dei suoi punti; <code>Elemento(L, 2)</code>, o
+                <code>L(2)</code> in un argomento, il suo secondo punto:
+                <code>Retta(L(1), L(2))</code>. Una successione si usa allo
+                stesso modo:
+                <code
+                    >Poligono(Successione((cos(k*360°/n), sin(k*360°/n)), k, 1,
+                    n))</code
+                >
+                cambia il numero di vertici con il cursore n.
             </p>
 
             <h2 id="suites">Successioni</h2>
@@ -435,9 +450,9 @@
                     Un blocco selezionato che nomina un oggetto (categoria
                     <strong>Figura</strong>), o un blocco in cui ne è inserito
                     uno, prende il nome dell’oggetto su cui si fa poi clic nella
-                    figura: con il blocco <code>a</code> di <code>imposta n a
-                    a</code> selezionato, un clic sullo slider b dà
-                    <code>imposta n a b</code>. Un clic in una zona vuota
+                    figura: con il blocco <code>a</code> di
+                    <code>imposta n a a</code> selezionato, un clic sullo slider
+                    b dà <code>imposta n a b</code>. Un clic in una zona vuota
                     dell’area di lavoro lascia il blocco: un clic su un oggetto
                     ne mostra allora le proprietà.
                 </li>

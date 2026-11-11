@@ -21,6 +21,13 @@
                     >、<code>B</code>、<code>O</code>、<code>P</code>：点；<code>d</code>：直线、线段或射线；<code>c</code>：圆或曲线；<code>p</code>：多边形或平面；<code>s</code>：线段或立体图形；<code>u</code>：向量。
                 </li>
                 <li>
+                    <code>L</code>：点列表（见<a href="expressions.html#listes"
+                        >点列表</a
+                    >）；点也可以直接写在参数中：<code>(2, 3)</code>、<code
+                        >点(A + [1, 0])</code
+                    >、<code>L(2)</code>。
+                </li>
+                <li>
                     <code>r</code
                     >、<code>a</code>、<code>k</code>、<code>f</code>：数、表达式、滑动条或公式（<code
                         >圆(O, 2*r)</code
@@ -556,7 +563,7 @@
                     </thead>
                     <tbody>
                         <tr>
-                            <td rowspan="1">
+                            <td rowspan="2">
                                 <i data-t="Polygon"></i> <strong>多边形</strong
                                 ><br /><small>Polygon</small>
                             </td>
@@ -564,6 +571,13 @@
                                 <code>多边形(A, B, C, …)</code>
                             </td>
                             <td>三个或更多顶点的多边形</td>
+                        </tr>
+                        <tr>
+                            <td class="syntax"><code>多边形(L)</code></td>
+                            <td>
+                                以列表 L
+                                的点为顶点的多边形，顶点数与列表的点数相同
+                            </td>
                         </tr>
                         <tr>
                             <td rowspan="1">
@@ -920,6 +934,34 @@
                                 的列表：点、数、线段、直线、圆或多边形（见<a
                                     href="expressions.html#suites"
                                     >序列</a
+                                >）
+                            </td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1">
+                                <strong>元素</strong><br /><small
+                                    >Element</small
+                                >
+                            </td>
+                            <td class="syntax">
+                                <code>元素(L, n)</code>、<code>L(n)</code>
+                            </td>
+                            <td>
+                                列表 L 的第 n 个点，从 1
+                                开始；在参数中，<code>L(n)</code>会改写为<code
+                                    >元素(L, n)</code
+                                >
+                            </td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1"><strong>列表</strong></td>
+                            <td class="syntax">
+                                <code>L = {A, (1, 2), …}</code>
+                            </td>
+                            <td>
+                                由名称、坐标或公式给出的点组成的列表（见<a
+                                    href="expressions.html#listes"
+                                    >点列表</a
                                 >）
                             </td>
                         </tr>

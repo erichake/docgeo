@@ -26,6 +26,12 @@
                     <code>u</code>: διάνυσμα.
                 </li>
                 <li>
+                    <code>L</code>: λίστα σημείων (δείτε
+                    <a href="expressions.html#listes">Λίστες σημείων</a>)· ένα
+                    σημείο γράφεται και μέσα στο όρισμα: <code>(2, 3)</code>,
+                    <code>Σημείο(A + [1, 0])</code>, <code>L(2)</code>.
+                </li>
+                <li>
                     <code>r</code>, <code>a</code>, <code>k</code>,
                     <code>f</code>: αριθμός, έκφραση, δρομέας ή τύπος (<code
                         >Κύκλος(O, 2*r)</code
@@ -662,7 +668,7 @@
                     </thead>
                     <tbody>
                         <tr>
-                            <td rowspan="1">
+                            <td rowspan="2">
                                 <i data-t="Polygon"></i>
                                 <strong>Πολύγωνο</strong><br /><small
                                     >Polygon</small
@@ -672,6 +678,13 @@
                                 <code>Πολύγωνο(A, B, C, …)</code>
                             </td>
                             <td>πολύγωνο με τρεις ή περισσότερες κορυφές</td>
+                        </tr>
+                        <tr>
+                            <td class="syntax"><code>Πολύγωνο(L)</code></td>
+                            <td>
+                                πολύγωνο στα σημεία της λίστας L, με τόσες
+                                κορυφές όσα σημεία έχει
+                            </td>
                         </tr>
                         <tr>
                             <td rowspan="1">
@@ -1106,6 +1119,35 @@
                                 ορισμού): σημεία, αριθμοί, τμήματα, ευθείες,
                                 κύκλοι ή πολύγωνα (βλ.
                                 <a href="expressions.html#suites">Ακολουθίες</a
+                                >)
+                            </td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1">
+                                <strong>Στοιχείο</strong><br /><small
+                                    >Element</small
+                                >
+                            </td>
+                            <td class="syntax">
+                                <code>Στοιχείο(L, n)</code>, <code>L(n)</code>
+                            </td>
+                            <td>
+                                το σημείο με αριθμό n της λίστας L, από το 1·
+                                μέσα σε όρισμα, το
+                                <code>L(n)</code> ξαναγράφεται
+                                <code>Στοιχείο(L, n)</code>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1"><strong>λίστα</strong></td>
+                            <td class="syntax">
+                                <code>L = {A, (1, 2), …}</code>
+                            </td>
+                            <td>
+                                λίστα των σημείων που δίνονται με το όνομά τους,
+                                τις συντεταγμένες τους ή έναν τύπο (δείτε
+                                <a href="expressions.html#listes"
+                                    >Λίστες σημείων</a
                                 >)
                             </td>
                         </tr>

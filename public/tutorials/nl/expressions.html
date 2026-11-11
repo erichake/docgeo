@@ -151,7 +151,7 @@
                 gelezen zou worden.
             </p>
 
-            <h2>Lijsten van punten</h2>
+            <h2 id="listes">Lijsten van punten</h2>
             <p>
                 <code>q = Lijst(pts)</code> tekent de punten van de uitdrukking
                 <code>pts</code>; een niet-gedefinieerd punt onderbreekt de
@@ -160,6 +160,20 @@
                 <i data-i="segments_list"></i> aan in de contextzone (en
                 <i data-i="formula_point"></i> bij een punt als waarde): de
                 regel wordt geschreven en de uitdrukking verborgen.
+            </p>
+
+            <p>
+                <code>L = {A, (1, 2), Punt(A + [1, 0])}</code>: een lijst van
+                punten tussen accolades, elk gegeven door zijn naam, zijn
+                coördinaten of een formule. <code>Veelhoek(L)</code> is de
+                veelhoek van de punten; <code>Element(L, 2)</code>, of
+                <code>L(2)</code> in een argument, het tweede punt:
+                <code>Rechte(L(1), L(2))</code>. Een rij werkt net zo:
+                <code
+                    >Veelhoek(Rij((cos(k*360°/n), sin(k*360°/n)), k, 1,
+                    n))</code
+                >
+                verandert zijn aantal hoekpunten met de schuifknop n.
             </p>
 
             <h2 id="suites">Rijen</h2>

@@ -148,7 +148,7 @@
                 space.
             </p>
 
-            <h2>Lists of points</h2>
+            <h2 id="listes">Lists of points</h2>
             <p>
                 <code>q = List(pts)</code> draws the points of the expression
                 <code>pts</code>; an undefined point breaks the drawing. A
@@ -157,6 +157,20 @@
                 <i data-i="segments_list"></i> in the context area (and
                 <i data-i="formula_point"></i> for a point value): the line is
                 written and the expression hidden.
+            </p>
+
+            <p>
+                <code>L = {A, (1, 2), Point(A + [1, 0])}</code>: a list of
+                points written between braces, each given by its name, its
+                coordinates or a formula. <code>Polygon(L)</code> is the polygon
+                of its points; <code>Element(L, 2)</code>, or
+                <code>L(2)</code> in an argument, its second point:
+                <code>Line(L(1), L(2))</code>. A sequence works the same way:
+                <code
+                    >Polygon(Sequence((cos(k*360°/n), sin(k*360°/n)), k, 1,
+                    n))</code
+                >
+                changes its number of vertices with the slider n.
             </p>
 
             <h2 id="suites">Sequences</h2>
@@ -408,14 +422,15 @@
                     it, to be plugged in.
                 </li>
                 <li>
-                    A selected block that names an object
-                    (<strong>Figure</strong> category), or a block holding such
-                    a block, takes the name of the object you then click in the
-                    figure: with the <code>a</code> block of <code>set n to
-                    a</code> selected, a click on slider b gives <code>set n to
-                    b</code>. A click in the empty part of the workspace lets go
-                    of the block: a click on an object then shows its
-                    properties.
+                    A selected block that names an object (<strong
+                        >Figure</strong
+                    >
+                    category), or a block holding such a block, takes the name
+                    of the object you then click in the figure: with the
+                    <code>a</code> block of <code>set n to a</code> selected, a
+                    click on slider b gives <code>set n to b</code>. A click in
+                    the empty part of the workspace lets go of the block: a
+                    click on an object then shows its properties.
                 </li>
             </ul>
             <p id="blocs-agrandis">

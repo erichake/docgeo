@@ -83,6 +83,18 @@ M = Milieu(A, B)</code></pre>
                             </td>
                         </tr>
                         <tr>
+                            <td>Point en argument</td>
+                            <td>
+                                point nommé, coordonnées ou formule :
+                                <code>Droite((0, 7), (1, 7))</code>,
+                                <code>Segment(A, (3; 60°))</code>,
+                                <code>Droite(A, Point(A + [1, 0]))</code>,
+                                <code>Droite(L(1), L(2))</code> ; ces points
+                                font partie de l’objet, sans ligne à eux, et
+                                sont fixes : l’objet ne se glisse pas
+                            </td>
+                        </tr>
+                        <tr>
                             <td>Nom omis</td>
                             <td>
                                 <code>Milieu(A, B)</code> : nom automatique,

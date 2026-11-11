@@ -26,6 +26,13 @@
                     of ruimtefiguur; <code>u</code>: vector.
                 </li>
                 <li>
+                    <code>L</code>: lijst van punten (zie
+                    <a href="expressions.html#listes">Lijsten van punten</a>);
+                    een punt kan ook in het argument worden geschreven:
+                    <code>(2, 3)</code>, <code>Punt(A + [1, 0])</code>,
+                    <code>L(2)</code>.
+                </li>
+                <li>
                     <code>r</code>, <code>a</code>, <code>k</code>,
                     <code>f</code>: getal, uitdrukking, schuifknop of formule
                     (<code>Cirkel(O, 2*r)</code>); <code>n</code>,
@@ -664,7 +671,7 @@
                     </thead>
                     <tbody>
                         <tr>
-                            <td rowspan="1">
+                            <td rowspan="2">
                                 <i data-t="Polygon"></i>
                                 <strong>Veelhoek</strong><br /><small
                                     >Polygon</small
@@ -674,6 +681,13 @@
                                 <code>Veelhoek(A, B, C, …)</code>
                             </td>
                             <td>veelhoek met drie of meer hoekpunten</td>
+                        </tr>
+                        <tr>
+                            <td class="syntax"><code>Veelhoek(L)</code></td>
+                            <td>
+                                veelhoek op de punten van de lijst L, met
+                                evenveel hoekpunten als de lijst punten heeft
+                            </td>
                         </tr>
                         <tr>
                             <td rowspan="1">
@@ -1117,6 +1131,30 @@
                                 (standaard 1): punten, getallen, lijnstukken,
                                 rechten, cirkels of veelhoeken (zie
                                 <a href="expressions.html#suites">Rijen</a>)
+                            </td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1"><strong>Element</strong></td>
+                            <td class="syntax">
+                                <code>Element(L, n)</code>, <code>L(n)</code>
+                            </td>
+                            <td>
+                                punt nummer n van de lijst L, vanaf 1; in een
+                                argument wordt <code>L(n)</code> herschreven als
+                                <code>Element(L, n)</code>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1"><strong>lijst</strong></td>
+                            <td class="syntax">
+                                <code>L = {A, (1, 2), …}</code>
+                            </td>
+                            <td>
+                                lijst van de punten gegeven door hun naam, hun
+                                coördinaten of een formule (zie
+                                <a href="expressions.html#listes"
+                                    >Lijsten van punten</a
+                                >)
                             </td>
                         </tr>
                         <tr>

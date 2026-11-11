@@ -25,6 +25,13 @@
                     <code>u</code>: vector.
                 </li>
                 <li>
+                    <code>L</code>: list of points (see
+                    <a href="expressions.html#listes">Lists of points</a>); a
+                    point can also be written in the argument:
+                    <code>(2, 3)</code>, <code>Point(A + [1, 0])</code>,
+                    <code>L(2)</code>.
+                </li>
+                <li>
                     <code>r</code>, <code>a</code>, <code>k</code>,
                     <code>f</code>: number, expression, slider or formula (<code
                         >Circle(O, 2*r)</code
@@ -606,7 +613,7 @@
                     </thead>
                     <tbody>
                         <tr>
-                            <td rowspan="1">
+                            <td rowspan="2">
                                 <i data-t="Polygon"></i>
                                 <strong>Polygon</strong>
                             </td>
@@ -614,6 +621,13 @@
                                 <code>Polygon(A, B, C, …)</code>
                             </td>
                             <td>polygon with three vertices or more</td>
+                        </tr>
+                        <tr>
+                            <td class="syntax"><code>Polygon(L)</code></td>
+                            <td>
+                                polygon on the points of the list L, with as
+                                many vertices as it has points
+                            </td>
                         </tr>
                         <tr>
                             <td rowspan="1">
@@ -988,6 +1002,30 @@
                                 default): points, numbers, segments, lines,
                                 circles or polygons (see
                                 <a href="expressions.html#suites">Sequences</a>)
+                            </td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1"><strong>Element</strong></td>
+                            <td class="syntax">
+                                <code>Element(L, n)</code>, <code>L(n)</code>
+                            </td>
+                            <td>
+                                point number n of the list L, from 1; in an
+                                argument, <code>L(n)</code> is rewritten
+                                <code>Element(L, n)</code>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1"><strong>list</strong></td>
+                            <td class="syntax">
+                                <code>L = {A, (1, 2), …}</code>
+                            </td>
+                            <td>
+                                list of the points given by their name, their
+                                coordinates or a formula (see
+                                <a href="expressions.html#listes"
+                                    >Lists of points</a
+                                >)
                             </td>
                         </tr>
                         <tr>

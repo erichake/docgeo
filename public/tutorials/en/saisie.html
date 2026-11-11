@@ -83,6 +83,18 @@ M = Midpoint(A, B)</code></pre>
                             </td>
                         </tr>
                         <tr>
+                            <td>Point argument</td>
+                            <td>
+                                named point, coordinates or formula:
+                                <code>Line((0, 7), (1, 7))</code>,
+                                <code>Segment(A, (3; 60°))</code>,
+                                <code>Line(A, Point(A + [1, 0]))</code>,
+                                <code>Line(L(1), L(2))</code>; these points
+                                belong to the object, without a line of their
+                                own, and are fixed: the object can’t be dragged
+                            </td>
+                        </tr>
+                        <tr>
                             <td>Name left out</td>
                             <td>
                                 <code>Midpoint(A, B)</code>: automatic name,

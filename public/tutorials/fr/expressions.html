@@ -148,7 +148,7 @@
                 l’espace.
             </p>
 
-            <h2>Listes de points</h2>
+            <h2 id="listes">Listes de points</h2>
             <p>
                 <code>q = Liste(pts)</code> dessine les points de l’expression
                 <code>pts</code> ; un point non défini coupe le tracé. Une
@@ -157,6 +157,20 @@
                 <i data-i="segments_list"></i> dans la zone contextuelle (et
                 <i data-i="formula_point"></i> pour une valeur point) : la ligne
                 est écrite et l’expression cachée.
+            </p>
+
+            <p>
+                <code>L = {A, (1, 2), Point(A + [1, 0])}</code> : liste de
+                points écrite entre accolades, chacun donné par son nom, ses
+                coordonnées ou une formule. <code>Polygone(L)</code> est le
+                polygone de ses points ; <code>Élément(L, 2)</code>, ou
+                <code>L(2)</code> dans un argument, son deuxième point :
+                <code>Droite(L(1), L(2))</code>. Une suite s’utilise de même :
+                <code
+                    >Polygone(Séquence((cos(k*360°/n), sin(k*360°/n)), k, 1,
+                    n))</code
+                >
+                change de nombre de sommets avec le curseur n.
             </p>
 
             <h2 id="suites">Suites</h2>

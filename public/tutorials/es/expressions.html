@@ -150,7 +150,7 @@
                 espacio.
             </p>
 
-            <h2>Listas de puntos</h2>
+            <h2 id="listes">Listas de puntos</h2>
             <p>
                 <code>q = Lista(pts)</code> dibuja los puntos de la expresión
                 <code>pts</code>; un punto no definido corta el trazado. Una
@@ -159,6 +159,20 @@
                 <i data-i="segments_list"></i> en la zona contextual (y
                 <i data-i="formula_point"></i> para un valor punto): la línea se
                 escribe y la expresión se oculta.
+            </p>
+
+            <p>
+                <code>L = {A, (1, 2), Punto(A + [1, 0])}</code>: lista de puntos
+                escrita entre llaves, cada uno dado por su nombre, sus
+                coordenadas o una fórmula. <code>Polígono(L)</code> es el
+                polígono de sus puntos; <code>Elemento(L, 2)</code>, o
+                <code>L(2)</code> en un argumento, su segundo punto:
+                <code>Recta(L(1), L(2))</code>. Una secuencia se usa igual:
+                <code
+                    >Polígono(Secuencia((cos(k*360°/n), sin(k*360°/n)), k, 1,
+                    n))</code
+                >
+                cambia su número de vértices con el deslizador n.
             </p>
 
             <h2 id="suites">Secuencias</h2>

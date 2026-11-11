@@ -156,7 +156,7 @@
                 <code>L = [1, 2, 3]</code>, was als Punkt im Raum gelesen würde.
             </p>
 
-            <h2>Listen von Punkten</h2>
+            <h2 id="listes">Listen von Punkten</h2>
             <p>
                 <code>q = Liste(pts)</code> zeichnet die Punkte des Ausdrucks
                 <code>pts</code>; ein undefinierter Punkt unterbricht die Linie.
@@ -166,6 +166,21 @@
                 <i data-i="segments_list"></i> an (und
                 <i data-i="formula_point"></i> bei einem Punkt als Wert): Die
                 Zeile wird geschrieben und der Ausdruck ausgeblendet.
+            </p>
+
+            <p>
+                <code>L = {A, (1, 2), Punkt(A + [1, 0])}</code>: eine Liste von
+                Punkten in geschweiften Klammern, jeder durch seinen Namen,
+                seine Koordinaten oder eine Formel gegeben.
+                <code>Vieleck(L)</code> ist das Vieleck ihrer Punkte;
+                <code>Element(L, 2)</code>, oder <code>L(2)</code> in einem
+                Argument, ihr zweiter Punkt: <code>Gerade(L(1), L(2))</code>.
+                Eine Folge funktioniert genauso:
+                <code
+                    >Vieleck(Folge((cos(k*360°/n), sin(k*360°/n)), k, 1,
+                    n))</code
+                >
+                ändert die Anzahl seiner Ecken mit dem Schieberegler n.
             </p>
 
             <h2 id="suites">Folgen</h2>
@@ -445,12 +460,12 @@
                     Ein ausgewählter Block, der ein Objekt benennt (Kategorie
                     <strong>Figur</strong>), oder ein Block, in dem ein solcher
                     Block steckt, übernimmt den Namen des Objekts, das man
-                    danach in der Figur anklickt: Ist der Block <code>a</code>
-                    von <code>setze n auf a</code> ausgewählt, ergibt ein Klick
-                    auf den Schieberegler b <code>setze n auf b</code>. Ein
-                    Klick auf eine leere Stelle der Arbeitsfläche gibt den Block
-                    frei: Ein Klick auf ein Objekt zeigt dann seine
-                    Eigenschaften.
+                    danach in der Figur anklickt: Ist der Block
+                    <code>a</code> von <code>setze n auf a</code> ausgewählt,
+                    ergibt ein Klick auf den Schieberegler b
+                    <code>setze n auf b</code>. Ein Klick auf eine leere Stelle
+                    der Arbeitsfläche gibt den Block frei: Ein Klick auf ein
+                    Objekt zeigt dann seine Eigenschaften.
                 </li>
             </ul>
             <p id="blocs-agrandis">

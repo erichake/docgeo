@@ -148,7 +148,7 @@
                 espaço.
             </p>
 
-            <h2>Listas de pontos</h2>
+            <h2 id="listes">Listas de pontos</h2>
             <p>
                 <code>q = Lista(pts)</code> desenha os pontos da expressão
                 <code>pts</code>; um ponto não definido interrompe o traçado.
@@ -157,6 +157,21 @@
                 <i data-i="segments_list"></i> na zona contextual (e
                 <i data-i="formula_point"></i> para um valor ponto): a linha é
                 escrita e a expressão ocultada.
+            </p>
+
+            <p>
+                <code>L = {A, (1, 2), Ponto(A + [1, 0])}</code>: lista de pontos
+                escrita entre chaves, cada um dado pelo nome, pelas coordenadas
+                ou por uma fórmula. <code>Polígono(L)</code> é o polígono dos
+                seus pontos; <code>Elemento(L, 2)</code>, ou
+                <code>L(2)</code> num argumento, o seu segundo ponto:
+                <code>Reta(L(1), L(2))</code>. Uma sequência usa-se da mesma
+                forma:
+                <code
+                    >Polígono(Sequência((cos(k*360°/n), sin(k*360°/n)), k, 1,
+                    n))</code
+                >
+                muda o número de vértices com o controle deslizante n.
             </p>
 
             <h2 id="suites">Sequências</h2>
@@ -415,11 +430,11 @@
                     Um bloco selecionado que nomeia um objeto (categoria
                     <strong>Figura</strong>), ou um bloco em que um desses está
                     encaixado, toma o nome do objeto em que se clica depois na
-                    figura: com o bloco <code>a</code> de <code>definir n para
-                    a</code> selecionado, um clique no controle deslizante b dá
-                    <code>definir n para b</code>. Um clique numa zona vazia da
-                    área de trabalho larga o bloco: um clique num objeto mostra
-                    então as suas propriedades.
+                    figura: com o bloco <code>a</code> de
+                    <code>definir n para a</code> selecionado, um clique no
+                    controle deslizante b dá <code>definir n para b</code>. Um
+                    clique numa zona vazia da área de trabalho larga o bloco: um
+                    clique num objeto mostra então as suas propriedades.
                 </li>
             </ul>
             <p id="blocs-agrandis">

@@ -26,6 +26,12 @@
                     <code>u</code>: متجه.
                 </li>
                 <li>
+                    <code>L</code>: قائمة نقاط (انظر
+                    <a href="expressions.html#listes">قوائم النقاط</a>)؛ تُكتب
+                    النقطة أيضًا داخل الوسيط: <code>(2, 3)</code>،
+                    <code>نقطة(A + [1, 0])</code>، <code>L(2)</code>.
+                </li>
+                <li>
                     <code>r</code>، <code>a</code>، <code>k</code>،
                     <code>f</code>: عدد أو تعبير أو منزلقة أو صيغة (<code
                         >دائرة(O, 2*r)</code
@@ -620,7 +626,7 @@
                     </thead>
                     <tbody>
                         <tr>
-                            <td rowspan="1">
+                            <td rowspan="2">
                                 <i data-t="Polygon"></i> <strong>مضلع</strong
                                 ><br /><small>Polygon</small>
                             </td>
@@ -628,6 +634,13 @@
                                 <code>مضلع(A, B, C, …)</code>
                             </td>
                             <td>مضلع له ثلاثة رؤوس أو أكثر</td>
+                        </tr>
+                        <tr>
+                            <td class="syntax"><code>مضلع(L)</code></td>
+                            <td>
+                                مضلع رؤوسه نقاط القائمة L، بعدد رؤوس يساوي عدد
+                                نقاطها
+                            </td>
                         </tr>
                         <tr>
                             <td rowspan="1">
@@ -1014,6 +1027,34 @@
                                 افتراضيًا): نقاط أو أعداد أو قطع أو مستقيمات أو
                                 دوائر أو مضلعات (انظر
                                 <a href="expressions.html#suites">المتتاليات</a
+                                >)
+                            </td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1">
+                                <strong>عنصر</strong><br /><small
+                                    >Element</small
+                                >
+                            </td>
+                            <td class="syntax">
+                                <code>عنصر(L, n)</code>، <code>L(n)</code>
+                            </td>
+                            <td>
+                                النقطة رقم n من القائمة L، بدءًا من 1؛ داخل
+                                وسيط، تُعاد كتابة <code>L(n)</code> على الشكل
+                                <code>عنصر(L, n)</code>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td rowspan="1"><strong>قائمة</strong></td>
+                            <td class="syntax">
+                                <code>L = {A, (1, 2), …}</code>
+                            </td>
+                            <td>
+                                قائمة النقاط المعطاة باسمها أو بإحداثياتها أو
+                                بصيغة (انظر
+                                <a href="expressions.html#listes"
+                                    >قوائم النقاط</a
                                 >)
                             </td>
                         </tr>
