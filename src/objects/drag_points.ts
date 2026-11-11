@@ -6,7 +6,8 @@ const FAMILIES = new Set(["line", "circle", "polygon", "quadric"]);
 
 // The free points an object is built from, directly or through lines,
 // circles, polygons and conics built likewise, constants aside; false when
-// it also depends on another point or object.
+// it also depends on another point or object, or on a point of its
+// definition, fixed.
 function freePoints(
     object: construction_object,
     points: Set<point_object>,
@@ -14,25 +15,28 @@ function freePoints(
 ): boolean {
     // A polygon's own vertices, which it computes.
     const own = (object as { ownVertices?: construction_object[] }).ownVertices;
-    return object.parents.every((parent) => {
-        if (seen.has(parent) || own?.includes(parent)) return true;
-        seen.add(parent);
-        if (parent.type === "point") {
-            const point = parent as point_object;
-            points.add(point);
+    return (
+        !object.embeddedPoints &&
+        object.parents.every((parent) => {
+            if (seen.has(parent) || own?.includes(parent)) return true;
+            seen.add(parent);
+            if (parent.type === "point") {
+                const point = parent as point_object;
+                points.add(point);
+                return (
+                    !point.parents.length &&
+                    point.moveable &&
+                    !point.locked &&
+                    !point.pinned
+                );
+            }
             return (
-                !point.parents.length &&
-                point.moveable &&
-                !point.locked &&
-                !point.pinned
+                !parent.parents.length ||
+                (FAMILIES.has(parent.familytype) &&
+                    freePoints(parent, points, seen))
             );
-        }
-        return (
-            !parent.parents.length ||
-            (FAMILIES.has(parent.familytype) &&
-                freePoints(parent, points, seen))
-        );
-    });
+        })
+    );
 }
 
 // As in DGPad, an object built from free points alone is dragged by

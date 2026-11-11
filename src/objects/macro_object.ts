@@ -245,6 +245,7 @@ export class macro_object extends construction_object {
             object.virtualParts?.forEach((part) => part.computeGeometry()),
         );
         this.computed.forEach((object) => {
+            object.embeddedPoints?.forEach((point) => point.computeGeometry());
             object.computeGeometry();
             object.virtualParts?.forEach((part) => part.computeGeometry());
         });
@@ -252,6 +253,7 @@ export class macro_object extends construction_object {
 
     project(): void {
         this.computed.forEach((object) => {
+            object.embeddedPoints?.forEach((point) => point.project());
             object.project();
             object.virtualParts?.forEach((part) => part.project());
         });

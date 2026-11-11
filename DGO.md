@@ -314,6 +314,13 @@ aux mêmes règles. Elle est un polygone sur les sommets de cette face. Une
 référence n'a pas elle-même de parties : ni `["side", ["face", …], k]`, ni
 `["vertex", ["face", …], k]`.
 
+Depuis le 2026-11-11, une référence à un point peut aussi être
+`["Fp", formule]` : un point écrit dans la définition de l'objet, comme
+`(0, 7)` dans `Droite((0, 7), (1, 7))`, défini par sa formule comme un `Fp`
+(sans les nombres que déplace un glisser). Il ne crée aucune entrée dans
+`o` ; l'objet qui le prend dépend directement des objets que lit sa formule.
+Il est fixe : un objet qui en prend un ne se glisse pas.
+
 `Mid` et `Med` acceptent aussi `[segment]`, notamment une référence de côté :
 le calcul suit les deux extrémités actuelles de ce segment, y compris lorsque
 le nombre de côtés du polygone change. Les anciennes formes `[A, B]` gardent
@@ -428,6 +435,7 @@ la figure, autour de la verticale de O dans l'espace, sa hauteur gardée),
 | `Net`   | patron d'un polyèdre, déplié de f                                           | `[polyèdre, f]` (5, 21)                         |
 | `CyS`   | section d'un cylindre ou d'un cône                                          | `[solide, plan]` (4)                            |
 | `Poly`  | polygone                                                                    | `[A, B, C, …]`                                  |
+| `PolyL` | polygone sur les points d'une liste, autant qu'elle en a                    | `[liste]` (29)                                  |
 | `RegP`  | polygone régulier de n côtés sur [AB]                                       | `[A, B, n]`, `[A, B, n, plan]` (18)             |
 | `Loc`   | lieu de P quand M parcourt son support ; si P est une droite, son enveloppe | `[P, M]`                                        |
 | `Ex`    | expression                                                                  | objet (6)                                       |
@@ -435,6 +443,7 @@ la figure, autour de la verticale de O dans l'espace, sa hauteur gardée),
 | `Lst`   | liste de formules en k                                                      | `[nature, nombre, formule, formule?]` (7)       |
 | `Seq`   | suite (`Sequence` de GeoGebra)                                              | `[nature, [boucle, …], formule, …]` (22)        |
 | `ELst`  | points d'une expression                                                     | `[expression]` (12)                             |
+| `Pts`   | liste de points `{A, (1, 2), …}` de GeoGebra                                | `[formule, …]` (29)                             |
 | `Itr`   | itération de segments                                                       | `[[P1, Q1, …], niveaux, [[ax,ay,bx,by], …]]`    |
 | `Txt`   | texte attaché à un point                                                    | `[point, [dx, dy], texte]` (8)                  |
 | `Img`   | image                                                                       | `[clé, largeur, hauteur, A, B?, C?]` (9)        |
@@ -727,6 +736,15 @@ alignement]]` police, `[30, url, l, h, zoom, opacité, u]` image (largeur
     (`Seg`, `Vec`, `Ray`, `Line`, `Poly`, `Cir`, `Arc`, `Quad`, `Loc`,
     `Pl`, `Sph`, `Cube`). Un point se pose sur une image comme sur tout
     objet (`On`) ; une image ne se glisse pas.
+29. Ajoutés le 2026-11-11, comme les listes de GeoGebra. `Pts` : un point
+    par formule, dans l'ordre (coordonnées, point nommé ou formule de
+    point), lu par son nom comme une liste `Seq` de nature `point` ; sans
+    `k` ni `count`. `PolyL` : un polygone sur les points d'une liste de
+    nature `point` (`Pts`, `Seq`, `Lst`), autant de sommets qu'elle a de
+    points, ses points indéfinis écartés ; il est indéfini en dessous de
+    trois. Le point de rang n d'une liste L (`Élément(L, n)` de l'éditeur)
+    est un `Fp`, ou un point intégré `["Fp", formule]`, de formule
+    `L[(n)-1]`.
 
 ### Macro-constructions
 

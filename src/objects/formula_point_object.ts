@@ -156,3 +156,20 @@ export function createFormulaPoint(
 ): formula_point_object {
     return c.add(new formula_point_object(c, name, formula, refs, vec3));
 }
+
+// A point written in an object's definition (see construction_object.ts):
+// its readers don't know it, the object reading them in its place.
+export function embeddedPoint(
+    c: construction,
+    formula: Program,
+    refs: Map<string, construction_object>,
+    vec3: boolean,
+): formula_point_object {
+    const point = new formula_point_object(c, null, formula, refs, vec3);
+    point.parents.forEach((parent) => {
+        parent.children = parent.children.filter((child) => child !== point);
+    });
+    point.embedded = true;
+    point.computeGeometry();
+    return point;
+}

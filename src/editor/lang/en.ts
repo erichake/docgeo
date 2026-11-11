@@ -399,6 +399,7 @@ export default {
     designate_surface: "Designate a sphere, a cylinder or a cone",
     designate_solid: "Designate a solid",
     designate_readable: "Designate an object",
+    designate_points: "Designate a list of points",
     unsupported: "Not imported: %",
     family_macros: "Macros",
     new_macro: "New macro",

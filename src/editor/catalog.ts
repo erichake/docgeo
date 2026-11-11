@@ -88,6 +88,8 @@ export type Param =
     | "surface"
     // What a formula reads.
     | "readable"
+    // A list of points.
+    | "points"
     // Any object: what a checkbox shows.
     | "any"
     // Written between quotes.
@@ -120,7 +122,9 @@ export const argObjects = (args: Arg[]): construction_object[] =>
             ? []
             : arg instanceof FormulaArg || arg instanceof TextArg
               ? [...arg.refs.values()]
-              : [arg.reference?.owner ?? arg],
+              : arg.embedded
+                ? arg.parents
+                : [arg.reference?.owner ?? arg],
     );
 
 export interface Overload {
@@ -177,6 +181,7 @@ export function accepts(arg: Arg, param: Param): boolean {
     if (typeof arg === "number") return param === "number" || param === "real";
     if (arg instanceof FormulaArg) return param === "real";
     if (arg instanceof TextArg) return param === "text";
+    if (arg.embedded) return param === "point";
     const kind = kindOf(arg);
     switch (param) {
         case "number":
@@ -265,6 +270,8 @@ export function accepts(arg: Arg, param: Param): boolean {
             );
         case "readable":
             return readable(arg);
+        case "points":
+            return arg instanceof list_object && arg.nature === "point";
         default:
             return kind === param;
     }
@@ -300,7 +307,8 @@ const isIndex = (value: unknown): value is DgoRef =>
         Number.isInteger(value[1]) &&
         value[1] >= 0 &&
         Number.isSafeInteger(value[2]) &&
-        value[2] >= 1);
+        value[2] >= 1) ||
+    (Array.isArray(value) && value.length === 2 && value[0] === "Fp");
 
 // Objects only, the entry listing them in this order of the arguments.
 function objects(tag: string, params: Param[], order?: number[]): Overload {
@@ -886,6 +894,7 @@ export const COMMANDS: Command[] = [
                         ? parameters.map(at)
                         : null,
             },
+            objects("PolyL", ["points"]),
         ],
     },
     {
@@ -1031,6 +1040,32 @@ export const COMMANDS: Command[] = [
             tag: "Seq",
             encode: () => null,
         })),
+    },
+    // The point of rank n of a list, from 1, as GeoGebra's L(n): a formula
+    // reading the list, the rank of a point list's formula once the line
+    // is read.
+    {
+        name: "Element",
+        overloads: [
+            {
+                params: ["points", "real"],
+                tag: "Fp",
+                encode: ([list, rank], index) => {
+                    const { name } = list as construction_object;
+                    const value = realParameter(rank, index);
+                    const [source, refs] =
+                        typeof value === "object"
+                            ? (value as [string, Record<string, DgoRef>])
+                            : [String(value), {}];
+                    return [
+                        [
+                            `${formatName(name)}[(${source})-1]`,
+                            { ...refs, [name]: index(list as never) },
+                        ],
+                    ];
+                },
+            },
+        ],
     },
     // Of a point, shifted by an offset in pixels; a panel of HTML, framed;
     // an image of the figure, by its corners or at a place of the window.

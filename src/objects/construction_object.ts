@@ -7,7 +7,7 @@ import type { expression_object } from "./expression_object";
 
 // What an object's .dgo description needs from the file being written.
 export type PartKind = "side" | "vertex" | "face";
-export type DgoRef = number | [PartKind, number, number];
+export type DgoRef = number | [PartKind, number, number] | ["Fp", unknown];
 
 export const objectIndex = (
     object: construction_object,
@@ -19,7 +19,16 @@ export const objectIndex = (
               index(object.reference.owner),
               object.reference.rank,
           ]
-        : index(object);
+        : object.embedded
+          ? [
+                "Fp",
+                (
+                    object.dgo({
+                        index: (other) => objectIndex(other, index),
+                    } as DgoContext)[1] as unknown[]
+                )[0],
+            ]
+          : index(object);
 
 export interface DgoContext {
     // Another object's position in the file.
@@ -109,6 +118,12 @@ export class construction_object {
         rank: number;
     };
     virtualParts?: Map<string, construction_object>;
+    // A point written in the definition of the object it is given to, as
+    // (0, 7) in Line((0, 7), (1, 7)): out of the construction, that object
+    // computes it first, among its embeddedPoints, and depends on what it
+    // reads.
+    embedded?: boolean;
+    embeddedPoints?: construction_object[];
     // A final of a macro's application (see macro_object.ts): the
     // application, its rank, and its .dgo type in the macro's body.
     output?: { node: construction_object; rank: number; tag: string };
@@ -221,6 +236,10 @@ export class construction_object {
 
     addParents(...parents: construction_object[]): void {
         parents.forEach((parent) => {
+            if (parent.embedded) {
+                (this.embeddedPoints ??= []).push(parent);
+                return this.addParents(...parent.parents);
+            }
             parent = parent.reference?.owner ?? parent;
             if (this.parents.includes(parent)) return;
             this.parents.push(parent);
@@ -229,6 +248,10 @@ export class construction_object {
     }
 
     refresh(): void {
+        this.embeddedPoints?.forEach((point) => {
+            point.computeGeometry();
+            point.project();
+        });
         this.computeGeometry();
         this.virtualParts?.forEach((part) => part.computeGeometry());
         this.project();

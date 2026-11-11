@@ -6,6 +6,7 @@ import {
     programReferences,
     programTargets,
     type FormulaNode,
+    type Program,
     withObjects,
     type ScriptValue,
 } from "./import/dgp_formula";
@@ -60,7 +61,12 @@ import {
     type FixedAngleFormula,
 } from "./objects/fixed_angle_object";
 import { createFixedPoint } from "./objects/fixed_point_object";
-import { createFormulaPoint } from "./objects/formula_point_object";
+import { createListPolygon } from "./objects/list_polygon_object";
+import { createPointList } from "./objects/point_list_object";
+import {
+    createFormulaPoint,
+    embeddedPoint,
+} from "./objects/formula_point_object";
 import { grid_object } from "./objects/grid_object";
 import { createImage, image_object } from "./objects/image_object";
 import { createOrderedIntersection } from "./objects/intersection_object";
@@ -277,6 +283,7 @@ export const LOOKS: Record<string, Look> = {
     Pyr: SOLID,
     Net: SOLID,
     Poly: POLYGON,
+    PolyL: POLYGON,
     RegP: POLYGON,
     PlS: POLYGON,
     Pl: POLYGON,
@@ -288,6 +295,7 @@ export const LOOKS: Record<string, Look> = {
     Cur: CURVE,
     Lst: LIST,
     Seq: LIST,
+    Pts: LIST,
     ELst: LIST,
     Itr: LIST,
     Ex: ["rgb(0,0,178)", "rgb(0,0,178)", 7, 0],
@@ -1180,7 +1188,22 @@ export function readEntries(
     const { c } = scope;
     const vec3 = !c.GRID.is2D;
     const styled: [construction_object, Settings][] = [];
-    const at = objectAt(objects);
+    const indexed = objectAt(objects);
+    // A point given by its formula, out of the figure.
+    const at = <C extends Classes>(
+        value: Json,
+        ...classes: C
+    ): Instance<C[number]> => {
+        if (!Array.isArray(value) || value[0] !== "Fp")
+            return indexed(value, ...classes);
+        const point = embeddedPoint(
+            c,
+            ...pointFormula(list(value, 2)[1]),
+            vec3,
+        );
+        check(classes.some((type) => point instanceof type));
+        return point as Instance<C[number]>;
+    };
     const points = (values: Json, count: number): point_object[] =>
         list(values, count).map((value) => at(value, point_object));
     // A formula's text, and the objects of the given classes its names
@@ -1203,6 +1226,15 @@ export function readEntries(
         };
     };
 
+    const pointFormula = (
+        value: Json,
+    ): [Program, Map<string, construction_object>] => {
+        const { source, refs } = formula(value, construction_object);
+        const program = parseProgram(source);
+        checkNames(programReferences(program), refs);
+        return [program, refs];
+    };
+
     const names = [
         ...objects.map((object) => object.name),
         ...entries.flatMap((entry) =>
@@ -1222,6 +1254,7 @@ export function readEntries(
                 at,
                 points,
                 formula,
+                pointFormula,
                 vec3,
             });
             const settings = style(styleValue);
@@ -1241,6 +1274,7 @@ interface Reader extends Scope {
         value: Json,
         ...classes: C
     ): { source: string; refs: Map<string, Instance<C[number]>> };
+    pointFormula(value: Json): [Program, Map<string, construction_object>];
     vec3: boolean;
 }
 
@@ -1774,12 +1808,9 @@ const BUILDERS: Record<string, Builder> = {
         createPoint(c, name, coordinates(parameters)),
     Fix: (parameters, { c, name }) =>
         createFixedPoint(c, name, coordinates(parameters)),
-    Fp: (parameters, { c, name, at, formula, vec3 }) => {
+    Fp: (parameters, { c, name, at, pointFormula, vec3 }) => {
         const [value, ...handles] = list(parameters, 1, 3);
-        const { source, refs } = formula(value, construction_object);
-        const program = parseProgram(source);
-        checkNames(programReferences(program), refs);
-        const point = createFormulaPoint(c, name, program, refs, vec3);
+        const point = createFormulaPoint(c, name, ...pointFormula(value), vec3);
         if (handles.length) {
             check(handles.length === 2);
             point.setHandles(
@@ -2251,6 +2282,11 @@ const BUILDERS: Record<string, Builder> = {
         check(Array.isArray(parameters));
         return createPolygon(c, name, points(parameters, parameters.length));
     },
+    PolyL: (parameters, { c, name, at }) => {
+        const points = at(list(parameters, 1)[0], list_object);
+        check(points.nature === "point");
+        return createListPolygon(c, name, points);
+    },
     Loc: (parameters, { c, name, at }) => {
         const [target, driver] = list(parameters, 2);
         return createLocus(
@@ -2402,6 +2438,17 @@ const BUILDERS: Record<string, Builder> = {
             nature as ListNature,
             parsed,
             formulas.map(read),
+            refs,
+            reader.vec3,
+        );
+    },
+    Pts: (parameters, reader) => {
+        check(Array.isArray(parameters) && parameters.length > 0);
+        const refs = new Map<string, construction_object>();
+        return createPointList(
+            reader.c,
+            reader.name,
+            parameters.map((value) => listFormula(reader, value, refs, [])),
             refs,
             reader.vec3,
         );

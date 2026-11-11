@@ -135,6 +135,9 @@ export class objects_collector {
             marked.forEach((object) => {
                 updated.add(object);
                 if (object.geometryDirty) {
+                    object.embeddedPoints?.forEach((point) =>
+                        point.computeGeometry(),
+                    );
                     object.computeGeometry();
                     object.virtualParts?.forEach((part) =>
                         part.computeGeometry(),
@@ -160,6 +163,8 @@ export class objects_collector {
         // are drawn, and their scripts may set other objects' visibility
         // or opacity.
         objects.forEach((object) => {
+            if (object.projectionDirty)
+                object.embeddedPoints?.forEach((point) => point.project());
             if (
                 object.projectionDirty &&
                 (object instanceof point_object ||

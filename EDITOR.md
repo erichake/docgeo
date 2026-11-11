@@ -2845,6 +2845,60 @@ Vérifié dans `editor.html` : perpendiculaire à une face, point sur une face,
 intersection, surlignage, clic sans outil. `tests/browser/polyhedron_faces.test.ts`.
 Moteur +417 octets (+76 en gzip) ; éditeur +1,6 Ko (+0,5 Ko en gzip).
 
+### Points écrits dans une définition — 2026-11-11
+
+Comme dans GeoGebra, tout argument qui attend un point accepte des
+coordonnées ou la formule d'un point : `Droite((0, 7), (1, 7))`,
+`Conique((1, 2), (3, 4), (3, 1), (5, 1), (-2, 2))`, `Segment(A, (3; 90°))`,
+`Droite((0, k), (1, k))`, `Polygone(A, (4, 1), Point(A + [0, 3]))`. Décidé
+avec l'auteur : ces points sont intégrés à l'objet, qui reste seul sur sa
+ligne (« une ligne, un objet », comme le vecteur libre), et ils sont fixes,
+pas libres, même de coordonnées numériques : l'objet ne se glisse pas
+(`drag_points.ts`), il suit seulement ce que lisent leurs formules.
+
+Le moteur en fait des points définis par une formule (`embeddedPoint`),
+hors de la construction, sans nom ni vue : `addParents` les range dans
+`embeddedPoints` de l'objet, qui les calcule et les projette juste avant
+lui (`refresh`, collecteur, application de macro), et donne à l'objet les
+parents de leurs formules. Un seul endroit pour toutes les commandes, sans
+toucher aux classes d'objets. Le `.dgo` les écrit dans l'argument,
+`["Fp", formule]` (voir `DGO.md`). Dans l'éditeur, `resolveArgument` les
+fabrique pour une ligne lue comme un point ou une formule de point,
+`accepts` ne les prend que là où un paramètre attend un point (ni
+transformation, ni lieu, ni ce que montre une case à cocher), ni comme
+initial d'une macro, et `formatArg` les relit comme écrits.
+
+Une liste de points (`{(1, 2), (3, 4)}`, `Polygone(L)`, `L(2)`) viendra dans
+un second temps. `tests/browser/embedded_points.test.ts`, vérifié aussi en
+tapant les lignes dans `editor.html`. Moteur +0,77 Ko (+0,21 Ko en gzip) ;
+éditeur +0,52 Ko (+0,14 Ko en gzip).
+
+### Listes de points — 2026-11-11
+
+Comme dans GeoGebra :
+
+- `L = {(1, 2), A, Point(A + [1, 0])}` : une liste de points (`Pts`, un
+  point par formule, `point_list_object.ts`), lue dans les formules comme
+  une suite (`L[0]`, `L.length`). Elle se relit avec ses formules, `A + [1,
+0]` pour le dernier.
+- `Polygone(L)` (`PolyL`, `list_polygon_object.ts`) : un polygone sur les
+  points d'une liste, `{…}` ou `Séquence`, autant de sommets qu'elle en a.
+  Il suit `n` dans `Polygone(Séquence((k, k / 2), k, -4, n))` : ses sommets
+  sont les siens (`ownVertices`), créés ou retirés à chaque calcul, comme
+  ceux d'une section.
+- `L(2)` et `Élément(L, 2)` (`Element`, rang à partir de 1, une formule
+  possible) : le point de ce rang, partout où un point est attendu, comme
+  point intégré de formule `L[(2)-1]`, ou seul sur sa ligne (`P =
+Élément(L, 2)`, un `Fp`). Les deux se relisent `Élément(L, 2)`, comme
+  GeoGebra réécrit `L(2)`. `P = L(2)`, seul sur sa ligne, n'est pas lu.
+
+Le paramètre `points` (message `designate_points`) prend une liste de
+nature `point`. Pas de `Polyligne(L)` : DocGeo n'a pas encore de ligne
+brisée. `tests/browser/point_lists.test.ts`, vérifié aussi en tapant les
+lignes en français dans `editor.html`. Moteur +1,08 Ko (+0,32 Ko en gzip) ;
+éditeur +1,47 Ko (+0,48 Ko en gzip), noms et messages des 12 langues
+compris.
+
 ### Intégration de l'éditeur dans DocShare — 2026-10-24
 
 `editor.html?embed` expose `load` et `save` par le protocole `docgeo: 1`

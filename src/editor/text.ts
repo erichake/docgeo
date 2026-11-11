@@ -23,7 +23,9 @@ export type Definition =
     // `f(x) = …`.
     | { kind: "curve"; source: string }
     | { kind: "pointFormula"; source: string }
-    | { kind: "equation"; sides: [string, string] };
+    | { kind: "equation"; sides: [string, string] }
+    // `{A, (1, 2)}`, GeoGebra's list of points.
+    | { kind: "list"; items: string[] };
 
 export interface Line {
     name: string | null;
@@ -142,6 +144,15 @@ export function parseLine(
         return { name, definition: null };
     }
     if (curve) return { name, definition: { kind: "curve", source } };
+    const braces = peek()?.type === "{" ? whole(position) : null;
+    if (braces && !braces.semicolons.length) {
+        const bounds = [position, ...braces.commas, braces.end];
+        const items = bounds
+            .slice(1)
+            .map((end, index) => between(bounds[index], end));
+        if (items.includes("")) throw new TextError("syntax", source);
+        return { name, definition: { kind: "list", items } };
+    }
     // One "=" outside brackets, and no statement.
     let depth = 0;
     const equals = tokens.flatMap(({ type }, index) => {

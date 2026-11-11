@@ -54,7 +54,10 @@ import {
 import { event_object, type Trigger } from "../objects/event_object";
 import { expression_list_object } from "../objects/expression_list_object";
 import { fixed_angle_object } from "../objects/fixed_angle_object";
-import type { formula_point_object } from "../objects/formula_point_object";
+import {
+    embeddedPoint,
+    type formula_point_object,
+} from "../objects/formula_point_object";
 import { point_on_object } from "../objects/point_on_object";
 import { point_object } from "../objects/point_object";
 import {
@@ -95,7 +98,6 @@ import {
     coordinatesText,
     formatNumber,
     parseLine,
-    pointFormulaText,
     quoteText,
     renameFormula,
     splitProducts,
@@ -258,7 +260,43 @@ export const formatArg = (arg: Arg): string =>
             ? quoteText(renamedText(arg))
             : arg.reference
               ? `${commandName(findCommand(PART_COMMANDS[arg.reference.kind])!)}(${formatName(arg.reference.owner.name)}, ${arg.reference.rank})`
-              : formatName(arg.name);
+              : arg.embedded
+                ? pointText(arg as formula_point_object, true)
+                : formatName(arg.name);
+
+// What Element writes: L[(n)-1].
+const ELEMENT = /^(.+)\[\((.*)\)-1\]$/;
+
+// Whether each of its brackets closes after it opens.
+function balanced(text: string): boolean {
+    let depth = 0;
+    for (const char of text) {
+        if ("([{".includes(char)) depth++;
+        else if (")]}".includes(char) && --depth < 0) return false;
+    }
+    return !depth;
+}
+
+// Its coordinates, or Point(formula); numbers only if `numeric`, which a
+// line would read as a free point.
+function pointText(
+    { formula, refs }: formula_point_object,
+    numeric = false,
+): string {
+    const source = oneLine(
+        renamed(formulaSource(formula), refs, ownNames(formula)),
+    );
+    const [, list, rank] = ELEMENT.exec(source) ?? [];
+    if (
+        rank !== undefined &&
+        balanced(rank) &&
+        [...refs.values()].some(
+            (ref) => formatName(ref.name) === list && accepts(ref, "points"),
+        )
+    )
+        return `${commandName(findCommand("Element")!)}(${list}, ${rank})`;
+    return coordinatesText(source, numeric) ?? `Point(${source})`;
+}
 
 const formatValue = (value: unknown): string =>
     typeof value === "number"
@@ -410,7 +448,14 @@ export function lineOf(
     const at = (ref: DgoRef) =>
         typeof ref === "number"
             ? objects[ref]
-            : partOf(ref[0], objects[ref[1]], ref[2]);
+            : ref[0] === "Fp"
+              ? object.embeddedPoints!.find(
+                    (point) =>
+                        JSON.stringify(
+                            objectIndex(point, (owner) => index.get(owner)!),
+                        ) === JSON.stringify(ref),
+                )!
+              : partOf(ref[0], objects[ref[1]], ref[2]);
     // An image by a macro that maps points.
     if (tag === "Mac" && typeof (parameters as unknown[])[3] === "string") {
         const [macro, , initials] = parameters as [number, number, unknown[]];
@@ -434,12 +479,16 @@ export function lineOf(
             ? body
             : `${body}, (${min === null ? "" : `${min} ≤ `}x${max === null ? "" : ` ≤ ${max}`})`;
     }
+    const text = (formula: FormulaNode) => {
+        const source = oneLine(
+            renamed(formulaSource(formula), (object as list_object).refs),
+        );
+        return coordinatesText(source, true) ?? source;
+    };
+    if (tag === "Pts")
+        return `${name} = {${(object as list_object).formulas.map(text).join(", ")}}`;
     if (tag === "Seq") {
-        const { nature, loops, formulas, refs } = object as sequence_object;
-        const text = (formula: FormulaNode) => {
-            const source = oneLine(renamed(formulaSource(formula), refs));
-            return coordinatesText(source, true) ?? source;
-        };
+        const { nature, loops, formulas } = object as sequence_object;
         const items = formulas.map(text).join(", ");
         let body =
             nature === "point"
@@ -462,10 +511,8 @@ export function lineOf(
             object.C.GRID.is2D || pinned ? (parameters as number[]) : coords;
         return `${name} = (${shown.map(formatNumber).join(", ")})`;
     }
-    if (tag === "Fp") {
-        const { formula, refs } = object as formula_point_object;
-        return `${name} = ${pointFormulaText(oneLine(renamed(formulaSource(formula), refs, ownNames(formula))))}`;
-    }
+    if (tag === "Fp")
+        return `${name} = ${pointText(object as formula_point_object)}`;
     if (EQUATIONS.includes(tag)) {
         const { equation } = (object instanceof plane_object
             ? object.definition
@@ -528,6 +575,8 @@ export function resolve(
         ({ overload, args } = equation(c, definition!.sides));
     else if (definition!.kind === "curve")
         ({ overload, args } = curve(c, definition!.source));
+    else if (definition!.kind === "list")
+        ({ overload, args } = pointList(c, definition!.items));
     else if (findCommand(definition!.command)?.name === "Sequence")
         ({ overload, args } = sequence(c, definition!.args));
     else {
@@ -647,8 +696,40 @@ export function resolveArgument(
             ? new TextArg(arg.value, new Map())
             : textArg(c, arg.value, command === "Html");
     if (arg.kind === "formula") {
-        const line = parseLine(arg.source, isCommand);
+        // L(n), a list's point, as GeoGebra's.
+        const listed = (name: string) => {
+            const object = readable(c).get(name);
+            return object && accepts(object, "points") ? object : undefined;
+        };
+        const line = parseLine(
+            arg.source,
+            (name) => isCommand(name) || !!listed(name),
+        );
         const call = line.definition;
+        if (call?.kind === "call") {
+            const named = findCommand(call.command)?.name === "Element";
+            const [list, rank] = named
+                ? [
+                      call.args.length === 2 &&
+                          resolveArgument(c, call.args[0]),
+                      call.args[1],
+                  ]
+                : [listed(call.command), call.args[0]];
+            if (named || list) {
+                if (
+                    !(list instanceof construction_object) ||
+                    !accepts(list, "points") ||
+                    call.args.length !== (named ? 2 : 1)
+                )
+                    throw new TextError("arguments", call.command);
+                const source = `${formatName(list.name)}[(${argSource(rank)})-1]`;
+                return embeddedPoint(
+                    c,
+                    ...pointProgram(c, source),
+                    !c.GRID.is2D,
+                );
+            }
+        }
         if (
             call?.kind === "call" &&
             Object.values(PART_COMMANDS).includes(
@@ -682,6 +763,15 @@ export function resolveArgument(
                 rank,
             );
         }
+        // Coordinates, or a point's formula, which the object will hold.
+        const point =
+            line.definition?.kind === "point"
+                ? `[${line.definition.coords.join(", ")}]`
+                : line.definition?.kind === "pointFormula"
+                  ? line.definition.source
+                  : null;
+        if (point !== null)
+            return embeddedPoint(c, ...pointProgram(c, point), !c.GRID.is2D);
         return formulaArg(c, arg.source);
     }
     const object = c.getObj(arg.name);
@@ -1318,27 +1408,37 @@ const formulaParameter = (
           ]
         : source;
 
+// A point's formula, and the objects it names.
+function pointProgram(
+    c: construction,
+    source: string,
+): [Program, Map<string, construction_object>] {
+    const own = readable(c);
+    let program: Program;
+    try {
+        program = withObjects(new Set(own.keys()), () => parseProgram(source));
+    } catch {
+        throw new TextError("syntax", source);
+    }
+    return [
+        program,
+        new Map(
+            [...programReferences(program)].map((name) => {
+                const object = own.get(name);
+                if (!object)
+                    throw new TextError("unknown_object", shownName(name));
+                return [name, object];
+            }),
+        ),
+    ];
+}
+
 // A point computed by a formula: the coordinates, or a point, it gives.
 function formulaPoint(
     c: construction,
     source: string,
 ): { overload: Overload; args: Arg[] } {
-    const own = readable(c);
-    let references: Set<string>;
-    try {
-        references = programReferences(
-            withObjects(new Set(own.keys()), () => parseProgram(source)),
-        );
-    } catch {
-        throw new TextError("syntax", source);
-    }
-    const named = new Map(
-        [...references].map((name) => {
-            const object = own.get(name);
-            if (!object) throw new TextError("unknown_object", shownName(name));
-            return [name, object];
-        }),
-    );
+    const [, named] = pointProgram(c, source);
     return {
         overload: {
             params: [],
@@ -1494,14 +1594,6 @@ function sequence(
         const nature = (Object.keys(ITEM_COMMANDS) as ListNature[]).find(
             (key) => ITEM_COMMANDS[key] === command,
         );
-        // Each a formula, or coordinates, read as on a line of its own.
-        const item = (text: string): string => {
-            const read = parseLine(text, isCommand).definition!;
-            if (read.kind === "point") return `[${read.coords.join(", ")}]`;
-            if (read.kind === "formula" || read.kind === "pointFormula")
-                return read.source;
-            throw new TextError("syntax", text);
-        };
         const items =
             inner.kind === "call"
                 ? inner.args.map((arg) => item(argSource(arg)))
@@ -1532,6 +1624,34 @@ function sequence(
             ]),
         };
     }
+}
+
+// An item, a formula or coordinates, read as on a line of its own.
+function item(text: string): string {
+    const read = parseLine(text, isCommand).definition!;
+    if (read.kind === "point") return `[${read.coords.join(", ")}]`;
+    if (read.kind === "formula" || read.kind === "pointFormula")
+        return read.source;
+    throw new TextError("syntax", text);
+}
+
+// `{A, (1, 2), …}`, a list of points.
+function pointList(
+    c: construction,
+    items: string[],
+): { overload: Overload; args: Arg[] } {
+    const formulas = items.map((text) => formulaArg(c, item(text)));
+    return {
+        overload: {
+            params: [],
+            tag: "Pts",
+            encode: (_, index) =>
+                formulas.map(({ source, refs }) =>
+                    formulaParameter(source, refs, index),
+                ),
+        },
+        args: argObjects(formulas),
+    };
 }
 
 // `f(x) = …`, the curve of a function of x, which formulas call as one,
@@ -1872,14 +1992,7 @@ export function add(
     c.beginBatch();
     addDgoEntries(
         c,
-        [
-            [
-                overload.tag,
-                name,
-                parameters,
-                ...(style ? [0] : []),
-            ],
-        ],
+        [[overload.tag, name, parameters, ...(style ? [0] : [])]],
         style ? [style] : [],
     );
     c.endBatch();
@@ -2114,7 +2227,8 @@ export function resolveMacro(c: construction, line: Line): MacroSpec | null {
     const initials = (call as { args: ArgText[] }).args.map((arg): Picked => {
         const value = resolveArgument(c, arg);
         if (typeof value === "number") return String(value);
-        if (value instanceof construction_object) return value;
+        if (value instanceof construction_object && !value.embedded)
+            return value;
         const typed =
             value instanceof FormulaArg && !value.refs.size
                 ? typedNumber(value.source)
@@ -2164,7 +2278,7 @@ export async function applyMacroLine(
             refs.some(
                 (ref) =>
                     typeof ref !== "string" &&
-                    (Array.isArray(ref) ? ref[1] : ref) >= at,
+                    (Array.isArray(ref) ? (ref[1] as number) : ref) >= at,
             )
         )
             throw new TextError("macro_order");
@@ -2203,7 +2317,7 @@ export async function applyMacroLine(
         refs.some(
             (ref) =>
                 typeof ref !== "string" &&
-                (Array.isArray(ref) ? ref[1] : ref) >= at,
+                (Array.isArray(ref) ? (ref[1] as number) : ref) >= at,
         )
     )
         throw new TextError("macro_order");
