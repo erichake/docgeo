@@ -938,7 +938,7 @@
                             </td>
                         </tr>
                         <tr>
-                            <td rowspan="1">
+                            <td rowspan="2">
                                 <strong>元素</strong><br /><small
                                     >Element</small
                                 >
@@ -954,7 +954,18 @@
                             </td>
                         </tr>
                         <tr>
-                            <td rowspan="1"><strong>列表</strong></td>
+                            <td class="syntax">
+                                <code>元素(M, i)</code>、<code
+                                    >元素(M, i, j)</code
+                                >
+                            </td>
+                            <td>
+                                若 M 是列表的列表：其第 i 个列表，或该列表的第 j
+                                个点
+                            </td>
+                        </tr>
+                        <tr>
+                            <td rowspan="2"><strong>列表</strong></td>
                             <td class="syntax">
                                 <code>L = {A, (1, 2), …}</code>
                             </td>
@@ -963,6 +974,16 @@
                                     href="expressions.html#listes"
                                     >点列表</a
                                 >）
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="syntax">
+                                <code>M = {{A, B}, {(1, 2), C}}</code>
+                            </td>
+                            <td>
+                                列表的列表，用花括号写出或用名称：<code
+                                    >M = {L, K}</code
+                                >
                             </td>
                         </tr>
                         <tr>

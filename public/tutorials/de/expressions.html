@@ -183,6 +183,23 @@
                 ändert die Anzahl seiner Ecken mit dem Schieberegler n.
             </p>
 
+            <p>
+                In einer Formel ist <code>L[0]</code> der erste Punkt von L:
+                eckige Klammern zählen ab 0, <code>Element</code> ab 1.
+                <code>(L, 1)</code> bezeichnet Koordinaten, keinen Punkt von L:
+                der Editor lehnt es ab.
+            </p>
+
+            <p>
+                Eine Liste kann Listen enthalten:
+                <code>M = {{(0, 0), (4, 0), (0, 3)}, {A, B, C}}</code>, oder
+                <code>M = {L, K}</code> für zwei Listen L und K. Sie zeichnet
+                alle ihre Punkte. <code>Element(M, 1)</code> ist ihre erste
+                Liste: <code>Vieleck(Element(M, 1))</code>;
+                <code>Element(M, 1, 2)</code> ist der zweite Punkt dieser Liste,
+                <code>M[0][1]</code> in einer Formel.
+            </p>
+
             <h2 id="suites">Folgen</h2>
             <p>
                 <code>L = Folge((k, k^2), k, -2, 2)</code> setzt die Punkte (k,

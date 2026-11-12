@@ -173,6 +173,23 @@
                 change de nombre de sommets avec le curseur n.
             </p>
 
+            <p>
+                Dans une formule, <code>L[0]</code> est le premier point de L :
+                les crochets comptent à partir de 0, <code>Élément</code> à
+                partir de 1. <code>(L, 1)</code> désigne des coordonnées, pas un
+                point de L : l’éditeur refuse cette écriture.
+            </p>
+
+            <p>
+                Une liste peut contenir des listes :
+                <code>M = {{(0, 0), (4, 0), (0, 3)}, {A, B, C}}</code>, ou
+                <code>M = {L, K}</code> pour deux listes L et K. Elle dessine
+                tous leurs points. <code>Élément(M, 1)</code> est sa première
+                liste : <code>Polygone(Élément(M, 1))</code> ;
+                <code>Élément(M, 1, 2)</code> est le deuxième point de celle-ci,
+                <code>M[0][1]</code> dans une formule.
+            </p>
+
             <h2 id="suites">Suites</h2>
             <p>
                 <code>L = Séquence((k, k^2), k, -2, 2)</code> place les points

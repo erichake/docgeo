@@ -175,6 +175,23 @@
                 cambia su número de vértices con el deslizador n.
             </p>
 
+            <p>
+                En una fórmula, <code>L[0]</code> es el primer punto de L: los
+                corchetes cuentan desde 0, <code>Elemento</code> desde 1.
+                <code>(L, 1)</code> designa coordenadas, no un punto de L: el
+                editor lo rechaza.
+            </p>
+
+            <p>
+                Una lista puede contener listas:
+                <code>M = {{(0, 0), (4, 0), (0, 3)}, {A, B, C}}</code>, o
+                <code>M = {L, K}</code> para dos listas L y K. Dibuja todos sus
+                puntos. <code>Elemento(M, 1)</code> es su primera lista:
+                <code>Polígono(Elemento(M, 1))</code>;
+                <code>Elemento(M, 1, 2)</code> es el segundo punto de esa lista,
+                <code>M[0][1]</code> en una fórmula.
+            </p>
+
             <h2 id="suites">Secuencias</h2>
             <p>
                 <code>L = Secuencia((k, k^2), k, -2, 2)</code> coloca los puntos

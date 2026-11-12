@@ -1087,7 +1087,7 @@
                             </td>
                         </tr>
                         <tr>
-                            <td rowspan="1">
+                            <td rowspan="2">
                                 <strong>Élément</strong><br /><small
                                     >Element</small
                                 >
@@ -1102,7 +1102,17 @@
                             </td>
                         </tr>
                         <tr>
-                            <td rowspan="1"><strong>liste</strong></td>
+                            <td class="syntax">
+                                <code>Élément(M, i)</code>,
+                                <code>Élément(M, i, j)</code>
+                            </td>
+                            <td>
+                                si M est une liste de listes : sa liste numéro
+                                i, ou le point numéro j de celle-ci
+                            </td>
+                        </tr>
+                        <tr>
+                            <td rowspan="2"><strong>liste</strong></td>
                             <td class="syntax">
                                 <code>L = {A, (1, 2), …}</code>
                             </td>
@@ -1112,6 +1122,15 @@
                                 <a href="expressions.html#listes"
                                     >Listes de points</a
                                 >)
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="syntax">
+                                <code>M = {{A, B}, {(1, 2), C}}</code>
+                            </td>
+                            <td>
+                                liste de listes, écrites entre accolades ou
+                                nommées : <code>M = {L, K}</code>
                             </td>
                         </tr>
                         <tr>

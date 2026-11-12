@@ -1031,7 +1031,7 @@
                             </td>
                         </tr>
                         <tr>
-                            <td rowspan="1">
+                            <td rowspan="2">
                                 <strong>عنصر</strong><br /><small
                                     >Element</small
                                 >
@@ -1046,7 +1046,17 @@
                             </td>
                         </tr>
                         <tr>
-                            <td rowspan="1"><strong>قائمة</strong></td>
+                            <td class="syntax">
+                                <code>عنصر(M, i)</code>،
+                                <code>عنصر(M, i, j)</code>
+                            </td>
+                            <td>
+                                إذا كانت M قائمة قوائم: قائمتها رقم i، أو النقطة
+                                رقم j من تلك القائمة
+                            </td>
+                        </tr>
+                        <tr>
+                            <td rowspan="2"><strong>قائمة</strong></td>
                             <td class="syntax">
                                 <code>L = {A, (1, 2), …}</code>
                             </td>
@@ -1056,6 +1066,15 @@
                                 <a href="expressions.html#listes"
                                     >قوائم النقاط</a
                                 >)
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="syntax">
+                                <code>M = {{A, B}, {(1, 2), C}}</code>
+                            </td>
+                            <td>
+                                قائمة قوائم، مكتوبة بين قوسين معقوصين أو
+                                بأسمائها: <code>M = {L, K}</code>
                             </td>
                         </tr>
                         <tr>

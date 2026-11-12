@@ -1129,7 +1129,7 @@
                             </td>
                         </tr>
                         <tr>
-                            <td rowspan="1"><strong>Element</strong></td>
+                            <td rowspan="2"><strong>Element</strong></td>
                             <td class="syntax">
                                 <code>Element(L, n)</code>, <code>L(n)</code>
                             </td>
@@ -1140,7 +1140,17 @@
                             </td>
                         </tr>
                         <tr>
-                            <td rowspan="1"><strong>Liste</strong></td>
+                            <td class="syntax">
+                                <code>Element(M, i)</code>,
+                                <code>Element(M, i, j)</code>
+                            </td>
+                            <td>
+                                ist M eine Liste von Listen: ihre Liste Nummer i
+                                oder Punkt Nummer j dieser Liste
+                            </td>
+                        </tr>
+                        <tr>
+                            <td rowspan="2"><strong>Liste</strong></td>
                             <td class="syntax">
                                 <code>L = {A, (1, 2), …}</code>
                             </td>
@@ -1150,6 +1160,16 @@
                                 <a href="expressions.html#listes"
                                     >Listen von Punkten</a
                                 >)
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="syntax">
+                                <code>M = {{A, B}, {(1, 2), C}}</code>
+                            </td>
+                            <td>
+                                Liste von Listen, in geschweiften Klammern
+                                geschrieben oder benannt:
+                                <code>M = {L, K}</code>
                             </td>
                         </tr>
                         <tr>

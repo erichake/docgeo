@@ -1134,7 +1134,7 @@
                             </td>
                         </tr>
                         <tr>
-                            <td rowspan="1"><strong>Element</strong></td>
+                            <td rowspan="2"><strong>Element</strong></td>
                             <td class="syntax">
                                 <code>Element(L, n)</code>, <code>L(n)</code>
                             </td>
@@ -1145,7 +1145,17 @@
                             </td>
                         </tr>
                         <tr>
-                            <td rowspan="1"><strong>lijst</strong></td>
+                            <td class="syntax">
+                                <code>Element(M, i)</code>,
+                                <code>Element(M, i, j)</code>
+                            </td>
+                            <td>
+                                als M een lijst van lijsten is: haar lijst
+                                nummer i, of punt nummer j van die lijst
+                            </td>
+                        </tr>
+                        <tr>
+                            <td rowspan="2"><strong>lijst</strong></td>
                             <td class="syntax">
                                 <code>L = {A, (1, 2), …}</code>
                             </td>
@@ -1155,6 +1165,15 @@
                                 <a href="expressions.html#listes"
                                     >Lijsten van punten</a
                                 >)
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="syntax">
+                                <code>M = {{A, B}, {(1, 2), C}}</code>
+                            </td>
+                            <td>
+                                lijst van lijsten, tussen accolades geschreven
+                                of bij naam: <code>M = {L, K}</code>
                             </td>
                         </tr>
                         <tr>

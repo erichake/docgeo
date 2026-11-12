@@ -176,6 +176,23 @@
                 verandert zijn aantal hoekpunten met de schuifknop n.
             </p>
 
+            <p>
+                In een formule is <code>L[0]</code> het eerste punt van L:
+                vierkante haken tellen vanaf 0, <code>Element</code> vanaf 1.
+                <code>(L, 1)</code> staat voor coördinaten, niet voor een punt
+                van L: de editor weigert het.
+            </p>
+
+            <p>
+                Een lijst kan lijsten bevatten:
+                <code>M = {{(0, 0), (4, 0), (0, 3)}, {A, B, C}}</code>, of
+                <code>M = {L, K}</code> voor twee lijsten L en K. Ze tekent al
+                hun punten. <code>Element(M, 1)</code> is haar eerste lijst:
+                <code>Veelhoek(Element(M, 1))</code>;
+                <code>Element(M, 1, 2)</code> is het tweede punt van die lijst,
+                <code>M[0][1]</code> in een formule.
+            </p>
+
             <h2 id="suites">Rijen</h2>
             <p>
                 <code>L = Rij((k, k^2), k, -2, 2)</code> plaatst de punten (k,

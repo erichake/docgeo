@@ -173,6 +173,23 @@
                 changes its number of vertices with the slider n.
             </p>
 
+            <p>
+                In a formula, <code>L[0]</code> is the first point of L:
+                brackets count from 0, <code>Element</code> from 1.
+                <code>(L, 1)</code> stands for coordinates, not a point of L:
+                the editor refuses it.
+            </p>
+
+            <p>
+                A list can contain lists:
+                <code>M = {{(0, 0), (4, 0), (0, 3)}, {A, B, C}}</code>, or
+                <code>M = {L, K}</code> for two lists L and K. It draws all
+                their points. <code>Element(M, 1)</code> is its first list:
+                <code>Polygon(Element(M, 1))</code>;
+                <code>Element(M, 1, 2)</code> is the second point of that list,
+                <code>M[0][1]</code> in a formula.
+            </p>
+
             <h2 id="suites">Sequences</h2>
             <p>
                 <code>L = Sequence((k, k^2), k, -2, 2)</code> places the points

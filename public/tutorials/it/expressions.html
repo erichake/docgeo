@@ -179,6 +179,23 @@
                 cambia il numero di vertici con il cursore n.
             </p>
 
+            <p>
+                In una formula, <code>L[0]</code> è il primo punto di L: le
+                parentesi quadre contano da 0, <code>Elemento</code> da 1.
+                <code>(L, 1)</code> indica delle coordinate, non un punto di L:
+                l’editor lo rifiuta.
+            </p>
+
+            <p>
+                Una lista può contenere liste:
+                <code>M = {{(0, 0), (4, 0), (0, 3)}, {A, B, C}}</code>, o
+                <code>M = {L, K}</code> per due liste L e K. Disegna tutti i
+                loro punti. <code>Elemento(M, 1)</code> è la sua prima lista:
+                <code>Poligono(Elemento(M, 1))</code>;
+                <code>Elemento(M, 1, 2)</code> è il secondo punto di quella
+                lista, <code>M[0][1]</code> in una formula.
+            </p>
+
             <h2 id="suites">Successioni</h2>
             <p>
                 <code>L = Successione((k, k^2), k, -2, 2)</code> pone i punti
