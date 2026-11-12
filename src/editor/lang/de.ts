@@ -6,6 +6,8 @@ const de: Texts = {
         syntax: "Unverständliche Eingabe: %",
         expected: "Erwartet: %",
         coordinates: "Ein Punkt hat zwei oder drei Koordinaten",
+        coordinate_list:
+            "Eine Koordinate ist eine Zahl, keine Liste: für ein Element der Liste L schreibe L[0] oder Element(L, 1)",
         unknown_command: "Unbekannter Befehl: %",
         unknown_object: "Unbekanntes Objekt: %",
         circular_reference: "Zirkelbezug: %",

@@ -62,6 +62,24 @@ describe("Points written in a definition", () => {
         expect(() => type(c, "e = Line(a[0][0], a[1])")).toThrow(TextError);
     });
 
+    it("refuses a coordinate whose value is a list, not one undefined for now", () => {
+        const c = scene();
+        type(c, "a = [[2, 0], [1, 0.8], [0, 1]]");
+        for (const text of [
+            "d = Line((a, 1), (a, 2))",
+            "P = (a, 1)",
+            "Q = (a; 90°)",
+            "R = (1, a, 2)",
+        ])
+            expect(() => type(c, text)).toThrow(
+                expect.objectContaining({ key: "coordinate_list" }),
+            );
+        type(c, "t = 0");
+        type(c, "r = 1/t");
+        type(c, "e = Line((r, 1), (0, 0))");
+        expect(lines(c)).toContain("e = Line((r, 1), (0, 0))");
+    });
+
     it("takes them in any command's point, a conic's five included", () => {
         const c = scene();
         type(c, "c = Conic((1, 2), (3, 4), (3, 1), (5, 1), (-2, 2))");

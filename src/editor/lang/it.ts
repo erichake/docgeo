@@ -6,6 +6,8 @@ const it: Texts = {
         syntax: "Scrittura non compresa: %",
         expected: "Atteso: %",
         coordinates: "Un punto ha due o tre coordinate",
+        coordinate_list:
+            "Una coordinata è un numero, non una lista: per un elemento della lista L, scrivere L[0] o Elemento(L, 1)",
         unknown_command: "Comando sconosciuto: %",
         unknown_object: "Oggetto sconosciuto: %",
         circular_reference: "Riferimento circolare: %",

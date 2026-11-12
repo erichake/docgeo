@@ -6,6 +6,8 @@ const hi: Texts = {
         syntax: "समझ में नहीं आया: %",
         expected: "अपेक्षित: %",
         coordinates: "एक बिंदु के दो या तीन निर्देशांक होते हैं",
+        coordinate_list:
+            "निर्देशांक एक संख्या है, सूची नहीं: सूची L के किसी तत्व के लिए L[0] या तत्व(L, 1) लिखें",
         unknown_command: "अज्ञात कमांड: %",
         unknown_object: "अज्ञात ऑब्जेक्ट: %",
         circular_reference: "चक्रीय संदर्भ: %",

@@ -1424,6 +1424,11 @@ function pointProgram(
     } catch {
         throw new TextError("syntax", source);
     }
+    // `(a, 1)` with a list `a`: never a point, unlike a coordinate undefined
+    // for now.
+    const value = probe(c, source);
+    if (Array.isArray(value) && value.some(Array.isArray))
+        throw new TextError("coordinate_list");
     return [
         program,
         new Map(
@@ -1437,21 +1442,27 @@ function pointProgram(
     ];
 }
 
-// Whether a formula gives a point's coordinates, as `a[0]` for a list of
-// them, tried on an expression added and removed at once.
-function givesPoint(c: construction, source: string): boolean {
+// A formula's value, tried on an expression added and removed at once;
+// undefined when it isn't an expression.
+function probe(c: construction, source: string): unknown {
     let spec: { overload: Overload; args: Arg[] };
     try {
         spec = expression(c, source);
     } catch (error) {
-        // Not an expression: what formulaArg says of it.
-        if (error instanceof TextError) return false;
+        if (error instanceof TextError) return undefined;
         throw error;
     }
-    const probe = add(c, { ...spec, name: "‧v" }, false);
+    const probed = add(c, { ...spec, name: "‧v" }, false);
     c.flush();
-    const { value } = probe as expression_object;
-    c.removeObject(probe);
+    const { value } = probed as expression_object;
+    c.removeObject(probed);
+    return value;
+}
+
+// Whether a formula gives a point's coordinates, as `a[0]` for a list of
+// them.
+function givesPoint(c: construction, source: string): boolean {
+    const value = probe(c, source);
     return (
         Array.isArray(value) &&
         (value.length === 2 || value.length === 3) &&

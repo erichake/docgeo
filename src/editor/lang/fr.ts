@@ -6,6 +6,8 @@ const fr: Texts = {
         syntax: "Écriture incomprise : %",
         expected: "Attendu : %",
         coordinates: "Un point a deux ou trois coordonnées",
+        coordinate_list:
+            "Une coordonnée est un nombre, pas une liste : pour un élément de la liste L, écrire L[0] ou Élément(L, 1)",
         unknown_command: "Commande inconnue : %",
         unknown_object: "Objet inconnu : %",
         circular_reference: "Référence circulaire : %",

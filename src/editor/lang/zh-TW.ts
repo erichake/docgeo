@@ -6,6 +6,8 @@ const zh_TW: Texts = {
         syntax: "無法理解：%",
         expected: "應為：%",
         coordinates: "點有兩個或三個座標",
+        coordinate_list:
+            "座標是數，不是串列：要取串列 L 的元素，請寫 L[0] 或 元素(L, 1)",
         unknown_command: "未知指令：%",
         unknown_object: "未知物件：%",
         circular_reference: "循環參照：%",

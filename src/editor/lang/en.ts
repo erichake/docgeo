@@ -5,6 +5,8 @@ export default {
     syntax: "Can't read: %",
     expected: "Expected: %",
     coordinates: "A point has two or three coordinates",
+    coordinate_list:
+        "A coordinate is a number, not a list: for an element of the list L, write L[0] or Element(L, 1)",
     unknown_command: "Unknown command: %",
     unknown_object: "Unknown object: %",
     circular_reference: "Circular reference: %",

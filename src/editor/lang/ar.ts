@@ -6,6 +6,8 @@ const ar: Texts = {
         syntax: "كتابة غير مفهومة: %",
         expected: "المتوقع: %",
         coordinates: "للنقطة إحداثيان أو ثلاثة إحداثيات",
+        coordinate_list:
+            "الإحداثي عدد وليس قائمة: لعنصر من القائمة L، اكتب L[0] أو عنصر(L, 1)",
         unknown_command: "أمر غير معروف: %",
         unknown_object: "عنصر غير معروف: %",
         circular_reference: "مرجع دائري: %",

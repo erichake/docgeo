@@ -6,6 +6,8 @@ const zh: Texts = {
         syntax: "无法理解：%",
         expected: "应为：%",
         coordinates: "点有两个或三个坐标",
+        coordinate_list:
+            "坐标是数，不是列表：要取列表 L 的元素，请写 L[0] 或 元素(L, 1)",
         unknown_command: "未知命令：%",
         unknown_object: "未知对象：%",
         circular_reference: "循环引用：%",

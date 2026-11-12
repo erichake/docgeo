@@ -6,6 +6,8 @@ const nl: Texts = {
         syntax: "Onbegrijpelijke invoer: %",
         expected: "Verwacht: %",
         coordinates: "Een punt heeft twee of drie coördinaten",
+        coordinate_list:
+            "Een coördinaat is een getal, geen lijst: voor een element van de lijst L schrijf je L[0] of Element(L, 1)",
         unknown_command: "Onbekende opdracht: %",
         unknown_object: "Onbekend object: %",
         circular_reference: "Kringverwijzing: %",
