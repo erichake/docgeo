@@ -131,6 +131,8 @@ const de: Texts = {
             "Die nicht gespeicherten Änderungen der aktuellen Figur gehen verloren.",
         embed_failed: "Dieser Link konnte nicht geöffnet werden: %",
         open_failed: "Diese Figur konnte nicht geöffnet werden: %",
+        open_unreadable:
+            "Das System lässt diese Datei nicht lesen, etwa einen aus Mail geöffneten Anhang: Speichern Sie sie zuerst an einem anderen Ort, zum Beispiel auf dem Schreibtisch, und öffnen Sie sie dann.",
         failed: "Ein Fehler ist aufgetreten: %",
         embed_modified:
             "Diese Figur wurde geändert, seit sie über ihren Link geöffnet wurde: Speichern Sie sie und veröffentlichen Sie sie erneut am selben Ort, sonst zeigt die Seite die alte Version.",

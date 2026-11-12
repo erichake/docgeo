@@ -125,6 +125,8 @@ export default {
     embed_unsaved: "The unsaved changes of the current figure will be lost.",
     embed_failed: "This link could not be opened: %",
     open_failed: "This figure could not be opened: %",
+    open_unreadable:
+        "The system does not let this file be read, as with an attachment opened from Mail: first save it elsewhere, for example on the Desktop, then open it.",
     failed: "Something went wrong: %",
     embed_modified:
         "This figure has changed since it was opened from its link: save it, then publish it again in the same place, or the page will show the former version.",

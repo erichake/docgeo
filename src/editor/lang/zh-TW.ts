@@ -118,6 +118,8 @@ const zh_TW: Texts = {
         embed_unsaved: "目前圖形未儲存的變更將會遺失。",
         embed_failed: "無法開啟此連結：%",
         open_failed: "無法開啟此圖形：%",
+        open_unreadable:
+            "系統不允許讀取此檔案，例如從「郵件」中開啟的附件：請先將其儲存到其他位置（例如桌面），再開啟。",
         failed: "發生錯誤：%",
         embed_modified:
             "此圖形自從透過連結開啟後已被修改：請儲存，然後重新發布到同一位置，否則網頁將顯示舊版本。",

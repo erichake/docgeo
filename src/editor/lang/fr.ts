@@ -127,6 +127,8 @@ const fr: Texts = {
             "Les modifications non enregistrées de la figure actuelle seront perdues.",
         embed_failed: "Impossible d'ouvrir ce lien : %",
         open_failed: "Impossible d'ouvrir cette figure : %",
+        open_unreadable:
+            "Le système ne laisse pas lire ce fichier, comme une pièce jointe ouverte depuis Mail : enregistrez-le d'abord ailleurs, par exemple sur le Bureau, puis ouvrez-le.",
         failed: "Une erreur est survenue : %",
         embed_modified:
             "Cette figure a été modifiée depuis son ouverture par son lien : enregistrez-la, puis republiez-la au même endroit, sinon la page montrera l'ancienne version.",

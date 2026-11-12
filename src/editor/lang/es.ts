@@ -128,6 +128,8 @@ const es: Texts = {
             "Se perderán los cambios no guardados de la figura actual.",
         embed_failed: "No se pudo abrir este enlace: %",
         open_failed: "No se pudo abrir esta figura: %",
+        open_unreadable:
+            "El sistema no deja leer este archivo, como un adjunto abierto desde Mail: guárdalo primero en otro lugar, por ejemplo en el Escritorio, y luego ábrelo.",
         failed: "Se produjo un error: %",
         embed_modified:
             "Esta figura ha cambiado desde que se abrió con su enlace: guárdala y vuelve a publicarla en el mismo lugar; si no, la página mostrará la versión anterior.",

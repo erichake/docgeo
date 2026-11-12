@@ -118,6 +118,8 @@ const zh: Texts = {
         embed_unsaved: "当前图形未保存的更改将丢失。",
         embed_failed: "无法打开此链接：%",
         open_failed: "无法打开此图形：%",
+        open_unreadable:
+            "系统不允许读取此文件，例如从“邮件”中打开的附件：请先将其保存到其他位置（例如桌面），再打开。",
         failed: "出现错误：%",
         embed_modified:
             "此图形自从通过链接打开后已被修改：请保存，然后重新发布到同一位置，否则网页将显示旧版本。",

@@ -128,6 +128,8 @@ const pt: Texts = {
             "As alterações não salvas da figura atual serão perdidas.",
         embed_failed: "Não foi possível abrir este link: %",
         open_failed: "Não foi possível abrir esta figura: %",
+        open_unreadable:
+            "O sistema não permite ler este arquivo, como um anexo aberto pelo Mail: salve-o primeiro em outro lugar, por exemplo na Mesa, e depois abra-o.",
         failed: "Ocorreu um erro: %",
         embed_modified:
             "Esta figura foi alterada desde que foi aberta pelo seu link: salve-a e publique-a novamente no mesmo lugar; caso contrário, a página mostrará a versão anterior.",

@@ -7708,8 +7708,15 @@ const openChosen = async (
     if (await discarded()) await openFiles(files, from).catch(openFailed);
 };
 
+// A file the system won't let be read, as an attachment opened from Mail on
+// macOS: the installed application's launcher is granted it, not Chrome.
 const openFailed = (error: Error): void =>
-    showHint(message("open_failed", error.message), true);
+    showHint(
+        error.name === "NotReadableError"
+            ? message("open_unreadable")
+            : message("open_failed", error.message),
+        true,
+    );
 
 // A recent figure, once the browser lets its file be read again: one gone
 // since is taken off the list.
