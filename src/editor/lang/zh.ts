@@ -391,6 +391,7 @@ const zh: Texts = {
         designate_solid: "选择一个立体图形",
         designate_readable: "选择一个对象",
         designate_points: "选择一个点列表",
+        designate_lists: "选择一个列表的列表",
         unsupported: "未导入：%",
         family_macros: "宏",
         new_macro: "新建宏",

@@ -7,7 +7,8 @@ import type { expression_object } from "./expression_object";
 
 // What an object's .dgo description needs from the file being written.
 export type PartKind = "side" | "vertex" | "face";
-export type DgoRef = number | [PartKind, number, number] | ["Fp", unknown];
+export type DgoRef =
+    number | [PartKind, number, number] | ["Fp" | "Fl", unknown];
 
 export const objectIndex = (
     object: construction_object,
@@ -20,15 +21,29 @@ export const objectIndex = (
               object.reference.rank,
           ]
         : object.embedded
-          ? [
-                "Fp",
-                (
-                    object.dgo({
-                        index: (other) => objectIndex(other, index),
-                    } as DgoContext)[1] as unknown[]
-                )[0],
-            ]
+          ? embeddedRef(object, index)
           : index(object);
+
+// Its formula, after its .dgo type.
+function embeddedRef(
+    object: construction_object,
+    index: (object: construction_object) => number,
+): DgoRef {
+    const [tag, [formula]] = object.dgo({
+        index: (other) => objectIndex(other, index),
+    } as DgoContext) as ["Fp" | "Fl", unknown[]];
+    return [tag, formula];
+}
+
+// Written in the definition of the object it is given to (see embedded).
+export function embed<T extends construction_object>(object: T): T {
+    object.parents.forEach((parent) => {
+        parent.children = parent.children.filter((child) => child !== object);
+    });
+    object.embedded = true;
+    object.computeGeometry();
+    return object;
+}
 
 export interface DgoContext {
     // Another object's position in the file.

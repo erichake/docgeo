@@ -410,6 +410,7 @@ const pt: Texts = {
         designate_solid: "Selecione um sólido",
         designate_readable: "Selecione um objeto",
         designate_points: "Selecione uma lista de pontos",
+        designate_lists: "Selecione uma lista de listas",
         unsupported: "Não importado: %",
         family_macros: "Macros",
         new_macro: "Nova macro",

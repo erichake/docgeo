@@ -72,6 +72,11 @@ import { panelNames, parsePanel, panel_object } from "../objects/panel_object";
 import { normalOf, polyhedron_object } from "../objects/polyhedron_object";
 import { list_object, type ListNature } from "../objects/list_object";
 import {
+    embeddedList,
+    point_list_object,
+    type ListTree,
+} from "../objects/point_list_object";
+import {
     sequenceShape,
     type sequence_object,
 } from "../objects/sequence_object";
@@ -261,10 +266,12 @@ export const formatArg = (arg: Arg): string =>
             : arg.reference
               ? `${commandName(findCommand(PART_COMMANDS[arg.reference.kind])!)}(${formatName(arg.reference.owner.name)}, ${arg.reference.rank})`
               : arg.embedded
-                ? pointText(arg as formula_point_object, true)
+                ? arg instanceof point_list_object
+                    ? listText(arg)!
+                    : pointText(arg as formula_point_object, true)
                 : formatName(arg.name);
 
-// What Element writes: L[(n)-1].
+// What Element writes: L[(n)-1], and L[(i)-1][(j)-1] for a list of lists.
 const ELEMENT = /^(.+)\[\((.*)\)-1\]$/;
 
 // Whether each of its brackets closes after it opens.
@@ -277,6 +284,46 @@ function balanced(text: string): boolean {
     return !depth;
 }
 
+// Element(L, n…), when the formula takes an item of a list it reads, a
+// point unless `list`: Element(L, n) of a list of points, Element(L, i, j)
+// of a list of lists, or Element(L, i), a list, of the latter.
+function elementText(
+    source: string,
+    refs: ReadonlyMap<string, construction_object>,
+    list = false,
+): string | null {
+    const ranks: string[] = [];
+    let name = source;
+    for (
+        let match = ELEMENT.exec(name);
+        match && balanced(match[2]);
+        match = ELEMENT.exec(name)
+    ) {
+        ranks.unshift(match[2]);
+        name = match[1];
+    }
+    return [...refs.values()].some(
+        (ref) =>
+            formatName(ref.name) === name &&
+            (accepts(ref, "lists")
+                ? ranks.length === (list ? 1 : 2)
+                : !list && ranks.length === 1 && accepts(ref, "points")),
+    )
+        ? `${commandName(findCommand("Element")!)}(${[name, ...ranks].join(", ")})`
+        : null;
+}
+
+const isList = (object: construction_object) =>
+    accepts(object, "points") || accepts(object, "lists");
+
+// A list of a list of lists, written as Element.
+const listText = ({ tree, refs }: point_list_object) =>
+    elementText(
+        oneLine(renamed(formulaSource(tree as FormulaNode), refs)),
+        refs,
+        true,
+    );
+
 // Its coordinates, or Point(formula); numbers only if `numeric`, which a
 // line would read as a free point.
 function pointText(
@@ -286,16 +333,11 @@ function pointText(
     const source = oneLine(
         renamed(formulaSource(formula), refs, ownNames(formula)),
     );
-    const [, list, rank] = ELEMENT.exec(source) ?? [];
-    if (
-        rank !== undefined &&
-        balanced(rank) &&
-        [...refs.values()].some(
-            (ref) => formatName(ref.name) === list && accepts(ref, "points"),
-        )
-    )
-        return `${commandName(findCommand("Element")!)}(${list}, ${rank})`;
-    return coordinatesText(source, numeric) ?? `Point(${source})`;
+    return (
+        elementText(source, refs) ??
+        coordinatesText(source, numeric) ??
+        `Point(${source})`
+    );
 }
 
 const formatValue = (value: unknown): string =>
@@ -448,7 +490,7 @@ export function lineOf(
     const at = (ref: DgoRef) =>
         typeof ref === "number"
             ? objects[ref]
-            : ref[0] === "Fp"
+            : ref.length === 2
               ? object.embeddedPoints!.find(
                     (point) =>
                         JSON.stringify(
@@ -485,8 +527,17 @@ export function lineOf(
         );
         return coordinatesText(source, true) ?? source;
     };
-    if (tag === "Pts")
-        return `${name} = {${(object as list_object).formulas.map(text).join(", ")}}`;
+    if (tag === "Pts") {
+        const write = (tree: ListTree): string =>
+            Array.isArray(tree)
+                ? `{${tree.map(write).join(", ")}}`
+                : text(tree);
+        return `${name} = ${write((object as point_list_object).tree)}`;
+    }
+    if (tag === "Fl") {
+        const element = listText(object as point_list_object);
+        return element && `${name} = ${element}`;
+    }
     if (tag === "Seq") {
         const { nature, loops, formulas } = object as sequence_object;
         const items = formulas.map(text).join(", ");
@@ -696,10 +747,10 @@ export function resolveArgument(
             ? new TextArg(arg.value, new Map())
             : textArg(c, arg.value, command === "Html");
     if (arg.kind === "formula") {
-        // L(n), a list's point, as GeoGebra's.
+        // L(n), a list's item, as GeoGebra's.
         const listed = (name: string) => {
             const object = readable(c).get(name);
-            return object && accepts(object, "points") ? object : undefined;
+            return object && isList(object) ? object : undefined;
         };
         const line = parseLine(
             arg.source,
@@ -708,21 +759,38 @@ export function resolveArgument(
         const call = line.definition;
         if (call?.kind === "call") {
             const named = findCommand(call.command)?.name === "Element";
-            const [list, rank] = named
+            const [list, ...ranks] = named
                 ? [
-                      call.args.length === 2 &&
-                          resolveArgument(c, call.args[0]),
-                      call.args[1],
+                      call.args.length > 1 && resolveArgument(c, call.args[0]),
+                      ...call.args.slice(1),
                   ]
-                : [listed(call.command), call.args[0]];
+                : [listed(call.command), ...call.args];
             if (named || list) {
+                // A list of lists' list, or its point.
+                const nested =
+                    list instanceof construction_object &&
+                    accepts(list, "lists");
                 if (
                     !(list instanceof construction_object) ||
-                    !accepts(list, "points") ||
-                    call.args.length !== (named ? 2 : 1)
+                    !isList(list) ||
+                    !(
+                        ranks.length === 1 ||
+                        (ranks.length === 2 && nested && named)
+                    )
                 )
                     throw new TextError("arguments", call.command);
-                const source = `${formatName(list.name)}[(${argSource(rank)})-1]`;
+                const source = `${formatName(list.name)}${ranks.map((rank) => `[(${argSource(rank)})-1]`).join("")}`;
+                if (nested && ranks.length === 1) {
+                    const { refs } = formulaArg(c, source);
+                    return embeddedList(
+                        c,
+                        withObjects(new Set(refs.keys()), () =>
+                            parseFormula(source),
+                        ),
+                        new Map(refs),
+                        !c.GRID.is2D,
+                    );
+                }
                 return embeddedPoint(
                     c,
                     ...pointProgram(c, source),
@@ -1672,22 +1740,36 @@ function item(text: string): string {
     throw new TextError("syntax", text);
 }
 
-// `{A, (1, 2), …}`, a list of points.
+type ItemTree = FormulaArg | ItemTree[];
+const formulas = (tree: ItemTree): FormulaArg[] =>
+    Array.isArray(tree) ? tree.flatMap(formulas) : [tree];
+
+// `{A, (1, 2), …}`, a list of points, or of lists, `{{A, B}, {C}}`.
 function pointList(
     c: construction,
     items: string[],
 ): { overload: Overload; args: Arg[] } {
-    const formulas = items.map((text) => formulaArg(c, item(text)));
+    const read = (text: string): ItemTree => {
+        const line = parseLine(text, isCommand).definition!;
+        return line.kind === "list"
+            ? line.items.map(read)
+            : formulaArg(c, item(text));
+    };
+    const tree = items.map(read);
+    const encode = (
+        tree: ItemTree,
+        index: Parameters<Overload["encode"]>[1],
+    ): unknown =>
+        Array.isArray(tree)
+            ? tree.map((tree) => encode(tree, index))
+            : formulaParameter(tree.source, tree.refs, index);
     return {
         overload: {
             params: [],
             tag: "Pts",
-            encode: (_, index) =>
-                formulas.map(({ source, refs }) =>
-                    formulaParameter(source, refs, index),
-                ),
+            encode: (_, index) => encode(tree, index),
         },
-        args: argObjects(formulas),
+        args: argObjects(formulas(tree)),
     };
 }
 

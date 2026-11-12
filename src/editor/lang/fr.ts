@@ -408,6 +408,7 @@ const fr: Texts = {
         designate_solid: "Désignez un solide",
         designate_readable: "Désignez un objet",
         designate_points: "Désignez une liste de points",
+        designate_lists: "Désignez une liste de listes",
         unsupported: "Non importé : %",
         family_macros: "Macros",
         new_macro: "Nouvelle macro",

@@ -399,6 +399,7 @@ const ar: Texts = {
         designate_solid: "حدّد مجسمًا",
         designate_readable: "حدّد كائنًا",
         designate_points: "حدّد قائمة نقاط",
+        designate_lists: "حدّد قائمة قوائم",
         unsupported: "لم يُستورد: %",
         family_macros: "وحدات ماكرو",
         new_macro: "ماكرو جديد",

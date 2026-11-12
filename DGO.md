@@ -321,6 +321,11 @@ Depuis le 2026-11-11, une référence à un point peut aussi être
 `o` ; l'objet qui le prend dépend directement des objets que lit sa formule.
 Il est fixe : un objet qui en prend un ne se glisse pas.
 
+Depuis le 2026-11-12, une référence à une liste peut de même être
+`["Fl", formule]` : une liste écrite dans la définition de l'objet, comme
+`Élément(c, 1)` dans `Polygone(Élément(c, 1))`, définie par sa formule
+comme un `Fl` (note 30).
+
 `Mid` et `Med` acceptent aussi `[segment]`, notamment une référence de côté :
 le calcul suit les deux extrémités actuelles de ce segment, y compris lorsque
 le nombre de côtés du polygone change. Les anciennes formes `[A, B]` gardent
@@ -443,7 +448,8 @@ la figure, autour de la verticale de O dans l'espace, sa hauteur gardée),
 | `Lst`   | liste de formules en k                                                      | `[nature, nombre, formule, formule?]` (7)       |
 | `Seq`   | suite (`Sequence` de GeoGebra)                                              | `[nature, [boucle, …], formule, …]` (22)        |
 | `ELst`  | points d'une expression                                                     | `[expression]` (12)                             |
-| `Pts`   | liste de points `{A, (1, 2), …}` de GeoGebra                                | `[formule, …]` (29)                             |
+| `Pts`   | liste de points `{A, (1, 2), …}` de GeoGebra                                | `[formule, …]` (29, 30)                         |
+| `Fl`    | liste donnée par une formule, comme `Élément(c, 1)` d'une liste de listes   | `[formule]` (30)                                |
 | `Itr`   | itération de segments                                                       | `[[P1, Q1, …], niveaux, [[ax,ay,bx,by], …]]`    |
 | `Txt`   | texte attaché à un point                                                    | `[point, [dx, dy], texte]` (8)                  |
 | `Img`   | image                                                                       | `[clé, largeur, hauteur, A, B?, C?]` (9)        |
@@ -745,6 +751,22 @@ alignement]]` police, `[30, url, l, h, zoom, opacité, u]` image (largeur
     trois. Le point de rang n d'une liste L (`Élément(L, n)` de l'éditeur)
     est un `Fp`, ou un point intégré `["Fp", formule]`, de formule
     `L[(n)-1]`.
+30. Ajoutés le 2026-11-12, comme les listes de listes de GeoGebra. Un
+    élément de `Pts` peut être une liste à son tour, écrite comme un
+    tableau de ses éléments : `{{A, (1, 0)}, {(2, 3)}}` donne
+    `[[["A", {"A": 0}], "[1, 0]"], ["[2, 3]"]]`. Un tableau est une
+    formule s'il a deux éléments dont le second est un objet (ses
+    références) ; sinon c'est une liste, dont les éléments ne sont jamais
+    des objets. Une formule peut aussi donner une liste, comme `a` dans
+    `{a, b}`. Lue par son nom, la liste vaut ses éléments, listes
+    comprises (`c[0][1]`) ; elle dessine tous les points qu'elle contient.
+    Elle est une liste de listes quand elle en contient une ; `PolyL` ne
+    prend qu'une liste de points. `Fl` : une liste définie par une
+    formule qui en donne une, intégrée à un objet (`["Fl", formule]`,
+    voir plus haut) ou seule sur sa ligne ; l'éditeur l'écrit
+    `Élément(c, i)`, de formule `c[(i)-1]`, pour une liste de listes c.
+    Le point `Élément(c, i, j)` est un `Fp` de formule
+    `c[(i)-1][(j)-1]`.
 
 ### Macro-constructions
 

@@ -4,6 +4,7 @@ import type { construction_object } from "../objects/construction_object";
 import { curve_object } from "../objects/curve_object";
 import { expression_object } from "../objects/expression_object";
 import { list_object } from "../objects/list_object";
+import { point_list_object } from "../objects/point_list_object";
 import { locus_object } from "../objects/locus_object";
 import { point_on_object } from "../objects/point_on_object";
 import { point_object } from "../objects/point_object";
@@ -90,6 +91,8 @@ export type Param =
     | "readable"
     // A list of points.
     | "points"
+    // A list of lists.
+    | "lists"
     // Any object: what a checkbox shows.
     | "any"
     // Written between quotes.
@@ -181,7 +184,16 @@ export function accepts(arg: Arg, param: Param): boolean {
     if (typeof arg === "number") return param === "number" || param === "real";
     if (arg instanceof FormulaArg) return param === "real";
     if (arg instanceof TextArg) return param === "text";
-    if (arg.embedded) return param === "point";
+    if (
+        arg.embedded &&
+        param !==
+            (arg instanceof point_list_object
+                ? arg.nested
+                    ? "lists"
+                    : "points"
+                : "point")
+    )
+        return false;
     const kind = kindOf(arg);
     switch (param) {
         case "number":
@@ -271,7 +283,13 @@ export function accepts(arg: Arg, param: Param): boolean {
         case "readable":
             return readable(arg);
         case "points":
-            return arg instanceof list_object && arg.nature === "point";
+            return (
+                arg instanceof list_object &&
+                arg.nature === "point" &&
+                !(arg instanceof point_list_object && arg.nested)
+            );
+        case "lists":
+            return arg instanceof point_list_object && arg.nested;
         default:
             return kind === param;
     }
@@ -308,7 +326,37 @@ const isIndex = (value: unknown): value is DgoRef =>
         value[1] >= 0 &&
         Number.isSafeInteger(value[2]) &&
         value[2] >= 1) ||
-    (Array.isArray(value) && value.length === 2 && value[0] === "Fp");
+    (Array.isArray(value) &&
+        value.length === 2 &&
+        (value[0] === "Fp" || value[0] === "Fl"));
+
+// The item of rank n of a list, from 1, as GeoGebra's L(n): a formula
+// reading the list, L[(n)-1], and L[(i)-1][(j)-1] in a list of lists, the
+// rank of a point list's formula once the line is read.
+function element(list: Param, tag: string, ranks = 1): Overload {
+    return {
+        params: [list, ...Array<Param>(ranks).fill("real")],
+        tag,
+        encode: ([list, ...ranks], index) => {
+            const { name } = list as construction_object;
+            let refs: Record<string, DgoRef> = {
+                [name]: index(list as never),
+            };
+            const source = ranks
+                .map((rank) => {
+                    const value = realParameter(rank, index);
+                    const [source, own] =
+                        typeof value === "object"
+                            ? (value as [string, Record<string, DgoRef>])
+                            : [String(value), {}];
+                    refs = { ...own, ...refs };
+                    return `[(${source})-1]`;
+                })
+                .join("");
+            return [[`${formatName(name)}${source}`, refs]];
+        },
+    };
+}
 
 // Objects only, the entry listing them in this order of the arguments.
 function objects(tag: string, params: Param[], order?: number[]): Overload {
@@ -1047,24 +1095,9 @@ export const COMMANDS: Command[] = [
     {
         name: "Element",
         overloads: [
-            {
-                params: ["points", "real"],
-                tag: "Fp",
-                encode: ([list, rank], index) => {
-                    const { name } = list as construction_object;
-                    const value = realParameter(rank, index);
-                    const [source, refs] =
-                        typeof value === "object"
-                            ? (value as [string, Record<string, DgoRef>])
-                            : [String(value), {}];
-                    return [
-                        [
-                            `${formatName(name)}[(${source})-1]`,
-                            { ...refs, [name]: index(list as never) },
-                        ],
-                    ];
-                },
-            },
+            element("points", "Fp"),
+            element("lists", "Fl"),
+            element("lists", "Fp", 2),
         ],
     },
     // Of a point, shifted by an offset in pixels; a panel of HTML, framed;

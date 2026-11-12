@@ -11,6 +11,7 @@ import {
 } from "../import/dgp_formula";
 import {
     dgoFormula,
+    embed,
     type construction_object,
     type DgoContext,
 } from "./construction_object";
@@ -165,11 +166,5 @@ export function embeddedPoint(
     refs: Map<string, construction_object>,
     vec3: boolean,
 ): formula_point_object {
-    const point = new formula_point_object(c, null, formula, refs, vec3);
-    point.parents.forEach((parent) => {
-        parent.children = parent.children.filter((child) => child !== point);
-    });
-    point.embedded = true;
-    point.computeGeometry();
-    return point;
+    return embed(new formula_point_object(c, null, formula, refs, vec3));
 }

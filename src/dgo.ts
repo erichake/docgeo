@@ -62,7 +62,11 @@ import {
 } from "./objects/fixed_angle_object";
 import { createFixedPoint } from "./objects/fixed_point_object";
 import { createListPolygon } from "./objects/list_polygon_object";
-import { createPointList } from "./objects/point_list_object";
+import {
+    createPointList,
+    embeddedList,
+    type ListTree,
+} from "./objects/point_list_object";
 import {
     createFormulaPoint,
     embeddedPoint,
@@ -296,6 +300,7 @@ export const LOOKS: Record<string, Look> = {
     Lst: LIST,
     Seq: LIST,
     Pts: LIST,
+    Fl: LIST,
     ELst: LIST,
     Itr: LIST,
     Ex: ["rgb(0,0,178)", "rgb(0,0,178)", 7, 0],
@@ -1194,15 +1199,20 @@ export function readEntries(
         value: Json,
         ...classes: C
     ): Instance<C[number]> => {
-        if (!Array.isArray(value) || value[0] !== "Fp")
+        if (!Array.isArray(value) || (value[0] !== "Fp" && value[0] !== "Fl"))
             return indexed(value, ...classes);
-        const point = embeddedPoint(
-            c,
-            ...pointFormula(list(value, 2)[1]),
-            vec3,
-        );
-        check(classes.some((type) => point instanceof type));
-        return point as Instance<C[number]>;
+        const [tag, text] = list(value, 2);
+        let object: construction_object;
+        if (tag === "Fp")
+            object = embeddedPoint(c, ...pointFormula(text), vec3);
+        else {
+            const { source, refs } = formula(text, construction_object);
+            const node = parseFormula(source);
+            checkNames(formulaIdentifiers(node), refs);
+            object = embeddedList(c, node, refs, vec3);
+        }
+        check(classes.some((type) => object instanceof type));
+        return object as Instance<C[number]>;
     };
     const points = (values: Json, count: number): point_object[] =>
         list(values, count).map((value) => at(value, point_object));
@@ -2442,13 +2452,29 @@ const BUILDERS: Record<string, Builder> = {
             reader.vec3,
         );
     },
+    // A list in it is an array of its items, a formula being a text, or an
+    // array of a text and an object, its refs.
     Pts: (parameters, reader) => {
-        check(Array.isArray(parameters) && parameters.length > 0);
+        const refs = new Map<string, construction_object>();
+        const tree = (value: Json): ListTree =>
+            Array.isArray(value) &&
+            (typeof value[1] !== "object" || Array.isArray(value[1]))
+                ? list(value, 1, Infinity).map(tree)
+                : listFormula(reader, value, refs, []);
+        return createPointList(
+            reader.c,
+            reader.name,
+            list(parameters, 1, Infinity).map(tree),
+            refs,
+            reader.vec3,
+        );
+    },
+    Fl: (parameters, reader) => {
         const refs = new Map<string, construction_object>();
         return createPointList(
             reader.c,
             reader.name,
-            parameters.map((value) => listFormula(reader, value, refs, [])),
+            listFormula(reader, list(parameters, 1)[0], refs, []),
             refs,
             reader.vec3,
         );

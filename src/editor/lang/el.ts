@@ -416,6 +416,7 @@ const el: Texts = {
         designate_solid: "Επιλέξτε ένα στερεό",
         designate_readable: "Επιλέξτε ένα αντικείμενο",
         designate_points: "Επιλέξτε μια λίστα σημείων",
+        designate_lists: "Επιλέξτε μια λίστα λιστών",
         unsupported: "Δεν εισήχθη: %",
         family_macros: "Μακροεντολές",
         new_macro: "Νέα μακροεντολή",

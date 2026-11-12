@@ -391,6 +391,7 @@ const zh_TW: Texts = {
         designate_solid: "選取一個立體圖形",
         designate_readable: "選取一個物件",
         designate_points: "選取一個點列表",
+        designate_lists: "選取一個列表的列表",
         unsupported: "未匯入：%",
         family_macros: "巨集",
         new_macro: "新增巨集",

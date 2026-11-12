@@ -410,6 +410,7 @@ const es: Texts = {
         designate_solid: "Selecciona un sólido",
         designate_readable: "Selecciona un objeto",
         designate_points: "Selecciona una lista de puntos",
+        designate_lists: "Selecciona una lista de listas",
         unsupported: "No importado: %",
         family_macros: "Macros",
         new_macro: "Nueva macro",

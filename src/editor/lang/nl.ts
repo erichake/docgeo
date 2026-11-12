@@ -412,6 +412,7 @@ const nl: Texts = {
         designate_solid: "Selecteer een ruimtefiguur",
         designate_readable: "Selecteer een object",
         designate_points: "Selecteer een lijst van punten",
+        designate_lists: "Selecteer een lijst van lijsten",
         unsupported: "Niet geïmporteerd: %",
         family_macros: "Macro's",
         new_macro: "Nieuwe macro",

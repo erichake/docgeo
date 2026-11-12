@@ -2899,6 +2899,28 @@ lignes en français dans `editor.html`. Moteur +1,08 Ko (+0,32 Ko en gzip) ;
 éditeur +1,47 Ko (+0,48 Ko en gzip), noms et messages des 12 langues
 compris.
 
+### Listes de listes — 2026-11-12
+
+Comme dans GeoGebra, décidé avec l'auteur :
+
+- `c = {{(2, 0), (1, 0.8)}, {(2, 3), A}}` : une liste de listes, un
+  `Pts` dont un élément est une liste (voir `DGO.md`, note 30). `{a, b}`
+  aussi, quand les formules `a` et `b` donnent des listes. Elle dessine
+  tous ses points ; lue dans une formule, elle vaut ses listes
+  (`c[0][1]`, `Droite(c[0][1], c[1][0])`).
+- `Élément(c, 1)`, ou `c(1)` en argument : la liste de ce rang, seule sur
+  sa ligne (`L = Élément(c, 1)`, un `Fl`) ou intégrée à l'objet qui la
+  prend (`Polygone(Élément(c, 1))`), comme un point écrit dans une
+  définition (`embeddedList`, rangée avec les points intégrés).
+- `Élément(c, 1, 2)` : le point de rang 2 de la liste de rang 1, un `Fp`
+  de formule `c[(1)-1][(2)-1]`.
+
+Le paramètre `lists` (message `designate_lists`) prend une liste qui
+contient une liste ; `points` la refuse : `Polygone(c)` n'est pas lu.
+Qu'une liste contienne des listes se lit sur sa valeur pour `{a, b}`.
+`tests/browser/point_lists.test.ts`. Moteur +0,91 Ko (+0,33 Ko en gzip) ;
+éditeur +1,02 Ko (+0,33 Ko en gzip).
+
 ### Intégration de l'éditeur dans DocShare — 2026-10-24
 
 `editor.html?embed` expose `load` et `save` par le protocole `docgeo: 1`

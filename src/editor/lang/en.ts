@@ -402,6 +402,7 @@ export default {
     designate_solid: "Designate a solid",
     designate_readable: "Designate an object",
     designate_points: "Designate a list of points",
+    designate_lists: "Designate a list of lists",
     unsupported: "Not imported: %",
     family_macros: "Macros",
     new_macro: "New macro",

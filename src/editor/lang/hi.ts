@@ -408,6 +408,7 @@ const hi: Texts = {
         designate_solid: "एक ठोस चुनें",
         designate_readable: "एक वस्तु चुनें",
         designate_points: "बिंदुओं की एक सूची चुनें",
+        designate_lists: "सूचियों की एक सूची चुनें",
         unsupported: "आयात नहीं हुआ: %",
         family_macros: "मैक्रो",
         new_macro: "नया मैक्रो",

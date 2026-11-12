@@ -417,6 +417,7 @@ const de: Texts = {
         designate_solid: "Wählen Sie einen Körper",
         designate_readable: "Wählen Sie ein Objekt",
         designate_points: "Wählen Sie eine Liste von Punkten",
+        designate_lists: "Wählen Sie eine Liste von Listen",
         unsupported: "Nicht importiert: %",
         family_macros: "Makros",
         new_macro: "Neues Makro",
