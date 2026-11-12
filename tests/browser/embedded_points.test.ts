@@ -48,6 +48,20 @@ describe("Points written in a definition", () => {
         expectClose(direction[1], 0);
     });
 
+    it("takes a formula whose value is a point, as an item of a list of coordinates", () => {
+        const c = scene();
+        type(c, "a = [[2, 0], [1, 0.8], [0, 1]]");
+        type(c, "d = Line(a[0], a[1])");
+        expect(lines(c)).toEqual([
+            "a = [[2, 0], [1, 0.8], [0, 1]]",
+            "d = Line(Point(a[0]), Point(a[1]))",
+        ]);
+        const { at, direction } = through(c, "d");
+        expectClose(at, [2, 0, 0]);
+        expectClose(direction[1] / direction[0], -0.8);
+        expect(() => type(c, "e = Line(a[0][0], a[1])")).toThrow(TextError);
+    });
+
     it("takes them in any command's point, a conic's five included", () => {
         const c = scene();
         type(c, "c = Conic((1, 2), (3, 4), (3, 1), (5, 1), (-2, 2))");

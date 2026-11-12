@@ -770,8 +770,12 @@ export function resolveArgument(
                 : line.definition?.kind === "pointFormula"
                   ? line.definition.source
                   : null;
-        if (point !== null)
-            return embeddedPoint(c, ...pointProgram(c, point), !c.GRID.is2D);
+        if (point !== null || givesPoint(c, arg.source))
+            return embeddedPoint(
+                c,
+                ...pointProgram(c, point ?? arg.source),
+                !c.GRID.is2D,
+            );
         return formulaArg(c, arg.source);
     }
     const object = c.getObj(arg.name);
@@ -1431,6 +1435,28 @@ function pointProgram(
             }),
         ),
     ];
+}
+
+// Whether a formula gives a point's coordinates, as `a[0]` for a list of
+// them, tried on an expression added and removed at once.
+function givesPoint(c: construction, source: string): boolean {
+    let spec: { overload: Overload; args: Arg[] };
+    try {
+        spec = expression(c, source);
+    } catch (error) {
+        // Not an expression: what formulaArg says of it.
+        if (error instanceof TextError) return false;
+        throw error;
+    }
+    const probe = add(c, { ...spec, name: "‧v" }, false);
+    c.flush();
+    const { value } = probe as expression_object;
+    c.removeObject(probe);
+    return (
+        Array.isArray(value) &&
+        (value.length === 2 || value.length === 3) &&
+        value.every((item) => typeof item === "number")
+    );
 }
 
 // A point computed by a formula: the coordinates, or a point, it gives.
