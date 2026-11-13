@@ -19,6 +19,7 @@ import {
 import { angle_bisector_object } from "./angle_bisector_object";
 import { primitive_arc_object } from "./primitive_arc_object";
 import { circle3pts_object, SAMPLES } from "./circle3pts_object";
+import { conic_arc_object } from "./conic_arc_object";
 import type { curve_object } from "./curve_object";
 import type { DgoContext } from "./construction_object";
 import { fixed_angle_object } from "./fixed_angle_object";
@@ -223,7 +224,8 @@ export class point_on_object extends point_object {
         const screen = this.C.pt3D(coords);
         if (!this.defined || !vIsFinite(screen)) return;
         const snapped = this.snapToMagnets(coords, screen);
-        if (snapped !== coords) this.alpha = this.alphaFor(snapped) ?? this.alpha;
+        if (snapped !== coords)
+            this.alpha = this.alphaFor(snapped) ?? this.alpha;
     }
 
     // As in DGPad: along a line or a polygon's edges, `speed` pixels per
@@ -305,8 +307,9 @@ export class point_on_object extends point_object {
     }
 
     // GeoGebra's parameter of the point on its path, its range and how to
-    // move the point to another: an angle from -π to π on a circle, from 0
-    // to 1 along an arc or a segment, an edge per unit around a polygon.
+    // move the point to another: an angle from -π to π on a circle or an
+    // ellipse (t of center + u cos t + v sin t), from 0 to 1 along an arc or
+    // a segment, an edge per unit around a polygon.
     private geogebraPath():
         [number, number, number, (t: number) => void] | null {
         const support = this.support;
@@ -324,6 +327,32 @@ export class point_on_object extends point_object {
         }
         if (support instanceof primitive_circle_object)
             return [angle(alpha + Math.PI) - Math.PI, -Math.PI, Math.PI, set];
+        if (
+            support instanceof primitive_quadric_object &&
+            support.KIND === "ellipse" &&
+            !(support instanceof conic_arc_object)
+        ) {
+            const { CENTER, AXIS_U: u, AXIS_V: v } = support;
+            const offset = vSub(this.coords, CENTER);
+            return [
+                Math.atan2(
+                    vDot(offset, v) / vDot(v, v),
+                    vDot(offset, u) / vDot(u, u),
+                ),
+                -Math.PI,
+                Math.PI,
+                (t) =>
+                    (this.alpha = support.alphaOf(
+                        vAdd(
+                            CENTER,
+                            vAdd(
+                                vScale(u, Math.cos(t)),
+                                vScale(v, Math.sin(t)),
+                            ),
+                        ),
+                    )),
+            ];
+        }
         if (support instanceof segment_object) return [alpha, 0, 1, set];
         if (support instanceof ray_line_object)
             return [alpha, 0, Infinity, set];

@@ -41,7 +41,7 @@ import { plane_intersection_object } from "../../src/objects/plane_intersection_
 import { plane_section_object } from "../../src/objects/plane_section_object";
 import { revolution_object } from "../../src/objects/revolution_object";
 import { disk_object } from "../../src/objects/disk_object";
-import { cube_vertex_object } from "../../src/objects/cube_vertex_object";
+import { polyhedron_object } from "../../src/objects/polyhedron_object";
 import { net_vertex_object } from "../../src/objects/net_vertex_object";
 import { inversion_object } from "../../src/objects/inversion_object";
 import { regular_polygon_object } from "../../src/objects/regular_polygon_object";
@@ -1593,8 +1593,8 @@ ${[1, 2, 3, 4, 5]
         expect(square.area).toBeCloseTo(16, 9);
         expect((c.getObj("s3") as segment_object).P1).toBe(c.getObj("D"));
         // Its image by a reflection, below AB.
-        const image = c.getObj("sq'") as regular_polygon_object;
-        expect(image).toBeInstanceOf(regular_polygon_object);
+        const image = c.getObj("sq'") as polygon_object;
+        expect(image).toBeInstanceOf(polygon_object);
         expectClose(
             image.points.map((point) => point.coords[1]).sort((u, v) => u - v),
             [-4, -4, 0, 0],
@@ -1778,8 +1778,8 @@ ${mirror("f", "f'", `<element type="curvecartesian" label="f'"/>`)}
             new Set(c.OBJS.V.map((object) => object.constructor));
         expect(kinds(c)).toContain(revolution_object);
         expect(kinds(c)).toContain(disk_object);
-        expect(kinds(await open("3d_plan"))).toContain(cube_vertex_object);
-        expect(kinds(await open("3d_prisme"))).toContain(translation_object);
+        expect(kinds(await open("3d_plan"))).toContain(polyhedron_object);
+        expect(kinds(await open("3d_prisme"))).toContain(polyhedron_object);
         expect(kinds(await open("_patronsCube"))).toContain(net_vertex_object);
     });
 
@@ -2560,9 +2560,6 @@ ${["90*°", "90°", "(540 / n)°", "180 / n * °"]
             [4, 0, 0],
             [0, 4, 0],
         ]);
-        const arc = c.getObj("k1") as center_arc_object;
-        expect(arc).toBeInstanceOf(center_arc_object);
-        expectClose(arc.A.coords, [0, 2, 0]);
         // A reflection reverses an arc, not a half turn.
         const inside = ([name, x, y]: [string, number, number]) =>
             (c.getObj(name) as primitive_arc_object).insideBounds([x, y, 0]);
@@ -2572,6 +2569,8 @@ ${["90*°", "90°", "(540 / n)°", "180 / n * °"]
                 [
                     ["k", r, r],
                     ["k", r, -r],
+                    ["k1", -r, r],
+                    ["k1", r, r],
                     ["k2", r, -r],
                     ["k2", r, r],
                     ["k3", -r, -r],
@@ -2584,6 +2583,8 @@ ${["90*°", "90°", "(540 / n)°", "180 / n * °"]
                 ] as [string, number, number][]
             ).map(inside),
         ).toEqual([
+            true,
+            false,
             true,
             false,
             true,
@@ -3401,17 +3402,14 @@ ${command("Translate", ["Q", "u"], ["Q1"])}
         );
         expectPoint("B1", [-2, 2, 0]);
         expectPoint("B2", [-2, 6, 0]);
-        // The translated pyramid's lateral faces meet at S + u.
+        // The translated pyramid, whose apex is S + u.
+        const q1 = c.getObj("Q1") as polyhedron_object;
+        expect(q1).toBeInstanceOf(polyhedron_object);
         expect(
-            c.OBJS.V.filter(
-                (object) =>
-                    object instanceof polygon_object &&
-                    object.points.some(
-                        (vertex) =>
-                            vNorm(vSub(vertex.coords, [0, 0, 10])) < 1e-9,
-                    ),
+            q1.vertices.some(
+                (vertex) => vNorm(vSub(vertex.coords, [0, 0, 10])) < 1e-9,
             ),
-        ).toHaveLength(4);
+        ).toBe(true);
 
         const h = c.getObj("h") as expression_object;
         h.value = 1;
@@ -3540,6 +3538,154 @@ ${values
         expect((c.getObj("U") as point_object).coords).toEqual([1, 2, 0]);
     });
 
+    it("reads polar coordinates, orthogonal vectors and path parameters", async () => {
+        const c = createConstruction();
+        const point = (label: string, exp: string) =>
+            `<expression label="${label}" exp="${exp}"/><element type="point" label="${label}"><coords x="0" y="0" z="1"/></element>`;
+        expect(
+            importGgb(
+                c,
+                `<geogebra><construction>
+<element type="point" label="A"><coords x="0" y="0" z="1"/></element>
+<element type="point" label="B"><coords x="4" y="0" z="1"/></element>
+${point("P", "A + (2; 90°)")}
+${point("Q", "B + OrthogonalVector[Vector[A, B] / 2]")}
+<command name="Segment"><input a0="A" a1="B"/><output a0="s"/></command>
+<element type="segment" label="s"/>
+<command name="Point"><input a0="s"/><output a0="M"/></command>
+<element type="point" label="M"><coords x="1" y="0" z="1"/></element>
+<expression label="k" exp="1 - PathParameter[M]"/>
+<element type="numeric" label="k"><value val="0.75"/></element>
+</construction></geogebra>`,
+            ),
+        ).toEqual([]);
+        expectClose((c.getObj("P") as point_object).coords, [0, 2, 0]);
+        expectClose((c.getObj("Q") as point_object).coords, [4, 2, 0]);
+        const k = c.getObj("k") as expression_object;
+        expect(k.value).toBeCloseTo(0.75, 9);
+        const m = c.getObj("M") as point_on_object;
+        m.alpha = m.alphaFor([3, 0, 0])!;
+        c.invalidateGeometry(m);
+        await new Promise((resolve) => requestAnimationFrame(resolve));
+        expect(k.value).toBeCloseTo(0.25, 9);
+
+        const space = createConstruction();
+        expect(
+            importGgb(
+                space,
+                `<geogebra><construction>
+<element type="point3d" label="O"><coords x="0" y="0" z="0" w="1"/></element>
+<expression label="P" exp="O + (2; 90°; 90°)"/>
+<element type="point3d" label="P"><coords x="0" y="0" z="2" w="1"/></element>
+<expression label="Q" exp="(2; 90°; 0°)"/>
+<element type="point3d" label="Q"><coords x="0" y="2" z="0" w="1"/></element>
+</construction></geogebra>`,
+            ),
+        ).toEqual([]);
+        expectClose((space.getObj("P") as point_object).coords, [0, 0, 2]);
+        expectClose((space.getObj("Q") as point_object).coords, [0, 2, 0]);
+    });
+
+    it("animates at a speed given by a number of the figure, saved in .dgo", async () => {
+        const c = createConstruction();
+        expect(
+            importGgb(
+                c,
+                `<geogebra><construction>
+<element type="numeric" label="v"><value val="3"/><slider min="0" max="5"/></element>
+<element type="numeric" label="a"><value val="1"/><slider min="0" max="10"/><animation speed="v" type="1" playing="true"/></element>
+<element type="numeric" label="b"><value val="1"/><slider min="0" max="10"/><animation speed="2 v" type="1" playing="true"/></element>
+</construction></geogebra>`,
+            ),
+        ).toEqual([]);
+        const v = c.getObj("v") as expression_object;
+        const a = c.getObj("a") as expression_object;
+        const b = c.getObj("b") as expression_object;
+        expect(a.animation).toMatchObject({ speed: 1, rate: v });
+        expect(b.animation!.rate!.value).toBe(6);
+        const restored = createConstruction();
+        readDgo(restored, await describeDgo(c));
+        expect(
+            (restored.getObj("a") as expression_object).animation!.rate,
+        ).toBe(restored.getObj("v"));
+    });
+
+    it("animates a point on an ellipse along GeoGebra's parameter", () => {
+        const c = createConstruction();
+        const r = Math.sqrt(3);
+        expect(
+            importGgb(
+                c,
+                `<geogebra><construction>
+<element type="point" label="F"><coords x="${-r}" y="0" z="1"/></element>
+<element type="point" label="G"><coords x="${r}" y="0" z="1"/></element>
+<element type="point" label="P"><coords x="0" y="1" z="1"/></element>
+<command name="Ellipse"><input a0="F" a1="G" a2="P"/><output a0="e"/></command>
+<element type="conic" label="e"/>
+<command name="Point"><input a0="e"/><output a0="M"/></command>
+<element type="point" label="M"><coords x="2" y="0" z="1"/><animation speed="1" type="1" playing="true"/></element>
+</construction></geogebra>`,
+            ),
+        ).toEqual([]);
+        // A turn in 10 s, from t = 0 to π/4.
+        const m = c.getObj("M") as point_on_object;
+        m.animate(1.25);
+        m.computeGeometry();
+        expectClose(m.coords, [Math.SQRT2, Math.SQRT1_2, 0]);
+    });
+
+    it("reads a Sequence's index named as an object, Cube(A, B, polygon)", () => {
+        const c = createConstruction();
+        expect(
+            importGgb(
+                c,
+                `<geogebra><construction>
+<element type="point" label="A"><coords x="0" y="0" z="1"/></element>
+<element type="point" label="B"><coords x="1" y="0" z="1"/></element>
+<element type="point" label="C"><coords x="0" y="1" z="1"/></element>
+<command name="Segment"><input a0="B" a1="C"/><output a0="k"/></command>
+<element type="segment" label="k"/>
+<command name="Sequence"><input a0="Polygon[A + (k, 0), B + (k, 0), C + (k, 0)]" a1="k" a2="1" a3="2"/><output a0="p"/></command>
+<element type="list" label="p"/>
+</construction></geogebra>`,
+            ),
+        ).toEqual([]);
+        const p = c.getObj("p") as list_object;
+        expect(p.nature).toBe("polygons");
+        expect(p.items.map(([value]) => value)).toEqual([
+            [1, 0],
+            [2, 0],
+            [1, 1],
+            null,
+            [2, 0],
+            [3, 0],
+            [2, 1],
+            null,
+        ]);
+
+        const space = createConstruction();
+        expect(
+            importGgb(
+                space,
+                `<geogebra><construction>
+<element type="point" label="A"><coords x="0" y="0" z="1"/></element>
+<element type="point" label="B"><coords x="1" y="0" z="1"/></element>
+<element type="point" label="C"><coords x="1" y="1" z="1"/></element>
+<command name="Polygon"><input a0="A" a1="B" a2="C"/><output a0="q"/></command>
+<element type="polygon" label="q"><layer val="1"/></element>
+<command name="Cube"><input a0="A" a1="B" a2="q"/><output a0="e" a1="C_1" a2="D" a3="E"/></command>
+<element type="polyhedron" label="e"/>
+<element type="point3d" label="C_1"><coords x="1" y="1" z="0" w="1"/></element>
+<element type="point3d" label="D"><coords x="0" y="1" z="0" w="1"/></element>
+<element type="point3d" label="E"><coords x="0" y="0" z="1" w="1"/></element>
+</construction></geogebra>`,
+            ),
+        ).toEqual([]);
+        expectClose((space.getObj("E") as point_object).coords, [0, 0, 1]);
+        // Its 3D view orders by depth alone.
+        expect(space.getObj("q")!.level).toBe(0);
+    });
+
     it("reports what it can't import instead of failing", () => {
         const c = createConstruction();
         const unsupported = importGgb(
@@ -3550,12 +3696,17 @@ ${values
 <element type="point" label="B"><coords x="2" y="2" z="1"/></element>
 <command name="Midpoint"><input a0="A" a1="B"/><output a0="M"/></command>
 <element type="point" label="M"><coords x="1.5" y="2" z="1"/></element>
+<expression label="n" exp="SelectedIndex[l] - 2"/>
+<element type="numeric" label="n"><value val="3"/></element>
 </construction></geogebra>`,
         );
         expect(unsupported).toEqual([
             "Barycenter(A, (1, 0))",
             "Midpoint(A, B)",
+            "numeric n",
         ]);
+        // Kept at its saved value.
+        expect((c.getObj("n") as expression_object).value).toBe(3);
         expect(c.getObj("A")).toBeInstanceOf(point_object);
         expect(c.getObj("B")).toBeUndefined();
     });

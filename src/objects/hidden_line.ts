@@ -552,48 +552,63 @@ function signedArea(polygon: Vec2[]): number {
 // faces share, don't order them.
 const MIN_OVERLAP = 0.5;
 
+// A polygon, or a convex solid painted as a whole: where the view ray
+// enters it tells its depth.
+type Painted = polygon_object | solid_object;
+const isSolid = (object: Painted): object is solid_object =>
+    object.familytype === "solid";
+const outlineOf = (object: Painted): Vec2[] =>
+    isSolid(object)
+        ? object.outline
+        : object.points.map((point) => point.screen);
+const depthAt = (c: construction, object: Painted, screen: Vec2) =>
+    isSolid(object) ? object.entryDepth(screen) : planeDepth(c, object, screen);
+
 // Positive if `p` is behind `q` where their projections overlap, negative
 // if in front, 0 if they don't overlap or lie in the same plane.
-function depthOrder(
-    c: construction,
-    p: polygon_object,
-    q: polygon_object,
-): number {
-    const [v0, v1, v2] = p.points.map((point) => point.coords);
-    const normal = vNormalize(vCross(vSub(v1, v0), vSub(v2, v0)));
-    if (
-        !normal ||
-        q.points.every((point) => {
-            const offset = vDot(normal, vSub(point.coords, v0));
-            return Math.abs(offset) <= geometryTolerance(offset);
-        })
-    )
-        return 0;
-    const [sp, sq] = [p, q].map((polygon) =>
-        polygon.points.map((point) => point.screen),
-    );
+function depthOrder(c: construction, p: Painted, q: Painted): number {
+    if (!isSolid(p) && !isSolid(q)) {
+        const [v0, v1, v2] = p.points.map((point) => point.coords);
+        const normal = vNormalize(vCross(vSub(v1, v0), vSub(v2, v0)));
+        if (
+            !normal ||
+            q.points.every((point) => {
+                const offset = vDot(normal, vSub(point.coords, v0));
+                return Math.abs(offset) <= geometryTolerance(offset);
+            })
+        )
+            return 0;
+    }
+    const [sp, sq] = [p, q].map(outlineOf);
     const overlap = clipPolygon(sp, sq);
     if (overlap.length < 3 || Math.abs(signedArea(overlap)) < MIN_OVERLAP)
         return 0;
     const center = vScale(overlap.reduce(vAdd), 1 / overlap.length);
     if (!pointInPolygon(center, sp) || !pointInPolygon(center, sq)) return 0;
-    const [dp, dq] = [p, q].map((polygon) => planeDepth(c, polygon, center));
+    const [dp, dq] = [p, q].map((object) => depthAt(c, object, center));
     if (dp === null || dq === null) return 0;
     const diff = dp - dq;
     return Math.abs(diff) > geometryTolerance(diff) ? Math.sign(diff) : 0;
 }
 
-// Paints the polygons farthest first wherever their projections overlap,
-// as GeoGebra's depth buffer does for faces that don't cut through each
-// other. Planes keep their own layer, beneath (see polygon_object.plane),
-// and each DGPad level its own order, as in DGPad.
+// Paints the polygons and the solids farthest first wherever their
+// projections overlap, as GeoGebra's depth buffer does for faces that don't
+// cut through each other. Planes keep their own layer, beneath (see
+// polygon_object.plane), and each DGPad level its own order, as in DGPad.
 export function paintByDepth(c: construction): void {
-    const levels = new Map<number, polygon_object[]>();
+    const levels = new Map<number, Painted[]>();
+    const add = (object: Painted) => {
+        const level = levels.get(object.level);
+        if (level) level.push(object);
+        else levels.set(object.level, [object]);
+    };
     (c.OBJS.polygons as polygon_object[]).forEach((polygon) => {
-        if (!polygon.hasView || !polygon.isVisible || polygon.plane) return;
-        const level = levels.get(polygon.level);
-        if (level) level.push(polygon);
-        else levels.set(polygon.level, [polygon]);
+        if (polygon.hasView && polygon.isVisible && !polygon.plane)
+            add(polygon);
+    });
+    (c.OBJS.solids as solid_object[]).forEach((solid) => {
+        if (solid.hasView && solid.isVisible && solid.projectionDefined)
+            add(solid);
     });
     levels.forEach((polygons, level) =>
         paintLevelByDepth(c, polygons, c.layer(level, c.prefs.polygon.layer)),
@@ -602,21 +617,29 @@ export function paintByDepth(c: construction): void {
 
 function paintLevelByDepth(
     c: construction,
-    polygons: polygon_object[],
+    polygons: Painted[],
     layer: DOMElement,
 ): void {
     const indices = new Map(polygons.map((polygon, index) => [polygon, index]));
     const nearer: number[][] = polygons.map(() => []);
     const farther = polygons.map(() => 0);
+    // The few solids are compared with everything.
+    const solids = polygons.filter(isSolid);
     polygons.forEach((p, i) => {
-        const xs = p.points.map((point) => point.screen[0]);
-        const ys = p.points.map((point) => point.screen[1]);
-        nearbyPolygons(
-            c,
-            Math.min(...xs),
-            Math.max(...xs),
-            Math.min(...ys),
-            Math.max(...ys),
+        const xs = outlineOf(p).map((screen) => screen[0]);
+        const ys = outlineOf(p).map((screen) => screen[1]);
+        (isSolid(p)
+            ? polygons
+            : [
+                  ...nearbyPolygons(
+                      c,
+                      Math.min(...xs),
+                      Math.max(...xs),
+                      Math.min(...ys),
+                      Math.max(...ys),
+                  ),
+                  ...solids,
+              ]
         ).forEach((q) => {
             const j = indices.get(q);
             if (j === undefined || j <= i) return;

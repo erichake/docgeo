@@ -776,7 +776,7 @@
                             <td>συμμετρικό του P ως προς την ευθεία d</td>
                         </tr>
                         <tr>
-                            <td rowspan="1">
+                            <td rowspan="4">
                                 <i data-t="Rotation"></i> <strong>Στροφή</strong
                                 ><br /><small>Rotation</small>
                             </td>
@@ -787,7 +787,30 @@
                             </td>
                         </tr>
                         <tr>
-                            <td rowspan="1">
+                            <td class="syntax"><code>Στροφή(P, a)</code></td>
+                            <td>
+                                εικόνα του P με τη στροφή κέντρου την αρχή και
+                                γωνίας a
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="syntax"><code>Στροφή(d, P, a)</code></td>
+                            <td>
+                                σε 3D, εικόνα του P με τη στροφή γύρω από την
+                                ευθεία d κατά γωνία a
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="syntax">
+                                <code>Στροφή(A, d, P, a)</code>
+                            </td>
+                            <td>
+                                σε 3D, εικόνα του P με τη στροφή γύρω από την
+                                παράλληλη προς τη d από το A κατά γωνία a
+                            </td>
+                        </tr>
+                        <tr>
+                            <td rowspan="2">
                                 <i data-t="Translation"></i>
                                 <strong>Μεταφορά</strong><br /><small
                                     >Translation</small
@@ -795,6 +818,15 @@
                             </td>
                             <td class="syntax"><code>Μεταφορά(u, P)</code></td>
                             <td>εικόνα του P με μεταφορά κατά το διάνυσμα u</td>
+                        </tr>
+                        <tr>
+                            <td class="syntax">
+                                <code>Μεταφορά(k*(B-A), P)</code>
+                            </td>
+                            <td>
+                                εικόνα του P με τη μεταφορά κατά διάνυσμα που
+                                δίνεται από τύπο, εδώ k (B − A)
+                            </td>
                         </tr>
                         <tr>
                             <td rowspan="1">
@@ -973,7 +1005,7 @@
                             </td>
                         </tr>
                         <tr>
-                            <td rowspan="1">
+                            <td rowspan="2">
                                 <i data-t="Prism"></i> <strong>Πρίσμα</strong
                                 ><br /><small>Prism</small>
                             </td>
@@ -984,7 +1016,11 @@
                             </td>
                         </tr>
                         <tr>
-                            <td rowspan="1">
+                            <td class="syntax"><code>Πρίσμα(p, h)</code></td>
+                            <td>πρίσμα με βάση το πολύγωνο p και ύψος h</td>
+                        </tr>
+                        <tr>
+                            <td rowspan="2">
                                 <i data-t="Pyramid"></i>
                                 <strong>Πυραμίδα</strong><br /><small
                                     >Pyramid</small
@@ -992,6 +1028,13 @@
                             </td>
                             <td class="syntax"><code>Πυραμίδα(p, S)</code></td>
                             <td>πυραμίδα με βάση το πολύγωνο p και κορυφή S</td>
+                        </tr>
+                        <tr>
+                            <td class="syntax"><code>Πυραμίδα(p, h)</code></td>
+                            <td>
+                                πυραμίδα με βάση το πολύγωνο p, με κορυφή σε
+                                ύψος h πάνω από το κέντρο των κορυφών της
+                            </td>
                         </tr>
                         <tr>
                             <td rowspan="1">

@@ -386,6 +386,7 @@ const hi: Texts = {
         designate_line: "एक रेखा चुनें",
         designate_segment: "एक रेखाखंड चुनें",
         designate_vector: "एक सदिश चुनें",
+        designate_shift: "एक बिंदु चुनें",
         designate_polygon: "एक बहुभुज चुनें",
         designate_faceted: "एक बहुभुज या बहुफलक चुनें",
         designate_tangible: "एक वृत्त या शांकव चुनें",

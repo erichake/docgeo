@@ -392,6 +392,7 @@ const el: Texts = {
         designate_line: "Επιλέξτε μια ευθεία",
         designate_segment: "Επιλέξτε ένα τμήμα",
         designate_vector: "Επιλέξτε ένα διάνυσμα",
+        designate_shift: "Επιλέξτε ένα σημείο",
         designate_polygon: "Επιλέξτε ένα πολύγωνο",
         designate_faceted: "Επιλέξτε ένα πολύγωνο ή ένα πολύεδρο",
         designate_tangible: "Επιλέξτε έναν κύκλο ή μια κωνική τομή",

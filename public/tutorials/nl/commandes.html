@@ -786,7 +786,7 @@
                             </td>
                         </tr>
                         <tr>
-                            <td rowspan="1">
+                            <td rowspan="4">
                                 <i data-t="Rotation"></i>
                                 <strong>Draaiing</strong><br /><small
                                     >Rotation</small
@@ -802,7 +802,32 @@
                             </td>
                         </tr>
                         <tr>
-                            <td rowspan="1">
+                            <td class="syntax"><code>Draaiing(P, a)</code></td>
+                            <td>
+                                beeld van P bij de draaiing om de oorsprong over
+                                de hoek a
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="syntax">
+                                <code>Draaiing(d, P, a)</code>
+                            </td>
+                            <td>
+                                in 3D: beeld van P bij de draaiing om de rechte
+                                d over de hoek a
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="syntax">
+                                <code>Draaiing(A, d, P, a)</code>
+                            </td>
+                            <td>
+                                in 3D: beeld van P bij de draaiing om de
+                                evenwijdige aan d door A over de hoek a
+                            </td>
+                        </tr>
+                        <tr>
+                            <td rowspan="2">
                                 <i data-t="Translation"></i>
                                 <strong>Verschuiving</strong><br /><small
                                     >Translation</small
@@ -814,6 +839,15 @@
                             <td>
                                 beeld van P door de verschuiving over de vector
                                 u
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="syntax">
+                                <code>Verschuiving(k*(B-A), P)</code>
+                            </td>
+                            <td>
+                                beeld van P bij de verschuiving over een vector
+                                gegeven door een formule, hier k (B − A)
                             </td>
                         </tr>
                         <tr>
@@ -980,7 +1014,7 @@
                             </td>
                         </tr>
                         <tr>
-                            <td rowspan="1">
+                            <td rowspan="2">
                                 <i data-t="Prism"></i> <strong>Prisma</strong
                                 ><br /><small>Prism</small>
                             </td>
@@ -991,7 +1025,14 @@
                             </td>
                         </tr>
                         <tr>
-                            <td rowspan="1">
+                            <td class="syntax"><code>Prisma(p, h)</code></td>
+                            <td>
+                                prisma met de veelhoek p als grondvlak en hoogte
+                                h
+                            </td>
+                        </tr>
+                        <tr>
+                            <td rowspan="2">
                                 <i data-t="Pyramid"></i>
                                 <strong>Piramide</strong><br /><small
                                     >Pyramid</small
@@ -1000,6 +1041,13 @@
                             <td class="syntax"><code>Piramide(p, S)</code></td>
                             <td>
                                 piramide met grondvlak de veelhoek p en top S
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="syntax"><code>Piramide(p, h)</code></td>
+                            <td>
+                                piramide met de veelhoek p als grondvlak, de top
+                                op hoogte h boven het midden van de hoekpunten
                             </td>
                         </tr>
                         <tr>

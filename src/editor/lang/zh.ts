@@ -369,6 +369,7 @@ const zh: Texts = {
         designate_line: "选择一条直线",
         designate_segment: "选择一条线段",
         designate_vector: "选择一个向量",
+        designate_shift: "选择一个点",
         designate_polygon: "选择一个多边形",
         designate_faceted: "选择一个多边形或多面体",
         designate_tangible: "选择一个圆或圆锥曲线",

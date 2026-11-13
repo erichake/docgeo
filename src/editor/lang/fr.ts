@@ -384,6 +384,7 @@ const fr: Texts = {
         designate_line: "Désignez une droite",
         designate_segment: "Désignez un segment",
         designate_vector: "Désignez un vecteur",
+        designate_shift: "Désignez un point",
         designate_polygon: "Désignez un polygone",
         designate_faceted: "Désignez un polygone ou un polyèdre",
         designate_tangible: "Désignez un cercle ou une conique",

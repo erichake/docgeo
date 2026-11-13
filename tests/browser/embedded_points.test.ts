@@ -137,6 +137,9 @@ describe("Points written in a definition", () => {
     it("is only taken where a point is", () => {
         const c = scene();
         type(c, "u = (1, 1)");
-        expect(() => type(c, "t = Translation((1, 2), u)")).toThrow(TextError);
+        expect(() => type(c, "t = Reflection((1, 2), u)")).toThrow(TextError);
+        // A translation's vector, as its position vector.
+        type(c, "t = Translation((1, 2), u)");
+        expect(lines(c)[1]).toBe("t = Translation([1, 2], u)");
     });
 });

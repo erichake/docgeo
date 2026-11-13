@@ -376,6 +376,7 @@ const ar: Texts = {
         designate_line: "حدّد مستقيمًا",
         designate_segment: "حدّد قطعة مستقيمة",
         designate_vector: "حدّد متجهًا",
+        designate_shift: "حدّد نقطة",
         designate_polygon: "حدّد مضلعًا",
         designate_faceted: "حدّد مضلعًا أو متعدد سطوح",
         designate_tangible: "حدّد دائرة أو قطعًا مخروطيًا",

@@ -21,6 +21,8 @@ import { plane_object } from "../objects/plane_object";
 import { revolution_object } from "../objects/revolution_object";
 import { straightImage } from "../objects/transformed_object";
 import { STYLE_NUMBER } from "../import/dgp_expression";
+import { formulaSource } from "../import/dgp_formula";
+import type { formula_point_object } from "../objects/formula_point_object";
 import { TEXTS } from "./messages";
 import { formatName } from "./text";
 
@@ -95,6 +97,9 @@ export type Param =
     | "lists"
     // Any object: what a checkbox shows.
     | "any"
+    // What translates, besides a vector: a formula giving one, or a
+    // point's position vector.
+    | "shift"
     // Written between quotes.
     | "text";
 
@@ -182,7 +187,7 @@ export function kindOf(object: construction_object): Kind {
 
 export function accepts(arg: Arg, param: Param): boolean {
     if (typeof arg === "number") return param === "number" || param === "real";
-    if (arg instanceof FormulaArg) return param === "real";
+    if (arg instanceof FormulaArg) return param === "real" || param === "shift";
     if (arg instanceof TextArg) return param === "text";
     if (
         arg.embedded &&
@@ -191,7 +196,9 @@ export function accepts(arg: Arg, param: Param): boolean {
                 ? arg.nested
                     ? "lists"
                     : "points"
-                : "point")
+                : param === "shift"
+                  ? "shift"
+                  : "point")
     )
         return false;
     const kind = kindOf(arg);
@@ -212,6 +219,8 @@ export function accepts(arg: Arg, param: Param): boolean {
             return arg instanceof segment_object;
         case "vector":
             return arg instanceof vector_object;
+        case "shift":
+            return kind === "point";
         case "tangible":
             return kind === "circle" || kind === "conic";
         case "graph":
@@ -524,6 +533,43 @@ function withReal(tag: string, params: Param[]): Overload {
                 ...objects.map(at),
                 realArgument(parameters[params.length], at),
             ];
+        },
+    };
+}
+
+// Around the origin, an axis, or the axis through a point parallel to a
+// line, as GeoGebra's Rotate(obj, a), Rotate(obj, a, d) and
+// Rotate(obj, a, A, d): its center, the object, the angle and its axis.
+function rotation(center: boolean, axis: boolean): Overload {
+    const params: Param[] = [
+        ...(center ? ["point" as const] : []),
+        ...(axis ? ["line" as const] : []),
+    ];
+    return {
+        params: [...params, "transformable", "real"],
+        tag: "Rot",
+        encode: (args, index) => {
+            const [o, d] = (center ? args : [null, ...args]).map(
+                (arg) => arg && index(arg as construction_object),
+            );
+            return [
+                o,
+                index(args[params.length] as construction_object),
+                realParameter(args[params.length + 1], index),
+                ...(axis ? [d] : []),
+            ];
+        },
+        decode: (parameters, at) => {
+            if (
+                !Array.isArray(parameters) ||
+                parameters.length !== (axis ? 4 : 3) ||
+                (parameters[0] !== null) !== center
+            )
+                return null;
+            const [o, source, angle, d] = parameters;
+            const objects = [...(center ? [o] : []), ...(axis ? [d] : [])];
+            if (![...objects, source].every(isIndex)) return null;
+            return [...objects.map(at), at(source), realArgument(angle, at)];
         },
     };
 }
@@ -960,7 +1006,12 @@ export const COMMANDS: Command[] = [
     // in DGPad: around O by an angle, of center O and ratio k, by u.
     {
         name: "Rotation",
-        overloads: [withReal("Rot", ["point", "transformable"])],
+        overloads: [
+            withReal("Rot", ["point", "transformable"]),
+            rotation(false, false),
+            rotation(false, true),
+            rotation(true, true),
+        ],
     },
     {
         name: "Dilation",
@@ -968,7 +1019,44 @@ export const COMMANDS: Command[] = [
     },
     {
         name: "Translation",
-        overloads: [objects("Tra", ["vector", "transformable"])],
+        overloads: [
+            objects("Tra", ["vector", "transformable"]),
+            {
+                params: ["shift", "transformable"],
+                tag: "Tra",
+                // A point written in the line, as the formula it holds.
+                encode: ([shift, object], index) => {
+                    const point = shift as formula_point_object;
+                    return [
+                        shift instanceof FormulaArg
+                            ? realParameter(shift, index)
+                            : point.embedded
+                              ? realParameter(
+                                    new FormulaArg(
+                                        formulaSource(point.formula),
+                                        point.refs,
+                                    ),
+                                    index,
+                                )
+                              : index(point),
+                        index(object as construction_object),
+                    ];
+                },
+                decode: (parameters, at) => {
+                    if (!Array.isArray(parameters) || parameters.length !== 2)
+                        return null;
+                    const [shift, object] = parameters;
+                    return isIndex(object)
+                        ? [
+                              isIndex(shift)
+                                  ? at(shift)
+                                  : realArgument(shift, at),
+                              at(object),
+                          ]
+                        : null;
+                },
+            },
+        ],
     },
     // A line or a circle through the center, mapped to a line, is marked.
     {
@@ -1038,8 +1126,21 @@ export const COMMANDS: Command[] = [
             sided("CubZ", ["point", "point"]),
         ],
     },
-    { name: "Prism", overloads: [objects("Prsm", ["polygon", "point"])] },
-    { name: "Pyramid", overloads: [objects("Pyr", ["polygon", "point"])] },
+    // On a polygon, by a point or of a height h.
+    {
+        name: "Prism",
+        overloads: [
+            objects("Prsm", ["polygon", "point"]),
+            withReal("PrsH", ["polygon"]),
+        ],
+    },
+    {
+        name: "Pyramid",
+        overloads: [
+            objects("Pyr", ["polygon", "point"]),
+            withReal("PyrH", ["polygon"]),
+        ],
+    },
     // Through three points, or a point and a line; through a point,
     // parallel to a plane or orthogonal to a line.
     {

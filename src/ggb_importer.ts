@@ -28,6 +28,7 @@ export function importGgb(
         handles,
         nameShifts,
         animations,
+        rates,
         startAnimation,
         unsupported,
         is3D,
@@ -61,6 +62,12 @@ export function importGgb(
         const at = object?.nameAt();
         if (at) object!.nameOffset = object!.anchorName(vAdd(at, shift));
     });
+    rates.forEach(
+        (rate, variable) =>
+            (animations.get(variable)!.rate = variables.get(
+                rate,
+            ) as expression_object),
+    );
     animations.forEach((animation, variable) =>
         c.animations.add(
             variables.get(variable) as point_on_object | expression_object,

@@ -186,7 +186,11 @@ export class objects_collector {
             if (object.projectionDirty) {
                 object.project();
                 object.projectionDirty = false;
-                if (object.familytype === "polygon") polygonsProjected = true;
+                if (
+                    object.familytype === "polygon" ||
+                    object.familytype === "solid"
+                )
+                    polygonsProjected = true;
             }
         });
         objects.forEach((object) => {

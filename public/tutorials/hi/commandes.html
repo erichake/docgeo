@@ -773,7 +773,7 @@
                             <td>रेखा d के सापेक्ष P का प्रतिबिम्ब</td>
                         </tr>
                         <tr>
-                            <td rowspan="1">
+                            <td rowspan="4">
                                 <i data-t="Rotation"></i> <strong>घूर्णन</strong
                                 ><br /><small>Rotation</small>
                             </td>
@@ -784,7 +784,30 @@
                             </td>
                         </tr>
                         <tr>
-                            <td rowspan="1">
+                            <td class="syntax"><code>घूर्णन(P, a)</code></td>
+                            <td>
+                                मूलबिंदु के परितः कोण a से घूर्णन द्वारा P का
+                                प्रतिबिंब
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="syntax"><code>घूर्णन(d, P, a)</code></td>
+                            <td>
+                                3D में, रेखा d के परितः कोण a से घूर्णन द्वारा P
+                                का प्रतिबिंब
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="syntax">
+                                <code>घूर्णन(A, d, P, a)</code>
+                            </td>
+                            <td>
+                                3D में, A से होकर d के समांतर रेखा के परितः कोण
+                                a से घूर्णन द्वारा P का प्रतिबिंब
+                            </td>
+                        </tr>
+                        <tr>
+                            <td rowspan="2">
                                 <i data-t="Translation"></i>
                                 <strong>स्थानांतरण</strong><br /><small
                                     >Translation</small
@@ -794,6 +817,15 @@
                                 <code>स्थानांतरण(u, P)</code>
                             </td>
                             <td>सदिश u वाले स्थानांतरण से P का प्रतिबिम्ब</td>
+                        </tr>
+                        <tr>
+                            <td class="syntax">
+                                <code>स्थानांतरण(k*(B-A), P)</code>
+                            </td>
+                            <td>
+                                किसी सूत्र से दिए गए सदिश (यहाँ k (B − A)) से
+                                स्थानांतरण द्वारा P का प्रतिबिंब
+                            </td>
                         </tr>
                         <tr>
                             <td rowspan="1">
@@ -949,7 +981,7 @@
                             </td>
                         </tr>
                         <tr>
-                            <td rowspan="1">
+                            <td rowspan="2">
                                 <i data-t="Prism"></i> <strong>प्रिज़्म</strong
                                 ><br /><small>Prism</small>
                             </td>
@@ -960,12 +992,23 @@
                             </td>
                         </tr>
                         <tr>
-                            <td rowspan="1">
+                            <td class="syntax"><code>प्रिज़्म(p, h)</code></td>
+                            <td>बहुभुज p आधार और ऊँचाई h वाला प्रिज़्म</td>
+                        </tr>
+                        <tr>
+                            <td rowspan="2">
                                 <i data-t="Pyramid"></i> <strong>पिरामिड</strong
                                 ><br /><small>Pyramid</small>
                             </td>
                             <td class="syntax"><code>पिरामिड(p, S)</code></td>
                             <td>आधार बहुभुज p और शीर्ष S वाला पिरामिड</td>
+                        </tr>
+                        <tr>
+                            <td class="syntax"><code>पिरामिड(p, h)</code></td>
+                            <td>
+                                बहुभुज p आधार वाला पिरामिड, जिसका शीर्ष उसके
+                                शीर्षों के केंद्र से ऊँचाई h पर है
+                            </td>
                         </tr>
                         <tr>
                             <td rowspan="1">

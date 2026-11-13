@@ -654,7 +654,7 @@
                             <td>P 关于直线 d 的对称图形</td>
                         </tr>
                         <tr>
-                            <td rowspan="1">
+                            <td rowspan="4">
                                 <i data-t="Rotation"></i> <strong>旋转</strong
                                 ><br /><small>Rotation</small>
                             </td>
@@ -665,7 +665,23 @@
                             </td>
                         </tr>
                         <tr>
-                            <td rowspan="1">
+                            <td class="syntax"><code>旋转(P, a)</code></td>
+                            <td>P 绕原点旋转角 a 的像</td>
+                        </tr>
+                        <tr>
+                            <td class="syntax"><code>旋转(d, P, a)</code></td>
+                            <td>三维中，P 绕直线 d 旋转角 a 的像</td>
+                        </tr>
+                        <tr>
+                            <td class="syntax">
+                                <code>旋转(A, d, P, a)</code>
+                            </td>
+                            <td>
+                                三维中，P 绕过 A 且平行于 d 的直线旋转角 a 的像
+                            </td>
+                        </tr>
+                        <tr>
+                            <td rowspan="2">
                                 <i data-t="Translation"></i>
                                 <strong>平移</strong><br /><small
                                     >Translation</small
@@ -673,6 +689,15 @@
                             </td>
                             <td class="syntax"><code>平移(u, P)</code></td>
                             <td>P 在向量 u 的平移下的像</td>
+                        </tr>
+                        <tr>
+                            <td class="syntax">
+                                <code>平移(k*(B-A), P)</code>
+                            </td>
+                            <td>
+                                P 经由公式给出的向量（此处为 k (B −
+                                A)）平移后的像
+                            </td>
                         </tr>
                         <tr>
                             <td rowspan="1">
@@ -812,7 +837,7 @@
                             </td>
                         </tr>
                         <tr>
-                            <td rowspan="1">
+                            <td rowspan="2">
                                 <i data-t="Prism"></i> <strong>棱柱</strong
                                 ><br /><small>Prism</small>
                             </td>
@@ -822,12 +847,23 @@
                             </td>
                         </tr>
                         <tr>
-                            <td rowspan="1">
+                            <td class="syntax"><code>棱柱(p, h)</code></td>
+                            <td>以多边形 p 为底、高为 h 的棱柱</td>
+                        </tr>
+                        <tr>
+                            <td rowspan="2">
                                 <i data-t="Pyramid"></i> <strong>棱锥</strong
                                 ><br /><small>Pyramid</small>
                             </td>
                             <td class="syntax"><code>棱锥(p, S)</code></td>
                             <td>以多边形 p 为底面、S 为顶点的棱锥</td>
+                        </tr>
+                        <tr>
+                            <td class="syntax"><code>棱锥(p, h)</code></td>
+                            <td>
+                                以多边形 p
+                                为底的棱锥，顶点位于其各顶点中心上方高 h 处
+                            </td>
                         </tr>
                         <tr>
                             <td rowspan="1">

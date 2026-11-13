@@ -14,6 +14,8 @@ import {
     type Vec2,
     type Vec3,
 } from "../vec";
+import { above_object } from "./above_object";
+import { dgoRadius, type circle1_radius } from "./circle1_object";
 import type { construction_object, DgoContext } from "./construction_object";
 import { point_object } from "./point_object";
 import {
@@ -28,7 +30,9 @@ import { convexHull } from "./sphere_object";
 // The cube on the square ABCD of plane ABC, on the side of AB × BC, or
 // of a plane, or horizontal, on the side of its normal, or up, times
 // `side` (1 or -1); the prism of a base polygon whose first vertex is
-// translated to P; the pyramid of a base polygon and an apex S.
+// translated to P; the pyramid of a base polygon and an apex S; of
+// height h, as GeoGebra's Prism(poly, h) and Pyramid(poly, h), the prism's
+// first top vertex or the pyramid's apex at height h (see above_object).
 export type polyhedron_definition =
     | { tag: "Cube"; points: [point_object, point_object, point_object] }
     | {
@@ -39,6 +43,7 @@ export type polyhedron_definition =
       }
     | { tag: "CubZ"; points: [point_object, point_object]; side: number }
     | { tag: "Prsm" | "Pyr"; base: polygon_object; point: point_object }
+    | { tag: "PrsH" | "PyrH"; base: polygon_object; height: circle1_radius }
     // An image by a transformation: these vertices, on these faces (see
     // transformed_object.ts).
     | { tag: "Map"; vertices: point_object[]; faces: number[][] };
@@ -87,6 +92,8 @@ export class polyhedron_object extends solid_object {
     faces: number[][];
     // Those it computes, outside the figure.
     private own: point_object[] = [];
+    // Its vertex at height h.
+    private above: above_object | null = null;
     // Their outward unit normals, and whether they face the camera.
     private normals: Vec3[] = [];
     private facing: boolean[] = [];
@@ -116,13 +123,23 @@ export class polyhedron_object extends solid_object {
             this.addParents(...definition.points);
             if (definition.tag === "CubP") this.addParents(definition.plane);
         } else {
-            const { base, point } = definition;
+            const { base } = definition;
+            const point =
+                "point" in definition
+                    ? definition.point
+                    : (this.above = new above_object(
+                          c,
+                          null,
+                          base,
+                          definition.height,
+                          definition.tag === "PyrH" ? -1 : 0,
+                      ));
             const n = base.vertices.length;
             const ring = (offset: number) =>
                 Array.from({ length: n }, (_, i) => i + offset);
             const bottom = ring(0);
             const next = (i: number) => (i + 1) % n;
-            if (definition.tag === "Pyr") {
+            if (definition.tag === "Pyr" || definition.tag === "PyrH") {
                 this.vertices = [...base.vertices, point];
                 this.faces = [bottom, ...bottom.map((i) => [i, next(i), n])];
             } else {
@@ -133,7 +150,15 @@ export class polyhedron_object extends solid_object {
                     ring(n),
                 ];
             }
-            this.addParents(base, point);
+            // Its vertex at height h is its own, not its parent.
+            this.addParents(
+                base,
+                ...("point" in definition
+                    ? [point]
+                    : typeof definition.height === "number"
+                      ? []
+                      : definition.height.refs.values()),
+            );
         }
     }
 
@@ -142,6 +167,11 @@ export class polyhedron_object extends solid_object {
             polyhedron_definition,
             { tag: "Map" }
         >;
+        if ("height" in d)
+            return [
+                d.tag,
+                [context.index(d.base), dgoRadius(d.height, context)],
+            ];
         if (!("points" in d))
             return [d.tag, [d.base, d.point].map(context.index)];
         const points = d.points.map(context.index);
@@ -157,6 +187,7 @@ export class polyhedron_object extends solid_object {
 
     computeGeometry(): void {
         const d = this.definition;
+        this.above?.computeGeometry();
         this.defined = [...this.parents, ...this.vertices].every(
             (parent) => parent.defined,
         );
@@ -180,7 +211,7 @@ export class polyhedron_object extends solid_object {
                 return;
             }
             vertices.forEach((point, i) => (coords[i + 2] = point));
-        } else if (d.tag === "Prsm") {
+        } else if (d.tag === "Prsm" || d.tag === "PrsH") {
             const n = d.base.vertices.length;
             const shift = vSub(coords[n], coords[0]);
             for (let i = 1; i < n; i++) coords[n + i] = vAdd(coords[i], shift);

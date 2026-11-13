@@ -380,6 +380,7 @@ export default {
     designate_line: "Designate a line",
     designate_segment: "Designate a segment",
     designate_vector: "Designate a vector",
+    designate_shift: "Designate a point",
     designate_polygon: "Designate a polygon",
     designate_faceted: "Designate a polygon or a polyhedron",
     designate_tangible: "Designate a circle or a conic",

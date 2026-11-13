@@ -785,7 +785,7 @@
                             <td>Spiegelbild von P an der Geraden d</td>
                         </tr>
                         <tr>
-                            <td rowspan="1">
+                            <td rowspan="4">
                                 <i data-t="Rotation"></i>
                                 <strong>Drehung</strong><br /><small
                                     >Rotation</small
@@ -800,7 +800,32 @@
                             </td>
                         </tr>
                         <tr>
-                            <td rowspan="1">
+                            <td class="syntax"><code>Drehung(P, a)</code></td>
+                            <td>
+                                Bild von P bei der Drehung um den Ursprung mit
+                                dem Winkel a
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="syntax">
+                                <code>Drehung(d, P, a)</code>
+                            </td>
+                            <td>
+                                in 3D: Bild von P bei der Drehung um die Gerade
+                                d mit dem Winkel a
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="syntax">
+                                <code>Drehung(A, d, P, a)</code>
+                            </td>
+                            <td>
+                                in 3D: Bild von P bei der Drehung um die
+                                Parallele zu d durch A mit dem Winkel a
+                            </td>
+                        </tr>
+                        <tr>
+                            <td rowspan="2">
                                 <i data-t="Translation"></i>
                                 <strong>Verschiebung</strong><br /><small
                                     >Translation</small
@@ -811,6 +836,15 @@
                             </td>
                             <td>
                                 Bild von P bei der Verschiebung um den Vektor u
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="syntax">
+                                <code>Verschiebung(k*(B-A), P)</code>
+                            </td>
+                            <td>
+                                Bild von P bei der Verschiebung um einen durch
+                                eine Formel gegebenen Vektor, hier k (B − A)
                             </td>
                         </tr>
                         <tr>
@@ -976,7 +1010,7 @@
                             </td>
                         </tr>
                         <tr>
-                            <td rowspan="1">
+                            <td rowspan="2">
                                 <i data-t="Prism"></i> <strong>Prisma</strong
                                 ><br /><small>Prism</small>
                             </td>
@@ -987,7 +1021,14 @@
                             </td>
                         </tr>
                         <tr>
-                            <td rowspan="1">
+                            <td class="syntax"><code>Prisma(p, h)</code></td>
+                            <td>
+                                Prisma mit dem Vieleck p als Grundfläche und der
+                                Höhe h
+                            </td>
+                        </tr>
+                        <tr>
+                            <td rowspan="2">
                                 <i data-t="Pyramid"></i>
                                 <strong>Pyramide</strong><br /><small
                                     >Pyramid</small
@@ -997,6 +1038,14 @@
                             <td>
                                 Pyramide mit dem Vieleck p als Grundfläche und
                                 der Spitze S
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="syntax"><code>Pyramide(p, h)</code></td>
+                            <td>
+                                Pyramide mit dem Vieleck p als Grundfläche, die
+                                Spitze in der Höhe h über dem Mittelpunkt ihrer
+                                Ecken
                             </td>
                         </tr>
                         <tr>

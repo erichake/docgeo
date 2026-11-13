@@ -719,7 +719,7 @@
                             <td>مماثل P بالنسبة إلى المستقيم d</td>
                         </tr>
                         <tr>
-                            <td rowspan="1">
+                            <td rowspan="4">
                                 <i data-t="Rotation"></i> <strong>دوران</strong
                                 ><br /><small>Rotation</small>
                             </td>
@@ -730,7 +730,27 @@
                             </td>
                         </tr>
                         <tr>
-                            <td rowspan="1">
+                            <td class="syntax"><code>دوران(P, a)</code></td>
+                            <td>صورة P بالدوران حول المبدأ بالزاوية a</td>
+                        </tr>
+                        <tr>
+                            <td class="syntax"><code>دوران(d, P, a)</code></td>
+                            <td>
+                                في الفضاء، صورة P بالدوران حول المستقيم d
+                                بالزاوية a
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="syntax">
+                                <code>دوران(A, d, P, a)</code>
+                            </td>
+                            <td>
+                                في الفضاء، صورة P بالدوران حول الموازي لـ d
+                                المار بـ A بالزاوية a
+                            </td>
+                        </tr>
+                        <tr>
+                            <td rowspan="2">
                                 <i data-t="Translation"></i>
                                 <strong>انسحاب</strong><br /><small
                                     >Translation</small
@@ -738,6 +758,14 @@
                             </td>
                             <td class="syntax"><code>انسحاب(u, P)</code></td>
                             <td>صورة P بالانسحاب الذي متجهه u</td>
+                        </tr>
+                        <tr>
+                            <td class="syntax">
+                                <code>انسحاب(k*(B-A), P)</code>
+                            </td>
+                            <td>
+                                صورة P بالانسحاب بمتجه تعطيه صيغة، هنا k (B − A)
+                            </td>
                         </tr>
                         <tr>
                             <td rowspan="1">
@@ -892,7 +920,7 @@
                             </td>
                         </tr>
                         <tr>
-                            <td rowspan="1">
+                            <td rowspan="2">
                                 <i data-t="Prism"></i> <strong>موشور</strong
                                 ><br /><small>Prism</small>
                             </td>
@@ -902,12 +930,23 @@
                             </td>
                         </tr>
                         <tr>
-                            <td rowspan="1">
+                            <td class="syntax"><code>موشور(p, h)</code></td>
+                            <td>موشور قاعدته المضلع p وارتفاعه h</td>
+                        </tr>
+                        <tr>
+                            <td rowspan="2">
                                 <i data-t="Pyramid"></i> <strong>هرم</strong
                                 ><br /><small>Pyramid</small>
                             </td>
                             <td class="syntax"><code>هرم(p, S)</code></td>
                             <td>هرم قاعدته المضلع p ورأسه S</td>
+                        </tr>
+                        <tr>
+                            <td class="syntax"><code>هرم(p, h)</code></td>
+                            <td>
+                                هرم قاعدته المضلع p، رأسه على ارتفاع h فوق مركز
+                                رؤوسها
+                            </td>
                         </tr>
                         <tr>
                             <td rowspan="1">

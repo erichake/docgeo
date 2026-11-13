@@ -13,7 +13,14 @@ import { createCenterArc } from "../objects/center_arc_object";
 import { createConicArc } from "../objects/conic_arc_object";
 import { createSemicircle } from "../objects/semicircle_object";
 import { createInversion } from "../objects/inversion_object";
-import type { transformable } from "../objects/transformed_object";
+import {
+    createTransformed,
+    type transformable,
+} from "../objects/transformed_object";
+import {
+    createPolyhedron,
+    type polyhedron_object,
+} from "../objects/polyhedron_object";
 import { createRegularPolygon } from "../objects/regular_polygon_object";
 import { createTriangleCenter } from "../objects/triangle_center_object";
 import { createVertex } from "../objects/vertex_object";
@@ -22,13 +29,11 @@ import { createPlaneLine } from "../objects/plane_line_object";
 import { createNormalLine } from "../objects/normal_line_object";
 import { createSphereSection } from "../objects/sphere_section_object";
 import { createPlaneSection } from "../objects/plane_section_object";
-import { createCubeVertex } from "../objects/cube_vertex_object";
 import {
     createRevolution,
     type revolution_object,
 } from "../objects/revolution_object";
 import { createDisk } from "../objects/disk_object";
-import { createAbove } from "../objects/above_object";
 import { createNetVertex, type net_turn } from "../objects/net_vertex_object";
 import { createTangent, type tangent_support } from "../objects/tangent_object";
 import { createCenter } from "../objects/center_object";
@@ -121,17 +126,17 @@ import {
     type Equation,
 } from "../objects/equation_conic_object";
 import { createEquationLine } from "../objects/equation_line_object";
-import { createDilation } from "../objects/dilation_object";
-import { createRotation } from "../objects/rotation_object";
+import { dilation_object } from "../objects/dilation_object";
+import { rotation_object } from "../objects/rotation_object";
 import {
-    createTranslation,
+    translation_object,
     type translation_vector,
 } from "../objects/translation_object";
 import { createRay } from "../objects/ray_line_object";
-import { createReflection } from "../objects/reflection_object";
+import { reflection_object } from "../objects/reflection_object";
 import { createSegment, segment_object } from "../objects/segment_object";
 import { createSphere, type sphere_object } from "../objects/sphere_object";
-import { createSymmetry } from "../objects/symmetry_object";
+import { symmetry_object } from "../objects/symmetry_object";
 import {
     createLine,
     two_points_line_object,
@@ -180,7 +185,8 @@ type ObjectKind =
     | "curve"
     | "text"
     | "image"
-    | "button";
+    | "button"
+    | "polyhedron";
 type ParameterKind =
     | "string"
     | "number"
@@ -581,6 +587,50 @@ function radiusArgument(
         refs: formulaRefs(formulaIdentifiers(node), context.variables),
     };
 }
+
+// The image of a point, or of an object (see transformed_object.ts), by
+// the map making a point's.
+function image(
+    c: construction,
+    name: string,
+    source: point_object | transformable,
+    map: (name: string | null, point: point_object) => point_object,
+): construction_object {
+    return source instanceof point_object
+        ? c.add(map(name, source))
+        : createTransformed(c, name, source, (point) => map(null, point));
+}
+
+// Of the kind of the object it maps, the `at`-th argument.
+const imageKind =
+    (at: number) =>
+    (args: DgpValue[], variables: Map<string, ObjectKind>): ObjectKind => {
+        const kind = variables.get((args[at] as { name: string }).name)!;
+        return kind === "pointOn" ? "point" : kind;
+    };
+
+const polyhedronOn = (
+    tag: "Prsm" | "Pyr" | "PrsH" | "PyrH",
+    second: Parameter,
+): CommandDefinition => ({
+    parameters: [string, object, second],
+    result: "polyhedron",
+    validate:
+        second === formula
+            ? (args, lineNumber, variables) =>
+                  validateRadius(args[2], lineNumber, variables)
+            : undefined,
+    execute: (context, args) => {
+        const base = args[1] as polygon_object;
+        return createPolyhedron(
+            context.construction,
+            args[0] as string,
+            tag === "PrsH" || tag === "PyrH"
+                ? { tag, base, height: radiusArgument(args[2], context) }
+                : { tag, base, point: args[2] as point_object },
+        );
+    },
+});
 
 // Of foci F and G, through a point or of a semi-major axis.
 const focalConic = (
@@ -2079,39 +2129,6 @@ const COMMANDS = new Map<string, CommandDefinition>([
             ["x", "y", "z"],
         ),
     ],
-    [
-        "CubeVertex",
-        {
-            parameters: [string, point, point, object, number],
-            result: "point",
-            execute: (context, args) =>
-                createCubeVertex(
-                    context.construction,
-                    args[0] as string,
-                    args[1] as point_object,
-                    args[2] as point_object,
-                    args[3] as point_object | plane_object,
-                    args[4] as number,
-                ),
-        },
-    ],
-    [
-        "Above",
-        {
-            parameters: [string, object, formula, number],
-            result: "point",
-            validate: (args, lineNumber, variables) =>
-                validateRadius(args[2], lineNumber, variables),
-            execute: (context, args) =>
-                createAbove(
-                    context.construction,
-                    args[0] as string,
-                    args[1] as polygon_object,
-                    radiusArgument(args[2], context),
-                    args[3] as number,
-                ),
-        },
-    ],
     // Its turns' points, by fours.
     [
         "NetVertex",
@@ -2262,11 +2279,47 @@ const COMMANDS = new Map<string, CommandDefinition>([
                 createVertex(
                     context.construction,
                     args[0] as string,
-                    args[1] as polygon_object,
+                    args[1] as polygon_object | polyhedron_object,
                     args[2] as number,
                 ),
         },
     ],
+    // GeoGebra's cube on the square ABCD of plane ABC, on the side of
+    // AB × BC, or parallel to a polygon or a plane, on the side of its
+    // normal.
+    [
+        "Cube",
+        {
+            parameters: [string, point, point, object],
+            result: "polyhedron",
+            execute: (context, args) => {
+                const [name, a, b, third] = args as [
+                    string,
+                    point_object,
+                    point_object,
+                    point_object | polygon_object,
+                ];
+                return createPolyhedron(
+                    context.construction,
+                    name,
+                    third instanceof point_object
+                        ? { tag: "Cube", points: [a, b, third] }
+                        : {
+                              tag: "CubP",
+                              points: [a, b],
+                              plane: third,
+                              side: 1,
+                          },
+                );
+            },
+        },
+    ],
+    // On a polygon, by a point, its apex or its first top vertex, or of a
+    // height.
+    ["Prism", polyhedronOn("Prsm", point)],
+    ["Pyramid", polyhedronOn("Pyr", point)],
+    ["PrismHeight", polyhedronOn("PrsH", formula)],
+    ["PyramidHeight", polyhedronOn("PyrH", formula)],
     // Of a point or an object, `straight` when a line or a circle through
     // the center is mapped to a line.
     [
@@ -2377,18 +2430,21 @@ const COMMANDS = new Map<string, CommandDefinition>([
     [
         "Rotation",
         {
-            parameters: [string, point, formula, { ...point, optional: true }],
-            result: "point",
+            parameters: [string, object, formula, { ...point, optional: true }],
+            result: imageKind(1),
             validate: (args, lineNumber, variables) =>
                 validateRadius(args[2], lineNumber, variables),
-            execute: (context, args) =>
-                createRotation(
-                    context.construction,
+            execute: (context, args) => {
+                const c = context.construction;
+                const center = (args[3] as point_object | undefined) ?? null;
+                const angle = radiusArgument(args[2], context);
+                return image(
+                    c,
                     args[0] as string,
-                    (args[3] as point_object | undefined) ?? null,
                     args[1] as point_object,
-                    radiusArgument(args[2], context),
-                ),
+                    (name, p) => new rotation_object(c, name, center, p, angle),
+                );
+            },
         },
     ],
     [
@@ -2396,71 +2452,87 @@ const COMMANDS = new Map<string, CommandDefinition>([
         {
             parameters: [
                 string,
-                point,
+                object,
                 formula,
                 line,
                 { ...point, optional: true },
             ],
-            result: "point",
+            result: imageKind(1),
             validate: (args, lineNumber, variables) =>
                 validateRadius(args[2], lineNumber, variables),
-            execute: (context, args) =>
-                createRotation(
-                    context.construction,
+            execute: (context, args) => {
+                const c = context.construction;
+                const center = (args[4] as point_object | undefined) ?? null;
+                const angle = radiusArgument(args[2], context);
+                const axis = args[3] as primitive_line_object;
+                return image(
+                    c,
                     args[0] as string,
-                    (args[4] as point_object | undefined) ?? null,
                     args[1] as point_object,
-                    radiusArgument(args[2], context),
-                    args[3] as primitive_line_object,
-                ),
+                    (name, p) =>
+                        new rotation_object(c, name, center, p, angle, axis),
+                );
+            },
         },
     ],
     [
         "Dilation",
         {
-            parameters: [string, point, formula, { ...point, optional: true }],
-            result: "point",
+            parameters: [string, object, formula, { ...point, optional: true }],
+            result: imageKind(1),
             validate: (args, lineNumber, variables) =>
                 validateRadius(args[2], lineNumber, variables),
-            execute: (context, args) =>
-                createDilation(
-                    context.construction,
+            execute: (context, args) => {
+                const c = context.construction;
+                const center = (args[3] as point_object | undefined) ?? null;
+                const ratio = radiusArgument(args[2], context);
+                return image(
+                    c,
                     args[0] as string,
-                    (args[3] as point_object | undefined) ?? null,
                     args[1] as point_object,
-                    radiusArgument(args[2], context),
-                ),
+                    (name, p) => new dilation_object(c, name, center, p, ratio),
+                );
+            },
         },
     ],
     // By a vector or a point's position vector, or by a formula.
     [
         "Translation",
         {
-            parameters: [string, point, object],
-            result: "point",
-            execute: (context, args) =>
-                createTranslation(
-                    context.construction,
+            parameters: [string, object, object],
+            result: imageKind(1),
+            execute: (context, args) => {
+                const c = context.construction;
+                const vector = args[2] as translation_vector;
+                return image(
+                    c,
                     args[0] as string,
-                    args[2] as translation_vector,
                     args[1] as point_object,
-                ),
+                    (name, p) => new translation_object(c, name, vector, p),
+                );
+            },
         },
     ],
     [
         "Translation1",
         {
-            parameters: [string, point, formula],
-            result: "point",
+            parameters: [string, object, formula],
+            result: imageKind(1),
             validate: (args, lineNumber, variables) =>
                 validateRadius(args[2], lineNumber, variables),
-            execute: (context, args) =>
-                createTranslation(
-                    context.construction,
+            execute: (context, args) => {
+                const c = context.construction;
+                const vector = radiusArgument(
+                    args[2],
+                    context,
+                ) as translation_vector;
+                return image(
+                    c,
                     args[0] as string,
-                    radiusArgument(args[2], context) as translation_vector,
                     args[1] as point_object,
-                ),
+                    (name, p) => new translation_object(c, name, vector, p),
+                );
+            },
         },
     ],
     [
@@ -2889,29 +2961,35 @@ const COMMANDS = new Map<string, CommandDefinition>([
     [
         "Symmetry",
         {
-            parameters: [string, point, point],
-            result: "point",
-            execute: (context, args) =>
-                createSymmetry(
-                    context.construction,
+            parameters: [string, point, object],
+            result: imageKind(2),
+            execute: (context, args) => {
+                const c = context.construction;
+                const center = args[1] as point_object;
+                return image(
+                    c,
                     args[0] as string,
-                    args[1] as point_object,
                     args[2] as point_object,
-                ),
+                    (name, p) => new symmetry_object(c, name, center, p),
+                );
+            },
         },
     ],
     [
         "Reflection",
         {
-            parameters: [string, line, point],
-            result: "point",
-            execute: (context, args) =>
-                createReflection(
-                    context.construction,
+            parameters: [string, line, object],
+            result: imageKind(2),
+            execute: (context, args) => {
+                const c = context.construction;
+                const axis = args[1] as primitive_line_object;
+                return image(
+                    c,
                     args[0] as string,
-                    args[1] as primitive_line_object,
                     args[2] as point_object,
-                ),
+                    (name, p) => new reflection_object(c, name, axis, p),
+                );
+            },
         },
     ],
     [
@@ -3874,10 +3952,12 @@ function resolveValue(
 
 // `is3D` starts the figure in 3D without SetCoords' legacy origin pinning
 // (see CommandContext): used by imports whose points carry a real z.
+// A GeoGebra figure says beforehand whether it is in space, a DGPad one in
+// its SetCoords.
 export function executeDgpCommands(
     c: construction,
     calls: DgpCall[],
-    is3D = false,
+    is3D?: boolean,
 ): { variables: Map<string, construction_object>; unsupported: string[] } {
     return withObjects(
         new Set(calls.flatMap((call) => call.variable ?? [])),
@@ -3888,7 +3968,7 @@ export function executeDgpCommands(
 function executeCalls(
     c: construction,
     calls: DgpCall[],
-    is3D: boolean,
+    is3D: boolean | undefined,
 ): { variables: Map<string, construction_object>; unsupported: string[] } {
     const { valid, unsupported } = validateCalls(
         orderStyleTargets(
@@ -3899,6 +3979,9 @@ function executeCalls(
             ),
         ),
     );
+    // Before the images, built in the plane or in space (see
+    // createTransformed).
+    if (is3D === false) c.GRID.is2D = true;
     // DGPad is in degrees unless the figure says otherwise, in its
     // SetGeneralStyle, which comes after the objects that depend on it.
     c.degrees = true;
@@ -3914,8 +3997,8 @@ function executeCalls(
         variables: new Map(),
         gridChanged: false,
         projectionChanged: false,
-        is3D,
-        origin3DAssigned: is3D,
+        is3D: is3D ?? false,
+        origin3DAssigned: is3D ?? false,
         labelOrigin: [0, 0],
     };
 

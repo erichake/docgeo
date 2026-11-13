@@ -425,6 +425,8 @@ la figure, autour de la verticale de O dans l'espace, sa hauteur gardée),
 | `CubZ`  | cube sur AB, carré ABCD horizontal                                          | `[A, B, ±1]` (20, 21)                           |
 | `Prsm`  | prisme sur un polygone, jusqu'à P                                           | `[polygone, P]` (21)                            |
 | `Pyr`   | pyramide sur un polygone, de sommet S                                       | `[polygone, S]` (21)                            |
+| `PrsH`  | prisme sur un polygone, de hauteur h (31)                                   | `[polygone, h]`                                 |
+| `PyrH`  | pyramide sur un polygone, de hauteur h (31)                                 | `[polygone, h]`                                 |
 | `Pl`    | plan passant par A, B et C                                                  | `[A, B, C]` (19)                                |
 | `PlP`   | plan par A parallèle à un plan                                              | `[A, plan]` (19)                                |
 | `PlL`   | plan par A contenant d                                                      | `[A, d]` (19)                                   |
@@ -767,6 +769,11 @@ alignement]]` police, `[30, url, l, h, zoom, opacité, u]` image (largeur
     `Élément(c, i)`, de formule `c[(i)-1]`, pour une liste de listes c.
     Le point `Élément(c, i, j)` est un `Fp` de formule
     `c[(i)-1][(j)-1]`.
+31. Ajoutés le 2026-11-13, comme `Prism(poly, h)` et `Pyramid(poly, h)` de
+    GeoGebra : h, nombre ou formule, est la hauteur du premier sommet du
+    haut au-dessus du premier sommet de la base, ou celle du sommet
+    au-dessus du centre de ses sommets, le long de la normale de la base
+    tournée vers le haut (comme `Abv`). Ces sommets sont propres au solide.
 
 ### Macro-constructions
 
@@ -990,8 +997,9 @@ recopiée. Les mêmes règles valent pour ajouter des macros à « Mes macros »
 ### Styles `st`
 
 Pour chaque objet, les seules clés qui diffèrent de leur défaut, figé ici.
-S'y ajoutent `sc` (condition d'affichage : indice d'une expression) et `mg`
-(aimants : `[[indice, rayon en pixels], …]`), qui peuvent désigner un objet
+S'y ajoutent `sc` (condition d'affichage : indice d'une expression), `mg`
+(aimants : `[[indice, rayon en pixels], …]`) et `av` (vitesse variable d'une
+animation : indice d'une expression, voir `an`), qui peuvent désigner un objet
 postérieur.
 
 | Clé  | Objets                   | Contenu                                  | Défaut                            |
@@ -1085,38 +1093,45 @@ en cinquantièmes de l'intervalle d'un curseur par seconde (par pas entiers
 s'il en a un), en unités par seconde pour un autre nombre.
 Avec le drapeau GeoGebra à 1, comme dans GeoGebra : à la vitesse 1, un curseur
 parcourt son intervalle et un point sur objet son chemin en 10 s, selon le
-paramètre de GeoGebra ramené de 0 à 1 (angle de -π à π sur un cercle, de 0 à 1
-sur un arc ou un segment, une unité par côté d'un polygone, les droites,
-demi-droites et courbes infinies comprimées comme le fait son `PathNormalizer`).
+paramètre de GeoGebra ramené de 0 à 1 (angle de -π à π sur un cercle, t de
+`centre + u cos t + v sin t` de -π à π sur une ellipse, u et v ses demi-axes,
+de 0 à 1 sur un arc ou un segment, une unité par côté d'un polygone, les
+droites, demi-droites et courbes infinies comprimées comme le fait son
+`PathNormalizer`).
+Depuis le 2026-11-13, la clé de style `av`, indice d'une expression, rend la
+vitesse variable comme celle de GeoGebra, qui peut dépendre de la figure : la
+vitesse effective est celle de `an` (1 pour une figure GeoGebra) multipliée
+par la valeur courante de l'expression, son signe inversant le sens. Sans
+`av`, la vitesse reste constante.
 
 Défauts par type : `[remplissage, trait, taille, opacité]` (opacité absente :
 non définie).
 
-| Types                                                                     | Défauts                                   |
-| ------------------------------------------------------------------------- | ----------------------------------------- |
-| `Pt`, `On`, `DirP`                                                        | `rgb(255,255,255)`, `rgb(80,80,80)`, 6, 0 |
-| `Fix`, `Fp`, `Mid`, `Int`, `CyI`, `PlI`, `Ctr`, `Sym`, `Refl`             | `rgb(180,180,180)`, `rgb(80,80,80)`, 6, 0 |
-| `Rot`, `Dil`, `Tra`, `Inv`, `TC`, `Vtx`                                   | `rgb(180,180,180)`, `rgb(80,80,80)`, 6, 0 |
-| `CubV`, `Abv`, `NetV`                                                     | `rgb(180,180,180)`, `rgb(80,80,80)`, 6, 0 |
-| `Line`, `Par`, `Perp`, `Med`, `EqL`, `Tan`, `PlPl`, `Nrm`                 | `rgb(35,141,227)`, `rgb(80,80,80)`, 2     |
-| `Ray`, `Bis`                                                              | `rgb(35,141,227)`, `#993300`, 2           |
-| `Seg`, `Vec`, `VecF`                                                      | `rgb(35,141,227)`, `rgb(180,80,80)`, 4    |
-| `FA`                                                                      | `#006633`, `#006633`, 1, 0                |
-| `Ang`                                                                     | `#006633`, `#006633`, 4, 0                |
-| `Cir`, `C1`, `CAx`, `C3`, `C3p`, `C3s`, `Arc`, `Sec`, `CyS`, `EqC`        | `#CC66CC`, `#CC66CC`, 2, 0                |
-| `CArc`, `CSec`, `Semi`, `SphC`, `Disk`                                    | `#CC66CC`, `#CC66CC`, 2, 0                |
-| `Arcs`, `Secs`, `CArcs`, `CSecs`, `QArc`, `QSec`                          | `#CC66CC`, `#CC66CC`, 2, 0                |
-| `Quad`, `Ell`, `Ell1`, `Hyp`, `Hyp1`, `Prb`, `EqQ`                        | `#CC66CC`, `#CC66CC`, 2, 0                |
-| `Sph`, `Sph1`, `Poly`, `RegP`, `PlS`                                      | `rgb(35,141,227)`, `rgb(80,80,80)`, 2, 0  |
-| `Cyl`, `Cone`, `Cube`, `CubP`, `CubZ`, `Prsm`, `Pyr`, `Net` (opacité 0,4) | `rgb(35,141,227)`, `rgb(80,80,80)`, 2     |
-| `Pl`, `PlP`, `PlL`, `PlO`, `PlE` (`pl` : 1)                               | `rgb(35,141,227)`, `rgb(80,80,80)`, 2, 0  |
-| `Loc`, `Cur`                                                              | `#0b5b94`, `#0b5b94`, 2                   |
-| `Lst`, `ELst`, `Itr`                                                      | `#656148`, `#656148`, 2                   |
-| `Ex`                                                                      | `rgb(0,0,178)`, `rgb(0,0,178)`, 7, 0      |
-| `Txt`                                                                     | `#000000`, `#000000`, 1                   |
-| `Img` (une épaisseur non nulle dessine son cadre)                         | `#000000`, `#000000`, 0                   |
-| `Html`                                                                    | `#000000`, `#000000`, 3                   |
-| `Btn` (bord : `c` à `lo`, épaisseur `s` ; fond : `fc` à `o`)              | `#000000`, `#000000`, 1, 0,05             |
+| Types                                                                                     | Défauts                                   |
+| ----------------------------------------------------------------------------------------- | ----------------------------------------- |
+| `Pt`, `On`, `DirP`                                                                        | `rgb(255,255,255)`, `rgb(80,80,80)`, 6, 0 |
+| `Fix`, `Fp`, `Mid`, `Int`, `CyI`, `PlI`, `Ctr`, `Sym`, `Refl`                             | `rgb(180,180,180)`, `rgb(80,80,80)`, 6, 0 |
+| `Rot`, `Dil`, `Tra`, `Inv`, `TC`, `Vtx`                                                   | `rgb(180,180,180)`, `rgb(80,80,80)`, 6, 0 |
+| `CubV`, `Abv`, `NetV`                                                                     | `rgb(180,180,180)`, `rgb(80,80,80)`, 6, 0 |
+| `Line`, `Par`, `Perp`, `Med`, `EqL`, `Tan`, `PlPl`, `Nrm`                                 | `rgb(35,141,227)`, `rgb(80,80,80)`, 2     |
+| `Ray`, `Bis`                                                                              | `rgb(35,141,227)`, `#993300`, 2           |
+| `Seg`, `Vec`, `VecF`                                                                      | `rgb(35,141,227)`, `rgb(180,80,80)`, 4    |
+| `FA`                                                                                      | `#006633`, `#006633`, 1, 0                |
+| `Ang`                                                                                     | `#006633`, `#006633`, 4, 0                |
+| `Cir`, `C1`, `CAx`, `C3`, `C3p`, `C3s`, `Arc`, `Sec`, `CyS`, `EqC`                        | `#CC66CC`, `#CC66CC`, 2, 0                |
+| `CArc`, `CSec`, `Semi`, `SphC`, `Disk`                                                    | `#CC66CC`, `#CC66CC`, 2, 0                |
+| `Arcs`, `Secs`, `CArcs`, `CSecs`, `QArc`, `QSec`                                          | `#CC66CC`, `#CC66CC`, 2, 0                |
+| `Quad`, `Ell`, `Ell1`, `Hyp`, `Hyp1`, `Prb`, `EqQ`                                        | `#CC66CC`, `#CC66CC`, 2, 0                |
+| `Sph`, `Sph1`, `Poly`, `RegP`, `PlS`                                                      | `rgb(35,141,227)`, `rgb(80,80,80)`, 2, 0  |
+| `Cyl`, `Cone`, `Cube`, `CubP`, `CubZ`, `Prsm`, `Pyr`, `PrsH`, `PyrH`, `Net` (opacité 0,4) | `rgb(35,141,227)`, `rgb(80,80,80)`, 2     |
+| `Pl`, `PlP`, `PlL`, `PlO`, `PlE` (`pl` : 1)                                               | `rgb(35,141,227)`, `rgb(80,80,80)`, 2, 0  |
+| `Loc`, `Cur`                                                                              | `#0b5b94`, `#0b5b94`, 2                   |
+| `Lst`, `ELst`, `Itr`                                                                      | `#656148`, `#656148`, 2                   |
+| `Ex`                                                                                      | `rgb(0,0,178)`, `rgb(0,0,178)`, 7, 0      |
+| `Txt`                                                                                     | `#000000`, `#000000`, 1                   |
+| `Img` (une épaisseur non nulle dessine son cadre)                                         | `#000000`, `#000000`, 0                   |
+| `Html`                                                                                    | `#000000`, `#000000`, 3                   |
+| `Btn` (bord : `c` à `lo`, épaisseur `s` ; fond : `fc` à `o`)                              | `#000000`, `#000000`, 1, 0,05             |
 
 ## État élève
 

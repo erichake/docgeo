@@ -388,6 +388,7 @@ const nl: Texts = {
         designate_line: "Selecteer een rechte",
         designate_segment: "Selecteer een lijnstuk",
         designate_vector: "Selecteer een vector",
+        designate_shift: "Selecteer een punt",
         designate_polygon: "Selecteer een veelhoek",
         designate_faceted: "Selecteer een veelhoek of een veelvlak",
         designate_tangible: "Selecteer een cirkel of een kegelsnede",

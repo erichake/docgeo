@@ -761,7 +761,7 @@
                             <td>symétrique de P par rapport à la droite d</td>
                         </tr>
                         <tr>
-                            <td rowspan="1">
+                            <td rowspan="4">
                                 <i data-t="Rotation"></i>
                                 <strong>Rotation</strong>
                             </td>
@@ -775,7 +775,32 @@
                             </td>
                         </tr>
                         <tr>
-                            <td rowspan="1">
+                            <td class="syntax"><code>Rotation(P, a)</code></td>
+                            <td>
+                                image de P par la rotation de centre l’origine
+                                et d’angle a
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="syntax">
+                                <code>Rotation(d, P, a)</code>
+                            </td>
+                            <td>
+                                en 3D, image de P par la rotation d’axe la
+                                droite d et d’angle a
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="syntax">
+                                <code>Rotation(A, d, P, a)</code>
+                            </td>
+                            <td>
+                                en 3D, image de P par la rotation d’axe la
+                                parallèle à d passant par A et d’angle a
+                            </td>
+                        </tr>
+                        <tr>
+                            <td rowspan="2">
                                 <i data-t="Translation"></i>
                                 <strong>Translation</strong>
                             </td>
@@ -783,6 +808,15 @@
                                 <code>Translation(u, P)</code>
                             </td>
                             <td>image de P par la translation de vecteur u</td>
+                        </tr>
+                        <tr>
+                            <td class="syntax">
+                                <code>Translation(k*(B-A), P)</code>
+                            </td>
+                            <td>
+                                image de P par la translation de vecteur donné
+                                par une formule, ici k (B − A)
+                            </td>
                         </tr>
                         <tr>
                             <td rowspan="1">
@@ -942,7 +976,7 @@
                             </td>
                         </tr>
                         <tr>
-                            <td rowspan="1">
+                            <td rowspan="2">
                                 <i data-t="Prism"></i> <strong>Prisme</strong
                                 ><br /><small>Prism</small>
                             </td>
@@ -953,7 +987,13 @@
                             </td>
                         </tr>
                         <tr>
-                            <td rowspan="1">
+                            <td class="syntax"><code>Prisme(p, h)</code></td>
+                            <td>
+                                prisme de base le polygone p et de hauteur h
+                            </td>
+                        </tr>
+                        <tr>
+                            <td rowspan="2">
                                 <i data-t="Pyramid"></i>
                                 <strong>Pyramide</strong><br /><small
                                     >Pyramid</small
@@ -962,6 +1002,13 @@
                             <td class="syntax"><code>Pyramide(p, S)</code></td>
                             <td>
                                 pyramide de base le polygone p et de sommet S
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="syntax"><code>Pyramide(p, h)</code></td>
+                            <td>
+                                pyramide de base le polygone p, de sommet à la
+                                hauteur h au-dessus du centre de ses sommets
                             </td>
                         </tr>
                         <tr>

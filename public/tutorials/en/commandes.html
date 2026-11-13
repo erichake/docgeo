@@ -706,7 +706,7 @@
                             <td>reflection of P in the line d</td>
                         </tr>
                         <tr>
-                            <td rowspan="1">
+                            <td rowspan="4">
                                 <i data-t="Rotation"></i>
                                 <strong>Rotation</strong>
                             </td>
@@ -720,7 +720,32 @@
                             </td>
                         </tr>
                         <tr>
-                            <td rowspan="1">
+                            <td class="syntax"><code>Rotation(P, a)</code></td>
+                            <td>
+                                image of P by the rotation about the origin
+                                through the angle a
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="syntax">
+                                <code>Rotation(d, P, a)</code>
+                            </td>
+                            <td>
+                                in 3D, image of P by the rotation about the line
+                                d through the angle a
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="syntax">
+                                <code>Rotation(A, d, P, a)</code>
+                            </td>
+                            <td>
+                                in 3D, image of P by the rotation about the line
+                                through A parallel to d, through the angle a
+                            </td>
+                        </tr>
+                        <tr>
+                            <td rowspan="2">
                                 <i data-t="Translation"></i>
                                 <strong>Translation</strong>
                             </td>
@@ -729,6 +754,15 @@
                             </td>
                             <td>
                                 image of P by the translation by the vector u
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="syntax">
+                                <code>Translation(k*(B-A), P)</code>
+                            </td>
+                            <td>
+                                image of P by the translation whose vector is
+                                given by a formula, here k (B − A)
                             </td>
                         </tr>
                         <tr>
@@ -878,7 +912,7 @@
                             </td>
                         </tr>
                         <tr>
-                            <td rowspan="1">
+                            <td rowspan="2">
                                 <i data-t="Prism"></i> <strong>Prism</strong>
                             </td>
                             <td class="syntax"><code>Prism(p, P)</code></td>
@@ -888,12 +922,23 @@
                             </td>
                         </tr>
                         <tr>
-                            <td rowspan="1">
+                            <td class="syntax"><code>Prism(p, h)</code></td>
+                            <td>prism on the polygon p, of height h</td>
+                        </tr>
+                        <tr>
+                            <td rowspan="2">
                                 <i data-t="Pyramid"></i>
                                 <strong>Pyramid</strong>
                             </td>
                             <td class="syntax"><code>Pyramid(p, S)</code></td>
                             <td>pyramid with base the polygon p and apex S</td>
+                        </tr>
+                        <tr>
+                            <td class="syntax"><code>Pyramid(p, h)</code></td>
+                            <td>
+                                pyramid on the polygon p, its apex at height h
+                                above the center of its vertices
+                            </td>
                         </tr>
                         <tr>
                             <td rowspan="1">

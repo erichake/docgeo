@@ -285,6 +285,8 @@ export const LOOKS: Record<string, Look> = {
     CubZ: SOLID,
     Prsm: SOLID,
     Pyr: SOLID,
+    PrsH: SOLID,
+    PyrH: SOLID,
     Net: SOLID,
     Poly: POLYGON,
     PolyL: POLYGON,
@@ -901,6 +903,11 @@ export function dgoEntry(
 ): unknown[] {
     const style = describe(STYLE, object, lookTag(object, tag));
     if (object.condition) style.sc = context.index(object.condition);
+    const rate =
+        (object instanceof point_on_object ||
+            object instanceof expression_object) &&
+        object.animation?.rate;
+    if (rate) style.av = context.index(rate);
     if (object instanceof point_object && object.magnets.length)
         style.mg = object.magnets.map(({ target, radius }) => [
             context.index(target),
@@ -1107,8 +1114,16 @@ export function addDgoEntries(
             return chosen;
         },
     );
-    // Conditions and magnets may name later objects.
-    styled.forEach(([object, { sc: condition, mg: magnets }]) => {
+    // Conditions, magnets and animation rates may name later objects.
+    styled.forEach(([object, { sc: condition, mg: magnets, av: rate }]) => {
+        if (rate !== undefined) {
+            check(
+                (object instanceof point_on_object ||
+                    object instanceof expression_object) &&
+                    object.animation,
+            );
+            object.animation.rate = at(rate, expression_object);
+        }
         if (condition !== undefined) {
             object.condition = at(condition, expression_object);
             object.addParents(object.condition);
@@ -1408,7 +1423,12 @@ function readMethod(method: Json, count: number, styles: Json[]): MacroMethod {
             if (styleIndex === undefined) return [tag, name, parameters];
             check(Number.isInteger(styleIndex));
             const style = styles[styleIndex as number];
-            check(isRecord(style) && !own(style, "sc") && !own(style, "mg"));
+            check(
+                isRecord(style) &&
+                    !own(style, "sc") &&
+                    !own(style, "mg") &&
+                    !own(style, "av"),
+            );
             return [tag, name, parameters, style];
         }),
         finals: finals as number[],
@@ -1503,16 +1523,19 @@ function radius(value: Json, { formula }: Reader): circle1_radius {
     return { formula: node, refs };
 }
 
-// A prism or a pyramid on a polygon, by a point.
+// A prism or a pyramid on a polygon, by a point or of a height.
 const onPolygon =
-    (tag: "Prsm" | "Pyr"): Builder =>
-    (parameters, { c, name, at }) => {
-        const [base, point] = list(parameters, 2);
-        return createPolyhedron(c, name, {
-            tag,
-            base: at(base, polygon_object),
-            point: at(point, point_object),
-        });
+    (tag: "Prsm" | "Pyr" | "PrsH" | "PyrH"): Builder =>
+    (parameters, reader) => {
+        const [base, other] = list(parameters, 2);
+        const polygon = reader.at(base, polygon_object);
+        return createPolyhedron(
+            reader.c,
+            reader.name,
+            tag === "Prsm" || tag === "Pyr"
+                ? { tag, base: polygon, point: reader.at(other, point_object) }
+                : { tag, base: polygon, height: radius(other, reader) },
+        );
     };
 
 // A cylinder or a cone of axis AB and radius r.
@@ -2150,6 +2173,8 @@ const BUILDERS: Record<string, Builder> = {
     },
     Prsm: onPolygon("Prsm"),
     Pyr: onPolygon("Pyr"),
+    PrsH: onPolygon("PrsH"),
+    PyrH: onPolygon("PyrH"),
     Net: (parameters, reader) => {
         const [solid, value] = list(parameters, 2);
         return createNet(

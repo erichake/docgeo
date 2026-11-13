@@ -774,7 +774,7 @@
                             <td>simétrico de P respecto de la recta d</td>
                         </tr>
                         <tr>
-                            <td rowspan="1">
+                            <td rowspan="4">
                                 <i data-t="Rotation"></i>
                                 <strong>Rotación</strong><br /><small
                                     >Rotation</small
@@ -789,7 +789,32 @@
                             </td>
                         </tr>
                         <tr>
-                            <td rowspan="1">
+                            <td class="syntax"><code>Rotación(P, a)</code></td>
+                            <td>
+                                imagen de P por la rotación de centro el origen
+                                y ángulo a
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="syntax">
+                                <code>Rotación(d, P, a)</code>
+                            </td>
+                            <td>
+                                en 3D, imagen de P por la rotación de eje la
+                                recta d y ángulo a
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="syntax">
+                                <code>Rotación(A, d, P, a)</code>
+                            </td>
+                            <td>
+                                en 3D, imagen de P por la rotación de eje la
+                                paralela a d por A y ángulo a
+                            </td>
+                        </tr>
+                        <tr>
+                            <td rowspan="2">
                                 <i data-t="Translation"></i>
                                 <strong>Traslación</strong><br /><small
                                     >Translation</small
@@ -799,6 +824,15 @@
                                 <code>Traslación(u, P)</code>
                             </td>
                             <td>imagen de P por la traslación de vector u</td>
+                        </tr>
+                        <tr>
+                            <td class="syntax">
+                                <code>Traslación(k*(B-A), P)</code>
+                            </td>
+                            <td>
+                                imagen de P por la traslación de vector dado por
+                                una fórmula, aquí k (B − A)
+                            </td>
                         </tr>
                         <tr>
                             <td rowspan="1">
@@ -965,7 +999,7 @@
                             </td>
                         </tr>
                         <tr>
-                            <td rowspan="1">
+                            <td rowspan="2">
                                 <i data-t="Prism"></i> <strong>Prisma</strong
                                 ><br /><small>Prism</small>
                             </td>
@@ -976,7 +1010,11 @@
                             </td>
                         </tr>
                         <tr>
-                            <td rowspan="1">
+                            <td class="syntax"><code>Prisma(p, h)</code></td>
+                            <td>prisma de base el polígono p y altura h</td>
+                        </tr>
+                        <tr>
+                            <td rowspan="2">
                                 <i data-t="Pyramid"></i>
                                 <strong>Pirámide</strong><br /><small
                                     >Pyramid</small
@@ -984,6 +1022,13 @@
                             </td>
                             <td class="syntax"><code>Pirámide(p, S)</code></td>
                             <td>pirámide de base el polígono p y vértice S</td>
+                        </tr>
+                        <tr>
+                            <td class="syntax"><code>Pirámide(p, h)</code></td>
+                            <td>
+                                pirámide de base el polígono p, con el vértice a
+                                la altura h sobre el centro de sus vértices
+                            </td>
                         </tr>
                         <tr>
                             <td rowspan="1">

@@ -2,10 +2,13 @@ import type { construction } from "./construction";
 import { $, type DOMElement } from "./dom";
 import { t } from "./i18n";
 import type { construction_object } from "./objects/construction_object";
+import type { expression_object } from "./objects/expression_object";
 
 // DGPad's animation of an object: at a `speed` its type defines (see its
 // animate method), in a `direction` 1 or -1, back and forth (`ar`) or around,
-// or with GeoGebra's "increasing once", stopped at the end (`once`).
+// or with GeoGebra's "increasing once", stopped at the end (`once`), its
+// speed times the value of `rate`, if any, as GeoGebra's may depend on the
+// figure.
 // GeoGebra's `speed` runs through a slider's range, or a path from one end
 // to the other, in 10 s at 1.
 export interface Animation {
@@ -14,6 +17,7 @@ export interface Animation {
     ar: boolean;
     once?: boolean;
     geogebra?: boolean;
+    rate?: expression_object;
 }
 
 export interface animated_object extends construction_object {
@@ -108,7 +112,10 @@ export class animations {
         const seconds = this.time === null ? 0 : (time - this.time) / 1000;
         this.time = time;
         this.objects.forEach((object) => {
-            object.animate(seconds);
+            const rate = object.animation!.rate;
+            object.animate(
+                rate ? seconds * (Number(rate.value) || 0) : seconds,
+            );
             this.c.gesture(object, "drag");
         });
         this.c.flush();

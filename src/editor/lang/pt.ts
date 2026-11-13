@@ -386,6 +386,7 @@ const pt: Texts = {
         designate_line: "Selecione uma reta",
         designate_segment: "Selecione um segmento",
         designate_vector: "Selecione um vetor",
+        designate_shift: "Selecione um ponto",
         designate_polygon: "Selecione um polígono",
         designate_faceted: "Selecione um polígono ou um poliedro",
         designate_tangible: "Selecione um círculo ou uma cônica",

@@ -391,6 +391,7 @@ const de: Texts = {
         designate_line: "Wählen Sie eine Gerade",
         designate_segment: "Wählen Sie eine Strecke",
         designate_vector: "Wählen Sie einen Vektor",
+        designate_shift: "Wählen Sie einen Punkt",
         designate_polygon: "Wählen Sie ein Vieleck",
         designate_faceted: "Wählen Sie ein Vieleck oder einen Polyeder",
         designate_tangible: "Wählen Sie einen Kreis oder einen Kegelschnitt",

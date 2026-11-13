@@ -95,6 +95,8 @@ figure sont seulement comptés. L'API utilisée est
 | 2026-10-28 | —                  | 372,0 Ko | item 40 : points sur une sphère, un cylindre, un cône (+0)         |
 | 2026-10-29 | 251 / 456 (55 %)   | 376,9 Ko | item 41 : arcs et secteurs d'un cercle ou d'une ellipse (+6)       |
 | 2026-10-30 | 251 / 456 (55 %)   | 382,7 Ko | item 42 : inversion des objets (+0)                                |
+| 2026-11-13 | 249 / 456 (55 %)   | 324,7 Ko | item 46 : polaires, vitesses variables, nombres figés (+2)         |
+| 2026-11-13 | 249 / 456 (55 %)   | 325,0 Ko | item 47 : solides et images natifs, construction lisible (+0)      |
 
 ## À faire, par rapport gain / coût
 
@@ -391,7 +393,9 @@ cause.
       calque de DGPad (`construction_object.level`) : un objet est peint
       au-dessus de ceux des calques plus bas, points compris. Aucun gain sur
       le compte des figures sans perte (c'est un style) ; build +0,8 Ko,
-      calques DGPad compris.
+      calques DGPad compris. Depuis le 2026-11-13, pas dans une figure 3D :
+      la vue 3D de GeoGebra ignore les calques et n'ordonne que par la
+      profondeur (une base blanche au calque 1 recouvrait des pyramides).
 - [x] **22. Grille** : DocGeo dessinait toujours la grille de DGPad, aux
       graduations de ses axes. Fait, mesuré sur GeoGebra : la distance fixe
       `<grid distX distY>` (sinon celle des nombres), la sous-grille du type
@@ -730,6 +734,55 @@ cause.
       écrits tels quels (`x_0=`) et une autre commande LaTeX reste brute. Corpus
       inchangé (272 / 488 : aucune figure ne change de statut) ; vérifié dans
       `tests/browser/ggb_importer.test.ts`. Import +0,19 Ko (+0,09 Ko en gzip).
+- [x] **46. Coordonnées polaires, vitesses d'animation variables, nombres
+      figés signalés** : sept manques relevés sur trois figures envoyées par
+      l'auteur (« Oval Gearing », un pavage, trois pyramides qui se
+      déplient en cube), chacun traité pour toutes les figures. Fait :
+      les coordonnées polaires `(r; θ)` et sphériques `(r; θ; φ)` dans
+      toute formule ; `OrthogonalVector` de tout vecteur calculé
+      (`Vector[A, B] / 2`) ; une vitesse d'animation donnée par un nombre ou
+      une expression de la figure (`speed="vanim"`), clé additive `av` de
+      `DGO.md`, et l'animation d'un point sur une ellipse selon le paramètre
+      de GeoGebra (elle était ignorée) ; l'indice d'un `Sequence`,
+      `IterationList` ou `Iteration` qui porte le nom d'un objet de la
+      figure (`k`, `n`, segments fréquents) : leurs arguments étaient
+      construits avant la commande, `Polygon(Translate(J, k u))` lisant
+      alors la longueur du segment `k` ; un polygone là où GeoGebra prend une
+      direction (`Cube(A, B, poly)`, `OrthogonalLine`, `Circle(O, r, poly)`,
+      `Polygon(A, B, n, poly)`, `Plane(P, poly)`) ; `PathParameter` d'un
+      point sur un segment. Enfin, un nombre dont le calcul n'est pas traduit
+      gardait en silence sa valeur enregistrée (la figure semblait importée
+      sans perte, mais ne réagissait plus) : il la garde, mais il est
+      désormais signalé (38 figures, 118 nombres, surtout `SelectedIndex`).
+      **+2 figures** gagnées, 13 figures en perdant moins (79 éléments
+      retrouvés), mais 4 figures comptées à tort sans perte sont désormais
+      signalées : 251 → 249 / 456. Moteur 324,19 → 324,67 Ko (+0,48 Ko ;
+      +0,14 Ko en gzip), import 52,94 → 53,96 Ko (+1,02 Ko).
+- [x] **47. Solides et images natifs, une construction lisible** : dans
+      l'éditeur, une figure importée doit se lire comme sa construction
+      GeoGebra, sans objets fantômes. Le cube, le prisme et la pyramide
+      étaient construits sommet par sommet (`CubV`, `Abv`, translations), et
+      l'image d'un objet par `Translate`, `Rotate`, `Dilate` ou `Mirror`
+      était faite des images de ses points (`aux N`), de ses côtés et de ses
+      faces. Fait : le solide est un polyèdre natif (`Cube`, `CubP`,
+      `Prsm`, `Pyr`, et `PrsH`, `PyrH` de hauteur h, ajoutés à `DGO.md`),
+      caché puisque GeoGebra dessine ses faces et ses arêtes comme des
+      objets à part, ses sommets étant `Vertex(solide, k)` ; l'image d'une
+      droite, d'un segment, d'un cercle, d'un polygone, d'une conique, d'une
+      sphère ou d'un polyèdre est une image native (commandes DGP de
+      transformation acceptant un objet), les points de l'image n'étant
+      construits que si une commande les lit. L'éditeur écrit aussi
+      `Prism(poly, h)`, `Pyramid(poly, h)`, `Translation(formule, objet)`
+      et les rotations autour de l'origine ou d'un axe ; un objet auxiliaire
+      prend un nom comme ceux de l'éditeur (`m = Line(B, C)`, et non
+      `aux 4`). Au passage, la scène ordonne les solides par profondeur
+      avec les polygones (`paintByDepth`, aussi pour les solides de
+      l'éditeur), et les images sont construites dans le plan d'une figure
+      plane dès l'import. Mesuré par `tools/editability` sur le corpus :
+      objets 33 964 → 24 340, sans ligne 3389 → 127, figures entièrement
+      modifiables 364 → 389 / 455 ; import inchangé (249 / 456, 37
+      éléments de plus importés), import le plus long 13,8 s → 0,3 s.
+      Moteur 324,67 → 324,97 Ko (+0,30 Ko), import +1,2 Ko.
 
 À écarter, sauf changement de priorité : calcul formel, courbes implicites,
 statistiques et probabilités, tableur au-delà des cellules simples, matrices.

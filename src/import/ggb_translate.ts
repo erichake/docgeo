@@ -32,7 +32,41 @@ type Kind =
     | "list"
     | "curve"
     | "text"
-    | "image";
+    | "image"
+    | "polyhedron";
+
+// What a transformation maps as a whole, its image of the same kind.
+const MAPPED_KINDS: Kind[] = [
+    "line",
+    "circle",
+    "polygon",
+    "quadric",
+    "sphere",
+    "polyhedron",
+];
+
+// Values computed when first read: the points of an object's image, built
+// only if a later command reads them.
+class LazyMap<V> extends Map<string, V> {
+    private thunks = new Map<string, () => V>();
+
+    defer(key: string, thunk: () => V): void {
+        this.thunks.set(key, thunk);
+    }
+
+    get(key: string): V | undefined {
+        const thunk = this.thunks.get(key);
+        if (thunk) {
+            this.thunks.delete(key);
+            this.set(key, thunk());
+        }
+        return super.get(key);
+    }
+
+    has(key: string): boolean {
+        return this.thunks.has(key) || super.has(key);
+    }
+}
 
 export interface GgbTranslation {
     calls: DgpCall[];
@@ -51,6 +85,9 @@ export interface GgbTranslation {
     // The animations of points on paths and sliders that GeoGebra plays,
     // started with the figure if `startAnimation`.
     animations: Map<string, Animation>;
+    // The number whose value multiplies an animation's speed, if it depends
+    // on the figure.
+    rates: Map<string, string>;
     startAnimation: boolean;
     // Whether the figure has 3D objects.
     is3D: boolean;
@@ -107,11 +144,13 @@ const FORMULA_COMMANDS = new Set([
     "FractionText",
     "Slope",
     "Length",
+    "PathParameter",
     "Rotate",
     "Translate",
 ]);
 // The commands whose list listFormula reads from their own sources.
 const LIST_COMMANDS = new Set(["Take", "First", "Last", "Mode"]);
+const BINDING_COMMANDS = new Set(["Sequence", "IterationList", "Iteration"]);
 const CELL = /^([A-Z]+)(\d+)$/;
 // A GeoGebra label, which may have primes and braced indices: "A'_{1}".
 const LABEL_WORDS =
@@ -855,15 +894,16 @@ export function translateGgb(
     const handles = new Map<string, [string | null, string | null]>();
     const nameShifts = new Map<string, Vec2>();
     const animations = new Map<string, Animation>();
+    const rateSources = new Map<string, string>();
     const unsupported: string[] = [];
     const objects = new Map<string, { variable: string; kind: Kind }>();
-    const segments = new Map<string, [string, string]>();
+    const segments = new LazyMap<[string, string]>();
     // The planes, GeoGebra's xOy plane being z = 0 (see isPlane).
     const planes = new Set<string>();
     // A cylinder or a cone, by its solid's or its side's label.
     const revolutions = new Map<string, { label: string; cone: boolean }>();
     const spheres = new Set<string>();
-    const vectors = new Map<string, [string, string]>();
+    const vectors = new LazyMap<[string, string]>();
     // A point of each line, where it is known.
     const lineStarts = new Map<string, string>();
     // A tangent to a function's curve, of the function through a point:
@@ -877,10 +917,12 @@ export function translateGgb(
         string,
         { start: string; ends: string[]; turns: number }
     >();
-    const polygons = new Map<string, string[]>();
+    const polygons = new LazyMap<string[]>();
+    // The path of each point on one.
+    const paths = new Map<string, string>();
     const polyhedra = new Map<string, [string, string][]>();
-    // A polyhedron's faces, all drawn by its image with their sides.
-    const shells = new Map<string, string[][]>();
+    // A polyhedron's faces, by their vertices.
+    const shells = new LazyMap<string[][]>();
     // The prisms and the pyramids, which GeoGebra unfolds its own way.
     const sided = new Map<string, boolean>();
     // The objects drawing an object that isn't one itself.
@@ -996,8 +1038,9 @@ export function translateGgb(
         name: objects.get(label)!.variable,
     });
 
-    // Vector(P, Q) as the formula Q-P. OrthogonalVector of a segment or
-    // vector is GeoGebra's (-dy, dx), not normalized: the 2D vector times i.
+    // Vector(P, Q) as the formula Q-P. OrthogonalVector of a segment or of
+    // any vector is GeoGebra's (-dy, dx), not normalized: the 2D vector
+    // times i.
     const vectorFormula = (
         source: string,
         locals: Map<string, string>,
@@ -1013,10 +1056,10 @@ export function translateGgb(
                     ? null
                     : ends
                       ? vectorFormula(`Vector(${ends.join(",")})`, locals)
-                      : vectorFormula(
+                      : (vectorFormula(
                             arg.replace(/^Segment\(/, "Vector("),
                             locals,
-                        );
+                        ) ?? formula(arg, VALUE_KINDS, locals));
             return vector && `(${vector}*1i)`;
         }
         // Of a segment, from its start to its end.
@@ -1078,6 +1121,7 @@ export function translateGgb(
             start: number;
             call: boolean;
             commas: number[];
+            semicolons?: number[];
             expand?: Expansion;
         }[] = [];
         let result = "";
@@ -1173,6 +1217,18 @@ export function translateGgb(
                                 ),
                             ),
                         );
+                } else if (group.semicolons) {
+                    // Polar (r; θ) or spherical (r; θ; φ) coordinates.
+                    const ends = [...group.semicolons, result.length];
+                    const [r, t, f] = ends.map((end, n) =>
+                        result.slice(
+                            n ? ends[n - 1] + 1 : group.start + 1,
+                            end,
+                        ),
+                    );
+                    if (ends.length > 3 || group.commas.length > 0) return null;
+                    const c = f ? `(${r})*cos(${f})` : `(${r})`;
+                    result = `${result.slice(0, group.start)}[${c}*cos(${t}),${c}*sin(${t})${f ? `,(${r})*sin(${f})` : ""}]`;
                 } else if (!group.call && group.commas.length > 0)
                     result = `${result.slice(0, group.start)}[${result.slice(group.start + 1)}]`;
                 else result += ")";
@@ -1181,6 +1237,11 @@ export function translateGgb(
                 if (!group) return null;
                 group.commas.push(result.length);
                 result += ",";
+            } else if (character === ";") {
+                const group = groups[groups.length - 1];
+                if (!group || group.call) return null;
+                (group.semicolons ??= []).push(result.length);
+                result += ";";
             } else if (/[\d.+\-*/^ =!<>&|]/.test(character))
                 result += character;
             else return null;
@@ -1266,6 +1327,15 @@ export function translateGgb(
                 return args.length === 1
                     ? lengthFormula(args[0], locals)
                     : null;
+            // Of a point on a segment, from 0 at its start to 1 at its end.
+            case "PathParameter": {
+                const ends = segments.get(paths.get(args[0]) ?? "");
+                if (args.length !== 1 || !ends) return null;
+                const [m, p, q] = [args[0], ...ends].map(
+                    (point) => objects.get(point)!.variable,
+                );
+                return `(d(${p},${m})/d(${p},${q}))`;
+            }
             // Of a point or a vector, around a point.
             case "Rotate":
             case "Translate": {
@@ -1570,8 +1640,9 @@ export function translateGgb(
             else if ((attribute(element, "labelMode", "val") ?? "0") === "0")
                 parts.push("lb:true");
         }
+        // GeoGebra's 3D view ignores layers: only depth orders it.
         const layer = attribute(element, "layer", "val");
-        if (layer && layer !== "0") parts.push(`l:${layer}`);
+        if (layer && layer !== "0" && !is3D) parts.push(`l:${layer}`);
         if (
             kind === "polygon" &&
             (attribute(element, "fixed", "val") === "true" ||
@@ -1650,6 +1721,7 @@ export function translateGgb(
                 : `$${calls.length}`;
         objects.set(label, { variable, kind });
         labels.set(variable, label);
+        const name = label.startsWith("aux ") ? freshName(kind) : label;
         const sources = args.map((arg) =>
             arg.type === "reference" ? labels.get(arg.name) : undefined,
         );
@@ -1659,7 +1731,7 @@ export function translateGgb(
                 build: (image, vertices) =>
                     define(image, kind, command, vertices.map(ref)),
             });
-        push(variable, command, [literal(label), ...args]);
+        push(variable, command, [literal(name), ...args]);
         const element = elements.get(label);
         // Without its own element (an unlabeled output, or an auxiliary
         // object built from a nested command), GeoGebra doesn't draw it:
@@ -1793,6 +1865,9 @@ export function translateGgb(
         }
         return planes.has(input);
     };
+    // Where GeoGebra takes a direction, a polygon stands for its plane.
+    const isDirection = (input: string): boolean =>
+        isPlane(input) || is(input, ["polygon"]);
 
     // After its style, a plane sits with the floor, whatever GeoGebra's
     // layer (see polygon_object.plane).
@@ -1821,6 +1896,24 @@ export function translateGgb(
             build: (image, points) => definePolygon(image, points),
         });
         return true;
+    };
+
+    // A solid whose faces and edges GeoGebra draws as its own objects: it
+    // stays hidden.
+    const defineSolid = (label: string, command: string, args: DgpValue[]) => {
+        const element = elements.get(label);
+        define(
+            label,
+            "polyhedron",
+            command,
+            args,
+            element && `${objectStyle(element, "polyhedron")};h:1`,
+        );
+    };
+    const vertexOf = (solid: string, rank: number, label?: string) => {
+        const vertex = label || auxiliary();
+        define(vertex, "point", "Vertex", [ref(solid), literal(rank)]);
+        return vertex;
     };
 
     const defineSegment = (label: string, p: string, q: string): true => {
@@ -1871,11 +1964,12 @@ export function translateGgb(
         ]);
     };
 
-    type PointMap = (point: string, label: string) => void;
-    // The image of a point, of an object built from points (see shapes), of
-    // a polyhedron, of a written list of them or, by a direct similarity, of
-    // an iteration: the iteration of its start segments' images, since its
-    // maps commute with it.
+    // Of a point or, of the same kind, of an object.
+    type PointMap = (source: string, label: string, kind?: Kind) => void;
+    // The image of a point, of an object as a whole (see MAPPED_KINDS), of
+    // an object built from points (see shapes), of a written list of them
+    // or, by a direct similarity, of an iteration: the iteration of its
+    // start segments' images, since its maps commute with it.
     const transform =
         (
             mapOf: (params: string[]) => PointMap | null,
@@ -1906,6 +2000,24 @@ export function translateGgb(
                         iteration.levels,
                         iteration.maps,
                     );
+                const kind = kindOf(source)!;
+                if (MAPPED_KINDS.includes(kind)) {
+                    map(source, label, kind);
+                    for (const known of [
+                        segments,
+                        vectors,
+                        polygons,
+                    ] as LazyMap<string[]>[])
+                        if (known.has(source))
+                            known.defer(label, () =>
+                                known.get(source)!.map(image),
+                            );
+                    if (shells.has(source))
+                        shells.defer(label, () =>
+                            shells.get(source)!.map((face) => face.map(image)),
+                        );
+                    return true;
+                }
                 const shape = shapes.get(source);
                 if (shape) {
                     shape.build(label, shape.points.map(image), direct);
@@ -1918,35 +2030,7 @@ export function translateGgb(
                     }
                     return true;
                 }
-                const shell = shells.get(source);
-                if (!shell) return false;
-                const faces = shell.map((face) => face.map(image));
-                shells.set(label, faces);
-                const element = elements.get(label);
-                const style = element ? shapeStyle(element) : "h:2";
-                const edges = new Map<string, string[]>();
-                const drawn = faces.map((face) => {
-                    face.forEach((p, index) => {
-                        const q = face[(index + 1) % face.length];
-                        edges.set([p, q].sort().join("\n"), [p, q]);
-                    });
-                    const part = auxiliary();
-                    definePolygon(part, face, style);
-                    return part;
-                });
-                edges.forEach((ends) => {
-                    const part = auxiliary();
-                    define(
-                        part,
-                        "line",
-                        "Segment",
-                        ends.map(ref),
-                        style.replace(/;o:[^;]*/, ""),
-                    );
-                    drawn.push(part);
-                });
-                parts.set(label, drawn);
-                return true;
+                return false;
             };
             // A written list's items, drawn in its style.
             const items = /^\{.*\}$/.test(list)
@@ -1970,16 +2054,14 @@ export function translateGgb(
             return true;
         };
 
-    // Only a constant speed: GeoGebra's may depend on the figure.
+    // A speed that depends on the figure is read once every object exists.
     const animate = (label: string): void => {
         const element = elements.get(label);
         const animation = element && child(element, "animation");
         if (animation?.getAttribute("playing") !== "true") return;
-        const speed = Number(animation.getAttribute("speed") ?? 1);
-        if (!Number.isFinite(speed)) {
-            unsupported.push(`animation ${label}`);
-            return;
-        }
+        const source = animation.getAttribute("speed") ?? "1";
+        const speed = NUMBER.test(source) ? Number(source) : 1;
+        if (speed !== Number(source)) rateSources.set(label, source);
         // Oscillating, increasing, decreasing or increasing once.
         const type = animation.getAttribute("type");
         animations.set(objects.get(label)!.variable, {
@@ -1992,6 +2074,7 @@ export function translateGgb(
     };
 
     const pointOn = (label: string, support: string, boundary: boolean) => {
+        paths.set(label, support);
         const kind = kindOf(support);
         const pair = kind === "polygon" || kind === "quadric";
         const element = elements.get(label);
@@ -2182,14 +2265,14 @@ export function translateGgb(
     // A point reflection is a half turn, which keeps the orientation.
     const pointReflection = transform(
         ([center]) =>
-            (p, label) =>
-                define(label, "point", "Symmetry", [ref(center), ref(p)]),
+            (p, label, kind = "point") =>
+                define(label, kind, "Symmetry", [ref(center), ref(p)]),
     );
     const lineReflection = transform(
         ([line]) =>
             is(line, ["line"])
-                ? (p, label) =>
-                      define(label, "point", "Reflection", [ref(line), ref(p)])
+                ? (p, label, kind = "point") =>
+                      define(label, kind, "Reflection", [ref(line), ref(p)])
                 : null,
         false,
     );
@@ -2236,6 +2319,24 @@ export function translateGgb(
 
     let auxiliaries = 0;
     const auxiliary = (): string => `aux ${++auxiliaries}`;
+    // An auxiliary object's name, as the editor gives one (see nextName in
+    // src/editor/figure.ts): a capital letter for a point, a small one
+    // otherwise, then numbered, none of GeoGebra's labels.
+    const given = new Set<string>();
+    const freshName = (kind: Kind): string => {
+        const letters =
+            kind === "point" || kind === "pointOn"
+                ? "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+                : "abcdfghjmnpqrsuvw";
+        for (let number = 0; ; number++)
+            for (const letter of letters) {
+                const name = number ? `${letter}${number}` : letter;
+                if (!elements.has(name) && !given.has(name)) {
+                    given.add(name);
+                    return name;
+                }
+            }
+    };
 
     // A random number or point keeps the value GeoGebra saved.
     const savedValue: Handler = (_, [label]) => {
@@ -2422,7 +2523,7 @@ export function translateGgb(
         // In space, or in the xOy plane, a line's orthogonal through P is
         // DGP's perpendicular (see plumb_line_object).
         OrthogonalLine: ([p, line, extra], [label]) => {
-            const plane = isPlane(line);
+            const plane = isDirection(line);
             if (
                 (extra !== undefined &&
                     ((extra !== "space" && extra !== "xOyPlane") || plane)) ||
@@ -2476,7 +2577,7 @@ export function translateGgb(
                 if (radius === null) return false;
                 // A plane's direction, its normal through the center.
                 let axis = third;
-                if (isPlane(third)) {
+                if (isDirection(third)) {
                     axis = auxiliary();
                     define(axis, "line", "NormalLine", [
                         ref(third),
@@ -2567,7 +2668,7 @@ export function translateGgb(
         },
         Polygon: (inputs, [label, ...sides]) => {
             const [a, b, count, plane] = inputs;
-            const onPlane = plane !== undefined && isPlane(plane);
+            const onPlane = plane !== undefined && isDirection(plane);
             if (
                 inputs.length === (onPlane ? 4 : 3) &&
                 points(a, b) &&
@@ -2647,28 +2748,22 @@ export function translateGgb(
             return true;
         },
         // Cube(A, B, C), or Cube(A, B, p) whose square ABCD is parallel to
-        // plane p.
+        // plane or polygon p.
         Cube: (inputs, [solid, ...outputs]) => {
             const [a, b, c] = inputs;
-            const plane = isPlane(c);
+            const plane = isDirection(c);
             if (inputs.length !== 3 || !points(a, b) || !(plane || points(c)))
                 return false;
             // The square ABCD lies in plane ABC, the cube on the side of
             // AB × BC, exactly as GeoGebra builds it; or on the side of p's
-            // normal.
-            const ranks = plane ? [0, 1, 2, 3, 4, 5] : [1, 2, 3, 4, 5];
+            // normal. Its vertices C (unless given), D, …, H are its own.
+            defineSolid(solid, "Cube", [a, b, c].map(ref));
+            const ranks = plane ? [2, 3, 4, 5, 6, 7] : [3, 4, 5, 6, 7];
             const vertices = [
                 ...inputs.slice(0, plane ? 2 : 3),
-                ...ranks.map((rank, index) => {
-                    const vertex = outputs[index] || auxiliary();
-                    define(vertex, "point", "CubeVertex", [
-                        ref(a),
-                        ref(b),
-                        ref(c),
-                        literal(rank),
-                    ]);
-                    return vertex;
-                }),
+                ...ranks.map((rank, index) =>
+                    vertexOf(solid, rank, outputs[index]),
+                ),
             ];
             const others = ranks;
             const faces = CUBE_FACES.map((face) =>
@@ -2772,19 +2867,17 @@ export function translateGgb(
             if (polygon ? inputs.length !== 2 : inputs.length < 4) return false;
             const base = polygon ?? inputs.slice(0, -1);
             let apex = inputs[inputs.length - 1];
-            if (!points(...base)) return false;
+            const h =
+                polygon && !points(apex) ? formula(apex, VALUE_KINDS) : null;
+            if (!points(...base) || !(h !== null || points(apex))) return false;
             const n = base.length;
-            if (polygon && !points(apex)) {
-                const h = formula(apex, VALUE_KINDS);
-                if (h === null) return false;
-                apex = outputs.shift() || auxiliary();
-                define(apex, "point", "Above", [
-                    ref(inputs[0]),
-                    literal(h),
-                    literal(-1),
-                ]);
-            }
-            if (!points(apex)) return false;
+            // On an existing polygon, or on its first face.
+            const bottom = polygon ? inputs[0] : outputs[0] || auxiliary();
+            if (!polygon) definePolygon(bottom, base);
+            if (h !== null) {
+                defineSolid(solid, "PyramidHeight", [ref(bottom), literal(h)]);
+                apex = vertexOf(solid, n, outputs.shift());
+            } else defineSolid(solid, "Pyramid", [ref(bottom), ref(apex)]);
             const faces = [
                 ...(polygon ? [] : [base]),
                 ...base.map((vertex, index) => [
@@ -2795,7 +2888,7 @@ export function translateGgb(
             ];
             faces.forEach((face, index) => {
                 const label = outputs[index];
-                if (label) definePolygon(label, face);
+                if (label && label !== bottom) definePolygon(label, face);
             });
             [
                 ...(polygon
@@ -2827,37 +2920,26 @@ export function translateGgb(
         // when it is an existing polygon.
         Prism: (inputs, [solid, ...outputs]) => {
             const polygon = polygons.get(inputs[0]);
-            // Prism(poly, h): the first top vertex comes first.
-            if (polygon && inputs.length === 2 && !points(inputs[1])) {
-                const h = formula(inputs[1], VALUE_KINDS);
-                if (h === null || !points(...polygon)) return false;
-                const top = outputs[0] || auxiliary();
-                define(top, "point", "Above", [
-                    ref(inputs[0]),
-                    literal(h),
-                    literal(0),
-                ]);
-                return HANDLERS.Prism(
-                    [inputs[0], top],
-                    [solid, ...outputs.slice(1)],
-                );
-            }
             if (polygon ? inputs.length !== 2 : inputs.length < 4) return false;
             const base = polygon ?? inputs.slice(0, -1);
             const apex = inputs[inputs.length - 1];
-            if (!points(...base, apex)) return false;
+            // Prism(poly, h): the first top vertex comes first.
+            const h =
+                polygon && !points(apex) ? formula(apex, VALUE_KINDS) : null;
+            if (!points(...base) || !(h !== null || points(apex))) return false;
             const n = base.length;
-            const shift = `${objects.get(apex)!.variable}-${objects.get(base[0])!.variable}`;
+            const tops = outputs.splice(0, h === null ? n - 1 : n);
+            // On an existing polygon, or on its first face.
+            const bottom = polygon ? inputs[0] : outputs[0] || auxiliary();
+            if (!polygon) definePolygon(bottom, base);
+            if (h !== null)
+                defineSolid(solid, "PrismHeight", [ref(bottom), literal(h)]);
+            else defineSolid(solid, "Prism", [ref(bottom), ref(apex)]);
             const top = [
-                apex,
-                ...base.slice(1).map((vertex, index) => {
-                    const label = outputs[index] || auxiliary();
-                    define(label, "point", "Translation1", [
-                        ref(vertex),
-                        literal(shift),
-                    ]);
-                    return label;
-                }),
+                ...(h === null ? [apex] : []),
+                ...tops.map((label, index) =>
+                    vertexOf(solid, n + index + (h === null ? 1 : 0), label),
+                ),
             ];
             const next = (index: number) => (index + 1) % n;
             const faces = [
@@ -2871,8 +2953,8 @@ export function translateGgb(
                 top,
             ];
             faces.forEach((face, index) => {
-                const label = outputs[n - 1 + index];
-                if (label) definePolygon(label, face);
+                const label = outputs[index];
+                if (label && label !== bottom) definePolygon(label, face);
             });
             [
                 ...(polygon
@@ -2881,7 +2963,7 @@ export function translateGgb(
                 ...base.map((vertex, index) => [vertex, top[index]]),
                 ...top.map((vertex, index) => [vertex, top[next(index)]]),
             ].forEach(([p, q], index) => {
-                const label = outputs[n - 1 + faces.length + index];
+                const label = outputs[faces.length + index];
                 if (label) defineSegment(label, p, q);
             });
             shells.set(solid, polygon ? [base, ...faces] : faces);
@@ -2911,7 +2993,7 @@ export function translateGgb(
                     ? points(...inputs) && "Plane"
                     : inputs.length === 2 &&
                       points(point) &&
-                      (isPlane(other)
+                      (isDirection(other)
                           ? "ParallelPlane"
                           : is(other, ["line"]) && "LinePlane");
             return !!command && definePlane(label, command, inputs.map(ref));
@@ -3003,14 +3085,14 @@ export function translateGgb(
                 (axis !== undefined && !points(center))
             )
                 return null;
-            return (p, label) =>
+            return (p, label, kind = "point") =>
                 line === undefined
-                    ? define(label, "point", "Rotation", [
+                    ? define(label, kind, "Rotation", [
                           ref(p),
                           literal(a),
                           ...(center ? [ref(center)] : []),
                       ])
-                    : define(label, "point", "AxisRotation", [
+                    : define(label, kind, "AxisRotation", [
                           ref(p),
                           literal(a),
                           ref(line),
@@ -3025,8 +3107,8 @@ export function translateGgb(
                 (center !== undefined && !points(center))
             )
                 return null;
-            return (p, label) =>
-                define(label, "point", "Dilation", [
+            return (p, label, kind = "point") =>
+                define(label, kind, "Dilation", [
                     ref(p),
                     literal(k),
                     ...(center ? [ref(center)] : []),
@@ -3041,18 +3123,12 @@ export function translateGgb(
         Translate: transform(([vector, extra]) => {
             if (extra !== undefined) return null;
             if (vectors.has(vector) || points(vector))
-                return (p, label) =>
-                    define(label, "point", "Translation", [
-                        ref(p),
-                        ref(vector),
-                    ]);
+                return (p, label, kind = "point") =>
+                    define(label, kind, "Translation", [ref(p), ref(vector)]);
             const v = formula(vector, VALUE_KINDS);
             return v
-                ? (p, label) =>
-                      define(label, "point", "Translation1", [
-                          ref(p),
-                          literal(v),
-                      ])
+                ? (p, label, kind = "point") =>
+                      define(label, kind, "Translation1", [ref(p), literal(v)])
                 : null;
         }),
         // Iteration(Flatten(Zip({f1(k), f2(k), …}, k, m)), m, {s1, …}, n):
@@ -3352,6 +3428,7 @@ export function translateGgb(
             return true;
         },
         Length: formulaCommand("Length"),
+        PathParameter: formulaCommand("PathParameter"),
         Function: ([f, a, b, extra], [label]) => {
             const body = functionBody(f);
             const [min, max] = [a, b].map((bound) =>
@@ -3528,6 +3605,9 @@ export function translateGgb(
         const content =
             dependent !== null && !isConstant(dependent) ? dependent : value;
         if (content !== dependent && !NUMBER.test(content)) return false;
+        // Untranslated, it keeps its saved value, but is reported.
+        if (source !== undefined && dependent === null)
+            unsupported.push(`numeric ${label}`);
         return define(
             label,
             "expression",
@@ -4150,10 +4230,15 @@ export function translateGgb(
             tuple && tuple.length > 1 ? formula(text, VALUE_KINDS) : null;
         if (coords !== null) return formulaPoint(coords, label);
         const call = commandCall(text);
-        return call && HANDLERS[call[0]]?.(call[1].map(resolve), [label])
+        return call && HANDLERS[call[0]]?.(inputs(...call), [label])
             ? label
             : input;
     };
+    // A command that binds a variable reads its own inputs: built
+    // beforehand, Polygon(Translate(A, k u)) would read k as an object of
+    // the figure, not as Sequence's index.
+    const inputs = (name: string, sources: string[]): string[] =>
+        BINDING_COMMANDS.has(name) ? sources : sources.map(resolve);
 
     const translated = new Set<string>();
     const translate = (node: Element): void => {
@@ -4178,7 +4263,7 @@ export function translateGgb(
                 outputs.some(Boolean) &&
                 !(list && element
                     ? defineList(outputs[0], element, list)
-                    : handler?.(sources.map(resolve), outputs))
+                    : handler?.(inputs(name, sources), outputs))
             )
                 unsupported.push(`${name}(${sources.join(", ")})`);
             outputs.forEach((output) => translated.add(output));
@@ -4255,12 +4340,29 @@ export function translateGgb(
             );
     });
 
+    const rates = new Map<string, string>();
+    rateSources.forEach((source, label) => {
+        const variable = objects.get(label)!.variable;
+        const content = formula(source, VALUE_KINDS);
+        if (content === null) {
+            unsupported.push(`animation ${label}`);
+            animations.delete(variable);
+        } else
+            rates.set(
+                variable,
+                is(source, ["expression"])
+                    ? objects.get(source)!.variable
+                    : hiddenExpression(content),
+            );
+    });
+
     return {
         calls,
         targets,
         handles,
         nameShifts,
         animations,
+        rates,
         startAnimation:
             document
                 .querySelector("kernel > startAnimation")
