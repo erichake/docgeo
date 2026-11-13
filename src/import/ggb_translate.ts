@@ -913,6 +913,8 @@ export function translateGgb(
     // not normalized: the vector between two points, turned by quarter
     // turns. Only kept for the lines DGP draws from a unit vector.
     const lineEnds = new Map<string, string[]>();
+    // A line bisector's segment, its direction turned a quarter turn.
+    const bisectors = new Map<string, string[]>();
     const directedLines = new Map<
         string,
         { start: string; ends: string[]; turns: number }
@@ -1390,17 +1392,24 @@ export function translateGgb(
 
     const lineDirection = (line: string) => {
         const ends = segments.get(line) ?? lineEnds.get(line);
+        const bisected = bisectors.get(line);
         return (
             directedLines.get(line) ??
-            (ends && !is3D ? { start: ends[0], ends, turns: 0 } : undefined)
+            (is3D
+                ? undefined
+                : ends
+                  ? { start: ends[0], ends, turns: 0 }
+                  : bisected && { start: bisected[0], ends: bisected, turns: 1 })
         );
     };
 
-    // A line through the start of a directed line and its direction's tip,
-    // on which a point is placed as GeoGebra's is.
-    const directedLine = (line: string): string => {
-        const { start, ends, turns } = directedLines.get(line)!;
-        const [s, a, b] = [start, ...ends].map((p) => objects.get(p)!.variable);
+    // A point from another along a line's direction.
+    const alongDirection = (
+        from: string,
+        { ends, turns }: { ends: string[]; turns: number },
+        label?: string,
+    ): string => {
+        const [s, a, b] = [from, ...ends].map((p) => objects.get(p)!.variable);
         const [dx, dy] = [`(x(${b})-x(${a}))`, `(y(${b})-y(${a}))`];
         const [u, v] = [
             [dx, dy],
@@ -1408,10 +1417,17 @@ export function translateGgb(
             [`-${dx}`, `-${dy}`],
             [dy, `-${dx}`],
         ][turns % 4];
+        return formulaPoint(`[x(${s})+${u},y(${s})+${v}]`, label);
+    };
+
+    // A line through the start of a directed line and its direction's tip,
+    // on which a point is placed as GeoGebra's is.
+    const directedLine = (line: string): string => {
+        const direction = directedLines.get(line)!;
         const through = auxiliary();
         define(through, "line", "Line", [
-            ref(start),
-            ref(formulaPoint(`[x(${s})+${u},y(${s})+${v}]`)),
+            ref(direction.start),
+            ref(alongDirection(direction.start, direction)),
         ]);
         return through;
     };
@@ -1635,10 +1651,13 @@ export function translateGgb(
         if (color) parts.push(`c:${hexColor(color)}`);
         if (attribute(element, "show", "object") === "false") parts.push("h:1");
         if (attribute(element, "show", "label") === "true") {
+            const mode = attribute(element, "labelMode", "val") ?? "0";
             if (kind === "point" || kind === "pointOn") parts.push("sn:true");
+            // An angle's value, alone or after its name.
+            else if (kind === "angle" && (mode === "1" || mode === "2"))
+                parts.push(`p:${decimals}`);
             // Its name, not its value nor its caption.
-            else if ((attribute(element, "labelMode", "val") ?? "0") === "0")
-                parts.push("lb:true");
+            else if (mode === "0") parts.push("lb:true");
         }
         // GeoGebra's 3D view ignores layers: only depth orders it.
         const layer = attribute(element, "layer", "val");
@@ -2546,14 +2565,32 @@ export function translateGgb(
         },
         LineBisector: ([p, q], [label]) => {
             const ends = q === undefined ? segmentEnds(p) : [p, q];
-            return (
-                !!ends &&
-                points(...ends) &&
-                define(label, "line", "PerpendicularBisector", ends.map(ref))
-            );
+            if (!ends || !points(...ends)) return false;
+            bisectors.set(label, ends);
+            return define(label, "line", "PerpendicularBisector", ends.map(ref));
         },
         AngularBisector: onePoint("AngleBisector", 3),
-        Angle: onePoint("Angle", 3, "angle"),
+        // Of two lines, from the first's direction to the second's, at
+        // their intersection.
+        Angle: (inputs, outputs) => {
+            const [g, h] = inputs;
+            if (inputs.length !== 2 || !is(g, ["line"]) || !is(h, ["line"]))
+                return onePoint("Angle", 3, "angle")(inputs, outputs);
+            const directions = [g, h].map(lineDirection);
+            if (!directions[0] || !directions[1]) return false;
+            const vertex = auxiliary();
+            define(vertex, "point", "OrderedIntersection", [
+                ref(g),
+                ref(h),
+                literal(0),
+            ]);
+            const [p, q] = directions.map((d) => alongDirection(vertex, d!));
+            return define(outputs[0], "angle", "Angle", [
+                ref(p),
+                ref(vertex),
+                ref(q),
+            ]);
+        },
         Circle: ([center, second, third], [label]) => {
             // Of axis d through P.
             if (is(center, ["line"]))

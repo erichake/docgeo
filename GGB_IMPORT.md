@@ -783,6 +783,18 @@ cause.
       modifiables 364 → 389 / 455 ; import inchangé (249 / 456, 37
       éléments de plus importés), import le plus long 13,8 s → 0,3 s.
       Moteur 324,67 → 324,97 Ko (+0,30 Ko), import +1,2 Ko.
+- [x] **48. Angle de deux droites, valeur d'un angle** : `Angle(g, h)`
+      n'acceptait que trois points (figure « Circumcenter », envoyée par
+      l'auteur). Fait : l'angle de la direction de g à celle de h, à leur
+      intersection, comme GeoGebra (`Angle(A, O, B)` de DGP sur deux points
+      auxiliaires) ; la direction d'une médiatrice `LineBisector(A, B)` est
+      AB tourné d'un quart de tour direct (vérifié par `Direction`), ce qui
+      sert aussi aux parallèles et perpendiculaires à une médiatrice. Une
+      demi-droite ou une droite de direction inconnue reste signalée. La
+      valeur d'un angle affichée par GeoGebra (`labelMode` 1 ou 2) est
+      désormais montrée, avec les décimales de la figure. **+1 figure**
+      (250 / 456), 2 autres en perdant moins ; moteur inchangé, import
+      +0,42 Ko.
 
 À écarter, sauf changement de priorité : calcul formel, courbes implicites,
 statistiques et probabilités, tableur au-delà des cellules simples, matrices.
