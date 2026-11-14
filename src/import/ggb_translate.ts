@@ -154,6 +154,7 @@ const FORMULA_COMMANDS = new Set([
     "PathParameter",
     "Rotate",
     "Translate",
+    "Dilate",
 ]);
 // The commands whose list listFormula reads from their own sources.
 const LIST_COMMANDS = new Set(["Take", "First", "Last", "Mode", "Insert"]);
@@ -371,6 +372,25 @@ const literal = (value: string | number | boolean): DgpValue => ({
 const pointSize = (element: Element): number =>
     Number(attribute(element, "pointSize", "val") ?? 5);
 
+// GeoGebra's indices in a plain text, "u_{n+1}" or "u_n", as subscript
+// characters where Unicode has them all.
+const SUBSCRIPT_FROM = [..."0123456789+-=()aehijklmnoprstuvx"];
+const SUBSCRIPT_TO = [..."₀₁₂₃₄₅₆₇₈₉₊₋₌₍₎ₐₑₕᵢⱼₖₗₘₙₒₚᵣₛₜᵤᵥₓ"];
+const subscripts = (text: string): string =>
+    text.replace(/_(?:\{([^{}]*)\}|(.))/gu, (match, group, single) => {
+        const chars = [...(group ?? single)].map(
+            (char) => SUBSCRIPT_TO[SUBSCRIPT_FROM.indexOf(char)],
+        );
+        return chars.every(Boolean) ? chars.join("") : match;
+    });
+
+// The Greek letters, from alpha, as their LaTeX commands name them (the
+// empty one being the final sigma).
+const GREEK =
+    "alpha beta gamma delta epsilon zeta eta theta iota kappa lambda mu nu xi omicron pi rho  sigma tau upsilon phi chi psi omega".split(
+        " ",
+    );
+
 const caption = (element: Element, label: string): string => {
     const text = attribute(element, "caption", "val") ?? label;
     return /^\$.*\$$/.test(text)
@@ -378,6 +398,14 @@ const caption = (element: Element, label: string): string => {
               .slice(1, -1)
               .replace(/\\[;,: \\]/g, " ")
               .replace(/\\(?:text|sf|bold|mathbf|mathrm|rm)\b|[{}]/g, "")
+              .replace(/\\([A-Za-z]+) ?/g, (command, name: string) => {
+                  const index = GREEK.indexOf(name.toLowerCase());
+                  return index < 0 || name.slice(1) !== GREEK[index].slice(1)
+                      ? command
+                      : String.fromCharCode(
+                            (name < "a" ? 0x391 : 0x3b1) + index,
+                        );
+              })
         : text;
 };
 
@@ -1028,6 +1056,8 @@ export function translateGgb(
         { ends: string[][]; levels: string; maps: SegmentMap[] }
     >();
     const lists = new Map<string, ListFormula>();
+    // The Sequences of points, whose items are points.
+    const pointLists = new Set<string>();
     // The functions of x, which a formula calls by name.
     const functions = new Set<string>();
     const elements = new Map<string, Element>();
@@ -1067,6 +1097,12 @@ export function translateGgb(
                 !orphan(label, element) &&
                 THREE_D_TYPES.test(element.getAttribute("type") ?? ""),
         );
+    // Hidden, or else out of the first graphics view, the one DocGeo draws
+    // (bit 0 of "ev", see GeoElement.getXMLvisualTags).
+    const outOfView = (element: Element): boolean =>
+        !is3D && (Number(attribute(element, "show", "ev")) & 1) === 1;
+    const hidden = (element: Element): boolean =>
+        attribute(element, "show", "object") === "false" || outOfView(element);
     // A constant point, as a DGP fixed-point vector literal and its
     // dimension flag.
     const vectorLiteral = ([x, y, z]: Vec3): DgpValue[] =>
@@ -1459,7 +1495,8 @@ export function translateGgb(
             }
             // Of a point or a vector, around a point.
             case "Rotate":
-            case "Translate": {
+            case "Translate":
+            case "Dilate": {
                 const values = args.map((arg) =>
                     formula(arg, VALUE_KINDS, locals),
                 );
@@ -1467,6 +1504,10 @@ export function translateGgb(
                 const [p, a, c] = values as string[];
                 if (name === "Translate")
                     return args.length === 2 ? `(${p}+${a})` : null;
+                if (name === "Dilate")
+                    return args.length <= 3
+                        ? `(${c ?? 0}+(${p}-${c ?? 0})*(${a}))`
+                        : null;
                 return args.length <= 3
                     ? `rotate(${p},${c ?? planar("0", "0")},${a})`
                     : null;
@@ -1854,8 +1895,15 @@ export function translateGgb(
         const parts: string[] = [];
         const color = child(element, "objColor");
         if (color) parts.push(`c:${hexColor(color)}`);
-        if (attribute(element, "show", "object") === "false") parts.push("h:1");
-        if (attribute(element, "show", "label") === "true") {
+        if (hidden(element)) parts.push("h:1");
+        // A line 0 pixels wide, which GeoGebra doesn't draw, has no label.
+        if (
+            attribute(element, "show", "label") === "true" &&
+            !(
+                kind === "line" &&
+                attribute(element, "lineStyle", "thickness") === "0"
+            )
+        ) {
             const mode = attribute(element, "labelMode", "val") ?? "0";
             const point = kind === "point" || kind === "pointOn";
             // Its caption, its name for "%n", unless it shows values
@@ -1912,7 +1960,7 @@ export function translateGgb(
                 hollow ? `o:1;ho:true;pb:${size / 2}` : "o:1",
             );
             if (attribute(element, "trace", "val") === "true")
-                parts.push("tk:true");
+                parts.push("tk:true", "tp:true");
         } else {
             const thickness = attribute(element, "lineStyle", "thickness");
             // A frame, which GeoGebra's image doesn't have.
@@ -3608,6 +3656,16 @@ export function translateGgb(
                 inner = `Polygon(${item})`;
                 call = commandCall(inner);
             }
+            // Of a polygon's images, the polygon of its vertices' images.
+            const vertices =
+                call &&
+                ["Rotate", "Translate", "Dilate"].includes(call[0]) &&
+                polygons.get(call[1][0]);
+            if (vertices) {
+                const [name, [, ...rest]] = call!;
+                inner = `Polygon(${vertices.map((vertex) => `${name}(${[vertex, ...rest]})`)})`;
+                call = commandCall(inner);
+            }
             while (
                 call?.[0] === "Sequence" &&
                 call[1].length >= 4 &&
@@ -3672,22 +3730,26 @@ export function translateGgb(
                 element &&
                     `${objectStyle(element, "list")}${nature === "point" && size ? `;s:${size}` : ""}`,
             );
-            if (nature === "point")
+            if (nature === "point") {
                 lists.set(
                     label,
                     named(objects.get(label)!.variable, loops.length),
                 );
+                if (isPoint(inner)) pointLists.add(label);
+            }
             if (nature === "polygons" && loops.length === 1)
                 polygonLists.set(label, { vertices: ends, loop: loops[0] });
             sequences.set(label, [expression, variable, from, to, step]);
             return true;
         },
         // IterationList(f(z), z, {s}, n): s, f(s), f(f(s)), … n times,
-        // computed by a hidden Expression's script.
-        IterationList: (
-            [expression, variable, start, count, extra],
-            [label],
-        ) => {
+        // computed by a hidden Expression's script. IterationList(f, s, n)
+        // is IterationList(f(x), x, {s}, n).
+        IterationList: (inputs, [label]) => {
+            const [expression, variable, start, count, extra] =
+                inputs.length === 3
+                    ? [`${inputs[0]}(x)`, "x", ...inputs.slice(1)]
+                    : inputs;
             const s = formula(start.replace(/^\{(.*)\}$/, "$1"), VALUE_KINDS);
             const n = formula(count ?? "", VALUE_KINDS);
             const f = formula(
@@ -3998,8 +4060,7 @@ export function translateGgb(
             const hex = hexColor(color);
             parts.push(`c:${hex}`, `cPT:${btoa(`c:${hex};o:1`)}`);
         }
-        if (!slider || attribute(element, "show", "object") === "false")
-            parts.push("h:1");
+        if (!slider || hidden(element)) parts.push("h:1");
         const thickness = attribute(element, "lineStyle", "thickness");
         if (thickness) parts.push(`s:${Number(thickness) / 2}`);
         const width = attribute(element, "slider", "width");
@@ -4019,6 +4080,11 @@ export function translateGgb(
             parts.push("cV:true");
         if (slider && attribute(element, "show", "label") === "false")
             parts.push("cN:true");
+        const text = attribute(element, "caption", "val");
+        if (slider && attribute(element, "labelMode", "val") === "3" && text)
+            parts.push(
+                `cp:${encodeURIComponent(caption(element, "").replace(/%n/g, element.getAttribute("label")!))}`,
+            );
         return parts.join(";");
     };
 
@@ -4089,14 +4155,34 @@ export function translateGgb(
                 ["", min, max, value, String(x), String(y)].map(literal),
                 style,
             );
+            // GeoGebra writes its label from its knob (see DrawSlider), a
+            // LaTeX caption 10 pixels higher and 4 further.
+            if (slider.getAttribute("horizontal") !== "false") {
+                const [dx, dy] = ["x", "y"].map((name) =>
+                    Number(attribute(element, "labelOffset", name) ?? 0),
+                );
+                const latex = /^\$.*\$$/.test(
+                    attribute(element, "caption", "val") ?? "",
+                );
+                nameShifts.set(
+                    objects.get(label)!.variable,
+                    latex ? [dx - 7, dy - 25] : [dx - 11, dy - 15],
+                );
+            }
             animate(label);
             return true;
         }
         const dependent =
             source === undefined ? null : formula(source, VALUE_KINDS);
+        // A free number GeoGebra saved undefined stays so.
         const content =
-            dependent !== null && !isConstant(dependent) ? dependent : value;
-        if (content !== dependent && !NUMBER.test(content)) return false;
+            dependent !== null && !isConstant(dependent)
+                ? dependent
+                : value === "NaN"
+                  ? "0/0"
+                  : value;
+        if (content !== dependent && !NUMBER.test(content) && content !== "0/0")
+            return false;
         // Untranslated, it keeps its saved value, but is reported.
         if (source !== undefined && dependent === null)
             unsupported.push(`numeric ${label}`);
@@ -4107,6 +4193,153 @@ export function translateGgb(
             ["", "", "", content, "0", "0"].map(literal),
             style,
         );
+    };
+
+    // A function of x as GeoGebra writes it in a text, its numbers' values
+    // read live: "0.5 (x - 8) + 8", "8 - 0.5 x" for a negative a, "2x²".
+    const functionText = (label: string): TextPart[] | null => {
+        const source = expressions.get(label);
+        if (
+            elements.get(label)?.getAttribute("type") !== "function" ||
+            !source ||
+            !FUNCTION_DEFINITION.test(source)
+        )
+            return null;
+        const tokens: string[] = [];
+        const token = new RegExp(
+            `\\s*(\\d+(?:\\.\\d+)?|${LABEL_WORDS.source}|[-+*/^(),])`,
+            "uy",
+        );
+        const body = source.replace(FUNCTION_DEFINITION, "").trim();
+        for (let match; (match = token.exec(body));) tokens.push(match[1]);
+        if (tokens.join("") !== body.replace(/\s/g, "")) return null;
+        type Printed = {
+            parts: TextPart[];
+            first: "number" | "value" | "letter" | "paren" | "minus";
+            value?: string;
+            op?: string;
+        };
+        let at = 0;
+        const accept = (text: string): boolean =>
+            tokens[at] === text && ++at > 0;
+        const paren = (p: Printed): Printed => ({
+            parts: ["(", ...p.parts, ")"],
+            first: "paren",
+        });
+        const sum = (p: Printed): boolean => p.op === "+" || p.op === "-";
+        const SUPERSCRIPTS = "⁰¹²³⁴⁵⁶⁷⁸⁹";
+        const binary = (op: string, l: Printed, r: Printed): Printed => {
+            let parts: TextPart[];
+            if (op === "+" || op === "-") {
+                if (op === "-" && (sum(r) || r.first === "minus")) r = paren(r);
+                const v = r.value;
+                parts =
+                    r.first === "value"
+                        ? [
+                              {
+                                  formula: `(${v}<0?" ${op === "+" ? "-" : "+"} ":" ${op} ")`,
+                              },
+                              { formula: `abs(${v})` },
+                              ...r.parts.slice(1),
+                          ]
+                        : r.first === "minus"
+                          ? [" - ", ...r.parts.slice(1)]
+                          : [` ${op} `, ...r.parts];
+            } else if (op === "*") {
+                if (sum(l)) l = paren(l);
+                if (sum(r) || r.first === "minus") r = paren(r);
+                const v = r.value;
+                parts =
+                    r.first === "value"
+                        ? [
+                              { formula: `(${v}<0?" (":" * ")` },
+                              ...r.parts,
+                              { formula: `(${v}<0?")":"")` },
+                          ]
+                        : [
+                              r.first === "number"
+                                  ? " * "
+                                  : r.first === "letter" &&
+                                      l.first === "number" &&
+                                      !l.op
+                                    ? ""
+                                    : " ",
+                              ...r.parts,
+                          ];
+            } else if (op === "/") {
+                if (sum(l)) l = paren(l);
+                if (r.op) r = paren(r);
+                parts = [" / ", ...r.parts];
+            } else {
+                if (l.op || l.first === "minus") l = paren(l);
+                const n = r.first === "number" && !r.op ? String(r.parts) : "";
+                parts = /^\d+$/.test(n)
+                    ? [[...n].map((d) => SUPERSCRIPTS[+d]).join("")]
+                    : [
+                          "^",
+                          ...(r.op || r.first === "minus" ? paren(r) : r).parts,
+                      ];
+            }
+            return { ...l, parts: [...l.parts, ...parts], op };
+        };
+        const atom = (): Printed | null => {
+            const t = tokens[at++];
+            if (t === undefined) return null;
+            if (t === "(") {
+                const inner = expression();
+                return inner && accept(")") ? inner : null;
+            }
+            if (/^\d/.test(t)) return { parts: [t], first: "number" };
+            if (t === "x") return { parts: ["x"], first: "letter" };
+            if (accept("(")) {
+                const args: TextPart[] = [];
+                do {
+                    const arg = expression();
+                    if (!arg) return null;
+                    args.push(...(args.length ? [", "] : []), ...arg.parts);
+                } while (accept(","));
+                return !objects.has(t) && accept(")")
+                    ? { parts: [t, "(", ...args, ")"], first: "letter" }
+                    : null;
+            }
+            const value = formula(t, VALUE_KINDS);
+            return value === null
+                ? null
+                : { parts: [{ formula: value }], first: "value", value };
+        };
+        const unary = (): Printed | null => {
+            if (accept("-")) {
+                const a = unary();
+                return (
+                    a && {
+                        parts: ["-", ...(sum(a) ? paren(a) : a).parts],
+                        first: "minus",
+                    }
+                );
+            }
+            let base = atom();
+            while (base && accept("^")) {
+                const exponent = unary();
+                base = exponent && binary("^", base, exponent);
+            }
+            return base;
+        };
+        const level = (
+            ops: string[],
+            next: () => Printed | null,
+        ): Printed | null => {
+            let left = next();
+            while (left && ops.includes(tokens[at])) {
+                const op = tokens[at++];
+                const right = next();
+                left = right && binary(op, left, right);
+            }
+            return left;
+        };
+        const expression = (): Printed | null =>
+            level(["+", "-"], () => level(["*", "/"], unary));
+        const printed = expression();
+        return printed && at === tokens.length ? printed.parts : null;
     };
 
     // A text's literal strings and formulas: GeoGebra adds up the numbers
@@ -4163,6 +4396,13 @@ export function translateGgb(
                 );
                 continue;
             }
+            const written = functionText(inner);
+            if (written) {
+                if (!addSum()) return null;
+                parts.push(...written);
+                concatenating = true;
+                continue;
+            }
             sum.push(term);
             if (concatenating && !addSum()) return null;
         }
@@ -4173,8 +4413,11 @@ export function translateGgb(
         const color = child(element, "objColor");
         return [
             ...(color ? [`c:${hexColor(color)}`] : []),
-            ...(attribute(element, "show", "object") === "false"
-                ? ["h:1"]
+            ...(hidden(element) ? ["h:1"] : []),
+            // A LaTeX one is a \boldsymbol (see text).
+            ...((Number(attribute(element, "font", "style")) & 1) === 1 &&
+            attribute(element, "isLaTeX", "val") !== "true"
+                ? ["bf:true"]
                 : []),
             `p:${decimals}`,
             `f:${fontSize * Number(attribute(element, "font", "sizeM") ?? 1)}`,
@@ -4211,12 +4454,23 @@ export function translateGgb(
     // gather environments as aligned and gathered, refuses the "$"
     // delimiters GeoGebra ignores in its math mode, and breaks lines only
     // at "\\", as GeoGebra does at a line break outside environments: after
-    // a space, which keeps an empty line's height.
-    const inlineTeX = (tex: string, breaks: boolean): string =>
+    // a space, which keeps an empty line's height. A bold text's lines are
+    // each a \boldsymbol, as GeoGebra's, whose \text stays plain; a sans
+    // serif one's \text is \textsf.
+    const inlineTeX = (
+        tex: string,
+        breaks: boolean,
+        bold: boolean,
+        sans: boolean,
+    ): string =>
         tex
+            .replace(/\\text\{/g, sans ? "\\textsf{" : "$&")
             .replace(/\\(begin|end)\{(align|gather)\*?\}/g, "\\$1{$2ed}")
             .replace(/\\?\$/g, (match) => (match.length > 1 ? match : ""))
-            .replace(/\n/g, breaks ? "~\\\\" : "\n");
+            .replace(
+                /\n/g,
+                breaks ? (bold ? "}~\\\\\\boldsymbol{" : "~\\\\") : "\n",
+            );
 
     // A point, or a point's coordinates such as "A + (0, 1)" as a hidden
     // point.
@@ -4237,13 +4491,24 @@ export function translateGgb(
         if (parts === null) return false;
         const latex = attribute(element, "isLaTeX", "val") === "true";
         const breaks = !source.includes("\\begin");
-        const content = `""${parts
+        const bold =
+            latex && (Number(attribute(element, "font", "style")) & 1) === 1;
+        const sans = attribute(element, "font", "serif") !== "true";
+        // GeoGebra draws its LaTeX in display style, in sans serif unless
+        // the text is serif.
+        const [open, close] = !latex
+            ? ["", ""]
+            : [
+                  `\\\\displaystyle${sans ? "\\\\sf" : ""}${bold ? "\\\\boldsymbol{" : " "}`,
+                  bold ? "}" : "",
+              ];
+        const content = `"${open}"${parts
             .map((part) =>
                 typeof part === "string"
-                    ? `+"${(latex ? inlineTeX(part, breaks) : part).replace(/[\\"]/g, "\\$&")}"`
+                    ? `+"${(latex ? inlineTeX(part, breaks, bold, sans) : subscripts(part)).replace(/[\\"]/g, "\\$&")}"`
                     : `+(${part.formula})`,
             )
-            .join("")}`;
+            .join("")}+"${close}"`;
         if (
             child(element, "absoluteScreenLocation") ||
             (latex && attribute(element, "show", "object") === "false")
@@ -4751,9 +5016,12 @@ export function translateGgb(
             (part.match(LABEL_WORDS) ?? []).some(
                 (word) => word === "ί" || is(word, POINT_KINDS),
             );
+        // An item of a list of points is a point.
         for (let match; (match = INNERMOST.exec(rest));)
             rest = `${rest.slice(0, match.index)}${
-                !match[1] && (/[,;]/.test(match[2]) || point(match[2]))
+                (!match[1] && (/[,;]/.test(match[2]) || point(match[2]))) ||
+                (match[1]?.trim() === "Element" &&
+                    pointLists.has(match[2].split(",")[0].trim()))
                     ? "⊙"
                     : "0"
             }${rest.slice(match.index + match[0].length)}`;
@@ -5039,9 +5307,7 @@ export function translateGgb(
                 ...(color ? [`c:${hexColor(color)}`] : []),
                 ...(background ? [`fc:${hexColor(background)}`, "o:1"] : []),
                 `f:${font}`,
-                ...(attribute(element, "show", "object") === "false"
-                    ? ["h:1"]
-                    : []),
+                ...(hidden(element) ? ["h:1"] : []),
             ].join(";"),
         );
     });
@@ -5056,6 +5322,7 @@ export function translateGgb(
         const drawn = parts.get(label) ?? [label];
         if (
             source === undefined ||
+            outOfView(element) ||
             !objects.has(drawn[0]) ||
             (element.getAttribute("type") === "numeric" &&
                 !child(element, "slider"))

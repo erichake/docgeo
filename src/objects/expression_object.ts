@@ -500,6 +500,8 @@ export class expression_object extends construction_object {
     vertical: boolean;
     // A slider without its name and value, as GeoGebra may draw it.
     unlabeled = false;
+    // GeoGebra's bold text.
+    bold = false;
     // Null: the slider's own color.
     cursorColor: string | null = null;
     cursorRadius: number;
@@ -861,7 +863,10 @@ export class expression_object extends construction_object {
                     : this.formula
                       ? this.formula.source
                       : formatShown(this.value!, this.precision);
-            if (this.text === "")
+            // GeoGebra's caption, "%v" standing for its value.
+            if (this.caption !== null)
+                this.valueText.text(this.caption.replace(/%v/g, shown));
+            else if (this.text === "")
                 writeName(this.valueText, this.name, " = " + shown);
             else this.valueText.text(this.text + shown);
         }
@@ -887,6 +892,11 @@ export class expression_object extends construction_object {
             this.valueText
                 .att("x", x + this.cursorRadius + CURSOR_BORDER + 4)
                 .att("y", y - (this.knobX - x) + this.fontSize / 3);
+        // As GeoGebra's, its label's start and baseline from its knob.
+        else if (this.nameOffset)
+            this.valueText
+                .att("x", this.knobX + this.nameOffset[0])
+                .att("y", trackY + this.nameOffset[1]);
         this.track.att(
             "d",
             roundRectPath(x, trackY - half, this.cursorLength, this.size, half),
@@ -1004,7 +1014,7 @@ export class expression_object extends construction_object {
         t.valueText = t.svg
             .shape("text")
             .stl(
-                `fill:${t.stroke_color};font-family:Verdana;font-size:${t.fontSize}px;pointer-events:none`,
+                `fill:${t.stroke_color};font-family:Verdana;font-size:${t.fontSize}px;pointer-events:none${t.bold ? ";font-weight:bold" : ""}`,
             );
         dom.add(t.valueText);
 

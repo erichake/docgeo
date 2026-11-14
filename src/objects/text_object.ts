@@ -30,6 +30,8 @@ export class text_object extends construction_object {
     refs: Map<string, construction_object>;
     content = "";
     projectionDefined = false;
+    // GeoGebra's bold text.
+    bold = false;
     private position: Vec2 = [0, 0];
     private renderedContent: string | null = null;
     private lines: DOMElement[] = [];
@@ -159,7 +161,7 @@ export class text_object extends construction_object {
         t.textElement = t.svg
             .shape("text")
             .stl(
-                `fill:${t.stroke_color};font-family:Verdana;font-size:${t.fontSize}px;white-space:pre;pointer-events:none`,
+                `fill:${t.stroke_color};font-family:Verdana;font-size:${t.fontSize}px;white-space:pre;pointer-events:none${t.bold ? ";font-weight:bold" : ""}`,
             )
             .tap(() => t.C.gesture(t, "down"));
         t.textElement.on("pointerdown", (event) => event.stopPropagation());

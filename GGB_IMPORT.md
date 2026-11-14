@@ -104,6 +104,7 @@ figure sont seulement comptés. L'API utilisée est
 | 2026-11-14 | 251 / 456 (55 %)   | 326,7 Ko | item 56 : centre de gravité d'un polygone (+1)                       |
 | 2026-11-14 | 258 / 456 (57 %)   | 326,8 Ko | item 57 : nombres complexes, scripts de mise à jour (+7)             |
 | 2026-11-14 | 258 / 456 (57 %)   | 327,4 Ko | item 58 : polygone régulier d'un curseur, listes dessinées (+0)      |
+| 2026-11-14 | 260 / 456 (57 %)   | 327,9 Ko | item 59 : traces, légendes de curseurs, fonctions dans un texte (+2) |
 
 ## À faire, par rapport gain / coût
 
@@ -999,6 +1000,38 @@ cause.
       Aucune figure du corpus gagnée : des deux qui ont un polygone
       régulier variable, l'une le construit sur des `Element` de liste,
       l'autre a d'autres causes. Moteur +0,5 Ko, import +0,5 Ko.
+- [x] **59. Traces, légendes de curseurs, fonctions dans un texte** :
+      quatre figures envoyées (`somme_geometrique.ggb`,
+      `Multiplication_de_fractions.ggb`, `somme_ari_geo.ggb`,
+      `Bifurcation_de_Feigenbaum.ggb`). Fait :
+      `Sequence(Dilate[poly, k, Ω], …)` (de même `Rotate`, `Translate`),
+      la suite des polygones des images de ses sommets, `Dilate` d'un point se lisant dans une
+      formule ; `IterationList(f, s, n)` ; un `Element` d'une suite de
+      points est un point (`Segment(Element[Px, 1], …)`) ; une fonction
+      dans un texte s'écrit comme GeoGebra, ses nombres lus en direct
+      (« 0.5 (x - 8) + 8 », « 8 - 0.5 x », « 2x² ») ; les indices d'un
+      texte simple (`u_{n+1}`) en caractères Unicode en indice ; un texte
+      en gras (`style` 1), en `\boldsymbol` pour un texte LaTeX, et tout
+      texte LaTeX en style « display » (`\sum` à bornes dessus et
+      dessous, fractions pleines) et, s'il n'est pas `serif`, sans
+      empattement (`\sf`, `\textsf`), comme GeoGebra le dessine ; une
+      lettre grecque d'une légende LaTeX (`$\Omega$` → Ω). L'étiquette
+      d'un curseur horizontal suit son bouton, à son décalage
+      (`labelOffset`) près, comme dans `DrawSlider` (−11, −15 pixels ; une
+      légende LaTeX 10 pixels plus haut), et sa légende (`labelMode` 3,
+      `%v` sa valeur) remplace « nom = valeur ». Un objet absent du
+      premier graphique (bit 0 de `ev`, une image du seul graphique 2)
+      est caché, une condition d'affichage ne le montrant pas ; une ligne
+      de 0 pixel, que GeoGebra ne dessine pas, n'a pas d'étiquette. Un
+      nombre libre enregistré indéfini (`NaN`) le reste. La trace d'un
+      point est celle de GeoGebra, une copie du point à chaque position
+      (style `tp`, voir `DGO.md`) : le diagramme de bifurcation se
+      dessine ; les traces commencent quand la figure s'affiche
+      (`reveal`), sans garder les mouvements de son ouverture. **+2
+      figures** (258 → 260), éléments non importés 3045 → 2974. Moteur
+      +0,5 Ko, import +3,8 Ko. Reste, dans `somme_geometrique.ggb`, un
+      point gris clair de style « + » (`pointStyle` 3) dessiné en « × »,
+      DocGeo n'ayant pas cette forme.
 
 À écarter, sauf changement de priorité : calcul formel, courbes implicites,
 statistiques et probabilités, tableur au-delà des cellules simples, matrices.

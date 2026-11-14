@@ -70,6 +70,8 @@ async function roundTrip(
     seedRandom();
     const original = createConstruction();
     await open(original);
+    // Its traces start once shown, as in the player.
+    original.reveal();
     await frame();
     if (change) {
         change(original);
@@ -80,6 +82,7 @@ async function roundTrip(
     const written = await writeDgo(original);
     seedRandom();
     await importDgoFromBlob(reopened, written);
+    reopened.reveal();
     await frame();
     expectClose(await describeDgo(reopened), saved);
     const objects = saved.o.length;

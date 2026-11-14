@@ -6,7 +6,7 @@ import {
     type GgbView3D,
 } from "./import/ggb_translate";
 import { readZipBlob, readZipEntry } from "./import/ggb_zip";
-import type { expression_object } from "./objects/expression_object";
+import { expression_object } from "./objects/expression_object";
 import type { formula_point_object } from "./objects/formula_point_object";
 import { cylinder_intersection_object } from "./objects/cylinder_intersection_object";
 import { intersection_object } from "./objects/intersection_object";
@@ -63,7 +63,11 @@ export function importGgb(
     nameShifts.forEach((shift, variable) => {
         const object = variables.get(variable);
         const at = object?.nameAt();
-        if (object instanceof point_object) object.nameOffset = [...shift];
+        if (
+            object instanceof point_object ||
+            object instanceof expression_object
+        )
+            object.nameOffset = [...shift];
         else if (at) object!.nameOffset = object!.anchorName(vAdd(at, shift));
     });
     rates.forEach(

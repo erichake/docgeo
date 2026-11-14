@@ -1021,6 +1021,13 @@ place le début et la ligne de base de son nom, en pixels depuis lui (vers la
 droite et vers le bas), au lieu de `np` et `nd`, et se perd quand l'éditeur
 déplace le nom.
 
+Depuis le 2026-11-14 encore, pour les curseurs de GeoGebra (`Ex`) : `cp`
+remplace leur étiquette « nom = valeur », `%v` y valant la valeur ; `no` place
+le début et la ligne de base de cette étiquette, en pixels depuis le bouton
+(un curseur horizontal). `bf` écrit un texte (`Txt`, `Ex`) en gras ; `tp` fait
+de la trace `tk` d'un point celle de GeoGebra : une copie du point à chacune de
+ses positions, au lieu d'une ligne qui les relie.
+
 Depuis le 2026-11-14, `rgb` donne à l'objet la couleur de GeoGebra (trait et
 remplissage) que calcule l'expression, liste `[r, g, b]` : chaque canal est
 ramené dans [0, 1] par une onde triangulaire de période 2 (1,2 donne 0,8 ;
@@ -1047,6 +1054,7 @@ de la couleur de son objet la suit. Sans `rgb`, la couleur est celle de `c`.
 | `np` | points                   | direction du nom (radians)               | 0                                 |
 | `nd` | points                   | distance du nom (pixels)                 | `null` (deux fois la taille)      |
 | `tk` | points                   | trace                                    | 0                                 |
+| `tp` | points                   | trace par points (GeoGebra)              | 0                                 |
 | `i`  | points                   | pas de déplacement `[dx, dy]`            | [0, 0]                            |
 | `fl` | points                   | punaisé à sa place dans la fenêtre       | 0                                 |
 | `sb` | `On`                     | sur le bord du polygone                  | 0                                 |
@@ -1066,6 +1074,7 @@ de la couleur de son objet la suit. Sans `rgb`, la couleur est celle de `c`.
 | `cB` | `Ex`                     | case à cocher                            | 0                                 |
 | `iB` | `Ex`                     | champ de saisie (largeur)                | 0                                 |
 | `tx` | `Ex`                     | LaTeX                                    | 0                                 |
+| `bf` | `Txt`, `Ex`              | gras                                     | 0                                 |
 | `cc` | `Ex`                     | couleur du bouton du curseur             | `null` (celle du curseur)         |
 | `cf` | `Ex`                     | remplissage du bouton, si `co` > 0       | `null` (celle du bouton)          |
 | `cr` | `Ex`                     | rayon du bouton                          | 10                                |

@@ -91,6 +91,9 @@ export class point_object extends construction_object {
     nameDistance: number | null = null;
     nameText?: DOMElement;
     trace = false;
+    // GeoGebra's trace: a copy of the point at each of its positions, not
+    // a line through them.
+    traceDots = false;
     tracePath?: DOMElement;
     // False for every subclass that overrides mousedrag as a no-op (it's
     // driven entirely by its parents' geometry, e.g. an intersection or
@@ -381,7 +384,10 @@ export class point_object extends construction_object {
             this.traceScreen = [this.sx, this.sy];
             return;
         }
-        if (
+        if (this.traceDots && this.tracePath) {
+            this.traceData += `M${this.sx} ${this.sy}h0`;
+            this.tracePath.att("d", this.traceData);
+        } else if (
             this.tracePath &&
             this.traceScreen &&
             !this.traceBreak &&
@@ -432,7 +438,10 @@ export class point_object extends construction_object {
                 .att("data-trace", t.name)
                 .stl("fill", "none")
                 .stl("stroke", t.stroke_color)
-                .stl("stroke-width", t.size)
+                .stl(
+                    "stroke-width",
+                    t.traceDots ? 2 * t.size + t.border : t.size,
+                )
                 .stl("stroke-linecap", "round")
                 .stl("pointer-events", "none");
             t.C.traceLayer.add(t.tracePath);

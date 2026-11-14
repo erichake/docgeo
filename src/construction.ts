@@ -524,7 +524,10 @@ export class construction {
         });
     }
 
+    // Its traces start once it's shown, not with the moves of its opening.
     reveal(): void {
+        this.traceEpoch++;
+        this.traceLayer.findAll("path").forEach((path) => path.att("d", ""));
         this.svg.stl("visibility", "");
     }
 

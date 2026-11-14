@@ -494,6 +494,7 @@ const STYLE: Record<string, Property> = {
         (value) => value === null || isNumber(value),
     ),
     tk: flag(point_object, "trace"),
+    tp: flag(point_object, "traceDots"),
     i: field(point_object, "increment", [0, 0], isPair),
     // Pinned at the window position its coordinates give.
     fl: property(
@@ -570,6 +571,10 @@ const STYLE: Record<string, Property> = {
     cB: flag(expression_object, "checkbox"),
     iB: field(expression_object, "inputLength", 0, isNumber),
     tx: flag(expression_object, "latex"),
+    bf: flag<expression_object | text_object>(
+        [expression_object, text_object],
+        "bold",
+    ),
     cc: field(expression_object, "cursorColor", null, isOptionalColor),
     cf: field(expression_object, "cursorFill", null, isOptionalColor),
     cr: field(expression_object, "cursorRadius", 10, isNumber),

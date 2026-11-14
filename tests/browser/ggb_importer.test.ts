@@ -31,6 +31,7 @@ import { polygon_object } from "../../src/objects/polygon_object";
 import { quadric5pts_object } from "../../src/objects/quadric5pts_object";
 import { rotation_object } from "../../src/objects/rotation_object";
 import { segment_object } from "../../src/objects/segment_object";
+import type { sequence_object } from "../../src/objects/sequence_object";
 import { translation_object } from "../../src/objects/translation_object";
 import { tangent_object } from "../../src/objects/tangent_object";
 import { plane_object } from "../../src/objects/plane_object";
@@ -428,12 +429,13 @@ ${[
         );
         await new Promise((resolve) => requestAnimationFrame(resolve));
         const a = c.getObj("A") as point_object;
+        // In display style and sans serif, as GeoGebra draws it.
         expect([t.latex, t.value, t.screen]).toEqual([
             true,
-            " y=e^x ",
+            "\\displaystyle\\sf  y=e^x ",
             [a.screen[0] + 5, a.screen[1] - 10],
         ]);
-        expect(u.value).toBe("\\frac{1}{2}");
+        expect(u.value).toBe("\\displaystyle\\sf \\frac{1}{2}");
         a.coords = [2, 3, 0];
         c.invalidateGeometry(a);
         await new Promise((resolve) => requestAnimationFrame(resolve));
@@ -2012,9 +2014,10 @@ ${mirror("f", "f'", `<element type="curvecartesian" label="f'"/>`)}
         expectLists();
         expect(stability.value).toBe("Unstable");
         expect(caption.value).toBe("Unstable orbit");
+        // Bold.
         expect([title.latex, title.value]).toEqual([
             true,
-            "M(z) = z^{2}+(0.5 + 0.5i)",
+            "\\displaystyle\\boldsymbol{M(z) = z^{2}+(0.5 + 0.5i)}",
         ]);
         await expect
             .poll(() => title.dom.find(".katex-html")?.text())
@@ -2124,7 +2127,7 @@ ${box("t4", true, "$\\text{\\sf{r =}}$")}
         expect(text.value).toContain("autres sommets} ~\\\\~\\\\\\text{Il y a");
         // GeoGebra's own text.
         expect(table.value).toBe(
-            "{\\begin{array}{|l|l|l|l|l|l|l|l|l|}\\hline ordre&2&3&4&5&6&7&8&9 \\\\ \\hline \\text{nombre d'arêtes}&1&3&6&10&15&21&28&36 \\\\ \\hline \\end{array}}",
+            "\\displaystyle\\sf {\\begin{array}{|l|l|l|l|l|l|l|l|l|}\\hline ordre&2&3&4&5&6&7&8&9 \\\\ \\hline \\text{nombre d'arêtes}&1&3&6&10&15&21&28&36 \\\\ \\hline \\end{array}}",
         );
 
         n.value = 20;
@@ -3397,10 +3400,10 @@ ${conic("circle", "(x - a)^(2) + y^(2) = 4", [1, 1, 0, 0, -2, 0])}
         expect(u.content).toBe("1.23");
         expect(u.anchor.coords[1]).toBeCloseTo(1.4, 9);
         expect((c.getObj("f") as expression_object).value).toBe(
-            " \\frac{ 3 }{ 4 } ",
+            "\\displaystyle\\sf  \\frac{ 3 }{ 4 } ",
         );
         expect((c.getObj("g") as expression_object).value).toBe(
-            " \\frac{ -3 }{ 2 }  =  \\frac{ 19601 }{ 13860 } 3",
+            "\\displaystyle\\sf  \\frac{ -3 }{ 2 }  =  \\frac{ 19601 }{ 13860 } 3",
         );
     });
 
@@ -4069,6 +4072,112 @@ B.setExpression((1 + [0, 1]) / (1 - q));`,
         c.invalidateGeometry(n);
         readDgo(restored, await describeDgo(c));
         expect(restored.getObj("G")!.defined).toBe(true);
+    });
+
+    it("draws the images of a polygon by a Sequence of dilations", async () => {
+        const c = createConstruction();
+        c.animations.paused = true;
+        expect(importGgb(c, await loadXml("somme_geometrique"))).toEqual([]);
+        // Dilate(poly1, a^k, Ω): the square (-1, 0), (0, 0), (0, 1),
+        // (-1, 1), a = 0.6 and Ω = (1.5, 0), each polygon's vertices
+        // followed by an undefined one.
+        const images = c.getObj("liste1") as sequence_object;
+        expect(images.count).toBe(125);
+        [
+            [0, 0],
+            [0.6, 0],
+            [0.6, 0.6],
+            [0, 0.6],
+        ].forEach((vertex, index) =>
+            expectClose(
+                (images.items[index][0] as readonly number[]).slice(0, 2),
+                vertex,
+            ),
+        );
+        expect(images.items[4][0]).toBeNull();
+        // Its first n = 24 polygons, through Element.
+        expect((c.getObj("l1") as sequence_object).count).toBe(120);
+        // A LaTeX caption's Greek letter; a bold LaTeX text, in display
+        // style.
+        expect(c.getObj("Ω")!.caption).toBe("Ω");
+        expect((c.getObj("texte5") as expression_object).value).toBe(
+            "\\displaystyle\\boldsymbol{\\sum_{k=0}^\\infty a^k=\\frac 1{1-a}}",
+        );
+    });
+
+    it("writes slider captions and hides what GeoGebra doesn't draw", async () => {
+        const c = createConstruction();
+        c.animations.paused = true;
+        // With its image.
+        const response = await fetch(figure("Multiplication_de_fractions.ggb"));
+        expect(await importGgbFromBlob(c, await response.blob())).toEqual([]);
+        await new Promise((resolve) => requestAnimationFrame(resolve));
+        // "$%v$", its value, and a caption, from the slider's knob as
+        // GeoGebra writes them.
+        const [d, t] = ["d_1", "t"].map(
+            (name) => c.getObj(name) as expression_object,
+        );
+        expect([d.caption, d.nameOffset]).toEqual(["%v", [-3, 25]]);
+        expect([t.caption, t.nameOffset]).toEqual(["Animation", [20, 11]]);
+        const written = [...c.svg.dom().querySelectorAll("text")].map(
+            (text) => text.textContent,
+        );
+        expect(written).toContain("Animation");
+        expect(written).not.toContain("t = 87");
+        // A side 0 pixels wide has no label; the signature, only in the
+        // second graphics view, is hidden.
+        expect(c.getObj("segp1_1")!.showName).toBe(false);
+        expect(c.getObj("image1")!.hidden).toBe(1);
+        // A sans serif LaTeX text.
+        expect((c.getObj("texte2") as expression_object).value).toMatch(
+            /^\\displaystyle\\sf \\textsf\{On partage/,
+        );
+    });
+
+    it("iterates a function and writes it in a text as GeoGebra", async () => {
+        const c = createConstruction();
+        c.animations.paused = true;
+        expect(importGgb(c, await loadXml("somme_ari_geo"))).toEqual([]);
+        // IterationList(f, u_0, n): u_0 = 20, f(x) = 0.5 (x - 8) + 8.
+        expectClose(
+            (c.getObj("U_0") as point_object).coords.slice(0, 2),
+            [20, 0],
+        );
+        const text = c.getObj("texte1") as expression_object;
+        expect(text.bold).toBe(true);
+        expect(text.value).toBe("uₙ₊₁ = f(uₙ) avec f(x) = 0.5 (x - 8) + 8");
+        const a = c.getObj("a") as expression_object;
+        a.value = -2.5;
+        c.invalidateGeometry(a);
+        c.flush();
+        expect(text.value).toBe("uₙ₊₁ = f(uₙ) avec f(x) = -2.5 (x - 8) + 8");
+    });
+
+    it("traces points as GeoGebra, from the figure's opening", async () => {
+        const c = createConstruction();
+        c.animations.paused = true;
+        expect(
+            importGgb(c, await loadXml("Bifurcation_de_Feigenbaum")),
+        ).toEqual([]);
+        // A number saved undefined.
+        expect(c.getObj("A119")!.defined).toBe(false);
+        expect(c.getObj("C118")!.defined).toBe(false);
+        const point = c.getObj("D117") as point_object;
+        expect(point.traceDots).toBe(true);
+        await new Promise((resolve) => requestAnimationFrame(resolve));
+        c.reveal();
+        expect(point.tracePath!.getAtt("d")).toBe("");
+        // A copy of the point at each position, not a line through them.
+        const a = c.getObj("a") as expression_object;
+        for (const value of [3.2, 3.3]) {
+            a.value = value;
+            c.invalidateGeometry(a);
+            c.flush();
+            await new Promise((resolve) => requestAnimationFrame(resolve));
+        }
+        expect(point.tracePath!.getAtt("d")).toMatch(
+            /^M[\d.]+ [\d.]+h0M[\d.]+ [\d.]+h0$/,
+        );
     });
 
     it("reports what it can't import instead of failing", () => {

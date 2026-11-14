@@ -71,7 +71,7 @@ import {
 } from "../objects/fixed_angle_object";
 import { createFixedPoint } from "../objects/fixed_point_object";
 import { createIteration, type SegmentMap } from "../objects/iteration_object";
-import { createText, type text_object } from "../objects/text_object";
+import { createText, text_object } from "../objects/text_object";
 import {
     createPanel,
     panelFormulas,
@@ -901,6 +901,8 @@ function validateObjectStyle(
             case "ho":
             case "sb":
             case "tk":
+            case "tp":
+            case "bf":
             case "fl":
             case "pl":
             case "su":
@@ -1149,6 +1151,10 @@ function applyObjectStyle(
                 if (target instanceof point_object)
                     target.trace = propertyValue === "true";
                 break;
+            case "tp":
+                if (target instanceof point_object)
+                    target.traceDots = propertyValue === "true";
+                break;
             // GeoGebra's empty point, its ring.
             case "ho":
                 if (target instanceof point_object)
@@ -1251,6 +1257,13 @@ function applyObjectStyle(
             case "tx":
                 if (target instanceof expression_object)
                     target.latex = propertyValue === "true";
+                break;
+            case "bf":
+                if (
+                    target instanceof expression_object ||
+                    target instanceof text_object
+                )
+                    target.bold = propertyValue === "true";
                 break;
             case "dh":
                 target.dash = propertyValue === "true" ? DGPAD_DASH : [];
