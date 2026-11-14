@@ -1,5 +1,6 @@
 import type { Animation } from "../animation";
 import type { SegmentMap } from "../objects/iteration_object";
+import { $ } from "../dom";
 import { CURSOR_OFFSET_Y } from "../objects/expression_object";
 import { vAdd, vSub, type Vec2, type Vec3 } from "../vec";
 import {
@@ -155,6 +156,7 @@ const FORMULA_COMMANDS = new Set([
     "Rotate",
     "Translate",
     "Dilate",
+    "Angle",
 ]);
 // The commands whose list listFormula reads from their own sources.
 const LIST_COMMANDS = new Set(["Take", "First", "Last", "Mode", "Insert"]);
@@ -327,6 +329,8 @@ const AXES: Record<string, Vec3> = {
     zAxis: [0, 0, 1],
 };
 const DEFAULT_SLIDER_STEP = 0.1;
+// The milliseconds between two steps of an animation a script starts.
+const ANIMATION_FRAME = 40;
 // Numerical analysis: a derivative's step, the intervals of an integral's
 // Simpson rule and of its drawn region, and the samples an interval's
 // extremum is sought among for a lower or upper sum.
@@ -1473,6 +1477,15 @@ export function translateGgb(
                 ) === "complex"
                     ? `(${x}+(${y}<0?" - ":" + ")+abs(${y})+"i")`
                     : `("("+${x}+", "+${y}+")")`;
+            }
+            // ABC, counterclockwise from BA to BC, within [0, 2π).
+            case "Angle": {
+                const values = args.map((arg) =>
+                    formula(arg, POINT_KINDS, locals),
+                );
+                return args.length === 3 && !is3D && !values.includes(null)
+                    ? `Angle360(${values})`
+                    : null;
             }
             case "Corner":
                 return cornerFormula(args);
@@ -2956,7 +2969,32 @@ export function translateGgb(
                 ends.map(ref),
             );
         },
-        AngularBisector: onePoint("AngleBisector", 3),
+        // Of two lines, through their intersection, along the sum of their
+        // unit directions, then along the second's minus the first's.
+        AngularBisector: (inputs, outputs) => {
+            if (inputs.length !== 2)
+                return onePoint("AngleBisector", 3)(inputs, outputs);
+            const directions = inputs.map(lineDirection);
+            if (!directions[0] || !directions[1]) return false;
+            const vertex = auxiliary();
+            define(vertex, "point", "OrderedIntersection", [
+                ...inputs.map(ref),
+                literal(0),
+            ]);
+            const x = objects.get(vertex)!.variable;
+            const [u, v] = directions.map((direction) => {
+                const tip = objects.get(alongDirection(vertex, direction!))!;
+                return `(${tip.variable}-${x})/d(${x},${tip.variable})`;
+            });
+            return [`${u}+${v}`, `${v}-${u}`].every(
+                (sum, index) =>
+                    !outputs[index] ||
+                    HANDLERS.Line(
+                        [vertex, formulaPoint(`${x}+${sum}`)],
+                        [outputs[index]],
+                    ),
+            );
+        },
         // Of two lines, from the first's direction to the second's, at
         // their intersection.
         Angle: (inputs, outputs) => {
@@ -4411,8 +4449,10 @@ export function translateGgb(
 
     const textStyle = (element: Element): string => {
         const color = child(element, "objColor");
+        const background = child(element, "bgColor");
         return [
             ...(color ? [`c:${hexColor(color)}`] : []),
+            ...(background ? [`bg:${hexColor(background)}`] : []),
             ...(hidden(element) ? ["h:1"] : []),
             // A LaTeX one is a \boldsymbol (see text).
             ...((Number(attribute(element, "font", "style")) & 1) === 1 &&
@@ -4452,25 +4492,35 @@ export function translateGgb(
 
     // KaTeX, which renders texts inline, only takes GeoGebra's align and
     // gather environments as aligned and gathered, refuses the "$"
-    // delimiters GeoGebra ignores in its math mode, and breaks lines only
-    // at "\\", as GeoGebra does at a line break outside environments: after
-    // a space, which keeps an empty line's height. A bold text's lines are
-    // each a \boldsymbol, as GeoGebra's, whose \text stays plain; a sans
-    // serif one's \text is \textsf.
+    // delimiters GeoGebra ignores in its math mode, and breaks lines only at
+    // "\\" (out of a \boldsymbol), as GeoGebra does at a line break of its
+    // text mode (outside "$", in a text that has any) outside environments:
+    // after a space, which keeps an empty line's height. In its math mode, a
+    // line break is a space. A bold text's lines are each a \boldsymbol, as
+    // GeoGebra's, its \text a \textbf; a sans serif one's \text is \textsf
+    // (KaTeX can't make it bold too without its closing brace, which a
+    // formula may write).
     const inlineTeX = (
         tex: string,
         breaks: boolean,
         bold: boolean,
         sans: boolean,
+        mode: { math: boolean },
     ): string =>
         tex
-            .replace(/\\text\{/g, sans ? "\\textsf{" : "$&")
-            .replace(/\\(begin|end)\{(align|gather)\*?\}/g, "\\$1{$2ed}")
-            .replace(/\\?\$/g, (match) => (match.length > 1 ? match : ""))
             .replace(
-                /\n/g,
-                breaks ? (bold ? "}~\\\\\\boldsymbol{" : "~\\\\") : "\n",
-            );
+                /\\text\{/g,
+                sans ? "\\textsf{" : bold ? "\\textbf{" : "$&",
+            )
+            .replace(/\\(begin|end)\{(align|gather)\*?\}/g, "\\$1{$2ed}")
+            .replace(/\\\\|\\?\$|\n/g, (match) => {
+                const line = bold ? "}\\\\\\boldsymbol{" : "\\\\";
+                if (match === "\\\\") return breaks ? line : match;
+                if (match === "$") mode.math = !mode.math;
+                if (match !== "\n") return match.length > 1 ? match : "";
+                if (mode.math) return " ";
+                return breaks ? `~${line}` : "\n";
+            });
 
     // A point, or a point's coordinates such as "A + (0, 1)" as a hidden
     // point.
@@ -4502,10 +4552,15 @@ export function translateGgb(
                   `\\\\displaystyle${sans ? "\\\\sf" : ""}${bold ? "\\\\boldsymbol{" : " "}`,
                   bold ? "}" : "",
               ];
+        const mode = {
+            math: !parts.some(
+                (part) => typeof part === "string" && /(^|[^\\])\$/.test(part),
+            ),
+        };
         const content = `"${open}"${parts
             .map((part) =>
                 typeof part === "string"
-                    ? `+"${(latex ? inlineTeX(part, breaks, bold, sans) : subscripts(part)).replace(/[\\"]/g, "\\$&")}"`
+                    ? `+"${(latex ? inlineTeX(part, breaks, bold, sans, mode) : subscripts(part)).replace(/[\\"]/g, "\\$&")}"`
                     : `+(${part.formula})`,
             )
             .join("")}+"${close}"`;
@@ -4727,6 +4782,11 @@ export function translateGgb(
             return numeric(label, element);
         if (type === "text" && source !== undefined)
             return text(label, element, source);
+        const ends =
+            type === "segment" &&
+            source !== undefined &&
+            segments.get(source.trim());
+        if (ends) return defineSegment(label, ends[0], ends[1]);
         // A copy of a list of segments, each another.
         const drawn = source !== undefined && parts.get(source.trim());
         if (type === "list" && drawn) {
@@ -5177,13 +5237,48 @@ export function translateGgb(
         );
     };
 
+    // StartAnimation(n) of a slider increasing once, from its value to its
+    // maximum: GeoGebra's speed runs through its range in 10 s at 1. The
+    // script goes on meanwhile, so that its program steps them all at its
+    // end.
+    const animationStep = (label: string): [string, string] | null => {
+        const element = elements.get(label);
+        if (!element) return null;
+        const animation = child(element, "animation");
+        const [low, high, speed] = [
+            attribute(element, "slider", "min"),
+            attribute(element, "slider", "max"),
+            animation?.getAttribute("speed") ?? "1",
+        ].map(Number);
+        if (
+            animation?.getAttribute("type") !== "3" ||
+            ![low, high, speed].every(Number.isFinite)
+        )
+            return null;
+        const n = objects.get(label)!.variable;
+        const step = +(
+            ((high - low) * speed * ANIMATION_FRAME) /
+            10000
+        ).toPrecision(12);
+        return [
+            `${n} < ${high}`,
+            `${n}.setExpression(min(${n} + ${step}, ${high}));`,
+        ];
+    };
+
     // Its lines, each a SetValue, an assignment or an UpdateConstruction,
     // which has nothing to draw again: the import keeps random numbers.
     const scriptProgram = (source: string): string | null => {
+        const started: [string, string][] = [];
         const statements = source.split("\n").map((line) => {
             const text = normalizeBrackets(line.trim());
             if (!text || /^UpdateConstruction\(\s*\)$/.test(text)) return "";
             const call = COMMAND_EXPRESSION.exec(text);
+            if (call?.[1] === "StartAnimation") {
+                const step = animationStep(call[2].trim());
+                if (step) started.push(step);
+                return step && "";
+            }
             const [target, value] =
                 (call?.[1] === "SetValue" ? splitArguments(call[2]) : null) ??
                 /^([^=:!<>(]+?)\s*:?=(?!=)(.+)$/.exec(text)?.slice(1) ??
@@ -5196,6 +5291,10 @@ export function translateGgb(
         });
         // Blockly has no imaginary unit: a DGP formula multiplies points as
         // complex numbers.
+        if (started.length)
+            statements.push(
+                `while (${started.map(([test]) => test).join(" || ")}) {\n${started.map(([, update]) => update).join("\n")}\nWAIT(${ANIMATION_FRAME});\n}`,
+            );
         return statements.includes(null)
             ? null
             : statements
@@ -5286,8 +5385,12 @@ export function translateGgb(
             height ? height - 20 : Infinity,
         );
         const text = caption(element, label);
-        // DocGeo's width (see button_object.ts), its text's guessed.
-        const width = Math.max(40, 0.6 * font * text.length + 56);
+        // DocGeo's width (see button_object.ts).
+        const context = (
+            $.create("canvas").dom() as HTMLCanvasElement
+        ).getContext("2d")!;
+        context.font = `500 ${font}px system-ui,sans-serif`;
+        const width = Math.max(40, context.measureText(text).width + 56);
         const [x, y] = screenPosition(
             Number(offset?.getAttribute("x") ?? 0) + width,
             Number(offset?.getAttribute("y") ?? 0) +

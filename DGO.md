@@ -1028,6 +1028,10 @@ le début et la ligne de base de cette étiquette, en pixels depuis le bouton
 de la trace `tk` d'un point celle de GeoGebra : une copie du point à chacune de
 ses positions, au lieu d'une ligne qui les relie.
 
+Depuis le 2026-11-14 encore, `bg` donne à un texte (`Txt`, `Ex`) le fond de
+GeoGebra : un rectangle de cette couleur, 3 pixels autour du texte, qui cache
+ce qui est dessous.
+
 Depuis le 2026-11-14, `rgb` donne à l'objet la couleur de GeoGebra (trait et
 remplissage) que calcule l'expression, liste `[r, g, b]` : chaque canal est
 ramené dans [0, 1] par une onde triangulaire de période 2 (1,2 donne 0,8 ;
@@ -1075,6 +1079,7 @@ de la couleur de son objet la suit. Sans `rgb`, la couleur est celle de `c`.
 | `iB` | `Ex`                     | champ de saisie (largeur)                | 0                                 |
 | `tx` | `Ex`                     | LaTeX                                    | 0                                 |
 | `bf` | `Txt`, `Ex`              | gras                                     | 0                                 |
+| `bg` | `Txt`, `Ex`              | couleur du fond                          | `null` (sans fond)                |
 | `cc` | `Ex`                     | couleur du bouton du curseur             | `null` (celle du curseur)         |
 | `cf` | `Ex`                     | remplissage du bouton, si `co` > 0       | `null` (celle du bouton)          |
 | `cr` | `Ex`                     | rayon du bouton                          | 10                                |

@@ -575,6 +575,12 @@ const STYLE: Record<string, Property> = {
         [expression_object, text_object],
         "bold",
     ),
+    bg: field<expression_object | text_object>(
+        [expression_object, text_object],
+        "background",
+        null,
+        isOptionalColor,
+    ),
     cc: field(expression_object, "cursorColor", null, isOptionalColor),
     cf: field(expression_object, "cursorFill", null, isOptionalColor),
     cr: field(expression_object, "cursorRadius", 10, isNumber),

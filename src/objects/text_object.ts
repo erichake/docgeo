@@ -14,7 +14,7 @@ import {
     dgoFormula,
     type DgoContext,
 } from "./construction_object";
-import { callFunction } from "./expression_object";
+import { callFunction, frameText } from "./expression_object";
 import type { point_object } from "./point_object";
 
 // GeoGebra's line spread in a multi-line text.
@@ -32,6 +32,9 @@ export class text_object extends construction_object {
     projectionDefined = false;
     // GeoGebra's bold text.
     bold = false;
+    // The color of GeoGebra's background, if any.
+    background: string | null = null;
+    private backdrop: DOMElement | null = null;
     private position: Vec2 = [0, 0];
     private renderedContent: string | null = null;
     private lines: DOMElement[] = [];
@@ -153,6 +156,7 @@ export class text_object extends construction_object {
         }
         this.textElement.att("y", y);
         this.lines.forEach((line) => line.att("x", x));
+        if (this.backdrop) frameText(this.backdrop, this.textElement);
     }
 
     static createSVG(_this: construction_object): DOMElement {
@@ -165,7 +169,12 @@ export class text_object extends construction_object {
             )
             .tap(() => t.C.gesture(t, "down"));
         t.textElement.on("pointerdown", (event) => event.stopPropagation());
-        return t.svg.shape("g").add(t.textElement);
+        t.backdrop = t.background
+            ? t.svg.shape("rect").stl("fill", t.background)
+            : null;
+        return t.svg
+            .shape("g")
+            .add(...(t.backdrop ? [t.backdrop] : []), t.textElement);
     }
 }
 

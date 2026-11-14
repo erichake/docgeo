@@ -74,7 +74,8 @@ import {
     blocksProgram,
     programBlocks,
 } from "../../src/editor/blocks/program_blocks";
-import { formatName } from "../../src/editor/text";
+import { formatName, renameFormula } from "../../src/editor/text";
+import { formulaSource, parseProgram } from "../../src/import/dgp_formula";
 
 function createConstruction(): construction {
     document.documentElement.style.width = "100%";
@@ -4177,6 +4178,50 @@ B.setExpression((1 + [0, 1]) / (1 - q));`,
         }
         expect(point.tracePath!.getAtt("d")).toMatch(
             /^M[\d.]+ [\d.]+h0M[\d.]+ [\d.]+h0$/,
+        );
+    });
+
+    it("bisects lines, starts animations and draws texts' backgrounds", async () => {
+        const c = createConstruction();
+        const xml = await loadXml("thales");
+        expect(importGgb(c, xml)).toEqual([]);
+        // H, from the bisectors of two pairs of sides; A1 rotated by an
+        // If of Angle(D, B, A).
+        expectSavedPoints(c, xml);
+        // StartAnimation(k), stepped at the end of its program, which opens
+        // as blocks, its variables named as the editor names them.
+        const { program, refs, targets } = (
+            c.getObj("Bouton1") as button_object
+        ).program!;
+        const named = renameFormula(
+            formulaSource(program),
+            (name) => (refs.get(name) ?? targets.get(name))?.name,
+        );
+        expect(
+            blocksProgram(
+                programBlocks(parseProgram(named), true, formatName)!,
+                formatName,
+            ),
+        ).toBe(`k.setExpression(-1);
+r.setExpression(1);
+while (k < 1) {
+    k.setExpression(min(k + 0.016, 1));
+    WAIT(40);
+}`);
+        // A line break of the math mode is a space, "\\" a line break out of
+        // the \boldsymbol, whose \text is bold.
+        const text = c.getObj("texte2") as expression_object;
+        expect(text.value).toContain(
+            "parallèles,}}\\\\\\boldsymbol{ \\textbf{alors }  \\frac{",
+        );
+        // Its white background hides the lines under it.
+        expect(text.background).toBe("#ffffff");
+        expect((c.getObj("texte4") as text_object).background).toBe("#ffffff");
+        // Kept in .dgo.
+        const restored = createConstruction();
+        readDgo(restored, await describeDgo(c));
+        expect((restored.getObj("texte4") as text_object).background).toBe(
+            "#ffffff",
         );
     });
 

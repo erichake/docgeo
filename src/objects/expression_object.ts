@@ -35,6 +35,16 @@ import type { point_on_object } from "./point_on_object";
 import { scriptCenter } from "./primitive_quadric_object";
 
 // In a chunk of its own, loaded only by the figures that show LaTeX.
+// GeoGebra's background of a text, a few pixels around it.
+const BACKDROP_MARGIN = 3;
+export function frameText(rect: DOMElement, text: DOMElement): void {
+    const box = (text.dom() as SVGGraphicsElement).getBBox();
+    rect.att("x", box.x - BACKDROP_MARGIN)
+        .att("y", box.y - BACKDROP_MARGIN)
+        .att("width", box.width + 2 * BACKDROP_MARGIN)
+        .att("height", box.height + 2 * BACKDROP_MARGIN);
+}
+
 let katex: Promise<typeof import("katex").default> | undefined;
 export const loadKaTeX = () =>
     (katex ??= Promise.all([
@@ -502,6 +512,9 @@ export class expression_object extends construction_object {
     unlabeled = false;
     // GeoGebra's bold text.
     bold = false;
+    // The color of GeoGebra's background of a text, if any.
+    background: string | null = null;
+    private backdrop: DOMElement | null = null;
     // Null: the slider's own color.
     cursorColor: string | null = null;
     cursorRadius: number;
@@ -870,6 +883,7 @@ export class expression_object extends construction_object {
                 writeName(this.valueText, this.name, " = " + shown);
             else this.valueText.text(this.text + shown);
         }
+        if (this.backdrop) frameText(this.backdrop, this.valueText);
 
         if (!this.cursor || !this.track || !this.progress || !this.knob) return;
         // Bounds read from other objects can be undefined.
@@ -946,7 +960,7 @@ export class expression_object extends construction_object {
                 .stl("overflow:visible;pointer-events:none")
                 .add(
                     $.create("div").stl(
-                        `width:max-content;color:${t.stroke_color};font-size:${t.fontSize}px`,
+                        `width:max-content;color:${t.stroke_color};font-size:${t.fontSize}px${t.background ? `;background:${t.background};padding:${BACKDROP_MARGIN}px;margin:-${BACKDROP_MARGIN}px` : ""}`,
                     ),
                 );
             return dom.add(t.tex);
@@ -1016,7 +1030,10 @@ export class expression_object extends construction_object {
             .stl(
                 `fill:${t.stroke_color};font-family:Verdana;font-size:${t.fontSize}px;pointer-events:none${t.bold ? ";font-weight:bold" : ""}`,
             );
-        dom.add(t.valueText);
+        t.backdrop = t.background
+            ? t.svg.shape("rect").stl("fill", t.background)
+            : null;
+        dom.add(...(t.backdrop ? [t.backdrop] : []), t.valueText);
 
         if (t.checkbox) {
             t.box = t.svg

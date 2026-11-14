@@ -1032,6 +1032,28 @@ cause.
       +0,5 Ko, import +3,8 Ko. Reste, dans `somme_geometrique.ggb`, un
       point gris clair de style « + » (`pointStyle` 3) dessiné en « × »,
       DocGeo n'ayant pas cette forme.
+- [x] **60. Bissectrices de deux droites, `StartAnimation`, fonds de
+      texte** : `thales.ggb` (théorème de Thalès, sa réciproque et ses
+      contre-exemples animés). Fait : `AngularBisector(g, h)` de deux
+      droites ou segments, ses deux bissectrices par leur intersection, le
+      long de la somme puis de la différence de leurs directions unitaires,
+      dans l'ordre de GeoGebra ; `Angle(A, B, C)` dans une formule (de BA à
+      BC, dans [0, 2π[) ; copie d'un segment (`acode = a`).
+      `StartAnimation(n)` d'un script, pour un curseur « croissant une
+      fois » : une boucle Blockly à la fin du programme (le script de
+      GeoGebra continue pendant l'animation), qui avance le curseur jusqu'à
+      son maximum toutes les 40 ms, à la vitesse de GeoGebra (son intervalle
+      en 10 s à 1), et s'ouvre en blocs. Un texte LaTeX ne passe à la ligne,
+      au saut de ligne de son source, qu'en mode texte (hors `$`, dans un
+      texte qui en a) : en mode math, c'est une espace ; `\\` d'un texte
+      gras passe à la ligne hors du `\boldsymbol`, dont les `\text` sont
+      en gras (`\textbf`). Le fond d'un texte (`bgColor`, même blanc) est
+      dessiné et cache ce qui est dessous (style `bg`, voir `DGO.md`). La
+      largeur d'un bouton, qui le place par son bord gauche comme GeoGebra,
+      est mesurée dans sa police au lieu d'être devinée (88 pixels de trop
+      ici). **+1 figure** (260 → 261), éléments non importés 2974 → 2968.
+      Moteur +0,6 Ko, import +1,4 Ko. Reste : les légendes LaTeX des points
+      (`$O$`) écrites en texte simple, pas en italique.
 
 À écarter, sauf changement de priorité : calcul formel, courbes implicites,
 statistiques et probabilités, tableur au-delà des cellules simples, matrices.

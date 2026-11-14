@@ -878,6 +878,7 @@ function validateObjectStyle(
         switch (property) {
             case "c":
             case "fc":
+            case "bg":
                 validateColor(propertyValue, lineNumber);
                 break;
             case "h":
@@ -1264,6 +1265,13 @@ function applyObjectStyle(
                     target instanceof text_object
                 )
                     target.bold = propertyValue === "true";
+                break;
+            case "bg":
+                if (
+                    target instanceof expression_object ||
+                    target instanceof text_object
+                )
+                    target.background = propertyValue;
                 break;
             case "dh":
                 target.dash = propertyValue === "true" ? DGPAD_DASH : [];
