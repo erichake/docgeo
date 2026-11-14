@@ -674,6 +674,49 @@ main figcaption {
     text-align: center;
 }
 
+/* Vidéo de présentation et ses chapitres. */
+main figure.m-video video {
+    display: block;
+    width: 100%;
+    height: auto;
+    aspect-ratio: 1728 / 1080;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    box-shadow: var(--shadow);
+    background: #000;
+}
+
+main figure.m-video figcaption span {
+    display: block;
+}
+
+main ol.m-chapters {
+    padding: 0;
+    list-style: none;
+}
+
+main .m-chapters button {
+    padding: 2px 0;
+    border: 0;
+    background: none;
+    color: var(--accent-text);
+    font: inherit;
+    text-align: start;
+    cursor: pointer;
+}
+
+main .m-chapters button:hover {
+    text-decoration: underline;
+}
+
+main .m-chapters time {
+    display: inline-block;
+    margin-inline-end: 12px;
+    color: var(--text-faint);
+    font-family: var(--mono);
+    font-size: 14px;
+}
+
 /* Encadrés. */
 .note,
 .tip,

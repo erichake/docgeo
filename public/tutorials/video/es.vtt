@@ -1,0 +1,460 @@
+WEBVTT
+
+00:00.600 --> 00:04.600
+Hola a todos, voy a presentarles un programa de geometría dinámica
+
+00:04.600 --> 00:08.400
+que quizá podría haber llamado YAGS, porque no es el primero, ni mucho menos,
+
+00:08.400 --> 00:11.700
+y yo mismo soy culpable de haber programado ya dos.
+
+00:12.000 --> 00:16.800
+Uno se llama CaRMetal, de 2006, basado en el motor de C.a.R.,
+
+00:16.800 --> 00:19.600
+un programa desarrollado por René Grothmann,
+
+00:19.600 --> 00:23.200
+y el otro DGPad, de 2012, esta vez partiendo de cero,
+
+00:23.200 --> 00:27.600
+sobre todo para adaptar lo mejor posible la geometría dinámica a los dispositivos móviles.
+
+00:27.600 --> 00:33.900
+Así que el nuevo programa del que voy a hablarles no se llama YAGS, se llama DocGeo,
+
+00:34.300 --> 00:40.300
+y tengo la debilidad de pensar que no es simplemente un programa más en este campo.
+
+00:41.000 --> 00:46.400
+Pero volvamos al tema de este vídeo: la presentación de DocGeo,
+
+00:46.600 --> 00:52.700
+en la que veremos cuatro formas muy diferentes de realizar construcciones geométricas.
+
+00:52.700 --> 00:58.700
+La primera forma de construir es la de DGPad, en un modo que podríamos llamar prefijo,
+
+00:58.900 --> 01:00.600
+donde el objeto tiene prioridad.
+
+01:00.800 --> 01:05.000
+Como han visto, en el anillo aparecen herramientas contextuales,
+
+01:05.200 --> 01:07.400
+que dependen del objeto en el que se hace clic.
+
+01:07.900 --> 01:11.700
+Por ejemplo, aquí, si hago clic en la recta, solo tengo unas pocas herramientas,
+
+01:11.900 --> 01:15.500
+entre ellas una perpendicular, que aplico al punto D.
+
+01:15.500 --> 01:21.900
+Y para este punto de intersección E, por ejemplo, el anillo contendrá un icono de lugar geométrico,
+
+01:22.100 --> 01:24.800
+porque depende de un punto D que se mueve sobre la recta.
+
+01:25.200 --> 01:33.400
+Renombro el punto C y obtengo, por supuesto, la parábola definida por foco y directriz.
+
+01:33.400 --> 01:42.200
+Aprovecho esta figura terminada para señalar que DocGeo gestiona muy bien conjuntos de figuras.
+
+01:42.500 --> 01:46.500
+Desde DocGeo pueden guardar libros de figuras,
+
+01:46.600 --> 01:50.100
+exactamente como los que se encuentran hoy en las hojas de cálculo.
+
+01:50.700 --> 01:54.500
+Esto permite guardar varias figuras sobre un mismo tema
+
+01:54.600 --> 01:56.200
+en un único archivo.
+
+01:57.300 --> 02:00.000
+Muy rápidamente ahora, otra forma de construir,
+
+02:00.000 --> 02:05.600
+pero todos la conocen: es la de todos los demás programas de geometría dinámica,
+
+02:05.700 --> 02:06.500
+que yo sepa.
+
+02:06.700 --> 02:12.100
+Se trata de señalar primero la herramienta y después el objeto al que se aplicará.
+
+02:12.300 --> 02:15.700
+Ahora mismo estoy construyendo una mediatriz,
+
+02:16.200 --> 02:19.400
+solo cambio el nombre del punto B,
+
+02:19.700 --> 02:23.600
+y después aplicaré la herramienta lugar geométrico a la recta, ya que es posible,
+
+02:24.300 --> 02:26.800
+y obtendré así la envolvente,
+
+02:26.800 --> 02:33.300
+y por tanto la elipse y la hipérbola definidas por circunferencia directriz y foco.
+
+02:33.300 --> 02:39.700
+Aprovecho esta figura para señalar que DocGeo es un verdadero programa 3D,
+
+02:39.900 --> 02:41.900
+programado desde el principio en torno al 3D,
+
+02:42.500 --> 02:46.500
+y que la parte 2D que hemos visto hasta ahora no es, como se ve aquí,
+
+02:47.000 --> 02:49.800
+más que una restricción al plano z = 0.
+
+02:50.200 --> 02:54.000
+Así, pasar al modo 3D haciendo clic en el icono en forma de cubo
+
+02:54.000 --> 02:58.200
+ha hecho aparecer en la paleta de herramientas iconos que no están en 2D,
+
+02:58.200 --> 03:03.700
+pero lo veremos un poco más adelante en este vídeo.
+
+03:05.600 --> 03:08.200
+He aquí una tercera forma de construir,
+
+03:08.300 --> 03:11.100
+en un modo que podríamos llamar multiprefijo,
+
+03:11.200 --> 03:14.600
+que consiste en hacer primero una selección múltiple de objetos,
+
+03:15.100 --> 03:19.900
+y es la paleta, con unos iconos en gris y otros no, la que nos propone las herramientas posibles.
+
+03:19.900 --> 03:25.700
+Elijo la herramienta Polígono, después BC y A para obtener la altura,
+
+03:26.100 --> 03:31.300
+lo mismo para AB y C, y por último B y AC.
+
+03:33.600 --> 03:37.200
+Solo queda crear el ortocentro con el mismo método,
+
+03:37.500 --> 03:39.800
+con la herramienta Intersección.
+
+03:41.200 --> 03:44.900
+Cuarta y última forma de construir en DocGeo, bien conocida por los usuarios de GeoGebra,
+
+03:45.600 --> 03:48.300
+que consiste en escribir comandos en el panel de construcción.
+
+03:48.300 --> 03:51.300
+Aquí, escribir f(x) = a x² + b x + c
+
+03:51.300 --> 03:54.400
+me ha creado automáticamente tres deslizadores en la construcción.
+
+03:55.100 --> 03:56.300
+Muestro los ejes,
+
+03:56.700 --> 04:02.200
+y con un clic derecho en la curva modifico su aspecto, por ejemplo el grosor
+
+04:03.000 --> 04:05.200
+y la opacidad del trazo.
+
+04:06.500 --> 04:11.100
+Con un clic derecho en una zona vacía de la figura
+
+04:11.600 --> 04:16.300
+puedo modificar un montón de parámetros relacionados con el aspecto de los ejes
+
+04:16.300 --> 04:20.200
+y de la cuadrícula, que es lo que estoy haciendo.
+
+04:22.400 --> 04:24.900
+Por ejemplo, semieje positivo.
+
+04:26.100 --> 04:28.100
+Continúo mi construcción
+
+04:28.100 --> 04:34.200
+pidiendo un punto sobre la gráfica de la función,
+
+04:34.200 --> 04:38.900
+de abscisa 3.
+
+04:38.900 --> 04:44.200
+Después pediré la tangente, por ejemplo, la tangente en el punto A.
+
+04:47.200 --> 04:51.400
+Y termino señalando que cada comando escrito
+
+04:51.400 --> 04:56.000
+viene acompañado de una propuesta de autocompletado para el nombre del comando,
+
+04:56.400 --> 04:58.200
+así como para sus argumentos.
+
+04:58.200 --> 05:05.700
+Bien, ahora el episodio 2: cómo construir en 3D.
+
+05:06.400 --> 05:09.500
+Con un ejemplo realmente muy sencillo, iré muy rápido.
+
+05:09.800 --> 05:16.500
+Sobre el suelo de la vista 3D coloco un cubo, apoyado en el suelo.
+
+05:17.400 --> 05:23.000
+Después coloco tres puntos en tres caras diferentes de este cubo.
+
+05:23.000 --> 05:29.900
+Pido el plano CDE, señalando estos tres puntos uno tras otro.
+
+05:30.700 --> 05:36.500
+Y luego pido simplemente la sección de este cubo por el plano.
+
+05:39.300 --> 05:40.700
+Bien, he terminado.
+
+05:40.900 --> 05:43.600
+Ahora voy a mover los puntos para ver que todo funciona bien.
+
+05:44.600 --> 05:48.100
+También ven el trazado discontinuo de las aristas ocultas.
+
+05:48.600 --> 05:52.000
+He quitado el plano, y voy a cambiar también la opacidad del cubo
+
+05:52.000 --> 05:56.900
+para dar un poco más de importancia a la sección propiamente dicha
+
+05:56.900 --> 05:58.800
+que tienen ante sus ojos.
+
+05:59.000 --> 06:03.000
+Por supuesto, moviendo los puntos sobre cada una de estas caras,
+
+06:03.300 --> 06:06.400
+veo cómo cambia la sección.
+
+06:08.800 --> 06:14.100
+En este episodio veremos que la herencia de DGPad aún se nota en DocGeo,
+
+06:14.100 --> 06:16.900
+que también permite programar con bloques,
+
+06:16.900 --> 06:21.000
+pero con un enfoque aún más parecido al del programa Scratch.
+
+06:21.000 --> 06:26.000
+He aquí, pues, un ejemplo de programación con la tortuga de DocGeo.
+
+06:27.200 --> 06:31.300
+Empiezo creando un deslizador a, de números entre 3 y 500,
+
+06:31.300 --> 06:32.800
+y estos números serán enteros.
+
+06:33.100 --> 06:34.900
+Así que ajusto el incremento a 1.
+
+06:35.600 --> 06:39.300
+Con la herramienta tortuga, creo sobre la marcha un punto A
+
+06:39.300 --> 06:43.700
+en el que voy a programar un trazo de tortuga que dibuja un rosetón
+
+06:43.700 --> 06:46.200
+obtenido por la rotación de un cuadrado alrededor de A.
+
+06:46.200 --> 06:48.000
+Empiezo, pues, construyendo el cuadrado.
+
+06:48.100 --> 06:54.000
+Elijo «unidades» para que siga el zoom, y termino con el giro.
+
+06:55.200 --> 06:57.700
+Después me ocupo de la rotación de este cuadrado
+
+06:57.700 --> 07:01.500
+usando el valor del deslizador a.
+
+07:02.200 --> 07:04.500
+Y luego del ángulo de rotación:
+
+07:04.500 --> 07:13.800
+360 dividido por esa misma expresión a.
+
+07:16.100 --> 07:19.400
+Mover el deslizador les muestra un aspecto fundamental.
+
+07:19.600 --> 07:23.400
+Lo que tienen ante sus ojos, construido por la tortuga, no es solo un dibujo,
+
+07:23.400 --> 07:27.800
+sino un verdadero objeto geométrico, igual que una recta, una circunferencia, una curva o un lugar geométrico.
+
+07:28.500 --> 07:34.200
+Por eso, desde su implementación en DGPad, se habló de tortuga dinámica.
+
+07:35.200 --> 07:39.100
+Y como la tortuga también se siente cómoda en 3D, les muestro el equivalente,
+
+07:39.100 --> 07:41.000
+que convierte el rosetón en un libro.
+
+07:41.300 --> 07:47.000
+La única diferencia es el uso de un bloque «inclinar» en lugar de «girar».
+
+07:48.400 --> 07:52.700
+Ahora, el episodio 4: o cómo un punto puede ser imantado,
+
+07:52.700 --> 07:56.600
+atraído por otros objetos, empezando por una figura muy sencilla
+
+07:56.600 --> 08:02.800
+cuyos pasos de construcción les dejo ver en cámara rápida.
+
+08:03.800 --> 08:07.100
+Se trata principalmente de tres semicircunferencias y una mediatriz.
+
+08:07.900 --> 08:10.800
+En este tipo de situación, una pregunta fundamental
+
+08:10.800 --> 08:13.700
+que me hice en 2006 al programar CaRMetal:
+
+08:13.700 --> 08:18.900
+¿no sería maravilloso, en esta figura, que el punto H fuera atraído por la mediatriz,
+
+08:18.900 --> 08:23.500
+los dos puntos de intersección y la semicircunferencia de diámetro AB?
+
+08:23.800 --> 08:27.300
+Y ahí es donde interviene la función de imantación.
+
+08:27.900 --> 08:34.800
+Para la mediatriz, por ejemplo, ajusto el deslizador del campo de atracción a 15 píxeles.
+
+08:34.800 --> 08:42.500
+Lo mismo para los dos puntos de intersección, y por último para la semicircunferencia.
+
+08:42.600 --> 08:48.500
+Después, el punto es atraído en cuanto está a menos de 15 píxeles de uno de estos cuatro objetos.
+
+08:48.500 --> 08:55.400
+Aquí el primer punto de intersección, el segundo, y después la semicircunferencia de diámetro AB.
+
+08:55.400 --> 09:01.200
+Para terminar el episodio 4, les dejo ver lo que pasa
+
+09:01.200 --> 09:05.100
+cuando el campo de atracción se ajusta a «en todas partes», es decir, al infinito.
+
+09:05.800 --> 09:08.700
+Así se puede definir un punto sobre varios objetos.
+
+09:08.900 --> 09:14.100
+Aquí, por ejemplo, el punto M es atraído en todas partes por la circunferencia y los otros cinco segmentos.
+
+09:15.000 --> 09:17.200
+Y así termina la temporada 1.
+
+09:17.700 --> 09:18.400
+Esperen…
+
+09:18.600 --> 09:20.900
+Sí, olvidaba hablarles de un pequeño detalle
+
+09:20.900 --> 09:24.200
+sobre la importación de archivos de otros programas.
+
+09:24.200 --> 09:29.500
+A nadie le sorprenderá que DocGeo pueda abrir figuras de DGPad, por razones históricas.
+
+09:30.000 --> 09:31.800
+Pero lo que quizá sea más sorprendente
+
+09:31.800 --> 09:35.200
+es que DocGeo también abre una buena cantidad de archivos de GeoGebra.
+
+09:35.800 --> 09:39.200
+Les voy a mostrar algunos archivos GGB que he descargado
+
+09:39.200 --> 09:42.800
+del sitio oficial de GeoGebra y abierto tal cual en los dos programas.
+
+09:42.900 --> 09:44.500
+Lo prometo, sin trucos.
+
+09:44.900 --> 09:49.300
+Arriba, la figura abierta en DocGeo, y abajo en GeoGebra.
+
+09:49.700 --> 09:52.400
+Como por ahora se trata de una figura muy sencilla,
+
+09:52.900 --> 09:56.500
+se entiende fácilmente que la importación respeta bien la figura.
+
+09:57.500 --> 10:01.300
+Aquí, una figura quizá un poco más complicada, con elipses enrolladas.
+
+10:01.500 --> 10:04.600
+El autor también usó animaciones.
+
+10:05.300 --> 10:08.900
+Esta, que me gusta especialmente, porque el autor se tomó la molestia
+
+10:08.900 --> 10:12.600
+de superponer la figura a una imagen del conjunto de Mandelbrot.
+
+10:13.200 --> 10:18.700
+Así se obtiene una exploración bastante fenomenal, me parece.
+
+10:19.400 --> 10:26.500
+Observen también la extrema fluidez de DocGeo mientras se arrastra el punto C.
+
+10:26.600 --> 10:27.500
+Va muy, muy rápido.
+
+10:27.600 --> 10:30.400
+De todos modos, 200 segmentos no asustan a DocGeo, ni mucho menos.
+
+10:31.300 --> 10:37.600
+Después tienen el 3D, por supuesto, con sus desarrollos del cubo.
+
+10:37.900 --> 10:43.700
+DGPad también lo hacía muy bien; aquí se hace con un archivo de GeoGebra.
+
+10:43.700 --> 10:51.500
+Otro archivo 3D, con las tres pirámides que forman el cubo,
+
+10:52.500 --> 10:55.300
+abierto en los dos programas, una vez más.
+
+10:56.100 --> 10:58.700
+Y este es el verdadero final de la temporada 1.
+
+10:59.100 --> 11:02.400
+En la temporada 2 veremos, entre otras cosas,
+
+11:03.100 --> 11:07.400
+un pequeño episodio sobre la aplicación de escritorio DocGeo,
+
+11:07.500 --> 11:12.800
+después las macroconstrucciones, de las que no he hablado en absoluto en esta temporada 1,
+
+11:13.600 --> 11:16.900
+las animaciones, y la IA en todo esto:
+
+11:17.500 --> 11:23.000
+una pregunta en torno al desarrollo de DocGeo.
+
+11:24.000 --> 11:25.700
+Gracias.

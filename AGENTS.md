@@ -209,6 +209,13 @@ logiques, pour l'arabe écrit de droite à gauche), `icons.js`, et
 `index.html`, qui ouvre la langue du navigateur ou de `?lang=`. Il n'entre
 pas dans le poids du build qui compte (moteur, lecteur, éditeur).
 
+La vidéo de présentation (en français, hébergée sur files.dgpad.net) est
+lue dans l'accueil avec ses chapitres, et par épisode dans les pages
+concernées (`<figure class="m-video" data-episode="n">`, temps des
+épisodes dans `EPISODES` de `manual.js`). `public/tutorials/video/` garde
+ses affiches et ses sous-titres, un `<langue>.vtt` par langue, aux mêmes
+répliques et aux mêmes temps que `fr.vtt`.
+
 Le français est la version de référence : toute modification d'une page se
 reporte dans les 12 langues. Les termes de l'interface sont ceux des
 fichiers `src/editor/lang/`, les noms de commandes ceux de la langue (dans

@@ -13,7 +13,7 @@
 // DocGeo is served by Vite and driven by Playwright, the modules of the
 // editor being read in the page itself.
 
-import { readFileSync, readdirSync, statSync, writeFileSync } from "node:fs";
+import { existsSync, readFileSync, readdirSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { chromium } from "playwright";
@@ -27,7 +27,7 @@ const VIEWPORT = { width: 1200, height: 720 };
 const QUALITY = 0.8;
 
 const LANGS = readdirSync(MANUAL).filter((name) =>
-    statSync(join(MANUAL, name)).isDirectory(),
+    existsSync(join(MANUAL, name, "index.html")),
 );
 const args = process.argv.slice(2);
 const files = args.filter((arg) => SHOTS.some(({ file }) => file === arg));

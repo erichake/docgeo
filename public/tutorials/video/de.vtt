@@ -1,0 +1,460 @@
+WEBVTT
+
+00:00.600 --> 00:04.600
+Hallo zusammen, ich stelle Ihnen eine dynamische Geometriesoftware vor,
+
+00:04.600 --> 00:08.400
+die ich vielleicht YAGS hätte nennen können, denn sie ist nicht die erste, bei Weitem nicht,
+
+00:08.400 --> 00:11.700
+und ich selbst habe mich schuldig gemacht, schon zwei davon zu programmieren.
+
+00:12.000 --> 00:16.800
+Die eine heißt CaRMetal, 2006, auf der Grundlage der Engine von C.a.R.,
+
+00:16.800 --> 00:19.600
+einer Software von René Grothmann,
+
+00:19.600 --> 00:23.200
+und die andere DGPad, 2012, diesmal ausgehend von einem leeren Blatt,
+
+00:23.200 --> 00:27.600
+vor allem, um die dynamische Geometrie so gut wie möglich an mobile Geräte anzupassen.
+
+00:27.600 --> 00:33.900
+Die neue Software, über die ich sprechen werde, heißt also nicht YAGS, sondern DocGeo,
+
+00:34.300 --> 00:40.300
+und ich bin so unbescheiden zu glauben, dass sie nicht nur eine weitere Software auf diesem Gebiet ist.
+
+00:41.000 --> 00:46.400
+Aber zurück zum Thema dieses Videos: der Vorstellung von DocGeo,
+
+00:46.600 --> 00:52.700
+in der wir vier sehr unterschiedliche Arten sehen werden, geometrische Konstruktionen auszuführen.
+
+00:52.700 --> 00:58.700
+Die erste Art zu konstruieren ist die von DGPad, in einem Modus, den man präfix nennen könnte,
+
+00:58.900 --> 01:00.600
+bei dem das Objekt Vorrang hat.
+
+01:00.800 --> 01:05.000
+Wie Sie gesehen haben, erscheinen im Ring kontextbezogene Werkzeuge,
+
+01:05.200 --> 01:07.400
+die vom angeklickten Objekt abhängen.
+
+01:07.900 --> 01:11.700
+Wenn ich hier zum Beispiel auf die Gerade klicke, habe ich nur wenige Werkzeuge,
+
+01:11.900 --> 01:15.500
+darunter eine Senkrechte, die ich auf den Punkt D anwende.
+
+01:15.500 --> 01:21.900
+Und für diesen Schnittpunkt E zum Beispiel enthält der Ring ein Ortslinien-Symbol,
+
+01:22.100 --> 01:24.800
+weil er von einem Punkt D abhängt, der auf der Geraden beweglich ist.
+
+01:25.200 --> 01:33.400
+Ich benenne den Punkt C um und erhalte natürlich die Parabel, definiert durch Brennpunkt und Leitlinie.
+
+01:33.400 --> 01:42.200
+Ich nutze diese fertige Figur, um zu zeigen, dass DocGeo sehr gut mit Sammlungen von Figuren umgeht.
+
+01:42.500 --> 01:46.500
+Sie können in DocGeo Arbeitsmappen mit Figuren speichern,
+
+01:46.600 --> 01:50.100
+genau wie man sie heute aus Tabellenkalkulationen kennt.
+
+01:50.700 --> 01:54.500
+So lassen sich mehrere Figuren zum selben Thema
+
+01:54.600 --> 01:56.200
+in ein und derselben Datei speichern.
+
+01:57.300 --> 02:00.000
+Jetzt ganz schnell eine andere Art zu konstruieren,
+
+02:00.000 --> 02:05.600
+die Sie aber alle kennen: Es ist die aller anderen dynamischen Geometrieprogramme,
+
+02:05.700 --> 02:06.500
+soweit ich weiß.
+
+02:06.700 --> 02:12.100
+Man zeigt zuerst das Werkzeug und dann das Objekt, auf das es angewendet wird.
+
+02:12.300 --> 02:15.700
+Gerade konstruiere ich eine Mittelsenkrechte,
+
+02:16.200 --> 02:19.400
+ich ändere nur den Namen des Punktes B,
+
+02:19.700 --> 02:23.600
+und dann wende ich das Ortslinien-Werkzeug auf die Gerade an, da das möglich ist,
+
+02:24.300 --> 02:26.800
+und erhalte so die Hüllkurve,
+
+02:26.800 --> 02:33.300
+also die Ellipse und die Hyperbel, definiert durch Leitkreis und Brennpunkt.
+
+02:33.300 --> 02:39.700
+Ich nutze diese Figur, um zu zeigen, dass DocGeo eine echte 3D-Software ist,
+
+02:39.900 --> 02:41.900
+von Anfang an rund um 3D programmiert,
+
+02:42.500 --> 02:46.500
+und dass der 2D-Teil, den wir bisher gesehen haben, wie man hier sieht,
+
+02:47.000 --> 02:49.800
+nur eine Einschränkung auf die Ebene z = 0 ist.
+
+02:50.200 --> 02:54.000
+Das Umschalten in den 3D-Modus durch Klick auf das würfelförmige Symbol
+
+02:54.000 --> 02:58.200
+hat in der Werkzeugpalette Symbole erscheinen lassen, die es in 2D nicht gibt,
+
+02:58.200 --> 03:03.700
+aber das sehen wir etwas später in diesem Video.
+
+03:05.600 --> 03:08.200
+Hier nun eine dritte Art zu konstruieren,
+
+03:08.300 --> 03:11.100
+in einem Modus, den man mehrfach-präfix nennen könnte,
+
+03:11.200 --> 03:14.600
+bei dem man zuerst mehrere Objekte auswählt,
+
+03:15.100 --> 03:19.900
+und dann schlägt die Palette, mit ausgegrauten und anderen Symbolen, die möglichen Werkzeuge vor.
+
+03:19.900 --> 03:25.700
+Ich wähle das Werkzeug Vieleck, dann BC und A, um die Höhe zu erhalten,
+
+03:26.100 --> 03:31.300
+ebenso für AB und C, und schließlich B und AC.
+
+03:33.600 --> 03:37.200
+Es bleibt nur noch, auf dieselbe Weise den Höhenschnittpunkt zu erzeugen,
+
+03:37.500 --> 03:39.800
+mit dem Werkzeug Schnittpunkt.
+
+03:41.200 --> 03:44.900
+Die vierte und letzte Art, in DocGeo zu konstruieren, gut bekannt bei GeoGebra-Nutzern,
+
+03:45.600 --> 03:48.300
+besteht darin, Befehle in den Konstruktionsbereich einzugeben.
+
+03:48.300 --> 03:51.300
+Hier hat die Eingabe f(x) = a x² + b x + c
+
+03:51.300 --> 03:54.400
+automatisch drei Schieberegler in der Konstruktion erzeugt.
+
+03:55.100 --> 03:56.300
+Ich blende das Koordinatensystem ein,
+
+03:56.700 --> 04:02.200
+und mit einem Rechtsklick auf die Kurve ändere ich ihr Aussehen, zum Beispiel die Dicke
+
+04:03.000 --> 04:05.200
+und die Deckkraft der Linie.
+
+04:06.500 --> 04:11.100
+Mit einem Rechtsklick auf eine leere Stelle der Figur
+
+04:11.600 --> 04:16.300
+kann ich viele Einstellungen zum Aussehen des Koordinatensystems ändern
+
+04:16.300 --> 04:20.200
+und des Gitters, was ich gerade tue.
+
+04:22.400 --> 04:24.900
+Zum Beispiel: positive Halbachse.
+
+04:26.100 --> 04:28.100
+Ich setze meine Konstruktion fort
+
+04:28.100 --> 04:34.200
+und verlange einen Punkt auf dem Graphen der Funktion,
+
+04:34.200 --> 04:38.900
+mit der x-Koordinate 3.
+
+04:38.900 --> 04:44.200
+Dann verlange ich die Tangente, zum Beispiel die Tangente im Punkt A.
+
+04:47.200 --> 04:51.400
+Zum Schluss sei gesagt, dass jeder eingetippte Befehl
+
+04:51.400 --> 04:56.000
+von Vorschlägen zur automatischen Vervollständigung des Befehlsnamens begleitet wird,
+
+04:56.400 --> 04:58.200
+ebenso wie seiner Argumente.
+
+04:58.200 --> 05:05.700
+Gut, jetzt Episode 2: Wie man in 3D konstruiert.
+
+05:06.400 --> 05:09.500
+Anhand eines wirklich sehr einfachen Beispiels, ich mache es ganz schnell.
+
+05:09.800 --> 05:16.500
+Auf den Boden der 3D-Ansicht setze ich einen Würfel, der auf dem Boden steht.
+
+05:17.400 --> 05:23.000
+Dann setze ich drei Punkte auf drei verschiedene Flächen dieses Würfels.
+
+05:23.000 --> 05:29.900
+Ich verlange die Ebene CDE, indem ich nacheinander auf diese drei Punkte zeige.
+
+05:30.700 --> 05:36.500
+Und dann verlange ich ganz einfach den Schnitt dieses Würfels mit der Ebene.
+
+05:39.300 --> 05:40.700
+So, ich bin fertig.
+
+05:40.900 --> 05:43.600
+Jetzt bewege ich die Punkte, um zu sehen, dass alles gut funktioniert.
+
+05:44.600 --> 05:48.100
+Sie sehen auch die gestrichelte Darstellung verdeckter Kanten.
+
+05:48.600 --> 05:52.000
+Ich habe die Ebene entfernt, und ich ändere auch die Deckkraft des Würfels,
+
+05:52.000 --> 05:56.900
+um dem eigentlichen Schnitt etwas mehr Gewicht zu geben,
+
+05:56.900 --> 05:58.800
+den Sie vor Augen haben.
+
+05:59.000 --> 06:03.000
+Natürlich sehe ich, wenn ich die Punkte auf jeder dieser Flächen bewege,
+
+06:03.300 --> 06:06.400
+wie sich der Schnitt ändert.
+
+06:08.800 --> 06:14.100
+In dieser Episode sehen wir, dass das Erbe von DGPad in DocGeo noch spürbar ist,
+
+06:14.100 --> 06:16.900
+denn auch DocGeo erlaubt das Programmieren mit Blöcken,
+
+06:16.900 --> 06:21.000
+aber mit einem Ansatz, der dem von Scratch noch ähnlicher ist.
+
+06:21.000 --> 06:26.000
+Hier also ein Beispiel für das Programmieren mit der Schildkröte von DocGeo.
+
+06:27.200 --> 06:31.300
+Ich beginne mit einem Schieberegler a für Zahlen zwischen 3 und 500,
+
+06:31.300 --> 06:32.800
+und diese Zahlen sollen ganzzahlig sein.
+
+06:33.100 --> 06:34.900
+Ich stelle also die Schrittweite auf 1.
+
+06:35.600 --> 06:39.300
+Mit dem Schildkröten-Werkzeug erzeuge ich spontan einen Punkt A,
+
+06:39.300 --> 06:43.700
+auf dem ich eine Schildkrötenspur programmiere, die eine Rosette bildet,
+
+06:43.700 --> 06:46.200
+entstanden durch Drehung eines Quadrats um A.
+
+06:46.200 --> 06:48.000
+Ich beginne also mit dem Quadrat.
+
+06:48.100 --> 06:54.000
+Ich wähle „Einheiten“, damit es dem Zoom folgt, und ende mit der Drehung.
+
+06:55.200 --> 06:57.700
+Dann kümmere ich mich um die Drehung dieses Quadrats
+
+06:57.700 --> 07:01.500
+mit dem Wert des Schiebereglers a.
+
+07:02.200 --> 07:04.500
+Und dann um den Drehwinkel:
+
+07:04.500 --> 07:13.800
+360 geteilt durch denselben Ausdruck a.
+
+07:16.100 --> 07:19.400
+Das Bewegen des Schiebereglers zeigt Ihnen einen grundlegenden Aspekt.
+
+07:19.600 --> 07:23.400
+Was Sie sehen, von der Schildkröte gebaut, ist nicht nur eine Zeichnung,
+
+07:23.400 --> 07:27.800
+sondern ein echtes geometrisches Objekt, genau wie eine Gerade, ein Kreis, eine Kurve oder eine Ortslinie.
+
+07:28.500 --> 07:34.200
+Deshalb sprach man schon bei ihrer Einführung in DGPad von einer dynamischen Schildkröte.
+
+07:35.200 --> 07:39.100
+Und da sich die Schildkröte auch in 3D wohlfühlt, zeige ich Ihnen das Gegenstück,
+
+07:39.100 --> 07:41.000
+das aus der Rosette ein Buch macht.
+
+07:41.300 --> 07:47.000
+Der einzige Unterschied ist ein Block „kippe“ statt „drehe“.
+
+07:48.400 --> 07:52.700
+Jetzt Episode 4: wie ein Punkt magnetisch werden kann,
+
+07:52.700 --> 07:56.600
+angezogen von anderen Objekten, zunächst mit einer ganz einfachen Figur,
+
+07:56.600 --> 08:02.800
+deren Konstruktionsschritte ich Ihnen im Zeitraffer zeige.
+
+08:03.800 --> 08:07.100
+Es handelt sich im Wesentlichen um drei Halbkreise und eine Mittelsenkrechte.
+
+08:07.900 --> 08:10.800
+In einer solchen Situation stellte ich mir 2006 eine grundlegende Frage
+
+08:10.800 --> 08:13.700
+bei der Programmierung von CaRMetal:
+
+08:13.700 --> 08:18.900
+Wäre es nicht wunderbar, wenn in dieser Figur der Punkt H von der Mittelsenkrechten angezogen würde,
+
+08:18.900 --> 08:23.500
+von den beiden Schnittpunkten und vom Halbkreis mit dem Durchmesser AB?
+
+08:23.800 --> 08:27.300
+Und hier kommt die Magnet-Funktion ins Spiel.
+
+08:27.900 --> 08:34.800
+Für die Mittelsenkrechte zum Beispiel stelle ich den Anziehungsregler auf 15 Pixel.
+
+08:34.800 --> 08:42.500
+Ebenso für die beiden Schnittpunkte und schließlich für den Halbkreis.
+
+08:42.600 --> 08:48.500
+Danach wird der Punkt angezogen, sobald er weniger als 15 Pixel von einem dieser vier Objekte entfernt ist.
+
+08:48.500 --> 08:55.400
+Hier der erste Schnittpunkt, der zweite, und dann der Halbkreis mit dem Durchmesser AB.
+
+08:55.400 --> 09:01.200
+Zum Abschluss von Episode 4 zeige ich Ihnen, was passiert,
+
+09:01.200 --> 09:05.100
+wenn die Anziehung auf „überall“ gestellt wird, also unendlich.
+
+09:05.800 --> 09:08.700
+So kann man einen Punkt auf mehreren Objekten definieren.
+
+09:08.900 --> 09:14.100
+Hier zum Beispiel wird der Punkt M überall vom Kreis und den fünf anderen Strecken angezogen.
+
+09:15.000 --> 09:17.200
+Und damit endet Staffel 1.
+
+09:17.700 --> 09:18.400
+Moment mal…
+
+09:18.600 --> 09:20.900
+Ja, ich habe vergessen, Ihnen von einem kleinen Detail zu erzählen,
+
+09:20.900 --> 09:24.200
+das den Import von Dateien aus anderen Programmen betrifft.
+
+09:24.200 --> 09:29.500
+Niemand wird überrascht sein, dass DocGeo aus historischen Gründen DGPad-Figuren öffnen kann.
+
+09:30.000 --> 09:31.800
+Überraschender ist vielleicht,
+
+09:31.800 --> 09:35.200
+dass DocGeo auch eine ganze Menge GeoGebra-Dateien öffnet.
+
+09:35.800 --> 09:39.200
+Ich zeige Ihnen einige GGB-Dateien, die ich
+
+09:39.200 --> 09:42.800
+von der offiziellen GeoGebra-Website geholt und unverändert in beiden Programmen geöffnet habe.
+
+09:42.900 --> 09:44.500
+Versprochen, ohne jeden Trick.
+
+09:44.900 --> 09:49.300
+Oben die Figur in DocGeo, unten in GeoGebra.
+
+09:49.700 --> 09:52.400
+Da es sich vorerst um eine sehr einfache Figur handelt,
+
+09:52.900 --> 09:56.500
+sieht man leicht, dass der Import die Figur gut wiedergibt.
+
+09:57.500 --> 10:01.300
+Hier eine vielleicht etwas kompliziertere Figur mit sich windenden Ellipsen.
+
+10:01.500 --> 10:04.600
+Der Autor hat auch Animationen verwendet.
+
+10:05.300 --> 10:08.900
+Diese hier mag ich besonders, weil der Autor sich die Mühe gemacht hat,
+
+10:08.900 --> 10:12.600
+die Figur über ein Bild der Mandelbrot-Menge zu legen.
+
+10:13.200 --> 10:18.700
+So ergibt sich eine, wie ich finde, ziemlich phänomenale Erkundung.
+
+10:19.400 --> 10:26.500
+Beachten Sie auch, wie extrem flüssig DocGeo beim Ziehen des Punktes C ist.
+
+10:26.600 --> 10:27.500
+Das geht sehr, sehr schnell.
+
+10:27.600 --> 10:30.400
+Ohnehin schrecken 200 Strecken DocGeo nicht ab, bei Weitem nicht.
+
+10:31.300 --> 10:37.600
+Dann natürlich die 3D-Darstellung, mit ihren Würfelnetzen.
+
+10:37.900 --> 10:43.700
+Das konnte DGPad auch sehr gut; hier geschieht es mit einer GeoGebra-Datei.
+
+10:43.700 --> 10:51.500
+Eine weitere 3D-Datei, mit den drei Pyramiden, aus denen der Würfel besteht,
+
+10:52.500 --> 10:55.300
+wieder in beiden Programmen geöffnet.
+
+10:56.100 --> 10:58.700
+Und das ist das wirkliche Ende von Staffel 1.
+
+10:59.100 --> 11:02.400
+In Staffel 2 sehen wir unter anderem
+
+11:03.100 --> 11:07.400
+eine kurze Episode über die Desktop-Anwendung von DocGeo,
+
+11:07.500 --> 11:12.800
+dann die Makros, über die ich in dieser Staffel 1 überhaupt nicht gesprochen habe,
+
+11:13.600 --> 11:16.900
+die Animationen und die KI in alldem:
+
+11:17.500 --> 11:23.000
+eine Frage rund um die Entwicklung von DocGeo.
+
+11:24.000 --> 11:25.700
+Danke.

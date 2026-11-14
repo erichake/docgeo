@@ -77,6 +77,7 @@ const LANGS = {
             server: "Die Volltextsuche setzt voraus, dass das Handbuch über einen Webserver geöffnet wird.",
             zoom: "Vergrößerter Screenshot",
             copy: "Kopieren",
+            video: "Video auf Französisch, mit deutschen Untertiteln.",
         },
     },
     en: {
@@ -122,6 +123,7 @@ const LANGS = {
             server: "Searching the text requires the manual to be opened from a web server.",
             zoom: "Enlarged screenshot",
             copy: "Copy",
+            video: "Video in French, with English subtitles.",
         },
     },
     es: {
@@ -167,6 +169,7 @@ const LANGS = {
             server: "La búsqueda en el texto requiere abrir el manual desde un servidor web.",
             zoom: "Captura ampliada",
             copy: "Copiar",
+            video: "Vídeo en francés, con subtítulos en español.",
         },
     },
     fr: {
@@ -212,6 +215,7 @@ const LANGS = {
             server: "La recherche dans le texte demande que le manuel soit ouvert depuis un serveur web.",
             zoom: "Capture agrandie",
             copy: "Copier",
+            video: "Sous-titres en 12 langues, dans le menu du lecteur.",
         },
     },
     el: {
@@ -257,6 +261,7 @@ const LANGS = {
             server: "Η αναζήτηση στο κείμενο απαιτεί να ανοίξει το εγχειρίδιο από διακομιστή ιστού.",
             zoom: "Μεγεθυμένο στιγμιότυπο",
             copy: "Αντιγραφή",
+            video: "Βίντεο στα γαλλικά, με ελληνικούς υπότιτλους.",
         },
     },
     it: {
@@ -302,6 +307,7 @@ const LANGS = {
             server: "La ricerca nel testo richiede che il manuale sia aperto da un server web.",
             zoom: "Schermata ingrandita",
             copy: "Copia",
+            video: "Video in francese, con sottotitoli in italiano.",
         },
     },
     nl: {
@@ -347,6 +353,7 @@ const LANGS = {
             server: "Zoeken in de tekst vereist dat de handleiding via een webserver wordt geopend.",
             zoom: "Vergrote schermafbeelding",
             copy: "Kopiëren",
+            video: "Video in het Frans, met Nederlandse ondertitels.",
         },
     },
     pt: {
@@ -392,6 +399,7 @@ const LANGS = {
             server: "A pesquisa no texto exige que o manual seja aberto a partir de um servidor web.",
             zoom: "Captura ampliada",
             copy: "Copiar",
+            video: "Vídeo em francês, com legendas em português.",
         },
     },
     ar: {
@@ -437,6 +445,7 @@ const LANGS = {
             server: "يتطلب البحث في النص فتح الدليل من خادم ويب.",
             zoom: "لقطة شاشة مكبّرة",
             copy: "نسخ",
+            video: "فيديو باللغة الفرنسية، مع ترجمة إلى العربية.",
         },
     },
     hi: {
@@ -482,6 +491,7 @@ const LANGS = {
             server: "पाठ में खोज के लिए पुस्तिका को किसी वेब सर्वर से खोलना आवश्यक है।",
             zoom: "बड़ा किया गया स्क्रीनशॉट",
             copy: "कॉपी करें",
+            video: "वीडियो फ़्रेंच में है, हिंदी उपशीर्षकों के साथ।",
         },
     },
     zh: {
@@ -527,6 +537,7 @@ const LANGS = {
             server: "全文搜索需要通过网页服务器打开手册。",
             zoom: "放大的截图",
             copy: "复制",
+            video: "视频为法语，配有中文字幕。",
         },
     },
     "zh-TW": {
@@ -572,6 +583,7 @@ const LANGS = {
             server: "全文搜尋需要透過網頁伺服器開啟手冊。",
             zoom: "放大的截圖",
             copy: "複製",
+            video: "影片為法語，附中文字幕。",
         },
     },
 };
@@ -1174,8 +1186,57 @@ function copyButtons() {
     }
 }
 
+// ------------------------------------------------------------- vidéo
+
+// La vidéo de présentation, hébergée à part, en français ; ses sous-titres,
+// un fichier par langue, sont à côté du manuel, ceux de la page affichés
+// d'office. Un épisode se lit seul : fragment #t=début,fin de la vidéo.
+const VIDEO = "https://files.dgpad.net/docgeo/docgeo_S01.mp4";
+const EPISODES = [0, 54, 301, 368, 467, 555];
+
+const clock = (s) =>
+    `${String(Math.floor(s / 60)).padStart(2, "0")}:${String(s % 60).padStart(2, "0")}`;
+
+function videos() {
+    for (const figure of main.querySelectorAll("figure.m-video")) {
+        const episode = figure.dataset.episode;
+        const [start, end] = EPISODES.slice(episode, +episode + 2);
+        const video = element(
+            `<video controls preload="none" poster="../video/${episode ?? "docgeo"}.jpg" src="${VIDEO}${episode ? `#t=${start}${end ? `,${end}` : ""}` : ""}"></video>`,
+        );
+        for (const [code, { name }] of Object.entries(LANGS))
+            video.append(
+                element(
+                    `<track kind="subtitles" srclang="${code}" label="${name}" src="../video/${code}.vtt"${code === lang && lang !== "fr" ? " default" : ""} />`,
+                ),
+            );
+        if (!figure.querySelector("figcaption"))
+            figure.append(element("<figcaption></figcaption>"));
+        figure
+            .querySelector("figcaption")
+            .append(element(`<span>${ui.video}</span>`));
+        figure.prepend(video);
+    }
+    for (const button of main.querySelectorAll("button[data-episode]"))
+        button.prepend(
+            element(`<time>${clock(EPISODES[button.dataset.episode])}</time>`),
+        );
+    main.addEventListener("click", (event) => {
+        const button = event.target.closest("button[data-episode]");
+        if (!button) return;
+        const video = main.querySelector("figure.m-video video");
+        const seek = () =>
+            (video.currentTime = EPISODES[button.dataset.episode]);
+        if (video.readyState) seek();
+        else video.addEventListener("loadedmetadata", seek, { once: true });
+        video.play();
+        video.scrollIntoView({ block: "nearest", behavior: "smooth" });
+    });
+}
+
 icons();
 frame();
+videos();
 copyButtons();
 markQuery();
 zoomImages();
