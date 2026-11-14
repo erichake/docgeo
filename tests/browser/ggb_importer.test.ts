@@ -543,6 +543,26 @@ ${[
         expect((c.getObj("f") as curve_object).pointAt(2)![1]).toBeCloseTo(11);
     });
 
+    it("reads an angle slider's step in degrees", () => {
+        const c = createConstruction();
+        const steps = ["°", "5°", "90*°"];
+        importGgb(
+            c,
+            `<geogebra><construction>${steps
+                .map(
+                    (step, index) => `<element type="angle" label="α${index}">
+<value val="0"/><slider min="0" max="6.283185307179586" width="180" x="10" y="${10 + 40 * index}" fixed="true" horizontal="true"/>
+<animation step="${step}" speed="1" type="0" playing="false"/></element>`,
+                )
+                .join("\n")}</construction></geogebra>`,
+        );
+        [1, 5, 90].forEach((degrees, index) => {
+            const slider = c.getObj(`α${index}`) as expression_object;
+            expect(slider.isCursor).toBe(true);
+            expect(slider.increment).toBeCloseTo((degrees * Math.PI) / 180);
+        });
+    });
+
     it("shows GeoGebra's grid and axes with DGPad's coordinate system", async () => {
         const plane = createConstruction();
         importGgb(plane, await loadXml("_3carres"));

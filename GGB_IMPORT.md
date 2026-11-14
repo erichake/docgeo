@@ -100,6 +100,7 @@ figure sont seulement comptés. L'API utilisée est
 | 2026-11-14 | 240 / 456 (53 %)   | 325,9 Ko | item 52 : scripts des boutons, autres scripts signalés (−16)         |
 | 2026-11-14 | 240 / 456 (53 %)   | 326,5 Ko | item 53 : clics, légendes, points creux, axes d'échelles différentes |
 | 2026-11-14 | 240 / 456 (53 %)   | 326,7 Ko | item 54 : demi-cercle d'un plan, arcs de centre 3D (+0)              |
+| 2026-11-14 | 250 / 456 (55 %)   | 326,7 Ko | item 55 : pas d'un curseur d'angle en degrés (+10)                   |
 | 2026-11-14 | 251 / 456 (55 %)   | 326,7 Ko | item 56 : centre de gravité d'un polygone (+1)                       |
 
 ## À faire, par rapport gain / coût
@@ -931,6 +932,13 @@ cause.
       import +0,5 Ko. Reste : le quadrillage du sol sans plateau ni axes
       (`grid="true"`, 6 figures 3D du corpus et celle-ci), que DocGeo ne
       dessine pas.
+- [x] **55. Pas d'un curseur d'angle en degrés** (21 / 10) : un curseur
+      d'angle enregistre son pas en degrés (`step="°"`, `"5°"`, `"90*°"`),
+      recopié tel quel dans le style `i:`, qui n'accepte qu'un nombre : le
+      style entier était rejeté (cause « cmd STL »). Fait : le pas devient
+      un nombre de radians, comme la valeur du curseur. **+10 figures**
+      (240 → 250), cause « cmd STL » 21 / 10 → 0. Moteur inchangé, import
+      +0,1 Ko. Reste un pas `(0.01745329 * rad)`, dans une figure.
 - [x] **56. Centre de gravité d'un polygone** (1 / 1) : `Centroid(poly)`,
       absent, écartait tout ce qui en dépendait (`pythagore.ggb`, puzzle
       dont les pièces se placent par les centres de gravité de

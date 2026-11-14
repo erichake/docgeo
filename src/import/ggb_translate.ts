@@ -3790,10 +3790,17 @@ export function translateGgb(
         if (thickness) parts.push(`s:${Number(thickness) / 2}`);
         const width = attribute(element, "slider", "width");
         if (width) parts.push(`cL:${width}`);
-        if (slider)
+        if (slider) {
+            const step =
+                attribute(element, "animation", "step") ??
+                String(DEFAULT_SLIDER_STEP);
+            // An angle slider's step in degrees ("°", "5°", "5*°"), its
+            // value being in radians.
+            const degrees = /^([\d.]*)\s*\*?\s*°$/.exec(step);
             parts.push(
-                `i:${attribute(element, "animation", "step") ?? DEFAULT_SLIDER_STEP}`,
+                `i:${degrees ? (Number(degrees[1] || 1) * Math.PI) / 180 : step}`,
             );
+        }
         if (attribute(element, "slider", "horizontal") === "false")
             parts.push("cV:true");
         if (slider && attribute(element, "show", "label") === "false")
