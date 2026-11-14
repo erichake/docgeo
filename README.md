@@ -1,9 +1,10 @@
 # DocGeo
 
 DocGeo is a multilingual, browser-based interactive geometry application,
-the successor of [DGPad](https://dgpad.net). It opens figures made with DGPad
-and GeoGebra faithfully, lets you manipulate them, and comes with an editor
-to build your own constructions, in 2D and 3D.
+the successor of [DGPad](https://dgpad.net). It opens many of the figures
+made with DGPad and GeoGebra (elements it doesn't support yet are skipped and
+reported), lets you manipulate them, and comes with an editor to build your
+own constructions, in 2D and 3D.
 
 ## Features
 
