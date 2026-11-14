@@ -559,6 +559,7 @@ const STYLE: Record<string, Property> = {
     is: field(expression_object, "increment", 0, isNumber),
     cL: field(expression_object, "cursorLength", 200, isNumber),
     cV: flag(expression_object, "vertical"),
+    cN: flag(expression_object, "unlabeled"),
     cB: flag(expression_object, "checkbox"),
     iB: field(expression_object, "inputLength", 0, isNumber),
     tx: flag(expression_object, "latex"),

@@ -491,6 +491,8 @@ export class expression_object extends construction_object {
     // A vertical slider rises from its screen position, its value written
     // beside its knob.
     vertical: boolean;
+    // A slider without its name and value, as GeoGebra may draw it.
+    unlabeled = false;
     // Null: the slider's own color.
     cursorColor: string | null = null;
     cursorRadius: number;
@@ -821,7 +823,10 @@ export class expression_object extends construction_object {
             return;
         }
 
-        this.valueText.att("x", x).att("y", y);
+        this.valueText
+            .att("x", x)
+            .att("y", y)
+            .stl("display", this.unlabeled && this.isCursor ? "none" : "");
         if (typeof this.value === "string")
             this.valueText.text(this.rounded(","));
         else {

@@ -822,6 +822,17 @@ cause.
       le plan de l'écran, et un objet 3D construit à partir d'eux tournerait
       avec la vue. **+6 figures** (256 / 456), 16 autres en perdant moins,
       éléments non importés 3006 → 2811 ; moteur +0,08 Ko, import +0,75 Ko.
+- [x] **50. Curseurs sans étiquette** : un curseur dont GeoGebra cache le
+      nom (`label="false"`, 62 curseurs dans 37 figures du corpus) était
+      dessiné avec « s = 0 », par-dessus les textes que la figure place à
+      côté (`3d_section_prisme`). Fait : style `cN` (curseur sans nom ni
+      valeur, ajouté à `DGO.md`), que l'éditeur règle par « Afficher le
+      nom » dans les propriétés du curseur. Au passage, la piste d'un
+      curseur horizontal est à sa position, comme dans GeoGebra, et non
+      20 pixels plus bas (`CURSOR_OFFSET_Y`, où DocGeo met le nom
+      au-dessus) : les textes que la figure place sous ses curseurs ne les
+      chevauchent plus. Corpus inchangé (rendu seulement) ; moteur
+      +0,09 Ko, import +0,13 Ko.
 
 À écarter, sauf changement de priorité : calcul formel, courbes implicites,
 statistiques et probabilités, tableur au-delà des cellules simples, matrices.

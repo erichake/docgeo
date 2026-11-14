@@ -1099,6 +1099,15 @@ export function propertiesPanel(options: {
                     object.vertical = value;
                 },
             );
+            check(
+                slider,
+                "show_name",
+                sliders,
+                (object) => !object.unlabeled,
+                (object, value) => {
+                    object.unlabeled = !value;
+                },
+            );
             color(
                 slider,
                 "knob_color",

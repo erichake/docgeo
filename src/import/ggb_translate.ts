@@ -1,5 +1,6 @@
 import type { Animation } from "../animation";
 import type { SegmentMap } from "../objects/iteration_object";
+import { CURSOR_OFFSET_Y } from "../objects/expression_object";
 import { vAdd, vSub, type Vec2, type Vec3 } from "../vec";
 import {
     evaluateFormula,
@@ -2153,13 +2154,21 @@ export function translateGgb(
             : [x, y];
     };
 
-    const sliderScreen = (slider: Element): [number, number] =>
-        screenPosition(
-            Number(slider.getAttribute("x")),
-            Number(slider.getAttribute("y")),
+    // GeoGebra draws a horizontal slider's track at its position, DocGeo
+    // CURSOR_OFFSET_Y pixels below.
+    const sliderScreen = (slider: Element): [number, number] => {
+        const absolute =
             (slider.getAttribute("absoluteScreenLocation") ??
-                slider.getAttribute("fixed")) === "true",
+                slider.getAttribute("fixed")) === "true";
+        const shift =
+            slider.getAttribute("horizontal") === "false" ? 0 : CURSOR_OFFSET_Y;
+        const y = Number(slider.getAttribute("y"));
+        return screenPosition(
+            Number(slider.getAttribute("x")),
+            absolute ? y - shift : y + shift / unit,
+            absolute,
         );
+    };
 
     // Polygon(A, B, n)'s other vertices, counterclockwise like GeoGebra's:
     // the k-th is A + (B - A)·(1 - w^k)/(1 - w) with w = e^(2iπ/n), i.e.
@@ -3599,6 +3608,8 @@ export function translateGgb(
             );
         if (attribute(element, "slider", "horizontal") === "false")
             parts.push("cV:true");
+        if (slider && attribute(element, "show", "label") === "false")
+            parts.push("cN:true");
         return parts.join(";");
     };
 
