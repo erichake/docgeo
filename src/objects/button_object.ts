@@ -19,7 +19,7 @@ export class button_object extends construction_object {
     label: string;
     screen: Vec2;
     program: ExpressionProgram | null;
-    private caption!: DOMElement;
+    private labelText!: DOMElement;
     private background!: DOMElement;
     private tint!: DOMElement;
     private hit!: DOMElement;
@@ -70,7 +70,8 @@ export class button_object extends construction_object {
         const height = Math.max(HEIGHT, this.fontSize + 20);
         const width = Math.max(
             BUTTON_WIDTH,
-            (this.caption.dom() as SVGTextElement).getComputedTextLength() + 56,
+            (this.labelText.dom() as SVGTextElement).getComputedTextLength() +
+                56,
         );
         const tools = this.accessory.dom().childElementCount ? TOOLS_WIDTH : 0;
         this.dom.att(
@@ -80,7 +81,7 @@ export class button_object extends construction_object {
         this.background.att("width", width + tools).att("height", height);
         this.tint.att("width", width + tools).att("height", height);
         this.hit.att("width", width).att("height", height);
-        this.caption.att("x", 36).att("y", height / 2);
+        this.labelText.att("x", 36).att("y", height / 2);
         this.frame
             .find("path")!
             .att("transform", `translate(15 ${height / 2})`);
@@ -91,7 +92,7 @@ export class button_object extends construction_object {
 
     static createSVG(_this: construction_object): DOMElement {
         const t = _this as button_object;
-        t.caption = t.svg
+        t.labelText = t.svg
             .shape("text")
             .att("dominant-baseline", "central")
             .stl(
@@ -119,7 +120,7 @@ export class button_object extends construction_object {
                     .shape("path")
                     .att("d", "M0 -6V6L10 0Z")
                     .stl(`fill:${t.stroke_color};pointer-events:none`),
-                t.caption,
+                t.labelText,
             )
             .tap(() => t.run());
         t.frame.on("pointerdown", (event) => event.stopPropagation());

@@ -12,6 +12,7 @@ import {
     type ExpressionProgram,
 } from "./expression_object";
 import type { point_object } from "./point_object";
+import type { text_object } from "./text_object";
 
 // What runs an event's program but a change of value.
 export type Trigger = Gesture | "init";
@@ -19,11 +20,12 @@ export type Trigger = Gesture | "init";
 // DGPad's Blockly "onchange" program of an expression, run as a button's
 // once its value has changed (slider, animation, SET_EXP), or a point's
 // program for a gesture: "ondrag" once it is dragged or animated,
-// "onmousedown" and "onmouseup" once pressed and released. Never as the
+// "onmousedown" and "onmouseup" once pressed and released, a text's
+// "onmousedown" once clicked (GeoGebra's click script). Never as the
 // figure opens, but "oninit", of an expression or a button, which runs only
 // then (see runInits). Never drawn.
 export class event_object extends construction_object {
-    owner: expression_object | point_object | button_object;
+    owner: expression_object | point_object | button_object | text_object;
     program: ExpressionProgram;
     // Null for a change of value.
     gesture: Trigger | null;
@@ -34,7 +36,7 @@ export class event_object extends construction_object {
     constructor(
         c: construction,
         name: string | null | undefined,
-        owner: expression_object | point_object | button_object,
+        owner: expression_object | point_object | button_object | text_object,
         program: ExpressionProgram,
         gesture: Trigger | null,
     ) {
@@ -92,7 +94,7 @@ export class event_object extends construction_object {
 export function createEvent(
     c: construction,
     name: string | null | undefined,
-    owner: expression_object | point_object | button_object,
+    owner: expression_object | point_object | button_object | text_object,
     program: ExpressionProgram,
     gesture: Trigger | null = null,
 ): event_object {

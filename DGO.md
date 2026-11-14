@@ -204,7 +204,9 @@ URL (même image, même clé).
 ### Vue `v`
 
 `o` origine en pixels, `u` pixels par unité, `w` et `h` taille de la fenêtre
-à l'enregistrement (requis). À l'ouverture, une figure plane ou 3D de DGPad
+à l'enregistrement (requis). Depuis le 2026-11-14, `uy` donne les pixels par
+unité le long de Oy d'une figure plane, quand ils diffèrent de `u` (axes de
+GeoGebra d'échelles différentes) ; le zoom garde leur rapport. À l'ouverture, une figure plane ou 3D de DGPad
 (`f2`) garde son origine à la même place dans la fenêtre (comme DGPad) ; une
 autre figure 3D, à la même place par rapport au centre de la fenêtre. En mode intégré (`EMBED.md`), la région
 enregistrée `w` × `h` est centrée dans la fenêtre au pixel près, en 2D comme en
@@ -457,7 +459,7 @@ la figure, autour de la verticale de O dans l'espace, sa hauteur gardée),
 | `Img`   | image                                                                       | `[clé, largeur, hauteur, A, B?, C?]` (9)        |
 | `Html`  | texte HTML dans un cadre de la fenêtre                                      | `[[x, y, largeur, hauteur], rayon, texte]` (11) |
 | `Btn`   | bouton qui exécute un script                                                | objet (13)                                      |
-| `Evt`   | script lancé par une `Ex` ou un point                                       | `{"on": expression ou point, "s": script}` (24) |
+| `Evt`   | script lancé par une `Ex`, un point ou un texte                             | `{"on": expression ou point, "s": script}` (24) |
 | `Mac`   | application d'une macro-construction                                        | `[macro, méthode, initiaux, branches?]` (25)    |
 | `Out`   | final de rang k d'une application                                           | `[application, k]` (25)                         |
 
@@ -691,7 +693,9 @@ alignement]]` police, `[30, url, l, h, zoom, opacité, u]` image (largeur
     glissé, appuyé, lâché » de l'éditeur) : `"drag"` (« ondrag » de DGPad),
     une fois par pas de son glisser ou de son animation, pas quand un parent
     ou un autre programme le déplace ; `"down"` et `"up"` (« onmousedown »,
-    « onmouseup »), quand on l'appuie et le relâche. Plusieurs programmes
+    « onmouseup »), quand on l'appuie et le relâche. Depuis le 2026-11-14,
+    `on` peut aussi être un texte (`Txt`) avec `"down"` : quand on clique
+    dessus (script de clic d'un texte de GeoGebra). Plusieurs programmes
     d'un même geste s'exécutent chacun, dans l'ordre de la figure. Le script
     fixe aussi la place des points libres (`SET_EXP`). Avec `"e": "init"`,
     programme « oninit » de DGPad d'une expression ou d'un bouton `on`
@@ -1002,6 +1006,13 @@ S'y ajoutent `sc` (condition d'affichage : indice d'une expression), `rgb`
 `[[indice, rayon en pixels], …]`) et `av` (vitesse variable d'une animation :
 indice d'une expression, voir `an`), qui peuvent désigner un objet postérieur.
 
+Depuis le 2026-11-14 aussi, pour les figures de GeoGebra : `cp` est la
+légende d'un objet, écrite à la place de son nom (`sn`) ; `ho` fait d'un
+point un cercle ou un losange creux, son contour `pb` ; `no` d'un point
+place le début et la ligne de base de son nom, en pixels depuis lui (vers la
+droite et vers le bas), au lieu de `np` et `nd`, et se perd quand l'éditeur
+déplace le nom.
+
 Depuis le 2026-11-14, `rgb` donne à l'objet la couleur de GeoGebra (trait et
 remplissage) que calcule l'expression, liste `[r, g, b]` : chaque canal est
 ramené dans [0, 1] par une onde triangulaire de période 2 (1,2 donne 0,8 ;
@@ -1017,12 +1028,14 @@ de la couleur de son objet la suit. Sans `rgb`, la couleur est celle de `c`.
 | `h`  | tous                     | 0 visible, 1 caché, 2 super-caché        | 0 (`Mac` : 2)                     |
 | `sn` | tous                     | nom affiché                              | 0                                 |
 | `in` | tous                     | inerte : ignore survol, clic et toucher  | 0                                 |
-| `no` | tous                     | place du nom déplacé (hors points)       | `null` (place de GeoGebra)        |
+| `no` | tous                     | place du nom déplacé (point : ci-après)  | `null` (place de GeoGebra)        |
+| `cp` | tous                     | légende, écrite à la place du nom        | `null` (le nom)                   |
 | `f`  | tous                     | taille de police                         | 16                                |
 | `p`  | tous                     | précision (lieu : nombre d'échantillons) | -1 (`Loc` : 1000, `Html` : 4)     |
 | `l`  | tous                     | calque (entier, sous les `Html`)         | 0                                 |
 | `sp` | points, listes de points | `circle`, `cross`, `diamond`, `rect`     | `circle`                          |
 | `pb` | points                   | épaisseur du contour                     | 1                                 |
+| `ho` | points                   | creux : sans remplissage                 | 0                                 |
 | `np` | points                   | direction du nom (radians)               | 0                                 |
 | `nd` | points                   | distance du nom (pixels)                 | `null` (deux fois la taille)      |
 | `tk` | points                   | trace                                    | 0                                 |

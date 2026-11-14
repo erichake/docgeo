@@ -42,7 +42,8 @@ function framing(c: construction, value: string): Region {
     ) {
         const [w, h, x, y, ox, oy, u, theta, phi] = numbers;
         grid.ORG = [ox, oy];
-        grid.UNIT = [u, u, u];
+        // A GeoGebra figure keeps its axes' ratio.
+        grid.UNIT = [u, (u * grid.UNIT[1]) / grid.UNIT[0], u];
         if (theta !== undefined) {
             grid.THETA = theta;
             grid.PHI = phi;

@@ -145,7 +145,7 @@ import {
 import { createNetVertex, type net_turn } from "./objects/net_vertex_object";
 import { createNet } from "./objects/net_object";
 import { symmetry_object } from "./objects/symmetry_object";
-import { createText } from "./objects/text_object";
+import { createText, text_object } from "./objects/text_object";
 import { createPanel, panelNames, parsePanel } from "./objects/panel_object";
 import { createEvent, runInits } from "./objects/event_object";
 import { button_object, createButton } from "./objects/button_object";
@@ -452,6 +452,12 @@ const STYLE: Record<string, Property> = {
     // An application of a macro is never shown.
     h: field(object, "hidden", (tag) => (tag === "Mac" ? 2 : 0), isHidden),
     sn: flag(object, "showName"),
+    cp: field(
+        object,
+        "caption",
+        null,
+        (value) => value === null || typeof value === "string",
+    ),
     in: flag(object, "inert"),
     f: field(object, "fontSize", 16, isNumber),
     // A locus's number of samples.
@@ -469,6 +475,7 @@ const STYLE: Record<string, Property> = {
         (value) => POINT_SHAPES.includes(value as string),
     ),
     pb: field(point_object, "border", 1, isNumber),
+    ho: flag(point_object, "hollow"),
     np: field(point_object, "namePosition", 0, isNumber),
     no: field(
         object,
@@ -843,6 +850,7 @@ export async function describeDgo(
         v: {
             o: [grid.ORG[0] - x, grid.ORG[1] - y],
             u: grid.UNIT[0],
+            ...(grid.UNIT[1] !== grid.UNIT[0] && { uy: grid.UNIT[1] }),
             w,
             h,
             ...describe(VIEW, grid),
@@ -1064,13 +1072,14 @@ export function readDgo(c: construction, figure: Json, centered = false): void {
     c.svg.stl("background", bg as string);
     c.macros = readMacros(macros, styles, images);
 
-    const { o: origin, u: unit, w: width, h: height } = view;
+    const { o: origin, u: unit, uy = unit, w: width, h: height } = view;
     check(isPair(origin) && isNumber(unit) && unit > 0);
+    check(isNumber(uy) && uy > 0);
     check(isNumber(width) && isNumber(height));
     c.savedSize = [width, height];
     const grid = c.GRID;
     apply(VIEW, grid, view);
-    grid.UNIT = [unit, unit, unit];
+    grid.UNIT = [unit, uy, unit];
     // Otherwise, a DGPad figure keeps its origin where it was in the window,
     // as in DGPad; another 3D one, where it was from the window's center.
     const offset: Vec2 = centered
@@ -2570,10 +2579,12 @@ const BUILDERS: Record<string, Builder> = {
             reader.name,
             e === "init"
                 ? reader.at(parameters.on, expression_object, button_object)
-                : reader.at(
-                      parameters.on,
-                      e ? point_object : expression_object,
-                  ),
+                : e === "down"
+                  ? reader.at(parameters.on, point_object, text_object)
+                  : reader.at(
+                        parameters.on,
+                        e ? point_object : expression_object,
+                    ),
             scriptProgram(reader, parameters.s),
             e ?? null,
         );

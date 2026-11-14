@@ -71,7 +71,7 @@ import {
 } from "../objects/fixed_angle_object";
 import { createFixedPoint } from "../objects/fixed_point_object";
 import { createIteration, type SegmentMap } from "../objects/iteration_object";
-import { createText } from "../objects/text_object";
+import { createText, type text_object } from "../objects/text_object";
 import {
     createPanel,
     panelFormulas,
@@ -876,6 +876,7 @@ function validateObjectStyle(
     properties(value).forEach((propertyValue, property) => {
         switch (property) {
             case "c":
+            case "fc":
                 validateColor(propertyValue, lineNumber);
                 break;
             case "h":
@@ -891,10 +892,12 @@ function validateObjectStyle(
                 break;
             case "s":
             case "iB":
+            case "pb":
                 validateNumber(propertyValue, lineNumber, 0);
                 break;
             case "sn":
             case "lb":
+            case "ho":
             case "sb":
             case "tk":
             case "fl":
@@ -1097,6 +1100,10 @@ function applyObjectStyle(
                 target.stroke_color = color;
                 break;
             }
+            // DocGeo's fill, after "c".
+            case "fc":
+                target.fill_color = extractColor(propertyValue);
+                break;
             case "h":
                 target.hidden = Number(propertyValue);
                 break;
@@ -1140,6 +1147,19 @@ function applyObjectStyle(
             case "tk":
                 if (target instanceof point_object)
                     target.trace = propertyValue === "true";
+                break;
+            // GeoGebra's empty point, its ring.
+            case "ho":
+                if (target instanceof point_object)
+                    target.hollow = propertyValue === "true";
+                break;
+            case "pb":
+                if (target instanceof point_object)
+                    target.border = Number(propertyValue);
+                break;
+            // GeoGebra's caption, URI-encoded.
+            case "cp":
+                target.caption = decodeURIComponent(propertyValue);
                 break;
             // In a 3D figure, it marks the 3D origin instead (see
             // CommandContext).
@@ -1525,10 +1545,13 @@ const COMMANDS = new Map<string, CommandDefinition>([
                 { ...boolean, optional: true },
                 { ...number, optional: true },
                 { ...number, optional: true },
+                // DocGeo's: a 2D view's own unit along y (GeoGebra's).
+                { ...number, optional: true },
             ],
             validate: (args, lineNumber) => {
                 const unit = (args[2] as { value: number }).value;
-                if (unit <= 0)
+                const yUnit = (args[6] as { value: number } | undefined)?.value;
+                if (unit <= 0 || (yUnit !== undefined && yUnit <= 0))
                     throw new Error(`Invalid DGP unit at line ${lineNumber}`);
             },
             execute: (context, args) => {
@@ -1562,7 +1585,11 @@ const COMMANDS = new Map<string, CommandDefinition>([
                 } else {
                     grid.ORG = context.labelOrigin;
                 }
-                grid.UNIT = [unit, unit, unit];
+                grid.UNIT = [
+                    unit,
+                    (args[6] as number | undefined) ?? unit,
+                    unit,
+                ];
                 if (args[4] && args[5])
                     context.construction.savedSize = [
                         args[4] as number,
@@ -3422,7 +3449,8 @@ const COMMANDS = new Map<string, CommandDefinition>([
             // and a point's turtle ("onlogo") is compiled into the
             // Expression its List draws. An Expression's "onchange" runs
             // when its value changes, a point's "ondrag", "onmousedown" and
-            // "onmouseup" at these gestures (see event_object.ts). The
+            // "onmouseup" at these gestures (see event_object.ts), a text's
+            // "onmousedown" (DocGeo's) when it is clicked. The
             // "oninit" of an Expression or a button runs once, as DGPad
             // runs it when it opens the figure. The other programs never
             // run.
@@ -3454,7 +3482,8 @@ const COMMANDS = new Map<string, CommandDefinition>([
                             ? kind !== "expression"
                             : mode === "oninit"
                               ? kind !== "expression" && kind !== "button"
-                              : !point,
+                              : !point &&
+                                !(mode === "onmousedown" && kind === "text"),
                     )
                 )
                     throw new Error(
@@ -3472,7 +3501,10 @@ const COMMANDS = new Map<string, CommandDefinition>([
             execute: (context, args) => {
                 const modes = JSON.parse(args[1] as string);
                 const owner = args[0] as
-                    expression_object | point_object | button_object;
+                    | expression_object
+                    | point_object
+                    | button_object
+                    | text_object;
                 ["onchange", "oninit", ...Object.keys(GESTURES)].forEach(
                     (mode) => {
                         const sync = modes[mode]?.sync;

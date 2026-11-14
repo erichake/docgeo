@@ -51,6 +51,11 @@ export const labelHold = (object: construction_object): Vec2 =>
 export function labelCenter(point: point_object): Vec2 {
     const d = distance(point);
     const width = point.nameText!.width();
+    if (point.nameOffset)
+        return [
+            point.sx + point.nameOffset[0] + width / 2,
+            point.sy + point.nameOffset[1] - point.fontSize / 2,
+        ];
     return [
         point.sx + Math.cos(point.namePosition) * (d + width / 2),
         point.sy - Math.sin(point.namePosition) * (d + point.fontSize / 2),
@@ -81,6 +86,7 @@ function placePointLabel(point: point_object, center: Vec2): void {
         else high = middle;
     }
     const d = Math.min(high, MAX_DISTANCE);
+    point.nameOffset = null;
     point.nameDistance = Math.round(d * 10) / 10;
     point.namePosition =
         (Math.atan2(-y / (d + h), x / (d + w)) + 2 * Math.PI) % (2 * Math.PI);

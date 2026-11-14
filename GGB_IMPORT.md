@@ -47,57 +47,58 @@ figure sont seulement comptés. L'API utilisée est
 
 ## Historique
 
-| Date       | Figures sans perte | Build    | Changement                                                         |
-| ---------- | ------------------ | -------- | ------------------------------------------------------------------ |
-| 2026-09-28 | 105 / 438 (24 %)   | ~254 Ko  | état initial ; 0 plantage, import médian 4 ms, max 170 ms          |
-| 2026-09-28 | 120 / 438 (27 %)   | 254,4 Ko | item 1 : textes LaTeX placés dans le repère (+15)                  |
-| 2026-09-28 | 138 / 438 (32 %)   | 255,4 Ko | item 2 : images à un coin, à l'écran, coins lus après (+18)        |
-| 2026-09-28 | 142 / 438 (32 %)   | 255,4 Ko | item 3 : le degré « ° » comme constante (+4)                       |
-| 2026-09-28 | 159 / 438 (36 %)   | 255,6 Ko | item 4 : booléens dépendants, `¬`, longueurs et angles (+17)       |
-| 2026-09-28 | 164 / 438 (37 %)   | 256,0 Ko | item 5 : `Corner(n)`, coins et taille de la vue (+5)               |
-| 2026-09-28 | 170 / 438 (39 %)   | 256,5 Ko | item 6 : `TriangleCenter` pour n = 1 à 5 (+6)                      |
-| 2026-09-28 | 171 / 438 (39 %)   | 256,9 Ko | item 7 : appel des fonctions de la figure (+1)                     |
-| 2026-09-28 | 171 / 438 (39 %)   | 257,4 Ko | item 7 bis : comparaisons chaînées (exactitude, +0)                |
-| 2026-09-28 | 172 / 438 (39 %)   | 258,1 Ko | item 8 : fonctions mathématiques, `Min`, `Max`, `Mod` (+1)         |
-| 2026-09-28 | 181 / 438 (41 %)   | 260,1 Ko | item 9 : droites et coniques données par une équation (+9)         |
-| 2026-09-28 | 194 / 438 (44 %)   | 261,1 Ko | item 10 : textes, `FractionText`, étiquettes `a'`, `A_{1}` (+13)   |
-| 2026-09-28 | 202 / 438 (46 %)   | 264,8 Ko | item 11 : tangentes, pente, dérivée, intégrales, sommes (+8)       |
-| 2026-09-28 | 203 / 438 (46 %)   | 265,4 Ko | item 12 : hasard, valeurs enregistrées ou tirées à l'import (+1)   |
-| 2026-09-28 | 211 / 438 (48 %)   | 266,5 Ko | item 13 : solides sur polygone, cône, plans, rotations 3D (+8)     |
-| 2026-09-28 | 211 / 438 (48 %)   | 267,0 Ko | item 14 : `Take`, `First`, `Last`, `Sequence(n)`, `l(n)` (+0)      |
-| 2026-09-28 | 223 / 438 (51 %)   | 268,0 Ko | item 15 : images d'arcs, polygones, coniques, polyèdres (+12)      |
-| 2026-09-28 | 230 / 438 (53 %)   | 269,0 Ko | item 16 : suites de polygones, `Rotate` en formule, listes 3D (+7) |
-| 2026-09-28 | 251 / 470 (53 %)   | 269,3 Ko | item 15 bis : images d'images par une transformation (+0)          |
-| 2026-09-28 | 251 / 470 (53 %)   | 269,8 Ko | item 15 ter : points sur une perpendiculaire ou parallèle (+0)     |
-| 2026-10-03 | —                  | 275,8 Ko | item 17 : pointillés des traits (style, +0)                        |
-| 2026-10-03 | —                  | 276,1 Ko | item 18 : opacité des traits (style, +0)                           |
-| 2026-10-04 | 232 / 438 (53 %)   | 297,5 Ko | item 19 : `UnitVector` dans une formule (+0)                       |
-| 2026-10-04 | 238 / 438 (54 %)   | 298,8 Ko | item 20 : `Mode`, `Roots`, `Point(A, vecteur)` (+6)                |
-| 2026-10-05 | —                  | 300,7 Ko | item 21 : calques (style, +0)                                      |
-| 2026-10-06 | —                  | 302,2 Ko | item 22 : grille (style, +0)                                       |
-| 2026-10-14 | —                  | 301,1 Ko | item 23 : flèches, noms, nombres et unité π des axes (style, +0)   |
-| 2026-10-15 | 229 / 438 (52 %)   | 308,7 Ko | item 25 : ellipse, hyperbole et parabole natives (+0)              |
-| 2026-10-14 | —                  | 303,8 Ko | item 24 : noms des objets autres que les points (style, +0)        |
-| 2026-10-15 | 238 / 438 (54 %)   | 308,8 Ko | item 24 bis : pas de nom pour un segment de longueur nulle (+9)    |
-| 2026-10-15 | 238 / 438 (54 %)   | 309,4 Ko | item 26 : droite, cercle et conique d'équation natifs (+0)         |
-| 2026-10-15 | 238 / 438 (54 %)   | 313,3 Ko | item 27 : rotation, homothétie et translation natives (+0)         |
-| 2026-10-15 | 238 / 438 (54 %)   | 314,9 Ko | item 28 : arc et secteur de centre donné, demi-cercle natifs (+0)  |
-| 2026-10-15 | 238 / 438 (54 %)   | 316,4 Ko | item 29 : tangentes natives, aussi aux coniques (+0)               |
-| 2026-10-15 | 238 / 438 (54 %)   | 319,3 Ko | item 30 : inversion, centres, polygone régulier natifs (+0)        |
-| 2026-10-15 | 238 / 438 (54 %)   | 326,8 Ko | item 31 : plans, sections et sommets des solides natifs (+0)       |
-| 2026-10-15 | 238 / 438 (54 %)   | 330,6 Ko | item 32 : cylindre, cône et sphère de rayon donné natifs (+0)      |
-| 2026-10-15 | 242 / 438 (55 %)   | 338,8 Ko | item 33 : section d'un cône, patrons des prismes et pyramides (+4) |
-| 2026-10-15 | 265 / 470 (56 %)   | 342,2 Ko | item 35 : macros, `Sequence` de cercles par un point (+2)          |
-| 2026-10-16 | —                  | 360,1 Ko | item 36 : cercle d'axe donné, de direction un plan (+1)            |
-| 2026-10-16 | —                  | 362,1 Ko | item 37 : translation des polygones, polygones fixés (+0)          |
-| 2026-10-17 | 245 / 438 (56 %)   | 365,9 Ko | item 38 : `Sequence` natifs, listes lues par leur nom (+0)         |
-| 2026-10-21 | 245 / 438 (56 %)   | 370,5 Ko | item 39 : suites de cercles orientés, détection 3D (+0)            |
-| 2026-10-28 | —                  | 372,0 Ko | item 40 : points sur une sphère, un cylindre, un cône (+0)         |
-| 2026-10-29 | 251 / 456 (55 %)   | 376,9 Ko | item 41 : arcs et secteurs d'un cercle ou d'une ellipse (+6)       |
-| 2026-10-30 | 251 / 456 (55 %)   | 382,7 Ko | item 42 : inversion des objets (+0)                                |
-| 2026-11-13 | 249 / 456 (55 %)   | 324,7 Ko | item 46 : polaires, vitesses variables, nombres figés (+2)         |
-| 2026-11-13 | 249 / 456 (55 %)   | 325,0 Ko | item 47 : solides et images natifs, construction lisible (+0)      |
-| 2026-11-14 | 240 / 456 (53 %)   | 325,9 Ko | item 52 : scripts des boutons, autres scripts signalés (−16)       |
+| Date       | Figures sans perte | Build    | Changement                                                           |
+| ---------- | ------------------ | -------- | -------------------------------------------------------------------- |
+| 2026-09-28 | 105 / 438 (24 %)   | ~254 Ko  | état initial ; 0 plantage, import médian 4 ms, max 170 ms            |
+| 2026-09-28 | 120 / 438 (27 %)   | 254,4 Ko | item 1 : textes LaTeX placés dans le repère (+15)                    |
+| 2026-09-28 | 138 / 438 (32 %)   | 255,4 Ko | item 2 : images à un coin, à l'écran, coins lus après (+18)          |
+| 2026-09-28 | 142 / 438 (32 %)   | 255,4 Ko | item 3 : le degré « ° » comme constante (+4)                         |
+| 2026-09-28 | 159 / 438 (36 %)   | 255,6 Ko | item 4 : booléens dépendants, `¬`, longueurs et angles (+17)         |
+| 2026-09-28 | 164 / 438 (37 %)   | 256,0 Ko | item 5 : `Corner(n)`, coins et taille de la vue (+5)                 |
+| 2026-09-28 | 170 / 438 (39 %)   | 256,5 Ko | item 6 : `TriangleCenter` pour n = 1 à 5 (+6)                        |
+| 2026-09-28 | 171 / 438 (39 %)   | 256,9 Ko | item 7 : appel des fonctions de la figure (+1)                       |
+| 2026-09-28 | 171 / 438 (39 %)   | 257,4 Ko | item 7 bis : comparaisons chaînées (exactitude, +0)                  |
+| 2026-09-28 | 172 / 438 (39 %)   | 258,1 Ko | item 8 : fonctions mathématiques, `Min`, `Max`, `Mod` (+1)           |
+| 2026-09-28 | 181 / 438 (41 %)   | 260,1 Ko | item 9 : droites et coniques données par une équation (+9)           |
+| 2026-09-28 | 194 / 438 (44 %)   | 261,1 Ko | item 10 : textes, `FractionText`, étiquettes `a'`, `A_{1}` (+13)     |
+| 2026-09-28 | 202 / 438 (46 %)   | 264,8 Ko | item 11 : tangentes, pente, dérivée, intégrales, sommes (+8)         |
+| 2026-09-28 | 203 / 438 (46 %)   | 265,4 Ko | item 12 : hasard, valeurs enregistrées ou tirées à l'import (+1)     |
+| 2026-09-28 | 211 / 438 (48 %)   | 266,5 Ko | item 13 : solides sur polygone, cône, plans, rotations 3D (+8)       |
+| 2026-09-28 | 211 / 438 (48 %)   | 267,0 Ko | item 14 : `Take`, `First`, `Last`, `Sequence(n)`, `l(n)` (+0)        |
+| 2026-09-28 | 223 / 438 (51 %)   | 268,0 Ko | item 15 : images d'arcs, polygones, coniques, polyèdres (+12)        |
+| 2026-09-28 | 230 / 438 (53 %)   | 269,0 Ko | item 16 : suites de polygones, `Rotate` en formule, listes 3D (+7)   |
+| 2026-09-28 | 251 / 470 (53 %)   | 269,3 Ko | item 15 bis : images d'images par une transformation (+0)            |
+| 2026-09-28 | 251 / 470 (53 %)   | 269,8 Ko | item 15 ter : points sur une perpendiculaire ou parallèle (+0)       |
+| 2026-10-03 | —                  | 275,8 Ko | item 17 : pointillés des traits (style, +0)                          |
+| 2026-10-03 | —                  | 276,1 Ko | item 18 : opacité des traits (style, +0)                             |
+| 2026-10-04 | 232 / 438 (53 %)   | 297,5 Ko | item 19 : `UnitVector` dans une formule (+0)                         |
+| 2026-10-04 | 238 / 438 (54 %)   | 298,8 Ko | item 20 : `Mode`, `Roots`, `Point(A, vecteur)` (+6)                  |
+| 2026-10-05 | —                  | 300,7 Ko | item 21 : calques (style, +0)                                        |
+| 2026-10-06 | —                  | 302,2 Ko | item 22 : grille (style, +0)                                         |
+| 2026-10-14 | —                  | 301,1 Ko | item 23 : flèches, noms, nombres et unité π des axes (style, +0)     |
+| 2026-10-15 | 229 / 438 (52 %)   | 308,7 Ko | item 25 : ellipse, hyperbole et parabole natives (+0)                |
+| 2026-10-14 | —                  | 303,8 Ko | item 24 : noms des objets autres que les points (style, +0)          |
+| 2026-10-15 | 238 / 438 (54 %)   | 308,8 Ko | item 24 bis : pas de nom pour un segment de longueur nulle (+9)      |
+| 2026-10-15 | 238 / 438 (54 %)   | 309,4 Ko | item 26 : droite, cercle et conique d'équation natifs (+0)           |
+| 2026-10-15 | 238 / 438 (54 %)   | 313,3 Ko | item 27 : rotation, homothétie et translation natives (+0)           |
+| 2026-10-15 | 238 / 438 (54 %)   | 314,9 Ko | item 28 : arc et secteur de centre donné, demi-cercle natifs (+0)    |
+| 2026-10-15 | 238 / 438 (54 %)   | 316,4 Ko | item 29 : tangentes natives, aussi aux coniques (+0)                 |
+| 2026-10-15 | 238 / 438 (54 %)   | 319,3 Ko | item 30 : inversion, centres, polygone régulier natifs (+0)          |
+| 2026-10-15 | 238 / 438 (54 %)   | 326,8 Ko | item 31 : plans, sections et sommets des solides natifs (+0)         |
+| 2026-10-15 | 238 / 438 (54 %)   | 330,6 Ko | item 32 : cylindre, cône et sphère de rayon donné natifs (+0)        |
+| 2026-10-15 | 242 / 438 (55 %)   | 338,8 Ko | item 33 : section d'un cône, patrons des prismes et pyramides (+4)   |
+| 2026-10-15 | 265 / 470 (56 %)   | 342,2 Ko | item 35 : macros, `Sequence` de cercles par un point (+2)            |
+| 2026-10-16 | —                  | 360,1 Ko | item 36 : cercle d'axe donné, de direction un plan (+1)              |
+| 2026-10-16 | —                  | 362,1 Ko | item 37 : translation des polygones, polygones fixés (+0)            |
+| 2026-10-17 | 245 / 438 (56 %)   | 365,9 Ko | item 38 : `Sequence` natifs, listes lues par leur nom (+0)           |
+| 2026-10-21 | 245 / 438 (56 %)   | 370,5 Ko | item 39 : suites de cercles orientés, détection 3D (+0)              |
+| 2026-10-28 | —                  | 372,0 Ko | item 40 : points sur une sphère, un cylindre, un cône (+0)           |
+| 2026-10-29 | 251 / 456 (55 %)   | 376,9 Ko | item 41 : arcs et secteurs d'un cercle ou d'une ellipse (+6)         |
+| 2026-10-30 | 251 / 456 (55 %)   | 382,7 Ko | item 42 : inversion des objets (+0)                                  |
+| 2026-11-13 | 249 / 456 (55 %)   | 324,7 Ko | item 46 : polaires, vitesses variables, nombres figés (+2)           |
+| 2026-11-13 | 249 / 456 (55 %)   | 325,0 Ko | item 47 : solides et images natifs, construction lisible (+0)        |
+| 2026-11-14 | 240 / 456 (53 %)   | 325,9 Ko | item 52 : scripts des boutons, autres scripts signalés (−16)         |
+| 2026-11-14 | 240 / 456 (53 %)   | 326,5 Ko | item 53 : clics, légendes, points creux, axes d'échelles différentes |
 
 ## À faire, par rapport gain / coût
 
@@ -883,6 +884,27 @@ cause.
       traduire : `StartAnimation`, les scripts de mise à jour
       (`onUpdate`, l'« onchange » d'une expression) et ceux de clic d'un
       texte ou d'un point.
+
+- [x] **53. Scripts de clic, légendes, points creux, axes d'échelles
+      différentes** : `resolution_equation.ggb` ne s'ouvrait toujours pas
+      comme dans GeoGebra. Fait : le script de clic d'un texte ou d'un point
+      (affectations, `SetValue`…) devient son programme « quand on appuie »
+      (`Evt` `"down"`, qu'un texte accepte désormais, ouvert en mode Blocs
+      par l'éditeur, qui l'offre aussi pour un texte). Une légende sans
+      valeur (`labelMode` 3, sans `%`) s'écrit à la place du nom (style
+      `cp`), pour un point comme pour un autre objet. Un point creux
+      (styles 2 et 5) n'est plus rempli, son contour de la moitié de sa
+      taille (`ho`, `pb`), comme le dessine GeoGebra (vérifié sur un
+      polygone rempli). Le nom d'un point est placé au pixel près comme
+      `DrawPoint` : son début 4 pixels à droite, sa ligne de base deux fois
+      sa taille au-dessus, plus `labelOffset` (`no` d'un point) ; la taille
+      d'un point par défaut est celle de GeoGebra (5). Un bouton garde ses
+      couleurs : texte `objColor`, fond `bgColor` (style `fc`, désormais lu
+      dans le DGP). Les axes d'échelles différentes (`yscale`, 15 figures
+      du corpus) gardent leur rapport : unité propre à Oy (`SetCoords`,
+      `uy` de la vue `.dgo`), que la projection, le zoom et les cercles
+      (dessinés en ellipses) suivaient déjà. Corpus : 240 / 456 inchangé
+      (ces écarts n'étaient pas signalés). Moteur +0,6 Ko, import +0,3 Ko.
 
 À écarter, sauf changement de priorité : calcul formel, courbes implicites,
 statistiques et probabilités, tableur au-delà des cellules simples, matrices.

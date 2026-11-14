@@ -84,6 +84,8 @@ export class point_object extends construction_object {
     projectionDefined: boolean;
     shape: string;
     border = 1;
+    // GeoGebra's empty circle or diamond: no fill.
+    hollow = false;
     namePosition = 0;
     // Its name's distance in pixels, twice its size if null.
     nameDistance: number | null = null;
@@ -340,7 +342,11 @@ export class point_object extends construction_object {
         this.renderTrace();
         if (!drawn) return;
         this.dom.att("transform", `translate(${this.sx} ${this.sy})`);
-        if (this.nameText) {
+        if (this.nameText && this.nameOffset)
+            this.nameText
+                .att("x", this.nameOffset[0])
+                .att("y", this.nameOffset[1]);
+        else if (this.nameText) {
             const cos = Math.cos(this.namePosition);
             const sin = Math.sin(this.namePosition);
             const size = this.nameDistance ?? 2 * this.size;
@@ -443,7 +449,11 @@ export class point_object extends construction_object {
                 ),
         );
 
-        const fillColor = t.opacity ? t.fill_color : t.auto_fill_color;
+        const fillColor = t.hollow
+            ? "none"
+            : t.opacity
+              ? t.fill_color
+              : t.auto_fill_color;
         const fillOpacity = t.opacity ? t.opacity : 1;
 
         switch (t.shape) {
@@ -533,7 +543,7 @@ export class point_object extends construction_object {
                     .stl(
                         `fill:${t.stroke_color};font-family:Verdana;font-size:${t.fontSize}px;pointer-events:none`,
                     ),
-                t.name,
+                t.caption ?? t.name,
             );
             dom.add(t.nameText);
         }

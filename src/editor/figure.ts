@@ -60,6 +60,7 @@ import {
 } from "../objects/formula_point_object";
 import { point_on_object } from "../objects/point_on_object";
 import { point_object } from "../objects/point_object";
+import type { text_object } from "../objects/text_object";
 import {
     imageLook,
     straightImage,
@@ -1379,7 +1380,7 @@ const eventOverload = (
 // expression, or the opening of the figure.
 export function addEvent(
     c: construction,
-    owner: point_object | expression_object | button_object,
+    owner: point_object | expression_object | button_object | text_object,
     gesture: Trigger | null,
 ): construction_object {
     const event = add(

@@ -190,10 +190,11 @@ describe("GGB importer", () => {
 
         expect(importGgb(c, xml)).toEqual([]);
         expectSavedPoints(c, xml);
-        expect((c.getObj("A") as point_object).namePosition).toBeCloseTo(
-            2 * Math.PI - 2.118358562734894,
-            9,
-        );
+        // labelOffset (-25, 41), size 7: as GeoGebra's DrawPoint writes it.
+        expect((c.getObj("A") as point_object).nameOffset).toEqual([
+            4 - 25,
+            41 - 2 * 7,
+        ]);
     });
 
     it("writes the squares' areas at their anchors, following their sides", async () => {
@@ -3762,7 +3763,7 @@ ${point("Q", "B + OrthogonalVector[Vector[A, B] / 2]")}
         expect(space.getObj("q")!.level).toBe(0);
     });
 
-    it("translates its buttons' scripts into programs that open as blocks", () => {
+    it("translates click scripts into programs that open as blocks", async () => {
         const c = createConstruction();
         const unsupported = importGgb(
             c,
@@ -3777,9 +3778,10 @@ ${point("Q", "B + OrthogonalVector[Vector[A, B] / 2]")}
 <element type="point" label="P"><coords x="1" y="2" z="1"/></element>
 <expression label="Q" exp="(x(P), y(P + 0.5))" type="point"/>
 <element type="point" label="Q"><coords x="1" y="2.5" z="1"/></element>
+<element type="point" label="B"><show object="true" label="true"/><labelOffset x="-6" y="19"/><labelMode val="3"/><caption val="1"/><pointSize val="7"/><pointStyle val="2"/><coords x="0" y="0" z="1"/></element>
 </construction></geogebra>`,
         );
-        expect(unsupported).toEqual(["script t"]);
+        expect(unsupported).toEqual([]);
         const button = c.getObj("b") as button_object;
         const program = button.program!.program;
         const blocks = programBlocks(program, true, formatName)!;
@@ -3797,6 +3799,47 @@ r.setExpression(0);`);
             (c.getObj("Q") as point_object).coords.slice(0, 2),
             [1, 2.5],
         );
+        // Its click script, run when it is clicked.
+        c.gesture(c.getObj("t")!, "down");
+        await new Promise((resolve) => requestAnimationFrame(resolve));
+        expect(a.value).toBe(0);
+        // An empty point labelled by its caption, as GeoGebra draws it.
+        const ball = c.getObj("B") as point_object;
+        expect([
+            ball.hollow,
+            ball.border,
+            ball.caption,
+            ball.nameOffset,
+        ]).toEqual([true, 3.5, "1", [4 - 6, 19 - 14]]);
+        // Kept in .dgo.
+        const restored = createConstruction();
+        readDgo(restored, await describeDgo(c));
+        const kept = restored.getObj("B") as point_object;
+        expect([
+            kept.hollow,
+            kept.border,
+            kept.caption,
+            kept.nameOffset,
+        ]).toEqual([true, 3.5, "1", [4 - 6, 19 - 14]]);
+        (restored.getObj("a") as expression_object).value = 5;
+        restored.gesture(restored.getObj("t")!, "down");
+        await new Promise((resolve) => requestAnimationFrame(resolve));
+        expect((restored.getObj("a") as expression_object).value).toBe(0);
+    });
+
+    it("keeps the different scales of GeoGebra's axes, saved in .dgo", async () => {
+        const c = createConstruction();
+        importGgb(
+            c,
+            `<geogebra><euclidianView><size width="600" height="400"/>
+<coordSystem xZero="100" yZero="300" scale="40" yscale="20"/></euclidianView>
+<construction><element type="point" label="A"><coords x="2" y="3" z="1"/></element></construction></geogebra>`,
+        );
+        expect(c.GRID.UNIT.slice(0, 2)).toEqual([40, 20]);
+        expectClose((c.getObj("A") as point_object).screen, [180, 240]);
+        const restored = createConstruction();
+        readDgo(restored, await describeDgo(c));
+        expect(restored.GRID.UNIT.slice(0, 2)).toEqual([40, 20]);
     });
 
     it("reports what it can't import instead of failing", () => {

@@ -3,6 +3,7 @@ import type { construction_object } from "../objects/construction_object";
 import { expression_object } from "../objects/expression_object";
 import { point_on_object } from "../objects/point_on_object";
 import { point_object } from "../objects/point_object";
+import { text_object } from "../objects/text_object";
 import {
     accepts,
     commandName,
@@ -101,8 +102,8 @@ const forms = (name: string, count: number, icon: string): Tool[] =>
 const labelled = (label: MessageKey, tool: Tool): Tool =>
     Object.assign(tool, { label });
 
-// The program of the gesture on a point, or of the change of an
-// expression's value (see startEvent in main.ts).
+// The program of the gesture on a point (a click on a text), or of the
+// change of an expression's value (see startEvent in main.ts).
 const event = (label: MessageKey, gesture: Gesture | null, icon: string) =>
     Object.assign(labelled(label, tool("List", 0, icon, "event")), {
         gesture,
@@ -535,10 +536,11 @@ const SPACE = ["family_planes", "family_solids"];
 export const itemLabel = ({ tools: [tool] }: Item): string =>
     tool.label ? message(tool.label) : commandName(tool.command);
 
-// The point a turtle starts from, the point dragged or the expression whose
-// value changes that a program answers.
+// The point a turtle starts from, the point dragged, the text clicked or
+// the expression whose value changes that a program answers.
 function answers({ mode, gesture }: Tool, object: construction_object) {
     if (mode === "turtle") return object instanceof point_object;
+    if (gesture === "down" && object instanceof text_object) return true;
     return gesture
         ? object instanceof point_object && object.moveable
         : object instanceof expression_object && !object.program;

@@ -32,6 +32,7 @@ import {
 } from "../workbook";
 import type { construction_object } from "../objects/construction_object";
 import { point_object, type magnet_target } from "../objects/point_object";
+import type { text_object } from "../objects/text_object";
 import { button_object } from "../objects/button_object";
 import type { circle1_object } from "../objects/circle1_object";
 import { event_object, type Trigger } from "../objects/event_object";
@@ -1015,7 +1016,11 @@ const properties = propertiesPanel({
         kind === "turtle"
             ? editTurtle(object)
             : startEvent(
-                  object as point_object | expression_object | button_object,
+                  object as
+                      | point_object
+                      | expression_object
+                      | button_object
+                      | text_object,
                   kind === "change" ? null : (kind as Trigger),
               ),
     remove: (program) => {
@@ -4005,7 +4010,7 @@ function editTurtle(turtle: construction_object): void {
 // The program of the point's gesture, of the change of the expression's
 // value, or of the opening of the figure, in blocks, made if it has none.
 function startEvent(
-    owner: point_object | expression_object | button_object,
+    owner: point_object | expression_object | button_object | text_object,
     gesture: Trigger | null,
 ): void {
     const c = scene();

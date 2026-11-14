@@ -10,6 +10,7 @@ import type { expression_object } from "./objects/expression_object";
 import type { formula_point_object } from "./objects/formula_point_object";
 import { cylinder_intersection_object } from "./objects/cylinder_intersection_object";
 import { intersection_object } from "./objects/intersection_object";
+import { point_object } from "./objects/point_object";
 import { point_on_object } from "./objects/point_on_object";
 import type { construction_object } from "./objects/construction_object";
 import { projectPoint } from "./projection";
@@ -57,10 +58,13 @@ export function importGgb(
         ),
     );
     c.flush();
+    // A point's name in pixels from it, another object's where GeoGebra
+    // writes it, kept relative to it.
     nameShifts.forEach((shift, variable) => {
         const object = variables.get(variable);
         const at = object?.nameAt();
-        if (at) object!.nameOffset = object!.anchorName(vAdd(at, shift));
+        if (object instanceof point_object) object.nameOffset = [...shift];
+        else if (at) object!.nameOffset = object!.anchorName(vAdd(at, shift));
     });
     rates.forEach(
         (rate, variable) =>

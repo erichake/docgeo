@@ -187,8 +187,11 @@ export class construction_object {
     // point writing its own.
     nameLabel?: DOMElement;
     // Where its name was moved, relative to it (see anchorName): null
-    // where GeoGebra writes it.
+    // where GeoGebra writes it. A point's: its left end and baseline, in
+    // pixels from it.
     nameOffset: number[] | null = null;
+    // GeoGebra's caption, written in place of its name.
+    caption: string | null = null;
     hasView: boolean;
     // Assigned by objects_collector.add(): a construction-order counter used
     // to process dirty objects in the same order as the (assumed
@@ -384,7 +387,7 @@ export class construction_object {
                     .stl(
                         `fill:${this.stroke_color};font-family:Verdana;font-size:${this.fontSize}px;pointer-events:none`,
                     ),
-                this.name,
+                this.caption ?? this.name,
             );
             this.dom.add(this.nameLabel);
         }

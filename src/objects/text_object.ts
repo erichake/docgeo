@@ -128,6 +128,14 @@ export class text_object extends construction_object {
             this.isVisible && this.projectionDefined ? "block" : "none",
         );
         if (!this.isVisible || !this.projectionDefined) return;
+        // Clicked, as GeoGebra's text with a click script, if it has a
+        // program for it.
+        const clickable = this.children.some(
+            (child) => (child as { gesture?: unknown }).gesture === "down",
+        );
+        this.textElement.stl(
+            "pointer-events:" + (clickable ? "auto;cursor:pointer" : "none"),
+        );
         const [x, y] = this.position;
         if (this.content !== this.renderedContent) {
             this.renderedContent = this.content;
@@ -152,7 +160,9 @@ export class text_object extends construction_object {
             .shape("text")
             .stl(
                 `fill:${t.stroke_color};font-family:Verdana;font-size:${t.fontSize}px;white-space:pre;pointer-events:none`,
-            );
+            )
+            .tap(() => t.C.gesture(t, "down"));
+        t.textElement.on("pointerdown", (event) => event.stopPropagation());
         return t.svg.shape("g").add(t.textElement);
     }
 }

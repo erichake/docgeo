@@ -311,6 +311,10 @@ const literal = (value: string | number | boolean): DgpValue => ({
 
 // A control's caption, or its name. Its LaTeX is only text in real figures:
 // `$\text{Réponse}$`, `$\bold{A\;B}$`.
+// GeoGebra's default point size is 5.
+const pointSize = (element: Element): number =>
+    Number(attribute(element, "pointSize", "val") ?? 5);
+
 const caption = (element: Element, label: string): string => {
     const text = attribute(element, "caption", "val") ?? label;
     return /^\$.*\$$/.test(text)
@@ -1017,6 +1021,7 @@ export function translateGgb(
           ]
         : [0, 0];
     const unit = Number(coordSystem?.getAttribute("scale") ?? 50);
+    const yUnit = Number(coordSystem?.getAttribute("yscale") ?? unit);
     // GeoGebra's "fixed to grid" point capturing: free points move by the
     // grid's steps, its own distances or else the axes numbering distance
     // for the scale (the largest 1-2-5 step under 100 pixels, up to
@@ -1761,16 +1766,26 @@ export function translateGgb(
         if (attribute(element, "show", "object") === "false") parts.push("h:1");
         if (attribute(element, "show", "label") === "true") {
             const mode = attribute(element, "labelMode", "val") ?? "0";
-            // Not its caption, which would be a wrong name.
-            if (kind === "point" || kind === "pointOn") {
-                if (mode !== "3" || !attribute(element, "caption", "val"))
-                    parts.push("sn:true");
+            const point = kind === "point" || kind === "pointOn";
+            // Its caption, unless it shows values ("%v"): the name only
+            // when it has none.
+            const text = attribute(element, "caption", "val");
+            const written = mode === "3" && text ? caption(element, "") : null;
+            if (written !== null && !written.includes("%"))
+                parts.push(
+                    point ? "sn:true" : "lb:true",
+                    `cp:${encodeURIComponent(written)}`,
+                );
+            // A point's name, whatever else it shows, but a caption.
+            else if (point) {
+                if (mode !== "3" || !text) parts.push("sn:true");
             }
             // An angle's value, alone or after its name.
             else if (kind === "angle" && (mode === "1" || mode === "2"))
                 parts.push(`p:${decimals}`);
             // Its name, not its value nor its caption.
-            else if (mode === "0") parts.push("lb:true");
+            else if (mode === "0" || (mode === "3" && !text))
+                parts.push("lb:true");
         }
         // GeoGebra's 3D view ignores layers: only depth orders it.
         const layer = attribute(element, "layer", "val");
@@ -1782,24 +1797,16 @@ export function translateGgb(
         )
             parts.push("fx:true");
         if (kind === "point" || kind === "pointOn") {
-            const size = attribute(element, "pointSize", "val");
-            if (size) parts.push(`s:${size}`);
+            const size = pointSize(element);
+            parts.push(`s:${size}`);
             const [shape, hollow] = POINT_SHAPES[
                 Number(attribute(element, "pointStyle", "val") ?? 0)
             ] ?? [0, false];
-            parts.push(`sp:${shape}`, `o:${hollow ? 0 : 1}`);
-            const offset = child(element, "labelOffset");
-            if (offset)
-                parts.push(
-                    `np:${
-                        (Math.atan2(
-                            -Number(offset.getAttribute("y")),
-                            Number(offset.getAttribute("x")),
-                        ) +
-                            2 * Math.PI) %
-                        (2 * Math.PI)
-                    }`,
-                );
+            // Its ring half its size wide, as GeoGebra draws it.
+            parts.push(
+                `sp:${shape}`,
+                hollow ? `o:1;ho:true;pb:${size / 2}` : "o:1",
+            );
             if (attribute(element, "trace", "val") === "true")
                 parts.push("tk:true");
         } else {
@@ -1874,11 +1881,16 @@ export function translateGgb(
             literal(shown),
         ]);
         const offset = element && child(element, "labelOffset");
-        if (offset && shown.split(";").includes("lb:true"))
-            nameShifts.set(variable, [
-                Number(offset.getAttribute("x")),
-                Number(offset.getAttribute("y")),
-            ]);
+        const [dx, dy] = ["x", "y"].map((name) =>
+            Number(offset?.getAttribute(name) ?? 0),
+        );
+        const parts = shown.split(";");
+        if (offset && parts.includes("lb:true"))
+            nameShifts.set(variable, [dx, dy]);
+        // A point's name starts 4 pixels right of it, its baseline twice
+        // its size above it (see GeoGebra's DrawPoint).
+        if (parts.includes("sn:true") && POINT_KINDS.includes(kind))
+            nameShifts.set(variable, [4 + dx, dy - 2 * pointSize(element!)]);
         return true;
     };
 
@@ -2252,7 +2264,7 @@ export function translateGgb(
             return [px / camera.unit, -py / camera.unit];
         }
         return absolute
-            ? [(x - origin[0]) / unit, (origin[1] - y) / unit]
+            ? [(x - origin[0]) / unit, (origin[1] - y) / yUnit]
             : [x, y];
     };
 
@@ -4318,6 +4330,7 @@ export function translateGgb(
             { type: "literal", value: false },
             literal(Number(attribute(view!, "size", "width") ?? 0)),
             literal(Number(attribute(view!, "size", "height") ?? 0)),
+            ...(yUnit === unit ? [] : [literal(yUnit)]),
         ]);
     if (styledView) {
         const axesColor = child(styledView, "axesColor");
@@ -4582,8 +4595,9 @@ export function translateGgb(
         return statements.includes(null) ? null : statements.join("\n");
     };
 
-    // A button keeps its place in the window, its program, run when it is
-    // clicked, translated. The other scripts aren't.
+    // A click script, run when a button, a text or a point is clicked, is
+    // translated: a button keeps its place in the window. The other scripts
+    // aren't.
     elements.forEach((element, label) => {
         const scripts = [...element.children].filter(
             (item) =>
@@ -4591,14 +4605,23 @@ export function translateGgb(
         );
         if (!scripts.length) return;
         const [script] = scripts;
+        const type = element.getAttribute("type");
         const program =
-            element.getAttribute("type") === "button" &&
+            (type === "button" || is(label, ["text", ...POINT_KINDS])) &&
             scripts.length === 1 &&
             script.tagName === "ggbscript" &&
             script.attributes.length === 1
                 ? scriptProgram(script.getAttribute("val") ?? "")
                 : null;
         if (program === null) return void unsupported.push(`script ${label}`);
+        if (type !== "button") {
+            if (program)
+                push(null, "BLK", [
+                    ref(label),
+                    literal(JSON.stringify({ onmousedown: { sync: program } })),
+                ]);
+            return;
+        }
         const offset = child(element, "labelOffset");
         const height = Number(attribute(element, "dimensions", "height") ?? 0);
         const font = Math.min(
@@ -4614,9 +4637,8 @@ export function translateGgb(
                 (height || Math.max(40, font + 20)) / 2,
             true,
         );
+        const color = child(element, "objColor");
         const background = child(element, "bgColor");
-        const tinted = background && hexColor(background) !== "#ffffff";
-        const color = tinted ? background : child(element, "objColor");
         define(
             label,
             "button",
@@ -4626,7 +4648,7 @@ export function translateGgb(
             ),
             [
                 ...(color ? [`c:${hexColor(color)}`] : []),
-                `o:${tinted ? 0.3 : 0.1}`,
+                ...(background ? [`fc:${hexColor(background)}`, "o:1"] : []),
                 `f:${font}`,
                 ...(attribute(element, "show", "object") === "false"
                     ? ["h:1"]
