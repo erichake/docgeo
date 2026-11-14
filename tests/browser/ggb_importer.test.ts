@@ -2919,6 +2919,14 @@ ${sides.map(([label, inputs]) => command("Semicircle", inputs, label)).join("")}
         ).toBe(true);
     });
 
+    // Z, centroid of the quadrilateral RMSB, is not its vertices' mean.
+    it("places pythagore's pieces by the centroids of polygons", async () => {
+        const c = createConstruction();
+        const xml = await loadXml("pythagore");
+        expect(importGgb(c, xml)).toEqual([]);
+        expectSavedPoints(c, xml);
+    });
+
     it("lets a circle's direction in a Sequence read the loop variable", async () => {
         const c = createConstruction();
         const xml = (await loadXml("Cercles3D")).replace(

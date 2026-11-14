@@ -100,6 +100,7 @@ figure sont seulement comptés. L'API utilisée est
 | 2026-11-14 | 240 / 456 (53 %)   | 325,9 Ko | item 52 : scripts des boutons, autres scripts signalés (−16)         |
 | 2026-11-14 | 240 / 456 (53 %)   | 326,5 Ko | item 53 : clics, légendes, points creux, axes d'échelles différentes |
 | 2026-11-14 | 240 / 456 (53 %)   | 326,7 Ko | item 54 : demi-cercle d'un plan, arcs de centre 3D (+0)              |
+| 2026-11-14 | 251 / 456 (55 %)   | 326,7 Ko | item 56 : centre de gravité d'un polygone (+1)                       |
 
 ## À faire, par rapport gain / coût
 
@@ -930,6 +931,13 @@ cause.
       import +0,5 Ko. Reste : le quadrillage du sol sans plateau ni axes
       (`grid="true"`, 6 figures 3D du corpus et celle-ci), que DocGeo ne
       dessine pas.
+- [x] **56. Centre de gravité d'un polygone** (1 / 1) : `Centroid(poly)`,
+      absent, écartait tout ce qui en dépendait (`pythagore.ggb`, puzzle
+      dont les pièces se placent par les centres de gravité de
+      quadrilatères). Fait : le point est une formule sur les sommets du
+      polygone, le centre de gravité de sa surface (formule de l'aire),
+      pas la moyenne de ses sommets ; plan seulement. **+1 figure**
+      (250 → 251). Moteur inchangé, import +0,3 Ko.
 
 À écarter, sauf changement de priorité : calcul formel, courbes implicites,
 statistiques et probabilités, tableur au-delà des cellules simples, matrices.

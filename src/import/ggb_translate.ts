@@ -2678,6 +2678,22 @@ export function translateGgb(
         Center: ([circle], [label]) =>
             is(circle, ["circle"]) &&
             define(label, "point", "Center", [ref(circle)]),
+        // A polygon's center of mass, not its vertices': the sum of
+        // (P(i) + P(i+1))·(P(i) × P(i+1)) over 3 times the shoelace sum.
+        Centroid: ([polygon, extra], [label]) => {
+            const vertices = polygons.get(polygon);
+            if (!vertices || extra !== undefined || is3D) return false;
+            const p = vertices.map((vertex) => objects.get(vertex)!.variable);
+            const terms = p.map((a, index) => {
+                const b = p[(index + 1) % p.length];
+                return [`(${a}+${b})`, `(x(${a})*y(${b})-x(${b})*y(${a}))`];
+            });
+            formulaPoint(
+                `(${terms.map(([sum, cross]) => `${sum}*${cross}`).join("+")})/(3*(${terms.map(([, cross]) => cross).join("+")}))`,
+                label,
+            );
+            return true;
+        },
         Line: ([p, q], [label]) => {
             if (!points(p)) return false;
             lineStarts.set(label, p);
