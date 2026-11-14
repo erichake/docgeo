@@ -21,7 +21,7 @@ import {
     type Program,
     type ScriptValue,
 } from "../import/dgp_formula";
-import type { Vec2 } from "../vec";
+import type { Vec2, Vec3 } from "../vec";
 import {
     construction_object,
     dgoFormula,
@@ -31,6 +31,7 @@ import {
 import { angle_object } from "./angle_object";
 import { curve_object } from "./curve_object";
 import { point_object } from "./point_object";
+import type { point_on_object } from "./point_on_object";
 import { scriptCenter } from "./primitive_quadric_object";
 
 // In a chunk of its own, loaded only by the figures that show LaTeX.
@@ -236,8 +237,9 @@ export function evaluateFunction(
 }
 
 // DGPad's SET_EXP, as a manipulation: the value of a constant expression,
-// a Blockly global among them, or where a free point is. Read later by the
-// program, or computed after it as its child. Whether it was set.
+// a Blockly global among them, where a free point is, or a point on an
+// object, where a drag would bring it. Read later by the program, or
+// computed after it as its child. Whether it was set.
 export function setValue(
     target: construction_object,
     value: ScriptValue | null,
@@ -253,17 +255,22 @@ export function setValue(
         return true;
     }
     if (
-        target.constructor === point_object &&
-        Array.isArray(value) &&
-        (value.length === 2 || value.length === 3) &&
-        value.every((c) => typeof c === "number")
-    ) {
-        const point = target as point_object;
-        point.coords = [value[0], value[1], (value[2] as number) ?? point.z];
-        if (point.pinned) point.pin();
+        !(target instanceof point_object) ||
+        !Array.isArray(value) ||
+        (value.length !== 2 && value.length !== 3) ||
+        !value.every((c) => typeof c === "number")
+    )
+        return false;
+    const coords: Vec3 = [value[0], value[1], (value[2] as number) ?? target.z];
+    if ("alphaFor" in target) {
+        const point = target as point_on_object;
+        point.alpha = point.alphaFor(coords) ?? point.alpha;
         return true;
     }
-    return false;
+    if (target.constructor !== point_object) return false;
+    target.coords = coords;
+    if (target.pinned) target.pin();
+    return true;
 }
 
 // DGPad's arrows at the end of a List's segments, [length, half width] in

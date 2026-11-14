@@ -85,7 +85,12 @@ export class event_object extends construction_object {
             return;
         }
         const { value } = this.owner as expression_object;
-        if (value === this.seen) return;
+        // Computed again, a point's coordinates are a new list.
+        if (
+            value === this.seen ||
+            (Array.isArray(value) && String(value) === String(this.seen))
+        )
+            return;
         this.seen = value;
         runProgram(this.C, this.program);
     }

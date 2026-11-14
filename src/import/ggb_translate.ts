@@ -159,12 +159,23 @@ const FORMULA_COMMANDS = new Set([
 const LIST_COMMANDS = new Set(["Take", "First", "Last", "Mode", "Insert"]);
 // A command whose saved list GeoGebra drew at random.
 const RANDOM_LIST = /\b(?:random|Random[A-Za-z]*|Shuffle|Sample)\s*[([]/;
-const BINDING_COMMANDS = new Set(["Sequence", "IterationList", "Iteration"]);
+const BINDING_COMMANDS = new Set([
+    "Sequence",
+    "IterationList",
+    "Iteration",
+    "CurveCartesian",
+]);
 const CELL = /^([A-Z]+)(\d+)$/;
 // A GeoGebra label, which may have primes and braced indices: "A'_{1}".
 const LABEL_WORDS =
     /[$_\p{ID_Start}](?:_\{[^{}]*\}|[$'\u200c\u200d\p{ID_Continue}])*/gu;
 const LABEL = new RegExp(`^${LABEL_WORDS.source}`, "u");
+// A DGP formula's names, and its innermost calls.
+const WORDS = new RegExp(
+    `${IDENTIFIER_START.source}${IDENTIFIER_PART.source}*`,
+    "gu",
+);
+const CALL = new RegExp(`${IDENTIFIER_PART.source}+\\([^()]*\\)`, "gu");
 // A parenthesis without any other inside, after the name of what it calls.
 const INNERMOST = new RegExp(`(${LABEL_WORDS.source}\\s*)?\\(([^()]*)\\)`, "u");
 // Applied to a list, GeoGebra's functions apply to each of its items.
@@ -222,13 +233,58 @@ const FUNCTIONS: Record<string, string | Expansion> = {
     atan: "atan",
     arctan: "atan",
     atan2: "atan2",
-    abs: "abs",
     floor: "floor",
     x: "x",
     y: "y",
     real: "x",
     imaginary: "y",
+    // Of a complex number, its modulus.
+    abs: "mod",
 };
+
+// The other end of the bracket at `index`, searching `step`wards.
+function matchingBracket(text: string, index: number, step: 1 | -1): number {
+    let depth = 0;
+    do {
+        if ("([".includes(text[index])) depth += step;
+        else if (")]".includes(text[index])) depth -= step;
+        index += step;
+    } while (depth !== 0 && index >= 0 && index < text.length);
+    return index - step;
+}
+
+// GeoGebra takes a complex number's argument in ]-π, π], DGPad's power in
+// [0, 2π[: each b^e of a DGP formula whose b `complex` may be is written
+// |b|^e·(cos(e·arg b), sin(e·arg b)), a real b's staying real. The other
+// powers are DGPad's.
+function geogebraPowers(
+    text: string,
+    complex: (base: string) => boolean,
+): string {
+    const word = (index: number) =>
+        index >= 0 && index < text.length && IDENTIFIER_PART.test(text[index]);
+    for (let at = text.indexOf("^"); at >= 0; at = text.indexOf("^", at + 1)) {
+        if (text.slice(0, at).split('"').length % 2 === 0) continue;
+        let start = at;
+        if (")]".includes(text[start - 1]))
+            start = matchingBracket(text, start - 1, -1);
+        while (word(start - 1)) start--;
+        let end = at + 1;
+        while ("+- ".includes(text[end])) end++;
+        while (word(end)) end++;
+        while ("([".includes(text[end]))
+            end = matchingBracket(text, end, 1) + 1;
+        const base = text.slice(start, at);
+        if (text[end] === "^" || !complex(base)) continue;
+        const z = `((${base})+0*i)`;
+        const e = `(${text.slice(at + 1, end)})`;
+        const angle = `${e}*atan2(y(${z}),x(${z}))`;
+        const power = `(y(${z})==0?pow(x(${z}),${e}):pow(mod(${z}),${e})*[cos(${angle}),sin(${angle})])`;
+        text = text.slice(0, start) + power + text.slice(end);
+        at = start + power.length - 1;
+    }
+    return text;
+}
 // GeoGebra's pointStyle → DGP's "sp" shape index (0:circle, 1:cross,
 // 2:diamond), plus whether the shape is drawn hollow.
 const POINT_SHAPES: Record<number, [number, boolean]> = {
@@ -938,6 +994,15 @@ export function translateGgb(
         { start: string; ends: string[]; turns: number }
     >();
     const polygons = new LazyMap<string[]>();
+    // The center, start and end of each CircleArc of the plane.
+    const arcs = new Map<string, string[]>();
+    // Each Sequence's inputs, and the vertices of a Sequence of polygons
+    // with its variable and bounds.
+    const sequences = new Map<string, string[]>();
+    const polygonLists = new Map<
+        string,
+        { vertices: string[]; loop: string[] }
+    >();
     // The path of each point on one.
     const paths = new Map<string, string>();
     const polyhedra = new Map<string, [string, string][]>();
@@ -1200,8 +1265,12 @@ export function translateGgb(
                 } else if (word === "π" || word === "pi") result += "π";
                 else if (word === "ℯ") result += "exp(1)";
                 else if (word === "true" || word === "false") result += word;
-                // GeoGebra's imaginary unit.
-                else if (word === "ί") result += "i";
+                // GeoGebra's imaginary unit, typed "i" in a script.
+                else if (
+                    word === "ί" ||
+                    (word === "i" && !objects.has(word) && !locals.has(word))
+                )
+                    result += "i";
                 else if (locals.has(word)) {
                     // An equation's x stays x, unless a call would read it.
                     const local = locals.get(word)!;
@@ -1282,7 +1351,14 @@ export function translateGgb(
             else return null;
         }
         if (groups.length > 0) return null;
-        result = chainComparisons(result);
+        result = geogebraPowers(chainComparisons(result), (base) => {
+            // Outside the calls, which read a point as a real number.
+            let outside = base;
+            while (outside !== (outside = outside.replace(CALL, "")));
+            return (outside.match(WORDS) ?? []).some(
+                (name) => name === "i" || is(labels.get(name), POINT_KINDS),
+            );
+        });
         try {
             parseFormula(result);
         } catch {
@@ -2381,7 +2457,8 @@ export function translateGgb(
                           `Space${command}`,
                           inputs.map(ref),
                       )
-                    : orientedShape(
+                    : arcs.set(label, inputs) &&
+                      orientedShape(
                           label,
                           inputs,
                           (image, [m, a, b], reversed) =>
@@ -2537,6 +2614,42 @@ export function translateGgb(
                   numeric(label, element);
     };
 
+    // Polygon(A, B, n)'s vertices in the plane, the k-th being A + (B -
+    // A)·(1 - w^k)/(1 - w) as complex numbers (see planar); Polygon(A, B,
+    // C, …)'s points.
+    const polygonVertices = (args: string[]): string[] | null => {
+        const sides = args.length === 3 ? formula(args[2], []) : null;
+        const n = sides === null ? null : evaluateConstant(sides);
+        if (n === null) return args;
+        if (is3D || !Number.isInteger(n) || n < 3) return null;
+        const [a, b] = args.map((point) => `(${point})`);
+        return Array.from({ length: n }, (_, k) => {
+            const r = Math.sin((k * Math.PI) / n) / Math.sin(Math.PI / n);
+            const [x, y] = [Math.cos, Math.sin].map((f) =>
+                (r * f(((k - 1) * Math.PI) / n)).toFixed(15),
+            );
+            return `${a}+(${b}-${a})*(${x}+${y}*ί)`;
+        });
+    };
+
+    // Element(l, n) of a Sequence of polygons: its vertices for its
+    // variable n, undefined out of its bounds.
+    const polygonItem = (list: string, index: string): string | null => {
+        const sequence = polygonLists.get(list);
+        if (!sequence) return null;
+        const [variable, from, to, step] = sequence.loop;
+        if (step !== "1") return null;
+        return sequence.vertices
+            .map(
+                (vertex) =>
+                    `If((${from}) <= (${index}) <= (${to}), ${vertex.replace(
+                        LABEL_WORDS,
+                        (word) => (word === variable ? `(${index})` : word),
+                    )})`,
+            )
+            .join(",");
+    };
+
     // A command a formula computes: a text, a point or a number.
     const formulaCommand =
         (name: string): Handler =>
@@ -2611,8 +2724,20 @@ export function translateGgb(
                     )
                 );
             const value = formula(extra, VALUE_KINDS);
-            if (rest !== undefined || !points(support) || value === null)
-                return false;
+            const arc = arcs
+                .get(support)
+                ?.map((point) => objects.get(point)!.variable);
+            if (rest !== undefined || value === null) return false;
+            // On a CircleArc, at the fraction t of its angle.
+            if (arc) {
+                const [m, a, b] = arc;
+                formulaPoint(
+                    `rotate(${a},${m},(${value})*Angle360(${a},${m},${b}))`,
+                    label,
+                );
+                return true;
+            }
+            if (!points(support)) return false;
             formulaPoint(`${objects.get(support)!.variable}+(${value})`, label);
             return true;
         },
@@ -3441,6 +3566,15 @@ export function translateGgb(
             const loops = [[variable, from, to, step]];
             let inner = normalizeBrackets(expression);
             let call = commandCall(inner);
+            // Of another's polygons.
+            const item =
+                call?.[0] === "Element" && call[1].length === 2
+                    ? polygonItem(call[1][0], call[1][1])
+                    : null;
+            if (item) {
+                inner = `Polygon(${item})`;
+                call = commandCall(inner);
+            }
             while (
                 call?.[0] === "Sequence" &&
                 call[1].length >= 4 &&
@@ -3460,7 +3594,13 @@ export function translateGgb(
                       : call?.[0] === "Polygon" && call[1].length > 2
                         ? "polygons"
                         : "point";
-            const ends = nature === "point" ? [inner] : call![1];
+            const ends =
+                nature === "point"
+                    ? [inner]
+                    : nature === "polygons"
+                      ? polygonVertices(call![1])
+                      : call![1];
+            if (!ends) return false;
             // Circle(M, A) as Circle(M, Distance(M, A)).
             if (nature === "circle" && points(ends[1]))
                 ends[1] = `Distance(${ends})`;
@@ -3504,6 +3644,9 @@ export function translateGgb(
                     label,
                     named(objects.get(label)!.variable, loops.length),
                 );
+            if (nature === "polygons" && loops.length === 1)
+                polygonLists.set(label, { vertices: ends, loop: loops[0] });
+            sequences.set(label, [expression, variable, from, to, step]);
             return true;
         },
         // IterationList(f(z), z, {s}, n): s, f(s), f(f(s)), … n times,
@@ -3634,7 +3777,20 @@ export function translateGgb(
         },
         FractionText: formulaCommand("FractionText"),
         TableText: formulaCommand("TableText"),
-        Element: formulaCommand("Element"),
+        // A polygon of a Sequence, by its vertices.
+        Element: (inputs, [label]) => {
+            const item =
+                inputs.length === 2 && polygonItem(inputs[0], inputs[1]);
+            if (!item) return formulaCommand("Element")(inputs, [label]);
+            const vertices = splitArguments(item)!.map((vertex) => {
+                const coords = formula(vertex, VALUE_KINDS);
+                return coords && formulaPoint(coords);
+            });
+            if (vertices.includes(null)) return false;
+            polygons.set(label, vertices as string[]);
+            definePolygon(label, vertices as string[]);
+            return true;
+        },
         // At x(A) on a function's graph; at A on a circle through it; from
         // A, touching the circle where the circle of diameter A and its
         // center cuts it.
@@ -3763,6 +3919,31 @@ export function translateGgb(
             );
             return true;
         },
+        // CurveCartesian(x(t), y(t), t, a, b): the locus of (x(t), y(t)),
+        // t being the abscissa of a point on a hidden y = 0 from a to b.
+        CurveCartesian: ([fx, fy, t, a, b, extra], [label]) => {
+            if (b === undefined || extra !== undefined || is3D) return false;
+            const [min, max] = [a, b].map((bound) =>
+                formula(bound, VALUE_KINDS),
+            );
+            if (min === null || max === null) return false;
+            const path = auxiliary();
+            defineFunction(path, "0", min, max);
+            const driver = auxiliary();
+            pointOn(driver, path, false);
+            const locals = new Map([
+                [t, `x(${objects.get(driver)!.variable})`],
+            ]);
+            const [x, y] = [fx, fy].map((f) => formula(f, VALUE_KINDS, locals));
+            return (
+                x !== null &&
+                y !== null &&
+                define(label, "locus", "Locus", [
+                    ref(formulaPoint(`[${x},${y}]`)),
+                    ref(driver),
+                ])
+            );
+        },
         Locus: ([p, q, extra], [label]) =>
             extra === undefined &&
             points(p) &&
@@ -3857,9 +4038,14 @@ export function translateGgb(
         const value = attribute(element, "value", "val") ?? "";
         const style = expressionStyle(element, !!slider);
         if (slider) {
-            const [min, max] = ["min", "max"].map((bound) =>
-                formula(slider.getAttribute(bound) ?? "", [], savedNumbers),
-            );
+            // Or reading a list, which saves no value.
+            const [min, max] = ["min", "max"].map((bound) => {
+                const source = slider.getAttribute(bound) ?? "";
+                return (
+                    formula(source, [], savedNumbers) ??
+                    formula(source, VALUE_KINDS)
+                );
+            });
             if (min === null || max === null || !NUMBER.test(value))
                 return false;
             const [x, y] = sliderScreen(slider);
@@ -4242,6 +4428,10 @@ export function translateGgb(
             return numeric(label, element);
         if (type === "text" && source !== undefined)
             return text(label, element, source);
+        // A copy of a Sequence, as another.
+        const copied = source !== undefined && sequences.get(source.trim());
+        if (type === "list" && copied)
+            return HANDLERS.Sequence(copied, [label]);
         if (type === "list" && source !== undefined)
             return defineList(label, element, source);
         // A copy of a polygon, through its vertices: a regular polygon's
@@ -4509,10 +4699,11 @@ export function translateGgb(
     // a number, or "⊙" if it's a point.
     const isPoint = (text: string): boolean => {
         let rest = text.replace(/"[^"]*"/g, "");
+        // A complex number is a point.
         const point = (part: string): boolean =>
             part.includes("⊙") ||
-            (part.match(LABEL_WORDS) ?? []).some((word) =>
-                is(word, POINT_KINDS),
+            (part.match(LABEL_WORDS) ?? []).some(
+                (word) => word === "ί" || is(word, POINT_KINDS),
             );
         for (let match; (match = INNERMOST.exec(rest));)
             rest = `${rest.slice(0, match.index)}${
@@ -4615,12 +4806,20 @@ export function translateGgb(
                     ].join(",")
                   : null;
         if (source === null) return;
+        // But the variable a Sequence binds, which may be named as an
+        // object.
+        const name = node.getAttribute("name") ?? "";
+        const inputs = indexedAttributes(child(node, "input"));
+        const bound = BINDING_COMMANDS.has(name)
+            ? inputs[name === "CurveCartesian" ? inputs.length - 3 : 1]
+            : undefined;
         const reads = (
             source.replace(/"[^"]*"/g, "").match(LABEL_WORDS) ?? []
         ).filter(
             (word) =>
                 (elements.has(word) || commandOutputs.has(word)) &&
-                !translated.has(word),
+                !translated.has(word) &&
+                word !== bound,
         );
         pending.push({ node, reads });
         for (let index = 0; index < pending.length;) {
@@ -4675,16 +4874,61 @@ export function translateGgb(
                 (call?.[1] === "SetValue" ? splitArguments(call[2]) : null) ??
                 /^([^=:!<>(]+?)\s*:?=(?!=)(.+)$/.exec(text)?.slice(1) ??
                 [];
-            return value !== undefined && is(target.trim(), ["expression"])
+            // SetValue moves a point, an assignment redefines it.
+            return value !== undefined &&
+                is(target.trim(), ["expression", ...(call ? POINT_KINDS : [])])
                 ? setValue(target.trim(), value)
                 : null;
         });
-        return statements.includes(null) ? null : statements.join("\n");
+        // Blockly has no imaginary unit: a DGP formula multiplies points as
+        // complex numbers.
+        return statements.includes(null)
+            ? null
+            : statements
+                  .join("\n")
+                  .split('"')
+                  .map((part, index) =>
+                      index % 2
+                          ? part
+                          : part.replace(WORDS, (name) =>
+                                name === "i" ? "[0,1]" : name,
+                            ),
+                  )
+                  .join('"');
     };
 
-    // A click script, run when a button, a text or a point is clicked, is
-    // translated: a button keeps its place in the window. The other scripts
-    // aren't.
+    // An update script runs once a number has changed, as DGPad's
+    // "onchange", once a free point or a point on an object is dragged or
+    // animated, and once another point has moved, as the "onchange" of a
+    // hidden number of its coordinates.
+    const updateScript = (label: string, program: string | null): boolean => {
+        if (!program) return program === "";
+        const source = expressions.get(label);
+        const free =
+            is(label, ["pointOn"]) ||
+            (is(label, ["point"]) &&
+                !commandOutputs.has(label) &&
+                (source === undefined || NUMERIC_TUPLE.test(source)));
+        const variable = objects.get(label)?.variable;
+        const owner =
+            free || is(label, ["expression"])
+                ? variable
+                : is(label, POINT_KINDS) && hiddenExpression(variable!);
+        if (!owner) return false;
+        push(null, "BLK", [
+            { type: "reference", name: owner },
+            literal(
+                JSON.stringify({
+                    [free ? "ondrag" : "onchange"]: { sync: program },
+                }),
+            ),
+        ]);
+        return true;
+    };
+
+    // A click script, run when a button, a text or a point is clicked, and
+    // an update script are translated: a button keeps its place in the
+    // window. The other scripts aren't.
     elements.forEach((element, label) => {
         const scripts = [...element.children].filter(
             (item) =>
@@ -4693,14 +4937,26 @@ export function translateGgb(
         if (!scripts.length) return;
         const [script] = scripts;
         const type = element.getAttribute("type");
+        const click = script.getAttribute("val");
         const program =
-            (type === "button" || is(label, ["text", ...POINT_KINDS])) &&
             scripts.length === 1 &&
             script.tagName === "ggbscript" &&
-            script.attributes.length === 1
-                ? scriptProgram(script.getAttribute("val") ?? "")
+            [...script.attributes].every(
+                ({ name }) => name === "val" || name === "onUpdate",
+            ) &&
+            (click === null ||
+                type === "button" ||
+                is(label, ["text", ...POINT_KINDS]))
+                ? scriptProgram(click ?? "")
                 : null;
-        if (program === null) return void unsupported.push(`script ${label}`);
+        if (
+            program === null ||
+            !updateScript(
+                label,
+                scriptProgram(script.getAttribute("onUpdate") ?? ""),
+            )
+        )
+            return void unsupported.push(`script ${label}`);
         if (type !== "button") {
             if (program)
                 push(null, "BLK", [

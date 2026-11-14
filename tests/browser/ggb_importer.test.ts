@@ -67,6 +67,7 @@ import {
     type Vec3,
 } from "../../src/vec";
 import { expectClose, figure } from "./figures";
+import { event_object } from "../../src/objects/event_object";
 import type { button_object } from "../../src/objects/button_object";
 import {
     blocksProgram,
@@ -3951,6 +3952,72 @@ r.setExpression(0);`);
         restored.gesture(restored.getObj("t")!, "down");
         await new Promise((resolve) => requestAnimationFrame(resolve));
         expect((restored.getObj("a") as expression_object).value).toBe(0);
+    });
+
+    it("computes with complex numbers and runs update scripts as GeoGebra", async () => {
+        const c = createConstruction();
+        c.animations.paused = true;
+        const xml = await loadXml("spirale_fibonacci");
+        expect(importGgb(c, xml)).toEqual([]);
+        const h = c.getObj("h") as expression_object;
+        // Past 1, C moves on its arc: A's update script sets q, then B.
+        h.value = 1.3;
+        c.invalidateGeometry(h);
+        for (let frame = 0; frame < 3; frame++)
+            await new Promise((resolve) => requestAnimationFrame(resolve));
+        const coords = (name: string) =>
+            (c.getObj(name) as point_object).coords.slice(0, 2);
+        // GeoGebra's values.
+        expectClose(coords("q"), [0.15369880292625604, -0.5986173145083101]);
+        expectClose(coords("B"), [1.344650097959497, 0.23049615205631335]);
+        expectClose(
+            (c.getObj("q2") as polygon_object).points[2].coords.slice(0, 2),
+            [1.3418478794088449, 0.23675269447505173],
+        );
+        // The third polygon of Sequence(Element(liste2, k), …), its third
+        // vertex, and the fourth of a regular polygon of liste2.
+        expectClose(
+            (c.getObj("l1") as list_object).items[12][0],
+            [1.6016102795281038, 0.03634859190805406],
+        );
+        expectClose(
+            (c.getObj("liste2") as list_object).items[8][0],
+            [1.5986173145083102, 1.1536988029262563],
+        );
+        // The curve of q^t with GeoGebra's argument, in ]-π, π], through
+        // a(2.5).
+        const at = [1.7542821276462188, 0.23569367522462092];
+        expect(
+            Math.min(
+                ...(c.getObj("a") as locus_object).points.map((point) =>
+                    point ? Math.hypot(point[0] - at[0], point[1] - at[1]) : 1,
+                ),
+            ),
+        ).toBeLessThan(0.005);
+        // Dragging B on its circle sets q by its update script.
+        const b = c.getObj("B") as point_on_object;
+        b.alpha = b.alphaFor([1.6, 3, 0])!;
+        c.invalidateGeometry(b);
+        c.gesture(b, "drag");
+        await new Promise((resolve) => requestAnimationFrame(resolve));
+        const [x, y] = coords("B");
+        const norm = x * x + y * y;
+        expectClose(coords("q"), [1 - (x + y) / norm, (y - x) / norm]);
+        // Written as Blockly writes them, they open as blocks.
+        const programs = c.OBJS.V.filter(
+            (object): object is event_object => object instanceof event_object,
+        ).map(({ program }) =>
+            blocksProgram(
+                programBlocks(program.program, true, formatName)!,
+                formatName,
+            ),
+        );
+        expect(programs).toEqual([
+            `q.setExpression(1 - (1 + [0, 1]) / (x(B) + [0, 1] * y(B)));
+A.setExpression((1 + [0, 1]) * (1 + q));`,
+            `q.setExpression((x(A) + [0, 1] * y(A)) / (1 + [0, 1]) - 1);
+B.setExpression((1 + [0, 1]) / (1 - q));`,
+        ]);
     });
 
     it("keeps the different scales of GeoGebra's axes, saved in .dgo", async () => {

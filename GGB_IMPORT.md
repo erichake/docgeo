@@ -102,6 +102,7 @@ figure sont seulement comptés. L'API utilisée est
 | 2026-11-14 | 240 / 456 (53 %)   | 326,7 Ko | item 54 : demi-cercle d'un plan, arcs de centre 3D (+0)              |
 | 2026-11-14 | 250 / 456 (55 %)   | 326,7 Ko | item 55 : pas d'un curseur d'angle en degrés (+10)                   |
 | 2026-11-14 | 251 / 456 (55 %)   | 326,7 Ko | item 56 : centre de gravité d'un polygone (+1)                       |
+| 2026-11-14 | 258 / 456 (57 %)   | 326,8 Ko | item 57 : nombres complexes, scripts de mise à jour (+7)             |
 
 ## À faire, par rapport gain / coût
 
@@ -957,6 +958,31 @@ cause.
       `%n` écrit le nom ; un côté commun à plusieurs objets est tracé
       par celui peint en dernier, niveau compris (le côté [CB] de
       `poly1` passait sous le cache). Moteur +0,02 Ko, import +0,1 Ko.
+- [x] **57. Nombres complexes et scripts de mise à jour** :
+      `spirale_fibonacci.ggb` (spirale d'or de raison complexe `q`, animée
+      par un curseur dont le script de `A` change `q`). Fait : `ί` fait
+      d'une expression un point (`CircleArc`, `Circle`), `abs` d'un
+      complexe est son module, et `z^e` d'une base qui peut être complexe
+      prend l'argument de GeoGebra, dans ]−π, π] (celui de DGPad est dans
+      [0, 2π[ : `q^t` partait en spirale pour un `q` réel à 10⁻¹⁶ près) ;
+      `Point(arc, t)` sur un `CircleArc` ; `CurveCartesian` du plan, lieu
+      d'un point dont `t` est l'abscisse d'un point sur y = 0 entre ses
+      bornes ; `Polygon(A, B, n)` dans un `Sequence` ; `Element` d'un
+      `Sequence` de polygones, seul ou dans un `Sequence` ; copie d'un
+      `Sequence` ; borne de curseur lisant une liste ; la variable d'un
+      `Sequence` nommée comme un objet n'attend plus cet objet. Le script
+      de mise à jour (`onUpdate`) d'un nombre devient son « onchange »,
+      celui d'un point libre ou sur objet son « ondrag », celui d'un autre
+      point le « onchange » d'un nombre caché de ses coordonnées ;
+      `SetValue` déplace un point libre ou sur objet (le moteur place
+      celui-ci comme un glissement), ne change pas un point dépendant,
+      comme GeoGebra ; l'unité imaginaire y est écrite `[0,1]`, pour que
+      le programme s'ouvre en blocs. Un événement ne relance plus son
+      programme pour des coordonnées inchangées. Jusqu'ici, un script de
+      mise à jour seul était lu comme un script de clic vide, ignoré sans
+      être signalé : 5 figures le signalent maintenant (`ZoomIn`,
+      `SetVisibleInView`, `ParseToNumber`…). **+7 figures** (251 → 258),
+      éléments non importés 3246 → 3045. Moteur +0,14 Ko, import +3,1 Ko.
 
 À écarter, sauf changement de priorité : calcul formel, courbes implicites,
 statistiques et probabilités, tableur au-delà des cellules simples, matrices.
