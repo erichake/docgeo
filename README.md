@@ -6,6 +6,12 @@ made with DGPad and GeoGebra (elements it doesn't support yet are skipped and
 reported), lets you manipulate them, and comes with an editor to build your
 own constructions, in 2D and 3D.
 
+## Video presentation
+
+A presentation of DocGeo (in French) is available on YouTube:
+
+[![DocGeo video presentation](https://img.youtube.com/vi/qLHrQzlh73Q/hqdefault.jpg)](https://youtu.be/qLHrQzlh73Q)
+
 ## Features
 
 - An interactive player for `.dgo` (DocGeo's native format, gzipped JSON),
