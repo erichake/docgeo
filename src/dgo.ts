@@ -2128,9 +2128,15 @@ const BUILDERS: Record<string, Builder> = {
     ),
     QArc: conicArc(false),
     QSec: conicArc(true),
-    Semi: (parameters, { c, name, points }) => {
-        const [a, b] = points(parameters, 2);
-        return createSemicircle(c, name, a, b);
+    Semi: (parameters, { c, name, at }) => {
+        const [a, b, plane] = list(parameters, 2, 3);
+        return createSemicircle(
+            c,
+            name,
+            at(a, point_object),
+            at(b, point_object),
+            plane === undefined ? undefined : at(plane, polygon_object),
+        );
     },
     Quad: (parameters, { c, name, points }) => {
         const [p1, p2, p3, p4, p5] = points(parameters, 5);

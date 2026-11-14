@@ -2549,7 +2549,9 @@ Fait (2026-10-11) :
   composés qui contiennent ceux d'`Arc` et `Secteur`, qui restent l'arc
   par trois points. L'image d'un arc par une symétrie axiale, parcourue
   dans le sens indirect, s'affiche en lecture seule. Éditeur +0,5 Ko
-  (+0,1 Ko en gzip).
+  (+0,1 Ko en gzip). Depuis le 2026-11-14, `DemiCercle(p, A, B)`, dans le
+  plan p, à gauche de AB autour de sa normale (`Semicircle(A, B, p)` de
+  GeoGebra) : le plan d'abord, pour que (A, B) ne commence pas cette forme.
 
 - Tangentes (2026-10-15) : `Tangente(P, c, n)`, la tangente n (1 ou 2)
   par P à un cercle ou une conique, comme `Intersection(c, d, n)`, et

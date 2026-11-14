@@ -657,8 +657,8 @@ const focalConic = (
         ),
 });
 
-// Of center M, from A to the ray [MB).
-const centerArc = (sector: boolean): CommandDefinition => ({
+// Of center M, from A to the ray [MB); in space, the arc of the angle AMB.
+const centerArc = (sector: boolean, space = false): CommandDefinition => ({
     parameters: [string, point, point, point, { ...boolean, optional: true }],
     result: "circle",
     execute: (context, args) =>
@@ -670,6 +670,7 @@ const centerArc = (sector: boolean): CommandDefinition => ({
             args[3] as point_object,
             sector,
             args[4] === true,
+            space,
         ),
 });
 
@@ -2408,6 +2409,8 @@ const COMMANDS = new Map<string, CommandDefinition>([
     ],
     ["CenterArc", centerArc(false)],
     ["CenterSector", centerArc(true)],
+    ["SpaceCenterArc", centerArc(false, true)],
+    ["SpaceCenterSector", centerArc(true, true)],
     ["ArcOnCircle", arcOn(circle, false)],
     ["SectorOnCircle", arcOn(circle, true)],
     ["ArcOnConic", arcOn(quadric, false)],
@@ -2415,7 +2418,7 @@ const COMMANDS = new Map<string, CommandDefinition>([
     [
         "Semicircle",
         {
-            parameters: [string, point, point],
+            parameters: [string, point, point, { ...object, optional: true }],
             result: "circle",
             execute: (context, args) =>
                 createSemicircle(
@@ -2423,6 +2426,7 @@ const COMMANDS = new Map<string, CommandDefinition>([
                     args[0] as string,
                     args[1] as point_object,
                     args[2] as point_object,
+                    args[3] as polygon_object | undefined,
                 ),
         },
     ],

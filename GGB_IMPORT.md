@@ -99,6 +99,7 @@ figure sont seulement comptés. L'API utilisée est
 | 2026-11-13 | 249 / 456 (55 %)   | 325,0 Ko | item 47 : solides et images natifs, construction lisible (+0)        |
 | 2026-11-14 | 240 / 456 (53 %)   | 325,9 Ko | item 52 : scripts des boutons, autres scripts signalés (−16)         |
 | 2026-11-14 | 240 / 456 (53 %)   | 326,5 Ko | item 53 : clics, légendes, points creux, axes d'échelles différentes |
+| 2026-11-14 | 240 / 456 (53 %)   | 326,7 Ko | item 54 : demi-cercle d'un plan, arcs de centre 3D (+0)              |
 
 ## À faire, par rapport gain / coût
 
@@ -905,6 +906,30 @@ cause.
       `uy` de la vue `.dgo`), que la projection, le zoom et les cercles
       (dessinés en ellipses) suivaient déjà. Corpus : 240 / 456 inchangé
       (ces écarts n'étaient pas signalés). Moteur +0,6 Ko, import +0,3 Ko.
+
+- [x] **54. Demi-cercle d'un plan, arcs de centre 3D** : `pliage.ggb` (une
+      feuille pliée selon un demi-cercle, `tests/ggb/02_solved`) ne
+      s'ouvrait pas : `Semicircle(B, C, p)` n'était pas traduit, ni tout
+      ce qui en dépend. Fait : demi-cercle dans le plan p, à gauche de AB
+      autour de sa normale (`Semi` à trois entrées, `DemiCercle(p, A, B)`
+      dans l'éditeur). Le côté choisi par GeoGebra dépend du repère
+      interne de son plan : relevé dans GeoGebra, il suit la normale de
+      DocGeo pour `Plane(A, B, C)`, `OrthogonalPlane(A, d)` et le plan
+      xOy, la normale opposée pour `Plane(A, d)`, celle de son modèle pour
+      `Plane(A, q)`. Un plan donné par une équation reste signalé, le côté
+      de GeoGebra n'y suivant pas une règle simple. `CircleArc` et
+      `CircleSector` d'un point 3D sont l'arc de l'angle AMB, dans le plan
+      des trois points, comme dans GeoGebra (`CArcs`, `CSecs`). Une copie
+      de polygone (`q1blanc = q1`) passe par ses sommets ; les points
+      d'une liste écrite (`{t1, K, L, M}` tournés) gardent le style de
+      point de la liste, pas celui d'un polygone. Un segment [AA] vaut 0
+      dans une formule (indéfini comme droite), comme dans GeoGebra et
+      DGPad : la condition `k ≟ 0` de la figure ne s'affichait jamais.
+      Corpus : 240 / 456 inchangé (aucune figure n'emploie `Semicircle`
+      avec un plan), un élément non importé de moins. Moteur +0,2 Ko,
+      import +0,5 Ko. Reste : le quadrillage du sol sans plateau ni axes
+      (`grid="true"`, 6 figures 3D du corpus et celle-ci), que DocGeo ne
+      dessine pas.
 
 À écarter, sauf changement de priorité : calcul formel, courbes implicites,
 statistiques et probabilités, tableur au-delà des cellules simples, matrices.

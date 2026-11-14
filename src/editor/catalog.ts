@@ -805,8 +805,15 @@ export const COMMANDS: Command[] = [
             objects("CSecs", ["point", "point", "point"]),
         ],
     },
-    // On the left of AB.
-    { name: "Semicircle", overloads: [objects("Semi", ["point", "point"])] },
+    // On the left of AB; in plane p, around its normal, p first so that
+    // (A, B) doesn't begin it.
+    {
+        name: "Semicircle",
+        overloads: [
+            objects("Semi", ["point", "point"]),
+            objects("Semi", ["plane", "point", "point"], [1, 2, 0]),
+        ],
+    },
     { name: "Center", overloads: [objects("Ctr", ["circle"])] },
     { name: "Incenter", overloads: [center(1)] },
     { name: "Centroid", overloads: [center(2)] },

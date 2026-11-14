@@ -406,7 +406,7 @@ la figure, autour de la verticale de O dans l'espace, sa hauteur gardée),
 | `CSec`  | secteur de centre M, de A à [MB)                                            | idem                                            |
 | `CArcs` | arc de centre M, de A à [MB), espace                                        | `[M, A, B]` (26)                                |
 | `CSecs` | secteur, idem                                                               | `[M, A, B]` (26)                                |
-| `Semi`  | demi-cercle de diamètre [AB]                                                | `[A, B]` (16)                                   |
+| `Semi`  | demi-cercle de diamètre [AB]                                                | `[A, B]` (16), `[A, B, plan]` (32)              |
 | `EqC`   | cercle d'équation g = d                                                     | `[g, d]` (14)                                   |
 | `Quad`  | conique passant par cinq points                                             | `[A, B, C, D, E]`                               |
 | `Ell`   | ellipse de foyers F, G passant par P                                        | `[F, G, P]`                                     |
@@ -626,9 +626,9 @@ alignement]]` police, `[30, url, l, h, zoom, opacité, u]` image (largeur
     normale de ce plan.
 19. Depuis le 2026-11-06, un polygone ou une référence de face vaut un plan
     partout où une entrée prend un plan (`PlI`, `PlP`, `PlPl`, `Nrm`, `SphC`,
-    `CyS`, `PlS`, `RegP`, `C1`, `CubV`) : son plan passe par la moyenne de ses
-    sommets, de normale celle de son aire orientée, indéfini s'il n'a pas
-    d'aire. Avec un polygone, `PlI` est indéfini hors de lui, bord compris à
+    `CyS`, `PlS`, `RegP`, `Semi`, `C1`, `CubV`) : son plan passe par la
+    moyenne de ses sommets, de normale celle de son aire orientée, indéfini
+    s'il n'a pas d'aire. Avec un polygone, `PlI` est indéfini hors de lui, bord compris à
     la tolérance près ; avec tout plan, quand la droite lui est parallèle (à
     10⁻¹⁰ près, relativement).
     Un plan est dessiné comme celui de GeoGebra, un carré de demi-côté h
@@ -778,6 +778,9 @@ alignement]]` police, `[30, url, l, h, zoom, opacité, u]` image (largeur
     haut au-dessus du premier sommet de la base, ou celle du sommet
     au-dessus du centre de ses sommets, le long de la normale de la base
     tournée vers le haut (comme `Abv`). Ces sommets sont propres au solide.
+32. Ajouté le 2026-11-14, comme `Semicircle(A, B, p)` de GeoGebra : dans
+    le plan, à gauche de AB autour de sa normale, parcouru de A à B dans
+    le sens indirect autour d'elle.
 
 ### Macro-constructions
 

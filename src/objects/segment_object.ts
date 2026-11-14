@@ -50,8 +50,9 @@ export class segment_object extends two_points_line_object {
         return ["Seg", super.dgo(context)[1]];
     }
 
+    // 0 for [AA], undefined as a line, as in GeoGebra and DGPad.
     scriptValue(_vec3: boolean): ScriptValue | null {
-        return this.defined
+        return this.P1.defined && this.P2.defined
             ? vNorm(vSub(this.P2.coords, this.P1.coords))
             : null;
     }

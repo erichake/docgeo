@@ -915,6 +915,9 @@ export function translateGgb(
     const segments = new LazyMap<[string, string]>();
     // The planes, GeoGebra's xOy plane being z = 0 (see isPlane).
     const planes = new Set<string>();
+    // Whether GeoGebra turns a plane against its normal in DocGeo, for the
+    // planes whose orientation is known: Plane(A, f)'s is turned.
+    const turnedPlanes = new Map<string, boolean>([["xOyPlane", false]]);
     // A cylinder or a cone, by its solid's or its side's label.
     const revolutions = new Map<string, { label: string; cone: boolean }>();
     const spheres = new Set<string>();
@@ -1942,10 +1945,10 @@ export function translateGgb(
     const derivative = (f: string, x: string): string =>
         `((${f}((${x})+${DERIVATIVE_STEP})-${f}((${x})-${DERIVATIVE_STEP}))/${2 * DERIVATIVE_STEP})`;
 
-    const shapeStyle = (element: Element): string =>
-        objectStyle(element, "polygon")
+    const shapeStyle = (element: Element, kind: Kind = "polygon"): string =>
+        objectStyle(element, kind)
             .split(";")
-            .filter((part) => part !== "lb:true")
+            .filter((part) => part !== "lb:true" && part !== "sn:true")
             .join(";");
 
     // The region GeoGebra shades for a number, bounded by a list's points.
@@ -2191,7 +2194,9 @@ export function translateGgb(
                 drawn.forEach((part) =>
                     push(null, "STL", [
                         ref(part),
-                        literal(`h:0;${shapeStyle(element)}`),
+                        literal(
+                            `h:0;${shapeStyle(element, is(part, POINT_KINDS) ? "point" : "polygon")}`,
+                        ),
                     ]),
                 );
             parts.set(output, drawn);
@@ -2344,19 +2349,37 @@ export function translateGgb(
 
     // CircleArc(M, A, B): counterclockwise from A to the ray MB, on the
     // circle centered at M through A; clockwise, its image by a reflection.
+    // Of a point of space, GeoGebra's arc of the angle AMB, in its plane.
     const centerArc =
         (sector: boolean): Handler =>
-        (inputs, [label]) =>
-            inputs.length === 3 &&
-            points(...inputs) &&
-            orientedShape(label, inputs, (image, [m, a, b], reversed) =>
-                define(image, "circle", sector ? "CenterSector" : "CenterArc", [
-                    ref(m),
-                    ref(a),
-                    ref(b),
-                    ...(reversed ? [literal(true)] : []),
-                ]),
+        (inputs, [label]) => {
+            const command = sector ? "CenterSector" : "CenterArc";
+            return (
+                inputs.length === 3 &&
+                points(...inputs) &&
+                (inputs.some(
+                    (input) =>
+                        elements.get(input)?.getAttribute("type") === "point3d",
+                )
+                    ? define(
+                          label,
+                          "circle",
+                          `Space${command}`,
+                          inputs.map(ref),
+                      )
+                    : orientedShape(
+                          label,
+                          inputs,
+                          (image, [m, a, b], reversed) =>
+                              define(image, "circle", command, [
+                                  ref(m),
+                                  ref(a),
+                                  ref(b),
+                                  ...(reversed ? [literal(true)] : []),
+                              ]),
+                      ))
             );
+        };
 
     // Arc(c, P, Q) of a circle or an ellipse: from P to Q counterclockwise,
     // each taken where it projects onto c.
@@ -2800,17 +2823,30 @@ export function translateGgb(
         CircularSector: centerArc(true),
         // On the left of AB: its image by a reflection is on the left of
         // B'A'.
-        Semicircle: ([a, b, extra], [label]) =>
+        // In plane p, on the left of AB around its normal as GeoGebra
+        // orients it (see turnedPlanes).
+        Semicircle: ([a, b, plane, extra], [label]) =>
             extra === undefined &&
             points(a, b) &&
-            orientedShape(label, [a, b], (image, [p, q], reversed) =>
-                define(
-                    image,
-                    "circle",
-                    "Semicircle",
-                    (reversed ? [q, p] : [p, q]).map(ref),
-                ),
-            ),
+            (plane !== undefined
+                ? turnedPlanes.has(plane) &&
+                  define(
+                      label,
+                      "circle",
+                      "Semicircle",
+                      [
+                          ...(turnedPlanes.get(plane) ? [b, a] : [a, b]),
+                          plane,
+                      ].map(ref),
+                  )
+                : orientedShape(label, [a, b], (image, [p, q], reversed) =>
+                      define(
+                          image,
+                          "circle",
+                          "Semicircle",
+                          (reversed ? [q, p] : [p, q]).map(ref),
+                      ),
+                  )),
         Conic: onePoint("Quadric", 5, "quadric"),
         Ellipse: focalConic("Ellipse"),
         Hyperbola: focalConic("Hyperbola"),
@@ -3171,11 +3207,18 @@ export function translateGgb(
                       (isDirection(other)
                           ? "ParallelPlane"
                           : is(other, ["line"]) && "LinePlane");
-            return !!command && definePlane(label, command, inputs.map(ref));
+            if (!command) return false;
+            const turned =
+                command === "ParallelPlane"
+                    ? turnedPlanes.get(other)
+                    : command === "LinePlane";
+            if (turned !== undefined) turnedPlanes.set(label, turned);
+            return definePlane(label, command, inputs.map(ref));
         },
         OrthogonalPlane: ([point, line, extra], [label]) => {
             if (extra !== undefined || !points(point) || !is(line, ["line"]))
                 return false;
+            turnedPlanes.set(label, false);
             return definePlane(label, "OrthogonalPlane", [
                 ref(point),
                 ref(line),
@@ -4164,6 +4207,12 @@ export function translateGgb(
             return text(label, element, source);
         if (type === "list" && source !== undefined)
             return defineList(label, element, source);
+        // A copy of a polygon, through its vertices.
+        const vertices =
+            type === "polygon" &&
+            is(source, ["polygon"]) &&
+            shapes.get(source!)?.points;
+        if (vertices) return definePolygon(label, vertices);
         // Its program may read later objects (see buttons below).
         if (type === "button") return true;
         // A boolean is a checkbox, at its label's place on screen, that

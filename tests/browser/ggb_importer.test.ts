@@ -2838,6 +2838,87 @@ ${["90*°", "90°", "(540 / n)°", "180 / n * °"]
         expect(circles.stroke_color).toBe("#006400");
     });
 
+    // Each on the side GeoGebra draws it (checked in GeoGebra 5).
+    it("puts a semicircle of a plane on GeoGebra's side", () => {
+        const c = createConstruction();
+        const point = (label: string, [x, y, z]: Vec3) =>
+            `<element type="point3d" label="${label}"><coords x="${x}" y="${y}" z="${z}" w="1"/></element>`;
+        const command = (name: string, inputs: string[], output: string) =>
+            `<command name="${name}"><input ${inputs.map((input, index) => `a${index}="${input}"`).join(" ")}/><output a0="${output}"/></command>`;
+        const sides: [string, string[], number][] = [
+            ["s1", ["P", "Q", "o1"], -3],
+            ["s2", ["P", "Q", "o2"], 3],
+            ["s3", ["Q", "P", "pl"], 3],
+            ["s4", ["Q", "P", "pp"], 3],
+            ["s5", ["Q", "P", "p1"], 3],
+            ["s6", ["Q", "P", "p2"], -3],
+        ];
+        expect(
+            importGgb(
+                c,
+                `<geogebra><euclidianView3D><coordSystem xZero="0" yZero="0" zZero="0" scale="50" xAngle="20" zAngle="-60"/></euclidianView3D><construction>
+${point("P", [3, -2, 0])}${point("Q", [-3, -2, 0])}${point("E", [0, 2, 0])}${point("F", [0, -2, 0])}${point("U", [0, -2, 5])}${point("X", [0, -2, 1])}
+${command("Line", ["E", "F"], "ef")}${command("Line", ["F", "E"], "fe")}${command("Line", ["Q", "P"], "qp")}
+${command("OrthogonalPlane", ["F", "ef"], "o1")}${command("OrthogonalPlane", ["F", "fe"], "o2")}
+${command("Plane", ["U", "qp"], "pl")}${command("Plane", ["U", "pl"], "pp")}
+${command("Plane", ["Q", "P", "X"], "p1")}${command("Plane", ["P", "Q", "X"], "p2")}
+${sides.map(([label, inputs]) => command("Semicircle", inputs, label)).join("")}
+</construction></geogebra>`,
+            ),
+        ).toEqual([]);
+        sides.forEach(([label, , z]) => {
+            const arc = c.getObj(label) as semicircle_object;
+            expect(arc.insideBounds([0, -2, z]), label).toBe(true);
+            expect(arc.insideBounds([0, -2, -z]), label).toBe(false);
+        });
+    });
+
+    it("folds pliage's sheet along a semicircle of a plane", async () => {
+        const c = createConstruction();
+        const file = await (await fetch(figure("pliage.ggb"))).blob();
+        expect(await importGgbFromBlob(c, file)).toEqual([]);
+        const coords = (label: string) =>
+            (c.getObj(label) as point_object).coords;
+        expect((c.getObj("sc") as semicircle_object).support).toBe(
+            c.getObj("p"),
+        );
+        expectClose(coords("G"), [2.9513698277924876, -2, 0.5379741068082569]);
+        expectClose(coords("G'"), [2.9513698277924876, 2, 0.5379741068082569]);
+        // GeoGebra's arc of 10.33° from C, and angle of 169.67°.
+        const arc = c.getObj("g") as center_arc_object;
+        expect(arc.space).toBe(true);
+        expect(arc.R * (arc.endAlpha - arc.startAlpha)).toBeCloseTo(
+            3 * Math.atan2(0.5379741068082569, 2.9513698277924876),
+            9,
+        );
+        expect(
+            ((c.getObj("α") as angle_object).scriptValue(false) as number) *
+                (180 / Math.PI),
+        ).toBeCloseTo(169.67, 2);
+        // The triangle turned with the flap, drawn when J is on H.
+        const turned = c.OBJS.V.filter(
+            (object) => object instanceof rotation_object,
+        ) as point_object[];
+        expect(turned.map((point) => point.coords)).toEqual(
+            [
+                [0.27899, 1.41426, 0.05085],
+                [1.96758, 1, 0.35865],
+                [2.36045, -1.29681, 0.43026],
+            ].map((expected) =>
+                expected.map((value) => expect.closeTo(value, 4)),
+            ),
+        );
+        expect(turned.some((point) => point.isVisible)).toBe(false);
+        expect(c.getObj("q1blanc")!.isVisible).toBe(false);
+        const j = c.getObj("J") as point_on_object;
+        j.alpha = 0;
+        c.OBJS.markGeometryDirty(j);
+        c.OBJS.update();
+        expect(
+            [...turned, c.getObj("Gr")!].every((object) => object.isVisible),
+        ).toBe(true);
+    });
+
     it("lets a circle's direction in a Sequence read the loop variable", async () => {
         const c = createConstruction();
         const xml = (await loadXml("Cercles3D")).replace(

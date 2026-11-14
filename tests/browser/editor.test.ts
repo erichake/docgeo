@@ -750,6 +750,7 @@ describe("Editor", () => {
             "w = Circle(E, 1, d)",
             "v = Circle(E, 2, p)",
             "e1 = Circle(d, E)",
+            "e2 = Semicircle(q, A, B)",
         ];
         text.forEach((line) => type(c, line));
         c.flush();
