@@ -641,6 +641,24 @@ export class expression_object extends construction_object {
         );
     }
 
+    // A knob of its color keeps taking it.
+    paint(): void {
+        if (this.cursorColor === this.stroke_color) this.cursorColor = null;
+        super.paint();
+    }
+
+    // A slider keeps its knob, which may be being dragged.
+    recolor(): void {
+        if (!this.knob) return super.recolor();
+        const color = this.stroke_color;
+        const knob = this.cursorColor ?? color;
+        this.valueText.stl("fill", color);
+        this.track!.stl("stroke", color);
+        this.progress!.stl("fill", color);
+        this.knob.stl("stroke", knob);
+        if (this.cursorOpacity) this.knob.stl("fill", this.cursorFill ?? knob);
+    }
+
     computeGeometry(): void {
         if (this.bounds) {
             const { min, max, refs } = this.bounds;

@@ -904,6 +904,7 @@ export function dgoEntry(
 ): unknown[] {
     const style = describe(STYLE, object, lookTag(object, tag));
     if (object.condition) style.sc = context.index(object.condition);
+    if (object.dynamicColor) style.rgb = context.index(object.dynamicColor);
     const rate =
         (object instanceof point_on_object ||
             object instanceof expression_object) &&
@@ -1115,40 +1116,47 @@ export function addDgoEntries(
             return chosen;
         },
     );
-    // Conditions, magnets and animation rates may name later objects.
-    styled.forEach(([object, { sc: condition, mg: magnets, av: rate }]) => {
-        if (rate !== undefined) {
-            check(
-                (object instanceof point_on_object ||
-                    object instanceof expression_object) &&
-                    object.animation,
-            );
-            object.animation.rate = at(rate, expression_object);
-        }
-        if (condition !== undefined) {
-            object.condition = at(condition, expression_object);
-            object.addParents(object.condition);
-        }
-        if (magnets !== undefined) {
-            check(object instanceof point_object && Array.isArray(magnets));
-            object.magnets = magnets.map((magnet) => {
-                const [target, radius] = list(magnet, 2);
-                check(isNumber(radius));
-                return {
-                    target: at(
-                        target,
-                        primitive_line_object,
-                        primitive_circle_object,
-                        primitive_quadric_object,
-                        list_object,
-                        curve_object,
-                        point_object,
-                    ),
-                    radius,
-                };
-            });
-        }
-    });
+    // Conditions, dynamic colors, magnets and animation rates may name
+    // later objects.
+    styled.forEach(
+        ([object, { sc: condition, rgb: color, mg: magnets, av: rate }]) => {
+            if (rate !== undefined) {
+                check(
+                    (object instanceof point_on_object ||
+                        object instanceof expression_object) &&
+                        object.animation,
+                );
+                object.animation.rate = at(rate, expression_object);
+            }
+            if (condition !== undefined) {
+                object.condition = at(condition, expression_object);
+                object.addParents(object.condition);
+            }
+            if (color !== undefined) {
+                object.dynamicColor = at(color, expression_object);
+                object.addParents(object.dynamicColor);
+            }
+            if (magnets !== undefined) {
+                check(object instanceof point_object && Array.isArray(magnets));
+                object.magnets = magnets.map((magnet) => {
+                    const [target, radius] = list(magnet, 2);
+                    check(isNumber(radius));
+                    return {
+                        target: at(
+                            target,
+                            primitive_line_object,
+                            primitive_circle_object,
+                            primitive_quadric_object,
+                            list_object,
+                            curve_object,
+                            point_object,
+                        ),
+                        radius,
+                    };
+                });
+            }
+        },
+    );
 }
 
 // An earlier object of `objects`, of one of the given classes.
@@ -1427,6 +1435,7 @@ function readMethod(method: Json, count: number, styles: Json[]): MacroMethod {
             check(
                 isRecord(style) &&
                     !own(style, "sc") &&
+                    !own(style, "rgb") &&
                     !own(style, "mg") &&
                     !own(style, "av"),
             );

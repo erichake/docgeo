@@ -989,6 +989,7 @@ function validateObjectStyle(
                 break;
             }
             case "sc":
+            case "rgb":
                 if (variables.get(propertyValue) !== "expression")
                     throw new Error(
                         `Unknown DGP reference at line ${lineNumber}`,
@@ -1245,6 +1246,12 @@ function applyObjectStyle(
                     propertyValue,
                 ) as expression_object;
                 target.addParents(target.condition);
+                break;
+            case "rgb":
+                target.dynamicColor = context.variables.get(
+                    propertyValue,
+                ) as expression_object;
+                target.addParents(target.dynamicColor);
                 break;
             case "an":
                 if (

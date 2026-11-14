@@ -901,8 +901,8 @@ Corps d'une méthode :
 - Chaque entrée peut avoir un style (indice dans `st`), celui de son objet
   dans la figure où la macro a été définie : pour un final, son style par
   défaut à l'application ; pour un intermédiaire, celui qu'il prend quand
-  on ouvre la boîte (caché s'il l'était), sans effet sur le calcul. Ni `sc`
-  ni `mg`. Décidé avec l'auteur le 2026-10-26, quand seuls les finaux en
+  on ouvre la boîte (caché s'il l'était), sans effet sur le calcul. Ni `sc`,
+  ni `rgb`, ni `mg`. Décidé avec l'auteur le 2026-10-26, quand seuls les finaux en
   avaient un.
 - Rien de ce qu'une manipulation change, qui serait un initial manquant :
   ni objet libre (`Pt`, `VecF`), ni `Ex` de valeur `"v"` (curseur, nombre
@@ -997,10 +997,16 @@ recopiée. Les mêmes règles valent pour ajouter des macros à « Mes macros »
 ### Styles `st`
 
 Pour chaque objet, les seules clés qui diffèrent de leur défaut, figé ici.
-S'y ajoutent `sc` (condition d'affichage : indice d'une expression), `mg`
-(aimants : `[[indice, rayon en pixels], …]`) et `av` (vitesse variable d'une
-animation : indice d'une expression, voir `an`), qui peuvent désigner un objet
-postérieur.
+S'y ajoutent `sc` (condition d'affichage : indice d'une expression), `rgb`
+(couleur dynamique : indice d'une expression), `mg` (aimants :
+`[[indice, rayon en pixels], …]`) et `av` (vitesse variable d'une animation :
+indice d'une expression, voir `an`), qui peuvent désigner un objet postérieur.
+
+Depuis le 2026-11-14, `rgb` donne à l'objet la couleur de GeoGebra (trait et
+remplissage) que calcule l'expression, liste `[r, g, b]` : chaque canal est
+ramené dans [0, 1] par une onde triangulaire de période 2 (1,2 donne 0,8 ;
+−0,3 donne 0,3), puis multiplié par 255 et tronqué. Le bouton d'un curseur
+de la couleur de son objet la suit. Sans `rgb`, la couleur est celle de `c`.
 
 | Clé  | Objets                   | Contenu                                  | Défaut                            |
 | ---- | ------------------------ | ---------------------------------------- | --------------------------------- |

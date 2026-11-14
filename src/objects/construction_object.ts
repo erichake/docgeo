@@ -170,6 +170,9 @@ export class construction_object {
     // GeoGebra's condition to show the object: it is shown only while this
     // expression is a nonzero number.
     condition: expression_object | null;
+    // GeoGebra's dynamic color: an expression listing its red, green and
+    // blue, each brought into [0, 1] by a triangle wave.
+    dynamicColor: expression_object | null = null;
     // The embedding page forbids the user to manipulate it (see EMBED.md,
     // lock), which only its view reflects.
     locked = false;
@@ -290,6 +293,24 @@ export class construction_object {
     }
 
     computeGeometry(): void {}
+
+    // Takes its dynamic color, before it is drawn.
+    paint(): void {
+        const value = this.dynamicColor!.value;
+        if (!Array.isArray(value)) return;
+        const color = `rgb(${value.map((channel) => {
+            const t = Math.abs(channel as number) % 2;
+            return Math.floor((t > 1 ? 2 - t : t) * 255);
+        })})`;
+        if (color === this.stroke_color) return;
+        this.fill_color = this.stroke_color = color;
+        if (this.hasView) this.recolor();
+    }
+
+    // Shows its new color.
+    recolor(): void {
+        this.createSVG();
+    }
 
     private isFlat?: boolean;
     // One of the 2D objects of a DGPad 3D figure (see GRID.FRAME2D): as in

@@ -833,6 +833,29 @@ cause.
       au-dessus) : les textes que la figure place sous ses curseurs ne les
       chevauchent plus. Corpus inchangé (rendu seulement) ; moteur
       +0,09 Ko, import +0,13 Ko.
+- [x] **51. Couleurs dynamiques, `TableText`, `Insert`, textes LaTeX sur
+      plusieurs lignes** : `graphe_complet.ggb` (envoyée par l'auteur)
+      perdait son tableau, ses couleurs qui changent avec n, les sauts de
+      ligne de son texte, et figeait une liste. Fait : la couleur dynamique
+      RGB d'un objet (`dynamicr`…) est une expression cachée lue à chaque
+      dessin (style `rgb`, ajouté à `DGO.md`), chaque canal ramené dans
+      [0, 1] par une onde triangulaire comme GeoGebra (1,2 → 0,8 ; −0,3 →
+      0,3, vérifié), une couleur constante devenant une couleur fixe ; un
+      curseur la prend sans perdre son bouton en cours de glissement. Une
+      couleur HSV ou HSL reste fixe, une formule illisible est signalée
+      (« color »). `Insert(objet, liste, n)` se lit comme une liste ;
+      `TableText` est un tableau LaTeX calculé par un script caché, aux
+      options `v`, `h`, `l`, `c`, `r`, `|` et `_` (avec leurs chiffres),
+      au texte identique à celui de GeoGebra. Un texte LaTeX passe à la
+      ligne à chaque saut de ligne hors environnement, ligne vide gardée.
+      L'attribut `randomResult`, que GeoGebra écrit aussi pour des listes
+      qui n'ont rien d'aléatoire, n'est plus lu que pour une commande
+      aléatoire : une telle liste suit la figure, ou est signalée si elle
+      n'est pas traduite (elle restait figée sans signalement). Au
+      passage, une formule dont une chaîne ouvre ou ferme une parenthèse
+      ou une accolade est signalée au lieu de faire échouer l'import.
+      Corpus : 277 / 488 inchangé, 6 éléments de moins signalés ; moteur
+      325,16 → 325,95 Ko (+0,79 Ko), import +2,2 Ko.
 
 À écarter, sauf changement de priorité : calcul formel, courbes implicites,
 statistiques et probabilités, tableur au-delà des cellules simples, matrices.

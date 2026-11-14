@@ -2075,6 +2075,37 @@ ${box("t4", true, "$\\text{\\sf{r =}}$")}
         ).toEqual(["Rayon r =", "", "t3", "r =", "A B"]);
     });
 
+    it("draws dynamic colors, tables and LaTeX lines as GeoGebra", async () => {
+        const c = createConstruction();
+        const response = await fetch(figure("graphe_complet.ggb"));
+        expect(await importGgbFromBlob(c, await response.blob())).toEqual([]);
+        await new Promise((resolve) => requestAnimationFrame(resolve));
+        const [n, table, text] = ["n", "texte3", "texte1"].map(
+            (name) => c.getObj(name) as expression_object,
+        );
+        const segments = c.getObj("liste1")!;
+        // Red n / 35, green 1 - n / 35, as GeoGebra's #41BD00.
+        expect(segments.stroke_color).toBe("rgb(65,189,0)");
+        expect(n.stroke_color).toBe("rgb(65,189,0)");
+        expect(n.cursorColor).toBeNull();
+        // Its empty line kept.
+        expect(text.value).toContain("autres sommets} ~\\\\~\\\\\\text{Il y a");
+        // GeoGebra's own text.
+        expect(table.value).toBe(
+            "{\\begin{array}{|l|l|l|l|l|l|l|l|l|}\\hline ordre&2&3&4&5&6&7&8&9 \\\\ \\hline \\text{nombre d'arêtes}&1&3&6&10&15&21&28&36 \\\\ \\hline \\end{array}}",
+        );
+
+        n.value = 20;
+        c.invalidateGeometry(n);
+        await new Promise((resolve) => requestAnimationFrame(resolve));
+        expect(segments.stroke_color).toBe("rgb(145,109,0)");
+        expect(table.value).toContain("&171&190 \\\\ \\hline \\end{array}}");
+        const restored = createConstruction();
+        readDgo(restored, await describeDgo(c));
+        await new Promise((resolve) => requestAnimationFrame(resolve));
+        expect(restored.getObj("liste1")!.stroke_color).toBe("rgb(145,109,0)");
+    });
+
     it("draws the image between its corners while its checkbox is checked", async () => {
         const c = createConstruction();
         const response = await fetch(figure("mandel.ggb"));

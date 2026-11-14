@@ -145,6 +145,7 @@ const FORMULA_COMMANDS = new Set([
     "LaTeX",
     "Corner",
     "FractionText",
+    "TableText",
     "Slope",
     "Length",
     "PathParameter",
@@ -152,7 +153,9 @@ const FORMULA_COMMANDS = new Set([
     "Translate",
 ]);
 // The commands whose list listFormula reads from their own sources.
-const LIST_COMMANDS = new Set(["Take", "First", "Last", "Mode"]);
+const LIST_COMMANDS = new Set(["Take", "First", "Last", "Mode", "Insert"]);
+// A command whose saved list GeoGebra drew at random.
+const RANDOM_LIST = /\b(?:random|Random[A-Za-z]*|Shuffle|Sample)\s*[([]/;
 const BINDING_COMMANDS = new Set(["Sequence", "IterationList", "Iteration"]);
 const CELL = /^([A-Z]+)(\d+)$/;
 // A GeoGebra label, which may have primes and braced indices: "A'_{1}".
@@ -1291,7 +1294,10 @@ export function translateGgb(
         kinds: Kind[],
         locals: Map<string, string>,
     ): string | null => {
-        const [name, args] = commandCall(source)!;
+        // Unread when a string literal opens or closes a bracket.
+        const call = commandCall(source);
+        if (!call) return null;
+        const [name, args] = call;
         switch (name) {
             case "If":
                 return ifFormula(args, kinds, locals);
@@ -1370,9 +1376,64 @@ export function translateGgb(
                       )
                     : null;
             }
+            case "TableText":
+                return tableFormula(args, locals);
             default:
                 return vectorFormula(source, locals);
         }
+    };
+
+    // GeoGebra's LaTeX array of lists, each one a row, or a column with
+    // "v". "|" and "_" draw the vertical and horizontal lines, or those
+    // whose digit isn't 0 ("|0110"); "l", "c" or "r" align every column,
+    // or each one in turn.
+    const tableFormula = (
+        args: string[],
+        locals: Map<string, string>,
+    ): string | null => {
+        const last = args.at(-1)!;
+        const options = /^"[^"]*"$/.test(last) ? last.slice(1, -1) : "";
+        const sources = options ? args.slice(0, -1) : args;
+        const literal = normalizeBrackets(sources[0].trim());
+        const rows = (
+            sources.length === 1 && /^\{.*\}$/.test(literal)
+                ? splitArguments(literal.slice(1, -1))
+                : sources
+        )?.map((source) => listFormula(source, locals));
+        if (!rows || locals.size || !/^[vhlcr|_\d]*$/.test(options))
+            return null;
+        const cells = rows.map((row) => row && row.item("$k"));
+        if (cells.some((cell) => !cell)) return null;
+        const size = rows
+            .map((row) => `(${row!.count})`)
+            .reduce((a, b) => `max(${a},${b})`);
+        const flags = (mark: string) => {
+            const digits = new RegExp(`\\${mark}(\\d*)`).exec(options)?.[1];
+            return (k: string) =>
+                digits === undefined
+                    ? "0"
+                    : digits
+                      ? `(${k}<${digits.length}?[${[...digits]}][${k}]:1)`
+                      : "1";
+        };
+        const [vertical, horizontal] = ["|", "_"].map(flags);
+        const aligns = options.match(/[lcr]/g) ?? ["l"];
+        const columns = options.includes("v") ? rows.length : "$n";
+        const cell = (row: number, k: string) =>
+            `$k=${k};$v=$k<=${rows[row]!.count}?${cells[row]}:"";$s=$s+(isNaN($v*1)?($v.split(" ").length>1?"\\\\text{"+$v+"}":$v):$v)`;
+        const line = (j: string) =>
+            `$s=$s+" \\\\\\\\ "+(${horizontal(j)}?"\\\\hline ":"")`;
+        const body = options.includes("v")
+            ? `for($j=1;$j<=$n;$j++){${rows.map((_, row) => `${row ? '$s=$s+"&";' : ""}${cell(row, "$j")}`).join(";")};${line("$j")}}`
+            : rows
+                  .map(
+                      (_, row) =>
+                          `for($j=1;$j<=$n;$j++){$s=$s+($j>1?"&":"");${cell(row, "$j")}};${line(String(row + 1))}`,
+                  )
+                  .join(";");
+        return hiddenExpression(
+            `var $n=${size},$s="{\\\\begin{array}{",$j,$k,$v;for(var $i=0;$i<=${columns};$i++){$s=$s+(${vertical("$i")}?"|":"")+($i<${columns}?[${aligns.map((a) => `"${a}"`)}][min($i,${aligns.length - 1})]:"")};$s=$s+"}"+(${horizontal("0")}?"\\\\hline ":"");${body};$s+"\\\\end{array}}"`,
+        );
     };
 
     // A vector's or a line's unit direction.
@@ -1585,6 +1646,28 @@ export function translateGgb(
             return {
                 count,
                 item: (k) => list.item(`(${start})+(${k})-1`),
+            };
+        }
+        // Insert(object, list, n): the object at the n-th place, the end's
+        // n-th from it when n is negative.
+        if (name === "Insert" && args.length === 3) {
+            const list = listFormula(args[1], locals);
+            const [object, n] = [args[0], args[2]].map((arg) =>
+                formula(arg, VALUE_KINDS, locals),
+            );
+            if (!list || object === null || n === null || listFormula(args[0]))
+                return null;
+            const at = `((${n})<0?(${list.count})+(${n})+2:(${n}))`;
+            return {
+                count: `(${list.count})+1`,
+                item: (k) => {
+                    const [before, after] = [k, `(${k})-1`].map(list.item);
+                    return (
+                        before &&
+                        after &&
+                        `((${k})<${at}?(${before}):(${k})==${at}?(${object}):(${after}))`
+                    );
+                },
             };
         }
         // The other lists are computed by a hidden Expression's script, as
@@ -3446,6 +3529,7 @@ export function translateGgb(
             return !!element && at !== null && text(label, element, source, at);
         },
         FractionText: formulaCommand("FractionText"),
+        TableText: formulaCommand("TableText"),
         Element: formulaCommand("Element"),
         // At x(A) on a function's graph; at A on a circle through it; from
         // A, touching the circle where the circle of diameter A and its
@@ -3794,12 +3878,15 @@ export function translateGgb(
     };
 
     // KaTeX, which renders texts inline, only takes GeoGebra's align and
-    // gather environments as aligned and gathered, and refuses the "$"
-    // delimiters GeoGebra ignores in its math mode.
-    const inlineTeX = (tex: string): string =>
+    // gather environments as aligned and gathered, refuses the "$"
+    // delimiters GeoGebra ignores in its math mode, and breaks lines only
+    // at "\\", as GeoGebra does at a line break outside environments: after
+    // a space, which keeps an empty line's height.
+    const inlineTeX = (tex: string, breaks: boolean): string =>
         tex
             .replace(/\\(begin|end)\{(align|gather)\*?\}/g, "\\$1{$2ed}")
-            .replace(/\\?\$/g, (match) => (match.length > 1 ? match : ""));
+            .replace(/\\?\$/g, (match) => (match.length > 1 ? match : ""))
+            .replace(/\n/g, breaks ? "~\\\\" : "\n");
 
     // A point, or a point's coordinates such as "A + (0, 1)" as a hidden
     // point.
@@ -3819,10 +3906,11 @@ export function translateGgb(
         const parts = textParts(source);
         if (parts === null) return false;
         const latex = attribute(element, "isLaTeX", "val") === "true";
+        const breaks = !source.includes("\\begin");
         const content = `""${parts
             .map((part) =>
                 typeof part === "string"
-                    ? `+"${(latex ? inlineTeX(part) : part).replace(/[\\"]/g, "\\$&")}"`
+                    ? `+"${(latex ? inlineTeX(part, breaks) : part).replace(/[\\"]/g, "\\$&")}"`
                     : `+(${part.formula})`,
             )
             .join("")}`;
@@ -4361,8 +4449,11 @@ export function translateGgb(
             // A random list (Shuffle, a Sequence of random numbers…) keeps
             // the value GeoGebra saved; a list command is read from its own
             // sources.
+            const random = child(node, "output")?.getAttribute("randomResult");
             const list =
-                child(node, "output")?.getAttribute("randomResult") ??
+                (random && RANDOM_LIST.test(`${name}(${sources})`)
+                    ? random
+                    : undefined) ??
                 (LIST_COMMANDS.has(name) ||
                 (name === "Sequence" && sources.length < 3)
                     ? `${name}(${sources.join(",")})`
@@ -4449,6 +4540,34 @@ export function translateGgb(
             drawn.forEach((part) =>
                 push(null, "STL", [ref(part), literal(`h:0;sc:${condition}`)]),
             );
+    });
+
+    // GeoGebra's dynamic colors in RGB, which may read later objects: a
+    // constant one is a static color.
+    elements.forEach((element, label) => {
+        const color = child(element, "objColor");
+        const drawn = parts.get(label) ?? [label];
+        if (
+            !color?.hasAttribute("dynamicr") ||
+            (color.getAttribute("colorSpace") ?? "0") !== "0" ||
+            !objects.has(drawn[0])
+        )
+            return;
+        const channels = ["r", "g", "b"].map((channel) =>
+            formula(color.getAttribute(`dynamic${channel}`)!, VALUE_KINDS),
+        );
+        if (channels.includes(null)) return unsupported.push(`color ${label}`);
+        const style = channels.every((channel) => isConstant(channel!))
+            ? `c:#${channels
+                  .map((channel) => {
+                      const t = Math.abs(evaluateConstant(channel!)!) % 2;
+                      return Math.floor((t > 1 ? 2 - t : t) * 255)
+                          .toString(16)
+                          .padStart(2, "0");
+                  })
+                  .join("")}`
+            : `rgb:${hiddenExpression(`[${channels}]`)}`;
+        drawn.forEach((part) => push(null, "STL", [ref(part), literal(style)]));
     });
 
     const rates = new Map<string, string>();

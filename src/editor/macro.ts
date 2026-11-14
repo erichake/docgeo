@@ -127,13 +127,14 @@ const unbuilt = (object: construction_object): boolean =>
     object instanceof panel_object ||
     object instanceof image_object;
 
-// Its parents but the condition it is shown on and a script styling it,
-// made its parent only to be run first (see expression_object.ts), which
-// DGPad's macros ignore.
+// Its parents but the condition it is shown on, its dynamic color and a
+// script styling it, made its parent only to be run first (see
+// expression_object.ts), which DGPad's macros ignore.
 const builtFrom = (object: construction_object): construction_object[] =>
     object.parents.filter(
         (parent) =>
             parent !== object.condition &&
+            parent !== object.dynamicColor &&
             !(
                 parent instanceof expression_object &&
                 parent.program &&

@@ -2204,6 +2204,7 @@ const COMMON_STYLE = [
     "dh",
     "lo",
     "sc",
+    "rgb",
 ];
 
 // What a program styles, which comes before it in the figure though it is
@@ -2217,7 +2218,9 @@ const styled = (object: construction_object): construction_object[] =>
 const entryParents = (object: construction_object): construction_object[] => [
     ...object.parents.filter(
         (parent) =>
-            parent !== object.condition && !styled(parent).includes(object),
+            parent !== object.condition &&
+            parent !== object.dynamicColor &&
+            !styled(parent).includes(object),
     ),
     ...styled(object),
 ];

@@ -195,6 +195,7 @@ export class objects_collector {
         });
         objects.forEach((object) => {
             if (object.renderDirty) {
+                if (object.dynamicColor) object.paint();
                 if (object.hasView) object.draw();
                 object.renderDirty = false;
             }
