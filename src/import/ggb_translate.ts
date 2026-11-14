@@ -34,7 +34,8 @@ type Kind =
     | "curve"
     | "text"
     | "image"
-    | "polyhedron";
+    | "polyhedron"
+    | "button";
 
 // What a transformation maps as a whole, its image of the same kind.
 const MAPPED_KINDS: Kind[] = [
@@ -134,6 +135,8 @@ const GGB_DASHES: Record<string, (width: number) => number[]> = {
     30: (width) => [8 + width, 4, width, 4],
 };
 const COMMAND_EXPRESSION = /^([A-Za-z]+)\((.*)\)$/;
+// "+ 0.7" after a point, the whole of its sum's right operand.
+const POINT_SHIFT = /^ ?([+-]) ?(\d+(?:\.\d*)?|\.\d+)(?= ?(?:[)+,-]|$))/;
 // The commands a formula rewrites as a whole (see commandFormula).
 const FORMULA_COMMANDS = new Set([
     "Vector",
@@ -1204,9 +1207,21 @@ export function translateGgb(
                         .get(word)!
                         .map((end) => objects.get(end)!.variable);
                     result += `(${q}-${p})`;
-                } else if (readable(word))
-                    result += objects.get(word)!.variable;
-                else return null;
+                } else if (readable(word)) {
+                    const variable = objects.get(word)!.variable;
+                    // A point plus a number: GeoGebra adds it to each
+                    // coordinate, a DGP formula to the real part.
+                    const shift = POINT_SHIFT.exec(text.slice(index));
+                    if (
+                        shift &&
+                        is(word, POINT_KINDS) &&
+                        /(^|[(,+])$/.test(result.trimEnd())
+                    ) {
+                        const n = shift[2];
+                        result += `(${variable}${shift[1]}[${n},${n}${is3D ? `,${n}` : ""}])`;
+                        index += shift[0].length;
+                    } else result += variable;
+                } else return null;
                 continue;
             }
             index++;
@@ -1746,7 +1761,11 @@ export function translateGgb(
         if (attribute(element, "show", "object") === "false") parts.push("h:1");
         if (attribute(element, "show", "label") === "true") {
             const mode = attribute(element, "labelMode", "val") ?? "0";
-            if (kind === "point" || kind === "pointOn") parts.push("sn:true");
+            // Not its caption, which would be a wrong name.
+            if (kind === "point" || kind === "pointOn") {
+                if (mode !== "3" || !attribute(element, "caption", "val"))
+                    parts.push("sn:true");
+            }
             // An angle's value, alone or after its name.
             else if (kind === "angle" && (mode === "1" || mode === "2"))
                 parts.push(`p:${decimals}`);
@@ -4133,7 +4152,7 @@ export function translateGgb(
             return text(label, element, source);
         if (type === "list" && source !== undefined)
             return defineList(label, element, source);
-        // Scripts never run: a button has nothing to do.
+        // Its program may read later objects (see buttons below).
         if (type === "button") return true;
         // A boolean is a checkbox, at its label's place on screen, that
         // only an independent one lets tick.
@@ -4512,6 +4531,109 @@ export function translateGgb(
         }
     });
     pending.forEach(({ node }) => translate(node));
+
+    // GeoGebra's script setting `target` to `value`, as Blockly writes it,
+    // so that it opens as blocks: an If sets it in its branches.
+    const setValue = (target: string, value: string): string | null => {
+        const text = normalizeBrackets(value.trim());
+        if (text === target) return "";
+        const call = COMMAND_EXPRESSION.exec(text);
+        const args = call?.[1] === "If" ? splitArguments(call[2]) : null;
+        if (args && args.length > 1) {
+            const condition = formula(args[0], VALUE_KINDS);
+            const then = setValue(target, args[1]);
+            const otherwise =
+                args.length === 2
+                    ? ""
+                    : setValue(
+                          target,
+                          args.length === 3
+                              ? args[2]
+                              : `If(${args.slice(2).join(",")})`,
+                      );
+            if (condition === null || then === null || otherwise === null)
+                return null;
+            if (!then)
+                return otherwise && `if (!(${condition})) {${otherwise}}`;
+            return `if (${condition}) {${then}}${otherwise && ` else {${otherwise}}`}`;
+        }
+        const content = formula(value, VALUE_KINDS);
+        return (
+            content &&
+            `${objects.get(target)!.variable}.setExpression(${content});`
+        );
+    };
+
+    // Its lines, each a SetValue, an assignment or an UpdateConstruction,
+    // which has nothing to draw again: the import keeps random numbers.
+    const scriptProgram = (source: string): string | null => {
+        const statements = source.split("\n").map((line) => {
+            const text = normalizeBrackets(line.trim());
+            if (!text || /^UpdateConstruction\(\s*\)$/.test(text)) return "";
+            const call = COMMAND_EXPRESSION.exec(text);
+            const [target, value] =
+                (call?.[1] === "SetValue" ? splitArguments(call[2]) : null) ??
+                /^([^=:!<>(]+?)\s*:?=(?!=)(.+)$/.exec(text)?.slice(1) ??
+                [];
+            return value !== undefined && is(target.trim(), ["expression"])
+                ? setValue(target.trim(), value)
+                : null;
+        });
+        return statements.includes(null) ? null : statements.join("\n");
+    };
+
+    // A button keeps its place in the window, its program, run when it is
+    // clicked, translated. The other scripts aren't.
+    elements.forEach((element, label) => {
+        const scripts = [...element.children].filter(
+            (item) =>
+                item.tagName === "ggbscript" || item.tagName === "javascript",
+        );
+        if (!scripts.length) return;
+        const [script] = scripts;
+        const program =
+            element.getAttribute("type") === "button" &&
+            scripts.length === 1 &&
+            script.tagName === "ggbscript" &&
+            script.attributes.length === 1
+                ? scriptProgram(script.getAttribute("val") ?? "")
+                : null;
+        if (program === null) return void unsupported.push(`script ${label}`);
+        const offset = child(element, "labelOffset");
+        const height = Number(attribute(element, "dimensions", "height") ?? 0);
+        const font = Math.min(
+            Number(attribute(element, "font", "size") ?? fontSize),
+            height ? height - 20 : Infinity,
+        );
+        const text = caption(element, label);
+        // DocGeo's width (see button_object.ts), its text's guessed.
+        const width = Math.max(40, 0.6 * font * text.length + 56);
+        const [x, y] = screenPosition(
+            Number(offset?.getAttribute("x") ?? 0) + width,
+            Number(offset?.getAttribute("y") ?? 0) +
+                (height || Math.max(40, font + 20)) / 2,
+            true,
+        );
+        const background = child(element, "bgColor");
+        const tinted = background && hexColor(background) !== "#ffffff";
+        const color = tinted ? background : child(element, "objColor");
+        define(
+            label,
+            "button",
+            "BlocklyButton",
+            [text, String(x), String(y), ...(program ? [program] : [])].map(
+                literal,
+            ),
+            [
+                ...(color ? [`c:${hexColor(color)}`] : []),
+                `o:${tinted ? 0.3 : 0.1}`,
+                `f:${font}`,
+                ...(attribute(element, "show", "object") === "false"
+                    ? ["h:1"]
+                    : []),
+            ].join(";"),
+        );
+    });
 
     // Once every object exists, since a condition may read a later one. It
     // then decides alone whether the object is shown, whatever its show

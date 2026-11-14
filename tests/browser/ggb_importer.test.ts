@@ -67,6 +67,12 @@ import {
     type Vec3,
 } from "../../src/vec";
 import { expectClose, figure } from "./figures";
+import type { button_object } from "../../src/objects/button_object";
+import {
+    blocksProgram,
+    programBlocks,
+} from "../../src/editor/blocks/program_blocks";
+import { formatName } from "../../src/editor/text";
 
 function createConstruction(): construction {
     document.documentElement.style.width = "100%";
@@ -906,7 +912,9 @@ ${[
     it("cuts a prism by a plane built from points written in commands", async () => {
         const c = createConstruction();
         // Polygon(B + (-2, -2), …), Rotate[Translate[poly1, Vector[A, …]], …]
-        expect(importGgb(c, await loadXml("3d_section_prisme"))).toEqual([]);
+        expect(importGgb(c, await loadXml("3d_section_prisme"))).toEqual([
+            "script button1",
+        ]);
         await new Promise((resolve) => requestAnimationFrame(resolve));
 
         const section = c.getObj("poly6") as polygon_object;
@@ -1820,7 +1828,9 @@ ${mirror("f", "f'", `<element type="curvecartesian" label="f'"/>`)}
 
     it("iterates segments into a Koch snowflake following its slider", async () => {
         const c = createConstruction();
-        expect(importGgb(c, await loadXml("_koch"))).toEqual([]);
+        expect(importGgb(c, await loadXml("_koch"))).toEqual([
+            "script button1",
+        ]);
         const [a, b, d] = ["A", "B", "D"].map(
             (name) => (c.getObj(name) as point_object).coords,
         );
@@ -3750,6 +3760,43 @@ ${point("Q", "B + OrthogonalVector[Vector[A, B] / 2]")}
         expectClose((space.getObj("E") as point_object).coords, [0, 0, 1]);
         // Its 3D view orders by depth alone.
         expect(space.getObj("q")!.level).toBe(0);
+    });
+
+    it("translates its buttons' scripts into programs that open as blocks", () => {
+        const c = createConstruction();
+        const unsupported = importGgb(
+            c,
+            `<geogebra><construction>
+<element type="numeric" label="a"><value val="9"/></element>
+<expression label="r" exp="true"/>
+<element type="boolean" label="r"><value val="true"/></element>
+<element type="button" label="b"><labelOffset x="20" y="30"/><caption val="+"/>
+<ggbscript val="a = If[a &lt; 10, a + 1, a]&#xa;UpdateConstruction[ ]&#xa;SetValue[r, false]"/></element>
+<expression label="t" exp="&quot;≠&quot;"/>
+<element type="text" label="t"><startPoint x="0" y="0" z="1"/><ggbscript val="SetValue[a, 0]"/></element>
+<element type="point" label="P"><coords x="1" y="2" z="1"/></element>
+<expression label="Q" exp="(x(P), y(P + 0.5))" type="point"/>
+<element type="point" label="Q"><coords x="1" y="2.5" z="1"/></element>
+</construction></geogebra>`,
+        );
+        expect(unsupported).toEqual(["script t"]);
+        const button = c.getObj("b") as button_object;
+        const program = button.program!.program;
+        const blocks = programBlocks(program, true, formatName)!;
+        expect(blocksProgram(blocks, formatName)).toBe(`if (a < 10) {
+    a.setExpression(a + 1);
+}
+r.setExpression(0);`);
+        const a = c.getObj("a") as expression_object;
+        button.run();
+        button.run();
+        expect([a.value, (c.getObj("r") as expression_object).value]).toEqual([
+            10, 0,
+        ]);
+        expectClose(
+            (c.getObj("Q") as point_object).coords.slice(0, 2),
+            [1, 2.5],
+        );
     });
 
     it("reports what it can't import instead of failing", () => {

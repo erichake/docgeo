@@ -97,6 +97,7 @@ figure sont seulement comptés. L'API utilisée est
 | 2026-10-30 | 251 / 456 (55 %)   | 382,7 Ko | item 42 : inversion des objets (+0)                                |
 | 2026-11-13 | 249 / 456 (55 %)   | 324,7 Ko | item 46 : polaires, vitesses variables, nombres figés (+2)         |
 | 2026-11-13 | 249 / 456 (55 %)   | 325,0 Ko | item 47 : solides et images natifs, construction lisible (+0)      |
+| 2026-11-14 | 240 / 456 (53 %)   | 325,9 Ko | item 52 : scripts des boutons, autres scripts signalés (−16)       |
 
 ## À faire, par rapport gain / coût
 
@@ -856,6 +857,32 @@ cause.
       ou une accolade est signalée au lieu de faire échouer l'import.
       Corpus : 277 / 488 inchangé, 6 éléments de moins signalés ; moteur
       325,16 → 325,95 Ko (+0,79 Ko), import +2,2 Ko.
+
+- [x] **52. Scripts des boutons** : `resolution_equation.ggb` (balance
+      à cubes et à billes) restait figée : ses boutons étaient écartés sans
+      signalement. Fait, après assouplissement de la règle d'`AGENTS.md` :
+      le script GgbScript d'un bouton qui n'emploie que des affectations
+      (`a = …`, `a := …`), des `SetValue[a, …]` et des
+      `UpdateConstruction[]` devient le programme d'un bouton DGP
+      (`BlocklyButton`), écrit comme Blockly l'écrit (`a.setExpression(…)`,
+      un `If[c, x, a]` en `if (c) {…}`) pour s'ouvrir en mode Blocs
+      (vérifié par un aller-retour). `UpdateConstruction[]` n'a rien à
+      refaire, l'import gardant les nombres aléatoires. Le bouton garde sa
+      place à l'écran, sa légende, sa couleur de fond et sa taille de
+      police (bornée par sa hauteur fixe). Tout autre script (commande non
+      reconnue, script de clic d'un autre objet, script de mise à jour,
+      JavaScript) est désormais signalé (« script ») au lieu d'être ignoré
+      sans bruit. Au passage, un point plus un nombre (`y(P + 0.7)`) ajoute
+      ce nombre à chaque coordonnée, comme GeoGebra, et un point dont
+      l'étiquette est une légende (`labelMode` 3) n'écrit plus son nom.
+      Corpus : 29 figures ont au moins un bouton traduit, dont 9 sans aucun
+      signalement ; 277 → 261 / 488 sans perte, les 16 figures perdues ne
+      l'étant que par leurs scripts, jusque-là ignorés sans signalement
+      (« script » devient la première cause : 91 figures, seule cause de
+      21). Moteur inchangé, import +1,8 Ko (+0,7 Ko en gzip). Restent à
+      traduire : `StartAnimation`, les scripts de mise à jour
+      (`onUpdate`, l'« onchange » d'une expression) et ceux de clic d'un
+      texte ou d'un point.
 
 À écarter, sauf changement de priorité : calcul formel, courbes implicites,
 statistiques et probabilités, tableur au-delà des cellules simples, matrices.
