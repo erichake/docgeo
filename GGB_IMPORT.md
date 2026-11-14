@@ -937,7 +937,18 @@ cause.
       quadrilatères). Fait : le point est une formule sur les sommets du
       polygone, le centre de gravité de sa surface (formule de l'aire),
       pas la moyenne de ses sommets ; plan seulement. **+1 figure**
-      (250 → 251). Moteur inchangé, import +0,3 Ko.
+      (250 → 251). Moteur inchangé, import +0,3 Ko. Pour que ce puzzle
+      se manipule comme dans GeoGebra : un objet que GeoGebra ne laisse
+      pas sélectionner (`selectionAllowed="false"`) est inerte (`nmi`),
+      le pointeur passe aux objets dessous (les poignées des pièces, sous
+      le carré `poly1`) ; la copie d'un polygone régulier
+      (`ccbcov = poly1`, cache des pièces) garde tous ses sommets, pas les
+      deux premiers ; dans un calque, GeoGebra peint les listes sous les
+      autres objets (priorité de type 40, polygones 50) : chaque calque
+      occupe deux niveaux, le plus bas pour les listes ; une légende
+      `%n` écrit le nom ; un côté commun à plusieurs objets est tracé
+      par celui peint en dernier, niveau compris (le côté [CB] de
+      `poly1` passait sous le cache). Moteur +0,02 Ko, import +0,1 Ko.
 
 À écarter, sauf changement de priorité : calcul formel, courbes implicites,
 statistiques et probabilités, tableur au-delà des cellules simples, matrices.

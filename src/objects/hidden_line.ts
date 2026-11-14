@@ -82,16 +82,19 @@ function edgeStrokes(c: construction): EdgeStrokes {
             add(object, object.P1, object.P2);
         }
     });
-    if (c.segmentsOverPolygons)
-        strokes.forEach((neighbours) =>
-            neighbours.forEach((objects) =>
-                objects.sort(
-                    (a, b) =>
-                        Number(a instanceof segment_object) -
-                        Number(b instanceof segment_object),
-                ),
+    // In painting order: by level, then segments over polygons if so.
+    strokes.forEach((neighbours) =>
+        neighbours.forEach((objects) =>
+            objects.sort(
+                (a, b) =>
+                    a.level - b.level ||
+                    (c.segmentsOverPolygons
+                        ? Number(a instanceof segment_object) -
+                          Number(b instanceof segment_object)
+                        : 0),
             ),
-        );
+        ),
+    );
     edgeStrokeCache.set(c, { frame: c.OBJS.frame, strokes });
     return strokes;
 }

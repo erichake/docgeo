@@ -1770,10 +1770,16 @@ export function translateGgb(
         if (attribute(element, "show", "label") === "true") {
             const mode = attribute(element, "labelMode", "val") ?? "0";
             const point = kind === "point" || kind === "pointOn";
-            // Its caption, unless it shows values ("%v"): the name only
-            // when it has none.
+            // Its caption, its name for "%n", unless it shows values
+            // ("%v"): the name only when it has none.
             const text = attribute(element, "caption", "val");
-            const written = mode === "3" && text ? caption(element, "") : null;
+            const written =
+                mode === "3" && text
+                    ? caption(element, "").replace(
+                          /%n/g,
+                          element.getAttribute("label")!,
+                      )
+                    : null;
             if (written !== null && !written.includes("%"))
                 parts.push(
                     point ? "sn:true" : "lb:true",
@@ -1790,13 +1796,21 @@ export function translateGgb(
             else if (mode === "0" || (mode === "3" && !text))
                 parts.push("lb:true");
         }
-        // GeoGebra's 3D view ignores layers: only depth orders it.
-        const layer = attribute(element, "layer", "val");
-        if (layer && layer !== "0" && !is3D) parts.push(`l:${layer}`);
+        // GeoGebra's 3D view ignores layers: only depth orders it. In a
+        // layer, it paints lists beneath its other objects: each layer
+        // spans two levels, the lower one for lists.
+        const level =
+            2 * Number(attribute(element, "layer", "val") ?? 0) -
+            Number(kind === "list");
+        if (level && !is3D) parts.push(`l:${level}`);
+        const unselectable =
+            attribute(element, "selectionAllowed", "val") === "false";
+        // Neither moved nor clicked, it lets the pointer through to the
+        // objects beneath, as DGPad's inert ones.
+        if (unselectable && kind !== "expression") parts.push("nmi:true");
         if (
             kind === "polygon" &&
-            (attribute(element, "fixed", "val") === "true" ||
-                attribute(element, "selectionAllowed", "val") === "false")
+            (attribute(element, "fixed", "val") === "true" || unselectable)
         )
             parts.push("fx:true");
         if (kind === "point" || kind === "pointOn") {
@@ -4223,11 +4237,12 @@ export function translateGgb(
             return text(label, element, source);
         if (type === "list" && source !== undefined)
             return defineList(label, element, source);
-        // A copy of a polygon, through its vertices.
+        // A copy of a polygon, through its vertices: a regular polygon's
+        // shape is built from its first two only.
         const vertices =
             type === "polygon" &&
             is(source, ["polygon"]) &&
-            shapes.get(source!)?.points;
+            (polygons.get(source!) ?? shapes.get(source!)?.points);
         if (vertices) return definePolygon(label, vertices);
         // Its program may read later objects (see buttons below).
         if (type === "button") return true;

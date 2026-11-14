@@ -20,7 +20,7 @@ import { expression_object } from "../../src/objects/expression_object";
 import { focal_conic_object } from "../../src/objects/focal_conic_object";
 import { image_object } from "../../src/objects/image_object";
 import { fixed_point_object } from "../../src/objects/fixed_point_object";
-import { isOccluded } from "../../src/objects/hidden_line";
+import { edgeStroke, isOccluded } from "../../src/objects/hidden_line";
 import { iteration_object } from "../../src/objects/iteration_object";
 import { list_object } from "../../src/objects/list_object";
 import { locus_object } from "../../src/objects/locus_object";
@@ -2925,6 +2925,23 @@ ${sides.map(([label, inputs]) => command("Semicircle", inputs, label)).join("")}
         const xml = await loadXml("pythagore");
         expect(importGgb(c, xml)).toEqual([]);
         expectSavedPoints(c, xml);
+        expect((c.getObj("A") as point_object).showName).toBe(true);
+        // The square poly1, over the pieces, lets their handles be dragged;
+        // its copy ccbcov hides them, and the list l1 of its layer, until
+        // Puzzle is ticked.
+        const square = c.getObj("poly1") as polygon_object;
+        expect(square.inert).toBe(true);
+        const coords = (polygon: polygon_object) =>
+            polygon.points.map((point) => point.coords);
+        expect(coords(c.getObj("ccbcov") as polygon_object)).toEqual(
+            coords(square),
+        );
+        expect(c.getObj("l1")!.level).toBeLessThan(c.getObj("ccbcov")!.level);
+        // Its side CB, over its segment f, is its own.
+        const [b, cPoint] = ["B", "C"].map(
+            (label) => c.getObj(label) as point_object,
+        );
+        expect(edgeStroke(c, square, cPoint, b).solid).toBe(true);
     });
 
     it("lets a circle's direction in a Sequence read the loop variable", async () => {
