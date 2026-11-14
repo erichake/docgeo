@@ -42,9 +42,10 @@ modification de l'enregistrement ou de la lecture des figures.
 Les développements doivent servir en priorité :
 
 - l'import sûr des formats `.dgp` et `.ggb`, toute exécution de leur contenu
-  devant avoir lieu dans un environnement sécurisé et strictement contrôlé (les
-  scripts GeoGebra ne sont jamais exécutés, ni le JavaScript et le HTML actif
-  des figures DGPad, ignorés et signalés). Un texte DGPad est gardé sous
+  devant avoir lieu dans un environnement sécurisé et strictement contrôlé (le
+  JavaScript des figures GeoGebra et DGPad, et le HTML actif de ces dernières,
+  ne sont jamais exécutés : ils sont ignorés et signalés ; les scripts
+  GeoGebra sont traduits, voir « Import GeoGebra »). Un texte DGPad est gardé sous
   forme assainie (`src/objects/panel_object.ts`) : ses champs
   `<input target="E">` changent le nombre de l'expression `E` comme une
   manipulation. Les attributs d'événement de ses éléments (`onclick`…, un
@@ -98,8 +99,9 @@ correctement dans le lecteur : il faut aussi que **chacun de ses programmes
 issus de Blockly** (ceux d'une entrée `BLK` de DGPad : tortues « onlogo »,
 boutons « onprogram », « oninit », « onchange », « ondrag »…, « oncompute »)
 se montre dans l'éditeur en mode **Blocs**, et pas seulement en mode Texte.
-Cela ne concerne que le code produit par Blockly : un script écrit à la main
-dans une expression n'a pas à s'ouvrir en blocs. Toute extension de la grammaire des programmes
+Il en va de même des programmes traduits des scripts GeoGebra.
+Cela ne concerne que le code produit par Blockly ou par cette traduction : un
+script écrit à la main dans une expression n'a pas à s'ouvrir en blocs. Toute extension de la grammaire des programmes
 (`src/import/dgp_formula.ts`) va donc avec ses blocs (`src/editor/blocks/`)
 et son aller-retour vérifié (`tests/unit/editor_blocks.test.ts`). Ne jamais
 déclarer réparée une figure Blockly sans l'avoir vérifié.
@@ -176,6 +178,18 @@ Le `geogebra.xml` d'un `.ggb` est traduit en commandes DGP
 Les points sur objet et les intersections sont ensuite recalés sur les positions
 enregistrées par GeoGebra (`src/ggb_importer.ts`). Un élément non pris en charge
 est ignoré avec ses dépendants et signalé, sans faire échouer l'import.
+
+Les scripts GeoGebra (GgbScript : boutons, clic, mise à jour) ne sont jamais
+exécutés tels quels. L'import traduit ceux qui n'emploient que des commandes
+reconnues (affectation, `SetValue`, `UpdateConstruction`…) en programmes DGP,
+lus par l'interpréteur de `src/import/dgp_formula.ts` avec les mêmes droits
+que ceux d'un bouton Blockly. La traduction écrit ces programmes sous la forme
+que produit Blockly, pour qu'ils s'ouvrent en mode **Blocs** dans l'éditeur
+(voir « Quand une figure passe »). Un script contenant une commande non
+reconnue est ignoré et signalé, de même que tout script JavaScript. La
+traduction relève de l'importeur, chargé à la demande ; ce qu'il faut ajouter
+au moteur (instruction de l'interpréteur, événement sans équivalent) reste
+léger et son poids est mesuré.
 
 `GGB_IMPORT.md` est la feuille de route de la couverture de cet import,
 mesurée sur un corpus de figures réelles de geogebra.org : la lire avant
