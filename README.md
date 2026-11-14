@@ -10,7 +10,7 @@ own constructions, in 2D and 3D.
 
 A presentation of DocGeo (in French) is available on YouTube:
 
-[![DocGeo video presentation](https://img.youtube.com/vi/qLHrQzlh73Q/hqdefault.jpg)](https://youtu.be/qLHrQzlh73Q)
+<a href="https://youtu.be/qLHrQzlh73Q"><img src=".github/video.png" alt="DocGeo video presentation" width="560"></a>
 
 ## Features
 
