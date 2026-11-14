@@ -830,9 +830,10 @@ export const COMMANDS: Command[] = [
                     index(polygon as construction_object),
                     (k as number) - 1,
                 ],
+                // Not a wrapping one, which only the import makes.
                 decode: (parameters, at) => {
-                    const [polygon, rank] = parameters as number[];
-                    return [at(polygon), rank + 1];
+                    const [polygon, rank, wrap] = parameters as number[];
+                    return wrap ? null : [at(polygon), rank + 1];
                 },
             },
             // GeoGebra's other order, written as the first.
@@ -980,6 +981,8 @@ export const COMMANDS: Command[] = [
                     return [at(a), at(b), n];
                 },
             },
+            // Of a slider's number of sides.
+            withReal("RegP", ["point", "point"]),
         ],
     },
     {

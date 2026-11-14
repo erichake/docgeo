@@ -1055,10 +1055,17 @@ export function translateGgb(
         }),
     );
 
+    // A polyhedron defined by nothing draws nothing (see independent).
+    const orphan = (label: string, element: Element): boolean =>
+        element.getAttribute("type") === "polyhedron" &&
+        !commandOutputs.has(label) &&
+        !expressions.has(label);
     const is3D =
         document.querySelector('gui view[id="512"][visible="true"]') !== null ||
-        [...elements.values()].some((element) =>
-            THREE_D_TYPES.test(element.getAttribute("type") ?? ""),
+        [...elements].some(
+            ([label, element]) =>
+                !orphan(label, element) &&
+                THREE_D_TYPES.test(element.getAttribute("type") ?? ""),
         );
     // A constant point, as a DGP fixed-point vector literal and its
     // dimension flag.
@@ -1838,7 +1845,12 @@ export function translateGgb(
         };
     };
 
-    const objectStyle = (element: Element, kind: Kind): string => {
+    // A list's items lie on its level (see below).
+    const objectStyle = (
+        element: Element,
+        kind: Kind,
+        list = kind === "list",
+    ): string => {
         const parts: string[] = [];
         const color = child(element, "objColor");
         if (color) parts.push(`c:${hexColor(color)}`);
@@ -1876,8 +1888,7 @@ export function translateGgb(
         // layer, it paints lists beneath its other objects: each layer
         // spans two levels, the lower one for lists.
         const level =
-            2 * Number(attribute(element, "layer", "val") ?? 0) -
-            Number(kind === "list");
+            2 * Number(attribute(element, "layer", "val") ?? 0) - Number(list);
         if (level && !is3D) parts.push(`l:${level}`);
         const unselectable =
             attribute(element, "selectionAllowed", "val") === "false";
@@ -2035,8 +2046,12 @@ export function translateGgb(
     const derivative = (f: string, x: string): string =>
         `((${f}((${x})+${DERIVATIVE_STEP})-${f}((${x})-${DERIVATIVE_STEP}))/${2 * DERIVATIVE_STEP})`;
 
-    const shapeStyle = (element: Element, kind: Kind = "polygon"): string =>
-        objectStyle(element, kind)
+    const shapeStyle = (
+        element: Element,
+        kind: Kind = "polygon",
+        list?: boolean,
+    ): string =>
+        objectStyle(element, kind, list)
             .split(";")
             .filter((part) => part !== "lb:true" && part !== "sn:true")
             .join(";");
@@ -2207,6 +2222,22 @@ export function translateGgb(
     // an object built from points (see shapes), of a written list of them
     // or, by a direct similarity, of an iteration: the iteration of its
     // start segments' images, since its maps commute with it.
+    // A list's objects, each drawn in its style.
+    const drawList = (label: string, drawn: string[]): true => {
+        const element = elements.get(label);
+        if (element)
+            drawn.forEach((part) =>
+                push(null, "STL", [
+                    ref(part),
+                    literal(
+                        `h:0;${shapeStyle(element, is(part, POINT_KINDS) ? "point" : "polygon", true)}`,
+                    ),
+                ]),
+            );
+        parts.set(label, drawn);
+        return true;
+    };
+
     const transform =
         (
             mapOf: (params: string[]) => PointMap | null,
@@ -2269,28 +2300,20 @@ export function translateGgb(
                 }
                 return false;
             };
-            // A written list's items, drawn in its style.
-            const items = /^\{.*\}$/.test(list)
-                ? splitArguments(list.slice(1, -1))!.map(resolve)
-                : null;
-            if (!items) return imageOf(list, output);
-            const drawn = items.flatMap((item) => {
-                const part = auxiliary();
-                return imageOf(item, part) ? (parts.get(part) ?? [part]) : [""];
-            });
-            if (drawn.includes("")) return false;
-            const element = elements.get(output);
-            if (element)
-                drawn.forEach((part) =>
-                    push(null, "STL", [
-                        ref(part),
-                        literal(
-                            `h:0;${shapeStyle(element, is(part, POINT_KINDS) ? "point" : "polygon")}`,
-                        ),
-                    ]),
-                );
-            parts.set(output, drawn);
-            return true;
+            // A written list's items, also by its name, drawn in its style.
+            const written = [list, expressions.get(list)?.trim() ?? ""].find(
+                (source) => /^\{.*\}$/.test(source),
+            );
+            if (!written) return imageOf(list, output);
+            const drawn = splitArguments(written.slice(1, -1))!
+                .map(resolve)
+                .flatMap((item) => {
+                    const part = auxiliary();
+                    return imageOf(item, part)
+                        ? (parts.get(part) ?? [part])
+                        : [""];
+                });
+            return !drawn.includes("") && drawList(output, drawn);
         };
 
     // A speed that depends on the figure is read once every object exists.
@@ -3035,27 +3058,34 @@ export function translateGgb(
         Polygon: (inputs, [label, ...sides]) => {
             const [a, b, count, plane] = inputs;
             const onPlane = plane !== undefined && isDirection(plane);
+            // Of a slider's n, GeoGebra's outputs are those of its largest.
+            const fixed = NUMBER.test(count);
+            const variable =
+                elements.get(count)?.getAttribute("type") === "numeric"
+                    ? formula(count, VALUE_KINDS)
+                    : null;
             if (
                 inputs.length === (onPlane ? 4 : 3) &&
                 points(a, b) &&
-                NUMBER.test(count)
+                (fixed || variable !== null)
             ) {
-                const n = Number(count);
+                const n = fixed ? Number(count) : (sides.length + 2) / 2;
                 if (!Number.isInteger(n) || n < 3) return false;
+                const sideCount = literal(variable ?? n);
                 // Its vertices, GeoGebra's outputs after its sides;
                 // its image by a reflection is on B'A'.
                 if (onPlane)
                     define(label, "polygon", "RegularPolygon", [
                         ref(a),
                         ref(b),
-                        literal(n),
+                        sideCount,
                         ref(plane),
                     ]);
                 else
                     orientedShape(label, [a, b], (image, [p, q], reversed) =>
                         define(image, "polygon", "RegularPolygon", [
                             ...(reversed ? [q, p] : [p, q]).map(ref),
-                            literal(n),
+                            sideCount,
                         ]),
                     );
                 const vertices = [
@@ -3077,17 +3107,20 @@ export function translateGgb(
                         points: vertices,
                         build: (image, points) => definePolygon(image, points),
                     });
-                sides
-                    .slice(0, n)
-                    .forEach(
-                        (side, index) =>
-                            side &&
-                            defineSegment(
-                                side,
-                                vertices[index],
-                                vertices[(index + 1) % n],
-                            ),
-                    );
+                // Of a slider's n, the closing side's end wraps to A.
+                sides.slice(0, n).forEach((side, index) => {
+                    if (!side) return;
+                    let end = vertices[(index + 1) % n];
+                    if (variable !== null && index > 0) {
+                        end = auxiliary();
+                        define(end, "point", "Vertex", [
+                            ref(label),
+                            literal(index + 1),
+                            literal(true),
+                        ]);
+                    }
+                    defineSegment(side, vertices[index], end);
+                });
                 return true;
             }
             // A list's points, in turn.
@@ -4285,6 +4318,7 @@ export function translateGgb(
     const independent = (label: string, element: Element): boolean => {
         const type = element.getAttribute("type");
         const source = expressions.get(label);
+        if (orphan(label, element)) return true;
         if (type === "point" || type === "point3d") {
             // A constant, such as the complex number "1 + (2 * ί)", is a
             // free point.
@@ -4428,6 +4462,18 @@ export function translateGgb(
             return numeric(label, element);
         if (type === "text" && source !== undefined)
             return text(label, element, source);
+        // A copy of a list of segments, each another.
+        const drawn = source !== undefined && parts.get(source.trim());
+        if (type === "list" && drawn) {
+            const copies = drawn.map((part) => {
+                const ends = segments.get(part);
+                const copy = auxiliary();
+                return ends
+                    ? defineSegment(copy, ends[0], ends[1]) && copy
+                    : "";
+            });
+            return !copies.includes("") && drawList(label, copies);
+        }
         // A copy of a Sequence, as another.
         const copied = source !== undefined && sequences.get(source.trim());
         if (type === "list" && copied)

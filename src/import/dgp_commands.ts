@@ -2298,17 +2298,19 @@ const COMMANDS = new Map<string, CommandDefinition>([
                 string,
                 point,
                 point,
-                number,
+                formula,
                 { ...object, optional: true },
             ],
             result: "polygon",
+            validate: (args, lineNumber, variables) =>
+                validateRadius(args[3], lineNumber, variables),
             execute: (context, args) =>
                 createRegularPolygon(
                     context.construction,
                     args[0] as string,
                     args[1] as point_object,
                     args[2] as point_object,
-                    args[3] as number,
+                    radiusArgument(args[3], context),
                     args[4] as plane_object | undefined,
                 ),
         },
@@ -2316,7 +2318,12 @@ const COMMANDS = new Map<string, CommandDefinition>([
     [
         "Vertex",
         {
-            parameters: [string, object, number],
+            parameters: [
+                string,
+                object,
+                number,
+                { ...boolean, optional: true },
+            ],
             result: "point",
             execute: (context, args) =>
                 createVertex(
@@ -2324,6 +2331,7 @@ const COMMANDS = new Map<string, CommandDefinition>([
                     args[0] as string,
                     args[1] as polygon_object | polyhedron_object,
                     args[2] as number,
+                    args[3] as boolean | undefined,
                 ),
         },
     ],

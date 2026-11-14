@@ -372,7 +372,7 @@ la figure, autour de la verticale de O dans l'espace, sa hauteur gardée),
 | `Tra`   | P translaté du vecteur u                                                    | `[u, P]` (15, 28)                               |
 | `Inv`   | inverse de P dans le cercle c                                               | `[c, P]` (28)                                   |
 | `TC`    | centre du triangle ABC                                                      | `[A, B, C, n]` (18)                             |
-| `Vtx`   | sommet k d'un polygone ou polyèdre                                          | `[polygone ou polyèdre, k]` (18)                |
+| `Vtx`   | sommet k d'un polygone ou polyèdre P                                        | `[P, k]`, `[P, k, 1]` (18)                      |
 | `Ctr`   | centre d'un cercle                                                          | `[cercle]`                                      |
 | `DirP`  | P + vecteur directeur unitaire de d                                         | `[d, P]`                                        |
 | `PlI`   | intersection droite-plan ou polygone                                        | `[d, plan]` (19)                                |
@@ -623,7 +623,12 @@ alignement]]` police, `[30, url, l, h, zoom, opacité, u]` image (largeur
     polygone régulier tourne dans le sens direct de A à B, ses autres
     sommets lui étant propres ; `k` d'un sommet compte depuis 0, dans
     l'ordre des sommets du polygone. Dans un plan, il tourne autour de la
-    normale de ce plan.
+    normale de ce plan. Depuis le 2026-11-14, `n` peut être une formule
+    (comme `r`, note 5), arrondie à l'entier le plus proche : moins de 3
+    côtés, le polygone est indéfini, et ses sommets de rang n ou plus le
+    sont aussi. Le troisième élément 1 d'un `Vtx` le fait reboucler : de
+    rang le nombre de sommets du polygone, c'est son premier (fin du côté
+    de fermeture quand ce nombre varie).
 19. Depuis le 2026-11-06, un polygone ou une référence de face vaut un plan
     partout où une entrée prend un plan (`PlI`, `PlP`, `PlPl`, `Nrm`, `SphC`,
     `CyS`, `PlS`, `RegP`, `Semi`, `C1`, `CubV`) : son plan passe par la

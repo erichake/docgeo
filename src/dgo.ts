@@ -2069,26 +2069,34 @@ const BUILDERS: Record<string, Builder> = {
             kind as number,
         );
     },
-    RegP: (parameters, { c, name, at }) => {
+    RegP: (parameters, reader) => {
+        const { c, name, at } = reader;
         const [a, b, sides, plane] = list(parameters, 3, 4);
-        check(Number.isInteger(sides) && (sides as number) >= 3);
+        check(
+            isNumber(sides)
+                ? Number.isInteger(sides) && sides >= 3
+                : sides !== null,
+        );
         return createRegularPolygon(
             c,
             name,
             at(a, point_object),
             at(b, point_object),
-            sides as number,
+            radius(sides, reader),
             plane === undefined ? undefined : at(plane, polygon_object),
         );
     },
     Vtx: (parameters, { c, name, at }) => {
-        const [polygon, rank] = list(parameters, 2);
-        check(Number.isInteger(rank) && (rank as number) >= 0);
+        const [polygon, rank, wrap = 0] = list(parameters, 2, 3);
+        check(Number.isInteger(rank) && (rank as number) >= 0 && isFlag(wrap));
         return createVertex(
             c,
             name,
-            at(polygon, polygon_object, polyhedron_object),
+            wrap
+                ? at(polygon, polygon_object)
+                : at(polygon, polygon_object, polyhedron_object),
             rank as number,
+            wrap === 1,
         );
     },
     Tan: (parameters, { c, name, at }) => {

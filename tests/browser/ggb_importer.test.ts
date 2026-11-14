@@ -4035,6 +4035,42 @@ B.setExpression((1 + [0, 1]) / (1 - q));`,
         expect(restored.GRID.UNIT.slice(0, 2)).toEqual([40, 20]);
     });
 
+    it("builds a regular polygon of a slider's number of sides", async () => {
+        const c = createConstruction();
+        c.animations.paused = true;
+        const xml = await loadXml("septPersonnes");
+        expect(importGgb(c, xml)).toEqual([]);
+        // Its orphan polyhedra leave it a plane figure.
+        expect(c.GRID.is2D).toBe(true);
+        const n = c.getObj("numberofpersons") as expression_object;
+        const shown = () =>
+            ["G", "H", "J", "m", "p", "r"].map(
+                (name) => c.getObj(name)!.defined,
+            );
+        const coords = (name: string) =>
+            (c.getObj(name) as point_object).coords.map((v) => +v.toFixed(2));
+        expect(shown()).toEqual([true, false, false, true, false, false]);
+        expect(coords("C")).toEqual([14.47, -4.5, 0]);
+        // Its closing side m = [GA] becomes [GH].
+        const m = c.getObj("m") as segment_object;
+        expect(m.P2.coords).toEqual((c.getObj("A") as point_object).coords);
+        n.value = 10;
+        c.invalidateGeometry(n);
+        c.flush();
+        expect(shown()).toEqual([true, true, true, true, true, true]);
+        expect(m.P2.coords).toEqual((c.getObj("H") as point_object).coords);
+        n.value = 2;
+        c.invalidateGeometry(n);
+        c.flush();
+        expect(c.getObj("poly1")!.defined).toBe(false);
+        // Saved with its formula.
+        const restored = createConstruction();
+        n.value = 7;
+        c.invalidateGeometry(n);
+        readDgo(restored, await describeDgo(c));
+        expect(restored.getObj("G")!.defined).toBe(true);
+    });
+
     it("reports what it can't import instead of failing", () => {
         const c = createConstruction();
         const unsupported = importGgb(

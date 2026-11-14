@@ -103,6 +103,7 @@ figure sont seulement comptés. L'API utilisée est
 | 2026-11-14 | 250 / 456 (55 %)   | 326,7 Ko | item 55 : pas d'un curseur d'angle en degrés (+10)                   |
 | 2026-11-14 | 251 / 456 (55 %)   | 326,7 Ko | item 56 : centre de gravité d'un polygone (+1)                       |
 | 2026-11-14 | 258 / 456 (57 %)   | 326,8 Ko | item 57 : nombres complexes, scripts de mise à jour (+7)             |
+| 2026-11-14 | 258 / 456 (57 %)   | 327,4 Ko | item 58 : polygone régulier d'un curseur, listes dessinées (+0)      |
 
 ## À faire, par rapport gain / coût
 
@@ -983,6 +984,21 @@ cause.
       être signalé : 5 figures le signalent maintenant (`ZoomIn`,
       `SetVisibleInView`, `ParseToNumber`…). **+7 figures** (251 → 258),
       éléments non importés 3246 → 3045. Moteur +0,14 Ko, import +3,1 Ko.
+- [x] **58. Polygone régulier d'un curseur, listes dessinées** :
+      `septPersonnes.ggb` (graphe complet des poignées de main de n
+      personnes). Fait : `Polygon(A, B, n)` d'un nombre `n` variable ;
+      GeoGebra enregistre les sorties de son plus grand n (côtés, puis
+      sommets), celles qui le dépassent sont indéfinies, et le côté de
+      fermeture finit au sommet de rang n, qui reboucle sur A (`Vtx` à
+      trois entrées, voir `DGO.md`) ; moins de 3 côtés : indéfini.
+      `Translate(l, v)` d'une liste écrite `{…}` nommée, copie `l2 = l1'`
+      d'une liste dessinée de segments, dont les objets se dessinent au
+      niveau des listes, sous ceux de leur calque. Un polyèdre sans
+      définition (ni commande ni expression), que GeoGebra ne dessine
+      pas, est ignoré sans être signalé et ne rend plus la figure 3D.
+      Aucune figure du corpus gagnée : des deux qui ont un polygone
+      régulier variable, l'une le construit sur des `Element` de liste,
+      l'autre a d'autres causes. Moteur +0,5 Ko, import +0,5 Ko.
 
 À écarter, sauf changement de priorité : calcul formel, courbes implicites,
 statistiques et probabilités, tableur au-delà des cellules simples, matrices.
