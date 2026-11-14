@@ -1054,6 +1054,25 @@ cause.
       ici). **+1 figure** (260 → 261), éléments non importés 2974 → 2968.
       Moteur +0,6 Ko, import +1,4 Ko. Reste : les légendes LaTeX des points
       (`$O$`) écrites en texte simple, pas en italique.
+- [x] **61. Vecteurs calculés, listes d'images** : `mediatrice.ggb`
+      (règle et équerre animées traçant la médiatrice). Fait : les
+      commandes dont une formule lit les entrées (`Max`, `Min`, `Length`…)
+      les reçoivent telles quelles, commandes imbriquées comprises
+      (`Max(Min[r, 1], 0)` : une commande intérieure, construite à part, ne
+      se lisait plus) ; `UnitVector`, `UnitOrthogonalVector` et
+      `OrthogonalVector` comme commandes, d'un `Segment[A, B]` écrit ; un
+      vecteur calculé (commande ou expression `w' = k w`) est tracé depuis
+      son point de départ ou l'origine, et une translation lit sa formule :
+      nul, il translate encore, comme dans GeoGebra (un vecteur de deux
+      points confondus est indéfini dans DocGeo) ; l'`Angle` de deux
+      `Line[A, B]` dans une formule (d'une direction à l'autre, dans
+      [0, 2π[). Une liste cachée d'objets (`{poly1, pic10}`) ne dessine que
+      ses images, l'image d'une image s'en construit de même, et celle
+      d'une liste déjà transformée se construit de ses éléments ; une image
+      dans une liste est dessinée telle quelle, au-dessus des éléments qui
+      la précèdent, comme GeoGebra les peint dans l'ordre. **+4 figures**
+      (261 → 265), éléments non importés 2968 → 2890. Moteur inchangé,
+      import +1,0 Ko.
 
 À écarter, sauf changement de priorité : calcul formel, courbes implicites,
 statistiques et probabilités, tableur au-delà des cellules simples, matrices.

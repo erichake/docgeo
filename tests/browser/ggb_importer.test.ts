@@ -4225,6 +4225,44 @@ while (k < 1) {
         );
     });
 
+    it("draws lists of images and translates by computed vectors", async () => {
+        const c = createConstruction();
+        const response = await fetch(figure("mediatrice.ggb"));
+        expect(await importGgbFromBlob(c, await response.blob())).toEqual([]);
+        // UnitVector and UnitOrthogonalVector of Segment(A_1, A_6).
+        expectSavedPoints(c, await loadXml("mediatrice"));
+        const r = c.getObj("r") as expression_object;
+        const coords = (name: string): Vec2 => {
+            const [x, y] = (c.getObj(name) as point_object).coords;
+            return [x, y];
+        };
+        const shown = () =>
+            c.OBJS.V.filter(
+                (object): object is image_object =>
+                    object instanceof image_object && object.isVisible,
+            );
+        // Max(Min(r - 1, 1), 0) = 1: the ruler, an image of a list, its 0
+        // translated to A, then turned along AB, as Angle(Line(A_1, A_6),
+        // Line(A, B)), twice (Reg'' and Reg''', turned by 0).
+        r.value = 2.5;
+        c.invalidateGeometry(r);
+        c.flush();
+        expect(shown()).toHaveLength(2);
+        const [o, end] = ["A", "B"].map(coords);
+        const [bottom, right, top] = shown()[1].corners.map(
+            ({ coords: [x, y] }): Vec2 => [x, y],
+        );
+        const along = vNormalize(vSub(right, bottom))!;
+        expectClose(along, vNormalize(vSub(end, o))!);
+        expectClose(vDot(vSub(o, top), along), 0.5);
+        // Max(Min(r - 2, 1), 0) = 1: w' = -(1 - c²)·w is zero, by which
+        // GeoGebra translates.
+        r.value = 3.5;
+        c.invalidateGeometry(r);
+        c.flush();
+        expectClose(coords("I'"), coords("I"));
+    });
+
     it("reports what it can't import instead of failing", () => {
         const c = createConstruction();
         const unsupported = importGgb(

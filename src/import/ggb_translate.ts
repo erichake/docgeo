@@ -143,6 +143,7 @@ const FORMULA_COMMANDS = new Set([
     "Vector",
     "OrthogonalVector",
     "UnitVector",
+    "UnitOrthogonalVector",
     "If",
     "Element",
     "Sum",
@@ -1203,7 +1204,17 @@ export function translateGgb(
             if (!ends && is(arg, ["line"])) return unitDirection(arg);
             const vector = ends
                 ? vectorFormula(`Vector(${ends.join(",")})`, locals)
-                : formula(arg, VALUE_KINDS, locals);
+                : (vectorFormula(
+                      arg.replace(/^Segment\(/, "Vector("),
+                      locals,
+                  ) ?? formula(arg, VALUE_KINDS, locals));
+            return vector && `unitVector(${vector})`;
+        }
+        if (match[1] === "UnitOrthogonalVector") {
+            const vector = vectorFormula(
+                `OrthogonalVector(${match[2]})`,
+                locals,
+            );
             return vector && `unitVector(${vector})`;
         }
         if (match[1] !== "Vector") return null;
@@ -1478,12 +1489,18 @@ export function translateGgb(
                     ? `(${x}+(${y}<0?" - ":" + ")+abs(${y})+"i")`
                     : `("("+${x}+", "+${y}+")")`;
             }
-            // ABC, counterclockwise from BA to BC, within [0, 2π).
+            // ABC, counterclockwise from BA to BC, or from a line's
+            // direction to another's, within [0, 2π).
             case "Angle": {
-                const values = args.map((arg) =>
-                    formula(arg, POINT_KINDS, locals),
-                );
-                return args.length === 3 && !is3D && !values.includes(null)
+                const values =
+                    args.length === 2
+                        ? [
+                              lineVector(args[0], locals),
+                              planar("0", "0"),
+                              lineVector(args[1], locals),
+                          ]
+                        : args.map((arg) => formula(arg, POINT_KINDS, locals));
+                return values.length === 3 && !is3D && !values.includes(null)
                     ? `Angle360(${values})`
                     : null;
             }
@@ -1594,6 +1611,21 @@ export function translateGgb(
         return hiddenExpression(
             `var $n=${size},$s="{\\\\begin{array}{",$j,$k,$v;for(var $i=0;$i<=${columns};$i++){$s=$s+(${vertical("$i")}?"|":"")+($i<${columns}?[${aligns.map((a) => `"${a}"`)}][min($i,${aligns.length - 1})]:"")};$s=$s+"}"+(${horizontal("0")}?"\\\\hline ":"");${body};$s+"\\\\end{array}}"`,
         );
+    };
+
+    // A line's direction, written Line(P, Q) or named.
+    const lineVector = (
+        source: string,
+        locals: Map<string, string>,
+    ): string | null => {
+        const call = commandCall(source);
+        if (call?.[0] === "Line" && call[1].length === 2) {
+            const [p, q] = call[1].map((end) =>
+                formula(end, POINT_KINDS, locals),
+            );
+            return p === null || q === null ? null : `(${q}-${p})`;
+        }
+        return unitDirection(source);
     };
 
     // A vector's or a line's unit direction.
@@ -2283,15 +2315,26 @@ export function translateGgb(
     // an object built from points (see shapes), of a written list of them
     // or, by a direct similarity, of an iteration: the iteration of its
     // start segments' images, since its maps commute with it.
-    // A list's objects, each drawn in its style.
+    // A list's objects, each drawn in its style, but an image, drawn as it
+    // is, above the objects before it, as GeoGebra paints them in order.
     const drawList = (label: string, drawn: string[]): true => {
         const element = elements.get(label);
         if (element)
-            drawn.forEach((part) =>
+            drawn.forEach((part, index) =>
                 push(null, "STL", [
                     ref(part),
                     literal(
-                        `h:0;${shapeStyle(element, is(part, POINT_KINDS) ? "point" : "polygon", true)}`,
+                        `h:0;${
+                            is(part, ["image"])
+                                ? `l:${2 * Number(attribute(element, "layer", "val") ?? 0) - +!index}`
+                                : shapeStyle(
+                                      element,
+                                      is(part, POINT_KINDS)
+                                          ? "point"
+                                          : "polygon",
+                                      true,
+                                  )
+                        }`,
                     ),
                 ]),
             );
@@ -2361,19 +2404,19 @@ export function translateGgb(
                 }
                 return false;
             };
-            // A written list's items, also by its name, drawn in its style.
+            // A written list's items, also by its name, or those of another
+            // list's image, drawn in its style.
             const written = [list, expressions.get(list)?.trim() ?? ""].find(
                 (source) => /^\{.*\}$/.test(source),
             );
-            if (!written) return imageOf(list, output);
-            const drawn = splitArguments(written.slice(1, -1))!
-                .map(resolve)
-                .flatMap((item) => {
-                    const part = auxiliary();
-                    return imageOf(item, part)
-                        ? (parts.get(part) ?? [part])
-                        : [""];
-                });
+            const items = written
+                ? splitArguments(written.slice(1, -1))!.map(resolve)
+                : !objects.has(list) && parts.get(list);
+            if (!items) return imageOf(list, output);
+            const drawn = items.flatMap((item) => {
+                const part = auxiliary();
+                return imageOf(item, part) ? (parts.get(part) ?? [part]) : [""];
+            });
             return !drawn.includes("") && drawList(output, drawn);
         };
 
@@ -2735,9 +2778,11 @@ export function translateGgb(
     };
 
     // A command a formula computes: a text, a point or a number.
-    const formulaCommand =
-        (name: string): Handler =>
-        (inputs, [label]) => {
+    // Read from its own inputs, which a formula reads, commands included.
+    const formulaInputs = new Set<string>();
+    const formulaCommand = (name: string): Handler => {
+        formulaInputs.add(name);
+        return (inputs, [label]) => {
             const source = `${name}(${inputs.join(",")})`;
             const element = elements.get(label);
             const type = element?.getAttribute("type");
@@ -2745,9 +2790,23 @@ export function translateGgb(
             const value = formula(source, VALUE_KINDS);
             if (value === null) return false;
             if (type === "point") formulaPoint(value, label);
+            else if (type === "vector") formulaVector(label, value);
             else hiddenExpression(value, label);
             return true;
         };
+    };
+
+    // A vector of coordinates `value`, drawn from its start point, if any,
+    // or else from the origin. Zero, it still translates (see Translate).
+    const formulaVectors = new Set<string>();
+    const formulaVector = (label: string, value: string): true => {
+        formulaVectors.add(label);
+        const exp = attribute(elements.get(label)!, "startPoint", "exp");
+        const start = exp && points(exp) ? exp : formulaPoint(planar("0", "0"));
+        const end = formulaPoint(`${objects.get(start)!.variable}+(${value})`);
+        vectors.set(label, [start, end]);
+        return define(label, "line", "Vector", [ref(start), ref(end)]);
+    };
 
     // Cylinder(A, B, r), Cone(A, B, r) of apex B: drawn in the style of
     // GeoGebra's side, which it is, and its disks.
@@ -3629,7 +3688,10 @@ export function translateGgb(
         // By a vector, a point's position vector or a formula.
         Translate: transform(([vector, extra]) => {
             if (extra !== undefined) return null;
-            if (vectors.has(vector) || points(vector))
+            if (
+                (vectors.has(vector) && !formulaVectors.has(vector)) ||
+                points(vector)
+            )
                 return (p, label, kind = "point") =>
                     define(label, kind, "Translation", [ref(p), ref(vector)]);
             const v = formula(vector, VALUE_KINDS);
@@ -3981,6 +4043,9 @@ export function translateGgb(
             return true;
         },
         Length: formulaCommand("Length"),
+        UnitVector: formulaCommand("UnitVector"),
+        UnitOrthogonalVector: formulaCommand("UnitOrthogonalVector"),
+        OrthogonalVector: formulaCommand("OrthogonalVector"),
         PathParameter: formulaCommand("PathParameter"),
         Function: ([f, a, b, extra], [label]) => {
             const body = functionBody(f);
@@ -4787,6 +4852,10 @@ export function translateGgb(
             source !== undefined &&
             segments.get(source.trim());
         if (ends) return defineSegment(label, ends[0], ends[1]);
+        if (type === "vector" && source !== undefined) {
+            const value = formula(source, VALUE_KINDS);
+            return value !== null && formulaVector(label, value);
+        }
         // A copy of a list of segments, each another.
         const drawn = source !== undefined && parts.get(source.trim());
         if (type === "list" && drawn) {
@@ -4803,8 +4872,16 @@ export function translateGgb(
         const copied = source !== undefined && sequences.get(source.trim());
         if (type === "list" && copied)
             return HANDLERS.Sequence(copied, [label]);
+        // A hidden list of objects only draws its images.
         if (type === "list" && source !== undefined)
-            return defineList(label, element, source);
+            return (
+                defineList(label, element, source) ||
+                (hidden(element) &&
+                    /^\{.*\}$/.test(source.trim()) &&
+                    splitArguments(source.trim().slice(1, -1))!.every((item) =>
+                        objects.has(item.trim()),
+                    ))
+            );
         // A copy of a polygon, through its vertices: a regular polygon's
         // shape is built from its first two only.
         const vertices =
@@ -4891,11 +4968,14 @@ export function translateGgb(
                 );
             }
             if (corners[1]) {
-                const build = (image: string, points: string[]) =>
-                    define(image, "image", "Image", [
+                // An image's image is mapped again from its corners.
+                const build = (image: string, points: string[]): true => {
+                    shapes.set(image, { points, build });
+                    return define(image, "image", "Image", [
                         ...picture,
                         ...points.map(ref),
                     ]);
+                };
                 // Its top left corner, built only for its image, which a
                 // reflection turns over.
                 const topLeft = (): string => {
@@ -5121,7 +5201,9 @@ export function translateGgb(
     // beforehand, Polygon(Translate(A, k u)) would read k as an object of
     // the figure, not as Sequence's index.
     const inputs = (name: string, sources: string[]): string[] =>
-        BINDING_COMMANDS.has(name) ? sources : sources.map(resolve);
+        BINDING_COMMANDS.has(name) || formulaInputs.has(name)
+            ? sources
+            : sources.map(resolve);
 
     const translated = new Set<string>();
     const translate = (node: Element): void => {
