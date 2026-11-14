@@ -903,6 +903,41 @@ ${[
         );
     });
 
+    it("cuts a prism by a plane built from points written in commands", async () => {
+        const c = createConstruction();
+        // Polygon(B + (-2, -2), …), Rotate[Translate[poly1, Vector[A, …]], …]
+        expect(importGgb(c, await loadXml("3d_section_prisme"))).toEqual([]);
+        await new Promise((resolve) => requestAnimationFrame(resolve));
+
+        const section = c.getObj("poly6") as polygon_object;
+        expect(section).toBeInstanceOf(plane_section_object);
+        // GeoGebra's K, L_1 and O, at the plane's height.
+        const r = Math.sqrt(3);
+        expect(section.points).toHaveLength(3);
+        (
+            [
+                [-2, 0, 1.65],
+                [1, -r, 1.65],
+                [1, r, 1.65],
+            ] as Vec3[]
+        ).forEach((saved) =>
+            expect(
+                section.points.some(
+                    (vertex) => vNorm(vSub(vertex.coords, saved)) < 1e-9,
+                ),
+            ).toBe(true),
+        );
+        // Upright, the plane cuts a rectangle out of the prism.
+        const s = c.getObj("s") as expression_object;
+        s.value = 1;
+        c.invalidateGeometry(s);
+        await new Promise((resolve) => requestAnimationFrame(resolve));
+        expect(section.points).toHaveLength(4);
+        const [p0, p1, p2, p3] = section.points.map((vertex) => vertex.coords);
+        expect(vNorm(vSub(p0, p1))).toBeCloseTo(vNorm(vSub(p2, p3)), 9);
+        expect(vNorm(vSub(p1, p2))).toBeCloseTo(vNorm(vSub(p3, p0)), 9);
+    });
+
     it("draws a plane's part behind the floor beneath the floor", async () => {
         const c = createConstruction();
         importGgb(c, await loadXml("3d_plan_sol"));

@@ -333,11 +333,15 @@ export class construction {
     resize(width: number, height: number): void {
         if (width === this.viewportWidth && height === this.viewportHeight)
             return;
+        // As in DGPad, its figures keep their origin where it was; another
+        // 3D one, where it was from the window's center (see readDgo).
+        if (!this.GRID.is2D && !this.GRID.FRAME2D)
+            this.GRID.ORG = [
+                this.GRID.ORG[0] + (width - this.viewportWidth) / 2,
+                this.GRID.ORG[1] + (height - this.viewportHeight) / 2,
+            ];
         this.viewportWidth = width;
         this.viewportHeight = height;
-        // As in DGPad, its figures keep their origin where it was.
-        if (!this.GRID.is2D && !this.GRID.FRAME2D)
-            this.GRID.ORG = [width / 2, height / 2];
         this.invalidateProjection();
     }
 

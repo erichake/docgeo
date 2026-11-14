@@ -112,6 +112,8 @@ export interface GgbView3D {
     // Translation of the world origin, in world units, from the center of
     // the view.
     offset: Vec3;
+    // In pixels, the view's center from the window's.
+    shift: Vec2;
 }
 
 const IDENTIFIER = new RegExp(
@@ -156,6 +158,8 @@ const CELL = /^([A-Z]+)(\d+)$/;
 const LABEL_WORDS =
     /[$_\p{ID_Start}](?:_\{[^{}]*\}|[$'\u200c\u200d\p{ID_Continue}])*/gu;
 const LABEL = new RegExp(`^${LABEL_WORDS.source}`, "u");
+// A parenthesis without any other inside, after the name of what it calls.
+const INNERMOST = new RegExp(`(${LABEL_WORDS.source}\\s*)?\\(([^()]*)\\)`, "u");
 // Applied to a list, GeoGebra's functions apply to each of its items.
 const ITEM_FUNCTIONS: Record<string, string> = {
     real: "x",
@@ -1119,6 +1123,7 @@ export function translateGgb(
             // The least or greatest of a list's items.
             .replace(/\b(Min|Max)\(\{([^{}]*)\}\)/g, "$1($2)")
             .replace(/\s+/g, " ");
+        const flat = is3D ? ",0" : "";
         const groups: {
             start: number;
             call: boolean;
@@ -1230,9 +1235,10 @@ export function translateGgb(
                     );
                     if (ends.length > 3 || group.commas.length > 0) return null;
                     const c = f ? `(${r})*cos(${f})` : `(${r})`;
-                    result = `${result.slice(0, group.start)}[${c}*cos(${t}),${c}*sin(${t})${f ? `,(${r})*sin(${f})` : ""}]`;
+                    result = `${result.slice(0, group.start)}[${c}*cos(${t}),${c}*sin(${t})${f ? `,(${r})*sin(${f})` : flat}]`;
                 } else if (!group.call && group.commas.length > 0)
-                    result = `${result.slice(0, group.start)}[${result.slice(group.start + 1)}]`;
+                    // In space, (x, y) is (x, y, 0).
+                    result = `${result.slice(0, group.start)}[${result.slice(group.start + 1)}${group.commas.length === 1 ? flat : ""}]`;
                 else result += ")";
             } else if (character === ",") {
                 const group = groups[groups.length - 1];
@@ -1399,7 +1405,11 @@ export function translateGgb(
                 ? undefined
                 : ends
                   ? { start: ends[0], ends, turns: 0 }
-                  : bisected && { start: bisected[0], ends: bisected, turns: 1 })
+                  : bisected && {
+                        start: bisected[0],
+                        ends: bisected,
+                        turns: 1,
+                    })
         );
     };
 
@@ -2567,7 +2577,12 @@ export function translateGgb(
             const ends = q === undefined ? segmentEnds(p) : [p, q];
             if (!ends || !points(...ends)) return false;
             bisectors.set(label, ends);
-            return define(label, "line", "PerpendicularBisector", ends.map(ref));
+            return define(
+                label,
+                "line",
+                "PerpendicularBisector",
+                ends.map(ref),
+            );
         },
         AngularBisector: onePoint("AngleBisector", 3),
         // Of two lines, from the first's direction to the second's, at
@@ -3044,9 +3059,9 @@ export function translateGgb(
             ]);
         },
         // Where plane p cuts a sphere, the side of a cylinder or a cone, or a
-        // pyramid (a vertex where p cuts each edge), or where planes p and q
-        // meet.
-        IntersectPath: ([first, second, extra], [label, vertex]) => {
+        // polyhedron (a vertex where p cuts each edge), or where planes p and
+        // q meet.
+        IntersectPath: ([first, second, extra], [label, ...outputs]) => {
             if (extra !== undefined || !isPlane(first)) return false;
             if (spheres.has(second))
                 return define(label, "circle", "SphereSection", [
@@ -3059,36 +3074,51 @@ export function translateGgb(
                     ref(solid.label),
                     ref(first),
                 ]);
+            // A pyramid's section has its vertices in the order of its
+            // edges; another polyhedron's, around its center.
             const edges = polyhedra.get(second);
-            if (edges) {
+            const faces = edges ? undefined : shells.get(second);
+            if (edges || faces) {
+                const name = (end: string) => `_${objects.get(end)!.variable}`;
                 define(label, "polygon", "PlaneSection", [
                     ref(first),
                     literal(
-                        edges
-                            .flat()
-                            .map((end) => `_${objects.get(end)!.variable}`)
-                            .join(","),
+                        edges ? edges.flat().map(name).join(",") : name(second),
                     ),
                 ]);
+                const count =
+                    edges?.length ??
+                    new Set(
+                        faces!.flatMap((face) =>
+                            face.map((end, index) =>
+                                [end, face[(index + 1) % face.length]]
+                                    .sort()
+                                    .join(),
+                            ),
+                        ),
+                    ).size;
                 // GeoGebra names the section's vertices in turn, whichever
                 // edges they lie on: they take its first vertex's style,
-                // without a name.
-                const element = elements.get(vertex);
+                // without a name. Several polygons may come before them.
+                const element = outputs
+                    .map((output) => elements.get(output))
+                    .find((item) =>
+                        item?.getAttribute("type")?.startsWith("point"),
+                    );
                 const style =
                     element &&
                     objectStyle(element, "point")
                         .split(";")
                         .filter((part) => part !== "sn:true")
                         .join(";");
-                edges.forEach((_, index) =>
+                for (let index = 0; index < count; index++)
                     define(
                         auxiliary(),
                         "point",
                         "Vertex",
                         [ref(label), literal(index)],
                         style,
-                    ),
-                );
+                    );
                 return true;
             }
             return (
@@ -4129,8 +4159,28 @@ export function translateGgb(
     // GeoGebra rotates the scene by zAngle around Oz, then tilts it by
     // xAngle: in DGP's projection (see projection.ts), that's phi = -zAngle
     // and theta = xAngle.
+    // Beside the 3D view, a graphics view whose widgets stay where they are
+    // in it, from the window's top left corner: the 3D view is centered in
+    // the rest of the window.
+    const location = (id: string) =>
+        document
+            .querySelector(`gui view[id="${id}"][visible="true"]`)
+            ?.getAttribute("location")
+            ?.split(",");
+    const graphicsAt = location("1");
+    const spaceAt = location("512");
+    const side =
+        graphicsAt &&
+        spaceAt &&
+        graphicsAt.find((digit, index) => digit !== spaceAt[index]);
+    const across = side === "1" || side === "3";
+    const strip =
+        side && view
+            ? Number(attribute(view, "size", across ? "width" : "height") ?? 0)
+            : 0;
     const camera: GgbView3D | undefined = coordSystem3D
         ? {
+              shift: across ? [strip / 2, 0] : [0, strip / 2],
               phi: -degrees("zAngle"),
               theta: degrees("xAngle"),
               unit: Number(coordSystem3D.getAttribute("scale")),
@@ -4236,6 +4286,24 @@ export function translateGgb(
         ),
     ]);
 
+    // A point's expression: a tuple, or a point outside any call, as in
+    // "B + (-2, -2)" but not "x(B) + 2". Each innermost parenthesis becomes
+    // a number, or "⊙" if it's a point.
+    const isPoint = (text: string): boolean => {
+        let rest = text.replace(/"[^"]*"/g, "");
+        const point = (part: string): boolean =>
+            part.includes("⊙") ||
+            (part.match(LABEL_WORDS) ?? []).some((word) =>
+                is(word, POINT_KINDS),
+            );
+        for (let match; (match = INNERMOST.exec(rest));)
+            rest = `${rest.slice(0, match.index)}${
+                !match[1] && (/[,;]/.test(match[2]) || point(match[2]))
+                    ? "⊙"
+                    : "0"
+            }${rest.slice(match.index + match[0].length)}`;
+        return point(rest);
+    };
     // A command input that isn't an existing label may be a nested command
     // (e.g. "Segment[A, B]") or a point, constant or not (e.g. "(t, 0)"):
     // built as a hidden auxiliary object, like GeoGebra does.
@@ -4259,12 +4327,7 @@ export function translateGgb(
             define(label, "point", "Point", vectorLiteral([x, y, z ?? 0]));
             return label;
         }
-        const tuple =
-            text.startsWith("(") &&
-            text.endsWith(")") &&
-            splitArguments(text.slice(1, -1));
-        const coords =
-            tuple && tuple.length > 1 ? formula(text, VALUE_KINDS) : null;
+        const coords = isPoint(text) ? formula(text, VALUE_KINDS) : null;
         if (coords !== null) return formulaPoint(coords, label);
         const call = commandCall(text);
         return call && HANDLERS[call[0]]?.(inputs(...call), [label])

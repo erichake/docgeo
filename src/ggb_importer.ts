@@ -146,7 +146,7 @@ function applyView3D(c: construction, view: GgbView3D): void {
     grid.THETA = view.theta;
     grid.UNIT = [view.unit, view.unit, view.unit];
     grid.ORG = projectPoint(view.offset, {
-        origin: [c.width / 2, c.height / 2],
+        origin: [c.width / 2 + view.shift[0], c.height / 2 + view.shift[1]],
         unit: grid.UNIT,
         cosPhi: Math.cos(view.phi),
         sinPhi: Math.sin(view.phi),

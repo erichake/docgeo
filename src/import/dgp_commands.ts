@@ -2216,32 +2216,35 @@ const COMMANDS = new Map<string, CommandDefinition>([
         {
             parameters: [string, object, string],
             result: "polygon",
-            validate: (args, lineNumber, variables) =>
-                literalString(args[2])
-                    .split(",")
-                    .forEach((token) => {
-                        const name = polygonPointName(token, lineNumber);
-                        if (!accepts(variables.get(name)!, "point"))
-                            throw new Error(
-                                `Unknown DGP reference at line ${lineNumber}`,
-                            );
-                    }),
+            // Its edges' ends in turn, or a polyhedron.
+            validate: (args, lineNumber, variables) => {
+                const tokens = literalString(args[2]).split(",");
+                tokens.forEach((token) => {
+                    const kind = variables.get(
+                        polygonPointName(token, lineNumber),
+                    )!;
+                    if (
+                        !accepts(kind, "point") &&
+                        !(tokens.length === 1 && kind === "polyhedron")
+                    )
+                        throw new Error(
+                            `Unknown DGP reference at line ${lineNumber}`,
+                        );
+                });
+            },
             execute: (context, args) => {
                 const ends = (args[2] as string)
                     .split(",")
-                    .map(
-                        (token) =>
-                            context.variables.get(
-                                token.slice(1),
-                            ) as point_object,
-                    );
+                    .map((token) => context.variables.get(token.slice(1)));
                 return createPlaneSection(
                     context.construction,
                     args[0] as string,
                     args[1] as plane_object,
-                    ends.flatMap((end, index) =>
-                        index % 2 ? [] : [[end, ends[index + 1]]],
-                    ) as [point_object, point_object][],
+                    ends.length === 1
+                        ? (ends[0] as polyhedron_object)
+                        : (ends.flatMap((end, index) =>
+                              index % 2 ? [] : [[end, ends[index + 1]]],
+                          ) as [point_object, point_object][]),
                 );
             },
         },

@@ -795,6 +795,33 @@ cause.
       désormais montrée, avec les décimales de la figure. **+1 figure**
       (250 / 456), 2 autres en perdant moins ; moteur inchangé, import
       +0,42 Ko.
+- [x] **49. Points écrits dans les commandes, section d'un prisme, vue
+      graphique à côté de la vue 3D** : `3d_section_prisme.ggb` n'importait
+      rien, ses commandes lisant des points calculés sur place
+      (`Polygon(B + (-2, -2), …)`, `Vector[A, A + (0, 0, h)]` dans un
+      `Translate` dans un `Rotate`). Fait : une entrée qui n'est pas un objet devient un
+      point auxiliaire dès qu'elle vaut un point, couple ou point hors de
+      tout appel (`B + (-2, -2)`, mais pas `x(B) + 2`), comme déjà les
+      couples et les commandes imbriquées. Dans une figure 3D, `(x, y)` et
+      `(r; θ)` valent `(x, y, 0)`, comme dans GeoGebra : la somme d'un point
+      et d'un couple y était indéfinie sans être signalée (4 figures du
+      corpus y gagnent des objets). La section d'un polyèdre autre qu'une
+      pyramide (prisme, cube…) par un plan est `PlaneSection(plan, solide)`,
+      ses sommets rangés autour de son centre (la commande DGP accepte un
+      polyèdre, que le `.dgo` lisait déjà). Une figure qui montre une vue
+      graphique à côté de sa vue 3D (29 des 62 figures 3D du corpus, le
+      plus souvent pour ses curseurs) : ses widgets restent placés depuis
+      le coin supérieur gauche de la fenêtre, et la vue 3D est centrée dans
+      le reste, décalée de la demi-largeur (ou demi-hauteur) de la vue
+      graphique ; une figure 3D garde au redimensionnement son origine par
+      rapport au centre de la fenêtre, comme à la lecture d'un `.dgo`, au
+      lieu d'être recentrée. Reste : la géométrie de la seule vue graphique
+      (la manette de `3d_section_prisme`, que la boîte de découpe de la vue
+      3D de GeoGebra cache) est dessinée dans le plan z = 0. Le repère 2D
+      `f2` des figures 3D de DGPad n'y convient pas : ses points sont dans
+      le plan de l'écran, et un objet 3D construit à partir d'eux tournerait
+      avec la vue. **+6 figures** (256 / 456), 16 autres en perdant moins,
+      éléments non importés 3006 → 2811 ; moteur +0,08 Ko, import +0,75 Ko.
 
 À écarter, sauf changement de priorité : calcul formel, courbes implicites,
 statistiques et probabilités, tableur au-delà des cellules simples, matrices.
