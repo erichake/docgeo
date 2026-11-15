@@ -718,6 +718,16 @@ const VIEW: Record<string, Property> = {
         [0, 1, 2].includes(value as number),
     ),
     gi: field(grid_object, "viewInset", [0, 0], isPair),
+    gp: field(
+        grid_object,
+        "pivot",
+        null,
+        (value) =>
+            value === null ||
+            (Array.isArray(value) &&
+                value.length === 3 &&
+                value.every(isNumber)),
+    ),
     gv: field(
         grid_object,
         "insetColor",

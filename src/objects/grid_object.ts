@@ -104,6 +104,10 @@ export class grid_object extends construction_object {
     // window, beside a graphics view.
     boxSize = 1;
     viewInset: Vec2 = [0, 0];
+    // The point of space at the center of GeoGebra's 3D view when it
+    // opens, giving the depth of its clipping box's center. Null: the
+    // origin's.
+    pivot: Vec3 | null = null;
     // That graphics view's background, if not the figure's.
     insetColor: string | null = null;
     // The axes' ends: DGPad's arrow (0), none (1), GeoGebra's open (2) or
@@ -238,11 +242,7 @@ export class grid_object extends construction_object {
     get geogebraBox(): [Vec3, Vec3] {
         const [left, top] = this.viewInset;
         const { width, height } = this.C;
-        const [center] = viewRay(
-            [(width + left) / 2, (height + top) / 2],
-            [0, 0, 0],
-            this.projectionFrame,
-        )!;
+        const center = this.boxCenter;
         const factor = [Math.sqrt(1 / 3), Math.SQRT1_2, 1][this.boxSize];
         const across = ((width - left) / 2 / this.UNIT[0]) * factor;
         const half: Vec3 = [
@@ -251,6 +251,33 @@ export class grid_object extends construction_object {
             ((height - top) / 2 / this.UNIT[2]) * factor,
         ];
         return [vSub(center, half), vAdd(center, half)];
+    }
+
+    private get viewCenter(): Vec2 {
+        const [left, top] = this.viewInset;
+        return [(this.C.width + left) / 2, (this.C.height + top) / 2];
+    }
+
+    // At the pivot's depth: a pan or a zoom moves it in the screen's plane.
+    private get boxCenter(): Vec3 {
+        return viewRay(
+            this.viewCenter,
+            this.pivot ?? [0, 0, 0],
+            this.projectionFrame,
+        )![0];
+    }
+
+    // GeoGebra's view turns about its clipping box's center, kept at its
+    // center.
+    turn(phi: number, theta: number): void {
+        const center = this.pivot && this.boxCenter;
+        this.PHI = phi;
+        this.THETA = theta;
+        if (!center) return;
+        this.project();
+        const [x, y] = projectPoint(center, this.projectionFrame);
+        const [cx, cy] = this.viewCenter;
+        this.ORG = [this.ORG[0] + cx - x, this.ORG[1] + cy - y];
     }
 
     // GeoGebra's SetViewDirection: in a second, the view looks along
@@ -278,8 +305,10 @@ export class grid_object extends construction_object {
         cancelAnimationFrame(this.turning);
         const step = () => {
             const t = Math.min(((performance.now() - begin) / 1000) ** 2, 1);
-            this.PHI = -(start + (a - start) * t) / degrees;
-            this.THETA = (tilt + (b - tilt) * t) / degrees;
+            this.turn(
+                -(start + (a - start) * t) / degrees,
+                (tilt + (b - tilt) * t) / degrees,
+            );
             this.C.invalidateProjection();
             if (t < 1) this.turning = requestAnimationFrame(step);
         };

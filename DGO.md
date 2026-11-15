@@ -253,6 +253,7 @@ enregistrée `w` × `h` est centrée dans la fenêtre au pixel près, en 2D comm
 | `fe` | demi-côté du sol                     | 8               |
 | `gb` | taille de la boîte de GeoGebra       | 1               |
 | `gi` | coin de la vue 3D de GeoGebra        | [0, 0]          |
+| `gp` | centre initial de la vue 3D          | `null`          |
 | `gv` | fond de la vue graphique à côté      | `null`          |
 
 Dans une figure plane, comme dans GeoGebra : `td` est, par axe, la distance
@@ -288,7 +289,11 @@ boîte de découpe de GeoGebra, une flèche au bout, une graduation et un nombre
 côté, le nom de l'autre, au-delà de la flèche. `td`, `ts`, `al`, `nu` et `au`
 y ont une troisième valeur, celle de Oz (lus d'une paire, Oz garde son
 défaut) ; `oz` affiche Oz. La boîte : centrée sur le point de l'espace au
-centre de la vue 3D (le plus proche de l'origine sur la droite de visée),
+centre de la vue 3D, à la profondeur de `gp`, point au centre de la vue
+quand la figure s'ouvre (`null` : à celle de l'origine, le plus proche de
+l'origine sur la droite de visée). Avec `gp`, comme dans GeoGebra, la vue
+tourne autour du centre de la boîte, qui reste au centre de la vue (depuis le
+2026-11-15). La boîte est
 aussi large que cette vue le long de Ox et de Oy, aussi haute le long de Oz,
 le tout réduit par sa taille `gb` (0 petite, 1 moyenne, 2 grande : facteur
 1/√3, 1/√2, 1). La vue 3D est la fenêtre privée de `gi` pixels à gauche et en

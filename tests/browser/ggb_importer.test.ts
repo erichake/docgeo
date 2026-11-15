@@ -5031,6 +5031,21 @@ while (k < 1) {
         expect((c.getObj("liste1") as list_object).count).toBe(270);
     });
 
+    it("turns the 3D view about its clipping box's center, as GeoGebra", async () => {
+        const c = createConstruction([1200, 800]);
+        expect(importGgb(c, await loadXml("repere"))).toEqual([]);
+        c.OBJS.update();
+        const grid = c.GRID;
+        const box = grid.geogebraBox;
+        const corner = c.getObj("C1") as point_object;
+        for (let i = 0; i < 10; i++) {
+            c.mousedrag(new PointerEvent("pointermove"), [7, -3]);
+            c.OBJS.update();
+        }
+        expectClose(grid.geogebraBox, box);
+        expectClose(corner.coords, box[0]);
+    });
+
     it("opens a coordinate system whose checkboxes hide its axes and turn it", async () => {
         const c = createConstruction();
         const xml = await loadXml("repere");

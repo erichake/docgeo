@@ -134,13 +134,15 @@ export class construction {
         const [dx, dy] = delta;
         const rt = this.GRID.RESTRICT_THETA;
         const rp = this.GRID.RESTRICT_PHI;
-        this.GRID.THETA = Math.max(
-            Math.min(this.GRID.THETA + dy * this.GRID.STEP, rt[1]),
-            rt[0],
-        );
-        this.GRID.PHI = Math.max(
-            Math.min(this.GRID.PHI + dx * this.GRID.STEP, rp[1]),
-            rp[0],
+        this.GRID.turn(
+            Math.max(
+                Math.min(this.GRID.PHI + dx * this.GRID.STEP, rp[1]),
+                rp[0],
+            ),
+            Math.max(
+                Math.min(this.GRID.THETA + dy * this.GRID.STEP, rt[1]),
+                rt[0],
+            ),
         );
         this.invalidateProjection();
     }

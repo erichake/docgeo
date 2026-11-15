@@ -6178,7 +6178,10 @@ export function translateGgb(
         const wide = `(windoww()-${left}/pixel())*${factor}`;
         const high = `(windowh()-${top}/pixel())*${factor}`;
         const sign = (positive: boolean) => (positive ? "+" : "-");
-        return `[${a}*sin(phi())-${b}*cos(phi())*sin(theta())${sign([2, 3, 6, 7].includes(n))}${wide},${a}*cos(phi())+${b}*sin(phi())*sin(theta())${sign([3, 4, 7, 8].includes(n))}${wide},${b}*cos(theta())${sign(n > 4)}${high}]`;
+        // At the depth of the point at the view's center when it opens.
+        const [px, py, pz] = (camera?.offset ?? [0, 0, 0]).map((v) => -v);
+        const depth = `((${px})*cos(phi())*cos(theta())-(${py})*sin(phi())*cos(theta())+(${pz})*sin(theta()))`;
+        return `[${a}*sin(phi())-${b}*cos(phi())*sin(theta())+${depth}*cos(phi())*cos(theta())${sign([2, 3, 6, 7].includes(n))}${wide},${a}*cos(phi())+${b}*sin(phi())*sin(theta())-${depth}*sin(phi())*cos(theta())${sign([3, 4, 7, 8].includes(n))}${wide},${b}*cos(theta())+${depth}*sin(theta())${sign(n > 4)}${high}]`;
     };
     const styledView = view3D ?? view;
     if (!is3D && coordSystem)
