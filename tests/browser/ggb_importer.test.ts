@@ -69,6 +69,7 @@ import {
 } from "../../src/vec";
 import { expectClose, figure } from "./figures";
 import { event_object } from "../../src/objects/event_object";
+import type { formula_point_object } from "../../src/objects/formula_point_object";
 import type { button_object } from "../../src/objects/button_object";
 import {
     blocksProgram,
@@ -2475,8 +2476,8 @@ ${box("t4", true, "$\\text{\\sf{r =}}$")}
         expect(c.GRID.size).toBe(2);
         expect(c.GRID.fontSize).toBe(15);
         expect(c.GRID.onlyPositive).toBe(true);
-        expect(c.GRID.tickDistances).toEqual([1, 1]);
-        expect(c.GRID.tickStyles).toEqual([1, 1]);
+        expect(c.GRID.tickDistances).toEqual([1, 1, 0]);
+        expect(c.GRID.tickStyles).toEqual([1, 1, 0]);
         expect(c.GRID.boldNumbers).toBe(true);
         expect(c.GRID.geogebraAxes).toBe(true);
         const texts = [...c.GRID.dom.dom().querySelectorAll("text")].filter(
@@ -2493,7 +2494,7 @@ ${box("t4", true, "$\\text{\\sf{r =}}$")}
         expect(plain.GRID.size).toBe(1);
         expect(plain.GRID.fontSize).toBe(12);
         expect(plain.GRID.onlyPositive).toBe(false);
-        expect(plain.GRID.tickDistances).toEqual([0, 0]);
+        expect(plain.GRID.tickDistances).toEqual([0, 0, 0]);
         expect(plain.GRID.boldNumbers).toBe(false);
     });
 
@@ -2558,9 +2559,9 @@ ${box("t4", true, "$\\text{\\sf{r =}}$")}
         const c = createConstruction();
         importGgb(c, xml);
         await new Promise((resolve) => requestAnimationFrame(resolve));
-        expect(c.GRID.axisLabels).toEqual(["x", "f(x)"]);
-        expect(c.GRID.axisUnits).toEqual(["π", ""]);
-        expect(c.GRID.showNumbers).toEqual([true, false]);
+        expect(c.GRID.axisLabels).toEqual(["x", "f(x)", ""]);
+        expect(c.GRID.axisUnits).toEqual(["π", "", ""]);
+        expect(c.GRID.showNumbers).toEqual([true, false, true]);
         expect(c.GRID.arrows).toBe(3);
         const texts = [...c.GRID.dom.dom().querySelectorAll("text")]
             .filter((text) => (text as SVGElement).style.display !== "none")
@@ -2573,9 +2574,9 @@ ${box("t4", true, "$\\text{\\sf{r =}}$")}
             .forEach((text) => expect(text).toMatch(/^-?\d*π(\/2)?$/));
         const restored = createConstruction();
         readDgo(restored, await describeDgo(c));
-        expect(restored.GRID.axisLabels).toEqual(["x", "f(x)"]);
-        expect(restored.GRID.axisUnits).toEqual(["π", ""]);
-        expect(restored.GRID.showNumbers).toEqual([true, false]);
+        expect(restored.GRID.axisLabels).toEqual(["x", "f(x)", ""]);
+        expect(restored.GRID.axisUnits).toEqual(["π", "", ""]);
+        expect(restored.GRID.showNumbers).toEqual([true, false, true]);
         expect(restored.GRID.arrows).toBe(3);
         // Open by default.
         const plain = createConstruction();
@@ -4295,6 +4296,104 @@ while (k < 1) {
         );
         // Its points drawn as GeoGebra's list.
         expect((c.getObj("liste1") as list_object).count).toBe(270);
+    });
+
+    it("opens a coordinate system whose checkboxes hide its axes and turn it", async () => {
+        const c = createConstruction();
+        const xml = await loadXml("repere");
+        expect(importGgb(c, xml)).toEqual([]);
+        const grid = c.GRID;
+        // GeoGebra's colored axes across its clipping box, beneath the
+        // graphics view of the checkboxes, which the box's corners and the
+        // prism built on them follow; no plate.
+        expect([grid.geogebraAxes, grid.SHOWFLOOR, grid.boxSize]).toEqual([
+            true,
+            false,
+            1,
+        ]);
+        expect(grid.viewInset).toEqual([0, 140]);
+        expect(grid.axisLabels).toEqual(["x", "y", "z"]);
+        expect(grid.tickDistances).toEqual([1, 1, 1]);
+        const coords = (name: string) =>
+            (c.getObj(name) as point_object).coords;
+        expectClose(coords("C1"), grid.geogebraBox[0]);
+        expectClose(coords("B"), grid.geogebraBox[1]);
+        // P, DynamicCoordinates of Q, moves Q where it goes.
+        const p = c.getObj("P") as formula_point_object;
+        const q = c.getObj("Q") as point_object;
+        expect(p.follows).toBe(q);
+        q.coords = [2, 3, 4];
+        c.invalidateGeometry(q);
+        c.flush();
+        expectClose(coords("P"), [2, 3, 4]);
+        // Unchecked, "Altitude" hides Oz, brings P and Q down to z = 0 by
+        // their update scripts, shows the plane xOy and turns the view in a
+        // second to look from above, Ox to the right.
+        const turn = async (name: string, value: number) => {
+            const box = c.getObj(name) as expression_object;
+            box.value = value;
+            c.invalidateGeometry(box);
+            c.flush();
+            await new Promise((resolve) => setTimeout(resolve, 1100));
+            c.flush();
+        };
+        await turn("az", 0);
+        expect(grid.showOz).toBe(false);
+        expectClose(coords("P"), [2, 3, 0]);
+        expectClose(coords("Q"), [2, 3, 0]);
+        expect(c.getObj("pxy")!.isVisible).toBe(true);
+        expectClose([grid.PHI, grid.THETA], [Math.PI / 2, Math.PI / 2]);
+        // Checked again, as GeoGebra saved it.
+        await turn("az", 1);
+        expect(grid.showOz).toBe(true);
+        expectClose(
+            [grid.PHI, grid.THETA],
+            [Math.atan(2), Math.asin(1 / Math.sqrt(21))],
+        );
+        // "Abscisse" hides Ox and sets x to 0.
+        await turn("ax", 0);
+        expect(grid.showOx).toBe(false);
+        expectClose(coords("P"), [0, 3, 0]);
+        // Its scripts open as blocks.
+        const programs = c.OBJS.V.filter(
+            (object): object is event_object => object instanceof event_object,
+        ).map(({ program: { program, refs, targets } }) => {
+            const named = renameFormula(
+                formulaSource(program),
+                (name) => (refs.get(name) ?? targets.get(name))?.name,
+            );
+            return blocksProgram(
+                programBlocks(parseProgram(named), true, formatName)!,
+                formatName,
+            );
+        });
+        // "Altitude" reads vz before it changes, as GeoGebra.
+        const moved = "P.setExpression([vx * x(P), vy * y(P), vz * z(P)]);";
+        expect(programs).toEqual([
+            `SHOW_AXIS(2, az);
+if ((!az ? 1 : 0) == 0) {
+    VIEW_DIRECTION([-2, 4, -1]);
+} else {
+    VIEW_DIRECTION([0, 0, -1]);
+}`,
+            moved,
+            "SHOW_AXIS(1, ay);",
+            moved,
+            "SHOW_AXIS(0, ax);",
+            moved,
+            "Q.setExpression([x(P), y(P), z(P)]);",
+        ]);
+        // Saved and opened again.
+        const restored = createConstruction();
+        readDgo(restored, await describeDgo(c));
+        expect((restored.getObj("P") as formula_point_object).follows).toBe(
+            restored.getObj("Q"),
+        );
+        expect([restored.GRID.showOx, restored.GRID.viewInset]).toEqual([
+            false,
+            [0, 140],
+        ]);
+        expect(restored.GRID.axisLabels).toEqual(["x", "y", "z"]);
     });
 
     it("reports what it can't import instead of failing", () => {

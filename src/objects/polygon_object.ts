@@ -213,14 +213,19 @@ export class polygon_object extends construction_object {
         );
     }
 
+    // The frame its points' parameters are in: its first vertices.
+    protected get parameterFrame(): Vec3[] {
+        return this.points.slice(0, 3).map((point) => point.coords);
+    }
+
     pointAt(
         [a, b]: readonly [number, number],
         onBoundary = false,
     ): Vec3 | null {
-        if (this.points.length < 3) return null;
-        const origin = this.points[0].coords;
-        const u = vSub(this.points[1].coords, origin);
-        const v = vSub(this.points[2].coords, origin);
+        const [origin, p, q] = this.parameterFrame;
+        if (!q) return null;
+        const u = vSub(p, origin);
+        const v = vSub(q, origin);
         return this.constrain(
             vAdd(origin, vAdd(vScale(u, a), vScale(v, b))),
             onBoundary,
@@ -280,10 +285,10 @@ export class polygon_object extends construction_object {
     }
 
     private planeCoordinates(target: Vec3): Vec2 | null {
-        if (this.points.length < 3) return null;
-        const origin = this.points[0].coords;
-        const u = vSub(this.points[1].coords, origin);
-        const v = vSub(this.points[2].coords, origin);
+        const [origin, p, q] = this.parameterFrame;
+        if (!q) return null;
+        const u = vSub(p, origin);
+        const v = vSub(q, origin);
         const relative = vSub(target, origin);
         const uu = vDot(u, u);
         const uv = vDot(u, v);

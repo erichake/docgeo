@@ -328,6 +328,7 @@ function defineBlocks(): void {
                 choice("AXIS", [
                     ["ABSCISSA", "x"],
                     ["ORDINATE", "y"],
+                    ["APPLICATE", "z"],
                 ]),
                 { type: "input_value", name: "POINT" },
             ],
@@ -416,6 +417,32 @@ function defineBlocks(): void {
             ...statement,
             style: "figure_blocks",
             extensions: ["dg_style_object"],
+        },
+        {
+            type: "dg_view_direction",
+            message0: msg("VIEW_DIRECTION"),
+            args0: [{ type: "input_value", name: "VECTOR" }],
+            inputsInline: true,
+            ...statement,
+            style: "figure_blocks",
+        },
+        {
+            type: "dg_show_axis",
+            message0: msg("SHOW_AXIS"),
+            args0: [
+                {
+                    type: "field_dropdown",
+                    name: "AXIS",
+                    options: ["x", "y", "z"].map((name, axis) => [
+                        name,
+                        String(axis),
+                    ]),
+                },
+                { type: "input_value", name: "SHOWN" },
+            ],
+            inputsInline: true,
+            ...statement,
+            style: "figure_blocks",
         },
         {
             type: "dg_set_value",
@@ -891,6 +918,17 @@ function toolbox(kinds: string[], owner: string, starts: string[]) {
                         B: num(255),
                     }),
                     block("dg_style_arrow", { W: num(16), H: num(5) }),
+                    block("dg_show_axis", {
+                        SHOWN: shadow("logic_boolean", { BOOL: "TRUE" }),
+                    }),
+                    block("dg_view_direction", {
+                        VECTOR: {
+                            block: {
+                                type: "dg_point3",
+                                inputs: { X: num(0), Y: num(0), Z: num(-1) },
+                            },
+                        },
+                    }),
                     ...(kinds.includes("program")
                         ? [block("dg_return", { VALUE: num(0) })]
                         : []),

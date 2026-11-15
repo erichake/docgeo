@@ -345,6 +345,17 @@ export class point_object extends construction_object {
         this.renderTrace();
         if (!drawn) return;
         this.dom.att("transform", `translate(${this.sx} ${this.sy})`);
+        // GeoGebra's caption "%v": its coordinates, rounded.
+        if (this.nameText && this.caption?.includes("%v")) {
+            const digits = 10 ** Math.max(this.precision, 0);
+            const value = `(${this.coords
+                .slice(0, this.C.GRID.is2D ? 2 : 3)
+                .map((c) => String(Math.round(c * digits) / digits || 0))
+                .join(", ")})`;
+            const text = this.caption.replace(/%v/g, value);
+            if (text !== this.nameText.text())
+                writeName(this.nameText.text(""), text);
+        }
         if (this.nameText && this.nameOffset)
             this.nameText
                 .att("x", this.nameOffset[0])

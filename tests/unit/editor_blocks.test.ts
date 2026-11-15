@@ -479,6 +479,21 @@ return [t, [a]][2 - 1][1 - 1] + t.slice(-1)[0] + [t][1 - 1].slice(-1)[0];`);
         expect(roundTrip(robot)).toContain("WAIT(200);");
     });
 
+    it("turns the 3D view and shows its axes, as GeoGebra's scripts", () => {
+        const source = `SHOW_AXIS(2, az);
+if ((!az ? 1 : 0) == 0) {
+    VIEW_DIRECTION([-2, 4, -1]);
+} else {
+    VIEW_DIRECTION([0, 0, -1]);
+}
+Q.setExpression([x(P), y(P), z(P)]);`;
+        const blocks = JSON.stringify(programBlocks(source, true));
+        ["dg_show_axis", "dg_view_direction", '"AXIS":"z"'].forEach((part) =>
+            expect(blocks).toContain(part),
+        );
+        expect(roundTrip(source, true, new Set(["az"]))).toBe(source);
+    });
+
     it("asks and waits for the answer, as Scratch's sensing blocks", () => {
         const source = `ASK("Quel est ton nom ?");
 ALERT("Bonjour " + ANSWER());`;

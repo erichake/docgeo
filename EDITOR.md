@@ -1595,6 +1595,11 @@ ses méthodes internes et figé dans sa version de 2016.
   message, avec un champ ; le programme reprend à la validation (OK ou
   Entrée), comme après un `WAIT`. Hors du programme d'un bouton ou d'un
   événement, `ASK` ne demande rien.
+- **Vue 3D et axes** (2026-11-15, pour les scripts de `repere.ggb`) :
+  blocs « tourner la vue 3D dans la direction … » (`dg_view_direction`,
+  `VIEW_DIRECTION(v)`) et « afficher l'axe x/y/z : … » (`dg_show_axis`,
+  `SHOW_AXIS(n, b)`), catégorie « Figure » ; « cote » dans le bloc de
+  coordonnée (`z(P)`).
 - **Boucles écrites à la main** (2026-11-01, sans nouveau bloc) : `v++`
   seul devient « ajouter 1 à v » ; une boucle `for` qui n'est pas celle de
   Blockly (`i < n`, pas quelconque) devient son initialisation suivie d'un

@@ -5,11 +5,21 @@ import {
     projectPoint,
     screenBasis,
     viewDirection,
+    viewRay,
     type ProjectionFrame,
 } from "../projection";
 import type { ScriptValue } from "../import/dgp_formula";
-import { vNormalize, type Vec2, type Vec3 } from "../vec";
+import {
+    vAdd,
+    vDot,
+    vNormalize,
+    vScale,
+    vSub,
+    type Vec2,
+    type Vec3,
+} from "../vec";
 import { axes_2d } from "./axes_2d";
+import { axes_3d } from "./axes_3d";
 import { construction_object } from "./construction_object";
 import { floorClipPath } from "./floor_occlusion";
 import { point_object } from "./point_object";
@@ -74,19 +84,26 @@ export class grid_object extends construction_object {
     showGrid = true;
     showOx = true;
     showOy = true;
+    showOz = true;
     onlyPositive = false;
-    // Per axis, GeoGebra's fixed distance between two numbers, 0 for DGPad's
-    // own, and graduations: 0 major and minor, 1 major only, 2 none.
-    tickDistances: Vec2 = [0, 0];
-    tickStyles: Vec2 = [0, 0];
+    // Per axis (Oz in 3D), GeoGebra's fixed distance between two numbers, 0
+    // for DGPad's own, and graduations: 0 major and minor, 1 major only, 2
+    // none.
+    tickDistances: [number, number, number] = [0, 0, 0];
+    tickStyles: [number, number, number] = [0, 0, 0];
     boldNumbers = false;
     // Graduations and numbers placed as GeoGebra's (see axes_2d).
     geogebraAxes = false;
     // Per axis: its name, written at its end, whether it shows its numbers,
     // and their unit, written after them ("π": multiples of π).
-    axisLabels: [string, string] = ["", ""];
-    showNumbers: [boolean, boolean] = [true, true];
-    axisUnits: [string, string] = ["", ""];
+    axisLabels: [string, string, string] = ["", "", ""];
+    showNumbers: [boolean, boolean, boolean] = [true, true, true];
+    axisUnits: [string, string, string] = ["", "", ""];
+    // GeoGebra's 3D view, where its axes end: its clipping box's size (0
+    // small, 1 medium, 2 large) and the view's top left corner in the
+    // window, beside a graphics view.
+    boxSize = 1;
+    viewInset: Vec2 = [0, 0];
     // The axes' ends: DGPad's arrow (0), none (1), GeoGebra's open (2) or
     // filled one (3).
     arrows = 0;
@@ -117,6 +134,7 @@ export class grid_object extends construction_object {
     private _floorExtent = 8;
     private floorPoints: point_object[] = [];
     private axes2D!: axes_2d;
+    private axes3D!: axes_3d;
     // Defaults to shown, matching the default-visible axis (isAxis defaults
     // to true); applyCoordsStyle keeps the two in sync when isAxis is set
     // explicitly. Independent of the axis afterwards: 's' toggles it even
@@ -213,6 +231,60 @@ export class grid_object extends construction_object {
         this.DIR = vNormalize(viewDirection(this.projectionFrame)) ?? this.DIR;
     }
 
+    // GeoGebra's clipping box: centered in its view, as wide as it along Ox
+    // and Oy, as high along Oz, shrunk by its size.
+    get geogebraBox(): [Vec3, Vec3] {
+        const [left, top] = this.viewInset;
+        const { width, height } = this.C;
+        const [center] = viewRay(
+            [(width + left) / 2, (height + top) / 2],
+            [0, 0, 0],
+            this.projectionFrame,
+        )!;
+        const factor = [Math.sqrt(1 / 3), Math.SQRT1_2, 1][this.boxSize];
+        const across = ((width - left) / 2 / this.UNIT[0]) * factor;
+        const half: Vec3 = [
+            across,
+            across,
+            ((height - top) / 2 / this.UNIT[2]) * factor,
+        ];
+        return [vSub(center, half), vAdd(center, half)];
+    }
+
+    // GeoGebra's SetViewDirection: in a second, the view looks along
+    // `direction`, from its side nearest the camera, or from the other
+    // when it already does.
+    turnTo(direction: Vec3): void {
+        const degrees = 180 / Math.PI;
+        const [x, y, z] =
+            vDot(direction, this.DIR) > 0 ? vScale(direction, -1) : direction;
+        let a = Math.hypot(x, y) && Math.atan2(y, x) * degrees;
+        let b = Math.atan2(z, Math.hypot(x, y)) * degrees;
+        const near = (u: number, v: number) => Math.abs(u - v) < 1e-10;
+        // From above, Ox to the right.
+        if (near(a, 0) && near(Math.abs(b), 90)) a = -90;
+        let start = (-this.PHI * degrees) % 360;
+        if (start - a > 180) start -= 360;
+        else if (start - a < -180) start += 360;
+        let tilt = (this.THETA * degrees) % 360;
+        if (tilt > 180) tilt -= 360;
+        if (near(start, a) && near(tilt, b)) {
+            if (!near(Math.abs(b), 90)) a += 180;
+            b = -b;
+        }
+        const begin = performance.now();
+        cancelAnimationFrame(this.turning);
+        const step = () => {
+            const t = Math.min(((performance.now() - begin) / 1000) ** 2, 1);
+            this.PHI = -(start + (a - start) * t) / degrees;
+            this.THETA = (tilt + (b - tilt) * t) / degrees;
+            this.C.invalidateProjection();
+            if (t < 1) this.turning = requestAnimationFrame(step);
+        };
+        step();
+    }
+    private turning = 0;
+
     get screenIJK(): [Vec2, Vec2, Vec2] {
         return screenBasis(this.projectionFrame);
     }
@@ -241,6 +313,7 @@ export class grid_object extends construction_object {
         );
         if (this.is2D) {
             this.axis.stl("display", "none");
+            this.axes3D.dom.stl("display", "none");
             if (this.isVisible) this.axes2D.render(this);
             this.renderFloor();
             return;
@@ -253,7 +326,13 @@ export class grid_object extends construction_object {
         d += " M" + this.ORG[0] + " " + this.ORG[1];
         d += " L" + v[2][0] + " " + v[2][1];
         this.axis.att("d", d);
-        this.axis.stl("display", this.isVisible ? "block" : "none");
+        const geogebra = this.geogebraAxes && this.isVisible;
+        this.axis.stl(
+            "display",
+            this.isVisible && !geogebra ? "block" : "none",
+        );
+        this.axes3D.dom.stl("display", geogebra ? "block" : "none");
+        if (geogebra) this.axes3D.render(this);
         this.renderFloor();
     }
 
@@ -381,7 +460,8 @@ export class grid_object extends construction_object {
             .stl("cursor:pointer");
         dom.add(t.axis);
         t.axes2D = new axes_2d(t.svg);
-        dom.add(t.axes2D.dom);
+        t.axes3D = new axes_3d(t.svg);
+        dom.add(t.axes3D.dom, t.axes2D.dom);
         return dom;
     }
 }

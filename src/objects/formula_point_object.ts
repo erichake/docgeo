@@ -39,6 +39,9 @@ export class formula_point_object extends point_object {
         null,
         null,
     ];
+    // Or the free point a drag moves where it is dragged (GeoGebra's
+    // DynamicCoordinates).
+    follows: point_object | null = null;
 
     constructor(
         c: construction,
@@ -115,10 +118,18 @@ export class formula_point_object extends point_object {
         );
         return [
             "Fp",
-            this.moveable
-                ? [formula, ...this.handles.map((h) => h && context.index(h))]
-                : [formula],
+            this.follows
+                ? [formula, context.index(this.follows)]
+                : this.moveable
+                  ? [formula, ...this.handles.map((h) => h && context.index(h))]
+                  : [formula],
         ];
+    }
+
+    setFollows(point: point_object): void {
+        this.follows = point;
+        this.moveable = true;
+        if (this.hasView) this.createSVG();
     }
 
     setHandles(
@@ -135,6 +146,10 @@ export class formula_point_object extends point_object {
             this.z,
         );
         if (!coords) return;
+        if (this.follows) {
+            this.follows.coords = coords;
+            return void this.C.invalidateGeometry(this.follows);
+        }
         this.handles.forEach((handle, index) => {
             if (!handle) return;
             const value =

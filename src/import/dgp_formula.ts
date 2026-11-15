@@ -24,6 +24,7 @@ export type FormulaFn =
     | "phi"
     | "x"
     | "y"
+    | "z"
     | "sin"
     | "cos"
     | "tan"
@@ -60,8 +61,9 @@ export type FormulaFn =
     | ListFn;
 
 // DGPad's own names for its operators, also applying to lists, its view
-// restrictions (see restrictView), Blockly's message (see alert) and a
-// button's wait, question and its answer (see programSteps).
+// restrictions (see restrictView), Blockly's message (see alert), a
+// button's wait, question and its answer (see programSteps), and DocGeo's
+// turn of the 3D view and show of an axis (see turnView, showAxis).
 type ListFn =
     | "plus"
     | "minus"
@@ -74,7 +76,9 @@ type ListFn =
     | "ALERT"
     | "WAIT"
     | "ASK"
-    | "ANSWER";
+    | "ANSWER"
+    | "VIEW_DIRECTION"
+    | "SHOW_AXIS";
 
 // -1: one argument or more.
 const FORMULA_ARITY: Record<FormulaFn, number> = {
@@ -89,6 +93,7 @@ const FORMULA_ARITY: Record<FormulaFn, number> = {
     phi: 0,
     x: 1,
     y: 1,
+    z: 1,
     sin: 1,
     cos: 1,
     tan: 1,
@@ -133,6 +138,8 @@ const FORMULA_ARITY: Record<FormulaFn, number> = {
     WAIT: 1,
     ASK: 1,
     ANSWER: 0,
+    VIEW_DIRECTION: 1,
+    SHOW_AXIS: 2,
 };
 
 const LIST_OPERATORS: Record<ListFn, BinaryOp | null> = {
@@ -148,6 +155,8 @@ const LIST_OPERATORS: Record<ListFn, BinaryOp | null> = {
     WAIT: null,
     ASK: null,
     ANSWER: null,
+    VIEW_DIRECTION: null,
+    SHOW_AXIS: null,
 };
 
 // The only methods a script may call: reading an object, changing one of
@@ -1725,6 +1734,10 @@ export interface FormulaEnv {
     restrictView?(angle: "THETA" | "PHI", range: ScriptValue | null): void;
     // Blockly's message, shown by a program run as a manipulation.
     alert?(message: ScriptValue | null): void;
+    // GeoGebra's SetViewDirection and SetVisibleInView of an axis (0, 1 or
+    // 2), run by a program.
+    turnView?(direction: ScriptValue | null): void;
+    showAxis?(axis: ScriptValue | null, shown: ScriptValue | null): void;
     // Carries out a script's styling method on one of the figure's objects.
     callMethod?(
         object: string,
@@ -1950,6 +1963,11 @@ function evalCall(
         case "y": {
             const [a] = args;
             return typeof a === "number" ? null : a[1];
+        }
+        // A point's in the plane z = 0, as in GeoGebra.
+        case "z": {
+            const [a] = args;
+            return typeof a === "number" ? null : (a[2] ?? 0);
         }
         case "sqrt": {
             const [a] = args;
@@ -2637,6 +2655,10 @@ function compileNode(node: FormulaNode, scope: Scope): Code {
                     if (values === null) return null;
                     if (op) return evalBinary(op, values[0], values[1]);
                     if (fn === "ALERT") frame.env.alert?.(values[0]);
+                    else if (fn === "VIEW_DIRECTION")
+                        frame.env.turnView?.(values[0]);
+                    else if (fn === "SHOW_AXIS")
+                        frame.env.showAxis?.(values[0], values[1]);
                     else if (fn !== "WAIT" && fn !== "ASK")
                         frame.env.restrictView?.(
                             fn === "restrictTheta" ? "THETA" : "PHI",
@@ -2841,13 +2863,13 @@ function unaryCall(fn: Exclude<FormulaFn, ListFn | "isNaN">): UnaryCall | null {
             isReal(v)
                 ? inverse(v) / frameUnit(frame)
                 : callValues(fn, [v], frame);
-    if (fn === "x" || fn === "y") {
-        const axis = fn === "x" ? 0 : 1;
+    if (fn === "x" || fn === "y" || fn === "z") {
+        const axis = "xyz".indexOf(fn);
         return (_, v) => {
             const point = v === null ? null : checkedValue(v);
             return point === null || typeof point === "number"
                 ? null
-                : point[axis];
+                : (point[axis] ?? 0);
         };
     }
     return null;

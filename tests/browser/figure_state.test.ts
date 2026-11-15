@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 // First, as in main.ts: the object classes import each other.
 import "../../src/construction";
 import type { construction } from "../../src/construction";
+import type { construction_object } from "../../src/objects/construction_object";
 import { describeDgo, figureObjects, readDgo } from "../../src/dgo";
 import { importDgpFromUrl } from "../../src/dgp_importer";
 import {
@@ -54,8 +55,12 @@ const FIGURE = {
 
 // What a student can do: move every free point, pinned or not, and point on
 // an object, change every slider, checkbox, number and circle's radius.
-function manipulate(c: construction): void {
+function manipulate(
+    c: construction,
+    kept: (object: construction_object) => boolean = () => true,
+): void {
     figureObjects(c).forEach((object) => {
+        if (!kept(object)) return;
         if (object instanceof point_on_object) {
             const alpha = object.alpha;
             object.alpha =
@@ -147,7 +152,22 @@ describe("state round trip", () => {
         stateRoundTrip((c) => importDgpFromUrl(c, figure(name))),
     );
     it.each(GGB)("%s", (name) =>
-        stateRoundTrip((c) => importGgbFromUrl(c, figure(name))),
+        stateRoundTrip(
+            (c) => importGgbFromUrl(c, figure(name)),
+            // Its checkboxes' scripts turn the view and show its axes, which
+            // the state doesn't keep.
+            name === "repere.ggb"
+                ? (c) =>
+                      manipulate(
+                          c,
+                          (object) =>
+                              !(
+                                  object instanceof expression_object &&
+                                  object.checkbox
+                              ),
+                      )
+                : manipulate,
+        ),
     );
 
     // The state alone, from the base figure, would number them otherwise.

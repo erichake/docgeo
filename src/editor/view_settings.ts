@@ -21,8 +21,8 @@ const DGPAD = {
     gridSubdivisions: 0,
     gridColor: null as string | null,
     gridDash: [] as number[],
-    tickDistances: [0, 0] as Pair,
-    tickStyles: [0, 0] as Pair,
+    tickDistances: [0, 0, 0] as grid_object["tickDistances"],
+    tickStyles: [0, 0, 0] as grid_object["tickStyles"],
     boldNumbers: false,
     geogebraAxes: false,
     arrows: 0,
@@ -41,7 +41,7 @@ const PRESETS: [MessageKey, Partial<Looks>][] = [
             gridWidth: 1,
             gridSubdivisions: 5,
             gridColor: "#b4b3ba",
-            tickStyles: [1, 1],
+            tickStyles: [1, 1, 1],
             geogebraAxes: true,
             arrows: 2,
         },
@@ -650,8 +650,8 @@ export function viewSettings(
         );
         const texts = (
             key: MessageKey,
-            values: [string, string],
-            change: (values: [string, string]) => void,
+            values: [string, string, string],
+            change: (values: [string, string, string]) => void,
             list?: string,
         ) =>
             pairRow(axes, key, (axis, name) =>
@@ -676,7 +676,9 @@ export function viewSettings(
                 name,
                 grid.showNumbers[axis],
                 draw((value) => {
-                    const shown: [boolean, boolean] = [...grid.showNumbers];
+                    const shown = [
+                        ...grid.showNumbers,
+                    ] as typeof grid.showNumbers;
                     shown[axis] = value;
                     grid.showNumbers = shown;
                 }),
@@ -711,7 +713,9 @@ export function viewSettings(
                     ],
                 ),
                 draw((style) => {
-                    const styles: Pair = [...grid.tickStyles];
+                    const styles = [
+                        ...grid.tickStyles,
+                    ] as typeof grid.tickStyles;
                     styles[axis] = style;
                     grid.tickStyles = styles;
                 }),
@@ -720,9 +724,12 @@ export function viewSettings(
         pair(
             axes,
             "tick_distance",
-            [...grid.tickDistances],
+            [grid.tickDistances[0], grid.tickDistances[1]],
             [0, 1000, 0.001, { pixel: 0.01, relative: true }],
-            draw((values) => (grid.tickDistances = values)),
+            draw(
+                (values) =>
+                    (grid.tickDistances = [...values, grid.tickDistances[2]]),
+            ),
             true,
         );
         row(

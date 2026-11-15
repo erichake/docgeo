@@ -81,6 +81,8 @@ export interface GgbTranslation {
     // The free numbers dragging a formula point shifts, per coordinate (see
     // changeableNumber).
     handles: Map<string, [string | null, string | null]>;
+    // The free point dragging a formula point moves (DynamicCoordinates).
+    follows: Map<string, string>;
     // Where GeoGebra moved the name of an object other than a point, in
     // pixels from its default place (see anchorName).
     nameShifts: Map<string, Vec2>;
@@ -217,7 +219,7 @@ const FUNCTIONS: Record<string, string | Expansion> = {
     Max: "max",
     // GeoGebra's modulo is never negative.
     Mod: ([a, b]) => `((${a})-floor((${a})/(${b}))*(${b}))`,
-    z: ([a]) => `dot(${a},[0,0,1])`,
+    z: ([a]) => `z(${a})`,
     // Drawn once, at import, between constant bounds: GeoGebra saves no
     // value for a random number in a function (a "?" fails the formula).
     Random: (bounds) => {
@@ -324,6 +326,8 @@ const CUBE_EDGES = [
     [2, 6],
     [6, 7],
 ];
+// The axes' names in a script, English or French.
+const AXIS_NAME = /^(?:([xyz])Axis|axe([XYZ]))$/;
 const AXES: Record<string, Vec3> = {
     xAxis: [1, 0, 0],
     yAxis: [0, 1, 0],
@@ -996,6 +1000,7 @@ export function translateGgb(
     const calls: DgpCall[] = [];
     const targets = new Map<string, Vec3>();
     const handles = new Map<string, [string | null, string | null]>();
+    const follows = new Map<string, string>();
     const nameShifts = new Map<string, Vec2>();
     const animations = new Map<string, Animation>();
     const rateSources = new Map<string, string>();
@@ -1068,15 +1073,23 @@ export function translateGgb(
     const elements = new Map<string, Element>();
     const expressions = new Map<string, string>();
     const commandOutputs = new Set<string>();
+    // How an object is defined, as an expression.
+    const definitions = new Map<string, string>();
     [...construction.children].forEach((node) => {
         const label = node.getAttribute("label") ?? "";
         if (node.tagName === "element") elements.set(label, node);
-        else if (node.tagName === "expression")
+        else if (node.tagName === "expression") {
             expressions.set(label, node.getAttribute("exp") ?? "");
-        else if (node.tagName === "command")
-            indexedAttributes(child(node, "output")).forEach((output) =>
-                commandOutputs.add(output),
-            );
+            definitions.set(label, node.getAttribute("exp") ?? "");
+        } else if (node.tagName === "command") {
+            const outputs = indexedAttributes(child(node, "output"));
+            outputs.forEach((output) => commandOutputs.add(output));
+            if (outputs.length === 1)
+                definitions.set(
+                    outputs[0],
+                    `${node.getAttribute("name")}(${indexedAttributes(child(node, "input")).join(",")})`,
+                );
+        }
     });
 
     // Each number's saved value, standing for it in a slider's bounds,
@@ -1092,7 +1105,7 @@ export function translateGgb(
 
     // A polyhedron defined by nothing draws nothing (see independent).
     const orphan = (label: string, element: Element): boolean =>
-        element.getAttribute("type") === "polyhedron" &&
+        ["polyhedron", "polygon3d"].includes(element.getAttribute("type")!) &&
         !commandOutputs.has(label) &&
         !expressions.has(label);
     const is3D =
@@ -1734,6 +1747,7 @@ export function translateGgb(
     // applet's.
     const cornerFormula = (args: string[]): string | null => {
         const [view, n] = args.length === 2 ? args : ["1", ...args];
+        if (view === "-1" && is3D) return boxCorner(Number(n));
         if (args.length > 2 || view !== "1") return null;
         if (n === "5" || n === "6")
             return "[windoww()*pixel(),windowh()*pixel()]";
@@ -2161,10 +2175,20 @@ export function translateGgb(
                           element.getAttribute("label")!,
                       )
                     : null;
-            if (written !== null && !written.includes("%"))
+            // A point's coordinates ("%v"), or its name and them.
+            const shown =
+                point && (mode === "1" || mode === "2")
+                    ? `${mode === "2" ? `${element.getAttribute("label")} = ` : ""}%v`
+                    : written;
+            const value = point && !!shown?.includes("%v");
+            if (
+                shown !== null &&
+                !(value ? shown.replace(/%v/g, "") : shown).includes("%")
+            )
                 parts.push(
                     point ? "sn:true" : "lb:true",
-                    `cp:${encodeURIComponent(written)}`,
+                    `cp:${encodeURIComponent(shown)}`,
+                    ...(value ? [`p:${decimals}`] : []),
                 );
             // A point's name, whatever else it shows, but a caption.
             else if (point) {
@@ -4159,6 +4183,23 @@ export function translateGgb(
                 ...[a, b, c].map(ref),
                 literal(Number(n)),
             ]),
+        CornerThreeD: (inputs, [label]) => HANDLERS.Corner(inputs, [label]),
+        // A point whose drag moves the point it reads.
+        DynamicCoordinates: ([point, ...coordinates], [label]) => {
+            const values = coordinates.map((c) => formula(c, VALUE_KINDS));
+            if (
+                !is(point, POINT_KINDS) ||
+                values.length !== (is3D ? 3 : 2) ||
+                values.includes(null)
+            )
+                return false;
+            formulaPoint(`[${values.join(",")}]`, label);
+            follows.set(
+                objects.get(label)!.variable,
+                objects.get(point)!.variable,
+            );
+            return true;
+        },
         Corner: (inputs, [label]) => {
             const corner = cornerFormula(inputs);
             if (corner === null) return false;
@@ -4691,7 +4732,7 @@ export function translateGgb(
                 parts.push(
                     "(",
                     ...[`x(${variable})`, `y(${variable})`]
-                        .concat(is3D ? [`dot(${variable},[0,0,1])`] : [])
+                        .concat(is3D ? [`z(${variable})`] : [])
                         .flatMap((coordinate, index) => [
                             ...(index ? [", "] : []),
                             { formula: coordinate },
@@ -5253,6 +5294,24 @@ export function translateGgb(
               ],
           }
         : undefined;
+    // GeoGebra's clipping box (see grid.geogebraBox): its corner n, from
+    // the window and the camera, the 3D view starting `inset` pixels right
+    // of and below the window's top left corner.
+    const inset: Vec2 = across ? [strip, 0] : [0, strip];
+    const boxSize = Number(
+        (view3D && attribute(view3D, "clipping", "size")) ?? 1,
+    );
+    const boxCorner = (n: number): string | null => {
+        if (!Number.isInteger(n) || n < 1 || n > 8) return null;
+        const [left, top] = inset;
+        const a = `(windowcx()+${left / 2}/pixel())`;
+        const b = `(windowcy()-${top / 2}/pixel())`;
+        const factor = [Math.sqrt(1 / 3), Math.SQRT1_2, 1][boxSize] / 2;
+        const wide = `(windoww()-${left}/pixel())*${factor}`;
+        const high = `(windowh()-${top}/pixel())*${factor}`;
+        const sign = (positive: boolean) => (positive ? "+" : "-");
+        return `[${a}*sin(phi())-${b}*cos(phi())*sin(theta())${sign([2, 3, 6, 7].includes(n))}${wide},${a}*cos(phi())+${b}*sin(phi())*sin(theta())${sign([3, 4, 7, 8].includes(n))}${wide},${b}*cos(theta())${sign(n > 4)}${high}]`;
+    };
     const styledView = view3D ?? view;
     if (!is3D && coordSystem)
         push(null, "SetCoords", [
@@ -5273,7 +5332,7 @@ export function translateGgb(
                 (item) =>
                     item.tagName === "axis" && item.getAttribute("id") === id,
             );
-        const shown = ["0", "1"].filter(
+        const shown = (is3D ? ["0", "1", "2"] : ["0", "1"]).filter(
             (id) => axes && axis(id)?.getAttribute("show") !== "false",
         );
         // In 2D, as GeoGebra draws them: a line 1 pixel wide, 2 if bold,
@@ -5291,7 +5350,7 @@ export function translateGgb(
         // automatic, whether it has minor and major graduations (0), only
         // major ones (1) or none (2), its name (a LaTeX one as its text),
         // whether it shows its numbers and their unit.
-        const graduations = ["X", "Y"]
+        const graduations = (is3D ? ["X", "Y", "Z"] : ["X", "Y"])
             .map((name, id) => {
                 const settings = axis(String(id));
                 const distance = Number(settings?.getAttribute("tickDistance"));
@@ -5330,16 +5389,46 @@ export function translateGgb(
         }${gridColor ? `;gridColor:${hexColor(gridColor)}` : ""}${
             gridDash ? `;gridDash:${gridDash(gridWidth).join(",")}` : ""
         }`;
+        // In 3D, its plate, colored axes across its clipping box.
+        const space = `;isOz:${shown.includes("2")};isFloor:${attribute(styledView, "plate", "show") !== "false"};fontSize:${numbers};onlyPositive:${positive}${graduations};geogebraAxes:true;boxSize:${boxSize};viewInset:${inset.join(",")}`;
         const plane = is3D
-            ? ""
+            ? space
             : `;axisWidth:${bold ? 2 : 1};fontSize:${numbers};onlyPositive:${positive}${graduations};arrows:${arrows};boldNumbers:${Boolean(labelStyle & 1)};geogebraAxes:true${gridStyle}`;
         push(null, "SetCoordsStyle", [
             literal(
                 `isAxis:${axes || (grid && !is3D)};isGrid:${grid};isOx:${shown.includes("0")};isOy:${shown.includes("1")}${
-                    axesColor ? `;color:${hexColor(axesColor)}` : ""
+                    axesColor && !is3D ? `;color:${hexColor(axesColor)}` : ""
                 }${plane}`,
             ),
         ]);
+        // GeoGebra's shown clipping box: its gray edges.
+        if (is3D && attribute(styledView, "clipping", "show") === "true") {
+            const corners = [1, 2, 3, 4, 5, 6, 7, 8].map((n) =>
+                formulaPoint(boxCorner(n)!),
+            );
+            [
+                [1, 2],
+                [1, 4],
+                [1, 5],
+                [3, 4],
+                [3, 2],
+                [3, 7],
+                [6, 5],
+                [6, 7],
+                [6, 2],
+                [8, 7],
+                [8, 5],
+                [8, 4],
+            ].forEach(([from, to]) =>
+                define(
+                    auxiliary(),
+                    "line",
+                    "Segment",
+                    [ref(corners[from - 1]), ref(corners[to - 1])],
+                    "c:#808080;s:0.5;nmi:true",
+                ),
+            );
+        }
     }
     const background = styledView && child(styledView, "bgColor");
     // GeoGebra's functions work in radians.
@@ -5494,36 +5583,59 @@ export function translateGgb(
     });
     pending.forEach(({ node }) => translate(node));
 
-    // GeoGebra's script setting `target` to `value`, as Blockly writes it,
-    // so that it opens as blocks: an If sets it in its branches.
-    const setValue = (target: string, value: string): string | null => {
+    // A script's statement for a value, as Blockly writes it, so that it
+    // opens as blocks: for an If, in its branches.
+    const branched = (
+        value: string,
+        statement: (value: string) => string | null,
+    ): string | null => {
         const text = normalizeBrackets(value.trim());
-        if (text === target) return "";
         const call = COMMAND_EXPRESSION.exec(text);
         const args = call?.[1] === "If" ? splitArguments(call[2]) : null;
-        if (args && args.length > 1) {
-            const condition = formula(args[0], VALUE_KINDS);
-            const then = setValue(target, args[1]);
-            const otherwise =
-                args.length === 2
-                    ? ""
-                    : setValue(
-                          target,
-                          args.length === 3
-                              ? args[2]
-                              : `If(${args.slice(2).join(",")})`,
-                      );
-            if (condition === null || then === null || otherwise === null)
-                return null;
-            if (!then)
-                return otherwise && `if (!(${condition})) {${otherwise}}`;
-            return `if (${condition}) {${then}}${otherwise && ` else {${otherwise}}`}`;
-        }
-        const content = formula(value, VALUE_KINDS);
-        return (
-            content &&
-            `${objects.get(target)!.variable}.setExpression(${content});`
-        );
+        if (!args || args.length < 2) return statement(text);
+        const condition = formula(args[0], VALUE_KINDS);
+        const then = branched(args[1], statement);
+        const otherwise =
+            args.length === 2
+                ? ""
+                : branched(
+                      args.length === 3
+                          ? args[2]
+                          : `If(${args.slice(2).join(",")})`,
+                      statement,
+                  );
+        if (condition === null || then === null || otherwise === null)
+            return null;
+        if (!then) return otherwise && `if (!(${condition})) {${otherwise}}`;
+        return `if (${condition}) {${then}}${otherwise && ` else {${otherwise}}`}`;
+    };
+
+    // GeoGebra's script setting `target` to `value`.
+    const setValue = (target: string, value: string): string | null =>
+        branched(value, (text) => {
+            if (text === target) return "";
+            const content = formula(text, VALUE_KINDS);
+            return (
+                content &&
+                `${objects.get(target)!.variable}.setExpression(${content});`
+            );
+        });
+
+    // SetVisibleInView(object, view, shown) of an object, or of an axis
+    // in the 3D view.
+    const showInView = (
+        object: string,
+        view: string,
+        shown: string,
+    ): string | null => {
+        const condition = formula(shown, VALUE_KINDS);
+        const axis = AXIS_NAME.exec(object)?.slice(1).join("");
+        if (condition === null) return null;
+        if (axis && view === "-1" && is3D)
+            return `SHOW_AXIS(${"XYZ".indexOf(axis.toUpperCase())},${condition});`;
+        return objects.has(object) && (view === "1" || view === "-1")
+            ? `${objects.get(object)!.variable}.setHidden(!(${condition}));`
+            : null;
     };
 
     // StartAnimation(n) of a slider increasing once, from its value to its
@@ -5561,21 +5673,60 @@ export function translateGgb(
         const started: [string, string][] = [];
         const statements = source.split("\n").map((line) => {
             const text = normalizeBrackets(line.trim());
-            if (!text || /^UpdateConstruction\(\s*\)$/.test(text)) return "";
+            // The view a script's next commands are about: there is one.
+            if (
+                !text ||
+                /^(?:UpdateConstruction\(\s*\)|SetActiveView\(.*\))$/.test(text)
+            )
+                return "";
             const call = COMMAND_EXPRESSION.exec(text);
+            const args = call && splitArguments(call[2])?.map((a) => a.trim());
             if (call?.[1] === "StartAnimation") {
                 const step = animationStep(call[2].trim());
                 if (step) started.push(step);
                 return step && "";
             }
+            // Toward a point, the view looks along the line through it from
+            // its side nearest the camera.
+            if (call?.[1] === "SetViewDirection")
+                return args?.length === 1
+                    ? branched(args[0], (value) => {
+                          const direction = isPoint(value)
+                              ? formula(value, VALUE_KINDS)
+                              : null;
+                          return direction && `VIEW_DIRECTION(${direction});`;
+                      })
+                    : null;
+            if (call?.[1] === "SetVisibleInView")
+                return args?.length === 3
+                    ? showInView(args[0], args[1], args[2])
+                    : null;
+            if (call?.[1] === "SetCoords")
+                return args &&
+                    args.length === (is3D ? 4 : 3) &&
+                    is(args[0], POINT_KINDS)
+                    ? setValue(args[0], `(${args.slice(1).join(",")})`)
+                    : null;
             const [target, value] =
-                (call?.[1] === "SetValue" ? splitArguments(call[2]) : null) ??
+                (call?.[1] === "SetValue" ? args : null) ??
                 /^([^=:!<>(]+?)\s*:?=(?!=)(.+)$/.exec(text)?.slice(1) ??
                 [];
-            // SetValue moves a point, an assignment redefines it.
-            return value !== undefined &&
-                is(target.trim(), ["expression", ...(call ? POINT_KINDS : [])])
-                ? setValue(target.trim(), value)
+            if (value === undefined) return null;
+            const label = target.trim();
+            // SetValue moves a point, draws a random number again, and
+            // changes nothing else that depends on others; an assignment
+            // redefines it.
+            const source = expressions.get(label);
+            if (
+                call &&
+                is(label, ["expression"]) &&
+                !/random/i.test(definitions.get(label) ?? "") &&
+                (commandOutputs.has(label) ||
+                    (source !== undefined && formula(source, []) === null))
+            )
+                return "";
+            return is(label, ["expression", ...(call ? POINT_KINDS : [])])
+                ? setValue(label, value)
                 : null;
         });
         // Blockly has no imaginary unit: a DGP formula multiplies points as
@@ -5640,6 +5791,21 @@ export function translateGgb(
         const [script] = scripts;
         const type = element.getAttribute("type");
         const click = script.getAttribute("val");
+        // GeoGebra runs a boolean's update script before it updates what
+        // depends on it, whose values are still those for its opposite.
+        const update = script.getAttribute("onUpdate") ?? "";
+        const read =
+            type === "boolean"
+                ? update.replace(LABEL_WORDS, (word, at: number) => {
+                      const source = definitions.get(word);
+                      // Not what a command sets.
+                      return word !== label &&
+                          !/Set\w+[([]\s*$/.test(update.slice(0, at)) &&
+                          source?.match(LABEL_WORDS)?.includes(label)
+                          ? `(${source.replace(LABEL_WORDS, (name) => (name === label ? `(¬${label})` : name))})`
+                          : word;
+                  })
+                : update;
         const program =
             scripts.length === 1 &&
             script.tagName === "ggbscript" &&
@@ -5651,13 +5817,7 @@ export function translateGgb(
                 is(label, ["text", ...POINT_KINDS]))
                 ? scriptProgram(click ?? "")
                 : null;
-        if (
-            program === null ||
-            !updateScript(
-                label,
-                scriptProgram(script.getAttribute("onUpdate") ?? ""),
-            )
-        )
+        if (program === null || !updateScript(label, scriptProgram(read)))
             return void unsupported.push(`script ${label}`);
         if (type !== "button") {
             if (program)
@@ -5707,17 +5867,18 @@ export function translateGgb(
     // Once every object exists, since a condition may read a later one. It
     // then decides alone whether the object is shown, whatever its show
     // flag (see GeoElement.isEuclidianVisible), except for a number without
-    // a slider, which is never drawn.
+    // a slider, which is never drawn, and a solid, drawn by its faces.
     const conditions = new Map<string, string | null>();
     elements.forEach((element, label) => {
         const source = attribute(element, "condition", "showObject");
         const drawn = parts.get(label) ?? [label];
+        const type = element.getAttribute("type");
         if (
             source === undefined ||
             outOfView(element) ||
             !objects.has(drawn[0]) ||
-            (element.getAttribute("type") === "numeric" &&
-                !child(element, "slider"))
+            type === "polyhedron" ||
+            (type === "numeric" && !child(element, "slider"))
         )
             return;
         if (!conditions.has(source)) {
@@ -5782,6 +5943,7 @@ export function translateGgb(
         calls,
         targets,
         handles,
+        follows,
         nameShifts,
         animations,
         rates,

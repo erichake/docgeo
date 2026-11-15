@@ -675,15 +675,15 @@ describe("Figure settings", () => {
         const y = field(spacing + "y") as HTMLInputElement;
         expect([x.value, x.placeholder]).toEqual(["", message("auto")]);
         type(x, "0.5");
-        expect(grid.tickDistances).toEqual([0.5, 0.5]);
+        expect(grid.tickDistances).toEqual([0.5, 0.5, 0]);
         expect(y.value).toBe("0.5");
         (field(message("link")) as HTMLButtonElement).click();
         type(y, "2");
-        expect(grid.tickDistances).toEqual([0.5, 2]);
+        expect(grid.tickDistances).toEqual([0.5, 2, 0]);
         type(y, "");
-        expect(grid.tickDistances).toEqual([0.5, 0]);
+        expect(grid.tickDistances).toEqual([0.5, 0, 0]);
         (field(message("ticks_none")) as HTMLButtonElement).click();
-        expect(grid.tickStyles).toEqual([2, 0]);
+        expect(grid.tickStyles).toEqual([2, 0, 0]);
         const show = field(`${message("show_axis")} y`) as HTMLInputElement;
         show.click();
         expect(grid.showOy).toBe(false);
@@ -693,8 +693,8 @@ describe("Figure settings", () => {
         expect(changes()).toBe(6);
         const restored = createConstruction([800, 600]);
         readDgo(restored, await describeDgo(c));
-        expect(restored.GRID.tickDistances).toEqual([0.5, 0]);
-        expect(restored.GRID.tickStyles).toEqual([2, 0]);
+        expect(restored.GRID.tickDistances).toEqual([0.5, 0, 0]);
+        expect(restored.GRID.tickStyles).toEqual([2, 0, 0]);
         expect([restored.GRID.showOy, restored.GRID.showGrid]).toEqual([
             false,
             false,

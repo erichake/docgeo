@@ -16,7 +16,7 @@ interface Step {
     exponent: number;
 }
 
-const stepValue = ({ mantissa, exponent }: Step): number =>
+export const stepValue = ({ mantissa, exponent }: Step): number =>
     mantissa * 10 ** exponent;
 
 function nextStep({ mantissa, exponent }: Step): Step {
@@ -29,7 +29,7 @@ function nextStep({ mantissa, exponent }: Step): Step {
 
 // The smallest step of the 1-2-5 sequence spanning at least `pixels` at
 // this unit.
-function stepAtLeast(pixels: number, unit: number): Step {
+export function stepAtLeast(pixels: number, unit: number): Step {
     let step: Step = {
         mantissa: 1,
         exponent: Math.floor(Math.log10(pixels / unit)),
@@ -71,7 +71,11 @@ const automatic = (step: Step, factor = 1): Graduation => ({
 // GeoGebra's fixed distance: a minor graduation halfway, numbers with as
 // many decimals as it has, but at most as many as GeoGebra writes at this
 // unit (pixels per unit).
-function fixed(distance: number, factor: number, unit: number): Graduation {
+export function fixed(
+    distance: number,
+    factor: number,
+    unit: number,
+): Graduation {
     const most = Math.max(2, -Math.floor(Math.log10(100 / unit)));
     let digits = 0;
     while (
@@ -105,7 +109,7 @@ function piText(value: number): string {
 
 // The indices k of the multiples k*step within [min, max]: values are
 // computed from them so that no rounding error accumulates.
-function multiples(step: number, min: number, max: number): number[] {
+export function multiples(step: number, min: number, max: number): number[] {
     const indices: number[] = [];
     for (let k = Math.ceil(min / step); k * step <= max; k++)
         indices.push(k + 0);

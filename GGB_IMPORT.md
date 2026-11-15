@@ -105,6 +105,7 @@ figure sont seulement comptés. L'API utilisée est
 | 2026-11-14 | 258 / 456 (57 %)   | 326,8 Ko | item 57 : nombres complexes, scripts de mise à jour (+7)             |
 | 2026-11-14 | 258 / 456 (57 %)   | 327,4 Ko | item 58 : polygone régulier d'un curseur, listes dessinées (+0)      |
 | 2026-11-14 | 260 / 456 (57 %)   | 327,9 Ko | item 59 : traces, légendes de curseurs, fonctions dans un texte (+2) |
+| 2026-11-15 | 265 / 456 (58 %)   | 332,9 Ko | item 63 : repère 3D de GeoGebra, scripts de vue (+0)                 |
 
 ## À faire, par rapport gain / coût
 
@@ -1094,6 +1095,41 @@ cause.
       figure du corpus gagnée (265), éléments non importés 2890 → 2885.
       Moteur inchangé, import +3,0 Ko. Recalcul en 0,15 s quand n change
       (n × N lois binomiales).
+- [x] **63. Repère 3D de GeoGebra, scripts de vue** : `repere.ggb` (un
+      point P de l'espace, trois cases qui masquent chacune un axe et
+      ramènent P dans le plan des deux autres). Fait : les axes 3D de
+      GeoGebra (rouge, vert, bleu, gradués, nommés, chacun d'une face à
+      l'autre de la boîte de découpe) remplacent le trièdre de DocGeo dans
+      toute figure 3D de GeoGebra ; le sol n'est dessiné que si le plateau
+      l'est (`plate`, absent de 51 figures 3D du corpus). La boîte suit la
+      vue (centre, taille de la fenêtre moins la vue graphique, `size` du
+      `clipping`) : `CornerThreeD(-1, n)` en est le coin n, un point de
+      formule lisant la vue ; montrée (`show`), ses douze arêtes grises ;
+      les plans s'y dessinent par leur section, comme dans GeoGebra (leur
+      carré repère toujours leurs points). `DynamicCoordinates(Q, …)` :
+      un point de formule dont le glisser, ou un script qui le place,
+      place Q (`Fp` `[formule, Q]`). Une légende `%v` d'un point, ou les
+      étiquettes « valeur » et « nom = valeur », écrit ses coordonnées.
+      Scripts : `SetViewDirection(point)` tourne la vue en une seconde
+      comme GeoGebra (`VIEW_DIRECTION`), `SetVisibleInView(axe, -1, b)`
+      (noms anglais ou français) montre ou cache un axe (`SHOW_AXIS`), d'un
+      objet le cache (`setHidden`), `SetCoords` place un point,
+      `SetActiveView` ne fait rien ; `SetValue` d'un nombre dépendant ne
+      fait rien, comme dans GeoGebra. GeoGebra exécute le script d'une case
+      avant de recalculer ce qui en dépend : ces objets y valent ce qu'ils
+      valaient pour la valeur contraire de la case (relevé dans GeoGebra).
+      `z(P)` est une fonction des formules (bloc « cote »), pour que ces
+      scripts s'ouvrent en blocs, avec ceux de la vue et des axes. Un
+      polyèdre, dessiné par ses faces, ne suit plus la condition
+      d'affichage qui le montrait en double ; un `polygon3d` sans
+      définition est ignoré. Corpus : 265 / 456 inchangé (pas de figure
+      gagnée, les autres scripts de vue restant rares), éléments non
+      importés 2885 → 2849. Moteur +5,0 Ko (+1,9 Ko en gzip), import
+      +2,6 Ko, éditeur +2,5 Ko. Reste : `axesColored` faux (axes noirs),
+      les graduations secondaires et le pointillé des plans (`fading`) ;
+      la boîte, centrée comme la rotation de DocGeo autour de l'origine,
+      bouge un peu quand la vue tourne, là où celle de GeoGebra reste
+      fixe.
 
 À écarter, sauf changement de priorité : calcul formel, courbes implicites,
 statistiques et probabilités, tableur au-delà des cellules simples, matrices.

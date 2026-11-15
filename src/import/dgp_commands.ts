@@ -1353,6 +1353,8 @@ function applyCoordsStyle(context: CommandContext, value: string): void {
     flag("isGrid", (value) => (grid.showGrid = value));
     flag("isOx", (value) => (grid.showOx = value));
     flag("isOy", (value) => (grid.showOy = value));
+    flag("isOz", (value) => (grid.showOz = value));
+    flag("isFloor", (value) => (grid.SHOWFLOOR = value));
     flag("isLockOx", (value) => (grid.lockOx = value));
     flag("isLockOy", (value) => (grid.lockOy = value));
     flag("centerZoom", (value) => (grid.centerZoom = value));
@@ -1376,35 +1378,29 @@ function applyCoordsStyle(context: CommandContext, value: string): void {
     if (gridColor !== undefined) grid.gridColor = extractColor(gridColor);
     const gridDash = style.get("gridDash");
     if (gridDash !== undefined) grid.gridDash = gridDash.split(",").map(Number);
-    // DocGeo's, for GeoGebra's graduations.
-    size(
-        "tickDistanceX",
-        (value) => (grid.tickDistances = [value, grid.tickDistances[1]]),
-    );
-    size(
-        "tickDistanceY",
-        (value) => (grid.tickDistances = [grid.tickDistances[0], value]),
-    );
-    size(
-        "tickStyleX",
-        (value) => (grid.tickStyles = [value, grid.tickStyles[1]]),
-    );
-    size(
-        "tickStyleY",
-        (value) => (grid.tickStyles = [grid.tickStyles[0], value]),
-    );
     flag("boldNumbers", (value) => (grid.boldNumbers = value));
     flag("geogebraAxes", (value) => (grid.geogebraAxes = value));
-    // DocGeo's, for GeoGebra's axes, their texts URI-encoded.
-    (["X", "Y"] as const).forEach((name, axis) => {
-        const text = (key: string, texts: [string, string]) => {
+    // DocGeo's, for GeoGebra's axes and graduations, their texts
+    // URI-encoded.
+    (["X", "Y", "Z"] as const).forEach((name, axis) => {
+        const text = (key: string, texts: string[]) => {
             const value = style.get(key + name);
             if (value !== undefined) texts[axis] = decodeURIComponent(value);
         };
         text("axisLabel", grid.axisLabels);
         text("axisUnit", grid.axisUnits);
         flag("numbers" + name, (value) => (grid.showNumbers[axis] = value));
+        size(
+            "tickDistance" + name,
+            (value) => (grid.tickDistances[axis] = value),
+        );
+        size("tickStyle" + name, (value) => (grid.tickStyles[axis] = value));
     });
+    // DocGeo's, for GeoGebra's 3D view (see grid.geogebraBox).
+    size("boxSize", (value) => (grid.boxSize = value));
+    const inset = style.get("viewInset");
+    if (inset !== undefined)
+        grid.viewInset = inset.split(",").map(Number) as unknown as Vec2;
     size("arrows", (value) => (grid.arrows = value));
     context.gridChanged = true;
 }

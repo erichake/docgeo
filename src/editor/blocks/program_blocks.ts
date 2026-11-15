@@ -933,6 +933,20 @@ class Decompiler {
                 type: "dg_wait",
                 inputs: { MS: value(this.value(node.args[0])) },
             };
+        if (node.kind === "call" && node.fn === "VIEW_DIRECTION")
+            return {
+                type: "dg_view_direction",
+                inputs: { VECTOR: value(this.value(node.args[0])) },
+            };
+        if (node.kind === "call" && node.fn === "SHOW_AXIS") {
+            const axis = literal(node.args[0]);
+            if (axis !== 0 && axis !== 1 && axis !== 2) unsupported();
+            return {
+                type: "dg_show_axis",
+                fields: { AXIS: String(axis) },
+                inputs: { SHOWN: value(this.value(node.args[1])) },
+            };
+        }
         if (node.kind !== "turtle") return unsupported();
         const { fn, args } = node;
         const simple = TURTLE_SIMPLE[fn];
@@ -1292,6 +1306,7 @@ class Decompiler {
                 };
             case "x":
             case "y":
+            case "z":
                 return {
                     type: "dg_coordinate",
                     fields: { AXIS: fn },
@@ -1450,7 +1465,9 @@ const isStatement = (node: FormulaNode): boolean =>
     node.kind === "assignItem" ||
     node.kind === "turtle" ||
     (node.kind === "call" &&
-        (node.fn === "ALERT" || node.fn === "WAIT" || node.fn === "ASK")) ||
+        ["ALERT", "WAIT", "ASK", "VIEW_DIRECTION", "SHOW_AXIS"].includes(
+            node.fn,
+        )) ||
     (node.kind === "method" && node.method !== "concat");
 
 // ************************* BLOCKS → PROGRAM *************************
@@ -1893,6 +1910,14 @@ class Generator {
                 return call("ALERT", this.arg(block, "TEXT", '""'));
             case "dg_wait":
                 return call("WAIT", this.arg(block, "MS"));
+            case "dg_view_direction":
+                return call("VIEW_DIRECTION", this.arg(block, "VECTOR"));
+            case "dg_show_axis":
+                return call(
+                    "SHOW_AXIS",
+                    String(fields.AXIS),
+                    this.arg(block, "SHOWN"),
+                );
             case "dg_ask":
                 return call("ASK", this.arg(block, "TEXT", '""'));
             case "procedures_callnoreturn":

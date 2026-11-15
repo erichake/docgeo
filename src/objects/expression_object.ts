@@ -277,6 +277,14 @@ export function setValue(
         point.alpha = point.alphaFor(coords) ?? point.alpha;
         return true;
     }
+    // A formula point moves the free point it follows (GeoGebra's
+    // DynamicCoordinates).
+    const follows = (target as { follows?: point_object | null }).follows;
+    if (follows) {
+        follows.coords = coords;
+        target.C.invalidateGeometry(follows);
+        return true;
+    }
     if (target.constructor !== point_object) return false;
     target.coords = coords;
     if (target.pinned) target.pin();
@@ -316,6 +324,19 @@ export function runProgram(c: construction, expression: ExpressionProgram) {
             else if (setValue(target, args[0])) c.invalidateGeometry(target);
         },
         alert: (message) => message !== null && dialog(message),
+        turnView: (direction) => {
+            const [x, y, z] = Array.isArray(direction) ? direction : [];
+            if (!c.GRID.is2D && [x, y, z].every((c) => typeof c === "number"))
+                c.GRID.turnTo([x, y, z] as Vec3);
+        },
+        showAxis: (axis, shown) => {
+            const key = (["showOx", "showOy", "showOz"] as const)[
+                axis as number
+            ];
+            if (!key || typeof shown !== "number") return;
+            c.GRID[key] = shown !== 0;
+            c.invalidateRender(c.GRID);
+        },
     };
     const steps = programSteps(program, env);
     if (!steps) return void evaluateProgram(program, env);

@@ -225,7 +225,7 @@ enregistrée `w` × `h` est centrée dans la fenêtre au pixel près, en 2D comm
 | `fl` | sol                                  | valeur de `3d`  |
 | `ax` | axes affichés                        | 1               |
 | `gr` | grille                               | 1               |
-| `ox` | axe Ox (`oy` : Oy)                   | 1               |
+| `ox` | axe Ox (`oy` : Oy, `oz` : Oz)        | 1               |
 | `lx` | Ox verrouillé (`ly` : Oy)            | 0               |
 | `cz` | zoom centré sur l'origine            | 0               |
 | `op` | abscisses et ordonnées positives     | 0               |
@@ -251,6 +251,8 @@ enregistrée `w` × `h` est centrée dans la fenêtre au pixel près, en 2D comm
 | `fg` | couleur des lignes du sol            | `null`          |
 | `fw` | épaisseur des lignes du sol          | 0.5             |
 | `fe` | demi-côté du sol                     | 8               |
+| `gb` | taille de la boîte de GeoGebra       | 1               |
+| `gi` | coin de la vue 3D de GeoGebra        | [0, 0]          |
 
 Dans une figure plane, comme dans GeoGebra : `td` est, par axe, la distance
 fixe entre deux nombres, une petite graduation à mi-chemin (0 : distance
@@ -277,6 +279,20 @@ force de dézoomer, les lignes secondaires seraient à moins de 3 pixels), `gs`
 le nombre d'intervalles entre deux lignes principales (0 : ceux des
 graduations, 1 : pas de lignes secondaires), `gc` sa couleur (`null` : celle
 des axes) et `gl` ses pointillés, en pixels comme `dh`.
+
+Axes de GeoGebra d'une figure 3D (`gg`, depuis le 2026-11-15) : au lieu du
+trièdre, trois axes rouge, vert et bleu, chacun d'une face à l'autre de la
+boîte de découpe de GeoGebra, une flèche au bout, une graduation et un nombre
+à chaque multiple de sa distance (`td`, sinon automatique), les nombres d'un
+côté, le nom de l'autre, au-delà de la flèche. `td`, `ts`, `al`, `nu` et `au`
+y ont une troisième valeur, celle de Oz (lus d'une paire, Oz garde son
+défaut) ; `oz` affiche Oz. La boîte : centrée sur le point de l'espace au
+centre de la vue 3D (le plus proche de l'origine sur la droite de visée),
+aussi large que cette vue le long de Ox et de Oy, aussi haute le long de Oz,
+le tout réduit par sa taille `gb` (0 petite, 1 moyenne, 2 grande : facteur
+1/√3, 1/√2, 1). La vue 3D est la fenêtre privée de `gi` pixels à gauche et en
+haut (vue graphique de GeoGebra à côté). Les plans (`Pl`…) s'y dessinent par
+leur section de la boîte (leur carré, qui repère leurs points, est inchangé).
 
 Sol d'une figure 3D (plan z = 0, carré centré sur l'origine, en unités de la
 figure) : `fc` sa couleur (`null` : bleu vu de dessus, brun vu de dessous, comme
@@ -466,7 +482,9 @@ la figure, autour de la verticale de O dans l'espace, sa hauteur gardée),
 1. La formule peut être un script, dont la dernière instruction donne les
    coordonnées (`"var u=A[0]-B[0];[u,0]"`). `n1`, `n2` : les nombres
    (expressions, ou `null`) que déplace un glisser du point, pour chacune de
-   ses coordonnées.
+   ses coordonnées. Depuis le 2026-11-15, `[formule, P]` : un glisser du
+   point, ou un script qui le place, place le point libre `P` là où il va
+   (`DynamicCoordinates` de GeoGebra), la formule lisant `P`.
 2. Droite (AB), segment, demi-droite : `t` tel que M = A + t·AB. Autre
    droite, définie par un point P et une direction : distance signée à P, en
    unités, le long de son vecteur directeur. Cercle : angle. Polygone,
@@ -591,7 +609,14 @@ alignement]]` police, `[30, url, l, h, zoom, opacité, u]` image (largeur
     endroits, l'interrompt de même jusqu'à la réponse saisie, que lit
     ensuite `ANSWER()` (nombre si elle se lit comme tel, virgule décimale
     acceptée, texte sinon ; `""` avant toute question) : la réponse est
-    propre à chaque lancement. Sans `"s"`, il ne fait rien.
+    propre à chaque lancement. Depuis le 2026-11-15, pour les scripts de
+    GeoGebra (`SetViewDirection`, `SetVisibleInView` d'un axe) :
+    `VIEW_DIRECTION([x, y, z])` tourne la vue 3D en une seconde, comme
+    GeoGebra, pour regarder le long de ce vecteur, du côté le plus proche de
+    la caméra (de l'autre si elle y regarde déjà ; de dessus, Ox vers la
+    droite), et `SHOW_AXIS(n, b)` montre (b ≠ 0) ou cache l'axe n (0 Ox, 1 Oy,
+    2 Oz). Ni la vue ni les axes ne font partie de l'état élève. Sans `"s"`,
+    il ne fait rien.
 14. `g` et `d` : formules en x et y des deux membres de l'équation, de degré
     1 pour une droite, 2 au plus pour une conique, recalculés à chaque
     mouvement. Un cercle a le même coefficient en x² et en y², sans xy ; une
@@ -1020,6 +1045,11 @@ point un cercle ou un losange creux, son contour `pb` ; `no` d'un point
 place le début et la ligne de base de son nom, en pixels depuis lui (vers la
 droite et vers le bas), au lieu de `np` et `nd`, et se perd quand l'éditeur
 déplace le nom.
+
+Depuis le 2026-11-15, le `cp` d'un point peut contenir `%v` : ses
+coordonnées, `(x, y)` ou `(x, y, z)` dans une figure 3D, arrondies à `p`
+décimales sans zéros inutiles (étiquettes « valeur » et « nom = valeur » de
+GeoGebra).
 
 Depuis le 2026-11-14 encore, pour les curseurs de GeoGebra (`Ex`) : `cp`
 remplace leur étiquette « nom = valeur », `%v` y valant la valeur ; `no` place

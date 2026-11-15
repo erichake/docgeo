@@ -27,6 +27,7 @@ export function importGgb(
         calls,
         targets,
         handles,
+        follows,
         nameShifts,
         animations,
         rates,
@@ -46,6 +47,11 @@ export function importGgb(
                 (number) =>
                     number && (variables.get(number) as expression_object),
             ) as [expression_object | null, expression_object | null],
+        ),
+    );
+    follows.forEach((point, variable) =>
+        (variables.get(variable) as formula_point_object).setFollows(
+            variables.get(point) as point_object,
         ),
     );
     settleTargets(

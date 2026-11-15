@@ -337,10 +337,6 @@ const isColor = (value: Json): boolean =>
     typeof value === "string" && COLOR.test(value);
 const isOptionalColor = (value: Json): boolean =>
     value === null || isColor(value);
-const isTexts = (value: Json): boolean =>
-    Array.isArray(value) &&
-    value.length === 2 &&
-    value.every((text) => typeof text === "string");
 const isPair = (value: Json): value is Vec2 =>
     Array.isArray(value) && value.length === 2 && value.every(isNumber);
 const isRecord = (value: Json): value is Record<string, Json> =>
@@ -402,6 +398,40 @@ function flag<T extends construction_object>(
         (owner, value) => (owner[key] = (value === 1) as T[keyof T]),
         initial,
         isFlag,
+    );
+}
+
+// Per axis, Ox and Oy, and Oz in a 3D figure: read from a pair, Oz keeps
+// its default.
+function perAxis(
+    key:
+        | "tickDistances"
+        | "tickStyles"
+        | "axisLabels"
+        | "showNumbers"
+        | "axisUnits",
+    initial: Json,
+    valid: (value: Json) => boolean,
+): Property {
+    const flags = key === "showNumbers";
+    return property(
+        grid_object,
+        (grid) =>
+            grid[key]
+                .slice(0, grid.is2D ? 2 : 3)
+                .map((value) => (flags ? +value : value)),
+        (grid, value) => {
+            const values: unknown[] = [...grid[key]];
+            (value as Json[]).forEach(
+                (item, axis) => (values[axis] = flags ? item === 1 : item),
+            );
+            (grid[key] as unknown[]) = values;
+        },
+        (_, view) => Array((view["3d"] ?? 0) ? 3 : 2).fill(initial),
+        (value) =>
+            Array.isArray(value) &&
+            (value.length === 2 || value.length === 3) &&
+            value.every(valid),
     );
 }
 
@@ -626,6 +656,7 @@ const VIEW: Record<string, Property> = {
     gr: flag(grid_object, "showGrid", 1),
     ox: flag(grid_object, "showOx", 1),
     oy: flag(grid_object, "showOy", 1),
+    oz: flag(grid_object, "showOz", 1),
     lx: flag(grid_object, "lockOx"),
     ly: flag(grid_object, "lockOy"),
     cz: flag(grid_object, "centerZoom"),
@@ -659,35 +690,19 @@ const VIEW: Record<string, Property> = {
         (value) =>
             Array.isArray(value) && value.every(isNumber) && isDash(value),
     ),
-    td: field(
-        grid_object,
-        "tickDistances",
-        [0, 0],
-        (value) => isPair(value) && value.every((distance) => distance >= 0),
-    ),
-    ts: field(
-        grid_object,
-        "tickStyles",
-        [0, 0],
-        (value) =>
-            isPair(value) && value.every((style) => [0, 1, 2].includes(style)),
+    td: perAxis("tickDistances", 0, (value) => isNumber(value) && value >= 0),
+    ts: perAxis("tickStyles", 0, (value) =>
+        [0, 1, 2].includes(value as number),
     ),
     nb: flag(grid_object, "boldNumbers"),
     gg: flag(grid_object, "geogebraAxes"),
-    al: field(grid_object, "axisLabels", ["", ""], isTexts),
-    nu: property(
-        grid_object,
-        ({ showNumbers }) => showNumbers.map(Number),
-        (grid, value) =>
-            (grid.showNumbers = (value as number[]).map(Boolean) as [
-                boolean,
-                boolean,
-            ]),
-        [1, 1],
-        (value) =>
-            Array.isArray(value) && value.length === 2 && value.every(isFlag),
+    al: perAxis("axisLabels", "", (value) => typeof value === "string"),
+    nu: perAxis("showNumbers", 1, isFlag),
+    au: perAxis("axisUnits", "", (value) => typeof value === "string"),
+    gb: field(grid_object, "boxSize", 1, (value) =>
+        [0, 1, 2].includes(value as number),
     ),
-    au: field(grid_object, "axisUnits", ["", ""], isTexts),
+    gi: field(grid_object, "viewInset", [0, 0], isPair),
     ah: field(grid_object, "arrows", 0, (value) =>
         [0, 1, 2, 3].includes(value as number),
     ),
@@ -1874,7 +1889,9 @@ const BUILDERS: Record<string, Builder> = {
     Fp: (parameters, { c, name, at, pointFormula, vec3 }) => {
         const [value, ...handles] = list(parameters, 1, 3);
         const point = createFormulaPoint(c, name, ...pointFormula(value), vec3);
-        if (handles.length) {
+        if (handles.length === 1)
+            point.setFollows(at(handles[0], point_object));
+        else if (handles.length) {
             check(handles.length === 2);
             point.setHandles(
                 handles.map(
