@@ -640,6 +640,24 @@ export function resolve(
         args = call.args.map((arg) => resolveArgument(c, arg, command.name));
         overload = overloadFor(command, args, !c.GRID.is2D);
         if (!overload) {
+            // An expression whose value is a point, as that point:
+            // `Circle(b, 4)`, b = L[7].
+            const points = args.map((arg, at) => {
+                const text = call.args[at];
+                return arg instanceof expression_object &&
+                    text.kind === "name" &&
+                    givesPoint(c, formatName(text.name))
+                    ? embeddedPoint(
+                          c,
+                          ...pointProgram(c, formatName(text.name)),
+                          !c.GRID.is2D,
+                      )
+                    : arg;
+            });
+            overload = overloadFor(command, points, !c.GRID.is2D);
+            if (overload) args = points;
+        }
+        if (!overload) {
             // A command split from another keeps its name in its own:
             // Circumcircle, OtherIntersection, FixedPoint.
             const other = COMMANDS.find(
@@ -1657,11 +1675,13 @@ const ITEM_COMMANDS: Partial<Record<ListNature, string>> = {
     line: "Line",
     circle: "Circle",
     polygons: "Polygon",
+    conic: "Conic",
 };
 
 // Sequence(f, k, a, b, s): f for k from a to b by s, f being a point or a
 // number, Segment(P, Q), Line(P, Q), Circle(O, r), Circle(O, r, u) of axis
-// direction u or Polygon(A, B, C, …) of formulas, or another Sequence, whose
+// direction u, Polygon(A, B, C, …) or Conic(A, B, C, D, E) of formulas, or
+// another Sequence, whose
 // bounds read k (see
 // sequence_object.ts).
 function sequence(

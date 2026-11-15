@@ -11,7 +11,7 @@ import { primitive_quadric_object } from "./primitive_quadric_object";
 // pivot comparisons and the degeneracy tolerance stay scale-meaningful).
 // Returns null when the 5 points don't determine a unique conic (e.g. too
 // many of them collinear).
-function fitConic(points: readonly Vec3[]): ConicCoeffs | null {
+export function fitConic(points: readonly Vec3[]): ConicCoeffs | null {
     const rows = points.map(([x, y]) => {
         const row = [x * x, x * y, y * y, x, y, 1];
         const norm = Math.hypot(...row);

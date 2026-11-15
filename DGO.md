@@ -716,8 +716,9 @@ alignement]]` police, `[30, url, l, h, zoom, opacité, u]` image (largeur
     une formule), les extrémités d'un segment ou deux points d'une droite
     (`segment`, `line`), le centre et le rayon d'un cercle (`circle`, dans
     le plan xOy, ou orthogonal à la direction que donne une troisième
-    formule, ajoutée le 2026-10-21), ou les sommets d'un polygone (`polygons`, trois formules
-    ou plus). Au plus 100 000 tours en tout. Lue par son nom, une suite de
+    formule, ajoutée le 2026-10-21), les sommets d'un polygone (`polygons`, trois formules
+    ou plus) ou cinq points d'une conique d'un plan horizontal (`conic`,
+    ajoutée le 2026-11-15). Au plus 100 000 tours en tout. Lue par son nom, une suite de
     points vaut la liste de ses points, une liste par tour de chaque
     boucle extérieure (un point indéfini y vaut `NaN`).
 23. `min` et `max` : nombre, `null` (bord de la fenêtre) ou formule d'autres

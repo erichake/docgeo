@@ -1436,6 +1436,51 @@ describe("Editor", () => {
         );
     });
 
+    it("writes Sequences of conics, and takes a point's expression as a point", async () => {
+        const { scene: c } = studio();
+        const text = [
+            "e = Sequence(Conic((k + 2, 0), (k - 2, 0), (k, 1), (k, -1), (k + 1.6, 0.6)), k, 0, 1)",
+            "h = Sequence(Conic((1, 1), (2, 0.5), (-1, -1), (-2, -0.5), (0.5, 2)), k, 0, 0)",
+            "L = Sequence((2*k, 0), k, 0, 3)",
+            "b = L[2]",
+            "c = Circle(b, 1)",
+        ];
+        text.forEach((line) => type(c, line));
+        c.flush();
+        expect(lines(c).slice(0, 4)).toEqual(text.slice(0, 4));
+        expect(lines(c)[4]).toBe("c = Circle(Point(b), 1)");
+        const screen = (name: string) =>
+            (c.getObj(name) as list_object).screenItems;
+        // Ellipses of semi-axes 2 and 1, around (k, 0).
+        expect(
+            screen("e").map(([o, u, v]) => [
+                ...o!.map(Math.round),
+                ...[u!, v!].map((w) => Math.round(Math.hypot(...w))).sort(),
+            ]),
+        ).toEqual([
+            [400, 300, 40, 80],
+            [440, 300, 40, 80],
+        ]);
+        // The two branches of xy = 1.
+        const [branches] = screen("h");
+        expect(branches.filter((point) => !point)).toHaveLength(2);
+        expect(
+            branches.every(
+                (point) =>
+                    !point ||
+                    Math.abs(((point[0] - 400) * (300 - point[1])) / 1600 - 1) <
+                        0.01,
+            ),
+        ).toBe(true);
+        expect(c.getObj("c")!.defined).toBe(true);
+        const other = createConstruction([800, 600]);
+        readDgo(other, await describeDgo(c));
+        expect(lines(other)).toEqual(lines(c));
+        expect(() =>
+            type(c, "q = Sequence(Conic(b, b, b, b), k, 0, 2)"),
+        ).toThrow(expect.objectContaining({ key: "syntax" }));
+    });
+
     it("writes Sequences, nested ones reading the variables around them", async () => {
         const { scene: c } = studio();
         const text = [

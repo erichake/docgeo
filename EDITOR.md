@@ -1426,8 +1426,10 @@ chemin de création de l'éditeur.
   formule qui donne un point ou un nombre, `Segment(P, Q)`,
   `Droite(P, Q)`, `Cercle(O, r)`, `Cercle(O, r, u)` (dans le plan
   orthogonal à la direction u, ajouté le 2026-10-21 pour les cercles de
-  l'espace d'une figure d'Yves, `Cyclide_de_Dupin_Sequence.dgo`) ou
-  `Polygone(A, B, C, …)` de formules,
+  l'espace d'une figure d'Yves, `Cyclide_de_Dupin_Sequence.dgo`),
+  `Polygone(A, B, C, …)` ou `Conique(A, B, C, D, E)` (ajoutée le
+  2026-11-15 pour les 250 coniques de Welschinger d'un utilisateur, dans
+  un plan horizontal, nature `conic`) de formules,
   ou une autre `Séquence`, dont les bornes lisent k (suites
   triangulaires). La ligne se relit telle qu'écrite ; une variable déjà
   prise par une suite qui l'entoure, ou f d'une autre forme, est refusée.
@@ -2406,7 +2408,10 @@ Fait (2026-10-11) :
   `Fix` et `Fp` changé), comme `point_fixed` dans DGPad. Vérifié dans
   `editor.html` (figure DGPad, saisie des deux formes, redéfinition,
   action « Point »). Éditeur : +2,2 Ko (+0,6 Ko en gzip) ; lecteur :
-  +30 octets.
+  +30 octets. Depuis le 2026-11-15, une telle expression `b` est aussi
+  prise comme point par une commande qui n'accepte pas ses arguments
+  tels quels : `Cercle(b, 4)` s'écrit `Cercle(Point(b), 4)` (point à
+  formule intégré), comme le faisait déjà une formule (`Cercle(a[7], 4)`).
 
 - Point, liste ou expression (2026-10-13, idée de l'auteur) : une ligne
   `nom = formule` dont la valeur est un point ou une liste de points

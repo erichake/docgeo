@@ -19,9 +19,13 @@ import {
 import { callFunction, formatValue } from "./expression_object";
 import { MAX_SCREEN } from "./point_object";
 import { axisBasis } from "./circle1_object";
+import { fitConic } from "./quadric5pts_object";
+import { conicShape, screenBranches } from "./primitive_quadric_object";
 import {
+    numEqual,
     vAdd,
     vCross,
+    vIsFinite,
     vNorm,
     vNormalize,
     vScale,
@@ -32,9 +36,17 @@ import {
 
 // "polygon": the points, in turn, bound a filled region; "polygons": each
 // run of defined points bounds one; "circle": a center, a radius and, in a
-// Sequence, maybe an axis direction.
+// Sequence, maybe an axis direction; "conic", in a Sequence: five points of
+// a horizontal plane.
 export type ListNature =
-    "point" | "segment" | "line" | "label" | "polygon" | "polygons" | "circle";
+    | "point"
+    | "segment"
+    | "line"
+    | "label"
+    | "polygon"
+    | "polygons"
+    | "circle"
+    | "conic";
 
 // point/segment/line results are folded into a single <path>, so this only
 // bounds computation (mirrors locus_object's MAX_SAMPLES); label results
@@ -184,21 +196,23 @@ export class list_object extends construction_object {
         this.screenItems = this.items.map((values) =>
             this.nature === "circle"
                 ? this.circleScreen(values)
-                : values.map((value, index) => {
-                      // The "label" nature's second formula is a value to format
-                      // as text, not a position.
-                      if (this.nature === "label" && index > 0) return null;
-                      if (value === null || typeof value === "number")
-                          return null;
-                      const screen = this.C.pt3D([
-                          value[0],
-                          value[1],
-                          value[2] ?? 0,
-                      ]);
-                      return screen.every((v) => Math.abs(v) < MAX_SCREEN)
-                          ? screen
-                          : null;
-                  }),
+                : this.nature === "conic"
+                  ? this.conicScreen(values)
+                  : values.map((value, index) => {
+                        // The "label" nature's second formula is a value to format
+                        // as text, not a position.
+                        if (this.nature === "label" && index > 0) return null;
+                        if (value === null || typeof value === "number")
+                            return null;
+                        const screen = this.C.pt3D([
+                            value[0],
+                            value[1],
+                            value[2] ?? 0,
+                        ]);
+                        return screen.every((v) => Math.abs(v) < MAX_SCREEN)
+                            ? screen
+                            : null;
+                    }),
         );
     }
 
@@ -220,14 +234,51 @@ export class list_object extends construction_object {
         if (axis !== undefined && !normal) return [null];
         const x = normal ? axisBasis(normal) : ([1, 0, 0] as Vec3);
         const y = normal ? vCross(normal, x) : ([0, 1, 0] as Vec3);
-        const c: Vec3 = [center[0], center[1], center[2] ?? 0];
-        const screen = [c, vAdd(c, vScale(x, r)), vAdd(c, vScale(y, r))].map(
-            (point) => this.C.pt3D(point),
+        return this.ellipseScreen(
+            [center[0], center[1], center[2] ?? 0],
+            vScale(x, r),
+            vScale(y, r),
+        );
+    }
+
+    private ellipseScreen(c: Vec3, x: Vec3, y: Vec3): (Vec2 | null)[] {
+        const screen = [c, vAdd(c, x), vAdd(c, y)].map((point) =>
+            this.C.pt3D(point),
         );
         if (!screen.flat().every((v) => Math.abs(v) < MAX_SCREEN))
             return [null];
         const [o, u, v] = screen;
         return [o, vSub(u, o), vSub(v, o)];
+    }
+
+    // An ellipse as a circle's, or its branches' points, each after a null.
+    private conicScreen(values: (FormulaValue | null)[]): (Vec2 | null)[] {
+        const points = values.map((value) =>
+            value && typeof value !== "number"
+                ? ([value[0], value[1], value[2] ?? 0] as Vec3)
+                : null,
+        );
+        const z = points[0]?.[2] ?? NaN;
+        const coeffs =
+            points.every((point) => point && numEqual(point[2], z)) &&
+            fitConic(points as Vec3[]);
+        const shape = coeffs && conicShape(coeffs);
+        if (!shape) return [];
+        const at = ([x, y]: Vec2): Vec3 => [x, y, z];
+        if (shape.kind === "ellipse")
+            return this.ellipseScreen(
+                at(shape.center),
+                [...shape.u, 0],
+                [...shape.v, 0],
+            );
+        const anchor = this.C.pt3D(at(shape.center));
+        if (!vIsFinite(anchor)) return [];
+        const [branches] = screenBranches(
+            this.C,
+            shape.branches.map((branch) => (t) => at(branch(t))),
+            anchor,
+        );
+        return branches.flatMap((points) => [null, ...points]);
     }
 
     // *************************************************
@@ -338,6 +389,17 @@ export class list_object extends construction_object {
                     return `M${x - r} ${y} a${r},${r} 0 1,0 ${2 * r},0 a${r},${r} 0 1,0 ${-2 * r},0`;
                 }
                 if (this.nature === "circle") return ellipsePath(points);
+                if (this.nature === "conic")
+                    return points[0]
+                        ? ellipsePath(points)
+                        : points
+                              .map((point, i) =>
+                                  point
+                                      ? (points[i - 1] ? "L" : "M") +
+                                        point.join(" ")
+                                      : "",
+                              )
+                              .join("");
                 const [p1, p2] = points;
                 if (!p1 || !p2) return "";
                 if (this.nature === "segment")

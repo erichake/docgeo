@@ -47,6 +47,82 @@ function findBound(isOutside: (t: number) => boolean): number {
     return hi;
 }
 
+// Branches on the screen, sampled within FLATNESS pixels where they show
+// around `anchor`, the screen image of their center, and per branch how far
+// its ends are pushed into its interior to close its fill outside the
+// viewport rather than along their chord.
+export function screenBranches(
+    C: construction,
+    branches: ((t: number) => Vec3)[],
+    anchor: Vec2,
+): [Vec2[][], Vec2[]] {
+    const margin =
+        C.width + C.height + Math.abs(anchor[0]) + Math.abs(anchor[1]);
+    const branchPoints: Vec2[][] = [];
+    const fillOffsets: Vec2[] = [];
+    for (const branch of branches) {
+        const projectAt = (t: number): Vec2 | null => {
+            const p = C.pt3D(branch(t));
+            return vIsFinite(p) ? p : null;
+        };
+        const isOutside = (t: number): boolean => {
+            const p = projectAt(t);
+            return (
+                !p || Math.hypot(p[0] - anchor[0], p[1] - anchor[1]) > margin
+            );
+        };
+        const boundPos = findBound((t) => isOutside(t));
+        const boundNeg = findBound((t) => isOutside(-t));
+        const samples: Vec2[] = [];
+        const refine = (
+            t0: number,
+            p0: Vec2,
+            t1: number,
+            p1: Vec2,
+            depth: number,
+        ): void => {
+            const t = (t0 + t1) / 2;
+            const p = projectAt(t);
+            if (
+                p &&
+                depth < MAX_SUBDIVISIONS &&
+                Math.hypot(
+                    p[0] - (p0[0] + p1[0]) / 2,
+                    p[1] - (p0[1] + p1[1]) / 2,
+                ) > FLATNESS
+            ) {
+                refine(t0, p0, t, p, depth + 1);
+                samples.push(p);
+                refine(t, p, t1, p1, depth + 1);
+            }
+        };
+        let previous: [number, Vec2] | null = null;
+        for (let i = -BRANCH_SAMPLES; i <= BRANCH_SAMPLES; i++) {
+            const t = ((i < 0 ? boundNeg : boundPos) * i) / BRANCH_SAMPLES;
+            const p = projectAt(t);
+            if (!p) continue;
+            if (previous) refine(previous[0], previous[1], t, p, 0);
+            samples.push(p);
+            previous = [t, p];
+        }
+        if (samples.length < 2) continue;
+        branchPoints.push(samples);
+        // Its axis, towards its interior: the parametrizations are
+        // symmetric about it.
+        const axis = vSub(
+            C.pt3D(vScale(vAdd(branch(1), branch(-1)), 0.5)),
+            C.pt3D(branch(0)),
+        );
+        const length = Math.hypot(axis[0], axis[1]);
+        fillOffsets.push(
+            length > 0
+                ? [(axis[0] * margin) / length, (axis[1] * margin) / length]
+                : [0, 0],
+        );
+    }
+    return [branchPoints, fillOffsets];
+}
+
 export abstract class primitive_quadric_object extends construction_object {
     KIND: QuadricKind = "ellipse";
     // Implicit a·x²+b·xy+c·y²+d·x+e·y+f=0 form, in the quadric's own
@@ -187,76 +263,18 @@ export abstract class primitive_quadric_object extends construction_object {
         this.COEFFS = coeffs.map((v) => v / norm) as unknown as ConicCoeffs;
     }
 
-    // The conic a·x² + b·xy + c·y² + d·x + e·y + f = 0 of its plane, and its
-    // axes: none for an imaginary ellipse or a pair of lines.
+    // The conic a·x² + b·xy + c·y² + d·x + e·y + f = 0 of its plane.
     protected setConic(coeffs: readonly number[]): void {
         const norm = Math.hypot(...coeffs);
         const [a, b, c, d, e, f] = coeffs.map((value) => value / norm);
         this.COEFFS = [a, b, c, d, e, f];
         this.defined = false;
-        // The eigenvalues of its quadratic part, along e1 and e2.
-        const theta = Math.atan2(b, a - c) / 2;
-        const half = Math.hypot((a - c) / 2, b / 2);
-        const lambdas = [(a + c) / 2 + half, (a + c) / 2 - half];
-        const e1: Vec2 = [Math.cos(theta), Math.sin(theta)];
-        const e2: Vec2 = [-e1[1], e1[0]];
-        const det = 4 * a * c - b * b;
-        if (Math.abs(det) <= geometryTolerance(a, b, c)) {
-            const curved = Math.abs(lambdas[0]) >= Math.abs(lambdas[1]);
-            const l = lambdas[curved ? 0 : 1];
-            const u = curved ? e1 : e2;
-            const v: Vec2 = [-u[1], u[0]];
-            const du = d * u[0] + e * u[1];
-            const dv = d * v[0] + e * v[1];
-            if (
-                Math.abs(l) <= geometryTolerance(a, b, c) ||
-                Math.abs(dv) <= geometryTolerance(d, e)
-            )
-                return;
-            // s² = 2p·t in the frame of its vertex, u and v.
-            const u0 = -du / (2 * l);
-            const v0 = ((du * du) / (4 * l) - f) / dv;
-            const p = -dv / (2 * l);
-            const at = (s: number, t: number): Vec2 => [
-                (u0 + s) * u[0] + (v0 + t) * v[0],
-                (u0 + s) * u[1] + (v0 + t) * v[1],
-            ];
-            this.setBranches("parabola", at(0, 0), [
-                (s) => at(s, (s * s) / (2 * p)),
-            ]);
-            this.axes = [at(0, 0), at(Math.abs(p), 0), at(0, p)].map(
-                ([x, y]) => [x, y, 0],
-            );
-            return;
-        }
-        const center: Vec2 = [
-            (b * e - 2 * c * d) / det,
-            (b * d - 2 * a * e) / det,
-        ];
-        const f0 = (d * center[0] + e * center[1]) / 2 + f;
-        const [m1, m2] = lambdas.map((lambda) => -f0 / lambda);
-        if (!(m1 > 0 || m2 > 0)) return;
-        // Its transverse axis first.
-        const [r1, r2, u, v] = m1 > 0 ? [m1, m2, e1, e2] : [m2, m1, e2, e1];
-        const [s1, s2] = [Math.sqrt(r1), Math.sqrt(Math.abs(r2))];
-        const end = ([x, y]: Vec2, r: number): Vec3 => [
-            center[0] + r * x,
-            center[1] + r * y,
-            0,
-        ];
-        this.axes = [[...center, 0], end(u, s1), end(v, s2)];
-        if (r2 > 0)
-            this.setEllipse(
-                center,
-                [s1 * u[0], s1 * u[1]],
-                [s2 * v[0], s2 * v[1]],
-            );
-        else
-            this.setBranches(
-                "hyperbola",
-                center,
-                hyperbolaBranches(center, u, s1, v, s2),
-            );
+        const shape = conicShape(this.COEFFS);
+        if (!shape) return;
+        this.axes = shape.axes.map(([x, y]) => [x, y, 0]);
+        if (shape.kind === "ellipse")
+            this.setEllipse(shape.center, shape.u, shape.v);
+        else this.setBranches(shape.kind, shape.center, shape.branches);
     }
 
     // Three points of its plane, in plane coordinates, whose affine frame
@@ -370,77 +388,10 @@ export abstract class primitive_quadric_object extends construction_object {
     private projectBranches(): void {
         const anchor = this.C.pt3D(this.CENTER);
         if (!vIsFinite(anchor)) return;
-        const margin =
-            this.C.width +
-            this.C.height +
-            Math.abs(anchor[0]) +
-            Math.abs(anchor[1]);
-        const branchPoints: Vec2[][] = [];
-        const fillOffsets: Vec2[] = [];
-        for (const branch of this.BRANCHES) {
-            const projectAt = (t: number): Vec2 | null => {
-                const p = this.C.pt3D(branch(t));
-                return vIsFinite(p) ? p : null;
-            };
-            const isOutside = (t: number): boolean => {
-                const p = projectAt(t);
-                return (
-                    !p ||
-                    Math.hypot(p[0] - anchor[0], p[1] - anchor[1]) > margin
-                );
-            };
-            const boundPos = findBound((t) => isOutside(t));
-            const boundNeg = findBound((t) => isOutside(-t));
-            const samples: Vec2[] = [];
-            const refine = (
-                t0: number,
-                p0: Vec2,
-                t1: number,
-                p1: Vec2,
-                depth: number,
-            ): void => {
-                const t = (t0 + t1) / 2;
-                const p = projectAt(t);
-                if (
-                    p &&
-                    depth < MAX_SUBDIVISIONS &&
-                    Math.hypot(
-                        p[0] - (p0[0] + p1[0]) / 2,
-                        p[1] - (p0[1] + p1[1]) / 2,
-                    ) > FLATNESS
-                ) {
-                    refine(t0, p0, t, p, depth + 1);
-                    samples.push(p);
-                    refine(t, p, t1, p1, depth + 1);
-                }
-            };
-            let previous: [number, Vec2] | null = null;
-            for (let i = -BRANCH_SAMPLES; i <= BRANCH_SAMPLES; i++) {
-                const t = ((i < 0 ? boundNeg : boundPos) * i) / BRANCH_SAMPLES;
-                const p = projectAt(t);
-                if (!p) continue;
-                if (previous) refine(previous[0], previous[1], t, p, 0);
-                samples.push(p);
-                previous = [t, p];
-            }
-            if (samples.length < 2) continue;
-            branchPoints.push(samples);
-            // Its axis, towards its interior: the parametrizations are
-            // symmetric about it.
-            const axis = vSub(
-                this.C.pt3D(vScale(vAdd(branch(1), branch(-1)), 0.5)),
-                this.C.pt3D(branch(0)),
-            );
-            const length = Math.hypot(axis[0], axis[1]);
-            fillOffsets.push(
-                length > 0
-                    ? [(axis[0] * margin) / length, (axis[1] * margin) / length]
-                    : [0, 0],
-            );
-        }
-        if (branchPoints.length === 0) return;
-        this.branchScreenPoints = branchPoints;
-        this.branchFillOffsets = fillOffsets;
+        const [points, offsets] = screenBranches(this.C, this.BRANCHES, anchor);
+        if (points.length === 0) return;
+        this.branchScreenPoints = points;
+        this.branchFillOffsets = offsets;
         this.projectionDefined = true;
     }
 
@@ -560,6 +511,80 @@ export abstract class primitive_quadric_object extends construction_object {
             t.curvePath,
         );
     }
+}
+
+// The conic a·x² + b·xy + c·y² + d·x + e·y + f = 0: its center (a
+// parabola's vertex), the points of its frame (see axes) and an ellipse's
+// conjugate semi-axes or its branches; none for an imaginary ellipse or a
+// pair of lines.
+export type ConicShape = { center: Vec2; axes: Vec2[] } & (
+    | { kind: "ellipse"; u: Vec2; v: Vec2 }
+    | { kind: "hyperbola" | "parabola"; branches: ((t: number) => Vec2)[] }
+);
+
+export function conicShape(coeffs: readonly number[]): ConicShape | null {
+    const norm = Math.hypot(...coeffs);
+    const [a, b, c, d, e, f] = coeffs.map((value) => value / norm);
+    // The eigenvalues of its quadratic part, along e1 and e2.
+    const theta = Math.atan2(b, a - c) / 2;
+    const half = Math.hypot((a - c) / 2, b / 2);
+    const lambdas = [(a + c) / 2 + half, (a + c) / 2 - half];
+    const e1: Vec2 = [Math.cos(theta), Math.sin(theta)];
+    const e2: Vec2 = [-e1[1], e1[0]];
+    const det = 4 * a * c - b * b;
+    if (Math.abs(det) <= geometryTolerance(a, b, c)) {
+        const curved = Math.abs(lambdas[0]) >= Math.abs(lambdas[1]);
+        const l = lambdas[curved ? 0 : 1];
+        const u = curved ? e1 : e2;
+        const v: Vec2 = [-u[1], u[0]];
+        const du = d * u[0] + e * u[1];
+        const dv = d * v[0] + e * v[1];
+        if (
+            Math.abs(l) <= geometryTolerance(a, b, c) ||
+            Math.abs(dv) <= geometryTolerance(d, e)
+        )
+            return null;
+        // s² = 2p·t in the frame of its vertex, u and v.
+        const u0 = -du / (2 * l);
+        const v0 = ((du * du) / (4 * l) - f) / dv;
+        const p = -dv / (2 * l);
+        const at = (s: number, t: number): Vec2 => [
+            (u0 + s) * u[0] + (v0 + t) * v[0],
+            (u0 + s) * u[1] + (v0 + t) * v[1],
+        ];
+        return {
+            kind: "parabola",
+            center: at(0, 0),
+            axes: [at(0, 0), at(Math.abs(p), 0), at(0, p)],
+            branches: [(s) => at(s, (s * s) / (2 * p))],
+        };
+    }
+    const center: Vec2 = [(b * e - 2 * c * d) / det, (b * d - 2 * a * e) / det];
+    const f0 = (d * center[0] + e * center[1]) / 2 + f;
+    const [m1, m2] = lambdas.map((lambda) => -f0 / lambda);
+    if (!(m1 > 0 || m2 > 0)) return null;
+    // Its transverse axis first.
+    const [r1, r2, u, v] = m1 > 0 ? [m1, m2, e1, e2] : [m2, m1, e2, e1];
+    const [s1, s2] = [Math.sqrt(r1), Math.sqrt(Math.abs(r2))];
+    const end = ([x, y]: Vec2, r: number): Vec2 => [
+        center[0] + r * x,
+        center[1] + r * y,
+    ];
+    const axes = [center, end(u, s1), end(v, s2)];
+    return r2 > 0
+        ? {
+              kind: "ellipse",
+              center,
+              axes,
+              u: [s1 * u[0], s1 * u[1]],
+              v: [s2 * v[0], s2 * v[1]],
+          }
+        : {
+              kind: "hyperbola",
+              center,
+              axes,
+              branches: hyperbolaBranches(center, u, s1, v, s2),
+          };
 }
 
 export function hyperbolaBranches(
