@@ -49,7 +49,8 @@ for r in rows:
             entries.append(("condition",set(WORD.findall(u[10:])),u))
         else:
             t,_,label=u.partition(" "); bad.add(label)
-            entries.append((t,set(WORD.findall(exprs.get(label) or "")),u))
+            # Its own name, which "Cone: z = …" writes, isn't a dependency.
+            entries.append((t,set(WORD.findall(exprs.get(label) or ""))-{label},u))
     # Unknown names inside an unsupported element, which only its outermost
     # command names as a cause: UnitVector in Circle(A, r, UnitVector[v]).
     labels={e.get("label") for e in cons.findall("element")}|set(exprs)
