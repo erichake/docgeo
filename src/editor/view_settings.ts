@@ -1,6 +1,8 @@
+import { BACKGROUND_FITS, type BackgroundFit } from "../background";
 import type { construction } from "../construction";
 import { $, type DOMElement } from "../dom";
 import type { grid_object } from "../objects/grid_object";
+import { imageFileInput } from "./image_file";
 import { message, type MessageKey } from "./messages";
 import { scrubNumber, type Scrub } from "./scrub";
 
@@ -190,6 +192,8 @@ export interface ViewOptions {
     scene: () => construction;
     // A step to undo.
     changed: () => void;
+    // An error shown below the figure.
+    error: (text: string) => void;
     // The figure read again with this angle unit or segments order.
     figure: (patch: { deg?: number; sop?: number }) => void;
     // The tab built again, after a preset.
@@ -976,6 +980,61 @@ export function viewSettings(
             },
         ),
     );
+    // An image over the background color, chosen from a file, laid out as
+    // CSS does.
+    const { image, fit } = c.prefs.background;
+    const paint = (change: () => void) => {
+        change();
+        c.paintBackground();
+        commit();
+        options.rebuild();
+    };
+    const file = imageFileInput((picture) =>
+        picture
+            ? paint(() => (c.prefs.background.image = picture.url))
+            : options.error(message("image_unreadable")),
+    );
+    const choose = $.create("button")
+        .cls("dge-view-image")
+        .att("type", "button")
+        .att("title", message("background_image_choose"))
+        .att("aria-label", message("background_image_choose"))
+        .stl("background-image", image ? `url("${image}")` : "none");
+    if (!image) choose.text("…");
+    choose.on("click", () => (file.dom() as HTMLInputElement).click());
+    const remove = $.create("button")
+        .cls("dge-reset")
+        .att("type", "button")
+        .att("title", message("background_image_remove"))
+        .att("aria-label", message("background_image_remove"))
+        .stl("visibility", image ? "visible" : "hidden")
+        .append(RESET_ICON);
+    remove.on("click", () => paint(() => (c.prefs.background.image = null)));
+    fields.push(choose, remove);
+    row(
+        figure,
+        "background_image",
+        $.create("div").cls("dge-view-color").add(remove, choose),
+    );
+    if (image) {
+        const fits = Object.keys(BACKGROUND_FITS) as BackgroundFit[];
+        row(
+            figure,
+            "background_fit",
+            select(
+                "background_fit",
+                fits.indexOf(fit),
+                fits.map((name, index) => [
+                    index,
+                    message(`fit_${name.replace("-", "_")}` as MessageKey),
+                ]),
+                (index) => {
+                    c.prefs.background.fit = fits[index];
+                    c.paintBackground();
+                },
+            ),
+        );
+    }
     row(
         figure,
         "angles",

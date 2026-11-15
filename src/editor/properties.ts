@@ -112,6 +112,8 @@ const PROGRAM_PLACEHOLDER =
 export function propertiesPanel(options: {
     scene: () => construction;
     changed: () => void;
+    // An error shown below the figure.
+    error: (text: string) => void;
     rename: (object: construction_object, name: string) => Promise<void>;
     // Throws a TextError where the text is wrong.
     define: (object: Defined, source: string) => Promise<void>;
@@ -270,6 +272,7 @@ export function propertiesPanel(options: {
             ...viewSettings(figurePane, {
                 scene: options.scene,
                 changed: options.changed,
+                error: options.error,
                 figure: options.figure,
                 rebuild: showFigure,
             }),

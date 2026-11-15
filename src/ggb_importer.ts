@@ -15,6 +15,7 @@ import { point_on_object } from "./objects/point_on_object";
 import type { construction_object } from "./objects/construction_object";
 import { projectPoint } from "./projection";
 import { vAdd, vNorm, vScale, vSub, type Vec3 } from "./vec";
+import { bandBackground } from "./background";
 
 // Returns what the figure uses that couldn't be imported.
 export function importGgb(
@@ -167,6 +168,11 @@ function applyView3D(c: construction, view: GgbView3D): void {
     grid.THETA = view.theta;
     grid.UNIT = [view.unit, view.unit, view.unit];
     grid.pivot = vScale(view.offset, -1);
+    if (view.band)
+        Object.assign(
+            c.prefs.background,
+            bandBackground(view.band.color, view.band.inset),
+        );
     grid.ORG = projectPoint(view.offset, {
         origin: [c.width / 2 + view.shift[0], c.height / 2 + view.shift[1]],
         unit: grid.UNIT,

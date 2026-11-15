@@ -1326,8 +1326,14 @@ au lecteur, et doit rester plus clair que le panneau de GeoGebra :
   choisissent par icônes, le style DGPad / GeoGebra (`gg`) par un bouton
   double. La couleur de la grille suit celle des axes tant qu'elle n'est
   pas choisie (`gc` nul) ; un bouton l'y ramène.
-- **Figure** : fond, degrés ou radians, segments au-dessus des polygones ;
-  les deux derniers relisent la figure.
+- **Figure** : fond, motif, degrés ou radians, segments au-dessus des
+  polygones ; les deux derniers relisent la figure. Le motif (2026-11-15,
+  `bgi`, `bgf`) est une image choisie sur le disque, peinte derrière tout
+  par-dessus la couleur du fond ; sa vignette ouvre le choix du fichier, ↺
+  le retire, et « Disposition », montrée seulement avec un motif, offre les
+  dispositions de CSS : mosaïque, mosaïque horizontale ou verticale, centré,
+  étiré, remplir, ajuster. L'import GeoGebra s'en sert pour la vue graphique
+  à côté de la vue 3D.
 - Une couleur changée (axes, fond, grille, sol et ses lignes) montre à
   côté de son nuancier un bouton ↺ qui la ramène à son défaut : celle de
   DGPad, ou celle qu'elle suit (la grille les axes, les lignes le sol).

@@ -121,6 +121,9 @@ export interface GgbView3D {
     offset: Vec3;
     // In pixels, the view's center from the window's.
     shift: Vec2;
+    // The graphics view beside it, `inset` pixels wide or high, in its own
+    // background color.
+    band?: { color: string; inset: Vec2 };
 }
 
 const IDENTIFIER = new RegExp(
@@ -6149,9 +6152,12 @@ export function translateGgb(
         side && view
             ? Number(attribute(view, "size", across ? "width" : "height") ?? 0)
             : 0;
+    const inset: Vec2 = across ? [strip, 0] : [0, strip];
+    const band = strip && view && child(view, "bgColor");
     const camera: GgbView3D | undefined = coordSystem3D
         ? {
               shift: across ? [strip / 2, 0] : [0, strip / 2],
+              ...(band && { band: { color: hexColor(band), inset } }),
               phi: -degrees("zAngle"),
               theta: degrees("xAngle"),
               unit: Number(coordSystem3D.getAttribute("scale")),
@@ -6165,7 +6171,6 @@ export function translateGgb(
     // GeoGebra's clipping box (see grid.geogebraBox): its corner n, from
     // the window and the camera, the 3D view starting `inset` pixels right
     // of and below the window's top left corner.
-    const inset: Vec2 = across ? [strip, 0] : [0, strip];
     const boxSize = Number(
         (view3D && attribute(view3D, "clipping", "size")) ?? 1,
     );
@@ -6262,9 +6267,7 @@ export function translateGgb(
         }`;
         // In 3D, its plate, colored axes across its clipping box, and the
         // graphics view beside it.
-        const insetColor =
-            (inset[0] || inset[1]) && view && child(view, "bgColor");
-        const space = `;isOz:${shown.includes("2")};isFloor:${attribute(styledView, "plate", "show") !== "false"};fontSize:${numbers};onlyPositive:${positive}${graduations};geogebraAxes:true;boxSize:${boxSize};viewInset:${inset.join(",")}${insetColor ? `;insetColor:${hexColor(insetColor)}` : ""}`;
+        const space = `;isOz:${shown.includes("2")};isFloor:${attribute(styledView, "plate", "show") !== "false"};fontSize:${numbers};onlyPositive:${positive}${graduations};geogebraAxes:true;boxSize:${boxSize};viewInset:${inset.join(",")}`;
         const plane = is3D
             ? space
             : `;axisWidth:${bold ? 2 : 1};fontSize:${numbers};onlyPositive:${positive}${graduations};arrows:${arrows};boldNumbers:${Boolean(labelStyle & 1)};geogebraAxes:true${gridStyle}`;

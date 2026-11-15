@@ -1,3 +1,8 @@
+import {
+    BACKGROUND_FITS,
+    bandBackground,
+    type BackgroundFit,
+} from "./background";
 import type { construction } from "./construction";
 import {
     formulaIdentifiers,
@@ -186,6 +191,9 @@ export interface DgoFigure {
     // See construction.segmentsOverPolygons.
     sop?: number;
     bg?: string;
+    // The background image's key in `img`, and its layout.
+    bgi?: string;
+    bgf?: string;
     // The objects' styles, and images, their entries refer to.
     st?: Settings[];
     img?: Record<string, string>;
@@ -728,12 +736,6 @@ const VIEW: Record<string, Property> = {
                 value.length === 3 &&
                 value.every(isNumber)),
     ),
-    gv: field(
-        grid_object,
-        "insetColor",
-        null,
-        (value) => value === null || isColor(value),
-    ),
     ah: field(grid_object, "arrows", 0, (value) =>
         [0, 1, 2, 3].includes(value as number),
     ),
@@ -876,7 +878,9 @@ export async function describeDgo(
     const indices = new Map(objects.map((object, index) => [object, index]));
     const images: Record<string, string> = {};
     const keys = new Map<string, string>();
+    const { image: backgroundImage, fit } = c.prefs.background;
     for (const url of [
+        ...(backgroundImage ? [backgroundImage] : []),
         ...objects.flatMap((object) =>
             object instanceof image_object ? [object.url] : [],
         ),
@@ -917,6 +921,8 @@ export async function describeDgo(
         ...(c.prefs.background.color !== BACKGROUND && {
             bg: c.prefs.background.color,
         }),
+        ...(backgroundImage && { bgi: keys.get(backgroundImage)! }),
+        ...(backgroundImage && fit !== "repeat" && { bgf: fit }),
         o: objects.map((object) => dgoEntry(object, context, styleIndex)),
     };
     if (c.macros.length)
@@ -1115,6 +1121,8 @@ export function readDgo(c: construction, figure: Json, centered = false): void {
         deg = 1,
         sop = 0,
         bg = BACKGROUND,
+        bgi = null,
+        bgf = "repeat",
         st: styles = [],
         img: images = {},
         o: entries,
@@ -1125,7 +1133,15 @@ export function readDgo(c: construction, figure: Json, centered = false): void {
     check(isRecord(images) && Array.isArray(entries));
     c.degrees = deg === 1;
     c.segmentsOverPolygons = sop === 1;
-    c.prefs.background.color = bg as string;
+    const image =
+        typeof bgi === "string" && own(images, bgi) ? images[bgi] : null;
+    check(bgi === null || (typeof image === "string" && IMAGE_URL.test(image)));
+    check(typeof bgf === "string" && own(BACKGROUND_FITS, bgf));
+    c.prefs.background = {
+        color: bg as string,
+        image: image as string | null,
+        fit: bgf as BackgroundFit,
+    };
     c.macros = readMacros(macros, styles, images);
 
     const { o: origin, u: unit, uy = unit, w: width, h: height } = view;
@@ -1135,6 +1151,14 @@ export function readDgo(c: construction, figure: Json, centered = false): void {
     c.savedSize = [width, height];
     const grid = c.GRID;
     apply(VIEW, grid, view);
+    // Before the background image, GeoGebra's graphics view's color.
+    const { gv = null } = view;
+    check(gv === null || isColor(gv));
+    if (gv && !image && (grid.viewInset[0] || grid.viewInset[1]))
+        Object.assign(
+            c.prefs.background,
+            bandBackground(gv as string, grid.viewInset),
+        );
     c.paintBackground();
     grid.UNIT = [unit, uy, unit];
     // Otherwise, a DGPad figure keeps its origin where it was in the window,

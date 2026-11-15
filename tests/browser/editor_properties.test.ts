@@ -56,6 +56,7 @@ function setup(macros: object = {}) {
         changed: () => {
             changes++;
         },
+        error: () => {},
         rename: async () => {},
         define: async () => {},
         line: () => null,
@@ -487,6 +488,7 @@ describe("Object properties", () => {
         const properties = propertiesPanel({
             scene: () => studio.scene,
             changed: () => {},
+            error: () => {},
             shown: () => {},
             mark: () => {},
             rename: async () => {},

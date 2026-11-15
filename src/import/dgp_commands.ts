@@ -1065,7 +1065,7 @@ function validateCursorStyle(value: string, lineNumber: number): void {
 
 function validateCoordsStyle(value: string, lineNumber: number): void {
     const style = properties(value);
-    ["color", "gridColor", "insetColor"].forEach((name) => {
+    ["color", "gridColor"].forEach((name) => {
         const color = style.get(name);
         if (color !== undefined) validateColor(color, lineNumber);
     });
@@ -1421,9 +1421,6 @@ function applyCoordsStyle(context: CommandContext, value: string): void {
     const inset = style.get("viewInset");
     if (inset !== undefined)
         grid.viewInset = inset.split(",").map(Number) as unknown as Vec2;
-    const insetColor = style.get("insetColor");
-    if (insetColor !== undefined) grid.insetColor = extractColor(insetColor);
-    context.construction.paintBackground();
     size("arrows", (value) => (grid.arrows = value));
     context.gridChanged = true;
 }

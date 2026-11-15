@@ -1,3 +1,4 @@
+import type { BackgroundFit } from "./background";
 import type { Vec2, Vec3 } from "./vec";
 
 export interface ColorPref {
@@ -39,7 +40,11 @@ export interface GridPref extends ObjectPref {
 }
 
 export interface Preferences {
-    background: { color: string };
+    background: {
+        color: string;
+        image: string | null;
+        fit: BackgroundFit;
+    };
     point: PointPref;
     midpoint: PointPref;
     intersection: PointPref;
@@ -66,7 +71,11 @@ export interface Preferences {
 export type PrefKey = Exclude<keyof Preferences, "background">;
 
 export class preferences implements Preferences {
-    background: { color: string };
+    background: {
+        color: string;
+        image: string | null;
+        fit: BackgroundFit;
+    };
     point: PointPref;
     midpoint: PointPref;
     intersection: PointPref;
@@ -90,7 +99,7 @@ export class preferences implements Preferences {
     image: ObjectPref;
 
     constructor() {
-        this.background = { color: "#FAFAFA" };
+        this.background = { color: "#FAFAFA", image: null, fit: "repeat" };
 
         this.point = {
             shape: {

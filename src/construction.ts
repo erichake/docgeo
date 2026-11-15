@@ -1,4 +1,5 @@
 import { animations } from "./animation";
+import { BACKGROUND_FITS } from "./background";
 import { $, type DOMElement, type PointerDelta } from "./dom";
 import type { FormulaView } from "./import/dgp_formula";
 import type { Macro } from "./objects/macro_object";
@@ -531,17 +532,12 @@ export class construction {
         });
     }
 
-    // Its background, beside GeoGebra's 3D view its graphics view's (see
-    // grid_object.viewInset).
+    // Its background: its image, if any, over its color.
     paintBackground(): void {
-        const { color } = this.prefs.background;
-        const [left, top] = this.GRID.viewInset;
-        const strip = this.GRID.insetColor;
+        const { color, image, fit } = this.prefs.background;
         this.svg.stl(
             "background",
-            strip && (left || top)
-                ? `linear-gradient(to ${left ? "right" : "bottom"},${strip} ${left || top}px,${color} 0)`
-                : color,
+            image ? `url("${image}") ${BACKGROUND_FITS[fit]},${color}` : color,
         );
     }
 

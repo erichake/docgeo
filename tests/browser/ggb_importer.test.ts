@@ -1,5 +1,6 @@
 import { afterEach, describe, expect, it } from "vitest";
 import { construction } from "../../src/construction";
+import { bandBackground } from "../../src/background";
 import { describeDgo, readDgo } from "../../src/dgo";
 import { importGgb, importGgbFromBlob } from "../../src/ggb_importer";
 import { readZipEntry } from "../../src/import/ggb_zip";
@@ -5032,7 +5033,7 @@ while (k < 1) {
     });
 
     it("turns the 3D view about its clipping box's center, as GeoGebra", async () => {
-        const c = createConstruction([1200, 800]);
+        const c = createConstruction();
         expect(importGgb(c, await loadXml("repere"))).toEqual([]);
         c.OBJS.update();
         const grid = c.GRID;
@@ -5227,15 +5228,27 @@ if ((!az ? 1 : 0) == 0) {
 <euclidianView3D><coordSystem xZero="0" yZero="0" zZero="0" scale="50" xAngle="20" zAngle="-30"/><bgColor r="5" g="5" b="5"/></euclidianView3D>
 <construction><element type="point3d" label="A"><coords x="1" y="0" z="0" w="1"/></element></construction></geogebra>`,
         );
-        expect([c.GRID.viewInset, c.GRID.insetColor]).toEqual([
-            [300, 0],
-            "#a0a0a0",
-        ]);
+        expect(c.GRID.viewInset).toEqual([300, 0]);
+        // A band, as a background image tiled down the left side.
+        const band = bandBackground("#a0a0a0", [300, 0]);
+        expect(c.prefs.background).toEqual({ color: "#050505", ...band });
+        expect(atob(band.image.split(",")[1])).toContain('width="300"');
         const restored = createConstruction();
         readDgo(restored, await describeDgo(c));
+        expect(restored.prefs.background).toEqual(c.prefs.background);
         expect((restored.svg.dom() as SVGElement).style.background).toContain(
-            "linear-gradient(to right",
+            "repeat-y",
         );
+        // As written before background images: the band's color in the view.
+        const {
+            bgi: _key,
+            img: _images,
+            bgf: _fit,
+            ...figure
+        } = await describeDgo(c);
+        const older = createConstruction();
+        readDgo(older, { ...figure, v: { ...figure.v, gv: "#a0a0a0" } });
+        expect(older.prefs.background).toEqual(c.prefs.background);
     });
 
     it("reports what it can't import instead of failing", () => {

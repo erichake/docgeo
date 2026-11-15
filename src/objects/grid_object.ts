@@ -108,8 +108,6 @@ export class grid_object extends construction_object {
     // opens, giving the depth of its clipping box's center. Null: the
     // origin's.
     pivot: Vec3 | null = null;
-    // That graphics view's background, if not the figure's.
-    insetColor: string | null = null;
     // The axes' ends: DGPad's arrow (0), none (1), GeoGebra's open (2) or
     // filled one (3).
     arrows = 0;

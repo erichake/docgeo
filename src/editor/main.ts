@@ -18,6 +18,7 @@ import {
     type Workbook,
 } from "../dgo";
 import { $, type DOMElement } from "../dom";
+import { imageFileInput } from "./image_file";
 import { droppedFigures, dropFigures, hasFiles } from "../drop";
 import { FIGURE_URL, fetchFigure } from "../figure_url";
 import { DIR, LANG } from "../i18n";
@@ -945,6 +946,7 @@ function withGlobals(
 const properties = propertiesPanel({
     scene,
     changed: () => changed(),
+    error: (text) => showHint(text, true),
     shown: () => turtle.watch(),
     mark: (object, on) => lit(object, on),
     rename,
@@ -4166,58 +4168,32 @@ function showPlaced(object: construction_object): void {
 let imageSpot: Vec2 = [0, 0];
 let imageCorner: point_object | null = null;
 const IMAGE_SIZE = 400;
-const imageInput = $.create("input")
-    .att("type", "file")
-    .att("accept", "image/png,image/jpeg,image/gif,image/webp,image/svg+xml");
-imageInput.on(
-    "change",
-    async () => {
-        const field = imageInput.dom() as HTMLInputElement;
-        const file = field.files![0];
-        field.value = "";
-        const url = await new Promise<string>((resolve) => {
-            const reader = new FileReader();
-            reader.onload = () => resolve(reader.result as string);
-            reader.readAsDataURL(file);
+const imageInput = imageFileInput(async (picture) => {
+    if (!picture) return showHint(message("image_unreadable"), true);
+    const { url, image } = picture;
+    const [width, height] = [
+        image.naturalWidth || IMAGE_SIZE,
+        image.naturalHeight || IMAGE_SIZE,
+    ];
+    const scale = Math.min(1, IMAGE_SIZE / Math.max(width, height));
+    const size: Vec2 = [width * scale, height * scale];
+    const key = await imageKey(url);
+    const c = scene();
+    const first = (imageCorner ?? addFreePoint(imageSpot)) as point_object;
+    // Seen along the ground, where no point can be made.
+    if (!first) return showPlaced(addImage(c, url, key, size, imageSpot));
+    const anchor = (dx: number, dy: number) =>
+        add(c, {
+            name: nextName(c, true),
+            overload: FREE_POINT,
+            args: [first.coords[0] + dx, first.coords[1] + dy, first.coords[2]],
         });
-        const image = new Image();
-        image.src = url;
-        // Any file can still be chosen.
-        const read = await image.decode().then(
-            () =>
-                /^data:image\/(?:png|jpeg|gif|webp|svg\+xml);base64,/.test(url),
-            () => false,
-        );
-        if (!read) return showHint(message("image_unreadable"), true);
-        const [width, height] = [
-            image.naturalWidth || IMAGE_SIZE,
-            image.naturalHeight || IMAGE_SIZE,
-        ];
-        const scale = Math.min(1, IMAGE_SIZE / Math.max(width, height));
-        const size: Vec2 = [width * scale, height * scale];
-        const key = await imageKey(url);
-        const c = scene();
-        const first = (imageCorner ?? addFreePoint(imageSpot)) as point_object;
-        // Seen along the ground, where no point can be made.
-        if (!first) return showPlaced(addImage(c, url, key, size, imageSpot));
-        const anchor = (dx: number, dy: number) =>
-            add(c, {
-                name: nextName(c, true),
-                overload: FREE_POINT,
-                args: [
-                    first.coords[0] + dx,
-                    first.coords[1] + dy,
-                    first.coords[2],
-                ],
-            });
-        const wide = size[0] / c.GRID.UNIT[0];
-        const corners = vec3()
-            ? [first, anchor(wide, 0), anchor(0, (wide * size[1]) / size[0])]
-            : [first, addFreePoint(vAdd(first.screen, [size[0], 0]))!];
-        showPlaced(addImage(c, url, key, size, corners));
-    },
-    false,
-);
+    const wide = size[0] / c.GRID.UNIT[0];
+    const corners = vec3()
+        ? [first, anchor(wide, 0), anchor(0, (wide * size[1]) / size[0])]
+        : [first, addFreePoint(vAdd(first.screen, [size[0], 0]))!];
+    showPlaced(addImage(c, url, key, size, corners));
+});
 
 function drawFrom(as: Exclude<Choice, "expression">): void {
     const source = target() as expression_object;
