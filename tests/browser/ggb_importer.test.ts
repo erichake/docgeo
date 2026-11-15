@@ -3959,6 +3959,48 @@ r.setExpression(0);`);
         expect((restored.getObj("a") as expression_object).value).toBe(0);
     });
 
+    it("measures angles counterclockwise, not reflex or reflex, as GeoGebra", async () => {
+        const c = createConstruction();
+        const unsupported = importGgb(
+            c,
+            `<geogebra><construction>
+<element type="point" label="A"><coords x="1" y="0" z="1"/></element>
+<element type="point" label="O"><coords x="0" y="0" z="1"/></element>
+<element type="point" label="B"><coords x="0" y="-1" z="1"/></element>
+<element type="line" label="g"><coords x="0" y="1" z="0"/></element>
+<element type="line" label="h"><coords x="1" y="1" z="0"/></element>
+<command name="Angle"><input a0="A" a1="O" a2="B"/><output a0="α"/></command>
+<element type="angle" label="α"><show object="true" label="true"/></element>
+<command name="Angle"><input a0="A" a1="O" a2="B"/><output a0="β"/></command>
+<element type="angle" label="β"><show object="true" label="true"/><angleStyle val="1"/></element>
+<command name="Angle"><input a0="B" a1="O" a2="A"/><output a0="γ"/></command>
+<element type="angle" label="γ"><show object="true" label="true"/><angleStyle val="2"/></element>
+<command name="Angle"><input a0="g" a1="h"/><output a0="δ"/></command>
+<element type="angle" label="δ"><show object="true" label="true"/></element>
+</construction></geogebra>`,
+        );
+        expect(unsupported).toEqual([]);
+        const degrees = (name: string, from = c) =>
+            Math.round(
+                ((from.getObj(name) as angle_object).value * 180) / Math.PI,
+            );
+        // From OA to OB counterclockwise; from g's direction to h's, though
+        // neither has two points.
+        expect(["α", "β", "γ", "δ"].map((name) => degrees(name))).toEqual([
+            270, 90, 270, 315,
+        ]);
+        // Its arc the long way round.
+        c.flush();
+        expect(
+            (c.getObj("α") as angle_object).arcPath.dom().getAttribute("d"),
+        ).toMatch(/ 0 1 [01] /);
+        const restored = createConstruction();
+        readDgo(restored, await describeDgo(c));
+        expect(["α", "β", "γ"].map((name) => degrees(name, restored))).toEqual([
+            270, 90, 270,
+        ]);
+    });
+
     it("translates scripts' conditions, styles and animations", async () => {
         const c = createConstruction();
         const unsupported = importGgb(

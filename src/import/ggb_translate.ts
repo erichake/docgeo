@@ -2259,6 +2259,13 @@ export function translateGgb(
             const arc = attribute(element, "arcSize", "val");
             if (kind === "angle") {
                 if (arc) parts.push(`arc:${arc}`);
+                // In the plane: from 0 to 360° counterclockwise by default,
+                // not reflex, reflex or unbounded.
+                const orientation = "1021"[
+                    Number(attribute(element, "angleStyle", "val") ?? 0)
+                ];
+                if (!is3D && orientation !== "0")
+                    parts.push(`ao:${orientation}`);
                 parts.push(
                     `ra:${
                         attribute(element, "emphasizeRightAngle", "val") ===
@@ -3265,8 +3272,19 @@ export function translateGgb(
         // Of two lines, through their intersection, along the sum of their
         // unit directions, then along the second's minus the first's.
         AngularBisector: (inputs, outputs) => {
-            if (inputs.length !== 2)
-                return onePoint("AngleBisector", 3)(inputs, outputs);
+            // Of an angle ABC: a line along DGPad's half-line.
+            if (inputs.length !== 2) {
+                const ray = auxiliary();
+                const tip = auxiliary();
+                return (
+                    onePoint("AngleBisector", 3)(inputs, [ray]) &&
+                    define(tip, "point", "DirectionPoint", [
+                        ref(ray),
+                        ref(inputs[1]),
+                    ]) &&
+                    HANDLERS.Line([inputs[1], tip], outputs)
+                );
+            }
             const directions = inputs.map(lineDirection);
             if (!directions[0] || !directions[1]) return false;
             const vertex = auxiliary();
@@ -3294,15 +3312,24 @@ export function translateGgb(
             const [g, h] = inputs;
             if (inputs.length !== 2 || !is(g, ["line"]) || !is(h, ["line"]))
                 return onePoint("Angle", 3, "angle")(inputs, outputs);
-            const directions = [g, h].map(lineDirection);
-            if (!directions[0] || !directions[1]) return false;
+            if (is3D) return false;
             const vertex = auxiliary();
             define(vertex, "point", "OrderedIntersection", [
                 ref(g),
                 ref(h),
                 literal(0),
             ]);
-            const [p, q] = directions.map((d) => alongDirection(vertex, d!));
+            // Along each direction, GeoGebra's, or the line's own.
+            const [p, q] = [g, h].map((line) => {
+                const direction = lineDirection(line);
+                if (direction) return alongDirection(vertex, direction);
+                const tip = auxiliary();
+                define(tip, "point", "DirectionPoint", [
+                    ref(line),
+                    ref(vertex),
+                ]);
+                return tip;
+            });
             return define(outputs[0], "angle", "Angle", [
                 ref(p),
                 ref(vertex),

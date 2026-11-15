@@ -580,6 +580,9 @@ const STYLE: Record<string, Property> = {
         30,
         isNumber,
     ),
+    ao: field(angle_object, "orientation", 0, (value) =>
+        [0, 1, 2].includes(value as number),
+    ),
     ra: field(angle_object, "rightAngleMark", "dgpad", (value) =>
         RIGHT_ANGLE_MARKS.includes(value as RightAngleMark),
     ),

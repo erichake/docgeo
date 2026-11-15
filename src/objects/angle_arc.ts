@@ -13,7 +13,8 @@ export interface AngleArcGeometry {
 }
 
 // Screen-space geometry of an angle wedge sweeping from direction dirA to
-// direction dirC through their ≤180° side, plus a degree label placed
+// direction dirC through their ≤180° side, or their other (`reflex`), plus a
+// degree label placed
 // radially along the bisector. The label's rotation is flipped by a half
 // turn whenever the bisector points generally leftwards, so its glyphs
 // stay upright; the offset and anchor are flipped along with it so the
@@ -25,11 +26,13 @@ export function computeAngleArc(
     dirC: Vec2,
     radius: number,
     labelRadius: number,
+    reflex = false,
 ): AngleArcGeometry {
     const angleA = Math.atan2(dirA[1], dirA[0]);
     const angleC = Math.atan2(dirC[1], dirC[0]);
     let diff = angleC - angleA;
     diff -= Math.round(diff / FULL_TURN) * FULL_TURN;
+    if (reflex) diff -= Math.sign(diff) * FULL_TURN;
     const sweep = diff > 0 ? 1 : 0;
 
     const bisector = angleA + diff / 2;

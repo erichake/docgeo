@@ -50,6 +50,13 @@ npx vitest run --config tools/ggb_corpus/vitest.corpus.config.ts   # importe tou
 python3 tools/ggb_corpus/roots.py         # résumé, causes premières
 ```
 
+Chaque ligne de `results.jsonl` donne aussi `mismatches` : les angles et
+nombres dont la valeur importée diffère de celle que GeoGebra a enregistrée
+(« nom enregistrée importée »). Une figure sans élément non importé mais avec
+un écart est une erreur silencieuse : elle échoue. Un angle « jamais
+rentrant » ou « rentrant » enregistre sa valeur dans le sens direct, avant
+son style (relevé dans GeoGebra) : la comparaison en tient compte.
+
 `roots.py` affiche, pour chaque cause, le nombre de figures touchées et le
 nombre de figures où c'est la **seule** cause. Il ne compte pas les échecs en
 cascade : un `Segment` qui échoue parce qu'un de ses points dépend d'une
@@ -129,6 +136,7 @@ figure sont seulement comptés. L'API utilisée est
 | 2026-11-15 | 265 / 456 (58 %)   | 332,9 Ko | item 63 : repère 3D de GeoGebra, scripts de vue (+0)                 |
 | 2026-11-15 | 269 / 456 (59 %)   | 333,2 Ko | item 64 : scripts, `If`, `Execute`, styles, `StartAnimation` (+4)    |
 | 2026-11-15 | 271 / 456 (59 %)   | 333,6 Ko | item 65 : `ShowGrid`, `CenterView` dans les scripts (+2)             |
+| 2026-11-15 | 275 / 456 (60 %)   | 333,8 Ko | item 66 : angles orientés, angle de deux droites, bissectrice (+4)   |
 
 ## À faire, par rapport gain / coût
 
@@ -1187,3 +1195,23 @@ cause.
       `CenterView(point)` : `CENTER_VIEW(point)` (bloc « centrer la vue
       sur »), qui déplace la vue comme un glisser du fond. **+2 figures**
       (269 → 271). Moteur +0,4 Ko, import +0,2 Ko.
+- [x] **66. Angles orientés, angle de deux droites, bissectrice** : la
+      comparaison des valeurs (voir « Mesure ») a montré 15 figures « sans
+      perte » fausses en silence, et 36 en tout. L'angle de DocGeo, celui de
+      DGPad, est toujours ≤ 180° ; celui de GeoGebra va par défaut de OA à
+      OB dans le sens direct, de 0 à 360°. `angleStyle` (0 sens direct,
+      1 jamais rentrant, 2 rentrant, 3 non borné) devient l'orientation de
+      l'angle (`ao`, voir `DGO.md` : 0 DGPad, 1 sens direct, 2 ≥ 180°),
+      dans le plan ; au-delà de 180°, son grand arc est dessiné. `Angle` de
+      deux droites dont la traduction ne connaît pas la direction (demi-droite
+      d'un point calculé, bissectrice, tangente, droite d'équation) : le
+      vecteur directeur de la droite elle-même (`DirectionPoint`), comme
+      GeoGebra (relevé : 315° de y = 0 à x + y = 0). La bissectrice d'un
+      angle ABC est une droite entière, comme dans GeoGebra, et non la
+      demi-droite de DGPad. **+4 figures** (271 → 275), écarts de valeurs
+      36 → 10 figures, aucune « sans perte » : ceux qui restent sont des
+      cellules de tableur tirées au hasard et des valeurs qui lisent la
+      taille de la fenêtre, dans des figures en échec par ailleurs. Moteur
+      +0,2 Ko, import +0,4 Ko. Reste : l'étiquette d'un angle, que GeoGebra
+      écrit à l'horizontale avec son nom (« β = 147.65° ») là où DocGeo
+      écrit sa valeur seule, tournée selon la bissectrice.

@@ -18,6 +18,9 @@ it("corpus", async () => {
         let used: string[] = [];
         let types: string[] = [];
         let unsupported: string[] = [];
+        // The angles and numbers whose value differs from GeoGebra's saved
+        // one: "label saved imported".
+        const mismatches: string[] = [];
         let error: string | null = null;
         let ms = 0;
         try {
@@ -34,6 +37,34 @@ it("corpus", async () => {
             const start = performance.now();
             unsupported = await importGgbFromBlob(c, new Blob([data]));
             ms = performance.now() - start;
+            doc.querySelectorAll(
+                'construction > element[type="angle"], construction > element[type="numeric"]',
+            ).forEach((element) => {
+                const label = element.getAttribute("label")!;
+                const raw = Number(
+                    element
+                        .querySelector(":scope > value")
+                        ?.getAttribute("val"),
+                );
+                // An angle not reflex (1) or reflex (2) saves its value
+                // counterclockwise.
+                const style = element
+                    .querySelector(":scope > angleStyle")
+                    ?.getAttribute("val");
+                const saved =
+                    (style === "1" && raw > Math.PI) ||
+                    (style === "2" && raw < Math.PI)
+                        ? 2 * Math.PI - raw
+                        : raw;
+                const value = c.getObj(label)?.scriptValue(false);
+                if (
+                    Number.isFinite(saved) &&
+                    typeof value === "number" &&
+                    Math.abs(value - saved) >
+                        1e-6 * Math.max(1, Math.abs(saved))
+                )
+                    mismatches.push(`${label} ${saved} ${value}`);
+            });
         } catch (e) {
             error = String(e).slice(0, 200);
         }
@@ -44,6 +75,7 @@ it("corpus", async () => {
                 commands: used,
                 types,
                 unsupported,
+                mismatches,
                 error,
                 ms,
             }),

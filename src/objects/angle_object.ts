@@ -27,6 +27,9 @@ export class angle_object extends construction_object {
     B: point_object;
     arcRadius = DEFAULT_ARC_RADIUS;
     rightAngleMark: RightAngleMark = "dgpad";
+    // In the plane, DGPad's ≤ 180° (0), or GeoGebra's from OA to OB
+    // counterclockwise (1), or ≥ 180° (2).
+    orientation: 0 | 1 | 2 = 0;
     value = 0;
     projectionDefined = false;
     private origin: Vec2 = [0, 0];
@@ -80,6 +83,10 @@ export class angle_object extends construction_object {
             Math.max(-1, vDot(oa, oc) / (normA * normC)),
         );
         this.value = Math.acos(cosine);
+        if (!this.orientation) return;
+        const turn = oa[0] * oc[1] - oa[1] * oc[0];
+        if (this.orientation === 2 || turn < 0)
+            this.value = 2 * Math.PI - this.value;
     }
 
     project(): void {
@@ -103,6 +110,7 @@ export class angle_object extends construction_object {
             dirC,
             this.arcRadius,
             labelRadius,
+            this.value > Math.PI,
         );
         this.origin = origin;
         this.legA = arc.legA;
@@ -126,20 +134,18 @@ export class angle_object extends construction_object {
             this.rightAngleMark !== "none" &&
             Math.abs(this.value - Math.PI / 2) < RIGHT_ANGLE_TOLERANCE;
         const mark = right && this.rightAngleMark !== "dot";
+        const arc = `M${this.legA[0]} ${this.legA[1]} A${this.arcRadius} ${this.arcRadius} 0 ${+(this.value > Math.PI)} ${this.sweep} ${this.legC[0]} ${this.legC[1]}`;
         const [fill, outline] = mark
             ? this.rightAnglePaths()
-            : [
-                  `M${this.origin[0]} ${this.origin[1]} L${this.legA[0]} ${this.legA[1]} L${this.legC[0]} ${this.legC[1]} Z`,
-                  `M${this.legA[0]} ${this.legA[1]} A${this.arcRadius} ${this.arcRadius} 0 0 ${this.sweep} ${this.legC[0]} ${this.legC[1]}`,
-              ];
+            : [`M${this.origin[0]} ${this.origin[1]} L${arc.slice(1)} Z`, arc];
         this.wedgeFill.att("d", fill);
         this.arcPath
             .att("d", outline)
             .stl(
                 "fill-opacity",
-                mark && this.rightAngleMark !== "square"
-                    ? 0
-                    : (this.opacity ?? 0),
+                mark && this.rightAngleMark === "square"
+                    ? (this.opacity ?? 0)
+                    : 0,
             );
         this.dot?.stl("display", right ? "block" : "none");
         if (this.dot && right) {

@@ -954,6 +954,12 @@ function validateObjectStyle(
                         `Invalid DGP style number at line ${lineNumber}`,
                     );
                 break;
+            case "ao":
+                if (!["0", "1", "2"].includes(propertyValue))
+                    throw new Error(
+                        `Invalid DGP style number at line ${lineNumber}`,
+                    );
+                break;
             case "ra":
                 if (
                     !(RIGHT_ANGLE_MARKS as readonly string[]).includes(
@@ -1216,6 +1222,10 @@ function applyObjectStyle(
             case "ra":
                 if (target instanceof angle_object)
                     target.rightAngleMark = propertyValue as RightAngleMark;
+                break;
+            case "ao":
+                if (target instanceof angle_object)
+                    target.orientation = Number(propertyValue) as 0;
                 break;
             case "i":
                 if (target instanceof expression_object)

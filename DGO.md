@@ -1068,54 +1068,55 @@ ramené dans [0, 1] par une onde triangulaire de période 2 (1,2 donne 0,8 ;
 −0,3 donne 0,3), puis multiplié par 255 et tronqué. Le bouton d'un curseur
 de la couleur de son objet la suit. Sans `rgb`, la couleur est celle de `c`.
 
-| Clé  | Objets                   | Contenu                                  | Défaut                            |
-| ---- | ------------------------ | ---------------------------------------- | --------------------------------- |
-| `c`  | tous                     | couleur du trait                         | du type                           |
-| `fc` | tous                     | couleur de remplissage                   | `c` s'il est donné, sinon du type |
-| `s`  | tous                     | taille                                   | du type                           |
-| `o`  | tous                     | opacité                                  | du type                           |
-| `h`  | tous                     | 0 visible, 1 caché, 2 super-caché        | 0 (`Mac` : 2)                     |
-| `sn` | tous                     | nom affiché                              | 0                                 |
-| `in` | tous                     | inerte : ignore survol, clic et toucher  | 0                                 |
-| `no` | tous                     | place du nom déplacé (point : ci-après)  | `null` (place de GeoGebra)        |
-| `cp` | tous                     | légende, écrite à la place du nom        | `null` (le nom)                   |
-| `f`  | tous                     | taille de police                         | 16                                |
-| `p`  | tous                     | précision (lieu : nombre d'échantillons) | -1 (`Loc` : 1000, `Html` : 4)     |
-| `l`  | tous                     | calque (entier, sous les `Html`)         | 0                                 |
-| `sp` | points, listes de points | `circle`, `cross`, `diamond`, `rect`     | `circle`                          |
-| `pb` | points                   | épaisseur du contour                     | 1                                 |
-| `ho` | points                   | creux : sans remplissage                 | 0                                 |
-| `np` | points                   | direction du nom (radians)               | 0                                 |
-| `nd` | points                   | distance du nom (pixels)                 | `null` (deux fois la taille)      |
-| `tk` | points                   | trace                                    | 0                                 |
-| `tp` | points                   | trace par points (GeoGebra)              | 0                                 |
-| `i`  | points                   | pas de déplacement `[dx, dy]`            | [0, 0]                            |
-| `fl` | points                   | punaisé à sa place dans la fenêtre       | 0                                 |
-| `sb` | `On`                     | sur le bord du polygone                  | 0                                 |
-| `an` | `On`, `Ex`               | animation (ci-dessous)                   | `null`                            |
-| `pl` | `Poly`                   | plan                                     | 0                                 |
-| `su` | `Poly`                   | section (garde ses sommets définis)      | 0, 1 pour `PlS`                   |
-| `fx` | `Poly`                   | fixé : ne se déplace pas par translation | 0                                 |
-| `ar` | `Ang`, `FA`              | rayon de l'arc                           | 30                                |
-| `ra` | `Ang`                    | marque d'angle droit                     | `dgpad`                           |
-| `dc` | `Seg`, `Vec`             | décoration (0 à 6), `VecF` compris       | 0                                 |
-| `dh` | tous                     | motif de pointillés, en pixels           | `[]` (trait plein)                |
-| `lo` | tous                     | opacité du trait (GeoGebra)              | 1 (`Btn` : 0,25)                  |
-| `is` | `Ex`                     | pas du curseur                           | 0                                 |
-| `cL` | `Ex`                     | longueur du curseur                      | 200                               |
-| `cV` | `Ex`                     | curseur vertical                         | 0                                 |
-| `cN` | `Ex`                     | curseur sans nom ni valeur (2026-11-13)  | 0                                 |
-| `cB` | `Ex`                     | case à cocher                            | 0                                 |
-| `iB` | `Ex`                     | champ de saisie (largeur)                | 0                                 |
-| `tx` | `Ex`                     | LaTeX                                    | 0                                 |
-| `bf` | `Txt`, `Ex`              | gras                                     | 0                                 |
-| `bg` | `Txt`, `Ex`              | couleur du fond                          | `null` (sans fond)                |
-| `cc` | `Ex`                     | couleur du bouton du curseur             | `null` (celle du curseur)         |
-| `cf` | `Ex`                     | remplissage du bouton, si `co` > 0       | `null` (celle du bouton)          |
-| `cr` | `Ex`                     | rayon du bouton                          | 10                                |
-| `co` | `Ex`                     | opacité du bouton                        | 0                                 |
-| `sg` | `ELst`                   | épaisseur des segments                   | -1                                |
-| `sa` | `ELst`                   | flèche des segments `[l, d]` (px)        | `null`                            |
+| Clé  | Objets                   | Contenu                                                                                    | Défaut                            |
+| ---- | ------------------------ | ------------------------------------------------------------------------------------------ | --------------------------------- |
+| `c`  | tous                     | couleur du trait                                                                           | du type                           |
+| `fc` | tous                     | couleur de remplissage                                                                     | `c` s'il est donné, sinon du type |
+| `s`  | tous                     | taille                                                                                     | du type                           |
+| `o`  | tous                     | opacité                                                                                    | du type                           |
+| `h`  | tous                     | 0 visible, 1 caché, 2 super-caché                                                          | 0 (`Mac` : 2)                     |
+| `sn` | tous                     | nom affiché                                                                                | 0                                 |
+| `in` | tous                     | inerte : ignore survol, clic et toucher                                                    | 0                                 |
+| `no` | tous                     | place du nom déplacé (point : ci-après)                                                    | `null` (place de GeoGebra)        |
+| `cp` | tous                     | légende, écrite à la place du nom                                                          | `null` (le nom)                   |
+| `f`  | tous                     | taille de police                                                                           | 16                                |
+| `p`  | tous                     | précision (lieu : nombre d'échantillons)                                                   | -1 (`Loc` : 1000, `Html` : 4)     |
+| `l`  | tous                     | calque (entier, sous les `Html`)                                                           | 0                                 |
+| `sp` | points, listes de points | `circle`, `cross`, `diamond`, `rect`                                                       | `circle`                          |
+| `pb` | points                   | épaisseur du contour                                                                       | 1                                 |
+| `ho` | points                   | creux : sans remplissage                                                                   | 0                                 |
+| `np` | points                   | direction du nom (radians)                                                                 | 0                                 |
+| `nd` | points                   | distance du nom (pixels)                                                                   | `null` (deux fois la taille)      |
+| `tk` | points                   | trace                                                                                      | 0                                 |
+| `tp` | points                   | trace par points (GeoGebra)                                                                | 0                                 |
+| `i`  | points                   | pas de déplacement `[dx, dy]`                                                              | [0, 0]                            |
+| `fl` | points                   | punaisé à sa place dans la fenêtre                                                         | 0                                 |
+| `sb` | `On`                     | sur le bord du polygone                                                                    | 0                                 |
+| `an` | `On`, `Ex`               | animation (ci-dessous)                                                                     | `null`                            |
+| `pl` | `Poly`                   | plan                                                                                       | 0                                 |
+| `su` | `Poly`                   | section (garde ses sommets définis)                                                        | 0, 1 pour `PlS`                   |
+| `fx` | `Poly`                   | fixé : ne se déplace pas par translation                                                   | 0                                 |
+| `ar` | `Ang`, `FA`              | rayon de l'arc                                                                             | 30                                |
+| `ra` | `Ang`                    | marque d'angle droit                                                                       | `dgpad`                           |
+| `ao` | `Ang`                    | orientation dans le plan : 0 ≤ 180° (DGPad), 1 sens direct de OA à OB, 2 ≥ 180° (GeoGebra) | `0`                               |
+| `dc` | `Seg`, `Vec`             | décoration (0 à 6), `VecF` compris                                                         | 0                                 |
+| `dh` | tous                     | motif de pointillés, en pixels                                                             | `[]` (trait plein)                |
+| `lo` | tous                     | opacité du trait (GeoGebra)                                                                | 1 (`Btn` : 0,25)                  |
+| `is` | `Ex`                     | pas du curseur                                                                             | 0                                 |
+| `cL` | `Ex`                     | longueur du curseur                                                                        | 200                               |
+| `cV` | `Ex`                     | curseur vertical                                                                           | 0                                 |
+| `cN` | `Ex`                     | curseur sans nom ni valeur (2026-11-13)                                                    | 0                                 |
+| `cB` | `Ex`                     | case à cocher                                                                              | 0                                 |
+| `iB` | `Ex`                     | champ de saisie (largeur)                                                                  | 0                                 |
+| `tx` | `Ex`                     | LaTeX                                                                                      | 0                                 |
+| `bf` | `Txt`, `Ex`              | gras                                                                                       | 0                                 |
+| `bg` | `Txt`, `Ex`              | couleur du fond                                                                            | `null` (sans fond)                |
+| `cc` | `Ex`                     | couleur du bouton du curseur                                                               | `null` (celle du curseur)         |
+| `cf` | `Ex`                     | remplissage du bouton, si `co` > 0                                                         | `null` (celle du bouton)          |
+| `cr` | `Ex`                     | rayon du bouton                                                                            | 10                                |
+| `co` | `Ex`                     | opacité du bouton                                                                          | 0                                 |
+| `sg` | `ELst`                   | épaisseur des segments                                                                     | -1                                |
+| `sa` | `ELst`                   | flèche des segments `[l, d]` (px)                                                          | `null`                            |
 
 Nom `sn` : écrit, pour un objet autre qu'un point, à la place que lui donne
 GeoGebra (segment, droite, demi-droite, vecteur, cercle, arc, conique,
