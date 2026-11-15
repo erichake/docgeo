@@ -107,6 +107,8 @@ export class point_object extends construction_object {
     private traceOpen = false;
     private traceBreak = false;
     private traceEpoch = 0;
+    // Its trace before it changed color or stopped, kept as it was drawn.
+    private traceKept: DOMElement[] = [];
     // DGPad's magnetism ("mg" style): while dragging, the point snaps onto
     // whichever of these is both within `radius` screen pixels and closest,
     // instead of following the pointer directly.
@@ -378,6 +380,8 @@ export class point_object extends construction_object {
             this.traceData = "";
             this.tracePath?.att("d", "");
             this.traceOpen = false;
+            this.traceKept.forEach((path) => path.dispose());
+            this.traceKept = [];
         }
         if (!this.defined || !this.projectionDefined) {
             this.traceScreen = null;
@@ -420,6 +424,8 @@ export class point_object extends construction_object {
         super.removeSVG();
         this.tracePath?.dispose();
         this.tracePath = undefined;
+        this.traceKept.forEach((path) => path.dispose());
+        this.traceKept = [];
         this.traceData = "";
         this.traceOpen = false;
     }
@@ -443,6 +449,13 @@ export class point_object extends construction_object {
                 () => t.C.gesture(t, "up"),
             );
 
+        if (t.tracePath) {
+            if (t.traceData) t.traceKept.push(t.tracePath);
+            else t.tracePath.dispose();
+            t.tracePath = undefined;
+            t.traceData = "";
+            t.traceOpen = false;
+        }
         if (t.trace) {
             t.tracePath = t.svg
                 .shape("path")

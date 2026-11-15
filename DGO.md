@@ -253,6 +253,7 @@ enregistrée `w` × `h` est centrée dans la fenêtre au pixel près, en 2D comm
 | `fe` | demi-côté du sol                     | 8               |
 | `gb` | taille de la boîte de GeoGebra       | 1               |
 | `gi` | coin de la vue 3D de GeoGebra        | [0, 0]          |
+| `gv` | fond de la vue graphique à côté      | `null`          |
 
 Dans une figure plane, comme dans GeoGebra : `td` est, par axe, la distance
 fixe entre deux nombres, une petite graduation à mi-chemin (0 : distance
@@ -291,7 +292,8 @@ centre de la vue 3D (le plus proche de l'origine sur la droite de visée),
 aussi large que cette vue le long de Ox et de Oy, aussi haute le long de Oz,
 le tout réduit par sa taille `gb` (0 petite, 1 moyenne, 2 grande : facteur
 1/√3, 1/√2, 1). La vue 3D est la fenêtre privée de `gi` pixels à gauche et en
-haut (vue graphique de GeoGebra à côté). Les plans (`Pl`…) s'y dessinent par
+haut (vue graphique de GeoGebra à côté), bande peinte du fond `gv` de cette vue
+(`null` : celui de la figure, `bg`), depuis le 2026-11-15. Les plans (`Pl`…) s'y dessinent par
 leur section de la boîte (leur carré, qui repère leurs points, est inchangé).
 
 Sol d'une figure 3D (plan z = 0, carré centré sur l'origine, en unités de la

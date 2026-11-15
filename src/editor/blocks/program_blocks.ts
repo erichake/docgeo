@@ -66,6 +66,8 @@ export const STYLE_METHODS = [
     "setHidden",
     "setShowName",
     "setAnimated",
+    "setTrace",
+    "setCaption",
     "setOpacity",
     "setSize",
     "setPrecision",
@@ -949,6 +951,12 @@ class Decompiler {
                 type: "dg_center_view",
                 inputs: { POINT: value(this.value(node.args[0])) },
             };
+        if (node.kind === "call" && node.fn === "CLEAR_TRACES")
+            return { type: "dg_clear_traces" };
+        if (node.kind === "call" && node.fn === "BACKGROUND") {
+            const [r, g, b] = node.args.map((arg) => value(this.value(arg)));
+            return { type: "dg_background", inputs: { R: r, G: g, B: b } };
+        }
         if (node.kind === "call" && node.fn === "SHOW_AXIS") {
             const axis = literal(node.args[0]);
             if (axis !== 0 && axis !== 1 && axis !== 2) unsupported();
@@ -1484,6 +1492,8 @@ const isStatement = (node: FormulaNode): boolean =>
             "SHOW_AXIS",
             "SHOW_GRID",
             "CENTER_VIEW",
+            "CLEAR_TRACES",
+            "BACKGROUND",
         ].includes(node.fn)) ||
     (node.kind === "method" && node.method !== "concat");
 
@@ -1933,6 +1943,13 @@ class Generator {
                 return call("SHOW_GRID", this.arg(block, "SHOWN"));
             case "dg_center_view":
                 return call("CENTER_VIEW", this.arg(block, "POINT"));
+            case "dg_clear_traces":
+                return call("CLEAR_TRACES");
+            case "dg_background":
+                return call(
+                    "BACKGROUND",
+                    ...["R", "G", "B"].map((c) => this.arg(block, c)),
+                );
             case "dg_show_axis":
                 return call(
                     "SHOW_AXIS",

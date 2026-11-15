@@ -1130,6 +1130,7 @@ export function translateGgb(
     const elements = new Map<string, Element>();
     const expressions = new Map<string, string>();
     const commandOutputs = new Set<string>();
+    const inequalities = new Set<string>();
     // How an object is defined, as an expression.
     const definitions = new Map<string, string>();
     [...construction.children].forEach((node) => {
@@ -1138,6 +1139,8 @@ export function translateGgb(
         else if (node.tagName === "expression") {
             expressions.set(label, node.getAttribute("exp") ?? "");
             definitions.set(label, node.getAttribute("exp") ?? "");
+            if (node.getAttribute("type") === "inequality")
+                inequalities.add(label);
         } else if (node.tagName === "command") {
             const outputs = indexedAttributes(child(node, "output"));
             outputs.forEach((output) => commandOutputs.add(output));
@@ -2414,6 +2417,15 @@ export function translateGgb(
     };
 
     // A list's items lie on its level (see below).
+    // GeoGebra's 3D view ignores layers: only depth orders it. In a
+    // layer, it paints lists beneath its other objects: each layer spans
+    // two levels, the lower one for lists.
+    const layerStyle = (element: Element, list = false): string[] => {
+        const level =
+            2 * Number(attribute(element, "layer", "val") ?? 0) - Number(list);
+        return level && !is3D ? [`l:${level}`] : [];
+    };
+
     const objectStyle = (
         element: Element,
         kind: Kind,
@@ -2474,12 +2486,7 @@ export function translateGgb(
             else if (mode === "0" || (mode === "3" && !text))
                 parts.push("lb:true");
         }
-        // GeoGebra's 3D view ignores layers: only depth orders it. In a
-        // layer, it paints lists beneath its other objects: each layer
-        // spans two levels, the lower one for lists.
-        const level =
-            2 * Number(attribute(element, "layer", "val") ?? 0) - Number(list);
-        if (level && !is3D) parts.push(`l:${level}`);
+        parts.push(...layerStyle(element, list));
         const unselectable =
             attribute(element, "selectionAllowed", "val") === "false";
         // Neither moved nor clicked, it lets the pointer through to the
@@ -3503,8 +3510,12 @@ export function translateGgb(
         PointIn: ([region, extra], [label]) => {
             if (extra !== undefined) return false;
             const half = halfPlanes.get(region);
+            // A sphere's region is its surface.
             if (!half)
-                return is(region, ["polygon"]) && pointOn(label, region, false);
+                return (
+                    (is(region, ["polygon"]) || spheres.has(region)) &&
+                    pointOn(label, region, false)
+                );
             // Following a hidden free point, held in the region vertically.
             const coords = pointCoords(elements.get(label)!);
             if (!coords) return false;
@@ -3838,12 +3849,14 @@ export function translateGgb(
                     ])
                 );
             if (!points(center)) return false;
+            // In space, in their own plane.
             if (points(second, third))
-                return define(label, "circle", "Circle3pts", [
-                    ref(center),
-                    ref(second),
-                    ref(third),
-                ]);
+                return define(
+                    label,
+                    "circle",
+                    is3D ? "Circle3pts3D" : "Circle3pts",
+                    [ref(center), ref(second), ref(third)],
+                );
             const [c, p] = [center, second].map(
                 (point) => objects.get(point)?.variable,
             );
@@ -4944,8 +4957,11 @@ export function translateGgb(
         },
         // CurveCartesian(x(t), y(t), t, a, b): the locus of (x(t), y(t)),
         // t being the abscissa of a point on a hidden y = 0 from a to b.
-        CurveCartesian: ([fx, fy, t, a, b, extra], [label]) => {
-            if (b === undefined || extra !== undefined || is3D) return false;
+        // In space, CurveCartesian(x(t), y(t), z(t), t, a, b).
+        CurveCartesian: (args, [label]) => {
+            const coords = args.slice(0, is3D ? 3 : 2);
+            const [t, a, b, extra] = args.slice(coords.length);
+            if (b === undefined || extra !== undefined) return false;
             const [min, max] = [a, b].map((bound) =>
                 formula(bound, VALUE_KINDS),
             );
@@ -4957,12 +4973,11 @@ export function translateGgb(
             const locals = new Map([
                 [t, `x(${objects.get(driver)!.variable})`],
             ]);
-            const [x, y] = [fx, fy].map((f) => formula(f, VALUE_KINDS, locals));
+            const values = coords.map((f) => formula(f, VALUE_KINDS, locals));
             return (
-                x !== null &&
-                y !== null &&
+                !values.includes(null) &&
                 define(label, "locus", "Locus", [
-                    ref(formulaPoint(`[${x},${y}]`)),
+                    ref(formulaPoint(`[${values.join(",")}]`)),
                     ref(driver),
                 ])
             );
@@ -4982,7 +4997,11 @@ export function translateGgb(
     };
 
     const expressionStyle = (element: Element, slider: boolean): string => {
-        const parts = [`p:${decimals}`, `f:${fontSize}`];
+        const parts = [
+            `p:${decimals}`,
+            `f:${fontSize}`,
+            ...layerStyle(element),
+        ];
         const color = child(element, "objColor");
         if (color) {
             const hex = hexColor(color);
@@ -5412,7 +5431,25 @@ export function translateGgb(
                 : []),
             `p:${decimals}`,
             `f:${fontSize * Number(attribute(element, "font", "sizeM") ?? 1)}`,
+            ...layerStyle(element),
         ].join(";");
+    };
+
+    // Beside a 3D view, a text of the graphics view's only (bit 3 of "ev",
+    // see outOfView) at a constant point: where it is in that view.
+    const flatStart = (element: Element): [number, number] | null => {
+        const start = child(element, "startPoint");
+        if (
+            !is3D ||
+            !start ||
+            start.hasAttribute("exp") ||
+            (Number(attribute(element, "show", "ev")) & 9) !== 8
+        )
+            return null;
+        const [x, y, z] = ["x", "y", "z"].map((name) =>
+            Number(start.getAttribute(name) ?? (name === "z" ? 1 : 0)),
+        );
+        return [x / z, y / z];
     };
 
     // A text pinned on screen, or hidden, as an Expression whose value is
@@ -5423,7 +5460,12 @@ export function translateGgb(
         content: string,
     ): boolean => {
         const location = child(element, "absoluteScreenLocation");
-        if (!location && attribute(element, "show", "object") !== "false")
+        const flat = flatStart(element);
+        if (
+            !location &&
+            !flat &&
+            attribute(element, "show", "object") !== "false"
+        )
             return false;
         const [x, y] = location
             ? screenPosition(
@@ -5431,7 +5473,9 @@ export function translateGgb(
                   Number(location.getAttribute("y")),
                   true,
               )
-            : [0, 0];
+            : flat
+              ? screenPosition(flat[0], flat[1], false)
+              : [0, 0];
         return define(
             label,
             "expression",
@@ -5537,6 +5581,7 @@ export function translateGgb(
             .join("+");
         if (
             child(element, "absoluteScreenLocation") ||
+            flatStart(element) ||
             (latex && attribute(element, "show", "object") === "false")
         )
             return textExpression(label, element, content);
@@ -5887,6 +5932,13 @@ export function translateGgb(
             const value = formula(source, VALUE_KINDS);
             return value !== null && formulaVector(label, value);
         }
+        // A free vector, of saved coordinates (w = 0 in space).
+        const coords = child(element, "coords");
+        if ((type === "vector" || type === "vector3d") && coords)
+            return formulaVector(
+                label,
+                `[${["x", "y", ...(is3D ? ["z"] : [])].map((name) => Number(coords.getAttribute(name)))}]`,
+            );
         // A copy of a list of segments, each another.
         const drawn = source !== undefined && parts.get(source.trim());
         if (type === "list" && drawn) {
@@ -6012,7 +6064,42 @@ export function translateGgb(
                 ...corners.map(ref),
             ]);
         }
-        if (type === "function" && source !== undefined) {
+        // x ≤ k, y > k… shown: its half-plane, a polygon reaching beyond the
+        // window. Another inequality isn't a function.
+        const inequality =
+            type === "function" &&
+            /^(?:[^=]*\(\s*[xy]\s*\)\s*=)?\s*([xy])\s*([<>≤≥])=?([^<>≤≥=∧∨]+)$/.exec(
+                source ?? "",
+            );
+        if (inequality) {
+            const [, variable, sign, bound] = inequality;
+            const k = formula(bound, VALUE_KINDS);
+            if (k === null || is3D) return false;
+            const [c, size] =
+                variable === "x"
+                    ? ["windowcx()", "windoww()"]
+                    : ["windowcy()", "windowh()"];
+            const [d, across] =
+                variable === "x"
+                    ? ["windowcy()", "windowh()"]
+                    : ["windowcx()", "windoww()"];
+            const edge = `min(max(${k},${c}-${size}),${c}+${size})`;
+            const far = `${c}${/[<≤]/.test(sign) ? "-" : "+"}${size}`;
+            return definePolygon(
+                label,
+                [edge, edge, far, far].map((u, n) => {
+                    const v = `${d}${n === 1 || n === 2 ? "+" : "-"}${across}`;
+                    return formulaPoint(
+                        variable === "x" ? `[${u},${v}]` : `[${v},${u}]`,
+                    );
+                }),
+            );
+        }
+        if (
+            type === "function" &&
+            source !== undefined &&
+            !inequalities.has(label)
+        ) {
             const body = formula(
                 source.replace(FUNCTION_DEFINITION, "").trim(),
                 ["expression"],
@@ -6170,8 +6257,11 @@ export function translateGgb(
         }${gridColor ? `;gridColor:${hexColor(gridColor)}` : ""}${
             gridDash ? `;gridDash:${gridDash(gridWidth).join(",")}` : ""
         }`;
-        // In 3D, its plate, colored axes across its clipping box.
-        const space = `;isOz:${shown.includes("2")};isFloor:${attribute(styledView, "plate", "show") !== "false"};fontSize:${numbers};onlyPositive:${positive}${graduations};geogebraAxes:true;boxSize:${boxSize};viewInset:${inset.join(",")}`;
+        // In 3D, its plate, colored axes across its clipping box, and the
+        // graphics view beside it.
+        const insetColor =
+            (inset[0] || inset[1]) && view && child(view, "bgColor");
+        const space = `;isOz:${shown.includes("2")};isFloor:${attribute(styledView, "plate", "show") !== "false"};fontSize:${numbers};onlyPositive:${positive}${graduations};geogebraAxes:true;boxSize:${boxSize};viewInset:${inset.join(",")}${insetColor ? `;insetColor:${hexColor(insetColor)}` : ""}`;
         const plane = is3D
             ? space
             : `;axisWidth:${bold ? 2 : 1};fontSize:${numbers};onlyPositive:${positive}${graduations};arrows:${arrows};boldNumbers:${Boolean(labelStyle & 1)};geogebraAxes:true${gridStyle}`;
@@ -6354,13 +6444,16 @@ export function translateGgb(
         const bound = BINDING_COMMANDS.has(name)
             ? inputs[name === "CurveCartesian" ? inputs.length - 3 : 1]
             : undefined;
+        // Not its own name (f(x) = …): what reads it would wait for the
+        // end, then translated in the file's order.
         const reads = (
             source.replace(/"[^"]*"/g, "").match(LABEL_WORDS) ?? []
         ).filter(
             (word) =>
                 (elements.has(word) || commandOutputs.has(word)) &&
                 !translated.has(word) &&
-                word !== bound,
+                word !== bound &&
+                word !== label,
         );
         pending.push({ node, reads });
         for (let index = 0; index < pending.length;) {
@@ -6489,7 +6582,9 @@ export function translateGgb(
     // Its lines, each a SetValue, an assignment or an UpdateConstruction,
     // which has nothing to draw again: the import keeps random numbers.
     // "#" starts a comment.
-    const scriptProgram = (source: string): string | null => {
+    // A button's own program may change its caption, the button being
+    // defined after it under its label.
+    const scriptProgram = (source: string, button?: string): string | null => {
         const started: [string, string][] = [];
         const line = (source: string): string | null => {
             // A label typed sol_a stands for sol_{a}, as in GeoGebra.
@@ -6610,6 +6705,50 @@ export function translateGgb(
                           return center && `CENTER_VIEW(${center});`;
                       })
                     : null;
+            // A point's trace, as GeoGebra's: copies of the point.
+            if (call?.[1] === "SetTrace") {
+                const shown =
+                    args?.length === 2 && formula(setting, VALUE_KINDS);
+                if (!shown || !is(object, POINT_KINDS)) return null;
+                push(null, "STL", [ref(object), literal("tp:true")]);
+                return styled(object, "setTrace", [shown]);
+            }
+            if (call?.[1] === "SetCaption") {
+                const variable =
+                    objects.get(object)?.variable ??
+                    (object === button ? object : undefined);
+                const text =
+                    args?.length === 2 && formula(setting, VALUE_KINDS);
+                return variable && text
+                    ? `${variable}.setCaption(${text});`
+                    : null;
+            }
+            // A view moved by nothing, which only erases the traces.
+            if (call?.[1] === "Pan")
+                return args?.every((value) => Number(value) === 0)
+                    ? "CLEAR_TRACES();"
+                    : null;
+            // The view's, the figure having one, of channels from 0 to 1 or
+            // of a color's name.
+            if (call?.[1] === "SetBackgroundColor") {
+                const name =
+                    args?.length === 1 && /^"([\w ]+)"$/.exec(object)?.[1];
+                const hex =
+                    name &&
+                    COLOR_NAMES.get(name.toLowerCase().replace(/ /g, ""));
+                const channels = hex
+                    ? hex
+                          .match(/../g)!
+                          .map((channel) => String(parseInt(channel, 16)))
+                    : args?.length === 3 && !objects.has(object)
+                      ? args.map((channel) =>
+                            formula(`255 (${channel})`, VALUE_KINDS),
+                        )
+                      : null;
+                return channels && !channels.includes(null)
+                    ? `BACKGROUND(${channels.join(",")});`
+                    : null;
+            }
             if (call?.[1] === "SetVisibleInView")
                 return args?.length === 3
                     ? showInView(args[0], args[1], args[2])
@@ -6729,7 +6868,12 @@ export function translateGgb(
             (click === null ||
                 type === "button" ||
                 is(label, ["text", ...POINT_KINDS]))
-                ? scriptProgram(click ?? "")
+                ? scriptProgram(
+                      click ?? "",
+                      type === "button" && IDENTIFIER.test(label)
+                          ? label
+                          : undefined,
+                  )
                 : null;
         if (program === null || !updateScript(label, scriptProgram(read)))
             return void unsupported.push(`script ${label}`);
@@ -6743,9 +6887,14 @@ export function translateGgb(
         }
         const offset = child(element, "labelOffset");
         const height = Number(attribute(element, "dimensions", "height") ?? 0);
-        const font = Math.min(
-            Number(attribute(element, "font", "size") ?? fontSize),
-            height ? height - 20 : Infinity,
+        // Its "size" is an offset from the application's font size, of
+        // which "sizeM" is the factor.
+        const font = Math.max(
+            1,
+            Math.min(
+                fontSize * Number(attribute(element, "font", "sizeM") ?? 1),
+                height ? height - 20 : Infinity,
+            ),
         );
         const text = caption(element, label);
         // DocGeo's width (see button_object.ts).

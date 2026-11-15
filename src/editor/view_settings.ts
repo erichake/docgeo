@@ -971,7 +971,7 @@ export function viewSettings(
             BACKGROUND,
             (value) => {
                 c.prefs.background.color = value;
-                c.svg.stl("background", value);
+                c.paintBackground();
                 redraw();
             },
         ),

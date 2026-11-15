@@ -718,6 +718,12 @@ const VIEW: Record<string, Property> = {
         [0, 1, 2].includes(value as number),
     ),
     gi: field(grid_object, "viewInset", [0, 0], isPair),
+    gv: field(
+        grid_object,
+        "insetColor",
+        null,
+        (value) => value === null || isColor(value),
+    ),
     ah: field(grid_object, "arrows", 0, (value) =>
         [0, 1, 2, 3].includes(value as number),
     ),
@@ -1110,7 +1116,6 @@ export function readDgo(c: construction, figure: Json, centered = false): void {
     c.degrees = deg === 1;
     c.segmentsOverPolygons = sop === 1;
     c.prefs.background.color = bg as string;
-    c.svg.stl("background", bg as string);
     c.macros = readMacros(macros, styles, images);
 
     const { o: origin, u: unit, uy = unit, w: width, h: height } = view;
@@ -1120,6 +1125,7 @@ export function readDgo(c: construction, figure: Json, centered = false): void {
     c.savedSize = [width, height];
     const grid = c.GRID;
     apply(VIEW, grid, view);
+    c.paintBackground();
     grid.UNIT = [unit, uy, unit];
     // Otherwise, a DGPad figure keeps its origin where it was in the window,
     // as in DGPad; another 3D one, where it was from the window's center.

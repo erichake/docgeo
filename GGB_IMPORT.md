@@ -77,9 +77,9 @@ figure sont seulement comptés. L'API utilisée est
 
 ## Méthode et prochaines étapes
 
-Point de reprise d'une nouvelle conversation (état au 2026-11-15 : 317 / 456,
+Point de reprise d'une nouvelle conversation (état au 2026-11-15 : 320 / 456,
 70 % ; objectif réaliste ~75 %, voir « Périmètre »). `roots.py` en compte
-318 : Sa2y6MrH (cercle par trois points dont deux confondus, que GeoGebra
+321 : Sa2y6MrH (cercle par trois points dont deux confondus, que GeoGebra
 dessine comme la droite qui les porte et DocGeo pas du tout) reste fausse.
 
 **Ordre des leviers**, par nombre de figures où la cause est seule (refaire
@@ -234,6 +234,7 @@ vitest.browser.config.ts`, `npm run build` (poids des cinq morceaux
 | 2026-11-15 | 309 / 456 (68 %)   | 337,1 Ko | item 74 : listes dans les `Sequence`, `Sum` en boucle, `$` du tableur, noms des angles (+2) |
 | 2026-11-15 | 312 / 456 (68 %)   | 338,0 Ko | item 75 : textes de JLaTeXMath réparés pour KaTeX, `RotateText` (+3, +10 réelles) |
 | 2026-11-15 | 317 / 456 (70 %)   | 338,3 Ko | item 76 : `Distance` de droites, arcs comme nombres, textes sur plusieurs lignes, scripts (+5) |
+| 2026-11-15 | 320 / 456 (70 %)   | 339,5 Ko | item 77 : ordre de lecture, demi-plans, point dans une sphère, cercle de l'espace, traces et fond par script (+3) |
 
 ## À faire, par rapport gain / coût
 
@@ -1490,3 +1491,37 @@ objet2)` d'objets (arcs, secteurs, coniques…) que rien d'autre ne lit :
       figures** (312 → 317 : sy2dHxNG, tUWB7NK4, zLZOCZc3, jjxaquzq,
       atzg8fgg). Aucune figure perdue ni « sans perte » avec un écart.
       Moteur +0,3 Ko (lignes d'un texte), import +1,2 Ko.
+- [x] **77. Ordre de lecture, demi-plans, point dans une sphère, cercle
+      de l'espace** (trois figures signalées hors corpus : planisphere,
+      trajet_Terre, coordonnees_et_couleurs). Une fonction lisait son
+      propre nom (`f(x) = …`) : tout ce qui en dépendait attendait la fin
+      de la lecture, puis était traduit dans l'ordre du fichier, avant les
+      objets définis plus loin qu'il lit (coin d'une image, script).
+      Une inéquation `x ≤ k`, `y > k`… est son demi-plan, un polygone qui
+      déborde la fenêtre (elle était tracée comme la courbe y = 0 ou 1,
+      en silence) ; une autre inéquation est signalée. `PointIn` d'une
+      sphère est un point sur elle, `Circle(A, B, C)` de l'espace est dans
+      le plan des trois points (il était horizontal, donc indéfini),
+      `CurveCartesian` a sa version de l'espace, un vecteur libre (`v`
+      sans définition) est importé. Curseurs, cases et textes prennent
+      leur calque (ils passaient sous les objets des calques supérieurs).
+      À côté d'une vue 3D, un texte de la seule vue graphique (bit 3 de
+      `ev`) reste à sa place dans cette vue, à l'écran. La taille de la
+      police d'un bouton est `sizeM` fois celle de l'application (`size`
+      en est l'écart, lu à tort comme une taille : −7 pour XUd7hFrF).
+      Scripts (droits accordés par l'auteur du projet, voir AGENTS.md) :
+      `SetTrace` d'un point (méthode `setTrace`, trace en copies du
+      point), `SetCaption` (`setCaption` : texte d'un bouton, qui peut
+      être le sien, sinon légende), `Pan` d'un déplacement nul, qui ne
+      fait qu'effacer les traces (`CLEAR_TRACES()`), et
+      `SetBackgroundColor` de la vue (`BACKGROUND(r, g, b)`, de 0 à 255) ;
+      leurs blocs dans l'éditeur, en 12 langues. Une trace dont le point
+      change de couleur (couleur dynamique) garde la couleur de chacune de
+      ses positions, comme dans GeoGebra (elle était redessinée dans la
+      nouvelle). À côté de la vue 3D, la bande de la vue graphique est
+      peinte de son fond (`gv` du `.dgo`) : ses textes noirs étaient
+      illisibles sur le fond noir de la vue 3D.
+      **+3 figures** (317 → 320 : auFzndAW, y7e45dgw, XUd7hFrF ; 10 autres
+      progressent, dont d2tvhp8c, rntpnfWn et xz5yuwqq par les scripts).
+      Aucune figure perdue ni « sans perte » avec un écart. Moteur
+      +1,2 Ko, import +1,8 Ko (90,7 Ko).

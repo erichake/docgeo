@@ -524,6 +524,20 @@ export class construction {
         });
     }
 
+    // Its background, beside GeoGebra's 3D view its graphics view's (see
+    // grid_object.viewInset).
+    paintBackground(): void {
+        const { color } = this.prefs.background;
+        const [left, top] = this.GRID.viewInset;
+        const strip = this.GRID.insetColor;
+        this.svg.stl(
+            "background",
+            strip && (left || top)
+                ? `linear-gradient(to ${left ? "right" : "bottom"},${strip} ${left || top}px,${color} 0)`
+                : color,
+        );
+    }
+
     // Its traces start once it's shown, not with the moves of its opening.
     reveal(): void {
         this.traceEpoch++;

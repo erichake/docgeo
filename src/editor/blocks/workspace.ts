@@ -443,6 +443,20 @@ function defineBlocks(): void {
             style: "figure_blocks",
         },
         {
+            type: "dg_clear_traces",
+            message0: msg("CLEAR_TRACES"),
+            ...statement,
+            style: "figure_blocks",
+        },
+        {
+            type: "dg_background",
+            message0: msg("BACKGROUND"),
+            args0: [number("R"), number("G"), number("B")],
+            inputsInline: true,
+            ...statement,
+            style: "figure_blocks",
+        },
+        {
             type: "dg_show_axis",
             message0: msg("SHOW_AXIS"),
             args0: [
@@ -623,6 +637,8 @@ const STYLE_LABELS: Record<string, BlockMessage> = {
     setHidden: "HIDDEN",
     setShowName: "SHOW_NAME",
     setAnimated: "ANIMATED",
+    setTrace: "TRACE",
+    setCaption: "CAPTION",
     setOpacity: "OPACITY",
     setSize: "SIZE",
     setPrecision: "DECIMALS",
@@ -948,6 +964,12 @@ function toolbox(kinds: string[], owner: string, starts: string[]) {
                                 inputs: { X: num(0), Y: num(0) },
                             },
                         },
+                    }),
+                    block("dg_clear_traces"),
+                    block("dg_background", {
+                        R: num(255),
+                        G: num(255),
+                        B: num(255),
                     }),
                     block("dg_view_direction", {
                         VECTOR: {

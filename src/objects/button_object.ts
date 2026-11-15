@@ -1,6 +1,6 @@
 import type { construction } from "../construction";
 import type { DOMElement } from "../dom";
-import { formulaSource } from "../import/dgp_formula";
+import { formulaSource, programTargets } from "../import/dgp_formula";
 import type { Vec2 } from "../vec";
 import {
     construction_object,
@@ -39,6 +39,9 @@ export class button_object extends construction_object {
         this.label = label;
         this.screen = screen;
         this.program = program;
+        // Its program may style the button, read before it.
+        if (program && programTargets(program.program).has(this.name))
+            program.targets.set(this.name, this);
     }
 
     dgo(context: DgoContext): [string, unknown] {
@@ -50,7 +53,11 @@ export class button_object extends construction_object {
                 ...(program && {
                     s: dgoFormula(
                         formulaSource(program.program),
-                        new Map([...program.refs, ...program.targets]),
+                        new Map(
+                            [...program.refs, ...program.targets].filter(
+                                ([, object]) => object !== this,
+                            ),
+                        ),
                         context,
                     ),
                 }),

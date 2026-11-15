@@ -104,6 +104,8 @@ export class grid_object extends construction_object {
     // window, beside a graphics view.
     boxSize = 1;
     viewInset: Vec2 = [0, 0];
+    // That graphics view's background, if not the figure's.
+    insetColor: string | null = null;
     // The axes' ends: DGPad's arrow (0), none (1), GeoGebra's open (2) or
     // filled one (3).
     arrows = 0;

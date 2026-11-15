@@ -346,6 +346,19 @@ export function runProgram(c: construction, expression: ExpressionProgram) {
             const [x, y] = c.pt3D([point[0], point[1] as number, 0]);
             c.pan(null!, [c.width / 2 - x, c.height / 2 - y]);
         },
+        clearTraces: () => {
+            c.traceEpoch++;
+            c.invalidateProjection();
+        },
+        background: (...channels) => {
+            const values = channels.map(realPart);
+            if (values.includes(null)) return;
+            const color = `rgb(${values.map((v) => Math.min(Math.max(Math.round(v!), 0), 255))})`;
+            c.prefs.background.color = color;
+            c.paintBackground();
+            // The axes' halo.
+            c.invalidateRender(c.GRID);
+        },
     };
     const steps = programSteps(program, env);
     if (!steps) return void evaluateProgram(program, env);
@@ -459,6 +472,26 @@ export function styleObject(
             )
                 return;
             target.showName = value !== 0;
+            break;
+        }
+        // A point's, as GeoGebra's: the copies of its positions.
+        case "setTrace": {
+            const value = realPart(args[0]);
+            if (
+                value === null ||
+                !(target instanceof point_object) ||
+                (value !== 0) === target.trace
+            )
+                return;
+            target.trace = value !== 0;
+            break;
+        }
+        // A button's text, or the name it shows in place of its own.
+        case "setCaption": {
+            if (args[0] === null) return;
+            const text = String(args[0]);
+            if ("label" in target) target.label = text;
+            else target.caption = text;
             break;
         }
         case "setOpacity": {

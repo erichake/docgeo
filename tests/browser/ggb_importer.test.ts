@@ -4612,6 +4612,86 @@ CENTER_VIEW([1, 2]);`);
         expectClose(c.pt3D([1, 2, 0]), [c.width / 2, c.height / 2]);
     });
 
+    it("traces a point in its colors, captions a button, erases traces and colors the background by scripts", async () => {
+        const c = createConstruction();
+        expect(
+            importGgb(
+                c,
+                `<geogebra><construction>
+<element type="numeric" label="cx"><value val="0"/><slider min="0" max="1" width="200" x="50" y="50" fixed="true" horizontal="true"/></element>
+<expression label="P" exp="(cx, 0)" type="point"/>
+<element type="point" label="P"><show object="true" label="true"/><objColor r="0" g="0" b="0" alpha="0" dynamicr="cx" dynamicg="0" dynamicb="0" colorSpace="0"/><coords x="0" y="0" z="1"/></element>
+<element type="boolean" label="on"><value val="false"/></element>
+<element type="button" label="Bouton1"><caption val="Trace"/>
+<ggbscript val="SetValue[on,1-on]&#xd;&#xa;SetTrace[P,on]&#xd;&#xa;SetCaption[Bouton1,If[on,&quot;Effacer&quot;,&quot;Trace&quot;]]&#xd;&#xa;SetActiveView[&quot;T&quot;]&#xd;&#xa;Pan[0,0,0]"/></element>
+<element type="numeric" label="g"><value val="1"/><slider min="1" max="50" width="100" x="50" y="150" fixed="true" horizontal="true"/>
+<ggbscript onUpdate="SetActiveView[-1]&#xd;&#xa;SetBackgroundColor[g/50,g/50,g/50]&#xd;&#xa;SetActiveView[1]"/></element>
+</construction></geogebra>`,
+            ),
+        ).toEqual([]);
+        const frame = () =>
+            new Promise((resolve) => requestAnimationFrame(resolve));
+        const button = c.getObj("Bouton1") as button_object;
+        expect(
+            blocksProgram(
+                programBlocks(button.program!.program, true, formatName)!,
+                formatName,
+            ),
+        ).toBe(`on.setExpression(1 - on);
+P.setTrace(on);
+Bouton1.setCaption(on ? "Effacer" : "Trace");
+CLEAR_TRACES();`);
+        const traces = () =>
+            c.traceLayer
+                .findAll("path")
+                .map((path) => [
+                    (path.dom() as SVGElement).style.stroke,
+                    path.att("d"),
+                ])
+                .filter(([, d]) => d);
+        button.run();
+        await frame();
+        expect([button.label, (c.getObj("P") as point_object).trace]).toEqual([
+            "Effacer",
+            true,
+        ]);
+        // Each position keeps its color.
+        const cx = c.getObj("cx") as expression_object;
+        for (const value of [0.5, 1]) {
+            cx.value = value;
+            c.invalidateGeometry(cx);
+            await frame();
+        }
+        expect(new Set(traces().map(([stroke]) => stroke)).size).toBe(2);
+        // Stopped, it is erased.
+        button.run();
+        await frame();
+        expect([button.label, traces()]).toEqual(["Trace", []]);
+        // The slider's update script colors the background.
+        const g = c.getObj("g") as expression_object;
+        g.value = 25;
+        c.invalidateGeometry(g);
+        await frame();
+        expect(c.prefs.background.color).toBe("rgb(128,128,128)");
+        const programs = c.OBJS.V.filter(
+            (object): object is event_object => object instanceof event_object,
+        ).map(({ program }) =>
+            blocksProgram(
+                programBlocks(program.program, true, formatName)!,
+                formatName,
+            ),
+        );
+        expect(programs).toEqual([
+            `BACKGROUND(255 * (g / 50), 255 * (g / 50), 255 * (g / 50));`,
+        ]);
+        // Saved and opened again, the button still captions itself.
+        const restored = createConstruction();
+        readDgo(restored, await describeDgo(c));
+        const again = restored.getObj("Bouton1") as button_object;
+        again.run();
+        expect(again.label).toBe("Effacer");
+    });
+
     it("computes with complex numbers and runs update scripts as GeoGebra", async () => {
         const c = createConstruction();
         c.animations.paused = true;
@@ -5047,6 +5127,100 @@ if ((!az ? 1 : 0) == 0) {
             [0, 140],
         ]);
         expect(restored.GRID.axisLabels).toEqual(["x", "y", "z"]);
+    });
+
+    it("waits for a later point past a function reading its own name, shades half-planes, keeps layers", () => {
+        const c = createConstruction();
+        expect(
+            importGgb(
+                c,
+                `<geogebra><construction>
+<expression label="f" exp="f(x) = x / 2" type="function"/>
+<element type="function" label="f"><show object="false" label="true"/></element>
+<expression label="C_1" exp="(f(2), 0)" type="point"/>
+<element type="point" label="C_1"><coords x="1" y="0" z="1"/></element>
+<expression label="t" exp="&quot;C&quot;"/>
+<element type="text" label="t"><startPoint exp="C_3"/></element>
+<expression label="C_3" exp="C_1 + (1, 0)" type="point"/>
+<element type="point" label="C_3"><coords x="2" y="0" z="1"/></element>
+<expression label="a" exp="a(x) = x ≤ (-2)" type="inequality"/>
+<element type="function" label="a"><objColor r="128" g="128" b="128" alpha="1"/><layer val="2"/></element>
+<expression label="b" exp="b(y) = y ≥ 1"/>
+<element type="function" label="b"/>
+<expression label="q" exp="q(x) = x² &lt; 2" type="inequality"/>
+<element type="function" label="q"/>
+<element type="numeric" label="n"><value val="1"/><slider min="0" max="5" absoluteScreenLocation="true" x="10" y="10" width="100"/><layer val="3"/></element>
+<element type="button" label="go"><ggbscript val="SetValue[n, 2]"/><font sizeM="0.5" size="-7"/><dimensions width="30" height="30"/></element>
+</construction></geogebra>`,
+            ),
+        ).toEqual(["function q"]);
+        expect(c.getObj("t")).toBeInstanceOf(text_object);
+        // Beyond the window, its edge on x = -2.
+        const left = c.getObj("a") as polygon_object;
+        expect(left).toBeInstanceOf(polygon_object);
+        const xs = left.parents.map((p) => (p as point_object).coords[0]);
+        expect(xs.slice(0, 2)).toEqual([-2, -2]);
+        expect(Math.min(...xs)).toBeLessThan(-2);
+        expect(left.level).toBe(4);
+        const ys = (c.getObj("b") as polygon_object).parents.map(
+            (p) => (p as point_object).coords[1],
+        );
+        expect(ys.slice(0, 2)).toEqual([1, 1]);
+        expect((c.getObj("n") as expression_object).level).toBe(6);
+        expect((c.getObj("go") as button_object).fontSize).toBe(8);
+    });
+
+    it("puts a point in a sphere on it and draws a circle through three points of space", () => {
+        const c = createConstruction();
+        const xml = `<geogebra><construction>
+<element type="point3d" label="O"><coords x="0" y="0" z="0" w="1"/></element>
+<command name="Sphere"><input a0="O" a1="4"/><output a0="s"/></command>
+<element type="quadric" label="s"/>
+<command name="PointIn"><input a0="s"/><output a0="A"/></command>
+<element type="point3d" label="A"><coords x="2.4" y="0" z="3.2" w="1"/></element>
+<command name="PointIn"><input a0="s"/><output a0="B"/></command>
+<element type="point3d" label="B"><coords x="0" y="4" z="0" w="1"/></element>
+<command name="Mirror"><input a0="A" a1="O"/><output a0="A'"/></command>
+<element type="point3d" label="A'"><coords x="-2.4" y="0" z="-3.2" w="1"/></element>
+<command name="Circle"><input a0="A" a1="B" a2="A'"/><output a0="d"/></command>
+<element type="conic3d" label="d"/>
+<element type="vector3d" label="v"><coords x="1" y="2" z="3" w="0"/></element>
+<command name="CurveCartesian"><input a0="(4 * cos(φ))" a1="0" a2="(4 * sin(φ))" a3="φ" a4="-1.5708" a5="1.5708"/><output a0="m"/></command>
+<element type="curvecartesian3d" label="m"/>
+<expression label="t" exp="&quot;A&quot;"/>
+<element type="text" label="t"><show object="true" label="false" ev="8"/><startPoint x="-2" y="3" z="1"/></element>
+</construction></geogebra>`;
+        expect(importGgb(c, xml)).toEqual([]);
+        expectSavedPoints(c, xml);
+        const circle = c.getObj("d") as circle3pts_object;
+        expect(circle.space).toBe(true);
+        expect(circle.R).toBeCloseTo(4, 12);
+        expect(c.getObj("v")).toBeInstanceOf(vector_object);
+        expect(c.getObj("m")).toBeInstanceOf(locus_object);
+        // Of the graphics view only: on screen, not in space.
+        expect(c.getObj("t")).toBeInstanceOf(expression_object);
+    });
+
+    it("paints the graphics view beside the 3D view in its own background", async () => {
+        const c = createConstruction();
+        importGgb(
+            c,
+            `<geogebra><gui><perspectives><perspective id="tmp"><views>
+<view id="1" visible="true" location="3,2"/><view id="512" visible="true" location="1"/>
+</views></perspective></perspectives></gui>
+<euclidianView><size width="300" height="600"/><coordSystem xZero="100" yZero="300" scale="50" yscale="50"/><bgColor r="160" g="160" b="160"/></euclidianView>
+<euclidianView3D><coordSystem xZero="0" yZero="0" zZero="0" scale="50" xAngle="20" zAngle="-30"/><bgColor r="5" g="5" b="5"/></euclidianView3D>
+<construction><element type="point3d" label="A"><coords x="1" y="0" z="0" w="1"/></element></construction></geogebra>`,
+        );
+        expect([c.GRID.viewInset, c.GRID.insetColor]).toEqual([
+            [300, 0],
+            "#a0a0a0",
+        ]);
+        const restored = createConstruction();
+        readDgo(restored, await describeDgo(c));
+        expect((restored.svg.dom() as SVGElement).style.background).toContain(
+            "linear-gradient(to right",
+        );
     });
 
     it("reports what it can't import instead of failing", () => {
